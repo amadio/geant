@@ -270,154 +270,62 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleXL(
   return Blend(below, (1. - r3) * xd + r3 * xu, r3 * xd + (1. - r3) * xu);
 }
 
-#define INDEX_CHECK(AnIndex, BminVal, CmaxVal, DindexName, EmaxName)                                                   \
-  if ((AnIndex < BminVal) || (AnIndex > CmaxVal)) {                                                                    \
-    printf(" Illegal %s = %d vs min = %d and max ( %s ) = %d\n", DindexName, AnIndex, BminVal, EmaxName, CmaxVal);     \
-  }
-
-// Scalar method - to be used ONLY for 'scalar-type' backends
-//                  i.e. currently: scalar & CUDA
 template <class Backend>
-inline void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index,
-                                        Index_v<typename Backend::Double_v> zElement,
-                                        typename Backend::Double_v &probNA,
-                                        Index_v<typename Backend::Double_v> &aliasInd) const
+inline VECCORE_CUDA_HOST_DEVICE
+void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index,
+                                 Index_v<typename Backend::Double_v> zElement,
+                                 typename Backend::Double_v &probNA,
+                                 Index_v<typename Backend::Double_v> &aliasInd) const
 {
-#ifdef CHECK
-// if( zElement <= 0  || zElement > fMaxZelement )
-//{
-//  printf(" Illegal zElement = %d\n",zElement);
-//}
-#endif
-  //  assert( (zElement > 0)  && (zElement <= fMaxZelement) );
-
-  int intIndex = (int)index;
-
-#ifdef CHECK
-//  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
-//  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
-#endif
-  //  assert( (intIndex >= 0) && (intIndex < tableSize) );
-
-  probNA = (fAliasTableManager->GetAliasTable(zElement))->fProbQ[intIndex];
-  aliasInd = (fAliasTableManager->GetAliasTable(zElement))->fAlias[intIndex];
+  for (size_t i = 0; i < VectorSize(index); ++i) {
+    int idx  = LaneAt(index, i);
+    int Zidx = LaneAt(zElement, i);
+    AssignLane(probNA,   i, fAliasTableManager->GetAliasTable(Zidx)->fProbQ[idx]);
+    AssignLane(aliasInd, i, fAliasTableManager->GetAliasTable(Zidx)->fAlias[idx]);
+  }
 }
 
 template <class Backend>
-inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> zElement,
-                                                         Index_v<typename Backend::Double_v> irow,
-                                                         Index_v<typename Backend::Double_v> icol) const
+inline VECCORE_CUDA_HOST_DEVICE
+typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> zElement,
+                                                  Index_v<typename Backend::Double_v> irow,
+                                                  Index_v<typename Backend::Double_v> icol) const
 {
-  using Double_v = typename Backend::Double_v;
-
-  int intIndex = (int)(fSampledNumEntries * irow + icol);
-  Double_v pdf = (fAliasTableManager->GetAliasTable(zElement))->fpdf[intIndex];
-
+  typename Backend::Double_v pdf;
+  for (size_t i = 0; i < VectorSize<Double_v>(); ++i) {
+    int Zidx = LaneAt(zElement, i);
+    int  idx = fSampledNumEntries * LaneAt(irow, i) + LaneAt(icol, i);
+    AssignLane(pdf, i, fAliasTableManager->GetAliasTable(Zidx)->fpdf[idx]);
+  }
   return pdf;
 }
 
 // For atomic independent models
 
 template <class Backend>
-inline void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, typename Backend::Double_v &probNA,
-                                        Index_v<typename Backend::Double_v> &aliasInd) const
+inline VECCORE_CUDA_HOST_DEVICE
+void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, typename Backend::Double_v &probNA,
+                                 Index_v<typename Backend::Double_v> &aliasInd) const
 {
-  int intIndex = (int)index;
-  probNA = (fAliasTableManager->GetAliasTable(0))->fProbQ[intIndex];
-  aliasInd = (fAliasTableManager->GetAliasTable(0))->fAlias[intIndex];
+  for (size_t i = 0; i < VectorSize(index); ++i) {
+    int idx = LaneAt(index, i);
+    AssignLane(probNA,   i, fAliasTableManager->GetAliasTable(0)->fProbQ[idx]);
+    AssignLane(aliasInd, i, fAliasTableManager->GetAliasTable(0)->fAlias[idx]);
+  }
 }
 
 template <class Backend>
-inline typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> irow,
-                                                         Index_v<typename Backend::Double_v> icol) const
+inline VECCORE_CUDA_HOST_DEVICE
+typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> irow,
+                                                  Index_v<typename Backend::Double_v> icol) const
 {
-  using Double_v = typename Backend::Double_v;
-
-  int intIndex = (int)(fSampledNumEntries * irow + icol);
-  Double_v pdf = (fAliasTableManager->GetAliasTable(0))->fpdf[intIndex];
-
-  return pdf;
-}
-
-// Specialisation for all vector-type backends - Vc for now
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
-template <>
-inline VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::GatherAlias<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> index, Index_v<typename backend::VcVector::Double_v> zElement,
-    typename backend::VcVector::Double_v &probNA, Index_v<typename backend::VcVector::Double_v> &aliasInd) const
-{
-  // gather for alias table lookups - (backend type has no ptr arithmetic)
-  for (size_t i = 0; i < VectorSize(index); ++i) {
-    int z = zElement[i];
-    int ind = index[i];
-
-    if (ind < 0) {
-      // printf("Warning: negative index! - in GUPhotoElectronSauterGavrila\n");
-      ind = 0;
-    }
-
-    // assert( z > 0  && z <= fMaxZelement );
-    //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
-
-    probNA[i] = (fAliasTableManager->GetAliasTable(z))->fProbQ[ind];
-    aliasInd[i] = (fAliasTableManager->GetAliasTable(z))->fAlias[ind];
-  }
-}
-
-template <>
-inline VECCORE_CUDA_HOST_DEVICE typename backend::VcVector::Double_v GUAliasSampler::GetPDF<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> zElement, Index_v<typename backend::VcVector::Double_v> irow,
-    Index_v<typename backend::VcVector::Double_v> icol) const
-{
-  typedef typename backend::VcVector::Double_v Double_v;
-
-  Double_v pdf;
-
+  typename Backend::Double_v pdf;
   for (size_t i = 0; i < VectorSize<Double_v>(); ++i) {
-    int z = zElement[i];
-    int ind = fSampledNumEntries * irow[i] + icol[i];
-
-    if (ind < 0) {
-      ind = 0;
-    }
-
-    // assert( z > 0  && z <= fMaxZelement );
-    pdf[i] = (fAliasTableManager->GetAliasTable(z))->fpdf[ind];
+    int idx = fSampledNumEntries * LaneAt(irow, i) + LaneAt(icol, i);
+    AssignLane(pdf, i, fAliasTableManager->GetAliasTable(0)->fpdf[idx]);
   }
   return pdf;
 }
-
-// For atomic indedepend models
-
-template <>
-inline VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::GatherAlias<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> index, typename backend::VcVector::Double_v &probNA,
-    Index_v<typename backend::VcVector::Double_v> &aliasInd) const
-{
-  // gather for alias table lookups - (backend type has no ptr arithmetic)
-  for (size_t i = 0; i < VectorSize(index); ++i) {
-    int ind = index[i];
-    probNA[i] = (fAliasTableManager->GetAliasTable(0))->fProbQ[ind];
-    aliasInd[i] = (fAliasTableManager->GetAliasTable(0))->fAlias[ind];
-  }
-}
-
-template <>
-inline VECCORE_CUDA_HOST_DEVICE typename backend::VcVector::Double_v GUAliasSampler::GetPDF<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> irow, Index_v<typename backend::VcVector::Double_v> icol) const
-{
-  typedef typename backend::VcVector::Double_v Double_v;
-
-  Double_v pdf;
-
-  for (size_t i = 0; i < VectorSize<Double_v>(); ++i) {
-    int ind = fSampledNumEntries * irow[i] + icol[i];
-    pdf[i] = (fAliasTableManager->GetAliasTable(0))->fpdf[ind];
-  }
-  return pdf;
-}
-
-#endif
 
 } // end namespace impl
 } // end namespace vecphys
