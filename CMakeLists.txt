@@ -448,11 +448,12 @@ endif()
 if (CUDA)
   option(GEANT_CUDA_SINGLE_SOURCE "Compile all the GeantV CUDA code in a single compilation unit." ON)
 
+  # We must have those over-ride placed here as they need to be done before loading FindCUDA.cmake
+  set(CUDA_USE_STATIC_CUDA_RUNTIME OFF CACHE BOOL "Use the static version of the CUDA runtime library if available")
+  set(CUDA_SEPARABLE_COMPILATION ON CACHE BOOL "Compile CUDA objects with separable compilation enabled.")
+
   find_package(CUDA REQUIRED)
   include(FindCUDA)
-
-  set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
-  set(CUDA_SEPARABLE_COMPILATION ON)
 
   if (NOT CUDA_ARCH)
     if (CUDA_SEPARABLE_COMPILATION)
