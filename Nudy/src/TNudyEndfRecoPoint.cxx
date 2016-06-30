@@ -862,7 +862,6 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
     
     sigmaOfMts.push_back(sigmaMts);
     sigmaMts.clear();
-//    std::vector<double>().swap(sigmaMts);
     }
   }
   MtValues.push_back(MtNumbers);
@@ -1889,11 +1888,18 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF, double isigDiff
   TKey *rkey = (TKey*)rEND->GetListOfKeys()->First();
   TNudyEndfTape *rENDFVol = (TNudyEndfTape*)rkey->ReadObj();
   TNudyEndfMat *tMat = 0; 
-  TList *mats = (TList*)rENDFVol->GetMats(); 
- 
+  TList *mats = (TList*)rENDFVol->GetMats();
   int nmats = mats->GetEntries();
   for (int iMat = 0; iMat < nmats; iMat++) {
     tMat = (TNudyEndfMat*)mats->At(iMat);
+  for (int inf = 0; inf < tMat->GetNXC(); inf++){
+    if(tMat->GetMFn(inf)>3){
+      MtNumbers.push_back(tMat->GetMFn(inf));
+      MtNumbers.push_back(tMat->GetMTn(inf));
+    }
+  }
+  Mt456.push_back(MtNumbers);
+  std::vector<int>().swap(MtNumbers);
 //    std::cout<<" MAT number "<< tMat->GetMAT() <<"  "<< nmats << std::endl;
     TIter iter(tMat->GetFiles());
     TNudyEndfFile *file;
@@ -1933,9 +1939,9 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF, double isigDiff
 	  fixupTotal(energyUni, sigmaUniTotal);
 	  eneUni.push_back(energyUni);
 	  sigUniT.push_back(sigmaUniTotal);
+	  std::cout<<"Union Total OK "<<  energyUni.size()  <<std::endl;
 	  energyUni.clear();
 	  sigmaUniTotal.clear();
-	  std::cout<<"Union Total OK "<<std::endl;
 	  sigma.clear();
   // std::cout<<LRU <<"  "<< LSSF<<std::endl; 
 	  std::cout<<"before Doppler begins "<<std::endl;
@@ -2048,6 +2054,7 @@ void TNudyEndfRecoPoint::fixupTotal(std::vector<double> &x1,
   ///*
   for (unsigned long i = 0; i < sigmaUniOfMts.size(); i++){
     int size = sigmaUniOfMts[i].size();
+      //std::cout<<"size "<<  energyLocationMts.size  << std::endl;
     for (int j = 0; j < size; j++){
       x2[energyLocationMts[i] + j] += sigmaUniOfMts[i][j];
 	//std::cout <<"MT= "<< MtValues[elemId][i] <<"  "<< x1[energyLocationMts[i]+j] << "  "<< sigmaUniOfMts[i][j]<< std::endl;
@@ -2114,7 +2121,7 @@ double TNudyEndfRecoPoint::Thinning(std::vector<double> &x1, std::vector<double>
     double sigmid1 = x2[i] + (x2[i+2] - x2[i])*(x1[i+1] - x1[i])/(x1[i+2] - x1[i]);
 //  std::cout<<" mid " << mid <<"  "<< siga <<"  "<< sigmid1 << std::endl;
   
-    if(std::fabs((x2[i+1] - sigmid1)/sigmid1)<=sigDiff){
+    if(std::fabs((x2[i+1] - sigmid1)/sigmid1) <= sigDiff){
       x1.erase(x1.begin()+i+1);
       x2.erase(x2.begin()+i+1);
     } 
@@ -2129,113 +2136,35 @@ double TNudyEndfRecoPoint::Thinning(std::vector<double> &x1, std::vector<double>
   Thinning(x1, x2);
   return 0;
 }
+
+//------------------------------------------------------------------------------------------------------
+double TNudyEndfRecoPoint::GetCos6(int ielemId, int mt, double energyK){
+  return recoEnergyAng->GetCos4(ielemId, mt, energyK);
+}
+//------------------------------------------------------------------------------------------------------
+double TNudyEndfRecoPoint::GetEnergy6(int ielemId, int mt, double energyK){
+  return recoEnergyAng->GetEnergy5(ielemId, mt, energyK);
+}
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetCos4(int ielemId, int mt, double energyK){
-  fRnd = new TRandom();
-  int i = -1;
-  for(unsigned int l =0; l < recoAng->Mt4Values[ielemId].size(); l++){
-    if(recoAng->Mt4Values[ielemId][l] == mt){
-      i = l;
-      break;
-    }
-  }
-  if( i < 0 ) return 99;
-  int min = 0;
-  int max = recoAng->energy4OfMts[ielemId][i].size() - 1;
-  int mid = 0;
-  if (energyK <= recoAng->energy4OfMts[ielemId][i][min])min = 0;
-  else if (energyK >= recoAng->energy4OfMts[ielemId][i][max]) min = max - 1;
-  else {
-    while (max - min > 1) {
-      mid = (min + max) / 2;
-      if (energyK < recoAng->energy4OfMts[ielemId][i][mid]) max = mid;
-      else min = mid;
-    }
-  }
-  double fraction = (energyK - recoAng->energy4OfMts[ielemId][i][min])/
-                    (recoAng->energy4OfMts[ielemId][i][min+1] - recoAng->energy4OfMts[ielemId][i][min]);
-		    //std::cout <<" fraction "<< fraction <<"  "<< energyK <<"  "<< recoAng->energy4OfMts[ielemId][i][min] << std::endl;
-  double rnd1 = fRnd->Uniform(1);
-  double rnd2 = fRnd->Uniform(1);
-  if(rnd2 < fraction)min = min + 1;
-  int k =0;
-  //std::cout<<" pdf size "<< recoAng->cosPdf4OfMts[ielemId][i][min].size()/2 << std::endl;
-  int size = recoAng->cosPdf4OfMts[ielemId][i][min].size()/2;
-  for(int j = 0; j < size; j++){
-    if(rnd1 < recoAng->cosCdf4OfMts[ielemId][i][min][2 * j + 1]){
-      k = j - 1 ;
-      if(k < 0)k = 0;
-      if(k >= size - 1) k = size - 2;
-      break;
-    }
-  }
-    //std::cout<< recoAng->cosCdf4OfMts[ielemId][i][min][2 * k + 3]<< "  "<< recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 3] << std::endl;
-  //std::cout<<" pdf "<<k<<"  "<< recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 3]<<"  "<< recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 1] << std::endl;
-  //std::cout<<" cos "<< recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 2]<<"  "<< recoAng->cosPdf4OfMts[ielemId][i][min][2 * k ] << std::endl;
-  double plk = (recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 3] - recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 1])/
-               (recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 2] - recoAng->cosPdf4OfMts[ielemId][i][min][2 * k]);
-  double plk2 =  recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 1] * recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 1];
-  double plsq = plk2 + 2 * plk *(rnd1 - recoAng->cosCdf4OfMts[ielemId][i][min][2 * k + 1]);
-  //std::cout <<"plk "<< plk <<" plk2 "<< plk2 <<"  "<< k << std::endl;
-  double Ang = 0 ;
-  if(plk !=0 && plsq > 0){Ang = recoAng->cosPdf4OfMts[ielemId][i][min][2 * k] + (sqrt(std::fabs(plsq)) -
-                     recoAng->cosPdf4OfMts[ielemId][i][min][2 * k + 1])/plk;
-  //std::cout<< Ang <<" first "<< rnd1 << std::endl;
-  }else {
-    Ang = 2 * rnd1 - 1; 
-  //std::cout<< Ang <<" sec  "<< rnd1 << std::endl;
-  }
-  return Ang ;
+  return recoAng->GetCos4(ielemId, mt, energyK);
 }
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetEnergy5(int ielemId, int mt, double energyK){
-  fRnd = new TRandom();
-  int i = -1;
-  std::cout<<"mt "<< mt << std::endl;
-  if(!recoEnergy)return -1;
- for(unsigned int l =0; l < recoEnergy->Mt5Values[ielemId].size(); l++){
-   if(recoEnergy->Mt5Values[ielemId][l] == mt){
-     i = l;
-     break;
-   }
- }
- if( i < 0 ) return 99;
-  int min = 0;
-  int max = recoEnergy->energy5OfMts[ielemId][i].size() - 1;
-  int mid = 0;
-  if (energyK <= recoEnergy->energy5OfMts[ielemId][i][min])min = 0;
-  else if (energyK >= recoEnergy->energy5OfMts[ielemId][i][max]) min = max - 1;
-  else {
-    while (max - min > 1) {
-      mid = (min + max) / 2;
-      if (energyK < recoEnergy->energy5OfMts[ielemId][i][mid]) max = mid;
-      else min = mid;
-    }
-  }
-  double fraction = (energyK - recoEnergy->energy5OfMts[ielemId][i][min])/
-                    (recoEnergy->energy5OfMts[ielemId][i][min+1] - recoEnergy->energy5OfMts[ielemId][i][min]);
-  double rnd1 = fRnd->Uniform(1);
-  double rnd2 = fRnd->Uniform(1);
-  if(rnd2 < fraction)min = min + 1;
-  int k =0;
-  int size = recoEnergy->energyPdf5OfMts[ielemId][i][min].size()/2; 
-  for(unsigned int j = 0; j < recoEnergy->energyPdf5OfMts[ielemId][i][min].size()/2; j++){
-    if(rnd1 <= recoEnergy->energyCdf5OfMts[ielemId][i][min][2*j + 1]){
-      k = j - 1;
-      if(k < 0)k = 0;
-      if(k >= size - 1) k = size - 2;
-      break;
-    }
-  }
-  double plk = (recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k + 3] - recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k + 1])/
-               (recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k + 2] - recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k]);
-  double plk2 =  recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k + 1]* recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k + 1];
-  
-  double edes = 0;
-  if(plk>0)edes = recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k] + (sqrt(plk2 + 2 * plk *(rnd1 - recoEnergy->energyCdf5OfMts[ielemId][i][min][2 * k + 1])) -
-                recoEnergy->energyPdf5OfMts[ielemId][i][min][2 * k + 1])/plk;
-  return edes;
+  return recoEnergy->GetEnergy5(ielemId, mt, energyK);
+}
+//------------------------------------------------------------------------------------------------------
+int TNudyEndfRecoPoint::GetLaw6(int ielemId, int mt){
+  return recoEnergyAng->GetLaw6(ielemId, mt);
 }
 //-------------------------------------------------------------------------------------------------------
-
+double TNudyEndfRecoPoint::GetMt456(int ielemId, int mt){
+  int size = Mt456[ielemId].size()/2;
+  for (int i = 0; i < size; i++){
+    if(Mt456[ielemId][ 2 * i + 1] == mt){
+      return  Mt456[ielemId][ 2 * i ] ;
+    }
+  }
+  return 0;
+}
 TNudyEndfRecoPoint::~TNudyEndfRecoPoint(){}

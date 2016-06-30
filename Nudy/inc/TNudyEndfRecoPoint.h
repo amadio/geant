@@ -50,9 +50,13 @@ public:
   void fixupTotal(rowd &x1, rowd &x2);
   double GetSigmaTotal(int elemid, double energyK);
   double GetSigmaPartial(int elemid, int i, double energyK);
-  double GetCos4(int elemid, int mt, double energyK);
-  double GetEnergy5(int elemid, int mt, double energyK);
+  virtual double GetCos4(int elemid, int mt, double energyK);
+  virtual double GetEnergy5(int elemid, int mt, double energyK);
+  virtual double GetCos6(int elemid, int mt, double energyK);
+  virtual double GetEnergy6(int elemid, int mt, double energyK);
   virtual double GetQValue(int i) const { return QValue[i]; }
+  virtual double GetMt456(int elemid, int mt);
+  virtual int GetLaw6(int ielemId, int mt);
   std::fstream out,outtotal;
   std::string outstring,outstringTotal;
   matrixint MtValues;              // MT values for which cross-section/ heating values are given  all elements
@@ -72,6 +76,8 @@ protected:
   matrixd4 energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
   matrixd3 energy5OfMts;       // incident energy in file 4 for each reaction
   matrixint Mt5Values;             // MT values for which angular distributions are given in file 4
+  matrixint Mt456;             // MT values for which angular, energy/ angular-energy distributions are given in file 4, 5, 6
+  matrixint Law6;             // law 6 for angular-energy distributions are given in file 6
   double AWRI;
 private:
   void ReadFile2(TNudyEndfFile *file);

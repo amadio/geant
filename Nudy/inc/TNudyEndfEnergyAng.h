@@ -8,12 +8,19 @@ typedef std::vector<double> rowd;
 typedef std::vector<int> rowint;
 typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
+#ifdef USE_ROOT
+#include "Rtypes.h"
+class TRandom;
+#endif
 
 class  TNudyEndfEnergyAng : public TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfEnergyAng ();
   TNudyEndfEnergyAng (TNudyEndfFile *file, double []);
+  virtual double GetCos4(int elemid, int mt, double energyK);
+  virtual double GetEnergy5(int elemid, int mt, double energyK);
+  virtual int GetLaw6(int ielemId, int mt);
   virtual ~TNudyEndfEnergyAng ();
 private:
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
@@ -31,6 +38,7 @@ private:
   rowd cosCdfFile4, energyCdfFile5;
   rowd edes6,f06,r6,a6;
   rowd fE1, fP1, fE2, fP2, fE3, fP3, INorm;
+  rowint law;				// law6 numbers
   rowint MtNumbers;				// MT numbers
   rowint MtLct;				// LCT numbers
   rowint nbt1,int1;
@@ -39,9 +47,15 @@ private:
   int nr2, np2;                         // standard ENDF parameters
   rowint nbt3,int3;
   int nr3, np3;                         // standard ENDF parameters
-  rowd ein,cdf,pdf,lCoef1;
-  matrixd2 pdf2d,cdf2d,lCoef,ein2d;
-  matrixd3 pdf3d,cdf3d;
+  rowd ein,cdfc,pdfc,lCoef1;
+  rowd cdfe,pdfe;
+  matrixd2 pdf2dc,cdf2dc,lCoef,ein2d;
+  matrixd3 pdf3dc,cdf3dc;
+  matrixd2 pdf2de,cdf2de;
+  matrixd3 pdf3de,cdf3de;
+#ifdef USE_ROOT
+  TRandom *fRnd;
+#endif
 #ifdef USE_ROOT
   ClassDef(TNudyEndfEnergyAng, 1) // class for an ENDF reconstruction
 #endif

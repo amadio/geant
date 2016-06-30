@@ -16,6 +16,7 @@
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfAng)
+#include "TRandom.h"
 #endif
 
 TNudyEndfAng::TNudyEndfAng () : TNudyEndfRecoPoint(){}
@@ -263,4 +264,62 @@ void TNudyEndfAng::fillPdf2d() {
   ein.clear();
   pdf2d.clear();
   cdf2d.clear();
+}
+//------------------------------------------------------------------------------------------------------
+double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
+  fRnd = new TRandom();
+  int i = -1;
+  for(unsigned int l =0; l < Mt4Values[ielemId].size(); l++){
+    if(Mt4Values[ielemId][l] == mt){
+      i = l;
+      break;
+    }
+  }
+  if( i < 0 ) return 99;
+  int min = 0;
+  int max = energy4OfMts[ielemId][i].size() - 1;
+  int mid = 0;
+  if (energyK <= energy4OfMts[ielemId][i][min])min = 0;
+  else if (energyK >= energy4OfMts[ielemId][i][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < energy4OfMts[ielemId][i][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  double fraction = (energyK - energy4OfMts[ielemId][i][min])/
+                    (energy4OfMts[ielemId][i][min+1] - energy4OfMts[ielemId][i][min]);
+		    //std::cout <<" fraction "<< fraction <<"  "<< energyK <<"  "<< energy4OfMts[ielemId][i][min] << std::endl;
+  double rnd1 = fRnd->Uniform(1);
+  double rnd2 = fRnd->Uniform(1);
+  if(rnd2 < fraction)min = min + 1;
+  int k =0;
+  //std::cout<<" pdf size "<< cosPdf4OfMts[ielemId][i][min].size()/2 << std::endl;
+  int size = cosPdf4OfMts[ielemId][i][min].size()/2;
+  for(int j = 0; j < size; j++){
+    if(rnd1 < cosCdf4OfMts[ielemId][i][min][2 * j + 1]){
+      k = j - 1 ;
+      if(k < 0)k = 0;
+      if(k >= size - 1) k = size - 2;
+      break;
+    }
+  }
+    //std::cout<< cosCdf4OfMts[ielemId][i][min][2 * k + 3]<< "  "<< cosPdf4OfMts[ielemId][i][min][2 * k + 3] << std::endl;
+  //std::cout<<" pdf "<<k<<"  "<< cosPdf4OfMts[ielemId][i][min][2 * k + 3]<<"  "<< cosPdf4OfMts[ielemId][i][min][2 * k + 1] << std::endl;
+  //std::cout<<" cos "<< cosPdf4OfMts[ielemId][i][min][2 * k + 2]<<"  "<< cosPdf4OfMts[ielemId][i][min][2 * k ] << std::endl;
+  double plk = (cosPdf4OfMts[ielemId][i][min][2 * k + 3] - cosPdf4OfMts[ielemId][i][min][2 * k + 1])/
+               (cosPdf4OfMts[ielemId][i][min][2 * k + 2] - cosPdf4OfMts[ielemId][i][min][2 * k]);
+  double plk2 =  cosPdf4OfMts[ielemId][i][min][2 * k + 1] * cosPdf4OfMts[ielemId][i][min][2 * k + 1];
+  double plsq = plk2 + 2 * plk *(rnd1 - cosCdf4OfMts[ielemId][i][min][2 * k + 1]);
+  //std::cout <<"plk "<< plk <<" plk2 "<< plk2 <<"  "<< k << std::endl;
+  double Ang = 0 ;
+  if(plk !=0 && plsq > 0){Ang = cosPdf4OfMts[ielemId][i][min][2 * k] + (sqrt(std::fabs(plsq)) -
+                     cosPdf4OfMts[ielemId][i][min][2 * k + 1])/plk;
+  //std::cout<< Ang <<" first "<< rnd1 << std::endl;
+  }else {
+    Ang = 2 * rnd1 - 1; 
+  //std::cout<< Ang <<" sec  "<< rnd1 << std::endl;
+  }
+  return Ang ;
 }

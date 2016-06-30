@@ -1,6 +1,7 @@
 #ifndef TNudySampling_H
 #define TNudySampling_H
 
+#include "Particle.h"
 #define PI acos(-1.0)
 #ifdef USE_ROOT
 #include "Rtypes.h"
@@ -11,7 +12,7 @@ class  TNudySampling{
 
 public: 
   TNudySampling ();
-  TNudySampling (TNudyEndfRecoPoint *recoPoint);
+  TNudySampling (Particle*, TNudyEndfRecoPoint *recoPoint);
   virtual ~TNudySampling ();
 private:
   

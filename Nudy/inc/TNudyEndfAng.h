@@ -9,11 +9,17 @@ typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
 typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
 
+#ifdef USE_ROOT
+#include "Rtypes.h"
+class TRandom;
+#endif
+
 class  TNudyEndfAng : public TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfAng ();
   TNudyEndfAng (TNudyEndfFile *file);
+  virtual double GetCos4(int elemid, int mt, double energyK);
   virtual ~TNudyEndfAng ();
 private:
   double recursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2);
@@ -31,6 +37,9 @@ private:
   rowint MtNumbers;				// MT numbers
   rowint MtLct;				// LCT numbers
   int nr, np;                         // standard ENDF parameters  
+#ifdef USE_ROOT
+  TRandom *fRnd;
+#endif
 #ifdef USE_ROOT
   ClassDef(TNudyEndfAng, 1) // class for an ENDF reconstruction
 #endif

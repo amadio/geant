@@ -9,11 +9,17 @@ typedef std::vector<int> rowint;
 typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
 
+#ifdef USE_ROOT
+#include "Rtypes.h"
+class TRandom;
+#endif
+
 class  TNudyEndfEnergy : public TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfEnergy ();
   TNudyEndfEnergy (TNudyEndfFile *file);
+  virtual double GetEnergy5(int elemid, int mt, double energyK);
   virtual ~TNudyEndfEnergy ();
 private:
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
@@ -40,6 +46,9 @@ private:
   rowd ein, cdf, pdf;
   matrixd2 cdf2d, pdf2d,ein2d;
   matrixd3 cdf3d, pdf3d;
+#ifdef USE_ROOT
+  TRandom *fRnd;
+#endif
   ClassDef(TNudyEndfEnergy, 1) // class for an ENDF energy reconstruction
 };
 #endif

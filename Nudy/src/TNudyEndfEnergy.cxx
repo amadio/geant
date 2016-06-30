@@ -2,7 +2,7 @@
 // 	of the secondatries
 // 	Author: Dr. Harphool Kumawat
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
-// 	date of creation: March 22, 2016
+// 	date of creation: March 24, 2016
 
 #include "TList.h"
 #include "TNudyEndfFile.h"
@@ -12,6 +12,11 @@
 #include "TNudyEndfEnergy.h"
 #include "Math/SpecFuncMathMore.h"
 #include "TMath.h"
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfEnergy)
+#include "TRandom.h"
+#endif
 
 TNudyEndfEnergy::TNudyEndfEnergy(){}
 
@@ -513,4 +518,51 @@ void TNudyEndfEnergy::fillPdf1d(){
   energyCdfFile5.clear();	
   pdf.clear();
   cdf.clear();
+}
+//------------------------------------------------------------------------------------------------------
+double TNudyEndfEnergy::GetEnergy5(int ielemId, int mt, double energyK){
+  fRnd = new TRandom();
+  int i = -1;
+ for(unsigned int l =0; l < Mt5Values[ielemId].size(); l++){
+   if(Mt5Values[ielemId][l] == mt){
+     i = l;
+     break;
+   }
+ }
+ if( i < 0 ) return 99;
+  int min = 0;
+  int max = energy5OfMts[ielemId][i].size() - 1;
+  int mid = 0;
+  if (energyK <= energy5OfMts[ielemId][i][min])min = 0;
+  else if (energyK >= energy5OfMts[ielemId][i][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < energy5OfMts[ielemId][i][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  double fraction = (energyK - energy5OfMts[ielemId][i][min])/
+                    (energy5OfMts[ielemId][i][min+1] - energy5OfMts[ielemId][i][min]);
+  double rnd1 = fRnd->Uniform(1);
+  double rnd2 = fRnd->Uniform(1);
+  if(rnd2 < fraction)min = min + 1;
+  int k =0;
+  int size = energyPdf5OfMts[ielemId][i][min].size()/2; 
+  for(unsigned int j = 0; j < energyPdf5OfMts[ielemId][i][min].size()/2; j++){
+    if(rnd1 <= energyCdf5OfMts[ielemId][i][min][2*j + 1]){
+      k = j - 1;
+      if(k < 0)k = 0;
+      if(k >= size - 1) k = size - 2;
+      break;
+    }
+  }
+  double plk = (energyPdf5OfMts[ielemId][i][min][2 * k + 3] - energyPdf5OfMts[ielemId][i][min][2 * k + 1])/
+               (energyPdf5OfMts[ielemId][i][min][2 * k + 2] - energyPdf5OfMts[ielemId][i][min][2 * k]);
+  double plk2 =  energyPdf5OfMts[ielemId][i][min][2 * k + 1]* energyPdf5OfMts[ielemId][i][min][2 * k + 1];
+  
+  double edes = 0;
+  if(plk>0)edes = energyPdf5OfMts[ielemId][i][min][2 * k] + (sqrt(plk2 + 2 * plk *(rnd1 - energyCdf5OfMts[ielemId][i][min][2 * k + 1])) -
+                energyPdf5OfMts[ielemId][i][min][2 * k + 1])/plk;
+  return edes;
 }

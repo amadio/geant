@@ -342,22 +342,25 @@ void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, st
     x3.push_back(df);
   }
 }
-
+//_______________________________________________________________________________
   double TNudyCore::cmToLabElasticE(double inE, double cmCos, double awr){
     return inE * ((1 + awr * awr + 2 * awr * cmCos)/((1 + awr) * (1 + awr)));
   }
+//_______________________________________________________________________________
   double TNudyCore::cmToLabElasticCosT(double cmCos, double awr){
-    double sint = sqrt(1 - cmCos * cmCos);
-    return atan(awr * sint/(awr * cmCos + 1));
+    return (awr * cmCos + 1 )/sqrt(awr *awr + 2 * awr * cmCos + 1);
   }
+//_______________________________________________________________________________
   double TNudyCore::cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr){
     double mass = awr + 1;
     return cmEOut + (inE + 2 * cmCos * mass * sqrt(inE * cmEOut))/(mass*mass);
   }
+//_______________________________________________________________________________
   double TNudyCore::cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr){
     double mass = awr + 1;
     return cmCos * sqrt(cmEOut / labEOut) + sqrt (inE / labEOut) / mass;
   }
+//_______________________________________________________________________________
 
 double TNudyCore::ThinningDuplicate(std::vector<double> &x1){
   int size = x1.size();
