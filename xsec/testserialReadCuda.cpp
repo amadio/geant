@@ -90,7 +90,7 @@ int main()
       return 0;
    }
 
-   for(auto irep=0; irep<kNREP; irep++) {
+   for(unsigned int irep=0; irep<kNREP; irep++) {
       iSampled[irep] = (double) UNIFORM();
    }
 
@@ -150,7 +150,7 @@ int main()
 
    std::ofstream fftest("xphysR.txt");
 
-   for(auto irep=0; irep<kNREP; ++irep)
+   for(unsigned int irep=0; irep<kNREP; ++irep)
       if (iEnergy[irep] >0.)
         fftest << "idPart "<<  iPart[irep] << ", energy " << iEnergy[irep] <<std::endl;
    fftest.close();
