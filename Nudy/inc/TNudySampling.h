@@ -5,7 +5,7 @@
 #define PI acos(-1.0)
 #ifdef USE_ROOT
 #include "Rtypes.h"
-class TRandom;
+class TRandom3;
 #endif
 
 class  TNudySampling{
@@ -17,7 +17,7 @@ public:
 private:
   
  #ifdef USE_ROOT
-  TRandom *fRnd;
+  TRandom3 *fRnd;
 #endif
  
 #ifdef USE_ROOT

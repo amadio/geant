@@ -79,9 +79,9 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       }else if(LNU == 2 && LDG == 0){
 	TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
 	int NNF = list->GetNPL();
-	double nui[NNF];
+	//double nui[NNF];
 	for(int i = 0; i < NNF; i++){
-	  nui[i] = list->GetLIST(i); 
+	  //nui[i] = list->GetLIST(i); 
 	  //	 std::cout<<" lambda "<< nui[i] << std::endl;
 	}
         TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
@@ -239,10 +239,10 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 	}else{
           TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
 	  int NNF = list->GetN1();
- 	  std::cout<< "Photon NNF "<< NNF <<" LO "<< LO << std::endl;
-	  double lambda[NNF];
+ 	  //std::cout<< "Photon NNF "<< NNF <<" LO "<< LO << std::endl;
+	  //double lambda[NNF];
 	  for(int i = 0; i < NNF; i++){
-	    lambda[i] = list->GetLIST(i);
+	    //lambda[i] = list->GetLIST(i);
 	    //	     std::cout <<"lambda  "<< lambda[i] << std::endl; 
 	  }
 	}

@@ -330,15 +330,15 @@ void TNudyCore::Sort(std::vector<double>& x1, std::vector<double>& x2){
 }
 
 void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, std::vector<double> &x3){
-  double cos4Cdf = 0.0;
+  double fsum = 0.0;
   for(unsigned long cr=0; cr < x1.size() ; cr ++){
-    cos4Cdf += x2[cr];
+    if(cr > 0)fsum += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
   }
   double df = 0.0;
   for(unsigned long cr=0; cr < x1.size() ; cr ++){
-    if(cos4Cdf > 0.0)x2[cr] /= cos4Cdf;
+    if(fsum > 0.0)x2[cr] /= fsum;
     // printf("%e   %e\n", x2[cr], cos4Cdf);
-    df += x2[cr];
+    if(cr > 0)df += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
     x3.push_back(df);
   }
 }

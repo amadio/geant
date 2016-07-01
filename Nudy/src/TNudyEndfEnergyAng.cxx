@@ -16,7 +16,7 @@
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfEnergyAng)
-#include "TRandom.h"
+#include "TRandom3.h"
 #endif
 
 TNudyEndfEnergyAng::TNudyEndfEnergyAng(){}
@@ -42,7 +42,7 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file, double iQValue[])
       double NA1 = AA -ZA;
       int ZAP =tab1->GetC1(); 
       double AWP =tab1->GetC2(); 
-      int LIP =tab1->GetL1(); 
+      //int LIP =tab1->GetL1(); 
       int LAW = tab1->GetL2();
       law.push_back(LAW);
       NR = tab1->GetN1();
@@ -50,10 +50,10 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file, double iQValue[])
       divr =div(ZAP,1000);
       double particleA = divr.rem;
       double particleZ = divr.quot;
-      std::cout<<"ZAP = "<< ZAP <<" AWP "<<AWP <<" LIP "<< LIP <<" parZ "<< particleZ <<" parA "<< particleA << std::endl;
-      std::cout<<"LAW = "<< LAW <<" MT "<<MT <<" NR "<< NR <<" NP "<< NP << std::endl;
+      //std::cout<<"ZAP = "<< ZAP <<" AWP "<<AWP <<" LIP "<< LIP <<" parZ "<< particleZ <<" parA "<< particleA << std::endl;
+      //std::cout<<"LAW = "<< LAW <<" MT "<<MT <<" NR "<< NR <<" NP "<< NP << std::endl;
       if(LAW == 1){
-	int ND,NA,NEP,LANG,LEP;
+	int NA,NEP,LANG;
 	for(int cr=0; cr < NR ; cr ++){
 	  nbt1.push_back (tab1->GetNBT(cr));
 	  int1.push_back (tab1->GetINT(cr));
@@ -66,18 +66,18 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file, double iQValue[])
 	}
 	TNudyEndfTab2 *tab2 = (TNudyEndfTab2 *)recIter.Next();
         LANG  = tab2->GetL1();
-        LEP  = tab2->GetL2();
+        //LEP  = tab2->GetL2();
         nr2  = tab2->GetN1();
         np2  = tab2->GetN2();
 //      std::cout<<"LANG "<< LANG <<" LEP "<< LEP <<" NE2 "<< NE2 << std::endl;
 	for (int lis = 0; lis < np2; lis++){
           TNudyEndfList *header = (TNudyEndfList *)recIter.Next();
 	  ein.push_back(header->GetC2());
-	  ND   = header->GetL1();
+	  //ND   = header->GetL1();
 	  NA   = header->GetL2();
 	  //NW   = header->GetN1();
 	  NEP  = header->GetN2();
-          std::cout <<lis<<"  "<<ein[lis] <<" ND "<< ND <<" NA "<< NA <<" NEP "<< NEP << std::endl;
+          //std::cout <<lis<<"  "<<ein[lis] <<" ND "<< ND <<" NA "<< NA <<" NEP "<< NEP << std::endl;
           if(LANG == 2 && NA==1){
 	    for (int lis1 = 0; lis1 < NEP; lis1++){
 	      edes6.push_back (header->GetLIST(lis1*3 + 0));
@@ -386,10 +386,10 @@ TNudyEndfEnergyAng::TNudyEndfEnergyAng(TNudyEndfFile *file, double iQValue[])
 	  TNudyEndfTab2 *tab3 = (TNudyEndfTab2 *)recIter.Next();
 	  ein.push_back(tab3->GetC2());
 	  int NMU  = tab3->GetN2();
-	  double cosin[NMU];
+	  //double cosin[NMU];
 	  for(int cr2=0; cr2 < NMU ; cr2 ++){
 	    TNudyEndfTab1 *tab12 = (TNudyEndfTab1 *)recIter.Next();
-	    cosin[cr2] = tab12->GetC2();
+	    //cosin[cr2] = tab12->GetC2();
 //	  std::cout<<"cosine "<< cosin[cr2] <<"  "<< ein[cr1] << std::endl;
 	    nr3 = tab12->GetN1();
 	    np3 = tab12->GetN2();
@@ -543,7 +543,7 @@ int TNudyEndfEnergyAng::GetLaw6( int ielemId, int mt ){
 
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfEnergyAng::GetCos4(int ielemId, int mt, double energyK){
-  fRnd = new TRandom();
+  fRnd = new TRandom3();
   int i = -1;
   for(unsigned int l =0; l < Mt5Values[ielemId].size(); l++){
     if(Mt5Values[ielemId][l] == mt){
@@ -600,7 +600,7 @@ double TNudyEndfEnergyAng::GetCos4(int ielemId, int mt, double energyK){
 }
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfEnergyAng::GetEnergy5(int ielemId, int mt, double energyK){
-  fRnd = new TRandom();
+  fRnd = new TRandom3(0);
   int i = -1;
   for(unsigned int l =0; l < Mt5Values[ielemId].size(); l++){
     if(Mt5Values[ielemId][l] == mt){

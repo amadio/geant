@@ -26,7 +26,7 @@ ClassImp(TNudyEndfRecoPoint)
 #endif
 
 #ifdef USE_ROOT
-#include "TRandom.h"
+#include "TRandom3.h"
 #endif
 
 TNudyEndfRecoPoint::TNudyEndfRecoPoint() : elemId(0),rENDF(),sigDiff(0){}
@@ -53,7 +53,7 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
       ABN = cont1->GetC2();
       LFW = cont1->GetL2(); 
       NER = cont1->GetN1();
-      std::cout<< "NER "<< NER <<" AWRI "<< AWRI << std::endl;
+      //std::cout<< "NER "<< NER <<" AWRI "<< AWRI << std::endl;
       for(int j = 0; j < NER; j++){
 	TNudyEndfCont *cont2 = (TNudyEndfCont *)recIter.Next();
 	eLo = cont2->GetC1();  
@@ -62,8 +62,8 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
 	LRF = cont2->GetL2();  
 	NRO = cont2->GetN1();  
 	NAPS = cont2->GetN2();
-	std::cout<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
-        std::cout<<"eLo "<<eLo<<" eHi  "<<eHi<<" NLS "<<NLS<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
+	//std::cout<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
+        //std::cout<<"eLo "<<eLo<<" eHi  "<<eHi<<" NLS "<<NLS<<" LRU "<<LRU<<" LRF "<<LRF<< std::endl;
       
 	if(LRU==2 && LRF==1 && LFW == 1){
 	}else{
@@ -355,7 +355,7 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
 	case 2:
 	{//unresolved resonance region
 	flagUnResolve =1;
-	std::cout<<" LRF "<< LRF <<" LFW "<< LFW <<" LSSF "<< LSSF << std::endl;
+	//std::cout<<" LRF "<< LRF <<" LFW "<< LFW <<" LSSF "<< LSSF << std::endl;
 	switch(LRF)
 	{
 	case 2:
@@ -393,7 +393,7 @@ void TNudyEndfRecoPoint::ReadFile2(TNudyEndfFile *file) {
 	    }//complete NJS reading
 	  }//complete NLS2 reading
 	  eLo2 = eLo; eHi2 = eHi;
-	  std::cout << " eLo2 "<< eLo2 <<" eHi2 "<< eHi2 << std::endl;
+	  //std::cout << " eLo2 "<< eLo2 <<" eHi2 "<< eHi2 << std::endl;
 	  if(LSSF==0)Linearize(j);
 	  l.clear();
 	  NRS.clear();
@@ -640,7 +640,7 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file) {
     }while(eneLow < 1E3);
   
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-    std::cout <<"MT  "<<sec->GetMT() <<std::endl;
+    //std::cout <<"MT  "<<sec->GetMT() <<std::endl;
     int MT = sec->GetMT();
     if(MT != 1 && MT != 3 && MT != 4 && MT != 27 && MT != 19 && MT != 20 && MT != 21 && MT != 38 && MT != 101 && MT < 250){
       MtNumbers.push_back(MT);
@@ -1783,7 +1783,7 @@ void TNudyEndfRecoPoint::additionalSigma(int LRF, double x){
 //------------------------------------------------------------------------------------------------------
  void TNudyEndfRecoPoint::recoPlusBroad(int flagNer){
   int nrs = 0, nrsl;
-  std::cout<<" reco called LRU "<< LRU <<" LSSF "<< LSSF << std::endl;
+  //std::cout<<" reco called LRU "<< LRU <<" LSSF "<< LSSF << std::endl;
   if (LRU==1){
     for (int j = 0; j < NLS; j++) {
       nrsl = NRS[l[j]]; 
@@ -1904,13 +1904,13 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF, double isigDiff
     TIter iter(tMat->GetFiles());
     TNudyEndfFile *file;
     while ((file = (TNudyEndfFile *)iter.Next())) {
-    std::cout <<" mf "<< file->GetMF() << std::endl;
+    //std::cout <<" mf "<< file->GetMF() << std::endl;
     // Read File data into class structures
       switch (file->GetMF()) 
       {
         case 1:
 	  recoNuPh = new TNudyEndfNuPh(file);
-	  std::cout<<"file 1 OK "<< std::endl;
+	  //std::cout<<"file 1 OK "<< std::endl;
 	  break;
         case 2:
 	  ReadFile2(file);
@@ -1922,33 +1922,33 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF, double isigDiff
 	    TNudyCore::Instance()->ThinningDuplicate(eLinElastic, xLinElastic);
 	    TNudyCore::Instance()->ThinningDuplicate(eLinCapture, xLinCapture);
 	    TNudyCore::Instance()->ThinningDuplicate(eLinFission, xLinFission);
-	    std::cout<<"Elastic points  "<< eLinElastic.size() << std::endl;
-	    std::cout<<"Capture points  "<< eLinCapture.size() << std::endl;
-	    std::cout<<"Fission points  "<< eLinFission.size() << std::endl;
+	    //std::cout<<"Elastic points  "<< eLinElastic.size() << std::endl;
+	    //std::cout<<"Capture points  "<< eLinCapture.size() << std::endl;
+	    //std::cout<<"Fission points  "<< eLinFission.size() << std::endl;
 //	    for(int cr1=0; cr1 < eLinElastic.size() ; cr1 ++){
 //	      std::cout<<"Elastic  "<<eLinElastic[cr1]<<"  "<< xLinElastic[cr1] << std::endl;
 //	    }
 	  }
-	  std::cout<<"file 2 OK "<< std::endl;
+	  //std::cout<<"file 2 OK "<< std::endl;
 	  break;
         case 3:
 	  ReadFile3(file);
 ///*	  
 	  sigma.clear();
-	  std::cout<<"file 3 OK "<<std::endl;
+	  //std::cout<<"file 3 OK "<<std::endl;
 	  fixupTotal(energyUni, sigmaUniTotal);
 	  eneUni.push_back(energyUni);
 	  sigUniT.push_back(sigmaUniTotal);
-	  std::cout<<"Union Total OK "<<  energyUni.size()  <<std::endl;
+	  //std::cout<<"Union Total OK "<<  energyUni.size()  <<std::endl;
 	  energyUni.clear();
 	  sigmaUniTotal.clear();
 	  sigma.clear();
   // std::cout<<LRU <<"  "<< LSSF<<std::endl; 
-	  std::cout<<"before Doppler begins "<<std::endl;
+	  //std::cout<<"before Doppler begins "<<std::endl;
 	  broadSigma(eLinElastic, xLinElastic, xBroadElastic);
 	  broadSigma(eLinCapture, xLinCapture, xBroadCapture);
 	  broadSigma(eLinFission, xLinFission, xBroadFission);
-	  std::cout<<"Doppler done "<<std::endl;
+	  //std::cout<<"Doppler done "<<std::endl;
 	  dopplerBroad=0;
 
 	  out << eLinElastic.size() << std::endl;
@@ -2003,7 +2003,7 @@ void TNudyEndfRecoPoint::fixupTotal(std::vector<double> &x1,
   
   std::sort(x1.begin(), x1.end());//Unionization of energy grid for cross-section 
   TNudyCore::Instance()->ThinningDuplicate(x1);
-  std::cout<<"Total energy points "<< x1.size()<<std::endl;
+  //std::cout<<"Total energy points "<< x1.size()<<std::endl;
   //for (unsigned int i = 0; i < x1.size(); i++)
     //std::cout << std::setprecision(12) << x1[i] << std::endl;
   //std::cout<<"NoOfElements "<< MtValues.size() << std::endl;
@@ -2012,7 +2012,7 @@ void TNudyEndfRecoPoint::fixupTotal(std::vector<double> &x1,
   //     std::cout <<"MT value "<< MtValues[i][j] << std::endl;
   //   }
   // }
-   std::cout<<"NoOfsigma "<< sigmaOfMts.size() << std::endl;
+   //std::cout<<"NoOfsigma "<< sigmaOfMts.size() << std::endl;
   for (unsigned long i = 0; i < sigmaOfMts.size(); i++){
     int size = sigmaOfMts[i].size()/2;
     for (unsigned long k = 0; k < x1.size(); k++){

@@ -15,7 +15,7 @@
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfEnergy)
-#include "TRandom.h"
+#include "TRandom3.h"
 #endif
 
 TNudyEndfEnergy::TNudyEndfEnergy(){}
@@ -32,7 +32,7 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
       int MT = sec->GetMT();
       MtNumbers.push_back(MT);
       int LF = tab1->GetL2();
-      std::cout<<" LF = "<< LF <<" MT "<< MT  << std::endl;
+      //std::cout<<" LF = "<< LF <<" MT "<< MT  << std::endl;
       NR = tab1->GetN1();
       NP = tab1->GetN2();
 //****************************************************************************	
@@ -521,7 +521,7 @@ void TNudyEndfEnergy::fillPdf1d(){
 }
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfEnergy::GetEnergy5(int ielemId, int mt, double energyK){
-  fRnd = new TRandom();
+  fRnd = new TRandom3(0);
   int i = -1;
  for(unsigned int l =0; l < Mt5Values[ielemId].size(); l++){
    if(Mt5Values[ielemId][l] == mt){

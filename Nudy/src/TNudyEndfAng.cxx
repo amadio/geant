@@ -16,7 +16,7 @@
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfAng)
-#include "TRandom.h"
+#include "TRandom3.h"
 #endif
 
 TNudyEndfAng::TNudyEndfAng () : TNudyEndfRecoPoint(){}
@@ -35,7 +35,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
     int LI = header->GetL1();
     int LCT = header->GetL2();
     MtLct.push_back(LCT);
-    	printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
+    	//printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
     //Legendre polynomial coefficients
     if (LTT == 1 && LI == 0) { 
       TNudyEndfTab2 *tab2 = (TNudyEndfTab2 *)recIter.Next();
@@ -267,7 +267,7 @@ void TNudyEndfAng::fillPdf2d() {
 }
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
-  fRnd = new TRandom();
+  fRnd = new TRandom3(0);
   int i = -1;
   for(unsigned int l =0; l < Mt4Values[ielemId].size(); l++){
     if(Mt4Values[ielemId][l] == mt){
@@ -294,6 +294,7 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
   double rnd1 = fRnd->Uniform(1);
   double rnd2 = fRnd->Uniform(1);
   if(rnd2 < fraction)min = min + 1;
+   //std::cout<< rnd1 <<"  "<< rnd2 << std::endl;
   int k =0;
   //std::cout<<" pdf size "<< cosPdf4OfMts[ielemId][i][min].size()/2 << std::endl;
   int size = cosPdf4OfMts[ielemId][i][min].size()/2;

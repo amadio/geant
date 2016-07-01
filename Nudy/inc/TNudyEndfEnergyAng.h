@@ -10,7 +10,7 @@ typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
 #ifdef USE_ROOT
 #include "Rtypes.h"
-class TRandom;
+class TRandom3;
 #endif
 
 class  TNudyEndfEnergyAng : public TNudyEndfRecoPoint {
@@ -54,7 +54,7 @@ private:
   matrixd2 pdf2de,cdf2de;
   matrixd3 pdf3de,cdf3de;
 #ifdef USE_ROOT
-  TRandom *fRnd;
+  TRandom3 *fRnd;
 #endif
 #ifdef USE_ROOT
   ClassDef(TNudyEndfEnergyAng, 1) // class for an ENDF reconstruction

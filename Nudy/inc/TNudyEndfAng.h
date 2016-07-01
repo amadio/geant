@@ -11,7 +11,7 @@ typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
 
 #ifdef USE_ROOT
 #include "Rtypes.h"
-class TRandom;
+class TRandom3;
 #endif
 
 class  TNudyEndfAng : public TNudyEndfRecoPoint {
@@ -38,7 +38,7 @@ private:
   rowint MtLct;				// LCT numbers
   int nr, np;                         // standard ENDF parameters  
 #ifdef USE_ROOT
-  TRandom *fRnd;
+  TRandom3 *fRnd;
 #endif
 #ifdef USE_ROOT
   ClassDef(TNudyEndfAng, 1) // class for an ENDF reconstruction
