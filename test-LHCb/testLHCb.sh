@@ -1,21 +1,21 @@
 #!/bin/bash
 
-export VP_DATA_XSEC=/Users/witoldp/GEANTV/xsec_FTFP_BERT_G496p02_1mev.root 
-export VP_DATA_FSTA=/Users/witoldp/GEANTV/fstate_FTFP_BERT_G496p02_1mev.root
+export VP_DATA_XSEC=$GEANTV_DATA_DIR/xsec_FTFP_BERT_G496p02_1mev.root 
+export VP_DATA_FSTA=$GEANTV_DATA_DIR/fstate_FTFP_BERT_G496p02_1mev.root
 
 #################################################################
 # GDML Geomtery File 
-GEOMFILE="/Users/witoldp/GEANTV/LHCb_201603.gdml"
+GEOMFILE="$GEANTV_DATA_DIR/LHCb_201603.gdml"
 #################################################################
 
 #################################################################
 # ROOT file that contains the pre-generated primary events
-EVENTFILE="/Users/witoldp/GEANTV/pp14TeVminbias.root"
+EVENTFILE="$GEANTV_DATA_DIR/pp14TeVminbias.root"
 #################################################################
 
 #################################################################
 # Geant4 macro file with some Geant4 commands
-GEANTMACRO="/Users/witoldp/GEANTV_MASTER/geant/test-LHCb/g4macro_TPHYS.mac" 
+GEANTMACRO="g4macro_TPHYS.mac" 
 #################################################################
 
 #################################################################
