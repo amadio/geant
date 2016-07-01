@@ -387,6 +387,7 @@ if (CUDA)
   cuda_add_library(
     vecphyscuda
     ${SRC_CUDA}
+    SHARED
     OPTIONS ${CUDA_ARCH}
     ${VECPHYS_NVCC_CONFIGS}
   )
