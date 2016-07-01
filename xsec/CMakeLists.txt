@@ -114,7 +114,7 @@ cuda_add_library(xseccudatest
   # Note: the repeat below is due the author of  cuda_add_library_depend
   # not knowing how to automatically go from the target to the real
   # file in add_custom_command
-cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a ../lib/libGeant_v_static.a ../lib/libVmagfield.so ${VECGEOM_CUDA_STATIC_LIBRARY})
+cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a ../lib/libGeant_v_static.a ${VECGEOM_CUDA_STATIC_LIBRARY})
 target_link_libraries(xseccudatest xseccuda_static Geant_v_static Vmagfield)
 
 add_executable(testserialReadCuda testserialReadCuda.cpp)
