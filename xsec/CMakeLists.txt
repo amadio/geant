@@ -103,7 +103,7 @@ cuda_add_library_depend(xseccuda ${VECGEOM_CUDA_STATIC_LIBRARY} )
 target_link_libraries(xseccuda ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
 
 add_executable(testserialRead testserialRead.cc)
-target_link_libraries(testserialRead xseccuda Xsec Geant_v)
+target_link_libraries(testserialRead Xsec Geant_v)
 
 cuda_add_library(xseccudatest
     testserialReadCuda.cu
