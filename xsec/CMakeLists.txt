@@ -27,8 +27,8 @@ if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
-target_link_libraries(Xsec Geant_v  
-     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+  target_link_libraries(Xsec Geant_v  
+    ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 
 else()
   add_library(Xsec SHARED ${sources})
