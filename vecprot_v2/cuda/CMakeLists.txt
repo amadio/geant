@@ -17,27 +17,17 @@ cmake_minimum_required(VERSION 2.8)
 set(GeantCudaLib Geant_v) # or GeantCuda
 set(GeantCudaReplace ON)
 
-set(CudaCode ${PROJECT_SOURCE_DIR})
 set(CUDA_SRCDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(CUDA_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 set(GEANT_COMPILATION_FLAGS ${GEANT_COMPILATION_FLAGS} -DGEANT_CUDA)
 add_definitions(-DGEANT_CUDA)
 
-#NVCC_FLAGS=--device-debug -m64 -Xcompiler ,\"-g\" -Xcompiler ,\"-fPIC\"  -arch=sm_20 --use_fast_math --ptxas-options=-v -DNVCC
-
 if (GEANT_CUDA_SINGLE_SOURCE)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA_SEP_COMP)
 endif()
 
-
-#CXXFLAGS += -I$(CUDA_INC) -I$(CUDA_INCDIR)
-
-INCLUDE_DIRECTORIES(${CUDA_INCDIR} ${CudaCode}/xsec/inc ${CudaCode}/magneticfield/inc )
-
-
-#set(CUDA_DATA_TARFILE ${PROJECT_SOURCE_DIR}/data/vpdata_v1.tar.gz)
-#set(CUDA_DATA_FILE ${PROJECT_SOURCE_DIR}/data/Lambda.eBrem.e-.asc)
+INCLUDE_DIRECTORIES(${CUDA_INCDIR} ${CMAKE_SOURCE_DIR}/xsec/inc ${CMAKE_SOURCE_DIR}/magneticfield/inc )
 
 set(dict_headers ${CUDA_INCDIR}/CoprocessorBroker.h)
 

@@ -256,6 +256,29 @@ else()
   message(STATUS "BUG_HUNT OFF  : No bug hunting...")
 endif()
 
+#----------------------------------------------------------------------------
+# Find HepMC (required package)
+#
+find_package(HepMC REQUIRED)
+if(HepMC_FOUND)
+  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
+  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
+endif()
+
+#----------------------------------------------------------------------------
+# Find Geant4 package, activating all available UI and Vis drivers by default
+# You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
+# to build a batch mode only executable
+#
+
+option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
+if(WITH_GEANT4_UIVIS)
+  find_package(Geant4 REQUIRED ui_all vis_all)
+else()
+  find_package(Geant4 REQUIRED)
+endif()
+
+
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )
     set(OUTDIR ${GEANT_OUTPUT_DIR})

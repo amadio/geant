@@ -4,16 +4,6 @@ if(DOXYGEN_FOUND)
 endif()
 
 #----------------------------------------------------------------------------
-# Find VecPhys (required )
-#----------------------------------------------------------------------------
-find_package(VecGeom REQUIRED)
-if(VECGEOM_FOUND)
-  include_directories(${VECGEOM_INCLUDE_DIR})
-else()
-  message(FATAL_ERROR "Required library VecGeom was not found!")
-endif()
-
-#----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #----------------------------------------------------------------------------
 file(GLOB sources src/*.cxx) # (T*.cxx src/GU*.cxx)

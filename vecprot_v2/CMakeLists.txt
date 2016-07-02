@@ -1,4 +1,4 @@
-# Add this directory to Doxygen
+
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
@@ -6,7 +6,6 @@ endif()
 
 include_directories(inc)
 include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
-## else: include_directories(inc ../magneticfield/inc)
 
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
@@ -57,6 +56,8 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
 )   
 
+include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
+
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
    set(sources ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceTGeo.cxx)
    set(headers ${headers} ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceTGeo.h)
@@ -97,7 +98,6 @@ if( VECGEOM_FOUND )
   target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
   
    if (VECGEOM_GEANT4)
-      find_package(Geant4 REQUIRED gdml)
       include(${Geant4_USE_FILE})
       message(${Geant4_INCLUDE_DIRS})
       include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
@@ -117,10 +117,6 @@ install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
 
 endif()
 
-find_package(HepMC REQUIRED)
-include_directories("${HEPMC_INCLUDE_DIR}")
-
-#
 #---------------------- Building executables // ctest ------------------------------------
 #
 
@@ -136,9 +132,9 @@ macro(build_executables EXECUTABLES)
     get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
     add_executable(${TARGET_NAME} ${EXECUTABLE})
     if(USE_VECGEOM_NAVIGATOR)
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v -lGeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} -lEG -lTreePlayer -lGui -lGeom ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v -lGeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
     else()
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  -lGeant_v -lXsec -lGeantExamples ${ROOT_LIBRARIES}  -lEG -lTreePlayer -lGui -lGeom ${HEPMC_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  -lGeant_v -lXsec -lGeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
     endif()
     add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples)
     set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
@@ -179,3 +175,26 @@ if(CTEST)
 endif()
 
 install(TARGETS CMSApp runApp DESTINATION bin)
+add_dependencies(runApp Geant_v Xsec GeantExamples)
+else()  # ---- MIC
+  add_library(Geant_v SHARED ${sources})
+#target_link_libraries(Geant_v -lEG -lGeom)
+if(USE_VECGEOM_NAVIGATOR )
+  target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+endif()
+add_custom_target(Geantlib_v DEPENDS Geant_v)
+install(TARGETS Geant_v DESTINATION lib)
+
+add_executable(CMSApp CMSApp.cc)
+
+target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+        ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+
+add_dependencies(CMSApp Geant_v Xsec GeantExamples)
+
+endif()
+if (NOT MIC)
+install(TARGETS CMSApp runApp DESTINATION bin)
+else()
+install(TARGETS CMSApp DESTINATION bin)
+endif()

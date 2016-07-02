@@ -27,7 +27,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/inc/GVComptonProcess.h
 # Set include directories
 #----------------------------------------------------------------------------
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
-include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
+include_directories(${CMAKE_SOURCE_DIR}/xsec/inc)
 
 #----------------------------------------------------------------------------
 # Generate the root dictionary: this library will be used in run.C root macro.  

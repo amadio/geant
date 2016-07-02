@@ -52,7 +52,6 @@ if(CTEST)
 endif()
 
 set(GEANTV_EXECUTABLES)
-link_directories(${PROJECT_SOURCE_DIR}/lib)
 
 macro(build_executables EXECUTABLES)
   foreach(EXECUTABLE ${EXECUTABLES})

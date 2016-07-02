@@ -4,20 +4,6 @@ if(DOXYGEN_FOUND)
 endif()
 
 #----------------------------------------------------------------------------
-# Find HepMC (required package)
-#
-find_package(HepMC REQUIRED)
-if(HepMC_FOUND)
-  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
-  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
-endif()
-
-#----------------------------------------------------------------------------
-# Find Geant4 package, batch mode only
-#
-find_package(Geant4 REQUIRED gdml)
-
-#----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
@@ -80,8 +66,7 @@ set(TESTCOMPLEX_SCRIPTS
 
 foreach(_script ${TESTCOMPLEX_SCRIPTS})
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/${_script}
-    #${CMAKE_BINARY_DIR}/${_script}
+    ${_script}
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
     )

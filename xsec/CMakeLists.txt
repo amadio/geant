@@ -4,18 +4,6 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
-
-#----------------------------------------------------------------------------
-# Find HepMC (required package)
-#
-find_package(HepMC QUIET)
-if(HepMC_FOUND)
-  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
-  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
-endif()
-
-#----------------------------------------------------------------------------
-# Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/TestProcess.cxx)

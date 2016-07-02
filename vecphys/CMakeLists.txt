@@ -32,13 +32,6 @@ foreach(p LIB BIN INCLUDE CMAKE)
   endif()
 endforeach()
 
-if (NOT BACKEND)
-  message(STATUS "Backend not specified. Defaulting to Vc.")
-  set(BACKEND "Vc")
-endif()
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
-
 # Determine backend
 
 set(Vc)
@@ -206,8 +199,6 @@ endif()
 # Backend configuration
 
 if (VC_ACCELERATION OR Vc)
-
-  find_package(Vc REQUIRED)
   if (MIC)
     set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_MIC_LIBRARIES})
   else()
@@ -233,37 +224,12 @@ endif()
 
 if (CUDA)
 
-  find_package(CUDA REQUIRED)
-  include(FindCUDA)
-
-  set(CUDA_SEPARABLE_COMPILATION ON)
-
   set(SRC_EXTERNAL ${SRC_EXTERNAL} src/CudaManager.cpp src/backend/cuda/Interface.cpp)
-#  set(SRC_CUDA ${SRC_CUDA}
-#      source/CudaManager.cu)
 
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${VECPHYS_NVCC_COMPILATION_FLAGS})
 endif()
 
-if (ROOT)
-  find_package(ROOT REQUIRED)
-
-  include_directories(AFTER ${ROOT_INCLUDE_DIR})
-  link_directories(${ROOT_LIBRARY_DIR})
-  set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL}
-      ${ROOT_LIBRARIES} )
-endif()
-
-#----------------------------------------------------------------------------
-# Find VecGeom geometry headers and library
-#
-################################################################################
-find_package(VecGeom REQUIRED)
-if( VECGEOM_FOUND )
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${VECGEOM_LIBRARIES} )
-else()
-   message(FATAL_ERROR "Required VecGeom library not found")
-endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
                     ${CMAKE_CURRENT_SOURCE_DIR}/inc/base
@@ -455,51 +421,5 @@ if (CUDA)
   add_to_ctest("${TEST_EXECUTABLES_CUDA}")
 endif()
 
-################################################################################
-
-# Installation
-
-export(PACKAGE VecPhys)
-
-file(RELATIVE_PATH INSTALL_INCLUDE_DIR_RELATIVE
-     "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}/.")
-file(RELATIVE_PATH INSTALL_LIB_DIR_RELATIVE
-     "${INSTALL_CMAKE_DIR}" "${INSTALL_LIB_DIR}/.")
-# Build
-set(CONF_TYPE "build")
-set(CONF_INCLUDE_DIR "${CMAKE_SOURCE_DIR}")
-set(CONF_LIBRARY_DIR "${CMAKE_BINARY_DIR}")
-set(CONF_LIBRARIES ${VECPHYS_LIBRARIES_EXTERNAL}
-    "${CONF_LIBRARY_DIR}/libvecphys.a")
-configure_file(VecPhysConfig.cmake.in
-               "${PROJECT_BINARY_DIR}/VecPhysConfig.cmake" @ONLY)
-# Installation
-set(CONF_TYPE "install")
-set(CONF_INCLUDE_DIR "\${THIS_DIR}/${INSTALL_INCLUDE_DIR_RELATIVE}")
-set(CONF_LIBRARY_DIR "\${THIS_DIR}/${INSTALL_LIB_DIR_RELATIVE}")
-set(CONF_LIBRARIES ${VECPHYS_LIBRARIES_EXTERNAL}
-    "${CONF_LIBRARY_DIR}/libvecphys.a")
-configure_file(VecPhysConfig.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/VecPhysConfig.cmake" @ONLY)
-
-# Install the VecPhysConfig.cmake
-install(FILES
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/VecPhysConfig.cmake"
-  DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
-
-# Install headers and libraries
-file(GLOB _headers LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/inc inc/*)
-foreach(_file ${_headers})
-  install(FILES inc/${_file} DESTINATION ${INSTALL_INCLUDE_DIR}/vecphys)
-endforeach()
-
-file(GLOB _headers_test LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/test/inc test/inc/*)
-foreach(_file ${_headers_test})
-  install(FILES test/inc/${_file} DESTINATION ${INSTALL_INCLUDE_DIR}/vecphys/test)
-endforeach()
-install(TARGETS vecphys DESTINATION ${INSTALL_LIB_DIR})
-if (CUDA)
-  install(TARGETS vecphyscuda DESTINATION ${INSTALL_LIB_DIR})
-endif()
 
 

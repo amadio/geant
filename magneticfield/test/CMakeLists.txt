@@ -20,7 +20,7 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc)
+include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
 
 add_executable(testMagFieldEquation testMagFieldEquation.cxx) ## ${sources} ${headers})
 target_link_libraries(testMagFieldEquation Vmagfield ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})

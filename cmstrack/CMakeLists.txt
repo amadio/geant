@@ -4,32 +4,9 @@ if(DOXYGEN_FOUND)
 endif()
 
 #----------------------------------------------------------------------------
-# Find Geant4 package, activating all available Vis drivers by default
-# You can set WITH_GEANT4_VIS to OFF via the command line or ccmake/cmake-gui
-# to build a batch mode only executable
-#
-option(WITH_GEANT4_VIS "Build example with Geant4 Vis drivers" ON)
-if(WITH_GEANT4_VIS)
-  find_package(Geant4 REQUIRED gdml vis_all)
-else()
-  find_package(Geant4 REQUIRED gdml)
-endif()
-
-#----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
 include(${Geant4_USE_FILE})
-
-#----------------------------------------------------------------------------
-# Find ROOT and setup the libraries
-#
-find_package(ROOT REQUIRED)
-
-include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIR})
-
-if( USE_ROOT )
-   add_definitions( "-DUSE_ROOT")
-endif()
 
 if( SNEXTG4 )
   add_definitions("-DSNEXTG4")

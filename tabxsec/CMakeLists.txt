@@ -4,30 +4,13 @@ if(DOXYGEN_FOUND)
 endif()
 
 #----------------------------------------------------------------------------
-# Find Geant4 package, activating all available UI and Vis drivers by default
-# You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
-# to build a batch mode only executable
-#
-
-# Before we use Geant4 we save all previous definitions, otherwise we will completely
-# pollute the compilation environment
-
-option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
-if(WITH_GEANT4_UIVIS)
-  find_package(Geant4 REQUIRED ui_all vis_all)
-else()
-  find_package(Geant4 REQUIRED)
-endif()
-
-
-#----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
 #
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
-include_directories(inc ${PROJECT_SOURCE_DIR}/xsec/inc)
+include_directories(inc ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -92,7 +75,7 @@ set(TABXSEC_SCRIPTS
 foreach(_script ${TABXSEC_SCRIPTS})
   configure_file(
     ${_script}
-    ${PROJECT_BINARY_DIR}/${_script}
+    ${_script}
     COPYONLY
     )
 endforeach()

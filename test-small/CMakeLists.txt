@@ -3,24 +3,6 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
-#----------------------------------------------------------------------------
-# Find Geant4 package, activating all available UI and Vis drivers by default
-# You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
-# to build a batch mode only executable
-#
-option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
-if(WITH_GEANT4_UIVIS)
-  find_package(Geant4 REQUIRED ui_all vis_all)
-else()
-  find_package(Geant4 REQUIRED)
-endif()
-
-if(USE_ROOT)
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ../cmake/modules)
-  find_package(ROOT REQUIRED)
-  add_definitions(-DUSE_ROOT)
-endif()
-
 option(MAKESTAT "Collect detailed statistics during exampleN03 run!" OFF)
 if(MAKESTAT)
   add_definitions(-DMAKESTAT)
@@ -41,7 +23,7 @@ include(${Geant4_USE_FILE})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include 
                     ${Geant4_INCLUDE_DIR}
                     ${ROOT_INCLUDE_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../xsec/inc 
+                    ${CMAKE_SOURCE_DIR}/xsec/inc 
 )
 
 if(CMAKE_BUILD_TYPE MATCHES None)
@@ -59,8 +41,8 @@ endif()
 separate_arguments(_cf)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources src/*.cc)
+file(GLOB headers include/*.hh)
 
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
@@ -94,7 +76,7 @@ set(N03_SCRIPTS
 
 foreach(_script ${N03_SCRIPTS})
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/${_script}
+    ${_script}
     ${CMAKE_CURRENT_BINARY_DIR}/${_script}
     COPYONLY
     )

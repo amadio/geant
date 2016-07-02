@@ -4,22 +4,6 @@ if(DOXYGEN_FOUND)
 endif()
 
 #----------------------------------------------------------------------------
-# Find HepMC (required package)
-#
-find_package(HepMC QUIET)
-if(HepMC_FOUND)
-  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
-  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
-endif()
-
-#set(HepMC_FOUND NO)
-
-#----------------------------------------------------------------------------
-# Setup include directory for this project
-#
-
-
-#----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
@@ -44,13 +28,8 @@ ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fasts
 #
 add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
 
-set(HEPMC_LIBS "")
-if(HepMC_FOUND)
-  set(HEPMC_LIBS "${HEPMC_LIBRARIES}")
-endif()
-
 target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
+     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 
 set(FASTSIM_LINK_LIBS "-lFastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 
