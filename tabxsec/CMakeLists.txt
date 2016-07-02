@@ -10,7 +10,7 @@ endif()
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
-include_directories(inc inc)
+include_directories(inc ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project

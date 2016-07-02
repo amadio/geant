@@ -287,6 +287,7 @@ if (KNC)
     set (WITH_GEANT4 OFF)
   endif()
 endif()
+
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )
     set(OUTDIR ${GEANT_OUTPUT_DIR})

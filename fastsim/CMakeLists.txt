@@ -20,21 +20,19 @@ if(HepMC_FOUND)
 endif()
 
 include_directories(inc)
-if(USE_ROOT)
-ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-endif()
+
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 if(USE_ROOT)
-add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
+  ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
 
-target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
-     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+  target_link_libraries(Fastsim Geant_v  
+    ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 else()
-add_library(Fastsim SHARED ${sources})
-
-target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
+  add_library(Fastsim SHARED ${sources})
+  target_link_libraries(Fastsim Geant_v  
      ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 endif()
 set(FASTSIM_LINK_LIBS "-lFastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
@@ -50,6 +48,8 @@ if(APPLE)
 else()
   install(TARGETS Fastsim DESTINATION lib)
 endif()
-install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim.rootmap 
-              ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim_rdict.pcm DESTINATION lib)
+if(USE_ROOT)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim.rootmap 
+    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim_rdict.pcm DESTINATION lib)
+endif()
 

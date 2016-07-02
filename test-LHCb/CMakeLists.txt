@@ -1,7 +1,11 @@
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
-message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
 #----------------------------------------------------------------------------
@@ -43,7 +47,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 add_executable(testlhcb testLHCb.cc ${sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 target_link_libraries(testlhcb ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
-	-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeom -lEG Geant_v Xsec)
+  Geant_v Xsec)
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 
@@ -62,7 +66,7 @@ set(TESTLHCB_SCRIPTS
 foreach(_script ${TESTLHCB_SCRIPTS})
   configure_file(
     ${_script}
-    ${CMAKE_CURRENT_BINARY_DIR}/${_script}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
     )
 endforeach()

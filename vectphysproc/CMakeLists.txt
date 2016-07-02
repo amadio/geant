@@ -3,7 +3,6 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
-
 link_libraries(vecphys)
 include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc)
 
