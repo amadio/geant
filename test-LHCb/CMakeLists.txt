@@ -1,24 +1,4 @@
 #----------------------------------------------------------------------------
-# Setup the project
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-project(TESTLHCB)
-
-
-#----------------------------------------------------------------------------
-# Find HepMC (required package)
-#
-find_package(HepMC REQUIRED)
-if(HepMC_FOUND)
-  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
-  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
-endif()
-
-#----------------------------------------------------------------------------
-# Find Geant4 package, batch mode only
-#
-find_package(Geant4 REQUIRED gdml)
-
-#----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 #
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
@@ -27,7 +7,7 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${PROJECT_SOURCE_DIR}/include 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include 
                     ${Geant4_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
@@ -48,8 +28,8 @@ endif()
 separate_arguments(_cf)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
+file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh)
 
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
@@ -81,8 +61,7 @@ set(TESTLHCB_SCRIPTS
 
 foreach(_script ${TESTLHCB_SCRIPTS})
   configure_file(
-    ${PROJECT_SOURCE_DIR}/${_script}
-    #${PROJECT_BINARY_DIR}/${_script}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${_script}
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
     )
