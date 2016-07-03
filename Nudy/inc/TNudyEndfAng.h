@@ -20,6 +20,7 @@ public:
   TNudyEndfAng ();
   TNudyEndfAng (TNudyEndfFile *file);
   virtual double GetCos4(int elemid, int mt, double energyK);
+  virtual int GetCos4Lct(int elemid, int mt);
   virtual ~TNudyEndfAng ();
 private:
   double recursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2);

@@ -2104,8 +2104,10 @@ double TNudyEndfRecoPoint::GetSigmaPartial(int ielemId, int i, double energyK){
     }
   }
   //std::cout<<min <<"  "<< max <<"  "<<energyK<<"  "<< eneUni[ielemId][min] << std::endl;
-  return sigUniOfMt[ielemId][i][energyLocMtId[ielemId][i]+min] + (sigUniOfMt[ielemId][i][energyLocMtId[ielemId][i]+min + 1]
-         - sigUniOfMt[ielemId][i][energyLocMtId[ielemId][i]+min])*
+  min -= energyLocMtId[ielemId][i];
+  if(min < 0) return 0;
+  return sigUniOfMt[ielemId][i][min] + (sigUniOfMt[ielemId][i][min + 1]
+         - sigUniOfMt[ielemId][i][min])*
 	 (energyK - eneUni[ielemId][min])/(eneUni[ielemId][min + 1] - eneUni[ielemId][min]);
 }
 
@@ -2167,4 +2169,18 @@ double TNudyEndfRecoPoint::GetMt456(int ielemId, int mt){
   }
   return 0;
 }
+//-------------------------------------------------------------------------------------------------------
+int TNudyEndfRecoPoint::GetCos4Lct(int ielemId, int mt){
+  return recoAng->GetCos4Lct(ielemId, mt);  
+}
+//-------------------------------------------------------------------------------------------------------
+double TNudyEndfRecoPoint::GetNuTotal(int elemid, double energyK){
+  return recoNuPh->GetNuTotal(elemid, energyK);
+}
+//-------------------------------------------------------------------------------------------------------
+double TNudyEndfRecoPoint::GetFisYield(int elemid, double energyK){
+  return recoFissY->GetFisYield(elemid, energyK);
+}
+
+//-------------------------------------------------------------------------------------------------------
 TNudyEndfRecoPoint::~TNudyEndfRecoPoint(){}

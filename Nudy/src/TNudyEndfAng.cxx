@@ -324,3 +324,13 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
   }
   return Ang ;
 }
+int TNudyEndfAng::GetCos4Lct(int ielemId, int mt){
+  int i =0;
+  for(unsigned int l =0; l < Mt4Values[ielemId].size(); l++){
+    if(Mt4Values[ielemId][l] == mt){
+      i = l;
+      break;
+    }
+  }
+  return Mt4Lct[ielemId][i];  
+}

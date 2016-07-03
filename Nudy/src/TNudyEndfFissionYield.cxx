@@ -1,12 +1,18 @@
 // 	This class is reconstructing Fission yields  
 // 	Author: Dr. Harphool Kumawat
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
-// 	date of creation: March 22, 2016
+// 	date of creation: March 24, 2016
 
 #include "TList.h"
 #include "TNudyEndfFile.h"
 #include "TNudyEndfList.h"
+#include "TNudyCore.h"
 #include "TNudyEndfFissionYield.h"
+
+#ifdef USE_ROOT
+ClassImp(TNudyEndfFissionYield)
+#include "TRandom3.h"
+#endif
 
 TNudyEndfFissionYield::TNudyEndfFissionYield(){}
 
@@ -34,15 +40,24 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
 	  yi1.push_back(list1->GetLIST(4*j+2));
 	  dyi1.push_back(list1->GetLIST(4*j+3));
 	}
+	TNudyCore::Instance()->cdfGenerateT(zafp1, yi1, cyi1);
 	zafp.push_back (zafp1);
 	fps.push_back(fps1);
 	yi.push_back(yi1);
+	cyi.push_back(cyi1);
 	dyi.push_back(dyi1);
 	zafp1.clear();
 	fps1.clear();
 	yi1.clear();
 	dyi1.clear();	  
       }
+      einfId.push_back(ein);
+      zafId.push_back(zafp);
+      pdfYieldId.push_back(yi);
+      cdfYieldId.push_back(cyi);
+      yi.clear();
+      zafp.clear();
+      ein.clear();
     }else if(MT == 459){// Neutron induced cummulative fission yield
 	for (int i =0; i < LE; i++){
 	  TNudyEndfList *list1 = (TNudyEndfList *)recIter.Next();
@@ -71,3 +86,44 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
 }
 
 TNudyEndfFissionYield::~TNudyEndfFissionYield(){}
+
+double TNudyEndfFissionYield::GetFisYield(int ielemId, double energyK){
+  fRnd = new TRandom3(0);
+  int min = 0;
+  int max = einfId[ielemId].size() - 1;
+  int mid = 0;
+  if (energyK <= einfId[ielemId][min])min = 0;
+  else if (energyK >= einfId[ielemId][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < einfId[ielemId][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  double fraction = (energyK - einfId[ielemId][min])/
+                    (einfId[ielemId][min+1] - einfId[ielemId][min]);
+  double rnd1 = fRnd->Uniform(1);
+  double rnd2 = fRnd->Uniform(1);
+  if(rnd2 < fraction)min = min + 1;
+  int k =0;
+  int size = pdfYieldId[ielemId][min].size();
+  for(int j = 0; j < size; j++){
+    if(rnd1 < cdfYieldId[ielemId][min][j]){
+      k = j - 1 ;
+      if(k < 0)k = 0;
+      if(k >= size) k = size - 1;
+      break;
+    }
+  }
+  double plk = (pdfYieldId[ielemId][min][k + 1] - pdfYieldId[ielemId][min][k])/
+               (zafId[ielemId][min][k + 1] - zafId[ielemId][min][k]);
+  double plk2 =  pdfYieldId[ielemId][min][k] * pdfYieldId[ielemId][min][k];
+  double plsq = plk2 + 2 * plk *(rnd1 - cdfYieldId[ielemId][min][k]);
+  //std::cout <<"plk "<< plk <<" plk2 "<< plk2 <<"  "<< k << std::endl;
+  double zaf = 0 ;
+  if(plk !=0 && plsq > 0)zaf = zafId[ielemId][min][k] + (sqrt(std::fabs(plsq)) -
+                     pdfYieldId[ielemId][min][k])/plk;
+  return zaf ;
+}
+

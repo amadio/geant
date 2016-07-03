@@ -15,6 +15,17 @@ public:
   TNudySampling (Particle*, TNudyEndfRecoPoint *recoPoint);
   virtual ~TNudySampling ();
 private:
+  void GetSecParameter(Particle*, TNudyEndfRecoPoint *recoPoint);
+  std::vector<double> crs;
+  double kineticE; 
+  double cosCM=0, cosLab=0, secEnergyCM=0, secEnergyLab=0;
+  double x[100000], y[100000];
+  double residueA, residueZ;
+  int elemId = 0;
+  int isel = 0;
+  int counter = 0;
+  int ecounter = 0;
+  int LCT, MF, MT;
   
  #ifdef USE_ROOT
   TRandom3 *fRnd;

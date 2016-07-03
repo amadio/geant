@@ -36,7 +36,7 @@ public:
   TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt = "new", unsigned char loglev = 0);
   virtual ~TNudyENDF();
   bool sub=false;
-  void SetEndfSub(std::string ENDFSUB){this->sub=kTRUE; this->ENDFSUB=ENDFSUB; }
+  void SetEndfSub(std::string ENDFSUB){this->sub=true; this->ENDFSUB=ENDFSUB; }
   std::string GetEndfSubName() const {return ENDFSUB; }
   void SetLogLev(unsigned char loglev) { fLogLev = loglev; }
   unsigned char GetLogLev() const { return fLogLev; }

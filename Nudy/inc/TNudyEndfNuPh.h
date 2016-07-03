@@ -12,6 +12,7 @@ class  TNudyEndfNuPh : public TNudyEndfRecoPoint {
 public: 
   TNudyEndfNuPh ();
   TNudyEndfNuPh (TNudyEndfFile *file);
+  virtual double GetNuTotal(int elemid, double energyK);
   virtual ~TNudyEndfNuPh ();
 private:
   double recursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x, std::vector<double> sig);

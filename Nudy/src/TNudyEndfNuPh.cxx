@@ -67,6 +67,8 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       }
       TNudyCore::Instance()->Sort(eintFile1, nutFile1);
       }
+      eint.push_back(eintFile1);
+      nut.push_back(nutFile1);
       nbt1.clear();	int1.clear();
     } else if(MT == 455){// delayed neutron multiplicity
       int LDG   = sec->GetL1();
@@ -251,7 +253,7 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 }
 
 TNudyEndfNuPh::~TNudyEndfNuPh(){}
-
+//____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::recursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x, std::vector<double> sig){
   double siga;
   double mid     = 0.5 * (x1 + x2);
@@ -272,3 +274,20 @@ double TNudyEndfNuPh::recursionLinearNuPh(double x1, double x2, double sig1, dou
   recursionLinearNuPh(mid, x2, siga, sig2, x, sig);
   return 0;
 }	
+//____________________________________________________________________________________________________________________
+double TNudyEndfNuPh::GetNuTotal(int elemid, double energyK){
+  int min = 0;
+  int max = eint[elemid].size() - 1;
+  int mid = 0;
+  if (energyK <= eint[elemid][min])min = 0;
+  else if (energyK >= eint[elemid][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < eint[elemid][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  return nut[elemid][min] + (nut[elemid][min+1] - nut[elemid][min])*(energyK - eint[elemid][min])
+                          /(eint[elemid][min+1] - eint[elemid][min]);
+}
