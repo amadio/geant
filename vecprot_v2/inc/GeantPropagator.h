@@ -74,6 +74,7 @@ public:
   std::atomic<long> fNcross;                       /** Total number of boundaries crossed */
   std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
   std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
+  std::atomic_int fNTransportTask;
   BitSet *fDoneEvents;                             /** Array of bits marking done events */
   int fNprocesses;                                 /** Number of active physics processes */
   int fNstart;                                     /** Cumulated initial number of tracks */

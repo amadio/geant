@@ -30,6 +30,7 @@
 #include "TGeoManager.h"
 #endif
 #include "TaskBroker.h"
+#include "TransportTask.h"
 
 // added by WP for output handling
 #ifndef GEANT_MYHIT
@@ -160,6 +161,7 @@ bool WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
 //______________________________________________________________________________
 void WorkloadManager::StartThreads() {
   // Start the threads
+  tbb::task_list tlist;
   fStarted = true;
   if (!fListThreads.empty())
     return;
@@ -178,9 +180,16 @@ void WorkloadManager::StartThreads() {
     }
   }
   // Start CPU transport threads
-  for (; ith < fNthreads; ith++) {
-    fListThreads.emplace_back(WorkloadManager::TransportTracks);
-  }
+  //for (; ith < fNthreads; ith++) {
+  //  fListThreads.emplace_back(WorkloadManager::TransportTracks);
+  //}
+  tbb::empty_task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  // spawn transport tasks
+  for (int i = 0; i < fNthreads; i++)
+    tlist.push_back(*new (cont.allocate_child()) TransportTask());
+
+  tbb::task::spawn(tlist);
+
   // Start output thread
   if (GeantPropagator::Instance()->fFillTree) {
     fListThreads.emplace_back(WorkloadManager::OutputThread);
@@ -193,6 +202,8 @@ void WorkloadManager::StartThreads() {
   if (GeantPropagator::Instance()->fMaxRes > 0) {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
   }
+
+
 }
 
 //______________________________________________________________________________
@@ -266,10 +277,11 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
                                                   GeantTaskData &td) {
 
   if (!prioritizer.HasTracks() && (propagator.GetNpriority() || GetNworking() == 1)) {
-    //bool didFeeder = propagator.Feeder(&td);
-    int didFeeder;
-    FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(&td, &didFeeder);
-    tbb::task::spawn_root_and_wait(feederTask);
+    bool didFeeder = propagator.Feeder(&td);
+    /*int didFeeder;
+    tbb::empty_task & cont = *new(tbb::task::allocate_continuation()) tbb::empty_task();
+    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask(td, &didFeeder);
+    cont.spawn(feederTask);*/
 
     // Check exit condition
     if (propagator.TransportCompleted()) {

@@ -1,8 +1,6 @@
 #ifndef FEEDERTASK
 #define FEEDERTASK
 
-#include <atomic>
-
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "GeantEvent.h"

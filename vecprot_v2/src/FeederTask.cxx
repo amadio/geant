@@ -1,18 +1,20 @@
 #include "FeederTask.h"
+#include "TransportTask.h"
 
 #include <iostream>
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
 #endif
 
-FeederTask::FeederTask (Geant::GeantTaskData *td, int * nbaskets): fTd(td), fNbaskets(nbaskets) { }
+FeederTask::FeederTask (Geant::GeantTaskData *td, int *nbaskets): fTd(td), fNbaskets(nbaskets) { }
 
 FeederTask::~FeederTask () { }
 
 tbb::task* FeederTask::execute ()
 {
-
+  printf("Feedertask created");
   GeantPropagator *propagator = GeantPropagator::Instance();
+  tbb::task_list tlist;
 
   // Task spawned to inject the next event(s)
   // Only one task at a time
@@ -51,6 +53,14 @@ tbb::task* FeederTask::execute ()
 
   propagator->fFeederLock.clear(std::memory_order_release);
   *fNbaskets = nbaskets;
+
+  // spawn transport tasks
+  while (propagator->fNTransportTask.load() < propagator->fNthreads){
+    propagator->fNTransportTask++;
+    tlist.push_back(*new (tbb::task::allocate_child()) TransportTask());
+  }
+
+  spawn(tlist);
 
   return NULL;
 }
