@@ -106,46 +106,21 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> ElectronProc
     Index_v<typename Backend::Double_v> matId, Index_v<typename Backend::Double_v> ebin)
 {
   // select a physics process randomly based on the weight
+
   using Double_v = typename Backend::Double_v;
 
-  int im = (int)(matId);
-  int ie = (int)(ebin);
-
-  int ip = fNumberOfProcess - 1;
-
-  double weight = 0.0;
-  double rp = UniformRandom<Double_v>(fRandomState, fThreadId);
-
-  for (int i = 0; i < fNumberOfProcess - 1; ++i) {
-    weight += fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[i];
-    if (weight > rp) {
-      ip = i;
-      break;
-    }
-  }
-  return ip;
-}
-
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
-template <>
-inline Index_v<typename backend::VcVector::Double_v> ElectronProcess::G3NextProcess<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> matId, Index_v<typename backend::VcVector::Double_v> ebin)
-{
-  // select a physics process randomly based on the weight
-  Index_v<typename backend::VcVector::Double_v> ip = (Index_v<Double_v>)(fNumberOfProcess - 1);
+  Double_v rng = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Index_v<Double_v> ip(fNumberOfProcess - 1);
 
   for (size_t i = 0; i < VectorSize(matId); ++i) {
-
-    int im = (int)(matId[i]);
-    int ie = (int)(ebin[i]);
-
+    int ie = LaneAt(ebin, i);
+    int im = LaneAt(matId, i);
     double weight = 0.0;
-    double rp = UniformRandom<double>(fRandomState, fThreadId);
 
-    for (int j = 0; j < fNumberOfProcess - 1; ++j) {
+    for (size_t j = 0; j < fNumberOfProcess - 1; ++j) {
       weight += fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[j];
-      if (weight > rp) {
-        ip[i] = j;
+      if (weight > LaneAt(rng, i)) {
+        AssignLane(ip, i, j);
         break;
       }
     }
@@ -153,7 +128,6 @@ inline Index_v<typename backend::VcVector::Double_v> ElectronProcess::G3NextProc
 
   return ip;
 }
-#endif
 
 } // end namespace impl
 } // end namespace vecphys
