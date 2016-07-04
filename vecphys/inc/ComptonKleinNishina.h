@@ -273,13 +273,15 @@ VECCORE_CUDA_HOST_DEVICE void ComptonKleinNishina::InteractKernelUnpack(typename
   Double_v epsilon0sq = eps0 * eps0;
   Double_v alpha1 = -math::Log(eps0);
   Double_v alpha2 = 0.5 * (1. - epsilon0sq);
-
   Double_v test = alpha1 / (alpha1 + alpha2);
 
-  Double_v epsilon =
-      Blend(test > UniformRandom<Double_v>(fRandomState, fThreadId),
-            math::Exp(-alpha1 * UniformRandom<Double_v>(fRandomState, fThreadId)),
-            math::Sqrt(epsilon0sq + (1. - epsilon0sq) * UniformRandom<Double_v>(fRandomState, fThreadId)));
+  Double_v rng0 = UniformRandom<Double_v>(fRandomState, fThreadId);
+  Double_v rng1 = UniformRandom<Double_v>(fRandomState, fThreadId);
+
+  Double_v tmp0 = math::Exp(-alpha1 * rng1);
+  Double_v tmp1 = math::Sqrt(epsilon0sq + (Double_v(1.0) - epsilon0sq) * rng1);
+
+  Double_v epsilon = Blend(test > rng0, tmp0, tmp1);
 
   Double_v onecost = (1. - epsilon) / (epsilon * E0_m);
   Double_v sint2 = onecost * (2. - onecost);
