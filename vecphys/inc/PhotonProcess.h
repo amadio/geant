@@ -83,43 +83,24 @@ inline VECCORE_CUDA_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<ty
                                                                       typename Backend::Double_v &weight,
                                                                       Index_v<typename Backend::Double_v> &alias) const
 {
-  int im = (int)(matId);
-  int ie = (int)(ebin);
-  int ip = (int)(iprocess);
+  for (size_t i = 0; i < VectorSize(ebin); ++i) {
+    int ie = LaneAt(ebin, i);
+    int im = LaneAt(matId, i);
+    int ip = LaneAt(iprocess, i);
+    double scalar_weight;
 
-  if (ip == fNumberOfProcess - 1) {
-    weight = 1.0;
-    for (int j = 0; j < fNumberOfProcess - 1; ++j)
-      weight -= fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[j];
-  } else {
-    weight = fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[ip];
-  }
-  alias = fCrossSectionData[im * fNumberOfEnergyBin + ie].fAlias[ip];
-}
-
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
-template <>
-inline void PhotonProcess::GetWeightAndAlias<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> matId, Index_v<typename backend::VcVector::Double_v> ebin,
-    Index_v<typename backend::VcVector::Double_v> iprocess, typename backend::VcVector::Double_v &weight,
-    Index_v<typename backend::VcVector::Double_v> &alias) const
-{
-  for (size_t i = 0; i < VectorSize(matId); ++i) {
-    int im = (int)(matId[i]);
-    int ie = (int)(ebin[i]);
-    int ip = (int)(iprocess[i]);
-
-    if (ip == fNumberOfProcess - 1) {
-      weight[i] = 1.0;
-      for (int j = 0; j < fNumberOfProcess - 1; ++j)
-        weight[i] -= fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[j];
+    if (ip + 1 == fNumberOfProcess) {
+      scalar_weight = 1.0;
+      for (size_t j = 0; j < fNumberOfProcess - 1; ++j)
+        scalar_weight -= fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[j];
     } else {
-      weight[i] = fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[ip];
+        scalar_weight = fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[ip];
     }
-    alias[i] = fCrossSectionData[im * fNumberOfEnergyBin + ie].fAlias[ip];
+
+    AssignLane(weight, i, scalar_weight);
+    AssignLane(alias, i, fCrossSectionData[im * fNumberOfEnergyBin + ie].fAlias[ip]);
   }
 }
-#endif
 
 template <typename Backend>
 inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProcess::G3NextProcess(
