@@ -59,39 +59,22 @@ private:
 };
 
 template <class Backend>
-inline typename Backend::Double_v ElectronProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
-                                                             Index_v<typename Backend::Double_v> ebin,
-                                                             typename Backend::Double_v fraction) const
+inline VECCORE_CUDA_HOST_DEVICE
+typename Backend::Double_v ElectronProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
+                                                      Index_v<typename Backend::Double_v> ebin,
+                                                      typename Backend::Double_v fraction) const
 {
-  int im = (int)(matId);
-  int ie = (int)(ebin);
-  // linear approximation
-  double xlow = fCrossSectionData[im * fNumberOfEnergyBin + ie].fSigma;
-  double xhigh = fCrossSectionData[im * fNumberOfEnergyBin + ie + 1].fSigma;
+  typename Backend::Double_v xlo, xhi;
 
-  return xlow + (xhigh - xlow) * fraction;
-}
-
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
-template <>
-inline typename backend::VcVector::Double_v ElectronProcess::GetLambda<backend::VcVector>(
-    Index_v<typename backend::VcVector::Double_v> matId, Index_v<typename backend::VcVector::Double_v> ebin,
-    typename backend::VcVector::Double_v fraction) const
-{
-  typedef typename Backend::Double_v Double_t;
-  Double_t lambda(0.0);
-
+  // cannot use gather because of usage of struct member fSigma
   for (size_t i = 0; i < VectorSize(ebin); ++i) {
-    int im = (int)(matId[i]);
-    int ie = (int)(ebin[i]);
-
-    double xlow = fCrossSectionData[im * fNumberOfEnergyBin + ie].fSigma;
-    double xhigh = fCrossSectionData[im * fNumberOfEnergyBin + ie + 1].fSigma;
-    lambda[i] = xlow + (xhigh - xlow) * fraction[i];
+    int ie = LaneAt(ebin, i), im = LaneAt(matId, i);
+    AssignLane(xlo, i, fCrossSectionData[im * fNumberOfEnergyBin + ie].fSigma);
+    AssignLane(xhi, i, fCrossSectionData[im * fNumberOfEnergyBin + ie + 1].fSigma);
   }
-  return lambda;
+
+  return xlo + (xhi - xlo) * fraction;
 }
-#endif
 
 template <class Backend>
 inline VECCORE_CUDA_HOST_DEVICE void ElectronProcess::GetWeightAndAlias(
