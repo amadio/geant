@@ -60,7 +60,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(testlhcb testlhcb.cc ${sources} ${headers})
+add_executable(testlhcb testLHCb.cc ${sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 target_link_libraries(testlhcb ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
 	-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeom -lEG Geant_v Xsec)
