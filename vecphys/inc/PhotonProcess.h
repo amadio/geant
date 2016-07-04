@@ -91,7 +91,7 @@ inline VECCORE_CUDA_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<ty
 
     if (ip + 1 == fNumberOfProcess) {
       scalar_weight = 1.0;
-      for (size_t j = 0; j < fNumberOfProcess - 1; ++j)
+      for (int j = 0; j < fNumberOfProcess - 1; ++j)
         scalar_weight -= fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[j];
     } else {
         scalar_weight = fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[ip];
@@ -117,7 +117,7 @@ inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProces
     int im = LaneAt(matId, i);
     double weight = 0.0;
 
-    for (size_t j = 0; j < fNumberOfProcess - 1; ++j) {
+    for (int j = 0; j < fNumberOfProcess - 1; ++j) {
       weight += fCrossSectionData[im * fNumberOfEnergyBin + ie].fWeight[j];
       if (weight > LaneAt(rng, i)) {
         AssignLane(ip, i, j);
