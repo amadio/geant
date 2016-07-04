@@ -11,9 +11,9 @@ namespace vecphys {
 using namespace vecCore;
 
 #ifdef VECCORE_NVCC
-using Backend = backend::Scalar;
+using VectorBackend = backend::Scalar;
 #else
-using Backend = backend::VcVector;
+using VectorBackend = backend::VcVector;
 #endif
 
 // scalar types
@@ -36,19 +36,19 @@ using UInt64_t = vecCore::UInt64_s;
 
 // vector types
 
-using Real_v = typename Backend::Real_v;
-using Float_v = typename Backend::Float_v;
-using Double_v = typename Backend::Double_v;
+using Real_v = typename VectorBackend::Real_v;
+using Float_v = typename VectorBackend::Float_v;
+using Double_v = typename VectorBackend::Double_v;
 
-using Int_v = typename Backend::Int_v;
-using Int16_v = typename Backend::Int16_v;
-using Int32_v = typename Backend::Int32_v;
-using Int64_v = typename Backend::Int64_v;
+using Int_v = typename VectorBackend::Int_v;
+using Int16_v = typename VectorBackend::Int16_v;
+using Int32_v = typename VectorBackend::Int32_v;
+using Int64_v = typename VectorBackend::Int64_v;
 
-using UInt_v = typename Backend::UInt_v;
-using UInt16_v = typename Backend::UInt16_v;
-using UInt32_v = typename Backend::UInt32_v;
-using UInt64_v = typename Backend::UInt64_v;
+using UInt_v = typename VectorBackend::UInt_v;
+using UInt16_v = typename VectorBackend::UInt16_v;
+using UInt32_v = typename VectorBackend::UInt32_v;
+using UInt64_v = typename VectorBackend::UInt64_v;
 }
 
 #ifdef VECCORE_NVCC

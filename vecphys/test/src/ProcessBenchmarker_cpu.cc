@@ -58,7 +58,7 @@ Real_t VectorPhotonProcess(GUTrack_v &itrack_soa, int *materialIndex)
 
   timer.Start();
 
-  process.GetStepLengthAndProcess<backend::VcVector>(itrack_soa, materialIndex);
+  process.GetStepLengthAndProcess<VectorBackend>(itrack_soa, materialIndex);
 
   elapsedTime = timer.Stop();
 
@@ -74,7 +74,7 @@ Real_t VectorElectronProcess(GUTrack_v &itrack_soa, int *materialIndex)
 
   timer.Start();
 
-  process.GetStepLengthAndProcess<backend::VcVector>(itrack_soa, materialIndex);
+  process.GetStepLengthAndProcess<VectorBackend>(itrack_soa, materialIndex);
 
   elapsedTime = timer.Stop();
 
@@ -130,7 +130,7 @@ Real_t GeantVPhotonProcess(GUTrack_v &itrack_soa, int *materialIndex)
 
   timer.Start();
 
-  process.GVStepLengthAndProcess<backend::VcVector>(itrack_soa, materialIndex);
+  process.GVStepLengthAndProcess<VectorBackend>(itrack_soa, materialIndex);
 
   elapsedTime = timer.Stop();
 
@@ -146,7 +146,7 @@ Real_t GeantVElectronProcess(GUTrack_v &itrack_soa, int *materialIndex)
 
   timer.Start();
 
-  process.GVStepLengthAndProcess<backend::VcVector>(itrack_soa, materialIndex);
+  process.GVStepLengthAndProcess<VectorBackend>(itrack_soa, materialIndex);
 
   elapsedTime = timer.Stop();
 
