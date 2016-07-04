@@ -20,7 +20,7 @@ Real_t ScalarPhotonProcess(int ntracks, GUTrack *itrack_aos, int *materialIndex)
   timer.Start();
 
   for (int i = 0; i < ntracks; ++i) {
-    process.GetStepLengthAndProcess<backend::Scalar>(itrack_aos[i], materialIndex[i]);
+    process.GetStepLengthAndProcess<ScalarBackend>(itrack_aos[i], materialIndex[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -39,7 +39,7 @@ Real_t ScalarElectronProcess(int ntracks, GUTrack *itrack_aos, int *materialInde
   timer.Start();
 
   for (int i = 0; i < ntracks; ++i) {
-    process.GetStepLengthAndProcess<backend::Scalar>(itrack_aos[i], materialIndex[i]);
+    process.GetStepLengthAndProcess<ScalarBackend>(itrack_aos[i], materialIndex[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -93,7 +93,7 @@ Real_t Geant3PhotonProcess(int ntracks, GUTrack *itrack_aos, int *materialIndex)
   timer.Start();
 
   for (int i = 0; i < ntracks; ++i) {
-    process.G3StepLengthAndProcess<backend::Scalar>(itrack_aos[i], materialIndex[i]);
+    process.G3StepLengthAndProcess<ScalarBackend>(itrack_aos[i], materialIndex[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -111,7 +111,7 @@ Real_t Geant3ElectronProcess(int ntracks, GUTrack *itrack_aos, int *materialInde
   timer.Start();
 
   for (int i = 0; i < ntracks; ++i) {
-    process.G3StepLengthAndProcess<backend::Scalar>(itrack_aos[i], materialIndex[i]);
+    process.G3StepLengthAndProcess<ScalarBackend>(itrack_aos[i], materialIndex[i]);
   }
 
   elapsedTime = timer.Stop();

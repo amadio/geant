@@ -16,7 +16,7 @@ void KernelPhotonProcess(Random_t* devStates,
   PhotonProcess process(devStates,tid,table);
 
   while (tid < nTrackSize) {
-    process.GetStepLengthAndProcess<backend::Scalar>(itrack[tid], materialIndex[tid]);
+    process.GetStepLengthAndProcess<ScalarBackend>(itrack[tid], materialIndex[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -33,7 +33,7 @@ void KernelElectronProcess(Random_t* devStates,
   ElectronProcess process(devStates,tid,table);
 
   while (tid < nTrackSize) {
-    process.GetStepLengthAndProcess<backend::Scalar>(itrack[tid], materialIndex[tid]);
+    process.GetStepLengthAndProcess<ScalarBackend>(itrack[tid], materialIndex[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }

@@ -199,14 +199,14 @@ void EmProcess<Process>::GetStepLengthAndProcess(GUTrack_v &tracks, const int *m
     int sebin = (int)selow;
     double sefrac = (seloc - selow) * fInverseLogEnergyBin;
 
-    GetNextStep<backend::Scalar>(materialIndex[i], sebin, sefrac, snint, slambda, sstep);
+    GetNextStep<ScalarBackend>(materialIndex[i], sebin, sefrac, snint, slambda, sstep);
 
     tracks.nint[i] = snint;
     tracks.lambda[i] = slambda;
     tracks.s[i] = sstep;
 
     // II. select a physics process
-    tracks.proc[i] = (int)(GetNextProcess<backend::Scalar>(materialIndex[i], sebin));
+    tracks.proc[i] = (int)(GetNextProcess<ScalarBackend>(materialIndex[i], sebin));
   }
 }
 
@@ -264,14 +264,14 @@ void EmProcess<Process>::GVStepLengthAndProcess(GUTrack_v &tracks, const int *ma
     int sebin = (int)selow;
     double sefrac = (seloc - selow) * fInverseLogEnergyBin;
 
-    GetNextStep<backend::Scalar>(materialIndex[i], sebin, sefrac, snint, slambda, sstep);
+    GetNextStep<ScalarBackend>(materialIndex[i], sebin, sefrac, snint, slambda, sstep);
 
     tracks.nint[i] = snint;
     tracks.lambda[i] = slambda;
     tracks.s[i] = sstep;
 
     // II. select a physics process
-    tracks.proc[i] = (int)(GetNextProcess<backend::Scalar>(materialIndex[i], sebin));
+    tracks.proc[i] = (int)(GetNextProcess<ScalarBackend>(materialIndex[i], sebin));
   }
 }
 #endif

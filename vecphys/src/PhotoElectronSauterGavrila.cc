@@ -249,7 +249,7 @@ VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRej
                                                                                        double &energyOut, double &sint)
 {
   // use the scalar implementation which is equivalent to Geant4
-  energyOut = GetPhotoElectronEnergy<backend::Scalar>(energyIn, Z);
+  energyOut = GetPhotoElectronEnergy<ScalarBackend>(energyIn, Z);
 
   // sample angular direction according to SauterGavrilaAngularDistribution
 

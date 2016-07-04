@@ -249,7 +249,7 @@ VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(in
   // angles of the emitted gamma. ( Z - axis along the parent particle)
   // use general interface
   //
-  sinTheta = SampleSinTheta<backend::Scalar>(gammaEnergy);
+  sinTheta = SampleSinTheta<ScalarBackend>(gammaEnergy);
 }
 
 VECCORE_CUDA_HOST double BremSeltzerBerger::GetG4CrossSection(int Z, double kineticEnergy)

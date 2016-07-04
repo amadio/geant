@@ -372,8 +372,8 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v &inProjectile, const int *targ
     double senergyIn = inProjectile.E[i];
     double senergyOut, ssinTheta;
     // use InteractKernel for any leftover to be consistent with EmBaseModel
-    InteractKernel<backend::Scalar>(senergyIn, targetElements[i], senergyOut, ssinTheta);
-    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    InteractKernel<ScalarBackend>(senergyIn, targetElements[i], senergyOut, ssinTheta);
+    ConvertXtoFinalState_Scalar<ScalarBackend>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 

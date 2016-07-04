@@ -28,7 +28,7 @@ Real_t ScalarKleinNishina(int ntracks,
 
   for(int i = 0 ; i < ntracks ; ++i) {
     //    printf("this elec[%d] = %d\n",i,targetElements[i]);
-    model.Interact<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -37,7 +37,7 @@ Real_t ScalarKleinNishina(int ntracks,
   /*
   double sigma = 0;
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.AtomicCrossSection<backend::Scalar>(itrack_aos[i], targetElements[i],sigma);
+    model.AtomicCrossSection<ScalarBackend>(itrack_aos[i], targetElements[i],sigma);
   }
   */
   return elapsedTime;
@@ -58,7 +58,7 @@ Real_t ScalarHybridCompton(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.ModelInteract<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.ModelInteract<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -81,7 +81,7 @@ Real_t ScalarBetheHeitler(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.Interact<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -104,7 +104,7 @@ Real_t ScalarSauterGavrila(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.ModelInteract<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.ModelInteract<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -127,7 +127,7 @@ Real_t ScalarMollerBhabha(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.Interact<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -150,7 +150,7 @@ Real_t ScalarSeltzerBerger(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.Interact<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -332,7 +332,7 @@ Real_t G4KleinNishina(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.InteractG4<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -341,7 +341,7 @@ Real_t G4KleinNishina(int ntracks,
   /*
   double sigma = 0.0;
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.AtomicCrossSectionG4<backend::Scalar>(itrack_aos[i], targetElements[i], sigma);
+    model.AtomicCrossSectionG4<ScalarBackend>(itrack_aos[i], targetElements[i], sigma);
   }
   */
   return elapsedTime;
@@ -360,7 +360,7 @@ Real_t G4HybridCompton(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.InteractG4<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -381,7 +381,7 @@ Real_t G4BetheHeitler(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.InteractG4<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -402,7 +402,7 @@ Real_t G4SauterGavrila(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.InteractG4<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -424,7 +424,7 @@ Real_t G4MollerBhabha(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.InteractG4<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
@@ -450,7 +450,7 @@ Real_t G4SeltzerBerger(int ntracks,
   timer.Start();
 
   for(int i = 0 ; i < ntracks ; ++i) {
-    model.InteractG4<backend::Scalar>(itrack_aos[i], targetElements[i], otrack_aos[i]);
+    model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();

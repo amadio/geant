@@ -259,7 +259,7 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v &inProjectile, const int
 
   // leftover - do scalar
   for (int i = numChunks * VectorSize<Double_v>(); i < inProjectile.numTracks; ++i) {
-    sigma[i] = static_cast<EmModel *>(this)->template CrossSectionKernel<backend::Scalar>(inProjectile.E[i],
+    sigma[i] = static_cast<EmModel *>(this)->template CrossSectionKernel<ScalarBackend>(inProjectile.E[i],
                                                                                           targetElements[i]);
   }
 }
@@ -315,9 +315,9 @@ void EmModelBase<EmModel>::Interact(GUTrack_v &inProjectile, const int *targetEl
     double senergyIn = inProjectile.E[i];
     double senergyOut, ssinTheta;
 
-    static_cast<EmModel *>(this)->template InteractKernel<backend::Scalar>(senergyIn, targetElements[i], senergyOut,
+    static_cast<EmModel *>(this)->template InteractKernel<ScalarBackend>(senergyIn, targetElements[i], senergyOut,
                                                                            ssinTheta);
-    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    ConvertXtoFinalState_Scalar<ScalarBackend>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 
@@ -469,9 +469,9 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
     double senergyIn = inProjectile.E[i];
     double senergyOut, ssinTheta;
 
-    static_cast<EmModel *>(this)->template InteractKernel<backend::Scalar>(senergyIn, targetElements[i], senergyOut,
+    static_cast<EmModel *>(this)->template InteractKernel<ScalarBackend>(senergyIn, targetElements[i], senergyOut,
                                                                            ssinTheta);
-    ConvertXtoFinalState_Scalar<backend::Scalar>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
+    ConvertXtoFinalState_Scalar<ScalarBackend>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
 
@@ -619,7 +619,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(
                                                                                 int ibase, GUTrack_v &primary,
                                                                                 GUTrack_v &secondary)
 {
-  using Double_v = typename backend::Scalar::Double_v;
+  using Double_v = typename ScalarBackend::Double_v;
 
   // need to rotate the angle with respect to the line of flight
   Double_v invp = 1. / energyIn;
@@ -631,7 +631,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(
   Double_v vhat = 0.;
   Double_v what = 0.;
 
-  RotateAngle<backend::Scalar>(sinTheta, xhat, yhat, zhat, uhat, vhat, what);
+  RotateAngle<ScalarBackend>(sinTheta, xhat, yhat, zhat, uhat, vhat, what);
 
   // Update primary
   primary.E[ibase] = energyOut;

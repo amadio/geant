@@ -40,7 +40,7 @@ void KernelKleinNishina(Random_t* devStates,
   //  sampler.PrintTable();
 
   while (tid < nTrackSize) {
-    model.Interact<backend::Scalar>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.Interact<ScalarBackend>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -66,7 +66,7 @@ void KernelHybridCompton(Random_t* devStates,
   }
 
   while (tid < nTrackSize) {
-    model.ModelInteract<backend::Scalar>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.ModelInteract<ScalarBackend>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -92,7 +92,7 @@ void KernelBetheHeitler(Random_t* devStates,
   }
 
   while (tid < nTrackSize) {
-    model.Interact<backend::Scalar>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.Interact<ScalarBackend>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -118,7 +118,7 @@ void KernelSauterGavrila(Random_t* devStates,
   }
 
   while (tid < nTrackSize) {
-    model.ModelInteract<backend::Scalar>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.ModelInteract<ScalarBackend>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -144,7 +144,7 @@ void KernelMollerBhabha(Random_t* devStates,
   }
 
   while (tid < nTrackSize) {
-    model.Interact<backend::Scalar>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.Interact<ScalarBackend>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }
@@ -170,7 +170,7 @@ void KernelSeltzerBerger(Random_t* devStates,
   }
 
   while (tid < nTrackSize) {
-    model.Interact<backend::Scalar>(itrack[tid],targetElements[tid],otrack[tid]);
+    model.Interact<ScalarBackend>(itrack[tid],targetElements[tid],otrack[tid]);
     tid += blockDim.x * gridDim.x;
   }
 }

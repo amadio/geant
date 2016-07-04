@@ -10,6 +10,8 @@
 namespace vecphys {
 using namespace vecCore;
 
+using ScalarBackend = backend::Scalar;
+
 #ifdef VECCORE_NVCC
 using VectorBackend = backend::Scalar;
 #else
