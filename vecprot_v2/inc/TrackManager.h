@@ -40,7 +40,7 @@ public:
     :fBlockSize(block_size), fNode(numa_node), fBlockMgr(numa_node, block_size) {
   
     for (size_t i=0; i<nblocks; ++i) {
-      NumaBlock<GeantTrack> *block = fBlockMgr.AddBlockAndRegister();
+      NumaBlock<GeantTrack> &block = *fBlockMgr.AddBlockAndRegister();
       for (size_t itr=0; itr<fBlockSize; ++itr) block[itr].fBindex = itr;
     }
   }
@@ -50,31 +50,32 @@ public:
   
   /** @brief Returns a reference of a track from the container */
   GEANT_INLINE
-  GeantTrack & const GetTrack() { return fBlockMgr.GetObject(); }
+  GeantTrack &GetTrack() { return fBlockMgr.GetObject(); }
   
   /** @brief Service to get the NUMA block a track belongs to */
   GEANT_INLINE
   static
-  NumaBlock<GeantTrack> *GetBlock(GeantTrack & const track) {
+  NumaBlock<GeantTrack> *GetBlock(GeantTrack const &track) {
     // The magic here is that tracks are allocated contiguous in blocks and the
     // block address is stored just before the array of tracks. So we need to
     // store just the track index in the track structure to retrieve the address
     // of the block
-    return ( *((NumaBlock<GeantTrack>**)(track - track.fBindex) - 1) );
+    return *((NumaBlock<GeantTrack>**)(&track) - track.fBindex - 1);
+  }
+
+  /** @brief Service to get the NUMA node corresponding to a track */
+  GEANT_INLINE
+  static
+  int GetNode(GeantTrack const &track) {
+    return ( GetBlock(track)->GetNode() );
   }
 
   /** @brief Release a track from its block */
   GEANT_INLINE
-  bool ReleaseTrack(GeantTrack & const track) {
+  bool ReleaseTrack(GeantTrack const &track) {
     return ( fBlockMgr.ReleaseObject(GetBlock(track)) );
   }
   
-  /** @brief Check if track belongs to container */
-  GEANT_INLINE
-  bool OwnsTrack(GeantTrack *track) const {
-    return ( (size_t)(track - fTracks) < fSize*sizeof(GeantTrack) );
-  } 
-
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

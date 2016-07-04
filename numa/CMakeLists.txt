@@ -9,6 +9,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/src/NumaUtils.cxx
 )
 set(headers
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantNuma.h
+${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaBlock.h
+${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaBlockMgr.h
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaNode.h
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaPolicy.h
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaTopology.h

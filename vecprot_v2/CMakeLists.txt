@@ -57,6 +57,8 @@ set(headers
    inc/TThreadMergingFile.h
    inc/TThreadMergingServer.h
    inc/TrackManager.h
+   inc/TransportManager.h
+
 )   
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

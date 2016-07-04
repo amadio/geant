@@ -29,7 +29,7 @@
 namespace Geant {
 
 template <typename T> class NumaBlockMgr {
-  using size_t = std::size_t size_t;
+  using size_t = std::size_t;
   using numa_block_ptr = NumaBlock<T>*;
   using queue_t = mpmc_bounded_queue<numa_block_ptr>;
 
@@ -51,12 +51,11 @@ public:
   /** @brief Constructor providing number of blocks to be initially created */
   NumaBlockMgr(int numa_node, size_t bsize) 
     : fCurrent(nullptr), fNode(numa_node), fBlockSize(bsize), 
-      fBlocks(queue_buff_size), fUsed(queue_buff_size)
+      fBlocks(queue_buff_size)
   {
-    assert(ninitial <= queue_buff_size);
-    for (auto i=0; i<ninitial; ++i) {
-      fBlocks.enqueue(AddBlock());
-    }
+    // No block gets added. Blocks are added by AddBlockAndRegister method,
+    // Allowing to navigate objects in the created block before they are used.
+    // (used by the TrackManager to addign id's to tracks)
   }
   
   /** @brief Add a free block */
@@ -85,13 +84,13 @@ public:
   
   /** @brief Get a free object from the pool 
       @return A valid object reference */
-  T & const GetObject() {
+  T &GetObject() {
     // Get the next object from the current active block
-    NumaBlock_ptr block = CurrentBlock();
+    numa_block_ptr block = CurrentBlock();
     T* obj = block->GetObject();
     if (obj) return (*obj);
     // Block fully distributed, replace with free one
-    NumaBlock_ptr next_free = GetBlock();
+    numa_block_ptr next_free = GetBlock();
     while (!fCurrent.compare_exchange_weak(block, next_free, std::memory_order_relaxed)) {
       // If not managing to replace the old block, someone else may have done it
       block = CurrentBlock();
@@ -105,15 +104,14 @@ public:
     // Blocks are large, unlikely to be emptied righ away, but you never know...
     assert( (obj = block->GetObject()) );
     // There is no link anymore to the replaced block but once released by all users
-    // it will go back in the empty list
-    assert(fUsed.enqueue(block));
-    return obj;
+    // it will go back in the block list
+    return (*obj);
   }
 
   /** @brief Recycle an object from a block 
       @param block Block from which the object is released
       @return Block may have been recycled */
-  GEANT_INLINE bool ReleaseObject(NumaBlock_ptr block) { 
+  GEANT_INLINE bool ReleaseObject(numa_block_ptr block) { 
     if (block->ReleaseObject() == 0) {
       fBlocks.enqueue(block);
       return true;
@@ -121,7 +119,9 @@ public:
     return false;
   }
   
-  NumaBlock_ptr CurrentBlock() const { return ( fCurrent.load() ); }
+  numa_block_ptr CurrentBlock() const { return ( fCurrent.load() ); }
   
 };  
 } // Geant
+
+#endif
