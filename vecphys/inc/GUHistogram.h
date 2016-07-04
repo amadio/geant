@@ -22,6 +22,10 @@ public:
 
   void RecordHistosProc(int iprocess, double energy, double nint, double step, double lambda);
 
+  // these are just to avoid unused warnings about GUPhysics{Model,Process}Name
+  const char* GetModelName(int model) const { return GUPhysicsModelName[model]; }
+  const char* GetProcessName(int proc) const { return GUPhysicsProcessName[proc]; }
+
 #ifdef VECPHYS_ROOT
 private:
   void BookHistograms(double maxEnergy);
