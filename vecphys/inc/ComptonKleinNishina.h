@@ -237,7 +237,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m, typename 
     Double_v rng2 = UniformRandom<Double_v>(fRandomState, fThreadId);
 
     // find out which expression to use for epsilon
-    Mask_v<Double_v> condition = test > rng0;
+    condition = test > rng0;
 
     // compute new epsilon
     Double_v tmp0 = math::Exp(-alpha1 * rng1);
