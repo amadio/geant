@@ -349,7 +349,7 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v &inProjectile, const in
   int numChunks = (nTracks / VectorSize<Double_v>());
 
   for (int i = 0; i < numChunks; ++i) {
-    Double_v energyIn(&inProjectile.E[ibase]);
+    Double_v energyIn = FromPtr<Double_v>(&inProjectile.E[ibase]);
     Double_v sinTheta(0.);
     Double_v energyOut;
 

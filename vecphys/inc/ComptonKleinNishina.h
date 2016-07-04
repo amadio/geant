@@ -350,7 +350,7 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v &inProjectile, const int *targ
 
   for (int i = 0; i < numChunks; ++i) {
 
-    Double_v energyIn(&inProjectile.E[ibase]);
+    Double_v energyIn = FromPtr<Double_v>(&inProjectile.E[ibase]);
     Double_v sinTheta(0.);
     Double_v energyOut;
 

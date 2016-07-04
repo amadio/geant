@@ -248,12 +248,12 @@ void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v &inProjectile, const int
   int numChunks = (inProjectile.numTracks / VectorSize<Double_v>());
 
   for (int i = 0; i < numChunks; ++i) {
-    Double_v energyIn(&inProjectile.E[ibase]);
+    Double_v energyIn = FromPtr<Double_v>(&inProjectile.E[ibase]);
     Index_v<Double_v> zElement(targetElements[ibase]);
 
     Double_v sigmaOut = static_cast<EmModel *>(this)->template CrossSectionKernel<Backend>(energyIn, zElement);
 
-    sigmaOut.store(&sigma[ibase]);
+    Store(sigmaOut, &sigma[ibase]);
     ibase += VectorSize<Double_v>();
   }
 
@@ -287,7 +287,7 @@ void EmModelBase<EmModel>::Interact(GUTrack_v &inProjectile, const int *targetEl
 
   for (int i = 0; i < numChunks; ++i) {
     Index_v<Double_v> zElement(targetElements[ibase]);
-    Double_v energyIn(&inProjectile.E[ibase]);
+    Double_v energyIn = FromPtr<Double_v>(&inProjectile.E[ibase]);
 
     Double_v sinTheta(0.);
     Double_v energyOut;
@@ -385,7 +385,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
 
     for (int i = 0; i < numChunks; ++i) {
 
-      Double_v energyIn(&wenergyIn[ibase]);
+      Double_v energyIn = FromPtr<Double_v>(&wenergyIn[ibase]);
       Index_v<Double_v> zElement(targetElements[ibase]);
 
       Double_v energyOut;
@@ -398,12 +398,12 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
       // store energy and sinTheta of the secondary
       Double_v secE = energyIn - energyOut;
 
-      secE.store(&wenergyOut[ibase]);
-      sinTheta.store(&wsinTheta[ibase]);
+      Store(secE, &wenergyOut[ibase]);
+      Store(sinTheta, &wsinTheta[ibase]);
 
       // set the status bit
       for (size_t j = 0; j < VectorSize<Double_v>(); ++j) {
-        flag.set(ibase + j, status[j]);
+        flag.set(ibase + j, LaneAt(status, j));
       }
 
       ibase += VectorSize<Double_v>();
@@ -454,9 +454,9 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
   numChunks = (sizeOfInputTracks / VectorSize<Double_v>());
 
   for (int i = 0; i < numChunks; ++i) {
-    Double_v energyIn(&inProjectile.E[ibase]);
-    Double_v sinTheta(&outSecondary.px[ibase]);
-    Double_v energyOut(&outSecondary.E[ibase]);
+    Double_v energyIn = FromPtr<Double_v>(&inProjectile.E[ibase]);
+    Double_v sinTheta = FromPtr<Double_v>(&outSecondary.px[ibase]);
+    Double_v energyOut = FromPtr<Double_v>(&outSecondary.E[ibase]);
 
     ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, ibase, inProjectile, outSecondary);
 
@@ -571,9 +571,9 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typenam
   using Double_v = typename Backend::Double_v;
 
   // need to rotate the angle with respect to the line of flight
-  Double_v px(&primary.px[ibase]);
-  Double_v py(&primary.py[ibase]);
-  Double_v pz(&primary.pz[ibase]);
+  Double_v px = FromPtr<Double_v>(&primary.px[ibase]);
+  Double_v py = FromPtr<Double_v>(&primary.py[ibase]);
+  Double_v pz = FromPtr<Double_v>(&primary.pz[ibase]);
 
   Double_v invp = 1. / energyIn;
   Double_v xhat = px * invp;
@@ -587,15 +587,15 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typenam
   RotateAngle<Backend>(sinTheta, xhat, yhat, zhat, uhat, vhat, what);
 
   // Update primary
-  energyOut.store(&primary.E[ibase]);
+  Store(energyOut, &primary.E[ibase]);
   Double_v pxFinal, pyFinal, pzFinal;
 
   pxFinal = energyOut * uhat;
   pyFinal = energyOut * vhat;
   pzFinal = energyOut * what;
-  pxFinal.store(&primary.px[ibase]);
-  pyFinal.store(&primary.py[ibase]);
-  pzFinal.store(&primary.pz[ibase]);
+  Store(pxFinal, &primary.px[ibase]);
+  Store(pyFinal, &primary.py[ibase]);
+  Store(pzFinal, &primary.pz[ibase]);
 
   // create Secondary
   Double_v secE = energyIn - energyOut;
@@ -603,10 +603,10 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typenam
   Double_v pySec = secE * (yhat - vhat);
   Double_v pzSec = secE * (zhat - what);
 
-  secE.store(&secondary.E[ibase]);
-  pxSec.store(&secondary.px[ibase]);
-  pySec.store(&secondary.py[ibase]);
-  pzSec.store(&secondary.pz[ibase]);
+  Store(secE, &secondary.E[ibase]);
+  Store(pxSec, &secondary.px[ibase]);
+  Store(pySec, &secondary.py[ibase]);
+  Store(pzSec, &secondary.pz[ibase]);
 
   // fill other information
 }
