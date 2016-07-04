@@ -38,12 +38,14 @@ private:
   cacheline_pad_t pad0_;   //! Padding to protect the other data from the hot cache line above
 
   size_t        fSize;     // Number of tracks stored by the block
+  int           fNode;     // NUMA node id
+  NumaBlock<T> *fAddress;  // Address of the block retreivable relative to the one of fArray
   T             fArray[1]; //! Array of elements
   
 
 private:
   /** @brief Constructor */
-  NumaBlock(size_t size) : fCurrent(0), fUsed(0), fSize(size), fArray(0)
+  NumaBlock(size_t size, int node) : fCurrent(0), fUsed(0), fSize(size), fNode(node), fAddress(this), fArray(0)
   {
     // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
     // on the memory associated with the given NUMA node.
@@ -64,7 +66,7 @@ public:
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOf(nvalues);
     void *ptr = numa_aligned_malloc(needed, numa_node, 64);
-    NumaBlock *block = new (ptr) NumaBlock(nvalues);
+    NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node);
     return ( block );    
   }
   
@@ -80,7 +82,7 @@ public:
   
 
   /** @brief Destructor */
-  ~TrackBlock() { numa_aligned_free(fArray); }
+  ~NumaBlock() { numa_aligned_free(fArray); }
   
   /** @brief Get an object pointer from the container */
   GEANT_INLINE T *GetObject() {
@@ -92,7 +94,13 @@ public:
   
   /** @brief Release an object to the container */
   GEANT_INLINE size_t ReleaseObject() { return ( fUsed.fetch_sub(1) - 1 ); }
-  
+
+   /** @brief Returns number of contained objects */
+  GEANT_INLINE size_t size() const { return fSize; }
+
+   /** @brief Getter for NUMA node */
+  GEANT_INLINE int GetNode() { return fNode; }
+ 
   /** @brief Check if the block is still in use */
   GEANT_INLINE bool InUse() const { return (fUsed.load() == 0); }
   /** @brief Check if track belongs to container */

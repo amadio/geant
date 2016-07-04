@@ -53,6 +53,7 @@ public:
   int *fPDGV;              /** Particle pdg codes */
   int *fGVcodeV;           /** GV internal codes */
   int *fEindexV;           /** Element indices */
+  int *fBindexV;           /** Indices for the track blocks */
   int *fChargeV;           /** Particle charges */
   int *fProcessV;          /** Current process */
   int *fNstepsV;           /** Number of steps made */

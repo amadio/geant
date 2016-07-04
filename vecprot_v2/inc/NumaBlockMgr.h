@@ -38,13 +38,9 @@ template <typename T> class NumaBlockMgr {
   typedef char cacheline_pad_t[cacheline_size];
 
 private:
-  std::atomic_flag fLock; // Atomic lock
-
-  cacheline_pad_t pad0_;   //! Padding to protect the other data from the hot cache line above
-
   std::atomic<numa_block_ptr> fCurrent; // Current block being distributed
 
-  cacheline_pad_t pad1_;   //! Padding to protect the other data from the hot cache line above
+  cacheline_pad_t pad0_;   //! Padding to protect the other data from the hot cache line above
   
   int             fNode;  // Numa node id
   size_t          fBlockSize;  // Numa block size
@@ -53,11 +49,10 @@ private:
 public:
 
   /** @brief Constructor providing number of blocks to be initially created */
-  NumaBlockMgr(int numa_node, size_t bsize, int ninitial) 
-    : fLock(), fCurrent(nullptr), fNode(numa_node), fBlockSize(bsize), 
+  NumaBlockMgr(int numa_node, size_t bsize) 
+    : fCurrent(nullptr), fNode(numa_node), fBlockSize(bsize), 
       fBlocks(queue_buff_size), fUsed(queue_buff_size)
   {
-    fLock.clear();
     assert(ninitial <= queue_buff_size);
     for (auto i=0; i<ninitial; ++i) {
       fBlocks.enqueue(AddBlock());
@@ -68,6 +63,14 @@ public:
   numa_block_ptr AddBlock()
   {
     return ( NumaBlock<T>::MakeInstance(fBlockSize, fNode) );
+  }
+
+  /** @brief Add a free block */
+  numa_block_ptr AddBlockAndRegister()
+  {
+    numa_block_ptr block = NumaBlock<T>::MakeInstance(fBlockSize, fNode);
+    fBlocks.enqueue(block);
+    return block;
   }
 
   /** @brief Get a free block */
@@ -118,8 +121,6 @@ public:
     return false;
   }
   
-  GEANT_INLINE void Lock() { while (fLock.test_and_set(std::memory_order_acquire)) ; }
-  GEANT_INLINE void Unlock() { fLock.clear(std::memory_order_release); }
   NumaBlock_ptr CurrentBlock() const { return ( fCurrent.load() ); }
   
 };  

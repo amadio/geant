@@ -77,6 +77,7 @@ public:
   int fPDG;              /** Particle pdg code */
   int fGVcode;           /** GV particle code */
   int fEindex;           /** Element index */
+  int fBindex;           /** Index in the track block */
   int fCharge;           /** Particle charge */
   int fProcess;          /** Current process */
   int fNsteps;           /** Number of steps made */
@@ -189,6 +190,9 @@ public:
 
   /** @brief Function that return element index */
   int EIndex() const { return fEindex; }
+
+  /** @brief Function that return index in the track block */
+  int BIndex() const { return fBindex; }
 
   /** @brief Function that return gamma value*/
   GEANT_CUDA_BOTH_CODE
@@ -368,6 +372,13 @@ public:
    * @param ind Element index that should be set as fEindex
    */
   void SetEindex(int ind) { fEindex = ind; }
+
+  /**
+   * @brief Function that set index of the track block
+   *
+   * @param ind Index to be set
+   */
+  void SetBindex(int ind) { fBindex = ind; }
 
   /**
    * @brief Function that set charge

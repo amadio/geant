@@ -73,7 +73,7 @@ using namespace VECGEOM_NAMESPACE;
 //______________________________________________________________________________
 GeantTrack_v::GeantTrack_v()
     : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(0), fHoles(0), fSelected(0), fMaxDepth(0),
-      fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0),
+      fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fBindexV(0),
       fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0),
       fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0),
       fSnextV(0), fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -84,7 +84,7 @@ GeantTrack_v::GeantTrack_v()
 GeantTrack_v::GeantTrack_v(int size, int maxdepth)
     : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(0), fHoles(0), fSelected(0),
       fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0),
-      fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
+      fGVcodeV(0), fEindexV(0), fBindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0),
       fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0),
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
   // Constructor with maximum capacity.
@@ -102,7 +102,7 @@ GEANT_CUDA_BOTH_CODE
 GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
     : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(round_up_align(nTracks)), fHoles(0),
       fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0),
-      fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0),
+      fPDGV(0), fGVcodeV(0), fEindexV(0), fBindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0),
       fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0),
       fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), 
       fPathV(0), fNextpathV(0) {
@@ -120,7 +120,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
 GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
     : fNtracks(0), fNselected(track_v.fNselected), fCompact(track_v.fCompact), fMixed(track_v.fMixed),
       fMaxtracks(track_v.fMaxtracks), fHoles(0), fSelected(0), fMaxDepth(track_v.fMaxDepth), fBufSize(track_v.fBufSize),
-      fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fChargeV(0),
+      fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fPDGV(0), fGVcodeV(0), fEindexV(0), fBindexV(0), fChargeV(0),
       fProcessV(0), fNstepsV(0), fSpeciesV(0), fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0),
       fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0),
       fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
@@ -195,6 +195,8 @@ void GeantTrack_v::AssignInBuffer(char *buff, int size) {
   fGVcodeV = (int *)buf;
   buf += size_intn;
   fEindexV = (int *)buf;
+  buf += size_intn;
+  fBindexV = (int *)buf;
   buf += size_intn;
   fChargeV = (int *)buf;
   buf += size_intn;
@@ -295,6 +297,9 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   buf += size_intn;
   memcpy(buf, fEindexV, size_int);
   fEindexV = (int *)buf;
+  buf += size_intn;
+  memcpy(buf, fBindexV, size_int);
+  fBindexV = (int *)buf;
   buf += size_intn;
   memcpy(buf, fChargeV, size_int);
   fChargeV = (int *)buf;
@@ -535,6 +540,7 @@ int GeantTrack_v::AddTrack(GeantTrack &track, bool /*import*/) {
   fPDGV[itrack] = track.fPDG;
   fGVcodeV[itrack] = track.fGVcode;
   fEindexV[itrack] = track.fEindex;
+  fBindexV[itrack] = track.fBindex;
   fChargeV[itrack] = track.fCharge;
   fProcessV[itrack] = track.fProcess;
   fNstepsV[itrack] = track.fNsteps;
@@ -585,6 +591,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack &track) {
   fPDGV[itrack] = track.fPDG;
   fGVcodeV[itrack] = track.fGVcode;
   fEindexV[itrack] = track.fEindex;
+  fBindexV[itrack] = track.fBindex;
   fChargeV[itrack] = track.fCharge;
   fProcessV[itrack] = track.fProcess;
   fNstepsV[itrack] = track.fNsteps;
@@ -627,6 +634,7 @@ void GeantTrack_v::GetTrack(int i, GeantTrack &track) const {
   track.fPDG = fPDGV[i];
   track.fGVcode = fGVcodeV[i];
   track.fEindex = fEindexV[i];
+  track.fBindex = fBindexV[i];
   track.fCharge = fChargeV[i];
   track.fProcess = fProcessV[i];
   track.fNsteps = fNstepsV[i];
@@ -684,6 +692,7 @@ int GeantTrack_v::AddTrack(GeantTrack_v &arr, int i, bool /*import*/) {
   fPDGV[itrack] = arr.fPDGV[i];
   fGVcodeV[itrack] = arr.fGVcodeV[i];
   fEindexV[itrack] = arr.fEindexV[i];
+  fBindexV[itrack] = arr.fBindexV[i];
   fChargeV[itrack] = arr.fChargeV[i];
   fProcessV[itrack] = arr.fProcessV[i];
   fNstepsV[itrack] = arr.fNstepsV[i];
@@ -739,6 +748,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack_v &arr, int i) {
   fPDGV[itrack] = arr.fPDGV[i];
   fGVcodeV[itrack] = arr.fGVcodeV[i];
   fEindexV[itrack] = arr.fEindexV[i];
+  fBindexV[itrack] = arr.fBindexV[i];
   fChargeV[itrack] = arr.fChargeV[i];
   fProcessV[itrack] = arr.fProcessV[i];
   fNstepsV[itrack] = arr.fNstepsV[i];
@@ -813,6 +823,7 @@ int GeantTrack_v::AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i) {
   fPDGV[itrack] = arr.fPDGV[i];
   fGVcodeV[itrack] = arr.fGVcodeV[i];
   fEindexV[itrack] = arr.fEindexV[i];
+  fBindexV[itrack] = arr.fBindexV[i];
   fChargeV[itrack] = arr.fChargeV[i];
   fProcessV[itrack] = arr.fProcessV[i];
   fNstepsV[itrack] = arr.fNstepsV[i];
@@ -859,6 +870,7 @@ void GeantTrack_v::AddTracks(GeantTrack_v &arr, int istart, int iend, bool /*imp
   memcpy(&fPDGV[ntracks], &arr.fPDGV[istart], ncpy * sizeof(int));
   memcpy(&fGVcodeV[ntracks], &arr.fGVcodeV[istart], ncpy * sizeof(int));
   memcpy(&fEindexV[ntracks], &arr.fEindexV[istart], ncpy * sizeof(int));
+  memcpy(&fBindexV[ntracks], &arr.fBindexV[istart], ncpy * sizeof(int));
   memcpy(&fChargeV[ntracks], &arr.fChargeV[istart], ncpy * sizeof(int));
   memcpy(&fProcessV[ntracks], &arr.fProcessV[istart], ncpy * sizeof(int));
   memcpy(&fNstepsV[ntracks], &arr.fNstepsV[istart], ncpy * sizeof(int));
@@ -921,6 +933,9 @@ void GeantTrack_v::SwapTracks(int i, int j) {
   tint = fEindexV[i];
   fEindexV[i] = fEindexV[j];
   fEindexV[j] = tint;
+  tint = fBindexV[i];
+  fBindexV[i] = fBindexV[j];
+  fBindexV[j] = tint;
   tint = fChargeV[i];
   fChargeV[i] = fChargeV[j];
   fChargeV[j] = tint;
@@ -1014,6 +1029,7 @@ void GeantTrack_v::ReplaceTrack(int i, int j) {
   fPDGV[i] = fPDGV[j];
   fGVcodeV[i] = fGVcodeV[j];
   fEindexV[i] = fEindexV[j];
+  fBindexV[i] = fBindexV[j];
   fChargeV[i] = fChargeV[j];
   fProcessV[i] = fProcessV[j];
   fNstepsV[i] = fNstepsV[j];
@@ -1077,6 +1093,7 @@ void GeantTrack_v::RemoveTracks(int from, int to) {
   memmove(&fPDGV[from], &fPDGV[to + 1], ncpy * sizeof(int));
   memmove(&fGVcodeV[from], &fGVcodeV[to + 1], ncpy * sizeof(int));
   memmove(&fEindexV[from], &fEindexV[to + 1], ncpy * sizeof(int));
+  memmove(&fBindexV[from], &fBindexV[to + 1], ncpy * sizeof(int));
   memmove(&fChargeV[from], &fChargeV[to + 1], ncpy * sizeof(int));
   memmove(&fProcessV[from], &fProcessV[to + 1], ncpy * sizeof(int));
   memmove(&fNstepsV[from], &fNstepsV[to + 1], ncpy * sizeof(int));
