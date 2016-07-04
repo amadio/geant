@@ -251,6 +251,10 @@ VECCORE_CUDA_HOST_DEVICE double UrbanWentzelVI::CalculateDiffCrossSection(int /*
 VECCORE_CUDA_HOST double UrbanWentzelVI::GetG4CrossSection(int AtomicNumber, double KineticEnergy)
 {
   // MSC cross section for the discrete process
+
+  // shut up compiler warnings
+  (void) AtomicNumber; (void) KineticEnergy;
+
   return 0.0;
 }
 
