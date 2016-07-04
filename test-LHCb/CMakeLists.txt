@@ -76,7 +76,7 @@ add_dependencies(testlhcb Geant_v Xsec)
 #
 
 set(TESTLHCB_SCRIPTS
-    g4macro_TPHYS.mac g4macro_G4.mac testlhcb.sh 
+    g4macro_TPHYS.mac g4macro_G4.mac testLHCb.sh 
    )
 
 foreach(_script ${TESTLHCB_SCRIPTS})
