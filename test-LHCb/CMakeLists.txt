@@ -10,7 +10,7 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-<<<<<<< c30c12f44b31918e4160e2710e064934785fca1f
+
 include_directories(include 
                     ${Geant4_INCLUDE_DIR})
 
