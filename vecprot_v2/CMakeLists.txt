@@ -35,6 +35,7 @@ set(sources
    src/TThreadMergingServer.cxx
    src/TrackManager.cxx
    src/TransportManager.cxx
+   src/LocalityManager.cxx
 )
 
 set(headers
@@ -58,7 +59,7 @@ set(headers
    inc/TThreadMergingServer.h
    inc/TrackManager.h
    inc/TransportManager.h
-
+   inc/LocalityManager.h
 )   
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

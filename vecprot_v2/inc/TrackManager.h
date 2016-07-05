@@ -46,7 +46,7 @@ public:
   }
 
   /** @brief Destructor */
-  ~TrackManager() = delete;
+  ~TrackManager() {}
   
   /** @brief Returns a reference of a track from the container */
   GEANT_INLINE
