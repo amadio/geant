@@ -12,6 +12,7 @@
 #endif
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 void *numa_aligned_malloc(size_t bytes, int
@@ -99,4 +100,5 @@ void pin_to_core(size_t core)
   pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);  
 }
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant

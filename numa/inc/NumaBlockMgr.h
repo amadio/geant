@@ -64,6 +64,13 @@ public:
     return ( NumaBlock<T>::MakeInstance(fBlockSize, fNode) );
   }
 
+  /** @brief Destructor*/
+  ~NumaBlockMgr() {
+    numa_block_ptr block;
+    while (fBlocks.dequeue(block))
+      delete block;
+  }
+
   /** @brief Add a free block */
   numa_block_ptr AddBlockAndRegister()
   {

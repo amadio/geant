@@ -10,6 +10,7 @@ constexpr size_t MByte = 1024*1024;
 constexpr size_t kByte = 1024;
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 NumaNode::NumaNode(int id, int maxcpus)
@@ -62,4 +63,5 @@ std::ostream& operator<<(std::ostream& os, const NumaNode&
   return os;                            
 }
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant

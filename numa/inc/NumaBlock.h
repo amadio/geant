@@ -80,7 +80,7 @@ public:
   
 
   /** @brief Destructor */
-  ~NumaBlock() { numa_aligned_free(fArray); }
+  ~NumaBlock() { numa_aligned_free(this); }
   
   /** @brief Get an object pointer from the container */
   GEANT_INLINE T *GetObject() {

@@ -12,11 +12,14 @@
 #ifndef GEANT_NUMA_POLICY
 #define GEANT_NUMA_POLICY
 
+#include "Geant/Config.h"
+
 #ifndef GEANT_NUMA_TOPOLOGY
 #include "NumaTopology.h"
 #endif
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 /* NUMA policy class  */
 //______________________________________________________________________________
@@ -41,6 +44,7 @@ public:
   int AllocateNextThread();
 };
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif

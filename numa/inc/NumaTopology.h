@@ -13,8 +13,10 @@
 #define GEANT_NUMA_TOPOLOGY
 
 #include <iostream>
+#include "Geant/Config.h"
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 class NumaNode;
 
@@ -44,6 +46,7 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const NumaTopology& topo);
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif

@@ -8,6 +8,7 @@
 #include "NumaNode.h"
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 NumaTopology::NumaTopology()
@@ -104,5 +105,6 @@ std::ostream& operator<<(std::ostream& os, const NumaTopology&
   return os;
 }      
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 

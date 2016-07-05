@@ -8,6 +8,7 @@
 #include "NumaNode.h"
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 /* NUMA policy class  */
 //______________________________________________________________________________
@@ -60,4 +61,5 @@ int NumaPolicy::AllocateNextThread()
 #endif
 }
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant

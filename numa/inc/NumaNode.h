@@ -13,8 +13,10 @@
 #define GEANT_NUMA_NODE
 
 #include <mutex>
+#include "Geant/Config.h"
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 /** Class describung NUMA node properties */
 //______________________________________________________________________________
@@ -39,6 +41,7 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const NumaNode& node);
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif
