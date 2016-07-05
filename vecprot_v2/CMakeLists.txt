@@ -1,11 +1,10 @@
-
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
 
 include_directories(inc)
-include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
+include_directories("${CMAKE_SOURCE_DIR}/magneticfield/inc")
 
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
@@ -17,62 +16,62 @@ endif()
 # NB: headers are included so they will show up in IDEs
 #
 set(sources
-   ${CMAKE_HOME_DIRECTORY}/base/src/Error.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrack.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantBasket.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/sync_objects.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantOutput.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantPropagator.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEvent.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantScheduler.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/PhysicsProcess.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/WorkloadManager.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantVApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantFactoryStore.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackStat.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingFile.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingServer.cxx
+   ${CMAKE_SOURCE_DIR}/base/src/Error.cxx
+   src/GeantTaskData.cxx
+   src/GeantTrack.cxx
+   src/GeantBasket.cxx
+   src/sync_objects.cxx
+   src/GeantOutput.cxx
+   src/GeantPropagator.cxx
+   src/GeantEvent.cxx
+   src/GeantScheduler.cxx
+   src/PhysicsProcess.cxx
+   src/WorkloadManager.cxx
+   src/GeantVApplication.cxx
+   src/GeantFactoryStore.cxx
+   src/GeantTrackStat.cxx
+   src/MyHit.cxx
+   src/StdApplication.cxx
+   src/TThreadMergingFile.cxx
+   src/TThreadMergingServer.cxx
 )
 
 set(headers
-   ${CMAKE_HOME_DIRECTORY}/base/inc/Geant/Config.h
-   ${CMAKE_HOME_DIRECTORY}/base/inc/Geant/Error.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcess.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackStat.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactory.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingFile.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
+   ${CMAKE_SOURCE_DIR}/base/inc/Geant/Config.h
+   ${CMAKE_SOURCE_DIR}/base/inc/Geant/Error.h
+   inc/GeantTaskData.h
+   inc/PhysicsProcess.h
+   inc/GeantBasket.h
+   inc/GeantPropagator.h
+   inc/GeantTrack.h
+   inc/GeantOutput.h
+   inc/GeantVApplication.h
+   inc/GeantTrackStat.h
+   inc/MyHit.h
+   inc/GeantFactory.h 
+   inc/StdApplication.h 
+   inc/PrimaryGenerator.h
+   inc/TThreadMergingFile.h
+   inc/TThreadMergingServer.h
 )   
 
 include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
-   set(sources ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceTGeo.cxx)
-   set(headers ${headers} ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceTGeo.h)
+   set(sources ${sources} src/ScalarNavInterfaceTGeo.cxx)
+   set(headers ${headers} inc/ScalarNavInterfaceTGeo.h)
 endif()
 
 if(USE_VECGEOM_NAVIGATOR)
    set(sources ${sources} 
-     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVG.cxx 
-     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVGM.cxx
-     ${CMAKE_CURRENT_SOURCE_DIR}/src/VectorNavInterface.cxx
+     src/ScalarNavInterfaceVG.cxx 
+     src/ScalarNavInterfaceVGM.cxx
+     src/VectorNavInterface.cxx
    )
    set(headers ${headers} 
-     ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceVG.h 
-     ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceVGM.h
-     ${CMAKE_CURRENT_SOURCE_DIR}/inc/VectorNavInterface.h
+     inc/ScalarNavInterfaceVG.h 
+     inc/ScalarNavInterfaceVGM.h
+     inc/VectorNavInterface.h
    )
 endif()
 
@@ -121,8 +120,8 @@ endif()
 #
 
 set(TEST_EXECUTABLES
-   ${CMAKE_CURRENT_SOURCE_DIR}/CMSApp.cc
-   ${CMAKE_CURRENT_SOURCE_DIR}/runApp.cc
+   CMSApp.cc
+   runApp.cc
 )
 
 #----------------------------------------------------------------------------

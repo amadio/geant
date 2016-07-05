@@ -17,8 +17,8 @@ cmake_minimum_required(VERSION 2.8)
 set(GeantCudaLib Geant_v) # or GeantCuda
 set(GeantCudaReplace ON)
 
-set(CUDA_SRCDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(CUDA_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+set(CUDA_SRCDIR src)
+set(CUDA_INCDIR inc)
 
 set(GEANT_COMPILATION_FLAGS ${GEANT_COMPILATION_FLAGS} -DGEANT_CUDA)
 add_definitions(-DGEANT_CUDA)

@@ -25,10 +25,10 @@ find_package(Pythia8 REQUIRED)
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(include)
 include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR})
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources src/*.cc)
+file(GLOB headers include/*.hh)
 
 #----------------------------------------------------------------------------
 # Define compiler flags
@@ -53,7 +53,7 @@ set(G01_SCRIPTS
 
 foreach(_script ${G01_SCRIPTS})
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/${_script}
+    ${_script}
     ${CMAKE_CURRENT_BINARY_DIR}/${_script}
     COPYONLY
     )

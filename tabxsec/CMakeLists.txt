@@ -10,7 +10,7 @@ endif()
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
-include_directories(inc ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+include_directories(inc inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -60,7 +60,8 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 # relies on these scripts being in the current working directory.
 #
 
-set(_macros ${CMAKE_CURRENT_SOURCE_DIR}/macros)
+set(_macros 
+macros)
 
 set(TABXSEC_SCRIPTS
   ${_macros}/tabxsec.in
@@ -75,7 +76,7 @@ set(TABXSEC_SCRIPTS
 foreach(_script ${TABXSEC_SCRIPTS})
   configure_file(
     ${_script}
-    ${_script}
+    ${CMAKE_CURRENT_BINARY_DIR}/${_script}
     COPYONLY
     )
 endforeach()

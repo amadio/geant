@@ -10,17 +10,17 @@ include_directories(inc ../vecprot_v2/inc)
 # NB: headers are included so they will show up in IDEs
 #
 set(sources
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/ExN03Application.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/CMSApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/LHCbApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/FastSimApplication.cxx
+   src/ExN03Application.cxx
+   src/CMSApplication.cxx
+   src/LHCbApplication.cxx
+   src/FastSimApplication.cxx
 )     
      
 set(headers
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
+   inc/ExN03Application.h 
+   inc/CMSApplication.h 
+   inc/LHCbApplication.h 
+   inc/FastSimApplication.h 
 )   
 
 ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")

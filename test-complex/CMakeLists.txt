@@ -12,7 +12,7 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include 
+include_directories(include 
                     ${Geant4_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
@@ -33,8 +33,8 @@ endif()
 separate_arguments(_cf)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh)
+file(GLOB sources src/*.cc)
+file(GLOB headers include/*.hh)
 
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")

@@ -22,7 +22,7 @@ include_directories(${TBB_INCLUDE_DIR})
 # NB: headers are included so they will show up in IDEs
 #
 file(GLOB sources src/TGeoBBox_v.cxx src/TGeoPcon_v.cxx src/TGeoTube_v.cxx src/TGeoCone_v.cxx )
-file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
+file(GLOB headers inc/*.h)
 
 # for optimization studies, we compile this directory with higher Ox when no debug build
 # TODO: check compiler etc

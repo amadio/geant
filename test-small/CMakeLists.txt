@@ -20,7 +20,7 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include 
+include_directories(include 
                     ${Geant4_INCLUDE_DIR}
                     ${ROOT_INCLUDE_DIR}
                     ${CMAKE_SOURCE_DIR}/xsec/inc 

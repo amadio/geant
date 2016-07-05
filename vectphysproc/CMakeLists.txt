@@ -15,18 +15,18 @@ endif()
 # Locate sources and headers for this project
 #----------------------------------------------------------------------------
 set(sources 
-${CMAKE_CURRENT_SOURCE_DIR}/src/GVectorPhysicsProcess.cc
-${CMAKE_CURRENT_SOURCE_DIR}/src/GVComptonProcess.cc
+src/GVectorPhysicsProcess.cc
+src/GVComptonProcess.cc
 )
 set(headers
-${CMAKE_CURRENT_SOURCE_DIR}/inc/GVectorPhysicsProcess.h
-${CMAKE_CURRENT_SOURCE_DIR}/inc/GVComptonProcess.h
+inc/GVectorPhysicsProcess.h
+inc/GVComptonProcess.h
 )
 
 #----------------------------------------------------------------------------
 # Set include directories
 #----------------------------------------------------------------------------
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+include_directories(inc)
 include_directories(${CMAKE_SOURCE_DIR}/xsec/inc)
 
 #----------------------------------------------------------------------------

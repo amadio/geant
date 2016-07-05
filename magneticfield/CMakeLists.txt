@@ -12,8 +12,7 @@ file(GLOB headers inc/*.h)   # (T*.h inc/GU*.h)
 #----------------------------------------------------------------------------
 # Set include directories
 #----------------------------------------------------------------------------
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
-#include_directories(${PROJECT_SOURCE_DIR}/xsec/inc)
+include_directories(inc)
 
 # print include directories
 get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)

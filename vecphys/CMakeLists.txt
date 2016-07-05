@@ -18,12 +18,6 @@ option(VECPHYS_STANDALONE "Build VECPHYS standalone" OFF)
 set(VECPHYS_VECTOR "" CACHE STRING
     "Vector instruction set to use (sse/avx/...).")
 
-set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries.")
-set(INSTALL_INCLUDE_DIR include CACHE PATH
-    "Installation directory for header files.")
-set(INSTALL_CMAKE_DIR lib/CMake/VecPhys CACHE PATH
-    "Installation directory for CMake files.")
-
 # Make relative paths absolute
 foreach(p LIB BIN INCLUDE CMAKE)
   set(var INSTALL_${p}_DIR)
@@ -231,9 +225,9 @@ endif()
 
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${VECGEOM_LIBRARIES} )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc
-                    ${CMAKE_CURRENT_SOURCE_DIR}/inc/base
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test/inc
+include_directories(inc
+                    inc/base
+                    test/inc
                     ${VECGEOM_INCLUDE_DIR}
 )
 
@@ -255,7 +249,7 @@ set(SRC_CPP_RELATIVE
   src/ElectronProcess.cc
 )
 foreach(SRC ${SRC_CPP_RELATIVE})
-  set(SRC_CPP ${SRC_CPP} ${CMAKE_CURRENT_SOURCE_DIR}/${SRC})
+  set(SRC_CPP ${SRC_CPP} ${SRC})
 endforeach()
 
 # Copy all source files to .cu-files in order for NVCC to compile them as CUDA
@@ -366,11 +360,11 @@ endif()
 
 if (GUBENCHMARK STREQUAL "Model")
   set(TEST_EXECUTABLES_BENCHMARK
-      ${CMAKE_CURRENT_SOURCE_DIR}/test/GUModelBenchmark.cc
+      test/GUModelBenchmark.cc
   )
 elseif (GUBENCHMARK STREQUAL "Process")
   set(TEST_EXECUTABLES_BENCHMARK
-      ${CMAKE_CURRENT_SOURCE_DIR}/test/ProcessBenchmark.cc
+      test/ProcessBenchmark.cc
   )
 endif()
 

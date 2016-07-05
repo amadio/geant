@@ -21,7 +21,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_LINKER_FLAGS}")
 # NB: headers are included so they will show up in IDEs
 #
 set(TEST_EXECUTABLES
-   ${CMAKE_CURRENT_SOURCE_DIR}/executable_test.C
+   executable_test.C
 )
 
 set(headers
