@@ -403,7 +403,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
 
       // set the status bit
       for (size_t j = 0; j < VectorSize<Double_v>(); ++j) {
-        flag.set(ibase + j, LaneAt(status, j));
+        flag.set(ibase + j, MaskLaneAt(status, j));
       }
 
       ibase += VectorSize<Double_v>();
