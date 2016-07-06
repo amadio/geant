@@ -20,8 +20,7 @@ VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(Random_t *states, 
 #ifndef VECCORE_NVCC_DEVICE
   (void)states;
   (void)threadId;
-  unsigned short xsubi[3];
-  return erand48(xsubi);
+  return ((double)rand()) / ((double)(RAND_MAX));
 #else
   curandState localState = states[threadId];
   T rng = curand_uniform(&localState);
