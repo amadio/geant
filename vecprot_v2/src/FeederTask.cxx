@@ -1,20 +1,32 @@
+#include "Geant/Error.h"
+
 #include "FeederTask.h"
+#include "ThreadData.h"
 #include "TransportTask.h"
+#include "WorkloadManager.h"
+#include "GeantPropagator.h"
+#include "GeantEvent.h"
+
 
 #include <iostream>
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
 #endif
 
-FeederTask::FeederTask (Geant::GeantTaskData *td, int *nbaskets): fTd(td), fNbaskets(nbaskets) { }
+using namespace Geant;
+
+FeederTask::FeederTask (int *nbaskets): fNbaskets(nbaskets) { }
 
 FeederTask::~FeederTask () { }
 
 tbb::task* FeederTask::execute ()
 {
+  WorkloadManager *wm = WorkloadManager::Instance();
+  int tid = wm->Instance()->ThreadId();
   printf("Feedertask created");
   GeantPropagator *propagator = GeantPropagator::Instance();
-  tbb::task_list tlist;
+  GeantTaskData *td = propagator->fThreadData[tid];
+  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
 
   // Task spawned to inject the next event(s)
   // Only one task at a time
@@ -24,7 +36,7 @@ tbb::task* FeederTask::execute ()
   }
   int nbaskets = 0;
   if (!propagator->fLastEvent) {
-    nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, fTd);
+    nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, td);
     propagator->fLastEvent = propagator->fNevents;
     propagator->fFeederLock.clear(std::memory_order_release);
     *fNbaskets = nbaskets;
@@ -45,7 +57,7 @@ tbb::task* FeederTask::execute ()
       propagator->fDoneEvents->SetBitNumber(evt->GetEvent());
       if (propagator->fLastEvent < propagator->fNtotal) {
         Printf("=> Importing event %d", propagator->fLastEvent);
-        nbaskets += propagator->ImportTracks(1, propagator->fLastEvent, islot, fTd);
+        nbaskets += propagator->ImportTracks(1, propagator->fLastEvent, islot, td);
         propagator->fLastEvent++;
       }
     }
@@ -54,13 +66,9 @@ tbb::task* FeederTask::execute ()
   propagator->fFeederLock.clear(std::memory_order_release);
   *fNbaskets = nbaskets;
 
-  // spawn transport tasks
-  while (propagator->fNTransportTask.load() < propagator->fNthreads){
-    propagator->fNTransportTask++;
-    tlist.push_back(*new (tbb::task::allocate_child()) TransportTask());
-  }
-
-  spawn(tlist);
+  // spawn transport task
+  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask();
+  tbb:task::spawn(transportTask);
 
   return NULL;
 }

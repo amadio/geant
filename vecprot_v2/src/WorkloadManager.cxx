@@ -30,7 +30,7 @@
 #include "TGeoManager.h"
 #endif
 #include "TaskBroker.h"
-#include "TransportTask.h"
+#include "InitialTask.h"
 
 // added by WP for output handling
 #ifndef GEANT_MYHIT
@@ -46,7 +46,7 @@
 #include "GeantFactoryStore.h"
 
 #ifdef GEANT_TBB
-#include "tbb/task.h"
+#include "tbb/task_scheduler_init.h"
 #endif
 
 using namespace Geant;
@@ -183,12 +183,7 @@ void WorkloadManager::StartThreads() {
   //for (; ith < fNthreads; ith++) {
   //  fListThreads.emplace_back(WorkloadManager::TransportTracks);
   //}
-  tbb::empty_task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-  // spawn transport tasks
-  for (int i = 0; i < fNthreads; i++)
-    tlist.push_back(*new (cont.allocate_child()) TransportTask());
 
-  tbb::task::spawn(tlist);
 
   // Start output thread
   if (GeantPropagator::Instance()->fFillTree) {
@@ -203,6 +198,14 @@ void WorkloadManager::StartThreads() {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
   }
 
+  tbb::task_scheduler_init init( fNthreads );
+
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  // spawn transport tasks
+  for (int i = 0; i < fNthreads; i++)
+    tlist.push_back(*new (cont.allocate_child()) InitialTask());
+
+  tbb::task::spawn(tlist);
 
 }
 
@@ -364,10 +367,10 @@ void *WorkloadManager::TransportTracks() {
   
    #endif
   // Start the feeder
-  //propagator->Feeder(td);
-  int returning;
+  propagator->Feeder(td);
+  /*int returning;
   FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(td, &returning);
-  tbb::task::spawn_root_and_wait(feederTask);
+  tbb::task::spawn_root_and_wait(feederTask); */
 
   Material_t *mat = 0;
   int *waiting = wm->GetWaiting();

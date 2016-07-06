@@ -74,7 +74,6 @@ public:
   std::atomic<long> fNcross;                       /** Total number of boundaries crossed */
   std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
   std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
-  std::atomic_int fNTransportTask;
   BitSet *fDoneEvents;                             /** Array of bits marking done events */
   int fNprocesses;                                 /** Number of active physics processes */
   int fNstart;                                     /** Cumulated initial number of tracks */
@@ -95,7 +94,7 @@ public:
   float fPriorityThr;                              /** Threshold for prioritizing events */
   int fNstepsKillThr;                              /** Threshold in number of steps to kill a track */
   int fNminReuse; /** Minimum number of transported tracks to be reused without re-basketizing */
-
+  int fNTransportTask;
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
   double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */
   double fNaverage;  /** Average number of tracks per event */

@@ -25,7 +25,6 @@
 
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
-#include "FeederTask.h"
 
 #ifdef USE_ROOT
 #include "TThreadMergingServer.h"
