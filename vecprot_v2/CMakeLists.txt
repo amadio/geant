@@ -118,6 +118,7 @@ if (NOT KNC)
       install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
     else()
       install(TARGETS Geant_v DESTINATION lib)
+      target_link_libraries(${TARGET_NAME} ${NUMA_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  -lGeant_v -lXsec -lGeantExamples ${ROOT_LIBRARIES}  -lEG -lTreePlayer -lGui -lGeom ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES)
     endif()
 
     if(USE_ROOT)

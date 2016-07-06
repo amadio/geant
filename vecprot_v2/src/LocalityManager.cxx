@@ -1,6 +1,7 @@
 #include "LocalityManager.h"
 
 #include <cassert>
+#include <iostream>
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -40,11 +41,14 @@ void LocalityManager::Init() {
   // If number of nodes is not specified, select according the policy
   assert(fNblocks > 0 && "Number of initial blocks not set.");
   assert(fBlockSize > 0 && "Block size for tracks not set.");
+  std::cout << *fPolicy.GetTopology() << std::endl;
   if (!fNnodes) fNnodes = fPolicy.GetTopology()->fNodes;
   fTrackMgr = new TrackManager*[fNnodes];
   for (int inode=0; inode<fNnodes; ++inode) {
     fTrackMgr[inode] = new TrackManager(fNblocks, fBlockSize, inode);
   }
+  std::cout << "=== Locality manager allocated " << fNblocks << " blocks of " 
+            << fBlockSize << " tracks each on " << fNnodes << " locality nodes ===" << std::endl;
   
 }
 

@@ -12,6 +12,7 @@
 #ifndef GEANT_LOCALITY_MANAGER
 #define GEANT_LOCALITY_MANAGER
 
+#include "Geant/Config.h"
 #include "TrackManager.h"
 #include "GeantTrack.h"
 
@@ -44,7 +45,6 @@ private:
 public:
  /** @brief Function that creates locality manager instance **/
   static
-  GEANT_INLINE
   LocalityManager* Instance();
 
   /** @brief Destructor */

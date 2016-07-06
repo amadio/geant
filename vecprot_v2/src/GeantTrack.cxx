@@ -59,6 +59,20 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+GeantTrack::GeantTrack(void *addr, int maxdepth)
+    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
+      fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
+      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
+      fBoundary(false), fPending(false), fPath(nullptr), fNextpath(nullptr) {
+  // In place private constructor
+  char *path_addr = (char*)addr + sizeof(GeantTrack);
+  fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
+  path_addr += VolumePath_t::SizeOfInstance(maxdepth);
+  fNextpath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
+}
+
+//______________________________________________________________________________
 GeantTrack::GeantTrack(const GeantTrack &other)
     : fEvent(other.fEvent), fEvslot(other.fEvslot), fParticle(other.fParticle), fMother(other.fMother), fPDG(other.fPDG),
       fGVcode(other.fGVcode), fEindex(other.fEindex), fCharge(other.fCharge), fProcess(other.fProcess),
@@ -225,6 +239,20 @@ void GeantTrack::Print(const char *location) const {
          "P:%g E:%g snext=%g safety=%g nintlen=%g intlen=%g nsteps=%d",
          fParticle, fEvent, fProcess, fPstep, fCharge, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, P(), fE, fSnext,
          fSafety, fNintLen, fIntLen, fNsteps);
+}
+
+//______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+size_t GeantTrack::SizeOfInstance(size_t maxdepth) {
+  // return the contiguous memory size needed to hold a GeantTrack
+  // There is no need for alignment since this is the scalar version of the track.
+  return sizeof(GeantTrack) + 2*VolumePath_t::SizeOfInstance(maxdepth);
+}
+
+//______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
+GeantTrack *GeantTrack::MakeInstanceAt(void *addr, int maxdepth) {
+  return new (addr) GeantTrack(addr, maxdepth);
 }
 
 } // GEANT_IMPL_NAMESPACE

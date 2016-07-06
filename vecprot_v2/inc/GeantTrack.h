@@ -101,9 +101,17 @@ public:
   double fNintLen;       /** Number of interaction lenghts traveled in last step */
   double fIntLen;        /** Cumulated interaction length since last discrete process */
   bool fBoundary;        /** True if starting from boundary */
-  bool fPending;
-  VolumePath_t *fPath;
-  VolumePath_t *fNextpath;
+  bool fPending;         /** Track pending to be processed */
+  VolumePath_t *fPath;   /** Paths for the particle in the geometry */
+  VolumePath_t *fNextpath; /** Path for next volume */
+
+  /**
+  * @brief GeantTrack in place constructor
+  *
+  * @param maxdepth Maximum geometry depth
+  */
+  GEANT_CUDA_BOTH_CODE
+  GeantTrack(void *addr, int maxdepth);
 
 public:
   /** @brief GeantTrack constructor  */
@@ -120,15 +128,15 @@ public:
   /**
   * @brief GeantTrack parametrized constructor
   *
-  * @param ipdg ??????
+  * @param ipdg PDG code
   */
   GeantTrack(int ipdg);
 
   /**
   * @brief GeantTrack parametrized constructor
   *
-  * @param ipdg ??????
-  * @param maxdepth ??????
+  * @param ipdg PDG code
+  * @param maxdepth Maximum geometry depth
   */
   GEANT_CUDA_BOTH_CODE
   GeantTrack(int ipdg, int maxdepth);
@@ -538,6 +546,16 @@ public:
    * @param path Volume path
    */
   void SetNextPath(VolumePath_t const *const path);
+
+  /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
+  GEANT_CUDA_BOTH_CODE
+  static size_t SizeOfInstance(size_t maxdepth);
+
+  /**
+   * @brief GeantTrack MakeInstance based on a provided single buffer.
+   */
+  GEANT_CUDA_BOTH_CODE
+  static GeantTrack *MakeInstanceAt(void *addr, int maxdepth);
 
   //  ClassDefNV(GeantTrack, 1) // The track
 };

@@ -12,6 +12,7 @@
 #ifndef GEANT_TRACK_MANAGER
 #define GEANT_TRACK_MANAGER
 
+#include "Geant/Config.h"
 #include "NumaBlockMgr.h"
 #include "GeantTrack.h"
 
