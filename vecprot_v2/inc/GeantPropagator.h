@@ -34,6 +34,7 @@ class GeantBasketMgr;
 class WorkloadManager;
 class GeantVApplication;
 class PrimaryGenerator;
+class MCTruthMgr;
 class TaskBroker;
 
 #include "GeantFwd.h"
@@ -128,6 +129,7 @@ public:
   //   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
   GeantTrack_v *fStoredTracks;         /** Stored array of tracks (history?) */
   PrimaryGenerator *fPrimaryGenerator; /** Primary generator */
+  MCTruthMgr *fTruthMgr;               /** MCTruth manager */
 
   // Data per event
   int *fNtracks;               /** ![fNevents] Number of tracks {array of [fNevents]} */

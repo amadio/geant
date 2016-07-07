@@ -89,6 +89,7 @@ public:
   int fEvent;            /** Event number */
   int fEvslot;           /** Event slot */
   int fParticle;         /** Index of corresponding particle */
+  int fMother;           /** Index of mother particle */
   int fPDG;              /** Particle pdg code */
   int fGVcode;           /** GV particle code */
   int fEindex;           /** Element index */
@@ -281,6 +282,9 @@ public:
   /** @brief Function that return index of corresponding particle */
   int Particle() const { return fParticle; }
 
+  /** @brief Function that returns index of mother particle */
+  int Mother() const { return fMother; }
+
   /** @brief Function that set status pending to track */
   bool Pending() const { return fPending; }
 
@@ -352,6 +356,13 @@ public:
    * @param particle Particle that should be set as fParticle
    */
   void SetParticle(int particle) { fParticle = particle; }
+
+  /**
+   * @brief Function that sets mother index
+   *
+   * @param mother Particle that should be set as fMother
+   */
+  void SetMother(int mother) { fMother = mother; }
 
   /**
    * @brief Function that set particle pdg code
@@ -572,6 +583,7 @@ public:
   int *fEventV;            /** Event numbers */
   int *fEvslotV;           /** Event slots */
   int *fParticleV;         /** Indices of corresponding particles */
+  int *fMotherV;           /** Indices of mother particles */
   int *fPDGV;              /** Particle pdg codes */
   int *fGVcodeV;           /** GV internal codes */
   int *fEindexV;           /** Element indices */
