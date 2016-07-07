@@ -74,17 +74,20 @@ public:
   doxTpl();
 
   /**
-     @brief Duplicate input number.
-     @todo  Make it constant
+     @brief  Duplicate input number.
+     @return The double of the input
+     @todo   Make it constant
+     @param[in] a value to duplicate
 
      This method duplicates the input number.
   */
   int oneMethod(int a);
 
 private:
-  int fMember1;    ///<! ROOT transient member
-  int *fMember2;   ///<[fMember1] ROOT array
-  double fMember3; ///< Another class member
+  int fCachedValue; ///<! ROOT transient member
+  int fSize;        ///< Number of elements
+  int *fMember2;    ///<[fSize] ROOT array
+  double fMember3;  ///< Another class member
 };
 
 #endif
