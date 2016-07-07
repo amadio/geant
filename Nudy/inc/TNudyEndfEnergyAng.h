@@ -8,6 +8,7 @@ typedef std::vector<double> rowd;
 typedef std::vector<int> rowint;
 typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
+typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
 #ifdef USE_ROOT
 #include "Rtypes.h"
 class TRandom3;
@@ -18,8 +19,8 @@ class  TNudyEndfEnergyAng : public TNudyEndfRecoPoint {
 public: 
   TNudyEndfEnergyAng ();
   TNudyEndfEnergyAng (TNudyEndfFile *file, double []);
-  virtual double GetCos4(int elemid, int mt, double energyK);
-  virtual double GetEnergy5(int elemid, int mt, double energyK);
+  virtual double GetCos6(int elemid, int mt, int law, double energyK);
+  virtual double GetEnergy6(int elemid, int mt, int law, double energyK);
   virtual int GetLaw6(int ielemId, int mt);
   virtual ~TNudyEndfEnergyAng ();
 private:
@@ -47,12 +48,13 @@ private:
   int nr2, np2;                         // standard ENDF parameters
   rowint nbt3,int3;
   int nr3, np3;                         // standard ENDF parameters
-  rowd ein,cdfc,pdfc,lCoef1;
-  rowd cdfe,pdfe;
-  matrixd2 pdf2dc,cdf2dc,lCoef,ein2d;
-  matrixd3 pdf3dc,cdf3dc;
-  matrixd2 pdf2de,cdf2de;
-  matrixd3 pdf3de,cdf3de;
+  rowd ein,cosc,cdfc,pdfc,lCoef1,cosin,cosinpdf,cosincdf;
+  rowd eoute,cdfe,pdfe;
+  matrixd2 cos2d,cosinpdf2d,cosincdf2d,cos2dc,pdf2dc,cdf2dc,lCoef,ein2d;
+  matrixd3 cos3d,cosinpdf3d,cosincdf3d,cos3dc,pdf3dc,cdf3dc;
+  matrixd2 eout2de,pdf2de,cdf2de;
+  matrixd3 eout3de,pdf3de,cdf3de;
+  matrixd4 eout4de,pdf4de,cdf4de;
 #ifdef USE_ROOT
   TRandom3 *fRnd;
 #endif

@@ -37,6 +37,7 @@ typedef std::vector<rowint > matrixint;
 typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
 typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
+typedef std::vector<std::vector<std::vector<std::vector<rowd > > > > matrixd5;
 
 class  TNudyEndfRecoPoint {
 
@@ -53,9 +54,9 @@ public:
   virtual double GetCos4(int elemid, int mt, double energyK);
   virtual int GetCos4Lct(int elemid, int mt);
   virtual double GetEnergy5(int elemid, int mt, double energyK);
-  virtual double GetCos6(int elemid, int mt, double energyK);
-  virtual double GetEnergy6(int elemid, int mt, double energyK);
-  virtual double GetQValue(int i) const { return QValue[i]; }
+  virtual double GetCos6(int elemid, int mt, int law, double energyK);
+  virtual double GetEnergy6(int elemid, int mt, int law, double energyK);
+  virtual double GetQValue(int elemid, int mt);
   virtual double GetMt456(int elemid, int mt);
   virtual int GetLaw6(int ielemId, int mt);
   virtual double GetNuTotal(int elemid, double energyK);
@@ -70,19 +71,26 @@ protected:
   double sigDiff;					// precision for cross-section reconstruction
   matrixd3 sigUniOfMt;      // sigma for each reaction afte unionization of energy and all elements
   matrixint energyLocMtId;			// MT wise starting energy for cross-section all elements
+  matrixd4 cos4OfMts;        // cosine and pdf from file 4 for each reaction
   matrixd4 cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
   matrixd4 cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
   matrixd3 energy4OfMts;       // incident energy in file 4 for each reaction
   matrixint Mt4Values;             // MT values for which angular distributions are given in file 4
   matrixint Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
+  matrixd4 energyOut5OfMts;        // cosine and pdf from file 4 for each reaction
   matrixd4 energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
   matrixd4 energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
+  matrixd4 cos6OfMts;        // cosine 6 for each reaction and element
+  matrixd4 cosin6Pdf, cosin6Cdf; //pdf cdf 6 for each reaction and element
+  matrixd5 energyOut6OfMts;        // energy from file 6 for each reaction
+  matrixd5 energyPdf6OfMts;        // pdf from file 6 for each reaction
+  matrixd5 energyCdf6OfMts;        // cdf from file 6 for each reaction
   matrixd3 energy5OfMts;       // incident energy in file 4 for each reaction
   matrixint Mt5Values;             // MT values for which angular distributions are given in file 4
   matrixint Mt456;             // MT values for which angular, energy/ angular-energy distributions are given in file 4, 5, 6
   matrixint Law6;             // law 6 for angular-energy distributions are given in file 6
   matrixd2 eint, nut;              // incident energy and nu,  all elements
-  matrixd2 einfId;              // incident energy for fission yield
+  matrixd2 einfId, qvalue;              // incident energy for fission yield
   matrixd3 zafId, pdfYieldId, cdfYieldId;              // za and yield fission 
   double AWRI;
 private:
@@ -96,7 +104,6 @@ private:
   void GetSigmaRMP(double x, double &siga, double &sigb, double &sigc);
   void InverseMatrix();
   double backCrsAdler(double x, int l1);
-  void SetQValue(double fQValue, int i) { QValue[i] = fQValue; }
   double calcPhi(double x, int l);
   double calcShift(double x, int l);
   double calcPene(double x, int l);
@@ -137,7 +144,7 @@ private:
   matrixd2 sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
   rowint energyLocationMts;			// MT wise starting energy for cross-section
   rowint MtNumbers;				// MT numbers
-  rowd sigmaMts;				// MT numbers for sigma in file3
+  rowd sigmaMts, qvaluetemp;				// MT numbers for sigma in file3
   rowd eLinElastic,eLinCapture,eLinFission;
   rowd xLinElastic,xLinCapture,xLinFission;
   rowd xBroadElastic,xBroadCapture,xBroadFission;

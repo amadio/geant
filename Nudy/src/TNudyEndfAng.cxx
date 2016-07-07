@@ -55,7 +55,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	do
 	{
 	  fme =1.0;
-	  double x = -1. + k1*0.05;
+	  double x = -1. + k1*0.02;
           for (unsigned long j = 0; j < lCoef[i].size(); j++) {
 	    double leg = ROOT::Math::legendre(j+1, x);
 	    fme += 0.5*(2.*(j+1) + 1.)*lCoef[i][j]*leg;
@@ -67,8 +67,8 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	  }
           //printf("%e %e\n", x, fme);
           k1++;
-	}while(k1<41);
-	for(int l=0; l<40; l++){
+	}while(k1<101);
+	for(int l=0; l < 100; l++){
 	  recursionLinearLeg(i, cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
 	}
 	fillPdf1d();
@@ -117,7 +117,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	do
 	{
 	  fme =1.0;
-	  double x = -1. + k1*0.05;
+	  double x = -1. + k1*0.02;
           for (unsigned long j = 0; j < lCoef[i].size(); j++) {
 	    double leg = ROOT::Math::legendre(j+1, x);
 	    fme += 0.5*(2.*(j+1) + 1.)*lCoef[i][j]*leg;
@@ -129,9 +129,9 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	  }
 //            printf("%e %e\n", x, fme);
           k1++;
-	}while(k1<41);
+	}while(k1<101);
 	    
-	for(int l=0; l<40; l++){
+	for(int l=0; l < 100; l++){
 	  recursionLinearLeg(i, cosFile4[l], cosFile4[l+1], cosPdfFile4[l], cosPdfFile4[l+1]); 
 	}
 	fillPdf1d();
@@ -140,6 +140,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
       for (int i = 0; i < highE->GetN2(); i++) {
         TNudyEndfTab1 *tab = (TNudyEndfTab1 *)recIter.Next();
         ein.push_back(tab->GetC2());
+	//std::cout <<"energy "<< ein[ein.size() - 1] << std::endl;
 	nr = tab->GetNR();
 	np = tab->GetNP();      
 	for(int i = 0; i < tab->GetNR(); i++ ){
@@ -177,11 +178,13 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
   Mt4Values.push_back(MtNumbers);
   Mt4Lct.push_back(MtLct);
   energy4OfMts.push_back(ein2d);
+  cos4OfMts.push_back(cos3d);
   cosPdf4OfMts.push_back(pdf3d);
   cosCdf4OfMts.push_back(cdf3d);
   std::vector<int>().swap(MtNumbers);
   std::vector<int>().swap(MtLct);
   ein2d.clear();
+  cos3d.clear();
   pdf3d.clear();
   cdf3d.clear();
   /*
@@ -210,9 +213,9 @@ double TNudyEndfAng::recursionLinearLeg(int i, double x1, double x2, double pdf1
     pdf += 0.5*(2.*(j+1) + 1.)*lCoef[i][j]*leg;
   }
   double pdfmid1 = pdf1 + (pdf2 - pdf1)*(mid - x1)/(x2 - x1);
-//  std::cout << mid <<" linear "<< pdf <<"  "<< pdfmid1 << std::endl;
-  
-  if(fabs((pdf - pdfmid1)/pdfmid1)<=1E-3){
+  //std::cout <<x1<<"  " <<x2<<"  "<< pdf1 <<"  "<< pdf2 << std::endl;
+  //std::cout <<mid<<"  "<< fabs((pdf - pdfmid1)/pdf) <<"  "<< pdf <<"  "<< pdfmid1 << std::endl;
+  if(pdf > 0 && fabs((pdf - pdfmid1)/pdf) <= 2E-4){
     return 0;
   }
   cosFile4.push_back(mid); 
@@ -221,6 +224,7 @@ double TNudyEndfAng::recursionLinearLeg(int i, double x1, double x2, double pdf1
   recursionLinearLeg(i, mid, x2, pdf, pdf2);
   return 0;  
 }
+//--------------------------------------------------------------------------------------
 double TNudyEndfAng::recursionLinearProb(double x1, double x2, double pdf1, double pdf2){
   double pdf =1.0;
   double mid     = 0.5 * (x1 + x2);
@@ -230,7 +234,7 @@ double TNudyEndfAng::recursionLinearProb(double x1, double x2, double pdf1, doub
   double pdfmid1 = pdf1 + (pdf2 - pdf1)*(mid - x1)/(x2 - x1);
 //  std::cout << mid <<" linear "<< pdf <<"  "<< pdfmid1 << std::endl;
   
-  if(fabs((pdf - pdfmid1)/pdfmid1) <= 1E-3){
+  if(pdf > 0 && fabs((pdf - pdfmid1)/pdf) <= 2E-4){
     return 0;
   }
   cosFile4.push_back(mid); 
@@ -239,29 +243,34 @@ double TNudyEndfAng::recursionLinearProb(double x1, double x2, double pdf1, doub
   recursionLinearProb(mid, x2, pdf, pdf2);
   return 0;  
 }
+//-----------------------------------------------------------------------------------------
 void TNudyEndfAng::fillPdf1d() {
   TNudyCore::Instance()->Sort(cosFile4, cosPdfFile4);
   TNudyCore::Instance()->cdfGenerateT(cosFile4, cosPdfFile4, cosCdfFile4);
   for(unsigned long i = 0; i < cosFile4.size(); i++){
-    pdf.push_back(cosFile4[i]);
+    cos4.push_back(cosFile4[i]);
     pdf.push_back(cosPdfFile4[i]);
-    cdf.push_back(cosFile4[i]);
     cdf.push_back(cosCdfFile4[i]);
     //std::cout<<cosFile4[i] <<"  "<<cosPdfFile4[i] <<"  "<< cosCdfFile4[i] << std::endl;
   }
+  cos2d.push_back(cos4);
   pdf2d.push_back(pdf);
   cdf2d.push_back(cdf);
   cosFile4.clear();	
   cosPdfFile4.clear();	
   cosCdfFile4.clear();	
+  cos4.clear();
   pdf.clear();
   cdf.clear();
 }
+//--------------------------------------------------------------------------------------
 void TNudyEndfAng::fillPdf2d() {
   ein2d.push_back(ein);
+  cos3d.push_back(cos2d);
   pdf3d.push_back(pdf2d);
   cdf3d.push_back(cdf2d);
   ein.clear();
+  cos2d.clear();
   pdf2d.clear();
   cdf2d.clear();
 }
@@ -275,7 +284,6 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
       break;
     }
   }
-  if( i < 0 ) return 99;
   int min = 0;
   int max = energy4OfMts[ielemId][i].size() - 1;
   int mid = 0;
@@ -294,36 +302,38 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
   double rnd1 = fRnd->Uniform(1);
   double rnd2 = fRnd->Uniform(1);
   if(rnd2 < fraction)min = min + 1;
-   //std::cout<< rnd1 <<"  "<< rnd2 << std::endl;
   int k =0;
   //std::cout<<" pdf size "<< cosPdf4OfMts[ielemId][i][min].size()/2 << std::endl;
-  int size = cosPdf4OfMts[ielemId][i][min].size()/2;
-  for(int j = 0; j < size; j++){
-    if(rnd1 < cosCdf4OfMts[ielemId][i][min][2 * j + 1]){
+  int size = cosCdf4OfMts[ielemId][i][min].size();
+  for(int j = 1; j < size; j++){
+    //std::cout<<"cdf "<< cosCdf4OfMts[ielemId][i][min][2 * j ] <<"  "<< cosCdf4OfMts[ielemId][i][min][2 * j + 1] << std::endl;
+    if(rnd1 <= cosCdf4OfMts[ielemId][i][min][j]){
       k = j - 1 ;
-      if(k < 0)k = 0;
-      if(k >= size - 1) k = size - 2;
+      if(k >= size - 2) k = size - 2;
       break;
     }
   }
-    //std::cout<< cosCdf4OfMts[ielemId][i][min][2 * k + 3]<< "  "<< cosPdf4OfMts[ielemId][i][min][2 * k + 3] << std::endl;
+  //for(int j = 0; j < size; j++){
+  //  std::cout <<cos4OfMts[ielemId][i][min][j] <<"  "<<cosPdf4OfMts[ielemId][i][min][j] << std::endl;
+  //}
+  
+  //std::cout<< k <<"  "<<cos4OfMts[ielemId][i][min][k]<<"  "<<cosPdf4OfMts[ielemId][i][min][k] <<"  "<<cosCdf4OfMts[ielemId][i][min][ k] << std::endl;
   //std::cout<<" pdf "<<k<<"  "<< cosPdf4OfMts[ielemId][i][min][2 * k + 3]<<"  "<< cosPdf4OfMts[ielemId][i][min][2 * k + 1] << std::endl;
   //std::cout<<" cos "<< cosPdf4OfMts[ielemId][i][min][2 * k + 2]<<"  "<< cosPdf4OfMts[ielemId][i][min][2 * k ] << std::endl;
-  double plk = (cosPdf4OfMts[ielemId][i][min][2 * k + 3] - cosPdf4OfMts[ielemId][i][min][2 * k + 1])/
-               (cosPdf4OfMts[ielemId][i][min][2 * k + 2] - cosPdf4OfMts[ielemId][i][min][2 * k]);
-  double plk2 =  cosPdf4OfMts[ielemId][i][min][2 * k + 1] * cosPdf4OfMts[ielemId][i][min][2 * k + 1];
-  double plsq = plk2 + 2 * plk *(rnd1 - cosCdf4OfMts[ielemId][i][min][2 * k + 1]);
-  //std::cout <<"plk "<< plk <<" plk2 "<< plk2 <<"  "<< k << std::endl;
+  double plk = (cosPdf4OfMts[ielemId][i][min][k + 1] - cosPdf4OfMts[ielemId][i][min][k])/
+               (cos4OfMts[ielemId][i][min][k + 1] - cos4OfMts[ielemId][i][min][k]);
+  double plk2 =  cosPdf4OfMts[ielemId][i][min][k] * cosPdf4OfMts[ielemId][i][min][k];
+  double plsq = plk2 + 2 * plk *(rnd1 - cosCdf4OfMts[ielemId][i][min][k]);
   double Ang = 0 ;
-  if(plk !=0 && plsq > 0){Ang = cosPdf4OfMts[ielemId][i][min][2 * k] + (sqrt(std::fabs(plsq)) -
-                     cosPdf4OfMts[ielemId][i][min][2 * k + 1])/plk;
-  //std::cout<< Ang <<" first "<< rnd1 << std::endl;
+  if(plk !=0 && plsq > 0){Ang = cos4OfMts[ielemId][i][min][k] + (sqrt(std::fabs(plsq)) -
+                     cosPdf4OfMts[ielemId][i][min][k])/plk;
   }else {
+  //std::cout <<"uniform angle "<< mt << std::endl;
     Ang = 2 * rnd1 - 1; 
-  //std::cout<< Ang <<" sec  "<< rnd1 << std::endl;
   }
   return Ang ;
 }
+//________________________________________________________________________________________________________________
 int TNudyEndfAng::GetCos4Lct(int ielemId, int mt){
   int i =0;
   for(unsigned int l =0; l < Mt4Values[ielemId].size(); l++){

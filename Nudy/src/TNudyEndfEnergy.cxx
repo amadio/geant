@@ -392,19 +392,23 @@ TNudyEndfEnergy::TNudyEndfEnergy(TNudyEndfFile *file)
 	nbt2.clear(); int2.clear(); fE2.clear(); fP2.clear();
       }
       ein2d.push_back(ein);
+      ene3d.push_back(ene2d);
       pdf3d.push_back(pdf2d);
       cdf3d.push_back(cdf2d);
       ein.clear();
+      ene2d.clear();
       pdf2d.clear();
       cdf2d.clear();
     }
   }
   Mt5Values.push_back(MtNumbers);
   energy5OfMts.push_back(ein2d);
+  energyOut5OfMts.push_back(ene3d);
   energyPdf5OfMts.push_back(pdf3d);
   energyCdf5OfMts.push_back(cdf3d);
   MtNumbers.clear();
   ein2d.clear();
+  ene3d.clear();
   pdf3d.clear();
   cdf3d.clear();
   /*
@@ -505,17 +509,18 @@ void TNudyEndfEnergy::fillPdf1d(){
   TNudyCore::Instance()->cdfGenerateT(energyFile5, energyPdfFile5, energyCdfFile5);  
   for(unsigned long i = 0; i < energyFile5.size(); i++){
     if(energyPdfFile5[i] > 1E-15){
-      pdf.push_back(energyFile5[i]);
+      eneE.push_back(energyFile5[i]);
       pdf.push_back(energyPdfFile5[i]);
-      cdf.push_back(energyFile5[i]);
       cdf.push_back(energyCdfFile5[i]);
     }
   }
+  ene2d.push_back(eneE);
   pdf2d.push_back(pdf);
   cdf2d.push_back(cdf);
   energyFile5.clear();	
   energyPdfFile5.clear();	
   energyCdfFile5.clear();	
+  eneE.clear();
   pdf.clear();
   cdf.clear();
 }
@@ -523,12 +528,14 @@ void TNudyEndfEnergy::fillPdf1d(){
 double TNudyEndfEnergy::GetEnergy5(int ielemId, int mt, double energyK){
   fRnd = new TRandom3(0);
   int i = -1;
+ //std::cout<<"i "<< i <<"  "<< Mt5Values[ielemId].size() << std::endl;
  for(unsigned int l =0; l < Mt5Values[ielemId].size(); l++){
    if(Mt5Values[ielemId][l] == mt){
      i = l;
      break;
    }
  }
+ //std::cout<<"i "<< i <<"  "<< Mt5Values[ielemId][i] << std::endl;
  if( i < 0 ) return 99;
   int min = 0;
   int max = energy5OfMts[ielemId][i].size() - 1;
@@ -542,27 +549,28 @@ double TNudyEndfEnergy::GetEnergy5(int ielemId, int mt, double energyK){
       else min = mid;
     }
   }
+ // std::cout<<"min "<< min <<"  "<< energy5OfMts[ielemId][i][min] << std::endl;
   double fraction = (energyK - energy5OfMts[ielemId][i][min])/
                     (energy5OfMts[ielemId][i][min+1] - energy5OfMts[ielemId][i][min]);
   double rnd1 = fRnd->Uniform(1);
   double rnd2 = fRnd->Uniform(1);
   if(rnd2 < fraction)min = min + 1;
   int k =0;
-  int size = energyPdf5OfMts[ielemId][i][min].size()/2; 
-  for(unsigned int j = 0; j < energyPdf5OfMts[ielemId][i][min].size()/2; j++){
-    if(rnd1 <= energyCdf5OfMts[ielemId][i][min][2*j + 1]){
+  int size = energyCdf5OfMts[ielemId][i][min].size(); 
+  for(unsigned int j = 1; j < energyPdf5OfMts[ielemId][i][min].size(); j++){
+    if(rnd1 <= energyCdf5OfMts[ielemId][i][min][j]){
       k = j - 1;
-      if(k < 0)k = 0;
-      if(k >= size - 1) k = size - 2;
+      if(k >= size - 2) k = size - 2;
       break;
     }
   }
-  double plk = (energyPdf5OfMts[ielemId][i][min][2 * k + 3] - energyPdf5OfMts[ielemId][i][min][2 * k + 1])/
-               (energyPdf5OfMts[ielemId][i][min][2 * k + 2] - energyPdf5OfMts[ielemId][i][min][2 * k]);
-  double plk2 =  energyPdf5OfMts[ielemId][i][min][2 * k + 1]* energyPdf5OfMts[ielemId][i][min][2 * k + 1];
+  //std::cout<<"k "<< k <<"  "<< energyOut5OfMts[ielemId][i][min][k] << std::endl;
+  double plk = (energyPdf5OfMts[ielemId][i][min][k + 1] - energyPdf5OfMts[ielemId][i][min][k])/
+               (energyOut5OfMts[ielemId][i][min][k + 1] - energyOut5OfMts[ielemId][i][min][k]);
+  double plk2 =  energyPdf5OfMts[ielemId][i][min][k]* energyPdf5OfMts[ielemId][i][min][k];
   
   double edes = 0;
-  if(plk>0)edes = energyPdf5OfMts[ielemId][i][min][2 * k] + (sqrt(plk2 + 2 * plk *(rnd1 - energyCdf5OfMts[ielemId][i][min][2 * k + 1])) -
-                energyPdf5OfMts[ielemId][i][min][2 * k + 1])/plk;
+  if(plk !=0 )edes = energyOut5OfMts[ielemId][i][min][k] + (sqrt(plk2 + 2 * plk *(rnd1 - energyCdf5OfMts[ielemId][i][min][k])) -
+                energyPdf5OfMts[ielemId][i][min][k])/plk;
   return edes;
 }

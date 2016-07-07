@@ -43,9 +43,9 @@ private:
   rowd energyFile5;
   rowd energyPdfFile5;
   rowd energyCdfFile5;
-  rowd ein, cdf, pdf;
-  matrixd2 cdf2d, pdf2d,ein2d;
-  matrixd3 cdf3d, pdf3d;
+  rowd ein, eneE, cdf,pdf;
+  matrixd2 ene2d, cdf2d, pdf2d,ein2d;
+  matrixd3 ene3d,cdf3d, pdf3d;
 #ifdef USE_ROOT
   TRandom3 *fRnd;
 #endif

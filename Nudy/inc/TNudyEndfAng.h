@@ -8,6 +8,7 @@ typedef std::vector<rowint > matrixint;
 typedef std::vector<rowd > matrixd2;
 typedef std::vector<std::vector<rowd > > matrixd3;
 typedef std::vector<std::vector<std::vector<rowd > > > matrixd4;
+#define PI acos(-1.0)
 
 #ifdef USE_ROOT
 #include "Rtypes.h"
@@ -28,9 +29,9 @@ private:
   void fillPdf1d();
   void fillPdf2d();
   double A, AWR, ABN, QX;                         // standard ENDF parameters
-  rowd ein,cdf,pdf,lCoef1;
-  matrixd2 pdf2d,cdf2d,lCoef,ein2d;
-  matrixd3 pdf3d,cdf3d;
+  rowd ein,cos4,cdf,pdf,lCoef1;
+  matrixd2 cos2d,pdf2d,cdf2d,lCoef,ein2d;
+  matrixd3 cos3d,pdf3d,cdf3d;
   rowd cosFile4;
   rowd cosPdfFile4;
   rowd cosCdfFile4;
