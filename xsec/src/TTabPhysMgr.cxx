@@ -718,6 +718,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.fPending = false;
           *track.fPath = *tracks.fPathV[t];
           *track.fNextpath = *tracks.fPathV[t];
+	  track.fMother = tracks.fParticleV[t];
 
           // Rotate new track to parent track's frame
           RotateNewTrack(oldXdir, oldYdir, oldZdir, track);
