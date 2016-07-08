@@ -12,7 +12,7 @@ GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0), 
-      fBoundary(false), fPending(false), fPath(0), fNextpath(0) {
+      fBoundary(false), fPending(false), fOwnPath(true), fPath(0), fNextpath(0) {
   // Dummy constructor
 }
 
@@ -39,7 +39,7 @@ GeantTrack::GeantTrack(int ipdg)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
-      fBoundary(false), fPending(false), fPath(0), fNextpath(0) {
+      fBoundary(false), fPending(false), fOwnPath(true), fPath(0), fNextpath(0) {
   // Constructor
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
   fPath = VolumePath_t::MakeInstance(maxdepth);
@@ -52,7 +52,7 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
-      fBoundary(false), fPending(false), fPath(0), fNextpath(0) {
+      fBoundary(false), fPending(false), fOwnPath(true), fPath(0), fNextpath(0) {
   // Constructor
   fPath = VolumePath_t::MakeInstance(maxdepth);
   fNextpath = VolumePath_t::MakeInstance(maxdepth);
@@ -64,7 +64,7 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
-      fBoundary(false), fPending(false), fPath(nullptr), fNextpath(nullptr) {
+      fBoundary(false), fPending(false), fOwnPath(true), fPath(nullptr), fNextpath(nullptr) {
   // In place private constructor
   char *path_addr = (char*)addr + sizeof(GeantTrack);
   fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
@@ -80,7 +80,7 @@ GeantTrack::GeantTrack(const GeantTrack &other)
       fMass(other.fMass), fXpos(other.fXpos), fYpos(other.fYpos), fZpos(other.fZpos), fXdir(other.fXdir),
       fYdir(other.fYdir), fZdir(other.fZdir), fP(other.fP), fE(other.fE), fTime(other.fTime), fEdep(other.fEdep),
       fPstep(other.fPstep), fStep(other.fStep), fSnext(other.fSnext), fSafety(other.fSafety), fNintLen(other.fNintLen), fIntLen(other.fIntLen),
-      fBoundary(other.fBoundary), fPending(other.fPending), fPath(0), fNextpath(0) {
+      fBoundary(other.fBoundary), fPending(other.fPending), fOwnPath(true), fPath(0), fNextpath(0) {
   // Copy constructor
   int maxdepth = GeantPropagator::Instance()->fMaxDepth;
   fPath = VolumePath_t::MakeInstance(maxdepth);
@@ -137,8 +137,10 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
 GEANT_CUDA_BOTH_CODE
 GeantTrack::~GeantTrack() {
   // Destructor.
-  VolumePath_t::ReleaseInstance(fPath);
-  VolumePath_t::ReleaseInstance(fNextpath);
+  if (fOwnPath) {
+    VolumePath_t::ReleaseInstance(fPath);
+    VolumePath_t::ReleaseInstance(fNextpath);
+  }
 }
 
 //______________________________________________________________________________
@@ -232,13 +234,36 @@ void GeantTrack::SetNextPath(VolumePath_t const *const path) {
 }
 
 //______________________________________________________________________________
-void GeantTrack::Print(const char *location) const {
-//  TString spath;
-  //   if (path) path->GetPath(spath);
-  Geant::Print(location, "=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Dir:(%f,%f,%f) "
-         "P:%g E:%g snext=%g safety=%g nintlen=%g intlen=%g nsteps=%d",
-         fParticle, fEvent, fProcess, fPstep, fCharge, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, P(), fE, fSnext,
-         fSafety, fNintLen, fIntLen, fNsteps);
+void GeantTrack::Print(const char *msg) const {
+  const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
+#ifdef USE_VECGEOM_NAVIGATOR
+  Geant::Print(msg,
+      ": evt=%d slt=%d part=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
+      "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n",
+      fEvent, fEvslot, fParticle, fPDG, fGVcode, fEindex, fBindex,
+      fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
+      fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
+      fTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
+  
+#ifndef GEANT_NVCC
+  fPath->Print();
+  fNextpath->Print();
+#endif
+#else
+  TString path;
+  fPath->GetPath(path);
+  TString nextpath;
+  fNextpath->GetPath(nextpath);
+
+  Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d "
+         "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
+         "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n pth=%s npth=%s\n",
+         itr, fEvent, fEvslot, fParticle, fPDG, fGVcode, fEindex, fBindex,
+         fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
+         fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
+         fTime, fEdep, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary, path.Data(),
+         nextpath.Data());
+#endif
 }
 
 //______________________________________________________________________________

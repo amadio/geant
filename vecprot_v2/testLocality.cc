@@ -21,7 +21,16 @@ double get_cpu_time() { return (double)clock() / CLOCKS_PER_SEC; }
 
 //______________________________________________________________________________
 void ConsumeTracks(size_t) {
-
+  using namespace Geant;
+  LocalityManager *loc_mgr = LocalityManager::Instance();
+  int node = loc_mgr->GetPolicy().AllocateNextThread();
+  TrackManager &trk_mgr = loc_mgr->GetTrackManager(node);
+  for (int itr=0; itr<1000000; ++itr) {
+    GeantTrack &track = trk_mgr.GetTrack();
+//    printf("%p\n", &track);
+//    track.Print("");
+    loc_mgr->ReleaseTrack(track);
+  }
 }
 
 //______________________________________________________________________________
@@ -36,8 +45,9 @@ int main(int argc, char *argv[]) {
   
   LocalityManager *mgr = LocalityManager::Instance();
   mgr->SetPolicy(NumaPolicy::kCompact);
-  mgr->SetNblocks(1000);
+  mgr->SetNblocks(100);
   mgr->SetBlockSize(10000);
+  mgr->SetMaxDepth(10);
   mgr->Init();
   std::vector<std::thread> v;
   double cpu0 = get_cpu_time();
@@ -52,5 +62,5 @@ int main(int argc, char *argv[]) {
   double cpu1 = get_cpu_time();
   delete mgr;
 
-  std::cout << "run time: " << rt1 - rt0 << "   cpu time: " << cpu1 - cpu0 << std::endl;
+  std::cout << "run time/thread: " << (rt1 - rt0)/nthreads << "   cpu time/thread: " << (cpu1 - cpu0)/nthreads << std::endl;
 }

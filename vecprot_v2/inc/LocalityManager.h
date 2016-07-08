@@ -38,6 +38,7 @@ private:
   TrackManager **fTrackMgr;        /** [fNnodes] Array of track managers */
   size_t fNblocks;                 /** Number of initial track blocks */
   size_t fBlockSize;               /** Number of tracks stored by each block */
+  int    fMaxdepth;                /** Maximum geometry depth */
 
 private:
   /** @brief Constructor */
@@ -64,7 +65,7 @@ public:
 
   /** @brief Getter for the locality policy.*/
   GEANT_INLINE
-  NumaPolicy const &GetPolicy() const { return fPolicy; }
+  NumaPolicy &GetPolicy() const { return (NumaPolicy&)fPolicy; }
   
   /** @brief Setter for the number of blocks to allocate.*/
   GEANT_INLINE
@@ -81,6 +82,14 @@ public:
   /** @brief Getter for the block size.*/
   GEANT_INLINE
   int GetBlockSize() const { return fBlockSize; }
+
+  /** @brief Setter for the maximum geometry depth.*/
+  GEANT_INLINE
+  void SetMaxDepth(int maxdepth) { fMaxdepth = maxdepth; }
+
+  /** @brief Getter for the maximum geometry depth.*/
+  GEANT_INLINE
+  int GetMaxDepth() const { return fMaxdepth; }
   
   /** @brief Initialize locality manager and allocate data.*/
   void Init();
@@ -96,7 +105,7 @@ public:
   /** @brief Service to recycle tracks */
   GEANT_INLINE
   bool ReleaseTrack(GeantTrack const &track) {
-    int node = TrackManager::GetNode(track);
+    int node = fTrackMgr[0]->GetNode(track);
     return ( fTrackMgr[node]->ReleaseTrack(track) );
   }
 

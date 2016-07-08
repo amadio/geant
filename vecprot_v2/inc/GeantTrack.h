@@ -102,6 +102,7 @@ public:
   double fIntLen;        /** Cumulated interaction length since last discrete process */
   bool fBoundary;        /** True if starting from boundary */
   bool fPending;         /** Track pending to be processed */
+  bool fOwnPath;         /** Marker for path ownership */
   VolumePath_t *fPath;   /** Paths for the particle in the geometry */
   VolumePath_t *fNextpath; /** Path for next volume */
 

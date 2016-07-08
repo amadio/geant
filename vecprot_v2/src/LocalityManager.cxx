@@ -21,7 +21,8 @@ LocalityManager::LocalityManager()
      fNnodes(0),
      fTrackMgr(nullptr),
      fNblocks(0),
-     fBlockSize(0) {
+     fBlockSize(0),
+     fMaxdepth(0) {
   // Private constructor.
   fgInstance = this;
 }
@@ -41,11 +42,12 @@ void LocalityManager::Init() {
   // If number of nodes is not specified, select according the policy
   assert(fNblocks > 0 && "Number of initial blocks not set.");
   assert(fBlockSize > 0 && "Block size for tracks not set.");
+  assert(fMaxdepth > 0 && "Maximum geometry depth not set.");
   std::cout << *fPolicy.GetTopology() << std::endl;
   if (!fNnodes) fNnodes = fPolicy.GetTopology()->fNodes;
   fTrackMgr = new TrackManager*[fNnodes];
   for (int inode=0; inode<fNnodes; ++inode) {
-    fTrackMgr[inode] = new TrackManager(fNblocks, fBlockSize, inode);
+    fTrackMgr[inode] = new TrackManager(fNblocks, fBlockSize, fMaxdepth, inode);
   }
   std::cout << "=== Locality manager allocated " << fNblocks << " blocks of " 
             << fBlockSize << " tracks each on " << fNnodes << " locality nodes ===" << std::endl;

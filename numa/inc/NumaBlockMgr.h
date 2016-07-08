@@ -28,9 +28,9 @@
  */
 namespace Geant {
 
-template <typename T> class NumaBlockMgr {
+template <typename T, bool D=false> class NumaBlockMgr {
   using size_t = std::size_t;
-  using numa_block_ptr = NumaBlock<T>*;
+  using numa_block_ptr = NumaBlock<T,D>*;
   using queue_t = mpmc_bounded_queue<numa_block_ptr>;
 
   static size_t const cacheline_size = 64;
@@ -43,40 +43,48 @@ private:
   cacheline_pad_t pad0_;   //! Padding to protect the other data from the hot cache line above
   
   int             fNode;  // Numa node id
+  int             fMaxdepth; // Max depth used as extra parameter in allocations
   size_t          fBlockSize;  // Numa block size
   queue_t fBlocks;  // Queue of free blocks
 
 public:
 
   /** @brief Constructor providing number of blocks to be initially created */
-  NumaBlockMgr(int numa_node, size_t bsize) 
-    : fCurrent(nullptr), fNode(numa_node), fBlockSize(bsize), 
+  NumaBlockMgr(size_t nblocks, int numa_node, int maxdepth, size_t bsize) 
+    : fCurrent(nullptr), fNode(numa_node), fMaxdepth(maxdepth), fBlockSize(bsize), 
       fBlocks(queue_buff_size)
   {
-    // No block gets added. Blocks are added by AddBlockAndRegister method,
-    // Allowing to navigate objects in the created block before they are used.
-    // (used by the TrackManager to addign id's to tracks)
+    // Constructor creating nblocks
+    numa_block_ptr block;
+    for (size_t i=0; i<nblocks; ++i) {
+      if (D)
+        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth);
+      else
+        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode);
+      if (i == 0)
+        fCurrent.store(block);
+      else
+        fBlocks.enqueue(block);
+    }
   }
   
   /** @brief Add a free block */
   numa_block_ptr AddBlock()
   {
-    return ( NumaBlock<T>::MakeInstance(fBlockSize, fNode) );
+    if (D) return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth) );
+    return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode) );
   }
 
   /** @brief Destructor*/
   ~NumaBlockMgr() {
     numa_block_ptr block;
-    while (fBlocks.dequeue(block))
-      delete block;
-  }
-
-  /** @brief Add a free block */
-  numa_block_ptr AddBlockAndRegister()
-  {
-    numa_block_ptr block = NumaBlock<T>::MakeInstance(fBlockSize, fNode);
-    fBlocks.enqueue(block);
-    return block;
+//    std::cout << "deleting block manager: " << this << std::endl;
+    while (fBlocks.dequeue(block)) {
+      if (block == fCurrent.load()) continue;
+      NumaBlock<T,D>::ReleaseInstance(block);
+    }
+//    std::cout << "  delete fCurrent\n";
+    NumaBlock<T,D>::ReleaseInstance(fCurrent.load());
   }
 
   /** @brief Get a free block */
@@ -91,25 +99,31 @@ public:
   
   /** @brief Get a free object from the pool 
       @return A valid object reference */
-  T &GetObject() {
+  T &GetObject(size_t &index) {
     // Get the next object from the current active block
     numa_block_ptr block = CurrentBlock();
-    T* obj = block->GetObject();
-    if (obj) return (*obj);
-    // Block fully distributed, replace with free one
+    // Hold the object
+    T* obj = block->GetObject(index);
+    // If the block is not yet fully distributed, return
+    if (obj && !block->IsDistributed()) return (*obj);
+    // Replace distributed block
     numa_block_ptr next_free = GetBlock();
+//    std::cout << "current= " << block << " distributed, next_free= " << next_free << std::endl;
     while (!fCurrent.compare_exchange_weak(block, next_free, std::memory_order_relaxed)) {
-      // If not managing to replace the old block, someone else may have done it
-      block = CurrentBlock();
-      obj = block->GetObject();
-      if (obj) {
-        // Someone else indeed replaced the block, recycle our free block
-        assert(fBlocks.enqueue(next_free));
-        return (*obj);
-      }
+      // Retry if block is the same
+      if (CurrentBlock() == block) continue;
+      // Someone else replaced the block, recycle our free block
+      assert(fBlocks.enqueue(next_free));
+      break;
     }
+    // Return the held object if valid, or try again with the new block
+//    std::cout << "   current is now: " << CurrentBlock() << std::endl;
+    if (obj) return (*obj);
+
+    block = CurrentBlock();
     // Blocks are large, unlikely to be emptied righ away, but you never know...
-    assert( (obj = block->GetObject()) );
+    obj = block->GetObject(index);
+    if (!obj) obj = &GetObject(index);
     // There is no link anymore to the replaced block but once released by all users
     // it will go back in the block list
     return (*obj);
@@ -119,7 +133,9 @@ public:
       @param block Block from which the object is released
       @return Block may have been recycled */
   GEANT_INLINE bool ReleaseObject(numa_block_ptr block) { 
-    if (block->ReleaseObject() == 0) {
+    if (block->ReleaseObject()) {
+//      std::cout << "Recycling block " << block << std::endl;
+      block->Clear();
       fBlocks.enqueue(block);
       return true;
     }
