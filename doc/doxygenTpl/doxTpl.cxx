@@ -14,8 +14,8 @@ doxTpl::doxTpl() {
 }
 
 //________________________________________________________________________________
-int doxTpl::oneMethod(int a) {
+int doxTpl::oneMethod(int todouble) {
   // Another local comment
-  int b = 2 * a;
-  return b;
+  int result = 2 * todouble;
+  return result;
 }

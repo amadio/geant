@@ -77,11 +77,11 @@ public:
      @brief  Duplicate input number.
      @return The double of the input
      @todo   Make it constant
-     @param[in] a value to duplicate
+     @param[in] todouble value to duplicate
 
      This method duplicates the input number.
   */
-  int oneMethod(int a);
+  int oneMethod(int todouble);
 
 private:
   int fCachedValue; ///<! ROOT transient member
