@@ -23,7 +23,7 @@ tbb::task* FeederTask::execute ()
 {
   WorkloadManager *wm = WorkloadManager::Instance();
   int tid = wm->Instance()->ThreadId();
-  printf("Feedertask created");
+  Geant::Print("","=== Feeder task %d  ===", tid);
   GeantPropagator *propagator = GeantPropagator::Instance();
   GeantTaskData *td = propagator->fThreadData[tid];
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
@@ -32,7 +32,11 @@ tbb::task* FeederTask::execute ()
   // Only one task at a time
   if (propagator->fFeederLock.test_and_set(std::memory_order_acquire)){
     *fNbaskets = -1;
-    return NULL;
+    // spawn transport task
+    tbb::task::set_ref_count(2);
+    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask();
+    //tbb::task::spawn(transportTask);
+    return & transportTask;
   }
   int nbaskets = 0;
   if (!propagator->fLastEvent) {
@@ -40,7 +44,10 @@ tbb::task* FeederTask::execute ()
     propagator->fLastEvent = propagator->fNevents;
     propagator->fFeederLock.clear(std::memory_order_release);
     *fNbaskets = nbaskets;
-    return NULL;
+    tbb::task::set_ref_count(2);
+    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask();
+    //tbb::task::spawn(transportTask);
+    return & transportTask;
   }
   // Check and mark finished events
   for (int islot = 0; islot < propagator->fNevents; islot++) {
@@ -65,10 +72,9 @@ tbb::task* FeederTask::execute ()
 
   propagator->fFeederLock.clear(std::memory_order_release);
   *fNbaskets = nbaskets;
-
   // spawn transport task
+  tbb::task::set_ref_count(2);
   TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask();
-  tbb:task::spawn(transportTask);
-
-  return NULL;
+  //tbb:task::spawn(transportTask);
+  return & transportTask;
 }

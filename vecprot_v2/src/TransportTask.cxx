@@ -48,6 +48,7 @@
 #include "tbb/task_scheduler_init.h"
 #endif
 
+
 using namespace Geant;
 
 TransportTask::TransportTask () { }
@@ -78,11 +79,7 @@ tbb::task* TransportTask::execute ()
   //      TString sslist;
   //   const int max_idle = 1;
   //   int indmin, indmax;
-  //std::atomic<int> counter(0);
-
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  WorkloadManager *wm = WorkloadManager::Instance();
-  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
+  static std::atomic<int> counter(0);
   int ntotnext, nbaskets;
   int ntotransport;
   int ncross = 0;
@@ -96,32 +93,60 @@ tbb::task* TransportTask::execute ()
   int nout = 0;
   int ngcoll = 0;
   GeantBasket *basket = 0;
-  int tid = wm->Instance()->ThreadId();
+  GeantPropagator *propagator = GeantPropagator::Instance();
+  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
+  WorkloadManager *wm = WorkloadManager::Instance();
+  //if (wm->IsStopped()){
+  //  tbb::task::cancel_group_execution();
+  //  return NULL;
+  //}
+  int tid = wm->ThreadId();
+  Geant::Print("","=== Worker thread %d created ===", tid);
+  if(tid>=propagator->fNthreads){
+    Error("TransportTask", "Task was put in a non-working thread ");
+    return NULL;
+  }
+  Geant::GeantTaskData *td = propagator->fThreadData[tid];
+  td->fTid = tid;
   int nworkers = propagator->fNthreads;
+
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   GeantScheduler *sch = wm->GetScheduler();
   int *nvect = sch->GetNvect();
-
-  Geant::Print("","=== Transport task %d created ===", tid);
-
-  GeantTaskData *td = propagator->fThreadData[tid];
   GeantBasketMgr *prioritizer = threadData->fPrioritizers[tid];
-  TThreadMergingFile* file = threadData->fFiles[tid];
-  TTree *tree = threadData->fTrees[tid];
-  GeantBlock<MyHit>* data = threadData->fData[tid];
-  GeantFactory<MyHit> *myhitFactory = threadData->fMyhitFactories[tid];
-
+  td->fBmgr = prioritizer;
+  prioritizer->SetThreshold(propagator->fNperBasket);
+  prioritizer->SetFeederQueue(feederQ);
 
   // IO handling
+
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
 
+  GeantFactory<MyHit> *myhitFactory = threadData->fMyhitFactories[tid];
+
+  TThread t;
+  TThreadMergingFile* file = threadData->fFiles[tid];
+  TTree *tree = threadData->fTrees[tid];
+  GeantBlock<MyHit>* data = threadData->fData[tid];
+
+  /*
+  if (concurrentWrite)
+    {
+      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
+      tree = new TTree("Tree","Simulation output");
+
+      tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
+
+      // set factory to use thread-local queues
+      myhitFactory->queue_per_thread = true;
+    }*/
 
   // Start the feeder
-  propagator->Feeder(td);
+  //propagator->Feeder(td);
   /*int returning;
-  FeederTask & feederTask = *new(tbb::task::allocate_child()) FeederTask(td, &returning);
-  tbb::task::spawn_and_wait(feederTask);*/
+  FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(td, &returning);
+  tbb::task::spawn_root_and_wait(feederTask); */
 
   Material_t *mat = 0;
   int *waiting = wm->GetWaiting();
@@ -144,14 +169,12 @@ tbb::task* TransportTask::execute ()
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
     // Call the feeder if in priority mode
-
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
     if (feedres == WorkloadManager::FeederResult::kFeederWork) {
        ngcoll = 0;
     } else if (feedres == WorkloadManager::FeederResult::kStopProcessing) {
        break;
     }
-
 
     // Collect info about the queue
     waiting[tid] = 1;
@@ -162,7 +185,7 @@ tbb::task* TransportTask::execute ()
     // Fire garbage collection if starving
     if ((nbaskets < 1) && (!propagator->IsFeeding())) {
       sch->GarbageCollect(td);
-      ngcoll++;
+     ngcoll++;
     }
     // Too many garbage collections - enter priority mode
     if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
@@ -176,8 +199,6 @@ tbb::task* TransportTask::execute ()
              (!prioritizer->HasTracks()))
         ;
     }
-
-
     // Check if the current basket is reused or we need a new one
     if (!basket) {
       // If prioritizer has work, just do it
@@ -195,7 +216,7 @@ tbb::task* TransportTask::execute ()
     // Start transporting the basket
     waiting[tid] = 0;
     MaybeCleanupBaskets(td,basket);
-    //++counter;
+    ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
     GeantTrack_v &input = basket->GetInputTracks();
@@ -391,7 +412,7 @@ tbb::task* TransportTask::execute ()
     }
     // Update boundary crossing counter
     td->fNcross += ncross;
-  } // while(1)
+  }
 
   // WP
   if (concurrentWrite) {

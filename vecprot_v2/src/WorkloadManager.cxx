@@ -47,6 +47,7 @@
 
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
+#include "tbb/task.h"
 #endif
 
 using namespace Geant;
@@ -198,14 +199,17 @@ void WorkloadManager::StartThreads() {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
   }
 
-  tbb::task_scheduler_init init( fNthreads );
+  //tbb::task_scheduler_init init( fNthreads );
 
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
   // spawn transport tasks
+  //cont.set_ref_count(fNthreads);
   for (int i = 0; i < fNthreads; i++)
     tlist.push_back(*new (cont.allocate_child()) InitialTask());
 
-  tbb::task::spawn(tlist);
+  cont.spawn(tlist);
+
+  Geant::Print("","=== End ===", 0);
 
 }
 

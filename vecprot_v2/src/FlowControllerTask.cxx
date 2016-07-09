@@ -109,9 +109,13 @@ tbb::task* FlowControllerTask::execute ()
       Geant::Print("","=== creating feeder task %d  ===", tid);
       // spawn feederQ
       //bool didFeeder = propagator.Feeder(&td);
+
       int didFeeder;
+      tbb::task::set_ref_count(2);
       FeederTask & feederTask = *new(tbb::task::allocate_child()) FeederTask(&didFeeder);
-      tbb::task::spawn(feederTask);
+      //tbb::task::spawn(feederTask);
+      //TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask();
+      return & feederTask;
     }
 
   //}

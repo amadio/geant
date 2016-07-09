@@ -230,6 +230,7 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
 //______________________________________________________________________________
 int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *thread_data) {
 // Import tracks from "somewhere". Here we just generate nevents.
+
 #ifdef USE_VECGEOM_NAVIGATOR
   using vecgeom::SimpleNavigator;
   using vecgeom::Vector3D;
@@ -244,6 +245,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
   GeantTaskData *td = thread_data;
   if (td == 0) {
     int tid = WorkloadManager::Instance()->ThreadId();
+    Geant::Print("","=== Importing tracks %d  ===", tid);
     td = fThreadData[tid];
     td->fTid = tid;
   }
@@ -313,7 +315,8 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
   }
 
   VolumePath_t::ReleaseInstance(startpath);
-  Geant::Print("ImportTracks", "Imported %d tracks from events %d to %d. Dispatched %d baskets.", ntotal, startevent,
+  int tid = WorkloadManager::Instance()->ThreadId();
+  Geant::Print("ImportTracks", "[%d] Imported %d tracks from events %d to %d. Dispatched %d baskets.", tid, ntotal, startevent,
                startevent + nevents - 1, ndispatched);
   return ndispatched;
 }
@@ -635,7 +638,9 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   //  condition_locker &sched_locker = fWMgr->GetSchLocker();
   //  sched_locker.StartOne();
   fWMgr->WaitWorkers();
+  Printf("=== Wait done    ====");
   fWMgr->JoinThreads();
+  Printf("=== Join done    ====");
   fTimer->Stop();
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_STOP_INSTRUMENTATION;

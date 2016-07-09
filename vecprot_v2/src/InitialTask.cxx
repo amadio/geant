@@ -26,34 +26,28 @@ tbb::task* InitialTask::execute ()
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
   td->fTid = tid;
 
-  GeantBasketMgr *prioritizer = threadData->fPrioritizers[tid];
-  prioritizer = new GeantBasketMgr(sch, 0, 0, true);
-  td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fNperBasket);
-  prioritizer->SetFeederQueue(wm->FeederQueue());
+  threadData->fPrioritizers[tid] = new GeantBasketMgr(sch, 0, 0, true);
+  td->fBmgr = threadData->fPrioritizers[tid];
+  threadData->fPrioritizers[tid]->SetThreshold(propagator->fNperBasket);
+  threadData->fPrioritizers[tid]->SetFeederQueue(wm->FeederQueue());
 
-  //TThread t;
-  TThreadMergingFile* file = threadData->fFiles[tid];
-  TTree *tree = threadData->fTrees[tid];
-  GeantBlock<MyHit>* data = threadData->fData[tid];
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
-  GeantFactory<MyHit> *myhitFactory = threadData->fMyhitFactories[tid];
-  myhitFactory = factoryStore->GetFactory<MyHit>(16);
+  threadData->fMyhitFactories[tid] = factoryStore->GetFactory<MyHit>(16);
 
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   if (concurrentWrite)
     {
-      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
-      tree = new TTree("Tree","Simulation output");
+      threadData->fFiles[tid] = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
+      threadData->fTrees[tid] = new TTree("Tree","Simulation output");
 
-      tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
+      threadData->fTrees[tid]->Branch("hitblockoutput", "GeantBlock<MyHit>", &threadData->fData[tid]);
 
       // set factory to use thread-local queues
-      myhitFactory->queue_per_thread = true;
+      threadData->fMyhitFactories[tid]->queue_per_thread = true;
     }
-
+  tbb::task::set_ref_count(2);
   FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask();
-  tbb::task::spawn(flowControllerTask);
-  return NULL;
+  //tbb::task::spawn(flowControllerTask);
+  return & flowControllerTask;
 }
