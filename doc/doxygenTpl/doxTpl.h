@@ -75,8 +75,8 @@ public:
 
   /**
      @brief  Duplicate input number.
-     @return The double of the input
      @todo   Make it constant
+     @return The double of the input
      @param[in] todouble value to duplicate
 
      This method duplicates the input number.
