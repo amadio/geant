@@ -27,6 +27,8 @@
   #include "TBits.h"
   #include "TError.h"
   #include "TSystem.h"
+#else
+  #include <strings.h>
 #endif
 
 
@@ -61,13 +63,18 @@ Smearer::Smearer() {
       TGeoVolume* aVolume = (TGeoVolume*) allVolumes->At( ivol );
       if ( aVolume ) idVol = aVolume->GetNumber();
     #endif
-    TString nameVolume;
+    #ifdef USE_ROOT
+      TString nameVolume;
+    #else
+      const char* nameVolume;
+    #endif
     if ( aVolume ) nameVolume = aVolume->GetName();
 
     int flagTracker = 0;
     int flagEcal = 0;
     int flagHcal = 0;
     int flagMuon = 0;
+    #ifdef USE_ROOT
     if ( nameVolume.Contains( "tracker", TString::kIgnoreCase ) ) {
       flagTracker = 1;
     } else if ( nameVolume.Contains( "ecal", TString::kIgnoreCase ) ) {
@@ -77,6 +84,17 @@ Smearer::Smearer() {
     } else if ( nameVolume.Contains( "muon", TString::kIgnoreCase ) ) {
       //flagMuon = 1;  // No muon parameterisation
     }
+    #else
+    if (strcasecmp(nameVolume, "tracker")>0 ) {
+      flagTracker = 1;
+    } else if (strcasecmp(nameVolume, "ecal")>0 ) {
+      flagEcal = 1;
+    } else if (strcasecmp(nameVolume, "hcal")>0 ) {
+      flagHcal = 1;
+    } else if (strcasecmp(nameVolume, "muon")>0 ) {
+    //flagMuon = 1;  // No muon parameterisation
+    }
+    #endif
     hasVolumeTrackerParameterisation[ idVol ] = flagTracker;
     hasVolumeEcalParameterisation[ idVol ] = flagEcal;
     hasVolumeHcalParameterisation[ idVol ] = flagHcal;
