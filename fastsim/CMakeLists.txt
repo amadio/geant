@@ -20,17 +20,23 @@ if(HepMC_FOUND)
 endif()
 
 include_directories(inc)
-
+if(USE_ROOT)
 ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-
+endif()
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
+if(USE_ROOT)
 add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
 
 target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
      ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+else()
+add_library(Fastsim SHARED ${sources})
 
+target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
+     ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+endif()
 set(FASTSIM_LINK_LIBS "-lFastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 
 add_dependencies(Fastsim Geantlib_v)

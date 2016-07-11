@@ -51,6 +51,7 @@
 
 #ifndef USE_ROOT
  typedef std::string TString;
+ typedef long int Long64_t;
 #else
 #include "TString.h"
 #endif

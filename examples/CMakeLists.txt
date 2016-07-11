@@ -22,15 +22,15 @@ set(headers
    inc/LHCbApplication.h 
    inc/FastSimApplication.h 
 )   
-
+if (USE_ROOT)
 ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-
+endif()
 #----------------------------------------------------------------------------
 #
 
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
-if (NOT MIC)
+if (NOT KNC)
 if (CUDA)
   CUDA_ADD_LIBRARY(GeantExamples
                  ${sources} G__Examples.cxx

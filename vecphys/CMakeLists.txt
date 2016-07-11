@@ -7,7 +7,7 @@ endif()
 
 option(VC_ACCELERATION "Internal vectorization using Vc." ON)
 
-option(MIC "Enable compilation for MIC." OFF)
+option(KNC "Enable compilation for KNC." OFF)
 
 option(GUBENCHMARK "Enable performance comparisons." OFF)
 
@@ -193,7 +193,7 @@ endif()
 # Backend configuration
 
 if (VC_ACCELERATION OR Vc)
-  if (MIC)
+  if (KNC)
     set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_MIC_LIBRARIES})
   else()
     set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})

@@ -231,6 +231,7 @@ TEFstate *TEFstate::GetElement(int z, int a) {
 #endif  
 }
 #else   
+#ifdef USE_ROOT
 TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
   //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
   int ecode = z * 10000 + a * 10;
@@ -239,7 +240,6 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
       return fElements[el];
 
 // Element not found in memory, getting it from file
-#ifdef USE_ROOT
   TFile *ff = gFile;
   if (f)
     ff = f;
@@ -260,11 +260,8 @@ TEFstate *TEFstate::GetElement(int z, int a, TFile *f) {
     //	 fElements[fNLdElems]->Resample();
     return fElements[fNLdElems++];
   }
-#else
-  log_fatal(std::cout, "Element z %d a %d not found\n", z, a);
-  exit(1);
-#endif
 }
+#endif
 #endif
 
 //___________________________________________________________________

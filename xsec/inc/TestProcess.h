@@ -55,8 +55,9 @@ class TestProcess : public PhysicsProcess {
     TestProcess( const TestProcess& );             // no imp.
     TestProcess& operator=( const TestProcess& );  // no imp.
 
-
+#ifdef USE_ROOT
     ClassDef( TestProcess, 1 )
+#endif
 };
 
 #endif

@@ -74,8 +74,9 @@ if(USE_VECGEOM_NAVIGATOR)
      inc/VectorNavInterface.h
    )
 endif()
-
+if (USE_ROOT)
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+endif()
 
 #----------------------------------------------------------------------------
 #
@@ -85,6 +86,7 @@ set(GEANTV_SOURCES ${sources} )
 
 #----------------------------------------------------------------------------
 # CUSTOMIZE COMPILATION IF VECGEOM IS USED
+if (NOT KNC)
 if (CUDA)
   # See vecprot_v2/cuda/CMakeLists.txt
   add_subdirectory (cuda)
@@ -175,24 +177,24 @@ endif()
 
 install(TARGETS CMSApp runApp DESTINATION bin)
 add_dependencies(runApp Geant_v Xsec GeantExamples)
-else()  # ---- MIC
+else()  # ---- KNC
   add_library(Geant_v SHARED ${sources})
 #target_link_libraries(Geant_v -lEG -lGeom)
 if(USE_VECGEOM_NAVIGATOR )
-  target_link_libraries(Geant_v ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 endif()
 add_custom_target(Geantlib_v DEPENDS Geant_v)
 install(TARGETS Geant_v DESTINATION lib)
 
 add_executable(CMSApp CMSApp.cc)
 
-target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples
+target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples -lVmagfield
         ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
 add_dependencies(CMSApp Geant_v Xsec GeantExamples)
 
 endif()
-if (NOT MIC)
+if (NOT KNC)
 install(TARGETS CMSApp runApp DESTINATION bin)
 else()
 install(TARGETS CMSApp DESTINATION bin)

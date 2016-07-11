@@ -123,8 +123,9 @@ class FastSimProcess : public PhysicsProcess {
     FastSimProcess& operator=( const FastSimProcess& );
 
     Smearer* fSmearer;  /** Pointer to the object that does the fast simulation */
-
+#ifdef USE_ROOT
     ClassDef( FastSimProcess, 1 )
+#endif
 };
 
 #endif

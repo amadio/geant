@@ -18,18 +18,24 @@ if(HepMC_FOUND)
 endif()
 
 include_directories(inc)
-
+if (USE_ROOT)
 ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-
+endif()
 #----------------------------------------------------------------------------
 # Add the library, and link it to the Geant4 libraries
 #
 
+if (USE_ROOT)
 add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
 target_link_libraries(Xsec Geant_v  
      ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+else()
+add_library(Xsec SHARED ${sources})
 
+target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
+     ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+endif()
 set(XSEC_LINK_LIBS "-lXsec" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 
 add_dependencies(Xsec Geantlib_v)
@@ -121,5 +127,7 @@ else()
   install(TARGETS Xsec DESTINATION lib)
 endif()
 
+if (NOT KNC)
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
+endif()

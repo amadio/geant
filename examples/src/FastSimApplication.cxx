@@ -1,19 +1,23 @@
+#ifdef USE_ROOT
 #include "FastSimApplication.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
   #include "management/GeoManager.h"
   using vecgeom::GeoManager;
 #endif
-
-#include "TGeoNode.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
+#ifdef USE_ROOT
+#include "TGeoNode.h"
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
+#else
+typedef std::string TString;
+#endif
 #include <cassert>
 
 using std::min;
@@ -26,6 +30,7 @@ FastSimApplication::FastSimApplication()
     fRatioEnergyInHcal( nullptr )
 {
   //std::cout << "APPLICATION : FastSimApplication::FastSimApplication" << std::endl;  // Debug
+  #ifdef USE_ROOT
   fRatioMomentumInTracker = new TH1F( "TrackerRatioP", "Momentum smeared in tracker", 100, 0.8, 1.2 );
   fRatioMomentumInTracker->GetXaxis()->SetTitle( "p_smeared/p_true" );
   fRatioMomentumInTracker->GetYaxis()->SetTitle( "Entries" );
@@ -35,6 +40,7 @@ FastSimApplication::FastSimApplication()
   fRatioEnergyInHcal = new TH1F( "HcalRatioE", "Energy smeared in HCAL", 100, 0.0, 2.0 );
   fRatioEnergyInHcal->GetXaxis()->SetTitle( "E_smeared/E_true" );
   fRatioEnergyInHcal->GetYaxis()->SetTitle( "Entries" );
+  #endif 
 }
 
 //______________________________________________________________________________
@@ -60,8 +66,10 @@ bool FastSimApplication::Initialize() {
       vecgeom::LogicalVolume* aVolume = vecgeomVolumes[ ivol ];
       if ( aVolume ) idVol = aVolume->id();
     #else
+    #ifdef USE_ROOT
       TGeoVolume* aVolume = (TGeoVolume*) allVolumes->At( ivol );
       if ( aVolume ) idVol = aVolume->GetNumber();
+    #endif
     #endif
     TString nameVolume;
     if ( aVolume ) nameVolume = aVolume->GetName();
@@ -134,10 +142,12 @@ void FastSimApplication::Digitize( int /* event */ ) {}
 //______________________________________________________________________________
 void FastSimApplication::FinishRun() {
   //std::cout << "APPLICATION : FastSimApplication::FinishRun" << std::endl;  // Debug
+  #ifdef  USE_ROOT
   TFile* rootFile = TFile::Open( "output.root", "RECREATE" );
   fRatioMomentumInTracker->Write();
   fRatioEnergyInEcal->Write();
   fRatioEnergyInHcal->Write();
   rootFile->Close();
+  #endif
 }
-
+#endif

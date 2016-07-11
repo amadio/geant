@@ -12,8 +12,9 @@
 
 #ifndef GEANT_OUTPUT
 #define GEANT_OUTPUT
-
+#ifdef USE_ROOT
 #include "Rtypes.h"
+#endif
 #include "globals.h"
 
 /** @brief GeantOutput class */

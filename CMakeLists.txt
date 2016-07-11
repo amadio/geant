@@ -174,7 +174,9 @@ endif()
 #----------------------------------------------------------------------------
 # Additional options
 
-option(MIC "Enable compilation for MIC." OFF)
+option(KNC "Enable compilation for KNC." OFF)
+
+option(KNL "Enable compilation for KNL." OFF)
 
 option(CUDA "Enable compilation for CUDA." OFF)
 
@@ -278,7 +280,16 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
-
+if (KNC)
+  if (USE_ROOT)
+    message (WARNING,"Root has to be disabled in order to compile for KNC, setting USE_ROOT=OFF")
+    set (USE_ROOT OFF)
+  endif()
+  if (WITH_GEANT4)
+    message (WARNING,"Disabling Geant4 in order to compile for KNC, setting WITH_GEANT4=OFF")
+    set (WITH_GEANT4 OFF)
+  endif()
+endif()
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )
     set(OUTDIR ${GEANT_OUTPUT_DIR})
@@ -491,9 +502,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
   # CMake fails to add -std option for icc, so add it manually
   if(CMAKE_CXX_STANDARD STREQUAL 11)
-    list(APPEND CMAKE_CXX_FLAGS -std=c++11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   elseif(CMAKE_CXX_STANDARD STREQUAL 14)
-    list(APPEND CMAKE_CXX_FLAGS -std=c++14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   else()
     message(FATAL_ERROR "Unsupported C++ standard requested")
   endif()
@@ -521,12 +532,12 @@ endif()
 
 # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 
-if (MIC)
-#if (Intel)
+if (KNC)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmic")
-#  else()
-#    message(FATAL_ERROR "MIC native or offload compilation requires Intel Compiler.")
-#  endif()
+  else()
+    message(FATAL_ERROR "KNC native or offload compilation requires Intel Compiler.")
+  endif()
 endif()
 
 
@@ -633,7 +644,7 @@ add_subdirectory (base)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
-if(WITH_GEANT4 AND NOT (MIC OR CUDA))
+if(WITH_GEANT4 AND NOT (CUDA))
 add_subdirectory (tabxsec)
 add_subdirectory (test-small)
 add_subdirectory (test-complex)
@@ -641,8 +652,9 @@ add_subdirectory (test-LHCb)
 add_subdirectory (cmstrack)
 endif()
 add_subdirectory (magneticfield)
+if (NOT KNC)
 add_subdirectory (fastsim)
-
+endif()
 if (ROOT_mathmore_FOUND) 
   add_subdirectory (Nudy)
 endif()

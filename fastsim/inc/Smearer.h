@@ -213,8 +213,9 @@ class Smearer {
     std::vector< int > hasVolumeHcalParameterisation;
     std::vector< int > hasVolumeMuonParameterisation;
     std::vector< int > hasVolumeParameterisation;
-
+#ifdef USE_ROOT
     ClassDefNV( Smearer, 1 )
+#endif
 };
 
 

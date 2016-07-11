@@ -26,6 +26,8 @@
 class TTree;
 class TFile;
 class TStopwatch;
+#else
+#include "base/Stopwatch.h"
 #endif
 class PhysicsProcess;
 class GeantEvent;

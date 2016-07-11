@@ -180,14 +180,14 @@ bool CheckAlign() {
 #endif
   const char *GetName() const { return fName; }
   const char *GetTitle() const { return fTitle; }
+  GEANT_CUDA_BOTH_CODE
+  static TEXsec *GetElement(int z, int a = 0);
 #ifndef GEANT_NVCC
 #ifdef USE_ROOT
   static TEXsec *GetElement(int z, int a = 0, TFile *f = 0);
 #endif
   static TEXsec **GetElements() { return fElements; }
 #else
-  GEANT_CUDA_BOTH_CODE
-  static TEXsec *GetElement(int z, int a = 0);
 #ifdef GEANT_DEVICE_BUILD
   GEANT_CUDA_DEVICE_CODE TEXsec **GetElements() { return fElementsDev; }
 #else

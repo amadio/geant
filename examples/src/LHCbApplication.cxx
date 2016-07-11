@@ -1,3 +1,4 @@
+#ifdef USE_ROOT
 #include "LHCbApplication.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "management/GeoManager.h"
@@ -148,7 +149,6 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
   int mod;
   Volume_t const *vol;
 
-
   if (gPropagator->fFillTree) {
     for (int itr = 0; itr < npart; itr++) {
       vol = tracks.GetVolume(itr);
@@ -231,7 +231,7 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
 //______________________________________________________________________________
 void LHCbApplication::Digitize(int /* event */) {
   // User method to digitize a full event, which is at this stage fully transported
-  //   printf("======= Statistics for event %d:\n", event);
+  //   Printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit in ECAL [MeV/primary] ");
   Printf("================================================================================");
   double nprim = (double)gPropagator->fNprimaries;
@@ -348,3 +348,4 @@ void LHCbApplication::FinishRun() {
   // Close file
   f->Close();
 }
+#endif

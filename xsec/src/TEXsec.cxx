@@ -863,10 +863,10 @@ int TEXsec::SampleReac(int pindex, double en, double randn) const {
    return fPXsecP[pindex]->SampleReac(en, randn); }
 
 //___________________________________________________________________
-#ifdef GEANT_NVCC 
 GEANT_CUDA_BOTH_CODE
 TEXsec *TEXsec::GetElement(int z, int a) {
   int ecode = z * 10000 + a * 10;
+#ifdef GEANT_NVCC
 #ifdef GEANT_CUDA_DEVICE_BUILD 
   for (int el = 0; el < fNLdElemsDev; ++el)
     if (ecode == fElementsDev[el]->Ele())
@@ -878,15 +878,20 @@ TEXsec *TEXsec::GetElement(int z, int a) {
       return fElementsHost[el];
   return 0;
 #endif   
+#else
+  for (int el = 0; el < fNLdElems; ++el)
+    if (ecode == fElements[el]->Ele())
+      return fElements[el];
+  return 0;
+#endif   
 }
-#else   
+#ifdef USE_ROOT
 TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
   //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
   int ecode = z * 10000 + a * 10;
   for (int el = 0; el < fNLdElems; ++el)
     if (ecode == fElements[el]->Ele())
       return fElements[el];
-#ifdef USE_ROOT
   // Element not found in memory, getting it from file
   TFile *ff = gFile;
   if (f)
@@ -908,11 +913,6 @@ TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
     //            fElements[fNLdElems]->Resample();
     return fElements[fNLdElems++];
   }
-#else
-  // No element, we return 0
-  Geant::Printf("Element Z:%d A:%d\n", z, a);
-  return 0;
-#endif
 }
 #endif
 //___________________________________________________________________
