@@ -79,9 +79,6 @@ class FastSimApplication : public GeantVApplication {
 
     /** @brief User FinishRun function */
     virtual void FinishRun();
-#ifdef USE_ROOT
-    ClassDef( FastSimApplication, 1 )  // User application
-#endif
 };
 
 #endif
