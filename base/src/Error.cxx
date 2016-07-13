@@ -27,6 +27,5 @@ void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *msgfmt,
 
    va_end(args);
 }
-
 } // cxx
 } // Geant
