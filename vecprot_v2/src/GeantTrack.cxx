@@ -61,7 +61,7 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack(void *addr, int maxdepth)
-    : fEvent(-1), fEvslot(-1), fParticle(-1), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
+    : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
       fBoundary(false), fPending(false), fOwnPath(true), fPath(nullptr), fNextpath(nullptr) {
@@ -149,6 +149,7 @@ void GeantTrack::Clear(const char *) {
   fEvent = -1;
   fEvslot = -1;
   fParticle = -1;
+  fMother = 0;
   fPDG = 0;
   fGVcode = 0;
   fEindex = 0;
@@ -242,9 +243,9 @@ void GeantTrack::Print(const char *msg) const {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
 #ifdef USE_VECGEOM_NAVIGATOR
   Geant::Print(msg,
-      ": evt=%d slt=%d part=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
+      ": evt=%d slt=%d part=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
       "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n",
-      fEvent, fEvslot, fParticle, fPDG, fGVcode, fEindex, fBindex,
+      fEvent, fEvslot, fParticle, fMother, fPDG, fGVcode, fEindex, fBindex,
       fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
       fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
       fTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
@@ -259,10 +260,10 @@ void GeantTrack::Print(const char *msg) const {
   TString nextpath;
   fNextpath->GetPath(nextpath);
 
-  Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d "
+  Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d "
          "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
          "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n pth=%s npth=%s\n",
-         itr, fEvent, fEvslot, fParticle, fPDG, fGVcode, fEindex, fBindex,
+         itr, fEvent, fEvslot, fParticle, fMother, fPDG, fGVcode, fEindex, fBindex,
          fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
          fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
          fTime, fEdep, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary, path.Data(),

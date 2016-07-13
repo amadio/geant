@@ -1,4 +1,10 @@
 #----------------------------------------------------------------------------
+# Add this directory to Doxygen
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
+#----------------------------------------------------------------------------
 # Locate sources and headers for this project
 #----------------------------------------------------------------------------
 set(sources 
@@ -22,6 +28,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaAllocator.h
 # Set include directories
 #----------------------------------------------------------------------------
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+message(STATUS "Include directories: ${inc_dirs}")
 
 #----------------------------------------------------------------------------
 # Add traget library and dependencies

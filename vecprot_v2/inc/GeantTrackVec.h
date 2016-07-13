@@ -50,6 +50,7 @@ public:
   int *fEventV;            /** Event numbers */
   int *fEvslotV;           /** Event slots */
   int *fParticleV;         /** Indices of corresponding particles */
+  int *fMotherV;           /** Indices of mother particles */
   int *fPDGV;              /** Particle pdg codes */
   int *fGVcodeV;           /** GV internal codes */
   int *fEindexV;           /** Element indices */
