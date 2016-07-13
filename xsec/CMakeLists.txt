@@ -44,11 +44,14 @@ add_headers("${headers}")
 
 add_custom_target(xseclib DEPENDS Xsec)
 
-#add_executable(testserialRead testserialRead.cc)
+add_executable(testserialRead testserialRead.cc)
 
-#target_link_libraries(testserialRead -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec
-#        ${HEPMC_LIBRARIES} ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-#add_dependencies(testserialRead Geant_v Xsec)
+
+target_link_libraries(testserialRead -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lVmagfield
+    ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+
+
+add_dependencies(testserialRead Geant_v Xsec)
 
 if (CUDA)
 
@@ -128,7 +131,7 @@ else()
   install(TARGETS Xsec DESTINATION lib)
 endif()
 
-if(NOT USE_ROOT)
+if(USE_ROOT)
 
 install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
               ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
