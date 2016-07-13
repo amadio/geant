@@ -31,13 +31,18 @@ include_directories(${CMAKE_SOURCE_DIR}/xsec/inc)
 #----------------------------------------------------------------------------
 # Generate the root dictionary: this library will be used in run.C root macro.  
 #----------------------------------------------------------------------------
-ROOT_GENERATE_DICTIONARY(vphysprocDict ${headers} MODULE Vphysproc LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+if(USE_ROOT)
+  ROOT_GENERATE_DICTIONARY(vphysprocDict ${headers} MODULE Vphysproc LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 
-#----------------------------------------------------------------------------
-# Add traget library and dependencies
-#----------------------------------------------------------------------------
-add_library(Vphysproc SHARED ${sources} vphysprocDict.cxx)
-target_link_libraries(Vphysproc ${VC_LIBRARIES} Xsec Geant_v ${ROOT_LIBRARIES} EG Geom)
+  #----------------------------------------------------------------------------
+  # Add traget library and dependencies
+  #----------------------------------------------------------------------------
+  add_library(Vphysproc SHARED ${sources} vphysprocDict.cxx)
+  target_link_libraries(Vphysproc ${VC_LIBRARIES} Xsec Geant_v ${ROOT_LIBRARIES})
+else()
+  add_library(Vphysproc SHARED ${sources})
+  target_link_libraries(Vphysproc ${VC_LIBRARIES} Xsec Geant_v)
+endif()
 
 add_custom_target(VectPhysProc DEPENDS Vphysproc)
 
