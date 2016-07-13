@@ -863,6 +863,7 @@ int TEXsec::SampleReac(int pindex, double en, double randn) const {
    return fPXsecP[pindex]->SampleReac(en, randn); }
 
 //___________________________________________________________________
+#ifndef USE_ROOT
 GEANT_CUDA_BOTH_CODE
 TEXsec *TEXsec::GetElement(int z, int a) {
   int ecode = z * 10000 + a * 10;
@@ -885,6 +886,7 @@ TEXsec *TEXsec::GetElement(int z, int a) {
   return 0;
 #endif   
 }
+#endif
 #ifdef USE_ROOT
 TEXsec *TEXsec::GetElement(int z, int a, TFile *f) {
   //   printf("Getting Element %d %d %d\n",z,a,fNLdElems);
