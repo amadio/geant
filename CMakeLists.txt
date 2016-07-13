@@ -500,9 +500,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
   # CMake fails to add -std option for icc, so add it manually
   if(CMAKE_CXX_STANDARD STREQUAL 11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    add_compile_options(-std=c++11)
   elseif(CMAKE_CXX_STANDARD STREQUAL 14)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+    add_compile_options(-std=c++14)
   else()
     message(FATAL_ERROR "Unsupported C++ standard requested")
   endif()
