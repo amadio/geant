@@ -66,9 +66,9 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
       fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
       fBoundary(false), fPending(false), fOwnPath(true), fPath(nullptr), fNextpath(nullptr) {
   // In place private constructor
-  char *path_addr = (char*)addr + sizeof(GeantTrack);
+  char *path_addr = round_up_align((char*)addr + sizeof(GeantTrack));
   fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
-  path_addr += VolumePath_t::SizeOfInstance(maxdepth);
+  path_addr += round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
   fNextpath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
 }
 
@@ -176,6 +176,10 @@ void GeantTrack::Clear(const char *) {
   fIntLen = 0.;
   fBoundary = false;
   fPending = false;
+#ifdef USE_VECGEOM_NAVIGATOR
+  fPath->Clear();
+  fNextpath->Clear();
+#endif
 }
 
 //______________________________________________________________________________
@@ -270,8 +274,14 @@ void GeantTrack::Print(const char *msg) const {
 GEANT_CUDA_BOTH_CODE
 size_t GeantTrack::SizeOfInstance(size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack
-  // There is no need for alignment since this is the scalar version of the track.
-  return sizeof(GeantTrack) + 2*VolumePath_t::SizeOfInstance(maxdepth);
+  // The VecGeom navigation state requires alignment, so we need to account for the
+  // worst possible scenario:
+  //
+  // |--padding--|--padding--|--padding--|--padding--|--padding--| (adresses)
+  // |--*start----*empty_spc.*fPath-------*empty_spc.*fNextpath--  (obj. layout)
+  return ( sizeof(GeantTrack) + 
+           2 * VolumePath_t::SizeOfInstance(maxdepth) + 
+           2 * GEANT_ALIGN_PADDING );
 }
 
 //______________________________________________________________________________

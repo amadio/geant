@@ -100,7 +100,7 @@ GeantTrack_v *GeantTrack_v::MakeInstanceAt(void *addr, unsigned int nTracks, int
 //______________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
-    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(round_up_align(nTracks)), fHoles(0),
+    : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(GeantTrack::round_up_align(nTracks)), fHoles(0),
       fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0),
       fPDGV(0), fGVcodeV(0), fEindexV(0), fBindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0),
       fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0),
@@ -108,7 +108,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
       fPathV(0), fNextpathV(0) {
 
   // Constructor with maximum capacity.
-  fBuf = ((char *)addr) + round_up_align(sizeof(GeantTrack_v));
+  fBuf = ((char *)addr) + GeantTrack::round_up_align(sizeof(GeantTrack_v));
   fBufSize = BufferSize(nTracks, maxdepth);
   memset(fBuf, 0, fBufSize);
   AssignInBuffer(fBuf, nTracks);
@@ -252,7 +252,7 @@ void GeantTrack_v::AssignInBuffer(char *buff, int size) {
   buf += size * sizeof(VolumePath_t *);
 
   // Now the start of objects, we need to align the memory.
-  buf = round_up_align(buf);
+  buf = GeantTrack::round_up_align(buf);
   fVPstart = buf;
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
   // Allocate VolumePath_t objects in the reserved buffer space
@@ -261,13 +261,13 @@ void GeantTrack_v::AssignInBuffer(char *buff, int size) {
   buf += 2 * size * size_vpath;
 
   // Now the start of objects, we need to align the memory.
-  buf = round_up_align(buf);
+  buf = GeantTrack::round_up_align(buf);
   size_t size_bits = BitSet::SizeOfInstance(size);
   fHoles = BitSet::MakeInstanceAt(size, buf);
   buf += size_bits;
 
   // Now the start of objects, we need to align the memory.
-  buf = round_up_align(buf);
+  buf = GeantTrack::round_up_align(buf);
   fSelected = BitSet::MakeInstanceAt(size, buf);
 }
 
@@ -381,7 +381,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   buf += size * sizeof(VolumePath_t *);
 
   // Now the start of objects, we need to align the memory.
-  buf = round_up_align(buf);
+  buf = GeantTrack::round_up_align(buf);
   fVPstart = buf;
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
   // Allocate VolumePath_t objects in the reserved buffer space
@@ -402,7 +402,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   buf += 2 * size * size_vpath;
 
   // Now the start of objects, we need to align the memory.
-  buf = round_up_align(buf);
+  buf = GeantTrack::round_up_align(buf);
   size_t size_bits = BitSet::SizeOfInstance(size);
 //  BitSet *holes = BitSet::MakeCopyAt(*fHoles, buf, size);
   BitSet *holes = BitSet::MakeInstanceAt(size, buf);
@@ -411,7 +411,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
   buf += size_bits;
 
   // Now the start of objects, we need to align the memory.
-  buf = round_up_align(buf);
+  buf = GeantTrack::round_up_align(buf);
   BitSet *selected = BitSet::MakeInstanceAt(size, buf);
   BitSet::ReleaseInstance(fSelected);
   fSelected = selected;
@@ -463,16 +463,16 @@ GEANT_CUDA_BOTH_CODE
 size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack_v's data
 
-  size_t size = round_up_align(nTracks); // When called internally this ought to be a nop
+  size_t size = GeantTrack::round_up_align(nTracks); // When called internally this ought to be a nop
   size_t size_nav = 2 * size * VolumePath_t::SizeOfInstance(maxdepth);
   // NOTE: Most likely the 'real' problem here is that BitSet::SizeOfInstance return
   // a number that is as small as possible rather than a number that is usuable to
   // be able to make array of BitSet.
-  size_t size_bits = 2 * round_up_align(BitSet::SizeOfInstance(size));
+  size_t size_bits = 2 * GeantTrack::round_up_align(BitSet::SizeOfInstance(size));
 
   // Since we already round nTracks, we only need to round the last two
   // to have the proper space for object alignment
-  return size * sizeof(GeantTrack) + round_up_align(size_nav) + size_bits;
+  return size * sizeof(GeantTrack) + GeantTrack::round_up_align(size_nav) + size_bits;
 }
 
 //______________________________________________________________________________
@@ -480,13 +480,13 @@ GEANT_CUDA_BOTH_CODE
 size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack_v
 
-  return round_up_align(sizeof(GeantTrack_v))+BufferSize(nTracks,maxdepth);
+  return GeantTrack::round_up_align(sizeof(GeantTrack_v))+BufferSize(nTracks,maxdepth);
 }
 
 //______________________________________________________________________________
 void GeantTrack_v::Resize(int newsize) {
   // Resize the container.
-  int size = round_up_align(newsize);
+  int size = GeantTrack::round_up_align(newsize);
   if (size < GetNtracks()) {
     Geant::Error("Resize","Cannot resize to less than current track content");
     return;
@@ -2186,7 +2186,7 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
   //       == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
 
-  size_t bufferOffset = GeantTrack_v::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+  size_t bufferOffset = GeantTrack::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   long offset = ((const char *)dest.GetPtr() + bufferOffset) - (const char *)source->Buffer();
   for (int hostIdx = 0; hostIdx < source->GetNtracks(); ++hostIdx) {
     // Technically this offset is a 'guess' and depends on the
@@ -2224,7 +2224,7 @@ bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_
 }
 
 void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source) {
-  size_t bufferOffset = GeantTrack_v::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+  size_t bufferOffset = GeantTrack::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.
   // assert(vecgeom::cuda::NavigationState::SizeOfInstance(fMaxDepth)
   //        == vecgeom::cxx::NavigationState::SizeOfInstance(fMaxDepth) );
@@ -2241,7 +2241,7 @@ void FromDeviceConversion(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda:
 }
 
 bool FromDevice(cxx::GeantTrack_v *dest, vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> source, cudaStream_t stream) {
-  size_t bufferOffset = GeantTrack_v::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+  size_t bufferOffset = GeantTrack::round_up_align(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
   // fMaxtracks, fMaxDepth and fBufSize ought to be invariant.
   GEANT_CUDA_ERROR(cudaMemcpyAsync(dest,
                                    source.GetPtr(),

@@ -118,7 +118,7 @@ struct Workload {
   ~Workload() {
     numa_aligned_free(allocated_);
     for (size_t i = 0; i < nnodes_; ++i)
-      delete basketizers_[i];
+      numa_aligned_free(basketizers_[i]);
     delete[] basketizers_;
   }
 
@@ -126,8 +126,10 @@ struct Workload {
     // Create basketizers for each numa node. To be call by workers.
     using Basketizer = Geant::Basketizer<test_track>;
     Lock();
+    size_t basket_size = Basketizer::SizeofInstance(buf_size_);
     if (!basketizers_[node]) {
-      basketizers_[node] = new Basketizer(buf_size_, bsize_);
+      basketizers_[node] = Basketizer::MakeInstanceAt(numa_aligned_malloc(basket_size, node, 64), buf_size_, bsize_);
+//      basketizers_[node] = new Basketizer(buf_size_, bsize_);
       std::cout << "basketizer[" << node << "] allocated on NUMA node " << numa_node_addr(basketizers_[node])
                 << std::endl;
     }

@@ -558,6 +558,29 @@ public:
   GEANT_CUDA_BOTH_CODE
   static GeantTrack *MakeInstanceAt(void *addr, int maxdepth);
 
+  /**
+   * @brief Rounds up an address to the aligned value
+   * @param buf Buffer address to align
+   */
+  GEANT_CUDA_BOTH_CODE
+  static char *round_up_align(char *buf) {
+    long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
+    if (remainder == 0)
+      return buf;
+    return (buf + GEANT_ALIGN_PADDING - remainder);
+  }
+
+  /**
+   * @brief Rounds up a value to upper aligned version
+   * @param buf Buffer address to align
+   */
+  GEANT_CUDA_BOTH_CODE
+  static size_t round_up_align(size_t value) {
+    size_t remainder = ((size_t)value) % GEANT_ALIGN_PADDING;
+    if (remainder == 0)
+      return value;
+    return (value + GEANT_ALIGN_PADDING - remainder);
+  }
   //  ClassDefNV(GeantTrack, 1) // The track
 };
 

@@ -592,26 +592,6 @@ public:
    */
   bool CheckNavConsistency(int itr);
 
-  /**
-   * @brief Function round up align ?????
-   * @param num Number ?????
-   */
-  GEANT_CUDA_BOTH_CODE
-  static int round_up_align(int num) {
-    int remainder = num % GEANT_ALIGN_PADDING;
-    if (remainder == 0)
-      return num;
-    return (num + GEANT_ALIGN_PADDING - remainder);
-  }
-
-  GEANT_CUDA_BOTH_CODE
-  static char *round_up_align(char *buf) {
-    long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
-    if (remainder == 0)
-      return buf;
-    return (buf + GEANT_ALIGN_PADDING - remainder);
-  }
-
   //  ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
 };
 } // GEANT_IMPL_NAMESPACE

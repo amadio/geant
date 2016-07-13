@@ -49,7 +49,7 @@ template <typename T>
 GEANT_CUDA_DEVICE_CODE
 size_t soaSizeOfInstance(size_t nElements)
 {
-   return GeantTrack_v::round_up_align(sizeof(vecgeom::SOA3D<T>)+3*sizeof(T)*nElements);
+   return GeantTrack::round_up_align(sizeof(vecgeom::SOA3D<T>)+3*sizeof(T)*nElements);
 }
 
 //______________________________________________________________________________
@@ -65,26 +65,26 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 {
   // Constructor
   char *buffer = (char*)addr;
-  buffer += GeantTrack_v::round_up_align(sizeof(GeantTaskData));
+  buffer += GeantTrack::round_up_align(sizeof(GeantTaskData));
   const size_t nElements = 5; // See other constructor!
 
   vecgeom::Precision *x = (vecgeom::Precision*)(buffer + sizeof(vecgeom::Precision));
   vecgeom::Precision *y = x+(nElements*maxPerBasket);
   vecgeom::Precision *z = y+(nElements*maxPerBasket);
-  buffer = GeantTrack_v::round_up_align(buffer);
+  buffer = GeantTrack::round_up_align(buffer);
   fSOA3Dworkspace1 = new (buffer) vecgeom::SOA3D<vecgeom::Precision>(x,y,z,nElements*maxPerBasket);
   buffer += soaSizeOfInstance<vecgeom::Precision>(nElements*maxPerBasket);
 
   x = (vecgeom::Precision*)(buffer + sizeof(vecgeom::Precision));
   y = x+(nElements*maxPerBasket);
   z = y+(nElements*maxPerBasket);
-  buffer = GeantTrack_v::round_up_align(buffer);
+  buffer = GeantTrack::round_up_align(buffer);
   fSOA3Dworkspace2 = new (buffer) vecgeom::SOA3D<vecgeom::Precision>(x,y,z,nElements*maxPerBasket);
   buffer += soaSizeOfInstance<vecgeom::Precision>(nElements*maxPerBasket);
 
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
-  buffer = GeantTrack_v::round_up_align(buffer);
+  buffer = GeantTrack::round_up_align(buffer);
 
   // Previous, the size was hard coded to 1024, '4' is a guess on the max number
   // of produced particles ...
@@ -147,11 +147,11 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
    const size_t soaSize = soaSizeOfInstance<vecgeom::Precision>(bufSize*maxPerBasket);
 
    size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<Geant::cuda::GeantTaskData>::SizeOf()
-      + GeantTrack_v::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
-      + GeantTrack_v::round_up_align(VolumePath_t::SizeOfInstance(maxDepth))
+      + GeantTrack::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
+      + GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(maxDepth))
       + 2*soaSize
       + GeantTrack_v::SizeOfInstance(4*maxPerBasket,maxDepth);
-   return GeantTrack_v::round_up_align(need);
+   return GeantTrack::round_up_align(need);
 }
 
 

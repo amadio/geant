@@ -56,6 +56,7 @@ public:
   GeantTrack &GetTrack() { 
     size_t index;
     GeantTrack &track = fBlockMgr.GetObject(index);
+    track.Clear();
     track.fBindex = index;
     return track;
   }

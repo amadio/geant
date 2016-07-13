@@ -15,6 +15,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaNode.h
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaPolicy.h
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaTopology.h
 ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaUtils.h
+${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaAllocator.h
 )
 
 #----------------------------------------------------------------------------

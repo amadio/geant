@@ -35,17 +35,9 @@ public:
   std::atomic<size_t> fNbook0;  // Booking base counter
   std::atomic<size_t> fNbooktot; // Counter for booked slots
   std::atomic<size_t> fNfilled; // Counter for filled slots
-  std::atomic_flag fLock;       // Lock for the basket counter
-  BasketCounter() : fBsize(0), fNbooktot(0), fNfilled(0), fLock() {
-    // Constructor
-    fLock.clear();
-  }
 
-  //____________________________________________________________________________
-  BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0), fLock() {
-    // Constructor
-    fLock.clear();
-  }
+  BasketCounter() : fBsize(0), fNbooktot(0), fNfilled(0) { }
+  BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0) { }
 
   //____________________________________________________________________________
   GEANT_INLINE
@@ -136,17 +128,6 @@ public:
   //____________________________________________________________________________
   GEANT_INLINE
   size_t Nfilled() const { return (fNfilled.load()); }
-
-  //____________________________________________________________________________
-  GEANT_INLINE
-  void Lock() {
-    while (fLock.test_and_set(std::memory_order_acquire))
-      ;
-  }
-
-  //____________________________________________________________________________
-  GEANT_INLINE
-  void Unlock() { fLock.clear(std::memory_order_release); }
 };
 
 template <typename T> class Basketizer {
@@ -167,10 +148,10 @@ public:
    * @param buffer_size Circular buffer size
    * @param basket_size Size of produced baskets
    */
-  Basketizer(size_t buffer_size, unsigned int basket_size)
+  Basketizer(size_t buffer_size, unsigned int basket_size, void *addr=0)
       : fBsize(0), fBmask(0), fLock(), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
     fLock.clear();
-    Init(buffer_size, basket_size);
+    Init(buffer_size, basket_size, addr);
   }
 
   /** @brief Basketizer destructor */
@@ -181,12 +162,17 @@ public:
 
   //____________________________________________________________________________
   /** @brief Initialize basketizer */
-  void Init(size_t buffer_size, unsigned int basket_size) {
+  void Init(size_t buffer_size, unsigned int basket_size, void *addr = 0) {
     // Make sure the requested size is a power of 2
     assert((basket_size >= 2) && ((basket_size & (basket_size - 1)) == 0));
     fBsize = basket_size;
-    fBuffer = new T *[buffer_size];
-    fCounters = new BasketCounter_t[buffer_size];
+    if (addr) {
+      fBuffer = reinterpret_cast<T**>((char*)addr + sizeof(Basketizer<T>));
+      fCounters = reinterpret_cast<BasketCounter_t*>((char*)addr + sizeof(Basketizer<T>) + buffer_size * sizeof(T*));
+    } else {
+      fBuffer = new T *[buffer_size];
+      fCounters = new BasketCounter_t[buffer_size];
+    }
     fBufferMask = buffer_size - 1;
     fBsize = basket_size;
     fBmask = ~(fBsize - 1);
@@ -325,6 +311,21 @@ public:
   /** @brief Unlock the container for GC */
   GEANT_INLINE
   void Unlock() { fLock.clear(std::memory_order_release); }
+
+  //____________________________________________________________________________
+  /** @brief Get size of a basketizer instance depending on the buffer size */
+  static
+  GEANT_INLINE
+  size_t SizeofInstance(size_t buffer_size) {
+    return (sizeof(Basketizer<T>) + buffer_size * (sizeof(T*) + sizeof(BasketCounter_t)));
+  }
+  
+  //____________________________________________________________________________
+  /** @brief Make basketizer instance at a given address */
+  static
+  Basketizer<T> *MakeInstanceAt(void *addr, size_t buffer_size, size_t basket_size) {
+    return new (addr) Basketizer<T>(buffer_size, basket_size);
+  }
 
 private:
   static const size_t cacheline_size = 64;
