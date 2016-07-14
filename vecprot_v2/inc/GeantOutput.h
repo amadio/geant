@@ -12,9 +12,6 @@
 
 #ifndef GEANT_OUTPUT
 #define GEANT_OUTPUT
-#ifdef USE_ROOT
-#include "Rtypes.h"
-#endif
 #include "globals.h"
 
 /** @brief GeantOutput class */
@@ -129,8 +126,6 @@ public:
    * @param track Track to be setted
    */
   void SetTrack(int ntrack, GeantTrack *track);
-#ifdef USE_ROOT
-  ClassDef(GeantOutput, 1) // The transport output per generation
-#endif
+
 };
 #endif

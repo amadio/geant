@@ -13,12 +13,6 @@
 #ifndef GEANT_MYHIT
 #define GEANT_MYHIT
 
-#ifdef USE_ROOT
-#ifndef ROOT_Rtypes
-#include "Rtypes.h"
-#endif
-#endif
-
 /**
  * @brief Class MyHit
  * 
@@ -75,8 +69,5 @@ public:
   /** @brief Function that add user hit */
   void AddHit();
 
-#ifdef USE_ROOT
-  ClassDefNV(MyHit, 1) // User hit
-#endif
 };
 #endif

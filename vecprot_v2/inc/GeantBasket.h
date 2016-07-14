@@ -14,7 +14,6 @@
 #define GEANT_BASKET
 
 #ifdef USE_ROOT
-#include "TObject.h"
 #include "TGeoExtension.h"
 #else
 #define MIC_BIT(n) (1ULL<<(n))

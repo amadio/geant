@@ -15,9 +15,6 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 #ifndef GEANT_NVCC
-#ifdef USE_ROOT
-#include "Rtypes.h"
-#endif
 #include <vector>
 #else 
 #include "base/Vector.h"
@@ -102,9 +99,6 @@ private:
   const TPDecay *fDecayTable;                             // pointer to the decay table
 #ifndef GEANT_NVCC
   std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
-#ifdef USE_ROOT
-  ClassDefNV(TMXsec, 1) // Material X-secs
-#endif
 #else
   Vector<vecgeom::pair<float, double>> **fInvRangeTable; // [fNCharge]
 

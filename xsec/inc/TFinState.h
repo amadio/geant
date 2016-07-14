@@ -22,11 +22,6 @@
 
 #include "TPartIndex.h"
 #include "Geant/Error.h"
-#ifndef GEANT_NVCC
-#ifdef USE_ROOT
-#include "Rtypes.h"
-#endif
-#endif
 
 class TFinState {
 public: 
@@ -110,11 +105,6 @@ private:
 
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
-#endif
-#ifndef GEANT_NVCC
-#ifdef USE_ROOT
-  ClassDefNV(TFinState, 2) // Particle Final States
-#endif
 #endif
 
 private:

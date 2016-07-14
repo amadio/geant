@@ -237,7 +237,6 @@ private:
    */
   GeantTaskData &operator=(const GeantTaskData &);
 
-  // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

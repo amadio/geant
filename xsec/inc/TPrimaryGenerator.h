@@ -4,11 +4,6 @@
 #include "TPartIndex.h"
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
-#ifndef GEANT_NVCC
-#ifdef USE_ROOT
-#include "Rtypes.h"
-#endif
-#endif
 
 class TPrimaryGenerator {
 private:
@@ -68,9 +63,6 @@ private:
   TPrimaryGenerator(const TPrimaryGenerator &);            // no imp.
   TPrimaryGenerator &operator=(const TPrimaryGenerator &); // no imp.
 
-#ifdef USE_ROOT
-  ClassDefNV(TPrimaryGenerator, 1)
-#endif
 };
 
 #endif

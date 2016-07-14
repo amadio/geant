@@ -127,8 +127,5 @@ public:
 
   /** @brief User FinishRun function */
   virtual void FinishRun();
-#ifdef USE_ROOT
-  ClassDef(CMSApplication, 1) // User application
-#endif
 };
 #endif

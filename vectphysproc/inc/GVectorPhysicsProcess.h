@@ -53,8 +53,6 @@ private:
   GVectorPhysicsProcess(const GVectorPhysicsProcess &);            // no imp.
   GVectorPhysicsProcess &operator=(const GVectorPhysicsProcess &); // no imp.
 
-  // we need this while vecprot_v2/inc/PhysicsProcess is derived from TNamed
-  ClassDef(GVectorPhysicsProcess, 1)
 };
 
 #endif

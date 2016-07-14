@@ -1147,7 +1147,6 @@ public:
     return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
-  //  ClassDefNV(GeantTrack_v, 1) // SOA for GeantTrack class
 };
 } // GEANT_IMPL_NAMESPACE
 

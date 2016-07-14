@@ -61,9 +61,6 @@ private:
   TTabPhysProcess(const TTabPhysProcess &);            // no imp.
   TTabPhysProcess &operator=(const TTabPhysProcess &); // no imp.
 
-#ifdef USE_ROOT
-  ClassDef(TTabPhysProcess, 1); // Generic tabulated physics process
-#endif
 };
 
 #endif
