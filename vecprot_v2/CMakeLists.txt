@@ -93,7 +93,7 @@ if (NOT KNC)
   else()
     add_library(Geant_v SHARED ${sources} G__Geant.cxx)
     
-    target_link_libraries(Geant_v Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom )
+    target_link_libraries(Geant_v Vmagfield ${ROOT_LIBRARIES} )
     
     if( VECGEOM_FOUND )
       target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
@@ -133,9 +133,9 @@ if (NOT KNC)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       add_executable(${TARGET_NAME} ${EXECUTABLE})
       if(USE_VECGEOM_NAVIGATOR)
-	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lXsec -lGeant_v -lGeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+	target_link_libraries(${TARGET_NAME} Xsec Geant_v GeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
       else()
-	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  -lGeant_v -lXsec -lGeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
+	target_link_libraries(${TARGET_NAME} Geant_v Xsec GeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
       endif()
       add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples)
       set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
@@ -188,7 +188,7 @@ else()  # ---- KNC
   
   add_executable(CMSApp CMSApp.cc)
   
-  target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lGeantExamples -lVmagfield
+  target_link_libraries(CMSApp Geant_v Xsec GeantExamples Vmagfield
     ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
   
   add_dependencies(CMSApp Geant_v Xsec GeantExamples)
