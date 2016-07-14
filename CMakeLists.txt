@@ -29,6 +29,7 @@ ENDFOREACH(CACHE_VAR ${CACHE_VARS})
 # Record the full command line invocation.
 SET(CMAKE_INVOKE "${CMAKE_COMMAND} ${CMAKE_INVOKE_ARGS} ${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "Command used to invoke cmake" FORCE)
 # Create a simple shell script that allows us to reinvoke cmake with the captured command line.
+
 IF (NOT WIN32)
     if (NOT ${CMAKE_GENERATOR} STREQUAL "Unix Makefiles")
         set(RECMAKE_GENERATOR "-G ${CMAKE_GENERATOR}")
@@ -268,11 +269,11 @@ endif()
 if (KNC)
   if (USE_ROOT)
     message (WARNING,"Root has to be disabled in order to compile for KNC, setting USE_ROOT=OFF")
-    set (USE_ROOT OFF CACHE)
+    set (USE_ROOT OFF CACHE BOOL "Use ROOT" FORCE)
   endif()
   if (WITH_GEANT4)
     message (WARNING,"Disabling Geant4 in order to compile for KNC, setting WITH_GEANT4=OFF")
-    set (WITH_GEANT4 OFF CACHE)
+    set (WITH_GEANT4 OFF CACHE BOOL "Enable libraries and test using the Geant4 libraries" FORCE)
   endif()
 endif()
 
