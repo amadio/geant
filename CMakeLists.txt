@@ -190,6 +190,7 @@ set(CMAKE_MACOSX_RPATH ON)
 option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
 
 option(WITH_GEANT4 "Enable libraries and test using the Geant4 libraries" ON)
+option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
 #----------------------------------------------------------------------------
 # Use absolute RPATH when linking to avoid needing to export LD_LIBRARY_PATH
@@ -264,29 +265,31 @@ if(HepMC_FOUND)
   include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
 endif()
 
+if (KNC)
+  if (USE_ROOT)
+    message (WARNING,"Root has to be disabled in order to compile for KNC, setting USE_ROOT=OFF")
+    set (USE_ROOT OFF CACHE)
+  endif()
+  if (WITH_GEANT4)
+    message (WARNING,"Disabling Geant4 in order to compile for KNC, setting WITH_GEANT4=OFF")
+    set (WITH_GEANT4 OFF CACHE)
+  endif()
+endif()
+
+if(WITH_GEANT4)
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
 # to build a batch mode only executable
 #
 
-option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 if(WITH_GEANT4_UIVIS)
   find_package(Geant4 REQUIRED ui_all vis_all)
 else()
   find_package(Geant4 REQUIRED)
 endif()
-
-if (KNC)
-  if (USE_ROOT)
-    message (WARNING,"Root has to be disabled in order to compile for KNC, setting USE_ROOT=OFF")
-    set (USE_ROOT OFF)
-  endif()
-  if (WITH_GEANT4)
-    message (WARNING,"Disabling Geant4 in order to compile for KNC, setting WITH_GEANT4=OFF")
-    set (WITH_GEANT4 OFF)
-  endif()
 endif()
+
 
 #---Set pathes where to put the libraries, executables and headers------------------------------
 if( GEANT_OUTPUT_DIR )
