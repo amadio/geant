@@ -46,8 +46,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 #
 add_executable(testlhcb testLHCb.cc ${sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-target_link_libraries(testlhcb ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
-  Geant_v Xsec)
+target_link_libraries(testlhcb ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Geant_v Xsec)
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 
