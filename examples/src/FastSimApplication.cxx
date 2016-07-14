@@ -4,6 +4,8 @@
 #ifdef USE_VECGEOM_NAVIGATOR
   #include "management/GeoManager.h"
   using vecgeom::GeoManager;
+#else 
+#include "TGeoNode.h"
 #endif
 #include "GeantFactoryStore.h"
 #include "GeantTrack.h"
@@ -11,7 +13,6 @@
 #include "GeantTaskData.h"
 #include "globals.h"
 #ifdef USE_ROOT
-#include "TGeoNode.h"
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
