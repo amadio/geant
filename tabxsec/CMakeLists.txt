@@ -60,8 +60,7 @@ set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 # relies on these scripts being in the current working directory.
 #
 
-set(_macros 
-macros)
+set(_macros macros)
 
 set(TABXSEC_SCRIPTS
   ${_macros}/tabxsec.in
