@@ -2,6 +2,7 @@
 #ifdef USE_ROOT
 #include "TError.h"
 #endif
+#include <stdarg.h>
 
 namespace Geant {
 inline namespace cxx {
