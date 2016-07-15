@@ -78,8 +78,8 @@
    # set a vector instruction set
    -DVECPHYS_VECTOR=sse
 
-   # set the Vc lib for MIC (Xeon Phi)
-   -DBACKEND=Vc -DMIC=ON
+   # set the Vc lib for KNC (Xeon Phi)
+   -DBACKEND=Vc -DKNC=ON
 
 5. How to build and run the benchmaker (GUModelBenchmark) on Intel Xeon Phi
    
