@@ -190,7 +190,7 @@ bool CheckAlign() {
 
   
 #ifdef GEANT_NVCC
-#ifdef GEANT_DEVICE_BUILD
+#ifdef GEANT_CUDA_DEVICE_BUILD
   GEANT_CUDA_DEVICE_CODE TEXsec **GetElements() { return fElementsDev; }
 #else
   TEXsec **GetElements() { return fElementsHost; }
