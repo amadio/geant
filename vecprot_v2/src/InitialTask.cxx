@@ -1,9 +1,11 @@
 #include "InitialTask.h"
 #include "ThreadData.h"
 #include "FlowControllerTask.h"
+#include "TransportTask.h"
 
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
+#include "tbb/compat/thread"
 #endif
 
 using namespace Geant;
@@ -14,17 +16,18 @@ InitialTask::~InitialTask () { }
 
 tbb::task* InitialTask::execute ()
 {
-
   GeantPropagator *propagator = GeantPropagator::Instance();
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
-
   tbb::task_scheduler_init init( propagator->fNthreads );
+
   int tid = wm->Instance()->ThreadId();
-  Geant::Print("","=== Initial task %d created ===", tid);
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
+
+  Geant::Print("","=== Initial task %d (%d) created ===", tid, td->fTid);
   td->fTid = tid;
+
 
   threadData->fPrioritizers[tid] = new GeantBasketMgr(sch, 0, 0, true);
   td->fBmgr = threadData->fPrioritizers[tid];
@@ -47,7 +50,8 @@ tbb::task* InitialTask::execute ()
       threadData->fMyhitFactories[tid]->queue_per_thread = true;
     }
   tbb::task::set_ref_count(2);
-  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask();
-  //tbb::task::spawn(flowControllerTask);
+  tbb::empty_task& cont = *new(task::allocate_continuation()) tbb::empty_task();
+  cont.set_ref_count(1);
+  FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(true);
   return & flowControllerTask;
 }

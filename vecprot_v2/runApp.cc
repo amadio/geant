@@ -165,12 +165,12 @@ int main(int argc, char *argv[]) {
   wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
   propagator->fUseMonitoring = monitor;
   propagator->fNaverage = 500;   // Average number of tracks per event
-  
+
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
   propagator->fPriorityThr = 0.05;
 
-  // Initial vector size, this is no longer an important model parameter, 
+  // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow
   propagator->fNperBasket = 16;   // Initial vector size (tunable)
 
@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
     propagator->fUseDebug = true;
     propagator->fDebugTrk = 1;
   }
-// Activate standard scoring   
+// Activate standard scoring
   propagator->fUseStdScoring = true;
   if (performance) propagator->fUseStdScoring = false;
   // Monitor the application

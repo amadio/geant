@@ -3,6 +3,7 @@
 #include "TransportTask.h"
 #include "ThreadData.h"
 #include "WorkloadManager.h"
+#include "FlowControllerTask.h"
 #include "GeantPropagator.h"
 #include "GeantEvent.h"
 
@@ -51,7 +52,7 @@
 
 using namespace Geant;
 
-TransportTask::TransportTask () { }
+TransportTask::TransportTask (int nbaskets): fNbaskets(nbaskets) { }
 
 TransportTask::~TransportTask () { }
 
@@ -96,14 +97,8 @@ tbb::task* TransportTask::execute ()
   GeantPropagator *propagator = GeantPropagator::Instance();
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
   WorkloadManager *wm = WorkloadManager::Instance();
-  //if (wm->IsStopped()){
-  //  tbb::task::cancel_group_execution();
-  //  return NULL;
-  //}
   int tid = wm->ThreadId();
-  Geant::Print("","=== Worker thread %d created ===", tid);
   if(tid>=propagator->fNthreads){
-    Error("TransportTask", "Task was put in a non-working thread ");
     return NULL;
   }
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
@@ -130,23 +125,6 @@ tbb::task* TransportTask::execute ()
   TTree *tree = threadData->fTrees[tid];
   GeantBlock<MyHit>* data = threadData->fData[tid];
 
-  /*
-  if (concurrentWrite)
-    {
-      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
-      tree = new TTree("Tree","Simulation output");
-
-      tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
-
-      // set factory to use thread-local queues
-      myhitFactory->queue_per_thread = true;
-    }*/
-
-  // Start the feeder
-  //propagator->Feeder(td);
-  /*int returning;
-  FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(td, &returning);
-  tbb::task::spawn_root_and_wait(feederTask); */
 
   Material_t *mat = 0;
   int *waiting = wm->GetWaiting();
@@ -414,28 +392,8 @@ tbb::task* TransportTask::execute ()
     td->fNcross += ncross;
   }
 
-  // WP
-  if (concurrentWrite) {
-    file->Write();
-  }
+  tbb::task::set_ref_count(2);
+  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(false);
+  return & flowControllerTask;
 
-  wm->DoneQueue()->push(0);
-  delete prioritizer;
-  // Final reduction of counters
-  propagator->fNsteps += td->fNsteps;
-  propagator->fNsnext += td->fNsnext;
-  propagator->fNphys += td->fNphys;
-  propagator->fNmag += td->fNmag;
-  propagator->fNsmall += td->fNsmall;
-  propagator->fNcross += td->fNcross;
-
-  Geant::Print("","=== Thread %d: exiting ===", tid);
-
-  if (wm->IsStopped()) wm->MergingServer()->Finish();
-
-  if (concurrentWrite) {
-    delete file;
-  }
-
-  return NULL;
 }

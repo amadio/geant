@@ -6,9 +6,9 @@
 class FlowControllerTask : public tbb::task
 {
 private:
-
+  bool fStarting;
 public:
-  FlowControllerTask ();
+  FlowControllerTask (bool starting);
   ~FlowControllerTask ();
 
   tbb::task* execute ();

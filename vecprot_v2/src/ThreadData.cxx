@@ -12,6 +12,7 @@ ThreadData::ThreadData(int nthreads): fNthreads(nthreads){
   fData = new GeantBlock<MyHit> *[fNthreads];
   fPrioritizers = new GeantBasketMgr *[fNthreads];
   fMyhitFactories = new GeantFactory<MyHit> *[fNthreads];
+
   // instance
   fgInstance = this;
 }

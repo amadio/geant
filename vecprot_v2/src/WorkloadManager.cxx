@@ -203,7 +203,6 @@ void WorkloadManager::StartThreads() {
 
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
   // spawn transport tasks
-  //cont.set_ref_count(fNthreads);
   for (int i = 0; i < fNthreads; i++)
     tlist.push_back(*new (cont.allocate_child()) InitialTask());
 
@@ -285,10 +284,6 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
 
   if (!prioritizer.HasTracks() && (propagator.GetNpriority() || GetNworking() == 1)) {
     bool didFeeder = propagator.Feeder(&td);
-    /*int didFeeder;
-    tbb::empty_task & cont = *new(tbb::task::allocate_continuation()) tbb::empty_task();
-    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask(td, &didFeeder);
-    cont.spawn(feederTask);*/
 
     // Check exit condition
     if (propagator.TransportCompleted()) {
@@ -372,9 +367,7 @@ void *WorkloadManager::TransportTracks() {
    #endif
   // Start the feeder
   propagator->Feeder(td);
-  /*int returning;
-  FeederTask & feederTask = *new(tbb::task::allocate_root()) FeederTask(td, &returning);
-  tbb::task::spawn_root_and_wait(feederTask); */
+
 
   Material_t *mat = 0;
   int *waiting = wm->GetWaiting();

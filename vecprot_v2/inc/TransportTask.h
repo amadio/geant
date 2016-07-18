@@ -6,9 +6,10 @@
 class TransportTask : public tbb::task
 {
 private:
+  int fNbaskets;
 
 public:
-  TransportTask ();
+  TransportTask (int nbaskets);
   ~TransportTask ();
 
   tbb::task* execute ();

@@ -303,6 +303,12 @@ public:
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fNtotal); }
 
+  /** @brief Try to acquire the lock */
+  bool TryLock() { return (fFeederLock.test_and_set(std::memory_order_acquire)); }
+
+  /** @brief Release the lock */
+  void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
+
 private:
   /** @brief Copy constructor not implemented */
   GeantPropagator(const GeantPropagator &);
