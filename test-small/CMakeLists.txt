@@ -58,7 +58,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 target_link_libraries(exampleN03 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
-  ${XSEC_LINK_LIBS} Geant_v)
+  ${XSEC_LINK_LIBS} Geant_v NewPhysics)
 if(USE_VECGEOM_NAVIGATOR)
    target_link_libraries(exampleN03 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES})
 endif()

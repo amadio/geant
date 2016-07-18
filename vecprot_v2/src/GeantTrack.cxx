@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "Geant/Error.h"
 #include <execinfo.h>
+#include "GeantPropagator.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
