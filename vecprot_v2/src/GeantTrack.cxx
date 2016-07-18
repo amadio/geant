@@ -49,12 +49,7 @@
 #endif
 #include <cassert>
 
-#ifndef USE_ROOT
- typedef std::string TString;
- typedef long int Long64_t;
-#else
-#include "TString.h"
-#endif
+using std::string;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -343,8 +338,6 @@ void GeantTrack::SetNextPath(VolumePath_t const *const path) {
 
 //______________________________________________________________________________
 void GeantTrack::Print(const char *location) const {
-//  TString spath;
-  //   if (path) path->GetPath(spath);
   Geant::Print(location, "=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Dir:(%f,%f,%f) "
          "P:%g E:%g snext=%g safety=%g nintlen=%g intlen=%g nsteps=%d",
          fParticle, fEvent, fProcess, fPstep, fCharge, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, P(), fE, fSnext,
@@ -706,20 +699,20 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
 //______________________________________________________________________________
 bool GeantTrack_v::IsSame(const GeantTrack_v &tr1, int i1, const GeantTrack_v &tr2, int i2) {
   // Compare two tracks.
-  Long64_t chk1, chk2;
+  long int chk1, chk2;
   chk1 = tr1.fEventV[i1] + tr1.fEvslotV[i1] + tr1.fParticleV[i1] + tr1.fMotherV[i1] + tr1.fPDGV[i1] + tr1.fGVcodeV[i1] + tr1.fEindexV[i1] +
-         tr1.fChargeV[i1] + tr1.fProcessV[i1] + tr1.fVindexV[i1] + tr1.fNstepsV[i1] + (Long64_t)tr1.fSpeciesV[i1] +
-         (Long64_t)tr1.fStatusV[i1];
+         tr1.fChargeV[i1] + tr1.fProcessV[i1] + tr1.fVindexV[i1] + tr1.fNstepsV[i1] + (long int)tr1.fSpeciesV[i1] +
+         (long int)tr1.fStatusV[i1];
   chk2 = tr2.fEventV[i2] + tr2.fEvslotV[i2] + tr2.fParticleV[i2] + tr2.fMotherV[i2] + tr2.fPDGV[i2] + tr2.fGVcodeV[i2] + tr2.fEindexV[i2] +
-         tr2.fChargeV[i2] + tr2.fProcessV[i2] + tr2.fVindexV[i2] + tr2.fNstepsV[i2] + (Long64_t)tr2.fSpeciesV[i2] +
-         (Long64_t)tr2.fStatusV[i2];
+         tr2.fChargeV[i2] + tr2.fProcessV[i2] + tr2.fVindexV[i2] + tr2.fNstepsV[i2] + (long int)tr2.fSpeciesV[i2] +
+         (long int)tr2.fStatusV[i2];
   if (chk1 != chk2)
     return false;
   double dchk1, dchk2;
-  dchk1 = (Long64_t)tr1.fMassV[i1] + tr1.fXposV[i1] + tr1.fYposV[i1] + tr1.fZposV[i1] + tr1.fXdirV[i1] +
+  dchk1 = (long int)tr1.fMassV[i1] + tr1.fXposV[i1] + tr1.fYposV[i1] + tr1.fZposV[i1] + tr1.fXdirV[i1] +
           tr1.fYdirV[i1] + tr1.fZdirV[i1] + tr1.fPV[i1] + tr1.fEdepV[i1] + tr1.fEV[i1] + tr1.fPstepV[i1] +
           tr1.fStepV[i1] + tr1.fSnextV[i1] + tr1.fSafetyV[i1] + tr1.fNintLenV[i1] + tr1.fIntLenV[i1];
-  dchk2 = (Long64_t)tr2.fMassV[i2] + tr2.fXposV[i2] + tr2.fYposV[i2] + tr2.fZposV[i2] + tr2.fXdirV[i2] +
+  dchk2 = (long int)tr2.fMassV[i2] + tr2.fXposV[i2] + tr2.fYposV[i2] + tr2.fZposV[i2] + tr2.fXdirV[i2] +
           tr2.fYdirV[i2] + tr2.fZdirV[i2] + tr2.fPV[i2] + tr2.fEdepV[i2] + tr2.fEV[i2] + tr2.fPstepV[i2] +
           tr2.fStepV[i2] + tr2.fSnextV[i2] + tr2.fSafetyV[i2] + tr2.fNintLenV[i2]+ tr2.fIntLenV[i2];
   if (!Math::AreEqualAbs(dchk1, dchk2, 1.E-10))
@@ -1743,9 +1736,9 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
   fNextpathV[itr]->Print();
 #endif
 #else
-  TString path;
+  string path;
   fPathV[itr]->GetPath(path);
-  TString nextpath;
+  string nextpath;
   fNextpathV[itr]->GetPath(nextpath);
 
   Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d eind=%d chg=%d proc=%d vid=%d nstp=%d "

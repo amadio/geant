@@ -36,7 +36,7 @@ TTabPhysProcess::TTabPhysProcess(const char *name, const char *fxsec, const char
 //______________________________________________________________________________
 void TTabPhysProcess::Initialize() {
   // Initialize physics.
-  fMgr = TTabPhysMgr::Instance(fXsecFileName, fFinalSFileName);
+   fMgr = TTabPhysMgr::Instance(fXsecFileName.c_str(), fFinalSFileName.c_str());
 }
 
 //______________________________________________________________________________

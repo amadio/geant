@@ -28,6 +28,7 @@
 #endif
 using vecgeom::kAvogadro;
 using std::numeric_limits;
+using std::string;
 
 #ifndef GEANT_NVCC
 
@@ -291,7 +292,7 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
 {
   // Draw cross sections and other physics quantities for this material
   //
-  TString help("Method to draw the cross sections. The format is:\n");
+  string help("Method to draw the cross sections. The format is:\n");
   help += "particle,reaction|reaction|reaction,emin,emax,nbin:<options for draw>\n";
   help += "Available reactions are:\n";
   help += "Total,Transport,MultScatt,Ionisation,Decay,inElastic,Elastic,Capture,Brehms\n";
@@ -319,7 +320,7 @@ void TEXsec::Draw(const char *option) // mode=0->terminal, mode=1->viewer
   TObjArray *token = sec1.Tokenize(",");
   int narg = token->GetEntries();
   if (narg < 2) {
-    Info("Draw", "%s", help.Data());
+    Info("Draw", "%s", help.c_str());
     return;
   }
   const char *part = ((TObjString *)token->At(0))->GetName();
@@ -579,9 +580,9 @@ void TEXsec::Viewer() {
     fSecond->AddFrame(fCanvas, new TGLayoutHints(kLHintsRight | kLHintsExpandY | kLHintsExpandX, 0, 0, 1, 1));
     fMain->AddFrame(fSecond, new TGLayoutHints(kLHintsExpandY | kLHintsExpandX, 0, 0, 1, 1));
 
-    TString name = "ROOT XSec Viewer - ";
+    string name = "ROOT XSec Viewer - ";
     name += GetTitle();
-    fMain->SetWindowName(name);
+    fMain->SetWindowName(name.c_str());
     fMain->MapSubwindows();
     fMain->MapWindow();
     fMain->Layout();

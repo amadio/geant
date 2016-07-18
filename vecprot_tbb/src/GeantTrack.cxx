@@ -132,7 +132,7 @@ void GeantTrack::Direction(double dir[3]) {
 
 //______________________________________________________________________________
 void GeantTrack::Print(int) const {
-  TString spath;
+   std::string spath;
   //   if (path) path->GetPath(spath);
   Printf("=== Track %d (ev=%d): Process=%d, pstep=%g Charge=%d  Position:(%f,%f,%f) Mom:(%f,%f,%f) P:%g E:%g snext=%g "
          "safety=%g nsteps=%d",

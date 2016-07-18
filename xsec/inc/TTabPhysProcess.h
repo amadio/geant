@@ -15,18 +15,14 @@
 
 #include "GeantFwd.h"
 class TTabPhysMgr;
+using std::string;
 
-#ifndef USE_ROOT
-typedef const char* TString;
-#else
-#include "TString.h"
-#endif 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess {
 private:
   TTabPhysMgr *fMgr;       //! Tabulated physics manager
-  TString fXsecFileName;   // Name of Xsec file
-  TString fFinalSFileName; // Name of final states file
+  string fXsecFileName;   // Name of Xsec file
+  string fFinalSFileName; // Name of final states file
 public:
   TTabPhysProcess();
   TTabPhysProcess(const char *name, const char *fxsec, const char *ffstate);
