@@ -1,3 +1,15 @@
+function(PREPEND var prefix)
+   set(listVar "")
+   foreach(f ${ARGN})
+      if (${f} MATCHES "^/")
+         list(APPEND listVar "${f}")
+      else()
+         list(APPEND listVar "${prefix}/${f}")
+      endif()
+   endforeach(f)
+   set(${var} "${listVar}" PARENT_SCOPE)
+endfunction(PREPEND)
+
 # Adding this directory to Doxygen
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
@@ -29,6 +41,12 @@ endif()
 INCLUDE_DIRECTORIES(${CUDA_INCDIR} ${CMAKE_SOURCE_DIR}/xsec/inc ${CMAKE_SOURCE_DIR}/magneticfield/inc )
 
 set(dict_headers ${CUDA_INCDIR}/CoprocessorBroker.h)
+
+
+
+prepend(GEANTV_SOURCES .. ${GEANTV_SOURCES})
+prepend(GEANTV_HEADERS .. ${GEANTV_HEADERS})
+
 
 set(cuda_cxx_sources
     ${CUDA_SRCDIR}/GeantCudaUtils.cxx
