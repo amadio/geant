@@ -52,58 +52,58 @@ public:
   ~LocalityManager();
   
   /** @brief Setter for the number of locality nodes.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetNnodes(int nnodes) { fNnodes = nnodes; }
 
   /** @brief Getter for the number of locality nodes.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   int GetNnodes() const { return fNnodes; }
 
   /** @brief Setter for the locality policy.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetPolicy(NumaPolicy::EPolicyType policy) { fPolicy.SetPolicy(policy); }
 
   /** @brief Getter for the locality policy.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   NumaPolicy &GetPolicy() const { return (NumaPolicy&)fPolicy; }
   
   /** @brief Setter for the number of blocks to allocate.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetNblocks(size_t nblocks) { fNblocks = nblocks; }
 
   /** @brief Getter for the number of blocks to allocate.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   int GetNblocks() const { return fNblocks; }
   
   /** @brief Setter for the block size.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetBlockSize(size_t size) { fBlockSize = size; }
 
   /** @brief Getter for the block size.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   int GetBlockSize() const { return fBlockSize; }
 
   /** @brief Setter for the maximum geometry depth.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetMaxDepth(int maxdepth) { fMaxdepth = maxdepth; }
 
   /** @brief Getter for the maximum geometry depth.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   int GetMaxDepth() const { return fMaxdepth; }
   
   /** @brief Initialize locality manager and allocate data.*/
   void Init();
   
   /** @brief Getter for the initialization flag.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool IsInitialized() const { return fInitialized; }
 
   /** @brief Getter for track managers per locality node.*/
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   TrackManager &GetTrackManager(int inode) const { return *fTrackMgr[inode]; }
       
   /** @brief Service to recycle tracks */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool ReleaseTrack(GeantTrack const &track) {
     int node = fTrackMgr[0]->GetNode(track);
     return ( fTrackMgr[node]->ReleaseTrack(track) );

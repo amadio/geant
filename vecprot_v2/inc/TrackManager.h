@@ -52,7 +52,7 @@ public:
   ~TrackManager() {}
   
   /** @brief Returns a reference of a track from the container */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   GeantTrack &GetTrack() { 
     size_t index;
     GeantTrack &track = fBlockMgr.GetObject(index);
@@ -62,7 +62,7 @@ public:
   }
   
   /** @brief Service to get the NUMA block a track belongs to */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   static
   NumaTrackBlock_t *GetBlock(GeantTrack const &track, int maxdepth) {
     // The magic here is that tracks are allocated contiguous in blocks and the
@@ -74,13 +74,13 @@ public:
   }
 
   /** @brief Service to get the NUMA node corresponding to a track */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   int GetNode(GeantTrack const &track) {
     return ( TrackManager::GetBlock(track, fMaxdepth)->GetNode() );
   }
 
   /** @brief Release a track from its block */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool ReleaseTrack(GeantTrack const &track) {
     NumaTrackBlock_t *block = GetBlock(track, fMaxdepth);
 //    std::cout << " ... releasing track " << &track << " from block " << block << std::endl;

@@ -81,7 +81,7 @@ namespace TransportManager {
    * @param ntracks Number of tracks
    */  
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   TransportAction_t PostponedAction(int ntracks) {
     // Check the action to be taken according the current policy
     const int kMinVecSize = 4; // this should be retrieved from elsewhere
@@ -100,7 +100,7 @@ namespace TransportManager {
    * @param output Receiver vector
    */  
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void MoveTrack(int itr, TrackVec_t &input, TrackVec_t &output) {
     auto it = input.begin() + itr;
     std::move(it, it+1, std::back_inserter(output));
@@ -114,7 +114,7 @@ namespace TransportManager {
    * @param vec Vector of input tracks
    */  
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void RotateTrack(int itr, TrackVec_t &vec) {    
     std::rotate(vec.begin()+itr, vec.begin()+itr+1, vec.end());
   }
@@ -191,7 +191,7 @@ namespace TransportManager {
 
   /** @brief Function that returns safe length */
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   double SafeLength(const GeantTrack &track, double Bz, double eps = 1.E-4) {
     // Returns the propagation length in field such that the propagated point is
     // shifted less than eps with respect to the linear propagation.

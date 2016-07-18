@@ -148,7 +148,7 @@ public:
 
   /** @brief Function that return beta value */
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   double Beta() const { return fP / fE; }
 
   /** @brief Function that return charge value */
@@ -157,7 +157,7 @@ public:
 
   /** @brief Function that return curvature. To be changed when handling properly field*/
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   double Curvature(double Bz) const {
     // Curvature
     constexpr double kB2C = -0.299792458e-3;

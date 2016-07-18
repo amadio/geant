@@ -40,15 +40,15 @@ public:
   BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0) { }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetBsize(size_t bsize) { fBsize = bsize; }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t Bsize() { return (fBsize); }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t BookSlot(size_t ibook) {
     while (ibook - Ibook() >= fBsize)
       ;
@@ -56,7 +56,7 @@ public:
   }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool BookSlots(size_t ibook, size_t expected, size_t nslots) {
      if (ibook - Ibook() >= fBsize)
        return false;
@@ -72,7 +72,7 @@ public:
   }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t FillSlot(size_t nbooktot, T *address, T const data) {
     // Block thread until booking range matches the current basket
     // This can create contention if the buffer is too small or the
@@ -85,13 +85,13 @@ public:
   }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t FillDummy(size_t nslots) {
     return (fNfilled.fetch_add(nslots) + nslots);
   }  
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void ReleaseBasket(size_t ibook) {
     fNfilled.store(0);
     fNbook0 += fBsize;
@@ -99,34 +99,34 @@ public:
   }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void SetIbook(size_t ibook) { fIbook.store(ibook); }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void Clear(size_t nclear) {
     fNfilled -= nclear;
     fNbook0 += nclear;
   }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t Ibook() const { return (fIbook.load()); }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t Nbooktot() const { return (fNbooktot.load()); }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t Nbook0() const { return (fNbook0.load()); }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t Nbooked() const { return (fNbooktot.load() - fNbook0.load()); }
 
   //____________________________________________________________________________
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t Nfilled() const { return (fNfilled.load()); }
 };
 
@@ -187,7 +187,7 @@ public:
 
   //____________________________________________________________________________
   /** @brief Add an element to the basketizer */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool AddElement(T *const data, std::vector<T *> &basket) {
     // Book atomically a slot for copying the element
     size_t ibook = fIbook.fetch_add(1);
@@ -213,7 +213,7 @@ public:
 
   //____________________________________________________________________________
   /** @brief Check baskets for remaining tracks */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void CheckBaskets() {
     size_t nbaskets = (fBufferMask+1)/fBsize;
     Lock();
@@ -233,7 +233,7 @@ public:
 
   //____________________________________________________________________________
   /** @brief Garbage collect data */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool GarbageCollect(std::vector<T *> &basket) {
     // Garbage collect all elements present in the container on the current basket
     // If this is not the last basket, drop garbage collection
@@ -276,7 +276,7 @@ public:
 
   //____________________________________________________________________________
   /** @brief Change dynamically basket size */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   bool SetBasketSize(unsigned int bsize, std::vector<T *> & /*basket*/) {
     int shift = 0;
     size_t basket_size;
@@ -296,12 +296,12 @@ public:
 
   //____________________________________________________________________________
   /** @brief GetNumber of pending baskets */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   short int GetNpending() const { return fNbaskets.load(); }
 
   //____________________________________________________________________________
   /** @brief Lock the container for GC */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void Lock() {
     while (fLock.test_and_set(std::memory_order_acquire))
       ;
@@ -309,13 +309,13 @@ public:
 
   //____________________________________________________________________________
   /** @brief Unlock the container for GC */
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void Unlock() { fLock.clear(std::memory_order_release); }
 
   //____________________________________________________________________________
   /** @brief Get size of a basketizer instance depending on the buffer size */
   static
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   size_t SizeofInstance(size_t buffer_size) {
     return (sizeof(Basketizer<T>) + buffer_size * (sizeof(T*) + sizeof(BasketCounter_t)));
   }

@@ -108,16 +108,16 @@ public:
   { return ( sizeof(NumaBlock_t) + nvalues * T::SizeOfInstance(maxdepth) ); }
   
 public:
-  GEANT_INLINE T *GetValues() { return &fArray[0]; }
-  GEANT_INLINE const T *GetValues() const { return &fArray[0]; }
+  GEANT_FORCE_INLINE T *GetValues() { return &fArray[0]; }
+  GEANT_FORCE_INLINE const T *GetValues() const { return &fArray[0]; }
 
-  GEANT_INLINE T &operator[](size_t index) {
+  GEANT_FORCE_INLINE T &operator[](size_t index) {
     if (!D) return GetValues()[index];
     auto el_size = T::SizeOfInstance(fMaxdepth);
     return *(T*)((char*)&fArray[0]+index*el_size);
   };
 
-  GEANT_INLINE const T &operator[](size_t index) const {
+  GEANT_FORCE_INLINE const T &operator[](size_t index) const {
     if (!D) return GetValues()[index];
     auto el_size = T::SizeOfInstance(fMaxdepth);
     return *(T*)((char*)&fArray[0]+index*el_size);
@@ -128,7 +128,7 @@ public:
   ~NumaBlock() = delete;
   
   /** @brief Get an object pointer from the container */
-  GEANT_INLINE T *GetObject(size_t &index) {
+  GEANT_FORCE_INLINE T *GetObject(size_t &index) {
     index = fCurrent.fetch_add(1);
     if (index >= fSize) return nullptr;
     fUsed++;
@@ -136,7 +136,7 @@ public:
   }
   
   /** @brief Release an object to the container */
-  GEANT_INLINE bool ReleaseObject() { 
+  GEANT_FORCE_INLINE bool ReleaseObject() { 
     if (fCurrent.load() < fSize) {
       fUsed--;
       return false;
@@ -146,16 +146,16 @@ public:
   }
 
   /** @brief Release an object to the container */
-  GEANT_INLINE void Clear() { fCurrent.store(0); fUsed.store(0);}
+  GEANT_FORCE_INLINE void Clear() { fCurrent.store(0); fUsed.store(0);}
 
    /** @brief Returns number of contained objects */
-  GEANT_INLINE size_t size() const { return fSize; }
+  GEANT_FORCE_INLINE size_t size() const { return fSize; }
 
    /** @brief Getter for NUMA node */
-  GEANT_INLINE int GetNode() { return fNode; }
+  GEANT_FORCE_INLINE int GetNode() { return fNode; }
  
   /** @brief Check if the block is still in use */
-  GEANT_INLINE bool IsDistributed() const { return (fCurrent.load() >= fSize); }
+  GEANT_FORCE_INLINE bool IsDistributed() const { return (fCurrent.load() >= fSize); }
 };
 
 } // Geant

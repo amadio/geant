@@ -132,7 +132,7 @@ public:
   /** @brief Recycle an object from a block 
       @param block Block from which the object is released
       @return Block may have been recycled */
-  GEANT_INLINE bool ReleaseObject(numa_block_ptr block) { 
+  GEANT_FORCE_INLINE bool ReleaseObject(numa_block_ptr block) { 
     if (block->ReleaseObject()) {
 //      std::cout << "Recycling block " << block << std::endl;
       block->Clear();

@@ -145,7 +145,7 @@ public:
    * @param import Flag for importing (by default False)
    */
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   int AddTrack(GeantTrack &track) {
     int itrack = fNtracks;
     if (itrack == fMaxtracks) {
@@ -185,7 +185,7 @@ public:
    * @param itr Track to update
   */
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void UpdateOriginalTrack(int itr) const {
     // Update the original track itr.
     GeantTrack &track = *fOriginalV[itr];
@@ -226,7 +226,7 @@ public:
 
   /** @brief Clear function */
   GEANT_CUDA_BOTH_CODE
-  GEANT_INLINE
+  GEANT_FORCE_INLINE
   void Clear() { fNtracks = 0; }
 
   /**

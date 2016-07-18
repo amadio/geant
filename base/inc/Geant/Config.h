@@ -9,13 +9,13 @@
 
 // Inlining
 #ifdef __INTEL_COMPILER
-  #define GEANT_INLINE inline
+  #define GEANT_FORCE_INLINE inline
 #else
   #if (defined(__GNUC__) || defined(__GNUG__)) && !defined(__clang__) && !defined(__NO_INLINE__) && !defined( GEANT_NOINLINE )
-    #define GEANT_INLINE inline __attribute__((always_inline))
+    #define GEANT_FORCE_INLINE inline __attribute__((always_inline))
   #else
   // Clang or forced inlining is disabled ( by falling back to compiler decision )
-    #define GEANT_INLINE inline
+    #define GEANT_FORCE_INLINE inline
   #endif
 #endif
 
