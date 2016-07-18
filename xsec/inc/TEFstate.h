@@ -134,7 +134,7 @@ GEANT_CUDA_BOTH_CODE
   GEANT_CUDA_BOTH_CODE
   static TEFstate *GetElement(int z, int a = 0);
 #ifdef GEANT_CUDA_DEVICE_BUILD
-  GEANT_CUDA_DEVICE_CODE TEXsec **GetElements() { return fEFElementsDev; }
+  GEANT_CUDA_DEVICE_CODE TEFstate **GetElements() { return fEFElementsDev; }
 #else
   TEFstate **GetElements() { return fEFElementsHost; }
 #endif
