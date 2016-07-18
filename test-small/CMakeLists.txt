@@ -24,6 +24,7 @@ include_directories(include
                     ${Geant4_INCLUDE_DIR}
                     ${ROOT_INCLUDE_DIR}
                     ${CMAKE_SOURCE_DIR}/xsec/inc 
+		    ${CMAKE_SOURCE_DIR}/physics/particle/inc
 )
 
 if(CMAKE_BUILD_TYPE MATCHES None)
