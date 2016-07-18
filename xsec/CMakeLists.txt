@@ -100,8 +100,11 @@ cuda_add_library(xseccuda
     OPTIONS ${CUDA_ARCH}
 )  
 
-cuda_add_library_depend(xseccuda ${VECGEOM_CUDA_STATIC_LIBRARY} )
-target_link_libraries(xseccuda ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
+  # Note: the repeat below is due the author of  cuda_add_library_depend
+  # not knowing how to automatically go from the target to the real
+  # file in add_custom_command
+cuda_add_library_depend(xseccuda ../lib/libNewPhysicsCuda_static.a ${VECGEOM_CUDA_STATIC_LIBRARY} )
+target_link_libraries(xseccuda NewPhysicsCuda ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
 
 cuda_add_library(xseccudatest
     testserialReadCuda.cu
@@ -112,7 +115,7 @@ cuda_add_library(xseccudatest
   # Note: the repeat below is due the author of  cuda_add_library_depend
   # not knowing how to automatically go from the target to the real
   # file in add_custom_command
-cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a ../lib/libGeant_v_static.a ${VECGEOM_CUDA_STATIC_LIBRARY})
+cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a ../lib/libNewPhysicsCuda_static.a ../lib/libGeant_v_static.a ${VECGEOM_CUDA_STATIC_LIBRARY})
 target_link_libraries(xseccudatest xseccuda Geant_v)
 
 add_executable(testserialReadCuda testserialReadCuda.cpp)

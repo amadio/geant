@@ -30,6 +30,36 @@ add_headers("${headers}")
 
 add_custom_target(physlib DEPENDS NewPhysics)
 
+if (CUDA)
+
+  foreach(SRC_FILE ${sources})
+    if (NOT "${SRC_FILE}" MATCHES "Dict.cxx$")
+      get_filename_component(SRC_FILENAME ${SRC_FILE} NAME_WE)
+
+      ADD_CUSTOM_COMMAND(
+          OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+          COMMAND ${CMAKE_COMMAND} -E copy ${SRC_FILE}
+              ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+          DEPENDS ${SRC_FILE}
+        )
+      set(
+          SRC_CUDA ${SRC_CUDA}
+         ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+      )
+    endif()
+  endforeach()
+
+  cuda_add_library(NewPhysicsCuda
+      ${SRC_CUDA}
+      SHARED
+      OPTIONS ${CUDA_ARCH}
+  )
+
+  cuda_add_library_depend(NewPhysicsCuda ${VECGEOM_CUDA_STATIC_LIBRARY} )
+  target_link_libraries(NewPhysicsCuda ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
+
+endif()
+
 if(APPLE) 
 # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
