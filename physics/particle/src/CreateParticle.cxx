@@ -13,11 +13,6 @@ using std::vector;
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifdef GEANT_NVCC
-template <typename Type>
-using vector = Vector<Type>;
-#endif
-
 //________________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 static void CreateParticle0000()
