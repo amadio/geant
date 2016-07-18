@@ -1,7 +1,7 @@
 #include "backend/cuda/Interface.h"
 #include "base/Map.h"
 #include "materials/Particle.h"
-using geant::Particle; 
+using vecgeom::Particle; 
 __global__
 void testNew(vecgeom::map<double,double>* devMap, double* key, int N) {
    for (int i=0; i < N; i++) {

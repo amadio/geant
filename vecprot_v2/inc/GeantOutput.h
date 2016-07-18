@@ -13,7 +13,6 @@
 #ifndef GEANT_OUTPUT
 #define GEANT_OUTPUT
 #include "globals.h"
-#include "GeantFwd.h"
 
 /** @brief GeantOutput class */
 class GeantOutput {

@@ -29,8 +29,6 @@ class TStopwatch;
 #else
 #include "base/Stopwatch.h"
 #endif
-#include "base/BitSet.h"
-using veccore::BitSet;
 class PhysicsProcess;
 class GeantEvent;
 class GeantBasket;

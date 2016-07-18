@@ -19,8 +19,7 @@ if(HepMC_FOUND)
   set(headers ${headers} ${_mcg_h})
 endif()
 
-include_directories(inc
-  ${CMAKE_SOURCE_DIR}/physics/particle/inc)
+include_directories(inc)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
@@ -29,16 +28,16 @@ if(USE_ROOT)
   ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
 
-  target_link_libraries(Fastsim Geant_v NewPhysics
+  target_link_libraries(Fastsim Geant_v  
     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 else()
   add_library(Fastsim SHARED ${sources})
-  target_link_libraries(Fastsim Geant_v NewPhysics
+  target_link_libraries(Fastsim Geant_v  
      ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 endif()
-set(FASTSIM_LINK_LIBS "Fastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
+set(FASTSIM_LINK_LIBS "-lFastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 
-add_dependencies(Fastsim Geantlib_v NewPhysics)
+add_dependencies(Fastsim Geantlib_v)
 
 add_headers("${headers}")
 

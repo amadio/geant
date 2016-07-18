@@ -4,8 +4,7 @@ if(DOXYGEN_FOUND)
 endif()
 
 link_libraries(vecphys)
-include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc
-  ${CMAKE_SOURCE_DIR}/physics/particle/inc)
+include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc)
 
 if (CUDA)
   link_libraries(vecphyscuda)

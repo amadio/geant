@@ -13,7 +13,7 @@
 #ifndef PROPAGATOR_GLOBALS
 #define PROPAGATOR_GLOBALS
 
-class GeantPropagator;
+#include "GeantPropagator.h"
 
 /** @brief Propagator class */
 extern GeantPropagator *gPropagator; /** Propagator class */

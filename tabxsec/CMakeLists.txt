@@ -10,7 +10,7 @@ endif()
 message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
 include(${Geant4_USE_FILE})
 
-include_directories(inc ${CMAKE_SOURCE_DIR}/physics/particle/inc)
+include_directories(inc inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -49,8 +49,8 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 add_executable(tabxsec tabxsec.cc ${sources} ${c_sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 target_link_libraries(tabxsec ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
-                              ${VECGEOM_LIBRARIES} ${XSEC_LINK_LIBS} Geant_v NewPhysics)
-add_dependencies(tabxsec xseclib NewPhysics)
+                              ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeant_v)
+add_dependencies(tabxsec xseclib)
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 

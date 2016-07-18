@@ -224,7 +224,6 @@ endif()
 include_directories(inc
                     inc/base
                     test/inc
-		    ${CMAKE_SOURCE_DIR}/physics/particle/inc
                     ${VECGEOM_INCLUDE_DIR}
 )
 
@@ -325,7 +324,7 @@ set_source_files_properties(${SRC_CPP} PROPERTIES COMPILE_FLAGS -std=c++11)
 # Build libraries
 
 add_library(vecphys ${SRC_CPP})
-target_link_libraries(vecphys ${VECPHYS_LIBRARIES} NewPhysics
+target_link_libraries(vecphys ${VECPHYS_LIBRARIES}
                       ${VECPHYS_LIBRARIES_EXTERNAL})
 set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphys)
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -346,7 +345,7 @@ if (CUDA)
     OPTIONS ${CUDA_ARCH}
     ${VECPHYS_NVCC_CONFIGS}
   )
-  target_link_libraries(vecphyscuda ${VECPHYS_LIBRARIES} NewPhysics
+  target_link_libraries(vecphyscuda ${VECPHYS_LIBRARIES}
                         ${VECPHYS_LIBRARIES_EXTERNAL})
   set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphyscuda)
 endif()

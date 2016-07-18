@@ -8,10 +8,10 @@ endif()
 #----------------------------------------------------------------------------
 # Locate sources and headers
 #
-file(GLOB sources management/src/*.cxx material/src/*.cxx particle/src/*.cxx)
-file(GLOB headers management/inc/*.h material/inc/*.h particle/inc/*.h)
+file(GLOB sources management/src/*.cxx material/src/*.cxx)
+file(GLOB headers management/inc/*.h material/inc/*.h)
 
-include_directories(management/inc material/inc particle/inc)
+include_directories(management/inc material/inc)
 
 set(_extraLibs "")
 

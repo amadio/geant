@@ -1,8 +1,8 @@
 #include "backend/cuda/Interface.h"
 
 #include "TPartIndex.h"
-#include "Particle.h"
-using geant::Particle; 
+#include "materials/Particle.h"
+using vecgeom::Particle; 
 #include "TEXsec.h"
 #include "TPDecay.h"
 

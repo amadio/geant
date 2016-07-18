@@ -14,8 +14,8 @@ using vecgeom::kPi;
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "Particle.h"
-using geant::Particle;
+#include "materials/Particle.h"
+using vecgeom::Particle;
 #else
 class TParticlePDG;
 #endif

@@ -24,7 +24,7 @@
 #endif
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
-#include "Particle.h"
+#include "materials/Particle.h"
 #endif
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
