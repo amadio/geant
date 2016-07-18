@@ -20,8 +20,8 @@ class TTabPhysMgr;
 class TTabPhysProcess : public PhysicsProcess {
 private:
   TTabPhysMgr *fMgr;       //! Tabulated physics manager
-  string fXsecFileName;   // Name of Xsec file
-  string fFinalSFileName; // Name of final states file
+  std::string fXsecFileName;   // Name of Xsec file
+  std::string fFinalSFileName; // Name of final states file
 public:
   TTabPhysProcess();
   TTabPhysProcess(const char *name, const char *fxsec, const char *ffstate);

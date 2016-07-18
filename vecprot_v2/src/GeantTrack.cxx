@@ -29,6 +29,7 @@
 #include <iostream>
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
+#include "TString.h"
 #endif
 
 #include "WorkloadManager.h"
@@ -1736,9 +1737,9 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
   fNextpathV[itr]->Print();
 #endif
 #else
-  string path;
+  TString path;
   fPathV[itr]->GetPath(path);
-  string nextpath;
+  TString nextpath;
   fNextpathV[itr]->GetPath(nextpath);
 
   Geant::Print(msg, "== Track %d: evt=%d slt=%d part=%d pdg=%d gVc=%d eind=%d chg=%d proc=%d vid=%d nstp=%d "
