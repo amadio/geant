@@ -699,7 +699,7 @@ void GeantTrack_v::CopyToBuffer(char *buff, int size) {
 //______________________________________________________________________________
 bool GeantTrack_v::IsSame(const GeantTrack_v &tr1, int i1, const GeantTrack_v &tr2, int i2) {
   // Compare two tracks.
-  long int chk1, chk2;
+  long long int chk1, chk2;
   chk1 = tr1.fEventV[i1] + tr1.fEvslotV[i1] + tr1.fParticleV[i1] + tr1.fMotherV[i1] + tr1.fPDGV[i1] + tr1.fGVcodeV[i1] + tr1.fEindexV[i1] +
          tr1.fChargeV[i1] + tr1.fProcessV[i1] + tr1.fVindexV[i1] + tr1.fNstepsV[i1] + (long int)tr1.fSpeciesV[i1] +
          (long int)tr1.fStatusV[i1];
