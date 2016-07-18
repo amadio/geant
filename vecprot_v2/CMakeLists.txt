@@ -5,6 +5,7 @@ endif()
 
 include_directories(inc)
 include_directories("${CMAKE_SOURCE_DIR}/magneticfield/inc")
+include_directories("${CMAKE_SOURCE_DIR}/physics/particle/inc")
 
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation

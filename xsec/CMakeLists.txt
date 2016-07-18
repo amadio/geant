@@ -18,6 +18,7 @@ if(HepMC_FOUND)
 endif()
 
 include_directories(inc)
+include_directories(${CMAKE_SOURCE_DIR}/physics/particle/inc)
 
 #----------------------------------------------------------------------------
 # Add the library, and link it to the Geant4 libraries
@@ -27,13 +28,13 @@ if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   add_library(Xsec SHARED ${sources} xsecDict.cxx)
 
-  target_link_libraries(Xsec Geant_v  
+  target_link_libraries(Xsec Geant_v NewPhysics 
     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 
 else()
   add_library(Xsec SHARED ${sources})
   
-  target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v  
+  target_link_libraries(Xsec Geant_v NewPhysics
     ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 endif()
 set(XSEC_LINK_LIBS "-lXsec" ${HEPMC_LIBRARIES} PARENT_SCOPE)
@@ -47,7 +48,7 @@ add_custom_target(xseclib DEPENDS Xsec)
 add_executable(testserialRead testserialRead.cc)
 
 
-target_link_libraries(testserialRead -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v -lXsec -lVmagfield
+target_link_libraries(testserialRead Geant_v Xsec Vmagfield NewPhysics
     ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
 

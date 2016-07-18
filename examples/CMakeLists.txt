@@ -3,7 +3,7 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
-include_directories(inc ../vecprot_v2/inc)
+include_directories(inc ../vecprot_v2/inc ../physics/particle/inc)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project

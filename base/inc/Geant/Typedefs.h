@@ -12,8 +12,8 @@ typedef VECGEOM_NAMESPACE::Medium Medium_t;
 typedef VECGEOM_NAMESPACE::LogicalVolume Volume_t;
 #include "volumes/PlacedVolume.h"
 typedef VECGEOM_NAMESPACE::VPlacedVolume Node_t;
-#include "materials/Particle.h"
-typedef VECGEOM_NAMESPACE::Particle Particle_t;
+#include "Particle.h"
+typedef geant::Particle Particle_t;
 #else
 #include "TGeoBranchArray.h"
 typedef TGeoBranchArray VolumePath_t;
