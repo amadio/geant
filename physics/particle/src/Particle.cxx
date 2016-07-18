@@ -20,8 +20,9 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 #ifdef GEANT_NVCC
-GEANT_CUDA_DEVICE_CODE map<int, Particle> *fParticlesDev = nullptr;
-map<int, Particle> *fParticlesHost                           = nullptr;
+GEANT_CUDA_DEVICE_CODE vecgeom::map<int, Particle> *fParticlesDev = nullptr;
+vecgeom::map<int, Particle> *fParticlesHost                       = nullptr;
+
 GEANT_CUDA_BOTH_CODE
 char *strncpy(char *dest, const char *src, size_t n)
 {
