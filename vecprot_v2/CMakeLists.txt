@@ -114,6 +114,8 @@ if (NOT KNC)
 # Install files
 #
     add_custom_target(Geantlib_v DEPENDS Geant_v)
+    add_dependencies(Geantlib_v GeantNuma)
+
     if(APPLE)
       # for some reason the installation process alters the libraries on Mac, and the program fails
       install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
@@ -140,7 +142,7 @@ if (NOT KNC)
       else()
 	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Xsec GeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
       endif()
-      add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples)
+      add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples GeantNuma)
       set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
     endforeach()
   endmacro()
@@ -176,7 +178,7 @@ if (NOT KNC)
     add_to_ctest("${TEST_EXECUTABLES}")
   endif()
   
-  install(TARGETS CMSApp runApp DESTINATION bin)
+  install(TARGETS CMSApp runApp testBasketizer testLocality DESTINATION bin)
   add_dependencies(runApp Geant_v Xsec GeantExamples)
 else() 
 #----------------------------------------------------------------------------------------------
