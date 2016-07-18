@@ -15,7 +15,6 @@
 
 #include "GeantFwd.h"
 class TTabPhysMgr;
-using std::string;
 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess {

@@ -17,7 +17,7 @@
 #else
 #include "TGeoBranchArray.h"
 #endif
-
+using std::string;
 
 //______________________________________________________________________________
 TTabPhysProcess::TTabPhysProcess()
