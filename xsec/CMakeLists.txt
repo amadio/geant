@@ -48,8 +48,7 @@ add_custom_target(xseclib DEPENDS Xsec)
 add_executable(testserialRead testserialRead.cc)
 
 
-target_link_libraries(testserialRead Geant_v Xsec Vmagfield NewPhysics
-    ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+target_link_libraries(testserialRead Geant_v Xsec Vmagfield NewPhysics)
 
 
 add_dependencies(testserialRead Geant_v Xsec)
