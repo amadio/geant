@@ -1,35 +1,64 @@
 #include "Particle.h"
 namespace geant {
-   inline namespace GEANT_IMPL_NAMESPACE {
+inline namespace GEANT_IMPL_NAMESPACE {
 
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0000();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0001();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0002();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0003();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0004();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0005();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0006();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0007();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0008();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0009();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0010();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0011();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0012();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0013();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0014();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0015();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0016();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0017();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0018();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0019();
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0020();
+
+#ifdef GEANT_NVCC
+GEANT_CUDA_DEVICE_CODE bool fgCreateParticlesInitDoneDev = false;
+#endif
 
 //________________________________________________________________________________
 GEANT_CUDA_BOTH_CODE
 void Particle::CreateParticles() {
-   static bool initDone=false;
-   if(initDone) return;
-   initDone = true;
+#ifndef GEANT_CUDA_DEVICE_BUILD
+   static bool fgCreateParticlesInitDone = false;
+#else
+   bool &fgCreateParticlesInitDone(fgCreateParticlesInitDoneDev);
+#endif
+   if(fgCreateParticlesInitDone) return;
+   fgCreateParticlesInitDone = true;
     CreateParticle0000();
     CreateParticle0001();
     CreateParticle0002();
