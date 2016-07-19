@@ -5,10 +5,7 @@
 
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
-#include "tbb/compat/thread"
 #endif
-
-using namespace Geant;
 
 InitialTask::InitialTask () { }
 
@@ -25,7 +22,7 @@ tbb::task* InitialTask::execute ()
   int tid = wm->Instance()->ThreadId();
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
 
-  Geant::Print("","=== Initial task %d (%d) created ===", tid, td->fTid);
+  printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);
   td->fTid = tid;
 
 
@@ -41,7 +38,7 @@ tbb::task* InitialTask::execute ()
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   if (concurrentWrite)
     {
-      threadData->fFiles[tid] = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
+      threadData->fFiles[tid] = new Geant::TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
       threadData->fTrees[tid] = new TTree("Tree","Simulation output");
 
       threadData->fTrees[tid]->Branch("hitblockoutput", "GeantBlock<MyHit>", &threadData->fData[tid]);

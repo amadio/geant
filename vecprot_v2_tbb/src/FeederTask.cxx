@@ -14,7 +14,6 @@
 #include "tbb/task_scheduler_init.h"
 #endif
 
-using namespace Geant;
 
 FeederTask::FeederTask (int *nbaskets): fNbaskets(nbaskets) { }
 
@@ -32,7 +31,7 @@ tbb::task* FeederTask::execute ()
     return NULL;
   }
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
-  Geant::Print("","=== Feeder task %d (%d) created ===", tid, td->fTid);
+  printf("=== Feeder task %d (%d) created ===\n", tid, td->fTid);
 
 
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
@@ -59,11 +58,11 @@ tbb::task* FeederTask::execute ()
       evt->Print();
       // Digitizer (todo)
       int ntracks = propagator->fNtracks[islot];
-      Printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, propagator->fPriorityEvents.load());
+      printf("= digitizing event %d with %d tracks pri=%d \n", evt->GetEvent(), ntracks, propagator->fPriorityEvents.load());
       //  propagator->fApplication->Digitize(evt->GetEvent());
       propagator->fDoneEvents->SetBitNumber(evt->GetEvent());
       if (propagator->fLastEvent < propagator->fNtotal) {
-        Printf("=> Importing event %d", propagator->fLastEvent);
+        printf("=> Importing event %d\n", propagator->fLastEvent);
         nbaskets += propagator->ImportTracks(1, propagator->fLastEvent, islot, td);
         propagator->fLastEvent++;
       }
@@ -72,7 +71,7 @@ tbb::task* FeederTask::execute ()
 
 
   *fNbaskets = nbaskets;
-  Geant::Print("","=== Feeder task  found %d baskets ===", nbaskets);
+  printf("=== Feeder task  found %d baskets ===\n", nbaskets);
   // spawn transport task
   propagator->ReleaseLock();
   tbb::task::set_ref_count(2);

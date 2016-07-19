@@ -50,14 +50,12 @@
 #endif
 
 
-using namespace Geant;
-
 TransportTask::TransportTask (int nbaskets): fNbaskets(nbaskets) { }
 
 TransportTask::~TransportTask () { }
 
 //______________________________________________________________________________
-static inline void MaybeCleanupBaskets(GeantTaskData *td, GeantBasket *basket) {
+static inline void MaybeCleanupBaskets(Geant::GeantTaskData *td, GeantBasket *basket) {
   if (td->NeedsToClean())
     td->CleanBaskets(0);
   else {
@@ -121,7 +119,7 @@ tbb::task* TransportTask::execute ()
   GeantFactory<MyHit> *myhitFactory = threadData->fMyhitFactories[tid];
 
   TThread t;
-  TThreadMergingFile* file = threadData->fFiles[tid];
+  Geant::TThreadMergingFile* file = threadData->fFiles[tid];
   TTree *tree = threadData->fTrees[tid];
   GeantBlock<MyHit>* data = threadData->fData[tid];
 
@@ -197,8 +195,8 @@ tbb::task* TransportTask::execute ()
     ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
-    GeantTrack_v &input = basket->GetInputTracks();
-    GeantTrack_v &output = *td->fTransported;
+    Geant::GeantTrack_v &input = basket->GetInputTracks();
+    Geant::GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty
     //      Geant::Print("","======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,

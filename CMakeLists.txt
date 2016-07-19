@@ -627,3 +627,5 @@ add_subdirectory(physics)
 if(DOXYGEN_FOUND)
   configure_file("${DOXYFILE_IN}" "${DOXYFILE}" @ONLY)
 endif()
+
+add_subdirectory (vecprot_v2_tbb)

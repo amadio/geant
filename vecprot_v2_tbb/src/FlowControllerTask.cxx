@@ -25,7 +25,6 @@
 #include "tbb/task_scheduler_init.h"
 #endif
 
-using namespace Geant;
 
 FlowControllerTask::FlowControllerTask (bool starting): fStarting(starting) { }
 
@@ -41,7 +40,7 @@ tbb::task* FlowControllerTask::execute ()
   if(tid>=propagator->fNthreads)
     return NULL;
 
-  GeantTaskData *td = propagator->fThreadData[tid];
+  Geant::GeantTaskData *td = propagator->fThreadData[tid];
 
   if(fStarting){
     while(propagator->TryLock())
@@ -58,7 +57,7 @@ tbb::task* FlowControllerTask::execute ()
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
 
   GeantBasketMgr *prioritizer = threadData->fPrioritizers[tid];
-  TThreadMergingFile* file = threadData->fFiles[tid];
+  Geant::TThreadMergingFile* file = threadData->fFiles[tid];
   TTree *tree = threadData->fTrees[tid];
   GeantBlock<MyHit>* data = threadData->fData[tid];
   int nbaskets = 0;
@@ -68,7 +67,7 @@ tbb::task* FlowControllerTask::execute ()
   bool concurrentWrite = propagator->fConcurrentWrite && propagator->fFillTree;
 
   if (propagator->TransportCompleted()) {
-    Geant::Print("","=== Exit thread %d from Flow Controller  ===", tid);
+    printf("=== Exit thread %d from Flow Controller  ===\n", tid);
     int nworkers = propagator->fNthreads;
     for (int i = 0; i < nworkers; i++)
       wm->FeederQueue()->push(0);

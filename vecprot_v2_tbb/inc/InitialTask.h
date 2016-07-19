@@ -1,8 +1,6 @@
 #ifndef INITIALTASK
 #define INITIALTASK
 
-#include "Geant/Error.h"
-
 #include "WorkloadManager.h"
 #include "TSystem.h"
 #include "TROOT.h"

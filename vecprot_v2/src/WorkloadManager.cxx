@@ -30,7 +30,6 @@
 #include "TGeoManager.h"
 #endif
 #include "TaskBroker.h"
-#include "InitialTask.h"
 
 // added by WP for output handling
 #ifndef GEANT_MYHIT
@@ -181,10 +180,9 @@ void WorkloadManager::StartThreads() {
     }
   }
   // Start CPU transport threads
-  //for (; ith < fNthreads; ith++) {
-  //  fListThreads.emplace_back(WorkloadManager::TransportTracks);
-  //}
-
+  for (; ith < fNthreads; ith++) {
+    fListThreads.emplace_back(WorkloadManager::TransportTracks);
+  }
 
   // Start output thread
   if (GeantPropagator::Instance()->fFillTree) {
@@ -198,17 +196,6 @@ void WorkloadManager::StartThreads() {
   if (GeantPropagator::Instance()->fMaxRes > 0) {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
   }
-
-  //tbb::task_scheduler_init init( fNthreads );
-
-  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-  // spawn transport tasks
-  for (int i = 0; i < fNthreads; i++)
-    tlist.push_back(*new (cont.allocate_child()) InitialTask());
-
-  cont.spawn(tlist);
-
-  Geant::Print("","=== End ===", 0);
 
 }
 

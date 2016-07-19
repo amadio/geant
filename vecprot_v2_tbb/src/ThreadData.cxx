@@ -1,13 +1,11 @@
 #include "ThreadData.h"
 #include "Geant/Error.h"
 
-using namespace Geant;
-
 ThreadData *ThreadData::fgInstance = 0;
 
 ThreadData::ThreadData(int nthreads): fNthreads(nthreads){
   // initialize data per thread
-  fFiles = new TThreadMergingFile *[fNthreads];
+  fFiles = new Geant::TThreadMergingFile *[fNthreads];
   fTrees = new TTree *[fNthreads];
   fData = new GeantBlock<MyHit> *[fNthreads];
   fPrioritizers = new GeantBasketMgr *[fNthreads];
@@ -31,7 +29,7 @@ ThreadData *ThreadData::Instance(int nthreads) {
   if (fgInstance)
     return fgInstance;
   if (!nthreads) {
-    ::Error("ThreadData::Instance", "No instance yet so you should provide number of threads.");
+    Geant::Error("ThreadData::Instance", "No instance yet so you should provide number of threads.");
     return 0;
   }
   return new ThreadData(nthreads);
