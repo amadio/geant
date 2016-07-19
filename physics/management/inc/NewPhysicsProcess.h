@@ -113,7 +113,7 @@ public:
    *  Note: this method is meant to be called only at initialization,
    *        and not in the simulation event loop.
    */
-  virtual bool IsApplicable( const int particleGVcode ) const {return true;}
+  virtual bool IsApplicable( const int /*particleGVcode*/ ) const {return true;}
 
   /** @brief Methods that return the atomic (i.e. microscopic) cross section 
    *         (unit: 1/length^2) of the discrete part of this process.
@@ -132,9 +132,9 @@ public:
    *  The second method has a LightTrack object as input, and what it does is
    *  simply to extra the information needed by the first method and then calls it.
    */
-  virtual double GetAtomicCrossSection( const int projectileCode,
-                                        const double projectileKineticEnergy,
-                                        const int targetZ, const int targetN = 0 ) const {return 0;}
+  virtual double GetAtomicCrossSection( const int /*projectileCode*/,
+                                        const double /*projectileKineticEnergy*/,
+                                        const int /*targetZ*/, const int /*targetN*/ = 0 ) const {return 0;}
 
   double GetAtomicCrossSection( const LightTrack &track ) const;
 

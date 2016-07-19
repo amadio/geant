@@ -58,20 +58,20 @@ double PhysicsProcess::GetAtomicCrossSection( const LightTrack &track ) const {
 }
 
  
-double PhysicsProcess::InverseLambda( const LightTrack &track ) const {
+double PhysicsProcess::InverseLambda( const LightTrack &/*track*/ ) const {
   return 0.0;
 }
 
-double PhysicsProcess::AlongStepLimitationLength( const LightTrack &track ) const {
+double PhysicsProcess::AlongStepLimitationLength( const LightTrack &/*track*/ ) const {
   return aVeryLargeValue;
 }
  
-double PhysicsProcess::AverageLifetime( const LightTrack &track ) const {
+double PhysicsProcess::AverageLifetime( const LightTrack &/*track*/ ) const {
   return aVeryLargeValue;
 }
 
 
-void PhysicsProcess::SampleTarget( LightTrack &track ) const {
+void PhysicsProcess::SampleTarget( LightTrack &/*track*/ ) const {
   //
   // IMPLEMENTATION IS NEEDED HERE: IT SHOULD BE THE SAME FOR ALL PROCESSES!
   //  

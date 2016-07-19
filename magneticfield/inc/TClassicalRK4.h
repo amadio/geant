@@ -1,6 +1,7 @@
 #ifndef TCLASSICALRK4_H
 #define TCLASSICALRK4_H
 
+#include "Geant/Config.h"
 #include "TMagErrorStepper.h"
 
 // #include <algorithm> // for std::max
@@ -126,7 +127,8 @@ static constexpr double inv6=1./6;
 
 template <class T_Equation, unsigned int Nvar>
 #ifdef INLINEDUMBSTEPPER
-   __attribute__((always_inline)) 
+   GEANT_FORCE_INLINE
+//   __attribute__((always_inline)) 
 #else
 // __attribute__((noinline))
 #endif 
