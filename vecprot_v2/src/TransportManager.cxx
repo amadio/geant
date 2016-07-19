@@ -239,6 +239,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
   }
 #else
   // TGeo implementation fall back on looped version
+  (void)ntracks;
   for (auto track : tracks) {
     ComputeTransportLengthSingle(*track, td);
   }

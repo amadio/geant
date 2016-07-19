@@ -11,6 +11,8 @@
 
 #include "TGeoManager.h"
 #include "TGeoBBox.h"
+
+#ifdef USE_VECGEOM_NAVIGATOR
 #include "management/RootGeoManager.h"
 #include "management/GeoManager.h"
 #include "navigation/VNavigator.h"
@@ -19,6 +21,7 @@
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"
+#endif
 
 //______________________________________________________________________________
 void help() { std::cout << "Usage: testLocality <Nthreads>\n"; }
@@ -72,10 +75,11 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   track.fXdir = Sin(theta) * Cos(phi);
   track.fYdir = Sin(theta) * Sin(phi);
   track.fZdir = Cos(theta);
+#ifdef USE_VECGEOM_NAVIGATOR
   SimpleNavigator nav;
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
                     Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.fPath, true);
-
+#endif
 }
 
 //______________________________________________________________________________
@@ -130,10 +134,12 @@ int main(int argc, char *argv[]) {
   
   
   // Load geometry and convert to VecGeom
-
   TGeoManager::Import(file.c_str());
+  int maxdepth = TGeoManager::GetMaxLevels();
+
+#ifdef USE_VECGEOM_NAVIGATOR
   RootGeoManager::Instance().LoadRootGeometry();
-  int maxdepth = GeoManager::Instance().getMaxDepth();
+  maxdepth = GeoManager::Instance().getMaxDepth();
   for (auto &lvol : GeoManager::Instance().GetLogicalVolumesMap()) {
     if (lvol.second->GetDaughtersp()->size() < 4) {
       lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
@@ -147,6 +153,7 @@ int main(int argc, char *argv[]) {
     }
     lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
   }
+#endif
   
   // Configure the locality manager
   LocalityManager *mgr = LocalityManager::Instance();

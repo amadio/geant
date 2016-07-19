@@ -248,7 +248,7 @@ void ScalarNavInterfaceTGeo::NavIsSameLocation(GeantTrack &track, bool &same) {
   nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
   track.fPath->UpdateNavigator(nav);
   if (!nav->IsSameLocation(track.fXpos, track.fYpos, track.fZpos, true)) {
-    end[itr]->InitFromNavigator(nav);
+    track.fNextpath->InitFromNavigator(nav);
     same = false;     
   } else {
   // Track not crossing
