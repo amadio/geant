@@ -140,7 +140,7 @@ public:
 #ifndef GEANT_NVCC
     return *fParticles;
 #else
-#ifndef GEANT_CUDA_DEVICE_CODE
+#ifndef GEANT_CUDA_DEVICE_BUILD
     return *fParticlesHost;
 #else
     return *fParticlesDev;
