@@ -17,8 +17,7 @@ include_directories(${TBB_INCLUDE_DIR})
 # Create shared library
 add_library(Geant_tbb SHARED ${SOURCES})
 
-target_link_libraries(Geant_tbb -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v
-     ${ROOT_LIBS} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS} ${TBB_LIBRARIES})
+target_link_libraries(Geant_tbb -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v ${TBB_LIBRARIES})
 
 add_dependencies(Xsec Geantlib_v)
 
