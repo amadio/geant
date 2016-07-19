@@ -70,7 +70,7 @@ if (CUDA)
    )
 
   foreach(SRC ${SRC_CPP_RELATIVE})
-   set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
+    set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
   endforeach()
 
 

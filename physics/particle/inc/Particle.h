@@ -34,7 +34,7 @@ extern vecgeom::map<int, Particle> *fParticlesHost;                           //
 class Particle {
 public:
   class Decay;
-#ifdef GEANTV_NVCC
+#ifdef GEANT_NVCC
   using Map_t         = vecgeom::map<int, Particle>;
   using VectorDecay_t = vecgeom::Vector<Decay>;
   using VectorInt_t   = vecgeom::Vector<int>;
@@ -142,7 +142,7 @@ public:
 #ifndef GEANT_NVCC
     return *fParticles;
 #else
-#ifndef VECGEOM_NVCC_DEVICE
+#ifndef GEANT_CUDA_DEVICE_CODE
     return *fParticlesHost;
 #else
     return *fParticlesDev;

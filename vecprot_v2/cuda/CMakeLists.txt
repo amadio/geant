@@ -108,17 +108,17 @@ ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers}
 
 CUDA_ADD_LIBRARY( ${GeantCudaLib}
                   ${cuda_sources} ${cuda_cxx_sources}
-                 SHARED
-                 OPTIONS ${CUDA_ARCH}
-)
+                  SHARED
+                  OPTIONS ${CUDA_ARCH}
+		  )
 
 cuda_add_library_depend(${GeantCudaLib} ${VECGEOM_CUDA_STATIC_LIBRARY})
 target_link_libraries(${GeantCudaLib} ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
 
 if( VECGEOM_FOUND )
-  target_link_libraries(${GeantCudaLib} Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom -lGui  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  target_link_libraries(${GeantCudaLib} Vmagfield ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 else()
-  target_link_libraries(${GeantCudaLib} Vmagfield ${ROOT_LIBRARIES} -lEG -lGeom -lGui )
+  target_link_libraries(${GeantCudaLib} Vmagfield ${ROOT_LIBRARIES})
 endif()
 
 add_custom_target(Geantlib_v DEPENDS ${GeantCudaLib})
