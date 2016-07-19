@@ -62,8 +62,7 @@ Smearer::Smearer() {
       TGeoVolume* aVolume = (TGeoVolume*) allVolumes->At( ivol );
       if ( aVolume ) idVol = aVolume->GetNumber();
     #endif
-      const char* nameVolume;
-      if ( aVolume ) nameVolume = aVolume->GetName();
+      const char* nameVolume = ( aVolume ) ? aVolume->GetName() : "";
 
     int flagTracker = 0;
     int flagEcal = 0;
