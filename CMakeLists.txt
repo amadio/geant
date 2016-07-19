@@ -309,23 +309,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 #----------------------------------------------------------------------------------------------
-# Find if the system is NUMA aware
-#
-set(NUMA_ALL_LIBRARIES "-lGeantNuma")
-if (USE_NUMA)
-  find_package(Numa)
-  if (NUMA_FOUND)
-    include_directories( AFTER SYSTEM ${NUMA_INCLUDE_DIR})
-    message(STATUS "Found Numa: "  ${NUMA_INCLUDE_DIR})
-    add_definitions( "-DUSE_NUMA" )
-    set(NUMA_LIBRARIES -L${NUMA_LIBRARY_DIR} -lnuma -lhwloc)
-    set(NUMA_ALL_LIBRARIES "-lGeantNuma ${NUMA_LIBRARIES}")
-  else()
-    message(STATUS "Numa not found.")
-  endif()
-endif()
-
-#----------------------------------------------------------------------------------------------
 # Find VecGeom geometry headers library
 #
 set(VECGEOM_DIR "" CACHE DIRECTORY "Location of VecGeom")
