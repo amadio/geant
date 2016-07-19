@@ -18,6 +18,8 @@ class TTabPhysMgr;
 
 #ifndef USE_ROOT
 typedef const char* TString;
+#else
+#include "TString.h"
 #endif 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcess {
