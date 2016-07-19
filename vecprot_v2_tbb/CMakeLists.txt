@@ -1,7 +1,3 @@
-#cmake_minimum_required(VERSION 2.6.3 FATAL_ERROR)
-
-
-#include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 
 # Find source files
 file(GLOB SOURCES src/*.cxx)
