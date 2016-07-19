@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-#ifndef VECGEOM_NVCC
+#ifndef GEANT_NVCC
 using std::cout;
 #endif
 using std::endl;
@@ -298,7 +298,7 @@ void Particle::ReadFile(std::string infilename, bool output)
 	 outline << "namespace geant {" << endl;
 	 outline << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
 	 outline << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
-	 outline << "void CreateParticle" << setfill('0') << setw(4) << kfunc << "() {" << endl
+	 outline << "GEANT_CUDA_BOTH_CODE" << endl << "void CreateParticle" << setfill('0') << setw(4) << kfunc << "() {" << endl
                 << setfill(' ') << setw(0);
         partdef = false;
         ++kfunc;
@@ -361,7 +361,7 @@ void Particle::ReadFile(std::string infilename, bool output)
 
     
     outfile << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
-    outfile << "void Particle::CreateParticles() {" << endl;
+    outfile << "GEANT_CUDA_BOTH_CODE" << endl << "void Particle::CreateParticles() {" << endl;
     outfile << "   static bool initDone=false;" << endl;
     outfile << "   if(initDone) return;" << endl;
     outfile << "   initDone = true;" << endl;
