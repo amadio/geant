@@ -84,7 +84,7 @@ Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, i
     fLife             = 0;
   (*fParticles)[fPDG] = *this;
 #else
-#ifndef GEANT_CUDA_DEVICE_CODE
+#ifndef GEANT_CUDA_DEVICE_BUILD
   if (!fParticlesHost) fParticlesHost = new Map_t;
   if (fParticlesHost->count(fPDG) != 0) {
     printf("Particle %d already there\n", fPDG);
