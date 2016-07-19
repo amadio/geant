@@ -236,19 +236,23 @@ public:
   void Resize(int newsize);
 
   /**
-   * @brief Function round up align ?????
-   * @param num Number ?????
+   * @brief Function rounding up an integer to the aligned value
+   * @param num Value be aligned
    */
   GEANT_CUDA_BOTH_CODE
-  static int round_up_align(int num) {
+  static int RoundUpAlign(int num) {
     int remainder = num % GEANT_ALIGN_PADDING;
     if (remainder == 0)
       return num;
     return (num + GEANT_ALIGN_PADDING - remainder);
   }
 
+  /**
+   * @brief Function rounding up an address to the aligned value
+   * @param buf Address to be aligned
+   */
   GEANT_CUDA_BOTH_CODE
-  static char *round_up_align(char *buf) {
+  static char *RoundUpAlign(char *buf) {
     long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
     if (remainder == 0)
       return buf;

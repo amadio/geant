@@ -91,7 +91,7 @@ GeantTrackGeo_v::GeantTrackGeo_v(void *addr, unsigned int nTracks)
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0) {
 
   // Constructor with maximum capacity.
-  fBuf = ((char *)addr) + round_up_align(sizeof(GeantTrackGeo_v));
+  fBuf = ((char *)addr) + RoundUpAlign(sizeof(GeantTrackGeo_v));
   fBufSize = BufferSize(nTracks);
   memset(fBuf, 0, fBufSize);
   AssignInBuffer(fBuf, nTracks);
@@ -194,7 +194,7 @@ bool GeantTrackGeo_v::IsNormalized(int itr, double tolerance) const {
 GEANT_CUDA_BOTH_CODE
 size_t GeantTrackGeo_v::BufferSize(size_t nTracks) {
   // return the contiguous memory size needed to hold a GeantTrackGeo's data
-  size_t size = round_up_align(nTracks);
+  size_t size = RoundUpAlign(nTracks);
   return size * sizeof(GeantTrackGeo);
 }
 
@@ -203,13 +203,13 @@ GEANT_CUDA_BOTH_CODE
 size_t GeantTrackGeo_v::SizeOfInstance(size_t nTracks) {
   // return the contiguous memory size needed to hold a GeantTrackGeo
 
-  return round_up_align(sizeof(GeantTrackGeo_v))+BufferSize(nTracks);
+  return RoundUpAlign(sizeof(GeantTrackGeo_v))+BufferSize(nTracks);
 }
 
 //______________________________________________________________________________
 void GeantTrackGeo_v::Resize(int newsize) {
   // Resize the container.
-  int size = round_up_align(newsize);
+  int size = RoundUpAlign(newsize);
   if (size < GetNtracks()) {
     Geant::Error("Resize","Cannot resize to less than current track content");
     return;
