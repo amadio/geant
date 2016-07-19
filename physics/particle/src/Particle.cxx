@@ -298,7 +298,7 @@ void Particle::ReadFile(std::string infilename, bool output)
 		 << "template <typename T>" << endl << "using vector = vecgeom::Vector<T>;" << endl
 		 << "#else" << endl << "using std::vector;" << endl << "#endif" << endl;
 	 outline << "namespace geant {" << endl;
-	 outline << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
+	 outline << "inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
 	 outline << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
 	 outline << "GEANT_CUDA_BOTH_CODE" << endl << "void CreateParticle" << setfill('0') << setw(4) << kfunc << "() {" << endl
                 << setfill(' ') << setw(0);
@@ -357,21 +357,31 @@ void Particle::ReadFile(std::string infilename, bool output)
     outfile.open("CreateParticles.cxx");
     outfile << "#include \"Particle.h\"" << endl;
     outfile << "namespace geant {" << endl;
-    outfile << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
-    for (int i = 0; i < kfunc; ++i)
+    outfile << "inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
+    for (int i = 0; i < kfunc; ++i) {
+      outfile << "GEANT_CUDA_BOTH_CODE\n";
       outfile << "void CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
+    }
 
-    
+    outfile << "\n#ifdef GEANT_NVCC\n";
+    outfile << "GEANT_CUDA_DEVICE_CODE bool fgCreateParticlesInitDoneDev = false;\n";
+    outfile << "#endif\n";
+
     outfile << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
     outfile << "GEANT_CUDA_BOTH_CODE" << endl << "void Particle::CreateParticles() {" << endl;
-    outfile << "   static bool initDone=false;" << endl;
-    outfile << "   if(initDone) return;" << endl;
-    outfile << "   initDone = true;" << endl;
+    outfile << "#ifndef GEANT_CUDA_DEVICE_BUILD\n";
+    outfile << "  static bool fgCreateParticlesInitDone = false;\n";
+    outfile << "#else\n";
+    outfile << "  bool &fgCreateParticlesInitDone(fgCreateParticlesInitDoneDev);\n";
+    outfile << "#endif\n";
+    outfile << "  if (fgCreateParticlesInitDone) return;\n";
+    outfile << "  fgCreateParticlesInitDone = true;\n";
+
     for (int i = 0; i < kfunc; ++i)
-      outfile << "    CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
-    outfile << "}" << endl;
-    outfile << " } // End of inline namespace" << endl;
-    outfile << " } // End of geant namespace" << endl;
+      outfile << "  CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
+    outfile << "} // End of CreateParticle" << endl;
+    outfile << "} // End of inline namespace" << endl;
+    outfile << "} // End of geant namespace" << endl;
     outfile << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
     outfile << "#pragma clang optimize on" << endl;
     outfile << "#endif" << endl;
