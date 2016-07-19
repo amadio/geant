@@ -102,7 +102,7 @@ struct Workload {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters - 1);
 // Create a pool of numbers
-    allocated_ = numa_aligned_malloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
+    allocated_ = NumaAlignedMalloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
     tracks_ = new (allocated_) test_track[ntracks_];
     //Lock();
     //    std::cout << "Allocated data " << allocated_ << " on node: " << numa_node_addr(allocated_) << std::endl;
@@ -116,9 +116,9 @@ struct Workload {
   };
 
   ~Workload() {
-    numa_aligned_free(allocated_);
+    NumaAlignedFree(allocated_);
     for (size_t i = 0; i < nnodes_; ++i)
-      numa_aligned_free(basketizers_[i]);
+      NumaAlignedFree(basketizers_[i]);
     delete[] basketizers_;
   }
 
@@ -128,9 +128,9 @@ struct Workload {
     Lock();
     size_t basket_size = Basketizer::SizeofInstance(buf_size_);
     if (!basketizers_[node]) {
-      basketizers_[node] = Basketizer::MakeInstanceAt(numa_aligned_malloc(basket_size, node, 64), buf_size_, bsize_);
+      basketizers_[node] = Basketizer::MakeInstanceAt(NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
 //      basketizers_[node] = new Basketizer(buf_size_, bsize_);
-      std::cout << "basketizer[" << node << "] allocated on NUMA node " << numa_node_addr(basketizers_[node])
+      std::cout << "basketizer[" << node << "] allocated on NUMA node " << NumaNodeAddr(basketizers_[node])
                 << std::endl;
     }
     Unlock();

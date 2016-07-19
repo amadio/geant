@@ -20,14 +20,14 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /* NUMA aligned memory allocator */
-void *numa_aligned_malloc(std::size_t bytes, int node, std::size_t alignment);
-void  numa_aligned_free(void *p);
+void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment);
+void  NumaAlignedFree(void *p);
 
 /* NUMA memory address inspector */
-int   numa_node_addr(void *ptr);
+int   NumaNodeAddr(void *ptr);
 
 /* Pin a thread to a core */
-void pin_to_core(size_t core);
+void PinToCore(size_t core);
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

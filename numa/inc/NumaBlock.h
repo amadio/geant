@@ -20,6 +20,7 @@
 #include "GeantNuma.h"
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 /**
  * @brief Class NumaBlock
  * @detailed A NUMA block is a concurrent templated factory holding contiguously a
@@ -80,7 +81,7 @@ public:
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues);
-    void *ptr = numa_aligned_malloc(needed, numa_node, 64);
+    void *ptr = NumaAlignedMalloc(needed, numa_node, 64);
     NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node);
     return ( block );    
   }
@@ -89,7 +90,7 @@ public:
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues, maxdepth);
-    void *ptr = numa_aligned_malloc(needed, numa_node, 64);
+    void *ptr = NumaAlignedMalloc(needed, numa_node, 64);
     NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, maxdepth);
     return ( block );    
   }
@@ -98,7 +99,7 @@ public:
   {
     // Release the instance of the block
 //    std::cout << "deleting block: " << block << std::endl;
-    numa_aligned_free(block);
+    NumaAlignedFree(block);
   }
     
   static constexpr size_t SizeOfInstance(size_t nvalues)
@@ -158,6 +159,7 @@ public:
   GEANT_FORCE_INLINE bool IsDistributed() const { return (fCurrent.load() >= fSize); }
 };
 
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif

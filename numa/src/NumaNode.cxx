@@ -39,7 +39,7 @@ int NumaNode::PinThread()
 #ifdef USE_NUMA
   std::lock_guard<std::mutex> lock(fMutex);
   core = fCpus[fNthreads%fNcpus];
-  pin_to_core(core);
+  PinToCore(core);
   fNthreads++;
 #endif
   return core;

@@ -87,7 +87,7 @@ void ConsumeTracks(size_t tid, LocalData *ldata) {
   std::cout << "thread " << tid << " on node " << node << std::endl;
   ldata->Unlock();
   
-  using track_allocator = numa_allocator<GeantTrack*>;
+  using track_allocator = NumaAllocator<GeantTrack*>;
   // The basket collecting the tracks
   std::vector<GeantTrack*, track_allocator> basket(ldata[node].bsize, nullptr, track_allocator(node));
 
@@ -160,12 +160,12 @@ int main(int argc, char *argv[]) {
   using Basketizer = Geant::Basketizer<GeantTrack*>;
   LocalData *ldata = new LocalData[nnodes];
 
-  // Use numa_allocator for the thread basket
+  // Use NumaAllocator for the thread basket
   for (auto node=0; node<nnodes; node++) {
     ldata[node].bsize = 16;
     ldata[node].buffer_size = 1<<16;
     size_t needed = Basketizer::SizeofInstance(ldata[node].buffer_size);
-    ldata[node].basketizer = Basketizer::MakeInstanceAt(numa_aligned_malloc(needed, node, 64), ldata[node].buffer_size, ldata[node].bsize);
+    ldata[node].basketizer = Basketizer::MakeInstanceAt(NumaAlignedMalloc(needed, node, 64), ldata[node].buffer_size, ldata[node].bsize);
   }
 
   std::vector<std::thread> v;
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
   delete mgr;
 //  delete gGeoManager;
   for (auto node=0; node<nnodes; node++) {
-    numa_aligned_free(ldata[node].basketizer);
+    NumaAlignedFree(ldata[node].basketizer);
   }
   delete [] ldata;
   std::cout << "run time/thread: " << (rt1 - rt0)/nthreads << "   cpu time/thread: " << (cpu1 - cpu0)/nthreads << std::endl;

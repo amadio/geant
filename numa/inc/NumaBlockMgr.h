@@ -27,6 +27,7 @@
  *           NUMA node. The allocation for single blocks is using numa_aligned_malloc.
  */
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 template <typename T, bool D=false> class NumaBlockMgr {
   using size_t = std::size_t;
@@ -145,6 +146,7 @@ public:
   numa_block_ptr CurrentBlock() const { return ( fCurrent.load() ); }
   
 };  
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif

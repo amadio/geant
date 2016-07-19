@@ -15,11 +15,7 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-void *numa_aligned_malloc(size_t bytes, int
-#ifdef USE_NUMA
-                            node
-#endif
-                            , size_t alignment)
+void *NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
 {
 #ifdef USE_NUMA
 // Fallback to 
@@ -60,11 +56,12 @@ void *numa_aligned_malloc(size_t bytes, int
 
   return p2;
 #else
+  (void)node;
   return _mm_malloc(bytes, alignment);
 #endif
 }
 
-void numa_aligned_free(void *p )
+void NumaAlignedFree(void *p )
 {
 // Find the address stored by aligned_malloc ,"size_t" bytes above the 
 // current pointer then free it using normal free routine provided by C.
@@ -75,7 +72,7 @@ void numa_aligned_free(void *p )
 #endif
 }
 
-int numa_node_addr(void *
+int NumaNodeAddr(void *
 #ifdef USE_NUMA
                      ptr
 #endif  
@@ -91,7 +88,7 @@ int numa_node_addr(void *
 #endif  
 }
 
-void pin_to_core(size_t core)
+void PinToCore(size_t core)
 {
 // Pin caller thread to a given physical core
   cpu_set_t cpuset;
