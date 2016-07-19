@@ -36,7 +36,7 @@ char *strncpy(char *dest, const char *src, size_t n)
 }
 
 #else
-std::map<int, Particle> *Particle::fParticles;
+std::map<int, Particle> *Particle::fParticles=0;
 #endif
 
 #ifndef GEANT_NVCC
@@ -138,20 +138,24 @@ Particle &Particle::operator=(const Particle &part)
     fCharge     = part.fCharge;
     fMass       = part.fMass;
     fWidth      = part.fWidth;
+    fLife       = part.fLife;
     fIsospin    = part.fIsospin;
+    fIso3       = part.fIso3;
     fStrange    = part.fStrange;
     fFlavor     = part.fFlavor;
     fTrack      = part.fTrack;
     fCode       = part.fCode;
     for (unsigned int i = 0; i < part.fDecayList.size(); ++i)
       fDecayList[i]     = part.fDecayList[i];
+    fNdecay = (unsigned char) fDecayList.size();
+    // cout << "Particle::= called" << endl;
   }
   return *this;
 }
 
 //________________________________________________________________________________________________
 #ifndef GEANT_NVCC
-void Particle::ReadFile(std::string infilename, std::string outfilename)
+void Particle::ReadFile(std::string infilename, bool output)
 {
   int count;
   std::string name;
@@ -164,14 +168,14 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
   int isospin, iso3, strange, flavor, track, ndecay;
   int ipart, acode;
   int kcount       = 0;
-  const int ksplit = 15;
+  const int ksplit = 40;
   int kfunc        = 0;
 
-  bool output = !outfilename.empty();
   std::ofstream outfile;
-  if (output) outfile.open(outfilename);
   ifstream infile(infilename);
   std::string line;
+  std::stringstream outline;
+  std::stringstream filename;
 
   int np = 0;
   while (getline(infile, line)) {
@@ -196,7 +200,7 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
       printf("Disaster count np(%d) != count(%d)", np, count);
       exit(1);
     }
-    /*
+    /*    
     cout << " count:" << count << " name:" << name << " pdg:" << pdg << " matter:" << matter << " pcode:" << pcode
    <<" pclass:" << pclass << " charge:" << charge << " mass:" << mass << " width:" << width << " isospin:"
    << isospin << " iso3:" << iso3 << " strange:" << strange << " flavor:" << flavor << " track:" << track
@@ -231,7 +235,7 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
             printf("dcount (%d) != i+1 (%d)", dcount, i + 1);
             exit(1);
           }
-          //	       cout << "         " << dcount << " " << decay << endl;
+	  // cout << "         " << dcount << " " << decay << endl;
           part.AddDecay(decay);
         }
         part.NormDecay();
@@ -242,7 +246,7 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
         printf("Cannot build the antiparticle because the particle %d is not there!", -pdg);
         exit(1);
       }
-      Particle p = fParticles->at(-pdg);
+      Particle &p = fParticles->at(-pdg);
       new Particle(name.c_str(), pdg, matter, p.Class(), p.Pcode(), p.Charge() == 0 ? 0 : -p.Charge(), p.Mass(),
                    p.Width(), p.Isospin() == 0 ? 0 : -p.Isospin(), p.Isospin() == 0 ? 0 : -p.Isospin(),
                    p.Iso3() == 0 ? 0 : -p.Iso3(), p.Strange() == 0 ? 0 : -p.Strange(),
@@ -263,21 +267,38 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
   }
 
   if (output) {
-    outfile << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
-    outfile << "#pragma clang optimize off" << endl;
-    outfile << "#endif" << endl;
-    outfile << "#include \"materials/Particle.h\"" << endl;
-    outfile << "namespace geant {" << endl;
-    outfile << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
 
     bool partdef = false;
     for (auto p = Particle::Particles().begin(); p != Particle::Particles().end(); ++p) {
       if (kcount % ksplit == 0) {
-        if (kcount > 0) {
-          outfile << "}" << endl << endl;
-        }
-        outfile << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
-        outfile << "static void CreateParticle" << setfill('0') << setw(4) << kfunc << "() {" << endl
+	 if (kcount > 0) {
+	    outline << "}" << endl << endl;
+	    outline << " } // End of inline namespace" << endl;
+	    outline << " } // End of geant namespace" << endl;
+	    outline << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
+	    outline << "#pragma clang optimize on" << endl;
+	    outline << "#endif" << endl;
+	    filename << "CreateParticle" << setfill('0') << setw(4) << kfunc-1 << ".cxx" 
+		     << setfill(' ') << setw(0);
+	    outfile.open(filename.str());
+	    outfile << outline.str();
+	    outfile.close();
+	    filename.str("");
+	    filename.clear();
+	    outline.str("");
+	    outline.clear(); // Clear state flags.
+	 }
+
+	    
+	 outline << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
+	 outline << "#pragma clang optimize off" << endl;
+	 outline << "#endif" << endl;
+	 outline << "#include \"Particle.h\"" << endl;
+	 outline << "using std::vector;" << endl;
+	 outline << "namespace geant {" << endl;
+	 outline << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
+	 outline << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
+	 outline << "void CreateParticle" << setfill('0') << setw(4) << kfunc << "() {" << endl
                 << setfill(' ') << setw(0);
         partdef = false;
         ++kfunc;
@@ -285,11 +306,11 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
       ++kcount;
       const Particle &part = p->second;
       std::string name(part.Name());
-      outfile << endl << "   // Creating " << name << endl;
+      outline << endl << "   // Creating " << name << endl;
       size_t quote = name.find_first_of("\\\"");
       if (quote != std::string::npos)
         name = name.substr(0, quote) + "\\\"" + name.substr(quote + 1, name.size() - quote);
-      outfile << "   new Particle("
+      outline << "   new Particle("
               << "\"" << name << "\", " << part.PDG() << ", " << part.Matter() << ", "
               << "\"" << part.Class() << "\", " << part.Pcode() << ", " << part.Charge() << ", " << part.Mass() << ", "
               << part.Width() << ", " << part.Isospin() << ", " << part.Iso3() << ", " << part.Strange() << ", "
@@ -297,36 +318,62 @@ void Particle::ReadFile(std::string infilename, std::string outfilename)
       //	 cout << name << " " << part.Ndecay() << endl;
       if (part.Ndecay() > 0) {
         if (!partdef) {
-          outfile << "   Particle *part = 0;" << endl;
+          outline << "   Particle *part = 0;" << endl;
           partdef = true;
         }
-        outfile << "   part = const_cast<Particle*>(&Particle::Particles().at(" << part.PDG() << "));" << endl;
+        outline << "   part = const_cast<Particle*>(&Particle::Particles().at(" << part.PDG() << "));" << endl;
         for (VectorDecay_t::const_iterator d = part.DecayList().begin(); d != part.DecayList().end(); ++d) {
-          outfile << "   part->AddDecay(Particle::Decay(" << d->Type() << ", " << d->Br() << ", "
+          outline << "   part->AddDecay(Particle::Decay(" << d->Type() << ", " << d->Br() << ", "
                   << " vector<int>{";
           for (int i = 0; i < d->NDaughters(); ++i) {
-            outfile << d->Daughter(i);
-            if (i < d->NDaughters() - 1) outfile << ",";
+            outline << d->Daughter(i);
+            if (i < d->NDaughters() - 1) outline << ",";
           }
-          outfile << "}));" << endl;
+          outline << "}));" << endl;
         }
       }
     }
 
-    outfile << "}" << endl;
+    if (kcount % ksplit != 0) {
+       outline << "}" << endl << endl;
+       outline << " } // End of inline namespace" << endl;
+       outline << " } // End of geant namespace" << endl;
+       outline << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
+       outline << "#pragma clang optimize on" << endl;
+       outline << "#endif" << endl;
+       filename << "CreateParticle" << setfill('0') << setw(4) << kfunc-1 << ".cxx" 
+			     << setfill(' ') << setw(0);
+       outfile.open(filename.str());
+       outfile << outline.str();
+       outfile.close();
+       filename.str("");
+       filename.clear();
+       outline.str("");
+       outline.clear(); // Clear state flags.
+    }
 
+    outfile.open("CreateParticles.cxx");
+    outfile << "#include \"Particle.h\"" << endl;
+    outfile << "namespace geant {" << endl;
+    outfile << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
+    for (int i = 0; i < kfunc; ++i)
+      outfile << "void CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
+
+    
+    outfile << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
     outfile << "void Particle::CreateParticles() {" << endl;
     outfile << "   static bool initDone=false;" << endl;
     outfile << "   if(initDone) return;" << endl;
     outfile << "   initDone = true;" << endl;
     for (int i = 0; i < kfunc; ++i)
-      outfile << "  CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
+      outfile << "    CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
     outfile << "}" << endl;
     outfile << " } // End of inline namespace" << endl;
     outfile << " } // End of geant namespace" << endl;
     outfile << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
     outfile << "#pragma clang optimize on" << endl;
     outfile << "#endif" << endl;
+    outfile.close();
   }
 }
 //________________________________________________________________________________________________

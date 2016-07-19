@@ -34,7 +34,7 @@ extern vecgeom::map<int, Particle> *fParticlesHost;                           //
 class Particle {
 public:
   class Decay;
-#ifdef GEANT_NVCC
+#ifdef GEANTV_NVCC
   using Map_t         = vecgeom::map<int, Particle>;
   using VectorDecay_t = vecgeom::Vector<Decay>;
   using VectorInt_t   = vecgeom::Vector<int>;
@@ -93,7 +93,7 @@ public:
 
   const VectorDecay_t &DecayList() const { return fDecayList; }
 #ifndef GEANT_NVCC
-  static void ReadFile(std::string infilename, std::string outfilename = "");
+  static void ReadFile(std::string infilename, bool outfile=false);
 #endif
   GEANT_CUDA_BOTH_CODE
   static void CreateParticle();
