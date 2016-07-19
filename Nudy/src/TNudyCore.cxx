@@ -217,8 +217,9 @@ double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int
   }
   int intlaw = 0;
   for (int jnt = 0; jnt < nr; jnt++) {
-    if (index < nbt[jnt]) {
+    if (index < nbt[jnt] - 1) {
       intlaw = interp[jnt];
+      //printf("law = %d, e = %e\n",intlaw,xx);
       double x1[2] = {x[index],x[index+1]};
       double y1[2] = {y[index],y[index+1]};
       yy = InterpolateScale(x1, y1, intlaw, xx);
@@ -337,7 +338,7 @@ void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, st
   double df = 0.0;
   for(unsigned long cr=0; cr < x1.size() ; cr ++){
     if(fsum > 0.0)x2[cr] /= fsum;
-    // printf("%e   %e\n", x2[cr], cos4Cdf);
+     //printf("%e   %e\n", x2[cr], fsum);
     if(cr > 0)df += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
     x3.push_back(df);
   }
@@ -382,8 +383,8 @@ double TNudyCore::ThinningDuplicate(std::vector<double> &x1,std::vector<double> 
   if(size>2){
     for(int i = 0; i< size1 - 1; i++){
       if(x1[i+1] == x1[i]){ 
-	x1.erase(x1.begin()+i+1);
-	x2.erase(x2.begin()+i+1);
+	x1.erase(x1.begin()+i);
+	x2.erase(x2.begin()+i);
       }
       size1 = x1.size();
     }

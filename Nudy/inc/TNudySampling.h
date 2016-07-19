@@ -24,17 +24,23 @@ private:
   double kineticE; 
   double cosCM=0, cosLab=0, secEnergyCM=0, secEnergyLab=0;
   double x[1000000], y[1000000];
+  double ene[1000000], nu1[1000000], nu2[1000000], nu3[1000000];
   double residueA, residueZ;
   int elemId = 0;
   int isel = 0;
   int counter = 0;
   int ecounter = 0;
-  int LCT, MF, MT;
+  int LCT, MF, MT, MF4, MF5, MF6;
   int events;
   TH2D * h;
+  TH2D * hist[10];
   TH1D * h1;
   TH1D * h2;
+  TH1D * fissZ1[10];
+  TH1D * fissA1[10];
+  TH1D * fissA;
   TGraph *gr1;
+  TGraph *gr[5];
  #ifdef USE_ROOT
   TRandom3 *fRnd;
 #endif

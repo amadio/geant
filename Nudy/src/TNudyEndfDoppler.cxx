@@ -13,9 +13,14 @@ ClassImp(TNudyEndfDoppler)
 
 TNudyEndfDoppler::TNudyEndfDoppler(){}
 
-TNudyEndfDoppler::TNudyEndfDoppler(double aw, double t1, double t2,std::vector<double> &x1,std::vector<double> &x2)
+TNudyEndfDoppler::TNudyEndfDoppler(double isigDiff, 
+				   double aw, 
+				   double t1, 
+				   double t2,
+				   std::vector<double> &x1,
+				   std::vector<double> &x2)
 		  :F0K2P(0),F1K2P(0),F2K2P(0),F3K2P(0),F4K2P(0){
-#define XNEPSM(S)  fabs(1.0 - TW3*sqrt(ONE/3.0)*pow((ONE + S*(ONE + S)),THH)/(S*(ONE+S)))
+#define XNEPSM(S)  fabs(ONE - TW3*sqrt(ONE/3.0)*pow((ONE + S*(ONE + S)),THH)/(S*(ONE+S)))
 #define FTAIL(X,Y) OVSQPI*((1.0+2.0*Y*Y)*sqrt(PI)*HALF*(erf(X-Y)-erf(X+Y))-(X+Y)*exp(-(X-Y)*(X-Y))+(X-Y)*exp(-(X+Y)*(X+Y)))
   awri = aw;
   tk = t2 - t1;
@@ -24,14 +29,29 @@ TNudyEndfDoppler::TNudyEndfDoppler(double aw, double t1, double t2,std::vector<d
   while(RATHIG-RATLOW > 1E-7){
     RATHLF = HALF*(RATLOW+RATHIG);
     HTEST = XNEPSM(RATHLF);
-    if(HTEST < 0.01){
+    if(HTEST < isigDiff){
       RATLOW = RATHLF;
       }else{
       RATHIG = RATHLF;
     }
   }//end of while loop
+  RATMAX = RATLOW * RATLOW; 
+  EMAX = x1[ncrs - 1];
+  EMIN = x1 [0];
+  //energy.push_back(EMIN);
+  
+  //int nouraw = 0;
+  //for(int k1 = 1; k1 < ncrs; k1++){
+    //while(x1[k1] > energy[nouraw] * RATMAX){
+      //nouraw += 1;
+      //energy.push_back(energy[nouraw - 1] * RATMAX);
+    //}
+    //nouraw += 1;
+    //energy.push_back(x1[k1]);
+  //}
   IPP = 0;
   size = x1.size(); 
+//  size = energy.size(); 
   for(int j=0; j < size; j++){
     Y2 = x1[j]*ALPHA;
     Y = sqrt(Y2);

@@ -2,7 +2,7 @@
 // 	of the secondatries
 // 	Author: Dr. Harphool Kumawat
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
-// 	date of creation: March 22, 2016
+// 	date of creation: March 24, 2016
 
 #include "TList.h"
 #include "TNudyEndfAng.h"
@@ -35,13 +35,14 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
     int LI = header->GetL1();
     int LCT = header->GetL2();
     MtLct.push_back(LCT);
-    	//printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
+    //printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
     //Legendre polynomial coefficients
     if (LTT == 1 && LI == 0) { 
       TNudyEndfTab2 *tab2 = (TNudyEndfTab2 *)recIter.Next();
       for (int i = 0; i < tab2->GetN2(); i++) {
 	TNudyEndfList *tab = (TNudyEndfList *)recIter.Next();
 	ein.push_back(tab->GetC2());
+	//std::cout<<"energy "<< tab->GetC2() << std::endl;
 	for (int j = 0; j < tab->GetNPL(); j++){
 	  lCoef1.push_back (tab->GetLIST(j));
 	}
@@ -82,7 +83,8 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	TNudyEndfTab1 *tab = (TNudyEndfTab1 *)recIter.Next();
 	ein.push_back(tab->GetC2());
 	nr = tab->GetNR();
-	np = tab->GetNP();      
+	np = tab->GetNP();    
+	//std::cout<<"energy "<< tab->GetC2() << std::endl;
 	for(int i = 0; i < tab->GetNR(); i++ ){
 	  nbt1.push_back(tab->GetNBT(i));
 	  int1.push_back(tab->GetINT(i));
@@ -112,7 +114,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
 	lCoef1.clear();	
       }
       for (unsigned long i = 0; i < ein.size(); i++) {
-//          printf("Ein = %e\n", ein[i]);
+          //printf("Ein = %e\n", ein[i]);
 	int k1 = 0;double fme =0.0;
 	do
 	{
@@ -121,13 +123,13 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
           for (unsigned long j = 0; j < lCoef[i].size(); j++) {
 	    double leg = ROOT::Math::legendre(j+1, x);
 	    fme += 0.5*(2.*(j+1) + 1.)*lCoef[i][j]*leg;
-//            printf("a%d = %e leg= %e\n", j, lCoef[i].At(j),leg);
+            //printf("a%d = %e leg= %e\n", j, lCoef[i][j],leg);
           }
           if(fme > 0.0) {
 	    cosFile4.push_back(x);
 	    cosPdfFile4.push_back(fme);
 	  }
-//            printf("%e %e\n", x, fme);
+            //printf("%e %e\n", x, fme);
           k1++;
 	}while(k1<101);
 	    
@@ -201,7 +203,29 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
   */
 }//end class
 
-TNudyEndfAng::~TNudyEndfAng(){}
+TNudyEndfAng::~TNudyEndfAng(){
+    MtLct.shrink_to_fit();
+    MtNumbers.shrink_to_fit();
+    nbt1.shrink_to_fit();
+    int1.shrink_to_fit();
+    cosFile4.shrink_to_fit();
+    cosPdfFile4.shrink_to_fit();
+    cosCdfFile4.shrink_to_fit();
+    ein.shrink_to_fit();
+    cos4.shrink_to_fit();
+    cdf.shrink_to_fit();
+    pdf.shrink_to_fit();
+    lCoef1.shrink_to_fit();
+    cos2d.shrink_to_fit();
+    lCoef.shrink_to_fit();
+    cdf2d.shrink_to_fit();
+    pdf2d.shrink_to_fit();
+    ein2d.shrink_to_fit();
+    cos3d.shrink_to_fit();
+    cdf3d.shrink_to_fit();
+    pdf3d.shrink_to_fit();
+
+}
 
 double TNudyEndfAng::recursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2){
   double pdf =1.0;
@@ -284,6 +308,7 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
       break;
     }
   }
+  //std::cout<<"i "<< i<< "  " << energy4OfMts[ielemId][i].size() << std::endl;
   int min = 0;
   int max = energy4OfMts[ielemId][i].size() - 1;
   int mid = 0;
@@ -296,6 +321,7 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
       else min = mid;
     }
   }
+ //std::cout<<" min "<< min << std::endl;
   double fraction = (energyK - energy4OfMts[ielemId][i][min])/
                     (energy4OfMts[ielemId][i][min+1] - energy4OfMts[ielemId][i][min]);
 		    //std::cout <<" fraction "<< fraction <<"  "<< energyK <<"  "<< energy4OfMts[ielemId][i][min] << std::endl;
@@ -303,7 +329,7 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK){
   double rnd2 = fRnd->Uniform(1);
   if(rnd2 < fraction)min = min + 1;
   int k =0;
-  //std::cout<<" pdf size "<< cosPdf4OfMts[ielemId][i][min].size()/2 << std::endl;
+ //std::cout<<" pdf size "<< cosPdf4OfMts[ielemId][i][min].size() << std::endl;
   int size = cosCdf4OfMts[ielemId][i][min].size();
   for(int j = 1; j < size; j++){
     //std::cout<<"cdf "<< cosCdf4OfMts[ielemId][i][min][2 * j ] <<"  "<< cosCdf4OfMts[ielemId][i][min][2 * j + 1] << std::endl;

@@ -52,23 +52,33 @@ public:
   double GetSigmaTotal(int elemid, double energyK);
   double GetSigmaPartial(int elemid, int i, double energyK);
   virtual double GetCos4(int elemid, int mt, double energyK);
+  virtual double GetCos64(int elemid, int mt, double energyK);
   virtual int GetCos4Lct(int elemid, int mt);
   virtual double GetEnergy5(int elemid, int mt, double energyK);
-  virtual double GetCos6(int elemid, int mt, int law, double energyK);
-  virtual double GetEnergy6(int elemid, int mt, int law, double energyK);
+  virtual double GetCos6(int elemid, int mt, double energyK);
+  virtual double GetEnergy6(int elemid, int mt, double energyK);
   virtual double GetQValue(int elemid, int mt);
-  virtual double GetMt456(int elemid, int mt);
+  virtual double GetMt4(int elemid, int mt);
+  virtual double GetMt5(int elemid, int mt);
+  virtual double GetMt6(int elemid, int mt);
   virtual int GetLaw6(int ielemId, int mt);
+  virtual int GetZd6(int ielemId, int mt);
+  virtual int GetAd6(int ielemId, int mt);
   virtual double GetNuTotal(int elemid, double energyK);
+  virtual double GetNuPrompt(int elemid, double energyK);
+  virtual double GetNuDelayed(int elemid, double energyK);
+  virtual double GetFissHeat(int elemid, double energyK);
   virtual double GetFisYield(int elemid, double energyK);
+  virtual double GetLambdaD(int elemid, int time);
+  virtual double GetDelayedFraction(int ielemId, int mt, double energyK);
   std::fstream out,outtotal;
   std::string outstring,outstringTotal;
   matrixint MtValues;              // MT values for which cross-section/ heating values are given  all elements
-  matrixd2 eneUni,sigUniT;		// unionization of energy and total cross-section
 protected:
   int elemId;
   const char *rENDF;					// precision for cross-section reconstruction
   double sigDiff;					// precision for cross-section reconstruction
+  matrixd2 eneUni,sigUniT;		// unionization of energy and total cross-section
   matrixd3 sigUniOfMt;      // sigma for each reaction afte unionization of energy and all elements
   matrixint energyLocMtId;			// MT wise starting energy for cross-section all elements
   matrixd4 cos4OfMts;        // cosine and pdf from file 4 for each reaction
@@ -85,11 +95,15 @@ protected:
   matrixd5 energyOut6OfMts;        // energy from file 6 for each reaction
   matrixd5 energyPdf6OfMts;        // pdf from file 6 for each reaction
   matrixd5 energyCdf6OfMts;        // cdf from file 6 for each reaction
-  matrixd3 energy5OfMts;       // incident energy in file 4 for each reaction
+  matrixd3 energy5OfMts;       // incident energy in file 5 for each reaction
+  matrixd3 fraction5OfMts;       // fraction for incident energy in file 5 for each reaction
   matrixint Mt5Values;             // MT values for which angular distributions are given in file 4
-  matrixint Mt456;             // MT values for which angular, energy/ angular-energy distributions are given in file 4, 5, 6
   matrixint Law6;             // law 6 for angular-energy distributions are given in file 6
-  matrixd2 eint, nut;              // incident energy and nu,  all elements
+  matrixint ZD6, AD6;              // Z, A of law 6 distributions
+  matrixd2 eint, nut;              // total incident energy and nu,  all elements
+  matrixd2 einp, nup;              // prompt incident energy and nu,  all elements
+  matrixd2 eind, nud, lambdaD;              // delayed incident energy and nu,  all elements
+  matrixd2 einFissHeat, fissHeat;              // fission incident energy and heat,  all elements
   matrixd2 einfId, qvalue;              // incident energy for fission yield
   matrixd3 zafId, pdfYieldId, cdfYieldId;              // za and yield fission 
   double AWRI;
@@ -126,6 +140,7 @@ private:
 
   int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, LSSF, NLS2, NJS, INT,NIS,intLinLru1=0; // standard ENDF parameters
   int LRX,cueMat=0;                                     // flag for inelastic reaction, number of J
+  int flagRead = -1;
   double QValue[999];
   int dopplerBroad=0, flagResolve=0, flagUnResolve=0;   // flag for Doppler broadening for thinning, Resolve  and URR parameter exist
   double eLo1=0, eLo2=0, eHi1=0,  eHi2=0, eLo=0, eHi=0; // Resonance energy range Low, High
@@ -139,14 +154,16 @@ private:
   double RI[3][3],SI[3][3];                             // matrix for RM formalism
   double MissingJ[5][50], MisGj[5]; int NJValue[5];     // J values in sorted form
   int NR, NP, NE;                         // standard ENDF parameters for range and interpolation
+  matrixint Mt4,Mt5,Mt6;             // MT values for which angular, energy/ angular-energy distributions are given in file 4, 5, 6
   rowd energyUni,sigmaUniTotal;		// unionization of energy and total cross-section
   matrixd2 sigmaOfMts;         // sigma for each reaction
   matrixd2 sigmaUniOfMts;      // sigma for each reaction afte unionization of energy
   rowint energyLocationMts;			// MT wise starting energy for cross-section
-  rowint MtNumbers;				// MT numbers
+  rowint MtNumbers, MtNum4, MtNum5, MtNum6;				// MT numbers
   rowd sigmaMts, qvaluetemp;				// MT numbers for sigma in file3
   rowd eLinElastic,eLinCapture,eLinFission;
   rowd xLinElastic,xLinCapture,xLinFission;
+  rowd eBroadElastic,eBroadCapture,eBroadFission;
   rowd xBroadElastic,xBroadCapture,xBroadFission;
   rowint nbt1,int1;
   rowd eLinearFile3;

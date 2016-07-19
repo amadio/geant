@@ -1,5 +1,5 @@
-#ifndef ROOT_TNudyEndfDoppler
-#define ROOT_TNudyEndfDoppler
+#ifndef TNudyEndfDoppler_H
+#define TNudyEndfDoppler_H
 
 #include "TNudyEndfRecoPoint.h"
 
@@ -7,8 +7,9 @@ class  TNudyEndfDoppler : public TNudyEndfRecoPoint {
 
 public: 
   TNudyEndfDoppler();
-  TNudyEndfDoppler(double aw, double t1, double t2,std::vector<double> &x1,std::vector<double> &x2);
+  TNudyEndfDoppler(double isigDiff, double aw, double t1, double t2,std::vector<double> &x1,std::vector<double> &x2);
   virtual ~TNudyEndfDoppler();
+  std::vector<double> energy; 
   std::vector<double> sigma; 
 private:
   double OVSQPI = 0.564189583547756279;
@@ -30,6 +31,9 @@ private:
   double RATHIG = 2;
   double RATHLF;
   double HTEST;
+  double RATMAX;
+  double EMAX;
+  double EMIN;
   double Y;
   double XSUM;
   int ncrs, IPP, KPP, size;

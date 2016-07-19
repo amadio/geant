@@ -1,7 +1,7 @@
 // 	This class is reconstructing probability tables for nu multiplicity, fission heat and photon energy distribution 
 // 	Author: Dr. Harphool Kumawat
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
-// 	date of creation: March 22, 2016
+// 	date of creation: March 24, 2016
 
 #include "TList.h"
 #include "TNudyEndfFile.h"
@@ -9,6 +9,7 @@
 #include "TNudyEndfTab1.h"
 #include "TNudyCore.h"
 #include "TNudyEndfNuPh.h"
+
 #ifdef USE_ROOT
 ClassImp(TNudyEndfNuPh)
 #endif
@@ -69,6 +70,9 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       }
       eint.push_back(eintFile1);
       nut.push_back(nutFile1);
+      eintFile1.clear();
+      nutFile1.clear();
+      //std::cout <<"eint size "<< eint.size() <<"  "<< nut.size() << std::endl;
       nbt1.clear();	int1.clear();
     } else if(MT == 455){// delayed neutron multiplicity
       int LDG   = sec->GetL1();
@@ -81,9 +85,8 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       }else if(LNU == 2 && LDG == 0){
 	TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
 	int NNF = list->GetNPL();
-	//double nui[NNF];
 	for(int i = 0; i < NNF; i++){
-	  //nui[i] = list->GetLIST(i); 
+	  nui.push_back (list->GetLIST(i)); 
 	  //	 std::cout<<" lambda "<< nui[i] << std::endl;
 	}
         TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
@@ -103,10 +106,14 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 	  recursionLinearNuPh(eindFile1[cr], eindFile1[cr+1], nudFile1[cr], nudFile1[cr+1], eindFile1, nudFile1);
 	}
 	TNudyCore::Instance()->Sort(eindFile1, nudFile1);
+	eind.push_back(eindFile1);
+	nud.push_back(nudFile1);
+	lambdaD.push_back(nui);
+	eindFile1.clear();
+	nudFile1.clear();
+        nui.clear();	
 	nbt1.clear();	int1.clear();
       }else if(LNU == 2 && LDG == 1){
-	
-	
       }      
     }else if(MT == 456){//prompt neutron multiplicity
 	
@@ -136,6 +143,10 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 	TNudyCore::Instance()->Sort(einFile1, nuFile1);
 	nbt1.clear();	int1.clear();
       }
+      einp.push_back(einFile1);
+      nup.push_back(nuFile1);
+      einFile1.clear();
+      nuFile1.clear();      
     }else if(MT == 458){
       TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
       int NPLY = list->GetL2();
@@ -211,7 +222,12 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 	  ein *= 2;
 	}while(ein < 21E8);
       }
-    }else if(MT == 460){
+      einFissHeat.push_back(einfFile1);
+      fissHeat.push_back(heatFile1);
+      einfFile1.clear();
+      heatFile1.clear();
+    }
+else if(MT == 460){
 	int LO  = sec->GetL1();
 	int NG  = sec->GetN1();
 	//	std::cout<<" Lo "<< LO <<" NG "<< NG <<std::endl;
@@ -250,9 +266,27 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
 	}
      }
   }
+  //for(unsigned int crs=0; crs < eint.size() ; crs ++)
+    //for(unsigned int cr=0; cr < eint[crs].size() ; cr ++)
+      //std::cout<< eint[crs][cr] <<"  "<< nut[crs][cr] << std::endl;
 }
 
-TNudyEndfNuPh::~TNudyEndfNuPh(){}
+TNudyEndfNuPh::~TNudyEndfNuPh(){
+  eintFile1.shrink_to_fit();
+  nutFile1.shrink_to_fit();
+  einFile1.shrink_to_fit();
+  nuFile1.shrink_to_fit();
+  eindFile1.shrink_to_fit();
+  nudFile1.shrink_to_fit();
+  einphFile1.shrink_to_fit();
+  phFile1.shrink_to_fit();
+  einfFile1.shrink_to_fit();
+  heatFile1.shrink_to_fit();
+  cnc.shrink_to_fit();
+  nui.shrink_to_fit();
+  nbt1.shrink_to_fit();
+  int1.shrink_to_fit();
+}
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::recursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x, std::vector<double> sig){
   double siga;
@@ -275,19 +309,80 @@ double TNudyEndfNuPh::recursionLinearNuPh(double x1, double x2, double sig1, dou
   return 0;
 }	
 //____________________________________________________________________________________________________________________
-double TNudyEndfNuPh::GetNuTotal(int elemid, double energyK){
+double TNudyEndfNuPh::GetNuTotal(int ielemid, double energyK){
+  //std::cout<<"eint size "<< eint.size() <<"  "<< ielemid<<"  "<< energyK << std::endl; 
   int min = 0;
-  int max = eint[elemid].size() - 1;
+  int max = eint[ielemid].size() - 1;
   int mid = 0;
-  if (energyK <= eint[elemid][min])min = 0;
-  else if (energyK >= eint[elemid][max]) min = max - 1;
+  if (energyK <= eint[ielemid][min])min = 0;
+  else if (energyK >= eint[ielemid][max]) min = max - 1;
   else {
     while (max - min > 1) {
       mid = (min + max) / 2;
-      if (energyK < eint[elemid][mid]) max = mid;
+      if (energyK < eint[ielemid][mid]) max = mid;
       else min = mid;
     }
   }
-  return nut[elemid][min] + (nut[elemid][min+1] - nut[elemid][min])*(energyK - eint[elemid][min])
-                          /(eint[elemid][min+1] - eint[elemid][min]);
+  return nut[ielemid][min] + (nut[ielemid][min+1] - nut[ielemid][min])*(energyK - eint[ielemid][min])
+                          /(eint[ielemid][min+1] - eint[ielemid][min]);
+}
+//____________________________________________________________________________________________________________________
+double TNudyEndfNuPh::GetNuDelayed(int ielemid, double energyK){
+  //std::cout<<"eind size "<< eind.size() <<"  "<< ielemid<<"  "<< energyK << std::endl; 
+  int min = 0;
+  int max = eind[ielemid].size() - 1;
+  int mid = 0;
+  if (energyK <= eind[ielemid][min])min = 0;
+  else if (energyK >= eind[ielemid][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < eind[ielemid][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  return nud[ielemid][min] + (nud[ielemid][min+1] - nud[ielemid][min])*(energyK - eind[ielemid][min])
+                          /(eind[ielemid][min+1] - eind[ielemid][min]);
+}
+//____________________________________________________________________________________________________________________
+double TNudyEndfNuPh::GetNuPrompt(int ielemid, double energyK){
+  //std::cout<<"einp size "<< einp.size() <<"  "<< ielemid<<"  "<< energyK << std::endl; 
+  int min = 0;
+  int max = einp[ielemid].size() - 1;
+  int mid = 0;
+  if (energyK <= einp[ielemid][min])min = 0;
+  else if (energyK >= einp[ielemid][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < einp[ielemid][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  return nup[ielemid][min] + (nup[ielemid][min+1] - nup[ielemid][min])*(energyK - einp[ielemid][min])
+                          /(einp[ielemid][min+1] - einp[ielemid][min]);
+}
+//____________________________________________________________________________________________________________________
+double TNudyEndfNuPh::GetFissHeat(int ielemid, double energyK){
+  //std::cout<<"fissHeat size "<< einFissHeat.size() <<"  "<< ielemid<<"  "<< energyK << std::endl; 
+  int min = 0;
+  int max = einFissHeat[ielemid].size() - 1;
+  int mid = 0;
+  if (energyK <= einFissHeat[ielemid][min])min = 0;
+  else if (energyK >= einFissHeat[ielemid][max]) min = max - 1;
+  else {
+    while (max - min > 1) {
+      mid = (min + max) / 2;
+      if (energyK < einFissHeat[ielemid][mid]) max = mid;
+      else min = mid;
+    }
+  }
+  return fissHeat[ielemid][min] + (fissHeat[ielemid][min+1] - fissHeat[ielemid][min])*(energyK - einFissHeat[ielemid][min])
+                          /(einFissHeat[ielemid][min+1] - einFissHeat[ielemid][min]);
+}
+//____________________________________________________________________________________________________________________
+double TNudyEndfNuPh::GetLambdaD(int ielemid, int time){
+  //std::cout<<"eint size "<< eint.size() <<"  "<< ielemid<<"  "<< energyK << std::endl; 
+  if(time > (int)lambdaD[ielemid].size() - 1)return -99.0;
+  return lambdaD[ielemid][time];
 }

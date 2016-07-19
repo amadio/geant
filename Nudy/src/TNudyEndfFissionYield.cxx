@@ -25,6 +25,7 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
     TIter recIter(sec->GetRecords());
     //double ZA   = sec->GetC1();
     //double AWR  = sec->GetC2();
+    //div_t divr;
     int MT = sec->GetMT();
     int LE = sec->GetL1();
     if(MT == 454){// Neutron induced independent fission yield
@@ -33,12 +34,14 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
 	ein.push_back ( list1->GetC1() );
 	//int NN   = list1->GetN1();
 	int NFP  = list1->GetN2();
-//      std::cout<<"energy i " <<ein[i] << std::endl;
+        //std::cout<<"energy i " <<ein[i] << std::endl;
 	for (int j = 0; j < NFP; j++){
 	  zafp1.push_back (list1->GetLIST(4*j+0));
 	  fps1.push_back(list1->GetLIST(4*j+1));
 	  yi1.push_back(list1->GetLIST(4*j+2));
 	  dyi1.push_back(list1->GetLIST(4*j+3));
+	  //divr = div(zafp1[j],1000);
+	  //std::cout<< divr.rem <<"  "<<  yi1[j] << std::endl;
 	}
 	TNudyCore::Instance()->cdfGenerateT(zafp1, yi1, cyi1);
 	zafp.push_back (zafp1);
@@ -49,6 +52,7 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
 	zafp1.clear();
 	fps1.clear();
 	yi1.clear();
+	cyi1.clear();
 	dyi1.clear();	  
       }
       einfId.push_back(ein);
@@ -56,6 +60,7 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
       pdfYieldId.push_back(yi);
       cdfYieldId.push_back(cyi);
       yi.clear();
+      cyi.clear();
       zafp.clear();
       ein.clear();
     }else if(MT == 459){// Neutron induced cummulative fission yield
@@ -85,10 +90,33 @@ TNudyEndfFissionYield::TNudyEndfFissionYield(TNudyEndfFile *file)
    }
 }
 
-TNudyEndfFissionYield::~TNudyEndfFissionYield(){}
+TNudyEndfFissionYield::~TNudyEndfFissionYield(){
+  ein.shrink_to_fit();
+  einc.shrink_to_fit();
+  zafp.shrink_to_fit();
+  fps.shrink_to_fit();
+  zafpc.shrink_to_fit();
+  fpsc.shrink_to_fit();
+  yi.shrink_to_fit();
+  cyi.shrink_to_fit(); 
+  dyi.shrink_to_fit(); 
+  yc.shrink_to_fit(); 
+  dyc.shrink_to_fit();
+  zafp1.shrink_to_fit();
+  fps1.shrink_to_fit();
+  zafpc1.shrink_to_fit();
+  fpsc1.shrink_to_fit();
+  yi1.shrink_to_fit();
+  cyi1.shrink_to_fit(); 
+  dyi1.shrink_to_fit(); 
+  yc1.shrink_to_fit(); 
+  dyc1.shrink_to_fit();
+}
 
 double TNudyEndfFissionYield::GetFisYield(int ielemId, double energyK){
   fRnd = new TRandom3(0);
+  //std::cout<<"element "<< einfId.size() << std::endl;
+  //std::cout<<"energies "<< einfId[ielemId].size() << std::endl;
   int min = 0;
   int max = einfId[ielemId].size() - 1;
   int mid = 0;
@@ -108,11 +136,10 @@ double TNudyEndfFissionYield::GetFisYield(int ielemId, double energyK){
   if(rnd2 < fraction)min = min + 1;
   int k =0;
   int size = pdfYieldId[ielemId][min].size();
-  for(int j = 0; j < size; j++){
+  for(int j = 1; j < size; j++){
     if(rnd1 < cdfYieldId[ielemId][min][j]){
       k = j - 1 ;
-      if(k < 0)k = 0;
-      if(k >= size) k = size - 1;
+      if(k >= size - 1) k = size - 1;
       break;
     }
   }

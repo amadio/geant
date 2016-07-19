@@ -20,6 +20,7 @@ public:
   TNudyEndfEnergy ();
   TNudyEndfEnergy (TNudyEndfFile *file);
   virtual double GetEnergy5(int elemid, int mt, double energyK);
+  virtual double GetDelayedFraction(int ielemId, int mt, double energyK);
   virtual ~TNudyEndfEnergy ();
 private:
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
@@ -44,7 +45,7 @@ private:
   rowd energyPdfFile5;
   rowd energyCdfFile5;
   rowd ein, eneE, cdf,pdf;
-  matrixd2 ene2d, cdf2d, pdf2d,ein2d;
+  matrixd2 ene2d, frac2d, cdf2d, pdf2d,ein2d;
   matrixd3 ene3d,cdf3d, pdf3d;
 #ifdef USE_ROOT
   TRandom3 *fRnd;

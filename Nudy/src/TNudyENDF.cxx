@@ -71,7 +71,6 @@ TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *
   fTape = new TNudyEndfTape(fLine, fLogLev);
   fENDF.seekg(0);	      
   fENDF.getline(fLine, LINLEN);
-  std::cout<<"main file "<< fLine << std::endl;
 }
 
 //_______________________________________________________________________________
@@ -79,12 +78,13 @@ void TNudyENDF::Process() {
   //
   // Process a tape
   //
-  if(sub==kTRUE){
+  if(sub==true){
     const char* EndfSub;
     std::string subname = GetEndfSubName();
-    EndfSub =(const char*)subname.c_str();
+    EndfSub = subname.c_str();
     fENDF.open(EndfSub);
-  if (!fENDF.is_open())
+    std::cout<<"EndfSub "<< subname << std::endl;
+    if (!fENDF.is_open())
     ::Fatal("ctor", "Could not open input file %s", EndfSub);
     fENDF.getline(fLine, LINLEN);   
   }
@@ -97,6 +97,7 @@ void TNudyENDF::Process() {
 
   while (!fENDF.eof()) {
     fENDF.getline(fLine, LINLEN);
+      std::cout << fLine << std::endl;
     if (fLogLev > 10)
       std::cout << fLine << std::endl;
       
@@ -137,11 +138,13 @@ void TNudyENDF::Process() {
   }
 
   // Write the tape to disk
-  
-  fTape->Print();
-  fTape->Write();
-  fENDF.close();
-  if(sub==kTRUE)fRENDF->Close();
+  fENDF.close();  
+  if(sub==true){
+    fTape->Print();
+    fTape->Write();
+    fENDF.close();
+    fRENDF->Close();
+  }
 }
 
 //_______________________________________________________________________________

@@ -19,14 +19,18 @@ class  TNudyEndfEnergyAng : public TNudyEndfRecoPoint {
 public: 
   TNudyEndfEnergyAng ();
   TNudyEndfEnergyAng (TNudyEndfFile *file, double []);
-  virtual double GetCos6(int elemid, int mt, int law, double energyK);
-  virtual double GetEnergy6(int elemid, int mt, int law, double energyK);
+  virtual double GetCos64(int elemid, int mt, double energyK);
+  virtual double GetCos6(int elemid, int mt, double energyK);
+  virtual double GetEnergy6(int elemid, int mt, double energyK);
   virtual int GetLaw6(int ielemId, int mt);
+  virtual int GetZd6(int ielemId, int mt);
+  virtual int GetAd6(int ielemId, int mt);
   virtual ~TNudyEndfEnergyAng ();
 private:
   double recursionLinearFile5Prob(double x1, double x2, double pdf1, double pdf2);
   double recursionLinearFile4(int i, double x1, double x2, double pdf1, double pdf2);
   double recursionLinearProb(double x1, double x2, double pdf1, double pdf2);
+  void Law2OnlyAngle();
 
   double A, AWR, ABN, QX;                         // standard ENDF parameters
   int testv;
@@ -39,8 +43,9 @@ private:
   rowd cosCdfFile4, energyCdfFile5;
   rowd edes6,f06,r6,a6;
   rowd fE1, fP1, fE2, fP2, fE3, fP3, INorm;
+  rowint zd, ad;
   rowint law;				// law6 numbers
-  rowint MtNumbers;				// MT numbers
+  rowint MtNumbers,MtNumbers6, MtNumbers4;				// MT numbers
   rowint MtLct;				// LCT numbers
   rowint nbt1,int1;
   int nr1, np1;                         // standard ENDF parameters
@@ -50,7 +55,8 @@ private:
   int nr3, np3;                         // standard ENDF parameters
   rowd ein,cosc,cdfc,pdfc,lCoef1,cosin,cosinpdf,cosincdf;
   rowd eoute,cdfe,pdfe;
-  matrixd2 cos2d,cosinpdf2d,cosincdf2d,cos2dc,pdf2dc,cdf2dc,lCoef,ein2d;
+  matrixint Mt6Values;             // MT values 
+  matrixd2 cos2d,cosinpdf2d,cosincdf2d,cos2dc,pdf2dc,cdf2dc,lCoef,ein2d,ein2dc;
   matrixd3 cos3d,cosinpdf3d,cosincdf3d,cos3dc,pdf3dc,cdf3dc;
   matrixd2 eout2de,pdf2de,cdf2de;
   matrixd3 eout3de,pdf3de,cdf3de;
