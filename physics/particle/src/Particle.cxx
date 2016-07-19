@@ -168,7 +168,7 @@ void Particle::ReadFile(std::string infilename, bool output)
   int isospin, iso3, strange, flavor, track, ndecay;
   int ipart, acode;
   int kcount       = 0;
-  const int ksplit = 40;
+  const int ksplit = 30;
   int kfunc        = 0;
 
   std::ofstream outfile;
