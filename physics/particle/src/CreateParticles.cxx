@@ -25,6 +25,7 @@ void CreateParticle0019();
 void CreateParticle0020();
 
 //________________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void Particle::CreateParticles() {
    static bool initDone=false;
    if(initDone) return;

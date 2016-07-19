@@ -95,8 +95,6 @@ public:
 #ifndef GEANT_NVCC
   static void ReadFile(std::string infilename, bool outfile=false);
 #endif
-  GEANT_CUDA_BOTH_CODE
-  static void CreateParticle();
 
 #ifndef GEANT_NVCC
   static const Particle &GetParticle(int pdg)

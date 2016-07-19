@@ -2,12 +2,19 @@
 #pragma clang optimize off
 #endif
 #include "Particle.h"
+#ifdef GEANT_NVCC
+#include "base/Vector.h"
+template <typename T>
+using vector = vecgeom::Vector<T>;
+#else
 using std::vector;
+#endif
 namespace geant {
    inline namespace GEANT_IMPL_NAMESPACE {
 
 
 //________________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void CreateParticle0007() {
 
    // Creating Delta--

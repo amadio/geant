@@ -294,7 +294,9 @@ void Particle::ReadFile(std::string infilename, bool output)
 	 outline << "#pragma clang optimize off" << endl;
 	 outline << "#endif" << endl;
 	 outline << "#include \"Particle.h\"" << endl;
-	 outline << "using std::vector;" << endl;
+	 outline << "#ifdef GEANT_NVCC" << endl << "#include \"base/Vector.h\"" << endl
+		 << "template <typename T>" << endl << "using vector = vecgeom::Vector<T>;" << endl
+		 << "#else" << endl << "using std::vector;" << endl << "#endif" << endl;
 	 outline << "namespace geant {" << endl;
 	 outline << "   inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
 	 outline << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
