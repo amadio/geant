@@ -72,7 +72,7 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   track.fXdir = Sin(theta) * Cos(phi);
   track.fYdir = Sin(theta) * Sin(phi);
   track.fZdir = Cos(theta);
-  vecgeom::SimpleNavigator nav;
+  SimpleNavigator nav;
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
                     Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.fPath, true);
 
