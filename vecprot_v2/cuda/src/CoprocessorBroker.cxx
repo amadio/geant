@@ -508,10 +508,10 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
   int ntot = 0;
   int nnew = 0;
   int nkilled = 0;
-  Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%lu "
-         "basketHoles#=%lu ",
-         fThreadId, fStreamId, fNStaged, output.GetNtracks(), transferTo.fHoles->CountBits(),
-         output.fHoles->CountBits());
+  // Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%lu "
+  //        "basketHoles#=%lu ",
+  //        fThreadId, fStreamId, fNStaged, output.GetNtracks(), transferTo.fHoles->CountBits(),
+  //        output.fHoles->CountBits());
   /* int ninjected = */ sch->AddTracks(output, ntot, nnew, nkilled, fGeantTaskData);
   (void)ntot;
   (void)nnew;
@@ -615,8 +615,8 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
   int outstanding = 0;
   for (auto td : fTaskData)
     outstanding += td->fNStaged;
-  Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks (%d total oustanding tracks)\n",
-         stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged, outstanding);
+  // Printf("(%d - GPU) == Starting kernel for task %s using stream %d with %d tracks (%d total oustanding tracks)\n",
+  //        stream->fThreadId, task->Name(), stream->fStreamId, stream->fNStaged, outstanding);
 
   if ((unsigned int)stream->fInputBasket->GetInputTracks().GetNtracks() == stream->fDevMaxTracks) {
     Fatal("CoprocessorBroker::launchTask",
