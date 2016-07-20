@@ -582,7 +582,7 @@ void *WorkloadManager::TransportTracks() {
       }
     }
     // First breakpoint to be set
-    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, prop->fDebugRep, "EndStep");
+    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, propagator->fDebugRep, "EndStep");
 #endif
     for (auto itr = 0; itr < ntotnext; ++itr) {
       //output.fNstepsV[itr]++;
