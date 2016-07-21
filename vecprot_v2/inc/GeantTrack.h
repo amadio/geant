@@ -134,7 +134,6 @@ public:
   *
   * @param ipdg PDG code
   */
-  GEANT_CUDA_BOTH_CODE
   GeantTrack(int ipdg);
 
   /**

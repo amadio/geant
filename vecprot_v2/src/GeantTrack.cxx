@@ -37,7 +37,6 @@ void printrace(void) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack(int ipdg)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
@@ -86,7 +85,7 @@ GeantTrack::GeantTrack(const GeantTrack &other)
       fPstep(other.fPstep), fStep(other.fStep), fSnext(other.fSnext), fSafety(other.fSafety), fNintLen(other.fNintLen), fIntLen(other.fIntLen),
       fBoundary(other.fBoundary), fPending(other.fPending), fOwnPath(true), fPath(0), fNextpath(0) {
   // Copy constructor
-  int maxdepth = GeantPropagator::Instance()->fMaxDepth;
+  int maxdepth = fPath->GetMaxLevel();
   fPath = VolumePath_t::MakeInstance(maxdepth);
   fNextpath = VolumePath_t::MakeInstance(maxdepth);
   *fPath = *other.fPath;
@@ -129,7 +128,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fIntLen = other.fIntLen;
     fBoundary = other.fBoundary;
     fPending = other.fPending;
-    int maxdepth = GeantPropagator::Instance()->fMaxDepth;
+    int maxdepth = fPath->GetMaxLevel();
     fPath = VolumePath_t::MakeInstance(maxdepth);
     fNextpath = VolumePath_t::MakeInstance(maxdepth);
     *fPath = *other.fPath;
