@@ -1,22 +1,18 @@
-# Add this directory to Doxygen
-if(DOXYGEN_FOUND)
-  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-endif()
-
-#----------------------------------------------------------------------------
-# Setup Geant4 include directories and compile definitions
+#----------------------------------------------------------------------------------------------
+# Add source files & include directories
 #
-message(STATUS "Using Geant4 file ${Geant4_USE_FILE}")
+
+# Setup Geant4 include directories and compile definitions
 include(${Geant4_USE_FILE})
 
-#----------------------------------------------------------------------------
-# Locate sources and headers for this project
-#
 include_directories(include 
-                    ${Geant4_INCLUDE_DIR})
+  ${Geant4_INCLUDE_DIR})
 
-#----------------------------------------------------------------------------
-# Define compiler flags : already done in the main CMakeLists
+file(GLOB sources src/*.cc)
+file(GLOB headers include/*.hh)
+
+#----------------------------------------------------------------------------------------------
+# Redefine compiler flags since Geant4 is overriding them
 #
 if(CMAKE_BUILD_TYPE MATCHES None)
   set(_cf ${CMAKE_CXX_FLAGS})
@@ -33,36 +29,33 @@ endif()
 separate_arguments(_cf)
 set_directory_properties(PROPERTIES COMPILE_OPTIONS "${_cf}")
 
-file(GLOB sources src/*.cc)
-file(GLOB headers include/*.hh)
-
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_NOW_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_NOW_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANTV_CXX_NOW_FLAGS_MINSIZEREL}")
 set(CMAKE_CXX_FLAGS_RELEASE        "${GEANTV_CXX_NOW_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 
-#----------------------------------------------------------------------------
-# Add the executable, and link it to the Geant4 libraries
+#----------------------------------------------------------------------------------------------
+# Add the executable
 #
 add_executable(testcomplex testcomplex.cc ${sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-target_link_libraries(testcomplex ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
-	-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${XSEC_LINK_LIBS} -lGeom -lEG Geant_v Xsec)
+target_link_libraries(testcomplex -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
+  ${XSEC_LINK_LIBS} Geant_v Xsec)
 
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
 
 add_dependencies(testcomplex Geant_v Xsec)
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build TESTCOMPLEX. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
 
 set(TESTCOMPLEX_SCRIPTS
-    g4macro_TPHYS.mac g4macro_G4.mac testcomplex.sh 
-   )
+  g4macro_TPHYS.mac g4macro_G4.mac testcomplex.sh 
+  )
 
 foreach(_script ${TESTCOMPLEX_SCRIPTS})
   configure_file(
@@ -87,9 +80,16 @@ else()
 endif()
 
 
-#----------------------------------------------------------------------------
-# Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
+#----------------------------------------------------------------------------------------------
+# Install the files
 #
 install(TARGETS testcomplex DESTINATION bin)
+
+#----------------------------------------------------------------------------------------------
+# Add this directory to Doxygen
+#
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
 
 

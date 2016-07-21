@@ -1,56 +1,59 @@
-# Adding this directory to Doxygen
-if(DOXYGEN_FOUND)
-  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-endif()
+#----------------------------------------------------------------------------------------------
+# Add source files & include directories
+#
+set(TEST_EXECUTABLES
+  executable_test.C
+  )
+
+set(headers
+   inc/GeantThreadData.h
+   inc/PhysicsProcess.h
+   inc/GeantBasket.h
+   inc/GeantScheduler.h
+   inc/GeantPropagator.h
+   inc/GeantEvent.h
+   inc/GeantTrack.h
+   inc/GeantOutput.h
+   inc/WorkloadManager.h
+   inc/GeantVApplication.h
+   inc/GeantTrackStat.h
+   inc/MyHit.h
+   ../examples/inc/ExN03Application.h
+   ../inc/PrimaryGenerator.h
+   ../xsec/inc/GunGenerator.h
+   ../xsec/inc/TTabPhysProcess.h
+   )
 
 include_directories(inc ../magneticfield/inc)
 
+#----------------------------------------------------------------------------------------------
+# Make sure to use GEANTV and not GEANT4 flags, in case they have been overwritten
+# Not sure this is really necessary
+#
 set_property(GLOBAL PROPERTY COMPILE_DEFINITIONS "${GEANTV_COMPILE_DEFINITIONS}")
 set(CMAKE_CXX_FLAGS                "${GEANTV_CXX_FLAGS}")
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
-set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_FLAGS_DEBUG} -O0")
+  set(CMAKE_CXX_FLAGS_DEBUG          "${GEANTV_CXX_FLAGS_DEBUG} -O0")
 endif()
 set(CMAKE_CXX_FLAGS_MINSIZEREL     "${GEANTV_CXX_FLAGS_MINSIZEREL}")
 set(CMAKE_CXX_FLAGS_RELEASE        "${GEANTV_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_FLAGS_RELWITHDEBINFO}")
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_LINKER_FLAGS}")
 
-#----------------------------------------------------------------------------
-# Locate sources and headers for this project
-# NB: headers are included so they will show up in IDEs
-#
-set(TEST_EXECUTABLES
-   executable_test.C
-)
-
-set(headers
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantThreadData.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/PhysicsProcess.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantBasket.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantScheduler.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantPropagator.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantEvent.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantTrack.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantOutput.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/WorkloadManager.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantVApplication.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/GeantTrackStat.h
-   ${CMAKE_SOURCE_DIR}/examples/inc/ExN03Application.h
-   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/MyHit.h
-   ${CMAKE_SOURCE_DIR}/inc/PrimaryGenerator.h
-   ${CMAKE_SOURCE_DIR}/xsec/inc/GunGenerator.h
-   ${CMAKE_SOURCE_DIR}/xsec/inc/TTabPhysProcess.h
-)
-
 ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h)
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+# CTEST section
+#
 if(CTEST)
   message(STATUS "Testing with CTest enabled.")
   enable_testing()
 endif()
 
+#----------------------------------------------------------------------------------------------
+# Add the test executable
+#
 set(GEANTV_EXECUTABLES)
 
 macro(build_executables EXECUTABLES)
@@ -58,9 +61,9 @@ macro(build_executables EXECUTABLES)
     get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
     add_executable(${TARGET_NAME} ${EXECUTABLE})
     if(VECGEOM_FOUND)
-      target_link_libraries(${TARGET_NAME} ${ROOT_LIBRARIES} -lEG -lGeom ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} -lXsec -lGeant_v -lGeantExamples)
+      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} Xsec Geant_v GeantExamples)
     else()
-      target_link_libraries(${TARGET_NAME} ${ROOT_LIBRARIES} -lEG -lGeom -lXsec -lGeant_v -lGeantExamples)
+      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${ROOT_LIBRARIES} Xsec Geant_v GeantExamples)
     endif()
     set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
   endforeach()
@@ -72,7 +75,7 @@ function(add_to_ctest EXECUTABLES)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       if(TARGET_NAME STREQUAL "executable_test")
       	add_test(NAME ${TARGET_NAME}
-		COMMAND  $<TARGET_FILE:${TARGET_NAME}> 4 true ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/ExN03.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/xsec_FTFP_BERT.root ${CMAKE_SOURCE_DIR}/vecprot_v2/tests/data/fstate_FTFP_BERT.root true)
+	  COMMAND  $<TARGET_FILE:${TARGET_NAME}> 4 true tests/data/ExN03.root tests/data/xsec_FTFP_BERT.root tests/data/fstate_FTFP_BERT.root true)
       else()
       	add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
       endif()
@@ -83,5 +86,11 @@ endfunction()
 
 build_executables("${TEST_EXECUTABLES}")
 add_to_ctest("${TEST_EXECUTABLES}")
-install(TARGETS executable_test DESTINATION ${CMAKE_SOURCE_DIR}/vecprot_v2/tests)
+install(TARGETS executable_test DESTINATION tests)
 
+#----------------------------------------------------------------------------------------------
+# Add this directory to Doxygen
+#
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()

@@ -1,3 +1,4 @@
+#----------------------------------------------------------------------------------------------
 #
 # Try to capture the initial set of cmake command line args passed by
 # the user for configuration.
@@ -26,10 +27,13 @@ FOREACH(CACHE_VAR ${CACHE_VARS})
         SET(CMAKE_INVOKE_ARGS "${CMAKE_INVOKE_ARGS} -D${CACHE_VAR}${CACHE_VAR_TYPE}=\"${${CACHE_VAR}}\"")
     ENDIF()
 ENDFOREACH(CACHE_VAR ${CACHE_VARS})
+#
 # Record the full command line invocation.
+#
 SET(CMAKE_INVOKE "${CMAKE_COMMAND} ${CMAKE_INVOKE_ARGS} ${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "Command used to invoke cmake" FORCE)
+#
 # Create a simple shell script that allows us to reinvoke cmake with the captured command line.
-
+#
 IF (NOT WIN32)
     if (NOT ${CMAKE_GENERATOR} STREQUAL "Unix Makefiles")
         set(RECMAKE_GENERATOR "-G ${CMAKE_GENERATOR}")
@@ -59,11 +63,10 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
+#----------------------------------------------------------------------------------------------
 # Doxygen documentation
-#__________________________________________________________________________________________________________________
-# based on the files from Tobias Rautenkrantz
-# https://tobias.rautenkranz.ch/cmake/doxygen/
-
+# based on the files from Tobias Rautenkrantz # https://tobias.rautenkranz.ch/cmake/doxygen/
+#
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   find_file(DOXYFILE_IN "Doxyfile.in"
@@ -154,8 +157,9 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/doc/doxygenTpl")
 endif()
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Setup the project
+#
 cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 project(GEANTV)
 
@@ -167,35 +171,28 @@ if(APPLE)
   set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
 # Fix bug on APPLE, this is the default everywhere
   set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-isystem ")
+  set(CMAKE_MACOSX_RPATH ON)
 endif()
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Additional options
-
+#
 option(KNC "Enable compilation for KNC." OFF)
-
 option(KNL "Enable compilation for KNL." OFF)
-
 option(CUDA "Enable compilation for CUDA." OFF)
-
 option(DATA_DOWNLOAD "Enable data download" OFF)
-
 option(MAGIC_DEBUG "Debug xsec serialisation with magic number" ON)
 if(MAGIC_DEBUG) 
   add_definitions(-DMAGIC_DEBUG)
 endif()
 
-
-set(CMAKE_MACOSX_RPATH ON)
-
 option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
-
 option(WITH_GEANT4 "Enable libraries and test using the Geant4 libraries" ON)
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Use absolute RPATH when linking to avoid needing to export LD_LIBRARY_PATH
-
+#
 if (GEANT_INSTALL_RPATH)
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
@@ -214,8 +211,9 @@ endif()
 
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 
-#----------------------------------------------------------------------------
-
+#----------------------------------------------------------------------------------------------
+# Process various options
+#
 option(CTEST "Enable CTest when building." OFF)
 if (CTEST)
   set (DATA_DOWNLOAD ON)
@@ -248,8 +246,10 @@ endif()
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
 option(USE_VECGEOM_NAVIGATOR "Use the navigator from VecGeom" ON)
 option(USE_ROOT "Use ROOT" ON)
-#---------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------
 # Debuging options
+#
 if(BUG_HUNT)
   add_definitions(-DBUG_HUNT)
   message(STATUS "BUG_HUNT ON  : Bug hunting mode !")
@@ -257,8 +257,8 @@ else()
   message(STATUS "BUG_HUNT OFF  : No bug hunting...")
 endif()
 
-#----------------------------------------------------------------------------
-# Find HepMC (required package)
+#----------------------------------------------------------------------------------------------
+# Find packages
 #
 find_package(HepMC REQUIRED)
 if(HepMC_FOUND)
@@ -277,22 +277,22 @@ if (KNC)
   endif()
 endif()
 
-if(WITH_GEANT4)
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
 # to build a batch mode only executable
 #
-
-if(WITH_GEANT4_UIVIS)
-  find_package(Geant4 REQUIRED ui_all vis_all)
-else()
-  find_package(Geant4 REQUIRED)
+if(WITH_GEANT4)
+  if(WITH_GEANT4_UIVIS)
+    find_package(Geant4 REQUIRED ui_all vis_all)
+  else()
+    find_package(Geant4 REQUIRED)
+  endif()
 endif()
-endif()
 
-
-#---Set pathes where to put the libraries, executables and headers------------------------------
+#----------------------------------------------------------------------------------------------
+# Set pathes where to put the libraries, executables and headers
+#
 if( GEANT_OUTPUT_DIR )
     set(OUTDIR ${GEANT_OUTPUT_DIR})
 else()
@@ -306,7 +306,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTDIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
-#----------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------
 # Find VecGeom geometry headers library
 #
 set(VECGEOM_DIR "" CACHE DIRECTORY "Location of VecGeom")
@@ -332,10 +333,9 @@ else()
    message(FATAL_ERROR "Required VecGeom library not found")
 endif()
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Find ROOT and setup the libraries
 #
-
 if(USE_ROOT) 
 # You need to tell CMake where to find the ROOT installation. This can be done in a number of ways:
 #   - ROOT built with classic configure/make use the provided $ROOTSYS/etc/cmake/FindROOT.cmake
@@ -352,14 +352,14 @@ if(USE_ROOT)
    add_definitions("-DUSE_ROOT")
 endif()
 
-
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # see if we have CCACHE ( to avoid recompilation on branch switches )
+#
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
   message(STATUS "found ccache")
@@ -368,109 +368,44 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 
-#---------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Include creation and submission to dashboard cdash.cern.ch
-
+#
 include(CTest)
-
 if (CTEST)
   set(DATA_DOWNLOAD ON)
   message(STATUS "Testing with CTest enabled.")
   enable_testing()
 endif()
 
-#---------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Set data to be dowloaded
-
+#
 option(DATA_DOWNLOAD "Set of data files for examples" OFF)
 
 if(DATA_DOWNLOAD)
- message(STATUS "Downloading data files")
-
- # define a function downloading from a URL into a local file LOCALFILE
- function(FILE_DOWNLOAD FILE_URL LOCALFILE )
-  if(APPLE)
-      #execute_process(COMMAND curl ${FILE_URL} -o  ${LOCALFILE})
-      file(DOWNLOAD ${FILE_URL} ${LOCALFILE})
-  else()
-     execute_process(COMMAND wget -q ${FILE_URL} -O ${LOCALFILE})
-     #file(DOWNLOAD ${FILE_URL} ${FILE_URL})
-  endif()
- endfunction(FILE_DOWNLOAD)
- # end of function FILE DOWNLOAD
-
- # define a function checking md5 hashes
- # result is stored in MD5MATCHES ( 1 == true, 0 == false )
- function(CHECKMD5 FILETOCHECK EXPECTEDMD5HASH MD5MATCHES)
-     if(APPLE)
-         execute_process(COMMAND md5 ${FILETOCHECK} OUTPUT_VARIABLE MD5SUM)
-         string(LENGTH ${MD5SUM} MD5LENGTH)
-         MATH(EXPR START "${MD5LENGTH} - 33")
-         string(SUBSTRING ${MD5SUM} ${START} 32 MD5SUM)
-     else()
-         execute_process(COMMAND md5sum ${FILETOCHECK} OUTPUT_VARIABLE MD5SUM)
-         string(SUBSTRING ${MD5SUM} 0 32 MD5SUM)
-     endif()
-     if(MD5SUM STREQUAL EXPECTEDMD5HASH)
-       set(${MD5MATCHES} 1 PARENT_SCOPE)
-     else()
-       set(${MD5MATCHES} 0 PARENT_SCOPE)
-     endif()
- endfunction(CHECKMD5)
-
- # actual function for managing the download
- function(DOWNLOAD_IF_NOT_INSTALLED FILE_URL LOCALFILE TARGETPATH MD5HASH )
-   find_file(FOUNDFILE NAMES ${LOCALFILE} PATHS ${TARGETPATH})
-   if(FOUNDFILE STREQUAL "FOUNDFILE-NOTFOUND")
-       # set need download
-       message(STATUS "need download of ${LOCALFILE} since not found")
-       set( NEEDTODOWNLOAD 1 )
-   else()
-       # check md5
-       message(STATUS "found existing file ${LOCALFILE}")
-       CHECKMD5( ${FOUNDFILE} ${MD5HASH} MD5CORRECT )
-       if( ${MD5CORRECT} STREQUAL "1" )
-           # do not set download flag
-           set( NEEDTODOWNLOAD 0 )
-       else( )
-           # set need download
-           message(STATUS "hash ${MD5HASH} not correct for file ${FOUNDFILE} ${MD5CORRECT}" )
-           set( NEEDTODOWNLOAD 1 )
-       endif( )
-   endif()
-
-   if( ${NEEDTODOWNLOAD} STREQUAL 1 )
-       message(STATUS " downloading ... ")
-       set(DOWNLOADLOCATION "${TARGETPATH}/${LOCALFILE}")
-       FILE_DOWNLOAD( ${FILE_URL} ${DOWNLOADLOCATION} )
-   else()
-       message(STATUS " doing nothing ... ")
-   endif()
-   # in principle have to check now if download succeeded and has right MD5
-   # TOBEDONE
-
-   # this is annoying but we have to clear FOUNDFILE SINCE THIS IS TREATED LIKE A STATIC VARIABLE
-   unset(FOUNDFILE CACHE)
- endfunction(DOWNLOAD_IF_NOT_INSTALLED)
-
- file(MAKE_DIRECTORY data)
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ExN03.root" "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2015.root" "cms2015.root" "${CMAKE_SOURCE_DIR}/data/" "fb3ede867532b372c5e6f7138d00c07e")
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT_G496p02_1mev.root" "fstate_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "d7d3fc9fe2a835f9021bd3747cabf582")
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT.root" "fstate_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "4eea5710c691749980f5f8ad02a42231")
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/xsec_FTFP_BERT_G496p02_1mev.root" "xsec_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "648b4f4136d9a4cb6b590d98dc9182d8")
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/xsec_FTFP_BERT.root" "xsec_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "90c8ef05770cea48c7807e0241921cab")
- DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/pp14TeVminbias.root" "pp14TeVminbias.root" "${CMAKE_SOURCE_DIR}/data/" "109b827c595ae4a62b74f08f860abbb7")
- # add more data to download here
- #
+  message(STATUS "Downloading data files")
+  
+  file(MAKE_DIRECTORY data)
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ExN03.root" 
+    "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2015.root" 
+    "cms2015.root" "${CMAKE_SOURCE_DIR}/data/" "fb3ede867532b372c5e6f7138d00c07e")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT_G496p02_1mev.root" 
+    "fstate_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "d7d3fc9fe2a835f9021bd3747cabf582")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT.root" 
+    "fstate_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "4eea5710c691749980f5f8ad02a42231")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/xsec_FTFP_BERT_G496p02_1mev.root" 
+    "xsec_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "648b4f4136d9a4cb6b590d98dc9182d8")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/xsec_FTFP_BERT.root" 
+    "xsec_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "90c8ef05770cea48c7807e0241921cab")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/pp14TeVminbias.root" 
+    "pp14TeVminbias.root" "${CMAKE_SOURCE_DIR}/data/" "109b827c595ae4a62b74f08f860abbb7")
 endif()
 
-
-################################################################################
-#----------------------------------------------------------------------------
-# Define compiler flags
+#----------------------------------------------------------------------------------------------
+# Handle compiler flags
 #
-
 if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
     OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
   # using Clang
@@ -491,13 +426,13 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if(GCC_VERSION_LENGTH GREATER 2)
     list(GET GCC_VERSION_LIST 2 GCC_VERSION_PATCH)
   endif()
-
+  
   if(GCC_VERSION_MAJOR LESS 5 AND GCC_VERSION_MINOR LESS 9)
     set(DISABLE_WEFFC ON)
   endif()
   if(GCC_VERSION_MAJOR LESS 5)
     if ( Vc_FOUND )  # Actually this should really be if VecGeomConfigureToUseVC
-       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fabi-version=6")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fabi-version=6")
     endif()
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
@@ -515,7 +450,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 if (NOT DISABLE_WEFFC)
-   set(WEFFC_FLAG -Weffc++)
+  set(WEFFC_FLAG -Weffc++)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
@@ -523,111 +458,118 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
   if(APPLE)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
+    #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunknown-pragmas")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
-  endif()
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-endif()
+   else()
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+   endif()
+ else()
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+ endif()
+ 
+ # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+ 
+ if (KNC)
+   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmic")
+   else()
+     message(FATAL_ERROR "KNC native or offload compilation requires Intel Compiler.")
+   endif()
+ endif()
 
-# set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-
-if (KNC)
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmic")
-  else()
-    message(FATAL_ERROR "KNC native or offload compilation requires Intel Compiler.")
-  endif()
-endif()
-
-
-get_property(GEANTV_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
-get_property(GEANTV_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
-set(GEANTV_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG               "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2 ")
-set(GEANTV_CXX_NOW_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ")
-set(GEANTV_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ")
-set(GEANTV_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} ")
-set(GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ")
-set(GEANTV_EXE_NOW_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ")
-if (CUDA)
+ 
+ get_property(GEANTV_COMPILE_DEFINITIONS GLOBAL PROPERTY COMPILE_DEFINITIONS)
+ get_property(GEANTV_COMPILE_FLAGS_NOW GLOBAL PROPERTY COMPILE_FLAGS)
+ set(GEANTV_CXX_NOW_FLAGS                "${CMAKE_CXX_FLAGS}")
+ set(CMAKE_CXX_FLAGS_DEBUG               "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2 ")
+ set(GEANTV_CXX_NOW_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ")
+ set(GEANTV_CXX_NOW_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ")
+ set(GEANTV_CXX_NOW_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} ")
+ set(GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ")
+ set(GEANTV_EXE_NOW_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ")
+ if (CUDA)
    # Currently we are stuck with gcc 4.8 and a broken Weffc++ so let's not us it there
    set(GEANTV_WARNING_FLAGS "-W -Wall -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
-else()
+ else()
    set(GEANTV_WARNING_FLAGS "-W -Wall ${WEFFC_FLAG} -Wno-narrowing -Wwrite-strings -Wcast-qual -Wshadow -Wno-long-long -pedantic")
-endif()
-
-set(GEANTV_CXX_FLAGS                "${CMAKE_CXX_FLAGS} ${GEANTV_WARNING_FLAGS}")
-set(GEANTV_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ${GEANTV_WARNING_FLAGS}")
-set(GEANTV_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ${GEANTV_WARNING_FLAGS}")
-set(GEANTV_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} ${GEANTV_WARNING_FLAGS}")
-set(GEANTV_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${GEANTV_WARNING_FLAGS}")
-set(GEANTV_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ${GEANTV_WARNING_FLAGS}")
-set(GEANTV_COMPILE_FLAGS            "${GEANTV_COMPILE_FLAGS_NOW} ${GEANTV_WARNING_FLAGS}")
-
-#---------------------------------------------------------------------------
+ endif()
+ 
+ set(GEANTV_CXX_FLAGS                "${CMAKE_CXX_FLAGS} ${GEANTV_WARNING_FLAGS}")
+ set(GEANTV_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} ${GEANTV_WARNING_FLAGS}")
+ set(GEANTV_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL} ${GEANTV_WARNING_FLAGS}")
+ set(GEANTV_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} ${GEANTV_WARNING_FLAGS}")
+ set(GEANTV_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${GEANTV_WARNING_FLAGS}")
+ set(GEANTV_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} ${GEANTV_WARNING_FLAGS}")
+ set(GEANTV_COMPILE_FLAGS            "${GEANTV_COMPILE_FLAGS_NOW} ${GEANTV_WARNING_FLAGS}")
+ 
+#----------------------------------------------------------------------------------------------
+# Handle custom alloactor
+#
 if(CUSTOM_ALLOCATOR)
   find_package(CAllocator)
 endif()
+
+#----------------------------------------------------------------------------------------------
+# CUDA section
+#
 if (CUDA)
   option(GEANT_CUDA_SINGLE_SOURCE "Compile all the GeantV CUDA code in a single compilation unit." ON)
-
+  
   # We must have those over-ride placed here as they need to be done before loading FindCUDA.cmake
   set(CUDA_USE_STATIC_CUDA_RUNTIME OFF CACHE BOOL "Use the static version of the CUDA runtime library if available")
   set(CUDA_SEPARABLE_COMPILATION ON CACHE BOOL "Compile CUDA objects with separable compilation enabled.")
-
+  
   find_package(CUDA REQUIRED)
   include(FindCUDA)
-
+  
   if (NOT CUDA_ARCH)
     if (CUDA_SEPARABLE_COMPILATION)
       set(CUDA_ARCH 30)
     else()
-       message(FATAL_ERROR "VecGeom requires using separable compilation")
+      message(FATAL_ERROR "VecGeom requires using separable compilation")
     endif()
     if (NOT VECGEOM_CUDA_ARCH)
-       message(FATAL_ERROR "VecGeom not configured with CUDA/NVCC")
+      message(FATAL_ERROR "VecGeom not configured with CUDA/NVCC")
     endif()
     string(REGEX REPLACE "-arch=sm_([0-9]+)" "\\1" VECGEOM_CUDA_ARCH_NUM "${VECGEOM_CUDA_ARCH}")
     if (${VECGEOM_CUDA_ARCH_NUM} LESS ${CUDA_ARCH})
-       message(FATAL_ERROR "GeantV must be configured with a CUDA SM (${CUDA_ARCH}) less than VecGeom's (${VECGEOM_CUDA_ARCH_NUM})" )
+      message(FATAL_ERROR "GeantV must be configured with a CUDA SM (${CUDA_ARCH}) less than VecGeom's (${VECGEOM_CUDA_ARCH_NUM})" )
     elseif(${CUDA_ARCH} LESS ${VECGEOM_CUDA_ARCH_NUM})
-        # all good
+      # all good
     elseif(${CUDA_ARCH} EQUAL ${VECGEOM_CUDA_ARCH_NUM})
-        # all good
+      # all good
     else()
-        message(WARNING "GeantV must be configured with a CUDA SM (${CUDA_ARCH}) less than VecGeom's (${VECGEOM_CUDA_ARCH_NUM}) but one of the two is invalid." )
+      message(WARNING "GeantV must be configured with a CUDA SM (${CUDA_ARCH}) less than VecGeom's (${VECGEOM_CUDA_ARCH_NUM}) but one of the two is invalid." )
     endif()
   endif()
   set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
-
+  
   set(
     CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
     -Xcompiler ,\"-Wno-unused-function\"
     -Xcompiler ,\"-Wno-unused-parameter\"
     -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"
     -Xcudafe "--diag_suppress=initialization_not_reachable"
-  )
+    )
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G)
   endif()
   # set(CUDA_SEPARABLE_COMPILATION ON)
   # set(CUDA_VERBOSE_BUILD ON)
-
+  
   if (VECGEOM_CUDA_LIBRARY)
-     SET(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${CUDA_LIBRARIES} )
-     message(STATUS "Updated VecGeom libraries to ${VECGEOM_LIBRARIES}")
+    SET(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${CUDA_LIBRARIES} )
+    message(STATUS "Updated VecGeom libraries to ${VECGEOM_LIBRARIES}")
   endif()
-
+  
   include_directories(AFTER SYSTEM ${CUDA_INCLUDE_DIRS})
   message(STATUS "Added to include directories:  ${CUDA_INCLUDE_DIRS}")
-
+  
 endif()
 
-#---------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Include directories
+#
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
 include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
@@ -636,22 +578,21 @@ include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
 
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
 # Add subdirectories
 #
 add_custom_target(_headers ALL)
 
-message(STATUS "COMPILATION FLAGS ARE -${GEANTV_CXX_FLAGS} - ${GEANTV_COMPILATION_FLAGS}")
 add_subdirectory (base)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
 if(WITH_GEANT4 AND NOT (CUDA))
-add_subdirectory (tabxsec)
-add_subdirectory (test-small)
-add_subdirectory (test-complex)
-add_subdirectory (test-LHCb)
-add_subdirectory (cmstrack)
+  add_subdirectory (tabxsec)
+  add_subdirectory (test-small)
+  add_subdirectory (test-complex)
+  add_subdirectory (test-LHCb)
+  add_subdirectory (cmstrack)
 endif()
 add_subdirectory (magneticfield)
 add_subdirectory (fastsim)
@@ -660,13 +601,15 @@ if (ROOT_mathmore_FOUND)
 endif()
 
 if(USE_VECPHYS)
- add_subdirectory(vecphys)
- add_subdirectory(vectphysproc)
+  add_subdirectory(vecphys)
+  add_subdirectory(vectphysproc)
 endif()
 
 add_subdirectory(physics)
 
+#----------------------------------------------------------------------------------------------
+# Process Doxygen file
+#
 if(DOXYGEN_FOUND)
-  message(${DOXYFILE_SOURCE_DIRS})
   configure_file("${DOXYFILE_IN}" "${DOXYFILE}" @ONLY)
 endif()

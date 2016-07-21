@@ -1,23 +1,19 @@
-# Add this directory to Doxygen
-if(DOXYGEN_FOUND)
-  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-endif()
-
-include_directories(inc)
-include_directories("${CMAKE_SOURCE_DIR}/magneticfield/inc")
-include_directories("${CMAKE_SOURCE_DIR}/physics/particle/inc")
+#----------------------------------------------------------------------------------------------
+# Add source files & include directories
+#
+include_directories(
+  inc
+  ../magneticfield/inc
+  ../physics/particle/inc
+  )
 
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
-set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+  set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 endif()
 
-#----------------------------------------------------------------------------
-# Locate sources and headers for this project
-# NB: headers are included so they will show up in IDEs
-#
 set(sources
-   ${CMAKE_SOURCE_DIR}/base/src/Error.cxx
+   ../base/src/Error.cxx
    src/GeantTaskData.cxx
    src/GeantTrack.cxx
    src/GeantBasket.cxx
@@ -38,8 +34,8 @@ set(sources
 )
 
 set(headers
-   ${CMAKE_SOURCE_DIR}/base/inc/Geant/Config.h
-   ${CMAKE_SOURCE_DIR}/base/inc/Geant/Error.h
+   ../base/inc/Geant/Config.h
+   ../base/inc/Geant/Error.h
    inc/GeantTaskData.h
    inc/PhysicsProcess.h
    inc/GeantBasket.h
@@ -56,57 +52,56 @@ set(headers
    inc/TThreadMergingServer.h
 )   
 
-include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
-
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
    set(sources ${sources} src/ScalarNavInterfaceTGeo.cxx)
    set(headers ${headers} inc/ScalarNavInterfaceTGeo.h)
 endif()
 
 if(USE_VECGEOM_NAVIGATOR)
-   set(sources ${sources} 
-     src/ScalarNavInterfaceVG.cxx 
-     src/ScalarNavInterfaceVGM.cxx
-     src/VectorNavInterface.cxx
-   )
-   set(headers ${headers} 
-     inc/ScalarNavInterfaceVG.h 
-     inc/ScalarNavInterfaceVGM.h
-     inc/VectorNavInterface.h
-   )
-endif()
-if (USE_ROOT)
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  set(sources ${sources} 
+    src/ScalarNavInterfaceVG.cxx 
+    src/ScalarNavInterfaceVGM.cxx
+    src/VectorNavInterface.cxx
+    )
+
+  set(headers ${headers} 
+    inc/ScalarNavInterfaceVG.h 
+    inc/ScalarNavInterfaceVGM.h
+    inc/VectorNavInterface.h
+    )
 endif()
 
-#----------------------------------------------------------------------------
-#
+if (USE_ROOT)
+  ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+endif()
 
 set(GEANTV_HEADERS ${headers} )
 set(GEANTV_SOURCES ${sources} )
 
-#----------------------------------------------------------------------------
-# CUSTOMIZE COMPILATION IF VECGEOM IS USED
+#----------------------------------------------------------------------------------------------
+# CUDA section
+#
 if (NOT KNC)
   if (CUDA)
     # See vecprot_v2/cuda/CMakeLists.txt
     add_subdirectory (cuda)
   else()
     add_library(Geant_v SHARED ${sources} G__Geant.cxx)
-    
-    target_link_libraries(Geant_v Vmagfield ${ROOT_LIBRARIES} )
+    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${ROOT_LIBRARIES} )
     
     if( VECGEOM_FOUND )
-      target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+      target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
       
       if (VECGEOM_GEANT4)
 	include(${Geant4_USE_FILE})
-	message(${Geant4_INCLUDE_DIRS})
 	include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
-	target_link_libraries(Geant_v ${Geant4_LIBRARIES})
+	target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}${Geant4_LIBRARIES})
       endif()
     endif()
     
+#----------------------------------------------------------------------------------------------
+# Install files
+#
     add_custom_target(Geantlib_v DEPENDS Geant_v)
     if(APPLE)
       # for some reason the installation process alters the libraries on Mac, and the program fails
@@ -114,36 +109,35 @@ if (NOT KNC)
     else()
       install(TARGETS Geant_v DESTINATION lib)
     endif()
-    install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
-      ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
+
+    if(USE_ROOT)
+      install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
+    endif()
     
   endif()
   
-  #---------------------- Building executables // ctest ------------------------------------
-  #
-  
+#----------------------------------------------------------------------------------------------
+# Build executables
+#
   set(TEST_EXECUTABLES
     CMSApp.cc
     runApp.cc
     )
-  
-  #----------------------------------------------------------------------------
-  
+
   macro(build_executables EXECUTABLES)
     foreach(EXECUTABLE ${EXECUTABLES})
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       add_executable(${TARGET_NAME} ${EXECUTABLE})
       if(USE_VECGEOM_NAVIGATOR)
-	target_link_libraries(${TARGET_NAME} Xsec Geant_v GeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v GeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
       else()
-	target_link_libraries(${TARGET_NAME} Geant_v Xsec GeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
+	target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Xsec GeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES})
       endif()
       add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples)
       set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
     endforeach()
   endmacro()
-  
-  #----------------------------------------------------------------------------
   
   function(add_to_ctest EXECUTABLES)
     foreach(EXECUTABLE ${EXECUTABLES})
@@ -178,21 +172,31 @@ if (NOT KNC)
   
   install(TARGETS CMSApp runApp DESTINATION bin)
   add_dependencies(runApp Geant_v Xsec GeantExamples)
-else()  # ---- KNC
+else() 
+#----------------------------------------------------------------------------------------------
+# KNC section
+#
   add_library(Geant_v SHARED ${sources})
   
   if(USE_VECGEOM_NAVIGATOR )
-    target_link_libraries(Geant_v Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
   endif()
   add_custom_target(Geantlib_v DEPENDS Geant_v)
   install(TARGETS Geant_v DESTINATION lib)
   
   add_executable(CMSApp CMSApp.cc)
   
-  target_link_libraries(CMSApp Geant_v Xsec GeantExamples Vmagfield
+  target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Xsec GeantExamples Vmagfield
     ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
   
   add_dependencies(CMSApp Geant_v Xsec GeantExamples)
   install(TARGETS CMSApp DESTINATION bin)
   
+endif()
+
+#----------------------------------------------------------------------------------------------
+# Add this directory to Doxygen
+#
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()

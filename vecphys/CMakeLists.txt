@@ -1,20 +1,14 @@
-# Add this directory to Doxygen
-if(DOXYGEN_FOUND)
-  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-endif()
-
+#----------------------------------------------------------------------------------------------
 # Configuration options
-
+#
 option(GUBENCHMARK "Enable performance comparisons." OFF)
-
 option(DISTANCE_DEBUG "Enable comparision of calculcated distances againt ROOT/Geant4 behind the scenes" OFF)
-
 option(VECPHYS_STANDALONE "Build VECPHYS standalone" OFF)
+set(VECPHYS_VECTOR "" CACHE STRING "Vector instruction set to use (sse/avx/...).")
 
-set(VECPHYS_VECTOR "" CACHE STRING
-    "Vector instruction set to use (sse/avx/...).")
-
+#----------------------------------------------------------------------------------------------
 # Make relative paths absolute
+#
 foreach(p LIB BIN INCLUDE CMAKE)
   set(var INSTALL_${p}_DIR)
   if(NOT IS_ABSOLUTE "${${var}}")
@@ -22,8 +16,9 @@ foreach(p LIB BIN INCLUDE CMAKE)
   endif()
 endforeach()
 
+#----------------------------------------------------------------------------------------------
 # Determine backend
-
+#
 set(Vc)
 set(Cilk)
 set(Scalar)
@@ -38,14 +33,13 @@ if (BACKEND STREQUAL "Scalar")
   set(Scalar TRUE)
 endif()
 if (NOT Vc AND NOT Cilk AND NOT Scalar)
-  message(FATAL_ERROR "Invalid backend specified: \"${BACKEND}\"")
+  message(FATAL_ERROR "vecphys: Invalid backend specified: \"${BACKEND}\"")
 endif()
+message(STATUS "vecphys: Configuring with vector backend ${BACKEND}.")
 
-message(STATUS "Configuring with vector backend ${BACKEND}.")
-
-
+#----------------------------------------------------------------------------------------------
 # Determine C++ compiler being used
-
+#
 if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
     OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
   set(Clang TRUE)
@@ -60,10 +54,9 @@ if (NOT GNU AND NOT Clang AND NOT Intel)
   message(WARNING "Unsupported compiler. Build will likely fail.")
 endif()
 
-################################################################################
-
+#----------------------------------------------------------------------------------------------
 # Set C++ compiler flags. Will also be forwarded by CUDA when compiling C++.
-
+#
 set(VECPHYS_COMPILATION_FLAGS)
 set(VECPHYS_COMPILATION_FLAGS_GNU)
 set(VECPHYS_COMPILATION_FLAGS_CLANG)
@@ -83,7 +76,9 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif()
 
+#----------------------------------------------------------------------------------------------
 # Compiler specific optimization flags
+#
 if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
 set(VECPHYS_COMPILATION_FLAGS_GNU
     "${VECPHYS_COMPILATION_FLAGS_GNU} -finline-limit=10000000")
@@ -102,7 +97,9 @@ if (VECPHYS_VECTOR)
       "${VECPHYS_COMPILATION_FLAGS_CLANG} -m${VECPHYS_VECTOR}")
 endif()
 
+#----------------------------------------------------------------------------------------------
 # Backend specific
+#
 if (Scalar)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_SCALAR")
 endif()
@@ -114,6 +111,10 @@ endif()
 if (Cilk)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CILK")
 endif()
+
+#----------------------------------------------------------------------------------------------
+# CUDA specific
+#
 if (CUDA)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CUDA")
   if (CUDA_VOLUME_SPECIALIZATION)
@@ -141,7 +142,9 @@ if (CUDA)
   endif()
 endif()
 
+#----------------------------------------------------------------------------------------------
 # Enable pretty diagnostics coloring if gcc 4.9+ is being used
+#
 if (GNU)
   set(VECPHYS_ERROR_LIMIT 20 CACHE STRING
       "Limit number of errors output by diagnostics.")
@@ -153,7 +156,9 @@ if (GNU)
   endif()
 endif()
 
+#----------------------------------------------------------------------------------------------
 # Forward CMake options
+#
 if (VC_ACCELERATION)
   set(VECPHYS_COMPILATION_FLAGS
       "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_VC_ACCELERATION")
@@ -162,11 +167,13 @@ if (GUBENCHMARK)
   set(VECPHYS_COMPILATION_FLAGS
       "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_BENCHMARK")
 endif()
-if (ROOT)
+if (USE_ROOT)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_ROOT")
 endif()
 
+#----------------------------------------------------------------------------------------------
 # Pass flags to compilers
+#
 if (GNU)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VECPHYS_COMPILATION_FLAGS_GNU}")
 endif()
@@ -179,15 +186,14 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VECPHYS_COMPILATION_FLAGS}")
 #set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -O2")
 
-message(STATUS "Compiling with C++ flags: ${CMAKE_CXX_FLAGS}")
+message(STATUS "vecphys: Compiling with C++ flags: ${CMAKE_CXX_FLAGS}")
 if (CUDA)
-  message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
+  message(STATUS "vecphys: Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 endif()
 
-################################################################################
-
+#----------------------------------------------------------------------------------------------
 # Backend configuration
-
+#
 if (VC_ACCELERATION OR Vc)
   if (KNC)
     set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_MIC_LIBRARIES})
@@ -195,7 +201,7 @@ if (VC_ACCELERATION OR Vc)
     set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${Vc_LIBRARIES})
   endif()
   include_directories(AFTER ${Vc_INCLUDE_DIR})
-
+  
   if (Vc)
     set(SRC_EXTERNAL ${SRC_EXTERNAL} src/backend/vc/Backend.cpp)
   endif()
@@ -203,30 +209,26 @@ if (VC_ACCELERATION OR Vc)
 endif()
 
 if (Cilk)
-
   if (NOT Intel)
-    message(FATAL_ERROR "Must use Intel C++ compiler (icc) for Cilk backend.")
+    message(FATAL_ERROR "vecphys: Must use Intel C++ compiler (icc) for Cilk backend.")
   endif()
-
   set(SRC_EXTERNAL ${SRC_EXTERNAL} src/backend/cilk/Backend.cpp)
-
 endif()
 
 if (CUDA)
-
   set(SRC_EXTERNAL ${SRC_EXTERNAL} src/CudaManager.cpp src/backend/cuda/Interface.cpp)
-
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${VECPHYS_NVCC_COMPILATION_FLAGS})
 endif()
 
-  set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${VECGEOM_LIBRARIES} )
-
+#----------------------------------------------------------------------------------------------
+# Add source files & include directories
+#
 include_directories(inc
-                    inc/base
-                    test/inc
-		    ${CMAKE_SOURCE_DIR}/physics/particle/inc
-                    ${VECGEOM_INCLUDE_DIR}
-)
+  inc/base
+  test/inc
+  ${CMAKE_SOURCE_DIR}/physics/particle/inc
+  ${VECGEOM_INCLUDE_DIR}
+  )
 
 set(SRC_CPP_RELATIVE
   src/GUAliasSampler.cc
@@ -245,89 +247,85 @@ set(SRC_CPP_RELATIVE
   src/PhotonProcess.cc
   src/ElectronProcess.cc
 )
+
 foreach(SRC ${SRC_CPP_RELATIVE})
   set(SRC_CPP ${SRC_CPP} ${SRC})
 endforeach()
 
-# Copy all source files to .cu-files in order for NVCC to compile them as CUDA
-# code and not regular C++ files.
+set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} ${VECGEOM_LIBRARIES} )
 
 if (CUDA)
-
+#----------------------------------------------------------------------------------------------
+# Copy all source files to .cu-files in order for NVCC to compile them as CUDA
+# code and not regular C++ files.
+#
   foreach(SRC_FILE ${SRC_CPP})
-
     get_filename_component(SRC_FILENAME ${SRC_FILE} NAME_WE)
 
     ADD_CUSTOM_COMMAND(
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
       COMMAND ${CMAKE_COMMAND} -E copy ${SRC_FILE}
-          ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
+      ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
       DEPENDS ${SRC_FILE}
-    )
-
+      )
+    
     set(
       SRC_CUDA ${SRC_CUDA}
       ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
-    )
-
+      )
   endforeach()
-
 endif()
 
+#----------------------------------------------------------------------------------------------
 # Add files that won't be compiled for CUDA
-
+#
 if (GUBENCHMARK) 
-  if (ROOT) 
+  if (USE_ROOT) 
     set(SRC_CPP ${SRC_CPP}
       src/GUHistogram.cc
-    )
+      )
   endif()
 
   set(SRC_CPP ${SRC_CPP}
     src/GUTrackHandler.cc
-  )
+    )
   set(SRC_CUDA ${SRC_CUDA}
     test/src/GUCurand.cu
-
-  )
+    )
 
   # build benchmark executables separately
   if (GUBENCHMARK STREQUAL "Model") 
     set(SRC_CPP ${SRC_CPP}
       test/src/GUBenchmarker.cc
       test/src/GUBenchmarker_cpu.cc
-    )
+      )
     set(SRC_CUDA ${SRC_CUDA}
       test/src/GUBenchmarker.cu
       test/src/GUBenchmarker_gpu.cu
-    )
+      )
   elseif(GUBENCHMARK STREQUAL "Process")
     set(SRC_CPP ${SRC_CPP}
       test/src/ProcessBenchmarker.cc
       test/src/ProcessBenchmarker_cpu.cc
-    )
+      )
     set(SRC_CUDA ${SRC_CUDA}
       test/src/ProcessBenchmarker.cu
       test/src/ProcessBenchmarker_gpu.cu
-    )
+      )
   else()
-    message(FATAL_ERROR "Invalid GUBENCHMARK=${GUBENCHMARK}: 
+    message(FATAL_ERROR "vecphys: Invalid GUBENCHMARK=${GUBENCHMARK}: 
     Use GUBENCHMARK=[Model|Process]")
   endif()
 endif()
 
-# Compile cpp-files for C++11
-
-set_source_files_properties(${SRC_CPP} PROPERTIES COMPILE_FLAGS -std=c++11)
-
-################################################################################
-
+#----------------------------------------------------------------------------------------------
 # Build libraries
-
+#
 add_library(vecphys ${SRC_CPP})
-target_link_libraries(vecphys ${VECPHYS_LIBRARIES} NewPhysics
-                      ${VECPHYS_LIBRARIES_EXTERNAL})
+target_link_libraries(vecphys -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES} NewPhysics
+  ${VECPHYS_LIBRARIES_EXTERNAL})
 set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphys)
+
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} rt)
 endif()
@@ -335,9 +333,11 @@ endif()
 set_source_files_properties(
   ${SRC_EXECUTABLES}
   PROPERTIES COMPILE_FLAGS -std=c++11
-)
+  )
 
-# build the CUDA version of the library
+#----------------------------------------------------------------------------------------------
+# Build the CUDA version of the library
+#
 if (CUDA)
   cuda_add_library(
     vecphyscuda
@@ -345,50 +345,52 @@ if (CUDA)
     SHARED
     OPTIONS ${CUDA_ARCH}
     ${VECPHYS_NVCC_CONFIGS}
-  )
-  target_link_libraries(vecphyscuda ${VECPHYS_LIBRARIES} NewPhysics
-                        ${VECPHYS_LIBRARIES_EXTERNAL})
+    )
+
+  target_link_libraries(vecphyscuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES} NewPhysics
+    ${VECPHYS_LIBRARIES_EXTERNAL})
   set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphyscuda)
 endif()
 
-################################################################################
-
+#----------------------------------------------------------------------------------------------
 # Define executables
-
+#
 if (GUBENCHMARK STREQUAL "Model")
   set(TEST_EXECUTABLES_BENCHMARK
-      test/GUModelBenchmark.cc
-  )
+    test/GUModelBenchmark.cc
+    )
 elseif (GUBENCHMARK STREQUAL "Process")
   set(TEST_EXECUTABLES_BENCHMARK
-      test/ProcessBenchmark.cc
-  )
+    test/ProcessBenchmark.cc
+    )
 endif()
 
 set(TEST_EXECUTABLES_CUDA
   # Files go here
-)
+  )
 
 set(TEST_EXECUTABLES
   ${TEST_EXECUTABLES_BENCHMARK}
   ${TEST_EXECUTABLES_CUDA}
-)
+  )
+
 set_source_files_properties(
   ${TEST_EXECUTABLES}
   PROPERTIES COMPILE_FLAGS -std=c++11
-)
+  )
 
+#----------------------------------------------------------------------------------------------
 # Build executables
-
+#
 set(VECPHYS_EXECUTABLES)
 
 macro(build_executables EXECUTABLES)
   foreach(EXECUTABLE ${EXECUTABLES})
     get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
     add_executable(${TARGET_NAME} ${EXECUTABLE})
-    target_link_libraries(${TARGET_NAME} ${VECPHYS_LIBRARIES}
-                          ${VECPHYS_LIBRARIES_EXTERNAL}
-                          ${USERKERNELLIB})
+    target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES}
+      ${VECPHYS_LIBRARIES_EXTERNAL}
+      ${USERKERNELLIB})
     set(VECPHYS_EXECUTABLES ${VECPHYS_EXECUTABLES} ${TARGET_NAME})
   endforeach()
 endmacro()
@@ -412,5 +414,9 @@ if (CUDA)
   add_to_ctest("${TEST_EXECUTABLES_CUDA}")
 endif()
 
-
-
+#----------------------------------------------------------------------------------------------
+# Add this directory to Doxygen
+#
+if(DOXYGEN_FOUND)
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
