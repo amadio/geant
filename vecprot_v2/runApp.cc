@@ -22,7 +22,7 @@ static int n_buffered = 10;
 static int n_threads = 4;
 static int n_track_max = 500;
 static int n_learn_steps = 0;
-static bool monitor = false, score = false, debug = false, coprocessor = false;
+static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"fstate", required_argument, 0, 'f'},
@@ -36,6 +36,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"threads", required_argument, 0, 't'},
                                   {"xsec", required_argument, 0, 'x'},
                                   {"coprocessor", required_argument, 0, 'r'},
+                                  {"tbbmode", required_argument, 0, 'i'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:", options, &optidx);
+    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:", options, &optidx);
 
     if (c == -1)
       break;
@@ -131,6 +132,10 @@ int main(int argc, char *argv[]) {
       coprocessor = optarg;
       break;
 
+    case 'i':
+      tbbmode = true;
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
@@ -154,6 +159,7 @@ int main(int argc, char *argv[]) {
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
   propagator->fUseMonitoring = monitor;
+  propagator->fTBBMode = tbbmode;
 
   // Monitor different features
   wmanager->SetNminThreshold(5*n_threads);
@@ -207,6 +213,7 @@ int main(int argc, char *argv[]) {
   if (performance) propagator->fUseStdScoring = false;
   // Monitor the application
   propagator->fUseAppMonitoring = false;
+
   propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }

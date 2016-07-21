@@ -632,15 +632,23 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fTimer = new vecgeom::Stopwatch();
 #endif
 
-  fWMgr->StartThreads();
+  if (fTBBMode) {
+    #ifdef GEANT_TBB
+      Printf("=== TBB Task Mode ====");
+      fWMgr->StartTasks();
+    #else
+      std::cerr << "Error: TBB mode requested but is not supported\n";
+    #endif
+  }else{
+    Printf("=== Thread Mode ====");
+    fWMgr->StartThreads();
+  }
   fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
   //  condition_locker &sched_locker = fWMgr->GetSchLocker();
   //  sched_locker.StartOne();
   fWMgr->WaitWorkers();
-  Printf("=== Wait done    ====");
   fWMgr->JoinThreads();
-  Printf("=== Join done    ====");
   fTimer->Stop();
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_STOP_INSTRUMENTATION;

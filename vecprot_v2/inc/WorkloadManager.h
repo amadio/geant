@@ -234,6 +234,9 @@ public:
   /** @brief Function that provides start process of threads  */
   void StartThreads();
 
+  /** @brief Function that provides start process of tasks  */
+  void StartTasks();
+
   /** @brief Joins all threads at the end of processing */
   void JoinThreads();
 

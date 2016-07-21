@@ -116,6 +116,7 @@ public:
   bool fConcurrentWrite;     /** switch between single and mutlithreaded writing */
   bool fUseMonitoring;         /** Monitoring different features */
   bool fUseAppMonitoring;      /** Monitoring the application */
+  bool fTBBMode;              /* Use of TBB Tasks */
   std::mutex fTracksLock;          /** Mutex for adding tracks */
 
   WorkloadManager *fWMgr;             /** Workload manager */
@@ -278,6 +279,7 @@ public:
    * @param nthreads Number of threads
    * @param graphics Graphics (by default False)
    * @param single Transport single tracks rather than vectors (by default False)
+   * @param Execution using TBB tasks instead of static threads (by default False)
    */
   void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, bool graphics = false,
                       bool single = false);

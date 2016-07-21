@@ -47,6 +47,7 @@
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
 #include "tbb/task.h"
+#include "InitialTask.h"
 #endif
 
 using namespace Geant;
@@ -161,7 +162,6 @@ bool WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
 //______________________________________________________________________________
 void WorkloadManager::StartThreads() {
   // Start the threads
-  tbb::task_list tlist;
   fStarted = true;
   if (!fListThreads.empty())
     return;
@@ -198,6 +198,52 @@ void WorkloadManager::StartThreads() {
   }
 
 }
+
+//______________________________________________________________________________
+void WorkloadManager::StartTasks() {
+  // Start the threads
+  tbb::task_list tlist;
+  fStarted = true;
+  if (!fListThreads.empty())
+    return;
+  int ith = 0;
+  if (fBroker) {
+     if (fBroker->GetNstream() > (unsigned int)fNthreads) {
+      ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
+              fNthreads);
+    }
+    Geant::Info("StartThreads", "Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
+    fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
+    ith += fBroker->GetNstream() + 1;
+    if (ith == fNthreads && fBroker->IsSelective()) {
+       Fatal("WorkloadManager::StartThreads","All %d threads are used by the coprocessor broker but it can only process a subset of particles.",fNthreads);
+       return;
+    }
+  }
+
+  // Start output thread
+  if (GeantPropagator::Instance()->fFillTree) {
+    fListThreads.emplace_back(WorkloadManager::OutputThread);
+  }
+  // Start monitoring thread
+  if (GeantPropagator::Instance()->fUseMonitoring) {
+    fListThreads.emplace_back(WorkloadManager::MonitoringThread);
+  }
+  // Start garbage collector
+  if (GeantPropagator::Instance()->fMaxRes > 0) {
+    fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
+  }
+
+  // Start Task scheduler and tasks
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  // spawn transport tasks
+  for (int i = 0; i < fNthreads; i++)
+    tlist.push_back(*new (cont.allocate_child()) InitialTask());
+
+  cont.spawn(tlist);
+
+}
+
 
 //______________________________________________________________________________
 void WorkloadManager::JoinThreads() {
