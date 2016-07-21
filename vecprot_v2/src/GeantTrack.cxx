@@ -9,6 +9,7 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
@@ -36,6 +37,7 @@ void printrace(void) {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack(int ipdg)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
@@ -74,6 +76,7 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 GeantTrack::GeantTrack(const GeantTrack &other)
     : fEvent(other.fEvent), fEvslot(other.fEvslot), fParticle(other.fParticle), fMother(other.fMother), fPDG(other.fPDG),
       fGVcode(other.fGVcode), fEindex(other.fEindex), fCharge(other.fCharge), fProcess(other.fProcess),
@@ -91,6 +94,7 @@ GeantTrack::GeantTrack(const GeantTrack &other)
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
   // Assignment
   if (&other != this) {
@@ -145,6 +149,7 @@ GeantTrack::~GeantTrack() {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void GeantTrack::Clear(const char *) {
   // Resets track content.
   fEvent = -1;
@@ -185,6 +190,7 @@ void GeantTrack::Clear(const char *) {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 Volume_t const*GeantTrack::GetVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   return fPath->Top()->GetLogicalVolume();
@@ -194,6 +200,7 @@ Volume_t const*GeantTrack::GetVolume() const {
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 Volume_t const*GeantTrack::GetNextVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   // Next volume the track is entering
@@ -217,23 +224,15 @@ Material_t *GeantTrack::GetMaterial() const {
    return med->GetMaterial();
 }
 
-
 //______________________________________________________________________________
-bool GeantTrack::IsNormalized(double tolerance) const {
-  // Check if track direction is normalized within tolerance
-  double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
-  if (fabs(1. - norm) > tolerance)
-    return false;
-  return true;
-}
-
-//______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void GeantTrack::SetPath(VolumePath_t const *const path) {
   // Set path.
   *fPath = *path;
 }
 
 //______________________________________________________________________________
+GEANT_CUDA_BOTH_CODE
 void GeantTrack::SetNextPath(VolumePath_t const *const path) {
   // Set next path.
   *fNextpath = *path;

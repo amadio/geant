@@ -32,9 +32,6 @@ using VECGEOM_NAMESPACE::RNG;
 class GeantBasketMgr;
 class GeantBasket;
 
-// SOA3D container from VecGeom
-#include "base/SOA3D.h"
-
 /**
  * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
@@ -66,8 +63,6 @@ public:
 #else
   std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
 #endif
-  vecgeom::SOA3D<double> *fSOA3Dworkspace1; // Thread SOA3D workspace (to be used for vector navigation)
-  vecgeom::SOA3D<double> *fSOA3Dworkspace2; // SOA3D workspace (to be used for vector navigation)
   int fSizeInt;                             // current size of IntArray
   int *fIntArray;                           // Thread array of ints (used in vector navigation)
   GeantTrack_v  *fTransported;              // Transported tracks in current step
@@ -96,7 +91,7 @@ private:
   /**
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
 
 public:
@@ -109,11 +104,11 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
-  GEANT_CUDA_DEVICE_CODE
+  GEANT_CUDA_BOTH_CODE
   static size_t SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBasket);
 
   /**
@@ -144,34 +139,6 @@ public:
   int *GetIntArray(int size) {
     CheckSizeAndAlloc<int>(fIntArray, fSizeInt, size);
     return fIntArray;
-  }
-
-  /**
-   * @brief Function that returns a (per thread/task) preallocated SOA3D workspace
-   *
-   * @param size Size of container
-   */
-  vecgeom::SOA3D<double> *GetSOA3DWorkspace1(int size) {
-    // TODO: should actually resize the workspace containers together
-    // TODO: they should also be close together in memory
-    if ((size_t) size > fSOA3Dworkspace1->size()) {
-      delete fSOA3Dworkspace1;
-      fSOA3Dworkspace1 = new vecgeom::SOA3D<double>(2 * size);
-    }
-    return fSOA3Dworkspace1;
-  }
-
-  /**
-   * @brief Function that returns a (per thread/task) preallocated SOA3D workspace
-   *
-   * @param size Size of container
-   */
-  vecgeom::SOA3D<double> *GetSOA3DWorkspace2(int size) {
-    if ((size_t) size > fSOA3Dworkspace2->size()) {
-      delete fSOA3Dworkspace2;
-      fSOA3Dworkspace2 = new vecgeom::SOA3D<double>(2 * size);
-    }
-    return fSOA3Dworkspace2;
   }
 
   /**

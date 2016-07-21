@@ -116,14 +116,17 @@ public:
 
 public:
   /** @brief GeantTrack constructor  */
+  GEANT_CUDA_BOTH_CODE
   GeantTrack();
 
   /**
    * @brief GeantTrack copy constructor
    */
+  GEANT_CUDA_BOTH_CODE
   GeantTrack(const GeantTrack &other);
 
   /** @brief Operator = */
+  GEANT_CUDA_BOTH_CODE
   GeantTrack &operator=(const GeantTrack &other);
 
   /**
@@ -131,6 +134,7 @@ public:
   *
   * @param ipdg PDG code
   */
+  GEANT_CUDA_BOTH_CODE
   GeantTrack(int ipdg);
 
   /**
@@ -153,6 +157,7 @@ public:
 
   /** @brief Function that return charge value */
   GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int Charge() const { return fCharge; }
 
   /** @brief Function that return curvature. To be changed when handling properly field*/
@@ -168,101 +173,163 @@ public:
   }
 
   /** @brief Function that return pointer to X direction value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   const double *Direction() const { return &fXdir; }
 
   /** @brief Function that return X direction value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double DirX() const { return fXdir; }
 
   /** @brief Function that return Y direction value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double DirY() const { return fYdir; }
 
   /** @brief Function that return Z direction value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double DirZ() const { return fZdir; }
 
   /** @brief Function that return energy value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double E() const { return fE; }
 
   /** @brief Function that return energy deposition value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Edep() const { return fEdep; }
 
   /** @brief Function that return event number */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int Event() const { return fEvent; }
 
   /** @brief Function that return slot number */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int EventSlot() const { return fEvslot; }
 
   /** @brief Function that return true if starting from boundary */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   bool FromBoundary() const { return fBoundary; }
 
   /** @brief Function that return GV particle code */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int GVcode() const { return fGVcode; }
 
   /** @brief Function that return element index */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int EIndex() const { return fEindex; }
 
   /** @brief Function that return index in the track block */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int BIndex() const { return fBindex; }
 
   /** @brief Function that return gamma value*/
   GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Gamma() const { return fMass ? fE / fMass : DBL_MAX; }
 
   /** @brief Function that return selected physical step */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double GetPstep() const { return fPstep; }
 
   /** @brief Function that return volume */
+  GEANT_CUDA_BOTH_CODE
   Volume_t const*GetVolume() const;
 
   /** @brief Function that return next volume */
+  GEANT_CUDA_BOTH_CODE
   Volume_t const*GetNextVolume() const;
 
   /** @brief Function that return material */
   Material_t *GetMaterial() const;
 
   /** @brief Function that returns the current path (NavigationState) of the track */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   VolumePath_t *GetPath() const { return fPath; }
 
   /** @brief Function that return next path (NavigationState) of the track */
   VolumePath_t *GetNextPath() const { return fNextpath; }
 
   /** @brief Function that return number of physical step made */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int GetNsteps() const { return fNsteps; }
 
   /** @brief Function that return physical step */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double GetStep() const { return fStep; }
 
   /** @brief Function that return time traveled in the step */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double TimeStep(double step) const { return fE*step/fP; }
 
   /** @brief Function that return straight distance to next boundary */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double GetSnext() const { return fSnext; }
 
   /** @brief Function that return safe distance to any boundary */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double GetSafety() const { return fSafety; }
 
   /** @brief Function that return number of interaction lengths travelled since last step */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double GetNintLen() const { return fNintLen; }
 
   /** @brief Function that return interaction length since last discrete process */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double GetIntLen() const { return fIntLen; }
 
   /** @brief Function that check if track is alive */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   bool IsAlive() const { return (fStatus != kKilled); }
 
   /** @brief Function that check if track is on boundary */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   bool IsOnBoundary() const { return (fStatus == kBoundary); }
 
   /** @brief  Check direction normalization within tolerance */
-  bool IsNormalized(double tolerance = 1.E-8) const;
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
+  bool IsNormalized(double tolerance = 1.E-8) const {
+    double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
+    if (fabs(1. - norm) > tolerance)
+      return false;
+    return true;
+  }
 
   /** @brief Function that set status killed to track */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void Kill() { fStatus = kKilled; }
 
   /** @brief Function that return mass value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Mass() const { return fMass; }
 
   /** @brief Function to normalize direction */
-  void Normalize() __attribute__((always_inline)) {
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
+  void Normalize() {
     double norm = 1. / Math::Sqrt(fXdir * fXdir + fYdir * fYdir + fZdir * fZdir);
     fXdir *= norm;
     fYdir *= norm;
@@ -270,67 +337,106 @@ public:
   }
 
   /** @brief Function that return momentum value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double P() const { return fP; }
 
   /** @brief Function that return momentum X component */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Px() const { return fP * fXdir; }
 
   /** @brief Function that return momentum Y component */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Py() const { return fP * fYdir; }
 
   /** @brief Function that return momentum Z component */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Pz() const { return fP * fZdir; }
 
   /** @brief Function that return module momentum's value */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Pt() const { return fP * Math::Sqrt(fXdir * fXdir + fYdir * fYdir); }
 
   /** @brief Function that return index of corresponding particle */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int Particle() const { return fParticle; }
 
   /** @brief Function that returns index of mother particle */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int Mother() const { return fMother; }
 
   /** @brief Function that set status pending to track */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   bool Pending() const { return fPending; }
 
   /** @brief Function that return particle pdg code */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int PDG() const { return fPDG; }
 
   /** @brief Function that return current process */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   int Process() const { return fProcess; }
   const double *Position() const { return &fXpos; }
 
   /** @brief Function that return X position */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double PosX() const { return fXpos; }
 
   /** @brief Function that return Y position */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double PosY() const { return fYpos; }
 
   /** @brief Function that return Z position */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double PosZ() const { return fZpos; }
 
   /** @brief Print function */
   void Print(const char *location) const;
 
   /** Function that return particle species */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   Species_t Species() const { return fSpecies; }
 
   /** Function that return track status */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   TrackStatus_t Status() const { return fStatus; }
 
   /** Function that return time */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Time() const { return fTime; }
 
   /** Clear function */
+  GEANT_CUDA_BOTH_CODE
   void Clear(const char *option = "");
 
   /** @brief Function that return X coordinate */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double X() const { return fXpos; }
 
   /** @brief Function that return Y coordinate */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Y() const { return fYpos; }
 
   /** @brief Function that return Z coordinate */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   double Z() const { return fZpos; }
 
   /**
@@ -338,6 +444,8 @@ public:
    *
    * @param event Event that should be set as fEvent
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetEvent(int event) { fEvent = event; }
 
   /**
@@ -345,6 +453,8 @@ public:
    *
    * @param slot Event slot that should be set as fEvslot
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetEvslot(int slot) { fEvslot = slot; }
 
   /**
@@ -352,6 +462,8 @@ public:
    *
    * @param particle Particle that should be set as fParticle
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetParticle(int particle) { fParticle = particle; }
 
   /**
@@ -359,6 +471,8 @@ public:
    *
    * @param mother Particle that should be set as fMother
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetMother(int mother) { fMother = mother; }
 
   /**
@@ -366,6 +480,8 @@ public:
    *
    * @param pdg Particle pdg code that should be set as fPDG
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetPDG(int pdg) { fPDG = pdg; }
 
   /**
@@ -373,6 +489,8 @@ public:
    *
    * @param gVcode GV particle code that should be set as fGVcode
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetGVcode(int gVcode) { fGVcode = gVcode; }
 
   /**
@@ -380,6 +498,8 @@ public:
    *
    * @param ind Element index that should be set as fEindex
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetEindex(int ind) { fEindex = ind; }
 
   /**
@@ -387,6 +507,8 @@ public:
    *
    * @param ind Index to be set
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetBindex(int ind) { fBindex = ind; }
 
   /**
@@ -394,6 +516,8 @@ public:
    *
    * @param charge Charge that should be set as fCharge
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetCharge(int charge) { fCharge = charge; }
 
   /**
@@ -401,6 +525,8 @@ public:
    *
    * @param process Process that should be set as fProcess
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetProcess(int process) { fProcess = process; }
 
   /**
@@ -408,6 +534,8 @@ public:
    *
    * @param nsteps Current step hat should be set as fNsteps
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetNsteps(int nsteps) { fNsteps = nsteps; }
 
   /**
@@ -415,6 +543,8 @@ public:
    *
    * @param species Current species hat should be set as fSpecies
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetSpecies(Species_t species) { fSpecies = species; }
 
   /**
@@ -422,6 +552,8 @@ public:
    *
    * @param status Current track status that should be set as fStatus
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetStatus(TrackStatus_t &status) { fStatus = status; }
 
   /**
@@ -429,6 +561,8 @@ public:
    *
    * @param mass Current mass that should be set as fMass
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetMass(double mass) { fMass = mass; }
 
   /**
@@ -438,6 +572,8 @@ public:
    * @param y Y position
    * @param z Z position
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetPosition(double x, double y, double z) {
     fXpos = x;
     fYpos = y;
@@ -451,6 +587,8 @@ public:
    * @param dy Y direction
    * @param dz Z direction
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetDirection(double dx, double dy, double dz) {
     fXdir = dx;
     fYdir = dy;
@@ -462,6 +600,8 @@ public:
    *
    * @param p Current momentum should be set as fP
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetP(double p) { fP = p; }
 
   /**
@@ -469,6 +609,8 @@ public:
    *
    * @param e Current E should be set as fE
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetE(double e) { fE = e; }
 
   /**
@@ -476,6 +618,8 @@ public:
    *
    * @param time Current time should be set as fTime
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetTime(double time) { fTime = time; }
 
   /**
@@ -483,6 +627,8 @@ public:
    *
    * @param edep Current energy deposition should be set as fEdep
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetEdep(double edep) { fEdep = edep; }
 
   /**
@@ -490,6 +636,8 @@ public:
    *
    * @param pstep Current physical step should be set as fPstep
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetPstep(double pstep) { fPstep = pstep; }
 
   /**
@@ -497,6 +645,8 @@ public:
    *
    * @param snext Straight distance to next boundary should be set as fSnext
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetSnext(double snext) { fSnext = snext; }
 
   /**
@@ -504,6 +654,8 @@ public:
    *
    * @param safety Safe distance to any boundary hould be set as fSafety
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetSafety(double safety) { fSafety = safety; }
 
   /**
@@ -511,6 +663,8 @@ public:
    *
    * @param nradlen Number of interaction lengths travelled
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetNintLen(double nradlen) { fNintLen = nradlen; }
 
   /**
@@ -518,6 +672,8 @@ public:
    *
    * @param intlen Interaction length
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetIntLen(double intlen) { fIntLen = intlen; }
 
   /**
@@ -525,6 +681,8 @@ public:
    *
    * @param flag Flag that is true if starting from boundary
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetFrombdr(bool flag) { fBoundary = flag; }
 
   /**
@@ -532,6 +690,8 @@ public:
    *
    * @param flag Flag that should be set pending
    */
+  GEANT_CUDA_BOTH_CODE
+  GEANT_FORCE_INLINE
   void SetPending(bool flag) { fPending = flag; }
 
   /**
@@ -539,6 +699,7 @@ public:
    *
    * @param path Volume path
    */
+  GEANT_CUDA_BOTH_CODE
   void SetPath(VolumePath_t const *const path);
 
   /**
@@ -546,6 +707,7 @@ public:
    *
    * @param path Volume path
    */
+  GEANT_CUDA_BOTH_CODE
   void SetNextPath(VolumePath_t const *const path);
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */

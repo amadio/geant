@@ -8,11 +8,7 @@
 #include "TRandom.h"
 #endif
 
-#include "base/SOA3D.h"
-
 using std::min;
-
-#include "base/SOA3D.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -22,8 +18,6 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
     : fTid(-1), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), 
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth), 
       fPath(nullptr), fBmgr(nullptr), fPool(),
-      fSOA3Dworkspace1(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)),
-      fSOA3Dworkspace2(new vecgeom::SOA3D<vecgeom::Precision>(5 * maxPerBasket)), 
       fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fTransported1(), fNkeepvol(0),
       fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
 {
@@ -45,21 +39,12 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fTransported1.reserve(maxPerBasket);
 }
 
-template <typename T>
-GEANT_CUDA_DEVICE_CODE
-size_t soaSizeOfInstance(size_t nElements)
-{
-   return GeantTrack::round_up_align(sizeof(vecgeom::SOA3D<T>)+3*sizeof(T)*nElements);
-}
-
 //______________________________________________________________________________
 GEANT_CUDA_DEVICE_CODE
 GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket)
     : fTid(-1), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
       fPath(nullptr), fBmgr(nullptr), fPool(),
-      fSOA3Dworkspace1(nullptr),
-      fSOA3Dworkspace2(nullptr),
       fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
       fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
 {
@@ -68,19 +53,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   buffer += GeantTrack::round_up_align(sizeof(GeantTaskData));
   const size_t nElements = 5; // See other constructor!
 
-  vecgeom::Precision *x = (vecgeom::Precision*)(buffer + sizeof(vecgeom::Precision));
-  vecgeom::Precision *y = x+(nElements*maxPerBasket);
-  vecgeom::Precision *z = y+(nElements*maxPerBasket);
   buffer = GeantTrack::round_up_align(buffer);
-  fSOA3Dworkspace1 = new (buffer) vecgeom::SOA3D<vecgeom::Precision>(x,y,z,nElements*maxPerBasket);
-  buffer += soaSizeOfInstance<vecgeom::Precision>(nElements*maxPerBasket);
-
-  x = (vecgeom::Precision*)(buffer + sizeof(vecgeom::Precision));
-  y = x+(nElements*maxPerBasket);
-  z = y+(nElements*maxPerBasket);
-  buffer = GeantTrack::round_up_align(buffer);
-  fSOA3Dworkspace2 = new (buffer) vecgeom::SOA3D<vecgeom::Precision>(x,y,z,nElements*maxPerBasket);
-  buffer += soaSizeOfInstance<vecgeom::Precision>(nElements*maxPerBasket);
 
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
@@ -122,8 +95,6 @@ GeantTaskData::~GeantTaskData()
   delete[] fBoolArray;
   delete[] fDblArray;
   delete[] fIntArray;
-  delete fSOA3Dworkspace1;
-  delete fSOA3Dworkspace2;
   VolumePath_t::ReleaseInstance(fPath);
   delete fTransported;
 }
@@ -144,12 +115,10 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
    // @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth
 
    const size_t bufSize = 5; // See constructor!
-   const size_t soaSize = soaSizeOfInstance<vecgeom::Precision>(bufSize*maxPerBasket);
 
    size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<Geant::cuda::GeantTaskData>::SizeOf()
       + GeantTrack::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
       + GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(maxDepth))
-      + 2*soaSize
       + GeantTrack_v::SizeOfInstance(4*maxPerBasket,maxDepth);
    return GeantTrack::round_up_align(need);
 }

@@ -551,7 +551,9 @@ if (CUDA)
     -Xcompiler ,\"-Wno-unused-parameter\"
     -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"
     -Xcudafe "--diag_suppress=initialization_not_reachable"
-    )
+    -D_MWAITXINTRIN_H_INCLUDED
+    -D_FORCE_INLINES
+  )
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G)
   endif()
