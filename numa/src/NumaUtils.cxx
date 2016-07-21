@@ -89,10 +89,14 @@ int NumaNodeAddr(void *ptr)
 void PinToCore(size_t core)
 {
 // Pin caller thread to a given physical core
+#ifdef USE_NUMA
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   CPU_SET(core, &cpuset);
-  pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);  
+  pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+#else
+  (void)core;
+#endif
 }
 
 } // GEANT_IMPL_NAMESPACE

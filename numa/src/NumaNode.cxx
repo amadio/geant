@@ -1,13 +1,12 @@
 #include "NumaNode.h"
+#include "NumaUtils.h"
 
 #ifdef USE_NUMA
 #include <numa.h>
-#endif
-
-#include "NumaUtils.h"
 
 constexpr size_t MByte = 1024*1024;
 constexpr size_t kByte = 1024;
+#endif
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -45,11 +44,7 @@ int NumaNode::PinThread()
   return core;
 }
 
-std::ostream& operator<<(std::ostream& os, const NumaNode& 
-#ifdef USE_NUMA
-                          node
-#endif
-                        )
+std::ostream& operator<<(std::ostream& os, const NumaNode& node)
 {
 #ifdef USE_NUMA
   os << "Node id: " << node.fId << "   phys. cores: " << node.fNphysical << "   logical cores: " << node.fNcpus;
@@ -60,6 +55,7 @@ std::ostream& operator<<(std::ostream& os, const NumaNode&
   os << "  Total memory: " << node.fMemTotal/MByte << " MB  free: " << 
                               node.fMemFree/MByte << " MB";
 #endif
+  (void)node;
   return os;                            
 }
 
