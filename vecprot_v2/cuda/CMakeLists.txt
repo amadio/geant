@@ -114,12 +114,13 @@ cuda_add_library_depend(${GeantCudaLib} ${VECGEOM_CUDA_STATIC_LIBRARY})
 target_link_libraries(${GeantCudaLib} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
 
 if( VECGEOM_FOUND )
-  target_link_libraries(${GeantCudaLib} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+  target_link_libraries(${GeantCudaLib} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} GeantNuma Vmagfield ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 else()
-  target_link_libraries(${GeantCudaLib} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${ROOT_LIBRARIES})
+  target_link_libraries(${GeantCudaLib} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} GeantNuma Vmagfield ${ROOT_LIBRARIES})
 endif()
 
 add_custom_target(Geantlib_v DEPENDS ${GeantCudaLib})
+add_dependencies(Geantlib_v GeantNuma)
 
 #----------------------------------------------------------------------------------------------
 # Install the files
