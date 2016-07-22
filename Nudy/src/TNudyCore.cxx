@@ -176,6 +176,7 @@ double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx)
     if (xx == x[1])
       yy = y[1];
   } else if (law == 2) {
+      //printf("%e, %e,  %e, %e\n",x[0],y[0],x[1],y[1]);
     yy = y[0] + (y[1] - y[0]) * (xx - x[0]) / (x[1] - x[0]);
   } else if (law == 3) {
     x[0] = max<double>(x[0], small);
