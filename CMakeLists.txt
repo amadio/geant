@@ -35,7 +35,7 @@ SET(CMAKE_INVOKE "${CMAKE_COMMAND} ${CMAKE_INVOKE_ARGS} ${CMAKE_CURRENT_SOURCE_D
 # Create a simple shell script that allows us to reinvoke cmake with the captured command line.
 #
 IF (NOT WIN32)
-    if (NOT ${CMAKE_GENERATOR} STREQUAL "Unix Makefiles")
+    if (NOT "${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
         set(RECMAKE_GENERATOR "-G ${CMAKE_GENERATOR}")
     endif()
     SET(RECMAKE_REPLAY_FILE ${CMAKE_BINARY_DIR}/recmake_replay.sh)
@@ -406,8 +406,8 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Handle compiler flags
 #
-if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
-    OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
