@@ -12,6 +12,7 @@
 
 // add the sincos function on MAC because sincos is not part of math.h
 #if defined(__APPLE__) & !defined(NVCC)  // possibly other conditions
+inline
 void sincos(double x, double *s, double *c) {
   __sincos(x,s,c);
 }
