@@ -2019,15 +2019,15 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF, double isigDiff
 	energyUni.clear();
 	sigmaUniTotal.clear();
 	sigma.clear();
-	//out << eLinElastic.size() << std::endl;
-	//for(unsigned long j =0; j< eLinElastic.size(); j++)
-	  //if(eLinElastic[j]>eHi1)std::cout << eLinElastic[j] <<"  "<< xLinElastic[j] << std::endl;
-        //out << eLinCapture.size() << std::endl;
+//	std::cout << eLinElastic.size() << std::endl;
+//	for(unsigned long j =0; j< eLinElastic.size(); j++)
+//	  std::cout << eLinElastic[j] <<"  "<< xLinElastic[j] << std::endl;
+        //std::cout << eLinCapture.size() << std::endl;
 	//for(unsigned long j =0; j< eLinCapture.size(); j++)
-	 //if(eLinCapture[j]>eHi1)std::cout << eLinCapture[j] <<"  "<< xLinCapture[j] << std::endl;
-	  //out << eLinFission.size() << std::endl;
-	//for(unsigned long j =0; j< eLinFission.size(); j++)
-	  //if(eLinFission[j] > eHi1)std::cout << eLinFission[j] <<"  "<< xLinFission[j] << std::endl;
+	 //std::cout << eLinCapture[j] <<"  "<< xLinCapture[j] << std::endl;
+//	 std::cout << eLinFission.size() << std::endl;
+//	for(unsigned long j =0; j< eLinFission.size(); j++)
+//	  std::cout << eLinFission[j] <<"  "<< xLinFission[j] << std::endl;
 
 // std::cout<<LRU <<"  "<< LSSF<<std::endl; 
 	//std::cout<<"before Doppler begins "<<std::endl;
@@ -2037,8 +2037,17 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF, double isigDiff
 	//std::cout << eLinCapture.size() << std::endl;
 	broadSigma(eLinFission, xLinFission, xBroadFission);
 	//std::cout << eLinFission.size() << std::endl;
-	std::cout<<"Doppler done "<<outstring << std::endl;
+//	std::cout<<"Doppler done "<<outstring << std::endl;
 	dopplerBroad=0;
+//	std::cout << eLinElastic.size() << std::endl;
+//	for(unsigned long j =0; j< eLinElastic.size(); j++)
+//	  std::cout << eLinElastic[j] <<"  "<< xBroadElastic[j] << std::endl;
+        //std::cout << eLinCapture.size() << std::endl;
+	//for(unsigned long j =0; j< eLinCapture.size(); j++)
+	 //std::cout << eLinCapture[j] <<"  "<< xBroadCapture[j] << std::endl;
+//	 std::cout << eLinFission.size() << std::endl;
+//	for(unsigned long j =0; j< eLinFission.size(); j++)
+//	  std::cout << eLinFission[j] <<"  "<< xBroadFission[j] << std::endl;
 
 	out << eLinElastic.size() << std::endl;
 	for(unsigned long j =0; j< eLinElastic.size(); j++)
