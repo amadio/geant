@@ -32,6 +32,12 @@ using VECGEOM_NAMESPACE::RNG;
 class GeantBasketMgr;
 class GeantBasket;
 
+#ifdef GEANT_NVCC
+#include "base/Vector.h"
+#else
+#include <vector>
+#endif
+
 /**
  * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
@@ -41,6 +47,14 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
+#ifdef GEANT_NVCC
+  template <class T>
+  using vector_t = vecgeom::Vector<T>;
+#else
+  template <class T>
+  using vector_t = std::vector<T>;
+#endif
+
   int fTid;              /** Thread unique id */
   size_t fNthreads;      /** Number of transport threads */
   int fMaxDepth;         /** Maximum geometry depth */
@@ -66,7 +80,7 @@ public:
   int fSizeInt;                             // current size of IntArray
   int *fIntArray;                           // Thread array of ints (used in vector navigation)
   GeantTrack_v  *fTransported;              // Transported tracks in current step
-  std::vector<GeantTrack *> fTransported1;  // Transported tracks in current step
+  vector_t<GeantTrack *> fTransported1;     // Transported tracks in current step
   int            fNkeepvol;                 // Number of tracks keeping the same volume
   int fNsteps;           /** Total number of steps per thread */
   int fNsnext;           /** Total number of calls to getting distance to next boundary */
