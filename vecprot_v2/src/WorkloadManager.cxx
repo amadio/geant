@@ -202,6 +202,7 @@ void WorkloadManager::StartThreads() {
 //______________________________________________________________________________
 void WorkloadManager::StartTasks() {
   // Start the threads
+#ifdef GEANT_TBB
   tbb::task_list tlist;
   fStarted = true;
   if (!fListThreads.empty())
@@ -241,9 +242,8 @@ void WorkloadManager::StartTasks() {
     tlist.push_back(*new (cont.allocate_child()) InitialTask());
 
   cont.spawn(tlist);
-
+#endif  // GEANT_TBB
 }
-
 
 //______________________________________________________________________________
 void WorkloadManager::JoinThreads() {
