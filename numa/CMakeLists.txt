@@ -28,8 +28,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaAllocator.h
 # Set include directories
 #----------------------------------------------------------------------------
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
-get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-message(STATUS "Include directories: ${inc_dirs}")
 
 #----------------------------------------------------------------------------
 # Add traget library and dependencies

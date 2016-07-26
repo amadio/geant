@@ -5,6 +5,7 @@ include_directories(
   inc
   ../magneticfield/inc
   ../physics/particle/inc
+  ../numa/inc
   )
 
 if( USE_VECGEOM_NAVIGATOR )
