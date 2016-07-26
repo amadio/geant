@@ -132,6 +132,8 @@ if (NOT KNC)
   set(TEST_EXECUTABLES
     CMSApp.cc
     runApp.cc
+    testBasketizer.cc
+    testLocality.cc
     )
 
   macro(build_executables EXECUTABLES)
