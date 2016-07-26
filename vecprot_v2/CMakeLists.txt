@@ -34,7 +34,6 @@ set(sources
    src/StdApplication.cxx
    src/TThreadMergingFile.cxx
    src/TThreadMergingServer.cxx
-   src/TrackManager.cxx
    src/TransportManager.cxx
    src/LocalityManager.cxx
 )
@@ -121,8 +120,10 @@ if (NOT KNC)
       install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
     else()
       install(TARGETS Geant_v DESTINATION lib)
-        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
-    
+    endif()
+    install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
+      ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
+
   endif()
   
 #----------------------------------------------------------------------------------------------
