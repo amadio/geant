@@ -23,6 +23,11 @@ set(Vc)
 set(Cilk)
 set(Scalar)
 
+if (NOT BACKEND)
+  message(STATUS "Backend not specified. Defaulting to Vc.")
+  set(BACKEND "Vc")
+endif()
+
 if (BACKEND STREQUAL "Vc")
   set(Vc TRUE)
 endif()
