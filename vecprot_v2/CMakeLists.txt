@@ -97,15 +97,15 @@ if (NOT KNC)
     add_subdirectory (cuda)
   else()
     add_library(Geant_v SHARED ${sources} G__Geant.cxx)
-    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${ROOT_LIBRARIES} )
+    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} )
     
     if( VECGEOM_FOUND )
-      target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+      target_link_libraries(Geant_v ${VC_LIBRARIES})
       
       if (VECGEOM_GEANT4)
         include(${Geant4_USE_FILE})
         include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
-        target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}${Geant4_LIBRARIES})
+        target_link_libraries(Geant_v ${Geant4_LIBRARIES})
       endif()
     endif()
     
