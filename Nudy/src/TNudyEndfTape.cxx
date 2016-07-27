@@ -14,16 +14,18 @@
 ClassImp(TNudyEndfTape)
 #endif
 
-//_______________________________________________________________________________
-TNudyEndfTape::TNudyEndfTape()
-  : fLogLev(0), fMats(0) {
+    //_______________________________________________________________________________
+    TNudyEndfTape::TNudyEndfTape()
+    : fLogLev(0), fMats(0)
+{
   //
   // Standard constructor
   //
 }
 
 //_______________________________________________________________________________
-TNudyEndfTape::TNudyEndfTape(const char *name, unsigned char loglev) : TNamed("", name), fLogLev(loglev) {
+TNudyEndfTape::TNudyEndfTape(const char *name, unsigned char loglev) : TNamed("", name), fLogLev(loglev)
+{
   // Key names cannot contain blanks
   TString sname(name);
   sname = sname.Strip(TString::kLeading);
@@ -32,21 +34,21 @@ TNudyEndfTape::TNudyEndfTape(const char *name, unsigned char loglev) : TNamed(""
   sname.ReplaceAll(" ", "_");
   sname.ReplaceAll("/", "_");
   SetName(sname.Data());
-  std::cout << "Creating ENDF Tape:" << std::endl
-            << name << std::endl;
+  std::cout << "Creating ENDF Tape:" << std::endl << name << std::endl;
   fMats = new TList();
 };
 
 //______________________________________________________________________________
-TNudyEndfTape::~TNudyEndfTape() {
+TNudyEndfTape::~TNudyEndfTape()
+{
   //  printf("Destroying TAPE %s\n",GetName());
-  if (fMats)
-    fMats->Delete();
+  if (fMats) fMats->Delete();
   SafeDelete(fMats);
 }
 
 //_______________________________________________________________________________
-void TNudyEndfTape::DumpENDF(int flags = 1) {
+void TNudyEndfTape::DumpENDF(int flags = 1)
+{
   // Name of the tape
   printf("%80s\n", GetName());
   // Materials
@@ -64,39 +66,42 @@ void TNudyEndfTape::DumpENDF(int flags = 1) {
 }
 
 //_______________________________________________________________________________
-void TNudyEndfTape::AddMat(TNudyEndfMat *mat) { fMats->Add(mat); }
+void TNudyEndfTape::AddMat(TNudyEndfMat *mat)
+{
+  fMats->Add(mat);
+}
 
 //_______________________________________________________________________________
-TNudyEndfMat *TNudyEndfTape::GetMAT(int MAT) {
+TNudyEndfMat *TNudyEndfTape::GetMAT(int MAT)
+{
   for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
-    if (thisMat->GetMAT() == MAT)
-      return thisMat;
+    if (thisMat->GetMAT() == MAT) return thisMat;
   }
   Error("TNudyEndfMat::GetMAT(int)", "Could not find material %d on tape", MAT);
   return NULL;
 }
 
 //_______________________________________________________________________________
-TNudyEndfMat *TNudyEndfTape::GetMAT(int Z, int A) {
+TNudyEndfMat *TNudyEndfTape::GetMAT(int Z, int A)
+{
   int ZA = 1000 * Z + A;
   for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
-    if (thisMat->GetZA() == ZA)
-      return thisMat;
+    if (thisMat->GetZA() == ZA) return thisMat;
   }
   return NULL;
 }
 
 //------------------------------------------------------------------------------
 // TNudyEndfMat *TNudyEndfTape::GetMAT(TString name) {    // Abhijit as name was supplied as char *name
-TNudyEndfMat *TNudyEndfTape::GetMAT(char *name) {
+TNudyEndfMat *TNudyEndfTape::GetMAT(char *name)
+{
   TString tstStr; // DEBUG
   for (int i = 0; i <= this->GetMats()->LastIndex(); i++) {
     TNudyEndfMat *thisMat = (TNudyEndfMat *)this->GetMats()->At(i);
-    tstStr = thisMat->GetName(); // DEBUG
-    if (tstStr.CompareTo(name) == 0)
-      return thisMat;
+    tstStr                = thisMat->GetName(); // DEBUG
+    if (tstStr.CompareTo(name) == 0) return thisMat;
   }
   return NULL;
 }

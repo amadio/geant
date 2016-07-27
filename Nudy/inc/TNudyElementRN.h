@@ -39,16 +39,17 @@ private:
   float fPadding;
 
   TColor fColors[26];
+
 public:
   TNudyElementRN();
   TNudyElementRN(TGeoElementRN *elem, float fX, float fY);
-  virtual ~TNudyElementRN(){delete fBox;}
+  virtual ~TNudyElementRN() { delete fBox; }
   void Draw(const char *option = "");
   void Move(float x, float y);
   void SetColorCode(TList *cCodeRange, TList *cCodeColor);
   int GetA() { return fEle->AtomicNo(); }
   int GetZ() { return fEle->MassNo(); }
-  void SetScale(float scale) {fScale = scale;}
+  void SetScale(float scale) { fScale = scale; }
 
 #ifdef USE_ROOT
   ClassDef(TNudyElementRN, 1) // Radio Nucleide Element

@@ -13,22 +13,25 @@
 ClassImp(TNudyLibrary)
 #endif
 
-//______________________________________________________________________________
-TNudyLibrary::TNudyLibrary() {
+    //______________________________________________________________________________
+    TNudyLibrary::TNudyLibrary()
+{
   // Create TNudy Library class
   printf("Making %s\n", GetName());
   // Create new sublibrary Hashtable;
-  fSubLib = new THashTable();
+  fSubLib    = new THashTable();
   fCurSubLib = NULL;
 }
-TNudyLibrary::~TNudyLibrary() {
+TNudyLibrary::~TNudyLibrary()
+{
   printf("Deleting %s\n", GetName());
   fSubLib->Delete();
   delete fSubLib;
   fSubLib = 0;
 }
 //_______________________________________________________________________________
-void TNudyLibrary::ListModels() {
+void TNudyLibrary::ListModels()
+{
   printf("---- Library %s \n", GetName());
   if (fCurSubLib)
     fCurSubLib->ListModels();
@@ -41,17 +44,19 @@ void TNudyLibrary::ListModels() {
   }
 }
 //_______________________________________________________________________________
-TNudyLibrary::TNudyLibrary(const char *name, const char *title) {
+TNudyLibrary::TNudyLibrary(const char *name, const char *title)
+{
   printf("Making %s\n", GetName());
   SetName(name);
   SetTitle(title);
   // Create new sublibrary Hashtable;
-  fSubLib = new THashTable();
+  fSubLib    = new THashTable();
   fCurSubLib = NULL;
 }
 
 //_______________________________________________________________________________
-void TNudyLibrary::ReadTape(TNudyEndfTape *tape) {
+void TNudyLibrary::ReadTape(TNudyEndfTape *tape)
+{
   // Function to read and process ROOT ENDF tape
   int objcount = 0;
   // Create Material Iterator
@@ -109,16 +114,18 @@ void TNudyLibrary::ReadTape(TNudyEndfTape *tape) {
 }
 
 //_______________________________________________________________________________
-TNudySubLibrary *TNudyLibrary::AddSubLib(TParticlePDG *particle) {
-  if (!particle)
-    return NULL;
+TNudySubLibrary *TNudyLibrary::AddSubLib(TParticlePDG *particle)
+{
+  if (!particle) return NULL;
   TNudySubLibrary *newSubLib;
-  if ((newSubLib = (TNudySubLibrary *)fSubLib->FindObject(particle->GetName())))
-    return newSubLib;
+  if ((newSubLib = (TNudySubLibrary *)fSubLib->FindObject(particle->GetName()))) return newSubLib;
   newSubLib = new TNudySubLibrary(particle);
   fSubLib->Add(newSubLib);
   return SetSubLib(particle);
 }
 
 //_______________________________________________________________________________
-bool TNudyLibrary::IsHandled(TParticlePDG */*particle*/, TGeoElementRN */*targets*/, unsigned long /*temp*/) { return (true); }
+bool TNudyLibrary::IsHandled(TParticlePDG * /*particle*/, TGeoElementRN * /*targets*/, unsigned long /*temp*/)
+{
+  return (true);
+}

@@ -10,7 +10,8 @@ public:
   TNudyEndfINTG(int nrow, int ndigit);
   int *GetKIJ() { return fKIJ; }
   int GetNdigit() { return fNdigit; }
-  void SetIJ(int ij[2]) {
+  void SetIJ(int ij[2])
+  {
     fII = ij[0];
     fJJ = ij[1];
   }

@@ -17,7 +17,8 @@ public:
   virtual ~TNudyLibrary();                            // Destructor
   TNudySubLibrary *AddSubLib(TParticlePDG *particle); // Add a sublibrary for particle
   THashTable *GetSubLibs() { return fSubLib; }        // Get all sublibraries
-  TNudySubLibrary *GetSubLib(TParticlePDG *particle) {
+  TNudySubLibrary *GetSubLib(TParticlePDG *particle)
+  {
     return (TNudySubLibrary *)fSubLib->FindObject(particle->GetName());
   } // Get sublibrary by particle
   TNudySubLibrary *SetSubLib(TParticlePDG *particle) { return fCurSubLib = GetSubLib(particle); }

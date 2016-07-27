@@ -17,7 +17,8 @@ protected:
   static TNudyManager *fgInstance;
   TNudyManager();
   TNudyManager(const TNudyManager &manager) : TNamed(manager) {}
-  TNudyManager &operator=(const TNudyManager &manager) {
+  TNudyManager &operator=(const TNudyManager &manager)
+  {
     if (this != &manager) {
       TNamed::operator=(manager);
     }
@@ -50,13 +51,13 @@ public:
   void ProcessTape(const char *endf, const char *rendf);
   int CloseDatabase(const char *name = NULL);
   void AddEndfLibrary(const char *name, const char *endf);
-  void AddLibrary(const char *name, const char *file) {
-    if (fCurNudyDB)
-      fCurNudyDB->AddLibrary(name, file);
+  void AddLibrary(const char *name, const char *file)
+  {
+    if (fCurNudyDB) fCurNudyDB->AddLibrary(name, file);
   }
-  void RemoveLibrary(const char *name) {
-    if (fCurNudyDB)
-      fCurNudyDB->RemoveLibrary(name);
+  void RemoveLibrary(const char *name)
+  {
+    if (fCurNudyDB) fCurNudyDB->RemoveLibrary(name);
   }
   void ListModels();
   TVNudyModel *GetModel(const int a, const int z, const int iso, const int reaction, const unsigned long temp,

@@ -4,4 +4,3 @@
 TNudyEndfRecord::TNudyEndfRecord() : TObject()
 {
 }
-

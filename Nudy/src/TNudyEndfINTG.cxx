@@ -4,17 +4,19 @@
 ClassImp(TNudyEndfINTG)
 #endif
 
-//______________________________________________________________________________
-TNudyEndfINTG::TNudyEndfINTG()
-  : TNudyEndfCont(), fNrow(18), fNdigit(2) {
+    //______________________________________________________________________________
+    TNudyEndfINTG::TNudyEndfINTG()
+    : TNudyEndfCont(), fNrow(18), fNdigit(2)
+{
   for (int i = 0; i < 18; fKIJ[i++] = 0)
     ;
   fII = fJJ = 0;
 }
 
 //______________________________________________________________________________
-TNudyEndfINTG::TNudyEndfINTG(int nrow, int ndigit) {
-  fNrow = nrow;
+TNudyEndfINTG::TNudyEndfINTG(int nrow, int ndigit)
+{
+  fNrow   = nrow;
   fNdigit = ndigit;
   for (int i = 0; i < 18; fKIJ[i++] = 0)
     ;
@@ -22,16 +24,17 @@ TNudyEndfINTG::TNudyEndfINTG(int nrow, int ndigit) {
 }
 
 //______________________________________________________________________________
-void TNudyEndfINTG::SetKIJ(int kij[18]) {
+void TNudyEndfINTG::SetKIJ(int kij[18])
+{
   for (int i = 0; i < 18; i++)
-    fKIJ[i] = kij[i];
+    fKIJ[i]  = kij[i];
 }
 
 //______________________________________________________________________________
-void TNudyEndfINTG::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1) {
+void TNudyEndfINTG::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1)
+{
   printf("%5d%5d", fII, fJJ);
-  if (fNdigit >= 2 && fNdigit <= 6)
-    printf(" ");
+  if (fNdigit >= 2 && fNdigit <= 6) printf(" ");
   int limit = 18;
   if (fNdigit == 2)
     limit = 18;

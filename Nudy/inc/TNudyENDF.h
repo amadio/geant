@@ -22,7 +22,7 @@ class TNudyEndfINTG;
 
 #ifdef USE_ROOT
 #include "Rtypes.h"
-#endif 
+#endif
 
 #include <sstream>
 #include <fstream>
@@ -35,9 +35,13 @@ public:
   TNudyENDF();
   TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt = "new", unsigned char loglev = 0);
   virtual ~TNudyENDF();
-  bool sub=false;
-  void SetEndfSub(std::string ENDFSUB){this->sub=true; this->ENDFSUB=ENDFSUB; }
-  std::string GetEndfSubName() const {return ENDFSUB; }
+  bool sub = false;
+  void SetEndfSub(std::string ENDFSUB)
+  {
+    this->sub     = true;
+    this->ENDFSUB = ENDFSUB;
+  }
+  std::string GetEndfSubName() const { return ENDFSUB; }
   void SetLogLev(unsigned char loglev) { fLogLev = loglev; }
   unsigned char GetLogLev() const { return fLogLev; }
   void Process();
@@ -86,7 +90,8 @@ public:
   void CheckMEND(const int pmtf[3]) const;
   void CheckTEND() const;
 
-  void GetMTF(int mtf[4]) const {
+  void GetMTF(int mtf[4]) const
+  {
     std::string s0(fLine);
     std::string s2 = s0.substr(66, 4);
     std::istringstream ss;
@@ -118,7 +123,8 @@ public:
     ss.clear();
   }
 
-  void GetCONT(double c[2], int nl[4], int mtf[4]) const {
+  void GetCONT(double c[2], int nl[4], int mtf[4]) const
+  {
     int ii;
     std::string tmp;
     std::istringstream ss;
@@ -133,8 +139,7 @@ public:
     for (ii = 0; ii < 2; ii++) {
       tmp.swap(strNum[ii]);
       std::size_t alien = tmp.find_last_of("+-");
-      if (0 < alien && alien != std::string::npos)
-        tmp.replace(alien, 1, std::string("E") + tmp[alien]);
+      if (0 < alien && alien != std::string::npos) tmp.replace(alien, 1, std::string("E") + tmp[alien]);
       ss.str(tmp);
       c[ii] = 0.0;
       ss >> c[ii];
@@ -154,7 +159,8 @@ public:
     GetMTF(mtf);
   }
 
-  void GetFloat(double c[6]) const {
+  void GetFloat(double c[6]) const
+  {
     int ii;
     std::string tmp;
     std::vector<std::string> strNum(6);
@@ -162,15 +168,14 @@ public:
     std::string s0(fLine);
     std::string s1 = s0.substr(0, 66);
 
-    for (ii = 0; ii < 6; ii++)
+    for (ii      = 0; ii < 6; ii++)
       strNum[ii] = s1.substr(ii * 11, 11);
 
     for (ii = 0; ii < 6; ii++) {
       c[ii] = 0.0;
       tmp.swap(strNum[ii]);
       std::size_t alien = tmp.find_last_of("+-");
-      if (0 < alien && alien != std::string::npos)
-        tmp.replace(alien, 1, std::string("E") + tmp[alien]);
+      if (0 < alien && alien != std::string::npos) tmp.replace(alien, 1, std::string("E") + tmp[alien]);
       ss.str(tmp);
       ss >> c[ii];
       ss.str("");
@@ -179,7 +184,8 @@ public:
     }
   }
 
-  void GetInt(int n[6]) const {
+  void GetInt(int n[6]) const
+  {
     std::string s0(fLine);
     std::string s1 = s0.substr(0, 66);
     std::istringstream ss(s1);
@@ -189,7 +195,8 @@ public:
     }
   }
 
-  void GetINTG(int /*ndigit*/, int ij[2], int kij[18], int mtf[4]) const {
+  void GetINTG(int /*ndigit*/, int ij[2], int kij[18], int mtf[4]) const
+  {
     int ii;
     std::string s0(fLine);
     std::string s1 = s0.substr(0, 66);

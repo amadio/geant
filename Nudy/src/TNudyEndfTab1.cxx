@@ -12,9 +12,10 @@
 ClassImp(TNudyEndfTab1)
 #endif
 
-//_______________________________________________________________________________
-TNudyEndfTab1::TNudyEndfTab1()
-  : TNudyEndfCont(), fNBT(NULL), fINT(NULL), fX(NULL), fY(NULL) {
+    //_______________________________________________________________________________
+    TNudyEndfTab1::TNudyEndfTab1()
+    : TNudyEndfCont(), fNBT(NULL), fINT(NULL), fX(NULL), fY(NULL)
+{
   //
   // Default constructor
   //
@@ -23,7 +24,8 @@ TNudyEndfTab1::TNudyEndfTab1()
 //_______________________________________________________________________________
 TNudyEndfTab1::TNudyEndfTab1(TNudyEndfTab1 *tab, int n1, int n2)
     : TNudyEndfCont(tab->GetC1(), tab->GetC2(), tab->GetL1(), tab->GetL2(), n1, n2), fNBT(new int[n1]),
-      fINT(new int[n1]), fX(new double[n2]), fY(new double[n2]) {
+      fINT(new int[n1]), fX(new double[n2]), fY(new double[n2])
+{
   memcpy(fNBT, tab->NBT(), sizeof(int) * tab->GetN1());
   memcpy(fINT, tab->INT(), sizeof(int) * tab->GetN1());
   memcpy(fX, tab->X(), sizeof(double) * tab->GetN2());
@@ -33,23 +35,26 @@ TNudyEndfTab1::TNudyEndfTab1(TNudyEndfTab1 *tab, int n1, int n2)
 //_______________________________________________________________________________
 TNudyEndfTab1::TNudyEndfTab1(double c1, double c2, int l1, int l2, int n1, int n2)
     : TNudyEndfCont(c1, c2, l1, l2, n1, n2), fNBT(new int[n1]), fINT(new int[n1]), fX(new double[n2]),
-      fY(new double[n2]) {
+      fY(new double[n2])
+{
   //
   // Standard constructor
   //
 }
 
 //_______________________________________________________________________________
-TNudyEndfTab1::~TNudyEndfTab1() {
+TNudyEndfTab1::~TNudyEndfTab1()
+{
   // printf("Deleting Tab1\n");
-  delete [] fNBT;
-  delete [] fINT;
-  delete [] fX;
-  delete [] fY;
+  delete[] fNBT;
+  delete[] fINT;
+  delete[] fX;
+  delete[] fY;
 }
 
 //_______________________________________________________________________________
-void TNudyEndfTab1::Equate(TNudyEndfTab1 *tab) {
+void TNudyEndfTab1::Equate(TNudyEndfTab1 *tab)
+{
   SetCont(tab->GetC1(), tab->GetC2(), tab->GetL1(), tab->GetL2(), tab->GetN1(), tab->GetN2());
   memcpy(fNBT, tab->NBT(), sizeof(int) * tab->GetN1());
   memcpy(fINT, tab->INT(), sizeof(int) * tab->GetN1());
@@ -58,7 +63,8 @@ void TNudyEndfTab1::Equate(TNudyEndfTab1 *tab) {
 }
 
 //______________________________________________________________________________
-void TNudyEndfTab1::SetCont(double c1, double c2, int l1, int l2, int n1, int n2) {
+void TNudyEndfTab1::SetCont(double c1, double c2, int l1, int l2, int n1, int n2)
+{
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
   delete[] fNBT;
   delete[] fINT;
@@ -66,14 +72,15 @@ void TNudyEndfTab1::SetCont(double c1, double c2, int l1, int l2, int n1, int n2
   delete[] fY;
   fNBT = new int[n1];
   fINT = new int[n1];
-  fX = new double[n2];
-  fY = new double[n2];
+  fX   = new double[n2];
+  fY   = new double[n2];
 }
 
 //
 // Dumps Tab1 records to ENDF
 //______________________________________________________________________________
-void TNudyEndfTab1::DumpENDF(int mat, int mf, int mt, int &ns, int flags) {
+void TNudyEndfTab1::DumpENDF(int mat, int mf, int mt, int &ns, int flags)
+{
   char s1[14], s2[14];
   F2F(fC1, s1);
   F2F(fC2, s2);

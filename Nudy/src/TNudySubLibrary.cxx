@@ -11,30 +11,33 @@
 ClassImp(TNudySubLibrary)
 #endif
 
-//______________________________________________________________________________
-TNudySubLibrary::TNudySubLibrary() {
+    //______________________________________________________________________________
+    TNudySubLibrary::TNudySubLibrary()
+{
   // Default Constructor to create a new SubLibrary
   printf("Making SubLibrary %s\n", GetName());
   // BTree to store data for fast processing
-  fIndex = new TBtree();
-  fBuffer = NULL;
+  fIndex      = new TBtree();
+  fBuffer     = NULL;
   fProjectile = NULL;
 }
 
 //______________________________________________________________________________
-TNudySubLibrary::TNudySubLibrary(TParticlePDG *projectile) {
+TNudySubLibrary::TNudySubLibrary(TParticlePDG *projectile)
+{
   // Constructor to create a new SubLibrary for TParticle projectile
   SetName(projectile->GetName());
   printf("Making SubLibrary %s\n", GetName());
   SetTitle(Form("%s sub library", projectile->GetName()));
   fProjectile = projectile;
   // BTree to store data for fast processing
-  fIndex = new TBtree();
+  fIndex  = new TBtree();
   fBuffer = NULL;
 }
 
 //______________________________________________________________________________
-void TNudySubLibrary::AddModel(TVNudyModel *model) {
+void TNudySubLibrary::AddModel(TVNudyModel *model)
+{
   // Every Model should be unique
   if (!(fIndex->FindObject(model->GetName()))) {
     fIndex->Add(model);
@@ -44,7 +47,8 @@ void TNudySubLibrary::AddModel(TVNudyModel *model) {
 }
 
 //______________________________________________________________________________
-void TNudySubLibrary::ListModels() {
+void TNudySubLibrary::ListModels()
+{
   TIter modelIter(fIndex);
   TVNudyModel *model;
   printf("---- SubLibrary %s Model List\n\n", GetName());
@@ -56,24 +60,25 @@ void TNudySubLibrary::ListModels() {
 }
 
 //______________________________________________________________________________
-TNudySubLibrary::~TNudySubLibrary() {
+TNudySubLibrary::~TNudySubLibrary()
+{
   // Destructor for TNudySubLibrary
   printf("Deleting SubLibrary %s\n", GetName());
   delete fProjectile;
   fIndex->Delete();
   delete fIndex;
-  if (fBuffer)
-    delete fBuffer;
+  if (fBuffer) delete fBuffer;
   fBuffer = NULL;
 }
 
 //______________________________________________________________________________
-void TNudySubLibrary::ReadMat(TNudyEndfMat *material) {
+void TNudySubLibrary::ReadMat(TNudyEndfMat *material)
+{
   // Function to Read and Process a Material
   TList reactions;
   TIter iter(material->GetFiles());
   TNudyEndfFile *file = NULL;
-  TNudyEndfSec *sec = NULL;
+  TNudyEndfSec *sec   = NULL;
 
   // Loop through all sections and create a list of all reactions that occur
   while ((file = (TNudyEndfFile *)iter.Next())) {
@@ -86,7 +91,7 @@ void TNudySubLibrary::ReadMat(TNudyEndfMat *material) {
   }
   TIter rIter(&reactions);
   TNamed *obj = NULL;
-  int ZA = material->GetZA();
+  int ZA      = material->GetZA();
   // Get Default Isotopes
   if (ZA % 1000 == 0) {
     ZA = ZA + (int)TNudyCore::Instance()->GetElementTable()->GetElement(ZA / 1000)->A();
@@ -100,7 +105,7 @@ void TNudySubLibrary::ReadMat(TNudyEndfMat *material) {
   //  printf("Material Obtained %s\n",mat->GetName());
   while ((obj = (TNamed *)rIter.Next())) {
     unsigned long temp = material->GetTEMP();
-    Reaction_t reac = (Reaction_t)TString(obj->GetName()).Atoi();
+    Reaction_t reac    = (Reaction_t)TString(obj->GetName()).Atoi();
     if (temp == 0) {
       Error("ReadMat", "Data for MAT=%d is not Doppler Broadened - Temperature not set\n", material->GetMAT());
     }
@@ -124,21 +129,19 @@ void TNudySubLibrary::ReadMat(TNudyEndfMat *material) {
   }
   reactions.Delete();
 }
-TVNudyModel *TNudySubLibrary::GetModel(const TGeoElementRN *mat, const Reaction_t reac, const unsigned long temp) {
-  if (fBuffer)
-    delete fBuffer;
+TVNudyModel *TNudySubLibrary::GetModel(const TGeoElementRN *mat, const Reaction_t reac, const unsigned long temp)
+{
+  if (fBuffer) delete fBuffer;
   fBuffer = new TBtree();
-  if (!mat)
-    return NULL;
+  if (!mat) return NULL;
   TVNudyModel *model = (TVNudyModel *)fIndex->FindObject(TNudyCore::Instance()->GetKey(mat, reac, temp));
-  if (model)
-    fBuffer->Add(model);
+  if (model) fBuffer->Add(model);
   return model;
 }
 
-TBtree *TNudySubLibrary::GetAllModels(const TGeoElementRN *mat, const Reaction_t reac, const unsigned long temp) {
-  if (fBuffer)
-    delete fBuffer;
+TBtree *TNudySubLibrary::GetAllModels(const TGeoElementRN *mat, const Reaction_t reac, const unsigned long temp)
+{
+  if (fBuffer) delete fBuffer;
   fBuffer = new TBtree();
   TIter modelIter(fIndex);
   TVNudyModel *model;

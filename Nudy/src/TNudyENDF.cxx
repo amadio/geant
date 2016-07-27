@@ -5,7 +5,6 @@
    fca 2-mai-2010
 */
 
-
 #include <string>
 #include <iostream>
 
@@ -26,19 +25,19 @@
 ClassImp(TNudyENDF)
 #endif
 
-const char TNudyENDF::fkElNam[119][4] = {
-    "n",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na",  "Mg",  "Al",  "Si",  "P",   "S",
-    "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni",  "Cu",  "Zn",  "Ga",  "Ge",  "As",
-    "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh",  "Pd",  "Ag",  "Cd",  "In",  "Sn",
-    "Sb", "Te", "I",  "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu",  "Gd",  "Tb",  "Dy",  "Ho",
-    "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au",  "Hg",  "Tl",  "Pb",  "Bi",  "Po",
-    "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm",  "Bk",  "Cf",  "Es",  "Fm",  "Md",
-    "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Uut", "Uuq", "Uup", "Uuh", "Uus", "Uuo"};
+    const char TNudyENDF::fkElNam[119][4] = {
+        "n",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na",  "Mg",  "Al",  "Si",  "P",   "S",
+        "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni",  "Cu",  "Zn",  "Ga",  "Ge",  "As",
+        "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh",  "Pd",  "Ag",  "Cd",  "In",  "Sn",
+        "Sb", "Te", "I",  "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu",  "Gd",  "Tb",  "Dy",  "Ho",
+        "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au",  "Hg",  "Tl",  "Pb",  "Bi",  "Po",
+        "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm",  "Bk",  "Cf",  "Es",  "Fm",  "Md",
+        "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Uut", "Uuq", "Uup", "Uuh", "Uus", "Uuo"};
 
 const char TNudyENDF::fkElIso[4][2] = {"", "m", "n", "o"};
-    //_______________________________________________________________________________
-    TNudyENDF::TNudyENDF()
-    : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL) {
+//_______________________________________________________________________________
+TNudyENDF::TNudyENDF() : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL)
+{
   //
   // Standard constructor
   //
@@ -47,60 +46,56 @@ const char TNudyENDF::fkElIso[4][2] = {"", "m", "n", "o"};
 
 //_______________________________________________________________________________
 TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt, unsigned char loglev)
-    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL),ENDFSUB() {
+    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL), ENDFSUB()
+{
 
   fLine[0] = '\0';
   // Open input stream
-  
+
   fENDF.open(nFileENDF);
-  if (!fENDF.is_open())
-    ::Fatal("ctor", "Could not open input file %s", nFileENDF);
+  if (!fENDF.is_open()) ::Fatal("ctor", "Could not open input file %s", nFileENDF);
 
   // Open output RENDF file
   fRENDF = TFile::Open(nFileRENDF, opt);
-  if (!fRENDF)
-    ::Fatal("ctor", "Could not open output file %s", nFileRENDF);
+  if (!fRENDF) ::Fatal("ctor", "Could not open output file %s", nFileRENDF);
 
   // Read to Tape Identifier
-  for (int i = 0; i<6; i++){
-  fENDF.getline(fLine, LINLEN);
+  for (int i = 0; i < 6; i++) {
+    fENDF.getline(fLine, LINLEN);
   }
-  if (loglev > 3)
-    std::cout << "Opened ENDF file:" << std::endl
-              << fLine << std::endl;
+  if (loglev > 3) std::cout << "Opened ENDF file:" << std::endl << fLine << std::endl;
   fTape = new TNudyEndfTape(fLine, fLogLev);
-  fENDF.seekg(0);	      
+  fENDF.seekg(0);
   fENDF.getline(fLine, LINLEN);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process() {
+void TNudyENDF::Process()
+{
   //
   // Process a tape
   //
-  if(sub==true){
-    const char* EndfSub;
+  if (sub == true) {
+    const char *EndfSub;
     std::string subname = GetEndfSubName();
-    EndfSub = subname.c_str();
+    EndfSub             = subname.c_str();
     fENDF.open(EndfSub);
-    std::cout<<"EndfSub "<< subname << std::endl;
-    if (!fENDF.is_open())
-    ::Fatal("ctor", "Could not open input file %s", EndfSub);
-    fENDF.getline(fLine, LINLEN);   
+    std::cout << "EndfSub " << subname << std::endl;
+    if (!fENDF.is_open()) ::Fatal("ctor", "Could not open input file %s", EndfSub);
+    fENDF.getline(fLine, LINLEN);
   }
   double c[2];
   int nl[4];
   int mtf[4];
 
   int &curMAT = mtf[0];
-  int oldMAT = 0;
+  int oldMAT  = 0;
 
   while (!fENDF.eof()) {
     fENDF.getline(fLine, LINLEN);
-      std::cout << fLine << std::endl;
-    if (fLogLev > 10)
-      std::cout << fLine << std::endl;
-      
+    std::cout << fLine << std::endl;
+    if (fLogLev > 10) std::cout << fLine << std::endl;
+
     // See what we have
     GetMTF(mtf);
 
@@ -112,8 +107,7 @@ void TNudyENDF::Process() {
     } else if (curMAT != oldMAT) {
       // Normal situation, we should have read the mat till the end
       oldMAT = curMAT;
-      if (fLogLev > 3)
-        std::cout << "Material(MAT) : " << curMAT << std::endl;
+      if (fLogLev > 3) std::cout << "Material(MAT) : " << curMAT << std::endl;
       // Create new material section
       GetCONT(c, nl, mtf);
       fMat = new TNudyEndfMat(curMAT, round(c[0]), c[1], nl[0], (nl[1] == 1), nl[2], nl[3]);
@@ -122,12 +116,11 @@ void TNudyENDF::Process() {
       fTape->AddMat(fMat);
     } else {
       // Something went wrong, we should have processed the material to the end
-       ::Error("Process()",
-            "Did not process Material MAT %d to the end or there are mutiple evaluations of the same material\n",
-            oldMAT);
+      ::Error("Process()",
+              "Did not process Material MAT %d to the end or there are mutiple evaluations of the same material\n",
+              oldMAT);
       oldMAT = curMAT;
-      if (fLogLev > 3)
-        std::cout << "Material(MAT) :  " << curMAT << std::endl;
+      if (fLogLev > 3) std::cout << "Material(MAT) :  " << curMAT << std::endl;
       // Create new material section
       GetCONT(c, nl, mtf);
       fMat = new TNudyEndfMat(curMAT, round(c[0]), c[1], nl[0], (nl[1] == 1), nl[2], nl[3]);
@@ -138,8 +131,8 @@ void TNudyENDF::Process() {
   }
 
   // Write the tape to disk
-  fENDF.close();  
-  if(sub==true){
+  fENDF.close();
+  if (sub == true) {
     fTape->Print();
     fTape->Write();
     fENDF.close();
@@ -148,7 +141,8 @@ void TNudyENDF::Process() {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfMat *mat) {
+void TNudyENDF::Process(TNudyEndfMat *mat)
+{
   //
   // Here we read the whole material
   //
@@ -157,8 +151,8 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   int mtf[4];
 
   int &curMAT = mtf[0];
-  int &curMF = mtf[1];
-  int oldMF = 0;
+  int &curMF  = mtf[1];
+  int oldMF   = 0;
 
   char name[12] = "\0";
   int mZA;
@@ -167,8 +161,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Section 1 451 is put directly in the material structure
   // READ(LIB,10)C1,C2,L1,L2,N1,N2,MAT,MF,MT,NS
   GetMTF(mtf);
-  if (fLogLev > 3)
-    ::Info("Process", "File(MF) : %d", curMF);
+  if (fLogLev > 3) ::Info("Process", "File(MF) : %d", curMF);
 
   // Material record line 2
   fENDF.getline(fLine, LINLEN);
@@ -185,44 +178,36 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   name[11] = '\0';
 
   mat->SetName(name);
-  if (fLogLev > 4)
-    ::Info("Process", "Material Name : %s", name);
+  if (fLogLev > 4) ::Info("Process", "Material Name : %s", name);
   // End of build of material name
-  if (nl[2])
-     ::Error("Process", "Format error, N1 = %d in the second record of %s\n", nl[2], mat->GetName());
+  if (nl[2]) ::Error("Process", "Format error, N1 = %d in the second record of %s\n", nl[2], mat->GetName());
   mat->SetNFOR(nl[3]);
 
   // Material record line 3
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Header Line 3");
+  if (fLogLev > 4) ::Info("Process", "Reading Header Line 3");
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
 
   mat->SetAWI(c[0]);
   mat->SetEMAX(c[1]);
   mat->SetLREL(nl[0]);
-  if (nl[1])
-     ::Error("Process", "Format error, L2 = %d in the third record of %s\n", nl[1], mat->GetName());
+  if (nl[1]) ::Error("Process", "Format error, L2 = %d in the third record of %s\n", nl[1], mat->GetName());
   mat->SetNSUB(nl[2]);
   mat->SetNVER(nl[3]);
 
   // Material record line 4
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Header Line 4");
+  if (fLogLev > 4) ::Info("Process", "Reading Header Line 4");
   fENDF.getline(fLine, LINLEN);
   GetCONT(c, nl, mtf);
   mat->SetTEMP(c[0]);
-  if (c[1])
-     ::Error("Process", "Format error, C2 = %f in the fourth record of %s\n", c[1], mat->GetName());
+  if (c[1]) ::Error("Process", "Format error, C2 = %f in the fourth record of %s\n", c[1], mat->GetName());
   mat->SetLDRV(nl[0]);
-  if (nl[1])
-     ::Error("Process", "Format error, L2 = %d in the fourth record of %s\n", nl[1], mat->GetName());
+  if (nl[1]) ::Error("Process", "Format error, L2 = %d in the fourth record of %s\n", nl[1], mat->GetName());
   mat->SetNWD(nl[2]);
   mat->SetNXC(nl[3]);
 
   // Material record line 5
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Header Line 5");
+  if (fLogLev > 4) ::Info("Process", "Reading Header Line 5");
   fENDF.getline(fLine, LINLEN);
   mat->SetZSYMAM(fLine);
   mat->SetALAB(&fLine[11]);
@@ -230,8 +215,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   mat->SetAUTH(&fLine[33]);
 
   // Material record line 6
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Header Line 6");
+  if (fLogLev > 4) ::Info("Process", "Reading Header Line 6");
   fENDF.getline(fLine, LINLEN);
   mat->SetREF(&fLine[1]);
   mat->SetDDATE(&fLine[22]);
@@ -241,19 +225,15 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Getting the DESC records
   fENDF.getline(fLine, LINLEN);
   mat->SetHSUB(fLine, 0);
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Description Record 1");
+  if (fLogLev > 4) ::Info("Process", "Reading Description Record 1");
   fENDF.getline(fLine, LINLEN);
   mat->SetHSUB(fLine, 1);
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Description Record 2");
+  if (fLogLev > 4) ::Info("Process", "Reading Description Record 2");
   fENDF.getline(fLine, LINLEN);
   mat->SetHSUB(fLine, 2);
-  if (fLogLev > 4)
-    ::Info("Process", "Reading Description Record 3");
+  if (fLogLev > 4) ::Info("Process", "Reading Description Record 3");
   // Get the rest of the description recrods
-  if (fLogLev > 6)
-    ::Info("Process", "No of Description TEXT records : %d", mat->GetNWD());
+  if (fLogLev > 6) ::Info("Process", "No of Description TEXT records : %d", mat->GetNWD());
   int descLen = 67;
   for (int i = 0; i < mat->GetNWD() - 5; i++) {
     char desc[descLen];
@@ -264,8 +244,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   }
 
   // Get the dictionary
-  if (fLogLev > 6)
-    ::Info("Process", "Length of the Dictionary : %d", mat->GetNXC());
+  if (fLogLev > 6) ::Info("Process", "Length of the Dictionary : %d", mat->GetNXC());
 
   for (int i = 0; i < mat->GetNXC(); ++i) {
     fENDF.getline(fLine, LINLEN);
@@ -283,8 +262,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
   // Start normal processing of the rest of material
   while (!fENDF.eof()) {
     fENDF.getline(fLine, LINLEN);
-    if (fLogLev > 10)
-      std::cout << fLine << std::endl;
+    if (fLogLev > 10) std::cout << fLine << std::endl;
 
     // See what we have
     GetMTF(mtf);
@@ -297,8 +275,7 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
       // Normal situation, we should have read the file till the end
       // Note that MF=1 is already partially read, so we process the other sections
       oldMF = curMF;
-      if (fLogLev > 3 && curMF != 1)
-        ::Info("Process", "File(MF) : %d   Section(MT) : %d", curMF, mtf[2]);
+      if (fLogLev > 3 && curMF != 1) ::Info("Process", "File(MF) : %d   Section(MT) : %d", curMF, mtf[2]);
       // Create new file
       TNudyEndfFile *file = new TNudyEndfFile(mat->GetMAT(), curMF);
       Process(file);
@@ -312,9 +289,9 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
       CheckFEND(mtf);
     } else {
       // Something went wrong, we should have processed the material to the end
-       ::Error("Process(TNudyEndfMat*)",
-            "Did not process File MF %d of Material MAT %d to the end or multiple files of the same type exist\n",
-            curMF, curMAT);
+      ::Error("Process(TNudyEndfMat*)",
+              "Did not process File MF %d of Material MAT %d to the end or multiple files of the same type exist\n",
+              curMF, curMAT);
       TNudyEndfFile *file1 = new TNudyEndfFile(mat->GetMAT(), 1);
       mat->Add(file1);
       CheckFEND(mtf);
@@ -323,18 +300,18 @@ void TNudyENDF::Process(TNudyEndfMat *mat) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfFile *file) {
+void TNudyENDF::Process(TNudyEndfFile *file)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMAT = mtf[0];
-  int &curMF = mtf[1];
-  int &curMT = mtf[2];
-  int oldMT = 0;
+  int &curMF  = mtf[1];
+  int &curMT  = mtf[2];
+  int oldMT   = 0;
 
   while (!fENDF.eof()) {
-    if (fLogLev > 10)
-      std::cout << fLine << std::endl;
+    if (fLogLev > 10) std::cout << fLine << std::endl;
 
     // See what we have
     // Careful to the inverted logics... we are already at the beg of the new file here
@@ -347,8 +324,7 @@ void TNudyENDF::Process(TNudyEndfFile *file) {
     } else if (curMT != oldMT) {
       // Normal situation, we should have read the section till the end
       oldMT = curMT;
-      if (fLogLev > 3)
-        ::Info("Process", "New Section(MT) : %d", curMT);
+      if (fLogLev > 3) ::Info("Process", "New Section(MT) : %d", curMT);
       // Create new section
       GetCONT(c, nl, mtf);
       TNudyEndfSec *sec = new TNudyEndfSec(curMAT, curMF, curMT, c[0], c[1], nl[0], nl[1], nl[2], nl[3]);
@@ -356,16 +332,17 @@ void TNudyENDF::Process(TNudyEndfFile *file) {
       // Add setion to file list
       file->Add(sec);
     } else
-       ::Error("Process(TNudyEndfFile*)", "Did not process Section MT %d of File MF %d to the end\n", oldMT,
-            file->GetMF());
+      ::Error("Process(TNudyEndfFile*)", "Did not process Section MT %d of File MF %d to the end\n", oldMT,
+              file->GetMF());
     fENDF.getline(fLine, LINLEN);
   }
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfSec *sec) {
+void TNudyENDF::Process(TNudyEndfSec *sec)
+{
   double c[2] = {0, 0};
-  int nl[4] = {0, 0, 0, 0};
+  int nl[4]   = {0, 0, 0, 0};
   int mtf[4];
   int &curMF = mtf[1];
   int &curMT = mtf[2];
@@ -451,28 +428,27 @@ void TNudyENDF::Process(TNudyEndfSec *sec) {
     TNudyEndfCont *secCont = new TNudyEndfCont(c[0], c[1], nl[0], nl[1], nl[2], nl[3]);
     sec->Add(secCont);
     // Read the section
-    if (curMT != 451)
-       ::Error("Process(mat)", "Untreated File MF %d (Section MT %d)\n", curMF, curMT);
+    if (curMT != 451) ::Error("Process(mat)", "Untreated File MF %d (Section MT %d)\n", curMF, curMT);
     ToEndSec();
     break;
   }
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF1(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMAT = mtf[0];
-  int &curMF = mtf[1];
-  int &curMT = mtf[2];
+  int &curMF  = mtf[1];
+  int &curMT  = mtf[2];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 1)
-    ::Fatal("ProcessF1(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 1) ::Fatal("ProcessF1(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   switch (curMT) {
-  case 451://                      only comments in this section
+  case 451: //                      only comments in this section
     break;
   case 452: // ------------------- Section 452 -- Fission Yield
     switch (nl[1]) {
@@ -495,8 +471,8 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
       GetSEND(mtf);
     } break;
     default:
-      ::Fatal("ProcessF1(TNudyEndfSec*)", "Unknown LNU value %d for Material MT %d, File MF %d and Section MT %d", nl[1],
-            curMAT, curMT, curMF);
+      ::Fatal("ProcessF1(TNudyEndfSec*)", "Unknown LNU value %d for Material MT %d, File MF %d and Section MT %d",
+              nl[1], curMAT, curMT, curMF);
       break;
     }
     break;
@@ -540,14 +516,14 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
       } break;
       default:
         ::Fatal("ProcessF1(TNudyEndfSec*)",
-              "Unknown LDG value %d for LNU %d for Material MT %d, File MF %d and Section MT %d", nl[0], nl[1], curMAT,
-              curMT, curMF);
+                "Unknown LDG value %d for LNU %d for Material MT %d, File MF %d and Section MT %d", nl[0], nl[1],
+                curMAT, curMT, curMF);
         break;
       }
       break;
     default:
-      ::Fatal("ProcessF1(TNudyEndfSec*)", "Unknown LNU value %d for Material MT %d, File MF %d and Section MT %d", nl[1],
-            curMAT, curMT, curMF);
+      ::Fatal("ProcessF1(TNudyEndfSec*)", "Unknown LNU value %d for Material MT %d, File MF %d and Section MT %d",
+              nl[1], curMAT, curMT, curMF);
       break;
     }
     break;
@@ -572,8 +548,8 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
       GetSEND(mtf);
     } break;
     default:
-      ::Fatal("ProcessF1(TNudyEndfSec*)", "Unknown LNU value %d for Material MT %d, File MF %d and Section MT %d", nl[1],
-            curMAT, curMT, curMF);
+      ::Fatal("ProcessF1(TNudyEndfSec*)", "Unknown LNU value %d for Material MT %d, File MF %d and Section MT %d",
+              nl[1], curMAT, curMT, curMF);
       break;
     }
     break;
@@ -601,7 +577,7 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
       Process(secListPD);
       sec->Add(secListPD);
     } else {
-       ::Error("ProcessF1(TNudyEndfSec*)", "Invalid value of LO=%d in File %d Section %d\n", iLO, curMF, curMT);
+      ::Error("ProcessF1(TNudyEndfSec*)", "Invalid value of LO=%d in File %d Section %d\n", iLO, curMF, curMT);
     }
     GetSEND(mtf);
   } break;
@@ -612,24 +588,23 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF2(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
   int &curMT = mtf[2];
-  int iLRU = -1;
-  int iLRF = -1;
-  int iNRO = -1;
-  //int iNAPS = -1;
+  int iLRU   = -1;
+  int iLRF   = -1;
+  int iNRO   = -1;
+  // int iNAPS = -1;
   int iLFW = -1;
 
   GetCONT(c, nl, mtf);
 
-  if (curMF != 2)
-    ::Fatal("ProcessF2(TNudyEndfSec*)", "File %d should not be processed here", curMF);
-  if (fMat->GetLRP() == -1)
-    ::Fatal("ProcessF2(TNudyEndfSec*)", "File %d should not exist!", curMF);
+  if (curMF != 2) ::Fatal("ProcessF2(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (fMat->GetLRP() == -1) ::Fatal("ProcessF2(TNudyEndfSec*)", "File %d should not exist!", curMF);
 
   switch (curMT) {
   case 151: // ------------------- The only section of file 2
@@ -652,7 +627,7 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
         iLRU = secContRange->GetL1();
         iLRF = secContRange->GetL2();
         iNRO = secContRange->GetN1();
-        //iNAPS = secContRange->GetN2();
+        // iNAPS = secContRange->GetN2();
         switch (iLRU) {
         case 0: {
           TNudyEndfCont *secCont = new TNudyEndfCont();
@@ -661,11 +636,11 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
         } break;
         case 1: // Resolved resonance parameters
         {
-//	  std::cout<<"SLBW "<<iLRF<<std::endl;
+          //	  std::cout<<"SLBW "<<iLRF<<std::endl;
           switch (iLRF) {
           case 1: // Single-level Breit-Wigner
-	    
-          case 2:// Multi-level Breit-Wigner
+
+          case 2: // Multi-level Breit-Wigner
 
           case 3: // Reich-Moore
           {
@@ -852,15 +827,15 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec) {
   GetSEND(mtf);
 }
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF3(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF3(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 3)
-    ::Fatal("ProcessF3(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 3) ::Fatal("ProcessF3(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
   // Read the section
@@ -870,19 +845,19 @@ void TNudyENDF::ProcessF3(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF4(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iLTT = -1;
-  int iLI = -1;
+  int iLTT   = -1;
+  int iLI    = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 4)
-    ::Fatal("ProcessF4(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 4) ::Fatal("ProcessF4(TNudyEndfSec*)", "File %d should not be processed here", curMF);
   if (sec->GetL1() != 0) { // Old format, this is not available anymore
-     ::Error("ProcessF4(TNudyEndfSec*)", "LVT %d is not available, it is old format", sec->GetL1());
+    ::Error("ProcessF4(TNudyEndfSec*)", "LVT %d is not available, it is old format", sec->GetL1());
     ToEndSec();
   } else { // Normal format
     iLTT = sec->GetL2();
@@ -894,8 +869,7 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
 
     switch (iLTT) {
     case 0: { // LTT=0, LI=1: Purely Isotropic Angular Distributions
-      if (iLI != 1)
-        ::Fatal("ProcessF4(TNudyEndfSec*)", "Unknown values of LI %d", iLI);
+      if (iLI != 1) ::Fatal("ProcessF4(TNudyEndfSec*)", "Unknown values of LI %d", iLI);
     } break;
     case 1: { // LTT=1, LI=0: Legendre Polynomial Coefficients
       TNudyEndfTab2 *secTab2 = new TNudyEndfTab2();
@@ -949,17 +923,17 @@ void TNudyENDF::ProcessF4(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF5(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iNK = -1;
-  int iLF = -1;
+  int iNK    = -1;
+  int iLF    = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 5)
-    ::Fatal("ProcessF5(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 5) ::Fatal("ProcessF5(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   iNK = sec->GetN1();
 
@@ -1015,17 +989,17 @@ void TNudyENDF::ProcessF5(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF6(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iNK = -1;
-  int iLAW = -1;
+  int iNK    = -1;
+  int iLAW   = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 6)
-    ::Fatal("ProcessF6(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 6) ::Fatal("ProcessF6(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   iNK = sec->GetN1();
 
@@ -1095,7 +1069,8 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF7(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -1103,8 +1078,7 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
   int &curMT = mtf[2];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 7)
-    ::Fatal("ProcessF7(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 7) ::Fatal("ProcessF7(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   switch (curMT) {
   case 2: // Elastic scattering (MT = 2)
@@ -1185,7 +1159,8 @@ void TNudyENDF::ProcessF7(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF8(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -1193,8 +1168,7 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
   int &curMT = mtf[2];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 8)
-    ::Fatal("ProcessF8(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 8) ::Fatal("ProcessF8(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   switch (curMT) {
   case 454: // Independent fission product yield data
@@ -1280,15 +1254,15 @@ void TNudyENDF::ProcessF8(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF9(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF9(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 9)
-    ::Fatal("ProcessF9(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 9) ::Fatal("ProcessF9(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
@@ -1299,15 +1273,15 @@ void TNudyENDF::ProcessF9(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF10(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF10(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 10)
-    ::Fatal("ProcessF10(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 10) ::Fatal("ProcessF10(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
@@ -1318,16 +1292,16 @@ void TNudyENDF::ProcessF10(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF12(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iLO = -1;
+  int iLO    = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 12)
-    ::Fatal("ProcessF12(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 12) ::Fatal("ProcessF12(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   iLO = sec->GetL1();
   switch (iLO) {
@@ -1357,15 +1331,15 @@ void TNudyENDF::ProcessF12(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF13(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 13)
-    ::Fatal("ProcessF13(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 13) ::Fatal("ProcessF13(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   if (sec->GetN1() != 1) {
     TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
@@ -1381,24 +1355,24 @@ void TNudyENDF::ProcessF13(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF14(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iLI = -1;
-  int iLTT = -1;
-  int iNK = -1;
-  int iNI = -1;
+  int iLI    = -1;
+  int iLTT   = -1;
+  int iNK    = -1;
+  int iNI    = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 14)
-    ::Fatal("ProcessF14(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 14) ::Fatal("ProcessF14(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
-  iLI = sec->GetL1();
+  iLI  = sec->GetL1();
   iLTT = sec->GetL2();
-  iNK = sec->GetN1();
-  iNI = sec->GetN2();
+  iNK  = sec->GetN1();
+  iNI  = sec->GetN2();
 
   switch (iLI) {
   case 1: // Isotropic Distribution
@@ -1459,16 +1433,16 @@ void TNudyENDF::ProcessF14(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF15(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iNC = -1;
+  int iNC    = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 15)
-    ::Fatal("ProcessF15(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 15) ::Fatal("ProcessF15(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   iNC = sec->GetN1();
 
@@ -1477,8 +1451,7 @@ void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
     Process(secTab1);
     sec->Add(secTab1);
 
-    if (secTab1->GetL2() != 1)
-      ::Fatal("ProcessF15(TNudyEndfSec*)", "Unknown values of LF %d", secTab1->GetL2());
+    if (secTab1->GetL2() != 1) ::Fatal("ProcessF15(TNudyEndfSec*)", "Unknown values of LF %d", secTab1->GetL2());
 
     TNudyEndfTab2 *secTab2 = new TNudyEndfTab2();
     Process(secTab2);
@@ -1494,15 +1467,15 @@ void TNudyENDF::ProcessF15(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF23(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF23(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 23)
-    ::Fatal("ProcessF23(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 23) ::Fatal("ProcessF23(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
   Process(secTab1);
@@ -1511,17 +1484,17 @@ void TNudyENDF::ProcessF23(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF26(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iNK = -1;
-  int iLAW = -1;
+  int iNK    = -1;
+  int iLAW   = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 26)
-    ::Fatal("ProcessF26(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 26) ::Fatal("ProcessF26(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   iNK = sec->GetN1();
 
@@ -1563,15 +1536,15 @@ void TNudyENDF::ProcessF26(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF27(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF27(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 27)
-    ::Fatal("ProcessF27(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 27) ::Fatal("ProcessF27(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
   Process(secTab1);
@@ -1580,15 +1553,15 @@ void TNudyENDF::ProcessF27(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF28(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF28(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 28)
-    ::Fatal("ProcessF28(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 28) ::Fatal("ProcessF28(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfList *secList = new TNudyEndfList();
@@ -1599,17 +1572,17 @@ void TNudyENDF::ProcessF28(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF30(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int MT = -1;
-  int NP = -1;
+  int MT     = -1;
+  int NP     = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 30)
-    ::Fatal("ProcessF30(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 30) ::Fatal("ProcessF30(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   // Read
   MT = sec->GetC1();
@@ -1618,7 +1591,7 @@ void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
     TNudyEndfCont *secCont = new TNudyEndfCont();
     Process(secCont);
     sec->Add(secCont);
-    int NDIR = secCont->GetN1();
+    int NDIR  = secCont->GetN1();
     int NCTAB = secCont->GetN2();
     for (int j = 0; j < NDIR; j++) {
       TNudyEndfCont *subsecCont = new TNudyEndfCont();
@@ -1648,7 +1621,8 @@ void TNudyENDF::ProcessF30(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF31(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -1657,8 +1631,7 @@ void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
   int &iNL = nl[3];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 31)
-    ::Fatal("ProcessF31(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 31) ::Fatal("ProcessF31(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < iNL; ++i) {
     TNudyEndfCont *secCont = new TNudyEndfCont();
@@ -1685,23 +1658,23 @@ void TNudyENDF::ProcessF31(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iNIS = -1;
-  //int iLFW = -1;
+  int iNIS   = -1;
+  // int iLFW = -1;
   int iNER = -1;
   int iLRU = -1;
   int iLRF = -1;
   int iNRO = -1;
-  //int iNAPS = -1;
+  // int iNAPS = -1;
   int iLCOMP = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 32)
-    ::Fatal("ProcessF32(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 32) ::Fatal("ProcessF32(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   iNIS = sec->GetN1();
 
@@ -1709,7 +1682,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
     TNudyEndfCont *secContIso = new TNudyEndfCont(); // CONT (isotope) record
     Process(secContIso);
     sec->Add(secContIso);
-    //iLFW = secContIso->GetL2();
+    // iLFW = secContIso->GetL2();
     iNER = secContIso->GetN1();
     for (int j = 0; j < iNER; ++j) {
       TNudyEndfCont *secContRange = new TNudyEndfCont(); // CONT (range) record
@@ -1718,7 +1691,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
       iLRU = secContRange->GetL1();
       iLRF = secContRange->GetL2();
       iNRO = secContRange->GetN1();
-      //iNAPS = secContRange->GetN2();
+      // iNAPS = secContRange->GetN2();
       switch (iLRU) {
       case 1: { // LRU == 1
         if (iNRO != 0) {
@@ -1813,7 +1786,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secContNNN = new TNudyEndfCont();
             Process(secContNNN);
             sec->Add(secContNNN);
-            int iNM = secContNNN->GetN1();
+            int iNM     = secContNNN->GetN1();
             int iNDIGIT = secContNNN->GetL1();
             for (int i1 = 0; i1 < iNM; i1++) {
               TNudyEndfINTG *secINTG = new TNudyEndfINTG(18, iNDIGIT);
@@ -1835,7 +1808,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
             TNudyEndfCont *secContNNNB = new TNudyEndfCont();
             Process(secContNNNB);
             sec->Add(secContNNNB);
-            int iNM = secContNNNB->GetN1();
+            int iNM     = secContNNNB->GetN1();
             int iNDIGIT = secContNNNB->GetL1();
 
             for (int i2 = 0; i2 < iNM; i2++) {
@@ -1879,16 +1852,16 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF33(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int &iNL = nl[3];
+  int &iNL   = nl[3];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 33)
-    ::Fatal("ProcessF33(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 33) ::Fatal("ProcessF33(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < iNL; ++i) {
     TNudyEndfCont *secCont = new TNudyEndfCont();
@@ -1915,23 +1888,23 @@ void TNudyENDF::ProcessF33(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF34(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF34(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
-  int iNL = -1;
-  int iNL1 = -1;
+  int iNL    = -1;
+  int iNL1   = -1;
 
   GetCONT(c, nl, mtf);
-  if (curMF != 34)
-    ::Fatal("ProcessF34(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 34) ::Fatal("ProcessF34(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < sec->GetN2(); ++i) {
     TNudyEndfCont *secContMT = new TNudyEndfCont();
     Process(secContMT);
     sec->Add(secContMT);
-    iNL = secContMT->GetN1();
+    iNL  = secContMT->GetN1();
     iNL1 = secContMT->GetN2();
     for (int j = 0; j < iNL; ++j) {
       for (int k = j; k < iNL1; ++k) {
@@ -1950,15 +1923,15 @@ void TNudyENDF::ProcessF34(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF35(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF35(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 35)
-    ::Fatal("ProcessF35(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 35) ::Fatal("ProcessF35(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfList *secList = new TNudyEndfList();
@@ -1969,15 +1942,15 @@ void TNudyENDF::ProcessF35(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ProcessF40(TNudyEndfSec *sec) {
+void TNudyENDF::ProcessF40(TNudyEndfSec *sec)
+{
   double c[2];
   int nl[4];
   int mtf[4];
   int &curMF = mtf[1];
 
   GetCONT(c, nl, mtf);
-  if (curMF != 40)
-    ::Fatal("ProcessF40(TNudyEndfSec*)", "File %d should not be processed here", curMF);
+  if (curMF != 40) ::Fatal("ProcessF40(TNudyEndfSec*)", "File %d should not be processed here", curMF);
 
   for (int i = 0; i < sec->GetN1(); ++i) {
     TNudyEndfCont *secContNL = new TNudyEndfCont();
@@ -2009,22 +1982,23 @@ void TNudyENDF::ProcessF40(TNudyEndfSec *sec) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::ToEndSec() {
+void TNudyENDF::ToEndSec()
+{
   int mtf[4];
   int &curMT = mtf[2];
 
   while (!fENDF.eof()) {
     fENDF.getline(fLine, LINLEN);
     GetMTF(mtf);
-    if (!curMT)
-      break;
+    if (!curMT) break;
   }
   // Get the Section END record and check it
   CheckSEND(mtf);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfCont *secCont) {
+void TNudyENDF::Process(TNudyEndfCont *secCont)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2035,7 +2009,8 @@ void TNudyENDF::Process(TNudyEndfCont *secCont) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfList *secList) {
+void TNudyENDF::Process(TNudyEndfList *secList)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2054,14 +2029,14 @@ void TNudyENDF::Process(TNudyEndfList *secList) {
 
     for (int j = 0; j < 6; ++j) {
       secList->SetLIST(list[j], np);
-      if (++np >= secList->GetNPL())
-        break;
+      if (++np >= secList->GetNPL()) break;
     }
   }
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
+void TNudyENDF::Process(TNudyEndfTab1 *secTab1)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2081,8 +2056,7 @@ void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
       for (int j = 0; j < 6; j += 2) {
         secTab1->SetNBT(nbt[j], nr);
         secTab1->SetINT(nbt[j + 1], nr);
-        if (++nr >= secTab1->GetNR())
-          break;
+        if (++nr >= secTab1->GetNR()) break;
       }
     }
   }
@@ -2093,15 +2067,15 @@ void TNudyENDF::Process(TNudyEndfTab1 *secTab1) {
       for (int j = 0; j < 3; ++j) {
         secTab1->SetX(xy[2 * j], np);
         secTab1->SetY(xy[2 * j + 1], np);
-        if (++np >= secTab1->GetNP())
-          break;
+        if (++np >= secTab1->GetNP()) break;
       }
     }
   }
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::Process(TNudyEndfTab2 *secTab2) {
+void TNudyENDF::Process(TNudyEndfTab2 *secTab2)
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2118,20 +2092,20 @@ void TNudyENDF::Process(TNudyEndfTab2 *secTab2) {
     for (int j = 0; j < 6; j += 2) {
       secTab2->SetNBT(nbt[j], nr);
       secTab2->SetINT(nbt[j + 1], nr);
-      if (++nr >= secTab2->GetNR())
-        break;
+      if (++nr >= secTab2->GetNR()) break;
     }
   }
 }
 
-void TNudyENDF::Process(TNudyEndfINTG *secINTG) {
+void TNudyENDF::Process(TNudyEndfINTG *secINTG)
+{
   int mtf[4];
   int IJ[2];
   int KIJ[18] = {0};
-  int ndigit = secINTG->GetNdigit();
+  int ndigit  = secINTG->GetNdigit();
   fENDF.getline(fLine, LINLEN);
   if (ndigit < 2 || ndigit > 6) { //  ****   ABHIJIT:   After complete C++ does the code need Ndigit?
-     ::Error("TNudy::Process(TNudyEndfINTG *)", "Invalid value for NDIGIT proceeding with NDIGIT = 2");
+    ::Error("TNudy::Process(TNudyEndfINTG *)", "Invalid value for NDIGIT proceeding with NDIGIT = 2");
     secINTG->SetNdigit(2);
     ndigit = secINTG->GetNdigit();
   }
@@ -2142,31 +2116,36 @@ void TNudyENDF::Process(TNudyEndfINTG *secINTG) {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetSEND(const int pmtf[3]) {
+void TNudyENDF::GetSEND(const int pmtf[3])
+{
   fENDF.getline(fLine, LINLEN);
   CheckSEND(pmtf);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetFEND(const int pmtf[3]) {
+void TNudyENDF::GetFEND(const int pmtf[3])
+{
   fENDF.getline(fLine, LINLEN);
   CheckFEND(pmtf);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetMEND(const int pmtf[3]) {
+void TNudyENDF::GetMEND(const int pmtf[3])
+{
   fENDF.getline(fLine, LINLEN);
   CheckMEND(pmtf);
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::GetTEND() {
+void TNudyENDF::GetTEND()
+{
   fENDF.getline(fLine, LINLEN);
   CheckTEND();
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckSEND(const int pmtf[3]) const {
+void TNudyENDF::CheckSEND(const int pmtf[3]) const
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2181,7 +2160,8 @@ void TNudyENDF::CheckSEND(const int pmtf[3]) const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckFEND(const int pmtf[3]) const {
+void TNudyENDF::CheckFEND(const int pmtf[3]) const
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2195,7 +2175,8 @@ void TNudyENDF::CheckFEND(const int pmtf[3]) const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckMEND(const int pmtf[3]) const {
+void TNudyENDF::CheckMEND(const int pmtf[3]) const
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2208,7 +2189,8 @@ void TNudyENDF::CheckMEND(const int pmtf[3]) const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::CheckTEND() const {
+void TNudyENDF::CheckTEND() const
+{
   double c[2];
   int nl[4];
   int mtf[4];
@@ -2221,10 +2203,14 @@ void TNudyENDF::CheckTEND() const {
 }
 
 //_______________________________________________________________________________
-void TNudyENDF::DumpENDF(int flags = 1) { fTape->DumpENDF(flags); }
+void TNudyENDF::DumpENDF(int flags = 1)
+{
+  fTape->DumpENDF(flags);
+}
 
 //_______________________________________________________________________________
-TNudyENDF::~TNudyENDF() {
+TNudyENDF::~TNudyENDF()
+{
   //  printf("Endf destroyed");
   SafeDelete(fRENDF);
   SafeDelete(fTape);

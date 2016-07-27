@@ -26,18 +26,18 @@ private:
   int fLen;
   // Alias table components
   /** Probability density function */
-  double *fP;    //[fLen] 
+  double *fP; //[fLen]
   /** X random variable */
-  double *fX;    //[fLen]
+  double *fX; //[fLen]
   /** Alias table */
-  double *fA;    //[fLen]
+  double *fA; //[fLen]
   /** Residual values */
-  double *fR;    //[fLen]
-  /** Pointer to random number generator */
+  double *fR; //[fLen]
+/** Pointer to random number generator */
 #ifdef USE_ROOT
   TRandom *fRnd;
 #else
-  RNG *fRnd;    
+  RNG *fRnd;
 #endif
 public:
   TNudyAlias();
@@ -47,14 +47,16 @@ public:
   double Random() const;
 
   /** @brief Return the probability density function at bin i */
-  double GetP(int i) const {
+  double GetP(int i) const
+  {
     if (i < fLen)
       return fP[i];
     else
       return -1;
   };
   /** @brief Return the random variable value at bin i */
-  double GetX(int i) const {
+  double GetX(int i) const
+  {
     if (i < fLen)
       return fX[i];
     else
@@ -74,17 +76,18 @@ public:
     TNudyAlias *fAl;
     /** Thread index */
     int fI;
-    TNudyComStruct(TNudyAlias *a, int j) {
+    TNudyComStruct(TNudyAlias *a, int j)
+    {
       fAl = a;
-      fI = j;
+      fI  = j;
     }
     virtual ~TNudyComStruct() {}
   };
   static void *ThreadHandle(void *ptr);
   /** When generating using a multithreaded approach */
-  double *fMult; //! 
+  double *fMult; //!
   /** Number of random values to be generated using the multi threaded approach */
-  int fMultLen;  //! 
+  int fMultLen; //!
   double *Randoms(int n);
 #endif
 

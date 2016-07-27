@@ -7,8 +7,7 @@ class TGeoManager;
 #include "TBox.h"
 #include "TList.h"
 
-
-const int kENABLED = 1;
+const int kENABLED  = 1;
 const int kDISABLED = 0;
 
 class TNudyElementTable {

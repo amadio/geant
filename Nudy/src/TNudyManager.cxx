@@ -10,20 +10,20 @@
 ClassImp(TNudyManager)
 #endif
 
-TNudyManager *TNudyManager::fgInstance = 0;
+    TNudyManager *TNudyManager::fgInstance = 0;
 
 //______________________________________________________________________________
-TNudyManager::~TNudyManager() {
+TNudyManager::~TNudyManager()
+{
   // Destructor
   fNudyDB->Delete();
   delete fNudyDB;
   fLibrary->Delete();
   delete fLibrary;
-  fLibrary = NULL;
-  fCurNudyDB = NULL;
+  fLibrary    = NULL;
+  fCurNudyDB  = NULL;
   fCurLibrary = NULL;
-  if (fResult)
-    delete fResult;
+  if (fResult) delete fResult;
   fResult = NULL;
   delete fCore;
   gROOT->GetListOfSpecials()->Remove(this);
@@ -31,12 +31,13 @@ TNudyManager::~TNudyManager() {
 }
 
 //______________________________________________________________________________
-TNudyManager::TNudyManager() : TNamed("NudyManager", "Manager of Nudy ENDF Framework") {
-  fCore = TNudyCore::Instance();
-  fNudyDB = new THashTable();
-  fLibrary = new THashTable();
-  fResult = NULL;
-  fCurNudyDB = NULL;
+TNudyManager::TNudyManager() : TNamed("NudyManager", "Manager of Nudy ENDF Framework")
+{
+  fCore       = TNudyCore::Instance();
+  fNudyDB     = new THashTable();
+  fLibrary    = new THashTable();
+  fResult     = NULL;
+  fCurNudyDB  = NULL;
   fCurLibrary = NULL;
   if (fgInstance) {
     Warning("TNudyManager", "object already instantiated");
@@ -47,17 +48,17 @@ TNudyManager::TNudyManager() : TNamed("NudyManager", "Manager of Nudy ENDF Frame
 }
 
 //______________________________________________________________________________
-TNudyManager *TNudyManager::Instance() {
-  if (!fgInstance)
-    fgInstance = new TNudyManager();
+TNudyManager *TNudyManager::Instance()
+{
+  if (!fgInstance) fgInstance = new TNudyManager();
   return fgInstance;
 }
 
 //_______________________________________________________________________________
-void TNudyManager::DumpTape(const char *rendf, const int debug) {
+void TNudyManager::DumpTape(const char *rendf, const int debug)
+{
   TFile *file = TFile::Open(rendf, "OLD");
-  if (!file)
-    Fatal("ctor", "Could not open RENDF file %s", rendf);
+  if (!file) Fatal("ctor", "Could not open RENDF file %s", rendf);
   // Read to Tape Identifier
   TNudyEndfTape *tape = new TNudyEndfTape();
   tape->Read(file->GetListOfKeys()->First()->GetName());
@@ -68,7 +69,8 @@ void TNudyManager::DumpTape(const char *rendf, const int debug) {
 }
 
 //______________________________________________________________________________
-void TNudyManager::ProcessTape(const char *endf, const char *rendf) {
+void TNudyManager::ProcessTape(const char *endf, const char *rendf)
+{
   TNudyENDF *newRendf = new TNudyENDF(endf, rendf, "RECREATE", 0);
 
   if (newRendf) {
@@ -80,13 +82,15 @@ void TNudyManager::ProcessTape(const char *endf, const char *rendf) {
 }
 
 //______________________________________________________________________________
-void TNudyManager::AddEndfLibrary(const char *name, const char *endf) {
+void TNudyManager::AddEndfLibrary(const char *name, const char *endf)
+{
   ProcessTape(endf, Form("%s.rendf.root", endf));
   AddLibrary(name, Form("%s.rendf.root", endf));
 }
 
 //______________________________________________________________________________
-TNudyDB *TNudyManager::OpenDatabase(const char *name, const char *file) {
+TNudyDB *TNudyManager::OpenDatabase(const char *name, const char *file)
+{
   TNudyDB *newDB = new TNudyDB(name, name, file);
   fNudyDB->Add(newDB);
   fCurNudyDB = newDB;
@@ -94,21 +98,22 @@ TNudyDB *TNudyManager::OpenDatabase(const char *name, const char *file) {
 }
 
 //______________________________________________________________________________
-TNudyDB *TNudyManager::SetDatabase(const char *name) {
-  TNudyDB *db = (TNudyDB *)fNudyDB->FindObject(name);
-  if (db)
-    fCurNudyDB = db;
+TNudyDB *TNudyManager::SetDatabase(const char *name)
+{
+  TNudyDB *db        = (TNudyDB *)fNudyDB->FindObject(name);
+  if (db) fCurNudyDB = db;
   return db;
 }
-TNudyDB *TNudyManager::SetDatabase(const TNudyDB *name) {
-  TNudyDB *db = (TNudyDB *)fNudyDB->FindObject(name);
-  if (db)
-    fCurNudyDB = db;
+TNudyDB *TNudyManager::SetDatabase(const TNudyDB *name)
+{
+  TNudyDB *db        = (TNudyDB *)fNudyDB->FindObject(name);
+  if (db) fCurNudyDB = db;
   return db;
 }
 
 //______________________________________________________________________________
-int TNudyManager::CloseDatabase(const char *name) {
+int TNudyManager::CloseDatabase(const char *name)
+{
   if (name) {
     TNudyDB *db = (TNudyDB *)fNudyDB->FindObject(name);
     if (db) {
@@ -128,21 +133,18 @@ int TNudyManager::CloseDatabase(const char *name) {
 
 //______________________________________________________________________________
 TNudyLibrary *TNudyManager::LoadLibrary(const char *memLibName, const char *diskLibName, const char *sublib,
-                                        TGeoElementRN *mat, Reaction_t reac, unsigned long temp) {
-  if (!fCurNudyDB)
-    return NULL;
+                                        TGeoElementRN *mat, Reaction_t reac, unsigned long temp)
+{
+  if (!fCurNudyDB) return NULL;
   TFile *dbFile = fCurNudyDB->GetDBFile();
   dbFile->cd();
   gDirectory->cd("/");
-  if (!dbFile->GetDirectory(diskLibName))
-    return NULL;
+  if (!dbFile->GetDirectory(diskLibName)) return NULL;
   TNudyLibrary *newLib;
-  if (!(newLib = GetLibrary(memLibName)))
-    newLib = new TNudyLibrary(memLibName, Form("%s library", memLibName));
+  if (!(newLib = GetLibrary(memLibName))) newLib = new TNudyLibrary(memLibName, Form("%s library", memLibName));
   dbFile->cd(diskLibName);
   if (sublib) {
-    if (!gDirectory->GetDirectory(sublib))
-      return NULL;
+    if (!gDirectory->GetDirectory(sublib)) return NULL;
     TNudySubLibrary *newSubLib;
     if (!(newSubLib = newLib->GetSubLib(TNudyCore::Instance()->GetParticlePDG(sublib))))
       newSubLib = newLib->AddSubLib(TNudyCore::Instance()->GetParticlePDG(sublib));
@@ -173,8 +175,7 @@ TNudyLibrary *TNudyManager::LoadLibrary(const char *memLibName, const char *disk
       // printf("Check sublibs\n");
       TNudySubLibrary *newSubLib;
       TParticlePDG *subdir = TNudyCore::Instance()->GetParticlePDG(dir->GetName());
-      if (!subdir)
-        Error("LoadModel", "Particle %s is not handled", dir->GetName());
+      if (!subdir) Error("LoadModel", "Particle %s is not handled", dir->GetName());
       if (!(newSubLib = newLib->GetSubLib(subdir))) {
         // printf("Creating new Sublib\n");
         newSubLib = newLib->AddSubLib(subdir);
@@ -201,7 +202,8 @@ TNudyLibrary *TNudyManager::LoadLibrary(const char *memLibName, const char *disk
 }
 
 //______________________________________________________________________________
-void TNudyManager::ListModels() {
+void TNudyManager::ListModels()
+{
   if (fCurLibrary)
     fCurLibrary->ListModels();
   else {
@@ -213,10 +215,10 @@ void TNudyManager::ListModels() {
   }
 }
 TVNudyModel *TNudyManager::GetModel(const int a, const int z, const int iso, const int reaction,
-                                    const unsigned long temp, const char *particleName) {
-  if (fResult)
-    delete fResult;
-  fResult = new TBtree();
+                                    const unsigned long temp, const char *particleName)
+{
+  if (fResult) delete fResult;
+  fResult            = new TBtree();
   TVNudyModel *model = NULL;
   TGeoElementRN *tar = TNudyCore::Instance()->GetMaterial(a, z, iso);
   if (particleName)
@@ -230,10 +232,10 @@ TVNudyModel *TNudyManager::GetModel(const int a, const int z, const int iso, con
 
 //______________________________________________________________________________
 TBtree *TNudyManager::GetAllModels(const int a, const int z, const int iso, const int reaction,
-                                   const unsigned long temp, const char *particleName) {
-  if (fResult)
-    delete fResult;
-  fResult = new TBtree();
+                                   const unsigned long temp, const char *particleName)
+{
+  if (fResult) delete fResult;
+  fResult            = new TBtree();
   TGeoElementRN *tar = TNudyCore::Instance()->GetMaterial(a, z, iso);
   TParticlePDG *proj = TNudyCore::Instance()->GetParticlePDG(particleName);
   /** need to complete*/

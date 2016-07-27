@@ -31,7 +31,8 @@ public:
   TNudyEndfMat(int mat, int za, double awr, int lrp, bool lfi, int nlib, int nmod);
 
   virtual ~TNudyEndfMat();
-  void SetName(char *name) {
+  void SetName(char *name)
+  {
     strncpy(fName, name, 11);
     fName[11] = '\0';
   }
@@ -59,31 +60,38 @@ public:
   // void SetDesc   (const char *desc, int i);
   void SetDesc(const TString desc, int i);
   void SetNXC(int nxc);
-  void SetZSYMAM(const char *zsymam) {
+  void SetZSYMAM(const char *zsymam)
+  {
     strncpy(fZSYMAM, zsymam, 11);
     fZSYMAM[11] = '\0';
   }
-  void SetALAB(const char *alab) {
+  void SetALAB(const char *alab)
+  {
     strncpy(fALAB, alab, 11);
     fALAB[11] = '\0';
   }
-  void SetEDATE(const char *edate) {
+  void SetEDATE(const char *edate)
+  {
     strncpy(fEDATE, edate, 10);
     fEDATE[10] = '\0';
   }
-  void SetAUTH(const char *auth) {
+  void SetAUTH(const char *auth)
+  {
     strncpy(fAUTH, auth, 33);
     fAUTH[33] = '\0';
   }
-  void SetREF(const char *ref) {
+  void SetREF(const char *ref)
+  {
     strncpy(fREF, ref, 21);
     fREF[21] = '\0';
   }
-  void SetDDATE(const char *ddate) {
+  void SetDDATE(const char *ddate)
+  {
     strncpy(fDDATE, ddate, 10);
     fDDATE[10] = '\0';
   }
-  void SetRDATE(const char *rdate) {
+  void SetRDATE(const char *rdate)
+  {
     strncpy(fRDATE, rdate, 10);
     fRDATE[10] = '\0';
   }

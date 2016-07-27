@@ -7,10 +7,11 @@
 ClassImp(TNudyDB)
 #endif
 
-//______________________________________________________________________________
-//   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
-TNudyDB::TNudyDB(const char *name, const char *title, const char *file) : 
-fName(name), fTitle(title) {
+    //______________________________________________________________________________
+    //   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
+    TNudyDB::TNudyDB(const char *name, const char *title, const char *file)
+    : fName(name), fTitle(title)
+{
   // Constructor for TNudyDB, opens database storage file
 
   // Try to open file for update
@@ -29,7 +30,8 @@ fName(name), fTitle(title) {
 }
 
 //______________________________________________________________________________
-TNudyDB::~TNudyDB() {
+TNudyDB::~TNudyDB()
+{
   // Destructor for TNudyDB, Deletes all libraries in memory
 
   // Close open database file
@@ -41,7 +43,8 @@ TNudyDB::~TNudyDB() {
 }
 
 //______________________________________________________________________________
-void TNudyDB::AddLibrary(const char *name, const char *file) {
+void TNudyDB::AddLibrary(const char *name, const char *file)
+{
   // Open endf root file and store tape
   // Check if file exists
   TFile *endf = new TFile(file, "OLD");
@@ -102,7 +105,13 @@ void TNudyDB::AddLibrary(const char *name, const char *file) {
 }
 
 //______________________________________________________________________________
-TList *TNudyDB::GetEntries() { return fDB->GetListOfKeys(); }
+TList *TNudyDB::GetEntries()
+{
+  return fDB->GetListOfKeys();
+}
 
 //______________________________________________________________________________
-void TNudyDB::RemoveLibrary(const char *name) { fDB->Delete(Form("%s;*", name)); }
+void TNudyDB::RemoveLibrary(const char *name)
+{
+  fDB->Delete(Form("%s;*", name));
+}

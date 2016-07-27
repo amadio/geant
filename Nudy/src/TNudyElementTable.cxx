@@ -9,19 +9,27 @@
 ClassImp(TNudyElementTable)
 #endif
 
-TNudyElementTable::TNudyElementTable()
-  : fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1), fRNTable(NULL),
-    fGeom(new TGeoManager("", "")) {
+    TNudyElementTable::TNudyElementTable()
+    : fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1), fRNTable(NULL),
+      fGeom(new TGeoManager("", ""))
+{
   fTable->BuildDefaultElements();
   fTable->ImportElementsRN();
 }
 
-void TNudyElementTable::InitializeControls() {
+void TNudyElementTable::InitializeControls()
+{
   int index;
   TString names[] = {"-", "v", "", "<", "o", ">", "", "^", "+"};
-  TString func[] = {"gTNudyElementTable->ZoomOut();", "gTNudyElementTable->MoveDown()", "",
-                    "gTNudyElementTable->MoveLeft()", "", "gTNudyElementTable->MoveRight()", "",
-                    "gTNudyElementTable->MoveUp()", "gTNudyElementTable->ZoomIn();"};
+  TString func[]  = {"gTNudyElementTable->ZoomOut();",
+                    "gTNudyElementTable->MoveDown()",
+                    "",
+                    "gTNudyElementTable->MoveLeft()",
+                    "",
+                    "gTNudyElementTable->MoveRight()",
+                    "",
+                    "gTNudyElementTable->MoveUp()",
+                    "gTNudyElementTable->ZoomIn();"};
   for (index = 0; index < 9; index++) {
     double x1 = ((index % 3 + 1) * 30) / (double)(fRNTable->GetWindowWidth());
     double y1 = ((index / 3 + 1) * 30) / (double)(fRNTable->GetWindowHeight());
@@ -37,33 +45,39 @@ void TNudyElementTable::InitializeControls() {
   // ZoomInBut = new TButton("ZoomIn","ZoomIn()",0.1,0.1,0.2,0.2);
   // ZoomInBut->Draw();
 }
-void TNudyElementTable::ZoomIn() {
+void TNudyElementTable::ZoomIn()
+{
 
   fLOD += 0.2;
   Update();
 }
-void TNudyElementTable::ZoomOut() {
-  if (fLOD > 0.3)
-    fLOD -= 0.2;
+void TNudyElementTable::ZoomOut()
+{
+  if (fLOD > 0.3) fLOD -= 0.2;
   Update();
 }
-void TNudyElementTable::MoveUp() {
+void TNudyElementTable::MoveUp()
+{
   fOy -= 10;
   Update();
 }
-void TNudyElementTable::MoveDown() {
+void TNudyElementTable::MoveDown()
+{
   fOy += 10;
   Update();
 }
-void TNudyElementTable::MoveLeft() {
+void TNudyElementTable::MoveLeft()
+{
   fOx += 10;
   Update();
 }
-void TNudyElementTable::MoveRight() {
+void TNudyElementTable::MoveRight()
+{
   fOx -= 10;
   Update();
 }
-void TNudyElementTable::Update() {
+void TNudyElementTable::Update()
+{
   TNudyElementRN *newEle;
   for (int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++) {
     newEle = (TNudyElementRN *)fEleBox.At(i);
@@ -74,7 +88,8 @@ void TNudyElementTable::Update() {
   fRNTable->Modified();
   fRNTable->Update();
 }
-void TNudyElementTable::Draw(const char */*option*/) {
+void TNudyElementTable::Draw(const char * /*option*/)
+{
   fRNTable = new TCanvas("RN Table", "Radio Nucleide Table", 1000, 1000);
   fRNTable->SetBorderMode(0);
   fRNTable->SetFillColor(TColor::GetColor(60, 90, 140));
@@ -95,12 +110,13 @@ void TNudyElementTable::Draw(const char */*option*/) {
   }
   // fRNTable->SetEditable(false);
 }
-TNudyElementTable::~TNudyElementTable() {
+TNudyElementTable::~TNudyElementTable()
+{
   if (fRNTable) {
     delete fRNTable;
     fRNTable = 0;
   }
   delete fGeom;
-  fGeom = 0;
+  fGeom  = 0;
   fTable = 0;
 }

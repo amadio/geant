@@ -16,7 +16,7 @@ protected:
   TGeoElementTable *fTable;
   TDatabasePDG *fPdgDB;
   TNudyCore();
-  TNudyCore(const TNudyCore &core) = delete; // not implemented
+  TNudyCore(const TNudyCore &core) = delete;            // not implemented
   TNudyCore &operator=(const TNudyCore &core) = delete; // not implemented
 
 public:
@@ -24,15 +24,16 @@ public:
   static TNudyCore *Instance(); // Returns Instance of TNudyManager
   // Calculation functions
   double ThinningDuplicate(std::vector<double> &x1);
-  double ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2);
+  double ThinningDuplicate(std::vector<double> &x1, std::vector<double> &x2);
   int BinarySearch(std::vector<double> array, int len, double val);
-  double Interpolate(std::vector<int> nbt1, std::vector<int> int1, int nr, std::vector<double> x, std::vector<double> y, int np, double xx);
-  void cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2,std::vector<double> &x3);
+  double Interpolate(std::vector<int> nbt1, std::vector<int> int1, int nr, std::vector<double> x, std::vector<double> y,
+                     int np, double xx);
+  void cdfGenerateT(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3);
   double cmToLabElasticE(double inE, double cmCos, double awr);
   double cmToLabElasticCosT(double cmCos, double awr);
   double cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr);
   double cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr);
-  void Sort(std::vector<double> &x1,std::vector<double> &x2);
+  void Sort(std::vector<double> &x1, std::vector<double> &x2);
   double LinearInterpolation(double x1, double y1, double x2, double y2, double x); // Linear Interpolation
   double BilinearInterploation(double x1, double y1, double x2, double y2, double z11, double z12, double z21,
                                double z22, double x, double y); // Biliniear Interpolation

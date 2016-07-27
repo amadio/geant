@@ -14,8 +14,8 @@
 #include <TNudyEndfFile.h>
 
 //_______________________________________________________________________________
-TNudyEndfFile::TNudyEndfFile()
-  : fMAT(0), fMF(0) {
+TNudyEndfFile::TNudyEndfFile() : fMAT(0), fMF(0)
+{
   //
   // Default constructor
   //
@@ -24,7 +24,8 @@ TNudyEndfFile::TNudyEndfFile()
 }
 
 //_______________________________________________________________________________
-TNudyEndfFile::TNudyEndfFile(int mat, int mf) : fMAT(mat), fMF(mf) {
+TNudyEndfFile::TNudyEndfFile(int mat, int mf) : fMAT(mat), fMF(mf)
+{
   //
   // Standard constructor
   //
@@ -33,25 +34,27 @@ TNudyEndfFile::TNudyEndfFile(int mat, int mf) : fMAT(mat), fMF(mf) {
 }
 
 //______________________________________________________________________________
-TNudyEndfFile::~TNudyEndfFile() {
+TNudyEndfFile::~TNudyEndfFile()
+{
   //  printf("Destroying File %s\n", fName);
   fSecs->Delete();
   SafeDelete(fSecs);
 }
 
 //_______________________________________________________________________________
-TNudyEndfSec *TNudyEndfFile::GetSec(int MT) {
+TNudyEndfSec *TNudyEndfFile::GetSec(int MT)
+{
   for (int i = 0; i <= this->fSecs->LastIndex(); i++) {
     TNudyEndfSec *thisSec = (TNudyEndfSec *)this->fSecs->At(i);
-    if (thisSec->GetMT() == MT)
-      return thisSec;
+    if (thisSec->GetMT() == MT) return thisSec;
   }
   Error("TNudyEndfFile::GetSec(int)", "Could not find section %d on tape", MT);
   return NULL;
 }
 
 //_______________________________________________________________________________
-void TNudyEndfFile::DumpENDF(int flags = 1) {
+void TNudyEndfFile::DumpENDF(int flags = 1)
+{
   // Sections
   for (int i = 0; i <= fSecs->LastIndex(); i++) {
     TNudyEndfSec *sec = (TNudyEndfSec *)fSecs->At(i);

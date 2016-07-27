@@ -17,9 +17,10 @@
 ClassImp(TNudyEndfList)
 #endif
 
-//_______________________________________________________________________________
-TNudyEndfList::TNudyEndfList()
-  : TNudyEndfCont(), fList(NULL) {
+    //_______________________________________________________________________________
+    TNudyEndfList::TNudyEndfList()
+    : TNudyEndfCont(), fList(NULL)
+{
   //
   // Default constructor
   //
@@ -27,21 +28,27 @@ TNudyEndfList::TNudyEndfList()
 
 //_______________________________________________________________________________
 TNudyEndfList::TNudyEndfList(double c1, double c2, int l1, int l2, int n1, int n2)
-    : TNudyEndfCont(c1, c2, l1, l2, n1, n2), fList(new double[n1]) {
+    : TNudyEndfCont(c1, c2, l1, l2, n1, n2), fList(new double[n1])
+{
   //
   // Standard constructor
   //
 }
 
 //______________________________________________________________________________
-TNudyEndfList::~TNudyEndfList() { delete [] fList; }
+TNudyEndfList::~TNudyEndfList()
+{
+  delete[] fList;
+}
 //_______________________________________________________________________________
-void TNudyEndfList::SetCont(double c1, double c2, int l1, int l2, int n1, int n2) {
+void TNudyEndfList::SetCont(double c1, double c2, int l1, int l2, int n1, int n2)
+{
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
   delete[] fList;
   fList = new double[n1];
 }
-void TNudyEndfList::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1) {
+void TNudyEndfList::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1)
+{
   char s1[14], s2[14];
   F2F(fC1, s1);
   F2F(fC2, s2);

@@ -32,11 +32,11 @@ private:
   double fTa;         //! Temporary Alpha value
   double fInterAlpha; // Alpha for the next distribution
 #ifdef USE_ROOT
-  TRandom *fRnd;      // To generate unifrom random numbers
+  TRandom *fRnd; // To generate unifrom random numbers
 #else
-  RNG     *fRnd;      // To generate unifrom random numbers
+  RNG *fRnd; // To generate unifrom random numbers
 #endif
-  double fAlpha;      // Stores the number which identifies the distribution
+  double fAlpha; // Stores the number which identifies the distribution
 public:
   TNudyAliasCont();
   TNudyAliasCont(double *p, double *x, int len, double alpha, unsigned int seed = 65539);
@@ -44,26 +44,30 @@ public:
   void Initialize(double *p, double *x, const int len, double alpha, unsigned int seed = 65539);
   virtual ~TNudyAliasCont();
   void DumpTable();
-  double GetP(int i) const {
+  double GetP(int i) const
+  {
     if (i >= 0 && i < fLen)
-       return fP[i];
+      return fP[i];
     else
       return -1;
   }
-  double GetX(int i) const {
+  double GetX(int i) const
+  {
     if (i >= 0 && i < fLen)
-       return fX[i];
+      return fX[i];
     else
       return -1;
   }
   double GetAlpha() const { return fAlpha; }
-  double Uniform(double x = 1) {
+  double Uniform(double x = 1)
+  {
     if (fRnd)
       return fRnd->Uniform(x);
     else
       return -1;
   }
-  double RandomBin() {
+  double RandomBin()
+  {
     if (fChooseBin)
       return fChooseBin->Random();
     else

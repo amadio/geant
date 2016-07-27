@@ -25,11 +25,12 @@
 ClassImp(TNudyEndfMat)
 #endif
 
-//_______________________________________________________________________________
-TNudyEndfMat::TNudyEndfMat()
-  : fMAT(0), fZA(0), fAWR(0), fLRP(-1), fLFI(false), fNLIB(0), fNMOD(0), fELIS(0), fSTA(true), fLIS(0), fLISO(0),
-    fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL), fNXC(0),
-    fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL) {
+    //_______________________________________________________________________________
+    TNudyEndfMat::TNudyEndfMat()
+    : fMAT(0), fZA(0), fAWR(0), fLRP(-1), fLFI(false), fNLIB(0), fNMOD(0), fELIS(0), fSTA(true), fLIS(0), fLISO(0),
+      fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL), fNXC(0),
+      fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL)
+{
   //
   // Default constructor
   //
@@ -48,7 +49,8 @@ TNudyEndfMat::TNudyEndfMat()
 TNudyEndfMat::TNudyEndfMat(int mat, int za, double awr, int lrp, bool lfi, int nlib, int nmod)
     : fMAT(mat), fZA(za), fAWR(awr), fLRP(lrp), fLFI(lfi), fNLIB(nlib), fNMOD(nmod), fELIS(0), fSTA(true), fLIS(0),
       fLISO(0), fNFOR(0), fAWI(0), fEMAX(0), fLREL(0), fNSUB(0), fNVER(0), fTEMP(0), fLDRV(0), fNWDm5(0), fDesc(NULL),
-      fNXC(0), fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL) {
+      fNXC(0), fENDATE(0), fMFn(NULL), fMTn(NULL), fNCn(NULL), fMODn(NULL)
+{
   //
   // Standard constructor
   //
@@ -64,7 +66,8 @@ TNudyEndfMat::TNudyEndfMat(int mat, int za, double awr, int lrp, bool lfi, int n
 }
 
 //______________________________________________________________________________
-TNudyEndfMat::~TNudyEndfMat() {
+TNudyEndfMat::~TNudyEndfMat()
+{
   //  printf("Destroying Mat %s\n",fName);
   if (fDesc) {
     delete[] fDesc;
@@ -91,7 +94,8 @@ TNudyEndfMat::~TNudyEndfMat() {
 }
 
 //_______________________________________________________________________________
-const char *TNudyEndfMat::GetDesc(int i) const {
+const char *TNudyEndfMat::GetDesc(int i) const
+{
   if (i < 0 || i >= fNWDm5) {
     Error("GetDesc", "index %d out of bounds [%d,%d]", i, 0, fNWDm5);
     return 0;
@@ -101,38 +105,36 @@ const char *TNudyEndfMat::GetDesc(int i) const {
 
 //_______________________________________________________________________________
 // void TNudyEndfMat::SetDesc(const char *desc, int i)
-void TNudyEndfMat::SetDesc(const TString desc, int i) {
+void TNudyEndfMat::SetDesc(const TString desc, int i)
+{
   if (i < 0 || i >= fNWDm5) {
     Error("GetDesc", "index %d out of bounds [%d,%d]", i, 0, fNWDm5);
   } else {
-    if (!fDesc)
-      fDesc = new TString[fNWDm5];
-    fDesc[i] = desc;
+    if (!fDesc) fDesc = new TString[fNWDm5];
+    fDesc[i]          = desc;
   }
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::SetNXC(int nxc) {
+void TNudyEndfMat::SetNXC(int nxc)
+{
   fNXC = nxc;
-  if (fMFn)
-    delete[] fMFn;
-  if (fMTn)
-    delete[] fMTn;
-  if (fNCn)
-    delete[] fNCn;
-  if (fMODn)
-    delete[] fMODn;
+  if (fMFn) delete[] fMFn;
+  if (fMTn) delete[] fMTn;
+  if (fNCn) delete[] fNCn;
+  if (fMODn) delete[] fMODn;
 
-  fMFn = new int[fNXC];
-  fMTn = new int[fNXC];
-  fNCn = new int[fNXC];
+  fMFn  = new int[fNXC];
+  fMTn  = new int[fNXC];
+  fNCn  = new int[fNXC];
   fMODn = new int[fNXC];
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::DumpENDF(int flags = 1) {
+void TNudyEndfMat::DumpENDF(int flags = 1)
+{
   int ns = 1;
-  int i = 0;
+  int i  = 0;
   // Dump what was read into this classi(file 1 mt 451)
   char s1[14], s2[14];
   TNudyEndfCont::F2F(fZA, s1);
@@ -225,23 +227,23 @@ void TNudyEndfMat::DumpENDF(int flags = 1) {
 }
 
 //_______________________________________________________________________________
-TNudyEndfFile *TNudyEndfMat::GetFile(int MF) {
+TNudyEndfFile *TNudyEndfMat::GetFile(int MF)
+{
   for (int i = 0; i <= this->fFiles->LastIndex(); i++) {
     TNudyEndfFile *thisFile = (TNudyEndfFile *)this->fFiles->At(i);
-    if (thisFile->GetMF() == MF)
-      return thisFile;
+    if (thisFile->GetMF() == MF) return thisFile;
   }
   Error("TNudyEndfMat::GetFile(int)", "Could not find file %d on tape", MF);
   return NULL;
 }
 
 //_______________________________________________________________________________
-void TNudyEndfMat::Print(const char *op) const {
+void TNudyEndfMat::Print(const char *op) const
+{
   TString sop = op;
   if (sop.Contains("h") || sop.Contains("a")) {
     std::cout << std::setfill('=') << std::setw(80) << "=" << std::endl;
-    std::cout << std::endl
-              << "Header for Material " << fName << "MAT " << fMAT << std::endl;
+    std::cout << std::endl << "Header for Material " << fName << "MAT " << fMAT << std::endl;
     std::cout << std::setfill('-') << std::setw(80) << "-" << std::endl;
     if (sop.Contains("F")) {
       std::cout << std::setprecision(4) << std::scientific << std::setfill(' ') << std::setw(11) << double(fZA)

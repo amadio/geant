@@ -14,15 +14,17 @@ TNudyCore *TNudyCore::fgInstance = 0;
 ClassImp(TNudyCore)
 #endif
 
-//______________________________________________________________________________
-TNudyCore::~TNudyCore() {
+    //______________________________________________________________________________
+    TNudyCore::~TNudyCore()
+{
   delete fGeom;
   delete fPdgDB;
 }
 
 //______________________________________________________________________________
-TNudyCore::TNudyCore() {
-  fGeom = new TGeoManager("NudyGeoManager", "Geometry Manager for the TNudy Framework");
+TNudyCore::TNudyCore()
+{
+  fGeom  = new TGeoManager("NudyGeoManager", "Geometry Manager for the TNudy Framework");
   fTable = fGeom->GetElementTable();
   fTable->BuildDefaultElements();
   fTable->ImportElementsRN();
@@ -31,14 +33,15 @@ TNudyCore::TNudyCore() {
 }
 
 //______________________________________________________________________________
-TNudyCore *TNudyCore::Instance() {
-  if (!fgInstance)
-    fgInstance = new TNudyCore();
+TNudyCore *TNudyCore::Instance()
+{
+  if (!fgInstance) fgInstance = new TNudyCore();
   return fgInstance;
 }
 
 //______________________________________________________________________________
-char *TNudyCore::ExpandReaction(Reaction_t reac) {
+char *TNudyCore::ExpandReaction(Reaction_t reac)
+{
   switch (reac) {
 
   default:
@@ -47,30 +50,38 @@ char *TNudyCore::ExpandReaction(Reaction_t reac) {
 }
 
 //______________________________________________________________________________
-TParticle *TNudyCore::GetParticle(int pdgCode) {
+TParticle *TNudyCore::GetParticle(int pdgCode)
+{
   TParticle *particle = new TParticle();
   particle->SetPdgCode(pdgCode);
   return particle;
 }
 
 //______________________________________________________________________________
-TParticle *TNudyCore::GetParticle(const char *name) {
+TParticle *TNudyCore::GetParticle(const char *name)
+{
   TParticle *particle = new TParticle();
   particle->SetPdgCode(fPdgDB->GetParticle(name)->PdgCode());
   return particle;
 }
 
 //_______________________________________________________________________________
-TParticlePDG *TNudyCore::GetParticlePDG(int pdgCode) { return fPdgDB->GetParticle(pdgCode); }
+TParticlePDG *TNudyCore::GetParticlePDG(int pdgCode)
+{
+  return fPdgDB->GetParticle(pdgCode);
+}
 
 //______________________________________________________________________________
-TParticlePDG *TNudyCore::GetParticlePDG(const char *name) { return fPdgDB->GetParticle(name); }
+TParticlePDG *TNudyCore::GetParticlePDG(const char *name)
+{
+  return fPdgDB->GetParticle(name);
+}
 
 //______________________________________________________________________________
-int TNudyCore::IsMaterial(const TGeoElementRN *endf, const char *key) {
-  if (endf == NULL)
-    return 1;
-  char *matkey = Form("%07d", endf->ENDFCode());
+int TNudyCore::IsMaterial(const TGeoElementRN *endf, const char *key)
+{
+  if (endf == NULL) return 1;
+  char *matkey    = Form("%07d", endf->ENDFCode());
   const char *pos = &key[9];
   while (*pos == matkey[pos - key - 9]) {
     pos++;
@@ -82,10 +93,10 @@ int TNudyCore::IsMaterial(const TGeoElementRN *endf, const char *key) {
 }
 
 //______________________________________________________________________________
-int TNudyCore::IsTemperature(const unsigned long temp, const char *key) {
-  if (temp == 0)
-    return 1;
-  char *matkey = Form("%12ld", temp);
+int TNudyCore::IsTemperature(const unsigned long temp, const char *key)
+{
+  if (temp == 0) return 1;
+  char *matkey    = Form("%12ld", temp);
   const char *pos = key;
   while (*pos == matkey[pos - key]) {
     pos++;
@@ -97,10 +108,10 @@ int TNudyCore::IsTemperature(const unsigned long temp, const char *key) {
 }
 
 //______________________________________________________________________________
-int TNudyCore::IsReaction(const Reaction_t r, const char *key) {
-  if (r == kNoReaction)
-    return 1;
-  char *matkey = Form("%03d", r);
+int TNudyCore::IsReaction(const Reaction_t r, const char *key)
+{
+  if (r == kNoReaction) return 1;
+  char *matkey    = Form("%03d", r);
   const char *pos = &key[6];
   while (*pos == matkey[pos - key - 6]) {
     pos++;
@@ -112,7 +123,8 @@ int TNudyCore::IsReaction(const Reaction_t r, const char *key) {
 }
 
 //______________________________________________________________________________
-void TNudyCore::MemProfile() {
+void TNudyCore::MemProfile()
+{
   MemInfo_t mem;
   gSystem->GetMemInfo(&mem);
   printf("RAM\nTotal: %d\nUsed: %d\nFree: %d\nSWAP\nTotal: %d\nUsed: %d\nFree: %d\n", mem.fMemTotal, mem.fMemUsed,
@@ -120,12 +132,14 @@ void TNudyCore::MemProfile() {
 }
 
 //______________________________________________________________________________
-char *TNudyCore::GetKey(const TGeoElementRN *mat, Reaction_t reac, unsigned long temp) {
+char *TNudyCore::GetKey(const TGeoElementRN *mat, Reaction_t reac, unsigned long temp)
+{
   return Form("%012ld%03d%07d", temp, reac, mat->ENDFCode());
 }
 
 //______________________________________________________________________________
-int TNudyCore::BinarySearch(double *array, int len, double val) {
+int TNudyCore::BinarySearch(double *array, int len, double val)
+{
   int min = 0;
   int max = len - 1;
   int mid = 0;
@@ -146,7 +160,8 @@ int TNudyCore::BinarySearch(double *array, int len, double val) {
 }
 
 //______________________________________________________________________________
-int TNudyCore::BinarySearch(std::vector<double> array, int len, double val) {
+int TNudyCore::BinarySearch(std::vector<double> array, int len, double val)
+{
   int min = 0;
   int max = len - 1;
   int mid = 0;
@@ -167,36 +182,38 @@ int TNudyCore::BinarySearch(std::vector<double> array, int len, double val) {
 }
 
 //______________________________________________________________________________
-double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx) {
-  double yy = -1;
+double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx)
+{
+  double yy    = -1;
   double small = 1e-20;
   //  Info("InterpolateScale","x1,y1 = %e,%e x2,y2 = %e,%e INT = %d xx = %e",x[0],y[0],x[1],y[1],law,xx);
   if (law == 1 || x[1] <= x[0]) {
-    yy = y[0];
-    if (xx == x[1])
-      yy = y[1];
+    yy                 = y[0];
+    if (xx == x[1]) yy = y[1];
   } else if (law == 2) {
-      //printf("%e, %e,  %e, %e\n",x[0],y[0],x[1],y[1]);
+    // printf("%e, %e,  %e, %e\n",x[0],y[0],x[1],y[1]);
     yy = y[0] + (y[1] - y[0]) * (xx - x[0]) / (x[1] - x[0]);
   } else if (law == 3) {
     x[0] = max<double>(x[0], small);
     x[1] = max<double>(x[1], small);
-    yy = y[0] + (y[1] - y[0]) * log(xx / x[0]) / log(x[1] / x[0]);
+    yy   = y[0] + (y[1] - y[0]) * log(xx / x[0]) / log(x[1] / x[0]);
   } else if (law == 4) {
     y[0] = max<double>(y[0], small);
     y[1] = max<double>(y[1], small);
-    yy = exp(log(y[0]) + log(y[1] / y[0]) * (xx - x[0]) / (x[1] - x[0]));
+    yy   = exp(log(y[0]) + log(y[1] / y[0]) * (xx - x[0]) / (x[1] - x[0]));
   } else if (law == 5) {
     x[0] = max<double>(x[0], small);
     x[1] = max<double>(x[1], small);
     y[0] = max<double>(y[0], small);
     y[1] = max<double>(y[1], small);
-    yy = exp(log(y[0]) + log(y[1] / y[0]) * log(xx / x[0]) / log(x[1] / x[0]));
+    yy   = exp(log(y[0]) + log(y[1] / y[0]) * log(xx / x[0]) / log(x[1] / x[0]));
   }
   return yy;
 }
 //______________________________________________________________________________
-double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int nr, std::vector<double> x, std::vector<double> y, int np, double xx) {
+double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int nr, std::vector<double> x,
+                              std::vector<double> y, int np, double xx)
+{
   double yy = 0;
   //  Info("Interpolation","E = %e:%e, xx = %e , P = %e:%e",x[0],x[np-1],xx,y[0],y[np-1]);
   //  Info("Interpolation limits","xx = %e min = %e max = %e",xx,x[0],x[np-1]);
@@ -220,10 +237,10 @@ double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int
   for (int jnt = 0; jnt < nr; jnt++) {
     if (index < nbt[jnt] - 1) {
       intlaw = interp[jnt];
-      //printf("law = %d, e = %e\n",intlaw,xx);
-      double x1[2] = {x[index],x[index+1]};
-      double y1[2] = {y[index],y[index+1]};
-      yy = InterpolateScale(x1, y1, intlaw, xx);
+      // printf("law = %d, e = %e\n",intlaw,xx);
+      double x1[2] = {x[index], x[index + 1]};
+      double y1[2] = {y[index], y[index + 1]};
+      yy           = InterpolateScale(x1, y1, intlaw, xx);
       return yy;
     }
   }
@@ -231,9 +248,9 @@ double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int
   return yy;
 }
 
-
 //______________________________________________________________________________
-double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *y, int np, double xx) {
+double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *y, int np, double xx)
+{
   double yy = 0;
   //  Info("Interpolation","E = %e:%e, xx = %e , P = %e:%e",x[0],x[np-1],xx,y[0],y[np-1]);
   //  Info("Interpolation limits","xx = %e min = %e max = %e",xx,x[0],x[np-1]);
@@ -257,7 +274,7 @@ double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *
   for (int jnt = 1; jnt <= nr; jnt++) {
     if (index < nbt[jnt - 1]) {
       intlaw = interp[jnt - 1];
-      yy = InterpolateScale(x + index, y + index, intlaw, xx);
+      yy     = InterpolateScale(x + index, y + index, intlaw, xx);
       return yy;
     }
   }
@@ -266,7 +283,8 @@ double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *
 }
 
 //______________________________________________________________________________
-double TNudyCore::LinearInterpolation(double x1, double y1, double x2, double y2, double x) {
+double TNudyCore::LinearInterpolation(double x1, double y1, double x2, double y2, double x)
+{
   if (x2 == x1) {
     //   Error("TNudyCore::LinearInterpolation","Points specified have same coordinate in X");
     return y1;
@@ -276,13 +294,14 @@ double TNudyCore::LinearInterpolation(double x1, double y1, double x2, double y2
 
 //______________________________________________________________________________
 double TNudyCore::BilinearInterploation(double x1, double y1, double x2, double y2, double z11, double z12, double z21,
-                                        double z22, double x, double y) {
+                                        double z22, double x, double y)
+{
   if ((x2 == x1) || (y2 == y1)) {
     Error("TNudyCore::BilinearInterpolation", "Points specified have same coordinate in X or Y");
     return 0;
   }
   // Storing partial sums and products so that they dont have to be recalculated
-  double d = (x2 - x1) * (y2 - y1);
+  double d   = (x2 - x1) * (y2 - y1);
   double n2x = x2 - x;
   double n2y = y2 - y;
   double n1x = x - x1;
@@ -292,17 +311,18 @@ double TNudyCore::BilinearInterploation(double x1, double y1, double x2, double 
   return (z11 * n2x * n2y + z21 * n1x * n2y + z12 * n2x * n1y + z22 * n1x * n1y) / d;
 }
 //______________________________________________________________________________
-void TNudyCore::CumulativeIntegral(double *x, double *y, double *q, int len) {
+void TNudyCore::CumulativeIntegral(double *x, double *y, double *q, int len)
+{
   for (int i = 0; i < len; i++) {
     if (i > 0) {
       q[i - 1] = 0.5 * (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
-      if (i > 1)
-        q[i - 1] += q[i - 2];
+      if (i > 1) q[i - 1] += q[i - 2];
     }
   }
 }
 //______________________________________________________________________________
-void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const int npts, double *&out) {
+void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const int npts, double *&out)
+{
   // This function evaluates the integral of discrete points using the trapezoidal rule
   // and returns the value of the integral at the same points in x
   if (!xpts || !ypts || (npts == 0)) {
@@ -317,83 +337,89 @@ void TNudyCore::TrapezoidalIntegral(double *xpts, double *ypts, const int npts, 
     out[i] = out[i - 1] + (xpts[i] - xpts[i - 1]) * (ypts[i] + ypts[i - 1]) * 0.5;
   }
 }
-void TNudyCore::Sort(std::vector<double>& x1, std::vector<double>& x2){
-  std::multimap<double, double>map;
+void TNudyCore::Sort(std::vector<double> &x1, std::vector<double> &x2)
+{
+  std::multimap<double, double> map;
   std::multimap<double, double>::iterator i;
-  for(unsigned long p = 0; p< x1.size(); p++){
-    map.insert(std::make_pair(x1[p],x2[p]));
+  for (unsigned long p = 0; p < x1.size(); p++) {
+    map.insert(std::make_pair(x1[p], x2[p]));
   }
-  int p1=0;
-  for(i=map.begin(); i!=map.end();i++){
-    x1[p1]=i->first;
-    x2[p1]=i->second;
+  int p1 = 0;
+  for (i = map.begin(); i != map.end(); i++) {
+    x1[p1] = i->first;
+    x2[p1] = i->second;
     p1++;
   }
 }
 
-void TNudyCore::cdfGenerateT(std::vector<double> &x1,std::vector<double> &x2, std::vector<double> &x3){
+void TNudyCore::cdfGenerateT(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3)
+{
   double fsum = 0.0;
-  for(unsigned long cr=0; cr < x1.size() ; cr ++){
-    if(cr > 0)fsum += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
+  for (unsigned long cr = 0; cr < x1.size(); cr++) {
+    if (cr > 0) fsum += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
   }
   double df = 0.0;
-  for(unsigned long cr=0; cr < x1.size() ; cr ++){
-    if(fsum > 0.0)x2[cr] /= fsum;
-     //printf("%e   %e\n", x2[cr], fsum);
-    if(cr > 0)df += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
+  for (unsigned long cr = 0; cr < x1.size(); cr++) {
+    if (fsum > 0.0) x2[cr] /= fsum;
+    // printf("%e   %e\n", x2[cr], fsum);
+    if (cr > 0) df += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
     x3.push_back(df);
   }
 }
 //_______________________________________________________________________________
-  double TNudyCore::cmToLabElasticE(double inE, double cmCos, double awr){
-    return inE * ((1 + awr * awr + 2 * awr * cmCos)/((1 + awr) * (1 + awr)));
-  }
+double TNudyCore::cmToLabElasticE(double inE, double cmCos, double awr)
+{
+  return inE * ((1 + awr * awr + 2 * awr * cmCos) / ((1 + awr) * (1 + awr)));
+}
 //_______________________________________________________________________________
-  double TNudyCore::cmToLabElasticCosT(double cmCos, double awr){
-    return (awr * cmCos + 1 )/sqrt(awr *awr + 2 * awr * cmCos + 1);
-  }
+double TNudyCore::cmToLabElasticCosT(double cmCos, double awr)
+{
+  return (awr * cmCos + 1) / sqrt(awr * awr + 2 * awr * cmCos + 1);
+}
 //_______________________________________________________________________________
-  double TNudyCore::cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr){
-    double mass = awr + 1;
-    return cmEOut + (inE + 2 * cmCos * mass * sqrt(inE * cmEOut))/(mass*mass);
-  }
+double TNudyCore::cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr)
+{
+  double mass = awr + 1;
+  return cmEOut + (inE + 2 * cmCos * mass * sqrt(inE * cmEOut)) / (mass * mass);
+}
 //_______________________________________________________________________________
-  double TNudyCore::cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr){
-    double mass = awr + 1;
-    return cmCos * sqrt(cmEOut / labEOut) + sqrt (inE / labEOut) / mass;
-  }
+double TNudyCore::cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr)
+{
+  double mass = awr + 1;
+  return cmCos * sqrt(cmEOut / labEOut) + sqrt(inE / labEOut) / mass;
+}
 //_______________________________________________________________________________
 
-double TNudyCore::ThinningDuplicate(std::vector<double> &x1){
-  int size = x1.size();
+double TNudyCore::ThinningDuplicate(std::vector<double> &x1)
+{
+  int size  = x1.size();
   int size1 = x1.size();
-  if(size>2){
-    for(int i = 0; i< size1 - 1; i++){
-      if(x1[i+1] == x1[i]) x1.erase(x1.begin()+i+1);
-    size1 = x1.size();
+  if (size > 2) {
+    for (int i = 0; i < size1 - 1; i++) {
+      if (x1[i + 1] == x1[i]) x1.erase(x1.begin() + i + 1);
+      size1 = x1.size();
     }
   }
   size1 = x1.size();
-  if(size == size1)return 0;
+  if (size == size1) return 0;
   ThinningDuplicate(x1);
   return 0;
 }
-double TNudyCore::ThinningDuplicate(std::vector<double> &x1,std::vector<double> &x2){
-  int size = x1.size();
+double TNudyCore::ThinningDuplicate(std::vector<double> &x1, std::vector<double> &x2)
+{
+  int size  = x1.size();
   int size1 = x1.size();
-  if(size>2){
-    for(int i = 0; i< size1 - 1; i++){
-      if(x1[i+1] == x1[i]){ 
-	x1.erase(x1.begin()+i);
-	x2.erase(x2.begin()+i);
+  if (size > 2) {
+    for (int i = 0; i < size1 - 1; i++) {
+      if (x1[i + 1] == x1[i]) {
+        x1.erase(x1.begin() + i);
+        x2.erase(x2.begin() + i);
       }
       size1 = x1.size();
     }
   }
   size1 = x1.size();
-  if(size == size1)return 0;
-  ThinningDuplicate(x1,x2);
-  return 0; 
+  if (size == size1) return 0;
+  ThinningDuplicate(x1, x2);
+  return 0;
 }
-
-  

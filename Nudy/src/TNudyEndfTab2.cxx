@@ -12,9 +12,10 @@
 ClassImp(TNudyEndfTab2)
 #endif
 
-//_______________________________________________________________________________
-TNudyEndfTab2::TNudyEndfTab2()
-  : TNudyEndfCont(), fNBT(NULL), fINT(NULL) {
+    //_______________________________________________________________________________
+    TNudyEndfTab2::TNudyEndfTab2()
+    : TNudyEndfCont(), fNBT(NULL), fINT(NULL)
+{
   //
   // Default constructor
   //
@@ -22,21 +23,24 @@ TNudyEndfTab2::TNudyEndfTab2()
 
 //_______________________________________________________________________________
 TNudyEndfTab2::TNudyEndfTab2(double c1, double c2, int l1, int l2, int n1, int n2)
-    : TNudyEndfCont(c1, c2, l1, l2, n1, n2), fNBT(new int[n1]), fINT(new int[n1]) {
+    : TNudyEndfCont(c1, c2, l1, l2, n1, n2), fNBT(new int[n1]), fINT(new int[n1])
+{
   //
   // Standard constructor
   //
 }
 
 //______________________________________________________________________________
-TNudyEndfTab2::~TNudyEndfTab2() {
+TNudyEndfTab2::~TNudyEndfTab2()
+{
   // printf("Deleting Tab2\n");
-  delete [] fNBT;
-  delete [] fINT;
+  delete[] fNBT;
+  delete[] fINT;
 }
 
 //_______________________________________________________________________________
-void TNudyEndfTab2::SetCont(double c1, double c2, int l1, int l2, int n1, int n2) {
+void TNudyEndfTab2::SetCont(double c1, double c2, int l1, int l2, int n1, int n2)
+{
   TNudyEndfCont::SetCont(c1, c2, l1, l2, n1, n2);
   delete[] fNBT;
   delete[] fINT;
@@ -44,7 +48,8 @@ void TNudyEndfTab2::SetCont(double c1, double c2, int l1, int l2, int n1, int n2
   fINT = new int[n1];
 }
 
-void TNudyEndfTab2::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1) {
+void TNudyEndfTab2::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1)
+{
   // Print Tab2 CONT Record
   char s1[14], s2[14];
   F2F(fC1, s1);

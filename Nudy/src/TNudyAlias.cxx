@@ -17,16 +17,18 @@
 ClassImp(TNudyAlias)
 #endif
 
-/**
- * Dummy constructor
- */
-//_______________________________________________________________________________
-TNudyAlias::TNudyAlias()
-  : fLen(0), fP(nullptr), fX(nullptr), fA(nullptr), fR(nullptr), fRnd(nullptr)
+    /**
+     * Dummy constructor
+     */
+    //_______________________________________________________________________________
+    TNudyAlias::TNudyAlias()
+    : fLen(0), fP(nullptr), fX(nullptr), fA(nullptr), fR(nullptr), fRnd(nullptr)
 #ifdef TNUDYALIAS_MULTITHREAD
-, fMult(nullptr), fMultLen(0) 
+      ,
+      fMult(nullptr), fMultLen(0)
 #endif
-{}
+{
+}
 
 /**
  * @brief Full constructor
@@ -39,12 +41,12 @@ TNudyAlias::TNudyAlias()
 TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
     : fLen(len), fP(new double[fLen]), fX(new double[fLen]), fA(new double[fLen]), fR(new double[fLen]),
 #ifdef USE_ROOT
-      fRnd(new TRandom(seed)), 
+      fRnd(new TRandom(seed)),
 #else
       fRnd(&RNG::Instance()),
 #endif
 #ifdef TNUDYALIAS_MULTITHREAD
-      fMult(nullptr), fMultLen(0) 
+      fMult(nullptr), fMultLen(0)
 #endif
 {
   // Improve algorithm for building table
@@ -52,7 +54,7 @@ TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
   double sum, c, d, mean;
   int k, l;
   double *b = new double[len];
-  mean = 1.0 / len;
+  mean      = 1.0 / len;
   sum = c = d = k = l = 0;
   // Normalize
   for (i = 0; i < len; i++)
@@ -66,8 +68,8 @@ TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
   for (i = 0; i < len; i++) {
     fP[i] = p[i];
     fX[i] = fA[i] = x[i];
-    fR[i] = 0;
-    b[i] = p[i] - mean;
+    fR[i]         = 0;
+    b[i]          = p[i] - mean;
   }
   for (i = 0; i < len; i++) {
     d = c = 0;
@@ -82,24 +84,25 @@ TNudyAlias::TNudyAlias(double *p, double *x, int len, unsigned int seed)
     }
     sum = 0;
     for (j = 0; j < len; j++)
-       sum += std::abs(b[j]);
+      sum += std::abs(b[j]);
     if (sum < 1e-9) {
       break;
     } else {
       fA[k] = fX[l];
       fR[k] = 1 + c * (double)len;
-      b[k] = 0;
-      b[l] = c + d;
+      b[k]  = 0;
+      b[l]  = c + d;
     }
   }
   delete[] b;
 }
 
-/** 
+/**
  * @brief Destructor
  */
 //_______________________________________________________________________________
-TNudyAlias::~TNudyAlias() {
+TNudyAlias::~TNudyAlias()
+{
   delete[] fP;
   delete[] fX;
   delete[] fA;
@@ -113,7 +116,8 @@ TNudyAlias::~TNudyAlias() {
  * @brief Dump the alias table
  */
 //_______________________________________________________________________________
-void TNudyAlias::DumpTable() const {
+void TNudyAlias::DumpTable() const
+{
   int i, j;
   i = j = 0;
   // Reconstruct probability table
@@ -121,8 +125,7 @@ void TNudyAlias::DumpTable() const {
   for (i = 0; i < fLen; i++) {
     prob[i] = fR[i] / fLen;
     for (j = 0; j < fLen; j++) {
-      if (fA[j] == fX[i])
-        prob[i] += (1 - fR[j]) / fLen;
+      if (fA[j] == fX[i]) prob[i] += (1 - fR[j]) / fLen;
     }
   }
   for (i = 0; i < fLen; i++) {
@@ -131,24 +134,25 @@ void TNudyAlias::DumpTable() const {
   delete[] prob;
 }
 
-/** 
+/**
  * Sample the distribution
  */
 //_______________________________________________________________________________
-double TNudyAlias::Random() const {
-  double ua = fRnd->Uniform(1);
-  double ub = fRnd->Uniform(1);
-  int x = (int)(ua * fLen);
-  double rx = fX[x];
-  if (ub > fR[x])
-    rx = fA[x];
+double TNudyAlias::Random() const
+{
+  double ua          = fRnd->Uniform(1);
+  double ub          = fRnd->Uniform(1);
+  int x              = (int)(ua * fLen);
+  double rx          = fX[x];
+  if (ub > fR[x]) rx = fA[x];
   return rx;
 }
 
 #ifdef TNUDYALIAS_MULTITHREAD
 
 //_______________________________________________________________________________
-void *TNudyAlias::ThreadHandle(void *ptr) {
+void *TNudyAlias::ThreadHandle(void *ptr)
+{
   TNudyComStruct *com = (TNudyComStruct *)ptr;
   if (!com->fAl->fMult) {
     delete com;
@@ -164,17 +168,17 @@ void *TNudyAlias::ThreadHandle(void *ptr) {
 }
 
 //_______________________________________________________________________________
-double *TNudyAlias::Randoms(int n) {
+double *TNudyAlias::Randoms(int n)
+{
   int i;
-  if (fMult)
-    delete[] fMult;
-  fMult = new double[n];
-  fMultLen = n;
+  if (fMult) delete[] fMult;
+  fMult                   = new double[n];
+  fMultLen                = n;
   void *(*funPtr)(void *) = &TNudyAlias::ThreadHandle;
-  TThread **threads = new TThread *[fLen];
+  TThread **threads       = new TThread *[fLen];
   for (i = 0; i < fLen; i++) {
     TNudyComStruct *thData = new TNudyComStruct(this, i);
-    threads[i] = new TThread(Form("TNudyAlias%d", i), funPtr, (void *)thData);
+    threads[i]             = new TThread(Form("TNudyAlias%d", i), funPtr, (void *)thData);
     threads[i]->Run();
   }
   for (i = 0; i < fLen; i++) {

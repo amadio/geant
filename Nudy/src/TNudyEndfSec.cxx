@@ -17,9 +17,10 @@
 ClassImp(TNudyEndfSec)
 #endif
 
-//_______________________________________________________________________________
-TNudyEndfSec::TNudyEndfSec()
-  : fMAT(0), fMF(0), fMT(0), fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0) {
+    //_______________________________________________________________________________
+    TNudyEndfSec::TNudyEndfSec()
+    : fMAT(0), fMF(0), fMT(0), fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0)
+{
   //
   // Default constructor
   //
@@ -29,7 +30,8 @@ TNudyEndfSec::TNudyEndfSec()
 
 //_______________________________________________________________________________
 TNudyEndfSec::TNudyEndfSec(int mat, int mf, int mt, double c1, double c2, int l1, int l2, int n1, int n2)
-    : fMAT(mat), fMF(mf), fMT(mt), fC1(c1), fC2(c2), fL1(l1), fL2(l2), fN1(n1), fN2(n2) {
+    : fMAT(mat), fMF(mf), fMT(mt), fC1(c1), fC2(c2), fL1(l1), fL2(l2), fN1(n1), fN2(n2)
+{
   //
   // Standard constructor
   //
@@ -38,7 +40,8 @@ TNudyEndfSec::TNudyEndfSec(int mat, int mf, int mt, double c1, double c2, int l1
 }
 
 //______________________________________________________________________________
-TNudyEndfSec::~TNudyEndfSec() {
+TNudyEndfSec::~TNudyEndfSec()
+{
   // printf("Deleting Record\n");
   if (fRecs) {
     fRecs->Delete();
@@ -47,7 +50,8 @@ TNudyEndfSec::~TNudyEndfSec() {
 }
 
 //______________________________________________________________________________
-TNudyEndfRecord *TNudyEndfSec::GetRecord(int RecNo) {
+TNudyEndfRecord *TNudyEndfSec::GetRecord(int RecNo)
+{
   //
   // RecNo is the index of the record in the section
   // RecNo = 0 is the first record after the HEAD
@@ -62,7 +66,8 @@ TNudyEndfRecord *TNudyEndfSec::GetRecord(int RecNo) {
 }
 
 //______________________________________________________________________________
-void TNudyEndfSec::DumpENDF(int flags = 1) {
+void TNudyEndfSec::DumpENDF(int flags = 1)
+{
   // HEAD
   char s1[14], s2[14];
   TNudyEndfCont::F2F(fC1, s1);

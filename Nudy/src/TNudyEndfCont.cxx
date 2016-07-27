@@ -14,8 +14,8 @@
 #include <TNudyEndfCont.h>
 
 //_______________________________________________________________________________
-TNudyEndfCont::TNudyEndfCont()
-  : fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0) {
+TNudyEndfCont::TNudyEndfCont() : fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0)
+{
   //
   // Default constructor
   //
@@ -23,14 +23,16 @@ TNudyEndfCont::TNudyEndfCont()
 
 //_______________________________________________________________________________
 TNudyEndfCont::TNudyEndfCont(double c1, double c2, int l1, int l2, int n1, int n2)
-    : fC1(c1), fC2(c2), fL1(l1), fL2(l2), fN1(n1), fN2(n2) {
+    : fC1(c1), fC2(c2), fL1(l1), fL2(l2), fN1(n1), fN2(n2)
+{
   //
   // Standard constructor
   //
 }
 
 //_______________________________________________________________________________
-void TNudyEndfCont::SetCont(double c1, double c2, int l1, int l2, int n1, int n2) {
+void TNudyEndfCont::SetCont(double c1, double c2, int l1, int l2, int n1, int n2)
+{
   fC1 = c1;
   fC2 = c2;
   fL1 = l1;
@@ -42,7 +44,8 @@ void TNudyEndfCont::SetCont(double c1, double c2, int l1, int l2, int n1, int n2
 //
 // Dump Data to screen in ENDF format
 //______________________________________________________________________________
-void TNudyEndfCont::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1) {
+void TNudyEndfCont::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1)
+{
   char s1[14], s2[14];
   F2F(fC1, s1);
   F2F(fC2, s2);
@@ -61,15 +64,16 @@ void TNudyEndfCont::DumpENDF(int mat, int mf, int mt, int &ns, int flags = 1) {
 //
 // float to Fortran style string, dim of s should be 14 or bigger
 //______________________________________________________________________________
-char *TNudyEndfCont::F2F(double f, char s[]) {
+char *TNudyEndfCont::F2F(double f, char s[])
+{
   snprintf(s, 14, "%12.5E", f);
   if (s[10] != '0') {
-    s[8] = s[9];
-    s[9] = s[10];
+    s[8]  = s[9];
+    s[9]  = s[10];
     s[10] = s[11];
   } else {
     snprintf(s, 14, "%13.6E", f);
-    s[9] = s[10];
+    s[9]  = s[10];
     s[10] = s[12];
   }
   s[11] = '\0';
