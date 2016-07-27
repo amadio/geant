@@ -87,9 +87,9 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
         nr = tab->GetNR();
         np = tab->GetNP();
         // std::cout<<"energy "<< tab->GetC2() << std::endl;
-        for (int i = 0; i < tab->GetNR(); i++) {
-          nbt1.push_back(tab->GetNBT(i));
-          int1.push_back(tab->GetINT(i));
+        for (int il = 0; il < tab->GetNR(); il++) {
+          nbt1.push_back(tab->GetNBT(il));
+          int1.push_back(tab->GetINT(il));
         }
         for (int j = 0; j < tab->GetNP(); j++) {
           cosFile4.push_back(tab->GetX(j));

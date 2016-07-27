@@ -16,7 +16,7 @@ private:
   double OVSQPI = 0.564189583547756279;
   double boltz  = 8.617385E-05;
   double ONE = 1.0, TWO = 2.0, THH = 3.0 / TWO, TW3 = TWO / 3.0, ZERO = 0.0, HALF = ONE / TWO;
-  double ZLIMI = 4;
+  double ZLIMI = 5;
   double tk;
   double ALPHA;
   double awri;
