@@ -878,10 +878,12 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
         // if(tab1->GetY(crs) > 1E-10){
         eneTemp.push_back(tab1->GetX(crs));
         sigTemp.push_back(tab1->GetY(crs));
-        if (npp > 1 && eneTemp[npp] == eneTemp[npp - 1])
-          eneTemp[npp] += 0.01; // adding small difference for boundary points
-        if (npp > 2 && eneTemp[npp] == eneTemp[npp - 2])
-          eneTemp[npp] += 0.01; // adding small difference for double boundary points
+        if (npp > 1 && eneTemp[eneTemp.size() - 1] == eneTemp[eneTemp.size() - 2])
+          eneTemp[eneTemp.size() - 1] += 0.01; // adding small difference for boundary points
+        if (npp > 1 && eneTemp[eneTemp.size() - 1] == eneTemp[eneTemp.size() - 3])
+          eneTemp[eneTemp.size() - 1] += 0.02; // adding small difference for boundary points
+        if (npp > 1 && eneTemp[eneTemp.size() - 1] == eneTemp[eneTemp.size() - 4])
+          eneTemp[eneTemp.size() - 1] += 0.03; // adding small difference for boundary points
         npp += 1;
         //}
       }
@@ -906,9 +908,6 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
         recursionLinearFile3(eLinearFile3[cr], eLinearFile3[cr + 1], xLinearFile3[cr], xLinearFile3[cr + 1],
                              eLinearFile3, xLinearFile3);
       }
-      // for(unsigned int cr=0; cr < eLinearFile3.size() ; cr ++){
-      // std::cout<<"Mt = "<<MT<<"  "<<std::setprecision(12)<<eLinearFile3[cr] <<"  "<< xLinearFile3[cr] << std::endl;
-      //}
       for (unsigned long ie = 0; ie < eneExtra.size(); ie++) {
         double sigExtra =
             TNudyCore::Instance()->Interpolate(nbt1, int1, NR, eLinearFile3, xLinearFile3, NP, eneExtra[ie]);
@@ -923,9 +922,6 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
       TNudyCore::Instance()->Sort(eLinearFile3, xLinearFile3);
       TNudyCore::Instance()->ThinningDuplicate(eLinearFile3, xLinearFile3);
 
-      //     for(unsigned int cr=0; cr < eLinearFile3.size() ; cr ++){
-      //       std::cout<<"Mt = "<<MT<<"  "<<eLinearFile3[cr] <<"  "<< xLinearFile3[cr] << std::endl;
-      //     }
 
       // Filling of array to interpolate and add with file 2 data if it is given
       nbt1.clear();
@@ -1865,6 +1861,7 @@ double TNudyEndfSigma::recursionLinear(double x1, double x2, double sig1, double
   if (elRatio <= sigDiff && capRatio <= sigDiff && fisRatio <= sigDiff) {
     return 0;
   } else {
+    //std::cout << x1 <<"  "<< x2 <<"  "<< elRatio <<"  "<< capRatio <<"  "<< fisRatio << std::endl;
     // if(elRatio > sigDiff){
     eLinElastic.push_back(mid);
     xLinElastic.push_back(siga);
@@ -1954,7 +1951,6 @@ void TNudyEndfSigma::recoPlusBroad(int flagNer)
       // xLinFission[ju+1]<< std::endl;
       recursionLinear(eLinElastic[ju], eLinElastic[ju + 1], xLinElastic[ju], xLinElastic[ju + 1], xLinCapture[ju],
                       xLinCapture[ju + 1], xLinFission[ju], xLinFission[ju + 1]);
-      // intLinLru1 = eLinElastic.size();
     }
   } else {
     intLinLru1 = eLinElastic.size();
@@ -1978,6 +1974,11 @@ void TNudyEndfSigma::recoPlusBroad(int flagNer)
         additionalSigma(LRF, Es[l]);
       }
       //    }
+    }
+    int nvectorend = eLinElastic.size();
+    for (int ju = intLinLru1; ju < nvectorend - 1; ju++) {
+      recursionLinear(eLinElastic[ju], eLinElastic[ju + 1], xLinElastic[ju], xLinElastic[ju + 1], xLinCapture[ju],
+                      xLinCapture[ju + 1], xLinFission[ju], xLinFission[ju + 1]);
     }
   }
 }
@@ -2043,6 +2044,9 @@ void TNudyEndfSigma::GetData(const char *rENDF, double isigDiff)
           TNudyCore::Instance()->ThinningDuplicate(eLinElastic, xLinElastic);
           TNudyCore::Instance()->ThinningDuplicate(eLinCapture, xLinCapture);
           TNudyCore::Instance()->ThinningDuplicate(eLinFission, xLinFission);
+//	  Thinning(eLinElastic, xLinElastic);
+//	  Thinning(eLinCapture, xLinCapture);
+//	  Thinning(eLinFission, xLinFission);
         }
         //	std::cout<<"file 2 OK "<< std::endl;
         break;
@@ -2063,12 +2067,15 @@ void TNudyEndfSigma::GetData(const char *rENDF, double isigDiff)
           std::cout << eLinFission[j] << "  " << xLinFission[j] << std::endl;
         std::cout << "before elstic Doppler begins " << std::endl;
         broadSigma(eLinElastic, xLinElastic, xBroadElastic);
+	//Thinning(eLinElastic, xBroadElastic);
         // std::cout << eLinElastic.size() << std::endl;
         std::cout << "before capture Doppler begins " << std::endl;
         broadSigma(eLinCapture, xLinCapture, xBroadCapture);
+	//Thinning(eLinCapture, xBroadCapture);
         // std::cout << eLinCapture.size() << std::endl;
         std::cout << "before fission Doppler begins " << std::endl;
         broadSigma(eLinFission, xLinFission, xBroadFission);
+	//Thinning(eLinFission, xBroadFission);
         // std::cout << eLinFission.size() << std::endl;
         //	std::cout<<"Doppler done "<<outstring << std::endl;
         dopplerBroad = 0;
@@ -2141,7 +2148,6 @@ void TNudyEndfSigma::broadSigma(std::vector<double> &x1, std::vector<double> &x2
     }
   }
   doppler->sigma.clear();
-  // Thinning(x1, x3);
 }
 //------------------------------------------------------------------------------------------------------
 void TNudyEndfSigma::fixupTotal(std::vector<double> &x1, std::vector<double> &x2)
@@ -2211,16 +2217,12 @@ double TNudyEndfSigma::Thinning(std::vector<double> &x1, std::vector<double> &x2
   if (size <= 0) return 0;
   for (int i = 0; i < size1 - 2; i++) {
     if (x1[i] < 1E3 && dopplerBroad == 0) continue;
-    if (x1[i] > eHi && LRU != 0 && eHi > 0) continue;
-    //  double sigmid1 = TNudyCore::Instance()->LinearInterpolation(x1,sig1,x2,sig2,mid);
     double sigmid1 = x2[i] + (x2[i + 2] - x2[i]) * (x1[i + 1] - x1[i]) / (x1[i + 2] - x1[i]);
-    //  std::cout<<" mid " << mid <<"  "<< siga <<"  "<< sigmid1 << std::endl;
-
     if (std::fabs((x2[i + 1] - sigmid1) / sigmid1) <= sigDiff) {
       x1.erase(x1.begin() + i + 1);
       x2.erase(x2.begin() + i + 1);
     }
-    if (x2[i] < 0.0) {
+    if (x2[i] <= 1E-20) {
       x1.erase(x1.begin() + i);
       x2.erase(x2.begin() + i);
     }

@@ -83,8 +83,6 @@ TNudyEndfDoppler::TNudyEndfDoppler(double isigDiff, double aw, double t1, double
       F3K2P = OVSQPI * (ONE - (1 + ZK22P) * EXPAP);
       F4K2P = HALF * THH * F0K2P - OVSQPI * ZK2P * (THH + ZK22P) * EXPAP;
     }
-    //    do
-    //    {
     while (ZK2 < ZLIMI && KPP < ncrs - 2) {
       E1  = E2;
       S1  = S2;
@@ -143,7 +141,6 @@ TNudyEndfDoppler::TNudyEndfDoppler(double isigDiff, double aw, double t1, double
     // while loop
     FTAIL1 = x2[0] * (FTAIL(sqrt(x1[0] * ALPHA), Y) - FTAIL(ZERO, Y));
     XSUM   = XSUM + FTAIL1;
-    // std::cout <<x1[KPP]<<"   "<< FTAIL1 << std::endl;
     FTAIL2 = x2[ncrs - 1] * (FTAIL(sqrt(100E7 * ALPHA), Y) - FTAIL(sqrt(x1[ncrs - 1] * ALPHA), Y));
     XSUM   = XSUM + FTAIL2;
     sigma.push_back(HALF * XSUM / Y2);
