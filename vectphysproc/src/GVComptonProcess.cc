@@ -14,6 +14,7 @@
 // GeantV prototype related
 #include "globals.h"
 #include "GeantTrack.h"
+#include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 
 // Xsec library realted
