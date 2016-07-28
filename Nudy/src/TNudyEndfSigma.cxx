@@ -1931,11 +1931,20 @@ void TNudyEndfSigma::recoPlusBroad(int flagNer)
     additionalSigma(LRF, eHi1);
     if (flagNer == 0) {
       double eneLow = 1.0E-5;
+<<<<<<< HEAD
       do {
         if (eneLow >= eLo) additionalSigma(LRF, eneLow);
         eneLow *= 1.15;
       } while (eneLow < 1.0E3 && eneLow < eHi1);
     }
+=======
+      do
+      {
+	if (eneLow>=eLo)additionalSigma(LRF, eneLow);
+	  eneLow *= 1.15;
+      }while(eneLow < 1.0E3 && eneLow < eHi1 );
+    } 
+>>>>>>> fcbc0c4... GEANT[216]bug fix in Doppler
     TNudyCore::Instance()->Sort(eLinElastic, xLinElastic);
     TNudyCore::Instance()->Sort(eLinCapture, xLinCapture);
     TNudyCore::Instance()->Sort(eLinFission, xLinFission);
