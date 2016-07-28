@@ -84,40 +84,41 @@ private:
   double insertFile3High(rowd &x1, rowd &x2);
   void broadSigma(rowd &x1, rowd &x2, rowd &x3);
   void fixupTotal(rowd &x1, rowd &x2);
-  double recursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x, std::vector<double> sig);
+  double recursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x,
+                             std::vector<double> sig);
   double recursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2);
   double recursionLinearProb(double x1, double x2, double pdf1, double pdf2);
   void fillPdf1d();
   void fillPdf2d();
-  const char *rENDF;					// precision for cross-section reconstruction
-  double sigDiff;					// precision for cross-section reconstruction
-  matrixd4 cos4OfMts;        // cosine and pdf from file 4 for each reaction
-  matrixd4 cosPdf4OfMts;        // cosine and pdf from file 4 for each reaction
-  matrixd4 cosCdf4OfMts;        // cosine and cdf from file 4 for each reaction
-  matrixd3 energy4OfMts;       // incident energy in file 4 for each reaction
-  matrixint Mt4Values;             // MT values for which angular distributions are given in file 4
-  matrixint Mt4Lct;                // CM and Lab flag for angular distributions as given in file 4
-  matrixd4 energyOut5OfMts;        // cosine and pdf from file 4 for each reaction
-  matrixd4 energyPdf5OfMts;        // cosine and pdf from file 4 for each reaction
-  matrixd4 energyCdf5OfMts;        // cosine and cdf from file 4 for each reaction
-  matrixd4 cos6OfMts;        // cosine 6 for each reaction and element
-  matrixd4 cosin6Pdf, cosin6Cdf; //pdf cdf 6 for each reaction and element
-  matrixd5 energyOut6OfMts;        // energy from file 6 for each reaction
-  matrixd5 energyPdf6OfMts;        // pdf from file 6 for each reaction
-  matrixd5 energyCdf6OfMts;        // cdf from file 6 for each reaction
-  matrixd3 energy5OfMts;       // incident energy in file 5 for each reaction
+  const char *rENDF;             // precision for cross-section reconstruction
+  double sigDiff;                // precision for cross-section reconstruction
+  matrixd4 cos4OfMts;            // cosine and pdf from file 4 for each reaction
+  matrixd4 cosPdf4OfMts;         // cosine and pdf from file 4 for each reaction
+  matrixd4 cosCdf4OfMts;         // cosine and cdf from file 4 for each reaction
+  matrixd3 energy4OfMts;         // incident energy in file 4 for each reaction
+  matrixint Mt4Values;           // MT values for which angular distributions are given in file 4
+  matrixint Mt4Lct;              // CM and Lab flag for angular distributions as given in file 4
+  matrixd4 energyOut5OfMts;      // cosine and pdf from file 4 for each reaction
+  matrixd4 energyPdf5OfMts;      // cosine and pdf from file 4 for each reaction
+  matrixd4 energyCdf5OfMts;      // cosine and cdf from file 4 for each reaction
+  matrixd4 cos6OfMts;            // cosine 6 for each reaction and element
+  matrixd4 cosin6Pdf, cosin6Cdf; // pdf cdf 6 for each reaction and element
+  matrixd5 energyOut6OfMts;      // energy from file 6 for each reaction
+  matrixd5 energyPdf6OfMts;      // pdf from file 6 for each reaction
+  matrixd5 energyCdf6OfMts;      // cdf from file 6 for each reaction
+  matrixd3 energy5OfMts;         // incident energy in file 5 for each reaction
   matrixd3 fraction5OfMts;       // fraction for incident energy in file 5 for each reaction
-  matrixint Mt5Values;             // MT values for which angular distributions are given in file 4
-  rowd eintFile1,nutFile1,einFile1,nuFile1;
-  rowd eindFile1,nudFile1,einphFile1,phFile1;
-  rowd einfFile1,heatFile1;
+  matrixint Mt5Values;           // MT values for which angular distributions are given in file 4
+  rowd eintFile1, nutFile1, einFile1, nuFile1;
+  rowd eindFile1, nudFile1, einphFile1, phFile1;
+  rowd einfFile1, heatFile1;
   rowd cnc, nui;
-  matrixd2 eint, nut;              // total incident energy and nu,  all elements
-  matrixd2 einp, nup;              // prompt incident energy and nu,  all elements
-  matrixd2 eind, nud, lambdaD;              // delayed incident energy and nu,  all elements
-  matrixd2 einFissHeat, fissHeat;              // fission incident energy and heat,  all elements
-  matrixd2 einfId, qvalue;              // incident energy for fission yield
-  matrixd3 zafId, pdfYieldId, cdfYieldId;              // za and yield fission 
+  matrixd2 eint, nut;                     // total incident energy and nu,  all elements
+  matrixd2 einp, nup;                     // prompt incident energy and nu,  all elements
+  matrixd2 eind, nud, lambdaD;            // delayed incident energy and nu,  all elements
+  matrixd2 einFissHeat, fissHeat;         // fission incident energy and heat,  all elements
+  matrixd2 einfId, qvalue;                // incident energy for fission yield
+  matrixd3 zafId, pdfYieldId, cdfYieldId; // za and yield fission
   double AWRI;
   int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, LSSF, NLS2, NJS, INT, NIS,
       intLinLru1 = 0;  // standard ENDF parameters
@@ -153,51 +154,51 @@ private:
   rowint nbt1, int1;
   rowd eLinearFile3;
   rowd xLinearFile3;
-  rowd sigma; 
-  rowd ein,cos4,cdf,pdf,lCoef1;
-  matrixd2 cos2d,pdf2d,cdf2d,lCoef,ein2d;
-  matrixd3 cos3d,pdf3d,cdf3d;
+  rowd sigma;
+  rowd ein, cos4, cdf, pdf, lCoef1;
+  matrixd2 cos2d, pdf2d, cdf2d, lCoef, ein2d;
+  matrixd3 cos3d, pdf3d, cdf3d;
   rowd cosFile4;
   rowd cosPdfFile4;
   rowd cosCdfFile4;
-  rowint MtLct;				// LCT numbers
-  rowint l;					// l values
-  rowint NRS;              			// no. of resolved resonances
-  rowint NRJ;              			// no. of URR J
-  rowint JSM;              			// URR J
-  rowd Er;            			// resolved resonance energy
-  rowd J;            			// associated J
-  rowd GJ;				// spin multiplication factor
-  rowd Gamma_r;       			// total width = Gamma_n + Gamma_g + Gamma_f
-  rowd Gamma_n;       			// neutron scattering width
-  rowd Gamma_g;       			// Capture width
-  rowd Gamma_f;       			// fission width
-  rowd Gamma_x;       			// Inelastic width
-  rowd Gamma_fa,Gamma_fasq;       	// fission width 1
-  rowd Gamma_fb,Gamma_fbsq;       	// fission width 2
-  rowd at1;       			// 1 background constant (Reich-Moore)
-  rowd at2;       			// 2 background constant (Reich-Moore)
-  rowd at3;       			// 3 background constant (Reich-Moore)
-  rowd at4;       			// 4 background constant (Reich-Moore)
-  rowd bt1;       			// 5 background constant (Reich-Moore)
-  rowd bt2;       			// 6 background constant (Reich-Moore)
-  rowd det1;       			// 1 resonance energy (Reich-Moore)
-  rowd dwt1;       			// 2 half width (Reich-Moore)
-  rowd grt1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
-  rowd git1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
-  rowd def1;       			// 5 background constant (Reich-Moore)
-  rowd dwf1;       			// 6 background constant (Reich-Moore)
-  rowd grf1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
-  rowd gif1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
-  rowd dec1;       			// 5 background constant (Reich-Moore)
-  rowd dwc1;       			// 6 background constant (Reich-Moore)
-  rowd grc1;       			// 3 symmetrical cross-section parameter G (Reich-Moore)
-  rowd gic1;       			// 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
-  rowd amux, amun, amug, amuf;		// standard ENDF parameters
-  rowd Es;				// energy URR
-  rowd D, GX, GNO, GG, GF;		// URR parameters
-  rowd PhiEr,ShiftEr;			// penetration and shift factors
-  rowd eneTemp,sigTemp;			// temporary vectors to store energy and sigma
+  rowint MtLct;                // LCT numbers
+  rowint l;                    // l values
+  rowint NRS;                  // no. of resolved resonances
+  rowint NRJ;                  // no. of URR J
+  rowint JSM;                  // URR J
+  rowd Er;                     // resolved resonance energy
+  rowd J;                      // associated J
+  rowd GJ;                     // spin multiplication factor
+  rowd Gamma_r;                // total width = Gamma_n + Gamma_g + Gamma_f
+  rowd Gamma_n;                // neutron scattering width
+  rowd Gamma_g;                // Capture width
+  rowd Gamma_f;                // fission width
+  rowd Gamma_x;                // Inelastic width
+  rowd Gamma_fa, Gamma_fasq;   // fission width 1
+  rowd Gamma_fb, Gamma_fbsq;   // fission width 2
+  rowd at1;                    // 1 background constant (Reich-Moore)
+  rowd at2;                    // 2 background constant (Reich-Moore)
+  rowd at3;                    // 3 background constant (Reich-Moore)
+  rowd at4;                    // 4 background constant (Reich-Moore)
+  rowd bt1;                    // 5 background constant (Reich-Moore)
+  rowd bt2;                    // 6 background constant (Reich-Moore)
+  rowd det1;                   // 1 resonance energy (Reich-Moore)
+  rowd dwt1;                   // 2 half width (Reich-Moore)
+  rowd grt1;                   // 3 symmetrical cross-section parameter G (Reich-Moore)
+  rowd git1;                   // 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
+  rowd def1;                   // 5 background constant (Reich-Moore)
+  rowd dwf1;                   // 6 background constant (Reich-Moore)
+  rowd grf1;                   // 3 symmetrical cross-section parameter G (Reich-Moore)
+  rowd gif1;                   // 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
+  rowd dec1;                   // 5 background constant (Reich-Moore)
+  rowd dwc1;                   // 6 background constant (Reich-Moore)
+  rowd grc1;                   // 3 symmetrical cross-section parameter G (Reich-Moore)
+  rowd gic1;                   // 4 Asymmetrical total cross section parameter, HTr (Reich-Moore)
+  rowd amux, amun, amug, amuf; // standard ENDF parameters
+  rowd Es;                     // energy URR
+  rowd D, GX, GNO, GG, GF;     // URR parameters
+  rowd PhiEr, ShiftEr;         // penetration and shift factors
+  rowd eneTemp, sigTemp;       // temporary vectors to store energy and sigma
   TNudyEndfDoppler *doppler;
   TNudyEndfAng *recoAng;
   TNudyEndfEnergy *recoEnergy;
