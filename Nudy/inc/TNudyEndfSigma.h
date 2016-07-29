@@ -7,6 +7,10 @@ class TNudyEndfDoppler;
 class TNudyEndfFile;
 class TNudyEndfList;
 class TNudyEndfAng;
+class TNudyEndfEnergy;
+class TNudyEndfEnergyAng;
+class TNudyEndfNuPh;
+class TNudyEndfFissionYield;
 class TList;
 
 #ifdef USE_ROOT
