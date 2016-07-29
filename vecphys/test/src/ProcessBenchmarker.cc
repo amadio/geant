@@ -23,12 +23,15 @@ ProcessBenchmarker::ProcessBenchmarker()
     : fNtracks(4992), fRepetitions(1), fVerbosity(1), fMinP(defaultMinP), fMaxP(defaultMaxP),
       fEmProcess(GUPhysicsProcessIndex::kNullProcess), fMaterialMode(0), fRunMode(-1)
 {
-  fTrackHandler = new GUTrackHandler();
+  fTrackHandler    = new GUTrackHandler();
   fMaterialHandler = vecphys::MaterialHandler::Instance();
   fMaterialHandler->BuildMaterialTable();
 }
 
-ProcessBenchmarker::~ProcessBenchmarker() { delete fTrackHandler; }
+ProcessBenchmarker::~ProcessBenchmarker()
+{
+  delete fTrackHandler;
+}
 
 int ProcessBenchmarker::RunBenchmark()
 {
@@ -62,14 +65,10 @@ int ProcessBenchmarker::RunBenchmarkProcess()
 
   int mismatches = 0;
 
-  if (fRunMode == 0 || fRunMode == -1)
-    RunScalar();
-  if (fRunMode == 1 || fRunMode == -1)
-    RunVector();
-  if (fRunMode == 2 || fRunMode == -1)
-    RunGeant3();
-  if (fRunMode == 3 || fRunMode == -1)
-    RunGeantV();
+  if (fRunMode == 0 || fRunMode == -1) RunScalar();
+  if (fRunMode == 1 || fRunMode == -1) RunVector();
+  if (fRunMode == 2 || fRunMode == -1) RunGeant3();
+  if (fRunMode == 3 || fRunMode == -1) RunGeantV();
   if (fRunMode == 4 || fRunMode == -1) {
 #ifdef VECPHYS_CUDA
     RunCuda();
@@ -90,7 +89,7 @@ void ProcessBenchmarker::RunScalar()
 
   Real_t elapsedTotal[kNumberPhysicsProcess];
   Real_t elapsedT[kNumberPhysicsProcess];
-  for (int k = 0; k < kNumberPhysicsProcess; ++k)
+  for (int k        = 0; k < kNumberPhysicsProcess; ++k)
     elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
@@ -138,14 +137,14 @@ void ProcessBenchmarker::RunVector()
 #endif
   // SOA tracks
   GUTrackHandler *handler_in = new GUTrackHandler(fNtracks);
-  GUTrack_v itrack_soa = handler_in->GetSoATracks();
+  GUTrack_v itrack_soa       = handler_in->GetSoATracks();
 
   int *targetElements = new int[fNtracks];
 
   Real_t elapsedTotal[kNumberPhysicsProcess];
   Real_t elapsedT[kNumberPhysicsProcess];
 
-  for (int k = 0; k < kNumberPhysicsProcess; ++k)
+  for (int k        = 0; k < kNumberPhysicsProcess; ++k)
     elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
@@ -194,14 +193,14 @@ void ProcessBenchmarker::RunGeantV()
 #endif
   // SOA tracks
   GUTrackHandler *handler_in = new GUTrackHandler(fNtracks);
-  GUTrack_v itrack_soa = handler_in->GetSoATracks();
+  GUTrack_v itrack_soa       = handler_in->GetSoATracks();
 
   int *targetElements = new int[fNtracks];
 
   Real_t elapsedTotal[kNumberPhysicsProcess];
   Real_t elapsedT[kNumberPhysicsProcess];
 
-  for (int k = 0; k < kNumberPhysicsProcess; ++k)
+  for (int k        = 0; k < kNumberPhysicsProcess; ++k)
     elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
@@ -253,7 +252,7 @@ void ProcessBenchmarker::RunGeant3()
 
   Real_t elapsedTotal[kNumberPhysicsProcess];
   Real_t elapsedT[kNumberPhysicsProcess];
-  for (int k = 0; k < kNumberPhysicsProcess; ++k)
+  for (int k        = 0; k < kNumberPhysicsProcess; ++k)
     elapsedTotal[k] = 0.;
 
   for (unsigned r = 0; r < fRepetitions; ++r) {
