@@ -102,7 +102,6 @@ private:
   int NR, NP, NE; // standard ENDF parameters for range and interpolation
   matrixint Mt4, Mt5,
       Mt6; // MT values for which angular, energy/ angular-energy distributions are given in file 4, 5, 6
-  rowd energyUni, sigmaUniTotal;            // unionization of energy and total cross-section
   matrixd2 sigmaOfMts;                      // sigma for each reaction
   matrixd2 sigmaUniOfMts;                   // sigma for each reaction afte unionization of energy
   rowint energyLocationMts;                 // MT wise starting energy for cross-section
@@ -110,7 +109,6 @@ private:
   rowd energyMts, sigmaMts, qvaluetemp;                // MT numbers for sigma in file3
   rowd eLinearFile3;
   rowd xLinearFile3;
-  rowd sigma;
   rowd eneTemp, sigTemp;       // temporary vectors to store energy and sigma
   TNudyEndfAng *recoAng;
   TNudyEndfEnergy *recoEnergy;

@@ -396,9 +396,6 @@ double TNudyEndfRecoPoint::GetDelayedFraction(int ielemId, int mt, double energy
 //-------------------------------------------------------------------------------------------------------
 TNudyEndfRecoPoint::~TNudyEndfRecoPoint()
 {
-  /*
-  energyUni.shrink_to_fit();
-  sigmaUniTotal.shrink_to_fit();
   sigmaOfMts.shrink_to_fit();
   sigmaUniOfMts.shrink_to_fit();
   energyLocationMts.shrink_to_fit();
@@ -408,67 +405,8 @@ TNudyEndfRecoPoint::~TNudyEndfRecoPoint()
   MtNum6.shrink_to_fit();
   sigmaMts.shrink_to_fit();
   qvaluetemp.shrink_to_fit();
-  eLinElastic.shrink_to_fit();
-  eLinCapture.shrink_to_fit();
-  eLinFission.shrink_to_fit();
-  xLinElastic.shrink_to_fit();
-  xLinCapture.shrink_to_fit();
-  xLinFission.shrink_to_fit();
-  xBroadElastic.shrink_to_fit();
-  xBroadCapture.shrink_to_fit();
-  xBroadFission.shrink_to_fit();
-  nbt1.shrink_to_fit();
-  int1.shrink_to_fit();
   eLinearFile3.shrink_to_fit();
   xLinearFile3.shrink_to_fit();
-  sigma.shrink_to_fit();
-  l.shrink_to_fit();
-  NRS.shrink_to_fit();
-  NRJ.shrink_to_fit();
-  JSM.shrink_to_fit();
-  Er.shrink_to_fit();
-  J.shrink_to_fit();
-  GJ.shrink_to_fit();
-  Gamma_r.shrink_to_fit();
-  Gamma_n.shrink_to_fit();
-  Gamma_g.shrink_to_fit();
-  Gamma_f.shrink_to_fit();
-  Gamma_x.shrink_to_fit();
-  Gamma_fa.shrink_to_fit();
-  Gamma_fasq.shrink_to_fit();
-  Gamma_fb.shrink_to_fit();
-  Gamma_fbsq.shrink_to_fit();
-  at1.shrink_to_fit();
-  at2.shrink_to_fit();
-  at3.shrink_to_fit();
-  at4.shrink_to_fit();
-  bt1.shrink_to_fit();
-  bt2.shrink_to_fit();
-  det1.shrink_to_fit();
-  dwt1.shrink_to_fit();
-  grt1.shrink_to_fit();
-  git1.shrink_to_fit();
-  def1.shrink_to_fit();
-  dwf1.shrink_to_fit();
-  grf1.shrink_to_fit();
-  gif1.shrink_to_fit();
-  dec1.shrink_to_fit();
-  dwc1.shrink_to_fit();
-  grc1.shrink_to_fit();
-  gic1.shrink_to_fit();
-  amux.shrink_to_fit();
-  amun.shrink_to_fit();
-  amug.shrink_to_fit();
-  amuf.shrink_to_fit();
-  Es.shrink_to_fit();
-  D.shrink_to_fit();
-  GX.shrink_to_fit();
-  GNO.shrink_to_fit();
-  GG.shrink_to_fit();
-  GF.shrink_to_fit();
-  PhiEr.shrink_to_fit();
-  ShiftEr.shrink_to_fit();
   eneTemp.shrink_to_fit();
   sigTemp.shrink_to_fit();
-  */
 }

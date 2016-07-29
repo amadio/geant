@@ -2115,7 +2115,7 @@ void TNudyEndfSigma::GetData(const char *rENDF, double isigDiff)
       case 4:
         ReadFile4(file);
         std::cout << "file 4 OK " << std::endl;
-        ReWriteFile4(file);
+        //ReWriteFile4(file);
         MtNumbers.clear();
         break;
         //       case 5:
@@ -2679,6 +2679,12 @@ void TNudyEndfSigma::ReWriteFile3(TNudyEndfFile *file)
 //------------------------------------------------------------------------------------------------------
 void TNudyEndfSigma::ReWriteFile4(TNudyEndfFile *file)
 {
+  TIter secIter(file->GetSections());
+  TNudyEndfSec *sec;
+  while ((sec = (TNudyEndfSec *)secIter.Next())) {
+    // if (sec->GetMT() == (int)fReaction) {
+    TIter recIter(sec->GetRecords());
+  }  
 }
 //-------------------------------------------------------------------------------------------------------
 TNudyEndfSigma::~TNudyEndfSigma()
