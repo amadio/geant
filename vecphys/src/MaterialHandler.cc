@@ -11,8 +11,7 @@ MaterialHandler *MaterialHandler::fInstance = 0;
 VECCORE_CUDA_HOST
 MaterialHandler *MaterialHandler::Instance()
 {
-  if (fInstance == 0)
-    fInstance = new MaterialHandler();
+  if (fInstance == 0) fInstance = new MaterialHandler();
   return fInstance;
 }
 
@@ -24,7 +23,7 @@ MaterialHandler::MaterialHandler()
 
   // initialize the element array
   fNumberOfElements = 0;
-  for (int i = 0; i < maximumZ; ++i)
+  for (int i         = 0; i < maximumZ; ++i)
     fElementArray[i] = 0;
 
   // build the element array
@@ -32,7 +31,10 @@ MaterialHandler::MaterialHandler()
 }
 
 VECCORE_CUDA_HOST
-MaterialHandler::~MaterialHandler() { ; }
+MaterialHandler::~MaterialHandler()
+{
+  ;
+}
 
 VECCORE_CUDA_HOST
 void MaterialHandler::BuildElementTable()
@@ -42,7 +44,7 @@ void MaterialHandler::BuildElementTable()
   // materials. Temporarily, build a table based on John's arrary
 
   constexpr int NumFx = 16;
-  int Element[NumFx] = {82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 91};
+  int Element[NumFx]  = {82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 91};
   // Pb   W  O  N  C  Al  Ar, Ti  Fe  Cu  Zn  Cd  Xe  Gd  Au  Pa
 
   for (int ie = 0; ie < NumFx; ++ie)
@@ -85,12 +87,11 @@ void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, in
       printf(" Generating Target Elements from table of %d elements - mode # =  %d\n", fNumberOfElements, elementMode);
     int indEl;
     for (int i = 0; i < ntracks; ++i) {
-      indEl = (i % fNumberOfElements);
+      indEl             = (i % fNumberOfElements);
       targetElements[i] = fElementArray[indEl];
     }
   } else if (elementMode == 1) { // using a single element
-    if (report)
-      printf(" Using *Constant* Target Element Z = %d - mode # = %d\n", fElementArray[0], elementMode);
+    if (report) printf(" Using *Constant* Target Element Z = %d - mode # = %d\n", fElementArray[0], elementMode);
 
     for (int i = 0; i < ntracks; ++i) {
       targetElements[i] = fElementArray[0];
@@ -144,7 +145,7 @@ void MaterialHandler::PrepareMaterialIndex(int *materialIndex, int ntracks, int 
   bool report = (nCalls == 1);
 
   std::vector<vecgeom::Material *> &mtable = vecgeom::Material::GetMaterials();
-  int numberOfMaterials = mtable.size();
+  int numberOfMaterials                    = mtable.size();
 
   if (materialMode == 0) { // all elements in the current material table
     if (report)
