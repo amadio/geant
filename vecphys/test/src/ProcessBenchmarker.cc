@@ -70,8 +70,11 @@ int ProcessBenchmarker::RunBenchmarkProcess()
     RunGeant3();
   if (fRunMode == 3 || fRunMode == -1)
     RunGeantV();
-  if (fRunMode == 4 || fRunMode == -1)
+  if (fRunMode == 4 || fRunMode == -1) {
+#ifdef VECPHYS_CUDA
     RunCuda();
+#endif
+  }
 
   return mismatches;
 }
