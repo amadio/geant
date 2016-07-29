@@ -6,6 +6,7 @@
 class TNudyEndfDoppler;
 class TNudyEndfFile;
 class TNudyEndfList;
+class TNudyEndfAng;
 class TList;
 
 #ifdef USE_ROOT
