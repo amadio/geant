@@ -105,11 +105,6 @@ VECCORE_CUDA_HOST
 void MaterialHandler::BuildMaterialTable()
 {
   // build a material table - 3 materials for testing
-
-  using CLHEP::g;
-  using CLHEP::mole;
-  using CLHEP::cm3;
-
   // should have an interface to add elements to Material
   double density = 1.0 * g / cm3;
 
