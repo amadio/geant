@@ -242,13 +242,13 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       if (propagator->fNthreads > 1)
         fMHist.lock();
       
+#ifdef USE_ROOT
       double capacity = 1.;
 #ifdef USE_VECGEOM_NAVIGATOR
 //      capacity = 1.;
 #else
 //      capacity = vol->GetShape()->Capacity();
 #endif
-#ifdef USE_ROOT      
       if (fabs(tracks.fPDGV[itr]) == 11) {
         fFluxElec->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepElec->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
