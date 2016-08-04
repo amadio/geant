@@ -62,8 +62,8 @@ VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
 
       } while (iter > 0);
 
-      delete a;
-      delete ap;
+      delete [] a;
+      delete [] ap;
     }
   }
 }
