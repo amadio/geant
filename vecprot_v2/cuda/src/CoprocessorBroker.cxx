@@ -7,11 +7,6 @@
 
 #include "CoprocessorBrokerKernel.h"
 
-#include "TGeoBranchArray.h"
-#include "TGeoManager.h"
-#include "TGeoMatrix.h"
-#include "TGeoNode.h"
-
 // To access the list of baskets.
 #include "GeantBasket.h"
 #include "GeantScheduler.h"
@@ -30,8 +25,6 @@
 #include "GeantTrack.h"
 #include "GeantVApplication.h"
 #include "PhysicsProcess.h"
-#include "TGeoManager.h"
-#include "TGeoNavigator.h"
 
 using namespace Geant;
 
