@@ -269,12 +269,15 @@ endif()
 
 if (KNC)
   if (USE_ROOT)
-    message (WARNING,"Root has to be disabled in order to compile for KNC, setting USE_ROOT=OFF")
+    message (WARNING "Root has to be disabled in order to compile for KNC, setting USE_ROOT=OFF")
     set (USE_ROOT OFF CACHE BOOL "Use ROOT" FORCE)
   endif()
   if (WITH_GEANT4)
-    message (WARNING,"Disabling Geant4 in order to compile for KNC, setting WITH_GEANT4=OFF")
+    message (WARNING "Disabling Geant4 in order to compile for KNC, setting WITH_GEANT4=OFF")
     set (WITH_GEANT4 OFF CACHE BOOL "Enable libraries and test using the Geant4 libraries" FORCE)
+  endif()
+  if (CUDA) 
+    message (FATAL "CUDA and KNC are incompatible flags")
   endif()
 endif()
 
@@ -350,6 +353,11 @@ if(USE_ROOT)
    include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIRS})
 
    add_definitions("-DUSE_ROOT")
+else()
+#----------------------------------------------------------------------------------------------
+# ROOT adds some of these flags. If we do not use ROOT, we have to add them by hand
+#
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -pipe -std=c++11")
 endif()
 
 #----------------------------------------------------------------------------------------------
@@ -553,6 +561,7 @@ if (CUDA)
     -D_MWAITXINTRIN_H_INCLUDED
     -D_FORCE_INLINES
   )
+
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -g -G)
   endif()
@@ -590,7 +599,7 @@ add_subdirectory (numa)
 add_subdirectory (xsec)
 add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
-if(WITH_GEANT4 AND NOT (CUDA))
+if(WITH_GEANT4 AND NOT (CUDA) AND USE_ROOT)
   add_subdirectory (tabxsec)
   add_subdirectory (test-small)
   add_subdirectory (test-complex)
@@ -598,7 +607,9 @@ if(WITH_GEANT4 AND NOT (CUDA))
   add_subdirectory (cmstrack)
 endif()
 add_subdirectory (magneticfield)
-add_subdirectory (fastsim)
+if(USE_ROOT)
+  add_subdirectory (fastsim)
+endif()
 if (ROOT_mathmore_FOUND) 
   add_subdirectory (Nudy)
 endif()
