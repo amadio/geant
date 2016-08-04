@@ -96,7 +96,10 @@ if (NOT KNC)
     # See vecprot_v2/cuda/CMakeLists.txt
     add_subdirectory (cuda)
   else()
-    add_library(Geant_v SHARED ${sources} G__Geant.cxx)
+    if(USE_ROOT)
+      set(sources "${sources} G__Geant.cxx")
+    endif()
+    add_library(Geant_v SHARED ${sources})
     target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} )
     
     if( VECGEOM_FOUND )
@@ -133,8 +136,14 @@ if (NOT KNC)
     CMSApp.cc
     runApp.cc
     testBasketizer.cc
+    )
+
+if(USE_ROOT)
+  set(TEST_EXECUTABLES
+    ${TEST_EXECUTABLES} 
     testLocality.cc
     )
+endif()
 
   macro(build_executables EXECUTABLES)
     foreach(EXECUTABLE ${EXECUTABLES})
@@ -183,8 +192,11 @@ if (NOT KNC)
     add_to_ctest("${TEST_EXECUTABLES}")
   endif()
   
-  install(TARGETS CMSApp runApp testBasketizer testLocality DESTINATION bin)
-  add_dependencies(runApp Geant_v Xsec GeantExamples)
+  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
+  if(USE_ROOT)
+    install(TARGETS testLocality DESTINATION bin)
+  endif()
+add_dependencies(runApp Geant_v Xsec GeantExamples)
 else() 
 #----------------------------------------------------------------------------------------------
 # KNC section
