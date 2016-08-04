@@ -8,7 +8,6 @@
 // Vector physics model related
 #include "globals.h"
 #include "GeantTrack.h"
-#include "TGeoMaterial.h" // ROOT
 
 #include "GeantTaskData.h"
 
