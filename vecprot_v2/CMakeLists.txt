@@ -91,7 +91,6 @@ set(GEANTV_SOURCES ${sources} )
 #----------------------------------------------------------------------------------------------
 # CUDA section
 #
-if (NOT KNC)
   if (CUDA)
     # See vecprot_v2/cuda/CMakeLists.txt
     add_subdirectory (cuda)
@@ -197,27 +196,6 @@ endif()
     install(TARGETS testLocality DESTINATION bin)
   endif()
 add_dependencies(runApp Geant_v Xsec GeantExamples)
-else() 
-#----------------------------------------------------------------------------------------------
-# KNC section
-#
-  add_library(Geant_v SHARED ${sources})
-  
-  if(USE_VECGEOM_NAVIGATOR )
-    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-  endif()
-  add_custom_target(Geantlib_v DEPENDS Geant_v)
-  install(TARGETS Geant_v DESTINATION lib)
-  
-  add_executable(CMSApp CMSApp.cc)
-  
-  target_link_libraries(CMSApp -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Xsec GeantExamples Vmagfield
-    ${HEPMC_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
-  
-  add_dependencies(CMSApp Geant_v Xsec GeantExamples)
-  install(TARGETS CMSApp DESTINATION bin)
-  
-endif()
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

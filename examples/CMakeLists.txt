@@ -37,8 +37,13 @@ else()
   add_library(GeantExamples SHARED ${sources})
 endif()
 
-target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  Geant_v ${ROOT_LIBRARIES} ${Vc_LIBRARIES})
+if (KNC)
+  target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  Geant_v ${ROOT_LIBRARIES} ${Vc_MIC_LIBRARIES})
+else()
+  target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  Geant_v ${ROOT_LIBRARIES} ${VC_LIBRARIES})
+endif()
 
 add_dependencies(GeantExamples Geant_v)
 add_custom_target(Exampleslib DEPENDS GeantExamples)
