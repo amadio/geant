@@ -38,11 +38,8 @@
 #include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
-// #ifdef  RUNGE_KUTTA
-#pragma message("Compiling using Runge-Kutta for integration")
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
-// #endif
 
 #ifdef __INTEL_COMPILER
 #include <immintrin.h>
