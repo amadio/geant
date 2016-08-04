@@ -41,8 +41,14 @@ prepend(GEANTV_HEADERS .. ${GEANTV_HEADERS})
 set(cuda_cxx_sources
     ${CUDA_SRCDIR}/GeantCudaUtils.cxx
     ${CUDA_SRCDIR}/CoprocessorBroker.cxx
-    G__GeantCuda.cxx
 )
+
+if(USE_ROOT)
+  set(cuda_cxx_sources 
+    ${cuda_cxx_sources}
+    G__GeantCuda.cxx
+    )
+endif()
 
 if (GEANT_CUDA_SINGLE_SOURCE)
   set(cuda_sources
@@ -84,11 +90,13 @@ if (GeantCudaReplace)
    set (extra_dict_options -DGEANTCUDA_REPLACE)
 endif()
 
-ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers}
-  MODULE ${GeantCudaLib}
-  LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h
-  OPTIONS -I${CUDA_INCLUDE_DIRS} -DVC_COMMON_SIMDIZE_H_=1 ${extra_dict_options} 
-  )
+if(USE_ROOT)
+  ROOT_GENERATE_DICTIONARY(G__GeantCuda ${dict_headers}
+    MODULE ${GeantCudaLib}
+    LINKDEF ${CUDA_INCDIR}/CudaLinkDef.h
+    OPTIONS -I${CUDA_INCLUDE_DIRS} -DVC_COMMON_SIMDIZE_H_=1 ${extra_dict_options} 
+    )
+endif()
 
 # add the command to generate the source code
 #add_custom_command (
