@@ -2,8 +2,10 @@
 
 #include "GeantCudaUtils.h"
 
+#ifdef USE_ROOT
 #include "TError.h"
 #include "Varargs.h"
+#endif
 #include <stdarg.h>
 
 namespace Geant {
