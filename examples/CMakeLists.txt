@@ -24,25 +24,21 @@ endif()
 #----------------------------------------------------------------------------------------------
 # CUDA section
 #
-if (NOT KNC)
-  if (CUDA)
-    CUDA_ADD_LIBRARY(GeantExamples
-      ${sources} G__Examples.cxx
-      SHARED
-      OPTIONS ${CUDA_ARCH}
-      )
-  else()
-    add_library(GeantExamples SHARED ${sources} G__Examples.cxx)
+if (CUDA)
+  if(USE_ROOT)
+    set(sources ${sources} G__Examples.cxx)
   endif()
-  
-  target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    Geant_v ${ROOT_LIBRARIES} ${Vc_LIBRARIES})
-  
+  CUDA_ADD_LIBRARY(GeantExamples
+    ${sources}
+    SHARED
+    OPTIONS ${CUDA_ARCH}
+    )
 else()
   add_library(GeantExamples SHARED ${sources})
-  target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    Geant_v)
 endif()
+
+target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  Geant_v ${ROOT_LIBRARIES} ${Vc_LIBRARIES})
 
 add_dependencies(GeantExamples Geant_v)
 add_custom_target(Exampleslib DEPENDS GeantExamples)
