@@ -3,14 +3,14 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasTable::GUAliasTable(int ngrid)
 {
   fNGrid = ngrid;
   Allocate(ngrid);
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasTable::GUAliasTable(const GUAliasTable &table)
 {
   Deallocate();
@@ -18,7 +18,7 @@ GUAliasTable::GUAliasTable(const GUAliasTable &table)
   CopyData(table);
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasTable &GUAliasTable::operator=(const GUAliasTable &table)
 {
   if (this != &table) {
@@ -29,10 +29,10 @@ GUAliasTable &GUAliasTable::operator=(const GUAliasTable &table)
   return *this;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasTable::~GUAliasTable() { Deallocate(); }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void GUAliasTable::Allocate(int /*ngrid*/)
 {
   // try
@@ -47,7 +47,7 @@ void GUAliasTable::Allocate(int /*ngrid*/)
   }
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void GUAliasTable::Deallocate()
 {
   delete[] fpdf;
@@ -55,7 +55,7 @@ void GUAliasTable::Deallocate()
   delete[] fAlias;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void GUAliasTable::CopyData(const GUAliasTable &table)
 {
   int i;
@@ -67,13 +67,13 @@ void GUAliasTable::CopyData(const GUAliasTable &table)
   }
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 int GUAliasTable::SizeOfTable() { return sizeof(int) + SizeOfGrid() * (2. * sizeof(Real_t) + sizeof(int)); }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void GUAliasTable::PrintInfo() { printf("Size(NGrid,Table) = (%d,%d)\n", SizeOfGrid(), SizeOfTable()); }
 
-#ifdef VECCORE_NVCC
+#ifdef VECCORE_CUDA
 void GUAliasTable::Relocate(void *devPtr)
 {
   // Implement/use a general way to (byte-wise) copy a object to GPU

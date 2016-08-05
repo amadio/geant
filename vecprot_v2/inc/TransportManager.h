@@ -38,7 +38,7 @@ namespace TransportManager {
    * @param ntracks Number of tracks
    * @param td TaskData object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int CheckSameLocation(TrackVec_t &tracks,
                          int ntracks,
                          GeantTaskData *td);
@@ -49,7 +49,7 @@ namespace TransportManager {
    * @param track Track reference
    * @param td TaskData object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int CheckSameLocationSingle(GeantTrack &track,
                          GeantTaskData *td);
 
@@ -60,7 +60,7 @@ namespace TransportManager {
    * @param ntracks Number of tracks
    * @param td TaskData object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void ComputeTransportLength(TrackVec_t &tracks,
                               int ntracks,
                               GeantTaskData *td);
@@ -71,7 +71,7 @@ namespace TransportManager {
    * @param track Track reference
    * @param td TaskData object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void ComputeTransportLengthSingle(GeantTrack &track,
                                     GeantTaskData *td);
 
@@ -80,7 +80,7 @@ namespace TransportManager {
    *
    * @param ntracks Number of tracks
    */  
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   TransportAction_t PostponedAction(int ntracks) {
     // Check the action to be taken according the current policy
@@ -99,7 +99,7 @@ namespace TransportManager {
    * @param input Vector of input tracks
    * @param output Receiver vector
    */  
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void MoveTrack(int itr, TrackVec_t &input, TrackVec_t &output) {
     auto it = input.begin() + itr;
@@ -113,7 +113,7 @@ namespace TransportManager {
    * @param itr track index
    * @param vec Vector of input tracks
    */  
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void RotateTrack(int itr, TrackVec_t &vec) {    
     std::rotate(vec.begin()+itr, vec.begin()+itr+1, vec.end());
@@ -135,7 +135,7 @@ namespace TransportManager {
    * @param crtstep Array of steps to propagate with
    * @param td Task data object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void PropagateInVolume(TrackVec_t &tracks,
                          int ntracks,
                          const double *crtstep,
@@ -148,7 +148,7 @@ namespace TransportManager {
    * @param crtstep Step to propagate with
    * @param td Task data object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void PropagateInVolumeSingle(GeantTrack &track,
                                double crtstep,
                                GeantTaskData *td);
@@ -159,7 +159,7 @@ namespace TransportManager {
    * @param tracks Vector of tracks (AOS) to be propagated
    * @param td Task data object
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PropagateTracks(TrackVec_t &tracks,
                       GeantTaskData *td);
 
@@ -170,7 +170,7 @@ namespace TransportManager {
    * @param td Task data object
    * @param stage Transport is done in several stages, can resume from a given one
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PropagateTracksScalar(TrackVec_t &tracks,
                             GeantTaskData *td,
                             int stage = 0);
@@ -183,14 +183,14 @@ namespace TransportManager {
    * @param td Task data object
    * @param stage Transport is done in several stages, can resume from a given one
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PropagateSingleTrack(TrackVec_t &tracks,
                            int &itr,
                            GeantTaskData *td,
                            int stage);
 
   /** @brief Function that returns safe length */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double SafeLength(const GeantTrack &track, double Bz, double eps = 1.E-4) {
     // Returns the propagation length in field such that the propagated point is
@@ -199,7 +199,7 @@ namespace TransportManager {
   }
   
   /** @brief Function allowing to debug a step */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
  bool BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp, int nsteps, const char *msg, int itr);
 
 };

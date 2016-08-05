@@ -72,7 +72,7 @@ public:
    * @param buff Buffer to be assigned to
    * @param size Size of buffer
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void AssignInBuffer(char *buff, int size);
 
   /**
@@ -91,7 +91,7 @@ private:
   /**
    * @brief GeantTrackGeo_v constructor based on a provided single buffer.
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GeantTrackGeo_v(void *addr, unsigned int nTracks);
 
 public:
@@ -108,14 +108,14 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static GeantTrackGeo_v *MakeInstanceAt(void *addr, unsigned int nTracks);
 
   /** @brief GeantTrackGeo_v destructor */
   ~GeantTrackGeo_v();
 
   /** @brief return the contiguous memory size needed to hold a GeantTrackGeo_v */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static size_t SizeOfInstance(size_t nTracks);
 
   /** @brief  Function that returns the buffer size  */
@@ -125,7 +125,7 @@ public:
   void *Buffer() const { return fBuf; }
 
   /** @brief  Function that returns buffer size needed to hold the data for nTracks*/
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static size_t BufferSize(size_t nTracks);
 
   /** @brief  Function that returned max size for tracks */
@@ -135,7 +135,7 @@ public:
   bool IsNormalized(int itr, double tolerance = 1.E-8) const;
 
   /** @brief  Function that returned number of tracks contained  */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int GetNtracks() const { return fNtracks; }
 
   /**
@@ -144,12 +144,12 @@ public:
    * @param track Track that should be added
    * @param import Flag for importing (by default False)
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int AddTrack(GeantTrack &track) {
     int itrack = fNtracks;
     if (itrack == fMaxtracks) {
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
       Resize(2 * fMaxtracks);
 #else
       printf("Error in GeantTrackGeo::AddTrack, resizing is not supported in device code\n");
@@ -176,7 +176,7 @@ public:
    *
    * @param array Array of tracks that should be added
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int AddTracks(TrackVec_t const &array);
 
   /**
@@ -184,7 +184,7 @@ public:
    *
    * @param itr Track to update
   */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void UpdateOriginalTrack(int itr) const {
     // Update the original track itr.
@@ -205,7 +205,7 @@ public:
   /**
    * @brief Update all original tracks from the container
   */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void UpdateOriginalTracks() const {
     // Update all the original tracks. This should ideally vectorize.
     for (int itr=0; itr<fNtracks; ++itr) {
@@ -225,7 +225,7 @@ public:
   }
 
   /** @brief Clear function */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Clear() { fNtracks = 0; }
 
@@ -239,7 +239,7 @@ public:
    * @brief Function rounding up an integer to the aligned value
    * @param num Value be aligned
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static int RoundUpAlign(int num) {
     int remainder = num % GEANT_ALIGN_PADDING;
     if (remainder == 0)
@@ -251,7 +251,7 @@ public:
    * @brief Function rounding up an address to the aligned value
    * @param buf Address to be aligned
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static char *RoundUpAlign(char *buf) {
     long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
     if (remainder == 0)
@@ -263,8 +263,7 @@ public:
 };
 } // GEANT_IMPL_NAMESPACE
 
-#ifdef GEANT_CUDA
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 namespace cxx {
 class GeantTrackGeo_v;
 }
@@ -272,7 +271,6 @@ class GeantTrackGeo_v;
 namespace cuda {
 class GeantTrackGeo_v;
 }
-#endif
 #endif
 
 } // Geant

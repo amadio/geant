@@ -20,7 +20,7 @@
 #include "Geant/Error.h"
 #include "TPFstate.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 class TFile;
 #endif
@@ -29,19 +29,19 @@ class TFile;
 class TFinState;
 class TPDecay;
 
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 class TEFstate;
 extern  int fEFNLdElemsHost;            //! number of loaded elements
-extern GEANT_CUDA_DEVICE_CODE int fEFNLdElemsDev;            //! number of loaded elements
+extern VECCORE_ATT_DEVICE int fEFNLdElemsDev;            //! number of loaded elements
 extern  TEFstate *fEFElementsHost[NELEM]; //! databases of elements
-extern GEANT_CUDA_DEVICE_CODE TEFstate *fEFElementsDev[NELEM]; //! databases of elements
+extern VECCORE_ATT_DEVICE TEFstate *fEFElementsDev[NELEM]; //! databases of elements
 extern TPDecay  *fDecayHost;           //! decay table
-extern GEANT_CUDA_DEVICE_CODE TPDecay  *fDecayDev;           //! decay table
+extern VECCORE_ATT_DEVICE TPDecay  *fDecayDev;           //! decay table
 #endif
 
 class TEFstate {
 public:
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   TEFstate();
   TEFstate(int z, int a, float dens);
   TEFstate &operator=(const TEFstate &other);
@@ -52,7 +52,7 @@ public:
 
   bool AddPartFS(int kpart, int ibin, int reac, const int npart[], const float weight[], const float kerma[],
                  const float en[], const char surv[], const int pid[], const float mom[]);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Ele() const { return fEle; }
   double Dens() const { return fDens; }
   double Emin() const { return fEmin; }
@@ -66,43 +66,43 @@ public:
   void SetRestCaptFstate(int kpart, const TFinState &fstate);
   bool HasRestCapture(int partindex);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx) const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx, double randn1, double randn2) const;
   bool SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                             const float *&mom) const;
   bool SampleRestCaptFstate(int kpart, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                             const float *&mom, double randn) const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool GetReac(int pindex, int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
                const int *&pid, const float *&mom) const;
 
   static bool FloatDiff(double a, double b, double prec) { return fabs(a - b) > 0.5 * fabs(a + b) * prec; }
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   void Draw(const char *option);
 #endif
   bool Resample();
 
   bool Prune();
 
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
   void Compact();
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   void RebuildClass();
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static int SizeOfStore();
   static int MakeCompactBuffer(char* &b);
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static void RebuildStore(char *b);
 #ifdef MAGIC_DEBUG
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int GetMagic() const {return fMagic;}
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static int NLdElems() { return fNLdElems; }
 
   static TEFstate *Element(int i) {
@@ -111,10 +111,10 @@ GEANT_CUDA_BOTH_CODE
     return fElements[i];
   }
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
- GEANT_CUDA_DEVICE_CODE 
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+ VECCORE_ATT_DEVICE 
  static int NLdElems() { return fEFNLdElemsDev; }
- GEANT_CUDA_DEVICE_CODE 
+ VECCORE_ATT_DEVICE 
  static TEFstate *Element(int i) {
     if (i < 0 || i >= fEFNLdElemsDev)
       return 0;
@@ -130,11 +130,11 @@ GEANT_CUDA_BOTH_CODE
 #endif
 #endif
 
-#ifdef GEANT_NVCC
-  GEANT_CUDA_BOTH_CODE
+#ifdef VECCORE_CUDA
+  VECCORE_ATT_HOST_DEVICE
   static TEFstate *GetElement(int z, int a = 0);
-#ifdef GEANT_CUDA_DEVICE_BUILD
-  GEANT_CUDA_DEVICE_CODE TEFstate **GetElements() { return fEFElementsDev; }
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  VECCORE_ATT_DEVICE TEFstate **GetElements() { return fEFElementsDev; }
 #else
   TEFstate **GetElements() { return fEFElementsHost; }
 #endif
@@ -144,24 +144,24 @@ GEANT_CUDA_BOTH_CODE
 #endif
   static TEFstate **GetElements() { return fElements; }
 #endif
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static TPDecay* GetDecayTable() {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     return fDecay;
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
     return fDecayDev;
 #else
     return fDecayHost;
 #endif
 #endif
   }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static void SetDecayTable(TPDecay *decayTable) {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     fDecay = decayTable;
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
     fDecayDev = decayTable;
 #else
     fDecayHost = decayTable;
@@ -185,7 +185,7 @@ private:
   TPFstate *fPFstate;   // [fNRpart] Final state table per particle
   TPFstate **fPFstateP; // [fNRpart] Final state table per particle
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static int fNLdElems;              //! number of loaded elements
   static TEFstate *fElements[NELEM]; //! databases of elements
   static TPDecay  *fDecay;           //! decay table
@@ -193,7 +193,7 @@ private:
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
   if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TEFstate::CheckAlign","fEGrid misaligned\n");isaligned=false;}
@@ -215,7 +215,7 @@ bool CheckAlign() {
   return isaligned;
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
   ClassDefNV(TEFstate, 4) // Element X-secs
 #endif

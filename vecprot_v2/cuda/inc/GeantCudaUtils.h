@@ -25,11 +25,6 @@
 // #include "driver_types.h" // Required for cudaError_t type
 #include "cuda_runtime.h" // Required for cudaGetErrorString
 
-// This should be part of a global (configure time generated) header.
-#ifndef VECGEOM_CUDA
-#define VECGEOM_CUDA
-#endif
-
 #define GEANT_CUDA_ERROR(err) (Geant::HandleCudaError(err, __FILE__, __LINE__))
 
 namespace Geant {

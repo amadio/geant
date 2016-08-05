@@ -12,7 +12,7 @@
 
 #ifndef GEANT_CMSApplication
 #define GEANT_CMSApplication
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "base/Map.h"
 #else
 #include <map>
@@ -54,7 +54,7 @@ enum EScoreType {
 };  
 
 private:
-#if defined(USE_VECGEOM_NAVIGATOR) && defined(GEANT_NVCC)
+#if defined(USE_VECGEOM_NAVIGATOR) && defined(VECCORE_CUDA)
   using Map_t = vecgeom::map<int,int>;
 #else
   using Map_t = std::map<int,int>;

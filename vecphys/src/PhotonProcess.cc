@@ -9,7 +9,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 PhotonProcess::PhotonProcess(Random_t *states, int tid) : EmProcess<PhotonProcess>(states, tid)
 {
   fNumberOfProcess = 3;
@@ -22,7 +22,7 @@ PhotonProcess::PhotonProcess(Random_t *states, int tid) : EmProcess<PhotonProces
   Initialization();
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 PhotonProcess::PhotonProcess(Random_t *states, int tid, CrossSectionData *data)
     : EmProcess<PhotonProcess>(states, tid, data)
 {
@@ -37,7 +37,7 @@ PhotonProcess::PhotonProcess(Random_t *states, int tid, CrossSectionData *data)
   fNumberOfMaterialBin = 3; //(vecgeom::Material::GetMaterials()).size();
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 PhotonProcess::~PhotonProcess()
 {
   delete fCompton;
@@ -45,7 +45,7 @@ PhotonProcess::~PhotonProcess()
   delete fPhotoElectron;
 }
 
-VECCORE_CUDA_HOST void PhotonProcess::Initialization()
+VECCORE_ATT_HOST void PhotonProcess::Initialization()
 {
 
   fCompton = new ComptonKleinNishina(0, -1);
@@ -70,7 +70,7 @@ VECCORE_CUDA_HOST void PhotonProcess::Initialization()
   BuildCrossSectionTable();
 }
 
-VECCORE_CUDA_HOST void PhotonProcess::BuildCrossSectionTable()
+VECCORE_ATT_HOST void PhotonProcess::BuildCrossSectionTable()
 {
   // Get the material DB
   std::vector<vecgeom::Material *> &mtable = vecgeom::Material::GetMaterials();

@@ -4,7 +4,7 @@
 #include "base/Global.h"
 #include "Geant/Config.h"
 
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "base/Map.h"
 #include "base/Vector.h"
 #include <string.h>
@@ -25,16 +25,16 @@ VECGEOM_DEVICE_FORWARD_DECLARE(class Particle;);
 
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 class Particle;
-extern GEANT_CUDA_DEVICE_CODE vecgeom::map<int, Particle> *fParticlesDev; // Particle list indexed by PDG code
+extern VECCORE_ATT_DEVICE vecgeom::map<int, Particle> *fParticlesDev; // Particle list indexed by PDG code
 extern vecgeom::map<int, Particle> *fParticlesHost;                           // Particle list indexed by PDG code
 #endif
 
 class Particle {
 public:
   class Decay;
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   using Map_t         = vecgeom::map<int, Particle>;
   using VectorDecay_t = vecgeom::Vector<Decay>;
   using VectorInt_t   = vecgeom::Vector<int>;
@@ -44,59 +44,59 @@ public:
   using VectorInt_t   = std::vector<int>;
 #endif
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   Particle();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   Particle(const char *name, int pdg, bool matter, const char *pclass, int pcode, double charge, double mass,
            double width, int isospin, int iso3, int strange, int flavor, int track, int code = -1);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   Particle(const Particle &other);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   Particle &operator=(const Particle &part);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static void CreateParticles();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   const char *Name() const { return fName; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PDG() const { return fPDG; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool Matter() const { return fMatter; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double Mass() const { return fMass; }
   const char *Class() const { return fClass; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Pcode() const { return fPcode; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double Charge() const { return fCharge; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double Width() const { return fWidth; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Isospin() const { return fIsospin; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Iso3() const { return fIso3; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Strange() const { return fStrange; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Flavor() const { return fFlavor; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Track() const { return fTrack; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Ndecay() const { return fNdecay; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Code() const { return fCode; }
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void SetCode(int code) { fCode = code; }
 
   const VectorDecay_t &DecayList() const { return fDecayList; }
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static void ReadFile(std::string infilename, bool outfile=false);
 #endif
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static const Particle &GetParticle(int pdg)
   {
     if (fParticles->find(pdg) != fParticles->end()) return (*fParticles)[pdg];
@@ -112,7 +112,7 @@ public:
     printf(" pdg %d does not exist\n", pdg);
     return p;
   }
-  GEANT_CUDA_DEVICE_CODE
+  VECCORE_ATT_DEVICE
   static const Particle &GetParticleDev(int pdg)
   {
     if (fParticlesDev->find(pdg) != fParticlesDev->end()) return (*fParticlesDev)[pdg];
@@ -122,25 +122,25 @@ public:
   }
 #endif
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   void NormDecay();
 
   friend std::ostream &operator<<(std::ostream &os, const Particle &part);
 
 #endif
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void AddDecay(const Decay &decay)
   {
     fDecayList.push_back(decay);
     fNdecay = fDecayList.size();
   }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static const Map_t &Particles()
   {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     return *fParticles;
 #else
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     return *fParticlesHost;
 #else
     return *fParticlesDev;
@@ -150,13 +150,13 @@ public:
 
   class Decay {
   public:
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     Decay() : fType(0), fBr(0) {}
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     Decay(const Decay &other) : fType(other.fType), fBr(other.fBr), fDaughters(other.fDaughters) {}
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     Decay(int type, double br, const VectorInt_t &daughters) : fType(type), fBr(br), fDaughters(daughters) {}
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Clear()
     {
       fType = 0;
@@ -164,28 +164,28 @@ public:
       fDaughters.clear();
     }
 
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     int Type() const { return fType; }
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     double Br() const { return fBr; }
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     const VectorInt_t &Daughters() const { return fDaughters; }
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     int NDaughters() const { return fDaughters.size(); }
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     int Daughter(int i) const { return fDaughters[i]; }
 
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void SetType(int type) { fType = type; }
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void SetBr(double br) { fBr = br; }
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void AddDaughter(int daughter) { fDaughters.push_back(daughter); }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     friend std::ostream &operator<<(std::ostream &os, const Decay &dec);
 #else
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     Decay operator=(const Decay &dec) { return dec; }
 #endif
   private:
@@ -195,7 +195,7 @@ public:
   };
 
 private:
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static void GetPart(const std::string &line, int &count, std::string &name, int &pdg, bool &matter, int &pcode,
                       std::string &pclass, int &charge, double &mass, double &width, int &isospin, int &iso3,
                       int &strange, int &flavor, int &track, int &ndecay, int &ipart, int &acode);
@@ -219,7 +219,7 @@ private:
   unsigned char fNdecay;    // Number of decay channels
   short fCode;              // Particle code for a given MC
   VectorDecay_t fDecayList; // Decay channels
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static Map_t *fParticles; // Particle list indexed by PDG code
 #endif
 };

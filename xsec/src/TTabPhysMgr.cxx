@@ -36,7 +36,7 @@
 #include "Geant/Math.h"
 using vecgeom::kPi;
 using vecgeom::kTwoPi;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #include "base/MessageLogger.h"
 #endif
 
@@ -45,7 +45,7 @@ TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
 //______________________________________________________________________________
 TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsfilename) {
   // Access to instance of TTabPhysMgr
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   if (fgInstance)
     return fgInstance;
   if (!(xsecfilename && finalsfilename)) {
@@ -60,7 +60,7 @@ TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsf
 //______________________________________________________________________________
 TTabPhysMgr::~TTabPhysMgr() {
   // Destructor
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   delete[] fMatXsec;
   delete[] fElemXsec;
   delete[] fElemFstate;
@@ -89,7 +89,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
       fGeom(0),
 #endif
       fHasNCaptureAtRest(0) {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   fgInstance = this;
   //Particle_t::CreateParticles();
 #ifdef USE_ROOT
@@ -287,7 +287,7 @@ void TTabPhysMgr::TransformLF(int /*indref*/, GeantTrack_v & /*tracks*/, int /*n
 
 // NOT ACTIVE NOW
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Compute MSC angle at the beginning of the step and apply it to the vector
   // of tracks.
@@ -295,7 +295,7 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, G
   // Output: fXdirV, fYdirV, fZdirV modified in the track container for ntracks
 
   TMXsec *mxs = 0;
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (mat)
 #ifdef USE_VECGEOM_NAVIGATOR
     mxs = (TMXsec *)mat->GetXsecPtr();
@@ -310,7 +310,7 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, G
   double msTheta;
   double msPhi;
 
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   double *rndArray = td->fDblArray;
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
@@ -362,13 +362,13 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, G
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TTabPhysMgr::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // Apply energy loss for the input material for ntracks in the vector of
   // tracks. Output: modified tracks.fEV array
 
   TMXsec *mxs = 0;
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (mat)
 #ifdef USE_VECGEOM_NAVIGATOR
     mxs = (TMXsec *)mat->GetXsecPtr();
@@ -411,7 +411,7 @@ void TTabPhysMgr::ProposeStep(Material_t *mat, int ntracks, GeantTrack_v &tracks
   // in tracks.fPstepV
 
   TMXsec *mxs = 0;
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (mat) {
 #ifdef USE_VECGEOM_NAVIGATOR
     mxs = (TMXsec *)mat->GetXsecPtr();
@@ -769,13 +769,13 @@ int TTabPhysMgr::SampleInt(int imat, int ntracks, GeantTrack_v &tracks, GeantTas
 // Will be called only if the particle has decay or/and nuclear capture at-rest
 //______________________________________________________________________________
 // will be called recursively if necessary
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks, int iintrack,
                                    int &nTotSecPart, GeantTaskData *td) {
   // current track should have already been killed before calling
   const double mecc = 0.00051099906; // e- mass c2 in [GeV]
   double rndArray[3];
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(3, rndArray);
 #elif USE_ROOT
@@ -1134,7 +1134,7 @@ void TTabPhysMgr::RotateNewTrack(double oldXdir, double oldYdir, double oldZdir,
 // (oldXdir, oldYdir, oldZdir) is the direction vector of parent track in lab.
 // frame; direction vector of the current track, measured from local Z is
 // already updated in GeantTrack track; here we rotate it to lab. frame
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TTabPhysMgr::RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack_v &tracks, int itrack) {
   const double one = 1.0;
   const double zero = 0.0;
@@ -1221,7 +1221,7 @@ void TTabPhysMgr::RotateTrack(GeantTrack &track, double theta, double phi) {
 // FOR THE itrack-th element of a GeantTrack_v
 // GeantTrack_v contains the original direction in lab frame; theta and
 // phi are the scattering angles measured form the particle local Z
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, int itrack, double theta, double phi) {
   const double one = 1.0;
   const double zero = 0.0;
@@ -1268,7 +1268,7 @@ void TTabPhysMgr::RotateTrack(GeantTrack_v &tracks, int itrack, double theta, do
 //______________________________________________________________________________
 
 const char *TTabPhysMgr::GetVersion() const {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static bool first = true;
   static std::mutex l;
   static char ver[512];
@@ -1283,7 +1283,7 @@ const char *TTabPhysMgr::GetVersion() const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TTabPhysMgr::HasRestProcess(int gvindex) {
   return fDecay->HasDecay(gvindex) || fHasNCaptureAtRest[gvindex] || (gvindex == TPartIndex::I()->GetSpecGVIndex(1));
 }

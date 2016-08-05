@@ -23,50 +23,50 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 class GUAliasSampler {
 public:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   GUAliasSampler(Random_t *states, int threadId, double incomingMin, double incomingMax,
                  int numEntriesIncoming, // 'energy' (or log) of projectile
                  int numEntriesSampled);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GUAliasSampler(Random_t *states, int threadId, double incomingMin, double incomingMax,
                  int numEntriesIncoming, // 'energy' (or log) of projectile
                  int numEntriesSampled, GUAliasTableManager *table);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   ~GUAliasSampler();
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void PrintTable();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildAliasTable(int z, const double *pdf);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GUAliasTableManager *GetAliasTableManager() { return fAliasTableManager; }
 
   // Backend Implementation:
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void SampleBin(typename Backend::Double_v kineticEnergy,
+  VECCORE_ATT_HOST_DEVICE void SampleBin(typename Backend::Double_v kineticEnergy,
                                           Index_v<typename Backend::Double_v> &index,
                                           Index_v<typename Backend::Double_v> &icol,
                                           typename Backend::Double_v &fraction);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void SampleLogBin(typename Backend::Double_v kineticEnergy,
+  VECCORE_ATT_HOST_DEVICE void SampleLogBin(typename Backend::Double_v kineticEnergy,
                                              Index_v<typename Backend::Double_v> &irow,
                                              Index_v<typename Backend::Double_v> &icol,
                                              typename Backend::Double_v &fraction);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v SampleX(typename Backend::Double_v rangeSampled,
+  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v SampleX(typename Backend::Double_v rangeSampled,
                                                               typename Backend::Double_v probNA,
                                                               Index_v<typename Backend::Double_v> aliasInd,
                                                               Index_v<typename Backend::Double_v> icol,
                                                               typename Backend::Double_v fraction);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v SampleXL(Index_v<typename Backend::Double_v> zElement,
+  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v SampleXL(Index_v<typename Backend::Double_v> zElement,
                                                                typename Backend::Double_v rangeSampled,
                                                                typename Backend::Double_v probNA,
                                                                Index_v<typename Backend::Double_v> aliasInd,
@@ -74,37 +74,37 @@ public:
                                                                Index_v<typename Backend::Double_v> icol);
 
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE void GatherAlias(Index_v<typename Backend::Double_v> index,
+  inline VECCORE_ATT_HOST_DEVICE void GatherAlias(Index_v<typename Backend::Double_v> index,
                                                    Index_v<typename Backend::Double_v> zElement,
                                                    typename Backend::Double_v &probNA,
                                                    Index_v<typename Backend::Double_v> &aliasInd) const;
 
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GetPDF(Index_v<typename Backend::Double_v> zElement,
+  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GetPDF(Index_v<typename Backend::Double_v> zElement,
                                                                     Index_v<typename Backend::Double_v> irow,
                                                                     Index_v<typename Backend::Double_v> icol) const;
 
   // For atomic independent models
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE void GatherAlias(Index_v<typename Backend::Double_v> index,
+  inline VECCORE_ATT_HOST_DEVICE void GatherAlias(Index_v<typename Backend::Double_v> index,
                                                    typename Backend::Double_v &probNA,
                                                    Index_v<typename Backend::Double_v> &aliasInd) const;
 
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GetPDF(Index_v<typename Backend::Double_v> irow,
+  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GetPDF(Index_v<typename Backend::Double_v> irow,
                                                                     Index_v<typename Backend::Double_v> icol) const;
 
   // accessors
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   double GetIncomingMin() const { return fIncomingMin; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   double GetIncomingMax() const { return fIncomingMax; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   int GetNumEntries() const { return fInNumEntries; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   int GetSamplesPerEntry() const { return fSampledNumEntries; }
 
 private:
@@ -127,7 +127,7 @@ private:
 // Backend Implementation
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleBin(
+VECCORE_ATT_HOST_DEVICE void GUAliasSampler::SampleBin(
     typename Backend::Double_v kineticEnergy, Index_v<typename Backend::Double_v> & /*index*/, // ~ sampled value
     Index_v<typename Backend::Double_v> &icol,                                                 // ~ input Energy
     typename Backend::Double_v &fraction                                                       //  in sampled variable
@@ -161,7 +161,7 @@ VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleBin(
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleLogBin(
+VECCORE_ATT_HOST_DEVICE void GUAliasSampler::SampleLogBin(
     typename Backend::Double_v kineticEnergy,
     Index_v<typename Backend::Double_v> &irow, // input energy
     Index_v<typename Backend::Double_v> &icol, // sampled value
@@ -197,7 +197,7 @@ VECCORE_CUDA_HOST_DEVICE void GUAliasSampler::SampleLogBin(
 //    Feature of this method:  flat distribution within bin
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleX(
+VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleX(
     typename Backend::Double_v rangeSampled, typename Backend::Double_v probNA,
     Index_v<typename Backend::Double_v> aliasInd, Index_v<typename Backend::Double_v> icol,
     typename Backend::Double_v fraction)
@@ -229,7 +229,7 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleX(
 //      for given zElement ...
 //    Feature of this method:  linear interpolation using 'PDF'
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleXL(
+VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleXL(
     Index_v<typename Backend::Double_v> /*zElement*/, typename Backend::Double_v rangeSampled,
     typename Backend::Double_v probNA, Index_v<typename Backend::Double_v> aliasInd,
     Index_v<typename Backend::Double_v> irow, Index_v<typename Backend::Double_v> icol)
@@ -271,7 +271,7 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleXL(
 }
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE
+inline VECCORE_ATT_HOST_DEVICE
 void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index,
                                  Index_v<typename Backend::Double_v> zElement,
                                  typename Backend::Double_v &probNA,
@@ -287,7 +287,7 @@ void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index,
 }
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE
+inline VECCORE_ATT_HOST_DEVICE
 typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> zElement,
                                                   Index_v<typename Backend::Double_v> irow,
                                                   Index_v<typename Backend::Double_v> icol) const
@@ -305,7 +305,7 @@ typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Doub
 // For atomic independent models
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE
+inline VECCORE_ATT_HOST_DEVICE
 void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, typename Backend::Double_v &probNA,
                                  Index_v<typename Backend::Double_v> &aliasInd) const
 {
@@ -320,7 +320,7 @@ void GUAliasSampler::GatherAlias(Index_v<typename Backend::Double_v> index, type
 }
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE
+inline VECCORE_ATT_HOST_DEVICE
 typename Backend::Double_v GUAliasSampler::GetPDF(Index_v<typename Backend::Double_v> irow,
                                                   Index_v<typename Backend::Double_v> icol) const
 {

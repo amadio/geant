@@ -3,7 +3,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 GUAliasTableManager::GUAliasTableManager(int nelements, int /*ngrid*/) : fNElement(0)
 {
   for (int i = 0; i < maximumZ; ++i)
@@ -12,7 +12,7 @@ GUAliasTableManager::GUAliasTableManager(int nelements, int /*ngrid*/) : fNEleme
   fAliasTables = new GUAliasTable *[nelements];
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 GUAliasTableManager::~GUAliasTableManager()
 {
   for (int i = 0; i < fNElement; ++i)
@@ -20,7 +20,7 @@ GUAliasTableManager::~GUAliasTableManager()
   delete[] fAliasTables;
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void GUAliasTableManager::SetTableIndex(int Z)
 {
   assert(Z > -1 && Z < maximumZ);
@@ -30,20 +30,20 @@ void GUAliasTableManager::SetTableIndex(int Z)
   }
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasTable *GUAliasTableManager::GetAliasTable(int Z) { return fAliasTables[GetTableIndex(Z)]; }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 int GUAliasTableManager::GetTableIndex(int Z)
 {
   assert(Z > -1 && Z < maximumZ);
   return fIndex[Z];
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 int GUAliasTableManager::GetNumberOfElements() { return fNElement; }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable *table)
 {
   assert(Z > -1 && Z < maximumZ);
@@ -52,10 +52,10 @@ void GUAliasTableManager::AddAliasTable(int Z, GUAliasTable *table)
   SetTableIndex(Z);
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 int GUAliasTableManager::SizeOfManager() { return sizeof(GUAliasTable *) * fNElement + (maximumZ + 1) * sizeof(int); }
 
-#ifdef VECCORE_NVCC
+#ifdef VECCORE_CUDA
 void GUAliasTableManager::Relocate(void *devPtr)
 {
   // device pointers in device memory

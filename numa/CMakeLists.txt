@@ -12,7 +12,7 @@ include_directories(inc)
 #----------------------------------------------------------------------------
 # Find if the system is NUMA aware
 #----------------------------------------------------------------------------
-set(NUMA_ALL_LIBRARIES "-lGeantNuma")
+set(NUMA_ALL_LIBRARIES GeantNuma)
 if (USE_NUMA)
   find_package(Numa)
   if (NUMA_FOUND)
@@ -23,7 +23,7 @@ if (USE_NUMA)
       add_definitions( "-DUSE_NUMA" )
       include_directories( AFTER SYSTEM ${NUMA_INCLUDE_DIR})
       set(NUMA_LIBRARIES -L${NUMA_LIBRARY_DIR} -lnuma ${HWLOC_LIBRARIES})
-      set(NUMA_ALL_LIBRARIES "-lGeantNuma ${NUMA_LIBRARIES}")    
+      set(NUMA_ALL_LIBRARIES GeantNuma ${NUMA_LIBRARIES})    
     else()
       message(STATUS "Hardware locality (hwloc) libraries not found. Disabling NUMA.")
       set(USE_NUMA OFF)
@@ -59,7 +59,7 @@ set(headers
 # Add traget library and dependencies
 #----------------------------------------------------------------------------
 add_library(GeantNuma SHARED ${sources})
-target_link_libraries(GeantNuma  ${NUMA_LIBRARIES})
+target_link_libraries(GeantNuma  ${NUMA_LIBRARIES} ${VECGEOM_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Headers need to be exported to include directory, explicit paths needed

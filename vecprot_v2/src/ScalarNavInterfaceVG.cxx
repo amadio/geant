@@ -1,7 +1,7 @@
 #include "ScalarNavInterfaceVG.h"
 
 #include "backend/Backend.h"
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "navigation/SimpleNavigator.h"
 #else
 #include "navigation/ABBoxNavigator.h"
@@ -12,7 +12,7 @@
 #include "base/Global.h"
 #include "management/GeoManager.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
@@ -29,7 +29,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace VECGEOM_NAMESPACE;
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
          const double *x, const double *y, const double *z,
          const double *dirx, const double *diry, const double *dirz, 
@@ -49,11 +49,11 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
 //         isonbdr - propagated point is on a boundary
 
   typedef Vector3D<Precision> Vector3D_t;
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
   ABBoxNavigator nav;
-#endif // GEANT_NVCC
+#endif // VECCORE_CUDA
 
   for (int itr = 0; itr < ntracks; ++itr) {
     // Check if current safety allows for the proposed step
@@ -76,7 +76,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
     
     //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
     //************
     // CROSS CHECK USING TGEO
@@ -117,15 +117,15 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
   typedef Vector3D<Precision> Vector3D_t;
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
   ABBoxNavigator nav;
-#endif // GEANT_NVCC
+#endif // VECCORE_CUDA
 
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
@@ -204,7 +204,7 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
   for (int itr = 0; itr < ntracks; ++itr) {
 
 // cross check with answer from ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
     TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
     TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
@@ -215,7 +215,7 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
     bool samepath = nav.HasSamePath(
       Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
     if (!samepath) tmpstate->CopyTo(end[itr]);
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
     nav->ResetState();

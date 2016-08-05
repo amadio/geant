@@ -1,7 +1,7 @@
 #include "TPDecay.h"
 #include "TFinState.h"
 #include "TPartIndex.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "TBuffer.h"
 #endif
@@ -72,7 +72,7 @@ void TPDecay::SetCTauPerMass(double *ctaupermass, int np) {
   for (int ip = 0; ip < np; ++ip)
     fCTauPerMass[ip] = ctaupermass[ip];
 }
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TPDecay::Streamer(TBuffer &R__b) {
@@ -96,7 +96,7 @@ void TPDecay::Streamer(TBuffer &R__b) {
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TPDecay::SizeOf() const {
    size_t size = sizeof(*this);
    size += fNPart * sizeof(double);
@@ -125,7 +125,7 @@ void TPDecay::Compact() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TPDecay::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
     Geant::Fatal("TPDecay::RebuildClass","the class is misaligned\n");
@@ -149,7 +149,7 @@ void TPDecay::RebuildClass() {
       ((TFinState *) start)->RebuildClass();
       fDecayP[i] = (TFinState *) start;
       if(!fDecayP[i]->CheckAlign()) 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
          exit(1);
 #else
          return; 

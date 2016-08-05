@@ -6,7 +6,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 // scalar implementation without Backend
 
 template <class Process>
-VECCORE_CUDA_HOST void EmProcess<Process>::BuildAlias()
+VECCORE_ATT_HOST void EmProcess<Process>::BuildAlias()
 {
   // build alias table for the physics process based on their relative cross sections
   // non-alias proability will be calculated on the fly

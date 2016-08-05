@@ -9,7 +9,7 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack::GeantTrack()
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
@@ -49,7 +49,7 @@ GeantTrack::GeantTrack(int ipdg)
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack::GeantTrack(int ipdg, int maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(ipdg), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
@@ -61,7 +61,7 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack::GeantTrack(void *addr, int maxdepth)
     : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
       fNsteps(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
@@ -75,7 +75,7 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack::GeantTrack(const GeantTrack &other)
     : fEvent(other.fEvent), fEvslot(other.fEvslot), fParticle(other.fParticle), fMother(other.fMother), fPDG(other.fPDG),
       fGVcode(other.fGVcode), fEindex(other.fEindex), fCharge(other.fCharge), fProcess(other.fProcess),
@@ -93,7 +93,7 @@ GeantTrack::GeantTrack(const GeantTrack &other)
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
   // Assignment
   if (&other != this) {
@@ -138,7 +138,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack::~GeantTrack() {
   // Destructor.
   if (fOwnPath) {
@@ -148,7 +148,7 @@ GeantTrack::~GeantTrack() {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack::Clear(const char *) {
   // Resets track content.
   fEvent = -1;
@@ -189,7 +189,7 @@ void GeantTrack::Clear(const char *) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 Volume_t const*GeantTrack::GetVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   return fPath->Top()->GetLogicalVolume();
@@ -199,7 +199,7 @@ Volume_t const*GeantTrack::GetVolume() const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 Volume_t const*GeantTrack::GetNextVolume() const {
 #ifdef USE_VECGEOM_NAVIGATOR
   // Next volume the track is entering
@@ -224,14 +224,14 @@ Material_t *GeantTrack::GetMaterial() const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack::SetPath(VolumePath_t const *const path) {
   // Set path.
   *fPath = *path;
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack::SetNextPath(VolumePath_t const *const path) {
   // Set next path.
   *fNextpath = *path;
@@ -249,7 +249,7 @@ void GeantTrack::Print(const char *msg) const {
       fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
       fTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
   
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   fPath->Print();
   fNextpath->Print();
 #endif
@@ -271,7 +271,7 @@ void GeantTrack::Print(const char *msg) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 size_t GeantTrack::SizeOfInstance(size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack
   // The VecGeom navigation state requires alignment, so we need to account for the
@@ -285,7 +285,7 @@ size_t GeantTrack::SizeOfInstance(size_t maxdepth) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack *GeantTrack::MakeInstanceAt(void *addr, int maxdepth) {
   return new (addr) GeantTrack(addr, maxdepth);
 }

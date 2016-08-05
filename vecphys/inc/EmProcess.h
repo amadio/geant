@@ -19,34 +19,34 @@ template <class Process>
 class EmProcess {
 
 public:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   EmProcess(Random_t *states = 0, int threadId = -1);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   EmProcess(Random_t *states, int threadId, CrossSectionData *data);
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   ~EmProcess() = default;
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void Initialization();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildCrossSectionTable();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildAlias();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   CrossSectionData *GetCrossSectionData() { return fCrossSectionData; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void SetCrossSectionData(CrossSectionData *table) { fCrossSectionData = table; }
 
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void GetStepLengthAndProcess(GUTrack &track, const int materialIndex);
+  VECCORE_ATT_HOST_DEVICE void GetStepLengthAndProcess(GUTrack &track, const int materialIndex);
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void GetStepLengthAndProcess(GUTrack_v &tracks, const int *materialIndex);
 
@@ -55,23 +55,23 @@ public:
 #endif
 
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void G3StepLengthAndProcess(GUTrack &track, const int materialIndex);
+  VECCORE_ATT_HOST_DEVICE void G3StepLengthAndProcess(GUTrack &track, const int materialIndex);
 
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void GetNextStep(Index_v<typename Backend::Double_v> materialIndex,
+  VECCORE_ATT_HOST_DEVICE void GetNextStep(Index_v<typename Backend::Double_v> materialIndex,
                                             Index_v<typename Backend::Double_v> ebin, typename Backend::Double_v efrac,
                                             typename Backend::Double_v &nint, typename Backend::Double_v &lambda,
                                             typename Backend::Double_v &step);
 
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> GetNextProcess(
+  VECCORE_ATT_HOST_DEVICE Index_v<typename Backend::Double_v> GetNextProcess(
       Index_v<typename Backend::Double_v> materialIndex, Index_v<typename Backend::Double_v> ebin);
 
-  VECCORE_CUDA_HOST_DEVICE int GetNumberOfProcess() { return fNumberOfProcess; }
+  VECCORE_ATT_HOST_DEVICE int GetNumberOfProcess() { return fNumberOfProcess; }
 
-  VECCORE_CUDA_HOST_DEVICE int GetNumberOfEnergyBin() { return fNumberOfEnergyBin; }
+  VECCORE_ATT_HOST_DEVICE int GetNumberOfEnergyBin() { return fNumberOfEnergyBin; }
 
-  VECCORE_CUDA_HOST_DEVICE int GetNumberOfMaterialBin() { return fNumberOfMaterialBin; }
+  VECCORE_ATT_HOST_DEVICE int GetNumberOfMaterialBin() { return fNumberOfMaterialBin; }
 
 protected:
   Random_t *fRandomState;
@@ -93,14 +93,14 @@ protected:
 // Implementation
 
 template <class Process>
-VECCORE_CUDA_HOST EmProcess<Process>::EmProcess(Random_t *states, int tid)
+VECCORE_ATT_HOST EmProcess<Process>::EmProcess(Random_t *states, int tid)
     : fRandomState(states), fThreadId(tid), fNumberOfProcess(0), fNumberOfEnergyBin(100), fNumberOfMaterialBin(0),
       fEnergyLowerBound(1. * 10e-3), fEnergyUpperBound(1. * 10e+6)
 {
 }
 
 template <class Process>
-VECCORE_CUDA_HOST_DEVICE EmProcess<Process>::EmProcess(Random_t *states, int tid, CrossSectionData *data)
+VECCORE_ATT_HOST_DEVICE EmProcess<Process>::EmProcess(Random_t *states, int tid, CrossSectionData *data)
     : fRandomState(states), fThreadId(tid), fNumberOfProcess(0), fNumberOfEnergyBin(100), fNumberOfMaterialBin(0),
       fEnergyLowerBound(1. * 10e-3), fEnergyUpperBound(1. * 10e+6)
 {
@@ -108,7 +108,7 @@ VECCORE_CUDA_HOST_DEVICE EmProcess<Process>::EmProcess(Random_t *states, int tid
 }
 
 template <class Process>
-VECCORE_CUDA_HOST void EmProcess<Process>::BuildCrossSectionTable()
+VECCORE_ATT_HOST void EmProcess<Process>::BuildCrossSectionTable()
 {
   static_cast<Process *>(this)->BuildCrossSectionTable();
   this->BuildAias();
@@ -116,7 +116,7 @@ VECCORE_CUDA_HOST void EmProcess<Process>::BuildCrossSectionTable()
 
 template <class Process>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmProcess<Process>::GetStepLengthAndProcess(GUTrack &track, const int materialIndex)
+VECCORE_ATT_HOST_DEVICE void EmProcess<Process>::GetStepLengthAndProcess(GUTrack &track, const int materialIndex)
 {
   using Double_v = typename Backend::Double_v;
   typedef Index_v<typename Backend::Double_v> Index_t;
@@ -144,7 +144,7 @@ VECCORE_CUDA_HOST_DEVICE void EmProcess<Process>::GetStepLengthAndProcess(GUTrac
   track.proc = GetNextProcess<Backend>(materialIndex, ebin);
 }
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <class Process>
 template <typename Backend>
 void EmProcess<Process>::GetStepLengthAndProcess(GUTrack_v &tracks, const int *materialIndex)
@@ -278,7 +278,7 @@ void EmProcess<Process>::GVStepLengthAndProcess(GUTrack_v &tracks, const int *ma
 
 template <class Process>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmProcess<Process>::GetNextStep(Index_v<typename Backend::Double_v> matId,
+VECCORE_ATT_HOST_DEVICE void EmProcess<Process>::GetNextStep(Index_v<typename Backend::Double_v> matId,
                                                               Index_v<typename Backend::Double_v> ebin,
                                                               typename Backend::Double_v efrac,
                                                               typename Backend::Double_v &nint,
@@ -297,7 +297,7 @@ VECCORE_CUDA_HOST_DEVICE void EmProcess<Process>::GetNextStep(Index_v<typename B
 
 template <class Process>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>::GetNextProcess(
+VECCORE_ATT_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>::GetNextProcess(
     Index_v<typename Backend::Double_v> matId, Index_v<typename Backend::Double_v> ebin)
 {
   // select a physics process
@@ -330,7 +330,7 @@ VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>:
 
 template <class Process>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmProcess<Process>::G3StepLengthAndProcess(GUTrack &track, const int materialIndex)
+VECCORE_ATT_HOST_DEVICE void EmProcess<Process>::G3StepLengthAndProcess(GUTrack &track, const int materialIndex)
 {
   using Double_v = typename Backend::Double_v;
   typedef Index_v<typename Backend::Double_v> Index_t;

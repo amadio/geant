@@ -54,9 +54,9 @@ public:
   void TransformLF(int indref, GeantTrack_v &tracks, int nproducts, int indprod,
                    GeantTrack_v &output); // not. imp. but done
   // API used by particle transport
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   void ProposeStep(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   int SampleDecay(int ntracks, GeantTrack_v &tracksin, GeantTrack_v &tracksout); // not. imp.
@@ -74,20 +74,20 @@ public:
   // # return: number of inserted secondary tracks
   int SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks, int iintrack,
                         int &nTotSecPart, GeantTaskData *td);
   void SampleDecayInFlight(int partindex, TMXsec *mxs, double energyLimit, GeantTrack_v &tracks, int iintrack,
                            int &nTotSecPart, GeantTaskData *td);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool HasRestProcess(int gvindex);
 
   void RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack &track);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void RotateNewTrack(double oldXdir, double oldYdir, double oldZdir, GeantTrack_v &tracks, int itrack);
   void RotateTrack(GeantTrack &track, double theta, double phi);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void RotateTrack(GeantTrack_v &tracks, int itrack, double theta, double phi);
 
   // get current version number

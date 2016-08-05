@@ -4,7 +4,7 @@
 #include "base/VecPhys.h"
 #include <VecCore/VecCore>
 
-#if !defined(VECCORE_NVCC)
+#if !defined(VECCORE_CUDA)
 #include <random>
 #include <type_traits>
 #else
@@ -15,9 +15,9 @@
 namespace vecCore {
 
 template <typename T>
-VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(Random_t *states, int threadId)
+VECCORE_FORCE_INLINE VECCORE_ATT_HOST_DEVICE T UniformRandom(Random_t *states, int threadId)
 {
-#ifndef VECCORE_NVCC_DEVICE
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   (void)states;
   (void)threadId;
   return ((double)rand()) / ((double)(RAND_MAX));
@@ -29,7 +29,7 @@ VECCORE_FORCE_INLINE VECCORE_CUDA_HOST_DEVICE T UniformRandom(Random_t *states, 
 #endif
 }
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 #include <Vc/Vc>
 
 template <>

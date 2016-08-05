@@ -21,7 +21,7 @@
 #include "TPartIndex.h"
 #include "Geant/Error.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
@@ -29,51 +29,51 @@
  
 class TPXsec {
 public:
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   TPXsec();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   TPXsec(int pdg, int nxsec);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   TPXsec(const TPXsec &other);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   virtual ~TPXsec();
   void Print(const char *opt = "") const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
   bool SetPart(int pdg, int nxsec);
   bool SetPartXS(const float xsec[], const int dict[]);
   bool SetPartIon(const float dedx[]);
   bool SetPartMS(const float angle[], const float ansig[], const float length[], const float lensig[]);
   int PDG() const { return fPDG; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   float XS(int rindex, double en, bool verbose=false) const;
   bool XS_v(int npart, int rindex, const double en[], double lam[]) const;
   float DEdx(double en) const;
   bool MS(double en, float &ang, float &asig, float &len, float &lsig) const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool Resample();
   bool Prune();
   int SampleReac(double en) const;
   int SampleReac(double en, double randn) const;
 
   void Dump() const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en, float result[]);
 
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void Compact();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void RebuildClass();
 #ifdef MAGIC_DEBUG
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int GetMagic() const {return fMagic;}
 #endif
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
   if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPXsec::CheckAlign","fPDG misaligned\n");isaligned=false;}
@@ -101,8 +101,8 @@ bool CheckAlign() {
   if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPXsec::CheckAlign","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
-#ifdef GEANT_NVCC
-GEANT_CUDA_BOTH_CODE
+#ifdef VECCORE_CUDA
+VECCORE_ATT_HOST_DEVICE
 char *strncpy(char *dest, const char *src, size_t n)
 {
     char *ret = dest;
@@ -146,7 +146,7 @@ private:
   const int fMagic = -777777;
 #endif
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
   ClassDefNV(TPXsec, 4) // Particle X-secs
 #endif

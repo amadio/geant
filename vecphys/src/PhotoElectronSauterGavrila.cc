@@ -9,20 +9,20 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t *states, int tid)
     : EmModelBase<PhotoElectronSauterGavrila>(states, tid)
 {
   Initialization();
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t *states, int tid, GUAliasSampler *sampler)
     : EmModelBase<PhotoElectronSauterGavrila>(states, tid, sampler)
 {
 }
 
-VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::Initialization()
+VECCORE_ATT_HOST void PhotoElectronSauterGavrila::Initialization()
 {
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fLowEnergyLimit, fHighEnergyLimit, 100, 200);
@@ -32,12 +32,12 @@ VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::Initialization()
   }
 }
 
-VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int /*Z*/)
+VECCORE_ATT_HOST void PhotoElectronSauterGavrila::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
+VECCORE_ATT_HOST void PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (KleinNishina pdf) in the
   // input energy randge [fAliasSampler->GetIncomingMin(),fAliasSampler->GetIncomingMax()]
@@ -100,7 +100,7 @@ VECCORE_CUDA_HOST void PhotoElectronSauterGavrila::BuildPdfTable(int Z, double *
 
 // function implementing the angular distribution of photoelectrons
 
-VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int /*Zelement*/, double energy,
+VECCORE_ATT_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSectionK(int /*Zelement*/, double energy,
                                                                                        double cosTheta) const
 {
   // based on Geant4 : G4SauterGavrilaAngularDistribution
@@ -124,7 +124,7 @@ VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSe
   return dsigmaK;
 }
 
-VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement, double energy,
+VECCORE_ATT_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSection(int Zelement, double energy,
                                                                                       double cosTheta) const
 {
   // based on Geant4 : G4SauterGavrilaAngularDistribution
@@ -189,7 +189,7 @@ VECCORE_CUDA_HOST_DEVICE double PhotoElectronSauterGavrila::CalculateDiffCrossSe
   return dsigma;
 }
 
-VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, double energy)
+VECCORE_ATT_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, double energy)
 {
   // G4PEEffectFluoModel::ComputeCrossSectionPerAtom
 
@@ -244,7 +244,7 @@ VECCORE_CUDA_HOST double PhotoElectronSauterGavrila::GetG4CrossSection(int Z, do
   return xSection;
 }
 
-VECCORE_CUDA_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRejection(int Z, // not used
+VECCORE_ATT_HOST_DEVICE void PhotoElectronSauterGavrila::SampleByCompositionRejection(int Z, // not used
                                                                                        double energyIn,
                                                                                        double &energyOut, double &sint)
 {

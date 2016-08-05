@@ -11,33 +11,33 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 class GUAliasTableManager
 {
 public:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   GUAliasTableManager(int nelements, int ngrid);
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   ~GUAliasTableManager();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void AddAliasTable(int Z, GUAliasTable* table);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GUAliasTable* GetAliasTable(int Z);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   int GetTableIndex(int nelement);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   int GetNumberOfElements();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   int SizeOfManager();
 
-#ifdef VECCORE_NVCC
+#ifdef VECCORE_CUDA
   void Relocate(void *devPtr);
 #endif
 
 private:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void SetTableIndex(int Z);
 
 private:

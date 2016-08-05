@@ -17,7 +17,7 @@ class GeantPropagator;
 
 /** @brief Propagator class */
 extern GeantPropagator *gPropagator; /** Propagator class */
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 __constant__ double gPropagator_fBmag;
 #endif
 

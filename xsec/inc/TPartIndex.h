@@ -18,7 +18,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 #include "Geant/Config.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
@@ -28,7 +28,7 @@
 #endif
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "base/Map.h"
 #include "base/Vector.h"
 #else
@@ -59,24 +59,24 @@ enum GVproc {
   kKiller,
   kTotal
 };
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 class TPartIndex;
-extern GEANT_CUDA_DEVICE_CODE TPartIndex *fgPartIndexDev;
+extern VECCORE_ATT_DEVICE TPartIndex *fgPartIndexDev;
 extern TPartIndex *fgPartIndexHost;
 #endif
 
 class TPartIndex {
 
 public:
-#if defined(USE_VECGEOM_NAVIGATOR) && defined(GEANT_NVCC)
+#if defined(USE_VECGEOM_NAVIGATOR) && defined(VECCORE_CUDA)
   using Map_t = vecgeom::map<int,int>;
 #else
   using Map_t = std::map<int,int>;
 #endif
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static TPartIndex *I() {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
      if (!fgPartIndex) {
 #ifdef USE_VECGEOM_NAVIGATOR
       Particle_t::CreateParticles();
@@ -85,7 +85,7 @@ public:
      }
     return fgPartIndex;
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
      if (!fgPartIndexDev) {
 #ifdef USE_VECGEOM_NAVIGATOR
       Particle_t::CreateParticles();
@@ -106,9 +106,9 @@ public:
 
 #endif 
 }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   TPartIndex();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   virtual ~TPartIndex();
 
   static const char *ClassName() { return "TPartIndex"; }
@@ -135,26 +135,26 @@ public:
   // Process index <- G4 process*1000+subprocess
   static int ProcCode(int procindex) /* const */ { return fgPCode[procindex]; }
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static short NProc() /* const */ { return fgNProc; }
 
   // Fill the particle table
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   void SetPartTable(const int *vpdg, int np);
 
   // PDG code <- GV particle number
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   int PDG(int i) const { return fPDG[i]; }
   // PDG code <- particle name
   int PDG(const char *pname) const;
 // Particle name <- GV particle number
 #ifdef USE_VECGEOM_NAVIGATOR
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   const char *PartName(int i) const { 
    return Particle_t::GetParticle(fPDG[i]).Name(); 
  }
 #else
-  GEANT_CUDA_DEVICE_CODE 
+  VECCORE_ATT_DEVICE 
   const char *PartName(int i) const { 
    return Particle_t::GetParticleDev(fPDG[i]).Name(); 
   }
@@ -177,25 +177,25 @@ public:
   // Number of particles with reactions
   void SetNPartReac(int np) { fNpReac = np; }
   void SetNPartCharge(int nc) { fNpCharge = nc; }
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   int NPartReac() const { return fNpReac; }
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   int NPartCharge() const { return fNpCharge; }
 #ifndef USE_VECGEOM_NAVIGATOR
   TDatabasePDG *DBPdg() const { return fDBPdg; }
 #endif
 
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   void SetEnergyGrid(double emin, double emax, int nbins);
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int NEbins() const { return fNEbins; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   double Emin() const { return fEGrid[0]; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   double Emax() const { return fEGrid[fNEbins - 1]; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   double EilDelta() const { return fEilDelta; }
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   const double *EGrid() const { return fEGrid; }
 
   static const char *EleSymb(int z) { return fgEleSymbol[z - 1]; }
@@ -203,7 +203,7 @@ GEANT_CUDA_BOTH_CODE
   static float WEle(int z) { return fgWElem[z - 1]; }
   static int NElem() { return fgNElem; }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   void Print(const char *option = "") const;
 #endif
   // approximated formula for nuclear mass computation; for handling fragments
@@ -212,9 +212,9 @@ GEANT_CUDA_BOTH_CODE
   // only for e-,e+,gamma and proton
   int GetSpecGVIndex(int indx) { return fSpecGVIndices[indx]; }
 
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   void RebuildClass(char *b);
   size_t MakeCompactBuffer(char* &b);
 
@@ -222,9 +222,9 @@ private:
   TPartIndex &operator=(const TPartIndex &); // Not implemented
   TPartIndex(const TPartIndex &other); // Not implemented
 
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   void CreateReferenceVector();
-  #ifndef GEANT_NVCC
+  #ifndef VECCORE_CUDA
   static TPartIndex *fgPartIndex;
   #endif
   const int fVersion = 1000002;
@@ -250,12 +250,12 @@ private:
   TDatabasePDG *fDBPdg; // Pointer to the augmented pdg database
 #endif
   Map_t fPDGToGVMap;    // PDG->GV code map
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   vecgeom::Vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 #else
   std::vector<const Particle_t *> fGVParticle; // direct access to particles via GV index
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #ifdef USE_VECGEOM_NAVIGATOR
   ClassDef(TPartIndex, 102) // Particle Index

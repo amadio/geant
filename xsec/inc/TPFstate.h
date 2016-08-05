@@ -22,7 +22,7 @@
 #include "TPartIndex.h"
 #include "Geant/Error.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
@@ -32,7 +32,7 @@ class TFinState;
 
 class TPFstate {
 public:
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   TPFstate();
   TPFstate(int pdg, int nfstat, int nreac, const int dict[]);
   TPFstate(const TPFstate &other);
@@ -44,7 +44,7 @@ public:
       return false;
     return true;
   }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   const char *Name() const { return TPartIndex::I()->PartName(fPDG); }
 
   bool SetPart(int pdg, int nfstat, int nreac, const int dict[]);
@@ -53,10 +53,10 @@ public:
                    const char surv[], const int pid[], const float mom[]);
   void Print(const char *opt = "") const;
   bool Prune() { return true; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx) const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                   const float *&mom, int &ebinindx, double randn1, double randn2) const;
   bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid,
@@ -64,24 +64,24 @@ public:
   bool SampleRestCaptFstate(int &npart, float &weight, float &kerma, float &enr, const int *&pid, const float *&mom,
                             double randn) const;
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                const float *&mom) const;
   int NEFstat() const { return fNEFstat; }
   void Dump() const {}
   bool Resample();
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
   void Compact();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void RebuildClass();
 #ifdef MAGIC_DEBUG
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int GetMagic() const { return fMagic;}
 #endif
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
   if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPFstate::CheckAlign","fNEbins misaligned\n");isaligned=false;}
@@ -134,7 +134,7 @@ private:
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
   ClassDefNV(TPFstate, 3) // Particle Final States
 #endif

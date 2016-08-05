@@ -12,7 +12,7 @@ using namespace vecCore;
 
 using ScalarBackend = backend::Scalar;
 
-#ifdef VECCORE_NVCC
+#ifdef VECCORE_CUDA
 using VectorBackend = backend::Scalar;
 #else
 using VectorBackend = backend::VcVector;
@@ -53,7 +53,7 @@ using UInt32_v = typename VectorBackend::UInt32_v;
 using UInt64_v = typename VectorBackend::UInt64_v;
 }
 
-#ifdef VECCORE_NVCC
+#ifdef VECCORE_CUDA
 #include <cuda.h>
 #include <curand_kernel.h>
 typedef curandState Random_t;
@@ -65,13 +65,13 @@ typedef int Random_t;
 
 #define VECPHYS_NAMESPACE ::vecphys
 
-#if defined(VECCORE_NVCC)
+#if defined(VECCORE_CUDA)
 #define VECPHYS_IMPL_NAMESPACE cuda
 #else
 #define VECPHYS_IMPL_NAMESPACE cxx
 #endif
 
-#ifdef VECCORE_NVCC_DEVICE
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
 #define VECPHYS_GLOBAL static __constant__ const
 #else
 #define VECPHYS_GLOBAL constexpr
@@ -79,7 +79,7 @@ typedef int Random_t;
 
 #define CLHEP vecphys // use CLHEP SystemOfUnits.h and PhysicalConstants.h
 
-#if defined(VECCORE_NVCC)
+#if defined(VECCORE_CUDA)
 #define VECPHYS_HOST_FORWARD_DECLARE(X)                                                                                \
   namespace cxx {                                                                                                      \
   X                                                                                                                    \

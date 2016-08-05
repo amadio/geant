@@ -11,10 +11,6 @@
 #include "TaskBroker.h"
 #endif
 
-// This should be part of a global (configure time generated) header.
-#ifndef VECGEOM_CUDA
-#define VECGEOM_CUDA
-#endif
 #include "backend/cuda/Interface.h"
 
 #ifndef __CINT__

@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 #ifndef GEANT_StdApplication
 #define GEANT_StdApplication
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "base/Map.h"
 #else
 #include <map>

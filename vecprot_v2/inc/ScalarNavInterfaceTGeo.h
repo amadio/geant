@@ -48,7 +48,7 @@ public:
    * @param safe Safety distances, used as input and output (input/output)
    * @param isonbdr Boundary flags set if next boundaries closer than proposed step (input/output)
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static
   void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
          const double *x, const double *y, const double *z,
@@ -58,7 +58,7 @@ public:
     
   /**
   * @brief Single track version of the function above */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static
   void NavFindNextBoundaryAndStep(GeantTrack &track);
 
@@ -76,7 +76,7 @@ public:
    * @param end End volume path
    * @param same Boolean return flag specifying if the location is same
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static
   void NavIsSameLocation(int ntracks, 
          const double *x, const double *y, const double *z, 
@@ -85,23 +85,17 @@ public:
   
   /**
   * @brief Single track version of the function above */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static
   void NavIsSameLocation(GeantTrack &track, bool &same);
   
 };
 } // GEANT_IMPL_NAMESPACE
 
-#ifdef GEANT_CUDA
-#ifdef GEANT_NVCC
-namespace cxx {
+#ifdef VECCORE_CUDA
+namespace VECCORE_IMPL_NAMESPACE {
 class ScalarNavInterfaceTGeo;
 }
-#else
-namespace cuda {
-class ScalarNavInterfaceTGeo;
-}
-#endif
 #endif
 } // Geant
 #endif

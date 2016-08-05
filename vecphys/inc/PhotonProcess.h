@@ -18,35 +18,35 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 class PhotonProcess : public EmProcess<PhotonProcess> {
 public:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   PhotonProcess(Random_t *states = 0, int threadId = -1);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   PhotonProcess(Random_t *states, int threadId, CrossSectionData *data);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   ~PhotonProcess();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void Initialization();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildCrossSectionTable();
 
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v GetLambda(
+  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GetLambda(
       Index_v<typename Backend::Double_v> materialIndex, Index_v<typename Backend::Double_v> ebin,
       typename Backend::Double_v fraction) const;
 
   template <class Backend>
-  inline VECCORE_CUDA_HOST_DEVICE void GetWeightAndAlias(Index_v<typename Backend::Double_v> materialIndex,
+  inline VECCORE_ATT_HOST_DEVICE void GetWeightAndAlias(Index_v<typename Backend::Double_v> materialIndex,
                                                          Index_v<typename Backend::Double_v> ebin,
                                                          Index_v<typename Backend::Double_v> iprocess,
                                                          typename Backend::Double_v &weight,
                                                          Index_v<typename Backend::Double_v> &alias) const;
 
   template <typename Backend>
-  inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> G3NextProcess(
+  inline VECCORE_ATT_HOST_DEVICE Index_v<typename Backend::Double_v> G3NextProcess(
       Index_v<typename Backend::Double_v> materialIndex, Index_v<typename Backend::Double_v> ebin);
 
   // the mother is friend in order to access private methods of this
@@ -59,7 +59,7 @@ private:
 };
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE
+inline VECCORE_ATT_HOST_DEVICE
 typename Backend::Double_v PhotonProcess::GetLambda(Index_v<typename Backend::Double_v> matId,
                                                     Index_v<typename Backend::Double_v> ebin,
                                                     typename Backend::Double_v fraction) const
@@ -77,7 +77,7 @@ typename Backend::Double_v PhotonProcess::GetLambda(Index_v<typename Backend::Do
 }
 
 template <class Backend>
-inline VECCORE_CUDA_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<typename Backend::Double_v> matId,
+inline VECCORE_ATT_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<typename Backend::Double_v> matId,
                                                                       Index_v<typename Backend::Double_v> ebin,
                                                                       Index_v<typename Backend::Double_v> iprocess,
                                                                       typename Backend::Double_v &weight,
@@ -103,7 +103,7 @@ inline VECCORE_CUDA_HOST_DEVICE void PhotonProcess::GetWeightAndAlias(Index_v<ty
 }
 
 template <typename Backend>
-inline VECCORE_CUDA_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProcess::G3NextProcess(
+inline VECCORE_ATT_HOST_DEVICE Index_v<typename Backend::Double_v> PhotonProcess::G3NextProcess(
     Index_v<typename Backend::Double_v> matId, Index_v<typename Backend::Double_v> ebin)
 {
   // select a physics process randomly based on the weight

@@ -57,7 +57,7 @@ using namespace VECGEOM_NAMESPACE;
 #endif
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TransportManager::CheckSameLocation(TrackVec_t &tracks,
                                          int ntracks,
                                          GeantTaskData *td) {
@@ -135,7 +135,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 }  
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TransportManager::CheckSameLocationSingle(GeantTrack &track,
                                          GeantTaskData *td) {
 // Query geometry if the location has changed for a track
@@ -177,7 +177,7 @@ int TransportManager::CheckSameLocationSingle(GeantTrack &track,
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
                                               int ntracks,
                                               GeantTaskData *td) {
@@ -247,7 +247,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TransportManager::ComputeTransportLengthSingle(GeantTrack &track, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
@@ -275,7 +275,7 @@ void TransportManager::ComputeTransportLengthSingle(GeantTrack &track, GeantTask
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TransportManager::PropagateInVolume(TrackVec_t &tracks,
                                       int ntracks,
                                       const double *crtstep,
@@ -297,7 +297,7 @@ void TransportManager::PropagateInVolume(TrackVec_t &tracks,
 
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep, GeantTaskData * td) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
@@ -312,7 +312,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
    // const Double_t *newdir = 0;
 
    bool useRungeKutta;
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
    const double bmag = gPropagator_fBmag;
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
@@ -325,7 +325,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
    // if( icount++ < 2 )  std::cout << " PropagateInVolumeSingle: useRungeKutta= " << useRungeKutta << std::endl;
 
 // #ifdef RUNGE_KUTTA
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
    GUFieldPropagator *fieldPropagator = nullptr;
    if( useRungeKutta ){
       // Initialize for the current thread -- move to GeantPropagator::Initialize()
@@ -369,7 +369,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
   ThreeVector DirectionNew(0.,0.,0.);
 
   if( useRungeKutta ) {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
      fieldPropagator->DoStep(Position,    Direction,    track.fCharge, track.fP, crtstep,
                              PositionNew, DirectionNew);
 #endif
@@ -568,14 +568,14 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
   // Propagate the track with its selected steps, starting from a given stage.
 
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
   const double bmag = gPropagator->fBmag;
@@ -688,7 +688,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateTracksScalar(TrackVec_t &tracks,
                                          GeantTaskData *td,
                                          int stage) {
@@ -716,7 +716,7 @@ int TransportManager::PostponeTracks(TrackVec_t &input, TrackVec_t &output) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TransportManager::BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp, int nsteps, const char *msg, int itr) {
   // Return true if container has a track with a given number doing a given step from a given event
   // Debugging purpose
@@ -732,7 +732,7 @@ bool TransportManager::BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp
     if ((track.fParticle == trk) && (track.fEvent == evt) &&
         ((track.fNsteps >= stp) && (track.fNsteps < stp + nsteps))) {
       has_it = true;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
       track.Print(msg);
 #else
       (void)msg;

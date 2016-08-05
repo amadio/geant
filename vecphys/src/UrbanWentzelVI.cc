@@ -9,7 +9,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 UrbanWentzelVI::UrbanWentzelVI(Random_t *states, int tid) : EmModelBase<UrbanWentzelVI>(states, tid)
 {
   SetLowEnergyLimit(10. * keV);
@@ -17,7 +17,7 @@ UrbanWentzelVI::UrbanWentzelVI(Random_t *states, int tid) : EmModelBase<UrbanWen
   Initialization();
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 UrbanWentzelVI::UrbanWentzelVI(Random_t *states, int tid, GUAliasSampler *sampler)
     : EmModelBase<UrbanWentzelVI>(states, tid, sampler)
 {
@@ -25,15 +25,15 @@ UrbanWentzelVI::UrbanWentzelVI(Random_t *states, int tid, GUAliasSampler *sample
   SetHighEnergyLimit(100. * MeV);
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 UrbanWentzelVI::~UrbanWentzelVI() { delete fAliasSampler; }
 
-VECCORE_CUDA_HOST void UrbanWentzelVI::BuildCrossSectionTablePerAtom(int /*Z*/)
+VECCORE_ATT_HOST void UrbanWentzelVI::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST double UrbanWentzelVI::CrossSectionPerAtom(int AtomicNumber, double KineticEnergy)
+VECCORE_ATT_HOST double UrbanWentzelVI::CrossSectionPerAtom(int AtomicNumber, double KineticEnergy)
 {
   // G4UrbanMscModel::ComputeCrossSectionPerAtom (Geant4 version 10.2.p1) modified for GeantV
   // (e- MSC for vecphys)
@@ -186,7 +186,7 @@ VECCORE_CUDA_HOST double UrbanWentzelVI::CrossSectionPerAtom(int AtomicNumber, d
   return sigma;
 }
 
-VECCORE_CUDA_HOST void UrbanWentzelVI::Initialization()
+VECCORE_ATT_HOST void UrbanWentzelVI::Initialization()
 {
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fLowEnergyLimit, fHighEnergyLimit, 100, 200);
@@ -194,7 +194,7 @@ VECCORE_CUDA_HOST void UrbanWentzelVI::Initialization()
   }
 }
 
-VECCORE_CUDA_HOST void UrbanWentzelVI::BuildPdfTable(int Z, double *p)
+VECCORE_ATT_HOST void UrbanWentzelVI::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function in the input energy randge [fMinX,fMaxX]
   // with an equallogarithmic bin size
@@ -241,14 +241,14 @@ VECCORE_CUDA_HOST void UrbanWentzelVI::BuildPdfTable(int Z, double *p)
 
 // function implementing the cross section for KleinNishina
 
-VECCORE_CUDA_HOST_DEVICE double UrbanWentzelVI::CalculateDiffCrossSection(int /*Zelement*/, // not used
+VECCORE_ATT_HOST_DEVICE double UrbanWentzelVI::CalculateDiffCrossSection(int /*Zelement*/, // not used
                                                                           double energy0, double energy1) const
 {
   double dsigma = energy1 / energy0;
   return dsigma;
 }
 
-VECCORE_CUDA_HOST double UrbanWentzelVI::GetG4CrossSection(int AtomicNumber, double KineticEnergy)
+VECCORE_ATT_HOST double UrbanWentzelVI::GetG4CrossSection(int AtomicNumber, double KineticEnergy)
 {
   // MSC cross section for the discrete process
 
@@ -258,7 +258,7 @@ VECCORE_CUDA_HOST double UrbanWentzelVI::GetG4CrossSection(int AtomicNumber, dou
   return 0.0;
 }
 
-VECCORE_CUDA_HOST_DEVICE void UrbanWentzelVI::SampleByCompositionRejection(int /*Z*/, // not used
+VECCORE_ATT_HOST_DEVICE void UrbanWentzelVI::SampleByCompositionRejection(int /*Z*/, // not used
                                                                            double energyIn, double &energyOut,
                                                                            double &sinTheta)
 {

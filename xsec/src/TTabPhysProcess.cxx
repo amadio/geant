@@ -40,7 +40,7 @@ void TTabPhysProcess::Initialize() {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+VECCORE_ATT_DEVICE
 void TTabPhysProcess::ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/,
                                GeantTaskData * /*td*/) {
   // Apply multiple scattering
@@ -48,7 +48,7 @@ void TTabPhysProcess::ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+VECCORE_ATT_DEVICE
 void TTabPhysProcess::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td) {
   // Fill energy loss for the tracks according their fStepV
 

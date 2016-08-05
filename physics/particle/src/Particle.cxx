@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 using std::cout;
 #endif
 using std::endl;
@@ -19,11 +19,11 @@ static const double kPlankBar = 6.5821192815e-25; // GeV s
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifdef GEANT_NVCC
-GEANT_CUDA_DEVICE_CODE vecgeom::map<int, Particle> *fParticlesDev = nullptr;
+#ifdef VECCORE_CUDA
+VECCORE_ATT_DEVICE vecgeom::map<int, Particle> *fParticlesDev = nullptr;
 vecgeom::map<int, Particle> *fParticlesHost                       = nullptr;
 
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 char *strncpy(char *dest, const char *src, size_t n)
 {
   char *ret = dest;
@@ -39,7 +39,7 @@ char *strncpy(char *dest, const char *src, size_t n)
 std::map<int, Particle> *Particle::fParticles=0;
 #endif
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 std::ostream &operator<<(std::ostream &os, const Particle &part)
 {
   os << part.fName << "(" << part.fPDG << ") Class:" << part.fClass << " Q:" << part.fCharge << " m:" << part.fMass
@@ -50,7 +50,7 @@ std::ostream &operator<<(std::ostream &os, const Particle &part)
 #endif
 
 //________________________________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 Particle::Particle()
     : fPDG(0), fMatter(true), fPcode(0), fCharge(0), fMass(-1), fWidth(0), fIsospin(0), fIso3(0), fStrange(0),
       fFlavor(0), fTrack(0), fNdecay(0), fCode(-1)
@@ -60,7 +60,7 @@ Particle::Particle()
 }
 
 //________________________________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, int pcode, double charge, double mass,
                    double width, int isospin, int iso3, int strange, int flavor, int track, int code)
     : fPDG(pdg), fMatter(matter), fPcode(pcode), fCharge(charge), fMass(mass), fWidth(width), fIsospin(isospin),
@@ -71,7 +71,7 @@ Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, i
   strncpy(fClass, pclass, 255);
   fClass[255] = '\0';
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   if (!fParticles) fParticles = new Map_t;
   if (fParticles->count(fPDG) != 0) {
     printf("Particle %d already there\n", fPDG);
@@ -84,7 +84,7 @@ Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, i
     fLife             = 0;
   (*fParticles)[fPDG] = *this;
 #else
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (!fParticlesHost) fParticlesHost = new Map_t;
   if (fParticlesHost->count(fPDG) != 0) {
     printf("Particle %d already there\n", fPDG);
@@ -113,7 +113,7 @@ Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, i
 #endif
 }
 
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 Particle::Particle(const Particle &other)
     : fPDG(other.fPDG), fMatter(other.fMatter), fPcode(other.fPcode), fCharge(other.fCharge), fMass(other.fMass),
       fWidth(other.fWidth), fIsospin(other.fIsospin), fStrange(other.fStrange), fFlavor(other.fFlavor),
@@ -125,7 +125,7 @@ Particle::Particle(const Particle &other)
   strncpy(fClass, other.fClass, 255);
   fClass[255] = '\0';
 }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 Particle &Particle::operator=(const Particle &part)
 {
   if (&part != this) {
@@ -154,7 +154,7 @@ Particle &Particle::operator=(const Particle &part)
   return *this;
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 
 // Returns the number of lines written.
 static unsigned WriteOneParticle(std::stringstream &outline, const Particle &part, unsigned int nfuncs)
@@ -162,7 +162,7 @@ static unsigned WriteOneParticle(std::stringstream &outline, const Particle &par
   unsigned int nlines = 0;
   std::string name(part.Name());
   if (nfuncs) {
-    outline << "GEANT_CUDA_BOTH_CODE" << endl << "static void InternalCreateParticle" << setfill('0')
+    outline << "VECCORE_ATT_HOST_DEVICE" << endl << "static void InternalCreateParticle" << setfill('0')
             << setw(4) << nfuncs-1 << "() {" << endl
             << setfill(' ') << setw(0);
     if (part.Ndecay() > 0) {
@@ -205,7 +205,7 @@ static void SwitchFile(std::stringstream &outline, unsigned int nfiles, unsigned
 {
   if (nfunc) {
     outline << "} // anonymous namespace\n\n";
-    outline << "GEANT_CUDA_BOTH_CODE" << endl << "void CreateParticle" << setfill('0') << setw(4) << nfiles-1 << "() {" << endl
+    outline << "VECCORE_ATT_HOST_DEVICE" << endl << "void CreateParticle" << setfill('0') << setw(4) << nfiles-1 << "() {" << endl
             << setfill(' ') << setw(0);
     for (unsigned int i = 0; i < nfunc; ++i)
       outline << "  InternalCreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
@@ -237,14 +237,14 @@ static void StartFile(std::stringstream &outline, unsigned int nfiles, bool oneF
   outline << "#pragma clang optimize off" << endl;
   outline << "#endif" << endl;
   outline << "#include \"Particle.h\"" << endl;
-  outline << "#ifdef GEANT_NVCC" << endl << "#include \"base/Vector.h\"" << endl
+  outline << "#ifdef VECCORE_CUDA" << endl << "#include \"base/Vector.h\"" << endl
           << "template <typename T>" << endl << "using vector = vecgeom::Vector<T>;" << endl
           << "#else" << endl << "using std::vector;" << endl << "#endif" << endl << endl;
   outline << "namespace geant {" << endl;
   outline << "inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
   outline << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
   if (!oneFuncPer) {
-    outline << "GEANT_CUDA_BOTH_CODE" << endl << "void CreateParticle" << setfill('0') << setw(4) << nfiles << "() {" << endl
+    outline << "VECCORE_ATT_HOST_DEVICE" << endl << "void CreateParticle" << setfill('0') << setw(4) << nfiles << "() {" << endl
             << setfill(' ') << setw(0);
     outline << "   vector<int> daughters;\n";
     outline << "   Particle *part = nullptr;\n";
@@ -424,17 +424,17 @@ void Particle::ReadFile(std::string infilename, bool output)
     outfile << "namespace geant {" << endl;
     outfile << "inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
     for (unsigned int i = 0; i < nfiles; ++i) {
-      outfile << "GEANT_CUDA_BOTH_CODE\n";
+      outfile << "VECCORE_ATT_HOST_DEVICE\n";
       outfile << "void CreateParticle" << setfill('0') << setw(4) << i << "();" << endl;
     }
 
-    outfile << "\n#ifdef GEANT_NVCC\n";
-    outfile << "GEANT_CUDA_DEVICE_CODE bool fgCreateParticlesInitDoneDev = false;\n";
+    outfile << "\n#ifdef VECCORE_CUDA\n";
+    outfile << "VECCORE_ATT_DEVICE bool fgCreateParticlesInitDoneDev = false;\n";
     outfile << "#endif\n";
 
     outfile << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
-    outfile << "GEANT_CUDA_BOTH_CODE" << endl << "void Particle::CreateParticles() {" << endl;
-    outfile << "#ifndef GEANT_CUDA_DEVICE_BUILD\n";
+    outfile << "VECCORE_ATT_HOST_DEVICE" << endl << "void Particle::CreateParticles() {" << endl;
+    outfile << "#ifndef VECCORE_CUDA_DEVICE_COMPILATION\n";
     outfile << "  static bool fgCreateParticlesInitDone = false;\n";
     outfile << "#else\n";
     outfile << "  bool &fgCreateParticlesInitDone(fgCreateParticlesInitDoneDev);\n";

@@ -12,7 +12,7 @@
 #include "MaterialHandler.h"
 #include "SamplingMethod.h"
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 #include <bitset>
 #include <vector>
 #endif
@@ -26,30 +26,30 @@ template <class EmModel>
 class EmModelBase {
 
 public:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   EmModelBase(Random_t *states, int tid);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   EmModelBase(Random_t *states, int tid, GUAliasSampler *sampler);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   ~EmModelBase();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void Initialization();
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildAliasTable(bool atomicDependentModel = false);
 
   // scalar
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void AtomicCrossSection(GUTrack &projectile, const int targetElement, double &sigma);
+  VECCORE_ATT_HOST_DEVICE void AtomicCrossSection(GUTrack &projectile, const int targetElement, double &sigma);
 
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void Interact(GUTrack &projectile, const int targetElement, GUTrack &secondary);
+  VECCORE_ATT_HOST_DEVICE void Interact(GUTrack &projectile, const int targetElement, GUTrack &secondary);
 
 // vector
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void AtomicCrossSection(GUTrack_v &inProjectile, const int *targetElements, double *sigma);
 
@@ -63,52 +63,52 @@ public:
 #endif
 
   // validation
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   double G4CrossSectionPerAtom(int Z, double energy);
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   double G4CrossSectionPerVolume(const vecgeom::Material *material, double energy);
 
   template <typename Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractG4(GUTrack &inProjectile, const int targetElement, GUTrack &outSecondary);
+  VECCORE_ATT_HOST_DEVICE void InteractG4(GUTrack &inProjectile, const int targetElement, GUTrack &outSecondary);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GUAliasSampler *GetSampler() { return fAliasSampler; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void SetSampler(GUAliasSampler *sampler) { fAliasSampler = sampler; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void SetSamplingMethod(SamplingMethod type) { fSampleType = type; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   SamplingMethod GetSamplingMethod() { return fSampleType; }
 
 protected:
   // Auxiliary methods
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void SetLowEnergyLimit(double lowLimit) { fLowEnergyLimit = lowLimit; }
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
 
-  VECCORE_CUDA_HOST_DEVICE double ComputeCoulombFactor(double fZeff);
+  VECCORE_ATT_HOST_DEVICE double ComputeCoulombFactor(double fZeff);
 
 protected:
   // Implementation methods
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void RotateAngle(typename Backend::Double_v sinTheta, typename Backend::Double_v xhat,
+  VECCORE_ATT_HOST_DEVICE void RotateAngle(typename Backend::Double_v sinTheta, typename Backend::Double_v xhat,
                                             typename Backend::Double_v yhat, typename Backend::Double_v zhat,
                                             typename Backend::Double_v &xr, typename Backend::Double_v &yr,
                                             typename Backend::Double_v &zr);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void ConvertXtoFinalState(double energyIn, double energyOut, double sinTheta,
+  VECCORE_ATT_HOST_DEVICE void ConvertXtoFinalState(double energyIn, double energyOut, double sinTheta,
                                                      GUTrack &primary, GUTrack &secondary);
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void ConvertXtoFinalState(typename Backend::Double_v energyIn,
+  VECCORE_ATT_HOST_DEVICE void ConvertXtoFinalState(typename Backend::Double_v energyIn,
                                                      typename Backend::Double_v energyOut,
                                                      typename Backend::Double_v sinTheta, int index, GUTrack_v &primary,
                                                      GUTrack_v &secondary);
@@ -116,7 +116,7 @@ protected:
   // this inner template cannot be specialized unless template <class EmModel>
   // is also explicitly specialized
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void ConvertXtoFinalState_Scalar(typename Backend::Double_v energyIn,
+  VECCORE_ATT_HOST_DEVICE void ConvertXtoFinalState_Scalar(typename Backend::Double_v energyIn,
                                                             typename Backend::Double_v energyOut,
                                                             typename Backend::Double_v sinTheta, int index,
                                                             GUTrack_v &primary, GUTrack_v &secondary);
@@ -140,14 +140,14 @@ protected:
 
 // Implementation
 template <class EmModel>
-VECCORE_CUDA_HOST EmModelBase<EmModel>::EmModelBase(Random_t *states, int tid)
+VECCORE_ATT_HOST EmModelBase<EmModel>::EmModelBase(Random_t *states, int tid)
     : fRandomState(states), fThreadId(tid), fAtomicDependentModel(false), fLowEnergyLimit(0.1 * keV),
       fHighEnergyLimit(1.0 * TeV), fSampleType(kAlias), fAliasSampler(0)
 {
 }
 
 template <class EmModel>
-VECCORE_CUDA_HOST_DEVICE EmModelBase<EmModel>::EmModelBase(Random_t *states, int tid, GUAliasSampler *sampler)
+VECCORE_ATT_HOST_DEVICE EmModelBase<EmModel>::EmModelBase(Random_t *states, int tid, GUAliasSampler *sampler)
     : fRandomState(states), fThreadId(tid), fAtomicDependentModel(false), fLowEnergyLimit(0.1 * keV),
       fHighEnergyLimit(1.0 * TeV), fSampleType(kAlias)
 {
@@ -155,13 +155,13 @@ VECCORE_CUDA_HOST_DEVICE EmModelBase<EmModel>::EmModelBase(Random_t *states, int
 }
 
 template <class EmModel>
-VECCORE_CUDA_HOST_DEVICE EmModelBase<EmModel>::~EmModelBase()
+VECCORE_ATT_HOST_DEVICE EmModelBase<EmModel>::~EmModelBase()
 {
   //  if(fAliasSampler) delete fAliasSampler;
 }
 
 template <class EmModel>
-VECCORE_CUDA_HOST void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDependentModel*/)
+VECCORE_ATT_HOST void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDependentModel*/)
 {
   // size of the array for the alias table data
   size_t sizeOfTable = (fAliasSampler->GetNumEntries() + 1) * fAliasSampler->GetSamplesPerEntry();
@@ -187,7 +187,7 @@ VECCORE_CUDA_HOST void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDepend
 
 template <class EmModel>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::AtomicCrossSection(GUTrack &inProjectile, const int targetElement,
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::AtomicCrossSection(GUTrack &inProjectile, const int targetElement,
                                                                        double &sigma)
 {
   sigma = 0.;
@@ -199,7 +199,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::AtomicCrossSection(GUTrack &
 
 template <class EmModel>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::Interact(GUTrack &inProjectile, const int targetElement,
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::Interact(GUTrack &inProjectile, const int targetElement,
                                                              GUTrack &outSecondary)
 {
   double energyIn = inProjectile.E;
@@ -233,7 +233,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::Interact(GUTrack &inProjecti
   ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, inProjectile, outSecondary);
 }
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <class EmModel>
 template <typename Backend>
 void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v &inProjectile, const int *targetElements, double *sigma)
@@ -479,7 +479,7 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
 
 template <class EmModel>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::InteractG4(GUTrack &inProjectile, const int targetElement,
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::InteractG4(GUTrack &inProjectile, const int targetElement,
                                                                GUTrack &outSecondary)
 {
 
@@ -495,7 +495,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::InteractG4(GUTrack &inProjec
 
 template <class EmModel>
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::RotateAngle(
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::RotateAngle(
     typename Backend::Double_v sinTheta, typename Backend::Double_v xhat, typename Backend::Double_v yhat,
     typename Backend::Double_v zhat, typename Backend::Double_v &xr, typename Backend::Double_v &yr,
     typename Backend::Double_v &zr)
@@ -528,7 +528,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::RotateAngle(
 
 template <class EmModel>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn, double energyOut,
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(double energyIn, double energyOut,
                                                                          double sinTheta, GUTrack &inProjectile,
                                                                          GUTrack &outSecondary)
 {
@@ -559,10 +559,10 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(double 
   // fill other information
 }
 
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <class EmModel>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn,
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn,
                                                                          typename Backend::Double_v energyOut,
                                                                          typename Backend::Double_v sinTheta, int ibase,
                                                                          GUTrack_v &primary,
@@ -613,7 +613,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typenam
 
 template <class EmModel>
 template <typename Backend>
-VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_v energyIn,
+VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(typename Backend::Double_v energyIn,
                                                                                 typename Backend::Double_v energyOut,
                                                                                 typename Backend::Double_v sinTheta,
                                                                                 int ibase, GUTrack_v &primary,
@@ -652,7 +652,7 @@ VECCORE_CUDA_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(
 #endif
 
 template <class EmModel>
-VECCORE_CUDA_HOST_DEVICE double EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff)
+VECCORE_ATT_HOST_DEVICE double EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff)
 {
   // Compute Coulomb correction factor (Phys Rev. D50 3-1 (1994) page 1254)
 
@@ -668,7 +668,7 @@ VECCORE_CUDA_HOST_DEVICE double EmModelBase<EmModel>::ComputeCoulombFactor(doubl
 }
 
 template <class EmModel>
-VECCORE_CUDA_HOST double EmModelBase<EmModel>::G4CrossSectionPerAtom(int Z, double energy)
+VECCORE_ATT_HOST double EmModelBase<EmModel>::G4CrossSectionPerAtom(int Z, double energy)
 {
   double sigma = 0.;
   if (energy > fLowEnergyLimit) {
@@ -678,7 +678,7 @@ VECCORE_CUDA_HOST double EmModelBase<EmModel>::G4CrossSectionPerAtom(int Z, doub
 }
 
 template <class EmModel>
-VECCORE_CUDA_HOST double EmModelBase<EmModel>::G4CrossSectionPerVolume(const vecgeom::Material *material, double energy)
+VECCORE_ATT_HOST double EmModelBase<EmModel>::G4CrossSectionPerVolume(const vecgeom::Material *material, double energy)
 {
   double sigma = 0.;
 

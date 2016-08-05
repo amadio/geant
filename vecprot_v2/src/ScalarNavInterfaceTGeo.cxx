@@ -12,7 +12,7 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
          const double *x, const double *y, const double *z,
          const double *dirx, const double *diry, const double *dirz, 
@@ -119,7 +119,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
   const double epserr = 1.E-3; // push value in case of repeated geom error

@@ -48,7 +48,7 @@ GUFieldPropagator* GUFieldPropagator::Clone() const
 }
 
 // Make a step from current point along the path and compute new point, direction and angle
-// GEANT_CUDA_BOTH_CODE
+// VECCORE_ATT_HOST_DEVICE
 bool
 GUFieldPropagator::DoStep( ThreeVector const & startPosition, ThreeVector const & startDirection,
                                    int const & charge,             double const & startMomentumMag,

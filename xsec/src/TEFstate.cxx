@@ -10,14 +10,14 @@
 #include "TPDecay.h"
 using vecgeom::kAvogadro;
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "TFile.h"
 #endif
 #endif
 
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 
 TEFstate *TEFstate::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -47,7 +47,7 @@ TPDecay  *fDecayHost=nullptr;           //! decay table
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TEFstate::TEFstate() :
    fEGrid(TPartIndex::I()->EGrid()),
    fAtcm3(0),
@@ -107,7 +107,7 @@ TEFstate::~TEFstate()
   delete [] fPFstate;
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TEFstate::Streamer(TBuffer &R__b)
@@ -193,32 +193,32 @@ bool TEFstate::SampleRestCaptFstate(int kpart, int &npart, float &weight, float 
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TEFstate::SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr,
                           const int *&pid, const float *&mom, int &ebinindx) const {
   return fPFstateP[pindex]->SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx);
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TEFstate::SampleReac(int pindex, int preac, float en, int &npart, float &weight, float &kerma, float &enr,
                           const int *&pid, const float *&mom, int &ebinindx, double randn1, double randn2) const {
   return fPFstateP[pindex]->SampleReac(preac, en, npart, weight, kerma, enr, pid, mom, ebinindx, randn1, randn2);
 }
 
 //___________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool TEFstate::GetReac(int pindex, int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
                        const int *&pid, const float *&mom) const {
   return fPFstateP[pindex]->GetReac(preac, en, ifs, npart, weight, kerma, enr, pid, mom);
 }
 
 //___________________________________________________________________
-#ifdef GEANT_NVCC 
-GEANT_CUDA_BOTH_CODE
+#ifdef VECCORE_CUDA 
+VECCORE_ATT_HOST_DEVICE
 TEFstate *TEFstate::GetElement(int z, int a) {
   int ecode = z * 10000 + a * 10;
-#ifdef GEANT_CUDA_DEVICE_BUILD 
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION 
   for (int el = 0; el < fEFNLdElemsDev; ++el)
     if (ecode == fEFElementsDev[el]->Ele())
       return fEFElementsDev[el];
@@ -283,12 +283,12 @@ bool TEFstate::Resample() {
 }
 
 //___________________________________________________________________
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 void TEFstate::Draw(const char * /*option*/) {}
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TEFstate::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
@@ -312,7 +312,7 @@ void TEFstate::Compact() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TEFstate::RebuildClass() {
    if(((unsigned long) this) % sizeof(double) != 0) {
      Geant::Fatal("TEFstate::RebuildClass","the class is misaligned");
@@ -332,7 +332,7 @@ void TEFstate::RebuildClass() {
       ((TPFstate *) start)->RebuildClass();
       fPFstateP[i] = (TPFstate *) start;
       if(!fPFstateP[i]->CheckAlign()) 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
         exit(1);
 #else
         return;
@@ -342,14 +342,14 @@ void TEFstate::RebuildClass() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TEFstate::SizeOfStore() {
    // First calculate how much we need
    int totsize = 0;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
    for(auto i=0; i<fNLdElems; ++i) totsize += fElements[i]->SizeOf();
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
    for(auto i=0; i<fEFNLdElemsDev; ++i) totsize += fEFElementsDev[i]->SizeOf();
 #else
    for(auto i=0; i<fEFNLdElemsHost; ++i) totsize += fEFElementsHost[i]->SizeOf();
@@ -370,7 +370,7 @@ int TEFstate::MakeCompactBuffer(char* &b) {
    char* start = b;
    memcpy(start,&totsize,sizeof(int));
    start += sizeof(int);
-#ifndef  GEANT_NVCC
+#ifndef  VECCORE_CUDA
    memcpy(start,&fNLdElems,sizeof(int));
    start += sizeof(int);
    // now copy and compact
@@ -383,21 +383,21 @@ int TEFstate::MakeCompactBuffer(char* &b) {
    return totsize;
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #define EXIT_OR_RETURN(val) exit(val);
 #else
 #define EXIT_OR_RETURN(val) return;
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TEFstate::RebuildStore(char *b) {
   typedef TEFstate *StateArray_t[NELEM];
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   int &nElems(fNLdElems);
   StateArray_t &elements(fElements);
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
   int &nElems(fEFNLdElemsDev);
   StateArray_t &elements(fEFElementsDev);
 #else

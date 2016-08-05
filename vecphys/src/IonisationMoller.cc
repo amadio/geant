@@ -7,7 +7,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 IonisationMoller::IonisationMoller(Random_t *states, int tid) : EmModelBase<IonisationMoller>(states, tid)
 {
   fDeltaRayThreshold = 1.0 * keV; // temporary: should be set from a cut table
@@ -16,14 +16,14 @@ IonisationMoller::IonisationMoller(Random_t *states, int tid) : EmModelBase<Ioni
   Initialization();
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 IonisationMoller::IonisationMoller(Random_t *states, int tid, GUAliasSampler *sampler)
     : EmModelBase<IonisationMoller>(states, tid, sampler)
 {
   SetLowEnergyLimit(0.1 * keV);
 }
 
-VECCORE_CUDA_HOST void IonisationMoller::Initialization()
+VECCORE_ATT_HOST void IonisationMoller::Initialization()
 {
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, 1.e-4, 1.e+6, 100, 100);
@@ -31,12 +31,12 @@ VECCORE_CUDA_HOST void IonisationMoller::Initialization()
   }
 }
 
-VECCORE_CUDA_HOST void IonisationMoller::BuildCrossSectionTablePerAtom(int /*Z*/)
+VECCORE_ATT_HOST void IonisationMoller::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p)
+VECCORE_ATT_HOST void IonisationMoller::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (MollerBhabha pdf) in the
   // input energy randge [fMinX,fMaxX] with an equal logarithmic bin size
@@ -82,7 +82,7 @@ VECCORE_CUDA_HOST void IonisationMoller::BuildPdfTable(int Z, double *p)
 
 // function implementing the cross section for MollerBhabha
 
-VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int /*Zelement*/, double kineticEnergy,
+VECCORE_ATT_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int /*Zelement*/, double kineticEnergy,
                                                                             double deltaRayEnergy) const
 {
   // based on Geant3 : Simulation of the delta-ray production (PHY331-1)
@@ -110,7 +110,7 @@ VECCORE_CUDA_HOST_DEVICE double IonisationMoller::CalculateDiffCrossSection(int 
   return dcross;
 }
 
-VECCORE_CUDA_HOST double IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
+VECCORE_ATT_HOST double IonisationMoller::GetG4CrossSection(int Z, double kineticEnergy)
 {
   double cross = 0.0;
 
@@ -141,7 +141,7 @@ VECCORE_CUDA_HOST double IonisationMoller::GetG4CrossSection(int Z, double kinet
   return cross;
 }
 
-VECCORE_CUDA_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int /*Z*/, // not used
+VECCORE_ATT_HOST_DEVICE void IonisationMoller::SampleByCompositionRejection(int /*Z*/, // not used
                                                                              double kineticEnergy,
                                                                              double &deltaKinEnergy, double &sinTheta)
 {

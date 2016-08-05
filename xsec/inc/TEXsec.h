@@ -21,7 +21,7 @@
 #include "TPXsec.h"
 #include "Geant/Error.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "Rtypes.h"
 class TGHorizontalFrame;
@@ -33,19 +33,19 @@ class TRootEmbeddedCanvas;
 class TFile;
 #else
 class TEXsec;
-extern GEANT_CUDA_DEVICE_CODE int fNLdElemsDev;            //! number of loaded elements
+extern VECCORE_ATT_DEVICE int fNLdElemsDev;            //! number of loaded elements
 extern  int fNLdElemsHost;            //! number of loaded elements
-extern GEANT_CUDA_DEVICE_CODE TEXsec *fElementsDev[NELEM]; //! databases of elements
+extern VECCORE_ATT_DEVICE TEXsec *fElementsDev[NELEM]; //! databases of elements
 extern  TEXsec *fElementsHost[NELEM]; //! databases of elements
 #endif
 
 class TEXsec {
 public:
   enum { kCutGamma, kCutElectron, kCutPositron, kCutProton };
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   TEXsec();
   TEXsec(int z, int a, float dens, int np);
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   TEXsec(const TEXsec &other);
   virtual ~TEXsec();
   static const char *ClassName() { return "TEXsec"; }
@@ -54,24 +54,24 @@ GEANT_CUDA_BOTH_CODE
   bool AddPartIon(int kpart, const float dedx[]);
   bool AddPartMS(int kpart, const float angle[], const float ansig[], const float length[], const float lensig[]);
 
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int Ele() const { return fEle; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int Index() const { return fIndex; }
   void SetIndex(int index) { fIndex = index; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   double Emin() const { return fEmin; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   double Emax() const { return fEmax; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int NEbins() const { return fNEbins; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   double EilDelta() const { return fEilDelta; }
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   float XS(int pindex, int rindex, float en) const;
   float DEdx(int pindex, float en) const;
   bool MS(int index, float en, float &ang, float &asig, float &len, float &lsig) const;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
   TGraph *XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const;
   TGraph *DEdxGraph(const char *part, float emin, float emax, int nbin) const;
@@ -95,7 +95,7 @@ GEANT_CUDA_BOTH_CODE
   }
 
   void DumpPointers() const;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   void Draw(const char *option);
   void Viewer(); // *MENU*
   void UpdateReactions();
@@ -105,28 +105,28 @@ GEANT_CUDA_BOTH_CODE
   void ResetFrame();
 #endif
 
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   void Compact();
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   void RebuildClass();
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static int SizeOfStore();
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static size_t MakeCompactBuffer(char* &b);
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   static void RebuildStore(char *b);
 #ifdef MAGIC_DEBUG
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
   int GetMagic() const {return fMagic;}
 #endif
-#ifdef GEANT_NVCC
-GEANT_CUDA_BOTH_CODE
+#ifdef VECCORE_CUDA
+VECCORE_ATT_HOST_DEVICE
 char *strncpy(char *dest, const char *src, size_t n);
 #endif
 
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
   if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TEXsec::CheckAlign","fEGrid","misaligned\n");isaligned=false;}
@@ -151,7 +151,7 @@ bool CheckAlign() {
   bool Resample();
 
   bool Prune();
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static int NLdElems() { return fNLdElems; }
   static TEXsec *Element(int i) {
     if (i < 0 || i >= fNLdElems)
@@ -160,10 +160,10 @@ bool CheckAlign() {
   }
  #else
 
-#ifdef GEANT_CUDA_DEVICE_BUILD
- GEANT_CUDA_DEVICE_CODE 
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+ VECCORE_ATT_DEVICE 
  static int NLdElems() { return fNLdElemsDev; }
- GEANT_CUDA_DEVICE_CODE 
+ VECCORE_ATT_DEVICE 
  static TEXsec *Element(int i) {
     if (i < 0 || i >= fNLdElemsDev)
       return 0;
@@ -181,17 +181,17 @@ bool CheckAlign() {
   const char *GetName() const { return fName; }
   const char *GetTitle() const { return fTitle; }
 
-#if !defined(USE_ROOT) || defined(GEANT_NVCC)
-  GEANT_CUDA_BOTH_CODE
+#if !defined(USE_ROOT) || defined(VECCORE_CUDA)
+  VECCORE_ATT_HOST_DEVICE
   static TEXsec *GetElement(int z, int a = 0);
 #else
   static TEXsec *GetElement(int z, int a = 0, TFile *f = 0);
 #endif
 
   
-#ifdef GEANT_NVCC
-#ifdef GEANT_CUDA_DEVICE_BUILD
-  GEANT_CUDA_DEVICE_CODE TEXsec **GetElements() { return fElementsDev; }
+#ifdef VECCORE_CUDA
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  VECCORE_ATT_DEVICE TEXsec **GetElements() { return fElementsDev; }
 #else
   TEXsec **GetElements() { return fElementsHost; }
 #endif
@@ -200,7 +200,7 @@ bool CheckAlign() {
 #endif
 
 private:
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   TEXsec &operator=(const TEXsec &); // Not implemented
 #endif
   char fName[32];   // Name
@@ -219,14 +219,14 @@ private:
 
   TPXsec *fPXsec;       // [fNRpart] Cross section table per particle
   TPXsec **fPXsecP;     // [fNRpart] Cross section table per particle
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   static int fNLdElems;            //! number of loaded elements
   static TEXsec *fElements[NELEM]; //! databases of elements
 #endif
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
   static TGMainFrame *fMain;           //! Main window
   static TGHorizontalFrame *fSecond;   //! Window for the graph and the bar on left

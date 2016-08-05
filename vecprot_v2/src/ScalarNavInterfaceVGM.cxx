@@ -2,7 +2,7 @@
 
 #include "backend/Backend.h"
 #include "navigation/VNavigator.h"
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "navigation/SimpleNavigator.h"
 #else
 #include "navigation/ABBoxNavigator.h"
@@ -28,7 +28,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace VECGEOM_NAMESPACE;
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
          const double *x, const double *y, const double *z,
          const double *dirx, const double *diry, const double *dirz, 
@@ -48,11 +48,11 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
 //         isonbdr - propagated point is on a boundary
 
   typedef Vector3D<Precision> Vector3D_t;
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
   ABBoxNavigator nav;
-#endif // GEANT_NVCC
+#endif // VECCORE_CUDA
 
   for (int itr = 0; itr < ntracks; ++itr) {
     // If the basket is mixed volumes/navigators may be different
@@ -75,7 +75,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
     
     //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
-#if defined(CROSSCHECK) && !defined(GEANT_NVCC)
+#if defined(CROSSCHECK) && !defined(VECCORE_CUDA)
     //************
     // CROSS CHECK USING TGEO
     //************
@@ -114,15 +114,15 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
   typedef Vector3D<Precision> Vector3D_t;
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
   ABBoxNavigator nav;
-#endif // GEANT_NVCC
+#endif // VECCORE_CUDA
 
   // Retrieve navigator for the track
   VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
@@ -212,7 +212,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
       Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
     if (!samepath) tmpstate->CopyTo(end[itr]);
 
-#if defined(CROSSCHECK) && !defined(GEANT_NVCC)
+#if defined(CROSSCHECK) && !defined(VECCORE_CUDA)
     TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
     TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -243,7 +243,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
     }
     delete sb;
     delete eb;
-#endif // CROSSCHECK && !GEANT_NVCC
+#endif // CROSSCHECK && !VECCORE_CUDA
     same[itr] = samepath;
   }
 }

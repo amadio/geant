@@ -14,74 +14,74 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 class ConversionBetheHeitler : public EmModelBase<ConversionBetheHeitler> {
 public:
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   ConversionBetheHeitler(Random_t *states = 0, int threadId = -1);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   ConversionBetheHeitler(Random_t *states, int threadId, GUAliasSampler *sampler);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   ~ConversionBetheHeitler() {}
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void Initialization();
 
   // interfaces for tables
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildCrossSectionTablePerAtom(int Z);
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   double GetG4CrossSection(int Z, double energy);
 
-  VECCORE_CUDA_HOST
+  VECCORE_ATT_HOST
   void BuildPdfTable(int Z, double *p);
 
 public:
   // Implementation methods
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v CrossSectionKernel(typename Backend::Double_v energyIn,
+  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v CrossSectionKernel(typename Backend::Double_v energyIn,
                                                                          Index_v<typename Backend::Double_v> zElement);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractKernel(typename Backend::Double_v energyIn,
+  VECCORE_ATT_HOST_DEVICE void InteractKernel(typename Backend::Double_v energyIn,
                                                Index_v<typename Backend::Double_v> zElement,
                                                typename Backend::Double_v &energyOut,
                                                typename Backend::Double_v &sinTheta);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
+  VECCORE_ATT_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
                                                  Index_v<typename Backend::Double_v> zElement,
                                                  typename Backend::Double_v &energyOut,
                                                  typename Backend::Double_v &sinTheta);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void InteractKernelUnpack(typename Backend::Double_v energyIn,
+  VECCORE_ATT_HOST_DEVICE void InteractKernelUnpack(typename Backend::Double_v energyIn,
                                                      Index_v<typename Backend::Double_v> zElement,
                                                      typename Backend::Double_v &energyOut,
                                                      typename Backend::Double_v &sinTheta,
                                                      Mask_v<typename Backend::Double_v> &status);
 
   template <class Backend>
-  VECCORE_CUDA_HOST_DEVICE void SampleSinTheta(typename Backend::Double_v energyElectron,
+  VECCORE_ATT_HOST_DEVICE void SampleSinTheta(typename Backend::Double_v energyElectron,
                                                typename Backend::Double_v energyPositron,
                                                typename Backend::Double_v &sinThetaElectron,
                                                typename Backend::Double_v &sinThetaPositron);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void SampleByCompositionRejection(int elementZ, double energyIn, double &energyOut, double &sinTheta);
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   double CalculateDiffCrossSection(int Zelement, double Ein, double outEphoton);
 
   // this should be a method of GUElement
   /*
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   double ComputeCoulombFactor(double Zeff) const;
   */
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   double ScreenFunction1(double screenVariable) const;
 
-  VECCORE_CUDA_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   double ScreenFunction2(double screenVariable) const;
 
   // the mother is friend in order to access private methods of this
@@ -96,7 +96,7 @@ private:
 // Implementation
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernel(typename Backend::Double_v energyIn,
+VECCORE_ATT_HOST_DEVICE void ConversionBetheHeitler::InteractKernel(typename Backend::Double_v energyIn,
                                                                      Index_v<typename Backend::Double_v> zElement,
                                                                      typename Backend::Double_v &energyOut,
                                                                      typename Backend::Double_v &sinTheta)
@@ -144,7 +144,7 @@ VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernel(typename Ba
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::SampleSinTheta(typename Backend::Double_v energyElectron,
+VECCORE_ATT_HOST_DEVICE void ConversionBetheHeitler::SampleSinTheta(typename Backend::Double_v energyElectron,
                                                                      typename Backend::Double_v energyPositron,
                                                                      typename Backend::Double_v &sinThetaElectron,
                                                                      typename Backend::Double_v &sinThetaPositron)
@@ -167,7 +167,7 @@ VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::SampleSinTheta(typename Ba
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v ConversionBetheHeitler::CrossSectionKernel(
+VECCORE_ATT_HOST_DEVICE typename Backend::Double_v ConversionBetheHeitler::CrossSectionKernel(
     typename Backend::Double_v energy, Index_v<typename Backend::Double_v> Z)
 {
   using Double_v = typename Backend::Double_v;
@@ -203,7 +203,7 @@ VECCORE_CUDA_HOST_DEVICE typename Backend::Double_v ConversionBetheHeitler::Cros
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v energyIn,
+VECCORE_ATT_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename Backend::Double_v energyIn,
                                                                        Index_v<typename Backend::Double_v> /*Z*/,
                                                                        typename Backend::Double_v &energyOut,
                                                                        typename Backend::Double_v &sinTheta)
@@ -214,7 +214,7 @@ VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelCR(typename 
 }
 
 template <class Backend>
-VECCORE_CUDA_HOST_DEVICE void ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_v energyIn,
+VECCORE_ATT_HOST_DEVICE void ConversionBetheHeitler::InteractKernelUnpack(typename Backend::Double_v energyIn,
                                                                            Index_v<typename Backend::Double_v> /*Z*/,
                                                                            typename Backend::Double_v &energyOut,
                                                                            typename Backend::Double_v &sinTheta,

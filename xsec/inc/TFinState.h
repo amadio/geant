@@ -25,7 +25,7 @@
 
 class TFinState {
 public: 
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
   TFinState();
   TFinState(int nfstates, const int npart[], const float weight[], const float kerma[], const float en[],
             const char surv[], const int pid[], const float mom[]);
@@ -40,13 +40,13 @@ public:
   int GetNsecs() const { return fNsecs; }
 
   bool Prune() { return true; }
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom) const;
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom,
                   double randn) const;
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool GetReac(int finstat, int &npart, float &weight, float &kerma, float &en, const int *&pid,
                const float *&mom) const;
   void Dump() const {}
@@ -59,17 +59,17 @@ public:
   static void SetVerbose(int verbose) { fVerbose = verbose; }
   static int GetVerbose() { return fVerbose; }
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
   void Compact();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void RebuildClass();
 #ifdef MAGIC_DEBUG
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int GetMagic() const {return fMagic;}
 #endif
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
   if(((unsigned long) &fNFstates) % sizeof(fNFstates) != 0) { Geant::Error("TPFstate::CheckAlign","fNFstates misaligned\n");isaligned=false;}

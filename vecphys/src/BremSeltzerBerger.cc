@@ -10,7 +10,7 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 // const double
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid) : EmModelBase<BremSeltzerBerger>(states, tid)
 {
   fAtomicDependentModel = true;
@@ -23,7 +23,7 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid) : EmModelBase<Br
       Finel = fCoulomb = fMax = 0;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid, GUAliasSampler *sampler, Physics2DVector *sbData)
     : EmModelBase<BremSeltzerBerger>(states, tid, sampler)
 {
@@ -35,10 +35,10 @@ BremSeltzerBerger::BremSeltzerBerger(Random_t *states, int tid, GUAliasSampler *
 
 // need another Ctor with setable parameters
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 BremSeltzerBerger::~BremSeltzerBerger() { free(fDataSB); }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::Initialization()
+VECCORE_ATT_HOST void BremSeltzerBerger::Initialization()
 {
   fDataSB = (Physics2DVector *)malloc(maximumZ * sizeof(Physics2DVector));
 
@@ -62,7 +62,7 @@ VECCORE_CUDA_HOST void BremSeltzerBerger::Initialization()
   }
 }
 
-VECCORE_CUDA_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream &in, Physics2DVector *vec2D)
+VECCORE_ATT_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstream &in, Physics2DVector *vec2D)
 {
   // binning
   int k;
@@ -102,12 +102,12 @@ VECCORE_CUDA_HOST bool BremSeltzerBerger::RetrieveSeltzerBergerData(std::ifstrea
   return true;
 }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::BuildCrossSectionTablePerAtom(int /*Z*/)
+VECCORE_ATT_HOST void BremSeltzerBerger::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p)
+VECCORE_ATT_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (SeltzerBerger pdf) in the
   // input energy randge [minX,maxX] with an equal logarithmic bin size
@@ -169,7 +169,7 @@ VECCORE_CUDA_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p)
 
 // function implementing the differential cross section for SeltzerBerger
 
-VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::CalculateDiffCrossSection(int Zelement, double w, double y) const
+VECCORE_ATT_HOST_DEVICE double BremSeltzerBerger::CalculateDiffCrossSection(int Zelement, double w, double y) const
 {
   // based on Geant4
   // data   : SeltzerBerger parameterization (G4LEDATA data set)
@@ -185,7 +185,7 @@ VECCORE_CUDA_HOST_DEVICE double BremSeltzerBerger::CalculateDiffCrossSection(int
   return dcross;
 }
 
-VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(int Z, double kineticEnergy,
+VECCORE_ATT_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(int Z, double kineticEnergy,
                                                                               double &gammaEnergy, double &sinTheta)
 {
   // G4SeltzerBergerModel::SampleSecondaries
@@ -252,7 +252,7 @@ VECCORE_CUDA_HOST_DEVICE void BremSeltzerBerger::SampleByCompositionRejection(in
   sinTheta = SampleSinTheta<ScalarBackend>(gammaEnergy);
 }
 
-VECCORE_CUDA_HOST double BremSeltzerBerger::GetG4CrossSection(int Z, double kineticEnergy)
+VECCORE_ATT_HOST double BremSeltzerBerger::GetG4CrossSection(int Z, double kineticEnergy)
 {
   // temporary
   double cutEnergy = 1.0 * keV;
@@ -287,7 +287,7 @@ VECCORE_CUDA_HOST double BremSeltzerBerger::GetG4CrossSection(int Z, double kine
   return cross;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void BremSeltzerBerger::SetCurrentElement(double Z)
 {
   if (Z != currentZ) {
@@ -335,7 +335,7 @@ void BremSeltzerBerger::SetCurrentElement(double Z)
   }
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::ComputeXSectionPerAtom(double cut, double kineticEnergy)
 {
   double cross = 0.0;
@@ -384,7 +384,7 @@ double BremSeltzerBerger::ComputeXSectionPerAtom(double cut, double kineticEnerg
   return cross;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::ComputeRelDXSectionPerAtom(double gammaEnergy)
 // Ultra relativistic model
 //   only valid for very high energies, but includes LPM suppression
@@ -413,7 +413,7 @@ double BremSeltzerBerger::ComputeRelDXSectionPerAtom(double gammaEnergy)
   return cross;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::ComputeDXSectionPerAtom(double gammaEnergy)
 // Relativistic model
 //  only valid for high energies (and if LPM suppression does not play a role)
@@ -458,7 +458,7 @@ double BremSeltzerBerger::ComputeDXSectionPerAtom(double gammaEnergy)
   return cross;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void BremSeltzerBerger::CalcLPMFunctions(double k)
 {
   // *** calculate lpm variable s & sprime ***
@@ -538,7 +538,7 @@ void BremSeltzerBerger::CalcLPMFunctions(double k)
   }
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::Phi1(double gg)
 {
   // Thomas-Fermi FF from Tsai, eq.(3.38) for Z>=5
@@ -547,7 +547,7 @@ double BremSeltzerBerger::Phi1(double gg)
          4. * (1. - 0.6 * math::Exp(-0.9 * gg) - 0.4 * math::Exp(-1.5 * gg));
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::Phi1M2(double gg)
 {
   // Thomas-Fermi FF from Tsai, eq. (3.39) for Z>=5
@@ -555,7 +555,7 @@ double BremSeltzerBerger::Phi1M2(double gg)
   return 2. / (3. * (1. + 6.5 * gg + 6. * gg * gg));
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::Psi1(double eps)
 {
   // Thomas-Fermi FF from Tsai, eq.(3.40) for Z>=5
@@ -564,7 +564,7 @@ double BremSeltzerBerger::Psi1(double eps)
          4. * (1. - 0.7 * math::Exp(-8 * eps) - 0.3 * math::Exp(-29. * eps));
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double BremSeltzerBerger::Psi1M2(double eps)
 {
   // Thomas-Fermi FF from Tsai, eq. (3.41) for Z>=5

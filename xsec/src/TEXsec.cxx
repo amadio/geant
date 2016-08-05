@@ -1,5 +1,5 @@
 #include "TEXsec.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "TAxis.h"
 #include "TCanvas.h"
@@ -23,27 +23,27 @@
 #endif
 #endif
 #include "base/Global.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #include "base/MessageLogger.h"
 #endif
 using vecgeom::kAvogadro;
 using std::numeric_limits;
 using std::string;
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 
 using std::max;
 
 #else
 
 template<class T>
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 const T& max(const T&a,const T& b) {
     return (a<b)?b:a;
 }
 #endif
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 int TEXsec::fNLdElems = 0;
 TEXsec *TEXsec::fElements[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -66,7 +66,7 @@ TEXsec *fElementsHost[NELEM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 #endif
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 TGMainFrame *TEXsec::fMain = 0;
 TGHorizontalFrame *TEXsec::fSecond = 0;
@@ -77,7 +77,7 @@ TGListBox *TEXsec::fParticleBox = 0;
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TEXsec::TEXsec()
     : fEGrid(TPartIndex::I()->EGrid()), fAtcm3(0), fEmin(0), fEmax(0), fEilDelta(0),
       fEle(0), fIndex(-1), fNEbins(0), fNRpart(0), fPXsec(nullptr), fPXsecP(nullptr) {
@@ -101,13 +101,13 @@ TEXsec::TEXsec(int z, int a, float dens, int np)
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TEXsec::TEXsec(const TEXsec &other): fEGrid(other.fEGrid), fAtcm3(other.fAtcm3),
 				     fEmin(other.fEmin), fEmax(other.fEmax), fEilDelta(other.fEilDelta),
 				     fEle(other.fEle), fIndex(other.fIndex), fNEbins(other.fNEbins),
 				     fNRpart(other.fNRpart), fPXsecP(other.fPXsecP)
  {
-   #ifndef GEANT_NVCC
+   #ifndef VECCORE_CUDA
    strncpy(fName,other.fName,32);
    strncpy(fTitle,other.fTitle,128);
    #else
@@ -125,7 +125,7 @@ TEXsec::~TEXsec() {
    delete [] fPXsec;
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TEXsec::Streamer(TBuffer &R__b)
@@ -171,7 +171,7 @@ bool TEXsec::AddPartIon(int kpart, const float dedx[]) {
    return fPXsecP[kpart]->SetPartIon(dedx); }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 float TEXsec::XS(int pindex, int rindex, float en) const {
    return fPXsecP[pindex]->XS(rindex, en); }
 
@@ -192,7 +192,7 @@ void TEXsec::DumpPointers() const {
     fPXsecP[i]->Dump();
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //___________________________________________________________________
 TGraph *TEXsec::XSGraph(const char *part, const char *reac, float emin, float emax, int nbin) const {
@@ -660,7 +660,7 @@ void TEXsec::ResetFrame() {
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TEXsec::SizeOf() const {
    size_t size = sizeof(*this);
    for(auto i=0; i<fNRpart; ++i)
@@ -671,7 +671,7 @@ int TEXsec::SizeOf() const {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TEXsec::Compact() {
    char *start = fStore;
    for(auto i=0; i<fNRpart; ++i) {
@@ -685,7 +685,7 @@ void TEXsec::Compact() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TEXsec::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
     Geant::Fatal("aTEXsec::RebuildClass","the class is misaligned\n");
@@ -705,7 +705,7 @@ void TEXsec::RebuildClass() {
       ((TPXsec *) start)->RebuildClass();
       fPXsecP[i] = (TPXsec *) start;
       if(!fPXsecP[i]->CheckAlign()) 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
       exit(1);;
 #else
       return;
@@ -715,7 +715,7 @@ void TEXsec::RebuildClass() {
 }
 
 //___________________________________________________________________
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 int TEXsec::SizeOfStore() {
    // First calculate how much we need
    int totsize = 0;
@@ -723,8 +723,8 @@ int TEXsec::SizeOfStore() {
    return totsize + 2 * sizeof(int);
 }
 #else
-#ifdef GEANT_CUDA_DEVICE_BUILD
-GEANT_CUDA_DEVICE_CODE
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+VECCORE_ATT_DEVICE
 int TEXsec::SizeOfStore() {
    // First calculate how much we need
    int totsize = 0;
@@ -742,7 +742,7 @@ int TEXsec::SizeOfStore() {
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 size_t TEXsec::MakeCompactBuffer(char* &b) {
    // First calculate how much we need
    size_t totsize = SizeOfStore();
@@ -754,7 +754,7 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
    char* start = b;
    memcpy(start,&totsize,sizeof(int));
    start += sizeof(int);
-  #ifndef GEANT_NVCC
+  #ifndef VECCORE_CUDA
    memcpy(start,&fNLdElems,sizeof(int));
    start += sizeof(int);
    // now copy and compact
@@ -764,7 +764,7 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
       start += el->SizeOf();
    }
    #else
-  #ifdef GEANT_CUDA_DEVICE_BUILD
+  #ifdef VECCORE_CUDA_DEVICE_COMPILATION
    memcpy(start,&fNLdElemsDev,sizeof(int));
    start += sizeof(int);
    // now copy and compact
@@ -787,21 +787,21 @@ size_t TEXsec::MakeCompactBuffer(char* &b) {
    return totsize;
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #define EXIT_OR_RETURN(val) exit(val);
 #else
 #define EXIT_OR_RETURN(val) return;
 #endif
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TEXsec::RebuildStore(char *b) {
    size_t size = 0;
    typedef TEXsec *ElementArray_t[NELEM];
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
    int &nElems(fNLdElems);
    ElementArray_t &elements(fElements);
-#elif defined(GEANT_CUDA_DEVICE_BUILD)
+#elif defined(VECCORE_CUDA_DEVICE_COMPILATION)
    int &nElems(fNLdElemsDev);
    ElementArray_t &elements(fElementsDev);
 #else // NVCC Host
@@ -864,12 +864,12 @@ int TEXsec::SampleReac(int pindex, double en, double randn) const {
    return fPXsecP[pindex]->SampleReac(en, randn); }
 
 //___________________________________________________________________
-#if !defined(USE_ROOT) || defined(GEANT_NVCC)
-GEANT_CUDA_BOTH_CODE
+#if !defined(USE_ROOT) || defined(VECCORE_CUDA)
+VECCORE_ATT_HOST_DEVICE
 TEXsec *TEXsec::GetElement(int z, int a) {
   int ecode = z * 10000 + a * 10;
-#ifdef GEANT_NVCC
-#ifdef GEANT_CUDA_DEVICE_BUILD 
+#ifdef VECCORE_CUDA
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION 
   for (int el = 0; el < fNLdElemsDev; ++el)
     if (ecode == fElementsDev[el]->Ele())
       return fElementsDev[el];
@@ -936,8 +936,8 @@ bool TEXsec::Resample() {
 }
 
 //___________________________________________________________________
-#ifdef GEANT_NVCC
-GEANT_CUDA_BOTH_CODE
+#ifdef VECCORE_CUDA
+VECCORE_ATT_HOST_DEVICE
 char *TEXsec::strncpy(char *dest, const char *src, size_t n)
 {
     char *ret = dest;

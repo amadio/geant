@@ -1,5 +1,5 @@
 #include "TPXsec.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "TFile.h"
 #include "TRandom.h"
@@ -12,11 +12,11 @@ using vecgeom::RNG;
 
 #include "Geant/Error.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 using std::max;
 #else
 template<class T>
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 const T& max(const T&a,const T& b) {
     return (a<b)?b:a;
 }
@@ -24,7 +24,7 @@ const T& max(const T&a,const T& b) {
 int TPXsec::fVerbose = 0;
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TPXsec::TPXsec()
    : fPDG(0), fNEbins(0), fNCbins(0), fNXsec(0), fNTotXs(0), fNXSecs(0),
      fEGrid(TPartIndex::I()->EGrid()), fMSangle(nullptr), fMSansig(nullptr), fMSlength(nullptr),
@@ -35,7 +35,7 @@ TPXsec::TPXsec()
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TPXsec::TPXsec(int pdg, int nxsec)
    :  fPDG(pdg), fNEbins(TPartIndex::I()->NEbins()),
       fNCbins(0), fNXsec(nxsec), fNTotXs(fNEbins), fNXSecs(fNEbins * fNXsec),
@@ -49,7 +49,7 @@ TPXsec::TPXsec(int pdg, int nxsec)
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TPXsec::TPXsec(const TPXsec &other): fPDG(other.fPDG), fNEbins(other.fNEbins),
 				     fNCbins(other.fNCbins), fNXsec(other.fNXsec),
 				     fNTotXs(other.fNTotXs), fNXSecs(other.fNXSecs),
@@ -65,7 +65,7 @@ TPXsec::TPXsec(const TPXsec &other): fPDG(other.fPDG), fNEbins(other.fNEbins),
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TPXsec::~TPXsec() {
   delete[] fMSangle;
   delete[] fMSansig;
@@ -77,7 +77,7 @@ TPXsec::~TPXsec() {
 }
 
 //_________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 int TPXsec::SizeOf() const {
    size_t size = sizeof(*this);
    size += 5 * fNCbins * sizeof(float);
@@ -89,7 +89,7 @@ int TPXsec::SizeOf() const {
 }
 
 //_________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 void TPXsec::Compact() {
    int size = 0;
    char *start = fStore;
@@ -138,7 +138,7 @@ void TPXsec::Compact() {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TPXsec::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
     Geant::Fatal("TPXsec::RebuildClass","the class is misaligned\n");
@@ -192,7 +192,7 @@ void TPXsec::RebuildClass() {
    }
 }
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TPXsec::Streamer(TBuffer &R__b) {
@@ -213,10 +213,10 @@ void TPXsec::Streamer(TBuffer &R__b) {
 #endif
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TPXsec::Interp(double egrid[], float value[], int nbins, double eildelta, int stride, double en, float result[]) {
   en = en < egrid[nbins - 1] ? en : egrid[nbins - 1] * 0.999;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   en = max<double>(en, egrid[0]);
 #else
   en = max<double>(en, egrid[0]);
@@ -258,9 +258,9 @@ bool TPXsec::Prune() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TPXsec::Resample() {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   if (fVerbose)
     Geant::Printf("Resampling %s from \nemin = %8.2g emacs = %8.2g, nbins = %d to \n"
            "emin = %8.2g emacs = %8.2g, nbins = %d\n",
@@ -487,7 +487,7 @@ int TPXsec::SampleReac(double en) const {
 #ifdef USE_VECGEOM_NAVIGATOR
     double ran = xnorm * RNG::Instance().uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     double ran = xnorm * gRandom->Rndm();
 #else
     // Suppress warning
@@ -571,7 +571,7 @@ bool TPXsec::XS_v(int npart, int rindex, const double en[], double lam[]) const 
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+VECCORE_ATT_DEVICE
 float TPXsec::XS(int rindex, double en, bool verbose) const {
   //   Geant::Printf("fEGrid %p\n",fEGrid);
   en = en < fEGrid[fNEbins - 1] ? en : fEGrid[fNEbins - 1] * 0.999;
@@ -594,7 +594,7 @@ float TPXsec::XS(int rindex, double en, bool verbose) const {
   if (rindex < TPartIndex::I()->NProc() - 1) {
     int rnumber = fRdict[rindex];
     if (rnumber < 0) {
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
       // We do not want to update TPartIndex::ProcName to work on the device.
       if (verbose)
         Geant::Error("TPXsec::XS", "No %s for %s\n", TPartIndex::I()->ProcName(rindex),

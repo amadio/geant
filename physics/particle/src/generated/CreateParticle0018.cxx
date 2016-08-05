@@ -4,7 +4,7 @@
 #pragma clang optimize off
 #endif
 #include "Particle.h"
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "base/Vector.h"
 template <typename T>
 using vector = vecgeom::Vector<T>;
@@ -17,7 +17,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 
 //________________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void CreateParticle0018() {
    vector<int> daughters;
    Particle *part = nullptr;

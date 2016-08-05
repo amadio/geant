@@ -6,7 +6,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST_DEVICE Physics2DVector::Physics2DVector()
+VECCORE_ATT_HOST_DEVICE Physics2DVector::Physics2DVector()
 {
   for(size_t j = 0; j<numberOfYNodes; ++j) {
     yVector[j] = 0.0;
@@ -20,7 +20,7 @@ VECCORE_CUDA_HOST_DEVICE Physics2DVector::Physics2DVector()
   }
 };
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double Physics2DVector::Value(double x, double y)
 {
   // no interpolation outside the table
@@ -52,31 +52,31 @@ double Physics2DVector::Value(double x, double y)
 	  ((y - y1)*(v21*(x2 - x) + v22*(x - x1))))/((x2 - x1)*(y2 - y1));
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void Physics2DVector::PutX(size_t idx, double val)
 {
   xVector[idx] = val;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void Physics2DVector::PutY(size_t idy, double val)
 {
   yVector[idy] = val;
 }
 
-VECCORE_CUDA_HOST_DEVICE void
+VECCORE_ATT_HOST_DEVICE void
 Physics2DVector::PutValue(size_t idx, size_t idy, double val)
 {
   value[idy][idx] = val;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 double Physics2DVector::GetValue(size_t idx, size_t idy)
 {
   return value[idy][idx];
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 size_t Physics2DVector::FindBinLocationX(double z)
 {
   size_t id = 0;
@@ -100,7 +100,7 @@ size_t Physics2DVector::FindBinLocationX(double z)
   return id;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 size_t Physics2DVector::FindBinLocationY(double z)
 {
   size_t id = 0;

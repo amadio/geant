@@ -5,7 +5,7 @@
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "Geant/Typedefs.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "TMath.h"
 #include "TRandom.h"
@@ -16,7 +16,7 @@
 #include "base/RNG.h"
 using vecgeom::RNG;
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #include "base/MessageLogger.h"
 #endif
 #include "base/Global.h"
@@ -24,17 +24,17 @@ using vecgeom::kAvogadro;
 
 #include <algorithm>
 using std::numeric_limits;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 using std::max;
 
 #else
 template<class T>
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 const T& max(const T&a,const T& b) {
   return (a<b)?b:a;
 }
 template<class T>
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 const T& max(const T&a,const T& b) {
   return (a<b)?b:a;
 }
@@ -232,7 +232,7 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
   // inverse range table
   fRange = new float[fNCharge];
   memset(fRange, 0, fNCharge * sizeof(float));
-  #ifndef GEANT_NVCC
+  #ifndef VECCORE_CUDA
   fInvRangeTable = new std::vector<std::pair<float, double>> *[fNCharge];
   memset(fInvRangeTable, 0, fNCharge * sizeof(std::vector<std::pair<float, double>> *));
   #else
@@ -240,7 +240,7 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
   memset(fInvRangeTable, 0, fNCharge * sizeof(Vector<vecgeom::pair<float, double>> *));
   #endif
   for (int ip = 0; ip < ncharge; ++ip) {
-    #ifndef GEANT_NVCC
+    #ifndef VECCORE_CUDA
     std::vector<std::pair<float, double>> *aTable = new std::vector<std::pair<float, double>>();
     #else
     Vector<vecgeom::pair<float, double>> *aTable = new Vector<vecgeom::pair<float, double>>();
@@ -255,7 +255,7 @@ TMXsec::TMXsec(const char *name, const char *title, const int z[], const int /*a
         fRange[ip * fNEbins + ie] = fRange[ip * fNEbins + ie - 1] + xx; // in [cm]
       }
       // insert into particle inverse range table
-      #ifndef GEANT_NVCC
+      #ifndef VECCORE_CUDA
       aTable->push_back(std::make_pair(fRange[ip * fNEbins + ie], fEGrid[ie]));
       #else
       aTable->push_back(vecgeom::pair<float, double>(fRange[ip * fNEbins + ie], fEGrid[ie]));
@@ -363,7 +363,7 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   td->fRndm->RndmArray(ntracks, rndArray);
 #endif
 #endif
@@ -451,7 +451,7 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(1, rndArray);
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   td->fRndm->RndmArray(1, rndArray);
 #endif
 #endif
@@ -519,7 +519,7 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
 
 // get MS angles : NOT USED CURRENTLY (MS is not active)
 //____________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 float TMXsec::MS(int ipart, float energy) {
   int ibin;
 
@@ -602,7 +602,7 @@ bool TMXsec::DEdx_v(int npart, const int part[], const float en[], float de[]) {
 */
 
 //____________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 float TMXsec::Range(int part, float en) {
   if (part >= TPartIndex::I()->NPartCharge() || !fRange)
     return -1.0;
@@ -626,7 +626,7 @@ float TMXsec::Range(int part, float en) {
 }
 
 //____________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 double TMXsec::InvRange(int part, float step) {
   if (part >= TPartIndex::I()->NPartCharge() || !fRange)
     return 0.;
@@ -640,7 +640,7 @@ double TMXsec::InvRange(int part, float step) {
         double xrat = (r2-step)/(r2-r1);
         return xrat*fEGrid[i-1]+(1-xrat)*fEGrid[i];
     */
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     if (step >= fInvRangeTable[part]->back().first)
       return fInvRangeTable[part]->back().second;
     // if(x<=(*table)[0].first) return (*table)[0].second;
@@ -667,7 +667,7 @@ double TMXsec::InvRange(int part, float step) {
 
 // Compute along step energy loss for charged particles using linear loss aprx.
 //____________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
   // -should be called only for charged particles (first fNPartCharge particle
   // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
@@ -745,7 +745,7 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
 
 // Compute along step energy loss for charged particles using linear loss aprx.
 //____________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TMXsec::ElossSingle(int i, GeantTrack_v &tracks) {
   // -should be called only for charged particles (first fNPartCharge particle
   // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
@@ -831,7 +831,7 @@ TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
 #ifdef USE_VECGEOM_NAVIGATOR
       if (RNG::Instance().uniform() < lambdaTotal / lambdaDecay)
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
       if (gRandom->Rndm() < lambdaTotal / lambdaDecay)
 #endif
 #endif
@@ -865,7 +865,7 @@ TEXsec *TMXsec::SampleInt(int part, double en, int &reac, double ptot) {
 #ifdef USE_VECGEOM_NAVIGATOR
           double ran = xnorm * RNG::Instance().uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
           double ran = xnorm * gRandom->Rndm();
 #endif
 #endif
@@ -904,7 +904,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(2 * ntracks, rndArray);
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   td->fRndm->RndmArray(2 * ntracks, rndArray);
 #endif
 #endif
@@ -958,7 +958,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
             double ran = xnorm * td->fRndm->uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
             double ran = xnorm * td->fRndm->Rndm();
 #endif
 #endif
@@ -1005,7 +1005,7 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(2, rndArray);
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   td->fRndm->RndmArray(2, rndArray);
 #endif
 #endif
@@ -1056,7 +1056,7 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
           double ran = xnorm * td->fRndm->uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
           double ran = xnorm * td->fRndm->Rndm();
 #endif
 #endif
@@ -1099,7 +1099,7 @@ int TMXsec::SampleElement(GeantTaskData *td) {
 #ifdef USE_VECGEOM_NAVIGATOR
     double randn = td->fRndm->uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     double randn = td->fRndm->Rndm();
 #endif
 #endif
@@ -1119,7 +1119,7 @@ int TMXsec::SampleElement() {
 #ifdef USE_VECGEOM_NAVIGATOR
     double randn = RNG::Instance().uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     double randn = gRandom->Rndm();
 #endif
 #endif
@@ -1150,7 +1150,7 @@ int TMXsec::SelectElement(int pindex, int rindex, double energy) {
 #ifdef USE_VECGEOM_NAVIGATOR
     double ranxs = totalxs * RNG::Instance().uniform();
 #elif USE_ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     double ranxs = totalxs * gRandom->Rndm();
 #endif
 #endif

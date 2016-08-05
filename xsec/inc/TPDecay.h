@@ -17,7 +17,7 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
@@ -45,18 +45,18 @@ public:
     return fCTauPerMass[pindex];
   }
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int SizeOf() const;
   void Compact();
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void RebuildClass();
   size_t MakeCompactBuffer(char* &b);
 #ifdef MAGIC_DEBUG
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int GetMagic() const {return fMagic;}
 #endif
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
   if(((unsigned long) &fNPart) % sizeof(fNPart) != 0) { Geant::Error("TPFstate::CheckAlign","fNPart misaligned\n");isaligned=false;}
@@ -72,7 +72,7 @@ bool CheckAlign() {
 }
 
 private:
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   TPDecay &operator=(const TPDecay &); // Not implemented
 #endif
 
@@ -84,7 +84,7 @@ private:
 #ifdef MAGIC_DEBUG
   const int fMagic = -777777;
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
   ClassDefNV(TPDecay, 5) // Element X-secs
 #endif

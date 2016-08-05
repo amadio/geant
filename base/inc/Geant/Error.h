@@ -13,9 +13,7 @@
 #ifndef GEANT_ERROR_H
 #define GEANT_ERROR_H
 
-#ifndef GEANT_CONFIG_H
 #include "Geant/Config.h"
-#endif
 
 #include <cstdio>
 #include <mutex>
@@ -34,15 +32,15 @@ namespace Geant {
    
   inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
     void ErrorHandlerImpl(EMsgLevel level, const char *location, const char *msgfmt, ...);
 #endif
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void MessageHandler(EMsgLevel level, const char *location, const char *msgfmt, ArgsTypes... params) {
-#ifdef GEANT_NVCC
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
       static std::mutex prntMutex;
 #endif
       const char *type = nullptr;
@@ -57,7 +55,7 @@ namespace Geant {
         default: type = "Unknown Level"; break;
       }
       { // print mutex scope
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
         std::lock_guard<std::mutex> lock(prntMutex);
 #endif
         if (level == EMsgLevel::kPrint)
@@ -68,7 +66,7 @@ namespace Geant {
         printf("\n");
       }
       if (level >= EMsgLevel::kFatal) {
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
         // Did not find a way to halt a kernel from within yet.
         //cudaDeviceReset();
         //cudaThreadExit();
@@ -84,42 +82,42 @@ namespace Geant {
     }
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Printf(const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kPrint,"",msgfmt, params...);
     }
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Print(const char *location, const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kPrint,location,msgfmt, params...);
     }
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Info(const char *location, const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kInfo,location,msgfmt, params...);
     }
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Warning(const char *location, const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kWarning,location,msgfmt, params...);
     }
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Error(const char *location, const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kError,location,msgfmt, params...);
     }
 
     template <typename... ArgsTypes>
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
     void Fatal(const char *location, const char *msgfmt, ArgsTypes... params)
     {
       MessageHandler(EMsgLevel::kFatal,location,msgfmt, params...);

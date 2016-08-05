@@ -1,20 +1,20 @@
 #include <TPartIndex.h>
 #include <string>
 #include <algorithm>
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include <TBuffer.h>
 #endif
 #endif
 #include <iostream>
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 using std::transform;
 using std::string;
 using std::max;
 #else
 template<class T>
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 const T& max(const T&a,const T& b) {
   return (a<b)?b:a;
 }
@@ -66,15 +66,15 @@ const float TPartIndex::fgWElem[NELEM] = {
     252.08, 257.10, 258.10, 259.10, 262.11, 265.12, 268.13, 271.13, 270,    277.15, 276.15, 281.16, 280.16, 285.17,
     284.18, 289.19, 288.19, 293,    294,    294};
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 TPartIndex *TPartIndex::fgPartIndex = 0;
 #else
-GEANT_CUDA_DEVICE_CODE TPartIndex *fgPartIndexDev = 0;
+VECCORE_ATT_DEVICE TPartIndex *fgPartIndexDev = 0;
 TPartIndex *fgPartIndexHost = 0;
 #endif
 
 //___________________________________________________________________
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
 TPartIndex::TPartIndex() :
    fEilDelta(0), fNPart(0), fNEbins(0), fEGrid(nullptr), fPDG(nullptr), fNpReac(0), fNpCharge(0),
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -84,20 +84,20 @@ TPartIndex::TPartIndex() :
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 TPartIndex::~TPartIndex() {
   delete[] fPDG;
   delete[] fEGrid;
 #ifndef USE_VECGEOM_NAVIGATOR
   delete fDBPdg;
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   fgPartIndex = 0;
 #endif
 }
 
 //___________________________________________________________________
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
 void TPartIndex::SetEnergyGrid(double emin, double emax, int nbins) {
   fNEbins = nbins;
   fEilDelta = (fNEbins - 1) / log(emax / emin);
@@ -128,7 +128,7 @@ const char *TPartIndex::ProcName(int proc) const {
 }
 
 //_____________________________________________________________________________
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
 void TPartIndex::SetPartTable(const int *vpdg, int np) {
   fNPart = np;
   delete[] fPDG;
@@ -140,7 +140,7 @@ void TPartIndex::SetPartTable(const int *vpdg, int np) {
 }
 
 //______________________________________________________________________________
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 int TPartIndex::PDG(const char *pname) const {
   int nr = fNPart;
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -177,7 +177,7 @@ int TPartIndex::PartIndex(int pdg) const {
 }
 
 //______________________________________________________________________________
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 void TPartIndex::Print(const char *option) const {
   char line[120];
   string opt = option;
@@ -231,7 +231,7 @@ void TPartIndex::SetPDGToGVMap(TPartIndex::Map_t &theMap) {
 }
 
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TPartIndex::Streamer(TBuffer &R__b) {
@@ -272,7 +272,7 @@ void TPartIndex::Streamer(TBuffer &R__b) {
 #endif
 #endif
 //______________________________________________________________________________
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
 void TPartIndex::CreateReferenceVector() {
     // create the particle reference vector
     fGVParticle.resize(fPDGToGVMap.size(), 0);
@@ -280,7 +280,7 @@ void TPartIndex::CreateReferenceVector() {
 #ifdef USE_VECGEOM_NAVIGATOR
 // std::cout << " gv index " << p->second << " corresponds to " << p->first << std::endl;
 // create direct access vector with GeantV code
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
       const Particle_t *pp = &Particle_t::GetParticle(p->first);
       // set the code inside the particle too
       const_cast<Particle_t *>(pp)->SetCode(p->second);
@@ -292,7 +292,7 @@ void TPartIndex::CreateReferenceVector() {
       if (pp->Mass() >= 0)
         fGVParticle[p->second] = pp;
       else
-       #ifndef GEANT_NVCC
+       #ifndef VECCORE_CUDA
         std::cout << ClassName() << "::" << __func__ << ":"
                   << " particle PDG " << p->first << " not found !" << std::endl;
        #else  
@@ -418,7 +418,7 @@ void TPartIndex::CreateReferenceVector() {
                 break;
               }
             if (ap == 0)
-            #ifndef GEANT_NVCC
+            #ifndef VECCORE_CUDA
               exit(1);
             #else
               return; 
@@ -498,7 +498,7 @@ double TPartIndex::GetAprxNuclearMass(int Z, int A) {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TPartIndex::SizeOf() const {
   size_t size = 2 * sizeof(double) + 4 * sizeof(int);
   size += fNPart * sizeof(int);
@@ -508,11 +508,11 @@ int TPartIndex::SizeOf() const {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TPartIndex::RebuildClass(char *b) {
   if(((unsigned long) this) % sizeof(double) != 0) {
       printf("TPartIndex::RebuildClass: the class is misaligned\n");
-  #ifndef GEANT_NVCC 
+  #ifndef VECCORE_CUDA 
       exit(1);
   #else
      return; 

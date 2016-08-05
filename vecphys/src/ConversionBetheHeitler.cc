@@ -7,7 +7,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid)
+VECCORE_ATT_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid)
     : EmModelBase<ConversionBetheHeitler>(states, tid)
 {
   fAtomicDependentModel = true;
@@ -15,7 +15,7 @@ VECCORE_CUDA_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *state
   Initialization();
 }
 
-VECCORE_CUDA_HOST_DEVICE ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid,
+VECCORE_ATT_HOST_DEVICE ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid,
                                                                         GUAliasSampler *sampler)
     : EmModelBase<ConversionBetheHeitler>(states, tid, sampler)
 {
@@ -23,7 +23,7 @@ VECCORE_CUDA_HOST_DEVICE ConversionBetheHeitler::ConversionBetheHeitler(Random_t
   SetLowEnergyLimit(2. * electron_mass_c2);
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::Initialization()
+VECCORE_ATT_HOST void ConversionBetheHeitler::Initialization()
 {
   if (fSampleType == kAlias) {
     fAliasSampler = new GUAliasSampler(fRandomState, fThreadId, fLowEnergyLimit, fHighEnergyLimit, 100, 100);
@@ -31,12 +31,12 @@ VECCORE_CUDA_HOST void ConversionBetheHeitler::Initialization()
   }
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int /*Z*/)
+VECCORE_ATT_HOST void ConversionBetheHeitler::BuildCrossSectionTablePerAtom(int /*Z*/)
 {
   ; // dummy for now
 }
 
-VECCORE_CUDA_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double GammaEnergy)
+VECCORE_ATT_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double GammaEnergy)
 {
   // G4BetheHeitlerModel::ComputeCrossSectionPerAtom
 
@@ -78,7 +78,7 @@ VECCORE_CUDA_HOST double ConversionBetheHeitler::GetG4CrossSection(int Z, double
   return xSection;
 }
 
-VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
+VECCORE_ATT_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 {
   // Build the probability density function (BetheHeitler pdf) in the
   // input energy randge [xmin,xmax] with an equal logarithmic bin size
@@ -126,7 +126,7 @@ VECCORE_CUDA_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 // function implementing the cross section for KleinNishina
 // TODO: need to get electron properties from somewhere
 
-VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement, double gammaEnergy,
+VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement, double gammaEnergy,
                                                                                   double electEnergy)
 {
   // based on Geant4 : G4BetheHeitlerModel
@@ -160,7 +160,7 @@ VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSectio
   return dsigma;
 }
 
-VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
+VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction1(double screenVariable) const
 {
   // compute the value of the screening function 3*PHI1 - PHI2
   double screenVal;
@@ -173,7 +173,7 @@ VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction1(double s
   return screenVal;
 }
 
-VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction2(double screenVariable) const
+VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction2(double screenVariable) const
 {
   // compute the value of the screening function 1.5*PHI1 - 0.5*PHI2
   double screenVal;
@@ -186,7 +186,7 @@ VECCORE_CUDA_HOST_DEVICE double ConversionBetheHeitler::ScreenFunction2(double s
   return screenVal;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double GammaEnergy, double &energyOut,
                                                           double &sinTheta)
 {

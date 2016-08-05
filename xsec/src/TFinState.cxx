@@ -1,5 +1,5 @@
 #include "TFinState.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "TRandom.h"
 #endif
@@ -12,7 +12,7 @@ using vecgeom::RNG;
 int TFinState::fVerbose = 0;
 
 //_________________________________________________________________________
- GEANT_CUDA_BOTH_CODE
+ VECCORE_ATT_HOST_DEVICE
 TFinState::TFinState()
     : fNFstates(0), fNsecs(0), fNMom(0), fWeight(0), fKerma(0), fEn(0), fMom(0), fPID(0), fNpart(0), fSurv(0) {
 }
@@ -203,7 +203,7 @@ void TFinState::NormFinSateWeights() {
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid,
                            const float *&mom) const {
 
@@ -253,7 +253,7 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, const int *&pid, const float *&mom,
                            double randn) const {
 
@@ -298,7 +298,7 @@ bool TFinState::SampleReac(int &npart, float &weight, float &kerma, float &en, c
 }
 
 //_________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, float &en, const int *&pid,
                         const float *&mom) const {
   if (!fNFstates) { // ensure that nothing happens
@@ -334,7 +334,7 @@ bool TFinState::GetReac(int finstat, int &npart, float &weight, float &kerma, fl
 }
 
 //_________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TFinState::SizeOf() const {
    size_t size = sizeof(*this);
    size += 3 * fNFstates * sizeof(float);
@@ -402,7 +402,7 @@ void TFinState::Compact() {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TFinState::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
     Geant::Fatal("TFinState::RebuildClass","the class is misaligned\n");

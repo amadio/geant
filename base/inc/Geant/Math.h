@@ -7,22 +7,22 @@
 #include "backend/Backend.h"
 
 namespace Math {
-   template <typename T> GEANT_CUDA_BOTH_CODE inline T Min(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Min(val1,val2); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline T Sqrt(T const &val) { return VECGEOM_NAMESPACE::Sqrt(val); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline T Abs(T const &val) { return VECGEOM_NAMESPACE::Abs(val); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline T Cos(T const &val) { return VECGEOM_NAMESPACE::cos(val); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline T Sin(T const &val) { return VECGEOM_NAMESPACE::sin(val); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline bool AreEqualAbs(T const &val1, T const &val2, T const &epsilon) 
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Min(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Min(val1,val2); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Sqrt(T const &val) { return VECGEOM_NAMESPACE::Sqrt(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Abs(T const &val) { return VECGEOM_NAMESPACE::Abs(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Cos(T const &val) { return VECGEOM_NAMESPACE::cos(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Sin(T const &val) { return VECGEOM_NAMESPACE::sin(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline bool AreEqualAbs(T const &val1, T const &val2, T const &epsilon) 
      { return ( VECGEOM_NAMESPACE::Abs(val1-val2) < epsilon ); }
-   template <typename T> GEANT_CUDA_BOTH_CODE inline bool AreEqualRel(T const &val1, T const &val2, T const &relPrec) 
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline bool AreEqualRel(T const &val1, T const &val2, T const &relPrec) 
      { return ( VECGEOM_NAMESPACE::Abs(val1-val2) < 0.5*relPrec*(VECGEOM_NAMESPACE::Abs(val1)+VECGEOM_NAMESPACE::Abs(val2)) ); }
 
-//  template <typename T> GEANT_CUDA_BOTH_CODE inline T Normalize(T const &val[3]) { return VECGEOM_NAMESPACE::Normalize(val); }
-//  GEANT_CUDA_BOTH_CODE VECGEOM_NAMESPACE::Precision inline TwoPi() { return VECGEOM_NAMESPACE::TwoPi(); }
+//  template <typename T> VECCORE_ATT_HOST_DEVICE inline T Normalize(T const &val[3]) { return VECGEOM_NAMESPACE::Normalize(val); }
+//  VECCORE_ATT_HOST_DEVICE VECGEOM_NAMESPACE::Precision inline TwoPi() { return VECGEOM_NAMESPACE::TwoPi(); }
 
 // From TMath.cxx ....
-   GEANT_CUDA_BOTH_CODE
+   VECCORE_ATT_HOST_DEVICE
    inline float Normalize(float v[3])
    {
       // Normalize a vector v in place.
@@ -36,7 +36,7 @@ namespace Math {
       }
       return d;
    }
-   GEANT_CUDA_BOTH_CODE
+   VECCORE_ATT_HOST_DEVICE
    inline double Normalize(double v[3])
    {
       // Normalize a vector v in place.
@@ -79,8 +79,8 @@ namespace Math {
       v[2] /= d;
       return d;
    }
-   constexpr GEANT_CUDA_BOTH_CODE inline VECGEOM_NAMESPACE::Precision TwoPi() { return 2*3.14159265358979323846; }
-   constexpr GEANT_CUDA_BOTH_CODE inline VECGEOM_NAMESPACE::Precision Pi() { return 3.14159265358979323846; }
+   constexpr VECCORE_ATT_HOST_DEVICE inline VECGEOM_NAMESPACE::Precision TwoPi() { return 2*3.14159265358979323846; }
+   constexpr VECCORE_ATT_HOST_DEVICE inline VECGEOM_NAMESPACE::Precision Pi() { return 3.14159265358979323846; }
    
 
 }

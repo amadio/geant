@@ -9,7 +9,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 ElectronProcess::ElectronProcess(Random_t *states, int tid) : EmProcess<ElectronProcess>(states, tid)
 {
   fNumberOfProcess = 3;
@@ -23,7 +23,7 @@ ElectronProcess::ElectronProcess(Random_t *states, int tid) : EmProcess<Electron
   Initialization();
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 ElectronProcess::ElectronProcess(Random_t *states, int tid, CrossSectionData *data)
     : EmProcess<ElectronProcess>(states, tid, data)
 {
@@ -38,7 +38,7 @@ ElectronProcess::ElectronProcess(Random_t *states, int tid, CrossSectionData *da
   fNumberOfMaterialBin = 3; //(vecgeom::Material::GetMaterials()).size();
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 ElectronProcess::~ElectronProcess()
 {
   delete fIonisation;
@@ -46,7 +46,7 @@ ElectronProcess::~ElectronProcess()
   delete fMSC;
 }
 
-VECCORE_CUDA_HOST void ElectronProcess::Initialization()
+VECCORE_ATT_HOST void ElectronProcess::Initialization()
 {
   fIonisation = new IonisationMoller(0, -1);
   fBremsstrahlung = new BremSeltzerBerger(0, -1);
@@ -71,7 +71,7 @@ VECCORE_CUDA_HOST void ElectronProcess::Initialization()
   BuildCrossSectionTable();
 }
 
-VECCORE_CUDA_HOST void ElectronProcess::BuildCrossSectionTable()
+VECCORE_ATT_HOST void ElectronProcess::BuildCrossSectionTable()
 {
   // Get the material DB
   std::vector<vecgeom::Material *> &mtable = vecgeom::Material::GetMaterials();

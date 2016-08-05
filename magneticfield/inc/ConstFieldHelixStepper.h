@@ -32,7 +32,7 @@ namespace Geant
       double fBz;
 
     public:
-      GEANT_CUDA_BOTH_CODE
+      VECCORE_ATT_HOST_DEVICE
       ConstBzFieldHelixStepper( double Bz = 0. ) : fBz(Bz) {}
 
       void SetBz( double Bz ){ fBz = Bz; }
@@ -56,7 +56,7 @@ namespace Geant
        template<typename BaseType, typename BaseIType>
        inline
        __attribute__((always_inline))
-       GEANT_CUDA_BOTH_CODE
+       VECCORE_ATT_HOST_DEVICE
        void DoStep( BaseType const & /*posx*/, BaseType const & /*posy*/, BaseType const & /*posz*/,
                     BaseType const & /*dirx*/, BaseType const & /*diry*/, BaseType const & /*dirz*/,
                     BaseIType const & /*charge*/, BaseType const & /*momentum*/, BaseType const & /*step*/,
@@ -87,7 +87,7 @@ namespace Geant
          * output: new position, new direction of particle
          */
          template<typename Vector3D, typename BaseType, typename BaseIType>
-         GEANT_CUDA_BOTH_CODE
+         VECCORE_ATT_HOST_DEVICE
          void DoStep( Vector3D const & pos, Vector3D const & dir,
                            BaseIType const & charge, BaseType const &  momentum,
                            BaseType const & step,

@@ -32,7 +32,7 @@ using VECGEOM_NAMESPACE::RNG;
 class GeantBasketMgr;
 class GeantBasket;
 
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 #include "base/Vector.h"
 #else
 #include <vector>
@@ -47,7 +47,7 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData {
 public:
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   template <class T>
   using vector_t = vecgeom::Vector<T>;
 #else
@@ -72,7 +72,7 @@ public:
   GeantTrack fTrack;     /** Track support for this thread */
   VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
 #else
   std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
@@ -105,7 +105,7 @@ private:
   /**
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
 
 public:
@@ -118,11 +118,11 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static size_t SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBasket);
 
   /**
@@ -159,7 +159,7 @@ public:
    * @brief Function that returns a (per thread/task) preallocated NavigationState object
    *
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   VolumePath_t *GetPath() {
     return fPath;
   }
@@ -182,7 +182,7 @@ public:
    * @brief Return the size of the basket pool
    *
    */
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   size_t GetBasketPoolSize() const { return fPool.size(); }
 #endif
 

@@ -4,7 +4,7 @@
 #include <curand.h>
 
 namespace Geant {
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 inline
 #endif
 namespace cuda {
@@ -12,7 +12,7 @@ namespace cuda {
 class GeantTrack_v;
 class GeantTaskData;
 
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 template <typename DataType, typename... ArgsTypes>
 __global__ void MakeInstanceAtOnGpu(DataType *addr, ArgsTypes... params)
 {
@@ -63,7 +63,7 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
 
                             int nBlocks, int nThreads, cudaStream_t stream);
 namespace Geant {
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 inline
 #endif
 namespace cuda {

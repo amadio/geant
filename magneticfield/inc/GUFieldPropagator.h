@@ -28,7 +28,7 @@ class GUFieldPropagator
        *    input: current position, current direction, particle properties
        *   output: success(returned), new position, new direction of particle
        */
-  // GEANT_CUDA_BOTH_CODE          
+  // VECCORE_ATT_HOST_DEVICE          
       bool DoStep( ThreeVector const & position,  ThreeVector const & direction,
                            int const & charge,         double const & momentum,
                         double const & step,
@@ -46,7 +46,7 @@ class GUFieldPropagator
     template<typename Vector3D, typename DblType, typename IntType>
     inline
     __attribute__((always_inline))
-    GEANT_CUDA_BOTH_CODE          
+    VECCORE_ATT_HOST_DEVICE          
     template<typename Vector3D, typename DblType, typename IntType>
        void DoStep( Vector3D  const & pos,    Vector3D const & dir,
                     IntType   const & charge, DblType  const & momentum,
@@ -61,7 +61,7 @@ class GUFieldPropagator
     template<typename DblType, typename IntType>
     inline
     __attribute__((always_inline))    
-    GEANT_CUDA_BOTH_CODE
+    VECCORE_ATT_HOST_DEVICE
        void DoStep( DblType const & posx, DblType const & posy, DblType const & posz,
                     DblType const & dirx, DblType const & diry, DblType const & dirz,
                     IntType const & charge, DblType const & momentum, DblType const & step,

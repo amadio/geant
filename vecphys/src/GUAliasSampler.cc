@@ -5,7 +5,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMin, double incomingMax,
                                int numEntriesIncoming, // for 'energy' (or log) of projectile
                                int numEntriesSampled)
@@ -20,7 +20,7 @@ GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMi
   fAliasTableManager = new GUAliasTableManager(nelements, ngrid);
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMin, double incomingMax,
                                int numEntriesIncoming, // for 'energy' (or log) of projectile
                                int numEntriesSampled, GUAliasTableManager *tableManager)
@@ -34,16 +34,16 @@ GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMi
   fAliasTableManager = tableManager;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 GUAliasSampler::~GUAliasSampler()
 {
-#if !defined(VECCORE_NVCC) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   if (fAliasTableManager)
     delete fAliasTableManager;
 #endif
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 void GUAliasSampler::PrintTable()
 {
   printf("Incoming Min= %g , Max= %g , numEntries= %d \n", fIncomingMin, fIncomingMax, fInNumEntries);
@@ -59,7 +59,7 @@ void GUAliasSampler::PrintTable()
     printf("GUAliasSampler fAliasTableManager is empty\n");
   }
 }
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
 {
   // Build alias and alias probability

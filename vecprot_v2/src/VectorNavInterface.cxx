@@ -10,7 +10,7 @@
 #include "base/Global.h"
 #include "management/GeoManager.h"
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
 #include "TGeoNavigator.h"
 #include "TGeoNode.h"
@@ -27,7 +27,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace VECGEOM_NAMESPACE;
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
          const double *x, const double *y, const double *z,
          const double *dirx, const double *diry, const double *dirz, 
@@ -48,7 +48,7 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
 
   typedef Vector3D<Precision> Vector3D_t;
   typedef SOA3D<double> SOA3D_t;
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
   ABBoxNavigator nav;
@@ -101,7 +101,7 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
                                                  Vector3D_t(dirx[itr], diry[itr], dirz[itr]), *instate[itr]);
     }
 #endif // CROSSCHECK
-#endif // GEANT_NVCC
+#endif // VECCORE_CUDA
 
 #ifdef VERBOSE
     Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
@@ -133,7 +133,7 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
   for (int itr = 0; itr < ntracks; ++itr) {
 
 // cross check with answer from ROOT
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
     TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
     TGeoBranchArray *eb = end[itr]->ToTGeoBranchArray();
@@ -145,7 +145,7 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
       Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
     if (!samepath) tmpstate->CopyTo(end[itr]);
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
     nav->ResetState();

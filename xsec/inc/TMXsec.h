@@ -14,7 +14,7 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #include <vector>
 #else 
 #include "base/Vector.h"
@@ -47,20 +47,20 @@ public:
   //   bool Xlength_v(int npart, const int part[], const float en[], double lam[]);
   float DEdx(int part, float en);
   //   bool DEdx_v(int npart, const int part[], const float en[], float de[]);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   float Range(int part, float en);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double InvRange(int part, float step);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void Eloss(int ntracks, GeantTrack_v &tracks);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void ElossSingle(int itrack, GeantTrack_v &tracks);
   void ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   void ProposeStepSingle(int itr, GeantTrack_v &tracks, GeantTaskData *td);
   void SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td);
   void SampleSingleInt(int itr, GeantTrack_v &tracksin, GeantTaskData *td);
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   float MS(int ipart, float energy);
 
   TEXsec *SampleInt(int part, double en, int &reac, double ptotal);
@@ -97,7 +97,7 @@ private:
   double *fRatios;                                        // [fNElems]  relative #atoms/volume; normalized
   float *fRange;                                          // [fNCharge] ranges of the particle in this material
   const TPDecay *fDecayTable;                             // pointer to the decay table
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   std::vector<std::pair<float, double>> **fInvRangeTable; // [fNCharge]
 #else
   Vector<vecgeom::pair<float, double>> **fInvRangeTable; // [fNCharge]

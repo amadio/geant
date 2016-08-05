@@ -87,13 +87,13 @@ GeantTrack_v::GeantTrack_v(int size, int maxdepth)
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack_v *GeantTrack_v::MakeInstanceAt(void *addr, unsigned int nTracks, int maxdepth) {
   return new (addr) GeantTrack_v(addr, nTracks, maxdepth);
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
     : fNtracks(0), fNselected(0), fCompact(true), fMixed(false), fMaxtracks(GeantTrack::round_up_align(nTracks)), fHoles(0),
       fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fMotherV(0),
@@ -120,7 +120,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
       fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0), fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0),
       fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), fPathV(0), fNextpathV(0) {
 // Copy constructor
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fNtracks.store(track_v.fNtracks);
 #else
   fNtracks = track_v.fNtracks;
@@ -134,7 +134,7 @@ GeantTrack_v::GeantTrack_v(const GeantTrack_v &track_v)
 GeantTrack_v &GeantTrack_v::operator=(const GeantTrack_v &track_v) {
   // Assignment operator
   if (&track_v != this) {
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     fNtracks.store(track_v.fNtracks);
 #else
     fNtracks = track_v.fNtracks;
@@ -170,7 +170,7 @@ GeantTrack_v::~GeantTrack_v() {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::AssignInBuffer(char *buff, int size) {
   // Assign all internal class arrays in the supplied buffer, padded by supplied
   // size.
@@ -459,7 +459,7 @@ void GeantTrack_v::CheckTracks() {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack_v's data
 
@@ -476,7 +476,7 @@ size_t GeantTrack_v::BufferSize(size_t nTracks, size_t maxdepth) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 size_t GeantTrack_v::SizeOfInstance(size_t nTracks, size_t maxdepth) {
   // return the contiguous memory size needed to hold a GeantTrack_v
 
@@ -516,7 +516,7 @@ void GeantTrack_v::Resize(int newsize) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int GeantTrack_v::AddTrack(GeantTrack &track, bool /*import*/) {
   // Add new track to the array. If addition is done on top of non-compact array,
   // the track will be inserted without updating the number of tracks. If track is
@@ -526,7 +526,7 @@ int GeantTrack_v::AddTrack(GeantTrack &track, bool /*import*/) {
   if (!fCompact)
     itrack = fHoles->FirstSetBit();
   if (itrack == fMaxtracks) {
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     Resize(2 * fMaxtracks);
 #else
     printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
@@ -667,7 +667,7 @@ void GeantTrack_v::GetTrack(int i, GeantTrack &track) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int GeantTrack_v::AddTrack(GeantTrack_v &arr, int i, bool /*import*/) {
 // Add track from different array
 // If addition is done on top of non-compact array,
@@ -680,7 +680,7 @@ int GeantTrack_v::AddTrack(GeantTrack_v &arr, int i, bool /*import*/) {
   if (!fCompact)
     itrack = fHoles->FirstSetBit();
   if (itrack == fMaxtracks) {
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     Resize(2 * fMaxtracks);
 #else
     printf("Error in GeantTrack_v::AddTrack, resizing is not supported in device code\n");
@@ -788,7 +788,7 @@ int GeantTrack_v::AddTrackSync(GeantTrack_v &arr, int i) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int GeantTrack_v::AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i) {
   // Add track from different array in a concurrent way. Assumes that this array
   // Is currently being filled while held by the basket manager and NOT being
@@ -816,7 +816,7 @@ int GeantTrack_v::AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i) {
   // and we should do:
   //   atomically: fNtracks = max(fNtracks,itrack)
 
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
   atomicAdd(&fNtracks, 1);
 #else
   ++fNtracks;
@@ -1087,7 +1087,7 @@ void GeantTrack_v::DeleteTrack(int /*itr*/) {
 void GeantTrack_v::RemoveTracks(int from, int to) {
 // Remove tracks from the container. The method assumes that the tracks were
 // copied to another container beforehand.
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (!fCompact)
     Geant::Error("RemoveTracks","Not compact");
 #endif
@@ -1218,7 +1218,7 @@ bool GeantTrack_v::Contains(int evstart, int nevents) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::Clear(const char *) {
   // Clear track content and selections
   fNselected = 0;
@@ -1281,7 +1281,7 @@ void GeantTrack_v::PropagateInVolume(int ntracks, const double *crtstep, GeantTa
 
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData * td) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
@@ -1296,7 +1296,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    // const Double_t *newdir = 0;
 
    bool useRungeKutta;
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
    const double bmag = gPropagator_fBmag;
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
@@ -1309,7 +1309,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    // if( icount++ < 2 )  std::cout << " PropagateInVolumeSingle: useRungeKutta= " << useRungeKutta << std::endl;
 
 // #ifdef RUNGE_KUTTA
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
    GUFieldPropagator *fieldPropagator = nullptr;
    if( useRungeKutta ){
       // Initialize for the current thread -- move to GeantPropagator::Initialize()
@@ -1353,7 +1353,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   ThreeVector DirectionNew(0.,0.,0.);
 
   if( useRungeKutta ) {
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
      fieldPropagator->DoStep(Position,    Direction,    fChargeV[i], fPV[i], crtstep,
                              PositionNew, DirectionNew);
 #endif
@@ -1472,7 +1472,7 @@ int GeantTrack_v::RemoveByStatus(TrackStatus_t status, GeantTrack_v &output) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
   // Print info for a given track
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
@@ -1485,7 +1485,7 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
       fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fNintLenV[itr], fIntLenV[itr], fBoundaryV[itr]);
   
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
   fPathV[itr]->Print();
   fNextpathV[itr]->Print();
 #endif
@@ -1516,7 +1516,7 @@ void GeantTrack_v::PrintTracks(const char *msg) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 // Vector version for proposing the geometry step. All tracks have to be in
 // the same volume
@@ -1586,7 +1586,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::ComputeTransportLengthSingle(int itr, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
@@ -1845,7 +1845,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
@@ -1853,7 +1853,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
   const double bmag = gPropagator->fBmag;
@@ -2003,12 +2003,12 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
   // Propagate the tracks with their selected steps in a single loop,
   // starting from a given stage.
 
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   GeantTrack_v &output = *td->fTransported;
 #endif
   int icrossed = 0;
@@ -2019,7 +2019,7 @@ int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
 //   Printf("====== After finding crossing tracks (ncross=%d):", icrossed);
 //   PrintTracks();
 // Compact remaining tracks and move the removed oned to the output container
-#ifndef GEANT_CUDA_DEVICE_BUILD
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (!fCompact)
     Compact(&output);
 #endif
@@ -2027,7 +2027,7 @@ int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 double GeantTrack_v::Curvature(int i, double Bz) const {
   // Curvature assuming constant field is along Z
   constexpr double kB2C = -0.299792458e-3;
@@ -2039,12 +2039,12 @@ double GeantTrack_v::Curvature(int i, double Bz) const {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 double GeantTrack_v::SafeLength(int i, double eps) {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.
 
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
   const double bmag = gPropagator->fBmag;
@@ -2069,7 +2069,7 @@ int GeantTrack_v::PostponeTracks(GeantTrack_v &output) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int GeantTrack_v::PostponeTrack(int itr, GeantTrack_v &output) {
   // Postpone transport of a track and copy it to the output.
   // Returns where in the output the track was added.
@@ -2158,7 +2158,7 @@ bool GeantTrack_v::CheckNavConsistency(int itr) {
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool GeantTrack_v::BreakOnStep(int evt, int trk, int stp, int nsteps, const char *msg, int itr) {
   // Return true if container has a track with a given number doing a given step from a given event
   // Debugging purpose
@@ -2174,7 +2174,7 @@ bool GeantTrack_v::BreakOnStep(int evt, int trk, int stp, int nsteps, const char
     if ((fParticleV[itr] == trk) && (fEventV[itr] == evt) &&
         ((fNstepsV[itr] >= stp) && (fNstepsV[itr] < stp + nsteps))) {
       has_it = true;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
       PrintTrack(itr, msg);
 #else
       (void)msg;
@@ -2191,7 +2191,7 @@ bool GeantTrack_v::BreakOnStep(int evt, int trk, int stp, int nsteps, const char
 } // GEANT_IMPL_NAMESPACE
 
 #ifdef GEANT_CUDA
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 
 bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream) {
   // Since fPathV and fNextpathV are internal pointer, we need to fix them up.

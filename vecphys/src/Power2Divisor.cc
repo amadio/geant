@@ -3,7 +3,7 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 Power2Divisor::Power2Divisor(int nmin, int nmax, int ndiv)
   : fNmin(nmin), fNmax(nmax), fNdiv(ndiv)
 {
@@ -13,14 +13,14 @@ Power2Divisor::Power2Divisor(int nmin, int nmax, int ndiv)
 
 // following methods can be templated if necessary
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 int Power2Divisor::GetNumberOfBins()
 {
   //check for fNmax > fNmin
   return (fNmax-fNmin)*fNdiv+1;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 Real_t Power2Divisor::GetBinPosition(int ibin)
 {
   int exponent = Power2Exponent(ibin);
@@ -29,14 +29,14 @@ Real_t Power2Divisor::GetBinPosition(int ibin)
   return  ldexp(1.+ 1.*idiv/fNdiv,exponent);
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 Real_t Power2Divisor::GetBinSize(int ibin)
 {
   int exponent = Power2Exponent(ibin);
   return ldexp(1.,exponent)/fNdiv;
 }
 
-VECCORE_CUDA_HOST_DEVICE
+VECCORE_ATT_HOST_DEVICE
 int Power2Divisor::Power2Exponent(int ibin) {
   return fNmin + ibin/fNdiv;
 }

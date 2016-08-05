@@ -29,7 +29,7 @@ class GeantTrack_v {
 public:
   static size_t const cacheline_size = 64;
   typedef char cacheline_pad_t[cacheline_size];
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
   int fNtracks; /** Number of tracks contained */
 #else
   std::atomic_int fNtracks; /** number of tracks contained */
@@ -88,7 +88,7 @@ public:
    * @param buff Buffer to be assigned to
    * @param size Size of buffer
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void AssignInBuffer(char *buff, int size);
 
   /**
@@ -109,7 +109,7 @@ private:
   /**
    * @brief GeantTrack constructor based on a provided single buffer.
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth);
 
 public:
@@ -127,14 +127,14 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static GeantTrack_v *MakeInstanceAt(void *addr, unsigned int nTracks, int maxdepth);
 
   /** @brief GeantTrack_v destructor */
   ~GeantTrack_v();
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static size_t SizeOfInstance(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returns the buffer size  */
@@ -144,7 +144,7 @@ public:
   void *Buffer() const { return fBuf; }
 
   /** @brief  Function that returns buffer size needed to hold the data for nTracks and maxdepth */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static size_t BufferSize(size_t nTracks, size_t maxdepth);
 
   /** @brief  Function that returned max size for tracks */
@@ -163,14 +163,14 @@ public:
    */
   static bool IsSame(const GeantTrack_v &tr1, int i1, const GeantTrack_v &tr2, int i2);
 
-#ifdef GEANT_CUDA_DEVICE_BUILD
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
 
   /** @brief  Function that returned number of tracks contained  */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int GetNtracks() const { return fNtracks; }
 
   /** @brief  Function that set number of tracks contained  */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void SetNtracks(int ntracks) { fNtracks = ntracks; }
 #else
 
@@ -190,7 +190,7 @@ public:
    * @param track Track that should be added
    * @param import Flag for importing (by default False)
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int AddTrack(GeantTrack &track, bool import = false);
 
   /**
@@ -207,7 +207,7 @@ public:
    * @param i  Bit number 'i'
    * @param import Flag for importing (by default False)
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int AddTrack(GeantTrack_v &arr, int i, bool import = false);
 
   /**
@@ -225,7 +225,7 @@ public:
    * @param arr input Track array
    * @param i Bit number 'i'
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int AddTrackSyncAt(int itrack, GeantTrack_v &arr, int i);
 
   /**
@@ -246,7 +246,7 @@ public:
    *
    * @param i Bit number 'i'
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void MarkRemoved(int i) {
     fHoles->SetBitNumber(i);
     fCompact = false;
@@ -342,7 +342,7 @@ public:
   bool IsSelected(int i) { return fSelected->TestBitNumber(i); }
 
   /** @brief Clear function */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void Clear(const char *option = "");
 
   /**
@@ -384,7 +384,7 @@ public:
    *
    * @param itr Track ID
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void PrintTrack(int itr, const char *msg = "") const;
 
   /** @brief Function that print all tracks */
@@ -424,7 +424,7 @@ public:
    * @param itr Track ID
    * @param output Output of tracks
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PostponeTrack(int itr, GeantTrack_v &output);
 
   /**
@@ -440,7 +440,7 @@ public:
    *
    * @param ntracks Number of tracks and TaskData object ( with preallocated thread/task local workspaces )
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void ComputeTransportLength(int ntracks, GeantTaskData *);
 
   /**
@@ -448,7 +448,7 @@ public:
    *
    * @param itr Track ID
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void ComputeTransportLengthSingle(int itr, GeantTaskData *);
 
   /**
@@ -458,7 +458,7 @@ public:
    * @param crtstep ??????
    * @param tid Track ID
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void PropagateInVolume(int ntracks, const double *crtstep, GeantTaskData *td);
 
   /**
@@ -468,7 +468,7 @@ public:
    * @param crtstep ???????
    * @param tid Track ID
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   void PropagateInVolumeSingle(int i, double crtstep, GeantTaskData *td);
 
   /**
@@ -487,10 +487,10 @@ public:
    */
   int PropagateTracks(GeantTaskData *td);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PropagateTracksScalar(GeantTaskData *td, int stage = 0);
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   int PropagateSingleTrack(int itr, GeantTaskData *td, int stage);
 
   /**
@@ -522,11 +522,11 @@ public:
    * @brief Function that return curvature in different areas of geometry
    * @param  i Input bit number 'i'
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double Curvature(int i, double Bz) const;
 
   /** @brief Function that return safe length */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double SafeLength(int i, double eps = 1.E-4);
 
   /**
@@ -551,18 +551,18 @@ public:
    * @brief Function that return Z projection of momentum value
    * @param  i Input bit number 'i'
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double Pz(int i) const { return fPV[i] * fZdirV[i]; }
 
   /**
    * @brief Function that return module of momentum value
    * @param  i Input bit number 'i'
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double Pt(int i) const { return fPV[i] * Math::Sqrt(fXdirV[i] * fXdirV[i] + fYdirV[i] * fYdirV[i]); }
 
   /** @brief Function that return time traveled in the step */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   double TimeStep(int i, double step) const { return fEV[i]*step/fPV[i]; }
 
   /**
@@ -584,7 +584,7 @@ public:
   Material_t *GetMaterial(int i) const;
 
   /** @brief Function allowing to set a breakpoint on a given step */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   bool BreakOnStep(int evt, int trk, int stp, int nsteps = 1, const char *msg = "", int itr = -1);
 
   /**
@@ -598,7 +598,7 @@ public:
 } // GEANT_IMPL_NAMESPACE
 
 #ifdef GEANT_CUDA
-#ifdef GEANT_NVCC
+#ifdef VECCORE_CUDA
 namespace cxx {
 class GeantTrack_v;
 }

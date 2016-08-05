@@ -28,7 +28,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
   fRndm = &RNG::Instance();
 #elif USE_ROOT
@@ -39,7 +39,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+VECCORE_ATT_DEVICE
 GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket)
     : fTid(-1), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
@@ -72,7 +72,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   buffer += fSizeInt*sizeof(int);
 
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
   fRndm = &RNG::Instance();
 #elif USE_ROOT
@@ -86,7 +86,7 @@ GeantTaskData::~GeantTaskData()
 {
 // Destructor
 //  delete fMatrix;
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifndef USE_VECGEOM_NAVIGATOR
   delete fRndm;
 #endif
@@ -99,7 +99,7 @@ GeantTaskData::~GeantTaskData()
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+VECCORE_ATT_DEVICE
 GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket)
 {
    // GeantTrack MakeInstance based on a provided single buffer.
@@ -108,7 +108,7 @@ GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int max
 
 
 //______________________________________________________________________________
-GEANT_CUDA_DEVICE_CODE
+VECCORE_ATT_DEVICE
 size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxPerBasket)
 {
    // @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth
@@ -123,7 +123,7 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
 }
 
 
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 GeantBasket *GeantTaskData::GetNextBasket() 
 {
   // Gets next free basket from the queue.

@@ -243,7 +243,7 @@ public:
    * @param ntotal Total number of tracks
    * @param nbuffered Number of buffered tracks
    */
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
   static GeantPropagator *Instance(int ntotal = 0, int nbuffered = 0, int nthreads = 0);
 
   /**

@@ -1,7 +1,7 @@
 #include "TPFstate.h"
 #include "TFinState.h"
 #include "Geant/Error.h"
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include <TMath.h>
 #include <TFile.h>
@@ -12,11 +12,11 @@
 #include "base/RNG.h"
 using vecgeom::RNG;
 #endif
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 using std::max;
 #else
 template<class T>
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 const T& max(const T&a,const T& b) {
     return (a<b)?b:a;
 }
@@ -27,7 +27,7 @@ int TPFstate::fVerbose = 0;
 #include "Geant/Error.h"
 
 //_________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 TPFstate::TPFstate()
   : fNEbins(0),
     fNEFstat(0),
@@ -68,7 +68,7 @@ TPFstate::TPFstate(int pdg, int nfstat, int nreac, const int dict[]) :
       fRdict[dict[np]] = np;
       fRmap[np] = dict[np];
    }
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
    // consistency
    for (int i = 0; i < fNReac; ++i)
       if (fRdict[fRmap[i]] != i)
@@ -172,7 +172,7 @@ bool TPFstate::SetFinState(int ibin, int reac, const int npart[], const float we
 }
 
 //______________________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                           const float *&mom, int &ebinindx) const {
   int rnumber = fRdict[preac];
@@ -214,7 +214,7 @@ bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float 
 }
 
 //______________________________________________________________________________
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool TPFstate::SampleReac(int preac, float en, int &npart, float &weight, float &kerma, float &enr, const int *&pid,
                           const float *&mom, int &ebinindx, double randn1, double randn2) const {
   int rnumber = fRdict[preac];
@@ -281,7 +281,7 @@ bool TPFstate::SampleRestCaptFstate(int &npart, float &weight, float &kerma, flo
 //______________________________________________________________________________
 
 
-  GEANT_CUDA_BOTH_CODE
+  VECCORE_ATT_HOST_DEVICE
 bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, float &kerma, float &enr,
                        const int *&pid, const float *&mom) const {
   int rnumber = fRdict[preac];
@@ -312,7 +312,7 @@ bool TPFstate::GetReac(int preac, float en, int ifs, int &npart, float &weight, 
     return fFstatP[ipoint]->GetReac(ifs, npart, weight, kerma, enr, pid, mom);
   }
 }
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 //______________________________________________________________________________
 void TPFstate::Streamer(TBuffer &R__b) {
@@ -347,7 +347,7 @@ void TPFstate::Print(const char *) const {
 
 //_________________________________________________________________________
 bool TPFstate::Resample() {
-  #ifndef GEANT_NVCC
+  #ifndef VECCORE_CUDA
   if (fVerbose)
     Geant::Printf("Resampling %s from \nemin = %8.2g emacs = %8.2g, nbins = %d to \n"
                   "emin = %8.2g emacs = %8.2g, nbins = %d\n",
@@ -408,7 +408,7 @@ bool TPFstate::Resample() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 int TPFstate::SizeOf() const {
    size_t size = sizeof(*this);
    if(fRestCaptFstat != nullptr) size += fRestCaptFstat->SizeOf();
@@ -441,7 +441,7 @@ void TPFstate::Compact() {
 }
 
 //___________________________________________________________________
-GEANT_CUDA_BOTH_CODE
+VECCORE_ATT_HOST_DEVICE
 void TPFstate::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
     Geant::Fatal("TPFstate::RebuildClass","the class is misaligned\n");
@@ -463,7 +463,7 @@ void TPFstate::RebuildClass() {
       ((TFinState *) start)->RebuildClass();
       fRestCaptFstat = (TFinState *) start;
       if(!fRestCaptFstat->CheckAlign()) 
-#ifndef GEANT_NVCC  
+#ifndef VECCORE_CUDA  
          exit(1);
 #else
          return;

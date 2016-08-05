@@ -8,14 +8,14 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 MaterialHandler *MaterialHandler::fInstance = 0;
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 MaterialHandler *MaterialHandler::Instance()
 {
   if (fInstance == 0) fInstance = new MaterialHandler();
   return fInstance;
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 MaterialHandler::MaterialHandler()
 {
   // test mode: 0 all elements in the element table, 1 single element
@@ -30,13 +30,13 @@ MaterialHandler::MaterialHandler()
   BuildElementTable();
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 MaterialHandler::~MaterialHandler()
 {
   ;
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void MaterialHandler::BuildElementTable()
 {
   // This should interface with the global material manager of GeantV so that
@@ -51,7 +51,7 @@ void MaterialHandler::BuildElementTable()
     AddElement(Element[ie]);
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void MaterialHandler::AddElement(int element)
 {
   // check validity of the element
@@ -73,7 +73,7 @@ void MaterialHandler::AddElement(int element)
   }
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, int elementMode)
 {
   // only two modes for now based on John's original method
@@ -102,7 +102,7 @@ void MaterialHandler::PrepareTargetElements(int *targetElements, int ntracks, in
   }
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void MaterialHandler::BuildMaterialTable()
 {
   // build a material table - 3 materials for testing
@@ -135,7 +135,7 @@ void MaterialHandler::BuildMaterialTable()
   new vecgeom::Material("Brass", Brass_a, Brass_z, Brass_w, 2, density);
 }
 
-VECCORE_CUDA_HOST
+VECCORE_ATT_HOST
 void MaterialHandler::PrepareMaterialIndex(int *materialIndex, int ntracks, int materialMode)
 {
   // temporary material index array (this should be provided the nagivator)
