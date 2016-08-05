@@ -42,7 +42,7 @@ if (KNC)
   Geant_v ${ROOT_LIBRARIES} ${Vc_MIC_LIBRARIES})
 else()
   target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  Geant_v ${ROOT_LIBRARIES} ${VC_LIBRARIES})
+  Geant_v)
 endif()
 
 add_dependencies(GeantExamples Geant_v)
