@@ -7,6 +7,7 @@
 #include "GUTrackHandler.h"
 
 #include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
 
 using namespace vecgeom;
 

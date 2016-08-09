@@ -1,4 +1,5 @@
 #include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
 
 //#include "GVComptonKleinNishina.h"
 #include "ComptonKleinNishina.h"

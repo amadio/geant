@@ -4,7 +4,8 @@
 #include "GUPhysicsProcessIndex.h"
 #include "GUPhysicsProcessName.h"
 
-#include "Stopwatch.h"
+#include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
 #include "base/SystemOfUnits.h"
 
 #include "GUTrackHandler.h"

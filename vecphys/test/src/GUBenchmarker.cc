@@ -2,12 +2,8 @@
 #include "GUBenchmarker_cpu.h"
 #include "GUPhysicsModelName.h"
 
-#ifdef USE_ROOT
-#include "Stopwatch.h"
-#else
 #include "base/Stopwatch.h"
 using vecgeom::Stopwatch;
-#endif
 #include "base/SystemOfUnits.h"
 
 #include "GUTrackHandler.h"

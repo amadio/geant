@@ -4,6 +4,7 @@
 
 #include "base/Global.h"
 #include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
 
 #include "GUAliasSampler.h"
 //#include "GVComptonKleinNishina.h"

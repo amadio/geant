@@ -1,5 +1,6 @@
 #include "GUHistogram.h"
-#include "Stopwatch.h"
+#include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
 
 //#include "GUAuxFunctions.h"
 

@@ -3,6 +3,7 @@
 
 #include "base/Global.h"
 #include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
 
 #include "PhotonProcess.h"
 #include "ElectronProcess.h"
