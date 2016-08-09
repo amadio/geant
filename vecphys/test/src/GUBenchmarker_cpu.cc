@@ -1,4 +1,9 @@
+#ifdef USE_ROOT
 #include "Stopwatch.h"
+#else
+#include "base/Stopwatch.h"
+using vecgeom::Stopwatch;
+#endif
 #include "GUHistogram.h"
 
 #include "ComptonKleinNishina.h"

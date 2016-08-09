@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------------------------
 # Configuration options
 #
-option(GUBENCHMARK "Enable performance comparisons." OFF)
+set(GUBENCHMARK "" CACHE STRING "Enable performance comparisons.")
 option(DISTANCE_DEBUG "Enable comparision of calculcated distances againt ROOT/Geant4 behind the scenes" OFF)
 option(VECPHYS_STANDALONE "Build VECPHYS standalone" OFF)
 set(VECPHYS_VECTOR "" CACHE STRING "Vector instruction set to use (sse/avx/...).")

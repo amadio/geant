@@ -228,7 +228,7 @@ ComptonKleinNishina::SampleSequential(typename Backend::Double_v E0_m, typename 
   using Double_v = typename Backend::Double_v;
 
   Mask_v<Double_v> done(false), condition;
-  Double_v epsilon, stheta;
+  Double_v epsilon;
 
   do {
     // generate random numbers
