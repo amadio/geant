@@ -50,7 +50,7 @@
 #endif
 
 
-TransportTask::TransportTask (int nbaskets): fNbaskets(nbaskets) { }
+TransportTask::TransportTask (Geant::GeantTaskData *td, int nbaskets): fTd(td), fNbaskets(nbaskets) { }
 
 TransportTask::~TransportTask () { }
 
@@ -99,8 +99,10 @@ tbb::task* TransportTask::execute ()
   if(tid>=propagator->fNthreads){
     return NULL;
   }
-  Geant::GeantTaskData *td = propagator->fThreadData[tid];
-  td->fTid = tid;
+  //Geant::GeantTaskData *td = propagator->fThreadData[tid];
+  Geant::GeantTaskData *td = fTd;
+  //td->fTid = tid;
+  //Geant::Print("","============= Transport Worker: %d\n", tid);
   int nworkers = propagator->fNthreads;
 
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
@@ -143,14 +145,26 @@ tbb::task* TransportTask::execute ()
 #endif
   //   int iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];
+
+  bool firstTime = true;
   while (1) {
     // Call the feeder if in priority mode
-    auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
+    /*auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
     if (feedres == WorkloadManager::FeederResult::kFeederWork) {
        ngcoll = 0;
     } else if (feedres == WorkloadManager::FeederResult::kStopProcessing) {
        break;
+    }*/
+
+    if (propagator->TransportCompleted())
+      break;
+
+    if (!firstTime && !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
+      break;
     }
+
+    firstTime =false;
+
 
     // Collect info about the queue
     waiting[tid] = 1;
@@ -388,10 +402,12 @@ tbb::task* TransportTask::execute ()
     }
     // Update boundary crossing counter
     td->fNcross += ncross;
-  }
+  } // end while
 
   tbb::task::set_ref_count(2);
-  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(false);
+  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(td, false);
+  //tbb::task::spawn(flowControllerTask);
+  //return NULL;
   return & flowControllerTask;
 
 }

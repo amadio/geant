@@ -15,7 +15,7 @@
 #endif
 
 
-FeederTask::FeederTask (int *nbaskets): fNbaskets(nbaskets) { }
+FeederTask::FeederTask (Geant::GeantTaskData *td, int *nbaskets): fTd(td), fNbaskets(nbaskets) { }
 
 FeederTask::~FeederTask () { }
 
@@ -30,8 +30,8 @@ tbb::task* FeederTask::execute ()
   if(tid>=propagator->fNthreads){
     return NULL;
   }
-  Geant::GeantTaskData *td = propagator->fThreadData[tid];
-  printf("=== Feeder task %d (%d) created ===\n", tid, td->fTid);
+  //Geant::GeantTaskData *td = propagator->fThreadData[tid];
+  //printf("=== Feeder task %d (%d) created ===\n", tid, fTd->fTid);
 
 
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
@@ -39,12 +39,14 @@ tbb::task* FeederTask::execute ()
 
   int nbaskets = 0;
   if (!propagator->fLastEvent) {
-    nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, td);
+    nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, fTd);
     propagator->fLastEvent = propagator->fNevents;
     *fNbaskets = nbaskets;
     propagator->ReleaseLock();
     tbb::task::set_ref_count(2);
-    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( nbaskets );
+    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask(fTd, nbaskets );
+    //tbb::task::spawn(transportTask);
+    //return NULL;
     return & transportTask;
   }
   // Check and mark finished events
@@ -63,7 +65,7 @@ tbb::task* FeederTask::execute ()
       propagator->fDoneEvents->SetBitNumber(evt->GetEvent());
       if (propagator->fLastEvent < propagator->fNtotal) {
         printf("=> Importing event %d\n", propagator->fLastEvent);
-        nbaskets += propagator->ImportTracks(1, propagator->fLastEvent, islot, td);
+        nbaskets += propagator->ImportTracks(1, propagator->fLastEvent, islot, fTd);
         propagator->fLastEvent++;
       }
     }
@@ -71,10 +73,12 @@ tbb::task* FeederTask::execute ()
 
 
   *fNbaskets = nbaskets;
-  printf("=== Feeder task  found %d baskets ===\n", nbaskets);
+  //printf("=== Feeder task  found %d baskets ===\n", nbaskets);
   // spawn transport task
   propagator->ReleaseLock();
   tbb::task::set_ref_count(2);
-  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( nbaskets );
+  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask(fTd, nbaskets );
+  //tbb::task::spawn(transportTask);
+  //return NULL;
   return & transportTask;
 }

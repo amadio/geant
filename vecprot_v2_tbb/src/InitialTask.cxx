@@ -47,8 +47,8 @@ tbb::task* InitialTask::execute ()
       threadData->fMyhitFactories[tid]->queue_per_thread = true;
     }
   tbb::task::set_ref_count(2);
-  tbb::empty_task& cont = *new(task::allocate_continuation()) tbb::empty_task();
-  cont.set_ref_count(1);
-  FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(true);
+  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(td, true);
+  //tbb::task::spawn(flowControllerTask);
+  //return NULL;
   return & flowControllerTask;
 }
