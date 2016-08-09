@@ -21,10 +21,10 @@ FastSimProcess::~FastSimProcess() {
 }
 
 
-void FastSimProcess::Initialize() {
+void FastSimProcess::Initialize(GeantTaskData *td) {
   //std::cout << "FastSimProcess::Initialize : Start" << std::endl;  // Debug
   if ( fSmearer ) delete fSmearer;
-  fSmearer = new Smearer;
+  fSmearer = new Smearer(td);
   //std::cout << "FastSimProcess::Initialize : --- End ---" << std::endl;  // Debug
 }
 

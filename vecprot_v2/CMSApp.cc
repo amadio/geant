@@ -152,12 +152,14 @@ int main(int argc, char *argv[]) {
 
   bool performance = true;
   TaskBroker *broker = nullptr;
+
+   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered);
 #ifdef USE_ROOT
   TGeoManager::Import(cms_geometry_filename.c_str());
 #else
 
 #endif
-  WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
+  WorkloadManager *wmanager = WorkloadManager::NewInstance(propagator, n_threads);
 
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
@@ -170,7 +172,7 @@ int main(int argc, char *argv[]) {
 #endif
   }
 
-  GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered);
+ 
 
   // Default value is 1. (0.1 Tesla)
   propagator->fBmag = 40.; // 4 Tesla
@@ -233,7 +235,7 @@ int main(int argc, char *argv[]) {
   // Activate old version of single thread serialization/reading
   //   prop->fConcurrentWrite = false;
 
-  CMSApplication *CMSApp = new CMSApplication();
+  CMSApplication *CMSApp = new CMSApplication(propagator);
   if (score) {
     CMSApp->SetScoreType(CMSApplication::kScore);
   } else {

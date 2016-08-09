@@ -668,14 +668,14 @@ double TMXsec::InvRange(int part, float step) {
 // Compute along step energy loss for charged particles using linear loss aprx.
 //____________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
+void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // -should be called only for charged particles (first fNPartCharge particle
   // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
   // Compute energy loss for the first ntracks in the input vector and update
   // tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the
   // necessary at-rest process type if it has any.
 
-  double energyLimit = GeantPropagator::Instance()->fEmin;
+  double energyLimit = td->fPropagator->fEmin;
   for (int i = 0; i < ntracks; ++i) {
     int ipart = tracks.fGVcodeV[i]; // GV particle index/code
     tracks.fProcessV[i] = -1;       // init process index to -1 i.e. no process
@@ -746,14 +746,14 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks) {
 // Compute along step energy loss for charged particles using linear loss aprx.
 //____________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TMXsec::ElossSingle(int i, GeantTrack_v &tracks) {
+void TMXsec::ElossSingle(int i, GeantTrack_v &tracks,GeantTaskData *td) {
   // -should be called only for charged particles (first fNPartCharge particle
   // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
   // Compute energy loss for the first ntracks in the input vector and update
   // tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the
   // necessary at-rest process type if it has any.
 
-  double energyLimit = GeantPropagator::Instance()->fEmin;
+  double energyLimit = td->fPropagator->fEmin;
   int ipart = tracks.fGVcodeV[i]; // GV particle index/code
   tracks.fProcessV[i] = -1;       // init process index to -1 i.e. no process
   double dedx = 0.0;

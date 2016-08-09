@@ -26,6 +26,8 @@
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 
+#include "GeantTaskData.h"
+
 #ifdef USE_ROOT
 #include "TThreadMergingServer.h"
 #endif
@@ -36,6 +38,8 @@ class GeantScheduler;
 class TaskBroker;
 class GeantVTaskMgr;
 
+using GeantTaskData=Geant::GeantTaskData;
+
 /**
  * @brief WorkloadManager class
  * @details Main work manager class. This creates and manages all the worker threads,
@@ -44,6 +48,7 @@ class GeantVTaskMgr;
  */
 class WorkloadManager {
 protected:
+  GeantPropagator* fPropagator;                           /** propagator,... */
   int fNthreads;                                     /** Number of managed threads */
   int fNbaskets;                                     /** Total number of baskets */
   int fBasketGeneration;                             /** Basket generation */
@@ -87,14 +92,14 @@ protected:
    *
    * @param  nthreads Number of threads foe workload manager
    */
-  WorkloadManager(int nthreads);
+  WorkloadManager(int nthreads, GeantPropagator* prop);
 
 public:
   /** @brief WorkloadManager destructor */
   virtual ~WorkloadManager();
 
   /** @brief Create basket function */
-  void CreateBaskets();
+  void CreateBaskets(GeantPropagator* prop);
 
   enum class FeederResult : char { kNone, kFeederWork, kStopProcessing };
 
@@ -173,7 +178,8 @@ public:
    *
    * @param nthreads Number of threads (by default 0)
    */
-  static WorkloadManager *Instance(int nthreads = 0);
+  
+  static WorkloadManager *NewInstance(GeantPropagator *prop= nullptr, int nthreads = 0);
 
   /** @brief Function that check if buffer is flushed */
   bool IsFlushed() const { return fFlushed; }
@@ -246,36 +252,36 @@ public:
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *GarbageCollectorThread();
+  static void *GarbageCollectorThread(GeantPropagator *prop);
 
   /**
    * @brief Function that provides monitoring thread
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *MonitoringThread();
+  static void *MonitoringThread(GeantPropagator *prop);
 
   /**
    * @brief Function that provides output thread
    *
    * @param arg Arguments to be passed in the function
    */
-
-  static void *OutputThread();
+  
+  static void *OutputThread(GeantPropagator *prop);
 
   /**
    * @brief Function that provides transporting tracks
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *TransportTracks();
+  static void *TransportTracks(GeantPropagator *prop);
 
   /**
    * @brief Function that provides transport tracks in coprocessor
    *
    * @param arg Arguments to be passed in the function
    */
-  static void *TransportTracksCoprocessor(TaskBroker *broker);
+  static void *TransportTracksCoprocessor(GeantPropagator *prop,TaskBroker *broker);
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();

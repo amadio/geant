@@ -93,7 +93,7 @@ private:
 public:
 
   /** @brief Constructor LHCbApplication */
-  LHCbApplication();
+  LHCbApplication(GeantPropagator *prop);
 
   /** @brief Destructor LHCbApplication */
   virtual ~LHCbApplication() {}

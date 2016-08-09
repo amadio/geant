@@ -98,7 +98,7 @@ private:
 public:
 
   /** @brief Constructor CMSApplication */
-  CMSApplication();
+  CMSApplication(GeantPropagator *prop);
 
   /** @brief Destructor CMSApplication */
   virtual ~CMSApplication() {}

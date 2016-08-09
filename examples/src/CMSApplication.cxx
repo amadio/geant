@@ -21,8 +21,8 @@ using vecgeom::GeoManager;
 #endif
 
 //______________________________________________________________________________
-CMSApplication::CMSApplication()
-  : GeantVApplication(), fInitialized(false), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore),
+CMSApplication::CMSApplication(GeantPropagator *prop)
+  : GeantVApplication(prop), fInitialized(false), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore),
 #ifdef USE_ROOT
     fFluxElec(0),
     fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0),
@@ -30,7 +30,7 @@ CMSApplication::CMSApplication()
     fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
-  fFactory = store->GetFactory<MyHit>(16);
+  fFactory = store->GetFactory<MyHit>(16,fPropagator->fWMgr);
   //
   memset(fSensFlags, 0, kNvolumes * sizeof(bool));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(float));
@@ -79,7 +79,7 @@ bool CMSApplication::Initialize() {
   if (fInitialized)
     return true;
   // Loop unique volume id's
-  GeantScheduler *sch = WorkloadManager::Instance()->GetScheduler();
+  GeantScheduler *sch = fPropagator->fWMgr->GetScheduler();
   int nvolumes = sch->GetNvolumes();
   std::vector<Volume_t const *> &lvolumes = sch->GetVolumes();
   printf("Found %d logical volumes", nvolumes);
@@ -142,7 +142,7 @@ bool CMSApplication::Initialize() {
 void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
-  static GeantPropagator *propagator = GeantPropagator::Instance();
+  static GeantPropagator *propagator = td->fPropagator;
   int tid = td->fTid;
   if ((!fInitialized) || (fScore == kNoScore))
     return;
@@ -185,7 +185,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       
     }
 #ifdef HITS_GRAPHICS
-    if (gPropagator->fFillTree) {
+    if ((fPropagator)->fFillTree) {
       // Deposit hits
       if ((tracks.fStatusV[itr] == kNew) ||
           (tracks.fStatusV[itr] == kKilled) ||
@@ -215,7 +215,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       }
     }
 #else
-    if (gPropagator->fFillTree) {
+    if ((fPropagator)->fFillTree) {
       MyHit *hit;
       // Deposit hits
       if (tracks.fEdepV[itr]>0.00002) {
@@ -271,7 +271,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
         fMHist.unlock();      
 #ifdef USE_ROOT
       
-      if (gPropagator->fFillTree) {
+      if ((fPropagator)->fFillTree) {
 	MyHit *hit;
 	
 	// Deposit hits
@@ -303,7 +303,7 @@ void CMSApplication::Digitize(int /* event */) {
   //   Geant::Printf("======= Statistics for event %d:\n", event);
   Geant::Printf("Energy deposit in ECAL [MeV/primary] ");
   Geant::Printf("================================================================================");
-  double nprim = (double)gPropagator->fNprimaries;
+  double nprim = (double)(fPropagator)->fNprimaries;
   for (int i = 0; i < kNECALModules; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
@@ -337,7 +337,7 @@ void CMSApplication::FinishRun() {
   if (fScore == kNoScore)
     return;
   TCanvas *c1 = new TCanvas("CMS test flux", "Simple scoring in CMS geometry", 700, 1200);
-  double norm = 1. / GeantPropagator::Instance()->fNprimaries.load();
+  double norm = 1. / fPropagator->fNprimaries.load();
   TVirtualPad *pad;
   TFile *f = TFile::Open("ScoreECAL.root", "RECREATE");
   c1->Divide(2, 3);

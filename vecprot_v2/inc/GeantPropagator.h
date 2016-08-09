@@ -145,14 +145,12 @@ public:
   GeantEvent **fEvents;        /** ![fNevents]    Array of events */
   GeantTaskData **fThreadData; /** ![fNthreads] Data private to threads */
 
-  static GeantPropagator *fgInstance;
-
   /** @brief Initialization function */
   void Initialize();
 
   /** @brief Initialization function */
   void InitializeAfterGeom();
-
+  
   /** @brief Initialize classes for RK Integration */
   void PrepareRkIntegration();
 
@@ -249,7 +247,7 @@ public:
    * @param nbuffered Number of buffered tracks
    */
   VECCORE_ATT_HOST_DEVICE
-  static GeantPropagator *Instance(int ntotal = 0, int nbuffered = 0, int nthreads = 0);
+  static GeantPropagator *NewInstance(int ntotal = 0, int nbuffered = 0, int nthreads = 0);
 
   /**
    * @brief Propose the physics step for an array of tracks

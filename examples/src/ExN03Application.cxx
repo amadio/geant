@@ -23,11 +23,11 @@ using std::min;
 using std::max;
 
 //______________________________________________________________________________
-ExN03Application::ExN03Application()
-  : GeantVApplication(), fInitialized(false), fIdGap(0), fIdAbs(0), fFactory(0) {
+ExN03Application::ExN03Application(GeantPropagator *prop)
+  : GeantVApplication(prop), fInitialized(false), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
-  fFactory = store->GetFactory<MyHit>(16);
+  fFactory = store->GetFactory<MyHit>(16,fPropagator->fWMgr);
   memset(fEdepGap, 0, kNlayers * kMaxThreads * sizeof(float));
   memset(fLengthGap, 0, kNlayers * kMaxThreads * sizeof(float));
   memset(fEdepAbs, 0, kNlayers * kMaxThreads * sizeof(float));
@@ -118,7 +118,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
     }
   }
 #ifdef USE_ROOT
-  if (gPropagator->fFillTree) {
+  if ((fPropagator)->fFillTree) {
 #else
   if (GeantPropagator::Instance()->fFillTree) {
 #endif
@@ -162,9 +162,9 @@ void ExN03Application::Digitize(int /* event */) {
   printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
   printf("================================================================================");
 #ifdef USE_ROOT
-  double nprim = (double)gPropagator->fNprimaries;
+  double nprim = (double)fPropagator->fNprimaries;
 #else
-  double nprim = (double)GeantPropagator::Instance()->fNprimaries;
+  double nprim = (double)fPropagator->fNprimaries;
 #endif
   for (int i = 0; i < kNlayers; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {

@@ -56,7 +56,7 @@ class FastSimApplication : public GeantVApplication {
 
   public:
     /** @brief Default constructor */
-    FastSimApplication();
+    FastSimApplication(GeantPropagator *prop);
 
     /** @brief Destructor */
     virtual ~FastSimApplication() {}

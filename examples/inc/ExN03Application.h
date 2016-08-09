@@ -58,7 +58,7 @@ private:
 public:
 
   /** @brief Constructor ExN03Application */
-  ExN03Application();
+  ExN03Application(GeantPropagator *prop);
 
   /** @brief Destructor ExN03Application */
   virtual ~ExN03Application() {}

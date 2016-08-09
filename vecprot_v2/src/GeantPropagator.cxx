@@ -81,9 +81,6 @@
 using namespace Geant;
 using namespace vecgeom;
 
-GeantPropagator *gPropagator = 0;
-GeantPropagator *GeantPropagator::fgInstance = 0;
-
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
     : fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
@@ -103,7 +100,7 @@ GeantPropagator::GeantPropagator()
       fVectorPhysicsProcess(0), fPhysicsInterface(0), fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0),
       fEvents(0), fThreadData(0) {
   // Constructor
-  fgInstance = this;
+ 
 }
 
 //______________________________________________________________________________
@@ -177,7 +174,7 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
   // Returns a temporary track support for the physics processes, unique per
   // thread which can be used to add tracks produced by physics processes.
   if (tid < 0)
-    tid = WorkloadManager::Instance()->ThreadId();
+    tid = fWMgr->ThreadId();
   if (tid > fNthreads)
     Geant::Fatal("GeantPropagator::GetTempTrack", "Thread id %d is too large (max %d)", tid, fNthreads);
   GeantTrack &track = fThreadData[tid]->fTrack;
@@ -252,7 +249,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
   int ndispatched = 0;
   GeantTaskData *td = thread_data;
   if (td == 0) {
-    int tid = WorkloadManager::Instance()->ThreadId();
+    int tid = fWMgr->ThreadId();
     Geant::Print("","=== Importing tracks %d  ===", tid);
     td = fThreadData[tid];
     td->fTid = tid;
@@ -331,10 +328,9 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthreads) {
+GeantPropagator *GeantPropagator::NewInstance(int ntotal, int nbuffered, int nthreads) {
   // Single instance of the propagator
-  if (fgInstance)
-    return fgInstance;
+  GeantPropagator* newInstance=new GeantPropagator();
   if (ntotal <= 0 || nbuffered <= 0) {
 #ifdef USE_ROOT
     Printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
@@ -343,23 +339,25 @@ GeantPropagator *GeantPropagator::Instance(int ntotal, int nbuffered, int nthrea
 #endif
     return 0;
   }
-  fgInstance = new GeantPropagator();
-  fgInstance->fNtotal = ntotal;
-  fgInstance->fNevents = nbuffered;
-  fgInstance->fNthreads = nthreads;
+  newInstance = new GeantPropagator();
+  newInstance->fNtotal = ntotal;
+  newInstance->fNevents = nbuffered;
+  newInstance->fNthreads = nthreads;
   if (nbuffered > ntotal) {
 #ifdef USE_ROOT
     Printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
 #else
     printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
 #endif
-    fgInstance->fNevents = ntotal;
+    newInstance->fNevents = ntotal;
   }
   // Initialize workload manager
-  fgInstance->fWMgr = WorkloadManager::Instance(nthreads);
+  #warning this must be solved before using CUDA
+  newInstance->fWMgr = WorkloadManager::NewInstance(newInstance,nthreads);
   // Instantiate factory store
+  #warning to check
   GeantFactoryStore::Instance(nbuffered);
-  return fgInstance;
+  return newInstance;
 }
 
 //______________________________________________________________________________
@@ -369,7 +367,8 @@ void GeantPropagator::Initialize() {
   fMaxTracks = fMaxPerEvent * fNevents;
 
   // Initialize arrays here.
-  gPropagator = GeantPropagator::Instance();
+  #warning to check
+  //gPropagator = GeantPropagator::Instance();
   fDoneEvents = BitSet::MakeInstance(fNtotal);
 
 #ifdef USE_REAL_PHYSICS
@@ -406,18 +405,18 @@ void GeantPropagator::InitializeAfterGeom() {
   // Initialization, part two.
 
   // Add some empty baskets in the queue
-  fWMgr->CreateBaskets(); // geometry must be created by now
+  fWMgr->CreateBaskets(this); // geometry must be created by now // why ???
 
   if (!fThreadData) {
     fThreadData = new GeantTaskData *[fNthreads];
     for (int i = 0; i < fNthreads; i++) {
-      fThreadData[i] = new GeantTaskData(fNthreads, fMaxDepth, fMaxPerBasket);
+      fThreadData[i] = new GeantTaskData(fNthreads, fMaxDepth, fMaxPerBasket, this);
       fThreadData[i]->fTid = i;
     }
   }
   // Initialize application
   if (fUseStdScoring) {
-    fStdApplication = new StdApplication();
+    fStdApplication = new StdApplication(this);
     fStdApplication->Initialize();
   }
   fApplication->Initialize();
@@ -645,7 +644,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;
-  WorkloadManager::Instance()->SetMaxThreads(nthreads);
+  fWMgr->SetMaxThreads(nthreads);
 #ifdef USE_ROOT
   if (fUseMonitoring) {
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);

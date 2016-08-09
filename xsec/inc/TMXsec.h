@@ -53,9 +53,9 @@ public:
   double InvRange(int part, float step);
 
   VECCORE_ATT_HOST_DEVICE
-  void Eloss(int ntracks, GeantTrack_v &tracks);
+  void Eloss(int ntracks, GeantTrack_v &tracks,GeantTaskData *td);
   VECCORE_ATT_HOST_DEVICE
-  void ElossSingle(int itrack, GeantTrack_v &tracks);
+  void ElossSingle(int itrack, GeantTrack_v &tracks,GeantTaskData *td);
   void ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
   void ProposeStepSingle(int itr, GeantTrack_v &tracks, GeantTaskData *td);
   void SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td);

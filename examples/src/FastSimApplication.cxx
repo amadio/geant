@@ -25,8 +25,8 @@ using std::min;
 using std::max;
 
 //______________________________________________________________________________
-FastSimApplication::FastSimApplication()
-  : GeantVApplication(), fInitialized(false), fMHist(), 
+FastSimApplication::FastSimApplication(GeantPropagator *prop)
+  : GeantVApplication(prop), fInitialized(false), fMHist(), 
     fRatioMomentumInTracker( nullptr ), fRatioEnergyInEcal( nullptr ),
     fRatioEnergyInHcal( nullptr )
 {
@@ -100,7 +100,7 @@ bool FastSimApplication::Initialize() {
 void FastSimApplication::StepManager( int npart, const GeantTrack_v &tracks, GeantTaskData * /* td */ ) {
   // Application stepping manager. 
   //std::cout << "APPLICATION : FastSimApplication::StepManager" << std::endl;  // Debug
-  static GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = fPropagator;
   // Loop all tracks, and for those with fast-simulation process, fill the 
   // proper histograms (which depend on the track position in the detector).
   // Note: there is no simple and clean way to get the initial (i.e. unsmeared)

@@ -13,8 +13,8 @@
 #endif
 
 //______________________________________________________________________________
-StdApplication::StdApplication()
-  : GeantVApplication(), fInitialized(false),
+StdApplication::StdApplication(GeantPropagator *prop)
+  : GeantVApplication(prop), fInitialized(false),
 #ifdef USE_ROOT
     fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
 #endif
@@ -66,11 +66,11 @@ bool StdApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData * /*td*/) {
+void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData * td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
 #ifdef USE_ROOT
-  static GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = td->fPropagator;
   if ((!fInitialized) || (fScore == kNoScore))
     return;
   // Loop all tracks, check if they are in the right volume and collect the

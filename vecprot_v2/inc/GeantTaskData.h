@@ -16,6 +16,7 @@
 #ifndef GEANT_TRACK
 #include "GeantTrackVec.h"
 #endif
+ #include "GeantPropagator.h"
 
 #include <deque>
 #include <vector>
@@ -55,6 +56,7 @@ public:
   using vector_t = std::vector<T>;
 #endif
 
+  GeantPropagator *fPropagator; /** GeantPropagator */
   int fTid;              /** Thread unique id */
   size_t fNthreads;      /** Number of transport threads */
   int fMaxDepth;         /** Maximum geometry depth */
@@ -107,11 +109,11 @@ private:
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
   VECCORE_ATT_HOST_DEVICE
-  GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
+  GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *propagator);
 
 public:
   /** @brief GeantTaskData constructor */
-  GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket);
+  GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *propagator);
 
   /** @brief GeantTaskData destructor */
   ~GeantTaskData();
@@ -120,7 +122,7 @@ public:
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_HOST_DEVICE
-  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
+  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *propagator);
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
   VECCORE_ATT_HOST_DEVICE
@@ -221,6 +223,7 @@ private:
    */
   GeantTaskData &operator=(const GeantTaskData &);
 
+  // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

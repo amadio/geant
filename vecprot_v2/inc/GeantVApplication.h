@@ -15,6 +15,7 @@
 
 class GeantHitBlock;
 #include "GeantFwd.h"
+#include "GeantPropagator.h"
 
 /** @brief GeantVApplication class */
 class GeantVApplication {
@@ -22,9 +23,13 @@ public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
+
+  GeantPropagator *fPropagator; /*taskData*/
   
   /** @brief GeantVApplication constructor */	
-  GeantVApplication();
+  GeantVApplication(GeantPropagator *prop);
+
+  void setPropagator(GeantPropagator *prop);
 
   /** @brief GeantVApplication destructor */
   virtual ~GeantVApplication() {}

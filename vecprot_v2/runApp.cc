@@ -152,7 +152,6 @@ int main(int argc, char *argv[]) {
   }
   bool performance = true;
   TGeoManager::Import(exn03_geometry_filename.c_str());
-  WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
   TaskBroker *broker = nullptr;
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
@@ -164,7 +163,8 @@ int main(int argc, char *argv[]) {
     std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
   }
-  GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered,n_threads);
+  GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
+  WorkloadManager *wmanager = propagator->WorkloadManager();
 
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
    // if set to 0 disable learning phase
   propagator->fLearnSteps = n_learn_steps;
   if (performance) propagator->fLearnSteps = 0;
-  propagator->fApplication = new ExN03Application();
+  propagator->fApplication = new ExN03Application(propagator);
    // Activate I/O
   propagator->fFillTree = false;
   

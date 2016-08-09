@@ -24,6 +24,7 @@ class GeantBasketMgr;
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
+#include "GeantPropagator.h"
 
 /**
  * @brief Class GeantScheduler
@@ -74,7 +75,7 @@ public:
   virtual ~GeantScheduler();
 
   /** @brief Activate basket managers based on distribution of steps */
-  void ActivateBasketManagers();
+  void ActivateBasketManagers(GeantTaskData* td);
 
   /**
    * @brief Schedule a new track
@@ -101,7 +102,7 @@ public:
   void AdjustBasketSize();
 
   /** @brief Function to create initially baskets */
-  void CreateBaskets();
+  void CreateBaskets(GeantPropagator* prop);
 
   /**
    * @brief Getter for the array of basket managers

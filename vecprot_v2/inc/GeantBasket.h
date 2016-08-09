@@ -23,6 +23,7 @@
 #include "GeantTrackVec.h"
 #include "priority_queue.h"
 #include "mpmc_bounded_queue.h"
+#include "GeantPropagator.h"
 
 class GeantBasketMgr;
 #include "GeantFwd.h"
@@ -76,7 +77,7 @@ public:
    * @param size Initial size of input/output track arrays
    * @param mgr  Basket manager handling this basket
    */
-  GeantBasket(int size, GeantBasketMgr *mgr);
+  GeantBasket(GeantPropagator* prop, int size, GeantBasketMgr *mgr);
 
   /**
    * @brief GeantBasket standard constructor
@@ -348,7 +349,7 @@ public:
    * @param vol Volume associated with this
    * @param number Number for the basket manager
   */
-  GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector = false);
+  GeantBasketMgr(GeantPropagator* prop, GeantScheduler *sch, Volume_t *vol, int number, bool collector = false);
 
   /** @brief Destructor of GeantBasketMgr */
   virtual ~GeantBasketMgr();
@@ -373,7 +374,7 @@ public:
    * @details Activation happens on threshold on percentage of tracks transported
    * in the associated volume and threshold on total number of tracks (learning phase)
    */
-  void Activate();
+  void Activate(GeantPropagator* prop);
 
   /**
    * @brief Function adding a track to basket up to the basket threshold

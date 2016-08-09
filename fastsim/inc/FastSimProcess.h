@@ -64,7 +64,7 @@ class FastSimProcess : public PhysicsProcessOld {
     virtual ~FastSimProcess();
 
     /** @brief Initialization: an object of the Smearer class is created */
-    virtual void Initialize();
+    virtual void Initialize(GeantTaskData *td);
 
     /** @brief Compute the proposed step-lengths for the vector of tracks.
      *

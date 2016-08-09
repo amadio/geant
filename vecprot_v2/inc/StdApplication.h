@@ -60,7 +60,7 @@ private:
 public:
 
   /** @brief Constructor StdApplication */
-  StdApplication();
+  StdApplication(GeantPropagator *prop);
 
   /** @brief Destructor StdApplication */
   virtual ~StdApplication() {}
