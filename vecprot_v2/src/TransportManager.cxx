@@ -317,8 +317,8 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-   const double bmag = gPropagator->fBmag;
-   useRungeKutta= gPropagator->fUseRungeKutta;
+   const double bmag = td->fPropagator->fBmag;
+   useRungeKutta= td->fPropagator->fUseRungeKutta;
 #endif
 
    // static unsigned long icount= 0;
@@ -423,8 +423,9 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   if (action != kVector)
     return PropagateTracksScalar(tracks, td);
 // Compute transport length in geometry, limited by the physics step
+  GeantPropagator *prop = td->fPropagator;
 #ifdef BUG_HUNT
-  GeantPropagator *prop = GeantPropagator::Instance();
+  
   BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(tracks, ntracks, td);
@@ -438,7 +439,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   int icrossed = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = gPropagator->fBmag;
+  const double bmag = prop->fBmag;
 
   // Remove dead tracks, propagate neutrals
   for (unsigned int itr=0; itr<tracks.size(); ++itr) {
@@ -572,17 +573,18 @@ VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
   // Propagate the track with its selected steps, starting from a given stage.
 
+  GeantPropagator *prop = td->fPropagator;
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
-  const double bmag = gPropagator->fBmag;
+  const double bmag = prop->fBmag;
 #endif
 // Compute transport length in geometry, limited by the physics step
+  
 #ifdef BUG_HUNT
-  GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep,
               "PropagateSingle", itr);
 #endif

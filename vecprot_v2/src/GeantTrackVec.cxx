@@ -1301,8 +1301,8 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-   const double bmag = gPropagator->fBmag;
-   useRungeKutta= gPropagator->fUseRungeKutta;
+   const double bmag = td->fPropagator->fBmag;
+   useRungeKutta= td->fPropagator->fUseRungeKutta;
 #endif
 
    // static unsigned long icount= 0;
@@ -1652,9 +1652,10 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   }
   if (action != kVector)
     return PropagateTracksScalar(td, 0);
+GeantPropagator *prop = td->fPropagator;
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
-  GeantPropagator *prop = GeantPropagator::Instance();
+  
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(ntracks, td);
@@ -1669,7 +1670,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   int nsel = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = gPropagator->fBmag;
+  const double bmag = prop->fBmag;
 
   // Remove dead tracks, propagate neutrals
   for (itr = 0; itr < ntracks; itr++) {
@@ -1745,7 +1746,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   ntracks = GetNtracks();
   double *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < fNtracks; itr++) {
-    lmax = SafeLength(itr, eps);
+    lmax = SafeLength(prop, itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
@@ -1856,11 +1857,11 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
-  const double bmag = gPropagator->fBmag;
+  const double bmag = td->fPropagator->fBmag;
 #endif
 // Compute transport length in geometry, limited by the physics step
+  GeantPropagator *prop = td->fPropagator;
 #ifdef BUG_HUNT
-  GeantPropagator *prop = GeantPropagator::Instance();
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateSingle", itr);
 #endif
   ComputeTransportLengthSingle(itr, td);
@@ -1923,7 +1924,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // i.e. what is the propagated length for which the track deviation in magnetic
     // field with respect to straight propagation is less than epsilon.
     // Take the maximum between the safety and the "bending" safety
-    lmax = SafeLength(itr, eps);
+    lmax = SafeLength(prop, itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
@@ -2040,14 +2041,14 @@ double GeantTrack_v::Curvature(int i, double Bz) const {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-double GeantTrack_v::SafeLength(int i, double eps) {
+double GeantTrack_v::SafeLength( GeantPropagator *prop, int i, double eps) {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.
 
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
-  const double bmag = gPropagator->fBmag;
+  const double bmag = prop->fBmag;
 #endif
   double c = Curvature(i, bmag);
   if (c < 1.E-10)

@@ -14,12 +14,14 @@
 #define GEANT_TRACK_VEC
 
 #include "GeantTrack.h"
+ class GeantPropagator;
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTrack_v;
 class GeantTaskData;
+
 
 /**
  * @brief SOA for GeantTrack used at processing time
@@ -527,7 +529,7 @@ public:
 
   /** @brief Function that return safe length */
   VECCORE_ATT_HOST_DEVICE
-  double SafeLength(int i, double eps = 1.E-4);
+  double SafeLength(GeantPropagator *propagator, int i, double eps = 1.E-4);
 
   /**
    * @brief Function that return gamma value
