@@ -63,7 +63,6 @@ protected:
   Geant::priority_queue<GeantBasket *> *fFeederQ;      /** Queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *fTransportedQ; /** Queue of transported baskets */
   Geant::priority_queue<GeantBasket *> *fDoneQ;        /** Thread "all work done" queue */
-  static WorkloadManager *fgInstance;                  /** Singleton instance */
   std::vector<std::thread> fListThreads;               /** Vector of threads */
   bool fFlushed;                                       /** Buffer flushed */
   bool fFilling;                                       /** Worker queue is filling */

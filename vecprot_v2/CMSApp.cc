@@ -153,13 +153,14 @@ int main(int argc, char *argv[]) {
   bool performance = true;
   TaskBroker *broker = nullptr;
 
-   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered);
+   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
+   
 #ifdef USE_ROOT
   TGeoManager::Import(cms_geometry_filename.c_str());
 #else
 
 #endif
-  WorkloadManager *wmanager = WorkloadManager::NewInstance(propagator, n_threads);
+  WorkloadManager *wmanager = propagator->fWMgr;
 
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE

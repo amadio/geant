@@ -49,8 +49,6 @@
 using namespace Geant;
 using std::max;
 
-WorkloadManager *WorkloadManager::fgInstance = 0;
-
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
     :fPropagator(prop),fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads), fNminThreshold(10),
@@ -66,7 +64,6 @@ WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fDoneQ = new Geant::priority_queue<GeantBasket *>(1 << 10);
-  fgInstance = this;
   fScheduler = new GeantScheduler();
   fWaiting = new int[fNthreads + 1];
   memset(fWaiting, 0, (fNthreads + 1) * sizeof(int));
@@ -86,7 +83,6 @@ WorkloadManager::~WorkloadManager() {
   delete fScheduler;
   delete[] fWaiting;
   //   delete fNavStates;
-  fgInstance = 0;
 #ifdef USE_ROOT
   delete fOutputIO;
 #endif
@@ -121,10 +117,8 @@ void WorkloadManager::CreateBaskets(GeantPropagator* prop) {
 //______________________________________________________________________________
 WorkloadManager *WorkloadManager::NewInstance(GeantPropagator *prop, int nthreads) {
   // Return singleton instance.
-  if (fgInstance)
-    return fgInstance;
   if (!nthreads || !prop) {
-    ::Error("WorkloadManager::Instance", "No instance yet so you should provide number of threads.");
+    ::Error("WorkloadManager::NewInstance", "You should provide number of threads.");
     return 0;
   }
   return new WorkloadManager(nthreads,prop);
