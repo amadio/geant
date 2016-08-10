@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
 #endif
   }
   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
-  WorkloadManager *wmanager = propagator->WorkloadManager();
+  WorkloadManager *wmanager = propagator->fWMgr;
 
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
