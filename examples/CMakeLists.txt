@@ -19,15 +19,13 @@ set(headers
 if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples 
     LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+    set(sources ${sources} G__Examples.cxx)
 endif()
 
 #----------------------------------------------------------------------------------------------
 # CUDA section
 #
 if (CUDA)
-  if(USE_ROOT)
-    set(sources ${sources} G__Examples.cxx)
-  endif()
   CUDA_ADD_LIBRARY(GeantExamples
     ${sources}
     SHARED
@@ -37,12 +35,14 @@ else()
   add_library(GeantExamples SHARED ${sources})
 endif()
 
+target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v)
+
+if (USE_ROOT)
+  target_link_libraries(GeantExamples ${ROOT_LIBRARIES})
+endif()
+
 if (KNC)
-  target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  Geant_v ${ROOT_LIBRARIES} ${Vc_MIC_LIBRARIES})
-else()
-  target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-  Geant_v)
+  target_link_libraries(GeantExamples ${Vc_MIC_LIBRARIES})
 endif()
 
 add_dependencies(GeantExamples Geant_v)
@@ -57,6 +57,7 @@ if(APPLE)
 else()
   install(TARGETS GeantExamples DESTINATION lib)
 endif()
+
 if(USE_ROOT)
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.rootmap 
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples_rdict.pcm DESTINATION lib)

@@ -69,6 +69,7 @@ bool StdApplication::Initialize() {
 void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData * /*td*/) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
+#ifdef USE_ROOT
   static GeantPropagator *propagator = GeantPropagator::Instance();
   if ((!fInitialized) || (fScore == kNoScore))
     return;
@@ -84,7 +85,6 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
     }
     if (propagator->fNthreads > 1)
       fMHist.lock();
-    #ifdef USE_ROOT
     fHeta->Fill(eta);
     fHpt->Fill(tracks.Pt(itr));
     fHStep->Fill(tracks.fStepV[itr]);
@@ -92,10 +92,13 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
     if ((tracks.fStatusV[itr] == kKilled) || (tracks.fStatusV[itr] == kExitingSetup) ||
         (tracks.fPathV[itr]->IsOutside()))
       fStepCnt->Fill(eta, tracks.fNstepsV[itr]);
-    #endif
     if (propagator->fNthreads > 1)
       fMHist.unlock();
   }
+#else
+  (void)npart;
+  (void)tracks;
+#endif
 }
 
 //______________________________________________________________________________
