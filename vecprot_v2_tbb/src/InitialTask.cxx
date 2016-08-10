@@ -8,9 +8,6 @@
 #include "TThreadMergingFile.h"
 
 #include "InitialTask.h"
-#include "ThreadData.h"
-#include "FlowControllerTask.h"
-#include "TransportTask.h"
 
 #include "tbb/task_scheduler_init.h"
 
@@ -20,20 +17,18 @@ tbb::task* InitialTask::execute ()
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantScheduler *sch = wm->GetScheduler();
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
+
   tbb::task_scheduler_init init( propagator->fNthreads );
 
-  int tid = wm->Instance()->ThreadId();
+  int tid = wm->Instance()->ThreadId(); // only for checking thread id with initial task
   Geant::GeantTaskData *td = propagator->fThreadData[tid];
 
   printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);
-  td->fTid = tid;
-
 
   threadData->fPrioritizers[tid] = new GeantBasketMgr(sch, 0, 0, true);
   td->fBmgr = threadData->fPrioritizers[tid];
   threadData->fPrioritizers[tid]->SetThreshold(propagator->fNperBasket);
   threadData->fPrioritizers[tid]->SetFeederQueue(wm->FeederQueue());
-
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   threadData->fMyhitFactories[tid] = factoryStore->GetFactory<MyHit>(16);
@@ -51,7 +46,5 @@ tbb::task* InitialTask::execute ()
     }
   tbb::task::set_ref_count(2);
   FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(td, true);
-  //tbb::task::spawn(flowControllerTask);
-  //return NULL;
   return & flowControllerTask;
 }

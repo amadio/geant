@@ -1,21 +1,11 @@
-#include "Geant/Error.h"
-
 #include "FeederTask.h"
-#include "ThreadData.h"
-#include "TransportTask.h"
-#include "WorkloadManager.h"
-#include "GeantPropagator.h"
-#include "GeantEvent.h"
-#include "GeantTaskData.h"
 
-
-#include <iostream>
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
 #endif
 
 
-FeederTask::FeederTask (Geant::GeantTaskData *td, int *nbaskets): fTd(td), fNbaskets(nbaskets) { }
+FeederTask::FeederTask (Geant::GeantTaskData *td): fTd(td) { }
 
 FeederTask::~FeederTask () { }
 
@@ -26,27 +16,16 @@ tbb::task* FeederTask::execute ()
     return NULL;
   }
   GeantPropagator *propagator = GeantPropagator::Instance();
-  int tid = wm->ThreadId();
-  if(tid>=propagator->fNthreads){
-    return NULL;
-  }
-  //Geant::GeantTaskData *td = propagator->fThreadData[tid];
-  //printf("=== Feeder task %d (%d) created ===\n", tid, fTd->fTid);
-
 
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
-
 
   int nbaskets = 0;
   if (!propagator->fLastEvent) {
     nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, fTd);
     propagator->fLastEvent = propagator->fNevents;
-    *fNbaskets = nbaskets;
     propagator->ReleaseLock();
     tbb::task::set_ref_count(2);
-    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask(fTd, nbaskets );
-    //tbb::task::spawn(transportTask);
-    //return NULL;
+    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
     return & transportTask;
   }
   // Check and mark finished events
@@ -71,14 +50,10 @@ tbb::task* FeederTask::execute ()
     }
   }
 
-
-  *fNbaskets = nbaskets;
   //printf("=== Feeder task  found %d baskets ===\n", nbaskets);
   // spawn transport task
   propagator->ReleaseLock();
   tbb::task::set_ref_count(2);
-  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask(fTd, nbaskets );
-  //tbb::task::spawn(transportTask);
-  //return NULL;
+  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
   return & transportTask;
 }

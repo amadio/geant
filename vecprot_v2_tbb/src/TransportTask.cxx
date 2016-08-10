@@ -17,24 +17,13 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TMath.h"
+#include "TTree.h"
 #include "GeantTrack.h"
 #include "GeantBasket.h"
-#include "GeantOutput.h"
-#include "GeantTaskData.h"
-#include "PhysicsProcess.h"
 #include "GeantScheduler.h"
-#include "GeantEvent.h"
+#include "GeantOutput.h"
+#include "PhysicsProcess.h"
 #include "GeantVApplication.h"
-#if USE_VECGEOM_NAVIGATOR
-#include "base/TLS.h"
-#include "management/GeoManager.h"
-#include "materials/Medium.h"
-#else
-#include "TGeoNavigator.h"
-#include "TGeoManager.h"
-#endif
-#include "TaskBroker.h"
-
 #ifndef GEANT_MYHIT
 #include "MyHit.h"
 #endif
@@ -42,7 +31,6 @@
 #include "GeantFactory.h"
 #endif
 #include "TThread.h"
-#include "GeantFactoryStore.h"
 #include "TThreadMergingFile.h"
 
 #ifdef GEANT_TBB
@@ -50,7 +38,7 @@
 #endif
 
 
-TransportTask::TransportTask (Geant::GeantTaskData *td, int nbaskets): fTd(td), fNbaskets(nbaskets) { }
+TransportTask::TransportTask (Geant::GeantTaskData *td): fTd(td) { }
 
 TransportTask::~TransportTask () { }
 
@@ -95,13 +83,9 @@ tbb::task* TransportTask::execute ()
   GeantPropagator *propagator = GeantPropagator::Instance();
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
   WorkloadManager *wm = WorkloadManager::Instance();
-  int tid = wm->ThreadId();
-  if(tid>=propagator->fNthreads){
-    return NULL;
-  }
-  //Geant::GeantTaskData *td = propagator->fThreadData[tid];
+
   Geant::GeantTaskData *td = fTd;
-  //td->fTid = tid;
+  int tid = td->fTid;
   //Geant::Print("","============= Transport Worker: %d\n", tid);
   int nworkers = propagator->fNthreads;
 
@@ -148,13 +132,6 @@ tbb::task* TransportTask::execute ()
 
   bool firstTime = true;
   while (1) {
-    // Call the feeder if in priority mode
-    /*auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
-    if (feedres == WorkloadManager::FeederResult::kFeederWork) {
-       ngcoll = 0;
-    } else if (feedres == WorkloadManager::FeederResult::kStopProcessing) {
-       break;
-    }*/
 
     if (propagator->TransportCompleted())
       break;
@@ -333,7 +310,6 @@ tbb::task* TransportTask::execute ()
         //         target and type of interaction above), insert them into
         //         the track vector, update primary tracks;
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
-
       }
     }
     if (gPropagator->fStdApplication)
@@ -402,8 +378,6 @@ tbb::task* TransportTask::execute ()
 
   tbb::task::set_ref_count(2);
   FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(td, false);
-  //tbb::task::spawn(flowControllerTask);
-  //return NULL;
   return & flowControllerTask;
 
 }

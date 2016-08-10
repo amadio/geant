@@ -8,10 +8,9 @@ class TransportTask : public tbb::task
 {
 private:
   Geant::GeantTaskData *fTd;
-  int fNbaskets;
 
 public:
-  TransportTask (Geant::GeantTaskData *td, int nbaskets);
+  TransportTask (Geant::GeantTaskData *td);
   ~TransportTask ();
 
   tbb::task* execute ();
