@@ -1,15 +1,18 @@
+#include "TTree.h"
+#include "GeantPropagator.h"
+#include "WorkloadManager.h"
+#include "GeantScheduler.h"
+#include "GeantTaskData.h"
+#include "GeantBasket.h"
+#include "MyHit.h"
+#include "TThreadMergingFile.h"
+
 #include "InitialTask.h"
 #include "ThreadData.h"
 #include "FlowControllerTask.h"
 #include "TransportTask.h"
 
-#ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
-#endif
-
-InitialTask::InitialTask () { }
-
-InitialTask::~InitialTask () { }
 
 tbb::task* InitialTask::execute ()
 {

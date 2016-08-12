@@ -334,10 +334,6 @@ tbb::task* TransportTask::execute ()
         //         the track vector, update primary tracks;
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
-        if (0 /*ntotnext*/) {
-          Geant::Print("","============= Basket: %s\n", basket->GetName());
-          output.PrintTracks();
-        }
       }
     }
     if (gPropagator->fStdApplication)

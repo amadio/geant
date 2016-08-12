@@ -1,19 +1,16 @@
+#----------------------------------------------------------------------------------------------
+# Add source files & include directories
+#
+include_directories(inc ../include ${TBB_INCLUDE_DIR})
 
-# Find source files
 file(GLOB SOURCES src/*.cxx)
 # Find header files
 file(GLOB HEADERS inc/*.h)
 
-# Include header files
-include_directories(inc)
-
-# Include TBB
-include_directories(${TBB_INCLUDE_DIR})
-
 # Create shared library
 add_library(Geant_tbb SHARED ${SOURCES})
 
-target_link_libraries(Geant_tbb -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lGeant_v ${TBB_LIBRARIES})
+target_link_libraries(Geant_tbb -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v ${TBB_LIBRARIES})
 
 add_dependencies(Xsec Geantlib_v)
 
