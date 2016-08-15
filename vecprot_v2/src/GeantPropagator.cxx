@@ -52,6 +52,7 @@
 #include "GeantBasket.h"
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
+#include "GeantVTaskMgr.h"
 #include "StdApplication.h"
 #include "GeantFactoryStore.h"
 #include "GeantEvent.h"
@@ -97,7 +98,7 @@ GeantPropagator::GeantPropagator()
       fEpsilonRK(0.0003), fUsePhysics(true), fUseRungeKutta(false), fUseDebug(false), fUseGraphics(false),
       fUseStdScoring(false), fTransportOngoing(false), fSingleTrack(false), fFillTree(false),
       fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(false), fUseAppMonitoring(false),
-      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
+      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTaskMgr(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
       fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fgInstance = this;
@@ -127,6 +128,7 @@ GeantPropagator::~GeantPropagator() {
   delete fTimer;
   delete fWMgr;
   delete fApplication;
+  delete fTaskMgr;
 }
 
 //______________________________________________________________________________
@@ -632,17 +634,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fTimer = new vecgeom::Stopwatch();
 #endif
 
-  if (fTBBMode) {
-    #ifdef GEANT_TBB
-      Printf("=== TBB Task Mode ====");
-      fWMgr->StartTasks();
-    #else
-      std::cerr << "Error: TBB mode requested but is not supported\n";
-    #endif
-  }else{
-    Printf("=== Thread Mode ====");
-    fWMgr->StartThreads();
+  // Start system tasks
+  if (!fWMgr->StartTasks(fTaskMgr)) {
+    Fatal("PropagatorGeom", "Cannot start tasks.");
+    return;
   }
+
   fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
   //  condition_locker &sched_locker = fWMgr->GetSchLocker();

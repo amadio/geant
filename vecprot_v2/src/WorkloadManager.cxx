@@ -20,6 +20,7 @@
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
 #include "GeantVApplication.h"
+#include "GeantVTaskMgr.h"
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
@@ -43,12 +44,6 @@
 #include "TThreadMergingFile.h"
 #endif
 #include "GeantFactoryStore.h"
-
-#ifdef GEANT_TBB
-#include "tbb/task_scheduler_init.h"
-#include "tbb/task.h"
-#include "InitialTask.h"
-#endif
 
 using namespace Geant;
 using std::max;
@@ -160,65 +155,30 @@ bool WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
 #endif
 
 //______________________________________________________________________________
-void WorkloadManager::StartThreads() {
+bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   // Start the threads
-  fStarted = true;
+  fStarted = true;  
   if (!fListThreads.empty())
-    return;
+    return false;
   int ith = 0;
   if (fBroker) {
      if (fBroker->GetNstream() > (unsigned int)fNthreads) {
       ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
               fNthreads);
+      return false;
     }
     Geant::Info("StartThreads", "Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
     fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
     ith += fBroker->GetNstream() + 1;
     if (ith == fNthreads && fBroker->IsSelective()) {
        Fatal("WorkloadManager::StartThreads","All %d threads are used by the coprocessor broker but it can only process a subset of particles.",fNthreads);
-       return;
+       return false;
     }
   }
-  // Start CPU transport threads
-  for (; ith < fNthreads; ith++) {
-    fListThreads.emplace_back(WorkloadManager::TransportTracks);
-  }
-
-  // Start output thread
-  if (GeantPropagator::Instance()->fFillTree) {
-    fListThreads.emplace_back(WorkloadManager::OutputThread);
-  }
-  // Start monitoring thread
-  if (GeantPropagator::Instance()->fUseMonitoring) {
-    fListThreads.emplace_back(WorkloadManager::MonitoringThread);
-  }
-  // Start garbage collector
-  if (GeantPropagator::Instance()->fMaxRes > 0) {
-    fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
-  }
-
-}
-
-//______________________________________________________________________________
-void WorkloadManager::StartTasks() {
-  // Start the threads
-#ifdef GEANT_TBB
-  tbb::task_list tlist;
-  fStarted = true;
-  if (!fListThreads.empty())
-    return;
-  int ith = 0;
-  if (fBroker) {
-     if (fBroker->GetNstream() > (unsigned int)fNthreads) {
-      ::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
-              fNthreads);
-    }
-    Geant::Info("StartThreads", "Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
-    fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, fBroker);
-    ith += fBroker->GetNstream() + 1;
-    if (ith == fNthreads && fBroker->IsSelective()) {
-       Fatal("WorkloadManager::StartThreads","All %d threads are used by the coprocessor broker but it can only process a subset of particles.",fNthreads);
-       return;
+  // Start CPU transport threads (static mode)
+  if (!taskmgr) {
+    for (; ith < fNthreads; ith++) {
+      fListThreads.emplace_back(WorkloadManager::TransportTracks);
     }
   }
 
@@ -234,15 +194,13 @@ void WorkloadManager::StartTasks() {
   if (GeantPropagator::Instance()->fMaxRes > 0) {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread);
   }
-
-  // Start Task scheduler and tasks
-  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-  // spawn transport tasks
-  for (int i = 0; i < fNthreads; i++)
-    tlist.push_back(*new (cont.allocate_child()) InitialTask());
-
-  cont.spawn(tlist);
-#endif  // GEANT_TBB
+  if (taskmgr) {
+    Printf("=== TBB Task Mode ====");
+    return taskmgr->Initialize(fNthreads);
+  } else {
+    Printf("=== Thread Mode ====");
+  }
+  return true;
 }
 
 //______________________________________________________________________________

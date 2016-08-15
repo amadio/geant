@@ -37,6 +37,7 @@ class GeantBasket;
 class GeantBasketMgr;
 class WorkloadManager;
 class GeantVApplication;
+class GeantVTaskMgr;
 class PrimaryGenerator;
 class MCTruthMgr;
 class TaskBroker;
@@ -116,12 +117,12 @@ public:
   bool fConcurrentWrite;     /** switch between single and mutlithreaded writing */
   bool fUseMonitoring;         /** Monitoring different features */
   bool fUseAppMonitoring;      /** Monitoring the application */
-  bool fTBBMode;              /* Use of TBB Tasks */
   std::mutex fTracksLock;          /** Mutex for adding tracks */
 
   WorkloadManager *fWMgr;             /** Workload manager */
   GeantVApplication *fApplication;    /** User application */
   GeantVApplication *fStdApplication; /** Standard application */
+  GeantVTaskMgr     *fTaskMgr;        /** GeantV task manager */
 
   #ifdef USE_ROOT
   TStopwatch *fTimer; /** Timer */

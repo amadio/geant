@@ -34,6 +34,7 @@ class GeantBasketMgr;
 class GeantBasket;
 class GeantScheduler;
 class TaskBroker;
+class GeantVTaskMgr;
 
 /**
  * @brief WorkloadManager class
@@ -231,11 +232,8 @@ public:
   /** @brief Setter for the global transport threshold */
   void SetNminThreshold(int thr) { fNminThreshold = thr; }
 
-  /** @brief Function that provides start process of threads  */
-  void StartThreads();
-
-  /** @brief Function that provides start process of tasks  */
-  void StartTasks();
+  /** @brief Function that initializes the threads/tasks used by the system */
+  bool StartTasks(GeantVTaskMgr *taskmgr);
 
   /** @brief Joins all threads at the end of processing */
   void JoinThreads();
