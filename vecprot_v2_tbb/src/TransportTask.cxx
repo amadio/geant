@@ -86,7 +86,8 @@ tbb::task* TransportTask::execute ()
 
   Geant::GeantTaskData *td = fTd;
   int tid = td->fTid;
-  //Geant::Print("","============= Transport Worker: %d\n", tid);
+  //int xid = wm->Instance()->ThreadId();
+  //Geant::Print("","============= Transport Worker: %d(%d)", tid,xid);
   int nworkers = propagator->fNthreads;
 
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
@@ -138,10 +139,16 @@ tbb::task* TransportTask::execute ()
 
     if (!firstTime && !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
       break;
-    }
+   }
+   /*auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
+   if (feedres == WorkloadManager::FeederResult::kFeederWork) {
+      ngcoll = 0;
+   } else if (feedres == WorkloadManager::FeederResult::kStopProcessing) {
+      break;
+   }*/
 
     firstTime =false;
-
+    //Geant::Print("","while %d\n", tid);
 
     // Collect info about the queue
     waiting[tid] = 1;
@@ -317,6 +324,7 @@ tbb::task* TransportTask::execute ()
     gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // WP
+    #ifdef USE_ROOT
     if (concurrentWrite) {
       while (!(myhitFactory->fOutputsArray[tid].empty())) {
         data = myhitFactory->fOutputsArray[tid].back();
@@ -328,6 +336,7 @@ tbb::task* TransportTask::execute ()
       }
       if (tree->GetEntries() > treeSizeWriteThreshold) file->Write();
     }
+     #endif
 
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();
@@ -376,8 +385,8 @@ tbb::task* TransportTask::execute ()
     td->fNcross += ncross;
   } // end while
 
-  tbb::task::set_ref_count(2);
-  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(td, false);
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(td, false);
   return & flowControllerTask;
 
 }

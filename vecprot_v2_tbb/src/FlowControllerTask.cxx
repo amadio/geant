@@ -14,13 +14,13 @@ tbb::task* FlowControllerTask::execute ()
   WorkloadManager *wm = WorkloadManager::Instance();
   GeantPropagator *propagator = GeantPropagator::Instance();
 
-
+  //printf("=== %d Flow Controller  ===\n", fTd->fTid);
   if(fStarting){
     while(propagator->TryLock())
       ;
 
-    tbb::task::set_ref_count(2);
-    FeederTask & feederTask = *new(tbb::task::allocate_child()) FeederTask( fTd );
+    tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd );
     return & feederTask;
   }
 
@@ -35,7 +35,7 @@ tbb::task* FlowControllerTask::execute ()
 
   if (propagator->TransportCompleted()) {
     //finish tasks
-    tbb::task::destroy(*tbb::task::parent());
+    //tbb::task::destroy(*tbb::task::parent());
     printf("=== Exit thread %d from Flow Controller  ===\n", fTd->fTid);
     int nworkers = propagator->fNthreads;
     for (int i = 0; i < nworkers; i++)
@@ -67,19 +67,18 @@ tbb::task* FlowControllerTask::execute ()
       delete file;
     }
 
-    delete fTd;
     return NULL;
   }else{
       // spawn feeder task
-      //while(propagator->TryLock())
-      //  ;
-      if(propagator->TryLock()){
-        tbb::task::set_ref_count(2);
-        TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
-        return & transportTask;
-      }
-      tbb::task::set_ref_count(2);
-      FeederTask & feederTask = *new(tbb::task::allocate_child()) FeederTask( fTd );
+      while(propagator->TryLock())
+        ;
+      //if(propagator->TryLock()){
+      //  tbb::task::set_ref_count(2);
+      //  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
+      //  return & transportTask;
+      //}
+      tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+      FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd );
       return & feederTask;
   }
     return NULL;

@@ -14,8 +14,8 @@ bool TaskMgrTBB::Initialize(int nthreads)
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
   // spawn transport tasks
   for (int i = 0; i < nthreads; i++)
-    tlist.push_back(*new (cont.allocate_child()) InitialTask());
+    tlist.push_back(*new (tbb::task::allocate_root()) InitialTask());
 
-  cont.spawn(tlist);
+  tbb::task::spawn_root_and_wait(tlist);
   return true;
 }

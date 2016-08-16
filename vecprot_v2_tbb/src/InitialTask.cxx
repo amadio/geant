@@ -44,7 +44,8 @@ tbb::task* InitialTask::execute ()
       // set factory to use thread-local queues
       threadData->fMyhitFactories[tid]->queue_per_thread = true;
     }
-  tbb::task::set_ref_count(2);
-  FlowControllerTask & flowControllerTask = *new(tbb::task::allocate_child()) FlowControllerTask(td, true);
+
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(td, true);
   return & flowControllerTask;
 }

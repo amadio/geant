@@ -634,13 +634,13 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   fTimer = new vecgeom::Stopwatch();
 #endif
 
+  fTimer->Start();
   // Start system tasks
   if (!fWMgr->StartTasks(fTaskMgr)) {
     Fatal("PropagatorGeom", "Cannot start tasks.");
     return;
   }
 
-  fTimer->Start();
   // Wake up the main scheduler once to avoid blocking the system
   //  condition_locker &sched_locker = fWMgr->GetSchLocker();
   //  sched_locker.StartOne();
@@ -656,7 +656,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   double ctime = fTimer->CpuTime();
 #else
   double rtime = fTimer->Elapsed();
-  double ctime = fTimer->Elapsed();  // TO FIX 
+  double ctime = fTimer->Elapsed();  // TO FIX
 #endif
   //   fTimer->Print();
   double speedup = ctime / rtime;

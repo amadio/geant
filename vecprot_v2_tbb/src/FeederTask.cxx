@@ -12,9 +12,7 @@ FeederTask::~FeederTask () { }
 tbb::task* FeederTask::execute ()
 {
   WorkloadManager *wm = WorkloadManager::Instance();
-  if (wm->IsStopped()){
-    return NULL;
-  }
+
   GeantPropagator *propagator = GeantPropagator::Instance();
 
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
@@ -24,8 +22,8 @@ tbb::task* FeederTask::execute ()
     nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, fTd);
     propagator->fLastEvent = propagator->fNevents;
     propagator->ReleaseLock();
-    tbb::task::set_ref_count(2);
-    TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
+    tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+    TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd );
     return & transportTask;
   }
   // Check and mark finished events
@@ -39,7 +37,7 @@ tbb::task* FeederTask::execute ()
       evt->Print();
       // Digitizer (todo)
       int ntracks = propagator->fNtracks[islot];
-      printf("= digitizing event %d with %d tracks pri=%d \n", evt->GetEvent(), ntracks, propagator->fPriorityEvents.load());
+      printf("= [task id %d] digitizing event %d with %d tracks pri=%d \n", fTd->fTid, evt->GetEvent(), ntracks, propagator->fPriorityEvents.load());
       //  propagator->fApplication->Digitize(evt->GetEvent());
       propagator->fDoneEvents->SetBitNumber(evt->GetEvent());
       if (propagator->fLastEvent < propagator->fNtotal) {
@@ -53,7 +51,7 @@ tbb::task* FeederTask::execute ()
   //printf("=== Feeder task  found %d baskets ===\n", nbaskets);
   // spawn transport task
   propagator->ReleaseLock();
-  tbb::task::set_ref_count(2);
-  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd );
   return & transportTask;
 }
