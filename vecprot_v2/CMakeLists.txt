@@ -36,6 +36,7 @@ set(sources
    src/TThreadMergingServer.cxx
    src/TransportManager.cxx
    src/LocalityManager.cxx
+   src/MCTruthMgr.cxx
 )
 
 set(headers
@@ -60,6 +61,8 @@ set(headers
    inc/TrackManager.h
    inc/TransportManager.h
    inc/LocalityManager.h
+   inc/MCTruthMgr.h
+   inc/cuckoohash_map.hh
 )   
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

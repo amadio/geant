@@ -26,6 +26,7 @@
 
 #ifdef HEPMC
 #pragma link C++ class HepMCGenerator+;
+#pragma link C++ class HepMCTruth+;
 #endif
 
 //#pragma link C++ class vecgeom::Vector<TEXsec*>+;

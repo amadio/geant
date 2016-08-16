@@ -122,6 +122,11 @@ void runLHCb(const int ncputhreads=4,
 //   prop->fPrimaryGenerator->SetEtaRange(-2.4,2.4);
 //   prop->fPrimaryGenerator->SetMomRange(0.,0.5);
 
+   std::string mc("testout.hepmc3");
+   HepMCTruth* mctruth = new HepMCTruth(mc);
+   mctruth->fEMin = 100;
+   prop->fTruthMgr = mctruth;  
+
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
    prop->fLearnSteps = 100000;

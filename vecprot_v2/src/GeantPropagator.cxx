@@ -57,6 +57,7 @@
 #include "GeantEvent.h"
 #include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
+#include "MCTruthMgr.h"
 
 #ifdef USE_CALLGRIND_CONTROL
 #include <valgrind/callgrind.h>
@@ -98,7 +99,7 @@ GeantPropagator::GeantPropagator()
       fUseStdScoring(false), fTransportOngoing(false), fSingleTrack(false), fFillTree(false),
       fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(false), fUseAppMonitoring(false),
       fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
-      fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
+      fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
   fgInstance = this;
 }
@@ -134,6 +135,10 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
   // Add a new track in the system. returns track number within the event.
   int slot = track.fEvslot;
   track.fParticle = fEvents[slot]->AddTrack();
+  
+  // call MCTruth manager if it has been instantiated
+  if(fTruthMgr) fTruthMgr->AddTrack(track);
+  
   //   fNtracks[slot]++;
   fNtransported++;
   return track.fParticle;
@@ -149,6 +154,13 @@ int GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
 void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
+
+  // stoping track in MCTruthManager
+  if(fTruthMgr)
+    {
+      if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
+    }
+  
   if (fEvents[tracks.fEvslotV[itr]]->StopTrack())
     fPriorityEvents++;
 }
@@ -187,6 +199,10 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
     if (evt->Transported()) {
       fPriorityEvents--;
       evt->Print();
+      
+      // closing event in MCTruthManager
+      if(fTruthMgr) fTruthMgr->CloseEvent(evt->GetEvent());
+      
       // Digitizer (todo)
       int ntracks = fNtracks[islot];
    #ifdef USE_ROOT
@@ -276,6 +292,9 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     // Set priority threshold to non-default value
     if (fPriorityThr > 0)
       fEvents[slot]->SetPriorityThr(fPriorityThr);
+
+    // start new event in MCTruthMgr
+    if(fTruthMgr) fTruthMgr->OpenEvent(fEvents[slot]->GetEvent());
 
     for (int i = 0; i < ntracks; i++) {
       GeantTrack &track = td->GetTrack();
