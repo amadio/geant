@@ -140,15 +140,8 @@ tbb::task* TransportTask::execute ()
     if (!firstTime && !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
       break;
    }
-   /*auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
-   if (feedres == WorkloadManager::FeederResult::kFeederWork) {
-      ngcoll = 0;
-   } else if (feedres == WorkloadManager::FeederResult::kStopProcessing) {
-      break;
-   }*/
 
-    firstTime =false;
-    //Geant::Print("","while %d\n", tid);
+    if(firstTime) firstTime =false;
 
     // Collect info about the queue
     waiting[tid] = 1;
