@@ -18,7 +18,7 @@ void runLHCb(const int ncputhreads=4,
             bool coprocessor = COPROCESSOR_REQUEST,
 	    const char *eventfile="../../pp14TeVminbias.root",
 	    const float magfield=10.,
-	    const int ntotal=1                                    // Number of events to be transported
+	    const int ntotal=3                                    // Number of events to be transported
 )
 {
    // gSystem->Load("libPhysics");
@@ -47,7 +47,7 @@ void runLHCb(const int ncputhreads=4,
 //   bool performance = true;
 
    int nthreads = ncputhreads;
-   int nbuffered  = 1;   // Number of buffered events (tunable [1,ntotal])
+   int nbuffered  = 2;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
    
    TaskBroker *broker = nullptr;

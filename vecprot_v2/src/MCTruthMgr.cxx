@@ -5,7 +5,7 @@ void MCTruthMgr::OpenEvent(int evID) {
   
    MCEvent* current_event = new MCEvent();
    current_event->event_id = evID;
-   events_map[evID+1] = current_event;
+   events_map[evID] = current_event;
    
 }
 
@@ -13,7 +13,7 @@ void MCTruthMgr::OpenEvent(int evID) {
 void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
   
   // get the event from the map
-  MCEvent* current_event = events_map.find(gtrack.fEvent+1);;
+  MCEvent* current_event = events_map.find(gtrack.fEvent);;
   
   if(CheckTrack(gtrack, current_event))
     {
@@ -50,9 +50,9 @@ void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
 void MCTruthMgr::EndTrack(const Geant::GeantTrack_v &tracks, int itr) {
     
   // get the event to which the track belongs  
-  if(events_map.contains(tracks.fEventV[itr]+1))
+  if(events_map.contains(tracks.fEventV[itr]))
     {
-      MCEvent* current_event = events_map.find(tracks.fEventV[itr]+1);
+      MCEvent* current_event = events_map.find(tracks.fEventV[itr]);
 
       // check of the track was stored
       // if not, do nothing

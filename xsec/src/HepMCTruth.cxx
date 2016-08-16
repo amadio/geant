@@ -63,7 +63,7 @@ void HepMCTruth::CloseEvent(int evID) {
   HepMC::GenVertexPtr primary_vertex = HepMC::make_shared<HepMC::GenVertex>();
   genevt.add_vertex(primary_vertex);
  
-  auto lt = (events_map.find(evID+1)->particles).lock_table();
+  auto lt = (events_map.find(evID)->particles).lock_table();
   for (const auto& it : lt) 
     {
       //      Printf("particle %i mother %i pdg %i energy %f", it.getKey(), it.getValue()->motherid, it.getValue()->pid, it.getValue()->fE);
@@ -148,7 +148,7 @@ void HepMCTruth::CloseEvent(int evID) {
 
   output_file->write_event(genevt);
   
-  delete events_map.find(evID+1);
-  events_map.erase(evID+1);
+  delete events_map.find(evID);
+  events_map.erase(evID);
   
 }
