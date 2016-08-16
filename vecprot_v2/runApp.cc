@@ -16,7 +16,10 @@
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 #include "ExN03Application.h"
+
+#ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
+#endif
 
 static int n_events = 50;
 static int n_buffered = 10;
@@ -160,8 +163,10 @@ int main(int argc, char *argv[]) {
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
   propagator->fUseMonitoring = monitor;
+#ifdef GEANT_TBB
   if (tbbmode)
     propagator->fTaskMgr = new TaskMgrTBB();
+#endif
 
   // Monitor different features
   wmanager->SetNminThreshold(5*n_threads);
