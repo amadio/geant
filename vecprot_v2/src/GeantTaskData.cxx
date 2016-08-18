@@ -30,7 +30,8 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
-  fRndm = &RNG::Instance();
+//  fRndm = &RNG::Instance();
+  fRndm = new RNG; // what about the seed?
 #elif USE_ROOT
   fRndm = new TRandom();
 #endif
