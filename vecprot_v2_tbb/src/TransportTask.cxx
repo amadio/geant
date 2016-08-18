@@ -142,6 +142,9 @@ tbb::task* TransportTask::execute ()
    }
 
     if(firstTime) firstTime =false;
+    
+    // Retrieve the reused basket from the task data
+    if (!basket) basket = td->fReused;
 
     // Collect info about the queue
     waiting[tid] = 1;
@@ -376,6 +379,7 @@ tbb::task* TransportTask::execute ()
     }
     // Update boundary crossing counter
     td->fNcross += ncross;
+    td->fReused = basket;
   } // end while
 
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();

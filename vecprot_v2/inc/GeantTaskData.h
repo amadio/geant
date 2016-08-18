@@ -72,6 +72,7 @@ public:
   GeantTrack fTrack;     /** Track support for this thread */
   VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
+  GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
 #else

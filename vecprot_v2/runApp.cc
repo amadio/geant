@@ -26,6 +26,7 @@ static int n_buffered = 10;
 static int n_threads = 4;
 static int n_track_max = 500;
 static int n_learn_steps = 0;
+static int n_reuse = 100000;
 static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
@@ -41,6 +42,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"xsec", required_argument, 0, 'x'},
                                   {"coprocessor", required_argument, 0, 'r'},
                                   {"tbbmode", required_argument, 0, 'i'},
+                                  {"reuse", required_argument, 0, 'u'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -66,7 +68,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:", options, &optidx);
+    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:u:", options, &optidx);
 
     if (c == -1)
       break;
@@ -140,6 +142,10 @@ int main(int argc, char *argv[]) {
       tbbmode = true;
       break;
 
+    case 'u':
+      n_reuse = (int)strtol(optarg, NULL, 10);
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
@@ -210,6 +216,10 @@ int main(int argc, char *argv[]) {
   propagator->fApplication = new ExN03Application();
    // Activate I/O
   propagator->fFillTree = false;
+  
+  // Set threshold for tracks to be reused in the same volume
+  propagator->fNminReuse = n_reuse;
+  
    // Activate debugging using -DBUG_HUNT=ON in your cmake build
   if (debug) {
     propagator->fUseDebug = true;
