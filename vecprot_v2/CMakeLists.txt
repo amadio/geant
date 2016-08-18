@@ -7,6 +7,9 @@ include_directories(
   ../physics/particle/inc
   ../numa/inc
   )
+if (USE_TBB)
+  include_directories(${TBB_INCLUDE_DIR})
+endif()
 
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
@@ -88,6 +91,9 @@ if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 endif()
 
+#----------------------------------------------------------------------------
+#
+
 set(GEANTV_HEADERS ${headers} )
 set(GEANTV_SOURCES ${sources} )
 
@@ -113,7 +119,7 @@ else()
       target_link_libraries(Geant_v ${Geant4_LIBRARIES})
     endif()
   endif()
-  
+
 #----------------------------------------------------------------------------------------------
 # Install files
 #
@@ -157,6 +163,9 @@ macro(build_executables EXECUTABLES)
       target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v GeantExamples ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} -lpthread ${VC_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
     else()
       target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Xsec GeantExamples ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
+    endif()
+    if (USE_TBB)
+      target_link_libraries(${TARGET_NAME} Geant_tbb  ${TBB_LIBS})
     endif()
     add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples GeantNuma)
     set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})

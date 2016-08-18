@@ -4,12 +4,15 @@
 #include "GeantScheduler.h"
 #include "GeantTaskData.h"
 #include "GeantBasket.h"
+#include "GeantFactory.h"
 #include "MyHit.h"
 #include "TThreadMergingFile.h"
 
 #include "InitialTask.h"
 
 #include "tbb/task_scheduler_init.h"
+#include "ThreadData.h"
+#include "FlowControllerTask.h"
 
 tbb::task* InitialTask::execute ()
 {

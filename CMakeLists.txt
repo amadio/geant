@@ -178,15 +178,23 @@ endif()
 # Additional options
 #
 option(KNC "Enable compilation for KNC." OFF)
+
 option(KNL "Enable compilation for KNL." OFF)
+
 option(CUDA "Enable compilation for CUDA." OFF)
+
 option(DATA_DOWNLOAD "Enable data download" OFF)
+
 option(MAGIC_DEBUG "Debug xsec serialisation with magic number" ON)
 if(MAGIC_DEBUG)
   add_definitions(-DMAGIC_DEBUG)
 endif()
 
+
+set(CMAKE_MACOSX_RPATH ON)
+
 option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
+
 option(WITH_GEANT4 "Enable libraries and test using the Geant4 libraries" ON)
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
@@ -247,8 +255,9 @@ option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
 option(USE_VECGEOM_NAVIGATOR "Use the navigator from VecGeom" ON)
 option(USE_ROOT "Use ROOT" ON)
 option(USE_NUMA "Use NUMA" ON)
+option(USE_TBB "Use threading building blocks" OFF)
 
-#----------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 # Debuging options
 #
 if(BUG_HUNT)
@@ -340,11 +349,13 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Find ROOT and setup the libraries
 #
+
 if(USE_ROOT) 
 # You need to tell CMake where to find the ROOT installation. This can be done in a number of ways:
 #   - ROOT built with classic configure/make use the provided $ROOTSYS/etc/cmake/FindROOT.cmake
 #   - ROOT built with CMake. Add in CMAKE_PREFIX_PATH the installation prefix for ROOT
    list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+
 #---Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
    find_package(ROOT REQUIRED COMPONENTS EG Gui Geom TreePlayer)
 
@@ -360,7 +371,24 @@ else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -pipe -std=c++11")
 endif()
 
-#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+#Find TBB and setup the libraries
+#
+set (TBB_LIBRARIES)
+if(USE_TBB)
+  find_package(TBB)
+  if( TBB_FOUND )
+    add_definitions("-DGEANT_TBB")
+    message(STATUS "USE_TBB ON  : TBB enabled")
+  else()
+    message(STATUS "TBB requested but not found")
+    set(USE_TBB OFF CACHE BOOL "" FORCE)
+  endif()
+else()
+  message(STATUS "USE_TBB OFF  : TBB disabled")
+endif()
+
+#----------------------------------------------------------------------------
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
@@ -380,6 +408,7 @@ endif(CCACHE_FOUND)
 # Include creation and submission to dashboard cdash.cern.ch
 #
 include(CTest)
+
 if (CTEST)
   set(DATA_DOWNLOAD ON)
   message(STATUS "Testing with CTest enabled.")
@@ -586,6 +615,7 @@ include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
 include_directories("${PROJECT_SOURCE_DIR}/fastsim/inc")
 include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
+include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2_tbb/inc")
 
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
@@ -594,9 +624,13 @@ string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 #
 add_custom_target(_headers ALL)
 
+message(STATUS "COMPILATION FLAGS ARE -${GEANTV_CXX_FLAGS} - ${GEANTV_COMPILATION_FLAGS}")
 add_subdirectory (base)
 add_subdirectory (numa)
 add_subdirectory (xsec)
+if(USE_TBB)
+  add_subdirectory (vecprot_v2_tbb)
+endif()
 add_subdirectory (vecprot_v2)
 add_subdirectory (examples)
 if(WITH_GEANT4 AND NOT (CUDA) AND USE_ROOT)
@@ -625,7 +659,6 @@ add_subdirectory(physics)
 # Process Doxygen file
 #
 if(DOXYGEN_FOUND)
+  message(${DOXYFILE_SOURCE_DIRS})
   configure_file("${DOXYFILE_IN}" "${DOXYFILE}" @ONLY)
 endif()
-
-add_subdirectory (vecprot_v2_tbb)

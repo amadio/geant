@@ -2,7 +2,21 @@
 # Add source files & include directories
 #
 include_directories(inc ../vecprot_v2/inc ../physics/particle/inc)
+if (USE_TBB)
+  include_directories(${TBB_INCLUDE_DIR})
+endif()
 
+set(sources
+  src/ExN03Application.cxx
+  src/CMSApplication.cxx
+  src/LHCbApplication.cxx
+  src/FastSimApplication.cxx
+  )     
+
+#----------------------------------------------------------------------------
+# Locate sources and headers for this project
+# NB: headers are included so they will show up in IDEs
+#
 set(sources
   src/ExN03Application.cxx
   src/CMSApplication.cxx
@@ -35,7 +49,8 @@ else()
   add_library(GeantExamples SHARED ${sources})
 endif()
 
-target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v)
+target_link_libraries(GeantExamples -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v
+  ${TBB_LIBRARIES})
 
 if (USE_ROOT)
   target_link_libraries(GeantExamples ${ROOT_LIBRARIES})
