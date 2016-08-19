@@ -95,6 +95,7 @@ GeantTaskData::~GeantTaskData()
   delete[] fBoolArray;
   delete[] fDblArray;
   delete[] fIntArray;
+  delete fRndm;
   VolumePath_t::ReleaseInstance(fPath);
   delete fTransported;
 }
