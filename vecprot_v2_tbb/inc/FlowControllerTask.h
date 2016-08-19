@@ -1,5 +1,5 @@
-#ifndef FLOWCONTROLLERTASK
-#define FLOWCONTROLLERTASK
+#ifndef GEANT_TBB_FLOW_CONTROLLER_TASK
+#define GEANT_TBB_FLOW_CONTROLLER_TASK
 
 #include "GeantTaskData.h"
 #include "tbb/task.h"
@@ -18,4 +18,4 @@ public:
 
 };
 
-#endif //FLOWCONTROLLERTASK
+#endif //GEANT_TBB_FLOW_CONTROLLER_TASK

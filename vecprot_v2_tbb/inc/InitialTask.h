@@ -1,5 +1,5 @@
-#ifndef INITIALTASK
-#define INITIALTASK
+#ifndef GEANT_TBB_INITIAL_TASK
+#define GEANT_TBB_INITIAL_TASK
 
 #include "tbb/task.h"
 
@@ -15,4 +15,4 @@ public:
 
 };
 
-#endif //INITIALTASK
+#endif //GEANT_TBB_INITIAL_TASK

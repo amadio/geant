@@ -1,5 +1,5 @@
-#ifndef DIGITIZERTASK
-#define DIGITIZERTASK
+#ifndef GEANT_TBB_DIGITIZER_TASK
+#define GEANT_TBB_DIGITIZER_TASK
 
 #include "GeantTaskData.h"
 #include "tbb/task.h"
@@ -17,4 +17,4 @@ public:
 
 };
 
-#endif //DIGITIZERTASK
+#endif //GEANT_TBB_DIGITIZER_TASK

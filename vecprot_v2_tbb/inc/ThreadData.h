@@ -1,5 +1,5 @@
-#ifndef THREADDATA
-#define THREADDATA
+#ifndef GEANT_TBB_THREAD_DATA
+#define GEANT_TBB_THREAD_DATA
 
 #ifndef GEANT_MYHIT
 #include "MyHit.h"
@@ -30,4 +30,4 @@ public:
 
 };
 
-#endif //THREADDATA
+#endif //GEANT_TBB_THREAD_DATA

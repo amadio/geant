@@ -1,5 +1,5 @@
-#ifndef TRANSPORTTASK
-#define TRANSPORTTASK
+#ifndef GEANT_TBB_TRANSPORT_TASK
+#define GEANT_TBB_TRANSPORT_TASK
 
 #include "GeantTaskData.h"
 #include "tbb/task.h"
@@ -17,4 +17,4 @@ public:
 
 };
 
-#endif // TRANSPORTTASK
+#endif // GEANT_TBB_TRANSPORT_TASK

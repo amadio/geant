@@ -1,5 +1,5 @@
-#ifndef SCORINGTASK
-#define SCORINGTASK
+#ifndef GEANT_TBB_SCORING_TASK
+#define GEANT_TBB_SCORING_TASK
 
 #include "GeantTaskData.h"
 #include "tbb/task.h"
@@ -17,4 +17,4 @@ public:
 
 };
 
-#endif //SCORINGTASK
+#endif //GEANT_TBB_SCORING_TASK

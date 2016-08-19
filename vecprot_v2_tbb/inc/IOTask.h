@@ -1,5 +1,5 @@
-#ifndef IOTASK
-#define IOTASK
+#ifndef GEANT_TBB_IO_TASK
+#define GEANT_TBB_IO_TASK
 
 #include "GeantTaskData.h"
 #include "tbb/task.h"
@@ -17,4 +17,4 @@ public:
 
 };
 
-#endif //IOTASK
+#endif //GEANT_TBB_IO_TASK

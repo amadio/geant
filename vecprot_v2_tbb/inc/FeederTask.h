@@ -1,5 +1,5 @@
-#ifndef FEEDERTASK
-#define FEEDERTASK
+#ifndef GEANT_TBB_FEEDER_TASK
+#define GEANT_TBB_FEEDER_TASK
 
 #include "ThreadData.h"
 #include "TransportTask.h"
@@ -22,4 +22,4 @@ public:
 
 };
 
-#endif //FEEDERTASK
+#endif //GEANT_TBB_FEEDER_TASK
