@@ -11,12 +11,7 @@ FeederTask::~FeederTask () { }
 
 tbb::task* FeederTask::execute ()
 {
-  WorkloadManager *wm = WorkloadManager::Instance();
-
   GeantPropagator *propagator = GeantPropagator::Instance();
-
-  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
-
   int nbaskets = 0;
   if (!propagator->fLastEvent) {
     nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, fTd);

@@ -1,8 +1,12 @@
 #include "FlowControllerTask.h"
 
-#ifdef GEANT_TBB
+#include "ThreadData.h"
+#include "FeederTask.h"
+#include "WorkloadManager.h"
+#include "GeantPropagator.h"
+#include "TThreadMergingFile.h"
+
 #include "tbb/task_scheduler_init.h"
-#endif
 
 
 FlowControllerTask::FlowControllerTask (Geant::GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
@@ -25,12 +29,7 @@ tbb::task* FlowControllerTask::execute ()
   }
 
   ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
-  GeantBasketMgr *prioritizer = threadData->fPrioritizers[fTd->fTid];
   Geant::TThreadMergingFile* file = threadData->fFiles[fTd->fTid];
-  TTree *tree = threadData->fTrees[fTd->fTid];
-  GeantBlock<MyHit>* data = threadData->fData[fTd->fTid];
-  int nworkers = propagator->fNthreads;
-
   bool concurrentWrite = propagator->fConcurrentWrite && propagator->fFillTree;
 
   if (propagator->TransportCompleted()) {
@@ -52,7 +51,6 @@ tbb::task* FlowControllerTask::execute ()
 
     wm->DoneQueue()->push(0);
 
-    delete prioritizer;
     // Final reduction of counters
     propagator->fNsteps += fTd->fNsteps;
     propagator->fNsnext += fTd->fNsnext;

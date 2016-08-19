@@ -675,6 +675,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
          fNsmall.load(), fNcross.load(), rtime, ctime);
   Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
   //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
+  if (fTaskMgr) fTaskMgr->Finalize();
   fApplication->FinishRun();
   if (fStdApplication)
     fStdApplication->FinishRun();

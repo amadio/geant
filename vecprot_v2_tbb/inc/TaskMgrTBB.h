@@ -22,13 +22,16 @@ class TaskMgrTBB : public GeantVTaskMgr {
 public:
   
   /** @brief TaskMgrTBB constructor */	
-  TaskMgrTBB() {}
+  TaskMgrTBB() : GeantVTaskMgr() {}
 
   /** @brief TaskMgrTBB destructor */
   virtual ~TaskMgrTBB() {}
 
-  /** @brief Function of initialization */
+  /** @brief Function for initialization */
   virtual bool Initialize(int nthreads);
+
+  /** @brief Function for final actions */
+  void Finalize();
 
 };
 #endif

@@ -28,5 +28,9 @@ public:
   /** @brief Function of initialization */
   virtual bool Initialize(int nthreads) = 0;
 
+  /** @brief Function for final actions */
+  virtual void Finalize() = 0;
+
+
 };
 #endif
