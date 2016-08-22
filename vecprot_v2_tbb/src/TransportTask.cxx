@@ -137,7 +137,7 @@ tbb::task* TransportTask::execute ()
     if (propagator->TransportCompleted())
       break;
 
-    if (!firstTime && !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
+    if (!firstTime && !basket && !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
       break;
    }
 
