@@ -66,7 +66,7 @@ void NumaAlignedFree(void *p )
 // Find the address stored by aligned_malloc ,"size_t" bytes above the 
 // current pointer then free it using normal free routine provided by C.
 #ifdef USE_NUMA
-  numa_free((void *)(*((size_t *)p - 2)), *((size_t *)p - 1));
+  if (p) numa_free((void *)(*((size_t *)p - 2)), *((size_t *)p - 1));
 #else
   _mm_free(p);
 #endif
