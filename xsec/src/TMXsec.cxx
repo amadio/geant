@@ -675,7 +675,7 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   // tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the
   // necessary at-rest process type if it has any.
 
-  double energyLimit = td->fPropagator->fEmin;
+  double energyLimit = td->fPropagator->fConfig->fEmin;
   for (int i = 0; i < ntracks; ++i) {
     int ipart = tracks.fGVcodeV[i]; // GV particle index/code
     tracks.fProcessV[i] = -1;       // init process index to -1 i.e. no process
@@ -753,7 +753,7 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks,GeantTaskData *td) {
   // tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the
   // necessary at-rest process type if it has any.
 
-  double energyLimit = td->fPropagator->fEmin;
+  double energyLimit = td->fPropagator->fConfig->fEmin;
   int ipart = tracks.fGVcodeV[i]; // GV particle index/code
   tracks.fProcessV[i] = -1;       // init process index to -1 i.e. no process
   double dedx = 0.0;

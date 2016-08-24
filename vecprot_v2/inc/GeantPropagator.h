@@ -70,15 +70,6 @@ public:
   std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
   BitSet *fDoneEvents;                             /** Array of bits marking done events */
 
-  double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
-  double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */
-  double fNaverage;  /** Average number of tracks per event */
-  double fVertex[3]; /** Vertex position */
-  double fEmin;      /** Min energy threshold */
-  double fEmax;      /** Max energy threshold */
-  double fBmag;      /** Magnetic field */
-  double fEpsilonRK; /** Relative error in RK integration */
-
   bool fTransportOngoing;      /** Flag for ongoing transport */
   bool fSingleTrack;           /** Use single track transport mode */
   
@@ -288,8 +279,6 @@ public:
 
   /** @brief Release the lock */
   void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
-
-  inline WorkloadManager* WorkloadManager(){ return fWMgr;}
 
   void SetConfig(GeantConstant* config);
 

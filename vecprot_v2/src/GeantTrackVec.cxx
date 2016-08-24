@@ -1301,7 +1301,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-   const double bmag = td->fPropagator->fBmag;
+   const double bmag = td->fPropagator->fConfig->fBmag;
    useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
 #endif
 
@@ -1670,7 +1670,7 @@ GeantPropagator *prop = td->fPropagator;
   int nsel = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = prop->fBmag;
+  const double bmag = prop->fConfig->fBmag;
 
   // Remove dead tracks, propagate neutrals
   for (itr = 0; itr < ntracks; itr++) {
@@ -1857,7 +1857,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
-  const double bmag = td->fPropagator->fBmag;
+  const double bmag = td->fPropagator->fConfig->fBmag;
 #endif
 // Compute transport length in geometry, limited by the physics step
   GeantPropagator *prop = td->fPropagator;
@@ -2048,7 +2048,7 @@ double GeantTrack_v::SafeLength( GeantPropagator *prop, int i, double eps) {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fBmag;
 #else
-  const double bmag = prop->fBmag;
+  const double bmag = prop->fConfig->fBmag;
 #endif
   double c = Curvature(i, bmag);
   if (c < 1.E-10)

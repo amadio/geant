@@ -385,7 +385,7 @@ int TTabPhysMgr::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, Geant
   assert(mxs != 0);
 #endif
   int nTotSecPart = 0; // total number of new tracks
-  double energyLimit = td->fPropagator->fEmin;
+  double energyLimit = td->fPropagator->fConfig->fEmin;
   if (mxs) {
     mxs->Eloss(ntracks, tracks,td);
     // call atRest sampling for tracks that have been stopped by Eloss and has at-rest
@@ -484,7 +484,7 @@ void TTabPhysMgr::SampleTypeOfInteractions(int imat, int ntracks, GeantTrack_v &
 //______________________________________________________________________________
 int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   GeantPropagator *propagator = td->fPropagator;
-  double energyLimit = propagator->fEmin;
+  double energyLimit = propagator->fConfig->fEmin;
 
   Material_t *mat = 0;
   TMXsec *mxs = 0;

@@ -220,8 +220,7 @@ int main(int argc, char *argv[]) {
 
   // for vector physics -OFF now
   // propagator->fVectorPhysicsProcess = new GVectorPhysicsProcess(propagator->fEmin, nthreads);
-  propagator->fPrimaryGenerator = new GunGenerator(propagator->fNaverage, 11, propagator->fEmax, -8, 0, 0, 1, 0, 0);
-
+  propagator->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
   propagator->fApplication = new ExN03Application(propagator);
   propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
   return 0;

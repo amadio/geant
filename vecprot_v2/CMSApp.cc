@@ -187,6 +187,7 @@ int main(int argc, char *argv[]) {
   if (broker) propagator->SetTaskBroker(broker);
   config->fNminThreshold=5 * n_threads;
   config->fUseMonitoring = monitor;
+  config->fNaverage = 500;
 
   config->SetMonitored(GeantConstant::kMonQueue, monitor);
   config->SetMonitored(GeantConstant::kMonMemory, monitor);
@@ -222,7 +223,7 @@ int main(int argc, char *argv[]) {
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {
-    propagator->fPrimaryGenerator = new GunGenerator(propagator->fNaverage, 11, propagator->fEmax, -8, 0, 0, 1, 0, 0);
+    propagator->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
   } else {
     // propagator->fPrimaryGenerator->SetEtaRange(-2.,2.);
     // propagator->fPrimaryGenerator->SetMomRange(0.,0.5);
