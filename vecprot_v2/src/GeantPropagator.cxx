@@ -86,19 +86,11 @@ GeantPropagator::GeantPropagator()
     : fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
       fNprimaries(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
-      fPriorityEvents(0), fDoneEvents(0), fNprocesses(3), fNstart(0), fMaxTracks(0),
-      fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1),
-      fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256), fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0),
-      fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000), fNminReuse(10000), fNTransportTask(0), fMaxRes(0), fMaxVirt(0), fNaverage(0),
-      fVertex(), fEmin(1.E-4), // 100 KeV
-      fEmax(10),               // 10 Gev
-      fBmag(0.),               // kiloGauss
-      fEpsilonRK(0.0003), fUsePhysics(true), fUseRungeKutta(false), fUseDebug(false), fUseGraphics(false),
-      fUseStdScoring(false), fTransportOngoing(false), fSingleTrack(false), fFillTree(false),
-      fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(false), fUseAppMonitoring(false),
-      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTaskMgr(0), fTimer(0), fProcess(0),
-      fVectorPhysicsProcess(0), fPhysicsInterface(0), fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0),
-      fEvents(0), fThreadData(0) {
+      fFeederLock(ATOMIC_FLAG_INIT),
+      fPriorityEvents(0), fDoneEvents(0), fTransportOngoing(false), fSingleTrack(false),
+      fTreeSizeWriteThreshold(100000), fConcurrentWrite(true),
+      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
+      fStoredTracks(0), fPrimaryGenerator(0), fNtracks(0), fEvents(0), fThreadData(0) {
   // Constructor
  
 }
@@ -189,9 +181,9 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
   if (fFeederLock.test_and_set(std::memory_order_acquire))
     return -1;
   int nbaskets = 0;
-  if (!fLastEvent) {
+  if (!fConfig->fLastEvent) {
     nbaskets = ImportTracks(fNevents, 0, 0, td);
-    fLastEvent = fNevents;
+    fConfig->fLastEvent = fNevents;
     fFeederLock.clear(std::memory_order_release);
     return nbaskets;
   }
@@ -216,14 +208,14 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
    #endif
       //            propagator->fApplication->Digitize(evt->GetEvent());
       fDoneEvents->SetBitNumber(evt->GetEvent());
-      if (fLastEvent < fNtotal) {
+      if (fConfig->fLastEvent < fNtotal) {
       #ifdef USE_ROOT
-        Printf("=> Importing event %d", fLastEvent);
+        Printf("=> Importing event %d", fConfig->fLastEvent);
       #else
-        printf("=> Importing event %d", fLastEvent);
+        printf("=> Importing event %d", fConfig->fLastEvent);
       #endif
-        nbaskets += ImportTracks(1, fLastEvent, islot, td);
-        fLastEvent++;
+        nbaskets += ImportTracks(1, fConfig->fLastEvent, islot, td);
+        fConfig->fLastEvent++;
       }
     }
   }
@@ -254,7 +246,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     td = fThreadData[tid];
     td->fTid = tid;
   }
-  VolumePath_t *startpath = VolumePath_t::MakeInstance(fMaxDepth);
+  VolumePath_t *startpath = VolumePath_t::MakeInstance(fConfig->fMaxDepth);
   GeantBasketMgr *basket_mgr = 0;
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -285,7 +277,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
     startpath->InitFromNavigator(nav);
 #endif
-    basket_mgr->SetThreshold(fNperBasket);
+    basket_mgr->SetThreshold(fConfig->fNperBasket);
     td->fVolume = vol;
     ntracks = eventinfo.ntracks;
     ntotal += ntracks;
@@ -296,8 +288,8 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
     fEvents[slot]->SetEvent(event);
     fEvents[slot]->Reset();
     // Set priority threshold to non-default value
-    if (fPriorityThr > 0)
-      fEvents[slot]->SetPriorityThr(fPriorityThr);
+    if (fConfig->fPriorityThr > 0)
+      fEvents[slot]->SetPriorityThr(fConfig->fPriorityThr);
 
     // start new event in MCTruthMgr
     if(fTruthMgr) fTruthMgr->OpenEvent(fEvents[slot]->GetEvent());
@@ -355,7 +347,6 @@ GeantPropagator *GeantPropagator::NewInstance(int ntotal, int nbuffered, int nth
   #warning this must be solved before using CUDA
   newInstance->fWMgr = WorkloadManager::NewInstance(newInstance,nthreads);
   // Instantiate factory store
-  #warning to check
   GeantFactoryStore::Instance(nbuffered);
   return newInstance;
 }
@@ -363,12 +354,10 @@ GeantPropagator *GeantPropagator::NewInstance(int ntotal, int nbuffered, int nth
 //______________________________________________________________________________
 void GeantPropagator::Initialize() {
   // Initialization
-  fMaxPerEvent = 5 * fNaverage;
-  fMaxTracks = fMaxPerEvent * fNevents;
+  fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
+  fConfig->fMaxTracks = fConfig->fMaxPerEvent * fNevents;
 
   // Initialize arrays here.
-  #warning to check
-  //gPropagator = GeantPropagator::Instance();
   fDoneEvents = BitSet::MakeInstance(fNtotal);
 
 #ifdef USE_REAL_PHYSICS
@@ -390,7 +379,7 @@ void GeantPropagator::Initialize() {
   #endif
 #endif
 
-  if (fUseRungeKutta) {
+  if (fConfig->fUseRungeKutta) {
     PrepareRkIntegration();
   }
 
@@ -410,12 +399,12 @@ void GeantPropagator::InitializeAfterGeom() {
   if (!fThreadData) {
     fThreadData = new GeantTaskData *[fNthreads];
     for (int i = 0; i < fNthreads; i++) {
-      fThreadData[i] = new GeantTaskData(fNthreads, fMaxDepth, fMaxPerBasket, this);
+      fThreadData[i] = new GeantTaskData(fNthreads, fConfig->fMaxDepth, fConfig->fMaxPerBasket, this);
       fThreadData[i]->fTid = i;
     }
   }
   // Initialize application
-  if (fUseStdScoring) {
+  if (fConfig->fUseStdScoring) {
     fStdApplication = new StdApplication(this);
     fStdApplication->Initialize();
   }
@@ -432,7 +421,7 @@ void GeantPropagator::PrepareRkIntegration() {
   using Field_t = TUniformMagField;
   using Equation_t = TMagFieldEquation<Field_t, Nvar>;
 
-  auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fBmag));
+  auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fConfig->fBmag));
   auto gvEquation = FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
 
   GUVIntegrationStepper *aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
@@ -441,11 +430,11 @@ void GeantPropagator::PrepareRkIntegration() {
   // const double epsTol = 3.0e-4;               // Relative error tolerance of integration
   int statisticsVerbosity = 0;
   cout << "Parameters for RK integration in magnetic field: " << endl;
-  cout << "   Driver parameters:  eps_tol= " << fEpsilonRK << "  h_min= " << hminimum << endl;
+  cout << "   Driver parameters:  eps_tol= " << fConfig->fEpsilonRK << "  h_min= " << hminimum << endl;
 
   auto integrDriver = new GUIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
   // GUFieldPropagator *
-  auto fieldPropagator = new GUFieldPropagator(integrDriver, fEpsilonRK); // epsTol);
+  auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK); // epsTol);
 
   static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
   assert(fpPool); // Cannot be zero
@@ -526,9 +515,9 @@ bool GeantPropagator::LoadGeometry(const char *filename) {
   if (geom) {
 #ifdef USE_VECGEOM_NAVIGATOR
     LoadVecGeomGeometry();
-    fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
+    fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
 #else
-    fMaxDepth = TGeoManager::GetMaxLevels();
+    fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
 #endif
     return true;
   }
@@ -539,7 +528,7 @@ bool GeantPropagator::LoadGeometry(const char *filename) {
   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
   if (geom) {
      geom->LoadGeometryFromSharedLib(filename);
-     fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
+     fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
      return true;
   }
   return false;
@@ -597,7 +586,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   // Propagate fNevents in the volume containing the vertex.
   // Simulate 2 physics processes up to exiting the current volume.
   static bool called = false;
-  fUseGraphics = graphics;
+  fConfig->fUseGraphics = graphics;
   fNthreads = nthreads;
   fSingleTrack = single;
   std::cout << " GeantPropagator::PropagatorGeom called with app= " << fApplication << std::endl;
@@ -625,12 +614,12 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     Printf("==== Executing in single track loop mode using %d threads ====", fNthreads);
   else
     Printf("==== Executing in vectorized mode using %d threads ====", fNthreads);
-  if (fUsePhysics)
-    Printf("  Physics ON with %d processes", fNprocesses);
+  if (fConfig->fUsePhysics)
+    Printf("  Physics ON with %d processes", fConfig->fNprocesses);
   else
     Printf("  Physics OFF");
-  if (fUseRungeKutta)
-    Printf("  Runge-Kutta integration ON with epsilon= %g", fEpsilonRK);
+  if (fConfig->fUseRungeKutta)
+    Printf("  Runge-Kutta integration ON with epsilon= %g", fConfig->fEpsilonRK);
   else
     Printf("  Runge-Kutta integration OFF");
 
@@ -644,13 +633,13 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;
-  fWMgr->SetMaxThreads(nthreads);
+  //fWMgr->SetMaxThreads(nthreads);
 #ifdef USE_ROOT
-  if (fUseMonitoring) {
+  if (fConfig->fUseMonitoring) {
     TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
     cmon->Update();
   }
-  if (fUseAppMonitoring) {
+  if (fConfig->fUseAppMonitoring) {
     TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
     capp->Update();
   }
@@ -717,30 +706,18 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   //   fWMgr->NavStates()->statistics();
 }
 
-//______________________________________________________________________________
+/*//______________________________________________________________________________
 int GeantPropagator::GetMonFeatures() const {
   // Get the number of monitored features
   return fWMgr->GetMonFeatures();
-}
-
-//______________________________________________________________________________
-bool GeantPropagator::IsMonitored(EGeantMonitoringType feature) const {
-  // Check if a given feature is monitored
-  return fWMgr->IsMonitored(feature);
-}
-
-//______________________________________________________________________________
-void GeantPropagator::SetMonitored(EGeantMonitoringType feature, bool flag) {
-  // Enable monitoring a feature
-  fWMgr->SetMonitored(feature, flag);
-}
-
+}*/
+/*
 //______________________________________________________________________________
 void GeantPropagator::SetNminThreshold(int thr) {
   // Setter for the global transport threshold
   fWMgr->SetNminThreshold(thr);
 }
-
+*/
 //______________________________________________________________________________
 void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
   // Setter for task broker
@@ -751,4 +728,9 @@ void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
 TaskBroker *GeantPropagator::GetTaskBroker() {
   // Getter for task broker
   return fWMgr->GetTaskBroker();
+}
+
+//______________________________________________________________________________
+void GeantPropagator::SetConfig(GeantConstant* config){
+  fConfig=config;
 }

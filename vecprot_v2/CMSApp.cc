@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 #else
 
 #endif
-  WorkloadManager *wmanager = propagator->fWMgr;
+  //WorkloadManager *wmanager = propagator->fWMgr;
 
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
@@ -173,41 +173,43 @@ int main(int argc, char *argv[]) {
 #endif
   }
 
+  GeantConstant* config=new GeantConstant();
+  propagator->fConfig=config;
  
 
   // Default value is 1. (0.1 Tesla)
-  propagator->fBmag = 40.; // 4 Tesla
+  config->fBmag = 40.; // 4 Tesla
 
   // Enable use of RK integration in field for charged particles
-  propagator->fUseRungeKutta = false;
+  config->fUseRungeKutta = false;
   // prop->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default
 
   if (broker) propagator->SetTaskBroker(broker);
-  wmanager->SetNminThreshold(5 * n_threads);
-  propagator->fUseMonitoring = monitor;
+  config->fNminThreshold=5 * n_threads;
+  config->fUseMonitoring = monitor;
 
-  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
+  config->SetMonitored(GeantConstant::kMonQueue, monitor);
+  config->SetMonitored(GeantConstant::kMonMemory, monitor);
+  config->SetMonitored(GeantConstant::kMonBasketsPerVol, monitor);
+  config->SetMonitored(GeantConstant::kMonVectors, monitor);
+  config->SetMonitored(GeantConstant::kMonConcurrency, monitor);
+  config->SetMonitored(GeantConstant::kMonTracksPerEvent, monitor);
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
-  propagator->fPriorityThr = 0.1;
+  config->fPriorityThr = 0.1;
 
   // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow
-  propagator->fNperBasket = 16; // Initial vector size
+  config->fNperBasket = 16; // Initial vector size
 
   // This is now the most important parameter for memory considerations
-  propagator->fMaxPerBasket = n_track_max;
+  config->fMaxPerBasket = n_track_max;
 
   // Maximum user memory limit [MB]
-  propagator->fMaxRes = max_memory;
-  if (performance) propagator->fMaxRes = 0;
-  propagator->fEmin = 0.001; // [1 MeV] energy cut
-  propagator->fEmax = 0.01;  // 10 MeV
+  config->fMaxRes = max_memory;
+  if (config) config->fMaxRes = 0;
+  config->fEmin = 0.001; // [1 MeV] energy cut
+  config->fEmax = 0.01;  // 10 MeV
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
@@ -227,11 +229,11 @@ int main(int argc, char *argv[]) {
     // propagator->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
     propagator->fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
   }
-  propagator->fLearnSteps = n_learn_steps;
-  if (performance) propagator->fLearnSteps = 0;
+  config->fLearnSteps = n_learn_steps;
+  if (performance) config->fLearnSteps = 0;
 
   // Activate I/O
-  propagator->fFillTree = false;
+  config->fFillTree = false;
   propagator->fTreeSizeWriteThreshold = 100000;
   // Activate old version of single thread serialization/reading
   //   prop->fConcurrentWrite = false;
@@ -244,16 +246,16 @@ int main(int argc, char *argv[]) {
   }
   propagator->fApplication = CMSApp;
   if (debug) {
-    propagator->fUseDebug = true;
-    propagator->fDebugTrk = 1;
+    config->fUseDebug = true;
+    config->fDebugTrk = 1;
     //propagator->fDebugEvt = 0;
     //propagator->fDebugStp = 0;
     //propagator->fDebugRep = 10;
   }
-  propagator->fUseMonitoring = monitor;
+  config->fUseMonitoring = monitor;
   // Activate standard scoring   
-  propagator->fUseStdScoring = true;
-  if (performance) propagator->fUseStdScoring = false;
+  config->fUseStdScoring = true;
+  if (performance) config->fUseStdScoring = false;
   propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }

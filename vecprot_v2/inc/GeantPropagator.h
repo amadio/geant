@@ -44,21 +44,13 @@ class MCTruthMgr;
 class TaskBroker;
 
 #include "GeantFwd.h"
+#include "GeantConstant.h"
 
 class GeantPropagator {
+
 public:
-  /**
-   * @brief Monitoring type
-   */
-  enum EGeantMonitoringType {
-    kMonQueue = 0,
-    kMonMemory,
-    kMonBasketsPerVol,
-    kMonVectors,
-    kMonConcurrency,
-    kMonTracksPerEvent,
-    kMonTracks
-  };
+  GeantConstant *fConfig;
+
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
@@ -77,26 +69,7 @@ public:
   std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
   std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
   BitSet *fDoneEvents;                             /** Array of bits marking done events */
-  int fNprocesses;                                 /** Number of active physics processes */
-  int fNstart;                                     /** Cumulated initial number of tracks */
-  int fMaxTracks;                                  /** Maximum number of tracks per event */
-  int fMaxThreads;                                 /** Maximum number of threads */
-  int fNminThreshold;                              /** Threshold for starting transporting a basket */
-  int fDebugEvt;                                   /** Event to debug */
-  int fDebugTrk;                                   /** Track to debug */
-  int fDebugStp;                                   /** Step to start debugging */
-  int fDebugRep;                                   /** Number of steps to debug */
-  int fMaxSteps;                                   /** Maximum number of steps per track */
-  int fNperBasket;                                 /** Number of tracks per basket */
-  int fMaxPerBasket;                               /** Maximum number of tracks per basket */
-  int fMaxPerEvent;                                /** Maximum number of tracks per event */
-  int fMaxDepth;                                   /** Maximum geometry depth */
-  int fLearnSteps;                                 /** Number of steps needed for the learning phase */
-  int fLastEvent;                                  /** Last transported event */
-  float fPriorityThr;                              /** Threshold for prioritizing events */
-  int fNstepsKillThr;                              /** Threshold in number of steps to kill a track */
-  int fNminReuse; /** Minimum number of transported tracks to be reused without re-basketizing */
-  int fNTransportTask;
+
   double fMaxRes;    /** Maximum resident memory allowed [MBytes] */
   double fMaxVirt;   /** Maximum virtual memory allowed [MBytes] */
   double fNaverage;  /** Average number of tracks per event */
@@ -106,20 +79,16 @@ public:
   double fBmag;      /** Magnetic field */
   double fEpsilonRK; /** Relative error in RK integration */
 
-  bool fUsePhysics;            /** Enable/disable physics */
-  bool fUseRungeKutta;         /** Enable/disable Runge-Kutta integration in field */
-  bool fUseDebug;              /** Use debug mode */
-  bool fUseGraphics;           /** Graphics mode */
-  bool fUseStdScoring;         /** Use standard scoring */
   bool fTransportOngoing;      /** Flag for ongoing transport */
   bool fSingleTrack;           /** Use single track transport mode */
-  bool fFillTree;            /** Enable I/O */
+  
   int fTreeSizeWriteThreshold; /** Maximum size of the tree (before automatic writing) **/
   bool fConcurrentWrite;     /** switch between single and mutlithreaded writing */
-  bool fUseMonitoring;         /** Monitoring different features */
-  bool fUseAppMonitoring;      /** Monitoring the application */
+  
+  
   std::mutex fTracksLock;          /** Mutex for adding tracks */
 
+  
   WorkloadManager *fWMgr;             /** Workload manager */
   GeantVApplication *fApplication;    /** User application */
   GeantVApplication *fStdApplication; /** Standard application */
@@ -299,17 +268,11 @@ public:
   void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, bool graphics = false,
                       bool single = false);
 
-  /** @brief Function returning the number of monitored features */
-  int GetMonFeatures() const;
+  ///** @brief Function returning the number of monitored features */
+  //int GetMonFeatures() const;
 
-  /** @brief Check if a monitoring feature is enabled */
-  bool IsMonitored(GeantPropagator::EGeantMonitoringType feature) const;
-
-  /** @brief Enable monitoring a feature */
-  void SetMonitored(EGeantMonitoringType feature, bool flag = true);
-
-  /** @brief Setter for the global transport threshold */
-  void SetNminThreshold(int thr);
+  ///** @brief Setter for the global transport threshold */
+  //void SetNminThreshold(int thr);
 
   /** @brief  Getter for task broker */
   TaskBroker *GetTaskBroker();
@@ -325,6 +288,10 @@ public:
 
   /** @brief Release the lock */
   void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
+
+  inline WorkloadManager* WorkloadManager(){ return fWMgr;}
+
+  void SetConfig(GeantConstant* config);
 
 private:
   /** @brief Copy constructor not implemented */

@@ -185,7 +185,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       
     }
 #ifdef HITS_GRAPHICS
-    if ((fPropagator)->fFillTree) {
+    if ((fPropagator)->fConfig->fFillTree) {
       // Deposit hits
       if ((tracks.fStatusV[itr] == kNew) ||
           (tracks.fStatusV[itr] == kKilled) ||
@@ -215,7 +215,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       }
     }
 #else
-    if ((fPropagator)->fFillTree) {
+    if ((fPropagator)->fConfig->fFillTree) {
       MyHit *hit;
       // Deposit hits
       if (tracks.fEdepV[itr]>0.00002) {
@@ -271,7 +271,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
         fMHist.unlock();      
 #ifdef USE_ROOT
       
-      if ((fPropagator)->fFillTree) {
+      if ((fPropagator)->fConfig->fFillTree) {
 	MyHit *hit;
 	
 	// Deposit hits

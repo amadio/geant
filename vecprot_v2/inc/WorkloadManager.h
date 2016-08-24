@@ -54,7 +54,6 @@ protected:
   int fBasketGeneration;                             /** Basket generation */
   int fNbasketgen;                                   /** Number of baskets to transport in the current generation */
   int fNidle;                                        /** Number of idle workers */
-  int fNminThreshold;                                /** Minimum number of tracks in a basket to trigger transport */
   int fNqueued;                                      /** Number of chunks queued */
   int *fBtogo;                                       /** Array of baskets to be processed in the next generation */
   int fSchId;                                        /** Thread id for the scheduler */
@@ -66,14 +65,6 @@ protected:
   std::vector<std::thread> fListThreads;               /** Vector of threads */
   bool fFlushed;                                       /** Buffer flushed */
   bool fFilling;                                       /** Worker queue is filling */
-  int fMonQueue;                                     /** Monitor the work queue */
-  int fMonMemory;                                    /** Monitor the memory */
-  int fMonBasketsPerVol;                             /** Monitor baskets per volume */
-  int fMonVectors;                                   /** Monitor vector scheduling */
-  int fMonConcurrency;                               /** Monitor concurrency */
-  int fMonTracksPerEvent;                            /** Monitor tracks status per event */
-  int fMonTracks;                                    /** Monitor number of tracks */
-  int fMaxThreads;                                   /** Maximum number of threads */
   GeantScheduler *fScheduler;                          /** Main basket scheduler */
 
   TaskBroker *fBroker;         /** Pointer to the coprocessor broker, this could be made a collection. */
@@ -148,14 +139,8 @@ public:
   /** @brief Function that returns number of threads actually working */
   int GetNworking() const { return (fNthreads - GetNwaiting()); }
 
-  /** @brief Function returning the number of monitored features */
-  int GetMonFeatures() const;
-
-  /** @brief Check if a monitoring feature is enabled */
-  bool IsMonitored(GeantPropagator::EGeantMonitoringType feature) const;
-
-  /** @brief Enable monitoring a feature */
-  void SetMonitored(GeantPropagator::EGeantMonitoringType feature, bool flag = true);
+  ///** @brief Function returning the number of monitored features */
+  //int GetMonFeatures() const;
 
   /** @brief Function that returns main basket scheduler */
   GeantScheduler *GetScheduler() const { return fScheduler; }
@@ -222,20 +207,20 @@ public:
   bool LoadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
 #endif
 
-  void SetMaxThreads(int nthreads) {
-    fMaxThreads = nthreads;
-#ifndef USE_VECGEOM_NAVIGATOR
-    gGeoManager->SetMaxThreads(nthreads);
-#endif
-  }
+//   void SetMaxThreads(int nthreads) {
+//   fMaxThreads = nthreads;
+// #ifndef USE_VECGEOM_NAVIGATOR
+//     gGeoManager->SetMaxThreads(nthreads);
+// #endif
+//   }
 
   int ThreadId();
 
-  /** @brief Getter for the global transport threshold */
-  int GetNminThreshold() const { return fNminThreshold; }
+  // /** @brief Getter for the global transport threshold */
+  // int GetNminThreshold() const { return fNminThreshold; }
 
-  /** @brief Setter for the global transport threshold */
-  void SetNminThreshold(int thr) { fNminThreshold = thr; }
+  // /** @brief Setter for the global transport threshold */
+  // void SetNminThreshold(int thr) { fNminThreshold = thr; }
 
   /** @brief Function that initializes the threads/tasks used by the system */
   bool StartTasks(GeantVTaskMgr *taskmgr);

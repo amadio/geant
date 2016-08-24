@@ -9,7 +9,7 @@
 class TaskBroker;
 class GeantPropagator;
 
-void run(int ncputhreads=4,
+void run(int ncputhreads=1,
          bool performance=true,
 	      const char *geomfile="ExN03.root",
 	      const char *xsec="xsec_FTFP_BERT.root",
@@ -54,7 +54,7 @@ void run(int ncputhreads=4,
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
    }
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
+   GeantPropagator *prop = GeantPropagator::NewInstance(ntotal, nbuffered, nthreads);
 
    if (broker) prop->SetTaskBroker(broker);
 
@@ -106,7 +106,7 @@ void run(int ncputhreads=4,
    if (performance) prop->fLearnSteps = 0;
 
 
-   prop->fApplication = new ExN03Application();
+   prop->fApplication = new ExN03Application(prop);
    // Activate I/O
    prop->fFillTree = false;
    // Activate old version of single thread serialization/reading

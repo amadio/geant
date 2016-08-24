@@ -118,9 +118,9 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
     }
   }
 #ifdef USE_ROOT
-  if ((fPropagator)->fFillTree) {
+  if ((fPropagator)->fConfig->fFillTree) {
 #else
-  if (GeantPropagator::Instance()->fFillTree) {
+  if (GeantPropagator::Instance()->fConfig->fFillTree) {
 #endif
     MyHit *hit;
     //    int nhits = 0;

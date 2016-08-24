@@ -51,15 +51,13 @@ using std::max;
 
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
-    :fPropagator(prop),fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads), fNminThreshold(10),
+    :fPropagator(prop),fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads),
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
-      fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0),
-      fMonVectors(0), fMonConcurrency(0), fMonTracksPerEvent(0), fMonTracks(0), fMaxThreads(0), fScheduler(0), fBroker(0), fWaiting(0),
+      fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fScheduler(0), fBroker(0), fWaiting(0),fSchLocker(), fGbcLocker()
 #ifdef USE_ROOT
-      fSchLocker(), fGbcLocker(), fLastEvent(0), fOutputIO(0) {
-#else
-      fSchLocker(), fGbcLocker(), fLastEvent(0) {
+    , fOutputIO(0)
 #endif
+  {
   // Private constructor.
   fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
@@ -102,7 +100,7 @@ int WorkloadManager::ThreadId() {
 void WorkloadManager::CreateBaskets(GeantPropagator* prop) {
   // Create the array of baskets
   VolumePath_t *blueprint = 0;
-  int maxdepth = prop->fMaxDepth;
+  int maxdepth = prop->fConfig->fMaxDepth;
   Geant::Info("CreateBaskets","Max depth: %d", maxdepth);
   blueprint = VolumePath_t::MakeInstance(maxdepth);
   //   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
@@ -180,15 +178,15 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   }
 
   // Start output thread
-  if (prop->fFillTree) {
+  if (prop->fConfig->fFillTree) {
     fListThreads.emplace_back(WorkloadManager::OutputThread,prop);
   }
   // Start monitoring thread
-  if (prop->fUseMonitoring) {
+  if (prop->fConfig->fUseMonitoring) {
     fListThreads.emplace_back(WorkloadManager::MonitoringThread,prop);
   }
   // Start garbage collector
-  if (prop->fMaxRes > 0) {
+  if (prop->fConfig->fMaxRes > 0) {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread,prop);
   }
   if (taskmgr) {
@@ -322,14 +320,14 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(prop,sch, 0, 0, true);
   td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fNperBasket);
+  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
 
   // IO handling
 
 
   #ifdef USE_ROOT
-  bool concurrentWrite = td->fPropagator->fConcurrentWrite && td->fPropagator->fFillTree;
+  bool concurrentWrite = td->fPropagator->fConcurrentWrite && td->fPropagator->fConfig->fFillTree;
   int treeSizeWriteThreshold = td->fPropagator->fTreeSizeWriteThreshold;
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
@@ -363,9 +361,9 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
 //  condition_locker &gbc_locker = wm->GetGbcLocker();
 // The last worker wakes the scheduler
 //  if (tid == nworkers-1) sched_locker.StartOne();
-//   int nprocesses = propagator->fNprocesses;
+//   int nprocesses = propagator->fConfig->fNprocesses;
 //   int ninput, noutput;
-//   bool useDebug = propagator->fUseDebug;
+//   bool useDebug = propagator->fConfig->fUseDebug;
 //   Geant::Print("","(%d) WORKER started", tid);
 // Create navigator if none serving this thread.
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -453,7 +451,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     }
 
     // Select the discrete physics process for all particles in the basket
-    if (propagator->fUsePhysics) {
+    if (propagator->fConfig->fUsePhysics) {
       propagator->ProposeStep(ntotransport, input, td);
       // Apply msc for charged tracks; NOTE: we do nothing in this method at the moment
       // propagator->ApplyMsc(ntotransport, input, td);
@@ -469,7 +467,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       for (auto itr=0; itr<ntotransport; ++itr) {
         input.fNstepsV[itr]++;
         if ((input.fStatusV[itr] != kKilled) &&
-            (input.fNstepsV[itr] > propagator->fNstepsKillThr) &&
+            (input.fNstepsV[itr] > propagator->fConfig->fNstepsKillThr) &&
             input.fBoundaryV[itr] && (input.fSnextV[itr]<1.e-9)) {
           Error("TransportTracks", "track %d seems to be stuck -> killing it after next step", input.fParticleV[itr]);
           Error("TransportTracks", "Transport will continue, but this is a fatal error");
@@ -504,7 +502,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
 
     // Post-step actions by continuous processes for all particles. There are no
     // new generated particles at this point.
-    if (propagator->fUsePhysics) {
+    if (propagator->fConfig->fUsePhysics) {
       nphys = 0;
       nextra_at_rest = 0;
       // count phyics steps here
@@ -600,7 +598,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       }
     }
     // First breakpoint to be set
-    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, propagator->fDebugRep, "EndStep");
+    output.BreakOnStep(propagator->fConfig->fDebugEvt, propagator->fConfig->fDebugTrk, propagator->fConfig->fDebugStp, propagator->fConfig->fDebugRep, "EndStep");
 #endif
     for (auto itr = 0; itr < ntotnext; ++itr) {
       //output.fNstepsV[itr]++;
@@ -611,7 +609,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Check if there are enough transported tracks staying in the same volume
     // to be reused without re-basketizing
     int nreusable = sch->ReusableTracks(output);
-    bool reusable = (basket->IsMixed())? false : (nreusable>=propagator->fNminReuse);
+    bool reusable = (basket->IsMixed())? false : (nreusable>=propagator->fConfig->fNminReuse);
 //    reusable = false;
 
     if (reusable)
@@ -696,17 +694,17 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   int *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(prop,sch, 0, 0, true);
   td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fNperBasket);
+  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
   // Start the feeder
   propagator->Feeder(td);
   // TGeoMaterial *mat = 0;
   int *waiting = wm->GetWaiting();
 //  condition_locker &sched_locker = wm->GetSchLocker();
-// int nprocesses = propagator->fNprocesses;
+// int nprocesses = propagator->fConfig->fNprocesses;
 // int ninput;
 // int noutput;
-//   bool useDebug = propagator->fUseDebug;
+//   bool useDebug = propagator->fConfig->fUseDebug;
 //   Geant::Print("","(%d) WORKER started", tid);
 #ifdef USE_VECGEOM_NAVIGATOR
 // Suppose I do not need a navigator, otherwise how it would have ever worked?
@@ -847,7 +845,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
 
     // Select the discrete physics process for all particles in the basket
     // Moved to CoprocessorBroker kernel.
-    // if (propagator->fUsePhysics) {
+    // if (propagator->fConfig->fUsePhysics) {
     //   propagator->ProposeStep(ntotransport, input, td);
     //   // Apply msc for charged tracks
     //   propagator->ApplyMsc(ntotransport, input, td);
@@ -860,7 +858,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
       // Interrupt condition here. Work stealing could be also implemented here...
       generation++;
       // Propagate all remaining tracks
-      // NOTE: need to deal with propagator->fUsePhysics
+      // NOTE: need to deal with propagator->fConfig->fUsePhysics
       broker->runTask(*td, *basket); // ntotransport, basket_sch->GetNumber(), propagator->fTracks, particles);
       ntotransport = 0;
       // ncross += input.PropagateTracks(output);
@@ -885,7 +883,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
           }
        }
     }
-    // Note: Need to apply the code if (propagator->fUsePhysics)
+    // Note: Need to apply the code if (propagator->fConfig->fUsePhysics)
     // to the tracks after they came back.
 
   finish:
@@ -940,8 +938,8 @@ void *WorkloadManager::GarbageCollectorThread(GeantPropagator *prop) {
   GeantPropagator *propagator = prop;
   WorkloadManager *wm = propagator->fWMgr;
   int nthreads = propagator->fNthreads;
-  double threshold = propagator->fMaxRes;
-  double virtlimit = propagator->fMaxVirt;
+  double threshold = propagator->fConfig->fMaxRes;
+  double virtlimit = propagator->fConfig->fMaxVirt;
   if (threshold == 0 && virtlimit == 0)
     return 0;
   //  condition_locker &gbc_locker = wm->GetGbcLocker();
@@ -973,61 +971,7 @@ void *WorkloadManager::GarbageCollectorThread(GeantPropagator *prop) {
   return 0;
 }
 
-//______________________________________________________________________________
-int WorkloadManager::GetMonFeatures() const {
-  // Get the number of monitored features
-  return (fMonQueue + fMonMemory + fMonBasketsPerVol + fMonVectors + fMonConcurrency + fMonTracksPerEvent + fMonTracks);
-}
 
-//______________________________________________________________________________
-bool WorkloadManager::IsMonitored(GeantPropagator::EGeantMonitoringType feature) const {
-  // Check if a given feature is monitored
-  switch (feature) {
-  case GeantPropagator::kMonQueue:
-    return fMonQueue;
-  case GeantPropagator::kMonMemory:
-    return fMonMemory;
-  case GeantPropagator::kMonBasketsPerVol:
-    return fMonBasketsPerVol;
-  case GeantPropagator::kMonVectors:
-    return fMonVectors;
-  case GeantPropagator::kMonConcurrency:
-    return fMonConcurrency;
-  case GeantPropagator::kMonTracksPerEvent:
-    return fMonTracksPerEvent;
-  case GeantPropagator::kMonTracks:
-    return fMonTracks;
-  }
-  return false;
-}
-
-//______________________________________________________________________________
-void WorkloadManager::SetMonitored(GeantPropagator::EGeantMonitoringType feature, bool flag) {
-  // Enable/disable monitoring for a feature
-  int value = (int)flag;
-  switch (feature) {
-  case GeantPropagator::kMonQueue:
-    fMonQueue = value;
-    break;
-  case GeantPropagator::kMonMemory:
-    fMonMemory = value;
-    break;
-  case GeantPropagator::kMonBasketsPerVol:
-    fMonBasketsPerVol = value;
-    break;
-  case GeantPropagator::kMonVectors:
-    fMonVectors = value;
-    break;
-  case GeantPropagator::kMonConcurrency:
-    fMonConcurrency = value;
-    break;
-  case GeantPropagator::kMonTracksPerEvent:
-    fMonTracksPerEvent = value;
-    break;
-  case GeantPropagator::kMonTracks:
-    fMonTracks = value;
-  }
-}
 
 //______________________________________________________________________________
 void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
@@ -1037,7 +981,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   Geant::Info("MonitoringThread","Started monitoring ...");
   GeantPropagator *propagator = prop;
   WorkloadManager *wm = propagator->fWMgr;
-  int nmon = wm->GetMonFeatures();
+  int nmon = prop->fConfig->GetMonFeatures();
   if (!nmon)
     return 0;
   int dmon = 0.5 * nmon + nmon % 2;
@@ -1062,7 +1006,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   TH1I *hqueue = 0;
   int nqueue[101] = {0};
   int ipad = 0;
-  if (wm->IsMonitored(GeantPropagator::kMonQueue)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonQueue)) {
     hqueue = new TH1I("hqueue", "Work queue load", 100, 0, 100);
     hqueue->SetFillColor(kRed);
     hqueue->SetLineColor(0);
@@ -1071,7 +1015,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
     hqueue->Draw();
   }
   TH1F *hmem = 0;
-  if (wm->IsMonitored(GeantPropagator::kMonMemory)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonMemory)) {
     hmem = new TH1F("hmem", "Resident memory [MB]", 100, 0, 100);
     // hmem->SetFillColor(kMagenta);
     hmem->SetLineColor(kMagenta);
@@ -1081,7 +1025,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1I *hbaskets = 0;
   TH1I *hbused = 0;
-  if (wm->IsMonitored(GeantPropagator::kMonBasketsPerVol)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonBasketsPerVol)) {
     hbaskets = new TH1I("hbaskets", "Baskets per volume", nvol, 0, nvol);
     hbaskets->SetFillColor(kBlue);
     hbaskets->SetLineColor(0);
@@ -1097,7 +1041,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
     hbused->Draw("SAME");
   }
   TH1I *hvectors = 0;
-  if (wm->IsMonitored(GeantPropagator::kMonVectors)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonVectors)) {
     hvectors = new TH1I("hvectors", "Tracks in vectors of given size", 257, 0, 257);
     hvectors->SetFillColor(kBlue);
     hvectors->SetLineColor(0);
@@ -1107,7 +1051,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1F *hconcurrency = 0;
   TH1F *hconcavg = 0;
-  if (wm->IsMonitored(GeantPropagator::kMonConcurrency)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonConcurrency)) {
     hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
     hconcurrency->GetYaxis()->SetRangeUser(0, 1);
     hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, true);
@@ -1127,7 +1071,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   TH1I *htracksmax = 0;
   TH1I *htracks = 0;
   int nbuffered = propagator->fNevents;
-  if (wm->IsMonitored(GeantPropagator::kMonTracksPerEvent)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonTracksPerEvent)) {
     htracksmax = new TH1I("htracksmax", "Tracks in flight", nbuffered, 0, nbuffered);
     htracksmax->SetFillColor(kBlue);
     htracksmax->SetLineColor(0);
@@ -1143,7 +1087,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1I *htrackstot = 0;
   int ntrackstot[101] = {0};
-  if (wm->IsMonitored(GeantPropagator::kMonTracks)) {
+  if (propagator->fConfig->IsMonitored(GeantConstant::kMonTracks)) {
     htrackstot = new TH1I("htrackstot", "Total number of tracks alive", 100, 0, 100);
     htrackstot->SetFillColor(kRed);
     htrackstot->SetLineColor(0);

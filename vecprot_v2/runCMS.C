@@ -62,7 +62,7 @@ void runCMS(const int ncputhreads=4,
 #endif
    }
 
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
+   GeantPropagator *prop = GeantPropagator::NewInstance(ntotal, nbuffered, nthreads);
    prop->fBmag = magfield; // 4 Tesla
 
    //  Enable use of RK integration in field for charged particles
@@ -125,7 +125,7 @@ void runCMS(const int ncputhreads=4,
    prop->fLearnSteps = 100000;
    if (performance) prop->fLearnSteps = 0;
 
-   CMSApplication *app = new CMSApplication();
+   CMSApplication *app = new CMSApplication(prop);
    // Activate I/O
    prop->fFillTree = false;
    prop->fTreeSizeWriteThreshold = 100000;

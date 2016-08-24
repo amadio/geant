@@ -24,7 +24,7 @@ GeantBasket::GeantBasket()
 //______________________________________________________________________________
 GeantBasket::GeantBasket(GeantPropagator* prop, int size, GeantBasketMgr *mgr)
    : fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-     fThreshold(size), fTracksIn(size, prop->fMaxDepth), fIsMixed(false) {
+     fThreshold(size), fTracksIn(size, prop->fConfig->fMaxDepth), fIsMixed(false) {
   // Default constructor.
   if (!mgr->GetVolume() || mgr->IsCollector())
     SetMixed(true);
@@ -133,7 +133,7 @@ GeantBasketMgr::GeantBasketMgr(GeantPropagator* prop, GeantScheduler *sch, Volum
     fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
     fDispatchList() {
   // Constructor
-  fBcap = prop->fMaxPerBasket + 1;
+  fBcap = prop->fConfig->fMaxPerBasket + 1;
   // The line below to be removed when the automatic activation schema in place
   if (collector)
     Activate(prop);

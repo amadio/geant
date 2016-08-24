@@ -149,7 +149,7 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
   int mod;
   Volume_t const *vol;
 
-  if ((fPropagator)->fFillTree) {
+  if ((fPropagator)->fConfig->fFillTree) {
     for (int itr = 0; itr < npart; itr++) {
       vol = tracks.GetVolume(itr);
 #ifdef USE_VECGEOM_NAVIGATOR

@@ -164,42 +164,55 @@ int main(int argc, char *argv[]) {
 #endif
   }
   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
-  WorkloadManager *wmanager = propagator->fWMgr;
 
-  if (broker) propagator->SetTaskBroker(broker);
-  wmanager->SetNminThreshold(5 * n_threads);
-  propagator->fUseMonitoring = monitor;
-#ifdef GEANT_TBB
-  if (tbbmode)
-    propagator->fTaskMgr = new TaskMgrTBB();
-#endif
-
-  // Monitor different features
-  wmanager->SetNminThreshold(5*n_threads);
-  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
-  propagator->fUseMonitoring = monitor;
-  propagator->fNaverage = 500;   // Average number of tracks per event
-
+  GeantConstant* config=new GeantConstant();
+  propagator->fConfig=config;
+  config->fUseMonitoring = monitor;
+  config->fNminThreshold=5*n_threads;
+  config->SetMonitored(GeantConstant::kMonQueue, monitor);
+  config->SetMonitored(GeantConstant::kMonMemory, monitor);
+  config->SetMonitored(GeantConstant::kMonBasketsPerVol, monitor);
+  config->SetMonitored(GeantConstant::kMonVectors, monitor);
+  config->SetMonitored(GeantConstant::kMonConcurrency, monitor);
+  config->SetMonitored(GeantConstant::kMonTracksPerEvent, monitor);
+  config->fNaverage = 500;   // Average number of tracks per event
+  
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
-  propagator->fPriorityThr = 0.05;
+  config->fPriorityThr = 0.05;
 
   // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow
-  propagator->fNperBasket = 16;   // Initial vector size (tunable)
+  config->fNperBasket = 16;   // Initial vector size (tunable)
 
   // This is now the most important parameter for memory considerations
-  propagator->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
-  propagator->fEmin = 3.E-6; // [3 KeV] energy cut
-  propagator->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
+  config->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
+  config->fEmin = 3.E-6; // [3 KeV] energy cut
+  config->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
+   // Number of steps for learning phase (tunable [0, 1e6])
+   // if set to 0 disable learning phase
+  config->fLearnSteps = n_learn_steps;
+  if (performance) config->fLearnSteps = 0;
+   // Activate I/O
+  config->fFillTree = false;
+   // Activate debugging using -DBUG_HUNT=ON in your cmake build
+  if (debug) {
+    config->fUseDebug = true;
+    config->fDebugTrk = 1;
+  }
+// Activate standard scoring   
+  config->fUseStdScoring = true;
+  if (performance) config->fUseStdScoring = false;
+  // Monitor the application
+  config->fUseAppMonitoring = false;
+
+  if (broker) propagator->SetTaskBroker(broker);
+
+  
   // Create the tab. phys process.
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
+  
 // Create the tab. phys process.
 #ifdef USE_VECGEOM_NAVIGATOR
   propagator->LoadVecGeomGeometry();
@@ -209,28 +222,7 @@ int main(int argc, char *argv[]) {
   // propagator->fVectorPhysicsProcess = new GVectorPhysicsProcess(propagator->fEmin, nthreads);
   propagator->fPrimaryGenerator = new GunGenerator(propagator->fNaverage, 11, propagator->fEmax, -8, 0, 0, 1, 0, 0);
 
-   // Number of steps for learning phase (tunable [0, 1e6])
-   // if set to 0 disable learning phase
-  propagator->fLearnSteps = n_learn_steps;
-  if (performance) propagator->fLearnSteps = 0;
   propagator->fApplication = new ExN03Application(propagator);
-   // Activate I/O
-  propagator->fFillTree = false;
-  
-  // Set threshold for tracks to be reused in the same volume
-  propagator->fNminReuse = n_reuse;
-  
-   // Activate debugging using -DBUG_HUNT=ON in your cmake build
-  if (debug) {
-    propagator->fUseDebug = true;
-    propagator->fDebugTrk = 1;
-  }
-// Activate standard scoring
-  propagator->fUseStdScoring = true;
-  if (performance) propagator->fUseStdScoring = false;
-  // Monitor the application
-  propagator->fUseAppMonitoring = false;
-
   propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }

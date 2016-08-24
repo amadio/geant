@@ -1302,7 +1302,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
    const double bmag = td->fPropagator->fBmag;
-   useRungeKutta= td->fPropagator->fUseRungeKutta;
+   useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
 #endif
 
    // static unsigned long icount= 0;

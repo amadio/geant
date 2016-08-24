@@ -109,7 +109,7 @@ void GeantScheduler::AdjustBasketSize() {
   return; // !!!!!!!!!!!!!!! NOT needed anymore !!!!!!!!!!!!!!!
           /*
             const int min_size = 4;
-            const int max_size = gPropagator->fNperBasket;
+            const int max_size = gPropagator->fConfig->fNperBasket;
             int nthreads = gPropagator->fNthreads;
             int nproposed;
             for (int ib = 0; ib < fNvolumes; ib++) {
@@ -153,7 +153,7 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
   Volume_t *vol;
   GeantBasketMgr *basket_mgr;
   int icrt = 0;
-  int nperbasket = prop->fNperBasket;
+  int nperbasket = prop->fConfig->fNperBasket;
   for (auto ivol = 0; ivol < fNvolumes; ++ivol) {
     vol = (Volume_t *)fVolumes[ivol];
     basket_mgr = new GeantBasketMgr(prop,this, vol, icrt);
@@ -189,7 +189,7 @@ int GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
   fNsteps++;
   // If no learning phase requested, activate all basket managers
   GeantPropagator *propagator = td->fPropagator;
-  if ((propagator->fLearnSteps == 0) && !fLearning.test_and_set(std::memory_order_acquire)) {
+  if ((propagator->fConfig->fLearnSteps == 0) && !fLearning.test_and_set(std::memory_order_acquire)) {
     for (ivol = 0; ivol < fNvolumes; ++ivol)
       fBasketMgr[ivol]->Activate(td->fPropagator);
   } else {
@@ -274,12 +274,12 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
       ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, true, td);
       continue;
     }
-    if (propagator->fLearnSteps && (nsteps % propagator->fLearnSteps) == 0 &&
+    if (propagator->fConfig->fLearnSteps && (nsteps % propagator->fConfig->fLearnSteps) == 0 &&
         !fLearning.test_and_set(std::memory_order_acquire)) {
-      Geant::Info("AddTracks", "=== Learning phase of %d steps completed ===", propagator->fLearnSteps);
+      Geant::Info("AddTracks", "=== Learning phase of %d steps completed ===", propagator->fConfig->fLearnSteps);
       // Here comes the algorithm activating basket managers...
       ActivateBasketManagers(td);
-      propagator->fLearnSteps *= 4;
+      propagator->fConfig->fLearnSteps *= 4;
       fLearning.clear();
     }
     if (basket_mgr->IsActive())
