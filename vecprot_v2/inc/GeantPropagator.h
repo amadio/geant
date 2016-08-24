@@ -44,7 +44,7 @@ class MCTruthMgr;
 class TaskBroker;
 
 #include "GeantFwd.h"
-#include "GeantConstant.h"
+#include "GeantConfig.h"
 
 class GeantPropagator {
 
