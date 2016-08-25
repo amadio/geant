@@ -312,7 +312,7 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
   }
 
   VolumePath_t::ReleaseInstance(startpath);
-  int tid = WorkloadManager::Instance()->ThreadId();
+  int tid = td->fTid;
   Geant::Print("ImportTracks", "[%d] Imported %d tracks from events %d to %d. Dispatched %d baskets.", tid, ntotal, startevent,
                startevent + nevents - 1, ndispatched);
   return ndispatched;
