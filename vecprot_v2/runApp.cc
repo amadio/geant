@@ -209,6 +209,8 @@ int main(int argc, char *argv[]) {
 
   if (broker) propagator->SetTaskBroker(broker);
 
+  // Set threshold for tracks to be reused in the same volume
+  config->fNminReuse = n_reuse;
   
   // Create the tab. phys process.
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
