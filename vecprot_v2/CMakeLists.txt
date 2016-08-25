@@ -41,6 +41,7 @@ set(sources
    src/TransportManager.cxx
    src/LocalityManager.cxx
    src/MCTruthMgr.cxx
+   src/GeantRunManager.cxx
 )
 
 set(headers
@@ -68,7 +69,8 @@ set(headers
    inc/LocalityManager.h
    inc/MCTruthMgr.h
    inc/cuckoohash_map.hh
-)
+   inc/GeantRunManager.h
+)   
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
    set(sources ${sources} src/ScalarNavInterfaceTGeo.cxx)
