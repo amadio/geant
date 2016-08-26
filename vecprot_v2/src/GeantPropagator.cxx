@@ -83,12 +83,11 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : fConfig(nullptr), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
+    : fConfig(nullptr), fNthreads(1), fNbuff(100), fNtotal(1000), fNtransported(0),
       fNprimaries(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
       fFeederLock(ATOMIC_FLAG_INIT),
       fPriorityEvents(0), fDoneEvents(0), fTransportOngoing(false), fSingleTrack(false),
-      fTreeSizeWriteThreshold(100000), fConcurrentWrite(true),
       fTracksLock(), fWMgr(nullptr), fApplication(nullptr), fStdApplication(nullptr),fTaskMgr(nullptr),
       fTimer(nullptr), fProcess(nullptr), fVectorPhysicsProcess(nullptr),
       fStoredTracks(nullptr), fPrimaryGenerator(nullptr), fTruthMgr(nullptr),
@@ -111,7 +110,7 @@ GeantPropagator::~GeantPropagator() {
 #endif
 
   if (fEvents) {
-    for (i = 0; i < fNevents; i++)
+    for (i = 0; i < fNbuff; i++)
       delete fEvents[i];
     delete[] fEvents;
   }
@@ -183,13 +182,13 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
     return -1;
   int nbaskets = 0;
   if (!fConfig->fLastEvent) {
-    nbaskets = ImportTracks(fNevents, 0, 0, td);
-    fConfig->fLastEvent = fNevents;
+    nbaskets = ImportTracks(fNbuff, 0, 0, td);
+    fConfig->fLastEvent = fNbuff;
     fFeederLock.clear(std::memory_order_release);
     return nbaskets;
   }
   // Check and mark finished events
-  for (int islot = 0; islot < fNevents; islot++) {
+  for (int islot = 0; islot < fNbuff; islot++) {
     GeantEvent *evt = fEvents[islot];
     if (fDoneEvents->TestBitNumber(evt->GetEvent()))
       continue;
@@ -321,34 +320,13 @@ int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, Ge
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantPropagator *GeantPropagator::NewInstance(int ntotal, int nbuffered, int nthreads) {
+GeantPropagator *GeantPropagator::NewInstance(int nthreads) {
   // Single instance of the propagator
-  GeantPropagator* newInstance=new GeantPropagator();
-  if (ntotal <= 0 || nbuffered <= 0) {
-#ifdef USE_ROOT
-    Printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
-#else
-    printf("GeantPropagator::Instance: Number of transported/buffered events should be positive");
-#endif
-    return 0;
-  }
-  newInstance = new GeantPropagator();
-  newInstance->fNtotal = ntotal;
-  newInstance->fNevents = nbuffered;
+  GeantPropagator* newInstance = new GeantPropagator();
   newInstance->fNthreads = nthreads;
-  if (nbuffered > ntotal) {
-#ifdef USE_ROOT
-    Printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
-#else
-    printf("GeantPropagator::Instance: Number of buffered events changed to %d", ntotal);
-#endif
-    newInstance->fNevents = ntotal;
-  }
   // Initialize workload manager
   #warning this must be solved before using CUDA
   newInstance->fWMgr = WorkloadManager::NewInstance(newInstance,nthreads);
-  // Instantiate factory store
-  GeantFactoryStore::Instance(nbuffered);
   return newInstance;
 }
 
@@ -356,7 +334,7 @@ GeantPropagator *GeantPropagator::NewInstance(int ntotal, int nbuffered, int nth
 void GeantPropagator::Initialize() {
   // Initialization
   fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
-  fConfig->fMaxTracks = fConfig->fMaxPerEvent * fNevents;
+  fConfig->fMaxTracks = fConfig->fMaxPerEvent * fNbuff;
 
   // Initialize arrays here.
   fDoneEvents = BitSet::MakeInstance(fNtotal);
@@ -385,8 +363,8 @@ void GeantPropagator::Initialize() {
   }
 
   if (!fNtracks) {
-    fNtracks = new int[fNevents];
-    memset(fNtracks, 0, fNevents * sizeof(int));
+    fNtracks = new int[fNbuff];
+    memset(fNtracks, 0, fNbuff * sizeof(int));
   }
 }
 
@@ -584,7 +562,7 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 
 //______________________________________________________________________________
 void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool graphics, bool single) {
-  // Propagate fNevents in the volume containing the vertex.
+  // Propagate fNbuff in the volume containing the vertex.
   // Simulate 2 physics processes up to exiting the current volume.
   static bool called = false;
   fConfig->fUseGraphics = graphics;
@@ -626,8 +604,8 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
 
   // Import the input events. This will start also populating the main queue
   if (!fEvents) {
-    fEvents = new GeantEvent *[fNevents];
-    memset(fEvents, 0, fNevents * sizeof(GeantEvent *));
+    fEvents = new GeantEvent *[fNbuff];
+    memset(fEvents, 0, fNbuff * sizeof(GeantEvent *));
   }
 
   //  Feeder(fThreadData[0]);
@@ -707,18 +685,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   //   fWMgr->NavStates()->statistics();
 }
 
-/*//______________________________________________________________________________
-int GeantPropagator::GetMonFeatures() const {
-  // Get the number of monitored features
-  return fWMgr->GetMonFeatures();
-}*/
-/*
-//______________________________________________________________________________
-void GeantPropagator::SetNminThreshold(int thr) {
-  // Setter for the global transport threshold
-  fWMgr->SetNminThreshold(thr);
-}
-*/
 //______________________________________________________________________________
 void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
   // Setter for task broker
@@ -729,4 +695,23 @@ void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
 TaskBroker *GeantPropagator::GetTaskBroker() {
   // Getter for task broker
   return fWMgr->GetTaskBroker();
+}
+
+//______________________________________________________________________________
+void GeantPropagator::SetConfig(GeantConfig *config)
+{
+// Set run configuration.
+  fConfig = config;
+  fNbuff = config->fNbuff;
+  fNtotal = config->fNtotal;
+  if (fNtotal <= 0 || fNbuff <= 0) {
+    Fatal("GeantPropagator::SetConfig", "Number of transported/buffered events should be positive");
+    return;
+  }
+  if (fNbuff > fNtotal) {
+    Info("GeantPropagator::SetCofig", "Number of buffered events changed to %d", fNtotal);
+    fNbuff = fNtotal;
+  }
+  // Instantiate factory store
+  GeantFactoryStore::Instance(fNbuff);
 }

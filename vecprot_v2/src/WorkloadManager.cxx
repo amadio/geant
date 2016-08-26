@@ -327,8 +327,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
 
 
   #ifdef USE_ROOT
-  bool concurrentWrite = td->fPropagator->fConcurrentWrite && td->fPropagator->fConfig->fFillTree;
-  int treeSizeWriteThreshold = td->fPropagator->fTreeSizeWriteThreshold;
+  bool concurrentWrite = td->fPropagator->fConfig->fConcurrentWrite && td->fPropagator->fConfig->fFillTree;
+  int treeSizeWriteThreshold = td->fPropagator->fConfig->fTreeSizeWriteThreshold;
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16,prop->fWMgr);
@@ -397,7 +397,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Too many garbage collections - enter priority mode
     if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
       ngcoll = 0;
-      for (int slot = 0; slot < propagator->fNevents; slot++)
+      for (int slot = 0; slot < propagator->fNbuff; slot++)
         if (propagator->fEvents[slot]->Prioritize())
           propagator->fPriorityEvents++;
       while ((!sch->GarbageCollect(td, true)) &&
@@ -760,7 +760,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
       // Too many garbage collections - enter priority mode
       if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
         ngcoll = 0;
-        for (int slot = 0; slot < propagator->fNevents; slot++)
+        for (int slot = 0; slot < propagator->fNbuff; slot++)
           if (propagator->fEvents[slot]->Prioritize())
             propagator->fPriorityEvents++;
         while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
@@ -1070,7 +1070,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1I *htracksmax = 0;
   TH1I *htracks = 0;
-  int nbuffered = propagator->fNevents;
+  int nbuffered = propagator->fNbuff;
   if (propagator->fConfig->IsMonitored(GeantConfig::kMonTracksPerEvent)) {
     htracksmax = new TH1I("htracksmax", "Tracks in flight", nbuffered, 0, nbuffered);
     htracksmax->SetFillColor(kBlue);
@@ -1125,7 +1125,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       if (htrackstot) {
         // Count tracks for all event slots
         int ntr = 0;
-        for (int slot = 0; slot < propagator->fNevents; slot++)
+        for (int slot = 0; slot < propagator->fNbuff; slot++)
           ntr += propagator->fEvents[slot]->GetNinflight();
         memmove(ntrackstot, &ntrackstot[1], 99 * sizeof(int));
         ntrackstot[99] = ntr;
@@ -1148,7 +1148,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       if (htrackstot) {
         // Count tracks for all event slots
         int ntr = 0;
-        for (int slot = 0; slot < propagator->fNevents; slot++)
+        for (int slot = 0; slot < propagator->fNbuff; slot++)
           ntr += propagator->fEvents[slot]->GetNinflight();
         ntrackstot[i] = ntr;
         htrackstot->SetBinContent(i + 1, ntrackstot[i]);
@@ -1265,7 +1265,7 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
   Geant::Info("OutputThread","=== Output thread created ===");
   #ifdef USE_ROOT
 
-  if (prop->fConcurrentWrite) {
+  if (prop->fConfig->fConcurrentWrite) {
     Printf(">>> Writing concurrently to MemoryFiles");
 
     TThread t;

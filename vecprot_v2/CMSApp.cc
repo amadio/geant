@@ -150,18 +150,14 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  bool performance = true;
-  TaskBroker *broker = nullptr;
-
-   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
-   
+  bool performance = true;   
 #ifdef USE_ROOT
   TGeoManager::Import(cms_geometry_filename.c_str());
 #else
 
 #endif
-  //WorkloadManager *wmanager = propagator->fWMgr;
 
+  TaskBroker *broker = nullptr;
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
     CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -174,9 +170,9 @@ int main(int argc, char *argv[]) {
   }
 
   GeantConfig* config=new GeantConfig();
-  propagator->fConfig=config;
- 
-
+  
+  config->fNtotal = n_events;
+  config->fNbuff = n_buffered;
   // Default value is 1. (0.1 Tesla)
   config->fBmag = 40.; // 4 Tesla
 
@@ -184,7 +180,6 @@ int main(int argc, char *argv[]) {
   config->fUseRungeKutta = false;
   // prop->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default
 
-  if (broker) propagator->SetTaskBroker(broker);
   config->fNminThreshold=5 * n_threads;
   config->fUseMonitoring = monitor;
   config->fNaverage = 500;
@@ -211,7 +206,29 @@ int main(int argc, char *argv[]) {
   if (config) config->fMaxRes = 0;
   config->fEmin = 0.001; // [1 MeV] energy cut
   config->fEmax = 0.01;  // 10 MeV
+  if (debug) {
+    config->fUseDebug = true;
+    config->fDebugTrk = 1;
+    //propagator->fDebugEvt = 0;
+    //propagator->fDebugStp = 0;
+    //propagator->fDebugRep = 10;
+  }
+  config->fUseMonitoring = monitor;
+  // Activate standard scoring   
+  config->fUseStdScoring = true;
+  if (performance) config->fUseStdScoring = false;
+  config->fLearnSteps = n_learn_steps;
+  if (performance) config->fLearnSteps = 0;
 
+  // Activate I/O
+  config->fFillTree = false;
+  config->fTreeSizeWriteThreshold = 100000;
+  // Activate old version of single thread serialization/reading
+  //   config->fConcurrentWrite = false;
+
+  GeantPropagator *propagator = GeantPropagator::NewInstance(n_threads);
+  propagator->SetConfig(config);
+  if (broker) propagator->SetTaskBroker(broker);
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
   propagator->LoadVecGeomGeometry();
@@ -230,14 +247,6 @@ int main(int argc, char *argv[]) {
     // propagator->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
     propagator->fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
   }
-  config->fLearnSteps = n_learn_steps;
-  if (performance) config->fLearnSteps = 0;
-
-  // Activate I/O
-  config->fFillTree = false;
-  propagator->fTreeSizeWriteThreshold = 100000;
-  // Activate old version of single thread serialization/reading
-  //   prop->fConcurrentWrite = false;
 
   CMSApplication *CMSApp = new CMSApplication(propagator);
   if (score) {
@@ -246,17 +255,6 @@ int main(int argc, char *argv[]) {
     CMSApp->SetScoreType(CMSApplication::kNoScore);
   }
   propagator->fApplication = CMSApp;
-  if (debug) {
-    config->fUseDebug = true;
-    config->fDebugTrk = 1;
-    //propagator->fDebugEvt = 0;
-    //propagator->fDebugStp = 0;
-    //propagator->fDebugRep = 10;
-  }
-  config->fUseMonitoring = monitor;
-  // Activate standard scoring   
-  config->fUseStdScoring = true;
-  if (performance) config->fUseStdScoring = false;
   propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }

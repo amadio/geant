@@ -152,6 +152,7 @@ int main(int argc, char *argv[]) {
   }
   bool performance = true;
   TGeoManager::Import(exn03_geometry_filename.c_str());
+
   TaskBroker *broker = nullptr;
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
@@ -163,10 +164,11 @@ int main(int argc, char *argv[]) {
     std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
   }
-  GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
 
   GeantConfig* config=new GeantConfig();
-  propagator->fConfig=config;
+
+  config->fNtotal = n_events;
+  config->fNbuff = n_buffered;
   config->fUseMonitoring = monitor;
   config->fNminThreshold=5*n_threads;
   config->SetMonitored(GeantConfig::kMonQueue, monitor);
@@ -207,11 +209,13 @@ int main(int argc, char *argv[]) {
   // Monitor the application
   config->fUseAppMonitoring = false;
 
-  if (broker) propagator->SetTaskBroker(broker);
-
   // Set threshold for tracks to be reused in the same volume
   config->fNminReuse = n_reuse;
   
+  // Create propagator
+  GeantPropagator *propagator = GeantPropagator::NewInstance(n_threads);
+  propagator->SetConfig(config);
+  if (broker) propagator->SetTaskBroker(broker);
   // Create the tab. phys process.
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
   

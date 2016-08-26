@@ -56,7 +56,7 @@ public:
   using GeantTaskData = Geant::GeantTaskData;
   // data members to be made private
   int fNthreads;                                   /** Number of worker threads */
-  int fNevents;                                    /** Number of buffered events */
+  int fNbuff;                                      /** Number of buffered events */
   int fNtotal;                                     /** Total number of events to be transported */
   std::atomic<long> fNtransported;                 /** Number of transported tracks */
   std::atomic<long> fNprimaries;                   /** Number of primary tracks */
@@ -72,10 +72,6 @@ public:
 
   bool fTransportOngoing;      /** Flag for ongoing transport */
   bool fSingleTrack;           /** Use single track transport mode */
-  
-  int fTreeSizeWriteThreshold; /** Maximum size of the tree (before automatic writing) **/
-  bool fConcurrentWrite;     /** switch between single and mutlithreaded writing */
-  
   
   std::mutex fTracksLock;          /** Mutex for adding tracks */
 
@@ -101,8 +97,8 @@ public:
   MCTruthMgr *fTruthMgr;               /** MCTruth manager */
 
   // Data per event
-  int *fNtracks;               /** ![fNevents] Number of tracks {array of [fNevents]} */
-  GeantEvent **fEvents;        /** ![fNevents]    Array of events */
+  int *fNtracks;               /** ![fNbuff] Number of tracks per slot */
+  GeantEvent **fEvents;        /** ![fNbuff]    Array of events */
   GeantTaskData **fThreadData; /** ![fNthreads] Data private to threads */
 
   /** @brief Initialization function */
@@ -207,7 +203,7 @@ public:
    * @param nbuffered Number of buffered tracks
    */
   VECCORE_ATT_HOST_DEVICE
-  static GeantPropagator *NewInstance(int ntotal = 0, int nbuffered = 0, int nthreads = 0);
+  static GeantPropagator *NewInstance(int nthreads = 0);
 
   /**
    * @brief Propose the physics step for an array of tracks

@@ -17,6 +17,8 @@ public:
 		kMonTracks
 	};
 
+  int fNtotal;                                     /** Total number of events to be transported */
+  int fNbuff;                                      /** Number of buffered events */
 	int fNprocesses;                                 /** Number of active physics processes */
 	int fNstart;                                     /** Cumulated initial number of tracks */
 	int fMaxTracks;                                  /** Maximum number of tracks per event */
@@ -63,9 +65,11 @@ public:
 	bool fFillTree;            /** Enable I/O */
 	bool fUseMonitoring;         /** Monitoring different features */
 	bool fUseAppMonitoring;      /** Monitoring the application */
+  int  fTreeSizeWriteThreshold; /** Maximum size of the tree (before automatic writing) **/
+  bool fConcurrentWrite;     /** switch between single and mutlithreaded writing */
 
 public:
-	GeantConfig(): fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1),
+	GeantConfig(): fNtotal(1000), fNbuff(100), fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1),
 		fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256),
 		fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
 		fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
@@ -74,7 +78,8 @@ public:
 		fBmag(0.),// kiloGauss
 		fEpsilonRK(0.0003), fUsePhysics(true), fUseRungeKutta(false), fUseDebug(false), fUseGraphics(false), fUseStdScoring(false),
 		fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0),
-		fMonTracksPerEvent(0), fMonTracks(0), fFillTree(false), fUseMonitoring(false), fUseAppMonitoring(false)
+		fMonTracksPerEvent(0), fMonTracks(0), fFillTree(false), fUseMonitoring(false), fUseAppMonitoring(false),
+    fTreeSizeWriteThreshold(100000), fConcurrentWrite(true)
 	{};
 	
 	~GeantConfig();
