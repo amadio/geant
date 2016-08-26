@@ -1,38 +1,20 @@
 #ifndef GEANT_RUN_MANAGER_H
 #define GEANT_RUN_MANAGER_H
 
-#include "GeantVApplication.h"
-#include "GeantVApplication.h"
-
 class GeantRunManager
 {
 private:
-
-	//general config
-	int fNpropagator=0;
-	int fNthreads=0;
-	int fNevents=0;
-	int fNtotal=0;
-
-
-	GeantVApplication *fApplication;
-	GeantVApplication *fStdApplication;
-
-	GeantRunManager();
+  int fNpropagator = 0; /** Number of propagators */
+  int fNthreads    = 0; /** Number of threads per propagator */
 
 public:
-	/**
-	 * @brief      Conctructor of the RunManager to manage many GeantPropagator 
-	 *
-	 * @param      config  An array with the config {nbPropagator, nbThreadForEachPropagator, nbTrackForEachThread,NumberOfBufferedTarck}
-	 */
-	GeantRunManager(unsigned int config[4]=NULL);
-	GeantRunManager(unsigned int nbPropagator,unsigned int  nbThreadForEachPropagator,unsigned int  nbTrackForEachThread, unsigned int NumberOfBufferedTarck);
+	GeantRunManager() {}
+	GeantRunManager(unsigned int npropagators, unsigned int nthreads);
 
-	void RunSimulation(PhysicsProcess *process,PrimaryGenerator *generator,GeantVApplication application, const char *geomfile = "geometry.root", bool graphics = false, bool single = false);
+  bool Initialize();
+	void RunSimulation();
 
 	~GeantRunManager();
 };
-
 
 #endif // GEANT_RUN_MANAGER_H

@@ -1006,7 +1006,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   TH1I *hqueue = 0;
   int nqueue[101] = {0};
   int ipad = 0;
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonQueue)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonQueue)) {
     hqueue = new TH1I("hqueue", "Work queue load", 100, 0, 100);
     hqueue->SetFillColor(kRed);
     hqueue->SetLineColor(0);
@@ -1015,7 +1015,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
     hqueue->Draw();
   }
   TH1F *hmem = 0;
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonMemory)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonMemory)) {
     hmem = new TH1F("hmem", "Resident memory [MB]", 100, 0, 100);
     // hmem->SetFillColor(kMagenta);
     hmem->SetLineColor(kMagenta);
@@ -1025,7 +1025,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1I *hbaskets = 0;
   TH1I *hbused = 0;
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonBasketsPerVol)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonBasketsPerVol)) {
     hbaskets = new TH1I("hbaskets", "Baskets per volume", nvol, 0, nvol);
     hbaskets->SetFillColor(kBlue);
     hbaskets->SetLineColor(0);
@@ -1041,7 +1041,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
     hbused->Draw("SAME");
   }
   TH1I *hvectors = 0;
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonVectors)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonVectors)) {
     hvectors = new TH1I("hvectors", "Tracks in vectors of given size", 257, 0, 257);
     hvectors->SetFillColor(kBlue);
     hvectors->SetLineColor(0);
@@ -1051,7 +1051,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1F *hconcurrency = 0;
   TH1F *hconcavg = 0;
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonConcurrency)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonConcurrency)) {
     hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
     hconcurrency->GetYaxis()->SetRangeUser(0, 1);
     hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, true);
@@ -1071,7 +1071,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   TH1I *htracksmax = 0;
   TH1I *htracks = 0;
   int nbuffered = propagator->fNevents;
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonTracksPerEvent)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonTracksPerEvent)) {
     htracksmax = new TH1I("htracksmax", "Tracks in flight", nbuffered, 0, nbuffered);
     htracksmax->SetFillColor(kBlue);
     htracksmax->SetLineColor(0);
@@ -1087,7 +1087,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   }
   TH1I *htrackstot = 0;
   int ntrackstot[101] = {0};
-  if (propagator->fConfig->IsMonitored(GeantConstant::kMonTracks)) {
+  if (propagator->fConfig->IsMonitored(GeantConfig::kMonTracks)) {
     htrackstot = new TH1I("htrackstot", "Total number of tracks alive", 100, 0, 100);
     htrackstot->SetFillColor(kRed);
     htrackstot->SetLineColor(0);

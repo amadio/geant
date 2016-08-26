@@ -1,13 +1,12 @@
 #include "GeantRunManager.h"
 
-GeantRunManager::GeantRunManager(unsigned int config[4]){
 
+GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthreads) {
 }
 
-GeantRunManager::GeantRunManager(unsigned int nbPropagator,unsigned int  nbThreadForEachPropagator,unsigned int  nbTrackForEachThread, unsigned int NumberOfBufferedTarck){
-	
+bool GeantRunManager::Initialize() {
+  return true;
 }
 
-void GeantRunManager::RunSimulation(PhysicsProcess *process,PrimaryGenerator *generator,GeantVApplication application, const char *geomfile , bool graphics , bool single){
-
+void GeantRunManager::RunSimulation() {
 }

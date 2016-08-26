@@ -83,16 +83,17 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
+    : fConfig(nullptr), fNthreads(1), fNevents(100), fNtotal(1000), fNtransported(0),
       fNprimaries(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
       fFeederLock(ATOMIC_FLAG_INIT),
       fPriorityEvents(0), fDoneEvents(0), fTransportOngoing(false), fSingleTrack(false),
       fTreeSizeWriteThreshold(100000), fConcurrentWrite(true),
-      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0),fTaskMgr(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
-      fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0), fEvents(0), fThreadData(0) {
-  // Constructor
- 
+      fTracksLock(), fWMgr(nullptr), fApplication(nullptr), fStdApplication(nullptr),fTaskMgr(nullptr),
+      fTimer(nullptr), fProcess(nullptr), fVectorPhysicsProcess(nullptr),
+      fStoredTracks(nullptr), fPrimaryGenerator(nullptr), fTruthMgr(nullptr),
+      fNtracks(0), fEvents(0), fThreadData(nullptr) {
+  // Constructor 
 }
 
 //______________________________________________________________________________
@@ -728,9 +729,4 @@ void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
 TaskBroker *GeantPropagator::GetTaskBroker() {
   // Getter for task broker
   return fWMgr->GetTaskBroker();
-}
-
-//______________________________________________________________________________
-void GeantPropagator::SetConfig(GeantConstant* config){
-  fConfig=config;
 }

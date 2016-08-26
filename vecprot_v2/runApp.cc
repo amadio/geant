@@ -165,16 +165,16 @@ int main(int argc, char *argv[]) {
   }
   GeantPropagator *propagator = GeantPropagator::NewInstance(n_events, n_buffered,n_threads);
 
-  GeantConstant* config=new GeantConstant();
+  GeantConfig* config=new GeantConfig();
   propagator->fConfig=config;
   config->fUseMonitoring = monitor;
   config->fNminThreshold=5*n_threads;
-  config->SetMonitored(GeantConstant::kMonQueue, monitor);
-  config->SetMonitored(GeantConstant::kMonMemory, monitor);
-  config->SetMonitored(GeantConstant::kMonBasketsPerVol, monitor);
-  config->SetMonitored(GeantConstant::kMonVectors, monitor);
-  config->SetMonitored(GeantConstant::kMonConcurrency, monitor);
-  config->SetMonitored(GeantConstant::kMonTracksPerEvent, monitor);
+  config->SetMonitored(GeantConfig::kMonQueue, monitor);
+  config->SetMonitored(GeantConfig::kMonMemory, monitor);
+  config->SetMonitored(GeantConfig::kMonBasketsPerVol, monitor);
+  config->SetMonitored(GeantConfig::kMonVectors, monitor);
+  config->SetMonitored(GeantConfig::kMonConcurrency, monitor);
+  config->SetMonitored(GeantConfig::kMonTracksPerEvent, monitor);
   config->fNaverage = 500;   // Average number of tracks per event
   
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)

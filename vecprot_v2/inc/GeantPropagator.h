@@ -49,7 +49,7 @@ class TaskBroker;
 class GeantPropagator {
 
 public:
-  GeantConstant *fConfig;
+  GeantConfig *fConfig;
 
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -280,7 +280,7 @@ public:
   /** @brief Release the lock */
   void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
 
-  void SetConfig(GeantConstant* config);
+  void SetConfig(GeantConfig* config);
 
 private:
   /** @brief Copy constructor not implemented */

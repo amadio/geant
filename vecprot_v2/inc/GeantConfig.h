@@ -1,7 +1,7 @@
-#ifndef GEANT_CONSTANT_H
-#define GEANT_CONSTANT_H
+#ifndef GEANT_RUN_CONFIG_H
+#define GEANT_RUN_CONFIG_H
 
-class GeantConstant
+class GeantConfig
 {
 public:
 	/**
@@ -65,7 +65,7 @@ public:
 	bool fUseAppMonitoring;      /** Monitoring the application */
 
 public:
-	GeantConstant(): fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1),
+	GeantConfig(): fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1),
 		fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256),
 		fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
 		fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
@@ -77,54 +77,54 @@ public:
 		fMonTracksPerEvent(0), fMonTracks(0), fFillTree(false), fUseMonitoring(false), fUseAppMonitoring(false)
 	{};
 	
-	~GeantConstant();
+	~GeantConfig();
 
 	/** @brief Check if a monitoring feature is enabled */
-	bool IsMonitored(GeantConstant::EGeantMonitoringType feature) const {
+	bool IsMonitored(GeantConfig::EGeantMonitoringType feature) const {
 	  // Check if a given feature is monitored
 	  switch (feature) {
-	  case GeantConstant::kMonQueue:
+	  case GeantConfig::kMonQueue:
 	    return fMonQueue;
-	  case GeantConstant::kMonMemory:
+	  case GeantConfig::kMonMemory:
 	    return fMonMemory;
-	  case GeantConstant::kMonBasketsPerVol:
+	  case GeantConfig::kMonBasketsPerVol:
 	    return fMonBasketsPerVol;
-	  case GeantConstant::kMonVectors:
+	  case GeantConfig::kMonVectors:
 	    return fMonVectors;
-	  case GeantConstant::kMonConcurrency:
+	  case GeantConfig::kMonConcurrency:
 	    return fMonConcurrency;
-	  case GeantConstant::kMonTracksPerEvent:
+	  case GeantConfig::kMonTracksPerEvent:
 	    return fMonTracksPerEvent;
-	  case GeantConstant::kMonTracks:
+	  case GeantConfig::kMonTracks:
 	    return fMonTracks;
 	  }
 	  return false;
 	}
 
 	/** @brief Enable monitoring a feature */
-	void SetMonitored(GeantConstant::EGeantMonitoringType feature, bool flag = true) {
+	void SetMonitored(GeantConfig::EGeantMonitoringType feature, bool flag = true) {
 	  // Enable/disable monitoring for a feature
 	  int value = (int)flag;
 	  switch (feature) {
-	  case GeantConstant::kMonQueue:
+	  case GeantConfig::kMonQueue:
 	    fMonQueue = value;
 	    break;
-	  case GeantConstant::kMonMemory:
+	  case GeantConfig::kMonMemory:
 	    fMonMemory = value;
 	    break;
-	  case GeantConstant::kMonBasketsPerVol:
+	  case GeantConfig::kMonBasketsPerVol:
 	    fMonBasketsPerVol = value;
 	    break;
-	  case GeantConstant::kMonVectors:
+	  case GeantConfig::kMonVectors:
 	    fMonVectors = value;
 	    break;
-	  case GeantConstant::kMonConcurrency:
+	  case GeantConfig::kMonConcurrency:
 	    fMonConcurrency = value;
 	    break;
-	  case GeantConstant::kMonTracksPerEvent:
+	  case GeantConfig::kMonTracksPerEvent:
 	    fMonTracksPerEvent = value;
 	    break;
-	  case GeantConstant::kMonTracks:
+	  case GeantConfig::kMonTracks:
 	    fMonTracks = value;
 	  }
 	}
@@ -140,4 +140,4 @@ public:
 	
 };
 
-#endif // GEANT_CONSTANT_H
+#endif // GEANT_RUN_CONFIG_H
