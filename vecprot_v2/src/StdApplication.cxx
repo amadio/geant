@@ -13,8 +13,8 @@
 #endif
 
 //______________________________________________________________________________
-StdApplication::StdApplication(GeantPropagator *prop)
-  : GeantVApplication(prop), fInitialized(false),
+StdApplication::StdApplication(GeantRunManager *runmgr)
+  : GeantVApplication(runmgr), fInitialized(false),
 #ifdef USE_ROOT
     fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
 #endif
@@ -102,7 +102,7 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 }
 
 //______________________________________________________________________________
-void StdApplication::Digitize(int /* event */) {
+void StdApplication::Digitize(GeantEvent */* event */) {
   // User method to digitize a full event, which is at this stage fully transported
   //   Geant::Printf("======= Statistics for event %d:\n", event);
 }

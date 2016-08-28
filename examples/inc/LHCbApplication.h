@@ -35,6 +35,7 @@ class TProfile;
 #include "MyHit.h"
 #endif
 
+#include "base/Vector.h"
 
 /** @brief LHCbApplication class */
 class LHCbApplication : public GeantVApplication {
@@ -45,6 +46,9 @@ class LHCbApplication : public GeantVApplication {
   static const int kNHCALModules = 112;
 
 public:
+  template <class T>
+  using vector_t = vecgeom::Vector<T>;
+
 enum EScoreType {
   kNoScore = 0,
   kScore
@@ -93,7 +97,7 @@ private:
 public:
 
   /** @brief Constructor LHCbApplication */
-  LHCbApplication(GeantPropagator *prop);
+  LHCbApplication(GeantRunManager *runmgr);
 
   /** @brief Destructor LHCbApplication */
   virtual ~LHCbApplication() {}
@@ -118,7 +122,7 @@ public:
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(int event);
+  virtual void Digitize(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

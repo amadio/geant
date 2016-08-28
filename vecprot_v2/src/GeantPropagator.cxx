@@ -83,7 +83,7 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : fConfig(nullptr), fNthreads(1), fNbuff(100), fNtotal(1000), fNtransported(0),
+    : fConfig(nullptr), fRunMgr(nullptr), fNthreads(1), fNbuff(100), fNtotal(1000), fNtransported(0),
       fNprimaries(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
       fFeederLock(ATOMIC_FLAG_INIT),
@@ -384,7 +384,7 @@ void GeantPropagator::InitializeAfterGeom() {
   }
   // Initialize application
   if (fConfig->fUseStdScoring) {
-    fStdApplication = new StdApplication(this);
+    fStdApplication = new StdApplication(fRunMgr);
     fStdApplication->Initialize();
   }
   fApplication->Initialize();

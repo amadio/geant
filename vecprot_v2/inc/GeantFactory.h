@@ -23,7 +23,6 @@
 #include <typeinfo>
 #include <type_traits>
 #include "dcqueue.h"
-#include "WorkloadManager.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #else
 #include "TGeoManager.h"
@@ -221,13 +220,13 @@ private:
    * @param blocksize Block size
    * @param callback Callback (by default = 0)
    */
-  GeantFactory(int nslots, int blocksize, WorkloadManager *wMgr, ProcessHitFunc_t callback = 0)
+  GeantFactory(int nslots, int blocksize, int nthreads, ProcessHitFunc_t callback = 0)
     : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs(),
       queue_per_thread(false) {
     // Reserve the space for the block arrays on event slots
     fBlockA = new GeantBlockArray<T> *[fNslots];
     // Check max number of threads
-    fNthreads = wMgr->GetNthreads();
+    fNthreads = nthreads;
 
     //
     fPoolArray = new deque<GeantBlock<T> *> [fNthreads];

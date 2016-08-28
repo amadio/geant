@@ -16,11 +16,12 @@
 #define GEANT_SCHEDULER
 
 #include <atomic>
-#include <vector>
 #include <stddef.h>
 class concurrent_queue;
 class GeantBasket;
 class GeantBasketMgr;
+
+#include "base/Vector.h"
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
@@ -38,6 +39,8 @@ public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
+  template <class T>
+  using vector_t = vecgeom::Vector<T>;
 
 protected:
   int fNvolumes;                                 /** Number of active volumes in the geometry */
@@ -52,7 +55,7 @@ protected:
   std::atomic_bool fCollecting;                  /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning = ATOMIC_FLAG_INIT; /** Flag marking the learning phase */
   std::atomic_flag fGBCLock = ATOMIC_FLAG_INIT;  /** Flag marking that garbage collector is busy */
-  std::vector<Volume_t const *> fVolumes;        /** List of logical volumes */
+  vector_t<Volume_t const *> fVolumes;        /** List of logical volumes */
 
 private:
   /**
@@ -173,7 +176,7 @@ public:
    */
   int GetNvolumes() const { return fNvolumes; }
 
-  std::vector<Volume_t const *> &GetVolumes() { return fVolumes; }
+  vector_t<Volume_t const *> &GetVolumes() { return fVolumes; }
 
   /** @brief Garbage collection function */
   int GarbageCollect(GeantTaskData *td, bool force = false);

@@ -1,12 +1,13 @@
 #include "GeantVApplication.h"
 
 //______________________________________________________________________________
-GeantVApplication::GeantVApplication(GeantPropagator *prop):fPropagator(prop)
+GeantVApplication::GeantVApplication(GeantRunManager *runmgr):fRunMgr(runmgr)
 {
   // Ctor..
 
 }
 
-void GeantVApplication::setPropagator(GeantPropagator *prop){
-	fPropagator=prop;
+//______________________________________________________________________________
+void GeantVApplication::SetRunManager(GeantRunManager *runmgr) {
+  fRunMgr = runmgr;
 }

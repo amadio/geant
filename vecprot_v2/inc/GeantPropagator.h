@@ -33,6 +33,7 @@ class TStopwatch;
 using veccore::BitSet;
 class PhysicsProcessOld;
 class PhysicsInterface;
+class GeantRunManager;
 class GeantEvent;
 class GeantBasket;
 class GeantBasketMgr;
@@ -49,7 +50,8 @@ class TaskBroker;
 class GeantPropagator {
 
 public:
-  GeantConfig *fConfig;
+  GeantConfig *fConfig;                            /** Run configuration*/
+  GeantRunManager *fRunMgr;                        /** Run manager */
 
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -137,6 +139,12 @@ public:
    * @return Number of transported tracks
    */
   long GetNtransported() const { return fNtransported.load(); }
+
+  /**
+   * @brief Function that returns the number of primary tracks
+   * @return Number of primary tracks
+   */
+  long GetNprimaries() const { return fNprimaries.load(); }
 
   /**
    * @brief Function that returns a temporary track object per thread

@@ -7,26 +7,29 @@
 #else 
 #include "TGeoNode.h"
 #endif
+
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
+
 #ifdef USE_ROOT
 #include "TH1.h"
 #include "TCanvas.h"
 #include "TROOT.h"
-#else
-typedef std::string TString;
+#include "TFile.h"
 #endif
+
 #include <cassert>
+#include <string>
 
 using std::min;
 using std::max;
 
 //______________________________________________________________________________
-FastSimApplication::FastSimApplication(GeantPropagator *prop)
-  : GeantVApplication(prop), fInitialized(false), fMHist(), 
+FastSimApplication::FastSimApplication(GeantRunManager *runmgr)
+  : GeantVApplication(runmgr), fInitialized(false), fMHist(), 
     fRatioMomentumInTracker( nullptr ), fRatioEnergyInEcal( nullptr ),
     fRatioEnergyInHcal( nullptr )
 {
@@ -49,39 +52,32 @@ bool FastSimApplication::Initialize() {
   if ( fInitialized ) return true;
   // Fill the vectors isTrackerVolume, isEcalVolume, isHcalVolume
   std::cout << "APPLICATION : FastSimApplication::Initialize" << std::endl;  // Debug
-  #ifdef USE_VECGEOM_NAVIGATOR
-    std::vector< vecgeom::LogicalVolume* > vecgeomVolumes;
-    vecgeom::GeoManager::Instance().GetAllLogicalVolumes( vecgeomVolumes );
-    int numberOfVolumes = vecgeomVolumes.size();
-  #else
-    TObjArray* allVolumes = gGeoManager->GetListOfVolumes();
-    int numberOfVolumes = allVolumes->GetEntries();
-  #endif
-  std::cout << "\t numberOfVolumes=" << numberOfVolumes << std::endl;  // Debug
+  int numberOfVolumes = fRunMgr->GetNvolumes();
+  vector_t<Volume_t const *> &lvolumes = fRunMgr->GetVolumes();
+  printf("Found %d logical volumes", numberOfVolumes);
+  const Volume_t *aVolume;
   isTrackerVolume.reserve( numberOfVolumes+1 );
   isEcalVolume.reserve( numberOfVolumes+1 );
   isHcalVolume.reserve( numberOfVolumes+1 );
   for ( auto ivol = 0; ivol < numberOfVolumes; ivol++ ) {
-    int idVol = 0;
-    #ifdef USE_VECGEOM_NAVIGATOR
-      vecgeom::LogicalVolume* aVolume = vecgeomVolumes[ ivol ];
-      if ( aVolume ) idVol = aVolume->id();
-    #else
-    #ifdef USE_ROOT
-      TGeoVolume* aVolume = (TGeoVolume*) allVolumes->At( ivol );
-      if ( aVolume ) idVol = aVolume->GetNumber();
-    #endif
-    #endif
-    TString nameVolume;
+    aVolume = lvolumes[ivol];
+    if (!aVolume) break;
+#ifdef USE_VECGEOM_NAVIGATOR
+    int idVol = aVolume->id();
+#else
+    int idVol = aVolume->GetNumber();
+#endif
+    std::string nameVolume;
     if ( aVolume ) nameVolume = aVolume->GetName();
+    std::transform(nameVolume.begin(), nameVolume.end(), nameVolume.begin(), ::tolower);
     int flagTracker = 0;
     int flagEcal = 0;
     int flagHcal = 0;
-    if ( nameVolume.Contains( "tracker", TString::kIgnoreCase ) ) {
+    if ( nameVolume.find(std::string("tracker")) != std::string::npos ) {
       flagTracker = 1;
-    } else if ( nameVolume.Contains( "ecal", TString::kIgnoreCase ) ) {
+    } else if ( nameVolume.find(std::string("ecal")) != std::string::npos ) {
       flagEcal = 1;
-    } else if ( nameVolume.Contains( "hcal", TString::kIgnoreCase ) ) {
+    } else if ( nameVolume.find(std::string("hcal")) != std::string::npos ) {
       flagHcal = 1;
     }
     isTrackerVolume[ idVol ] = flagTracker;
@@ -97,10 +93,10 @@ bool FastSimApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void FastSimApplication::StepManager( int npart, const GeantTrack_v &tracks, GeantTaskData * /* td */ ) {
+void FastSimApplication::StepManager( int npart, const GeantTrack_v &tracks, GeantTaskData *td ) {
   // Application stepping manager. 
   //std::cout << "APPLICATION : FastSimApplication::StepManager" << std::endl;  // Debug
-  GeantPropagator *propagator = fPropagator;
+  GeantPropagator *propagator = td->fPropagator;
   // Loop all tracks, and for those with fast-simulation process, fill the 
   // proper histograms (which depend on the track position in the detector).
   // Note: there is no simple and clean way to get the initial (i.e. unsmeared)
@@ -138,7 +134,7 @@ void FastSimApplication::StepManager( int npart, const GeantTrack_v &tracks, Gea
 }
 
 //______________________________________________________________________________
-void FastSimApplication::Digitize( int /* event */ ) {}
+void FastSimApplication::Digitize( GeantEvent * /* event */ ) {}
 
 //______________________________________________________________________________
 void FastSimApplication::FinishRun() {

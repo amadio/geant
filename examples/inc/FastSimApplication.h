@@ -29,11 +29,16 @@
 
 #include "GeantFwd.h"
 
+#include "base/Vector.h"
+
 class TH1F;
 
 
 /** @brief FastSimApplication class */
 class FastSimApplication : public GeantVApplication {
+
+  template <class T>
+  using vector_t = vecgeom::Vector<T>;
 
   private:
     bool fInitialized;  /** Initialized flag */
@@ -56,7 +61,7 @@ class FastSimApplication : public GeantVApplication {
 
   public:
     /** @brief Default constructor */
-    FastSimApplication(GeantPropagator *prop);
+    FastSimApplication(GeantRunManager *runmgr);
 
     /** @brief Destructor */
     virtual ~FastSimApplication() {}
@@ -75,7 +80,7 @@ class FastSimApplication : public GeantVApplication {
      * 
      * @param event Event that should be digitized
      */
-    virtual void Digitize( int event );
+    virtual void Digitize( GeantEvent *event );
 
     /** @brief User FinishRun function */
     virtual void FinishRun();

@@ -60,7 +60,7 @@ private:
 public:
 
   /** @brief Constructor StdApplication */
-  StdApplication(GeantPropagator *prop);
+  StdApplication(GeantRunManager *runmgr);
 
   /** @brief Destructor StdApplication */
   virtual ~StdApplication() {}
@@ -92,7 +92,7 @@ public:
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(int event);
+  virtual void Digitize(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

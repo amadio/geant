@@ -22,8 +22,9 @@ static int n_buffered = 5;
 static int n_threads = 4;
 static int n_track_max = 64;
 static int n_learn_steps = 100000;
+static int n_reuse = 100000;
 static int max_memory = 4000; /* MB */
-static bool monitor = false, score = false, debug = false, coprocessor = false;
+static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"hepmc-event-file", required_argument, 0, 'E'},
@@ -39,6 +40,8 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"threads", required_argument, 0, 't'},
                                   {"xsec", required_argument, 0, 'x'},
                                   {"coprocessor", required_argument, 0, 'r'},
+                                  {"tbbmode", required_argument, 0, 'i'},
+                                  {"reuse", required_argument, 0, 'u'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -65,7 +68,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:", options, &optidx);
+    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:", options, &optidx);
 
     if (c == -1)
       break;
@@ -145,6 +148,14 @@ int main(int argc, char *argv[]) {
       coprocessor = optarg;
       break;
 
+    case 'i':
+      tbbmode = true;
+      break;
+
+    case 'u':
+      n_reuse = (int)strtol(optarg, NULL, 10);
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
@@ -214,6 +225,10 @@ int main(int argc, char *argv[]) {
     //propagator->fDebugRep = 10;
   }
   config->fUseMonitoring = monitor;
+
+  // Set threshold for tracks to be reused in the same volume
+  config->fNminReuse = n_reuse;
+
   // Activate standard scoring   
   config->fUseStdScoring = true;
   if (performance) config->fUseStdScoring = false;
@@ -226,35 +241,42 @@ int main(int argc, char *argv[]) {
   // Activate old version of single thread serialization/reading
   //   config->fConcurrentWrite = false;
 
-  GeantPropagator *propagator = GeantPropagator::NewInstance(n_threads);
-  propagator->SetConfig(config);
-  if (broker) propagator->SetTaskBroker(broker);
+  // Create run manager
+  GeantRunManager *runMgr = new GeantRunManager(1, n_threads, config);
+  if (broker) runMgr->SetCoprocessorBroker(broker);
+  // Create the tab. phys process.
+  runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
+
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
-  propagator->LoadVecGeomGeometry();
+//  runMgr->LoadVecGeomGeometry();
 #else
-  propagator->LoadGeometry(cms_geometry_filename.c_str());
+//  runMgr->LoadGeometry(cms_geometry_filename.c_str());
 #endif
 #endif
-
-  propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {
-    propagator->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
+    runMgr->SetPrimaryGenerator( new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0) );
   } else {
     // propagator->fPrimaryGenerator->SetEtaRange(-2.,2.);
     // propagator->fPrimaryGenerator->SetMomRange(0.,0.5);
     // propagator->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
-    propagator->fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
+    runMgr->SetPrimaryGenerator( new HepMCGenerator(hepmc_event_filename) );
   }
 
-  CMSApplication *CMSApp = new CMSApplication(propagator);
+  CMSApplication *CMSApp = new CMSApplication(runMgr);
+  runMgr->SetUserApplication( CMSApp );
   if (score) {
     CMSApp->SetScoreType(CMSApplication::kScore);
   } else {
     CMSApp->SetScoreType(CMSApplication::kNoScore);
   }
-  propagator->fApplication = CMSApp;
-  propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
+#ifdef GEANT_TBB
+  if (tbbmode)
+    runMgr->SetTaskMgr( new TaskMgrTBB() );
+#endif
+
+  runMgr->RunSimulation();
+//  propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }

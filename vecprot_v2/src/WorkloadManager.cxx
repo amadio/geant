@@ -331,7 +331,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int treeSizeWriteThreshold = td->fPropagator->fConfig->fTreeSizeWriteThreshold;
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
-  GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16,prop->fWMgr);
+  GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16,prop->fRunMgr->GetNthreadsTotal());
 
   TThread t;
   TThreadMergingFile* file=0;
@@ -1283,7 +1283,7 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
     tree->Branch("hitblocks", "GeantBlock<MyHit>", &data);
 
     GeantFactoryStore *factoryStore = GeantFactoryStore::Instance();
-    GeantFactory <MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16,prop->fWMgr);
+    GeantFactory <MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16, prop->fRunMgr->GetNthreadsTotal());
 
 
     while (!(wm->IsStopped()) || myhitFactory->fOutputs.size() > 0) {

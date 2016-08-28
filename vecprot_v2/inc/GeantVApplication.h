@@ -14,8 +14,9 @@
 #define GEANT_VAPPLICATION
 
 class GeantHitBlock;
+#include "GeantEvent.h"
 #include "GeantFwd.h"
-#include "GeantPropagator.h"
+#include "GeantRunManager.h"
 
 /** @brief GeantVApplication class */
 class GeantVApplication {
@@ -24,12 +25,12 @@ public:
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
 
-  GeantPropagator *fPropagator; /*taskData*/
+  GeantRunManager *fRunMgr; /*taskData*/
   
   /** @brief GeantVApplication constructor */	
-  GeantVApplication(GeantPropagator *prop);
+  GeantVApplication(GeantRunManager *runmgr);
 
-  void setPropagator(GeantPropagator *prop);
+  void SetRunManager(GeantRunManager *runmgr);
 
   /** @brief GeantVApplication destructor */
   virtual ~GeantVApplication() {}
@@ -51,7 +52,7 @@ public:
    * 
    * @param event Event for digitization
    */
-  virtual void Digitize(int event) = 0;
+  virtual void Digitize(GeantEvent *event) = 0;
 
   /** @brief User FinishRun function */
   virtual void FinishRun() = 0;

@@ -2,6 +2,7 @@
 
 #include "Geant/Error.h"
 
+#include "GeantRunManager.h"
 #include "GeantBasket.h"
 #include "globals.h"
 #include "GeantTrackVec.h"
@@ -37,15 +38,10 @@ GeantScheduler::~GeantScheduler() {
   delete fGarbageCollector;
   if (fBasketMgr) {
     for (int ib = 0; ib < fNvolumes; ib++) {
-#ifdef USE_VECGEOM_NAVIGATOR
-      fBasketMgr[ib]->GetVolume()->SetBasketManagerPtr(0);
-#else
-      fBasketMgr[ib]->GetVolume()->SetFWExtension(0);
-#endif
       delete fBasketMgr[ib];
     }
+    delete[] fBasketMgr;
   }
-  delete[] fBasketMgr;
   delete[] fNstvol;
   delete[] fIstvol;
   delete[] fNvect;
@@ -66,10 +62,11 @@ void GeantScheduler::ActivateBasketManagers(GeantTaskData* td) {
     ntot += fNstvol[i];
     vol = fVolumes[i];
 #ifdef USE_VECGEOM_NAVIGATOR
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetBasketManagerPtr();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetFWExtension();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+    GeantBasketMgr *mgr = fBasketMgr[link->index];
     if (mgr->IsActive()) {
       nsum += fNstvol[i];
       nactive++;
@@ -79,10 +76,11 @@ void GeantScheduler::ActivateBasketManagers(GeantTaskData* td) {
   for (auto i = 0; i < fNvolumes; ++i) {
     vol = fVolumes[fIstvol[i]];
 #ifdef USE_VECGEOM_NAVIGATOR
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetBasketManagerPtr();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetFWExtension();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+    GeantBasketMgr *mgr = fBasketMgr[link->index];
     if (!mgr->IsActive()) {
       mgr->Activate(td->fPropagator);
       nsum += fNstvol[fIstvol[i]];
@@ -135,15 +133,8 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
   // Create the array of baskets
   if (fBasketMgr)
     return;
-#ifdef USE_VECGEOM_NAVIGATOR
-  GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
-  fNvolumes = fVolumes.size();
-#else
-  TObjArray *lvolumes = gGeoManager->GetListOfVolumes();
-  fNvolumes = lvolumes->GetEntries();
-  for (auto ivol = 0; ivol < fNvolumes; ivol++)
-    fVolumes.push_back((TGeoVolume *)lvolumes->At(ivol));
-#endif
+  fVolumes = prop->fRunMgr->GetVolumes();
+  fNvolumes = prop->fRunMgr->GetNvolumes();
   fBasketMgr = new GeantBasketMgr *[fNvolumes];
   fNstvol = new int[fNvolumes];
   fIstvol = new int[fNvolumes];
@@ -158,11 +149,6 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
     vol = (Volume_t *)fVolumes[ivol];
     basket_mgr = new GeantBasketMgr(prop,this, vol, icrt);
     basket_mgr->SetThreshold(nperbasket);
-#ifdef USE_VECGEOM_NAVIGATOR
-    vol->SetBasketManagerPtr(basket_mgr);
-#else
-    vol->SetFWExtension(basket_mgr);
-#endif
     basket_mgr->SetFeederQueue(feeder);
     //      Printf("basket %s: %p feeder=%p", basket_mgr->GetName(), basket_mgr,
     //      basket_mgr->GetFeederQueue());
@@ -179,11 +165,12 @@ int GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
 // Main method to inject generated tracks. Track status is kNew here.
 #ifdef USE_VECGEOM_NAVIGATOR
   Volume_t *vol = const_cast<Volume_t *>(track.fPath->Top()->GetLogicalVolume());
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
+  VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
   Volume_t *vol = track.fPath->GetCurrentNode()->GetVolume();
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+  VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+  GeantBasketMgr *basket_mgr = fBasketMgr[link->index];
   int ivol = basket_mgr->GetNumber();
   fNstvol[ivol]++;
   fNsteps++;
@@ -260,11 +247,12 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
 
 #ifdef USE_VECGEOM_NAVIGATOR
     vol = const_cast<Volume_t *>(tracks.fPathV[itr]->Top()->GetLogicalVolume());
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
+    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
     vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+    basket_mgr = fBasketMgr[link->index];
     int ivol = basket_mgr->GetNumber();
     //    tracks.fVindexV[itr] = ivol;
     fNstvol[ivol]++;

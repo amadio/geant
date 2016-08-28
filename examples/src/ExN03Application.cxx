@@ -6,7 +6,7 @@ using vecgeom::GeoManager;
 #endif
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
-#include "GeantPropagator.h"
+#include "GeantRunManager.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 #ifdef USE_ROOT
@@ -23,11 +23,11 @@ using std::min;
 using std::max;
 
 //______________________________________________________________________________
-ExN03Application::ExN03Application(GeantPropagator *prop)
-  : GeantVApplication(prop), fInitialized(false), fIdGap(0), fIdAbs(0), fFactory(0) {
+ExN03Application::ExN03Application(GeantRunManager *runmgr)
+  : GeantVApplication(runmgr), fInitialized(false), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
-  fFactory = store->GetFactory<MyHit>(16,fPropagator->fWMgr);
+  fFactory = store->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());
   memset(fEdepGap, 0, kNlayers * kMaxThreads * sizeof(float));
   memset(fLengthGap, 0, kNlayers * kMaxThreads * sizeof(float));
   memset(fEdepAbs, 0, kNlayers * kMaxThreads * sizeof(float));
@@ -117,11 +117,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
       fLengthAbs[idnode][tid] += tracks.fStepV[i];
     }
   }
-#ifdef USE_ROOT
-  if ((fPropagator)->fConfig->fFillTree) {
-#else
-  if (GeantPropagator::Instance()->fConfig->fFillTree) {
-#endif
+  if (fRunMgr->GetConfig()->fFillTree) {
     MyHit *hit;
     //    int nhits = 0;
     for (int i = 0; i < npart; i++) {
@@ -134,9 +130,9 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 	  hit->fY = tracks.fYposV[i];
 	  hit->fZ = tracks.fZposV[i];
 	  hit->fEdep = tracks.fEdepV[i];
-     hit->fTime = tracks.fTimeV[i];
-     hit->fEvent = tracks.fEventV[i];
-     hit->fTrack = tracks.fParticleV[i];
+          hit->fTime = tracks.fTimeV[i];
+          hit->fEvent = tracks.fEventV[i];
+          hit->fTrack = tracks.fParticleV[i];
 	  hit->fVolId = idvol;
 	  hit->fDetId = idnode;
 	  
@@ -156,16 +152,12 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 }
 
 //______________________________________________________________________________
-void ExN03Application::Digitize(int /* event */) {
+void ExN03Application::Digitize(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
   printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
   printf("================================================================================");
-#ifdef USE_ROOT
-  double nprim = (double)fPropagator->fNprimaries;
-#else
-  double nprim = (double)fPropagator->fNprimaries;
-#endif
+  double nprim = (double)event->GetNtracks(); // fRunMgr->GetNprimaries()
   for (int i = 0; i < kNlayers; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepGap[i][0] += fEdepGap[i][tid];

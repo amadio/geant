@@ -10,6 +10,7 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "GeantRunManager.h"
 #include "GunGenerator.h"
 #include "TaskBroker.h"
 #include "TTabPhysProcess.h"
@@ -151,7 +152,6 @@ int main(int argc, char *argv[]) {
     }
   }
   bool performance = true;
-  TGeoManager::Import(exn03_geometry_filename.c_str());
 
   TaskBroker *broker = nullptr;
   if (coprocessor) {
@@ -167,6 +167,9 @@ int main(int argc, char *argv[]) {
 
   GeantConfig* config=new GeantConfig();
 
+  
+//  TGeoManager::Import(exn03_geometry_filename.c_str());
+  config->fGeomFileName = exn03_geometry_filename;
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
   config->fUseMonitoring = monitor;
@@ -211,24 +214,29 @@ int main(int argc, char *argv[]) {
 
   // Set threshold for tracks to be reused in the same volume
   config->fNminReuse = n_reuse;
-  
-  // Create propagator
-  GeantPropagator *propagator = GeantPropagator::NewInstance(n_threads);
-  propagator->SetConfig(config);
-  if (broker) propagator->SetTaskBroker(broker);
+
+  // Create run manager
+  GeantRunManager *runMgr = new GeantRunManager(1, n_threads, config);
+  if (broker) runMgr->SetCoprocessorBroker(broker);
   // Create the tab. phys process.
-  propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
+  runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
   
 // Create the tab. phys process.
 #ifdef USE_VECGEOM_NAVIGATOR
-  propagator->LoadVecGeomGeometry();
+//  runMgr->LoadVecGeomGeometry();
 #endif
 
   // for vector physics -OFF now
-  // propagator->fVectorPhysicsProcess = new GVectorPhysicsProcess(propagator->fEmin, nthreads);
-  propagator->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
-  propagator->fApplication = new ExN03Application(propagator);
-  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
+  // runMgr->SetVectorPhysicsProcess(new GVectorPhysicsProcess(config->fEmin, nthreads));
+  runMgr->SetPrimaryGenerator( new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0) );
+  runMgr->SetUserApplication ( new ExN03Application(runMgr) );
+#ifdef GEANT_TBB
+  if (tbbmode)
+    runMgr->SetTaskMgr( new TaskMgrTBB() );
+#endif
+  
+  runMgr->RunSimulation();
+//  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }
 #endif
