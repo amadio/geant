@@ -16,7 +16,7 @@ VECCORE_ATT_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states
 }
 
 VECCORE_ATT_HOST_DEVICE ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid,
-                                                                        GUAliasSampler *sampler)
+                                                                       GUAliasSampler *sampler)
     : EmModelBase<ConversionBetheHeitler>(states, tid, sampler)
 {
   fAtomicDependentModel = true;
@@ -92,7 +92,7 @@ VECCORE_ATT_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
   const int ncol = fAliasSampler->GetSamplesPerEntry();
 
   double logxmin = math::Log(fAliasSampler->GetIncomingMin());
-  double dx = (math::Log(fAliasSampler->GetIncomingMax()) - logxmin) / nrow;
+  double dx      = (math::Log(fAliasSampler->GetIncomingMax()) - logxmin) / nrow;
 
   for (int i = 0; i <= nrow; ++i) {
     // for each input energy bin
@@ -101,15 +101,15 @@ VECCORE_ATT_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;
 
-    double dy = (ymax - ymin) /ncol;
+    double dy = (ymax - ymin) / ncol;
     double yo = ymin + 0.5 * dy;
 
     double sum = 0.;
 
     for (int j = 0; j < ncol; ++j) {
       // for each output energy bin
-      double y = yo + dy * j;
-      double xsec = CalculateDiffCrossSection(Z, x, y);
+      double y        = yo + dy * j;
+      double xsec     = CalculateDiffCrossSection(Z, x, y);
       p[i * ncol + j] = xsec;
       sum += xsec;
     }
@@ -127,7 +127,7 @@ VECCORE_ATT_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
 // TODO: need to get electron properties from somewhere
 
 VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection(int Zelement, double gammaEnergy,
-                                                                                  double electEnergy)
+                                                                                 double electEnergy)
 {
   // based on Geant4 : G4BetheHeitlerModel
   // input  : gammaEnergy (incomming photon energy)
@@ -150,7 +150,7 @@ VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection
   }
 
   // delta -> screenvar
-  int Z3 = math::Pow(1.0 * int(Zelement + 0.5), 1 / 3.0);
+  int Z3           = math::Pow(1.0 * int(Zelement + 0.5), 1 / 3.0);
   double screenfac = 136. * epsil0 / Z3; //(anElement->GetIonisation()->GetZ3());
   double screenvar = screenfac / (epsil * (1 - epsil));
 
@@ -218,26 +218,25 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   if (GammaEnergy < Egsmall) {
 
     epsil = epsil0 + (0.5 - epsil0) * UniformRandom<double>(fRandomState, fThreadId);
-  }
-  else {
+  } else {
     // now comes the case with GammaEnergy >= 2. MeV
 
     // Extract Coulomb factor for this Element
 
     double logZ3 = math::Log(1.0 * int(elementZ + 0.5)) / 3.0;
-    double FZ = 8. * logZ3; //(anElement->GetIonisation()->GetlogZ3());
+    double FZ    = 8. * logZ3; //(anElement->GetIonisation()->GetlogZ3());
     if (GammaEnergy > 50. * MeV) {
       FZ += 8. * ComputeCoulombFactor(elementZ);
     }
 
     // limits of the screening variable
-    double Z3 = math::Pow(1.0 * int(elementZ + 0.5), 1 / 3.0);
+    double Z3        = math::Pow(1.0 * int(elementZ + 0.5), 1 / 3.0);
     double screenfac = 136. * epsil0 / Z3; //(anElement->GetIonisation()->GetZ3());
     double screenmax = exp((42.24 - FZ) / 8.368) - 0.952;
     double screenmin = math::Min(4. * screenfac, screenmax);
 
     // limits of the energy sampling
-    double epsil1 = 0.5 - 0.5 * math::Sqrt(1. - screenmin / screenmax);
+    double epsil1   = 0.5 - 0.5 * math::Sqrt(1. - screenmin / screenmax);
     double epsilmin = math::Max(epsil0, epsil1), epsilrange = 0.5 - epsilmin;
 
     //
@@ -246,21 +245,20 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
     // double epsil, screenvar, greject ;
     double screenvar, greject;
 
-    double F10 = ScreenFunction1(screenmin) - FZ;
-    double F20 = ScreenFunction2(screenmin) - FZ;
+    double F10    = ScreenFunction1(screenmin) - FZ;
+    double F20    = ScreenFunction2(screenmin) - FZ;
     double NormF1 = math::Max(F10 * epsilrange * epsilrange, 0.);
     double NormF2 = math::Max(1.5 * F20, 0.);
 
     do {
       if (NormF1 / (NormF1 + NormF2) > UniformRandom<double>(fRandomState, fThreadId)) {
-        epsil = 0.5 - epsilrange * math::Pow(UniformRandom<double>(fRandomState, fThreadId), 0.333333);
+        epsil     = 0.5 - epsilrange * math::Pow(UniformRandom<double>(fRandomState, fThreadId), 0.333333);
         screenvar = screenfac / (epsil * (1 - epsil));
-        greject = (ScreenFunction1(screenvar) - FZ) / F10;
-      }
-      else {
-        epsil = epsilmin + epsilrange * UniformRandom<double>(fRandomState, fThreadId);
+        greject   = (ScreenFunction1(screenvar) - FZ) / F10;
+      } else {
+        epsil     = epsilmin + epsilrange * UniformRandom<double>(fRandomState, fThreadId);
         screenvar = screenfac / (epsil * (1 - epsil));
-        greject = (ScreenFunction2(screenvar) - FZ) / F20;
+        greject   = (ScreenFunction2(screenvar) - FZ) / F20;
       }
 
     } while (greject < UniformRandom<double>(fRandomState, fThreadId));
@@ -274,8 +272,7 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   if (UniformRandom<double>(fRandomState, fThreadId) > 0.5) {
     ElectTotEnergy = (1. - epsil) * GammaEnergy;
     //    PositTotEnergy = epsil*GammaEnergy;
-  }
-  else {
+  } else {
     //    PositTotEnergy = (1.-epsil)*GammaEnergy;
     ElectTotEnergy = epsil * GammaEnergy;
   }
@@ -291,7 +288,7 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   // static
   const double aa1 = 0.625;
   const double aa2 = 1.875;
-  const double d = 27.;
+  const double d   = 27.;
 
   if (9. / (9. + d) > UniformRandom<double>(fRandomState, fThreadId))
     u = -math::Log(UniformRandom<double>(fRandomState, fThreadId) * UniformRandom<double>(fRandomState, fThreadId)) /
@@ -306,7 +303,7 @@ void ConversionBetheHeitler::SampleByCompositionRejection(int elementZ, double G
   // ToDo: store secondaries into a global stack
 
   energyOut = ElectTotEnergy;
-  sinTheta = math::Sin(TetEl);
+  sinTheta  = math::Sin(TetEl);
 }
 
 } // end namespace impl
