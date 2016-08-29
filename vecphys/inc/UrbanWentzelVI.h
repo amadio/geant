@@ -81,7 +81,7 @@ private:
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE typename Backend::Double_v UrbanWentzelVI::CrossSectionKernel(
-    typename Backend::Double_v energy, Index_v<typename Backend::Double_v> Z)
+    typename Backend::Double_v energy, Index_v<typename Backend::Double_v> /*Z*/)
 {
   // vector version of CrossSection
   return 1.0;
@@ -112,7 +112,7 @@ VECCORE_ATT_HOST_DEVICE void UrbanWentzelVI::InteractKernelUnpack(typename Backe
                                                                    Index_v<typename Backend::Double_v> /*Z*/,
                                                                    typename Backend::Double_v &energyOut,
                                                                    typename Backend::Double_v &sinTheta,
-                                                                   Mask_v<typename Backend::Double_v> &status)
+                                                                   Mask_v<typename Backend::Double_v> &/*status*/)
 {
   energyOut = energyIn;
   sinTheta = 0.0;
