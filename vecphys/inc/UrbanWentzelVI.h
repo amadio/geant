@@ -45,26 +45,26 @@ private:
   // Implementation methods
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE typename Backend::Double_v CrossSectionKernel(typename Backend::Double_v energyIn,
-                                                                         Index_v<typename Backend::Double_v> zElement);
+                                                                        Index_v<typename Backend::Double_v> zElement);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernel(typename Backend::Double_v energyIn,
-                                               Index_v<typename Backend::Double_v> zElement,
-                                               typename Backend::Double_v &energyOut,
-                                               typename Backend::Double_v &sinTheta);
+                                              Index_v<typename Backend::Double_v> zElement,
+                                              typename Backend::Double_v &energyOut,
+                                              typename Backend::Double_v &sinTheta);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
-                                                 Index_v<typename Backend::Double_v> zElement,
-                                                 typename Backend::Double_v &energyOut,
-                                                 typename Backend::Double_v &sinTheta);
+                                                Index_v<typename Backend::Double_v> zElement,
+                                                typename Backend::Double_v &energyOut,
+                                                typename Backend::Double_v &sinTheta);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                     Index_v<typename Backend::Double_v> zElement,
-                                                     typename Backend::Double_v &energyOut,
-                                                     typename Backend::Double_v &sinTheta,
-                                                     Mask_v<typename Backend::Double_v> &status);
+                                                    Index_v<typename Backend::Double_v> zElement,
+                                                    typename Backend::Double_v &energyOut,
+                                                    typename Backend::Double_v &sinTheta,
+                                                    Mask_v<typename Backend::Double_v> &status);
 
   VECCORE_ATT_HOST_DEVICE
   void SampleByCompositionRejection(int Z, double energyIn, double &energyOut, double &sinTheta);
@@ -89,33 +89,33 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v UrbanWentzelVI::CrossSectionK
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE void UrbanWentzelVI::InteractKernel(typename Backend::Double_v energyIn,
-                                                             Index_v<typename Backend::Double_v> /*Z*/,
-                                                             typename Backend::Double_v &energyOut,
-                                                             typename Backend::Double_v &sinTheta)
+                                                            Index_v<typename Backend::Double_v> /*Z*/,
+                                                            typename Backend::Double_v &energyOut,
+                                                            typename Backend::Double_v &sinTheta)
 {
   energyOut = energyIn;
-  sinTheta = 0.0;
+  sinTheta  = 0.0;
 }
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE void UrbanWentzelVI::InteractKernelCR(typename Backend::Double_v energyIn,
-                                                               Index_v<typename Backend::Double_v> /*Z*/,
-                                                               typename Backend::Double_v &energyOut,
-                                                               typename Backend::Double_v &sinTheta)
+                                                              Index_v<typename Backend::Double_v> /*Z*/,
+                                                              typename Backend::Double_v &energyOut,
+                                                              typename Backend::Double_v &sinTheta)
 {
   energyOut = energyIn;
-  sinTheta = 0.0;
+  sinTheta  = 0.0;
 }
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE void UrbanWentzelVI::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                                   Index_v<typename Backend::Double_v> /*Z*/,
-                                                                   typename Backend::Double_v &energyOut,
-                                                                   typename Backend::Double_v &sinTheta,
-                                                                   Mask_v<typename Backend::Double_v> &/*status*/)
+                                                                  Index_v<typename Backend::Double_v> /*Z*/,
+                                                                  typename Backend::Double_v &energyOut,
+                                                                  typename Backend::Double_v &sinTheta,
+                                                                  Mask_v<typename Backend::Double_v> & /*status*/)
 {
   energyOut = energyIn;
-  sinTheta = 0.0;
+  sinTheta  = 0.0;
 }
 
 } // end namespace impl
