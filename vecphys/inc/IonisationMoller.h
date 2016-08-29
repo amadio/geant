@@ -39,35 +39,35 @@ private:
   // Implementation methods
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE typename Backend::Double_v CrossSectionKernel(typename Backend::Double_v energyIn,
-                                                                         Index_v<typename Backend::Double_v> zElement);
+                                                                        Index_v<typename Backend::Double_v> zElement);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernel(typename Backend::Double_v energyIn,
-                                               Index_v<typename Backend::Double_v> zElement,
-                                               typename Backend::Double_v &energyOut,
-                                               typename Backend::Double_v &sinTheta);
+                                              Index_v<typename Backend::Double_v> zElement,
+                                              typename Backend::Double_v &energyOut,
+                                              typename Backend::Double_v &sinTheta);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE typename Backend::Double_v SampleSinTheta(typename Backend::Double_v energyIn,
-                                                                     typename Backend::Double_v energyOut);
+                                                                    typename Backend::Double_v energyOut);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
-                                                 Index_v<typename Backend::Double_v> zElement,
-                                                 typename Backend::Double_v &energyOut,
-                                                 typename Backend::Double_v &sinTheta);
+                                                Index_v<typename Backend::Double_v> zElement,
+                                                typename Backend::Double_v &energyOut,
+                                                typename Backend::Double_v &sinTheta);
 
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                     Index_v<typename Backend::Double_v> zElement,
-                                                     typename Backend::Double_v &energyOut,
-                                                     typename Backend::Double_v &sinTheta,
-                                                     Mask_v<typename Backend::Double_v> &status);
+                                                    Index_v<typename Backend::Double_v> zElement,
+                                                    typename Backend::Double_v &energyOut,
+                                                    typename Backend::Double_v &sinTheta,
+                                                    Mask_v<typename Backend::Double_v> &status);
 
   template <class Backend>
   inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v SampleSequential(typename Backend::Double_v xmin,
-                                                                              typename Backend::Double_v xmax,
-                                                                              typename Backend::Double_v gg);
+                                                                             typename Backend::Double_v xmax,
+                                                                             typename Backend::Double_v gg);
 
   VECCORE_ATT_HOST_DEVICE
   void SampleByCompositionRejection(int Z, double energyIn, double &energyOut, double &sinTheta);
@@ -94,30 +94,29 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v IonisationMoller::CrossSectio
 
   using Double_v = typename Backend::Double_v;
 
-  Double_v sigmaOut = 0.;
+  Double_v sigmaOut           = 0.;
   Mask_v<Double_v> belowLimit = Mask_v<Double_v>(false);
   // low energy limit
   belowLimit |= (energy < fLowEnergyLimit);
-  if (EarlyReturnAllowed() && MaskFull(belowLimit))
-    return;
+  if (EarlyReturnAllowed() && MaskFull(belowLimit)) return;
 
   // delta-ray cuff-off (material dependent) use 1.0*keV temporarily
   Double_v tmin = fDeltaRayThreshold;
   Double_v tmax = 0.5 * energy;
 
-  Double_v xmin = tmin / energy;
-  Double_v xmax = tmax / energy;
-  Double_v tau = energy / electron_mass_c2;
-  Double_v gam = tau + 1.0;
+  Double_v xmin   = tmin / energy;
+  Double_v xmax   = tmax / energy;
+  Double_v tau    = energy / electron_mass_c2;
+  Double_v gam    = tau + 1.0;
   Double_v gamma2 = gam * gam;
-  Double_v beta2 = tau * (tau + 2) / gamma2;
+  Double_v beta2  = tau * (tau + 2) / gamma2;
 
   // Moller (e-e-) scattering
   // H. Messel and D.F. Crawford, Pergamon Press, Oxford (1970)
   // G4MollerBhabhaModel::ComputeCrossSectionPerAtom
 
   Double_v gg = (2.0 * gam - 1.0) / gamma2;
-  sigmaOut = ((xmax - xmin) * (1.0 - gg + 1.0 / (xmin * xmax) + 1.0 / ((1.0 - xmin) * (1.0 - xmax))) -
+  sigmaOut    = ((xmax - xmin) * (1.0 - gg + 1.0 / (xmin * xmax) + 1.0 / ((1.0 - xmin) * (1.0 - xmax))) -
               gg * math::Log(xmax * (1.0 - xmin) / (xmin * (1.0 - xmax)))) /
              beta2;
 
@@ -129,9 +128,9 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v IonisationMoller::CrossSectio
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernel(typename Backend::Double_v energyIn,
-                                                               Index_v<typename Backend::Double_v> /*zElement*/,
-                                                               typename Backend::Double_v &energyOut,
-                                                               typename Backend::Double_v &sinTheta)
+                                                              Index_v<typename Backend::Double_v> /*zElement*/,
+                                                              typename Backend::Double_v &energyOut,
+                                                              typename Backend::Double_v &sinTheta)
 {
   using Double_v = typename Backend::Double_v;
 
@@ -145,15 +144,15 @@ VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernel(typename Backend::
   Index_v<Double_v> aliasInd;
 
   // this did not used to work - Fixed SW
-  Double_v ncol(fAliasSampler->GetSamplesPerEntry());
+  Index_v<Double_v> ncol(fAliasSampler->GetSamplesPerEntry());
   Index_v<Double_v> index = ncol * irow + icol;
   fAliasSampler->GatherAlias<Backend>(index, probNA, aliasInd);
 
   Double_v mininumE = fDeltaRayThreshold;
-  Double_v deltaE = energyIn / 2.0 - mininumE;
+  Double_v deltaE   = energyIn / 2.0 - mininumE;
 
   energyOut = mininumE + fAliasSampler->SampleX<Backend>(deltaE, probNA, aliasInd, icol, fraction);
-  sinTheta = SampleSinTheta<Backend>(energyIn, energyOut);
+  sinTheta  = SampleSinTheta<Backend>(energyIn, energyOut);
 }
 
 template <class Backend>
@@ -164,20 +163,20 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v IonisationMoller::SampleSinTh
 
   // angle of the scatterred electron
 
-  Double_v energy = energyIn + electron_mass_c2;
+  Double_v energy        = energyIn + electron_mass_c2;
   Double_v totalMomentum = math::Sqrt(energyIn * (energyIn + 2.0 * electron_mass_c2));
   Double_v deltaMomentum = math::Sqrt(energyOut * (energyOut + 2.0 * electron_mass_c2));
-  Double_v cost = energyOut * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
-  Double_v sint2 = 1.0 - cost * cost;
+  Double_v cost          = energyOut * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
+  Double_v sint2         = 1.0 - cost * cost;
 
   return Blend(sint2 < 0.0, Double_v(0.0), math::Sqrt(sint2));
 }
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernelCR(typename Backend::Double_v kineticEnergy,
-                                                                 Index_v<typename Backend::Double_v> /*zElement*/,
-                                                                 typename Backend::Double_v &deltaKinEnergy,
-                                                                 typename Backend::Double_v &sinTheta)
+                                                                Index_v<typename Backend::Double_v> /*zElement*/,
+                                                                typename Backend::Double_v &deltaKinEnergy,
+                                                                typename Backend::Double_v &sinTheta)
 {
   using Double_v = typename Backend::Double_v;
 
@@ -194,13 +193,12 @@ VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernelCR(typename Backend
 
   condCut |= (tmax >= tmin);
 
-  if (EarlyReturnAllowed() && MaskEmpty(condCut))
-    return;
+  if (EarlyReturnAllowed() && MaskEmpty(condCut)) return;
 
   Double_v energy = kineticEnergy + electron_mass_c2;
-  Double_v xmin = tmin / kineticEnergy;
-  Double_v xmax = tmax / kineticEnergy;
-  Double_v gam = energy / electron_mass_c2;
+  Double_v xmin   = tmin / kineticEnergy;
+  Double_v xmax   = tmax / kineticEnergy;
+  Double_v gam    = energy / electron_mass_c2;
   Double_v gamma2 = gam * gam;
 
   // Moller (e-e-) scattering
@@ -213,7 +211,7 @@ VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernelCR(typename Backend
   Double_v totalMomentum = math::Sqrt(kineticEnergy * (kineticEnergy + 2.0 * electron_mass_c2));
 
   Double_v deltaMomentum = math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0 * electron_mass_c2));
-  Double_v cost = deltaKinEnergy * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
+  Double_v cost          = deltaKinEnergy * (energy + electron_mass_c2) / (deltaMomentum * totalMomentum);
 
   Mask_v<Double_v> condCos = (cost <= 1.0);
   MaskedAssign(cost, !condCos, Double_v(1.0));
@@ -221,7 +219,7 @@ VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernelCR(typename Backend
   Double_v sint2 = (1.0 - cost) * (1.0 + cost);
 
   Mask_v<Double_v> condSin2 = (sint2 >= 0.0);
-  sinTheta = Blend(condSin2, math::Sqrt(sint2), Double_v(0.0));
+  sinTheta                  = Blend(condSin2, math::Sqrt(sint2), Double_v(0.0));
 }
 
 template <class Backend>
@@ -235,7 +233,7 @@ inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v IonisationMoller::Samp
   Double_v z;
   Mask_v<Double_v> done(false);
 
-  Double_v y = 1.0 - xmax;
+  Double_v y    = 1.0 - xmax;
   Double_v grej = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
   do {
     q = UniformRandom<Double_v>(fRandomState, fThreadId);
@@ -250,15 +248,15 @@ inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v IonisationMoller::Samp
 
 template <class Backend>
 VECCORE_ATT_HOST_DEVICE void IonisationMoller::InteractKernelUnpack(typename Backend::Double_v energyIn,
-                                                                     Index_v<typename Backend::Double_v> /*zElement*/,
-                                                                     typename Backend::Double_v &energyOut,
-                                                                     typename Backend::Double_v &sinTheta,
-                                                                     Mask_v<typename Backend::Double_v> &status)
+                                                                    Index_v<typename Backend::Double_v> /*zElement*/,
+                                                                    typename Backend::Double_v &energyOut,
+                                                                    typename Backend::Double_v &sinTheta,
+                                                                    Mask_v<typename Backend::Double_v> &status)
 {
   // dummy for now
   energyOut = energyIn;
-  sinTheta = 0;
-  status = false;
+  sinTheta  = 0;
+  status    = false;
 }
 
 } // end namespace impl
