@@ -65,6 +65,9 @@ bool GeantRunManager::Initialize() {
 
   fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
   fConfig->fMaxTracks = fConfig->fMaxPerEvent * fConfig->fNbuff;
+
+  fEvents = new GeantEvent *[fConfig->fNbuff];
+  memset(fEvents, 0, fConfig->fNbuff * sizeof(GeantEvent *));
   
   for (auto i=0; i<fNpropagators; ++i) {
     GeantPropagator *prop = GeantPropagator::NewInstance(fNthreads);
@@ -79,6 +82,7 @@ bool GeantRunManager::Initialize() {
     prop->fVectorPhysicsProcess = fVectorPhysicsProcess;
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr = fTruthMgr;
+    prop->fEvents = fEvents;
   }
   
 //#ifndef VECCORE_CUDA
@@ -128,9 +132,6 @@ bool GeantRunManager::Initialize() {
 
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
-
-  fEvents = new GeantEvent *[fConfig->fNbuff];
-  memset(fEvents, 0, fConfig->fNbuff * sizeof(GeantEvent *));
 
   fInitialized = true;
   return fInitialized;
@@ -440,7 +441,13 @@ void GeantRunManager::RunSimulation() {
   Initialize();
   // Should start threads instead
   for (auto i=0; i<fNpropagators; ++i)
-    fPropagators[i]->PropagatorGeom("", fNthreads);
+    fListThreads.emplace_back(GeantPropagator::RunSimulation, fPropagators[i], fNthreads, nullptr, false, false);
+
+  for (auto &t : fListThreads) {
+    t.join();
+  }
+  
+//    fPropagators[i]->PropagatorGeom("", fNthreads);
   FinishRun();
 }
 

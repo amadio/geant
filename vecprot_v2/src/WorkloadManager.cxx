@@ -687,7 +687,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   Geant::Print("","=== Worker thread %d created for Coprocessor ===", tid);
 
   GeantPropagator *propagator = prop;
-  Geant::GeantTaskData *td = propagator->fThreadData[tid];
+  Geant::GeantTaskData *td = propagator->fRunMgr->GetTaskData(tid);
   td->fTid = tid;
   
   int nworkers = propagator->fNthreads;
@@ -966,7 +966,7 @@ void *WorkloadManager::GarbageCollectorThread(GeantPropagator *prop) {
     }
     if (needClean) {
       for (int tid = 0; tid < nthreads; tid++) {
-        GeantTaskData *td = propagator->fThreadData[tid];
+        GeantTaskData *td = propagator->fRunMgr->GetTaskData(tid);
         td->SetToClean(true);
       }
     }
@@ -1168,7 +1168,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       int nbaskets_mixed = 0;
       int nused_mixed = 0;
       for (j = 0; j < nthreads; j++) {
-        GeantTaskData *td = propagator->fThreadData[j];
+        GeantTaskData *td = propagator->fRunMgr->GetTaskData(j);
         nbaskets_mixed += td->fBmgr->GetNbaskets();
         nused_mixed += td->fBmgr->GetNused();
       }

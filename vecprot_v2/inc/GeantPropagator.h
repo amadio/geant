@@ -95,7 +95,6 @@ public:
   // Data per event
   int *fNtracks;               /** ![fNbuff] Number of tracks per slot */
   GeantEvent **fEvents;        /** ![fNbuff]    Array of events */
-  GeantTaskData **fThreadData; /** ![fNthreads] Data private to threads */
 
   /** @brief Initialization function */
   void Initialize();
@@ -199,6 +198,11 @@ public:
   PhysicsInterface *GetPhysicsInterface() const { return fPhysicsInterface; }
 
 
+  /** @brief Entry point to start simulation with GeantV */
+  static void RunSimulation(GeantPropagator *prop, int nthreads, 
+                            const char *geomfile="", 
+                            bool graphics=false, bool single=false);
+  
   /**
    * @brief Entry point to start simulation with GeantV
    *

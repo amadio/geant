@@ -1,6 +1,7 @@
 #ifndef GEANT_RUN_MANAGER_H
 #define GEANT_RUN_MANAGER_H
 
+#include <thread>
 #include <atomic>
 #include "base/Vector.h"
 #include "base/BitSet.h"
@@ -61,6 +62,7 @@ private:
   int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
   GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
   GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
+  std::vector<std::thread> fListThreads; /** Vector of threads */
   
 private:
   bool LoadVecGeomGeometry();

@@ -133,7 +133,7 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
     tid = fWMgr->ThreadId();
   if (tid > fNthreads)
     Geant::Fatal("GeantPropagator::GetTempTrack", "Thread id %d is too large (max %d)", tid, fNthreads);
-  GeantTrack &track = fThreadData[tid]->fTrack;
+  GeantTrack &track = fRunMgr->GetTaskData(tid)->fTrack;
   track.Clear();
   return track;
 }
@@ -204,6 +204,14 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 }
 
 //______________________________________________________________________________
+void GeantPropagator::RunSimulation(GeantPropagator *prop, int nthreads, const char *geomfile, bool graphics, bool single)
+{
+// Static thread running the simulation for one propagator
+  Info("RunSimulation", "Starting propagator %p with %d threads", prop, nthreads);
+  prop->PropagatorGeom(geomfile, nthreads, graphics, single);
+}
+
+//______________________________________________________________________________
 void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool graphics, bool single) {
 // Steering propagation method
   fConfig->fUseGraphics = graphics;
@@ -236,8 +244,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     fEvents = new GeantEvent *[fNbuff];
     memset(fEvents, 0, fNbuff * sizeof(GeantEvent *));
   }
-
-  //  Feeder(fThreadData[0]);
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;

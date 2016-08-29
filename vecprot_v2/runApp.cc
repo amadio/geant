@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
   config->fNminReuse = n_reuse;
 
   // Create run manager
-  GeantRunManager *runMgr = new GeantRunManager(1, n_threads, config);
+  GeantRunManager *runMgr = new GeantRunManager(2, n_threads, config);
   if (broker) runMgr->SetCoprocessorBroker(broker);
   // Create the tab. phys process.
   runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
