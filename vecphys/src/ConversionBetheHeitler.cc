@@ -101,7 +101,7 @@ VECCORE_ATT_HOST void ConversionBetheHeitler::BuildPdfTable(int Z, double *p)
     double ymin = electron_mass_c2;
     double ymax = x - electron_mass_c2;
 
-    double dy = (ymax - ymin) / (ncol - 1);
+    double dy = (ymax - ymin) /ncol;
     double yo = ymin + 0.5 * dy;
 
     double sum = 0.;

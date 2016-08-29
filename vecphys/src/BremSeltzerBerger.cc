@@ -142,7 +142,7 @@ VECCORE_ATT_HOST void BremSeltzerBerger::BuildPdfTable(int Z, double *p)
     double ymin = math::Log(emin * emin + dc);
     double ymax = math::Log(emax * emax + dc);
 
-    double dy = (ymax - ymin) / (ncol - 1);
+    double dy = (ymax - ymin) / ncol;
     double yo = ymin + 0.5 * dy;
 
     double logx = math::Log(x);
