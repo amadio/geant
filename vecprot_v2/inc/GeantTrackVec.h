@@ -13,8 +13,10 @@
 #ifndef GEANT_TRACK_VEC
 #define GEANT_TRACK_VEC
 
+#include "base/BitSet.h"
 #include "GeantTrack.h"
- class GeantPropagator;
+
+class GeantPropagator;
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -29,6 +31,7 @@ class GeantTaskData;
  */
 class GeantTrack_v {
 public:
+  using BitSet = veccore::BitSet;
   static size_t const cacheline_size = 64;
   typedef char cacheline_pad_t[cacheline_size];
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION

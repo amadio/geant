@@ -1,13 +1,21 @@
 #ifndef GEANT_RUN_MANAGER_H
 #define GEANT_RUN_MANAGER_H
 
+#include <atomic>
 #include "base/Vector.h"
+#include "base/BitSet.h"
 #include "Geant/Typedefs.h"
+#include "GeantTaskData.h"
+#include "GeantConfig.h"
 
-class GeantConfig;
+using namespace Geant;
+using namespace veccore;
+
 class GeantPropagator;
+class GeantEvent;
 class TaskBroker;
-class PhysicsProcess;
+class PhysicsProcessOld;
+class PhysicsInterface;
 class GeantVApplication;
 class GeantVTaskMgr;
 class PrimaryGenerator;
@@ -37,14 +45,23 @@ private:
   GeantVApplication *fApplication = nullptr;    /** User application */
   GeantVApplication *fStdApplication = nullptr; /** Standard application */
   GeantVTaskMgr     *fTaskMgr = nullptr;        /** GeantV task manager */
-  PhysicsProcess *fProcess = nullptr;           /** For now the only generic process pointing to the tabulated physics */
-  PhysicsProcess *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
+  PhysicsProcessOld *fProcess = nullptr;           /** For now the only generic process pointing to the tabulated physics */
+  PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
+  PhysicsInterface *fPhysicsInterface; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr;   /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr; /** MCTruth manager */
    
   vector_t<GeantPropagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
 
+  // State data
+  std::atomic_int fPriorityEvents; /** Number of prioritized events */
+  std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
+  BitSet *fDoneEvents = nullptr;   /** Array of bits marking done events */
+  int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
+  GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
+  GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
+  
 private:
   bool LoadVecGeomGeometry();
   void InitNavigators();
@@ -72,9 +89,24 @@ public:
 
   GEANT_FORCE_INLINE
   int  GetNprimaries() { return fNprimaries; }
+
+  GEANT_FORCE_INLINE
+  std::atomic_int &GetPriorityEvents() { return fPriorityEvents; }
+
+  GEANT_FORCE_INLINE
+  int GetNpriority() const { return fPriorityEvents.load(); }
   
   GEANT_FORCE_INLINE
   Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
+
+  GEANT_FORCE_INLINE
+  GeantEvent *GetEvent(int i) { return fEvents[i]; }
+
+  GEANT_FORCE_INLINE
+  GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
+
+  GEANT_FORCE_INLINE
+  int GetNtracks(int islot) { return fNtracks[islot]; }
 
   GEANT_FORCE_INLINE
   void SetCoprocessorBroker(TaskBroker *broker) { fBroker = broker; }
@@ -86,16 +118,50 @@ public:
   void SetTaskMgr(GeantVTaskMgr *taskmgr) { fTaskMgr = taskmgr; }
 
   GEANT_FORCE_INLINE
-  void SetPhysicsProcess(PhysicsProcess *proc) { fProcess = proc; }
+  void SetPhysicsInterface(PhysicsInterface *interface) { fPhysicsInterface = interface; }
 
   GEANT_FORCE_INLINE
-  void SetVectorPhysicsProcess(PhysicsProcess *proc) { fVectorPhysicsProcess = proc; }
+  PhysicsInterface *GetPhysicsInterface() const { return fPhysicsInterface; }
+
+  GEANT_FORCE_INLINE
+  void SetPhysicsProcess(PhysicsProcessOld *proc) { fProcess = proc; }
+
+  GEANT_FORCE_INLINE
+  void SetVectorPhysicsProcess(PhysicsProcessOld *proc) { fVectorPhysicsProcess = proc; }
 
   GEANT_FORCE_INLINE
   void SetPrimaryGenerator(PrimaryGenerator *gen) { fPrimaryGenerator = gen; }
 
   GEANT_FORCE_INLINE
   void SetMCTruthMgr(MCTruthMgr *mcmgr) { fTruthMgr = mcmgr; } 
+
+  /** @brief Function checking if transport is completed */
+  bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
+
+  /** @brief Feeder for importing tracks */
+  int Feeder(GeantTaskData *td);
+
+  /** @brief Check if transport is feeding with new tracks. */
+  GEANT_FORCE_INLINE
+  bool IsFeeding() {
+    bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
+    if (feeding)
+      return true;
+    fFeederLock.clear(std::memory_order_release);
+    return false;
+  }
+
+  /** @brief Try to acquire the lock */
+  bool TryLock() { return (fFeederLock.test_and_set(std::memory_order_acquire)); }
+
+  /** @brief Release the lock */
+  void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
+
+  /** @brief Function for importing tracks */
+  int ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *td);
+
+  /** @brief Initialize classes for RK Integration */
+  void PrepareRkIntegration();
 
   bool Initialize();
   bool FinishRun();

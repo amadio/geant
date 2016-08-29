@@ -16,6 +16,7 @@
 
 #include <typeinfo>
 #include <mutex>
+#include <cstring>
 
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"

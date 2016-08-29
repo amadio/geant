@@ -173,21 +173,21 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   // Start CPU transport threads (static mode)
   if (!taskmgr) {
     for (; ith < fNthreads; ith++) {
-      fListThreads.emplace_back(WorkloadManager::TransportTracks,prop);
+      fListThreads.emplace_back(WorkloadManager::TransportTracks, prop);
     }
   }
 
   // Start output thread
   if (prop->fConfig->fFillTree) {
-    fListThreads.emplace_back(WorkloadManager::OutputThread,prop);
+    fListThreads.emplace_back(WorkloadManager::OutputThread, prop);
   }
   // Start monitoring thread
   if (prop->fConfig->fUseMonitoring) {
-    fListThreads.emplace_back(WorkloadManager::MonitoringThread,prop);
+    fListThreads.emplace_back(WorkloadManager::MonitoringThread, prop);
   }
   // Start garbage collector
   if (prop->fConfig->fMaxRes > 0) {
-    fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread,prop);
+    fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread, prop);
   }
   if (taskmgr) {
     Printf("=== TBB Task Mode ====");
@@ -268,11 +268,11 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
                                                   GeantPropagator &propagator,
                                                   GeantTaskData &td) {
 
-  if (!prioritizer.HasTracks() && (propagator.GetNpriority() || GetNworking() == 1)) {
-    bool didFeeder = propagator.Feeder(&td);
+  if (!prioritizer.HasTracks() && (propagator.fRunMgr->GetNpriority() || GetNworking() == 1)) {
+    bool didFeeder = propagator.fRunMgr->Feeder(&td);
 
     // Check exit condition
-    if (propagator.TransportCompleted()) {
+    if (propagator.fRunMgr->TransportCompleted()) {
       int nworkers = propagator.fNthreads;
       for (int i = 0; i < nworkers; i++)
         FeederQueue()->push(0);
@@ -311,8 +311,9 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int tid = prop->fWMgr->ThreadId();
   Geant::Print("","=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = prop;
-  Geant::GeantTaskData *td = propagator->fThreadData[tid];
+  Geant::GeantTaskData *td = propagator->fRunMgr->GetTaskData(tid);
   td->fTid = tid;
+  td->fPropagator = prop;
   int nworkers = propagator->fNthreads;
   WorkloadManager *wm = propagator->fWMgr;
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
@@ -352,7 +353,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
 
    #endif
   // Start the feeder
-  propagator->Feeder(td);
+  propagator->fRunMgr->Feeder(td);
 
 
   Material_t *mat = 0;
@@ -390,7 +391,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if ((nbaskets < 1) && (!propagator->IsFeeding())) {
+    if ((nbaskets < 1) && (!propagator->fRunMgr->IsFeeding())) {
       sch->GarbageCollect(td);
      ngcoll++;
     }
@@ -398,8 +399,10 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
       ngcoll = 0;
       for (int slot = 0; slot < propagator->fNbuff; slot++)
-        if (propagator->fEvents[slot]->Prioritize())
-          propagator->fPriorityEvents++;
+        if (propagator->fEvents[slot]->Prioritize()) {
+          std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
+          priority_events++;
+        }
       while ((!sch->GarbageCollect(td, true)) &&
              (feederQ->size_async() == 0) &&
              (!basket) &&
@@ -697,7 +700,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
   // Start the feeder
-  propagator->Feeder(td);
+  propagator->fRunMgr->Feeder(td);
   // TGeoMaterial *mat = 0;
   int *waiting = wm->GetWaiting();
 //  condition_locker &sched_locker = wm->GetSchLocker();
@@ -753,7 +756,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     if ((basket = broker->GetBasketForTransport(*td))) {
       ngcoll = 0;
     } else {
-      if (nbaskets < 1  && (!propagator->IsFeeding()) ) {
+      if (nbaskets < 1  && (!propagator->fRunMgr->IsFeeding()) ) {
         sch->GarbageCollect(td);
         ngcoll++;
       }
@@ -761,8 +764,10 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
       if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
         ngcoll = 0;
         for (int slot = 0; slot < propagator->fNbuff; slot++)
-          if (propagator->fEvents[slot]->Prioritize())
-            propagator->fPriorityEvents++;
+          if (propagator->fEvents[slot]->Prioritize()) {
+            std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
+            priority_events++;
+          }
         while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
           ;
       }

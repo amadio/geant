@@ -68,16 +68,10 @@ public:
   std::atomic<long> fNmag;                         /** Total number of partial steps in magnetic field */
   std::atomic<long> fNsmall;                       /** Total number of small steps taken */
   std::atomic<long> fNcross;                       /** Total number of boundaries crossed */
-  std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
-  std::atomic_int fPriorityEvents;                 /** Number of prioritized events */
-  BitSet *fDoneEvents;                             /** Array of bits marking done events */
 
   bool fTransportOngoing;      /** Flag for ongoing transport */
   bool fSingleTrack;           /** Use single track transport mode */
-  
-  std::mutex fTracksLock;          /** Mutex for adding tracks */
-
-  
+    
   WorkloadManager *fWMgr;             /** Workload manager */
   GeantVApplication *fApplication;    /** User application */
   GeantVApplication *fStdApplication; /** Standard application */
@@ -109,30 +103,12 @@ public:
   /** @brief Initialization function */
   void InitializeAfterGeom();
   
-  /** @brief Initialize classes for RK Integration */
-  void PrepareRkIntegration();
-
-  /** @brief Function for loading geometry */
-  bool LoadGeometry(const char *filename = "geometry.root");
-
-  /** @brief Function for loading VecGeom geometry */
-  bool LoadVecGeomGeometry();
-
-  /** @brief Function to initialize VecGeom navigators */
-  void InitNavigators();
-
 public:
   /** @brief GeantPropagator constructor */
   GeantPropagator();
 
   /** @brief GeantPropagator destructor */
   virtual ~GeantPropagator();
-
-  /**
-   * @brief Function that returns the number of prioritized events (C++11)
-   * @return Number of prioritized events
-   */
-  int GetNpriority() const { return fPriorityEvents.load(); }
 
   /**
    * @brief Function that returns the number of transported tracks (C++11)
@@ -175,34 +151,6 @@ public:
    * @param itr Track id
    */
   void StopTrack(const GeantTrack_v &tracks, int itr);
-
-  /**
-   * @brief Feeder for importing tracks
-   *
-   * @param td Thread data object
-   * @param init Flag specifying if this is the first call
-   * @return Number of injected baskets
-   */
-  int Feeder(GeantTaskData *td);
-
-  /** @brief Check if transport is feeding with new tracks. */
-  inline bool IsFeeding() {
-    bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
-    if (feeding)
-      return true;
-    fFeederLock.clear(std::memory_order_release);
-    return false;
-  }
-
-  /**
-   * @brief Function for importing tracks
-   *
-   * @param nevents Number of events
-   * @param average Average number of tracks
-   * @param startevent Start event
-   * @param startslot Start slot
-   */
-  int ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *td);
 
   /**
    * @brief Instance function returning the singleton pointer
@@ -274,15 +222,6 @@ public:
 
   /** @brief  Setter for task broker */
   void SetTaskBroker(TaskBroker *broker);
-
-  /** @brief Function checking if transport is completed */
-  bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fNtotal); }
-
-  /** @brief Try to acquire the lock */
-  bool TryLock() { return (fFeederLock.test_and_set(std::memory_order_acquire)); }
-
-  /** @brief Release the lock */
-  void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
 
   void SetConfig(GeantConfig* config);
 

@@ -65,19 +65,6 @@
 #include <valgrind/callgrind.h>
 #endif
 
-// #define RUNGE_KUTTA  1
-
-// The classes for integrating in a non-uniform magnetic field
-// #ifdef   RUNGE_KUTTA
-#include "TUniformMagField.h"
-#include "FieldEquationFactory.h"
-#include "StepperFactory.h"
-#include "GUIntegrationDriver.h"
-
-#include "GUFieldPropagator.h"
-#include "GUFieldPropagatorPool.h"
-// #endif
-
 using namespace Geant;
 using namespace vecgeom;
 
@@ -86,52 +73,27 @@ GeantPropagator::GeantPropagator()
     : fConfig(nullptr), fRunMgr(nullptr), fNthreads(1), fNbuff(100), fNtotal(1000), fNtransported(0),
       fNprimaries(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
-      fFeederLock(ATOMIC_FLAG_INIT),
-      fPriorityEvents(0), fDoneEvents(0), fTransportOngoing(false), fSingleTrack(false),
-      fTracksLock(), fWMgr(nullptr), fApplication(nullptr), fStdApplication(nullptr),fTaskMgr(nullptr),
+      fTransportOngoing(false), fSingleTrack(false),
+      fWMgr(nullptr), fApplication(nullptr), fStdApplication(nullptr),fTaskMgr(nullptr),
       fTimer(nullptr), fProcess(nullptr), fVectorPhysicsProcess(nullptr),
       fStoredTracks(nullptr), fPrimaryGenerator(nullptr), fTruthMgr(nullptr),
-      fNtracks(0), fEvents(0), fThreadData(nullptr) {
+      fNtracks(0) {
   // Constructor 
 }
 
 //______________________________________________________________________________
 GeantPropagator::~GeantPropagator() {
   // Destructor
-  int i;
-  delete fProcess;
-  BitSet::ReleaseInstance(fDoneEvents);
-#if USE_VECPHYS == 1
-  delete fVectorPhysicsProcess;
-#endif
-
-#if USE_REAL_PHYSICS == 1
-  delete fPhysicsInterface;
-#endif
-
-  if (fEvents) {
-    for (i = 0; i < fNbuff; i++)
-      delete fEvents[i];
-    delete[] fEvents;
-  }
-
-  if (fThreadData) {
-    for (i = 0; i < fNthreads; i++)
-      delete fThreadData[i];
-    delete[] fThreadData;
-  }
   delete fTimer;
   delete fWMgr;
-  delete fApplication;
-  delete fTaskMgr;
 }
 
 //______________________________________________________________________________
 int GeantPropagator::AddTrack(GeantTrack &track) {
   // Add a new track in the system. returns track number within the event.
   int slot = track.fEvslot;
-  track.fParticle = fEvents[slot]->AddTrack();
-
+  track.fParticle = fRunMgr->GetEvent(slot)->AddTrack();
+  
   // call MCTruth manager if it has been instantiated
   if(fTruthMgr) fTruthMgr->AddTrack(track);
 
@@ -156,9 +118,11 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
     {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
     }
-
-  if (fEvents[tracks.fEvslotV[itr]]->StopTrack())
-    fPriorityEvents++;
+  
+  if (fRunMgr->GetEvent(tracks.fEvslotV[itr])->StopTrack()) {
+    std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
+    priority_events++;
+  }
 }
 
 //______________________________________________________________________________
@@ -175,150 +139,6 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
 }
 
 //______________________________________________________________________________
-int GeantPropagator::Feeder(GeantTaskData *td) {
-  // Feeder called by any thread to inject the next event(s)
-  // Only one thread at a time
-  if (fFeederLock.test_and_set(std::memory_order_acquire))
-    return -1;
-  int nbaskets = 0;
-  if (!fConfig->fLastEvent) {
-    nbaskets = ImportTracks(fNbuff, 0, 0, td);
-    fConfig->fLastEvent = fNbuff;
-    fFeederLock.clear(std::memory_order_release);
-    return nbaskets;
-  }
-  // Check and mark finished events
-  for (int islot = 0; islot < fNbuff; islot++) {
-    GeantEvent *evt = fEvents[islot];
-    if (fDoneEvents->TestBitNumber(evt->GetEvent()))
-      continue;
-    if (evt->Transported()) {
-      fPriorityEvents--;
-      evt->Print();
-
-      // closing event in MCTruthManager
-      if(fTruthMgr) fTruthMgr->CloseEvent(evt->GetEvent());
-
-      // Digitizer (todo)
-      int ntracks = fNtracks[islot];
-   #ifdef USE_ROOT
-      Printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
-   #else
-      printf("= digitizing event %d with %d tracks pri=%d", evt->GetEvent(), ntracks, fPriorityEvents.load());
-   #endif
-      //            propagator->fApplication->Digitize(evt->GetEvent());
-      fDoneEvents->SetBitNumber(evt->GetEvent());
-      if (fConfig->fLastEvent < fNtotal) {
-      #ifdef USE_ROOT
-        Printf("=> Importing event %d", fConfig->fLastEvent);
-      #else
-        printf("=> Importing event %d", fConfig->fLastEvent);
-      #endif
-        nbaskets += ImportTracks(1, fConfig->fLastEvent, islot, td);
-        fConfig->fLastEvent++;
-      }
-    }
-  }
-
-  fFeederLock.clear(std::memory_order_release);
-  return nbaskets;
-}
-
-//______________________________________________________________________________
-int GeantPropagator::ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *thread_data) {
-// Import tracks from "somewhere". Here we just generate nevents.
-
-#ifdef USE_VECGEOM_NAVIGATOR
-  using vecgeom::SimpleNavigator;
-  using vecgeom::Vector3D;
-  using vecgeom::Precision;
-  using vecgeom::GeoManager;
-#endif
-
-  Volume_t *vol = 0;
-  int ntracks = 0;
-  int ntotal = 0;
-  int ndispatched = 0;
-  GeantTaskData *td = thread_data;
-  if (td == 0) {
-    int tid = fWMgr->ThreadId();
-    Geant::Print("","=== Importing tracks %d  ===", tid);
-    td = fThreadData[tid];
-    td->fTid = tid;
-  }
-  VolumePath_t *startpath = VolumePath_t::MakeInstance(fConfig->fMaxDepth);
-  GeantBasketMgr *basket_mgr = 0;
-
-#ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::SimpleNavigator nav;
-#else
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-#endif
-
-  static bool init = true;
-  if (init)
-    init = false;
-  int event = startevent;
-  GeantEventInfo eventinfo;
-  for (int slot = startslot; slot < startslot + nevents; slot++) {
-    eventinfo = fPrimaryGenerator->NextEvent();
-// Set initial track states
-#ifdef USE_VECGEOM_NAVIGATOR
-    startpath->Clear();
-    nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                    Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert), *startpath, true);
-    vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
-#else
-    TGeoNode *node = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
-    vol = node->GetVolume();
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
-    startpath->InitFromNavigator(nav);
-#endif
-    basket_mgr->SetThreshold(fConfig->fNperBasket);
-    td->fVolume = vol;
-    ntracks = eventinfo.ntracks;
-    ntotal += ntracks;
-    fNprimaries += ntracks;
-    if (!fEvents[slot])
-      fEvents[slot] = new GeantEvent();
-    fEvents[slot]->SetSlot(slot);
-    fEvents[slot]->SetEvent(event);
-    fEvents[slot]->Reset();
-    // Set priority threshold to non-default value
-    if (fConfig->fPriorityThr > 0)
-      fEvents[slot]->SetPriorityThr(fConfig->fPriorityThr);
-
-    // start new event in MCTruthMgr
-    if(fTruthMgr) fTruthMgr->OpenEvent(fEvents[slot]->GetEvent());
-
-    for (int i = 0; i < ntracks; i++) {
-      GeantTrack &track = td->GetTrack();
-      track.SetPath(startpath);
-      track.SetNextPath(startpath);
-      track.SetEvent(event);
-      track.SetEvslot(slot);
-      fPrimaryGenerator->GetTrack(i, track);
-      if (!track.IsNormalized())
-        track.Print("Not normalized");
-      track.fBoundary = false;
-      track.fStatus = kAlive;
-      AddTrack(track);
-      ndispatched += DispatchTrack(track, thread_data);
-    }
-    event++;
-  }
-
-  VolumePath_t::ReleaseInstance(startpath);
-  int tid = td->fTid;
-  Geant::Print("ImportTracks", "[%d] Imported %d tracks from events %d to %d. Dispatched %d baskets.", tid, ntotal, startevent,
-               startevent + nevents - 1, ndispatched);
-  return ndispatched;
-}
-
-//______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 GeantPropagator *GeantPropagator::NewInstance(int nthreads) {
   // Single instance of the propagator
@@ -326,192 +146,15 @@ GeantPropagator *GeantPropagator::NewInstance(int nthreads) {
   newInstance->fNthreads = nthreads;
   // Initialize workload manager
   #warning this must be solved before using CUDA
-  newInstance->fWMgr = WorkloadManager::NewInstance(newInstance,nthreads);
+  newInstance->fWMgr = WorkloadManager::NewInstance(newInstance, nthreads);
   return newInstance;
 }
 
 //______________________________________________________________________________
 void GeantPropagator::Initialize() {
-  // Initialization
-  fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
-  fConfig->fMaxTracks = fConfig->fMaxPerEvent * fNbuff;
-
-  // Initialize arrays here.
-  fDoneEvents = BitSet::MakeInstance(fNtotal);
-
-#ifdef USE_REAL_PHYSICS
-  if (!fPhysicsInterface) {
-    Geant::Fatal("GeantPropagator::Initialize", "The physics process interface has to be initialized before this");
-    return;
-  }
-  // Initialize the physics
-  fPhysicsInterface->Initialize();
-#else
-  if (!fProcess) {
-    Geant::Fatal("GeantPropagator::Initialize", "The physics process has to be initialized before this");
-    return;
-  }
-  // Initialize the process(es)
-  fProcess->Initialize();
-  #if USE_VECPHYS == 1
-  fVectorPhysicsProcess->Initialize();
-  #endif
-#endif
-
-  if (fConfig->fUseRungeKutta) {
-    PrepareRkIntegration();
-  }
-
-  if (!fNtracks) {
-    fNtracks = new int[fNbuff];
-    memset(fNtracks, 0, fNbuff * sizeof(int));
-  }
-}
-
-//______________________________________________________________________________
-void GeantPropagator::InitializeAfterGeom() {
-  // Initialization, part two.
-
+  // Initialize the propagator.
   // Add some empty baskets in the queue
-  fWMgr->CreateBaskets(this); // geometry must be created by now // why ???
-
-  if (!fThreadData) {
-    fThreadData = new GeantTaskData *[fNthreads];
-    for (int i = 0; i < fNthreads; i++) {
-      fThreadData[i] = new GeantTaskData(fNthreads, fConfig->fMaxDepth, fConfig->fMaxPerBasket, this);
-      fThreadData[i]->fTid = i;
-    }
-  }
-  // Initialize application
-  if (fConfig->fUseStdScoring) {
-    fStdApplication = new StdApplication(fRunMgr);
-    fStdApplication->Initialize();
-  }
-  fApplication->Initialize();
-}
-
-void GeantPropagator::PrepareRkIntegration() {
-
-  using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
-  using GUFieldPropagator = ::GUFieldPropagator;
-
-  // Initialise the classes required for tracking in field
-  const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
-  using Field_t = TUniformMagField;
-  using Equation_t = TMagFieldEquation<Field_t, Nvar>;
-
-  auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fConfig->fBmag));
-  auto gvEquation = FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
-
-  GUVIntegrationStepper *aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
-
-  const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
-  // const double epsTol = 3.0e-4;               // Relative error tolerance of integration
-  int statisticsVerbosity = 0;
-  cout << "Parameters for RK integration in magnetic field: " << endl;
-  cout << "   Driver parameters:  eps_tol= " << fConfig->fEpsilonRK << "  h_min= " << hminimum << endl;
-
-  auto integrDriver = new GUIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
-  // GUFieldPropagator *
-  auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK); // epsTol);
-
-  static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
-  assert(fpPool); // Cannot be zero
-  if (fpPool) {
-    fpPool->RegisterPrototype(fieldPropagator);
-    // Create clones for other threads
-    fpPool->Initialize(fNthreads);
-  } else {
-    Geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
-  }
-}
-
-#ifdef USE_ROOT
-//______________________________________________________________________________
-void GeantPropagator::InitNavigators() {
-#if USE_VECGEOM_NAVIGATOR == 1
-  for (auto &lvol : GeoManager::Instance().GetLogicalVolumesMap()) {
-    if (lvol.second->GetDaughtersp()->size() < 4) {
-      lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
-    }
-    if (lvol.second->GetDaughtersp()->size() >= 5) {
-      lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
-    }
-    if (lvol.second->GetDaughtersp()->size() >= 10) {
-      lvol.second->SetNavigator(HybridNavigator<>::Instance());
-      HybridManager2::Instance().InitStructure((lvol.second));
-    }
-    lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
-  }
-#endif
-}
-
-/**
- * function to setup the VecGeom geometry from a TGeo geometry ( if gGeoManager ) exists
- */
-//______________________________________________________________________________
-bool GeantPropagator::LoadVecGeomGeometry() {
-#ifdef USE_VECGEOM_NAVIGATOR
-  if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
-    printf("Now loading VecGeom geometry\n");
-    vecgeom::RootGeoManager::Instance().LoadRootGeometry();
-    printf("Loading VecGeom geometry done\n");
-    printf("Have depth %d\n", vecgeom::GeoManager::Instance().getMaxDepth());
-    std::vector<vecgeom::LogicalVolume *> v1;
-    vecgeom::GeoManager::Instance().GetAllLogicalVolumes(v1);
-    printf("Have logical volumes %ld\n", v1.size());
-    std::vector<vecgeom::VPlacedVolume *> v2;
-    vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
-    printf("Have placed volumes %ld\n", v2.size());
-    //    vecgeom::RootGeoManager::Instance().world()->PrintContent();
-
-    if (fWMgr->GetTaskBroker())
-      Printf("Now upload VecGeom geometry to Coprocessor(s)\n");
-    return fWMgr->LoadGeometry();
-  }
-  if (fWMgr && fWMgr->GetTaskBroker()) {
-    printf("Now upload VecGeom geometry to Coprocessor(s)\n");
-    return fWMgr->LoadGeometry();
-  }
-  InitNavigators();
-  return true;
-#else
-  return false;
-#endif
-}
-#endif
-
-//______________________________________________________________________________
-bool GeantPropagator::LoadGeometry(const char *filename) {
-// Load the detector geometry from file, unless already loaded.
-
-#ifdef USE_ROOT
-#ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
-#else
-  TGeoManager *geom = (gGeoManager) ? gGeoManager : TGeoManager::Import(filename);
-#endif
-  if (geom) {
-#ifdef USE_VECGEOM_NAVIGATOR
-    LoadVecGeomGeometry();
-    fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
-#else
-    fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
-#endif
-    return true;
-  }
-  Geant::Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
-  return false;
-#else
-
-  vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
-  if (geom) {
-     geom->LoadGeometryFromSharedLib(filename);
-     fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
-     return true;
-  }
-  return false;
-#endif
+  fWMgr->CreateBaskets(this);
 }
 
 //NOTE: We don't do anything here so it's not called from the WorkloadManager anymore
@@ -562,9 +205,7 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 
 //______________________________________________________________________________
 void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool graphics, bool single) {
-  // Propagate fNbuff in the volume containing the vertex.
-  // Simulate 2 physics processes up to exiting the current volume.
-  static bool called = false;
+// Steering propagation method
   fConfig->fUseGraphics = graphics;
   fNthreads = nthreads;
   fSingleTrack = single;
@@ -573,18 +214,6 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     printf("No user application attached - aborting");
     return;
   }
-  Initialize();
-  // Initialize geometry and current volume
-  if (!LoadGeometry(geomfile))
-    return;
-  InitializeAfterGeom();
-  // Initialize application
-  fApplication->Initialize();
-  if (called) {
-    printf("Sorry, you can call this only once per session.");
-    return;
-  }
-  called = true;
 
   fPrimaryGenerator->InitPrimaryGenerator();
   //   int itrack;
@@ -594,7 +223,7 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
   else
     Printf("==== Executing in vectorized mode using %d threads ====", fNthreads);
   if (fConfig->fUsePhysics)
-    Printf("  Physics ON with %d processes", fConfig->fNprocesses);
+    Printf("  Physics ON");
   else
     Printf("  Physics OFF");
   if (fConfig->fUseRungeKutta)
