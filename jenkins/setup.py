@@ -60,6 +60,8 @@ def main(argv):
        ops_sys = 'slc6'
    elif label == 'continuous-sl6' :
        ops_sys = 'slc6'
+   elif label == 'lcgapp-SLC6_64b' :
+       ops_sys = 'slc6'
    else :
       ops_sys = label
 
