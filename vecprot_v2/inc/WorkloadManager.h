@@ -68,7 +68,6 @@ protected:
   GeantScheduler *fScheduler;                          /** Main basket scheduler */
 
   TaskBroker *fBroker;         /** Pointer to the coprocessor broker, this could be made a collection. */
-  int *fWaiting;             /** ![fNthreads+1] Threads in waiting flag */
   condition_locker fSchLocker; /** Scheduler locker */
   condition_locker fGbcLocker; /** Garbage collector locker */
   int fLastEvent;            /** Last transported event */
@@ -120,41 +119,38 @@ public:
   Geant::TThreadMergingServer* MergingServer() const { return fMergingServer; }
   #endif
   /** @brief Function that returns number of managed threads */
+  GEANT_FORCE_INLINE
   int GetNthreads() const { return fNthreads; }
 
   /** @brief Function that returns total number of baskets */
+  GEANT_FORCE_INLINE
   int GetNbaskets() const { return fNbaskets; }
 
-  /** @brief Function that returns threads in waiting array */
-  int *GetWaiting() const { return fWaiting; }
-
-  /** @brief Function that returns number of waiting threads */
-  int GetNwaiting() const {
-    int nwaiting = 0;
-    for (int i = 0; i < fNthreads; ++i)
-      nwaiting += fWaiting[i];
-    return nwaiting;
-  }
-
-  /** @brief Function that returns number of threads actually working */
-  int GetNworking() const { return (fNthreads - GetNwaiting()); }
+  /** @brief Function that returns number of pending baskets */
+  GEANT_FORCE_INLINE
+  int GetNpending() const { return fFeederQ->size_async(); }
 
   ///** @brief Function returning the number of monitored features */
   //int GetMonFeatures() const;
 
   /** @brief Function that returns main basket scheduler */
+  GEANT_FORCE_INLINE
   GeantScheduler *GetScheduler() const { return fScheduler; }
 
   /** @brief Get the scheduler thread id */
+  GEANT_FORCE_INLINE
   int GetSchId() const { return fSchId; }
 
   /** @brief Set scheduler thread id */
+  GEANT_FORCE_INLINE
   void SetSchId(int id) { fSchId = id; }
 
   /** @brief Function that returns scheduler locker */
+  GEANT_FORCE_INLINE
   condition_locker &GetSchLocker() { return fSchLocker; }
 
   /** @brief Function that returns garbage collector locker */
+  GEANT_FORCE_INLINE
   condition_locker &GetGbcLocker() { return fGbcLocker; }
 
   /**
@@ -166,27 +162,38 @@ public:
   static WorkloadManager *NewInstance(GeantPropagator *prop= nullptr, int nthreads = 0);
 
   /** @brief Function that check if buffer is flushed */
+  GEANT_FORCE_INLINE
   bool IsFlushed() const { return fFlushed; }
 
   /** @brief Function that check if worker queue is filling */
+  GEANT_FORCE_INLINE
   bool IsFilling() const { return fFilling; }
 
   /** @brief Function that check stop flag */
+  GEANT_FORCE_INLINE
   bool IsStopped() const { return fStopped; }
 
   /** @brief Getter for last transported event */
+  GEANT_FORCE_INLINE
   int LastEvent() const { return fLastEvent; }
 
   /** @brief Setter for last transported event */
+  GEANT_FORCE_INLINE
   void SetLastEvent(int n) { fLastEvent = n; }
 
   /** @brief Function that provide stop process by setting Stop flag = True */
+  GEANT_FORCE_INLINE
   void Stop() { fStopped = true; }
 
+  /** @brief Stop all transport threads */
+  void StopTransportThreads();
+
   /** @brief Setter for buffer flushing */
+  GEANT_FORCE_INLINE
   void SetFlushed(bool flag) { fFlushed = flag; }
 
   /** @brief Function that returns basket generation */
+  GEANT_FORCE_INLINE
   int GetBasketGeneration() const { return fBasketGeneration; }
 
   /** @brief Print function */
@@ -196,6 +203,7 @@ public:
   void SetTaskBroker(TaskBroker *broker);
 
   /** @brief  Setter for task broker */
+  GEANT_FORCE_INLINE
   TaskBroker *GetTaskBroker() { return fBroker; }
 
 #if USE_VECGEOM_NAVIGATOR

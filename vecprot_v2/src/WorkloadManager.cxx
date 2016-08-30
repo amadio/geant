@@ -41,7 +41,6 @@
 #include "GeantFactory.h"
 #endif
 #ifdef USE_ROOT
-#include "TThread.h"
 #include "TThreadMergingFile.h"
 #endif
 #include "GeantFactoryStore.h"
@@ -53,7 +52,7 @@ using std::max;
 WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
     :fPropagator(prop),fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads),
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
-      fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fScheduler(0), fBroker(0), fWaiting(0),fSchLocker(), fGbcLocker()
+      fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fScheduler(0), fBroker(0), fSchLocker(), fGbcLocker()
 #ifdef USE_ROOT
     , fOutputIO(0)
 #endif
@@ -63,8 +62,6 @@ WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
   fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
   fDoneQ = new Geant::priority_queue<GeantBasket *>(1 << 10);
   fScheduler = new GeantScheduler();
-  fWaiting = new int[fNthreads + 1];
-  memset(fWaiting, 0, (fNthreads + 1) * sizeof(int));
 
 #ifdef USE_ROOT
   fOutputIO = new dcqueue<TBufferFile*>;
@@ -79,8 +76,6 @@ WorkloadManager::~WorkloadManager() {
   delete fTransportedQ;
   delete fDoneQ;
   delete fScheduler;
-  delete[] fWaiting;
-  //   delete fNavStates;
 #ifdef USE_ROOT
   delete fOutputIO;
 #endif
@@ -177,6 +172,8 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
     }
   }
 
+  // *** THIS IS TO BE MOVED IN THE RUN MANAGER ***
+
   // Start output thread
   if (prop->fConfig->fFillTree) {
     fListThreads.emplace_back(WorkloadManager::OutputThread, prop);
@@ -201,15 +198,20 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
 //______________________________________________________________________________
 void WorkloadManager::JoinThreads() {
   //
+  StopTransportThreads();
+  for (auto &t : fListThreads) {
+    t.join();
+  }
+}
+
+//______________________________________________________________________________
+void WorkloadManager::StopTransportThreads() {
   int tojoin = fNthreads;
   if (fBroker)
     tojoin -= fBroker->GetNstream();
   for (int ith = 0; ith < tojoin; ith++)
     fFeederQ->push(0);
-
-  for (auto &t : fListThreads) {
-    t.join();
-  }
+  fStopped = true;
 }
 
 //______________________________________________________________________________
@@ -268,8 +270,8 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
                                                   GeantPropagator &propagator,
                                                   GeantTaskData &td) {
 
-  if (!prioritizer.HasTracks() && (propagator.fRunMgr->GetNpriority() || GetNworking() == 1)) {
-    bool didFeeder = propagator.fRunMgr->Feeder(&td);
+  if (!prioritizer.HasTracks() && (propagator.fRunMgr->GetNpriority() || propagator.GetNworking() == 1)) {
+    bool didFeeder = propagator.fRunMgr->Feeder(&td) > 0;
 
     // Check exit condition
     if (propagator.fRunMgr->TransportCompleted()) {
@@ -311,7 +313,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int tid = prop->fWMgr->ThreadId();
   Geant::Print("","=== Worker thread %d created ===", tid);
   GeantPropagator *propagator = prop;
-  Geant::GeantTaskData *td = propagator->fRunMgr->GetTaskData(tid);
+  GeantRunManager *runmgr = prop->fRunMgr;
+  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
   int nworkers = propagator->fNthreads;
@@ -332,9 +335,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int treeSizeWriteThreshold = td->fPropagator->fConfig->fTreeSizeWriteThreshold;
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
-  GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16,prop->fRunMgr->GetNthreadsTotal());
+  GeantFactory<MyHit> *myhitFactory = factoryStore->GetFactory<MyHit>(16,runmgr->GetNthreadsTotal());
 
-  TThread t;
   TThreadMergingFile* file=0;
   TTree *tree=0;
   GeantBlock<MyHit>* data=0;
@@ -349,24 +351,15 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       // set factory to use thread-local queues
       myhitFactory->queue_per_thread = true;
     }
-
-
-   #endif
-  // Start the feeder
-  propagator->fRunMgr->Feeder(td);
+  #endif
+  
+  
+  // Start the feeder for this propagator
+  while (runmgr->GetFedPropagator() != propagator)
+    runmgr->Feeder(td);
 
 
   Material_t *mat = 0;
-  int *waiting = wm->GetWaiting();
-//  condition_locker &sched_locker = wm->GetSchLocker();
-//  condition_locker &gbc_locker = wm->GetGbcLocker();
-// The last worker wakes the scheduler
-//  if (tid == nworkers-1) sched_locker.StartOne();
-//   int nprocesses = propagator->fConfig->fNprocesses;
-//   int ninput, noutput;
-//   bool useDebug = propagator->fConfig->fUseDebug;
-//   Geant::Print("","(%d) WORKER started", tid);
-// Create navigator if none serving this thread.
 #ifndef USE_VECGEOM_NAVIGATOR
   // If we use ROOT make sure we have a navigator here
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -376,6 +369,12 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   //   int iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
+    // Check if there is any idle propagator in the run manager
+    GeantPropagator *idle = propagator->fRunMgr->GetIdlePropagator();
+    if (idle) {
+      Printf("+++ Stopping idle propagator %p", idle);
+      idle->StopTransport();
+    }
     // Call the feeder if in priority mode
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
     if (feedres == FeederResult::kFeederWork) {
@@ -385,18 +384,17 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     }
 
     // Collect info about the queue
-    waiting[tid] = 1;
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if ((nbaskets < 1) && (!propagator->fRunMgr->IsFeeding())) {
+    if ((nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
       sch->GarbageCollect(td);
      ngcoll++;
     }
     // Too many garbage collections - enter priority mode
-    if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
+    if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
       ngcoll = 0;
       for (int slot = 0; slot < propagator->fNbuff; slot++)
         if (propagator->fEvents[slot]->Prioritize()) {
@@ -417,14 +415,15 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         ngcoll = 0;
       } else {
         // Take next basket from queue
+        propagator->fNidle++;
         wm->FeederQueue()->wait_and_pop(basket);
+        propagator->fNidle--;
         // If basket from queue is null, exit
         if (!basket)
           break;
       }
     }
     // Start transporting the basket
-    waiting[tid] = 0;
     MaybeCleanupBaskets(td,basket);
     ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
@@ -640,7 +639,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       file->Write();
     }
    #endif
-  wm->DoneQueue()->push(0);
+  wm->DoneQueue()->push(nullptr);
   delete prioritizer;
   // Final reduction of counters
   propagator->fNsteps += td->fNsteps;
@@ -687,7 +686,8 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   Geant::Print("","=== Worker thread %d created for Coprocessor ===", tid);
 
   GeantPropagator *propagator = prop;
-  Geant::GeantTaskData *td = propagator->fRunMgr->GetTaskData(tid);
+  GeantRunManager *runmgr = propagator->fRunMgr;
+  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   
   int nworkers = propagator->fNthreads;
@@ -699,28 +699,16 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
-  // Start the feeder
-  propagator->fRunMgr->Feeder(td);
-  // TGeoMaterial *mat = 0;
-  int *waiting = wm->GetWaiting();
-//  condition_locker &sched_locker = wm->GetSchLocker();
-// int nprocesses = propagator->fConfig->fNprocesses;
-// int ninput;
-// int noutput;
-//   bool useDebug = propagator->fConfig->fUseDebug;
-//   Geant::Print("","(%d) WORKER started", tid);
-#ifdef USE_VECGEOM_NAVIGATOR
-// Suppose I do not need a navigator, otherwise how it would have ever worked?
-#else
-  // Create navigator if none serving this thread.
+
+  // Start the feeder for this propagator
+  while (runmgr->GetFedPropagator() != propagator)
+    runmgr->Feeder(td);
+#ifndef USE_VECGEOM_NAVIGATOR
+  // Create navigator in ROOT case if none serving this thread.
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
 #endif
-  waiting[tid] = 1;
-  // int iev[500], itrack[500];
-  // TGeoBranchArray *crt[500], *nxt[500];
-
   // broker->SetPrioritizer(prioritizer);
   while (1) {
 
@@ -748,7 +736,6 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
         // more data ....
       }
     }
-    waiting[tid] = 1;
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
@@ -756,16 +743,16 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     if ((basket = broker->GetBasketForTransport(*td))) {
       ngcoll = 0;
     } else {
-      if (nbaskets < 1  && (!propagator->fRunMgr->IsFeeding()) ) {
+      if (nbaskets < 1  && (!runmgr->IsFeeding(propagator)) ) {
         sch->GarbageCollect(td);
         ngcoll++;
       }
       // Too many garbage collections - enter priority mode
-      if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
+      if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
         ngcoll = 0;
         for (int slot = 0; slot < propagator->fNbuff; slot++)
           if (propagator->fEvents[slot]->Prioritize()) {
-            std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
+            std::atomic_int &priority_events = runmgr->GetPriorityEvents();
             priority_events++;
           }
         while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
@@ -780,7 +767,9 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
             continue;
          } else {
             // We have nothing, so let's wait.
+            propagator->fNidle++;
             wm->FeederQueue()->wait_and_pop(basket);
+            propagator->fNidle--;
          }
       }
     }
@@ -791,7 +780,6 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
       // assert( worker queue empty );
       break;
     }
-    waiting[tid] = 0;
     MaybeCleanupBaskets(td,basket);
     ++counter;
 
@@ -919,7 +907,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     basket->Recycle(td);
   }
   // delete prioritizer;
-  wm->DoneQueue()->push(0);
+  wm->DoneQueue()->push(nullptr);
   delete prioritizer;
   // Final reduction of counters
   propagator->fNsteps += td->fNsteps;
@@ -1001,7 +989,6 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   int nthreads = wm->GetNthreads();
   int *nworking = new int[nthreads + 1];
   memset(nworking, 0, (nthreads + 1) * sizeof(int));
-  int *waiting = wm->GetWaiting();
   GeantBasketMgr **bmgr = sch->GetBasketManagers();
   TCanvas *cmon = (TCanvas *)gROOT->GetListOfCanvases()->FindObject("cscheduler");
   if (nmon == 1)
@@ -1053,25 +1040,6 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
     hvectors->SetStats(false);
     cmon->cd(++ipad)->SetLogy();
     hvectors->Draw();
-  }
-  TH1F *hconcurrency = 0;
-  TH1F *hconcavg = 0;
-  if (propagator->fConfig->IsMonitored(GeantConfig::kMonConcurrency)) {
-    hconcurrency = new TH1F("hconcurrency", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
-    hconcurrency->GetYaxis()->SetRangeUser(0, 1);
-    hconcurrency->GetXaxis()->SetNdivisions(nthreads + 1, true);
-    hconcurrency->GetYaxis()->SetNdivisions(10, true);
-    hconcurrency->SetFillColor(kGreen);
-    hconcurrency->SetLineColor(0);
-    hconcurrency->SetStats(false);
-    hconcavg = new TH1F("hconcavg", "Concurrency plot", nthreads + 1, 0, nthreads + 1);
-    hconcavg->SetFillColor(kRed);
-    hconcavg->SetFillStyle(3001);
-    hconcavg->SetLineColor(0);
-    hconcavg->SetStats(false);
-    cmon->cd(++ipad);
-    hconcurrency->Draw();
-    hconcavg->Draw("SAME");
   }
   TH1I *htracksmax = 0;
   TH1I *htracks = 0;
@@ -1193,13 +1161,6 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       hvectors->GetXaxis()->SetRangeUser(-5, vmax);
       hvectors->GetYaxis()->SetRangeUser(1, 1.2 * ymax);
     }
-    if (hconcurrency) {
-      for (j = 0; j < nthreads + 1; j++) {
-        nworking[j] += 1 - waiting[j];
-        hconcurrency->SetBinContent(j + 1, 1 - waiting[j]);
-        hconcavg->SetBinContent(j + 1, nworking[j] / (stamp + 1));
-      }
-    }
     if (htracksmax) {
       nmaxtot = 1;
       for (j = 0; j < nbuffered; j++) {
@@ -1230,11 +1191,6 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
     if (hvectors) {
       cmon->cd(++ipad);
       hvectors->Draw();
-    }
-    if (hconcurrency) {
-      cmon->cd(++ipad);
-      hconcurrency->Draw();
-      hconcavg->Draw("SAME");
     }
     if (htracksmax) {
       cmon->cd(++ipad);
@@ -1272,8 +1228,6 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
 
   if (prop->fConfig->fConcurrentWrite) {
     Printf(">>> Writing concurrently to MemoryFiles");
-
-    TThread t;
 
     prop->fWMgr->MergingServer()->Listen();
   }

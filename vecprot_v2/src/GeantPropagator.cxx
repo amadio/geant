@@ -70,14 +70,8 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : fConfig(nullptr), fRunMgr(nullptr), fNthreads(1), fNbuff(100), fNtotal(1000), fNtransported(0),
-      fNprimaries(0), fNsteps(0), fNsnext(0),
-      fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
-      fTransportOngoing(false), fSingleTrack(false),
-      fWMgr(nullptr), fApplication(nullptr), fStdApplication(nullptr),fTaskMgr(nullptr),
-      fTimer(nullptr), fProcess(nullptr), fVectorPhysicsProcess(nullptr),
-      fStoredTracks(nullptr), fPrimaryGenerator(nullptr), fTruthMgr(nullptr),
-      fNtracks(0) {
+    : fNtransported(0), fNprimaries(0), fNsteps(0), fNsnext(0),
+      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNidle(0) {
   // Constructor 
 }
 
@@ -109,6 +103,12 @@ int GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
+int GeantPropagator::GetNpending() const {
+  // Returns number of baskets pending in the queue
+  return fWMgr->GetNpending();
+}
+
+//______________________________________________________________________________
 void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
@@ -136,6 +136,12 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
   GeantTrack &track = fRunMgr->GetTaskData(tid)->fTrack;
   track.Clear();
   return track;
+}
+
+//______________________________________________________________________________
+bool GeantPropagator::IsIdle() const {
+  // Check if work queue is empty and all used threads are waiting
+  return (!fCompleted && GetNworking()==0 && GetNpending()==0);
 }
 
 //______________________________________________________________________________
@@ -204,46 +210,19 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 }
 
 //______________________________________________________________________________
-void GeantPropagator::RunSimulation(GeantPropagator *prop, int nthreads, const char *geomfile, bool graphics, bool single)
+void GeantPropagator::RunSimulation(GeantPropagator *prop, int nthreads)
 {
 // Static thread running the simulation for one propagator
   Info("RunSimulation", "Starting propagator %p with %d threads", prop, nthreads);
-  prop->PropagatorGeom(geomfile, nthreads, graphics, single);
+  prop->PropagatorGeom(nthreads);
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool graphics, bool single) {
+void GeantPropagator::PropagatorGeom(int nthreads) {
 // Steering propagation method
-  fConfig->fUseGraphics = graphics;
   fNthreads = nthreads;
-  fSingleTrack = single;
-  std::cout << " GeantPropagator::PropagatorGeom called with app= " << fApplication << std::endl;
-  if (!fApplication) {
-    printf("No user application attached - aborting");
-    return;
-  }
-
-  fPrimaryGenerator->InitPrimaryGenerator();
-  //   int itrack;
-
-  if (fSingleTrack)
-    Printf("==== Executing in single track loop mode using %d threads ====", fNthreads);
-  else
-    Printf("==== Executing in vectorized mode using %d threads ====", fNthreads);
-  if (fConfig->fUsePhysics)
-    Printf("  Physics ON");
-  else
-    Printf("  Physics OFF");
-  if (fConfig->fUseRungeKutta)
-    Printf("  Runge-Kutta integration ON with epsilon= %g", fConfig->fEpsilonRK);
-  else
-    Printf("  Runge-Kutta integration OFF");
 
   // Import the input events. This will start also populating the main queue
-  if (!fEvents) {
-    fEvents = new GeantEvent *[fNbuff];
-    memset(fEvents, 0, fNbuff * sizeof(GeantEvent *));
-  }
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;
@@ -257,67 +236,41 @@ void GeantPropagator::PropagatorGeom(const char *geomfile, int nthreads, bool gr
     TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
     capp->Update();
   }
+#endif
 
-  fTimer = new TStopwatch();
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_START_INSTRUMENTATION;
 #endif
-#else
-  fTimer = new vecgeom::Stopwatch();
-#endif
 
-  fTimer->Start();
   // Start system tasks
   if (!fWMgr->StartTasks(fTaskMgr)) {
     Fatal("PropagatorGeom", "Cannot start tasks.");
     return;
   }
-
-  // Wake up the main scheduler once to avoid blocking the system
-  //  condition_locker &sched_locker = fWMgr->GetSchLocker();
-  //  sched_locker.StartOne();
+  
+  // Wait all workers to finish, then join all threads
   fWMgr->WaitWorkers();
+  fCompleted = true; // Make sure someone is not just feeding work...
   fWMgr->JoinThreads();
-  fTimer->Stop();
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_STOP_INSTRUMENTATION;
   CALLGRIND_DUMP_STATS;
 #endif
-#ifdef USE_ROOT
-  double rtime = fTimer->RealTime();
-  double ctime = fTimer->CpuTime();
-#else
-  double rtime = fTimer->Elapsed();
-  double ctime = fTimer->Elapsed();  // TO FIX
-#endif
-  //   fTimer->Print();
-  double speedup = ctime / rtime;
-  double efficiency = speedup / nthreads;
-//   fWMgr->Print();
 
 #ifdef GEANTV_OUTPUT_RESULT_FILE
   const char *geomname = geomfile;
   if (strstr(geomfile, "http://root.cern.ch/files/"))
     geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
-  //  int nsteps = fWMgr->GetScheduler()->GetNsteps();
-  Printf("=== Transported: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
-         "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RT=%gs, CP=%gs",
-         fNprimaries.load(), fNtransported.load(), fNsteps.load(), fNsnext.load(), fNphys.load(), fNmag.load(),
-         fNsmall.load(), fNcross.load(), rtime, ctime);
-  Printf("   nthreads=%d speed-up=%f  efficiency=%f", nthreads, speedup, efficiency);
-  //  Printf("Queue throughput: %g transactions/sec", double(fWMgr->FeederQueue()->n_ops()) / rtime);
-  if (fTaskMgr) fTaskMgr->Finalize();
-  fApplication->FinishRun();
-  if (fStdApplication)
-    fStdApplication->FinishRun();
-#ifdef USE_VECGEOM_NAVIGATOR
-  printf("=== Navigation done using VecGeom ====");
-#else
-  printf("=== Navigation done using TGeo    ====");
-#endif
-  //  Printf("Navstate pool usage statistics:");
-  //   fWMgr->NavStates()->statistics();
+}
+
+//______________________________________________________________________________
+void GeantPropagator::StopTransport()
+{
+// Stop the transport threads. Needed only when controlling the transport
+// from the transport manager
+  fCompleted = true;
+  fWMgr->StopTransportThreads();
 }
 
 //______________________________________________________________________________

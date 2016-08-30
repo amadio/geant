@@ -28,6 +28,7 @@ static int n_threads = 4;
 static int n_track_max = 500;
 static int n_learn_steps = 0;
 static int n_reuse = 100000;
+static int n_propagators = 1;
 static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
@@ -44,6 +45,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"coprocessor", required_argument, 0, 'r'},
                                   {"tbbmode", required_argument, 0, 'i'},
                                   {"reuse", required_argument, 0, 'u'},
+                                  {"propagators", required_argument, 0, 'p'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -69,7 +71,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:u:", options, &optidx);
+    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:u:p:", options, &optidx);
 
     if (c == -1)
       break;
@@ -147,6 +149,10 @@ int main(int argc, char *argv[]) {
       n_reuse = (int)strtol(optarg, NULL, 10);
       break;
 
+    case 'p':
+      n_propagators = (int)strtol(optarg, NULL, 10);
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
@@ -216,7 +222,7 @@ int main(int argc, char *argv[]) {
   config->fNminReuse = n_reuse;
 
   // Create run manager
-  GeantRunManager *runMgr = new GeantRunManager(2, n_threads, config);
+  GeantRunManager *runMgr = new GeantRunManager(n_propagators, n_threads, config);
   if (broker) runMgr->SetCoprocessorBroker(broker);
   // Create the tab. phys process.
   runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));

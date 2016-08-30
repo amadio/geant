@@ -1,5 +1,6 @@
 #include "GeantRunManager.h"
 
+#include "base/Stopwatch.h"
 #include "GeantConfig.h"
 #include "Geant/Error.h"
 #include "GeantPropagator.h"
@@ -60,14 +61,41 @@ bool GeantRunManager::Initialize() {
   }
   
   if (!fNpropagators) {
+    Print("Initialize", "Number of propagators set to 1");
     fNpropagators = 1;
   }
 
+  // Not more propagators than events
+  if (fNpropagators > fConfig->fNtotal) {
+    Print("Initialize", "Number of propagators set to %d", fConfig->fNtotal);
+    fNpropagators = fConfig->fNtotal;
+  }
+
+  // Increase buffer to give a fair share to each propagator
+  int nbuffmax = fConfig->fNtotal/fNpropagators;
+  if (fConfig->fNbuff > nbuffmax) {
+    Print("Initialize", "Number of buffered events reduced to %d", nbuffmax);
+    fConfig->fNbuff = nbuffmax;
+  }
+  fNbuff = fConfig->fNbuff;
+  fConfig->fNbuff *= fNpropagators;
   fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
   fConfig->fMaxTracks = fConfig->fMaxPerEvent * fConfig->fNbuff;
 
+  if (!fPrimaryGenerator) {
+    Fatal("GeantRunManager::Initialize", "The primary generator has to be defined");
+    return false;
+  }
+
+  if (!fApplication) {
+    Fatal("GeantRunManager::Initialize", "The user application has to be defined");
+    return false;
+  }
+
   fEvents = new GeantEvent *[fConfig->fNbuff];
   memset(fEvents, 0, fConfig->fNbuff * sizeof(GeantEvent *));
+
+//  fPrimaryGenerator->InitPrimaryGenerator();
   
   for (auto i=0; i<fNpropagators; ++i) {
     GeantPropagator *prop = GeantPropagator::NewInstance(fNthreads);
@@ -129,6 +157,7 @@ bool GeantRunManager::Initialize() {
     fStdApplication->Initialize();
   }
   fApplication->Initialize();
+  fPrimaryGenerator->InitPrimaryGenerator();
 
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
@@ -314,15 +343,24 @@ int GeantRunManager::Feeder(GeantTaskData *td) {
   // Only one thread at a time
   if (fFeederLock.test_and_set(std::memory_order_acquire))
     return -1;
+  // Avoid giving slots to the same propagator in the initial phase
+  if (td->fPropagator == fFedPropagator && fConfig->fLastEvent < fNbuff) {
+    fFeederLock.clear(std::memory_order_release);
+    return -1;
+  }
+   
+  fFedPropagator = td->fPropagator;
   int nbaskets = 0;
-  if (!fConfig->fLastEvent) {
-    nbaskets = ImportTracks(fConfig->fNbuff, 0, 0, td);
-    fConfig->fLastEvent = fConfig->fNbuff;
+  if (fConfig->fLastEvent < fConfig->fNbuff && fConfig->fLastEvent < fConfig->fNtotal) {
+    int nevents = Math::Min<int>(fNbuff, fConfig->fNtotal - fConfig->fLastEvent);
+    nbaskets = ImportTracks(nevents, fConfig->fLastEvent, fConfig->fLastEvent, td);
+    fConfig->fLastEvent += nevents;
     fFeederLock.clear(std::memory_order_release);
     return nbaskets;
   }
+  int maxslot = Math::Min<int>(fConfig->fNbuff, fConfig->fNtotal);
   // Check and mark finished events
-  for (int islot = 0; islot < fConfig->fNbuff; islot++) {
+  for (int islot = 0; islot < maxslot; islot++) {
     GeantEvent *evt = fEvents[islot];
     if (fDoneEvents->TestBitNumber(evt->GetEvent()))
       continue;
@@ -436,27 +474,78 @@ int GeantRunManager::ImportTracks(int nevents, int startevent, int startslot, Ge
 }
 
 //______________________________________________________________________________
+GeantPropagator *GeantRunManager::GetIdlePropagator() const {
+// Returns the first found idle propagator if any
+  for (auto i=0; i<fNpropagators; ++i) {
+    if (fPropagators[i]->IsIdle()) return fPropagators[i];
+  }
+  return nullptr;
+}
+
+//______________________________________________________________________________
 void GeantRunManager::RunSimulation() {
   // Start simulation for all propagators
+  Printf("= GeantV running with %d propagator(s) using %d worker threads each ====", fNthreads);
+  if (fConfig->fUsePhysics)
+    Printf("  Physics ON");
+  else
+    Printf("  Physics OFF");
+  if (fConfig->fUseRungeKutta)
+    Printf("  Runge-Kutta integration ON with epsilon= %g", fConfig->fEpsilonRK);
+  else
+    Printf("  Runge-Kutta integration OFF");
   Initialize();
-  // Should start threads instead
+
+  vecgeom::Stopwatch timer;
+  timer.Start();
   for (auto i=0; i<fNpropagators; ++i)
-    fListThreads.emplace_back(GeantPropagator::RunSimulation, fPropagators[i], fNthreads, nullptr, false, false);
+    fListThreads.emplace_back(GeantPropagator::RunSimulation, fPropagators[i], fNthreads);
 
   for (auto &t : fListThreads) {
     t.join();
   }
+  timer.Stop();
+  double rtime = timer.Elapsed();
+  double ctime = timer.CpuElapsed();
+  long nprimaries = 0;
+  long ntransported = 0;
+  long nsteps = 0;
+  long nsnext = 0;
+  long nphys = 0;
+  long nmag = 0;
+  long nsmall = 0;
+  long ncross = 0;
   
-//    fPropagators[i]->PropagatorGeom("", fNthreads);
+  for (auto i=0; i<fNpropagators; ++i) {
+    nprimaries += fPropagators[i]->fNprimaries.load();
+    fNprimaries = nprimaries;
+    ntransported += fPropagators[i]->fNtransported.load();
+    nsteps += fPropagators[i]->fNsteps.load();
+    nsnext += fPropagators[i]->fNsnext.load();
+    nphys += fPropagators[i]->fNphys.load();
+    nmag += fPropagators[i]->fNmag.load();
+    nsmall += fPropagators[i]->fNsmall.load();
+    ncross += fPropagators[i]->fNcross.load();
+  }
+  Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
+         "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
+         fNpropagators, fNthreads, nprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, ncross, rtime, ctime);
+#ifdef USE_VECGEOM_NAVIGATOR
+  Printf("=== Navigation done using VecGeom ====");
+#else
+  Printf("=== Navigation done using TGeo    ====");
+#endif
+
   FinishRun();
 }
 
 //______________________________________________________________________________
 bool GeantRunManager::FinishRun() {
   // Run termination actions.
-  for (auto i=0; i<fNpropagators; ++i) {
-    fNprimaries += fPropagators[i]->GetNprimaries();
-  }
+  if (fTaskMgr) fTaskMgr->Finalize();
+  fApplication->FinishRun();
+  if (fStdApplication)
+    fStdApplication->FinishRun();
   // Actions to follow
   return true;
 }

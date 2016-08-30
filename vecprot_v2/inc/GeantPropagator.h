@@ -48,53 +48,51 @@ class TaskBroker;
 #include "GeantConfig.h"
 
 class GeantPropagator {
-
-public:
-  GeantConfig *fConfig;                            /** Run configuration*/
-  GeantRunManager *fRunMgr;                        /** Run manager */
-
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
-  // data members to be made private
-  int fNthreads;                                   /** Number of worker threads */
-  int fNbuff;                                      /** Number of buffered events */
-  int fNtotal;                                     /** Total number of events to be transported */
-  std::atomic<long> fNtransported;                 /** Number of transported tracks */
-  std::atomic<long> fNprimaries;                   /** Number of primary tracks */
-  std::atomic<long> fNsteps;                       /** Total number of steps */
-  std::atomic<long> fNsnext;                       /** Total number of calls to getting distance to next boundary */
-  std::atomic<long> fNphys;                        /** Total number of steps to physics processes */
-  std::atomic<long> fNmag;                         /** Total number of partial steps in magnetic field */
-  std::atomic<long> fNsmall;                       /** Total number of small steps taken */
-  std::atomic<long> fNcross;                       /** Total number of boundaries crossed */
+public:
+  GeantConfig *fConfig = nullptr;      /** Run configuration*/
+  GeantRunManager *fRunMgr = nullptr;  /** Run manager */
 
-  bool fTransportOngoing;      /** Flag for ongoing transport */
-  bool fSingleTrack;           /** Use single track transport mode */
+  int fNthreads = 0;                   /** Number of worker threads */
+  int fNbuff = 0;                      /** Number of buffered events */
+  int fNtotal = 0;                     /** Total number of events to be transported */
+  std::atomic<long> fNtransported;     /** Number of transported tracks */
+  std::atomic<long> fNprimaries;       /** Number of primary tracks */
+  std::atomic<long> fNsteps;           /** Total number of steps */
+  std::atomic<long> fNsnext;           /** Total number of calls to getting distance to next boundary */
+  std::atomic<long> fNphys;            /** Total number of steps to physics processes */
+  std::atomic<long> fNmag;             /** Total number of partial steps in magnetic field */
+  std::atomic<long> fNsmall;           /** Total number of small steps taken */
+  std::atomic<long> fNcross;           /** Total number of boundaries crossed */
+  std::atomic<int>  fNidle;            /** Number of idle threads */
+
+  bool fTransportOngoing = false;      /** Flag for ongoing transport */
+  bool fSingleTrack = false;           /** Use single track transport mode */
     
-  WorkloadManager *fWMgr;             /** Workload manager */
-  GeantVApplication *fApplication;    /** User application */
-  GeantVApplication *fStdApplication; /** Standard application */
-  GeantVTaskMgr     *fTaskMgr;        /** GeantV task manager */
+  WorkloadManager   *fWMgr = nullptr;           /** Workload manager */
+  GeantVApplication *fApplication = nullptr;    /** User application */
+  GeantVApplication *fStdApplication = nullptr; /** Standard application */
+  GeantVTaskMgr     *fTaskMgr = nullptr;        /** GeantV task manager */
 
   #ifdef USE_ROOT
-  TStopwatch *fTimer; /** Timer */
+  TStopwatch *fTimer = nullptr;                 /** Timer */
   #else
-  vecgeom::Stopwatch *fTimer; /** Timer */
+  vecgeom::Stopwatch *fTimer = nullptr;         /** Timer */
   #endif
 
-  PhysicsProcessOld   *fProcess;              /** For now the only generic process pointing to the tabulated physics */
-  PhysicsProcessOld   *fVectorPhysicsProcess; /** interface to vector physics final state sampling */
-  PhysicsInterface *fPhysicsInterface;     /** The new, real physics interface */
-
-  //   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
-  GeantTrack_v *fStoredTracks;         /** Stored array of tracks (history?) */
-  PrimaryGenerator *fPrimaryGenerator; /** Primary generator */
-  MCTruthMgr *fTruthMgr;               /** MCTruth manager */
+  PhysicsProcessOld *fProcess = nullptr;              /** For now the only generic process pointing to the tabulated physics */
+  PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** interface to vector physics final state sampling */
+  PhysicsInterface *fPhysicsInterface = nullptr;     /** The new, real physics interface */
+  GeantTrack_v *fStoredTracks = nullptr;         /** Stored array of tracks (history?) */
+  PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
+  MCTruthMgr *fTruthMgr = nullptr;     /** MCTruth manager */
 
   // Data per event
-  int *fNtracks;               /** ![fNbuff] Number of tracks per slot */
-  GeantEvent **fEvents;        /** ![fNbuff]    Array of events */
+  int *fNtracks = nullptr;        /** ![fNbuff] Number of tracks per slot */
+  GeantEvent **fEvents = nullptr; /** ![fNbuff]    Array of events */
+  bool fCompleted = false;     /** Completion flag */
 
   /** @brief Initialization function */
   void Initialize();
@@ -113,12 +111,14 @@ public:
    * @brief Function that returns the number of transported tracks (C++11)
    * @return Number of transported tracks
    */
+  GEANT_FORCE_INLINE
   long GetNtransported() const { return fNtransported.load(); }
 
   /**
    * @brief Function that returns the number of primary tracks
    * @return Number of primary tracks
    */
+  GEANT_FORCE_INLINE
   long GetNprimaries() const { return fNprimaries.load(); }
 
   /**
@@ -128,6 +128,24 @@ public:
    * @param tid Track ID
    */
   GeantTrack &GetTempTrack(int tid = -1);
+
+  /** @brief Check if the propagator threads are frozen */
+  bool IsIdle() const;
+
+  /** @brief Get number of idle workers */
+  GEANT_FORCE_INLINE
+  int GetNidle() const { return fNidle.load(); }
+
+  /** @brief Get number of pending baskets */
+  GEANT_FORCE_INLINE
+  int GetNpending() const;
+
+  /** @brief Get number of working threads */
+  GEANT_FORCE_INLINE
+  int GetNworking() const { return (fNthreads - fNidle.load()); }
+
+  /** @brief Stop the transport threads */
+  void StopTransport();
 
   /**
    * @brief Function to add a track to the scheduler
@@ -199,9 +217,7 @@ public:
 
 
   /** @brief Entry point to start simulation with GeantV */
-  static void RunSimulation(GeantPropagator *prop, int nthreads, 
-                            const char *geomfile="", 
-                            bool graphics=false, bool single=false);
+  static void RunSimulation(GeantPropagator *prop, int nthreads);
   
   /**
    * @brief Entry point to start simulation with GeantV
@@ -212,8 +228,7 @@ public:
    * @param single Transport single tracks rather than vectors (by default False)
    * @param Execution using TBB tasks instead of static threads (by default False)
    */
-  void PropagatorGeom(const char *geomfile = "geometry.root", int nthreads = 4, bool graphics = false,
-                      bool single = false);
+  void PropagatorGeom(int nthreads);
 
   ///** @brief Function returning the number of monitored features */
   //int GetMonFeatures() const;

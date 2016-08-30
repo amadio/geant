@@ -146,6 +146,6 @@ void runCMS(const int ncputhreads=4,
    prop->fUseStdScoring = false; // true;
    if (performance) prop->fUseStdScoring = false;
    prop->fUseMonitoring = graphics;
-   prop->PropagatorGeom(geomfile, nthreads, graphics);
+   prop->PropagatorGeom(nthreads);
    delete prop;
 }

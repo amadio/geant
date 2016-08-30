@@ -40,6 +40,7 @@ private:
   int fNthreads     = 0;          /** Number of threads per propagator */
   int fNvolumes     = 0;          /** Number of active volumes in the geometry */
   int fNprimaries   = 0;          /** Total number of primaries in the run */
+  int fNbuff        = 0;          /** Number of event slots per propagator */
   GeantConfig *fConfig = nullptr; /** Run configuration */
   TaskBroker *fBroker = nullptr;  /** Task broker */
 
@@ -62,6 +63,7 @@ private:
   int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
   GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
   GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
+  GeantPropagator *fFedPropagator = nullptr; /** Propagator currently being fed */
   std::vector<std::thread> fListThreads; /** Vector of threads */
   
 private:
@@ -109,6 +111,11 @@ public:
 
   GEANT_FORCE_INLINE
   int GetNtracks(int islot) { return fNtracks[islot]; }
+  
+  GeantPropagator *GetIdlePropagator() const;
+
+  GEANT_FORCE_INLINE
+  GeantPropagator *GetFedPropagator() const { return fFedPropagator; }
 
   GEANT_FORCE_INLINE
   void SetCoprocessorBroker(TaskBroker *broker) { fBroker = broker; }
@@ -145,9 +152,9 @@ public:
 
   /** @brief Check if transport is feeding with new tracks. */
   GEANT_FORCE_INLINE
-  bool IsFeeding() {
+  bool IsFeeding(GeantPropagator *prop) {
     bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
-    if (feeding)
+    if (feeding && fFedPropagator==prop)
       return true;
     fFeederLock.clear(std::memory_order_release);
     return false;

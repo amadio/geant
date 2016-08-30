@@ -123,6 +123,6 @@ void run(int ncputhreads=1,
    if (performance) prop->fUseStdScoring = false;
    // Monitor the application
    prop->fUseAppMonitoring = false;
-   prop->PropagatorGeom(geomfile, nthreads, graphics);
+   prop->PropagatorGeom(nthreads);
    delete prop;
 }   
