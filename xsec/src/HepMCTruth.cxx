@@ -5,10 +5,14 @@
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"
 #include "HepMC/WriterAscii.h"
+#ifdef USE_ROOT
 #include "HepMC/WriterRoot.h"
+#endif
 #include "HepMC/Print.h"
 
+#ifdef USE_ROOT
 ClassImp(HepMCTruth)
+#endif
 
     //______________________________________________________________________________
     HepMCTruth::HepMCTruth()
@@ -18,9 +22,13 @@ ClassImp(HepMCTruth)
 HepMCTruth::HepMCTruth(std::string &filename) : output_file(0), fEMin(0) {
   if (filename.substr(filename.find_last_of(".") + 1) == "hepmc3") {
     output_file = new HepMC::WriterAscii(filename);
-  } else if (filename.substr(filename.find_last_of(".") + 1) == "root") {
+  }
+#ifdef USE_ROOT
+  else if (filename.substr(filename.find_last_of(".") + 1) == "root") {
     output_file = new HepMC::WriterRoot(filename);
-  } else {
+  }
+#endif
+  else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
 }
