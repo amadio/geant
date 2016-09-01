@@ -14,7 +14,6 @@
 #define GEANTV_MCTruthMgr_h
 
 #include "base/Global.h"
-#include "TNamed.h"
 
 #include "GeantFwd.h"
 #include "GeantTrack.h"
@@ -54,14 +53,13 @@ struct MCEvent
 /**
  * @brief Class of MC truth manager
  */
-class MCTruthMgr : public TNamed {
+class MCTruthMgr {
 
 protected:
   cuckoohash_map<int, MCEvent*> events_map;
 
 public:
-  MCTruthMgr()
-      : TNamed() {}
+  MCTruthMgr() {}
   virtual ~MCTruthMgr() {}
 
   /**
