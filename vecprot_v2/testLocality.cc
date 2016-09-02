@@ -24,7 +24,7 @@
 #endif
 
 //______________________________________________________________________________
-void help() { std::cout << "Usage: testLocality <Nthreads>\n"; }
+void help() { std::cout << "Usage: testLocality [nthreads] [geom]>\n"; }
 
 //______________________________________________________________________________
 double get_wall_time() {
@@ -79,6 +79,9 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   SimpleNavigator nav;
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
                     Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.fPath, true);
+#else
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+  nav->FindNode(track.fXpos, track.fYpos, track.fZpos);
 #endif
 }
 
@@ -101,21 +104,15 @@ void ConsumeTracks(size_t tid, LocalData *ldata) {
   double dx = box->GetDX();
   double dy = box->GetDY();
   double dz = box->GetDZ();
-
+#ifndef USE_VECGEOM_NAVIGATOR
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+  if (!nav)
+    nav = gGeoManager->AddNavigator();
+#endif
   for (int itr=0; itr<1000000; ++itr) {
     GeantTrack &track = trk_mgr.GetTrack();
     InitTrack(track, dx, dy, dz);
     // Basketize the track
-/*
-    if (track.fPath->GetCurrentLevel() > track.fPath->GetMaxLevel()) {
-      track.Print("");
-    }
-    assert(track.fPath->GetCurrentLevel() <= track.fPath->GetMaxLevel());
-    if (track.fEvent != -1) {
-      track.Print("");
-    }
-    assert(track.fEvent == -1);
-*/
     loc_mgr->ReleaseTrack(track);
   }
 }
@@ -125,17 +122,21 @@ int main(int argc, char *argv[]) {
   using namespace Geant;
   using namespace vecgeom;
 
-  if (argc == 1) {
+  if (argc < 3) {
     help();
     exit(0);
   }
   size_t nthreads = atoi(argv[1]);
-  std::string file = "~/geant_src/geant/vecprot_v2/ExN03.root";
-  
+  std::string file = argv[2];  
   
   // Load geometry and convert to VecGeom
   TGeoManager::Import(file.c_str());
+  if (!gGeoManager) {
+    std::cout << "### Cannot load geometry from file " << file << std::endl;
+    return 1;
+  }
   int maxdepth = TGeoManager::GetMaxLevels();
+  if (nthreads > 1) gGeoManager->SetMaxThreads(nthreads);
 
 #ifdef USE_VECGEOM_NAVIGATOR
   RootGeoManager::Instance().LoadRootGeometry();
@@ -192,5 +193,7 @@ int main(int argc, char *argv[]) {
     NumaAlignedFree(ldata[node].basketizer);
   }
   delete [] ldata;
+  delete gGeoManager;
   std::cout << "run time/thread: " << (rt1 - rt0)/nthreads << "   cpu time/thread: " << (cpu1 - cpu0)/nthreads << std::endl;
+  return 0;
 }

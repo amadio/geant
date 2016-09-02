@@ -45,6 +45,7 @@ void LocalityManager::Init() {
   assert(fMaxdepth > 0 && "Maximum geometry depth not set.");
   std::cout << *fPolicy.GetTopology() << std::endl;
   if (!fNnodes) fNnodes = fPolicy.GetTopology()->fNodes;
+  if (!fNnodes) fNnodes = 1;
   fTrackMgr = new TrackManager*[fNnodes];
   for (int inode=0; inode<fNnodes; ++inode) {
     fTrackMgr[inode] = new TrackManager(fNblocks, fBlockSize, fMaxdepth, inode);

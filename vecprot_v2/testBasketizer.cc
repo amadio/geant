@@ -85,6 +85,7 @@ struct Workload {
     using Basketizer = Geant::Basketizer<test_track>;
     std::cout << *policy_.GetTopology() << std::endl;
     nnodes_ = policy_.fTopo.fNodes;
+    if (nnodes_ < 1) nnodes_ = 1;
     //numa_set_localalloc();
     fLock.clear();
     promise_ = new std::promise<size_t>[nthreads];
