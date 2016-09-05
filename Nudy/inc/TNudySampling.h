@@ -9,6 +9,7 @@
 #ifdef USE_ROOT
 #include "Rtypes.h"
 class TRandom3;
+class TNudyEndfRecoPoint;
 #endif
 
 class TNudySampling {
