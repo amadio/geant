@@ -6,7 +6,7 @@
 #include "ThreadData.h"
 
 //______________________________________________________________________________
-bool TaskMgrTBB::Initialize(int nthreads)
+bool TaskMgrTBB::Initialize(int nthreads, GeantPropagator *prop)
 {
 // Initialize the TBB task system
 
@@ -14,7 +14,7 @@ bool TaskMgrTBB::Initialize(int nthreads)
   tbb::task_list tlist;
   // spawn transport tasks
   for (int i = 0; i < nthreads; i++)
-    tlist.push_back(*new (tbb::task::allocate_root()) InitialTask());
+    tlist.push_back(*new (tbb::task::allocate_root()) InitialTask(prop));
 
   tbb::task::spawn_root_and_wait(tlist);
   return true;

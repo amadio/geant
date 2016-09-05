@@ -16,6 +16,9 @@
 #include "GeantPropagator.h"
 #include "TTabPhysProcess.h"
 #include "CMSApplication.h"
+#ifdef GEANT_TBB
+#include "TaskMgrTBB.h"
+#endif
 
 static int n_events = 10;
 static int n_buffered = 5;

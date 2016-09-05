@@ -277,6 +277,8 @@ public:
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();
+  
+  void ShareBaskets(WorkloadManager *other);
 
 private:
   /**

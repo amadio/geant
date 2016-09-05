@@ -58,6 +58,7 @@ private:
 
   // State data
   std::atomic_int fPriorityEvents; /** Number of prioritized events */
+  std::atomic_int fTaskId; /** Counter providing unique task id's */
   std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
   BitSet *fDoneEvents = nullptr;   /** Array of bits marking done events */
   int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
@@ -110,6 +111,9 @@ public:
   GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
 
   GEANT_FORCE_INLINE
+  int  GetTaskId() { return (fTaskId.fetch_add(1)); }
+
+  GEANT_FORCE_INLINE
   int GetNtracks(int islot) { return fNtracks[islot]; }
   
   GeantPropagator *GetIdlePropagator() const;
@@ -159,6 +163,12 @@ public:
     fFeederLock.clear(std::memory_order_release);
     return false;
   }
+
+  /** @brief Check if event is finished */
+  bool IsDoneEvent(int ievt) { return fDoneEvents->TestBitNumber(ievt); }
+
+  /** @brief Mark an event as finished */
+  void SetDoneEvent(int ievt) { fDoneEvents->SetBitNumber(ievt); }
 
   /** @brief Try to acquire the lock */
   bool TryLock() { return (fFeederLock.test_and_set(std::memory_order_acquire)); }

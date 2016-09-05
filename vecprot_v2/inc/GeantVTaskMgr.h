@@ -13,7 +13,7 @@
 #ifndef GEANT_VTASKMGR
 #define GEANT_VTASKMGR
 
-class WorkloadManager;
+class GeantPropagator;
 
 /** @brief GeantVTaskMgr class */
 class GeantVTaskMgr {
@@ -26,7 +26,7 @@ public:
   virtual ~GeantVTaskMgr() {}
 
   /** @brief Function of initialization */
-  virtual bool Initialize(int nthreads) = 0;
+  virtual bool Initialize(int nthreads, GeantPropagator *prop) = 0;
 
   /** @brief Function for final actions */
   virtual void Finalize() = 0;

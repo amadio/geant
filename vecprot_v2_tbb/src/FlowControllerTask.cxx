@@ -2,9 +2,13 @@
 
 #include "ThreadData.h"
 #include "FeederTask.h"
+#include "GeantRunManager.h"
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
+
+#ifdef USE_ROOT
 #include "TThreadMergingFile.h"
+#endif
 
 #include "tbb/task_scheduler_init.h"
 
@@ -15,12 +19,13 @@ FlowControllerTask::~FlowControllerTask () { }
 
 tbb::task* FlowControllerTask::execute ()
 {
-  WorkloadManager *wm = WorkloadManager::Instance();
-  GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = fTd->fPropagator;
+  GeantRunManager *runmgr = propagator->fRunMgr;
+  WorkloadManager *wm = propagator->fWMgr;
 
   //printf("=== %d Flow Controller  ===\n", fTd->fTid);
   if(fStarting){
-    while(propagator->TryLock())
+    while(runmgr->TryLock())
       ;
 
     tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
@@ -28,11 +33,14 @@ tbb::task* FlowControllerTask::execute ()
     return & feederTask;
   }
 
-  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
+  ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
+#ifdef USE_ROOT
   Geant::TThreadMergingFile* file = threadData->fFiles[fTd->fTid];
-  bool concurrentWrite = propagator->fConcurrentWrite && propagator->fFillTree;
+  bool concurrentWrite = propagator->fConfig->fConcurrentWrite &&
+                         propagator->fConfig->fFillTree;
+#endif
 
-  if (propagator->TransportCompleted()) {
+  if (runmgr->TransportCompleted()) {
     //finish tasks
     //tbb::task::destroy(*tbb::task::parent());
     printf("=== Exit thread %d from Flow Controller  ===\n", fTd->fTid);
@@ -45,9 +53,11 @@ tbb::task* FlowControllerTask::execute ()
     //         gbc_locker.StartOne();
 
     // WP
+#ifdef USE_ROOT
     if (concurrentWrite) {
       file->Write();
     }
+#endif
 
     wm->DoneQueue()->push(0);
 
@@ -68,7 +78,7 @@ tbb::task* FlowControllerTask::execute ()
     return NULL;
   }else{
       // spawn feeder task
-      while(propagator->TryLock())
+      while(runmgr->TryLock())
         ;
       //if(propagator->TryLock()){
       //  tbb::task::set_ref_count(2);

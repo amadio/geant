@@ -303,3 +303,9 @@ void GeantPropagator::SetConfig(GeantConfig *config)
   // Instantiate factory store
   GeantFactoryStore::Instance(fNbuff);
 }
+
+//______________________________________________________________________________
+void GeantPropagator::ShareWork(GeantPropagator &other)
+{
+  fWMgr->ShareBaskets(other.fWMgr);
+}

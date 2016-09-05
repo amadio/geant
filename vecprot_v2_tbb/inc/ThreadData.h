@@ -11,14 +11,24 @@
 #include "GeantFactoryStore.h"
 #include "TThreadMergingFile.h"
 
+#ifdef USE_ROOT
+class TTree;
+class TThreadMergingFile;
+#endif
+class GeantBasketMgr;
+template <typename T>
+class GeantFactory;
+
 class ThreadData {
 protected:
   static ThreadData *fgInstance;
 public:
   // Data per thread
   int fNthreads;
+#ifdef USE_ROOT
   Geant::TThreadMergingFile **fFiles;
   TTree **fTrees;
+#endif
   GeantBlock<MyHit> **fData;
   GeantBasketMgr **fPrioritizers;
   GeantFactory<MyHit> **fMyhitFactories;

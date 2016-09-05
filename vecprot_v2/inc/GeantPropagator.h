@@ -242,7 +242,11 @@ public:
   /** @brief  Setter for task broker */
   void SetTaskBroker(TaskBroker *broker);
 
+  /** @brief  Synchronize with run configuration */
   void SetConfig(GeantConfig* config);
+  
+  /** @brief  Share work with some other propagator */
+  void ShareWork(GeantPropagator &other);
 
 private:
   /** @brief Copy constructor not implemented */

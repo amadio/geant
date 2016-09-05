@@ -15,7 +15,7 @@
 
 #include "GeantVTaskMgr.h"
 
-class WorkloadManager;
+class GeantPropagator;
 
 /** @brief TaskMgrTBB class */
 class TaskMgrTBB : public GeantVTaskMgr {
@@ -28,7 +28,7 @@ public:
   virtual ~TaskMgrTBB() {}
 
   /** @brief Function for initialization */
-  virtual bool Initialize(int nthreads);
+  virtual bool Initialize(int nthreads, GeantPropagator *prop);
 
   /** @brief Function for final actions */
   void Finalize();

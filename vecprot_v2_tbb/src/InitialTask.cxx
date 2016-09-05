@@ -1,4 +1,6 @@
-#include "TTree.h"
+#include "InitialTask.h"
+
+#include "GeantRunManager.h"
 #include "GeantPropagator.h"
 #include "WorkloadManager.h"
 #include "GeantScheduler.h"
@@ -6,9 +8,11 @@
 #include "GeantBasket.h"
 #include "GeantFactory.h"
 #include "MyHit.h"
-#include "TThreadMergingFile.h"
 
-#include "InitialTask.h"
+#ifdef USE_ROOT
+#include "TTree.h"
+#include "TThreadMergingFile.h"
+#endif
 
 #include "tbb/task_scheduler_init.h"
 #include "ThreadData.h"
@@ -16,27 +20,29 @@
 
 tbb::task* InitialTask::execute ()
 {
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  WorkloadManager *wm = WorkloadManager::Instance();
+  GeantRunManager *runmgr = fPropagator->fRunMgr;
+  WorkloadManager *wm = fPropagator->fWMgr;
   GeantScheduler *sch = wm->GetScheduler();
-  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
+  ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
 
-  tbb::task_scheduler_init init( propagator->fNthreads );
+  tbb::task_scheduler_init init( runmgr->GetNthreadsTotal() );
 
-  int tid = wm->Instance()->ThreadId(); // only for checking thread id with initial task
-  Geant::GeantTaskData *td = propagator->fThreadData[tid];
+  int tid = runmgr->GetTaskId();
+  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
 
   printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);
 
-  threadData->fPrioritizers[tid] = new GeantBasketMgr(sch, 0, 0, true);
+  threadData->fPrioritizers[tid] = new GeantBasketMgr(fPropagator, sch, 0, 0, true);
   td->fBmgr = threadData->fPrioritizers[tid];
-  threadData->fPrioritizers[tid]->SetThreshold(propagator->fNperBasket);
+  threadData->fPrioritizers[tid]->SetThreshold(fPropagator->fConfig->fNperBasket);
   threadData->fPrioritizers[tid]->SetFeederQueue(wm->FeederQueue());
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
-  threadData->fMyhitFactories[tid] = factoryStore->GetFactory<MyHit>(16);
+  threadData->fMyhitFactories[tid] = factoryStore->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());
 
-  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
+#ifdef USE_ROOT
+  bool concurrentWrite = fPropagator->fConfig->fConcurrentWrite &&
+                         fPropagator->fConfig->fFillTree;
   if (concurrentWrite)
     {
       threadData->fFiles[tid] = new Geant::TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
@@ -47,6 +53,7 @@ tbb::task* InitialTask::execute ()
       // set factory to use thread-local queues
       threadData->fMyhitFactories[tid]->queue_per_thread = true;
     }
+#endif
 
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
   FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(td, true);

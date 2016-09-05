@@ -4,9 +4,11 @@
 #include "ThreadData.h"
 #include "WorkloadManager.h"
 #include "FlowControllerTask.h"
+#include "GeantRunManager.h"
 #include "GeantPropagator.h"
 #include "GeantEvent.h"
 
+#ifdef USE_ROOT
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TStopwatch.h"
@@ -18,6 +20,9 @@
 #include "TTree.h"
 #include "TMath.h"
 #include "TTree.h"
+#include "TThreadMergingFile.h"
+#endif
+
 #include "GeantTrack.h"
 #include "GeantBasket.h"
 #include "GeantScheduler.h"
@@ -30,8 +35,6 @@
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
 #endif
-#include "TThread.h"
-#include "TThreadMergingFile.h"
 
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
@@ -80,9 +83,11 @@ tbb::task* TransportTask::execute ()
   int nout = 0;
   int ngcoll = 0;
   GeantBasket *basket = 0;
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  ThreadData *threadData = ThreadData::Instance(propagator->fNthreads);
-  WorkloadManager *wm = WorkloadManager::Instance();
+  GeantPropagator *propagator = fTd->fPropagator;
+  GeantRunManager *runmgr = propagator->fRunMgr;
+  WorkloadManager *wm = propagator->fWMgr;
+  
+  ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
 
   Geant::GeantTaskData *td = fTd;
   int tid = td->fTid;
@@ -95,49 +100,39 @@ tbb::task* TransportTask::execute ()
   int *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = threadData->fPrioritizers[tid];
   td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fNperBasket);
+  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
 
   // IO handling
 
-  bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
-  int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
+  bool concurrentWrite = propagator->fConfig->fConcurrentWrite && 
+                         propagator->fConfig->fFillTree;
+  int treeSizeWriteThreshold = propagator->fConfig->fTreeSizeWriteThreshold;
 
   GeantFactory<MyHit> *myhitFactory = threadData->fMyhitFactories[tid];
-
-  TThread t;
-  Geant::TThreadMergingFile* file = threadData->fFiles[tid];
-  TTree *tree = threadData->fTrees[tid];
   GeantBlock<MyHit>* data = threadData->fData[tid];
 
-
+  #ifdef USE_ROOT
+  Geant::TThreadMergingFile* file = threadData->fFiles[tid];
+  TTree *tree = threadData->fTrees[tid];
+  #endif
+  
   Material_t *mat = 0;
-  int *waiting = wm->GetWaiting();
-//  condition_locker &sched_locker = wm->GetSchLocker();
-//  condition_locker &gbc_locker = wm->GetGbcLocker();
-// The last worker wakes the scheduler
-//  if (tid == nworkers-1) sched_locker.StartOne();
-//   int nprocesses = propagator->fNprocesses;
-//   int ninput, noutput;
-//   bool useDebug = propagator->fUseDebug;
-//   Geant::Print("","(%d) WORKER started", tid);
-// Create navigator if none serving this thread.
+
 #ifndef USE_VECGEOM_NAVIGATOR
   // If we use ROOT make sure we have a navigator here
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
 #endif
-  //   int iev[500], itrack[500];
-  // TGeoBranchArray *crt[500], *nxt[500];
 
   bool firstTime = true;
   while (1) {
 
-    if (propagator->TransportCompleted())
+    if (runmgr->TransportCompleted())
       break;
 
-    if (!firstTime && !basket && !prioritizer->HasTracks() && (propagator->GetNpriority() || wm->GetNworking() == 1)) {
+    if (!firstTime && !basket && !prioritizer->HasTracks() && (runmgr->GetNpriority() || propagator->GetNworking() == 1)) {
       break;
    }
 
@@ -147,22 +142,21 @@ tbb::task* TransportTask::execute ()
     if (!basket) basket = td->fReused;
 
     // Collect info about the queue
-    waiting[tid] = 1;
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if ((nbaskets < 1) && (!propagator->IsFeeding())) {
+    if ((nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
       sch->GarbageCollect(td);
      ngcoll++;
     }
     // Too many garbage collections - enter priority mode
-    if ((ngcoll > 5) && (wm->GetNworking() <= 1)) {
+    if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
       ngcoll = 0;
-      for (int slot = 0; slot < propagator->fNevents; slot++)
+      for (int slot = 0; slot < propagator->fNbuff; slot++)
         if (propagator->fEvents[slot]->Prioritize())
-          propagator->fPriorityEvents++;
+          (runmgr->GetPriorityEvents())++;
       while ((!sch->GarbageCollect(td, true)) &&
              (feederQ->size_async() == 0) &&
              (!basket) &&
@@ -177,14 +171,15 @@ tbb::task* TransportTask::execute ()
         ngcoll = 0;
       } else {
         // Take next basket from queue
+        propagator->fNidle++;
         wm->FeederQueue()->wait_and_pop(basket);
+        propagator->fNidle--;
         // If basket from queue is null, exit
         if (!basket)
           break;
       }
     }
     // Start transporting the basket
-    waiting[tid] = 0;
     MaybeCleanupBaskets(td,basket);
     ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
@@ -214,7 +209,7 @@ tbb::task* TransportTask::execute ()
     }
 
     // Select the discrete physics process for all particles in the basket
-    if (propagator->fUsePhysics) {
+    if (propagator->fConfig->fUsePhysics) {
       propagator->ProposeStep(ntotransport, input, td);
       // Apply msc for charged tracks
       propagator->ApplyMsc(ntotransport, input, td);
@@ -230,7 +225,7 @@ tbb::task* TransportTask::execute ()
       for (auto itr=0; itr<ntotransport; ++itr) {
         input.fNstepsV[itr]++;
         if ((input.fStatusV[itr] != kKilled) &&
-            (input.fNstepsV[itr] > gPropagator->fNstepsKillThr) &&
+            (input.fNstepsV[itr] > propagator->fConfig->fNstepsKillThr) &&
             input.fBoundaryV[itr] && (input.fSnextV[itr]<1.e-9)) {
           Error("TransportTracks", "track %d seems to be stuck -> killing it after next step", input.fParticleV[itr]);
           Error("TransportTracks", "Transport will continue, but this is a fatal error");
@@ -265,7 +260,7 @@ tbb::task* TransportTask::execute ()
 
     // Post-step actions by continuous processes for all particles. There are no
     // new generated particles at this point.
-    if (propagator->fUsePhysics) {
+    if (propagator->fConfig->fUsePhysics) {
       nphys = 0;
       nextra_at_rest = 0;
       // count phyics steps here
@@ -315,9 +310,9 @@ tbb::task* TransportTask::execute ()
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
       }
     }
-    if (gPropagator->fStdApplication)
-      gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
-    gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
+    if (propagator->fStdApplication)
+      propagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+    propagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // WP
     #ifdef USE_ROOT
@@ -360,7 +355,7 @@ tbb::task* TransportTask::execute ()
     // Check if there are enough transported tracks staying in the same volume
     // to be reused without re-basketizing
     int nreusable = sch->ReusableTracks(output);
-    bool reusable = (basket->IsMixed())? false : (nreusable>=gPropagator->fNminReuse);
+    bool reusable = (basket->IsMixed())? false : (nreusable>=propagator->fConfig->fNminReuse);
 //    reusable = false;
 
     if (reusable)

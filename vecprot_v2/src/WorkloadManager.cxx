@@ -188,7 +188,7 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   }
   if (taskmgr) {
     Printf("=== TBB Task Mode ====");
-    return taskmgr->Initialize(fNthreads);
+    return taskmgr->Initialize(fNthreads, prop);
   } else {
     Printf("=== Thread Mode ====");
   }
@@ -287,6 +287,12 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
     if (didFeeder) return FeederResult::kFeederWork;
   }
   return FeederResult::kNone;
+}
+
+//______________________________________________________________________________
+void WorkloadManager::ShareBaskets(WorkloadManager *other)
+{
+// Share some baskets with a different workload manager
 }
 
 //______________________________________________________________________________

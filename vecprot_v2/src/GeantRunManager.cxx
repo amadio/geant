@@ -50,6 +50,7 @@ GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthread
     fConfig(config) {
   fFeederLock.clear();
   fPriorityEvents.store(0);
+  fTaskId.store(0);
 }
 
 //______________________________________________________________________________
