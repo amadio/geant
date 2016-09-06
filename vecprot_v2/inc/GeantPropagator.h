@@ -246,7 +246,7 @@ public:
   void SetConfig(GeantConfig* config);
   
   /** @brief  Share work with some other propagator */
-  void ShareWork(GeantPropagator &other);
+  int ShareWork(GeantPropagator &other);
 
 private:
   /** @brief Copy constructor not implemented */

@@ -70,6 +70,7 @@ protected:
   TaskBroker *fBroker;         /** Pointer to the coprocessor broker, this could be made a collection. */
   condition_locker fSchLocker; /** Scheduler locker */
   condition_locker fGbcLocker; /** Garbage collector locker */
+  std::atomic_flag fShareLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect basket sharing */
   int fLastEvent;            /** Last transported event */
 
   #ifdef USE_ROOT
@@ -206,6 +207,22 @@ public:
   GEANT_FORCE_INLINE
   TaskBroker *GetTaskBroker() { return fBroker; }
 
+  /** @brief Try to acquire the sharing lock */
+  GEANT_FORCE_INLINE
+  bool TryShareLock() { return (fShareLock.test_and_set(std::memory_order_acquire)); }
+
+  /** @brief Release the share lock */
+  GEANT_FORCE_INLINE
+  void ReleaseShareLock() { fShareLock.clear(std::memory_order_release); }
+
+  /** @brief Check if transport is feeding with new tracks. */
+  GEANT_FORCE_INLINE
+  bool IsSharing() {
+    if (TryShareLock()) return true;
+    ReleaseShareLock();
+    return false;
+  }
+
 #if USE_VECGEOM_NAVIGATOR
   /**
    * @brief Tell the task broker(s) to load the geometry.
@@ -278,7 +295,7 @@ public:
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();
   
-  void ShareBaskets(WorkloadManager *other);
+  int ShareBaskets(WorkloadManager *other);
 
 private:
   /**

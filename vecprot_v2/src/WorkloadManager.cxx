@@ -50,7 +50,7 @@ using std::max;
 
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
-    :fPropagator(prop),fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads),
+    : fPropagator(prop), fNthreads(nthreads), fNbaskets(0), fBasketGeneration(0), fNbasketgen(0), fNidle(nthreads),
       fNqueued(0), fBtogo(0), fSchId(nthreads), fStarted(false), fStopped(false), fFeederQ(0), fTransportedQ(0),
       fDoneQ(0), fListThreads(), fFlushed(false), fFilling(false), fScheduler(0), fBroker(0), fSchLocker(), fGbcLocker()
 #ifdef USE_ROOT
@@ -58,10 +58,11 @@ WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
 #endif
   {
   // Private constructor.
-  fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
-  fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16);
-  fDoneQ = new Geant::priority_queue<GeantBasket *>(1 << 10);
+  fFeederQ = new Geant::priority_queue<GeantBasket *>(1 << 16, nthreads);
+  fTransportedQ = new Geant::priority_queue<GeantBasket *>(1 << 16, nthreads);
+  fDoneQ = new Geant::priority_queue<GeantBasket *>(1 << 10, nthreads);
   fScheduler = new GeantScheduler();
+  ReleaseShareLock();
 
 #ifdef USE_ROOT
   fOutputIO = new dcqueue<TBufferFile*>;
@@ -290,9 +291,29 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
 }
 
 //______________________________________________________________________________
-void WorkloadManager::ShareBaskets(WorkloadManager *other)
+int WorkloadManager::ShareBaskets(WorkloadManager *other)
 {
 // Share some baskets with a different workload manager
+  // Check transport queue status and share only if enough baskets
+  if (TryShareLock())
+    return 0;
+  unsigned int status = fFeederQ->status();
+  if (status < 2) {
+    ReleaseShareLock();
+    return 0;
+  }
+  GeantBasket *basket = nullptr;
+  int ntoshare = Math::Min<int>(fFeederQ->size() - fNthreads, fNthreads);
+  ntoshare = Math::Max<int>(ntoshare, 0);
+  int nshared = 0;
+  for (auto i=0; i<ntoshare; ++i) {
+    if (fFeederQ->try_pop(basket)) {
+      other->FeederQueue()->push(basket);
+      nshared++;
+    }
+  }
+  ReleaseShareLock();
+  return nshared;
 }
 
 //______________________________________________________________________________
@@ -420,13 +441,18 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         basket = prioritizer->GetBasketForTransport(td);
         ngcoll = 0;
       } else {
-        // Take next basket from queue
-        propagator->fNidle++;
-        wm->FeederQueue()->wait_and_pop(basket);
-        propagator->fNidle--;
-        // If basket from queue is null, exit
-        if (!basket)
-          break;
+        wm->FeederQueue()->try_pop(basket);
+        if (!basket) {
+          // Try to steal some work from the run manager
+          runmgr->ProvideWorkTo(propagator);
+          // Take next basket from queue
+          propagator->fNidle++;
+          wm->FeederQueue()->wait_and_pop(basket);
+          propagator->fNidle--;
+          // If basket from queue is null, exit
+          if (!basket)
+            break;
+        }
       }
     }
     // Start transporting the basket

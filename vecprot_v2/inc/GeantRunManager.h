@@ -182,6 +182,9 @@ public:
   /** @brief Initialize classes for RK Integration */
   void PrepareRkIntegration();
 
+  /** @brief Implementation of work stealing */
+  int ProvideWorkTo(GeantPropagator *prop);
+  
   bool Initialize();
   bool FinishRun();
   bool LoadGeometry(const char *filename);

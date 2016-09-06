@@ -305,7 +305,7 @@ void GeantPropagator::SetConfig(GeantConfig *config)
 }
 
 //______________________________________________________________________________
-void GeantPropagator::ShareWork(GeantPropagator &other)
+int GeantPropagator::ShareWork(GeantPropagator &other)
 {
-  fWMgr->ShareBaskets(other.fWMgr);
+  return ( fWMgr->ShareBaskets(other.fWMgr) );
 }

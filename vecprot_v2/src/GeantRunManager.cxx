@@ -390,6 +390,19 @@ int GeantRunManager::Feeder(GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
+int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)
+{
+// Provide work to a given propagator which became idle
+  int nshared = 0;
+  for (auto i=0; i<fNpropagators; ++i) {
+    if (fPropagators[i] == prop) continue;
+    nshared += fPropagators[i]->ShareWork(*prop);
+  }
+  if (nshared) Printf("ProvideWorkTo", "Shared %d baskets to propagator %p", nshared, prop); 
+  return nshared;
+}
+
+//______________________________________________________________________________
 int GeantRunManager::ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *thread_data) {
 // Import tracks from "somewhere". Here we just generate nevents.
 
