@@ -130,7 +130,7 @@ GeantBasketMgr::GeantBasketMgr(GeantPropagator* prop, GeantScheduler *sch, Volum
 #else
   : fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
 #endif
-    fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
+    fCollector(collector), fThreshold(prop->fConfig->fNperBasket), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
     fDispatchList() {
   // Constructor
   fBcap = prop->fConfig->fMaxPerBasket + 1;
@@ -152,6 +152,7 @@ void GeantBasketMgr::Activate(GeantPropagator* prop) {
     return;
   GeantBasket *basket;
   basket = new GeantBasket(prop, fBcap, this);
+  basket->SetThreshold(fThreshold.load(std::memory_order_relaxed));
   SetCBasket(basket);
   if (fCollector) {
     basket->SetMixed(true);

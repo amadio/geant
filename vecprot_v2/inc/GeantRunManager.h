@@ -84,6 +84,9 @@ public:
   int  GetNthreadsTotal() { return (fNthreads*fNpropagators); }
 
   GEANT_FORCE_INLINE
+  int  GetNpropagators() { return fNpropagators; }
+
+  GEANT_FORCE_INLINE
   GeantConfig *GetConfig() { return fConfig; }
 
   GEANT_FORCE_INLINE

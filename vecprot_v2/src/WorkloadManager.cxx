@@ -97,10 +97,7 @@ void WorkloadManager::CreateBaskets(GeantPropagator* prop) {
   // Create the array of baskets
   VolumePath_t *blueprint = 0;
   int maxdepth = prop->fConfig->fMaxDepth;
-  Geant::Info("CreateBaskets","Max depth: %d", maxdepth);
   blueprint = VolumePath_t::MakeInstance(maxdepth);
-  //   fNavStates = new GeantObjectPool<VolumePath_t>(1000*fNthreads, blueprint);
-  //   fNavStates = new rr_pool<VolumePath_t>(16*fNthreads, 1000, blueprint);
   fScheduler->CreateBaskets(prop);
   VolumePath_t::ReleaseInstance(blueprint);
 
@@ -329,7 +326,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int ncross = 0;
   int nextra_at_rest = 0;
   int generation = 0;
-  //   int ninjected = 0;
+  int ninjected = 0;
   int nnew = 0;
   int ntot = 0;
   int nkilled = 0;
@@ -354,9 +351,11 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
 
+  bool firstTime = true;
+  bool multiPropagator = runmgr->GetNpropagators() > 1;
+  GeantPropagator *idle = nullptr;
+  
   // IO handling
-
-
   #ifdef USE_ROOT
   bool concurrentWrite = td->fPropagator->fConfig->fConcurrentWrite && td->fPropagator->fConfig->fFillTree;
   int treeSizeWriteThreshold = td->fPropagator->fConfig->fTreeSizeWriteThreshold;
@@ -379,12 +378,14 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       myhitFactory->queue_per_thread = true;
     }
   #endif
-  
-  
+    
   // Start the feeder for this propagator
-  while (runmgr->GetFedPropagator() != propagator)
-    runmgr->Feeder(td);
-
+  while (runmgr->GetFedPropagator() != propagator) {
+    int nb0 = runmgr->Feeder(td);
+    if (nb0 > 0) ninjected += nb0;
+  }
+  // The first injection must produce some baskets
+  if (!ninjected) sch->GarbageCollect(td, true);
 
   Material_t *mat = 0;
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -396,12 +397,6 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   //   int iev[500], itrack[500];
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
-    // Check if there is any idle propagator in the run manager
-    GeantPropagator *idle = propagator->fRunMgr->GetIdlePropagator();
-    if (idle) {
-      Printf("+++ Stopping idle propagator %p", idle);
-      idle->StopTransport();
-    }
     // Call the feeder if in priority mode
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
     if (feedres == FeederResult::kFeederWork) {
@@ -416,7 +411,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if ((nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
+    if (!firstTime && (nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
       sch->GarbageCollect(td);
      ngcoll++;
     }
@@ -444,7 +439,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         wm->FeederQueue()->try_pop(basket);
         if (!basket) {
           // Try to steal some work from the run manager
-          runmgr->ProvideWorkTo(propagator);
+          if (!firstTime && multiPropagator)
+            runmgr->ProvideWorkTo(propagator);
           // Take next basket from queue
           propagator->fNidle++;
           wm->FeederQueue()->wait_and_pop(basket);
@@ -454,6 +450,11 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
             break;
         }
       }
+    }
+    // Check if there is any idle propagator in the run manager
+    if (!firstTime && multiPropagator) {
+      idle = propagator->fRunMgr->GetIdlePropagator();
+      if (idle) idle->StopTransport();
     }
     // Start transporting the basket
     MaybeCleanupBaskets(td,basket);
@@ -640,6 +641,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         *output.fPathV[itr] = *output.fNextpathV[itr];
     }
   finish:
+    firstTime = false;
     // Check if there are enough transported tracks staying in the same volume
     // to be reused without re-basketizing
     int nreusable = sch->ReusableTracks(output);

@@ -269,8 +269,12 @@ void GeantPropagator::StopTransport()
 {
 // Stop the transport threads. Needed only when controlling the transport
 // from the transport manager
-  fCompleted = true;
-  fWMgr->StopTransportThreads();
+  std::unique_lock<std::mutex> lk(fStopperLock);
+  if (!fCompleted) {
+    fCompleted = true;
+    Printf("+++ Stopping propagator %p", this);
+    fWMgr->StopTransportThreads();
+  }
 }
 
 //______________________________________________________________________________

@@ -398,7 +398,7 @@ int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)
     if (fPropagators[i] == prop) continue;
     nshared += fPropagators[i]->ShareWork(*prop);
   }
-  if (nshared) Printf("ProvideWorkTo", "Shared %d baskets to propagator %p", nshared, prop); 
+  // if (nshared) Printf("Propagator %p stole %d baskets", prop, nshared); 
   return nshared;
 }
 
@@ -499,7 +499,10 @@ GeantPropagator *GeantRunManager::GetIdlePropagator() const {
 //______________________________________________________________________________
 void GeantRunManager::RunSimulation() {
   // Start simulation for all propagators
-  Printf("= GeantV running with %d propagator(s) using %d worker threads each ====", fNthreads);
+  Initialize();
+
+  Printf("==========================================================================");
+  Printf("= GeantV run started with %d propagator(s) using %d worker threads each ====", fNpropagators, fNthreads);
   if (fConfig->fUsePhysics)
     Printf("  Physics ON");
   else
@@ -508,7 +511,7 @@ void GeantRunManager::RunSimulation() {
     Printf("  Runge-Kutta integration ON with epsilon= %g", fConfig->fEpsilonRK);
   else
     Printf("  Runge-Kutta integration OFF");
-  Initialize();
+  Printf("==========================================================================");
 
   vecgeom::Stopwatch timer;
   timer.Start();

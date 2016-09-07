@@ -144,11 +144,10 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
   Volume_t *vol;
   GeantBasketMgr *basket_mgr;
   int icrt = 0;
-  int nperbasket = prop->fConfig->fNperBasket;
   for (auto ivol = 0; ivol < fNvolumes; ++ivol) {
     vol = (Volume_t *)fVolumes[ivol];
     basket_mgr = new GeantBasketMgr(prop,this, vol, icrt);
-    basket_mgr->SetThreshold(nperbasket);
+    basket_mgr->SetThreshold(prop->fConfig->fNperBasket);
     basket_mgr->SetFeederQueue(feeder);
     //      Printf("basket %s: %p feeder=%p", basket_mgr->GetName(), basket_mgr,
     //      basket_mgr->GetFeederQueue());

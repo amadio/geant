@@ -93,6 +93,7 @@ public:
   int *fNtracks = nullptr;        /** ![fNbuff] Number of tracks per slot */
   GeantEvent **fEvents = nullptr; /** ![fNbuff]    Array of events */
   bool fCompleted = false;     /** Completion flag */
+  std::mutex fStopperLock;     /** Mutex for the stop operation */
 
   /** @brief Initialization function */
   void Initialize();
