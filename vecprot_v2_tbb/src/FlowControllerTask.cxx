@@ -24,12 +24,12 @@ tbb::task* FlowControllerTask::execute ()
   WorkloadManager *wm = propagator->fWMgr;
 
   //printf("=== %d Flow Controller  ===\n", fTd->fTid);
-  if(fStarting){
-    while(runmgr->TryLock())
+  if(fStarting) {
+    while(runmgr->IsFeeding(propagator))
       ;
 
     tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd );
+    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd, fStarting );
     return & feederTask;
   }
 
@@ -76,18 +76,18 @@ tbb::task* FlowControllerTask::execute ()
     }
 
     return NULL;
-  }else{
-      // spawn feeder task
-      while(runmgr->TryLock())
-        ;
-      //if(propagator->TryLock()){
-      //  tbb::task::set_ref_count(2);
-      //  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
-      //  return & transportTask;
-      //}
-      tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-      FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd );
-      return & feederTask;
+  } else {
+    // spawn feeder task
+    while(runmgr->IsFeeding(propagator))
+      ;
+    //if(propagator->TryLock()){
+    //  tbb::task::set_ref_count(2);
+    //  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
+    //  return & transportTask;
+    //}
+    tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd, false );
+    return & feederTask;
   }
     return NULL;
 }

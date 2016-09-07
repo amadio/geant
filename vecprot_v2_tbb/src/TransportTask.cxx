@@ -102,6 +102,8 @@ tbb::task* TransportTask::execute ()
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
+  bool multiPropagator = runmgr->GetNpropagators() > 1;
+  GeantPropagator *idle = nullptr;
 
   // IO handling
 
@@ -135,8 +137,6 @@ tbb::task* TransportTask::execute ()
     if (!firstTime && !basket && !prioritizer->HasTracks() && (runmgr->GetNpriority() || propagator->GetNworking() == 1)) {
       break;
    }
-
-    if(firstTime) firstTime =false;
     
     // Retrieve the reused basket from the task data
     if (!basket) basket = td->fReused;
@@ -170,14 +170,25 @@ tbb::task* TransportTask::execute ()
         basket = prioritizer->GetBasketForTransport(td);
         ngcoll = 0;
       } else {
-        // Take next basket from queue
-        propagator->fNidle++;
-        wm->FeederQueue()->wait_and_pop(basket);
-        propagator->fNidle--;
-        // If basket from queue is null, exit
-        if (!basket)
-          break;
+        wm->FeederQueue()->try_pop(basket);
+        if (!basket) {
+          // Try to steal some work from the run manager
+          if (!firstTime && multiPropagator)
+            runmgr->ProvideWorkTo(propagator);
+          // Take next basket from queue
+          propagator->fNidle++;
+          wm->FeederQueue()->wait_and_pop(basket);
+          propagator->fNidle--;
+          // If basket from queue is null, exit
+          if (!basket)
+            break;
+        }
       }
+    }
+    // Check if there is any idle propagator in the run manager
+    if (!firstTime && multiPropagator) {
+      idle = propagator->fRunMgr->GetIdlePropagator();
+      if (idle) idle->StopTransport();
     }
     // Start transporting the basket
     MaybeCleanupBaskets(td,basket);
@@ -352,6 +363,7 @@ tbb::task* TransportTask::execute ()
         *output.fPathV[itr] = *output.fNextpathV[itr];
     }
   finish:
+    firstTime = false;
     // Check if there are enough transported tracks staying in the same volume
     // to be reused without re-basketizing
     int nreusable = sch->ReusableTracks(output);

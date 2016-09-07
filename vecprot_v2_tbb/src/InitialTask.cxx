@@ -29,6 +29,7 @@ tbb::task* InitialTask::execute ()
 
   int tid = runmgr->GetTaskId();
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
+  td->fPropagator = fPropagator;
 
   printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);
 

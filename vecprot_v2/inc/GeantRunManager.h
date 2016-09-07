@@ -163,7 +163,7 @@ public:
     bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
     if (feeding && fFedPropagator==prop)
       return true;
-    fFeederLock.clear(std::memory_order_release);
+    if (!feeding) fFeederLock.clear(std::memory_order_release);
     return false;
   }
 
