@@ -15,10 +15,20 @@ FeederTask::~FeederTask () { }
 
 tbb::task* FeederTask::execute ()
 {
-  GeantRunManager *runmgr = fTd->fPropagator->fRunMgr;
-  int nbaskets = runmgr->Feeder(fTd);
-  if (fStarting && (nbaskets == 0)) fTd->fPropagator->fWMgr->GetScheduler()->GarbageCollect(fTd, true);
+  GeantPropagator *prop = fTd->fPropagator;
+  GeantRunManager *runmgr = prop->fRunMgr;
+  int ninjected = 0;
+  if (fStarting) {
+    while (runmgr->GetFedPropagator() != prop) {
+      int nb0 = runmgr->Feeder(fTd);
+      if (nb0 > 0) ninjected += nb0;
+    }
+    if (!ninjected) prop->fWMgr->GetScheduler()->GarbageCollect(fTd, true);
+  } else {    
+    ninjected = runmgr->Feeder(fTd);
+  }
+  
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-  TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd );
+  TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd, fStarting );
   return & transportTask;
 }

@@ -482,7 +482,7 @@ int GeantRunManager::ImportTracks(int nevents, int startevent, int startslot, Ge
 
   VolumePath_t::ReleaseInstance(startpath);
   int tid = td->fTid;
-  Geant::Print("ImportTracks", "[%d] Imported %d tracks from events %d to %d. Dispatched %d baskets.", tid, ntotal, startevent,
+  Geant::Print("ImportTracks", "[%d] Propagator %p imported %d tracks from events %d to %d. Dispatched %d baskets.", tid, td->fPropagator, ntotal, startevent,
                startevent + nevents - 1, ndispatched);
   return ndispatched;
 }

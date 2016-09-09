@@ -41,7 +41,7 @@
 #endif
 
 
-TransportTask::TransportTask (Geant::GeantTaskData *td): fTd(td) { }
+TransportTask::TransportTask (Geant::GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
 
 TransportTask::~TransportTask () { }
 
@@ -98,10 +98,10 @@ tbb::task* TransportTask::execute ()
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   GeantScheduler *sch = wm->GetScheduler();
   int *nvect = sch->GetNvect();
-  GeantBasketMgr *prioritizer = threadData->fPrioritizers[tid];
-  td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
-  prioritizer->SetFeederQueue(feederQ);
+  GeantBasketMgr *prioritizer = td->fBmgr;
+//  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
+//  prioritizer->SetFeederQueue(feederQ);
+  bool forcedStop = false;
   bool multiPropagator = runmgr->GetNpropagators() > 1;
   GeantPropagator *idle = nullptr;
 
@@ -134,6 +134,7 @@ tbb::task* TransportTask::execute ()
     if (runmgr->TransportCompleted())
       break;
 
+    // This is a normal transport interruption to force the flow controlling task
     if (!firstTime && !basket && !prioritizer->HasTracks() && (runmgr->GetNpriority() || propagator->GetNworking() == 1)) {
       break;
    }
@@ -173,20 +174,22 @@ tbb::task* TransportTask::execute ()
         wm->FeederQueue()->try_pop(basket);
         if (!basket) {
           // Try to steal some work from the run manager
-          if (!firstTime && multiPropagator)
+          if (!fStarting && multiPropagator)
             runmgr->ProvideWorkTo(propagator);
           // Take next basket from queue
           propagator->fNidle++;
           wm->FeederQueue()->wait_and_pop(basket);
           propagator->fNidle--;
           // If basket from queue is null, exit
-          if (!basket)
+          if (!basket) {
+            forcedStop = true;
             break;
+          }
         }
       }
     }
     // Check if there is any idle propagator in the run manager
-    if (!firstTime && multiPropagator) {
+    if (!fStarting && multiPropagator) {
       idle = propagator->fRunMgr->GetIdlePropagator();
       if (idle) idle->StopTransport();
     }
@@ -390,7 +393,7 @@ tbb::task* TransportTask::execute ()
   } // end while
 
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-  FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(td, false);
+  FlowControllerTask & flowControllerTask = *new(cont.allocate_child()) FlowControllerTask(td, false, forcedStop);
   return & flowControllerTask;
 
 }

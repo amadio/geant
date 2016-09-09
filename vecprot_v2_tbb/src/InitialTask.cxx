@@ -33,10 +33,10 @@ tbb::task* InitialTask::execute ()
 
   printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);
 
-  threadData->fPrioritizers[tid] = new GeantBasketMgr(fPropagator, sch, 0, 0, true);
-  td->fBmgr = threadData->fPrioritizers[tid];
-  threadData->fPrioritizers[tid]->SetThreshold(fPropagator->fConfig->fNperBasket);
-  threadData->fPrioritizers[tid]->SetFeederQueue(wm->FeederQueue());
+  GeantBasketMgr *prioritizer = new GeantBasketMgr(fPropagator, sch, 0, 0, true);
+  td->fBmgr = prioritizer;
+  prioritizer->SetThreshold(fPropagator->fConfig->fNperBasket);
+  prioritizer->SetFeederQueue(wm->FeederQueue());
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
   threadData->fMyhitFactories[tid] = factoryStore->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());

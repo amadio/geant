@@ -2,6 +2,7 @@
 
 #include "ThreadData.h"
 #include "FeederTask.h"
+#include "TransportTask.h"
 #include "GeantRunManager.h"
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
@@ -13,9 +14,24 @@
 #include "tbb/task_scheduler_init.h"
 
 
-FlowControllerTask::FlowControllerTask (Geant::GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
+FlowControllerTask::FlowControllerTask (Geant::GeantTaskData *td, bool starting, bool forcedStop)
+  :fTd(td), fStarting(starting), fForcedStop(forcedStop) { }
 
 FlowControllerTask::~FlowControllerTask () { }
+
+tbb::task* FlowControllerTask::SpawnFeederTask()
+{
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd, fStarting );
+  return & feederTask;
+}
+
+tbb::task* FlowControllerTask::SpawnTransportTask()
+{
+  tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
+  TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd, fStarting );
+  return & transportTask;
+}
 
 tbb::task* FlowControllerTask::execute ()
 {
@@ -25,12 +41,10 @@ tbb::task* FlowControllerTask::execute ()
 
   //printf("=== %d Flow Controller  ===\n", fTd->fTid);
   if(fStarting) {
-    while(runmgr->IsFeeding(propagator))
-      ;
+    if (runmgr->GetFedPropagator() == propagator)
+      return SpawnTransportTask(); 
 
-    tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd, fStarting );
-    return & feederTask;
+    return SpawnFeederTask();
   }
 
   ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
@@ -40,13 +54,15 @@ tbb::task* FlowControllerTask::execute ()
                          propagator->fConfig->fFillTree;
 #endif
 
-  if (runmgr->TransportCompleted()) {
+  if (fForcedStop || runmgr->TransportCompleted()) {
     //finish tasks
     //tbb::task::destroy(*tbb::task::parent());
     printf("=== Exit thread %d from Flow Controller  ===\n", fTd->fTid);
     int nworkers = propagator->fNthreads;
-    for (int i = 0; i < nworkers; i++)
-      wm->FeederQueue()->push(0);
+    if (!fForcedStop) {
+      for (int i = 0; i < nworkers; i++)
+        wm->FeederQueue()->push(0);
+    }
     wm->TransportedQueue()->push(0);
     wm->Stop();
     //         sched_locker.StartOne(); // signal the scheduler who has to exit
@@ -74,20 +90,18 @@ tbb::task* FlowControllerTask::execute ()
     if (concurrentWrite) {
       delete file;
     }
-
-    return NULL;
   } else {
     // spawn feeder task
-    while(runmgr->IsFeeding(propagator))
-      ;
+    if (runmgr->IsFeeding(propagator))
+      return SpawnTransportTask(); 
+//    while(runmgr->IsFeeding(propagator))
+//      ;
     //if(propagator->TryLock()){
     //  tbb::task::set_ref_count(2);
     //  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
     //  return & transportTask;
     //}
-    tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-    FeederTask & feederTask = *new(cont.allocate_child()) FeederTask( fTd, false );
-    return & feederTask;
+    return SpawnFeederTask();
   }
-    return NULL;
+  return NULL;
 }

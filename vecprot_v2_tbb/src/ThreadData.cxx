@@ -15,7 +15,6 @@ ThreadData::ThreadData(int nthreads): fNthreads(nthreads){
   fTrees = new TTree *[fNthreads];
 #endif
   fData = new GeantBlock<MyHit> *[fNthreads];
-  fPrioritizers = new GeantBasketMgr *[fNthreads];
   fMyhitFactories = new GeantFactory<MyHit> *[fNthreads];
 
   // instance
@@ -29,7 +28,6 @@ ThreadData::~ThreadData() {
   delete[] fTrees;
 #endif
   delete[] fData;
-  delete[] fPrioritizers;
   delete[] fMyhitFactories;
 }
 

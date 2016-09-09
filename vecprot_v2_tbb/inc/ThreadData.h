@@ -30,7 +30,6 @@ public:
   TTree **fTrees;
 #endif
   GeantBlock<MyHit> **fData;
-  GeantBasketMgr **fPrioritizers;
   GeantFactory<MyHit> **fMyhitFactories;
 
   ThreadData (int nthreads);
