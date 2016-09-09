@@ -3,23 +3,23 @@
 
 #include "Geant/Config.h"
 
-// include VecGeom's math ...
-#include "backend/Backend.h"
+// include VecCore's math ...
+#include "VecCore/VecCore"
 
 namespace Math {
-   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Min(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Min(val1,val2); }
-   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Max(T const &val1, T const &val2) { return VECGEOM_NAMESPACE::Max(val1,val2); }
-   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Sqrt(T const &val) { return VECGEOM_NAMESPACE::Sqrt(val); }
-   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Abs(T const &val) { return VECGEOM_NAMESPACE::Abs(val); }
-   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Cos(T const &val) { return VECGEOM_NAMESPACE::cos(val); }
-   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Sin(T const &val) { return VECGEOM_NAMESPACE::sin(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Min(T const &val1, T const &val2) { return vecCore::math::Min(val1,val2); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Max(T const &val1, T const &val2) { return vecCore::math::Max(val1,val2); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Sqrt(T const &val) { return vecCore::math::Sqrt(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Abs(T const &val) { return vecCore::math::Abs(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Cos(T const &val) { return vecCore::math::Cos(val); }
+   template <typename T> VECCORE_ATT_HOST_DEVICE inline T Sin(T const &val) { return vecCore::math::Sin(val); }
    template <typename T> VECCORE_ATT_HOST_DEVICE inline bool AreEqualAbs(T const &val1, T const &val2, T const &epsilon) 
-     { return ( VECGEOM_NAMESPACE::Abs(val1-val2) < epsilon ); }
+     { return ( vecCore::math::Abs(val1-val2) < epsilon ); }
    template <typename T> VECCORE_ATT_HOST_DEVICE inline bool AreEqualRel(T const &val1, T const &val2, T const &relPrec) 
-     { return ( VECGEOM_NAMESPACE::Abs(val1-val2) < 0.5*relPrec*(VECGEOM_NAMESPACE::Abs(val1)+VECGEOM_NAMESPACE::Abs(val2)) ); }
+     { return ( vecCore::math::Abs(val1-val2) < 0.5*relPrec*(vecCore::math::Abs(val1)+vecCore::math::Abs(val2)) ); }
 
-//  template <typename T> VECCORE_ATT_HOST_DEVICE inline T Normalize(T const &val[3]) { return VECGEOM_NAMESPACE::Normalize(val); }
-//  VECCORE_ATT_HOST_DEVICE VECGEOM_NAMESPACE::Precision inline TwoPi() { return VECGEOM_NAMESPACE::TwoPi(); }
+//  template <typename T> VECCORE_ATT_HOST_DEVICE inline T Normalize(T const &val[3]) { return vecCore::math::Normalize(val); }
+//  VECCORE_ATT_HOST_DEVICE vecCore::math::Precision inline TwoPi() { return vecCore::math::TwoPi(); }
 
 // From TMath.cxx ....
    VECCORE_ATT_HOST_DEVICE
@@ -79,8 +79,8 @@ namespace Math {
       v[2] /= d;
       return d;
    }
-   constexpr VECCORE_ATT_HOST_DEVICE inline VECGEOM_NAMESPACE::Precision TwoPi() { return 2*3.14159265358979323846; }
-   constexpr VECCORE_ATT_HOST_DEVICE inline VECGEOM_NAMESPACE::Precision Pi() { return 3.14159265358979323846; }
+   constexpr VECCORE_ATT_HOST_DEVICE inline double TwoPi() { return 2*3.14159265358979323846; }
+   constexpr VECCORE_ATT_HOST_DEVICE inline double Pi() { return 3.14159265358979323846; }
    
 
 }
