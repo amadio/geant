@@ -71,7 +71,7 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   track.fYpos = disy(gen);
   track.fZpos = disz(gen);
   double phi = disphi(gen);
-  double theta = Acos(1. - 2*disrnd(gen));
+  double theta = ACos(1. - 2*disrnd(gen));
   track.fXdir = Sin(theta) * Cos(phi);
   track.fYdir = Sin(theta) * Sin(phi);
   track.fZdir = Cos(theta);
