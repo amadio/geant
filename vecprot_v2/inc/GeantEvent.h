@@ -15,6 +15,8 @@
 
 #include <atomic>
 
+class GeantRunManager;
+
 /** @brief Class GeantEvent that decribes events */
 class GeantEvent {
 private:
@@ -124,7 +126,7 @@ public:
    *
    * @return Flag true if stopping qa track started priority mode for the event
    */
-  bool StopTrack();
+  bool StopTrack(GeantRunManager *runmgr);
 
   /** @brief Print function */
   void Print(const char *option = "") const;

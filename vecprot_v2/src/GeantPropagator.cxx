@@ -119,7 +119,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
     }
   
-  if (fRunMgr->GetEvent(tracks.fEvslotV[itr])->StopTrack()) {
+  if (fRunMgr->GetEvent(tracks.fEvslotV[itr])->StopTrack(fRunMgr)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
   }
@@ -269,12 +269,11 @@ void GeantPropagator::StopTransport()
 {
 // Stop the transport threads. Needed only when controlling the transport
 // from the transport manager
+  if (fCompleted) return;
   std::unique_lock<std::mutex> lk(fStopperLock);
-  if (!fCompleted) {
-    fCompleted = true;
-    Printf("+++ Stopping propagator %p", this);
-    fWMgr->StopTransportThreads();
-  }
+  fCompleted = true;
+  Printf("+++ Stopping propagator %p", this);
+  fWMgr->StopTransportThreads();
 }
 
 //______________________________________________________________________________

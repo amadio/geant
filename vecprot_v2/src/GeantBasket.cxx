@@ -377,7 +377,7 @@ void GeantBasketMgr::Push(GeantBasket *basket, bool priority, GeantTaskData *td)
     fThreshold.store(threshold_new, std::memory_order_relaxed);
   }
   fNused++;
-  fFeeder->push(basket, priority);
+  fFeeder->push_force(basket, priority);
 }
 
 //______________________________________________________________________________

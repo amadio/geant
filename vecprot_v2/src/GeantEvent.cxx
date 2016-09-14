@@ -1,4 +1,5 @@
 #include "GeantEvent.h"
+#include "GeantRunManager.h"
 #include <iostream>
 
 //______________________________________________________________________________
@@ -14,15 +15,16 @@ int GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
-bool GeantEvent::StopTrack() {
+bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.
   fNdone++;
-  if (!fPrioritize) {
+  int npriority = runmgr->GetNpriority();
+  if (!fPrioritize && (npriority < runmgr->GetNthreads())) {
     if (GetNinflight() < fPriorityThr*GetNmax()) {
       fPrioritize = true;
-      std::cout << "### Event " << GetEvent() << " prioritized at " <<
-        100.*fPriorityThr << " % threshold" << std::endl;
+//      std::cout << "### Event " << GetEvent() << " prioritized at " <<
+//        100.*fPriorityThr << " % threshold (npri=" << npriority << ")" << std::endl;
       return true;  
     }  
   }
@@ -41,7 +43,7 @@ bool GeantEvent::Prioritize() {
   // Prioritize the event
   if (fLock.test_and_set(std::memory_order_acquire) || fPrioritize) return false;
   if (GetNinflight()) {
-    std::cout << "### Event " << GetEvent() << " forced prioritized" << std::endl;
+//    std::cout << "### Event " << GetEvent() << " forced prioritized" << std::endl;
     fPrioritize = true;
   }
   fLock.clear(std::memory_order_release);

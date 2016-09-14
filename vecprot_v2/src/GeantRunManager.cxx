@@ -345,17 +345,24 @@ int GeantRunManager::Feeder(GeantTaskData *td) {
   if (fFeederLock.test_and_set(std::memory_order_acquire))
     return -1;
   // Avoid giving slots to the same propagator in the initial phase
-  if (td->fPropagator == fFedPropagator && fConfig->fLastEvent < fNbuff) {
-    fFeederLock.clear(std::memory_order_release);
-    return -1;
+  if (fConfig->fLastEvent < fConfig->fNbuff) {
+    if (td->fPropagator->fInitialFeed && fNfeedProp < fNpropagators) {
+      fFeederLock.clear(std::memory_order_release);
+      return -2;
+    }
   }
-   
+  
   fFedPropagator = td->fPropagator;
   int nbaskets = 0;
+  // Not all event slots distributed
   if (fConfig->fLastEvent < fConfig->fNbuff && fConfig->fLastEvent < fConfig->fNtotal) {
     int nevents = Math::Min<int>(fNbuff, fConfig->fNtotal - fConfig->fLastEvent);
     nbaskets = ImportTracks(nevents, fConfig->fLastEvent, fConfig->fLastEvent, td);
     fConfig->fLastEvent += nevents;
+    if (!td->fPropagator->fInitialFeed) {
+      td->fPropagator->fInitialFeed = true;
+      fNfeedProp++;
+    }
     fFeederLock.clear(std::memory_order_release);
     return nbaskets;
   }
@@ -366,19 +373,18 @@ int GeantRunManager::Feeder(GeantTaskData *td) {
     if (fDoneEvents->TestBitNumber(evt->GetEvent()))
       continue;
     if (evt->Transported()) {
-      fPriorityEvents--;
+      if (evt->IsPrioritized()) fPriorityEvents--;
       evt->Print();
       
       // closing event in MCTruthManager
       if(fTruthMgr) fTruthMgr->CloseEvent(evt->GetEvent());
       
       // Digitizer (todo)
-      int ntracks = fNtracks[islot];
-      Info("Feeder:", " = digitizing event %d with %d tracks", evt->GetEvent(), ntracks);
+      Info("Feeder", " = digitizing event %d with %d tracks", evt->GetEvent(), evt->GetNtracks());
       //            propagator->fApplication->Digitize(evt->GetEvent());
       fDoneEvents->SetBitNumber(evt->GetEvent());
       if (fConfig->fLastEvent < fConfig->fNtotal) {
-      Info("Feeder:", "  => Importing event %d", fConfig->fLastEvent);
+      Info("Feeder", "  => Propagator %p importing event %d", td->fPropagator, fConfig->fLastEvent);
         nbaskets += ImportTracks(1, fConfig->fLastEvent, islot, td);
         fConfig->fLastEvent++;
       }
@@ -491,6 +497,7 @@ int GeantRunManager::ImportTracks(int nevents, int startevent, int startslot, Ge
 GeantPropagator *GeantRunManager::GetIdlePropagator() const {
 // Returns the first found idle propagator if any
   for (auto i=0; i<fNpropagators; ++i) {
+    if (fPropagators[i]->fCompleted) continue;
     if (fPropagators[i]->IsIdle()) return fPropagators[i];
   }
   return nullptr;
@@ -565,4 +572,12 @@ bool GeantRunManager::FinishRun() {
     fStdApplication->FinishRun();
   // Actions to follow
   return true;
+}
+
+//______________________________________________________________________________
+void GeantRunManager::StopTransport() {
+  // Signal all propagators that transport has stopped
+  for (auto i=0; i<fNpropagators; ++i) {
+    fPropagators[i]->StopTransport();
+  }
 }

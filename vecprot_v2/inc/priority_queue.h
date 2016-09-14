@@ -48,7 +48,15 @@ public:
    */
   inline bool push(T const &data, bool priority = false);
   
-  /** @brief Size function of number of enqueued objects */
+  /**
+   * @brief Forced push function
+   * 
+   * @param data Data to be pushed
+   * @param priority Priority state (by default false)
+   */
+  inline void push_force(T const &data, bool priority = false);
+ 
+   /** @brief Size function of number of enqueued objects */
   inline size_t size_async() const;
   
   /** @brief Size function of priority objects in queue */
@@ -109,6 +117,11 @@ bool priority_queue<T>::push(T const &data, bool priority) {
     return true;
   }
   return false;
+}
+
+template <typename T> 
+void priority_queue<T>::push_force(T const &data, bool priority) {
+  while ( !push(data, priority) ) {}
 }
 
 /** @todo Add details */

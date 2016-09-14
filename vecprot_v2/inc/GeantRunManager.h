@@ -41,6 +41,7 @@ private:
   int fNvolumes     = 0;          /** Number of active volumes in the geometry */
   int fNprimaries   = 0;          /** Total number of primaries in the run */
   int fNbuff        = 0;          /** Number of event slots per propagator */
+  int fNfeedProp    = 0;          /** Number of propagators with initial feed */
   GeantConfig *fConfig = nullptr; /** Run configuration */
   TaskBroker *fBroker = nullptr;  /** Task broker */
 
@@ -192,6 +193,7 @@ public:
   bool FinishRun();
   bool LoadGeometry(const char *filename);
   void RunSimulation();
+  void StopTransport();
 
 };
 

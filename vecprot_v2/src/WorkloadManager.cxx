@@ -205,10 +205,8 @@ void WorkloadManager::JoinThreads() {
 //______________________________________________________________________________
 void WorkloadManager::StopTransportThreads() {
   int tojoin = fNthreads;
-  if (fBroker)
-    tojoin -= fBroker->GetNstream();
   for (int ith = 0; ith < tojoin; ith++)
-    fFeederQ->push(0);
+    fFeederQ->push_force(0);
   fStopped = true;
 }
 
@@ -275,8 +273,8 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
     if (propagator.fRunMgr->TransportCompleted()) {
       int nworkers = propagator.fNthreads;
       for (int i = 0; i < nworkers; i++)
-        FeederQueue()->push(0);
-      TransportedQueue()->push(0);
+        FeederQueue()->push_force(0);
+      TransportedQueue()->push_force(0);
       Stop();
       //         sched_locker.StartOne(); // signal the scheduler who has to exit
       //         gbc_locker.StartOne();
@@ -305,7 +303,7 @@ int WorkloadManager::ShareBaskets(WorkloadManager *other)
   int nshared = 0;
   for (auto i=0; i<ntoshare; ++i) {
     if (fFeederQ->try_pop(basket)) {
-      other->FeederQueue()->push(basket);
+      other->FeederQueue()->push_force(basket);
       nshared++;
     }
   }
@@ -335,7 +333,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int ngcoll = 0;
   GeantBasket *basket = 0;
   int tid = prop->fWMgr->ThreadId();
-  Geant::Print("","=== Worker thread %d created ===", tid);
+  Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
@@ -400,6 +398,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Call the feeder if in priority mode
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
     if (feedres == FeederResult::kFeederWork) {
+//       Printf("== Thread %d: feeder for propagator %p is working", tid, propagator);
        ngcoll = 0;
     } else if (feedres == FeederResult::kStopProcessing) {
        break;
@@ -418,11 +417,16 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Too many garbage collections - enter priority mode
     if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
       ngcoll = 0;
-      for (int slot = 0; slot < propagator->fNbuff; slot++)
-        if (propagator->fEvents[slot]->Prioritize()) {
-          std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
-          priority_events++;
+      std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
+      // Max number of prioritized events should be configurable
+      if (priority_events.load() < runmgr->GetNthreads()) {
+        for (int slot = 0; slot < propagator->fNbuff; slot++) {
+          if (propagator->fEvents[slot]->Prioritize()) {
+            priority_events++;
+          }
         }
+      }
+       
       while ((!sch->GarbageCollect(td, true)) &&
              (feederQ->size_async() == 0) &&
              (!basket) &&
@@ -439,9 +443,11 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         wm->FeederQueue()->try_pop(basket);
         if (!basket) {
           // Try to steal some work from the run manager
-          if (!firstTime && multiPropagator)
-            runmgr->ProvideWorkTo(propagator);
+//          if (!firstTime && multiPropagator)
+//            runmgr->ProvideWorkTo(propagator);
           // Take next basket from queue
+          if (propagator->fCompleted || wm->fStopped)
+            break;
           propagator->fNidle++;
           wm->FeederQueue()->wait_and_pop(basket);
           propagator->fNidle--;
@@ -454,7 +460,10 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Check if there is any idle propagator in the run manager
     if (!firstTime && multiPropagator) {
       idle = propagator->fRunMgr->GetIdlePropagator();
-      if (idle) idle->StopTransport();
+      if (idle) {
+        // Try to steal some work from the run manager
+        runmgr->ProvideWorkTo(idle);
+      }
     }
     // Start transporting the basket
     MaybeCleanupBaskets(td,basket);
@@ -673,7 +682,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       file->Write();
     }
    #endif
-  wm->DoneQueue()->push(nullptr);
+  wm->DoneQueue()->push_force(nullptr);
   delete prioritizer;
   // Final reduction of counters
   propagator->fNsteps += td->fNsteps;
@@ -683,6 +692,9 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   propagator->fNsmall += td->fNsmall;
   propagator->fNcross += td->fNcross;
 
+  // If transport is completed, make send the signal to the run manager
+  if (runmgr->TransportCompleted())
+    runmgr->StopTransport();
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   #ifdef USE_ROOT
@@ -941,7 +953,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     basket->Recycle(td);
   }
   // delete prioritizer;
-  wm->DoneQueue()->push(nullptr);
+  wm->DoneQueue()->push_force(nullptr);
   delete prioritizer;
   // Final reduction of counters
   propagator->fNsteps += td->fNsteps;
