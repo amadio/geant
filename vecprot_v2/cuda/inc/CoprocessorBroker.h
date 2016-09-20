@@ -12,6 +12,7 @@
 #endif
 
 #include "backend/cuda/Interface.h"
+#include "dcqueue.h"
 
 #ifndef __CINT__
 #include <cuda.h>
@@ -47,14 +48,13 @@ typedef int (*kernelFunc_t)(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
 class GeantBasket;
 
 #include "GeantTrack.h"
-#include "TObject.h"
 #include "sync_objects.h"
 
 class CoprocessorBroker : public TaskBroker {
 public:
   struct Task;
 
-  struct TaskData : public TaskBroker::TaskData, TObject {
+  struct TaskData : public TaskBroker::TaskData {
   private:
     TaskData(const TaskData &);            // not implemented
     TaskData &operator=(const TaskData &); // not implemented
@@ -86,7 +86,7 @@ public:
     vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> fDevTaskWorkspace;
     vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> fDevTrackInput;
 
-    concurrent_queue *fQueue; // Queue recording whether this helper is available or not.
+    dcqueue<CoprocessorBroker::TaskData*> *fQueue; // Queue recording whether this helper is available or not.
 
     vecgeom::cxx::DevicePtr<char> GetDevTrackInputBuf()
     {
@@ -104,9 +104,8 @@ public:
     operator cudaStream_t() { return fStream; }
 
     void Reset();
-    void Push(concurrent_queue *q = 0);
+    void Push(dcqueue<CoprocessorBroker::TaskData*> *q = 0);
 
-    ClassDef(TaskData, 0);
   };
 
 public:
@@ -183,7 +182,7 @@ private:
   TaskDataColl_t fTaskData;
 
   TaskData *fNextTaskData;
-  concurrent_queue fHelpers;
+  dcqueue<CoprocessorBroker::TaskData*> fHelpers;
 
   int fNblocks;           // Number of cuda blocks
   int fNthreads;          // Number of cuda threads

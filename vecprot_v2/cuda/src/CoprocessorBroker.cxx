@@ -158,7 +158,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   return true;
 }
 
-void CoprocessorBroker::TaskData::Push(concurrent_queue *q)
+void CoprocessorBroker::TaskData::Push(dcqueue<CoprocessorBroker::TaskData*> *q)
 {
   // Add this helper to the queue and record it as the
   // default queue.
@@ -595,7 +595,7 @@ CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
   // or return new one.
 
   if (!fNextTaskData) {
-    fNextTaskData = dynamic_cast<TaskData *>(fHelpers.wait_and_pop());
+    fHelpers.wait_and_pop(fNextTaskData);
     if (!fNextTaskData) {
       // nothing we can do at the moment
       return 0;
