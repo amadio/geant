@@ -11,10 +11,6 @@
 #include "HepMC/Print.h"
 #include "Geant/Error.h"
 
-#ifdef USE_ROOT
-ClassImp(HepMCTruth)
-#endif
-
     //______________________________________________________________________________
     HepMCTruth::HepMCTruth()
     : output_file(0) {}
