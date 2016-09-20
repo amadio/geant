@@ -54,7 +54,10 @@ TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsf
   }
   fgInstance = new TTabPhysMgr(xsecfilename, finalsfilename);
   return fgInstance;
- #endif
+#else
+  (void)xsecfilename;
+  (void)finalsfilename;
+#endif
 }
 
 //______________________________________________________________________________
@@ -273,6 +276,8 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   printf("Memory taken by xsec and states: %ld [MB] loaded in: %g [sec]\n", mem, ((float)t) / CLOCKS_PER_SEC);
 #endif
 #endif
+  (void)xsecfilename;
+  (void)finalsfilename;
 }
 
 //______________________________________________________________________________
