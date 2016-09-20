@@ -9,6 +9,7 @@
 #include "HepMC/WriterRoot.h"
 #endif
 #include "HepMC/Print.h"
+#include "Geant/Error.h"
 
 #ifdef USE_ROOT
 ClassImp(HepMCTruth)
@@ -112,7 +113,7 @@ void HepMCTruth::CloseEvent(int evID) {
 	      // coming form 'secondary' primary vertex
 	      // need to find/create the corresponding vertex
 
-	      Printf("HepMCTruth: Primary particle not coming from (0,0,0) <- to be done");
+	      Geant::Printf("HepMCTruth: Primary particle not coming from (0,0,0) <- to be done");
 
 	      // check if the vertex already exists
 	    }
