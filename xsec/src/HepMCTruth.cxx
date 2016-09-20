@@ -11,9 +11,10 @@
 #include "HepMC/Print.h"
 #include "Geant/Error.h"
 
-    //______________________________________________________________________________
-    HepMCTruth::HepMCTruth()
-    : output_file(0) {}
+//______________________________________________________________________________
+HepMCTruth::HepMCTruth() : output_file(0)
+{
+}
 
 //______________________________________________________________________________
 HepMCTruth::HepMCTruth(std::string &filename) : output_file(0), fEMin(0) {
