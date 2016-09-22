@@ -328,13 +328,13 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
-  # CMake fails to add -std option for icc, so add it manually
-  if(CMAKE_CXX_STANDARD STREQUAL 11)
-    add_compile_options(-std=c++11)
-  elseif(CMAKE_CXX_STANDARD STREQUAL 14)
-    add_compile_options(-std=c++14)
-  else()
-    message(FATAL_ERROR "Unsupported C++ standard requested")
+  if("${CMAKE_VERSION}" VERSION_LESS "3.6")
+    # add flag by hand if CMake does not support ICC
+    if("${CMAKE_CXX_STANDARD}" MATCHES "11|14")
+      add_compile_options(-std=c++${CMAKE_CXX_STANDARD})
+    else()
+      message(FATAL_ERROR "Unsupported C++ standard requested")
+    endif()
   endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
