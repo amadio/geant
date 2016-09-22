@@ -100,7 +100,7 @@ void HepMCTruth::CloseEvent(int evID) {
       if(it.second->motherid==0)
 	{
 	  // primary particle
-	  if (it.second->fXpos==it.second->fYpos==it.second->fZpos==0)
+	  if (it.second->fXpos==0 && it.second->fYpos==0 && it.second->fZpos==0)
 	    {
 	      // coming from 'main' primary vertex
 	      primary_vertex->add_particle_out(p);      
