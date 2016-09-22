@@ -279,11 +279,10 @@ void GUBenchmarker::CheckTimer()
   printf("Null Task Timer: Total time of %3d reps = %6.3f sec\n", fRepetitions, elapsedNullTotal);
 }
 
-#include <Vc/Vc>
-using Vc::double_v;
-
 void GUBenchmarker::CheckRandom()
 {
+#ifdef VECCORE_ENABLE_VC
+  using Vc::double_v;
   size_t nsample = 1000000;
 
   // test Vc random
@@ -331,6 +330,7 @@ void GUBenchmarker::CheckRandom()
   std::cout << "scalar sum  = " << sc << std::endl;
   std::cout << "time for sampling " << nsample << " random numbers: "
             << "(Vc,rand) = (" << vctime << ":" << srtime << ")" << std::endl;
+#endif
 }
 
 void GUBenchmarker::PrepareTargetElements(int *targetElements, int ntracks)
