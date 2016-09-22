@@ -350,7 +350,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
   unsigned int count = 0;
   GeantTrack_v &input = basket.GetInputTracks();
   // input.PrintTracks("TrackToDevice");
-  GeantTrack_v &gputracks(fInputBasket->GetInputTracks());
+  // GeantTrack_v &gputracks(fInputBasket->GetInputTracks());
   unsigned int basketSize = input.GetNtracks();
 
   // Well ... do physics .. just because.
