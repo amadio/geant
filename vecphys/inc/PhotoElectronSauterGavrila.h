@@ -44,10 +44,8 @@ public:
   VECCORE_ATT_HOST_DEVICE void ModelInteract(GUTrack &projectile, const int targetElement, GUTrack &secondary);
 
 // vector
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void ModelInteract(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondaryV);
-#endif
 
 private:
   // Implementation methods
@@ -320,7 +318,6 @@ VECCORE_ATT_HOST_DEVICE void PhotoElectronSauterGavrila::ModelInteract(GUTrack &
   // update final states of the primary and store the secondary
   ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, inProjectile, outSecondary);
 }
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 
 template <typename Backend>
 void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v &inProjectile, const int *targetElements,
@@ -375,8 +372,6 @@ void PhotoElectronSauterGavrila::ModelInteract(GUTrack_v &inProjectile, const in
     ConvertXtoFinalState_Scalar<ScalarBackend>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
-
-#endif
 
 } // end namespace impl
 } // end namespace vecphys

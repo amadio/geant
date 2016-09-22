@@ -20,8 +20,7 @@
 // Xsec library realted
 #include "TPartIndex.h"
 #include "base/PhysicalConstants.h" // from vecphys
-
-#include <VecCore/VecCore> 
+#include "base/VecPhys.h" // for backend settings
 
 //------------------------------------------------------------------------------
 FQUALIFIER
@@ -183,7 +182,7 @@ void GVComptonProcess::PerformInteraction() {
   //      number of GUTrack-s (capacity >= fPrimaryTracks->numTracks now); the
   //      final number of secondary tracks produced by the vector physics model
   //      must be set in fSecondaryTracks->numTracks bythe model
-  fVComptonModel->Interact<vecCore::backend::VcVector>(*fPrimaryTracks, fTargetElements, *fSecondaryTracks);
+  fVComptonModel->Interact<vecphys::VectorBackend>(*fPrimaryTracks, fTargetElements, *fSecondaryTracks);
 }
 
 //------------------------------------------------------------------------------

@@ -11,11 +11,16 @@ namespace vecphys {
 using namespace vecCore;
 
 using ScalarBackend = backend::Scalar;
-
-#ifdef VECCORE_CUDA
+#if defined(VECCORE_CUDA)
 using VectorBackend = backend::Scalar;
 #else
+#if defined(VECCORE_ENABLE_VC)
 using VectorBackend = backend::VcVector;
+#elif defined(VECCORE_ENABLE_UMESIMD)
+using VectorBackend = backend::UMESimd;
+#else
+using VectorBackend = backend::Scalar;
+#endif
 #endif
 
 // scalar types
@@ -51,6 +56,17 @@ using UInt_v = typename VectorBackend::UInt_v;
 using UInt16_v = typename VectorBackend::UInt16_v;
 using UInt32_v = typename VectorBackend::UInt32_v;
 using UInt64_v = typename VectorBackend::UInt64_v;
+
+template <typename From, typename To>
+VECCORE_FORCE_INLINE
+To Convert(const From& x)
+{
+  To result;
+  for (size_t i = 0; i < VectorSize(x); ++i)
+    Set(result, i, Get(x, i));
+  return result;
+}
+
 }
 
 #ifdef VECCORE_CUDA

@@ -49,10 +49,8 @@ public:
   VECCORE_ATT_HOST_DEVICE void ModelInteract(GUTrack &projectile, const int targetElement, GUTrack &secondary);
 
 // vector
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void ModelInteract(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondaryV);
-#endif
 
 private:
   // Implementation methods
@@ -317,7 +315,6 @@ VECCORE_ATT_HOST_DEVICE void ComptonKleinNishina::ModelInteract(GUTrack &inProje
   ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, inProjectile, outSecondary);
 }
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <typename Backend>
 void ComptonKleinNishina::ModelInteract(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondary)
 {
@@ -372,8 +369,6 @@ void ComptonKleinNishina::ModelInteract(GUTrack_v &inProjectile, const int *targ
     ConvertXtoFinalState_Scalar<ScalarBackend>(senergyIn, senergyOut, ssinTheta, i, inProjectile, outSecondary);
   }
 }
-
-#endif
 
 } // end namespace impl
 } // end namespace vecphys

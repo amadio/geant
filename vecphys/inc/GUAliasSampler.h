@@ -186,8 +186,8 @@ VECCORE_ATT_HOST_DEVICE void GUAliasSampler::SampleLogBin(
   // select the sampling bin
   Double_v r1 = fSampledNumEntries * UniformRandom<Double_v>(fRandomState, fThreadId);
 
-  irow = (Index_v<Double_v>)math::Floor(irowf);
-  icol = (Index_v<Double_v>)math::Floor(r1);
+  icol = Convert<Double_v, Index_v<Double_v>>(math::Floor(r1));
+  irow = Convert<Double_v, Index_v<Double_v>>(math::Floor(irowf));
 
   fraction = r1 - math::Floor(r1);
 }
@@ -212,7 +212,7 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleX(
   Mask_v<Index_v<Double_v>> mask = r1 <= probNA;
   Index_v<Double_v> icolDist = Blend(mask, icol, aliasInd);
 
-  xd = icolDist * binSampled;
+  xd = Convert<Index_v<Double_v>, Double_v>(icolDist) * binSampled;
   xu = xd + binSampled;
 
   Double_v x = (1.0 - fraction) * xd + fraction * xu;
@@ -244,7 +244,7 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v GUAliasSampler::SampleXL(
   Mask_v<Index_v<Double_v>> mask = r1 <= probNA;
   Index_v<Double_v> icolDist = Blend(mask, icol, aliasInd);
 
-  xd = icolDist * binSampled;
+  xd = Convert<Index_v<Double_v>, Double_v>(icolDist) * binSampled;
   xu = xd + binSampled;
 
   // Flat distribution was

@@ -12,10 +12,10 @@
 #include "MaterialHandler.h"
 #include "SamplingMethod.h"
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
+#include <iostream>
+
 #include <bitset>
 #include <vector>
-#endif
 
 #include "materials/Material.h"
 
@@ -49,7 +49,6 @@ public:
   VECCORE_ATT_HOST_DEVICE void Interact(GUTrack &projectile, const int targetElement, GUTrack &secondary);
 
 // vector
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void AtomicCrossSection(GUTrack_v &inProjectile, const int *targetElements, double *sigma);
 
@@ -59,8 +58,6 @@ public:
   // temporary method for testing
   template <typename Backend>
   void InteractUnpack(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondary);
-
-#endif
 
   // validation
   VECCORE_ATT_HOST
@@ -106,12 +103,11 @@ protected:
   VECCORE_ATT_HOST_DEVICE void ConvertXtoFinalState(double energyIn, double energyOut, double sinTheta,
                                                      GUTrack &primary, GUTrack &secondary);
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <class Backend>
-  VECCORE_ATT_HOST_DEVICE void ConvertXtoFinalState(typename Backend::Double_v energyIn,
-                                                     typename Backend::Double_v energyOut,
-                                                     typename Backend::Double_v sinTheta, int index, GUTrack_v &primary,
-                                                     GUTrack_v &secondary);
+  void ConvertXtoFinalState(typename Backend::Double_v energyIn,
+                            typename Backend::Double_v energyOut,
+                            typename Backend::Double_v sinTheta, int index, GUTrack_v &primary,
+                            GUTrack_v &secondary);
 
   // this inner template cannot be specialized unless template <class EmModel>
   // is also explicitly specialized
@@ -120,8 +116,6 @@ protected:
                                                             typename Backend::Double_v energyOut,
                                                             typename Backend::Double_v sinTheta, int index,
                                                             GUTrack_v &primary, GUTrack_v &secondary);
-#endif
-
   // data members
 protected:
   Random_t *fRandomState;
@@ -233,7 +227,6 @@ VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::Interact(GUTrack &inProjectil
   ConvertXtoFinalState<Backend>(energyIn, energyOut, sinTheta, inProjectile, outSecondary);
 }
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <class EmModel>
 template <typename Backend>
 void EmModelBase<EmModel>::AtomicCrossSection(GUTrack_v &inProjectile, const int *targetElements, double *sigma)
@@ -475,8 +468,6 @@ void EmModelBase<EmModel>::InteractUnpack(GUTrack_v &inProjectile, const int *ta
   }
 }
 
-#endif
-
 template <class EmModel>
 template <typename Backend>
 VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::InteractG4(GUTrack &inProjectile, const int targetElement,
@@ -559,14 +550,13 @@ VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(double e
   // fill other information
 }
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <class EmModel>
 template <typename Backend>
-VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn,
-                                                                         typename Backend::Double_v energyOut,
-                                                                         typename Backend::Double_v sinTheta, int ibase,
-                                                                         GUTrack_v &primary,
-                                                                         GUTrack_v &secondary) // const
+void EmModelBase<EmModel>::ConvertXtoFinalState(typename Backend::Double_v energyIn,
+                                                typename Backend::Double_v energyOut,
+                                                typename Backend::Double_v sinTheta, int ibase,
+                                                GUTrack_v &primary,
+                                                GUTrack_v &secondary) // const
 {
   using Double_v = typename Backend::Double_v;
 
@@ -649,7 +639,6 @@ VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::ConvertXtoFinalState_Scalar(t
 
   // fill other information
 }
-#endif
 
 template <class EmModel>
 VECCORE_ATT_HOST_DEVICE double EmModelBase<EmModel>::ComputeCoulombFactor(double Zeff)

@@ -37,7 +37,7 @@ GUAliasSampler::GUAliasSampler(Random_t *states, int threadId, double incomingMi
 VECCORE_ATT_HOST_DEVICE
 GUAliasSampler::~GUAliasSampler()
 {
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
+#if !defined(VECCORE_CUDA)
   if (fAliasTableManager)
     delete fAliasTableManager;
 #endif

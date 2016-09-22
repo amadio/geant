@@ -46,13 +46,11 @@ public:
   template <typename Backend>
   VECCORE_ATT_HOST_DEVICE void GetStepLengthAndProcess(GUTrack &track, const int materialIndex);
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
   template <typename Backend>
   void GetStepLengthAndProcess(GUTrack_v &tracks, const int *materialIndex);
 
   template <typename Backend>
   void GVStepLengthAndProcess(GUTrack_v &tracks, const int *materialIndex);
-#endif
 
   template <typename Backend>
   VECCORE_ATT_HOST_DEVICE void G3StepLengthAndProcess(GUTrack &track, const int materialIndex);
@@ -131,7 +129,7 @@ VECCORE_ATT_HOST_DEVICE void EmProcess<Process>::GetStepLengthAndProcess(GUTrack
 
   Double_v eloc = (math::Log(energy) - fLogEnergyLowerBound) * fInverseLogEnergyBin;
   Double_v elow = math::Floor(eloc);
-  Index_t ebin = (Index_v<Double_v>)elow;
+  Index_t ebin = Convert<Double_v, Index_v<Double_v>>(elow);
   Double_v efrac = (eloc - elow) * fInverseLogEnergyBin;
 
   GetNextStep<Backend>(materialIndex, ebin, efrac, nint, lambda, step);
@@ -144,7 +142,6 @@ VECCORE_ATT_HOST_DEVICE void EmProcess<Process>::GetStepLengthAndProcess(GUTrack
   track.proc = GetNextProcess<Backend>(materialIndex, ebin);
 }
 
-#if !defined(VECCORE_CUDA) && defined(VECCORE_ENABLE_VC)
 template <class Process>
 template <typename Backend>
 void EmProcess<Process>::GetStepLengthAndProcess(GUTrack_v &tracks, const int *materialIndex)
@@ -161,26 +158,28 @@ void EmProcess<Process>::GetStepLengthAndProcess(GUTrack_v &tracks, const int *m
     // I. get the step length
 
     Index_t matId(materialIndex[ibase]);
-    Double_v energy(&tracks.E[ibase]);
-    Double_v nint(&tracks.nint[ibase]);
-    Double_v lambda(&tracks.lambda[ibase]);
-    Double_v step(&tracks.s[ibase]);
+    Double_v energy, nint, lambda, step;
+
+    Load(energy, &tracks.E[ibase]);
+    Load(nint, &tracks.nint[ibase]);
+    Load(lambda, &tracks.lambda[ibase]);
+    Load(step, &tracks.s[ibase]);
 
     Double_v eloc = (math::Log(energy) - fLogEnergyLowerBound) * fInverseLogEnergyBin;
     Double_v elow = math::Floor(eloc);
-    Index_t ebin = (Index_v<Double_v>)elow;
+    Index_t ebin = Convert<Double_v, Index_v<Double_v>>(elow);
     Double_v efrac = (eloc - elow) * fInverseLogEnergyBin;
 
     GetNextStep<Backend>(matId, ebin, efrac, nint, lambda, step);
 
-    nint.store(&tracks.nint[ibase]);
-    lambda.store(&tracks.lambda[ibase]);
-    step.store(&tracks.s[ibase]);
+    Store(nint, &tracks.nint[ibase]);
+    Store(lambda, &tracks.lambda[ibase]);
+    Store(step, &tracks.s[ibase]);
 
     // II. select a physics process
 
     Index_t iproc = GetNextProcess<Backend>(matId, ebin);
-    iproc.store(&tracks.proc[ibase]);
+    LoadStoreImplementation<Index_t>::template Store<int>(iproc, &tracks.proc[ibase]);
 
     // next operand
     ibase += VectorSize<Double_v>();
@@ -226,26 +225,28 @@ void EmProcess<Process>::GVStepLengthAndProcess(GUTrack_v &tracks, const int *ma
     // I. get the step length
 
     Index_t matId(materialIndex[ibase]);
-    Double_v energy(&tracks.E[ibase]);
-    Double_v nint(&tracks.nint[ibase]);
-    Double_v lambda(&tracks.lambda[ibase]);
-    Double_v step(&tracks.s[ibase]);
+    Double_v energy, nint, lambda, step;
+
+    Load(energy, &tracks.E[ibase]);
+    Load(nint, &tracks.nint[ibase]);
+    Load(lambda, &tracks.lambda[ibase]);
+    Load(step, &tracks.s[ibase]);
 
     Double_v eloc = (math::Log(energy) - fLogEnergyLowerBound) * fInverseLogEnergyBin;
     Double_v elow = math::Floor(eloc);
-    Index_t ebin = (Index_v<Double_v>)elow;
+    Index_t ebin = Convert<Double_v, Index_v<Double_v>>(elow);
     Double_v efrac = (eloc - elow) * fInverseLogEnergyBin;
 
     GetNextStep<Backend>(matId, ebin, efrac, nint, lambda, step);
 
-    nint.store(&tracks.nint[ibase]);
-    lambda.store(&tracks.lambda[ibase]);
-    step.store(&tracks.s[ibase]);
+    Store(nint, &tracks.nint[ibase]);
+    Store(lambda, &tracks.lambda[ibase]);
+    Store(step, &tracks.s[ibase]);
 
     // II. select a physics process
 
     Index_t iproc = static_cast<Process *>(this)->template G3NextProcess<Backend>(matId, ebin);
-    iproc.store(&tracks.proc[ibase]);
+    LoadStoreImplementation<Index_t>::template Store<int>(iproc, &tracks.proc[ibase]);
 
     // next operand
     ibase += VectorSize<Double_v>();
@@ -274,7 +275,6 @@ void EmProcess<Process>::GVStepLengthAndProcess(GUTrack_v &tracks, const int *ma
     tracks.proc[i] = (int)(GetNextProcess<ScalarBackend>(materialIndex[i], sebin));
   }
 }
-#endif
 
 template <class Process>
 template <typename Backend>
@@ -306,9 +306,9 @@ VECCORE_ATT_HOST_DEVICE Index_v<typename Backend::Double_v> EmProcess<Process>::
   //  typedef Mask_v<typename Backend::Double_v> Bool_t;
 
   Double_v u1 = fNumberOfProcess * UniformRandom<Double_v>(fRandomState, fThreadId);
-  Index_v<typename Backend::Double_v> ip = (Index_v<Double_v>)math::Floor(u1);
+  Index_v<typename Backend::Double_v> ip = Convert<Double_v, Index_v<Double_v>>(math::Floor(u1));
 
-  //  Bool_t last = (ip == (Index_v<Double_v>)(fNumberOfProcess - 1));
+  //  Bool_t last = (ip == Convert<Double_v, Index_v<Double_v>>(fNumberOfProcess - 1));
 
   Double_v weight(0.0);
   Index_v<Double_v> alias;
