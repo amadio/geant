@@ -9,6 +9,8 @@
 #include "GUPhysicsModelName.h"
 #include "GUPhysicsProcessName.h"
 
+#include <string>
+
 namespace vecphys {
 
 class GUHistogram {
