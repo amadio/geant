@@ -12,6 +12,8 @@ using vecgeom::Stopwatch;
 #include "GUHistogram.h"
 #endif
 
+#include <iostream>
+
 static int fElementMode = 1;
 //   Values:
 //   1  - Single material
