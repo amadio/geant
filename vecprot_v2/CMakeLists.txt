@@ -42,6 +42,7 @@ set(sources
    src/LocalityManager.cxx
    src/MCTruthMgr.cxx
    src/GeantRunManager.cxx
+   src/GeantEventServer.cxx
 )
 
 set(headers
@@ -70,6 +71,7 @@ set(headers
    inc/MCTruthMgr.h
    inc/cuckoohash_map.hh
    inc/GeantRunManager.h
+   inc/GeantEventServer.h
 )   
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

@@ -58,6 +58,7 @@ public:
 
   GeantPropagator *fPropagator; /** GeantPropagator */
   int fTid;              /** Thread unique id */
+  int fNode;             /** Locality node */
   size_t fNthreads;      /** Number of transport threads */
   int fMaxDepth;         /** Maximum geometry depth */
   int fSizeBool;         /** Size of bool array */

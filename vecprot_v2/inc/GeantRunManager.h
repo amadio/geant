@@ -147,6 +147,9 @@ public:
   void SetVectorPhysicsProcess(PhysicsProcessOld *proc) { fVectorPhysicsProcess = proc; }
 
   GEANT_FORCE_INLINE
+  PrimaryGenerator *GetPrimaryGenerator() const { return fPrimaryGenerator; }
+
+  GEANT_FORCE_INLINE
   void SetPrimaryGenerator(PrimaryGenerator *gen) { fPrimaryGenerator = gen; }
 
   GEANT_FORCE_INLINE
