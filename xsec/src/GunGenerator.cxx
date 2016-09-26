@@ -10,7 +10,7 @@ GunGenerator::GunGenerator()
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
       fYPos(0.), fZPos(0.), fXDir(0.), // direction vector of the primary particles: (0,0,1)
       fYDir(0.), fZDir(1.), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0),
-      fNumberoftracks(0), fRndgen(0) {
+      fRndgen(0) {
   // Dummy constructor
 }
 
@@ -23,7 +23,7 @@ GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, 
       fXDir(xdir), fYDir(ydir), fZDir(zdir), 
       fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), 
       fPTotal(0), fETotal(0),
-      fNumberoftracks(0), fRndgen(0) {
+      fRndgen(0) {
   // Constructor
   // ensure normality of the direction vector
   double norm = sqrt(fXDir * fXDir + fYDir * fYDir + fZDir * fZDir);
@@ -75,22 +75,22 @@ void GunGenerator::InitPrimaryGenerator() {
 //______________________________________________________________________________
 GeantEventInfo GunGenerator::NextEvent() {
   //
-  if (fAverage == 1)
-    fNumberoftracks = 1;
-  else
-    fNumberoftracks = fRndgen->Poisson(fAverage);
+  int ntracks = 1;
+  if (fAverage > 1)
+    ntracks = fRndgen->Poisson(fAverage);
   // here are generate an event with ntracks
 
-  for (int nn = 1; nn <= fNumberoftracks; nn++) {
+  for (int nn = 1; nn <= ntracks; nn++) {
     // here I would normally push back the generated particles to some vector
     // no need to do it in this specific case, because all the particles are the same
   }
 
-  fCurrentEvent.ntracks = fNumberoftracks;
-  fCurrentEvent.xvert = fXPos;
-  fCurrentEvent.yvert = fYPos;
-  fCurrentEvent.zvert = fZPos;
-  return fCurrentEvent;
+  GeantEventInfo current;
+  current.ntracks = ntracks;
+  current.xvert = fXPos;
+  current.yvert = fYPos;
+  current.zvert = fZPos;
+  return current;
 }
 
 //______________________________________________________________________________

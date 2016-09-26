@@ -107,12 +107,13 @@ GeantEventInfo HepMCGenerator::NextEvent() {
     std::cout << " out of " << ntot;
   std::cout << std::endl;
   
-  fCurrentEvent.ntracks = ntracks;
-  fCurrentEvent.xvert = evt.event_pos().x();
-  fCurrentEvent.yvert = evt.event_pos().y();
-  fCurrentEvent.zvert = evt.event_pos().z();
-  fCurrentEvent.tvert = evt.event_pos().t();
-  return fCurrentEvent;
+  GeantEventInfo current;
+  current.ntracks = ntracks;
+  current.xvert = evt.event_pos().x();
+  current.yvert = evt.event_pos().y();
+  current.zvert = evt.event_pos().z();
+  current.tvert = evt.event_pos().t();
+  return current;
 }
 
 //______________________________________________________________________________

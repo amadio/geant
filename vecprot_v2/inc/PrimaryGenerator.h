@@ -44,7 +44,6 @@ protected:
   double fPhiMax; // maximum phi
   double fPMin;   // minimum momentum
   double fPMax;   // maximum momentum
-  GeantEventInfo fCurrentEvent; // current event
 public:
   PrimaryGenerator()
       : fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),

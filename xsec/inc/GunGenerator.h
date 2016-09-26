@@ -33,8 +33,6 @@ private:
   double fPTotal; // total momentum of the primary [GeV]
   double fETotal; // total energy of the primary [GeV]
 
-  int fNumberoftracks; // Number of generated tracks
-
 #ifdef USE_ROOT
   TRandom *fRndgen; // Random number generator
 #else
