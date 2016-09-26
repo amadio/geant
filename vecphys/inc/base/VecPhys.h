@@ -59,6 +59,7 @@ using UInt64_v = typename VectorBackend::UInt64_v;
 
 template <typename From, typename To>
 VECCORE_FORCE_INLINE
+VECCORE_ATT_HOST_DEVICE
 To Convert(const From& x)
 {
   To result;
