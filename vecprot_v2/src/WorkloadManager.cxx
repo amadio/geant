@@ -16,6 +16,7 @@
 #include "GeantBasket.h"
 #include "GeantOutput.h"
 #include "GeantTaskData.h"
+#include "PhysicsInterface.h"
 #include "PhysicsProcess.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
@@ -157,7 +158,7 @@ bool WorkloadManager::LoadGeometry(vecgeom::VPlacedVolume const *const volume) {
 //______________________________________________________________________________
 bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   // Start the threads
-  fStarted = true;  
+  fStarted = true;
   if (!fListThreads.empty())
     return false;
   int ith = 0;
@@ -330,7 +331,7 @@ void *WorkloadManager::TransportTracks() {
 
   // IO handling
 
-  
+
   #ifdef USE_ROOT
   bool concurrentWrite = GeantPropagator::Instance()->fConcurrentWrite && GeantPropagator::Instance()->fFillTree;
   int treeSizeWriteThreshold = GeantPropagator::Instance()->fTreeSizeWriteThreshold;
@@ -354,7 +355,7 @@ void *WorkloadManager::TransportTracks() {
       myhitFactory->queue_per_thread = true;
     }
 
-  
+
    #endif
   // Start the feeder
   propagator->Feeder(td);
@@ -458,8 +459,8 @@ void *WorkloadManager::TransportTracks() {
     // Select the discrete physics process for all particles in the basket
     if (propagator->fUsePhysics) {
       propagator->ProposeStep(ntotransport, input, td);
-      // Apply msc for charged tracks
-      propagator->ApplyMsc(ntotransport, input, td);
+      // Apply msc for charged tracks; NOTE: we do nothing in this method at the moment
+      // propagator->ApplyMsc(ntotransport, input, td);
     }
 
     ncross = 0;
@@ -515,7 +516,11 @@ void *WorkloadManager::TransportTracks() {
         if (output.fStatusV[itr] == kPhysics)
           nphys++;
 
+#ifdef USE_REAL_PHYSICS
+      propagator->GetPhysicsInterface()->AlongStepAction(mat, output.GetNtracks(), output, nextra_at_rest, td);
+#else
       propagator->Process()->Eloss(mat, output.GetNtracks(), output, nextra_at_rest, td);
+#endif
       //         if (nextra_at_rest) Geant::Print("","Extra particles: %d", nextra_at_rest);
       // Now we may also have particles killed by energy threshold
       // Do post-step actions on remaining particles
@@ -530,7 +535,9 @@ void *WorkloadManager::TransportTracks() {
 
         // Do post step actions for particles suffering a given process.
         // Surviving particles are added to the output array
-
+#ifdef USE_REAL_PHYSICS
+        propagator->GetPhysicsInterface()->PostStepAction(mat, nphys, output, ntotnext, td);
+#else
         // first: sample target and type of interaction for each primary tracks
         propagator->Process()->PostStepTypeOfIntrActSampling(mat, nphys, output, td);
 
@@ -548,13 +555,14 @@ void *WorkloadManager::TransportTracks() {
 //            'ntotnext' to the value of the number of secondary tracks
 //            inserted to the track vector
 //
-#ifdef USE_VECPHYS
+  #ifdef USE_VECPHYS
         propagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
-#endif
+  #endif
         // second: sample final states (based on the inf. regarding sampled
         //         target and type of interaction above), insert them into
         //         the track vector, update primary tracks;
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
+#endif
 
         if (0 /*ntotnext*/) {
           Geant::Printf("","============= Basket.");
@@ -628,7 +636,7 @@ void *WorkloadManager::TransportTracks() {
     td->fNcross += ncross;
   }
 
-  // WP  
+  // WP
   #ifdef USE_ROOT
   if(concurrentWrite)
     {
@@ -646,7 +654,7 @@ void *WorkloadManager::TransportTracks() {
   propagator->fNcross += td->fNcross;
 
   Geant::Print("","=== Thread %d: exiting ===", tid);
-  
+
   #ifdef USE_ROOT
   if (wm->IsStopped()) wm->MergingServer()->Finish();
 
@@ -1314,7 +1322,7 @@ void *WorkloadManager::OutputThread() {
   // Thread providing basic output for the scheduler.
 
   Geant::Info("OutputThread","=== Output thread created ===");
-  #ifdef USE_ROOT 
+  #ifdef USE_ROOT
 
   if (GeantPropagator::Instance()->fConcurrentWrite) {
     Printf(">>> Writing concurrently to MemoryFiles");
@@ -1358,9 +1366,9 @@ void *WorkloadManager::OutputThread() {
   Geant::Info("OutputThread", "=== Output thread finished ===");
 
   return 0;
-    
+
   #else
     printf("=== ROOT is disabled - output thread did nothing ===");
-  #endif   
+  #endif
     return 0;
 }

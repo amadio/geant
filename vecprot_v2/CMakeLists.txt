@@ -28,6 +28,7 @@ set(sources
    src/GeantPropagator.cxx
    src/GeantEvent.cxx
    src/GeantScheduler.cxx
+   src/PhysicsInterface.cxx
    src/PhysicsProcess.cxx
    src/WorkloadManager.cxx
    src/GeantVApplication.cxx
@@ -46,6 +47,7 @@ set(headers
    ../base/inc/Geant/Config.h
    ../base/inc/Geant/Error.h
    inc/GeantTaskData.h
+   inc/PhysicsInterface.h
    inc/PhysicsProcess.h
    inc/GeantBasket.h
    inc/GeantPropagator.h

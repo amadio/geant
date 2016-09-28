@@ -32,6 +32,7 @@ class TStopwatch;
 #include "base/BitSet.h"
 using veccore::BitSet;
 class PhysicsProcess;
+class PhysicsInterface;
 class GeantEvent;
 class GeantBasket;
 class GeantBasketMgr;
@@ -130,8 +131,10 @@ public:
   vecgeom::Stopwatch *fTimer; /** Timer */
   #endif
 
-  PhysicsProcess *fProcess;              /** For now the only generic process pointing to the tabulated physics */
-  PhysicsProcess *fVectorPhysicsProcess; /** interface to vector physics final state sampling */
+  PhysicsProcess   *fProcess;              /** For now the only generic process pointing to the tabulated physics */
+  PhysicsProcess   *fVectorPhysicsProcess; /** interface to vector physics final state sampling */
+  PhysicsInterface *fPhysicsInterface;     /** The new, real physics interface */
+
   //   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
   GeantTrack_v *fStoredTracks;         /** Stored array of tracks (history?) */
   PrimaryGenerator *fPrimaryGenerator; /** Primary generator */
@@ -272,6 +275,19 @@ public:
    * @return  Generic process pointing to the tabulated physics
    */
   PhysicsProcess *Process() const { return fProcess; }
+
+  /**
+   * @brief Setter for the real physics interface
+   * @param[in] physics Pointer to the real physics framework object.
+   */
+  void SetPhysicsInterface(PhysicsInterface* physics) { fPhysicsInterface = physics; }
+
+  /**
+   * @brief   Getter for the real physics interface
+   * @return  Generic physics interface pointing to the real physics framework
+   */
+  PhysicsInterface *GetPhysicsInterface() const { return fPhysicsInterface; }
+
 
   /**
    * @brief Entry point to start simulation with GeantV

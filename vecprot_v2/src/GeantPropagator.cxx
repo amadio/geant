@@ -47,6 +47,7 @@
 
 #include "Geant/Error.h"
 #include "GeantTrackVec.h"
+#include "PhysicsInterface.h"
 #include "PhysicsProcess.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"
@@ -98,8 +99,9 @@ GeantPropagator::GeantPropagator()
       fEpsilonRK(0.0003), fUsePhysics(true), fUseRungeKutta(false), fUseDebug(false), fUseGraphics(false),
       fUseStdScoring(false), fTransportOngoing(false), fSingleTrack(false), fFillTree(false),
       fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fUseMonitoring(false), fUseAppMonitoring(false),
-      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTaskMgr(0), fTimer(0), fProcess(0), fVectorPhysicsProcess(0),
-      fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0), fEvents(0), fThreadData(0) {
+      fTracksLock(), fWMgr(0), fApplication(0), fStdApplication(0), fTaskMgr(0), fTimer(0), fProcess(0),
+      fVectorPhysicsProcess(0), fPhysicsInterface(0), fStoredTracks(0), fPrimaryGenerator(0), fTruthMgr(0), fNtracks(0),
+      fEvents(0), fThreadData(0) {
   // Constructor
   fgInstance = this;
 }
@@ -112,6 +114,10 @@ GeantPropagator::~GeantPropagator() {
   BitSet::ReleaseInstance(fDoneEvents);
 #if USE_VECPHYS == 1
   delete fVectorPhysicsProcess;
+#endif
+
+#if USE_REAL_PHYSICS == 1
+  delete fPhysicsInterface;
 #endif
 
   if (fEvents) {
@@ -136,10 +142,10 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
   // Add a new track in the system. returns track number within the event.
   int slot = track.fEvslot;
   track.fParticle = fEvents[slot]->AddTrack();
-  
+
   // call MCTruth manager if it has been instantiated
   if(fTruthMgr) fTruthMgr->AddTrack(track);
-  
+
   //   fNtracks[slot]++;
   fNtransported++;
   return track.fParticle;
@@ -161,7 +167,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
     {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
     }
-  
+
   if (fEvents[tracks.fEvslotV[itr]]->StopTrack())
     fPriorityEvents++;
 }
@@ -200,10 +206,10 @@ int GeantPropagator::Feeder(GeantTaskData *td) {
     if (evt->Transported()) {
       fPriorityEvents--;
       evt->Print();
-      
+
       // closing event in MCTruthManager
       if(fTruthMgr) fTruthMgr->CloseEvent(evt->GetEvent());
-      
+
       // Digitizer (todo)
       int ntracks = fNtracks[islot];
    #ifdef USE_ROOT
@@ -365,14 +371,24 @@ void GeantPropagator::Initialize() {
   // Initialize arrays here.
   gPropagator = GeantPropagator::Instance();
   fDoneEvents = BitSet::MakeInstance(fNtotal);
+
+#ifdef USE_REAL_PHYSICS
+  if (!fPhysicsInterface) {
+    Geant::Fatal("GeantPropagator::Initialize", "The physics process interface has to be initialized before this");
+    return;
+  }
+  // Initialize the physics
+  fPhysicsInterface->Initialize();
+#else
   if (!fProcess) {
     Geant::Fatal("GeantPropagator::Initialize", "The physics process has to be initialized before this");
     return;
   }
   // Initialize the process(es)
   fProcess->Initialize();
-#if USE_VECPHYS == 1
+  #if USE_VECPHYS == 1
   fVectorPhysicsProcess->Initialize();
+  #endif
 #endif
 
   if (fUseRungeKutta) {
@@ -531,8 +547,10 @@ bool GeantPropagator::LoadGeometry(const char *filename) {
 #endif
 }
 
+//NOTE: We don't do anything here so it's not called from the WorkloadManager anymore
 //______________________________________________________________________________
-void GeantPropagator::ApplyMsc(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
+void GeantPropagator::ApplyMsc(int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {
+/*
   // Apply multiple scattering for charged particles.
   Material_t *mat = 0;
   if (td->fVolume)
@@ -541,7 +559,14 @@ void GeantPropagator::ApplyMsc(int ntracks, GeantTrack_v &tracks, GeantTaskData 
 #else
     mat = td->fVolume->GetMaterial();
 #endif
+
+#ifdef USE_REAL_PHYSICS
+  tracks;
+#else
+  // actually nothing happens in this call in the TTabPhysProcess
   fProcess->ApplyMsc(mat, ntracks, tracks, td);
+#endif
+*/
 }
 
 //______________________________________________________________________________
@@ -560,7 +585,12 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 #else
     mat = td->fVolume->GetMaterial();
 #endif
+
+#ifdef USE_REAL_PHYSICS
+  fPhysicsInterface->ComputeIntLen(mat, ntracks, tracks, 0, td);
+#else
   fProcess->ComputeIntLen(mat, ntracks, tracks, 0, td);
+#endif
 }
 
 //______________________________________________________________________________
