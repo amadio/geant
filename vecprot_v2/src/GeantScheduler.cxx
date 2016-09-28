@@ -22,6 +22,9 @@ using vecgeom::GeoManager;
 #include "TGeoManager.h"
 #endif
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
     : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0),
@@ -140,7 +143,7 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
   fIstvol = new int[fNvolumes];
   memset(fNstvol, 0, fNvolumes * sizeof(int));
   memset(fIstvol, 0, fNvolumes * sizeof(int));
-  Geant::priority_queue<GeantBasket *> *feeder = prop->fWMgr ->FeederQueue();
+  Geant::priority_queue<GeantBasket *> *feeder = prop->fWMgr->FeederQueue();
   Volume_t *vol;
   GeantBasketMgr *basket_mgr;
   int icrt = 0;
@@ -321,3 +324,6 @@ void GeantScheduler::PrintSize() const {
   if (fGarbageCollector)
     fGarbageCollector->PrintSize();
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

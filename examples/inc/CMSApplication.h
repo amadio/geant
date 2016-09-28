@@ -42,11 +42,13 @@ class TProfile;
 #include "base/Vector.h"
 
 /** @brief CMSApplication class */
-class CMSApplication : public GeantVApplication {
+class CMSApplication : public Geant::GeantVApplication {
   static const int kMaxThreads = 36;
   static const int kNvolumes     = 4500;
   static const int kNECALModules = 36;
   static const int kNHCALModules = 112;
+  using GeantRunManager = Geant::GeantRunManager;
+  using GeantEvent = Geant::GeantEvent;
 
 public:
   template <class T>

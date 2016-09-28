@@ -4,6 +4,8 @@
 #include "management/GeoManager.h"
 using vecgeom::GeoManager;
 #endif
+#include "GeantRunManager.h"
+#include "GeantEvent.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
@@ -16,6 +18,8 @@ using vecgeom::GeoManager;
 #include "TROOT.h"
 #include "TFile.h"
 #include <cassert>
+
+using namespace Geant;
 
 //______________________________________________________________________________
 LHCbApplication::LHCbApplication(GeantRunManager *runmgr)

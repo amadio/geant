@@ -4,6 +4,8 @@
 #include "management/GeoManager.h"
 using vecgeom::GeoManager;
 #endif
+
+#include "GeantRunManager.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantEvent.h"
@@ -19,6 +21,8 @@ using vecgeom::GeoManager;
 #include "TFile.h"
 #include <cassert>
 #endif
+
+using namespace Geant;
 
 //______________________________________________________________________________
 CMSApplication::CMSApplication(GeantRunManager *runmgr)

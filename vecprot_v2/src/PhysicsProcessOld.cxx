@@ -5,5 +5,11 @@
 
 #include "PhysicsProcessOld.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 // pin virtual table.
 PhysicsProcessOld::~PhysicsProcessOld() {}
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

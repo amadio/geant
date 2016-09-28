@@ -32,13 +32,14 @@
 #include "TThreadMergingServer.h"
 #endif
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantBasketMgr;
 class GeantBasket;
 class GeantScheduler;
 class TaskBroker;
 class GeantVTaskMgr;
-
-using GeantTaskData=Geant::GeantTaskData;
 
 /**
  * @brief WorkloadManager class
@@ -310,4 +311,7 @@ private:
    */
   WorkloadManager &operator=(const WorkloadManager &);
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif

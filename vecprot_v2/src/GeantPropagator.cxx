@@ -46,6 +46,7 @@
 #endif
 
 #include "Geant/Error.h"
+#include "GeantRunManager.h"
 #include "GeantTrackVec.h"
 #include "PhysicsInterface.h"
 #include "PhysicsProcessOld.h"
@@ -65,8 +66,10 @@
 #include <valgrind/callgrind.h>
 #endif
 
-using namespace Geant;
 using namespace vecgeom;
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
@@ -312,3 +315,6 @@ int GeantPropagator::ShareWork(GeantPropagator &other)
 {
   return ( fWMgr->ShareBaskets(other.fWMgr) );
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

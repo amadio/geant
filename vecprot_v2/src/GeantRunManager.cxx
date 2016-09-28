@@ -11,6 +11,8 @@
 #include "GeantVTaskMgr.h"
 #include "MCTruthMgr.h"
 #include "PrimaryGenerator.h"
+#include "GeantEvent.h"
+#include "GeantEventServer.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
@@ -40,7 +42,9 @@
 #include "GUFieldPropagator.h"
 #include "GUFieldPropagatorPool.h"
 
-using namespace Geant;
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 using namespace vecgeom;
 
 //______________________________________________________________________________
@@ -159,6 +163,9 @@ bool GeantRunManager::Initialize() {
   }
   fApplication->Initialize();
   fPrimaryGenerator->InitPrimaryGenerator();
+  fEventServer = new GeantEventServer(fConfig->fNtotal, this);
+  for (int i=0; i<fConfig->fNtotal; ++i)
+    fEventServer->AddEvent();
 
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
@@ -581,3 +588,6 @@ void GeantRunManager::StopTransport() {
     fPropagators[i]->StopTransport();
   }
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

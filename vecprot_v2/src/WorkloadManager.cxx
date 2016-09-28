@@ -1,5 +1,7 @@
 #include "WorkloadManager.h"
+
 #include "Geant/Error.h"
+
 #ifdef USE_ROOT
 #include "TSystem.h"
 #include "TROOT.h"
@@ -12,6 +14,8 @@
 #include "TTree.h"
 #include "TMath.h"
 #endif
+
+#include "GeantRunManager.h"
 #include "GeantTrackVec.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
@@ -45,8 +49,10 @@
 #endif
 #include "GeantFactoryStore.h"
 
-using namespace Geant;
 using std::max;
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 WorkloadManager::WorkloadManager(int nthreads, GeantPropagator* prop)
@@ -1318,3 +1324,6 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
   #endif
     return 0;
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

@@ -39,10 +39,12 @@
 #endif
 
 #include "dcqueue.h"
+#include "Geant/Config.h"
 
 class TArrayC;
 
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 class TThreadMergingFile : public TMemFile
 {
@@ -64,6 +66,7 @@ private:
   ClassDef(TThreadMergingFile,1);  // TFile specialization that will semi-automatically upload its content to a merging server.
 };
 
+} // GEANT_IMPL_NAMESPACE
 } // namespace Geant
 
 #endif // ROOT_TThreadMergingFile

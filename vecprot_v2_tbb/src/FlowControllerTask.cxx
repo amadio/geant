@@ -13,6 +13,7 @@
 
 #include "tbb/task_scheduler_init.h"
 
+using namespace Geant;
 
 FlowControllerTask::FlowControllerTask (Geant::GeantTaskData *td, bool starting, bool forcedStop)
   :fTd(td), fStarting(starting), fForcedStop(forcedStop) { }

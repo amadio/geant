@@ -8,6 +8,7 @@
 #include "TGeoNode.h"
 #endif
 
+#include "GeantRunManager.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
@@ -26,6 +27,7 @@
 
 using std::min;
 using std::max;
+using namespace Geant;
 
 //______________________________________________________________________________
 FastSimApplication::FastSimApplication(GeantRunManager *runmgr)

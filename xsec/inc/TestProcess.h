@@ -15,7 +15,7 @@
 #include "GeantFwd.h"
 
 
-class TestProcess : public PhysicsProcessOld {
+class TestProcess : public Geant::PhysicsProcessOld {
   public:
 
     using GeantTrack = Geant::GeantTrack;

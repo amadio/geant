@@ -14,6 +14,9 @@
 #endif
 #include "Geant/Error.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
     : fManager(0), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
@@ -433,3 +436,6 @@ void GeantBasketMgr::PrintSize() const {
     sizeb = GetCBasket()->Sizeof();
   Geant::Printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

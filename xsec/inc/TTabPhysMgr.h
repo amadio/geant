@@ -23,6 +23,8 @@ class TGeoMaterial;
 
 #include "GeantFwd.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 class TTabPhysMgr {
 public:
@@ -106,5 +108,8 @@ private:
   static const int fgVersion = 1000002;
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif // TTabPhysMgr_H

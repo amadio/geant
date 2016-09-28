@@ -30,8 +30,6 @@ class TRandom;
 #include "base/RNG.h"
 using VECGEOM_NAMESPACE::RNG;
 #endif
-class GeantBasketMgr;
-class GeantBasket;
 
 #ifdef VECCORE_CUDA
 #include "base/Vector.h"
@@ -46,6 +44,10 @@ class GeantBasket;
  */
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantBasketMgr;
+class GeantBasket;
+
 class GeantTaskData {
 public:
 #ifdef VECCORE_CUDA

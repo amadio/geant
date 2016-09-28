@@ -39,8 +39,11 @@ using vecgeom::kTwoPi;
 #ifndef VECCORE_CUDA
 #include "base/MessageLogger.h"
 #endif
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
+using namespace Geant;
 
 //______________________________________________________________________________
 TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsfilename) {
@@ -1292,3 +1295,6 @@ VECCORE_ATT_HOST_DEVICE
 bool TTabPhysMgr::HasRestProcess(int gvindex) {
   return fDecay->HasDecay(gvindex) || fHasNCaptureAtRest[gvindex] || (gvindex == TPartIndex::I()->GetSpecGVIndex(1));
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

@@ -4,6 +4,7 @@
 #include "management/GeoManager.h"
 using vecgeom::GeoManager;
 #endif
+#include "GeantEvent.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantRunManager.h"

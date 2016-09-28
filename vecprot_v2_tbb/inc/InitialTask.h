@@ -2,17 +2,17 @@
 #define GEANT_TBB_INITIAL_TASK
 
 #include "tbb/task.h"
-#include "GeantTaskData.h"
-
-class GeantPropagator;
+#include "GeantPropagator.h"
 
 class InitialTask : public tbb::task
 {
+public:
+
 private:
-  GeantPropagator *fPropagator;
+  Geant::GeantPropagator *fPropagator;
 
 public:
-  InitialTask(GeantPropagator *prop) : fPropagator(prop) {}
+  InitialTask(Geant::GeantPropagator *prop) : fPropagator(prop) {}
   ~InitialTask() {}
 
   tbb::task* execute();

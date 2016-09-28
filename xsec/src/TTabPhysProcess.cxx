@@ -19,6 +19,9 @@
 #endif
 using std::string;
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 TTabPhysProcess::TTabPhysProcess()
   : PhysicsProcessOld(), fMgr(0), fXsecFileName(), fFinalSFileName() {
@@ -92,3 +95,6 @@ void TTabPhysProcess::AtRest(int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /
   // Do at rest actions on particle after generic tabxsec process.
   // Daughter tracks copied in trackout.
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

@@ -25,6 +25,9 @@
 #include "mpmc_bounded_queue.h"
 #include "GeantPropagator.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantBasketMgr;
 #include "GeantFwd.h"
 
@@ -33,16 +36,6 @@ class GeantBasketMgr;
  * @details Basket of tracks in the same volume which are transported by a single thread
  */
 class GeantBasket {
-public:
-  using GeantTrack = Geant::GeantTrack;
-  using GeantTrack_v = Geant::GeantTrack_v;
-  using GeantTaskData = Geant::GeantTaskData;
-
-  /**
-   * @enum EbasketFlags
-   * @details Flags marking up different types of baskets
-   */
-
 protected:
   GeantBasketMgr *fManager; /** Manager for the basket */
 public:
@@ -566,4 +559,8 @@ public:
   ClassDef(GeantBasketMgr, 0) // A path in geometry represented by the array of indices
  #endif 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
+
 #endif

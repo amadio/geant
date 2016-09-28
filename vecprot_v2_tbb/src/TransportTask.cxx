@@ -40,13 +40,14 @@
 #include "tbb/task_scheduler_init.h"
 #endif
 
+using namespace Geant;
 
-TransportTask::TransportTask (Geant::GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
+TransportTask::TransportTask (GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
 
 TransportTask::~TransportTask () { }
 
 //______________________________________________________________________________
-static inline void MaybeCleanupBaskets(Geant::GeantTaskData *td, GeantBasket *basket) {
+static inline void MaybeCleanupBaskets(GeantTaskData *td, GeantBasket *basket) {
   if (td->NeedsToClean())
     td->CleanBaskets(0);
   else {
@@ -89,13 +90,13 @@ tbb::task* TransportTask::execute ()
   
   ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
 
-  Geant::GeantTaskData *td = fTd;
+  GeantTaskData *td = fTd;
   int tid = td->fTid;
   //int xid = wm->Instance()->ThreadId();
   //Geant::Print("","============= Transport Worker: %d(%d)", tid,xid);
   int nworkers = propagator->fNthreads;
 
-  Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
+  priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   GeantScheduler *sch = wm->GetScheduler();
   int *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = td->fBmgr;
@@ -115,7 +116,7 @@ tbb::task* TransportTask::execute ()
   GeantBlock<MyHit>* data = threadData->fData[tid];
 
   #ifdef USE_ROOT
-  Geant::TThreadMergingFile* file = threadData->fFiles[tid];
+  TThreadMergingFile* file = threadData->fFiles[tid];
   TTree *tree = threadData->fTrees[tid];
   #endif
   
@@ -198,8 +199,8 @@ tbb::task* TransportTask::execute ()
     ++counter;
     ntotransport = basket->GetNinput(); // all tracks to be transported
                                         //      ninput = ntotransport;
-    Geant::GeantTrack_v &input = basket->GetInputTracks();
-    Geant::GeantTrack_v &output = *td->fTransported;
+    GeantTrack_v &input = basket->GetInputTracks();
+    GeantTrack_v &output = *td->fTransported;
     if (!ntotransport)
       goto finish; // input list empty
     //      Geant::Print("","======= BASKET %p with %d tracks counter=%d =======", basket, ntotransport,

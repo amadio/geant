@@ -17,6 +17,9 @@
 
 #include "GeantFwd.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 using vecgeom::kRadToDeg;
 using vecgeom::kDegToRad;
 
@@ -130,5 +133,8 @@ public:
     pmax = fPMax;
   }
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

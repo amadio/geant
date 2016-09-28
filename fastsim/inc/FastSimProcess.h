@@ -50,12 +50,13 @@ class Smearer;
 /**
  * @brief Class FastSimProcess
  */
-class FastSimProcess : public PhysicsProcessOld {
+class FastSimProcess : public Geant::PhysicsProcessOld {
 
   public:
 
     using GeantTrack = Geant::GeantTrack;
     using GeantTrack_v = Geant::GeantTrack_v;
+    using GeantTaskData = Geant::GeantTaskData;
 
     /** @brief Default constructor */
     FastSimProcess();

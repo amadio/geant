@@ -25,6 +25,9 @@
 
 #include <string>
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 /**
  * @brief Class describing physics processes
  */
@@ -148,5 +151,8 @@ public:
   virtual void ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

@@ -13,6 +13,11 @@
 #ifndef GEANT_VTASKMGR
 #define GEANT_VTASKMGR
 
+#include "Geant/Config.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantPropagator;
 
 /** @brief GeantVTaskMgr class */
@@ -30,7 +35,8 @@ public:
 
   /** @brief Function for final actions */
   virtual void Finalize() = 0;
-
-
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif

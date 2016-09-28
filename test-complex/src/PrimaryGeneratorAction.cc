@@ -52,6 +52,8 @@
 #define USE_VECGEOM_NAVIGATOR
 #endif
 
+using namespace Geant;
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PrimaryGeneratorAction::PrimaryGeneratorAction() 
@@ -76,7 +78,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(std::string& filename)
    fParticleGun(0),
    fHepMCGenerator(0)
 {
- fHepMCGenerator = new HepMCGenerator(filename); 
+ fHepMCGenerator = new Geant::HepMCGenerator(filename); 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

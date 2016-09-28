@@ -16,13 +16,12 @@
 #include "base/BitSet.h"
 #include "GeantTrack.h"
 
-class GeantPropagator;
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTrack_v;
 class GeantTaskData;
+class GeantPropagator;
 
 
 /**

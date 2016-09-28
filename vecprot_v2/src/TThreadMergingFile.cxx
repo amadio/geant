@@ -27,7 +27,8 @@
 #include "TSocket.h"
 #include "TArrayC.h"
 
-using namespace Geant;
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Constructor.
@@ -155,4 +156,6 @@ void TThreadMergingFile::WriteStreamerInfo()
 
    TMemFile::WriteStreamerInfo();
 }
+} // GEANT_IMPL_NAMESPACE
+} // namespace Geant
 #endif

@@ -18,6 +18,8 @@
 #include "ThreadData.h"
 #include "FlowControllerTask.h"
 
+using namespace Geant;
+
 tbb::task* InitialTask::execute ()
 {
   GeantRunManager *runmgr = fPropagator->fRunMgr;
@@ -28,7 +30,7 @@ tbb::task* InitialTask::execute ()
   tbb::task_scheduler_init init( runmgr->GetNthreadsTotal() );
 
   int tid = runmgr->GetTaskId();
-  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
+  GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fPropagator = fPropagator;
 
   printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);
@@ -46,7 +48,7 @@ tbb::task* InitialTask::execute ()
                          fPropagator->fConfig->fFillTree;
   if (concurrentWrite)
     {
-      threadData->fFiles[tid] = new Geant::TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
+      threadData->fFiles[tid] = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
       threadData->fTrees[tid] = new TTree("Tree","Simulation output");
 
       threadData->fTrees[tid]->Branch("hitblockoutput", "GeantBlock<MyHit>", &threadData->fData[tid]);

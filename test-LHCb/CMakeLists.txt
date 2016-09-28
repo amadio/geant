@@ -6,7 +6,8 @@
 include(${Geant4_USE_FILE})
 
 include_directories(include 
-  ${Geant4_INCLUDE_DIR})
+  ${Geant4_INCLUDE_DIR} 
+  ../physics/particle/inc)
 
 file(GLOB sources src/*.cc)
 file(GLOB headers include/*.hh)

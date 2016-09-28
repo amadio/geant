@@ -14,7 +14,7 @@
 
 //______________________________________________________________________________
 StdApplication::StdApplication(GeantRunManager *runmgr)
-  : GeantVApplication(runmgr), fInitialized(false),
+  : Geant::GeantVApplication(runmgr), fInitialized(false),
 #ifdef USE_ROOT
     fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
 #endif

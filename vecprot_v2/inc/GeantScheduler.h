@@ -18,14 +18,18 @@
 #include <atomic>
 #include <stddef.h>
 class concurrent_queue;
-class GeantBasket;
-class GeantBasketMgr;
 
 #include "base/Vector.h"
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
 #include "GeantPropagator.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantBasket;
+class GeantBasketMgr;
 
 /**
  * @brief Class GeantScheduler
@@ -197,7 +201,9 @@ public:
       for (int i=0;i<n;i++) { out[i] = a[i]; }
       std::sort(out,out + n, std::greater<int>());
 
-   } 
-  
+   }   
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif

@@ -13,10 +13,13 @@
 #ifndef GEANT_VAPPLICATION
 #define GEANT_VAPPLICATION
 
-class GeantHitBlock;
-#include "GeantEvent.h"
 #include "GeantFwd.h"
-#include "GeantRunManager.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantRunManager;
+class GeantEvent;
 
 /** @brief GeantVApplication class */
 class GeantVApplication {
@@ -58,4 +61,8 @@ public:
   virtual void FinishRun() = 0;
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
+
 #endif

@@ -10,12 +10,12 @@
 #include "GeantTaskData.h"
 #include "GeantConfig.h"
 
-class PrimaryGenerator;
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+class PrimaryGenerator;
 class GeantTaskData;
+class GeantEvent;
 
 //------------------------------------------------------------------------------
 //
@@ -32,21 +32,11 @@ class GeantTaskData;
 //  fNDispatched[0] ...                    ->    Number of dispatched per evt.
 //------------------------------------------------------------------------------
 
-struct GeantInputEvent {
-  int fEvent = 0;                 /** Event number */
-  int fNtracks = 0;               /** Number of tracks in the input event */
-  std::vector<GeantTrack*> fTracks;  /** Vector containing all primary tracks */
-  std::atomic_int fNfilled;       /** Number of tracks copied in buffer */
-  std::atomic_int fNdispatched;   /** Number of tracks dispatched */
-  
-  GeantInputEvent() : fNfilled(0), fNdispatched(0) {}
-};
-  
 class GeantEventServer
 {
 private:
   int fNevents = 0;                    /** Number of events to be filled */
-  std::vector<GeantInputEvent *> fEvents; /** Events to be dispatched */
+  std::vector<GeantEvent *> fEvents; /** Events to be dispatched */
   std::atomic_int fCurrentEvent;       /** Current event being served */
   std::atomic_int fNload ;             /** Last load event in the server */
   std::atomic_int fNstored;            /** Number of stored events in the server */

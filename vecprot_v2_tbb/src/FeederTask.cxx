@@ -8,6 +8,7 @@
 #include "tbb/task_scheduler_init.h"
 #endif
 
+using namespace Geant;
 
 FeederTask::FeederTask (Geant::GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
 

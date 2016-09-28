@@ -18,18 +18,18 @@
  *
  * @{
  */
-class GeantBasket;
-namespace Geant {
-   inline namespace cxx {
-      class GeantTaskData;
-   }
-}
+
 namespace vecgeom {
-   inline namespace cxx {
-      class VPlacedVolume;
-   }
+  inline namespace cxx {
+    class VPlacedVolume;
+  }
 }
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantTaskData;
+class GeantBasket;
 
 /**
  * @brief Class TaskBroker
@@ -100,6 +100,9 @@ public:
   virtual bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr) = 0;
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif // GEANT_TASKBROKER
 /** @} */

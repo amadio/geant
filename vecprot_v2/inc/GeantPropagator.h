@@ -31,21 +31,25 @@ class TStopwatch;
 #endif
 #include "base/BitSet.h"
 using veccore::BitSet;
-class PhysicsProcessOld;
-class PhysicsInterface;
+
+#include "GeantFwd.h"
+#include "GeantConfig.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantRunManager;
 class GeantEvent;
+class GeantVApplication;
+class PhysicsProcessOld;
+class PhysicsInterface;
 class GeantBasket;
 class GeantBasketMgr;
 class WorkloadManager;
-class GeantVApplication;
 class GeantVTaskMgr;
 class PrimaryGenerator;
 class MCTruthMgr;
 class TaskBroker;
-
-#include "GeantFwd.h"
-#include "GeantConfig.h"
 
 class GeantPropagator {
   using GeantTrack = Geant::GeantTrack;
@@ -258,4 +262,8 @@ private:
   GeantPropagator &operator=(const GeantPropagator &);
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
+
 #endif

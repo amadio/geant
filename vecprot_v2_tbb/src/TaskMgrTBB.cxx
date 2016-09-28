@@ -5,6 +5,8 @@
 #include "InitialTask.h"
 #include "ThreadData.h"
 
+using namespace Geant;
+
 //______________________________________________________________________________
 bool TaskMgrTBB::Initialize(int nthreads, GeantPropagator *prop)
 {

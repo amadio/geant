@@ -20,6 +20,9 @@ using geant::Particle;
 class TParticlePDG;
 #endif
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 HepMCGenerator::HepMCGenerator()
   : input_file(0), search(0) {}
@@ -271,3 +274,6 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
     }
   */
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

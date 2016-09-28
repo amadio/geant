@@ -9,16 +9,19 @@
 #include "GeantTaskData.h"
 #include "GeantConfig.h"
 
-using namespace Geant;
 using namespace veccore;
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantPropagator;
-class GeantEvent;
 class TaskBroker;
 class PhysicsProcessOld;
 class PhysicsInterface;
 class GeantVApplication;
 class GeantVTaskMgr;
+class GeantEventServer;
+class GeantEvent;
 class PrimaryGenerator;
 class MCTruthMgr;
 
@@ -52,7 +55,8 @@ private:
   PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
   PhysicsInterface *fPhysicsInterface; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr;   /** Primary generator */
-  MCTruthMgr *fTruthMgr = nullptr; /** MCTruth manager */
+  MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
+  GeantEventServer *fEventServer = nullptr;     /** The event server */
    
   vector_t<GeantPropagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
@@ -199,5 +203,8 @@ public:
   void StopTransport();
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif // GEANT_RUN_MANAGER_H

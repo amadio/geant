@@ -12,6 +12,9 @@ using vecgeom::RNG;
 
 #include "Geant/Typedefs.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GunGenerator : public PrimaryGenerator {
 private:
   int fAverage; // Average number of tracks for Poisson distribution
@@ -54,7 +57,9 @@ public:
 private:
   GunGenerator(const GunGenerator &);            // no imp.
   GunGenerator &operator=(const GunGenerator &); // no imp.
-
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

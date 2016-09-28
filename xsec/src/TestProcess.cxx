@@ -13,7 +13,7 @@
 #endif
 
 
-TestProcess::TestProcess() : PhysicsProcessOld() {}
+TestProcess::TestProcess() : Geant::PhysicsProcessOld() {}
 
 
 void TestProcess::Initialize() {

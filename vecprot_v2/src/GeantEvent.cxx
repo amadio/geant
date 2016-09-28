@@ -2,6 +2,9 @@
 #include "GeantRunManager.h"
 #include <iostream>
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 int GeantEvent::AddTrack() {
   // Thread safe track addition
@@ -23,7 +26,7 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   if (!fPrioritize && (npriority < runmgr->GetNthreads())) {
     if (GetNinflight() < fPriorityThr*GetNmax()) {
       fPrioritize = true;
-//      std::cout << "### Event " << GetEvent() << " prioritized at " <<
+//      std::cout << "### Event " << fEvent << " prioritized at " <<
 //        100.*fPriorityThr << " % threshold (npri=" << npriority << ")" << std::endl;
       return true;  
     }  
@@ -34,7 +37,7 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
 //______________________________________________________________________________
 void GeantEvent::Print(const char *) const {
   // Print events content
-  std::cout << "Event " << GetEvent() << ": " << GetNtracks() << 
+  std::cout << "Event " << fEvent << ": " << GetNtracks() << 
     " tracks transported, max in flight " <<  GetNmax() << std::endl;
 }
 
@@ -43,10 +46,12 @@ bool GeantEvent::Prioritize() {
   // Prioritize the event
   if (fLock.test_and_set(std::memory_order_acquire) || fPrioritize) return false;
   if (GetNinflight()) {
-//    std::cout << "### Event " << GetEvent() << " forced prioritized" << std::endl;
+//    std::cout << "### Event " << fEvent << " forced prioritized" << std::endl;
     fPrioritize = true;
   }
   fLock.clear(std::memory_order_release);
   return true;
 }
   
+} // GEANT_IMPL_NAMESPACE
+} // Geant

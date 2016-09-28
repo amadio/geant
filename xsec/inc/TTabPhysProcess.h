@@ -14,6 +14,10 @@
 #include "Geant/Typedefs.h"
 
 #include "GeantFwd.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class TTabPhysMgr;
 
 //______________________________________________________________________________
@@ -59,5 +63,8 @@ private:
   TTabPhysProcess &operator=(const TTabPhysProcess &); // no imp.
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

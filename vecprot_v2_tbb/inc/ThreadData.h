@@ -4,20 +4,19 @@
 #ifndef GEANT_MYHIT
 #include "MyHit.h"
 #endif
+
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
 #endif
-#include "TThread.h"
+
+#include "GeantFwd.h"
 #include "GeantFactoryStore.h"
+
 #include "TThreadMergingFile.h"
 
 #ifdef USE_ROOT
 class TTree;
-class TThreadMergingFile;
 #endif
-class GeantBasketMgr;
-template <typename T>
-class GeantFactory;
 
 class ThreadData {
 protected:

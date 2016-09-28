@@ -3,6 +3,9 @@
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 GunGenerator::GunGenerator()
     : fAverage(0), fPDG(11),           // PDG code of the primary: 11 -> e-
@@ -112,3 +115,6 @@ void GunGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack) {
   gtrack.fE = fETotal;
   gtrack.SetP(fPTotal);
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

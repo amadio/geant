@@ -9,6 +9,7 @@
 #include "Rtypes.h"
 #include "TGeoManager.h"
 #endif
+#include "GeantRunManager.h"
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
 #include "TaskBroker.h"
@@ -19,6 +20,8 @@
 #ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
 #endif
+
+using namespace Geant;
 
 static int n_events = 10;
 static int n_buffered = 5;

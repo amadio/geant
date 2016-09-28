@@ -8,6 +8,9 @@
 #include "HepMC/GenEvent.h"
 #include "HepMC/Search/FindParticles.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class HepMCGenerator : public PrimaryGenerator {
 private:
   HepMC::Reader *input_file;
@@ -30,5 +33,8 @@ private:
   HepMCGenerator &operator=(const HepMCGenerator &); // no imp.
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

@@ -22,6 +22,8 @@
 #include "TaskMgrTBB.h"
 #endif
 
+using namespace Geant;
+
 static int n_events = 50;
 static int n_buffered = 10;
 static int n_threads = 4;
