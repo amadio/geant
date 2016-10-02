@@ -22,6 +22,7 @@ class GeantVApplication;
 class GeantVTaskMgr;
 class GeantEventServer;
 class GeantEvent;
+class GeantEventServer;
 class PrimaryGenerator;
 class MCTruthMgr;
 
@@ -116,13 +117,16 @@ public:
   GeantEvent *GetEvent(int i) { return fEvents[i]; }
 
   GEANT_FORCE_INLINE
+  GeantEventServer *GetEventServer() const { return fEventServer; }
+
+  GEANT_FORCE_INLINE
   GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
 
   GEANT_FORCE_INLINE
   int  GetTaskId() { return (fTaskId.fetch_add(1)); }
 
   GEANT_FORCE_INLINE
-  int GetNtracks(int islot) { return fNtracks[islot]; }
+  int GetNtracks(int islot) const { return fNtracks[islot]; }
   
   GeantPropagator *GetIdlePropagator() const;
 
@@ -196,6 +200,7 @@ public:
   /** @brief Implementation of work stealing */
   int ProvideWorkTo(GeantPropagator *prop);
   
+  void EventTransported(int evt);
   bool Initialize();
   bool FinishRun();
   bool LoadGeometry(const char *filename);

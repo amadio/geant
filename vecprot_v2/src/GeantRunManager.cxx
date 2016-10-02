@@ -380,16 +380,7 @@ int GeantRunManager::Feeder(GeantTaskData *td) {
     if (fDoneEvents->TestBitNumber(evt->GetEvent()))
       continue;
     if (evt->Transported()) {
-      if (evt->IsPrioritized()) fPriorityEvents--;
-      evt->Print();
-      
-      // closing event in MCTruthManager
-      if(fTruthMgr) fTruthMgr->CloseEvent(evt->GetEvent());
-      
-      // Digitizer (todo)
-      Info("Feeder", " = digitizing event %d with %d tracks", evt->GetEvent(), evt->GetNtracks());
-      //            propagator->fApplication->Digitize(evt->GetEvent());
-      fDoneEvents->SetBitNumber(evt->GetEvent());
+      EventTransported(evt->GetEvent());
       if (fConfig->fLastEvent < fConfig->fNtotal) {
       Info("Feeder", "  => Propagator %p importing event %d", td->fPropagator, fConfig->fLastEvent);
         nbaskets += ImportTracks(1, fConfig->fLastEvent, islot, td);
@@ -401,6 +392,24 @@ int GeantRunManager::Feeder(GeantTaskData *td) {
   fFeederLock.clear(std::memory_order_release);
   return nbaskets;
 }
+
+//______________________________________________________________________________
+void GeantRunManager::EventTransported(int evt)
+{
+// Actions executed after an event is transported.
+  // Activate new event in the event server.
+  fEventServer->ActivateEvents();
+  // Adjust number of prioritized events
+  GeantEvent *event = fEventServer->GetEvent(evt);
+  if (event->IsPrioritized()) fPriorityEvents--;
+  // closing event in MCTruthManager
+  if(fTruthMgr) fTruthMgr->CloseEvent(evt);
+  event->Print();
+  // Digitizer (todo)
+  Info("Feeder", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
+  //            propagator->fApplication->Digitize(evt->GetEvent());
+  fDoneEvents->SetBitNumber(evt);
+}  
 
 //______________________________________________________________________________
 int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)

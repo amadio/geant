@@ -27,7 +27,8 @@ class GeantRunManager;
 class GeantEvent {
 
 private:
-  bool             fPrioritize = false; /** Prioritize this event */
+  bool             fPrioritize = false;  /** Prioritize this event */
+  bool             fTransported = false; /** Event transported */
   float            fPriorityThr = 0.01; /** Priority threshold in percent of max in flight */
   int              fEvent = 0;      /** Event number */
   int              fSlot = 0;       /** Fixed slot number === to be removed ===*/
@@ -159,7 +160,7 @@ public:
    * @return Boolean value that shows if event is fully transported or not
    */
   GEANT_FORCE_INLINE
-  bool Transported() const { return ((fNtracks.load() > 0) && (fNtracks == fNdone)); }
+  bool Transported() const { return fTransported; }
   
   /**
    * @brief Function to signal that a trach was stopped

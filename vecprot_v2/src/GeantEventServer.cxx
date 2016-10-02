@@ -29,12 +29,12 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantEventServer::GeantEventServer(int event_capacity, GeantRunManager *runmgr)
-  :fNevents(event_capacity), fCurrentEvent(0), fNload(0), fNstored(0), fRunMgr(runmgr)
+  :fNevents(event_capacity), fNactive(0), fLastActive(-1), fCurrentEvent(0),
+   fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr)
 {
 // Constructor
   assert(event_capacity > 0);
   fLastActive.store(-1);
-  fDoneEvents = BitSet::MakeInstance(event_capacity);
   fEvents = new GeantEvent*[event_capacity];
   for (int i=0; i<event_capacity; ++i)
     fEvents[i] = new GeantEvent();
@@ -130,13 +130,17 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   VolumePath_t::ReleaseInstance(startpath);
   // Update number of stored events
   fNstored++;
+  Print("AddEvent", "Imported event %d having %d tracks", evt, ntracks);
   return ntracks;
 }
 
 //______________________________________________________________________________
 GeantTrack *GeantEventServer::GetNextTrack()
 {
-// Fetch next track
+// Fetch next track of the current event. Increments current event if no more 
+// tracks. If current event matches last activated one, resets fHasTracks flag.
+// If max event fully dispatched, sets the fDone flag. 
+
   int evt = fCurrentEvent.load();
   GeantEvent *event;
   int itr;
@@ -144,9 +148,11 @@ GeantTrack *GeantEventServer::GetNextTrack()
     event = fEvents[evt];
     itr = event->fNdispatched.fetch_add(1);
     if (itr > event->GetNprimaries() - 1) {
-      if (evt == fNevents-1) {
-        // If last event just exit
-        fDone = true;
+      // Current event dispatched, try to fetch from next event
+      if (evt == fLastActive.load()) {
+        // No events available, check if this is last event
+        fHasTracks = false;
+        if (evt == fNevents-1) fDone = true;
         return nullptr;
       }
       // Attempt to change the event
@@ -165,8 +171,9 @@ GeantTrack *GeantEventServer::GetNextTrack()
 //______________________________________________________________________________
 int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks)
 {
-// Fill concurrently a basket of tracks
-  if (fDone) return 0;
+// Fill concurrently a basket of tracks, up to the requested number of tracks.
+// The client should test first the track availability using HasTracks().
+  if (!fHasTracks) return 0;
   int ndispatched = 0;
   for (int i=0; i<ntracks; ++i) {
     GeantTrack *track = GetNextTrack();
@@ -178,12 +185,35 @@ int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks)
 }
 
 //______________________________________________________________________________
-bool GeantEventServer::ActivateEvents()
+int GeantEventServer::ActivateEvents()
 {
 // Activate events depending on the buffer status. If the number of already
 // active events is smaller than the fNactiveMax, activate as many events as
 // needed to reach this, otherwise activate a single event.
-  
+  if (fEventsServed) return 0;
+  int nactivated = 0;
+  int nactive = fNactive.load();
+  while (nactive < fNactiveMax && !fEventsServed) {
+    // Try to activate next event
+    if (fNactive.compare_exchange_strong(nactive, nactive+1)) {
+      // We can actually activate one event
+      int lastactive = fLastActive.fetch_add(1) + 1;
+      nactivated++;
+      if (lastactive == fNevents - 1) fEventsServed = true;
+      fHasTracks = true;
+    }
+    nactive = fNactive.load();
+  }
+  return nactivated;
+}
+
+//______________________________________________________________________________
+void GeantEventServer::CompletedEvent(int /*evt*/)
+{
+// Signals that event 'evt' was fully transported.
+  fNactive--;
+  fNcompleted++;
+  ActivateEvents();
 }
 
 } // GEANT_IMPL_NAMESPACE

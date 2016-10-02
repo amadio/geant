@@ -21,15 +21,26 @@ int GeantEvent::AddTrack() {
 bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.
-  fNdone++;
-  int npriority = runmgr->GetNpriority();
-  if (!fPrioritize && (npriority < runmgr->GetNthreads())) {
-    if (GetNinflight() < fPriorityThr*GetNmax()) {
-      fPrioritize = true;
+  int ndone = fNdone.fetch_add(1) + 1;
+  int ntracks = fNtracks.load();
+  int ninflight = ntracks - ndone;
+  if ((ntracks>0) && (ninflight==0)) {
+    fTransported = true;
+    // Notify run manager that event is transported
+    runmgr->EventTransported(fEvent);
+    return false;
+  }
+  if (!fPrioritize) {
+    // Check if the event needs to be prioritized
+    int npriority = runmgr->GetNpriority();
+    if (npriority < runmgr->GetNthreads()) {
+      if (ninflight < fPriorityThr*GetNmax()) {
+        fPrioritize = true;
 //      std::cout << "### Event " << fEvent << " prioritized at " <<
 //        100.*fPriorityThr << " % threshold (npri=" << npriority << ")" << std::endl;
-      return true;  
-    }  
+        return true;  
+      }  
+    }
   }
   return false;
 }

@@ -5,7 +5,6 @@
 
 #include <list>
 
-#include "base/BitSet.h"
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
 #include "GeantConfig.h"
@@ -42,14 +41,14 @@ private:
   std::atomic_int fCurrentEvent;       /** Current event being served */
   std::atomic_int fNload;              /** Last load event in the server */
   std::atomic_int fNstored;            /** Number of stored events in the server */
+  std::atomic_int fNcompleted;         /** Number of completed events */
   GeantRunManager *fRunMgr = nullptr;  /** Run manager */
-  bool fTracksServed = false;          /** All tracks dispatched */
   bool fEventsServed = false;          /** All events served */
   bool fDone = false;                  /** All events transported */
+  bool fHasTracks = false;             /** Server has tracks to dispatch */
   GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
-  BitSet *fDoneEvents = nullptr;       /** Array of bits marking done events */
-  std::list<GeantEvent*> fActive;      /** List of active events */
- 
+
+protected:
   GeantTrack *GetNextTrack();
 
 public:
@@ -75,11 +74,16 @@ public:
   GEANT_FORCE_INLINE
   GeantEvent *GetEvent(int i) { return fEvents[i]; }
 
+  GEANT_FORCE_INLINE
+  bool HasTracks() const { return fHasTracks; }
+
   int FillBasket(GeantTrack_v &tracks, int ntracks);
   
   int AddEvent(GeantTaskData *td = nullptr);
   
   int ActivateEvents();
+  
+  void CompletedEvent(int evt);
 };
 
 } // GEANT_IMPL_NAMESPACE
