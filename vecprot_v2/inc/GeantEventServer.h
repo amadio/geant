@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include <vector>
+#include <list>
 
 #include "base/BitSet.h"
 #include "Geant/Typedefs.h"
@@ -36,12 +36,19 @@ class GeantEventServer
 {
 private:
   int fNevents = 0;                    /** Number of events to be filled */
-  std::vector<GeantEvent *> fEvents; /** Events to be dispatched */
+  int fNactiveMax = 0;                 /** Maximum number of active events */
+  std::atomic_int fNactive;            /** Number of deployed events */
+  std::atomic_int fLastActive;         /** Last activated event */
   std::atomic_int fCurrentEvent;       /** Current event being served */
-  std::atomic_int fNload ;             /** Last load event in the server */
+  std::atomic_int fNload;              /** Last load event in the server */
   std::atomic_int fNstored;            /** Number of stored events in the server */
   GeantRunManager *fRunMgr = nullptr;  /** Run manager */
-  bool fDone = false;
+  bool fTracksServed = false;          /** All tracks dispatched */
+  bool fEventsServed = false;          /** All events served */
+  bool fDone = false;                  /** All events transported */
+  GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
+  BitSet *fDoneEvents = nullptr;       /** Array of bits marking done events */
+  std::list<GeantEvent*> fActive;      /** List of active events */
  
   GeantTrack *GetNextTrack();
 
@@ -51,11 +58,28 @@ public:
 
 // Accessors
   GEANT_FORCE_INLINE
-  int  GetNevents() { return fNevents; }
+  int  GetNevents() const { return fNevents; }
+
+  GEANT_FORCE_INLINE
+  int  GetNactiveMax() const { return fNactiveMax; }
+
+  GEANT_FORCE_INLINE
+  int  GetNactive() const { return fNactive.load(); }
+
+  GEANT_FORCE_INLINE
+  int  GetCurrent() const { return fCurrentEvent.load(); }
+
+  GEANT_FORCE_INLINE
+  int  GetNstored() const { return fNstored.load(); }
+  
+  GEANT_FORCE_INLINE
+  GeantEvent *GetEvent(int i) { return fEvents[i]; }
 
   int FillBasket(GeantTrack_v &tracks, int ntracks);
   
   int AddEvent(GeantTaskData *td = nullptr);
+  
+  int ActivateEvents();
 };
 
 } // GEANT_IMPL_NAMESPACE
