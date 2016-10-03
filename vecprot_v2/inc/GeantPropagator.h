@@ -71,6 +71,7 @@ public:
   std::atomic<long> fNsmall;           /** Total number of small steps taken */
   std::atomic<long> fNcross;           /** Total number of boundaries crossed */
   std::atomic<int>  fNidle;            /** Number of idle threads */
+  std::atomic<int>  fNbfeed;           /** Number of baskets fed from server */
 
   bool fTransportOngoing = false;      /** Flag for ongoing transport */
   bool fSingleTrack = false;           /** Use single track transport mode */

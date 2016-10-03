@@ -16,6 +16,7 @@
 #endif
 
 #include "GeantRunManager.h"
+#include "GeantEventServer.h"
 #include "GeantTrackVec.h"
 #include "GeantBasket.h"
 #include "GeantOutput.h"
@@ -330,7 +331,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int ncross = 0;
   int nextra_at_rest = 0;
   int generation = 0;
-  int ninjected = 0;
+//  int ninjected = 0;
   int nnew = 0;
   int ntot = 0;
   int nkilled = 0;
@@ -354,6 +355,12 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
+  
+  GeantEventServer *evserv = runmgr->GetEventServer();
+  int bindex = evserv->GetBindex();
+  GeantBasket *bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
+  bserv->SetThreshold(propagator->fConfig->fNperBasket);
+  td->fImported = bserv;
 
   bool firstTime = true;
   bool multiPropagator = runmgr->GetNpropagators() > 1;
@@ -384,12 +391,17 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   #endif
     
   // Start the feeder for this propagator
+/*
   while (runmgr->GetFedPropagator() != propagator) {
     int nb0 = runmgr->Feeder(td);
     if (nb0 > 0) ninjected += nb0;
   }
   // The first injection must produce some baskets
   if (!ninjected) sch->GarbageCollect(td, true);
+*/
+
+  // Activate events in the server
+  evserv->ActivateEvents();
 
   Material_t *mat = 0;
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -402,6 +414,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
     // Call the feeder if in priority mode
+/*
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
     if (feedres == FeederResult::kFeederWork) {
 //       Printf("== Thread %d: feeder for propagator %p is working", tid, propagator);
@@ -409,14 +422,15 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     } else if (feedres == FeederResult::kStopProcessing) {
        break;
     }
-
+*/
     // Collect info about the queue
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if (!firstTime && (nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
+//    if (!firstTime && (nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
+    if (!firstTime && (nbaskets < 1) && (!evserv->HasTracks())) {
       sch->GarbageCollect(td);
      ngcoll++;
     }
@@ -433,10 +447,11 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         }
       }
        
-      while ((!sch->GarbageCollect(td, true)) &&
-             (feederQ->size_async() == 0) &&
-             (!basket) &&
-             (!prioritizer->HasTracks()))
+      while (!sch->GarbageCollect(td, true) &&
+             !feederQ->size_async() &&
+             !basket &&
+             !prioritizer->HasTracks() &&
+             !evserv->HasTracks())
         ;
     }
     // Check if the current basket is reused or we need a new one
@@ -446,11 +461,19 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         basket = prioritizer->GetBasketForTransport(td);
         ngcoll = 0;
       } else {
-        wm->FeederQueue()->try_pop(basket);
+        // Get basket from the generator
+        if (evserv->HasTracks()) {
+          // In the initial phase we distribute a fair share of baskets to all propagators
+          if (!evserv->IsInitialPhase() ||
+              propagator->fNbfeed.load() < runmgr->GetInitialShare()) {
+            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
+            if (ntotransport) basket = bserv;
+          }
+        }
+        // Try to get from work queue without waiting
+        if (!basket)
+          wm->FeederQueue()->try_pop(basket);
         if (!basket) {
-          // Try to steal some work from the run manager
-//          if (!firstTime && multiPropagator)
-//            runmgr->ProvideWorkTo(propagator);
           // Take next basket from queue
           if (propagator->fCompleted || wm->fStopped)
             break;
@@ -640,16 +663,6 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
 //    for (auto itr=0; itr<ntotnext; ++itr)
 //      output.Normalize(itr);
 
-#ifdef BUG_HUNT
-    for (auto itr = 0; itr < ntotnext; ++itr) {
-      bool valid = output.CheckNavConsistency(itr);
-      if (!valid) {
-        valid = true;
-      }
-    }
-    // First breakpoint to be set
-    output.BreakOnStep(propagator->fConfig->fDebugEvt, propagator->fConfig->fDebugTrk, propagator->fConfig->fDebugStp, propagator->fConfig->fDebugRep, "EndStep");
-#endif
     for (auto itr = 0; itr < ntotnext; ++itr) {
       //output.fNstepsV[itr]++;
       if (output.fStatusV[itr] == kBoundary)
@@ -668,13 +681,13 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Remaining tracks need to be re-basketized
     sch->AddTracks(output, ntot, nnew, nkilled, td);
     // Make sure the basket is not recycled before gets released by basketizer
-    // This should not happen vey often, just when some threads are highly
+    // This should not happen very often, just when some threads are highly
     // demoted ant the basket makes it through the whole cycle before being fully released
     if (!reusable) {
       // Recycle basket, otherwise keep it for the next iteration
       while (basket->fNused.load())
         ;
-      basket->Recycle(td);
+      if (basket != bserv) basket->Recycle(td);
       basket = 0; // signal reusability by non-null pointer
     }
     // Update boundary crossing counter

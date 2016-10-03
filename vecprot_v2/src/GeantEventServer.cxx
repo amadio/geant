@@ -9,6 +9,7 @@
 #include "LocalityManager.h"
 #include "PrimaryGenerator.h"
 #include "GeantTaskData.h"
+#include "GeantBasket.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/SimpleNavigator.h"
@@ -29,12 +30,13 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantEventServer::GeantEventServer(int event_capacity, GeantRunManager *runmgr)
-  :fNevents(event_capacity), fNactive(0), fLastActive(-1), fCurrentEvent(0),
+  :fNevents(event_capacity), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
    fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr)
 {
 // Constructor
   assert(event_capacity > 0);
   fLastActive.store(-1);
+  fNactiveMax = runmgr->GetConfig()->fNbuff;
   fEvents = new GeantEvent*[event_capacity];
   for (int i=0; i<event_capacity; ++i)
     fEvents[i] = new GeantEvent();
@@ -103,14 +105,17 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
                   Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert), *startpath, true);
   vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
+  VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
   TGeoNode *node = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
   vol = node->GetVolume();
+  VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
   startpath->InitFromNavigator(nav);
 #endif
+  fBindex = link->index;
   if (td) td->fVolume = vol;
   
   for (int itr=0; itr<ntracks; ++itr) {
@@ -130,7 +135,22 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   VolumePath_t::ReleaseInstance(startpath);
   // Update number of stored events
   fNstored++;
-  Print("AddEvent", "Imported event %d having %d tracks", evt, ntracks);
+  Print("AddEvent", "Server imported event %d having %d tracks", evt, ntracks);
+  if (fNstored.load() == fNevents) {
+    int nactivep = 0;
+    for (int evt=0; evt<fNactiveMax; ++evt)
+      nactivep += fEvents[evt]->GetNprimaries();
+    // Initial basket share per propagator: nactivep/nperbasket
+    fNbasketsInit = nactivep/(fRunMgr->GetConfig()->fNperBasket);
+    Print("EventServer", "Initial baskets to be split among propagators: %d", fNbasketsInit);
+    if (fNbasketsInit < fRunMgr->GetNpropagators()) {
+      Error("EventServer", "Too many worker threads for this configuration.");
+    }
+    fRunMgr->SetInitialShare(fNbasketsInit/fRunMgr->GetNpropagators());
+    for (int evt=fNactiveMax; evt<fNevents; ++evt)
+      nactivep += fEvents[evt]->GetNprimaries();
+    fRunMgr->SetNprimaries(nactivep);
+  }
   return ntracks;
 }
 
@@ -180,6 +200,10 @@ int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks)
     if (!track) break;
     tracks.AddTrack(*track);
     ndispatched++;
+  }
+  if (fInitialPhase) {
+    int nserved = fNserved.fetch_add(1) + 1;
+    if (nserved >= fNbasketsInit) fInitialPhase = false;
   }
   return ndispatched;
 }

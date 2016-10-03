@@ -78,6 +78,7 @@ public:
   VolumePath_t *fPath;   /** Volume path for the thread */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
   GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
+  GeantBasket *fImported;/** Basket used to import tracks from the event server */
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
 #else

@@ -46,6 +46,7 @@ private:
   int fNprimaries   = 0;          /** Total number of primaries in the run */
   int fNbuff        = 0;          /** Number of event slots per propagator */
   int fNfeedProp    = 0;          /** Number of propagators with initial feed */
+  int fInitialShare = 0;          /** Initial basket share for each propagator */
   GeantConfig *fConfig = nullptr; /** Run configuration */
   TaskBroker *fBroker = nullptr;  /** Task broker */
 
@@ -102,7 +103,16 @@ public:
   vector_t<Volume_t const *> &GetVolumes() { return fVolumes; }
 
   GEANT_FORCE_INLINE
-  int  GetNprimaries() { return fNprimaries; }
+  int  GetNprimaries() const { return fNprimaries; }
+
+  GEANT_FORCE_INLINE
+  void  SetNprimaries(int nprim) { fNprimaries = nprim; }
+
+  GEANT_FORCE_INLINE
+  int  GetInitialShare() const { return fInitialShare; }
+
+  GEANT_FORCE_INLINE
+  void  SetInitialShare(int nbaskets) { fInitialShare = nbaskets; }
 
   GEANT_FORCE_INLINE
   std::atomic_int &GetPriorityEvents() { return fPriorityEvents; }

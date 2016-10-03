@@ -36,7 +36,9 @@ class GeantEventServer
 private:
   int fNevents = 0;                    /** Number of events to be filled */
   int fNactiveMax = 0;                 /** Maximum number of active events */
+  int fNbasketsInit = 0;               /** Initial number of baskets to be served */
   std::atomic_int fNactive;            /** Number of deployed events */
+  std::atomic_int fNserved;            /** Number of baskets served */
   std::atomic_int fLastActive;         /** Last activated event */
   std::atomic_int fCurrentEvent;       /** Current event being served */
   std::atomic_int fNload;              /** Last load event in the server */
@@ -46,7 +48,9 @@ private:
   bool fEventsServed = false;          /** All events served */
   bool fDone = false;                  /** All events transported */
   bool fHasTracks = false;             /** Server has tracks to dispatch */
+  bool fInitialPhase = true;           /** Server in initial dispatch phase */
   GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
+  int  fBindex = 0;                    /** Basket manager index */
 
 protected:
   GeantTrack *GetNextTrack();
@@ -58,6 +62,9 @@ public:
 // Accessors
   GEANT_FORCE_INLINE
   int  GetNevents() const { return fNevents; }
+
+  GEANT_FORCE_INLINE
+  int  GetNbasketsInit() const { return fNbasketsInit; }
 
   GEANT_FORCE_INLINE
   int  GetNactiveMax() const { return fNactiveMax; }
@@ -75,7 +82,13 @@ public:
   GeantEvent *GetEvent(int i) { return fEvents[i]; }
 
   GEANT_FORCE_INLINE
+  int GetBindex() { return fBindex; }
+
+  GEANT_FORCE_INLINE
   bool HasTracks() const { return fHasTracks; }
+
+  GEANT_FORCE_INLINE
+  bool IsInitialPhase() const { return fInitialPhase; }
 
   int FillBasket(GeantTrack_v &tracks, int ntracks);
   
