@@ -4,7 +4,7 @@
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file PhysicsProcess.h
+ * @file PhysicsProcessOld.h
  * @brief Definition of physical processes used in Geant-V prototype
  * @details Toy physics processes for our propagator prototype.
  * Currently including:
@@ -28,7 +28,7 @@
 /**
  * @brief Class describing physics processes
  */
-class PhysicsProcess {
+class PhysicsProcessOld {
 
 public:
   using GeantTrack_v = Geant::GeantTrack_v;
@@ -50,16 +50,16 @@ public:
   /**
    * @brief PhysicsProcess constructor
    */
-  PhysicsProcess() {}
+  PhysicsProcessOld() {}
   /**
    * @brief PhysicsProcess parametrized constructor
    *
    * @param name Name of physics process
    */
-  PhysicsProcess(const char *name) : fName(name) {}
+  PhysicsProcessOld(const char *name) : fName(name) {}
 
   /** @brief PhysicsProcess destructor */
-  virtual ~PhysicsProcess();
+  virtual ~PhysicsProcessOld();
 
 
   /** @brief Record type information */

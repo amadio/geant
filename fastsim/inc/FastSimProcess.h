@@ -7,7 +7,7 @@
  * This example is based on the Geant4 fast simulation extended example:
  *   examples/extended/parameterisations/Par02/
  * which, in turn, is based on a simplified version of a Geant4-based
- * fast simulation application written by Anna Zaborowska for 
+ * fast simulation application written by Anna Zaborowska for
  * Future Circular Collider (FCC) studies.
  *
  * This example shows how to do "track and energy smearing", in order
@@ -22,8 +22,8 @@
  * at the entrance of the HCAL, with a deposited energy obtained by gaussian
  * smearing of its kinetic energy.
  *
- * This class interfaces with the GeantV kernel, while the actual 
- * fast simulation work is delegated to the class Smearer. 
+ * This class interfaces with the GeantV kernel, while the actual
+ * fast simulation work is delegated to the class Smearer.
  *
  * @author Mihaly Novak & Alberto Ribon (Apr 2016)
  */
@@ -35,7 +35,7 @@
 #include "Geant/Config.h"
 
 #ifndef GEANT_PHYSICSPROCESS
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 #endif
 
 #include "base/Global.h"
@@ -50,7 +50,7 @@ class Smearer;
 /**
  * @brief Class FastSimProcess
  */
-class FastSimProcess : public PhysicsProcess {
+class FastSimProcess : public PhysicsProcessOld {
 
   public:
 
@@ -72,7 +72,7 @@ class FastSimProcess : public PhysicsProcess {
      *  We also set  tracks.fEindexV[i]  to the value "1000" in order to treat
      *  the fast simulation as a continuous & discrete process.
      */
-    virtual void ComputeIntLen( Material_t *mat, int ntracks, GeantTrack_v &tracks, 
+    virtual void ComputeIntLen( Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                 double *lengths, GeantTaskData *td );
 
     /** @brief This method does the "continuous" part of the fast simulation
@@ -86,12 +86,12 @@ class FastSimProcess : public PhysicsProcess {
                         GeantTaskData *td );
 
     /** @brief Dummy method */
-    virtual void PostStep( Material_t * /* mat */, int /* ntracks */, 
-                           GeantTrack_v & /* tracks */, int & /* nout */, 
+    virtual void PostStep( Material_t * /* mat */, int /* ntracks */,
+                           GeantTrack_v & /* tracks */, int & /* nout */,
                            GeantTaskData * /* td */ ) {}
 
     /** @brief First part of PostStep: not used for fast simulation. */
-    virtual void PostStepTypeOfIntrActSampling( Material_t *mat, int ntracks, 
+    virtual void PostStepTypeOfIntrActSampling( Material_t *mat, int ntracks,
                                                 GeantTrack_v &tracks, GeantTaskData *td );
 
     /** @brief Second part of PostStep: discrete part of the fast simulation
@@ -106,12 +106,12 @@ class FastSimProcess : public PhysicsProcess {
     virtual void PostStepFinalStateSampling( Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                              int &nout, GeantTaskData *td );
 
-    /** @brief FastSim at rest: not used, assumed only discrete & continuous. */ 
-    virtual void AtRest( int /* ntracks */, GeantTrack_v & /*tracks*/ , int & /* nout */, 
+    /** @brief FastSim at rest: not used, assumed only discrete & continuous. */
+    virtual void AtRest( int /* ntracks */, GeantTrack_v & /*tracks*/ , int & /* nout */,
                          GeantTaskData * /* td */ ) {};
 
     /** @brief FastSim does nothing for multiple scattering. */
-    virtual void ApplyMsc( Material_t * /* mat */, int /* ntracks */, 
+    virtual void ApplyMsc( Material_t * /* mat */, int /* ntracks */,
                            GeantTrack_v & /* tracks */, GeantTaskData * /* td */ ) {};
 
   private:

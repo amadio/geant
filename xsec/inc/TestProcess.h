@@ -6,7 +6,7 @@
 #include "Geant/Config.h"
 
 #ifndef GEANT_PHYSICSPROCESS
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 #endif
 
 #include "base/Global.h"
@@ -15,7 +15,7 @@
 #include "GeantFwd.h"
 
 
-class TestProcess : public PhysicsProcess {
+class TestProcess : public PhysicsProcessOld {
   public:
 
     using GeantTrack = Geant::GeantTrack;
@@ -34,7 +34,7 @@ class TestProcess : public PhysicsProcess {
 
     // sampling: target atom and type of the interaction for each primary tracks;
     //           all inf. regarding sampling output is stored in the tracks
-    virtual void PostStepTypeOfIntrActSampling( Material_t *mat, int ntracks, GeantTrack_v &tracks, 
+    virtual void PostStepTypeOfIntrActSampling( Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                                 GeantTaskData *td );
 
     // sampling final states for each primary tracks based on target atom and

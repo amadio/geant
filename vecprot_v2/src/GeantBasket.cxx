@@ -5,7 +5,7 @@
 #include "GeantPropagator.h"
 #include "GeantScheduler.h"
 #include "GeantTaskData.h"
-#include "PhysicsProcess.h"
+//#include "PhysicsProcessOld.h"
 #include "WorkloadManager.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #else
@@ -127,7 +127,7 @@ void GeantBasket::SetThreshold(int threshold) {
 GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
 #ifdef USE_ROOT
   : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
-#else 
+#else
   : fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
 #endif
     fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),

@@ -21,14 +21,14 @@ using std::string;
 
 //______________________________________________________________________________
 TTabPhysProcess::TTabPhysProcess()
-  : PhysicsProcess(), fMgr(0), fXsecFileName(), fFinalSFileName() {
+  : PhysicsProcessOld(), fMgr(0), fXsecFileName(), fFinalSFileName() {
   // I/O ctor
   SetType(kDiscrete);
 }
 
 //______________________________________________________________________________
 TTabPhysProcess::TTabPhysProcess(const char *name, const char *fxsec, const char *ffstate)
-    : PhysicsProcess(name), fMgr(0), fXsecFileName(fxsec), fFinalSFileName(ffstate) {
+    : PhysicsProcessOld(name), fMgr(0), fXsecFileName(fxsec), fFinalSFileName(ffstate) {
   // Normal ctor
   SetType(kDiscrete);
 }

@@ -31,7 +31,7 @@ class TStopwatch;
 #endif
 #include "base/BitSet.h"
 using veccore::BitSet;
-class PhysicsProcess;
+class PhysicsProcessOld;
 class PhysicsInterface;
 class GeantEvent;
 class GeantBasket;
@@ -131,8 +131,8 @@ public:
   vecgeom::Stopwatch *fTimer; /** Timer */
   #endif
 
-  PhysicsProcess   *fProcess;              /** For now the only generic process pointing to the tabulated physics */
-  PhysicsProcess   *fVectorPhysicsProcess; /** interface to vector physics final state sampling */
+  PhysicsProcessOld   *fProcess;              /** For now the only generic process pointing to the tabulated physics */
+  PhysicsProcessOld   *fVectorPhysicsProcess; /** interface to vector physics final state sampling */
   PhysicsInterface *fPhysicsInterface;     /** The new, real physics interface */
 
   //   PhysicsProcess **fProcesses; //![fNprocesses] Array of processes
@@ -274,7 +274,7 @@ public:
    * @brief Getter for the process
    * @return  Generic process pointing to the tabulated physics
    */
-  PhysicsProcess *Process() const { return fProcess; }
+  PhysicsProcessOld *Process() const { return fProcess; }
 
   /**
    * @brief Setter for the real physics interface

@@ -7,7 +7,7 @@
 #include "Geant/Config.h"
 
 #ifndef GEANT_PHYSICSPROCESS
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 #endif
 
 #include "base/Global.h"
@@ -17,7 +17,7 @@
 class TTabPhysMgr;
 
 //______________________________________________________________________________
-class TTabPhysProcess : public PhysicsProcess {
+class TTabPhysProcess : public PhysicsProcessOld {
 private:
   TTabPhysMgr *fMgr;       //! Tabulated physics manager
   std::string fXsecFileName;   // Name of Xsec file

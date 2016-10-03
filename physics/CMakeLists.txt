@@ -1,10 +1,10 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources management/src/*.cxx material/src/*.cxx particle/src/*.cxx particle/src/generated/*.cxx)
-file(GLOB headers management/inc/*.h material/inc/*.h particle/inc/*.h)
+file(GLOB sources particle/src/*.cxx particle/src/generated/*.cxx)
+file(GLOB headers particle/inc/*.h)
 
-include_directories(management/inc material/inc particle/inc)
+include_directories(particle/inc)
 
 set(_extraLibs "")
 
@@ -16,7 +16,7 @@ endif()
 
 add_library(NewPhysics SHARED ${sources})
 
-target_link_libraries(NewPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} 
+target_link_libraries(NewPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
      ${_extra_libs} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBS})
 
 add_headers("${headers}")
@@ -29,7 +29,7 @@ if (CUDA)
   foreach(SRC_FILE ${sources})
     if (NOT "${SRC_FILE}" MATCHES "Dict.cxx$")
       get_filename_component(SRC_FILENAME ${SRC_FILE} NAME_WE)
-      
+
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
         COMMAND ${CMAKE_COMMAND} -E copy ${SRC_FILE}
@@ -42,13 +42,13 @@ if (CUDA)
 	)
     endif()
   endforeach()
-  
+
   cuda_add_library(NewPhysicsCuda
     ${SRC_CUDA}
     SHARED
     OPTIONS ${CUDA_ARCH}
     )
-  
+
   cuda_add_library_depend(NewPhysicsCuda ${VECGEOM_CUDA_STATIC_LIBRARY} )
   target_link_libraries(NewPhysicsCuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
 endif()
@@ -56,14 +56,14 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Install the files
 #
-if(APPLE) 
+if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS NewPhysics DESTINATION lib)
 endif()
 if(USE_ROOT)
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics.rootmap 
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics.rootmap
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libNewPhysics_rdict.pcm DESTINATION lib)
 endif()
 
@@ -74,5 +74,3 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
   set(DOXYFILE_CITE_BIB_FILES "${DOXYFILE_CITE_BIB_FILES} ${CMANE_CURRENT_SOURCE_DIR}/doc/biblio" PARENT_SCOPE)
 endif()
-
-

@@ -17,7 +17,7 @@
 #include "GeantOutput.h"
 #include "GeantTaskData.h"
 #include "PhysicsInterface.h"
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
 #include "GeantVApplication.h"

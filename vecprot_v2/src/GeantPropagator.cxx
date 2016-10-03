@@ -48,7 +48,7 @@
 #include "Geant/Error.h"
 #include "GeantTrackVec.h"
 #include "PhysicsInterface.h"
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 #include "WorkloadManager.h"
 #include "GeantBasket.h"
 #include "GeantTaskData.h"

@@ -3,7 +3,7 @@
 // - energy loss as continuous process
 // - generic interaction as discrete process, producing secondaries
 
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 
 // pin virtual table.
-PhysicsProcess::~PhysicsProcess() {}
+PhysicsProcessOld::~PhysicsProcessOld() {}

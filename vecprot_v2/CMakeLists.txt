@@ -29,7 +29,7 @@ set(sources
    src/GeantEvent.cxx
    src/GeantScheduler.cxx
    src/PhysicsInterface.cxx
-   src/PhysicsProcess.cxx
+   src/PhysicsProcessOld.cxx
    src/WorkloadManager.cxx
    src/GeantVApplication.cxx
    src/GeantFactoryStore.cxx
@@ -48,7 +48,7 @@ set(headers
    ../base/inc/Geant/Error.h
    inc/GeantTaskData.h
    inc/PhysicsInterface.h
-   inc/PhysicsProcess.h
+   inc/PhysicsProcessOld.h
    inc/GeantBasket.h
    inc/GeantPropagator.h
    inc/GeantTrack.h
@@ -58,8 +58,8 @@ set(headers
    inc/GeantVApplication.h
    inc/GeantTrackStat.h
    inc/MyHit.h
-   inc/GeantFactory.h 
-   inc/StdApplication.h 
+   inc/GeantFactory.h
+   inc/StdApplication.h
    inc/PrimaryGenerator.h
    inc/TThreadMergingFile.h
    inc/TThreadMergingServer.h
@@ -68,7 +68,7 @@ set(headers
    inc/LocalityManager.h
    inc/MCTruthMgr.h
    inc/cuckoohash_map.hh
-)   
+)
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
    set(sources ${sources} src/ScalarNavInterfaceTGeo.cxx)
@@ -76,14 +76,14 @@ if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
 endif()
 
 if(USE_VECGEOM_NAVIGATOR)
-  set(sources ${sources} 
-    src/ScalarNavInterfaceVG.cxx 
+  set(sources ${sources}
+    src/ScalarNavInterfaceVG.cxx
     src/ScalarNavInterfaceVGM.cxx
     src/VectorNavInterface.cxx
     )
 
-  set(headers ${headers} 
-    inc/ScalarNavInterfaceVG.h 
+  set(headers ${headers}
+    inc/ScalarNavInterfaceVG.h
     inc/ScalarNavInterfaceVGM.h
     inc/VectorNavInterface.h
     )
@@ -111,10 +111,10 @@ else()
   endif()
   add_library(Geant_v SHARED ${sources})
   target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} )
-  
+
   if( VECGEOM_FOUND )
     target_link_libraries(Geant_v ${VC_LIBRARIES})
-    
+
     if (VECGEOM_GEANT4)
       include(${Geant4_USE_FILE})
       include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
@@ -127,7 +127,7 @@ else()
 #
    add_custom_target(Geantlib_v DEPENDS Geant_v)
    add_dependencies(Geantlib_v GeantNuma)
-   
+
   if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
     install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
@@ -138,9 +138,9 @@ else()
     install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v.rootmap
       ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeant_v_rdict.pcm DESTINATION lib)
   endif()
-    
+
 endif()
-  
+
 #----------------------------------------------------------------------------------------------
 # Build executables
 #
@@ -152,7 +152,7 @@ set(TEST_EXECUTABLES
 
 if(USE_ROOT)
   set(TEST_EXECUTABLES
-    ${TEST_EXECUTABLES} 
+    ${TEST_EXECUTABLES}
     testLocality.cc
     )
 endif()
