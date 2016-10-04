@@ -9,6 +9,9 @@
 #include "GeantTaskData.h"
 #include "GeantEventServer.h"
 #include "GeantConfig.h"
+#ifdef USE_ROOT
+#include "TGeoExtension.h"
+#endif
 
 using namespace veccore;
 
@@ -27,9 +30,18 @@ class PrimaryGenerator;
 class MCTruthMgr;
 
 // Volume-basket manager connector structure attached to volumes as extension
-struct VBconnector {
+#ifdef USE_ROOT
+class VBconnector : public TGeoExtension {
+#else
+class VBconnector {
+#endif
+public:
   int index;                      /** Index of basket manager */
   VBconnector(int i) : index(i) {}
+ #ifdef USE_ROOT
+  virtual TGeoExtension *Grab() { return this; }
+  virtual void Release() const {}
+ #endif 
 };
 
 class GeantRunManager

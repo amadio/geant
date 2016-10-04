@@ -110,8 +110,8 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
-  TGeoNode *node = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
-  vol = node->GetVolume();
+  TGeoNode *geonode = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
+  vol = geonode->GetVolume();
   VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
   startpath->InitFromNavigator(nav);
 #endif
@@ -135,14 +135,12 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   VolumePath_t::ReleaseInstance(startpath);
   // Update number of stored events
   fNstored++;
-  Print("AddEvent", "Server imported event %d having %d tracks", evt, ntracks);
   if (fNstored.load() == fNevents) {
     int nactivep = 0;
     for (int evt=0; evt<fNactiveMax; ++evt)
       nactivep += fEvents[evt]->GetNprimaries();
     // Initial basket share per propagator: nactivep/nperbasket
     fNbasketsInit = nactivep/(fRunMgr->GetConfig()->fNperBasket);
-    Print("EventServer", "Initial baskets to be split among propagators: %d", fNbasketsInit);
     if (fNbasketsInit < fRunMgr->GetNpropagators()) {
       Error("EventServer", "Too many worker threads for this configuration.");
     }
@@ -150,6 +148,8 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
     for (int evt=fNactiveMax; evt<fNevents; ++evt)
       nactivep += fEvents[evt]->GetNprimaries();
     fRunMgr->SetNprimaries(nactivep);
+    Print("AddEvent", "Server imported %d events cumulating %d primaries", fNevents, nactivep);
+    Print("EventServer", "Initial baskets to be split among propagators: %d", fNbasketsInit);
   }
   return ntracks;
 }

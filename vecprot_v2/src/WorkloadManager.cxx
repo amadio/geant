@@ -759,7 +759,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   prioritizer->SetFeederQueue(feederQ);
 
   // Start the feeder for this propagator
-  while (runmgr->GetFedPropagator() != propagator)
+//  while (runmgr->GetFedPropagator() != propagator)
 //    runmgr->Feeder(td);
 #ifndef USE_VECGEOM_NAVIGATOR
   // Create navigator in ROOT case if none serving this thread.
