@@ -20,13 +20,13 @@ tbb::task* FeederTask::execute ()
   GeantRunManager *runmgr = prop->fRunMgr;
   int ninjected = 0;
   if (fStarting) {
-    while (runmgr->GetFedPropagator() != prop) {
-      int nb0 = runmgr->Feeder(fTd);
-      if (nb0 > 0) ninjected += nb0;
-    }
+//    while (runmgr->GetFedPropagator() != prop) {
+//      int nb0 = runmgr->Feeder(fTd);
+//      if (nb0 > 0) ninjected += nb0;
+//    }
     if (!ninjected) prop->fWMgr->GetScheduler()->GarbageCollect(fTd, true);
   } else {    
-    ninjected = runmgr->Feeder(fTd);
+//    ninjected = runmgr->Feeder(fTd);
   }
   
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();

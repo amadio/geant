@@ -88,13 +88,11 @@ GeantPropagator::~GeantPropagator() {
 //______________________________________________________________________________
 int GeantPropagator::AddTrack(GeantTrack &track) {
   // Add a new track in the system. returns track number within the event.
-  int slot = track.fEvslot;
-  track.fParticle = fRunMgr->GetEvent(slot)->AddTrack();
+  track.fParticle = fRunMgr->GetEvent(track.fEvent)->AddTrack();
   
   // call MCTruth manager if it has been instantiated
   if(fTruthMgr) fTruthMgr->AddTrack(track);
-
-  //   fNtracks[slot]++;
+  
   fNtransported++;
   return track.fParticle;
 }
@@ -122,7 +120,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
     }
   
-  if (fRunMgr->GetEvent(tracks.fEvslotV[itr])->StopTrack(fRunMgr)) {
+  if (fRunMgr->GetEvent(tracks.fEventV[itr])->StopTrack(fRunMgr)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
   }

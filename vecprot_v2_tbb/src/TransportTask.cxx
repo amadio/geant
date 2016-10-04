@@ -149,7 +149,7 @@ tbb::task* TransportTask::execute ()
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if ((nbaskets < 1) && (!runmgr->IsFeeding(propagator))) {
+    if ((nbaskets < 1) /*&& (!runmgr->IsFeeding(propagator))*/) {
       sch->GarbageCollect(td);
      ngcoll++;
     }

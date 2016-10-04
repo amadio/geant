@@ -24,7 +24,7 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   int ndone = fNdone.fetch_add(1) + 1;
   int ntracks = fNtracks.load();
   int ninflight = ntracks - ndone;
-  if ((ntracks>0) && (ninflight==0)) {
+  if ((ndone>=fNprimaries) && (ninflight==0)) {
     fTransported = true;
     // Notify run manager that event is transported
     runmgr->EventTransported(fEvent);

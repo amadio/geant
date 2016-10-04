@@ -260,7 +260,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     fNstvol[ivol]++;
     long nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
-    if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
+    if (propagator->fRunMgr->GetEvent(tracks.fEventV[itr])->IsPrioritized()) {
       ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, true, td);
       continue;
     }

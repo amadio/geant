@@ -52,7 +52,6 @@ GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthread
                                  GeantConfig *config) 
   : fInitialized(false), fNpropagators(npropagators), fNthreads(nthreads),
     fConfig(config) {
-  fFeederLock.clear();
   fPriorityEvents.store(0);
   fTaskId.store(0);
 }
@@ -97,9 +96,6 @@ bool GeantRunManager::Initialize() {
     return false;
   }
 
-  fEvents = new GeantEvent *[fConfig->fNbuff];
-  memset(fEvents, 0, fConfig->fNbuff * sizeof(GeantEvent *));
-
 //  fPrimaryGenerator->InitPrimaryGenerator();
   
   for (auto i=0; i<fNpropagators; ++i) {
@@ -115,7 +111,6 @@ bool GeantRunManager::Initialize() {
     prop->fVectorPhysicsProcess = fVectorPhysicsProcess;
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr = fTruthMgr;
-    prop->fEvents = fEvents;
   }
   
 //#ifndef VECCORE_CUDA
@@ -147,9 +142,6 @@ bool GeantRunManager::Initialize() {
   if (fConfig->fUseRungeKutta) {
     PrepareRkIntegration();
   }
-
-  fNtracks = new int[fConfig->fNbuff];
-  memset(fNtracks, 0, fConfig->fNbuff * sizeof(int));
 
   int nthreads = GetNthreadsTotal();
   fTaskData = new GeantTaskData *[nthreads];
@@ -194,11 +186,6 @@ GeantRunManager::~GeantRunManager() {
   delete fVectorPhysicsProcess;
   delete fApplication;
   delete fTaskMgr;
-  if (fEvents) {
-    for (auto i = 0; i < fConfig->fNbuff; i++)
-      delete fEvents[i];
-    delete[] fEvents;
-  }
 
   if (fTaskData) {
     for (auto i = 0; i < fNthreads; i++)
@@ -345,60 +332,13 @@ void GeantRunManager::PrepareRkIntegration() {
   }
 }
 
-//______________________________________________________________________________
-int GeantRunManager::Feeder(GeantTaskData *td) {
-  // Feeder called by any thread to inject the next event(s)
-  // Only one thread at a time
-  if (fFeederLock.test_and_set(std::memory_order_acquire))
-    return -1;
-  // Avoid giving slots to the same propagator in the initial phase
-  if (fConfig->fLastEvent < fConfig->fNbuff) {
-    if (td->fPropagator->fInitialFeed && fNfeedProp < fNpropagators) {
-      fFeederLock.clear(std::memory_order_release);
-      return -2;
-    }
-  }
-  
-  fFedPropagator = td->fPropagator;
-  int nbaskets = 0;
-  // Not all event slots distributed
-  if (fConfig->fLastEvent < fConfig->fNbuff && fConfig->fLastEvent < fConfig->fNtotal) {
-    int nevents = Math::Min<int>(fNbuff, fConfig->fNtotal - fConfig->fLastEvent);
-    nbaskets = ImportTracks(nevents, fConfig->fLastEvent, fConfig->fLastEvent, td);
-    fConfig->fLastEvent += nevents;
-    if (!td->fPropagator->fInitialFeed) {
-      td->fPropagator->fInitialFeed = true;
-      fNfeedProp++;
-    }
-    fFeederLock.clear(std::memory_order_release);
-    return nbaskets;
-  }
-  int maxslot = Math::Min<int>(fConfig->fNbuff, fConfig->fNtotal);
-  // Check and mark finished events
-  for (int islot = 0; islot < maxslot; islot++) {
-    GeantEvent *evt = fEvents[islot];
-    if (fDoneEvents->TestBitNumber(evt->GetEvent()))
-      continue;
-    if (evt->Transported()) {
-      EventTransported(evt->GetEvent());
-      if (fConfig->fLastEvent < fConfig->fNtotal) {
-      Info("Feeder", "  => Propagator %p importing event %d", td->fPropagator, fConfig->fLastEvent);
-        nbaskets += ImportTracks(1, fConfig->fLastEvent, islot, td);
-        fConfig->fLastEvent++;
-      }
-    }
-  }
-
-  fFeederLock.clear(std::memory_order_release);
-  return nbaskets;
-}
 
 //______________________________________________________________________________
 void GeantRunManager::EventTransported(int evt)
 {
 // Actions executed after an event is transported.
-  // Activate new event in the event server.
-  fEventServer->ActivateEvents();
+  // Signal completion of one event to the event server
+  fEventServer->CompletedEvent(evt);
   // Adjust number of prioritized events
   GeantEvent *event = fEventServer->GetEvent(evt);
   if (event->IsPrioritized()) fPriorityEvents--;
@@ -406,7 +346,7 @@ void GeantRunManager::EventTransported(int evt)
   if(fTruthMgr) fTruthMgr->CloseEvent(evt);
   event->Print();
   // Digitizer (todo)
-  Info("Feeder", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
+  Info("EventTransported", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
   //            propagator->fApplication->Digitize(evt->GetEvent());
   fDoneEvents->SetBitNumber(evt);
 }  
@@ -422,91 +362,6 @@ int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)
   }
   // if (nshared) Printf("Propagator %p stole %d baskets", prop, nshared); 
   return nshared;
-}
-
-//______________________________________________________________________________
-int GeantRunManager::ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *thread_data) {
-// Import tracks from "somewhere". Here we just generate nevents.
-
-#ifdef USE_VECGEOM_NAVIGATOR
-  using vecgeom::SimpleNavigator;
-  using vecgeom::Vector3D;
-  using vecgeom::Precision;
-  using vecgeom::GeoManager;
-#endif
-
-  GeantPropagator *prop = thread_data->fPropagator;
-  Volume_t *vol = 0;
-  int ntracks = 0;
-  int ntotal = 0;
-  int ndispatched = 0;
-  GeantTaskData *td = thread_data;
-  VolumePath_t *startpath = VolumePath_t::MakeInstance(fConfig->fMaxDepth);
-
-#ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::SimpleNavigator nav;
-#else
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-#endif
-
-  static bool init = true;
-  if (init)
-    init = false;
-  int event = startevent;
-  GeantEventInfo eventinfo;
-  for (int slot = startslot; slot < startslot + nevents; slot++) {
-    eventinfo = fPrimaryGenerator->NextEvent();
-// Set initial track states
-#ifdef USE_VECGEOM_NAVIGATOR
-    startpath->Clear();
-    nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                    Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert), *startpath, true);
-    vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
-#else
-    TGeoNode *node = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
-    vol = node->GetVolume();
-    startpath->InitFromNavigator(nav);
-#endif
-    td->fVolume = vol;
-    ntracks = eventinfo.ntracks;
-    ntotal += ntracks;
-    fNprimaries += ntracks;
-    if (!fEvents[slot])
-      fEvents[slot] = new GeantEvent();
-    fEvents[slot]->SetSlot(slot);
-    fEvents[slot]->SetEvent(event);
-    fEvents[slot]->Reset();
-    // Set priority threshold to non-default value
-    if (fConfig->fPriorityThr > 0)
-      fEvents[slot]->SetPriorityThr(fConfig->fPriorityThr);
-
-    // start new event in MCTruthMgr
-    if(fTruthMgr) fTruthMgr->OpenEvent(fEvents[slot]->GetEvent());
-
-    for (int i = 0; i < ntracks; i++) {
-      GeantTrack &track = td->GetTrack();
-      track.SetPath(startpath);
-      track.SetNextPath(startpath);
-      track.SetEvent(event);
-      track.SetEvslot(slot);
-      fPrimaryGenerator->GetTrack(i, track);
-      if (!track.IsNormalized())
-        track.Print("Not normalized");
-      track.fBoundary = false;
-      track.fStatus = kAlive;
-      prop->AddTrack(track);
-      ndispatched += prop->DispatchTrack(track, thread_data);
-    }
-    event++;
-  }
-
-  VolumePath_t::ReleaseInstance(startpath);
-  int tid = td->fTid;
-  Geant::Print("ImportTracks", "[%d] Propagator %p imported %d tracks from events %d to %d. Dispatched %d baskets.", tid, td->fPropagator, ntotal, startevent,
-               startevent + nevents - 1, ndispatched);
-  return ndispatched;
 }
 
 //______________________________________________________________________________
@@ -547,7 +402,6 @@ void GeantRunManager::RunSimulation() {
   timer.Stop();
   double rtime = timer.Elapsed();
   double ctime = timer.CpuElapsed();
-  long nprimaries = 0;
   long ntransported = 0;
   long nsteps = 0;
   long nsnext = 0;
@@ -557,8 +411,6 @@ void GeantRunManager::RunSimulation() {
   long ncross = 0;
   
   for (auto i=0; i<fNpropagators; ++i) {
-    nprimaries += fPropagators[i]->fNprimaries.load();
-    fNprimaries = nprimaries;
     ntransported += fPropagators[i]->fNtransported.load();
     nsteps += fPropagators[i]->fNsteps.load();
     nsnext += fPropagators[i]->fNsnext.load();
@@ -569,7 +421,7 @@ void GeantRunManager::RunSimulation() {
   }
   Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
-         fNpropagators, fNthreads, nprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, ncross, rtime, ctime);
+         fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, ncross, rtime, ctime);
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");
 #else

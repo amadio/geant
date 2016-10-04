@@ -273,22 +273,20 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr
                                                   GeantPropagator &propagator,
                                                   GeantTaskData &td) {
 
-  if (!prioritizer.HasTracks() && (propagator.fRunMgr->GetNpriority() || propagator.GetNworking() == 1)) {
-    bool didFeeder = propagator.fRunMgr->Feeder(&td) > 0;
+//  if (!prioritizer.HasTracks() && (propagator.fRunMgr->GetNpriority() || propagator.GetNworking() == 1)) {
+//    bool didFeeder = propagator.fRunMgr->Feeder(&td) > 0;
 
-    // Check exit condition
-    if (propagator.fRunMgr->TransportCompleted()) {
-      int nworkers = propagator.fNthreads;
-      for (int i = 0; i < nworkers; i++)
-        FeederQueue()->push_force(0);
-      TransportedQueue()->push_force(0);
-      Stop();
-      //         sched_locker.StartOne(); // signal the scheduler who has to exit
-      //         gbc_locker.StartOne();
-      return FeederResult::kStopProcessing;
-    }
-    if (didFeeder) return FeederResult::kFeederWork;
+  // Check exit condition
+  if (propagator.fRunMgr->TransportCompleted()) {
+    int nworkers = propagator.fNthreads;
+    for (int i = 0; i < nworkers; i++)
+      FeederQueue()->push_force(0);
+    TransportedQueue()->push_force(0);
+    Stop();
+    return FeederResult::kStopProcessing;
   }
+//    if (didFeeder) return FeederResult::kFeederWork;
+//  }
   return FeederResult::kNone;
 }
 
@@ -414,15 +412,10 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   // TGeoBranchArray *crt[500], *nxt[500];
   while (1) {
     // Call the feeder if in priority mode
-/*
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
-    if (feedres == FeederResult::kFeederWork) {
-//       Printf("== Thread %d: feeder for propagator %p is working", tid, propagator);
-       ngcoll = 0;
-    } else if (feedres == FeederResult::kStopProcessing) {
+    if (feedres == FeederResult::kStopProcessing) {
        break;
     }
-*/
     // Collect info about the queue
     nbaskets = feederQ->size_async();
     if (nbaskets > nworkers)
@@ -767,7 +760,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
 
   // Start the feeder for this propagator
   while (runmgr->GetFedPropagator() != propagator)
-    runmgr->Feeder(td);
+//    runmgr->Feeder(td);
 #ifndef USE_VECGEOM_NAVIGATOR
   // Create navigator in ROOT case if none serving this thread.
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -808,7 +801,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     if ((basket = broker->GetBasketForTransport(*td))) {
       ngcoll = 0;
     } else {
-      if (nbaskets < 1  && (!runmgr->IsFeeding(propagator)) ) {
+      if (nbaskets < 1 /* && (!runmgr->IsFeeding(propagator))*/ ) {
         sch->GarbageCollect(td);
         ngcoll++;
       }

@@ -93,7 +93,7 @@ tbb::task* FlowControllerTask::execute ()
     }
   } else {
     // spawn feeder task
-    if (runmgr->IsFeeding(propagator))
+//    if (runmgr->IsFeeding(propagator))
       return SpawnTransportTask(); 
 //    while(runmgr->IsFeeding(propagator))
 //      ;
@@ -102,7 +102,7 @@ tbb::task* FlowControllerTask::execute ()
     //  TransportTask & transportTask = *new(tbb::task::allocate_child()) TransportTask( fTd );
     //  return & transportTask;
     //}
-    return SpawnFeederTask();
+//    return SpawnFeederTask();
   }
   return NULL;
 }

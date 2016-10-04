@@ -7,6 +7,7 @@
 #include "base/BitSet.h"
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
+#include "GeantEventServer.h"
 #include "GeantConfig.h"
 
 using namespace veccore;
@@ -22,7 +23,6 @@ class GeantVApplication;
 class GeantVTaskMgr;
 class GeantEventServer;
 class GeantEvent;
-class GeantEventServer;
 class PrimaryGenerator;
 class MCTruthMgr;
 
@@ -66,10 +66,9 @@ private:
   // State data
   std::atomic_int fPriorityEvents; /** Number of prioritized events */
   std::atomic_int fTaskId; /** Counter providing unique task id's */
-  std::atomic_flag fFeederLock = ATOMIC_FLAG_INIT; /** Atomic flag to protect the particle feeder */
   BitSet *fDoneEvents = nullptr;   /** Array of bits marking done events */
-  int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
-  GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
+//  int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
+//  GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
   GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
   GeantPropagator *fFedPropagator = nullptr; /** Propagator currently being fed */
   std::vector<std::thread> fListThreads; /** Vector of threads */
@@ -124,7 +123,7 @@ public:
   Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
 
   GEANT_FORCE_INLINE
-  GeantEvent *GetEvent(int i) { return fEvents[i]; }
+  GeantEvent *GetEvent(int i) { return fEventServer->GetEvent(i); }
 
   GEANT_FORCE_INLINE
   GeantEventServer *GetEventServer() const { return fEventServer; }
@@ -135,8 +134,8 @@ public:
   GEANT_FORCE_INLINE
   int  GetTaskId() { return (fTaskId.fetch_add(1)); }
 
-  GEANT_FORCE_INLINE
-  int GetNtracks(int islot) const { return fNtracks[islot]; }
+//  GEANT_FORCE_INLINE
+//  int GetNtracks(int islot) const { return fNtracks[islot]; }
   
   GeantPropagator *GetIdlePropagator() const;
 
@@ -176,33 +175,11 @@ public:
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
 
-  /** @brief Feeder for importing tracks */
-  int Feeder(GeantTaskData *td);
-
-  /** @brief Check if transport is feeding with new tracks. */
-  GEANT_FORCE_INLINE
-  bool IsFeeding(GeantPropagator *prop) {
-    bool feeding = fFeederLock.test_and_set(std::memory_order_acquire);
-    if (feeding && fFedPropagator==prop)
-      return true;
-    if (!feeding) fFeederLock.clear(std::memory_order_release);
-    return false;
-  }
-
   /** @brief Check if event is finished */
   bool IsDoneEvent(int ievt) { return fDoneEvents->TestBitNumber(ievt); }
 
   /** @brief Mark an event as finished */
   void SetDoneEvent(int ievt) { fDoneEvents->SetBitNumber(ievt); }
-
-  /** @brief Try to acquire the lock */
-  bool TryLock() { return (fFeederLock.test_and_set(std::memory_order_acquire)); }
-
-  /** @brief Release the lock */
-  void ReleaseLock() { fFeederLock.clear(std::memory_order_release); }
-
-  /** @brief Function for importing tracks */
-  int ImportTracks(int nevents, int startevent, int startslot, GeantTaskData *td);
 
   /** @brief Initialize classes for RK Integration */
   void PrepareRkIntegration();
