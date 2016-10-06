@@ -29,6 +29,7 @@ static int n_threads = 4;
 static int n_track_max = 64;
 static int n_learn_steps = 100000;
 static int n_reuse = 100000;
+static int n_propagators = 1;
 static int max_memory = 4000; /* MB */
 static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
@@ -48,6 +49,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"coprocessor", required_argument, 0, 'r'},
                                   {"tbbmode", required_argument, 0, 'i'},
                                   {"reuse", required_argument, 0, 'u'},
+                                  {"propagators", required_argument, 0, 'p'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -74,7 +76,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:", options, &optidx);
+    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:p:", options, &optidx);
 
     if (c == -1)
       break;
@@ -160,6 +162,10 @@ int main(int argc, char *argv[]) {
 
     case 'u':
       n_reuse = (int)strtol(optarg, NULL, 10);
+      break;
+
+    case 'p':
+      n_propagators = (int)strtol(optarg, NULL, 10);
       break;
 
     default:
@@ -248,7 +254,7 @@ int main(int argc, char *argv[]) {
   //   config->fConcurrentWrite = false;
 
   // Create run manager
-  GeantRunManager *runMgr = new GeantRunManager(1, n_threads, config);
+  GeantRunManager *runMgr = new GeantRunManager(n_propagators, n_threads, config);
   if (broker) runMgr->SetCoprocessorBroker(broker);
   // Create the tab. phys process.
   runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
