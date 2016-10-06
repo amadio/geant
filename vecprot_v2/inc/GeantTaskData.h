@@ -47,6 +47,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantBasketMgr;
 class GeantBasket;
+class GeantTrackGeo_v;
 
 class GeantTaskData {
 public:
@@ -76,6 +77,9 @@ public:
   double *fDblArray;     /** [fSizeDbl] Thread array of doubles */
   GeantTrack fTrack;     /** Track support for this thread */
   VolumePath_t *fPath;   /** Volume path for the thread */
+  VolumePath_t **fPathV;    /** Volume path for the thread */
+  VolumePath_t **fNextpathV; /** Volume path for the thread */
+  GeantTrackGeo_v *fGeoTrack; /** Geometry track SOA */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
   GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
   GeantBasket *fImported;/** Basket used to import tracks from the event server */

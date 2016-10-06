@@ -96,7 +96,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 #if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   // Vector treatment
   // Copy data to SOA and dispatch for vector mode
-  GeantTrackGeo_v &track_geo = td.GeoTrack();
+  GeantTrackGeo_v &track_geo = *td.fGeoTrack;
   track_geo.Clear();
   for (int itr = 0; itr < tracks.size(); itr++) {
     GeantTrack &track = *tracks[itr];
@@ -197,25 +197,29 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
     // Just process all the tracks in scalar mode
     for (auto track : tracks)
       ComputeTransportLengthSingle(*track, td);
-    }
   } else {
     // Copy interesting tracks to SOA and process vectorized.
     // This is overhead but cannot be avoided.
-    GeantTrackGeo_v &track_geo = td.GeoTrack();
+    GeantTrackGeo_v &track_geo = *td->fGeoTrack;
     track_geo.Clear();
+    int i = 0;
     for (auto track : tracks) {
-      if (track->fSafety < track->fPstep)
+      if (track->fSafety < track->fPstep) {
         track_geo.AddTrack(*track);
+        td->fPathV[i] = track->fPath;
+        td->fNextpathV[i] = track->fNextpath;
+        i++;
+      }
     }
     // The vectorized SOA call
     VectorNavInterface::NavFindNextBoundaryAndStep(nsel, track_geo.fPstepV,
                  track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
                  track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
-                 (const VolumePath_t **)track_geo.fPathV, track_geo.fNextpathV,
+                 (const VolumePath_t **)td->fPathV, td->fNextpathV,
                  track_geo.fSnextV, track_geo.fSafetyV, track_geo.fBoundaryV);
   
     // Update original tracks
-    track_geo->UpdateOriginalTracks();
+    track_geo.UpdateOriginalTracks();
     // Update number of calls to geometry (1 vector call + ntail scalar calls)
     td->fNsnext += 1 + ntracks%kMinVecSize;
   }

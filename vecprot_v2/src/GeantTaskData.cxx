@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "GeantBasket.h"
 #include "GeantPropagator.h"
+#include "GeantTrackGeo.h"
 #include "Geant/Typedefs.h"
 
 #ifdef USE_ROOT
@@ -28,6 +29,9 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
+  fPathV = new VolumePath_t*[maxPerBasket];
+  fNextpathV = new VolumePath_t*[maxPerBasket];
+  fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
 //  fRndm = &RNG::Instance();
@@ -56,6 +60,9 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   buffer = GeantTrack::round_up_align(buffer);
 
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
+  fPathV = new VolumePath_t*[maxPerBasket];
+  fNextpathV = new VolumePath_t*[maxPerBasket];
+  fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
   buffer = GeantTrack::round_up_align(buffer);
 
@@ -95,6 +102,8 @@ GeantTaskData::~GeantTaskData()
   delete[] fBoolArray;
   delete[] fDblArray;
   delete[] fIntArray;
+  delete [] fPathV;
+  delete [] fNextpathV;
   delete fRndm;
   VolumePath_t::ReleaseInstance(fPath);
   delete fTransported;
