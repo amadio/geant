@@ -174,11 +174,6 @@ int main(int argc, char *argv[]) {
   }
 
   bool performance = true;   
-#ifdef USE_ROOT
-  TGeoManager::Import(cms_geometry_filename.c_str());
-#else
-
-#endif
 
   TaskBroker *broker = nullptr;
   if (coprocessor) {
@@ -194,6 +189,7 @@ int main(int argc, char *argv[]) {
 
   GeantConfig* config=new GeantConfig();
   
+  config->fGeomFileName = cms_geometry_filename;
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
   // Default value is 1. (0.1 Tesla)
