@@ -746,23 +746,28 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
 
-  // Start the feeder for this propagator
-//  while (runmgr->GetFedPropagator() != propagator)
-//    runmgr->Feeder(td);
+  GeantEventServer *evserv = runmgr->GetEventServer();
+  int bindex = evserv->GetBindex();
+  GeantBasket *bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
+  bserv->SetThreshold(propagator->fConfig->fNperBasket);
+  td->fImported = bserv;
+
 #ifndef USE_VECGEOM_NAVIGATOR
   // Create navigator in ROOT case if none serving this thread.
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
 #endif
+
+  // Activate events in the server
+  evserv->ActivateEvents();
+
   // broker->SetPrioritizer(prioritizer);
   while (1) {
 
     // Call the feeder if in priority mode
     auto feedres = wm->CheckFeederAndExit(*prioritizer, *propagator, *td);
-    if (feedres == FeederResult::kFeederWork) {
-       ngcoll = 0;
-    } else if (feedres == FeederResult::kStopProcessing) {
+    if (feedres == FeederResult::kStopProcessing) {
        break;
     }
 
@@ -789,19 +794,17 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     if ((basket = broker->GetBasketForTransport(*td))) {
       ngcoll = 0;
     } else {
-      if (nbaskets < 1 /* && (!runmgr->IsFeeding(propagator))*/ ) {
+      if (nbaskets < 1 && !evserv->HasTracks() ) {
         sch->GarbageCollect(td);
         ngcoll++;
       }
       // Too many garbage collections - enter priority mode
       if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
         ngcoll = 0;
-        for (int slot = 0; slot < propagator->fNbuff; slot++)
-          if (propagator->fEvents[slot]->Prioritize()) {
-            std::atomic_int &priority_events = runmgr->GetPriorityEvents();
-            priority_events++;
-          }
-        while ((!sch->GarbageCollect(td, true)) && (feederQ->size_async() == 0))
+        while (!sch->GarbageCollect(td, true) &&
+               !feederQ->size_async() &&
+               !prioritizer->HasTracks() &&
+               !evserv->HasTracks())
           ;
       }
       if (wm->FeederQueue()->try_pop(basket)) {
@@ -812,10 +815,22 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
             // We ran something, new basket might be available.
             continue;
          } else {
-            // We have nothing, so let's wait.
-            propagator->fNidle++;
-            wm->FeederQueue()->wait_and_pop(basket);
-            propagator->fNidle--;
+           // Get basket from the generator
+           if (evserv->HasTracks()) {
+           // In the initial phase we distribute a fair share of baskets to all propagators
+             if (!evserv->IsInitialPhase() ||
+                propagator->fNbfeed.load() < runmgr->GetInitialShare()) {
+               ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
+               if (ntotransport) basket = bserv;
+             }
+           }
+           // We have nothing, so let's wait.
+           
+           if (propagator->fCompleted || wm->fStopped)
+             break;
+           propagator->fNidle++;
+           wm->FeederQueue()->wait_and_pop(basket);
+           propagator->fNidle--;
          }
       }
     }
@@ -950,7 +965,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     // This should not happen vey often, just when some threads are highly
     // demoted ant the basket makes it through the whole cycle before being fully released
     while (basket->fNused.load()) ;
-    basket->Recycle(td);
+    if (basket != bserv) basket->Recycle(td);
   }
   // delete prioritizer;
   wm->DoneQueue()->push_force(nullptr);

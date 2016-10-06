@@ -213,6 +213,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
 #else
+    geom->SetMaxThreads(GetNthreadsTotal());
     fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
     TObjArray *lvolumes = geom->GetListOfVolumes();
     fNvolumes = lvolumes->GetEntries();
