@@ -184,6 +184,9 @@ public:
   GEANT_FORCE_INLINE
   void SetMCTruthMgr(MCTruthMgr *mcmgr) { fTruthMgr = mcmgr; } 
 
+  GEANT_FORCE_INLINE
+  MCTruthMgr *GetMCTruthMgr() const { return fTruthMgr; } 
+
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
 

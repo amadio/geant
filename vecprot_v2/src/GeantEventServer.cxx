@@ -10,6 +10,7 @@
 #include "PrimaryGenerator.h"
 #include "GeantTaskData.h"
 #include "GeantBasket.h"
+#include "MCTruthMgr.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/SimpleNavigator.h"
@@ -130,6 +131,7 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
     track.fBoundary = false;
     track.fStatus = kAlive;
     fEvents[evt]->fNfilled++;
+    if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
   }
   // Release path object
   VolumePath_t::ReleaseInstance(startpath);

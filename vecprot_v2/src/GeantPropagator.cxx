@@ -73,7 +73,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantPropagator::GeantPropagator()
-    : fNtransported(0), fNprimaries(0), fNsteps(0), fNsnext(0),
+    : fNtransported(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNidle(0), fNbfeed(0) {
   // Constructor 
 }

@@ -402,7 +402,7 @@ void GeantRunManager::RunSimulation() {
   timer.Stop();
   double rtime = timer.Elapsed();
   double ctime = timer.CpuElapsed();
-  long ntransported = 0;
+  long ntransported = fNprimaries;
   long nsteps = 0;
   long nsnext = 0;
   long nphys = 0;

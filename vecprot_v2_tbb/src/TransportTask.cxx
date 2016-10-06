@@ -102,6 +102,16 @@ tbb::task* TransportTask::execute ()
   GeantBasketMgr *prioritizer = td->fBmgr;
 //  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
 //  prioritizer->SetFeederQueue(feederQ);
+
+  GeantEventServer *evserv = runmgr->GetEventServer();
+  GeantBasket *bserv = td->fImported;
+  if (!bserv) {
+    int bindex = evserv->GetBindex();
+    bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
+    bserv->SetThreshold(propagator->fConfig->fNperBasket);
+    td->fImported = bserv;
+  }
+
   bool forcedStop = false;
   bool multiPropagator = runmgr->GetNpropagators() > 1;
   GeantPropagator *idle = nullptr;
@@ -129,14 +139,17 @@ tbb::task* TransportTask::execute ()
     nav = gGeoManager->AddNavigator();
 #endif
 
-  bool firstTime = true;
+  bool firstTime = true;  
+  // Activate events in the server
+  evserv->ActivateEvents();
+  
   while (1) {
 
     if (runmgr->TransportCompleted())
       break;
 
     // This is a normal transport interruption to force the flow controlling task
-    if (!firstTime && !basket && !prioritizer->HasTracks() && (runmgr->GetNpriority() || propagator->GetNworking() == 1)) {
+    if (!firstTime && !basket && !prioritizer->HasTracks() && !evserv->HasTracks() && (propagator->GetNworking() == 1)) {
       break;
    }
     
@@ -149,20 +162,18 @@ tbb::task* TransportTask::execute ()
       ngcoll = 0;
 
     // Fire garbage collection if starving
-    if ((nbaskets < 1) /*&& (!runmgr->IsFeeding(propagator))*/) {
+    if ((nbaskets < 1) && (!evserv->HasTracks())) {
       sch->GarbageCollect(td);
      ngcoll++;
     }
     // Too many garbage collections - enter priority mode
     if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
       ngcoll = 0;
-      for (int slot = 0; slot < propagator->fNbuff; slot++)
-        if (propagator->fEvents[slot]->Prioritize())
-          (runmgr->GetPriorityEvents())++;
-      while ((!sch->GarbageCollect(td, true)) &&
-             (feederQ->size_async() == 0) &&
-             (!basket) &&
-             (!prioritizer->HasTracks()))
+      while (!sch->GarbageCollect(td, true) &&
+             !feederQ->size_async() &&
+             !basket &&
+             !prioritizer->HasTracks() &&
+             !evserv->HasTracks())
         ;
     }
     // Check if the current basket is reused or we need a new one
@@ -172,7 +183,18 @@ tbb::task* TransportTask::execute ()
         basket = prioritizer->GetBasketForTransport(td);
         ngcoll = 0;
       } else {
-        wm->FeederQueue()->try_pop(basket);
+        // Get basket from the generator
+        if (evserv->HasTracks()) {
+          // In the initial phase we distribute a fair share of baskets to all propagators
+          if (!evserv->IsInitialPhase() ||
+              propagator->fNbfeed.load() < runmgr->GetInitialShare()) {
+            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
+            if (ntotransport) basket = bserv;
+          }
+        }
+        // Try to get from work queue without waiting
+        if (!basket)
+          wm->FeederQueue()->try_pop(basket);
         if (!basket) {
           // Try to steal some work from the run manager
           if (!fStarting && multiPropagator)
@@ -192,7 +214,10 @@ tbb::task* TransportTask::execute ()
     // Check if there is any idle propagator in the run manager
     if (!fStarting && multiPropagator) {
       idle = propagator->fRunMgr->GetIdlePropagator();
-      if (idle) idle->StopTransport();
+      if (idle) {
+        // Try to steal some work from the run manager
+        runmgr->ProvideWorkTo(idle);
+      }
     }
     // Start transporting the basket
     MaybeCleanupBaskets(td,basket);
@@ -351,16 +376,6 @@ tbb::task* TransportTask::execute ()
 //    for (auto itr=0; itr<ntotnext; ++itr)
 //      output.Normalize(itr);
 
-#ifdef BUG_HUNT
-    for (auto itr = 0; itr < ntotnext; ++itr) {
-      bool valid = output.CheckNavConsistency(itr);
-      if (!valid) {
-        valid = true;
-      }
-    }
-    // First breakpoint to be set
-    output.BreakOnStep(propagator->fDebugEvt, propagator->fDebugTrk, propagator->fDebugStp, propagator->fDebugRep, "EndStep");
-#endif
     for (auto itr = 0; itr < ntotnext; ++itr) {
       //output.fNstepsV[itr]++;
       if (output.fStatusV[itr] == kBoundary)
@@ -385,7 +400,7 @@ tbb::task* TransportTask::execute ()
       // Recycle basket, otherwise keep it for the next iteration
       while (basket->fNused.load())
         ;
-      basket->Recycle(td);
+      if (basket != bserv) basket->Recycle(td);
       basket = 0; // signal reusability by non-null pointer
     }
     // Update boundary crossing counter

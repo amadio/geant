@@ -39,13 +39,14 @@ tbb::task* FlowControllerTask::execute ()
   GeantPropagator *propagator = fTd->fPropagator;
   GeantRunManager *runmgr = propagator->fRunMgr;
   WorkloadManager *wm = propagator->fWMgr;
+  bool multiPropagator = runmgr->GetNpropagators() > 1;
 
   //printf("=== %d Flow Controller  ===\n", fTd->fTid);
   if(fStarting) {
-    if (runmgr->GetFedPropagator() == propagator)
+//    if (runmgr->GetFedPropagator() == propagator)
       return SpawnTransportTask(); 
 
-    return SpawnFeederTask();
+//    return SpawnFeederTask();
   }
 
   ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
@@ -59,17 +60,19 @@ tbb::task* FlowControllerTask::execute ()
     //finish tasks
     //tbb::task::destroy(*tbb::task::parent());
     printf("=== Exit thread %d from Flow Controller  ===\n", fTd->fTid);
+    // Stop other idle propagators
+    if (multiPropagator) {
+      GeantPropagator *idle = propagator->fRunMgr->GetIdlePropagator();
+      if (idle) idle->StopTransport();
+    }
     int nworkers = propagator->fNthreads;
     if (!fForcedStop) {
+      // Stop this propagator
       for (int i = 0; i < nworkers; i++)
         wm->FeederQueue()->push(0);
     }
     wm->TransportedQueue()->push(0);
     wm->Stop();
-    //         sched_locker.StartOne(); // signal the scheduler who has to exit
-    //         gbc_locker.StartOne();
-
-    // WP
 #ifdef USE_ROOT
     if (concurrentWrite) {
       file->Write();

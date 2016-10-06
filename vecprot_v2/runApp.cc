@@ -25,7 +25,7 @@
 using namespace Geant;
 
 static int n_events = 50;
-static int n_buffered = 10;
+static int n_buffered = 4;
 static int n_threads = 4;
 static int n_track_max = 500;
 static int n_learn_steps = 0;

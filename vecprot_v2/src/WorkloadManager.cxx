@@ -269,9 +269,9 @@ static inline void MaybeCleanupBaskets(GeantTaskData *td, GeantBasket *basket) {
 
 //______________________________________________________________________________
 /** @brief Call Feeder (if needed) and check exit condition. */
-WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr &prioritizer,
+WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit(GeantBasketMgr &/*prioritizer*/,
                                                   GeantPropagator &propagator,
-                                                  GeantTaskData &td) {
+                                                  GeantTaskData &/*td*/) {
 
 //  if (!prioritizer.HasTracks() && (propagator.fRunMgr->GetNpriority() || propagator.GetNworking() == 1)) {
 //    bool didFeeder = propagator.fRunMgr->Feeder(&td) > 0;
@@ -430,15 +430,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     // Too many garbage collections - enter priority mode
     if ((ngcoll > 5) && (propagator->GetNworking() <= 1)) {
       ngcoll = 0;
-      std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
+      // std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
       // Max number of prioritized events should be configurable
-      if (priority_events.load() < runmgr->GetNthreads()) {
-        for (int slot = 0; slot < propagator->fNbuff; slot++) {
-          if (propagator->fEvents[slot]->Prioritize()) {
-            priority_events++;
-          }
-        }
-      }
        
       while (!sch->GarbageCollect(td, true) &&
              !feederQ->size_async() &&
@@ -623,11 +616,6 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         //         the track vector, update primary tracks;
         propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 #endif
-
-        if (0 /*ntotnext*/) {
-          Geant::Printf("","============= Basket.");
-          output.PrintTracks();
-        }
       }
     }
     if (propagator->fStdApplication)

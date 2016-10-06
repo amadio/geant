@@ -63,7 +63,6 @@ public:
   int fNbuff = 0;                      /** Number of buffered events */
   int fNtotal = 0;                     /** Total number of events to be transported */
   std::atomic<long> fNtransported;     /** Number of transported tracks */
-  std::atomic<long> fNprimaries;       /** Number of primary tracks */
   std::atomic<long> fNsteps;           /** Total number of steps */
   std::atomic<long> fNsnext;           /** Total number of calls to getting distance to next boundary */
   std::atomic<long> fNphys;            /** Total number of steps to physics processes */
@@ -120,13 +119,6 @@ public:
    */
   GEANT_FORCE_INLINE
   long GetNtransported() const { return fNtransported.load(); }
-
-  /**
-   * @brief Function that returns the number of primary tracks
-   * @return Number of primary tracks
-   */
-  GEANT_FORCE_INLINE
-  long GetNprimaries() const { return fNprimaries.load(); }
 
   /**
    * @brief Function that returns a temporary track object per thread

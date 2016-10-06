@@ -17,7 +17,7 @@ FeederTask::~FeederTask () { }
 tbb::task* FeederTask::execute ()
 {
   GeantPropagator *prop = fTd->fPropagator;
-  GeantRunManager *runmgr = prop->fRunMgr;
+//  GeantRunManager *runmgr = prop->fRunMgr;
   int ninjected = 0;
   if (fStarting) {
 //    while (runmgr->GetFedPropagator() != prop) {
