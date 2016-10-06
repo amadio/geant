@@ -35,6 +35,8 @@ using veccore::BitSet;
 #include "GeantFwd.h"
 #include "GeantConfig.h"
 
+class PhysicsInterface;
+
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -42,7 +44,6 @@ class GeantRunManager;
 class GeantEvent;
 class GeantVApplication;
 class PhysicsProcessOld;
-class PhysicsInterface;
 class GeantBasket;
 class GeantBasketMgr;
 class WorkloadManager;

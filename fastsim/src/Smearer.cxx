@@ -31,7 +31,7 @@
 #include <strings.h>
 
 
-Smearer::Smearer(GeantTaskData *td) {
+Smearer::Smearer(GeantTaskData */*td*/) {
 
   std::cout << "Smearer::Smearer : Start" << std::endl;  // Debug
 

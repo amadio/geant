@@ -14,6 +14,7 @@
 #endif
 
 using namespace veccore;
+class PhysicsInterface;
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -21,7 +22,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class GeantPropagator;
 class TaskBroker;
 class PhysicsProcessOld;
-class PhysicsInterface;
 class GeantVApplication;
 class GeantVTaskMgr;
 class GeantEventServer;
