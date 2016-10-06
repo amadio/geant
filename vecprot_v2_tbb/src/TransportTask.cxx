@@ -22,7 +22,7 @@
 #include "GeantBasket.h"
 #include "GeantScheduler.h"
 #include "GeantOutput.h"
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 #include "GeantVApplication.h"
 #ifndef GEANT_MYHIT
 #include "MyHit.h"
