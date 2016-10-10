@@ -16,11 +16,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
-    : fPropagator(nullptr), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), 
-      fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth), 
+    : fPropagator(nullptr), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
       fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
       fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fTransported1(maxPerBasket), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
 {
   // Constructor
   fNthreads = nthreads;
@@ -50,7 +50,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
       fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
       fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
 {
   // Constructor
   char *buffer = (char*)addr;
@@ -90,7 +90,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 }
 
 //______________________________________________________________________________
-GeantTaskData::~GeantTaskData() 
+GeantTaskData::~GeantTaskData()
 {
 // Destructor
 //  delete fMatrix;
@@ -135,10 +135,10 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
 
 
 #ifndef VECCORE_CUDA
-GeantBasket *GeantTaskData::GetNextBasket() 
+GeantBasket *GeantTaskData::GetNextBasket()
 {
   // Gets next free basket from the queue.
-  if (fPool.empty()) 
+  if (fPool.empty())
     return nullptr;
   GeantBasket *basket = fPool.back();
   //  basket->Clear();
@@ -147,14 +147,14 @@ GeantBasket *GeantTaskData::GetNextBasket()
 }
 
 //______________________________________________________________________________
-void GeantTaskData::RecycleBasket(GeantBasket *b) 
+void GeantTaskData::RecycleBasket(GeantBasket *b)
 {
   // Recycle a basket.
   fPool.push_back(b);
 }
 
 //______________________________________________________________________________
-int GeantTaskData::CleanBaskets(size_t ntoclean) 
+int GeantTaskData::CleanBaskets(size_t ntoclean)
 {
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;

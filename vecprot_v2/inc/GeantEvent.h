@@ -1,12 +1,12 @@
 //===--- GeantEvent.h - Geant-V ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantEvent.h
  * @brief Implementation of event for GeantV prototype
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -45,10 +45,10 @@ public:
 
   /** @brief GeantEvent default constructor */
   GeantEvent() : fNtracks(0), fNdone(0), fNmax(0), fLock(), fNfilled(0), fNdispatched(0) {}
-    
+
   /** @brief GeantEvent destructor */
   ~GeantEvent() {}
-  
+
   /* @brief Function for accounting adding a new track */
   int AddTrack();
 
@@ -66,21 +66,21 @@ public:
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE
   void SetNprimaries(int nprim) { fNprimaries = nprim; fPrimaries.reserve(nprim);}
-  
+
   /**
    * @brief Function that returns the event number
    * @return Event number
-   */  
+   */
   GEANT_FORCE_INLINE
   int GetEvent() const { return fEvent; }
-  
+
   /**
    * @brief Function that returns the number of slot
    * @return Slot number
    */
   GEANT_FORCE_INLINE
   int GetSlot() const { return fSlot; }
-  
+
   /**
    * @brief Function that returns the number of tracks in flight
    * @return Number of tracks in flight
@@ -101,43 +101,43 @@ public:
    */
   GEANT_FORCE_INLINE
   int GetNtracks() const { return fNtracks.load(); }
-  
+
   /**
    * @brief Function that returns the max number of tracks in flight
    * @return Maximum number of tracks in flight
    */
   GEANT_FORCE_INLINE
   int GetNmax() const { return fNmax.load(); }
-  
+
   /**
    * @brief Getter for priority flag
    * @return Priority flag value
    */
   GEANT_FORCE_INLINE
   bool IsPrioritized() const { return fPrioritize; }
-  
+
   /**
    * @brief Getter for priority threshold
    * @return Priority flag value
    */
   GEANT_FORCE_INLINE
   float GetPriorityThr() const { return fPriorityThr; }
-  
+
   /** @brief Setter for priority threshold */
   GEANT_FORCE_INLINE
   void SetPriorityThr(float threshold) { fPriorityThr = threshold; }
 
   /**
    * @brief Function to set the event number
-   * 
+   *
    * @param event Event number to be set
    */
   GEANT_FORCE_INLINE
   void SetEvent(int event) { fEvent = event; }
-  
+
   /**
    * @brief Function to set the slot number
-   * 
+   *
    * @param islot Slot number to be set
    */
   GEANT_FORCE_INLINE
@@ -145,7 +145,7 @@ public:
 
   /** @brief Prioritize the event */
   bool Prioritize();
- 
+
   /** @brief Reset the event */
   void Reset() {
     fNtracks.store(0);
@@ -160,7 +160,7 @@ public:
    */
   GEANT_FORCE_INLINE
   bool Transported() const { return fTransported; }
-  
+
   /**
    * @brief Function to signal that a trach was stopped
    *

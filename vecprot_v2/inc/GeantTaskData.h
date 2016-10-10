@@ -23,6 +23,10 @@
 
 #include "Geant/Typedefs.h"
 
+namespace geantphysics {
+  class PhysicsData;
+}
+
 #ifdef USE_ROOT
 class TRandom;
 #endif
@@ -100,6 +104,8 @@ public:
   int fNpart;            /** Total number of particles transported by the thread */
   int fNsmall;           /** Total number of small steps taken */
   int fNcross;           /** Total number of boundary crossings */
+
+  geantphysics::PhysicsData  *fPhysicsData; /** Physics data per thread */
 
 private:
    // a helper function checking internal arrays and allocating more space if necessary

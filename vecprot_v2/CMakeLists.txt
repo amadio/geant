@@ -1,12 +1,24 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories(
-  inc
-  ../magneticfield/inc
-  ../physics/particle/inc
-  ../numa/inc
-  )
+if (USE_REAL_PHYSICS)
+  include_directories(
+    inc
+    ../magneticfield/inc
+    ../realphysics/dummies/inc
+    ../realphysics/physics/management/inc
+    ../examplesRP/GeantV/ExN03RP/inc
+    ../numa/inc
+    )
+else()
+  include_directories(
+    inc
+    ../magneticfield/inc
+    ../physics/particle/inc
+    ../numa/inc
+    )
+endif()
+
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
@@ -72,7 +84,7 @@ set(headers
    inc/cuckoohash_map.hh
    inc/GeantRunManager.h
    inc/GeantEventServer.h
-)   
+)
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
    set(sources ${sources} src/ScalarNavInterfaceTGeo.cxx)
@@ -148,6 +160,9 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Build executables
 #
+# -------  START == NOT WITH REAL PHYSICS -------------------------------------------------------
+if(NOT (USE_REAL_PHYSICS))
+# -------
 set(TEST_EXECUTABLES
   CMSApp.cc
   runApp.cc
@@ -218,6 +233,66 @@ if(USE_ROOT)
   install(TARGETS testLocality DESTINATION bin)
 endif()
 add_dependencies(runApp Geant_v Xsec GeantExamples)
+# -------  END == NOT WITH REAL PHYSICS -------------------------------------------------------
+else()
+# -------  START == WITH REAL PHYSICS -------------------------------------------------------
+set(TEST_EXECUTABLES
+  runAppRP.cc
+  )
+
+macro(build_executables EXECUTABLES)
+  foreach(EXECUTABLE ${EXECUTABLES})
+    get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
+    add_executable(${TARGET_NAME} ${EXECUTABLE})
+    target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v RealPhysics GeantExamplesRP ${ROOT_LIBRARIES} -lpthread ${VC_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
+    if (USE_TBB)
+      target_link_libraries(${TARGET_NAME} Geant_tbb  ${TBB_LIBS})
+    endif()
+    add_dependencies(${TARGET_NAME} Geant_v RealPhysics GeantExamplesRP GeantNuma)
+    set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
+  endforeach()
+endmacro()
+
+#function(add_to_ctest EXECUTABLES)
+#  foreach(EXECUTABLE ${EXECUTABLES})
+#    if (CTEST)
+#      get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
+#      if(TARGET_NAME STREQUAL "runApp")
+#        if(CUDA)
+#          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root -r true)
+#        else()
+#          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
+#        endif()
+#      elseif(TARGET_NAME STREQUAL "CMSApp")
+#        if(CUDA)
+#          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root -r true)
+#        else()
+#          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
+#        endif()
+#      elseif(TARGET_NAME STREQUAL "testBasketizer")
+#        add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> 8)
+#      elseif(TARGET_NAME STREQUAL "testLocality")
+#        add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> 8 ${CMAKE_SOURCE_DIR}/data/ExN03.root)
+#      else()
+#        add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
+#      endif()
+#    endif()
+#  endforeach()
+#endfunction()
+
+link_directories(${PROJECT_BINARY_DIR}/lib)
+
+build_executables("${TEST_EXECUTABLES}")
+
+if(CTEST)
+  add_to_ctest("${TEST_EXECUTABLES}")
+endif()
+
+install(TARGETS runAppRP DESTINATION bin)
+add_dependencies(runAppRP Geant_v RealPhysics GeantExamplesRP)
+# -------  END == WITH REAL PHYSICS -------------------------------------------------------
+endif()
+
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

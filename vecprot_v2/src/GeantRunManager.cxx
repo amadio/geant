@@ -49,7 +49,7 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthreads,
-                                 GeantConfig *config) 
+                                 GeantConfig *config)
   : fInitialized(false), fNpropagators(npropagators), fNthreads(nthreads),
     fConfig(config) {
   fPriorityEvents.store(0);
@@ -63,7 +63,7 @@ bool GeantRunManager::Initialize() {
     // Autodiscovery mode using NUMA detection
     fNthreads = 1;   // disabled detection for now
   }
-  
+
   if (!fNpropagators) {
     Print("Initialize", "Number of propagators set to 1");
     fNpropagators = 1;
@@ -97,7 +97,7 @@ bool GeantRunManager::Initialize() {
   }
 
 //  fPrimaryGenerator->InitPrimaryGenerator();
-  
+
   for (auto i=0; i<fNpropagators; ++i) {
     GeantPropagator *prop = GeantPropagator::NewInstance(fNthreads);
     fPropagators.push_back(prop);
@@ -112,7 +112,7 @@ bool GeantRunManager::Initialize() {
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr = fTruthMgr;
   }
-  
+
 //#ifndef VECCORE_CUDA
   LoadGeometry(fConfig->fGeomFileName.c_str());
 //#endif
@@ -248,7 +248,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 #endif
   }
   return true;
-}  
+}
 
 //______________________________________________________________________________
 bool GeantRunManager::LoadVecGeomGeometry() {
@@ -348,9 +348,9 @@ void GeantRunManager::EventTransported(int evt)
   event->Print();
   // Digitizer (todo)
   Info("EventTransported", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
-  //            propagator->fApplication->Digitize(evt->GetEvent());
+  //fApplication->Digitize(event);
   fDoneEvents->SetBitNumber(evt);
-}  
+}
 
 //______________________________________________________________________________
 int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)
@@ -361,7 +361,7 @@ int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)
     if (fPropagators[i] == prop) continue;
     nshared += fPropagators[i]->ShareWork(*prop);
   }
-  // if (nshared) Printf("Propagator %p stole %d baskets", prop, nshared); 
+  // if (nshared) Printf("Propagator %p stole %d baskets", prop, nshared);
   return nshared;
 }
 
@@ -410,7 +410,7 @@ void GeantRunManager::RunSimulation() {
   long nmag = 0;
   long nsmall = 0;
   long ncross = 0;
-  
+
   for (auto i=0; i<fNpropagators; ++i) {
     ntransported += fPropagators[i]->fNtransported.load();
     nsteps += fPropagators[i]->fNsteps.load();

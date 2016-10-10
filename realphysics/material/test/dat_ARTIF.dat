@@ -1,0 +1,66 @@
+   Material properties for material : NIST_MAT_Al
+     ---> I(mean excitation neergy) = 166.000000 [eV]
+     ---> Plasma energy             = 32.860000 [eV]
+     ---> Density effect parameters : 
+            Parameter     Cbar  = 4.239500
+            Parameter       X0  = 0.170800
+            Parameter       X1  = 3.012700
+            Parameter        a  = 0.080240
+            Parameter        m  = 3.634500
+            Parameter  delta_0  = 0.120000
+
+   Material properties for material : NIST_MAT_Ar
+     ---> I(mean excitation neergy) = 188.000000 [eV]
+     ---> Plasma energy             = 0.789000 [eV]
+     ---> Density effect parameters : 
+            Parameter     Cbar  = 12.018663
+            Parameter       X0  = 1.778844
+            Parameter       X1  = 4.500844
+            Parameter        a  = 0.197143
+            Parameter        m  = 2.961800
+            Parameter  delta_0  = 0.000000
+
+   Material properties for material : NIST_MAT_Si
+     ---> I(mean excitation neergy) = 173.000000 [eV]
+     ---> Plasma energy             = 31.055000 [eV]
+     ---> Density effect parameters : 
+            Parameter     Cbar  = 4.435100
+            Parameter       X0  = 0.201400
+            Parameter       X1  = 2.871500
+            Parameter        a  = 0.149210
+            Parameter        m  = 3.254600
+            Parameter  delta_0  = 0.140000
+
+   Material properties for material : NIST_MAT_At
+     ---> I(mean excitation neergy) = 825.000000 [eV]
+     ---> Plasma energy             = 55.969807 [eV]
+     ---> Density effect parameters : 
+            Parameter     Cbar  = 6.381142
+            Parameter       X0  = 0.580252
+            Parameter       X1  = 3.000000
+            Parameter        a  = 0.261785
+            Parameter        m  = 3.000000
+            Parameter  delta_0  = 0.000000
+
+   Material properties for material : NIST_MAT_Fr
+     ---> I(mean excitation neergy) = 827.000000 [eV]
+     ---> Plasma energy             = 17.997854 [eV]
+     ---> Density effect parameters : 
+            Parameter     Cbar  = 8.655104
+            Parameter       X0  = 1.321564
+            Parameter       X1  = 3.000000
+            Parameter        a  = 0.543329
+            Parameter        m  = 3.000000
+            Parameter  delta_0  = 0.000000
+
+   Material properties for material : NIST_MAT_WATER
+     ---> I(mean excitation neergy) = 78.000000 [eV]
+     ---> Plasma energy             = 21.469000 [eV]
+     ---> Density effect parameters : 
+            Parameter     Cbar  = 3.501700
+            Parameter       X0  = 0.240000
+            Parameter       X1  = 2.800400
+            Parameter        a  = 0.091151
+            Parameter        m  = 3.477300
+            Parameter  delta_0  = 0.000000
+
