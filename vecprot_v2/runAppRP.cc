@@ -28,7 +28,7 @@
 //using namespace Geant;
 
 static int n_events      = 1;
-static int n_buffered    = 4;
+static int n_buffered    = 1;
 static int n_threads     = 4;
 static int n_track_max   = 500;
 static int n_learn_steps = 0;
@@ -266,6 +266,7 @@ int main(int argc, char *argv[]) {
 
   runMgr->RunSimulation();
 //  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
+  delete runMgr;
   return 0;
 }
 #endif

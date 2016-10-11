@@ -152,6 +152,7 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
     basket_mgr = new GeantBasketMgr(prop,this, vol, icrt);
     basket_mgr->SetThreshold(prop->fConfig->fNperBasket);
     basket_mgr->SetFeederQueue(feeder);
+    if (prop->fConfig->fLearnSteps == 0) basket_mgr->Activate(prop);
     //      Printf("basket %s: %p feeder=%p", basket_mgr->GetName(), basket_mgr,
     //      basket_mgr->GetFeederQueue());
     fBasketMgr[icrt++] = basket_mgr;

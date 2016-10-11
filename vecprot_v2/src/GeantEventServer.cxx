@@ -39,8 +39,10 @@ GeantEventServer::GeantEventServer(int event_capacity, GeantRunManager *runmgr)
   fLastActive.store(-1);
   fNactiveMax = runmgr->GetConfig()->fNbuff;
   fEvents = new GeantEvent*[event_capacity];
-  for (int i=0; i<event_capacity; ++i)
+  for (int i=0; i<event_capacity; ++i) {
     fEvents[i] = new GeantEvent();
+    fEvents[i]->SetPriorityThr(runmgr->GetConfig()->fPriorityThr);
+  }
   // Configure the locality manager if not done already
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {

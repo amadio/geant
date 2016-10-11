@@ -58,7 +58,7 @@ private:
   /** @todo Still not implemented operator = */
   GeantBasket &operator=(const GeantBasket &);
 
-  bool fIsMixed : 1;
+  bool fIsMixed = false;
 
 public:
   /** @brief Default GeantBasket constructor */

@@ -160,6 +160,8 @@ void GeantBasketMgr::Activate(GeantPropagator* prop) {
   if (fCollector) {
     basket->SetMixed(true);
     //    Printf("Created collector basket manager");
+  } else {
+    basket->SetMixed(false);
   }
   fActive = true;
 }

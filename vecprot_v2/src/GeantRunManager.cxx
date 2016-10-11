@@ -183,6 +183,7 @@ GeantRunManager::~GeantRunManager() {
   }
   BitSet::ReleaseInstance(fDoneEvents);
   delete fProcess;
+  delete fPhysicsInterface;
   delete fVectorPhysicsProcess;
   delete fApplication;
   delete fTaskMgr;
