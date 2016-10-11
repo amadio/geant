@@ -2,6 +2,7 @@
 #define PHYSICSPARAMETERS_H
 
 #include <vector>
+#include <iostream>
 
 
 namespace geantphysics {

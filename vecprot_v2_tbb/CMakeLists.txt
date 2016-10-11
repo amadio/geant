@@ -12,8 +12,6 @@ add_library(Geant_tbb SHARED ${SOURCES})
 
 target_link_libraries(Geant_tbb -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v ${TBB_LIBRARIES})
 
-add_dependencies(Xsec Geantlib_v)
-
 # Install library
 install(TARGETS Geant_tbb DESTINATION lib)
 

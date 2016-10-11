@@ -2,6 +2,7 @@
 #define MATERIALCUTS_H
 
 #include <vector>
+#include <iostream>
 
 namespace geantphysics {
 
@@ -48,7 +49,8 @@ public:
 
   const double*   GetProductionCutsInLength() const { return fProductionCutsInLength;}
   const double*   GetProductionCutsInEnergy() const { return fProductionCutsInEnergy;}
-
+  bool            IsProductionCutsGivenInLength() const { return fIsProductionCutsGivenInLength; }
+  
   const Material* GetMaterial() const { return fMaterial; }
   // get a MaterialCuts object pointer by its index
   static const MaterialCuts* GetMaterialCut(int indx);

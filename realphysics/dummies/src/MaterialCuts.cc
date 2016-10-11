@@ -253,7 +253,7 @@ std::ostream& operator<<(std::ostream& flux, const MaterialCuts* matcut) {
   int   regionIndx             = matcut->GetRegionIndex();
   const std::string regionName = vregions[regionIndx]->GetName();
   std::string str = " in length.";
-  if (!matcut->fIsProductionCutsGivenInLength)
+  if (!matcut->IsProductionCutsGivenInLength())
     str = " in energy.";
 
   flux << "\n   Material name      : " << matcut->GetMaterial()->GetName();
