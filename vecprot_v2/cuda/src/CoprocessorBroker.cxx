@@ -24,7 +24,7 @@
 #include "GeantTaskData.h"
 #include "GeantTrack.h"
 #include "GeantVApplication.h"
-#include "PhysicsProcess.h"
+#include "PhysicsProcessOld.h"
 
 using namespace Geant;
 
