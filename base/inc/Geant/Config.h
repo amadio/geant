@@ -93,4 +93,23 @@
 #endif // Device build or not
 #endif // gcc or nvcc
 
+#ifndef VECCORE_CUDA
+
+#define GEANT_DEVICE_DECLARE_CONV(classOrStruct,X)  \
+  namespace Geant {                                 \
+    namespace cuda { classOrStruct X; }             \
+    inline namespace cxx  { classOrStruct X; }      \
+  }                                                 \
+  namespace vecgeom {                               \
+    template <> struct kCudaType<Geant::cxx::X> {   \
+      using type_t = Geant::cuda::X;                \
+    };                                              \
+  } class __QuietSemi
+
+#else
+
+#define VECGEOM_DEVICE_DECLARE_CONV(classOrStruct,X) class __QuietSemi
+
+#endif
+
 #endif
