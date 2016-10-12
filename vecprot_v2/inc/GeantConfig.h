@@ -89,7 +89,11 @@ public:
     fEpsilonRK(0.0003), fUsePhysics(true), fUseRungeKutta(false), fUseDebug(false), fUseGraphics(false), fUseStdScoring(false),
     fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0),
     fMonTracksPerEvent(0), fMonTracks(0), fFillTree(false), fUseMonitoring(false), fUseAppMonitoring(false),
-    fTreeSizeWriteThreshold(100000), fConcurrentWrite(true), fGeomFileName() {};
+    fTreeSizeWriteThreshold(100000), fConcurrentWrite(true)
+#ifndef VECCORE_CUDA
+      , fGeomFileName()
+#endif
+                 {};
 	
   ~GeantConfig() {}
 
