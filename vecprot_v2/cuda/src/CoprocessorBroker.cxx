@@ -255,12 +255,12 @@ void setup(CoprocessorBroker * /* broker */, int /* nphi */ = 4, int /* nz */ = 
 
 namespace Geant {
 namespace cuda {
-void CoprocessorBrokerInitConstant();
+void CoprocessorBrokerInitConstant(GeantConfig* config);
 }
 }
 
 /** @brief Create the baskets for each stream */
-void CoprocessorBroker::CreateBaskets()
+void CoprocessorBroker::CreateBaskets(GeantConfig* config)
 {
   // We must be called after the geometry has been loaded
   // so we can use the proper maximum depth
@@ -277,7 +277,7 @@ void CoprocessorBroker::CreateBaskets()
   cudaDeviceSetLimit(cudaLimitStackSize, 3 * 4096);
 
   // Initialize global constants.
-  Geant::cuda::CoprocessorBrokerInitConstant();
+  Geant::cuda::CoprocessorBrokerInitConstant(config);
 }
 
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)

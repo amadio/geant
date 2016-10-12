@@ -21,6 +21,7 @@ class concurrent_queue;
 
 #include "base/Vector.h"
 
+#include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
 #include "GeantPropagator.h"

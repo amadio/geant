@@ -25,6 +25,8 @@ namespace vecgeom {
   }
 }
 
+class GeantConfig;
+
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -53,7 +55,7 @@ public:
   virtual bool IsSelective() const = 0;
 
   /** @brief Create the baskets for each stream */
-  virtual void CreateBaskets() = 0;
+  virtual void CreateBaskets(GeantConfig *config) = 0;
 
   /** @brief Virtual function that get next stream */
   virtual Stream GetNextStream() = 0;

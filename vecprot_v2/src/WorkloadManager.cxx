@@ -109,7 +109,7 @@ void WorkloadManager::CreateBaskets(GeantPropagator* prop) {
   VolumePath_t::ReleaseInstance(blueprint);
 
   if (fBroker)
-    fBroker->CreateBaskets();
+    fBroker->CreateBaskets(prop->fConfig);
 }
 
 //______________________________________________________________________________

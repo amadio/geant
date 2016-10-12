@@ -5,6 +5,7 @@
 #include <atomic>
 #include "base/Vector.h"
 #include "base/BitSet.h"
+#include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
 #include "GeantEventServer.h"
