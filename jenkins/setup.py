@@ -181,6 +181,7 @@ def directory_names():
 
    Flag = False
    subFlagbins = False
+   subFlaglibs = False
 
    for i in dir_hash:
 
