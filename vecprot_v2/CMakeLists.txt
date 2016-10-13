@@ -8,6 +8,7 @@ if (USE_REAL_PHYSICS)
     ../realphysics/dummies/inc
     ../realphysics/physics/management/inc
     ../examplesRP/GeantV/ExN03RP/inc
+    ../examplesRP/GeantV/TestEm3RP/inc
     ../numa/inc
     )
 else()
@@ -238,6 +239,7 @@ else()
 # -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
   runAppRP.cc
+  runAppTestEM3RP.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -288,7 +290,7 @@ if(CTEST)
   add_to_ctest("${TEST_EXECUTABLES}")
 endif()
 
-install(TARGETS runAppRP DESTINATION bin)
+install(TARGETS runAppRP runAppTestEM3RP DESTINATION bin)
 add_dependencies(runAppRP Geant_v RealPhysics GeantExamplesRP)
 # -------  END == WITH REAL PHYSICS -------------------------------------------------------
 endif()

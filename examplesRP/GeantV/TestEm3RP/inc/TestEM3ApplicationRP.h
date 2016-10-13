@@ -1,17 +1,17 @@
-//===--- ExN03ApplicationRP.h - Geant-V Using real physics----------------*- C++ -*-===//
+//===--- TestEM3ApplicationRP.h - Geant-V Using real physics----------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file ExN03ApplicationRP.h
- * @brief Implementation of Geant4 example N03 application for Geant-V prototype
+ * @file TestEM3ApplicationRP.h
+ * @brief Implementation of Geant4 TestEM3 like application for Geant-V prototype
  * @author M. Novak
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_ExN03ApplicationRP
-#define GEANT_ExN03ApplicationRP
+#ifndef GEANT_TestEM3ApplicationRP
+#define GEANT_TestEM3ApplicationRP
 
 #ifndef GEANT_VAPPLICATION
 #include "GeantVApplication.h"
@@ -31,8 +31,8 @@
 
 #include <vector>
 
-/** @brief ExN03ApplicationRP class */
-class ExN03ApplicationRP : public Geant::GeantVApplication {
+/** @brief TestEM3ApplicationRP class */
+class TestEM3ApplicationRP : public Geant::GeantVApplication {
   static const int kNlayers = 15;
   static const int kNumAbsorbers = 2; // lead and scintillator
   using GeantRunManager = Geant::GeantRunManager;
@@ -43,11 +43,19 @@ class ExN03ApplicationRP : public Geant::GeantVApplication {
 public:
   // data structures to store per absorber, per working thread data
   struct DataPerAbsorber {
-    std::vector<double> fEdep;   /** Energy deposit in one absorber per layer  */
-    std::vector<double> fLength; /** Step length in one absorber per layer */
+    double fEdep;   /** Energy deposit in one absorber per layer  */
+    double fLength; /** Step length in one absorber per layer */
+  };
+  struct DataGloabl {
+    double fNumGamma;
+    double fNumElectron;
+    double fNumPositron;
+    double fNumChargedSteps;
+    double fNumNeutralSteps;
   };
   struct DataPerThread {
     std::vector<DataPerAbsorber> fListDataPerAbsorber; /** as many as absorber (2) in this application */
+    DataGloabl                   fDataGlobal;
   };
   std::vector<DataPerThread> fListDataPerThread; /** as many as working thread */
 
@@ -62,23 +70,23 @@ private:
   GeantFactory<MyHit> *fFactory;             /** Hits factory */
 
   /**
-   * @brief Copy constructor ExN03ApplicationRP
+   * @brief Copy constructor TestEM3ApplicationRP
    * * @todo Still not implemented
    */
-  ExN03ApplicationRP(const ExN03ApplicationRP &);
+  TestEM3ApplicationRP(const TestEM3ApplicationRP &);
 
   /**
    * @brief Operator=
    * @todo Still not implemented
    */
-  ExN03ApplicationRP &operator=(const ExN03ApplicationRP &);
+  TestEM3ApplicationRP &operator=(const TestEM3ApplicationRP &);
 public:
 
-  /** @brief Constructor ExN03ApplicationRP */
-  ExN03ApplicationRP(GeantRunManager *runmgr);
+  /** @brief Constructor TestEM3ApplicationRP */
+  TestEM3ApplicationRP(GeantRunManager *runmgr);
 
-  /** @brief Destructor ExN03ApplicationRP */
-  virtual ~ExN03ApplicationRP() {}
+  /** @brief Destructor TestEM3ApplicationRP */
+  virtual ~TestEM3ApplicationRP() {}
 
   /**
    * @brief Function of initialization

@@ -150,10 +150,12 @@ void ExN03ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Gean
 }
 
 //______________________________________________________________________________
-void ExN03ApplicationRP::Digitize(GeantEvent *event) {
-  // User method to digitize a full event, which is at this stage fully transported
-  double nprim = (double)event->GetNprimaries();
+//void ExN03ApplicationRP::Digitize(GeantEvent *event) {
+//  // User method to digitize a full event, which is at this stage fully transported
+//}
 
+void ExN03ApplicationRP::FinishRun() {
+  double nprim = (double)fRunMgr->GetNprimaries();
   for (int i=0; i<kNlayers; ++i) {
     for (int iabs=0; iabs<kNumAbsorbers; ++iabs) {
       for (int iwthrd=1; iwthrd<fNumWThreads; ++iwthrd) {

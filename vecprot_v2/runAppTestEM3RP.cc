@@ -19,7 +19,7 @@
 #include "ParticleGun.h"
 #include "PhysicsProcessHandler.h"
 
-#include "ExN03ApplicationRP.h"
+#include "TestEM3ApplicationRP.h"
 
 #ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
@@ -165,6 +165,7 @@ int main(int argc, char *argv[]) {
       break;
 
     default:
+      help();
       errx(1, "unknown option %c", c);
     }
   }
@@ -258,7 +259,7 @@ int main(int argc, char *argv[]) {
   runMgr->SetPrimaryGenerator( new geantphysics::ParticleGun(avNPrimPerEvt, gvParticleCode, primaryEnergy, xPos, yPos,
                                                              zPos, xDir, yDir, zDir) );
   // Create the real physics ExN03 application
-  runMgr->SetUserApplication ( new ExN03ApplicationRP(runMgr) );
+  runMgr->SetUserApplication ( new TestEM3ApplicationRP(runMgr) );
 #ifdef GEANT_TBB
   if (tbbmode)
     runMgr->SetTaskMgr( new TaskMgrTBB() );
@@ -266,7 +267,6 @@ int main(int argc, char *argv[]) {
 
   runMgr->RunSimulation();
 //  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
-  delete runMgr;
   return 0;
 }
 #endif

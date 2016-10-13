@@ -116,28 +116,47 @@ void PhysicsProcessHandler::BuildMaterials() {
    //
    // create only one region with the production cuts given above:
    std::cout<<" ========== PhysicsProcessHandler::BuildMaterials() ============ \n";
-   Region *reg0         = new Region("DefaultWorld",iscutinlength, gcut, emcut, epcut);
+   Region *reg0 = new Region("DefaultWorld",iscutinlength, gcut, emcut, epcut);
    std::cout<<"   ----- One Region (with name = "<< reg0->GetName() <<") has been created.\n";
+   if (matlist.size()==0) {
+     std::cerr<<"  ***** ERROR PhysicsProcessHandler::BuildMaterials(): \n"
+              <<"   No material was found! (vecgeom::Material::GetMaterials() returns with 0 size list)\n"
+              <<std::endl;
+     exit(-1);
+   }
    for (unsigned long i=0; i<matlist.size(); ++i) {
      std::cout<<"     -->  Creating and inserting into the region: Material with index = " << i
-              << " and name: "<<matlist[i]->GetName()
-              <<std::endl;
+              << " and vecgeom::name: "<<matlist[i]->GetName();
      vecgeom::Material *vgMat = matlist[i];
      int    numElem    = vgMat->GetNelements();
      double density    = vgMat->GetDensity()*geant::g/geant::cm3; // in g/cm3
      const std::string  name = vgMat->GetName();
-     // create material
-     Material *matX = new Material(name, density, numElem);
-     for (int j=0; j<numElem; ++j) {
-       double va;
-       double vz;
-       double vw;
-       vgMat->GetElementProp(va, vz, vw, j);
-       // create NIST element
-       Element *elX = Element::NISTElement(vz);
-       // add to the Material
-       matX->AddElement(elX, vw);
+     // check if it is a G4 NIST material
+     std::string postName = "";
+     bool isNistMaterial = false;
+     if (name.substr(0,3)=="G4_") {
+       postName = name.substr(3);
+       isNistMaterial = true;
+     }
+     Material *matX = nullptr;
+     if (isNistMaterial) {
+       std::string nistName = "NIST_MAT_"+postName;
+       matX = Material::NISTMaterial(nistName);
+     } else {
+       // create material
+       matX = new Material(name, density, numElem);
+       for (int j=0; j<numElem; ++j) {
+         double va;
+         double vz;
+         double vw;
+         vgMat->GetElementProp(va, vz, vw, j);
+         // create NIST element
+         Element *elX = Element::NISTElement(vz);
+         // add to the Material
+         matX->AddElement(elX, vw);
+      }
     }
+    std::cout<< "  geantphysics::name = " << matX->GetName() << std::endl;
     // add mategrial to the region
     reg0->AddMaterial(matX);
    }

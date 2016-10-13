@@ -1,13 +1,14 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories(GeantV/ExN03RP/inc ../vecprot_v2/inc ../realphysics/dummies/inc ../realphysics/physics/management/inc)
+include_directories(GeantV/ExN03RP/inc GeantV/TestEm3RP/inc ../vecprot_v2/inc ../realphysics/dummies/inc ../realphysics/physics/management/inc)
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
 
 set(sources
   GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
+  GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
   )
 
 #----------------------------------------------------------------------------
@@ -16,10 +17,12 @@ set(sources
 #
 set(sources
   GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
+  GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
   )
 
 set(headers
   GeantV/ExN03RP/inc/ExN03ApplicationRP.h
+  GeantV/TestEm3RP/inc/TestEM3ApplicationRP.h
   )
 if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
