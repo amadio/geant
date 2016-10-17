@@ -164,11 +164,18 @@ endif()
 # -------  START == NOT WITH REAL PHYSICS -------------------------------------------------------
 if(NOT (USE_REAL_PHYSICS))
 # -------
-set(TEST_EXECUTABLES
-  CMSApp.cc
-  runApp.cc
-  testBasketizer.cc
-  )
+if(CUDA)
+  set(TEST_EXECUTABLES
+    CMSApp.cc
+    runApp.cc
+    testBasketizer.cc)
+else()
+  set(TEST_EXECUTABLES
+    CMSGPUApp.cc
+    runGPUApp.cc
+#    testBasketizer.cc
+)
+endif()
 
 if(USE_ROOT)
   set(TEST_EXECUTABLES
@@ -199,17 +206,13 @@ function(add_to_ctest EXECUTABLES)
     if (CTEST)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       if(TARGET_NAME STREQUAL "runApp")
-        if(CUDA)
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root -r true)
-        else()
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
-        endif()
-      elseif(TARGET_NAME STREQUAL "CMSApp")
-        if(CUDA)
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root -r true)
-        else()
+      elseif(TARGET_NAME STREQUAL "runGPUApp")
+          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
+      elseif(TARGET_NAME STREQUAL "CMSGPUApp")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
-        endif()
+      elseif(TARGET_NAME STREQUAL "CMSApp")
+          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
       elseif(TARGET_NAME STREQUAL "testBasketizer")
         add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> 8)
       elseif(TARGET_NAME STREQUAL "testLocality")
@@ -229,12 +232,24 @@ if(CTEST)
   add_to_ctest("${TEST_EXECUTABLES}")
 endif()
 
-install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
+if(CUDA)
+  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
+else()
+  install(TARGETS CMSGPUApp runGPUApp DESTINATION bin)
+endif()
+
 if(USE_ROOT)
   install(TARGETS testLocality DESTINATION bin)
 endif()
-add_dependencies(runApp Geant_v Xsec GeantExamples)
+
+if(CUDA)
+  add_dependencies(runApp Geant_v Xsec GeantExamples)
+else()
+  add_dependencies(runGPUApp Geant_v Xsec GeantExamples)
+endif()
 # -------  END == NOT WITH REAL PHYSICS -------------------------------------------------------
+
+
 else()
 # -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
