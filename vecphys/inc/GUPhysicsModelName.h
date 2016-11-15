@@ -9,8 +9,8 @@ enum GUPhysicsModelIndex {
   kKleinNishina,      // Compton
   kHybridKleinNishina,// Compton with Alias + Composition and Rejection
   kBetheHeitler,      // Conversion
-  kMollerBhabha,      // Ionization
   kSauterGavrila,     // Photo-Electric Effect
+  kMollerBhabha,      // Ionization
   kSeltzerBerger,     // Bremsstrahlung
   kNumberPhysicsModel
 };
@@ -19,8 +19,8 @@ static const char* GUPhysicsModelName[kNumberPhysicsModel] = {
   "KleinNishina",
   "HybridKleinNishina",
   "BetheHeitler",
-  "MollerBhabha",
   "SauterGavrila",
+  "MollerBhabha",
   "SeltzerBerger"
 };
 
