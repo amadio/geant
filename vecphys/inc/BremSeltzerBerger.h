@@ -199,7 +199,7 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v BremSeltzerBerger::SampleSinT
   Double_v signc = math::Sign(c);
   Double_v a     = math::Abs(c);
 
-  Double_v delta = 0.5 * (math::Sqrt(4.0 * a * a) + a);
+  Double_v delta = 0.5 * (math::Sqrt(4.0 + a * a) + a);
 
   Double_v cofA = -signc * math::Pow(delta, Double_v(1.0 / 3.0));
 
