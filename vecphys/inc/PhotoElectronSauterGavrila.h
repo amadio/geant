@@ -82,7 +82,7 @@ private:
     while (i < nShells && E >= fBindingEnergies[fIndexOfShells[Z] + i] * eV)
       i++;
 
-    return i < nShells ? E - fBindingEnergies[fIndexOfShells[Z] + i] * eV : 0.0;
+    return i <= nShells ? E - fBindingEnergies[fIndexOfShells[Z] + i] * eV : 0.0;
   }
 
   template <class Backend>
