@@ -325,7 +325,7 @@ Real_t G4KleinNishina(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
+  static vecphys::cxx::ComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -353,7 +353,7 @@ Real_t G4HybridCompton(int ntracks,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
+  static vecphys::cxx::ComptonKleinNishina model(0,-1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -374,7 +374,7 @@ Real_t G4BetheHeitler(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::ConversionBetheHeitler model(0,-1,0);
+  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -395,7 +395,7 @@ Real_t G4SauterGavrila(int ntracks,
 			  int *targetElements,
 			  GUTrack* otrack_aos)
 {
-  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1,0);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -416,8 +416,7 @@ Real_t G4MollerBhabha(int ntracks,
 			 int *targetElements,
 			 GUTrack* otrack_aos)
 {
-  static vecphys::cxx::IonisationMoller model(0,-1,0);
-  //  static vecphys::cxx::GUMollerBhabha model(0,-1);
+  static vecphys::cxx::IonisationMoller model(0,-1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;

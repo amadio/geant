@@ -20,6 +20,7 @@ VECCORE_ATT_HOST_DEVICE
 IonisationMoller::IonisationMoller(Random_t *states, int tid, GUAliasSampler *sampler)
     : EmModelBase<IonisationMoller>(states, tid, sampler)
 {
+  fDeltaRayThreshold = 1.0 * keV; // temporary: should be set from a cut table
   SetLowEnergyLimit(0.1 * keV);
 }
 
