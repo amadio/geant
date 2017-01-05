@@ -234,9 +234,9 @@ if(CTEST)
 endif()
 
 if(CUDA)
-  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
-else()
   install(TARGETS CMSGPUApp runGPUApp DESTINATION bin)
+else()
+  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
 endif()
 
 if(USE_ROOT)
@@ -244,9 +244,11 @@ if(USE_ROOT)
 endif()
 
 if(CUDA)
-  add_dependencies(runApp Geant_v Xsec GeantExamples)
-else()
   add_dependencies(runGPUApp Geant_v Xsec GeantExamples)
+  add_dependencies(CMSGPUApp Geant_v Xsec GeantExamples)
+else()
+  add_dependencies(runApp Geant_v Xsec GeantExamples)
+  add_dependencies(CMSApp Geant_v Xsec GeantExamples)
 endif()
 # -------  END == NOT WITH REAL PHYSICS -------------------------------------------------------
 
