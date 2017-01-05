@@ -166,14 +166,15 @@ if(NOT (USE_REAL_PHYSICS))
 # -------
 if(CUDA)
   set(TEST_EXECUTABLES
-    CMSApp.cc
-    runApp.cc
-    testBasketizer.cc)
-else()
-  set(TEST_EXECUTABLES
     CMSGPUApp.cc
     runGPUApp.cc
-#    testBasketizer.cc
+#   testBasketizer.cc
+)
+else()
+  set(TEST_EXECUTABLES
+    CMSApp.cc
+    runApp.cc
+    testBasketizer.cc
 )
 endif()
 
