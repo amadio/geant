@@ -66,11 +66,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
       TaskData &operator=(const TaskData &); // not implemented
     public:
       TaskData();
-
       ~TaskData();
 
-      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads,
-                     int maxTrackPerThread);
+      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator);
 
       unsigned int
       AddTrack(Task *task, GeantBasket &basket, unsigned int hostIdx);

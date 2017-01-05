@@ -102,14 +102,14 @@ CoprocessorBroker::TaskData::~TaskData()
   GEANT_CUDA_ERROR(cudaStreamDestroy(fStream));
 }
 
-bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread)
+bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator)
 {
-  int maxdepth = GeantPropagator::Instance()->fMaxDepth;
+  int maxdepth = propagator->fMaxDepth;
   unsigned int maxTrackPerKernel = nblocks * nthreads * maxTrackPerThread;
   fChunkSize = maxTrackPerKernel;
   fDevMaxTracks = 2 * fChunkSize;
 
-  fGeantTaskData = new Geant::GeantTaskData(nthreads, maxdepth, fDevMaxTracks);
+  fGeantTaskData = new Geant::GeantTaskData(nthreads, maxdepth, fDevMaxTracks, propagator);
   fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
   fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
   fPrioritizer = fGeantTaskData->fBmgr;
@@ -139,6 +139,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
       fDevTaskWorkspace.GetPtr(), 4096 /* maxThreads */, size_needed, (size_t)maxThreads, maxdepth,
       (int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e.
              // maxTrackPerThread) unless we need space for extras/new tracks ...
+      , propagator
       );
 
   // need to allocate enough for one object containing many tracks ...
@@ -269,7 +270,7 @@ void CoprocessorBroker::CreateBaskets(GeantConfig* config)
   // initialize the stream
   for (unsigned int i = 0; i < GetNstream(); ++i) {
     TaskData *data = new TaskData();
-    data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread);
+    data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread, GeantPropagator::Instance());
     data->Push(&fHelpers);
     fTaskData.push_back(data);
   }

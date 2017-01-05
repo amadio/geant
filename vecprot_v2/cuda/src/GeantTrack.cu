@@ -9,7 +9,7 @@
 namespace Geant {
 
 inline namespace cuda {
-template void MakeInstanceArrayAt(GeantTaskData *addr, size_t nElements, size_t sizeOf, size_t, int, int);
+template void MakeInstanceArrayAt(GeantTaskData *addr, size_t nElements, size_t sizeOf, size_t, int, int, GeantPropagator *);
 
 template void MakeInstanceAt(GeantTrack_v *addr, unsigned int, int);
 
