@@ -60,6 +60,8 @@ TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsf
 #else
   (void)xsecfilename;
   (void)finalsfilename;
+  // ... missing return ...
+  return nullptr;
 #endif
 }
 
