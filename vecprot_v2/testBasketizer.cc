@@ -177,7 +177,7 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
   }
   basket.clear();
 
-  if (work->basketizers_[numa_node]->GarbageCollect(basket)) {
+  if (work->basketizers_[numa_node]->Flush(basket)) {
     for (size_t itr = 0; itr < basket.size(); ++itr) {
       checksum += (*basket[itr]).id_;
       Process(basket);

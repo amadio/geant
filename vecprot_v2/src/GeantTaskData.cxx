@@ -1,6 +1,7 @@
 #include "GeantTaskData.h"
 #include "globals.h"
 #include "GeantBasket.h"
+#include "Basket.h"
 #include "GeantPropagator.h"
 #include "GeantTrackGeo.h"
 #include "Geant/Typedefs.h"
@@ -136,6 +137,7 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
 
 
 #ifndef VECCORE_CUDA
+//______________________________________________________________________________
 GeantBasket *GeantTaskData::GetNextBasket()
 {
   // Gets next free basket from the queue.
@@ -144,6 +146,18 @@ GeantBasket *GeantTaskData::GetNextBasket()
   GeantBasket *basket = fPool.back();
   //  basket->Clear();
   fPool.pop_back();
+  return basket;
+}
+
+//______________________________________________________________________________
+Basket *GeantTaskData::GetFreeBasket()
+{
+  // Gets next free basket from the queue.
+  if (fBPool.empty())
+    return ( new Basket(fPropagator->fConfig->fMaxPerBasket) );
+  Basket *basket = fBPool.back();
+  //  basket->Clear();
+  fBPool.pop_back();
   return basket;
 }
 

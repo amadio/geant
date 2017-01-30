@@ -77,7 +77,7 @@ namespace Geant {
       }
 #else
       // Currently we use the ROOT message handler on the host/gcc code.
-      Geant::cxx::ErrorHandlerImpl(level,location,msgfmt,params...);
+      ErrorHandlerImpl(level,location,msgfmt,params...);
 #endif
     }
 

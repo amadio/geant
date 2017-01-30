@@ -234,8 +234,8 @@ public:
   //____________________________________________________________________________
   /** @brief Garbage collect data */
   GEANT_FORCE_INLINE
-  bool GarbageCollect(std::vector<T *> &basket) {
-    // Garbage collect all elements present in the container on the current basket
+  bool Flush(std::vector<T *> &basket) {
+    // Flush all elements present in the container on the current basket
     // If this is not the last basket, drop garbage collection
     if (fNbaskets.load() > 1)
       return false;
@@ -298,6 +298,11 @@ public:
   /** @brief GetNumber of pending baskets */
   GEANT_FORCE_INLINE
   short int GetNpending() const { return fNbaskets.load(); }
+
+  //____________________________________________________________________________
+  /** @brief GetNumber of stored objects */
+  GEANT_FORCE_INLINE
+  size_t GetNstored() const { return fNstored.load(); }
 
   //____________________________________________________________________________
   /** @brief Lock the container for GC */

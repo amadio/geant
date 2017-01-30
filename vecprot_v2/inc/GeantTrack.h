@@ -394,7 +394,7 @@ public:
   double PosZ() const { return fZpos; }
 
   /** @brief Print function */
-  void Print(const char *location) const;
+  void Print(const char *msg = "") const;
 
   /** Function that return particle species */
   VECCORE_ATT_HOST_DEVICE

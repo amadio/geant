@@ -19,7 +19,6 @@
  #include "GeantPropagator.h"
 
 #include <deque>
-#include <vector>
 
 #include "Geant/Typedefs.h"
 
@@ -34,12 +33,6 @@ class TRandom;
 #include "base/RNG.h"
 #endif
 
-#ifdef VECCORE_CUDA
-#include "base/Vector.h"
-#else
-#include <vector>
-#endif
-
 /**
  * @brief Class GeantTaskData
  * @details Class descripting data organized per thread
@@ -48,19 +41,13 @@ class TRandom;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+class Basket;
 class GeantBasketMgr;
 class GeantBasket;
 class GeantTrackGeo_v;
 
 class GeantTaskData {
 public:
-#ifdef VECCORE_CUDA
-  template <class T>
-  using vector_t = vecgeom::Vector<T>;
-#else
-  template <class T>
-  using vector_t = std::vector<T>;
-#endif
 
   GeantPropagator *fPropagator; /** GeantPropagator */
   int fTid;              /** Thread unique id */
@@ -88,8 +75,10 @@ public:
   GeantBasket *fImported;/** Basket used to import tracks from the event server */
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
+  char fBPool[sizeof(std::deque<Basket *>)]; /** Pool of empty baskets */
 #else
   std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
+  std::deque<Basket *> fBPool; /** Pool of empty baskets */
 #endif
   int fSizeInt;                             // current size of IntArray
   int *fIntArray;                           // Thread array of ints (used in vector navigation)
@@ -188,25 +177,18 @@ public:
     return fTrack;
   }
 
+#ifndef VECCORE_CUDA
   /**
    * @brief Get next free basket or null if not available
    * @details Get pointer to next free basket
    */
   GeantBasket *GetNextBasket();
 
-  /*
-   * @brief Return the size of the basket pool
-   *
+  /**
+   * @brief Get next free basket
+   * @details Get pointer to next free basket
    */
-#ifndef VECCORE_CUDA
-  size_t GetBasketPoolSize() const { return fPool.size(); }
-#endif
-
-  /** @brief Setter for the toclean flag */
-  void SetToClean(bool flag) { fToClean = flag; }
-
-  /** @brief Getter for the toclean flag */
-  bool NeedsToClean() const { return fToClean; }
+  Basket *GetFreeBasket();
 
   /**
    * @brief Recycles a given basket
@@ -215,6 +197,12 @@ public:
    */
   void RecycleBasket(GeantBasket *b);
 
+  /*
+   * @brief Return the size of the basket pool
+   *
+   */
+  size_t GetBasketPoolSize() const { return fPool.size(); }
+
   /**
    * @brief Function cleaning a number of free baskets
    *
@@ -222,6 +210,13 @@ public:
    * @return Number of baskets actually cleaned
    */
   int CleanBaskets(size_t ntoclean);
+#endif
+
+  /** @brief Setter for the toclean flag */
+  void SetToClean(bool flag) { fToClean = flag; }
+
+  /** @brief Getter for the toclean flag */
+  bool NeedsToClean() const { return fToClean; }
 
   /**
    * @brief Function that returns a temporary track object per task data.
