@@ -38,6 +38,7 @@ set(sources
    src/GeantBasket.cxx
    src/Basket.cxx
    src/Filter.cxx
+   src/SimulationStage.cxx
    src/sync_objects.cxx
    src/GeantOutput.cxx
    src/GeantPropagator.cxx
@@ -68,6 +69,7 @@ set(headers
    inc/PhysicsProcessOld.h
    inc/Basket.h
    inc/Filter.h
+   inc/SimulationStage.h
    inc/GeantBasket.h
    inc/GeantPropagator.h
    inc/GeantTrack.h

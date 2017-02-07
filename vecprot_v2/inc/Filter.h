@@ -31,8 +31,7 @@ class GeantPropagator;
 #include "GeantFwd.h"
 
 /**
- * @brief A track filter with a dedicated basketizer.
- * @details Filters can have different locality types.
+ * @brief The base class for track filters having a dedicated basketizer.
  */
  
 #ifdef USE_ROOT
@@ -43,7 +42,6 @@ class Filter {
   using queue_t = priority_queue<Basket *>;
   using basketizer_t = Basketizer<GeantTrack>;
 protected:  
-  Basket::ELocality fLocality = Basket::kNone; ///< Locality type
   Volume_t *fVolume = nullptr;         ///< Associated volume if any.
   int fIndex = -1;                     ///< Filter index in the array of geometry filters
   int fNode = -1;                      ///< Numa node for basket allocation
@@ -52,6 +50,7 @@ protected:
   std::atomic_int fThreshold;          ///< Basketizing threshold
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this filter
   queue_t *fFeeder = nullptr;          ///< Queue to which baskets get injected
+  std::atomic_flag fLock;              ///< Lock for flushing
 private:
   Filter(const Filter &) = delete;
   Filter &operator=(const Filter &) = delete;
@@ -78,17 +77,19 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   Filter(int threshold, GeantPropagator *propagator,
-         Basket::ELocality locality = Basket::kNone, int node = -1,
-         int index = -1, Volume_t *vol = nullptr);
+         int node = -1, int index = -1, Volume_t *vol = nullptr);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~Filter();
+  virtual ~Filter();
 
-   /** @brief Locality getter */
+  /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  Basket::ELocality GetLocality() const { return fLocality; }
+  virtual void DoIt(GeantTrack *track, Basket& output, GeantTaskData *td) = 0;
+
+  /** @brief Vector DoIt interface. Base class implements it as a loop. */
+  VECCORE_ATT_HOST_DEVICE
+  virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
 
   /** @brief Threshold getter */
   VECCORE_ATT_HOST_DEVICE
@@ -120,9 +121,23 @@ public:
   GEANT_FORCE_INLINE
   void SetFeeder(queue_t *feeder) { fFeeder = feeder; }
 
+  /** @brief Check if filter is active for basketizing */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsActive() const { return fActive; }
+
   /** @brief Activate/de-activate the filter */
   VECCORE_ATT_HOST_DEVICE
-  void SetActive(bool flag = true);
+  void ActivateBasketizing(bool flag = true);
+
+  /** @brief Check if filter is flushing */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsFlushing() {
+    if (fLock.test_and_set(std::memory_order_acquire)) return true;
+    fLock.clear(std::memory_order_release);
+    return false;
+  }
 
   /** @brief Add a track pointer to filter. */
   VECCORE_ATT_HOST_DEVICE

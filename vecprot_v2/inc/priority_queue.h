@@ -31,7 +31,7 @@ public:
    * 
    * @param buffer_size Buffer size for queue
    */
-  priority_queue(size_t buffer_size, size_t threshold)
+  priority_queue(size_t buffer_size, size_t threshold = 0)
       : n_waiting_(0), mutex_(), cv_(), main_q_(buffer_size),
         priority_q_(buffer_size), threshold_(threshold), counter_(0) {}
   

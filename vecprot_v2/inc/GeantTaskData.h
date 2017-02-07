@@ -72,6 +72,7 @@ public:
   GeantTrackGeo_v *fGeoTrack; /** Geometry track SOA */
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
   GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
+  Basket *fLastBasket = nullptr;  /** Last basket processed, to be processed by the same thread/task */
   GeantBasket *fImported;/** Basket used to import tracks from the event server */
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
@@ -196,6 +197,13 @@ public:
    * @param b Pointer to current GeantBasket for recycling
    */
   void RecycleBasket(GeantBasket *b);
+
+  /**
+   * @brief Recycles a given basket
+   *
+   * @param b Pointer to current GeantBasket for recycling
+   */
+  void RecycleBasket(Basket *b);
 
   /*
    * @brief Return the size of the basket pool

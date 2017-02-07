@@ -169,6 +169,13 @@ void GeantTaskData::RecycleBasket(GeantBasket *b)
 }
 
 //______________________________________________________________________________
+void GeantTaskData::RecycleBasket(Basket *b)
+{
+  // Recycle a basket.
+  fBPool.push_back(b);
+}
+
+//______________________________________________________________________________
 int GeantTaskData::CleanBaskets(size_t ntoclean)
 {
   // Clean a number of recycled baskets to free some memory

@@ -7,8 +7,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Basket::Basket(int size, ELocality locality, int threshold, int node)
-      : fLocality(locality), fThreshold(threshold), fNode(node) {
+Basket::Basket(int size, int threshold, int node)
+      : fThreshold(threshold), fNode(node) {
   assert(size > 0 && threshold <= size);
   fTracks.reserve(size);
 }
@@ -26,27 +26,10 @@ bool Basket::Contains(int evstart, int nevents) const {
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
-const char *Basket::GetLocalityString() const
-{
-  switch (fLocality) {
-    case kNone:
-      return ( "mixed" );
-    case kVolume:
-      return ( "volume" );
-    case kParticle:
-      return ( "particle" );
-    case kProcess:
-      return ( "process" );
-  }
-  return ( "unknown" );
-}
-
-//______________________________________________________________________________
 void Basket::Print(const char *msg) const {
   // Print basket content.
-  Printf("*** %s basket %p: ntr = %d  locality = %s  NUMA node = %d",
-                msg, this, GetLocalityString(), GetNtracks(), fNode);
+  Printf("*** %s basket %p: ntr = %d   NUMA node = %d",
+                msg, this, GetNtracks(), fNode);
 #ifndef VECCORE_CUDA
   std::string sno;
   for (unsigned int itr=0; itr<fTracks.size(); ++itr) {

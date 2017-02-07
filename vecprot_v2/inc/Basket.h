@@ -24,6 +24,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
 class GeantTrack;
+class SimulationStage;
 #include "GeantFwd.h"
 
 /**
@@ -33,29 +34,10 @@ class GeantTrack;
  
 class Basket {
 
-public:
-/** Basket locality types */
-enum ELocality {
-  kNone,     // No locality criteria
-  kVolume,   // Same geometry volume
-  kParticle, // Same particle type
-  kProcess   // Same physics process
-};
-
-/** Basket processing stages */
-enum EStage {
-  kScheduling,      // Scheduling actions: track fetching, flushing, prioritizing
-  kSampleXsec,      // Propose physics step by sampling total Xsec
-  kTransportLength, // Compute geometry transport length
-  kPropagate,       // Propagation in field
-  kAlongStep,       // Along step actions (e.g. continuous energy loss)
-  kPostStep         // Post step actions
-};
-
 protected:
-  ELocality fLocality = Basket::kNone; ///< Locality type
   int fThreshold = 64;                ///< Basket threshold
   int fNode = 0;                      ///< Numa node for basket allocation
+  SimulationStage *fStage;            ///< Simulation stage to be executed by tracks inside
   vector_t<GeantTrack *>  fTracks;    ///< Vector of track pointers
   
 private:
@@ -76,7 +58,7 @@ public:
    * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  Basket(int size, ELocality loc = Basket::kNone, int threshold = 0, int node = 0);
+  Basket(int size, int threshold = 0, int node = 0);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -106,22 +88,6 @@ public:
   bool Contains(int evstart, int nevents = 1) const;
 
   /**
-   * @brief Function returning the basket locality type
-   * @return Locality type
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  ELocality GetLocality() const { return fLocality; }
-
-  /**
-   * @brief Function setting the basket locality type
-   * @return Locality type
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetLocality(ELocality loc) { fLocality = loc; }
-
-  /**
    * @brief Function returning the number tracks in the basket
    * @return Number of tracks
    */
@@ -138,27 +104,20 @@ public:
   int GetNode() const { return fNode; }
 
   /**
+   * @brief Function for getting the simulation stage the basket will perform
+   * @return  Pointer to simulation stage
+   */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  SimulationStage *GetStage() const { return fStage; }
+
+  /**
    * @brief Function for getting basket transportability threshold
    * @return  Value of transportability threshold
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
-
-  /**
-   * @brief Function returning the locality type as string.
-   * @return Boolean value if the tracks are mixed from several volumes
-   */
-  VECCORE_ATT_HOST_DEVICE
-  const char *GetLocalityString() const;
-
-  /**
-   * @brief Function returning the mixed tracks property.
-   * @return Boolean value if the tracks are mixed from several volumes
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  bool IsMixed() const { return ( fLocality == Basket::kNone ); }
 
   /**
    * @brief Function returning a reference to the vector of input tracks
@@ -210,6 +169,15 @@ public:
    * @param threshold New threshold value
    */
   void SetThreshold(int threshold);
+
+  /**
+   * @brief Function to change simulation stage
+   *
+   * @param stage New simulation stage
+   */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetStage(SimulationStage *stage) { fStage = stage; }
 
 };
 

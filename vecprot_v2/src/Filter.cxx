@@ -10,11 +10,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 Filter::Filter(int threshold, GeantPropagator *propagator,
-               Basket::ELocality locality, int node, int index, Volume_t *vol)
+               int node, int index, Volume_t *vol)
 //#ifdef USE_ROOT
-//  : TGeoExtension(), fLocality(locality), fVolume(vol), fIndex(index), fNode(node), fThreshold(threshold) {
+//  : TGeoExtension(), fVolume(vol), fIndex(index), fNode(node), fThreshold(threshold) {
 //#else
-  : fLocality(locality), fVolume(vol), fIndex(index), fNode(node), fThreshold(threshold) {
+  : fVolume(vol), fIndex(index), fNode(node), fThreshold(threshold) {
 //#endif
   // Filter constructor. The filter needs to be manually activated to actually
   // allocate the basketizer.
@@ -23,6 +23,7 @@ Filter::Filter(int threshold, GeantPropagator *propagator,
   assert(threshold & (threshold - 1) == 0);
   // Connect to logical volume if provided
   if (vol) ConnectToVolume();
+  fLock.clear();
 }
 
 //______________________________________________________________________________
@@ -33,6 +34,7 @@ Filter::~Filter()
   else NumaAlignedFree(fBasketizer);
   fBasketizer = nullptr;
   DisconnectVolume();
+  fLock.clear();
 }
 
 //______________________________________________________________________________
@@ -46,6 +48,16 @@ void Filter::ConnectToVolume()
     fVolume->SetFWExtension(connector);
 #endif
   
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void Filter::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+{
+// Vector DoIt method implemented as a loop. Overwrite to implement a natively
+// vectorized version.
+  for (auto track: input.Tracks())
+    DoIt(track, output, td);
 }
 
 //______________________________________________________________________________
@@ -66,7 +78,7 @@ void Filter::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Filter::SetActive(bool flag)
+void Filter::ActivateBasketizing(bool flag)
 {
   if (fActive == flag) return;
   fActive = flag;
@@ -94,10 +106,21 @@ void Filter::SetActive(bool flag)
 VECCORE_ATT_HOST_DEVICE
 bool Filter::AddTrack(GeantTrack *track, Basket &collector)
 {
-// Adding a track to the filter will push the track into the basketizer. The 
-// calling thread has to provide an empy collector basket which can possibly be
+// Adding a track to the filter will do the following: 
+// 1. In case the filter is not basketized, the DoIt function will be called,
+//    the track will be marked for the next stage and copied into the collector
+// 2. In case the filter is basketized, the track will be pushed into the
+// basketizer.
+
+//The calling thread has to provide an empy collector basket which can possibly be
 // filled by the track vector extracted during the operation.
-  return ( fBasketizer->AddElement(track, collector.Tracks()) );
+  
+  // Make sure the collector is fit to store the number of tracks required
+  collector.Tracks().reserve(fBcap);
+  bool extracted = fBasketizer->AddElement(track, collector.Tracks());
+  if (extracted)
+    collector.SetThreshold(fThreshold);
+  return extracted;
 }
 
 //______________________________________________________________________________
@@ -108,7 +131,10 @@ bool Filter::Flush(Basket &collector)
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
 //       contains tracks in case it is 'hot' (e.g. adding tracks or finishing
 //       other flush). Flushing is blocking for other flushes!
-  return ( fBasketizer->Flush(collector.Tracks()) );
+  if (fLock.test_and_set(std::memory_order_acquire)) return false;
+  bool flushed = fBasketizer->Flush(collector.Tracks());
+  fLock.clear();
+  return flushed;
 }
 
 //______________________________________________________________________________
@@ -116,7 +142,6 @@ VECCORE_ATT_HOST_DEVICE
 Basket *Filter::GetFreeBasket(GeantTaskData *td)
 {
   Basket *next = td->GetFreeBasket();
-  next->SetLocality(fLocality);
   next->Tracks().reserve(fBcap);
   next->SetThreshold(fThreshold);
   return next;
