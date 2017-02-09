@@ -51,6 +51,7 @@ class GeantVTaskMgr;
 class PrimaryGenerator;
 class MCTruthMgr;
 class TaskBroker;
+class SimulationStage;
 
 class GeantPropagator {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
@@ -102,7 +103,8 @@ public:
   PhysicsInterface *fPhysicsInterface = nullptr;     /** The new, real physics interface */
   GeantTrack_v *fStoredTracks = nullptr;         /** Stored array of tracks (history?) */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
-  MCTruthMgr *fTruthMgr = nullptr;     /** MCTruth manager */
+  MCTruthMgr *fTruthMgr = nullptr;               /** MCTruth manager */
+  vector_t<SimulationStage *> fStages;           /** Simulation stages */
 
   // Data per event
   int *fNtracks = nullptr;        /** ![fNbuff] Number of tracks per slot */
@@ -249,6 +251,18 @@ public:
   
   /** @brief  Share work with some other propagator */
   int ShareWork(GeantPropagator &other);
+
+  /** @brief  Register a simulation stage */
+  GEANT_FORCE_INLINE
+  int RegisterStage(SimulationStage *stage)
+  { 
+    fStages.push_back(stage);
+    return ( fStages.size() - 1);
+  }
+
+  /** @brief  Getter for a simulation stage */
+  GEANT_FORCE_INLINE
+  SimulationStage *GetStage(int id) { return fStages[id]; }
 
 private:
   /** @brief Assignment operator not implemented */

@@ -33,6 +33,7 @@
 
 #include "WorkloadManager.h"
 
+#include "Basket.h"
 #include "GeantTaskData.h"
 #include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
@@ -569,6 +570,107 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 #ifdef BUG_HUNT
   BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateTracks");
 #endif
+  return icrossed;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int TransportManager::PropagateSingleTrack(GeantTrack *track, Basket *output, GeantTaskData *td, int stage)
+{
+  // Propagate the track with its selected steps, starting from a given stage.
+  GeantPropagator *prop = td->fPropagator;
+  int icrossed = 0;
+  double step, lmax;
+  const double eps = 1.E-2; // 1 micron
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  const double bmag = gPropagator_fConfig->fBmag;
+#else
+  const double bmag = prop->fConfig->fBmag;
+#endif
+// Compute transport length in geometry, limited by the physics step
+  ComputeTransportLengthSingle(*track, td);
+  // Mark dead tracks for copy/removal
+  if (track->fSnext < 0) {
+    Error("ComputeTransportLength", "Track %d cannot cross boundary and has to be killed", track->fParticle);
+    track->Print("");
+    track->fStatus = kKilled;
+  }
+  if (track->fStatus == kKilled)
+    output->AddTrack(track);
+    return 0;
+
+  // Stage 0: straight propagation for neutrals
+  if (stage == 0) {
+    if (track->fCharge == 0 || bmag < 1.E-10) {
+      // Do straight propagation to physics process or boundary
+      if (track->fBoundary) {
+        if (track->fNextpath->IsOutside())
+          track->fStatus = kExitingSetup;
+        else
+          track->fStatus = kBoundary;
+        icrossed++;
+      } else {
+        track->fStatus = kPhysics;
+        // Update number of steps to physics
+        td->fNphys++;
+      }
+      track->fPstep -= track->fSnext;
+      track->fStep += track->fSnext;
+      track->fSafety -= track->fSnext;
+      if (track->fSafety < 0.)
+        track->fSafety = 0;
+      track->fXpos += track->fSnext * track->fXdir;
+      track->fYpos += track->fSnext * track->fYdir;
+      track->fZpos += track->fSnext * track->fZdir;
+      // Update total number of steps
+      td->fNsteps++;
+      if (track->fSnext < 1.E-8) td->fNsmall++;
+      track->fSnext = 0;
+      output->AddTrack(track);
+      return icrossed;
+    }
+  }
+  // Stage 1: mag field propagation for tracks with pstep<safety
+  if (stage <= 1) {
+    // REMAINING ONLY CHARGED TRACKS IN MAG. FIELD
+    // New algorithm: we use the track sagitta to estimate the "bending" error,
+    // i.e. what is the propagated length for which the track deviation in magnetic
+    // field with respect to straight propagation is less than epsilon.
+    // Take the maximum between the safety and the "bending" safety
+    lmax = SafeLength(*track, eps);
+    lmax = Math::Max<double>(lmax, track->fSafety);
+    // Select step to propagate as the minimum among the "safe" step and:
+    // the straight distance to boundary (if frombdr=1) or the proposed  physics
+    // step (frombdr=0)
+    step = (track->fBoundary) ? 
+             Math::Min<double>(lmax, Math::Max<double>(track->fSnext, 1.E-4)) 
+           : Math::Min<double>(lmax, track->fPstep);
+    // Propagate in magnetic field
+    PropagateInVolumeSingle(*track, step, td);
+    //Update number of partial steps propagated in field
+    td->fNmag++;
+    //      Printf("====== After PropagateInVolumeSingle:");
+    //      PrintTrack(itr);
+    // The track may have made it to physics steps (kPhysics)
+    //         -> remove and copy to output
+    // The track may have been propagated with step greater than safety
+    //         -> check possible crossing via NavIsSameLocation
+    // The track may have been propagated with step less than safety
+    //         -> keep in the container
+
+    // Select tracks that made it to physics and copy to output
+    if (track->fStatus == kPhysics) {
+      // Update number of steps to physics and total number of steps
+      td->fNphys++;
+      td->fNsteps++;
+      output->AddTrack(track);
+      return 0;
+    }
+
+    // Check if boundary has been crossed
+    icrossed = CheckSameLocationSingle(*track, td);
+    if (icrossed) output->AddTrack(track);
+  }
   return icrossed;
 }
 

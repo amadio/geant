@@ -47,6 +47,7 @@ public:
   ~mpmc_bounded_queue() { delete[] buffer_; }
   
   /** @brief Size function */
+  inline
   size_t size() const { return nstored_.load(std::memory_order_relaxed); }
   
   /**
@@ -54,6 +55,7 @@ public:
    * 
    * @param data Data to be enqueued
    */
+  inline
   bool enqueue(T const &data) {
     cell_t *cell;
     size_t pos = enqueue_pos_.load(std::memory_order_relaxed);
@@ -80,6 +82,7 @@ public:
    * 
    * @param data Data to be dequeued
    */
+  inline
   bool dequeue(T &data) {
     cell_t *cell;
     size_t pos = dequeue_pos_.load(std::memory_order_relaxed);

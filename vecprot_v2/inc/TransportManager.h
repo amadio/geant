@@ -13,12 +13,8 @@
 #ifndef GEANT_TRANSPORT_MANAGER
 #define GEANT_TRANSPORT_MANAGER
 
-#ifdef VECCORE_CUDA
-#include "base/Vector.h"
-#else
-#include <vector>
-#endif
 #include <algorithm>
+#include "Geant/Typedefs.h"
 
 #include "Geant/Config.h"
 #include "Geant/Math.h"
@@ -28,16 +24,13 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
+class Basket;
 
 /**
  * @brief Class GeantTrack
  */
 namespace TransportManager {
-#ifndef VECCORE_CUDA
-  typedef std::vector<GeantTrack *> TrackVec_t;
-#else
-  typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
-#endif
+  typedef vector_t<GeantTrack *> TrackVec_t;
 
   /**
    * @brief Check if the geometry location changed for a vector of tracks
@@ -205,6 +198,12 @@ namespace TransportManager {
   VECCORE_ATT_HOST_DEVICE
   int PropagateSingleTrack(TrackVec_t &tracks,
                            int &itr,
+                           GeantTaskData *td,
+                           int stage);
+
+  VECCORE_ATT_HOST_DEVICE
+  int PropagateSingleTrack(GeantTrack *track,
+                           Basket *output,
                            GeantTaskData *td,
                            int stage);
 
