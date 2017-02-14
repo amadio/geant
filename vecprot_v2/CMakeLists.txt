@@ -37,7 +37,7 @@ set(sources
    src/GeantTrackGeo.cxx
    src/GeantBasket.cxx
    src/Basket.cxx
-   src/Filter.cxx
+   src/Selector.cxx
    src/SimulationStage.cxx
    src/sync_objects.cxx
    src/GeantOutput.cxx
@@ -68,7 +68,7 @@ set(headers
    inc/PhysicsInterface.h
    inc/PhysicsProcessOld.h
    inc/Basket.h
-   inc/Filter.h
+   inc/Selector.h
    inc/SimulationStage.h
    inc/GeantBasket.h
    inc/GeantPropagator.h

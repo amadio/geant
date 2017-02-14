@@ -6,12 +6,12 @@
 /**
  * @file SimulationStage.h
  * @brief Abstraction for a simulation stage.
- * @details A simulation stage contains all the utilities allowing filtering,
+ * @details A simulation stage contains all the utilities allowing selecting,
  *          basketizing and running specific actions for a given track processing
  *          stage during simulation. A stage can have one or more follow-ups. The
  *          input for a stage is a basket handled with the rask data, containing 
  *          unsorted tracks to execute the stage actions. Specialized stages have
- *          to implement at minimum the filtering selection criteria and follow-up
+ *          to implement at minimum the selection criteria and follow-up
  *          stage after execution.
  *
  * @author Andrei Gheata
@@ -29,7 +29,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData;
 class GeantTrack;
 class Basket;
-class Filter;
+class Selector;
 class GeantPropagator;
 #include "GeantFwd.h"
 
@@ -49,14 +49,14 @@ enum ESimulationStage {
 //template <ESimulationStage STAGE>
 class SimulationStage {
 
-  using Filters_t = vector_t<Filter *>;
+  using Selectors_t = vector_t<Selector *>;
   using Stages_t = vector_t<SimulationStage *>;
 
 protected:  
   ESimulationStage fType = kUndefinedStage; ///< Processing stage type
   GeantPropagator *fPropagator = nullptr;   ///< Propagator owning this stage
   int fId = -1;                             ///< Unique stage id
-  Filters_t fFilters;                       ///< Array of filters
+  Selectors_t fSelectors;                   ///< Array of selectors for the stage
   Stages_t fFollowUps;                      ///< Follow-up stages for processed tracks
   
 private:
@@ -66,16 +66,16 @@ private:
 // The functions below are the interfaces for derived simulation stages.
 protected:
 
-  /** @brief Interface to create all filters for the simulation stage
-   *  @return Number of filters created */
+  /** @brief Interface to create all selectors for the simulation stage
+   *  @return Number of selectors created */
   VECCORE_ATT_HOST_DEVICE
-  virtual int CreateFilters() { return 0; }
+  virtual int CreateSelectors() { return 0; }
 
 public:
 
-  /** @brief Interface to select the filter matching a track */
+  /** @brief Interface to select the selector matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Filter *SelectFilter(GeantTrack *track) = 0;
+  virtual Selector *Select(GeantTrack *track) = 0;
 
   /** @brief Interface to select the next stage for a processed track, from the list of follow-ups */
   VECCORE_ATT_HOST_DEVICE
@@ -118,15 +118,15 @@ public:
   GEANT_FORCE_INLINE
   int NFollowUps() const { return fFollowUps.size(); }
 
-  /** @brief Add next filter */
+  /** @brief Add next selector */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void AddFilter(Filter *filter);
+  void AddSelector(Selector *selector);
 
-  /** @brief Getter for number of filters */
+  /** @brief Getter for number of selectors */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int GetNfilters() const { return fFilters.size(); }
+  int GetNselectors() const { return fSelectors.size(); }
 
   /** @brief Add a follow-up stage */
   VECCORE_ATT_HOST_DEVICE

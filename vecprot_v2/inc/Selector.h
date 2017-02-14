@@ -1,24 +1,23 @@
-//===--- Filter.h - Geant-V -------------------------------------*- C++ -*-===//
+//===--- Selector.h - Geant-V -------------------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file Filter.h
- * @brief Implementation of generic filter using a basketizer
+ * @file Selector.h
+ * @brief Implementation of a generic selector using a basketizer
  * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_FILTER
-#define GEANT_FILTER
+#ifndef GEANT_SELECTOR
+#define GEANT_SELECTOR
 
 #ifdef USE_ROOT
 #include "TGeoExtension.h"
 #endif
 
 #include "Geant/Typedefs.h"
-#include "priority_queue.h"
 #include "Basketizer.h"
 #include "Basket.h"
 
@@ -31,29 +30,27 @@ class GeantPropagator;
 #include "GeantFwd.h"
 
 /**
- * @brief The base class for track filters having a dedicated basketizer.
+ * @brief The base class for track selectors having a dedicated basketizer.
  */
  
 #ifdef USE_ROOT
-class Filter : public TGeoExtension {
+class Selector : public TGeoExtension {
 #else
-class Filter {
+class Selector {
 #endif
-  using queue_t = priority_queue<Basket *>;
   using basketizer_t = Basketizer<GeantTrack>;
 protected:  
   Volume_t *fVolume = nullptr;         ///< Associated volume if any.
-  int fIndex = -1;                     ///< Filter index in the array of geometry filters
+  int fIndex = -1;                     ///< Selector index in the array of geometry selectors
   int fNode = -1;                      ///< Numa node for basket allocation
   bool fActive = false;                ///< Activity flag
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
   std::atomic_int fThreshold;          ///< Basketizing threshold
-  basketizer_t *fBasketizer = nullptr; ///< Basketizer for this filter
-  queue_t *fFeeder = nullptr;          ///< Queue to which baskets get injected
+  basketizer_t *fBasketizer = nullptr; ///< Basketizer for this selector
   std::atomic_flag fLock;              ///< Lock for flushing
 private:
-  Filter(const Filter &) = delete;
-  Filter &operator=(const Filter &) = delete;
+  Selector(const Selector &) = delete;
+  Selector &operator=(const Selector &) = delete;
   
 protected:
   VECCORE_ATT_HOST_DEVICE
@@ -63,25 +60,25 @@ protected:
   void DisconnectVolume();
 
 public:
-  /** @brief Default filter constructor */
+  /** @brief Default selector constructor */
   VECCORE_ATT_HOST_DEVICE
-  Filter() {}
+  Selector() {}
 
   /** 
-   * @brief NUMA aware filter constructor
+   * @brief NUMA aware selector constructor
    *
    * @param threshold Basketizing threshold
-   * @param propagator Propagator working with this filter
+   * @param propagator Propagator working with this selector
    * @param vol Associated volume
    * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  Filter(int threshold, GeantPropagator *propagator,
+  Selector(int threshold, GeantPropagator *propagator,
          int node = -1, int index = -1, Volume_t *vol = nullptr);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
-  virtual ~Filter();
+  virtual ~Selector();
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
@@ -96,7 +93,7 @@ public:
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold.load(); }
   
-  /** @brief Getter for the index in the list of geometry filters */
+  /** @brief Getter for the index in the list of geometry selectors */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetIndex() const { return fIndex; }
@@ -106,31 +103,21 @@ public:
   GEANT_FORCE_INLINE
   int GetNode() const { return fNode; }
 
-  /** @brief Getter for filter number */
+  /** @brief Getter for selector number */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   Volume_t *GetVolume() const { return fVolume; }
 
-  /** @brief Getter for the feeder queue */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  queue_t *GetFeeder() const { return fFeeder; }
-
-  /** @brief Setter for the feeder queue */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetFeeder(queue_t *feeder) { fFeeder = feeder; }
-
-  /** @brief Check if filter is active for basketizing */
+  /** @brief Check if selector is active for basketizing */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   bool IsActive() const { return fActive; }
 
-  /** @brief Activate/de-activate the filter */
+  /** @brief Activate/de-activate the selector */
   VECCORE_ATT_HOST_DEVICE
   void ActivateBasketizing(bool flag = true);
 
-  /** @brief Check if filter is flushing */
+  /** @brief Check if selector is flushing */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   bool IsFlushing() {
@@ -139,11 +126,11 @@ public:
     return false;
   }
 
-  /** @brief Add a track pointer to filter. */
+  /** @brief Add a track pointer to selector. */
   VECCORE_ATT_HOST_DEVICE
   bool AddTrack(GeantTrack *track, Basket &collector);
 
-  /** @brief Flush all tracks from the filter into the feeder
+  /** @brief Flush all tracks from the selector into a collector basket
    *  @return Number of tracks flushed
    */
   VECCORE_ATT_HOST_DEVICE

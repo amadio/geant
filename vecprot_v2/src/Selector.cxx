@@ -1,4 +1,4 @@
-#include "Filter.h"
+#include "Selector.h"
 #include "GeantNuma.h"
 #include "GeantTaskData.h"
 #include "GeantPropagator.h"
@@ -9,14 +9,14 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Filter::Filter(int threshold, GeantPropagator *propagator,
+Selector::Selector(int threshold, GeantPropagator *propagator,
                int node, int index, Volume_t *vol)
 //#ifdef USE_ROOT
 //  : TGeoExtension(), fVolume(vol), fIndex(index), fNode(node), fThreshold(threshold) {
 //#else
   : fVolume(vol), fIndex(index), fNode(node), fThreshold(threshold) {
 //#endif
-  // Filter constructor. The filter needs to be manually activated to actually
+  // Selector constructor. The selector needs to be manually activated to actually
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
   // Make sure the threshold is a power of 2
@@ -28,7 +28,7 @@ Filter::Filter(int threshold, GeantPropagator *propagator,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Filter::~Filter()
+Selector::~Selector()
 {
   if (fNode < 0) delete fBasketizer;
   else NumaAlignedFree(fBasketizer);
@@ -39,7 +39,7 @@ Filter::~Filter()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Filter::ConnectToVolume()
+void Selector::ConnectToVolume()
 {
   VBconnector *connector = new VBconnector(fIndex);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -52,7 +52,7 @@ void Filter::ConnectToVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Filter::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void Selector::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector DoIt method implemented as a loop. Overwrite to implement a natively
 // vectorized version.
@@ -62,7 +62,7 @@ void Filter::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Filter::DisconnectVolume()
+void Selector::DisconnectVolume()
 {
   if (!fVolume) return;
   VBconnector *connector = nullptr;
@@ -78,15 +78,15 @@ void Filter::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Filter::ActivateBasketizing(bool flag)
+void Selector::ActivateBasketizing(bool flag)
 {
   if (fActive == flag) return;
   fActive = flag;
   int basket_size = fThreshold;
-  int buffer_size = 1 << 12; // 16 kBytes per filter
-  // Create basketizer the first time the filter is activated
+  int buffer_size = 1 << 12; // 16 kBytes per selector
+  // Create basketizer the first time the selector is activated
   if (fActive && ! fBasketizer) {
-    // Set a 'compromise' size for the basketizer buffer for all geometry filters
+    // Set a 'compromise' size for the basketizer buffer for all geometry selectors
     if (fVolume) {
       assert(fThreshold < 512);
       buffer_size = 1 << 10; // This makes ~16 MBytes of basketizer buffers for 4K volumes
@@ -104,16 +104,12 @@ void Filter::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Filter::AddTrack(GeantTrack *track, Basket &collector)
+bool Selector::AddTrack(GeantTrack *track, Basket &collector)
 {
-// Adding a track to the filter will do the following: 
-// 1. In case the filter is not basketized, the DoIt function will be called,
-//    the track will be marked for the next stage and copied into the collector
-// 2. In case the filter is basketized, the track will be pushed into the
-// basketizer.
-
-//The calling thread has to provide an empy collector basket which can possibly be
-// filled by the track vector extracted during the operation.
+// Adding a track to the selector assumes that the selector is basketized.
+// The track will be pushed into the basketizer. The calling thread has to 
+// provide an empy collector basket which can possibly be filled by the track 
+// vector extracted during the operation.
   
   // Make sure the collector is fit to store the number of tracks required
   collector.Tracks().reserve(fBcap);
@@ -125,7 +121,7 @@ bool Filter::AddTrack(GeantTrack *track, Basket &collector)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Filter::Flush(Basket &collector)
+bool Selector::Flush(Basket &collector)
 {
 // Flush if possible remaining tracks from the basketizer into the collector.
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
@@ -139,7 +135,7 @@ bool Filter::Flush(Basket &collector)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Basket *Filter::GetFreeBasket(GeantTaskData *td)
+Basket *Selector::GetFreeBasket(GeantTaskData *td)
 {
   Basket *next = td->GetFreeBasket();
   next->Tracks().reserve(fBcap);
