@@ -13,14 +13,10 @@
 #ifndef GEANT_TASKDATA
 #define GEANT_TASKDATA
 
-#ifndef GEANT_TRACK
-#include "GeantTrackVec.h"
-#endif
- #include "GeantPropagator.h"
-
 #include <deque>
-
 #include "Geant/Typedefs.h"
+#include "GeantTrackVec.h"
+#include "GeantPropagator.h"
 
 namespace geantphysics {
   class PhysicsData;

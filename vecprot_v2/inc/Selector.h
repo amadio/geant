@@ -13,10 +13,6 @@
 #ifndef GEANT_SELECTOR
 #define GEANT_SELECTOR
 
-#ifdef USE_ROOT
-#include "TGeoExtension.h"
-#endif
-
 #include "Geant/Typedefs.h"
 #include "Basketizer.h"
 #include "Basket.h"
@@ -33,32 +29,23 @@ class GeantPropagator;
  * @brief The base class for track selectors having a dedicated basketizer.
  */
  
-#ifdef USE_ROOT
-class Selector : public TGeoExtension {
-#else
 class Selector {
-#endif
+
+public:
   using basketizer_t = Basketizer<GeantTrack>;
+
 protected:  
-  Volume_t *fVolume = nullptr;         ///< Associated volume if any.
-  int fIndex = -1;                     ///< Selector index in the array of geometry selectors
   int fNode = -1;                      ///< Numa node for basket allocation
   bool fActive = false;                ///< Activity flag
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
   std::atomic_int fThreshold;          ///< Basketizing threshold
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this selector
+  GeantPropagator *fPropagator = nullptr; ///< Associated propagator
   std::atomic_flag fLock;              ///< Lock for flushing
 private:
   Selector(const Selector &) = delete;
   Selector &operator=(const Selector &) = delete;
   
-protected:
-  VECCORE_ATT_HOST_DEVICE
-  void ConnectToVolume();
-
-  VECCORE_ATT_HOST_DEVICE
-  void DisconnectVolume();
-
 public:
   /** @brief Default selector constructor */
   VECCORE_ATT_HOST_DEVICE
@@ -73,8 +60,7 @@ public:
    * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  Selector(int threshold, GeantPropagator *propagator,
-         int node = -1, int index = -1, Volume_t *vol = nullptr);
+  Selector(int threshold, GeantPropagator *propagator, int node = -1);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -93,20 +79,10 @@ public:
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold.load(); }
   
-  /** @brief Getter for the index in the list of geometry selectors */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int GetIndex() const { return fIndex; }
-
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetNode() const { return fNode; }
-
-  /** @brief Getter for selector number */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  Volume_t *GetVolume() const { return fVolume; }
 
   /** @brief Check if selector is active for basketizing */
   VECCORE_ATT_HOST_DEVICE
@@ -115,7 +91,7 @@ public:
 
   /** @brief Activate/de-activate the selector */
   VECCORE_ATT_HOST_DEVICE
-  void ActivateBasketizing(bool flag = true);
+  virtual void ActivateBasketizing(bool flag = true);
 
   /** @brief Check if selector is flushing */
   VECCORE_ATT_HOST_DEVICE
@@ -141,21 +117,6 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   Basket *GetFreeBasket(GeantTaskData *td);
-
-  /**
-   * @brief Grab function
-   * @details Interface of TGeoExtension for getting a reference to this from Volume
-   * @return Pointer to the base class
-   */
- #ifdef USE_ROOT
-  virtual TGeoExtension *Grab() { return this; }
- #endif 
-
-  /**
-   * @brief Release function
-   * @details Interface of TGeoExtension to signal releasing ownership of this from TGeoVolume
-   */
-  virtual void Release() const {}
 
 };
 

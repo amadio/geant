@@ -62,6 +62,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 GEANT_DECLARE_CONSTANT(double, gTolerance);
 
 class GeantTaskData;
+class GeantTrack;
+typedef vector_t<GeantTrack *> TrackVec_t;
 
 /**
  * @brief Class GeantTrack

@@ -204,6 +204,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
     GeantTrackGeo_v &track_geo = *td->fGeoTrack;
     track_geo.Clear();
     int i = 0;
+    // This selection should happen in the propagation stage
     for (auto track : tracks) {
       if (track->fSafety < track->fPstep) {
         track_geo.AddTrack(*track);

@@ -38,6 +38,7 @@ set(sources
    src/GeantBasket.cxx
    src/Basket.cxx
    src/Selector.cxx
+   src/VolumeSelector.cxx
    src/SimulationStage.cxx
    src/sync_objects.cxx
    src/GeantOutput.cxx
@@ -69,6 +70,7 @@ set(headers
    inc/PhysicsProcessOld.h
    inc/Basket.h
    inc/Selector.h
+   inc/VolumeSelector.h
    inc/SimulationStage.h
    inc/GeantBasket.h
    inc/GeantPropagator.h

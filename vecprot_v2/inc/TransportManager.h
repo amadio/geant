@@ -30,7 +30,6 @@ class Basket;
  * @brief Class GeantTrack
  */
 namespace TransportManager {
-  typedef vector_t<GeantTrack *> TrackVec_t;
 
   /**
    * @brief Check if the geometry location changed for a vector of tracks

@@ -18,12 +18,12 @@
 #endif
 
 #include "Geant/Typedefs.h"
+#include "GeantTrack.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
-class GeantTrack;
 class SimulationStage;
 #include "GeantFwd.h"
 
@@ -38,7 +38,7 @@ protected:
   int fThreshold = 64;                ///< Basket threshold
   int fNode = 0;                      ///< Numa node for basket allocation
   SimulationStage *fStage;            ///< Simulation stage to be executed by tracks inside
-  vector_t<GeantTrack *>  fTracks;    ///< Vector of track pointers
+  TrackVec_t fTracks;                 ///< Vector of track pointers
   
 private:
 
@@ -125,7 +125,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  vector_t<GeantTrack*> &Tracks() { return fTracks; }
+  TrackVec_t &Tracks() { return fTracks; }
 
   /**
    * @brief Function returning a const reference to the vector of input tracks
@@ -133,7 +133,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  vector_t<GeantTrack*> const &GetTracks() { return fTracks; }
+  TrackVec_t const &GetTracks() { return fTracks; }
 
   /**
    * @brief Print the basket content
