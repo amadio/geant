@@ -1021,6 +1021,8 @@ void *WorkloadManager::GarbageCollectorThread(GeantPropagator *prop) {
     }
     gSystem->Sleep(1000); // millisec
   }
+#else
+  (void)prop;
 #endif
   return 0;
 }
@@ -1029,7 +1031,7 @@ void *WorkloadManager::GarbageCollectorThread(GeantPropagator *prop) {
 
 //______________________________________________________________________________
 void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
- #ifdef USE_ROOT
+#ifdef USE_ROOT
   // Thread providing basic monitoring for the scheduler.
   const double MByte = 1024.;
   Geant::Info("MonitoringThread","Started monitoring ...");
@@ -1276,6 +1278,8 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   Geant::Info("Monitoring stopped","=== Percent of tracks transported in single track mode: %g%%", 100. * nvect[1] / sumvect);
   // Sleep a bit to let the graphics finish
   gSystem->Sleep(100); // millisec
+#else
+  (void)prop;
 #endif
   return 0;
 }
@@ -1329,6 +1333,7 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
   return 0;
 
   #else
+    (void)prop;
     printf("=== ROOT is disabled - output thread did nothing ===");
   #endif
     return 0;
