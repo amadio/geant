@@ -116,7 +116,7 @@ void WorkloadManager::CreateBaskets(GeantPropagator* prop) {
 WorkloadManager *WorkloadManager::NewInstance(GeantPropagator *prop, int nthreads) {
   // Return singleton instance.
   if (!nthreads || !prop) {
-    ::Error("WorkloadManager::NewInstance", "You should provide number of threads.");
+    Geant::Error("WorkloadManager::NewInstance", "%s", "You should provide number of threads.");
     return 0;
   }
   return new WorkloadManager(nthreads,prop);

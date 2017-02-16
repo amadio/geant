@@ -76,29 +76,29 @@ public:
   VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPXsec::CheckAlign","fPDG misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPXsec::CheckAlign","fNEbins misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNCbins) % sizeof(fNCbins) != 0) { Geant::Error("TPXsec::CheckAlign","fNCbins misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNXsec) % sizeof(fNXsec) != 0) { Geant::Error("TPXsec::CheckAlign","fNXsec misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNTotXs) % sizeof(fNTotXs) != 0) { Geant::Error("TPXsec::CheckAlign","fNTotXs misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNXSecs) % sizeof(fNXSecs) != 0) { Geant::Error("TPXsec::CheckAlign","fNXSecs misaligned\n");isaligned=false;}
-  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fEGrid misaligned\n");isaligned=false;}
-  if(((unsigned long) fMSangle) % sizeof(fMSangle[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSangle misaligned\n");isaligned=false;}
-  if(((unsigned long) fMSansig) % sizeof(fMSansig[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSansig misaligned\n");isaligned=false;}
-  if(((unsigned long) fMSlength) % sizeof(fMSlength[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSlength misaligned\n");isaligned=false;}
-  if(((unsigned long) fMSlensig) % sizeof(fMSlensig[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fMSlensig misaligned\n");isaligned=false;}
-  if(((unsigned long) fdEdx) % sizeof(fdEdx[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fdEdx misaligned\n");isaligned=false;}
-  if(((unsigned long) fTotXs) % sizeof(fTotXs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fTotXs misaligned\n");isaligned=false;}
-  if(((unsigned long) fXSecs) % sizeof(fXSecs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","fXSecs misaligned\n");isaligned=false;}
+  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fPDG misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fNEbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNCbins) % sizeof(fNCbins) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fNCbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNXsec) % sizeof(fNXsec) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fNXsec misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNTotXs) % sizeof(fNTotXs) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fNTotXs misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNXSecs) % sizeof(fNXSecs) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fNXSecs misaligned\n");isaligned=false;}
+  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fEGrid misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSangle) % sizeof(fMSangle[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fMSangle misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSansig) % sizeof(fMSansig[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fMSansig misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSlength) % sizeof(fMSlength[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fMSlength misaligned\n");isaligned=false;}
+  if(((unsigned long) fMSlensig) % sizeof(fMSlensig[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fMSlensig misaligned\n");isaligned=false;}
+  if(((unsigned long) fdEdx) % sizeof(fdEdx[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fdEdx misaligned\n");isaligned=false;}
+  if(((unsigned long) fTotXs) % sizeof(fTotXs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fTotXs misaligned\n");isaligned=false;}
+  if(((unsigned long) fXSecs) % sizeof(fXSecs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fXSecs misaligned\n");isaligned=false;}
   if(int delta = ((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TPXsec::CheckAlign","fEmin misaligned %d \n",delta);isaligned=false;}
   if(int delta = ((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TPXsec::CheckAlign","fEmax misaligned %d \n",delta);isaligned=false;}
-  if(int delta = ((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPXsec::CheckAlign","fEilDelta misaligned %d \n",delta);isaligned=false;}
-  if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","fRdict misaligned\n");isaligned=false;}
-  if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","fRmap misaligned\n");isaligned=false;}
+  if(int delta = ((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fEilDelta misaligned %d \n",delta);isaligned=false;}
+  if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fRdict misaligned\n");isaligned=false;}
+  if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fRmap misaligned\n");isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPXsec::CheckAlign","fMagic misaligned\n");isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fMagic misaligned\n");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPXsec::CheckAlign","fStore misaligned\n");isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
 #ifdef VECCORE_CUDA
