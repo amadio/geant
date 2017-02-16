@@ -1,11 +1,11 @@
-//===--- VolumeSelector.h - Geant-V -----------------------------*- C++ -*-===//
+//===--- GeomLengthQuery.h - Geant-V -----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file VolumeSelector.h
- * @brief Implementation of a geometry volume selector
+ * @file GeomLengthQuery.h
+ * @brief Implementation of a geometry query for the transport length to next boundary.
  * @details The volume selector performs computation of the allowed geometry step
  *  using both scalar and vector interfaces.
  *
@@ -13,8 +13,8 @@
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_VOLUME_SELECTOR
-#define GEANT_VOLUME_SELECTOR
+#ifndef GEANT_GEOM_LENGTH_QUERY
+#define GEANT_GEOM_LENGTH_QUERY
 
 #include "Selector.h"
 
@@ -30,9 +30,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
  */
  
 #ifndef USE_ROOT
-class VolumeSelector : public Selector {
+class GeomLengthQuery : public Selector {
 #else
-class VolumeSelector : public Selector,
+class GeomLengthQuery : public Selector,
                        public TGeoExtension {
 #endif
 
@@ -41,8 +41,8 @@ protected:
   int fIndex = -1;                     ///< Selector index in the array of geometry selectors
 
 private:
-  VolumeSelector(const VolumeSelector &) = delete;
-  VolumeSelector &operator=(const VolumeSelector &) = delete;
+  GeomLengthQuery(const GeomLengthQuery &) = delete;
+  GeomLengthQuery &operator=(const GeomLengthQuery &) = delete;
   
 protected:
   VECCORE_ATT_HOST_DEVICE
@@ -54,23 +54,20 @@ protected:
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  VolumeSelector() : Selector() {}
+  GeomLengthQuery() : Selector() {}
 
   /** 
-   * @brief NUMA aware volume selector constructor
-   *
+   * @brief Volume selector default constructor
    * @param threshold Basketizing threshold
    * @param propagator Propagator working with this selector
    * @param vol Associated volume
-   * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  VolumeSelector(Volume_t *vol, int threshold, GeantPropagator *propagator,
-         int node = -1, int index = -1);
+  GeomLengthQuery(Volume_t *vol, int threshold, GeantPropagator *propagator, int index = -1);
 
   /** @brief Geometry filter destructor */
   VECCORE_ATT_HOST_DEVICE
-  virtual ~VolumeSelector();
+  virtual ~GeomLengthQuery();
 
   /** @brief Activate/de-activate the selector */
   VECCORE_ATT_HOST_DEVICE

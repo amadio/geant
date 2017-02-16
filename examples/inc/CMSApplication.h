@@ -51,8 +51,6 @@ class CMSApplication : public Geant::GeantVApplication {
   using GeantEvent = Geant::GeantEvent;
 
 public:
-  template <class T>
-  using vector_t = vecgeom::Vector<T>;
 
 enum EScoreType {
   kNoScore = 0,

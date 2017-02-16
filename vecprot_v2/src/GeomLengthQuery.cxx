@@ -1,4 +1,4 @@
-#include "VolumeSelector.h"
+#include "GeomLengthQuery.h"
 #include "Basket.h"
 #include "GeantTaskData.h"
 #include "GeantTrackGeo.h"
@@ -18,19 +18,17 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-VolumeSelector::VolumeSelector(Volume_t *vol, int threshold, GeantPropagator *propagator,
-               int node, int index)
-               : Selector(threshold, propagator, node),
-                 fVolume(vol), fIndex(index)
+GeomLengthQuery::GeomLengthQuery(Volume_t *vol, int threshold, GeantPropagator *propagator, int index)
+               : Selector(threshold, propagator), fVolume(vol), fIndex(index)
 {
 // Default constructor
-  assert(vol && "VolumeSelector: A valid volume pointer has to be provided");
+  assert(vol && "GeomLengthQuery: A valid volume pointer has to be provided");
   ConnectToVolume();
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-VolumeSelector::~VolumeSelector()
+GeomLengthQuery::~GeomLengthQuery()
 {
 // Destructor
   DisconnectVolume();
@@ -38,7 +36,7 @@ VolumeSelector::~VolumeSelector()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void VolumeSelector::ConnectToVolume()
+void GeomLengthQuery::ConnectToVolume()
 {
   VBconnector *connector = new VBconnector(fIndex);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -51,7 +49,7 @@ void VolumeSelector::ConnectToVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void VolumeSelector::ActivateBasketizing(bool flag)
+void GeomLengthQuery::ActivateBasketizing(bool flag)
 {
 // Special basketizing in case of logical volumes
   if (fActive == flag) return;
@@ -62,19 +60,19 @@ void VolumeSelector::ActivateBasketizing(bool flag)
   assert(fThreshold < 512 && fThreshold < buffer_size);
   // Create basketizer the first time the selector is activated
   if (fActive && !fBasketizer) {
-    if (fNode < 0) {
+    if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
       fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaAlignedMalloc(basketizer_size, fNode, 64), buffer_size, basket_size);
+        NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
     }
   }
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void VolumeSelector::DisconnectVolume()
+void GeomLengthQuery::DisconnectVolume()
 {
   if (!fVolume) return;
   VBconnector *connector = nullptr;
@@ -90,7 +88,7 @@ void VolumeSelector::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void VolumeSelector::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
+void GeomLengthQuery::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -107,7 +105,7 @@ void VolumeSelector::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void VolumeSelector::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void GeomLengthQuery::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   

@@ -516,7 +516,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   double *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < ntracks; itr++) {
     GeantTrack &track = *tracks[itr];
-    lmax = SafeLength(track, eps);
+    lmax = SafeLength(track, bmag, eps);
     lmax = Math::Max<double>(lmax, track.fSafety);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
@@ -638,7 +638,7 @@ int TransportManager::PropagateSingleTrack(GeantTrack *track, Basket *output, Ge
     // i.e. what is the propagated length for which the track deviation in magnetic
     // field with respect to straight propagation is less than epsilon.
     // Take the maximum between the safety and the "bending" safety
-    lmax = SafeLength(*track, eps);
+    lmax = SafeLength(*track, bmag, eps);
     lmax = Math::Max<double>(lmax, track->fSafety);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
@@ -756,7 +756,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
     // i.e. what is the propagated length for which the track deviation in magnetic
     // field with respect to straight propagation is less than epsilon.
     // Take the maximum between the safety and the "bending" safety
-    lmax = SafeLength(track, eps);
+    lmax = SafeLength(track, bmag, eps);
     lmax = Math::Max<double>(lmax, track.fSafety);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics

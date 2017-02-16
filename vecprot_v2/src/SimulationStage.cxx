@@ -19,13 +19,6 @@ SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void SimulationStage::AddSelector(Selector *selector)
-{
-  fSelectors.push_back(selector);
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
 SimulationStage::~SimulationStage()
 {
   for (int i=0; i<GetNselectors(); ++i)

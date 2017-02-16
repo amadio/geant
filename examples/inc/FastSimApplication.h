@@ -37,9 +37,6 @@ class TH1F;
 /** @brief FastSimApplication class */
 class FastSimApplication : public Geant::GeantVApplication {
 
-  template <class T>
-  using vector_t = vecgeom::Vector<T>;
-
   using GeantRunManager = Geant::GeantRunManager;
   using GeantEvent = Geant::GeantEvent;
 

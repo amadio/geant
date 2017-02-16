@@ -70,6 +70,7 @@ class GeantPropagator {
 public:
   GeantConfig *fConfig = nullptr;      /** Run configuration*/
   GeantRunManager *fRunMgr = nullptr;  /** Run manager */
+  int fNuma = -1;                      /** NUMA id */
 
   int fNthreads = 0;                   /** Number of worker threads */
   int fNbuff = 0;                      /** Number of buffered events */

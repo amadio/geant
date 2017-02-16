@@ -49,10 +49,6 @@ public:
 
 class GeantRunManager
 {
-public:
-  template <class T>
-  using vector_t = vecgeom::Vector<T>;
-
 private:
   bool fInitialized = false;
   int fNpropagators = 0;          /** Number of propagators */

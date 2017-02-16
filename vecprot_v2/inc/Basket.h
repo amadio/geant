@@ -136,6 +136,14 @@ public:
   TrackVec_t const &GetTracks() { return fTracks; }
 
   /**
+   * @brief Function returning the number of tracks
+   * @return Number of tracks
+   */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int size() { return fTracks.size(); }
+
+  /**
    * @brief Print the basket content
    */
   void Print(const char *msg = "") const;

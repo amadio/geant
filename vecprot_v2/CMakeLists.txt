@@ -38,8 +38,12 @@ set(sources
    src/GeantBasket.cxx
    src/Basket.cxx
    src/Selector.cxx
-   src/VolumeSelector.cxx
+   src/GeomLengthQuery.cxx
+   src/FieldPropagator.cxx
+   src/LinearPropagator.cxx
    src/SimulationStage.cxx
+   src/GeomQueryStage.cxx
+   src/PropagationStage.cxx
    src/sync_objects.cxx
    src/GeantOutput.cxx
    src/GeantPropagator.cxx
@@ -70,8 +74,12 @@ set(headers
    inc/PhysicsProcessOld.h
    inc/Basket.h
    inc/Selector.h
-   inc/VolumeSelector.h
+   inc/GeomLengthQuery.h
+   inc/FieldPropagator.h
+   inc/LinearPropagator.h
    inc/SimulationStage.h
+   inc/GeomQueryStage.h
+   inc/PropagationStage.h
    inc/GeantBasket.h
    inc/GeantPropagator.h
    inc/GeantTrack.h

@@ -121,12 +121,17 @@ public:
   /** @brief Add next selector */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void AddSelector(Selector *selector);
+  void AddSelector(Selector *selector) { fSelectors.push_back(selector); }
 
   /** @brief Getter for number of selectors */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetNselectors() const { return fSelectors.size(); }
+
+  /** @brief Getter for a given selector */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  Selector *GetSelector(int i) const { return fSelectors[i]; }
 
   /** @brief Add a follow-up stage */
   VECCORE_ATT_HOST_DEVICE

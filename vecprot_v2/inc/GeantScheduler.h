@@ -44,8 +44,6 @@ public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
-  template <class T>
-  using vector_t = vecgeom::Vector<T>;
 
 protected:
   int fNvolumes;                                 /** Number of active volumes in the geometry */

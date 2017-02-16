@@ -1,15 +1,14 @@
 #include "Selector.h"
 #include "GeantNuma.h"
 #include "GeantTaskData.h"
-#include "GeantPropagator.h"
-
+#
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Selector::Selector(int threshold, GeantPropagator *propagator, int node)
-  : fNode(node), fPropagator(propagator) {
+Selector::Selector(int threshold, GeantPropagator *propagator)
+  : fPropagator(propagator) {
   // Selector constructor. The selector needs to be manually activated to actually
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
@@ -23,7 +22,7 @@ Selector::Selector(int threshold, GeantPropagator *propagator, int node)
 VECCORE_ATT_HOST_DEVICE
 Selector::~Selector()
 {
-  if (fNode < 0) delete fBasketizer;
+  if (GetNode() < 0) delete fBasketizer;
   else NumaAlignedFree(fBasketizer);
   fBasketizer = nullptr;
   fLock.clear();
@@ -50,12 +49,12 @@ void Selector::ActivateBasketizing(bool flag)
   assert(fThreshold < buffer_size);
   // Create basketizer the first time the selector is activated
   if (fActive && !fBasketizer) {
-    if (fNode < 0) {
+    if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
       fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaAlignedMalloc(basketizer_size, fNode, 64), buffer_size, basket_size);
+        NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
     }
   }
 }

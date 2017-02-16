@@ -16,13 +16,13 @@
 #include "Geant/Typedefs.h"
 #include "Basketizer.h"
 #include "Basket.h"
+#include "GeantPropagator.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
 class GeantTrack;
-class GeantPropagator;
 #include "GeantFwd.h"
 
 /**
@@ -35,7 +35,6 @@ public:
   using basketizer_t = Basketizer<GeantTrack>;
 
 protected:  
-  int fNode = -1;                      ///< Numa node for basket allocation
   bool fActive = false;                ///< Activity flag
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
   std::atomic_int fThreshold;          ///< Basketizing threshold
@@ -52,15 +51,13 @@ public:
   Selector() {}
 
   /** 
-   * @brief NUMA aware selector constructor
-   *
+   * @brief Default constructor
    * @param threshold Basketizing threshold
    * @param propagator Propagator working with this selector
    * @param vol Associated volume
-   * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  Selector(int threshold, GeantPropagator *propagator, int node = -1);
+  Selector(int threshold, GeantPropagator *propagator);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -82,7 +79,7 @@ public:
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int GetNode() const { return fNode; }
+  int GetNode() const { return fPropagator->fNuma; }
 
   /** @brief Check if selector is active for basketizing */
   VECCORE_ATT_HOST_DEVICE
