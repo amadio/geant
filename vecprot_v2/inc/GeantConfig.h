@@ -8,6 +8,9 @@
 class GeantVApplication;
 class GeantVTaskMgr;
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GeantConfig
 {
 public:
@@ -156,5 +159,6 @@ public:
   }
 	
 };
-
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif // GEANT_RUN_CONFIG_H
