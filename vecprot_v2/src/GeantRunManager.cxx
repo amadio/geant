@@ -255,6 +255,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 bool GeantRunManager::LoadVecGeomGeometry() {
 #ifdef USE_VECGEOM_NAVIGATOR
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
+#ifdef USE_ROOT
     printf("Now loading VecGeom geometry\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
     printf("Loading VecGeom geometry done\n");
@@ -265,7 +266,7 @@ bool GeantRunManager::LoadVecGeomGeometry() {
     vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
     printf("Have placed volumes %ld\n", v2.size());
     //    vecgeom::RootGeoManager::Instance().world()->PrintContent();
-
+#endif
   }
   if (fBroker) {
     printf("Now upload VecGeom geometry to Coprocessor(s)\n");
