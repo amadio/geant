@@ -69,7 +69,7 @@ public:
   GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
   GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
   Basket *fBvector = nullptr;  /** Buffer basket used for vector API */
-  Basket *fLastBasket = nullptr;  /** Last basket processed, to be processed by the same thread/task */
+  Basket *fShuttleBasket = nullptr;  /** Shuttle basket from selectors to follow-up simulation stage */
   vector_t<Basket *> fStageBuffers; /** Buffers for tracks at input of simulation stages */
   GeantBasket *fImported;/** Basket used to import tracks from the event server */
 #ifdef VECCORE_CUDA

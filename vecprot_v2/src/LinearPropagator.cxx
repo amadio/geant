@@ -8,7 +8,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 LinearPropagator::LinearPropagator(int threshold, GeantPropagator *propagator)
-               : Selector(threshold, propagator)
+               : Handler(threshold, propagator)
 {
 // Default constructor
 }

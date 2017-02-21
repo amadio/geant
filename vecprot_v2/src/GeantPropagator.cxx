@@ -57,6 +57,9 @@
 #include "PrimaryGenerator.h"
 #include "MCTruthMgr.h"
 
+#include "GeomQueryStage.h"
+#include "PropagationStage.h"
+
 #ifdef USE_CALLGRIND_CONTROL
 #include <valgrind/callgrind.h>
 #endif
@@ -345,6 +348,78 @@ int GeantPropagator::ShareWork(GeantPropagator &other)
   return ( fWMgr->ShareBaskets(other.fWMgr) );
 #endif
 }
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int GeantPropagator::CreateSimulationStages()
+{
+  // Create stages in the same order as the enumeration ESimulationStage
+  SimulationStage *stage = nullptr;
+  // kUndefinedStage
+  assert(stage->GetId() == int(kUndefinedStage));
+  // kSampleXsecStage
+//  stage = new XsecSamplingStage(this);
+  assert(stage->GetId() == int(kSampleXsecStage));
+  // kGeometryStepStage
+  stage = new GeomQueryStage(this);
+  assert(stage->GetId() == int(kGeometryStepStage));
+  // kPropagationStage
+  stage = new PropagationStage(this);
+  assert(stage->GetId() == int(kPropagationStage));
+  // kMSCStage
+  stage = nullptr; // new MSCStage(this);
+  assert(stage->GetId() == int(kMSCStage));
+  // kContinuousProcStage
+  stage = nullptr; // new ContinuousProcStage(this);
+  assert(stage->GetId() == int(kContinuousProcStage));
+  // kDiscreteProcStage
+  stage = nullptr; // new DiscreteProcStage(this);
+  assert(stage->GetId() == int(kDiscreteProcStage));
+  // kRIPStage
+  stage = nullptr;
+  assert(stage->GetId() == int(kRIPStage));
+  // kBufferingStage
+  stage = nullptr; // new BufferingStage(this)
+  assert(stage->GetId() == int(kBufferingStage));
+  // kUserActionsStage
+  stage = nullptr; // new UserActionsStage(this)
+  assert(stage->GetId() == int(kUserActionsStage));
+  
+  // Define connections between stages
+  GetStage(kSampleXsecStage)->SetFollowUpStage(kGeometryStepStage);
+  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
+  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
+  GetStage(kDiscreteProcStage)->SetUserActionsStage(kUserActionsStage);
+
+  (void)stage;
+  return fStages.size();  
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int GeantPropagator::GetNextStage(GeantTrack &/*track*/, int /*current*/)
+{
+// Get the next simulation stage for a track
+//  0 - Sample X-sec for discrete processes to propose the physics step
+//  1 - Compute geometry step length to boundary with a physics limitation
+//  2 - Propagate track with selected step, performing relocation if needed.
+//        - Follow-up to 1 for charged tracks if neither the geometry nor 
+//          physics steps are completed
+//        - In case MSC is available, apply it for charged tracks
+//        - Detect loopers and send them to RIP stage
+//  2'- Apply multiple scattering and change track position/direction
+//        - Follow-up to 1 after
+//        - Handle boundary crossing by MSC
+//  3 - Apply along-step continuous processes
+//        - Send particles killed by energy threshold to graveyard
+//  4 - Do post step actions for particles suffering a physics process
+//        - Follow-up to stage 0 after running user actions stage
+//  5 - RIP stage - execute user actions then terminate tracks
+//  6 - User actions is invoked as a stage, but the follow-up stage is backed-up
+//      beforehand in the track state.
+  return -1;  
+}
+
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

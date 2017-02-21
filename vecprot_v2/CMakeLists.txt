@@ -37,7 +37,7 @@ set(sources
    src/GeantTrackGeo.cxx
    src/GeantBasket.cxx
    src/Basket.cxx
-   src/Selector.cxx
+   src/Handler.cxx
    src/GeomLengthQuery.cxx
    src/FieldPropagator.cxx
    src/LinearPropagator.cxx
@@ -73,7 +73,7 @@ set(headers
    inc/PhysicsInterface.h
    inc/PhysicsProcessOld.h
    inc/Basket.h
-   inc/Selector.h
+   inc/Handler.h
    inc/GeomLengthQuery.h
    inc/FieldPropagator.h
    inc/LinearPropagator.h

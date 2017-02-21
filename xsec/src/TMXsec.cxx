@@ -692,7 +692,7 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
       tracks.fEdepV[i] += energy;       // put Ekin to edepo
       tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
       tracks.fPV[i] = 0.;               // set Ptotal = 0
-      tracks.fStatusV[i] = kKilled;     // set status to killed
+      tracks.fStatusV[i] = Geant::kKilled;     // set status to killed
       // stopped: set proc. indx = -2 to inidicate that
       tracks.fProcessV[i] = -2; // possible at-rest process need to be called
       continue;
@@ -725,7 +725,7 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
       tracks.fEdepV[i] += energy;       // put Ekin to edepo
       tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
       tracks.fPV[i] = 0.;               // set Ptotal = 0
-      tracks.fStatusV[i] = kKilled;     // set status to killed
+      tracks.fStatusV[i] = Geant::kKilled;     // set status to killed
                                         // check if the particle stopped or just went below the tracking cut
       if (newEkin <= 0.0)               // stopped: set proc. indx = -2 to inidicate that
         tracks.fProcessV[i] = -2;       // possible at-rest process need to be called
@@ -769,7 +769,7 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks,GeantTaskData *td) {
     tracks.fEdepV[i] += energy;       // put Ekin to edepo
     tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
     tracks.fPV[i] = 0.;               // set Ptotal = 0
-    tracks.fStatusV[i] = kKilled;     // set status to killed
+    tracks.fStatusV[i] = Geant::kKilled;     // set status to killed
     // stopped: set proc. indx = -2 to inidicate that
     tracks.fProcessV[i] = -2; // possible at-rest process need to be called
     return;
@@ -802,7 +802,7 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks,GeantTaskData *td) {
     tracks.fEdepV[i] += energy;       // put Ekin to edepo
     tracks.fEV[i] = tracks.fMassV[i]; // set Etotal = Mass i.e. Ekin = 0
     tracks.fPV[i] = 0.;               // set Ptotal = 0
-    tracks.fStatusV[i] = kKilled;     // set status to killed
+    tracks.fStatusV[i] = Geant::kKilled;     // set status to killed
                                       // check if the particle stopped or just went below the tracking cut
     if (newEkin <= 0.0)               // stopped: set proc. indx = -2 to inidicate that
       tracks.fProcessV[i] = -2;       // possible at-rest process need to be called

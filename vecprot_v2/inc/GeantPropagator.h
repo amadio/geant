@@ -262,8 +262,18 @@ public:
   }
 
   /** @brief  Getter for a simulation stage */
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  SimulationStage *GetStage(int id) { return fStages[id]; }
+  SimulationStage *GetStage(ESimulationStage id) { return fStages[int(id)]; }
+
+  /** @brief Function creating all simulation stages for a propagator */
+  VECCORE_ATT_HOST_DEVICE
+  int CreateSimulationStages();
+
+  /** @brief Function allowing to retrieve the next simulation stage for a track */
+  VECCORE_ATT_HOST_DEVICE
+  int GetNextStage(GeantTrack &track, int current);
+  
 
 private:
   /** @brief Assignment operator not implemented */

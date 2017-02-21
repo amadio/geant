@@ -328,7 +328,7 @@ void Smearer::ApplyParameterisation( int ntracks, GeantTrack_v& tracks, GeantTas
     double eta = 0.5 * std::log( (p + pz)/(p - pz) );
     //std::cout << "\t \t p=" << p << " ; pz=" << pz << " ; pt=" << pt << " GeV; eta=" << eta << std::endl;  // Debug 
     if ( pt < 0.001 || std::abs( eta ) > 5.5 ) {
-      tracks.fStatusV[i] = kKilled;
+      tracks.fStatusV[i] = Geant::kKilled;
       //std::cout << " Smearer::ApplyParameterisation : KILLED track with  pt=" << pt 
       //          << " ; eta=" << eta << std::endl;  // Debug
       continue;
@@ -437,7 +437,7 @@ void Smearer::ApplyEcalParameterisation( GeantTrack_v& tracks, GeantTaskData& aT
     } while ( smeared_eKin < 0.0 );
   }
   tracks.fEdepV[index] = smeared_eKin;  // Set the smeared kinetic energy
-  tracks.fStatusV[index] = kKilled;     // Kill the track
+  tracks.fStatusV[index] = Geant::kKilled;     // Kill the track
 
   //std::cout << " Smearer::ApplyEcalParameterisation : p=" << p 
   //          << " ; eKin=" << eKin << " ; smeared_eKin=" << smeared_eKin << std::endl
@@ -476,7 +476,7 @@ void Smearer::ApplyHcalParameterisation( GeantTrack_v& tracks, GeantTaskData& aT
     } while ( smeared_eKin < 0.0 );
   }
   tracks.fEdepV[index] = smeared_eKin;  // Set the smeared kinetic energy
-  tracks.fStatusV[index] = kKilled;     // Kill the track
+  tracks.fStatusV[index] = Geant::kKilled;     // Kill the track
   //std::cout << " Smearer::ApplyHcalParameterisation : p=" << p 
   //          << " ; eKin=" << eKin << " ; smeared_eKin=" << smeared_eKin << std::endl
   //          << "Smearer::ApplyHcalParameterisation : --- End ---" << std::endl;  // Debug

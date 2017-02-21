@@ -15,27 +15,27 @@ GeomQueryStage::GeomQueryStage(GeantPropagator *prop)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int GeomQueryStage::CreateSelectors()
+int GeomQueryStage::CreateHandlers()
 {
-// Create all volume selectors.
+// Create all volume handlers.
   vector_t<Volume_t const *> volumes = fPropagator->fRunMgr->GetVolumes();
   int nvolumes = fPropagator->fRunMgr->GetNvolumes();
   int threshold = fPropagator->fConfig->fNperBasket;
   Volume_t *vol;
   for (auto ivol = 0; ivol < nvolumes; ++ivol) {
     vol = (Volume_t *)volumes[ivol];
-    GeomLengthQuery *selector = new GeomLengthQuery(vol, threshold, fPropagator, ivol);
-    AddSelector(selector);
-    assert(selector == fSelectors[ivol]);
+    GeomLengthQuery *handler = new GeomLengthQuery(vol, threshold, fPropagator, ivol);
+    AddHandler(handler);
+    assert(handler == fHandlers[ivol]);
   }
   return nvolumes;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Selector *GeomQueryStage::Select(GeantTrack *track)
+Handler *GeomQueryStage::Select(GeantTrack *track)
 {
-// Retrieve the appropriate selector depending on the current volume.
+// Retrieve the appropriate handler depending on the current volume.
 // Tracks that are killed or exit the setup should be filtered out by the relocator stage
 // and never reach this point.
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -45,7 +45,7 @@ Selector *GeomQueryStage::Select(GeantTrack *track)
   Volume_t *vol = track->fPath->GetCurrentNode()->GetVolume();
   VBconnector *link = reinterpret_cast<VBconnector *>(vol->GetFWExtension());
 #endif
-  return ( fSelectors[link->index] );
+  return ( fHandlers[link->index] );
 }
 
 } // GEANT_IMPL_NAMESPACE

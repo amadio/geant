@@ -34,6 +34,7 @@ public:
   int fMaxTracks;         /** Maximum number of tracks per event */
   int fMaxThreads;        /** Maximum number of threads */
   int fNminThreshold;     /** Threshold for starting transporting a basket */
+  int fNvecThreshold;     /** Threshold for executing in vector mode */
   int fDebugEvt;          /** Event to debug */
   int fDebugTrk;          /** Track to debug */
   int fDebugStp;          /** Step to start debugging */
@@ -83,8 +84,8 @@ public:
 
 public:
   VECCORE_ATT_DEVICE
-  GeantConfig(): fNtotal(1000), fNbuff(100), fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(10), fDebugEvt(-1),
-    fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256),
+  GeantConfig(): fNtotal(1000), fNbuff(100), fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(16), fNvecThreshold(8),
+    fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256),
     fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
     fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
     fEmin(1.E-4),// 100 KeV

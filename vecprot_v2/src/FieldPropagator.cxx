@@ -10,7 +10,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 FieldPropagator::FieldPropagator(int threshold, GeantPropagator *propagator)
-               : Selector(threshold, propagator)
+               : Handler(threshold, propagator)
 {
 // Default constructor
 }
@@ -99,7 +99,7 @@ void FieldPropagator::PropagateInVolume(TrackVec_t &tracks, const double *crtste
 // Now implemented just as a loop
   int ntracks = tracks.size();
   for (int itr=0; itr<ntracks; ++itr)
-    PropagateInVolume(*tracks[itr], crtstep[itr++], td);
+    PropagateInVolume(*tracks[itr], crtstep[itr], td);
 }
 
 //______________________________________________________________________________

@@ -19,7 +19,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 GeomLengthQuery::GeomLengthQuery(Volume_t *vol, int threshold, GeantPropagator *propagator, int index)
-               : Selector(threshold, propagator), fVolume(vol), fIndex(index)
+               : Handler(threshold, propagator), fVolume(vol), fIndex(index)
 {
 // Default constructor
   assert(vol && "GeomLengthQuery: A valid volume pointer has to be provided");
@@ -55,10 +55,10 @@ void GeomLengthQuery::ActivateBasketizing(bool flag)
   if (fActive == flag) return;
   fActive = flag;
   int basket_size = fThreshold;
-  // Set a 'compromise' size for the basketizer buffer for all geometry selectors
+  // Set a 'compromise' size for the basketizer buffer for all geometry handlers
   int buffer_size = 1 << 10; // This makes ~16 MBytes of basketizer buffers for 4K volumes
   assert(fThreshold < 512 && fThreshold < buffer_size);
-  // Create basketizer the first time the selector is activated
+  // Create basketizer the first time the handler is activated
   if (fActive && !fBasketizer) {
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
@@ -100,6 +100,8 @@ void GeomLengthQuery::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
 // ROOT geometry
   ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(track);
 #endif // USE_VECGEOM_NAVIGATOR
+  // Select follow-up stage
+  track->SetStage(ESimulationStage::kPropagationStage);
   output.AddTrack(track);  
 }
 
@@ -135,7 +137,7 @@ void GeomLengthQuery::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #endif
 #else
 // ROOT geometry. Fall back to scalar implementation
-  Selector::DoIt(input, output, td);
+  Handler::DoIt(input, output, td);
 #endif
 }
 

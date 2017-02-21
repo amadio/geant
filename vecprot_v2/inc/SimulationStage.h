@@ -22,65 +22,51 @@
 #define GEANT_SIMULATION_STAGE
 
 #include "Geant/Typedefs.h"
+#include "GeantTrack.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
-class GeantTrack;
 class Basket;
-class Selector;
+class Handler;
 class GeantPropagator;
 #include "GeantFwd.h"
-
-/** Basket processing stages. */
-enum ESimulationStage {
-  kUndefinedStage,       // Undefined stage type
-  kSchedulingStage,      // Scheduling actions: track fetching, flushing, prioritizing
-  kSampleXsecStage,      // Propose physics step by sampling total Xsec
-  kGeometryStepStage,    // Compute geometry transport length
-  kPropagationStage,     // Propagation in field stage
-  kContinuousProcStage,  // Continuous processes stage
-  kDiscreteProcStage,    // Discrete processes stage
-  kBufferingStage,       // Stack-like buffering stage
-  kUserStage             // Any user stage (user actions, fast simulation)
-};
 
 //template <ESimulationStage STAGE>
 class SimulationStage {
 
-  using Selectors_t = vector_t<Selector *>;
-  using Stages_t = vector_t<SimulationStage *>;
+  using Handlers_t = vector_t<Handler *>;
 
 protected:  
   ESimulationStage fType = kUndefinedStage; ///< Processing stage type
   GeantPropagator *fPropagator = nullptr;   ///< Propagator owning this stage
-  int fId = -1;                             ///< Unique stage id
-  Selectors_t fSelectors;                   ///< Array of selectors for the stage
-  Stages_t fFollowUps;                      ///< Follow-up stages for processed tracks
+  int fId = 0;                              ///< Unique stage id
+  int fUserActionsStage = 0;                ///< User actions stage to be executed right after
+  int fFollowUpStage = 0;                   ///< In case there is a single follow-up store its id
+
+  Handlers_t fHandlers;                   ///< Array of handlers for the stage
   
 private:
   SimulationStage(const SimulationStage &) = delete;
   SimulationStage &operator=(const SimulationStage &) = delete;
 
+  VECCORE_ATT_HOST_DEVICE
+  int CopyToFollowUps(Basket &output, GeantTaskData *td);
 // The functions below are the interfaces for derived simulation stages.
 protected:
 
-  /** @brief Interface to create all selectors for the simulation stage
-   *  @return Number of selectors created */
+  /** @brief Interface to create all handlers for the simulation stage
+   *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
-  virtual int CreateSelectors() { return 0; }
+  virtual int CreateHandlers() { return 0; }
 
 public:
 
-  /** @brief Interface to select the selector matching a track */
+  /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Selector *Select(GeantTrack *track) = 0;
+  virtual Handler *Select(GeantTrack *track) = 0;
 
-  /** @brief Interface to select the next stage for a processed track, from the list of follow-ups */
-  VECCORE_ATT_HOST_DEVICE
-  virtual int SelectFollowUp(GeantTrack *) { return 0; }
-  
 public:
   /** @brief Dummy SimulationStage constructor */
   VECCORE_ATT_HOST_DEVICE
@@ -100,56 +86,59 @@ public:
    *  @return Number of tracks processed
    */
   VECCORE_ATT_HOST_DEVICE
-  int Process(Basket &input, GeantTaskData *td);
+  int Process(GeantTaskData *td);
 
   /** @brief Flush all tracks from the simulation stage basketizers and execute stage
    *  @return Number of tracks flushed
    */
   VECCORE_ATT_HOST_DEVICE
-  int FlushAndProcess(Basket &btodo, GeantTaskData *td);
+  int FlushAndProcess(GeantTaskData *td);
 
   /** @brief Getter for type */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   ESimulationStage GetType() const { return fType; }
 
-  /** @brief Getter for type */
+  /** @brief Getter for Id */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int NFollowUps() const { return fFollowUps.size(); }
+  int GetId() const { return fId; }
 
-  /** @brief Add next selector */
+  /** @brief Set follow-up stage */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void AddSelector(Selector *selector) { fSelectors.push_back(selector); }
-
-  /** @brief Getter for number of selectors */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int GetNselectors() const { return fSelectors.size(); }
-
-  /** @brief Getter for a given selector */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  Selector *GetSelector(int i) const { return fSelectors[i]; }
-
-  /** @brief Add a follow-up stage */
-  VECCORE_ATT_HOST_DEVICE
-  void AddFollowUpStage(SimulationStage *stage)
-  {
-    // Not allowed that the same stage is a follow-up
-    assert(stage != this);
-    fFollowUps.push_back(stage);
-  }
+  void SetFollowUpStage(ESimulationStage stage) { fFollowUpStage = (int)stage; } 
 
   /** @brief Getter for type */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  SimulationStage *GetFollowUpStage(int istage = 0) const { return fFollowUps[istage]; }
+  int GetFollowUpStage() const { return fFollowUpStage; }
 
-  /** @brief Fork output basket to smaller baskets if stage has more daughters */
+  /** @brief Add next handler */
   VECCORE_ATT_HOST_DEVICE
-  void ForkToFollowUps(Basket *output, GeantTaskData *td);
+  GEANT_FORCE_INLINE
+  void AddHandler(Handler *handler) { fHandlers.push_back(handler); }
+
+  /** @brief Getter for number of handlers */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetNhandlers() const { return fHandlers.size(); }
+
+  /** @brief Getter for a given handler */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  Handler *GetHandler(int i) const { return fHandlers[i]; }
+
+  /** @brief Set user actions stage */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetUserActionsStage(ESimulationStage stage) { fUserActionsStage = (int)stage; } 
+
+  /** @brief Getter for user actions stage */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetUserActionsStage() const { return fUserActionsStage; } 
+
 };
 
 } // GEANT_IMPL_NAMESPACE

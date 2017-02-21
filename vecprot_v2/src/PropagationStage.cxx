@@ -22,24 +22,24 @@ PropagationStage::PropagationStage(GeantPropagator *prop)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int PropagationStage::CreateSelectors()
+int PropagationStage::CreateHandlers()
 {
-// Create all volume selectors.
+// Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
-  AddSelector(new LinearPropagator(threshold, fPropagator));
-  AddSelector(new FieldPropagator(threshold, fPropagator));
+  AddHandler(new LinearPropagator(threshold, fPropagator));
+  AddHandler(new FieldPropagator(threshold, fPropagator));
   
   return 2;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Selector *PropagationStage::Select(GeantTrack *track)
+Handler *PropagationStage::Select(GeantTrack *track)
 {
-// Retrieve the appropriate selector depending on the track charge
+// Retrieve the appropriate handler depending on the track charge
   if (!fHasField || track->fCharge == 0)
-    return fSelectors[0];
-  return fSelectors[1];
+    return fHandlers[0];
+  return fHandlers[1];
 }
 
 } // GEANT_IMPL_NAMESPACE

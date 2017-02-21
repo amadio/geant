@@ -5,7 +5,7 @@
 //===----------------------------------------------------------------------===//
 /**
  * @file LinearPropagator.h
- * @brief Implementation of the linear propagation as a selector.
+ * @brief Implementation of the linear propagation as a handler.
  *
  * @author Andrei Gheata
  */
@@ -14,16 +14,16 @@
 #ifndef GEANT_LINEAR_PROPAGATOR
 #define GEANT_LINEAR_PROPAGATOR
 
-#include "Selector.h"
+#include "Handler.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /**
- * @brief Selector grouping charged tracks and performing field propagation.
+ * @brief Handler grouping charged tracks and performing field propagation.
  */
  
-class LinearPropagator : public Selector {
+class LinearPropagator : public Handler {
 
 protected:  
 
@@ -34,12 +34,12 @@ private:
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  LinearPropagator() : Selector() {}
+  LinearPropagator() : Handler() {}
 
   /** 
    * @brief Default constructor
    * @param threshold Basketizing threshold
-   * @param propagator Propagator working with this selector
+   * @param propagator Propagator working with this handler
    */
   VECCORE_ATT_HOST_DEVICE
   LinearPropagator(int threshold, GeantPropagator *propagator);

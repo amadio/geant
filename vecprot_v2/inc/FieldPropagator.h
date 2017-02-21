@@ -5,7 +5,7 @@
 //===----------------------------------------------------------------------===//
 /**
  * @file FieldPropagator.h
- * @brief Implementation of the field propagation as a selector.
+ * @brief Implementation of the field propagation as a handler.
  *
  * @author Andrei Gheata
  */
@@ -14,17 +14,17 @@
 #ifndef GEANT_FIELD_PROPAGATOR
 #define GEANT_FIELD_PROPAGATOR
 
-#include "Selector.h"
+#include "Handler.h"
 #include "GeantTaskData.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /**
- * @brief Selector grouping charged tracks and performing field propagation.
+ * @brief Handler grouping charged tracks and performing field propagation.
  */
  
-class FieldPropagator : public Selector {
+class FieldPropagator : public Handler {
 
 protected:  
 
@@ -53,12 +53,12 @@ private:
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  FieldPropagator() : Selector() {}
+  FieldPropagator() : Handler() {}
 
   /** 
    * @brief Default constructor
    * @param threshold Basketizing threshold
-   * @param propagator Propagator working with this selector
+   * @param propagator Propagator working with this handler
    */
   VECCORE_ATT_HOST_DEVICE
   FieldPropagator(int threshold, GeantPropagator *propagator);

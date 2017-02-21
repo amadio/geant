@@ -49,7 +49,7 @@ void GeantTrackStat::RemoveTracks(const GeantTrack_v &trackv) {
   int ntracks = trackv.GetNtracks();
   for (int i = 0; i < ntracks; i++) {
     // do *NOT* remove new tracks since they were not added yet anywhere
-    if (trackv.fStatusV[i] == kNew)
+    if (trackv.fStatusV[i] == Geant::kNew)
       continue;
     fNtracks[trackv.fEvslotV[i]]--;
     fNsteps[trackv.fEvslotV[i]] -= trackv.fNstepsV[i];

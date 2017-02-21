@@ -1,4 +1,4 @@
-#include "Selector.h"
+#include "Handler.h"
 #include "GeantNuma.h"
 #include "GeantTaskData.h"
 #
@@ -7,20 +7,20 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Selector::Selector(int threshold, GeantPropagator *propagator)
+Handler::Handler(int threshold, GeantPropagator *propagator)
   : fPropagator(propagator) {
-  // Selector constructor. The selector needs to be manually activated to actually
+  // Handler constructor. The handler needs to be manually activated to actually
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
   fThreshold.store(threshold);
   // Make sure the threshold is a power of 2
-  assert(threshold & (threshold - 1) == 0 && "Selector threshold must be power of 2");
+  assert(threshold & (threshold - 1) == 0 && "Handler threshold must be power of 2");
   fLock.clear();
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Selector::~Selector()
+Handler::~Handler()
 {
   if (GetNode() < 0) delete fBasketizer;
   else NumaAlignedFree(fBasketizer);
@@ -30,7 +30,7 @@ Selector::~Selector()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Selector::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void Handler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector DoIt method implemented as a loop. Overwrite to implement a natively
 // vectorized version.
@@ -40,14 +40,14 @@ void Selector::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Selector::ActivateBasketizing(bool flag)
+void Handler::ActivateBasketizing(bool flag)
 {
   if (fActive == flag) return;
   fActive = flag;
   int basket_size = fThreshold;
-  int buffer_size = 1 << 12; // 16 kBytes per selector
+  int buffer_size = 1 << 12; // 16 kBytes per handler
   assert(fThreshold < buffer_size);
-  // Create basketizer the first time the selector is activated
+  // Create basketizer the first time the handler is activated
   if (fActive && !fBasketizer) {
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
@@ -61,9 +61,9 @@ void Selector::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Selector::AddTrack(GeantTrack *track, Basket &collector)
+bool Handler::AddTrack(GeantTrack *track, Basket &collector)
 {
-// Adding a track to the selector assumes that the selector is basketized.
+// Adding a track to the handler assumes that the handler is basketized.
 // The track will be pushed into the basketizer. The calling thread has to 
 // provide an empy collector basket which can possibly be filled by the track 
 // vector extracted during the operation.
@@ -78,9 +78,9 @@ bool Selector::AddTrack(GeantTrack *track, Basket &collector)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Selector::Flush(Basket &collector)
+bool Handler::Flush(Basket &collector)
 {
-// Flush if possible remaining tracks from the basketizer into the collector.
+// Flush if possible remaining tracks from the basketizer into the collector basket.
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
 //       contains tracks in case it is 'hot' (e.g. adding tracks or finishing
 //       other flush). Flushing is blocking for other flushes!
@@ -92,7 +92,7 @@ bool Selector::Flush(Basket &collector)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Basket *Selector::GetFreeBasket(GeantTaskData *td)
+Basket *Handler::GetFreeBasket(GeantTaskData *td)
 {
   Basket *next = td->GetFreeBasket();
   next->Tracks().reserve(fBcap);

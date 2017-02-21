@@ -1,6 +1,6 @@
 #include "SimulationStage.h"
 
-#include "Selector.h"
+#include "Handler.h"
 #include "GeantTaskData.h"
 #include "GeantPropagator.h"
 
@@ -12,8 +12,8 @@ VECCORE_ATT_HOST_DEVICE
 SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
   : fType(type), fPropagator(prop)
 {
-  CreateSelectors();
-  assert((GetNselectors() > 0) && "Number of selectors for a simulation stage cannot be 0");
+  CreateHandlers();
+  assert((GetNhandlers() > 0) && "Number of handlers for a simulation stage cannot be 0");
   fId = prop->RegisterStage(this);
 }
 
@@ -21,98 +21,106 @@ SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
 VECCORE_ATT_HOST_DEVICE
 SimulationStage::~SimulationStage()
 {
-  for (int i=0; i<GetNselectors(); ++i)
-    delete fSelectors[i];  
+  for (int i=0; i<GetNhandlers(); ++i)
+    delete fHandlers[i];  
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::FlushAndProcess(Basket &btodo, GeantTaskData *td)
+int SimulationStage::FlushAndProcess(GeantTaskData *td)
 {
-// Flush all active selectors in the stage, executing their scalar DoIt methods.
-// Flushing the selectors is opportunistic, as a selector is flushed by the first
-// thread to come. Subsequent threads will just notice that the selector is busy
-// and continue to other selectors, then to the next stage.
-  int ntracks = 0;
-  btodo.SetStage(this);
-  // In case the follow-up stage is unique, the output can be dumped into
-  // its buffer.
-  Basket &output = (NFollowUps() == 1) ? *td->fStageBuffers[fId]
-                                       : *td->GetFreeBasket();
-  // Loop active selectors and flush them into btodo basket
-  for (int i=0; i < GetNselectors(); ++i) {
-    if (fSelectors[i]->IsActive() && fSelectors[i]->Flush(btodo)) {
-      // btodo has some content, invoke scalar DoIt
-      ntracks += btodo.GetTracks().size();
-      for (auto track : btodo.Tracks())
-        fSelectors[i]->DoIt(track, output, td);
-      btodo.Clear();
-      // If more follow-up stages, copy to the right buffer
-      if (NFollowUps() > 1) {
-        for (auto processed : output.Tracks())
-          td->fStageBuffers[SelectFollowUp(processed)]->AddTrack(processed);
-        output.Clear();
+// Flush all active handlers in the stage, executing their scalar DoIt methods.
+// Flushing the handlers is opportunistic, as a handler is flushed by the first
+// thread to come. Subsequent threads will just notice that the handler is busy
+// and continue to other handlers, then to the next stage.
+  Basket &bvector = *td->fBvector;
+  Basket &output = *td->fShuttleBasket;
+  // Loop active handlers and flush them into btodo basket
+  for (int i=0; i < GetNhandlers(); ++i) {
+    if (fHandlers[i]->IsActive() && fHandlers[i]->Flush(bvector)) {
+      // btodo has some content, invoke DoIt
+      if (bvector.size() >= fPropagator->fConfig->fNvecThreshold) {
+        fHandlers[i]->DoIt(bvector, output, td);
+      } else {      
+        for (auto track : bvector.Tracks())
+          fHandlers[i]->DoIt(track, output, td);
       }
+      bvector.Clear();
     }
   }
-  if (NFollowUps() > 1)
-    td->RecycleBasket(&output);
-  return ntracks;
+  return CopyToFollowUps(output, td);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::Process(Basket &input, GeantTaskData *td)
+int SimulationStage::Process(GeantTaskData *td)
 {
-// A task/thread having the task data td processed a basket for this stage.
 // Processing is concurrent for all tasks/threads serving the same propagator.
-// The input basket is normally taken from the input queue for the stage, but
-// it can be coming from other source. The DoIt method is executed for the 
-// selectors present in the stage, in scalar mode for non-active ones and using the
+// The input basket is the task data-specific container for the caller thread
+// corresponding to this stage. The DoIt method is executed for the 
+// handlers present in the stage, in scalar mode for non-active ones and using the
 // vector interface for the active ones. The resulting tracks after the stage
-// execution have to be filled in the output basket extracted from the task data
-// pool, which is then either kept to be processed by the same task/thread or
-// pushed into the next stage queue.
-  int ntracks = 0;
+// execution are transported via a thread-specific shuttle basket into the inputs
+// of the follow-up stages set by the handler DoIt method. The method returns
+// the number of tracks pushed to the output.
+
+  Basket &input = *td->fStageBuffers[fId];
   Basket &bvector = *td->fBvector;
-  // In case the follow-up stage is unique, the output can be dumped into
-  // its buffer.
-  Basket &output = (NFollowUps() == 1) ? *td->fStageBuffers[fId]
-                                       : *td->GetFreeBasket();
-// Loop tracks in the input basket and select the appropriate selector
+  Basket &output = *td->fShuttleBasket;
+// Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
-    Selector *selector = Select(track);
-    // If no selector is selected the track does not perform this stage
-    if (!selector) {
+    Handler *handler = Select(track);
+    // If no handler is selected the track does not perform this stage
+    if (!handler) {
       output.AddTrack(track);
       continue;
     }
     
-    if (!selector->IsActive()) {
+    if (!handler->IsActive()) {
       // Scalar DoIt.
       // The track and its eventual progenies should be now copied to the output
-      selector->DoIt(track, output, td);
-      ntracks++;
+      handler->DoIt(track, output, td);
     } else {
-      // Add the track to the selector, which may extract a full vector.
-      if (selector->AddTrack(track, bvector)) {
+      // Add the track to the handler, which may extract a full vector.
+      if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
-        ntracks += bvector.GetTracks().size();
-        selector->DoIt(bvector, output, td);
+        handler->DoIt(bvector, output, td);
+        // The tracks from bvector are now copied into the output
+        bvector.Clear();
       }
     }
   }
-  bvector.Clear();
-  // Mark output for the next stage. Keep the basket in td or push it into
-  // next stage queue.
-  if (NFollowUps() == 1) return ntracks;
+  input.Clear();
+  return CopyToFollowUps(output, td);
+}
 
-  for (auto track : output.Tracks())
-    td->fStageBuffers[SelectFollowUp(track)]->AddTrack(track);
-
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
+{
+// Copy tracks from output basket to follow-up stages
+  int ntracks = output.size();
+  // Copy output tracks to the follow-up stages
+  int nextstage = (fUserActionsStage) ? fUserActionsStage : fFollowUpStage;
+  if (nextstage) {
+    for (auto track : output.Tracks()) {
+      // If a follow-up stage is declared, this overrides any follow-up set by handlers
+      if (fFollowUpStage) track->fStage = fFollowUpStage;
+#ifndef VECCORE_CUDA
+    }
+    std::copy(output.Tracks().begin(), output.Tracks().end(),
+              std::back_inserter(td->fStageBuffers[nextstage]->Tracks()));
+#else
+      td->fStageBuffers[nextstage]->AddTrack(track);
+    }
+#endif
+  } else {    
+    for (auto track : output.Tracks()) {
+      assert(track.fStage != fId);         // no stage feeds itself
+      td->fStageBuffers[track->fStage]->AddTrack(track);
+    }
+  }
   output.Clear();
-  td->RecycleBasket(&output);
-
   return ntracks;
 }
 

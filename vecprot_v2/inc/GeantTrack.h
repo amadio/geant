@@ -36,6 +36,9 @@ typedef veccore::BitSet BitSet;
 #include "backend/cuda/Interface.h"
 #endif
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 /**
  * @enum TrackStatus_t
  */
@@ -56,8 +59,19 @@ enum TransportAction_t {
  */
 enum Species_t { kHadron, kLepton };
 
-namespace Geant {
-inline namespace GEANT_IMPL_NAMESPACE {
+/** Basket simulation stages. */
+enum ESimulationStage {
+  kUndefinedStage      = 0, // Undefined stage type
+  kSampleXsecStage     = 1, // Propose physics step by sampling total Xsec
+  kGeometryStepStage   = 2, // Compute geometry transport length
+  kPropagationStage    = 3, // Propagation in field stage
+  kMSCStage            = 4, // Multiple scattering stage
+  kContinuousProcStage = 5, // Continuous processes stage
+  kDiscreteProcStage   = 6, // Discrete processes stage
+  kRIPStage            = 7, // End of life stage
+  kBufferingStage      = 8, // Stack-like buffering stage
+  kUserActionsStage    = 9  // User actions
+};
 
 GEANT_DECLARE_CONSTANT(double, gTolerance);
 
@@ -82,6 +96,7 @@ public:
   int fProcess;          /** Current process */
   int fNsteps;           /** Number of steps made */
   int fMaxDepth;
+  int fStage;            /** Simulation stage */
   Species_t fSpecies;    /** Particle species */
   TrackStatus_t fStatus; /** Track status */
   double fMass;          /** Particle mass */
@@ -458,6 +473,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetParticle(int particle) { fParticle = particle; }
+
+  /** @brief Setter for stage */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetStage(ESimulationStage stage) { fStage = stage; }
 
   /**
    * @brief Function that sets mother index

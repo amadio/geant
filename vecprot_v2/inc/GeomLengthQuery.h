@@ -6,7 +6,7 @@
 /**
  * @file GeomLengthQuery.h
  * @brief Implementation of a geometry query for the transport length to next boundary.
- * @details The volume selector performs computation of the allowed geometry step
+ * @details The volume handler performs computation of the allowed geometry step
  *  using both scalar and vector interfaces.
  *
  * @author Andrei Gheata
@@ -16,7 +16,7 @@
 #ifndef GEANT_GEOM_LENGTH_QUERY
 #define GEANT_GEOM_LENGTH_QUERY
 
-#include "Selector.h"
+#include "Handler.h"
 
 #ifdef USE_ROOT
 #include "TGeoExtension.h"
@@ -26,19 +26,19 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /**
- * @brief Selector grouping tracks by logical volume and performing geometry actions.
+ * @brief Handler grouping tracks by logical volume and performing geometry actions.
  */
  
 #ifndef USE_ROOT
-class GeomLengthQuery : public Selector {
+class GeomLengthQuery : public Handler {
 #else
-class GeomLengthQuery : public Selector,
+class GeomLengthQuery : public Handler,
                        public TGeoExtension {
 #endif
 
 protected:  
   Volume_t *fVolume = nullptr;         ///< Associated volume
-  int fIndex = -1;                     ///< Selector index in the array of geometry selectors
+  int fIndex = -1;                     ///< Handler index in the array of geometry handlers
 
 private:
   GeomLengthQuery(const GeomLengthQuery &) = delete;
@@ -54,12 +54,12 @@ protected:
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  GeomLengthQuery() : Selector() {}
+  GeomLengthQuery() : Handler() {}
 
   /** 
-   * @brief Volume selector default constructor
+   * @brief Volume handler default constructor
    * @param threshold Basketizing threshold
-   * @param propagator Propagator working with this selector
+   * @param propagator Propagator working with this handler
    * @param vol Associated volume
    */
   VECCORE_ATT_HOST_DEVICE
@@ -69,7 +69,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual ~GeomLengthQuery();
 
-  /** @brief Activate/de-activate the selector */
+  /** @brief Activate/de-activate the handler */
   VECCORE_ATT_HOST_DEVICE
   virtual void ActivateBasketizing(bool flag);
 
@@ -81,12 +81,12 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
 
-  /** @brief Getter for the index in the list of geometry selectors */
+  /** @brief Getter for the index in the list of geometry handlers */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetIndex() const { return fIndex; }
 
-  /** @brief Getter for selector number */
+  /** @brief Getter for handler number */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   Volume_t *GetVolume() const { return fVolume; }
