@@ -28,6 +28,7 @@ int Clear_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &tracks, int bl
 
 namespace vecgeom {
 namespace cxx {
+template size_t DevicePtr<Geant::cuda::GeantConfig>::SizeOf();
 template size_t DevicePtr<Geant::cuda::GeantTaskData>::SizeOf();
 template size_t DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf();
 } // cxx

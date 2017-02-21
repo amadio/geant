@@ -102,18 +102,18 @@ CoprocessorBroker::TaskData::~TaskData()
   GEANT_CUDA_ERROR(cudaStreamDestroy(fStream));
 }
 
-bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator)
+bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<Geant::cuda::GeantPropagator > &devPropagator)
 {
-  int maxdepth = propagator->fMaxDepth;
+  int maxdepth = propagator->fConfig->fMaxDepth;
   unsigned int maxTrackPerKernel = nblocks * nthreads * maxTrackPerThread;
   fChunkSize = maxTrackPerKernel;
   fDevMaxTracks = 2 * fChunkSize;
 
   fGeantTaskData = new Geant::GeantTaskData(nthreads, maxdepth, fDevMaxTracks, propagator);
   fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
-  fGeantTaskData->fBmgr = new GeantBasketMgr(WorkloadManager::Instance()->GetScheduler(), 0, 0, true);
+  fGeantTaskData->fBmgr = new GeantBasketMgr(propagator, 0, 0, true);
   fPrioritizer = fGeantTaskData->fBmgr;
-  fPrioritizer->SetFeederQueue(WorkloadManager::Instance()->FeederQueue());
+  fPrioritizer->SetFeederQueue(propagator->fWMgr->FeederQueue());
 
   fStreamId = streamid;
   GEANT_CUDA_ERROR(cudaStreamCreate(&fStream));
@@ -123,9 +123,6 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   // curand_setup_gpu(fdRandStates, time(NULL), nblocks, nthreads);
 
   unsigned int maxThreads = nblocks * nthreads;
-
-  // See also: GeantPropagator *propagator = GeantPropagator::Instance();
-  //   propagator->fMaxPerBasket;
 
   unsigned long size_needed = GeantTaskData::SizeOfInstance(
       maxThreads, maxdepth,
@@ -139,7 +136,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
       fDevTaskWorkspace.GetPtr(), 4096 /* maxThreads */, size_needed, (size_t)maxThreads, maxdepth,
       (int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e.
              // maxTrackPerThread) unless we need space for extras/new tracks ...
-      , propagator
+      , devPropagator
       );
 
   // need to allocate enough for one object containing many tracks ...
@@ -149,10 +146,10 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   fDevTrackOutput.Malloc(Geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks, maxdepth));
   Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(), fDevMaxTracks, maxdepth);
 
-  fInputBasket = new GeantBasket(fDevMaxTracks, fGeantTaskData->fBmgr);
+  fInputBasket = new GeantBasket(propagator, fDevMaxTracks, fGeantTaskData->fBmgr);
   fInputBasket->SetMixed(true);
   // fInputBasket->SetThreshold(fThreshold.load());
-  fOutputBasket = new GeantBasket(fDevMaxTracks, fGeantTaskData->fBmgr);
+  fOutputBasket = new GeantBasket(propagator, fDevMaxTracks, fGeantTaskData->fBmgr);
   fOutputBasket->SetMixed(true);
   // fOutputBasket->SetThreshold(fThreshold.load());
 
@@ -267,10 +264,18 @@ void CoprocessorBroker::CreateBaskets(GeantConfig* config)
   // so we can use the proper maximum depth
   // and over-ride the cudaLimitStackSize.
 
-  // initialize the stream
+  fDevConfig.Allocate();
+  if (cudaGetLastError() != cudaSuccess) {
+     printf(" ERROR ALLOC MAP\n");
+     return;
+  }
+  fDevConfig.Construct();
+  fDevConfig.ToDevice(config);
+
+   // initialize the stream
   for (unsigned int i = 0; i < GetNstream(); ++i) {
     TaskData *data = new TaskData();
-    data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread, GeantPropagator::Instance());
+    data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread, GeantPropagator::Instance(), fDevConfig);
     data->Push(&fHelpers);
     fTaskData.push_back(data);
   }
@@ -356,7 +361,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
   // Well ... do physics .. just because.
   {
-    GeantPropagator *propagator = GeantPropagator::Instance();
+    GeantPropagator *propagator = fGeantTaskData->fPropagator;
     propagator->ProposeStep(basketSize, input, fGeantTaskData);
     // Apply msc for charged tracks
     propagator->ApplyMsc(basketSize, input, fGeantTaskData);
@@ -399,12 +404,12 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
 unsigned int CoprocessorBroker::TaskData::TrackToHost()
 {
-  WorkloadManager *mgr = WorkloadManager::Instance();
+  WorkloadManager *mgr = fGeantTaskData->fPropagator->fWMgr;
   GeantScheduler *sch = mgr->GetScheduler();
   condition_locker &sched_locker = mgr->GetSchLocker();
   GeantTrack_v &output = *fGeantTaskData->fTransported;
   // GeantTrack_v &output = *fOutputBasket->GetInputTracks();
-  GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = fGeantTaskData->fPropagator;
   auto td = fGeantTaskData;
 
   if (output.GetNtracks() > output.Capacity())
@@ -452,7 +457,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
       // Do post-step actions on remaining particles
       // to do: group particles per process
 
-      if (propagator->fUsePhysics) {
+      if (propagator->fConfig->fUsePhysics) {
         // Discrete processes only
         nphys = output.SortByLimitingDiscreteProcess(); // only those that kPhysics and not continous limit
         if (nphys) {

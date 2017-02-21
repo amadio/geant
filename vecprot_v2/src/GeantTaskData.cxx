@@ -45,8 +45,8 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket)
-    : fPropagator(nullptr), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
+GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *prop /* = nullptr */)
+    : fPropagator(prop), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
       fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
       fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
@@ -111,10 +111,10 @@ GeantTaskData::~GeantTaskData()
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket)
+GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop)
 {
    // GeantTrack MakeInstance based on a provided single buffer.
-   return new (addr) GeantTaskData(addr, nTracks, maxdepth, maxPerBasket);
+   return new (addr) GeantTaskData(addr, nTracks, maxdepth, maxPerBasket, prop);
 }
 
 

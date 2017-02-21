@@ -25,13 +25,12 @@ namespace vecgeom {
   }
 }
 
-class GeantConfig;
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
 class GeantBasket;
+class GeantConfig;
 
 /**
  * @brief Class TaskBroker

@@ -123,7 +123,7 @@ private:
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
   VECCORE_ATT_HOST_DEVICE
-  GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
+  GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop = nullptr);
 
 public:
   /** @brief GeantTaskData constructor */
@@ -136,7 +136,7 @@ public:
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_HOST_DEVICE
-  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket);
+  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop);
 
   /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
   VECCORE_ATT_HOST_DEVICE

@@ -34,8 +34,16 @@ namespace cuda {
 
 class GeantTrack_v;
 class GeantTaskData;
+class GeantConfig;
+class GeantPropagator;
 
 }
+#ifndef GEANT_NVCC
+inline
+#endif
+namespace cxx {
+  class GeantPropagator;
+ }
 }
 
 namespace Geant {
@@ -68,7 +76,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
       TaskData();
       ~TaskData();
 
-      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator);
+      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<Geant::cuda::GeantPropagator > &devPropagator);
 
       unsigned int
       AddTrack(Task *task, GeantBasket &basket, unsigned int hostIdx);
@@ -215,6 +223,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
     TaskData *fNextTaskData;
     dcqueue<CoprocessorBroker::TaskData *> fHelpers;
+
+    vecgeom::cxx::DevicePtr<Geant::cuda::GeantConfig> fDevConfig;
+    vecgeom::cxx::DevicePtr<Geant::cuda::GeantPropagator> fDevPropagator;
 
     int fNblocks;           // Number of cuda blocks
     int fNthreads;          // Number of cuda threads
