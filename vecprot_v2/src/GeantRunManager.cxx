@@ -99,7 +99,7 @@ bool GeantRunManager::Initialize() {
 //  fPrimaryGenerator->InitPrimaryGenerator();
 
   for (auto i=0; i<fNpropagators; ++i) {
-    GeantPropagator *prop = GeantPropagator::NewInstance(fNthreads);
+    GeantPropagator *prop = new GeantPropagator(fNthreads);
     fPropagators.push_back(prop);
     prop->fRunMgr = this;
     prop->SetConfig(fConfig);

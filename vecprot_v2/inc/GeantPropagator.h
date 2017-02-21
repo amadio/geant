@@ -108,8 +108,15 @@ public:
   void InitializeAfterGeom();
   
 public:
-  /** @brief GeantPropagator constructor */
-  GeantPropagator();
+  /** @brief GeantPropagator constructor
+   * @param ntotal Total number of tracks
+   * old param nbuffered Number of buffered tracks
+   */
+  VECCORE_ATT_DEVICE
+  GeantPropagator(int nthreads = 0);
+
+  /** @brief Copy constructor */
+  GeantPropagator(const GeantPropagator &);
 
   /** @brief GeantPropagator destructor */
   virtual ~GeantPropagator();
@@ -168,15 +175,6 @@ public:
    * @param itr Track id
    */
   void StopTrack(const GeantTrack_v &tracks, int itr);
-
-  /**
-   * @brief Instance function returning the singleton pointer
-   *
-   * @param ntotal Total number of tracks
-   * @param nbuffered Number of buffered tracks
-   */
-  VECCORE_ATT_HOST_DEVICE
-  static GeantPropagator *NewInstance(int nthreads = 0);
 
   /**
    * @brief Propose the physics step for an array of tracks
@@ -249,9 +247,6 @@ public:
   int ShareWork(GeantPropagator &other);
 
 private:
-  /** @brief Copy constructor not implemented */
-  GeantPropagator(const GeantPropagator &);
-
   /** @brief Assignment operator not implemented */
   GeantPropagator &operator=(const GeantPropagator &);
 

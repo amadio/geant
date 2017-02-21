@@ -72,10 +72,32 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GeantPropagator::GeantPropagator()
-    : fNtransported(0), fNsteps(0), fNsnext(0),
+VECCORE_ATT_HOST_DEVICE
+GeantPropagator::GeantPropagator(int nthreads)
+    : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNidle(0), fNbfeed(0) {
-  // Constructor 
+  // Constructor
+  // Single instance of the propagator
+
+  // Initialize workload manager
+  #warning this must be solved before using CUDA
+  fWMgr = WorkloadManager::NewInstance(this, nthreads);
+}
+
+//______________________________________________________________________________
+GeantPropagator::GeantPropagator(const GeantPropagator &orig) : GeantPropagator(orig.fNthreads) {
+
+  fRunMgr = orig.fRunMgr;
+  SetConfig(orig.fConfig);
+  fApplication = orig.fApplication;
+  fStdApplication = orig.fStdApplication;
+  fTaskMgr = orig.fTaskMgr;
+  fProcess = orig.fProcess;
+  fPhysicsInterface = orig.fPhysicsInterface;
+  fVectorPhysicsProcess = orig.fVectorPhysicsProcess;
+  fPrimaryGenerator = orig.fPrimaryGenerator;
+  fTruthMgr = orig.fTruthMgr;
+
 }
 
 //______________________________________________________________________________
@@ -143,18 +165,6 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
 bool GeantPropagator::IsIdle() const {
   // Check if work queue is empty and all used threads are waiting
   return (!fCompleted && GetNworking()==0 && GetNpending()==0);
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
-GeantPropagator *GeantPropagator::NewInstance(int nthreads) {
-  // Single instance of the propagator
-  GeantPropagator* newInstance = new GeantPropagator();
-  newInstance->fNthreads = nthreads;
-  // Initialize workload manager
-  #warning this must be solved before using CUDA
-  newInstance->fWMgr = WorkloadManager::NewInstance(newInstance, nthreads);
-  return newInstance;
 }
 
 //______________________________________________________________________________
