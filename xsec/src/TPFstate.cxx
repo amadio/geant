@@ -134,7 +134,7 @@ bool TPFstate::SetPart(int pdg, int nfstat, int nreac, const int dict[]) {
   // consistency
   for (int i = 0; i < fNReac; ++i)
     if (fRdict[fRmap[i]] != i)
-      Geant::Fatal("TPFstate::SetPart", "Dictionary mismatch for!");
+      Geant::Fatal("TPFstate::SetPart","%s","Dictionary mismatch for!");
   return true;
 }
 
@@ -158,7 +158,7 @@ bool TPFstate::SetPart(int pdg, int nfstat, int nreac, const int dict[], TFinSta
   // consistency
   for (int i = 0; i < fNReac; ++i)
     if (fRdict[fRmap[i]] != i)
-      Geant::Fatal("TPFstateSetPart", "Dictionary mismatch for!");
+      Geant::Fatal("TPFstateSetPart","%s","Dictionary mismatch for!");
   return true;
 }
 
@@ -444,7 +444,7 @@ void TPFstate::Compact() {
 VECCORE_ATT_HOST_DEVICE
 void TPFstate::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-    Geant::Fatal("TPFstate::RebuildClass","the class is misaligned\n");
+    Geant::Fatal("TPFstate::RebuildClass","%s","the class is misaligned\n");
     return;
   }
    char *start = fStore;

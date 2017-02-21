@@ -688,7 +688,7 @@ void TEXsec::Compact() {
 VECCORE_ATT_HOST_DEVICE
 void TEXsec::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-    Geant::Fatal("aTEXsec::RebuildClass","the class is misaligned\n");
+    Geant::Fatal("aTEXsec::RebuildClass","%s","the class is misaligned\n");
     return;
   }
    char *start = fStore;

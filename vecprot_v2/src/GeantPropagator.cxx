@@ -245,7 +245,7 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 
   // Start system tasks
   if (!fWMgr->StartTasks(fTaskMgr)) {
-    Fatal("PropagatorGeom", "Cannot start tasks.");
+    Fatal("PropagatorGeom", "%s", "Cannot start tasks.");
     return;
   }
   
@@ -297,11 +297,11 @@ void GeantPropagator::SetConfig(GeantConfig *config)
   fNbuff = config->fNbuff;
   fNtotal = config->fNtotal;
   if (fNtotal <= 0 || fNbuff <= 0) {
-    Fatal("GeantPropagator::SetConfig", "Number of transported/buffered events should be positive");
+    Fatal("GeantPropagator::SetConfig", "%s", "Number of transported/buffered events should be positive");
     return;
   }
   if (fNbuff > fNtotal) {
-    Info("GeantPropagator::SetCofig", "Number of buffered events changed to %d", fNtotal);
+    Info("GeantPropagator::SetCofig", "%s", "Number of buffered events changed to %d", fNtotal);
     fNbuff = fNtotal;
   }
   // Instantiate factory store

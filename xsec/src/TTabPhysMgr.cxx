@@ -997,8 +997,9 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
   isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);
   // isSurv should always be FALSE here because primary was stopped
   if (isSurv)
-    std::cout << "\n---       A particle survived its decay!!!       ---\n"
-              << "----    In TTabPhysMgr::SampleFinalStateAtRest     ---\n" << std::endl;
+    Geant::Warning("TTabPhysMgr::SampleDecayInFlight","%s",
+                   "\n---       A particle survived its decay!!!       ---\n"
+                   "----    In TTabPhysMgr::SampleFinalStateAtRest     ---\n");
 
   if (nSecPart) {
     // Go for the secondaries

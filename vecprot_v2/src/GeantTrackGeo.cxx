@@ -206,7 +206,7 @@ void GeantTrackGeo_v::Resize(int newsize) {
   // Resize the container.
   int size = RoundUpAlign(newsize);
   if (size < GetNtracks()) {
-    Geant::Error("Resize","Cannot resize to less than current track content");
+    Geant::Error("Resize","%s","Cannot resize to less than current track content");
     return;
   }
   fBufSize = BufferSize(size);

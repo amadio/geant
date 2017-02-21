@@ -72,20 +72,20 @@ public:
   VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) &fNFstates) % sizeof(fNFstates) != 0) { Geant::Error("TPFstate::CheckAlign","fNFstates misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNsecs) % sizeof(fNsecs) != 0) { Geant::Error("TPFstate::CheckAlign","fNsecs misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNMom) % sizeof(fNMom) != 0) { Geant::Error("TPFstate::CheckAlign","fNMom misaligned\n");isaligned=false;}
-  if(((unsigned long) fWeight) % sizeof(fWeight[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fWeight misaligned\n");isaligned=false;}
-  if(((unsigned long) fKerma) % sizeof(fKerma[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fKerma misaligned\n");isaligned=false;}
-  if(((unsigned long) fEn) % sizeof(fEn[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fEn misaligned\n");isaligned=false;}
-  if(((unsigned long) fMom) % sizeof(fMom[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fMom misaligned\n");isaligned=false;}
-  if(((unsigned long) fPID) % sizeof(fPID[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fPID misaligned\n");isaligned=false;}
-  if(((unsigned long) fNpart) % sizeof(fNpart[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fNpart misaligned\n");isaligned=false;}
-  if(((unsigned long) fSurv) % sizeof(fSurv[0]) != 0) { Geant::Error("TPFstate::CheckAlign","fSurv misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNFstates) % sizeof(fNFstates) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNFstates misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNsecs) % sizeof(fNsecs) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNsecs misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNMom) % sizeof(fNMom) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNMom misaligned\n");isaligned=false;}
+  if(((unsigned long) fWeight) % sizeof(fWeight[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fWeight misaligned\n");isaligned=false;}
+  if(((unsigned long) fKerma) % sizeof(fKerma[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fKerma misaligned\n");isaligned=false;}
+  if(((unsigned long) fEn) % sizeof(fEn[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fEn misaligned\n");isaligned=false;}
+  if(((unsigned long) fMom) % sizeof(fMom[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fMom misaligned\n");isaligned=false;}
+  if(((unsigned long) fPID) % sizeof(fPID[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fPID misaligned\n");isaligned=false;}
+  if(((unsigned long) fNpart) % sizeof(fNpart[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNpart misaligned\n");isaligned=false;}
+  if(((unsigned long) fSurv) % sizeof(fSurv[0]) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fSurv misaligned\n");isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","fMagic misaligned\n");isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fMagic misaligned\n");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fStore misaligned\n");isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
 

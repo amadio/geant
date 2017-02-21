@@ -141,7 +141,7 @@ void TPXsec::Compact() {
 VECCORE_ATT_HOST_DEVICE
 void TPXsec::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-    Geant::Fatal("TPXsec::RebuildClass","the class is misaligned\n");
+    Geant::Fatal("TPXsec::RebuildClass","%s","the class is misaligned\n");
     return;
   }
    // Reset fEgrid, may be in a different place
@@ -362,7 +362,7 @@ bool TPXsec::SetPartXS(const float xsec[], const int dict[]) {
   // consistency
   for (int i = 0; i < fNXsec; ++i)
     if (fRdict[fRmap[i]] != i)
-      Geant::Fatal("TPXsec::SetPartXS", "Dictionary mismatch for!");
+      Geant::Fatal("TPXsec::SetPartXS","%s","Dictionary mismatch for!");
 
   delete[] fTotXs;
   fTotXs = new float[fNTotXs];

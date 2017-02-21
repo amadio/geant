@@ -128,7 +128,7 @@ void TPDecay::Compact() {
 VECCORE_ATT_HOST_DEVICE
 void TPDecay::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-    Geant::Fatal("TPDecay::RebuildClass","the class is misaligned\n");
+    Geant::Fatal("TPDecay::RebuildClass","%s","the class is misaligned\n");
     return;
   }
    char *start = fStore;

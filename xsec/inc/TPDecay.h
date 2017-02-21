@@ -59,15 +59,15 @@ public:
   VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) &fNPart) % sizeof(fNPart) != 0) { Geant::Error("TPFstate::CheckAlign","fNPart misaligned\n");isaligned=false;}
-  if(((unsigned long) fCTauPerMass) % sizeof(fCTauPerMass) != 0) { Geant::Error("TPFstate::CheckAlign","fCTauPerMass misaligned\n");isaligned=false;}
-  if(((unsigned long) fDecayP) % sizeof(fDecayP) != 0) { Geant::Error("TPFstate::CheckAlign","fDecayP misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNPart) % sizeof(fNPart) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNPart misaligned\n");isaligned=false;}
+  if(((unsigned long) fCTauPerMass) % sizeof(fCTauPerMass) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fCTauPerMass misaligned\n");isaligned=false;}
+  if(((unsigned long) fDecayP) % sizeof(fDecayP) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fDecayP misaligned\n");isaligned=false;}
   for(auto i=0; i< fNPart; ++i)
     if(((unsigned long) fDecayP[i]) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fDecayP[%d] misaligned\n",i);isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","fMagic misaligned");isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fMagic misaligned");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fStore misaligned");isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fStore misaligned");isaligned=false;}
   return isaligned;
 }
 

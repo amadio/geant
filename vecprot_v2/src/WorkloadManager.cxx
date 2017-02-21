@@ -192,10 +192,10 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
     fListThreads.emplace_back(WorkloadManager::GarbageCollectorThread, prop);
   }
   if (taskmgr) {
-    Printf("=== TBB Task Mode ====");
+    Printf("%s","=== TBB Task Mode ====");
     return taskmgr->Initialize(fNthreads, prop);
   } else {
-    Printf("=== Thread Mode ====");
+    Printf("%s","=== Thread Mode ====");
   }
   return true;
 }
@@ -236,7 +236,7 @@ void WorkloadManager::WaitWorkers() {
 //______________________________________________________________________________
 void *WorkloadManager::MainScheduler(void *) {
   // Garbage collector thread, called by a single thread.
-  Geant::Print("","=== Scheduler: stopping threads and exiting ===");
+  Geant::Print("","%s","=== Scheduler: stopping threads and exiting ===");
   return 0;
 }
 
@@ -1288,7 +1288,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
 void *WorkloadManager::OutputThread(GeantPropagator* prop) {
   // Thread providing basic output for the scheduler.
 
-  Geant::Info("OutputThread","=== Output thread created ===");
+  Geant::Info("OutputThread","%s","=== Output thread created ===");
   #ifdef USE_ROOT
 
   if (prop->fConfig->fConcurrentWrite) {
@@ -1334,7 +1334,7 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
 
   #else
     (void)prop;
-    printf("=== ROOT is disabled - output thread did nothing ===");
+    printf("%s","=== ROOT is disabled - output thread did nothing ===");
   #endif
     return 0;
 }

@@ -92,7 +92,7 @@ bool CheckAlign() {
   if(((unsigned long) fXSecs) % sizeof(fXSecs[0]) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fXSecs misaligned\n");isaligned=false;}
   if(int delta = ((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TPXsec::CheckAlign","fEmin misaligned %d \n",delta);isaligned=false;}
   if(int delta = ((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TPXsec::CheckAlign","fEmax misaligned %d \n",delta);isaligned=false;}
-  if(int delta = ((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fEilDelta misaligned %d \n",delta);isaligned=false;}
+  if(int delta = ((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPXsec::CheckAlign","fEilDelta misaligned %d \n",delta);isaligned=false;}
   if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fRdict misaligned\n");isaligned=false;}
   if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPXsec::CheckAlign","%s","fRmap misaligned\n");isaligned=false;}
 #ifdef MAGIC_DEBUG
