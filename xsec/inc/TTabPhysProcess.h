@@ -6,13 +6,10 @@
 
 #include "Geant/Config.h"
 
-#ifndef GEANT_PHYSICSPROCESS
 #include "PhysicsProcessOld.h"
-#endif
 
 #include "base/Global.h"
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
 
 #include "GeantFwd.h"
 
@@ -35,10 +32,6 @@ public:
   virtual void Initialize();
   virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double *lengths,
                              GeantTaskData *td);
-
-  // # dummy method: PostStep has been splitted up into two parts (see below)
-  virtual void PostStep(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks */, int & /*nout*/,
-                        GeantTaskData * /*td*/) {}
 
   // # smapling: -target atom and type of the interaction for each primary tracks
   //             -all inf. regarding sampling output is stored in the tracks
@@ -84,7 +77,6 @@ public:
 
   VECCORE_ATT_HOST_DEVICE
   virtual void ApplyMsc(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
-
 
 //===================================//
 
