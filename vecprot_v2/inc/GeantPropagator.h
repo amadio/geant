@@ -52,6 +52,7 @@ class PrimaryGenerator;
 class MCTruthMgr;
 class TaskBroker;
 class SimulationStage;
+class TrackManager;
 
 class GeantPropagator {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
@@ -105,6 +106,7 @@ public:
   GeantTrack_v *fStoredTracks = nullptr;         /** Stored array of tracks (history?) */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;               /** MCTruth manager */
+  TrackManager *fTrackMgr = nullptr;             /** Track manager */
   vector_t<SimulationStage *> fStages;           /** Simulation stages */
 
   // Data per event
@@ -273,7 +275,10 @@ public:
   /** @brief Function allowing to retrieve the next simulation stage for a track */
   VECCORE_ATT_HOST_DEVICE
   int GetNextStage(GeantTrack &track, int current);
-  
+
+  /** @brief Setter for locality */
+  VECCORE_ATT_HOST_DEVICE
+  void SetNuma(int numa);
 
 private:
   /** @brief Assignment operator not implemented */

@@ -3,6 +3,7 @@
 #include "GeantBasket.h"
 #include "Basket.h"
 #include "GeantPropagator.h"
+#include "TrackManager.h"
 #include "GeantTrackGeo.h"
 #include "Geant/Typedefs.h"
 
@@ -195,6 +196,13 @@ int GeantTaskData::CleanBaskets(size_t ntoclean)
   fToClean = false;
   //  Printf("Thread %d cleaned %d baskets", fTid, ncleaned);
   return ncleaned;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+GeantTrack &GeantTaskData::GetNewTrack()
+{
+  return ( fPropagator->fTrackMgr->GetTrack() );
 }
 
 #endif

@@ -12,6 +12,7 @@
 
 #include "base/Global.h"
 #include "Geant/Typedefs.h"
+#include "GeantTrack.h"
 
 #include "GeantFwd.h"
 
@@ -57,6 +58,35 @@ public:
   virtual void Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td);
   VECCORE_ATT_DEVICE
   virtual void ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
+
+//=== N E W   I N T E R F A C E S ===//
+  VECCORE_ATT_HOST_DEVICE
+  virtual void ComputeIntLen(Material_t *mat, TrackVec_t &tracks, double *lengths, GeantTaskData *td);
+  // # smapling: -target atom and type of the interaction for each primary tracks
+  //             -all inf. regarding sampling output is stored in the tracks
+
+  VECCORE_ATT_HOST_DEVICE
+  virtual void PostStepTypeOfIntrActSampling(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
+
+  // # sampling final states for each primary tracks based on target atom and
+  //    interaction type sampled by PostStepTypeOfIntrActSampling;
+  // # upadting primary track properties and inserting secondary tracks;
+  // # number of inserted secondary tracks will be stored in nout at termination
+  VECCORE_ATT_HOST_DEVICE
+  virtual void PostStepFinalStateSampling(Material_t *mat, TrackVec_t &tracks, int &nout,
+                                          GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  virtual void AtRest(TrackVec_t &tracks, int &nout, GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  virtual void Eloss(Material_t *mat, TrackVec_t &tracks, int &nout, GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  virtual void ApplyMsc(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
+
+
+//===================================//
 
 private:
   TTabPhysProcess(const TTabPhysProcess &);            // no imp.

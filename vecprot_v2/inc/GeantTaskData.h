@@ -176,6 +176,10 @@ public:
     return fTrack;
   }
 
+  /** @brief Get new track from track manager */
+  VECCORE_ATT_HOST_DEVICE
+  GeantTrack &GetNewTrack();
+
 #ifndef VECCORE_CUDA
   /**
    * @brief Get next free basket or null if not available

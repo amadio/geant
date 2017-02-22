@@ -24,6 +24,7 @@ using vecgeom::pair;
 #endif
 
 #include "Geant/Config.h"
+#include "GeantTrack.h"
 
 #include <TEXsec.h>
 
@@ -35,6 +36,7 @@ public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
+  using TrackVec_t = Geant::TrackVec_t;
 
   TMXsec();
   TMXsec(const char *name, const char *title, const int z[], const int a[], const float w[], int nel, float dens,
@@ -60,6 +62,27 @@ public:
   void ProposeStepSingle(int itr, GeantTrack_v &tracks, GeantTaskData *td);
   void SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td);
   void SampleSingleInt(int itr, GeantTrack_v &tracksin, GeantTaskData *td);
+
+//=== N E W   I N T E R F A C E S ===//
+  VECCORE_ATT_HOST_DEVICE
+  void Eloss(GeantTrack &track, GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  void Eloss(TrackVec_t &tracks, GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  void ProposeStep(GeantTrack &track, GeantTaskData *td);
+  
+  VECCORE_ATT_HOST_DEVICE
+  void ProposeStep(TrackVec_t &tracks, GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  void SampleInt(GeantTrack &track, GeantTaskData *td);
+
+  VECCORE_ATT_HOST_DEVICE
+  void SampleInt(TrackVec_t &tracks, GeantTaskData *td);
+//===================================//
+
   VECCORE_ATT_HOST_DEVICE
   float MS(int ipart, float energy);
 

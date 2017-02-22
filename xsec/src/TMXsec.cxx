@@ -1,4 +1,6 @@
 #include "TMXsec.h"
+
+#include <VecCore/VecCore>
 #include "TPartIndex.h"
 #include "TPDecay.h"
 #include "GeantTrackVec.h"
@@ -437,6 +439,99 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TMXsec::ProposeStep(TrackVec_t &tracks, GeantTaskData *td) {
+  // Propose step for the first ntracks in the input vector of tracks and write to
+  // tracks.fPstepV[]
+  // NOTE: The needed input information can be copied into an aligned lightweight
+  //       SOA track structure to use in vectorized mode
+
+  int ntracks = tracks.size();
+  // count number of rndn needed
+  int numRndn = 0;
+  for (int i = 0; i < ntracks; ++i)
+    if (tracks[i]->fNintLen <= 0.0)
+      ++numRndn;
+
+  // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
+  double *rndArray = td->fDblArray;
+#ifdef USE_VECGEOM_NAVIGATOR
+  td->fRndm->uniform_array(ntracks, rndArray);
+#elif USE_ROOT
+#ifndef VECCORE_CUDA
+  td->fRndm->RndmArray(ntracks, rndArray);
+#endif
+#endif
+
+  int numUsedRndn = 0;
+  for (int i = 0; i < ntracks; ++i) {
+    int ipart = tracks[i]->fGVcode;                   // GV particle index/code
+    double energy = tracks[i]->fE - tracks[i]->fMass; // $E_{kin}$
+    energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
+    energy = vecCore::math::Max<double>(energy, fEGrid[0]);
+
+    // continous step limit if any
+    tracks[i]->fEindex = -1; // Flag continous step limit
+    double cx = vecCore::NumericLimits<double>::Max();
+    if (ipart < TPartIndex::I()->NPartCharge()) {
+      double range = Range(ipart, energy);
+      cx = range;
+      if (cx < 0.) {
+        cx = vecCore::NumericLimits<double>::Max();
+      } else {
+        const double dRR = .2;
+        const double finRange = .1;
+        if (cx > finRange)
+          cx = cx * dRR + finRange * ((1. - dRR) * (2.0 - finRange / cx));
+      }
+    }
+    tracks[i]->fPstep  = cx; // set it to the cont. step limit and update later
+    // set mfp to 1.0 to handle properly particles that has no interaction when
+    // fNintLen is updated in the WorkloadManager i.e. step-length/mfp
+    tracks[i]->fIntLen = 1.0;
+
+    // discrete step limit
+    if (ipart < TPartIndex::I()->NPartReac()) {       // can have different reactions + decay
+      int ibin = log(energy / fEGrid[0]) * fEilDelta; // energy bin index
+      ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
+
+      double en1 = fEGrid[ibin];
+      double en2 = fEGrid[ibin + 1];
+
+      double xrat = (en2 - energy) / (en2 - en1);
+      // get interpolated -(total mean free path)
+      double x = xrat * fTotXL[ipart * fNEbins + ibin] + (1 - xrat) * fTotXL[ipart * fNEbins + ibin + 1];
+      // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+      if (tracks[i]->fNintLen <= 0.0) {
+        tracks[i]->fNintLen = -log(rndArray[numUsedRndn]);
+        ++numUsedRndn;
+      }
+      tracks[i]->fIntLen  = x;   // save the total mfp; to be used for the update in WorkloadManager
+      x *= tracks[i]->fNintLen;
+      //x *= -1. * log(rndArray[i]);
+      if (x < cx) {
+        tracks[i]->fPstep = x;
+        tracks[i]->fEindex = 1000; // Flag NOT continous step limit
+      }
+    } else if (fDecayTable->HasDecay(ipart)) {                       // it has only decay
+      double x = tracks[i]->fP * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
+      // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+      if (tracks[i]->fNintLen<=0.0) {
+        tracks[i]->fNintLen = -log(rndArray[numUsedRndn]); // normaly, we need to do it only once at the beginning
+        ++numUsedRndn;
+      }
+      tracks[i]->fIntLen  = x;   // save the total mfp; to be used for the update in WorkloadManager
+      x *= tracks[i]->fNintLen;
+      //x = -1. * x * log(rndArray[i]);
+      if (x < cx) {
+        tracks[i]->fPstep = x;
+        tracks[i]->fEindex = 1000; // Flag NOT continous step limit
+      }
+    }
+  }
+}
+
+//______________________________________________________________________________
 void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
   // Propose step for a single track in the input vector of tracks and write to
   // tracks.fPstepV[]
@@ -513,6 +608,83 @@ void TMXsec::ProposeStepSingle(int i, GeantTrack_v &tracks, GeantTaskData *td) {
     if (x < cx) {
       tracks.fPstepV[i] = x;
       tracks.fEindexV[i] = 1000; // Flag NOT continous step limit
+    }
+  }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TMXsec::ProposeStep(GeantTrack &track, GeantTaskData *td) {
+  // Propose step for a single track in the input vector of tracks and write to
+  // tracks.fPstepV[]
+
+  // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
+  double *rndArray = td->fDblArray;
+#ifdef USE_VECGEOM_NAVIGATOR
+  td->fRndm->uniform_array(1, rndArray);
+#elif USE_ROOT
+#ifndef VECCORE_CUDA
+  td->fRndm->RndmArray(1, rndArray);
+#endif
+#endif
+
+  int ipart = track.fGVcode;                   // GV particle index/code
+  double energy = track.fE - track.fMass; // $E_{kin}$
+  energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
+  energy = vecCore::math::Max<double>(energy, fEGrid[0]);
+
+  // continous step limit if any
+  track.fEindex = -1; // Flag continous step limit
+  double cx = vecCore::NumericLimits<double>::Max();
+  if (ipart < TPartIndex::I()->NPartCharge()) {
+    double range = Range(ipart, energy);
+    cx = range;
+    if (cx < 0.) {
+      cx = vecCore::NumericLimits<double>::Max();
+    } else {
+      const double dRR = .2;
+      const double finRange = .1;
+      if (cx > finRange)
+        cx = cx * dRR + finRange * ((1. - dRR) * (2.0 - finRange / cx));
+    }
+  }
+  track.fPstep  = cx; // set it to the cont. step limit and update later
+  // set mfp to 1.0 to handle properly particles that has no interaction when
+  // fNintLen is updated in the WorkloadManager i.e. step-length/mfp
+  track.fIntLen = 1.0;
+
+  // discrete step limit
+  if (ipart < TPartIndex::I()->NPartReac()) {       // can have different reactions + decay
+    int ibin = log(energy / fEGrid[0]) * fEilDelta; // energy bin index
+    ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
+
+    double en1 = fEGrid[ibin];
+    double en2 = fEGrid[ibin + 1];
+
+    double xrat = (en2 - energy) / (en2 - en1);
+    // get interpolated -(total mean free path)
+    double x = xrat * fTotXL[ipart * fNEbins + ibin] + (1 - xrat) * fTotXL[ipart * fNEbins + ibin + 1];
+    // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+    if (track.fNintLen<=0.0)
+      track.fNintLen = -log(rndArray[0]);
+    track.fIntLen = x;   // save the total mfp; to be used for the update in WorkloadManager
+    x *= track.fNintLen;
+    //x *= -1. * log(rndArray[0]);
+    if (x < cx) {
+      track.fPstep = x;
+      track.fEindex = 1000; // Flag NOT continous step limit
+    }
+  } else if (fDecayTable->HasDecay(ipart)) {                       // it has only decay
+    double x = track.fP * fDecayTable->GetCTauPerMass(ipart); // Ptot*c*tau/mass [cm]
+    // check if we need to sample new num.-of-int.-length-left: it is updated in the WorkloadManager after propagation
+    if (track.fNintLen<=0.0)
+      track.fNintLen = -log(rndArray[0]); // normaly, we need to do it only once at the beginning
+    track.fIntLen = x;   // save the total mfp; to be used for the update in WorkloadManager
+    x *= track.fNintLen;
+//    x = -1. * x * log(rndArray[0]);
+    if (x < cx) {
+      track.fPstep = x;
+      track.fEindex = 1000; // Flag NOT continous step limit
     }
   }
 }
@@ -743,6 +915,84 @@ void TMXsec::Eloss(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
   }
 }
 
+//____________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TMXsec::Eloss(TrackVec_t &tracks, GeantTaskData *td) {
+  // -should be called only for charged particles (first fNPartCharge particle
+  // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
+  // Compute energy loss for the first ntracks in the input vector and update
+  // tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the
+  // necessary at-rest process type if it has any.
+
+  int ntracks = tracks.size();
+  double energyLimit = td->fPropagator->fConfig->fEmin;
+  for (int i = 0; i < ntracks; ++i) {
+    int ipart = tracks[i]->fGVcode; // GV particle index/code
+    tracks[i]->fProcess = -1;       // init process index to -1 i.e. no process
+    double dedx = 0.0;
+
+    // just a check; can be removed if it is ensured before calling
+    if (ipart >= TPartIndex::I()->NPartCharge()) // there is no energy loss nothing change
+      continue;
+
+    double energy = tracks[i]->fE - tracks[i]->fMass; // $E_{kin}$ [GeV]
+    double range = Range(ipart, energy);
+    if (tracks[i]->fStep > range) {
+      // Particle will stop
+      tracks[i]->fEdep += energy;       // put Ekin to edepo
+      tracks[i]->fE = tracks[i]->fMass; // set Etotal = Mass i.e. Ekin = 0
+      tracks[i]->fP = 0.;               // set Ptotal = 0
+      tracks[i]->fStatus = Geant::kKilled;     // set status to killed
+      // stopped: set proc. indx = -2 to inidicate that
+      tracks[i]->fProcess = -2; // possible at-rest process need to be called
+      continue;
+    }
+
+    // get dedx value
+    if (energy <= fEGrid[0])
+      dedx = fDEdx[ipart * fNEbins]; // protections
+    else if (energy >= fEGrid[fNEbins - 1])
+      dedx = fDEdx[ipart * fNEbins + fNEbins - 1];
+    else {                                            // regular case
+      int ibin = vecCore::math::Log(energy / fEGrid[0]) * fEilDelta; // energy bin index
+      ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
+      double en1 = fEGrid[ibin];
+      double en2 = fEGrid[ibin + 1];
+      double xrat = (en2 - energy) / (en2 - en1);
+      dedx = xrat * fDEdx[ipart * fNEbins + ibin] + (1 - xrat) * fDEdx[ipart * fNEbins + ibin + 1];
+    }
+    // Update energy and momentum
+    double gammaold = tracks[i]->Gamma();
+    double bgold = sqrt((gammaold - 1) * (gammaold + 1));
+
+    double edepo = tracks[i]->fStep * dedx; // compute energy loss using linera loss aprx.
+    if (edepo > 0.01 * energy)              // long step: eloss > 1% of initial energy
+      edepo = energy - InvRange(ipart, range - tracks[i]->fStep);
+
+    double newEkin = energy - edepo; // new kinetic energy
+    if (newEkin < energyLimit) {     // new Kinetic energy below tracking cut
+      // Particle energy below threshold
+      tracks[i]->fEdep += energy;       // put Ekin to edepo
+      tracks[i]->fE = tracks[i]->fMass; // set Etotal = Mass i.e. Ekin = 0
+      tracks[i]->fP = 0.;               // set Ptotal = 0
+      tracks[i]->fStatus = Geant::kKilled;     // set status to killed
+                                        // check if the particle stopped or just went below the tracking cut
+      if (newEkin <= 0.0)               // stopped: set proc. indx = -2 to inidicate that
+        tracks[i]->fProcess = -2;       // possible at-rest process need to be called
+      // else : i.e. 0 < newEkin < energyLimit just kill the track cause tracking cut
+    } else { // track further: update energy, momentum, process etc.
+      // tracks[i]->fProcess = TPartIndex::I()->ProcIndex("Ionisation");
+      tracks[i]->fProcess = 2;   // Ionisation
+      tracks[i]->fEdep += edepo; // add energy deposit
+      tracks[i]->fE -= edepo;    // update total energy
+      double gammanew = tracks[i]->Gamma();
+      double bgnew = sqrt((gammanew - 1) * (gammanew + 1));
+      double pnorm = bgnew / bgold;
+      tracks[i]->fP *= pnorm; // update total momentum
+    }
+  }
+}
+
 // Compute along step energy loss for charged particles using linear loss aprx.
 //____________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -816,6 +1066,81 @@ void TMXsec::ElossSingle(int i, GeantTrack_v &tracks,GeantTaskData *td) {
     double bgnew = sqrt((gammanew - 1) * (gammanew + 1));
     double pnorm = bgnew / bgold;
     tracks.fPV[i] *= pnorm; // update total momentum
+  }
+}
+
+//____________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TMXsec::Eloss(GeantTrack &track, GeantTaskData *td) {
+  // -should be called only for charged particles (first fNPartCharge particle
+  // in TPartIndex::fPDG[]); the case ipartindex>=fNPartCharge is handled now in the if
+  // Compute energy loss for the first ntracks in the input vector and update
+  // tracks.fEV, tracks.fPV and tracks.EdepV. If the particle is stopped set the
+  // necessary at-rest process type if it has any.
+
+  double energyLimit = td->fPropagator->fConfig->fEmin;
+  int ipart = track.fGVcode; // GV particle index/code
+  track.fProcess = -1;       // init process index to -1 i.e. no process
+  double dedx = 0.0;
+
+  // just a check; can be removed if it is ensured before calling
+  if (ipart >= TPartIndex::I()->NPartCharge()) // there is no energy loss nothing change
+    return;
+
+  double energy = track.fE - track.fMass; // $E_{kin}$ [GeV]
+  double range = Range(ipart, energy);
+  if (track.fStep > range) {
+    // Particle will stop
+    track.fEdep += energy;       // put Ekin to edepo
+    track.fE = track.fMass; // set Etotal = Mass i.e. Ekin = 0
+    track.fP = 0.;               // set Ptotal = 0
+    track.fStatus = Geant::kKilled;     // set status to killed
+    // stopped: set proc. indx = -2 to inidicate that
+    track.fProcess = -2; // possible at-rest process need to be called
+    return;
+  }
+
+  // get dedx value
+  if (energy <= fEGrid[0])
+    dedx = fDEdx[ipart * fNEbins]; // protections
+  else if (energy >= fEGrid[fNEbins - 1])
+    dedx = fDEdx[ipart * fNEbins + fNEbins - 1];
+  else {                                            // regular case
+    int ibin = vecCore::math::Log(energy / fEGrid[0]) * fEilDelta; // energy bin index
+    ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
+    double en1 = fEGrid[ibin];
+    double en2 = fEGrid[ibin + 1];
+    double xrat = (en2 - energy) / (en2 - en1);
+    dedx = xrat * fDEdx[ipart * fNEbins + ibin] + (1 - xrat) * fDEdx[ipart * fNEbins + ibin + 1];
+  }
+  // Update energy and momentum
+  double gammaold = track.Gamma();
+  double bgold = sqrt((gammaold - 1) * (gammaold + 1));
+
+  double edepo = track.fStep * dedx; // compute energy loss using linera loss aprx.
+  if (edepo > 0.01 * energy)              // long step: eloss > 1% of initial energy
+    edepo = energy - InvRange(ipart, range - track.fStep);
+
+  double newEkin = energy - edepo; // new kinetic energy
+  if (newEkin < energyLimit) {     // new Kinetic energy below tracking cut
+    // Particle energy below threshold
+    track.fEdep += energy;       // put Ekin to edepo
+    track.fE = track.fMass; // set Etotal = Mass i.e. Ekin = 0
+    track.fP = 0.;               // set Ptotal = 0
+    track.fStatus = Geant::kKilled;     // set status to killed
+                                      // check if the particle stopped or just went below the tracking cut
+    if (newEkin <= 0.0)               // stopped: set proc. indx = -2 to inidicate that
+      track.fProcess = -2;       // possible at-rest process need to be called
+    // else : i.e. 0 < newEkin < energyLimit just kill the track cause tracking cut
+  } else { // track further: update energy, momentum, process etc.
+    // track.fProcess = TPartIndex::I()->ProcIndex("Ionisation");
+    track.fProcess = 2;   // Ionisation
+    track.fEdep += edepo; // add energy deposit
+    track.fE -= edepo;    // update total energy
+    double gammanew = track.Gamma();
+    double bgnew = sqrt((gammanew - 1) * (gammanew + 1));
+    double pnorm = bgnew / bgold;
+    track.fP *= pnorm; // update total momentum
   }
 }
 
@@ -996,6 +1321,106 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
 }
 
 //____________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TMXsec::SampleInt(TrackVec_t &tracks, GeantTaskData *td) {
+  // tid-based rng
+  int nParticleWithReaction = TPartIndex::I()->NPartReac();
+  double *rndArray = td->fDblArray;
+  int ntracks = tracks.size();
+#ifdef USE_VECGEOM_NAVIGATOR
+  td->fRndm->uniform_array(2 * ntracks, rndArray);
+#elif USE_ROOT
+#ifndef VECCORE_CUDA
+  td->fRndm->RndmArray(2 * ntracks, rndArray);
+#endif
+#endif
+  for (int t = 0; t < ntracks; ++t) {
+    /*
+         if(tracks[t]->fEindex < 0){ // continous step limited this step
+             tracks[t]->fProcess = -1; // nothing
+             tracks[t]->fEindex  = -1; // on nothing
+           continue;
+         }
+    */
+    int ipart = tracks[t]->fGVcode;
+    // if the particle can have both decay and something else
+    if (ipart < nParticleWithReaction) {
+      bool isDecay = false;
+      double energy = tracks[t]->fE - tracks[t]->fMass; // Ekin [GeV]
+      if (fDecayTable->HasDecay(ipart)) {
+        double ptotal = tracks[t]->fP; // Ptotal [GeV]
+        double lambdaDecay = ptotal * fDecayTable->GetCTauPerMass(ipart);
+        // ptot is not used now in Xlength(ipart,energy,ptot) since ipart<nParticleWithReaction
+        double lambdaTotal = Xlength(ipart, energy, ptotal);
+        // $P(decay) =\lambda_{Total}/\lambda_{decay}$
+        if (rndArray[t] < lambdaTotal / lambdaDecay)
+          isDecay = true;
+      }
+      if (isDecay) {
+        tracks[t]->fProcess = 3; // decay
+        tracks[t]->fEindex = -1; // on nothing
+      } else {
+        // not decay but something else; sample what else on what target
+        energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
+        energy = vecCore::math::Max<double>(energy, fEGrid[0]);
+
+        int ibin = log(energy / fEGrid[0]) * fEilDelta;
+        ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
+
+        double en1 = fEGrid[ibin];
+        double en2 = fEGrid[ibin + 1];
+        // 1.
+        // this material/mixture (TMXsec object) is composed of fNElems elements
+        int iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this
+        if (fNElems == 1) {
+          iel = 0;
+        } else { // sampling one element based on the elemntal realtive X-secs that
+          // have been normalized in CTR at the Ebins!; energy interp. is
+          // included now-> while loop is to avoid problems from interp.
+          double xrat = (en2 - energy) / (en2 - en1);
+          double xnorm = 1.;
+          while (iel < 0) {
+#ifdef USE_VECGEOM_NAVIGATOR
+            double ran = xnorm * td->fRndm->uniform();
+#elif USE_ROOT
+#ifndef VECCORE_CUDA
+            double ran = xnorm * td->fRndm->Rndm();
+#endif
+#endif
+            double xsum = 0;
+            int ibase = ipart * (fNEbins * fNElems);
+            int iibin  = ibase + ibin * fNElems;
+            for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
+              xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
+              if (ran <= xsum) {
+                iel = i;
+                break;
+              }
+            }
+            xnorm = xsum;
+          }
+        }
+        // at this point the index of the element is sampled:= iel
+        // the corresponding TEXsec* is fElems[iel]
+
+        // sample the reaction by using the TEXsec* that corresponds to the iel-th
+        // element i.e. fElems[iel] for the current particle (with particle index of
+        // ipart) at the current energy; will retrun with the reaction index;
+        tracks[t]->fProcess = fElems[iel]->SampleReac(ipart, energy, rndArray[ntracks + t]);
+        tracks[t]->fEindex = fElems[iel]->Index(); // index of the selected element in TTabPhysMrg::fElemXsec[]
+      }
+    } else if (fDecayTable->HasDecay(ipart)) {
+      // only decay can happen because ipart>nParticleWithReaction
+      tracks[t]->fProcess = 3;  // decay
+      tracks[t]->fEindex = -1;  // on nothing
+    } else {                      // nothing happens
+      tracks[t]->fProcess = -1; // nothing
+      tracks[t]->fEindex = -1;  // on nothing
+    }
+  }
+}
+
+//____________________________________________________________________________
 void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
   // Sample the interaction for a single particle at a time.
   int nParticleWithReaction = TPartIndex::I()->NPartReac();
@@ -1089,6 +1514,104 @@ void TMXsec::SampleSingleInt(int t, GeantTrack_v &tracksin, GeantTaskData *td) {
   } else {                      // nothing happens
     tracksin.fProcessV[t] = -1; // nothing
     tracksin.fEindexV[t] = -1;  // on nothing
+  }
+}
+
+//____________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TMXsec::SampleInt(GeantTrack &track, GeantTaskData *td) {
+  // Sample the interaction for a single particle at a time.
+  int nParticleWithReaction = TPartIndex::I()->NPartReac();
+
+  // tid-based rng
+  double *rndArray = td->fDblArray;
+#ifdef USE_VECGEOM_NAVIGATOR
+  td->fRndm->uniform_array(2, rndArray);
+#elif USE_ROOT
+#ifndef VECCORE_CUDA
+  td->fRndm->RndmArray(2, rndArray);
+#endif
+#endif
+  /*
+     if(track.fEindex < 0){ // continous step limited this step
+         track.fProcess = -1; // nothing
+         track.fEindex  = -1; // on nothing
+       return;
+     }
+  */
+  int ipart = track.fGVcode;
+  // if the particle can have both decay and something else
+  if (ipart < nParticleWithReaction) {
+    bool isDecay = false;
+    double energy = track.fE - track.fMass; // Ekin [GeV]
+    if (fDecayTable->HasDecay(ipart)) {
+      double ptotal = track.fP; // Ptotal [GeV]
+      double lambdaDecay = ptotal * fDecayTable->GetCTauPerMass(ipart);
+      // ptot is not used now in Xlength(ipart,energy,ptot) since ipart<nParticleWithReaction
+      double lambdaTotal = Xlength(ipart, energy, ptotal);
+      // $P(decay) =\lambda_{Total}/\lambda_{decay}$
+      if (rndArray[0] < lambdaTotal / lambdaDecay)
+        isDecay = true;
+    }
+    if (isDecay) {
+      track.fProcess = 3; // decay
+      track.fEindex = -1; // on nothing
+    } else {
+      // not decay but something else; sample what else on what target
+      energy = energy <= fEGrid[fNEbins - 1] ? energy : fEGrid[fNEbins - 1] * 0.999;
+      energy = vecCore::math::Max<double>(energy, fEGrid[0]);
+      int ibin = log(energy / fEGrid[0]) * fEilDelta;
+      ibin = ibin < fNEbins - 1 ? ibin : fNEbins - 2;
+
+      double en1 = fEGrid[ibin];
+      double en2 = fEGrid[ibin + 1];
+      // 1.
+      // this material/mixture (TMXsec object) is composed of fNElems elements
+      int iel = -1; // index of elements in TEXsec** fElems  ([fNElems]) of this
+      if (fNElems == 1) {
+        iel = 0;
+      } else { // sampling one element based on the elemntal realtive X-secs that
+        // have been normalized in CTR at the Ebins!; energy interp. is
+        // included now-> while loop is to avoid problems from interp.
+        double xrat = (en2 - energy) / (en2 - en1);
+        double xnorm = 1.;
+        while (iel < 0) {
+#ifdef USE_VECGEOM_NAVIGATOR
+          double ran = xnorm * td->fRndm->uniform();
+#elif USE_ROOT
+#ifndef VECCORE_CUDA
+          double ran = xnorm * td->fRndm->Rndm();
+#endif
+#endif
+          double xsum = 0;
+          int ibase = ipart * (fNEbins * fNElems);
+          int iibin  = ibase + ibin * fNElems;
+          for (int i = 0; i < fNElems; ++i) { // simple sampling from discrete p.
+            xsum += xrat * fRelXS[iibin + i] + (1 - xrat) * fRelXS[iibin + i +fNElems];
+            if (ran <= xsum) {
+              iel = i;
+              break;
+            }
+          }
+          xnorm = xsum;
+        }
+      }
+      // at this point the index of the element is sampled:= iel
+      // the corresponding TEXsec* is fElems[iel]
+
+      // sample the reaction by using the TEXsec* that corresponds to the iel-th
+      // element i.e. fElems[iel] for the current particle (with particle index of
+      // ipart) at the current energy; will retrun with the reaction index;
+      track.fProcess = fElems[iel]->SampleReac(ipart, energy, rndArray[1]);
+      track.fEindex = fElems[iel]->Index(); // index of the selected element in TTabPhysMrg::fElemXsec[]
+    }
+  } else if (fDecayTable->HasDecay(ipart)) {
+    // only decay can happen because ipart>nParticleWithReaction
+    track.fProcess = 3;  // decay
+    track.fEindex = -1;  // on nothing
+  } else {                      // nothing happens
+    track.fProcess = -1; // nothing
+    track.fEindex = -1;  // on nothing
   }
 }
 

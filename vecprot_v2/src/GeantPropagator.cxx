@@ -41,6 +41,8 @@
 #endif
 
 #include "Geant/Error.h"
+#include "LocalityManager.h"
+#include "TrackManager.h"
 #include "GeantRunManager.h"
 #include "GeantTrackVec.h"
 #include "PhysicsInterface.h"
@@ -169,12 +171,36 @@ bool GeantPropagator::IsIdle() const {
 //______________________________________________________________________________
 void GeantPropagator::Initialize() {
   // Initialize the propagator.
+  LocalityManager *mgr = LocalityManager::Instance();
+  if (!mgr->IsInitialized()) {
+    mgr->SetNblocks(100);
+    mgr->SetBlockSize(10000);
+    mgr->SetMaxDepth(fConfig->fMaxDepth);
+    mgr->Init();
+  }
+  int numa = (fNuma >= 0) ? fNuma : 0;
+  fTrackMgr = &mgr->GetTrackManager(numa);
+
   // Add some empty baskets in the queue
 #ifdef VECCORE_CUDA
   // assert(0 && "Initialize not implemented yet for CUDA host/device code.");
 #else
   fWMgr->CreateBaskets(this);
 #endif
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void GeantPropagator::SetNuma(int numa)
+{
+// Set locality for the propagator
+  LocalityManager *mgr = LocalityManager::Instance();
+  fNuma  = numa;
+  if (!mgr->IsInitialized()) return;
+  if (numa >= 0)
+    fTrackMgr = &mgr->GetTrackManager(numa);
+  else
+    fTrackMgr = &mgr->GetTrackManager(0);
 }
 
 //NOTE: We don't do anything here so it's not called from the WorkloadManager anymore

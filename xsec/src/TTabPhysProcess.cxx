@@ -51,11 +51,27 @@ void TTabPhysProcess::ApplyMsc(Material_t * /*mat*/, int /*ntracks*/, GeantTrack
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysProcess::ApplyMsc(Material_t * /*mat*/, TrackVec_t & /*tracks*/,
+                               GeantTaskData * /*td*/) {
+  // Apply multiple scattering
+  //   fMgr->ApplyMsc(mat, tracks, td);
+}
+
+//______________________________________________________________________________
 VECCORE_ATT_DEVICE
 void TTabPhysProcess::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td) {
   // Fill energy loss for the tracks according their fStepV
 
   nout = fMgr->Eloss(mat, ntracks, tracks, td);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysProcess::Eloss(Material_t *mat, TrackVec_t &tracks, int &nout, GeantTaskData *td) {
+  // Fill energy loss for the tracks according their fStepV
+
+  nout = fMgr->Eloss(mat, tracks, td);
 }
 
 //______________________________________________________________________________
@@ -67,6 +83,15 @@ void TTabPhysProcess::ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysProcess::ComputeIntLen(Material_t *mat, TrackVec_t &tracks, double * /*lengths*/,
+                                    GeantTaskData *td) {
+  // Tabulated cross section generic process computation of interaction length.
+
+  fMgr->ProposeStep(mat, tracks, td);
+}
+
+//______________________________________________________________________________
 void TTabPhysProcess::PostStepTypeOfIntrActSampling(Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                                     GeantTaskData *td) {
   // # smapling: target atom and type of the interaction for each primary tracks
@@ -75,6 +100,17 @@ void TTabPhysProcess::PostStepTypeOfIntrActSampling(Material_t *mat, int ntracks
   if (mat)
     imat = mat->GetIndex();
   fMgr->SampleTypeOfInteractions(imat, ntracks, tracks, td);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysProcess::PostStepTypeOfIntrActSampling(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td) {
+  // # smapling: target atom and type of the interaction for each primary tracks
+  //             all inf. regarding output of sampling is stored in the tracks
+  int imat = -1;
+  if (mat)
+    imat = mat->GetIndex();
+  fMgr->SampleTypeOfInteractions(imat, tracks, td);
 }
 
 //______________________________________________________________________________
@@ -91,7 +127,27 @@ void TTabPhysProcess::PostStepFinalStateSampling(Material_t *mat, int ntracks, G
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysProcess::PostStepFinalStateSampling(Material_t *mat, TrackVec_t &tracks, int &nout,
+                                                 GeantTaskData *td) {
+  // # sampling final states for each primary tracks based on target atom and
+  //    interaction type sampled in SampleTypeOfInteractionsInt;
+  // # upadting primary track properties and inserting secondary tracks;
+  // # return: number of inserted secondary tracks
+  int imat = -1;
+  if (mat)
+    imat = mat->GetIndex();
+  nout = fMgr->SampleFinalStates(imat, tracks, td);
+}
+
+//______________________________________________________________________________
 void TTabPhysProcess::AtRest(int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/, GeantTaskData * /*td*/) {
+  // Do at rest actions on particle after generic tabxsec process.
+  // Daughter tracks copied in trackout.
+}
+
+//______________________________________________________________________________
+void TTabPhysProcess::AtRest(TrackVec_t & /*tracks*/, int & /*nout*/, GeantTaskData * /*td*/) {
   // Do at rest actions on particle after generic tabxsec process.
   // Daughter tracks copied in trackout.
 }
