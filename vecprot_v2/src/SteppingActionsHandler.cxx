@@ -31,6 +31,11 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
     fPropagator->fStdApplication->SteppingActions(*track, td);
   fPropagator->fApplication->SteppingActions(*track, td);
   
+  // The track may die at the end of the step
+  if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
+    fPropagator->StopTrack(track);
+    return;
+  }
   // Copy to output
   output.AddTrack(track);
 }
@@ -46,12 +51,14 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
     fPropagator->fStdApplication->SteppingActions(tracks, td);
   fPropagator->fApplication->SteppingActions(tracks, td);
 
-  // Copy tracks to output
-#ifndef VECCORE_CUDA
-  std::copy(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
-#else
-  for (auto track : tracks) output->AddTrack(track);
-#endif
+  // Copy tracks alive to output, stop the others.
+  for (auto track : tracks) {
+    if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
+      fPropagator->StopTrack(track);
+      continue;
+    }    
+    output.AddTrack(track);
+  }
 }
 
 } // GEANT_IMPL_NAMESPACE

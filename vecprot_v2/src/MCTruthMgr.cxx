@@ -76,5 +76,32 @@ void MCTruthMgr::EndTrack(const Geant::GeantTrack_v &tracks, int itr) {
   else return; 
 }
 
+//______________________________________________________________________________
+void MCTruthMgr::EndTrack(GeantTrack *track) {
+    
+  // get the event to which the track belongs  
+  if(events_map.contains(track->fEvent))
+    {
+      MCEvent* current_event = events_map.find(track->fEvent);
+
+      // check of the track was stored
+      // if not, do nothing
+      if(current_event->particles.contains(track->fParticle) )
+	{
+	  //  Printf("MCTruthMgr: Ending track ID %i in event %i", tracks.fParticleV[itr], tracks.fEventV[itr]);
+
+	  MCParticle* current_particle = current_event->particles.find(track->fParticle);
+
+	  current_particle->fXend = track->fXpos;
+	  current_particle->fYend = track->fYpos;
+	  current_particle->fZend = track->fZpos;
+	  current_particle->fTend = track->fTime;
+	  current_particle->has_end = true;
+	}
+      else return;      
+    }
+  else return; 
+}
+
 } // GEANT_IMPL_NAMESPACE
 } // Geant

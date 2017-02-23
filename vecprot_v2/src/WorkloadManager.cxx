@@ -94,7 +94,6 @@ int WorkloadManager::ThreadId() {
 #if USE_VECGEOM_NAVIGATOR
   return BaseTLS::ThreadId();
 #else
-  gGeoManager->SetMultiThread();
   return TGeoManager::ThreadId();
 #endif
 }

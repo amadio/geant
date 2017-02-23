@@ -180,6 +180,14 @@ public:
   /**
    * @brief  Function for marking a track as stopped
    *
+   * @param track Track to be stopped
+   * @param itr Track id
+   */
+  void StopTrack(GeantTrack *track);
+
+  /**
+   * @brief  Function for marking a track as stopped
+   *
    * @param tracks Track array container
    * @param itr Track id
    */

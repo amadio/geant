@@ -98,7 +98,7 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
   ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(*track);
 #else
 // ROOT geometry
-  ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(track);
+  ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(*track);
 #endif // USE_VECGEOM_NAVIGATOR
   // Select follow-up stage
   track->SetStage(ESimulationStage::kPropagationStage);
@@ -137,6 +137,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #endif
 #else
 // ROOT geometry. Fall back to scalar implementation
+  (void)tracks;
   Handler::DoIt(input, output, td);
 #endif
 }

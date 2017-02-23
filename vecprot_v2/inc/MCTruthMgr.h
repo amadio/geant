@@ -91,6 +91,13 @@ public:
    */
   void EndTrack(const Geant::GeantTrack_v &tracks, int itr);
 
+  /**
+   * @brief Function that indicates a track stopping
+   *
+   * @param track Track to be stopped
+   */
+  void EndTrack(GeantTrack *track);
+
     /**
    * @brief Function that opens an event
    *
