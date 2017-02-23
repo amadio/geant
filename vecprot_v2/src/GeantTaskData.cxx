@@ -62,7 +62,8 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
   fPathV = new VolumePath_t*[maxPerBasket];
   fNextpathV = new VolumePath_t*[maxPerBasket];
-  fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
+  fGeoTrack = GeantTrackGeo_v::MakeInstanceAt(buffer, 4*maxPerBasket);
+  buffer += GeantTrackGeo_v::SizeOfInstance(4*maxPerBasket);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
   buffer = GeantTrack::round_up_align(buffer);
 
