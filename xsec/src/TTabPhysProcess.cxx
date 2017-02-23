@@ -75,7 +75,7 @@ void TTabPhysProcess::Eloss(Material_t *mat, TrackVec_t &tracks, int &nout, Gean
 }
 
 //______________________________________________________________________________
-void TTabPhysProcess::ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
+void TTabPhysProcess::ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                     GeantTaskData *td) {
   // Tabulated cross section generic process computation of interaction length.
 
@@ -84,7 +84,7 @@ void TTabPhysProcess::ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TTabPhysProcess::ComputeIntLen(Material_t *mat, TrackVec_t &tracks, double * /*lengths*/,
+void TTabPhysProcess::ComputeIntLen(Material_t *mat, TrackVec_t &tracks,
                                     GeantTaskData *td) {
   // Tabulated cross section generic process computation of interaction length.
 

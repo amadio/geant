@@ -1,7 +1,7 @@
 #include "GeomQueryStage.h"
 
 #include "GeantRunManager.h"
-#include "GeomLengthQuery.h"
+#include "GeomQueryHandler.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -24,7 +24,7 @@ int GeomQueryStage::CreateHandlers()
   Volume_t *vol;
   for (auto ivol = 0; ivol < nvolumes; ++ivol) {
     vol = (Volume_t *)volumes[ivol];
-    GeomLengthQuery *handler = new GeomLengthQuery(vol, threshold, fPropagator, ivol);
+    GeomQueryHandler *handler = new GeomQueryHandler(vol, threshold, fPropagator, ivol);
     AddHandler(handler);
     assert(handler == fHandlers[ivol]);
   }

@@ -1,18 +1,18 @@
-//===--- FieldPropagator.h - Geant-V -----------------------------*- C++ -*-===//
+//===--- FieldPropagationHandler.h - Geant-V -----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file FieldPropagator.h
+ * @file FieldPropagationHandler.h
  * @brief Implementation of the field propagation as a handler.
  *
  * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_FIELD_PROPAGATOR
-#define GEANT_FIELD_PROPAGATOR
+#ifndef GEANT_FIELD_PROPAGATION_HANDLER
+#define GEANT_FIELD_PROPAGATION_HANDLER
 
 #include "Handler.h"
 #include "GeantTaskData.h"
@@ -24,13 +24,13 @@ inline namespace GEANT_IMPL_NAMESPACE {
  * @brief Handler grouping charged tracks and performing field propagation.
  */
  
-class FieldPropagator : public Handler {
+class FieldPropagationHandler : public Handler {
 
 protected:  
 
 private:
-  FieldPropagator(const FieldPropagator &) = delete;
-  FieldPropagator &operator=(const FieldPropagator &) = delete;
+  FieldPropagationHandler(const FieldPropagationHandler &) = delete;
+  FieldPropagationHandler &operator=(const FieldPropagationHandler &) = delete;
   
   
   /** @brief Scalar implementation for magnetic field propagation */
@@ -53,7 +53,7 @@ private:
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  FieldPropagator() : Handler() {}
+  FieldPropagationHandler() : Handler() {}
 
   /** 
    * @brief Default constructor
@@ -61,11 +61,11 @@ public:
    * @param propagator Propagator working with this handler
    */
   VECCORE_ATT_HOST_DEVICE
-  FieldPropagator(int threshold, GeantPropagator *propagator);
+  FieldPropagationHandler(int threshold, GeantPropagator *propagator);
 
   /** @brief Geometry filter destructor */
   VECCORE_ATT_HOST_DEVICE
-  virtual ~FieldPropagator();
+  virtual ~FieldPropagationHandler();
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE

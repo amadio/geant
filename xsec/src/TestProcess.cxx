@@ -33,7 +33,7 @@ void TestProcess::Eloss( Material_t */* mat */, int ntracks, GeantTrack_v &track
 }
 
 
-void TestProcess::ComputeIntLen( Material_t */* mat */, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
+void TestProcess::ComputeIntLen( Material_t */* mat */, int ntracks, GeantTrack_v &tracks,
 				    GeantTaskData */* td */ ) {
   //  std::cout << "TestProcess::ComputeIntLen : Start : ntracks=" << ntracks << std::endl;
   for ( int i = 0; i < ntracks; i++ ) {

@@ -20,12 +20,14 @@ class TestProcess : public Geant::PhysicsProcessOld {
 
     using GeantTrack = Geant::GeantTrack;
     using GeantTrack_v = Geant::GeantTrack_v;
+    using GeantTaskData = Geant::GeantTaskData;
+    using TrackVec_t = Geant::TrackVec_t;
 
     TestProcess();
     virtual ~TestProcess() {}
 
     virtual void Initialize();
-    virtual void ComputeIntLen( Material_t *mat, int ntracks, GeantTrack_v &tracks, double *lengths,
+    virtual void ComputeIntLen( Material_t *mat, int ntracks, GeantTrack_v &tracks,
                                 GeantTaskData *td );
 
     // dummy method: PostStep has been splitted up into two parts (see below)
@@ -49,6 +51,14 @@ class TestProcess : public Geant::PhysicsProcessOld {
     virtual void Eloss( Material_t */* mat */, int /* ntracks */, GeantTrack_v &/* tracks */, int &/* nout */, GeantTaskData */* td */ );
 
     virtual void ApplyMsc( Material_t */* mat */, int /* ntracks */, GeantTrack_v &/* tracks */, GeantTaskData */* td */ ) {};
+
+//=== N E W   I N T E R F A C E S ===//
+  VECCORE_ATT_HOST_DEVICE
+  virtual void ComputeIntLen(Material_t *, TrackVec_t &, GeantTaskData *) {}
+  VECCORE_ATT_HOST_DEVICE
+  virtual void PostStepTypeOfIntrActSampling(Material_t *, TrackVec_t &, GeantTaskData *) {}
+  VECCORE_ATT_HOST_DEVICE
+  virtual void PostStepFinalStateSampling(Material_t *, TrackVec_t &, int &, GeantTaskData *) {}
 
   private:
 

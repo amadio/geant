@@ -11,8 +11,6 @@
 #include "base/Global.h"
 #include "Geant/Typedefs.h"
 
-#include "GeantFwd.h"
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -20,6 +18,7 @@ class TTabPhysMgr;
 
 //______________________________________________________________________________
 class TTabPhysProcess : public PhysicsProcessOld {
+
 private:
   TTabPhysMgr *fMgr;       //! Tabulated physics manager
   std::string fXsecFileName;   // Name of Xsec file
@@ -30,7 +29,7 @@ public:
   virtual ~TTabPhysProcess() {}
 
   virtual void Initialize();
-  virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double *lengths,
+  virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks,
                              GeantTaskData *td);
 
   // # smapling: -target atom and type of the interaction for each primary tracks
@@ -54,7 +53,7 @@ public:
 
 //=== N E W   I N T E R F A C E S ===//
   VECCORE_ATT_HOST_DEVICE
-  virtual void ComputeIntLen(Material_t *mat, TrackVec_t &tracks, double *lengths, GeantTaskData *td);
+  virtual void ComputeIntLen(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
   // # smapling: -target atom and type of the interaction for each primary tracks
   //             -all inf. regarding sampling output is stored in the tracks
 

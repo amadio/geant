@@ -32,7 +32,6 @@ class TStopwatch;
 #include "base/BitSet.h"
 using veccore::BitSet;
 
-#include "GeantFwd.h"
 #include "GeantConfig.h"
 
 class PhysicsInterface;
@@ -40,6 +39,7 @@ class PhysicsInterface;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+class GeantTrack_v;
 class GeantRunManager;
 class GeantEvent;
 class GeantVApplication;

@@ -1,18 +1,18 @@
-//===--- LinearPropagator.h - Geant-V -----------------------------*- C++ -*-===//
+//===--- LinearPropagationHandler.h - Geant-V -----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file LinearPropagator.h
+ * @file LinearPropagationHandler.h
  * @brief Implementation of the linear propagation as a handler.
  *
  * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_LINEAR_PROPAGATOR
-#define GEANT_LINEAR_PROPAGATOR
+#ifndef GEANT_LINEAR_PROPAGATION_HANDLER
+#define GEANT_LINEAR_PROPAGATION_HANDLER
 
 #include "Handler.h"
 
@@ -23,18 +23,18 @@ inline namespace GEANT_IMPL_NAMESPACE {
  * @brief Handler grouping charged tracks and performing field propagation.
  */
  
-class LinearPropagator : public Handler {
+class LinearPropagationHandler : public Handler {
 
 protected:  
 
 private:
-  LinearPropagator(const LinearPropagator &) = delete;
-  LinearPropagator &operator=(const LinearPropagator &) = delete;
+  LinearPropagationHandler(const LinearPropagationHandler &) = delete;
+  LinearPropagationHandler &operator=(const LinearPropagationHandler &) = delete;
     
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  LinearPropagator() : Handler() {}
+  LinearPropagationHandler() : Handler() {}
 
   /** 
    * @brief Default constructor
@@ -42,11 +42,11 @@ public:
    * @param propagator Propagator working with this handler
    */
   VECCORE_ATT_HOST_DEVICE
-  LinearPropagator(int threshold, GeantPropagator *propagator);
+  LinearPropagationHandler(int threshold, GeantPropagator *propagator);
 
   /** @brief Geometry filter destructor */
   VECCORE_ATT_HOST_DEVICE
-  virtual ~LinearPropagator();
+  virtual ~LinearPropagationHandler();
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE

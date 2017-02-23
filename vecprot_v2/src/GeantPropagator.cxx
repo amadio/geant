@@ -245,7 +245,7 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
 #ifdef USE_REAL_PHYSICS
   fPhysicsInterface->ComputeIntLen(mat, ntracks, tracks, 0, td);
 #else
-  fProcess->ComputeIntLen(mat, ntracks, tracks, 0, td);
+  fProcess->ComputeIntLen(mat, ntracks, tracks, td);
 #endif
 }
 

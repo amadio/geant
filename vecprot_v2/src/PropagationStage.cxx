@@ -1,8 +1,8 @@
 #include "PropagationStage.h"
 
 #include "GeantRunManager.h"
-#include "LinearPropagator.h"
-#include "FieldPropagator.h"
+#include "LinearPropagationHandler.h"
+#include "FieldPropagationHandler.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -26,8 +26,8 @@ int PropagationStage::CreateHandlers()
 {
 // Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
-  AddHandler(new LinearPropagator(threshold, fPropagator));
-  AddHandler(new FieldPropagator(threshold, fPropagator));
+  AddHandler(new LinearPropagationHandler(threshold, fPropagator));
+  AddHandler(new FieldPropagationHandler(threshold, fPropagator));
   
   return 2;
 }

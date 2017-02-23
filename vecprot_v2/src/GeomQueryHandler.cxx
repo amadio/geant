@@ -1,4 +1,4 @@
-#include "GeomLengthQuery.h"
+#include "GeomQueryHandler.h"
 #include "Basket.h"
 #include "GeantTaskData.h"
 #include "GeantTrackGeo.h"
@@ -18,17 +18,17 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomLengthQuery::GeomLengthQuery(Volume_t *vol, int threshold, GeantPropagator *propagator, int index)
+GeomQueryHandler::GeomQueryHandler(Volume_t *vol, int threshold, GeantPropagator *propagator, int index)
                : Handler(threshold, propagator), fVolume(vol), fIndex(index)
 {
 // Default constructor
-  assert(vol && "GeomLengthQuery: A valid volume pointer has to be provided");
+  assert(vol && "GeomQueryHandler: A valid volume pointer has to be provided");
   ConnectToVolume();
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomLengthQuery::~GeomLengthQuery()
+GeomQueryHandler::~GeomQueryHandler()
 {
 // Destructor
   DisconnectVolume();
@@ -36,7 +36,7 @@ GeomLengthQuery::~GeomLengthQuery()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomLengthQuery::ConnectToVolume()
+void GeomQueryHandler::ConnectToVolume()
 {
   VBconnector *connector = new VBconnector(fIndex);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -49,7 +49,7 @@ void GeomLengthQuery::ConnectToVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomLengthQuery::ActivateBasketizing(bool flag)
+void GeomQueryHandler::ActivateBasketizing(bool flag)
 {
 // Special basketizing in case of logical volumes
   if (fActive == flag) return;
@@ -72,7 +72,7 @@ void GeomLengthQuery::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomLengthQuery::DisconnectVolume()
+void GeomQueryHandler::DisconnectVolume()
 {
   if (!fVolume) return;
   VBconnector *connector = nullptr;
@@ -88,7 +88,7 @@ void GeomLengthQuery::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomLengthQuery::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
+void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -107,7 +107,7 @@ void GeomLengthQuery::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomLengthQuery::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   

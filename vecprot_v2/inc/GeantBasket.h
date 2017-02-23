@@ -24,12 +24,12 @@
 #include "priority_queue.h"
 #include "mpmc_bounded_queue.h"
 #include "GeantPropagator.h"
+#include "GeantFwd.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantBasketMgr;
-#include "GeantFwd.h"
 
 /**
  * @brief Class GeantBasket descripting basic operations with baskets

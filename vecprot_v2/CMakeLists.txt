@@ -38,9 +38,10 @@ set(sources
    src/GeantBasket.cxx
    src/Basket.cxx
    src/Handler.cxx
-   src/GeomLengthQuery.cxx
-   src/FieldPropagator.cxx
-   src/LinearPropagator.cxx
+   src/XSecSamplingHandler.cxx
+   src/GeomQueryHandler.cxx
+   src/FieldPropagationHandler.cxx
+   src/LinearPropagationHandler.cxx
    src/SimulationStage.cxx
    src/GeomQueryStage.cxx
    src/PropagationStage.cxx
@@ -74,9 +75,10 @@ set(headers
    inc/PhysicsProcessOld.h
    inc/Basket.h
    inc/Handler.h
-   inc/GeomLengthQuery.h
-   inc/FieldPropagator.h
-   inc/LinearPropagator.h
+   inc/XSecSamplingHandler.h
+   inc/GeomQueryHandler.h
+   inc/FieldPropagationHandler.h
+   inc/LinearPropagationHandler.h
    inc/SimulationStage.h
    inc/GeomQueryStage.h
    inc/PropagationStage.h

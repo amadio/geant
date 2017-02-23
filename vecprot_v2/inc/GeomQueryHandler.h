@@ -1,10 +1,10 @@
-//===--- GeomLengthQuery.h - Geant-V -----------------------------*- C++ -*-===//
+//===--- GeomQueryHandler.h - Geant-V -----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeomLengthQuery.h
+ * @file GeomQueryHandler.h
  * @brief Implementation of a geometry query for the transport length to next boundary.
  * @details The volume handler performs computation of the allowed geometry step
  *  using both scalar and vector interfaces.
@@ -13,8 +13,8 @@
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef GEANT_GEOM_LENGTH_QUERY
-#define GEANT_GEOM_LENGTH_QUERY
+#ifndef GEANT_GEOM_QUERY_HANDLER
+#define GEANT_GEOM_QUERY_HANDLER
 
 #include "Handler.h"
 
@@ -30,9 +30,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
  */
  
 #ifndef USE_ROOT
-class GeomLengthQuery : public Handler {
+class GeomQueryHandler : public Handler {
 #else
-class GeomLengthQuery : public Handler,
+class GeomQueryHandler : public Handler,
                        public TGeoExtension {
 #endif
 
@@ -41,8 +41,8 @@ protected:
   int fIndex = -1;                     ///< Handler index in the array of geometry handlers
 
 private:
-  GeomLengthQuery(const GeomLengthQuery &) = delete;
-  GeomLengthQuery &operator=(const GeomLengthQuery &) = delete;
+  GeomQueryHandler(const GeomQueryHandler &) = delete;
+  GeomQueryHandler &operator=(const GeomQueryHandler &) = delete;
   
 protected:
   VECCORE_ATT_HOST_DEVICE
@@ -54,7 +54,7 @@ protected:
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  GeomLengthQuery() : Handler() {}
+  GeomQueryHandler() : Handler() {}
 
   /** 
    * @brief Volume handler default constructor
@@ -63,11 +63,11 @@ public:
    * @param vol Associated volume
    */
   VECCORE_ATT_HOST_DEVICE
-  GeomLengthQuery(Volume_t *vol, int threshold, GeantPropagator *propagator, int index = -1);
+  GeomQueryHandler(Volume_t *vol, int threshold, GeantPropagator *propagator, int index = -1);
 
   /** @brief Geometry filter destructor */
   VECCORE_ATT_HOST_DEVICE
-  virtual ~GeomLengthQuery();
+  virtual ~GeomQueryHandler();
 
   /** @brief Activate/de-activate the handler */
   VECCORE_ATT_HOST_DEVICE

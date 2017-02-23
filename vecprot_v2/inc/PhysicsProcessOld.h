@@ -22,7 +22,7 @@
 #include "GeantTrack.h"
 
 #include "base/Global.h"
-#include "GeantFwd.h"
+//#include "GeantFwd.h"
 
 #include <string>
 
@@ -32,11 +32,12 @@ inline namespace GEANT_IMPL_NAMESPACE {
 /**
  * @brief Class describing physics processes
  */
+class GeantTrack_v;
+class GeantTaskData;
+
 class PhysicsProcessOld {
 
 public:
-  using GeantTrack_v = Geant::GeantTrack_v;
-  using GeantTaskData = Geant::GeantTaskData;
 
   /**
    * @enum EProcessType
@@ -89,7 +90,7 @@ public:
    * @param lengths Partial process lengths
    * @param td Thread data
    */
-  virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double *lengths,
+  virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks,
                              GeantTaskData *td) = 0;
   /**
    * @brief Post step type of intraction sampling function
@@ -150,8 +151,8 @@ public:
    * @param lengths Partial process lengths
    * @param td Thread data
    */
-  virtual void ComputeIntLen(Material_t *mat, TrackVec_t &tracks, double *lengths,
-                             GeantTaskData *td) = 0;
+   VECCORE_ATT_HOST_DEVICE
+   virtual void ComputeIntLen(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td) = 0;
   /**
    * @brief Post step type of intraction sampling function
    * @details Sampling:
@@ -159,11 +160,10 @@ public:
    * 2. All inf. regarding sampling output is stored in the tracks
    *
    * @param mat Material_t material
-   * @param ntracks Number of tracks
    * @param tracks Vector of tracks_v
    * @param td  Thread data
    */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   virtual void PostStepTypeOfIntrActSampling(Material_t *mat, TrackVec_t &tracks,
                                              GeantTaskData *td) = 0;
 
@@ -180,7 +180,7 @@ public:
    * @param nout Number of tracks in the output
    * @param td Thread data
    */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   virtual void PostStepFinalStateSampling(Material_t *mat, TrackVec_t &tracks, int &nout,
                                           GeantTaskData *td) = 0;
  /**
@@ -191,14 +191,14 @@ public:
   /**
    * @todo Need to be implemented
    */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   virtual void Eloss(Material_t * /*mat*/, TrackVec_t & /*tracks*/, int & /*nout*/,
                      GeantTaskData * /*td*/) {}
 
   /**
    * @todo Need to be implemented
    */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   virtual void ApplyMsc(Material_t * /*mat*/, TrackVec_t & /*tracks*/, GeantTaskData * /*td*/) {}
 
 //===================================//

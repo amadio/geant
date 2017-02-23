@@ -381,7 +381,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 #endif
   } else {
      // Old - constant field
-     Geant::ConstBzFieldHelixStepper stepper(bmag);
+     ConstBzFieldHelixStepper stepper(bmag);
      stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    track.fCharge, track.fP, crtstep,
                                          PositionNew, DirectionNew);
   }

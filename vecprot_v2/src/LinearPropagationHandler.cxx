@@ -1,4 +1,4 @@
-#include "LinearPropagator.h"
+#include "LinearPropagationHandler.h"
 
 #include "GeantTaskData.h"
 
@@ -7,7 +7,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-LinearPropagator::LinearPropagator(int threshold, GeantPropagator *propagator)
+LinearPropagationHandler::LinearPropagationHandler(int threshold, GeantPropagator *propagator)
                : Handler(threshold, propagator)
 {
 // Default constructor
@@ -15,7 +15,7 @@ LinearPropagator::LinearPropagator(int threshold, GeantPropagator *propagator)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-LinearPropagator::~LinearPropagator()
+LinearPropagationHandler::~LinearPropagationHandler()
 {
 // Destructor
 }  
@@ -23,7 +23,7 @@ LinearPropagator::~LinearPropagator()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void LinearPropagator::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -59,7 +59,7 @@ void LinearPropagator::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void LinearPropagator::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   TrackVec_t &tracks = input.Tracks();  

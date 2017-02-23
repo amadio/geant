@@ -1,4 +1,4 @@
-#include "FieldPropagator.h"
+#include "FieldPropagationHandler.h"
 
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
@@ -9,7 +9,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-FieldPropagator::FieldPropagator(int threshold, GeantPropagator *propagator)
+FieldPropagationHandler::FieldPropagationHandler(int threshold, GeantPropagator *propagator)
                : Handler(threshold, propagator)
 {
 // Default constructor
@@ -17,7 +17,7 @@ FieldPropagator::FieldPropagator(int threshold, GeantPropagator *propagator)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-FieldPropagator::~FieldPropagator()
+FieldPropagationHandler::~FieldPropagationHandler()
 {
 // Destructor
 }  
@@ -25,7 +25,7 @@ FieldPropagator::~FieldPropagator()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagator::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
   // Step selection
@@ -55,7 +55,7 @@ void FieldPropagator::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagator::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   TrackVec_t &tracks = input.Tracks();
@@ -92,7 +92,7 @@ void FieldPropagator::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagator::PropagateInVolume(TrackVec_t &tracks, const double *crtstep,
+void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double *crtstep,
                                         GeantTaskData *td)
 {
 // THIS IS THE VECTORIZED IMPLEMENTATION PLACEHOLDER FOR MAGNETIC FIELD PROPAGATION.
@@ -104,7 +104,7 @@ void FieldPropagator::PropagateInVolume(TrackVec_t &tracks, const double *crtste
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagator::PropagateInVolume(GeantTrack &track, double crtstep, GeantTaskData * td)
+void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtstep, GeantTaskData * td)
 {
 // Single track propagation in a volume. The method is to be called
 // only with  charged tracks in magnetic field.The method decreases the fPstepV
