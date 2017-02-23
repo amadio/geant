@@ -53,6 +53,16 @@ class MCTruthMgr;
 class TaskBroker;
 
 class GeantPropagator {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  // On cuda there is one propagator per thread.  So (for now), no need
+  // for atomics.
+  template <typename T>
+  using atomic_t = T;
+#else
+  template <typename T>
+  using atomic_t = std::atomic<T>;
+#endif
+
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
@@ -63,15 +73,15 @@ public:
   int fNthreads = 0;                   /** Number of worker threads */
   int fNbuff = 0;                      /** Number of buffered events */
   int fNtotal = 0;                     /** Total number of events to be transported */
-  std::atomic<long> fNtransported;     /** Number of transported tracks */
-  std::atomic<long> fNsteps;           /** Total number of steps */
-  std::atomic<long> fNsnext;           /** Total number of calls to getting distance to next boundary */
-  std::atomic<long> fNphys;            /** Total number of steps to physics processes */
-  std::atomic<long> fNmag;             /** Total number of partial steps in magnetic field */
-  std::atomic<long> fNsmall;           /** Total number of small steps taken */
-  std::atomic<long> fNcross;           /** Total number of boundaries crossed */
-  std::atomic<int>  fNidle;            /** Number of idle threads */
-  std::atomic<int>  fNbfeed;           /** Number of baskets fed from server */
+  atomic_t<long> fNtransported;        /** Number of transported tracks */
+  atomic_t<long> fNsteps;              /** Total number of steps */
+  atomic_t<long> fNsnext;              /** Total number of calls to getting distance to next boundary */
+  atomic_t<long> fNphys;               /** Total number of steps to physics processes */
+  atomic_t<long> fNmag;                /** Total number of partial steps in magnetic field */
+  atomic_t<long> fNsmall;              /** Total number of small steps taken */
+  atomic_t<long> fNcross;              /** Total number of boundaries crossed */
+  atomic_t<int>  fNidle;               /** Number of idle threads */
+  atomic_t<int>  fNbfeed;              /** Number of baskets fed from server */
 
   bool fTransportOngoing = false;      /** Flag for ongoing transport */
   bool fSingleTrack = false;           /** Use single track transport mode */
@@ -126,7 +136,7 @@ public:
    * @return Number of transported tracks
    */
   GEANT_FORCE_INLINE
-  long GetNtransported() const { return fNtransported.load(); }
+  long GetNtransported() const { return fNtransported; }
 
   /**
    * @brief Function that returns a temporary track object per thread
@@ -141,7 +151,7 @@ public:
 
   /** @brief Get number of idle workers */
   GEANT_FORCE_INLINE
-  int GetNidle() const { return fNidle.load(); }
+  int GetNidle() const { return fNidle; }
 
   /** @brief Get number of pending baskets */
   GEANT_FORCE_INLINE
@@ -149,7 +159,7 @@ public:
 
   /** @brief Get number of working threads */
   GEANT_FORCE_INLINE
-  int GetNworking() const { return (fNthreads - fNidle.load()); }
+  int GetNworking() const { return (fNthreads - fNidle); }
 
   /** @brief Stop the transport threads */
   void StopTransport();

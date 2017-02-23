@@ -451,7 +451,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
         if (evserv->HasTracks()) {
           // In the initial phase we distribute a fair share of baskets to all propagators
           if (!evserv->IsInitialPhase() ||
-              propagator->fNbfeed.load() < runmgr->GetInitialShare()) {
+              propagator->fNbfeed < runmgr->GetInitialShare()) {
             ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
             if (ntotransport) basket = bserv;
           }
@@ -819,7 +819,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
            if (evserv->HasTracks()) {
            // In the initial phase we distribute a fair share of baskets to all propagators
              if (!evserv->IsInitialPhase() ||
-                propagator->fNbfeed.load() < runmgr->GetInitialShare()) {
+                propagator->fNbfeed < runmgr->GetInitialShare()) {
                ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
                if (ntotransport) basket = bserv;
              }
