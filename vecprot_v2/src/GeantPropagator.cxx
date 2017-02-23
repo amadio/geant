@@ -28,11 +28,6 @@
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
-#include "navigation/SimpleNavigator.h"
-#include "navigation/NewSimpleNavigator.h"
-#include "navigation/SimpleABBoxNavigator.h"
-#include "navigation/SimpleABBoxLevelLocator.h"
-#include "navigation/HybridNavigator2.h"
 #ifdef USE_ROOT
 #include "management/RootGeoManager.h"
 #endif
