@@ -59,6 +59,7 @@
 #include "PrimaryGenerator.h"
 #include "MCTruthMgr.h"
 
+#include "XSecSamplingStage.h"
 #include "GeomQueryStage.h"
 #include "PropagationStage.h"
 
@@ -383,9 +384,9 @@ int GeantPropagator::CreateSimulationStages()
   SimulationStage *stage = nullptr;
   // kUndefinedStage
   assert(stage->GetId() == int(kUndefinedStage));
-  // kSampleXsecStage
-//  stage = new XsecSamplingStage(this);
-  assert(stage->GetId() == int(kSampleXsecStage));
+  // kXSecSamplingStage
+  stage = new XSecSamplingStage(this);
+  assert(stage->GetId() == int(kXSecSamplingStage));
   // kGeometryStepStage
   stage = new GeomQueryStage(this);
   assert(stage->GetId() == int(kGeometryStepStage));
@@ -412,7 +413,7 @@ int GeantPropagator::CreateSimulationStages()
   assert(stage->GetId() == int(kUserActionsStage));
   
   // Define connections between stages
-  GetStage(kSampleXsecStage)->SetFollowUpStage(kGeometryStepStage);
+  GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
   GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
   GetStage(kDiscreteProcStage)->SetUserActionsStage(kUserActionsStage);

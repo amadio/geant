@@ -62,7 +62,7 @@ enum Species_t { kHadron, kLepton };
 /** Basket simulation stages. */
 enum ESimulationStage {
   kUndefinedStage      = 0, // Undefined stage type
-  kSampleXsecStage     = 1, // Propose physics step by sampling total Xsec
+  kXSecSamplingStage   = 1, // Propose physics step by sampling total Xsec
   kGeometryStepStage   = 2, // Compute geometry transport length
   kPropagationStage    = 3, // Propagation in field stage
   kMSCStage            = 4, // Multiple scattering stage

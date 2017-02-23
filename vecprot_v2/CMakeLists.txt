@@ -43,6 +43,7 @@ set(sources
    src/FieldPropagationHandler.cxx
    src/LinearPropagationHandler.cxx
    src/SimulationStage.cxx
+   src/XSecSamplingStage.cxx
    src/GeomQueryStage.cxx
    src/PropagationStage.cxx
    src/sync_objects.cxx
@@ -80,6 +81,7 @@ set(headers
    inc/FieldPropagationHandler.h
    inc/LinearPropagationHandler.h
    inc/SimulationStage.h
+   inc/XSecSamplingStage.h
    inc/GeomQueryStage.h
    inc/PropagationStage.h
    inc/GeantBasket.h
