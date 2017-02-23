@@ -109,7 +109,9 @@ public:
   GeantEvent **fEvents = nullptr; /** ![fNbuff]    Array of events */
   bool fCompleted = false;     /** Completion flag */
   bool fInitialFeed = false;   /** Flag marking that events were injected */
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::mutex fStopperLock;     /** Mutex for the stop operation */
+#endif
 
   /** @brief Initialization function */
   void Initialize();

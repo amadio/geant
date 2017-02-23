@@ -280,11 +280,15 @@ void GeantPropagator::StopTransport()
 {
 // Stop the transport threads. Needed only when controlling the transport
 // from the transport manager
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  assert(0 && "StopTransport not implemented yet for device code.");
+#else
   if (fCompleted) return;
   std::unique_lock<std::mutex> lk(fStopperLock);
   fCompleted = true;
   Printf("+++ Stopping propagator %p", this);
   fWMgr->StopTransportThreads();
+#endif
 }
 
 //______________________________________________________________________________
