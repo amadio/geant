@@ -1296,12 +1296,11 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
    // const Double_t *newdir = 0;
 
    bool useRungeKutta;
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-   const double bmag = gPropagator_fBmag;
-   constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
-   useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
-#else
    const double bmag = td->fPropagator->fConfig->fBmag;
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+   constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
+   useRungeKutta= gPropagator_fUseRK; // td->fPropagator->fConfig->fUseRungeKutta;
+#else
    useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
 #endif
 
@@ -1854,12 +1853,9 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fBmag;
-#else
   const double bmag = td->fPropagator->fConfig->fBmag;
-#endif
-// Compute transport length in geometry, limited by the physics step
+
+  // Compute transport length in geometry, limited by the physics step
   GeantPropagator *prop = td->fPropagator;
 #ifdef BUG_HUNT
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateSingle", itr);
@@ -2045,11 +2041,7 @@ double GeantTrack_v::SafeLength( GeantPropagator *prop, int i, double eps) {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.
 
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fBmag;
-#else
   const double bmag = prop->fConfig->fBmag;
-#endif
   double c = Curvature(i, bmag);
   if (c < 1.E-10)
     return 1.E50;

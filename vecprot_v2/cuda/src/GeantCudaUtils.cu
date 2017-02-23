@@ -12,11 +12,8 @@
 namespace Geant {
 inline namespace cuda {
 
-void CoprocessorBrokerInitConstant(GeantConfig* config)
+void CoprocessorBrokerInitConstant()
 {
-  GEANT_CUDA_ERROR(
-      cudaMemcpyToSymbol(gPropagator_fBmag, &(config->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice));
-
 #ifndef USE_VECGEOM_NAVIGATOR
   double tolerance = TGeoShape::Tolerance();
 #else
