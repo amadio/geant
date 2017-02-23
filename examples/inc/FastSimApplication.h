@@ -39,6 +39,8 @@ class FastSimApplication : public Geant::GeantVApplication {
 
   using GeantRunManager = Geant::GeantRunManager;
   using GeantEvent = Geant::GeantEvent;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 
   private:
     bool fInitialized;  /** Initialized flag */

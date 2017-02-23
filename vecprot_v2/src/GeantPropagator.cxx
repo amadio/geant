@@ -62,6 +62,8 @@
 #include "XSecSamplingStage.h"
 #include "GeomQueryStage.h"
 #include "PropagationStage.h"
+#include "ContinuousProcStage.h"
+#include "SteppingActionsStage.h"
 
 #ifdef USE_CALLGRIND_CONTROL
 #include <valgrind/callgrind.h>
@@ -397,7 +399,7 @@ int GeantPropagator::CreateSimulationStages()
   stage = nullptr; // new MSCStage(this);
   assert(stage->GetId() == int(kMSCStage));
   // kContinuousProcStage
-  stage = nullptr; // new ContinuousProcStage(this);
+  stage = new ContinuousProcStage(this);
   assert(stage->GetId() == int(kContinuousProcStage));
   // kDiscreteProcStage
   stage = nullptr; // new DiscreteProcStage(this);
@@ -408,15 +410,15 @@ int GeantPropagator::CreateSimulationStages()
   // kBufferingStage
   stage = nullptr; // new BufferingStage(this)
   assert(stage->GetId() == int(kBufferingStage));
-  // kUserActionsStage
-  stage = nullptr; // new UserActionsStage(this)
-  assert(stage->GetId() == int(kUserActionsStage));
+  // kSteppingActionsStage
+  stage = new SteppingActionsStage(this);
+  assert(stage->GetId() == int(kSteppingActionsStage));
   
   // Define connections between stages
   GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
   GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
-  GetStage(kDiscreteProcStage)->SetUserActionsStage(kUserActionsStage);
+  GetStage(kDiscreteProcStage)->SetUserActionsStage(kSteppingActionsStage);
 
   (void)stage;
   return fStages.size();  
@@ -442,7 +444,7 @@ int GeantPropagator::GetNextStage(GeantTrack &/*track*/, int /*current*/)
 //  4 - Do post step actions for particles suffering a physics process
 //        - Follow-up to stage 0 after running user actions stage
 //  5 - RIP stage - execute user actions then terminate tracks
-//  6 - User actions is invoked as a stage, but the follow-up stage is backed-up
+//  6 - Stepping actions is invoked as a stage, but the follow-up stage is backed-up
 //      beforehand in the track state.
   return -1;  
 }

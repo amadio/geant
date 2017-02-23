@@ -14,6 +14,7 @@
 #define GEANT_VAPPLICATION
 
 #include "GeantFwd.h"
+#include "GeantTrack.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -24,10 +25,6 @@ class GeantEvent;
 /** @brief GeantVApplication class */
 class GeantVApplication {
 public:
-  using GeantTrack = Geant::GeantTrack;
-  using GeantTrack_v = Geant::GeantTrack_v;
-  using GeantTaskData = Geant::GeantTaskData;
-
   GeantRunManager *fRunMgr; /*taskData*/
   
   /** @brief GeantVApplication constructor */	
@@ -49,6 +46,10 @@ public:
    * @param tracks Set of tracks
    */
   virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) = 0;
+
+  //=== N E W   I N T E R F A C E S ===//
+  virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/) {} // = 0;
+  virtual void SteppingActions(TrackVec_t &/*tracks*/, GeantTaskData */*td*/) {} // = 0;
 
   /**
    * @brief Function of digitization

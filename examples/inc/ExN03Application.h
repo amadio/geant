@@ -35,6 +35,8 @@ class ExN03Application : public Geant::GeantVApplication {
   static const int kMaxThreads = 36;
   using GeantRunManager = Geant::GeantRunManager;
   using GeantEvent = Geant::GeantEvent;
+  using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTaskData = Geant::GeantTaskData;
 
 private:
   bool fInitialized;                       /** Initialized flag */
