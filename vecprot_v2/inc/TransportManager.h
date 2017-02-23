@@ -13,7 +13,11 @@
 #ifndef GEANT_TRANSPORT_MANAGER
 #define GEANT_TRANSPORT_MANAGER
 
+#ifdef VECCORE_CUDA
+#include "base/Vector.h"
+#else
 #include <vector>
+#endif
 #include <algorithm>
 
 #include "Geant/Config.h"
@@ -29,7 +33,11 @@ class GeantTaskData;
  * @brief Class GeantTrack
  */
 namespace TransportManager {
+#ifndef VECCORE_CUDA
   typedef std::vector<GeantTrack *> TrackVec_t;
+#else
+  typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
+#endif
 
   /**
    * @brief Check if the geometry location changed for a vector of tracks
@@ -102,8 +110,12 @@ namespace TransportManager {
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void MoveTrack(int itr, TrackVec_t &input, TrackVec_t &output) {
+#ifndef VECCORE_CUDA
     auto it = input.begin() + itr;
     std::move(it, it+1, std::back_inserter(output));
+#else
+    output.push_back(input[itr]);
+#endif
     input.erase(input.begin() + itr);
   }
 
@@ -115,8 +127,15 @@ namespace TransportManager {
    */  
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void RotateTrack(int itr, TrackVec_t &vec) {    
+  void RotateTrack(int itr, TrackVec_t &vec) {
+#ifndef VECCORE_CUDA
     std::rotate(vec.begin()+itr, vec.begin()+itr+1, vec.end());
+#else
+    auto temp = vec[itr];
+    auto it = vec.begin() + itr;
+    vec.erase(it);
+    vec.push_back(temp);
+#endif
   }
   
   /**

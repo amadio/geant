@@ -44,7 +44,11 @@ struct GeantTrackGeo {
  *
  */
 class GeantTrackGeo_v {
-  using TrackVec_t = std::vector<GeantTrack*>;
+#ifndef VECCORE_CUDA
+  typedef std::vector<GeantTrack *> TrackVec_t;
+#else
+  typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
+#endif
 
 public:
   int fNtracks;      /** Number of tracks contained */
