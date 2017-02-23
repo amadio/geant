@@ -108,7 +108,7 @@
 
 #else
 
-#define VECGEOM_DEVICE_DECLARE_CONV(classOrStruct,X) class __QuietSemi
+#define GEANT_DEVICE_DECLARE_CONV(classOrStruct,X) class __QuietSemi
 
 #endif
 
