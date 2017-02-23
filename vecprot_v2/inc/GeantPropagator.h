@@ -112,7 +112,7 @@ public:
    * @param ntotal Total number of tracks
    * old param nbuffered Number of buffered tracks
    */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GeantPropagator(int nthreads = 0);
 
   /** @brief Copy constructor */

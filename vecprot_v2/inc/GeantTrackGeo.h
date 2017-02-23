@@ -91,7 +91,7 @@ private:
   /**
    * @brief GeantTrackGeo_v constructor based on a provided single buffer.
    */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   GeantTrackGeo_v(void *addr, unsigned int nTracks);
 
 public:
@@ -108,14 +108,14 @@ public:
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   static GeantTrackGeo_v *MakeInstanceAt(void *addr, unsigned int nTracks);
 
   /** @brief GeantTrackGeo_v destructor */
   ~GeantTrackGeo_v();
 
   /** @brief return the contiguous memory size needed to hold a GeantTrackGeo_v */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   static size_t SizeOfInstance(size_t nTracks);
 
   /** @brief  Function that returns the buffer size  */
@@ -144,7 +144,7 @@ public:
    * @param track Track that should be added
    * @param import Flag for importing (by default False)
    */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   GEANT_FORCE_INLINE
   int AddTrack(GeantTrack &track) {
     int itrack = fNtracks;
@@ -176,7 +176,7 @@ public:
    *
    * @param array Array of tracks that should be added
    */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   int AddTracks(TrackVec_t const &array);
 
   /**
@@ -184,7 +184,7 @@ public:
    *
    * @param itr Track to update
   */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   GEANT_FORCE_INLINE
   void UpdateOriginalTrack(int itr) const {
     // Update the original track itr.
@@ -205,7 +205,7 @@ public:
   /**
    * @brief Update all original tracks from the container
   */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   void UpdateOriginalTracks() const {
     // Update all the original tracks. This should ideally vectorize.
     for (int itr=0; itr<fNtracks; ++itr) {
@@ -225,7 +225,7 @@ public:
   }
 
   /** @brief Clear function */
-  VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_DEVICE
   GEANT_FORCE_INLINE
   void Clear() { fNtracks = 0; }
 

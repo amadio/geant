@@ -73,13 +73,13 @@ GeantTrackGeo_v::GeantTrackGeo_v(int size)
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
+VECCORE_ATT_DEVICE
 GeantTrackGeo_v *GeantTrackGeo_v::MakeInstanceAt(void *addr, unsigned int nTracks) {
   return new (addr) GeantTrackGeo_v(addr, nTracks);
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
+VECCORE_ATT_DEVICE
 GeantTrackGeo_v::GeantTrackGeo_v(void *addr, unsigned int nTracks)
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
       fOriginalV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
@@ -99,7 +99,7 @@ GeantTrackGeo_v::~GeantTrackGeo_v() {
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
+VECCORE_ATT_DEVICE
 void GeantTrackGeo_v::AssignInBuffer(char *buff, int size) {
   // Assign all internal class arrays in the supplied buffer, padded by supplied
   // size.
@@ -186,7 +186,7 @@ bool GeantTrackGeo_v::IsNormalized(int itr, double tolerance) const {
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
+VECCORE_ATT_DEVICE
 size_t GeantTrackGeo_v::BufferSize(size_t nTracks) {
   // return the contiguous memory size needed to hold a GeantTrackGeo's data
   size_t size = RoundUpAlign(nTracks);
@@ -194,7 +194,7 @@ size_t GeantTrackGeo_v::BufferSize(size_t nTracks) {
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
+VECCORE_ATT_DEVICE
 size_t GeantTrackGeo_v::SizeOfInstance(size_t nTracks) {
   // return the contiguous memory size needed to hold a GeantTrackGeo
 
@@ -228,7 +228,7 @@ void GeantTrackGeo_v::Resize(int newsize) {
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
+VECCORE_ATT_DEVICE
 int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
   // Add all tracks from a vector into the SOA array. 
   // Returns the number of tracks after the operation.
