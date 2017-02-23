@@ -109,7 +109,8 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   fChunkSize = maxTrackPerKernel;
   fDevMaxTracks = 2 * fChunkSize;
 
-  fGeantTaskData = new Geant::GeantTaskData(nthreads, maxdepth, fDevMaxTracks, propagator);
+  fGeantTaskData = new Geant::GeantTaskData(nthreads, maxdepth, fDevMaxTracks);
+  fGeantTaskData->fPropagator = new GeantPropagator(*propagator);
   fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
   fGeantTaskData->fBmgr = new GeantBasketMgr(propagator, 0, 0, true);
   fPrioritizer = fGeantTaskData->fBmgr;
@@ -136,7 +137,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
       fDevTaskWorkspace.GetPtr(), 4096 /* maxThreads */, size_needed, (size_t)maxThreads, maxdepth,
       (int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e.
              // maxTrackPerThread) unless we need space for extras/new tracks ...
-      , devPropagator
+      , devPropagator.GetPtr()
       );
 
   // need to allocate enough for one object containing many tracks ...
@@ -253,12 +254,12 @@ void setup(CoprocessorBroker * /* broker */, int /* nphi */ = 4, int /* nz */ = 
 
 namespace Geant {
 namespace cuda {
-void CoprocessorBrokerInitConstant(GeantConfig* config);
+void CoprocessorBrokerInitConstant();
 }
 }
 
 /** @brief Create the baskets for each stream */
-void CoprocessorBroker::CreateBaskets(GeantConfig* config)
+void CoprocessorBroker::CreateBaskets(GeantPropagator* propagator)
 {
   // We must be called after the geometry has been loaded
   // so we can use the proper maximum depth
@@ -270,12 +271,22 @@ void CoprocessorBroker::CreateBaskets(GeantConfig* config)
      return;
   }
   fDevConfig.Construct();
-  fDevConfig.ToDevice(config);
+  // It is save to cast here as the cuda version is 'just' missing
+  // data member at the end but is otherwise the same.
+  cuda::GeantConfig *conf = (cuda::GeantConfig *)propagator->fConfig;
+  fDevConfig.ToDevice(conf);
+
+  fDevPropagator.Allocate();
+  if (cudaGetLastError() != cudaSuccess) {
+    printf(" ERROR ALLOC MAP\n");
+    return;
+  }
+  fDevPropagator.Construct(fNblocks * fNthreads);
 
    // initialize the stream
   for (unsigned int i = 0; i < GetNstream(); ++i) {
     TaskData *data = new TaskData();
-    data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread, GeantPropagator::Instance(), fDevConfig);
+    data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread, propagator, fDevPropagator);
     data->Push(&fHelpers);
     fTaskData.push_back(data);
   }
@@ -283,7 +294,7 @@ void CoprocessorBroker::CreateBaskets(GeantConfig* config)
   cudaDeviceSetLimit(cudaLimitStackSize, 3 * 4096);
 
   // Initialize global constants.
-  Geant::cuda::CoprocessorBrokerInitConstant(config);
+  Geant::cuda::CoprocessorBrokerInitConstant();
 }
 
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
@@ -497,9 +508,9 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
         }
       }
     }
-    if (gPropagator->fStdApplication)
-      gPropagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
-    gPropagator->fApplication->StepManager(output.GetNtracks(), output, td);
+    if (propagator->fStdApplication)
+      propagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+    propagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // Update geometry path for crossing tracks
     ntotnext = output.GetNtracks();

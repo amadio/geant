@@ -150,7 +150,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
     int SetPrioritizer() { return 0; }
 
     /** @brief Create the baskets for each stream */
-    void CreateBaskets(GeantConfig *config);
+    void CreateBaskets(GeantPropagator *config);
 
     bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr);
     // bool UploadMagneticField(FieldMap** fieldMap);
