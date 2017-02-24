@@ -27,7 +27,7 @@ class curandState;
 #include "sync_objects.h"
 
 namespace Geant {
-#ifdef GEANT__NVCC
+#ifdef VECCORE_CUDA
 inline
 #endif
 namespace cuda {
@@ -38,7 +38,7 @@ class GeantConfig;
 class GeantPropagator;
 
 }
-#ifndef GEANT_NVCC
+#ifndef VECCORE_CUDA
 inline
 #endif
 namespace cxx {
