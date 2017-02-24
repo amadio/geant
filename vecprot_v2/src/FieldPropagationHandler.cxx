@@ -50,6 +50,9 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
          : vecCore::math::Min<double>(lmax, track->fPstep);
   // Propagate in magnetic field
   PropagateInVolume(*track, step, td);
+  // Update time of flight and number of interaction lengths
+  track->fTime += track->TimeStep(track->fStep);
+  track->fNintLen -= track->fStep/track->fIntLen;
   output.AddTrack(track);  
 }
 
@@ -82,6 +85,13 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   }
   // Propagate the vector of tracks
   PropagateInVolume(input.Tracks(), steps, td);
+
+  // Update time of flight and number of interaction lengths
+  for (auto track : tracks) {
+    track->fTime += track->TimeStep(track->fStep);
+    track->fNintLen -= track->fStep/track->fIntLen;  
+  }
+  
   // Copy tracks to output
 #ifndef VECCORE_CUDA
   std::move(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));

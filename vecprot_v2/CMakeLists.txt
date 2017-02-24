@@ -43,12 +43,14 @@ set(sources
    src/FieldPropagationHandler.cxx
    src/LinearPropagationHandler.cxx
    src/ContinuousProcHandler.cxx
+   src/DiscreteProcHandler.cxx
    src/SteppingActionsHandler.cxx
    src/SimulationStage.cxx
    src/XSecSamplingStage.cxx
    src/GeomQueryStage.cxx
    src/PropagationStage.cxx
    src/ContinuousProcStage.cxx
+   src/DiscreteProcStage.cxx
    src/SteppingActionsStage.cxx
    src/sync_objects.cxx
    src/GeantOutput.cxx
@@ -85,12 +87,14 @@ set(headers
    inc/FieldPropagationHandler.h
    inc/LinearPropagationHandler.h
    inc/ContinuousProcHandler.h
+   inc/DiscreteProcHandler.h
    inc/SteppingActionsHandler.h
    inc/SimulationStage.h
    inc/XSecSamplingStage.h
    inc/GeomQueryStage.h
    inc/PropagationStage.h
    inc/ContinuousProcStage.h
+   inc/DiscreteProcStage.h
    inc/SteppingActionsStage.h
    inc/GeantBasket.h
    inc/GeantPropagator.h
