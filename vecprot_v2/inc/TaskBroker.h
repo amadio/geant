@@ -13,6 +13,8 @@
 #ifndef GEANT_TASKBROKER
 #define GEANT_TASKBROKER
 
+#include "Geant/Config.h"
+
 /**
  * @defgroup TGEANT_TASKBROKER GeantV TaskBroker
  *
@@ -20,7 +22,11 @@
  */
 
 namespace vecgeom {
+#ifndef VECCORE_CUDA
   inline namespace cxx {
+#else
+  namespace cxx {
+#endif
     class VPlacedVolume;
   }
 }
