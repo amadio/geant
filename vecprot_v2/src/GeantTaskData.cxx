@@ -35,7 +35,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
 //  fRndm = &RNG::Instance();
-  fRndm = new RNG; // what about the seed?
+  fRndm = new vecgeom::RNG; // what about the seed?
 #elif USE_ROOT
   fRndm = new TRandom();
 #endif
@@ -83,7 +83,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
-  fRndm = &RNG::Instance();
+  fRndm = &vecgeom::RNG::Instance();
 #elif USE_ROOT
   fRndm = new TRandom();
 #endif

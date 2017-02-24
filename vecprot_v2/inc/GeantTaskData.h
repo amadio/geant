@@ -32,7 +32,6 @@ class TRandom;
 #endif
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
-using VECGEOM_NAMESPACE::RNG;
 #endif
 
 #ifdef VECCORE_CUDA
@@ -73,7 +72,7 @@ public:
   bool fToClean;         /** Flag set when the basket queue is to be cleaned */
   Volume_t *fVolume;     /** Current volume per thread */
 #ifdef USE_VECGEOM_NAVIGATOR
-  RNG *fRndm;            /** Random generator for thread */
+  vecgeom::RNG *fRndm;            /** Random generator for thread */
 #elif USE_ROOT
   TRandom *fRndm;        /** Random generator for thread */
 #endif
