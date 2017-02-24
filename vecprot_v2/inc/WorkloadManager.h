@@ -78,6 +78,7 @@ protected:
   dcqueue<TBufferFile*>* fOutputIO;            /** Queue of buffers to be merged for IO **/ 
   Geant::TThreadMergingServer* fMergingServer;
   #endif
+
   /**
    * @brief WorkloadManager parameterized constructor
    *
@@ -160,7 +161,6 @@ public:
    *
    * @param nthreads Number of threads (by default 0)
    */
-  
   static WorkloadManager *NewInstance(GeantPropagator *prop= nullptr, int nthreads = 0);
 
   /** @brief Function that check if buffer is flushed */
