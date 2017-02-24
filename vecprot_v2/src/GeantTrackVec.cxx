@@ -2183,7 +2183,7 @@ bool GeantTrack_v::BreakOnStep(int evt, int trk, int stp, int nsteps, const char
 
 } // GEANT_IMPL_NAMESPACE
 
-#ifdef GEANT_CUDA
+#ifdef GEANT_CUDA_ENABLED
 #ifndef VECCORE_CUDA
 
 bool ToDevice(vecgeom::cxx::DevicePtr<cuda::GeantTrack_v> dest, cxx::GeantTrack_v *source, cudaStream_t stream) {

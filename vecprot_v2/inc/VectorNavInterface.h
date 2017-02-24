@@ -81,7 +81,7 @@ public:
 };
 } // GEANT_IMPL_NAMESPACE
 
-#ifdef GEANT_CUDA
+#ifdef GEANT_CUDA_ENABLED
 #ifdef VECCORE_CUDA
 namespace cxx {
 class VectorNavInterface;

@@ -31,7 +31,7 @@
 typedef veccore::BitSet BitSet;
 #endif
 
-#ifdef GEANT_CUDA
+#ifdef GEANT_CUDA_ENABLED
 #include "GeantCudaUtils.h"
 #include "backend/cuda/Interface.h"
 #endif
