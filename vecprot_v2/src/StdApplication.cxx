@@ -98,6 +98,7 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 #else
   (void)npart;
   (void)tracks;
+  (void)td;
 #endif
 }
 
