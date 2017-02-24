@@ -75,8 +75,9 @@ GeantPropagator::GeantPropagator(int nthreads)
   // Single instance of the propagator
 
   // Initialize workload manager
-  #warning this must be solved before using CUDA
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fWMgr = WorkloadManager::NewInstance(this, nthreads);
+#endif
 }
 
 //______________________________________________________________________________
