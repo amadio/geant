@@ -223,6 +223,13 @@ public:
    */
   int CleanBaskets(size_t ntoclean);
 
+  /**
+   * @brief Function that returns a temporary track object per task data.
+   * @details Temporary track for the current caller thread
+   *
+   */
+  GeantTrack &GetTempTrack() { fTrack.Clear(); return fTrack; }
+
 private:
   /**
    * @brief Constructor GeantTaskData

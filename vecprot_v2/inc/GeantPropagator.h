@@ -140,14 +140,6 @@ public:
   GEANT_FORCE_INLINE
   long GetNtransported() const { return fNtransported; }
 
-  /**
-   * @brief Function that returns a temporary track object per thread
-   * @details Temporary track for the current caller thread
-   *
-   * @param tid Track ID
-   */
-  GeantTrack &GetTempTrack(int tid = -1);
-
   /** @brief Check if the propagator threads are frozen */
   bool IsIdle() const;
 

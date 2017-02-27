@@ -145,19 +145,6 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
 }
 
 //______________________________________________________________________________
-GeantTrack &GeantPropagator::GetTempTrack(int tid) {
-  // Returns a temporary track support for the physics processes, unique per
-  // thread which can be used to add tracks produced by physics processes.
-  if (tid < 0)
-    tid = fWMgr->ThreadId();
-  if (tid > fNthreads)
-    Geant::Fatal("GeantPropagator::GetTempTrack", "Thread id %d is too large (max %d)", tid, fNthreads);
-  GeantTrack &track = fRunMgr->GetTaskData(tid)->fTrack;
-  track.Clear();
-  return track;
-}
-
-//______________________________________________________________________________
 bool GeantPropagator::IsIdle() const {
   // Check if work queue is empty and all used threads are waiting
   return (!fCompleted && GetNworking()==0 && GetNpending()==0);

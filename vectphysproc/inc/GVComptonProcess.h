@@ -25,7 +25,7 @@ public:
   FQUALIFIER ~GVComptonProcess();
   // driver method for performing all the necessary actions
   // returns with the number of secondary tracks inserted into GeantTrack_v
-  FQUALIFIER int ApplyPostStepProcess(GeantTrack_v &gTrackV, int numtracks, int tid);
+  FQUALIFIER int ApplyPostStepProcess(GeantTrack_v &gTrackV, int numtracks, GeantTaskData *taskData);
 
 private:
   void Allocator(int size);
@@ -44,7 +44,7 @@ private:
   //# 3/3 - update primary tracks in GeantTrack_v to their post-interaction state
   //      - insert 'good' secondary tracks into GeantTrack_v
   //      - return number of tracks inserted into GeantTrack_v
-  FQUALIFIER int WriteBackTracks(GeantTrack_v &gTrackV, int tid);
+  FQUALIFIER int WriteBackTracks(GeantTrack_v &gTrackV, GeantTaskData *taskData);
 
   // initialize some members of a temporary GeantTrack
   void SetGeantTrack(GeantTrack &left, GeantTrack_v &right, int ip);
