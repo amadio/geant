@@ -21,6 +21,9 @@ int GeantEvent::AddTrack() {
 bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.
+#ifdef VECCORE_CUDA
+  assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
+#else
   int ndone = fNdone.fetch_add(1) + 1;
   int ntracks = fNtracks.load();
   int ninflight = ntracks - ndone;
@@ -42,6 +45,7 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
       }  
     }
   }
+#endif
   return false;
 }
 

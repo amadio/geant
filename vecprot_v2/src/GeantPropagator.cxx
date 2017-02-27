@@ -75,7 +75,7 @@ GeantPropagator::GeantPropagator(int nthreads)
   // Single instance of the propagator
 
   // Initialize workload manager
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+#ifndef VECCORE_CUDA
   fWMgr = WorkloadManager::NewInstance(this, nthreads);
 #endif
 }
@@ -105,7 +105,11 @@ GeantPropagator::~GeantPropagator() {
 
 //______________________________________________________________________________
 int GeantPropagator::AddTrack(GeantTrack &track) {
-  // Add a new track in the system. returns track number within the event.
+#ifdef VECCORE_CUDA
+  assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
+  return 0;
+#else
+    // Add a new track in the system. returns track number within the event.
   track.fParticle = fRunMgr->GetEvent(track.fEvent)->AddTrack();
   
   // call MCTruth manager if it has been instantiated
@@ -113,12 +117,17 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
   
   fNtransported++;
   return track.fParticle;
+#endif
 }
 
 //______________________________________________________________________________
 int GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
   // Dispatch a registered track produced by the generator.
+#ifdef VECCORE_CUDA
+  assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
+#else  // stoping track in MCTruthManager
   return fWMgr->GetScheduler()->AddTrack(track, td);
+#endif
 }
 
 //______________________________________________________________________________
@@ -132,7 +141,9 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
 
-  // stoping track in MCTruthManager
+#ifdef VECCORE_CUDA
+  assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
+#else  // stoping track in MCTruthManager
   if(fTruthMgr)
     {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
@@ -142,6 +153,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
   }
+#endif
 }
 
 //______________________________________________________________________________
@@ -154,7 +166,11 @@ bool GeantPropagator::IsIdle() const {
 void GeantPropagator::Initialize() {
   // Initialize the propagator.
   // Add some empty baskets in the queue
+#ifdef VECCORE_CUDA
+  // assert(0 && "Initialize not implemented yet for CUDA host/device code.");
+#else
   fWMgr->CreateBaskets(this);
+#endif
 }
 
 //NOTE: We don't do anything here so it's not called from the WorkloadManager anymore
@@ -213,6 +229,9 @@ void GeantPropagator::RunSimulation(GeantPropagator *prop, int nthreads)
 
 //______________________________________________________________________________
 void GeantPropagator::PropagatorGeom(int nthreads) {
+#ifdef VECCORE_CUDA
+  assert(0 && "PropagatorGeom not implemented yet for CUDA host/device code.");
+#else
 // Steering propagation method
   fNthreads = nthreads;
 
@@ -256,6 +275,7 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
   if (strstr(geomfile, "http://root.cern.ch/files/"))
     geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
+#endif
 }
 
 //______________________________________________________________________________
@@ -263,8 +283,8 @@ void GeantPropagator::StopTransport()
 {
 // Stop the transport threads. Needed only when controlling the transport
 // from the transport manager
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  assert(0 && "StopTransport not implemented yet for device code.");
+#ifdef VECCORE_CUDA
+  assert(0 && "StopTransport not implemented yet for CUDA host/device code.");
 #else
   if (fCompleted) return;
   std::unique_lock<std::mutex> lk(fStopperLock);
@@ -277,13 +297,22 @@ void GeantPropagator::StopTransport()
 //______________________________________________________________________________
 void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
   // Setter for task broker
+#ifdef VECCORE_CUDA
+  assert(0 && "SetTaskBroker not implemented yet for CUDA host/device code.");
+#else
   fWMgr->SetTaskBroker(broker);
+#endif
 }
 
 //______________________________________________________________________________
 TaskBroker *GeantPropagator::GetTaskBroker() {
   // Getter for task broker
+#ifdef VECCORE_CUDA
+  assert(0 && "GetTaskBroker not implemented yet for CUDA host/device code.");
+  return nullptr;
+#else
   return fWMgr->GetTaskBroker();
+#endif
 }
 
 //______________________________________________________________________________
@@ -308,7 +337,12 @@ void GeantPropagator::SetConfig(GeantConfig *config)
 //______________________________________________________________________________
 int GeantPropagator::ShareWork(GeantPropagator &other)
 {
+#ifdef VECCORE_CUDA
+  assert(0 && "ShareWork not implemented yet for CUDA host/device code.");
+  return 0;
+#else
   return ( fWMgr->ShareBaskets(other.fWMgr) );
+#endif
 }
 
 } // GEANT_IMPL_NAMESPACE
