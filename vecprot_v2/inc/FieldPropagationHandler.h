@@ -27,6 +27,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class FieldPropagationHandler : public Handler {
 
 protected:  
+  bool IsSameLocation(GeantTrack &track, GeantTaskData *td);
 
 private:
   FieldPropagationHandler(const FieldPropagationHandler &) = delete;

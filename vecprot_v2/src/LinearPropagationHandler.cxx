@@ -55,7 +55,10 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
   
   // Update time of flight and number of interaction lengths
   track->fTime += track->TimeStep(track->fStep);
-  track->fNintLen -= track->fStep/track->fIntLen;  
+  track->fNintLen -= track->fStep/track->fIntLen;
+
+  // Set follow-up stage to be ContinuousProcStage
+  track->SetStage(kContinuousProcStage);
 
   // Copy to output
   output.AddTrack(track);

@@ -4,6 +4,15 @@
 #include "GUFieldPropagator.h"
 #include "ConstFieldHelixStepper.h"
 
+#ifdef USE_VECGEOM_NAVIGATOR
+#include "navigation/NavigationState.h"
+#include "ScalarNavInterfaceVG.h"
+#include "ScalarNavInterfaceVGM.h"
+#include "VectorNavInterface.h"
+#else
+#include "ScalarNavInterfaceTGeo.h"
+#endif
+
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -50,11 +59,33 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
          : vecCore::math::Min<double>(lmax, track->fPstep);
   // Propagate in magnetic field
   PropagateInVolume(*track, step, td);
+  //Update number of partial steps propagated in field
+  td->fNmag++;
   // Update time of flight and number of interaction lengths
   track->fTime += track->TimeStep(track->fStep);
   track->fNintLen -= track->fStep/track->fIntLen;
-  output.AddTrack(track);  
+  
+  // Set continuous processes stage as follow-up for tracks that reached the 
+  // physics process
+  if (track->fStatus == kPhysics) {
+    // Update number of steps to physics and total number of steps
+    td->fNphys++;
+    td->fNsteps++;
+    track->SetStage(kContinuousProcStage);
+    output.AddTrack(track);
+    return;
+  }
+  
+  // Crossing tracks continue to continuous processes, the rest have to
+  // query again the geometry
+  if (!IsSameLocation(*track, td))
+    track->SetStage(kContinuousProcStage);
+  else
+    track->SetStage(kGeometryStepStage);  
+
+  output.AddTrack(track);
 }
+
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -86,24 +117,91 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   // Propagate the vector of tracks
   PropagateInVolume(input.Tracks(), steps, td);
 
-  // Update time of flight and number of interaction lengths
+  //Update number of partial steps propagated in field
+  td->fNmag += ntracks;
+
+  // Update time of flight and number of interaction lengths.
+  // Check also if it makes sense to call the vector interfaces
+#if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
+  int nvect = 0;
+#endif
   for (auto track : tracks) {
     track->fTime += track->TimeStep(track->fStep);
-    track->fNintLen -= track->fStep/track->fIntLen;  
-  }
-  
-  // Copy tracks to output
-#ifndef VECCORE_CUDA
-  std::move(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
+    track->fNintLen -= track->fStep/track->fIntLen;
+    if (track->fStatus == kPhysics) {
+      // Update number of steps to physics and total number of steps
+      td->fNphys++;
+      td->fNsteps++;
+      track->SetStage(kContinuousProcStage);
+      output.AddTrack(track);
+      continue;    
+    }
+#if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
+    if (track->fSafety < 1.E-10 || track->fSnext < 1.E-10)
+      nvect++;
 #else
-  for (auto track : tracks) output->AddTrack(track);
+    // Vector treatment was not requested, so proceed with scalar
+    if (!IsSameLocation(*track, td))
+      track->SetStage(kContinuousProcStage);
+    else
+      track->SetStage(kGeometryStepStage);  
+    output.AddTrack(track);
+    continue;    
 #endif
+  }
+  // If vectorized treatment was requested and the remaining population is
+  // large enough, continue with vectorized treatment
+#if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
+  constexpr int kMinVecSize = 8; // this should be retrieved from elsewhere
+  if (nvect < kMinVecSize) {
+    for (auto track : tracks) {
+      if (track->fStatus == kPhysics) continue;
+      if (!IsSameLocation(*track, td))
+        track->SetStage(kContinuousProcStage);
+      else
+        track->SetStage(kGeometryStepStage);  
+      output.AddTrack(track);
+      continue;          
+    }
+    return;
+  }
+  // This part deals with vectorized treatment
+  // Copy data to SOA and dispatch for vector mode
+  GeantTrackGeo_v &track_geo = *td.fGeoTrack;
+  for (auto track : tracks) {
+    if (track.fStatus != kPhysics && 
+        (track.fSafety < 1.E-10 || track.fSnext < 1.E-10))
+      track_geo.AddTrack(*track);
+  }
+  bool *same = td->GetBoolArray(nvect);
+  NavigationState *tmpstate = td->GetPath();
+  VectorNavInterface::NavIsSameLocation(nvect,
+                   track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
+                   track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
+                   (const VolumePath_t**)fPathV, fNextpathV, same, tmpstate);
+  track_geo.UpdateOriginalTracks();
+  for (itr = 0; itr < nsel; itr++) {
+    GeantTrack *track = track_geo.fOriginalV[itr];
+    if (!same[itr]) {
+      track->fBoundary = true;
+      track->fStatus = kBoundary;
+      if (track->fNextpath->IsOutside())
+        track->fStatus = kExitingSetup;
+      if (track->fStep < 1.E-8) td->fNsmall++;
+      track->SetStage(kContinuousProcStage);
+    } else {
+      track->fBoundary = false;
+      track->SetStage(kGeometryStepStage);  
+    }
+    output.AddTrack(track);
+  }
+#endif  
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double *crtstep,
-                                        GeantTaskData *td)
+                                                GeantTaskData *td)
 {
 // THIS IS THE VECTORIZED IMPLEMENTATION PLACEHOLDER FOR MAGNETIC FIELD PROPAGATION.
 // Now implemented just as a loop
@@ -212,6 +310,40 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
                    diffpos, diffpos/crtstep, crtstep);
   }
 #endif
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+bool FieldPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *td) {
+// Query geometry if the location has changed for a track
+// Returns number of tracks crossing the boundary (0 or 1)
+
+  if (track.fSafety > 1.E-10 && track.fSnext > 1.E-10) {
+    // Track stays in the same volume
+    track.fBoundary = false;
+    return true;
+  }
+  
+  // Track may have crossed, check it
+  bool same;
+#ifdef USE_VECGEOM_NAVIGATOR
+  vecgeom::NavigationState *tmpstate = td->GetPath();
+  ScalarNavInterfaceVGM::NavIsSameLocation(track, same, tmpstate);
+#else
+// ROOT navigation
+  ScalarNavInterfaceTGeo::NavIsSameLocation(track, same);
+#endif // USE_VECGEOM_NAVIGATOR
+  if (same) {
+    track.fBoundary = false;
+    return true;
+  }
+  
+  track.fBoundary = true;
+  track.fStatus = kBoundary;
+  if (track.fNextpath->IsOutside())
+    track.fStatus = kExitingSetup;
+  if (track.fStep < 1.E-8) td->fNsmall++;
+  return false;
 }
 
 } // GEANT_IMPL_NAMESPACE
