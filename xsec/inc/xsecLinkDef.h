@@ -18,14 +18,14 @@
 #pragma link C++ class TPFstate-;
 #pragma link C++ class TPXsec-;
 #pragma link C++ class TPartIndex-;
-#pragma link C++ class TTabPhysMgr+;
-#pragma link C++ class TTabPhysProcess+;
-#pragma link C++ class TPrimaryGenerator+;
-#pragma link C++ class GunGenerator+;
+#pragma link C++ class Geant::TTabPhysMgr+;
+#pragma link C++ class Geant::TTabPhysProcess+;
+#pragma link C++ class Geant::TPrimaryGenerator+;
+#pragma link C++ class Geant::GunGenerator+;
 #pragma link C++ class TestProcess+;
 
 #ifdef HEPMC
-#pragma link C++ class HepMCGenerator+;
+#pragma link C++ class Geant::HepMCGenerator+;
 #pragma link C++ class HepMCTruth+;
 #endif
 

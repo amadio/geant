@@ -6,8 +6,12 @@
 #endif
 
 // Autoload the library early so that GeantPropagator is defined when applicable.
+namespace Geant {
+inline namespace cxx {
 class TaskBroker;
 class GeantPropagator;
+}
+}
 
 void runCMS(const int ncputhreads=4,
             const bool performance=true,
