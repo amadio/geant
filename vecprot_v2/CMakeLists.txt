@@ -85,6 +85,7 @@ set(headers
    inc/cuckoohash_map.hh
    inc/GeantRunManager.h
    inc/GeantEventServer.h
+   inc/GeantConfig.h
 )
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

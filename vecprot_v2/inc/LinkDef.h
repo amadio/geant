@@ -34,5 +34,6 @@
 #pragma link C++ class Geant::TThreadMergingFile+;
 #pragma link C++ class Geant::ThreadFileMerger+;
 #pragma link C++ class MCTruthMgr+;
+#pragma link C++ class Geant::GeantConfig+;
 
 #endif
