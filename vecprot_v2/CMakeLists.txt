@@ -38,6 +38,7 @@ set(sources
    src/GeantBasket.cxx
    src/Basket.cxx
    src/Handler.cxx
+   src/PreStepHandler.cxx
    src/XSecSamplingHandler.cxx
    src/GeomQueryHandler.cxx
    src/FieldPropagationHandler.cxx
@@ -46,6 +47,7 @@ set(sources
    src/DiscreteProcHandler.cxx
    src/SteppingActionsHandler.cxx
    src/SimulationStage.cxx
+   src/PreStepStage.cxx
    src/XSecSamplingStage.cxx
    src/GeomQueryStage.cxx
    src/PropagationStage.cxx
@@ -82,6 +84,7 @@ set(headers
    inc/PhysicsProcessOld.h
    inc/Basket.h
    inc/Handler.h
+   inc/PreStepHandler.h
    inc/XSecSamplingHandler.h
    inc/GeomQueryHandler.h
    inc/FieldPropagationHandler.h
@@ -90,6 +93,7 @@ set(headers
    inc/DiscreteProcHandler.h
    inc/SteppingActionsHandler.h
    inc/SimulationStage.h
+   inc/PreStepStage.h
    inc/XSecSamplingStage.h
    inc/GeomQueryStage.h
    inc/PropagationStage.h

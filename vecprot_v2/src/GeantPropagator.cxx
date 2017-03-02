@@ -59,6 +59,7 @@
 #include "PrimaryGenerator.h"
 #include "MCTruthMgr.h"
 
+#include "PreStepStage.h"
 #include "XSecSamplingStage.h"
 #include "GeomQueryStage.h"
 #include "PropagationStage.h"
@@ -416,6 +417,9 @@ int GeantPropagator::CreateSimulationStages()
   SimulationStage *stage = nullptr;
   // kUndefinedStage
   assert(stage->GetId() == int(kUndefinedStage));
+  // kPreStepStage
+  stage = new PreStepStage(this);
+  assert(stage->GetId() == int(kPreStepStage));
   // kXSecSamplingStage
   stage = new XSecSamplingStage(this);
   assert(stage->GetId() == int(kXSecSamplingStage));
@@ -434,9 +438,6 @@ int GeantPropagator::CreateSimulationStages()
   // kDiscreteProcStage
   stage = nullptr; // new DiscreteProcStage(this);
   assert(stage->GetId() == int(kDiscreteProcStage));
-  // kRIPStage
-  stage = nullptr;
-  assert(stage->GetId() == int(kRIPStage));
   // kBufferingStage
   stage = nullptr; // new BufferingStage(this)
   assert(stage->GetId() == int(kBufferingStage));
@@ -445,6 +446,7 @@ int GeantPropagator::CreateSimulationStages()
   assert(stage->GetId() == int(kSteppingActionsStage));
   
   // Define connections between stages
+  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage);
   GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
   GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);

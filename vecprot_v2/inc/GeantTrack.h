@@ -62,15 +62,15 @@ enum Species_t { kHadron, kLepton };
 /** Basket simulation stages. */
 enum ESimulationStage {
   kUndefinedStage       = 0, // Undefined stage type
-  kXSecSamplingStage    = 1, // Propose physics step by sampling total Xsec
-  kGeometryStepStage    = 2, // Compute geometry transport length
-  kPropagationStage     = 3, // Propagation in field stage
-  kMSCStage             = 4, // Multiple scattering stage
-  kContinuousProcStage  = 5, // Continuous processes stage
-  kDiscreteProcStage    = 6, // Discrete processes stage
-  kRIPStage             = 7, // End of life stage
-  kBufferingStage       = 8, // Stack-like buffering stage
-  kSteppingActionsStage = 9  // User actions
+  kPreStepStage,             // Actions at the beginning of the step
+  kXSecSamplingStage,        // Propose physics step by sampling total Xsec
+  kGeometryStepStage,        // Compute geometry transport length
+  kPropagationStage,         // Propagation in field stage
+  kMSCStage,                 // Multiple scattering stage
+  kContinuousProcStage,      // Continuous processes stage
+  kDiscreteProcStage,        // Discrete processes stage
+  kBufferingStage,           // Stack-like buffering stage
+  kSteppingActionsStage      // User actions
 };
 
 GEANT_DECLARE_CONSTANT(double, gTolerance);
