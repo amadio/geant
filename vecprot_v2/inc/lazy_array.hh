@@ -35,12 +35,12 @@ private:
         std::fill(arr.segments_.begin(), arr.segments_.end(), nullptr);
     }
 
-    inline size_t get_segment(size_t i) {
+    inline size_t get_segment(size_t i) const {
         return i >> OFFSET_BITS;
     }
 
     static const size_t OFFSET_MASK = ((1UL << OFFSET_BITS) - 1);
-    inline size_t get_offset(size_t i) {
+    inline size_t get_offset(size_t i) const {
         return i & OFFSET_MASK;
     }
 
