@@ -69,7 +69,7 @@ int SimulationStage::Process(GeantTaskData *td)
   Basket &output = *td->fShuttleBasket;
 // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
-    Handler *handler = Select(track);
+    Handler *handler = Select(track, td);
     // If no handler is selected the track does not perform this stage
     if (!handler) {
       output.AddTrack(track);

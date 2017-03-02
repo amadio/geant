@@ -25,7 +25,7 @@ int ContinuousProcStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *ContinuousProcStage::Select(GeantTrack *track)
+Handler *ContinuousProcStage::Select(GeantTrack *track, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the track charge
   if (track->Charge() == 0)

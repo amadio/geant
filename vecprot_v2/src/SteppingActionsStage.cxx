@@ -26,7 +26,7 @@ int SteppingActionsStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *SteppingActionsStage::Select(GeantTrack *)
+Handler *SteppingActionsStage::Select(GeantTrack *, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the track charge
   return fHandlers[0];

@@ -39,7 +39,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track);
+  virtual Handler *Select(GeantTrack *track, GeantTaskData *td);
 
 public:
   /** @brief Dummy PropagationStage constructor */

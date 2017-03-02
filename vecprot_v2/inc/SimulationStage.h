@@ -65,7 +65,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track) = 0;
+  virtual Handler *Select(GeantTrack *track, GeantTaskData *td) = 0;
 
 public:
   /** @brief Dummy SimulationStage constructor */

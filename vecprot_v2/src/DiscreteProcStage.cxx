@@ -1,5 +1,7 @@
 #include "DiscreteProcStage.h"
 
+#include "GeantTaskData.h"
+#include "PhysicsProcessOld.h"
 #include "DiscreteProcHandler.h"
 
 namespace Geant {
@@ -25,10 +27,18 @@ int DiscreteProcStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *DiscreteProcStage::Select(GeantTrack *track)
+Handler *DiscreteProcStage::Select(GeantTrack *track, GeantTaskData *td)
 {
-// Retrieve the appropriate handler depending on the track charge
-  return fHandlers[0];
+// Select tracks with limiting discrete process
+  if (track->fStatus == kPhysics && track->fEindex == 1000) {
+    // reset number of interaction length left
+    track->fNintLen = -1;
+    // Invoke PostStepTypeOfIntrActSampling
+    fPropagator->Process()->PostStepTypeOfIntrActSampling(nullptr, td->WrappedScalar(track), td);
+
+    return ( GetHandler(track->fProcess) );
+  }
+  return nullptr;
 }
 
 } // GEANT_IMPL_NAMESPACE

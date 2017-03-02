@@ -32,12 +32,18 @@ protected:
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
   virtual int CreateHandlers();
+    
+  /** @brief Retrieve the handler for vectorized processes, or the default handler
+   *  === TO BE IMPLEMENTED FOR ALREADY VECTORIZED PROCESSES ===
+   */
+  VECCORE_ATT_HOST_DEVICE
+  Handler *GetHandler(int /*process*/) { return fHandlers[0]; }
 
 public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track);
+  virtual Handler *Select(GeantTrack *track, GeantTaskData *td);
 
 public:
   /** @brief Dummy DiscreteProcStage constructor */

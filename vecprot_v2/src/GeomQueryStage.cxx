@@ -33,7 +33,7 @@ int GeomQueryStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *GeomQueryStage::Select(GeantTrack *track)
+Handler *GeomQueryStage::Select(GeantTrack *track, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the current volume.
 // Tracks that are killed or exit the setup should be filtered out by the relocator stage

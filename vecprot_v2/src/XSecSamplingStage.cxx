@@ -26,7 +26,7 @@ int XSecSamplingStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *XSecSamplingStage::Select(GeantTrack *)
+Handler *XSecSamplingStage::Select(GeantTrack *, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the track charge
   return fHandlers[0];

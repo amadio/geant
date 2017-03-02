@@ -34,7 +34,7 @@ int PropagationStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *PropagationStage::Select(GeantTrack *track)
+Handler *PropagationStage::Select(GeantTrack *track, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the track charge
   if (!fHasField || track->fCharge == 0)
