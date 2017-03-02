@@ -853,6 +853,7 @@ private:
         AllUnlocker& operator=(AllUnlocker&& au) {
             locks_ = au.locks_;
             au.locks_ = nullptr;
+            return *this;
         }
 
         void deactivate() {

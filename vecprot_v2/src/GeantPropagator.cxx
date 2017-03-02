@@ -125,6 +125,7 @@ int GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
   // Dispatch a registered track produced by the generator.
 #ifdef VECCORE_CUDA
   assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
+  return 0;
 #else  // stoping track in MCTruthManager
   return fWMgr->GetScheduler()->AddTrack(track, td);
 #endif
