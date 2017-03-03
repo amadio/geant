@@ -76,9 +76,6 @@ void runCMS(const int ncputhreads=4,
    config->fUseRungeKutta = false;
    // config->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default
 
-   GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
-   if (broker) runMgr->SetCoprocessorBroker(broker);
-
    // Monitor different features
    config->fNminThreshold = 5*nthreads;
    config->SetMonitored(GeantConfig::kMonQueue,          true & (!performance));
@@ -118,6 +115,32 @@ void runCMS(const int ncputhreads=4,
 
    config->fEmax = 0.01; // 10 MeV
    // Create the tab. phys process.
+
+   // Activate standard scoring
+   config->fUseStdScoring = false; // true;
+   if (performance) config->fUseStdScoring = false;
+
+   // Number of steps for learning phase (tunable [0, 1e6])
+   // if set to 0 disable learning phase
+   config->fLearnSteps = 100000;
+   if (performance) config->fLearnSteps = 0;
+
+   // Activate I/O
+   config->fFillTree = false;
+   config->fTreeSizeWriteThreshold = 100000;
+   // Activate old version of single thread serialization/reading
+   // config->fConcurrentWrite = false;
+
+   // Activate debugging using -DBUG_HUNT=ON in your cmake build
+   config->fDebugEvt = 0;
+   config->fDebugTrk = 0;
+   config->fDebugStp = 0;
+   config->fDebugRep = 10;
+
+
+   GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
+   if (broker) runMgr->SetCoprocessorBroker(broker);
+
    runMgr->SetPhysicsProcess( new Geant::TTabPhysProcess("tab_phys", xsec, fstate));
 //   config->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
    //   config->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
@@ -128,31 +151,14 @@ void runCMS(const int ncputhreads=4,
 //   config->fPrimaryGenerator->SetMomRange(0.,0.5);
    //   config->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
 
-   // Number of steps for learning phase (tunable [0, 1e6])
-   // if set to 0 disable learning phase
-   config->fLearnSteps = 100000;
-   if (performance) config->fLearnSteps = 0;
 
    CMSApplication *app = new CMSApplication(runMgr);
-   // Activate I/O
-   config->fFillTree = false;
-   config->fTreeSizeWriteThreshold = 100000;
-   // Activate old version of single thread serialization/reading
-//   config->fConcurrentWrite = false;
    app->SetScoreType(CMSApplication::kScore);
 //   if (performance) app->SetScoreType(CMSApplication::kNoScore);
    runMgr->SetUserApplication( app );
 
 //   gROOT->ProcessLine(".x factory.C+");   
-// Activate debugging using -DBUG_HUNT=ON in your cmake build
-   config->fDebugEvt = 0;
-   config->fDebugTrk = 0;
-   config->fDebugStp = 0;
-   config->fDebugRep = 10;
-   
-// Activate standard scoring   
-   config->fUseStdScoring = false; // true;
-   if (performance) config->fUseStdScoring = false;
+
    config->fUseMonitoring = graphics;
    runMgr->RunSimulation();
    // config->PropagatorGeom(nthreads);

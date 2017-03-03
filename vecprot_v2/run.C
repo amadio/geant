@@ -96,6 +96,29 @@ void run(int ncputhreads=1,
    config->fEmin = 3.E-6; // [3 KeV] energy cut
    config->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
+   // Number of steps for learning phase (tunable [0, 1e6])
+   // if set to 0 disable learning phase
+   config->fLearnSteps = 0;
+   if (performance) config->fLearnSteps = 0;
+
+   // Activate I/O
+   config->fFillTree = false;
+   // Activate old version of single thread serialization/reading
+   // config->fConcurrentWrite = false;
+
+// Activate debugging using -DBUG_HUNT=ON in your cmake build
+   config->fDebugEvt = 0;
+   config->fDebugTrk = 0;
+   config->fDebugStp = 0;
+   config->fDebugRep = 10;
+
+// Activate standard scoring
+   config->fUseStdScoring = true;
+   if (performance) config->fUseStdScoring = false;
+   // Monitor the application
+   config->fUseAppMonitoring = false;
+
+   
    GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
    if (broker) runMgr->SetCoprocessorBroker(broker);
 
@@ -107,29 +130,9 @@ void run(int ncputhreads=1,
 
    runMgr->SetPrimaryGenerator(new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0));
 
-   // Number of steps for learning phase (tunable [0, 1e6])
-   // if set to 0 disable learning phase
-   config->fLearnSteps = 0;
-   if (performance) config->fLearnSteps = 0;
-
-
    runMgr->SetUserApplication( new ExN03Application(runMgr) );
-   // Activate I/O
-   config->fFillTree = false;
-   // Activate old version of single thread serialization/reading
-  // config->fConcurrentWrite = false;
 
-// Activate debugging using -DBUG_HUNT=ON in your cmake build
-   config->fDebugEvt = 0;
-   config->fDebugTrk = 0;
-   config->fDebugStp = 0;
-   config->fDebugRep = 10;
 
-// Activate standard scoring   
-   config->fUseStdScoring = true;
-   if (performance) config->fUseStdScoring = false;
-   // Monitor the application
-   config->fUseAppMonitoring = false;
    runMgr->RunSimulation();
    delete config;
 }   
