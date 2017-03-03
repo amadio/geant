@@ -51,9 +51,9 @@ void runCMS(const int ncputhreads=4,
 
    int nthreads = ncputhreads;
    int nbuffered  = 5;   // Number of buffered events (tunable [1,ntotal])
-   TGeoManager::Import(geomfile);
-   
-   TaskBroker *broker = nullptr;
+   int npropagators = 1;
+
+   Geant::TaskBroker *broker = nullptr;
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -66,90 +66,95 @@ void runCMS(const int ncputhreads=4,
 #endif
    }
 
-   GeantPropagator *prop = GeantPropagator::NewInstance(ntotal, nbuffered, nthreads);
-   prop->fBmag = magfield; // 4 Tesla
+   Geant::GeantConfig* config = new Geant::GeantConfig();
+   config->fGeomFileName = geomfile;
+   config->fNtotal = ntotal;
+   config->fNbuff = nbuffered;
+   config->fBmag = magfield; // 4 Tesla
 
    //  Enable use of RK integration in field for charged particles
-   prop->fUseRungeKutta = false;
-   // prop->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default 
+   config->fUseRungeKutta = false;
+   // config->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default
 
-   if (broker) prop->SetTaskBroker(broker);
+   GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
+   if (broker) runMgr->SetCoprocessorBroker(broker);
 
    // Monitor different features
-   prop->SetNminThreshold(5*nthreads);
-   prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracks,         false & (!performance));
-   bool graphics = (prop->GetMonFeatures()) ? true : false;
-   prop->fUseMonitoring = graphics;   
+   config->fNminThreshold = 5*nthreads;
+   config->SetMonitored(GeantConfig::kMonQueue,          true & (!performance));
+   config->SetMonitored(GeantConfig::kMonMemory,         false & (!performance));
+   config->SetMonitored(GeantConfig::kMonBasketsPerVol,  false & (!performance));
+   config->SetMonitored(GeantConfig::kMonVectors,        false & (!performance));
+   config->SetMonitored(GeantConfig::kMonConcurrency,    false & (!performance));
+   config->SetMonitored(GeantConfig::kMonTracksPerEvent, false & (!performance));
+   config->SetMonitored(GeantConfig::kMonTracks,         false & (!performance));
+   bool graphics = (config->GetMonFeatures()) ? true : false;
+   config->fUseMonitoring = graphics;
 
    // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
    // If set to 0 takes the default value of 0.01
-   prop->fPriorityThr = 0.1;
+   config->fPriorityThr = 0.1;
 
    // Initial vector size, this is no longer an important model parameter, 
    // because is gets dynamically modified to accomodate the track flow
-   prop->fNperBasket = 16;   // Initial vector size (tunable)
+   config->fNperBasket = 16;   // Initial vector size (tunable)
 
    // This is now the most important parameter for memory considerations
-   prop->fMaxPerBasket = 64;   // Maximum vector size (tunable)
+   config->fMaxPerBasket = 64;   // Maximum vector size (tunable)
 
    // Minimum number of tracks in a basket that stay in the same volume and
    // therefore can be re-used with the same thread without re-basketizing.
-   prop->fNminReuse = 10000;   // (default in propagator is 4)
+   config->fNminReuse = 10000;   // (default in confi is 4)
 
    // Kill threshold - number of steps allowed before killing a track 
    //                  (includes internal geometry steps)
-   prop->fNstepsKillThr = 100000;
+   config->fNstepsKillThr = 100000;
 
    // Maximum user memory limit [MB]
-   prop->fMaxRes = 4000;
-   if (performance) prop->fMaxRes = 0;
+   config->fMaxRes = 4000;
+   if (performance) config->fMaxRes = 0;
 
-   prop->fEmin = 0.001; // [1 MeV] energy cut
+   config->fEmin = 0.001; // [1 MeV] energy cut
 
-   prop->fEmax = 0.01; // 10 MeV
+   config->fEmax = 0.01; // 10 MeV
    // Create the tab. phys process.
-   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
-//   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
-   //   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
-//   prop->fPrimaryGenerator = new GunGenerator(1, 0, 1., 0, 0, 0, 0.362783697740757, 0.259450124768640, 0.882633622956438);
+   runMgr->SetPhysicsProcess( new Geant::TTabPhysProcess("tab_phys", xsec, fstate));
+//   config->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
+   //   config->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
+//   config->fPrimaryGenerator = new GunGenerator(1, 0, 1., 0, 0, 0, 0.362783697740757, 0.259450124768640, 0.882633622956438);
    std::string s(eventfile);
-   prop->fPrimaryGenerator = new HepMCGenerator(s);
-//   prop->fPrimaryGenerator->SetEtaRange(-2.4,2.4);
-//   prop->fPrimaryGenerator->SetMomRange(0.,0.5);
-   //   prop->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
+   runMgr->SetPrimaryGenerator(new Geant::HepMCGenerator(s));
+//   config->fPrimaryGenerator->SetEtaRange(-2.4,2.4);
+//   config->fPrimaryGenerator->SetMomRange(0.,0.5);
+   //   config->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
-   prop->fLearnSteps = 100000;
-   if (performance) prop->fLearnSteps = 0;
+   config->fLearnSteps = 100000;
+   if (performance) config->fLearnSteps = 0;
 
-   CMSApplication *app = new CMSApplication(prop);
+   CMSApplication *app = new CMSApplication(runMgr);
    // Activate I/O
-   prop->fFillTree = false;
-   prop->fTreeSizeWriteThreshold = 100000;
+   config->fFillTree = false;
+   config->fTreeSizeWriteThreshold = 100000;
    // Activate old version of single thread serialization/reading
-//   prop->fConcurrentWrite = false;
+//   config->fConcurrentWrite = false;
    app->SetScoreType(CMSApplication::kScore);
 //   if (performance) app->SetScoreType(CMSApplication::kNoScore);
-   prop->fApplication = app;
+   runMgr->SetUserApplication( app );
 
 //   gROOT->ProcessLine(".x factory.C+");   
 // Activate debugging using -DBUG_HUNT=ON in your cmake build
-   prop->fDebugEvt = 0;
-   prop->fDebugTrk = 0;
-   prop->fDebugStp = 0;
-   prop->fDebugRep = 10;
+   config->fDebugEvt = 0;
+   config->fDebugTrk = 0;
+   config->fDebugStp = 0;
+   config->fDebugRep = 10;
    
 // Activate standard scoring   
-   prop->fUseStdScoring = false; // true;
-   if (performance) prop->fUseStdScoring = false;
-   prop->fUseMonitoring = graphics;
-   prop->PropagatorGeom(nthreads);
-   delete prop;
+   config->fUseStdScoring = false; // true;
+   if (performance) config->fUseStdScoring = false;
+   config->fUseMonitoring = graphics;
+   runMgr->RunSimulation();
+   // config->PropagatorGeom(nthreads);
+   delete config;
 }
