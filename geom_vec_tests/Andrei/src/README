@@ -1,2 +1,0 @@
-This code contains a vectorized example of a typical geometrical function determining whether a point is contained in some volume.
-Here it is simply a box of dimension dx x dy x dz.
