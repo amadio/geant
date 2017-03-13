@@ -27,6 +27,7 @@
 #include "GeantEvent.h"
 #include "GeantVApplication.h"
 #include "GeantVTaskMgr.h"
+#include "StackLikeBuffer.h"
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
@@ -343,6 +344,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
+  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
+  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   int nworkers = propagator->fNthreads;
   WorkloadManager *wm = propagator->fWMgr;
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();

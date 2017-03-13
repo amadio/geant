@@ -1168,6 +1168,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, TrackVec_t &tracks, GeantTaskData *
 #endif
           track.fProcess = 0;
           track.fNsteps = 0;
+          track.fGeneration = tracks[t]->fGeneration + 1;
           //          track.fSpecies  = 0;
           track.fStatus = kNew;           // status of this particle
           track.fMass = secMass;          // mass of this particle
@@ -1511,6 +1512,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fCharge = 0.; // charge
       track1.fProcess = 0;
       track1.fNsteps = 0;
+      track1.fGeneration = tracks[iintrack]->fGeneration + 1;
       //       track.fSpecies  = 0;
       track1.fStatus = kNew;                  // status of this particle
       track1.fMass = 0.;                      // mass of this particle
@@ -1635,6 +1637,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 #endif
       track.fProcess = 0;
       track.fNsteps = 0;
+      track.fGeneration = tracks[iintrack]->fGeneration + 1;
       //       track.fSpecies  = 0;
       track.fStatus = kNew;                  // status of this particle
       track.fMass = secMass;                 // mass of this particle
@@ -1863,6 +1866,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
 #endif
         track.fProcess = -1;
         track.fNsteps = 0;
+        track.fGeneration = tracks[iintrack]->fGeneration + 1;
         //         track.fSpecies  = 0;
         track.fStatus = kNew;                  // status of this particle
         track.fMass = secMass;                 // mass of this particle

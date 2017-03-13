@@ -95,8 +95,9 @@ public:
   int fCharge;           /** Particle charge */
   int fProcess;          /** Current process */
   int fNsteps;           /** Number of steps made */
-  int fMaxDepth;
+  int fMaxDepth;         /** Maximum geometry depth */
   int fStage;            /** Simulation stage */
+  int fGeneration;       /** Track generation: 0=primary */
   Species_t fSpecies;    /** Particle species */
   TrackStatus_t fStatus; /** Track status */
   double fMass;          /** Particle mass */

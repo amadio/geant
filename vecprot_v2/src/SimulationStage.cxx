@@ -101,17 +101,16 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
 // Copy tracks from output basket to follow-up stages
   int ntracks = output.size();
   // Copy output tracks to the follow-up stages
-  int nextstage = (fUserActionsStage) ? fUserActionsStage : fFollowUpStage;
-  if (nextstage) {
+  if (fFollowUpStage) {
     for (auto track : output.Tracks()) {
       // If a follow-up stage is declared, this overrides any follow-up set by handlers
       if (fFollowUpStage) track->fStage = fFollowUpStage;
 #ifndef VECCORE_CUDA
     }
     std::copy(output.Tracks().begin(), output.Tracks().end(),
-              std::back_inserter(td->fStageBuffers[nextstage]->Tracks()));
+              std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));
 #else
-      td->fStageBuffers[nextstage]->AddTrack(track);
+      td->fStageBuffers[fFollowUpStage]->AddTrack(track);
     }
 #endif
   } else {    

@@ -184,6 +184,33 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
+// Find distance to next boundary, within proposed step.
+   typedef Vector3D<Precision> Vector3D_t;
+#ifdef VECCORE_CUDA
+  SimpleNavigator nav;
+#else
+  ABBoxNavigator nav;
+#endif // VECCORE_CUDA
+
+  // Retrieve navigator for the track
+  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+  // Check if current safety allows for the proposed step
+  if (track.fSafety > track.fPstep) {
+    track.fStep = track.fPstep;
+    track.fBoundary = false;
+    *track.fNextpath = *track.fPath;
+    return;
+  }
+  track.fStep = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+                             Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
+                             Math::Min<double>(1.E20, track.fPstep),
+                             *track.fPath, *track.fNextpath, !track.fBoundary, track.fSafety);
+ 
+}
+
+//______________________________________________________________________________
 void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
        const double *x, const double *y, const double *z,
        const double */*dirx*/, const double */*diry*/, const double */*dirz*/,

@@ -60,6 +60,12 @@ public:
   VECCORE_ATT_HOST_DEVICE
   static
   void NavFindNextBoundaryAndStep(GeantTrack &track);
+
+  /** @brief Find distance to next boundary */
+  VECCORE_ATT_HOST_DEVICE
+  static
+  void NavFindNextBoundary(GeantTrack &track);
+
     
   /**
    * @brief Function for navigation that checks if location is the same or not

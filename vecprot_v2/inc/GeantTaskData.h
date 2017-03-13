@@ -41,6 +41,7 @@ class Basket;
 class GeantBasketMgr;
 class GeantBasket;
 class GeantTrackGeo_v;
+class StackLikeBuffer;
 
 class GeantTaskData {
 public:
@@ -73,6 +74,7 @@ public:
   vector_t<Basket *> fStageBuffers; /** Buffers for tracks at input of simulation stages */
   TrackVec_t fWrappedScalar; /** Single track pointer wrapped into a vector */
   GeantBasket *fImported; /** Basket used to import tracks from the event server */
+  StackLikeBuffer *fStackBuffer; /** Stack buffer tor this thread */
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
   char fBPool[sizeof(std::deque<Basket *>)]; /** Pool of empty baskets */

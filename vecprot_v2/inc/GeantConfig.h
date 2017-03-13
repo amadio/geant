@@ -49,6 +49,7 @@ public:
   float fPriorityThr;     /** Threshold for prioritizing events */
   int fNstepsKillThr;     /** Threshold in number of steps to kill a track */
   int fNminReuse;         /** Minimum number of transported tracks to be reused without re-basketizing */
+  int fNstackLanes;       /** Number of stacked lanes in the stack-like buffers */
 
   double fMaxRes;         /** Maximum resident memory allowed [MBytes] */
   double fMaxVirt;        /** Maximum virtual memory allowed [MBytes] */
@@ -87,7 +88,7 @@ public:
   GeantConfig(): fNtotal(1000), fNbuff(100), fNprocesses(3), fNstart(0), fMaxTracks(0), fMaxThreads(100), fNminThreshold(16), fNvecThreshold(8),
     fDebugEvt(-1), fDebugTrk(-1), fDebugStp(-1), fDebugRep(-1), fMaxSteps(10000), fNperBasket(16), fMaxPerBasket(256),
     fMaxPerEvent(0), fMaxDepth(0), fLearnSteps(0), fLastEvent(0), fPriorityThr(0), fNstepsKillThr(50000),
-    fNminReuse(10000), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
+    fNminReuse(10000), fNstackLanes(10), fMaxRes(0), fMaxVirt(0), fNaverage(0), fVertex(),
     fEmin(1.E-4),// 100 KeV
     fEmax(10),// 10 Gev
     fBmag(0.),// kiloGauss

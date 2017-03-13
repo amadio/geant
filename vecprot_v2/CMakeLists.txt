@@ -84,6 +84,7 @@ set(headers
    inc/PhysicsProcessOld.h
    inc/Basket.h
    inc/Handler.h
+   inc/StackLikeBuffer.h
    inc/PreStepHandler.h
    inc/XSecSamplingHandler.h
    inc/GeomQueryHandler.h

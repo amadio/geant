@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "GeantBasket.h"
 #include "Basket.h"
+#include "StackLikeBuffer.h"
 #include "GeantPropagator.h"
 #include "TrackManager.h"
 #include "GeantTrackGeo.h"
@@ -20,7 +21,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
     : fPropagator(nullptr), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
-      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
+      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fStackBuffer(nullptr), fPool(),
       fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fTransported1(maxPerBasket), fNkeepvol(0),
       fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
 {
@@ -51,7 +52,7 @@ VECCORE_ATT_DEVICE
 GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *prop /* = nullptr */)
     : fPropagator(prop), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
-      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
+      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fStackBuffer(nullptr), fPool(),
       fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
       fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
 {
@@ -112,6 +113,7 @@ GeantTaskData::~GeantTaskData()
   delete fRndm;
   VolumePath_t::ReleaseInstance(fPath);
   delete fTransported;
+  delete fStackBuffer;
 }
 
 //______________________________________________________________________________

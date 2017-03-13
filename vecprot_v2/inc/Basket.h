@@ -72,6 +72,17 @@ public:
   GEANT_FORCE_INLINE
   void AddTrack(GeantTrack *track) { fTracks.push_back(track); }
 
+  /**
+   * @brief Add several tracks to the basket.
+   * @return Track index
+   */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void AddTracks(TrackVec_t &tracks)
+  {
+    std::copy(tracks.begin(), tracks.end(), std::back_inserter(Tracks()));
+  }
+
   /** @brief Clearing the basket content, no deletion */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
