@@ -449,8 +449,9 @@ int GeantPropagator::CreateSimulationStages()
   GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage);
   GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
-//  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
-  GetStage(kDiscreteProcStage)->SetUserActionsStage(kSteppingActionsStage);
+  GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage);
+  GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);
+  GetStage(kSteppingActionsStage)->SetEndStage();
 
   (void)stage;
   return fStages.size();  

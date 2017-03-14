@@ -44,6 +44,7 @@ protected:
   int fId = 0;                              ///< Unique stage id
   int fUserActionsStage = 0;                ///< User actions stage to be executed right after
   int fFollowUpStage = 0;                   ///< In case there is a single follow-up store its id
+  bool fEndStage = false;                   ///< Marker for stage at end of stepping
 
   Handlers_t fHandlers;                   ///< Array of handlers for the stage
   
@@ -138,6 +139,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetUserActionsStage() const { return fUserActionsStage; } 
+
+  /** @brief Setter for end stage */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetEndStage() { fEndStage = true; } 
 
 };
 

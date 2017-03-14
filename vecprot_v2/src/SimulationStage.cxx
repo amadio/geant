@@ -3,6 +3,7 @@
 #include "Handler.h"
 #include "GeantTaskData.h"
 #include "GeantPropagator.h"
+#include "StackLikeBuffer.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -100,19 +101,19 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
 {
 // Copy tracks from output basket to follow-up stages
   int ntracks = output.size();
+  
+  if (fEndStage) {
+    td->fStackBuffer->AddTracks(output.Tracks());
+    return ntracks;
+  }
   // Copy output tracks to the follow-up stages
   if (fFollowUpStage) {
     for (auto track : output.Tracks()) {
       // If a follow-up stage is declared, this overrides any follow-up set by handlers
       if (fFollowUpStage) track->fStage = fFollowUpStage;
-#ifndef VECCORE_CUDA
     }
     std::copy(output.Tracks().begin(), output.Tracks().end(),
               std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));
-#else
-      td->fStageBuffers[fFollowUpStage]->AddTrack(track);
-    }
-#endif
   } else {    
     for (auto track : output.Tracks()) {
       assert(track.fStage != fId);         // no stage feeds itself
