@@ -10,6 +10,7 @@
 #include "PrimaryGenerator.h"
 #include "GeantTaskData.h"
 #include "GeantBasket.h"
+#include "Basket.h"
 #include "MCTruthMgr.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -203,6 +204,26 @@ int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks)
     GeantTrack *track = GetNextTrack();
     if (!track) break;
     tracks.AddTrack(*track);
+    ndispatched++;
+  }
+  if (fInitialPhase) {
+    int nserved = fNserved.fetch_add(1) + 1;
+    if (nserved >= fNbasketsInit) fInitialPhase = false;
+  }
+  return ndispatched;
+}
+
+//______________________________________________________________________________
+int GeantEventServer::FillBasket(Basket *basket, int ntracks)
+{
+// Fill concurrently a basket of tracks, up to the requested number of tracks.
+// The client should test first the track availability using HasTracks().
+  if (!fHasTracks) return 0;
+  int ndispatched = 0;
+  for (int i=0; i<ntracks; ++i) {
+    GeantTrack *track = GetNextTrack();
+    if (!track) break;
+    basket->AddTrack(track);
     ndispatched++;
   }
   if (fInitialPhase) {

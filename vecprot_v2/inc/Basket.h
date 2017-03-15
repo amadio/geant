@@ -80,7 +80,11 @@ public:
   GEANT_FORCE_INLINE
   void AddTracks(TrackVec_t &tracks)
   {
+#ifndef VECCORE_CUDA
     std::copy(tracks.begin(), tracks.end(), std::back_inserter(Tracks()));
+#else
+    for (auto track : tracks) fTracks.push_back(track);
+#endif
   }
 
   /** @brief Clearing the basket content, no deletion */
