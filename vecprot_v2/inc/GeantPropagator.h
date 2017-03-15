@@ -65,9 +65,6 @@ class GeantPropagator {
   using atomic_t = std::atomic<T>;
 #endif
 
-  using GeantTrack = Geant::GeantTrack;
-  using GeantTrack_v = Geant::GeantTrack_v;
-  using GeantTaskData = Geant::GeantTaskData;
 public:
   GeantConfig *fConfig = nullptr;      /** Run configuration*/
   GeantRunManager *fRunMgr = nullptr;  /** Run manager */

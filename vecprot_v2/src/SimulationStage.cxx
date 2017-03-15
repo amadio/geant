@@ -116,7 +116,7 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
               std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));
   } else {    
     for (auto track : output.Tracks()) {
-      assert(track.fStage != fId);         // no stage feeds itself
+      assert(track->fStage != fId);         // no stage feeds itself
       td->fStageBuffers[track->fStage]->AddTrack(track);
     }
   }

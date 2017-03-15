@@ -51,8 +51,8 @@ public:
   {
     for (int i=0; i<fNlanes; ++i) {
       fLanes.push_back(new Basket(1000, 0, td->fPropagator->fNuma));
-      fPriorityLane = new Basket(1000, 0, td->fPropagator->fNuma);
     }
+    fPriorityLane = new Basket(1000, 0, td->fPropagator->fNuma);
   }
   
   ~StackLikeBuffer()

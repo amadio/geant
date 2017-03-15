@@ -184,6 +184,7 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
 }
 
 //______________________________________________________________________________
+/*
 GeantTrack &GeantPropagator::GetTempTrack(int tid) {
   // Returns a temporary track support for the physics processes, unique per
   // thread which can be used to add tracks produced by physics processes.
@@ -195,7 +196,7 @@ GeantTrack &GeantPropagator::GetTempTrack(int tid) {
   track.Clear();
   return track;
 }
-
+*/
 //______________________________________________________________________________
 bool GeantPropagator::IsIdle() const {
   // Check if work queue is empty and all used threads are waiting
