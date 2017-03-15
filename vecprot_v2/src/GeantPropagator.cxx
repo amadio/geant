@@ -416,8 +416,6 @@ int GeantPropagator::CreateSimulationStages()
 {
   // Create stages in the same order as the enumeration ESimulationStage
   SimulationStage *stage = nullptr;
-  // kUndefinedStage
-  assert(stage->GetId() == int(kUndefinedStage));
   // kPreStepStage
   stage = new PreStepStage(this);
   assert(stage->GetId() == int(kPreStepStage));

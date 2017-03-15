@@ -100,8 +100,9 @@ public:
   VECCORE_ATT_HOST_DEVICE
   int FlushLastLane()
   {
-    int nflush = FlushLane(fLastLane--);
-    if ( fLastLane < 0 ) fLastLane = 0;
+    int nflush = FlushLane(fLastLane);
+    while (fLastLane > 0 && fLanes[--fLastLane]->size() == 0)
+      ;
     return nflush;
   }
 
@@ -110,6 +111,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   int FlushPriorityLane() {
     int nflush = fPriorityLane->size();
+    if (!nflush) return 0;
     fStageBuffer->AddTracks(fPriorityLane->Tracks());
     fPriorityLane->Tracks().clear();
     return nflush;
@@ -130,10 +132,31 @@ public:
   VECCORE_ATT_HOST_DEVICE
   void SetPriorityEvent(int event) { fPriorityEvent = event; }
 
+  /** @brief Getter for the priority mode */
+  GEANT_FORCE_INLINE
+  VECCORE_ATT_HOST_DEVICE
+  bool IsPrioritized() const { return fPriorityMode; }
+
   /** @brief Setter for the priority mode */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
   void SetPriorityMode(bool flag) { fPriorityMode = flag; }
+
+  /** @brief Getter for number of stacked tracks */
+  GEANT_FORCE_INLINE
+  VECCORE_ATT_HOST_DEVICE
+  int GetNtracks() const 
+  { 
+    int ntracks = 0;
+    for (int lane = fLastLane; lane >= 0; --lane)
+      ntracks += fLanes[lane]->size();
+    return ntracks;
+  }
+
+  /** @brief Getter for number of stacked tracks */
+  GEANT_FORCE_INLINE
+  VECCORE_ATT_HOST_DEVICE
+  int GetNprioritized() const { return fPriorityLane->size(); }
 };
 
 } // GEANT_IMPL_NAMESPACE

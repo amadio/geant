@@ -11,6 +11,7 @@
 #include "GeantTaskData.h"
 #include "GeantBasket.h"
 #include "Basket.h"
+#include "StackLikeBuffer.h"
 #include "MCTruthMgr.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -233,6 +234,29 @@ int GeantEventServer::FillBasket(Basket *basket, int ntracks)
   return ndispatched;
 }
 
+//______________________________________________________________________________
+int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks)
+{
+// Fill concurrently up to the requested number of tracks into a stack-like buffer.
+// The client should test first the track availability using HasTracks().
+
+// *** I should template on the container to be filled, making sure that all
+//     containers provide AddTrack(GeantTrack *)
+  if (!fHasTracks) return 0;
+  int ndispatched = 0;
+  for (int i=0; i<ntracks; ++i) {
+    GeantTrack *track = GetNextTrack();
+    if (!track) break;
+    buffer->AddTrack(track);
+    ndispatched++;
+  }
+  if (fInitialPhase) {
+    int nserved = fNserved.fetch_add(1) + 1;
+    if (nserved >= fNbasketsInit) fInitialPhase = false;
+  }
+  return ndispatched;
+}
+  
 //______________________________________________________________________________
 int GeantEventServer::ActivateEvents()
 {

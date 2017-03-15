@@ -16,6 +16,7 @@ class PrimaryGenerator;
 class GeantTaskData;
 class GeantEvent;
 class Basket;
+class StackLikeBuffer;
 
 //------------------------------------------------------------------------------
 //
@@ -94,6 +95,8 @@ public:
   int FillBasket(GeantTrack_v &tracks, int ntracks);
 
   int FillBasket(Basket *basket, int ntracks);
+
+  int FillStackBuffer(StackLikeBuffer *buffer, int ntracks);
   
   int AddEvent(GeantTaskData *td = nullptr);
   

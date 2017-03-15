@@ -39,7 +39,7 @@ class SimulationStage {
   using Handlers_t = vector_t<Handler *>;
 
 protected:  
-  ESimulationStage fType = kUndefinedStage; ///< Processing stage type
+  ESimulationStage fType = kPreStepStage;   ///< Processing stage type
   GeantPropagator *fPropagator = nullptr;   ///< Propagator owning this stage
   int fId = 0;                              ///< Unique stage id
   int fUserActionsStage = 0;                ///< User actions stage to be executed right after

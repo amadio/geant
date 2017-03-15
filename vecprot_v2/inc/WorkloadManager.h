@@ -96,7 +96,7 @@ public:
   enum class FeederResult : char { kNone, kFeederWork, kStopProcessing };
 
   /** @brief Call Feeder (if needed) and check exit condition. */
-  FeederResult CheckFeederAndExit(GeantBasketMgr &prioritizer, GeantPropagator &propagator, Geant::GeantTaskData &td);
+  FeederResult CheckFeederAndExit();
 
   /** @brief Function for feeder queue of transportable baskets */
   Geant::priority_queue<GeantBasket *> *FeederQueue() const { return fFeederQ; }
@@ -285,6 +285,19 @@ public:
    * @param arg Arguments to be passed in the function
    */
   static void *TransportTracks(GeantPropagator *prop);
+
+  /**
+   * @brief Function that provides transporting tracks
+   *
+   * @param arg Arguments to be passed in the function
+   */
+  static void TransportTracksV3(GeantPropagator *prop);
+  
+  static
+  FeederResult PreloadTracksForStep(GeantTaskData *td);
+  
+  static
+  int SteppingLoop(GeantTaskData *td, bool flush);
 
   /**
    * @brief Function that provides transport tracks in coprocessor
