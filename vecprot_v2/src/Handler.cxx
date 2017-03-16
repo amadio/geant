@@ -14,7 +14,7 @@ Handler::Handler(int threshold, GeantPropagator *propagator)
   fBcap = propagator->fConfig->fMaxPerBasket;
   fThreshold.store(threshold);
   // Make sure the threshold is a power of 2
-  assert(threshold & (threshold - 1) == 0 && "Handler threshold must be power of 2");
+  assert((threshold & (threshold - 1)) == 0 && "Handler threshold must be power of 2");
   fLock.clear();
 }
 
