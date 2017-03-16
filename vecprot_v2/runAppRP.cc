@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
   double  zDir           =   0.;   // x-direction of the particle gun
 
 
-  GeantConfig* config=new GeantConfig();
+  Geant::GeantConfig* config=new Geant::GeantConfig();
 
 
 //  TGeoManager::Import(exn03_geometry_filename.c_str());
@@ -204,12 +204,12 @@ int main(int argc, char *argv[]) {
   config->fNbuff = n_buffered;
   config->fUseMonitoring = monitor;
   config->fNminThreshold=5*n_threads;
-  config->SetMonitored(GeantConfig::kMonQueue, monitor);
-  config->SetMonitored(GeantConfig::kMonMemory, monitor);
-  config->SetMonitored(GeantConfig::kMonBasketsPerVol, monitor);
-  config->SetMonitored(GeantConfig::kMonVectors, monitor);
-  config->SetMonitored(GeantConfig::kMonConcurrency, monitor);
-  config->SetMonitored(GeantConfig::kMonTracksPerEvent, monitor);
+  config->SetMonitored(Geant::GeantConfig::kMonQueue, monitor);
+  config->SetMonitored(Geant::GeantConfig::kMonMemory, monitor);
+  config->SetMonitored(Geant::GeantConfig::kMonBasketsPerVol, monitor);
+  config->SetMonitored(Geant::GeantConfig::kMonVectors, monitor);
+  config->SetMonitored(Geant::GeantConfig::kMonConcurrency, monitor);
+  config->SetMonitored(Geant::GeantConfig::kMonTracksPerEvent, monitor);
   config->fNaverage = avNPrimPerEvt;   // Average number of tracks per event
 
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
