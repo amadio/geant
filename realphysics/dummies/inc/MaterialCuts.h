@@ -1,8 +1,17 @@
 #ifndef MATERIALCUTS_H
 #define MATERIALCUTS_H
 
+// for inline namespace VECGEOM_IMPL_NAMESPACE
+#include "base/TypeMap.h"
+
 #include <vector>
 #include <iostream>
+
+namespace vecgeom {
+  inline namespace VECGEOM_IMPL_NAMESPACE {
+    class Region;
+  }
+}
 
 namespace geantphysics {
 
@@ -40,8 +49,10 @@ class Material;
  */
 class MaterialCuts{
 public:
-  static void  CreateAll(); // creates all MaterialCuts and converts length/energy to energy/lenght
-  static void  CleanUp();   // deletes all MaterialCuts objects and set the table to default (zero) size
+  // creates all MaterialCuts and converts length/energy to energy/lenght
+  static void  CreateAll();
+// deletes all MaterialCuts objects and set the table to default (zero) size
+  static void  ClearAll();
 
   /** @brief Public method to obtain the index of this material-cuts object in the global table. */
   int             GetIndex() const { return fIndex; }
@@ -50,7 +61,7 @@ public:
   const double*   GetProductionCutsInLength() const { return fProductionCutsInLength;}
   const double*   GetProductionCutsInEnergy() const { return fProductionCutsInEnergy;}
   bool            IsProductionCutsGivenInLength() const { return fIsProductionCutsGivenInLength; }
-  
+
   const Material* GetMaterial() const { return fMaterial; }
   // get a MaterialCuts object pointer by its index
   static const MaterialCuts* GetMaterialCut(int indx);
@@ -74,16 +85,6 @@ public:
 
 private:
   /**
-    * @brief Constructor.
-    *
-    * Production cuts are set to default (1 mm) for all particles.
-    *
-    * @param[in] mat  Pointer to specify the material object part of this mategrial-cuts pair.
-    *
-    */
-//  MaterialCuts(int regionindx, const Material *mat, bool iscutinlength);
-
-  /**
     * @brief Dummy constructor for testing physics models. Will be removed.
     *
     * Production cuts are set to the provided values.
@@ -105,7 +106,12 @@ private:
  void            SetProductionCutEnergy(int indx, double val) {fProductionCutsInEnergy[indx] = val;}
  void            SetProductionCutLength(int indx, double val) {fProductionCutsInLength[indx] = val;}
 
- static void  ConvertAll();// convert gamma,e-,e+ cuts length to energy or energy to length
+
+ // checks if MaterialCuts has already been created for the given Material in this Region:
+ // if not, it will create a new MaterialCuts and will return a pointer to the corresponding MaterialCuts object
+ static MaterialCuts* CheckMaterialForRegion(const vecgeom::Region *region, const Material *mat);
+ // convert gamma,e-,e+ cuts length to energy or energy to length
+ static void  ConvertAll();
 
 private:
   static const int kNumProdCuts = 3;

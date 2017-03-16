@@ -12,54 +12,22 @@
 
 #include "SystemOfUnits.h"
 
-// dummy
 #include "Region.h"
 
 #include <iostream>
 
+// vecgeom GeoManager, LogicalVolume, VPlacedVolume, Material, Medium
+#include "management/GeoManager.h"
+#include "volumes/PlacedVolume.h"
+#include "volumes/LogicalVolume.h"
+#include "materials/Material.h"
+#include "materials/Medium.h"
 
 namespace geantphysics {
 
 std::vector<MaterialCuts*> MaterialCuts::gTheMaterialCutsTable;
 std::vector< std::vector<MaterialCuts*> > MaterialCuts::gTheMaterialCutsPerRegion;
 std::vector< std::vector<MaterialCuts*> > MaterialCuts::gTheMaterialCutsPerRegionPerMaterial;
-
-/*
-// NOTE: we might drop this Ctr and make the other private i.e. let to create MaterialCuts only by CreateAll method.
-MaterialCuts::MaterialCuts(int regionindx, const Material *mat, bool iscutinlength)
-: fRegionIndex(regionindx), fMaterial(mat), fIsProductionCutsGivenInLength(iscutinlength) {
-  // set default values both for length and energy;
-  // depending on the fIsProductionCutInLength flag, one set will be converted during ConvertAll
-  fProductionCutsInLength[0] = PhysicsParameters::GetDefaultGammaCutInLength();    // for gamma in lenght
-  fProductionCutsInLength[1] = PhysicsParameters::GetDefaultElectronCutInLength(); // for e- in lenght
-  fProductionCutsInLength[2] = PhysicsParameters::GetDefaultPositronCutInLength(); // for e+ in lenght
-
-  fProductionCutsInEnergy[0] = PhysicsParameters::GetDefaultGammaCutInEnergy();    // for gamma in internal energy units
-  fProductionCutsInEnergy[1] = PhysicsParameters::GetDefaultElectronCutInEnergy(); // for e- in internal energy units
-  fProductionCutsInEnergy[2] = PhysicsParameters::GetDefaultPositronCutInEnergy(); // for e+ in internal energy units
-
-  fIndex = gTheMaterialCutsTable.size();
-  // add the current MaterialCuts pointer to the global material cuts table
-  gTheMaterialCutsTable.push_back(this);
-
-  // it will be set only once to the number of regions
-  int numRegions = Region::GetTheRegionTable().size();
-  if (gTheMaterialCutsPerRegion.size()<numRegions) {
-    gTheMaterialCutsPerRegion.resize(numRegions);
-  }
-  if (gTheMaterialCutsPerRegionPerMaterial.size()<numRegions) {
-    gTheMaterialCutsPerRegionPerMaterial.resize(numRegions);
-    int numMaterials = Material::GetTheMaterialTable().size();
-    for (int i=0; i<numRegions; ++i) {
-      gTheMaterialCutsPerRegionPerMaterial[i].resize(numMaterials,nullptr);
-    }
-  }
-  // add the current MatrialCuts pointer to the list per region
-  gTheMaterialCutsPerRegion[regionindx].push_back(this);
-  // add the current MatrialCuts pointer to the list per region per material
-  gTheMaterialCutsPerRegionPerMaterial[regionindx][mat->GetIndex()] = this;
-}
-*/
 
 MaterialCuts::MaterialCuts(int regionindx, const Material *mat, bool iscutinlength, double gcut, double emcut, double epcut)
 : fRegionIndex(regionindx), fIsProductionCutsGivenInLength(iscutinlength), fMaterial(mat) {
@@ -87,7 +55,7 @@ MaterialCuts::MaterialCuts(int regionindx, const Material *mat, bool iscutinleng
   gTheMaterialCutsTable.push_back(this);
 
   // it will be set only once to the number of regions
-  unsigned long numRegions = Region::GetTheRegionTable().size();
+  unsigned long numRegions = vecgeom::Region::GetTheRegionTable().size();
   if (gTheMaterialCutsPerRegion.size()<numRegions) {
     gTheMaterialCutsPerRegion.resize(numRegions);
   }
@@ -105,7 +73,7 @@ MaterialCuts::MaterialCuts(int regionindx, const Material *mat, bool iscutinleng
 }
 
 
-void MaterialCuts::CleanUp() {
+void MaterialCuts::ClearAll() {
   for (unsigned long i=0; i<gTheMaterialCutsTable.size(); ++i) {
     delete gTheMaterialCutsTable[i];
   }
@@ -187,19 +155,81 @@ void MaterialCuts::ConvertAll() {
   delete [] converters;
 }
 
-// create all MaterialCuts by using the Resgion table; this will be the standard way of automatically creating all
+// create all MaterialCuts by using the Region table; this will be the standard way of automatically creating all
 // MaterialCuts in the detetector
 void MaterialCuts::CreateAll() {
-  // get the global region table
-  const std::vector<Region*> theRegions = Region::GetTheRegionTable();
-  int   numRegions = theRegions.size();
-  // loop over the regions
-  for (int ir=0; ir<numRegions; ++ir) {
-    // get the cuts, the flag if cut is given in length or energy;
-    bool   iscutinlength = theRegions[ir]->IsProductionCutInLength();
-    double gcut  = theRegions[ir]->GetGammaCut();
-    double emcut = theRegions[ir]->GetElectronCut();
-    double epcut = theRegions[ir]->GetPositronCut();
+  // clear all if there were any created before
+  ClearAll();
+  // get number of regions
+  int   numRegions = vecgeom::Region::GetNumberOfRegions();
+  // get the world LogicalVolume from vecgeom: this const_cast is very dirty !!
+  vecgeom::LogicalVolume *logicWorld = const_cast<vecgeom::LogicalVolume *>(vecgeom::GeoManager::Instance().GetWorld()->GetLogicalVolume());
+  // if there are no any regions created by the user create one, with default production cut values,
+  // set to the world logical volume (that should set to all logical volumes)
+  if (numRegions<1) {
+    // create one region with default production cuts and assign all logical volumes to this
+    vecgeom::Region *reg0 = new vecgeom::Region("DefaultWorld");
+    logicWorld->SetRegion(reg0);
+  }
+  // it is still possible however, that the user defined at least one region but the world logical volume has no region;
+  // we create a default world region and assign the world logical volume to that;
+  // later all logical volumes, without region, will also assigned to this region
+  if (!logicWorld->GetRegion()) {
+    vecgeom::Region *reg0 = new vecgeom::Region("DefaultWorld");
+    logicWorld->SetRegion(reg0,false); // set only to this logical volume
+  }
+  // keep the world region in hand
+  vecgeom::Region *regionWorld = logicWorld->GetRegion();
+
+  // loop over all logical volumes, take the associated region and add the material of the given
+  // logical volume to the given region.
+  // NOTE: we created (in PhysicsProcessHandler::BuildMaterials()) our geantphysics::Materials in the same order that
+  // the vecgeom::Materials so their global index will be the same.
+  std::vector<vecgeom::LogicalVolume*> theLogicVolumes;
+  vecgeom::GeoManager::Instance().GetAllLogicalVolumes(theLogicVolumes);
+  // get our Material table
+  const std::vector<Material*> theMaterialTable = Material::GetTheMaterialTable();
+  for (size_t i=0; i<theLogicVolumes.size(); ++i) {
+    vecgeom::Material *vgMat = ((vecgeom::Medium*)theLogicVolumes[i]->GetTrackingMediumPtr())->GetMaterial();
+    vecgeom::Region *reg     = theLogicVolumes[i]->GetRegion();
+    // region must be set for each logical volumes
+    // check it and assign all logical volumes without region to the world region and give warning
+    if (!reg) {
+      theLogicVolumes[i]->SetRegion(regionWorld,false); // set only for this logical volume
+      reg = regionWorld;
+      std::cerr << "  ***  WARNING:  MaterialCuts::CreateAll() \n"
+                << "        LogicalVolume with name = " << theLogicVolumes[i]->GetLabel() << " was not associated to \n"
+                << "        any Regions. It has been assigned to the world region ( " << regionWorld->GetName() << ")\n"
+                << std::endl;
+    }
+    // get our material that corresponds to the vecgeom::Material vgMat
+    // check if we have already created a MaterialCuts with this material in the current region
+    // create a new if not yet
+    Material *mat = theMaterialTable[vgMat->GetIndex()];
+    // it returns with a pointer to the MaterialCuts that will be set into the logical volume later!
+    //MaterialCuts *matCut = CheckMaterialForRegion(reg, mat);
+    CheckMaterialForRegion(reg, mat);
+  }
+  // convert production cuts in lenght/energy to energy/lenght
+  ConvertAll();
+}
+
+
+MaterialCuts* MaterialCuts::CheckMaterialForRegion(const vecgeom::Region *region, const Material *mat) {
+  // get the region index
+  int indxReg = region->GetIndex();
+  int indxMat = mat->GetIndex();
+  MaterialCuts *matCut = nullptr;
+  if (indxReg>-1 && indxReg<gTheMaterialCutsPerRegionPerMaterial.size()
+      && indxMat>-1 && indxMat<gTheMaterialCutsPerRegionPerMaterial[0].size()) {
+    matCut = gTheMaterialCutsPerRegionPerMaterial[indxReg][indxMat];
+  }
+  // create it if it is still nullptr (i.e. has not been created yet)
+  if (!matCut) {
+    bool   iscutinlength = region->IsProductionCutInLength();
+    double gcut  = region->GetGammaCut();
+    double emcut = region->GetElectronCut();
+    double epcut = region->GetPositronCut();
     // check if the cut was given by user or we need to take default values
     if (iscutinlength) {
       if (gcut<0.0)
@@ -216,30 +246,10 @@ void MaterialCuts::CreateAll() {
       if (epcut<0.0)
         epcut = PhysicsParameters::GetDefaultPositronCutInEnergy();
     }
-
-    // list of materials that are in this region; NOTE: assume that there might be duplications
-    std::vector<const Material*> matList    = theRegions[ir]->GetMaterialList();
-    std::vector<const Material*> difMatList;
-    for (unsigned long i=0; i<matList.size(); ++i) {
-      const Material *curMat = matList[i];
-      bool isthere = false;
-      for (unsigned long j=0; j<difMatList.size() && !isthere; ++j) {
-        if (difMatList[j]==curMat) {
-          isthere = true;
-        }
-      }
-      if (!isthere) {
-        difMatList.push_back(curMat);
-      }
-    }
-    // create all different MatrialCuts
-    for (unsigned long i=0; i<difMatList.size(); ++i) {
-      new MaterialCuts(theRegions[ir]->GetIndex(), difMatList[i], iscutinlength, gcut, emcut, epcut);
-    }
+    // create the MaterialCuts object
+    matCut = new MaterialCuts(indxReg, mat, iscutinlength, gcut, emcut, epcut);
   }
-
-  // convert production cuts in lenght/energy to energy/lenght
-  ConvertAll();
+  return matCut;
 }
 
 // printouts
@@ -249,7 +259,7 @@ std::ostream& operator<<(std::ostream& flux, const MaterialCuts* matcut) {
   //long prec = flux.precision(6);
   const double *cutslenght = matcut->GetProductionCutsInLength();
   const double *cutsenergy = matcut->GetProductionCutsInEnergy();
-  const std::vector<Region*> vregions = Region::GetTheRegionTable();
+  const std::vector<vecgeom::Region*> vregions = vecgeom::Region::GetTheRegionTable();
   int   regionIndx             = matcut->GetRegionIndex();
   const std::string regionName = vregions[regionIndx]->GetName();
   std::string str = " in length.";

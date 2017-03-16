@@ -39,7 +39,8 @@ PhysicsProcessHandler::PhysicsProcessHandler() {
 PhysicsProcessHandler::~PhysicsProcessHandler() {
   PhysicsListManager::Instance().ClearAll();
   Material::ClearAllMaterials(); // will delete all Element and Isotope as well
-  PhysicsData::ClearAll();
+  MaterialCuts::ClearAll();  // delete all MaterialCuts objects
+  PhysicsData::ClearAll();   // delete all PhysicsData objects
 }
 
 
@@ -58,7 +59,7 @@ void PhysicsProcessHandler::Initialize() {
   std::cout<<Material::GetTheMaterialTable();
   //
   // set number of regions in the PhysicsListManager before we execute the user RegisterPhysicsList method(s)
-  PhysicsListManager::Instance().SetNumberOfRegions(Region::GetTheRegionTable().size());
+  PhysicsListManager::Instance().SetNumberOfRegions(vecgeom::Region::GetNumberOfRegions());
   //
   //  Construct one user physics list and register it in the PhysicsListManager: this should be done in the application.
   //
@@ -97,27 +98,7 @@ void PhysicsProcessHandler::BuildMaterials() {
   // Load elements from geometry, however in most cases it should already be done
  // vecgeom materials To geantphysics:;Material and creating 1 region and adding all material to that
  #ifdef USE_VECGEOM_NAVIGATOR
-  // GeantPropagator::Instance()->LoadVecGeomGeometry();
    std::vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
-   //
-   // how to set production kinetic energy thresholds in length
-   bool   iscutinlength = true;
-   double gcut          = 1.0*geant::mm;
-   double emcut         = 1.0*geant::mm;
-   double epcut         = 1.0*geant::mm;
- /*
-   //
-   // how to set production kinetic energy thresholds in energy instead of length
-   bool   iscutinlength = false;
-   double gcut          = 1.0*geant::keV;
-   double emcut         = 1.0*geant::keV;
-   double epcut         = 1.0*geant::keV;
- */
-   //
-   // create only one region with the production cuts given above:
-   std::cout<<" ========== PhysicsProcessHandler::BuildMaterials() ============ \n";
-   Region *reg0 = new Region("DefaultWorld",iscutinlength, gcut, emcut, epcut);
-   std::cout<<"   ----- One Region (with name = "<< reg0->GetName() <<") has been created.\n";
    if (matlist.size()==0) {
      std::cerr<<"  ***** ERROR PhysicsProcessHandler::BuildMaterials(): \n"
               <<"   No material was found! (vecgeom::Material::GetMaterials() returns with 0 size list)\n"
@@ -125,8 +106,7 @@ void PhysicsProcessHandler::BuildMaterials() {
      exit(-1);
    }
    for (unsigned long i=0; i<matlist.size(); ++i) {
-     std::cout<<"     -->  Creating and inserting into the region: Material with index = " << i
-              << " and vecgeom::name: "<<matlist[i]->GetName();
+     std::cout<<"     -->  Creating Material with index = " << i <<" and vecgeom::name: "<<matlist[i]->GetName();
      vecgeom::Material *vgMat = matlist[i];
      int    numElem    = vgMat->GetNelements();
      double density    = vgMat->GetDensity()*geant::g/geant::cm3; // in g/cm3
@@ -157,8 +137,6 @@ void PhysicsProcessHandler::BuildMaterials() {
       }
     }
     std::cout<< "  geantphysics::name = " << matX->GetName() << std::endl;
-    // add mategrial to the region
-    reg0->AddMaterial(matX);
    }
    std::cout<<" ================================================================ \n";
  #else
@@ -173,12 +151,17 @@ void PhysicsProcessHandler::BuildMaterials() {
 void PhysicsProcessHandler::ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
                                           GeantTaskData *td) {
   for (int i=0; i<ntracks; ++i) {
-    const MaterialCuts *matCut = nullptr;
+    // here we will get the MaterialCuts from the LogicalVolume later
+    int   matIndx = tracks.GetMaterial(i)->GetIndex();
+    int   regIndx = const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetRegion()->GetIndex();
+    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  /*
     if (mat) {
       matCut = MaterialCuts::GetMaterialCut(mat->GetIndex());
     } else {
       matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterial(i)->GetIndex());
     }
+  */
     int   particleCode       = tracks.fGVcodeV[i];
     const Particle *particle = Particle::GetParticleByInteralCode(particleCode);
     // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
@@ -222,12 +205,18 @@ void PhysicsProcessHandler::AlongStepAction(Material_t *mat, int ntracks, GeantT
                                             GeantTaskData * /*td*/) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
+    // here we will get the MaterialCuts from the LogicalVolume later
+    int   matIndx = tracks.GetMaterial(i)->GetIndex();
+    int   regIndx = const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetRegion()->GetIndex();
+    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  /*
     const MaterialCuts *matCut = nullptr;
     if (mat) {
       matCut = MaterialCuts::GetMaterialCut(mat->GetIndex());
     } else {
       matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterial(i)->GetIndex());
     }
+  */
     int particleCode         = tracks.fGVcodeV[i];
     const Particle *particle = Particle::GetParticleByInteralCode(particleCode);
     // check if the partcile has anything along step
@@ -273,12 +262,18 @@ void PhysicsProcessHandler::PostStepAction(Material_t *mat, int ntracks, GeantTr
                                            GeantTaskData *td) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
+    // here we will get the MaterialCuts from the LogicalVolume later
+    int   matIndx = tracks.GetMaterial(i)->GetIndex();
+    int   regIndx = const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetRegion()->GetIndex();
+    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  /*
     const MaterialCuts *matCut = nullptr;
     if (mat) {
      matCut = MaterialCuts::GetMaterialCut(mat->GetIndex());
     } else {
      matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterial(i)->GetIndex());
     }
+  */
     int particleCode         = tracks.fGVcodeV[i];
     const Particle *particle = Particle::GetParticleByInteralCode(particleCode);
     // check if the partcile has anything along step

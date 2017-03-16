@@ -1,10 +1,8 @@
 
-
 #include "Region.h"
 
-#include "Material.h"
-
-namespace geantphysics {
+namespace vecgeom {
+  inline namespace VECGEOM_IMPL_NAMESPACE {
 
 std::vector<Region*> Region::gTheRegionTable;
 
@@ -20,8 +18,5 @@ Region::Region(const std::string &name, bool iscutinlength) : fName(name), fIsPr
   gTheRegionTable.push_back(this);
 }
 
-void Region::AddMaterial(const Material *mat) {
-  fMaterialList.push_back(mat);
-}
-
-} // namespace geantphysics
+} // namespace vecgeom
+} // namespace VECGEOM_IMPL_NAMESPACE

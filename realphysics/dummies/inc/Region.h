@@ -3,14 +3,19 @@
 #ifndef REGION_H
 #define REGION_H
 
+// for inline namespace VECGEOM_IMPL_NAMESPACE
+#include "base/TypeMap.h"
+
 #include <vector>
 #include <string>
 
-namespace geantphysics {
-
-class Material;
+namespace vecgeom {
+  inline namespace VECGEOM_IMPL_NAMESPACE {
 /**
- * @brief   Dummy class for regions.
+ * @brief   Class for describin regions.
+ *
+ * Implementation of vecgeom::Region.
+ *
  * @class   Region.
  * @author  M Novak, A Ribon
  * @date    june 2016
@@ -22,8 +27,8 @@ public:
 
  ~Region(){}
 
-  void AddMaterial(const Material *mat);
-  std::vector<const Material*>& GetMaterialList() { return fMaterialList; }
+  // get number of regions created so far
+  static int   GetNumberOfRegions() { return gTheRegionTable.size();}
 
   int     GetIndex() const { return fIndex; }
   const std::string& GetName() const {return fName;}
@@ -35,7 +40,7 @@ public:
 
   // get the global Region table
   static const std::vector<Region*>& GetTheRegionTable() { return gTheRegionTable; }
-
+  
 private:
   std::string fName;
   int    fIndex; // index of this region
@@ -44,13 +49,11 @@ private:
   double fElectronCutValue;
   double fPositronCutValue;
 
-  // list of materials added so far to this Region by AddMaterial method;
-  // can store duplicated material pointers !
-  std::vector<const Material*> fMaterialList;
   // the global Region table
   static std::vector<Region*>  gTheRegionTable;
 };
 
-} // namespace geantphysics
+} // namespace vecgeom
+} // namespace VECGEOM_IMPL_NAMESPACE
 
 #endif // REGION_H
