@@ -106,9 +106,11 @@ public:
   GEANT_FORCE_INLINE
   GeantConfig *GetConfig() { return fConfig; }
 
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int  GetNvolumes() { return fNvolumes; }
-  
+
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   vector_t<Volume_t const *> &GetVolumes() { return fVolumes; }
 
