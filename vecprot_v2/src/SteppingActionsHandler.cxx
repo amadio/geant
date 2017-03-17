@@ -27,10 +27,12 @@ VECCORE_ATT_HOST_DEVICE
 void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fPropagator->fStdApplication)
     fPropagator->fStdApplication->SteppingActions(*track, td);
   fPropagator->fApplication->SteppingActions(*track, td);
-  
+#endif
+
   // The track may die at the end of the step
   if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
     fPropagator->StopTrack(track);
@@ -47,9 +49,11 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
 // Vector handling of stepping actions.
   
   TrackVec_t &tracks = input.Tracks();
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fPropagator->fStdApplication)
     fPropagator->fStdApplication->SteppingActions(tracks, td);
   fPropagator->fApplication->SteppingActions(tracks, td);
+#endif
 
   // Copy tracks alive to output, stop the others.
   for (auto track : tracks) {
