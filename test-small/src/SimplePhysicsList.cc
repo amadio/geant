@@ -26,7 +26,7 @@
 //
 // $Id$
 //
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -64,7 +64,7 @@ void SimplePhysicsList::ConstructParticle()
   // In this method, static member functions should be called
   // for all particles which you want to use.
   // This ensures that objects of these particle types will be
-  // created in the program. 
+  // created in the program.
 
   G4BosonConstructor  pBosonConstructor;
   pBosonConstructor.ConstructParticle();
@@ -79,7 +79,7 @@ void SimplePhysicsList::ConstructParticle()
   pBaryonConstructor.ConstructParticle();
 
   G4IonConstructor pIonConstructor;
-  pIonConstructor.ConstructParticle(); 
+  pIonConstructor.ConstructParticle();
 
 }
 
@@ -111,18 +111,18 @@ void SimplePhysicsList::ConstructProcess()
 void SimplePhysicsList::ConstructTotal()
 {
   // G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
-  
+
   G4cout << " SimplePhysicsList: constructing one TotalPhysicsProcess per particle " << G4endl;
-  
+
   // Must use the old functionality for adding processes
   //  - the new one works only for recognised processes, e.g. Brem, compton ..
-  
+  auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     // G4String particleName = particle->GetParticleName();
-    
+
     G4VRestContinuousDiscreteProcess* totalPhysics=
        new TotalPhysicsProcess("TabulatedPhysics");
 
@@ -141,21 +141,23 @@ void SimplePhysicsList::ConstructDecay()
 {
   // Add Decay Process
   G4cout << "Constructing separate Decay process(es) for each particle." << G4endl;
-  
+
   G4Decay* theDecayProcess = new G4Decay();
+
+  auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
-  
+
   while( (*theParticleIterator)() )
   {
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
-    
+
     if (theDecayProcess->IsApplicable(*particle))
     {
       pmanager ->AddProcess(theDecayProcess);
-      
+
       // set ordering for PostStepDoIt and AtRestDoIt
-      
+
       pmanager ->SetProcessOrdering(theDecayProcess, idxPostStep);
       pmanager ->SetProcessOrdering(theDecayProcess, idxAtRest);
     }

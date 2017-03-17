@@ -26,7 +26,7 @@
 //
 // $Id$
 //
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -74,10 +74,10 @@ PhysicsList::~PhysicsList()
   delete thePiK;
   delete theBertiniPiK;
   delete theFTFPPiK;
-    
+
   delete thePro;
   delete theBertiniPro;
-  delete theFTFPPro;    
+  delete theFTFPPro;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -87,7 +87,7 @@ void PhysicsList::ConstructParticle()
   // In this method, static member functions should be called
   // for all particles which you want to use.
   // This ensures that objects of these particle types will be
-  // created in the program. 
+  // created in the program.
 
   G4BosonConstructor  pBosonConstructor;
   pBosonConstructor.ConstructParticle();
@@ -102,7 +102,7 @@ void PhysicsList::ConstructParticle()
   pBaryonConstructor.ConstructParticle();
 
   G4IonConstructor pIonConstructor;
-  pIonConstructor.ConstructParticle(); 
+  pIonConstructor.ConstructParticle();
 
 }
 
@@ -152,27 +152,28 @@ void PhysicsList::ConstructProcess()
 void PhysicsList::ConstructEM()
 {
   G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
-  
+
+	auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4String particleName = particle->GetParticleName();
-    
+
     if (particleName == "gamma") {
-      // gamma         
+      // gamma
       ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering,   particle);
       ph->RegisterProcess(new G4GammaConversion,     particle);
-      
+
     } else if (particleName == "e-") {
       //electron
- 
+
       //choices for different physics list for Ionisation and Bremsstrahlung
       char* plname = getenv("PHYSLIST");
 
       if ( plname && strcmp(plname,"TabulatedPhysics")==0) {
 	G4eIonisation* eIoniProc = new G4eIonisation();
-	TabulatedProcess* eIoniWrapperProc = 
+	TabulatedProcess* eIoniWrapperProc =
 	  new TabulatedProcess(eIoniProc->GetProcessName(),
 			       eIoniProc->GetProcessType(),
 			       kIonisation);
@@ -181,27 +182,27 @@ void PhysicsList::ConstructEM()
 	ph->RegisterProcess(eIoniWrapperProc, particle);
 
 	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
-	TabulatedProcess* eBremWrapperProc = 
+	TabulatedProcess* eBremWrapperProc =
 	  new TabulatedProcess(eBremProc->GetProcessName(),
 			       eBremProc->GetProcessType(),
 			       kBrehms);
 	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
 	eBremWrapperProc->RegisterProcess(eBremProc);
 	ph->RegisterProcess(eBremWrapperProc, particle);
-	
+
       }
       else if ( plname && strcmp(plname,"VectorizedPhysics")==0) {
 	//use vectorized physics
 	G4eIonisation* eIoniProc = new G4eIonisation();
-	VectorizedProcess* eIoniWrapperProc = 
+	VectorizedProcess* eIoniWrapperProc =
 	  new VectorizedProcess(eIoniProc->GetProcessName(),
 				eIoniProc->GetProcessType());
 	eIoniWrapperProc->SetProcessSubType(eIoniProc->GetProcessSubType());
 	eIoniWrapperProc->RegisterProcess(eIoniProc);
 	ph->RegisterProcess(eIoniWrapperProc, particle);
-	
+
 	G4eBremsstrahlung* eBremProc = new G4eBremsstrahlung();
-	VectorizedProcess* eBremWrapperProc = 
+	VectorizedProcess* eBremWrapperProc =
 	  new VectorizedProcess(eBremProc->GetProcessName(),
 				eBremProc->GetProcessType());
 	eBremWrapperProc->SetProcessSubType(eBremProc->GetProcessSubType());
@@ -212,7 +213,7 @@ void PhysicsList::ConstructEM()
 	//user standard electron processes
 	ph->RegisterProcess(new G4eMultipleScattering, particle);
 	ph->RegisterProcess(new G4eIonisation,         particle);
-	ph->RegisterProcess(new G4eBremsstrahlung,     particle);      
+	ph->RegisterProcess(new G4eBremsstrahlung,     particle);
       }
     } else if (particleName == "e+") {
       //positron
@@ -220,42 +221,42 @@ void PhysicsList::ConstructEM()
       ph->RegisterProcess(new G4eIonisation,         particle);
       ph->RegisterProcess(new G4eBremsstrahlung,     particle);
       ph->RegisterProcess(new G4eplusAnnihilation,   particle);
-    
-    } else if( particleName == "mu+" || 
+
+    } else if( particleName == "mu+" ||
                particleName == "mu-"    ) {
-      //muon  
+      //muon
       ph->RegisterProcess(new G4MuMultipleScattering, particle);
       ph->RegisterProcess(new G4MuIonisation,         particle);
       ph->RegisterProcess(new G4MuBremsstrahlung,     particle);
       ph->RegisterProcess(new G4MuPairProduction,     particle);
-             
-    } else if( particleName == "proton" || 
+
+    } else if( particleName == "proton" ||
                particleName == "pi-" ||
                particleName == "pi+"    ) {
-      //proton  
+      //proton
       ph->RegisterProcess(new G4hMultipleScattering, particle);
       ph->RegisterProcess(new G4hIonisation,         particle);
       ph->RegisterProcess(new G4hBremsstrahlung,     particle);
-      ph->RegisterProcess(new G4hPairProduction,     particle);       
-     
-    } else if( particleName == "alpha" || 
+      ph->RegisterProcess(new G4hPairProduction,     particle);
+
+    } else if( particleName == "alpha" ||
                particleName == "He3" )     {
-      //alpha 
+      //alpha
       ph->RegisterProcess(new G4hMultipleScattering, particle);
       ph->RegisterProcess(new G4ionIonisation,       particle);
-     
-    } else if( particleName == "GenericIon" ) { 
-      //Ions 
+
+    } else if( particleName == "GenericIon" ) {
+      //Ions
       ph->RegisterProcess(new G4hMultipleScattering, particle);
-      ph->RegisterProcess(new G4ionIonisation,       particle);     
-      
+      ph->RegisterProcess(new G4ionIonisation,       particle);
+
       } else if ((!particle->IsShortLived()) &&
-               (particle->GetPDGCharge() != 0.0) && 
+               (particle->GetPDGCharge() != 0.0) &&
                (particle->GetParticleName() != "chargedgeantino")) {
       //all others charged particles except geantino
       ph->RegisterProcess(new G4hMultipleScattering, particle);
-      ph->RegisterProcess(new G4hIonisation,         particle);        
-    }     
+      ph->RegisterProcess(new G4hIonisation,         particle);
+    }
   }
 }
 
@@ -266,13 +267,15 @@ void PhysicsList::ConstructEM()
 void PhysicsList::ConstructDecay()
 {
   G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
-  
+
   // Add Decay Process
   G4Decay* theDecayProcess = new G4Decay();
+
+	auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
-    if (theDecayProcess->IsApplicable(*particle)) { 
+    if (theDecayProcess->IsApplicable(*particle)) {
       ph->RegisterProcess(theDecayProcess, particle);
     }
   }
@@ -323,7 +326,7 @@ void PhysicsList::HadronPhysicsFTFP_BERT_WP()
   thePiK->RegisterMe(theFTFPPiK);
   thePiK->RegisterMe(theBertiniPiK=new G4BertiniPiKBuilder);
   theBertiniPiK->SetMaxEnergy(5*GeV);
-  
+
   theNeutrons->Build();
   thePro->Build();
   thePiK->Build();

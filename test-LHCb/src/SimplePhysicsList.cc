@@ -26,7 +26,7 @@
 //
 // $Id$
 //
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -106,7 +106,7 @@ SimplePhysicsList::~SimplePhysicsList()
 void SimplePhysicsList::ConstructParticle()
 {
 
-// G4EmStandardPhysics particles:: 
+// G4EmStandardPhysics particles::
   // gamma
   G4Gamma::Gamma();
 
@@ -150,7 +150,7 @@ void SimplePhysicsList::ConstructParticle()
   pIonConstructor.ConstructParticle();
 
   G4ShortLivedConstructor pShortLivedConstructor;
-  pShortLivedConstructor.ConstructParticle();  
+  pShortLivedConstructor.ConstructParticle();
 
 // G4HadronPhysicsFTFP_BERT and G4HadronElasticPhysics particles::
 //  G4MesonConstructor pMesonConstructor;
@@ -160,31 +160,31 @@ void SimplePhysicsList::ConstructParticle()
 //  pBaryonConstructor.ConstructParticle();
 
 //  G4ShortLivedConstructor pShortLivedConstructor;
-//  pShortLivedConstructor.ConstructParticle();  
+//  pShortLivedConstructor.ConstructParticle();
 
 //  G4IonConstructor pConstructor;
-//  pConstructor.ConstructParticle();  
+//  pConstructor.ConstructParticle();
 
 
   // In this method, static member functions should be called
   // for all particles which you want to use.
   // This ensures that objects of these particle types will be
-  // created in the program. 
+  // created in the program.
 /*
-std::cout<< "BEGIN THE =" <<G4ParticleTable::GetParticleTable()->size() <<std::endl;   
+std::cout<< "BEGIN THE =" <<G4ParticleTable::GetParticleTable()->size() <<std::endl;
   TPartIndex      *pIndex       = TPartIndex::I();
   G4ParticleTable *thePartTable = G4ParticleTable::GetParticleTable();
-  
+
   G4int tabNumPart = pIndex->NPart();
   for(G4int ip = 0; ip < tabNumPart; ++ip){
      G4int pdg = pIndex->PDG(ip);
      G4ParticleDefinition *partDef = G4ParticleTable::GetParticleTable()->FindParticle(pdg);
      if(!partDef)
-     
+
   }
 */
-std::cout<< "END THE =" <<G4ParticleTable::GetParticleTable()->size() <<std::endl;   
-  
+std::cout<< "END THE =" <<G4ParticleTable::GetParticleTable()->size() <<std::endl;
+
 
 }
 
@@ -207,18 +207,18 @@ void SimplePhysicsList::ConstructProcess()
 void SimplePhysicsList::ConstructTotal()
 {
   // G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
-  
+
   G4cout << " SimplePhysicsList: constructing one TotalPhysicsProcess per particle " << G4endl;
-  
+
   // Must use the old functionality for adding processes
   //  - the new one works only for recognised processes, e.g. Brem, compton ..
-  
+  auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     // G4String particleName = particle->GetParticleName();
-    
+
     G4VRestContinuousDiscreteProcess* totalPhysics=
        new TotalPhysicsProcess("TabulatedPhysics");
 
@@ -240,21 +240,21 @@ void SimplePhysicsList::ConstructDecay()
 {
   // Add Decay Process
   G4cout << "Constructing separate Decay process(es) for each particle." << G4endl;
-  
+
   G4Decay* theDecayProcess = new G4Decay();
   theParticleIterator->reset();
-  
+
   while( (*theParticleIterator)() )
   {
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
-    
+
     if (theDecayProcess->IsApplicable(*particle))
     {
       pmanager ->AddProcess(theDecayProcess);
-      
+
       // set ordering for PostStepDoIt and AtRestDoIt
-      
+
       pmanager ->SetProcessOrdering(theDecayProcess, idxPostStep);
       pmanager ->SetProcessOrdering(theDecayProcess, idxAtRest);
     }
