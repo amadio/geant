@@ -300,6 +300,8 @@ if(DATA_DOWNLOAD)
     "xsec_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "90c8ef05770cea48c7807e0241921cab")
   DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/pp14TeVminbias.root"
     "pp14TeVminbias.root" "${CMAKE_SOURCE_DIR}/data/" "109b827c595ae4a62b74f08f860abbb7")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ATLASbar.root"
+    "ATLASbar.root" "${CMAKE_SOURCE_DIR}/data/" "b0a579a0158b2bf704ace490744d858d")
 endif()
 
 #----------------------------------------------------------------------------------------------
