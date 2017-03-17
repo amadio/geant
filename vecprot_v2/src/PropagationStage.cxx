@@ -12,12 +12,8 @@ VECCORE_ATT_HOST_DEVICE
 PropagationStage::PropagationStage(GeantPropagator *prop)
   : SimulationStage(kPropagationStage, prop)
 {
- #ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fConfig->fBmag;
-#else
   const double bmag = prop->fConfig->fBmag;
-#endif
-  fHasField = bmag > 1.e-10; 
+  fHasField = bmag > 1.e-10;
 }
 
 //______________________________________________________________________________
