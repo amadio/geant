@@ -226,8 +226,9 @@ public:
 
   //____________________________________________________________________________
   /** @brief Add an element to the basketizer */
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  bool AddElement(T *const data, std::vector<T *> &basket) {
+  bool AddElement(T *const data, vector_t<T *> &basket) {
     // Book atomically a slot for copying the element
     size_t ibook = fetch_add(fIbook,1);
     // Compute position in the buffer
@@ -241,7 +242,14 @@ public:
     fNstored++;
     if (nfilled == fBsize) {
       // Deploy basket (copy data)
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
       basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + fBsize]);
+#else
+      auto end = ibasket + fBsize;
+      for(auto cursor = ibasket; cursor < end; ++cursor) {
+        basket.push_back(fBuffer[cursor]);
+      }
+#endif
       fNstored -= fBsize;
       fNbaskets--;
       fCounters[ibasket].ReleaseBasket(fBufferMask + 1 + (ibook & fBmask));
@@ -272,8 +280,9 @@ public:
 
   //____________________________________________________________________________
   /** @brief Garbage collect data */
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  bool Flush(std::vector<T *> &basket) {
+  bool Flush(vector_t<T *> &basket) {
     // Flush all elements present in the container on the current basket
     // If this is not the last basket, drop garbage collection
     if (fNbaskets.load() > 1)
@@ -303,7 +312,14 @@ public:
     while (!fCounters[ibasket].BookSlots(ibook, nbooktot, fBsize-nelem))
       ;
     // Now fill the objects from the pending basket
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + nelem]);
+#else
+    auto end = ibasket + fBsize;
+      for(auto cursor = ibasket; cursor < end; ++cursor) {
+        basket.push_back(fBuffer[cursor]);
+      }
+#endif
 
     fNstored -= nelem;
     fNbaskets--;

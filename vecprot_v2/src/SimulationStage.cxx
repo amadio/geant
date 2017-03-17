@@ -110,9 +110,17 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
       // If a follow-up stage is declared, this overrides any follow-up set by handlers
       track->fStage = fFollowUpStage;
     }
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     std::copy(output.Tracks().begin(), output.Tracks().end(),
               std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));
-  } else {    
+#else
+    auto &insertee( td->fStageBuffers[fFollowUpStage]->Tracks() );
+    for (auto track : output.Tracks()) {
+      // If a follow-up stage is declared, this overrides any follow-up set by handlers
+      insertee.push_back(track);
+    }
+#endif
+  } else {
     for (auto track : output.Tracks()) {
       assert(track->fStage != fId);         // no stage feeds itself
       td->fStageBuffers[track->fStage]->AddTrack(track);

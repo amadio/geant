@@ -18,7 +18,7 @@ VECCORE_ATT_HOST_DEVICE
 int GeomQueryStage::CreateHandlers()
 {
 // Create all volume handlers.
-  vector_t<Volume_t const *> volumes = fPropagator->fRunMgr->GetVolumes();
+  vector_t<Volume_t const *> &volumes = fPropagator->fRunMgr->GetVolumes();
   int nvolumes = fPropagator->fRunMgr->GetNvolumes();
   int threshold = fPropagator->fConfig->fNperBasket;
   Volume_t *vol;
