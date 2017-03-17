@@ -34,6 +34,15 @@ class GeantTrack;
  */
  
 class Handler {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  // On cuda there is one propagator per thread.  So (for now), no need
+  // for atomics.
+  template <typename T>
+  using atomic_t = T;
+#else
+  template <typename T>
+  using atomic_t = std::atomic<T>;
+#endif
 
 public:
   using basketizer_t = Basketizer<GeantTrack>;
@@ -41,10 +50,12 @@ public:
 protected:  
   bool fActive = false;                ///< Activity flag
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
-  std::atomic_int fThreshold;          ///< Basketizing threshold
+  atomic_t<int> fThreshold;          ///< Basketizing threshold
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this handler
   GeantPropagator *fPropagator = nullptr; ///< Associated propagator
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fLock;              ///< Lock for flushing
+#endif
 private:
   Handler(const Handler &) = delete;
   Handler &operator=(const Handler &) = delete;
@@ -78,7 +89,7 @@ public:
   /** @brief Threshold getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int GetThreshold() const { return fThreshold.load(); }
+  int GetThreshold() const { return fThreshold; }
   
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
@@ -94,14 +105,15 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual void ActivateBasketizing(bool flag = true);
 
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   /** @brief Check if handler is flushing */
-  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   bool IsFlushing() {
     if (fLock.test_and_set(std::memory_order_acquire)) return true;
     fLock.clear(std::memory_order_release);
     return false;
   }
+#endif
 
   /** @brief Add a track pointer to handler. */
   VECCORE_ATT_HOST_DEVICE

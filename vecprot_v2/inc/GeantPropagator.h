@@ -262,6 +262,7 @@ public:
 
   /** @brief  Register a simulation stage */
   GEANT_FORCE_INLINE
+  VECCORE_ATT_HOST_DEVICE
   int RegisterStage(SimulationStage *stage)
   { 
     fStages.push_back(stage);
@@ -282,7 +283,6 @@ public:
   int GetNextStage(GeantTrack &track, int current);
 
   /** @brief Setter for locality */
-  VECCORE_ATT_HOST_DEVICE
   void SetNuma(int numa);
 
 private:

@@ -225,7 +225,6 @@ void GeantPropagator::Initialize() {
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
 void GeantPropagator::SetNuma(int numa)
 {
 // Set locality for the propagator

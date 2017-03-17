@@ -9,6 +9,9 @@
 #include "../src/GeantEvent.cxx"
 #include "../src/ScalarNavInterfaceVGM.cxx"
 #include "../src/GeantPropagator.cxx"
+#include "../src/PreStepStage.cxx"
+#include "../src/SimulationStage.cxx"
+#include "../src/SteppingActionsStage.cxx"
 
 //#include "../src/WorkloadManager.cxx"
 //#include "../src/GeantRunManager.cxx"
