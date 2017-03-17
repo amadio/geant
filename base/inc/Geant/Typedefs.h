@@ -1,6 +1,8 @@
 #ifndef GEANT_TYPEDEFS_H
 #define GEANT_TYPEDEFS_H
 
+#include "Geant/Config.h"
+
 #ifdef VECCORE_CUDA
 #include "base/Vector.h"
   template <class T>

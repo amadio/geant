@@ -76,7 +76,11 @@ GEANT_DECLARE_CONSTANT(double, gTolerance);
 
 class GeantTaskData;
 class GeantTrack;
-typedef vector_t<GeantTrack *> TrackVec_t;
+#ifndef VECCORE_CUDA
+typedef std::vector<GeantTrack *> TrackVec_t;
+#else
+typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
+#endif
 
 /**
  * @brief Class GeantTrack
