@@ -262,7 +262,7 @@ if __name__ == "__main__":
    if not op_sys:
       op_sys = default_os()
 
-   if label == 'cuda7':
+   if (label == 'cuda7') or (label == 'continuous-cuda7'):
        os.environ["CMAKE_PREFIX_PATH_ALL"] = "/usr/local/cuda/"+":"+directory_names()[0]
        os.environ["PATH_ALL"] = "/usr/local/cuda/bin"+":"+directory_names()[1]+":"+os.environ["PATH"]
        os.environ["LD_LIBRARY_PATH_ALL"] = "/usr/local/cuda/lib64"+":"+workspace+"/geant/lib"+":"+directory_names()[2]+":"+os.environ["LD_LIBRARY_PATH"]
