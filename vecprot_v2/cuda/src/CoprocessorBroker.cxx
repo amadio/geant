@@ -538,7 +538,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
   // fOutputBasket->Recycle(td);
   // fOutputBasket = 0;
   // fOutputBasket->Clear();
-  mgr->CheckFeederAndExit(*fPrioritizer, *propagator, *td);
+  mgr->CheckFeederAndExit();
   fThreadId = -1;
   return fNStaged;
 }
