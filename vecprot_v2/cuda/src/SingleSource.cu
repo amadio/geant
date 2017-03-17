@@ -12,6 +12,13 @@
 #include "../src/PreStepStage.cxx"
 #include "../src/SimulationStage.cxx"
 #include "../src/SteppingActionsStage.cxx"
+#include "../src/GeomQueryStage.cxx"
+#include "../src/PropagationStage.cxx"
+#include "../src/ContinuousProcStage.cxx"
+#include "../src/PreStepHandler.cxx"
+#include "../src/SteppingActionsHandler.cxx"
+#include "../src/Handler.cxx"
+#include "../src/Basket.cxx"
 
 //#include "../src/WorkloadManager.cxx"
 //#include "../src/GeantRunManager.cxx"
