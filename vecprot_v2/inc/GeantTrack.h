@@ -65,10 +65,9 @@ enum ESimulationStage {
   kXSecSamplingStage,        // Propose physics step by sampling total Xsec
   kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
-  kMSCStage,                 // Multiple scattering stage
+//  kMSCStage,                 // Multiple scattering stage
   kContinuousProcStage,      // Continuous processes stage
   kDiscreteProcStage,        // Discrete processes stage
-  kBufferingStage,           // Stack-like buffering stage
   kSteppingActionsStage      // User actions
 };
 

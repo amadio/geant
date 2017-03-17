@@ -174,8 +174,8 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   // Start CPU transport threads (static mode)
   if (!taskmgr) {
     for (; ith < fNthreads; ith++) {
-      fListThreads.emplace_back(WorkloadManager::TransportTracks, prop);
-//      fListThreads.emplace_back(WorkloadManager::TransportTracksV3, prop);
+//      fListThreads.emplace_back(WorkloadManager::TransportTracks, prop);
+      fListThreads.emplace_back(WorkloadManager::TransportTracksV3, prop);
     }
   }
 
@@ -388,18 +388,8 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
   if (feedres == FeederResult::kStopProcessing)
      return feedres;
 
+  // Take tracks from the event server  
   int ninjected = 0;
-  // Check the stack buffer and flush priority events first
-  if ( td->fStackBuffer->IsPrioritized())
-    ninjected = td->fStackBuffer->FlushPriorityLane();
-  if (ninjected) return FeederResult::kFeederWork;
-
-  // Inject the last lane in the buffer
-  ninjected = td->fStackBuffer->FlushLastLane();
-  if (ninjected) return FeederResult::kFeederWork;
-
-  // Take tracks from the event server
-  
   GeantEventServer *evserv = td->fPropagator->fRunMgr->GetEventServer();
   if (evserv->HasTracks()) {
     // In the initial phase we distribute a fair share of baskets to all propagators
@@ -412,6 +402,20 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
 }
 
 //______________________________________________________________________________
+int WorkloadManager::FlushOneLane(GeantTaskData *td)
+{
+// Flush a single track lane from the stack-like buffer into the first stage.
+  // Check the stack buffer and flush priority events first
+  int ninjected = 0;
+  if ( td->fStackBuffer->IsPrioritized())
+    ninjected = td->fStackBuffer->FlushPriorityLane();
+  if (ninjected) return ninjected;
+
+  // Inject the last lane in the buffer
+  return ( td->fStackBuffer->FlushLastLane() );
+}  
+
+//______________________________________________________________________________
 int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
 {
 // The main stepping loop over simulation stages.
@@ -419,17 +423,19 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
   int nprocessed = 0;
   int ninput = 0;
   int istage = 0;
-  while (1) {
-    int nstart = td->fStageBuffers[istage]->size();
-    ninput += nstart;
-    if ( nstart ) {
-      if (flush) 
-        nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
-      else
-        nprocessed += td->fPropagator->fStages[istage]->Process(td);
+  while ( FlushOneLane(td) ) {
+    while (1) {
+      int nstart = td->fStageBuffers[istage]->size();
+      ninput += nstart;
+      if ( nstart ) {
+        if (flush) 
+          nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
+        else
+          nprocessed += td->fPropagator->fStages[istage]->Process(td);
+      }
+      istage = (istage + 1) % nstages;
+      if (istage == 0 && ninput == 0) return nprocessed;
     }
-    istage = (istage + 1) % nstages;
-    if (istage == 0 && ninput == 0) return nprocessed;
   }
   return nprocessed; // useless instruction intended for dummy compilers
 }

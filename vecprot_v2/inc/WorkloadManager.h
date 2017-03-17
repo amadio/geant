@@ -299,6 +299,9 @@ public:
   static
   int SteppingLoop(GeantTaskData *td, bool flush);
 
+  static
+  int FlushOneLane(GeantTaskData *td);
+
   /**
    * @brief Function that provides transport tracks in coprocessor
    *

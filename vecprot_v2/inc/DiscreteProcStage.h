@@ -25,13 +25,6 @@ class DiscreteProcStage : public SimulationStage {
 private:
   DiscreteProcStage(const DiscreteProcStage &) = delete;
   DiscreteProcStage &operator=(const DiscreteProcStage &) = delete;
-
-protected:
-
-  /** @brief Interface to create all handlers for the simulation stage
-   *  @return Number of handlers created */
-  VECCORE_ATT_HOST_DEVICE
-  virtual int CreateHandlers();
     
   /** @brief Retrieve the handler for vectorized processes, or the default handler
    *  === TO BE IMPLEMENTED FOR ALREADY VECTORIZED PROCESSES ===
@@ -40,6 +33,11 @@ protected:
   Handler *GetHandler(int /*process*/) { return fHandlers[0]; }
 
 public:
+
+  /** @brief Interface to create all handlers for the simulation stage
+   *  @return Number of handlers created */
+  VECCORE_ATT_HOST_DEVICE
+  virtual int CreateHandlers();
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE

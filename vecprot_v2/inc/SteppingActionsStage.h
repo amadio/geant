@@ -26,14 +26,11 @@ private:
   SteppingActionsStage(const SteppingActionsStage &) = delete;
   SteppingActionsStage &operator=(const SteppingActionsStage &) = delete;
 
-protected:
-
+public:
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
   virtual int CreateHandlers();
-
-public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE

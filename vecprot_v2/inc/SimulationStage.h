@@ -55,14 +55,13 @@ private:
   VECCORE_ATT_HOST_DEVICE
   int CopyToFollowUps(Basket &output, GeantTaskData *td);
 // The functions below are the interfaces for derived simulation stages.
-protected:
+
+public:
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
-  virtual int CreateHandlers() { return 0; }
-
-public:
+  virtual int CreateHandlers() = 0;
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE

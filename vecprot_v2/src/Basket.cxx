@@ -43,7 +43,7 @@ void Basket::Print(const char *msg) const {
 void Basket::PrintTrack(int itr) const {
   // Print a given track.
 #ifndef VECCORE_CUDA
-  assert(itr < fTracks.size());
+  assert(itr < int(fTracks.size()));
   std::string sno = std::to_string(itr);
   fTracks[itr]->Print(sno.c_str());
 #endif

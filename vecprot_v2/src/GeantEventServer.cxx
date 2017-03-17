@@ -133,7 +133,7 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
     if (!track.IsNormalized())
       track.Print("Not normalized");
     track.fBoundary = false;
-    track.fStatus = kAlive;
+    track.fStatus = kNew;
     fEvents[evt]->fNfilled++;
     if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
   }

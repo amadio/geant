@@ -13,8 +13,6 @@ VECCORE_ATT_HOST_DEVICE
 SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
   : fType(type), fPropagator(prop)
 {
-  CreateHandlers();
-  assert((GetNhandlers() > 0) && "Number of handlers for a simulation stage cannot be 0");
   fId = prop->RegisterStage(this);
 }
 
@@ -110,7 +108,7 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
   if (fFollowUpStage) {
     for (auto track : output.Tracks()) {
       // If a follow-up stage is declared, this overrides any follow-up set by handlers
-      if (fFollowUpStage) track->fStage = fFollowUpStage;
+      track->fStage = fFollowUpStage;
     }
     std::copy(output.Tracks().begin(), output.Tracks().end(),
               std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));

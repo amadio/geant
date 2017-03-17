@@ -64,6 +64,7 @@
 #include "GeomQueryStage.h"
 #include "PropagationStage.h"
 #include "ContinuousProcStage.h"
+#include "DiscreteProcStage.h"
 #include "SteppingActionsStage.h"
 
 #ifdef USE_CALLGRIND_CONTROL
@@ -222,6 +223,7 @@ void GeantPropagator::Initialize() {
 #else
   fWMgr->CreateBaskets(this);
 #endif
+  CreateSimulationStages();
 }
 
 //______________________________________________________________________________
@@ -428,17 +430,14 @@ int GeantPropagator::CreateSimulationStages()
   stage = new PropagationStage(this);
   assert(stage->GetId() == int(kPropagationStage));
   // kMSCStage
-  stage = nullptr; // new MSCStage(this);
-  assert(stage->GetId() == int(kMSCStage));
+  // stage = new MSCStage(this);
+  //assert(stage->GetId() == int(kMSCStage));
   // kContinuousProcStage
   stage = new ContinuousProcStage(this);
   assert(stage->GetId() == int(kContinuousProcStage));
   // kDiscreteProcStage
-  stage = nullptr; // new DiscreteProcStage(this);
+  stage = new DiscreteProcStage(this);
   assert(stage->GetId() == int(kDiscreteProcStage));
-  // kBufferingStage
-  stage = nullptr; // new BufferingStage(this)
-  assert(stage->GetId() == int(kBufferingStage));
   // kSteppingActionsStage
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));
@@ -451,7 +450,10 @@ int GeantPropagator::CreateSimulationStages()
   GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);
   GetStage(kSteppingActionsStage)->SetEndStage();
 
-  (void)stage;
+  for (auto stage : fStages) {
+    int nhandlers = stage->CreateHandlers();
+    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
+  }
   return fStages.size();  
 }
 

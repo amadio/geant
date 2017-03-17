@@ -45,6 +45,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 #endif
 #endif
   fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
+  fShuttleBasket = new Basket(1000, 0, -1);
   for (int i=0; i<int(kSteppingActionsStage); ++i)
     fStageBuffers.push_back(new Basket(1000, 0, -1));
 }
@@ -95,6 +96,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fRndm = new TRandom();
 #endif
 #endif
+  fShuttleBasket = new Basket(1000, 0, -1);
   for (int i=0; i<int(kSteppingActionsStage); ++i)
     fStageBuffers.push_back(new Basket(1000, 0, prop->fNuma));
 }
@@ -118,6 +120,7 @@ GeantTaskData::~GeantTaskData()
   VolumePath_t::ReleaseInstance(fPath);
   delete fTransported;
   delete fStackBuffer;
+  delete fShuttleBasket;
   for (int i=0; i<int(kSteppingActionsStage); ++i)
     delete fStageBuffers[i];
 }
