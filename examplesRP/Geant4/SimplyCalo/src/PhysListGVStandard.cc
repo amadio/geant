@@ -88,6 +88,7 @@ void PhysListGVStandard::ConstructProcess()
 
   // Add standard EM Processes
   //
+  auto aParticleIterator = GetParticleIterator();
   aParticleIterator->reset();
   while( (*aParticleIterator)() ){
     G4ParticleDefinition* particle = aParticleIterator->value();
