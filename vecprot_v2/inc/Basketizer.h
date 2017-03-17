@@ -25,16 +25,52 @@
  * @tparam T Type of objects
  */
 namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+template <typename O, typename I>
+VECCORE_ATT_HOST_DEVICE
+O fetch_add(O &val, I add) {
+  auto old = val;
+  val += add;
+  return old;
+}
+
+template <typename O, typename I>
+VECCORE_ATT_HOST_DEVICE
+O fetch_add_ret_newval(O &val, I add) {
+  auto old = val;
+  val += add;
+  return old;
+}
+
+template <typename O, typename I>
+O fetch_add(std::atomic<O> &val, I add) {
+  return (val.fetch_add(1));
+}
+
+template <typename O, typename I>
+O fetch_add_ret_newval(std::atomic<O> &val, I add) {
+  return (val.fetch_add(1) + add);
+}
 
 template <typename T> class BasketCounter {
   using size_t = std::size_t;
 
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  // On cuda there is one propagator per thread.  So (for now), no need
+  // for atomics.
+  template <typename N> using atomic_t = N;
+#else
+  template <typename N>
+  using atomic_t = std::atomic<N>;
+#endif
+
 public:
   size_t fBsize;                // Basket size
-  std::atomic<size_t> fIbook;   // Booking base index
-  std::atomic<size_t> fNbook0;  // Booking base counter
-  std::atomic<size_t> fNbooktot; // Counter for booked slots
-  std::atomic<size_t> fNfilled; // Counter for filled slots
+  atomic_t<size_t> fIbook;   // Booking base index
+  atomic_t<size_t> fNbook0;  // Booking base counter
+  atomic_t<size_t> fNbooktot; // Counter for booked slots
+  atomic_t<size_t> fNfilled; // Counter for filled slots
 
   BasketCounter() : fBsize(0), fNbooktot(0), fNfilled(0) { }
   BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0) { }
@@ -52,7 +88,7 @@ public:
   size_t BookSlot(size_t ibook) {
     while (ibook - Ibook() >= fBsize)
       ;
-    return (fNbooktot.fetch_add(1) + 1);
+    return fetch_add_ret_newval(fNbooktot,1); // fNbooktot.fetch_add(1) + 1);
   }
 
   //____________________________________________________________________________
@@ -81,26 +117,26 @@ public:
       ;
     // Copy data to the booked slot
     *address = data;
-    return (fNfilled.fetch_add(1) + 1);
+    return fetch_add_ret_newval(fNfilled,1); // (fNfilled.fetch_add(1) + 1);
   }
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
   size_t FillDummy(size_t nslots) {
-    return (fNfilled.fetch_add(nslots) + nslots);
+    return fetch_add_ret_newval(fNfilled,nslots); // (fNfilled.fetch_add(nslots) + nslots);
   }  
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
   void ReleaseBasket(size_t ibook) {
-    fNfilled.store(0);
+    fNfilled = 0;
     fNbook0 += fBsize;
-    fIbook.store(ibook);
+    fIbook = ibook;
   }
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
-  void SetIbook(size_t ibook) { fIbook.store(ibook); }
+  void SetIbook(size_t ibook) { fIbook = ibook; }
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
@@ -111,23 +147,26 @@ public:
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
-  size_t Ibook() const { return (fIbook.load()); }
+  size_t Ibook() const { return fIbook; }
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
-  size_t Nbooktot() const { return (fNbooktot.load()); }
+  size_t Nbooktot() const { return fNbooktot; }
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
-  size_t Nbook0() const { return (fNbook0.load()); }
+  size_t Nbook0() const { return fNbook0; }
+
+  //____________________________________________________________________________
+  // Note: to calculate the result, this does an arithmetic operation on two
+  // atomic but do not guarantee that they are fetch at the exact same time.
+  // I.e. the result is approximatif.
+  GEANT_FORCE_INLINE
+  size_t Nbooked() const { return fNbooktot - fNbook0; }
 
   //____________________________________________________________________________
   GEANT_FORCE_INLINE
-  size_t Nbooked() const { return (fNbooktot.load() - fNbook0.load()); }
-
-  //____________________________________________________________________________
-  GEANT_FORCE_INLINE
-  size_t Nfilled() const { return (fNfilled.load()); }
+  size_t Nfilled() const { return fNfilled; }
 };
 
 template <typename T> class Basketizer {
@@ -190,7 +229,7 @@ public:
   GEANT_FORCE_INLINE
   bool AddElement(T *const data, std::vector<T *> &basket) {
     // Book atomically a slot for copying the element
-    size_t ibook = fIbook.fetch_add(1);
+    size_t ibook = fetch_add(fIbook,1);
     // Compute position in the buffer
     size_t ibook_buf = ibook & fBufferMask;
     // Get basket address for the booked index. Assume fixed size baskets.
@@ -353,6 +392,7 @@ private:
   std::atomic<short> fNbaskets; /** Number of pending baskets */
   cacheline_pad_t pad6_;
 };
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif

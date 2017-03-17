@@ -12,10 +12,12 @@ Handler::Handler(int threshold, GeantPropagator *propagator)
   // Handler constructor. The handler needs to be manually activated to actually
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
-  fThreshold.store(threshold);
+  fThreshold = threshold;
   // Make sure the threshold is a power of 2
   assert((threshold & (threshold - 1)) == 0 && "Handler threshold must be power of 2");
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
+#endif
 }
 
 //______________________________________________________________________________
@@ -25,7 +27,9 @@ Handler::~Handler()
   if (GetNode() < 0) delete fBasketizer;
   else NumaAlignedFree(fBasketizer);
   fBasketizer = nullptr;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
+#endif
 }
 
 //______________________________________________________________________________
@@ -84,14 +88,18 @@ bool Handler::Flush(Basket &collector)
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
 //       contains tracks in case it is 'hot' (e.g. adding tracks or finishing
 //       other flush). Flushing is blocking for other flushes!
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fLock.test_and_set(std::memory_order_acquire)) return false;
+#endif
   bool flushed = fBasketizer->Flush(collector.Tracks());
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
+#endif
   return flushed;
 }
 
+#ifndef VECCORE_CUDA
 //______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
 Basket *Handler::GetFreeBasket(GeantTaskData *td)
 {
   Basket *next = td->GetFreeBasket();
@@ -99,6 +107,7 @@ Basket *Handler::GetFreeBasket(GeantTaskData *td)
   next->SetThreshold(fThreshold);
   return next;
 }
+#endif
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant
