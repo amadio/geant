@@ -49,6 +49,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~SteppingActionsStage();
 
+  /** @brief Simulation stage name */
+  VECCORE_ATT_HOST_DEVICE
+  virtual const char *GetName() { return "SteppingActions"; }
+
 };
 
 } // GEANT_IMPL_NAMESPACE

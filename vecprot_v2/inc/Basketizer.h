@@ -13,10 +13,11 @@
 #define GEANT_BASKETIZER
 
 #include <atomic>
-#include <vector>
 #include <cassert>
 #include <iostream>
+#include "Geant/Typedefs.h"
 #include "Geant/Config.h"
+
 
 /**
  * @brief Class Basketizer

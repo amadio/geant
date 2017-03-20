@@ -38,6 +38,11 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
     fPropagator->StopTrack(track);
     return;
   }
+  
+  // Update the particle location after the step
+  if (track->fStatus == kBoundary)
+    *track->fPath = *track->fNextpath;
+
   // Copy to output
   output.AddTrack(track);
 }
@@ -60,7 +65,12 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
     if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
       fPropagator->StopTrack(track);
       continue;
-    }    
+    } 
+       
+    // Update the particle location after the step
+    if (track->fStatus == kBoundary)
+      *track->fPath = *track->fNextpath;
+    
     output.AddTrack(track);
   }
 }

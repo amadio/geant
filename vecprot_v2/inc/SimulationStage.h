@@ -80,6 +80,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~SimulationStage();
 
+  /** @brief Simulation stage name */
+  VECCORE_ATT_HOST_DEVICE
+  virtual const char *GetName() { return nullptr; }
+  
+
 //=== The stage processing methods === //
 
   /** @brief Process a basket of tracks marked for the stage

@@ -51,6 +51,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~PropagationStage();
 
+  /** @brief Simulation stage name */
+  VECCORE_ATT_HOST_DEVICE
+  virtual const char *GetName() { return "Propagation"; }
+
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -48,6 +48,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~XSecSamplingStage();
 
+  /** @brief Simulation stage name */
+  VECCORE_ATT_HOST_DEVICE
+  virtual const char *GetName() { return "XSecSampling"; }
+
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -428,13 +428,18 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
       int nstart = td->fStageBuffers[istage]->size();
       ninput += nstart;
       if ( nstart ) {
+        Geant::Print("%s\n", td->fPropagator->fStages[istage]->GetName());
+        GeantTrack::PrintTracks(td->fStageBuffers[istage]->Tracks());
         if (flush) 
           nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
         else
           nprocessed += td->fPropagator->fStages[istage]->Process(td);
       }
       istage = (istage + 1) % nstages;
-      if (istage == 0 && ninput == 0) return nprocessed;
+      if (istage == 0) {
+        if (ninput == 0) break;
+        ninput = 0;
+      }
     }
   }
   return nprocessed; // useless instruction intended for dummy compilers

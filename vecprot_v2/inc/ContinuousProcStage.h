@@ -50,6 +50,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~ContinuousProcStage();
 
+  /** @brief Simulation stage name */
+  VECCORE_ATT_HOST_DEVICE
+  virtual const char *GetName() { return "ContinuousProc"; }
+
 };
 
 } // GEANT_IMPL_NAMESPACE

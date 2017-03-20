@@ -56,6 +56,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~DiscreteProcStage();
 
+  /** @brief Simulation stage name */
+  VECCORE_ATT_HOST_DEVICE
+  virtual const char *GetName() { return "DiscreteProc"; }
+
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -415,6 +415,9 @@ public:
 
   /** @brief Print function */
   void Print(const char *msg = "") const;
+  
+  /** @brief Print function for a container of tracks */
+  static void PrintTracks(TrackVec_t &tracks);
 
   /** Function that return particle species */
   VECCORE_ATT_HOST_DEVICE
