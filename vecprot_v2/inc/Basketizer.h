@@ -85,6 +85,7 @@ public:
   size_t Bsize() { return (fBsize); }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t BookSlot(size_t ibook) {
     while (ibook - Ibook() >= fBsize)
@@ -109,6 +110,7 @@ public:
   }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t FillSlot(size_t nbooktot, T *address, T const data) {
     // Block thread until booking range matches the current basket
@@ -147,6 +149,7 @@ public:
   }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t Ibook() const { return fIbook; }
 
