@@ -65,7 +65,9 @@ int SimulationStage::Process(GeantTaskData *td)
 
   Basket &input = *td->fStageBuffers[fId];
   Basket &bvector = *td->fBvector;
+  bvector.Clear();
   Basket &output = *td->fShuttleBasket;
+  output.Clear();
 // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     Handler *handler = Select(track, td);
@@ -84,11 +86,10 @@ int SimulationStage::Process(GeantTaskData *td)
       if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
         handler->DoIt(bvector, output, td);
-        // The tracks from bvector are now copied into the output
-        bvector.Clear();
       }
     }
   }
+  // The stage buffer needs to be cleared
   input.Clear();
   return CopyToFollowUps(output, td);
 }
@@ -97,7 +98,7 @@ int SimulationStage::Process(GeantTaskData *td)
 VECCORE_ATT_HOST_DEVICE
 int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
 {
-// Copy tracks from output basket to follow-up stages
+// Copy tracks from output basket to follow-up stages. Output needs to be cleared.
   int ntracks = output.size();
   
   if (fEndStage) {
@@ -126,7 +127,6 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
       td->fStageBuffers[track->fStage]->AddTrack(track);
     }
   }
-  output.Clear();
   return ntracks;
 }
 

@@ -152,7 +152,10 @@ public:
    * @param td Thread data
    */
    VECCORE_ATT_HOST_DEVICE
-   virtual void ComputeIntLen(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td) = 0;
+   virtual void ComputeIntLen(GeantTrack *track, GeantTaskData *td) = 0;
+
+   VECCORE_ATT_HOST_DEVICE
+   virtual void ComputeIntLen(TrackVec_t &tracks, GeantTaskData *td) = 0;
   /**
    * @brief Post step type of intraction sampling function
    * @details Sampling:
@@ -164,8 +167,9 @@ public:
    * @param td  Thread data
    */
   VECCORE_ATT_HOST_DEVICE
-  virtual void PostStepTypeOfIntrActSampling(Material_t *mat, TrackVec_t &tracks,
-                                             GeantTaskData *td) = 0;
+  virtual void PostStepTypeOfIntrActSampling(GeantTrack *track, GeantTaskData *td) = 0;
+  VECCORE_ATT_HOST_DEVICE
+  virtual void PostStepTypeOfIntrActSampling(TrackVec_t &tracks, GeantTaskData *td) = 0;
 
   /**
    * @brief Post step final state sampling function
@@ -181,18 +185,21 @@ public:
    * @param td Thread data
    */
   VECCORE_ATT_HOST_DEVICE
-  virtual void PostStepFinalStateSampling(Material_t *mat, TrackVec_t &tracks, int &nout,
-                                          GeantTaskData *td) = 0;
+  virtual void PostStepFinalStateSampling(GeantTrack *track, int &nout, TrackVec_t &output, GeantTaskData *td) = 0;
+  VECCORE_ATT_HOST_DEVICE
+  virtual void PostStepFinalStateSampling(TrackVec_t &tracks, int &nout, TrackVec_t &output, GeantTaskData *td) = 0;
+
  /**
    * @todo  Need to be implemented
    */
   virtual void AtRest(TrackVec_t & /*tracks*/, int & /*nout*/, GeantTaskData * /*td*/) {}
 
-  /**
-   * @todo Need to be implemented
-   */
   VECCORE_ATT_HOST_DEVICE
-  virtual void Eloss(Material_t * /*mat*/, TrackVec_t & /*tracks*/, int & /*nout*/,
+  virtual void Eloss(GeantTrack */*track*/, int &/*nout*/, TrackVec_t &/*output*/,
+                     GeantTaskData * /*td*/) {}
+
+  VECCORE_ATT_HOST_DEVICE
+  virtual void Eloss(TrackVec_t &/*tracks*/, int &/*nout*/, TrackVec_t &/*output*/,
                      GeantTaskData * /*td*/) {}
 
   /**

@@ -116,6 +116,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #ifdef USE_VECGEOM_NAVIGATOR
   // Copy relevant track fields to geometry SOA and process vectorized.
   GeantTrackGeo_v &track_geo = *td->fGeoTrack;
+  track_geo.Clear();
   int i = 0;
   for (auto track : tracks) {
     track_geo.AddTrack(*track);

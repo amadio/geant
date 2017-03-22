@@ -27,7 +27,7 @@ VECCORE_ATT_HOST_DEVICE
 void XSecSamplingHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Invoke scalar xsec sampling
-  fPropagator->fProcess->ComputeIntLen(nullptr, td->WrappedScalar(track), td);
+  fPropagator->fProcess->ComputeIntLen(track, td);
   // Copy to output
   output.AddTrack(track);
 }
@@ -38,7 +38,7 @@ void XSecSamplingHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   TrackVec_t &tracks = input.Tracks();
-  fPropagator->fProcess->ComputeIntLen(nullptr, tracks, td);
+  fPropagator->fProcess->ComputeIntLen(tracks, td);
   // Copy tracks to output
 #ifndef VECCORE_CUDA
   std::copy(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));

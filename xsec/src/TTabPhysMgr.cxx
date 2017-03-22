@@ -506,33 +506,36 @@ int TTabPhysMgr::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, Geant
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int TTabPhysMgr::Eloss(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td) {
+int TTabPhysMgr::Eloss(GeantTrack *track, TrackVec_t &output, GeantTaskData *td) {
+  // Apply energy loss for the input material for ntracks in the vector of
+  // tracks. Output: modified tracks.fEV array
+
+  TMXsec *mxs = 0;
+  int nTotSecPart = 0; // total number of new tracks
+  double energyLimit = td->fPropagator->fConfig->fEmin;
+#ifdef USE_VECGEOM_NAVIGATOR
+  mxs = (TMXsec *)track->GetMaterial()->GetXsecPtr();
+#else
+  mxs = ((TOMXsec *)((TGeoRCExtension *)track->GetMaterial()->GetFWExtension())->GetUserObject())->MXsec();
+#endif
+  mxs->Eloss(*track, td);
+  // call atRest sampling for tracks that have been stopped by Eloss and has at-rest
+  if (track->fProcess == -2 && HasRestProcess(track->fGVcode))
+    GetRestFinStates(track->fGVcode, mxs, energyLimit, track, nTotSecPart, output, td);
+
+  return nTotSecPart;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int TTabPhysMgr::Eloss(TrackVec_t &tracks, TrackVec_t &output, GeantTaskData *td) {
   // Apply energy loss for the input material for ntracks in the vector of
   // tracks. Output: modified tracks.fEV array
 
   TMXsec *mxs = 0;
   int ntracks = tracks.size();
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  if (mat)
-#ifdef USE_VECGEOM_NAVIGATOR
-    mxs = (TMXsec *)mat->GetXsecPtr();
-#else
-    mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
-#endif
-#else
-  // NOTE: we need to get it from somewhere ....
-  assert(mxs != 0);
-#endif
   int nTotSecPart = 0; // total number of new tracks
   double energyLimit = td->fPropagator->fConfig->fEmin;
-  if (mxs) {
-    mxs->Eloss(tracks, td);
-    // call atRest sampling for tracks that have been stopped by Eloss and has at-rest
-    for (int i = 0; i < ntracks; ++i)
-      if (tracks[i]->fProcess == -2 && HasRestProcess(tracks[i]->fGVcode))
-        GetRestFinStates(tracks[i]->fGVcode, mxs, energyLimit, tracks, i, nTotSecPart, td);
-    return nTotSecPart;
-  }
   // Mixed tracks in different volumes
   for (int i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -543,7 +546,7 @@ int TTabPhysMgr::Eloss(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td) {
     mxs->Eloss(*tracks[i], td);
     // call atRest sampling for tracks that have been stopped by Eloss and has at-rest
     if (tracks[i]->fProcess == -2 && HasRestProcess(tracks[i]->fGVcode))
-      GetRestFinStates(tracks[i]->fGVcode, mxs, energyLimit, tracks, i, nTotSecPart, td);
+      GetRestFinStates(tracks[i]->fGVcode, mxs, energyLimit, tracks[i], nTotSecPart, output, td);
   }
 
   return nTotSecPart;
@@ -581,26 +584,27 @@ void TTabPhysMgr::ProposeStep(Material_t *mat, int ntracks, GeantTrack_v &tracks
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TTabPhysMgr::ProposeStep(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td) {
+void TTabPhysMgr::ProposeStep(GeantTrack *track, GeantTaskData *td) {
+  // Sample free flight/proposed step for the firts ntracks tracks and store them
+  // in tracks.fPstepV
+
+  TMXsec *mxs = 0;
+#ifdef USE_VECGEOM_NAVIGATOR
+  mxs = (TMXsec *)track->GetMaterial()->GetXsecPtr();
+#else
+  mxs = ((TOMXsec *)((TGeoRCExtension *)track->GetMaterial()->GetFWExtension())->GetUserObject())->MXsec();
+#endif
+  mxs->ProposeStep(*track, td);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysMgr::ProposeStep(TrackVec_t &tracks, GeantTaskData *td) {
   // Sample free flight/proposed step for the firts ntracks tracks and store them
   // in tracks.fPstepV
 
   TMXsec *mxs = 0;
   int ntracks = tracks.size();
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  if (mat) {
-#ifdef USE_VECGEOM_NAVIGATOR
-    mxs = (TMXsec *)mat->GetXsecPtr();
-#else
-    mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
-#endif
-  }
-#endif
-  if (mxs) {
-    mxs->ProposeStep(tracks, td);
-    return;
-  }
-  // Mixed tracks in different volumes
   for (int i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
     mxs = (TMXsec *)tracks[i]->GetMaterial()->GetXsecPtr();
@@ -660,31 +664,24 @@ void TTabPhysMgr::SampleTypeOfInteractions(int imat, int ntracks, GeantTrack_v &
   }
 }
 
-// smapling: target atom and type of the interaction for each primary tracks
+// sampling: target atom and type of the interaction for each primary tracks
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TTabPhysMgr::SampleTypeOfInteractions(int imat, TrackVec_t &tracks, GeantTaskData *td) {
-  Material_t *mat = 0;
+void TTabPhysMgr::SampleTypeOfInteractions(GeantTrack *track, GeantTaskData *td) {
+  TMXsec *mxs = 0;
+#ifdef USE_VECGEOM_NAVIGATOR
+  mxs = (TMXsec *)track->GetMaterial()->GetXsecPtr();
+#else
+  mxs = ((TOMXsec *)((TGeoRCExtension *)track->GetMaterial()->GetFWExtension())->GetUserObject())->MXsec();
+#endif
+  mxs->SampleInt(*track, td);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TTabPhysMgr::SampleTypeOfInteractions(TrackVec_t &tracks, GeantTaskData *td) {
   TMXsec *mxs = 0;
   int ntracks = tracks.size();
-  if (imat >= 0) {
-#ifdef USE_VECGEOM_NAVIGATOR
-    mat = vecgeom::Material::GetMaterials()[imat];
-    mxs = (TMXsec *)mat->GetXsecPtr();
-#else
-    mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
-    mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
-#endif
-  }
-
-  // 1. sampling: a. decay or something else
-  //             b. if else then what on what target?
-  //   output of sampling is stored in the tracks
-  if (mxs) {
-    mxs->SampleInt(tracks, td);
-    return;
-  }
-  // Mixed tracks in different volumes
   for (int i = 0; i < ntracks; ++i) {
 #ifdef USE_VECGEOM_NAVIGATOR
     mxs = (TMXsec *)tracks[i]->GetMaterial()->GetXsecPtr();
@@ -956,262 +953,250 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int TTabPhysMgr::SampleFinalStates(int imat, TrackVec_t &tracks, GeantTaskData *td) {
+int TTabPhysMgr::SampleFinalStates(TrackVec_t &tracks, TrackVec_t &output, GeantTaskData *td) {
+
+  int nTotSecPart = 0; // total number of secondary particles in tracks
+  int ntracks = tracks.size();
+  for (int t = 0; t < ntracks; ++t)
+    nTotSecPart += SampleFinalStates(tracks[t], output, td);
+  return nTotSecPart;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int TTabPhysMgr::SampleFinalStates(GeantTrack *track, TrackVec_t &output, GeantTaskData *td) {
   GeantPropagator *propagator = td->fPropagator;
   double energyLimit = propagator->fConfig->fEmin;
-  int ntracks = tracks.size();
-  
-  Material_t *mat = 0;
   TMXsec *mxs = 0;
-  if (imat >= 0) {
-#ifdef USE_VECGEOM_NAVIGATOR
-    mat = vecgeom::Material::GetMaterials()[imat];
-    mxs = (TMXsec *)mat->GetXsecPtr();
-#else
-    mat = (Material_t *)fGeom->GetListOfMaterials()->At(imat);
-    mxs = ((TOMXsec *)((TGeoRCExtension *)mat->GetFWExtension())->GetUserObject())->MXsec();
-#endif
-  }
 
   // tid-based rng
   double *rndArray = td->fDblArray;
 #ifdef USE_VECGEOM_NAVIGATOR
-  td->fRndm->uniform_array(2 * ntracks, rndArray);
+  td->fRndm->uniform_array(2 , rndArray);
 #elif USE_ROOT
-  td->fRndm->RndmArray(2 * ntracks, rndArray);
+  td->fRndm->RndmArray(2 , rndArray);
 #endif
 
   int nTotSecPart = 0; // total number of secondary particles in tracks
 
-  for (int t = 0; t < ntracks; ++t) {
-    // if no interaction was selected for this track (because it doesn't have any)
-    if (tracks[t]->fProcess < 0)
-      continue;
+  // if no interaction was selected for this track (because it doesn't have any)
+  if (track->fProcess < 0)
+    return 0;
 
-    int nSecPart = 0;     // number of secondary particles per reaction
-    const int *pid = 0;   // GeantV particle codes [nSecPart]
-    const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
-    float ener = 0;       // energy at the fstate (Ekin of primary after the interc.)
-    float kerma = 0;      // released energy
-    float weight = 0;     // weight of the fstate (just a dummy parameter now)
-    char isSurv = 0;      // is the primary survived the interaction
-    int ebinindx = -1;    // energy bin index of the selected final state
+  int nSecPart = 0;     // number of secondary particles per reaction
+  const int *pid = 0;   // GeantV particle codes [nSecPart]
+  const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
+  float ener = 0;       // energy at the fstate (Ekin of primary after the interc.)
+  float kerma = 0;      // released energy
+  float weight = 0;     // weight of the fstate (just a dummy parameter now)
+  char isSurv = 0;      // is the primary survived the interaction
+  int ebinindx = -1;    // energy bin index of the selected final state
 
-    // Deal with mixed tracks case
-    if (!mxs)
 #ifdef USE_VECGEOM_NAVIGATOR
-      mxs = (TMXsec *)tracks[t]->GetMaterial()->GetXsecPtr();
+  mxs = (TMXsec *)track->GetMaterial()->GetXsecPtr();
 #else
-      mxs = ((TOMXsec *)((TGeoRCExtension *)tracks[t]->GetMaterial()->GetFWExtension())->GetUserObject())->MXsec();
+  mxs = ((TOMXsec *)((TGeoRCExtension *)track->GetMaterial()->GetFWExtension())->GetUserObject())->MXsec();
 #endif
 
-    // first check the results of interaction sampling:
-    if (tracks[t]->fProcess == 3) {
-      // decay : in-flight decay was selected
-      // kill the primary tarck
-      tracks[t]->fStatus = kKilled;
-      // sample in-flight decay final state
-      SampleDecayInFlight(tracks[t]->fGVcode, mxs, energyLimit, tracks, t, nTotSecPart, td);
-      tracks[t]->fP = 0.;
-      tracks[t]->fE = tracks[t]->fMass;
-      continue;
+  // first check the results of interaction sampling:
+  if (track->fProcess == 3) {
+    // decay : in-flight decay was selected
+    // kill the primary tarck
+    track->fStatus = kKilled;
+    // sample in-flight decay final state
+    SampleDecayInFlight(track->fGVcode, mxs, energyLimit, track, nTotSecPart, output, td);
+    track->fP = 0.;
+    track->fE = track->fMass;
+    return nTotSecPart;
+  }
+
+  // not decay but something else was selected
+  double curPrimEkin = track->fE - track->fMass;
+  isSurv = fElemFstate[track->fEindex]->SampleReac(track->fGVcode, track->fProcess, curPrimEkin, nSecPart,
+                                                   weight, kerma, ener, pid, mom, ebinindx, rndArray[0], rndArray[1]);
+
+  // it is the case of: pre-step energy sigma is not zero of this interaction
+  //                    but post step is zero-> we don't have final state for
+  //                    this interaction at the postStep energy bin-> do nothing
+  // This can happen if interaction type is selected based on the pre-step energy
+  // and there is some energy loss along the step (or something like this)
+  if (isSurv && ener < 0) // let it go further as it is
+    return nSecPart;
+
+  // we should correct the kerma as well but we don't have enough information
+  track->fEdep += kerma;
+
+  // if we have secondaries from the current interaction
+  if (nSecPart) {
+    double oldXdir = track->fXdir; // old X direction of the primary
+    double oldYdir = track->fYdir; // old Y direction of the primary
+    double oldZdir = track->fZdir; // old Z direction of the primary
+    int j = 0;
+
+    // setting the final state correction factor (we scale only the 3-momentums)
+    //-get mass of the primary
+    double primMass = track->fMass; // mass [GeV]
+    //-compute corFactor = P_current/P_original = Pz_current/Pz_original
+    // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...)
+    double orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx];
+    double corFactor =
+      vecCore::math::Sqrt(curPrimEkin * (curPrimEkin + 2.0 * primMass) / (orgPrimEkin * (orgPrimEkin + 2.0 * primMass)));
+    //-if corFactor is set here to 1.0 --> no correction of the final states
+    // corFactor = 1.0;
+
+    // check if we need to correct the post-interaction Ekin of the primary:
+    // if the primary is survived and has non-zero Ekin --> compute its corrected Ekin
+    double postEkinOfParimary = ener;
+    if (isSurv && (postEkinOfParimary > 0.0)) { // survived and not stopped
+      // get corrected 3-momentum of the post-interaction primary
+      double px = mom[0];
+      double py = mom[1];
+      double pz = mom[2];
+      px *= corFactor;
+      py *= corFactor;
+      pz *= corFactor;
+      // compute corrected P^2 in [GeV^2]
+      double postPrimP2 = px * px + py * py + pz * pz;
+      // recompute post-interaction Ekin of the primary with corrected 3-momentum
+      postEkinOfParimary = vecCore::math::Sqrt(postPrimP2 + primMass * primMass) - primMass;
     }
 
-    // not decay but something else was selected
-    double curPrimEkin = tracks[t]->fE - tracks[t]->fMass;
-    isSurv = fElemFstate[tracks[t]->fEindex]->SampleReac(tracks[t]->fGVcode, tracks[t]->fProcess, curPrimEkin, nSecPart,
-                                                         weight, kerma, ener, pid, mom, ebinindx, rndArray[2 * t],
-                                                         rndArray[2 * t + 1]);
+    if (postEkinOfParimary > energyLimit) { // survived even after the correction and the E-limit.
+      // keep alive
+      //        tracks[t]->fStatus = kAlive;
+      double px = mom[0];
+      double py = mom[1];
+      double pz = mom[2];
+      px *= corFactor;
+      py *= corFactor;
+      pz *= corFactor;
+      // compute corrected P^2 in [GeV^2]
+      double postPrimP2 = px * px + py * py + pz * pz;
+      // recompute post-interaction Ekin of the primary with corrected 3-momentum
+      postEkinOfParimary = vecCore::math::Sqrt(postPrimP2 + primMass * primMass) - primMass;
 
-    // it is the case of: pre-step energy sigma is not zero of this interaction
-    //                    but post step is zero-> we don't have final state for
-    //                    this interaction at the postStep energy bin-> do nothing
-    // This can happen if interaction type is selected based on the pre-step energy
-    // and there is some energy loss along the step (or something like this)
-    if (isSurv && ener < 0) // let it go further as it is
-      continue;
+      // update primary in tracks
+      double secPtot = vecCore::math::Sqrt(postPrimP2);                      // total P [GeV]
+      double secEtot = postEkinOfParimary + track->fMass; // total energy in [GeV]
+      track->fP = secPtot;                                // momentum of this particle
+      track->fE = secEtot;                                // total E of this particle
+      track->fXdir = px / secPtot;                        // dirx of this particle (before transform.)
+      track->fYdir = py / secPtot;                        // diry of this particle (before transform.)
+      track->fZdir = pz / secPtot;                        // dirz of this particle (before transform.)
 
-    // we should correct the kerma as well but we don't have enough information
-    tracks[t]->fEdep += kerma;
+      // Rotate parent track in tracks to original parent track's frame
+      RotateNewTrack(oldXdir, oldYdir, oldZdir, *track);
+      // primary track is updated
+    } else {
+      // Primary particle energy is below tracking limit
+      //-set status of primary in tracks to kKilled;
+      track->fStatus = kKilled;
+      track->fEdep += postEkinOfParimary;
+      track->fP = 0.;
+      track->fE = track->fMass;
+      // if the primary is stopped i.e. Ekin <= 0 then call at-rest if it has
+      if (isSurv && postEkinOfParimary <= 0.0 && HasRestProcess(track->fGVcode))
+        GetRestFinStates(track->fGVcode, mxs, energyLimit, track, nTotSecPart, output, td);
+    }
 
-    // if we have secondaries from the current interaction
-    if (nSecPart) {
-      double oldXdir = tracks[t]->fXdir; // old X direction of the primary
-      double oldYdir = tracks[t]->fYdir; // old Y direction of the primary
-      double oldZdir = tracks[t]->fZdir; // old Z direction of the primary
-      int j = 0;
-
-      // setting the final state correction factor (we scale only the 3-momentums)
-      //-get mass of the primary
-      double primMass = tracks[t]->fMass; // mass [GeV]
-      //-compute corFactor = P_current/P_original = Pz_current/Pz_original
-      // (normaly a check would be good but not necessary: if(ebinindx<0 -> ...)
-      double orgPrimEkin = (TPartIndex::I()->EGrid())[ebinindx];
-      double corFactor =
-          vecCore::math::Sqrt(curPrimEkin * (curPrimEkin + 2.0 * primMass) / (orgPrimEkin * (orgPrimEkin + 2.0 * primMass)));
-      //-if corFactor is set here to 1.0 --> no correction of the final states
-      // corFactor = 1.0;
-
-      // check if we need to correct the post-interaction Ekin of the primary:
-      // if the primary is survived and has non-zero Ekin --> compute its corrected Ekin
-      double postEkinOfParimary = ener;
-      if (isSurv && (postEkinOfParimary > 0.0)) { // survived and not stopped
-        // get corrected 3-momentum of the post-interaction primary
-        double px = mom[0];
-        double py = mom[1];
-        double pz = mom[2];
-        px *= corFactor;
-        py *= corFactor;
-        pz *= corFactor;
-        // compute corrected P^2 in [GeV^2]
-        double postPrimP2 = px * px + py * py + pz * pz;
-        // recompute post-interaction Ekin of the primary with corrected 3-momentum
-        postEkinOfParimary = vecCore::math::Sqrt(postPrimP2 + primMass * primMass) - primMass;
-      }
-
-      if (postEkinOfParimary > energyLimit) { // survived even after the correction and the E-limit.
-        // keep alive
-        //        tracks[t]->fStatus = kAlive;
-        double px = mom[0];
-        double py = mom[1];
-        double pz = mom[2];
-        px *= corFactor;
-        py *= corFactor;
-        pz *= corFactor;
-        // compute corrected P^2 in [GeV^2]
-        double postPrimP2 = px * px + py * py + pz * pz;
-        // recompute post-interaction Ekin of the primary with corrected 3-momentum
-        postEkinOfParimary = vecCore::math::Sqrt(postPrimP2 + primMass * primMass) - primMass;
-
-        // update primary in tracks
-        double secPtot = vecCore::math::Sqrt(postPrimP2);                      // total P [GeV]
-        double secEtot = postEkinOfParimary + tracks[t]->fMass; // total energy in [GeV]
-        tracks[t]->fP = secPtot;                                // momentum of this particle
-        tracks[t]->fE = secEtot;                                // total E of this particle
-        tracks[t]->fXdir = px / secPtot;                        // dirx of this particle (before transform.)
-        tracks[t]->fYdir = py / secPtot;                        // diry of this particle (before transform.)
-        tracks[t]->fZdir = pz / secPtot;                        // dirz of this particle (before transform.)
-
-        // Rotate parent track in tracks to original parent track's frame
-        RotateNewTrack(oldXdir, oldYdir, oldZdir, *tracks[t]);
-        // primary track is updated
-      } else {
-        // Primary particle energy is below tracking limit
-        //-set status of primary in tracks to kKilled;
-        tracks[t]->fStatus = kKilled;
-        tracks[t]->fEdep += postEkinOfParimary;
-        tracks[t]->fP = 0.;
-        tracks[t]->fE = tracks[t]->fMass;
-        // if the primary is stopped i.e. Ekin <= 0 then call at-rest if it has
-        if (isSurv && postEkinOfParimary <= 0.0 && HasRestProcess(tracks[t]->fGVcode))
-          GetRestFinStates(tracks[t]->fGVcode, mxs, energyLimit, tracks, t, nTotSecPart, td);
-      }
-
-      if (isSurv)
-        j = 1;
-      // loop over the secondaries and put them into tracks if they good to track:
-      // j=0 -> including stopped primary as well if isSurv = true;
-      // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above)
-      for (int i = j; i < nSecPart; ++i) {
-        if (pid[i] >= TPartIndex::I()->NPart()) { // fragment: put its Ekin to energy deposit
-          int idummy = pid[i] - 1000000000;
-          int Z = idummy / 10000.;
-          int A = (idummy - Z * 10000) / 10.;
-          double secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
-          double px = mom[3 * i];
-          double py = mom[3 * i + 1];
-          double pz = mom[3 * i + 2];
-          px *= corFactor;
-          py *= corFactor;
-          pz *= corFactor;
-          double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
-          tracks[t]->fEdep += vecCore::math::Sqrt(secPtot2 + secMass * secMass) - secMass;
-          continue;
-        }
-        int secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
-#ifdef USE_VECGEOM_NAVIGATOR
-        const Particle_t *const &secPartPDG = &Particle_t::GetParticle(secPDG);
-#else
-        TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
-#endif
-        double secMass = secPartPDG->Mass();
-        /*	static std::mutex m;
-        m.lock();
-        std::cout << __func__ << "::secMass: " << secMass << " secPDG: " << secPDG << " SecPartPDG:" << *secPartPDG <<
-        std::endl;
-        m.unlock();
-        */
+    if (isSurv)
+      j = 1;
+    // loop over the secondaries and put them into tracks if they good to track:
+    // j=0 -> including stopped primary as well if isSurv = true;
+    // j=1 -> skipp the primary in the list of secondaries (was already updated in tracks above)
+    for (int i = j; i < nSecPart; ++i) {
+      if (pid[i] >= TPartIndex::I()->NPart()) { // fragment: put its Ekin to energy deposit
+        int idummy = pid[i] - 1000000000;
+        int Z = idummy / 10000.;
+        int A = (idummy - Z * 10000) / 10.;
+        double secMass = TPartIndex::I()->GetAprxNuclearMass(Z, A);
         double px = mom[3 * i];
         double py = mom[3 * i + 1];
         double pz = mom[3 * i + 2];
         px *= corFactor;
         py *= corFactor;
         pz *= corFactor;
-        double secPtot2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
-        double secPtot = vecCore::math::Sqrt(secPtot2);                     // total P [GeV]
-        double secEtot = vecCore::math::Sqrt(secPtot2 + secMass * secMass); // total energy in [GeV]
-        double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
-        // Ekin of the i-th secondary is higher than the threshold
-        if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
-          GeantTrack &track = td->GetNewTrack();
-          //          GeantTrack track;
-          // set the new track properties
-          track.fEvent = tracks[t]->fEvent;
-          track.fEvslot = tracks[t]->fEvslot;
-          //          track.fParticle = nTotSecPart;          //index of this particle
-          track.fPDG = secPDG;    // PDG code of this particle
-          track.fGVcode = pid[i]; // GV index of this particle
-          track.fEindex = 0;
-          track.fCharge = secPartPDG->Charge(); // charge of this particle
-#ifndef USE_VECGEOM_NAVIGATOR
-	  track.fCharge /=3.;
+        double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
+        track->fEdep += vecCore::math::Sqrt(secPtot2 + secMass * secMass) - secMass;
+        continue;
+      }
+      int secPDG = TPartIndex::I()->PDG(pid[i]); // Geant V particle code -> particle PGD code
+#ifdef USE_VECGEOM_NAVIGATOR
+      const Particle_t *const &secPartPDG = &Particle_t::GetParticle(secPDG);
+#else
+      TParticlePDG *secPartPDG = TDatabasePDG::Instance()->GetParticle(secPDG);
 #endif
-          track.fProcess = 0;
-          track.fNsteps = 0;
-          track.fGeneration = tracks[t]->fGeneration + 1;
-          //          track.fSpecies  = 0;
-          track.fStatus = kNew;           // status of this particle
-          track.fMass = secMass;          // mass of this particle
-          track.fXpos = tracks[t]->fXpos; // rx of this particle (same as parent)
-          track.fYpos = tracks[t]->fYpos; // ry of this particle (same as parent)
-          track.fZpos = tracks[t]->fZpos; // rz of this particle (same as parent)
-          track.fXdir = px / secPtot;     // dirx of this particle (before transform.)
-          track.fYdir = py / secPtot;     // diry of this particle before transform.)
-          track.fZdir = pz / secPtot;     // dirz of this particle before transform.)
-          track.fP = secPtot;             // momentum of this particle
-          track.fE = secEtot;             // total E of this particle
-          track.fTime = tracks[t]->fTime; // global time
-          track.fEdep = 0.;
-          track.fPstep = 0.;
-          track.fStep = 0.;
-          track.fSnext = 0.;
-          track.fSafety = tracks[t]->fSafety;
-          track.fBoundary = tracks[t]->fBoundary;
-          track.fPending = false;
-          *track.fPath = *tracks[t]->fPath;
-          *track.fNextpath = *tracks[t]->fPath;
-	        track.fMother = tracks[t]->fParticle;
+      double secMass = secPartPDG->Mass();
+      double px = mom[3 * i];
+      double py = mom[3 * i + 1];
+      double pz = mom[3 * i + 2];
+      px *= corFactor;
+      py *= corFactor;
+      pz *= corFactor;
+      double secPtot2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
+      double secPtot = vecCore::math::Sqrt(secPtot2);                     // total P [GeV]
+      double secEtot = vecCore::math::Sqrt(secPtot2 + secMass * secMass); // total energy in [GeV]
+      double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
+      // Ekin of the i-th secondary is higher than the threshold
+      if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
+        GeantTrack &track1 = td->GetNewTrack();
+        //          GeantTrack track;
+        // set the new track properties
+        track1.fEvent = track->fEvent;
+        track1.fEvslot = track->fEvslot;
+        //          track1.fParticle = nTotSecPart;          //index of this particle
+        track1.fPDG = secPDG;    // PDG code of this particle
+        track1.fGVcode = pid[i]; // GV index of this particle
+        track1.fEindex = 0;
+        track1.fCharge = secPartPDG->Charge(); // charge of this particle
+#ifndef USE_VECGEOM_NAVIGATOR
+	      track1.fCharge /=3.;
+#endif
+        track1.fProcess = 0;
+        track1.fNsteps = 0;
+        track1.fGeneration = track->fGeneration + 1;
+        //          track1.fSpecies  = 0;
+        track1.fStatus = kNew;           // status of this particle
+        track1.fMass = secMass;          // mass of this particle
+        track1.fXpos = track->fXpos; // rx of this particle (same as parent)
+        track1.fYpos = track->fYpos; // ry of this particle (same as parent)
+        track1.fZpos = track->fZpos; // rz of this particle (same as parent)
+        track1.fXdir = px / secPtot;     // dirx of this particle (before transform.)
+        track1.fYdir = py / secPtot;     // diry of this particle before transform.)
+        track1.fZdir = pz / secPtot;     // dirz of this particle before transform.)
+        track1.fP = secPtot;             // momentum of this particle
+        track1.fE = secEtot;             // total E of this particle
+        track1.fTime = track->fTime; // global time
+        track1.fEdep = 0.;
+        track1.fPstep = 0.;
+        track1.fStep = 0.;
+        track1.fSnext = 0.;
+        track1.fSafety = track->fSafety;
+        track1.fBoundary = track->fBoundary;
+        track1.fPending = false;
+        *track1.fPath = *track->fPath;
+        *track1.fNextpath = *track->fPath;
+	      track1.fMother = track->fParticle;
 
-          // Rotate new track to parent track's frame
-          RotateNewTrack(oldXdir, oldYdir, oldZdir, track);
+        // Rotate new track to parent track's frame
+        RotateNewTrack(oldXdir, oldYdir, oldZdir, track1);
 
-          propagator->AddTrack(track);
-          tracks.push_back(&track);
+        propagator->AddTrack(track1);
+        output.push_back(&track1);
 
-          ++nTotSecPart;
-        } else {                       // {secondary Ekin < energyLimit} -> kill this secondary
-          tracks[t]->fEdep += secEkin; // add the Ekin of this secondary to the energy depositon
-          // is secEkin <=0 then call at-rest process if the sec. particle has any
-          if (secEkin <= 0.0 && HasRestProcess(pid[i]))
-            GetRestFinStates(pid[i], mxs, energyLimit, tracks, t, nTotSecPart, td);
-        }
-      }                             // end loop over the secondaries
-    } else {                        // nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
-      tracks[t]->fStatus = kKilled; // set status of primary in tracks to kKilled;
-      tracks[t]->fP = 0;
-      tracks[t]->fE = tracks[t]->fMass;
-    }
-  } // end loop over tracks
+        ++nTotSecPart;
+      } else {                       // {secondary Ekin < energyLimit} -> kill this secondary
+        track->fEdep += secEkin; // add the Ekin of this secondary to the energy depositon
+        // is secEkin <=0 then call at-rest process if the sec. particle has any
+        if (secEkin <= 0.0 && HasRestProcess(pid[i]))
+          GetRestFinStates(pid[i], mxs, energyLimit, track, nTotSecPart, output, td);
+      }
+    }                             // end loop over the secondaries
+  } else {                        // nSecPart = 0 i.e. there is no any secondaries -> primary was killed as well
+    track->fStatus = kKilled; // set status of primary in tracks to kKilled;
+    track->fP = 0;
+    track->fE = track->fMass;
+  }
 
   return nTotSecPart;
 }
@@ -1467,8 +1452,8 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 //______________________________________________________________________________
 // will be called recursively if necessary
 VECCORE_ATT_HOST_DEVICE
-void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, TrackVec_t &tracks, int iintrack,
-                                   int &nTotSecPart, GeantTaskData *td) {
+void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack *track,
+                                   int &nTotSecPart, TrackVec_t &output, GeantTaskData *td) {
   // current track should have already been killed before calling
   const double mecc = 0.00051099906; // e- mass c2 in [GeV]
   double rndArray[3];
@@ -1492,67 +1477,64 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 
   // check if particle is e+ : e+ annihilation at rest if $E_{limit}< m_{e}c^{2}$
   if (partindex == TPartIndex::I()->GetSpecGVIndex(1)) {
-    if (energyLimit < mecc) {
-      double randDirZ = 1.0 - 2.0 * rndArray[0];
-      double randSinTheta = vecCore::math::Sqrt(1.0 - randDirZ * randDirZ);
-      double randPhi = 2.0 * rndArray[1] * kPi;
-      double randDirX = randSinTheta * vecCore::math::Cos(randPhi);
-      double randDirY = randSinTheta * vecCore::math::Sin(randPhi);
+    if (energyLimit > mecc) return;
+    double randDirZ = 1.0 - 2.0 * rndArray[0];
+    double randSinTheta = vecCore::math::Sqrt(1.0 - randDirZ * randDirZ);
+    double randPhi = 2.0 * rndArray[1] * kPi;
+    double randDirX = randSinTheta * vecCore::math::Cos(randPhi);
+    double randDirY = randSinTheta * vecCore::math::Sin(randPhi);
 
-      // need to do it one-by-one
-      // 1. gamma
-      GeantTrack &track1 = td->GetNewTrack();
-      // set the new track properties: 2 gamma with m_{e}*c*c
-      track1.fEvent = tracks[iintrack]->fEvent;
-      track1.fEvslot = tracks[iintrack]->fEvslot;
-      //       track.fParticle = nTotSecPart;          //index of this particle
-      track1.fPDG = 22;                                    // gamma PDG code
-      track1.fGVcode = TPartIndex::I()->GetSpecGVIndex(2); // gamma GV index
-      track1.fEindex = 0;
-      track1.fCharge = 0.; // charge
-      track1.fProcess = 0;
-      track1.fNsteps = 0;
-      track1.fGeneration = tracks[iintrack]->fGeneration + 1;
-      //       track.fSpecies  = 0;
-      track1.fStatus = kNew;                  // status of this particle
-      track1.fMass = 0.;                      // mass of this particle
-      track1.fXpos = tracks[iintrack]->fXpos; // rx of this particle (same as parent)
-      track1.fYpos = tracks[iintrack]->fYpos; // ry of this particle (same as parent)
-      track1.fZpos = tracks[iintrack]->fZpos; // rz of this particle (same as parent)
-      track1.fXdir = randDirX;
-      track1.fYdir = randDirY;
-      track1.fZdir = randDirZ;
-      track1.fP = mecc;                       // momentum of this particle
-      track1.fE = mecc;                       // total E of this particle
-      track1.fTime = tracks[iintrack]->fTime; // total time of this particle
-      track1.fEdep = 0.;
-      track1.fPstep = 0.;
-      track1.fStep = 0.;
-      track1.fSnext = 0.;
-      track1.fSafety = tracks[iintrack]->fSafety;
-      track1.fBoundary = tracks[iintrack]->fBoundary;
-      track1.fPending = false;
-      *track1.fPath = *tracks[iintrack]->fPath;
-      *track1.fNextpath = *tracks[iintrack]->fPath;
+    // need to do it one-by-one
+    // 1. gamma
+    GeantTrack &track1 = td->GetNewTrack();
+    // set the new track properties: 2 gamma with m_{e}*c*c
+    track1.fEvent = track->fEvent;
+    track1.fEvslot = track->fEvslot;
+    //       track1.fParticle = nTotSecPart;          //index of this particle
+    track1.fPDG = 22;                                    // gamma PDG code
+    track1.fGVcode = TPartIndex::I()->GetSpecGVIndex(2); // gamma GV index
+    track1.fEindex = 0;
+    track1.fCharge = 0.; // charge
+    track1.fProcess = 0;
+    track1.fNsteps = 0;
+    track1.fGeneration = track->fGeneration + 1;
+    //       track.fSpecies  = 0;
+    track1.fStatus = kNew;                  // status of this particle
+    track1.fMass = 0.;                      // mass of this particle
+    track1.fXpos = track->fXpos; // rx of this particle (same as parent)
+    track1.fYpos = track->fYpos; // ry of this particle (same as parent)
+    track1.fZpos = track->fZpos; // rz of this particle (same as parent)
+    track1.fXdir = randDirX;
+    track1.fYdir = randDirY;
+    track1.fZdir = randDirZ;
+    track1.fP = mecc;                       // momentum of this particle
+    track1.fE = mecc;                       // total E of this particle
+    track1.fTime = track->fTime; // total time of this particle
+    track1.fEdep = 0.;
+    track1.fPstep = 0.;
+    track1.fStep = 0.;
+    track1.fSnext = 0.;
+    track1.fSafety = track->fSafety;
+    track1.fBoundary = track->fBoundary;
+    track1.fPending = false;
+    *track1.fPath = *track->fPath;
+    *track1.fNextpath = *track->fPath;
 
-      td->fPropagator->AddTrack(track1);
-      tracks.push_back(&track1);
+    td->fPropagator->AddTrack(track1);
+    output.push_back(&track1);
 
-      // 2. gamma : everything is the same but the direction
-      GeantTrack &track2 = td->GetNewTrack();
-      track2 = track1;
-      track2.fXdir = -1. * randDirX;
-      track2.fYdir = -1. * randDirY;
-      track2.fZdir = -1. * randDirZ;
+    // 2. gamma : everything is the same but the direction
+    GeantTrack &track2 = td->GetNewTrack();
+    track2 = track1;
+    track2.fXdir = -1. * randDirX;
+    track2.fYdir = -1. * randDirY;
+    track2.fZdir = -1. * randDirZ;
 
-      td->fPropagator->AddTrack(track2);
-      tracks.push_back(&track2);
+    td->fPropagator->AddTrack(track2);
+    output.push_back(&track2);
 
-      nTotSecPart += 2;
-      return;
-    } else {
-      return;
-    }
+    nTotSecPart += 2;
+    return;
   }
   // If the stopped particle doesn't have nuclear capture at-rest then decay it
   if (!fHasNCaptureAtRest[partindex]) {
@@ -1590,7 +1572,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
   }
 
   // if tehere was any energy deposit add it to parent track doposited energy
-  tracks[iintrack]->fEdep += kerma;
+  track->fEdep += kerma;
 
   // loop over the secondaries
   for (int i = 0; i < nSecPart; ++i) {
@@ -1603,7 +1585,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       double py = mom[3 * i + 1];
       double pz = mom[3 * i + 2];
       double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
-      tracks[iintrack]->fEdep += vecCore::math::Sqrt(secPtot2 + secMass * secMass) - secMass;
+      track->fEdep += vecCore::math::Sqrt(secPtot2 + secMass * secMass) - secMass;
       continue;
     }
 
@@ -1623,56 +1605,56 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
     // Ekin of the i-th secondary is higher than the threshold
     if (secEkin > energyLimit) { // insert secondary into tracks_v
-      GeantTrack &track = td->GetNewTrack();
+      GeantTrack &track3 = td->GetNewTrack();
       // set the new track properties
-      track.fEvent = tracks[iintrack]->fEvent;
-      track.fEvslot = tracks[iintrack]->fEvslot;
-      //       track.fParticle = nTotSecPart;          //index of this particle
-      track.fPDG = secPDG;    // PDG code of this particle
-      track.fGVcode = pid[i]; // GV index of this particle
-      track.fEindex = 0;
-      track.fCharge = secPartPDG->Charge(); // charge of this particle
+      track3.fEvent = track->fEvent;
+      track3.fEvslot = track->fEvslot;
+      //       track3.fParticle = nTotSecPart;          //index of this particle
+      track3.fPDG = secPDG;    // PDG code of this particle
+      track3.fGVcode = pid[i]; // GV index of this particle
+      track3.fEindex = 0;
+      track3.fCharge = secPartPDG->Charge(); // charge of this particle
 #ifndef USE_VECGEOM_NAVIGATOR
-      track.fCharge /=3.;
+      track3.fCharge /=3.;
 #endif
-      track.fProcess = 0;
-      track.fNsteps = 0;
-      track.fGeneration = tracks[iintrack]->fGeneration + 1;
+      track3.fProcess = 0;
+      track3.fNsteps = 0;
+      track3.fGeneration = track->fGeneration + 1;
       //       track.fSpecies  = 0;
-      track.fStatus = kNew;                  // status of this particle
-      track.fMass = secMass;                 // mass of this particle
-      track.fXpos = tracks[iintrack]->fXpos; // rx of this particle (same as parent)
-      track.fYpos = tracks[iintrack]->fYpos; // ry of this particle (same as parent)
-      track.fZpos = tracks[iintrack]->fZpos; // rz of this particle (same as parent)
-      track.fXdir = px / secPtot;            // dirx of this particle (before transform.)
-      track.fYdir = py / secPtot;            // diry of this particle before transform.)
-      track.fZdir = pz / secPtot;            // dirz of this particle before transform.)
-      track.fP = secPtot;                    // momentum of this particle
-      track.fE = secEtot;                    // total E of this particle
-      track.fTime = tracks[iintrack]->fTime; // global time for this particle
-      track.fEdep = 0.;
-      track.fPstep = 0.;
-      track.fStep = 0.;
-      track.fSnext = 0.;
-      track.fSafety = tracks[iintrack]->fSafety;
-      track.fBoundary = tracks[iintrack]->fBoundary;
-      track.fPending = false;
-      *track.fPath = *tracks[iintrack]->fPath;
-      *track.fNextpath = *tracks[iintrack]->fPath;
+      track3.fStatus = kNew;                  // status of this particle
+      track3.fMass = secMass;                 // mass of this particle
+      track3.fXpos = track->fXpos; // rx of this particle (same as parent)
+      track3.fYpos = track->fYpos; // ry of this particle (same as parent)
+      track3.fZpos = track->fZpos; // rz of this particle (same as parent)
+      track3.fXdir = px / secPtot;            // dirx of this particle (before transform.)
+      track3.fYdir = py / secPtot;            // diry of this particle before transform.)
+      track3.fZdir = pz / secPtot;            // dirz of this particle before transform.)
+      track3.fP = secPtot;                    // momentum of this particle
+      track3.fE = secEtot;                    // total E of this particle
+      track3.fTime = track->fTime; // global time for this particle
+      track3.fEdep = 0.;
+      track3.fPstep = 0.;
+      track3.fStep = 0.;
+      track3.fSnext = 0.;
+      track3.fSafety = track->fSafety;
+      track3.fBoundary = track->fBoundary;
+      track3.fPending = false;
+      *track3.fPath = *track->fPath;
+      *track3.fNextpath = *track->fPath;
 
       // rotate at-rest secondary by a common random theta and random phi
-      RotateNewTrack(randDirX, randDirY, randDirZ, track);
+      RotateNewTrack(randDirX, randDirY, randDirZ, track3);
 
-      td->fPropagator->AddTrack(track);
-      tracks.push_back(&track);
+      td->fPropagator->AddTrack(track3);
+      output.push_back(&track3);
 
       ++nTotSecPart; // increase # of secondaries in tracks_v
     } else {
       // add the Ekin of this secondary to the energy depositon
-      tracks[iintrack]->fEdep += secEkin;
+      track->fEdep += secEkin;
       // check if it is a stopped particle and call at-rest sampling if necessary
       if (secEkin <= 0.0 && HasRestProcess(pid[i]))
-        GetRestFinStates(pid[i], mxs, energyLimit, tracks, iintrack, nTotSecPart, td); // RECURSION
+        GetRestFinStates(pid[i], mxs, energyLimit, track, nTotSecPart, output, td); // RECURSION
     }
   } // end loop over the secondaries
 }
@@ -1792,8 +1774,8 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyLimit, TrackVec_t &tracks,
-                                      int iintrack, int &nTotSecPart, GeantTaskData *td) {
+void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyLimit, GeantTrack *track,
+                                      int &nTotSecPart, TrackVec_t &output, GeantTaskData *td) {
   int nSecPart = 0;     // number of secondary particles per reaction
   const int *pid = 0;   // GeantV particle codes [nSecPart]
   const float *mom = 0; // momentum vectors the secondaries [3*nSecPart]
@@ -1807,10 +1789,10 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
 
   if (nSecPart) {
     // Go for the secondaries
-    double beta = tracks[iintrack]->Beta();
-    double bx = tracks[iintrack]->fXdir * beta;
-    double by = tracks[iintrack]->fYdir * beta;
-    double bz = tracks[iintrack]->fZdir * beta;
+    double beta = track->Beta();
+    double bx = track->fXdir * beta;
+    double by = track->fYdir * beta;
+    double bz = track->fZdir * beta;
     double b2 = bx * bx + by * by + bz * bz; // it is beta*beta
     double gam = 1.0 / vecCore::math::Sqrt(1.0 - b2);
     double gam2 = b2 > 0.0 ? (gam - 1.0) / b2 : 0.0;
@@ -1825,7 +1807,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         double py = mom[3 * isec + 1];
         double pz = mom[3 * isec + 2];
         double secPtot2 = px * px + py * py + pz * pz; // total P^2 [GeV^2]
-        tracks[iintrack]->fEdep += vecCore::math::Sqrt(secPtot2 + secMass * secMass) - secMass;
+        track->fEdep += vecCore::math::Sqrt(secPtot2 + secMass * secMass) - secMass;
         continue;
       }
 
@@ -1852,53 +1834,53 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
       double secPtot = vecCore::math::Sqrt((secEtot - secMass) * (secEtot + secMass));
       double secEkin = secEtot - secMass;
       if (secEkin > energyLimit) { // insert secondary into tracks_v
-        GeantTrack &track = td->GetNewTrack();
+        GeantTrack &track1 = td->GetNewTrack();
         // set the new track properties
-        track.fEvent = tracks[iintrack]->fEvent;
-        track.fEvslot = tracks[iintrack]->fEvslot;
-        //         track.fParticle = nTotSecPart;          //index of this particle
-        track.fPDG = secPDG;       // PDG code of this particle
-        track.fGVcode = pid[isec]; // GV index of this particle
-        track.fEindex = 0;
-        track.fCharge = secPartPDG->Charge(); // charge of this particle
+        track1.fEvent = track->fEvent;
+        track1.fEvslot = track->fEvslot;
+        //         track1.fParticle = nTotSecPart;          //index of this particle
+        track1.fPDG = secPDG;       // PDG code of this particle
+        track1.fGVcode = pid[isec]; // GV index of this particle
+        track1.fEindex = 0;
+        track1.fCharge = secPartPDG->Charge(); // charge of this particle
 #ifndef USE_VECGEOM_NAVIGATOR
-	track.fCharge /=3.;
+	      track1.fCharge /=3.;
 #endif
-        track.fProcess = -1;
-        track.fNsteps = 0;
-        track.fGeneration = tracks[iintrack]->fGeneration + 1;
+        track1.fProcess = -1;
+        track1.fNsteps = 0;
+        track1.fGeneration = track->fGeneration + 1;
         //         track.fSpecies  = 0;
-        track.fStatus = kNew;                  // status of this particle
-        track.fMass = secMass;                 // mass of this particle
-        track.fXpos = tracks[iintrack]->fXpos; // rx of this particle (same as parent)
-        track.fYpos = tracks[iintrack]->fYpos; // ry of this particle (same as parent)
-        track.fZpos = tracks[iintrack]->fZpos; // rz of this particle (same as parent)
-        track.fXdir = px / secPtot;            // dirx of this particle (before transform.)
-        track.fYdir = py / secPtot;            // diry of this particle before transform.)
-        track.fZdir = pz / secPtot;            // dirz of this particle before transform.)
-        track.fP = secPtot;                    // momentum of this particle
-        track.fE = secEtot;                    // total E of this particle
-        track.fTime = tracks[iintrack]->fTime; // global time for this track
-        track.fEdep = 0.;
-        track.fPstep = 0.;
-        track.fStep = 0.;
-        track.fSnext = 0.;
-        track.fSafety = tracks[iintrack]->fSafety;
-        track.fBoundary = tracks[iintrack]->fBoundary;
-        track.fPending = false;
-        *track.fPath = *tracks[iintrack]->fPath;
-        *track.fNextpath = *tracks[iintrack]->fPath;
+        track1.fStatus = kNew;                  // status of this particle
+        track1.fMass = secMass;                 // mass of this particle
+        track1.fXpos = track->fXpos; // rx of this particle (same as parent)
+        track1.fYpos = track->fYpos; // ry of this particle (same as parent)
+        track1.fZpos = track->fZpos; // rz of this particle (same as parent)
+        track1.fXdir = px / secPtot;            // dirx of this particle (before transform.)
+        track1.fYdir = py / secPtot;            // diry of this particle before transform.)
+        track1.fZdir = pz / secPtot;            // dirz of this particle before transform.)
+        track1.fP = secPtot;                    // momentum of this particle
+        track1.fE = secEtot;                    // total E of this particle
+        track1.fTime = track->fTime; // global time for this track
+        track1.fEdep = 0.;
+        track1.fPstep = 0.;
+        track1.fStep = 0.;
+        track1.fSnext = 0.;
+        track1.fSafety = track->fSafety;
+        track1.fBoundary = track->fBoundary;
+        track1.fPending = false;
+        *track1.fPath = *track->fPath;
+        *track1.fNextpath = *track->fPath;
 
-        td->fPropagator->AddTrack(track);
-        tracks.push_back(&track);
+        td->fPropagator->AddTrack(track1);
+        output.push_back(&track1);
 
         ++nTotSecPart; // increase # of secondaries in tracks_v
       } else {
         // add the Ekin of this secondary to the energy depositon
-        tracks[iintrack]->fEdep += secEkin;
+        track->fEdep += secEkin;
         // check if it is a stopped particle and call at-rest sampling if necessary
         if (secEkin <= 0.0 && HasRestProcess(pid[isec]))
-          GetRestFinStates(pid[isec], mxs, energyLimit, tracks, iintrack, nTotSecPart, td);
+          GetRestFinStates(pid[isec], mxs, energyLimit, track, nTotSecPart, output, td);
       }
     } // end loop over secondaries
   }   // end if has secondaries

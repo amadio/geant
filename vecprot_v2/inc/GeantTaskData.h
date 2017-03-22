@@ -72,7 +72,6 @@ public:
   Basket *fBvector = nullptr;  /** Buffer basket used for vector API */
   Basket *fShuttleBasket = nullptr;  /** Shuttle basket from selectors to follow-up simulation stage */
   vector_t<Basket *> fStageBuffers; /** Buffers for tracks at input of simulation stages */
-  TrackVec_t fWrappedScalar; /** Single track pointer wrapped into a vector */
   GeantBasket *fImported; /** Basket used to import tracks from the event server */
   StackLikeBuffer *fStackBuffer; /** Stack buffer tor this thread */
 #ifdef VECCORE_CUDA
@@ -231,19 +230,15 @@ public:
   /** @brief Getter for the toclean flag */
   bool NeedsToClean() const { return fToClean; }
   
-  /** @brief Getter for a scalar track pointer wrapped into a vector */
-  TrackVec_t &WrappedScalar(GeantTrack *track) 
-  { 
-    fWrappedScalar[0] = track;
-    return fWrappedScalar;
-  }
-
   /**
    * @brief Function that returns a temporary track object per task data.
    * @details Temporary track for the current caller thread
    *
    */
   GeantTrack &GetTempTrack() { fTrack.Clear(); return fTrack; }
+
+  /** @brief  Inspect simulation stages */
+  void InspectStages(int istage);
 
 private:
   /**

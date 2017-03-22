@@ -269,10 +269,19 @@ public:
     return ( fStages.size() - 1);
   }
 
+  /** @brief  Inspect simulation stages */
+  VECCORE_ATT_HOST_DEVICE
+  void InspectStages();
+
   /** @brief  Getter for a simulation stage */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   SimulationStage *GetStage(ESimulationStage id) { return fStages[int(id)]; }
+
+  /** @brief  Getter for the number of simulation stages */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetNstages() { return fStages.size(); }
 
   /** @brief Function creating all simulation stages for a propagator */
   VECCORE_ATT_HOST_DEVICE

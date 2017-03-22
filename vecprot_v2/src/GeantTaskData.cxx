@@ -7,6 +7,8 @@
 #include "TrackManager.h"
 #include "GeantTrackGeo.h"
 #include "Geant/Typedefs.h"
+#include "Geant/Error.h"
+#include "SimulationStage.h"
 
 #ifdef USE_ROOT
 #include "TRandom.h"
@@ -35,7 +37,6 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fPathV = new VolumePath_t*[maxPerBasket];
   fNextpathV = new VolumePath_t*[maxPerBasket];
   fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
-  fWrappedScalar.push_back(nullptr);
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
 //  fRndm = &RNG::Instance();
@@ -72,7 +73,6 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fNextpathV = new VolumePath_t*[maxPerBasket];
   fGeoTrack = GeantTrackGeo_v::MakeInstanceAt(buffer, 4*maxPerBasket);
   buffer += GeantTrackGeo_v::SizeOfInstance(4*maxPerBasket);
-  fWrappedScalar.push_back(nullptr);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
   buffer = GeantTrack::round_up_align(buffer);
 
@@ -220,6 +220,19 @@ GeantTrack &GeantTaskData::GetNewTrack()
 {
   return ( fPropagator->fTrackMgr->GetTrack() );
 }
+
+//______________________________________________________________________________
+void GeantTaskData::InspectStages(int istage)
+{
+  Geant::Printf("** Thread %d: **", fTid);
+  for (auto stage : fPropagator->fStages) {
+    if (stage->GetId() == istage)
+      Geant::Printf("*** -> %15s:  %d tracks", stage->GetName(), fStageBuffers[stage->GetId()]->size());
+    else
+      Geant::Printf("***    %15s:  %d tracks", stage->GetName(), fStageBuffers[stage->GetId()]->size());    
+  }
+}
+
 
 #endif
 

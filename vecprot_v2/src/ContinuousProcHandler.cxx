@@ -31,7 +31,7 @@ void ContinuousProcHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDat
 #ifdef USE_REAL_PHYSICS
 //      fPropagator->GetPhysicsInterface()->AlongStepAction(mat, output.GetNtracks(), output, nextra_at_rest, td);
 #else
-      fPropagator->Process()->Eloss(nullptr, td->WrappedScalar(track), nextra_at_rest, td);
+      fPropagator->Process()->Eloss(track, nextra_at_rest, output.Tracks(), td);
 #endif
   // Copy to output
   output.AddTrack(track);
@@ -49,7 +49,7 @@ void ContinuousProcHandler::DoIt(Basket &input, Basket& output, GeantTaskData *t
 #ifdef USE_REAL_PHYSICS
 //      fPropagator->GetPhysicsInterface()->AlongStepAction(mat, output.GetNtracks(), output, nextra_at_rest, td);
 #else
-      fPropagator->Process()->Eloss(nullptr, tracks, nextra_at_rest, td);
+      fPropagator->Process()->Eloss(tracks, nextra_at_rest, output.Tracks(), td);
 #endif
 #ifndef VECCORE_CUDA
   std::copy(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));

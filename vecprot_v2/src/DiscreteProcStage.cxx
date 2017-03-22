@@ -34,7 +34,7 @@ Handler *DiscreteProcStage::Select(GeantTrack *track, GeantTaskData *td)
     // reset number of interaction length left
     track->fNintLen = -1;
     // Invoke PostStepTypeOfIntrActSampling
-    fPropagator->Process()->PostStepTypeOfIntrActSampling(nullptr, td->WrappedScalar(track), td);
+    fPropagator->Process()->PostStepTypeOfIntrActSampling(track, td);
 
     return ( GetHandler(track->fProcess) );
   }

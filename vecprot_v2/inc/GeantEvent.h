@@ -53,7 +53,7 @@ public:
   int AddTrack();
 
   /* @brief Function for accounting adding a new track */
-  void AddPrimary(GeantTrack *track) { fPrimaries.push_back(track); AddTrack(); }
+  int AddPrimary(GeantTrack *track) { fPrimaries.push_back(track); return AddTrack(); }
 
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE

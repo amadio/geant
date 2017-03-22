@@ -33,8 +33,6 @@ void DiscreteProcHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData 
 #ifdef USE_REAL_PHYSICS
 // fPropagator->GetPhysicsInterface()->PostStepAction(mat, nphys, output, ntotnext, td);
 #else
-  // first: sample target and type of interaction for each primary tracks
-  fPropagator->Process()->PostStepTypeOfIntrActSampling(nullptr, td->WrappedScalar(track), td);
 
   #ifdef USE_VECPHYS
 //  fPropagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
@@ -43,7 +41,7 @@ void DiscreteProcHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData 
   //         target and type of interaction above), insert them into
   //         the track vector, update primary tracks;
   int ntotnext = 0;
-  fPropagator->Process()->PostStepFinalStateSampling(nullptr, td->WrappedScalar(track), ntotnext, td);
+  fPropagator->Process()->PostStepFinalStateSampling(track, ntotnext, output.Tracks(), td);
 #endif
 
   // Copy to output
@@ -62,8 +60,6 @@ void DiscreteProcHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #ifdef USE_REAL_PHYSICS
 // fPropagator->GetPhysicsInterface()->PostStepAction(mat, nphys, output, ntotnext, td);
 #else
-  // first: sample target and type of interaction for each primary tracks
-  fPropagator->Process()->PostStepTypeOfIntrActSampling(nullptr, tracks, td);
 
   #ifdef USE_VECPHYS
 //  fPropagator->fVectorPhysicsProcess->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
@@ -72,7 +68,7 @@ void DiscreteProcHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   //         target and type of interaction above), insert them into
   //         the track vector, update primary tracks;
   int ntotnext = 0;
-  fPropagator->Process()->PostStepFinalStateSampling(nullptr, tracks, ntotnext, td);
+  fPropagator->Process()->PostStepFinalStateSampling(tracks, ntotnext, output.Tracks(), td);
 #endif
   // Copy tracks to output
 #ifndef VECCORE_CUDA

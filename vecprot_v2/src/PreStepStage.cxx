@@ -29,7 +29,11 @@ VECCORE_ATT_HOST_DEVICE
 Handler *PreStepStage::Select(GeantTrack *track, GeantTaskData *)
 {
 // Retrieve the handler only if the track is new.
-  if (track->fStatus != kNew) return nullptr;
+  if (track->fStatus != kNew) {
+      // Set the status to "in flight"
+    track->fStatus = kInFlight;
+    return nullptr;
+  }
   return fHandlers[0];
 }
 

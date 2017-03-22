@@ -125,7 +125,7 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   
   for (int itr=0; itr<ntracks; ++itr) {
     GeantTrack &track = trk_mgr.GetTrack();
-    fEvents[evt]->AddPrimary(&track);
+    track.fParticle = fEvents[evt]->AddPrimary(&track);
     track.SetPath(startpath);
     track.SetNextPath(startpath);
     track.SetEvent(evt);

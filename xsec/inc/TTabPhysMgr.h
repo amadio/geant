@@ -111,10 +111,14 @@ public:
   void ApplyMsc(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
 
   VECCORE_ATT_HOST_DEVICE
-  int Eloss(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
+  int Eloss(GeantTrack *track, TrackVec_t &output, GeantTaskData *td);
+  VECCORE_ATT_HOST_DEVICE
+  int Eloss(TrackVec_t &tracks, TrackVec_t &output, GeantTaskData *td);
 
   VECCORE_ATT_HOST_DEVICE
-  void ProposeStep(Material_t *mat, TrackVec_t &tracks, GeantTaskData *td);
+  void ProposeStep(GeantTrack *track, GeantTaskData *td);
+  VECCORE_ATT_HOST_DEVICE
+  void ProposeStep(TrackVec_t &tracks, GeantTaskData *td);
 
   VECCORE_ATT_HOST_DEVICE
   int SampleDecay(TrackVec_t &tracks, TrackVec_t &output); // not. imp.
@@ -126,21 +130,25 @@ public:
 
   // # smapling: target atom and type of the interaction for each primary tracks
   VECCORE_ATT_HOST_DEVICE
-  void SampleTypeOfInteractions(int imat, TrackVec_t &tracks, GeantTaskData *td);
+  void SampleTypeOfInteractions(GeantTrack *track, GeantTaskData *td);
+  VECCORE_ATT_HOST_DEVICE
+  void SampleTypeOfInteractions(TrackVec_t &tracks, GeantTaskData *td);
 
   // # sampling final states for each primary tracks based on target atom and
   //    interaction type sampled in SampleTypeOfInteractionsInt;
   // # upadting primary track properties and inserting secondary tracks;
   // # return: number of inserted secondary tracks
   VECCORE_ATT_HOST_DEVICE
-  int SampleFinalStates(int imat, TrackVec_t &tracks, GeantTaskData *td);
+  int SampleFinalStates(GeantTrack *track, TrackVec_t &output, GeantTaskData *td);
+  VECCORE_ATT_HOST_DEVICE
+  int SampleFinalStates(TrackVec_t &tracks, TrackVec_t &output, GeantTaskData *td);
 
   VECCORE_ATT_HOST_DEVICE
-  void GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, TrackVec_t &tracks, int iintrack,
-                        int &nTotSecPart, GeantTaskData *td);
+  void GetRestFinStates(int partindex, TMXsec *mxs, double energyLimit, GeantTrack *track,
+                        int &nTotSecPart, TrackVec_t &output, GeantTaskData *td);
   VECCORE_ATT_HOST_DEVICE
-  void SampleDecayInFlight(int partindex, TMXsec *mxs, double energyLimit, TrackVec_t &tracks, int iintrack,
-                           int &nTotSecPart, GeantTaskData *td);
+  void SampleDecayInFlight(int partindex, TMXsec *mxs, double energyLimit, GeantTrack *track,
+                           int &nTotSecPart, TrackVec_t &output, GeantTaskData *td);
 
 //===================================//
 
