@@ -56,6 +56,7 @@ public:
     GeantTrack &track = fBlockMgr.GetObject(index);
     track.Clear();
     track.fBindex = index;
+    track.fMaxDepth = fMaxdepth;
     return track;
   }
   

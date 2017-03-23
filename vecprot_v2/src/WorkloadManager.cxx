@@ -421,23 +421,22 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
 // The main stepping loop over simulation stages.
   static int count = 0;
   constexpr int nstages = int(ESimulationStage::kSteppingActionsStage) + 1;
+  bool flushed = !flush;
   int nprocessed = 0;
   int ninput = 0;
   int istage = 0;
-  while ( FlushOneLane(td) ) {
+  while ( FlushOneLane(td) || !flushed ) {
     while (1) {
       count++;
-      td->InspectStages(istage);
+//      td->InspectStages(istage);
       int nstart = td->fStageBuffers[istage]->size();
       ninput += nstart;
-      if ( nstart ) {
-//        Geant::Print("%s\n", td->fPropagator->fStages[istage]->GetName());
-//        GeantTrack::PrintTracks(td->fStageBuffers[istage]->Tracks());
-        Geant::Printf("count=%d", count);
-        if (count == 340) {
-          count = 340;
-        }
-        td->fStageBuffers[istage]->Tracks()[0]->Print("");
+      if ( nstart || !flushed ) {
+//        Geant::Printf("count=%d", count);
+//        if (count == 34175) {
+//          count = 34175;
+//        }
+//        td->fStageBuffers[istage]->Tracks()[0]->Print("");
         if (flush) 
           nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
         else
@@ -445,6 +444,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
       }
       istage = (istage + 1) % nstages;
       if (istage == 0) {
+        if (flush) flushed = true;
         if (ninput == 0) break;
         ninput = 0;
       }

@@ -119,8 +119,6 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fMaxDepth = other.fMaxDepth;
     fStage = other.fStage;
     fGeneration = other.fGeneration;
-    fPath = VolumePath_t::MakeInstance(fMaxDepth);
-    fNextpath = VolumePath_t::MakeInstance(fMaxDepth);
     *fPath = *other.fPath;
     *fNextpath = *other.fNextpath;
   }

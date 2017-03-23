@@ -147,6 +147,7 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
       nactivep += fEvents[evt]->GetNprimaries();
     // Initial basket share per propagator: nactivep/nperbasket
     fNbasketsInit = nactivep/(fRunMgr->GetConfig()->fNperBasket);
+    if (!fNbasketsInit) fNbasketsInit = 1;
     if (fNbasketsInit < fRunMgr->GetNpropagators()) {
       Error("EventServer", "Too many worker threads for this configuration.");
     }

@@ -32,8 +32,22 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
 // Flushing the handlers is opportunistic, as a handler is flushed by the first
 // thread to come. Subsequent threads will just notice that the handler is busy
 // and continue to other handlers, then to the next stage.
+
+  Basket &input = *td->fStageBuffers[fId];
   Basket &bvector = *td->fBvector;
+  bvector.Clear();
   Basket &output = *td->fShuttleBasket;
+  output.Clear();
+  // Loop tracks in the input basket and select the appropriate handler
+  for (auto track : input.Tracks()) {
+    Handler *handler = Select(track, td);
+    // Execute in scalar mode the handler action
+    if (handler) handler->DoIt(track, output, td);
+    else output.AddTrack(track);
+  }
+  // The stage buffer needs to be cleared
+  input.Clear();
+  
   // Loop active handlers and flush them into btodo basket
   for (int i=0; i < GetNhandlers(); ++i) {
     if (fHandlers[i]->IsActive() && fHandlers[i]->Flush(bvector)) {
@@ -68,7 +82,7 @@ int SimulationStage::Process(GeantTaskData *td)
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
   output.Clear();
-// Loop tracks in the input basket and select the appropriate handler
+  // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     Handler *handler = Select(track, td);
     // If no handler is selected the track does not perform this stage
@@ -86,6 +100,7 @@ int SimulationStage::Process(GeantTaskData *td)
       if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
         handler->DoIt(bvector, output, td);
+        bvector.Clear();
       }
     }
   }
