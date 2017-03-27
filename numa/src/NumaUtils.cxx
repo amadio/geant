@@ -15,8 +15,10 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 void *NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
 {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
 #ifdef USE_NUMA
 // Fallback to 
 // Basic allocator for aligned memory on a given NUMA node.
@@ -59,16 +61,24 @@ void *NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
   (void)node;
   return _mm_malloc(bytes, alignment);
 #endif
+#else
+  malloc(bytes);
+#endif
 }
 
+VECCORE_ATT_HOST_DEVICE
 void NumaAlignedFree(void *p )
 {
-// Find the address stored by aligned_malloc ,"size_t" bytes above the 
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+// Find the address stored by aligned_malloc ,"size_t" bytes above the
 // current pointer then free it using normal free routine provided by C.
 #ifdef USE_NUMA
   if (p) numa_free((void *)(*((size_t *)p - 2)), *((size_t *)p - 1));
 #else
   _mm_free(p);
+#endif
+#else
+  free(p);
 #endif
 }
 

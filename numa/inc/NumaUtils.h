@@ -20,7 +20,10 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /* NUMA aligned memory allocator */
+VECCORE_ATT_HOST_DEVICE
 void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment);
+
+VECCORE_ATT_HOST_DEVICE
 void  NumaAlignedFree(void *p);
 
 /* NUMA memory address inspector */
