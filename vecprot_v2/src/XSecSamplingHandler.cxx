@@ -43,7 +43,7 @@ void XSecSamplingHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #ifndef VECCORE_CUDA
   std::copy(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
 #else
-  for (auto track : tracks) output->AddTrack(track);
+  for (auto track : tracks) output.AddTrack(track);
 #endif
 }
 

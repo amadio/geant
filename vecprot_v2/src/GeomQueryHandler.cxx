@@ -140,7 +140,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #ifndef VECCORE_CUDA
   std::move(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
 #else
-  for (auto track : tracks) output->AddTrack(track);
+  for (auto track : tracks) output.AddTrack(track);
 #endif
 #else
 // ROOT geometry. Fall back to scalar implementation
