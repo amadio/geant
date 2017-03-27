@@ -57,6 +57,7 @@ void Basket::Recycle(GeantTaskData */*td*/) {
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 void Basket::SetThreshold(int threshold) {
   // Set transport threshold for the basket
   fThreshold = threshold;

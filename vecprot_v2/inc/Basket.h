@@ -191,6 +191,7 @@ public:
    *
    * @param threshold New threshold value
    */
+  VECCORE_ATT_HOST_DEVICE
   void SetThreshold(int threshold);
 
   /**

@@ -73,10 +73,14 @@ public:
   atomic_t<size_t> fNbooktot; // Counter for booked slots
   atomic_t<size_t> fNfilled; // Counter for filled slots
 
+  VECCORE_ATT_HOST_DEVICE
   BasketCounter() : fBsize(0), fNbooktot(0), fNfilled(0) { }
+
+  VECCORE_ATT_HOST_DEVICE
   BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0) { }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetBsize(size_t bsize) { fBsize = bsize; }
 
@@ -94,6 +98,7 @@ public:
   }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   bool BookSlots(size_t ibook, size_t expected, size_t nslots) {
      if (ibook - Ibook() >= fBsize)
@@ -130,6 +135,7 @@ public:
   }  
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void ReleaseBasket(size_t ibook) {
     fNfilled = 0;
@@ -138,6 +144,7 @@ public:
   }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetIbook(size_t ibook) { fIbook = ibook; }
 
@@ -154,10 +161,12 @@ public:
   size_t Ibook() const { return fIbook; }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t Nbooktot() const { return fNbooktot; }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t Nbook0() const { return fNbook0; }
 
@@ -165,10 +174,12 @@ public:
   // Note: to calculate the result, this does an arithmetic operation on two
   // atomic but do not guarantee that they are fetch at the exact same time.
   // I.e. the result is approximatif.
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t Nbooked() const { return fNbooktot - fNbook0; }
 
   //____________________________________________________________________________
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t Nfilled() const { return fNfilled; }
 };
@@ -191,6 +202,7 @@ public:
    * @param buffer_size Circular buffer size
    * @param basket_size Size of produced baskets
    */
+  VECCORE_ATT_HOST_DEVICE
   Basketizer(size_t buffer_size, unsigned int basket_size, void *addr=0)
       : fBsize(0), fBmask(0), fLock(), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
     fLock.clear();
@@ -198,6 +210,7 @@ public:
   }
 
   /** @brief Basketizer destructor */
+  VECCORE_ATT_HOST_DEVICE
   ~Basketizer() {
     delete[] fBuffer;
     delete[] fCounters;
@@ -205,6 +218,7 @@ public:
 
   //____________________________________________________________________________
   /** @brief Initialize basketizer */
+  VECCORE_ATT_HOST_DEVICE
   void Init(size_t buffer_size, unsigned int basket_size, void *addr = 0) {
     // Make sure the requested size is a power of 2
     assert((basket_size >= 2) && ((basket_size & (basket_size - 1)) == 0));
@@ -365,6 +379,7 @@ public:
 
   //____________________________________________________________________________
   /** @brief Lock the container for GC */
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Lock() {
     while (fLock.test_and_set(std::memory_order_acquire))
@@ -373,12 +388,14 @@ public:
 
   //____________________________________________________________________________
   /** @brief Unlock the container for GC */
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Unlock() { fLock.clear(std::memory_order_release); }
 
   //____________________________________________________________________________
   /** @brief Get size of a basketizer instance depending on the buffer size */
   static
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t SizeofInstance(size_t buffer_size) {
     return (sizeof(Basketizer<T>) + buffer_size * (sizeof(T*) + sizeof(BasketCounter_t)));
@@ -387,6 +404,7 @@ public:
   //____________________________________________________________________________
   /** @brief Make basketizer instance at a given address */
   static
+  VECCORE_ATT_HOST_DEVICE
   Basketizer<T> *MakeInstanceAt(void *addr, size_t buffer_size, size_t basket_size) {
     return new (addr) Basketizer<T>(buffer_size, basket_size);
   }
