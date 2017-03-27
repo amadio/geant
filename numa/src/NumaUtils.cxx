@@ -62,7 +62,7 @@ void *NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
   return _mm_malloc(bytes, alignment);
 #endif
 #else
-  malloc(bytes);
+  return malloc(bytes);
 #endif
 }
 
