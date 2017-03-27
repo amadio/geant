@@ -46,7 +46,7 @@ O fetch_add_ret_newval(O &val, I add) {
 
 template <typename O, typename I>
 O fetch_add(std::atomic<O> &val, I add) {
-  return (val.fetch_add(1));
+  return (val.fetch_add(add));
 }
 
 template <typename O, typename I>
