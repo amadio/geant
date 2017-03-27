@@ -40,6 +40,7 @@ class VBconnector {
 #endif
 public:
   int index;                      /** Index of basket manager */
+  VECCORE_ATT_HOST_DEVICE
   VBconnector(int i) : index(i) {}
  #ifdef USE_ROOT
   virtual TGeoExtension *Grab() { return this; }

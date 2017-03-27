@@ -98,7 +98,9 @@ public:
 
 private:
    // a helper function checking internal arrays and allocating more space if necessary
-  template <typename T> static void CheckSizeAndAlloc(T *&array, int &currentsize, size_t wantedsize) {
+  template <typename T> static
+   VECCORE_ATT_HOST_DEVICE
+  void CheckSizeAndAlloc(T *&array, int &currentsize, size_t wantedsize) {
      if (wantedsize < (size_t) currentsize)
       return;
     T *newarray = new T[wantedsize];
@@ -136,6 +138,7 @@ public:
    *
    * @param size Size of double array
    */
+  VECCORE_ATT_HOST_DEVICE
   double *GetDblArray(int size) {
     CheckSizeAndAlloc<double>(fDblArray, fSizeDbl, size);
     return fDblArray;
@@ -146,6 +149,7 @@ public:
    *
    * @param size Size of boolean array
    */
+  VECCORE_ATT_HOST_DEVICE
   bool *GetBoolArray(int size) {
     CheckSizeAndAlloc<bool>(fBoolArray, fSizeBool, size);
     return fBoolArray;
@@ -156,6 +160,7 @@ public:
    *
    * @param size Size of int array
    */
+  VECCORE_ATT_HOST_DEVICE
   int *GetIntArray(int size) {
     CheckSizeAndAlloc<int>(fIntArray, fSizeInt, size);
     return fIntArray;

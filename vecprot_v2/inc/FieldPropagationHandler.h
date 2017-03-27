@@ -26,7 +26,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
  
 class FieldPropagationHandler : public Handler {
 
-protected:  
+protected:
+  VECCORE_ATT_HOST_DEVICE
   bool IsSameLocation(GeantTrack &track, GeantTaskData *td);
 
 private:

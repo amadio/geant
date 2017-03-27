@@ -148,7 +148,7 @@ public:
    * @param track Track that should be added
    * @param import Flag for importing (by default False)
    */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int AddTrack(GeantTrack &track) {
     int itrack = fNtracks;
@@ -188,7 +188,7 @@ public:
    *
    * @param itr Track to update
   */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void UpdateOriginalTrack(int itr) const {
     // Update the original track itr.
@@ -209,7 +209,7 @@ public:
   /**
    * @brief Update all original tracks from the container
   */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void UpdateOriginalTracks() const {
     // Update all the original tracks. This should ideally vectorize.
     for (int itr=0; itr<fNtracks; ++itr) {
@@ -229,7 +229,7 @@ public:
   }
 
   /** @brief Clear function */
-  VECCORE_ATT_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Clear() { fNtracks = 0; }
 

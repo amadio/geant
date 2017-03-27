@@ -213,6 +213,7 @@ public:
    * @brief Getter for the process
    * @return  Generic process pointing to the tabulated physics
    */
+  VECCORE_ATT_HOST_DEVICE
   PhysicsProcessOld *Process() const { return fProcess; }
 
   /**
