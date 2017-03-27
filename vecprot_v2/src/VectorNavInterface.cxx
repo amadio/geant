@@ -101,13 +101,13 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
                                                  Vector3D_t(dirx[itr], diry[itr], dirz[itr]), *instate[itr]);
     }
 #endif // CROSSCHECK
-#endif // VECCORE_CUDA
 
 #ifdef VERBOSE
     Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
            safe[itr]);
 #endif // VERBOSE
   }
+#endif // VECCORE_CUDA
 }
 
 //______________________________________________________________________________
