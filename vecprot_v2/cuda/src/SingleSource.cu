@@ -9,14 +9,24 @@
 #include "../src/GeantEvent.cxx"
 #include "../src/ScalarNavInterfaceVGM.cxx"
 #include "../src/GeantPropagator.cxx"
+
 #include "../src/PreStepStage.cxx"
 #include "../src/SimulationStage.cxx"
 #include "../src/SteppingActionsStage.cxx"
 #include "../src/GeomQueryStage.cxx"
 #include "../src/PropagationStage.cxx"
 #include "../src/ContinuousProcStage.cxx"
+#include "../src/XSecSamplingStage.cxx"
+#include "../src/DiscreteProcStage.cxx"
+
 #include "../src/PreStepHandler.cxx"
 #include "../src/SteppingActionsHandler.cxx"
+#include "../src/GeomQueryHandler.cxx"
+#include "../src/ContinuousProcHandler.cxx"
+#include "../src/LinearPropagationHandler.cxx"
+#include "../src/FieldPropagationHandler.cxx"
+
+#include "../src/NumaUtils.cxx"
 #include "../src/Handler.cxx"
 #include "../src/Basket.cxx"
 
