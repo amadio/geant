@@ -105,19 +105,22 @@ else()
   message(STATUS "USE_CALLGRIND_CONTROL OFF : Callgrind profiling disabled")
 endif()
 
-option(USE_REAL_PHYSICS "Use the real physics interface in the simulation" OFF)
-if(USE_REAL_PHYSICS)
-  add_definitions(-DUSE_REAL_PHYSICS)
-  message(STATUS "USE_REAL_PHYSICS ON  : Simulation with the real physics interface")
-else()
-  message(STATUS "USE_REAL_PHYSICS OFF : Simulation with the old physics interface")
-endif()
-
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
 option(USE_VECGEOM_NAVIGATOR "Use the navigator from VecGeom" ON)
 option(USE_ROOT "Use ROOT" ON)
 option(USE_NUMA "Use NUMA" ON)
 option(USE_TBB "Use threading building blocks" OFF)
+
+option(USE_REAL_PHYSICS "Use the real physics interface in the simulation" OFF)
+if(USE_REAL_PHYSICS)
+  message(STATUS "USE_REAL_PHYSICS ON  : Simulation with the real physics interface")
+  if (NOT (USE_VECGEOM_NAVIGATOR))
+    message (FATAL_ERROR "Real physics depends on VecGeom but USE_VECGEOM_NAVIGATOR=OFF")
+  endif()
+  add_definitions(-DUSE_REAL_PHYSICS)
+else()
+  message(STATUS "USE_REAL_PHYSICS OFF : Simulation with the old physics interface")
+endif()
 
 #---------------------------------------------------------------------------
 # Debuging options
@@ -531,9 +534,12 @@ if (NOT (USE_REAL_PHYSICS))
   add_subdirectory(physics)
 endif()
 
+
 if (USE_REAL_PHYSICS)
+ add_subdirectory(material)
  add_subdirectory(realphysics)
 endif()
+
 
 
 #----------------------------------------------------------------------------------------------
