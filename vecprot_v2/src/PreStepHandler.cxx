@@ -35,7 +35,9 @@ void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 #endif
 
   if (track->fStatus == kKilled) {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     fPropagator->StopTrack(track);
+#endif
     return;
   }
   
@@ -59,7 +61,9 @@ void PreStepHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   // Copy tracks alive to output, stop the others.
   for (auto track : tracks) {
     if (track->fStatus == kKilled) {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
       fPropagator->StopTrack(track);
+#endif
       continue;
     }    
     // Set the status to "in flight"
