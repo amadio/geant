@@ -103,8 +103,12 @@ public:
   bool BookSlots(size_t ibook, size_t expected, size_t nslots) {
      if (ibook - Ibook() >= fBsize)
        return false;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
      while (!fNbooktot.compare_exchange_weak(expected, expected+nslots, std::memory_order_relaxed))
        ;
+#else
+    fNbooktot = expected+nslots;
+#endif
      return true;
   }
 
@@ -185,6 +189,14 @@ public:
 };
 
 template <typename T> class Basketizer {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  // On cuda there is one propagator per thread.  So (for now), no need
+  // for atomics.
+  template <typename N> using atomic_t = N;
+#else
+  template <typename N>
+  using atomic_t = std::atomic<N>;
+#endif
 public:
   using size_t = std::size_t;
   using BasketCounter_t = BasketCounter<T *>;
@@ -193,9 +205,13 @@ public:
    * @brief Basketizer dummy constructor
    */
   Basketizer()
-      : fBsize(0), fBmask(0), fLock(), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
+      : fBsize(0), fBmask(0), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     fLock.clear();
+#endif
   }
+
+
   /**
    * @brief Basketizer default constructor
    *
@@ -204,8 +220,10 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   Basketizer(size_t buffer_size, unsigned int basket_size, void *addr=0)
-      : fBsize(0), fBmask(0), fLock(), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
+      : fBsize(0), fBmask(0), fBuffer(0), fCounters(0), fBufferMask(0), fIbook(0), fNstored(0), fNbaskets(0) {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     fLock.clear();
+#endif
     Init(buffer_size, basket_size, addr);
   }
 
@@ -260,7 +278,7 @@ public:
     fNstored++;
     if (nfilled == fBsize) {
       // Deploy basket (copy data)
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+#ifndef VECCORE_CUDA
       basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + fBsize]);
 #else
       auto end = ibasket + fBsize;
@@ -303,11 +321,15 @@ public:
   bool Flush(vector_t<T *> &basket) {
     // Flush all elements present in the container on the current basket
     // If this is not the last basket, drop garbage collection
-    if (fNbaskets.load() > 1)
+    if (fNbaskets > 1)
       return false;
     Lock();
     // Get current index, then compute a safe location forward
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     size_t ibook = fIbook.load(std::memory_order_acquire);
+#else
+    size_t ibook = fIbook;
+#endif
     size_t inext = (ibook + fBsize) & fBmask;
     // Now we can cleanup the basket at ibook.
     size_t ibook_buf = ibook & fBufferMask;
@@ -321,16 +343,20 @@ public:
       Unlock();
       return false;
     }
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     if (!fIbook.compare_exchange_strong(ibook, inext, std::memory_order_relaxed)) {
       Unlock();
       return false;    
     }
+#else
+    fIbook = inext;
+#endif
     // We managed to push ibook to a safe location, so new bookers cannot book this
     // basket till it gets released. Now book the remaining slots in the basket
     while (!fCounters[ibasket].BookSlots(ibook, nbooktot, fBsize-nelem))
       ;
     // Now fill the objects from the pending basket
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+#ifndef VECCORE_CUDA
     basket.insert(basket.end(), &fBuffer[ibasket], &fBuffer[ibasket + nelem]);
 #else
     auto end = ibasket + fBsize;
@@ -382,15 +408,21 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Lock() {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     while (fLock.test_and_set(std::memory_order_acquire))
       ;
+#endif
   }
 
   //____________________________________________________________________________
   /** @brief Unlock the container for GC */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void Unlock() { fLock.clear(std::memory_order_release); }
+  void Unlock() {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    fLock.clear(std::memory_order_release);
+#endif
+  }
 
   //____________________________________________________________________________
   /** @brief Get size of a basketizer instance depending on the buffer size */
@@ -414,8 +446,10 @@ private:
   typedef char cacheline_pad_t[cacheline_size];
   size_t fBsize;          /** Size of the produced baskets */
   size_t fBmask;          /** Basket mask */
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fLock; /** Lock for garbage collection and bsize changes */
-  // Make sure the following data members are not sitting in the same cache line
+#endif
+    // Make sure the following data members are not sitting in the same cache line
   cacheline_pad_t pad0_;
   T **fBuffer; /** Circular buffer for elements to be basketized*/
   cacheline_pad_t pad1_;
@@ -423,11 +457,11 @@ private:
   cacheline_pad_t pad2_;
   size_t fBufferMask; /** Buffer mask used for fast index calculation in buffer */
   cacheline_pad_t pad3_;
-  std::atomic<size_t> fIbook; /** Current booked index */
+  atomic_t<size_t> fIbook; /** Current booked index */
   cacheline_pad_t pad4_;
-  std::atomic<size_t> fNstored; /** Number of objects currently stored */
+  atomic_t<size_t> fNstored; /** Number of objects currently stored */
   cacheline_pad_t pad5_;
-  std::atomic<short> fNbaskets; /** Number of pending baskets */
+  atomic_t<short> fNbaskets; /** Number of pending baskets */
   cacheline_pad_t pad6_;
 };
 } // GEANT_IMPL_NAMESPACE
