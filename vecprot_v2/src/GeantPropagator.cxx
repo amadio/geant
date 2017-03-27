@@ -172,6 +172,9 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
 
+#ifdef VECCORE_CUDA
+  assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
+#else  // stoping track in MCTruthManager
   // stoping track in MCTruthManager
   if(fTruthMgr)
     {
@@ -182,6 +185,7 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
   }
+#endif
 }
 
 //______________________________________________________________________________
@@ -207,6 +211,7 @@ bool GeantPropagator::IsIdle() const {
 //______________________________________________________________________________
 void GeantPropagator::Initialize() {
   // Initialize the propagator.
+#ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);
@@ -216,6 +221,7 @@ void GeantPropagator::Initialize() {
   }
   int numa = (fNuma >= 0) ? fNuma : 0;
   fTrackMgr = &mgr->GetTrackManager(numa);
+#endif
 
   // Add some empty baskets in the queue
 #ifdef VECCORE_CUDA
@@ -230,6 +236,7 @@ void GeantPropagator::Initialize() {
 void GeantPropagator::SetNuma(int numa)
 {
 // Set locality for the propagator
+#ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
   fNuma  = numa;
   if (!mgr->IsInitialized()) return;
@@ -237,6 +244,7 @@ void GeantPropagator::SetNuma(int numa)
     fTrackMgr = &mgr->GetTrackManager(numa);
   else
     fTrackMgr = &mgr->GetTrackManager(0);
+#endif
 }
 
 //NOTE: We don't do anything here so it's not called from the WorkloadManager anymore
