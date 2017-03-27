@@ -40,11 +40,8 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   // Step selection
   double step, lmax;
   const double eps = 1.E-2; // 
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fConfig->fBmag;
-#else
   const double bmag = fPropagator->fConfig->fBmag;
-#endif
+
   // We use the track sagitta to estimate the "bending" error,
   // i.e. what is the propagated length for which the track deviation in
   // magnetic field with respect to straight propagation is less than epsilon.
@@ -95,11 +92,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   TrackVec_t &tracks = input.Tracks();
   double lmax;
   const double eps = 1.E-2; // 
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fConfig->fBmag;
-#else
   const double bmag = fPropagator->fConfig->fBmag;
-#endif
+
   int ntracks = tracks.size();
   double *steps = td->GetDblArray(ntracks);
   for (int itr = 0; itr < ntracks; itr++) {
@@ -222,14 +216,8 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 // - safety step (bdr=0)
 // - snext step (bdr=1)
    bool useRungeKutta;
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-   const double bmag = gPropagator_fConfig->fBmag;
-   constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
-   useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
-#else
    const double bmag = td->fPropagator->fConfig->fBmag;
-   useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
-#endif
+   useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
 
 // #ifdef RUNGE_KUTTA
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
