@@ -2,8 +2,11 @@
 #ifndef DENSITYEFFECTDATA_H
 #define DENSITYEFFECTDATA_H
 
+// use vecgeom::map  instead of std::map
+//#include <map>
+#include "base/Map.h"
+
 #include <string>
-#include <map>
 
 namespace geantphysics {
   /**
@@ -77,7 +80,7 @@ class DensityEffectData{
    *                if the database contains data with the given material name.
    *              - -1 otherwise.
    */
-  int FindDensityEffectDataIndex(const std::string &name);
+  int    FindDensityEffectDataIndex(const std::string &name);
 
 
   /** @brief Get name of the material.*/
@@ -105,10 +108,10 @@ class DensityEffectData{
    * that depends on material density and molar mass. So this plasma energy will be correct only in the case
    * if the these data (density, molar mass) are exactly the same as in the corresponding NIST material.
    */
-  double             GetPlasmaEnergy(const int indx)      const { return fDensityEffectDataTable[indx].fPlasmaEnergy;}
+  double GetPlasmaEnergy(const int indx)      const { return fDensityEffectDataTable[indx].fPlasmaEnergy;}
 
   /** @brief Get the Sternheimer adjustment factor of the material. */
-  double             GetAdjustmentFactor(const int indx)  const { return fDensityEffectDataTable[indx].fSternheimerFactor;}
+  double GetAdjustmentFactor(const int indx)  const { return fDensityEffectDataTable[indx].fSternheimerFactor;}
 
   /** @brief Get density parameter \f$ -C \f$ of the material.
    *
@@ -117,7 +120,7 @@ class DensityEffectData{
    *  Therefore, this density parameter will be corret only in the case if the mean excitation energy, density and molar mass
    *  of the material are exactly the same as in the corresponding NIST material.
    */
-  double             GetParameterC(const int indx)        const { return fDensityEffectDataTable[indx].fParameterC;}
+  double GetParameterC(const int indx)        const { return fDensityEffectDataTable[indx].fParameterC;}
 
   /** @brief Get the fitted density parameter \f$ X_0 \f$ .
    *
@@ -125,7 +128,7 @@ class DensityEffectData{
    *  parameter \f$ C \f$ is also involved in these equations all the comments made at GetParameterC() are true for
    *  for this parameter as well.
    */
-  double             GetParameterX0(const int indx)       const { return fDensityEffectDataTable[indx].fParameterFitX0;}
+  double GetParameterX0(const int indx)       const { return fDensityEffectDataTable[indx].fParameterFitX0;}
 
   /** @brief Get the fitted density parameter \f$ X_1 \f$ .
    *
@@ -133,7 +136,7 @@ class DensityEffectData{
    *  parameter \f$ C \f$ is also involved in these equations all the comments made at GetParameterC() are true for
    *  for this parameter as well.
    */
-  double             GetParameterX1(const int indx)       const { return fDensityEffectDataTable[indx].fParameterFitX1;}
+  double GetParameterX1(const int indx)       const { return fDensityEffectDataTable[indx].fParameterFitX1;}
 
   /** @brief Get the fitted density parameter \f$ a \f$ .
    *
@@ -141,7 +144,7 @@ class DensityEffectData{
    *  parameter \f$ C \f$ is also involved in these equations all the comments made at GetParameterC() are true for
    *  for this parameter as well.
    */
-  double             GetParameterA(const int indx)        const { return fDensityEffectDataTable[indx].fParameterFitA;}
+  double GetParameterA(const int indx)        const { return fDensityEffectDataTable[indx].fParameterFitA;}
 
   /** @brief Get the fitted density parameter \f$ m \f$ .
    *
@@ -149,13 +152,13 @@ class DensityEffectData{
    *  parameter \f$ C \f$ is also involved in these equations all the comments made at GetParameterC() are true for
    *  for this parameter as well.
    */
-  double             GetParameterM(const int indx)        const { return fDensityEffectDataTable[indx].fParameterFitM;}
+  double GetParameterM(const int indx)        const { return fDensityEffectDataTable[indx].fParameterFitM;}
 
   /** @brief Get the density parameter \f$ \delta_0 \f$ .
    *
    *  This is the \f$ \delta_0 \f$ parameter in Eqs.(14) of the reference.
    */
-  double             GetParameterDelta0(const int indx)   const { return fDensityEffectDataTable[indx].fParameterDelta0;}
+  double GetParameterDelta0(const int indx)   const { return fDensityEffectDataTable[indx].fParameterDelta0;}
 
   /** @brief Get the upper bound of the error of the density effect parameter \f$ \delta \f$ inherent in the fitting procedure. */
   double             GetDeltaErrorMax(const int indx)     const { return fDensityEffectDataTable[indx].fDeltaErrorMax;}
@@ -209,10 +212,13 @@ class DensityEffectData{
   } fDensityEffectDataTable[gNumberOfDensityEffectData];
 
   /** @brief Internal map to store density effect data indices in the internal DB with a key = material name. */
- std::map<const std::string,int> fMapMaterialNameToDenistyEffectDataIndex;
-
+  // changed to vecgeom::map
+  // std::map<const std::string,int> fMapMaterialNameToDenistyEffectDataIndex;
+  vecgeom::map<const char*,int> fMapMaterialNameToDenistyEffectDataIndex;
 };
 
+
 } // namespace geantphysics
+
 
 #endif // DENSITYEFFECTDATA_H

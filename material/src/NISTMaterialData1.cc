@@ -6,7 +6,7 @@
 namespace geantphysics {
 
 
-void NISTMaterialData::BuildTable(){
+void NISTMaterialData::BuildTable() {
     //
     // Pre-defined Material Properties for 316 Materials:
     //

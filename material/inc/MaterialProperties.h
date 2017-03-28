@@ -305,7 +305,6 @@ class MaterialProperties{
    double fRadiationLength;
 //@}
 
-
 };
 
 }    // namespace geantphysics

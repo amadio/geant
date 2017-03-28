@@ -9,6 +9,9 @@
 #include "MaterialProperties.h"
 #include "Element.h"
 
+// vecgeom::Vector
+#include "base/Vector.h"
+
 #include <cmath>
 
 namespace geantphysics {
@@ -64,8 +67,9 @@ int EMElementSelector::SampleTargetElement(double ekin, double rndm) {
 }
 
 void EMElementSelector::Build(const MaterialCuts *matcut, const Particle *part) {
-  const std::vector<Element*> elemVect    = matcut->GetMaterial()->GetElementVector();
-  const double *theAtomicNumDensityVector = matcut->GetMaterial()->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  //  const std::vector<Element*> elemVect    = matcut->GetMaterial()->GetElementVector();
+  const vecgeom::Vector<Element*> elemVect = matcut->GetMaterial()->GetElementVector();
+  const double *theAtomicNumDensityVector  = matcut->GetMaterial()->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = elemVect.size();
   for (int i=0; i<fNumEnergyBins; ++i) {
     double ekin = fEnergyGrid[i];

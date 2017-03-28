@@ -1,11 +1,13 @@
 
 #include "NISTElementData.h"
+
 #include "PhysicalConstants.h"
 
 #include <cmath>
 
 
 namespace geantphysics {
+  
 void NISTElementData::BuildTable() {
    using geant::eV;
    using geant::GeV;
@@ -5007,7 +5009,7 @@ void NISTElementData::BuildTable() {
    for (int i = 0; i < gNumberOfNISTElements; i++) {
      int numisos        = fNISTElementDataTable[i].fNumOfIsotopes;
      fNISTElementDataTable[i].fMeanAtomicMass = 0.0;
-     double amass = 0.0;
+     //double amass = 0.0;
      // if the element has stable isotope
      if (!fNISTElementDataTable[i].fIsNoStableIsotope) {
        for (int j = 0; j < numisos; ++j) {

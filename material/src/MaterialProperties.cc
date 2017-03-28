@@ -1,27 +1,25 @@
 
 #include "MaterialProperties.h"
 
+#include "PhysicalConstants.h"
+
 #include "Material.h"
 #include "Element.h"
 #include "NISTMaterialData.h"
-
-#include "PhysicalConstants.h"
-
 #include "DensityEffectData.h"
 
-#include <vector>
+//change to vecgeom::Vector
+//#include <vector>
+#include "base/Vector.h"
+
 #include <cmath>
-
 #include <limits>
-
-//#include <iostream>
 #include <iomanip>
 
 namespace geantphysics {
 
 //
 // CTR
-//______________________________________________________________________________
 MaterialProperties::MaterialProperties(Material *mat) : fMaterial(mat) {
   InitialiseMembers();
   ComputeBasicMaterialParameters();
@@ -30,10 +28,12 @@ MaterialProperties::MaterialProperties(Material *mat) : fMaterial(mat) {
   ComputeRadiationLength();
 }
 
-MaterialProperties::~MaterialProperties(){
-  if (!fNumOfAtomsPerVolVect)      delete [] fNumOfAtomsPerVolVect;
 
+MaterialProperties::~MaterialProperties() {
+  if (!fNumOfAtomsPerVolVect)
+    delete [] fNumOfAtomsPerVolVect;
 }
+
 
 void MaterialProperties::InitialiseMembers() {
   fNumOfAtomsPerVolVect      = nullptr;
@@ -54,10 +54,10 @@ void MaterialProperties::InitialiseMembers() {
 
 
 }
-//______________________________________________________________________________
+
+
 void MaterialProperties::ComputeBasicMaterialParameters() {
   using geant::kAvogadro;
-
   // get number of elements in the material and the density
   int     numElems = fMaterial->GetNumberOfElements();
   double  density  = fMaterial->GetDensity();
@@ -70,9 +70,10 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
   fNumOfAtomsPerVolVect = new double[numElems];
 
   // get some element composition realted data from the material
-  const std::vector<Element*> elemVector = fMaterial->GetElementVector();
-  const double *massFractionVect         = fMaterial->GetMassFractionVector();
-  for (int i = 0; i < numElems; ++i) {
+  //const std::vector<Element*> elemVector = fMaterial->GetElementVector();
+  const vecgeom::Vector<Element*> elemVector = fMaterial->GetElementVector();
+  const double *massFractionVect             = fMaterial->GetMassFractionVector();
+  for (int i=0; i<numElems; ++i) {
     double zeff = elemVector[i]->GetZ();
     double aeff = elemVector[i]->GetA();  // atomic mass in internal [weight/amount of substance]
     fNumOfAtomsPerVolVect[i]    = kAvogadro*density*massFractionVect[i]/aeff;
@@ -83,12 +84,8 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
 
 
 void MaterialProperties::ComputeIonizationParameters() {
- //
- // The mean excitation energy
- //
-  // init
+  // init the mean excitation energy
   fMeanExcitationEnergy = 0.0;
-
   // try to get the mean exc. energy for the material from the NISTMaterialData
   // NOTE: it will work only if we can identify this material in the NISTMaterialData
   // by its name
@@ -104,9 +101,10 @@ void MaterialProperties::ComputeIonizationParameters() {
     // get the max Z(atomic number) that we have elemental data for in the NISTMaterialData database
     int maxZ = NISTMaterialData::Instance().GetNumberOfElementalNISTMaterialData();
     // gent number of elements, number of atoms per unit volume vector
-    int numElems                         = fMaterial->GetNumberOfElements();
-    const std::vector<Element*> elemVect = fMaterial->GetElementVector();
-    for (int i = 0; i < numElems; ++i) {
+    int numElems                             = fMaterial->GetNumberOfElements();
+    //const std::vector<Element*> elemVect = fMaterial->GetElementVector();
+    const vecgeom::Vector<Element*> elemVect = fMaterial->GetElementVector();
+    for (int i=0; i<numElems; ++i) {
       double zeff = elemVect[i]->GetZ();
       int    z    = std::lrint(zeff);
       // get mean excitation energy for the given element
@@ -118,6 +116,7 @@ void MaterialProperties::ComputeIonizationParameters() {
     fMeanExcitationEnergy = std::exp(fMeanExcitationEnergy/fTotalNumOfElectronsPerVol);
   }
 }
+
 
 void MaterialProperties::ComputeDensityEffectParameters() {
   using geant::kPi;
@@ -228,7 +227,6 @@ void MaterialProperties::ComputeDensityEffectParameters() {
       // correction should be applied here as well if denisty is not equal to the
       // the "normal" density i.e. to density that was used to derive the parameters
       // but this is exactly what we don't know here
-
     } else if (matState==MaterialState::kStateGas) { // for gas
       if (fDensityEffectParameterC<10.0) {
         fDensityEffectParameterX0 = 1.6;
@@ -294,6 +292,7 @@ void MaterialProperties::ComputeDensityEffectParameters() {
   }
 }
 
+
 double MaterialProperties::GetDensityEffectFunctionValue(const double atx) {
   const double twolog10 = 2.0*std::log(10.0);
   double delta = 0.0;
@@ -311,6 +310,7 @@ double MaterialProperties::GetDensityEffectFunctionValue(const double atx) {
   return delta;
 }
 
+
 // based on Tsai complete screening
 void MaterialProperties::ComputeRadiationLength() {
   // use these elastic and inelatic form factors for light elements instead of TFM
@@ -325,7 +325,8 @@ void MaterialProperties::ComputeRadiationLength() {
   const double factorLinel = std::log(1193.923);
 
   // the element composition data of the material
-  const std::vector<Element*> theElements = fMaterial->GetElementVector();
+  // const std::vector<Element*> theElements = fMaterial->GetElementVector();
+  const vecgeom::Vector<Element*> theElements = fMaterial->GetElementVector();
   int   numElems = theElements.size();
 
   double invRadLength = 0.0;
@@ -348,13 +349,12 @@ void MaterialProperties::ComputeRadiationLength() {
     }
     invRadLength += factor*fNumOfAtomsPerVolVect[i]*dum0;
   }
-
   fRadiationLength = (invRadLength <= 0.0 ? std::numeric_limits<double>::max() : 1.0/invRadLength);
 }
 
+
 //
 // Printouts
-//______________________________________________________________________________
 std::ostream& operator<<(std::ostream& flux, const MaterialProperties* matprop) {
   using geant::eV;
   using geant::cm;
@@ -384,12 +384,11 @@ std::ostream& operator<<(std::ostream& flux, const MaterialProperties* matprop) 
   return flux;
 }
 
-//______________________________________________________________________________
+
  std::ostream& operator<<(std::ostream& flux, const MaterialProperties& matprop) {
   flux << &matprop;
   return flux;
 }
-
 
 
 }  // namespace geantphysics

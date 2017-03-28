@@ -6,7 +6,7 @@
 
 namespace geantphysics {
 
-NISTElementData& NISTElementData::Instance(){
+NISTElementData& NISTElementData::Instance() {
    static NISTElementData instance;
    return instance;
 }
@@ -15,68 +15,68 @@ NISTElementData::NISTElementData() {
    BuildTable();
    // init list of NIST element indices(indices in the global element table) that has
    // been already built to -1
-   for (int i = 0; i < gNumberOfNISTElements; ++i)
+   for (int i=0; i<gNumberOfNISTElements; ++i)
      fIndicesOfBuiltNISTElements[i] = -1;
 }
 
 // we compute from the isotope mass to conserve consistency with some particle masses
-double NISTElementData::GetAtomicMass(int Z, int N) {
+double NISTElementData::GetAtomicMass(int z, int n) {
    using geant::kElectronMassC2;
    using geant::kAvogadro;
    using geant::kCLightSquare;
    constexpr double unitconv = kAvogadro/kCLightSquare;
 
    double theMass = 0.0;
-   if (Z>0 && Z<=gNumberOfNISTElements) {
-     int numisos = fNISTElementDataTable[Z-1].fNumOfIsotopes;
-     int indxN   = N - fNISTElementDataTable[Z-1].fNIsos[0];
+   if (z>0 && z<=gNumberOfNISTElements) {
+     int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
+     int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
      if (indxN>=0 && indxN<numisos)
-       theMass = fNISTElementDataTable[Z-1].fMassIsos[indxN] + Z*kElectronMassC2
-                 - fBindingEnergies[Z-1];
+       theMass = fNISTElementDataTable[z-1].fMassIsos[indxN] + z*kElectronMassC2
+                 - fBindingEnergies[z-1];
        theMass *= unitconv; // convert energy to [weight/mole]
    }
   return theMass;
 }
 
-double NISTElementData::GetIsotopeMass(int Z, int N) {
+double NISTElementData::GetIsotopeMass(int z, int n) {
    double theMass = 0.0;
-   if (Z>0 && Z<=gNumberOfNISTElements) {
-     int numisos = fNISTElementDataTable[Z-1].fNumOfIsotopes;
-     int indxN   = N - fNISTElementDataTable[Z-1].fNIsos[0];
+   if (z>0 && z<=gNumberOfNISTElements) {
+     int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
+     int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
      if (indxN>=0 && indxN<numisos)
-       theMass = fNISTElementDataTable[Z-1].fMassIsos[indxN];
+       theMass = fNISTElementDataTable[z-1].fMassIsos[indxN];
    }
   return theMass;
 }
 
 // total electron binind energy in internal [energy] unit
-double NISTElementData::GetBindingEnergy(int Z, int N) {
+double NISTElementData::GetBindingEnergy(int z, int n) {
    double theBE = 0.0;
-   if (Z>0 && Z<=gNumberOfNISTElements) {
-     int numisos = fNISTElementDataTable[Z-1].fNumOfIsotopes;
-     int indxN   = N - fNISTElementDataTable[Z-1].fNIsos[0];
+   if (z>0 && z<=gNumberOfNISTElements) {
+     int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
+     int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
      if (indxN>=0 && indxN<numisos)
-       theBE = fBindingEnergies[Z-1];
+       theBE = fBindingEnergies[z-1];
    }
   return theBE;
 }
 
-void NISTElementData::PrintData(int Z) {
+void NISTElementData::PrintData(int z) {
    using geant::g;
    using geant::mole;
    using geant::kAvogadro;
    using geant::perCent;
    using geant::GeV;
 
-   std::cout<<"   *** NIST element data for "<<GetElementSymbol(Z)<<" Z = "<<Z<<" :"<<std::endl;
-   std::cout<<"   Mean Atomic mass = "<<GetMeanAtomicMass(Z)/(g/mole) << " [g/mole]" <<std::endl;
-   int numisos = GetNumberOfIsotopes(Z);
-   std::cout<<"   Number of known isotopes = "<<GetNumberOfIsotopes(Z) <<std::endl;
-   const std::string *symbols = GetIsotopeSymbols(Z);
-   const int         *N       = GetIsotopeNucleonNums(Z);
-   const double      *A       = GetIsotopeAtomicMasses(Z);
-   const double      *W       = GetIsotopeNaturalAbundances(Z);
-   const double      *M       = GetIsotopeMasses(Z);
+   std::cout<<"   *** NIST element data for "<<GetElementSymbol(z)<<" Z = "<<z<<" :"<<std::endl;
+   std::cout<<"   Mean Atomic mass = "<<GetMeanAtomicMass(z)/(g/mole) << " [g/mole]" <<std::endl;
+   int numisos = GetNumberOfIsotopes(z);
+   std::cout<<"   Number of known isotopes = "<<GetNumberOfIsotopes(z) <<std::endl;
+   const std::string *symbols = GetIsotopeSymbols(z);
+   const int         *N       = GetIsotopeNucleonNums(z);
+   const double      *A       = GetIsotopeAtomicMasses(z);
+   const double      *W       = GetIsotopeNaturalAbundances(z);
+   const double      *M       = GetIsotopeMasses(z);
    for ( int i = 0; i < numisos; ++i ) {
      std::cout<<"    "   <<std::setw(6)<<symbols[i]
               << "  N = "<<std::setw(4)<< N[i]

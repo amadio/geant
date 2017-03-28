@@ -11,6 +11,9 @@
 #include "Spline.h"
 #include "GLIntegral.h"
 
+// vecgeom::Vector
+#include "base/Vector.h"
+
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -180,7 +183,8 @@ void ELossTable::BuildELossTable(std::vector<ELossTable*> &elosstablespermatcut)
   const std::vector<std::vector<EMPhysicsProcess*> > eLossProcs = ELossTableRegister::Instance().GetListEnergyLossProcesses();
   // get list of MaterialCuts and Material-s
   const std::vector<MaterialCuts*>   theMatCutTable   = MaterialCuts::GetTheMaterialCutsTable();
-  const std::vector<Material*>       theMaterialTable = Material::GetTheMaterialTable();
+  // const std::vector<Material*>      theMaterialTable = Material::GetTheMaterialTable();
+  const vecgeom::Vector<Material*>   theMaterialTable = Material::GetTheMaterialTable();
   const std::vector<bool>            isActiveList     = fPhysicsParameters->GetListActiveRegions();
   int numMutCuts    = theMatCutTable.size();   // number of MaterialCuts in the MaterialCuts table
   int numMaterials  = theMaterialTable.size(); //

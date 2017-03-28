@@ -188,7 +188,8 @@ void MaterialCuts::CreateAll() {
   std::vector<vecgeom::LogicalVolume*> theLogicVolumes;
   vecgeom::GeoManager::Instance().GetAllLogicalVolumes(theLogicVolumes);
   // get our Material table
-  const std::vector<Material*> theMaterialTable = Material::GetTheMaterialTable();
+  // const std::vector<Material*> theMaterialTable = Material::GetTheMaterialTable();
+  const vecgeom::Vector<Material*> theMaterialTable = Material::GetTheMaterialTable();
   for (size_t i=0; i<theLogicVolumes.size(); ++i) {
     vecgeom::Material *vgMat = ((vecgeom::Medium*)theLogicVolumes[i]->GetTrackingMediumPtr())->GetMaterial();
     vecgeom::Region *reg     = theLogicVolumes[i]->GetRegion();

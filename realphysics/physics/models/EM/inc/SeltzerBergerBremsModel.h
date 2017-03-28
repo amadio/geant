@@ -4,6 +4,7 @@
 
 #include "EMModel.h"
 
+#include <vector>
 #include <string>
 
 namespace geantphysics {

@@ -8,6 +8,9 @@
 #include "GLIntegral.h"
 #include "Spline.h"
 
+// vecgeom::Vector for the global Element table
+#include "base/Vector.h"
+
 #include <cmath>
 #include <iostream>
 
@@ -63,7 +66,9 @@ void CutConverter::Initialise() {
     fLengthVector = nullptr;
   }
   // determine maximum Z number
-  const std::vector<Element*> elemTable = Element::GetTheElementTable();
+  // change to vecgeom::Vector
+  // const std::vector<Element*> elemTable = Element::GetTheElementTable();
+  const vecgeom::Vector<Element*> elemTable = Element::GetTheElementTable();
   int   numElements = elemTable.size();
   double maxZet = 0.0;
   for (int i=0; i<numElements; ++i) {
@@ -118,8 +123,9 @@ double CutConverter::Convert(const Material *mat, double cut, bool isfromlength)
 
 // Builds the energy-length function
 void CutConverter::BuildLengthVector(const Material *mat) {
-  const std::vector<Element*> elemVect    = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  // const std::vector<Element*> elemVect  = mat->GetElementVector();
+  const vecgeom::Vector<Element*> elemVect = mat->GetElementVector();
+  const double* theAtomicNumDensityVector  = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElements = elemVect.size();
   // fill lossvect with the material dE/dx
   double *lossvect = new double[fNumEBins]();

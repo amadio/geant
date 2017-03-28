@@ -2,7 +2,10 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
-#include <vector>
+// change to vegeom::Vector
+//#include <vector>
+#include "base/Vector.h"
+
 #include <string>
 
 namespace geantphysics {
@@ -42,7 +45,7 @@ class Isotope;
    * has no stable isotope we recommend to use this opportunity to build the lement.
    */
 
-class Element{
+class Element {
  public:
 /**
  * @name Constructors, destructor and construction realted public methods:
@@ -61,8 +64,7 @@ class Element{
     * @param[in] aeff Effective atomic mass of this element in internal [weight/
     *            amount of substance] units if given.
     */
-   Element(const std::string &name, const std::string &symbol, double  zeff,
-           double  aeff = 0.0);
+   Element(const std::string &name, const std::string &symbol, double  zeff, double  aeff = 0.0);
 
    /**
      * @brief Constructor to build an element from isotopes via AddIsotope() method.
@@ -200,7 +202,9 @@ class Element{
     *
     * @return Vector of pointer to the isotope objects this element is built up.
     */
-   const std::vector<Isotope*>& GetIsotopeVector() const {return fIsotopeVector;}
+   // change to vecgeom::Vector
+   //const std::vector<Isotope*>& GetIsotopeVector() const {return fIsotopeVector;}
+   const vecgeom::Vector<Isotope*>& GetIsotopeVector() const {return fIsotopeVector;}
 //@}
 
 
@@ -213,7 +217,9 @@ class Element{
     *
     * @return Vector of pointers to all the elements that has been created so far.
     */
-   static const std::vector<Element*>& GetTheElementTable(){ return gTheElementTable;}
+   // change to vecgeom::Vector
+   //static const std::vector<Element*>& GetTheElementTable(){ return gTheElementTable;}
+   static const vecgeom::Vector<Element*>& GetTheElementTable(){ return gTheElementTable;}
    /**
     * @brief Public method to delete all Element objects that has been created.
     *
@@ -238,7 +244,9 @@ class Element{
 //@{
    friend std::ostream& operator<<(std::ostream&, const Element*);
    friend std::ostream& operator<<(std::ostream&, const Element&);
-   friend std::ostream& operator<<(std::ostream&, std::vector<Element*>);
+   // change to vecgeom::Vector
+   // friend std::ostream& operator<<(std::ostream&, std::vector<Element*>);
+   friend std::ostream& operator<<(std::ostream&, vecgeom::Vector<Element*>);
 //@}
 
 
@@ -274,10 +282,14 @@ class Element{
    /** @brief Relative abundances for each isotope constituting this element [GetNumberOfIsotopes()]. */
    double*     fRelativeIsotopeAbundanceVector;
    /** @brief List of pointers to the isotope objects constituting this element. */
-   std::vector<Isotope*> fIsotopeVector;
+   // change to vecgeom::Vector
+   //std::vector<Isotope*> fIsotopeVector;
+   vecgeom::Vector<Isotope*> fIsotopeVector;
 
    /** @brief The global element table that contains all elements that has been created so far. */
-   static std::vector<Element*> gTheElementTable; // the global element table
+   // change to vecgeom::Vector
+   //static std::vector<Element*> gTheElementTable; // the global element table
+   static vecgeom::Vector<Element*> gTheElementTable; // the global element table
 };
 
 } // namespace geantphysics

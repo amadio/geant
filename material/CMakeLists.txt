@@ -4,7 +4,7 @@
 file(GLOB sources src/*.cc)
 file(GLOB headers inc/*.h ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h)
 
-include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc)
+include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc ${VECGEOM_INCLUDE_DIR})
 
 set(_extraLibs "")
 
@@ -16,8 +16,8 @@ endif()
 
 add_library(Material SHARED ${sources})
 
-# will depend on VecGeom through vecgeom::vector and vecgeom::map
-target_link_libraries(Material ${VECGEOM_LIBRARIES})
+# will depend on VecGeom through vecgeom::Vector and vecgeom::map
+target_link_libraries(Material ${VECGEOM_LIBRARIES} ${_extraLibs})
 
 add_headers("${headers}")
 add_custom_target(materiallib DEPENDS Material)

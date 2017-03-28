@@ -3,7 +3,9 @@
 #define NISTMATERIALDATA_H
 
 #include <string>
-#include <map>
+// change to vecgeom::map
+//#include <map>
+#include "base/Map.h"
 
 
 namespace geantphysics {
@@ -167,7 +169,9 @@ class NISTMaterialData{
 
    /** @brief Internal map to store NIST material indices in the internal NIST material
     *         database with a key = material name. */
-  std::map<const std::string,int> fMapNISTMaterialNameToIndex;
+  // change to vecgeom::map
+  // std::map<const std::string,int> fMapNISTMaterialNameToIndex;
+  vecgeom::map<const char*,int> fMapNISTMaterialNameToIndex;
 };
 
 } // namespace geant

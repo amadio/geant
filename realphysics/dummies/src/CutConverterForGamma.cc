@@ -6,6 +6,9 @@
 #include "MaterialProperties.h"
 #include "Element.h"
 
+//vecgeom::Vector
+#include "base/Vector.h"
+
 #include <cmath>
 #include <iostream>
 
@@ -37,7 +40,8 @@ CutConverterForGamma::~CutConverterForGamma() {}
 
 
 void CutConverterForGamma::BuildLengthVector(const Material *mat) {
-  const std::vector<Element*> elemVect    = mat->GetElementVector();
+//  const std::vector<Element*> elemVect    = mat->GetElementVector();
+  const vecgeom::Vector<Element*> elemVect    = mat->GetElementVector();
   const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElements = elemVect.size();
 

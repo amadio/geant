@@ -21,6 +21,9 @@
 #include "LightTrack.h"
 #include "PhysicsData.h"
 
+// vecgeom::Vector
+#include "base/Vector.h"
+
 #include <cmath>
 #include <cstdio>
 #include <iostream>
@@ -494,8 +497,9 @@ void SeltzerBergerBremsModel::BuildOneLinAlias(int ialias, const Material *mat, 
   double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
                         *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
   // we will need the element composition of this material
-  const std::vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  // const std::vector<Element*> theElements = mat->GetElementVector();
+  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
 //  int   numElems = theElements.size();
 
   //
@@ -825,8 +829,9 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
 
 
   // we will need the element composition of this material
-  const std::vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  // const std::vector<Element*> theElements = mat->GetElementVector();
+  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
 
   double *theDCS = new double[fLoadDCSNumReducedPhotonEnergies*numElems];
@@ -979,8 +984,9 @@ double SeltzerBergerBremsModel::ComputeDEDXPerVolume(const Material *mat, double
   }
 
   // we will need the element composition of this material
-  const std::vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  // const std::vector<Element*> theElements = mat->GetElementVector();
+  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
 
   double *theDCS = new double[fLoadDCSNumReducedPhotonEnergies*numElems];
@@ -1174,7 +1180,9 @@ void SeltzerBergerBremsModel::LoadDCSData() {
 
    // now go for each element that we have in the global element table and load data for them
    int numDCSdataPerElement = fLoadDCSNumElectronEnergies*fLoadDCSNumReducedPhotonEnergies;
-   const std::vector<Element*> theElements = Element::GetTheElementTable();
+   // change to vecgeom::Vector
+   // const std::vector<Element*> theElements = Element::GetTheElementTable();
+   const vecgeom::Vector<Element*> theElements = Element::GetTheElementTable();
    //std::cout<<theElements;
    int numElements = theElements.size();
    for (int i=0; i<numElements; ++i) {

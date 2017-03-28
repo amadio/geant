@@ -1,10 +1,9 @@
-#include <iostream>
 
 #ifndef NISTELEMENTDATA_H
 #define NISTELEMENTDATA_H
 
+#include <iostream>
 #include <string>
-#include <vector>
 
 namespace geantphysics {
   /**
@@ -47,17 +46,17 @@ class NISTElementData{
 
    /** @brief Public method to access element symbols.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Symbol of the element specified by the given atomic number.
     */
-   std::string        GetElementSymbol(const int Z)       const { return fNISTElementDataTable[Z-1].fElemSymbol; }
+   std::string        GetElementSymbol(const int z)       const { return fNISTElementDataTable[z-1].fElemSymbol; }
 
    /** @brief Public method to access number of known isotopes of a given element.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Number of known isotopes of the element specified by the given atomic number.
     */
-   int                GetNumberOfIsotopes(const int Z)    const { return fNISTElementDataTable[Z-1].fNumOfIsotopes; }
+   int                GetNumberOfIsotopes(const int z)    const { return fNISTElementDataTable[z-1].fNumOfIsotopes; }
 
    /** @brief Public method to get the index of the most stable isotope of this element.
     *
@@ -67,37 +66,37 @@ class NISTElementData{
     * isotope. In this case the this procedure would lead to an element without having any isotopes. IN order to avoid
     * this situtation, we will take the most stable isotope of the element and will inform the user.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Index of the most stable isotope if the elemnet has no stable isotope. Will return with -1 if the
     *            element has stable isotope.
     */
-   int                GetIndexOfTheMostStableIsotope(const int Z)    const { return fNISTElementDataTable[Z-1].fIndxOfMostStableIsotope; }
+   int                GetIndexOfTheMostStableIsotope(const int z)    const { return fNISTElementDataTable[z-1].fIndxOfMostStableIsotope; }
 
    /** @brief Public method to get the flag that indicates if this element has no stable isotope.
     *
     * See more at GetIndexOfTheMostStableIsotope().
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    True if the element has no stable isotope. The index of the most stable isotope can be got through GetIndexOfTheMostStableIsotope().
     *            False if the element has stable isotope.
     */
-   bool                IsHaveNoStableIsotope(const int Z)    const { return fNISTElementDataTable[Z-1].fIsNoStableIsotope; }
+   bool                IsHaveNoStableIsotope(const int z)    const { return fNISTElementDataTable[z-1].fIsNoStableIsotope; }
 
    /** @brief Public method to access symbols of all known isotopes of a given element.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Symbols of all known isotopes of the element specified by the given atomic number.
     *            Size of the array is equal to GetNumberOfIsotopes().
     */
-   const std::string* GetIsotopeSymbols(const int Z)      const { return fNISTElementDataTable[Z-1].fSymbols; }
+   const std::string* GetIsotopeSymbols(const int z)      const { return fNISTElementDataTable[z-1].fSymbols; }
 
    /** @brief Public method to access nucleon numbers of all known isotopes of a given element.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Nucleon numbers of all known isotopes of the element specified by the given atomic number.
     *            Size of the array is equal to GetNumberOfIsotopes().
     */
-   const int*         GetIsotopeNucleonNums(const int Z)  const { return fNISTElementDataTable[Z-1].fNIsos; }
+   const int*         GetIsotopeNucleonNums(const int z)  const { return fNISTElementDataTable[z-1].fNIsos; }
 
    /** @brief Public method to access atomic masses of all known isotopes of a given element.
     *
@@ -106,74 +105,74 @@ class NISTElementData{
     * multiplying by the Avogadro(kAvogadro) number OR to internal [energy] unit multiplying by
     * speed of light square (kCLightSquare).
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Atomic masses of all known isotopes of the element specified by the given atomic number.
     *            Size of the array is equal to GetNumberOfIsotopes().
     */
-   const double*      GetIsotopeAtomicMasses(const int Z) const { return fNISTElementDataTable[Z-1].fAIsos; }
+   const double*      GetIsotopeAtomicMasses(const int z) const { return fNISTElementDataTable[z-1].fAIsos; }
 
    /** @brief Public method to access isotope masses of all known isotopes of a given element.
     *
     * Isotope masses are the masses of the bare nucleus in internal [energy] units i.e. without
     * the electron shell and the corresponding total electron binding energy.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Masses of all known isotopes of the element specified by the given atomic number.
     *            Size of the array is equal to GetNumberOfIsotopes().
     */
-   const double*      GetIsotopeMasses(const int Z) const { return fNISTElementDataTable[Z-1].fMassIsos; }
+   const double*      GetIsotopeMasses(const int z) const { return fNISTElementDataTable[z-1].fMassIsos; }
 
    /** @brief Public method to access natural abundances of all known isotopes of a given element.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Natural abundances of all known isotopes of the element specified by the given atomic number.
     *            Size of the array is equal to GetNumberOfIsotopes().
     */
-   const double*      GetIsotopeNaturalAbundances(const int Z) const { return fNISTElementDataTable[Z-1].fWIsos; }
+   const double*      GetIsotopeNaturalAbundances(const int z) const { return fNISTElementDataTable[z-1].fWIsos; }
 
    /** @brief Public method to access the mean atomic mass of a given element.
     *
     * The mean atomic mass is the natural abundance weighted mean isotope atomic mass.
     * The mean atomic mass is stored in internal [weight/amount of substance] units.
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     * @return    Mean atomic mass of the element specified by the given atomic number.
     */
-   double             GetMeanAtomicMass(const int Z) const { return fNISTElementDataTable[Z-1].fMeanAtomicMass; }
+   double             GetMeanAtomicMass(const int z) const { return fNISTElementDataTable[z-1].fMeanAtomicMass; }
 
    /** @brief Public method to access the atomic mass of a given isotope.
     *
     * The atomic mass is returned in internal [weight/amount of substance] units
     * and includes the electron shell.
     *
-    * @param[in] Z Atomic number of the requested isotope.
-    * @param[in] N Nucleon number of the requested isotope.
+    * @param[in] z Atomic number of the requested isotope.
+    * @param[in] n Nucleon number of the requested isotope.
     * @return    Atomic mass of the isotope specified by the given atomic number
     *            and number of nucleons.
     */
-   double GetAtomicMass(int Z, int N);
+   double GetAtomicMass(int z, int n);
 
    /** @brief Public method to access the mass of a given isotope.
     *
     * It is the mass of the bare nucleus and returned in internal [energy] units.
     *
-    * @param[in] Z Atomic number of the requested isotope.
-    * @param[in] N Nucleon number of the requested isotope.
+    * @param[in] z Atomic number of the requested isotope.
+    * @param[in] n Nucleon number of the requested isotope.
     * @return    Mass of the isotope specified by the given atomic number
     *            and number of nucleons.
     */
-   double GetIsotopeMass(int Z, int N);
+   double GetIsotopeMass(int z, int n);
 
    /** @brief Public method to access the total electron binding energy of a given isotope.
     *
     * The total electron binding energy is returned in internal [energy] units.
     *
-    * @param[in] Z Atomic number of the requested isotope.
-    * @param[in] N Nucleon number of the requested isotope.
+    * @param[in] z Atomic number of the requested isotope.
+    * @param[in] n Nucleon number of the requested isotope.
     * @return    Total electron binding energy of the isotope specified by the
     *            given atomic number and number of nucleons.
     */
-   double GetBindingEnergy(int Z, int N);
+   double GetBindingEnergy(int z, int n);
 //@}
 
 /**
@@ -185,22 +184,22 @@ class NISTElementData{
    * When NIST elements are built through the Element::NISTElement() method, their indices
    * (in the global element table) will be stored here.
    *
-   * @param[in] Z Atomic number of the requested NIST element.
+   * @param[in] z Atomic number of the requested NIST element.
    * @return
    *            - Index of the specified NIST element if that NIST element has already built.
    *            - -1 otherwise.
    */
-  int    GetNISTElementIndex(int Z) const {return fIndicesOfBuiltNISTElements[Z-1];}
+  int    GetNISTElementIndex(int z) const {return fIndicesOfBuiltNISTElements[z-1];}
 
   /** @brief Public method to store the NIST element index in the global element table.
    *
    * When NIST elements are built through the Element::NISTElement() method, their indices
    * (in the global element table) will be stored here.
    *
-   * @param[in] Z Atomic number of the NIST element.
+   * @param[in] z Atomic number of the NIST element.
    * @param[in] indx Index of the NIST element in the global element table.
    */
-  void   SetNISTElementIndex(int Z, int indx) {fIndicesOfBuiltNISTElements[Z-1] = indx;}
+  void   SetNISTElementIndex(int z, int indx) {fIndicesOfBuiltNISTElements[z-1] = indx;}
 //@}
 
 
@@ -211,9 +210,9 @@ class NISTElementData{
    /** @brief Public method to print some element data related to its isotopic composition.
     *
     *
-    * @param[in] Z Atomic number of the requested element.
+    * @param[in] z Atomic number of the requested element.
     */
-   void PrintData(int Z);
+   void PrintData(int z);
 //@}
 
 /**
