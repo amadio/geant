@@ -74,6 +74,7 @@ set(sources
    src/MCTruthMgr.cxx
    src/GeantRunManager.cxx
    src/GeantEventServer.cxx
+   src/TrackStat.cxx
 )
 
 set(headers
@@ -123,6 +124,7 @@ set(headers
    inc/GeantRunManager.h
    inc/GeantEventServer.h
    inc/GeantConfig.h
+   inc/TrackStat.h
 )
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))

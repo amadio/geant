@@ -4,6 +4,7 @@
 #include "GeantTaskData.h"
 #include "GeantPropagator.h"
 #include "StackLikeBuffer.h"
+#include "TrackStat.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -46,6 +47,7 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
     else output.AddTrack(track);
   }
   // The stage buffer needs to be cleared
+  td->fStat->AddTracks(output.size() - input.size());
   input.Clear();
   
   // Loop active handlers and flush them into btodo basket
@@ -58,9 +60,12 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
         for (auto track : bvector.Tracks())
           fHandlers[i]->DoIt(track, output, td);
       }
+      td->fStat->AddTracks(-bvector.size());
       bvector.Clear();
     }
   }
+  td->fStat->AddTracks(output.size());
+  
   return CopyToFollowUps(output, td);
 }
 
@@ -100,11 +105,13 @@ int SimulationStage::Process(GeantTaskData *td)
       if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
         handler->DoIt(bvector, output, td);
+        td->fStat->AddTracks(-bvector.size());
         bvector.Clear();
       }
     }
   }
   // The stage buffer needs to be cleared
+  td->fStat->AddTracks(output.size() - input.size());
   input.Clear();
   return CopyToFollowUps(output, td);
 }

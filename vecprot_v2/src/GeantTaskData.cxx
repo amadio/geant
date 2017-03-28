@@ -9,6 +9,7 @@
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 #include "SimulationStage.h"
+#include "TrackStat.h"
 
 #ifdef USE_ROOT
 #include "TRandom.h"
@@ -48,6 +49,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
   fShuttleBasket = new Basket(1000, 0, -1);
   fBvector = new Basket(256, 0, -1);
+  fStat = new TrackStat(this);
   for (int i=0; i<=int(kSteppingActionsStage); ++i)
     fStageBuffers.push_back(new Basket(1000, 0, -1));
 }
@@ -99,6 +101,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 #endif
   fShuttleBasket = new Basket(1000, 0, -1);
   fBvector = new Basket(256, 0, -1);
+  fStat = new TrackStat(this);
   for (int i=0; i<=int(kSteppingActionsStage); ++i)
     fStageBuffers.push_back(new Basket(1000, 0, prop->fNuma));
 }
@@ -124,6 +127,7 @@ GeantTaskData::~GeantTaskData()
   delete fStackBuffer;
   delete fShuttleBasket;
   delete fBvector;
+  delete fStat;
   for (int i=0; i<=int(kSteppingActionsStage); ++i)
     delete fStageBuffers[i];
 }

@@ -29,6 +29,7 @@
 #include "GeantVTaskMgr.h"
 #include "StackLikeBuffer.h"
 #include "SimulationStage.h"
+#include "TrackStat.h"
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
@@ -397,6 +398,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
         td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
       ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket);
   }
+  td->fStat->AddTracks(ninjected);
   if (ninjected) return FeederResult::kFeederWork;
   return FeederResult::kNone;
 }
@@ -448,6 +450,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
         if (ninput == 0) break;
         ninput = 0;
       }
+      assert(td->fStat->CountBalance() == 0);
     }
   }
   return nprocessed; // useless instruction intended for dummy compilers

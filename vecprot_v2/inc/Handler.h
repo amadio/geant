@@ -86,6 +86,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
 
+  /** @brief NUMA node getter */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  basketizer_t *GetBasketizer() const { return fBasketizer; }
+
   /** @brief Threshold getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
