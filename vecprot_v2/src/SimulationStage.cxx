@@ -39,15 +39,17 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
   output.Clear();
+  int ninput = 0;
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     Handler *handler = Select(track, td);
     // Execute in scalar mode the handler action
-    if (handler) handler->DoIt(track, output, td);
+    if (handler)
+      handler->DoIt(track, output, td);
     else output.AddTrack(track);
   }
+  ninput += input.size();
   // The stage buffer needs to be cleared
-  td->fStat->AddTracks(output.size() - input.size());
   input.Clear();
   
   // Loop active handlers and flush them into btodo basket
@@ -60,11 +62,12 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
         for (auto track : bvector.Tracks())
           fHandlers[i]->DoIt(track, output, td);
       }
-      td->fStat->AddTracks(-bvector.size());
+      ninput += bvector.size();
       bvector.Clear();
     }
   }
-  td->fStat->AddTracks(output.size());
+  
+  td->fStat->AddTracks(output.size() - ninput);
   
   return CopyToFollowUps(output, td);
 }
@@ -87,12 +90,14 @@ int SimulationStage::Process(GeantTaskData *td)
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
   output.Clear();
+  int ninput = 0;
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     Handler *handler = Select(track, td);
     // If no handler is selected the track does not perform this stage
     if (!handler) {
       output.AddTrack(track);
+      ninput++;
       continue;
     }
     
@@ -100,19 +105,20 @@ int SimulationStage::Process(GeantTaskData *td)
       // Scalar DoIt.
       // The track and its eventual progenies should be now copied to the output
       handler->DoIt(track, output, td);
+      ninput++;
     } else {
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
+        ninput += bvector.size();
         handler->DoIt(bvector, output, td);
-        td->fStat->AddTracks(-bvector.size());
         bvector.Clear();
       }
     }
   }
   // The stage buffer needs to be cleared
-  td->fStat->AddTracks(output.size() - input.size());
   input.Clear();
+  td->fStat->AddTracks(output.size()-ninput);
   return CopyToFollowUps(output, td);
 }
 

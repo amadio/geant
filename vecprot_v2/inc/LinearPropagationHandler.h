@@ -30,7 +30,9 @@ protected:
 private:
   LinearPropagationHandler(const LinearPropagationHandler &) = delete;
   LinearPropagationHandler &operator=(const LinearPropagationHandler &) = delete;
-    
+
+  VECCORE_ATT_HOST_DEVICE
+  bool IsSameLocation(GeantTrack &track, GeantTaskData *td);
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE

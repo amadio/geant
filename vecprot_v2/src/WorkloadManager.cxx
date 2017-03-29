@@ -348,7 +348,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 
   if (concurrentWrite)
     {
-      file = new TThreadMergingFile("hits_output.root", wm->IOQueue(), "RECREATE");
+      file = new TThreadMergingFile("hits_output.root", propagator->fWMgr->IOQueue(), "RECREATE");
       tree = new TTree("Tree","Simulation output");
 
       tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &data);
@@ -379,6 +379,34 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     flush = feedres == FeederResult::kNone;
     SteppingLoop(td, flush);
   }
+  // WP
+  #ifdef USE_ROOT
+  if(concurrentWrite)
+    {
+      file->Write();
+    }
+  #endif
+  prop->fWMgr->DoneQueue()->push_force(nullptr);
+  // Final reduction of counters
+  propagator->fNsteps += td->fNsteps;
+  propagator->fNsnext += td->fNsnext;
+  propagator->fNphys += td->fNphys;
+  propagator->fNmag += td->fNmag;
+  propagator->fNsmall += td->fNsmall;
+  propagator->fNcross += td->fNcross;
+
+  // If transport is completed, make send the signal to the run manager
+  if (runmgr->TransportCompleted())
+    runmgr->StopTransport();
+  Geant::Print("","=== Thread %d: exiting ===", tid);
+
+  #ifdef USE_ROOT
+  if (prop->fWMgr->IsStopped()) prop->fWMgr->MergingServer()->Finish();
+
+  if (concurrentWrite) {
+    delete file;
+  }
+  #endif
 }
 
 //______________________________________________________________________________
@@ -430,8 +458,14 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
   while ( FlushOneLane(td) || !flushed ) {
     while (1) {
       count++;
-//      td->InspectStages(istage);
       int nstart = td->fStageBuffers[istage]->size();
+      for (auto track : td->fStageBuffers[istage]->Tracks()) {
+        if (track->fEvent == 0 && track->fParticle == 0) {
+          td->InspectStages(istage);
+          track->Print("");
+          break;
+        }
+      }
       ninput += nstart;
       if ( nstart || !flushed ) {
 //        Geant::Printf("count=%d", count);
@@ -450,7 +484,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
         if (ninput == 0) break;
         ninput = 0;
       }
-      assert(td->fStat->CountBalance() == 0);
+//      assert(td->fStat->CountBalance() == 0);
     }
   }
   return nprocessed; // useless instruction intended for dummy compilers

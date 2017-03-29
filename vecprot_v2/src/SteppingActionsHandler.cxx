@@ -44,6 +44,8 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
   // Update the particle location after the step
   if (track->fStatus == kBoundary)
     *track->fPath = *track->fNextpath;
+  // Reset number of boundary steps
+  track->fNsteps = 0;
 
   // Copy to output
   output.AddTrack(track);
@@ -74,6 +76,8 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
     // Update the particle location after the step
     if (track->fStatus == kBoundary)
       *track->fPath = *track->fNextpath;
+    // Reset number of boundary steps
+    track->fNsteps = 0;
     
     output.AddTrack(track);
   }

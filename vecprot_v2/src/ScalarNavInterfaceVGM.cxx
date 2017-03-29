@@ -128,17 +128,17 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
   VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
-    track.fStep = track.fPstep;
+    track.fSnext = track.fPstep;
     track.fBoundary = false;
     *track.fNextpath = *track.fPath;
     return;
   }
 
-  track.fStep = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+  track.fSnext = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
                              Math::Min<double>(1.E20, track.fPstep),
                              *track.fPath, *track.fNextpath, !track.fBoundary, track.fSafety);
-  track.fStep = Math::Max<double>(2. * gTolerance, track.fStep + 2. * gTolerance);
+  track.fSnext = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
   track.fSafety = Math::Max<double>(track.fSafety, 0);
   // onboundary with respect to new point
   track.fBoundary = track.fNextpath->IsOnBoundary();
@@ -179,7 +179,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
 #ifdef VERBOSE
   Geant::Print("","navfindbound on %p with pstep %lf yields step %lf and safety %lf\n", 
-               this, track.fPtrack.fStep, track.fStep, track.fSafety);
+               this, track.fPtrack.fStep, track.fPstep, track.fSafety);
 #endif // VERBOSE
 }
 
@@ -188,26 +188,22 @@ VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
 // Find distance to next boundary, within proposed step.
    typedef Vector3D<Precision> Vector3D_t;
-#ifdef VECCORE_CUDA
-  SimpleNavigator nav;
-#else
-  ABBoxNavigator nav;
-#endif // VECCORE_CUDA
-
   // Retrieve navigator for the track
   VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
-    track.fStep = track.fPstep;
+    track.fSnext = track.fPstep;
     track.fBoundary = false;
-    *track.fNextpath = *track.fPath;
+//    *track.fNextpath = *track.fPath;
     return;
   }
-  track.fStep = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+  track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
                              Math::Min<double>(1.E20, track.fPstep),
-                             *track.fPath, *track.fNextpath, !track.fBoundary, track.fSafety);
- 
+                             *track.fPath, !track.fBoundary, track.fSafety);
+  track.fBoundary = track.fSnext < track.fPstep;
+  track.fSnext = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
+  track.fSafety = Math::Max<double>(track.fSafety, 0);  
 }
 
 //______________________________________________________________________________

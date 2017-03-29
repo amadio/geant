@@ -55,6 +55,14 @@ public:
          const double *dirx, const double *diry, const double *dirz, 
          const VolumePath_t **instate, VolumePath_t **outstate, 
          double *step, double *safe, bool *isonbdr);
+
+  VECCORE_ATT_HOST_DEVICE
+  static
+  void NavFindNextBoundary(int ntracks, const double *pstep, 
+         const double *x, const double *y, const double *z,
+         const double *dirx, const double *diry, const double *dirz, 
+         const VolumePath_t **instate, 
+         double *step, double *safe, bool *isonbdr);
     
   /**
    * @brief Function for navigation that checks if location is the same or not

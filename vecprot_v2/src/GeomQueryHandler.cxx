@@ -95,10 +95,10 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
   // Below we should call just finding the next boundary. Relocation should
   // be handled separately
 #ifdef USE_VECGEOM_NAVIGATOR
-  ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(*track);
+  ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
 #else
 // ROOT geometry
-  ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(*track);
+  ScalarNavInterfaceTGeo::NavFindNextBoundary(*track);
 #endif // USE_VECGEOM_NAVIGATOR
   // Select follow-up stage
   track->SetStage(ESimulationStage::kPropagationStage);
@@ -113,6 +113,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   
 // We should make sure that track->fSafety < track->fPstep for these tracks
   TrackVec_t &tracks = input.Tracks();
+/*
 #ifdef USE_VECGEOM_NAVIGATOR
   // Copy relevant track fields to geometry SOA and process vectorized.
   GeantTrackGeo_v &track_geo = *td->fGeoTrack;
@@ -126,10 +127,10 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   }
     
   // The vectorized SOA call
-  VectorNavInterface::NavFindNextBoundaryAndStep(tracks.size(), track_geo.fPstepV,
+  VectorNavInterface::NavFindNextBoundary(tracks.size(), track_geo.fPstepV,
                track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
                track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
-               (const VolumePath_t **)td->fPathV, td->fNextpathV,
+               (const VolumePath_t **)td->fPathV,
                track_geo.fSnextV, track_geo.fSafetyV, track_geo.fBoundaryV);
   
   // Update original tracks
@@ -147,6 +148,11 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   (void)tracks;
   Handler::DoIt(input, output, td);
 #endif
+*/
+  // For the moment just loop and call scalar DoIt
+  for (auto track : tracks) {
+    DoIt(track, output, td);
+  }
 }
 
 } // GEANT_IMPL_NAMESPACE

@@ -14,7 +14,7 @@ int GeantEvent::AddTrack() {
   // Thread safe update of the max number of tracks in flight
   while ( fNmax < ninflight && !fNmax.compare_exchange_weak(nmax, ninflight) )
     ;
-  return ntracks;  
+  return (ntracks - 1);
 }
 
 //______________________________________________________________________________
