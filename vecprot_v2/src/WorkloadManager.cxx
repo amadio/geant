@@ -175,8 +175,10 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   // Start CPU transport threads (static mode)
   if (!taskmgr) {
     for (; ith < fNthreads; ith++) {
-//      fListThreads.emplace_back(WorkloadManager::TransportTracks, prop);
-      fListThreads.emplace_back(WorkloadManager::TransportTracksV3, prop);
+      if ( fPropagator->fConfig->fUseV3 )
+        fListThreads.emplace_back(WorkloadManager::TransportTracksV3, prop);
+      else
+        fListThreads.emplace_back(WorkloadManager::TransportTracks, prop);
     }
   }
 
@@ -437,12 +439,19 @@ int WorkloadManager::FlushOneLane(GeantTaskData *td)
 // Flush a single track lane from the stack-like buffer into the first stage.
   // Check the stack buffer and flush priority events first
   int ninjected = 0;
+  int maxspill = td->fPropagator->fConfig->fNmaxBuffSpill;
   if ( td->fStackBuffer->IsPrioritized())
     ninjected = td->fStackBuffer->FlushPriorityLane();
   if (ninjected) return ninjected;
 
   // Inject the last lane in the buffer
-  return ( td->fStackBuffer->FlushLastLane() );
+  int nlane = td->fStackBuffer->FlushLastLane();
+  ninjected += nlane;
+  while (nlane && (ninjected < maxspill)) {
+    nlane = td->fStackBuffer->FlushLastLane();
+    ninjected += nlane;
+  }
+  return ( ninjected );
 }  
 
 //______________________________________________________________________________
@@ -459,6 +468,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
     while (1) {
       count++;
       int nstart = td->fStageBuffers[istage]->size();
+/*
       for (auto track : td->fStageBuffers[istage]->Tracks()) {
         if (track->fEvent == 0 && track->fParticle == 0) {
           td->InspectStages(istage);
@@ -466,13 +476,9 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
           break;
         }
       }
+*/
       ninput += nstart;
       if ( nstart || !flushed ) {
-//        Geant::Printf("count=%d", count);
-//        if (count == 34175) {
-//          count = 34175;
-//        }
-//        td->fStageBuffers[istage]->Tracks()[0]->Print("");
         if (flush) 
           nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
         else

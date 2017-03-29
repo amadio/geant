@@ -75,10 +75,12 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   
   // Crossing tracks continue to continuous processes, the rest have to
   // query again the geometry
-  if (!IsSameLocation(*track, td))
+  if (!IsSameLocation(*track, td)) {
     track->SetStage(kContinuousProcStage);
-  else
-    track->SetStage(kGeometryStepStage);  
+    td->fNcross++;
+  } else {
+    track->SetStage(kGeometryStepStage);
+  }
 
   output.AddTrack(track);
 }
@@ -135,10 +137,12 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
       nvect++;
 #else
     // Vector treatment was not requested, so proceed with scalar
-    if (!IsSameLocation(*track, td))
+    if (!IsSameLocation(*track, td)) {
+      td->fNcross++;
       track->SetStage(kContinuousProcStage);
-    else
-      track->SetStage(kGeometryStepStage);  
+    } else {
+      track->SetStage(kGeometryStepStage);
+    }
     output.AddTrack(track);
     continue;    
 #endif
@@ -150,10 +154,12 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   if (nvect < kMinVecSize) {
     for (auto track : tracks) {
       if (track->fStatus == kPhysics) continue;
-      if (!IsSameLocation(*track, td))
+      if (!IsSameLocation(*track, td)) {
+        td->fNcross++;
         track->SetStage(kContinuousProcStage);
-      else
-        track->SetStage(kGeometryStepStage);  
+      } else {
+        track->SetStage(kGeometryStepStage);
+      }
       output.AddTrack(track);
       continue;          
     }
@@ -177,6 +183,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   for (itr = 0; itr < nsel; itr++) {
     GeantTrack *track = track_geo.fOriginalV[itr];
     if (!same[itr]) {
+      td->fNcross++;
       track->fBoundary = true;
       track->fStatus = kBoundary;
       if (track->fNextpath->IsOutside())

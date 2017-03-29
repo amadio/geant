@@ -52,7 +52,7 @@ void LocalityManager::Init() {
   }
   std::cout << "=== Locality manager allocated " << fNblocks << " blocks of " 
             << fBlockSize << " tracks each on " << fNnodes << " locality nodes ===" << std::endl;
-  
+  fInitialized = true;
 }
 
 } // GEANT_IMPL_NAMESPACE

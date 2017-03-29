@@ -2031,7 +2031,7 @@ double GeantTrack_v::Curvature(int i, double Bz) const {
   constexpr double kTiny = 1.E-50;
 
   double qB = fChargeV[i] * Bz;
-  if (qB < kTiny) return kTiny;
+  if (fabs(qB) < kTiny) return kTiny;
   return fabs(kB2C * qB / (Pt(i) + kTiny));
 }
 

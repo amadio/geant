@@ -179,7 +179,7 @@ public:
     constexpr double kB2C = -0.299792458e-3;
     constexpr double kTiny = 1.E-50;
     double qB = fCharge * Bz;
-    if (qB < kTiny) return kTiny;
+    if (fabs(qB) < kTiny) return kTiny;
     return fabs(kB2C * qB / (Pt() + kTiny));
   }
 

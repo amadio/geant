@@ -88,7 +88,7 @@ void GeomQueryHandler::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
+void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -100,6 +100,7 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *)
 // ROOT geometry
   ScalarNavInterfaceTGeo::NavFindNextBoundary(*track);
 #endif // USE_VECGEOM_NAVIGATOR
+  td->fNsnext++;
   // Select follow-up stage
   track->SetStage(ESimulationStage::kPropagationStage);
   output.AddTrack(track);  
