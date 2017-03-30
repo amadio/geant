@@ -361,7 +361,7 @@ void TMXsec::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
       ++numRndn;
 
   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
-  double *rndArray = td->fDblArray;
+  double *rndArray = td->GetDblArray(ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
 #elif USE_ROOT
@@ -454,7 +454,7 @@ void TMXsec::ProposeStep(TrackVec_t &tracks, GeantTaskData *td) {
       ++numRndn;
 
   // tid-based rng: need $\{ R_i\}_i^{ntracks} \in \mathcal{U} \in [0,1]$
-  double *rndArray = td->fDblArray;
+  double *rndArray = td->GetDblArray(ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
 #elif USE_ROOT
@@ -1225,7 +1225,7 @@ void TMXsec::SampleInt(int ntracks, GeantTrack_v &tracksin, GeantTaskData *td) {
   int nParticleWithReaction = TPartIndex::I()->NPartReac();
 
   // tid-based rng
-  double *rndArray = td->fDblArray;
+  double *rndArray = td->GetDblArray(2 * ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(2 * ntracks, rndArray);
 #elif USE_ROOT
@@ -1325,8 +1325,8 @@ VECCORE_ATT_HOST_DEVICE
 void TMXsec::SampleInt(TrackVec_t &tracks, GeantTaskData *td) {
   // tid-based rng
   int nParticleWithReaction = TPartIndex::I()->NPartReac();
-  double *rndArray = td->fDblArray;
   int ntracks = tracks.size();
+  double *rndArray = td->GetDblArray(2 * ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(2 * ntracks, rndArray);
 #elif USE_ROOT

@@ -334,7 +334,7 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, int ntracks, GeantTrack_v &tracks, G
   double msPhi;
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  double *rndArray = td->fDblArray;
+  double *rndArray = td->GetDblArray(ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
 #elif USE_ROOT
@@ -410,7 +410,7 @@ void TTabPhysMgr::ApplyMsc(Material_t *mat, TrackVec_t &tracks, GeantTaskData *t
   double msPhi;
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  double *rndArray = td->fDblArray;
+  double *rndArray = td->GetDblArray(ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(ntracks, rndArray);
 #elif USE_ROOT
@@ -710,7 +710,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
   }
 
   // tid-based rng
-  double *rndArray = td->fDblArray;
+  double *rndArray = td->GetDblArray(2*ntracks);
 #ifdef USE_VECGEOM_NAVIGATOR
   td->fRndm->uniform_array(2 * ntracks, rndArray);
 #elif USE_ROOT

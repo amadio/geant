@@ -13,6 +13,7 @@
 #include "PrimaryGenerator.h"
 #include "GeantEvent.h"
 #include "GeantEventServer.h"
+#include "LocalityManager.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
@@ -425,6 +426,8 @@ void GeantRunManager::RunSimulation() {
   Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
          fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, ncross, rtime, ctime);
+  LocalityManager *lmgr = LocalityManager::Instance();
+  Printf("NQUEUED = %d  NBLOCKS = %d", lmgr->GetNqueued(), lmgr->GetNallocated());
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");
 #else

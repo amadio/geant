@@ -45,14 +45,15 @@ private:
   
   int             fNode;  // Numa node id
   int             fMaxdepth; // Max depth used as extra parameter in allocations
+  std::atomic_int fNblocks; // Number of blocks in flight
   size_t          fBlockSize;  // Numa block size
-  queue_t fBlocks;  // Queue of free blocks
+  queue_t         fBlocks;  // Queue of free blocks
 
 public:
 
   /** @brief Constructor providing number of blocks to be initially created */
   NumaBlockMgr(size_t nblocks, int numa_node, int maxdepth, size_t bsize) 
-    : fCurrent(nullptr), fNode(numa_node), fMaxdepth(maxdepth), fBlockSize(bsize), 
+    : fCurrent(nullptr), fNode(numa_node), fMaxdepth(maxdepth), fNblocks(nblocks), fBlockSize(bsize),
       fBlocks(queue_buff_size)
   {
     // Constructor creating nblocks
@@ -72,9 +73,16 @@ public:
   /** @brief Add a free block */
   numa_block_ptr AddBlock()
   {
+    fNblocks++;
     if (D) return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth) );
     return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode) );
   }
+
+  /** @brief Get number of queued blocks */
+  int GetNqueued() const { return fBlocks.size(); }
+
+  /** @brief Get number of blocks in flight */
+  int GetNblocks() const { return fNblocks.load(); }
 
   /** @brief Destructor*/
   ~NumaBlockMgr() {
@@ -133,7 +141,7 @@ public:
   /** @brief Recycle an object from a block 
       @param block Block from which the object is released
       @return Block may have been recycled */
-  GEANT_FORCE_INLINE bool ReleaseObject(numa_block_ptr block) { 
+  GEANT_FORCE_INLINE bool ReleaseObject(numa_block_ptr block) {
     if (block->ReleaseObject()) {
 //      std::cout << "Recycling block " << block << std::endl;
       block->Clear();

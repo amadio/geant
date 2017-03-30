@@ -2,6 +2,7 @@
 
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
+#include "TrackManager.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -37,6 +38,7 @@ void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
   if (track->fStatus == kKilled) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     fPropagator->StopTrack(track);
+    fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
     return;
   }

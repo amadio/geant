@@ -103,7 +103,7 @@ private:
   template <typename T> static
    VECCORE_ATT_HOST_DEVICE
   void CheckSizeAndAlloc(T *&array, int &currentsize, size_t wantedsize) {
-     if (wantedsize < (size_t) currentsize)
+     if (wantedsize <= (size_t) currentsize)
       return;
     T *newarray = new T[wantedsize];
     memcpy(newarray,array,currentsize*sizeof(T));

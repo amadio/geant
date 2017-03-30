@@ -2,6 +2,7 @@
 
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
+#include "TrackManager.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -37,6 +38,7 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
   if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     fPropagator->StopTrack(track);
+    fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
     return;
   }
@@ -45,7 +47,7 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
   if (track->fStatus == kBoundary)
     *track->fPath = *track->fNextpath;
   // Reset number of boundary steps
-  track->fNsteps = 0;
+  //track->fNsteps = 0;
 
   // Copy to output
   output.AddTrack(track);
@@ -69,6 +71,7 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
     if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
       fPropagator->StopTrack(track);
+      fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
       continue;
     } 
@@ -77,7 +80,7 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
     if (track->fStatus == kBoundary)
       *track->fPath = *track->fNextpath;
     // Reset number of boundary steps
-    track->fNsteps = 0;
+    //track->fNsteps = 0;
     
     output.AddTrack(track);
   }

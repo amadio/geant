@@ -215,7 +215,7 @@ void GeantPropagator::Initialize() {
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);
-    mgr->SetBlockSize(10000);
+    mgr->SetBlockSize(1000);
     mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
   }

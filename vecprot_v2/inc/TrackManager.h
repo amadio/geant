@@ -59,6 +59,12 @@ public:
     track.fMaxDepth = fMaxdepth;
     return track;
   }
+
+  /** @brief Get number of queued blocks */
+  int GetNqueued() const { return fBlockMgr.GetNqueued(); }
+
+  /** @brief Get number of queued blocks */
+  int GetNblocks() const { return fBlockMgr.GetNblocks(); }
   
   /** @brief Service to get the NUMA block a track belongs to */
   GEANT_FORCE_INLINE

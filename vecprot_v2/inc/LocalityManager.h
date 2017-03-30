@@ -59,6 +59,24 @@ public:
   GEANT_FORCE_INLINE
   int GetNnodes() const { return fNnodes; }
 
+  /** @brief Getter for the number of queued blocks.*/
+  GEANT_FORCE_INLINE
+  int GetNqueued() const
+  {
+    int nqueued = 0;
+    for (auto i=0; i<fNnodes; ++i) nqueued += fTrackMgr[i]->GetNqueued();
+    return nqueued;
+  }
+
+  /** @brief Getter for the number of queued blocks.*/
+  GEANT_FORCE_INLINE
+  int GetNallocated() const
+  {
+    int nblocks = 0;
+    for (auto i=0; i<fNnodes; ++i) nblocks += fTrackMgr[i]->GetNblocks();
+    return nblocks;
+  }
+
   /** @brief Setter for the locality policy.*/
   GEANT_FORCE_INLINE
   void SetPolicy(NumaPolicy::EPolicyType policy) { fPolicy.SetPolicy(policy); }
