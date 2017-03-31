@@ -14,9 +14,7 @@
 #define GEANT_RR_POOL
 #include <vector>
 #include <iostream>
-#if __cplusplus >= 201103L
 #include <atomic>
-#endif
 
 /**
  * @brief Generic atomic round robin pool
@@ -41,13 +39,11 @@ public:
   int fNslots;   /** Number of slots */
   int fCapacity; /** Number of object to be preallocated per slot */
   T *fBlueprint; /** Blueprint object to be copied for allocations */
-#if __cplusplus >= 201103L
   std::atomic_int fRRcount;               /** Round robin counter */
   std::atomic_int fNcalls;                /** Number of calls to borrow/release */
   std::atomic_int fInew;                  /** Number of allocations done (overhead) */
   std::atomic_int fLockHit;               /** Number of lock hits (overhead) */
   std::vector<std::atomic_flag *> fLocks; /** Memory barriers per slot */
-#endif
   std::vector<rrlist_t *> fLists; /** List of lists of objects per slot */
 
 private:
