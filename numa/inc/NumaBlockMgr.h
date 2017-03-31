@@ -122,7 +122,8 @@ public:
       // Retry if block is the same
       if (CurrentBlock() == block) continue;
       // Someone else replaced the block, recycle our free block
-      assert(fBlocks.enqueue(next_free));
+      bool putback = fBlocks.enqueue(next_free);
+      assert(putback);
       break;
     }
     // Return the held object if valid, or try again with the new block
