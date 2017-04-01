@@ -4,7 +4,7 @@
 
 #include <string>
 // change to vecgeom::map
-//#include <map>
+// #include <map>
 #include "base/Map.h"
 
 
@@ -170,8 +170,8 @@ class NISTMaterialData{
    /** @brief Internal map to store NIST material indices in the internal NIST material
     *         database with a key = material name. */
   // change to vecgeom::map
-  // std::map<const std::string,int> fMapNISTMaterialNameToIndex;
-  vecgeom::map<const char*,int> fMapNISTMaterialNameToIndex;
+  // std::map<std::string,int> fMapNISTMaterialNameToIndex;
+  vecgeom::map<std::string,int> fMapNISTMaterialNameToIndex;
 };
 
 } // namespace geant

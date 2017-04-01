@@ -18,9 +18,7 @@ DensityEffectData::DensityEffectData() {
    BuildTable();
    // Add all material name from the density effect data DB to the name -> index internal map
    for (int i=0; i<gNumberOfDensityEffectData; ++i) {
-     // changed for vecgeom::map
-     // fMapMaterialNameToDenistyEffectDataIndex[fDensityEffectDataTable[i].fName] = i;
-     fMapMaterialNameToDenistyEffectDataIndex[(fDensityEffectDataTable[i].fName).c_str()] = i;
+     fMapMaterialNameToDenistyEffectDataIndex[fDensityEffectDataTable[i].fName] = i;
    }
 }
 
@@ -51,8 +49,8 @@ int DensityEffectData::GetElementalIndex(int z, MaterialState state) const {
 int DensityEffectData::FindDensityEffectDataIndex(const std::string &name) {
   int indx = -1;
   // changed to vecgeom::map
-  // const std::map<const std::string,int>::iterator itr = fMapMaterialNameToDenistyEffectDataIndex.find(name);
-  const vecgeom::map<const char*,int>::iterator itr = fMapMaterialNameToDenistyEffectDataIndex.find(name.c_str());
+  // const std::map<std::string,int>::iterator itr = fMapMaterialNameToDenistyEffectDataIndex.find(name);
+  const vecgeom::map<std::string,int>::iterator itr = fMapMaterialNameToDenistyEffectDataIndex.find(name);
   if (itr!=fMapMaterialNameToDenistyEffectDataIndex.end())
     indx = itr->second;
   return indx;

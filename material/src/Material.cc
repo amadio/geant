@@ -13,9 +13,9 @@
 namespace geantphysics {
 // change to vecgeom::Vector and vecgeom::map
 // std::vector<Material*> Material::gTheMaterialTable;
-// std::map<const std::string,int> Material::gMapMaterialNameToIndex;
+// std::map<std::string,int> Material::gMapMaterialNameToIndex;
 vecgeom::Vector<Material*> Material::gTheMaterialTable;
-vecgeom::map<const char*,int> Material::gMapMaterialNameToIndex;
+vecgeom::map<std::string,int> Material::gMapMaterialNameToIndex;
 
 /**
  * If state of the material is MaterialState::kStateUndefined at construction the
@@ -396,15 +396,15 @@ void Material::InitialiseMembers() {
   gTheMaterialTable.push_back(this);
   // add this index to the name -> index map
   // change to vecgeom::map
-  gMapMaterialNameToIndex[fName.c_str()] = fIndex;
+  gMapMaterialNameToIndex[fName] = fIndex;
 }
 
 
 int Material::FindMaterialIndex(const std::string &name) {
   int indx = -1;
   // change to vecgeom::map
-  // const std::map<const std::string,int>::iterator itr = gMapMaterialNameToIndex.find(name);
-  const vecgeom::map<const char*,int>::iterator itr = gMapMaterialNameToIndex.find(name.c_str());
+  // const std::map<std::string,int>::iterator itr = gMapMaterialNameToIndex.find(name);
+  const vecgeom::map<std::string,int>::iterator itr = gMapMaterialNameToIndex.find(name);
   if (itr!=gMapMaterialNameToIndex.end()) {
     indx = itr->second;
   }
@@ -436,7 +436,7 @@ Material* Material::NISTMaterial(const std::string &name) {
   // material. So try to get the index of the NISTMaterialData structure.
   // change to vecgeom::map
   // indx = NISTMaterialData::Instance().FindNISTMaterialDataIndex(name);
-  indx = NISTMaterialData::Instance().FindNISTMaterialDataIndex(name.c_str());
+  indx = NISTMaterialData::Instance().FindNISTMaterialDataIndex(name);
   if (indx>-1) {  // we have NISTMaterialData for this material name so buil the material
     // get NISTMaterialData from the corresponding data structure
     const std::string name = NISTMaterialData::Instance().GetName(indx);

@@ -75,7 +75,7 @@ Isotope::Isotope(const std::string &name, int z, int n, double a, double isomass
 // dtr
 Isotope::~Isotope() {
   //change to vecgeom::map
-  //const std::map<int,int>::iterator itr = gTheIsotopeMap.find(GetKey(fZ,fN,fIsoL));
+  // const std::map<int,int>::iterator itr = gTheIsotopeMap.find(GetKey(fZ,fN,fIsoL));
   const vecgeom::map<int,int>::iterator itr = gTheIsotopeMap.find(GetKey(fZ,fN,fIsoL));
   gTheIsotopeMap.erase(itr);
   gTheIsotopeTable[fIndex] = nullptr;
@@ -140,7 +140,7 @@ std::ostream& operator<<(std::ostream& flux, vecgeom::Vector<Isotope*> isotable)
      << " *****\n" << std::endl;
    for (size_t i=0; i<isotable.size(); ++i) {
      flux << isotable[i] << std::endl;
-   }   
+   }
    return flux;
 }
 

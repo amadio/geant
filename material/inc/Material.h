@@ -340,8 +340,8 @@ class Material {
    /** @brief Internal map to store the already created material indices in the global material
     *         table with a key = material name. */
    // change to vecgeom::map
-   // static std::map<const std::string,int> gMapMaterialNameToIndex;
-   static vecgeom::map<const char*,int> gMapMaterialNameToIndex;
+   // static std::map<std::string,int> gMapMaterialNameToIndex;
+   static vecgeom::map<std::string,int> gMapMaterialNameToIndex;
 
    /** @brief Object to store additional properties realted to this material */
    MaterialProperties *fMaterialProperties;
