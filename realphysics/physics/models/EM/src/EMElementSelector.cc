@@ -1,6 +1,9 @@
 
 
 #include "EMElementSelector.h"
+// from material
+#include "Types.h"
+
 
 #include "EMModel.h"
 
@@ -8,9 +11,6 @@
 #include "Material.h"
 #include "MaterialProperties.h"
 #include "Element.h"
-
-// vecgeom::Vector
-#include "base/Vector.h"
 
 #include <cmath>
 
@@ -67,9 +67,8 @@ int EMElementSelector::SampleTargetElement(double ekin, double rndm) {
 }
 
 void EMElementSelector::Build(const MaterialCuts *matcut, const Particle *part) {
-  //  const std::vector<Element*> elemVect    = matcut->GetMaterial()->GetElementVector();
-  const vecgeom::Vector<Element*> elemVect = matcut->GetMaterial()->GetElementVector();
-  const double *theAtomicNumDensityVector  = matcut->GetMaterial()->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const VectorHelper<Element*>::Vector_t elemVect = matcut->GetMaterial()->GetElementVector();
+  const double *theAtomicNumDensityVector = matcut->GetMaterial()->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = elemVect.size();
   for (int i=0; i<fNumEnergyBins; ++i) {
     double ekin = fEnergyGrid[i];

@@ -122,6 +122,15 @@ else()
   message(STATUS "USE_REAL_PHYSICS OFF : Simulation with the old physics interface")
 endif()
 
+option(USE_VECGEOM_CONTAINERS "Replace std::vector, std::map with vecgeom::Vector, vecgeom::map in the material lib." ON)
+if (USE_VECGEOM_NAVIGATOR AND USE_VECGEOM_CONTAINERS)
+  message(STATUS "USE_VECGEOM_CONTAINERS ON : Material library will be built with vecgeom::Vector and vecgeom::map.")
+  add_definitions(-DUSE_VECGEOM_CONTAINERS)
+else()
+  message(STATUS "USE_VECGEOM_CONTAINERS OFF : Material library will be built with std::vector and std::map.")
+endif()
+
+
 #---------------------------------------------------------------------------
 # Debuging options
 #
@@ -526,7 +535,6 @@ if (ROOT_mathmore_FOUND)
 endif()
 
 if(USE_VECPHYS)
-  add_subdirectory(vecphys)
   add_subdirectory(vectphysproc)
 endif()
 
@@ -534,11 +542,14 @@ if (NOT (USE_REAL_PHYSICS))
   add_subdirectory(physics)
 endif()
 
-
 if (USE_REAL_PHYSICS)
- add_subdirectory(material)
  add_subdirectory(realphysics)
 endif()
+
+if (USE_VECGEOM_NAVIGATOR)
+  add_subdirectory(material)
+endif()
+
 
 
 

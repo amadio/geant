@@ -2,10 +2,13 @@
 # Add source files & include directories
 #
 file(GLOB sources src/*.cc)
-file(GLOB headers inc/*.h ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h
-                  ${CMAKE_SOURCE_DIR}/base/inc/TypeDef.h)
+file(GLOB headers inc/*.h ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h)
 
-include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc ${VECGEOM_INCLUDE_DIR})
+if(USE_VECGEOM_CONTAINERS)
+  include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc ${VECGEOM_INCLUDE_DIR})
+else()
+  include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc)
+endif()
 
 set(_extraLibs "")
 
@@ -17,8 +20,11 @@ endif()
 
 add_library(Material SHARED ${sources})
 
-# will depend on VecGeom through vecgeom::Vector and vecgeom::map
-target_link_libraries(Material ${VECGEOM_LIBRARIES} ${_extraLibs})
+if(USE_VECGEOM_CONTAINERS)
+  target_link_libraries(Material ${VECGEOM_LIBRARIES} ${_extraLibs})
+else()
+  target_link_libraries(Material ${_extraLibs})
+endif()
 
 add_headers("${headers}")
 add_custom_target(materiallib DEPENDS Material)
@@ -26,8 +32,12 @@ add_custom_target(materiallib DEPENDS Material)
 #----------------------------------------------------------------------------------------------
 # Build a simple application that demonstrate the usage and capabilities of the material description.
 #
-# add_executable(testMaterial ${CMAKE_SOURCE_DIR}/material/test/testMaterial.cc ${sources} ${headers})
-# target_link_libraries(testMaterial Material ${VECGEOM_LIBRARIES})
+#add_executable(testMaterial ${CMAKE_SOURCE_DIR}/material/test/testMaterial.cc ${sources} ${headers})
+#if(USE_VECGEOM_CONTAINERS)
+#  target_link_libraries(testMaterial Material ${VECGEOM_LIBRARIES})
+#else()
+#  target_link_libraries(testMaterial Material)
+#endif()
 
 #----------------------------------------------------------------------------------------------
 # Install the files

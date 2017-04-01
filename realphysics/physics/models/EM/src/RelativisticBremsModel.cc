@@ -1,5 +1,8 @@
 
 #include "RelativisticBremsModel.h"
+// from amterial
+#include "Types.h"
+
 
 #include "PhysicalConstants.h"
 #include "Material.h"
@@ -16,9 +19,6 @@
 
 #include "LightTrack.h"
 #include "PhysicsData.h"
-
-// vecgeom::Vector
-#include "base/Vector.h"
 
 #include <cmath>
 
@@ -545,9 +545,8 @@ void RelativisticBremsModel::BuildOneLinAlias(int ialias, const Material *mat, d
   double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
 
   // we will need the element composition of this material
-  // const std::vector<Element*> theElements = mat->GetElementVector();
-  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const VectorHelper<Element*>::Vector_t theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector            = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
 
   for (int ieener=0; ieener<fNumSamplingElecEnergies; ++ieener) {
@@ -782,9 +781,8 @@ double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, dou
   double lKappaPrimePerCr = std::log(particleekin/gammaprodcutenergy);
 
   // we will need the element composition of this material
-  // const std::vector<Element*> theElements = mat->GetElementVector();
-  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const VectorHelper<Element*>::Vector_t theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector            = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
 
   // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
@@ -889,8 +887,8 @@ double RelativisticBremsModel::ComputeDEDXPerVolume(const Material *mat, double 
 
   // we will need the element composition of this material
   // const std::vector<Element*> theElements = mat->GetElementVector();
-  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const VectorHelper<Element*>::Vector_t theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector            = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
 
   // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
@@ -1641,9 +1639,8 @@ void RelativisticBremsModel::BuildOneRatinAlias1(int ialias, const Material *mat
   double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
 
   // we will need the element composition of this material
-  // const std::vector<Element*> theElements = mat->GetElementVector();
-  const vecgeom::Vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector     = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const VectorHelper<Element*>::Vector_t theElements = mat->GetElementVector();
+  const double* theAtomicNumDensityVector            = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
 
   // pdf is needed only locally for the preparation

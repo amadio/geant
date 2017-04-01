@@ -2,9 +2,7 @@
 #ifndef DENSITYEFFECTDATA_H
 #define DENSITYEFFECTDATA_H
 
-// use vecgeom::map  instead of std::map
-// #include <map>
-#include "base/Map.h"
+#include "Types.h"
 
 #include <string>
 
@@ -212,10 +210,7 @@ class DensityEffectData{
   } fDensityEffectDataTable[gNumberOfDensityEffectData];
 
   /** @brief Internal map to store density effect data indices in the internal DB with a key = material name. */
-  // changed to vecgeom::map
-  // std::map<std::string,int> fMapMaterialNameToDenistyEffectDataIndex;
-
-  vecgeom::map<std::string,int> fMapMaterialNameToDenistyEffectDataIndex;
+  MapHelper<std::string,int>::Map_t fMapMaterialNameToDenistyEffectDataIndex;
 };
 
 

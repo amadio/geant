@@ -22,8 +22,7 @@ NISTMaterialData::NISTMaterialData() {
 
 int NISTMaterialData::FindNISTMaterialDataIndex(const std::string &name) {
   int indx = -1;
-  // const std::map<std::string,int>::iterator itr = fMapNISTMaterialNameToIndex.find(name);
-  const vecgeom::map<std::string,int>::iterator itr = fMapNISTMaterialNameToIndex.find(name);
+  const MapHelper<std::string,int>::Map_t::iterator itr = fMapNISTMaterialNameToIndex.find(name);
   if (itr!=fMapNISTMaterialNameToIndex.end()) {
     indx = itr->second;
   }

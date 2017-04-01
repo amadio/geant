@@ -2,9 +2,7 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
-// change to vegeom::Vector
-//#include <vector>
-#include "base/Vector.h"
+#include "Types.h"
 
 #include <string>
 
@@ -202,9 +200,7 @@ class Element {
     *
     * @return Vector of pointer to the isotope objects this element is built up.
     */
-   // change to vecgeom::Vector
-   //const std::vector<Isotope*>& GetIsotopeVector() const {return fIsotopeVector;}
-   const vecgeom::Vector<Isotope*>& GetIsotopeVector() const {return fIsotopeVector;}
+   const VectorHelper<Isotope*>::Vector_t& GetIsotopeVector() const {return fIsotopeVector;}
 //@}
 
 
@@ -217,9 +213,7 @@ class Element {
     *
     * @return Vector of pointers to all the elements that has been created so far.
     */
-   // change to vecgeom::Vector
-   //static const std::vector<Element*>& GetTheElementTable(){ return gTheElementTable;}
-   static const vecgeom::Vector<Element*>& GetTheElementTable(){ return gTheElementTable;}
+   static const VectorHelper<Element*>::Vector_t& GetTheElementTable(){ return gTheElementTable;}
    /**
     * @brief Public method to delete all Element objects that has been created.
     *
@@ -244,9 +238,7 @@ class Element {
 //@{
    friend std::ostream& operator<<(std::ostream&, const Element*);
    friend std::ostream& operator<<(std::ostream&, const Element&);
-   // change to vecgeom::Vector
-   // friend std::ostream& operator<<(std::ostream&, std::vector<Element*>);
-   friend std::ostream& operator<<(std::ostream&, vecgeom::Vector<Element*>);
+   friend std::ostream& operator<<(std::ostream&, VectorHelper<Element*>::Vector_t);
 //@}
 
 
@@ -282,14 +274,10 @@ class Element {
    /** @brief Relative abundances for each isotope constituting this element [GetNumberOfIsotopes()]. */
    double*     fRelativeIsotopeAbundanceVector;
    /** @brief List of pointers to the isotope objects constituting this element. */
-   // change to vecgeom::Vector
-   //std::vector<Isotope*> fIsotopeVector;
-   vecgeom::Vector<Isotope*> fIsotopeVector;
+   VectorHelper<Isotope*>::Vector_t fIsotopeVector;
 
    /** @brief The global element table that contains all elements that has been created so far. */
-   // change to vecgeom::Vector
-   //static std::vector<Element*> gTheElementTable; // the global element table
-   static vecgeom::Vector<Element*> gTheElementTable; // the global element table
+   static VectorHelper<Element*>::Vector_t gTheElementTable; // the global element table
 };
 
 } // namespace geantphysics

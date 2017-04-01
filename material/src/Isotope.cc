@@ -10,10 +10,8 @@
 namespace geantphysics {
 
 // static data member init
-//std::vector<Isotope*> Isotope::gTheIsotopeTable;  // global isotope table
-//std::map<int,int>     Isotope::gTheIsotopeMap;    // map to get iso. the index (used only internaly)
-vecgeom::Vector<Isotope*> Isotope::gTheIsotopeTable;  // global isotope table
-vecgeom::map<int,int>     Isotope::gTheIsotopeMap;    // map to get iso. the index (used only internaly)
+VectorHelper<Isotope*>::Vector_t Isotope::gTheIsotopeTable;  // global isotope table
+MapHelper<int,int>::Map_t        Isotope::gTheIsotopeMap;    // map to get iso. the index (used only internaly)
 
 
 /**
@@ -74,9 +72,7 @@ Isotope::Isotope(const std::string &name, int z, int n, double a, double isomass
 //
 // dtr
 Isotope::~Isotope() {
-  //change to vecgeom::map
-  // const std::map<int,int>::iterator itr = gTheIsotopeMap.find(GetKey(fZ,fN,fIsoL));
-  const vecgeom::map<int,int>::iterator itr = gTheIsotopeMap.find(GetKey(fZ,fN,fIsoL));
+  const MapHelper<int,int>::Map_t::iterator itr = gTheIsotopeMap.find(GetKey(fZ,fN,fIsoL));
   gTheIsotopeMap.erase(itr);
   gTheIsotopeTable[fIndex] = nullptr;
 }
@@ -96,9 +92,7 @@ void Isotope::ClearAllIsotopes() {
 int Isotope::GetIsotopeIndex(int z, int n, int isol) {
   int indx = -1;
   int key = GetKey(z,n,isol);
-  // changed to vecgeom::map
-  // const std::map<int,int>::iterator itr = gTheIsotopeMap.find(key);
-  const vecgeom::map<int,int>::iterator itr = gTheIsotopeMap.find(key);
+  const MapHelper<int,int>::Map_t::iterator itr = gTheIsotopeMap.find(key);
   if (itr!= gTheIsotopeMap.end())
     indx = itr->second;
   return indx;
@@ -133,7 +127,7 @@ std::ostream& operator<<(std::ostream& flux, const Isotope& isotope) {
 }
 
 
-std::ostream& operator<<(std::ostream& flux, vecgeom::Vector<Isotope*> isotable) {
+std::ostream& operator<<(std::ostream& flux, VectorHelper<Isotope*>::Vector_t isotable) {
  //dump info for all known isotopes
    flux
      << "\n***** Table : Nb of isotopes = " << isotable.size()

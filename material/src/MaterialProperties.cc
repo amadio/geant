@@ -1,16 +1,14 @@
 
 #include "MaterialProperties.h"
 
+#include "Types.h"
+
 #include "PhysicalConstants.h"
 
 #include "Material.h"
 #include "Element.h"
 #include "NISTMaterialData.h"
 #include "DensityEffectData.h"
-
-//change to vecgeom::Vector
-//#include <vector>
-#include "base/Vector.h"
 
 #include <cmath>
 #include <limits>
@@ -70,9 +68,8 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
   fNumOfAtomsPerVolVect = new double[numElems];
 
   // get some element composition realted data from the material
-  //const std::vector<Element*> elemVector = fMaterial->GetElementVector();
-  const vecgeom::Vector<Element*> elemVector = fMaterial->GetElementVector();
-  const double *massFractionVect             = fMaterial->GetMassFractionVector();
+  const VectorHelper<Element*>::Vector_t elemVector = fMaterial->GetElementVector();
+  const double *massFractionVect                    = fMaterial->GetMassFractionVector();
   for (int i=0; i<numElems; ++i) {
     double zeff = elemVector[i]->GetZ();
     double aeff = elemVector[i]->GetA();  // atomic mass in internal [weight/amount of substance]
@@ -101,9 +98,8 @@ void MaterialProperties::ComputeIonizationParameters() {
     // get the max Z(atomic number) that we have elemental data for in the NISTMaterialData database
     int maxZ = NISTMaterialData::Instance().GetNumberOfElementalNISTMaterialData();
     // gent number of elements, number of atoms per unit volume vector
-    int numElems                             = fMaterial->GetNumberOfElements();
-    //const std::vector<Element*> elemVect = fMaterial->GetElementVector();
-    const vecgeom::Vector<Element*> elemVect = fMaterial->GetElementVector();
+    int numElems                                    = fMaterial->GetNumberOfElements();
+    const VectorHelper<Element*>::Vector_t elemVect = fMaterial->GetElementVector();
     for (int i=0; i<numElems; ++i) {
       double zeff = elemVect[i]->GetZ();
       int    z    = std::lrint(zeff);
@@ -325,8 +321,7 @@ void MaterialProperties::ComputeRadiationLength() {
   const double factorLinel = std::log(1193.923);
 
   // the element composition data of the material
-  // const std::vector<Element*> theElements = fMaterial->GetElementVector();
-  const vecgeom::Vector<Element*> theElements = fMaterial->GetElementVector();
+  const VectorHelper<Element*>::Vector_t theElements = fMaterial->GetElementVector();
   int   numElems = theElements.size();
 
   double invRadLength = 0.0;

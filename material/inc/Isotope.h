@@ -3,11 +3,7 @@
 #ifndef ISOTOPE_H
 #define ISOTOPE_H
 
-// change to vecgeom::Vector and vecgeom::map
-//#include <vector>
-// #include <map>
-#include "base/Vector.h"
-#include "base/Map.h"
+#include "Types.h"
 
 #include <string>
 
@@ -138,9 +134,7 @@ class Isotope {
  */
 //@{
     /** @brief Public method to access the global isotope table. */
-    // changed to vecgeom::Vector
-    // static const std::vector<Isotope*>& GetTheIsotopeTable() {return gTheIsotopeTable;}
-    static const vecgeom::Vector<Isotope*>& GetTheIsotopeTable() {return gTheIsotopeTable;}
+    static const VectorHelper<Isotope*>::Vector_t& GetTheIsotopeTable() {return gTheIsotopeTable;}
 
     /**
      * @brief Public method to delete all Element objects that has been created.
@@ -164,7 +158,7 @@ class Isotope {
 //@{
     friend std::ostream& operator<<(std::ostream&, const Isotope*);
     friend std::ostream& operator<<(std::ostream&, const Isotope&);
-    friend std::ostream& operator<<(std::ostream&, vecgeom::Vector<Isotope*>);
+    friend std::ostream& operator<<(std::ostream&, VectorHelper<Isotope*>::Vector_t);
 //@}
 
  private:
@@ -231,16 +225,12 @@ class Isotope {
     /** The global isotope table that stores the pointers of all isotopes that
      *  has already been created.
      */
-    // changed to vecgeom::Vector
-    // static std::vector<Isotope*>  gTheIsotopeTable;
-    static vecgeom::Vector<Isotope*>  gTheIsotopeTable;
+    static VectorHelper<Isotope*>::Vector_t  gTheIsotopeTable;
     /** Global map to store the indices of the already created isotopes in the
      * global isotope table. The key values are computed from Z(atomic mass),
      * N(nucleon number) and isoL(isomer level).
      */
-    // changed to vecgeom::map
-    // static std::map<int,int>      gTheIsotopeMap;
-    static vecgeom::map<int,int>      gTheIsotopeMap;
+    static MapHelper<int,int>::Map_t        gTheIsotopeMap;
 };
 
 

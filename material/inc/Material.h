@@ -3,11 +3,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-// change to vecgeom::Vector and vecgeom::map
-// #include <vector>
-// #include <map>
-#include "base/Vector.h"
-#include "base/Map.h"
+#include "Types.h"
 
 #include "PhysicalConstants.h"
 #include "MaterialState.h"
@@ -179,9 +175,7 @@ class Material {
 
   /** @brief Public method to get the list of elements this material is built up.
    *  @return Vector of elements this material is bult up. */
-  // change to vecgeom::Vector
-  //const std::vector<Element*>& GetElementVector() const {return fElementVector;}
-  const vecgeom::Vector<Element*>& GetElementVector() const {return fElementVector;}
+  const VectorHelper<Element*>::Vector_t& GetElementVector() const {return fElementVector;}
 
   /** @brief Public method to get the mas fraction for each elements this material is built up.
    *  @return Mass fraction for each elements this material is built up [GetNumberOfElements()]. */
@@ -238,9 +232,7 @@ class Material {
     * @brief Public method to get the global material table.
     * @return Vector of pointers to all the materials that has been created so far.
     */
-  // change to vecgeom::Vector
-  // static const std::vector<Material*>& GetTheMaterialTable() { return gTheMaterialTable;}
-  static const vecgeom::Vector<Material*>& GetTheMaterialTable() { return gTheMaterialTable;}
+  static const VectorHelper<Material*>::Vector_t& GetTheMaterialTable() { return gTheMaterialTable;}
   /**
    * @brief Public method to delete all Material objects that has been created.
    *
@@ -273,9 +265,7 @@ class Material {
 //@{
   friend std::ostream& operator<<(std::ostream&, const Material*);
   friend std::ostream& operator<<(std::ostream&, const Material&);
-  // change to vecgeom::Vector
-  // friend std::ostream& operator<<(std::ostream&, std::vector<Material*>);
-  friend std::ostream& operator<<(std::ostream&, vecgeom::Vector<Material*>);
+  friend std::ostream& operator<<(std::ostream&, VectorHelper<Material*>::Vector_t);
 //@}
 
 
@@ -328,20 +318,14 @@ class Material {
    double       *fRelNumOfAtomsPerVol;    // relative number of atoms per volume for each element this
                                           // material is built up
    /** @brief List of elements this material built up. */
-   // change to vecgeom::Vector
-   // std::vector<Element*> fElementVector;  // vector of element pointers this material is built up
-   vecgeom::Vector<Element*> fElementVector;  // vector of element pointers this material is built up
+   VectorHelper<Element*>::Vector_t fElementVector;  // vector of element pointers this material is built up
 
    /** @brief The global material table. */
-   // change to vecgeom::Vector
-   // static std::vector<Material*> gTheMaterialTable; // the global material table
-   static vecgeom::Vector<Material*> gTheMaterialTable; // the global material table
+   static VectorHelper<Material*>::Vector_t gTheMaterialTable; // the global material table
 
    /** @brief Internal map to store the already created material indices in the global material
     *         table with a key = material name. */
-   // change to vecgeom::map
-   // static std::map<std::string,int> gMapMaterialNameToIndex;
-   static vecgeom::map<std::string,int> gMapMaterialNameToIndex;
+   static MapHelper<std::string,int>::Map_t gMapMaterialNameToIndex;
 
    /** @brief Object to store additional properties realted to this material */
    MaterialProperties *fMaterialProperties;

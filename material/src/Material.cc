@@ -11,11 +11,8 @@
 #include <cmath>
 
 namespace geantphysics {
-// change to vecgeom::Vector and vecgeom::map
-// std::vector<Material*> Material::gTheMaterialTable;
-// std::map<std::string,int> Material::gMapMaterialNameToIndex;
-vecgeom::Vector<Material*> Material::gTheMaterialTable;
-vecgeom::map<std::string,int> Material::gMapMaterialNameToIndex;
+VectorHelper<Material*>::Vector_t Material::gTheMaterialTable;
+MapHelper<std::string,int>::Map_t Material::gMapMaterialNameToIndex;
 
 /**
  * If state of the material is MaterialState::kStateUndefined at construction the
@@ -276,9 +273,7 @@ void Material::AddMaterial(Material *material, double massfraction) {
   //  are among them
   // -if this is > 1 then we need to extend the space we allocated in the CTR
   //  for some arrays because we will add more than one elements at a component
-  // change to vecgeom::Vector
-  // const std::vector<Element*> elemVector = material->GetElementVector();
-  const vecgeom::Vector<Element*> elemVector = material->GetElementVector();
+  const VectorHelper<Element*>::Vector_t elemVector = material->GetElementVector();
   int numNewElems = 0;
   for (auto elementptr : elemVector) {
     int el = 0;
@@ -395,16 +390,13 @@ void Material::InitialiseMembers() {
   // add this material to the global material table
   gTheMaterialTable.push_back(this);
   // add this index to the name -> index map
-  // change to vecgeom::map
   gMapMaterialNameToIndex[fName] = fIndex;
 }
 
 
 int Material::FindMaterialIndex(const std::string &name) {
   int indx = -1;
-  // change to vecgeom::map
-  // const std::map<std::string,int>::iterator itr = gMapMaterialNameToIndex.find(name);
-  const vecgeom::map<std::string,int>::iterator itr = gMapMaterialNameToIndex.find(name);
+  const MapHelper<std::string,int>::Map_t::iterator itr = gMapMaterialNameToIndex.find(name);
   if (itr!=gMapMaterialNameToIndex.end()) {
     indx = itr->second;
   }
@@ -434,8 +426,6 @@ Material* Material::NISTMaterial(const std::string &name) {
   // Since no material was found (i.e. material with the given name has not been
   // created yet) we need to see if we can create the requested material as a NIST
   // material. So try to get the index of the NISTMaterialData structure.
-  // change to vecgeom::map
-  // indx = NISTMaterialData::Instance().FindNISTMaterialDataIndex(name);
   indx = NISTMaterialData::Instance().FindNISTMaterialDataIndex(name);
   if (indx>-1) {  // we have NISTMaterialData for this material name so buil the material
     // get NISTMaterialData from the corresponding data structure
@@ -536,9 +526,7 @@ std::ostream& operator<<(std::ostream& flux, const Material& material) {
 }
 
 
-// change to vecgeom::Vector
-//std::ostream& operator<<(std::ostream& flux, std::vector<Material*> MaterialTable) {
-std::ostream& operator<<(std::ostream& flux, vecgeom::Vector<Material*> MaterialTable) {
+std::ostream& operator<<(std::ostream& flux, VectorHelper<Material*>::Vector_t MaterialTable) {
   //Dump info for all known materials
   flux << "\n***** Table : Nb of materials = " << MaterialTable.size()
        << " *****\n\n";
