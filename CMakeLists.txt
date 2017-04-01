@@ -546,7 +546,7 @@ if (USE_REAL_PHYSICS)
  add_subdirectory(realphysics)
 endif()
 
-if (USE_VECGEOM_NAVIGATOR)
+if (USE_VECGEOM_NAVIGATOR AND NOT (CUDA))
   add_subdirectory(material)
 endif()
 
