@@ -167,7 +167,7 @@ class NISTMaterialData{
 
    /** @brief Internal map to store NIST material indices in the internal NIST material
     *         database with a key = material name. */
-  MapHelper<std::string,int>::Map_t fMapNISTMaterialNameToIndex;
+  Map_t<std::string,int> fMapNISTMaterialNameToIndex;
 };
 
 } // namespace geant

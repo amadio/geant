@@ -210,7 +210,7 @@ class DensityEffectData{
   } fDensityEffectDataTable[gNumberOfDensityEffectData];
 
   /** @brief Internal map to store density effect data indices in the internal DB with a key = material name. */
-  MapHelper<std::string,int>::Map_t fMapMaterialNameToDenistyEffectDataIndex;
+  Map_t<std::string,int> fMapMaterialNameToDenistyEffectDataIndex;
 };
 
 

@@ -39,8 +39,8 @@ CutConverterForGamma::~CutConverterForGamma() {}
 
 
 void CutConverterForGamma::BuildLengthVector(const Material *mat) {
-  const VectorHelper<Element*>::Vector_t elemVect = mat->GetElementVector();
-  const double* theAtomicNumDensityVector         = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const Vector_t<Element*> elemVect       = mat->GetElementVector();
+  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElements = elemVect.size();
 
   double maxAbsLenght = -1.0;

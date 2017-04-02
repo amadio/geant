@@ -11,8 +11,9 @@
 #include <cmath>
 
 namespace geantphysics {
-VectorHelper<Material*>::Vector_t Material::gTheMaterialTable;
-MapHelper<std::string,int>::Map_t Material::gMapMaterialNameToIndex;
+
+Vector_t<Material*>    Material::gTheMaterialTable;
+Map_t<std::string,int> Material::gMapMaterialNameToIndex;
 
 /**
  * If state of the material is MaterialState::kStateUndefined at construction the
@@ -273,7 +274,7 @@ void Material::AddMaterial(Material *material, double massfraction) {
   //  are among them
   // -if this is > 1 then we need to extend the space we allocated in the CTR
   //  for some arrays because we will add more than one elements at a component
-  const VectorHelper<Element*>::Vector_t elemVector = material->GetElementVector();
+  const Vector_t<Element*> elemVector = material->GetElementVector();
   int numNewElems = 0;
   for (auto elementptr : elemVector) {
     int el = 0;
@@ -396,7 +397,7 @@ void Material::InitialiseMembers() {
 
 int Material::FindMaterialIndex(const std::string &name) {
   int indx = -1;
-  const MapHelper<std::string,int>::Map_t::iterator itr = gMapMaterialNameToIndex.find(name);
+  const Map_t<std::string,int>::iterator itr = gMapMaterialNameToIndex.find(name);
   if (itr!=gMapMaterialNameToIndex.end()) {
     indx = itr->second;
   }
@@ -526,7 +527,7 @@ std::ostream& operator<<(std::ostream& flux, const Material& material) {
 }
 
 
-std::ostream& operator<<(std::ostream& flux, VectorHelper<Material*>::Vector_t MaterialTable) {
+std::ostream& operator<<(std::ostream& flux, Vector_t<Material*> MaterialTable) {
   //Dump info for all known materials
   flux << "\n***** Table : Nb of materials = " << MaterialTable.size()
        << " *****\n\n";

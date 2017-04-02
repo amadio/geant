@@ -12,7 +12,7 @@
 namespace geantphysics {
 
 //static data member init
-VectorHelper<Element*>::Vector_t Element::gTheElementTable;  // the global element table
+Vector_t<Element*> Element::gTheElementTable;  // the global element table
 
 
 /**
@@ -377,7 +377,7 @@ std::ostream& operator<<(std::ostream& flux, const Element* element) {
 }
 
 
-std::ostream& operator<<(std::ostream& flux, VectorHelper<Element*>::Vector_t elementtable) {
+std::ostream& operator<<(std::ostream& flux, Vector_t<Element*> elementtable) {
  //Dump info for all known elements
    flux << "\n***** Table : Nb of elements = " << elementtable.size()
         << " *****\n" << std::endl;

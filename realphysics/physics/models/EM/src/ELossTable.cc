@@ -181,9 +181,9 @@ void ELossTable::BuildELossTable(std::vector<ELossTable*> &elosstablespermatcut)
   // get lists of registered EnegyLoss EMPhysicsProcess-es per particle
   const std::vector<std::vector<EMPhysicsProcess*> > eLossProcs = ELossTableRegister::Instance().GetListEnergyLossProcesses();
   // get list of MaterialCuts and Material-s
-  const std::vector<MaterialCuts*>        theMatCutTable   = MaterialCuts::GetTheMaterialCutsTable();
-  const VectorHelper<Material*>::Vector_t theMaterialTable = Material::GetTheMaterialTable();
-  const std::vector<bool>                 isActiveList     = fPhysicsParameters->GetListActiveRegions();
+  const std::vector<MaterialCuts*> theMatCutTable   = MaterialCuts::GetTheMaterialCutsTable();
+  const Vector_t<Material*>        theMaterialTable = Material::GetTheMaterialTable();
+  const std::vector<bool>          isActiveList     = fPhysicsParameters->GetListActiveRegions();
   int numMutCuts    = theMatCutTable.size();   // number of MaterialCuts in the MaterialCuts table
   int numMaterials  = theMaterialTable.size(); //
   int numParticles  = eLossProcs.size();       // maximum internal code of particle that has EnergyLoss

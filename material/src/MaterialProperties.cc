@@ -68,8 +68,8 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
   fNumOfAtomsPerVolVect = new double[numElems];
 
   // get some element composition realted data from the material
-  const VectorHelper<Element*>::Vector_t elemVector = fMaterial->GetElementVector();
-  const double *massFractionVect                    = fMaterial->GetMassFractionVector();
+  const Vector_t<Element*> elemVector = fMaterial->GetElementVector();
+  const double *massFractionVect      = fMaterial->GetMassFractionVector();
   for (int i=0; i<numElems; ++i) {
     double zeff = elemVector[i]->GetZ();
     double aeff = elemVector[i]->GetA();  // atomic mass in internal [weight/amount of substance]
@@ -96,10 +96,10 @@ void MaterialProperties::ComputeIonizationParameters() {
   if (fMeanExcitationEnergy<=0.0) {
     fMeanExcitationEnergy = 0.0;
     // get the max Z(atomic number) that we have elemental data for in the NISTMaterialData database
-    int maxZ = NISTMaterialData::Instance().GetNumberOfElementalNISTMaterialData();
+    int maxZ     = NISTMaterialData::Instance().GetNumberOfElementalNISTMaterialData();
     // gent number of elements, number of atoms per unit volume vector
-    int numElems                                    = fMaterial->GetNumberOfElements();
-    const VectorHelper<Element*>::Vector_t elemVect = fMaterial->GetElementVector();
+    int numElems = fMaterial->GetNumberOfElements();
+    const Vector_t<Element*> elemVect = fMaterial->GetElementVector();
     for (int i=0; i<numElems; ++i) {
       double zeff = elemVect[i]->GetZ();
       int    z    = std::lrint(zeff);
@@ -321,7 +321,7 @@ void MaterialProperties::ComputeRadiationLength() {
   const double factorLinel = std::log(1193.923);
 
   // the element composition data of the material
-  const VectorHelper<Element*>::Vector_t theElements = fMaterial->GetElementVector();
+  const Vector_t<Element*> theElements = fMaterial->GetElementVector();
   int   numElems = theElements.size();
 
   double invRadLength = 0.0;

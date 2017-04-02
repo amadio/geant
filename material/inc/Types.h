@@ -13,31 +13,27 @@
  */
 
 #ifdef USE_VECGEOM_CONTAINERS
-// vecgeom::Vector
 #include "base/Vector.h"
-template <typename T>
-struct VectorHelper {
-  typedef vecgeom::Vector<T> Vector_t;
-};
-// vecgeom::map
 #include "base/Map.h"
-template <typename TK, typename TV>
-struct MapHelper {
-  typedef vecgeom::map<TK,TV> Map_t;
-};
 #else
-// std::vector
 #include <vector>
-template <typename T>
-struct VectorHelper {
-  typedef std::vector<T> Vector_t;
-};
-// std::map
 #include <map>
-template <typename TK, typename TV>
-struct MapHelper {
-  typedef std::map<TK,TV> Map_t;
-};
 #endif
 
+namespace geantphysics {
+
+#ifdef USE_VECGEOM_CONTAINERS
+  template <class T>
+  using Vector_t = vecgeom::Vector<T>;
+  template <class KeyT, class ValueT>
+  using Map_t    = vecgeom::map<KeyT,ValueT>;
+#else
+  template <class T>
+  using Vector_t = std::vector<T>;
+  template <class KeyT, class ValueT>
+  using Map_t    = std::map<KeyT,ValueT>;
 #endif
+
+} // namespace geantphysics
+
+#endif // TYPES_H

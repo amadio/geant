@@ -48,7 +48,7 @@ int DensityEffectData::GetElementalIndex(int z, MaterialState state) const {
 
 int DensityEffectData::FindDensityEffectDataIndex(const std::string &name) {
   int indx = -1;
-  const MapHelper<std::string,int>::Map_t::iterator itr = fMapMaterialNameToDenistyEffectDataIndex.find(name);
+  const Map_t<std::string,int>::iterator itr = fMapMaterialNameToDenistyEffectDataIndex.find(name);
   if (itr!=fMapMaterialNameToDenistyEffectDataIndex.end())
     indx = itr->second;
   return indx;

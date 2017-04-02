@@ -175,7 +175,7 @@ class Material {
 
   /** @brief Public method to get the list of elements this material is built up.
    *  @return Vector of elements this material is bult up. */
-  const VectorHelper<Element*>::Vector_t& GetElementVector() const {return fElementVector;}
+  const Vector_t<Element*>& GetElementVector() const {return fElementVector;}
 
   /** @brief Public method to get the mas fraction for each elements this material is built up.
    *  @return Mass fraction for each elements this material is built up [GetNumberOfElements()]. */
@@ -232,7 +232,7 @@ class Material {
     * @brief Public method to get the global material table.
     * @return Vector of pointers to all the materials that has been created so far.
     */
-  static const VectorHelper<Material*>::Vector_t& GetTheMaterialTable() { return gTheMaterialTable;}
+  static const Vector_t<Material*>& GetTheMaterialTable() { return gTheMaterialTable;}
   /**
    * @brief Public method to delete all Material objects that has been created.
    *
@@ -265,7 +265,7 @@ class Material {
 //@{
   friend std::ostream& operator<<(std::ostream&, const Material*);
   friend std::ostream& operator<<(std::ostream&, const Material&);
-  friend std::ostream& operator<<(std::ostream&, VectorHelper<Material*>::Vector_t);
+  friend std::ostream& operator<<(std::ostream&, Vector_t<Material*>);
 //@}
 
 
@@ -318,14 +318,14 @@ class Material {
    double       *fRelNumOfAtomsPerVol;    // relative number of atoms per volume for each element this
                                           // material is built up
    /** @brief List of elements this material built up. */
-   VectorHelper<Element*>::Vector_t fElementVector;  // vector of element pointers this material is built up
+   Vector_t<Element*> fElementVector;  // vector of element pointers this material is built up
 
    /** @brief The global material table. */
-   static VectorHelper<Material*>::Vector_t gTheMaterialTable; // the global material table
+   static Vector_t<Material*> gTheMaterialTable; // the global material table
 
    /** @brief Internal map to store the already created material indices in the global material
     *         table with a key = material name. */
-   static MapHelper<std::string,int>::Map_t gMapMaterialNameToIndex;
+   static Map_t<std::string,int> gMapMaterialNameToIndex;
 
    /** @brief Object to store additional properties realted to this material */
    MaterialProperties *fMaterialProperties;

@@ -67,7 +67,7 @@ int EMElementSelector::SampleTargetElement(double ekin, double rndm) {
 }
 
 void EMElementSelector::Build(const MaterialCuts *matcut, const Particle *part) {
-  const VectorHelper<Element*>::Vector_t elemVect = matcut->GetMaterial()->GetElementVector();
+  const Vector_t<Element*> elemVect       = matcut->GetMaterial()->GetElementVector();
   const double *theAtomicNumDensityVector = matcut->GetMaterial()->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = elemVect.size();
   for (int i=0; i<fNumEnergyBins; ++i) {

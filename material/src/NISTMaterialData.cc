@@ -22,7 +22,7 @@ NISTMaterialData::NISTMaterialData() {
 
 int NISTMaterialData::FindNISTMaterialDataIndex(const std::string &name) {
   int indx = -1;
-  const MapHelper<std::string,int>::Map_t::iterator itr = fMapNISTMaterialNameToIndex.find(name);
+  const Map_t<std::string,int>::iterator itr = fMapNISTMaterialNameToIndex.find(name);
   if (itr!=fMapNISTMaterialNameToIndex.end()) {
     indx = itr->second;
   }

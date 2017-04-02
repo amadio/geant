@@ -66,7 +66,7 @@ void CutConverter::Initialise() {
     fLengthVector = nullptr;
   }
   // determine maximum Z number
-  const VectorHelper<Element*>::Vector_t elemTable = Element::GetTheElementTable();
+  const Vector_t<Element*> elemTable = Element::GetTheElementTable();
   int   numElements = elemTable.size();
   double maxZet = 0.0;
   for (int i=0; i<numElements; ++i) {
@@ -121,8 +121,8 @@ double CutConverter::Convert(const Material *mat, double cut, bool isfromlength)
 
 // Builds the energy-length function
 void CutConverter::BuildLengthVector(const Material *mat) {
-  const VectorHelper<Element*>::Vector_t elemVect = mat->GetElementVector();
-  const double* theAtomicNumDensityVector         = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const Vector_t<Element*> elemVect       = mat->GetElementVector();
+  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElements = elemVect.size();
   // fill lossvect with the material dE/dx
   double *lossvect = new double[fNumEBins]();

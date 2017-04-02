@@ -134,7 +134,7 @@ class Isotope {
  */
 //@{
     /** @brief Public method to access the global isotope table. */
-    static const VectorHelper<Isotope*>::Vector_t& GetTheIsotopeTable() {return gTheIsotopeTable;}
+    static const Vector_t<Isotope*>& GetTheIsotopeTable() {return gTheIsotopeTable;}
 
     /**
      * @brief Public method to delete all Element objects that has been created.
@@ -158,7 +158,7 @@ class Isotope {
 //@{
     friend std::ostream& operator<<(std::ostream&, const Isotope*);
     friend std::ostream& operator<<(std::ostream&, const Isotope&);
-    friend std::ostream& operator<<(std::ostream&, VectorHelper<Isotope*>::Vector_t);
+    friend std::ostream& operator<<(std::ostream&, Vector_t<Isotope*>);
 //@}
 
  private:
@@ -225,12 +225,12 @@ class Isotope {
     /** The global isotope table that stores the pointers of all isotopes that
      *  has already been created.
      */
-    static VectorHelper<Isotope*>::Vector_t  gTheIsotopeTable;
+    static Vector_t<Isotope*>  gTheIsotopeTable;
     /** Global map to store the indices of the already created isotopes in the
      * global isotope table. The key values are computed from Z(atomic mass),
      * N(nucleon number) and isoL(isomer level).
      */
-    static MapHelper<int,int>::Map_t        gTheIsotopeMap;
+    static Map_t<int,int>      gTheIsotopeMap;
 };
 
 

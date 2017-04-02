@@ -200,7 +200,7 @@ class Element {
     *
     * @return Vector of pointer to the isotope objects this element is built up.
     */
-   const VectorHelper<Isotope*>::Vector_t& GetIsotopeVector() const {return fIsotopeVector;}
+   const Vector_t<Isotope*>& GetIsotopeVector() const {return fIsotopeVector;}
 //@}
 
 
@@ -213,7 +213,7 @@ class Element {
     *
     * @return Vector of pointers to all the elements that has been created so far.
     */
-   static const VectorHelper<Element*>::Vector_t& GetTheElementTable(){ return gTheElementTable;}
+   static const Vector_t<Element*>& GetTheElementTable(){ return gTheElementTable;}
    /**
     * @brief Public method to delete all Element objects that has been created.
     *
@@ -238,7 +238,7 @@ class Element {
 //@{
    friend std::ostream& operator<<(std::ostream&, const Element*);
    friend std::ostream& operator<<(std::ostream&, const Element&);
-   friend std::ostream& operator<<(std::ostream&, VectorHelper<Element*>::Vector_t);
+   friend std::ostream& operator<<(std::ostream&, Vector_t<Element*>);
 //@}
 
 
@@ -274,10 +274,10 @@ class Element {
    /** @brief Relative abundances for each isotope constituting this element [GetNumberOfIsotopes()]. */
    double*     fRelativeIsotopeAbundanceVector;
    /** @brief List of pointers to the isotope objects constituting this element. */
-   VectorHelper<Isotope*>::Vector_t fIsotopeVector;
+   Vector_t<Isotope*> fIsotopeVector;
 
    /** @brief The global element table that contains all elements that has been created so far. */
-   static VectorHelper<Element*>::Vector_t gTheElementTable; // the global element table
+   static Vector_t<Element*> gTheElementTable; // the global element table
 };
 
 } // namespace geantphysics
