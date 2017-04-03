@@ -25,11 +25,19 @@ int GeomQueryStage::CreateHandlers()
   for (auto ivol = 0; ivol < nvolumes; ++ivol) {
     vol = (Volume_t *)volumes[ivol];
     GeomQueryHandler *handler = new GeomQueryHandler(vol, threshold, fPropagator, ivol);
-    handler->ActivateBasketizing(true);
     AddHandler(handler);
     assert(handler == fHandlers[ivol]);
   }
   return nvolumes;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void GeomQueryStage::ActivateBasketizing(bool flag)
+{
+// Activate basketizers for all volumes.
+  for ( auto i = 0; i < GetNhandlers(); ++i)
+    fHandlers[i]->ActivateBasketizing(true);
 }
 
 //______________________________________________________________________________

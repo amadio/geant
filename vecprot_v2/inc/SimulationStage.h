@@ -91,6 +91,12 @@ public:
    *  @return Number of tracks processed
    */
   VECCORE_ATT_HOST_DEVICE
+  virtual void ActivateBasketizing(bool) {}
+
+  /** @brief Process a basket of tracks marked for the stage
+   *  @return Number of tracks processed
+   */
+  VECCORE_ATT_HOST_DEVICE
   int Process(GeantTaskData *td);
 
   /** @brief Flush all tracks from the simulation stage basketizers and execute stage

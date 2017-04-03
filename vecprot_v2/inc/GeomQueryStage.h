@@ -57,6 +57,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual const char *GetName() { return "GeometryQuery"; }
 
+  /** @brief Activating basketizing */
+  VECCORE_ATT_HOST_DEVICE
+  void ActivateBasketizing(bool flag=true);
+
 };
 
 } // GEANT_IMPL_NAMESPACE
