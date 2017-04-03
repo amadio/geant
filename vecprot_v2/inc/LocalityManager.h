@@ -77,6 +77,15 @@ public:
     return nblocks;
   }
 
+  /** @brief Getter for the number of released blocks.*/
+  GEANT_FORCE_INLINE
+  int GetNreleased() const
+  {
+    int nblocks = 0;
+    for (auto i=0; i<fNnodes; ++i) nblocks += fTrackMgr[i]->GetNreleased();
+    return nblocks;
+  }
+
   /** @brief Setter for the locality policy.*/
   GEANT_FORCE_INLINE
   void SetPolicy(NumaPolicy::EPolicyType policy) { fPolicy.SetPolicy(policy); }

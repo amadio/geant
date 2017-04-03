@@ -41,6 +41,7 @@ private:
   cacheline_pad_t pad0_;   //! Padding to protect the other data from the hot cache line above
 
   size_t        fSize;     // Number of tracks stored by the block
+  int           fId;       // Block id
   int           fNode;     // NUMA node id
   int           fMaxdepth; // Max depth in case D is used
   NumaBlock_t  *fAddress;  // Address of the block retreivable relative to the one of fArray
@@ -49,7 +50,7 @@ private:
 
 private:
   /** @brief Constructor */
-  NumaBlock(size_t size, int node) : fCurrent(0), fUsed(0), fSize(size), fNode(node), fMaxdepth(0), fAddress(this)
+  NumaBlock(size_t size, int node, int id) : fCurrent(0), fUsed(0), fSize(size), fId(id), fNode(node), fMaxdepth(0), fAddress(this)
   {
     // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
     // on the memory associated with the given NUMA node.
@@ -57,10 +58,11 @@ private:
     static_assert(std::is_default_constructible<T>::value, "Type used in NumaBlock must have default ctor.");
     static_assert(std::is_copy_constructible<T>::value, "Type used in NumaBlock must be copy constructible");
     fArray = reinterpret_cast<T*>(&fArray + 1);
+    //printf("NEW block: %d (%d)\n", id, node);
   }
 
   /** @brief Constructor providing a maximum depth parameter*/
-  NumaBlock(size_t size, int node, int maxdepth) : fCurrent(0), fUsed(0), fSize(size), fNode(node), fMaxdepth(maxdepth), fAddress(this)
+  NumaBlock(size_t size, int node, int maxdepth, int id) : fCurrent(0), fUsed(0), fSize(size), fId(id), fNode(node), fMaxdepth(maxdepth), fAddress(this)
   {
     // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
     // on the memory associated with the given NUMA node.
@@ -71,27 +73,28 @@ private:
     auto el_size = T::SizeOfInstance(maxdepth);
     for (size_t i=0; i<size; ++i) T::MakeInstanceAt((char*)&fArray[0] + i*el_size, maxdepth);
 //    std::cout << "Created block: " << this << std::endl;
+    //printf("NEW block: %d (%d)\n", id, node);
   }
   
   NumaBlock(const NumaBlock&) = delete;
   NumaBlock& operator=(const NumaBlock&) = delete;
 
 public:
-  static NumaBlock *MakeInstance(size_t nvalues, int numa_node)
+  static NumaBlock *MakeInstance(size_t nvalues, int numa_node, int id)
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues);
     void *ptr = NumaAlignedMalloc(needed, numa_node, 64);
-    NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node);
+    NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, id);
     return ( block );    
   }
 
-  static NumaBlock *MakeInstance(size_t nvalues, int numa_node, int maxdepth)
+  static NumaBlock *MakeInstance(size_t nvalues, int numa_node, int maxdepth, int id)
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues, maxdepth);
     void *ptr = NumaAlignedMalloc(needed, numa_node, 64);
-    NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, maxdepth);
+    NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, maxdepth, id);
     return ( block );    
   }
 
@@ -137,13 +140,11 @@ public:
   }
   
   /** @brief Release an object to the container */
-  GEANT_FORCE_INLINE bool ReleaseObject() { 
-    if (fCurrent.load() < fSize) {
-      fUsed--;
+  GEANT_FORCE_INLINE bool ReleaseObject() {
+    int nused = fUsed.fetch_sub(1) - 1;
+    if ((nused > 0) || (fCurrent.load() < fSize))
       return false;
-    }
-    if ( fUsed.fetch_sub(1) == 1 ) return true;
-    return false;
+    return true;
   }
 
   /** @brief Release an object to the container */
@@ -154,9 +155,18 @@ public:
 
    /** @brief Getter for NUMA node */
   GEANT_FORCE_INLINE int GetNode() { return fNode; }
+
+   /** @brief Getter for block id */
+  GEANT_FORCE_INLINE int GetId() { return fId; }
  
   /** @brief Check if the block is still in use */
   GEANT_FORCE_INLINE bool IsDistributed() const { return (fCurrent.load() >= fSize); }
+
+  /** @brief Getter for NUMA node */
+  GEANT_FORCE_INLINE int GetCurrent() { return fCurrent.load(); }
+
+  /** @brief Getter for NUMA node */
+  GEANT_FORCE_INLINE int GetUsed() { return fUsed.load(); }
 };
 
 } // GEANT_IMPL_NAMESPACE

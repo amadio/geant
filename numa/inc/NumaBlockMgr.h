@@ -46,6 +46,7 @@ private:
   int             fNode;  // Numa node id
   int             fMaxdepth; // Max depth used as extra parameter in allocations
   std::atomic_int fNblocks; // Number of blocks in flight
+  std::atomic_int fNreleased; // Number of blocks in flight
   size_t          fBlockSize;  // Numa block size
   queue_t         fBlocks;  // Queue of free blocks
 
@@ -53,16 +54,18 @@ public:
 
   /** @brief Constructor providing number of blocks to be initially created */
   NumaBlockMgr(size_t nblocks, int numa_node, int maxdepth, size_t bsize) 
-    : fCurrent(nullptr), fNode(numa_node), fMaxdepth(maxdepth), fNblocks(nblocks), fBlockSize(bsize),
-      fBlocks(queue_buff_size)
+    : fCurrent(nullptr), fNode(numa_node), fMaxdepth(maxdepth), fNblocks(0), fNreleased(0),
+      fBlockSize(bsize), fBlocks(queue_buff_size)
   {
     // Constructor creating nblocks
     numa_block_ptr block;
     for (size_t i=0; i<nblocks; ++i) {
+      int id = fNblocks.load();
+      fNblocks++;
       if (D)
-        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth);
+        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth, id);
       else
-        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode);
+        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, id);
       if (i == 0)
         fCurrent.store(block);
       else
@@ -73,9 +76,10 @@ public:
   /** @brief Add a free block */
   numa_block_ptr AddBlock()
   {
+    int id = fNblocks.load();
     fNblocks++;
-    if (D) return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth) );
-    return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode) );
+    if (D) return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth, id) );
+    return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, id) );
   }
 
   /** @brief Get number of queued blocks */
@@ -83,6 +87,9 @@ public:
 
   /** @brief Get number of blocks in flight */
   int GetNblocks() const { return fNblocks.load(); }
+
+  /** @brief Get number of released */
+  int GetNreleased() const { return fNreleased.load(); }
 
   /** @brief Destructor*/
   ~NumaBlockMgr() {
@@ -100,11 +107,24 @@ public:
   numa_block_ptr GetBlock()
   {
     numa_block_ptr block;
-    if (!fBlocks.dequeue(block))
+    if (!fBlocks.dequeue(block)) {
       block = AddBlock();
+      //printf("++++++++++ NEW BLOCK %d (%d)\n", block->GetId(), block->GetNode());
+    } else {
+      block->Clear();
+    }
+    //printf("Extracted block %d (%d)\n", block->GetId(), block->GetNode());
     return block;
   }
 
+  /** @brief Recycle a block */
+  GEANT_FORCE_INLINE
+  void RecycleBlock(numa_block_ptr block)
+  {
+//    block->Clear();
+    while (!fBlocks.enqueue(block))
+      ;
+  }
   
   /** @brief Get a free object from the pool 
       @return A valid object reference */
@@ -114,22 +134,20 @@ public:
     // Hold the object
     T* obj = block->GetObject(index);
     // If the block is not yet fully distributed, return
-    if (obj && !block->IsDistributed()) return (*obj);
+    if (obj) return (*obj);
     // Replace distributed block
     numa_block_ptr next_free = GetBlock();
-//    std::cout << "current= " << block << " distributed, next_free= " << next_free << std::endl;
+    //printf(" --- current= %d (%d) distributed, next_free= %d (%d)\n", block->GetId(), block->GetNode(), next_free->GetId(), next_free->GetNode());
     while (!fCurrent.compare_exchange_weak(block, next_free, std::memory_order_relaxed)) {
       // Retry if block is the same
       if (CurrentBlock() == block) continue;
+      //printf("    no_replace for block %d (%d)\n", block->GetId(), block->GetNode());
       // Someone else replaced the block, recycle our free block
-      bool putback = fBlocks.enqueue(next_free);
-      assert(putback);
+      RecycleBlock(next_free);
       break;
     }
     // Return the held object if valid, or try again with the new block
-//    std::cout << "   current is now: " << CurrentBlock() << std::endl;
-    if (obj) return (*obj);
-
+    //printf("    current is now: %d (%d)\n", CurrentBlock()->GetId(), CurrentBlock()->GetNode());
     block = CurrentBlock();
     // Blocks are large, unlikely to be emptied righ away, but you never know...
     obj = block->GetObject(index);
@@ -144,9 +162,9 @@ public:
       @return Block may have been recycled */
   GEANT_FORCE_INLINE bool ReleaseObject(numa_block_ptr block) {
     if (block->ReleaseObject()) {
-//      std::cout << "Recycling block " << block << std::endl;
-      block->Clear();
-      fBlocks.enqueue(block);
+      fNreleased++;
+      RecycleBlock(block);
+      //printf("ooooo  Recycling block %d (%d) Qsize = %ld\n", block->GetId(), block->GetNode(), fBlocks.size());
       return true;
     }
     return false;

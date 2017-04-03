@@ -215,7 +215,7 @@ void GeantPropagator::Initialize() {
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);
-    mgr->SetBlockSize(1000);
+    mgr->SetBlockSize(10000);
     mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
   }
@@ -425,6 +425,7 @@ int GeantPropagator::CreateSimulationStages()
 {
   // Create stages in the same order as the enumeration ESimulationStage
   SimulationStage *stage = nullptr;
+  (void)stage;
   // kPreStepStage
   stage = new PreStepStage(this);
   assert(stage->GetId() == int(kPreStepStage));
@@ -454,7 +455,7 @@ int GeantPropagator::CreateSimulationStages()
   GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage);
   GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
-  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
+  GetStage(kGeometryStepStage)->ActivateBasketizing(true);
   GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage);
   GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage);
   GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);
@@ -462,6 +463,7 @@ int GeantPropagator::CreateSimulationStages()
 
   for (auto stage : fStages) {
     int nhandlers = stage->CreateHandlers();
+    (void)nhandlers;
     assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
   }
   return fStages.size();  

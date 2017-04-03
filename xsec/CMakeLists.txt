@@ -14,6 +14,7 @@ endif()
 
 include_directories(inc)
 include_directories(${CMAKE_SOURCE_DIR}/physics/particle/inc)
+include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
 
 #----------------------------------------------------------------------------------------------
 # Add the library

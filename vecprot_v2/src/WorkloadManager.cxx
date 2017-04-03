@@ -30,6 +30,7 @@
 #include "StackLikeBuffer.h"
 #include "SimulationStage.h"
 #include "TrackStat.h"
+#include "TrackManager.h"
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
@@ -331,6 +332,8 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   td->fPropagator = prop;
   td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
   td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
+  td->fBlock = prop->fTrackMgr->GetNewBlock();
+
 //  int nworkers = propagator->fNthreads;
 //  WorkloadManager *wm = propagator->fWMgr;
   GeantEventServer *evserv = runmgr->GetEventServer();

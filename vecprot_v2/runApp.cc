@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
   config->fBmag = 1.; // 0.1 Tesla
-  config->fNmaxBuffSpill = 64;  // New configuration parameter!!!
+  config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
   config->fUseV3 = usev3;
   config->fUseMonitoring = monitor;
   config->fNminThreshold=5*n_threads;

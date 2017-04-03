@@ -65,7 +65,10 @@ public:
 
   /** @brief Get number of queued blocks */
   int GetNblocks() const { return fBlockMgr.GetNblocks(); }
-  
+
+  /** @brief Get number of queued blocks */
+  int GetNreleased() const { return fBlockMgr.GetNreleased(); }
+
   /** @brief Service to get the NUMA block a track belongs to */
   GEANT_FORCE_INLINE
   static
@@ -78,6 +81,18 @@ public:
     return *((NumaTrackBlock_t**)((char*)&track - tr_size*track.fBindex - sizeof(NumaTrackBlock_t*) - sizeof(GeantTrack*)));
   }
 
+  /** @brief Get a new NUMA block */
+  GEANT_FORCE_INLINE
+  NumaTrackBlock_t *GetNewBlock() {
+    return ( fBlockMgr.GetBlock() );
+  }
+
+  /** @brief Recycle NUMA block */
+  GEANT_FORCE_INLINE
+  void RecycleBlock(NumaTrackBlock_t *block) {
+    fBlockMgr.RecycleBlock(block);
+  }
+ 
   /** @brief Service to get the NUMA node corresponding to a track */
   GEANT_FORCE_INLINE
   int GetNode(GeantTrack const &track) {

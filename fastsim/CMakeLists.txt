@@ -10,7 +10,8 @@ if(HepMC_FOUND)
 endif()
 
 include_directories(inc
-  ${CMAKE_SOURCE_DIR}/physics/particle/inc)
+  ${CMAKE_SOURCE_DIR}/physics/particle/inc
+  ${CMAKE_SOURCE_DIR}/numa/inc)
 
 file(GLOB sources src/*.cxx src/GunGenerator.cxx)
 file(GLOB headers inc/*.h inc/GunGenerator.h)

@@ -222,7 +222,20 @@ int GeantTaskData::CleanBaskets(size_t ntoclean)
 VECCORE_ATT_HOST_DEVICE
 GeantTrack &GeantTaskData::GetNewTrack()
 {
-  return ( fPropagator->fTrackMgr->GetTrack() );
+  size_t index;
+  if (fBlock->IsDistributed()) {
+    fBlock = fPropagator->fTrackMgr->GetNewBlock();
+    //printf("== New block: %d (%d) current=%d used=%d\n",
+    //       fBlock->GetId(), fBlock->GetNode(), fBlock->GetCurrent(), fBlock->GetUsed());
+    assert(fBlock->GetCurrent() == 0 && fBlock->GetUsed() == 0);
+  }
+  GeantTrack *track = fBlock->GetObject(index);
+  track->Clear();
+  track->fBindex = index;
+  track->fMaxDepth = fMaxDepth;
+  return *track;
+  
+//  return ( fPropagator->fTrackMgr->GetTrack() );
 }
 
 //______________________________________________________________________________

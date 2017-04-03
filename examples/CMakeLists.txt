@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories(inc ../vecprot_v2/inc ../physics/particle/inc)
+include_directories(inc ../vecprot_v2/inc ../physics/particle/inc ../numa/inc)
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()

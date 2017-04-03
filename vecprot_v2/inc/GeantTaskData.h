@@ -17,6 +17,7 @@
 #include "Geant/Typedefs.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
+#include "TrackManager.h"
 
 namespace geantphysics {
   class PhysicsData;
@@ -47,6 +48,8 @@ class TrackStat;
 class GeantTaskData {
 public:
 
+  using NumaTrackBlock_t = NumaBlock<GeantTrack, true>;
+
   GeantPropagator *fPropagator; /** GeantPropagator */
   int fTid;              /** Thread unique id */
   int fNode;             /** Locality node */
@@ -76,6 +79,8 @@ public:
   GeantBasket *fImported; /** Basket used to import tracks from the event server */
   StackLikeBuffer *fStackBuffer; /** Stack buffer tor this thread */
   TrackStat *fStat; /** Track statictics */
+  NumaTrackBlock_t *fBlock; /** Current track block */
+  
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
   char fBPool[sizeof(std::deque<Basket *>)]; /** Pool of empty baskets */
