@@ -386,7 +386,6 @@ void Material::InitialiseMembers() {
               << std::endl;
     exit(-1);
   }
-
   fIndex = gTheMaterialTable.size();
   // add this material to the global material table
   gTheMaterialTable.push_back(this);
