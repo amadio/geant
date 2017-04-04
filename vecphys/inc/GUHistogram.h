@@ -31,6 +31,7 @@ public:
 #ifdef VECPHYS_ROOT
 private:
   void BookHistograms(double maxEnergy);
+  void BookHistograms(double minE, double maxE);
   TFile *fHistFile;
 
   TH1F *fTime[kNumberPhysicsModel];

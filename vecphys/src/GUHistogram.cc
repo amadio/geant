@@ -1,4 +1,5 @@
 #include "GUHistogram.h"
+#include "base/PhysicalConstants.h"
 
 namespace vecphys {
 
@@ -14,6 +15,38 @@ GUHistogram::~GUHistogram()
   fHistFile->Write();
   fHistFile->Close();
 }
+    
+void GUHistogram::BookHistograms(double minE, double maxE)
+{
+    for (int i = 0; i < kNumberPhysicsModel; ++i)
+    {
+        fHistFile->mkdir(GUPhysicsModelName[i]);
+        fHistFile->cd(GUPhysicsModelName[i]);
+        
+        fTime[i] = new TH1F("Time", "Time", 100, 0., 0.001);
+        fEnergyIn[i] = new TH1F("EnergyIn", "EnergyIn", 100, 0.9*minE, 1.1*maxE);
+        fEnergyOut1[i] = new TH1F("EnergyOut1", "EnergyOut1", 100, 0.9*minE, 1.1*maxE);
+        fEnergyOut2[i] = new TH1F("EnergyOut2", "EnergyOut2", 100, 0.9*minE, 1.1*maxE);
+        fAngleOut1[i] = new TH1F("AngleOut1", "AngleOut1", 100, -1., 1.0);
+        fAngleOut2[i] = new TH1F("AngleOut2", "AngleOut2", 100, -1., 1.0);
+    }
+        
+    for (int i = 0; i < kNumberPhysicsProcess; ++i) {
+    
+        fHistFile->mkdir(GUPhysicsProcessName[i]);
+        fHistFile->cd(GUPhysicsProcessName[i]);
+        
+        fProcEnergy[i] = new TH1F("ProcEnergy", "ProcEnergy", 100, 0.9*minE, 1.1*maxE);
+        fNint[i] = new TH1F("Nint", "Nint", 100, 0., 10.);
+        if (i == kPhotonProcess) {
+            fStep[i] = new TH1F("Step", "Step", 100, 0., 1.);
+            fLambda[i] = new TH1F("Lambda", "Lambda", 100, 0., 1.);
+        } else {
+            fStep[i] = new TH1F("Step", "Step", 100, 0., 100.);
+            fLambda[i] = new TH1F("Lambda", "Lambda", 100, 0., 100.);
+        }
+    }
+}
 
 void GUHistogram::BookHistograms(double maxE)
 {
@@ -23,9 +56,18 @@ void GUHistogram::BookHistograms(double maxE)
     fHistFile->cd(GUPhysicsModelName[i]);
 
     fTime[i] = new TH1F("Time", "Time", 100, 0., 0.001);
-    fEnergyIn[i] = new TH1F("EnergyIn", "EnergyIn", 100, 0., 1.1 * maxE);
-    fEnergyOut1[i] = new TH1F("EnergyOut1", "EnergyOut1", 100, 0., 1.1 * maxE);
-    fEnergyOut2[i] = new TH1F("EnergyOut2", "EnergyOut2", 100, 0., 1.1 * maxE);
+    if(i<2){
+        double minE= maxE / (1 + 2.0 * maxE * inv_electron_mass_c2);
+        fEnergyIn[i] = new TH1F("EnergyIn", "EnergyIn", 100, 0.9*minE, 1.1*maxE);
+        fEnergyOut1[i] = new TH1F("EnergyOut1", "EnergyOut1", 100, 0.9*minE, 1.1*maxE);
+        fEnergyOut2[i] = new TH1F("EnergyOut2", "EnergyOut2", 100, 0.9*minE, 1.1*maxE);
+        
+    }
+    else {
+        fEnergyIn[i] = new TH1F("EnergyIn", "EnergyIn", 100, 0., 1.1 * maxE);
+        fEnergyOut1[i] = new TH1F("EnergyOut1", "EnergyOut1", 100, 0., 1.1 * maxE);
+        fEnergyOut2[i] = new TH1F("EnergyOut2", "EnergyOut2", 100, 0., 1.1 * maxE);
+    }
     fAngleOut1[i] = new TH1F("AngleOut1", "AngleOut1", 100, -1., 1.0);
     fAngleOut2[i] = new TH1F("AngleOut2", "AngleOut2", 100, -1., 1.0);
   }
