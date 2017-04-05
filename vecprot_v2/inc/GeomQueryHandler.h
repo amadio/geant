@@ -28,12 +28,12 @@ inline namespace GEANT_IMPL_NAMESPACE {
 /**
  * @brief Handler grouping tracks by logical volume and performing geometry actions.
  */
- 
-#ifndef USE_ROOT
+
+#if !defined(USE_ROOT) || defined(VECCORE_CUDA)
 class GeomQueryHandler : public Handler {
 #else
 class GeomQueryHandler : public Handler,
-                       public TGeoExtension {
+                         public TGeoExtension {
 #endif
 
 protected:  
@@ -96,14 +96,14 @@ public:
    * @details Interface of TGeoExtension for getting a reference to this from Volume
    * @return Pointer to the base class
    */
- #ifdef USE_ROOT
+#if defined(USE_ROOT) && !defined(VECCORE_CUDA)
   virtual TGeoExtension *Grab() { return this; }
   /**
    * @brief Release function for TGeoExtension interface
    * @details Interface of TGeoExtension to signal releasing ownership of this from TGeoVolume
    */
   virtual void Release() const {}
- #endif 
+#endif  // USE_ROOT.
 
 };
 
