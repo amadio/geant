@@ -56,11 +56,15 @@ public:
          const VolumePath_t **instate, VolumePath_t **outstate, 
          double *step, double *safe, bool *isonbdr);
     
-  /**
-  * @brief Single track version of the function above */
+  /** @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
   static
   void NavFindNextBoundaryAndStep(GeantTrack &track);
+
+  /** @brief Single track version not doing relocation */
+  VECCORE_ATT_HOST_DEVICE
+  static
+  void NavFindNextBoundary(GeantTrack &track);
 
   /**
    * @brief Function for navigation that checks if location is the same or not

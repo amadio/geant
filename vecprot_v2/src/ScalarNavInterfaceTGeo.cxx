@@ -120,10 +120,33 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
+  // Check if current safety allows for the proposed step
+  if (track.fSafety > track.fPstep) {
+    track.fSnext = track.fPstep;
+    *track.fNextpath = *track.fPath;
+    track.fBoundary = false;
+    return;
+  }
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+  // Reset navigation state flags and safety to start fresh
+  nav->ResetState();
+  // Setup start state
+  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
+  nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
+  track.fPath->UpdateNavigator(nav);
+  nav->FindNextBoundary(Math::Min<double>(1.E20, track.fPstep), "", track.fBoundary);
+  track.fSnext = nav->GetStep();
+  track.fBoundary = track.fSnext < track.fPstep;
+  track.fSnext = Math::Max<double>(2 * gTolerance, track.fSnext + 2 * gTolerance);
+  track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
+}
+  
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
   const double epserr = 1.E-3; // push value in case of repeated geom error
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   int ismall;
   double snext;
   TGeoNode *nextnode, *lastnode;
@@ -137,6 +160,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
     track.fBoundary = false;
     return;
   }
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   // Reset navigation state flags and safety to start fresh
   nav->ResetState();
   // Setup start state
