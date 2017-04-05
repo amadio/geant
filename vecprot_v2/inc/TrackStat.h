@@ -40,9 +40,11 @@ public:
   ~TrackStat() {}
 
   /** @brief Clear stats */
+  VECCORE_ATT_HOST_DEVICE
   void AddTracks(int ntracks) { fNtotal += ntracks; }
 
   /** @brief Clear stats */
+  VECCORE_ATT_HOST_DEVICE
   void Clear() { fNtotal = 0; fNstacked = 0; fNstagebuff = 0; fNbasketized = 0; }
   
   /** @brief Make the count balance for tracks */
