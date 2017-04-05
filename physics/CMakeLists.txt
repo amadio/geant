@@ -5,6 +5,7 @@ file(GLOB sources particle/src/*.cxx particle/src/generated/*.cxx)
 file(GLOB headers particle/inc/*.h)
 
 include_directories(particle/inc)
+include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
 
 set(_extraLibs "")
 

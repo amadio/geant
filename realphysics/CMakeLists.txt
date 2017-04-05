@@ -7,8 +7,7 @@ file(GLOB headers ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h ${CMAKE_SOURC
                   dummies/inc/*.h physics/management/inc/*.h physics/models/EM/inc/*.h
                   physics/processes/EM/inc/*.h physics/utils/inc/*.h)
 
-include_directories(${CMAKE_SOURCE_DIR}/material/inc ${CMAKE_SOURCE_DIR}/base/inc dummies/inc physics/management/inc physics/models/EM/inc physics/processes/EM/inc
-                    physics/utils/inc)
+include_directories(${CMAKE_SOURCE_DIR}/material/inc ${CMAKE_SOURCE_DIR}/base/inc dummies/inc physics/management/inc physics/models/EM/inc physics/processes/EM/inc physics/utils/inc ${CMAKE_SOURCE_DIR}/numa/inc)
 
 set(_extraLibs "")
 

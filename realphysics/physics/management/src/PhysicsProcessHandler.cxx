@@ -246,7 +246,7 @@ void PhysicsProcessHandler::AlongStepAction(Material_t *mat, int ntracks, GeantT
        tracks.fPV[i]  = std::sqrt(newEkin*(newEkin+2.0*tracks.fMassV[i]));
        tracks.fEdepV[i] += primaryLT.GetEnergyDeposit();
        if (primaryLT.GetTrackStatus()==LTrackStatus::kKill) {
-         tracks.fStatusV[i] = kKilled;
+         tracks.fStatusV[i] = Geant::kKilled;
        }
        numSecondaries += nSecParticles;
        if (nSecParticles) {
@@ -316,7 +316,7 @@ void PhysicsProcessHandler::PostStepAction(Material_t *mat, int ntracks, GeantTr
       tracks.fZdirV[i]  = primaryLT.GetDirZ();
       tracks.fEdepV[i] += primaryLT.GetEnergyDeposit();
       if (primaryLT.GetTrackStatus()==LTrackStatus::kKill) {
-        tracks.fStatusV[i] = kKilled;
+        tracks.fStatusV[i] = Geant::kKilled;
       }
       //
       // create secondary tracks if there are any
@@ -337,7 +337,7 @@ void PhysicsProcessHandler::PostStepAction(Material_t *mat, int ntracks, GeantTr
           geantTrack.fCharge   = secParticle->GetPDGCharge();
           geantTrack.fProcess  = 0;
           geantTrack.fNsteps   = 0;
-          geantTrack.fStatus   = kNew;           // this secondary is a new track
+          geantTrack.fStatus   = Geant::kNew;           // this secondary is a new track
           geantTrack.fMass     = secParticle->GetPDGMass();
           geantTrack.fXpos     = tracks.fXposV[t]; // rx of this particle (same as parent)
           geantTrack.fYpos     = tracks.fYposV[t]; // ry of this particle (same as parent)

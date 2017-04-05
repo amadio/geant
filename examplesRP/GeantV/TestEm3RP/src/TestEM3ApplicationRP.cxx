@@ -130,14 +130,14 @@ void TestEM3ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Ge
         fListDataPerThread[indx].fListDataPerAbsorber[iabs].fLength +=  tracks.fStepV[i];
       }
     }
-    if (tracks.fStatusV[i]!=kNew) { // do not count the creation step
+    if (tracks.fStatusV[i]!=Geant::kNew) { // do not count the creation step
       if (charge==0.0) {
         fListDataPerThread[indx].fDataGlobal.fNumNeutralSteps +=1.0;
       } else {
         fListDataPerThread[indx].fDataGlobal.fNumChargedSteps +=1.0;
       }
     }
-    if (tracks.fStatusV[i]==kNew) { // check secondaries
+    if (tracks.fStatusV[i]==Geant::kNew) { // check secondaries
       switch(pdgCode) {
         // e+
         case -11 : fListDataPerThread[indx].fDataGlobal.fNumPositron += 1.0;
