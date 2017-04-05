@@ -1,52 +1,35 @@
 #include "FeederTask.h"
 
+#include "GeantConfig.h"
+#include "GeantRunManager.h"
+#include "GeantScheduler.h"
+
 #ifdef GEANT_TBB
 #include "tbb/task_scheduler_init.h"
 #endif
 
+using namespace Geant;
 
-FeederTask::FeederTask (Geant::GeantTaskData *td): fTd(td) { }
+FeederTask::FeederTask (Geant::GeantTaskData *td, bool starting): fTd(td), fStarting(starting) { }
 
 FeederTask::~FeederTask () { }
 
 tbb::task* FeederTask::execute ()
 {
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  int nbaskets = 0;
-  if (!propagator->fLastEvent) {
-    nbaskets = propagator->ImportTracks(propagator->fNevents, 0, 0, fTd);
-    propagator->fLastEvent = propagator->fNevents;
-    propagator->ReleaseLock();
-    tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-    TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd );
-    return & transportTask;
+  GeantPropagator *prop = fTd->fPropagator;
+//  GeantRunManager *runmgr = prop->fRunMgr;
+  int ninjected = 0;
+  if (fStarting) {
+//    while (runmgr->GetFedPropagator() != prop) {
+//      int nb0 = runmgr->Feeder(fTd);
+//      if (nb0 > 0) ninjected += nb0;
+//    }
+    if (!ninjected) prop->fWMgr->GetScheduler()->GarbageCollect(fTd, true);
+  } else {    
+//    ninjected = runmgr->Feeder(fTd);
   }
-  // Check and mark finished events
-  for (int islot = 0; islot < propagator->fNevents; islot++) {
-    //Geant::Print("","=== heck and mark finished events %d ===", nbaskets);
-    GeantEvent *evt = propagator->fEvents[islot];
-    if (propagator->fDoneEvents->TestBitNumber(evt->GetEvent()))
-      continue;
-    if (evt->Transported()) {
-      propagator->fPriorityEvents--;
-      evt->Print();
-      // Digitizer (todo)
-      int ntracks = propagator->fNtracks[islot];
-      printf("= [task id %d] digitizing event %d with %d tracks pri=%d \n", fTd->fTid, evt->GetEvent(), ntracks, propagator->fPriorityEvents.load());
-      //  propagator->fApplication->Digitize(evt->GetEvent());
-      propagator->fDoneEvents->SetBitNumber(evt->GetEvent());
-      if (propagator->fLastEvent < propagator->fNtotal) {
-        printf("=> Importing event %d\n", propagator->fLastEvent);
-        nbaskets += propagator->ImportTracks(1, propagator->fLastEvent, islot, fTd);
-        propagator->fLastEvent++;
-      }
-    }
-  }
-
-  //printf("=== Feeder task  found %d baskets ===\n", nbaskets);
-  // spawn transport task
-  propagator->ReleaseLock();
+  
   tbb::task &cont = *new (tbb::task::allocate_root()) tbb::empty_task();
-  TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd );
+  TransportTask & transportTask = *new(cont.allocate_child()) TransportTask( fTd, fStarting );
   return & transportTask;
 }

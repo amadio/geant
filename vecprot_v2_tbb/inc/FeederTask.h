@@ -13,9 +13,10 @@ class FeederTask : public tbb::task
 {
 private:
   Geant::GeantTaskData *fTd;
+  bool fStarting;
 
 public:
-  FeederTask (Geant::GeantTaskData *td);
+  FeederTask (Geant::GeantTaskData *td, bool starting);
   ~FeederTask ();
 
   tbb::task* execute ();

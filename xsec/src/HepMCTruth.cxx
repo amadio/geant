@@ -11,8 +11,14 @@
 #include "HepMC/Print.h"
 #include "Geant/Error.h"
 
+using namespace Geant;
+
+#ifdef USE_ROOT
+ClassImp(HepMCTruth)
+#endif
+
 //______________________________________________________________________________
-HepMCTruth::HepMCTruth() : output_file(0)
+HepMCTruth::HepMCTruth() : output_file(0) 
 {
 }
 
@@ -41,7 +47,7 @@ HepMCTruth::~HepMCTruth() {
 void HepMCTruth::InitMCTruthMgr() {}
 
 //______________________________________________________________________________
-bool HepMCTruth::CheckTrack(Geant::GeantTrack &gtrack, MCEvent* evt)
+bool HepMCTruth::CheckTrack(GeantTrack &gtrack, MCEvent* evt)
 {
   // check if the track satisfies the condition to be stored
   // 
@@ -155,6 +161,5 @@ void HepMCTruth::CloseEvent(int evID) {
   output_file->write_event(genevt);
   
   delete events_map.find(evID);
-  events_map.erase(evID);
-  
+  events_map.erase(evID);  
 }

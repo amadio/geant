@@ -8,9 +8,10 @@ class TransportTask : public tbb::task
 {
 private:
   Geant::GeantTaskData *fTd;
+  bool fStarting;
 
 public:
-  TransportTask (Geant::GeantTaskData *td);
+  TransportTask (Geant::GeantTaskData *td, bool starting);
   ~TransportTask ();
 
   tbb::task* execute ();

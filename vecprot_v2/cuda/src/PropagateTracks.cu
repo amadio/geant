@@ -85,6 +85,14 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> 
 __global__
 void transport_kernel()
 {
+  unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  Geant::GeantTaskData *td = (Geant::GeantTaskData * )(((char *) workSpace) + workspaceSizeOf * tid);
+  td->fTransported->Clear();
+
+  GeantPropagator *propagator = td->fPropagator;
+
+  unsigned int itr = tid;
+  while (itr < ntracks) {
     // Select the discrete physics process for all particles in the basket
     if (propagator->fUsePhysics) propagator->ProposeStep(ntotransport, input, tid);
     // Apply msc for charged tracks

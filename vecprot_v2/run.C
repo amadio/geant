@@ -6,10 +6,14 @@
 #endif
 
 // Autoload the library early so that GeantPropagator is defined when applicable.
+namespace Geant {
+inline namespace cxx {
 class TaskBroker;
 class GeantPropagator;
+}
+}
 
-void run(int ncputhreads=4,
+void run(int ncputhreads=1,
          bool performance=true,
 	      const char *geomfile="ExN03.root",
 	      const char *xsec="xsec_FTFP_BERT.root",
@@ -40,9 +44,9 @@ void run(int ncputhreads=4,
    int nthreads = ncputhreads;
    int ntotal   = 50;  // Number of events to be transported
    int nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
-   TGeoManager::Import(geomfile);
+   int npropagators = 1;
 
-   TaskBroker *broker = nullptr;
+   Geant::TaskBroker *broker = nullptr;
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -54,75 +58,81 @@ void run(int ncputhreads=4,
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
    }
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
 
-   if (broker) prop->SetTaskBroker(broker);
+   Geant::GeantConfig* config = new Geant::GeantConfig();
+   config->fGeomFileName = geomfile;
 
    // Monitor different features
-   prop->SetNminThreshold(5*nthreads);
-   prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
-   bool graphics = (prop->GetMonFeatures()) ? true : false;
-   prop->fUseMonitoring = graphics;
-   prop->fNaverage = 500;   // Average number of tracks per event
+   config->fNminThreshold = 5*nthreads;
+   config->SetMonitored(GeantConfig::kMonQueue,          true & (!performance));
+   config->SetMonitored(GeantConfig::kMonMemory,         false & (!performance));
+   config->SetMonitored(GeantConfig::kMonBasketsPerVol,  false & (!performance));
+   config->SetMonitored(GeantConfig::kMonVectors,        false & (!performance));
+   config->SetMonitored(GeantConfig::kMonConcurrency,    false & (!performance));
+   config->SetMonitored(GeantConfig::kMonTracksPerEvent, false & (!performance));
+   bool graphics = (config->GetMonFeatures()) ? true : false;
+   config->fUseMonitoring = graphics;
+   config->fNaverage = 500;   // Average number of tracks per event
   
    // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
    // If set to 0 takes the default value of 0.01
-   prop->fPriorityThr = 0.05;
+   config->fPriorityThr = 0.05;
 
    // Initial vector size, this is no longer an important model parameter, 
    // because is gets dynamically modified to accomodate the track flow
-   prop->fNperBasket = 16;   // Initial vector size (tunable)
+   config->fNperBasket = 16;   // Initial vector size (tunable)
 
    // This is now the most important parameter for memory considerations
-   prop->fMaxPerBasket = 256;   // Maximum vector size (tunable)
+   config->fMaxPerBasket = 256;   // Maximum vector size (tunable)
 
    // Minimum number of tracks in a basket that stay in the same volume and
    // therefore can be re-used with the same thread without re-basketizing.
-   prop->fNminReuse = 10000;   // (default in propagator is 4)
+   config->fNminReuse = 10000;   // (default in propagator is 4)
 
    // Kill threshold - number of steps allowed before killing a track 
    //                  (includes internal geometry steps)
-   prop->fNstepsKillThr = 100000;
+   config->fNstepsKillThr = 100000;
 
-   prop->fEmin = 3.E-6; // [3 KeV] energy cut
-   prop->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
-
-   // Create the tab. phys process.
-   prop->fProcess = new TTabPhysProcess("tab_phys", xsec, fstate);
-
-   // for vector physics -OFF now
-   // prop->fVectorPhysicsProcess = new GVectorPhysicsProcess(prop->fEmin, nthreads);
-
-   prop->fPrimaryGenerator = new GunGenerator(prop->fNaverage, 11, prop->fEmax, -8, 0, 0, 1, 0, 0);
+   config->fEmin = 3.E-6; // [3 KeV] energy cut
+   config->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
-   prop->fLearnSteps = 0;
-   if (performance) prop->fLearnSteps = 0;
+   config->fLearnSteps = 0;
+   if (performance) config->fLearnSteps = 0;
 
-
-   prop->fApplication = new ExN03Application();
    // Activate I/O
-   prop->fFillTree = false;
+   config->fFillTree = false;
    // Activate old version of single thread serialization/reading
-  // prop->fConcurrentWrite = false;
+   // config->fConcurrentWrite = false;
 
 // Activate debugging using -DBUG_HUNT=ON in your cmake build
-   prop->fDebugEvt = 0;
-   prop->fDebugTrk = 0;
-   prop->fDebugStp = 0;
-   prop->fDebugRep = 10;
+   config->fDebugEvt = 0;
+   config->fDebugTrk = 0;
+   config->fDebugStp = 0;
+   config->fDebugRep = 10;
 
-// Activate standard scoring   
-   prop->fUseStdScoring = true;
-   if (performance) prop->fUseStdScoring = false;
+// Activate standard scoring
+   config->fUseStdScoring = true;
+   if (performance) config->fUseStdScoring = false;
    // Monitor the application
-   prop->fUseAppMonitoring = false;
-   prop->PropagatorGeom(geomfile, nthreads, graphics);
-   delete prop;
+   config->fUseAppMonitoring = false;
+
+   
+   GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
+   if (broker) runMgr->SetCoprocessorBroker(broker);
+
+   // Create the tab. phys process.
+   runMgr->SetPhysicsProcess( new Geant::TTabPhysProcess("tab_phys", xsec, fstate));
+
+   // for vector physics -OFF now
+   // config->fVectorPhysicsProcess = new GVectorPhysicsProcess(config->fEmin, nthreads);
+
+   runMgr->SetPrimaryGenerator(new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0));
+
+   runMgr->SetUserApplication( new ExN03Application(runMgr) );
+
+
+   runMgr->RunSimulation();
+   delete config;
 }   

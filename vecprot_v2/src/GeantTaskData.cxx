@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "GeantBasket.h"
 #include "GeantPropagator.h"
+#include "GeantTrackGeo.h"
 #include "Geant/Typedefs.h"
 
 #ifdef USE_ROOT
@@ -15,11 +16,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
-    : fTid(-1), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false), 
-      fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth), 
-      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fPool(),
+    : fPropagator(nullptr), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
+      fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
+      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
       fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fTransported1(maxPerBasket), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
 {
   // Constructor
   fNthreads = nthreads;
@@ -28,10 +29,13 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
+  fPathV = new VolumePath_t*[maxPerBasket];
+  fNextpathV = new VolumePath_t*[maxPerBasket];
+  fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
 //  fRndm = &RNG::Instance();
-  fRndm = new RNG; // what about the seed?
+  fRndm = new vecgeom::RNG; // what about the seed?
 #elif USE_ROOT
   fRndm = new TRandom();
 #endif
@@ -41,12 +45,12 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket)
-    : fTid(-1), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
+GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *prop /* = nullptr */)
+    : fPropagator(prop), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
       fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
-      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fPool(),
+      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fPool(),
       fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0)
+      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
 {
   // Constructor
   char *buffer = (char*)addr;
@@ -56,6 +60,10 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   buffer = GeantTrack::round_up_align(buffer);
 
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
+  fPathV = new VolumePath_t*[maxPerBasket];
+  fNextpathV = new VolumePath_t*[maxPerBasket];
+  fGeoTrack = GeantTrackGeo_v::MakeInstanceAt(buffer, 4*maxPerBasket);
+  buffer += GeantTrackGeo_v::SizeOfInstance(4*maxPerBasket);
   buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
   buffer = GeantTrack::round_up_align(buffer);
 
@@ -75,7 +83,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
-  fRndm = &RNG::Instance();
+  fRndm = &vecgeom::RNG::Instance();
 #elif USE_ROOT
   fRndm = new TRandom();
 #endif
@@ -83,7 +91,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
 }
 
 //______________________________________________________________________________
-GeantTaskData::~GeantTaskData() 
+GeantTaskData::~GeantTaskData()
 {
 // Destructor
 //  delete fMatrix;
@@ -95,6 +103,8 @@ GeantTaskData::~GeantTaskData()
   delete[] fBoolArray;
   delete[] fDblArray;
   delete[] fIntArray;
+  delete [] fPathV;
+  delete [] fNextpathV;
   delete fRndm;
   VolumePath_t::ReleaseInstance(fPath);
   delete fTransported;
@@ -102,10 +112,10 @@ GeantTaskData::~GeantTaskData()
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket)
+GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop)
 {
    // GeantTrack MakeInstance based on a provided single buffer.
-   return new (addr) GeantTaskData(addr, nTracks, maxdepth, maxPerBasket);
+   return new (addr) GeantTaskData(addr, nTracks, maxdepth, maxPerBasket, prop);
 }
 
 
@@ -126,10 +136,10 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxP
 
 
 #ifndef VECCORE_CUDA
-GeantBasket *GeantTaskData::GetNextBasket() 
+GeantBasket *GeantTaskData::GetNextBasket()
 {
   // Gets next free basket from the queue.
-  if (fPool.empty()) 
+  if (fPool.empty())
     return nullptr;
   GeantBasket *basket = fPool.back();
   //  basket->Clear();
@@ -138,14 +148,14 @@ GeantBasket *GeantTaskData::GetNextBasket()
 }
 
 //______________________________________________________________________________
-void GeantTaskData::RecycleBasket(GeantBasket *b) 
+void GeantTaskData::RecycleBasket(GeantBasket *b)
 {
   // Recycle a basket.
   fPool.push_back(b);
 }
 
 //______________________________________________________________________________
-int GeantTaskData::CleanBaskets(size_t ntoclean) 
+int GeantTaskData::CleanBaskets(size_t ntoclean)
 {
   // Clean a number of recycled baskets to free some memory
   GeantBasket *b;

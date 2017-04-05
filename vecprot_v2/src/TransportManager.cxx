@@ -96,7 +96,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 #if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   // Vector treatment
   // Copy data to SOA and dispatch for vector mode
-  GeantTrackGeo_v &track_geo = td.GeoTrack();
+  GeantTrackGeo_v &track_geo = *td.fGeoTrack;
   track_geo.Clear();
   for (int itr = 0; itr < tracks.size(); itr++) {
     GeantTrack &track = *tracks[itr];
@@ -197,25 +197,29 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
     // Just process all the tracks in scalar mode
     for (auto track : tracks)
       ComputeTransportLengthSingle(*track, td);
-    }
   } else {
     // Copy interesting tracks to SOA and process vectorized.
     // This is overhead but cannot be avoided.
-    GeantTrackGeo_v &track_geo = td.GeoTrack();
+    GeantTrackGeo_v &track_geo = *td->fGeoTrack;
     track_geo.Clear();
+    int i = 0;
     for (auto track : tracks) {
-      if (track->fSafety < track->fPstep)
+      if (track->fSafety < track->fPstep) {
         track_geo.AddTrack(*track);
+        td->fPathV[i] = track->fPath;
+        td->fNextpathV[i] = track->fNextpath;
+        i++;
+      }
     }
     // The vectorized SOA call
     VectorNavInterface::NavFindNextBoundaryAndStep(nsel, track_geo.fPstepV,
                  track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
                  track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
-                 (const VolumePath_t **)track_geo.fPathV, track_geo.fNextpathV,
+                 (const VolumePath_t **)td->fPathV, td->fNextpathV,
                  track_geo.fSnextV, track_geo.fSafetyV, track_geo.fBoundaryV);
   
     // Update original tracks
-    track_geo->UpdateOriginalTracks();
+    track_geo.UpdateOriginalTracks();
     // Update number of calls to geometry (1 vector call + ntail scalar calls)
     td->fNsnext += 1 + ntracks%kMinVecSize;
   }
@@ -313,12 +317,12 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 
    bool useRungeKutta;
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
-   const double bmag = gPropagator_fBmag;
+   const double bmag = gPropagator_fConfig->fBmag;
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-   const double bmag = gPropagator->fBmag;
-   useRungeKutta= gPropagator->fUseRungeKutta;
+   const double bmag = td->fPropagator->fConfig->fBmag;
+   useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
 #endif
 
    // static unsigned long icount= 0;
@@ -423,22 +427,23 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   if (action != kVector)
     return PropagateTracksScalar(tracks, td);
 // Compute transport length in geometry, limited by the physics step
+  GeantPropagator *prop = td->fPropagator;
 #ifdef BUG_HUNT
-  GeantPropagator *prop = GeantPropagator::Instance();
-  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
+  
+  BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(tracks, ntracks, td);
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
 #ifdef BUG_HUNT
-  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTransLen");
+  BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterCompTransLen");
 #endif
 
   int itr = 0;
   int icrossed = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = gPropagator->fBmag;
+  const double bmag = prop->fConfig->fBmag;
 
   // Remove dead tracks, propagate neutrals
   for (unsigned int itr=0; itr<tracks.size(); ++itr) {
@@ -562,7 +567,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 #endif
     
 #ifdef BUG_HUNT
-  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateTracks");
+  BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateTracks");
 #endif
   return icrossed;
 }
@@ -572,18 +577,19 @@ VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
   // Propagate the track with its selected steps, starting from a given stage.
 
+  GeantPropagator *prop = td->fPropagator;
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
-  const double bmag = gPropagator_fBmag;
+  const double bmag = gPropagator_fConfig->fBmag;
 #else
-  const double bmag = gPropagator->fBmag;
+  const double bmag = prop->fConfig->fBmag;
 #endif
 // Compute transport length in geometry, limited by the physics step
+  
 #ifdef BUG_HUNT
-  GeantPropagator *prop = GeantPropagator::Instance();
-  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep,
+  BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep,
               "PropagateSingle", itr);
 #endif
 
@@ -592,7 +598,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
   ComputeTransportLengthSingle(track, td);
 
 #ifdef BUG_HUNT
-  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTranspLenSingle");
+  BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterCompTranspLenSingle");
 #endif
   // Mark dead tracks for copy/removal
   if (track.fSnext < 0) {
@@ -634,7 +640,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
       MoveTrack(itr--, tracks, output);
 
 #ifdef BUG_HUNT
-      BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingleNeutral",
+      BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateSingleNeutral",
                   track.fParticle);
 #endif
       return icrossed;
@@ -682,7 +688,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
     if (icrossed) MoveTrack(itr--, tracks, output);
   }
 #ifdef BUG_HUNT
-  BreakOnStep(tracks, prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingle", itr);
+  BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateSingle", itr);
 #endif
   return icrossed;
 }

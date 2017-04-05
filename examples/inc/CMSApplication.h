@@ -39,15 +39,21 @@ class TProfile;
 #include "MyHit.h"
 #endif
 
+#include "base/Vector.h"
 
 /** @brief CMSApplication class */
-class CMSApplication : public GeantVApplication {
+class CMSApplication : public Geant::GeantVApplication {
   static const int kMaxThreads = 36;
   static const int kNvolumes     = 4500;
   static const int kNECALModules = 36;
   static const int kNHCALModules = 112;
+  using GeantRunManager = Geant::GeantRunManager;
+  using GeantEvent = Geant::GeantEvent;
 
 public:
+  template <class T>
+  using vector_t = vecgeom::Vector<T>;
+
 enum EScoreType {
   kNoScore = 0,
   kScore
@@ -98,7 +104,7 @@ private:
 public:
 
   /** @brief Constructor CMSApplication */
-  CMSApplication();
+  CMSApplication(GeantRunManager *runmgr);
 
   /** @brief Destructor CMSApplication */
   virtual ~CMSApplication() {}
@@ -123,7 +129,7 @@ public:
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(int event);
+  virtual void Digitize(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

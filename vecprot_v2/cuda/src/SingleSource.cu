@@ -5,7 +5,15 @@
 #include "../src/GeantTaskData.cxx"
 #include "../src/GeantTrack.cxx"
 #include "../src/GeantTrackVec.cxx"
+#include "../src/GeantTrackGeo.cxx"
+#include "../src/GeantEvent.cxx"
 #include "../src/ScalarNavInterfaceVGM.cxx"
+#include "../src/GeantPropagator.cxx"
+
+//#include "../src/WorkloadManager.cxx"
+//#include "../src/GeantRunManager.cxx"
+
+
 #include "GeantCudaUtils.cu"
 #include "GeantTrack.cu"
 #include "PropagateTracks.cu"

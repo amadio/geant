@@ -55,12 +55,12 @@
 #include "Geant/Typedefs.h"
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
+#include "GeantTaskData.h"
 
 
 class TGeoManager;
 class GeantTrack;
 class GeantTrack_v;
-class GeantTaskData;
 
 
 /** @brief Class Smearer */
@@ -81,7 +81,7 @@ class Smearer {
      *  model defined (1) or not (0); we use the unique number identifier of
      *  each volume as the index of the vector.
      */
-    Smearer();
+    Smearer(GeantTaskData *td);
 
     /** @brief Smearer destructor */
     ~Smearer() {}

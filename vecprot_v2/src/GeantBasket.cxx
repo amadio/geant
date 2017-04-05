@@ -5,7 +5,7 @@
 #include "GeantPropagator.h"
 #include "GeantScheduler.h"
 #include "GeantTaskData.h"
-#include "PhysicsProcess.h"
+//#include "PhysicsProcessOld.h"
 #include "WorkloadManager.h"
 #ifdef USE_VECGEOM_NAVIGATOR
 #else
@@ -13,6 +13,9 @@
 #include "TGeoNavigator.h"
 #endif
 #include "Geant/Error.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantBasket::GeantBasket()
@@ -22,9 +25,9 @@ GeantBasket::GeantBasket()
 }
 
 //______________________________________________________________________________
-GeantBasket::GeantBasket(int size, GeantBasketMgr *mgr)
+GeantBasket::GeantBasket(GeantPropagator* prop, int size, GeantBasketMgr *mgr)
    : fManager(mgr), fNcopying(0), fNbooked(0), fNcopied(0), fNused(0), fIbook0(0), fDispatched(),
-     fThreshold(size), fTracksIn(size, GeantPropagator::Instance()->fMaxDepth), fIsMixed(false) {
+     fThreshold(size), fTracksIn(size, prop->fConfig->fMaxDepth), fIsMixed(false) {
   // Default constructor.
   if (!mgr->GetVolume() || mgr->IsCollector())
     SetMixed(true);
@@ -124,19 +127,19 @@ void GeantBasket::SetThreshold(int threshold) {
 // concurrent queue
 //______________________________________________________________________________
 //______________________________________________________________________________
-GeantBasketMgr::GeantBasketMgr(GeantScheduler *sch, Volume_t *vol, int number, bool collector)
+GeantBasketMgr::GeantBasketMgr(GeantPropagator* prop, GeantScheduler *sch, Volume_t *vol, int number, bool collector)
 #ifdef USE_ROOT
   : TGeoExtension(), fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
-#else 
+#else
   : fScheduler(sch), fVolume(vol), fNumber(number), fBcap(0), fQcap(32), fActive(false),
 #endif
-    fCollector(collector), fThreshold(0), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
+    fCollector(collector), fThreshold(prop->fConfig->fNperBasket), fNbaskets(0), fNused(0), fIbook(0), fCBasket(0), fFeeder(0),
     fDispatchList() {
   // Constructor
-  fBcap = GeantPropagator::Instance()->fMaxPerBasket + 1;
+  fBcap = prop->fConfig->fMaxPerBasket + 1;
   // The line below to be removed when the automatic activation schema in place
   if (collector)
-    Activate();
+    Activate(prop);
 }
 
 //______________________________________________________________________________
@@ -146,16 +149,19 @@ GeantBasketMgr::~GeantBasketMgr() {
 }
 
 //______________________________________________________________________________
-void GeantBasketMgr::Activate() {
+void GeantBasketMgr::Activate(GeantPropagator* prop) {
   // Activate the manager for generating baskets.
   if (fActive)
     return;
   GeantBasket *basket;
-  basket = new GeantBasket(fBcap, this);
+  basket = new GeantBasket(prop, fBcap, this);
+  basket->SetThreshold(fThreshold.load(std::memory_order_relaxed));
   SetCBasket(basket);
   if (fCollector) {
     basket->SetMixed(true);
     //    Printf("Created collector basket manager");
+  } else {
+    basket->SetMixed(false);
   }
   fActive = true;
 }
@@ -353,7 +359,7 @@ int GeantBasketMgr::GarbageCollect(GeantTaskData *td) {
 void GeantBasketMgr::CreateEmptyBaskets(int nbaskets, GeantTaskData *td) {
   // Creates new basket for this manager
   for (auto i = 0; i < nbaskets; ++i) {
-    GeantBasket *next = new GeantBasket(fBcap, this);
+    GeantBasket *next = new GeantBasket(td->fPropagator,fBcap, this);
     if (fCollector)
       next->SetMixed(true);
     fNbaskets++;
@@ -376,7 +382,7 @@ void GeantBasketMgr::Push(GeantBasket *basket, bool priority, GeantTaskData *td)
     fThreshold.store(threshold_new, std::memory_order_relaxed);
   }
   fNused++;
-  fFeeder->push(basket, priority);
+  fFeeder->push_force(basket, priority);
 }
 
 //______________________________________________________________________________
@@ -384,7 +390,7 @@ GeantBasket *GeantBasketMgr::GetNextBasket(GeantTaskData *td) {
   // Returns next empy basket if any available, else create a new basket.
   GeantBasket *next = td->GetNextBasket();
   if (!next) {
-    next = new GeantBasket(fBcap, this);
+    next = new GeantBasket(td->fPropagator,fBcap, this);
     fNbaskets++;
   }
   if (fCollector)
@@ -432,3 +438,6 @@ void GeantBasketMgr::PrintSize() const {
     sizeb = GetCBasket()->Sizeof();
   Geant::Printf("Bsk_mgr %s: %d baskets of size %ld:    %ld bytes", GetName(), GetNbaskets(), sizeb, size);
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

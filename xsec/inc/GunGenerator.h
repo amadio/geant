@@ -12,6 +12,9 @@ using vecgeom::RNG;
 
 #include "Geant/Typedefs.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 class GunGenerator : public PrimaryGenerator {
 private:
   int fAverage; // Average number of tracks for Poisson distribution
@@ -32,8 +35,6 @@ private:
   double fCharge; // charge of the primary
   double fPTotal; // total momentum of the primary [GeV]
   double fETotal; // total energy of the primary [GeV]
-
-  int fNumberoftracks; // Number of generated tracks
 
 #ifdef USE_ROOT
   TRandom *fRndgen; // Random number generator
@@ -56,7 +57,9 @@ public:
 private:
   GunGenerator(const GunGenerator &);            // no imp.
   GunGenerator &operator=(const GunGenerator &); // no imp.
-
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

@@ -13,7 +13,7 @@
 #endif
 
 
-TestProcess::TestProcess() : PhysicsProcess() {}
+TestProcess::TestProcess() : Geant::PhysicsProcessOld() {}
 
 
 void TestProcess::Initialize() {
@@ -25,7 +25,7 @@ void TestProcess::Initialize() {
 void TestProcess::Eloss( Material_t */* mat */, int ntracks, GeantTrack_v &tracks, int &/* nout */, GeantTaskData */* td */ ) {
 
   //  std::cout << "TestProcess::Eloss : Start" << std::endl;
-  
+
   for ( int i = 0; i < ntracks; i++ ) {
     tracks.fEdepV[i] = 10;
   }
@@ -37,8 +37,8 @@ void TestProcess::ComputeIntLen( Material_t */* mat */, int ntracks, GeantTrack_
 				    GeantTaskData */* td */ ) {
   //  std::cout << "TestProcess::ComputeIntLen : Start : ntracks=" << ntracks << std::endl;
   for ( int i = 0; i < ntracks; i++ ) {
-    //    std::cout << " TestProcess::ComputeIntLen : proposedStepLengths[" << i << "]=" << 10 
-    //             << " ; position=("  << tracks.fXposV[i] << "," << tracks.fYposV[i] << "," << tracks.fZposV[i] 
+    //    std::cout << " TestProcess::ComputeIntLen : proposedStepLengths[" << i << "]=" << 10
+    //             << " ; position=("  << tracks.fXposV[i] << "," << tracks.fYposV[i] << "," << tracks.fZposV[i]
     //             << ")" << std::endl;  // Debug
     tracks.fPstepV[i] = 10;
     tracks.fEindexV[i] = 1000;  // Forced to be always treated as continuous & discrete.
@@ -58,4 +58,3 @@ void TestProcess::PostStepFinalStateSampling( Material_t */* mat */, int /* ntra
   //  std::cout << "TestProcess::PostStepTypeOfIntrActSampling : Start" << std::endl;
   //  std::cout << "TestProcess::PostStepTypeOfIntrActSampling : --- End ---" << std::endl;
 }
-

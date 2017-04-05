@@ -1,5 +1,8 @@
 #include "MCTruthMgr.h"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 void MCTruthMgr::OpenEvent(int evID) {
   
@@ -72,3 +75,6 @@ void MCTruthMgr::EndTrack(const Geant::GeantTrack_v &tracks, int itr) {
     }
   else return; 
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

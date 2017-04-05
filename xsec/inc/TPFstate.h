@@ -84,24 +84,24 @@ public:
   VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPFstate::CheckAlign","fNEbins misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) { Geant::Error("TPFstate::CheckAlign","fNEFstat misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNFstat) % sizeof(fNFstat) != 0) { Geant::Error("TPFstate::CheckAlign","fNFstat misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNReac) % sizeof(fNReac) != 0) { Geant::Error("TPFstate::CheckAlign","fNReac misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNEbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNEFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNFstat) % sizeof(fNFstat) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNReac) % sizeof(fNReac) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fNReac misaligned\n");isaligned=false;}
   for(auto i=0; i< fNFstat; ++i)
     if(((unsigned long) fFstatP[i]) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fFstatP[%d] misaligned\n",i);isaligned=false;}
-  if(((unsigned long) fRestCaptFstat) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fRestCaptFstat misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEGrid) % sizeof(fEGrid) != 0) { Geant::Error("TPFstate::CheckAlign","fEGrid misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TPFstate::CheckAlign","fEmin misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TPFstate::CheckAlign","fEmax misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPFstate::CheckAlign","fEilDelta misaligned\n");isaligned=false;}
-  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPFstate::CheckAlign","fPDG misaligned\n");isaligned=false;}
-  if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPFstate::CheckAlign","fRdict misaligned\n");isaligned=false;}
-  if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPFstate::CheckAlign","fRmap misaligned\n");isaligned=false;}
+  if(((unsigned long) fRestCaptFstat) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fRestCaptFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEGrid) % sizeof(fEGrid) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fEGrid misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fEmin misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fEmax misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fEilDelta misaligned\n");isaligned=false;}
+  if(((unsigned long) &fPDG) % sizeof(fPDG) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fPDG misaligned\n");isaligned=false;}
+  if(((unsigned long) &fRdict) % sizeof(int) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fRdict misaligned\n");isaligned=false;}
+  if(((unsigned long) &fRmap) % sizeof(int) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fRmap misaligned\n");isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","fMagic misaligned\n");isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fMagic misaligned\n");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","fStore misaligned\n");isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TPFstate::CheckAlign","%s","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
 

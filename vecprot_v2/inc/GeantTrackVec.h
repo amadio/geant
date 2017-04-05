@@ -13,6 +13,7 @@
 #ifndef GEANT_TRACK_VEC
 #define GEANT_TRACK_VEC
 
+#include "base/BitSet.h"
 #include "GeantTrack.h"
 
 namespace Geant {
@@ -20,6 +21,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTrack_v;
 class GeantTaskData;
+class GeantPropagator;
+
 
 /**
  * @brief SOA for GeantTrack used at processing time
@@ -27,6 +30,7 @@ class GeantTaskData;
  */
 class GeantTrack_v {
 public:
+  using BitSet = veccore::BitSet;
   static size_t const cacheline_size = 64;
   typedef char cacheline_pad_t[cacheline_size];
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
@@ -527,7 +531,7 @@ public:
 
   /** @brief Function that return safe length */
   VECCORE_ATT_HOST_DEVICE
-  double SafeLength(int i, double eps = 1.E-4);
+  double SafeLength(GeantPropagator *propagator, int i, double eps = 1.E-4);
 
   /**
    * @brief Function that return gamma value
@@ -597,7 +601,7 @@ public:
 };
 } // GEANT_IMPL_NAMESPACE
 
-#ifdef GEANT_CUDA
+#ifdef GEANT_CUDA_ENABLED
 #ifdef VECCORE_CUDA
 namespace cxx {
 class GeantTrack_v;

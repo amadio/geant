@@ -16,6 +16,7 @@
 
 #include <typeinfo>
 #include <mutex>
+#include <cstring>
 
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
@@ -75,7 +76,7 @@ public:
    * @tparam Data type for the factory
    * @param blocksize Size of block
    */
-  template <class T> GeantFactory<T> *GetFactory(int blocksize);
+  template <class T> GeantFactory<T> *GetFactory(int blocksize, int nthreads);
   
   /** @brief Function that provides deletion of factory of the provided type 
    *
@@ -88,13 +89,13 @@ public:
  * @details Returns existing factory for the user type or create new one.
  * @return Factory object
  */
-template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(int blocksize) {
+template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(int blocksize, int nthreads) {
   const std::type_info *type = &typeid(T);
   for (int i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type)
       return (GeantFactory<T> *)fFactories[i];
   }
-  GeantFactory<T> *factory = new GeantFactory<T>(fNclients, blocksize);
+  GeantFactory<T> *factory = new GeantFactory<T>(fNclients, blocksize, nthreads);
   fMutex.lock();
   if (fNFactories == fCapacity) {
     // Resize arrays

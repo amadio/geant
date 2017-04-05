@@ -13,7 +13,11 @@ typedef VECGEOM_NAMESPACE::LogicalVolume Volume_t;
 #include "volumes/PlacedVolume.h"
 typedef VECGEOM_NAMESPACE::VPlacedVolume Node_t;
 #include "Particle.h"
+#ifdef Particle_H
 typedef geant::Particle Particle_t;
+#else
+typedef geantphysics::Particle Particle_t;
+#endif
 #else
 #include "TGeoBranchArray.h"
 typedef TGeoBranchArray VolumePath_t;

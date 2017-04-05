@@ -4,6 +4,8 @@
 #include "management/GeoManager.h"
 using vecgeom::GeoManager;
 #endif
+#include "GeantRunManager.h"
+#include "GeantEvent.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
@@ -17,13 +19,15 @@ using vecgeom::GeoManager;
 #include "TFile.h"
 #include <cassert>
 
+using namespace Geant;
+
 //______________________________________________________________________________
-LHCbApplication::LHCbApplication()
-  : GeantVApplication(), fInitialized(false), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
+LHCbApplication::LHCbApplication(GeantRunManager *runmgr)
+  : GeantVApplication(runmgr), fInitialized(false), fECALMap(), fHCALMap(), fMHist(), fScore(kNoScore), fFluxElec(0),
     fFluxGamma(0), fFluxP(0), fFluxPi(0), fFluxK(0), fEdepElec(0), fEdepGamma(0), fEdepP(0), fEdepPi(0), fEdepK(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
-  fFactory = store->GetFactory<MyHit>(16);
+  fFactory = store->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());
   //
   memset(fSensFlags, 0, kNvolumes * sizeof(bool));
   memset(fEdepECAL, 0, kNECALModules * kMaxThreads * sizeof(float));
@@ -70,9 +74,8 @@ bool LHCbApplication::Initialize() {
   if (fInitialized)
     return true;
   // Loop unique volume id's
-  GeantScheduler *sch = WorkloadManager::Instance()->GetScheduler();
-  int nvolumes = sch->GetNvolumes();
-  std::vector<Volume_t const *> &lvolumes = sch->GetVolumes();
+  int nvolumes = fRunMgr->GetNvolumes();
+  vector_t<Volume_t const *> &lvolumes = fRunMgr->GetVolumes();
   Printf("Found %d logical volumes", nvolumes);
   const Volume_t *vol;
   TString svol, smat;
@@ -138,7 +141,7 @@ bool LHCbApplication::Initialize() {
 void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
-  static GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = td->fPropagator;
   int tid = td->fTid;
   if ((!fInitialized) || (fScore == kNoScore))
     return;
@@ -149,7 +152,7 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
   int mod;
   Volume_t const *vol;
 
-  if (gPropagator->fFillTree) {
+  if (propagator->fConfig->fFillTree) {
     for (int itr = 0; itr < npart; itr++) {
       vol = tracks.GetVolume(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -229,12 +232,12 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
 }
 
 //______________________________________________________________________________
-void LHCbApplication::Digitize(int /* event */) {
+void LHCbApplication::Digitize(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   Printf("======= Statistics for event %d:\n", event);
   Printf("Energy deposit in ECAL [MeV/primary] ");
   Printf("================================================================================");
-  double nprim = (double)gPropagator->fNprimaries;
+  double nprim = (double)(event->GetNtracks());
   for (int i = 0; i < kNECALModules; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {
       fEdepECAL[i][0] += fEdepECAL[i][tid];
@@ -267,7 +270,7 @@ void LHCbApplication::FinishRun() {
   if (fScore == kNoScore)
     return;
   TCanvas *c1 = new TCanvas("LHCb test flux", "Simple scoring in LHCb geometry", 700, 1200);
-  double norm = 1. / GeantPropagator::Instance()->fNprimaries.load();
+  double norm = 1. / fRunMgr->GetNprimaries();
   TVirtualPad *pad;
   TFile *f = TFile::Open("ScoreECAL.root", "RECREATE");
   c1->Divide(2, 3);

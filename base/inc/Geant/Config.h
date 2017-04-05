@@ -54,21 +54,21 @@
 #ifdef CUDA_SEP_COMP
 #define GEANT_DECLARE_CONSTANT(type,name) \
    namespace host_constant { \
-      extern const type gTolerance; \
+      extern const type name; \
    } \
    namespace device_constant { \
       extern __constant__ type name; \
    } \
-   using device_constant::gTolerance
+   using device_constant::name
 #else // CUDA_SEP_COMP
 #define GEANT_DECLARE_CONSTANT(type,name) \
    namespace host_constant { \
-      extern const type gTolerance; \
+      extern const type name; \
    } \
    namespace device_constant { \
       __constant__ type name; \
    } \
-   using device_constant::gTolerance
+   using device_constant::name
 #endif // CUDA_SEP_COMP
 #else // VECCORE_CUDA_DEVICE_COMPILATION
 #ifdef CUDA_SEP_COMP
@@ -79,7 +79,7 @@
    namespace device_constant { \
       extern __constant__ type name; \
    } \
-   using host_constant::gTolerance
+   using host_constant::name
 #else // CUDA_SEP_COMP
 #define GEANT_DECLARE_CONSTANT(type,name)       \
    namespace host_constant { \
@@ -88,9 +88,28 @@
    namespace device_constant { \
       __constant__ type name; \
    } \
-   using host_constant::gTolerance
+   using host_constant::name
 #endif // CUDA_SEP_COMP
 #endif // Device build or not
 #endif // gcc or nvcc
+
+#ifndef VECCORE_CUDA
+
+#define GEANT_DEVICE_DECLARE_CONV(classOrStruct,X)  \
+  namespace Geant {                                 \
+    namespace cuda { classOrStruct X; }             \
+    inline namespace cxx  { classOrStruct X; }      \
+  }                                                 \
+  namespace vecgeom {                               \
+    template <> struct kCudaType<Geant::cxx::X> {   \
+      using type_t = Geant::cuda::X;                \
+    };                                              \
+  } class __QuietSemi
+
+#else
+
+#define GEANT_DEVICE_DECLARE_CONV(classOrStruct,X) class __QuietSemi
+
+#endif
 
 #endif

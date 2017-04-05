@@ -7,7 +7,10 @@ namespace Geant {
    inline namespace GEANT_IMPL_NAMESPACE {
       class GeantTrack;
       class GeantTrack_v;
+      class GeantEvent;
       class GeantTaskData;
+      class GeantBasket;
+      class GeantBasketMgr;
    } // GEANT_IMPL_NAMESPACE
 } // Geant
 

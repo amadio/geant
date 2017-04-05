@@ -21,6 +21,9 @@
 
 #include "cuckoohash_map.hh"
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 struct MCParticle
 {
   int        pid;        /** PDG ID */
@@ -102,5 +105,8 @@ public:
    */
   virtual void CloseEvent(int evID) = 0;
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

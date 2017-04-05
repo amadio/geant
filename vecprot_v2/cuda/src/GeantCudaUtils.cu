@@ -3,6 +3,7 @@
 #include "GeantCudaUtils.h"
 #include "GeantPropagator.h"
 #include "GeantTrack.h"
+#include "GeantConfig.h"
 #ifndef USE_VECGEOM_NAVIGATOR
 #include "TGeoShape.h"
 #endif
@@ -13,9 +14,6 @@ inline namespace cuda {
 
 void CoprocessorBrokerInitConstant()
 {
-  GEANT_CUDA_ERROR(
-      cudaMemcpyToSymbol(gPropagator_fBmag, &(gPropagator->fBmag), sizeof(double), size_t(0), cudaMemcpyHostToDevice));
-
 #ifndef USE_VECGEOM_NAVIGATOR
   double tolerance = TGeoShape::Tolerance();
 #else

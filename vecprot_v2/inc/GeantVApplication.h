@@ -13,8 +13,13 @@
 #ifndef GEANT_VAPPLICATION
 #define GEANT_VAPPLICATION
 
-class GeantHitBlock;
 #include "GeantFwd.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantRunManager;
+class GeantEvent;
 
 /** @brief GeantVApplication class */
 class GeantVApplication {
@@ -22,9 +27,13 @@ public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
+
+  GeantRunManager *fRunMgr; /*taskData*/
   
   /** @brief GeantVApplication constructor */	
-  GeantVApplication();
+  GeantVApplication(GeantRunManager *runmgr);
+
+  void SetRunManager(GeantRunManager *runmgr);
 
   /** @brief GeantVApplication destructor */
   virtual ~GeantVApplication() {}
@@ -46,10 +55,14 @@ public:
    * 
    * @param event Event for digitization
    */
-  virtual void Digitize(int event) = 0;
+  virtual void Digitize(GeantEvent *event) = 0;
 
   /** @brief User FinishRun function */
   virtual void FinishRun() = 0;
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
+
 #endif

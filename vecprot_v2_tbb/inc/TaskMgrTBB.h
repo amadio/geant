@@ -14,11 +14,10 @@
 #define GEANT_TASKMGRTBB
 
 #include "GeantVTaskMgr.h"
-
-class WorkloadManager;
+#include "GeantPropagator.h"
 
 /** @brief TaskMgrTBB class */
-class TaskMgrTBB : public GeantVTaskMgr {
+class TaskMgrTBB : public Geant::GeantVTaskMgr {
 public:
   
   /** @brief TaskMgrTBB constructor */	
@@ -28,7 +27,7 @@ public:
   virtual ~TaskMgrTBB() {}
 
   /** @brief Function for initialization */
-  virtual bool Initialize(int nthreads);
+  virtual bool Initialize(int nthreads, Geant::GeantPropagator *prop);
 
   /** @brief Function for final actions */
   void Finalize();

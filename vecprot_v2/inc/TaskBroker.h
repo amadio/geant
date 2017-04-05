@@ -13,23 +13,31 @@
 #ifndef GEANT_TASKBROKER
 #define GEANT_TASKBROKER
 
+#include "Geant/Config.h"
+
 /**
  * @defgroup TGEANT_TASKBROKER GeantV TaskBroker
  *
  * @{
  */
-class GeantBasket;
-namespace Geant {
-   inline namespace cxx {
-      class GeantTaskData;
-   }
-}
+
 namespace vecgeom {
-   inline namespace cxx {
-      class VPlacedVolume;
-   }
+#ifndef VECCORE_CUDA
+  inline namespace cxx {
+#else
+  namespace cxx {
+#endif
+    class VPlacedVolume;
+  }
 }
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantTaskData;
+class GeantBasket;
+class GeantConfig;
+class GeantPropagator;
 
 /**
  * @brief Class TaskBroker
@@ -53,7 +61,7 @@ public:
   virtual bool IsSelective() const = 0;
 
   /** @brief Create the baskets for each stream */
-  virtual void CreateBaskets() = 0;
+  virtual void CreateBaskets(GeantPropagator *config) = 0;
 
   /** @brief Virtual function that get next stream */
   virtual Stream GetNextStream() = 0;
@@ -100,6 +108,9 @@ public:
   virtual bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr) = 0;
 
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif // GEANT_TASKBROKER
 /** @} */

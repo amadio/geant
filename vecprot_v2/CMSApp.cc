@@ -9,6 +9,7 @@
 #include "Rtypes.h"
 #include "TGeoManager.h"
 #endif
+#include "GeantRunManager.h"
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
 #include "TaskBroker.h"
@@ -16,14 +17,21 @@
 #include "GeantPropagator.h"
 #include "TTabPhysProcess.h"
 #include "CMSApplication.h"
+#ifdef GEANT_TBB
+#include "TaskMgrTBB.h"
+#endif
+
+using namespace Geant;
 
 static int n_events = 10;
 static int n_buffered = 5;
 static int n_threads = 4;
 static int n_track_max = 64;
 static int n_learn_steps = 100000;
+static int n_reuse = 100000;
+static int n_propagators = 1;
 static int max_memory = 4000; /* MB */
-static bool monitor = false, score = false, debug = false, coprocessor = false;
+static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"hepmc-event-file", required_argument, 0, 'E'},
@@ -39,6 +47,9 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"threads", required_argument, 0, 't'},
                                   {"xsec", required_argument, 0, 'x'},
                                   {"coprocessor", required_argument, 0, 'r'},
+                                  {"tbbmode", required_argument, 0, 'i'},
+                                  {"reuse", required_argument, 0, 'u'},
+                                  {"propagators", required_argument, 0, 'p'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -65,7 +76,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:", options, &optidx);
+    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:p:", options, &optidx);
 
     if (c == -1)
       break;
@@ -145,20 +156,26 @@ int main(int argc, char *argv[]) {
       coprocessor = optarg;
       break;
 
+    case 'i':
+      tbbmode = true;
+      break;
+
+    case 'u':
+      n_reuse = (int)strtol(optarg, NULL, 10);
+      break;
+
+    case 'p':
+      n_propagators = (int)strtol(optarg, NULL, 10);
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
   }
 
-  bool performance = true;
+  bool performance = true;   
+
   TaskBroker *broker = nullptr;
-#ifdef USE_ROOT
-  TGeoManager::Import(cms_geometry_filename.c_str());
-#else
-
-#endif
-  WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
-
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
     CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -170,87 +187,104 @@ int main(int argc, char *argv[]) {
 #endif
   }
 
-  GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered);
-
+  GeantConfig* config=new GeantConfig();
+  
+  config->fGeomFileName = cms_geometry_filename;
+  config->fNtotal = n_events;
+  config->fNbuff = n_buffered;
   // Default value is 1. (0.1 Tesla)
-  propagator->fBmag = 40.; // 4 Tesla
+  config->fBmag = 40.; // 4 Tesla
 
   // Enable use of RK integration in field for charged particles
-  propagator->fUseRungeKutta = false;
+  config->fUseRungeKutta = false;
   // prop->fEpsilonRK = 0.001;  // Revised / reduced accuracy - vs. 0.0003 default
 
-  if (broker) propagator->SetTaskBroker(broker);
-  wmanager->SetNminThreshold(5 * n_threads);
-  propagator->fUseMonitoring = monitor;
+  config->fNminThreshold=5 * n_threads;
+  config->fUseMonitoring = monitor;
+  config->fNaverage = 500;
 
-  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
+  config->SetMonitored(GeantConfig::kMonQueue, monitor);
+  config->SetMonitored(GeantConfig::kMonMemory, monitor);
+  config->SetMonitored(GeantConfig::kMonBasketsPerVol, monitor);
+  config->SetMonitored(GeantConfig::kMonVectors, monitor);
+  config->SetMonitored(GeantConfig::kMonConcurrency, monitor);
+  config->SetMonitored(GeantConfig::kMonTracksPerEvent, monitor);
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
-  propagator->fPriorityThr = 0.1;
+  config->fPriorityThr = 0.1;
 
   // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow
-  propagator->fNperBasket = 16; // Initial vector size
+  config->fNperBasket = 16; // Initial vector size
 
   // This is now the most important parameter for memory considerations
-  propagator->fMaxPerBasket = n_track_max;
+  config->fMaxPerBasket = n_track_max;
 
   // Maximum user memory limit [MB]
-  propagator->fMaxRes = max_memory;
-  if (performance) propagator->fMaxRes = 0;
-  propagator->fEmin = 0.001; // [1 MeV] energy cut
-  propagator->fEmax = 0.01;  // 10 MeV
+  config->fMaxRes = max_memory;
+  if (config) config->fMaxRes = 0;
+  config->fEmin = 0.001; // [1 MeV] energy cut
+  config->fEmax = 0.01;  // 10 MeV
+  if (debug) {
+    config->fUseDebug = true;
+    config->fDebugTrk = 1;
+    //propagator->fDebugEvt = 0;
+    //propagator->fDebugStp = 0;
+    //propagator->fDebugRep = 10;
+  }
+  config->fUseMonitoring = monitor;
+
+  // Set threshold for tracks to be reused in the same volume
+  config->fNminReuse = n_reuse;
+
+  // Activate standard scoring   
+  config->fUseStdScoring = true;
+  if (performance) config->fUseStdScoring = false;
+  config->fLearnSteps = n_learn_steps;
+  if (performance) config->fLearnSteps = 0;
+
+  // Activate I/O
+  config->fFillTree = false;
+  config->fTreeSizeWriteThreshold = 100000;
+  // Activate old version of single thread serialization/reading
+  //   config->fConcurrentWrite = false;
+
+  // Create run manager
+  GeantRunManager *runMgr = new GeantRunManager(n_propagators, n_threads, config);
+  if (broker) runMgr->SetCoprocessorBroker(broker);
+  // Create the tab. phys process.
+  runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
-  propagator->LoadVecGeomGeometry();
+//  runMgr->LoadVecGeomGeometry();
 #else
-  propagator->LoadGeometry(cms_geometry_filename.c_str());
+//  runMgr->LoadGeometry(cms_geometry_filename.c_str());
 #endif
 #endif
-
-  propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {
-    propagator->fPrimaryGenerator = new GunGenerator(propagator->fNaverage, 11, propagator->fEmax, -8, 0, 0, 1, 0, 0);
+    runMgr->SetPrimaryGenerator( new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0) );
   } else {
     // propagator->fPrimaryGenerator->SetEtaRange(-2.,2.);
     // propagator->fPrimaryGenerator->SetMomRange(0.,0.5);
     // propagator->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");
-    propagator->fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
+    runMgr->SetPrimaryGenerator( new HepMCGenerator(hepmc_event_filename) );
   }
-  propagator->fLearnSteps = n_learn_steps;
-  if (performance) propagator->fLearnSteps = 0;
 
-  // Activate I/O
-  propagator->fFillTree = false;
-  propagator->fTreeSizeWriteThreshold = 100000;
-  // Activate old version of single thread serialization/reading
-  //   prop->fConcurrentWrite = false;
-
-  CMSApplication *CMSApp = new CMSApplication();
+  CMSApplication *CMSApp = new CMSApplication(runMgr);
+  runMgr->SetUserApplication( CMSApp );
   if (score) {
     CMSApp->SetScoreType(CMSApplication::kScore);
   } else {
     CMSApp->SetScoreType(CMSApplication::kNoScore);
   }
-  propagator->fApplication = CMSApp;
-  if (debug) {
-    propagator->fUseDebug = true;
-    propagator->fDebugTrk = 1;
-    //propagator->fDebugEvt = 0;
-    //propagator->fDebugStp = 0;
-    //propagator->fDebugRep = 10;
-  }
-  propagator->fUseMonitoring = monitor;
-  // Activate standard scoring   
-  propagator->fUseStdScoring = true;
-  if (performance) propagator->fUseStdScoring = false;
-  propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
+#ifdef GEANT_TBB
+  if (tbbmode)
+    runMgr->SetTaskMgr( new TaskMgrTBB() );
+#endif
+
+  runMgr->RunSimulation();
+//  propagator->PropagatorGeom(cms_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }

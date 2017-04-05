@@ -39,8 +39,11 @@ using vecgeom::kTwoPi;
 #ifndef VECCORE_CUDA
 #include "base/MessageLogger.h"
 #endif
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 TTabPhysMgr *TTabPhysMgr::fgInstance = 0;
+using namespace Geant;
 
 //______________________________________________________________________________
 TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsfilename) {
@@ -57,6 +60,8 @@ TTabPhysMgr *TTabPhysMgr::Instance(const char *xsecfilename, const char *finalsf
 #else
   (void)xsecfilename;
   (void)finalsfilename;
+  // ... missing return ...
+  return nullptr;
 #endif
 }
 
@@ -99,7 +104,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   clock_t t = clock();
 // Load elements from geometry, however in most cases it should already be done
 #ifdef USE_VECGEOM_NAVIGATOR
-  GeantPropagator::Instance()->LoadVecGeomGeometry();
+  //td->fPropagator->LoadVecGeomGeometry();
   std::vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
 #else
   fGeom = gGeoManager;
@@ -385,9 +390,9 @@ int TTabPhysMgr::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, Geant
   assert(mxs != 0);
 #endif
   int nTotSecPart = 0; // total number of new tracks
-  double energyLimit = gPropagator->fEmin;
+  double energyLimit = td->fPropagator->fConfig->fEmin;
   if (mxs) {
-    mxs->Eloss(ntracks, tracks);
+    mxs->Eloss(ntracks, tracks,td);
     // call atRest sampling for tracks that have been stopped by Eloss and has at-rest
     for (int i = 0; i < ntracks; ++i)
       if (tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fGVcodeV[i]))
@@ -401,7 +406,7 @@ int TTabPhysMgr::Eloss(Material_t *mat, int ntracks, GeantTrack_v &tracks, Geant
 #else
     mxs = ((TOMXsec *)((TGeoRCExtension *)tracks.GetMaterial(i)->GetFWExtension())->GetUserObject())->MXsec();
 #endif
-    mxs->ElossSingle(i, tracks);
+    mxs->ElossSingle(i, tracks,td);
     // call atRest sampling for tracks that have been stopped by Eloss and has at-rest
     if (tracks.fProcessV[i] == -2 && HasRestProcess(tracks.fGVcodeV[i]))
       GetRestFinStates(tracks.fGVcodeV[i], mxs, energyLimit, tracks, i, nTotSecPart, td);
@@ -483,8 +488,8 @@ void TTabPhysMgr::SampleTypeOfInteractions(int imat, int ntracks, GeantTrack_v &
 
 //______________________________________________________________________________
 int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  double energyLimit = propagator->fEmin;
+  GeantPropagator *propagator = td->fPropagator;
+  double energyLimit = propagator->fConfig->fEmin;
 
   Material_t *mat = 0;
   TMXsec *mxs = 0;
@@ -842,7 +847,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       *track1.fPath = *tracks.fPathV[iintrack];
       *track1.fNextpath = *tracks.fPathV[iintrack];
 
-      gPropagator->AddTrack(track1);
+      td->fPropagator->AddTrack(track1);
       tracks.AddTrack(track1);
 
       // 2. gamma : everything is the same but the direction
@@ -850,7 +855,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fYdir = -1. * randDirY;
       track1.fZdir = -1. * randDirZ;
 
-      gPropagator->AddTrack(track1);
+      td->fPropagator->AddTrack(track1);
       tracks.AddTrack(track1);
 
       nTotSecPart += 2;
@@ -967,7 +972,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       // rotate at-rest secondary by a common random theta and random phi
       RotateNewTrack(randDirX, randDirY, randDirZ, track);
 
-      gPropagator->AddTrack(track);
+      td->fPropagator->AddTrack(track);
       tracks.AddTrack(track);
 
       ++nTotSecPart; // increase # of secondaries in tracks_v
@@ -992,8 +997,9 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
   isSurv = fDecay->SampleDecay(partindex, nSecPart, pid, mom);
   // isSurv should always be FALSE here because primary was stopped
   if (isSurv)
-    std::cout << "\n---       A particle survived its decay!!!       ---\n"
-              << "----    In TTabPhysMgr::SampleFinalStateAtRest     ---\n" << std::endl;
+    Geant::Warning("TTabPhysMgr::SampleDecayInFlight","%s",
+                   "\n---       A particle survived its decay!!!       ---\n"
+                   "----    In TTabPhysMgr::SampleFinalStateAtRest     ---\n");
 
   if (nSecPart) {
     // Go for the secondaries
@@ -1078,7 +1084,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         *track.fPath = *tracks.fPathV[iintrack];
         *track.fNextpath = *tracks.fPathV[iintrack];
 
-        gPropagator->AddTrack(track);
+        td->fPropagator->AddTrack(track);
         tracks.AddTrack(track);
 
         ++nTotSecPart; // increase # of secondaries in tracks_v
@@ -1292,3 +1298,6 @@ VECCORE_ATT_HOST_DEVICE
 bool TTabPhysMgr::HasRestProcess(int gvindex) {
   return fDecay->HasDecay(gvindex) || fHasNCaptureAtRest[gvindex] || (gvindex == TPartIndex::I()->GetSpecGVIndex(1));
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

@@ -13,13 +13,10 @@ namespace vecphys {
 
 // Scalar
 
-Real_t ScalarKleinNishina(int ntracks,
-	                     GUTrack* itrack_aos,
-			     int *targetElements,
-			     GUTrack* otrack_aos,
-                             SamplingMethod sampleType)
+Real_t ScalarKleinNishina(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos,
+                          SamplingMethod sampleType)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -27,14 +24,14 @@ Real_t ScalarKleinNishina(int ntracks,
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     //    printf("this elec[%d] = %d\n",i,targetElements[i]);
     model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
 
-  //validation for the total cross section
+  // validation for the total cross section
   /*
   double sigma = 0;
   for(int i = 0 ; i < ntracks ; ++i) {
@@ -44,13 +41,10 @@ Real_t ScalarKleinNishina(int ntracks,
   return elapsedTime;
 }
 
-Real_t ScalarHybridCompton(int ntracks,
-	                      GUTrack* itrack_aos,
-			      int *targetElements,
-			      GUTrack* otrack_aos,
-                              SamplingMethod sampleType)
+Real_t ScalarHybridCompton(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos,
+                           SamplingMethod sampleType)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -58,7 +52,7 @@ Real_t ScalarHybridCompton(int ntracks,
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.ModelInteract<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -67,13 +61,10 @@ Real_t ScalarHybridCompton(int ntracks,
   return elapsedTime;
 }
 
-Real_t ScalarBetheHeitler(int ntracks,
-			     GUTrack* itrack_aos,
-			     int *targetElements,
-			     GUTrack* otrack_aos,
-                             SamplingMethod sampleType)
+Real_t ScalarBetheHeitler(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos,
+                          SamplingMethod sampleType)
 {
-  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
+  static vecphys::cxx::ConversionBetheHeitler model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -81,7 +72,7 @@ Real_t ScalarBetheHeitler(int ntracks,
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -90,13 +81,10 @@ Real_t ScalarBetheHeitler(int ntracks,
   return elapsedTime;
 }
 
-Real_t ScalarSauterGavrila(int ntracks,
-			      GUTrack* itrack_aos,
-			      int *targetElements,
-			      GUTrack* otrack_aos,
-                              SamplingMethod sampleType)
+Real_t ScalarSauterGavrila(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos,
+                           SamplingMethod sampleType)
 {
-  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -104,7 +92,7 @@ Real_t ScalarSauterGavrila(int ntracks,
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.ModelInteract<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -113,13 +101,10 @@ Real_t ScalarSauterGavrila(int ntracks,
   return elapsedTime;
 }
 
-Real_t ScalarMollerBhabha(int ntracks,
-			     GUTrack* itrack_aos,
-			     int *targetElements,
-			     GUTrack* otrack_aos,
-                             SamplingMethod sampleType)
+Real_t ScalarMollerBhabha(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos,
+                          SamplingMethod sampleType)
 {
-  static vecphys::cxx::IonisationMoller model(0,-1);
+  static vecphys::cxx::IonisationMoller model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -127,7 +112,7 @@ Real_t ScalarMollerBhabha(int ntracks,
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -136,13 +121,10 @@ Real_t ScalarMollerBhabha(int ntracks,
   return elapsedTime;
 }
 
-Real_t ScalarSeltzerBerger(int ntracks,
-			      GUTrack* itrack_aos,
-			      int *targetElements,
-			      GUTrack* otrack_aos,
-                              SamplingMethod sampleType)
+Real_t ScalarSeltzerBerger(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos,
+                           SamplingMethod sampleType)
 {
-  static vecphys::cxx::BremSeltzerBerger model(0,-1);
+  static vecphys::cxx::BremSeltzerBerger model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -150,7 +132,7 @@ Real_t ScalarSeltzerBerger(int ntracks,
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.Interact<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -161,12 +143,9 @@ Real_t ScalarSeltzerBerger(int ntracks,
 
 // Vector
 
-Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
-			     int *targetElements,
-			     GUTrack_v& otrack_soa,
-                             SamplingMethod sampleType)
+Real_t VectorKleinNishina(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v &otrack_soa, SamplingMethod sampleType)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -174,14 +153,13 @@ Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
 
   //  int ntracks = itrack_soa.numTracks;
 
-  if(sampleType == SamplingMethod::kUnpack) {
+  if (sampleType == SamplingMethod::kUnpack) {
     timer.Start();
 
     model.InteractUnpack<VectorBackend>(itrack_soa, targetElements, otrack_soa);
 
     elapsedTime = timer.Stop();
-  }
-  else {
+  } else {
     timer.Start();
 
     model.Interact<VectorBackend>(itrack_soa, targetElements, otrack_soa);
@@ -189,7 +167,7 @@ Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
     elapsedTime = timer.Stop();
   }
 
-  //validation for the total cross section
+  // validation for the total cross section
   /*
   double* sigma  = new double [ntracks];
   for(int i = 0 ; i < ntracks ; ++i) {
@@ -201,28 +179,23 @@ Real_t VectorKleinNishina(GUTrack_v& itrack_soa,
   delete [] sigma;
   */
   return elapsedTime;
-
 }
 
-Real_t VectorHybridCompton(GUTrack_v& itrack_soa,
-			      int *targetElements,
-			      GUTrack_v& otrack_soa,
-                              SamplingMethod sampleType)
+Real_t VectorHybridCompton(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v &otrack_soa, SamplingMethod sampleType)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1);
+  static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
-  if(sampleType == SamplingMethod::kUnpack) {
+  if (sampleType == SamplingMethod::kUnpack) {
     timer.Start();
 
     model.InteractUnpack<VectorBackend>(itrack_soa, targetElements, otrack_soa);
 
     elapsedTime = timer.Stop();
-  }
-  else {
+  } else {
     timer.Start();
 
     model.ModelInteract<VectorBackend>(itrack_soa, targetElements, otrack_soa);
@@ -231,15 +204,11 @@ Real_t VectorHybridCompton(GUTrack_v& itrack_soa,
   }
 
   return elapsedTime;
-
 }
 
-Real_t VectorBetheHeitler(GUTrack_v& itrack_soa,
-			     int *targetElements,
-			     GUTrack_v& otrack_soa,
-                             SamplingMethod sampleType)
+Real_t VectorBetheHeitler(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v &otrack_soa, SamplingMethod sampleType)
 {
-  static vecphys::cxx::ConversionBetheHeitler model(0,-1);
+  static vecphys::cxx::ConversionBetheHeitler model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -252,16 +221,12 @@ Real_t VectorBetheHeitler(GUTrack_v& itrack_soa,
   elapsedTime = timer.Stop();
 
   return elapsedTime;
-
 }
 
-Real_t VectorSauterGavrila(GUTrack_v& itrack_soa,
-			      int *targetElements,
-			      GUTrack_v& otrack_soa,
-                              SamplingMethod sampleType)
+Real_t VectorSauterGavrila(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v &otrack_soa, SamplingMethod sampleType)
 
 {
-  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -274,15 +239,11 @@ Real_t VectorSauterGavrila(GUTrack_v& itrack_soa,
   elapsedTime = timer.Stop();
 
   return elapsedTime;
-
 }
 
-Real_t VectorMollerBhabha(GUTrack_v& itrack_soa,
-			     int *targetElements,
-			     GUTrack_v& otrack_soa,
-                             SamplingMethod sampleType)
+Real_t VectorMollerBhabha(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v &otrack_soa, SamplingMethod sampleType)
 {
-  static vecphys::cxx::IonisationMoller model(0,-1);
+  static vecphys::cxx::IonisationMoller model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   static Stopwatch timer;
@@ -295,15 +256,11 @@ Real_t VectorMollerBhabha(GUTrack_v& itrack_soa,
   elapsedTime = timer.Stop();
 
   return elapsedTime;
-
 }
 
-Real_t VectorSeltzerBerger(GUTrack_v& itrack_soa,
-			      int *targetElements,
-			      GUTrack_v& otrack_soa,
-                              SamplingMethod sampleType)
+Real_t VectorSeltzerBerger(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v &otrack_soa, SamplingMethod sampleType)
 {
-  static vecphys::cxx::BremSeltzerBerger model(0,-1);
+  static vecphys::cxx::BremSeltzerBerger model(0, -1);
   model.SetSamplingMethod(sampleType);
 
   Real_t elapsedTime = 0.0;
@@ -320,25 +277,22 @@ Real_t VectorSeltzerBerger(GUTrack_v& itrack_soa,
 
 // Geant4 composition and rejection
 
-Real_t G4KleinNishina(int ntracks,
-	                 GUTrack* itrack_aos,
-			 int *targetElements,
-			 GUTrack* otrack_aos)
+Real_t G4KleinNishina(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
+  static vecphys::cxx::ComptonKleinNishina model(0, -1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
   elapsedTime = timer.Stop();
 
-  //validation for the total cross section
+  // validation for the total cross section
   /*
   double sigma = 0.0;
   for(int i = 0 ; i < ntracks ; ++i) {
@@ -348,19 +302,16 @@ Real_t G4KleinNishina(int ntracks,
   return elapsedTime;
 }
 
-Real_t G4HybridCompton(int ntracks,
-	                  GUTrack* itrack_aos,
-			  int *targetElements,
-			  GUTrack* otrack_aos)
+Real_t G4HybridCompton(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos)
 {
-  static vecphys::cxx::ComptonKleinNishina model(0,-1,0);
+  static vecphys::cxx::ComptonKleinNishina model(0, -1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -369,19 +320,16 @@ Real_t G4HybridCompton(int ntracks,
   return elapsedTime;
 }
 
-Real_t G4BetheHeitler(int ntracks,
-			 GUTrack* itrack_aos,
-			 int *targetElements,
-			 GUTrack* otrack_aos)
+Real_t G4BetheHeitler(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos)
 {
-  static vecphys::cxx::ConversionBetheHeitler model(0,-1,0);
+  static vecphys::cxx::ConversionBetheHeitler model(0, -1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -390,19 +338,16 @@ Real_t G4BetheHeitler(int ntracks,
   return elapsedTime;
 }
 
-Real_t G4SauterGavrila(int ntracks,
-			  GUTrack* itrack_aos,
-			  int *targetElements,
-			  GUTrack* otrack_aos)
+Real_t G4SauterGavrila(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos)
 {
-  static vecphys::cxx::PhotoElectronSauterGavrila model(0,-1,0);
+  static vecphys::cxx::PhotoElectronSauterGavrila model(0, -1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -411,20 +356,16 @@ Real_t G4SauterGavrila(int ntracks,
   return elapsedTime;
 }
 
-Real_t G4MollerBhabha(int ntracks,
-	                 GUTrack* itrack_aos,
-			 int *targetElements,
-			 GUTrack* otrack_aos)
+Real_t G4MollerBhabha(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos)
 {
-  static vecphys::cxx::IonisationMoller model(0,-1,0);
-  //  static vecphys::cxx::GUMollerBhabha model(0,-1);
+  static vecphys::cxx::IonisationMoller model(0, -1);
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 
@@ -433,24 +374,21 @@ Real_t G4MollerBhabha(int ntracks,
   return elapsedTime;
 }
 
-Real_t G4SeltzerBerger(int ntracks,
-			  GUTrack* itrack_aos,
-			  int *targetElements,
-			  GUTrack* otrack_aos)
+Real_t G4SeltzerBerger(int ntracks, GUTrack *itrack_aos, int *targetElements, GUTrack *otrack_aos)
 {
-  static vecphys::cxx::BremSeltzerBerger model(0,-2);
+  static vecphys::cxx::BremSeltzerBerger model(0, -2);
 
-  //fThreadId = -2 is used not to build the alias table for testing the Geant4
-  //composition and rejection method. This convention should be temporary
-  //and is only used for the purpose of validation or other testings.
-  //see BremSeltzerBerger::Initialization().
+  // fThreadId = -2 is used not to build the alias table for testing the Geant4
+  // composition and rejection method. This convention should be temporary
+  // and is only used for the purpose of validation or other testings.
+  // see BremSeltzerBerger::Initialization().
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
 
   timer.Start();
 
-  for(int i = 0 ; i < ntracks ; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     model.InteractG4<ScalarBackend>(itrack_aos[i], targetElements[i], otrack_aos[i]);
   }
 

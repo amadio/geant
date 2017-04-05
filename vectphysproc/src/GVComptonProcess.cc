@@ -52,12 +52,12 @@ GVComptonProcess::~GVComptonProcess() {
 
 //------------------------------------------------------------------------------
 FQUALIFIER
-int GVComptonProcess::ApplyPostStepProcess(GeantTrack_v &gTrackV, int numtracks, int tid) {
+int GVComptonProcess::ApplyPostStepProcess(GeantTrack_v &gTrackV, int numtracks, GeantTaskData *taskData) {
   FilterPrimaryTracks(gTrackV, numtracks);
   if (fPrimaryTracks->numTracks == 0) // there is no track with Compton -> return
     return 0;
   PerformInteraction();
-  return WriteBackTracks(gTrackV, tid);
+  return WriteBackTracks(gTrackV, taskdata);
 }
 
 //------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ void GVComptonProcess::PerformInteraction() {
 
 //------------------------------------------------------------------------------
 FQUALIFIER
-int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, int tid) {
+int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, GeantTaskData *taskData) {
   // 1. update primary tracks in GeantTrack_v to their post-interaction state
   int numPrimaryTracks = fPrimaryTracks->numTracks; // number of primary tracks has been used
   for (int ip = 0; ip < numPrimaryTracks; ++ip) {
@@ -222,7 +222,7 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, int tid) {
     return 0;
 
   // get the GeantPropagator
-  GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = taskData->GetPropagator();
 
   // A process with the same secondary can define its base properties here
   // like Compton: the only possible secondary is e-
@@ -240,7 +240,7 @@ int GVComptonProcess::WriteBackTracks(GeantTrack_v &gTrackV, int tid) {
     double kinE = fSecondaryTracks->E[isec] - secMass; // should be [GeV]
     if (kinE > fEnergyLimit) {                         // above tracking cut -> insert into GeantTrack_v
       // get a temporary GeantTrack from the propagator
-      GeantTrack &gTrack = propagator->GetTempTrack(tid);
+      GeantTrack &gTrack = taskData->GetTempTrack();
 
       // set some general properties: initial values or same as parent
       SetGeantTrack(gTrack, gTrackV, indxP);

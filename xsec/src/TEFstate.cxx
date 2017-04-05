@@ -315,7 +315,7 @@ void TEFstate::Compact() {
 VECCORE_ATT_HOST_DEVICE
 void TEFstate::RebuildClass() {
    if(((unsigned long) this) % sizeof(double) != 0) {
-     Geant::Fatal("TEFstate::RebuildClass","the class is misaligned");
+     Geant::Fatal("TEFstate::RebuildClass","%s","the class is misaligned");
      return;
    }
    char *start = fStore;

@@ -74,6 +74,6 @@ void GVectorPhysicsProcess::PostStepFinalStateSampling( Material_t * /*mat*/,
       exit(EXIT_FAILURE);       
     }
 
-    nout = fVComptonProcess[td->fTid]->ApplyPostStepProcess(tracks, ntracks, td->fTid);
+    nout = fVComptonProcess[td->fTid]->ApplyPostStepProcess(tracks, ntracks, td);
 }
 

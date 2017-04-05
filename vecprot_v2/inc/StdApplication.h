@@ -28,8 +28,10 @@ class TProfile;
 #endif
 #include "GeantFwd.h"
 
+using namespace Geant;
+
 /** @brief StdApplication class */
-class StdApplication : public GeantVApplication {
+class StdApplication : public Geant::GeantVApplication {
 public:
 enum EScoreType {
   kNoScore = 0,
@@ -60,7 +62,7 @@ private:
 public:
 
   /** @brief Constructor StdApplication */
-  StdApplication();
+  StdApplication(GeantRunManager *runmgr);
 
   /** @brief Destructor StdApplication */
   virtual ~StdApplication() {}
@@ -92,7 +94,7 @@ public:
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(int event);
+  virtual void Digitize(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

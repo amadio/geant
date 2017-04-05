@@ -10,6 +10,7 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "GeantRunManager.h"
 #include "GunGenerator.h"
 #include "TaskBroker.h"
 #include "TTabPhysProcess.h"
@@ -21,12 +22,15 @@
 #include "TaskMgrTBB.h"
 #endif
 
+using namespace Geant;
+
 static int n_events = 50;
-static int n_buffered = 10;
+static int n_buffered = 4;
 static int n_threads = 4;
 static int n_track_max = 500;
 static int n_learn_steps = 0;
 static int n_reuse = 100000;
+static int n_propagators = 1;
 static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
@@ -43,6 +47,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"coprocessor", required_argument, 0, 'r'},
                                   {"tbbmode", required_argument, 0, 'i'},
                                   {"reuse", required_argument, 0, 'u'},
+                                  {"propagators", required_argument, 0, 'p'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -68,7 +73,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:u:", options, &optidx);
+    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:u:p:", options, &optidx);
 
     if (c == -1)
       break;
@@ -146,13 +151,16 @@ int main(int argc, char *argv[]) {
       n_reuse = (int)strtol(optarg, NULL, 10);
       break;
 
+    case 'p':
+      n_propagators = (int)strtol(optarg, NULL, 10);
+      break;
+
     default:
       errx(1, "unknown option %c", c);
     }
   }
   bool performance = true;
-  TGeoManager::Import(exn03_geometry_filename.c_str());
-  WorkloadManager *wmanager = WorkloadManager::Instance(n_threads);
+
   TaskBroker *broker = nullptr;
   if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
@@ -164,74 +172,79 @@ int main(int argc, char *argv[]) {
     std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
   }
-  GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered,n_threads);
 
-  if (broker) propagator->SetTaskBroker(broker);
-  wmanager->SetNminThreshold(5 * n_threads);
-  propagator->fUseMonitoring = monitor;
-#ifdef GEANT_TBB
-  if (tbbmode)
-    propagator->fTaskMgr = new TaskMgrTBB();
-#endif
+  GeantConfig* config=new GeantConfig();
 
-  // Monitor different features
-  wmanager->SetNminThreshold(5*n_threads);
-  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
-  propagator->fUseMonitoring = monitor;
-  propagator->fNaverage = 500;   // Average number of tracks per event
-
+  
+//  TGeoManager::Import(exn03_geometry_filename.c_str());
+  config->fGeomFileName = exn03_geometry_filename;
+  config->fNtotal = n_events;
+  config->fNbuff = n_buffered;
+  config->fUseMonitoring = monitor;
+  config->fNminThreshold=5*n_threads;
+  config->SetMonitored(GeantConfig::kMonQueue, monitor);
+  config->SetMonitored(GeantConfig::kMonMemory, monitor);
+  config->SetMonitored(GeantConfig::kMonBasketsPerVol, monitor);
+  config->SetMonitored(GeantConfig::kMonVectors, monitor);
+  config->SetMonitored(GeantConfig::kMonConcurrency, monitor);
+  config->SetMonitored(GeantConfig::kMonTracksPerEvent, monitor);
+  config->fNaverage = 500;   // Average number of tracks per event
+  
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
-  propagator->fPriorityThr = 0.05;
+  config->fPriorityThr = 0.05;
 
   // Initial vector size, this is no longer an important model parameter,
   // because is gets dynamically modified to accomodate the track flow
-  propagator->fNperBasket = 16;   // Initial vector size (tunable)
+  config->fNperBasket = 16;   // Initial vector size (tunable)
 
   // This is now the most important parameter for memory considerations
-  propagator->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
-  propagator->fEmin = 3.E-6; // [3 KeV] energy cut
-  propagator->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
-
-  // Create the tab. phys process.
-  propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
-// Create the tab. phys process.
-#ifdef USE_VECGEOM_NAVIGATOR
-  propagator->LoadVecGeomGeometry();
-#endif
-
-  // for vector physics -OFF now
-  // propagator->fVectorPhysicsProcess = new GVectorPhysicsProcess(propagator->fEmin, nthreads);
-  propagator->fPrimaryGenerator = new GunGenerator(propagator->fNaverage, 11, propagator->fEmax, -8, 0, 0, 1, 0, 0);
+  config->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
+  config->fEmin = 3.E-6; // [3 KeV] energy cut
+  config->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
-  propagator->fLearnSteps = n_learn_steps;
-  if (performance) propagator->fLearnSteps = 0;
-  propagator->fApplication = new ExN03Application();
+  config->fLearnSteps = n_learn_steps;
+  if (performance) config->fLearnSteps = 0;
    // Activate I/O
-  propagator->fFillTree = false;
-  
-  // Set threshold for tracks to be reused in the same volume
-  propagator->fNminReuse = n_reuse;
-  
+  config->fFillTree = false;
    // Activate debugging using -DBUG_HUNT=ON in your cmake build
   if (debug) {
-    propagator->fUseDebug = true;
-    propagator->fDebugTrk = 1;
+    config->fUseDebug = true;
+    config->fDebugTrk = 1;
   }
-// Activate standard scoring
-  propagator->fUseStdScoring = true;
-  if (performance) propagator->fUseStdScoring = false;
+// Activate standard scoring   
+  config->fUseStdScoring = true;
+  if (performance) config->fUseStdScoring = false;
   // Monitor the application
-  propagator->fUseAppMonitoring = false;
+  config->fUseAppMonitoring = false;
 
-  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
+  // Set threshold for tracks to be reused in the same volume
+  config->fNminReuse = n_reuse;
+
+  // Create run manager
+  GeantRunManager *runMgr = new GeantRunManager(n_propagators, n_threads, config);
+  if (broker) runMgr->SetCoprocessorBroker(broker);
+  // Create the tab. phys process.
+  runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
+  
+// Create the tab. phys process.
+#ifdef USE_VECGEOM_NAVIGATOR
+//  runMgr->LoadVecGeomGeometry();
+#endif
+
+  // for vector physics -OFF now
+  // runMgr->SetVectorPhysicsProcess(new GVectorPhysicsProcess(config->fEmin, nthreads));
+  runMgr->SetPrimaryGenerator( new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0) );
+  runMgr->SetUserApplication ( new ExN03Application(runMgr) );
+#ifdef GEANT_TBB
+  if (tbbmode)
+    runMgr->SetTaskMgr( new TaskMgrTBB() );
+#endif
+  
+  runMgr->RunSimulation();
+//  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
   return 0;
 }
 #endif

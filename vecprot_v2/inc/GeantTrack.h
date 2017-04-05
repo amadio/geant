@@ -31,7 +31,7 @@
 typedef veccore::BitSet BitSet;
 #endif
 
-#ifdef GEANT_CUDA
+#ifdef GEANT_CUDA_ENABLED
 #include "GeantCudaUtils.h"
 #include "backend/cuda/Interface.h"
 #endif
@@ -79,6 +79,7 @@ public:
   int fCharge;           /** Particle charge */
   int fProcess;          /** Current process */
   int fNsteps;           /** Number of steps made */
+  int fMaxDepth;
   Species_t fSpecies;    /** Particle species */
   TrackStatus_t fStatus; /** Track status */
   double fMass;          /** Particle mass */
@@ -126,13 +127,6 @@ public:
   /** @brief Operator = */
   VECCORE_ATT_HOST_DEVICE
   GeantTrack &operator=(const GeantTrack &other);
-
-  /**
-  * @brief GeantTrack parametrized constructor
-  *
-  * @param ipdg PDG code
-  */
-  GeantTrack(int ipdg);
 
   /**
   * @brief GeantTrack parametrized constructor

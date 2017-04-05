@@ -13,7 +13,7 @@
 // Interface to vector physics models
 class GVComptonProcess;
 
-class GVectorPhysicsProcess : public PhysicsProcess {
+class GVectorPhysicsProcess : public Geant::PhysicsProcess {
 private:
   GVComptonProcess **fVComptonProcess;
   double fEnergyLimit; // tracking cut in kinetic energy [GeV]

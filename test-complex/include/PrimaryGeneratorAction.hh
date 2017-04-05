@@ -39,10 +39,15 @@
 #include "G4VUserPrimaryGeneratorAction.hh"
 
 #include "globals.hh"
+#include "Geant/Config.h"
 
 class G4Event;
 class G4ParticleGun;
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 class HepMCGenerator;
+}}
 
 /// Minimal primary generator action to demonstrate the use of GDML geometries
 
@@ -58,7 +63,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
   private:
     G4ParticleGun  *fParticleGun;
-    HepMCGenerator *fHepMCGenerator;
+    Geant::HepMCGenerator *fHepMCGenerator;
 
 };
 

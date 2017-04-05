@@ -2,6 +2,7 @@
 
 #include "Geant/Error.h"
 
+#include "GeantRunManager.h"
 #include "GeantBasket.h"
 #include "globals.h"
 #include "GeantTrackVec.h"
@@ -21,6 +22,9 @@ using vecgeom::GeoManager;
 #include "TGeoManager.h"
 #endif
 
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 //______________________________________________________________________________
 GeantScheduler::GeantScheduler()
     : fNvolumes(0), fNpriority(0), fBasketMgr(0), fGarbageCollector(0), fNstvol(0), fIstvol(0), fNvect(0), fNsteps(0),
@@ -37,22 +41,17 @@ GeantScheduler::~GeantScheduler() {
   delete fGarbageCollector;
   if (fBasketMgr) {
     for (int ib = 0; ib < fNvolumes; ib++) {
-#ifdef USE_VECGEOM_NAVIGATOR
-      fBasketMgr[ib]->GetVolume()->SetBasketManagerPtr(0);
-#else
-      fBasketMgr[ib]->GetVolume()->SetFWExtension(0);
-#endif
       delete fBasketMgr[ib];
     }
+    delete[] fBasketMgr;
   }
-  delete[] fBasketMgr;
   delete[] fNstvol;
   delete[] fIstvol;
   delete[] fNvect;
 }
 
 //______________________________________________________________________________
-void GeantScheduler::ActivateBasketManagers() {
+void GeantScheduler::ActivateBasketManagers(GeantTaskData* td) {
   // Activate basket managers based on the distribution of steps in corresponding
   // volumes.
   Sort(fNvolumes, fNstvol, fIstvol);
@@ -66,10 +65,11 @@ void GeantScheduler::ActivateBasketManagers() {
     ntot += fNstvol[i];
     vol = fVolumes[i];
 #ifdef USE_VECGEOM_NAVIGATOR
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetBasketManagerPtr();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetFWExtension();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+    GeantBasketMgr *mgr = fBasketMgr[link->index];
     if (mgr->IsActive()) {
       nsum += fNstvol[i];
       nactive++;
@@ -79,12 +79,13 @@ void GeantScheduler::ActivateBasketManagers() {
   for (auto i = 0; i < fNvolumes; ++i) {
     vol = fVolumes[fIstvol[i]];
 #ifdef USE_VECGEOM_NAVIGATOR
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetBasketManagerPtr();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
-    GeantBasketMgr *mgr = (GeantBasketMgr *)vol->GetFWExtension();
+    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+    GeantBasketMgr *mgr = fBasketMgr[link->index];
     if (!mgr->IsActive()) {
-      mgr->Activate();
+      mgr->Activate(td->fPropagator);
       nsum += fNstvol[fIstvol[i]];
       nactive++;
     }
@@ -109,7 +110,7 @@ void GeantScheduler::AdjustBasketSize() {
   return; // !!!!!!!!!!!!!!! NOT needed anymore !!!!!!!!!!!!!!!
           /*
             const int min_size = 4;
-            const int max_size = gPropagator->fNperBasket;
+            const int max_size = gPropagator->fConfig->fNperBasket;
             int nthreads = gPropagator->fNthreads;
             int nproposed;
             for (int ib = 0; ib < fNvolumes; ib++) {
@@ -131,39 +132,27 @@ void GeantScheduler::AdjustBasketSize() {
 }
 
 //______________________________________________________________________________
-void GeantScheduler::CreateBaskets() {
+void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
   // Create the array of baskets
   if (fBasketMgr)
     return;
-#ifdef USE_VECGEOM_NAVIGATOR
-  GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
-  fNvolumes = fVolumes.size();
-#else
-  TObjArray *lvolumes = gGeoManager->GetListOfVolumes();
-  fNvolumes = lvolumes->GetEntries();
-  for (auto ivol = 0; ivol < fNvolumes; ivol++)
-    fVolumes.push_back((TGeoVolume *)lvolumes->At(ivol));
-#endif
+  fVolumes = prop->fRunMgr->GetVolumes();
+  fNvolumes = prop->fRunMgr->GetNvolumes();
   fBasketMgr = new GeantBasketMgr *[fNvolumes];
   fNstvol = new int[fNvolumes];
   fIstvol = new int[fNvolumes];
   memset(fNstvol, 0, fNvolumes * sizeof(int));
   memset(fIstvol, 0, fNvolumes * sizeof(int));
-  Geant::priority_queue<GeantBasket *> *feeder = WorkloadManager::Instance()->FeederQueue();
+  Geant::priority_queue<GeantBasket *> *feeder = prop->fWMgr->FeederQueue();
   Volume_t *vol;
   GeantBasketMgr *basket_mgr;
   int icrt = 0;
-  int nperbasket = gPropagator->fNperBasket;
   for (auto ivol = 0; ivol < fNvolumes; ++ivol) {
     vol = (Volume_t *)fVolumes[ivol];
-    basket_mgr = new GeantBasketMgr(this, vol, icrt);
-    basket_mgr->SetThreshold(nperbasket);
-#ifdef USE_VECGEOM_NAVIGATOR
-    vol->SetBasketManagerPtr(basket_mgr);
-#else
-    vol->SetFWExtension(basket_mgr);
-#endif
+    basket_mgr = new GeantBasketMgr(prop,this, vol, icrt);
+    basket_mgr->SetThreshold(prop->fConfig->fNperBasket);
     basket_mgr->SetFeederQueue(feeder);
+    if (prop->fConfig->fLearnSteps == 0) basket_mgr->Activate(prop);
     //      Printf("basket %s: %p feeder=%p", basket_mgr->GetName(), basket_mgr,
     //      basket_mgr->GetFeederQueue());
     fBasketMgr[icrt++] = basket_mgr;
@@ -179,22 +168,23 @@ int GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
 // Main method to inject generated tracks. Track status is kNew here.
 #ifdef USE_VECGEOM_NAVIGATOR
   Volume_t *vol = const_cast<Volume_t *>(track.fPath->Top()->GetLogicalVolume());
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
+  VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
   Volume_t *vol = track.fPath->GetCurrentNode()->GetVolume();
-  GeantBasketMgr *basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+  VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+  GeantBasketMgr *basket_mgr = fBasketMgr[link->index];
   int ivol = basket_mgr->GetNumber();
   fNstvol[ivol]++;
   fNsteps++;
   // If no learning phase requested, activate all basket managers
-  GeantPropagator *propagator = GeantPropagator::Instance();
-  if ((propagator->fLearnSteps == 0) && !fLearning.test_and_set(std::memory_order_acquire)) {
+  GeantPropagator *propagator = td->fPropagator;
+  if ((propagator->fConfig->fLearnSteps == 0) && !fLearning.test_and_set(std::memory_order_acquire)) {
     for (ivol = 0; ivol < fNvolumes; ++ivol)
-      fBasketMgr[ivol]->Activate();
+      fBasketMgr[ivol]->Activate(td->fPropagator);
   } else {
     // Activate the basket manager
-    basket_mgr->Activate();
+    basket_mgr->Activate(propagator);
   }
   return basket_mgr->AddTrack(track, false, td);
 }
@@ -239,7 +229,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
   // Returns the number of injected baskets.
   int ninjected = 0;
   bool priority = false;
-  GeantPropagator *propagator = GeantPropagator::Instance();
+  GeantPropagator *propagator = td->fPropagator;
   int ntracks = tracks.GetNtracks();
   ntot += ntracks;
   GeantBasketMgr *basket_mgr = 0;
@@ -248,7 +238,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     // We have to collect the killed tracks
     if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside()) {
       nkilled++;
-      gPropagator->StopTrack(tracks, itr);
+      td->fPropagator->StopTrack(tracks, itr);
       tracks.DeleteTrack(itr);
       continue;
     }
@@ -260,26 +250,27 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
 
 #ifdef USE_VECGEOM_NAVIGATOR
     vol = const_cast<Volume_t *>(tracks.fPathV[itr]->Top()->GetLogicalVolume());
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetBasketManagerPtr());
+    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
     vol = tracks.fPathV[itr]->GetCurrentNode()->GetVolume();
-    basket_mgr = static_cast<GeantBasketMgr *>(vol->GetFWExtension());
+    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
+    basket_mgr = fBasketMgr[link->index];
     int ivol = basket_mgr->GetNumber();
     //    tracks.fVindexV[itr] = ivol;
     fNstvol[ivol]++;
     long nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
-    if (propagator->fEvents[tracks.fEvslotV[itr]]->IsPrioritized()) {
+    if (propagator->fRunMgr->GetEvent(tracks.fEventV[itr])->IsPrioritized()) {
       ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, true, td);
       continue;
     }
-    if (propagator->fLearnSteps && (nsteps % propagator->fLearnSteps) == 0 &&
+    if (propagator->fConfig->fLearnSteps && (nsteps % propagator->fConfig->fLearnSteps) == 0 &&
         !fLearning.test_and_set(std::memory_order_acquire)) {
-      Geant::Info("AddTracks", "=== Learning phase of %d steps completed ===", propagator->fLearnSteps);
+      Geant::Info("AddTracks", "=== Learning phase of %d steps completed ===", propagator->fConfig->fLearnSteps);
       // Here comes the algorithm activating basket managers...
-      ActivateBasketManagers();
-      propagator->fLearnSteps *= 4;
+      ActivateBasketManagers(td);
+      propagator->fConfig->fLearnSteps *= 4;
       fLearning.clear();
     }
     if (basket_mgr->IsActive())
@@ -334,3 +325,6 @@ void GeantScheduler::PrintSize() const {
   if (fGarbageCollector)
     fGarbageCollector->PrintSize();
 }
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant

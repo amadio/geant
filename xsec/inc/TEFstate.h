@@ -196,22 +196,22 @@ private:
 VECCORE_ATT_HOST_DEVICE
 bool CheckAlign() {
   bool isaligned=true;
-  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TEFstate::CheckAlign","fEGrid misaligned\n");isaligned=false;}
-  if(((unsigned long) &fAtcm3) % sizeof(fAtcm3) != 0) { Geant::Error("TEFstate::CheckAlign","fAtcm3 misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TEFstate::CheckAlign","fEmin misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TEFstate::CheckAlign","fEmax misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TEFstate::CheckAlign","fEilDelta misaligned\n");isaligned=false;}
-  if(((unsigned long) &fDens) % sizeof(fDens) != 0) { Geant::Error("TEFstate::CheckAlign","fDens misaligned\n");isaligned=false;}
-  if(((unsigned long) &fEle) % sizeof(fEle) != 0) { Geant::Error("TEFstate::CheckAlign","fEle misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TEFstate::CheckAlign","fNEbins misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) { Geant::Error("TEFstate::CheckAlign","fNEFstat misaligned\n");isaligned=false;}
-  if(((unsigned long) &fNRpart) % sizeof(fNRpart) != 0) { Geant::Error("TEFstate::CheckAlign","fNRpart misaligned\n");isaligned=false;}
+  if(((unsigned long) fEGrid) % sizeof(fEGrid[0]) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fEGrid misaligned\n");isaligned=false;}
+  if(((unsigned long) &fAtcm3) % sizeof(fAtcm3) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fAtcm3 misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEmin) % sizeof(fEmin) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fEmin misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEmax) % sizeof(fEmax) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fEmax misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEilDelta) % sizeof(fEilDelta) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fEilDelta misaligned\n");isaligned=false;}
+  if(((unsigned long) &fDens) % sizeof(fDens) != 0) { Geant::Error("TEFstate::CheckAlign","%s","%s","fDens misaligned\n");isaligned=false;}
+  if(((unsigned long) &fEle) % sizeof(fEle) != 0) { Geant::Error("TEFstate::CheckAlign","%s","%s","fEle misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEbins) % sizeof(fNEbins) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fNEbins misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNEFstat) % sizeof(fNEFstat) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fNEFstat misaligned\n");isaligned=false;}
+  if(((unsigned long) &fNRpart) % sizeof(fNRpart) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fNRpart misaligned\n");isaligned=false;}
   for(auto i=0; i< fNRpart; ++i)
     if(((unsigned long) fPFstateP[i]) % sizeof(double) != 0) { Geant::Error("TEFstate::CheckAlign","fPFstateP[%d misaligned\n",i);isaligned=false;}
 #ifdef MAGIC_DEBUG
-  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TEFstate::CheckAlign","fMagic misaligned\n");isaligned=false;}
+  if(((unsigned long) &fMagic) % sizeof(fMagic) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fMagic misaligned\n");isaligned=false;}
 #endif
-  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TEFstate::CheckAlign","fStore misaligned\n");isaligned=false;}
+  if(((unsigned long) &fStore) % sizeof(double) != 0) { Geant::Error("TEFstate::CheckAlign","%s","fStore misaligned\n");isaligned=false;}
   return isaligned;
 }
 

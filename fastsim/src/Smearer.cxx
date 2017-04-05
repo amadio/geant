@@ -31,12 +31,12 @@
 #include <strings.h>
 
 
-Smearer::Smearer() {
+Smearer::Smearer(GeantTaskData */*td*/) {
 
   std::cout << "Smearer::Smearer : Start" << std::endl;  // Debug
 
   #ifdef USE_VECGEOM_NAVIGATOR
-    GeantPropagator::Instance()->LoadVecGeomGeometry();
+//    td->fPropagator->LoadVecGeomGeometry();
     std::vector< vecgeom::LogicalVolume* > vecgeomVolumes;
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes( vecgeomVolumes );
     int numberOfVolumes = vecgeomVolumes.size();

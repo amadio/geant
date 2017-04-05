@@ -1,7 +1,0 @@
-set logscale x
-set xlabel 'number of particles'
-set ylabel 'speedup' 
-plot "TGeoBBox_Safety_speedup.dat" u 1:($2/$3) w lp ps 2
-set term postscript enhanced eps color
-set output "TGeoBBox_Safety_speedup_plot.ps"
-replot

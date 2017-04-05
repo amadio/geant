@@ -4,12 +4,19 @@
 #ifndef GEANT_MYHIT
 #include "MyHit.h"
 #endif
+
 #ifndef GEANT_FACTORY
 #include "GeantFactory.h"
 #endif
-#include "TThread.h"
+
+#include "GeantFwd.h"
 #include "GeantFactoryStore.h"
+
 #include "TThreadMergingFile.h"
+
+#ifdef USE_ROOT
+class TTree;
+#endif
 
 class ThreadData {
 protected:
@@ -17,10 +24,11 @@ protected:
 public:
   // Data per thread
   int fNthreads;
+#ifdef USE_ROOT
   Geant::TThreadMergingFile **fFiles;
   TTree **fTrees;
+#endif
   GeantBlock<MyHit> **fData;
-  GeantBasketMgr **fPrioritizers;
   GeantFactory<MyHit> **fMyhitFactories;
 
   ThreadData (int nthreads);

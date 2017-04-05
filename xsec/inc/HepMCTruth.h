@@ -3,16 +3,13 @@
 
 #include "MCTruthMgr.h"
 
-#if __cplusplus >= 201103L
 #include "HepMC/Writer.h"
 #include "HepMC/GenEvent.h"
-#endif
+#include "GeantFwd.h"
 
-class HepMCTruth : public MCTruthMgr {
+class HepMCTruth : public Geant::MCTruthMgr {
 private:
-#if __cplusplus >= 201103L
   HepMC::Writer *output_file;
-#endif
 
 public:
   HepMCTruth();
@@ -21,7 +18,7 @@ public:
 
   virtual void InitMCTruthMgr();
 
-  virtual bool CheckTrack(Geant::GeantTrack &gtrack, MCEvent* evt);
+  virtual bool CheckTrack(Geant::GeantTrack &gtrack, Geant::MCEvent* evt);
   
   virtual void CloseEvent(int evID);
 

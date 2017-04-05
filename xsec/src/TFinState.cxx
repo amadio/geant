@@ -405,7 +405,7 @@ void TFinState::Compact() {
 VECCORE_ATT_HOST_DEVICE
 void TFinState::RebuildClass() {
   if(((unsigned long) this) % sizeof(double) != 0) {
-    Geant::Fatal("TFinState::RebuildClass","the class is misaligned\n");
+    Geant::Fatal("TFinState::RebuildClass","%s","the class is misaligned\n");
     return;
   }
    int size = 0;

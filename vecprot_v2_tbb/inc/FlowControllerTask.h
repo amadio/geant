@@ -9,12 +9,16 @@ class FlowControllerTask : public tbb::task
 private:
   Geant::GeantTaskData *fTd;
   bool fStarting;
+  bool fForcedStop;
 
 public:
-  FlowControllerTask (Geant::GeantTaskData *td, bool starting);
+  FlowControllerTask (Geant::GeantTaskData *td, bool starting, bool forcedStop=false);
   ~FlowControllerTask ();
 
-  tbb::task* execute ();
+  tbb::task *SpawnFeederTask();
+  tbb::task *SpawnTransportTask();
+
+  tbb::task *execute();
 
 };
 

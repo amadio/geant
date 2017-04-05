@@ -1,12 +1,12 @@
 //===--- LinkDef.h - Geant-V ------------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file LinkDef.h
- * @brief Linkage for classes  
- * @author Andrei Gheata 
+ * @brief Linkage for classes
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -27,12 +27,13 @@
 #pragma link C++ class GeantOutput+;
 #pragma link C++ class GeantVApplication+;
 //#pragma link C++ class WorkloadManager+;
-#pragma link C++ class PhysicsProcess+;
+#pragma link C++ class PhysicsProcessOld+;
 #pragma link C++ class StdApplication+;
 #pragma link C++ class MyHit+;
 #pragma link C++ class GeantBlock<MyHit>+;
 #pragma link C++ class Geant::TThreadMergingFile+;
 #pragma link C++ class Geant::ThreadFileMerger+;
 #pragma link C++ class MCTruthMgr+;
+#pragma link C++ class Geant::GeantConfig+;
 
 #endif

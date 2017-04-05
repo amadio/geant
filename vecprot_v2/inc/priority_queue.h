@@ -17,10 +17,8 @@
 #include "mpmc_bounded_queue.h"
 #endif
 
-#if __cplusplus >= 201103L
 #include <mutex>
 #include <condition_variable>
-#endif
 
 namespace Geant {
 
@@ -33,9 +31,9 @@ public:
    * 
    * @param buffer_size Buffer size for queue
    */
-  priority_queue(size_t buffer_size)
-      : n_waiting_(0), countdown_(0), mutex_(), cv_(), main_q_(buffer_size),
-        priority_q_(buffer_size) {}
+  priority_queue(size_t buffer_size, size_t threshold)
+      : n_waiting_(0), mutex_(), cv_(), main_q_(buffer_size),
+        priority_q_(buffer_size), threshold_(threshold), counter_(0) {}
   
   /**
    * @brief  Priority_queue destructor
@@ -48,71 +46,61 @@ public:
    * @param data Data to be pushed
    * @param priority Priority state (by default false)
    */
-  bool push(T const &data, bool priority = false);
+  inline bool push(T const &data, bool priority = false);
   
-  /** @brief Size function of number of enqueued objects */
-  size_t size_async() const;
+  /**
+   * @brief Forced push function
+   * 
+   * @param data Data to be pushed
+   * @param priority Priority state (by default false)
+   */
+  inline void push_force(T const &data, bool priority = false);
+ 
+   /** @brief Size function of number of enqueued objects */
+  inline size_t size_async() const;
   
   /** @brief Size function of priority objects in queue */
-  size_t size_priority() const;
+  inline size_t size_priority() const;
   
  /** @brief Function that returns numbere of enqueued objects in the priority queue */
-  size_t size_objects() const;
+  inline size_t size_objects() const;
   
   /** @brief Function that empty number of enqueued objects */
-  bool empty_async() const;
+  inline bool empty_async() const;
   
   /** @brief Size function for number of enqueued objects*/
-  int size() const { return size_async(); }
-  
+  inline int size() const { return size_async(); }
+
+   /** @brief Size function for number of enqueued objects*/
+  inline unsigned int status() const;
+ 
   /** @brief Empty function for number of enqueued objects */
-  bool empty() const { return empty_async(); }
+  inline bool empty() const { return empty_async(); }
   
   /**
    * @brief Pop function
    * 
    * @param data Data that should be popped
    */
-  bool try_pop(T &data);
+  inline bool try_pop(T &data);
   
   /**
    * @brief Wait and pop function
    * 
    * @param data Data that should be popped
    */
-  void wait_and_pop(T &data);
-  
-  /**
-   * @brief Funtion that get countdown value
-   */
-  size_t get_countdown() const { return countdown_.load(std::memory_order_relaxed); }
-  
-  /**
-   * @brief Funtion that reset countdown value
-   */
-  void reset_countdown() { countdown_.store(-1, std::memory_order_relaxed); }
-  
-  /**
-   * @brief Funtion that set countdown value
-   * 
-   * @param n Countdown counter for extracted objects
-   */
-  void set_countdown(size_t n) { countdown_.store(n, std::memory_order_relaxed); }
-  
-  /**
-   * @brief ??????
-   */
-  size_t n_ops() const { return 0; }
-
+  inline void wait_and_pop(T &data);
+      
 private:
-#if __cplusplus >= 201103L
   std::atomic_int n_waiting_;  /** number of threads waiting */
-  std::atomic_int countdown_;  /** Countdown counter for extracted objects */
   std::mutex mutex_;           /** mutex for starvation mode */
   std::condition_variable cv_; /** condition variable */
-#endif
+
   mpmc_bounded_queue<T> main_q_;
   mpmc_bounded_queue<T> priority_q_;
+
+  size_t threshold_;           /** Threshold for the normal filling */
+  std::atomic<size_t> counter_; /** Queue content counter */
 };
 
 /**
@@ -120,54 +108,75 @@ private:
  * allocated space.
  * @return List of pushed objects
  */
-template <typename T> bool priority_queue<T>::push(T const &data, bool priority) {
-  bool pushed = false;
-  if (priority)
-    pushed = priority_q_.enqueue(data);
-  if (!pushed)
-    pushed = main_q_.enqueue(data);
-  if (n_waiting_.load(std::memory_order_relaxed))
-    cv_.notify_one();
-  return pushed;
+template <typename T> 
+bool priority_queue<T>::push(T const &data, bool priority) {
+  if ((priority && priority_q_.enqueue(data)) || main_q_.enqueue(data)) {
+    counter_.fetch_add(1, std::memory_order_relaxed);
+    if (n_waiting_.load(std::memory_order_relaxed))
+      cv_.notify_one();
+    return true;
+  }
+  return false;
+}
+
+template <typename T> 
+void priority_queue<T>::push_force(T const &data, bool priority) {
+  while ( !push(data, priority) ) {}
 }
 
 /** @todo Add details */
-template <typename T> size_t priority_queue<T>::size_async() const {
-  return (main_q_.size() + priority_q_.size());
+template <typename T>
+size_t priority_queue<T>::size_async() const {
+  return ( counter_.load(std::memory_order_relaxed) );
 }
 
 /** @todo  Add details */
-template <typename T> size_t priority_queue<T>::size_priority() const {
+template <typename T>
+size_t priority_queue<T>::size_priority() const {
   return priority_q_.size();
 }
 
 /**
  * @brief Function that returns number of enqueued objects in the priority queue
  */
-template <typename T> size_t priority_queue<T>::size_objects() const {
+template <typename T>
+size_t priority_queue<T>::size_objects() const {
   return main_q_.size();
 }
 
-/** @todo  Add details */
-template <typename T> bool priority_queue<T>::empty_async() const {
-  return (size_async() == 0);
+/** @brief  Asynchronous check if queue is empty */
+template <typename T> 
+bool priority_queue<T>::empty_async() const {
+  return ( counter_.load(std::memory_order_relaxed) == 0 );
+}
+
+/** @brief Queue status getter.
+  *  @return Queue status: 0=empty, 1=depleted, 2=normal
+  */
+template <typename T> 
+unsigned int priority_queue<T>::status() const { 
+  size_t counter = counter_.load(std::memory_order_relaxed);
+  if (counter == 0) return 0;
+  if (counter < threshold_) return 1;
+  return 2;
 }
 
 /** 
- * @todo  Add details
- * @return  List of popped elements
+ * @brief Unblocking retrieval of one element
+ * @return  Success of operation
  */
-template <typename T> bool priority_queue<T>::try_pop(T &data) {
-  bool popped = priority_q_.dequeue(data);
-  if (!popped)
-    popped = main_q_.dequeue(data);
-  if (popped && countdown_.load() > 0)
-    countdown_--;
-  return popped;
+template <typename T>
+bool priority_queue<T>::try_pop(T &data) {
+  if ( priority_q_.dequeue(data) || main_q_.dequeue(data) ) {
+    counter_.fetch_sub(1, std::memory_order_relaxed);
+    return true;
+  }
+  return false;
 }
 
-/** @todo  Add details */
-template <typename T> void priority_queue<T>::wait_and_pop(T &data) {
+/** @brief Blocking pop operation retrieving one element from the queue */
+template <typename T>
+void priority_queue<T>::wait_and_pop(T &data) {
   if (!n_waiting_.load() && try_pop(data))
     return;
   // We have to put the thread to sleep
@@ -175,11 +184,8 @@ template <typename T> void priority_queue<T>::wait_and_pop(T &data) {
   std::unique_lock<std::mutex> lk(mutex_);
   while (size_async() == 0)
     cv_.wait(lk);
-  while (!try_pop(data)) {
-  }
+  while (!try_pop(data)) {}
   n_waiting_--;
-  if (countdown_.load() > 0)
-    countdown_--;
   lk.unlock();
 }
 } // namespace Geant

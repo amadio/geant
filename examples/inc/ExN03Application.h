@@ -30,9 +30,11 @@
 #include "GeantFwd.h"
 
 /** @brief ExN03Application class */
-class ExN03Application : public GeantVApplication {
+class ExN03Application : public Geant::GeantVApplication {
   static const int kNlayers = 15;
   static const int kMaxThreads = 36;
+  using GeantRunManager = Geant::GeantRunManager;
+  using GeantEvent = Geant::GeantEvent;
 
 private:
   bool fInitialized;                       /** Initialized flag */
@@ -58,7 +60,7 @@ private:
 public:
 
   /** @brief Constructor ExN03Application */
-  ExN03Application();
+  ExN03Application(GeantRunManager *runmgr);
 
   /** @brief Destructor ExN03Application */
   virtual ~ExN03Application() {}
@@ -82,7 +84,7 @@ public:
    * 
    * @param event Event that should be digitized
    */
-  virtual void Digitize(int event);
+  virtual void Digitize(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun() {}

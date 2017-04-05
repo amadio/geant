@@ -16,14 +16,21 @@
 #define GEANT_SCHEDULER
 
 #include <atomic>
-#include <vector>
 #include <stddef.h>
 class concurrent_queue;
-class GeantBasket;
-class GeantBasketMgr;
 
+#include "base/Vector.h"
+
+#include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
+#include "GeantPropagator.h"
+
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+
+class GeantBasket;
+class GeantBasketMgr;
 
 /**
  * @brief Class GeantScheduler
@@ -37,6 +44,8 @@ public:
   using GeantTrack = Geant::GeantTrack;
   using GeantTrack_v = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
+  template <class T>
+  using vector_t = vecgeom::Vector<T>;
 
 protected:
   int fNvolumes;                                 /** Number of active volumes in the geometry */
@@ -51,7 +60,7 @@ protected:
   std::atomic_bool fCollecting;                  /** Flag marking colecting tracks for priority events */
   std::atomic_flag fLearning = ATOMIC_FLAG_INIT; /** Flag marking the learning phase */
   std::atomic_flag fGBCLock = ATOMIC_FLAG_INIT;  /** Flag marking that garbage collector is busy */
-  std::vector<Volume_t const *> fVolumes;        /** List of logical volumes */
+  vector_t<Volume_t const *> fVolumes;        /** List of logical volumes */
 
 private:
   /**
@@ -74,7 +83,7 @@ public:
   virtual ~GeantScheduler();
 
   /** @brief Activate basket managers based on distribution of steps */
-  void ActivateBasketManagers();
+  void ActivateBasketManagers(GeantTaskData* td);
 
   /**
    * @brief Schedule a new track
@@ -101,7 +110,7 @@ public:
   void AdjustBasketSize();
 
   /** @brief Function to create initially baskets */
-  void CreateBaskets();
+  void CreateBaskets(GeantPropagator* prop);
 
   /**
    * @brief Getter for the array of basket managers
@@ -172,7 +181,7 @@ public:
    */
   int GetNvolumes() const { return fNvolumes; }
 
-  std::vector<Volume_t const *> &GetVolumes() { return fVolumes; }
+  vector_t<Volume_t const *> &GetVolumes() { return fVolumes; }
 
   /** @brief Garbage collection function */
   int GarbageCollect(GeantTaskData *td, bool force = false);
@@ -193,7 +202,9 @@ public:
       for (int i=0;i<n;i++) { out[i] = a[i]; }
       std::sort(out,out + n, std::greater<int>());
 
-   } 
-  
+   }   
 };
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 #endif
