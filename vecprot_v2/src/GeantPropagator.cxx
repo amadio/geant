@@ -215,7 +215,7 @@ void GeantPropagator::Initialize() {
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);
-    mgr->SetBlockSize(10000);
+    mgr->SetBlockSize(1000);
     mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
   }
@@ -227,7 +227,8 @@ void GeantPropagator::Initialize() {
 #ifdef VECCORE_CUDA
   // assert(0 && "Initialize not implemented yet for CUDA host/device code.");
 #else
-  fWMgr->CreateBaskets(this);
+  if (!fConfig->fUseV3) 
+    fWMgr->CreateBaskets(this);
 #endif
   CreateSimulationStages();
 }

@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "e:f:g:l:B:b:t:x:r:i:u:p:v:", options, &optidx);
+    c = getopt_long(argc, argv, "e:f:g:l:B:m:b:t:x:r:i:u:p:v:", options, &optidx);
 
     if (c == -1)
       break;
@@ -191,12 +191,12 @@ int main(int argc, char *argv[]) {
   config->fUseV3 = usev3;
   config->fUseMonitoring = monitor;
   config->fNminThreshold=5*n_threads;
-  config->SetMonitored(GeantConfig::kMonQueue, monitor);
+  config->SetMonitored(GeantConfig::kMonQueue, false);
   config->SetMonitored(GeantConfig::kMonMemory, monitor);
-  config->SetMonitored(GeantConfig::kMonBasketsPerVol, monitor);
-  config->SetMonitored(GeantConfig::kMonVectors, monitor);
-  config->SetMonitored(GeantConfig::kMonConcurrency, monitor);
-  config->SetMonitored(GeantConfig::kMonTracksPerEvent, monitor);
+  config->SetMonitored(GeantConfig::kMonBasketsPerVol, false);
+  config->SetMonitored(GeantConfig::kMonVectors, false);
+  config->SetMonitored(GeantConfig::kMonConcurrency, false);
+  config->SetMonitored(GeantConfig::kMonTracksPerEvent, false);
   config->fNaverage = 500;   // Average number of tracks per event
   
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
