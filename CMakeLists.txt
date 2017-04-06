@@ -262,6 +262,18 @@ else()
   message(STATUS "USE_TBB OFF  : TBB disabled")
 endif()
 
+
+# KNL
+
+if (KNL)
+ set(USE_UMESIMD ON)
+ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xMIC-AVX512")
+ else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=knl")
+ endif()
+endif()
+
 #----------------------------------------------------------------------------
 # Load macros
 #

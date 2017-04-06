@@ -31,8 +31,13 @@ set(headers
   inc/FastSimApplication.h 
   )   
 if (USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples 
-    LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  if (USE_UMESIMD)
+     ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples 
+     LINKDEF inc/LinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
+  else()
+     ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples 
+     LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  endif()
     set(sources ${sources} G__Examples.cxx)
 endif()
 

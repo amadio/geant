@@ -20,11 +20,17 @@ include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
 # Add the library
 #
 if (USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-
-  add_library(Xsec SHARED ${sources} xsecDict.cxx)
-  target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics 
-    ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+   if (USE_UMESIMD)
+      ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
+      add_library(Xsec SHARED ${sources} xsecDict.cxx)
+      target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics 
+        ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${HEPMC_LIBRARIES})
+   else()
+      ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+      add_library(Xsec SHARED ${sources} xsecDict.cxx)
+      target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics 
+         ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
+   endif()
   
 else()
   add_library(Xsec SHARED ${sources})

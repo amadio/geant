@@ -147,7 +147,11 @@ if(USE_VECGEOM_NAVIGATOR)
 endif()
 
 if (USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  if (USE_UMESIMD)
+     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
+   else() 
+     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+   endif()
 endif()
 
 #----------------------------------------------------------------------------
