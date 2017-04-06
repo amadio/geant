@@ -535,7 +535,7 @@ if (ROOT_mathmore_FOUND)
 endif()
 
 if(USE_VECPHYS)
-  add_subdirectory(vectphysproc)
+  add_subdirectory(vecphys)
 endif()
 
 if (NOT (USE_REAL_PHYSICS))
