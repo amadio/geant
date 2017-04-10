@@ -24,3 +24,7 @@ include_directories(
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/testRP/bremTest/GeantV)
 add_executable(bremTest_GV ${CMAKE_SOURCE_DIR}/testRP/GeantV/bremTest/bremTest_GV.cc ${sources})
 target_link_libraries(bremTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
+#
+# add the clear model-level version of the test
+add_executable(bremTest_modelLevel_GV ${CMAKE_SOURCE_DIR}/testRP/GeantV/bremTest/bremTest_modelLevel_GV.cc ${sources})
+target_link_libraries(bremTest_modelLevel_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
