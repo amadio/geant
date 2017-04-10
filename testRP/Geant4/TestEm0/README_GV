@@ -1,0 +1,10 @@
+
+M. Novak April 2017
+
+TestEm0 is a standard Geant4 test application to compute/obtain(from tables) integrated
+EM related quantities like (restricted)macroscopic cross section, (restricted)stopping
+power, etc. for a given particle, (material-cut)material, kinetic energy based on the
+selected physics list. The Geant4 application was taken from:
+     Geant4-10.3 examples/extended/electromagnetic/TestEm0
+and used without major modifications (an EM physics constructor PhysListGVStandard
+special for GeantV has been added).
