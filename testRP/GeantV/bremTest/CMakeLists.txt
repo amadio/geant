@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/testRP/GeantV/TestEm0/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/testRP/GeantV/TestEm0/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/testRP/GeantV/bremTest/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/testRP/GeantV/bremTest/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/testRP/GeantV/TestEm0/inc/
+  ${CMAKE_SOURCE_DIR}/testRP/GeantV/bremTest/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/numa/inc/
   ${CMAKE_SOURCE_DIR}/vecprot_v2/inc/
@@ -21,6 +21,6 @@ include_directories(
 #----------------------------------------------------------------------------------------------
 # Executable
 #
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/testRP/TestEm0/GeantV)
-add_executable(TextEm0_GV ${CMAKE_SOURCE_DIR}/testRP/GeantV/TestEm0/TestEm0_GV.cc ${sources})
-target_link_libraries(TextEm0_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/testRP/bremTest/GeantV)
+add_executable(bremTest_GV ${CMAKE_SOURCE_DIR}/testRP/GeantV/bremTest/bremTest_GV.cc ${sources})
+target_link_libraries(bremTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
