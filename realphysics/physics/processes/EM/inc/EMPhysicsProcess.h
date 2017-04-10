@@ -164,6 +164,16 @@ public:
   int AddModel(EMModel *model);
 
 
+  /**
+   * @brief Method to get a pointer to the EMModelManager of this EMPhysicsProcess.
+   *
+   * Each EMPhysicsProcess has an EMModelManager member that handels the EMModel-s of the process.
+   * NOTE: this method has been added only for testing reagions and not used during a normal simulation.
+   *
+   * @return    Pointer to the EMModelManager of this EMPhysicsProcess.
+   */
+  EMModelManager* GetModelManager() const { return fModelManager; }
+
 
   /**
    * @brief Method to print out some info. Must be change later to a DumpProcess method. */

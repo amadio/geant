@@ -115,6 +115,22 @@ public:
                                             Geant::GeantTaskData *td);
 
 
+  /**
+   * @brief Method to get macroscopic cross section for a given discrete process (used only for testing!)
+   *
+   * This method will use the lambda table(s), built at initialisation to interpolate the per-process macroscopic
+   * corss section. This method is used only for testing and not used during a normal simulation.
+   *
+   *  @param[in]  matcut    Pointer to the MaterialCuts object where the total macroscopic cross section is requested.
+   *  @param[in]  kinenergy Kinetic energy of the particle at which the total macroscopic cross section is requested in
+   *                        in internal [energy] units.
+   *  @param[in]  procindex Index of the (discrete) process in the fPostStepCandidateProcessVec.
+   *  @return     (Interpolated) macroscopic cross section for the given process, MaterialCuts(Material) at the given
+   *              kinetic energy in internal [1/length] units.
+   */
+  double GetMacroscopicXSectionForProcess(const MaterialCuts *matcut, double kinenergy, size_t procindex);
+
+
   /** @brief Method that return the list of all processes */
   const std::vector<PhysicsProcess*>& GetListProcesses() const {
     return fProcessVec;

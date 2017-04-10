@@ -100,9 +100,10 @@ double PhysicsManagerPerParticle::GetInvTotalLambda(const MaterialCuts *matcut, 
     lambTab = fLambdaTables[matcut->GetIndex()];
   }
   // return with zero if below or above the min/max lambda table energy or there is no lambTab(should not happen)
-  if (kinenergy>fMinLambdaTableEnergy && kinenergy<fMaxLambdaTableEnergy && lambTab) {
+  if (kinenergy>=fMinLambdaTableEnergy && kinenergy<=fMaxLambdaTableEnergy && lambTab) {
     double logE     = std::log(kinenergy);
     int    lowEIndx = (int) ((logE-fLogMinLambdaTableEnergy)*fEnergyILDelta);
+    if (lowEIndx>=fNumLambdaTableBins-1) --lowEIndx;
     // we might put it under verbose build since
     // protection against very small numerical uncertainties
 //      if (lowEIndx>0 && kinenergy<fEnergyGrid[lowEIndx]) {
@@ -111,6 +112,7 @@ double PhysicsManagerPerParticle::GetInvTotalLambda(const MaterialCuts *matcut, 
 //        ++lowEIndx;
 //      }
     totMacrXsec = lambTab->fSplineInvTotalLambda->GetValueAt(kinenergy,lowEIndx);
+    if (totMacrXsec<0.0) totMacrXsec = 0.0;
   }
   return totMacrXsec;
 }
@@ -136,7 +138,7 @@ double PhysicsManagerPerParticle::ComputeInvTotalLambdaForStepLimit(const Materi
     lambTab = fLambdaTables[matcut->GetIndex()];
   }
   // return with zero if below or above the min/max lambda table energy or there is no lambTab(should not happen)
-  if (kinenergy>fMinLambdaTableEnergy && kinenergy<fMaxLambdaTableEnergy && lambTab) {
+  if (kinenergy>=fMinLambdaTableEnergy && kinenergy<=fMaxLambdaTableEnergy && lambTab) {
     double ekin = kinenergy;
     // get the energy of the macroscopic cross section maximum
     double maxOfMacXsecE = lambTab->fLambdaMaxEnergy;
@@ -162,6 +164,7 @@ double PhysicsManagerPerParticle::ComputeInvTotalLambdaForStepLimit(const Materi
     // current, pre-step and post-step point energy
     double logE     = std::log(ekin);
     int    lowEIndx = (int) ((logE-fLogMinLambdaTableEnergy)*fEnergyILDelta);
+    if (lowEIndx>=fNumLambdaTableBins-1) --lowEIndx;
     // we might put it under verbose build since
     // protection against very small numerical uncertainties
 //      if (lowEIndx>0 && kinenergy<fEnergyGrid[lowEIndx]) {
@@ -170,6 +173,7 @@ double PhysicsManagerPerParticle::ComputeInvTotalLambdaForStepLimit(const Materi
 //        ++lowEIndx;
 //      }
     totMacrXsec = lambTab->fSplineInvTotalLambda->GetValueAt(ekin,lowEIndx);
+    if (totMacrXsec<0.0) totMacrXsec = 0.0;
   }
   return totMacrXsec;
 }
@@ -198,7 +202,7 @@ PhysicsProcess* PhysicsManagerPerParticle::SelectDiscreteInteraction(const Mater
   // one normal plus decay then the per process lambda table exists. Otherwise it has only one normal discerte process
   // that is at index = 0
   // return with zero if below or above the min/max lambda table energy or there is no lambTab(should not happen)
-  if (kinenergy>fMinLambdaTableEnergy && kinenergy<fMaxLambdaTableEnergy && lambTab) {
+  if (kinenergy>=fMinLambdaTableEnergy && kinenergy<=fMaxLambdaTableEnergy && lambTab) {
     // for particles that has any energy loss processes we gave an overestimated 1/lambda at the step limit so
     // now first we need to see if any interaction happens or just a delta interaction
     if (fIsHasElossProcess) {
@@ -219,6 +223,7 @@ PhysicsProcess* PhysicsManagerPerParticle::SelectDiscreteInteraction(const Mater
       // select one discrete process
       double logE     = std::log(kinenergy);
       int    lowEIndx = (int) ((logE-fLogMinLambdaTableEnergy)*fEnergyILDelta);
+      if (lowEIndx>=fNumLambdaTableBins-1) --lowEIndx;
       // we might put it under verbose build since
       // protection against very small numerical uncertainties
 //      if (lowEIndx>0 && kinenergy<fEnergyGrid[lowEIndx]) {
@@ -232,10 +237,13 @@ PhysicsProcess* PhysicsManagerPerParticle::SelectDiscreteInteraction(const Mater
 //  the probablity of processes is non-zero(that should be in theory since the total lambda was non zero)
       int    procIndx   = 0;
       double cumulative = lambTab->fSplinesInvLambdaPerProcess[procIndx]->GetValueAt(kinenergy,lowEIndx);
+      if (cumulative<0.0) cumulative = 0.0;
       double rndm = td->fRndm->uniform();
       for (; rndm>cumulative && procIndx<numDProc-1;) {
         ++procIndx;
-        cumulative += lambTab->fSplinesInvLambdaPerProcess[procIndx]->GetValueAt(kinenergy,lowEIndx);
+        double val = lambTab->fSplinesInvLambdaPerProcess[procIndx]->GetValueAt(kinenergy,lowEIndx);
+        if (val<0.0) val = 0.0;
+        cumulative += val;
       }
       proc = fPostStepCandidateProcessVec[procIndx];
     }
@@ -262,6 +270,84 @@ PhysicsProcess* PhysicsManagerPerParticle::SelectDiscreteInteraction(const Mater
 //
 */
   return proc;
+}
+
+
+// NOTE: this method is used only for testing and not used during a normal simulation!
+// procindex is the index of the (discrete) process in the fPostStepCandidateProcessVec vector
+double PhysicsManagerPerParticle::GetMacroscopicXSectionForProcess(const MaterialCuts *matcut, double kinenergy,
+                                                                   size_t procindex) {
+  double macXsec = 0.0;
+  if (procindex>=fPostStepCandidateProcessVec.size()) {
+    return macXsec;
+  }
+  // if there is no any normal (not decay or msc) discrete interactions then there is no total lambda table
+  if (!fIsHasTotalLambdaTable) {
+    if (fIsHasDecayProcess && procindex==0) { // only decay
+      macXsec = fPostStepCandidateProcessVec[0]->ComputeMacroscopicXSection(matcut, kinenergy, fParticle);
+    }
+    return macXsec;
+  }
+  // get the LambdaTable
+  LambdaTable *lambTab = nullptr;
+  if (fIsLambdaTablesPerMaterial) {
+    lambTab = fLambdaTables[matcut->GetMaterial()->GetIndex()];
+  } else {
+    lambTab = fLambdaTables[matcut->GetIndex()];
+  }
+  // if we are here it means that it has at least one normal discrete interaction. If it has more than one normal or
+  // one normal plus decay then the per process lambda table exists. Otherwise it has only one normal discerte process.
+  // Return with zero if below or above the min/max lambda table energy or there is no lambTab(should not happen)
+  if (kinenergy>=fMinLambdaTableEnergy && kinenergy<=fMaxLambdaTableEnergy && lambTab) {
+    // get the current 1/lambda total: was used for normalisation
+    double curLambda = GetInvTotalLambda(matcut, kinenergy); // current 1/lambda
+    // select interaction
+    size_t numDProc = lambTab->fInvLambdaPerProcess.size();
+    if (numDProc==0) { // it has only one so Per-Process lambda table was not built
+      macXsec = curLambda;
+    } else {
+      // select one discrete process
+      double logE     = std::log(kinenergy);
+      int    lowEIndx = (int) ((logE-fLogMinLambdaTableEnergy)*fEnergyILDelta);
+      if (lowEIndx>=fNumLambdaTableBins-1) --lowEIndx;
+      // we might put it under verbose build since
+      // protection against very small numerical uncertainties
+//      if (lowEIndx>0 && kinenergy<fEnergyGrid[lowEIndx]) {
+//        --lowEIndx;
+//      } else if (kinenergy>fEnergyGrid[lowEIndx+1]) {
+//        ++lowEIndx;
+//      }
+
+//
+//  This version is faster and assumes that normality is not lost during the interpolation and at least one of
+//  the probablity of processes is non-zero(that should be in theory since the total lambda was non zero)
+      double normedMacXsec = lambTab->fSplinesInvLambdaPerProcess[procindex]->GetValueAt(kinenergy,lowEIndx);
+      macXsec = normedMacXsec*curLambda;
+      if (macXsec<0.0) macXsec = 0.0;
+    }
+  }
+
+//
+//  This is the full correct way that takes into account the loss of normality due to interpolation.
+//
+/*
+      std::vector<double> cumulative(numDProc,0.0);
+      int    procIndx      = 0;
+      double prob          = lambTab->fSplinesInvLambdaPerProcess[procIndx]->GetValueAt(kinenergy,lowEIndx);
+      cumulative[procIndx] = prob;
+      for (procIndx=1; procIndx<numDProc; ++procIndx) {
+        prob = lambTab->fSplinesInvLambdaPerProcess[procIndx]->GetValueAt(kinenergy,lowEIndx);
+        cumulative[procIndx] = cumulative[procIndx-1]+prob;
+      }
+      if (cumulative[numDProc-1]>0.0) { // at least one of them is non-zero
+        procIndx = 0;
+        double dum = rndm*cumulative[numDProc-1];
+        for (; dum>cumulative[procIndx] && procIndx<numDProc-1; ++procIndx){}
+        proc = fPostStepCandidateProcessVec[procIndx];
+      }
+//
+*/
+  return macXsec;
 }
 
 
