@@ -236,7 +236,7 @@ void TestEM3ApplicationRP::FinishRun() {
              << fListDataPerThread[0].fListDataPerAbsorber[0].fLength/nprim
              << std::endl;
     std::cout<< std::left  << std::setw(8) << " "
-             << std::setw(20) << "Scintillator:"
+             << std::setw(20) << "liquidArgon:"
              << std::setw(20) << std::setprecision(6)
              << fListDataPerThread[0].fListDataPerAbsorber[1].fEdep*1000./nprim
              << std::setw(20) << std::setprecision(6)

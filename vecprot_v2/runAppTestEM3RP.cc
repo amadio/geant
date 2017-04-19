@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
   int     gvParticleCode =  22;    // internal code of the primary particle:  22 ==> e-
   double  primaryEnergy  = primary_energy;          // kinetic energy of the primary particles in [GeV]
   double  avNPrimPerEvt  = n_avrg_tracks_per_evt;   // Average number of tracks per event
-  double  xPos           =  -8.;   // x-position of the particle gun
+  double  xPos           = -23.;   // x-position of the particle gun
   double  yPos           =   0.;   // y-position of the particle gun
   double  zPos           =   0.;   // z-position of the particle gun
   double  xDir           =   1.;   // x-direction of the particle gun
