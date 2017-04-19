@@ -15,6 +15,7 @@
 #include "MaterialCuts.h"
 
 #include "PhysicsListManager.h"
+#include "PhysicsProcess.h"
 #include "PhysicsList.h"
 #include "PhysicsList1.h"
 
