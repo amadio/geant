@@ -6,29 +6,43 @@ export LC_ALL=en_US.UTF-8
 THIS=$(dirname ${BASH_SOURCE[0]})
 
 # first arguments is the source directory
-if [ $# -ge 7 ]; then
+if [ $# -ge 4 ]; then
   LABEL=$1 ; shift
   COMPILER=$1 ; shift
   BUILDTYPE=$1 ; shift
   EXTERNALS=$1 ; shift
-  WORKSPACE=$1 ; shift
-  TYPE=$1 ; shift
-  BACKEND=$1 ; shift
+#  WORKSPACE=$1 ; shift
+#  TYPE=$1 ; shift
+#  BACKEND=$1 ; shift
 else
-  echo "$0: expecting 7 arguments [LABEL]  [COMPILER] [BUILDTYPE] [EXTERNALS] [WORKSPACE] [TYPE] [BACKEND]"
+  echo "$0: expecting 4 arguments [LABEL] [COMPILER] [BUILDTYPE] [EXTERNALS]"
   return
+fi
+
+PLATFORM=`$THIS/getPlatform.py`
+COMPATIBLE=`$THIS/getCompatiblePlatform.py $PLATFORM`
+ARCH=$(uname -m)
+
+export BUILDTYPE
+export COMPILER
+
+# Set up the externals against dev4 in CVMFS 
+if [ -a /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$PLATFORM ]; then
+  source /cvmfs/sft.cern.ch/lcg/views/dev4/latest/setup.sh
+elif [ -a /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$COMPATIBLE ]; then
+  source /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$COMPATIBLE/setup.sh
+else
+  echo "No externals for $PLATFORM in $EXTERNALDIR/$EXTERNALS"
 fi
 
 if [ $LABEL == slc6 ] || [ $LABEL == gvslc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || [ $LABEL == lcgapp-SLC6_64b ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ] || [ $LABEL == continuous-xeonphi ]
 then
-  export PATH=/afs/cern.ch/sw/lcg/contrib/CMake/3.3.2/Linux-x86_64/bin/:${PATH}
+  export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.7.0/Linux-$ARCH/bin/:${PATH}
   kinit sftnight@CERN.CH -5 -V -k -t /ec/conf/sftnight.keytab
 elif [ $LABEL == xeonphi ]
 then
-  export PATH=/afs/cern.ch/sw/lcg/contrib/CMake/3.3.2/Linux-x86_64/bin:${PATH}
+  export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.7.0/Linux-$ARCH/bin:${PATH}
   kinit sftnight@CERN.CH -5 -V -k -t /data/sftnight/ec/conf/sftnight.keytab
-else
-  export EXTERNALDIR=$HOME/ROOT-externals/
 fi
 
 if [[ $COMPILER == *gcc* ]]; then
@@ -38,9 +52,9 @@ if [[ $COMPILER == *gcc* ]]; then
   COMPILERversion=${COMPILER}version
   ARCH=$(uname -m)
   if [ $LABEL == cuda7 ] || [ $LABEL == gvslc6 ] || [ $LABEL == slc6-physical ] ||  [ $LABEL == lcgapp-SLC6_64b ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]; then
-    . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
+    . /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
   else
-    . /afs/cern.ch/sw/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
+    . /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
   fi
   export FC=gfortran
   export CXX=`which g++`
@@ -74,6 +88,13 @@ elif [[ $COMPILER == *icc* ]]; then
   export CC=icc
   export CXX=icc
   export FC=ifort
+elif [[ $COMPILER == *icc17* ]]; then
+    icc17gcc=6.2
+    . /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!GCCversion}/${ARCH}-${LABEL_COMPILER}/setup.sh
+    . /cvmfs/projects.cern.ch/intelsw/psxe/linux/all-setup.sh
+    export CXX=`which icpc`
+    export FC=`which gfortran`
+    export LDFLAGS="-lirc -limf"
 elif [[ $COMPILER == *clang* ]]; then
   clang34version=3.4
   clang35version=3.5
@@ -99,8 +120,8 @@ export CMAKE_BUILD_TYPE=$BUILDTYPE
 
 export CTEST_BUILD_OPTIONS=" '-DCMAKE_CXX_FLAGS=-O2 -std=c++11' -DUSE_ROOT=ON -DCTEST=ON ${ExtraCMakeOptions}"
 export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
-export BACKEND=$BACKEND
+#export BACKEND=$BACKEND
 export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
 
-echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}
-eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}`
+#echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}
+#eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}`
