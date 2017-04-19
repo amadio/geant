@@ -11,10 +11,13 @@
 
 #include "ElectronIonizationProcess.h"
 #include "MollerBhabhaIonizationModel.h"
+
 #include "ElectronBremsstrahlungProcess.h"
 #include "SeltzerBergerBremsModel.h"
 #include "RelativisticBremsModel.h"
 
+#include "ComptonScatteringProcess.h"
+#include "KleinNishinaComptonModel.h"
 
 namespace userapplication {
 
@@ -110,6 +113,21 @@ void UserPhysicsList::Initialize() {
       //
       // add the process to the e+ particle
       AddProcessToPartcile(particle, eBremProc);
+    }
+    if (particle==geantphysics::Gamma::Definition()) {
+      // create compton scattering process for e- with 1 model:
+      //
+      geantphysics::EMPhysicsProcess *comptProc = new geantphysics::ComptonScatteringProcess();
+      // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation
+      geantphysics::EMModel          *kncModel  = new geantphysics::KleinNishinaComptonModel();
+      // set min/max energies of the model
+      kncModel->SetLowEnergyUsageLimit (100.0*geant::eV);
+      kncModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+      // add the model to the process
+      comptProc->AddModel(kncModel);
+      //
+      // add the process to the gamma particle
+      AddProcessToPartcile(particle, comptProc);
     }
   }
 }
