@@ -24,8 +24,9 @@ EMModel::EMModel(const std::string& name) : fName(name), fIndex(-1), fPhysicsPar
   // it is just to make all EMModel by default active in region zero only for testing individual models with MaterialCuts
   // having 0 region index;
   // it will be cleared and reset by the EMModelManager of the process when the model is used in a process
-  fListActiveRegions.resize(1,true);
+  //fListActiveRegions.resize(1,true);
   fIsElementSelectorsPerMaterial  = false; // by default, the derived model must tell this
+  fLowestSecondaryEnergy = 0.0;            // set to zero energy by defult i.e. no secondary generation limit
 }
 
 EMModel::~EMModel() {

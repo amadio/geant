@@ -51,15 +51,15 @@ public:
 
 
   /**
-   * @brief Method to compute stopping power for a given MaterialCuts, Partcile, kinetic energy.
+   * @brief Method to compute stopping power for a given MaterialCuts, Particle, kinetic energy.
    *
    * ALL ENERGY LOSS MODELS (i.e. those that has enegy loss along the step) NEEDS TO IMPLEMENT this method. It is called
    * at initialization to build the energy loss related tables through the corresponding PhysicsProcess by an ELossTable
    * object.
    *
    * @param[in] matcut      Pointer to the MaterialCuts object in which the dEdx must be computed.
-   * @param[in] kinenergy   Kinetic energy of the Partcile at which the dEdx must be computed.
-   * @param[in] particle    Pointer to the Partcile object for which the dEdx must be computed.
+   * @param[in] kinenergy   Kinetic energy of the Particle at which the dEdx must be computed.
+   * @param[in] particle    Pointer to the Particle object for which the dEdx must be computed.
    * @param[in] istotal     Flag to indicate if full dEdx must be computed. False by default i.e. restricted dEdx is
    *                        required.
    * @return    Restricted or full stopping power computed by the given electromagnetic model in internal [energy/length]
@@ -70,15 +70,15 @@ public:
 
 
   /**
-   * @brief Method to compute macroscopic cross section for a given MaterialCuts, Partcile, kinetic energy.
+   * @brief Method to compute macroscopic cross section for a given MaterialCuts, Particle, kinetic energy.
    *
    * ALL DISCRETE MODELS (i.e. those that describes interaction happening at the post-step point) NEEDS TO IMPLEMENT
    * this method. This method is called at initialization to build the lambda tables through the corresponding
    * PhysicsProcess by the PhysicsManagerPerParticle object.
    *
    * @param[in] matcut      Pointer to the MaterialCuts object in which the macroscopic cross section must be computed.
-   * @param[in] kinenergy   Kinetic energy of the Partcile at which the macroscopic cross section must be computed.
-   * @param[in] particle    Pointer to the Partcile object for which the macroscopic cross section must be computed.
+   * @param[in] kinenergy   Kinetic energy of the Particle at which the macroscopic cross section must be computed.
+   * @param[in] particle    Pointer to the Particle object for which the macroscopic cross section must be computed.
    * @return    Macroscopic cross section computed by the given electromagnetic model in internal [1/length] units for
    *            the given Particle, MaterialCuts/Material and particle kinetic energy combination.
    */
@@ -87,7 +87,7 @@ public:
 
 
   /**
-   * @brief Method to compute atomic cross section for a given Element, MaterialCuts, Partcile, kinetic energy.
+   * @brief Method to compute atomic cross section for a given Element, MaterialCuts, Particle, kinetic energy.
    *
    * ALL DISCRETE MODELS (i.e. those that describes interaction happening at the post-step point) NEEDS TO IMPLEMENT
    * this method. This method is called at initialization to build the lambda tables through the corresponding
@@ -100,8 +100,8 @@ public:
    *
    * @param[in] elem        Pointer to the Element object for which the atomic cross section must be computed.
    * @param[in] matcut      Pointer to the MaterialCuts object in which the atomic cross section must be computed.
-   * @param[in] kinenergy   Kinetic energy of the Partcile at which the atomic cross section must be computed.
-   * @param[in] particle    Pointer to the Partcile object for which the atomic cross section must be computed.
+   * @param[in] kinenergy   Kinetic energy of the Particle at which the atomic cross section must be computed.
+   * @param[in] particle    Pointer to the Particle object for which the atomic cross section must be computed.
    * @return    Atomic cross section computed by the given electromagnetic model in internal [length^2] units for
    *            the given ELement, Particle, MaterialCuts/Material and particle kinetic energy combination.
    */
@@ -109,6 +109,22 @@ public:
                                         const Particle * /*particle*/) { return 0.; }
 
 
+  /**
+   * @brief Method to invoke the discrete part of the interaction.
+   *
+   * This method is responsible for the final state generation of the discrete part of the interaction: primary track
+   * properties must be updated and secondary track(s) must be generated according to the model of intercation.
+   * Note, that the 'sectracks' input parameter (container to store secondary tracks) is currently not used: secondary
+   * tracks are inserted into the Geant::GeantTaskData::fPhysicsData object that guaranties thread safe behaviour.
+   *
+   * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
+   *                          some information about the current material-cut couple. It is updated by the method and
+   *                          it stores the post-interaction primary track properties at output.
+   * @param[in,out] sectracks Container to store secondary tracks generated in the interaction (currently not used).
+   * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will store
+   *                          the seconadry tracks generated in the interaction.
+   * @return                  Number of secondary tracks generated in the interaction.
+   */
   virtual int    SampleSecondaries(LightTrack & /*track*/, std::vector<LightTrack> & /*sectracks*/,
                                    Geant::GeantTaskData * /*td*/) { return 0; }
 
@@ -122,11 +138,11 @@ public:
    * for the discrete interaction.
    *
    * @param[in] matcut      Pointer to the MaterialCuts object in which the discrete kinematic minimum is requested.
-   * @param[in] particle    Pointer to the Partcile object for which the discrete kinematic minimum is requested.
+   * @param[in] particle    Pointer to the Particle object for which the discrete kinematic minimum is requested.
    * @return    Minimum primary particle kinetic energy at which the discrete interaction can happen in interanl
    *            [energy] units for the given Particle, MaterialCuts/Material combination.
    */
-  virtual double MinimumPrimaryEnergy(const MaterialCuts * /*matcut*/, const Particle * /*part*/) const { return 0.0; }
+  virtual double MinimumPrimaryEnergy(const MaterialCuts * /*matcut*/, const Particle * /*part*/) const { return fLowEnergyUsageLimit; }
 //
 //
 //
@@ -136,10 +152,12 @@ public:
   void    SetIndex(int indx) { fIndex = indx; }
   int     GetIndex() const   { return fIndex; }
 
-  void    SetLowEnergyUsageLimit(double val)  { fLowEnergyUsageLimit  = val; }
-  double  GetLowEnergyUsageLimit() const      { return fLowEnergyUsageLimit; }
-  void    SetHighEnergyUsageLimit(double val) { fHighEnergyUsageLimit = val; }
-  double  GetHighEnergyUsageLimit() const     { return fHighEnergyUsageLimit;}
+  void    SetLowEnergyUsageLimit(double val)  { fLowEnergyUsageLimit  = val;  }
+  double  GetLowEnergyUsageLimit() const      { return fLowEnergyUsageLimit;  }
+  void    SetHighEnergyUsageLimit(double val) { fHighEnergyUsageLimit = val;  }
+  double  GetHighEnergyUsageLimit() const     { return fHighEnergyUsageLimit; }
+  void    SetLowestSecondaryEnergy(double val){ fLowestSecondaryEnergy = val; }
+  double  GetLowestSecondaryEnergy() const    { return fLowestSecondaryEnergy;}
 
   const PhysicsParameters* GetPhysicsParameters() const { return fPhysicsParameters; }
 
@@ -178,6 +196,7 @@ private:
   int                      fIndex;                // will be set by the model manager and it will be the index of the model in the model manager table
   double                   fLowEnergyUsageLimit;     // set by the user to be used
   double                   fHighEnergyUsageLimit;    // set by the user to be used
+  double                   fLowestSecondaryEnergy;   // kinetic energy limit to create secondary (0 by default)
   const PhysicsParameters *fPhysicsParameters;       // physics parameters object that belongs to the region(s) where this model is active
                                                      // the class do not own the object
   // flag to indicate if element selectors are per material or per material-cuts
