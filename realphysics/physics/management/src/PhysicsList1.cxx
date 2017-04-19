@@ -120,12 +120,12 @@ void PhysicsList1::Initialize() {
       //
       EMPhysicsProcess *comptProc = new ComptonScatteringProcess();
       // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation
-      EMModel          *eMBModel  = new KleinNishinaComptonModel();
+      EMModel          *kncModel = new KleinNishinaComptonModel();
       // set min/max energies of the model
-      eMBModel->SetLowEnergyUsageLimit (100.0*geant::eV);
-      eMBModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+      kncModel->SetLowEnergyUsageLimit (100.0*geant::eV);
+      kncModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
       // add the model to the process
-      comptProc->AddModel(eMBModel);
+      comptProc->AddModel(kncModel);
       //
       // add the process to the gamma particle
       AddProcessToPartcile(particle, comptProc);

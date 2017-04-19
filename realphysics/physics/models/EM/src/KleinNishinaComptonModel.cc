@@ -460,14 +460,10 @@ void KleinNishinaComptonModel::InitSamplingTables() {
   fLSamplingPrimEnergies[0] = fPrimEnLMin;
   fSamplingPrimEnergies[fNumSamplingPrimEnergies-1]  = fMaxPrimEnergy;
   fLSamplingPrimEnergies[fNumSamplingPrimEnergies-1] = std::log(fMaxPrimEnergy);
-  std::cerr<<" E(0) = "<<fSamplingPrimEnergies[0]/geant::MeV<< " [MeV]"<<std::endl;
   for (int i=1; i<fNumSamplingPrimEnergies-1; ++i) {
     fLSamplingPrimEnergies[i] = fPrimEnLMin+i*delta;
     fSamplingPrimEnergies[i]  = std::exp(fPrimEnLMin+i*delta);
-    std::cerr<<" E("<<i<<") = "<<fSamplingPrimEnergies[i]/geant::MeV<< " [MeV]"<<std::endl;
   }
-  std::cerr<<" E(i) = "<<fSamplingPrimEnergies[fNumSamplingPrimEnergies-1]/geant::MeV<< " [MeV]"<<std::endl;
-
   //
   // build the sampling tables at each primary gamma energy grid point.
   //

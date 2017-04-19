@@ -41,7 +41,7 @@ static double primary_energy        = 100.; // [GeV]
 static struct option options[] = {{"primary-energy", required_argument, 0, 'E'},
                                   {"events", required_argument, 0, 'e'},
                                   {"avrg-tracks-per-evt", required_argument, 0, 'a'},
-                                  {"geometry", required_argument, 0, 'g'},
+                                  {"geometry (ATLASbar.root)", required_argument, 0, 'g'},
                                   {"learn-steps", required_argument, 0, 'l'},
                                   {"max-tracks-per-basket", required_argument, 0, 'B'},
                                   {"monitor", no_argument, 0, 'm'},
@@ -56,7 +56,7 @@ static struct option options[] = {{"primary-energy", required_argument, 0, 'E'},
                                   {0, 0, 0, 0}};
 
 void help() {
-  printf("\nUsage: runAppRP [OPTIONS] INPUT_FILE\n\n");
+  printf("\nUsage: runAppTestEM3RP [OPTIONS] INPUT_FILE\n\n");
 
   for (int i = 0; options[i].name != NULL; i++) {
     printf("\t-%c  --%s\t%s\n", options[i].val, options[i].name, options[i].has_arg ? options[i].name : "");
@@ -66,7 +66,7 @@ void help() {
 
 int main(int argc, char *argv[]) {
   std::cout << "Avoid ctest truncation of output: CTEST_FULL_OUTPUT" << std::endl;
-  std::string exn03_geometry_filename("ExN03.root");
+  std::string geometry_filename("ATLASbar.root");
 
   if (argc == 1) {
     help();
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'g':
-      exn03_geometry_filename = optarg;
+      geometry_filename = optarg;
       break;
 
     case 'l':
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
   int     gvParticleCode =  22;    // internal code of the primary particle:  22 ==> e-
   double  primaryEnergy  = primary_energy;          // kinetic energy of the primary particles in [GeV]
   double  avNPrimPerEvt  = n_avrg_tracks_per_evt;   // Average number of tracks per event
-  double  xPos           = -23.;   // x-position of the particle gun
+  double  xPos           = -23.;   // x-position of the particle gun (in ATLASbar geom)
   double  yPos           =   0.;   // y-position of the particle gun
   double  zPos           =   0.;   // z-position of the particle gun
   double  xDir           =   1.;   // x-direction of the particle gun
@@ -199,8 +199,8 @@ int main(int argc, char *argv[]) {
   Geant::GeantConfig* config=new Geant::GeantConfig();
 
 
-//  TGeoManager::Import(exn03_geometry_filename.c_str());
-  config->fGeomFileName = exn03_geometry_filename;
+//  TGeoManager::Import(geometry_filename.c_str());
+  config->fGeomFileName = geometry_filename;
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
   config->fUseMonitoring = monitor;
@@ -266,7 +266,8 @@ int main(int argc, char *argv[]) {
 #endif
 
   runMgr->RunSimulation();
-//  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
+//  propagator->PropagatorGeom(geometry_filename.c_str(), n_threads, monitor);
+  delete runMgr;
   return 0;
 }
 #endif
