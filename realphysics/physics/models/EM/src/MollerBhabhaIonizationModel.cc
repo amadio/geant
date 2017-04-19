@@ -108,8 +108,8 @@ MollerBhabhaIonizationModel::~MollerBhabhaIonizationModel() {
   if (fGlobalMatCutIndxToLocal)
     delete [] fGlobalMatCutIndxToLocal;
 
-  if (fAliasData)
-    for (int i=0; i<fNumDifferentElecCuts; ++i)
+  if (fAliasData) {
+    for (int i=0; i<fNumDifferentElecCuts; ++i) {
       for (int j=0; j<fNumSamplingPrimEnergies; ++j) {
         int indx = i*fNumSamplingPrimEnergies+j;
         if (fAliasData[indx]) {
@@ -120,6 +120,9 @@ MollerBhabhaIonizationModel::~MollerBhabhaIonizationModel() {
           delete fAliasData[indx];
         }
       }
+    }
+    delete [] fAliasData;
+  }
 
   if (fAliasSampler)
     delete fAliasSampler;
@@ -303,7 +306,9 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
   // set up the common electron energy grid
   if (fSamplingPrimEnergies) {
     delete [] fSamplingPrimEnergies;
-    fSamplingPrimEnergies = nullptr;
+    delete [] fLSamplingPrimEnergies;
+    fSamplingPrimEnergies  = nullptr;
+    fLSamplingPrimEnergies = nullptr;
   }
   fSamplingPrimEnergies  = new double[fNumSamplingPrimEnergies];
   fLSamplingPrimEnergies = new double[fNumSamplingPrimEnergies];
@@ -358,8 +363,8 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
 
   // std::cerr<<" === Number of local e- cuts = "<<fNumDifferentElecCuts<<std::endl;
   // allocate space for the different e- cut sampling tables and init these pointers to null
-  if (fAliasData)
-    for (int i=0; i<oldnumDif; ++i)
+  if (fAliasData) {
+    for (int i=0; i<oldnumDif; ++i) {
       for (int j=0; j<oldnumSPE; ++j) {
         int indx = i*oldnumSPE+j;
         if (fAliasData[indx]) {
@@ -367,10 +372,12 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
           delete [] fAliasData[indx]->fYdata;
           delete [] fAliasData[indx]->fAliasW;
           delete [] fAliasData[indx]->fAliasIndx;
-          fAliasData[indx] = nullptr;
+          delete fAliasData[indx];
         }
       }
-
+    }
+    delete [] fAliasData;
+  }
   int *isdone = new int[fNumDifferentElecCuts]();
   // as many POSSIBLE alias table as (number of primary enery grig point)x(number of different e- cuts)
   // some of them (those that are kinematically not allowed will remain nullptr!!!)

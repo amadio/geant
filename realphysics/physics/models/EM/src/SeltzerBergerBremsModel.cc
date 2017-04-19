@@ -225,8 +225,8 @@ SeltzerBergerBremsModel::~SeltzerBergerBremsModel() {
   if (fGlobalMatGCutIndxToLocal)
     delete [] fGlobalMatGCutIndxToLocal;
 
-  if (fAliasData)
-    for (int i=0; i<fNumDifferentMaterialGCuts; ++i)
+  if (fAliasData) {
+    for (int i=0; i<fNumDifferentMaterialGCuts; ++i) {
       for (int j=0; j<fNumSamplingElecEnergies; ++j) {
         int indx = i*fNumSamplingElecEnergies+j;
         if (fAliasData[indx]) {
@@ -237,6 +237,9 @@ SeltzerBergerBremsModel::~SeltzerBergerBremsModel() {
           delete fAliasData[indx];
         }
       }
+    }
+    delete [] fAliasData;
+  }
 
   if (fAliasSampler)
     delete fAliasSampler;
@@ -351,7 +354,9 @@ void SeltzerBergerBremsModel::InitSamplingTables() {
   // set up the common electron energy grid
   if (fSamplingElecEnergies) {
     delete [] fSamplingElecEnergies;
-    fSamplingElecEnergies = nullptr;
+    delete [] fLSamplingElecEnergies;
+    fSamplingElecEnergies  = nullptr;
+    fLSamplingElecEnergies = nullptr;
   }
   fSamplingElecEnergies  = new double[fNumSamplingElecEnergies];
   fLSamplingElecEnergies = new double[fNumSamplingElecEnergies];
@@ -409,8 +414,8 @@ void SeltzerBergerBremsModel::InitSamplingTables() {
   //std::cerr<<" === Number of local Material-Cuts = "<<fNumDifferentMaterialGCuts<<std::endl;
 
   // allocate space for the matrial-gcut sampling tables and init these pointers to null
-  if (fAliasData)
-    for (int i=0; i<oldnumDif; ++i)
+  if (fAliasData) {
+    for (int i=0; i<oldnumDif; ++i) {
       for (int j=0; j<oldnumSEE; ++j) {
         int indx = i*oldnumSEE+j;
         if (fAliasData[indx]) {
@@ -418,9 +423,13 @@ void SeltzerBergerBremsModel::InitSamplingTables() {
           delete [] fAliasData[indx]->fYdata;
           delete [] fAliasData[indx]->fAliasW;
           delete [] fAliasData[indx]->fAliasIndx;
-          fAliasData[indx] = nullptr;
+          delete fAliasData[indx];
         }
       }
+    }
+    delete [] fAliasData;
+  }
+
 
   int *isdone = new int[fNumDifferentMaterialGCuts]();
   int  idum   = fNumDifferentMaterialGCuts*fNumSamplingElecEnergies;

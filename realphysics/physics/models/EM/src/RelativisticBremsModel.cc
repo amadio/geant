@@ -235,7 +235,6 @@ RelativisticBremsModel::~RelativisticBremsModel() {
        }
      }
      delete [] fAliasData;
-     fAliasData = nullptr;
    }
 
    if (fRatinAliasData) {
@@ -253,12 +252,10 @@ RelativisticBremsModel::~RelativisticBremsModel() {
        }
      }
      delete [] fRatinAliasData;
-     fRatinAliasData = nullptr;
    }
 
    if (fAliasSampler) {
      delete fAliasSampler;
-     fAliasSampler = nullptr;
    }
 }
 
@@ -387,7 +384,9 @@ void RelativisticBremsModel::InitSamplingTables() {
    // set up the common electron/positron energy grid
    if (fSamplingElecEnergies) {
      delete [] fSamplingElecEnergies;
-     fSamplingElecEnergies = nullptr;
+     delete [] fLSamplingElecEnergies;
+     fSamplingElecEnergies  = nullptr;
+     fLSamplingElecEnergies = nullptr;
    }
    fSamplingElecEnergies  = new double[fNumSamplingElecEnergies];
    fLSamplingElecEnergies = new double[fNumSamplingElecEnergies];
@@ -442,7 +441,7 @@ void RelativisticBremsModel::InitSamplingTables() {
    }
    //std::cerr<<" === Number of local Material-Cuts = "<<fNumDifferentMaterialGCuts<<std::endl;
    // allocate space for the matrial-gcut sampling tables and init these pointers to null
-   if (fAliasData)
+   if (fAliasData) {
      for (int i=0; i<oldnumDif; ++i) {
        for (int j=0; j<oldnumSEE; ++j) {
          int indx = i*oldnumSEE+j;
@@ -451,11 +450,12 @@ void RelativisticBremsModel::InitSamplingTables() {
            delete [] fAliasData[indx]->fYdata;
            delete [] fAliasData[indx]->fAliasW;
            delete [] fAliasData[indx]->fAliasIndx;
-           fAliasData[indx] = nullptr;
+           delete fAliasData[indx];
          }
        }
      }
-
+     delete [] fAliasData;
+   }
    int *isdone = new int[fNumDifferentMaterialGCuts]();
    int  idum   = fNumDifferentMaterialGCuts*fNumSamplingElecEnergies;
    fAliasData  = new LinAlias*[idum];
@@ -1529,7 +1529,9 @@ void RelativisticBremsModel::InitSamplingTables1() {
   // set up the common electron energy grid
   if (fSamplingElecEnergies) {
     delete [] fSamplingElecEnergies;
-    fSamplingElecEnergies = nullptr;
+    delete [] fLSamplingElecEnergies;
+    fSamplingElecEnergies  = nullptr;
+    fLSamplingElecEnergies = nullptr;
   }
   fSamplingElecEnergies = new double[fNumSamplingElecEnergies];
   fLSamplingElecEnergies = new double[fNumSamplingElecEnergies];
@@ -1580,8 +1582,8 @@ void RelativisticBremsModel::InitSamplingTables1() {
   }
   std::cerr<<" === Number of local Material-Cuts = "<<fNumDifferentMaterialGCuts<<std::endl;
   // allocate space for the matrial-gcut sampling tables and init these pointers to null
-  if (fRatinAliasData)
-    for (int i=0; i<oldnumDif; ++i)
+  if (fRatinAliasData) {
+    for (int i=0; i<oldnumDif; ++i) {
       for (int j=0; j<oldnumSEE; ++j) {
         int indx = i*oldnumSEE+j;
         if (fRatinAliasData[indx]) {
@@ -1591,9 +1593,12 @@ void RelativisticBremsModel::InitSamplingTables1() {
           delete [] fRatinAliasData[indx]->fA;
           delete [] fRatinAliasData[indx]->fB;
           delete [] fRatinAliasData[indx]->fAliasIndx;
-          fRatinAliasData[indx] = nullptr;
+          delete fRatinAliasData[indx];
         }
       }
+    }
+    delete [] fRatinAliasData;
+  }
 
   int *isdone = new int[fNumDifferentMaterialGCuts]();
   int  idum   = fNumDifferentMaterialGCuts*fNumSamplingElecEnergies;
