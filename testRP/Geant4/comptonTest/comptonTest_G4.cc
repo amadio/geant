@@ -239,6 +239,86 @@ int main(int argc, char** argv) {
   knc.Initialise(part, cuts);
 //  knm.Initialise(part, cuts);
 
+
+  // -------- Track
+  G4Track* track = new G4Track(&dParticle,0.0,aPosition);
+  G4TouchableHandle fpTouchable(new G4TouchableHistory());
+  track->SetTouchableHandle(fpTouchable);
+
+  // -------- Step
+  if(!G4StateManager::GetStateManager()->SetNewState(G4State_Idle)) {
+    G4cout << "G4StateManager PROBLEM! " << G4endl;
+  }
+
+  // set the EmModel
+  G4VEmModel *model = &knc;
+
+  // print outs
+  G4cout<< mat;
+  G4ProductionCutsTable::GetProductionCutsTable()->DumpCouples();
+  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  G4cout<< "   Particle       =  " << part->GetParticleName()                                    << G4endl;
+  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  G4cout<< "   Kinetic energy =  " << energy/MeV << "  [MeV] "                                   << G4endl;
+  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  G4cout<< "   Model name     =  " << model->GetName()                                              << G4endl;
+  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  // compute some integrated quantities using the G4VEmModel interface methods
+  // check if we compute atomic-cross section: only for single elemnt materials
+  G4bool isSingleElementMaterial = false;
+  if (mat->GetNumberOfElements()==1) {
+    isSingleElementMaterial = true;
+  }
+  //
+  // Note: restrictedDEDX and unrestrictedDEDX will be non-zero value only in case of EMModels that has the ComputeDEDX
+  //       method implemented i.e. in case of energy loss intercations (i.e. ioni. and brem.)
+  G4double restrictedDEDX          = 0.0;
+  G4double unRestrictedDEDX        = 0.0;
+  // Note: atomicCrossSection is computed only in case of materials that has single element
+  G4double atomicCrossSection      = 0.0;
+  G4double macroscopicCrossSection = 0.0;
+  //
+  // use the model to compute restricted stopping power
+  restrictedDEDX   = model->ComputeDEDXPerVolume(mat, part, energy);
+  // use the model to compute un-restricted stopping power
+  unRestrictedDEDX = model->ComputeDEDXPerVolume(mat, part, energy, energy);
+  // use the model to compute atomic cross section (only in case of single element materials)
+  if (isSingleElementMaterial) {
+    atomicCrossSection  = model->ComputeCrossSectionPerAtom(part, energy, mat->GetZ(), mat->GetA());
+  }
+  // use the model to compute macroscopic cross section
+  macroscopicCrossSection = model->CrossSectionPerVolume(mat, part, energy);
+  //
+  // print out integrated quantities:
+  // -atomic cross section
+  if (isSingleElementMaterial) {
+    std::cout<< "   cross section per atom      :";
+    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/barn
+             << std::setw(14) << std::left << "     [barn]";
+    std::cout<<std::endl;
+  }
+  //
+  // -macroscopic cross section
+  std::cout<< "   cross section per volume    :";
+  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./cm)
+           << std::setw(14) << std::left << "     [1/cm]";
+  std::cout<<std::endl;
+  //
+  // -restricted stopping power
+  std::cout<< "   resricted dE/dx  (MeV/cm)   :";
+  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(MeV/cm)
+           << std::setw(14) << std::left << "   [MeV/cm]";
+  std::cout<<std::endl;
+  //
+  // -unrestricted stopping power
+  std::cout<< "   unresricted dE/dx (MeV/cm)  :";
+  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(MeV/cm)
+           << std::setw(14) << std::left << "   [MeV/cm]";
+  std::cout<<std::endl;
+  //===========================================================================================//
+
+
+
   // ------- Histograms name
   Histo    histo;
   G4String nname = mname; // material name
@@ -275,37 +355,19 @@ int main(int argc, char** argv) {
   xmin     = -1.0;
   xmax     =  1.0;
   histo.Add1D("4",hname,nbins,xmin,xmax);
-
   //
   //
   hname = "compton_G4_" + nname;
   histo.SetFileName(hname);
   histo.Book();
-//  G4cout << "Histograms are booked output file <" << hname << "> "
-//	 << G4endl;
-
-  // -------- Track
-  G4Track* track = new G4Track(&dParticle,0.0,aPosition);
-  G4TouchableHandle fpTouchable(new G4TouchableHistory());
-  track->SetTouchableHandle(fpTouchable);
-
-  // -------- Step
-  if(!G4StateManager::GetStateManager()->SetNewState(G4State_Idle)) {
-    G4cout << "G4StateManager PROBLEM! " << G4endl;
-  }
 
 
-  // print outs
-  G4cout<< mat;
-  G4ProductionCutsTable::GetProductionCutsTable()->DumpCouples();
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Particle       =  " << part->GetParticleName()                                    << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Kinetic energy =  " << energy/MeV << "  [MeV] "                                   << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Model name     =  " << knc.GetName()                                              << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  // start sampling
+  G4cout<< "   -------------------------------------------------------------------------------- " << G4endl;
   G4cout<< "   Sampling is running : .........................................................  " << G4endl;
+  // Sampling
+
+
 
   //
   // sampling
@@ -320,7 +382,7 @@ int main(int argc, char** argv) {
   timer->Start();
   for (long int iter=0; iter<stat; ++iter) {
     fParticleChange->InitializeForPostStep(*track);
-    knc.SampleSecondaries(&vdp,couple,&dParticle,0.0,energy);
+    model->SampleSecondaries(&vdp,couple,&dParticle,0.0,energy);
     if (vdp.size()>0) {
       e1 = vdp[0]->GetKineticEnergy()/energy;
       histo.Fill(2,e1,1.0);

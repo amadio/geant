@@ -1,25 +1,12 @@
 /**
- * @brief  bremTest_modeLevel_GV: GeantV-Real-physics application to test models for e-/e+ bremsstrahlung.
+ * @brief  comptonTest_GV: GeantV-Real-physics test for testing models for incoherent(Compton) scattering of photons on
+ *         atomic electrons.
+ *
  * @author M Novak
  * @date   April 2017
  *
- * This application is similar to bremTest_GV with the difference:
- *  - does not extract the bremsstrahlung model from a user-physics list but the bremsstrahlung model is
- *    created and initialised explicitly, without using any physics lists or processes
- *  - the partcile(e-) and the model(Seltzer-Berger bremsstrahlung model) is fixed as well as the final
- *    state distribution sampling: emitted photon energy-distribution.
- *  - integrated quantities, beyond the final state distribution, are also computed by using the EMModel
- *    interface methods
- *
- * This is an example of how to create simple (EMModel) model level test. The model specific part are
- * marked clearly so it makes easy to write similar tests for any other geantphysics::EMModel.
- *
- * Run ./bremTest_modelLevel_GV --help    for more details!
- * The corresponding quantities can be obtained by using TestEm0_G4(integrated: note that the results will
- * not be exactly the same in case of production cut dependent models since the lowest production cut energy
- * is 100 [eV] in TestEm0_G4; use TestEm0_GV GeantV application to get exactly the same values where we
- * set the minimum production cut value to 100 [eV]) and breamTest_G4(energy-distribution) Geant4 test
- * applications.
+ * Run ./comptonTest_GV --help for more details!
+ * The corresponding quantities/distributions can be obtained by using the comptonTest_G4 Geant4 test.
  */
 
 
@@ -89,16 +76,12 @@ static std::string   materialName("NIST_MAT_Pb");         // material is lead
 static int           numHistBins       = 100;             // number of histogram bins between min/max values
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 0.1;             // primary particle energy in [GeV]
-static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
-static bool          isProdCutInLength = true;            // is the production cut value given in length ?
 
 static struct option options[] = {
   {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"        , required_argument, 0, 'm'},
   {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.1"                , required_argument, 0, 'E'},
   {"number-of-samples (number of required final state samples)                 - default: 1.e+7"              , required_argument, 0, 'f'},
   {"number-of-bins    (number of bins in the histogram)                        - default: 100"                , required_argument, 0, 'n'},
-  {"cut-vale          (secondary production threshold value for all particles) - default: 0.1"                , required_argument, 0, 'c'},
-  {"cut-in-energy     (is the production cut value given in energy ? )         - default: false"              , no_argument      , 0, 'e'},
   {"help"                                                                                                     , no_argument      , 0, 'h'},
   {0, 0, 0, 0}
 };
@@ -120,7 +103,7 @@ int main(int argc, char *argv[]) {
   //============================== Get input parameters =====================================//
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "eh:m:E:f:n:c:", options, &optidx);
+    c = getopt_long(argc, argv, "h:m:E:f:n:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
@@ -145,14 +128,6 @@ int main(int argc, char *argv[]) {
       if (numHistBins<=0)
         errx(1, "number of histogram bins must be positive");
       break;
-    case 'c':
-      prodCutValue = (double)strtof(optarg, NULL);
-      if (prodCutValue<=0)
-        errx(1, "production cut value must be positive");
-      break;
-    case 'e':
-      isProdCutInLength = false;
-      break;
     case 'h':
        help();
        return 0;
@@ -174,8 +149,9 @@ int main(int argc, char *argv[]) {
   // Set particle kinetic energy
   double kineticEnergy    = primaryEnergy;
   //
-  // Set production cuts if needed
-  bool   iscutinlength    = isProdCutInLength;
+  // Set production cuts if needed: not used in Compton
+  bool   iscutinlength    = true;
+  double prodCutValue     = 1.*geant::mm;
   double gcut             = prodCutValue;
   double emcut            = prodCutValue;
   double epcut            = prodCutValue;
@@ -317,6 +293,8 @@ int main(int argc, char *argv[]) {
   xMax = 1.0;
   Hist *histo_electron_energy = new Hist(xMin, xMax, numHistBins);
   // Create histogram to store the secondary electron direction: cos(\theta_electron)
+  xMin = -1.;
+  xMax = +1.;
   Hist *histo_electron_angle  = new Hist(xMin, xMax, numHistBins);
   //
   //
@@ -341,7 +319,7 @@ int main(int argc, char *argv[]) {
   delete histo;
   fclose(f);
   //
-  sprintf(fileName,"compton_GV_gamma_angle_%s",(matCut->GetMaterial()->GetName()).c_str());
+  sprintf(fileName,"compton_GV_gamma_angular_%s",(matCut->GetMaterial()->GetName()).c_str());
   f     = fopen(fileName,"w");
   histo = histo_gamma_angle;
   for (int i=0; i<histo->GetNumBins(); ++i) {
@@ -359,7 +337,7 @@ int main(int argc, char *argv[]) {
   delete histo;
   fclose(f);
   //
-  sprintf(fileName,"compton_GV_electron_angle_%s",(matCut->GetMaterial()->GetName()).c_str());
+  sprintf(fileName,"compton_GV_electron_angular_%s",(matCut->GetMaterial()->GetName()).c_str());
   f     = fopen(fileName,"w");
   histo = histo_electron_angle;
   for (int i=0; i<histo->GetNumBins(); ++i) {
@@ -392,10 +370,10 @@ return 0;
 
 void help() {
   std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-  std::cout<<"  Model-level version of bremTest GeantV application for testing emitted photon energy distribution in \n"
-           <<"  case of Seltzer-Berger bremsstrahlung model for e-."
+  std::cout<<"  Model-level GeantV test for testing GeantV model for incoherent(Compton) scattering"
+           <<" of photons on atomic electrons."
            << std::endl;
-  std::cout<<"\n  Usage: bremTest_modelLevel_GV [OPTIONS] \n"<<std::endl;
+  std::cout<<"\n  Usage: comptonTest_GV [OPTIONS] \n"<<std::endl;
   for (int i = 0; options[i].name != NULL; i++) {
     printf("\t-%c  --%s\n", options[i].val, options[i].name);
   }
@@ -454,16 +432,16 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      // get the secondary track i.e. the e-
      if (numSecs>0) {
        LightTrack &secondaryLT = ((td->fPhysicsData->GetListOfSecondaries())[0]);
-       // get gamma energy and cost
-       double gammaE    = primaryLT.GetKinE();
+       // get reduced gamma energy and cost
+       double gammaE    = primaryLT.GetKinE()/ekin;
        if (gammaE>0.0) {
-         h1->Fill((gammaE/ekin),1.0);
+         h1->Fill(gammaE,1.0);
          double gammaCost = primaryLT.GetDirZ();
          h2->Fill(gammaCost,1.0);
        }
-       // get e- energy and cost
-       double eEnergy = secondaryLT.GetKinE();
-       h3->Fill((eEnergy/ekin),1.0);
+       // get reduced e- energy and cost
+       double eEnergy = secondaryLT.GetKinE()/ekin;
+       h3->Fill(eEnergy,1.0);
        double eCost   = secondaryLT.GetDirZ();
        h4->Fill(eCost,1.0);
      } // end if there is secondary
