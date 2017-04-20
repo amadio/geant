@@ -48,7 +48,7 @@
 Histo::Histo()
 {
   fManager   = 0;
- 
+
   fHistName   = "test";
   fHistType   = "root";
   fTupleName  = "tuple";
@@ -74,7 +74,7 @@ void Histo::Book()
   if(!(fHistoActive || fNtupleActive)) { return; }
 
   // Always creating analysis manager
-  fManager = G4RootAnalysisManager::Instance(); 
+  fManager = G4RootAnalysisManager::Instance();
 
   // Creating a tree mapped to a new hbook file.
   G4String nam = fHistName + "." + fHistType;
@@ -84,9 +84,9 @@ void Histo::Book()
     G4cout << "Histo::Book: ERROR open file <" << nam << ">" << G4endl;
     fHistoActive = false;
     fNtupleActive = false;
-    return; 
+    return;
   }
-//  G4cout << "### Histo::Save: Opended file <" << nam << ">  for " 
+//  G4cout << "### Histo::Save: Opended file <" << nam << ">  for "
 //	 << fNHisto << " histograms " << G4endl;
 
   // Creating an 1-dimensional histograms in the root directory of the tree
@@ -103,22 +103,22 @@ void Histo::Book()
   }
   // Creating a tuple factory, whose tuples will be handled by the tree
   if(fNtupleActive) {
-    fManager->CreateNtuple(fTupleName,fTupleTitle); 
+    fManager->CreateNtuple(fTupleName,fTupleTitle);
     G4int i;
     G4int n = fNtupleI.size();
-    for(i=0; i<n; ++i) { 
+    for(i=0; i<n; ++i) {
       if(fTupleI[i] == -1) {  fTupleI[i] = fManager->CreateNtupleIColumn(fNtupleI[i]); }
     }
     n = fNtupleF.size();
-    for(i=0; i<n; ++i) { 
+    for(i=0; i<n; ++i) {
       if(fTupleF[i] == -1) {  fTupleF[i] = fManager->CreateNtupleFColumn(fNtupleF[i]); }
     }
     n = fNtupleD.size();
-    for(i=0; i<n; ++i) { 
+    for(i=0; i<n; ++i) {
       if(fTupleD[i] == -1) {  fTupleD[i] = fManager->CreateNtupleDColumn(fNtupleD[i]); }
     }
   }
-} 
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -128,6 +128,28 @@ void Histo::Save()
 
   // Creating a tree mapped to a new hbook file.
   G4String nam = fHistName + "." + fHistType;
+  //
+  // try to save each histo into diferent ascii files
+  for (G4int i=0; i<fManager->GetNofH1s(); ++i) {
+     tools::histo::h1d  *h1 =  fManager->GetH1(i);
+     if (h1) {
+       G4String fname = fManager->GetH1Title(i);
+       std::ofstream file;
+       file.open(fname,std::ios::out);
+       for (G4int j=0; j< G4int(h1->axis().bins()); ++j) {
+         file << "  " << j
+              << "  " << h1->bin_center(j)
+              << "  " << h1->bin_Sw(j)
+              << G4endl;
+       }
+       file.close();
+     }
+  }
+//  for (G4int j=0; j< G4int(h1->axis().bins()); ++j) {
+//    output << "  " << j << "\t"
+//               << h1->axis().bin_center(j) << "\t"
+//               << h1->bin_height(i) << G4endl;
+//  }
 
   // Write histogram file
   if(!fManager->Write()) {
@@ -142,16 +164,16 @@ void Histo::Save()
   }
   delete G4RootAnalysisManager::Instance();
   fManager = 0;
-} 
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void Histo::Add1D(const G4String& id, const G4String& name, G4int nb, 
+void Histo::Add1D(const G4String& id, const G4String& name, G4int nb,
                   G4double x1, G4double x2, G4double u)
 {
   if(fVerbose > 0) {
-    G4cout << "Histo::Add1D: New histogram will be booked: #" << id << "  <" << name 
-           << "  " << nb << "  " << x1 << "  " << x2 << "  " << u 
+    G4cout << "Histo::Add1D: New histogram will be booked: #" << id << "  <" << name
+           << "  " << nb << "  " << x1 << "  " << x2 << "  " << u
            << G4endl;
   }
   ++fNHisto;
@@ -173,8 +195,8 @@ void Histo::SetHisto1D(G4int i, G4int nb, G4double x1, G4double x2, G4double u)
 {
   if(i>=0 && i<fNHisto) {
     if(fVerbose > 0) {
-      G4cout << "Histo::SetHisto1D: #" << i  
-             << "  " << nb << "  " << x1 << "  " << x2 << "  " << u 
+      G4cout << "Histo::SetHisto1D: #" << i
+             << "  " << nb << "  " << x1 << "  " << x2 << "  " << u
              << G4endl;
     }
     fBins[i] = nb;
@@ -193,11 +215,11 @@ void Histo::SetHisto1D(G4int i, G4int nb, G4double x1, G4double x2, G4double u)
 void Histo::Activate(G4int i, G4bool val)
 {
   if(fVerbose > 1) {
-    G4cout << "Histo::Activate: Histogram: #" << i << "   "  
-           << val << G4endl;   
+    G4cout << "Histo::Activate: Histogram: #" << i << "   "
+           << val << G4endl;
   }
-  if(i>=0 && i<fNHisto) { 
-    fActive[i] = val; 
+  if(i>=0 && i<fNHisto) {
+    fActive[i] = val;
     if(val) { fHistoActive = true; }
   }
 }
@@ -208,9 +230,9 @@ void Histo::Fill(G4int i, G4double x, G4double w)
 {
   if(!fHistoActive) { return; }
   if(fVerbose > 1) {
-    G4cout << "Histo::Fill: Histogram: #" << i << " at x= " << x 
+    G4cout << "Histo::Fill: Histogram: #" << i << " at x= " << x
            << "  weight= " << w
-           << G4endl;   
+           << G4endl;
   }
   if(i>=0 && i<fNHisto) {
     if(fActive[i]) { fManager->FillH1(fHisto[i], x/fUnit[i], w); }
@@ -225,7 +247,7 @@ void Histo::ScaleH1(G4int i, G4double x)
 {
   if(!fHistoActive) { return; }
   if(fVerbose > 0) {
-    G4cout << "Histo::Scale: Histogram: #" << i << " by factor " << x << G4endl;   
+    G4cout << "Histo::Scale: Histogram: #" << i << " by factor " << x << G4endl;
   }
   if(i>=0 && i<fNHisto) {
     if(fActive[i]) { fManager->GetH1(fHisto[i])->scale(x); }
@@ -277,9 +299,9 @@ void Histo::FillTupleI(G4int i, G4int x)
   if(i >= 0 && i < n) {
     if(fVerbose > 1) {
       G4cout << "Histo::FillTupleI: i= " << i << "  id= " << fTupleI[i]
-	     << "   <" << fNtupleI[i] << "> = " << x << G4endl; 
+	     << "   <" << fNtupleI[i] << "> = " << x << G4endl;
     }
-    fManager->FillNtupleIColumn(fTupleI[i], x); 
+    fManager->FillNtupleIColumn(fTupleI[i], x);
   } else {
     G4cout << "Histo::FillTupleI: WARNING! wrong ntuple index " << i << G4endl;
   }
@@ -294,9 +316,9 @@ void Histo::FillTupleF(G4int i, G4float x)
   if(i >= 0 && i < n) {
     if(fVerbose > 1) {
       G4cout << "Histo::FillTupleF: i= " << i << "  id= " << fTupleF[i]
-	     << "   <" << fNtupleF[i] << "> = " << x << G4endl; 
+	     << "   <" << fNtupleF[i] << "> = " << x << G4endl;
     }
-    fManager->FillNtupleFColumn(fTupleF[i], x); 
+    fManager->FillNtupleFColumn(fTupleF[i], x);
   } else {
     G4cout << "Histo::FillTupleF: WARNING! wrong ntuple index " << i << G4endl;
   }
@@ -311,9 +333,9 @@ void Histo::FillTupleD(G4int i, G4double x)
   if(i >= 0 && i < n) {
     if(fVerbose > 1) {
       G4cout << "Histo::FillTupleD: i= " << i << "  id= " << fTupleD[i]
-	     << "   <" << fNtupleD[i] << "> = " << x << G4endl; 
+	     << "   <" << fNtupleD[i] << "> = " << x << G4endl;
     }
-    fManager->FillNtupleDColumn(fTupleD[i], x); 
+    fManager->FillNtupleDColumn(fTupleD[i], x);
   } else {
     G4cout << "Histo::FillTupleD: WARNING! wrong ntuple index " << i << G4endl;
   }
@@ -325,11 +347,11 @@ void Histo::AddRow()
 {
   if(!fNtupleActive) { return; }
   fManager->AddNtupleRow();
-} 
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void Histo::SetFileName(const G4String& nam) 
+void Histo::SetFileName(const G4String& nam)
 {
   fHistName = nam;
   fHistoActive = true;
@@ -337,13 +359,12 @@ void Histo::SetFileName(const G4String& nam)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void Histo::SetFileType(const G4String& nam) 
+void Histo::SetFileType(const G4String& nam)
 {
   if(nam == "root" || nam == "ROOT" )   { fHistType = "root"; }
   else if(nam == "xml" || nam == "XML") { fHistType = "xml"; }
-  else if(nam == "ascii" || nam == "ASCII" || 
+  else if(nam == "ascii" || nam == "ASCII" ||
 	  nam == "Csv" || nam == "csv" || nam == "CSV") { fHistType = "ascii"; }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-

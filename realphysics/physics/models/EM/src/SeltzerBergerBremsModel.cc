@@ -184,7 +184,7 @@ SeltzerBergerBremsModel::SeltzerBergerBremsModel(bool iselectron, int datafilein
 
 
   fNumSamplingElecEnergies = 71;// 171=>25 per decada//71; // between the min/max e-/e+ kinetic energies
-  fNumSamplingPhotEnergies = 54; // at each energy grid points
+  fNumSamplingPhotEnergies = 64; // at each energy grid points
   fMinElecEnergy           =  1.0*geant::keV; // minimum kinetic energy of the interacting e-/e+
   fMaxElecEnergy           = 10.0*geant::GeV; // maximum kinetic energy of the interacting e-/e+
   fElEnLMin                = 0.0;

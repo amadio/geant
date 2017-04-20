@@ -97,7 +97,6 @@ static int           numHistBins       = 100;             // number of histogram
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 100.0;           // primary particle energy in [MeV]
 static double        prodCutValue      = 1.0;             // by default in length and internal units i.e. [mm]
-static bool          isAngular         = false;           // angular or energy distribution is required ?
 
 static struct option options[] = {
   {"particle-name     (possible particle names: e-, e+)           - default: e-"     , required_argument, 0, 'p'},
@@ -107,7 +106,6 @@ static struct option options[] = {
   {"number-of-bins    (number of bins in the histogram)           - default: 100"    , required_argument, 0, 'n'},
   {"model-name        (bremSB, bremRel)                           - default: bremSB" , required_argument, 0, 'b'},
   {"cut-vale          (secondary production threshold [mm])       - default: 1.0"    , required_argument, 0, 'c'},
-  {"isangular         (angular distribution is required ?)        - default: false"  , no_argument      , 0, 'a'},
   {"help"                                                                            , no_argument      , 0, 'h'},
   {0, 0, 0, 0}
 };
@@ -120,7 +118,7 @@ int main(int argc, char** argv) {
   // Get input parameters
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "ehap:m:E:f:n:b:c:", options, &optidx);
+    c = getopt_long(argc, argv, "ehp:m:E:f:n:b:c:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
@@ -156,9 +154,6 @@ int main(int argc, char** argv) {
       if (prodCutValue<=0)
         errx(1, "production cut value must be positive");
       break;
-    case 'a':
-       isAngular = true;
-       break;
     case 'h':
        help();
        return 0;
@@ -176,7 +171,7 @@ int main(int argc, char** argv) {
 
   G4String mname(materialName);       // material
   G4double   energy  = primaryEnergy;   // primary energy of the e-/e+
-  G4int      stat    = numSamples;    // number of samples
+  G4double   stat    = numSamples;    // number of samples
   //G4int      verbose = 1;
   G4Material *mat    = G4NistManager::Instance()->FindOrBuildMaterial(mname);
 
@@ -204,10 +199,12 @@ int main(int argc, char** argv) {
   G4Electron::Electron();
   G4Positron::Positron();
   G4ParticleDefinition* part = nullptr;
+  G4String pname = "electron";
   if (particleName=="e-") {
-    part = G4Electron::Electron();
+    part  = G4Electron::Electron();
   } else if (particleName=="e+") {
-    part = G4Positron::Positron();
+    part  = G4Positron::Positron();
+    pname = "positron";
   } else {
     G4cout<< "  *** unknown particle name = " << particleName << G4endl;
     help();
@@ -234,9 +231,9 @@ int main(int argc, char** argv) {
   cuts.push_back(prodCutValue);
   G4ProductionCuts* pcut = new G4ProductionCuts();
   pcut->SetProductionCut(cuts[0], 0); // set cut for gamma
-  pcut->SetProductionCut(cuts[0], 1); // set cut for gamma
-  pcut->SetProductionCut(cuts[0], 2); // set cut for gamma
-  pcut->SetProductionCut(cuts[0], 3); // set cut for gamma
+  pcut->SetProductionCut(cuts[0], 1); // set cut for e-
+  pcut->SetProductionCut(cuts[0], 2); // set cut for e+
+  pcut->SetProductionCut(cuts[0], 3); // set cut for p+
 
   G4MaterialCutsCouple* couple = new G4MaterialCutsCouple(mat, pcut);
   couple->SetIndex(0);
@@ -252,11 +249,17 @@ int main(int argc, char** argv) {
   theCoupleTable->UpdateCoupleTable(pFrame);
   // get production cut in energy for gamma
   G4double gammaCutEnergy = (*(theCoupleTable->GetEnergyCutsVector(idxG4GammaCut)))[0];
+  if (energy<=gammaCutEnergy) {
+    G4cout<< " *** Primary energy = " << energy/MeV
+          << " [MeV] is <= gamma production cut = " << gammaCutEnergy/MeV
+          << " [MeV] so there is no secondary gamma production at this energy!"
+          << G4endl;
+    return 0;
+  }
   //G4cout<< " gammaCutEnergy = " << gammaCutEnergy << " [MeV]" << G4endl;
 
   // -------------------------------------------------------------------
   // -------- Start run processing
-
   G4StateManager* g4State=G4StateManager::GetStateManager();
   if (! g4State->SetNewState(G4State_Init)) {
     G4cout << "error changing G4state"<< G4endl;
@@ -279,35 +282,11 @@ int main(int argc, char** argv) {
   bremSB_DB.Initialise(part, cuts);
   bremRel_DB.Initialise(part, cuts);
 
-  // ------- Histograms name
-  // if energy distribution(k) is required     : log10(k/primaryEnergy) will be the variable
-  // if angular distribution(theta) is required: log10(1-cos(theta)*0.5) will be the variable
-  //
-  Histo    histo;
-  std::string nname = mname;
-  std::string ss    = "G4_";
-  std::string::size_type ipos = nname.find(ss);
-  if (ipos!=std::string::npos) {
-     nname.erase(ipos, ss.length());
-  }
-  G4String hname    = "brem_G4_energy_" + nname;
-  G4int    nbins    = numHistBins;
-  G4double xmin     = std::log10(gammaCutEnergy/energy);
-  G4double xmax     =  0.1;
-  G4String theHName = "Gamma energy";
-  G4String strDistribution = "energy-distribution";
-  if (isAngular) {  // log10(1-cos(theta)*0.5) will be the variable
-    xmin     = -12.;
-    xmax     = 0.5;
-    theHName = "Gamma angular";
-    hname    = "brem_G4_angular_" + nname;
-    strDistribution = "angular-distribution";
+  G4VEmModel *model  = &bremSB_DB;
+  if (bremModelName=="bremRel") {
+    model  = &bremRel_DB;
   }
 
-  histo.Add1D("1",theHName,nbins,xmin,xmax);
-  histo.SetFileName(hname);
-  histo.Book();
-//  G4cout << "Histograms are booked output file <" << hname << "> "<< G4endl;
 
   // -------- Track
   G4Track* gTrack;
@@ -323,7 +302,6 @@ int main(int argc, char** argv) {
   std::vector<G4DynamicParticle*> vdp;
   vdp.reserve(1);
   dParticle.SetKineticEnergy(energy);
-  G4double cost, z, e;
 
 
   // print outs
@@ -334,83 +312,170 @@ int main(int argc, char** argv) {
   G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
   G4cout<< "   Kinetic energy =  " << energy/MeV << "  [MeV] "                                   << G4endl;
   G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Model name     =  " << bremModelName                                              << G4endl;
+  G4cout<< "   Model name     =  " << model->GetName()                                           << G4endl;
   G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Sampling is running : "<<  strDistribution << "................................  " << G4endl;
+  // compute some integrated quantities using the G4VEmModel interface methods
+  // check if we compute atomic-cross section: only for single elemnt materials
+  G4bool isSingleElementMaterial = false;
+  if (mat->GetNumberOfElements()==1) {
+    isSingleElementMaterial = true;
+  }
+  //
+  // Note: restrictedDEDX and unrestrictedDEDX will be non-zero value only in case of EMModels that has the ComputeDEDX
+  //       method implemented i.e. in case of energy loss intercations (i.e. ioni. and brem.)
+  G4double restrictedDEDX          = 0.0;
+  G4double unRestrictedDEDX        = 0.0;
+  // Note: atomicCrossSection is computed only in case of materials that has single element
+  G4double atomicCrossSection      = 0.0;
+  G4double macroscopicCrossSection = 0.0;
+  //
+  // use the model to compute restricted stopping power
+  restrictedDEDX   = model->ComputeDEDXPerVolume(mat, part, energy, gammaCutEnergy);
+  // use the model to compute un-restricted stopping power
+  unRestrictedDEDX = model->ComputeDEDXPerVolume(mat, part, energy, energy);
+  // use the model to compute atomic cross section (only in case of single element materials)
+  if (isSingleElementMaterial) {
+    atomicCrossSection  = model->ComputeCrossSectionPerAtom(part, energy, mat->GetZ(), mat->GetA(), gammaCutEnergy);
+  }
+  // use the model to compute macroscopic cross section
+  macroscopicCrossSection = model->CrossSectionPerVolume(mat, part, energy, gammaCutEnergy);
+  //
+  // print out integrated quantities:
+  // -atomic cross section
+  if (isSingleElementMaterial) {
+    std::cout<< "   cross section per atom      :";
+    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/barn
+             << std::setw(14) << std::left << "     [barn]";
+    std::cout<<std::endl;
+  }
+  //
+  // -macroscopic cross section
+  std::cout<< "   cross section per volume    :";
+  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./cm)
+           << std::setw(14) << std::left << "     [1/cm]";
+  std::cout<<std::endl;
+  //
+  // -restricted stopping power
+  std::cout<< "   resricted dE/dx  (MeV/cm)   :";
+  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(MeV/cm)
+           << std::setw(14) << std::left << "   [MeV/cm]";
+  std::cout<<std::endl;
+  //
+  // -unrestricted stopping power
+  std::cout<< "   unresricted dE/dx (MeV/cm)  :";
+  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(MeV/cm)
+           << std::setw(14) << std::left << "   [MeV/cm]";
+  std::cout<<std::endl;
+  //===========================================================================================//
+
+  // prepare histograms:
+  // ------- Histograms name
+  // energy distribution(k) is sampled in varibale log10(k/primaryEnergy)
+  // angular distribution(theta) is sampled in variable log10(1-cos(theta)*0.5)
+  //
+  Histo    histo;
+  // strip down the G4_ prefix from material name
+  std::string nname = mname;
+  std::string ss    = "G4_";
+  std::string::size_type ipos = nname.find(ss);
+  if (ipos!=std::string::npos) {
+     nname.erase(ipos, ss.length());
+  }
+  // set histo name prefix
+  G4String hname    = "brem_" + bremModelName + "_G4_";
+  //
+  // set up a histogram for the secondary gamma energy(k) : log10(k/primaryEnergy)
+  G4int    nbins    = numHistBins;
+  G4double xmin     = std::log10(gammaCutEnergy/energy);
+  G4double xmax     =  0.1;
+  G4String theHName = hname + "gamma_energy_" + nname;
+  histo.Add1D("1",theHName,nbins,xmin,xmax);
+  //
+  // set up histogram for the secondary gamma direction(theta) : log10(1-cos(theta)*0.5)
+  xmin     = -12.;
+  xmax     = 0.5;
+  theHName = hname + "gamma_angular_" + nname;;
+  histo.Add1D("2",theHName,nbins,xmin,xmax);
+  //
+  // set up a histogram for the post interaction primary e-/e+ energy(E1) : log10(E1/primaryEnergy)
+  xmin     = -12.;
+  xmax     = 0.1;
+  theHName = hname + pname +"_energy_" + nname;;
+  histo.Add1D("3",theHName,nbins,xmin,xmax);
+  //
+  // set up a histogram for the post interaction primary e-/e+ direction(theta) : log10(1-cos(theta)*0.5)
+  xmin     = -16.;
+  xmax     = 0.5;
+  theHName = hname + pname +"_angular_" + nname;;
+  histo.Add1D("4",theHName,nbins,xmin,xmax);
+  // book histos
+  hname += nname;
+  histo.SetFileName(hname);
+  histo.Book();
+
+
+  // start sampling
+  G4cout<< "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout<< "   Sampling is running : .........................................................  " << G4endl;
   // Sampling
 
   // SB ---------------------------
   G4double timeInSec = 0.0;
-  if (bremModelName=="bremSB") {
-    G4Timer* timer = new G4Timer();
-    timer->Start();
-    for (G4int iter=0; iter<stat; ++iter) {
-      fParticleChange->InitializeForPostStep(*track);
-      bremSB_DB.SampleSecondaries(&vdp,couple,&dParticle,gammaCutEnergy,energy);
-      if(vdp.size() > 0) {
-        e = vdp[0]->GetKineticEnergy()/energy;
-        if (!isAngular && e>0.0) { histo.Fill(0,std::log10(e),1.0); }
-        cost = vdp[0]->GetMomentumDirection().z();
-        z = 0.5*(1.0 - cost);
-        /*
-        G4cout << "Ee(MeV)= " << energy << " Eg(keV)= " << e/keV
-  	     << " El(1-cost)= "
-  	     << fParticleChange->GetProposedMomentumDirection()
-  	     << " Eg(1 - cost)= " << z*2 << G4endl;
-        */
-
-        if (isAngular && z>0.0) {
-          G4double val = std::log10(z);
-          if (val>-12.)
-            histo.Fill(0,val,1.0);
+  G4Timer* timer = new G4Timer();
+  timer->Start();
+  for (long int iter=0; iter<stat; ++iter) {
+    fParticleChange->InitializeForPostStep(*track);
+    model->SampleSecondaries(&vdp,couple,&dParticle,gammaCutEnergy,energy);
+    // if there is any secondary gamma then get it
+    if (vdp.size()>0) {
+      // reduced gamma energy
+      G4double eGamma    = vdp[0]->GetKineticEnergy()/energy;   // k/E_prim
+      if (eGamma>0.0) {
+        histo.Fill(0,std::log10(eGamma),1.0);
+      }
+      G4double costGamma = vdp[0]->GetMomentumDirection().z();
+      costGamma = 0.5*(1.0-costGamma);
+      if (costGamma>0.0) {
+        costGamma = std::log10(costGamma);
+        if (costGamma>-12.) {
+          histo.Fill(1,costGamma,1.0);
         }
-        //histo.Fill(13,z,1.0);
-        delete vdp[0];
-        vdp.clear();
       }
-    }
-    timer->Stop();
-    timeInSec = timer->GetRealElapsed();
-    //G4cout << "bremSB_DB:  "  << *timer << G4endl;
-    delete timer;
-  } else if (bremModelName=="bremRel") { // bremRel --------------------
-    G4Timer* timer = new G4Timer();
-    timer->Start();
-    for (G4int iter=0; iter<stat; ++iter) {
-      fParticleChange->InitializeForPostStep(*track);
-      bremRel_DB.SampleSecondaries(&vdp,couple,&dParticle,gammaCutEnergy,energy);
-      if(vdp.size() > 0) {
-        e = vdp[0]->GetKineticEnergy()/energy;
-        if (!isAngular && e>0.0) { histo.Fill(0,std::log10(e),1.0); }
-        cost = vdp[0]->GetMomentumDirection().z();
-        z = 0.5*(1.0 - cost);
-        /*
-        G4cout << "Ee(MeV)= " << energy << " Eg(keV)= " << e/keV
-  	     << " El(1-cost)= "
-  	     << fParticleChange->GetProposedMomentumDirection()
-  	     << " Eg(1 - cost)= " << z*2 << G4endl;
-        */
-        if (isAngular && z>0.0) { histo.Fill(0,std::log10(z),1.0); }
-        //histo.Fill(13,z,1.0);
-        delete vdp[0];
-        vdp.clear();
+      // go for the post interaction primary
+      G4double ePrim    = fParticleChange->GetProposedKineticEnergy()/energy;
+      if (ePrim>0.0) {
+        ePrim = std::log10(ePrim);
+        if (ePrim>-12.0) {
+          histo.Fill(2,ePrim,1.0);
+        }
       }
+      G4double costPrim = fParticleChange->GetProposedMomentumDirection().z();
+      costPrim = 0.5*(1.0-costPrim);
+      if (costPrim>0.0) {
+        costPrim = std::log10(costPrim);
+        if (costPrim>-16.) {
+          histo.Fill(3,costPrim,1.0);
+        }
+      }
+      delete vdp[0];
+      vdp.clear();
     }
-    timer->Stop();
-    timeInSec = timer->GetRealElapsed();
-    //G4cout << "bremRel:  "  << *timer << G4endl;
-    delete timer;
   }
+  timer->Stop();
+  timeInSec = timer->GetRealElapsed();
+  delete timer;
+
+  //
   G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
   G4cout<< "   Time of sampling =  " << timeInSec << " [s]" << G4endl;
   G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
 
   // -------- Committing the transaction with the tree
-  if (!isAngular) {
-    histo.ScaleH1(0, 0.25/stat);
-  } else {
-    histo.ScaleH1(0, 1./stat);
-  }
+  histo.ScaleH1(0, 0.25/stat);
+  histo.ScaleH1(1, 1./stat);
+  histo.ScaleH1(2, 0.25/stat);
+  histo.ScaleH1(3, 1./stat);
+  //
   histo.Save();
   G4cout<< "   Histogram is written  into file =  " << hname << G4endl;
   G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
