@@ -115,7 +115,7 @@ void UserPhysicsList::Initialize() {
       AddProcessToPartcile(particle, eBremProc);
     }
     if (particle==geantphysics::Gamma::Definition()) {
-      // create compton scattering process for e- with 1 model:
+      // create compton scattering process for gamma with 1 model:
       //
       geantphysics::EMPhysicsProcess *comptProc = new geantphysics::ComptonScatteringProcess();
       // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation

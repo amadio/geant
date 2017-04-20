@@ -1,21 +1,11 @@
-
 /**
- * @brief  bremTest_GV: GeantV-Real-physics application to test models for e-/e+ bremsstrahlung.
+ * @brief  bremTest_GV: GeantV-Real-physics test for testing e-/e+ models for bremsstrahlung photon emission.
  * @author M Novak
  * @date   April 2017
  *
- * A GeantV-Real-physics application to test models for e-/e+ bremsstrahlung available in the
- * given physics list: eSeltzerBergerBrems, eRelativisticBrems. The models are extracted from
- * the given physics list. Note, that the corresponding Geant4 application does not use a
- * physics-list to build-up and initialise the models but instead it creates and initialises
- * the models directly.
- * Both the energy and angular distributions of the emitted bremsstrahlung photons can be tested
- * with the application (see the available options below by running with --help option)
- *
- * Run ./bremTest_GV --help    for more details!
- * The corresponding Geant4 test application is bremTest_G4.
+ * Run ./bremTest_GV --help for more details!
+ * The corresponding quantities/distributions can be obtained by using the bremTest_G4 Geant4 test.
  */
-
 
 
 #include <iostream>
@@ -35,29 +25,18 @@
 #include "volumes/Box.h"
 
 #include "Region.h"
-#include "PhysicsListManager.h"
-#include "PhysicsList.h"
 #include "PhysicsParameters.h"
 
-// include the user defined physics list
-#include "UserPhysicsList.h"
-
+// just to clear them
 #include "ELossTableManager.h"
-
-
-#include "PhysicsManagerPerParticle.h"
-#include "PhysicsProcess.h"
+#include "ELossTableRegister.h"
 
 #include "Particle.h"
 #include "Electron.h"
 #include "Positron.h"
 #include "Gamma.h"
 
-#include "EMPhysicsProcess.h"
-#include "EMModelManager.h"
 #include "EMModel.h"
-
-
 #include "SeltzerBergerBremsModel.h"
 #include "RelativisticBremsModel.h"
 
@@ -69,28 +48,20 @@
 
 using geantphysics::Material;
 using geantphysics::Element;
-using geantphysics::MaterialCuts;  // this is just to print the table
+using geantphysics::MaterialCuts;
 
-using geantphysics::PhysicsListManager;
-using geantphysics::PhysicsList;
 using geantphysics::PhysicsParameters;
-
-
-using geantphysics::PhysicsManagerPerParticle;
-using geantphysics::PhysicsProcess;
 
 using geantphysics::Particle;
 using geantphysics::Electron;
 using geantphysics::Positron;
 using geantphysics::Gamma;
 
-using geantphysics::EMPhysicsProcess;
-
 using geantphysics::ELossTableManager;
+using geantphysics::ELossTableRegister;
 
-using geantphysics::EMModelManager;
+// the two brem. model
 using geantphysics::EMModel;
-
 using geantphysics::SeltzerBergerBremsModel;
 using geantphysics::RelativisticBremsModel;
 
@@ -103,13 +74,12 @@ using userapplication::Hist;
 // default values of the input parameters
 static std::string   particleName("e-");                  // primary particle is electron
 static std::string   materialName("NIST_MAT_Pb");         // material is lead
-static std::string   bremModelName("eSeltzerBergerBrems");// name of the bremsstrahlung model to test
+static std::string   bremModelName("bremSB");             // name of the bremsstrahlung model to test
 static int           numHistBins       = 100;             // number of histogram bins between min/max values
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 0.1;             // primary particle energy in [GeV]
 static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
 static bool          isProdCutInLength = true;            // is the production cut value given in length ?
-static bool          isAngular         = false;           // angular or energy distribution is required ?
 
 static struct option options[] = {
   {"particle-name     (possible particle names: e-, e+)                        - default: e-"                 , required_argument, 0, 'p'},
@@ -117,35 +87,37 @@ static struct option options[] = {
   {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.1"                , required_argument, 0, 'E'},
   {"number-of-samples (number of required final state samples)                 - default: 1.e+7"              , required_argument, 0, 'f'},
   {"number-of-bins    (number of bins in the histogram)                        - default: 100"                , required_argument, 0, 'n'},
-  {"model-name        (eSeltzerBergerBrems, eRelativisticBrems)                - default: eSeltzerBergerBrems", required_argument, 0, 'b'},
+  {"model-name        (bremSB, bremRel)                                        - default: bremSB"             , required_argument, 0, 'b'},
   {"cut-vale          (secondary production threshold value for all particles) - default: 0.1"                , required_argument, 0, 'c'},
   {"cut-in-energy     (is the production cut value given in energy ? )         - default: false"              , no_argument      , 0, 'e'},
-  {"isangular         (angular distribution is required ?)                     - default: false"              , no_argument      , 0, 'a'},
   {"help"                                                                                                     , no_argument      , 0, 'h'},
   {0, 0, 0, 0}
 };
 void help();
 
-// method to create photon energy or angular distribution histogram form final states
-double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Particle *particle,
-                          EMModel *emModel, Hist *histo, bool angular);
+//***********************************************************************************************//
+//***** THIS WILL BE MODEL SPECIFIC: contains the final state sampling and hist. building  ******//
+// method to create photon energy distribution using a SeltzerBergerBremsModel as input argument
+double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut,
+                          Particle *primParticle, EMModel *model, Hist *histo1, Hist *histo2,
+                          Hist *histo3, Hist *histo4);
+//***********************************************************************************************//
+
 
 //===========================================================================================//
+//
 int main(int argc, char *argv[]) {
   //
-  // Get input parameters
+  //============================== Get input parameters =====================================//
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "ehap:m:E:f:n:b:c:", options, &optidx);
+    c = getopt_long(argc, argv, "eh:m:E:f:n:c:p:b:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
     case 0:
       c = options[optidx].val;
     /* fall through */
-    case 'p':
-       particleName = optarg;
-        break;
     case 'm':
        materialName = optarg;
        break;
@@ -164,20 +136,20 @@ int main(int argc, char *argv[]) {
       if (numHistBins<=0)
         errx(1, "number of histogram bins must be positive");
       break;
-    case 'b':
-      bremModelName = optarg;
-      break;
     case 'c':
       prodCutValue = (double)strtof(optarg, NULL);
       if (prodCutValue<=0)
         errx(1, "production cut value must be positive");
       break;
+    case 'p':
+       particleName = optarg;
+        break;
+    case 'b':
+      bremModelName = optarg;
+      break;
     case 'e':
       isProdCutInLength = false;
       break;
-    case 'a':
-       isAngular = true;
-       break;
     case 'h':
        help();
        return 0;
@@ -187,274 +159,322 @@ int main(int argc, char *argv[]) {
       errx(1, "unknown option %c", c);
     }
   }
+  //===========================================================================================//
 
-//============================= User defined input data =====================================//
-//
-// Create target material: which is supposed to be a NIST Material
-Material *matDetector = Material::NISTMaterial(materialName);
-//
-// Set particle (Electron,Positron,Gamma)
-Particle *particle = nullptr;
-if (particleName=="e-") {
-  particle = Electron::Definition();
-} else if (particleName=="e+") {
-  particle = Positron::Definition();
-} else {
-  std::cerr<< " ***** ERROR: unknown particle name: " << particleName << std::endl;
-  help();
-  return 0;
-}
-//
-// Set particle kinetic energy
-double kineticEnergy    = primaryEnergy;
+  //============================= Set user defined input data =================================//
+  // Create target material: which is supposed to be a NIST Material
+  Material *matDetector = Material::NISTMaterial(materialName);
+  //
+  // Set particle kinetic energy
+  double kineticEnergy    = primaryEnergy;
+  //
+  // Set production cuts if needed
+  bool   iscutinlength    = isProdCutInLength;
+  double gcut             = prodCutValue;
+  double emcut            = prodCutValue;
+  double epcut            = prodCutValue;
+  //===========================================================================================//
 
-//
-// Set process name: the name of the bremsstrahlung process is "eBrem" in the UserPhysicsList
-std::string processName = "eBrem";
-
-// Set model name:
-std::string modelName   = bremModelName;
-
-//
-// Set production cuts if needed
-bool   iscutinlength    = isProdCutInLength;
-double gcut             = prodCutValue;
-double emcut            = prodCutValue;
-double epcut            = prodCutValue;
-//===========================================================================================//
-
-
-
-//============= Initialization i.e. building up and init the physics ========================//
-//
-// Create a dummy vecgeom::geometry with only one volume i.e. world; create a region and set production cuts
-//
-// create a vecgeom::LogicalVolume
-vecgeom::UnplacedBox worldParams = vecgeom::UnplacedBox(1.,1.,1.);
-vecgeom::LogicalVolume worldl(&worldParams);
-// create one region and assigne to the logical volume
-vecgeom::Region *aRegion = new vecgeom::Region("ARegion",iscutinlength, gcut, emcut, epcut);
-worldl.SetRegion(aRegion);
-// create a dummy vecgeom::media for this volume:
-// Only the vecgeom::material index (that will be 0) is used later to identify our material during the init.
-worldl.SetTrackingMediumPtr(new vecgeom::Medium((matDetector->GetName()).c_str(),new vecgeom::Material(),new double()));
-vecgeom::GeoManager::Instance().SetWorld(worldl.Place());
-vecgeom::GeoManager::Instance().CloseGeometry();
-
-// print the material table
-//std::cerr<< Material::GetTheMaterialTable();
-
-
-//
-// Create all MaterialCuts
-//
-MaterialCuts::CreateAll();
-// print all MaterialCuts
-// std::cout<<MaterialCuts::GetTheMaterialCutsTable()<<std::endl;
-
-
-
-
-//
-// Set number of regions in the PhysicsListManager: during normal physics init., it is done
-// automatically in the PhysicsProcessHandler::Initialize()
-PhysicsListManager::Instance().SetNumberOfRegions(vecgeom::Region::GetNumberOfRegions());
-
-
-//
-// Create one user physics list.
-//
-//   THIS IS VERY SIMILAR To Geant4 STYLE
-//   The same as above but if we have only one physics list and the active region vector is not provided then that one
-//   phyics list will be used in all regions
-
-    // this is what the user needs to do:
-    // 1. create the physics list
-    PhysicsList *thePhysicsList = new userapplication::UserPhysicsList("UserDefined-PhysicsList");
-    // The user can get the PhysicsParameters form the physics list and change default values:
-    //  - unlike in case of usual simulation, now we request to compute the CSDA range table
-    thePhysicsList->GetPhysicsParameters()->SetIsComputeCSDARange(true);
-    // 2. register the physics list:
-    PhysicsListManager::Instance().RegisterPhysicsList(thePhysicsList);
-
-//
-// print out the PhysicsParameters obejct: we ha only one physics list so we have only one physics parameter object
- std::cout<<PhysicsParameters::GetThePhysicsParametersTable()[0];
-
-// Build all registered physics lists: during normal physics init., it is done
-// automatically in the PhysicsProcessHandler::Initialize()
-PhysicsListManager::Instance().BuildPhysicsLists();
-//===========================================================================================//
-
-
-
-//======================== Getting the required information =================================//
-//
-//  Now get the list of EM processes assigned to the particle and use them.
-//
-std::cout<<std::endl<<std::endl;
-std::cout<< "   ================================================================================ \n"
-         << "   ================================    RESULTS    ================================= \n"
-         << "   ================================================================================ \n";
-
-// first get the MaterialCuts: we have only one
-const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
-std::cout<< "  "<< matCut->GetMaterial() << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   MaterialCuts: \n" << matCut;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Physics list   =  " << thePhysicsList->GetName() << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Process name   =  " << processName << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Model name     =  " << modelName << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-
-//
-// Get all processes, assigned to this partcile and active in the given region, that has discrete part.
-PhysicsManagerPerParticle *thePhysManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
-// check if the particle has any processes assined to (in the current region): if not than the thePhysManager = nullptr
-size_t numPostStepCandidateProcesses = 0;
-std::vector<PhysicsProcess*> thePostStepCandProcVect;
-if (thePhysManager) {
-  thePostStepCandProcVect       = thePhysManager->GetListPostStepCandidateProcesses();
-  numPostStepCandidateProcesses = thePostStepCandProcVect.size();
-}
-std::cout<< "   The particle has " << numPostStepCandidateProcesses
-         << " processes with discrete part assinged to." << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-// terminate if there is no any post-step candidate processes assigned to the particle in the given region.
-if (!numPostStepCandidateProcesses) {
-  std::cout << "   ================================================================================ "<< std::endl << std::endl;
-  return 0;
-}
-
-
-// Try to get the required process from the list of post-step-candiates
-PhysicsProcess *proc = nullptr;
-for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
-  if (thePostStepCandProcVect[i]->GetName()==processName) {
-    proc = thePostStepCandProcVect[i];
+  if (!(bremModelName=="bremSB" || bremModelName=="bremRel")) {
+    std::cout << "  *** unknown brem. model name = " << bremModelName << std::endl;
+    help();
+    return 0;
   }
-}
-// Check if required process was found and terminate otherwise
-if (!proc) {
-  std::cout<< "   The required process with name =  " << processName << " was not found in the physics-list: "
-           << thePhysicsList->GetName()<< std::endl;
-  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  return 0;
-}
-// Try to get the required EM model from the process
-EMPhysicsProcess *emProc = nullptr;
-if (proc->GetType()==geantphysics::ProcessType::kElectromagnetic
-    || proc->GetType()==geantphysics::ProcessType::kEnergyLoss) {
-  emProc = static_cast<EMPhysicsProcess*>(proc);
-}
-if (!emProc) {
-  std::cout<< "   The required process with name =  " << processName << " is not an EM process! "   << std::endl;
-  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  return 0;
-}
-// If the process is an EM process then try to get the required model from the EMModelManager of the EMPhysicsProcess
-EMModel *emModel = nullptr;
-if (emProc) {
-  EMPhysicsProcess            *emProc         = static_cast<EMPhysicsProcess*>(proc);
-  EMModelManager              *emModelManager = emProc->GetModelManager();
-  const std::vector<EMModel*> theEMModelVect  = emModelManager->GetModelListInRegion(matCut->GetRegionIndex());
-  size_t numEMModels = theEMModelVect.size();
-  for (size_t i=0; i<numEMModels; ++i) {
-    if (theEMModelVect[i]->GetName()==modelName) {
-      emModel = theEMModelVect[i];
-    }
+
+  // Create primnary particle
+  Particle    *particle   = nullptr;
+  bool         isElectron = true;
+  std::string  pname;
+  if (particleName=="e-") {
+    particle  = Electron::Definition();
+    pname     = "electron";
+  } else if (particleName=="e+") {
+    particle  = Positron::Definition();
+    pname     = "positron";
+  } else {
+    std::cout<< "  *** unknown particle name = " << particleName << std::endl;
+    help();
+    return 0;
   }
-}
-// Check if the required model has been found in the process
-if (!emModel) {
-  std::cout<< "   The required model with name =  " << modelName << " was not found in the model list of process: "
-           << processName << std::endl;
+
+
+  //============= Initialization i.e. building up and init the physics ========================//
+  // Create a dummy vecgeom::geometry:
+  //  - with only one volume i.e. world
+  //  - create a region and set production cuts
+  //
+  // create a vecgeom::LogicalVolume
+  vecgeom::UnplacedBox worldParams = vecgeom::UnplacedBox(1.,1.,1.);
+  vecgeom::LogicalVolume worldl(&worldParams);
+  // create one region and assigne to the logical volume
+  vecgeom::Region *aRegion = new vecgeom::Region("ARegion",iscutinlength, gcut, emcut, epcut);
+  worldl.SetRegion(aRegion);
+  // create a dummy vecgeom::media for this volume:
+  // Only the vecgeom::material index (that will be 0) is used later to identify our material during the init.
+  worldl.SetTrackingMediumPtr(new vecgeom::Medium((matDetector->GetName()).c_str(),new vecgeom::Material(),new double()));
+  vecgeom::GeoManager::Instance().SetWorld(worldl.Place());
+  vecgeom::GeoManager::Instance().CloseGeometry();
+  // Create all(we have only one) MaterialCuts
+  MaterialCuts::CreateAll();
+  //===========================================================================================//
+
+  // if primary particle energy < gamma production cut => there is no secondary gamma production
+  // So get the MaterialCuts of the target: we have only one
+  const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
+  // and get the gamma production cut energy
+  double gammaCutEnergy = matCut->GetProductionCutsInEnergy()[0];
+  if (kineticEnergy<=gammaCutEnergy) {
+    std::cout<< " *** Primary energy = " << kineticEnergy/geant::MeV
+             << " [MeV] is <= gamma production cut = " << gammaCutEnergy/geant::MeV
+             << " [MeV] so there is no secondary gamma production at this energy!"
+             << std::endl;
+    return 0;
+  }
+
+
+
+  //*******************************************************************************************//
+  //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
+  //
+  // Create a SeltzerBergerBremsModel model for e-:
+  // - Create a Seltzer-Berger bremsstrahlung model
+  EMModel *emModel   = nullptr;
+  if (bremModelName=="bremSB") {
+    emModel = new SeltzerBergerBremsModel(isElectron);
+    // - Set low/high energy usage limits to their min/max possible values
+    emModel->SetLowEnergyUsageLimit ( 1.0*geant::keV);
+    emModel->SetHighEnergyUsageLimit(10.0*geant::GeV);
+  } else {
+    emModel = new RelativisticBremsModel();
+    // - Set low/high energy usage limits to their min/max possible values
+    emModel->SetLowEnergyUsageLimit (  1.0*geant::GeV);
+    emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+  }
+  //
+  //*******************************************************************************************//
+
+  // check is primary energy is within the usage limits of the model
+  if (kineticEnergy<emModel->GetLowEnergyUsageLimit() || kineticEnergy>emModel->GetHighEnergyUsageLimit()) {
+    std::cout<< " *** Primary energy = " << kineticEnergy/geant::GeV
+             << " [GeV] should be the min/max energy usage limits of the selected model: \n"
+             << "   - model name              = " << emModel->GetName() << " \n"
+             << "   - low energy usage limit  = " << emModel->GetLowEnergyUsageLimit()/geant::GeV<< " [GeV]\n"
+             << "   - high energy usage limit = " << emModel->GetHighEnergyUsageLimit()/geant::GeV<< " [GeV]\n"
+             << "  there is no secondary gamma production otherwise!"
+             << std::endl;
+    return 0;
+  }
+
+
+  //=========== Set the active regions of the model and one physics-parameter object ==========//
+  // - Set the model to be active in region index 0
+  (emModel->GetListActiveRegions()).resize(1); // one region
+  (emModel->GetListActiveRegions())[0] = true; // make it active there
+  // - Create one PhysicsParameters object (with defult values)
+  PhysicsParameters *physPars = new PhysicsParameters();
+  // - Set it to be active in region index 0
+  (physPars->GetListActiveRegions()).resize(1);
+  (physPars->GetListActiveRegions())[0] = true;
+  // - Initialisation of the model
+  emModel->Initialize();
+  //===========================================================================================//
+
+
+  //===========================================================================================//
+  //== Use the EMModel interface methods of the model to compute some integrated quantities  ==//
+  //
+  std::cout<< "  "<< matCut->GetMaterial() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  return 0;
-}
-// Everything is ok: the process and the model have been found in the physics list.
-// So the final check: the particle kinetic energy is within the min/max usage limits of the model?
-if (primaryEnergy<emModel->GetLowEnergyUsageLimit() || primaryEnergy>emModel->GetHighEnergyUsageLimit()) {
-  std::cout<< "   The required primary energy =  " << primaryEnergy/geant::GeV << " [GeV] is out of the range of \n"
-           << "   of the model usage limits in the given physics-list : \n"
-           << "     - minimum kinetic energy:  " << emModel->GetLowEnergyUsageLimit() << " [GeV]\n"
-           << "     - maximum kinetic energy:  " << emModel->GetHighEnergyUsageLimit() << " [GeV]\n"
-           << std::endl;
+  std::cout<< "   MaterialCuts: \n"   << matCut;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  return 0;
-}
+  std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  // check if we compute atomic-cross section: only for single elemnt materials
+  bool isSingleElementMaterial = false;
+  if (matCut->GetMaterial()->GetNumberOfElements()==1) {
+    isSingleElementMaterial = true;
+  }
+  //
+  // Note: restrictedDEDX and unrestrictedDEDX will be non-zero value only in case of EMModels that has the ComputeDEDX
+  //       method implemented i.e. in case of energy loss intercations (i.e. ioni. and brem.)
+  double restrictedDEDX          = 0.0;
+  double unRestrictedDEDX        = 0.0;
+  // Note: atomicCrossSection is computed only in case of materials that has single element
+  double atomicCrossSection      = 0.0;
+  double macroscopicCrossSection = 0.0;
+  //
+  // use the model to compute restricted stopping power
+  restrictedDEDX   = emModel->ComputeDEDX(matCut, kineticEnergy, particle);
+  // use the model to compute un-restricted stopping power
+  unRestrictedDEDX = emModel->ComputeDEDX(matCut, kineticEnergy, particle, true);
+  // use the model to compute atomic cross section (only in case of single element materials)
+  if (isSingleElementMaterial) {
+    const Element *elem = (matCut->GetMaterial()->GetElementVector())[0];
+    atomicCrossSection  = emModel->ComputeXSectionPerAtom(elem, matCut, kineticEnergy, particle);
+  }
+  // use the model to compute macroscopic cross section
+  macroscopicCrossSection = emModel->ComputeMacroscopicXSection(matCut, kineticEnergy, particle);
+  //
+  // print out integrated quantities:
+  // -atomic cross section
+  if (isSingleElementMaterial) {
+    std::cout<< "   cross section per atom      :";
+    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::barn)
+             << std::setw(14) << std::left << "     [barn]";
+    std::cout<<std::endl;
+  }
+  //
+  // -macroscopic cross section
+  std::cout<< "   cross section per volume    :";
+  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::cm)
+           << std::setw(14) << std::left << "     [1/cm]";
+  std::cout<<std::endl;
+  //
+  // -restricted stopping power
+  std::cout<< "   resricted dE/dx  (MeV/cm)   :";
+  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(geant::MeV/geant::cm)
+           << std::setw(14) << std::left << "   [MeV/cm]";
+  std::cout<<std::endl;
+  //
+  // -unrestricted stopping power
+  std::cout<< "   unresricted dE/dx (MeV/cm)  :";
+  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(geant::MeV/geant::cm)
+           << std::setw(14) << std::left << "   [MeV/cm]";
+  std::cout<<std::endl;
+  //===========================================================================================//
 
-//
-// Create a histogram to sample the emitted photon energy(k) distribution or the angular distribution(theta):
-// if energy distribution(k) is required     : log10(k/primaryEnergy) will be the variable
-// if angular distribution(theta) is required: log10(1-cos(theta)*0.5) will be the variable
-double xMin = std::log10(matCut->GetProductionCutsInEnergy()[0]/primaryEnergy); // log10(gcut/primaryEnergy)
-double xMax = 0.1;
-std::string strDistribution = "energy-distribution";
-if (isAngular) {
-  xMin = -12.0;
-  xMax =   0.5;
-  strDistribution = "angular-distribution";
-}
-Hist *histo     = new Hist(xMin, xMax, numHistBins);
-std::cout<< "   Sampling is running : "<<  strDistribution << "........................................  " << std::endl;
-// Sampling
-double timeInSec = sampleDistribution(numSamples, primaryEnergy, matCut, particle, emModel, histo, isAngular);
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Time of sampling =  " << timeInSec << " [s]" << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-
-// fileName
-char fileName[512];
-if (!isAngular) {
-  sprintf(fileName,"brem_GV_energy_%s.ascii",(matCut->GetMaterial()->GetName()).c_str());
-} else {
-  sprintf(fileName,"brem_GV_angular_%s.ascii",(matCut->GetMaterial()->GetName()).c_str());
-}
-std::cout<< "   Histogram is written  into file =  " << fileName << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-
-FILE *f = fopen(fileName,"w");
-// print out the histogram
-double norm = 1./numSamples;
-if (!isAngular) {
-  norm = 0.25/numSamples;
-}
-for (int i=0; i<histo->GetNumBins(); ++i) {
- //std::cout << i << " " <<h->GetX()[i]+0.5*h->GetDelta()<<"  "<<std::setprecision(8)<<h->GetY()[i]*norm<<std::endl;
- fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
-}
-fclose(f);
 
 
-std::cout << "   ================================================================================ "<< std::endl << std::endl;
+  //*******************************************************************************************//
+  //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
+  //
+  std::string hname = "brem_" + bremModelName + "_GV_";
+  // energy distribution(k) is sampled in varibale log10(k/primaryEnergy)
+  // angular distribution(theta) is sampled in variable log10(1-cos(theta)*0.5)
+  //
+  // set up a histogram for the secondary gamma energy(k) : log10(k/primaryEnergy)
+  double xMin = std::log10(gammaCutEnergy/primaryEnergy);
+  double xMax = 0.1;
+  Hist *histo_gamma_energy = new Hist(xMin, xMax, numHistBins);
+  //
+  // set up histogram for the secondary gamma direction(theta) : log10(1-cos(theta)*0.5)
+  xMin     = -12.;
+  xMax     = 0.5;
+  Hist *histo_gamma_angular = new Hist(xMin, xMax, numHistBins);
+  //
+  // set up a histogram for the post interaction primary e-/e+ energy(E1) : log10(E1/primaryEnergy)
+  xMin     = -12;//std::log10(1.-gammaCutEnergy/primaryEnergy);
+  xMax     = 0.1;
+  Hist *histo_prim_energy = new Hist(xMin, xMax, numHistBins);
+  //
+  // set up a histogram for the post interaction primary e-/e+ direction(theta) : log10(1-cos(theta)*0.5)
+  xMin     = -16.;
+  xMax     = 0.5;
+  Hist *histo_prim_angular = new Hist(xMin, xMax, numHistBins);
 
-delete histo;
+  // start sampling
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  std::cout<< "   Sampling is running : .....................................................      " << std::endl;
+  // call sampling method
+  double timeInSec = sampleDistribution(numSamples, kineticEnergy, matCut, particle, emModel, histo_gamma_energy,
+                                        histo_gamma_angular, histo_prim_energy, histo_prim_angular);
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  std::cout<< "   Time of sampling =  " << timeInSec << " [s]" << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+
+  std::cout<< "   Writing histograms into files. " << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+
+  // print out histogram to file: fileName
+  char fileName[512];
+  sprintf(fileName,"brem_%s_GV_gamma_energy_%s",bremModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str());
+  FILE *f     = fopen(fileName,"w");
+  Hist *histo = histo_gamma_energy;
+  double norm = 0.25/numSamples;
+  for (int i=0; i<histo->GetNumBins(); ++i) {
+   fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
+  }
+  fclose(f);
+  delete histo;
+  //
+  sprintf(fileName,"brem_%s_GV_gamma_angular_%s",bremModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str());
+  f     = fopen(fileName,"w");
+  histo = histo_gamma_angular;
+  norm  = 1./numSamples;
+  for (int i=0; i<histo->GetNumBins(); ++i) {
+   fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
+  }
+  fclose(f);
+  delete histo;
+  //
+  sprintf(fileName,"brem_%s_GV_%s_energy_%s",bremModelName.c_str(),pname.c_str(),(matCut->GetMaterial()->GetName()).c_str());
+  f     = fopen(fileName,"w");
+  histo = histo_prim_energy;
+  norm  = 0.25/numSamples;
+  for (int i=0; i<histo->GetNumBins(); ++i) {
+   fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
+  }
+  fclose(f);
+  delete histo;
+  //
+  sprintf(fileName,"brem_%s_GV_%s_angular_%s",bremModelName.c_str(),pname.c_str(),(matCut->GetMaterial()->GetName()).c_str());
+  f     = fopen(fileName,"w");
+  histo = histo_prim_angular;
+  norm  = 1./numSamples;
+  for (int i=0; i<histo->GetNumBins(); ++i) {
+   fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
+  }
+  fclose(f);
+  delete histo;
+  //*******************************************************************************************//
+
+  // end
+  std::cout << "   ================================================================================ "
+            << std::endl << std::endl;
+
+  // delete some objects
+  delete emModel;
+
+  PhysicsParameters::Clear();
+  // clear the ELossTableManager(will alos delete all ELossTable-s) and ELossTableRegister
+  ELossTableManager::Instance().Clear();
+  ELossTableRegister::Instance().Clear();
+  MaterialCuts::ClearAll();
+  Material::ClearAllMaterials(); // will delete all Elements and Isotoes as well
 
 return 0;
 }
 
 
+void help() {
+  std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
+  std::cout<<"  Model-level GeantV test for testing GeantV e-/e+ models for bremsstrahlung photon emission."
+           << std::endl;
+  std::cout<<"\n  Usage: bremTest_GV [OPTIONS] \n"<<std::endl;
+  for (int i = 0; options[i].name != NULL; i++) {
+    printf("\t-%c  --%s\n", options[i].val, options[i].name);
+  }
+  std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
+}
 
 
-double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Particle *particle,
-                          EMModel *emModel, Hist *histo, bool angular) {
+
+//*******************************************************************************************//
+//************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
+//
+// implementation of the final state distribution sampling
+double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Particle *primParticle,
+                          EMModel *emModel, Hist *histo1, Hist *histo2, Hist *histo3, Hist *histo4) {
   double ekin       = primaryEnergy;
   double dirx       = 0.0;   // direction
   double diry       = 0.0;
   double dirz       = 1.0;
-  double gamProdCut = matCut->GetProductionCutsInEnergy()[0]; // gamma production threshold
-  double cost       = 1.0; // used in angular sampling
-  double z          = 1.0; // used in angular sampling
-  int    gvcode     = particle->GetInternalCode();            // internal code of the primary particle
-
+//  double gamProdCut = matCut->GetProductionCutsInEnergy()[0]; // gamma production threshold
+  int    gvcode     = primParticle->GetInternalCode();        // internal code of the primary particle i.e. e-
 
   // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
@@ -493,38 +513,38 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      // get the secondary track i.e. the gamma
      if (numSecs>0) {
        LightTrack &secondaryLT = ((td->fPhysicsData->GetListOfSecondaries())[0]);
-       double egamma = secondaryLT.GetKinE();
-       if (egamma<gamProdCut) {
-         std::cerr<<"  ***  gammae = "<<egamma << " < gamProdCut = "<<gamProdCut <<std::endl;
-         exit(-1);
+       // reduced gamma energy
+       double eGamma = secondaryLT.GetKinE()/ekin;
+       if (eGamma>0.0) {
+         histo1->Fill(std::log10(eGamma),1.0);
        }
-       if (!angular) {
-         histo->Fill(std::log10(egamma/ekin),1.0);
+       double costGamma = secondaryLT.GetDirZ();
+       costGamma = 0.5*(1.0-costGamma);
+       if (costGamma>0.0) {
+         costGamma = std::log10(costGamma);
+         if (costGamma>-12.) {
+           histo2->Fill(costGamma,1.0);
+         }
        }
-       cost = secondaryLT.GetDirZ();
-       z    = 0.5*(1.0-cost);
-       if (angular && z>0.) {
-         double val = std::log10(z);
-         if (val>-12)
-           histo->Fill(val,1.0);
+       // go for the post interaction primary
+       double ePrim  = primaryLT.GetKinE()/ekin;
+       if (ePrim>0.0) {
+         ePrim = std::log10(ePrim);
+         if (ePrim>-12.0) {
+           histo3->Fill(ePrim,1.0);
+         }
+       }
+       double costPrim = primaryLT.GetDirZ();
+       costPrim = 0.5*(1.0-costPrim);
+       if (costPrim>0.0) {
+         costPrim = std::log10(costPrim);
+         if (costPrim>-16.) {
+           histo4->Fill(costPrim,1.0);
+         }
        }
      }
    }
    clock_t end_time = clock();
-   //std::cerr<<" --- Time = "<<(end_time-start_time)/(double(CLOCKS_PER_SEC))<<std::endl;
    return (end_time-start_time)/(double(CLOCKS_PER_SEC));
 }
-
-
-
-
-void help() {
-  std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-  std::cout<<"  bremTest like GeantV application for testing bremsstrahlung models for e-/e+ in the given user physics-list"
-           << std::endl;
-  std::cout<<"\n  Usage: TestEm0_GV [OPTIONS] \n"<<std::endl;
-  for (int i = 0; options[i].name != NULL; i++) {
-    printf("\t-%c  --%s\n", options[i].val, options[i].name);
-  }
-  std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-}
+//*******************************************************************************************//
