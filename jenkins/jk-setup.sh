@@ -28,7 +28,7 @@ export COMPILER
 
 # Set up the externals against dev4 in CVMFS 
 if [ -a /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$PLATFORM ]; then
-  source /cvmfs/sft.cern.ch/lcg/views/dev4/latest/setup.sh
+  source /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$PLATFORM/setup.sh
 elif [ -a /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$COMPATIBLE ]; then
   source /cvmfs/sft.cern.ch/lcg/views/dev4/latest/$COMPATIBLE/setup.sh
 else
