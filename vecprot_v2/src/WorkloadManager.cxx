@@ -30,6 +30,7 @@
 #include "StackLikeBuffer.h"
 #include "SimulationStage.h"
 #include "TrackStat.h"
+#include "LocalityManager.h"
 #include "TrackManager.h"
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
@@ -323,13 +324,26 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 //  int nstacked = 0;
 //  int nprioritized = 0;
 //  int ninjected = 0;
+  LocalityManager *loc_mgr = LocalityManager::Instance();
+  // Enforce locality by pinning the thread to the next core according to the chosen policy.
+  int node = loc_mgr->GetPolicy().AllocateNextThread();
+  // Bind memory allocations to the node.
+//  int result = -1;
+//  result = loc_mgr->GetPolicy().MembindNode(node);
+  if (node < 0) node = 0;
   int tid = prop->fWMgr->ThreadId();
-  Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
+  prop->SetNuma(node);
+  Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d ===",
+               tid, prop, node);
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
+  td->fShuttleBasket = new Basket(1000, 0, node);
+  td->fBvector = new Basket(256, 0, node);
+  for (int i=0; i<=int(kSteppingActionsStage); ++i)
+    td->fStageBuffers.push_back(new Basket(1000, 0, node));
   td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
   td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   td->fBlock = prop->fTrackMgr->GetNewBlock();
@@ -523,12 +537,14 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int tid = prop->fWMgr->ThreadId();
   Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   GeantPropagator *propagator = prop;
+  // Not NUMA aware version
+  propagator->SetNuma(0);
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
-  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
-  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
+//  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
+//  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   int nworkers = propagator->fNthreads;
   WorkloadManager *wm = propagator->fWMgr;
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();

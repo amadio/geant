@@ -60,26 +60,26 @@ public:
   bool fToClean;         /** Flag set when the basket queue is to be cleaned */
   Volume_t *fVolume;     /** Current volume per thread */
 #ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::RNG *fRndm;            /** Random generator for thread */
+  vecgeom::RNG *fRndm;                     /** Random generator for thread */
 #elif USE_ROOT
-  TRandom *fRndm;        /** Random generator for thread */
+  TRandom *fRndm;                          /** Random generator for thread */
 #endif
-  bool *fBoolArray;      /** [fSizeBool] Thread array of bools */
-  double *fDblArray;     /** [fSizeDbl] Thread array of doubles */
-  GeantTrack fTrack;     /** Track support for this thread */
-  VolumePath_t *fPath;   /** Volume path for the thread */
-  VolumePath_t **fPathV;    /** Volume path for the thread */
-  VolumePath_t **fNextpathV; /** Volume path for the thread */
-  GeantTrackGeo_v *fGeoTrack; /** Geometry track SOA */
-  GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
-  GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
-  Basket *fBvector = nullptr;  /** Buffer basket used for vector API */
-  Basket *fShuttleBasket = nullptr;  /** Shuttle basket from selectors to follow-up simulation stage */
-  vector_t<Basket *> fStageBuffers; /** Buffers for tracks at input of simulation stages */
-  GeantBasket *fImported; /** Basket used to import tracks from the event server */
-  StackLikeBuffer *fStackBuffer; /** Stack buffer tor this thread */
-  TrackStat *fStat; /** Track statictics */
-  NumaTrackBlock_t *fBlock; /** Current track block */
+  bool *fBoolArray;                        /** [fSizeBool] Thread array of bools */
+  double *fDblArray;                       /** [fSizeDbl] Thread array of doubles */
+  GeantTrack fTrack;                       /** Track support for this thread */
+  VolumePath_t *fPath;                     /** Volume path for the thread */
+  VolumePath_t **fPathV;                   /** Volume path for the thread */
+  VolumePath_t **fNextpathV;               /** Volume path for the thread */
+  GeantTrackGeo_v *fGeoTrack;              /** Geometry track SOA */
+  GeantBasketMgr *fBmgr = nullptr;         /** Basket manager collecting mixed tracks */
+  GeantBasket *fReused = nullptr;          /** Basket having tracks to be reused in the same volume */
+  Basket *fBvector = nullptr;              /** Buffer basket used for vector API */
+  Basket *fShuttleBasket = nullptr;        /** Shuttle basket from selectors to follow-up simulation stage */
+  vector_t<Basket *> fStageBuffers;        /** Buffers for tracks at input of simulation stages */
+  GeantBasket *fImported = nullptr;        /** Basket used to import tracks from the event server */
+  StackLikeBuffer *fStackBuffer = nullptr; /** Stack buffer tor this thread */
+  TrackStat *fStat = nullptr;              /** Track statictics */
+  NumaTrackBlock_t *fBlock = nullptr;      /** Current track block */
   
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...

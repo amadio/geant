@@ -37,7 +37,7 @@ void GeomQueryStage::ActivateBasketizing(bool flag)
 {
 // Activate basketizers for all volumes.
   for ( auto i = 0; i < GetNhandlers(); ++i)
-    fHandlers[i]->ActivateBasketizing(true);
+    fHandlers[i]->ActivateBasketizing(flag);
 }
 
 //______________________________________________________________________________

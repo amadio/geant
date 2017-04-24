@@ -25,7 +25,7 @@ VECCORE_ATT_HOST_DEVICE
 Handler::~Handler()
 {
   if (GetNode() < 0) delete fBasketizer;
-  else NumaAlignedFree(fBasketizer);
+  else NumaUtils::Instance()->NumaAlignedFree(fBasketizer);
   fBasketizer = nullptr;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
@@ -58,7 +58,7 @@ void Handler::ActivateBasketizing(bool flag)
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
       fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
+        NumaUtils::Instance()->NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
     }
   }
 }

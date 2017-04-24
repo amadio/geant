@@ -279,6 +279,30 @@ else()
   message(STATUS "USE_TBB OFF  : TBB disabled")
 endif()
 
+#----------------------------------------------------------------------------
+# Find if the system is NUMA aware
+#----------------------------------------------------------------------------
+set(NUMA_ALL_LIBRARIES GeantNuma)
+if (USE_NUMA)
+  find_package(Numa)
+  if (NUMA_FOUND)
+    message(STATUS "Found Numa: "  ${NUMA_INCLUDE_DIR})
+    # Check the presence of hwloc library
+    find_package(hwloc)
+    if (HWLOC_FOUND)
+      add_definitions( "-DUSE_NUMA" )
+      include_directories( AFTER SYSTEM ${NUMA_INCLUDE_DIR})
+      set(NUMA_LIBRARIES -L${NUMA_LIBRARY_DIR} -lnuma ${HWLOC_LIBRARIES})
+      set(NUMA_ALL_LIBRARIES GeantNuma ${NUMA_LIBRARIES})    
+    else()
+      message(STATUS "Hardware locality (hwloc) libraries not found. Disabling NUMA.")
+      set(USE_NUMA OFF)
+    endif()
+  else()
+    message(STATUS "Numa libraries (libnuma, libhwloc) not found.")
+    set(USE_NUMA OFF)
+  endif()
+endif()
 
 # KNL
 

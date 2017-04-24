@@ -37,7 +37,7 @@ class Basket {
 protected:
   int fThreshold = 64;                ///< Basket threshold
   int fNode = 0;                      ///< Numa node for basket allocation
-  SimulationStage *fStage;            ///< Simulation stage to be executed by tracks inside
+  SimulationStage *fStage = nullptr;  ///< Simulation stage to be executed by tracks inside
   TrackVec_t fTracks;                 ///< Vector of track pointers
   
 private:

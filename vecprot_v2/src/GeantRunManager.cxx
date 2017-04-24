@@ -116,6 +116,20 @@ bool GeantRunManager::Initialize() {
 
 //#ifndef VECCORE_CUDA
   LoadGeometry(fConfig->fGeomFileName.c_str());
+
+  // Configure the locality manager
+  LocalityManager *mgr = LocalityManager::Instance();
+  if (!mgr->IsInitialized()) {
+    if (fConfig->fUseNuma)
+      mgr->SetPolicy(NumaPolicy::kCompact);
+    else
+      mgr->SetPolicy(NumaPolicy::kSysDefault);
+    mgr->SetNblocks(100);     // <- must be configurable
+    mgr->SetBlockSize(1000);  // <- must be configurable
+    mgr->SetMaxDepth(fConfig->fMaxDepth);
+    mgr->Init();
+  }
+
 //#endif
 
   fDoneEvents = BitSet::MakeInstance(fConfig->fNtotal);

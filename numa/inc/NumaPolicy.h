@@ -42,6 +42,7 @@ public:
   void SetPolicy(EPolicyType policy) { fPolicy = policy; }
 
   int AllocateNextThread();
+  int MembindNode(int node);
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -18,8 +18,13 @@ NumaNode::NumaNode(int id, int maxcpus)
 {
   // Constructor.
 #ifdef USE_NUMA
-  fMemTotal = numa_node_size(id, &fMemFree);
-  fCpus = new int[maxcpus];
+  NumaUtils *utils = NumaUtils::Instance();
+  hwloc_topology_t &topology = utils->fTopology;
+  hwloc_obj_t obj = hwloc_get_numanode_obj_by_os_index(topology, id);
+  fMemTotal = obj->memory.local_memory;
+
+//  fMemTotal = numa_node_size(id, &fMemFree);
+  fCpus = new int[maxcpus];  
   bitmask* bm = numa_bitmask_alloc(maxcpus);
   numa_node_to_cpus(id, bm);
   for(size_t i=0;i<bm->size;++i) {
@@ -30,6 +35,7 @@ NumaNode::NumaNode(int id, int maxcpus)
 #endif
 }
 
+//______________________________________________________________________________
 int NumaNode::PinThread()
 {
 // Pin caller thread to this NUMA node. Pins actually to next free core.
@@ -38,7 +44,7 @@ int NumaNode::PinThread()
 #ifdef USE_NUMA
   std::lock_guard<std::mutex> lock(fMutex);
   core = fCpus[fNthreads%fNcpus];
-  PinToCore(core);
+  NumaUtils::Instance()->PinToCore(core);
   fNthreads++;
 #endif
   return core;
@@ -52,8 +58,7 @@ std::ostream& operator<<(std::ostream& os, const NumaNode& node)
   for (auto i=0; i<node.fNcpus; ++i)
     os << node.fCpus[i] << " ";
   os << ")\n";
-  os << "  Total memory: " << node.fMemTotal/MByte << " MB  free: " << 
-                              node.fMemFree/MByte << " MB";
+  os << "  Total memory: " << node.fMemTotal/MByte << " MB";
 #endif
   (void)node;
   return os;                            

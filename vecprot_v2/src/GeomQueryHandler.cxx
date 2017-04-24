@@ -65,7 +65,7 @@ void GeomQueryHandler::ActivateBasketizing(bool flag)
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
       fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
+        NumaUtils::Instance()->NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
     }
   }
 }

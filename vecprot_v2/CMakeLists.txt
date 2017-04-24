@@ -24,6 +24,10 @@ if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
 
+if (USE_NUMA)
+  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+endif()
+
 if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
   set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")

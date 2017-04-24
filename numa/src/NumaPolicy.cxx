@@ -1,4 +1,5 @@
 #include "NumaPolicy.h"
+#include "NumaUtils.h"
 
 #ifdef USE_NUMA
 #include <numa.h>
@@ -59,6 +60,30 @@ int NumaPolicy::AllocateNextThread()
 #else
   return 0;
 #endif
+}
+
+//______________________________________________________________________________
+int NumaPolicy::MembindNode(int node)
+{
+  // Use hwloc to set the default binding policy of current thread to prefer
+  // the NUMA node specified.
+  if (node < 0) return -2;
+#ifdef USE_NUMA
+  NumaUtils *utils = NumaUtils::Instance();
+  hwloc_topology_t &topology = utils->fTopology;
+  hwloc_nodeset_t nodeset = hwloc_bitmap_alloc();
+  hwloc_bitmap_only(nodeset, unsigned(node));
+  //assert( hwloc_bitmap_isset(nodeset, node) == 0 );
+
+  int result = hwloc_set_membind_nodeset(topology,
+                                         nodeset,
+                                         HWLOC_MEMBIND_BIND,
+                                         HWLOC_MEMBIND_THREAD);
+  hwloc_bitmap_free(nodeset);
+  return result;
+#endif
+  // NUMA not enabled
+  return -2;
 }
 
 } // GEANT_IMPL_NAMESPACE

@@ -32,13 +32,13 @@ public:
   size_t     fPageSize;      /* NUMA page size on system */
   NumaNode **fListNodes;     /* List of nodes */
   int       *fNthreads;      /* Number of threads currently allocated per NUMA node */
-  
+
 public:
   NumaTopology();  
   NumaTopology(const NumaTopology&) = delete;
   ~NumaTopology();  
   
-  int FindPhysCores(int &ht) const;  
+  int FindCores();
   NumaNode *GetNode(int node) { return fListNodes[node]; }
   
   int PinToNode(int node);

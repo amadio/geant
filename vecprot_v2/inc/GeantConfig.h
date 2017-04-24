@@ -67,6 +67,7 @@ public:
   bool fUseGraphics;      /** Graphics mode */
   bool fUseStdScoring;    /** Use standard scoring */
   bool fUseV3;            /** Use version 3 of the scheduler */
+  bool fUseNuma;          /** Use NUMA */
 
   int fMonQueue;          /** Monitor the work queue */
   int fMonMemory;         /** Monitor the memory */
@@ -95,7 +96,7 @@ public:
     fEmax(10),// 10 Gev
     fBmag(0.),// kiloGauss
     fEpsilonRK(0.0003), fUsePhysics(true), fUseRungeKutta(false), fUseDebug(false), fUseGraphics(false), fUseStdScoring(false), fUseV3(false),
-    fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0),
+    fUseNuma(true), fMonQueue(0), fMonMemory(0), fMonBasketsPerVol(0), fMonVectors(0), fMonConcurrency(0),
     fMonTracksPerEvent(0), fMonTracks(0), fFillTree(false), fUseMonitoring(false), fUseAppMonitoring(false),
     fTreeSizeWriteThreshold(100000), fConcurrentWrite(true)
 #ifndef VECCORE_CUDA

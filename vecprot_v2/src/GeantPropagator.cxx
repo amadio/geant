@@ -213,12 +213,6 @@ void GeantPropagator::Initialize() {
   // Initialize the propagator.
 #ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
-  if (!mgr->IsInitialized()) {
-    mgr->SetNblocks(100);
-    mgr->SetBlockSize(1000);
-    mgr->SetMaxDepth(fConfig->fMaxDepth);
-    mgr->Init();
-  }
   int numa = (fNuma >= 0) ? fNuma : 0;
   fTrackMgr = &mgr->GetTrackManager(numa);
 #endif

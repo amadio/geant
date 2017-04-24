@@ -31,6 +31,12 @@
 typedef veccore::BitSet BitSet;
 #endif
 
+#ifndef VECCORE_CUDA
+#ifdef USE_NUMA
+#include "NumaAllocator.h"
+#endif
+#endif
+
 #ifdef GEANT_CUDA_ENABLED
 #include "GeantCudaUtils.h"
 #include "backend/cuda/Interface.h"
@@ -76,7 +82,13 @@ GEANT_DECLARE_CONSTANT(double, gTolerance);
 class GeantTaskData;
 class GeantTrack;
 #ifndef VECCORE_CUDA
+ #ifdef USE_NUMA
+//typedef NumaAllocator<GeantTrack*> TrackAllocator_t;
+//typedef std::vector<GeantTrack *, TrackAllocator_t> TrackVec_t;
 typedef std::vector<GeantTrack *> TrackVec_t;
+ #else
+typedef std::vector<GeantTrack *> TrackVec_t;
+ #endif
 #else
 typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
 #endif
