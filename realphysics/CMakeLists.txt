@@ -17,9 +17,22 @@ if(USE_ROOT)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()
 
+if(USE_VECPHYS)
+  set(sources ${sources} 
+      physics/vecem/src/GUGammaComptonProcess.cc
+      physics/vecem/src/GUGammaPhotoElectricProcess.cc
+      physics/vecem/src/GUGammaConversionProcess.cc 
+      physics/vecem/src/GUBetheHeitlerConversionModel.cc
+      physics/vecem/src/GUKleinNishinaComptonModel.cc 
+      physics/vecem/src/GUSauterGavrilaModel.cc 
+  )
+  include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc physics/vecem/inc)
+  set(_extraLibs ${_extraLibs} "vecphys")
+endif()
+
 add_library(RealPhysics SHARED ${sources})
 
-target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v ${_extra_libs}
+target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v ${_extraLibs}
                       ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
 add_headers("${headers}")
