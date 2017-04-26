@@ -13,7 +13,7 @@ VECCORE_ATT_HOST
 ComptonKleinNishina::ComptonKleinNishina(Random_t *states, int tid) : EmModelBase<ComptonKleinNishina>(states, tid)
 {
   SetLowEnergyLimit(10. * keV);
-  Initialization();
+  //  Initialization();
 }
 
 VECCORE_ATT_HOST_DEVICE

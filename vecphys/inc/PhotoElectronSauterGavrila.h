@@ -47,7 +47,6 @@ public:
   template <typename Backend>
   void ModelInteract(GUTrack_v &inProjectile, const int *targetElements, GUTrack_v &outSecondaryV);
 
-private:
   // Implementation methods
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE typename Backend::Double_v CrossSectionKernel(typename Backend::Double_v energyIn,
@@ -58,7 +57,7 @@ private:
                                               Index_v<typename Backend::Double_v> zElement,
                                               typename Backend::Double_v &energyOut,
                                               typename Backend::Double_v &sinTheta);
-
+private:
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void InteractKernelCR(typename Backend::Double_v energyIn,
                                                 Index_v<typename Backend::Double_v> zElement,

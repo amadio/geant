@@ -42,8 +42,8 @@ void GUAliasTable::Allocate(int /*ngrid*/)
 
   for (int i = 0; i < fNGrid; ++i) {
     fpdf[i] = -1;
-    fProbQ[i] = -1;
-    fAlias[i] = -1;
+    fProbQ[i] = 0;
+    fAlias[i] = 0;
   }
 }
 

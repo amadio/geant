@@ -23,11 +23,7 @@ MaterialHandler::MaterialHandler()
 
   // initialize the element array
   fNumberOfElements = 0;
-  for (int i         = 0; i < maximumZ; ++i)
-    fElementArray[i] = 0;
-
-  // build the element array
-  BuildElementTable();
+  for (int i = 0; i < maximumZ; ++i) fElementArray[i] = 0;
 }
 
 VECCORE_ATT_HOST
@@ -39,9 +35,7 @@ MaterialHandler::~MaterialHandler()
 VECCORE_ATT_HOST
 void MaterialHandler::BuildElementTable()
 {
-  // This should interface with the global material manager of GeantV so that
-  // the element arrary is properly filled with all elements of detector
-  // materials. Temporarily, build a table based on John's arrary
+  // Build an elelment table for benchmark tests
 
   constexpr int NumFx = 16;
   int Element[NumFx]  = {82, 74, 8, 7, 6, 13, 18, 22, 26, 27, 30, 48, 54, 64, 79, 91};
@@ -52,10 +46,24 @@ void MaterialHandler::BuildElementTable()
 }
 
 VECCORE_ATT_HOST
+void MaterialHandler::BuildElementTable(std::vector<int> elist)
+{
+  // Build an elelment table from an external list 
+  // An interface to get all available elements from the global material table
+
+  for (unsigned ie = 0; ie < elist.size() ; ++ie) {
+    int element = elist[ie];
+    if(element >= 0 && element < maximumZ){
+      AddElement(element);
+    }
+  }
+}
+
+VECCORE_ATT_HOST
 void MaterialHandler::AddElement(int element)
 {
   // check validity of the element
-  if (element > 0 && element < maximumZ) {
+  if (element >= 0 && element < maximumZ) {
     // seach whether this element already exists
     bool found = false;
     for (int i = 0; i < fNumberOfElements; ++i) {

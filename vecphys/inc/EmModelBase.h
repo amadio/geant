@@ -81,7 +81,6 @@ public:
   VECCORE_ATT_HOST_DEVICE
   SamplingMethod GetSamplingMethod() { return fSampleType; }
 
-protected:
   // Auxiliary methods
   VECCORE_ATT_HOST_DEVICE
   void SetLowEnergyLimit(double lowLimit) { fLowEnergyLimit = lowLimit; }
@@ -89,9 +88,12 @@ protected:
   VECCORE_ATT_HOST_DEVICE
   void SetHighEnergyLimit(double highLimit) { fHighEnergyLimit = highLimit; }
 
-  VECCORE_ATT_HOST_DEVICE double ComputeCoulombFactor(double fZeff);
+  VECCORE_ATT_HOST_DEVICE
+  double GetLowEnergyLimit() { return fLowEnergyLimit; }
 
-protected:
+  VECCORE_ATT_HOST_DEVICE
+  double GetHighEnergyLimit() { return fHighEnergyLimit; }
+
   // Implementation methods
   template <class Backend>
   VECCORE_ATT_HOST_DEVICE void RotateAngle(typename Backend::Double_v sinTheta, typename Backend::Double_v xhat,
@@ -116,6 +118,10 @@ protected:
                                                             typename Backend::Double_v energyOut,
                                                             typename Backend::Double_v sinTheta, int index,
                                                             GUTrack_v &primary, GUTrack_v &secondary);
+
+protected:
+  VECCORE_ATT_HOST_DEVICE double ComputeCoulombFactor(double fZeff);
+
   // data members
 protected:
   Random_t *fRandomState;
@@ -130,14 +136,18 @@ protected:
 
   // Alias sampling Tables
   GUAliasSampler *fAliasSampler;
+
+  //pointer to the Material hanlder if fAtomicDependentModel=true
+  MaterialHandler *fMaterialHander;
 };
 
 // Implementation
 template <class EmModel>
 VECCORE_ATT_HOST EmModelBase<EmModel>::EmModelBase(Random_t *states, int tid)
     : fRandomState(states), fThreadId(tid), fAtomicDependentModel(false), fLowEnergyLimit(0.1 * keV),
-      fHighEnergyLimit(1.0 * TeV), fSampleType(kAlias), fAliasSampler(0)
+  fHighEnergyLimit(1.0 * TeV), fSampleType(kAlias), fAliasSampler(0), fMaterialHander(0)
 {
+  fMaterialHander = MaterialHandler::Instance();
 }
 
 template <class EmModel>
@@ -163,10 +173,10 @@ VECCORE_ATT_HOST void EmModelBase<EmModel>::BuildAliasTable(bool /*atomicDepende
 
   int z = -1;
   if (fAtomicDependentModel) {
-    MaterialHandler *materialHander = MaterialHandler::Instance();
-    int numberOfElements = materialHander->GetNumberOfElements();
+    //    MaterialHandler *materialHander = MaterialHandler::Instance();
+    int numberOfElements = fMaterialHander->GetNumberOfElements();
     for (int i = 0; i < numberOfElements; ++i) {
-      int z = (materialHander->GetElementArray())[i];
+      int z = (fMaterialHander->GetElementArray())[i];
       static_cast<EmModel *>(this)->BuildPdfTable(z, pdf);
       fAliasSampler->BuildAliasTable(z, pdf);
     }
@@ -508,13 +518,15 @@ VECCORE_ATT_HOST_DEVICE void EmModelBase<EmModel>::RotateAngle(
 
   Double_v phat = math::Sqrt(pt);
 
-  Double_v px = (xhat * zhat * uhat - yhat * vhat) / phat + xhat * what;
-  Double_v py = (yhat * zhat * uhat - xhat * vhat) / phat + yhat * what;
+  Double_v invphat = Blend(positive, 1.0/phat, Double_v(0.0));
+
+  Double_v px = (xhat * zhat * uhat - yhat * vhat) * invphat + xhat * what;
+  Double_v py = (yhat * zhat * uhat - xhat * vhat) * invphat + yhat * what;
   Double_v pz = -phat * uhat + zhat * what;
 
-  xr = Blend(negativeZ, -xhat, Blend(positive, px, xhat));
-  yr = Blend(negativeZ, yhat, Blend(positive, py, yhat));
-  zr = Blend(negativeZ, -zhat, Blend(positive, pz, zhat));
+  xr = Blend(positive, px, Blend(negativeZ, -xhat, xhat));
+  yr = Blend(positive, py, Blend(negativeZ,  yhat, yhat));
+  zr = Blend(positive, pz, Blend(negativeZ, -zhat, zhat));
 }
 
 template <class EmModel>
@@ -681,6 +693,11 @@ VECCORE_ATT_HOST double EmModelBase<EmModel>::G4CrossSectionPerVolume(const vecg
     material->GetElementProp(a, z, w, i);
     double atomNumDensity = Avogadro * material->GetDensity() * w / a;
     sigma += atomNumDensity * G4CrossSectionPerAtom(z, energy);
+
+#ifndef VECPHYS_CUDA
+    std::cout << " atomNumDensity = " << atomNumDensity << std::endl;
+#endif 
+    
   }
 
   return sigma;

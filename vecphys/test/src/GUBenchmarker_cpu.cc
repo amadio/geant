@@ -18,6 +18,7 @@ Real_t ScalarKleinNishina(int ntracks, GUTrack *itrack_aos, int *targetElements,
 {
   static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -46,6 +47,7 @@ Real_t ScalarHybridCompton(int ntracks, GUTrack *itrack_aos, int *targetElements
 {
   static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -66,6 +68,7 @@ Real_t ScalarBetheHeitler(int ntracks, GUTrack *itrack_aos, int *targetElements,
 {
   static vecphys::cxx::ConversionBetheHeitler model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -86,6 +89,7 @@ Real_t ScalarSauterGavrila(int ntracks, GUTrack *itrack_aos, int *targetElements
 {
   static vecphys::cxx::PhotoElectronSauterGavrila model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -106,6 +110,7 @@ Real_t ScalarMollerBhabha(int ntracks, GUTrack *itrack_aos, int *targetElements,
 {
   static vecphys::cxx::IonisationMoller model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -126,6 +131,7 @@ Real_t ScalarSeltzerBerger(int ntracks, GUTrack *itrack_aos, int *targetElements
 {
   static vecphys::cxx::BremSeltzerBerger model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -147,6 +153,7 @@ Real_t VectorKleinNishina(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v 
 {
   static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -185,6 +192,7 @@ Real_t VectorHybridCompton(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v
 {
   static vecphys::cxx::ComptonKleinNishina model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -210,6 +218,7 @@ Real_t VectorBetheHeitler(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v 
 {
   static vecphys::cxx::ConversionBetheHeitler model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -228,6 +237,7 @@ Real_t VectorSauterGavrila(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v
 {
   static vecphys::cxx::PhotoElectronSauterGavrila model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -245,6 +255,7 @@ Real_t VectorMollerBhabha(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v 
 {
   static vecphys::cxx::IonisationMoller model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   static Stopwatch timer;
   Real_t elapsedTime = 0.0;
@@ -262,6 +273,7 @@ Real_t VectorSeltzerBerger(GUTrack_v &itrack_soa, int *targetElements, GUTrack_v
 {
   static vecphys::cxx::BremSeltzerBerger model(0, -1);
   model.SetSamplingMethod(sampleType);
+  model.Initialization();
 
   Real_t elapsedTime = 0.0;
   static Stopwatch timer;

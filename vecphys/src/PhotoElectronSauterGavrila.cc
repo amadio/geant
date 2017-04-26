@@ -13,7 +13,7 @@ VECCORE_ATT_HOST
 PhotoElectronSauterGavrila::PhotoElectronSauterGavrila(Random_t *states, int tid)
     : EmModelBase<PhotoElectronSauterGavrila>(states, tid)
 {
-  Initialization();
+  //  Initialization();
 }
 
 VECCORE_ATT_HOST_DEVICE

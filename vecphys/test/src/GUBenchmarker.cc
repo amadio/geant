@@ -46,6 +46,7 @@ GUBenchmarker::GUBenchmarker()
 {
   fTrackHandler = new GUTrackHandler();
   fMaterialHandler = vecphys::MaterialHandler::Instance();
+  fMaterialHandler->BuildElementTable();
 }
 
 GUBenchmarker::~GUBenchmarker() { delete fTrackHandler; }

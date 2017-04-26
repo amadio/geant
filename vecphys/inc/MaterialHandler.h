@@ -3,6 +3,7 @@
 
 #include "GUConstants.h"
 #include "base/VecPhys.h"
+#include <vector>
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -34,6 +35,9 @@ public:
 
   VECCORE_ATT_HOST
   void BuildElementTable();
+
+  VECCORE_ATT_HOST
+  void BuildElementTable(std::vector<int> list);
 
   VECCORE_ATT_HOST
   void BuildMaterialTable();

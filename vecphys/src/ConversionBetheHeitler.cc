@@ -12,7 +12,7 @@ VECCORE_ATT_HOST ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states
 {
   fAtomicDependentModel = true;
   SetLowEnergyLimit(2. * electron_mass_c2);
-  Initialization();
+  //  Initialization();
 }
 
 VECCORE_ATT_HOST_DEVICE ConversionBetheHeitler::ConversionBetheHeitler(Random_t *states, int tid,

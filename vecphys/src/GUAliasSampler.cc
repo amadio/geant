@@ -78,7 +78,6 @@ void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
   //
 
   // temporary array
-  int *a = (int *)malloc(fSampledNumEntries * sizeof(int));
   double *ap = (double *)malloc(fSampledNumEntries * sizeof(double));
 
   // likelihood per equal probable event
@@ -89,12 +88,11 @@ void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
   for (int ir = 0; ir <= fInNumEntries; ++ir) {
 
     // copy and initialize
-    for (int i = 0; i < fSampledNumEntries; ++i) {
+    for (int i = 0; i < fSampledNumEntries ; ++i) {
 
       int ipos = ir * fSampledNumEntries + i;
       table->fpdf[ipos] = pdf[ipos];
 
-      a[i] = -1;
       ap[i] = pdf[ipos]; // pdf[ir*fSampledNumEntries+i];
     }
 
@@ -135,7 +133,6 @@ void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
 
   fAliasTableManager->AddAliasTable(Zelement, table);
 
-  free(a);
   free(ap);
 }
 

@@ -63,30 +63,35 @@ void GUBenchmarker::RunCuda()
   ComptonKleinNishina *KleinNishina;
   if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kKleinNishina ) {      
     KleinNishina = new ComptonKleinNishina(0,-1);
+    KleinNishina->Initialization();
     tableM_h[kKleinNishina] = KleinNishina->GetSampler()->GetAliasTableManager();
   }
 
   ComptonKleinNishina *HybridKleinNishina;
   if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kHybridKleinNishina) {      
     HybridKleinNishina = new ComptonKleinNishina(0,-1);
+    HybridKleinNishina->Initialization();
     tableM_h[kHybridKleinNishina] = HybridKleinNishina->GetSampler()->GetAliasTableManager();
   }
 
   ConversionBetheHeitler *BetheHeitler;
   if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kBetheHeitler) {      
     BetheHeitler = new ConversionBetheHeitler(0,-1);
+    BetheHeitler->Initialization();
     tableM_h[kBetheHeitler] = BetheHeitler->GetSampler()->GetAliasTableManager();
   }
 
   PhotoElectronSauterGavrila *SauterGavrila;
   if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kSauterGavrila) {      
     SauterGavrila = new PhotoElectronSauterGavrila(0,-1);
+    SauterGavrila->Initialization();
     tableM_h[kSauterGavrila] = SauterGavrila->GetSampler()->GetAliasTableManager();
   }
 
   IonisationMoller *MollerBhabha;
   if(fEmModel == GUPhysicsModelIndex::kNullModel || fEmModel == kMollerBhabha) {      
     MollerBhabha = new IonisationMoller(0,-1);
+    MollerBhabha->Initialization();
     tableM_h[kMollerBhabha] = MollerBhabha->GetSampler()->GetAliasTableManager();
   }
 
