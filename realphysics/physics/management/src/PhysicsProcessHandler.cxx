@@ -19,6 +19,10 @@
 #include "PhysicsList.h"
 #include "PhysicsList1.h"
 
+#ifdef USE_VECPHYS
+#include "VecPhysList.h"
+#endif
+
 #include "PhysicsManagerPerParticle.h"
 #include "LightTrack.h"
 #include "PhysicsData.h"
@@ -69,8 +73,13 @@ void PhysicsProcessHandler::Initialize() {
   //  be set to used(be active) in all regions automatically.
   //
       // this is what the user will need to do in their own application
+#ifdef USE_VECPHYS
+      PhysicsList *vecphysList = new VecPhysList("VecPhysList");
+      PhysicsListManager::Instance().RegisterPhysicsList(vecphysList);
+#else
       PhysicsList *physList1 = new PhysicsList1("Physics-List-1");
       PhysicsListManager::Instance().RegisterPhysicsList(physList1);
+#endif
   //
   // after the user has created and registered their PhysicsList(s): build them and initialize the whole physics
   PhysicsListManager::Instance().BuildPhysicsLists();
