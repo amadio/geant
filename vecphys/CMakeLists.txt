@@ -327,7 +327,7 @@ endif()
 # Build libraries
 #
 add_library(vecphys ${SRC_CPP})
-target_link_libraries(vecphys -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES} NewPhysics
+target_link_libraries(vecphys -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES}
   ${VECPHYS_LIBRARIES_EXTERNAL})
 set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphys)
 
@@ -352,7 +352,7 @@ if (CUDA)
     ${VECPHYS_NVCC_CONFIGS}
     )
 
-  target_link_libraries(vecphyscuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES} NewPhysics
+  target_link_libraries(vecphyscuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES}
     ${VECPHYS_LIBRARIES_EXTERNAL})
   set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphyscuda)
 endif()
