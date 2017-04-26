@@ -89,7 +89,8 @@ double GUSauterGavrilaModel::ComputeXSectionPerAtom(const Element *elem,
                                                     const Particle * /*particle*/ )
 {
   //interface to vecphys and the unit conversion
-  return invXsecScaleToGeant4*fVectorModel->G4CrossSectionPerAtom(elem->GetZ(), kinEnergy*EScaleToGeant4);
+  double xsec = fVectorModel->G4CrossSectionPerAtom(elem->GetZ(), kinEnergy*vecphys::EScaleToGeant4);
+  return vecphys::invXsecScaleToGeant4*xsec;
 }
 
 double GUSauterGavrilaModel::MinimumPrimaryEnergy(const MaterialCuts * /*matcut*/,
@@ -117,11 +118,11 @@ int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track, std::vector<Light
 
   //sample a photo-electron 
 
-  fVectorModel-> template InteractKernel<ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
+  fVectorModel-> template InteractKernel<vecphys::ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
 
   // update the primary track (photon) and the secondary (electron)
   double phi       = geant::kTwoPi*vecphys::UniformRandom<double>(0,-1);
-  double cosTheta  = math::Sqrt((1.-sinTheta)*(1+sinTheta));
+  double cosTheta  = vecCore::math::Sqrt((1.-sinTheta)*(1+sinTheta));
 
   //rotate the sampled photo-electron diection with respect to the primary gamma
   vecphys::ThreeVector<double> gamDirection(track.GetDirX(),track.GetDirY(),track.GetDirZ());

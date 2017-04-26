@@ -64,7 +64,7 @@ void GUBetheHeitlerConversionModel::Initialise() {
       etable.push_back(z);
     }
   }
-  MaterialHandler::Instance()->BuildElementTable(etable);
+  vecphys::MaterialHandler::Instance()->BuildElementTable(etable);
 
   fVectorModel->Initialization();
 }
@@ -108,7 +108,8 @@ double GUBetheHeitlerConversionModel::ComputeXSectionPerAtom(const Element *elem
                                                              const Particle * /*particle*/ )
 {
   //interface to vecphys and the unit conversion
-  return invXsecScaleToGeant4*fVectorModel->G4CrossSectionPerAtom(elem->GetZ(), kinEnergy*EScaleToGeant4);
+  double xsec = fVectorModel->G4CrossSectionPerAtom(elem->GetZ(), kinEnergy*vecphys::EScaleToGeant4);
+  return vecphys::invXsecScaleToGeant4*xsec;
 }
 
 double
@@ -139,7 +140,7 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   int targetElement = ((matcut->GetMaterial()-> GetElementVector())[elementIndex])->GetZ();
 
   //sample a conversion electron
-  fVectorModel-> template InteractKernel<ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
+  fVectorModel-> template InteractKernel<vecphys::ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
 
   // update the primary track (photon) - i.e.,  kill the primary
   track.SetKinE(0.0);
@@ -150,15 +151,15 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   double positronKinEnergy = (energyIn-energyOut)/vecphys::EScaleToGeant4 - geant::kElectronMassC2;
 
   double phi       = geant::kTwoPi*vecphys::UniformRandom<double>(0,-1);
-  double cosTheta  = math::Sqrt((1.-sinTheta)*(1+sinTheta));
+  double cosTheta  = vecCore::math::Sqrt((1.-sinTheta)*(1+sinTheta));
 
   vecphys::ThreeVector<double> gamDirection(track.GetDirX(),track.GetDirY(),track.GetDirZ());
   vecphys::ThreeVector<double> eleDirection(sinTheta*cos(phi), sinTheta*sin(phi), cosTheta);
   eleDirection.RotateUz(gamDirection);
   vecphys::ThreeVector<double> electronDir = eleDirection.Unit();
 
-  double sinTheta1 = math::ASin(sinTheta)*energyOut/(energyIn-energyOut);
-  double cosTheta1  = math::Sqrt((1.-sinTheta1)*(1+sinTheta1));
+  double sinTheta1 = vecCore::math::ASin(sinTheta)*energyOut/(energyIn-energyOut);
+  double cosTheta1  = vecCore::math::Sqrt((1.-sinTheta1)*(1+sinTheta1));
 
   vecphys::ThreeVector<double> posDirection(-sinTheta1*cos(phi), -sinTheta1*sin(phi), cosTheta1);
   posDirection.RotateUz(gamDirection);

@@ -11,8 +11,6 @@
 
 namespace geantphysics {
 
-  using namespace vecphys;
-
 /**
  * @brief   Bethe-Heitler photon conversion (pair production) model
  * @class   GUBetheHeitlerConversionModel

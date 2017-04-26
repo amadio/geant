@@ -93,7 +93,8 @@ double GUKleinNishinaComptonModel::ComputeXSectionPerAtom(const Element *elem,
                                                           const Particle * /*particle*/)
 {
   //interface to vecphys and the unit conversion
-  return invXsecScaleToGeant4*fVectorModel->G4CrossSectionPerAtom(elem->GetZ(), kinEnergy*EScaleToGeant4);
+  double xsec = fVectorModel->G4CrossSectionPerAtom(elem->GetZ(), kinEnergy*vecphys::EScaleToGeant4);
+  return vecphys::invXsecScaleToGeant4*xsec;
 }
 
 double
@@ -122,11 +123,11 @@ int GUKleinNishinaComptonModel::SampleSecondaries(LightTrack &track,
   const int targetElement = track.GetTargetZ();
 
   //sample a scattered photon
-  fVectorModel-> template InteractKernel<ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
+  fVectorModel-> template InteractKernel<vecphys::ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
 
   // update the primary track (photon) 
   double phi       = geant::kTwoPi*vecphys::UniformRandom<double>(0,-1);
-  double cosTheta  = math::Sqrt((1.-sinTheta)*(1+sinTheta));
+  double cosTheta  = vecCore::math::Sqrt((1.-sinTheta)*(1+sinTheta));
 
   //rotate the sampled diection with respect to the line of flight
   vecphys::ThreeVector<double> gamDirection0(track.GetDirX(),track.GetDirY(),track.GetDirZ());

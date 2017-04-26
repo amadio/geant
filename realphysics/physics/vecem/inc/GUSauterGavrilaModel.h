@@ -11,8 +11,6 @@
 
 namespace geantphysics {
 
-  using namespace vecphys;
-
 /**
  * @brief   PhotoElectroic Effect model with the SauterGavrila angular distributionfor gamma.
  * @class   GUSauterGavrilaModel

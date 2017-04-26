@@ -11,8 +11,6 @@
 
 namespace geantphysics {
 
-  using namespace vecphys;
-
 /**
  * @brief   KleinNishina model for gamma.
  * @class   GUKleinNishinaComptonModel
