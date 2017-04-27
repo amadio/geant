@@ -53,9 +53,9 @@ public:
         gCompProc->AddModel(gKNModel);
 
         // add the process to the gamma particle
-        std::cout<< " Adding Compton to gamma."<<std::endl;
+        // std::cout<< " Adding Compton to gamma."<<std::endl;
         AddProcessToPartcile(particle, gCompProc);
-        std::cout<< " Adding Compton to gamma - done."<<std::endl;
+        // std::cout<< " Adding Compton to gamma - done."<<std::endl;
         
         //2. create photo-electri process with the SauterGavrila angular distribution:
         EMPhysicsProcess *gPhotoElecProc = new GUGammaPhotoElectricProcess("gPhotoElectic");
@@ -69,9 +69,9 @@ public:
         gPhotoElecProc->AddModel(gSGModel);
 
         // add the process to the gamma particle
-        std::cout<< " Adding Photo-Electric to gamma." << std::endl;
+        // std::cout<< " Adding Photo-Electric to gamma." << std::endl;
         AddProcessToPartcile(particle, gPhotoElecProc);
-        std::cout<< " Adding Photo-Electric to gamma - done." << std::endl;
+        // std::cout<< " Adding Photo-Electric to gamma - done." << std::endl;
 
         //3. create the conversion process with the Bethe-Heitler model
         EMPhysicsProcess *gConvProc = new GUGammaConversionProcess("gConversion");
@@ -85,9 +85,9 @@ public:
         gConvProc->AddModel(gBHModel);
 
         // add the process to the gamma particle
-        std::cout<< " Adding Conversion to gamma."<<std::endl;
+        // std::cout<< " Adding Conversion to gamma."<<std::endl;
         AddProcessToPartcile(particle,gConvProc );
-        std::cout<< " Adding Conversion to gamma - done."<<std::endl;                
+        // std::cout<< " Adding Conversion to gamma - done."<<std::endl;                
       }
 
       if (particle==Electron::Definition()) {
