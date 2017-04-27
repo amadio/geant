@@ -47,9 +47,6 @@ void GUBetheHeitlerConversionModel::Initialize() {
 
 void GUBetheHeitlerConversionModel::Initialise() {
   //initialization for vecphys::ConversionBetheHeitler
-  std::cout << "  ----> GUBetheHeitlerConversionModel [" << GetLowEnergyUsageLimit() << "," 
-            << GetHighEnergyUsageLimit() << "] in [geant::GeV]" << std::endl;
-
   fVectorModel->SetLowEnergyLimit(fMinPrimEnergy*vecphys::EScaleToGeant4);
   fVectorModel->SetHighEnergyLimit(fMaxPrimEnergy*vecphys::EScaleToGeant4);
 
@@ -190,7 +187,7 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   sectracks[secIndx].SetDirY(electronDir.y());
   sectracks[secIndx].SetDirZ(electronDir.z());
 
-  secIndx++;
+  ++secIndx;
 
   //fill positron information and and kinematic
   sectracks[secIndx].SetGVcode(Positron::Definition()->GetInternalCode()); 
@@ -202,7 +199,7 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   sectracks[secIndx].SetDirY(positronDir.y());
   sectracks[secIndx].SetDirZ(positronDir.z());
 
-  secIndx++;
+  ++secIndx;
 
   return numSecondaries;
 }

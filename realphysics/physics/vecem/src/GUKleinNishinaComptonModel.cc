@@ -45,9 +45,6 @@ void GUKleinNishinaComptonModel::Initialize() {
 
 void GUKleinNishinaComptonModel::Initialise() {
   //initialization for vecphys::ComptonKleinNishina
-  std::cout << "  ----> GUKleinNishinaComptonModel [" << GetLowEnergyUsageLimit() 
-            << "," << GetHighEnergyUsageLimit() << "] in [geant::GeV]" << std::endl;
-
   fVectorModel->SetLowEnergyLimit(fMinPrimEnergy*vecphys::EScaleToGeant4);
   fVectorModel->SetHighEnergyLimit(fMaxPrimEnergy*vecphys::EScaleToGeant4);
   fVectorModel->Initialization();
@@ -205,7 +202,7 @@ int GUKleinNishinaComptonModel::SampleSecondaries(LightTrack &track,
   sectracks[secIndx].SetDirY(electronDir.y());
   sectracks[secIndx].SetDirZ(electronDir.z());
 
-  secIndx++;
+  ++secIndx;
 
   return numSecondaries;
 }

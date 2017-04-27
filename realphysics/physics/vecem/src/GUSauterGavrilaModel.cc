@@ -44,8 +44,6 @@ void GUSauterGavrilaModel::Initialize() {
 
 void GUSauterGavrilaModel::Initialise() {
   //initialization for vecphys::PhotoElectronSauterGavrila
-  std::cout << "  ----> GUSauterGavrilaModel [" << GetLowEnergyUsageLimit() << "," 
-            << GetHighEnergyUsageLimit() << "] in [geant::GeV]" << std::endl;
   fVectorModel->SetLowEnergyLimit(fMinPrimEnergy*vecphys::EScaleToGeant4);
   fVectorModel->SetHighEnergyLimit(fMaxPrimEnergy*vecphys::EScaleToGeant4);
   fVectorModel->Initialization();
@@ -166,7 +164,7 @@ int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track, std::vector<Light
   sectracks[secIndx].SetDirY(electronDir.y());
   sectracks[secIndx].SetDirZ(electronDir.z());
 
-  secIndx++;
+  ++secIndx;
 
   return numSecondaries;
 }
