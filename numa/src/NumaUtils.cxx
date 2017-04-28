@@ -25,23 +25,26 @@ NumaUtils *NumaUtils::Instance() {
 VECCORE_ATT_HOST_DEVICE
 NumaUtils::NumaUtils()
 {
+  std::lock_guard<std::mutex> lock(fLock);
   fgInstance = this;
   fAvailable = false;
 #ifdef USE_NUMA
   int err;
-  fSet = hwloc_bitmap_alloc();
-  if (!fSet) {
+  hwloc_bitmap_t set = hwloc_bitmap_alloc();
+  if (!set) {
     std::cout << "*** Failed to allocate a bitmap\n*** NUMA disabled.\n";
     return;
   }
   err = hwloc_topology_init(&fTopology);
   if (err < 0) {
     std::cout << "*** Failed to initialize the topology\n*** NUMA disabled.\n";
+    hwloc_bitmap_free(set);
     return;
   }
   err = hwloc_topology_load(fTopology);
   if (err < 0) {
     std::cout << "*** Failed to load the topology.\n*** NUMA disabled.\n";
+    hwloc_bitmap_free(set);
     hwloc_topology_destroy(fTopology);
     return;
   }
@@ -51,24 +54,26 @@ NumaUtils::NumaUtils()
   int nnodes = hwloc_bitmap_weight(cset);
   if (nnodes <= 0) {
     std::cout << "*** This machine is not NUMA, nothing to do\n";
+    hwloc_bitmap_free(set);
     hwloc_topology_destroy(fTopology);
     return;
   }
   // get the process memory binding as a nodeset
   hwloc_membind_policy_t policy;
-  err = hwloc_get_membind_nodeset(fTopology, fSet, &policy, 0);
+  err = hwloc_get_membind_nodeset(fTopology, set, &policy, 0);
   if (err < 0) {
     std::cout << "*** Failed to retrieve my memory binding and policy.\n*** NUMA disabled.\n";
+    hwloc_bitmap_free(set);
     hwloc_topology_destroy(fTopology);
     return;
   }
   hwloc_obj_t obj;
   unsigned i;
   char *s = nullptr;
-  hwloc_bitmap_asprintf(&s, fSet);
+  hwloc_bitmap_asprintf(&s, set);
   std::cout << "*** Bound to nodeset " << s << " with content:\n";
   delete s;
-  hwloc_bitmap_foreach_begin(i, fSet) {
+  hwloc_bitmap_foreach_begin(i, set) {
     obj = hwloc_get_numanode_obj_by_os_index(fTopology, i);
     std::cout << "  node #" << obj->logical_index << " (OS index " << i
               << ") with " << obj->memory.local_memory << " bytes of memory\n";
@@ -91,14 +96,16 @@ NumaUtils::NumaUtils()
     if (!buffer) {
       std::cout << "*** Failed to manually allocate memory on node " << obj->os_index
                 << "\n*** NUMA disabled.\n";
+      hwloc_bitmap_free(set);
       hwloc_topology_destroy(fTopology);
       return;
     }
     // check where the memory was allocated
-    hwloc_bitmap_zero(fSet);
-    err = hwloc_get_area_membind_nodeset(fTopology, buffer, 4096, fSet, &policy, 0);
+    hwloc_bitmap_zero(set);
+    err = hwloc_get_area_membind_nodeset(fTopology, buffer, 4096, set, &policy, 0);
     if (err < 0) {
       std::cout << "*** Failed to retrieve the buffer binding and policy.\n*** NUMA disabled.\n";
+      hwloc_bitmap_free(set);
       hwloc_topology_destroy(fTopology);
       return;
     }
@@ -109,11 +116,12 @@ NumaUtils::NumaUtils()
     std::cout << "***   buffer membind policy is " << policy << " while we requested "
               << HWLOC_MEMBIND_REPLICATE << " or " << HWLOC_MEMBIND_BIND << std::endl;
     // print the corresponding NUMA nodes
-    hwloc_bitmap_foreach_begin(i, fSet) {
+    hwloc_bitmap_foreach_begin(i, set) {
     obj = hwloc_get_numanode_obj_by_os_index(fTopology, i);
     std::cout << "***   buffer" << i << " bound to node #" << obj->logical_index << std::endl;
     } hwloc_bitmap_foreach_end();
   }
+  hwloc_bitmap_free(set);
   fAvailable = true;  
 #endif
 }
@@ -126,7 +134,6 @@ NumaUtils::~NumaUtils()
 #ifdef USE_NUMA
   if (fAvailable)
     hwloc_topology_destroy(fTopology);
-    hwloc_bitmap_free(fSet);
 #endif
 }
 
@@ -213,19 +220,19 @@ int NumaUtils::NumaNodeAddr(void *ptr)
 // Returns the NUMA node id associated with the memory pointer.
 #ifdef USE_NUMA
   // check where the memory was allocated
-  hwloc_bitmap_zero(fSet);
+  hwloc_bitmap_t set = hwloc_bitmap_alloc();
   hwloc_membind_policy_t policy;
-  int err = hwloc_get_membind_nodeset(fTopology, fSet, &policy, 0);
+  int err = hwloc_get_membind_nodeset(fTopology, set, &policy, 0);
   if (err < 0) {
     std::cout << "*** Failed to retrieve my memory binding and policy.\n*** NUMA disabled.\n";
     return -1;
   }
-  err = hwloc_get_area_membind_nodeset(fTopology, ptr, 1 /* *((size_t *)ptr - 1)*/, fSet, &policy, 0);
+  err = hwloc_get_area_membind_nodeset(fTopology, ptr, 1 /* *((size_t *)ptr - 1)*/, set, &policy, 0);
   if (err < 0) {
     std::cout << "*** Failed to retrieve the buffer binding and policy.\n*** NUMA disabled.\n";
     return -1;
   }
-  int index = hwloc_bitmap_first(fSet);
+  int index = hwloc_bitmap_first(set);
   if (index < 0) {
     std::cout << "*** Failed to determine memory area binding\n";
     return -1;  
@@ -245,23 +252,26 @@ int NumaUtils::NumaNodeAddr(void *ptr)
 }
 
 //______________________________________________________________________________
-void NumaUtils::PinToCore(size_t core)
+int NumaUtils::GetCpuBinding() const
 {
-// Pin caller thread to a given physical core
-#ifdef USE_NUMA
-
-  hwloc_obj_t ocore = hwloc_get_obj_by_type(fTopology, HWLOC_OBJ_CORE, core);
-  hwloc_set_cpubind(fTopology, ocore->cpuset, HWLOC_CPUBIND_THREAD);
-
-/*
-  cpu_set_t cpuset;
-  CPU_ZERO(&cpuset);
-  CPU_SET(core, &cpuset);
-  pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-*/
-
+// Check the current binding of the thread.
+#ifdef USE_NUMA    
+  hwloc_bitmap_t set = hwloc_bitmap_alloc();
+  int err = hwloc_get_last_cpu_location(fTopology, set, HWLOC_CPUBIND_THREAD);
+  if (err < 0) {
+    std::cout << "*** Failed to get last cpu location\n";
+    hwloc_bitmap_free(set);
+    return err;
+  }
+  assert(hwloc_bitmap_weight(set) == 1);
+  // extract the PU OS index from the bitmap
+  unsigned i = hwloc_bitmap_first(set);
+  hwloc_obj_t obj = hwloc_get_pu_obj_by_os_index(fTopology, i);
+  hwloc_bitmap_free(set);
+  
+  return obj->os_index;
 #else
-  (void)core;
+  return -1;
 #endif
 }
 

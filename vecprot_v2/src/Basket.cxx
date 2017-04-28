@@ -10,7 +10,7 @@ VECCORE_ATT_HOST_DEVICE
 Basket::Basket(int size, int threshold, int node)
       : fThreshold(threshold), fNode(node)
 #ifdef USE_NUMA
-//        ,fTracks(0, nullptr, TrackAllocator_t(node))
+        ,fTracks(0, nullptr, TrackAllocator_t(node))
 #endif
 {
   assert(size > 0 && threshold <= size);

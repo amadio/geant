@@ -24,24 +24,22 @@ class NumaNode;
 //______________________________________________________________________________
 class NumaTopology {
 public:
-  bool       fAvailable;     /* Is NUMA available on the system */
-  int        fNodes;         /* Number of allowed NUMA nodes */
-  int        fNcpus;         /* Number of allowed CPU's */
-  int        fNphysical;     /* Number of physical cores */
-  int        fHT;            /* Number of threads per core */
-  size_t     fPageSize;      /* NUMA page size on system */
-  NumaNode **fListNodes;     /* List of nodes */
-  int       *fNthreads;      /* Number of threads currently allocated per NUMA node */
+  bool       fAvailable = false;     /* Is NUMA available on the system */
+  int        fNodes = 0;             /* Number of NUMA nodes */
+  int        fNcpus = 0;             /* Number of cpus */
+  int        fNcores = 0;            /* Number of cores */
+  int        fHT = 0;                /* Number of threads per core */
+  size_t     fPageSize = 0;          /* NUMA page size on system */
+  NumaNode **fListNodes = nullptr;   /* List of NUMA nodes */
 
 public:
   NumaTopology();  
   NumaTopology(const NumaTopology&) = delete;
   ~NumaTopology();  
   
-  int FindCores();
   NumaNode *GetNode(int node) { return fListNodes[node]; }
-  
-  int PinToNode(int node);
+  int NumaNodeOfCpu(int cpu) const;
+  int BindToNode(int node);
 };
 
 std::ostream& operator<<(std::ostream& os, const NumaTopology& topo);

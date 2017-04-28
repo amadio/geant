@@ -13,6 +13,7 @@
 #define GEANT_NUMA_UTILS
 
 #ifdef USE_NUMA
+#include <mutex>
 #include <hwloc.h>
 #endif
 
@@ -25,8 +26,8 @@ struct NumaUtils {
   static NumaUtils *fgInstance; /** Singleton instance */
   bool fAvailable = false;
 #ifdef USE_NUMA
+  std::mutex fLock;
   hwloc_topology_t fTopology; /* NUMA topology context */
-  hwloc_bitmap_t fSet; /* hwloc bitmap set */
 #endif
 
   /** @brief Constructor **/
@@ -50,9 +51,10 @@ struct NumaUtils {
 
   /* @brief NUMA memory address inspector */
   int   NumaNodeAddr(void *ptr);
-
+  
   /* @brief Pin a thread to a core */
-  void PinToCore(size_t core);
+  int GetCpuBinding() const;
+  
 };
 
 } // GEANT_IMPL_NAMESPACE

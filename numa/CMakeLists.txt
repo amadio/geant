@@ -13,10 +13,11 @@ include_directories(inc)
 # Locate sources and headers for this project
 #----------------------------------------------------------------------------
 set(sources 
-   src/NumaNode.cxx
-   src/NumaPolicy.cxx
-   src/NumaTopology.cxx
-   src/NumaUtils.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/NumaNode.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/NumaCore.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/NumaPolicy.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/NumaTopology.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/NumaUtils.cxx
 )
 
 set(headers
@@ -24,6 +25,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaBlock.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaBlockMgr.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaNode.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaCore.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaPolicy.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaTopology.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaUtils.h

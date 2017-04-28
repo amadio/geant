@@ -19,44 +19,46 @@ int NumaPolicy::AllocateNextThread()
 // Returns NUMA node id
   fNthreads++;
 #ifdef USE_NUMA
-  auto crt_cpu = sched_getcpu();
-  auto crt_node = numa_node_of_cpu(crt_cpu);
+  NumaUtils *utils = NumaUtils::Instance();
+//  auto crt_cpu = sched_getcpu();
+//  auto crt_node = numa_node_of_cpu(crt_cpu);
+  auto crt_cpu = utils->GetCpuBinding();
+  auto crt_node = fTopo.NumaNodeOfCpu(crt_cpu);
   if (fPolicy == kSysDefault)
-    return (crt_node);
-  int nodemin = 0;
-  int minthr = fTopo.fNthreads[0];
+    return crt_node;
+  int nodemin = -1;
+  int minthr = 1e8;
   // Find node with smallest number of pinned threads
   int nnodes = fTopo.fNodes;
   for (int inode=0; inode<nnodes; ++inode) {
-    if (fTopo.fNthreads[inode] < minthr) {
-      minthr = fTopo.fNthreads[inode];
+    if (fTopo.GetNode(inode)->fNthreads < minthr) {
+      minthr = fTopo.GetNode(inode)->fNthreads;
       nodemin = inode;
     }
   }  
 
   if (fPolicy & kCompact) {
     // Fill current NUMA node
-    int nnodes = fTopo.fNodes;
     for (int inode=0; inode<nnodes; ++inode) {
-      int npernode = fTopo.GetNode(inode)->fNphysical;
+      int npernode = fTopo.GetNode(inode)->fNcores;
       if (fPolicy & kHTcompact) npernode = fTopo.GetNode(inode)->fNcpus;
-      if (fTopo.fNthreads[inode] < npernode) {
+      if (fTopo.GetNode(inode)->fNthreads < npernode) {
         // Pin to this NUMA node
-        fTopo.PinToNode(inode);
-        return ( numa_node_of_cpu(sched_getcpu()) );
+        fTopo.BindToNode(inode);
+        return inode;
       }
     }
     // All NUMA nodes are full: allocate on the node having minimum nthreads
-    fTopo.PinToNode(nodemin);
-    return ( numa_node_of_cpu(sched_getcpu()) );
+    fTopo.BindToNode(nodemin);
+    return ( utils->GetCpuBinding() );
   }
 
   if (fPolicy & kScatter) {
     // Fill evenly NUMA nodes
-    fTopo.PinToNode(nodemin);
-    return ( numa_node_of_cpu(sched_getcpu()) );      
+    fTopo.BindToNode(nodemin);
+    return nodemin;
   }     
-  return (crt_node);
+  return crt_node;
 #else
   return 0;
 #endif

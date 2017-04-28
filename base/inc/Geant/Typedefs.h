@@ -12,8 +12,7 @@
 #ifdef USE_NUMA
 #include <GeantNuma.h>
   template <class T>
-//  using vector_t = std::vector<T, Geant::NumaAllocator<T>>;
-  using vector_t = std::vector<T>;
+  using vector_t = std::vector<T, Geant::NumaAllocator<T>>;
 #else
   template <class T>
   using vector_t = std::vector<T>;
