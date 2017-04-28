@@ -58,8 +58,8 @@ class TestProcess : public Geant::PhysicsProcessOld {
 
   private:
 
-    TestProcess( const TestProcess& );             // no imp.
-    TestProcess& operator=( const TestProcess& );  // no imp.
+    TestProcess( const TestProcess& ) = delete;
+    TestProcess& operator=( const TestProcess& ) = delete;
 
 };
 
