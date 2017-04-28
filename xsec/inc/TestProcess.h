@@ -54,11 +54,11 @@ class TestProcess : public Geant::PhysicsProcessOld {
 
 //=== N E W   I N T E R F A C E S ===//
   VECCORE_ATT_HOST_DEVICE
-  virtual void ComputeIntLen(Material_t *, TrackVec_t &, GeantTaskData *) {}
+  virtual void ComputeIntLen(TrackVec_t &, GeantTaskData *) {}
   VECCORE_ATT_HOST_DEVICE
-  virtual void PostStepTypeOfIntrActSampling(Material_t *, TrackVec_t &, GeantTaskData *) {}
+  virtual void PostStepTypeOfIntrActSampling(TrackVec_t &, GeantTaskData *) {}
   VECCORE_ATT_HOST_DEVICE
-  virtual void PostStepFinalStateSampling(Material_t *, TrackVec_t &, int &, GeantTaskData *) {}
+  virtual void PostStepFinalStateSampling(TrackVec_t &, int &, TrackVec_t &, GeantTaskData *) {}
 
   private:
 
