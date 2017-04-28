@@ -96,10 +96,16 @@ public:
 };
 } // GEANT_IMPL_NAMESPACE
 
+#ifdef GEANT_CUDA_ENABLED
 #ifdef VECCORE_CUDA
-namespace VECCORE_IMPL_NAMESPACE {
-class ScalarNavInterfaceTGeo;
+namespace cxx {
+class ScalarNavInterfaceVGM;
 }
+#else
+namespace cuda {
+class ScalarNavInterfaceVGM;
+}
+#endif
 #endif
 } // Geant
 #endif
