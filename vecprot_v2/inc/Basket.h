@@ -51,14 +51,23 @@ public:
   Basket() {}
 
   /** 
+   * @brief Standard basket constructor
+   *
+   * @param size Initial basket size
+   * @param threshold  Initial basket threshold
+   */
+  VECCORE_ATT_HOST_DEVICE
+  Basket(int size, int threshold);
+
+  /** 
    * @brief NUMA aware basket constructor
    *
    * @param size Initial basket size
-   * @param loc  Initial basket locality type
+   * @param threshold  Initial basket threshold
    * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  Basket(int size, int threshold = 0, int node = 0);
+  Basket(int size, int threshold, int node);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE

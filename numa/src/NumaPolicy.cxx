@@ -50,7 +50,7 @@ int NumaPolicy::AllocateNextThread()
     }
     // All NUMA nodes are full: allocate on the node having minimum nthreads
     fTopo.BindToNode(nodemin);
-    return ( utils->GetCpuBinding() );
+    return nodemin;
   }
 
   if (fPolicy & kScatter) {

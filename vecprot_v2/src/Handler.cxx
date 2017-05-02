@@ -98,16 +98,5 @@ bool Handler::Flush(Basket &collector)
   return flushed;
 }
 
-#ifndef VECCORE_CUDA
-//______________________________________________________________________________
-Basket *Handler::GetFreeBasket(GeantTaskData *td)
-{
-  Basket *next = td->GetFreeBasket();
-  next->Tracks().reserve(fBcap);
-  next->SetThreshold(fThreshold);
-  return next;
-}
-#endif
-
 } // GEANT_IMPL_NAMESPACE
 } // Geant

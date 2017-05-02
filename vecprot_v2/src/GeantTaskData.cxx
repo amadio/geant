@@ -163,18 +163,6 @@ GeantBasket *GeantTaskData::GetNextBasket()
 }
 
 //______________________________________________________________________________
-Basket *GeantTaskData::GetFreeBasket()
-{
-  // Gets next free basket from the queue.
-  if (fBPool.empty())
-    return ( new Basket(fPropagator->fConfig->fMaxPerBasket) );
-  Basket *basket = fBPool.back();
-  //  basket->Clear();
-  fBPool.pop_back();
-  return basket;
-}
-
-//______________________________________________________________________________
 void GeantTaskData::RecycleBasket(GeantBasket *b)
 {
   // Recycle a basket.

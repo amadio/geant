@@ -7,6 +7,15 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+Basket::Basket(int size, int threshold)
+      : fThreshold(threshold)
+{
+  assert(size > 0 && threshold <= size);
+  fTracks.reserve(size);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 Basket::Basket(int size, int threshold, int node)
       : fThreshold(threshold), fNode(node)
 #ifdef USE_NUMA
@@ -15,10 +24,6 @@ Basket::Basket(int size, int threshold, int node)
 {
   assert(size > 0 && threshold <= size);
   fTracks.reserve(size);
-#ifdef USE_NUMA
-//  int bindnode = NumaUtils::Instance()->NumaNodeAddr(fTracks.data());
-//  std::cout << "basket bind requested: " << node << "  effective: " << bindnode << std::endl;
-#endif
 }
 
 //______________________________________________________________________________

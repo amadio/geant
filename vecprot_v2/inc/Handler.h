@@ -130,13 +130,6 @@ public:
   VECCORE_ATT_HOST_DEVICE
   bool Flush(Basket &collector);
 
-#ifndef VECCORE_CUDA
-  /** @brief Get a free basket from the caller thread data storage
-   *  @return Fresh basket pointer
-   */
-  Basket *GetFreeBasket(GeantTaskData *td);
-#endif
-
 };
 
 } // GEANT_IMPL_NAMESPACE

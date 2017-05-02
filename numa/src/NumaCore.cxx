@@ -53,13 +53,15 @@ int NumaCore::BindThread()
   hwloc_topology_t &topology = utils->fTopology;
   // Check current binding
   int binding = utils->GetCpuBinding();
-  std::cout << ">>> try to bind thread to cpu# " << cpu << "   currently bound to cpu# " << binding << std::endl;
+//  std::cout << ">>> try to bind thread to cpu# " << cpu << "   currently bound to cpu# " << binding << std::endl;
   hwloc_obj_t objpu = hwloc_get_obj_inside_cpuset_by_type(topology, fObjCore->cpuset, HWLOC_OBJ_PU, cpuindex);
   assert((int)objpu->os_index == cpu);
   assert(hwloc_bitmap_weight(objpu->cpuset) == 1);
   hwloc_set_cpubind(topology, objpu->cpuset, HWLOC_CPUBIND_THREAD);
   binding = utils->GetCpuBinding();
-  std::cout << "    thread now bound to cpu# " << binding << std::endl;
+  if (binding != cpu)
+    std::cout << "### Cannot bind thread to cpu# " << cpu << std::endl;
+//  std::cout << "    thread now bound to cpu# " << binding << std::endl;
   fNthreads++;
 #endif
   return cpu;

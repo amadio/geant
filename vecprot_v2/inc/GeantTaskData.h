@@ -202,12 +202,6 @@ public:
   GeantBasket *GetNextBasket();
 
   /**
-   * @brief Get next free basket
-   * @details Get pointer to next free basket
-   */
-  Basket *GetFreeBasket();
-
-  /**
    * @brief Recycles a given basket
    *
    * @param b Pointer to current GeantBasket for recycling
