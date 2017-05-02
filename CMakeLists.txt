@@ -18,8 +18,9 @@ cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project(GEANTV)
 
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ ISO Standard")
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+# C++ standart is imported from ROOT flags, else we define it only in case of USE_ROOT=OFF 
+#set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ ISO Standard")
+#set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(APPLE)
   set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
@@ -250,7 +251,9 @@ else()
 #----------------------------------------------------------------------------------------------
 # ROOT adds some of these flags. If we do not use ROOT, we have to add them by hand
 #
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -pipe -std=c++11")
+   set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ ISO Standard")
+   set(CMAKE_CXX_STANDARD_REQUIRED True)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -pipe")
 endif()
 
 #----------------------------------------------------------------------------
