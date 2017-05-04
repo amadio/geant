@@ -259,7 +259,6 @@ else()
 #----------------------------------------------------------------------------------------------
 # ROOT adds some of these flags. If we do not use ROOT, we have to add them by hand
 #
-   set(CPP11 ON)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -pipe")
 endif()
 
@@ -487,8 +486,13 @@ if (CUDA)
   endif()
   set(CUDA_ARCH "-arch=sm_${CUDA_ARCH}")
 
+  if (NOT CPP11)
+    message(FATAL_ERROR "NVCC (at least as of Cuda 8.0) does not support standard newer than C++11")
+  endif()
+
   set(
     CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
+    -std c++11
     -Xcompiler ,\"-Wno-unused-function\"
     -Xcompiler ,\"-Wno-unused-parameter\"
     -O2 --use_fast_math -Xcudafe "--diag_suppress=code_is_unreachable"
