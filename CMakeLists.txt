@@ -462,7 +462,6 @@ if (CUDA)
   set(CUDA_SEPARABLE_COMPILATION ON CACHE BOOL "Compile CUDA objects with separable compilation enabled.")
 
   find_package(CUDA REQUIRED)
-  include(FindCUDA)
 
   if (NOT CUDA_ARCH)
     if (CUDA_SEPARABLE_COMPILATION)
