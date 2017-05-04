@@ -76,12 +76,10 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   // Crossing tracks continue to continuous processes, the rest have to
   // query again the geometry
   if (!IsSameLocation(*track, td)) {
-    track->SetStage(kContinuousProcStage);
     td->fNcross++;
   } else {
     track->SetStage(kGeometryStepStage);
   }
-
   output.AddTrack(track);
 }
 
@@ -128,7 +126,6 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
       // Update number of steps to physics and total number of steps
       td->fNphys++;
       td->fNsteps++;
-      track->SetStage(kContinuousProcStage);
       output.AddTrack(track);
       continue;    
     }
@@ -139,7 +136,6 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
     // Vector treatment was not requested, so proceed with scalar
     if (!IsSameLocation(*track, td)) {
       td->fNcross++;
-      track->SetStage(kContinuousProcStage);
     } else {
       track->SetStage(kGeometryStepStage);
     }
@@ -189,7 +185,6 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
       if (track->fNextpath->IsOutside())
         track->fStatus = kExitingSetup;
       if (track->fStep < 1.E-8) td->fNsmall++;
-      track->SetStage(kContinuousProcStage);
     } else {
       track->fBoundary = false;
       track->SetStage(kGeometryStepStage);  

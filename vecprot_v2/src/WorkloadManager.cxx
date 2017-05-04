@@ -428,6 +428,8 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   propagator->fNmag += td->fNmag;
   propagator->fNsmall += td->fNsmall;
   propagator->fNcross += td->fNcross;
+  propagator->fNpushed += td->fNpushed;
+  propagator->fNkilled += td->fNkilled;
 
   // If transport is completed, make send the signal to the run manager
   if (runmgr->TransportCompleted())
@@ -467,7 +469,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
         td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
       ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket);
   }
-  td->fStat->AddTracks(ninjected);
+  // td->fStat->AddTracks(ninjected);
   if (ninjected) return FeederResult::kFeederWork;
   return FeederResult::kNone;
 }

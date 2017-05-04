@@ -80,7 +80,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 VECCORE_ATT_HOST_DEVICE
 GeantPropagator::GeantPropagator(int nthreads)
     : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0),
-      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNidle(0), fNbfeed(0) {
+      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNpushed(0), fNkilled(0), fNidle(0), fNbfeed(0) {
   // Constructor
   // Single instance of the propagator
 
@@ -447,10 +447,11 @@ int GeantPropagator::CreateSimulationStages()
   assert(stage->GetId() == int(kSteppingActionsStage));
   
   // Define connections between stages
-  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage);
-  GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
-  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
+  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage, true);
+  GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
   GetStage(kGeometryStepStage)->ActivateBasketizing(true);
+  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
   GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage);
   GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage);
   GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);

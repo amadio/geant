@@ -1157,6 +1157,7 @@ int TTabPhysMgr::SampleFinalStates(GeantTrack *track, TrackVec_t &output, GeantT
         track1.fGeneration = track->fGeneration + 1;
         //          track1.fSpecies  = 0;
         track1.fStatus = kNew;           // status of this particle
+        track1.fStage = int(kPreStepStage);
         track1.fMass = secMass;          // mass of this particle
         track1.fXpos = track->fXpos; // rx of this particle (same as parent)
         track1.fYpos = track->fYpos; // ry of this particle (same as parent)
@@ -1290,6 +1291,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fNsteps = 0;
       //       track.fSpecies  = 0;
       track1.fStatus = kNew;                  // status of this particle
+      track1.fStage = int(kPreStepStage);
       track1.fMass = 0.;                      // mass of this particle
       track1.fXpos = tracks.fXposV[iintrack]; // rx of this particle (same as parent)
       track1.fYpos = tracks.fYposV[iintrack]; // ry of this particle (same as parent)
@@ -1500,6 +1502,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     track1.fGeneration = track->fGeneration + 1;
     //       track.fSpecies  = 0;
     track1.fStatus = kNew;                  // status of this particle
+    track1.fStage = int(kPreStepStage);
     track1.fMass = 0.;                      // mass of this particle
     track1.fXpos = track->fXpos; // rx of this particle (same as parent)
     track1.fYpos = track->fYpos; // ry of this particle (same as parent)
@@ -1622,6 +1625,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track3.fGeneration = track->fGeneration + 1;
       //       track.fSpecies  = 0;
       track3.fStatus = kNew;                  // status of this particle
+      track3.fStage = int(kPreStepStage);
       track3.fMass = secMass;                 // mass of this particle
       track3.fXpos = track->fXpos; // rx of this particle (same as parent)
       track3.fYpos = track->fYpos; // ry of this particle (same as parent)
@@ -1851,6 +1855,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track1.fGeneration = track->fGeneration + 1;
         //         track.fSpecies  = 0;
         track1.fStatus = kNew;                  // status of this particle
+        track1.fStage = int(kPreStepStage);
         track1.fMass = secMass;                 // mass of this particle
         track1.fXpos = track->fXpos; // rx of this particle (same as parent)
         track1.fYpos = track->fYpos; // ry of this particle (same as parent)

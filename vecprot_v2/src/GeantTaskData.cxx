@@ -22,18 +22,15 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
-    : fPropagator(nullptr), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(0), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
-      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fStackBuffer(nullptr), fPool(),
-      fSizeInt(5 * maxPerBasket), fIntArray(new int[fSizeInt]), fTransported(nullptr), fTransported1(maxPerBasket), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
+    : fTrack(0, maxDepth)
 {
   // Constructor
   fNthreads = nthreads;
   fMaxDepth = maxDepth;
-  fSizeBool = fSizeDbl = 5 * maxPerBasket;
+  fSizeBool = fSizeDbl = fSizeInt = 5 * maxPerBasket;
   fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
+  fIntArray = new int[fSizeInt];
   fPath = VolumePath_t::MakeInstance(fMaxDepth);
   fPathV = new VolumePath_t*[maxPerBasket];
   fNextpathV = new VolumePath_t*[maxPerBasket];
@@ -47,23 +44,17 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
 #endif
 #endif
   fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
-  fStat = new TrackStat(this);
+//  fStat = new TrackStat(this);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *prop /* = nullptr */)
-    : fPropagator(prop), fTid(-1), fNode(0), fNthreads(nthreads), fMaxDepth(maxDepth), fSizeBool(0), fSizeDbl(0), fToClean(false),
-      fVolume(nullptr), fRndm(nullptr), fBoolArray(nullptr), fDblArray(nullptr), fTrack(0, maxDepth),
-      fPath(nullptr), fBmgr(nullptr), fReused(nullptr), fImported(nullptr), fStackBuffer(nullptr), fPool(),
-      fSizeInt( 5*maxPerBasket ), fIntArray( nullptr ), fTransported(nullptr), fNkeepvol(0),
-      fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNpart(0), fNsmall(0), fNcross(0), fPhysicsData(nullptr)
+GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *prop)
+    : fPropagator(prop), fNthreads(nthreads), fMaxDepth(maxDepth), fTrack(0, maxDepth)
 {
   // Constructor
   char *buffer = (char*)addr;
   buffer += GeantTrack::round_up_align(sizeof(GeantTaskData));
-  const size_t nElements = 5; // See other constructor!
-
   buffer = GeantTrack::round_up_align(buffer);
 
   fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
@@ -79,7 +70,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fTransported = GeantTrack_v::MakeInstanceAt(buffer, 4*maxPerBasket, fMaxDepth);
   buffer += GeantTrack_v::SizeOfInstance(4*maxPerBasket, fMaxDepth);
 
-  fSizeInt = fSizeBool = fSizeDbl = nElements * maxPerBasket;
+  fSizeInt = fSizeBool = fSizeDbl = 5 * maxPerBasket;
   fBoolArray = new (buffer) bool[fSizeBool];
   buffer += fSizeBool*sizeof(bool);
   fDblArray = new (buffer) double[fSizeDbl];
@@ -95,7 +86,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fRndm = new TRandom();
 #endif
 #endif
-  fStat = new TrackStat(this);
+//  fStat = new TrackStat(this);
 }
 
 //______________________________________________________________________________

@@ -67,7 +67,7 @@ enum Species_t { kHadron, kLepton };
 
 /** Basket simulation stages. */
 enum ESimulationStage {
-  kPreStepStage         = 0, // Actions at the beginning of the step
+  kPreStepStage = 0,         // Actions at the beginning of the step
   kXSecSamplingStage,        // Propose physics step by sampling total Xsec
   kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
@@ -219,6 +219,16 @@ public:
   GEANT_FORCE_INLINE
   double E() const { return fE; }
 
+  /** @brief Function that return kinetic energy value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double T() const { return (fE - fMass); }
+
+  /** @brief Function that stops the track depositing its kinetic energy */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void Stop() { fEdep = T(); fE = fMass; fP = 0; }
+
   /** @brief Function that return energy deposition value */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -357,6 +367,20 @@ public:
     fYdir *= norm;
     fZdir *= norm;
   }
+  
+  /** @brief Function to make a step along the current direction */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void MakeStep(double step) {
+    fPstep -= step;
+    fStep += step;
+    fSafety -= step;
+    fSnext -= step;
+    fXpos += step * fXdir;
+    fYpos += step * fYdir;
+    fZpos += step * fZdir;
+  }
+    
 
   /** @brief Function that return momentum value */
   VECCORE_ATT_HOST_DEVICE

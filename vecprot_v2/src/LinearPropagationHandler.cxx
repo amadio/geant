@@ -31,25 +31,30 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
 // Scalar geometry length computation. The track is moved into the output basket.
 
   // Do straight propagation to physics process or boundary
-  track->fPstep -= track->fSnext;
-  track->fStep += track->fSnext;
-  track->fSafety -= track->fSnext;
-  if (track->fSafety < 0.)
-    track->fSafety = 0;
-  track->fXpos += track->fSnext * track->fXdir;
-  track->fYpos += track->fSnext * track->fYdir;
-  track->fZpos += track->fSnext * track->fZdir;
+  if (track->fSnext < 1.E-8) td->fNsmall++;
+  track->MakeStep(track->fSnext);
   // Update total number of steps
   td->fNsteps++;
-  track->SetStage(kContinuousProcStage);
+  int nsmall = 0;
 
   if (track->fBoundary) {
     track->fStatus = kBoundary;
-    track->fNsteps++;
     // Find out location after boundary
     while ( IsSameLocation(*track, td) ) {
-      track->fSnext = 1.E-7;
-      DoIt(track, output, td);
+      nsmall++;
+      if (nsmall > 10) {
+        // Most likely a nasty overlap, some smarter action required. For now, just
+        // kill the track.
+        
+        Error("LinearPropagator", "track %d from event %d stuck -> killing it",
+              track->fParticle, track->fEvent);
+        track->fStatus = kKilled;
+        track->SetStage(kSteppingActionsStage);
+        td->fNkilled++;
+        break;
+      }
+      track->MakeStep(1.E-3);
+      td->fNpushed++;
     }
   } else {
     track->fStatus = kPhysics;
@@ -57,22 +62,12 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
     td->fNphys++;
   }
 
-  if (track->fSnext < 1.E-8) td->fNsmall++;
-  track->fSnext = 0;
+  if (track->fSnext < 1.E-8) track->fSnext = 0;
+  if (track->fSafety < 1.E-8) track->fSafety = 0;
   
   // Update time of flight and number of interaction lengths
   track->fTime += track->TimeStep(track->fStep);
   track->fNintLen -= track->fStep/track->fIntLen;
-
-  // Set follow-up stage to be ContinuousProcStage
-
-  // Kill loopers
-  if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
-    Error("TransportTracks", "track %d from event %d seems to be stuck -> killing it",
-          track->fParticle, track->fEvent);
-    track->fStatus = kKilled;
-    track->SetStage(kSteppingActionsStage);
-  }
 
   // Copy to output
   output.AddTrack(track);
@@ -86,14 +81,8 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
   TrackVec_t &tracks = input.Tracks();  
   // This loop should autovectorize
   for (auto track : tracks) {
-    track->fPstep -= track->fSnext;
-    track->fStep += track->fSnext;
-    track->fSafety -= track->fSnext;
-    if (track->fSafety < 0.)
-      track->fSafety = 0;
-    track->fXpos += track->fSnext * track->fXdir;
-    track->fYpos += track->fSnext * track->fYdir;
-    track->fZpos += track->fSnext * track->fZdir;
+    if (track->fSnext < 1.E-8) td->fNsmall++;
+    track->MakeStep(track->fSnext);
   }
 
   // Update total number of steps
@@ -101,32 +90,34 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
 
   for (auto track : tracks) {
     // Set follow-up stage to be ContinuousProcStage
-    track->SetStage(kContinuousProcStage);
+    int nsmall = 0;
     if (track->fBoundary) {
       track->fStatus = kBoundary;
-      track->fNsteps++;
       while ( IsSameLocation(*track, td) ) {
-        track->fSnext = 1.E-7;
-        DoIt(track, output, td);
-        return;
+        nsmall++;
+        if (nsmall > 10) {
+          Error("LinearPropagator", "track %d from event %d stuck -> killing it",
+                track->fParticle, track->fEvent);
+          track->fStatus = kKilled;
+          track->SetStage(kSteppingActionsStage);
+          td->fNkilled++;
+          break;
+        }
+        track->MakeStep(1.E-3);
+        td->fNpushed++;
       }
     } else {
       track->fStatus = kPhysics;
       // Update number of steps to physics
       td->fNphys++;
     }
-    if (track->fSnext < 1.E-8) td->fNsmall++;
-    track->fSnext = 0;    
+
+    if (track->fSnext < 1.E-8) track->fSnext = 0;
+    if (track->fSafety < 1.E-8) track->fSafety = 0;
+
     // Update time of flight and number of interaction lengths
     track->fTime += track->TimeStep(track->fStep);
     track->fNintLen -= track->fStep/track->fIntLen;  
-    // Kill loopers
-    if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
-      Error("TransportTracks", "track %d from event %d seems to be stuck -> killing it",
-            track->fParticle, track->fEvent);
-      track->fStatus = kKilled;
-      track->SetStage(kSteppingActionsStage);
-    }
   }
   
 

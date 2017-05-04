@@ -80,6 +80,8 @@ public:
   atomic_t<long> fNmag;                /** Total number of partial steps in magnetic field */
   atomic_t<long> fNsmall;              /** Total number of small steps taken */
   atomic_t<long> fNcross;              /** Total number of boundaries crossed */
+  atomic_t<long> fNpushed;             /** Total number of pushes of 1E-3 */
+  atomic_t<long> fNkilled;             /** Total number of killed tracks */
   atomic_t<int>  fNidle;               /** Number of idle threads */
   atomic_t<int>  fNbfeed;              /** Number of baskets fed from server */
 

@@ -101,8 +101,6 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td
   ScalarNavInterfaceTGeo::NavFindNextBoundary(*track);
 #endif // USE_VECGEOM_NAVIGATOR
   td->fNsnext++;
-  // Select follow-up stage
-  track->SetStage(ESimulationStage::kPropagationStage);
   output.AddTrack(track);  
 }
 

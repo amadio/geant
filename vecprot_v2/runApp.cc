@@ -192,6 +192,7 @@ int main(int argc, char *argv[]) {
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
   config->fBmag = 1.; // 0.1 Tesla
+  // V3 options
   config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
   config->fUseV3 = usev3;
   config->fUseNuma = usenuma;

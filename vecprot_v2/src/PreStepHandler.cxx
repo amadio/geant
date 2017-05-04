@@ -27,11 +27,11 @@ PreStepHandler::~PreStepHandler()
 VECCORE_ATT_HOST_DEVICE
 void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
-// Invoke scalar BeginTrack user actions. All tracks arriving here should have
-// the status set to Geant::kNew
+// Invoke scalar BeginTrack user actions.
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  fPropagator->fApplication->BeginTrack(*track, td);
+  if (track->fStatus == kNew)
+    fPropagator->fApplication->BeginTrack(*track, td);
   // User may have decided to stop the track (fast simulation, ...)
 #endif
 
@@ -47,31 +47,6 @@ void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
   track->fStatus = kInFlight;
   // Copy to output
   output.AddTrack(track);
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
-void PreStepHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
-{
-// Vector handling of stepping actions.
-  
-  TrackVec_t &tracks = input.Tracks();
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  fPropagator->fApplication->BeginTrack(tracks, td);
-#endif
-
-  // Copy tracks alive to output, stop the others.
-  for (auto track : tracks) {
-    if (track->fStatus == kKilled) {
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-      fPropagator->StopTrack(track);
-#endif
-      continue;
-    }    
-    // Set the status to "in flight"
-    track->fStatus = kInFlight;
-    output.AddTrack(track);
-  }
 }
 
 } // GEANT_IMPL_NAMESPACE

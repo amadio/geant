@@ -32,7 +32,7 @@ static int n_reuse = 100000;
 static int n_propagators = 1;
 static int max_memory = 4000; /* MB */
 static bool monitor = false, score = false, debug = false, coprocessor = false;
-static bool tbbmode = false, usev3 = false;
+static bool tbbmode = false, usev3 = false, usenuma = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"hepmc-event-file", required_argument, 0, 'E'},
@@ -51,7 +51,8 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"tbbmode", required_argument, 0, 'i'},
                                   {"reuse", required_argument, 0, 'u'},
                                   {"propagators", required_argument, 0, 'p'},
-                                  {"v3", no_argument, 0, 'v'},
+                                  {"v3", required_argument, 0, 'v'},
+                                  {"numa", required_argument, 0, 'n'},
                                   {0, 0, 0, 0}};
 
 void help() {
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:p:v:", options, &optidx);
+    c = getopt_long(argc, argv, "E:e:f:g:l:B:mM:b:t:x:r:i:u:p:v:n:", options, &optidx);
 
     if (c == -1)
       break;
@@ -171,7 +172,11 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'v':
-      usev3 = true;
+      usev3 = bool(strtol(optarg, NULL, 10));
+      break;
+
+    case 'n':
+      usenuma = bool(strtol(optarg, NULL, 10));
       break;
 
     default:
@@ -204,6 +209,7 @@ int main(int argc, char *argv[]) {
   // V3 options
   config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
   config->fUseV3 = usev3;
+  config->fUseNuma = usenuma;
 
   // Enable use of RK integration in field for charged particles
   config->fUseRungeKutta = false;

@@ -42,6 +42,8 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
   int ninput = 0;
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
+    // Default next stage is the follow-up
+    track->fStage = fFollowUpStage;
     Handler *handler = Select(track, td);
     // Execute in scalar mode the handler action
     if (handler)
@@ -67,7 +69,7 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
     }
   }
   
-  td->fStat->AddTracks(output.size() - ninput);
+  //td->fStat->AddTracks(output.size() - ninput);
   
   return CopyToFollowUps(output, td);
 }
@@ -85,14 +87,32 @@ int SimulationStage::Process(GeantTaskData *td)
 // of the follow-up stages set by the handler DoIt method. The method returns
 // the number of tracks pushed to the output.
 
+  assert(fFollowUpStage >= 0);
   Basket &input = *td->fStageBuffers[fId];
   Basket &bvector = *td->fBvector;
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
   output.Clear();
+
+  #ifdef GEANT_DEBUG
+  static long counter = 0;
+  counter++;
+  if (counter == 7495) {
+    printf("counter=%ld\n", counter);
+  }
+  assert(bvector.size() == 0);
+  assert(output.size() == 0);
+  #endif
+
   int ninput = 0;
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
+    // Default next stage is the follow-up
+    #ifdef GEANT_DEBUG
+    assert(!input.HasTrackMany(track));
+    assert(!output.HasTrack(track));
+    #endif
+    track->fStage = fFollowUpStage;
     Handler *handler = Select(track, td);
     // If no handler is selected the track does not perform this stage
     if (!handler) {
@@ -105,6 +125,9 @@ int SimulationStage::Process(GeantTaskData *td)
       // Scalar DoIt.
       // The track and its eventual progenies should be now copied to the output
       handler->DoIt(track, output, td);
+      #ifdef GEANT_DEBUG
+      assert(!output.HasTrackMany(track));
+      #endif
       ninput++;
     } else {
       // Add the track to the handler, which may extract a full vector.
@@ -118,7 +141,7 @@ int SimulationStage::Process(GeantTaskData *td)
   }
   // The stage buffer needs to be cleared
   input.Clear();
-  td->fStat->AddTracks(output.size()-ninput);
+  //td->fStat->AddTracks(output.size()-ninput);
   return CopyToFollowUps(output, td);
 }
 
@@ -134,11 +157,7 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
     return ntracks;
   }
   // Copy output tracks to the follow-up stages
-  if (fFollowUpStage) {
-    for (auto track : output.Tracks()) {
-      // If a follow-up stage is declared, this overrides any follow-up set by handlers
-      track->fStage = fFollowUpStage;
-    }
+  if (fUniqueFollowUp) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     std::copy(output.Tracks().begin(), output.Tracks().end(),
               std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));

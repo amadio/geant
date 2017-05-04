@@ -430,6 +430,8 @@ void GeantRunManager::RunSimulation() {
   long nmag = 0;
   long nsmall = 0;
   long ncross = 0;
+  long npushed = 0;
+  long nkilled = 0;
 
   for (auto i=0; i<fNpropagators; ++i) {
     ntransported += fPropagators[i]->fNtransported.load();
@@ -439,10 +441,12 @@ void GeantRunManager::RunSimulation() {
     nmag += fPropagators[i]->fNmag.load();
     nsmall += fPropagators[i]->fNsmall.load();
     ncross += fPropagators[i]->fNcross.load();
+    npushed += fPropagators[i]->fNpushed.load();
+    nkilled += fPropagators[i]->fNkilled.load();
   }
   Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
-         "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
-         fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, ncross, rtime, ctime);
+         "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
+         fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
   LocalityManager *lmgr = LocalityManager::Instance();
   Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d", 
          lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());

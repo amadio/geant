@@ -1,5 +1,6 @@
 #include "SteppingActionsHandler.h"
 
+#include "Geant/Error.h"
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
 #include "TrackManager.h"
@@ -28,6 +29,15 @@ VECCORE_ATT_HOST_DEVICE
 void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
+  // If track made too many steps, deposit all kinetic energy and kill it
+  track->fNsteps++;
+  if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
+    Error("SteppingActions", "track %d from event %d looping -> killing it",
+          track->fParticle, track->fEvent);
+    track->fStatus = kKilled;
+    track->Stop();
+  }
+  
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fPropagator->fStdApplication)
     fPropagator->fStdApplication->SteppingActions(*track, td);

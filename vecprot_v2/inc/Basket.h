@@ -143,6 +143,23 @@ public:
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
 
+  /** @brief Function checking if a track is already contained */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int HasTrack(GeantTrack* const track) const
+  {
+    return ( std::find(fTracks.begin(), fTracks.end(), track) != fTracks.end() );
+  }
+
+  /** @brief Function checking if a track is contained repeatedly */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int HasTrackMany(GeantTrack* const track) const
+  {
+    auto it = std::find(fTracks.begin(), fTracks.end(), track);
+    return ( std::find(++it, fTracks.end(), track) != fTracks.end() );
+  }
+
   /**
    * @brief Function returning a reference to the vector of input tracks
    * @return Reference to input vector of tracks

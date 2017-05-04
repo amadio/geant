@@ -422,6 +422,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
+  add_definitions(-DGEANT_DEBUG)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
   if(APPLE)
     #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
