@@ -1,10 +1,6 @@
 #include "NumaCore.h"
 #include "NumaUtils.h"
 
-#ifdef USE_NUMA
-#include <numa.h>
-#endif
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 

@@ -41,11 +41,9 @@ else()
   pkg_check_modules(HWLOC ${_hwloc_OPTS} hwloc)
 endif()
 
-if(hwloc_FOUND)
-  include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(HWLOC DEFAULT_MSG HWLOC_LIBRARIES)
-
-  message(STATUS
-    "Found hwloc ${hwloc_VERSION} library: ${HWLOC_LIBRARIES}")
-  set (HWLOC_FOUND true)
+if(HWLOC_FOUND)
+#  include(FindPackageHandleStandardArgs)
+#  find_package_handle_standard_args(hwloc DEFAULT_MSG hwloc_LIBRARIES hwloc_INCLUDE_DIR)
+  set(HWLOC_INCLUDE_DIRS ${HWLOC_INCLUDEDIR})
+#  set(HWLOC_LIBRARIES ${HWLOC_LIBDIR}/libhwloc)
 endif()

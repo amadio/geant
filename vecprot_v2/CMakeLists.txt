@@ -10,7 +10,6 @@ if (USE_REAL_PHYSICS)
     ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc
-    ${CMAKE_SOURCE_DIR}/numa/inc
     )
 else()
   include_directories(
@@ -18,7 +17,6 @@ else()
     ${CMAKE_SOURCE_DIR}/numa/inc
     ${CMAKE_SOURCE_DIR}/magneticfield/inc
     ${CMAKE_SOURCE_DIR}/physics/particle/inc
-    ${CMAKE_SOURCE_DIR}/numa/inc
     )
 endif()
 
