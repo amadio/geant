@@ -5,7 +5,8 @@ file(GLOB sources src/*.cxx)
 file(GLOB headers inc/*.h inc/Geant/[A-Z]*.h)
 add_headers("${headers}")
 
-include_directories(inc)
+include_directories(inc 
+                    ${CMAKE_SOURCE_DIR}/numa/inc)
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

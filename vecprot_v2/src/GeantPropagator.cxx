@@ -423,7 +423,8 @@ int GeantPropagator::CreateSimulationStages()
   (void)stage;
   // kPreStepStage
   stage = new PreStepStage(this);
-  assert(stage->GetId() == int(kPreStepStage));
+  if (stage->GetId() != int(kPreStepStage))
+    Fatal("CreateSimulationStages", "Wrong stages start index");
   // kXSecSamplingStage
   stage = new XSecSamplingStage(this);
   assert(stage->GetId() == int(kXSecSamplingStage));

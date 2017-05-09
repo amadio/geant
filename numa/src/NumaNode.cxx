@@ -16,8 +16,7 @@ NumaNode::NumaNode(int id)
 {
   // Constructor.
 #ifdef USE_NUMA
-  NumaUtils *utils = NumaUtils::Instance();
-  hwloc_topology_t &topology = utils->fTopology;
+  hwloc_topology_t const &topology = NumaUtils::Topology();
   hwloc_obj_t onode = hwloc_get_numanode_obj_by_os_index(topology, id);
   fMemTotal = onode->memory.local_memory;
 

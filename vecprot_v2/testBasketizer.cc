@@ -1,3 +1,4 @@
+#include "GeantNuma.h"
 #include "Basketizer.h"
 #include <iostream>
 #include <sys/time.h>
@@ -103,7 +104,7 @@ struct Workload {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters - 1);
 // Create a pool of numbers
-    allocated_ = NumaUtils::Instance()->NumaAlignedMalloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
+    allocated_ = NumaUtils::NumaAlignedMalloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
     tracks_ = new (allocated_) test_track[ntracks_];
     //Lock();
     //    std::cout << "Allocated data " << allocated_ << " on node: " << numa_node_addr(allocated_) << std::endl;
@@ -117,9 +118,9 @@ struct Workload {
   };
 
   ~Workload() {
-    NumaUtils::Instance()->NumaAlignedFree(allocated_);
+    NumaUtils::NumaAlignedFree(allocated_);
     for (size_t i = 0; i < nnodes_; ++i)
-      NumaUtils::Instance()->NumaAlignedFree(basketizers_[i]);
+      NumaUtils::NumaAlignedFree(basketizers_[i]);
     delete[] basketizers_;
   }
 
@@ -129,9 +130,9 @@ struct Workload {
     Lock();
     size_t basket_size = Basketizer::SizeofInstance(buf_size_);
     if (!basketizers_[node]) {
-      basketizers_[node] = Basketizer::MakeInstanceAt(NumaUtils::Instance()->NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
+      basketizers_[node] = Basketizer::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
 //      basketizers_[node] = new Basketizer(buf_size_, bsize_);
-      std::cout << "basketizer[" << node << "] allocated on NUMA node " << NumaUtils::Instance()->NumaNodeAddr(basketizers_[node])
+      std::cout << "basketizer[" << node << "] allocated on NUMA node " << NumaUtils::NumaNodeAddr(basketizers_[node])
                 << std::endl;
     }
     Unlock();

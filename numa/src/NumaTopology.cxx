@@ -15,9 +15,8 @@ NumaTopology::NumaTopology()
 {
 // Default constructor
 #ifdef USE_NUMA
-  NumaUtils *utils = NumaUtils::Instance();
-  hwloc_topology_t &topology = utils->fTopology;
-  fAvailable = utils->fAvailable;
+  hwloc_topology_t const &topology = NumaUtils::Topology();
+  fAvailable = NumaUtils::NumaAvailable();
   if (fAvailable) {
     hwloc_const_bitmap_t cset;
     // retrieve the entire set of NUMA nodes and count them

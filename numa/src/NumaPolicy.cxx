@@ -1,11 +1,5 @@
 #include "NumaPolicy.h"
 #include "NumaUtils.h"
-
-#ifdef USE_NUMA
-#include <numa.h>
-#include <numaif.h>
-#endif
-
 #include "NumaNode.h"
 
 namespace Geant {
@@ -19,10 +13,7 @@ int NumaPolicy::AllocateNextThread()
 // Returns NUMA node id
   fNthreads++;
 #ifdef USE_NUMA
-  NumaUtils *utils = NumaUtils::Instance();
-//  auto crt_cpu = sched_getcpu();
-//  auto crt_node = numa_node_of_cpu(crt_cpu);
-  auto crt_cpu = utils->GetCpuBinding();
+  auto crt_cpu = NumaUtils::GetCpuBinding();
   auto crt_node = fTopo.NumaNodeOfCpu(crt_cpu);
   if (fPolicy == kSysDefault)
     return crt_node;
@@ -71,8 +62,7 @@ int NumaPolicy::MembindNode(int node)
   // the NUMA node specified.
   if (node < 0) return -2;
 #ifdef USE_NUMA
-  NumaUtils *utils = NumaUtils::Instance();
-  hwloc_topology_t &topology = utils->fTopology;
+  hwloc_topology_t const &topology = NumaUtils::Topology();
   hwloc_nodeset_t nodeset = hwloc_bitmap_alloc();
   hwloc_bitmap_only(nodeset, unsigned(node));
   //assert( hwloc_bitmap_isset(nodeset, node) == 0 );

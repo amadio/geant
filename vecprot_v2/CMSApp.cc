@@ -208,6 +208,7 @@ int main(int argc, char *argv[]) {
 
   // V3 options
   config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
+  config->fNstackLanes = 10;
   config->fUseV3 = usev3;
   config->fUseNuma = usenuma;
 

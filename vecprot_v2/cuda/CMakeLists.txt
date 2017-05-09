@@ -30,6 +30,7 @@ include_directories(
   ${CUDA_INCDIR} 
   ${CMAKE_SOURCE_DIR}/xsec/inc 
   ${CMAKE_SOURCE_DIR}/magneticfield/inc 
+  ${CMAKE_SOURCE_DIR}/numa/inc 
   )
 
 set(dict_headers ${CUDA_INCDIR}/CoprocessorBroker.h)

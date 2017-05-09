@@ -13,6 +13,7 @@
 #define GEANT_NUMA_NODE
 
 #include <mutex>
+#include <iostream>
 #include "Geant/Config.h"
 
 namespace Geant {

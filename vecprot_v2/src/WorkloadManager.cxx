@@ -325,37 +325,30 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 //  int nprioritized = 0;
 //  int ninjected = 0;
   bool useNuma = prop->fConfig->fUseNuma;
-  LocalityManager *loc_mgr = LocalityManager::Instance();
   // Enforce locality by pinning the thread to the next core according to the chosen policy.
-  int node = useNuma ? loc_mgr->GetPolicy().AllocateNextThread() : -1;
-#ifdef USE_NUMA
-  int cpu = useNuma ? NumaUtils::Instance()->GetCpuBinding() : -1;
-#endif
+  int node = -1;
+  LocalityManager *loc_mgr = LocalityManager::Instance();
+  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread();
+  int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
 //  if (node < 0) node = 0;
   int tid = prop->fWMgr->ThreadId();
   prop->SetNuma(node);
-#ifdef USE_NUMA
   if (useNuma)
     Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
                  tid, prop, node, cpu);
   else
     Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
-#else
-  Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
-#endif
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
   td->fShuttleBasket = prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0);
-#ifdef USE_NUMA
   if (useNuma) {
-    int membind = NumaUtils::Instance()->NumaNodeAddr(td->fShuttleBasket->Tracks().data());
+    int membind = NumaUtils::NumaNodeAddr(td->fShuttleBasket->Tracks().data());
     if (node != membind)
       Geant::Print("","=== Thread #d: Wrong memory binding");
   }
-#endif  
   td->fBvector = prop->fConfig->fUseNuma ? new Basket(256, 0, node) : new Basket(256, 0);
   for (int i=0; i<=int(kSteppingActionsStage); ++i)
     td->fStageBuffers.push_back(prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0));
@@ -434,13 +427,11 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   // If transport is completed, make send the signal to the run manager
   if (runmgr->TransportCompleted())
     runmgr->StopTransport();
-  #ifdef USE_NUMA
   if (useNuma) {
-    int cpuexit = NumaUtils::Instance()->GetCpuBinding();
+    int cpuexit = NumaUtils::GetCpuBinding();
     if (cpuexit != cpu)
       Geant::Print("","=== OS migrated worker %d from cpu #%d to cpu#%d", tid, cpu, cpuexit);
   }
-  #endif
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   #ifdef USE_ROOT

@@ -148,7 +148,14 @@ public:
   GEANT_FORCE_INLINE
   int HasTrack(GeantTrack* const track) const
   {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     return ( std::find(fTracks.begin(), fTracks.end(), track) != fTracks.end() );
+#else
+    // #!@$f**k%#@! CUDA
+    for (size_t i=0; i<fTracks.size(); ++i)
+      if (fTracks[i] == track) return true;
+    return false;
+#endif
   }
 
   /** @brief Function checking if a track is contained repeatedly */
@@ -156,10 +163,19 @@ public:
   GEANT_FORCE_INLINE
   int HasTrackMany(GeantTrack* const track) const
   {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     auto it = std::find(fTracks.begin(), fTracks.end(), track);
     return ( std::find(++it, fTracks.end(), track) != fTracks.end() );
+#else
+    // #!@$f**k%#@! CUDA
+    size_t i;
+    for (i=0; i<fTracks.size(); ++i)
+      if (fTracks[i] == track) break;
+    for (size_t j=i+1; j<fTracks.size(); ++j)
+      if (fTracks[j] == track) return true;
+    return false;
+#endif
   }
-
   /**
    * @brief Function returning a reference to the vector of input tracks
    * @return Reference to input vector of tracks

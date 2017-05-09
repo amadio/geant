@@ -4,6 +4,7 @@
 if (USE_REAL_PHYSICS)
   include_directories(
     inc
+    ${CMAKE_SOURCE_DIR}/numa/inc
     ${CMAKE_SOURCE_DIR}/magneticfield/inc
     ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
     ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
@@ -14,6 +15,7 @@ if (USE_REAL_PHYSICS)
 else()
   include_directories(
     inc
+    ${CMAKE_SOURCE_DIR}/numa/inc
     ${CMAKE_SOURCE_DIR}/magneticfield/inc
     ${CMAKE_SOURCE_DIR}/physics/particle/inc
     ${CMAKE_SOURCE_DIR}/numa/inc
@@ -22,10 +24,6 @@ endif()
 
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
-endif()
-
-if (USE_NUMA)
-  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
 endif()
 
 if( USE_VECGEOM_NAVIGATOR )

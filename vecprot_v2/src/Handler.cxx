@@ -1,7 +1,7 @@
 #include "Handler.h"
-#include "GeantNuma.h"
 #include "GeantTaskData.h"
-#
+#include "GeantNuma.h"
+
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -24,8 +24,12 @@ Handler::Handler(int threshold, GeantPropagator *propagator)
 VECCORE_ATT_HOST_DEVICE
 Handler::~Handler()
 {
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   if (GetNode() < 0) delete fBasketizer;
-  else NumaUtils::Instance()->NumaAlignedFree(fBasketizer);
+  else NumaUtils::NumaAlignedFree(fBasketizer);
+#else
+  delete fBasketizer;
+#endif
   fBasketizer = nullptr;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
@@ -53,13 +57,17 @@ void Handler::ActivateBasketizing(bool flag)
   assert(fThreshold < buffer_size);
   // Create basketizer the first time the handler is activated
   if (fActive && !fBasketizer) {
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
       fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaUtils::Instance()->NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
+        NumaUtils::NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
     }
+#else
+    fBasketizer = new basketizer_t(buffer_size, basket_size);
+#endif
   }
 }
 

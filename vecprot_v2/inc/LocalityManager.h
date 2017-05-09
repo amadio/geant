@@ -12,6 +12,7 @@
 #ifndef GEANT_LOCALITY_MANAGER
 #define GEANT_LOCALITY_MANAGER
 
+#include "GeantNuma.h"
 #include "Geant/Config.h"
 #include "TrackManager.h"
 #include "GeantTrack.h"

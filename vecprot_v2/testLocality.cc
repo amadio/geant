@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <thread>
 #include <VecCore/VecMath.h>
+#include "GeantNuma.h"
 #include "NumaAllocator.h"
 
 #include "Basketizer.h"
@@ -173,7 +174,7 @@ int main(int argc, char *argv[]) {
     ldata[node].bsize = 16;
     ldata[node].buffer_size = 1<<16;
     size_t needed = Basketizer::SizeofInstance(ldata[node].buffer_size);
-    ldata[node].basketizer = Basketizer::MakeInstanceAt(NumaUtils::Instance()->NumaAlignedMalloc(needed, node, 64), ldata[node].buffer_size, ldata[node].bsize);
+    ldata[node].basketizer = Basketizer::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(needed, node, 64), ldata[node].buffer_size, ldata[node].bsize);
   }
 
   std::vector<std::thread> v;
@@ -190,7 +191,7 @@ int main(int argc, char *argv[]) {
   delete mgr;
 //  delete gGeoManager;
   for (auto node=0; node<nnodes; node++) {
-    NumaUtils::Instance()->NumaAlignedFree(ldata[node].basketizer);
+    NumaUtils::NumaAlignedFree(ldata[node].basketizer);
   }
   delete [] ldata;
   delete gGeoManager;

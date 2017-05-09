@@ -13,9 +13,8 @@ NumaCore::NumaCore(int id, int node)
          :fId(id), fNode(node)
 {
   // Constructor.
-#ifdef USE_NUMA
-  NumaUtils *utils = NumaUtils::Instance();
-  hwloc_topology_t &topology = utils->fTopology;
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+  hwloc_topology_t const &topology = NumaUtils::Topology();
   hwloc_obj_t onode = hwloc_get_numanode_obj_by_os_index(topology, node);
   // Object for the core with index 'id'
   fObjCore = hwloc_get_obj_inside_cpuset_by_type(topology, onode->cpuset, HWLOC_OBJ_CORE, id);
@@ -44,21 +43,20 @@ int NumaCore::BindThread()
 // Pin caller thread to the next cpu on this core.
 // If all cores are given, restart from first cpu.
   int cpu = -1;
-#ifdef USE_NUMA
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   std::lock_guard<std::mutex> lock(fMutex);
   int cpuindex = fNthreads % fNcpus;
   cpu = fCpus[cpuindex];
   // Now bind the thread to the selected cpu
-  NumaUtils *utils = NumaUtils::Instance();
-  hwloc_topology_t &topology = utils->fTopology;
+  hwloc_topology_t const &topology = NumaUtils::Topology();
   // Check current binding
-  int binding = utils->GetCpuBinding();
+  int binding = NumaUtils::GetCpuBinding();
 //  std::cout << ">>> try to bind thread to cpu# " << cpu << "   currently bound to cpu# " << binding << std::endl;
   hwloc_obj_t objpu = hwloc_get_obj_inside_cpuset_by_type(topology, fObjCore->cpuset, HWLOC_OBJ_PU, cpuindex);
   assert((int)objpu->os_index == cpu);
   assert(hwloc_bitmap_weight(objpu->cpuset) == 1);
   hwloc_set_cpubind(topology, objpu->cpuset, HWLOC_CPUBIND_THREAD);
-  binding = utils->GetCpuBinding();
+  binding = NumaUtils::GetCpuBinding();
   if (binding != cpu)
     std::cout << "### Cannot bind thread to cpu# " << cpu << std::endl;
 //  std::cout << "    thread now bound to cpu# " << binding << std::endl;
@@ -70,7 +68,7 @@ int NumaCore::BindThread()
 //______________________________________________________________________________
 std::ostream& operator<<(std::ostream& os, const NumaCore& core)
 {
-#ifdef USE_NUMA
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   os << "core#" << core.fId << ": ";
   for (auto i=0; i<core.fNcpus; ++i)
     os << core.fCpus[i] << " ";

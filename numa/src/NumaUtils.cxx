@@ -1,9 +1,7 @@
 #include "NumaUtils.h"
 
-#ifdef USE_NUMA
-  #include <numa.h>
-  #include <numaif.h>
-#else
+#include <iostream>
+#ifndef USE_NUMA
   #ifdef __INTEL_COMPILER
   #include <immintrin.h>
   #else
@@ -13,22 +11,25 @@
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-NumaUtils *NumaUtils::fgInstance = nullptr;
+
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+
+NumaUtilsStruct *NumaUtilsStruct::fgInstance = nullptr;
 
 //______________________________________________________________________________
-NumaUtils *NumaUtils::Instance() {
+NumaUtilsStruct *NumaUtilsStruct::Instance() {
   if (fgInstance) return fgInstance;
-  return (new NumaUtils());
+  return (new NumaUtilsStruct());
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-NumaUtils::NumaUtils()
+NumaUtilsStruct::NumaUtilsStruct()
 {
-  std::lock_guard<std::mutex> lock(fLock);
   fgInstance = this;
   fAvailable = false;
-#ifdef USE_NUMA
+
+  std::lock_guard<std::mutex> lock(fLock);
   int err;
   hwloc_bitmap_t set = hwloc_bitmap_alloc();
   if (!set) {
@@ -123,26 +124,21 @@ NumaUtils::NumaUtils()
   }
   hwloc_bitmap_free(set);
   fAvailable = true;  
-#endif
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-NumaUtils::~NumaUtils()
+NumaUtilsStruct::~NumaUtilsStruct()
 {
   // Destroy topology object
-#ifdef USE_NUMA
   if (fAvailable)
     hwloc_topology_destroy(fTopology);
-#endif
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void *NumaUtils::NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
+void *NumaUtilsStruct::NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
 {
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-#ifdef USE_NUMA
 // Fallback to 
 // Basic allocator for aligned memory on a given NUMA node.
 //      Input: number of bytes required and alignment boundaru
@@ -187,38 +183,23 @@ void *NumaUtils::NumaAlignedMalloc(size_t bytes, int node, size_t alignment)
   
 //  assert(NumaNodeAddr(p2) == node);
   return p2;
-#else
-  (void)node;
-  return _mm_malloc(bytes, alignment);
-#endif
-#else
-  return malloc(bytes);
-#endif
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void NumaUtils::NumaAlignedFree(void *p )
+void NumaUtilsStruct::NumaAlignedFree(void *p )
 {
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
 // Find the address stored by aligned_malloc ,"size_t" bytes above the
 // current pointer then free it using normal free routine provided by C.
-#ifdef USE_NUMA
   if (p) hwloc_free(fTopology, (void *)(*((size_t *)p - 2)), *((size_t *)p - 1));
 //  if (p) numa_free((void *)(*((size_t *)p - 2)), *((size_t *)p - 1));
-#else
-  _mm_free(p);
-#endif
-#else
-  free(p);
-#endif
 }
 
 //______________________________________________________________________________
-int NumaUtils::NumaNodeAddr(void *ptr)
+VECCORE_ATT_HOST_DEVICE
+int NumaUtilsStruct::NumaNodeAddr(void *ptr)
 {
 // Returns the NUMA node id associated with the memory pointer.
-#ifdef USE_NUMA
   // check where the memory was allocated
   hwloc_bitmap_t set = hwloc_bitmap_alloc();
   hwloc_membind_policy_t policy;
@@ -239,23 +220,13 @@ int NumaUtils::NumaNodeAddr(void *ptr)
   }
   hwloc_obj_t obj = hwloc_get_numanode_obj_by_os_index(fTopology, index);
   return ( obj->logical_index );
-/*
-  (void)ptr;
-  int numa_node = -1;
-  get_mempolicy(&numa_node, NULL, 0, ptr, MPOL_F_NODE | MPOL_F_ADDR);
-  return numa_node;
-*/
-#else
-  (void)ptr;
-  return 0;
-#endif  
 }
 
 //______________________________________________________________________________
-int NumaUtils::GetCpuBinding() const
+VECCORE_ATT_HOST_DEVICE
+int NumaUtilsStruct::GetCpuBinding() const
 {
 // Check the current binding of the thread.
-#ifdef USE_NUMA    
   hwloc_bitmap_t set = hwloc_bitmap_alloc();
   int err = hwloc_get_last_cpu_location(fTopology, set, HWLOC_CPUBIND_THREAD);
   if (err < 0) {
@@ -270,8 +241,75 @@ int NumaUtils::GetCpuBinding() const
   hwloc_bitmap_free(set);
   
   return obj->os_index;
+}
+
+#endif // USE_NUMA
+
+namespace NumaUtils {
+  VECCORE_ATT_HOST_DEVICE
+  void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment)
+  {
+  #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  #ifdef USE_NUMA
+    return ( NumaUtilsStruct::Instance()->NumaAlignedMalloc(bytes, node, alignment) );
+  #else
+    return _mm_malloc(bytes, alignment);
+  #endif
+  #else
+    return malloc(bytes);
+  #endif
+  }
+  
+  VECCORE_ATT_HOST_DEVICE
+  void  NumaAlignedFree(void *p)
+  {
+  #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  #ifdef USE_NUMA
+    NumaUtilsStruct::Instance()->NumaAlignedFree(p);
+  #else
+    _mm_free(p);
+  #endif
+  #else
+    free(p);
+  #endif
+  }
+  
+  VECCORE_ATT_HOST_DEVICE
+  int NumaNodeAddr(void *ptr)
+  {
+  #if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+    return NumaUtilsStruct::Instance()->NumaNodeAddr(ptr);
+  #else
+    (void)ptr;
+    return 0;
+  #endif
+  }
+  
+  VECCORE_ATT_HOST_DEVICE
+  int GetCpuBinding()
+  {
+  #if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+    return NumaUtilsStruct::Instance()->GetCpuBinding();
+  #else
+    return -1;
+  #endif
+  }
+  
+  VECCORE_ATT_HOST_DEVICE
+  bool NumaAvailable()
+  {
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+    return NumaUtilsStruct::Instance()->fAvailable;
 #else
-  return -1;
+    return false;
+#endif
+  }
+
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+  hwloc_topology_t const &Topology()
+  {
+    return NumaUtilsStruct::Instance()->fTopology;
+  }
 #endif
 }
 
