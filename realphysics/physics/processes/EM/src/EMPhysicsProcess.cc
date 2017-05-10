@@ -162,7 +162,7 @@ double EMPhysicsProcess::AlongStepLimitationLength(const LightTrack &track) cons
   // if the process is kEnergyLoss process use the energy loss related data to limit the step
   if(GetType()==ProcessType::kEnergyLoss) {
     const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-    const Particle     *part   = Particle::GetParticleByInteralCode(track.GetGVcode());
+    const Particle     *part   = Particle::GetParticleByInternalCode(track.GetGVcode());
     double              ekin   = track.GetKinE();
     double range = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin);
     stepLimit    = range;
@@ -195,7 +195,7 @@ int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, std::vector<LightTrack> &
     //  - the step length >= range of the particle
     //  - the pre-step point kinetic energy of the partcile is below the common charge partcile trakin cut
     const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-    const Particle     *part   = Particle::GetParticleByInteralCode(track.GetGVcode());
+    const Particle     *part   = Particle::GetParticleByInternalCode(track.GetGVcode());
     double              ekin   = track.GetKinE();
     double range = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin);
     if (stepLength>=range || ekin<=fLowestKineticEnergy) {
@@ -241,7 +241,7 @@ int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, std::vector<LightTrack> &
 // was used to sample or update the current discrete interaction point is in the track
 // if (/*fIsUseIntegralApproach*/) {
 //   // get the current total macroscopic cross section i.e. for the post step energy one
-//   const Particle *part = Particle::GetParticleByInteralCode(track.GetGVcode());
+//   const Particle *part = Particle::GetParticleByInternalCode(track.GetGVcode());
 //   double curInvLambda  =
 // }
 // IN case of intergral approach it is called only if the discrete interaction indeed happens

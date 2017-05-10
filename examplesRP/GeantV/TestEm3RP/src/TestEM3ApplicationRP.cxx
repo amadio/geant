@@ -121,7 +121,7 @@ void TestEM3ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Ge
     if (idvol==fIdAbs) { iabs = 0; }
     else if (idvol==fIdGap) { iabs = 1;}
 
-    const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInteralCode(tracks.fGVcodeV[i]);
+    const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(tracks.fGVcodeV[i]);
     int   pdgCode = part->GetPDGCode();
     double charge = part->GetPDGCharge();
     if (iabs>-1) {

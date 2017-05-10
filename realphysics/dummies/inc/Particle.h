@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace geantphysics {
 // forward declarations
@@ -33,12 +34,19 @@ public:
   PhysicsManagerPerParticle* GetPhysicsManagerPerParticlePerRegion(int regionindx) const  {return fPMPParticle[regionindx];}
 
 
-  static const Particle* GetParticleByInteralCode(unsigned int intercode) {
+  static const Particle* GetParticleByInternalCode(unsigned int intercode) {
     if (intercode<gInternalParticleCodes.size())
       return gInternalParticleCodes[intercode];
     return nullptr;
   }
 
+  static const Particle* GetParticleByPDGCode(unsigned int pdgcode) {
+    auto search = gPDGtoInternalCode.find(pdgcode);
+    if (search != gPDGtoInternalCode.end())
+      return gInternalParticleCodes[search->second];
+    return nullptr;
+  }
+  
   static const std::vector<Particle*>& GetTheParticleTable() { return gTheParticleTable;}
 
 
@@ -56,6 +64,10 @@ private:
   // the particle table
   static std::vector<Particle*> gTheParticleTable;
   static std::vector<Particle*> gInternalParticleCodes;
+
+  // map of PDG codes to internal codes
+  static std::map<unsigned int, unsigned int> gPDGtoInternalCode;
+
 };
 
 } // namespace geantphysics

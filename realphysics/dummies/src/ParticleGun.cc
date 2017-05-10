@@ -62,7 +62,7 @@ void ParticleGun::InitPrimaryGenerator() {
 //#endif
   // set rest mass [GeV]
 
-  const Particle *part = Particle::GetParticleByInteralCode(fGVPartIndex);
+  const Particle *part = Particle::GetParticleByInternalCode(fGVPartIndex);
   if (part) {
     fMass   = part->GetPDGMass();
     // set charge

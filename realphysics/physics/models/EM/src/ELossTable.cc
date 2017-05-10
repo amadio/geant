@@ -62,7 +62,7 @@ double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinene
     }
   } else {
     std::cerr << " ======= ELossTable::GetRestrictedDEDX() no restricted dedx for Particle = "
-              << Particle::GetParticleByInteralCode(partindx)->GetName()
+              << Particle::GetParticleByInternalCode(partindx)->GetName()
               << "  in MaterialCuts: \n";
     std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
     exit(-1);
@@ -98,7 +98,7 @@ double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinen
     }
   } else {
     std::cerr << " ======= ELossTable::GetRestrictedRange() no restricted range table for Particle = "
-              << Particle::GetParticleByInteralCode(partindx)->GetName()
+              << Particle::GetParticleByInternalCode(partindx)->GetName()
               << "  in MaterialCuts: \n";
     std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
     exit(-1); // fatal
@@ -128,7 +128,7 @@ double ELossTable::GetEnergyForRestrictedRange(int matcutindx, int partindx, dou
     }
   } else {
     std::cerr << " ======= ELossTable::GetEnergyForRestrictedRange() no inverse range table for Particle = "
-              << Particle::GetParticleByInteralCode(partindx)->GetName()
+              << Particle::GetParticleByInternalCode(partindx)->GetName()
               << "  in MaterialCuts: \n";
     std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
     exit(-1);
@@ -164,7 +164,7 @@ double ELossTable::GetRange(int matindx, int partindx, double kinenergy) {
     }
   } else {
     std::cerr << " ======= ELossTable::GetRange() no Range data for Particle = "
-              << Particle::GetParticleByInteralCode(partindx)->GetName()
+              << Particle::GetParticleByInternalCode(partindx)->GetName()
               << "  in Material: \n";
     std::cerr << Material::GetTheMaterialTable()[matindx] <<std::endl;
     exit(-1);
@@ -218,7 +218,7 @@ void ELossTable::BuildELossTable(std::vector<ELossTable*> &elosstablespermatcut)
     for (int ipart=0; ipart<numParticles; ++ipart) {
       // get the current particle by internal partcile code; EnergyLoss EMPhysicsProcess-es were registered by this
       // index in the ELossTableRegister
-      const Particle *particle = Particle::GetParticleByInteralCode(ipart);
+      const Particle *particle = Particle::GetParticleByInternalCode(ipart);
       // create a collection for possible EnergyLoss processes for this partcile with initial size of zero
       std::vector<EMPhysicsProcess*>  theELossProcessList(0);
       //1.
