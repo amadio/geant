@@ -18,7 +18,7 @@ Basket::Basket(int size, int threshold)
 VECCORE_ATT_HOST_DEVICE
 Basket::Basket(int size, int threshold, int node)
       : fThreshold(threshold), fNode(node)
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA)
         ,fTracks(0, nullptr, TrackAllocator_t(node))
 #endif
 {

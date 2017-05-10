@@ -82,12 +82,12 @@ GEANT_DECLARE_CONSTANT(double, gTolerance);
 class GeantTaskData;
 class GeantTrack;
 #ifndef VECCORE_CUDA
- #ifdef USE_NUMA
+#ifdef USE_NUMA
 typedef NumaAllocator<GeantTrack*> TrackAllocator_t;
 typedef std::vector<GeantTrack *, TrackAllocator_t> TrackVec_t;
- #else
-typedef std::vector<GeantTrack *> TrackVec_t;
- #endif
+#else
+typedef vector_t<GeantTrack *> TrackVec_t;
+#endif
 #else
 typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
 #endif
