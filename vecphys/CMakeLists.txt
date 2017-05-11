@@ -2,7 +2,6 @@
 # Configuration options
 #
 set(GUBENCHMARK "" CACHE STRING "Enable performance comparisons.")
-option(DISTANCE_DEBUG "Enable comparision of calculcated distances againt ROOT/Geant4 behind the scenes" OFF)
 option(VECPHYS_STANDALONE "Build VECPHYS standalone" OFF)
 set(VECPHYS_VECTOR "" CACHE STRING "Vector instruction set to use (sse/avx/...).")
 
@@ -57,6 +56,8 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 endif()
 if (NOT GNU AND NOT Clang AND NOT Intel)
   message(WARNING "Unsupported compiler. Build will likely fail.")
+else()
+  message("-- Using ${CMAKE_CXX_COMPILER_ID} compiler")
 endif()
 
 #----------------------------------------------------------------------------------------------
@@ -122,13 +123,6 @@ endif()
 #
 if (CUDA)
   set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CUDA")
-  if (CUDA_VOLUME_SPECIALIZATION)
-    set(VECPHYS_COMPILATION_FLAGS
-        "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CUDA_VOLUME_SPECIALIZATION")
-  else()
-    set(VECPHYS_COMPILATION_FLAGS
-        "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_CUDA_NO_VOLUME_SPECIALIZATION")
-  endif()
   set(VECPHYS_NVCC_COMPILATION_FLAGS ${VECPHYS_NVCC_COMPILATION_FLAGS}
       -Xcudafe "--diag_suppress=code_is_unreachable"
       -Xcudafe "--diag_suppress=initialization_not_reachable" 
@@ -145,6 +139,10 @@ if (CUDA)
         RELWITHDEBINFO -g -G  -O2 --use_fast_math
         MINSIZEREL --use_fast_math )
   endif()
+endif()
+
+if (Intel)
+  set(VECPHYS_COMPILATION_FLAGS "${VECPHYS_COMPILATION_FLAGS} -DVECPHYS_MKL  -fopenmp")
 endif()
 
 #----------------------------------------------------------------------------------------------
@@ -317,9 +315,23 @@ if (GUBENCHMARK)
       test/src/ProcessBenchmarker.cu
       test/src/ProcessBenchmarker_gpu.cu
       )
+  elseif(GUBENCHMARK STREQUAL "pRNG")
+    set(SRC_CPP ${SRC_CPP}
+      test/src/RngBenchmarker.cc
+      test/src/RngBenchmarker_cpu.cc
+      )
+    set(SRC_CUDA ${SRC_CUDA}
+      test/src/RngBenchmarker.cu
+      test/src/RngBenchmarker_gpu.cu
+      )
+    if(Intel) 
+      set(VECPHYS_LIBRARIES_EXTERNAL ${VECPHYS_LIBRARIES_EXTERNAL} 
+        -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
+        )
+    endif()
   else()
     message(FATAL_ERROR "vecphys: Invalid GUBENCHMARK=${GUBENCHMARK}: 
-    Use GUBENCHMARK=[Model|Process]")
+    Use GUBENCHMARK=[Model|Process|pRNG]")
   endif()
 endif()
 
@@ -368,6 +380,10 @@ elseif (GUBENCHMARK STREQUAL "Process")
   set(TEST_EXECUTABLES_BENCHMARK
     test/ProcessBenchmark.cc
     )
+elseif (GUBENCHMARK STREQUAL "pRNG")
+  set(TEST_EXECUTABLES_BENCHMARK
+    test/RngBenchmark.cc
+    )
 endif()
 
 set(TEST_EXECUTABLES_CUDA
@@ -393,7 +409,7 @@ macro(build_executables EXECUTABLES)
   foreach(EXECUTABLE ${EXECUTABLES})
     get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
     add_executable(${TARGET_NAME} ${EXECUTABLE})
-    target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES}
+    target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES} 
       ${VECPHYS_LIBRARIES_EXTERNAL}
       ${USERKERNELLIB})
     set(VECPHYS_EXECUTABLES ${VECPHYS_EXECUTABLES} ${TARGET_NAME})
