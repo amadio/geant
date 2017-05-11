@@ -261,7 +261,7 @@ class MaterialProperties{
    void ComputeRadiationLength();
 
  private:
-   /** @brief Pointer to the material that this material parameters belong to */
+   /** @brief Pointer to the material that this material properties belong to (doesn't own the object)*/
    Material *fMaterial;
 
 /**

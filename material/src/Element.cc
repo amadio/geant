@@ -1,9 +1,10 @@
 
 #include "Element.h"
 
+#include "PhysicalConstants.h"
 #include "Isotope.h"
 #include "NISTElementData.h"
-#include "PhysicalConstants.h"
+#include "ElementProperties.h"
 
 #include <iostream>
 #include <iomanip>
@@ -46,7 +47,7 @@ Vector_t<Element*> Element::gTheElementTable;  // the global element table
 //
 //ctr for direct build
 Element::Element(const std::string &name, const std::string &symbol, double  zeff, double  aeff)
-  : fName(name), fSymbol(symbol){
+  : fName(name), fSymbol(symbol), fElementProperties(nullptr) {
      using geant::perMillion;
 
      int iz = std::lrint(zeff);
@@ -123,6 +124,8 @@ Element::Element(const std::string &name, const std::string &symbol, double  zef
          fAeff +=  fRelativeIsotopeAbundanceVector[i]*(fIsotopeVector[i])->GetA();
      }
 */
+     // create the ElementProperties object
+     fElementProperties = new ElementProperties(this);
 
      fIndex = gTheElementTable.size();
      gTheElementTable.push_back(this);
@@ -133,7 +136,7 @@ Element::Element(const std::string &name, const std::string &symbol, double  zef
 // ctr to build an element from isotopes by adding the isotopes one by one via
 // AddIsotope method
 Element::Element(const std::string &name, const std::string &symbol, int nisotopes)
-  : fName(name),fSymbol(symbol) {
+  : fName(name),fSymbol(symbol), fElementProperties(nullptr) {
   InitialiseMembers();
   int n = nisotopes;
   if (0>=nisotopes) {
@@ -198,6 +201,8 @@ void Element::AddIsotope(Isotope* isotope, double abundance) {
     if (""==fSymbol) {
       fSymbol = NISTElementData::Instance().GetElementSymbol(iz);
     }
+    // create the ElementProperties object
+    fElementProperties = new ElementProperties(this);
     // set the index of this element and add to the global element table
     fIndex = gTheElementTable.size();
     gTheElementTable.push_back(this);
@@ -225,6 +230,9 @@ void Element::InitialiseMembers() {
 Element::~Element(){
   if (fRelativeIsotopeAbundanceVector) {
     delete [] fRelativeIsotopeAbundanceVector;
+  }
+  if (fElementProperties) {
+    delete fElementProperties;
   }
   //remove this element from theElementTable
   gTheElementTable[fIndex] = nullptr;

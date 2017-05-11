@@ -9,6 +9,7 @@
 namespace geantphysics {
 
 class Isotope;
+class ElementProperties;
 
   /**
    * @brief   Class to describe an element.
@@ -231,6 +232,8 @@ class Element {
    static int GetNumberOfElements() {return gTheElementTable.size();}
 //@}
 
+   // @brief Public method to obtain the element properties object pointer of this element */
+   const ElementProperties* GetElementProperties() const { return fElementProperties; }
 
 /**
  * @name Printouts:
@@ -278,6 +281,9 @@ class Element {
 
    /** @brief The global element table that contains all elements that has been created so far. */
    static Vector_t<Element*> gTheElementTable; // the global element table
+
+   /** @brief Object to store additional properties realted to this element (the class owns the object)*/
+   ElementProperties  *fElementProperties;
 };
 
 } // namespace geantphysics

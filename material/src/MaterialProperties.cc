@@ -28,7 +28,7 @@ MaterialProperties::MaterialProperties(Material *mat) : fMaterial(mat) {
 
 
 MaterialProperties::~MaterialProperties() {
-  if (!fNumOfAtomsPerVolVect)
+  if (fNumOfAtomsPerVolVect)
     delete [] fNumOfAtomsPerVolVect;
 }
 
@@ -63,7 +63,7 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
   // initialise corresponding members
   fTotalNumOfAtomsPerVol     = 0.0;
   fTotalNumOfElectronsPerVol = 0.0;
-  if (!fNumOfAtomsPerVolVect)
+  if (fNumOfAtomsPerVolVect)
     delete fNumOfAtomsPerVolVect;
   fNumOfAtomsPerVolVect = new double[numElems];
 

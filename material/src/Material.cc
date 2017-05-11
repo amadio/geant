@@ -75,7 +75,6 @@ Material::Material(const std::string &name, double z, double a, double density, 
     }
   }
   // create the associated MaterialProperties object
-  if (!fMaterialProperties) delete fMaterialProperties;
   fMaterialProperties = new MaterialProperties(this);
 }
 
@@ -129,12 +128,14 @@ Material::Material(const std::string &name, double density,int numcomponents, Ma
       fState = MaterialState::kStateGas;
     }
   }
+  fMaterialProperties = nullptr;
 }
 
 
 Material::~Material() {
-  if(fMassFractionVector)    delete [] fMassFractionVector;
-  if(fRelNumOfAtomsPerVol)   delete [] fRelNumOfAtomsPerVol;
+  if (fMassFractionVector)    delete [] fMassFractionVector;
+  if (fRelNumOfAtomsPerVol)   delete [] fRelNumOfAtomsPerVol;
+  if (fMaterialProperties)    delete    fMaterialProperties;
   gTheMaterialTable[fIndex]  = nullptr;
 }
 
@@ -185,7 +186,7 @@ void Material::AddElement(Element* element, int numatoms) {
       fRelNumOfAtomsPerVol[i] /= sumnumatoms;   // becomes ratio by number of atoms
     }
     // create the associated MaterialProperties object
-    if(!fMaterialProperties) delete fMaterialProperties;
+    if (fMaterialProperties) delete fMaterialProperties;
     fMaterialProperties = new MaterialProperties(this);
   }
 }
@@ -251,7 +252,7 @@ void Material::AddElement(Element *element, double massfraction) {
       fRelNumOfAtomsPerVol[i] *= normFactor;
     }
     // create the associated MaterialProperties object
-    if(!fMaterialProperties) delete fMaterialProperties;
+    if (fMaterialProperties) delete fMaterialProperties;
     fMaterialProperties = new MaterialProperties(this);
   }
 }
@@ -353,7 +354,7 @@ void Material::AddMaterial(Material *material, double massfraction) {
       fRelNumOfAtomsPerVol[i] *= normFactor;
     }
     // create the associated MaterialProperties object
-    if(!fMaterialProperties) delete fMaterialProperties;
+    if (fMaterialProperties) delete fMaterialProperties;
     fMaterialProperties = new MaterialProperties(this);
   }
 }

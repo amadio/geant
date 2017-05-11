@@ -327,7 +327,7 @@ class Material {
     *         table with a key = material name. */
    static Map_t<std::string,int> gMapMaterialNameToIndex;
 
-   /** @brief Object to store additional properties realted to this material */
+   /** @brief Object to store additional properties realted to this material (the class owns the object)*/
    MaterialProperties *fMaterialProperties;
 };
 
