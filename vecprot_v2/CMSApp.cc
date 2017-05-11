@@ -220,12 +220,13 @@ int main(int argc, char *argv[]) {
   config->fUseMonitoring = monitor;
   config->fNaverage = 500;
 
-  config->SetMonitored(GeantConfig::kMonQueue, monitor);
+  config->SetMonitored(GeantConfig::kMonQueue, false);
   config->SetMonitored(GeantConfig::kMonMemory, monitor);
-  config->SetMonitored(GeantConfig::kMonBasketsPerVol, monitor);
-  config->SetMonitored(GeantConfig::kMonVectors, monitor);
-  config->SetMonitored(GeantConfig::kMonConcurrency, monitor);
-  config->SetMonitored(GeantConfig::kMonTracksPerEvent, monitor);
+  config->SetMonitored(GeantConfig::kMonBasketsPerVol, false);
+  config->SetMonitored(GeantConfig::kMonVectors, false);
+  config->SetMonitored(GeantConfig::kMonConcurrency, false);
+  config->SetMonitored(GeantConfig::kMonTracksPerEvent, false);
+  config->SetMonitored(GeantConfig::kMonTracks, false);
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
   config->fPriorityThr = 0.1;

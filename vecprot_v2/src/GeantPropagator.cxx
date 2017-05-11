@@ -308,17 +308,6 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;
-  //fWMgr->SetMaxThreads(nthreads);
-#ifdef USE_ROOT
-  if (fConfig->fUseMonitoring) {
-    TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
-    cmon->Update();
-  }
-  if (fConfig->fUseAppMonitoring) {
-    TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
-    capp->Update();
-  }
-#endif
 
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_START_INSTRUMENTATION;
@@ -337,12 +326,6 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_STOP_INSTRUMENTATION;
   CALLGRIND_DUMP_STATS;
-#endif
-
-#ifdef GEANTV_OUTPUT_RESULT_FILE
-  const char *geomname = geomfile;
-  if (strstr(geomfile, "http://root.cern.ch/files/"))
-    geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
 #endif
 }

@@ -3,6 +3,7 @@
 #include "Geant/Error.h"
 
 #ifdef USE_ROOT
+#include "TApplication.h"
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TStopwatch.h"
@@ -192,6 +193,7 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   }
   // Start monitoring thread
   if (prop->fConfig->fUseMonitoring) {
+    //fListThreads.emplace_back(WorkloadManager::StartROOTApplication);
     fListThreads.emplace_back(WorkloadManager::MonitoringThread, prop);
   }
   // Start garbage collector
@@ -1251,6 +1253,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   // Thread providing basic monitoring for the scheduler.
   const double MByte = 1024.;
   Geant::Info("MonitoringThread","Started monitoring ...");
+  std::cout << "isBatch = " << gROOT->IsBatch() << std::endl;
   GeantPropagator *propagator = prop;
   WorkloadManager *wm = propagator->fWMgr;
   int nmon = prop->fConfig->GetMonFeatures();
@@ -1260,7 +1263,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   int ntotransport;
   ProcInfo_t procInfo;
-  double rss;
+  double rss, rssmax = 0;
   double nmem[101] = {0};
   GeantScheduler *sch = wm->GetScheduler();
   int nvol = sch->GetNvolumes();
@@ -1368,6 +1371,10 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       if (hmem) {
         gSystem->GetProcInfo(&procInfo);
         rss = procInfo.fMemResident / MByte;
+        if (rss > rssmax) {
+          rssmax = rss;
+          printf("RSS = %g MB\n", rssmax);
+        }
         memmove(nmem, &nmem[1], 99 * sizeof(double));
         nmem[99] = rss;
         hmem->GetXaxis()->Set(100, stamp - 100, stamp);
@@ -1394,6 +1401,10 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       if (hmem) {
         gSystem->GetProcInfo(&procInfo);
         rss = procInfo.fMemResident / MByte;
+        if (rss > rssmax) {
+          rssmax = rss;
+          printf("RSS = %g MB\n", rssmax);
+        }
         nmem[i] = rss;
         hmem->SetBinContent(i + 1, nmem[i]);
       }
@@ -1554,6 +1565,15 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
   #endif
     return 0;
 }
+
+//______________________________________________________________________________
+void *WorkloadManager::StartROOTApplication()
+{
+  TApplication *app = new TApplication("GeantV monitoring", NULL, NULL);
+  app->Run();
+  return 0;
+}
+
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

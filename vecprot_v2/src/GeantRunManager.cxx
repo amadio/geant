@@ -15,6 +15,11 @@
 #include "GeantEventServer.h"
 #include "LocalityManager.h"
 
+#ifdef USE_ROOT
+#include "TApplication.h"
+#include "TCanvas.h"
+#endif
+
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
@@ -27,11 +32,13 @@
 #endif
 #include "volumes/PlacedVolume.h"
 #else
+#ifdef USE_ROOT
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
 #include "TGeoVoxelFinder.h"
 #include "TGeoNode.h"
 #include "TGeoMaterial.h"
+#endif
 #endif
 
 // The classes for integrating in a non-uniform magnetic field
@@ -413,7 +420,12 @@ void GeantRunManager::RunSimulation() {
   else
     Printf("  Runge-Kutta integration OFF");
   Printf("==========================================================================");
-
+#ifdef USE_ROOT
+  if (fConfig->fUseMonitoring)
+    new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
+  if (fConfig->fUseAppMonitoring)
+    new TCanvas("capp", "Application canvas", 700, 800);
+#endif
   vecgeom::Stopwatch timer;
   timer.Start();
   for (auto i=0; i<fNpropagators; ++i)
@@ -459,6 +471,9 @@ void GeantRunManager::RunSimulation() {
 #endif
 
   FinishRun();
+#ifdef USE_ROOT
+  if (gApplication) delete gApplication;
+#endif
 }
 
 //______________________________________________________________________________

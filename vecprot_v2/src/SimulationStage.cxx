@@ -95,13 +95,8 @@ int SimulationStage::Process(GeantTaskData *td)
   output.Clear();
 
   #ifdef GEANT_DEBUG
-  static long counter = 0;
-  counter++;
-  if (counter == 7495) {
-    printf("counter=%ld\n", counter);
-  }
-  assert(bvector.size() == 0);
-  assert(output.size() == 0);
+  //static long counter = 0;
+  //counter++;
   #endif
 
   int ninput = 0;
@@ -109,8 +104,8 @@ int SimulationStage::Process(GeantTaskData *td)
   for (auto track : input.Tracks()) {
     // Default next stage is the follow-up
     #ifdef GEANT_DEBUG
-    assert(!input.HasTrackMany(track));
-    assert(!output.HasTrack(track));
+//    assert(!input.HasTrackMany(track));
+//    assert(!output.HasTrack(track));
     #endif
     track->fStage = fFollowUpStage;
     Handler *handler = Select(track, td);
@@ -126,7 +121,7 @@ int SimulationStage::Process(GeantTaskData *td)
       // The track and its eventual progenies should be now copied to the output
       handler->DoIt(track, output, td);
       #ifdef GEANT_DEBUG
-      assert(!output.HasTrackMany(track));
+//      assert(!output.HasTrackMany(track));
       #endif
       ninput++;
     } else {
