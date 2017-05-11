@@ -6,7 +6,7 @@
 namespace geantphysics {
 /**
  * @brief   Class(singletone) to store proton static properties.
- * @class   Electron
+ * @class   Proton
  * @author  M Novak, A Ribon
  * @date    april 2016
  */
