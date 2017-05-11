@@ -45,13 +45,12 @@ namespace geantphysics {
   * be used then to sample \f$x\f$ based on the procedure described above.
   */
 void AliasTable::PreparRatinTable(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata,
-                                  double *xx, int *binindx, int numdata) {
+                                  double *xx, int *binindx, int numdata, bool isconstraintspline, int glnum) {
   // compute (integral) probability within each bin; compute c.d.f.
-  int glnum      = 16;
   GLIntegral *gl = new GLIntegral(glnum, 0.0, 1.0);
   std::vector<double> glx = gl->GetAbscissas();
   std::vector<double> glw = gl->GetWeights();
-  Spline *sp = new Spline(xdata, ydata, numdata); // use cubic spline
+  Spline *sp = new Spline(xdata, ydata, numdata, true, isconstraintspline); // use cubic spline
   double sum = 0.0;
   comf[0]    = 0.0;
   for (int i=1; i<numdata; ++i) {
@@ -143,19 +142,26 @@ void AliasTable::PreparLinearTable(double *xdata, double *ydata, double *xx, int
 }
 
 double AliasTable::SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx, int *binindx,
-                               int numdata, double rndm1, double rndm2) {
+                               int numdata, double rndm1, double rndm2, int above) {
   // get the lower index of the bin by using the alias part
   double rest = rndm1*(numdata-1);
   int indxl = (int) (rest);
   double dum0 = rest-indxl;
   if (xx[indxl]<dum0)
     indxl = binindx[indxl];
-  // sample value within the selected bin by using ratin based numerical inversion
-  double  delta = comf[indxl+1]-comf[indxl];
-  double  aval  =  rndm2 * delta;
-  double  dum1 = (1.0+paradata[indxl]+parbdata[indxl])*delta*aval;
-  double  dum2 = delta*delta+paradata[indxl]*delta*aval+parbdata[indxl]*aval*aval;
-  return  xdata[indxl] +  dum1/dum2 *(xdata[indxl+1]-xdata[indxl]);
+
+  double res = 0.0;
+  if (indxl>above) {
+    // sample value within the selected bin by using ratin based numerical inversion
+    double  delta = comf[indxl+1]-comf[indxl];
+    double  aval  =  rndm2 * delta;
+    double  dum1 = (1.0+paradata[indxl]+parbdata[indxl])*delta*aval;
+    double  dum2 = delta*delta+paradata[indxl]*delta*aval+parbdata[indxl]*aval*aval;
+    res = xdata[indxl] +  dum1/dum2 *(xdata[indxl+1]-xdata[indxl]);
+  } else { // use linear aprx by assuming that pdf[indxl]=0.0
+    res = xdata[indxl] +  (xdata[indxl+1]-xdata[indxl])*std::sqrt(rndm2);
+  }
+  return res;
 }
 
 double AliasTable::SampleLinear(double *xdata, double *ydata, double *xx, int *binindx, int numdata, double rndm1,
@@ -208,13 +214,12 @@ double AliasTable::SampleLinear(double *xdata, double *ydata, double *xx, int *b
   * approximation error.
   */
 double AliasTable::PreparRatinForPDF(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata,
-                                     int numdata) {
+                                     int numdata, bool isconstraintspline, int glnum) {
   // compute (integral) probability within each bin; compute c.d.f.
-  int    glnum = 16;
   GLIntegral *gl = new GLIntegral(glnum, 0.0, 1.0);
   std::vector<double> glx = gl->GetAbscissas();
   std::vector<double> glw = gl->GetWeights();
-  Spline     *sp = new Spline(xdata, ydata, numdata);
+  Spline     *sp = new Spline(xdata, ydata, numdata, true, isconstraintspline);
   double sum   = 0.0;
   comf[0]      = 0.0;
   for (int i=1; i<numdata; ++i) {

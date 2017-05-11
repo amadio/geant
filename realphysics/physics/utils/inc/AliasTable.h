@@ -47,7 +47,7 @@ public:
     *
     */
   void PreparRatinTable(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata, double *xx,
-                        int *binindx, int numdata);
+                        int *binindx, int numdata, bool isconstraintspline=false, int glnum=16);
 
   /**
     * @brief Public method to prepare sampling table for discretized continuous distribution with combination of alias
@@ -93,7 +93,7 @@ public:
     *                alias sampling and rational interpolation based numerical inversion of the c.d.f..
     */
   double SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx, int *binindx,
-                     int numdata, double rndm1, double rndm2);
+                     int numdata, double rndm1, double rndm2, int above=-1);
 
   /**
     * @brief Public method to obtain random variable from continuous distribution using discrete samples and the
@@ -141,7 +141,8 @@ public:
     * @return        The normalisation factor used to ensure normality of the input p.d.f. .
     *
     */
-  double PreparRatinForPDF(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata, int numdata);
+  double PreparRatinForPDF(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata, int numdata,
+                           bool isconstraintspline=false, int glnum=16);
 
   /**
     * @brief Public method to obtain approximated p.d.f. value by using rational interpolation based numerical inversion
