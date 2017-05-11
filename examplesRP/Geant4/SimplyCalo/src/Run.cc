@@ -133,9 +133,9 @@ void Run::AddNeutralStep()
 void Run::AddSecondaryTrack(const G4Track* track)
 {
   const G4ParticleDefinition* d = track->GetDefinition();
-  if(d == G4Gamma::Gamma()) { ++fN_gamma; }
-  else if (d == G4Electron::Electron()) { ++fN_elec; }
-  else if (d == G4Positron::Positron()) { ++fN_pos; }
+  if(d == G4Gamma::Gamma()) { fN_gamma += 1.; }
+  else if (d == G4Electron::Electron()) { fN_elec += 1.; }
+  else if (d == G4Positron::Positron()) { fN_pos += 1.; }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -253,25 +253,26 @@ void Run::EndOfRun()
       //
       G4cout
        << std::setw(14) << fDetector->GetAbsorMaterial(k)->GetName() << ": "
-       << std::setprecision(5)
+       << std::setprecision(6)
        << std::setw(6) << G4BestUnit(MeanEAbs,"Energy") << " :  "
-       << std::setprecision(4)
+       << std::setprecision(6)
        << std::setw(5) << G4BestUnit( rmsEAbs,"Energy")
        << std::setw(10) << resolution  << " +- "
        << std::setw(5) << rmsres << " %"
-       << std::setprecision(3)
+       << std::setprecision(6)
        << std::setw(10) << G4BestUnit(MeanLAbs,"Length")  << " +- "
        << std::setw(4) << G4BestUnit( rmsLAbs,"Length")
        << G4endl;
     }
   G4cout << "\n------------------------------------------------------------\n";
 
+  G4cout << std::setprecision(14);
   G4cout << " Beam particle "
          << fParticle->GetParticleName()
          << "  E = " << G4BestUnit(beamEnergy,"Energy") << G4endl;
-  G4cout << " Mean number of gamma       " << (G4double)fN_gamma*norm << G4endl;
-  G4cout << " Mean number of e-          " << (G4double)fN_elec*norm << G4endl;
-  G4cout << " Mean number of e+          " << (G4double)fN_pos*norm << G4endl;
+  G4cout << " Mean number of gamma       " << fN_gamma*norm << G4endl;
+  G4cout << " Mean number of e-          " << fN_elec*norm << G4endl;
+  G4cout << " Mean number of e+          " << fN_pos*norm << G4endl;
   G4cout << std::setprecision(6)
          << " Mean number of charged steps  " << fChargedStep << G4endl;
   G4cout << " Mean number of neutral steps  " << fNeutralStep << G4endl;
