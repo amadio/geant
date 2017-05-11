@@ -173,7 +173,7 @@ void PhysicsProcessHandler::ComputeIntLen(Material_t *mat, int ntracks, GeantTra
     }
   */
     int   particleCode       = tracks.fGVcodeV[i];
-    const Particle *particle = Particle::GetParticleByInteralCode(particleCode);
+    const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
     // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
     if (!pManager) {
@@ -228,7 +228,7 @@ void PhysicsProcessHandler::AlongStepAction(Material_t *mat, int ntracks, GeantT
     }
   */
     int particleCode         = tracks.fGVcodeV[i];
-    const Particle *particle = Particle::GetParticleByInteralCode(particleCode);
+    const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
     // check if the partcile has anything along step
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
     if (!pManager) {
@@ -285,7 +285,7 @@ void PhysicsProcessHandler::PostStepAction(Material_t *mat, int ntracks, GeantTr
     }
   */
     int particleCode         = tracks.fGVcodeV[i];
-    const Particle *particle = Particle::GetParticleByInteralCode(particleCode);
+    const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
     // check if the partcile has anything along step
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
     if (!pManager) {
@@ -335,7 +335,7 @@ void PhysicsProcessHandler::PostStepAction(Material_t *mat, int ntracks, GeantTr
         secLt = td->fPhysicsData->GetListOfSecondaries();
         for (int isec=0; isec<nSecParticles; ++isec) {
           int   secGVcode = secLt[isec].GetGVcode(); // GV index of this secondary particle
-          const Particle *secParticle = Particle::GetParticleByInteralCode(secGVcode);
+          const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
           // get a GeantTrack geantTrack;
           Geant::GeantTrack &geantTrack = td->GetTrack();
           // set the new track properties
