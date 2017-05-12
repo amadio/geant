@@ -7,7 +7,23 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 /* NUMA policy class  */
 //______________________________________________________________________________
-int NumaPolicy::AllocateNextThread()
+int NumaPolicy::NextNumaNode()
+{
+  // Find node with smallest number of pinned threads
+  int nnodes = fTopo.fNodes;
+  int nodemin = -1;
+  int minthr = 1e8;
+  for (int inode=0; inode<nnodes; ++inode) {
+    if (fTopo.GetNode(inode)->fNthreads < minthr) {
+      minthr = fTopo.GetNode(inode)->fNthreads;
+      nodemin = inode;
+    }
+  }
+  return nodemin;
+}
+
+//______________________________________________________________________________
+int NumaPolicy::AllocateNextThread(int node)
 {
 // Pin the caller thread according to the NUMA policy. Return the logical core id.
 // Returns NUMA node id
@@ -17,17 +33,15 @@ int NumaPolicy::AllocateNextThread()
   auto crt_node = fTopo.NumaNodeOfCpu(crt_cpu);
   if (fPolicy == kSysDefault)
     return crt_node;
-  int nodemin = -1;
-  int minthr = 1e8;
-  // Find node with smallest number of pinned threads
+  if (node >=0) {
+    fTopo.BindToNode(node);
+    return node;
+  }
+  
+  // Find next NUMA node
   int nnodes = fTopo.fNodes;
-  for (int inode=0; inode<nnodes; ++inode) {
-    if (fTopo.GetNode(inode)->fNthreads < minthr) {
-      minthr = fTopo.GetNode(inode)->fNthreads;
-      nodemin = inode;
-    }
-  }  
-
+  int nodemin = NextNumaNode();
+  
   if (fPolicy & kCompact) {
     // Fill current NUMA node
     for (int inode=0; inode<nnodes; ++inode) {

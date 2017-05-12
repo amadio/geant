@@ -330,11 +330,11 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   // Enforce locality by pinning the thread to the next core according to the chosen policy.
   int node = -1;
   LocalityManager *loc_mgr = LocalityManager::Instance();
-  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread();
+  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
   int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
 //  if (node < 0) node = 0;
   int tid = prop->fWMgr->ThreadId();
-  prop->SetNuma(node);
+  //prop->SetNuma(node);
   if (useNuma)
     Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
                  tid, prop, node, cpu);
@@ -344,6 +344,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
+  td->fNode = node;
   td->fPropagator = prop;
   td->fShuttleBasket = prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0);
   if (useNuma) {

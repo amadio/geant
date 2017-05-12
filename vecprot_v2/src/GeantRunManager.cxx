@@ -127,16 +127,23 @@ bool GeantRunManager::Initialize() {
   // Configure the locality manager
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
-    if (fConfig->fUseNuma)
-      mgr->SetPolicy(NumaPolicy::kCompact);
-    else
-      mgr->SetPolicy(NumaPolicy::kSysDefault);
-#endif
     mgr->SetNblocks(100);     // <- must be configurable
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
+#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
+    if (fConfig->fUseNuma) {
+      int nnodes = mgr->GetPolicy().GetNnumaNodes();
+      mgr->SetPolicy(NumaPolicy::kCompact);
+      // Loop propagatpors and assign NUMA nodes
+      if (fNpropagators > 1) {
+        for (auto i=0; i<fNpropagators; ++i)
+          fPropagators[i]->SetNuma(i % nnodes);
+      }
+    } else {
+      mgr->SetPolicy(NumaPolicy::kSysDefault);
+    }
+#endif
   }
 
 //#endif

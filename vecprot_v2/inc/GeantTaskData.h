@@ -52,7 +52,7 @@ public:
 
   GeantPropagator *fPropagator = nullptr; /** GeantPropagator */
   int fTid = -1;         /** Thread unique id */
-  int fNode = 0;         /** Locality node */
+  int fNode = -1;        /** Locality node */
   size_t fNthreads = 0;  /** Number of transport threads */
   int fMaxDepth = 0;     /** Maximum geometry depth */
   int fSizeBool = 0;     /** Size of bool array */

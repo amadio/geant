@@ -51,9 +51,9 @@ public:
   {
     if (td->fPropagator->fConfig->fUseNuma) {
       for (int i=0; i<fNlanes; ++i) {
-        fLanes.push_back(new Basket(1000, 0, td->fPropagator->fNuma));
+        fLanes.push_back(new Basket(1000, 0, td->fNode));
       }
-      fPriorityLane = new Basket(1000, 0, td->fPropagator->fNuma);
+      fPriorityLane = new Basket(1000, 0, td->fNode);
     } else {
       for (int i=0; i<fNlanes; ++i) {
         fLanes.push_back(new Basket(1000, 0));
