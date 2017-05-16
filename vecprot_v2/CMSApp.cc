@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
   config->fBmag = 40.; // 4 Tesla
 
   // V3 options
-  config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
+  config->fNmaxBuffSpill = 8;  // New configuration parameter!!!
   config->fNstackLanes = 10;
   config->fUseV3 = usev3;
   config->fUseNuma = usenuma;

@@ -433,11 +433,15 @@ int GeantPropagator::CreateSimulationStages()
   // Define connections between stages
   GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage, true);
   GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kXSecSamplingStage)->ActivateBasketizing(true);
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
   GetStage(kGeometryStepStage)->ActivateBasketizing(true);
   GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
+  GetStage(kPropagationStage)->ActivateBasketizing(true);
   GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage);
+  GetStage(kContinuousProcStage)->ActivateBasketizing(true);
   GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage);
+  GetStage(kDiscreteProcStage)->ActivateBasketizing(true);
   GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);
   GetStage(kSteppingActionsStage)->SetEndStage();
 

@@ -78,19 +78,21 @@ bool GeantRunManager::Initialize() {
   }
 
   // Not more propagators than events
-  if (fNpropagators > fConfig->fNtotal) {
+  if (fNpropagators > fConfig->fNtotal && !fConfig->fUseV3) {
     Print("Initialize", "Number of propagators set to %d", fConfig->fNtotal);
     fNpropagators = fConfig->fNtotal;
   }
 
   // Increase buffer to give a fair share to each propagator
   int nbuffmax = fConfig->fNtotal/fNpropagators;
+  if (fConfig->fUseV3 && nbuffmax == 0)
+    nbuffmax = 1;
   if (fConfig->fNbuff > nbuffmax) {
     Print("Initialize", "Number of buffered events reduced to %d", nbuffmax);
     fConfig->fNbuff = nbuffmax;
   }
   fNbuff = fConfig->fNbuff;
-  fConfig->fNbuff *= fNpropagators;
+  //fConfig->fNbuff *= fNpropagators;
   fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
   fConfig->fMaxTracks = fConfig->fMaxPerEvent * fConfig->fNbuff;
 

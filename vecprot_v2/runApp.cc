@@ -193,6 +193,7 @@ int main(int argc, char *argv[]) {
   config->fNbuff = n_buffered;
   config->fBmag = 1.; // 0.1 Tesla
   // V3 options
+  config->fNstackLanes = 10;
   config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
   config->fUseV3 = usev3;
   config->fUseNuma = usenuma;
@@ -217,7 +218,7 @@ int main(int argc, char *argv[]) {
   // This is now the most important parameter for memory considerations
   config->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
   config->fEmin = 3.E-6; // [3 KeV] energy cut
-  config->fEmax = 3;  // [30MeV] used for now to select particle gun energy
+  config->fEmax = 0.3;  // [30MeV] used for now to select particle gun energy
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
