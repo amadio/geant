@@ -1,4 +1,4 @@
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
 #include <unistd.h>
 #endif
 
@@ -14,7 +14,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 NumaTopology::NumaTopology()
 {
 // Default constructor
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   hwloc_topology_t const &topology = NumaUtils::Topology();
   fAvailable = NumaUtils::NumaAvailable();
   if (fAvailable) {
@@ -64,7 +64,7 @@ int NumaTopology::NumaNodeOfCpu(int cpu) const
 int NumaTopology::BindToNode(int node)
 {
 // Pin thread to NUMA node
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   if (node  < 0 || node > fNodes-1) {
     std::cout << "Error: trying to bind to NUMA node " << node << " outside range\n";
     return -1;
@@ -83,12 +83,12 @@ int NumaTopology::BindToNode(int node)
 
 //______________________________________________________________________________
 std::ostream& operator<<(std::ostream& os, const NumaTopology& 
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
                            topo
 #endif
                          )
 {
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   os << "NUMA nodes: " << topo.fNodes << "   cores: " << topo.fNcores
      << "   cpus: " << topo.fNcpus 
      << "   hyperthreading: " << topo.fHT

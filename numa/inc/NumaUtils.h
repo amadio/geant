@@ -12,7 +12,7 @@
 #ifndef GEANT_NUMA_UTILS
 #define GEANT_NUMA_UTILS
 
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
 #include <mutex>
 #include <hwloc.h>
 #endif
@@ -40,12 +40,12 @@ namespace NumaUtils {
   VECCORE_ATT_HOST_DEVICE
   bool NumaAvailable();
 
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   hwloc_topology_t const &Topology();
 #endif
 }
 
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
 
 struct NumaUtilsStruct {
   static NumaUtilsStruct *fgInstance; /** Singleton instance */

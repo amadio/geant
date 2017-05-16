@@ -133,7 +133,7 @@ bool GeantRunManager::Initialize() {
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
     if (fConfig->fUseNuma) {
       int nnodes = mgr->GetPolicy().GetNnumaNodes();
       mgr->SetPolicy(NumaPolicy::kCompact);

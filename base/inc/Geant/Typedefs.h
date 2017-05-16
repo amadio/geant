@@ -9,7 +9,7 @@
   using vector_t = vecgeom::Vector<T>;
 #else
 #include <vector>
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
 #include <GeantNuma.h>
   template <class T>
   using vector_t = std::vector<T, Geant::NumaAllocator<T>>;

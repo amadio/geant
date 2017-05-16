@@ -2,7 +2,7 @@
 #include "NumaCore.h"
 #include "NumaUtils.h"
 
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
 constexpr size_t MByte = 1024*1024;
 constexpr size_t kByte = 1024;
 #endif
@@ -15,7 +15,7 @@ NumaNode::NumaNode(int id)
          :fId(id)
 {
   // Constructor.
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   hwloc_topology_t const &topology = NumaUtils::Topology();
   hwloc_obj_t onode = hwloc_get_numanode_obj_by_os_index(topology, id);
   fMemTotal = onode->memory.local_memory;
@@ -52,7 +52,7 @@ int NumaNode::BindThread()
 // Pin caller thread to this NUMA node. Pins actually to next free core.
 // If all cores are given, restart from first core for this NUMA node.
   int cpu = 0;
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   std::lock_guard<std::mutex> lock(fMutex);
   NumaCore *core = fCores[fNthreads%fNcores];
   cpu = core->BindThread();
@@ -64,7 +64,7 @@ int NumaNode::BindThread()
 //______________________________________________________________________________
 std::ostream& operator<<(std::ostream& os, const NumaNode& node)
 {
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   os << "NUMA node: " << node.fId << " cores: " << node.fNcores
      << " cpus: " << node.fNcpus << " memory: " << node.fMemTotal/MByte << "MB\n";
   for (auto i=0; i<node.fNcores; ++i)

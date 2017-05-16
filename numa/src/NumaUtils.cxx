@@ -1,7 +1,7 @@
 #include "NumaUtils.h"
 
 #include <iostream>
-#ifndef USE_NUMA
+#ifndef GEANT_USE_NUMA
   #ifdef __INTEL_COMPILER
   #include <immintrin.h>
   #else
@@ -12,7 +12,7 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
 
 NumaUtilsStruct *NumaUtilsStruct::fgInstance = nullptr;
 
@@ -243,14 +243,14 @@ int NumaUtilsStruct::GetCpuBinding() const
   return obj->os_index;
 }
 
-#endif // USE_NUMA
+#endif // GEANT_USE_NUMA
 
 namespace NumaUtils {
   VECCORE_ATT_HOST_DEVICE
   void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment)
   {
   #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  #ifdef USE_NUMA
+  #ifdef GEANT_USE_NUMA
     return ( NumaUtilsStruct::Instance()->NumaAlignedMalloc(bytes, node, alignment) );
   #else
     return _mm_malloc(bytes, alignment);
@@ -264,7 +264,7 @@ namespace NumaUtils {
   void  NumaAlignedFree(void *p)
   {
   #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  #ifdef USE_NUMA
+  #ifdef GEANT_USE_NUMA
     NumaUtilsStruct::Instance()->NumaAlignedFree(p);
   #else
     _mm_free(p);
@@ -277,7 +277,7 @@ namespace NumaUtils {
   VECCORE_ATT_HOST_DEVICE
   int NumaNodeAddr(void *ptr)
   {
-  #if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+  #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     return NumaUtilsStruct::Instance()->NumaNodeAddr(ptr);
   #else
     (void)ptr;
@@ -288,7 +288,7 @@ namespace NumaUtils {
   VECCORE_ATT_HOST_DEVICE
   int GetCpuBinding()
   {
-  #if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+  #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     return NumaUtilsStruct::Instance()->GetCpuBinding();
   #else
     return -1;
@@ -298,14 +298,14 @@ namespace NumaUtils {
   VECCORE_ATT_HOST_DEVICE
   bool NumaAvailable()
   {
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     return NumaUtilsStruct::Instance()->fAvailable;
 #else
     return false;
 #endif
   }
 
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   hwloc_topology_t const &Topology()
   {
     return NumaUtilsStruct::Instance()->fTopology;

@@ -4,7 +4,7 @@
 #include "GeantTrackGeo.h"
 #include "GeantRunManager.h"
 
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
 #include "GeantNuma.h"
 #endif
 
@@ -62,7 +62,7 @@ void GeomQueryHandler::ActivateBasketizing(bool flag)
   assert(fThreshold < 512 && fThreshold < buffer_size);
   // Create basketizer the first time the handler is activated
   if (fActive && !fBasketizer) {
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {

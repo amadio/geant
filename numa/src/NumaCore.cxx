@@ -9,7 +9,7 @@ NumaCore::NumaCore(int id, int node)
          :fId(id), fNode(node)
 {
   // Constructor.
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   hwloc_topology_t const &topology = NumaUtils::Topology();
   hwloc_obj_t onode = hwloc_get_numanode_obj_by_os_index(topology, node);
   // Object for the core with index 'id'
@@ -39,7 +39,7 @@ int NumaCore::BindThread()
 // Pin caller thread to the next cpu on this core.
 // If all cores are given, restart from first cpu.
   int cpu = -1;
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   std::lock_guard<std::mutex> lock(fMutex);
   int cpuindex = fNthreads % fNcpus;
   cpu = fCpus[cpuindex];
@@ -64,7 +64,7 @@ int NumaCore::BindThread()
 //______________________________________________________________________________
 std::ostream& operator<<(std::ostream& os, const NumaCore& core)
 {
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   os << "core#" << core.fId << ": ";
   for (auto i=0; i<core.fNcpus; ++i)
     os << core.fCpus[i] << " ";

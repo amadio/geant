@@ -32,7 +32,7 @@ typedef veccore::BitSet BitSet;
 #endif
 
 #ifndef VECCORE_CUDA
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
 #include "NumaAllocator.h"
 #endif
 #endif
@@ -82,7 +82,7 @@ GEANT_DECLARE_CONSTANT(double, gTolerance);
 class GeantTaskData;
 class GeantTrack;
 #ifndef VECCORE_CUDA
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
 typedef NumaAllocator<GeantTrack*> TrackAllocator_t;
 typedef std::vector<GeantTrack *, TrackAllocator_t> TrackVec_t;
 #else

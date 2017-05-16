@@ -26,7 +26,7 @@ public:
   int         fNcpus = 0;         /* Number of logical CPU's for the core */
   int         fNthreads = 0;      /* Number of assigned threads for the core */
   int        *fCpus = nullptr;    /* List of CPU's for the node */
-#if defined(USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
   std::mutex  fMutex;             /* Mutex for the node */
   hwloc_obj_t fObjCore = nullptr; /* Object in the topology representing this core */
 #endif

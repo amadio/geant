@@ -28,7 +28,7 @@ int NumaPolicy::AllocateNextThread(int node)
 // Pin the caller thread according to the NUMA policy. Return the logical core id.
 // Returns NUMA node id
   fNthreads++;
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   auto crt_cpu = NumaUtils::GetCpuBinding();
   auto crt_node = fTopo.NumaNodeOfCpu(crt_cpu);
   if (fPolicy == kSysDefault)
@@ -75,7 +75,7 @@ int NumaPolicy::MembindNode(int node)
   // Use hwloc to set the default binding policy of current thread to prefer
   // the NUMA node specified.
   if (node < 0) return -2;
-#ifdef USE_NUMA
+#ifdef GEANT_USE_NUMA
   hwloc_topology_t const &topology = NumaUtils::Topology();
   hwloc_nodeset_t nodeset = hwloc_bitmap_alloc();
   hwloc_bitmap_only(nodeset, unsigned(node));
