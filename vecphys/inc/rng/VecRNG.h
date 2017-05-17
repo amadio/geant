@@ -2,12 +2,12 @@
 #define VECRNG_H 1
 
 /**
- * VecRNG: The base class of pRNGs portable for both SIMD and SIMT
+ * VecRNG: The base class of SIMD/SIMT random number generators
  *
- * Requirements:
- * 1) pRNG     : A pseudo-random number generator with multiple streams
- * 2) Type     : Scalar, Vector, Cuda
- * 3) Random_t : A templated struct of pRNG states with Type 
+ * Requirements :
+ * 1) DerivedT  : A pseudo-random number generator with multiple streams
+ * 2) BackendT  : Scalar, Vector, Cuda
+ * 3) RandomT   : A templated struct of DerivedT states with BackendT 
  */
 
 #include "base/VecPhys.h"
@@ -15,17 +15,17 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-template <typename pRNG, typename Type, typename Random_t>
+template <typename DerivedT, typename BackendT, typename RandomT>
 class VecRNG {
 
 protected:
   // Use *this to access data members in the derived class
-  Random_t *fState;
+  RandomT *fState;
 
 public:
 
   VECCORE_ATT_HOST_DEVICE
-  VecRNG() { fState = new Random_t; }
+  VecRNG() { fState = new RandomT; }
 
   VECCORE_ATT_HOST_DEVICE
   ~VecRNG() { delete fState; }
@@ -38,73 +38,79 @@ public:
   // Initialization for SIMD
   VECCORE_ATT_HOST 
   void Initialize() 
-  { static_cast<pRNG *>(this)->template Initialize<Type>(); }
+  { static_cast<DerivedT *>(this)->template Initialize<BackendT>(); }
 
   // Initialization for SIMT
   VECCORE_ATT_HOST 
-  void Initialize(Random_t *states, int blocks, int threads)
-  { static_cast<pRNG *>(this)->template Initialize<Type>(states,blocks,threads); }
+  void Initialize(RandomT *states, int blocks, int threads)
+  { static_cast<DerivedT *>(this)->template Initialize<BackendT>(states,blocks,threads); }
 
-  // Return RetType::Double_v of random numbers in [0,1)
-  template <typename RetType>
+  // Return RetT::Double_v of random numbers in [0,1)
+  template <typename RetT>
   VECCORE_ATT_HOST_DEVICE 
-  typename RetType::Double_v Uniform() { return static_cast<pRNG *>(this)->template Kernel<RetType>(this->fState); }
+  typename RetT::Double_v Uniform() { return static_cast<DerivedT *>(this)->template Kernel<RetT>(this->fState); }
 
   // Generate random numbers based on a given state
-  template <typename RetType>
+  template <typename RetT>
   VECCORE_ATT_HOST_DEVICE 
-  typename RetType::Double_v Uniform(Random_t *state) 
+  typename RetT::Double_v Uniform(RandomT *state) 
   { 
-    return static_cast<pRNG *>(this)->template Kernel<RetType>(state); 
+    return static_cast<DerivedT *>(this)->template Kernel<RetT>(state); 
   }
 
   // Auxiliary methods 
 
   VECCORE_ATT_HOST_DEVICE 
-  void SetState(Random_t *state) { fState = state; }
+  void SetState(RandomT *state) { fState = state; }
 
   VECCORE_ATT_HOST_DEVICE 
-  Random_t* GetState() const { return fState; }
+  RandomT* GetState() const { return fState; }
 
-  VECCORE_ATT_HOST void PrintState() const { static_cast<pRNG *>(this)->PrintState(); }
+  VECCORE_ATT_HOST void PrintState() const { static_cast<DerivedT *>(this)->PrintState(); }
 
   //Common methods
 
-  // Returns an array of random numbers of the type RetType::Double_v
-  template <typename RetType>
+  // Returns an array of random numbers of the type RetT::Double_v
+  template <typename RetT>
   VECCORE_ATT_HOST_DEVICE 
-  void Array(const size_t nsize, typename RetType::Double_v *array);
-
-  // Flat distribution in [min,max] with a state
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Flat(Random_t *state,
-                                                          typename RetType::Double_v min, 
-                                                          typename RetType::Double_v max);
+  void Array(const size_t nsize, typename RetT::Double_v *array);
 
   // Flat distribution in [min,max)
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Flat(typename RetType::Double_v min, 
-                                                          typename RetType::Double_v max);
+  template <typename RetT>
+  VECCORE_ATT_HOST_DEVICE typename RetT::Double_v Flat(typename RetT::Double_v min, 
+                                                       typename RetT::Double_v max) 
+  {
+    return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<RetT>();
+  }
+
+  // Flat distribution in [min,max] with a state
+  template <typename RetT>
+  VECCORE_ATT_HOST_DEVICE typename RetT::Double_v Flat(RandomT *state,
+                                                       typename RetT::Double_v min, 
+                                                       typename RetT::Double_v max) 
+  {
+    return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<RetT>(state);
+  }
 
   // Exponential deviates: exp(-x/tau)
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Exp(typename RetType::Double_v tau);
+  template <typename RetT>
+  VECCORE_ATT_HOST_DEVICE typename RetT::Double_v Exp(typename RetT::Double_v tau);
 
   // Exponential deviates with a state
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Exp(Random_t *state,
-                                                         typename RetType::Double_v tau);
+  template <typename RetT>
+  VECCORE_ATT_HOST_DEVICE typename RetT::Double_v Exp(RandomT *state,
+                                                      typename RetT::Double_v tau);
 
   // Gaussin deviates: 1/(2*pi*sigma^2)*exp[-(x-mean)^2/sigma^2]
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Gauss(typename RetType::Double_v mean, 
-                                                           typename RetType::Double_v sigma);
+  template <typename RetT>
+  VECCORE_ATT_HOST_DEVICE typename RetT::Double_v Gauss(typename RetT::Double_v mean, 
+                                                        typename RetT::Double_v sigma);
 
   // Gaussin deviates with a state
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Gauss(Random_t *state,
-                                                           typename RetType::Double_v mean, 
-                                                           typename RetType::Double_v sigma);
+  template <typename RetT>
+  VECCORE_ATT_HOST_DEVICE typename RetT::Double_v Gauss(RandomT *state,
+                                                        typename RetT::Double_v mean, 
+                                                        typename RetT::Double_v sigma);
 
   // @syj add functions to generate additional random distributions
   // (Binomial, Poisson, Landau and etc)
@@ -115,92 +121,74 @@ public:
 
 // Common Methods
 
-// Returns an array of random numbers of RetType::Double_v
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
+// Returns an array of random numbers of RetT::Double_v
+template <typename DerivedT, typename BackendT, typename RandomT>
+template <typename RetT>
 VECCORE_ATT_HOST_DEVICE void
-VecRNG<pRNG, Type, Random_t>::Array(const size_t nsize, typename RetType::Double_v *array)
+VecRNG<DerivedT, BackendT, RandomT>::Array(const size_t nsize, typename RetT::Double_v *array)
 {
-  using Double_v = typename RetType::Double_v;
+  using Double_v = typename RetT::Double_v;
   for (size_t i = 0; i < nsize ; ++i) {
-    Double_v u01 = static_cast<pRNG *>(this)-> template Uniform<RetType>();    
+    Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<RetT>();    
     array[i] = u01;
   }
 }
  
-// Flat distribution in [min, max] with a state
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
-VECCORE_ATT_HOST_DEVICE typename RetType::Double_v
-VecRNG<pRNG, Type, Random_t>::Flat(Random_t *state, typename RetType::Double_v min, typename RetType::Double_v max)
-{
-  return min+(max-min)*static_cast<pRNG *>(this)-> template Uniform<RetType>(state);
-}
-
-// Flat distribution in [min, max] 
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
-VECCORE_ATT_HOST_DEVICE typename RetType::Double_v
-VecRNG<pRNG, Type, Random_t>::Flat(typename RetType::Double_v min, typename RetType::Double_v max)
-{
-  return min+(max-min)*static_cast<pRNG *>(this)-> template Uniform<RetType>();
-}
-
 // Exponential deviates: exp(-x/tau)
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
-VECCORE_ATT_HOST_DEVICE typename RetType::Double_v
-VecRNG<pRNG, Type, Random_t>::Exp(typename RetType::Double_v tau)
+template <typename DerivedT, typename BackendT, typename RandomT>
+template <typename RetT>
+VECCORE_ATT_HOST_DEVICE typename RetT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Exp(typename RetT::Double_v tau)
 {
-  using Double_v = typename RetType::Double_v;
+  using Double_v = typename RetT::Double_v;
 
-  Double_v u01 = static_cast<pRNG *>(this)-> template Uniform<RetType>();
+  Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<RetT>();
   //@syjun check for zero 
   return -tau*math::Log(u01);
 }
 
 // Exponential deviates with state
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
-VECCORE_ATT_HOST_DEVICE typename RetType::Double_v
-VecRNG<pRNG, Type, Random_t>::Exp(Random_t *state, typename RetType::Double_v tau)
+template <typename DerivedT, typename BackendT, typename RandomT>
+template <typename RetT>
+VECCORE_ATT_HOST_DEVICE typename RetT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Exp(RandomT *state, typename RetT::Double_v tau)
 {
   // Exp with state
-  using Double_v = typename RetType::Double_v;
+  using Double_v = typename RetT::Double_v;
 
-  Double_v u01 = static_cast<pRNG *>(this)-> template Uniform<RetType>(state);
+  Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<RetT>(state);
   return -tau*math::Log(u01);
 }
 
 // Gaussian deviates with state
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
-VECCORE_ATT_HOST_DEVICE typename RetType::Double_v
-VecRNG<pRNG, Type, Random_t>::Gauss(Random_t *state, typename RetType::Double_v mean, typename RetType::Double_v sigma)
+template <typename DerivedT, typename BackendT, typename RandomT>
+template <typename RetT>
+VECCORE_ATT_HOST_DEVICE typename RetT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Gauss(RandomT *state, typename RetT::Double_v mean, typename RetT::Double_v sigma)
 {
   // Gauss with state
-  using Double_v = typename RetType::Double_v;
+  using Double_v = typename RetT::Double_v;
 
-  Double_v u1= static_cast<pRNG *>(this)-> template Uniform<RetType>(state);
-  Double_v u2= static_cast<pRNG *>(this)-> template Uniform<RetType>(state)*(2.0*M_PI);
+  Double_v u1= static_cast<DerivedT *>(this)-> template Uniform<RetT>(state);
+  Double_v u2= static_cast<DerivedT *>(this)-> template Uniform<RetT>(state)*(2.0*M_PI);
   Double_v normal =  math::Sqrt(-2.0*math::Log(u1))*math::Cos(u2);
   return mean+sigma*normal;
 }
 
 // Gaussian deviates with (mean, sigma):  1/(2*pi*sigma^2)*exp[-(x-mean)^2/sigma^2]
-template <typename pRNG, typename Type, typename Random_t>
-template <typename RetType>
-VECCORE_ATT_HOST_DEVICE typename RetType::Double_v
-VecRNG<pRNG, Type, Random_t>::Gauss(typename RetType::Double_v mean, typename RetType::Double_v sigma)
+template <typename DerivedT, typename BackendT, typename RandomT>
+template <typename RetT>
+VECCORE_ATT_HOST_DEVICE typename RetT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Gauss(typename RetT::Double_v mean, typename RetT::Double_v sigma)
 {
   // Using Box/Muller - use just one
   // normal1 = sqrt(-2*log(u1))*cos(2*pi*u2)
   // normal2 = sqrt(-2*log(u1))*sin(2*pi*u2)
 
-  using Double_v = typename RetType::Double_v;
+  using Double_v = typename RetT::Double_v;
 
-  Double_v u1= static_cast<pRNG *>(this)-> template Uniform<RetType>();
-  Double_v u2= static_cast<pRNG *>(this)-> template Uniform<RetType>()*(2.0*M_PI);
+  Double_v u1= static_cast<DerivedT *>(this)-> template Uniform<RetT>();
+  Double_v u2= static_cast<DerivedT *>(this)-> template Uniform<RetT>()*(2.0*M_PI);
   Double_v normal =  math::Sqrt(-2.0*math::Log(u1))*math::Cos(u2);
   return mean+sigma*normal;
 }
