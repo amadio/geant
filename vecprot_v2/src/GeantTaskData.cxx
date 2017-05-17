@@ -111,8 +111,9 @@ GeantTaskData::~GeantTaskData()
   delete fShuttleBasket;
   delete fBvector;
   delete fStat;
-  for (int i=0; i<=int(kSteppingActionsStage); ++i)
-    delete fStageBuffers[i];
+  for (auto basket : fStageBuffers)
+    delete basket;
+  fStageBuffers.clear();
 }
 
 //______________________________________________________________________________
