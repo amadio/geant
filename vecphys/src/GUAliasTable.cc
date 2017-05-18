@@ -40,10 +40,11 @@ void GUAliasTable::Allocate(int /*ngrid*/)
   fProbQ = new Real_t[fNGrid];
   fAlias = new int[fNGrid];
 
+  // illegal values of the table elements which should be >= 0 after filled
   for (int i = 0; i < fNGrid; ++i) {
     fpdf[i] = -1;
-    fProbQ[i] = 0;
-    fAlias[i] = 0;
+    fProbQ[i] = -1;
+    fAlias[i] = -1;
   }
 }
 
