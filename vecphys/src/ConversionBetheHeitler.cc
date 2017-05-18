@@ -134,12 +134,11 @@ VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection
   //          electEnergy (converted electron/positron energy)
   // output : dsigma  (differential cross section)
 
-  double epsil = electEnergy / gammaEnergy;
-
   double epsil0 = electron_mass_c2 / gammaEnergy;
-  if (epsil0 > 1.0) {
-    return 0;
-  }
+
+  if (epsil0 > 1.0) { return 0; }
+
+  double epsil = electEnergy / gammaEnergy;
 
   // Extract Coulomb factor for this Element
   // F(Z)
@@ -154,8 +153,11 @@ VECCORE_ATT_HOST_DEVICE double ConversionBetheHeitler::CalculateDiffCrossSection
   double screenfac = 136. * epsil0 / Z3; //(anElement->GetIonisation()->GetZ3());
   double screenvar = screenfac / (epsil * (1 - epsil));
 
-  double dsigma = ScreenFunction1(screenvar) * (epsil * epsil + (1. - epsil) * (1. - epsil)) +
-                  ScreenFunction2(screenvar) * (2.0 / 3) * epsil * (1.0 - epsil);
+  double screenmax = math::Exp ((42.24 - FZ)/8.368) - 0.952 ;
+  screenvar = math::Min(screenvar, screenmax);
+
+  double dsigma = (ScreenFunction1(screenvar) - 0.5*FZ) * (epsil * epsil + (1. - epsil) * (1. - epsil)) +
+                  (ScreenFunction2(screenvar) - 0.5*FZ) * (2.0 / 3) * epsil * (1.0 - epsil);
 
   return dsigma;
 }
