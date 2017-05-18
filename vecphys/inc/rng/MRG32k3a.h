@@ -30,19 +30,19 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 // struct MRG32k3a_t (random state of MRG32k3a)
 
-template <typename Type>
+template <typename BackendT>
 struct MRG32k3a_t {
-  typename Type::Double_v fCg[MRG::vsize];
+  typename BackendT::Double_v fCg[MRG::vsize];
 }; 
 
-//class MRG32k3a<Type>
+//class MRG32k3a<BackendT>
 
-template <typename Type>
-class MRG32k3a : public VecRNG<MRG32k3a<Type>, Type, MRG32k3a_t<Type> > {
+template <typename BackendT>
+class MRG32k3a : public VecRNG<MRG32k3a<BackendT>, BackendT, MRG32k3a_t<BackendT> > {
 
 private:
   static Real_t fSeed[MRG::vsize];
-  typename Type::Double_v Bg[MRG::vsize];
+  typename BackendT::Double_v Bg[MRG::vsize];
 
   // Information on a stream: The arrays {Cg, Bg, Ig} (from the RngStream) 
   // contain the current state of the stream, the starting state of the current
@@ -64,11 +64,11 @@ public:
 
   VECCORE_ATT_HOST void Initialize() { SetNextStream(); }
 
-  VECCORE_ATT_HOST void Initialize(MRG32k3a_t<Type> *states, int blocks, int threads);
+  VECCORE_ATT_HOST void Initialize(MRG32k3a_t<BackendT> *states, int blocks, int threads);
 
-  // Returns pRNG<Type> between 0 and 1 
-  template <typename RetType>
-  VECCORE_ATT_HOST_DEVICE typename RetType::Double_v Kernel(MRG32k3a_t<Type> *state);
+  // Returns pRNG<BackendT> between 0 and 1 
+  template <typename Backend>
+  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(MRG32k3a_t<BackendT> *state);
 
   // Auxiliary methods
 
@@ -81,7 +81,7 @@ public:
 private:
   
   // the mother is friend of this
-  friend class VecRNG<MRG32k3a<Type>, Type, MRG32k3a_t<Type> >;
+  friend class VecRNG<MRG32k3a<BackendT>, BackendT, MRG32k3a_t<BackendT> >;
 
   // Set Stream to NextStream/NextSubStream.
   VECCORE_ATT_HOST void SetNextStream ();
@@ -96,17 +96,18 @@ private:
 };
 
 // The default seed of MRG32k3a
-template <class Type> 
-Real_t MRG32k3a<Type>::fSeed[MRG::vsize] = {12345., 12345., 12345., 12345., 12345., 12345.};
+template <class BackendT> 
+Real_t MRG32k3a<BackendT>::fSeed[MRG::vsize] = {12345., 12345., 12345., 12345., 12345., 12345.};
 
 //
 // Class Implementation
 //   
 
 // Copy constructor
-template <typename Type>
+template <typename BackendT>
 VECCORE_ATT_HOST_DEVICE
-MRG32k3a<Type>::MRG32k3a(const MRG32k3a<Type> &rng) : VecRNG<MRG32k3a<Type>, Type, MRG32k3a_t<Type> >()
+MRG32k3a<BackendT>::MRG32k3a(const MRG32k3a<BackendT> &rng) 
+  : VecRNG<MRG32k3a<BackendT>, BackendT, MRG32k3a_t<BackendT> >()
 {
   for(int i = 0 ; i < MRG::vsize ; ++i) {
     this->fState->fCg[i] = rng.fState->fCg[i];
@@ -116,8 +117,8 @@ MRG32k3a<Type>::MRG32k3a(const MRG32k3a<Type> &rng) : VecRNG<MRG32k3a<Type>, Typ
 }
 
 // Reset stream to the next Stream.
-template <typename Type>
-VECCORE_ATT_HOST void MRG32k3a<Type>::SetNextStream ()
+template <typename BackendT>
+VECCORE_ATT_HOST void MRG32k3a<BackendT>::SetNextStream ()
 {
   for(size_t i = 0 ; i < VectorSize<UInt32_v>() ; ++i) {
     MatVecModM(MRG::A1p127, fSeed, fSeed, MRG::m1);
@@ -141,8 +142,8 @@ VECCORE_ATT_HOST void MRG32k3a<ScalarBackend>::SetNextStream ()
 }
 
 // Reset stream to the next substream.
-template <typename Type>
-VECCORE_ATT_HOST void MRG32k3a<Type>::SetNextSubstream ()
+template <typename BackendT>
+VECCORE_ATT_HOST void MRG32k3a<BackendT>::SetNextSubstream ()
 {
   for(size_t i = 0 ; i < VectorSize<UInt32_v>() ; ++i) {
     MatVecModM(MRG::A1p76, Bg, Bg, MRG::m1);
@@ -189,8 +190,8 @@ void MRG32k3a<ScalarBackend>::Initialize(MRG32k3a_t<ScalarBackend> *states, int 
 }
 
 // Print information of the current state
-template <typename Type>
-VECCORE_ATT_HOST void MRG32k3a<Type>::PrintState() const
+template <typename BackendT>
+VECCORE_ATT_HOST void MRG32k3a<BackendT>::PrintState() const
 {
   for(size_t j = 0 ; j < MRG::vsize ; ++j) {
     std::cout << this->fState->fCg[j] << std::endl;
@@ -198,19 +199,19 @@ VECCORE_ATT_HOST void MRG32k3a<Type>::PrintState() const
 }
 
 // Set the next seed
-template <typename Type>
-VECCORE_ATT_HOST_DEVICE void MRG32k3a<Type>::SetSeed(Real_t seed[MRG::vsize]) 
+template <typename BackendT>
+VECCORE_ATT_HOST_DEVICE void MRG32k3a<BackendT>::SetSeed(Real_t seed[MRG::vsize]) 
 { 
   for(int i = 0 ; i < MRG::vsize ; ++i) fSeed[i] = seed[i]; 
 }
 
-// Kernel to generate the next random number(s) with RetType (based on RngStream::U01d)
-template <class Type>
-template <class RetType>
-inline VECCORE_ATT_HOST_DEVICE typename RetType::Double_v 
-MRG32k3a<Type>::Kernel(MRG32k3a_t<Type> *state)
+// Kernel to generate the next random number(s) with Backend (based on RngStream::U01d)
+template <class BackendT>
+template <class Backend>
+inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v 
+MRG32k3a<BackendT>::Kernel(MRG32k3a_t<BackendT> *state)
 {
-  using Double_v = typename RetType::Double_v;
+  using Double_v = typename Backend::Double_v;
 
   Double_v k, p1, p2;
 
@@ -320,8 +321,8 @@ MRG32k3a<ScalarBackend>::Kernel<ScalarBackend>(MRG32k3a_t<ScalarBackend> *state)
 }
 
 // Return (a*s + c) MOD m; a, s, c and m must be < 2^35
-template <class Type>
-VECCORE_ATT_HOST double MRG32k3a<Type>::MultModM (double a, double s, double c, double m)
+template <class BackendT>
+VECCORE_ATT_HOST double MRG32k3a<BackendT>::MultModM (double a, double s, double c, double m)
 {
   double v;
   long a1;
@@ -342,9 +343,9 @@ VECCORE_ATT_HOST double MRG32k3a<Type>::MultModM (double a, double s, double c, 
 }
 
 // Compute the vector v = A*s MOD m. Assume that -m < s[i] < m. Works also when v = s.
-template <class Type>
+template <class BackendT>
 VECCORE_ATT_HOST 
-void MRG32k3a<Type>::MatVecModM (const double A[MRG::ndim][MRG::ndim], const double s[MRG::ndim], 
+void MRG32k3a<BackendT>::MatVecModM (const double A[MRG::ndim][MRG::ndim], const double s[MRG::ndim], 
                                  double v[MRG::ndim], double m)
 {
   int i;

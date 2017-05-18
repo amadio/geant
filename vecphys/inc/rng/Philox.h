@@ -46,16 +46,16 @@ inline namespace VECPHYS_IMPL_NAMESPACE {
 
 // struct Philox (random state of Philox-4x32-10)
 
-template <typename Type>
+template <typename BackendT>
 struct Philox_t {
-  R123::array_t<Type,4> ctr;
-  R123::array_t<Type,2> key;
-  R123::array_t<Type,4> ukey;
+  R123::array_t<BackendT,4> ctr;
+  R123::array_t<BackendT,2> key;
+  R123::array_t<BackendT,4> ukey;
   unsigned int index;
 }; 
 
-template <typename Type>
-class Philox : public VecRNG<Philox<Type>, Type, Philox_t<Type> > {
+template <typename BackendT>
+class Philox : public VecRNG<Philox<BackendT>, BackendT, Philox_t<BackendT> > {
 
 private:
   static long long fSeed;
@@ -76,11 +76,11 @@ public:
   inline VECCORE_ATT_HOST void Initialize();
 
   //Initialize a set of states of which size is equivalent to blocks*threads
-  inline VECCORE_ATT_HOST void Initialize(Philox_t<Type> *states, int blocks, int threads);
+  inline VECCORE_ATT_HOST void Initialize(Philox_t<BackendT> *states, int blocks, int threads);
 
-  // Returns pRNG<Type> between 0 and 1 (excluding the end points).
-  template <typename Type1>
-  inline VECCORE_ATT_HOST_DEVICE typename Type1::Double_v Kernel(Philox_t<Type> *state);
+  // Returns pRNG<BackendT> between 0 and 1 (excluding the end points).
+  template <typename Backend>
+  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(Philox_t<BackendT> *state);
 
   // Auxiliary methods
 
@@ -92,7 +92,7 @@ public:
 
 private:
   // the mother is friend of this
-  friend class VecRNG<Philox<Type> , Type, Philox_t<Type> >;
+  friend class VecRNG<Philox<BackendT> , BackendT, Philox_t<BackendT> >;
 
 
   // Set the stream to the next stream/substream.
@@ -101,33 +101,33 @@ private:
   VECCORE_ATT_HOST void SetNextSubstream ();
 
   // Increase counter
-  VECCORE_ATT_HOST_DEVICE void IncreaseCounter(Philox_t<Type> *state);
+  VECCORE_ATT_HOST_DEVICE void IncreaseCounter(Philox_t<BackendT> *state);
   
   // Philox utility methods
   VECCORE_ATT_HOST_DEVICE
-  inline  typename Type::UInt32_v Mulhilo32(typename Type::UInt32_v a, typename Type::UInt32_v b, 
-                                            typename Type::UInt32_v *hip);
+  inline  typename BackendT::UInt32_v Mulhilo32(typename BackendT::UInt32_v a, typename BackendT::UInt32_v b, 
+                                                typename BackendT::UInt32_v *hip);
 
-  VECCORE_ATT_HOST_DEVICE inline void Philox4x32bumpkey(R123::array_t<Type,2> key);
+  VECCORE_ATT_HOST_DEVICE inline void Philox4x32bumpkey(R123::array_t<BackendT,2> key);
 
-  VECCORE_ATT_HOST_DEVICE void Philox4x32round(R123::array_t<Type,4> crt, 
-						      R123::array_t<Type,2> key);
-  VECCORE_ATT_HOST_DEVICE void Gen(R123::array_t<Type,4> ctr, R123::array_t<Type,2> key,
-                                   R123::array_t<Type,4> out);
+  VECCORE_ATT_HOST_DEVICE void Philox4x32round(R123::array_t<BackendT,4> crt, 
+					       R123::array_t<BackendT,2> key);
+  VECCORE_ATT_HOST_DEVICE void Gen(R123::array_t<BackendT,4> ctr, R123::array_t<BackendT,2> key,
+                                   R123::array_t<BackendT,4> out);
 
 };
 
 // The default seed of Philox
-template <class Type> long long Philox<Type>::fSeed = 12345;
+template <class BackendT> long long Philox<BackendT>::fSeed = 12345;
 
 //
 // Class Implementation
 //  
 
 // Copy constructor
-template <typename Type>
+template <typename BackendT>
 VECCORE_ATT_HOST_DEVICE
-Philox<Type>::Philox(const Philox<Type> &rng) : VecRNG<Philox<Type>, Type, Philox_t<Type> >()
+Philox<BackendT>::Philox(const Philox<BackendT> &rng) : VecRNG<Philox<BackendT>, BackendT, Philox_t<BackendT> >()
 {
   this->fState->index = rng.fState->index;
   for(size_t i = 0 ; i < 4 ; ++i) {
@@ -139,8 +139,8 @@ Philox<Type>::Philox(const Philox<Type> &rng) : VecRNG<Philox<Type>, Type, Philo
 }
 
 // Set a new set of keys for the vector of next streams using the unique seed
-template <typename Type>
-VECCORE_ATT_HOST void Philox<Type>::SetNextStream ()
+template <typename BackendT>
+VECCORE_ATT_HOST void Philox<BackendT>::SetNextStream ()
 {
   for(size_t i = 0 ; i < VectorSize<UInt32_v>() ; ++i) { 
     this->fState->key[0][i] = (unsigned int)(fSeed);
@@ -159,8 +159,8 @@ VECCORE_ATT_HOST void Philox<ScalarBackend>::SetNextStream ()
 }
 
 // Reset the current stream to the next substream - skipahead 
-template <typename Type>
-VECCORE_ATT_HOST void Philox<Type>::SetNextSubstream ()
+template <typename BackendT>
+VECCORE_ATT_HOST void Philox<BackendT>::SetNextSubstream ()
 {
   for(size_t i = 0 ; i < VectorSize<UInt32_v>() ; ++i) { 
     unsigned int nlo = (unsigned int)(R123::PHILOX_SKIP_AHEAD);
@@ -191,8 +191,8 @@ VECCORE_ATT_HOST void Philox<ScalarBackend>::SetNextSubstream ()
 }
 
 // Set the seed for each stream of SIMD to the starting state of each substream
-template <class Type>
-inline VECCORE_ATT_HOST void Philox<Type>::Initialize()
+template <class BackendT>
+inline VECCORE_ATT_HOST void Philox<BackendT>::Initialize()
 {
   //set initial counter and key
   this->fState->index = 0;
@@ -225,8 +225,8 @@ inline VECCORE_ATT_HOST void Philox<ScalarBackend>::Initialize(Philox_t<ScalarBa
 }
 
 // Increase counter of each element of the counter (ctr) vector
-template <typename Type>
-VECCORE_ATT_HOST void Philox<Type>::IncreaseCounter(Philox_t<Type> *state)
+template <typename BackendT>
+VECCORE_ATT_HOST void Philox<BackendT>::IncreaseCounter(Philox_t<BackendT> *state)
 {
   size_t vsize = VectorSize<UInt32_v>();
   for(size_t iv = 0 ; iv < vsize ; ++iv) {
@@ -248,8 +248,8 @@ VECCORE_ATT_HOST void Philox<ScalarBackend>::IncreaseCounter(Philox_t<ScalarBack
 }
 
 // Print information of the current state
-template <typename Type>
-VECCORE_ATT_HOST void Philox<Type>::PrintState() const
+template <typename BackendT>
+VECCORE_ATT_HOST void Philox<BackendT>::PrintState() const
 {
   std::cout << "index = " << this->fState->index << std::endl;
   for(size_t i = 0 ; i < 2 ; ++i) {
@@ -258,11 +258,11 @@ VECCORE_ATT_HOST void Philox<Type>::PrintState() const
 }
 
 // Kernel to generate a vector(scalar) of next random number(s)
-template <class Type>
-template <class Type1>
-inline VECCORE_ATT_HOST_DEVICE  typename Type1::Double_v Philox<Type>::Kernel(Philox_t<Type> *state)
+template <class BackendT>
+template <class Backend>
+inline VECCORE_ATT_HOST_DEVICE  typename Backend::Double_v Philox<BackendT>::Kernel(Philox_t<BackendT> *state)
 {
-  using Double_v = typename Type1::Double_v;
+  using Double_v = typename Backend::Double_v;
   Double_v u(0.0);
 
   if(state->index == 0 ) {
@@ -286,14 +286,14 @@ inline VECCORE_ATT_HOST_DEVICE  typename Type1::Double_v Philox<Type>::Kernel(Ph
 }
 
 // Philox utility methods
-template <class Type>
+template <class BackendT>
 inline
-VECCORE_ATT_HOST_DEVICE typename Type::UInt32_v Philox<Type>::Mulhilo32(typename Type::UInt32_v a,
-									typename Type::UInt32_v b, 
-									typename Type::UInt32_v *hip)
+VECCORE_ATT_HOST_DEVICE typename BackendT::UInt32_v Philox<BackendT>::Mulhilo32(typename BackendT::UInt32_v a,
+									        typename BackendT::UInt32_v b, 
+									        typename BackendT::UInt32_v *hip)
 {
-  using UInt32_v = typename Type::UInt32_v;                              
-  using UInt64_v = typename Type::UInt64_v;                              
+  using UInt32_v = typename BackendT::UInt32_v;                              
+  using UInt64_v = typename BackendT::UInt64_v;                              
 
   //  UInt64_v product = ((UInt64_v)a)*((UInt64_v)b);        
   //  *hip = product >> 32;                                  
@@ -329,20 +329,20 @@ VECCORE_ATT_HOST_DEVICE ScalarBackend::UInt32_v Philox<ScalarBackend>::Mulhilo32
 #endif
 }
 
-template <class Type>
+template <class BackendT>
 inline
-VECCORE_ATT_HOST_DEVICE void Philox<Type>::Philox4x32bumpkey(R123::array_t<Type,2> key) {
+VECCORE_ATT_HOST_DEVICE void Philox<BackendT>::Philox4x32bumpkey(R123::array_t<BackendT,2> key) {
   //  key[0] += (UInt32_v) R123::PHILOX_W32_0;                                       
   //  key[1] += (UInt32_v) R123::PHILOX_W32_1;                                       
   key[0] = key[0] + 0x9E3779B9;                                        
   key[1] = key[1] + 0xBB67AE85;                                       
 }  
 
-template <class Type>
-VECCORE_ATT_HOST_DEVICE void Philox<Type>::Philox4x32round(R123::array_t<Type,4> ctr, 
-                                                           R123::array_t<Type,2> key)
+template <class BackendT>
+VECCORE_ATT_HOST_DEVICE void Philox<BackendT>::Philox4x32round(R123::array_t<BackendT,4> ctr, 
+                                                               R123::array_t<BackendT,2> key)
 {
-  using UInt32_v = typename Type::UInt32_v;                              
+  using UInt32_v = typename BackendT::UInt32_v;                              
 
   UInt32_v hi0;                                                        
   UInt32_v hi1;                                                        
@@ -360,9 +360,9 @@ VECCORE_ATT_HOST_DEVICE void Philox<Type>::Philox4x32round(R123::array_t<Type,4>
   ctr[3] = lo1;
 }  
 
-template <class Type>
-VECCORE_ATT_HOST_DEVICE void Philox<Type>::Gen(R123::array_t<Type,4> ctr, R123::array_t<Type,2> key,
-                                               R123::array_t<Type,4> output)
+template <class BackendT>
+VECCORE_ATT_HOST_DEVICE void Philox<BackendT>::Gen(R123::array_t<BackendT,4> ctr, R123::array_t<BackendT,2> key,
+                                                   R123::array_t<BackendT,4> output)
 {
   Philox4x32round(ctr, key); Philox4x32bumpkey(key);   
   Philox4x32round(ctr, key); Philox4x32bumpkey(key);  

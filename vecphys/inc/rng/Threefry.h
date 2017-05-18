@@ -44,18 +44,18 @@
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
 
-template <typename Type>
+template <typename BackendT>
 struct Threefry_t {
   unsigned int index;
-  R123::array4_t<Type> ctr;
-  R123::array4_t<Type> key;
-  R123::array4_t<Type> ukey;
+  R123::array4_t<BackendT> ctr;
+  R123::array4_t<BackendT> key;
+  R123::array4_t<BackendT> ukey;
 }; 
 
-//class Threefry<Type>
+//class Threefry<BackendT>
 
-template <typename Type>
-class Threefry : public VecRNG<Threefry<Type>, Type, Threefry_t<Type> > {
+template <typename BackendT>
+class Threefry : public VecRNG<Threefry<BackendT>, BackendT, Threefry_t<BackendT> > {
 
 private:
   static long long fSeed;
@@ -76,11 +76,11 @@ public:
   inline VECCORE_ATT_HOST void Initialize();
 
   //Initialize a set of states of which size is equivalent to blocks*threads
-  inline VECCORE_ATT_HOST void Initialize(Threefry_t<Type> *states, int blocks, int threads);
+  inline VECCORE_ATT_HOST void Initialize(Threefry_t<BackendT> *states, int blocks, int threads);
 
-  // Returns pRNG<Type> between 0 and 1 (excluding the end points).
-  template <typename Type1>
-  inline VECCORE_ATT_HOST_DEVICE typename Type1::Double_v Kernel(Threefry_t<Type> *state);
+  // Returns pRNG<BackendT> between 0 and 1 (excluding the end points).
+  template <typename Backend>
+  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(Threefry_t<BackendT> *state);
 
   // Auxiliary methods
 
@@ -92,7 +92,7 @@ public:
 
 private:
   // the mother is friend of this
-  friend class VecRNG<Threefry<Type>, Type, Threefry_t<Type> >;
+  friend class VecRNG<Threefry<BackendT>, BackendT, Threefry_t<BackendT> >;
 
   // Set the stream to the next stream/substream.
   VECCORE_ATT_HOST 
@@ -103,34 +103,36 @@ private:
 
   // Increase counter
   VECCORE_ATT_HOST_DEVICE 
-  void IncreaseCounter(Threefry_t<Type> *state);
+  void IncreaseCounter(Threefry_t<BackendT> *state);
 
   // Threefry utility methods
   VECCORE_ATT_HOST_DEVICE
-  inline  typename Type::UInt32_v RotL_32(typename Type::UInt32_v x, unsigned int N);
+  inline  typename BackendT::UInt32_v RotL_32(typename BackendT::UInt32_v x, unsigned int N);
 
   VECCORE_ATT_HOST_DEVICE
-  inline  typename Type::UInt64_v RotL_64(typename Type::UInt64_v x, unsigned int N);
+  inline  typename BackendT::UInt64_v RotL_64(typename BackendT::UInt64_v x, unsigned int N);
 
   VECCORE_ATT_HOST_DEVICE
-  void BijectAndShuffle(R123::array4_t<Type> X, R123::array_t<Type,5> ks, unsigned int start, unsigned int index);
+  void BijectAndShuffle(R123::array4_t<BackendT> X, R123::array_t<BackendT,5> ks, 
+                        unsigned int start, unsigned int index);
 
   VECCORE_ATT_HOST_DEVICE 
-  void Gen(R123::array4_t<Type> in, R123::array4_t<Type> k, R123::array4_t<Type> X);
+  void Gen(R123::array4_t<BackendT> in, R123::array4_t<BackendT> k, R123::array4_t<BackendT> X);
 
 };
 
 // The default seed of Threefry
-template <class Type> long long Threefry<Type>::fSeed = 12345;     
+template <class BackendT> long long Threefry<BackendT>::fSeed = 12345;     
 
 //
 // Class Implementation
 //  
 
 // Copy constructor
-template <typename Type>
+template <typename BackendT>
 VECCORE_ATT_HOST_DEVICE
-Threefry<Type>::Threefry(const Threefry<Type> &rng) : VecRNG<Threefry<Type>, Type, Threefry_t<Type> >()
+Threefry<BackendT>::Threefry(const Threefry<BackendT> &rng) 
+  : VecRNG<Threefry<BackendT>, BackendT, Threefry_t<BackendT> >()
 {
   this->fState->index = rng.fState->index;
 
@@ -143,8 +145,8 @@ Threefry<Type>::Threefry(const Threefry<Type> &rng) : VecRNG<Threefry<Type>, Typ
 }
 
 // Set a new set of keys for the vector of next streams using the unique seed
-template <typename Type>
-VECCORE_ATT_HOST void Threefry<Type>::SetNextStream ()
+template <typename BackendT>
+VECCORE_ATT_HOST void Threefry<BackendT>::SetNextStream ()
 {
   for(size_t i = 0 ; i < VectorSize<UInt32_v>() ; ++i) { 
     this->fState->key[0][i] = (unsigned int)(fSeed);
@@ -163,8 +165,8 @@ VECCORE_ATT_HOST void Threefry<ScalarBackend>::SetNextStream ()
 }
 
 // Reset the current stream to the next substream - skipahead 
-template <typename Type>
-VECCORE_ATT_HOST void Threefry<Type>::SetNextSubstream ()
+template <typename BackendT>
+VECCORE_ATT_HOST void Threefry<BackendT>::SetNextSubstream ()
 {  
   for(size_t i = 0 ; i < VectorSize<UInt32_v>() ; ++i) { 
     unsigned int nlo = (unsigned int)(R123::THREEFRY_SKIP_AHEAD);
@@ -197,8 +199,8 @@ VECCORE_ATT_HOST void Threefry<ScalarBackend>::SetNextSubstream ()
 //
 // set the seed for each stream of SIMD to the starting state of each substream
 //
-template <class Type>
-VECCORE_ATT_HOST void Threefry<Type>::Initialize()
+template <class BackendT>
+VECCORE_ATT_HOST void Threefry<BackendT>::Initialize()
 {
   //set initial counter and key
   this->fState->index = 0;
@@ -232,8 +234,8 @@ VECCORE_ATT_HOST void Threefry<ScalarBackend>::Initialize(Threefry_t<ScalarBacke
 }
 
 // Increase counter of each element of the counter (ctr) vector
-template <typename Type>
-VECCORE_ATT_HOST void Threefry<Type>::IncreaseCounter(Threefry_t<Type> *state)
+template <typename BackendT>
+VECCORE_ATT_HOST void Threefry<BackendT>::IncreaseCounter(Threefry_t<BackendT> *state)
 {
   size_t vsize = VectorSize<UInt32_v>();
   for(size_t iv = 0 ; iv < vsize ; ++iv) {
@@ -255,8 +257,8 @@ VECCORE_ATT_HOST void Threefry<ScalarBackend>::IncreaseCounter(Threefry_t<Scalar
 }
 
 // Print information of the current state
-template <typename Type>
-VECCORE_ATT_HOST void Threefry<Type>::PrintState() const
+template <typename BackendT>
+VECCORE_ATT_HOST void Threefry<BackendT>::PrintState() const
 {
   std::cout << "index = " << this->fState->index << std::endl;
   for(size_t i = 0 ; i < 4 ; ++i) {
@@ -265,9 +267,9 @@ VECCORE_ATT_HOST void Threefry<Type>::PrintState() const
 }
 
 // Kernel to generate a vector(scalar) of next random number(s) 
-template <class Type>
-template <class Type1>
-VECCORE_ATT_HOST_DEVICE typename Type1::Double_v Threefry<Type>::Kernel(Threefry_t<Type> *state)
+template <class BackendT>
+template <class Backend>
+VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Threefry<BackendT>::Kernel(Threefry_t<BackendT> *state)
 {
 
   /*
@@ -282,7 +284,7 @@ VECCORE_ATT_HOST_DEVICE typename Type1::Double_v Threefry<Type>::Kernel(Threefry
   }
   return rdata[--last_elem];
   */
-  using Double_v = typename Type1::Double_v;
+  using Double_v = typename Backend::Double_v;
   Double_v u(0.0);
 
   if(state->index == 0 ) {
@@ -305,24 +307,24 @@ VECCORE_ATT_HOST_DEVICE typename Type1::Double_v Threefry<Type>::Kernel(Threefry
 }
 
 // Threefry utility methods
-template <class Type>
-inline VECCORE_ATT_HOST_DEVICE typename Type::UInt32_v 
-Threefry<Type>::RotL_32(typename Type::UInt32_v x, unsigned int N)
+template <class BackendT>
+inline VECCORE_ATT_HOST_DEVICE typename BackendT::UInt32_v 
+Threefry<BackendT>::RotL_32(typename BackendT::UInt32_v x, unsigned int N)
 {
   return (x << (N & 31)) | (x >> ((32-N) & 31));
 }
 
-template <class Type>
-inline VECCORE_ATT_HOST_DEVICE typename Type::UInt64_v 
-Threefry<Type>::RotL_64(typename Type::UInt64_v x, unsigned int N)
+template <class BackendT>
+inline VECCORE_ATT_HOST_DEVICE typename BackendT::UInt64_v 
+Threefry<BackendT>::RotL_64(typename BackendT::UInt64_v x, unsigned int N)
 {
   return (x << (N & 63)) | (x >> ((64-N) & 63));
 }
 
-template <class Type>
+template <class BackendT>
 VECCORE_ATT_HOST_DEVICE void 
-Threefry<Type>::BijectAndShuffle(R123::array4_t<Type> X, R123::array_t<Type,5> key, 
-                                   unsigned int start, unsigned int index) 
+Threefry<BackendT>::BijectAndShuffle(R123::array4_t<BackendT> X, R123::array_t<BackendT,5> key, 
+                                     unsigned int start, unsigned int index) 
 {
   X[0] += X[1]; X[1] = RotL_32(X[1],R123::R_32x4[start+0][0]); X[1] ^= X[0];
   X[2] += X[3]; X[3] = RotL_32(X[3],R123::R_32x4[start+0][1]); X[3] ^= X[2];
@@ -344,16 +346,16 @@ Threefry<Type>::BijectAndShuffle(R123::array4_t<Type> X, R123::array_t<Type,5> k
   X[3] += index;     // X[WCNT4-1] += r  
 }  
 
-template <class Type>
-VECCORE_ATT_HOST_DEVICE void Threefry<Type>::Gen(R123::array4_t<Type> in, R123::array4_t<Type> k, 
-                                                 R123::array4_t<Type> X)
+template <class BackendT>
+VECCORE_ATT_HOST_DEVICE void Threefry<BackendT>::Gen(R123::array4_t<BackendT> in, R123::array4_t<BackendT> k, 
+                                                     R123::array4_t<BackendT> X)
 {
-  using UInt32_v = typename Type::UInt32_v;                              
+  using UInt32_v = typename BackendT::UInt32_v;                              
 
   UInt32_v ks[4+1];				
   ks[4] = 0x1BD11BDA;
 
-  //  using UInt64_v = typename Type::UInt64_v;                              
+  //  using UInt64_v = typename BackendT::UInt64_v;                              
   //  UInt64_v ks64[5];				
   //  ks64[4] = (0x1BD11BDA) + (((UInt64_v) (0xA9FC1A22)) << 32) ;
 
