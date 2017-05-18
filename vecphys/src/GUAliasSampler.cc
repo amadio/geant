@@ -97,38 +97,54 @@ void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
     }
 
     // O(n) iterations
-    int iter = fSampledNumEntries;
+    int iter = fSampledNumEntries + 1;
 
     do {
       int donor = 0;
       int recip = 0;
 
-      // A very simple search algorithm
-      for (int j = donor; j < fSampledNumEntries; ++j) {
-        if (ap[j] >= cp) {
+      // A very simple algorithm building the alias table
+
+      // donor : note that ap[j] = cp is the case for a flat distribution
+      for (int j = donor ; j < fSampledNumEntries; ++j) {
+	if (ap[j] >= cp ) {
           donor = j;
           break;
         }
       }
 
-      for (int j = recip; j < fSampledNumEntries; ++j) {
-        if (ap[j] > 0.0 && ap[j] < cp) {
+      // recipeant
+      for (int j = recip ; j < fSampledNumEntries; ++j) {
+        if (ap[j] > 0. && ap[j] <= cp) {
           recip = j;
           break;
         }
       }
 
       // alias and non-alias probability
-
       table->fAlias[ir * fSampledNumEntries + recip] = donor;
       table->fProbQ[ir * fSampledNumEntries + recip] = fSampledNumEntries * ap[recip];
 
-      // update pdf
+      // update pdf of the donor
       ap[donor] = ap[donor] - (cp - ap[recip]);
+
+      // remove the recipeant from the search list      
       ap[recip] = 0.0;
+
       --iter;
 
     } while (iter > 0);
+
+    // check the validity of the table
+    for (int i = 0 ; i < fSampledNumEntries ; ++i) {
+      if(table->fAlias[ir * fSampledNumEntries + i] < 0 || table->fProbQ[ir * fSampledNumEntries + i] < -1.0e-10) {
+	// this algorithm has a flaw
+        printf("GUAliasSampler::BuildAliasTable : ERROR building the alias table\n");
+        printf("  (fInNumEntries,fSampledNumEntries)=(%d,%d)\n",ir,i);
+        printf("  (fAlias,fProbQ)=(%d,%f)\n",table->fAlias[ir * fSampledNumEntries + i],
+                                             table->fProbQ[ir * fSampledNumEntries + i]);
+      }
+    }
   }
 
   fAliasTableManager->AddAliasTable(Zelement, table);
