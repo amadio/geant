@@ -4,6 +4,7 @@
 add_subdirectory(GeantV/TestEm0)
 add_subdirectory(GeantV/bremTest)
 add_subdirectory(GeantV/comptonTest)
+add_subdirectory(GeantV/xsectionsTest)
 
 #----------------------------------------------------------------------------------------------
 # The corresponding Geant4 version of the tests
