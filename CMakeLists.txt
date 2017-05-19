@@ -132,7 +132,7 @@ else()
 endif()
 
 option(BUILD_REAL_PHYSICS_TESTS "Build real-physics GeantV and the corresponding Geant4 test applications." OFF)
-if(BUILD_REAL_PHYSICS_TESTS)
+if(BUILD_REAL_PHYSICS_TESTS AND USE_REAL_PHYSICS)
   message (STATUS "BUILD_REAL_PHYSICS_TESTS ON  : Real-physics tests will be built.")
   add_definitions(-DBUILD_REAL_PHYSICS_TESTS)
 else()
