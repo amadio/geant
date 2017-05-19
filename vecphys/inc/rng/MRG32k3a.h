@@ -68,7 +68,7 @@ public:
 
   // Returns pRNG<BackendT> between 0 and 1 
   template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(MRG32k3a_t<BackendT> *state);
+  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(MRG32k3a_t<BackendT>& state);
 
   // Auxiliary methods
 
@@ -209,35 +209,35 @@ VECCORE_ATT_HOST_DEVICE void MRG32k3a<BackendT>::SetSeed(Real_t seed[MRG::vsize]
 template <class BackendT>
 template <class Backend>
 inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v 
-MRG32k3a<BackendT>::Kernel(MRG32k3a_t<BackendT> *state)
+MRG32k3a<BackendT>::Kernel(MRG32k3a_t<BackendT>& state)
 {
   using Double_v = typename Backend::Double_v;
 
   Double_v k, p1, p2;
 
   // Component 1 
-  p1 = MRG::a12 * state->fCg[1] - MRG::a13n * state->fCg[0];
+  p1 = MRG::a12 * state.fCg[1] - MRG::a13n * state.fCg[0];
   k = math::Floor (p1 / MRG::m1);  
   p1 -= k * MRG::m1; 
 
   Mask_v<Double_v> negative = (p1 < 0.);
   MaskedAssign(p1, negative, p1 + MRG::m1); 
 
-  state->fCg[0] = state->fCg[1];
-  state->fCg[1] = state->fCg[2];
-  state->fCg[2] = p1;
+  state.fCg[0] = state.fCg[1];
+  state.fCg[1] = state.fCg[2];
+  state.fCg[2] = p1;
 
   // Component 2 
-  p2 = MRG::a21 * state->fCg[5] - MRG::a23n * state->fCg[3];
+  p2 = MRG::a21 * state.fCg[5] - MRG::a23n * state.fCg[3];
   k = math::Floor (p2 / MRG::m2);
   p2 -= k * MRG::m2;
 
   negative = (p2 < 0.);
   MaskedAssign(p2, negative, p2 + MRG::m2); 
   
-  state->fCg[3] = state->fCg[4];
-  state->fCg[4] = state->fCg[5];
-  state->fCg[5] = p2;
+  state.fCg[3] = state.fCg[4];
+  state.fCg[4] = state.fCg[5];
+  state.fCg[5] = p2;
 
   // Combination 
   return Blend((p1 > p2),(p1 - p2) * MRG::norm, (p1 - p2 + MRG::m1) * MRG::norm);
@@ -253,26 +253,26 @@ MRG32k3a<BackendT>::Kernel(MRG32k3a_t<BackendT> *state)
 template <>
 template <>
 inline VECCORE_ATT_HOST_DEVICE ScalarBackend::Double_v 
-MRG32k3a<VectorBackend>::Kernel<ScalarBackend>(MRG32k3a_t<VectorBackend> *state)
+MRG32k3a<VectorBackend>::Kernel<ScalarBackend>(MRG32k3a_t<VectorBackend>& state)
 {
   double k, p1, p2;
 
-  p1 = MRG::a12 * state->fCg[0][1] - MRG::a13n * state->fCg[0][0];
+  p1 = MRG::a12 * state.fCg[0][1] - MRG::a13n * state.fCg[0][0];
   k = floor (p1 / MRG::m1);
   p1 -= k * MRG::m1;
   if (p1 < 0.0) p1 += MRG::m1;
-  state->fCg[0][0] = state->fCg[0][1]; 
-  state->fCg[0][1] = state->fCg[0][2]; 
-  state->fCg[0][2] = p1;
+  state.fCg[0][0] = state.fCg[0][1]; 
+  state.fCg[0][1] = state.fCg[0][2]; 
+  state.fCg[0][2] = p1;
 
   // Component 2 
-  p2 = MRG::a21 * state->fCg[0][5] - MRG::a23n * state->fCg[0][3];
+  p2 = MRG::a21 * state.fCg[0][5] - MRG::a23n * state.fCg[0][3];
   k = floor (p2 / MRG::m2);
   p2 -= k * MRG::m2;
   if (p2 < 0.0) p2 += MRG::m2;
-  state->fCg[0][3] = state->fCg[0][4]; 
-  state->fCg[0][4] = state->fCg[0][5]; 
-  state->fCg[0][5] = p2;
+  state.fCg[0][3] = state.fCg[0][4]; 
+  state.fCg[0][4] = state.fCg[0][5]; 
+  state.fCg[0][5] = p2;
 
   // Combination 
   return ((p1 > p2) ? (p1 - p2) * MRG::norm : (p1 - p2 + MRG::m1) * MRG::norm);
@@ -283,37 +283,37 @@ MRG32k3a<VectorBackend>::Kernel<ScalarBackend>(MRG32k3a_t<VectorBackend> *state)
 template <>
 template <>
 inline VECCORE_ATT_HOST_DEVICE ScalarBackend::Double_v 
-MRG32k3a<ScalarBackend>::Kernel<ScalarBackend>(MRG32k3a_t<ScalarBackend> *state)
+MRG32k3a<ScalarBackend>::Kernel<ScalarBackend>(MRG32k3a_t<ScalarBackend>& state)
 {
   double k, p1, p2;
 
-  p1 = MRG::a12 * state->fCg[1] - MRG::a13n * state->fCg[0];
+  p1 = MRG::a12 * state.fCg[1] - MRG::a13n * state.fCg[0];
 #if __CUDA_ARCH__ > 0
   k = trunc (fma (p1, MRG::rh1, p1 * MRG::rl1));
   p1 -= k * MRG::m1;
   if (p1 < 0.0) p1 += MRG::m1;
-  state->fCg[0] = state->fCg[1]; 
-  state->fCg[1] = state->fCg[2]; 
-  state->fCg[2] = p1;
+  state.fCg[0] = state.fCg[1]; 
+  state.fCg[1] = state.fCg[2]; 
+  state.fCg[2] = p1;
 
-  p2 = MRG::a21 * state->fCg[5] - MRG::a23n * state->fCg[3];
+  p2 = MRG::a21 * state.fCg[5] - MRG::a23n * state.fCg[3];
   k = trunc (fma (p2, MRG::rh2, p2 * MRG::rl2));
   p2 -= k * MRG::m2;
 #else
   k = floor(p1/MRG::m1);
   p1 -= k * MRG::m1;
   if (p1 < 0.0) p1 += MRG::m1;
-  state->fCg[0] = state->fCg[1]; 
-  state->fCg[1] = state->fCg[2]; 
-  state->fCg[2] = p1;
+  state.fCg[0] = state.fCg[1]; 
+  state.fCg[1] = state.fCg[2]; 
+  state.fCg[2] = p1;
 
-  p2 = MRG::a21 * state->fCg[5] - MRG::a23n * state->fCg[3];
+  p2 = MRG::a21 * state.fCg[5] - MRG::a23n * state.fCg[3];
   k = floor(p2/MRG::m2);
   p2 -= k * MRG::m2;
 #endif
 
   if (p2 < 0.0) p2 += MRG::m2;
-  state->fCg[3] = state->fCg[4]; state->fCg[4] = state->fCg[5]; state->fCg[5] = p2;
+  state.fCg[3] = state.fCg[4]; state.fCg[4] = state.fCg[5]; state.fCg[5] = p2;
 
   // Combination 
   return ((p1 > p2) ? (p1 - p2) * MRG::norm : (p1 - p2 + MRG::m1) * MRG::norm);

@@ -80,7 +80,7 @@ public:
 
   // Returns pRNG<BackendT> between 0 and 1 (excluding the end points).
   template <typename Backend>
-  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(Threefry_t<BackendT> *state);
+  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(Threefry_t<BackendT>& state);
 
   // Auxiliary methods
 
@@ -269,7 +269,7 @@ VECCORE_ATT_HOST void Threefry<BackendT>::PrintState() const
 // Kernel to generate a vector(scalar) of next random number(s) 
 template <class BackendT>
 template <class Backend>
-VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Threefry<BackendT>::Kernel(Threefry_t<BackendT> *state)
+VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Threefry<BackendT>::Kernel(Threefry_t<BackendT>& state)
 {
 
   /*
@@ -287,21 +287,21 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Threefry<BackendT>::Kernel(Th
   using Double_v = typename Backend::Double_v;
   Double_v u(0.0);
 
-  if(state->index == 0 ) {
+  if(state.index == 0 ) {
     //get a new state and generate 128 bits of pseudo randomness 
-    Gen(state->ctr,state->key,state->ukey);
+    Gen(state.ctr,state.key,state.ukey);
 
     //construct 8xUInt32 (ukey) to 4xUInt64, then convert to Double_v using UINT64_MAX
-    u = static_cast<Double_v>( (state->ukey[state->index]) )/UINT32_MAX;
+    u = static_cast<Double_v>( (state.ukey[state.index]) )/UINT32_MAX;
     
     //state index and increase counter
-    ++(state->index);
-    IncreaseCounter(state);
+    ++(state.index);
+    IncreaseCounter(&state);
   }
   else {  
-    u = static_cast<Double_v>( (state->ukey[state->index]) )/UINT32_MAX; 
-    ++state->index;
-    if(state->index == 4) state->index = 0;
+    u = static_cast<Double_v>( (state.ukey[state.index]) )/UINT32_MAX; 
+    ++state.index;
+    if(state.index == 4) state.index = 0;
   }
   return u;
 }

@@ -50,7 +50,7 @@ public:
   VECCORE_ATT_HOST_DEVICE 
   typename Backend::Double_v Uniform() 
   { 
-    return static_cast<DerivedT *>(this)->template Kernel<Backend>(this->fState); 
+    return static_cast<DerivedT *>(this)->template Kernel<Backend>(*this->fState); 
   }
 
   // Generate random numbers based on a given state
@@ -58,7 +58,7 @@ public:
   VECCORE_ATT_HOST_DEVICE 
   typename Backend::Double_v Uniform(RandomT *state) 
   { 
-    return static_cast<DerivedT *>(this)->template Kernel<Backend>(state); 
+    return static_cast<DerivedT *>(this)->template Kernel<Backend>(*state); 
   }
 
   // Auxiliary methods 
@@ -81,7 +81,7 @@ public:
   // Flat distribution in [min,max)
   template <typename Backend>
   VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Flat(typename Backend::Double_v min, 
-                                                           typename Backend::Double_v max) 
+                                                          typename Backend::Double_v max) 
   {
     return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<Backend>();
   }
