@@ -1,4 +1,4 @@
-#include "HadronNucleusXsc.h"
+#include "GlauberGribovElasticXsc.h"
 #include "Proton.h"
 #include "Neutron.h"
 #include "SystemOfUnits.h"
@@ -8,12 +8,12 @@
 
 namespace geantphysics {
 
-HadronNucleusXsc::HadronNucleusXsc() 
+GlauberGribovElasticXsc::GlauberGribovElasticXsc() 
 {
 }
 
 
-HadronNucleusXsc::~HadronNucleusXsc()
+GlauberGribovElasticXsc::~GlauberGribovElasticXsc()
 {}
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -23,11 +23,13 @@ HadronNucleusXsc::~HadronNucleusXsc()
 // light cone. Gaussian density of point-like nucleons helps to calculate rest integrals of the model.
 // [1] B.Z. Kopeliovich, nucl-th/0306044 + simplification above
 
-double HadronNucleusXsc::CalculateCrossSection(int particlePDG, double mass, double energyKin, int Z, int A)
+double GlauberGribovElasticXsc::CalculateCrossSection(int particleCode, double mass, double energyKin, int Z, int A)
 {
   double xsection, sigma, cofInelastic, cofTotal, nucleusSquare, ratio;
   double hpInXsc(0.), hnInXsc(0.);
-  double R = GetNucleusRadius(A); 
+  double R = GetNucleusRadius(A);
+
+  int particlePDG = Particle::GetParticleByInternalCode(particleCode)->GetPDGCode(); 
   
   int N = A - Z;              // number of neutrons
   if (N < 0) N = 0;
@@ -166,7 +168,7 @@ double HadronNucleusXsc::CalculateCrossSection(int particlePDG, double mass, dou
 // data from mainly http://wwwppds.ihep.su:8001/c5-6A.html database
   
 double 
-HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double energyKin, int targetPDG)
+GlauberGribovElasticXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double energyKin, int targetPDG)
 {
   double xsection(0); 
   
@@ -866,7 +868,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
 // http://pdg.lbl.gov/2006/reviews/hadronicrpp.pdf
   
 double 
-HadronNucleusXsc::GetHadronNucleonXscPDG(int particlePDG, double mass, double energyKin, int targetPDG)
+GlauberGribovElasticXsc::GetHadronNucleonXscPDG(int particlePDG, double mass, double energyKin, int targetPDG)
 {
   double xsection(0);
   int Zt=1, Nt=1, At=1;
@@ -1006,7 +1008,7 @@ HadronNucleusXsc::GetHadronNucleonXscPDG(int particlePDG, double mass, double en
 //
 // Returns kaon-nucleon cross-section based on smoothed NS for GG model
 
-double HadronNucleusXsc::GetKaonNucleonXscGG(int particlePDG, double mass, double energyKin, int targetPDG)
+double GlauberGribovElasticXsc::GetKaonNucleonXscGG(int particlePDG, double mass, double energyKin, int targetPDG)
 {
 
   double pLab = std::sqrt(energyKin*(energyKin + 2*mass));
@@ -1167,7 +1169,7 @@ double HadronNucleusXsc::GetKaonNucleonXscGG(int particlePDG, double mass, doubl
 
 
 
-double HadronNucleusXsc::CalcMandelstamS( const double mp , 
+double GlauberGribovElasticXsc::CalcMandelstamS( const double mp , 
 					    const double mt , 
 					    const double Plab )
 {
@@ -1178,7 +1180,7 @@ double HadronNucleusXsc::CalcMandelstamS( const double mp ,
 }
 
 
-double HadronNucleusXsc::GetCoulombBarrier(int particlePDG, double proj_mass, double energyKin,
+double GlauberGribovElasticXsc::GetCoulombBarrier(int particlePDG, double proj_mass, double energyKin,
 					   int targetPDG, double target_mass)
 {
   double ratio;
@@ -1218,7 +1220,7 @@ double HadronNucleusXsc::GetCoulombBarrier(int particlePDG, double proj_mass, do
 
 
 
-double HadronNucleusXsc::GetNucleusRadius(int At)
+double GlauberGribovElasticXsc::GetNucleusRadius(int At)
 {
   double oneThird = 1.0/3.0;
   double cubicrAt = std::pow(double(At), oneThird); 
@@ -1248,7 +1250,7 @@ double HadronNucleusXsc::GetNucleusRadius(int At)
 //
 // Correction arrays for GG <-> Bar changea at ~ 90 GeV
 
-const double HadronNucleusXsc::fNeutronBarCorrectionTot[93] = {
+const double GlauberGribovElasticXsc::fNeutronBarCorrectionTot[93] = {
 
   1.0, 1.0,     1.42517e+00,  // 1.118517e+00, 
 1.082002e+00, 1.116171e+00, 1.078747e+00, 1.061315e+00, 
@@ -1270,7 +1272,7 @@ const double HadronNucleusXsc::fNeutronBarCorrectionTot[93] = {
 
 };
 
-const double HadronNucleusXsc::fNeutronBarCorrectionIn[93] = {
+const double GlauberGribovElasticXsc::fNeutronBarCorrectionIn[93] = {
 
 1.0, 1.0,     1.167421e+00, 1.156250e+00, 1.205364e+00, 1.154225e+00, 1.120391e+00, // 6
 1.124632e+00, 1.129460e+00, 1.107863e+00, 1.102152e+00, 1.104593e+00, 1.100285e+00, // 12
@@ -1293,7 +1295,7 @@ const double HadronNucleusXsc::fNeutronBarCorrectionIn[93] = {
 
 };
 
-const double HadronNucleusXsc::fProtonBarCorrectionTot[93] = {
+const double GlauberGribovElasticXsc::fProtonBarCorrectionTot[93] = {
 
 1.0, 1.0,     
 1.118515e+00, 1.082000e+00, 1.116169e+00, 1.078745e+00, 1.061313e+00, 1.058203e+00, 
@@ -1315,7 +1317,7 @@ const double HadronNucleusXsc::fProtonBarCorrectionTot[93] = {
 
 };
 
-const double HadronNucleusXsc::fProtonBarCorrectionIn[93] = {
+const double GlauberGribovElasticXsc::fProtonBarCorrectionIn[93] = {
 
 1.0, 1.0,     
 1.147419e+00, // 1.167419e+00, 
@@ -1342,7 +1344,7 @@ const double HadronNucleusXsc::fProtonBarCorrectionIn[93] = {
 };
 
 
-const double HadronNucleusXsc::fPionPlusBarCorrectionTot[93] = {
+const double GlauberGribovElasticXsc::fPionPlusBarCorrectionTot[93] = {
 
 1.0, 1.0,     
 1.075927e+00, 1.074407e+00, 1.126098e+00, 1.100127e+00, 1.089742e+00, 1.083536e+00, 
@@ -1364,7 +1366,7 @@ const double HadronNucleusXsc::fPionPlusBarCorrectionTot[93] = {
  
 };
 
-const double HadronNucleusXsc::fPionPlusBarCorrectionIn[93] = {
+const double GlauberGribovElasticXsc::fPionPlusBarCorrectionIn[93] = {
 
 1.0, 1.0,    
 1.140246e+00, 1.097872e+00, 1.104301e+00, 1.068722e+00, 1.056495e+00, 1.062622e+00, // 7
@@ -1387,7 +1389,7 @@ const double HadronNucleusXsc::fPionPlusBarCorrectionIn[93] = {
 };
 
 
-const double HadronNucleusXsc::fPionMinusBarCorrectionTot[93] = {
+const double GlauberGribovElasticXsc::fPionMinusBarCorrectionTot[93] = {
 
 1.0, 1.0,     
 1.3956e+00, 1.077959e+00, 1.129145e+00, 1.102088e+00, 1.089765e+00, 1.083542e+00,  // 7
@@ -1409,7 +1411,7 @@ const double HadronNucleusXsc::fPionMinusBarCorrectionTot[93] = {
 };
 
 
-const double HadronNucleusXsc::fPionMinusBarCorrectionIn[93] = {
+const double GlauberGribovElasticXsc::fPionMinusBarCorrectionIn[93] = {
 
 1.0, 1.0,    
 1.463e+00,    1.100898e+00, 1.106773e+00, 1.070289e+00, 1.040514e+00, 1.062628e+00, // 7
