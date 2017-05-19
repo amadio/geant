@@ -67,14 +67,26 @@ enum Species_t { kHadron, kLepton };
 
 /** Basket simulation stages. */
 enum ESimulationStage {
-  kPreStepStage = 0,         // Actions at the beginning of the step
+#ifdef USE_REAL_PHYSICS
+  kPreStepStage         = 0, // Actions at the beginning of the step
+  kComputeIntLStage,         // Physics interaction length computation stage
+  kGeometryStepStage,        // Compute geometry transport length
+  kPropagationStage,         // Propagation in field stage
+//  kMSCStage,               // Multiple scattering stage
+  kAlongStepActionStage,     // Along step action stage (continuous part of the inetraction)
+  kPostStepActionStage,      // Post step action stage (discrete part of the inetraction)
+// kAtRestActionStage,       // At-rest action stage (at-rest part of the inetraction)
+  kSteppingActionsStage      // User actions
+#else
+  kPreStepStage         = 0, // Actions at the beginning of the step
   kXSecSamplingStage,        // Propose physics step by sampling total Xsec
   kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
-//  kMSCStage,                 // Multiple scattering stage
+  //  kMSCStage,                 // Multiple scattering stage
   kContinuousProcStage,      // Continuous processes stage
   kDiscreteProcStage,        // Discrete processes stage
   kSteppingActionsStage      // User actions
+#endif
 };
 
 GEANT_DECLARE_CONSTANT(double, gTolerance);
@@ -367,7 +379,7 @@ public:
     fYdir *= norm;
     fZdir *= norm;
   }
-  
+
   /** @brief Function to make a step along the current direction */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -380,7 +392,7 @@ public:
     fYpos += step * fYdir;
     fZpos += step * fZdir;
   }
-    
+
 
   /** @brief Function that return momentum value */
   VECCORE_ATT_HOST_DEVICE
@@ -450,7 +462,7 @@ public:
 
   /** @brief Print function */
   void Print(const char *msg = "") const;
-  
+
   /** @brief Print function for a container of tracks */
   static void PrintTracks(TrackVec_t &tracks);
 
