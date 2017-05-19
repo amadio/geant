@@ -33,12 +33,13 @@
 
 /** @brief TestEM3ApplicationRP class */
 class TestEM3ApplicationRP : public Geant::GeantVApplication {
-  static const int kNlayers = 15;
+  static const int kNlayers      = 15;
   static const int kNumAbsorbers = 2; // lead and scintillator
   using GeantRunManager = Geant::GeantRunManager;
   using GeantEvent      = Geant::GeantEvent;
   using GeantTrack_v    = Geant::GeantTrack_v;
   using GeantTaskData   = Geant::GeantTaskData;
+  using GeantTrack      = Geant::GeantTrack;
 
 public:
   // data structures to store per absorber, per working thread data
@@ -111,6 +112,13 @@ public:
 
   /** @brief User FinishRun function */
   virtual void FinishRun();
+
+  //
+  // NEW INTERFACE METHODS WITH V3
+
+  // (V3 scalar version)
+  virtual void SteppingActions(GeantTrack &track, GeantTaskData *td);
+  //
 
 };
 #endif

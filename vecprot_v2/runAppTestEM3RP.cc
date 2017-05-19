@@ -25,8 +25,6 @@
 #include "TaskMgrTBB.h"
 #endif
 
-//using namespace Geant;
-
 static int n_events      = 20;
 static int n_buffered    = 4;
 static int n_threads     = 4;
@@ -34,7 +32,7 @@ static int n_track_max   = 500;
 static int n_learn_steps = 0;
 static int n_reuse       = 100000;
 static int n_propagators = 1;
-static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false;
+static bool monitor       = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true;
 static double n_avrg_tracks_per_evt = 500.; // average number of tracks per event
 static double primary_energy        = 100.; // [GeV]
 
@@ -53,10 +51,12 @@ static struct option options[] = {{"primary-energy", required_argument, 0, 'E'},
                                   {"tbbmode", required_argument, 0, 'i'},
                                   {"reuse", required_argument, 0, 'u'},
                                   {"propagators", required_argument, 0, 'p'},
+                                  {"v2", no_argument, 0, 'v'},
+                                  {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
 
 void help() {
-  printf("\nUsage: runAppTestEM3RP [OPTIONS] INPUT_FILE\n\n");
+  printf("\nUsage: runAppTestEM3RP [OPTIONS] INPUT_FILEx\n\n");
 
   for (int i = 0; options[i].name != NULL; i++) {
     printf("\t-%c  --%s\t%s\n", options[i].val, options[i].name, options[i].has_arg ? options[i].name : "");
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     int c, optidx = 0;
 
-    c = getopt_long(argc, argv, "E:e:a:g:l:B:b:t:r:i:u:p:", options, &optidx);
+    c = getopt_long(argc, argv, "vhE:e:a:g:l:B:b:t:r:i:u:p:", options, &optidx);
 
     if (c == -1)
       break;
@@ -164,6 +164,15 @@ int main(int argc, char *argv[]) {
       n_propagators = (int)strtol(optarg, NULL, 10);
       break;
 
+    case 'v':
+      usev3 = false;
+      break;
+
+    case 'h':
+      help();
+      exit(0);
+      break;
+
     default:
       help();
       errx(1, "unknown option %c", c);
@@ -198,13 +207,13 @@ int main(int argc, char *argv[]) {
 
   Geant::GeantConfig* config=new Geant::GeantConfig();
 
-
-//  TGeoManager::Import(geometry_filename.c_str());
-  config->fGeomFileName = geometry_filename;
-  config->fNtotal = n_events;
-  config->fNbuff = n_buffered;
+  config->fGeomFileName  = geometry_filename;
+  config->fNtotal        = n_events;
+  config->fNbuff         = n_buffered;
   config->fUseMonitoring = monitor;
-  config->fNminThreshold=5*n_threads;
+  config->fNminThreshold = 5*n_threads;
+  config->fNmaxBuffSpill = 128;   // New configuration parameter!!!
+  config->fUseV3         = usev3;
   config->SetMonitored(Geant::GeantConfig::kMonQueue, monitor);
   config->SetMonitored(Geant::GeantConfig::kMonMemory, monitor);
   config->SetMonitored(Geant::GeantConfig::kMonBasketsPerVol, monitor);
@@ -223,8 +232,6 @@ int main(int argc, char *argv[]) {
 
   // This is now the most important parameter for memory considerations
   config->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
-//  config->fEmin = 3.E-6; // [3 KeV] energy cut : not used in real physics
-//  config->fEmax = primaryEnergy;  // [100 GeV] NOTE: probably it is not needed anymore with the real physics
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
@@ -264,9 +271,20 @@ int main(int argc, char *argv[]) {
   if (tbbmode)
     runMgr->SetTaskMgr( new TaskMgrTBB() );
 #endif
-
+  // print run information
+  std::cout<< "\n\n"
+           << " =============================================================================== \n"
+           << "  primary GV code      : " << gvParticleCode << "  [22 => e-; 23 => e+; 42 => gamma]\n"
+           << "  primary energy       : " << primaryEnergy  << " [GeV] \n"
+           << "  primary position     : " << "[ " << xPos << ", " << yPos << ", " << zPos << " ] \n"
+           << "  primary direction    : " << "[ " << xDir << ", " << yDir << ", " << zDir << " ] \n"
+           << "  #events              : " << n_events << " \n"
+           << "  #primaries per event : " << n_avrg_tracks_per_evt << " \n"
+           << "  total # primaries    : " << n_events*n_avrg_tracks_per_evt << " \n"
+           << " ===============================================================================\n\n";
+  // run the simulation
   runMgr->RunSimulation();
-//  propagator->PropagatorGeom(geometry_filename.c_str(), n_threads, monitor);
+  // delete the run manager
   delete runMgr;
   return 0;
 }

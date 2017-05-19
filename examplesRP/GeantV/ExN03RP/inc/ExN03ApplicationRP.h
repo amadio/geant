@@ -39,6 +39,7 @@ class ExN03ApplicationRP : public Geant::GeantVApplication {
   using GeantEvent      = Geant::GeantEvent;
   using GeantTrack_v    = Geant::GeantTrack_v;
   using GeantTaskData   = Geant::GeantTaskData;
+  using GeantTrack      = Geant::GeantTrack;
 
 public:
   // data structures to store per absorber, per working thread data
@@ -103,6 +104,13 @@ public:
 
   /** @brief User FinishRun function */
   virtual void FinishRun();
+
+  //
+  // NEW INTERFACE METHODS WITH V3
+
+  // (V3 scalar version)
+  virtual void SteppingActions(GeantTrack &track, GeantTaskData *td);
+  //
 
 };
 #endif
