@@ -55,8 +55,8 @@ private:
   int     fIndex;        // in the global particle table
   int     fInternalCode;
   int     fPDGCode;
-  double  fPDGCharge;
   double  fPDGMass;
+  double  fPDGCharge;
 
   std::vector<PhysicsProcess*>  fPhysicsProcessVector;  // only one and used only as temporary storage
   std::vector<PhysicsManagerPerParticle*> fPMPParticle;  // as many as regions but those having no any active processes will be nullptr
