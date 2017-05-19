@@ -79,8 +79,8 @@ public:
   inline VECCORE_ATT_HOST void Initialize(Threefry_t<BackendT> *states, int blocks, int threads);
 
   // Returns pRNG<BackendT> between 0 and 1 (excluding the end points).
-  template <typename Backend>
-  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(Threefry_t<BackendT>& state);
+  template <typename ReturnTypeBackendT>
+  inline VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Kernel(Threefry_t<BackendT>& state);
 
   // Auxiliary methods
 
@@ -210,7 +210,7 @@ VECCORE_ATT_HOST void Threefry<BackendT>::Initialize()
 // Specialization of Initialize for SIMT
 template <>
 VECCORE_ATT_HOST void Threefry<ScalarBackend>::Initialize(Threefry_t<ScalarBackend> *states, 
-                                                          int blocks, int threads)
+                                                                     int blocks, int threads)
 {
   
   Threefry_t<ScalarBackend>* hstates 
@@ -268,8 +268,8 @@ VECCORE_ATT_HOST void Threefry<BackendT>::PrintState() const
 
 // Kernel to generate a vector(scalar) of next random number(s) 
 template <class BackendT>
-template <class Backend>
-VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Threefry<BackendT>::Kernel(Threefry_t<BackendT>& state)
+template <class ReturnTypeBackendT>
+VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Threefry<BackendT>::Kernel(Threefry_t<BackendT>& state)
 {
 
   /*
@@ -284,7 +284,7 @@ VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Threefry<BackendT>::Kernel(Th
   }
   return rdata[--last_elem];
   */
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
   Double_v u(0.0);
 
   if(state.index == 0 ) {

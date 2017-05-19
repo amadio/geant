@@ -67,8 +67,8 @@ public:
   VECCORE_ATT_HOST void Initialize(MRG32k3a_t<BackendT> *states, int blocks, int threads);
 
   // Returns pRNG<BackendT> between 0 and 1 
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(MRG32k3a_t<BackendT>& state);
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Kernel(MRG32k3a_t<BackendT>& state);
 
   // Auxiliary methods
 
@@ -169,7 +169,8 @@ VECCORE_ATT_HOST void MRG32k3a<ScalarBackend>::SetNextSubstream ()
 // "states" should be allocated beforehand, but can used for both host and device pointers
 template <>
 VECCORE_ATT_HOST 
-void MRG32k3a<ScalarBackend>::Initialize(MRG32k3a_t<ScalarBackend> *states, int blocks, int threads)
+void MRG32k3a<ScalarBackend>::Initialize(MRG32k3a_t<ScalarBackend> *states, 
+                                                    int blocks, int threads)
 {
   MRG32k3a_t<ScalarBackend>* hstates 
     = (MRG32k3a_t<ScalarBackend> *) malloc (blocks*threads*sizeof(MRG32k3a_t<ScalarBackend>));
@@ -205,13 +206,13 @@ VECCORE_ATT_HOST_DEVICE void MRG32k3a<BackendT>::SetSeed(Real_t seed[MRG::vsize]
   for(int i = 0 ; i < MRG::vsize ; ++i) fSeed[i] = seed[i]; 
 }
 
-// Kernel to generate the next random number(s) with Backend (based on RngStream::U01d)
+// Kernel to generate the next random number(s) with ReturnTypeBackendT (based on RngStream::U01d)
 template <class BackendT>
-template <class Backend>
-inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v 
+template <class ReturnTypeBackendT>
+inline VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v 
 MRG32k3a<BackendT>::Kernel(MRG32k3a_t<BackendT>& state)
 {
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
 
   Double_v k, p1, p2;
 

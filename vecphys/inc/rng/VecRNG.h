@@ -45,20 +45,20 @@ public:
   void Initialize(RandomT *states, int blocks, int threads)
   { static_cast<DerivedT *>(this)->template Initialize<BackendT>(states,blocks,threads); }
 
-  // Return Backend::Double_v of random numbers in [0,1)
-  template <typename Backend>
+  // Return ReturnTypeBackendT::Double_v of random numbers in [0,1)
+  template <typename ReturnTypeBackendT>
   VECCORE_ATT_HOST_DEVICE 
-  typename Backend::Double_v Uniform() 
+  typename ReturnTypeBackendT::Double_v Uniform() 
   { 
-    return static_cast<DerivedT *>(this)->template Kernel<Backend>(*this->fState); 
+    return static_cast<DerivedT *>(this)->template Kernel<ReturnTypeBackendT>(*this->fState); 
   }
 
   // Generate random numbers based on a given state
-  template <typename Backend>
+  template <typename ReturnTypeBackendT>
   VECCORE_ATT_HOST_DEVICE 
-  typename Backend::Double_v Uniform(RandomT *state) 
+  typename ReturnTypeBackendT::Double_v Uniform(RandomT *state) 
   { 
-    return static_cast<DerivedT *>(this)->template Kernel<Backend>(*state); 
+    return static_cast<DerivedT *>(this)->template Kernel<ReturnTypeBackendT>(*state); 
   }
 
   // Auxiliary methods 
@@ -73,47 +73,47 @@ public:
 
   //Common methods
 
-  // Returns an array of random numbers of the type Backend::Double_v
-  template <typename Backend>
+  // Returns an array of random numbers of the type ReturnTypeBackendT::Double_v
+  template <typename ReturnTypeBackendT>
   VECCORE_ATT_HOST_DEVICE 
-  void Array(const size_t nsize, typename Backend::Double_v *array);
+  void Array(const size_t nsize, typename ReturnTypeBackendT::Double_v *array);
 
   // Flat distribution in [min,max)
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Flat(typename Backend::Double_v min, 
-                                                          typename Backend::Double_v max) 
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Flat(typename ReturnTypeBackendT::Double_v min, 
+                                                                     typename ReturnTypeBackendT::Double_v max) 
   {
-    return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<Backend>();
+    return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>();
   }
 
   // Flat distribution in [min,max] with a state
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Flat(RandomT *state,
-                                                          typename Backend::Double_v min, 
-                                                          typename Backend::Double_v max) 
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Flat(RandomT *state,
+                                                                     typename ReturnTypeBackendT::Double_v min, 
+                                                                     typename ReturnTypeBackendT::Double_v max) 
   {
-    return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<Backend>(state);
+    return min+(max-min)*static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>(state);
   }
 
   // Exponential deviates: exp(-x/tau)
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Exp(typename Backend::Double_v tau);
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Exp(typename ReturnTypeBackendT::Double_v tau);
 
   // Exponential deviates with a state
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Exp(RandomT *state,
-                                                         typename Backend::Double_v tau);
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Exp(RandomT *state,
+                                                                    typename ReturnTypeBackendT::Double_v tau);
 
   // Gaussin deviates: 1/(2*pi*sigma^2)*exp[-(x-mean)^2/sigma^2]
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Gauss(typename Backend::Double_v mean, 
-                                                           typename Backend::Double_v sigma);
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Gauss(typename ReturnTypeBackendT::Double_v mean, 
+                                                                      typename ReturnTypeBackendT::Double_v sigma);
 
   // Gaussin deviates with a state
-  template <typename Backend>
-  VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Gauss(RandomT *state,
-                                                           typename Backend::Double_v mean, 
-                                                           typename Backend::Double_v sigma);
+  template <typename ReturnTypeBackendT>
+  VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Gauss(RandomT *state,
+                                                                      typename ReturnTypeBackendT::Double_v mean, 
+                                                                      typename ReturnTypeBackendT::Double_v sigma);
 
   // @syj add functions to generate additional random distributions
   // (Binomial, Poisson, Landau and etc)
@@ -124,75 +124,76 @@ public:
 
 // Common Methods
 
-// Returns an array of random numbers of Backend::Double_v
+// Returns an array of random numbers of ReturnTypeBackendT::Double_v
 template <typename DerivedT, typename BackendT, typename RandomT>
-template <typename Backend>
+template <typename ReturnTypeBackendT>
 VECCORE_ATT_HOST_DEVICE void
-VecRNG<DerivedT, BackendT, RandomT>::Array(const size_t nsize, typename Backend::Double_v *array)
+VecRNG<DerivedT, BackendT, RandomT>::Array(const size_t nsize, typename ReturnTypeBackendT::Double_v *array)
 {
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
   for (size_t i = 0; i < nsize ; ++i) {
-    Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<Backend>();    
+    Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>();    
     array[i] = u01;
   }
 }
  
 // Exponential deviates: exp(-x/tau)
 template <typename DerivedT, typename BackendT, typename RandomT>
-template <typename Backend>
-VECCORE_ATT_HOST_DEVICE typename Backend::Double_v
-VecRNG<DerivedT, BackendT, RandomT>::Exp(typename Backend::Double_v tau)
+template <typename ReturnTypeBackendT>
+VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Exp(typename ReturnTypeBackendT::Double_v tau)
 {
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
 
-  Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<Backend>();
+  Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>();
   //@syjun check for zero 
   return -tau*math::Log(u01);
 }
 
 // Exponential deviates with state
 template <typename DerivedT, typename BackendT, typename RandomT>
-template <typename Backend>
-VECCORE_ATT_HOST_DEVICE typename Backend::Double_v
-VecRNG<DerivedT, BackendT, RandomT>::Exp(RandomT *state, typename Backend::Double_v tau)
+template <typename ReturnTypeBackendT>
+VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Exp(RandomT *state, typename ReturnTypeBackendT::Double_v tau)
 {
   // Exp with state
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
 
-  Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<Backend>(state);
+  Double_v u01 = static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>(state);
   return -tau*math::Log(u01);
 }
 
 // Gaussian deviates with state
 template <typename DerivedT, typename BackendT, typename RandomT>
-template <typename Backend>
-VECCORE_ATT_HOST_DEVICE typename Backend::Double_v
-VecRNG<DerivedT, BackendT, RandomT>::Gauss(RandomT *state, typename Backend::Double_v mean, 
-                                           typename Backend::Double_v sigma)
+template <typename ReturnTypeBackendT>
+VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Gauss(RandomT *state, typename ReturnTypeBackendT::Double_v mean, 
+                                           typename ReturnTypeBackendT::Double_v sigma)
 {
   // Gauss with state
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
 
-  Double_v u1= static_cast<DerivedT *>(this)-> template Uniform<Backend>(state);
-  Double_v u2= static_cast<DerivedT *>(this)-> template Uniform<Backend>(state)*(2.0*M_PI);
+  Double_v u1= static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>(state);
+  Double_v u2= static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>(state)*(2.0*M_PI);
   Double_v normal =  math::Sqrt(-2.0*math::Log(u1))*math::Cos(u2);
   return mean+sigma*normal;
 }
 
 // Gaussian deviates with (mean, sigma):  1/(2*pi*sigma^2)*exp[-(x-mean)^2/sigma^2]
 template <typename DerivedT, typename BackendT, typename RandomT>
-template <typename Backend>
-VECCORE_ATT_HOST_DEVICE typename Backend::Double_v
-VecRNG<DerivedT, BackendT, RandomT>::Gauss(typename Backend::Double_v mean, typename Backend::Double_v sigma)
+template <typename ReturnTypeBackendT>
+VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v
+VecRNG<DerivedT, BackendT, RandomT>::Gauss(typename ReturnTypeBackendT::Double_v mean, 
+                                           typename ReturnTypeBackendT::Double_v sigma)
 {
   // Using Box/Muller - use just one
   // normal1 = sqrt(-2*log(u1))*cos(2*pi*u2)
   // normal2 = sqrt(-2*log(u1))*sin(2*pi*u2)
 
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
 
-  Double_v u1= static_cast<DerivedT *>(this)-> template Uniform<Backend>();
-  Double_v u2= static_cast<DerivedT *>(this)-> template Uniform<Backend>()*(2.0*M_PI);
+  Double_v u1= static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>();
+  Double_v u2= static_cast<DerivedT *>(this)-> template Uniform<ReturnTypeBackendT>()*(2.0*M_PI);
   Double_v normal =  math::Sqrt(-2.0*math::Log(u1))*math::Cos(u2);
   return mean+sigma*normal;
 }

@@ -79,8 +79,8 @@ public:
   inline VECCORE_ATT_HOST void Initialize(Philox_t<BackendT> *states, int blocks, int threads);
 
   // Returns pRNG<BackendT> between 0 and 1 (excluding the end points).
-  template <typename Backend>
-  inline VECCORE_ATT_HOST_DEVICE typename Backend::Double_v Kernel(Philox_t<BackendT>& state);
+  template <typename ReturnTypeBackendT>
+  inline VECCORE_ATT_HOST_DEVICE typename ReturnTypeBackendT::Double_v Kernel(Philox_t<BackendT>& state);
 
   // Auxiliary methods
 
@@ -202,7 +202,7 @@ inline VECCORE_ATT_HOST void Philox<BackendT>::Initialize()
 // Specialization of Initialize for SIMT
 template <>
 inline VECCORE_ATT_HOST void Philox<ScalarBackend>::Initialize(Philox_t<ScalarBackend> *states, 
-                                                               int blocks, int threads)
+                                                                          int blocks, int threads)
 {
   Philox_t<ScalarBackend>* hstates 
    = (Philox_t<ScalarBackend> *) malloc (blocks*threads*sizeof(Philox_t<ScalarBackend>));
@@ -259,10 +259,11 @@ VECCORE_ATT_HOST void Philox<BackendT>::PrintState() const
 
 // Kernel to generate a vector(scalar) of next random number(s)
 template <class BackendT>
-template <class Backend>
-inline VECCORE_ATT_HOST_DEVICE  typename Backend::Double_v Philox<BackendT>::Kernel(Philox_t<BackendT>& state)
+template <class ReturnTypeBackendT>
+inline VECCORE_ATT_HOST_DEVICE  
+typename ReturnTypeBackendT::Double_v Philox<BackendT>::Kernel(Philox_t<BackendT>& state)
 {
-  using Double_v = typename Backend::Double_v;
+  using Double_v = typename ReturnTypeBackendT::Double_v;
   Double_v u(0.0);
 
   if(state.index == 0 ) {
@@ -315,9 +316,8 @@ VECCORE_ATT_HOST_DEVICE typename BackendT::UInt32_v Philox<BackendT>::Mulhilo32(
 
 template <>
 inline
-VECCORE_ATT_HOST_DEVICE ScalarBackend::UInt32_v Philox<ScalarBackend>::Mulhilo32(uint32_t a,
-								                 uint32_t b, 
-								                 uint32_t *hip)
+VECCORE_ATT_HOST_DEVICE 
+ScalarBackend::UInt32_v Philox<ScalarBackend>::Mulhilo32(uint32_t a, uint32_t b, uint32_t *hip)
 {
 #ifndef __CUDA_ARCH__
   uint64_t product = ((uint64_t)a)*((uint64_t)b);
