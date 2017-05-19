@@ -430,20 +430,43 @@ int GeantPropagator::CreateSimulationStages()
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));
   
-  // Define connections between stages
-  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage, true);
+  /**************************************
+   *  Define connections between stages *
+   **************************************/
+  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage, false);
+  // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+  GetStage(kPropagationStage)->ActivateBasketizing(false);
+  //        V
+  //        V
+  //        V
   GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage, true);
   GetStage(kXSecSamplingStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
   GetStage(kGeometryStepStage)->ActivateBasketizing(true);
-  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage);
-  GetStage(kPropagationStage)->ActivateBasketizing(true);
-  GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage);
+  //        V
+  //        V
+  //        V
+  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage, false);
+  // Follow-up not unique: stuck tracks are killed -> SteppingActions
+  GetStage(kPropagationStage)->ActivateBasketizing(true);  
+  //        V
+  //        V
+  //        V
+  GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage, true);
   GetStage(kContinuousProcStage)->ActivateBasketizing(true);
-  GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage);
+  //        V
+  //        V
+  //        V
+  GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage, true);
   GetStage(kDiscreteProcStage)->ActivateBasketizing(true);
-  GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);
+  //        V
+  //        V
+  //        V
   GetStage(kSteppingActionsStage)->SetEndStage();
+  GetStage(kSteppingActionsStage)->ActivateBasketizing(false);
 
   for (auto stage : fStages) {
     int nhandlers = stage->CreateHandlers();

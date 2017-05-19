@@ -77,6 +77,7 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   // query again the geometry
   if (!IsSameLocation(*track, td)) {
     td->fNcross++;
+    td->fNsteps++;
   } else {
     track->SetStage(kGeometryStepStage);
   }
@@ -136,6 +137,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
     // Vector treatment was not requested, so proceed with scalar
     if (!IsSameLocation(*track, td)) {
       td->fNcross++;
+      td->fNsteps++;
     } else {
       track->SetStage(kGeometryStepStage);
     }
@@ -180,6 +182,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
     GeantTrack *track = track_geo.fOriginalV[itr];
     if (!same[itr]) {
       td->fNcross++;
+      td->fNsteps++;
       track->fBoundary = true;
       track->fStatus = kBoundary;
       if (track->fNextpath->IsOutside())

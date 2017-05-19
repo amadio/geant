@@ -36,17 +36,25 @@ void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 #endif
 
   if (track->fStatus == kKilled) {
-#ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    fPropagator->StopTrack(track);
-    fPropagator->fTrackMgr->ReleaseTrack(*track);
-#endif
-    return;
+    // The track has to be actually killed by the stepping actions
+    track->SetStage(kSteppingActionsStage);
+  } else {  
+    // Set the status to "in flight"
+    track->fStatus = kInFlight;
   }
-  
-  // Set the status to "in flight"
-  track->fStatus = kInFlight;
   // Copy to output
   output.AddTrack(track);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void PreStepHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+{
+  // For the moment just loop and call scalar DoIt
+  TrackVec_t &tracks = input.Tracks();
+  for (auto track : tracks) {
+    DoIt(track, output, td);
+  }
 }
 
 } // GEANT_IMPL_NAMESPACE

@@ -51,6 +51,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(GeantTrack *track, Basket& output, GeantTaskData *td);
 
+  /** @brief Vector DoIt interface. Base class implements it as a loop. */
+  VECCORE_ATT_HOST_DEVICE
+  virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
+
 };
 
 } // GEANT_IMPL_NAMESPACE

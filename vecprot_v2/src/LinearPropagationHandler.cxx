@@ -49,6 +49,8 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
         Error("LinearPropagator", "track %d from event %d stuck -> killing it",
               track->fParticle, track->fEvent);
         track->fStatus = kKilled;
+        // Deposit track energy, then go directly to stepping actions
+        track->Stop();
         track->SetStage(kSteppingActionsStage);
         td->fNkilled++;
         break;
@@ -89,7 +91,6 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
   td->fNsteps += tracks.size();
 
   for (auto track : tracks) {
-    // Set follow-up stage to be ContinuousProcStage
     int nsmall = 0;
     if (track->fBoundary) {
       track->fStatus = kBoundary;
@@ -99,6 +100,8 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
           Error("LinearPropagator", "track %d from event %d stuck -> killing it",
                 track->fParticle, track->fEvent);
           track->fStatus = kKilled;
+          // Deposit track energy, then go directly to stepping actions
+          track->Stop();
           track->SetStage(kSteppingActionsStage);
           td->fNkilled++;
           break;

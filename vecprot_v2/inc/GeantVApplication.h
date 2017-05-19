@@ -61,21 +61,21 @@ public:
   virtual void FinishEvent(int /*evt*/, int /*islot*/) {}
 
   /** @brief Begin new track(s). */
-  virtual void BeginTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {} // = 0;
-  virtual void BeginTrack(TrackVec_t &/*tracks*/, GeantTaskData */*td*/) {} // = 0;
+  virtual void BeginTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
+  virtual void BeginTrack(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
 
   /** @brief Finish track(s). */
-  virtual void FinishTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {} // = 0;
-  virtual void FinishTrack(TrackVec_t &/*tracks*/, GeantTaskData */*td*/) {} // = 0;
+  virtual void FinishTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
+  virtual void FinishTrack(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
 
   /** @brief User stepping actions */
-  virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/) {} // = 0;
-  virtual void SteppingActions(TrackVec_t &/*tracks*/, GeantTaskData */*td*/) {} // = 0;
+  virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
+  virtual void SteppingActions(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
 
   /**
    * @brief Function of digitization
    * 
-   * @param event Event for digitization
+   * @param event Event for digitization. The method will be deprecated.
    */
   virtual void Digitize(GeantEvent *event) = 0;
 

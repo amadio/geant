@@ -148,6 +148,7 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
   int ntracks = output.size();
   
   if (fEndStage) {
+    // The last stage copies all tracks into the stage buffer
     td->fStackBuffer->AddTracks(output.Tracks());
     return ntracks;
   }
