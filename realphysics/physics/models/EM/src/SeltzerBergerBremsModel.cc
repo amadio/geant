@@ -1156,7 +1156,8 @@ void SeltzerBergerBremsModel::LoadDCSData() {
      delete [] fLoadDCSForElements;
    }
 
-   fscanf(f,"%d%d%d",&fDCSMaxZet,&fLoadDCSNumElectronEnergies,&fLoadDCSNumReducedPhotonEnergies);
+   int nmatches = fscanf(f,"%d%d%d",&fDCSMaxZet,&fLoadDCSNumElectronEnergies,&fLoadDCSNumReducedPhotonEnergies);
+   (void)nmatches;
    // allocate space for the elemental DCS data, for the electron energy and reduced photon energy grids and load them
    fLoadDCSForElements = new double*[fDCSMaxZet];
    for (int i=0; i<fDCSMaxZet; ++i)
@@ -1172,11 +1173,11 @@ void SeltzerBergerBremsModel::LoadDCSData() {
    }
    fLoadDCSReducedPhotonEnergyGrid = new double[fLoadDCSNumReducedPhotonEnergies];
    for (int i=0;i<fLoadDCSNumElectronEnergies;++i) {
-     fscanf(f,"%lf",&(fLoadDCSElectronEnergyGrid[i]));
+     nmatches = fscanf(f,"%lf",&(fLoadDCSElectronEnergyGrid[i]));
      fLoadDCSElectronEnergyGrid[i] *= MeV;   // change to internal energy units
    }
    for (int i=0;i<fLoadDCSNumReducedPhotonEnergies;++i)
-     fscanf(f,"%lf",&(fLoadDCSReducedPhotonEnergyGrid[i]));
+     nmatches = fscanf(f,"%lf",&(fLoadDCSReducedPhotonEnergyGrid[i]));
    fclose(f);
    //
    // for (int i=0;i<fDCSNumElectronEnergies;++i)
@@ -1202,7 +1203,7 @@ void SeltzerBergerBremsModel::LoadDCSData() {
      // allocate space for this elemental DCS
       fLoadDCSForElements[zet-1] = new double[numDCSdataPerElement];
       for (int j=0; j<numDCSdataPerElement; ++j) {
-        fscanf(f,"%lf",&(fLoadDCSForElements[zet-1][j]));
+        nmatches = fscanf(f,"%lf",&(fLoadDCSForElements[zet-1][j]));
         fLoadDCSForElements[zet-1][j] *= millibarn;   // change to internal units
       }
      fclose(f);

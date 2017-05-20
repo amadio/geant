@@ -158,7 +158,7 @@ void PhysicsProcessHandler::BuildMaterials() {
 }
 
 
-void PhysicsProcessHandler::ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
+void PhysicsProcessHandler::ComputeIntLen(Material_t */*mat*/, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
                                           GeantTaskData *td) {
   for (int i=0; i<ntracks; ++i) {
     // here we will get the MaterialCuts from the LogicalVolume later
@@ -211,7 +211,7 @@ void PhysicsProcessHandler::ComputeIntLen(Material_t *mat, int ntracks, GeantTra
 }
 
 
-void PhysicsProcessHandler::AlongStepAction(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
+void PhysicsProcessHandler::AlongStepAction(Material_t */*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
                                             GeantTaskData * /*td*/) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
@@ -268,7 +268,7 @@ void PhysicsProcessHandler::AlongStepAction(Material_t *mat, int ntracks, GeantT
 }
 
 
-void PhysicsProcessHandler::PostStepAction(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout,
+void PhysicsProcessHandler::PostStepAction(Material_t */*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
                                            GeantTaskData *td) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {

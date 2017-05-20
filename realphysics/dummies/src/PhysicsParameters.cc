@@ -53,7 +53,7 @@ PhysicsParameters::PhysicsParameters() {
 
 const PhysicsParameters*  PhysicsParameters::GetPhysicsParametersForRegion(int regionindx) {
   PhysicsParameters *physPar = nullptr;
-  for (int i=0; i<gThePhysicsParametersTable.size(); ++i) {
+  for (unsigned i=0; i<gThePhysicsParametersTable.size(); ++i) {
     if (gThePhysicsParametersTable[i]->IsActiveRegion(regionindx)) {
       physPar=gThePhysicsParametersTable[i];
       break;
@@ -64,7 +64,7 @@ const PhysicsParameters*  PhysicsParameters::GetPhysicsParametersForRegion(int r
 
 
 void PhysicsParameters::Clear() {
-  for (int i=0; i<gThePhysicsParametersTable.size(); ++i) {
+  for (unsigned i=0; i<gThePhysicsParametersTable.size(); ++i) {
     delete gThePhysicsParametersTable[i];
   }
   gThePhysicsParametersTable.clear();
@@ -256,7 +256,7 @@ std::ostream& operator<<(std::ostream& flux, PhysicsParameters &physpar) {
        << physpar.GetDefaultPositronCutInEnergy()/GeV    << " [GeV]\n\n";
 
   flux << "    **** Active in regions: ";
-       for (int i=0; i<physpar.GetListActiveRegions().size(); ++i) {
+       for (unsigned i=0; i<physpar.GetListActiveRegions().size(); ++i) {
          if (physpar.IsActiveRegion(i))
            flux << std::setw(10) << i;
        }

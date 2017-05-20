@@ -54,7 +54,7 @@ void EMPhysicsProcess::Initialize() {
     // set continuous step limit related paramaters from the PhysicsParameters that active in the same regions as this
     std::vector<bool> &active = GetListActiveRegions();
     int regionIndx = 0;
-    for (; regionIndx<active.size() && !active[regionIndx]; ++regionIndx) {}
+    for (; regionIndx<int(active.size()) && !active[regionIndx]; ++regionIndx) {}
     // TODO: check: if the processes is inactive everywhere!
     const PhysicsParameters *physPar = PhysicsParameters::GetPhysicsParametersForRegion(regionIndx);
     fDRoverRange = physPar->GetDRoverRange();
