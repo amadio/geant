@@ -215,7 +215,7 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, std::vector<Ligh
   double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
   double sintEle       = std::sin(thetaElectron);
   double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
-  double sintPos       = -std::sin(thetaElectron);
+  double sintPos       = -std::sin(thetaPositron);
   double phi           = geant::kTwoPi*rndArray[3];
   double sinphi        = std::sin(phi);
   double cosphi        = std::cos(phi);
