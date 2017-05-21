@@ -34,7 +34,7 @@
 #include "G4PhysicsListHelper.hh"
 
 #include "G4ComptonScattering.hh"
-//#include "G4GammaConversion.hh"
+#include "G4GammaConversion.hh"
 //#include "G4PhotoElectricEffect.hh"
 //#include "G4RayleighScattering.hh"
 //#include "G4KleinNishinaModel.hh"
@@ -97,7 +97,7 @@ void PhysListGVStandard::ConstructProcess()
     if (particleName == "gamma") {
 //      ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering, particle);
-//      ph->RegisterProcess(new G4GammaConversion, particle);
+      ph->RegisterProcess(new G4GammaConversion, particle);
     } else if (particleName == "e-") {
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
       //

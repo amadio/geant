@@ -2,6 +2,8 @@
 #include "PhysicsList1.h"
 
 #include "SystemOfUnits.h"
+#include "PhysicalConstants.h"
+
 #include "PhysicsProcess.h"
 
 #include "Particle.h"
@@ -19,11 +21,14 @@
 #include "ComptonScatteringProcess.h"
 #include "KleinNishinaComptonModel.h"
 
+#include "GammaConversionProcess.h"
+#include "BetheHeitlerPairModel.h"
+
 
 namespace geantphysics {
 
-  PhysicsList1::PhysicsList1(const std::string &name) : PhysicsList(name) {}
-  PhysicsList1::~PhysicsList1() {}
+PhysicsList1::PhysicsList1(const std::string &name) : PhysicsList(name) {}
+PhysicsList1::~PhysicsList1() {}
 
 void PhysicsList1::Initialize() {
   // get the partcile table and loop over it
@@ -46,6 +51,7 @@ void PhysicsList1::Initialize() {
       //
       // add the process to the e- particle
       AddProcessToPartcile(particle, eIoniProc);
+
       //
       // create bremsstrahlung process for e- with 2 models:
       //
@@ -116,7 +122,7 @@ void PhysicsList1::Initialize() {
       AddProcessToPartcile(particle, eBremProc);
     }
     if (particle==Gamma::Definition()) {
-      // create compton scattering process for e- with 1 model:
+      // create compton scattering process for gamma with 1 model:
       //
       EMPhysicsProcess *comptProc = new ComptonScatteringProcess();
       // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation
@@ -129,8 +135,23 @@ void PhysicsList1::Initialize() {
       //
       // add the process to the gamma particle
       AddProcessToPartcile(particle, comptProc);
+      //
+      // create gamma conversion process for gamma with 1 model:
+      //
+      EMPhysicsProcess *convProc = new GammaConversionProcess();
+      // create the Bethe-Heitler model for pair production i.e. for g + A -> e- + e+ intercation
+      EMModel           *bhModel = new BetheHeitlerPairModel();
+      // set min/max energies of the model
+      bhModel->SetLowEnergyUsageLimit (  2.0*geant::kElectronMassC2);
+      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
+      // it will be changed when we will have the high-energy model
+      bhModel->SetHighEnergyUsageLimit(  1.0*geant::TeV);
+      // add the model to the process
+      convProc->AddModel(bhModel);
+      //
+      // add the process to the gamma particle
+      AddProcessToPartcile(particle, convProc);
     }
-
   }
 }
 

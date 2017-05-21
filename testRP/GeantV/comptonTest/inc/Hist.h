@@ -11,7 +11,7 @@ namespace userapplication {
 class Hist{
 public:
 
-  Hist(double min, double max, int numbin, bool islinear=true) {
+  Hist(double min, double max, int numbin) {
     fMin     = min;
     fMax     = max;
     fNumBins = numbin;
@@ -25,7 +25,7 @@ public:
     fSum = 0.0;
   }
 
-  Hist(double min, double max, double delta, bool islinear=true) {
+  Hist(double min, double max, double delta) {
     fMin     = min;
     fMax     = max;
     fDelta   = delta;

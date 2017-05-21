@@ -104,7 +104,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       geantTrack.SetPosition(track->PosX(),track->PosY(),track->PosZ());
       geantTrack.SetDirection(secLt[isec].GetDirX(),secLt[isec].GetDirY(),secLt[isec].GetDirZ());
       double secEkin       = secLt[isec].GetKinE();
-      geantTrack.SetP(std::sqrt(secEkin*(secEkin-2.0*geantTrack.Mass()))); // momentum of this secondadry particle
+      geantTrack.SetP(std::sqrt(secEkin*(secEkin+2.0*geantTrack.Mass()))); // momentum of this secondadry particle
       geantTrack.SetE(secEkin+geantTrack.Mass());                          // total E of this secondary particle
       geantTrack.fTime     = track->fTime; // global time
       geantTrack.fEdep     = 0.;

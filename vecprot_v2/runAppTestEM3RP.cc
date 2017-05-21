@@ -25,7 +25,7 @@
 #include "TaskMgrTBB.h"
 #endif
 
-static int n_events      = 20;
+static int n_events      = 10;
 static int n_buffered    = 4;
 static int n_threads     = 4;
 static int n_track_max   = 500;
@@ -33,8 +33,8 @@ static int n_learn_steps = 0;
 static int n_reuse       = 100000;
 static int n_propagators = 1;
 static bool monitor       = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true;
-static double n_avrg_tracks_per_evt = 500.; // average number of tracks per event
-static double primary_energy        = 100.; // [GeV]
+static double n_avrg_tracks_per_evt = 5.; // average number of tracks per event
+static double primary_energy        = 10.; // [GeV]
 
 static struct option options[] = {{"primary-energy", required_argument, 0, 'E'},
                                   {"events", required_argument, 0, 'e'},

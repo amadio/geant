@@ -24,8 +24,8 @@ public:
   int                GetIndex()        const { return fIndex; }
   int                GetInternalCode() const { return fInternalCode; }
   int                GetPDGCode()      const { return fPDGCode; }
-  double             GetPDGCharge()    const { return fPDGCharge; }
   double             GetPDGMass()      const { return fPDGMass; }
+  double             GetPDGCharge()    const { return fPDGCharge; }
 
 
   void ClearPhysicsProcessVector() { fPhysicsProcessVector.clear(); }
@@ -46,7 +46,7 @@ public:
       return gInternalParticleCodes[search->second];
     return nullptr;
   }
-  
+
   static const std::vector<Particle*>& GetTheParticleTable() { return gTheParticleTable;}
 
 
@@ -55,8 +55,8 @@ private:
   int     fIndex;        // in the global particle table
   int     fInternalCode;
   int     fPDGCode;
-  double  fPDGCharge;
   double  fPDGMass;
+  double  fPDGCharge;
 
   std::vector<PhysicsProcess*>  fPhysicsProcessVector;  // only one and used only as temporary storage
   std::vector<PhysicsManagerPerParticle*> fPMPParticle;  // as many as regions but those having no any active processes will be nullptr
