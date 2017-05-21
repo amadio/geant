@@ -170,11 +170,11 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, std::vector<Ligh
   } else {
     int           izet = std::lrint(zet);
     double      epsMin = eps0;
-    double          FZ = fElementData[izet]->fFzLow;
+    //double          FZ = fElementData[izet]->fFzLow;
     double    deltaMax = fElementData[izet]->fDeltaMaxLow;
     double deltaFactor = fElementData[izet]->fDeltaFactor;
     if (ekin>50.*geant::MeV) {
-      FZ       = fElementData[izet]->fFzHigh;
+      //FZ       = fElementData[izet]->fFzHigh;
       deltaMax = fElementData[izet]->fDeltaMaxHigh;
     }
     double deltaMin = 4.*eps0*deltaFactor;

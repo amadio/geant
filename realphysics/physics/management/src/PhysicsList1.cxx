@@ -50,7 +50,7 @@ void PhysicsList1::Initialize() {
       eIoniProc->AddModel(eMBModel);
       //
       // add the process to the e- particle
-      AddProcessToPartcile(particle, eIoniProc);
+      AddProcessToParticle(particle, eIoniProc);
 
       //
       // create bremsstrahlung process for e- with 2 models:
@@ -77,7 +77,7 @@ void PhysicsList1::Initialize() {
       eBremProc->AddModel(eRelBModel);
       //
       // add the process to the e- particle
-      AddProcessToPartcile(particle, eBremProc);
+      AddProcessToParticle(particle, eBremProc);
     }
     if (particle==Positron::Definition()) {
       //std::cout<<"  Positron" <<std::endl;
@@ -93,7 +93,7 @@ void PhysicsList1::Initialize() {
       // add the model to the process
       eIoniProc->AddModel(eMBModel);
       // add the process to the e+ particle
-      AddProcessToPartcile(particle, eIoniProc);
+      AddProcessToParticle(particle, eIoniProc);
       //
       // create bremsstrahlung process for e+ with 2 models:
       //
@@ -119,7 +119,7 @@ void PhysicsList1::Initialize() {
       eBremProc->AddModel(eRelBModel);
       //
       // add the process to the e+ particle
-      AddProcessToPartcile(particle, eBremProc);
+      AddProcessToParticle(particle, eBremProc);
     }
     if (particle==Gamma::Definition()) {
       // create compton scattering process for gamma with 1 model:
@@ -134,7 +134,7 @@ void PhysicsList1::Initialize() {
       comptProc->AddModel(kncModel);
       //
       // add the process to the gamma particle
-      AddProcessToPartcile(particle, comptProc);
+      AddProcessToParticle(particle, comptProc);
       //
       // create gamma conversion process for gamma with 1 model:
       //
@@ -150,7 +150,7 @@ void PhysicsList1::Initialize() {
       convProc->AddModel(bhModel);
       //
       // add the process to the gamma particle
-      AddProcessToPartcile(particle, convProc);
+      AddProcessToParticle(particle, convProc);
     }
   }
 }
