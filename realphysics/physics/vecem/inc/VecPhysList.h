@@ -54,9 +54,9 @@ public:
 
         // add the process to the gamma particle
         // std::cout<< " Adding Compton to gamma."<<std::endl;
-        AddProcessToPartcile(particle, gCompProc);
+        AddProcessToParticle(particle, gCompProc);
         // std::cout<< " Adding Compton to gamma - done."<<std::endl;
-        
+
         //2. create photo-electri process with the SauterGavrila angular distribution:
         EMPhysicsProcess *gPhotoElecProc = new GUGammaPhotoElectricProcess("gPhotoElectic");
         EMModel          *gSGModel  = new GUSauterGavrilaModel(true);
@@ -70,7 +70,7 @@ public:
 
         // add the process to the gamma particle
         // std::cout<< " Adding Photo-Electric to gamma." << std::endl;
-        AddProcessToPartcile(particle, gPhotoElecProc);
+        AddProcessToParticle(particle, gPhotoElecProc);
         // std::cout<< " Adding Photo-Electric to gamma - done." << std::endl;
 
         //3. create the conversion process with the Bethe-Heitler model
@@ -86,8 +86,8 @@ public:
 
         // add the process to the gamma particle
         // std::cout<< " Adding Conversion to gamma."<<std::endl;
-        AddProcessToPartcile(particle,gConvProc );
-        // std::cout<< " Adding Conversion to gamma - done."<<std::endl;                
+        AddProcessToParticle(particle,gConvProc );
+        // std::cout<< " Adding Conversion to gamma - done."<<std::endl;
       }
 
       if (particle==Electron::Definition()) {
@@ -105,7 +105,7 @@ public:
         eIoniProc->AddModel(eMBModel);
         //
         // add the process to the e- particle
-        AddProcessToPartcile(particle, eIoniProc);
+        AddProcessToParticle(particle, eIoniProc);
         //
         // create bremsstrahlung process for e- with 2 models:
         //
@@ -131,7 +131,7 @@ public:
         eBremProc->AddModel(eRelBModel);
         //
         // add the process to the e- particle
-        AddProcessToPartcile(particle, eBremProc);
+        AddProcessToParticle(particle, eBremProc);
       }
       if (particle==Positron::Definition()) {
         //std::cout<<"  Positron" <<std::endl;
@@ -147,7 +147,7 @@ public:
         // add the model to the process
         eIoniProc->AddModel(eMBModel);
         // add the process to the e+ particle
-        AddProcessToPartcile(particle, eIoniProc);
+        AddProcessToParticle(particle, eIoniProc);
         //
         // create bremsstrahlung process for e+ with 2 models:
         //
@@ -173,7 +173,7 @@ public:
         eBremProc->AddModel(eRelBModel);
         //
         // add the process to the e+ particle
-        AddProcessToPartcile(particle, eBremProc);
+        AddProcessToParticle(particle, eBremProc);
       }
     }
   }
