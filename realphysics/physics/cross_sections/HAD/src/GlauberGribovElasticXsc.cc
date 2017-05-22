@@ -1,11 +1,11 @@
 #include "GlauberGribovElasticXsc.h"
-
+#include <iostream>
 namespace geantphysics {
 
   GlauberGribovElasticXsc::GlauberGribovElasticXsc() 
   {
-    GlauberGribovTotalXsc* GGTotalXsc = new GlauberGribovTotalXsc();
-    GlauberGribovInelasticXsc* GGInelasticXsc = new GlauberGribovInelasticXsc;
+    GGTotalXsc = new GlauberGribovTotalXsc();
+    GGInelasticXsc = new GlauberGribovInelasticXsc();
   }
 
 
@@ -28,7 +28,7 @@ namespace geantphysics {
     double HadronNucleusElasticXsc =
       GGTotalXsc->GetIsotopeCrossSection(particleCode, energyKin, mass, Z, N) -
       GGInelasticXsc->GetIsotopeCrossSection(particleCode, energyKin, mass, Z, N);
-
+    
     if (HadronNucleusElasticXsc < 0) HadronNucleusElasticXsc = 0;
 
     return HadronNucleusElasticXsc;
