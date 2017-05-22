@@ -1,6 +1,7 @@
 #include "GUAliasSampler.h"
 
 #include "MaterialHandler.h"
+#include "Geant/Error.h"
 
 namespace vecphys {
 inline namespace VECPHYS_IMPL_NAMESPACE {
@@ -139,10 +140,11 @@ void GUAliasSampler::BuildAliasTable(int Zelement, const double *pdf)
     for (int i = 0 ; i < fSampledNumEntries ; ++i) {
       if(table->fAlias[ir * fSampledNumEntries + i] < 0 || table->fProbQ[ir * fSampledNumEntries + i] < -1.0e-10) {
 	// this algorithm has a flaw
-        printf("GUAliasSampler::BuildAliasTable : ERROR building the alias table\n");
-        printf("  (fInNumEntries,fSampledNumEntries)=(%d,%d)\n",ir,i);
-        printf("  (fAlias,fProbQ)=(%d,%f)\n",table->fAlias[ir * fSampledNumEntries + i],
-                                             table->fProbQ[ir * fSampledNumEntries + i]);
+	Geant::Error("GUAliasSampler::BuildAliasTable", "Invalid alias table entries");
+	//        printf("GUAliasSampler::BuildAliasTable : ERROR building the alias table\n");
+	//        printf("  (fInNumEntries,fSampledNumEntries)=(%d,%d)\n",ir,i);
+	//        printf("  (fAlias,fProbQ)=(%d,%f)\n",table->fAlias[ir * fSampledNumEntries + i],
+	//                                             table->fProbQ[ir * fSampledNumEntries + i]);
       }
     }
   }

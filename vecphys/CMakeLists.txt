@@ -340,7 +340,7 @@ endif()
 #
 add_library(vecphys ${SRC_CPP})
 target_link_libraries(vecphys -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECPHYS_LIBRARIES}
-  ${VECPHYS_LIBRARIES_EXTERNAL})
+  ${VECPHYS_LIBRARIES_EXTERNAL} Geant_v) 
 set(VECPHYS_LIBRARIES ${VECPHYS_LIBRARIES} vecphys)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
