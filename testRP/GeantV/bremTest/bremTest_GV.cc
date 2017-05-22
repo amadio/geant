@@ -510,13 +510,13 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      int numSecs = emModel->SampleSecondaries(primaryLT, td);
      // get the secondary track i.e. the gamma
      if (numSecs>0) {
-       LightTrack secondaryLT = ((td->fPhysicsData->GetListOfSecondaries())[0]);
+       std::vector<LightTrack> &secondaryLT = td->fPhysicsData->GetListOfSecondaries();
        // reduced gamma energy
-       double eGamma = secondaryLT.GetKinE()/ekin;
+       double eGamma = secondaryLT[0].GetKinE()/ekin;
        if (eGamma>0.0) {
          histo1->Fill(std::log10(eGamma),1.0);
        }
-       double costGamma = secondaryLT.GetDirZ();
+       double costGamma = secondaryLT[0].GetDirZ();
        costGamma = 0.5*(1.0-costGamma);
        if (costGamma>0.0) {
          costGamma = std::log10(costGamma);

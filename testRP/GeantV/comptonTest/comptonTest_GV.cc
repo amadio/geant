@@ -429,7 +429,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      int numSecs = emModel->SampleSecondaries(primaryLT,td);
      // get the secondary track i.e. the e-
      if (numSecs>0) {
-       LightTrack secondaryLT = ((td->fPhysicsData->GetListOfSecondaries())[0]);
+       std::vector<LightTrack> &secondaryLT = td->fPhysicsData->GetListOfSecondaries();
        // get reduced gamma energy and cost
        double gammaE    = primaryLT.GetKinE()/ekin;
        if (gammaE>0.0) {
@@ -438,9 +438,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
          h2->Fill(gammaCost,1.0);
        }
        // get reduced e- energy and cost
-       double eEnergy = secondaryLT.GetKinE()/ekin;
+       double eEnergy = secondaryLT[0].GetKinE()/ekin;
        h3->Fill(eEnergy,1.0);
-       double eCost   = secondaryLT.GetDirZ();
+       double eCost   = secondaryLT[0].GetDirZ();
        h4->Fill(eCost,1.0);
      } // end if there is secondary
    }

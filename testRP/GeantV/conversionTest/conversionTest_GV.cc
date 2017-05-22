@@ -429,7 +429,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      int numSecs = emModel->SampleSecondaries(primaryLT,td);
      // get the secondary tracks i.e. the e- and the e+
      if (numSecs==2) {
-       std::vector<LightTrack> secLTracks = td->fPhysicsData->GetListOfSecondaries();
+       std::vector<LightTrack> &secLTracks = td->fPhysicsData->GetListOfSecondaries();
        // get reduced e- total energy and cost
        double epsEl = (secLTracks[0].GetKinE()+geant::kElectronMassC2)/ekin;
        h1->Fill(epsEl,1.0);
