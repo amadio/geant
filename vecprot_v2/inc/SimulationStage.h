@@ -44,6 +44,7 @@ protected:
   int fId = 0;                              ///< Unique stage id
   int fUserActionsStage = 0;                ///< User actions stage to be executed right after
   int fFollowUpStage = 0;                   ///< In case there is a single follow-up store its id
+  bool fUniqueFollowUp = false;             ///< All tracks go to single follow-up after this stage
   bool fEndStage = false;                   ///< Marker for stage at end of stepping
 
   Handlers_t fHandlers;                   ///< Array of handlers for the stage
@@ -118,7 +119,11 @@ public:
   /** @brief Set follow-up stage */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetFollowUpStage(ESimulationStage stage) { fFollowUpStage = (int)stage; } 
+  void SetFollowUpStage(ESimulationStage stage, bool unique=false)
+  { 
+    fFollowUpStage = (int)stage;
+    fUniqueFollowUp = unique;
+  }
 
   /** @brief Getter for type */
   VECCORE_ATT_HOST_DEVICE

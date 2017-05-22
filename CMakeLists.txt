@@ -132,7 +132,7 @@ else()
 endif()
 
 option(BUILD_REAL_PHYSICS_TESTS "Build real-physics GeantV and the corresponding Geant4 test applications." OFF)
-if(BUILD_REAL_PHYSICS_TESTS)
+if(BUILD_REAL_PHYSICS_TESTS AND USE_REAL_PHYSICS)
   message (STATUS "BUILD_REAL_PHYSICS_TESTS ON  : Real-physics tests will be built.")
   add_definitions(-DBUILD_REAL_PHYSICS_TESTS)
 else()
@@ -279,6 +279,24 @@ else()
   message(STATUS "USE_TBB OFF  : TBB disabled")
 endif()
 
+#----------------------------------------------------------------------------
+# Find if the system is NUMA aware
+#----------------------------------------------------------------------------
+set(NUMA_ALL_LIBRARIES GeantNuma)
+if (USE_NUMA)
+  # Check the presence of hwloc library
+  find_package(hwloc)
+  if (HWLOC_FOUND)
+    message(STATUS "Hardware locality (hwloc) libraries found. ${HWLOC_INCLUDE_DIRS}")
+    add_definitions( "-DGEANT_USE_NUMA" )
+    include_directories( AFTER SYSTEM ${HWLOC_INCLUDE_DIRS})
+    set(NUMA_LIBRARIES -L${HWLOC_LIBDIR} -l${HWLOC_LIBRARIES})
+    set(NUMA_ALL_LIBRARIES GeantNuma ${NUMA_LIBRARIES})
+  else()
+    message(STATUS "Hardware locality (hwloc) libraries not found. Disabling NUMA.")
+    set(USE_NUMA OFF)
+  endif()
+endif()
 
 # KNL
 
@@ -398,6 +416,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
+  add_definitions(-DGEANT_DEBUG)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
   if(APPLE)
     #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")

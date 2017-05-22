@@ -80,12 +80,14 @@ public:
   atomic_t<long> fNmag;                /** Total number of partial steps in magnetic field */
   atomic_t<long> fNsmall;              /** Total number of small steps taken */
   atomic_t<long> fNcross;              /** Total number of boundaries crossed */
+  atomic_t<long> fNpushed;             /** Total number of pushes of 1E-3 */
+  atomic_t<long> fNkilled;             /** Total number of killed tracks */
   atomic_t<int>  fNidle;               /** Number of idle threads */
   atomic_t<int>  fNbfeed;              /** Number of baskets fed from server */
 
   bool fTransportOngoing = false;      /** Flag for ongoing transport */
   bool fSingleTrack = false;           /** Use single track transport mode */
-    
+
   WorkloadManager   *fWMgr = nullptr;           /** Workload manager */
   GeantVApplication *fApplication = nullptr;    /** User application */
   GeantVApplication *fStdApplication = nullptr; /** Standard application */
@@ -120,7 +122,7 @@ public:
 
   /** @brief Initialization function */
   void InitializeAfterGeom();
-  
+
 public:
   /** @brief GeantPropagator constructor
    * @param ntotal Total number of tracks
@@ -231,7 +233,7 @@ public:
 
   /** @brief Entry point to start simulation with GeantV */
   static void RunSimulation(GeantPropagator *prop, int nthreads);
-  
+
   /**
    * @brief Entry point to start simulation with GeantV
    *
@@ -257,7 +259,7 @@ public:
 
   /** @brief  Synchronize with run configuration */
   void SetConfig(GeantConfig* config);
-  
+
   /** @brief  Share work with some other propagator */
   int ShareWork(GeantPropagator &other);
 
@@ -265,7 +267,7 @@ public:
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
   int RegisterStage(SimulationStage *stage)
-  { 
+  {
     fStages.push_back(stage);
     return ( fStages.size() - 1);
   }
@@ -285,8 +287,12 @@ public:
   int GetNstages() { return fStages.size(); }
 
   /** @brief Function creating all simulation stages for a propagator */
-  VECCORE_ATT_HOST_DEVICE
-  int CreateSimulationStages();
+  #ifdef USE_REAL_PHYSICS
+    int CreateSimulationStages();
+  #else
+    VECCORE_ATT_HOST_DEVICE
+    int CreateSimulationStages();
+  #endif
 
   /** @brief Function allowing to retrieve the next simulation stage for a track */
   VECCORE_ATT_HOST_DEVICE

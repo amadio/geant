@@ -7,8 +7,21 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+Basket::Basket(int size, int threshold)
+      : fThreshold(threshold)
+{
+  assert(size > 0 && threshold <= size);
+  fTracks.reserve(size);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 Basket::Basket(int size, int threshold, int node)
-      : fThreshold(threshold), fNode(node) {
+      : fThreshold(threshold), fNode(node)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA)
+        ,fTracks(0, nullptr, TrackAllocator_t(node))
+#endif
+{
   assert(size > 0 && threshold <= size);
   fTracks.reserve(size);
 }

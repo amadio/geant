@@ -50,36 +50,38 @@ public:
 
   using NumaTrackBlock_t = NumaBlock<GeantTrack, true>;
 
-  GeantPropagator *fPropagator; /** GeantPropagator */
-  int fTid;              /** Thread unique id */
-  int fNode;             /** Locality node */
-  size_t fNthreads;      /** Number of transport threads */
-  int fMaxDepth;         /** Maximum geometry depth */
-  int fSizeBool;         /** Size of bool array */
-  int fSizeDbl;          /** Size of dbl array */
-  bool fToClean;         /** Flag set when the basket queue is to be cleaned */
-  Volume_t *fVolume;     /** Current volume per thread */
+  GeantPropagator *fPropagator = nullptr; /** GeantPropagator */
+  int fTid = -1;         /** Thread unique id */
+  int fNode = -1;        /** Locality node */
+  size_t fNthreads = 0;  /** Number of transport threads */
+  int fMaxDepth = 0;     /** Maximum geometry depth */
+  int fSizeBool = 0;     /** Size of bool array */
+  int fSizeInt = 0;      /*  Size of int array */
+  int fSizeDbl = 0;      /** Size of dbl array */
+  bool fToClean = false; /** Flag set when the basket queue is to be cleaned */
+  Volume_t *fVolume = nullptr; /** Current volume per thread */
 #ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::RNG *fRndm;            /** Random generator for thread */
+  vecgeom::RNG *fRndm = nullptr;           /** Random generator for thread */
 #elif USE_ROOT
-  TRandom *fRndm;        /** Random generator for thread */
+  TRandom *fRndm = nullptr;                /** Random generator for thread */
 #endif
-  bool *fBoolArray;      /** [fSizeBool] Thread array of bools */
-  double *fDblArray;     /** [fSizeDbl] Thread array of doubles */
-  GeantTrack fTrack;     /** Track support for this thread */
-  VolumePath_t *fPath;   /** Volume path for the thread */
-  VolumePath_t **fPathV;    /** Volume path for the thread */
-  VolumePath_t **fNextpathV; /** Volume path for the thread */
-  GeantTrackGeo_v *fGeoTrack; /** Geometry track SOA */
-  GeantBasketMgr *fBmgr; /** Basket manager collecting mixed tracks */
-  GeantBasket *fReused;  /** Basket having tracks to be reused in the same volume */
-  Basket *fBvector = nullptr;  /** Buffer basket used for vector API */
-  Basket *fShuttleBasket = nullptr;  /** Shuttle basket from selectors to follow-up simulation stage */
-  vector_t<Basket *> fStageBuffers; /** Buffers for tracks at input of simulation stages */
-  GeantBasket *fImported; /** Basket used to import tracks from the event server */
-  StackLikeBuffer *fStackBuffer; /** Stack buffer tor this thread */
-  TrackStat *fStat; /** Track statictics */
-  NumaTrackBlock_t *fBlock; /** Current track block */
+  bool *fBoolArray = nullptr;              /** [fSizeBool] Thread array of bools */
+  double *fDblArray = nullptr;             /** [fSizeDbl] Thread array of doubles */
+  int *fIntArray = nullptr;                /** [fSizeInt] Thread array of ints */
+  GeantTrack fTrack;                       /** Track support for this thread */
+  VolumePath_t *fPath = nullptr;           /** Volume path for the thread */
+  VolumePath_t **fPathV = nullptr;         /** Volume path for the thread */
+  VolumePath_t **fNextpathV = nullptr;     /** Volume path for the thread */
+  GeantTrackGeo_v *fGeoTrack = nullptr;    /** Geometry track SOA */
+  GeantBasketMgr *fBmgr = nullptr;         /** Basket manager collecting mixed tracks */
+  GeantBasket *fReused = nullptr;          /** Basket having tracks to be reused in the same volume */
+  Basket *fBvector = nullptr;              /** Buffer basket used for vector API */
+  Basket *fShuttleBasket = nullptr;        /** Shuttle basket from selectors to follow-up simulation stage */
+  vector_t<Basket *> fStageBuffers;        /** Buffers for tracks at input of simulation stages */
+  GeantBasket *fImported = nullptr;        /** Basket used to import tracks from the event server */
+  StackLikeBuffer *fStackBuffer = nullptr; /** Stack buffer tor this thread */
+  TrackStat *fStat = nullptr;              /** Track statictics */
+  NumaTrackBlock_t *fBlock = nullptr;      /** Current track block */
   
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
@@ -88,20 +90,20 @@ public:
   std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
   std::deque<Basket *> fBPool; /** Pool of empty baskets */
 #endif
-  int fSizeInt;                             // current size of IntArray
-  int *fIntArray;                           // Thread array of ints (used in vector navigation)
   GeantTrack_v  *fTransported;              // Transported tracks in current step
   vector_t<GeantTrack *> fTransported1;     // Transported tracks in current step
-  int            fNkeepvol;                 // Number of tracks keeping the same volume
-  int fNsteps;           /** Total number of steps per thread */
-  int fNsnext;           /** Total number of calls to getting distance to next boundary */
-  int fNphys;            /** Total number of steps to physics processes */
-  int fNmag;             /** Total number of partial steps in magnetic field */
-  int fNpart;            /** Total number of particles transported by the thread */
-  int fNsmall;           /** Total number of small steps taken */
-  int fNcross;           /** Total number of boundary crossings */
+  int fNkeepvol = 0;     /** Number of tracks keeping the same volume */
+  int fNsteps = 0;       /** Total number of steps per thread */
+  int fNsnext = 0;       /** Total number of calls to getting distance to next boundary */
+  int fNphys = 0;        /** Total number of steps to physics processes */
+  int fNmag = 0;         /** Total number of partial steps in magnetic field */
+  int fNpart = 0;        /** Total number of particles transported by the thread */
+  int fNsmall = 0;       /** Total number of small steps taken */
+  int fNcross = 0;       /** Total number of boundary crossings */
+  int fNpushed = 0;      /** Total number of pushes with 1.E-3 */
+  int fNkilled = 0;      /** Total number of tracks killed */
 
-  geantphysics::PhysicsData  *fPhysicsData; /** Physics data per thread */
+  geantphysics::PhysicsData  *fPhysicsData = nullptr; /** Physics data per thread */
 
 private:
    // a helper function checking internal arrays and allocating more space if necessary
@@ -200,12 +202,6 @@ public:
    * @details Get pointer to next free basket
    */
   GeantBasket *GetNextBasket();
-
-  /**
-   * @brief Get next free basket
-   * @details Get pointer to next free basket
-   */
-  Basket *GetFreeBasket();
 
   /**
    * @brief Recycles a given basket

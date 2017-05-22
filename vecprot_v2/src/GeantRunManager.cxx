@@ -15,6 +15,11 @@
 #include "GeantEventServer.h"
 #include "LocalityManager.h"
 
+#ifdef USE_ROOT
+#include "TApplication.h"
+#include "TCanvas.h"
+#endif
+
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
@@ -27,11 +32,13 @@
 #endif
 #include "volumes/PlacedVolume.h"
 #else
+#ifdef USE_ROOT
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
 #include "TGeoVoxelFinder.h"
 #include "TGeoNode.h"
 #include "TGeoMaterial.h"
+#endif
 #endif
 
 // The classes for integrating in a non-uniform magnetic field
@@ -71,19 +78,21 @@ bool GeantRunManager::Initialize() {
   }
 
   // Not more propagators than events
-  if (fNpropagators > fConfig->fNtotal) {
+  if (fNpropagators > fConfig->fNtotal && !fConfig->fUseV3) {
     Print("Initialize", "Number of propagators set to %d", fConfig->fNtotal);
     fNpropagators = fConfig->fNtotal;
   }
 
   // Increase buffer to give a fair share to each propagator
   int nbuffmax = fConfig->fNtotal/fNpropagators;
+  if (fConfig->fUseV3 && nbuffmax == 0)
+    nbuffmax = 1;
   if (fConfig->fNbuff > nbuffmax) {
     Print("Initialize", "Number of buffered events reduced to %d", nbuffmax);
     fConfig->fNbuff = nbuffmax;
   }
   fNbuff = fConfig->fNbuff;
-  fConfig->fNbuff *= fNpropagators;
+  //fConfig->fNbuff *= fNpropagators;
   fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
   fConfig->fMaxTracks = fConfig->fMaxPerEvent * fConfig->fNbuff;
 
@@ -116,6 +125,29 @@ bool GeantRunManager::Initialize() {
 
 //#ifndef VECCORE_CUDA
   LoadGeometry(fConfig->fGeomFileName.c_str());
+
+  // Configure the locality manager
+  LocalityManager *mgr = LocalityManager::Instance();
+  if (!mgr->IsInitialized()) {
+    mgr->SetNblocks(100);     // <- must be configurable
+    mgr->SetBlockSize(1000);  // <- must be configurable
+    mgr->SetMaxDepth(fConfig->fMaxDepth);
+    mgr->Init();
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
+    if (fConfig->fUseNuma) {
+      int nnodes = mgr->GetPolicy().GetNnumaNodes();
+      mgr->SetPolicy(NumaPolicy::kCompact);
+      // Loop propagatpors and assign NUMA nodes
+      if (fNpropagators > 1) {
+        for (auto i=0; i<fNpropagators; ++i)
+          fPropagators[i]->SetNuma(i % nnodes);
+      }
+    } else {
+      mgr->SetPolicy(NumaPolicy::kSysDefault);
+    }
+#endif
+  }
+
 //#endif
 
   fDoneEvents = BitSet::MakeInstance(fConfig->fNtotal);
@@ -397,7 +429,12 @@ void GeantRunManager::RunSimulation() {
   else
     Printf("  Runge-Kutta integration OFF");
   Printf("==========================================================================");
-
+#ifdef USE_ROOT
+  if (fConfig->fUseMonitoring)
+    new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
+  if (fConfig->fUseAppMonitoring)
+    new TCanvas("capp", "Application canvas", 700, 800);
+#endif
   vecgeom::Stopwatch timer;
   timer.Start();
   for (auto i=0; i<fNpropagators; ++i)
@@ -416,6 +453,8 @@ void GeantRunManager::RunSimulation() {
   long nmag = 0;
   long nsmall = 0;
   long ncross = 0;
+  long npushed = 0;
+  long nkilled = 0;
 
   for (auto i=0; i<fNpropagators; ++i) {
     ntransported += fPropagators[i]->fNtransported.load();
@@ -425,10 +464,12 @@ void GeantRunManager::RunSimulation() {
     nmag += fPropagators[i]->fNmag.load();
     nsmall += fPropagators[i]->fNsmall.load();
     ncross += fPropagators[i]->fNcross.load();
+    npushed += fPropagators[i]->fNpushed.load();
+    nkilled += fPropagators[i]->fNkilled.load();
   }
   Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
-         "phys steps: %ld, mag. field steps: %ld, small steps: %ld bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
-         fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, ncross, rtime, ctime);
+         "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
+         fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
   LocalityManager *lmgr = LocalityManager::Instance();
   Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d", 
          lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
@@ -439,6 +480,9 @@ void GeantRunManager::RunSimulation() {
 #endif
 
   FinishRun();
+#ifdef USE_ROOT
+  if (gApplication) delete gApplication;
+#endif
 }
 
 //______________________________________________________________________________

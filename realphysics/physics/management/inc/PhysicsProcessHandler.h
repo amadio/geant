@@ -4,6 +4,20 @@
 
 #include "PhysicsInterface.h"
 
+// geantV
+namespace Geant {
+inline namespace GEANT_IMPL_NAMESPACE {
+  class GeantPropagator;
+  class SimulationStage;
+}
+}
+
+// realphysics stages
+#include "ComputeIntLStage.h"
+#include "AlongStepActionStage.h"
+#include "PostStepActionStage.h"
+
+
 namespace geantphysics {
 
 /**
@@ -106,6 +120,43 @@ public:
    *
    */
   virtual void Initialize();
+
+/**
+ * @name Interface methods to obtain physics realted symulation stages when V3 is used.
+ *
+ * These methods are called from the Geant::GeantPropagator::CreateSimulationStages
+ * methods (when real-physics is used) to obtain the pointers to the physics
+ * simulation stages defined in the real-physics library.
+ */
+//@{
+  /** @brief Obtain/create physics step limit computation stage.
+   *
+   * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
+   * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
+   */
+  Geant::SimulationStage* CreateComputeIntLStage(Geant::GeantPropagator *prop) {
+    return new ComputeIntLStage(prop);
+  }
+
+  /** @brief Obtain/create along step action (continuous part) computation stage.
+   *
+   * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
+   * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
+   */
+  Geant::SimulationStage* CreateAlongStepActionStage(Geant::GeantPropagator *prop) {
+    return new AlongStepActionStage(prop);
+  }
+
+  /** @brief Obtain/create post step action (discrete part) computation stage.
+   *
+   * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
+   * @return     Pointer to a created PostStepAction real-physics simulation stage object.
+   */
+  Geant::SimulationStage* CreatePostStepActionStage(Geant::GeantPropagator *prop) {
+      return new PostStepActionStage(prop);
+  }
+//@}
+
 
   /** @brief The method proposes the step-length from the physics
    *

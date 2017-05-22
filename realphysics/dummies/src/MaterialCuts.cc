@@ -89,7 +89,7 @@ void MaterialCuts::ClearAll() {
 }
 
 const MaterialCuts* MaterialCuts::GetMaterialCut(int indx) {
-  if (indx>-1 && indx<gTheMaterialCutsTable.size()) {
+  if (indx>-1 && indx<int(gTheMaterialCutsTable.size())) {
     return gTheMaterialCutsTable[indx];
   } else {
     std::cerr << "  ***  ERROR:  MaterialCuts::GetMaterialCut() \n"
@@ -102,11 +102,11 @@ const MaterialCuts* MaterialCuts::GetMaterialCut(int indx) {
 
 // we should get rid of this
 const MaterialCuts* MaterialCuts::GetMaterialCut(int regionindx, int materialindx) {
-  if (regionindx>-1 && regionindx<gTheMaterialCutsPerRegionPerMaterial.size()
-      && materialindx>-1 && materialindx<gTheMaterialCutsPerRegionPerMaterial[0].size()) {
+  if (regionindx>-1 && regionindx<int(gTheMaterialCutsPerRegionPerMaterial.size())
+      && materialindx>-1 && materialindx<int(gTheMaterialCutsPerRegionPerMaterial[0].size())) {
     return gTheMaterialCutsPerRegionPerMaterial[regionindx][materialindx];
   } else {
-    if (!(regionindx>-1 && regionindx<gTheMaterialCutsPerRegionPerMaterial.size())) {
+    if (!(regionindx>-1 && regionindx<int(gTheMaterialCutsPerRegionPerMaterial.size()))) {
       std::cerr << "  ***  ERROR:  MaterialCuts::GetMaterialCut() \n"
                 << "        Requested MaterialCuts by Region and Material indices = "
                 << regionindx << ", " << materialindx << " cannot be find in the table!"
@@ -220,8 +220,8 @@ MaterialCuts* MaterialCuts::CheckMaterialForRegion(const vecgeom::Region *region
   int indxReg = region->GetIndex();
   int indxMat = mat->GetIndex();
   MaterialCuts *matCut = nullptr;
-  if (indxReg>-1 && indxReg<gTheMaterialCutsPerRegionPerMaterial.size()
-      && indxMat>-1 && indxMat<gTheMaterialCutsPerRegionPerMaterial[0].size()) {
+  if (indxReg>-1 && indxReg<int(gTheMaterialCutsPerRegionPerMaterial.size())
+      && indxMat>-1 && indxMat<int(gTheMaterialCutsPerRegionPerMaterial[0].size())) {
     matCut = gTheMaterialCutsPerRegionPerMaterial[indxReg][indxMat];
   }
   // create it if it is still nullptr (i.e. has not been created yet)

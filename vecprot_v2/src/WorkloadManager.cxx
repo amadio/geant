@@ -3,6 +3,7 @@
 #include "Geant/Error.h"
 
 #ifdef USE_ROOT
+#include "TApplication.h"
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TStopwatch.h"
@@ -30,6 +31,7 @@
 #include "StackLikeBuffer.h"
 #include "SimulationStage.h"
 #include "TrackStat.h"
+#include "LocalityManager.h"
 #include "TrackManager.h"
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
@@ -191,6 +193,7 @@ bool WorkloadManager::StartTasks(GeantVTaskMgr *taskmgr) {
   }
   // Start monitoring thread
   if (prop->fConfig->fUseMonitoring) {
+    //fListThreads.emplace_back(WorkloadManager::StartROOTApplication);
     fListThreads.emplace_back(WorkloadManager::MonitoringThread, prop);
   }
   // Start garbage collector
@@ -323,13 +326,35 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 //  int nstacked = 0;
 //  int nprioritized = 0;
 //  int ninjected = 0;
+  bool useNuma = prop->fConfig->fUseNuma;
+  // Enforce locality by pinning the thread to the next core according to the chosen policy.
+  int node = -1;
+  LocalityManager *loc_mgr = LocalityManager::Instance();
+  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
+  int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
+//  if (node < 0) node = 0;
   int tid = prop->fWMgr->ThreadId();
-  Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
+  //prop->SetNuma(node);
+  if (useNuma)
+    Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
+                 tid, prop, node, cpu);
+  else
+    Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
+  td->fNode = node;
   td->fPropagator = prop;
+  td->fShuttleBasket = prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0);
+  if (useNuma) {
+    int membind = NumaUtils::NumaNodeAddr(td->fShuttleBasket->Tracks().data());
+    if (node != membind)
+      Geant::Print("","=== Thread #d: Wrong memory binding");
+  }
+  td->fBvector = prop->fConfig->fUseNuma ? new Basket(256, 0, node) : new Basket(256, 0);
+  for (int i=0; i<=int(kSteppingActionsStage); ++i)
+    td->fStageBuffers.push_back(prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0));
   td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
   td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   td->fBlock = prop->fTrackMgr->GetNewBlock();
@@ -399,10 +424,17 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   propagator->fNmag += td->fNmag;
   propagator->fNsmall += td->fNsmall;
   propagator->fNcross += td->fNcross;
+  propagator->fNpushed += td->fNpushed;
+  propagator->fNkilled += td->fNkilled;
 
   // If transport is completed, make send the signal to the run manager
   if (runmgr->TransportCompleted())
     runmgr->StopTransport();
+  if (useNuma) {
+    int cpuexit = NumaUtils::GetCpuBinding();
+    if (cpuexit != cpu)
+      Geant::Print("","=== OS migrated worker %d from cpu #%d to cpu#%d", tid, cpu, cpuexit);
+  }
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   #ifdef USE_ROOT
@@ -431,7 +463,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
         td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
       ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket);
   }
-  td->fStat->AddTracks(ninjected);
+  // td->fStat->AddTracks(ninjected);
   if (ninjected) return FeederResult::kFeederWork;
   return FeederResult::kNone;
 }
@@ -461,7 +493,7 @@ int WorkloadManager::FlushOneLane(GeantTaskData *td)
 int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
 {
 // The main stepping loop over simulation stages.
-  static int count = 0;
+//  static int count = 0;
   constexpr int nstages = int(ESimulationStage::kSteppingActionsStage) + 1;
   bool flushed = !flush;
   int nprocessed = 0;
@@ -469,7 +501,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
   int istage = 0;
   while ( FlushOneLane(td) || !flushed ) {
     while (1) {
-      count++;
+//      count++;
       int nstart = td->fStageBuffers[istage]->size();
 /*
       for (auto track : td->fStageBuffers[istage]->Tracks()) {
@@ -523,12 +555,14 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int tid = prop->fWMgr->ThreadId();
   Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   GeantPropagator *propagator = prop;
+  // Not NUMA aware version
+  propagator->SetNuma(0);
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
-  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
-  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
+//  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
+//  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   int nworkers = propagator->fNthreads;
   WorkloadManager *wm = propagator->fWMgr;
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
@@ -1220,6 +1254,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   // Thread providing basic monitoring for the scheduler.
   const double MByte = 1024.;
   Geant::Info("MonitoringThread","Started monitoring ...");
+  std::cout << "isBatch = " << gROOT->IsBatch() << std::endl;
   GeantPropagator *propagator = prop;
   WorkloadManager *wm = propagator->fWMgr;
   int nmon = prop->fConfig->GetMonFeatures();
@@ -1229,7 +1264,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
   int ntotransport;
   ProcInfo_t procInfo;
-  double rss;
+  double rss, rssmax = 0;
   double nmem[101] = {0};
   GeantScheduler *sch = wm->GetScheduler();
   int nvol = sch->GetNvolumes();
@@ -1337,6 +1372,10 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       if (hmem) {
         gSystem->GetProcInfo(&procInfo);
         rss = procInfo.fMemResident / MByte;
+        if (rss > rssmax) {
+          rssmax = rss;
+          printf("RSS = %g MB\n", rssmax);
+        }
         memmove(nmem, &nmem[1], 99 * sizeof(double));
         nmem[99] = rss;
         hmem->GetXaxis()->Set(100, stamp - 100, stamp);
@@ -1363,6 +1402,10 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       if (hmem) {
         gSystem->GetProcInfo(&procInfo);
         rss = procInfo.fMemResident / MByte;
+        if (rss > rssmax) {
+          rssmax = rss;
+          printf("RSS = %g MB\n", rssmax);
+        }
         nmem[i] = rss;
         hmem->SetBinContent(i + 1, nmem[i]);
       }
@@ -1523,6 +1566,15 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
   #endif
     return 0;
 }
+
+//______________________________________________________________________________
+void *WorkloadManager::StartROOTApplication()
+{
+  TApplication *app = new TApplication("GeantV monitoring", NULL, NULL);
+  app->Run();
+  return 0;
+}
+
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

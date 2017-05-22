@@ -37,7 +37,7 @@ class Basket {
 protected:
   int fThreshold = 64;                ///< Basket threshold
   int fNode = 0;                      ///< Numa node for basket allocation
-  SimulationStage *fStage;            ///< Simulation stage to be executed by tracks inside
+  SimulationStage *fStage = nullptr;  ///< Simulation stage to be executed by tracks inside
   TrackVec_t fTracks;                 ///< Vector of track pointers
   
 private:
@@ -51,14 +51,23 @@ public:
   Basket() {}
 
   /** 
+   * @brief Standard basket constructor
+   *
+   * @param size Initial basket size
+   * @param threshold  Initial basket threshold
+   */
+  VECCORE_ATT_HOST_DEVICE
+  Basket(int size, int threshold);
+
+  /** 
    * @brief NUMA aware basket constructor
    *
    * @param size Initial basket size
-   * @param loc  Initial basket locality type
+   * @param threshold  Initial basket threshold
    * @param node NUMA node where the basket is alocated
    */
   VECCORE_ATT_HOST_DEVICE
-  Basket(int size, int threshold = 0, int node = 0);
+  Basket(int size, int threshold, int node);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -134,6 +143,39 @@ public:
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
 
+  /** @brief Function checking if a track is already contained */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int HasTrack(GeantTrack* const track) const
+  {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    return ( std::find(fTracks.begin(), fTracks.end(), track) != fTracks.end() );
+#else
+    // #!@$f**k%#@! CUDA
+    for (size_t i=0; i<fTracks.size(); ++i)
+      if (fTracks[i] == track) return true;
+    return false;
+#endif
+  }
+
+  /** @brief Function checking if a track is contained repeatedly */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int HasTrackMany(GeantTrack* const track) const
+  {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    auto it = std::find(fTracks.begin(), fTracks.end(), track);
+    return ( std::find(++it, fTracks.end(), track) != fTracks.end() );
+#else
+    // #!@$f**k%#@! CUDA
+    size_t i;
+    for (i=0; i<fTracks.size(); ++i)
+      if (fTracks[i] == track) break;
+    for (size_t j=i+1; j<fTracks.size(); ++j)
+      if (fTracks[j] == track) return true;
+    return false;
+#endif
+  }
   /**
    * @brief Function returning a reference to the vector of input tracks
    * @return Reference to input vector of tracks

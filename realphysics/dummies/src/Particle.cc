@@ -21,7 +21,7 @@ Particle::Particle(const std::string &name, int pdgcode, int intcode, double mas
   gInternalParticleCodes[icode] = this;
   //
   gPDGtoInternalCode[pdgcode] = icode;
-  
+
 }
 
 } // namespace geantphysics

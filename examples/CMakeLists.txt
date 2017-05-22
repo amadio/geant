@@ -25,10 +25,10 @@ set(sources
   )     
 
 set(headers
-  inc/ExN03Application.h 
-  inc/CMSApplication.h 
-  inc/LHCbApplication.h 
-  inc/FastSimApplication.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
   )   
 if (USE_ROOT)
   if (USE_UMESIMD)

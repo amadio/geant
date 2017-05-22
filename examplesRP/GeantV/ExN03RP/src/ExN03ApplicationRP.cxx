@@ -149,10 +149,65 @@ void ExN03ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Gean
   return;
 }
 
-//______________________________________________________________________________
-//void ExN03ApplicationRP::Digitize(GeantEvent *event) {
-//  // User method to digitize a full event, which is at this stage fully transported
-//}
+
+void ExN03ApplicationRP::SteppingActions(GeantTrack &track, GeantTaskData *td) {
+  // Application stepping action.
+  if (!fInitialized)
+    return; // FOR NOW
+  // energy deposit and step length
+  int tid = td->fTid;
+  Node_t const *current;
+  int idvol = -1;
+  int idnode = -1;
+  int ilev = -1;
+//  for (int i = 0; i < npart; i++) {
+    ilev = track.fPath->GetCurrentLevel() - 1;
+    if (ilev < 1)
+      return;
+    current = track.fPath->Top();
+    if (!current)
+      return;
+    idnode = track.fPath->At(ilev - 1)->id();
+    idvol  = current->GetLogicalVolume()->id();
+    int indx   = fWThreadIdToIndexMap[tid];
+    int ilayer = idnode;
+    int iabs   = -1;
+    if (idvol==fIdAbs) { iabs = 0; }
+    else if (idvol==fIdGap) { iabs = 1;}
+    if (iabs>-1) {
+      fListDataPerThread[indx].fListDataPerAbsorber[iabs].fEdep[ilayer]   +=  track.fEdep;
+      fListDataPerThread[indx].fListDataPerAbsorber[iabs].fLength[ilayer] +=  track.fStep;
+    }
+//  }
+
+
+  if (fRunMgr->GetConfig()->fFillTree) {
+    MyHit *hit;
+    //    int nhits = 0;
+//    for (int i = 0; i < npart; i++) {
+      // Deposit hits in scintillator
+      if (idvol==fIdGap && track.fEdep>0.00002) {
+	      hit = fFactory->NextFree(track.fEvslot, tid);
+	      hit->fX = track.fXpos;
+	      hit->fY = track.fYpos;
+	      hit->fZ = track.fZpos;
+	      hit->fEdep = track.fEdep;
+        hit->fTime = track.fTime;
+        hit->fEvent = track.fEvent;
+        hit->fTrack = track.fParticle;
+	      hit->fVolId = idvol;
+	      hit->fDetId = idnode;
+    	  //      if (track->path && track->path->GetCurrentNode()) {
+    	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
+    	  //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
+    	  //      }
+    	  //	  nhits++;
+     	}
+//    }
+  }
+}
+
+
 
 void ExN03ApplicationRP::FinishRun() {
   double nprim = (double)fRunMgr->GetNprimaries();

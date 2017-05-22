@@ -1,11 +1,11 @@
-//===--- NumaUtils.h - Geant-V ---------------------------------*- C++ -*-===//
+//===--- NumaAllocator.h - Geant-V ---------------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file NumaUtils.h
- * @brief Utilities for NUMA management
+ * @file NumaAllocator.h
+ * @brief A NUMA aware allocator
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
@@ -44,16 +44,17 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
     pointer allocate(size_type n) {
       // std::cout << "Alloc " << n*sizeof(T) << " bytes on numa node " << fNode << std::endl;
-      return static_cast<pointer>(NumaAlignedMalloc(n*sizeof(T), fNode, 64));
+      return static_cast<pointer>(NumaUtils::NumaAlignedMalloc(n*sizeof(T), fNode, 64));
       //return std::allocator<T>::allocate(n, hint);
     }
 
     void deallocate(pointer p, size_type /*n*/) {
       // std::cout <<  "Dealloc " <<  n*sizeof(T) << " bytes.\n";
-      NumaAlignedFree(p);
+      NumaUtils::NumaAlignedFree(p);
       //return std::allocator<T>::deallocate(p, n);
     }
 
+    NumaAllocator() throw(): std::allocator<T>(), fNode(0) { }
     NumaAllocator(int node) throw(): std::allocator<T>(), fNode(node) { }
     NumaAllocator(const NumaAllocator &a) throw(): std::allocator<T>(a), fNode(a.fNode) { }
 

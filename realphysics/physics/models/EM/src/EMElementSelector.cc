@@ -53,6 +53,7 @@ int EMElementSelector::SampleTargetElement(double ekin, double rndm) {
 //      } else if (ekin>fEnergyGrid[lowEIndx+1]) {
 //        ++lowEIndx;
 //      }
+    if (lowEIndx>=fNumEnergyBins-1) --lowEIndx;
     // linear interpolation on log E scale
     double factor = (ekin-fEnergyGrid[lowEIndx])/(fEnergyGrid[lowEIndx+1]-fEnergyGrid[lowEIndx]);
     for (elIndx=0; elIndx<fProbsPerElements.size()-1; ++elIndx) {

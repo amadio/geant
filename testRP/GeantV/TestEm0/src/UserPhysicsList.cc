@@ -1,7 +1,9 @@
 
 #include "UserPhysicsList.h"
 
+#include "PhysicalConstants.h"
 #include "SystemOfUnits.h"
+
 #include "PhysicsProcess.h"
 
 #include "Particle.h"
@@ -19,10 +21,14 @@
 #include "ComptonScatteringProcess.h"
 #include "KleinNishinaComptonModel.h"
 
+#include "GammaConversionProcess.h"
+#include "BetheHeitlerPairModel.h"
+
+
 namespace userapplication {
 
-  UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {}
-  UserPhysicsList::~UserPhysicsList() {}
+UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {}
+UserPhysicsList::~UserPhysicsList() {}
 
 void UserPhysicsList::Initialize() {
   // get the partcile table and loop over it
@@ -44,7 +50,7 @@ void UserPhysicsList::Initialize() {
       eIoniProc->AddModel(eMBModel);
       //
       // add the process to the e- particle
-      AddProcessToPartcile(particle, eIoniProc);
+      AddProcessToParticle(particle, eIoniProc);
       //
       // create bremsstrahlung process for e- with 2 models:
       //
@@ -70,7 +76,7 @@ void UserPhysicsList::Initialize() {
       eBremProc->AddModel(eRelBModel);
       //
       // add the process to the e- particle
-      AddProcessToPartcile(particle, eBremProc);
+      AddProcessToParticle(particle, eBremProc);
     }
     if (particle==geantphysics::Positron::Definition()) {
       //std::cout<<"  Positron" <<std::endl;
@@ -86,7 +92,7 @@ void UserPhysicsList::Initialize() {
       // add the model to the process
       eIoniProc->AddModel(eMBModel);
       // add the process to the e+ particle
-      AddProcessToPartcile(particle, eIoniProc);
+      AddProcessToParticle(particle, eIoniProc);
       //
       // create bremsstrahlung process for e+ with 2 models:
       //
@@ -112,7 +118,7 @@ void UserPhysicsList::Initialize() {
       eBremProc->AddModel(eRelBModel);
       //
       // add the process to the e+ particle
-      AddProcessToPartcile(particle, eBremProc);
+      AddProcessToParticle(particle, eBremProc);
     }
     if (particle==geantphysics::Gamma::Definition()) {
       // create compton scattering process for gamma with 1 model:
@@ -127,7 +133,23 @@ void UserPhysicsList::Initialize() {
       comptProc->AddModel(kncModel);
       //
       // add the process to the gamma particle
-      AddProcessToPartcile(particle, comptProc);
+      AddProcessToParticle(particle, comptProc);
+      //
+      // create gamma conversion process for gamma with 1 model:
+      //
+      geantphysics::EMPhysicsProcess *convProc = new geantphysics::GammaConversionProcess();
+      // create the Bethe-Heitler model for pair production i.e. for g + A -> e- + e+ intercation
+      geantphysics::EMModel           *bhModel = new geantphysics::BetheHeitlerPairModel();
+      // set min/max energies of the model
+      bhModel->SetLowEnergyUsageLimit (  2.0*geant::kElectronMassC2);
+      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
+      // it will be changed when we will have the high-energy model
+      bhModel->SetHighEnergyUsageLimit(  1.0*geant::TeV);
+      // add the model to the process
+      convProc->AddModel(bhModel);
+      //
+      // add the process to the gamma particle
+      AddProcessToParticle(particle, convProc);
     }
   }
 }

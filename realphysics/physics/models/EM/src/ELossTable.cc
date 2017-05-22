@@ -40,7 +40,7 @@ double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinene
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
   // should work properly without this check; we need to put it under verbose build
-  if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx && (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
+  if (int(fELossDataPerMaterialCutsPerParticle[matcutindx].size())>partindx && (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
     // compute lower index of the kinetic energy bin
     if (kinenergy<=fMinLossTableEnergy) {
       dedx = lossData->fRestrictedDEDXData[0];
@@ -76,7 +76,7 @@ double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinen
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
   // should work properly without this check; we need to put it under verbose build
-  if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx && (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
+  if (int(fELossDataPerMaterialCutsPerParticle[matcutindx].size())>partindx && (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
     // compute lower index of the kinetic energy bin
     if (kinenergy<=fMinLossTableEnergy) {
       range = lossData->fRestrictedRangeData[0];
@@ -112,7 +112,7 @@ double ELossTable::GetEnergyForRestrictedRange(int matcutindx, int partindx, dou
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
   // should work properly without this check; we need to put it under verbose build
-  if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx && (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
+  if (int(fELossDataPerMaterialCutsPerParticle[matcutindx].size())>partindx && (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
     double minRange = lossData->fRestrictedRangeData[0];
     double maxRange = lossData->fRestrictedRangeData[lossData->fNumData-1];
     if (range>=minRange) {
@@ -142,7 +142,7 @@ double ELossTable::GetRange(int matindx, int partindx, double kinenergy) {
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
   // should work properly without this check; we need to put it under verbose build
-  if (fELossDataPerMaterialPerParticle[matindx].size()>partindx
+  if (int(fELossDataPerMaterialPerParticle[matindx].size())>partindx
       && (lossData = fELossDataPerMaterialPerParticle[matindx][partindx])
       && (lossData->fRangeData)) {
     // compute lower index of the kinetic energy bin

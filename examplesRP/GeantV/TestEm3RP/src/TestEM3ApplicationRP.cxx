@@ -93,13 +93,12 @@ bool TestEM3ApplicationRP::Initialize() {
   return true;
 }
 
+
 //______________________________________________________________________________
 void TestEM3ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
-  // Application stepping manager. The thread id has to be used to manage storage
-  // of hits independently per thread.
+  // Application stepping action.
   if (!fInitialized)
     return; // FOR NOW
-  // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   int tid = td->fTid;
   Node_t const *current;
@@ -124,6 +123,7 @@ void TestEM3ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Ge
     const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(tracks.fGVcodeV[i]);
     int   pdgCode = part->GetPDGCode();
     double charge = part->GetPDGCharge();
+
     if (iabs>-1) {
       fListDataPerThread[indx].fListDataPerAbsorber[iabs].fEdep     +=  tracks.fEdepV[i];
       if (charge!=0.0) {
@@ -183,10 +183,92 @@ void TestEM3ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Ge
   return;
 }
 
-//______________________________________________________________________________
-//void TestEM3ApplicationRP::Digitize(GeantEvent *event) {
-  // User method to digitize a full event, which is at this stage fully transported
-//}
+
+// new interface V3 scalar version
+void TestEM3ApplicationRP::SteppingActions(GeantTrack &track, GeantTaskData *td) {
+  // Application stepping manager. The thread id has to be used to manage storage
+  // of hits independently per thread.
+  if (!fInitialized)
+    return; // FOR NOW
+  // Loop all tracks, check if they are in the right volume and collect the
+  // energy deposit and step length
+  int tid = td->fTid;
+  Node_t const *current;
+  int idvol = -1;
+  int idnode = -1;
+  int ilev = -1;
+//  for (int i = 0; i < npart; i++) {
+    ilev = track.fPath->GetCurrentLevel() - 1;
+    if (ilev < 1)
+      return;
+    current = track.fPath->Top();
+    if (!current)
+      return;
+    idnode = track.fPath->At(ilev - 1)->id();
+    idvol  = current->GetLogicalVolume()->id();
+    int indx   = fWThreadIdToIndexMap[tid];
+//    int ilayer = idnode;
+    int iabs   = -1;
+    if (idvol==fIdAbs) { iabs = 0; }
+    else if (idvol==fIdGap) { iabs = 1;}
+
+    const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.fGVcode);
+    int   pdgCode = part->GetPDGCode();
+    double charge = part->GetPDGCharge();
+
+    if (iabs>-1) {
+      fListDataPerThread[indx].fListDataPerAbsorber[iabs].fEdep     +=  track.fEdep;
+      if (charge!=0.0) {
+        fListDataPerThread[indx].fListDataPerAbsorber[iabs].fLength +=  track.fStep;
+      }
+    }
+    if (track.fStatus!=Geant::kNew) { // do not count the creation step
+      if (charge==0.0) {
+        fListDataPerThread[indx].fDataGlobal.fNumNeutralSteps +=1.0;
+      } else {
+        fListDataPerThread[indx].fDataGlobal.fNumChargedSteps +=1.0;
+      }
+    }
+    if (track.fStatus==Geant::kNew) { // check secondaries
+      switch(pdgCode) {
+        // e+
+        case -11 : fListDataPerThread[indx].fDataGlobal.fNumPositron += 1.0;
+                   break;
+        // e
+        case  11 : fListDataPerThread[indx].fDataGlobal.fNumElectron += 1.0;
+                   break;
+        // gamma
+        case  22 : fListDataPerThread[indx].fDataGlobal.fNumGamma    += 1.0;
+                   break;
+      }
+    }
+//  }
+
+  if (fRunMgr->GetConfig()->fFillTree) {
+    MyHit *hit;
+    //    int nhits = 0;
+//    for (int i = 0; i < npart; i++) {
+      // Deposit hits in scintillator
+      if (idvol==fIdGap && track.fEdep>0.00002) {
+	      hit         = fFactory->NextFree(track.fEvslot, tid);
+	      hit->fX     = track.fXpos;
+	      hit->fY     = track.fYpos;
+	      hit->fZ     = track.fZpos;
+	      hit->fEdep  = track.fEdep;
+        hit->fTime  = track.fTime;
+        hit->fEvent = track.fEvent;
+        hit->fTrack = track.fParticle;
+	      hit->fVolId = idvol;
+	      hit->fDetId = idnode;
+    	  //      if (track->path && track->path->GetCurrentNode()) {
+    	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
+    	  //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
+    	  //      }
+    	  //	  nhits++;
+     	}
+//    }
+  }
+}
 
 
 //______________________________________________________________________________

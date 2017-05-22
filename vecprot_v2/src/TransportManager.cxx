@@ -223,7 +223,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
     // Update original tracks
     track_geo.UpdateOriginalTracks();
     // Update number of calls to geometry (1 vector call + ntail scalar calls)
-    td->fNsnext += 1 + ntracks%kMinVecSize;
+    td->fNsnext += nsel;
   }
 #else  // !VECTORIZED_GEOMETRY
   // Non-vectorized looped implementation of VecGeom navigation

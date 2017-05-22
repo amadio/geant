@@ -1,5 +1,6 @@
 #include "SteppingActionsHandler.h"
 
+#include "Geant/Error.h"
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
 #include "TrackManager.h"
@@ -28,6 +29,15 @@ VECCORE_ATT_HOST_DEVICE
 void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
+  // If track made too many steps, deposit all kinetic energy and kill it
+  track->fNsteps++;
+  if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
+    Error("SteppingActions", "track %d from event %d looping -> killing it",
+          track->fParticle, track->fEvent);
+    track->fStatus = kKilled;
+    track->Stop();
+  }
+  
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fPropagator->fStdApplication)
     fPropagator->fStdApplication->SteppingActions(*track, td);
@@ -37,9 +47,13 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
   // The track may die at the end of the step
   if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    if (fPropagator->fStdApplication)
+      fPropagator->fStdApplication->FinishTrack(*track, td);
+    fPropagator->fApplication->FinishTrack(*track, td);
     fPropagator->StopTrack(track);
     fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
+    // Dead tracks are not copied to output
     return;
   }
   
@@ -60,6 +74,16 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
 // Vector handling of stepping actions.
   
   TrackVec_t &tracks = input.Tracks();
+  for (auto track : tracks) {
+    track->fNsteps++;
+    if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
+      Error("SteppingActions", "track %d from event %d looping -> killing it",
+            track->fParticle, track->fEvent);
+      track->fStatus = kKilled;
+      track->Stop();
+    }
+  }
+
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fPropagator->fStdApplication)
     fPropagator->fStdApplication->SteppingActions(tracks, td);
@@ -70,9 +94,13 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
   for (auto track : tracks) {
     if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+      if (fPropagator->fStdApplication)
+        fPropagator->fStdApplication->FinishTrack(*track, td);
+      fPropagator->fApplication->FinishTrack(*track, td);
       fPropagator->StopTrack(track);
       fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
+    // Dead tracks are not copied to output
       continue;
     } 
        

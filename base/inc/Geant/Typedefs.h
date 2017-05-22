@@ -9,8 +9,14 @@
   using vector_t = vecgeom::Vector<T>;
 #else
 #include <vector>
+#ifdef GEANT_USE_NUMA
+#include <GeantNuma.h>
+  template <class T>
+  using vector_t = std::vector<T, Geant::NumaAllocator<T>>;
+#else
   template <class T>
   using vector_t = std::vector<T>;
+#endif
 #endif
 
 #ifdef USE_VECGEOM_NAVIGATOR

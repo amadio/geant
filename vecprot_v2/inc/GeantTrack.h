@@ -31,6 +31,12 @@
 typedef veccore::BitSet BitSet;
 #endif
 
+#ifndef VECCORE_CUDA
+#ifdef GEANT_USE_NUMA
+#include "NumaAllocator.h"
+#endif
+#endif
+
 #ifdef GEANT_CUDA_ENABLED
 #include "GeantCudaUtils.h"
 #include "backend/cuda/Interface.h"
@@ -61,14 +67,26 @@ enum Species_t { kHadron, kLepton };
 
 /** Basket simulation stages. */
 enum ESimulationStage {
+#ifdef USE_REAL_PHYSICS
+  kPreStepStage         = 0, // Actions at the beginning of the step
+  kComputeIntLStage,         // Physics interaction length computation stage
+  kGeometryStepStage,        // Compute geometry transport length
+  kPropagationStage,         // Propagation in field stage
+//  kMSCStage,               // Multiple scattering stage
+  kAlongStepActionStage,     // Along step action stage (continuous part of the inetraction)
+  kPostStepActionStage,      // Post step action stage (discrete part of the inetraction)
+// kAtRestActionStage,       // At-rest action stage (at-rest part of the inetraction)
+  kSteppingActionsStage      // User actions
+#else
   kPreStepStage         = 0, // Actions at the beginning of the step
   kXSecSamplingStage,        // Propose physics step by sampling total Xsec
   kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
-//  kMSCStage,                 // Multiple scattering stage
+  //  kMSCStage,                 // Multiple scattering stage
   kContinuousProcStage,      // Continuous processes stage
   kDiscreteProcStage,        // Discrete processes stage
   kSteppingActionsStage      // User actions
+#endif
 };
 
 GEANT_DECLARE_CONSTANT(double, gTolerance);
@@ -76,7 +94,12 @@ GEANT_DECLARE_CONSTANT(double, gTolerance);
 class GeantTaskData;
 class GeantTrack;
 #ifndef VECCORE_CUDA
-typedef std::vector<GeantTrack *> TrackVec_t;
+#ifdef GEANT_USE_NUMA
+typedef NumaAllocator<GeantTrack*> TrackAllocator_t;
+typedef std::vector<GeantTrack *, TrackAllocator_t> TrackVec_t;
+#else
+typedef vector_t<GeantTrack *> TrackVec_t;
+#endif
 #else
 typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
 #endif
@@ -207,6 +230,16 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double E() const { return fE; }
+
+  /** @brief Function that return kinetic energy value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double T() const { return (fE - fMass); }
+
+  /** @brief Function that stops the track depositing its kinetic energy */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void Stop() { fEdep = T(); fE = fMass; fP = 0; }
 
   /** @brief Function that return energy deposition value */
   VECCORE_ATT_HOST_DEVICE
@@ -347,6 +380,20 @@ public:
     fZdir *= norm;
   }
 
+  /** @brief Function to make a step along the current direction */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void MakeStep(double step) {
+    fPstep -= step;
+    fStep += step;
+    fSafety -= step;
+    fSnext -= step;
+    fXpos += step * fXdir;
+    fYpos += step * fYdir;
+    fZpos += step * fZdir;
+  }
+
+
   /** @brief Function that return momentum value */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -415,7 +462,7 @@ public:
 
   /** @brief Print function */
   void Print(const char *msg = "") const;
-  
+
   /** @brief Print function for a container of tracks */
   static void PrintTracks(TrackVec_t &tracks);
 

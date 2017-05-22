@@ -10,10 +10,13 @@ int GeantEvent::AddTrack() {
   // Thread safe track addition
   int ntracks = ++fNtracks;
   int ninflight = ntracks - fNdone.load();
-  int nmax = fNmax.load();
+//  int nmax = fNmax.load();
+  // The fNmax does not need to be accurate, avoid expensive compare_exchange
+  if ( fNmax < ninflight )
+    fNmax.store(ninflight);
   // Thread safe update of the max number of tracks in flight
-  while ( fNmax < ninflight && !fNmax.compare_exchange_weak(nmax, ninflight) )
-    ;
+//  while ( fNmax < ninflight && !fNmax.compare_exchange_weak(nmax, ninflight) )
+//    ;
   return (ntracks - 1);
 }
 

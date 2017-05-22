@@ -10,6 +10,7 @@
  */
 //===----------------------------------------------------------------------===//
 #include "NumaUtils.h"
+#include "NumaAllocator.h"
 #include "NumaNode.h"
 #include "NumaTopology.h"
 #include "NumaPolicy.h"

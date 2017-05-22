@@ -41,7 +41,10 @@ public:
   NumaTopology *GetTopology() { return &fTopo; }
   void SetPolicy(EPolicyType policy) { fPolicy = policy; }
 
-  int AllocateNextThread();
+  int AllocateNextThread(int node = -1);
+  int MembindNode(int node);
+  int NextNumaNode();
+  int GetNnumaNodes() { return fTopo.fNodes; }
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -3,8 +3,10 @@
 #include "GeantTaskData.h"
 #include "GeantTrackGeo.h"
 #include "GeantRunManager.h"
-//#include "TransportManager.h"
+
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
 #include "GeantNuma.h"
+#endif
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "ScalarNavInterfaceVGM.h"
@@ -60,13 +62,17 @@ void GeomQueryHandler::ActivateBasketizing(bool flag)
   assert(fThreshold < 512 && fThreshold < buffer_size);
   // Create basketizer the first time the handler is activated
   if (fActive && !fBasketizer) {
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
       fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
+        NumaUtils::NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
     }
+#else
+    fBasketizer = new basketizer_t(buffer_size, basket_size);
+#endif
   }
 }
 
@@ -101,8 +107,6 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td
   ScalarNavInterfaceTGeo::NavFindNextBoundary(*track);
 #endif // USE_VECGEOM_NAVIGATOR
   td->fNsnext++;
-  // Select follow-up stage
-  track->SetStage(ESimulationStage::kPropagationStage);
   output.AddTrack(track);  
 }
 

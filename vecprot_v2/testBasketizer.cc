@@ -1,3 +1,4 @@
+#include "GeantNuma.h"
 #include "Basketizer.h"
 #include <iostream>
 #include <sys/time.h>
@@ -6,7 +7,7 @@
 #include <future>
 #include <random>
 
-#include "GeantNuma.h"
+#include "Geant/Typedefs.h"
 
 struct test_track {
   int id_;
@@ -38,7 +39,7 @@ double get_wall_time() {
 double get_cpu_time() { return (double)clock() / CLOCKS_PER_SEC; }
 
 //______________________________________________________________________________
-void Process(std::vector<test_track *> &basket) {
+void Process(vector_t<test_track *> &basket) {
   // Emulate CPU time on a basket
   const int load = 35;
   for (size_t itr = 0; itr < basket.size(); ++itr) {
@@ -103,7 +104,7 @@ struct Workload {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters - 1);
 // Create a pool of numbers
-    allocated_ = NumaAlignedMalloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
+    allocated_ = NumaUtils::NumaAlignedMalloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
     tracks_ = new (allocated_) test_track[ntracks_];
     //Lock();
     //    std::cout << "Allocated data " << allocated_ << " on node: " << numa_node_addr(allocated_) << std::endl;
@@ -117,9 +118,9 @@ struct Workload {
   };
 
   ~Workload() {
-    NumaAlignedFree(allocated_);
+    NumaUtils::NumaAlignedFree(allocated_);
     for (size_t i = 0; i < nnodes_; ++i)
-      NumaAlignedFree(basketizers_[i]);
+      NumaUtils::NumaAlignedFree(basketizers_[i]);
     delete[] basketizers_;
   }
 
@@ -129,9 +130,9 @@ struct Workload {
     Lock();
     size_t basket_size = Basketizer::SizeofInstance(buf_size_);
     if (!basketizers_[node]) {
-      basketizers_[node] = Basketizer::MakeInstanceAt(NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
+      basketizers_[node] = Basketizer::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
 //      basketizers_[node] = new Basketizer(buf_size_, bsize_);
-      std::cout << "basketizer[" << node << "] allocated on NUMA node " << NumaNodeAddr(basketizers_[node])
+      std::cout << "basketizer[" << node << "] allocated on NUMA node " << NumaUtils::NumaNodeAddr(basketizers_[node])
                 << std::endl;
     }
     Unlock();
@@ -157,7 +158,7 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
 //  std::cout << "thread " << tid << " allocated on NUMA node: " << numa_node << std::endl;
 //  work->Unlock();
   test_track *tracks = &work->tracks_[tid * nchunk];
-  std::vector<test_track *> basket;
+  vector_t<test_track *> basket;
   basket.reserve(work->bsize_);
   size_t checksum = 0;
   //  size_t checksum_ref = ntracks * (tracks[0].id_ + tracks[ntracks-1].id_) / 2;

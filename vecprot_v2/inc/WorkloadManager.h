@@ -275,9 +275,11 @@ public:
    * @brief Function that provides output thread
    *
    * @param arg Arguments to be passed in the function
-   */
-  
+   */  
   static void *OutputThread(GeantPropagator *prop);
+
+  /** @brief Function that starts ROOT application */  
+  static void *StartROOTApplication();
 
   /**
    * @brief Function that provides transporting tracks

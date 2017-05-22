@@ -54,47 +54,46 @@ class Run : public G4Run
 
   public:
     void SetPrimary(G4ParticleDefinition* particle, G4double energy);
-      
+
     void FillPerEvent(G4int,G4double,G4double);
-    
+
     void SumEnergyFlow (G4int plane, G4double Eflow);
     void SumLateralEleak(G4int cell, G4double Eflow);
     void AddChargedStep();
     void AddNeutralStep();
     void AddSecondaryTrack(const G4Track*);
-    
+
     void SetEdepAndRMS(G4int, G4double, G4double, G4double);
     void SetApplyLimit(G4bool);
-                
+
     virtual void Merge(const G4Run*);
     void EndOfRun();
-     
+
   private:
     DetectorConstruction*  fDetector;
     G4ParticleDefinition*  fParticle;
     G4double  fEkin;
-                           
-    G4double fSumEAbs [kMaxAbsor], fSum2EAbs [kMaxAbsor]; 
+
+    G4double fSumEAbs [kMaxAbsor], fSum2EAbs [kMaxAbsor];
     G4double fSumLAbs [kMaxAbsor], fSum2LAbs [kMaxAbsor];
-    
+
     std::vector<G4double> fEnergyFlow;
     std::vector<G4double> fLateralEleak;
     std::vector<G4double> fEnergyDeposit[kMaxAbsor];
-    
+
     G4double fChargedStep;
     G4double fNeutralStep;
 
-    G4int  fN_gamma;
-    G4int  fN_elec;
-    G4int  fN_pos;
-    
+    G4double  fN_gamma;
+    G4double  fN_elec;
+    G4double  fN_pos;
+
     G4double fEdeptrue [kMaxAbsor];
     G4double fRmstrue  [kMaxAbsor];
-    G4double fLimittrue[kMaxAbsor];        
-    G4bool fApplyLimit;  
+    G4double fLimittrue[kMaxAbsor];
+    G4bool fApplyLimit;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

@@ -59,7 +59,7 @@ protected:
     * @param[in] particle Pointer to the particle object to which the process should be assigned.
     * @param[in] process  Pointer to a process obejct that should be assigned to the particle.
     */
-   void AddProcessToPartcile(Particle *particle, PhysicsProcess *process);
+   void AddProcessToParticle(Particle *particle, PhysicsProcess *process);
 
 //
 // data members

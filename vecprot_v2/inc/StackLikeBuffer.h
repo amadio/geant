@@ -49,10 +49,17 @@ private:
 public:
   StackLikeBuffer(int maxgen, GeantTaskData *td) : fNlanes(maxgen+1) 
   {
-    for (int i=0; i<fNlanes; ++i) {
-      fLanes.push_back(new Basket(1000, 0, td->fPropagator->fNuma));
+    if (td->fPropagator->fConfig->fUseNuma) {
+      for (int i=0; i<fNlanes; ++i) {
+        fLanes.push_back(new Basket(1000, 0, td->fNode));
+      }
+      fPriorityLane = new Basket(1000, 0, td->fNode);
+    } else {
+      for (int i=0; i<fNlanes; ++i) {
+        fLanes.push_back(new Basket(1000, 0));
+      }
+      fPriorityLane = new Basket(1000, 0);
     }
-    fPriorityLane = new Basket(1000, 0, td->fPropagator->fNuma);
   }
   
   ~StackLikeBuffer()

@@ -80,7 +80,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 VECCORE_ATT_HOST_DEVICE
 GeantPropagator::GeantPropagator(int nthreads)
     : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0),
-      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNidle(0), fNbfeed(0) {
+      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNpushed(0), fNkilled(0), fNidle(0), fNbfeed(0) {
   // Constructor
   // Single instance of the propagator
 
@@ -121,10 +121,10 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
 #else
     // Add a new track in the system. returns track number within the event.
   track.fParticle = fRunMgr->GetEvent(track.fEvent)->AddTrack();
-  
+
   // call MCTruth manager if it has been instantiated
   if(fTruthMgr) fTruthMgr->AddTrack(track);
-  
+
   fNtransported++;
   return track.fParticle;
 #endif
@@ -159,7 +159,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
     {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
     }
-  
+
   if (fRunMgr->GetEvent(tracks.fEventV[itr])->StopTrack(fRunMgr)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
@@ -180,7 +180,7 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
     {
       if(track->fStatus == kKilled) fTruthMgr->EndTrack(track);
     }
-  
+
   if (fRunMgr->GetEvent(track->fEvent)->StopTrack(fRunMgr)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
@@ -213,12 +213,6 @@ void GeantPropagator::Initialize() {
   // Initialize the propagator.
 #ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
-  if (!mgr->IsInitialized()) {
-    mgr->SetNblocks(100);
-    mgr->SetBlockSize(1000);
-    mgr->SetMaxDepth(fConfig->fMaxDepth);
-    mgr->Init();
-  }
   int numa = (fNuma >= 0) ? fNuma : 0;
   fTrackMgr = &mgr->GetTrackManager(numa);
 #endif
@@ -227,7 +221,7 @@ void GeantPropagator::Initialize() {
 #ifdef VECCORE_CUDA
   // assert(0 && "Initialize not implemented yet for CUDA host/device code.");
 #else
-  if (!fConfig->fUseV3) 
+  if (!fConfig->fUseV3)
     fWMgr->CreateBaskets(this);
 #endif
   CreateSimulationStages();
@@ -314,17 +308,6 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 
   // Loop baskets and transport particles until there is nothing to transport anymore
   fTransportOngoing = true;
-  //fWMgr->SetMaxThreads(nthreads);
-#ifdef USE_ROOT
-  if (fConfig->fUseMonitoring) {
-    TCanvas *cmon = new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
-    cmon->Update();
-  }
-  if (fConfig->fUseAppMonitoring) {
-    TCanvas *capp = new TCanvas("capp", "Application canvas", 700, 800);
-    capp->Update();
-  }
-#endif
 
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_START_INSTRUMENTATION;
@@ -335,7 +318,7 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
     Fatal("PropagatorGeom", "%s", "Cannot start tasks.");
     return;
   }
-  
+
   // Wait all workers to finish, then join all threads
   fWMgr->WaitWorkers();
   fCompleted = true; // Make sure someone is not just feeding work...
@@ -343,12 +326,6 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 #ifdef USE_CALLGRIND_CONTROL
   CALLGRIND_STOP_INSTRUMENTATION;
   CALLGRIND_DUMP_STATS;
-#endif
-
-#ifdef GEANTV_OUTPUT_RESULT_FILE
-  const char *geomname = geomfile;
-  if (strstr(geomfile, "http://root.cern.ch/files/"))
-    geomname = geomfile + strlen("http://root.cern.ch/files/");
 #endif
 #endif
 }
@@ -420,6 +397,89 @@ int GeantPropagator::ShareWork(GeantPropagator &other)
 #endif
 }
 
+#ifdef USE_REAL_PHYSICS
+//______________________________________________________________________________
+int GeantPropagator::CreateSimulationStages()
+{
+  // Create stages in the same order as the enumeration ESimulationStage
+  SimulationStage *stage = nullptr;
+  (void)stage;
+  // kPreStepStage
+  stage = new PreStepStage(this);
+  if (stage->GetId() != int(kPreStepStage))
+    Fatal("CreateSimulationStages", "Wrong stages start index");
+  // kXSecSamplingStage
+  stage = fPhysicsInterface->CreateComputeIntLStage(this);
+  assert(stage->GetId() == int(kComputeIntLStage));
+  // kGeometryStepStage
+  stage = new GeomQueryStage(this);
+  assert(stage->GetId() == int(kGeometryStepStage));
+  // kPropagationStage
+  stage = new PropagationStage(this);
+  assert(stage->GetId() == int(kPropagationStage));
+  // kMSCStage
+  // stage = new MSCStage(this);
+  //assert(stage->GetId() == int(kMSCStage));
+  // kContinuousProcStage
+  stage = fPhysicsInterface->CreateAlongStepActionStage(this);
+  assert(stage->GetId() == int(kAlongStepActionStage));
+  // kDiscreteProcStage
+  stage = fPhysicsInterface->CreatePostStepActionStage(this);
+  assert(stage->GetId() == int(kPostStepActionStage));
+  // kSteppingActionsStage
+  stage = new SteppingActionsStage(this);
+  assert(stage->GetId() == int(kSteppingActionsStage));
+
+  /**************************************
+   *  Define connections between stages *
+   **************************************/
+  GetStage(kPreStepStage)->SetFollowUpStage(kComputeIntLStage, false);
+  // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+  GetStage(kPropagationStage)->ActivateBasketizing(false);
+  //        V
+  //        V
+  //        V
+  GetStage(kComputeIntLStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kComputeIntLStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
+  GetStage(kGeometryStepStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kPropagationStage)->SetFollowUpStage(kAlongStepActionStage, false);
+  // Follow-up not unique: stuck tracks are killed -> SteppingActions
+  GetStage(kPropagationStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kAlongStepActionStage)->SetFollowUpStage(kPostStepActionStage, false);
+  // Follow-up not unique: particle can be become at-rest/killed and new particles can be produced
+  //   - (at the moment we don't have at-rest stage because we don't have at rest process)
+  GetStage(kAlongStepActionStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kPostStepActionStage)->SetFollowUpStage(kSteppingActionsStage, false);
+  // Follow-up not unique: particle can be become at-rest/killed and new particles can be produced
+  //   - (at the moment we don't have at-rest stage because we don't have at rest process)
+  GetStage(kPostStepActionStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kSteppingActionsStage)->SetEndStage();
+  GetStage(kSteppingActionsStage)->ActivateBasketizing(false);
+
+  for (auto stage : fStages) {
+    int nhandlers = stage->CreateHandlers();
+    (void)nhandlers;
+    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
+  }
+  return fStages.size();
+}
+#else
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 int GeantPropagator::CreateSimulationStages()
@@ -429,7 +489,8 @@ int GeantPropagator::CreateSimulationStages()
   (void)stage;
   // kPreStepStage
   stage = new PreStepStage(this);
-  assert(stage->GetId() == int(kPreStepStage));
+  if (stage->GetId() != int(kPreStepStage))
+    Fatal("CreateSimulationStages", "Wrong stages start index");
   // kXSecSamplingStage
   stage = new XSecSamplingStage(this);
   assert(stage->GetId() == int(kXSecSamplingStage));
@@ -451,24 +512,53 @@ int GeantPropagator::CreateSimulationStages()
   // kSteppingActionsStage
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));
-  
-  // Define connections between stages
-  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage);
-  GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage);
-  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage);
+
+  /**************************************
+   *  Define connections between stages *
+   **************************************/
+  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage, false);
+  // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+  GetStage(kPreStepStage)->ActivateBasketizing(false);
+  //        V
+  //        V
+  //        V
+  GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kXSecSamplingStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
   GetStage(kGeometryStepStage)->ActivateBasketizing(true);
-  GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage);
-  GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage);
-  GetStage(kSteppingActionsStage)->SetFollowUpStage(kPreStepStage);
+  //        V
+  //        V
+  //        V
+  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage, false);
+  // Follow-up not unique: stuck tracks are killed -> SteppingActions
+  GetStage(kPropagationStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage, true);
+  GetStage(kContinuousProcStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage, true);
+  GetStage(kDiscreteProcStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
   GetStage(kSteppingActionsStage)->SetEndStage();
+  GetStage(kSteppingActionsStage)->ActivateBasketizing(false);
 
   for (auto stage : fStages) {
     int nhandlers = stage->CreateHandlers();
     (void)nhandlers;
     assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
   }
-  return fStages.size();  
+  return fStages.size();
 }
+#endif
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -478,7 +568,7 @@ int GeantPropagator::GetNextStage(GeantTrack &/*track*/, int /*current*/)
 //  0 - Sample X-sec for discrete processes to propose the physics step
 //  1 - Compute geometry step length to boundary with a physics limitation
 //  2 - Propagate track with selected step, performing relocation if needed.
-//        - Follow-up to 1 for charged tracks if neither the geometry nor 
+//        - Follow-up to 1 for charged tracks if neither the geometry nor
 //          physics steps are completed
 //        - In case MSC is available, apply it for charged tracks
 //        - Detect loopers and send them to RIP stage
@@ -492,7 +582,7 @@ int GeantPropagator::GetNextStage(GeantTrack &/*track*/, int /*current*/)
 //  5 - RIP stage - execute user actions then terminate tracks
 //  6 - Stepping actions is invoked as a stage, but the follow-up stage is backed-up
 //      beforehand in the track state.
-  return -1;  
+  return -1;
 }
 
 

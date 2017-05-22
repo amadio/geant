@@ -84,7 +84,7 @@ public:
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues);
-    void *ptr = NumaAlignedMalloc(needed, numa_node, 64);
+    void *ptr = NumaUtils::NumaAlignedMalloc(needed, numa_node, 64);
     NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, id);
     return ( block );    
   }
@@ -93,7 +93,7 @@ public:
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues, maxdepth);
-    void *ptr = NumaAlignedMalloc(needed, numa_node, 64);
+    void *ptr = NumaUtils::NumaAlignedMalloc(needed, numa_node, 64);
     NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, maxdepth, id);
     return ( block );    
   }
@@ -102,7 +102,7 @@ public:
   {
     // Release the instance of the block
 //    std::cout << "deleting block: " << block << std::endl;
-    NumaAlignedFree(block);
+    NumaUtils::NumaAlignedFree(block);
   }
     
   static constexpr size_t SizeOfInstance(size_t nvalues)

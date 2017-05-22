@@ -19,7 +19,7 @@ void PhysicsList::Initialize( /* Not defined yet */ ) {
   // SIGNATURE (INPUT PARAMETERS AND RETURN TYPE) TO BE REDEFINED LATER...
 }
 
-void PhysicsList::AddProcessToPartcile(Particle *particle, PhysicsProcess *process) {
+void PhysicsList::AddProcessToParticle(Particle *particle, PhysicsProcess *process) {
   (particle->GetPhysicsProcessVector()).push_back(process);
 }
 
