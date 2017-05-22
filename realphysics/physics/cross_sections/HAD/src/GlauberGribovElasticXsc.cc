@@ -4,6 +4,8 @@ namespace geantphysics {
 
   GlauberGribovElasticXsc::GlauberGribovElasticXsc() 
   {
+    this->SetName("GlauberGribovElasticXsc");
+    
     GGTotalXsc = new GlauberGribovTotalXsc();
     GGInelasticXsc = new GlauberGribovInelasticXsc();
   }

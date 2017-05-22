@@ -11,6 +11,7 @@ namespace geantphysics {
 
   GlauberGribovInelasticXsc::GlauberGribovInelasticXsc() 
   {
+    this->SetName("GlauberGribovInelasticXsc");
   }
 
 

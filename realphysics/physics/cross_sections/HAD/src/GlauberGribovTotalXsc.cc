@@ -10,7 +10,9 @@
 namespace geantphysics{
   
   GlauberGribovTotalXsc::GlauberGribovTotalXsc() 
-  {}
+  {
+    this->SetName("GlauberGribovTotalXsc");
+  }
 
 
   GlauberGribovTotalXsc::~GlauberGribovTotalXsc()

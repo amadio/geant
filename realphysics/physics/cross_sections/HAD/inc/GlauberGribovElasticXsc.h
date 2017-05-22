@@ -7,7 +7,7 @@
 
 namespace geantphysics {
 
-  class GlauberGribovElasticXsc 
+  class GlauberGribovElasticXsc : public HadronicCrossSection
   {
   public:
 
