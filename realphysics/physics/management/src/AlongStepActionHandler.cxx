@@ -27,7 +27,7 @@ AlongStepActionHandler::~AlongStepActionHandler() {}
 
 // The AlongStepActionStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has any continuous processes i.e. has along-step-action
-void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData * /*td*/) {
+void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume later
@@ -57,8 +57,7 @@ void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   primaryLT.SetGVcode(track->GVcode());
   primaryLT.SetStepLength(track->GetStep());
   primaryLT.SetEnergyDeposit(0.0);
-  std::vector<LightTrack> secLt; // just dummy: no along step secondary production at the moment
-  int nSecParticles = pManager->AlongStepAction(primaryLT,secLt);
+  int nSecParticles = pManager->AlongStepAction(primaryLT, td);
   // update GeantTrack
   double newEkin = primaryLT.GetKinE();
   track->SetE(newEkin+track->Mass());

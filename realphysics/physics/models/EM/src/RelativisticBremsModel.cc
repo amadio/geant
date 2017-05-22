@@ -70,8 +70,7 @@ double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const
 }
 
 
-int RelativisticBremsModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack> & /*sectracks*/,
-                                              Geant::GeantTaskData *td) {
+int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());

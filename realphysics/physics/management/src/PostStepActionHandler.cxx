@@ -59,13 +59,12 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   primaryLT.SetDirY(track->DirY());
   primaryLT.SetDirZ(track->DirZ());
   primaryLT.SetTotalMFP(track->GetIntLen());
-  std::vector<LightTrack> secLt;  // dummy because we fill secondaries into GeantTaskData::PhysicsData
   //
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->SetNumUsedSecondaries(0);
   //
   // invoke the PostStepAction of this particle PhysicsManagerPerParticle
-  int nSecParticles = pManager->PostStepAction(primaryLT, secLt, td);
+  int nSecParticles = pManager->PostStepAction(primaryLT, td);
   //
   // update GeantTrack
   double newEkin    = primaryLT.GetKinE();
@@ -83,7 +82,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   // create secondary tracks if there are any
   if (nSecParticles) {
     // get the list of secondary tracks
-    secLt = td->fPhysicsData->GetListOfSecondaries();
+    std::vector<LightTrack> secLt = td->fPhysicsData->GetListOfSecondaries();
     for (int isec=0; isec<nSecParticles; ++isec) {
       int   secGVcode = secLt[isec].GetGVcode(); // GV index of this secondary particle
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);

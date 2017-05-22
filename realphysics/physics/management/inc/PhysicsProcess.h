@@ -163,34 +163,33 @@ public:
    *  The input parameter, a LightTrack object, can be modified: typically
    *  the track status, the local energy deposit and the non-ionizing
    *  local energy deposit can be changed in this method.
-   *  The output of the method is a LightTrack_v object, which corresponds
-   *  to the new particles created along-the-step (this is rare, but possible:
-   *  e.g. for sub-cutoff production; or from atomic de-excitation). Will return
+   *  New particles, created along-the-step (this is rare, but possible:
+   *  e.g. for sub-cutoff production; or from atomic de-excitation) are stored
+   *  in the GeantTaskData::PhysicsDada object. Will return
    *  with the number of created secondary tracks that are stored in the sectracks
    *  vector.
    */
-  virtual  int AlongStepDoIt(LightTrack & /*track*/, std::vector<LightTrack> & /*sectracks*/) {return 0;}
+  virtual  int AlongStepDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return 0;}
 
   /** @brief Method that does the post-step, i.e. the discrete part, action.
    *
    *  The input parameter, a LightTrack object, can be modified: typically
    *  the track status is changed in this method.
-   *  The output of the method is a LightTrack_v object, which corresponds
-   *  to the new particles created by the discrete part of the process.
+   *  The new particles created by the discrete part of the process are stored
+   *  in the GeantTaskData::PhysicsDada object.
    */
-  virtual int PostStepDoIt(LightTrack & /*track*/, std::vector<LightTrack> & /*sectracks*/,
-                           Geant::GeantTaskData * /*td*/)  {return 0;}
+  virtual int PostStepDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/)  {return 0;}
 
   /** @brief Method that does the at-rest action of the process.
    *
    *  The input parameter, a LightTrack object, can be modified: typically
    *  the track status is changed in this method.
-   *  The output of the method is a LightTrack_v object, which corresponds
-   *  to the new particles created by the at-rest part of the process.
+   *  The new particles created by the at-rest part of the process are stored
+   *  in the GeantTaskData::PhysicsDada object.
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
-  virtual void AtRestDoIt(LightTrack & /*track*/, std::vector<LightTrack> & /*sectracks*/) {return;}
+  virtual void AtRestDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return;}
 
   //--- Getters ---
 

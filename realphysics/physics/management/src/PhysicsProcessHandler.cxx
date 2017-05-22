@@ -158,7 +158,7 @@ void PhysicsProcessHandler::BuildMaterials() {
 }
 
 
-void PhysicsProcessHandler::ComputeIntLen(Material_t */*mat*/, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
+void PhysicsProcessHandler::ComputeIntLen(Material_t * /*mat*/, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
                                           GeantTaskData *td) {
   for (int i=0; i<ntracks; ++i) {
     // here we will get the MaterialCuts from the LogicalVolume later
@@ -211,8 +211,8 @@ void PhysicsProcessHandler::ComputeIntLen(Material_t */*mat*/, int ntracks, Gean
 }
 
 
-void PhysicsProcessHandler::AlongStepAction(Material_t */*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
-                                            GeantTaskData * /*td*/) {
+void PhysicsProcessHandler::AlongStepAction(Material_t * /*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
+                                            GeantTaskData *td) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
     // here we will get the MaterialCuts from the LogicalVolume later
@@ -248,8 +248,7 @@ void PhysicsProcessHandler::AlongStepAction(Material_t */*mat*/, int ntracks, Ge
        primaryLT.SetStepLength(tracks.fStepV[i]);
        primaryLT.SetEnergyDeposit(0.0);
        //primaryLT.SetTrackIndex(i);
-       std::vector<LightTrack> secLt; // just dummy: no along step secondary production at the moment
-       int nSecParticles = pManager->AlongStepAction(primaryLT,secLt);
+       int nSecParticles = pManager->AlongStepAction(primaryLT, td);
        // update GeantTrack
        double newEkin = primaryLT.GetKinE();
        tracks.fEV[i]  = newEkin+tracks.fMassV[i];
@@ -268,7 +267,7 @@ void PhysicsProcessHandler::AlongStepAction(Material_t */*mat*/, int ntracks, Ge
 }
 
 
-void PhysicsProcessHandler::PostStepAction(Material_t */*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
+void PhysicsProcessHandler::PostStepAction(Material_t * /*mat*/, int ntracks, GeantTrack_v &tracks, int &nout,
                                            GeantTaskData *td) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
@@ -309,13 +308,12 @@ void PhysicsProcessHandler::PostStepAction(Material_t */*mat*/, int ntracks, Gea
       primaryLT.SetDirY(tracks.fYdirV[i]);
       primaryLT.SetDirZ(tracks.fZdirV[i]);
       primaryLT.SetTotalMFP(tracks.fIntLenV[i]);
-      std::vector<LightTrack> secLt;  // dummy because we fill secondaries into GeantTaskData::PhysicsData
       //
       // clean the number of secondary tracks used (in PhysicsData)
       td->fPhysicsData->SetNumUsedSecondaries(0);
       //
       // invoke the PostStepAction of this particle PhysicsManagerPerParticle
-      int nSecParticles = pManager->PostStepAction(primaryLT, secLt, td);
+      int nSecParticles = pManager->PostStepAction(primaryLT, td);
       //
       // update GeantTrack
       double newEkin    = primaryLT.GetKinE();
@@ -332,7 +330,7 @@ void PhysicsProcessHandler::PostStepAction(Material_t */*mat*/, int ntracks, Gea
       // create secondary tracks if there are any
       if (nSecParticles) {
         // get the list of secondary tracks
-        secLt = td->fPhysicsData->GetListOfSecondaries();
+        std::vector<LightTrack> secLt = td->fPhysicsData->GetListOfSecondaries();
         for (int isec=0; isec<nSecParticles; ++isec) {
           int   secGVcode = secLt[isec].GetGVcode(); // GV index of this secondary particle
           const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);

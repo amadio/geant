@@ -402,8 +402,6 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
   td->fPhysicsData = phd;
   // Set up a the primary light track for brem.
   LightTrack primaryLT;
-  // And the secondary track container LightTrack secondaryLT;
-  std::vector<LightTrack> secLt;  // dummy because we fill secondaries into Geant::GeantTaskData::PhysicsData
   // init time
   clock_t  start_time = clock();
   for (long int i=0; i<numSamples; ++i) {
@@ -428,10 +426,10 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      td->fPhysicsData->SetNumUsedSecondaries(0);
      //
      // invoke the interaction
-     int numSecs = emModel->SampleSecondaries(primaryLT,secLt,td);
+     int numSecs = emModel->SampleSecondaries(primaryLT,td);
      // get the secondary track i.e. the e-
      if (numSecs>0) {
-       LightTrack &secondaryLT = ((td->fPhysicsData->GetListOfSecondaries())[0]);
+       LightTrack secondaryLT = ((td->fPhysicsData->GetListOfSecondaries())[0]);
        // get reduced gamma energy and cost
        double gammaE    = primaryLT.GetKinE()/ekin;
        if (gammaE>0.0) {

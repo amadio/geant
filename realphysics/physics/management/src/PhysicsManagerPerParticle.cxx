@@ -639,10 +639,10 @@ void PhysicsManagerPerParticle::ComputeIntLen(LightTrack &track, Geant::GeantTas
 }
 
 
-int PhysicsManagerPerParticle::AlongStepAction(LightTrack &track, std::vector<LightTrack> &sectracks) {
+int PhysicsManagerPerParticle::AlongStepAction(LightTrack &track, Geant::GeantTaskData *td) {
   int numSecondaries = 0;
   for (unsigned long i=0; i<fAlongStepProcessVec.size(); ++i) {
-    numSecondaries += fAlongStepProcessVec[i]->AlongStepDoIt(track, sectracks);
+    numSecondaries += fAlongStepProcessVec[i]->AlongStepDoIt(track, td);
     // check if tarck is still alive
     if (track.GetKinE()<=0.0) { // stopped
       // set track status
@@ -657,8 +657,7 @@ int PhysicsManagerPerParticle::AlongStepAction(LightTrack &track, std::vector<Li
   return numSecondaries;
 }
 
-int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, std::vector<LightTrack> &sectracks,
-                                              Geant::GeantTaskData *td) {
+int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, Geant::GeantTaskData *td) {
   int numSecondaries = 0;
   // select discrete process
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
@@ -674,7 +673,7 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, std::vector<Lig
     return numSecondaries;
   }
   // invoke the post step action of the selected discrete process
-  numSecondaries = proc->PostStepDoIt(track , sectracks, td);
+  numSecondaries = proc->PostStepDoIt(track, td);
   return numSecondaries;
 }
 

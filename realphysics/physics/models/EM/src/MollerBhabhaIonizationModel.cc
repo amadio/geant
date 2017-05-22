@@ -206,8 +206,7 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
 }
 
 
-int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack> & /*sectracks*/,
-                                                   Geant::GeantTaskData *td) {
+int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());

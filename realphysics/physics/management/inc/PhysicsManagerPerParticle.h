@@ -170,8 +170,8 @@ public:
   void PrepareForRun();
 
   void ComputeIntLen(LightTrack &track, Geant::GeantTaskData *td);
-  int  AlongStepAction(LightTrack &track, std::vector<LightTrack> &sectracks);
-  int  PostStepAction(LightTrack &track, std::vector<LightTrack> &sectracks, Geant::GeantTaskData *td);
+  int  AlongStepAction(LightTrack &track, Geant::GeantTaskData *td);
+  int  PostStepAction(LightTrack &track, Geant::GeantTaskData *td);
 
 /*
 // only for testing; should be removed later

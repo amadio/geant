@@ -21,7 +21,7 @@
 namespace geantphysics {
 
 GUSauterGavrilaModel::GUSauterGavrilaModel(bool iselectron, const std::string &modelname)
-  : EMModel(modelname), 
+  : EMModel(modelname),
     fIsElectron(iselectron),
     fMinPrimEnergy(1.0*geant::keV),
     fMaxPrimEnergy(1.0*geant::TeV)
@@ -49,8 +49,8 @@ void GUSauterGavrilaModel::Initialise() {
   fVectorModel->Initialization();
 }
 
-double GUSauterGavrilaModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, 
-                                                        const Particle*) 
+double GUSauterGavrilaModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
+                                                        const Particle*)
 {
   double xsec = 0.0;
   if (kinenergy < GetLowEnergyUsageLimit() || kinenergy > GetHighEnergyUsageLimit()) {
@@ -65,14 +65,14 @@ double GUSauterGavrilaModel::ComputeMacroscopicXSection(const MaterialCuts *matc
   return xsec;
 }
 
-double GUSauterGavrilaModel::ComputeXSectionPerVolume(const Material *mat, double /* prodcutenergy */, 
-                                                      double particleekin) 
+double GUSauterGavrilaModel::ComputeXSectionPerVolume(const Material *mat, double /* prodcutenergy */,
+                                                      double particleekin)
 {
   double xsec = 0.;
 
   int nelm = mat->GetNumberOfElements();
   auto elementVec = mat->GetElementVector();
-  const double *atomNumDensity = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect(); 
+  const double *atomNumDensity = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
 
   for (int i = 0; i < nelm; ++i) {
     xsec += atomNumDensity[i] * ComputeXSectionPerAtom(elementVec[i],0,particleekin,0);
@@ -97,15 +97,14 @@ double GUSauterGavrilaModel::MinimumPrimaryEnergy(const MaterialCuts * /*matcut*
   return 1.0e-6; // 1.0 * geant::keV;
 }
 
-int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack> & /*sectracks*/,
-                                            Geant::GeantTaskData *td) {
+int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track,  Geant::GeantTaskData *td) {
 
   int    numSecondaries      = 0;
 
   // conversion
   double energyIn = track.GetKinE()*vecphys::EScaleToGeant4;
 
-  // do nothing if the primary gamma is outside the valid energy range 
+  // do nothing if the primary gamma is outside the valid energy range
   // @syjun probably this is a redundant check and can be omitted in the vector mode
 
   double energyOut = 0;
@@ -114,7 +113,7 @@ int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track, std::vector<Light
 
   //@syjun atomic deexcitation is not considerred)
 
-  //sample a photo-electron 
+  //sample a photo-electron
 
   fVectorModel-> template InteractKernel<vecphys::ScalarBackend>(energyIn, targetElement, energyOut, sinTheta);
 
@@ -134,7 +133,7 @@ int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track, std::vector<Light
   // create the secondary partcile i.e. the photo e-
   double deltaKinEnergy = (energyIn - energyOut)/vecphys::EScaleToGeant4;
 
-  //@syjun if deltaKinEnergy is below the production thresold, 
+  //@syjun if deltaKinEnergy is below the production thresold,
   //deposite deltaKinEnergy and return with numSecondaries = 0
 
   vecphys::ThreeVector<double> electronDir = eleDirection.Unit();
@@ -155,9 +154,9 @@ int GUSauterGavrilaModel::SampleSecondaries(LightTrack &track, std::vector<Light
   std::vector<LightTrack>& sectracks = td->fPhysicsData->GetListOfSecondaries();
 
   //fill photo-electron information and kinematic
-  sectracks[secIndx].SetGVcode(Electron::Definition()->GetInternalCode()); 
+  sectracks[secIndx].SetGVcode(Electron::Definition()->GetInternalCode());
   sectracks[secIndx].SetMass(geant::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); 
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex());
 
   sectracks[secIndx].SetKinE(deltaKinEnergy);
   sectracks[secIndx].SetDirX(electronDir.x());

@@ -79,8 +79,7 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
 }
 
 
-int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack> & /*sectracks*/,
-                                               Geant::GeantTaskData *td) {
+int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());

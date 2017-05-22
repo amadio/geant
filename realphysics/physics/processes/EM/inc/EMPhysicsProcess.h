@@ -146,10 +146,10 @@ public:
    * @param[in/out]  sectracks List of secondary tracks created in this DoIt method.
    * @return    Number of secondary tracks created and stored in the sectracks vector.
    */
-  virtual  int AlongStepDoIt(LightTrack &track, std::vector<LightTrack> &sectracks);
+  virtual  int AlongStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
 
   // Will be called only if disceret interaction was selected
-  virtual  int PostStepDoIt(LightTrack &track , std::vector<LightTrack> &sectracks, Geant::GeantTaskData *td);
+  virtual  int PostStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
 
 
   /**

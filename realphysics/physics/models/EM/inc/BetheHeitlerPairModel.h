@@ -51,7 +51,7 @@ public:
   /** @brief Interface method to obtain atomic cross sections. */
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
   /** @brief Interface method to generate final state of the interaction. */
-  virtual int    SampleSecondaries(LightTrack &track, std::vector<LightTrack> &sectracks, Geant::GeantTaskData *td);
+  virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
 
   /**
    * @brief Method to obtain the minimum primary gamma energy at which the interaction can happen.

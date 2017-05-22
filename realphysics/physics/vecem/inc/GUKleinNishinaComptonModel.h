@@ -39,7 +39,7 @@ public:
   double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle)
      override final;
 
-  int    SampleSecondaries(LightTrack &track, std::vector<LightTrack> &sectracks, Geant::GeantTaskData *td)
+  int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td)
      override final;
 
   double MinimumPrimaryEnergy(const MaterialCuts * /*matcut*/, const Particle * /*part*/) const override final;

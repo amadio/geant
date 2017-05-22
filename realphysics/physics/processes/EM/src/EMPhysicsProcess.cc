@@ -180,7 +180,7 @@ double EMPhysicsProcess::AlongStepLimitationLength(const LightTrack &track) cons
 // We need to check on the caller side if kinetic energy become zero after this call and we need to set the track
 // status track.SetTrackStatus(??); should be set to stopped but alive i.e. we should check here is the partcile
 // has anything to do at rest
-int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, std::vector<LightTrack> & /*sectracks*/) {
+int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, Geant::GeantTaskData * /*td*/) {
   int numSecondaries = 0;
 //  if (!IsApplicable(track)) {
 //    return numSecondaries;
@@ -245,7 +245,7 @@ int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, std::vector<LightTrack> &
 //   double curInvLambda  =
 // }
 // IN case of intergral approach it is called only if the discrete interaction indeed happens
-int EMPhysicsProcess::PostStepDoIt(LightTrack &track , std::vector<LightTrack> &sectracks, Geant::GeantTaskData *td) {
+int EMPhysicsProcess::PostStepDoIt(LightTrack &track , Geant::GeantTaskData *td) {
   int numSecondaries = 0;
   // for kEnergyLoss processes: check if the particle energy is below the common tracking cut and do nothing if this is
   //                            the case
@@ -258,7 +258,7 @@ int EMPhysicsProcess::PostStepDoIt(LightTrack &track , std::vector<LightTrack> &
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
   EMModel* model             = fModelManager->SelectModel(ekin, matCut->GetRegionIndex());
   if (model) {
-    numSecondaries = model->SampleSecondaries(track, sectracks, td);
+    numSecondaries = model->SampleSecondaries(track, td);
   }
   return numSecondaries;
 }

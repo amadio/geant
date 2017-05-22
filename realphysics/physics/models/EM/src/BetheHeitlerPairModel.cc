@@ -145,7 +145,7 @@ double BetheHeitlerPairModel::ComputeXSectionPerAtom(const Element *elem, const 
 }
 
 
-int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack>&, Geant::GeantTaskData *td) {
+int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   double eps0                = geant::kElectronMassC2/ekin;

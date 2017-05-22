@@ -22,7 +22,7 @@
 namespace geantphysics {
 
 GUBetheHeitlerConversionModel::GUBetheHeitlerConversionModel(const std::string &modelname)
-  : EMModel(modelname), 
+  : EMModel(modelname),
     fMinPrimEnergy(2.0*geant::kElectronMassC2),
     fMaxPrimEnergy(1.0*geant::TeV)
 {
@@ -55,7 +55,7 @@ void GUBetheHeitlerConversionModel::Initialise() {
   std::vector<int> etable;
   for(unsigned int im = 0 ; im < mtable.size() ; ++im) {
     Vector_t<Element*> ev = mtable[im]->GetElementVector();
-    for(unsigned int ie = 0 ; ie < ev.size() ; ++ie) { 
+    for(unsigned int ie = 0 ; ie < ev.size() ; ++ie) {
       int z = static_cast<int>(ev[ie]->GetZ());
       if (std::find(etable.begin(), etable.end(), z) != etable.end()) continue;
       etable.push_back(z);
@@ -67,8 +67,8 @@ void GUBetheHeitlerConversionModel::Initialise() {
 }
 
 double GUBetheHeitlerConversionModel::ComputeMacroscopicXSection(const MaterialCuts *matcut,
-                                                                 double kinenergy, 
-                                                                 const Particle*) 
+                                                                 double kinenergy,
+                                                                 const Particle*)
 {
   double xsec = 0.0;
   if (kinenergy < GetLowEnergyUsageLimit() || kinenergy > GetHighEnergyUsageLimit()) {
@@ -83,14 +83,14 @@ double GUBetheHeitlerConversionModel::ComputeMacroscopicXSection(const MaterialC
   return xsec;
 }
 
-double GUBetheHeitlerConversionModel::ComputeXSectionPerVolume(const Material *mat, double /* prodcutenergy */, 
-                                                                double particleekin) 
+double GUBetheHeitlerConversionModel::ComputeXSectionPerVolume(const Material *mat, double /* prodcutenergy */,
+                                                                double particleekin)
 {
   double xsec = 0.;
 
   int nelm = mat->GetNumberOfElements();
   auto elementVec = mat->GetElementVector();
-  const double *atomNumDensity = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect(); 
+  const double *atomNumDensity = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
 
   for (int i = 0; i < nelm; ++i) {
     xsec += atomNumDensity[i]*ComputeXSectionPerAtom(elementVec[i],0,particleekin,0);
@@ -115,9 +115,8 @@ GUBetheHeitlerConversionModel::MinimumPrimaryEnergy(const MaterialCuts * /*matcu
 {
   return 2.0*geant::kElectronMassC2;
 }
-   
-int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack> & /*sectracks*/,
-                                                     Geant::GeantTaskData *td)
+
+int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td)
 {
   int    numSecondaries      = 0;
 
@@ -130,7 +129,7 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   double energyOut = 0;
   double sinTheta = 0;
 
-  //select an element for atomic dependent models - this step has a serious vecotrization issue 
+  //select an element for atomic dependent models - this step has a serious vecotrization issue
   const int cutIndex = track.GetMaterialCutCoupleIndex();
   const MaterialCuts *matcut = (MaterialCuts::GetTheMaterialCutsTable())[cutIndex];
   int elementIndex = EMModel::SampleTargetElementIndex(matcut, track.GetKinE(),vecphys::UniformRandom<double>(0,-1));
@@ -178,9 +177,9 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   std::vector<LightTrack>& sectracks = td->fPhysicsData->GetListOfSecondaries();
 
   //fill electron information and kinematic
-  sectracks[secIndx].SetGVcode(Electron::Definition()->GetInternalCode());  
+  sectracks[secIndx].SetGVcode(Electron::Definition()->GetInternalCode());
   sectracks[secIndx].SetMass(geant::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); 
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex());
 
   sectracks[secIndx].SetKinE(electronKinEnergy);
   sectracks[secIndx].SetDirX(electronDir.x());
@@ -190,9 +189,9 @@ int GUBetheHeitlerConversionModel::SampleSecondaries(LightTrack &track, std::vec
   ++secIndx;
 
   //fill positron information and and kinematic
-  sectracks[secIndx].SetGVcode(Positron::Definition()->GetInternalCode()); 
+  sectracks[secIndx].SetGVcode(Positron::Definition()->GetInternalCode());
   sectracks[secIndx].SetMass(geant::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); 
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex());
 
   sectracks[secIndx].SetKinE(positronKinEnergy);
   sectracks[secIndx].SetDirX(positronDir.x());

@@ -125,8 +125,7 @@ public:
    *                          the seconadry tracks generated in the interaction.
    * @return                  Number of secondary tracks generated in the interaction.
    */
-  virtual int    SampleSecondaries(LightTrack & /*track*/, std::vector<LightTrack> & /*sectracks*/,
-                                   Geant::GeantTaskData * /*td*/) { return 0; }
+  virtual int    SampleSecondaries(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) { return 0; }
 
   /**
    * @brief Method to obtain minim primary particle kinetic energy at which the discrete part (if any) of the interaction

@@ -101,8 +101,7 @@ double KleinNishinaComptonModel::ComputeXSectionPerAtom(const Element *elem, con
 }
 
 
-int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, std::vector<LightTrack>& /*sectracks*/,
-                                                   Geant::GeantTaskData *td) {
+int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;

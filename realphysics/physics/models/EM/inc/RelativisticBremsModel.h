@@ -38,7 +38,7 @@ public:
   virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle* particle, bool istotal=false);
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  virtual int    SampleSecondaries(LightTrack &track, std::vector<LightTrack> &sectracks, Geant::GeantTaskData *td);
+  virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
 
   virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
 
