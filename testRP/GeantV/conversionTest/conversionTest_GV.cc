@@ -184,6 +184,8 @@ int main(int argc, char *argv[]) {
   // - Set low/high energy usage limits
   emModel->SetLowEnergyUsageLimit (100.0*geant::eV);
   emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+  // by default, sampling tables are used: can be set to false not to use tables (==>rejection)
+  //emModel->SetUseSamplingTables(false);
   //
   //*******************************************************************************************//
 

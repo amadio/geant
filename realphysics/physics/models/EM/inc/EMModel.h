@@ -158,6 +158,9 @@ public:
   void    SetLowestSecondaryEnergy(double val){ fLowestSecondaryEnergy = val; }
   double  GetLowestSecondaryEnergy() const    { return fLowestSecondaryEnergy;}
 
+  void    SetUseSamplingTables(bool val)      { fIsUseSamplingTables=val;     }
+  bool    GetUseSamplingTables() const        { return fIsUseSamplingTables;  }
+
   const PhysicsParameters* GetPhysicsParameters() const { return fPhysicsParameters; }
 
 
@@ -200,6 +203,8 @@ private:
                                                      // the class do not own the object
   // flag to indicate if element selectors are per material or per material-cuts
   bool        fIsElementSelectorsPerMaterial;
+  bool        fIsUseSamplingTables;   // flag to indicate if sampling tables are requested
+  
   std::vector<EMElementSelector*> fElementSelectors; // EMElementSelector pointers per Material/MaterialCuts for those that are
                                                    // in regions where this model is active and has more than one elements;
                                                    // each ELSelectorData is owned by the object and will be cleand by

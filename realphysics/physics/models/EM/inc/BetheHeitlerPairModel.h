@@ -13,7 +13,16 @@ namespace geantphysics {
  * @author  F Hariri, M Novak
  * @date    May 2017
  *
- * detailed description will be added later
+ * The model is based on atomic cross sections computed by using the Geant4 parametrization
+ * \cite cirrone2010validation \cite agostinelli2003geant4 of the numerical cross section values in
+ * \cite hubbell1980pair. These numerical cross sections include pair production both in the nuclear (with screening,
+ * Coulomb and radiative corrections) and electron fields (with approximate screening, radiative, exchange and
+ * retardation effects). The parametrization gives accurate results up to 70-90 [GeV]. See more at the
+ * #ComputeAtomicCrossSection() method.
+ * The final state energies (total energy transfered to one of the e-/e+ pair) are computed based on the Bethe-Heitler
+ * \cite bethe1934stopping differential cross section (DCS) corrected for various effects like screening, Coulomb
+ * correction, conversion in the field of atomic electrons (see more at the #ComputeDXSection() method). However,
+ * triplet production is not generated and the asymmetry between the e-/e+ at low photon energies are not accounted.
  */
 
 class Material;
@@ -46,11 +55,32 @@ public:
 //@{
   /** @brief Interface method to initilize the model. */
   virtual void   Initialize();
-  /** @brief Interface method to obtain macroscopic cross sections. */
-  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  /** @brief Interface method to obtain atomic cross sections. */
-  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  /** @brief Interface method to generate final state of the interaction. */
+  /**
+    * @brief Interface method to obtain macroscopic cross sections.
+    *
+    * @param[in] matcut      Pointer to the MaterialCuts object in which the macroscopic cross section must be computed.
+    * @param[in] kinenergy   Kinetic energy of the gamma particle at which the macroscopic cross section must be computed.
+    * @return    Macroscopic pair-production cross section in internal [1/length] units.
+    */
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *);
+  /**
+    * @brief Interface method to obtain atomic cross sections.
+    *
+    * @param[in] elem        Pointer to the Element object for which the atomic cross section must be computed.
+    * @param[in] kinenergy   Kinetic energy of the gamma particle at which the atomic cross section must be computed.
+    * @return    Atomic pair-production cross section in internal [length^2] units.
+    */
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts*, double kinenergy, const Particle*);
+  /**
+    * @brief Interface method to generate final state of the interaction.
+    *
+    * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
+    *                          some information about the current material-cut couple. It is updated by the method and
+    *                          it stores the post-interaction primary track properties at output.
+    * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will store
+    *                          the seconadry tracks generated in the interaction.
+    * @return                  Number of secondary tracks generated in the interaction.
+    */
   virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
 
   /**
@@ -98,7 +128,7 @@ private:
 
   /**
    * @brief Internal method to compute parametrized atomic cross section of gammas conversion into e-/e+ pair
-   *        for a given target atom, gamma particle kinetic energy..
+   *        for a given target atom, gamma particle kinetic energy.
    *
    * @param[in] z        Atomic number of the target atom.
    * @param[in] egamma   Kinetic energy of the gamma particle in internal [energy] units.
@@ -110,19 +140,60 @@ private:
   void InitialiseElementData();
 
   /**
-   * @brief NEED TO BE DOCUMENTED
+   * @brief Internal method to build sampling table data structures for fast run-time sampling of the reduced total
+   *        energy transfered to one of the e-/e+ pair for all possible target atom.
    *
-   * reate gamma energy grid; create sampling tables for each elements that are in materials that
-   *          are in regions where this model is active
+   * Sampling tables are built at initialization for all target elements that belongs to materials that appear in
+   * regions in which the model is active if sampling tables were requested. First the common, discrete, primary photon
+   * energy grid is generated between #fMinPrimEnergy and #fMaxPrimEnergy using #fNumSamplingPrimEnergies discrete
+   * points on log-linear scale. Then sampling tables are built for each element at all dicrete primary photon energies
+   * that are stored in separate #RatinAliasDataPerElement data structures for the different target elements. Such data
+   * structures for all possible target elements will be stored in the #fRatinAliasDataForAllElements data structure.
    */
    void InitSamplingTables();
 
+   /**
+    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using sampling tables
+    *        prepared at initialization.
+    *
+    * @param[in] primekin Gamma photon energy in internal [energy] units.
+    * @param[in] epsmin   Minimum value of the reduced total energy transfer at the given gamma photon energy (see more at
+    *                     #ComputeDXSection() method).
+    * @param[in] zindx    Index of the target element sampling table collection in #fRatinAliasDataForAllElements (Z).
+    * @param[in] r1       Random number distributed uniformly in [0,1].
+    * @param[in] r2       Random number distributed uniformly in [0,1].
+    * @param[in] r3       Random number distributed uniformly in [0,1].
+    * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
+    */
    double SampleTotalEnergyTransfer(double primekin, double epsmin, int zindx, double r1, double r2, double r3);
 
-   // elemindx the element index in the global Element table
-   void BuildSamplingTablesForElement(const Element *elem, int elemindx);
-   void BuildOneRatinAlias(double egamma, const Element *elem, double *thePdfdata, int elemindx, int egammaindx);
-   /** @brief Internal method to compute the total energy, transferd to one of the e-/e+ pair, related transformed
+   double SampleTotalEnergyTransfer(double epsmin, double eps0, double deltamin, double fz,  double deltafactor,
+                                    Geant::GeantTaskData *td);
+
+   // 3xPhi_1 - Phi_2
+   double ScreenFunction1(double delta);
+   // 1.5*Phi_1 + 0.5*Phi_2
+   double ScreenFunction2(double delta);
+
+   /**
+     * @brief Internal method to build sampling tables for a given target element at all discrete photon energies.
+     *
+     * @param elem Pointer to the given target element object.
+     */
+   void BuildSamplingTablesForElement(const Element *elem);
+
+   /**
+     * @brief Internal method to build one sampling table for a given photon energy and target element.
+     *
+     * @param egamma     Gamma photon energy in internal [energy] units.
+     * @param elem       Pointer to the target element object.
+     * @param thepdfdata Array to store some temporary pdf values (size is fNumSamplingEnergies).
+     * @param egammaindx Index of the gamma photon energy in the gamma energy grid.
+     */
+   void BuildOneRatinAlias(double egamma, const Element *elem, double *thepdfdata, int egammaindx);
+
+   /**
+     * @brief Internal method to compute the total energy, transferd to one of the e-/e+ pair, related transformed
      *        variable dependent part of the DCS.
      *
      *  The method is used to prepare sampling tables at initialization for the fast sampling of the reduced total

@@ -100,7 +100,7 @@ BetheHeitlerPairModel::~BetheHeitlerPairModel() {
  * @endinternal
  */
 void   BetheHeitlerPairModel::Initialize() {
-  EMModel::Initialize();  // will set the PhysicsParameters ember
+  EMModel::Initialize();  // will set the PhysicsParameters member
   fElectronInternalCode = Electron::Definition()->GetInternalCode();
   fPositronInternalCode = Positron::Definition()->GetInternalCode();
   fMinimumPrimaryEnergy = 2.*geant::kElectronMassC2; // will be used to build table in target element selector
@@ -170,24 +170,28 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   } else {
     int           izet = std::lrint(zet);
     double      epsMin = eps0;
-    //double          FZ = fElementData[izet]->fFzLow;
+    double          FZ = fElementData[izet]->fFzLow;      // used only in case of rejection
     double    deltaMax = fElementData[izet]->fDeltaMaxLow;
     double deltaFactor = fElementData[izet]->fDeltaFactor;
     if (ekin>50.*geant::MeV) {
-      //FZ       = fElementData[izet]->fFzHigh;
+      FZ       = fElementData[izet]->fFzHigh;             // used only in case of rejection
       deltaMax = fElementData[izet]->fDeltaMaxHigh;
     }
     double deltaMin = 4.*eps0*deltaFactor;
     double eps1     = 0.5-0.5*std::sqrt(1.-deltaMin/deltaMax);
-    //FZ *= 0.125; //this is how we use in our dxsec computation
     if (eps1>epsMin) {
       epsMin = eps1;
     }
-    //
-    // sample eps using the sampling tables built at initialisation over a photon energy grid for each possible target
-    double *rndArray  = td->fDblArray;
-    td->fRndm->uniform_array(4, rndArray);
-    eps = SampleTotalEnergyTransfer(ekin, epsMin, izet, rndArray[0], rndArray[1], rndArray[2]);
+    // sample the reduced total energy transferd to one of the e-/e+ pair by using tables or rejection
+    if (GetUseSamplingTables()) {
+      // sample eps using the sampling tables built at initialisation over a photon energy grid for each possible target
+      double *rndArray  = td->fDblArray;
+      td->fRndm->uniform_array(4, rndArray);
+      eps = SampleTotalEnergyTransfer(ekin, epsMin, izet, rndArray[0], rndArray[1], rndArray[2]);
+    } else {
+      // sample eps by rejection
+      eps = SampleTotalEnergyTransfer(epsMin, eps0, deltaMin, FZ, deltaFactor, td);
+    }
   }
   //
   // create the secondary partcicles:
@@ -296,12 +300,15 @@ void BetheHeitlerPairModel::InitialiseModel() {
     fMinPrimEnergy = GetLowEnergyUsageLimit();
   }
   fMaxPrimEnergy = GetHighEnergyUsageLimit();
-  InitSamplingTables();
+  if (GetUseSamplingTables()) {
+    std::cerr<< "  === BH pair model: building sampling tables"<< std::endl;
+    InitSamplingTables();
+  }
 }
 
 /**
  * @internal
- * The method computes atomic cross section of converion of gamma particle into e-/e+ pair ased on the Geant4
+ * The method computes atomic cross section of converion of gamma particle into e-/e+ pair based on the Geant4
  * \cite cirrone2010validation \cite agostinelli2003geant4 parametrization.
  *
  * According to the Geant4 documentation \cite g4physref, the numerical atomic cross sections \f$ \sigma(Z,E_{\gamma}) \f$
@@ -497,6 +504,56 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double primekin, double 
 }
 
 
+double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double epsmin, double eps0, double deltamin, double fz,
+                                                        double deltafactor, Geant::GeantTaskData *td) {
+    double eps      = 0.0;
+    double epsRange = 0.5-epsmin;
+    //
+    double F10      = ScreenFunction1(deltamin) - fz;
+    double F20      = ScreenFunction2(deltamin) - fz;
+    double NormF1   = std::max(F10*epsRange*epsRange,0.);
+    double NormF2   = std::max(1.5*F20,0.);
+
+    double *rndArray = td->fDblArray;
+    double greject   = 0.0;
+    do {
+      td->fRndm->uniform_array(3, rndArray);
+      if (NormF1/(NormF1+NormF2)>rndArray[0]) {
+      	eps            = 0.5 - epsRange*std::pow(rndArray[1],1./3.);
+	      double delta   = deltafactor*eps0/(eps*(1.-eps));
+	      greject = (ScreenFunction1(delta) - fz)/F10;
+      } else {
+	      eps            = epsmin + epsRange*rndArray[1];
+        double delta   = deltafactor*eps0/(eps*(1.-eps));
+	      greject = (ScreenFunction2(delta) - fz)/F20;
+      }
+    } while (greject<rndArray[2]);
+  return eps;
+}
+
+// 3xPhi_1 - Phi_2
+double BetheHeitlerPairModel::ScreenFunction1(double delta) {
+  double val;
+  if (delta>1.) {
+    val = 42.24 - 8.368*std::log(delta+0.952);
+  } else {
+    val = 42.392 - delta*(7.796 - 1.961*delta);
+  }
+  return val;
+}
+
+// 1.5*Phi_1 + 0.5*Phi_2
+double BetheHeitlerPairModel::ScreenFunction2(double delta) {
+  double val;
+  if (delta>1.) {
+    val = 42.24 - 8.368*std::log(delta+0.952);
+  } else {
+    val = 41.405 - delta*(5.828 - 0.8945*delta);
+  }
+  return val;
+}
+
+
 void BetheHeitlerPairModel::InitSamplingTables() {
   // set number of primary gamma energy grid points
   // keep the prev. value of primary energy grid points.
@@ -581,7 +638,7 @@ void BetheHeitlerPairModel::InitSamplingTables() {
         double zet = theElements[j]->GetZ();
         int elementIndx = std::lrint(zet);
         if (!fRatinAliasDataForAllElements[elementIndx]) {
-          BuildSamplingTablesForElement(theElements[j],elementIndx);
+          BuildSamplingTablesForElement(theElements[j]);
         }
       }
     }
@@ -589,10 +646,11 @@ void BetheHeitlerPairModel::InitSamplingTables() {
 }
 
 
-void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem, int elementindx) {
+void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem) {
   // prepare one RatinAliasDataPerElement structure
   RatinAliasDataPerElement *perElem          = new RatinAliasDataPerElement();
   perElem->fRatinAliasDataForOneElement      = new RatinAliasData*[fNumSamplingPrimEnergies];
+  int elementindx                            = std::lrint(elem->GetZ());
   fRatinAliasDataForAllElements[elementindx] = perElem;
   // allocate an array that will be used temporary:
   double *thePdfdata = new double[fNumSamplingEnergies]();
@@ -602,15 +660,36 @@ void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem, i
     double egamma = fSamplingPrimEnergies[i];
     // build one table for the given: egamma, element
 //    std::cerr<<"  === Bulding table for:  elem = " << elem->GetName() << " egamma = " << egamma/geant::MeV << " [MeV]" << std::endl;
-    BuildOneRatinAlias(egamma, elem, thePdfdata, elementindx, i);
+    BuildOneRatinAlias(egamma, elem, thePdfdata, i);
   }
   // delete the temporary array
   delete [] thePdfdata;
 }
 
-
-void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *elem, double *pdfarray, int elementindx,
-                                               int egammaindx) {
+/**
+ * @internal
+ * This internal method is called from the #BuildSamplingTablesForElement() method at initialization for different gamma
+ * energies and a given target element to prepare sampling table for run-time sampling of the transformed variable
+ * \f$ \xi \f$ (see more at the #ComputeDXSection() method) at a given gamma energy and target atom pair. The pdf of the
+ * transformed variable will be perpresented by #fNumSamplingEnergies discrete points. The locations of these discrete
+ * sample points are determined by minimizing the approximation error comming from the discretization.
+ *
+ * Due to the different approximation of the screening function below and above \f$ \delta(\epsilon) =1 \f$, there is a
+ * step (within 0.5 %) in the pdf (DCS) if the \f$ \delta \in [\delta(\epsilon_{max}=0.5),\delta(\epsilon_{min})] \f$
+ * interval contains the value 1. The step is located at
+ * \f$ \xi(\delta=1) = \ln[\epsilon(\delta=1)/\epsilon_{min}]/\ln[0.5/\epsilon_{min}] \f$
+ * where \f$ \epsilon(\delta=1) = 0.5-0.5\sqrt{1.-4 136 Z^{-1/3} \epsilon_0}\f$ is the \f$ \epsilon \f$ value that
+ * coresponds to \f$ \delta = 1 \f$ and \f$ \xi(\delta=1) \f$ is the corresponding transformed variable.A small interval
+ * will be inserted around this \f$ \xi(\delta=1) \f$ value in the discretized pdf and this interval will be ignored in
+ * the error computation. Thanks to this, the individual distributions will reproduce this step properly. However, the
+ * position of this step depends on the gamma energy through \f$ \epsilon_0 \f$ and sampling tables are built only at
+ * discrete gamma energies. A linear interpolation on log gamma energy scale is used at run-time to sample the energy
+ * transfer related variable \f$ \xi \f$ from the pre-prepared tables. Therefore, the sampled distributions will contain
+ * this step in an interval (between the position of the step at the upper and lower gamma energies) instead at a point.
+ *
+ * @endinternal
+ */
+void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *elem, double *pdfarray, int egammaindx) {
   // compute the theoretical minimum of the reduced total energy transfer to the e+ (or to the e-)
   double eps0        = geant::kElectronMassC2/egamma;
   // set the real minimum to the theoretical one: will be updated
@@ -694,9 +773,11 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
   }
   // create a 16 point GL integral to compute the interpolation error at each interval
   int glnum         = 4;
+/*
   GLIntegral  *gl   = new GLIntegral(glnum, 0.0, 1.0);
   std::vector<double> glx = gl->GetAbscissas();
   std::vector<double> glw = gl->GetWeights();
+*/
   //
   // fill in the discrete pdf array by inserting raData->fNumdata discrete points such that the
   // interpolation error is minimized: one new discrete point will be inserted at the end of each
@@ -721,7 +802,30 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
       }
       double xx  = 0.5*(raData->fXdata[i]+raData->fXdata[i+1]);  // mid xi-point of the current(i.e. i-th) interval
       double err = 0.0;
-      // compute integrated error (by transforming the integral from [xi[i],xi[i+1] to [0,1])
+      // we shuld compute the integrated error (by transforming the integral from [xi[i],xi[i+1] to [0,1])
+      // but we will use sample points to estimate the error: divide the interval into isub sub intervals and compute
+      // some error measure at each edge points
+      int isub   = 10;
+      double dd  = (raData->fXdata[i+1]-raData->fXdata[i])/((double)isub);
+      for (int j=1; j<isub; ++j) {
+        double    xval = raData->fXdata[i]+j*dd;
+        double valAprx = 0.0;
+        // - get the approximated pdf value based on the current discretization
+        // - unless if the current interval is the first because we use linear appoximation in the first
+        //   interval <= the pdf(xi[0])=0
+        if (i>0) {
+          valAprx = fAliasSampler->GetRatinForPDF1(xval, raData->fXdata, raData->fCumulative, raData->fParaA,
+                                                   raData->fParaB, i);
+        } else { //linear aprx in the first interval because pdf[0] = 0
+          valAprx = norm*pdfarray[i+1]/(raData->fXdata[i+1]-raData->fXdata[i])*(xval-raData->fXdata[i]);
+        }
+        // get the real value
+        double valReal = norm*ComputeDXSection(epsMin, eps0, deltaFactor, FZ, xval);
+        err += std::fabs((1.-valAprx/valReal)*(valAprx-valReal));
+      }
+      err *=(raData->fXdata[i+1]-raData->fXdata[i]);
+/*
+      // compute the integrated error (by transforming the integral from [xi[i],xi[i+1] to [0,1])
       for (int j=0; j<glnum; ++j) {
         double xval    = glx[j]*(raData->fXdata[i+1]-raData->fXdata[i])+raData->fXdata[i];
         double valAprx = 0.0;
@@ -741,6 +845,7 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
       }
       // due to the integral transform from [xi[i],xi[i+1]] to [0,1]
       err *=(raData->fXdata[i+1]-raData->fXdata[i]);
+*/
       // if the current interval gives the highest approximation error so far then store some values :
       // i.e. current maximum error value, the mid-point of the current interval and the lower edge index
       if (err>maxerr) {
@@ -776,6 +881,7 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
   fAliasSampler->PreparRatinTable(raData->fXdata, pdfarray, raData->fCumulative, raData->fParaA, raData->fParaB,
                                   raData->fAliasW, raData->fAliasIndx, raData->fNumdata, true, glnum);
   // fill in
+  int elementindx = std::lrint(elem->GetZ());
   fRatinAliasDataForAllElements[elementindx]->fRatinAliasDataForOneElement[egammaindx]=raData;
 }
 
