@@ -301,7 +301,7 @@ void BetheHeitlerPairModel::InitialiseModel() {
   }
   fMaxPrimEnergy = GetHighEnergyUsageLimit();
   if (GetUseSamplingTables()) {
-    std::cerr<< "  === BH pair model: building sampling tables"<< std::endl;
+//    std::cerr<< "  === BH pair model: building sampling tables"<< std::endl;
     InitSamplingTables();
   }
 }
@@ -503,7 +503,64 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double primekin, double 
   return epsmin*std::exp(xi*lHalfPerEpsMin);
 }
 
-
+/**
+ * @internal
+ * The Geant4 rejection algorithm \cite g4physref is adopted. By introducing the decreasing functions of
+ * \f$ \delta \equiv \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$
+ * \f[
+ *  \begin{array}{l c l c l}
+ *   F_1(\delta) & = & 3\Phi_1(\delta) - \Phi_2(\delta) - F(Z) & = &
+ *     \begin{cases}
+ *        42.24  - 8.368 \ln[\delta+0.952] -F(Z)     \quad & \text{if } \delta > 1 \\
+ *        \\
+ *        42.392 - \delta[7.796 - 1.961\delta] -F(Z) \quad & \text{otherwise}
+ *     \end{cases} \\
+ *   &&&&\\
+ *   F_2(\delta) & = & \frac{3}{2} \Phi_1(\delta) + \frac{1}{2} \Phi_2(\delta) -F(Z) & = &
+ *     \begin{cases}
+ *        42.24  - 8.368 \ln[\delta+0.952] -F(Z)      \quad & \text{if } \delta > 1 \\
+ *        \\
+ *        41.405 - \delta[5.828 - 0.8945\delta] -F(Z) \quad & \text{otherwise}
+ *     \end{cases} \\
+ *  \end{array}
+ * \f]
+ * These functions reach their maximum values \f$ F_1^{\text{max}} = F_1(\delta_{\text{min}}),
+ * F_2^{\text{max}} = F_2(\delta_{\text{min}}) \f$  at the minimum \f$ \delta \f$ value which is
+ * \f$ \delta_{\text{min}} \equiv \delta(\epsilon_{\text{max}}=0.5) = 4x136 Z^{-1/3} \epsilon_0 \f$.
+ * The differential cross section \f$ \frac{\mathrm{d}\sigma(Z,\epsilon)}{\mathrm{d}\epsilon} \f$ given at the
+ * #ComputeDXSection() method can be written with \f$ F_1(\delta),F_2(\delta),F_1^{\text{max}}, F_2^{\text{max}} \f$ as
+ *  \f[
+ *    \frac{\mathrm{d}\sigma(Z,\epsilon)}{\mathrm{d}\epsilon} = \alpha r_0^2 Z[Z+\eta(Z)]\frac{2}{9}
+ *       [ 0.5 -\epsilon_{\text{min}}]
+ *       \left\{
+ *          N_1 f_1(\epsilon) g_1(\epsilon) + N_2 f_2(\epsilon) g_2(\epsilon)
+ *       \right\}
+ *  \f]
+ * where
+ * \f[
+ *  \begin{array} {l c l l c l l c l}
+ *  N_1                    & \equiv & [0.5-\epsilon_{\text{min}} ] F_1^{\text{max}},\;   &
+ *  f_1(\epsilon) & \equiv & \frac{3}{[0.5-\epsilon_{\text{min}}]^3} [0.5-\epsilon]^2,\; &
+ *  g_1(\epsilon) & \equiv & F_1(\delta(\epsilon)) / F_1^{\text{max}} \\
+ *  N_2                    & \equiv & 1.5 F_2^{\text{max}},\;   &
+ *  f_2(\epsilon) & \equiv & \text{const} = [0.5-\epsilon_{\text{min}}]^{-1},\; &
+ *  g_2(\epsilon) & \equiv & F_2(\delta(\epsilon)) / F_2^{\text{max}} \\
+ *   \end{array}
+ * \f]
+ * where \f$ f_{1,2}(\epsilon)\f$ are properly normalized pdf on \f$ \epsilon \in [\epsilon_{\text{min}}, 0.5]\f$ and
+ * and \f$ g_{1,2}(\epsilon) \in (0,1] \f$ are valid rejection functions.
+ *
+ * Having 3 uniformly distributed random numbers \f$ \{r_1,r_2,r_3 \} \f$ :
+ *  - determine which decomposition is used:
+ *      -# if \f$ r_1 < N_1/(N_1+N_2) \quad \text{use} \quad f_1(\epsilon)g_1(\epsilon)\f$
+ *      -# and use \f$ f_2(\epsilon)g_2(\epsilon)\f$ otherwise
+ *  - use \f$ r_2 \f$ to sample \f$ \epsilon \f$:
+ *      -# from \f$ f_1(\epsilon) \to \epsilon = 0.5-[0.5-\epsilon_{text{min}}]r_1^{1/3}\f$ or
+ *      -# from from \f$ f_2(\epsilon) \to \epsilon = \epsilon_{text{min}}+[0.5-\epsilon_{text{min}}]r_1 \f$
+ *  - compute the appropriate rejection function \f$ g_1(\epsilon)\text{ or } g_2(\epsilon)\f$ and reject
+ *    \f$ \epsilon \f$ if \f$ g_i(\epsilon) < r_3 \f$
+ * @endinternal
+ */
 double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double epsmin, double eps0, double deltamin, double fz,
                                                         double deltafactor, Geant::GeantTaskData *td) {
     double eps      = 0.0;
@@ -702,7 +759,7 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
     FZ       = fElementData[izet]->fFzHigh;
     deltaMax = fElementData[izet]->fDeltaMaxHigh;
   }
-  double deltaMin = 4.*eps0*deltaFactor;
+  double deltaMin = 4.*eps0*deltaFactor;  // 4*136*Z^(-1/3)*eps0
   double eps1     = 0.5-0.5*std::sqrt(1.-deltaMin/deltaMax);
   FZ *= 0.125; //this is how we use in our dxsec computation
   if (eps1>epsMin) {

@@ -154,7 +154,7 @@ private:
 
    /**
     * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using sampling tables
-    *        prepared at initialization.
+    *        prepared at initialization}.
     *
     * @param[in] primekin Gamma photon energy in internal [energy] units.
     * @param[in] epsmin   Minimum value of the reduced total energy transfer at the given gamma photon energy (see more at
@@ -167,12 +167,37 @@ private:
     */
    double SampleTotalEnergyTransfer(double primekin, double epsmin, int zindx, double r1, double r2, double r3);
 
+   /**
+    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
+    *
+    * @param[in]  epsmin      Minimum value of the reduced total energy transfer
+    *                         \f$ \epsilon_{\text{min}}=\text{max}[\epsilon_1,\epsilon_0] \f$.
+    * @param[in]  eps0        Kinematical minimum of the reduced total energy transfer
+    *                         \f$ \epsilon_0 \equiv m_ec^2/E_{\gamma} \f$.
+    * @param[in]  deltamin    \f$ \delta_{min} \equiv \delta( \epsilon_{\text{max}}=0.5)=4x136 Z^{-1/3} \epsilon_0 \f$
+    * @param[in]  fz          The creening function \f$ F(Z) \f$ (see #ComputeDXSection()).
+    * @param[in]  deltafactor Target atom dependent constant \f$ 136 Z^{-1/3}\f$.
+    * @param[in]  td          Pointer to the GeantV thread local data object (used to get random numbers).
+    * @return                 The sampled reduced total energy transfered to one of the e-/e+ pair.
+    */
    double SampleTotalEnergyTransfer(double epsmin, double eps0, double deltamin, double fz,  double deltafactor,
                                     Geant::GeantTaskData *td);
 
-   // 3xPhi_1 - Phi_2
+
+   /**
+    * @brief Internal method used in the rejection algorithm to compute the screening funtion related part.
+    *
+    * @param[in] Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @return    \f$ 3 \Phi_1(\delta) - \Phi_2(\delta) \f$ (see more at #ComputeDXSection()).
+    */
    double ScreenFunction1(double delta);
-   // 1.5*Phi_1 + 0.5*Phi_2
+
+   /**
+    * @brief Internal method used in the rejection algorithm to compute the screening funtion related part.
+    *
+    * @param[in] Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @return    \f$ 1.5 \Phi_1(\delta) +0.5 \Phi_2(\delta) \f$ (see more at #ComputeDXSection()).
+    */
    double ScreenFunction2(double delta);
 
    /**
@@ -200,9 +225,9 @@ private:
      *  energy, transfered to one of the e-/e+ pair, at run-time.
      *
      *  @param[in] epsmin      Minimum value of the reduced total energy transfer \f$ \epsilon_{\text{min}} =
-     *                         \text{max}[\epsilon_0,\epsilon']\f$
+     *                         \text{max}[\epsilon_0,\epsilon'] \f$ .
      *  @param[in] eps0        Kinematical minimum of the reduced total energy transfer
-     *                         \f$ \epsilon_0 \equiv m_ec^2/E_{\gamma} \f$
+     *                         \f$ \epsilon_0 \equiv m_ec^2/E_{\gamma} \f$ .
      *  @param[in] deltafactor Target atomic number dependent constant \f$ 136Z^{-1/3} \f$
      *  @param[in] fz          The target atomic number dependent Coulomb correction function
      *                          \f[
