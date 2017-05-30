@@ -42,7 +42,7 @@ namespace geantphysics {
 	    particlePDG == 310   || 
 	    particlePDG == 130    ) 
 	  {
-	    sigma = Z*GetKaonNucleonTotalXscGG(particlePDG, mass, energyKin, 2112);
+	    sigma = Z*GetKaonNucleonTotalXscGG(particlePDG, mass, energyKin, 2212);
 	    sigma += N*GetKaonNucleonTotalXscGG(particlePDG, mass, energyKin, 2112);
     
 	    cofInelastic = 2.2;
