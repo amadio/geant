@@ -9,6 +9,10 @@ include_directories(include
   ${Geant4_INCLUDE_DIR} 
   ../physics/particle/inc)
 
+if(USE_NUMA)
+  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+endif()
+
 file(GLOB sources src/*.cc)
 file(GLOB headers include/*.hh)
 

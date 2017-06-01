@@ -9,6 +9,10 @@ file(GLOB sources tabxsec.cc src/*.cc src/*.cxx)
 file(GLOB headers inc/*.hh src/*.h)
 include_directories(inc ${CMAKE_SOURCE_DIR}/physics/particle/inc)
 
+if(USE_NUMA)
+  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+endif()
+
 #----------------------------------------------------------------------------------------------
 # Redefine compilation flags since Geant4 is overriding them
 #
