@@ -33,8 +33,8 @@ static int n_learn_steps = 0;
 static int n_reuse       = 100000;
 static int n_propagators = 1;
 static bool monitor       = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true;
-static double n_avrg_tracks_per_evt = 5.; // average number of tracks per event
-static double primary_energy        = 10.; // [GeV]
+static double n_avrg_tracks_per_evt = 100.; // average number of tracks per event
+static double primary_energy        = 0.1; // [GeV]
 
 static struct option options[] = {{"primary-energy", required_argument, 0, 'E'},
                                   {"events", required_argument, 0, 'e'},
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
   //
   // for msc if we run in single scattering setings:
   config->fNstepsKillThr = 100.*config->fNstepsKillThr;
-  
+
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
   config->fPriorityThr = 0.05;
