@@ -65,8 +65,13 @@ void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::Gea
              << std::endl;
   }
   // protection: geometric legth must always be <= than the true physics step length
+  
   gtrack->fPstep = std::min(gtrack->fTheZPathLenght, minPhysicsStepLength);
-//  gtrack->fSnext = gtrack->fTheZPathLenght;
+  if (gtrack->fSnext > gtrack->fPstep) {
+    // MSC has changed the proposed step, which became smaller than snext !!!
+    gtrack->fSnext = gtrack->fPstep;
+    gtrack->fBoundary = false;
+  }
 }
 
 // called at the PostPropagationStage(in the Handler)
@@ -97,10 +102,6 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
                             +gtrack->fTheDisplacementVectorY*gtrack->fTheDisplacementVectorY
                             +gtrack->fTheDisplacementVectorZ*gtrack->fTheDisplacementVectorZ );
       // apply displacement:
-      // but backup the orgiginal direction of the gtrack
-      double orgDirX = gtrack->fXdir;
-      double orgDirY = gtrack->fYdir;
-      double orgDirZ = gtrack->fZdir;
       if (dl>GetGeomMinLimit()) {
         // displace the post-step point
         double dir[]={gtrack->fTheDisplacementVectorX/dl, gtrack->fTheDisplacementVectorY/dl, gtrack->fTheDisplacementVectorZ/dl};
@@ -108,17 +109,13 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
       }
       // apply msc nagular deflection if we are not on boundary
       // otherwise keep the original direction
-      if (gtrack->fStatus!=Geant::TrackStatus_t::kBoundary && hasNewDir) {
+      if (!gtrack->fBoundary && hasNewDir) {
         gtrack->fXdir = gtrack->fTheNewDirectionX;
         gtrack->fYdir = gtrack->fTheNewDirectionY;
         gtrack->fZdir = gtrack->fTheNewDirectionZ;
 //        std::cout<< gtrack->fTheNewDirectionX << " "<<orgDirX<< "   "
 //        << gtrack->fTheNewDirectionY <<" "<< orgDirY << "     "
 //        << gtrack->fTheNewDirectionZ <<" "<< orgDirZ<< std::endl;
-      } else {
-        gtrack->fXdir = orgDirX; // think about this!
-        gtrack->fYdir = orgDirY;
-        gtrack->fZdir = orgDirZ;
       }
     }
   }

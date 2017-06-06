@@ -331,10 +331,15 @@ double ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[
   typedef Vector3D<Precision> Vector3D_t;
   SimpleNavigator nav;
   double realstep = step;
+  double originalDir[3] = {track.fXdir, track.fYdir, track.fZdir};
+  if (track.fParticle == 151) {
+    track.Print("");
+  }
   track.fXdir = dir[0];
   track.fYdir = dir[1];
   track.fZdir = dir[2];
   double newpos[3];
+  constexpr double push = 1e-6;
   newpos[0] = track.fXpos + dir[0] * step;
   newpos[1] = track.fYpos + dir[1] * step;
   newpos[2] = track.fZpos + dir[2] * step;
@@ -347,6 +352,16 @@ double ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[
     ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(track);
     assert(track.fBoundary && "track was supposed to be pushed on a boundary");
     realstep = track.fSnext;
+    // Restore original direction and validate new path
+    track.fXdir = originalDir[0];
+    track.fYdir = originalDir[1];
+    track.fZdir = originalDir[2];
+    samepath = nav.HasSamePath(Vector3D_t(newpos[0] + push*track.fXdir,
+                                          newpos[1] + push*track.fYdir, 
+                                          newpos[2] + push*track.fZdir), *track.fNextpath, *track.fNextpath);
+    if (!samepath) {
+      std::cout << "After displacement, track is on boundary but points to the initial volume\n";
+    }
   }
 
   track.fXpos += step * track.fXdir;
@@ -355,30 +370,6 @@ double ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[
   track.fSafety -= step;
   return realstep;
 }
-
-// for msc
-VECCORE_ATT_HOST_DEVICE
-void ScalarNavInterfaceVGM::NavFindNextBoundaryForMSC(GeantTrack &track, double distance) {
-// Find distance to next boundary, within proposed step.
-   typedef Vector3D<Precision> Vector3D_t;
-  // Retrieve navigator for the track
-  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
-  // Check if current safety allows for the proposed step
-  if (track.fSafety > distance) {
-    track.fSnext = distance;  // or to set a high value i.e. 1.e+50 to indicate that we can go 'distance' for sure
-//    track.fBoundary = false;
-      //    *track.fNextpath = *track.fPath;
-    return;
-  }
-  track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
-                             Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
-                             Math::Min<double>(1.E+20, distance),
-                             *track.fPath, !track.fBoundary, track.fSafety);
-//  track.fBoundary = track.fSnext < track.fPstep;
-  track.fSnext  = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
-  track.fSafety = Math::Max<double>(track.fSafety, 0);
-}
-
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

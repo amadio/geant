@@ -66,10 +66,6 @@ public:
   static
   void NavFindNextBoundary(GeantTrack &track);
 
-  VECCORE_ATT_HOST_DEVICE
-  static
-  void NavFindNextBoundaryForMSC(GeantTrack &track, double distance);
-
   /**
    * @brief Function for navigation that checks if location is the same or not
    *

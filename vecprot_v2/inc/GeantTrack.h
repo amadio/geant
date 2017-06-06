@@ -70,9 +70,9 @@ enum ESimulationStage {
 #ifdef USE_REAL_PHYSICS
   kPreStepStage         = 0, // Actions at the beginning of the step
   kComputeIntLStage,         // Physics interaction length computation stage
-//  kGeometryStepStage,        // Compute geometry transport length
-  kPrePropagationStage,      // Special msc stage for step limit phase
   kGeometryStepStage,        // Compute geometry transport length
+  kPrePropagationStage,      // Special msc stage for step limit phase
+//  kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
   kPostPropagationStage,     // Special msc stage for along-step action stage
 //  kMSCStage,               // Multiple scattering stage
