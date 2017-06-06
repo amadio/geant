@@ -49,10 +49,10 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
+  void NavFindNextBoundaryAndStep(int ntracks, const double *pstep,
          const double *x, const double *y, const double *z,
-         const double *dirx, const double *diry, const double *dirz, 
-         const VolumePath_t **instate, VolumePath_t **outstate, 
+         const double *dirx, const double *diry, const double *dirz,
+         const VolumePath_t **instate, VolumePath_t **outstate,
          double *step, double *safe, bool *isonbdr);
 
   /**
@@ -66,17 +66,20 @@ public:
   static
   void NavFindNextBoundary(GeantTrack &track);
 
-    
+  VECCORE_ATT_HOST_DEVICE
+  static
+  void NavFindNextBoundaryForMSC(GeantTrack &track, double distance);
+
   /**
    * @brief Function for navigation that checks if location is the same or not
    *
    * @param ntracks Number of tracks
    * @param x X positions
    * @param y Y positions
-   * @param z Z positions   
+   * @param z Z positions
    * @param dirx X directions
    * @param diry Y directions
-   * @param dirz Z directions  
+   * @param dirz Z directions
    * @param start Start volume paths
    * @param end End volume paths
    * @param same Boolean return flags specifying if the location is same
@@ -84,16 +87,27 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavIsSameLocation(int ntracks, 
-         const double *x, const double *y, const double *z, 
-         const double *dirx, const double *diry, const double *dirz, 
+  void NavIsSameLocation(int ntracks,
+         const double *x, const double *y, const double *z,
+         const double *dirx, const double *diry, const double *dirz,
          const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *tmpstate);
-  
-  /**
-  * @brief Single track version of the function above */
+
+  /** @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
   static
   void NavIsSameLocation(GeantTrack &track, bool &same, VolumePath_t *tmpstate);
+
+  /** @brief Displace track along given normalized direction with given step. If boundary is crossed,
+       displace to boundary and relocate, setting the boundary flag
+   * @param track Track to be displaced
+   * @param dir New direction
+   * @param step Displacement step
+   * @return The actual displacement.
+   */
+  VECCORE_ATT_HOST_DEVICE
+  static
+  double DisplaceTrack(GeantTrack &track, const double dir[3], double step);
+
 };
 } // GEANT_IMPL_NAMESPACE
 

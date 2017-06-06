@@ -5,7 +5,13 @@
 #include <string>
 #include <vector>
 
-#include "GeantTaskData.h"
+// from geantV
+#include "Geant/Config.h"
+namespace Geant {
+  inline namespace GEANT_IMPL_NAMESPACE {
+  class GeantTaskData;
+}
+}
 
 namespace geantphysics {
 
@@ -204,7 +210,7 @@ private:
   // flag to indicate if element selectors are per material or per material-cuts
   bool        fIsElementSelectorsPerMaterial;
   bool        fIsUseSamplingTables;   // flag to indicate if sampling tables are requested
-  
+
   std::vector<EMElementSelector*> fElementSelectors; // EMElementSelector pointers per Material/MaterialCuts for those that are
                                                    // in regions where this model is active and has more than one elements;
                                                    // each ELSelectorData is owned by the object and will be cleand by

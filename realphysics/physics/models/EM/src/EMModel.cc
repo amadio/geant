@@ -27,7 +27,7 @@ EMModel::EMModel(const std::string& name) : fName(name), fIndex(-1), fPhysicsPar
   //fListActiveRegions.resize(1,true);
   fIsElementSelectorsPerMaterial  = false; // by default, the derived model must tell this
   fLowestSecondaryEnergy = 0.0;            // set to zero energy by defult i.e. no secondary generation limit
-  fIsUseSamplingTables   = true;           // by default we use sampling tables   
+  fIsUseSamplingTables   = true;           // by default we use sampling tables
 }
 
 EMModel::~EMModel() {

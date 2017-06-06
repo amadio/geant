@@ -350,6 +350,13 @@ double PhysicsManagerPerParticle::GetMacroscopicXSectionForProcess(const Materia
   return macXsec;
 }
 
+const PhysicsProcess* PhysicsManagerPerParticle::GetMSCProcess() const {
+  PhysicsProcess *mscProc = nullptr;
+  if (fIsHasMSCProcess) {
+    mscProc = fPostStepCandidateProcessVec[fPostStepCandidateProcessVec.size()-1];
+  }
+  return mscProc;
+}
 
 void PhysicsManagerPerParticle::BuildLambdaTables() {
   ClearLambdaTables();
@@ -389,7 +396,7 @@ void PhysicsManagerPerParticle::CheckForLambdaTable() {
   int indxMSC   = -1;
   for (unsigned long i=0; i<fPostStepCandidateProcessVec.size(); ++i) {
     PhysicsProcess *proc = fPostStepCandidateProcessVec[i];
-    if (proc->GetType()==ProcessType::kMSC) {
+    if (proc->GetType()==ProcessType::kMSC) { // msc will be pure continuous !!!
       fIsHasMSCProcess = true;
       indxMSC          = i;
     }

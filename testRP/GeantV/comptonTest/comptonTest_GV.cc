@@ -44,6 +44,10 @@
 #include "LightTrack.h"
 #include "PhysicsData.h"
 
+// from geantV
+#include "Geant/Typedefs.h"
+#include "GeantTaskData.h"
+
 // a simple histogram class: can be changed later
 #include "Hist.h"
 

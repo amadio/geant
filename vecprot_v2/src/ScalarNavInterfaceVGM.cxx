@@ -29,12 +29,12 @@ using namespace VECGEOM_NAMESPACE;
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
+void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double *pstep,
          const double *x, const double *y, const double *z,
-         const double *dirx, const double *diry, const double *dirz, 
-         const VolumePath_t **instate, VolumePath_t **outstate, 
+         const double *dirx, const double *diry, const double *dirz,
+         const VolumePath_t **instate, VolumePath_t **outstate,
          double *step, double *safe, bool *isonbdr) {
-// Find the next boundary and state after propagating to the boundary. 
+// Find the next boundary and state after propagating to the boundary.
 // Input:  ntracks - number of tracks
 //         pstep - proposed step
 //         x, y, z, dirx, diry, dirz - particle position and direction
@@ -72,7 +72,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
     safe[itr] = Math::Max<double>(safe[itr], 0);
     // onboundary with respect to new point
     isonbdr[itr] = outstate[itr]->IsOnBoundary();
-    
+
     //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
 #if defined(CROSSCHECK) && !defined(VECCORE_CUDA)
@@ -178,7 +178,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 #endif // CROSSCHECK
 
 #ifdef VERBOSE
-  Geant::Print("","navfindbound on %p with pstep %lf yields step %lf and safety %lf\n", 
+  Geant::Print("","navfindbound on %p with pstep %lf yields step %lf and safety %lf\n",
                this, track.fPtrack.fStep, track.fPstep, track.fSafety);
 #endif // VERBOSE
 }
@@ -203,7 +203,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
                              *track.fPath, !track.fBoundary, track.fSafety);
   track.fBoundary = track.fSnext < track.fPstep;
   track.fSnext = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
-  track.fSafety = Math::Max<double>(track.fSafety, 0);  
+  track.fSafety = Math::Max<double>(track.fSafety, 0);
 }
 
 //______________________________________________________________________________
@@ -211,7 +211,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
        const double *x, const double *y, const double *z,
        const double */*dirx*/, const double */*diry*/, const double */*dirz*/,
        const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *tmpstate) {
-// 
+//
 // Checks if the navigation states corresponding to positions (x,y,z) are the
 // same as the ones pointed by start. Update new states in end.
 // Input:  ntracks - number of tracks to be checked
@@ -219,7 +219,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
 //         start   - starting navigation paths to compare with
 // Output: end     - navigation paths corresponding to given positions
 //         same    - flags showing if the end and start positions are matching
-  
+
 
   //#### NOT USING YET THE NEW NAVIGATORS ####//
 
@@ -322,6 +322,63 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(GeantTrack &track, bool &same, Vol
 #endif // CROSSCHECK
   same = samepath;
 }
+
+//______________________________________________________________________________
+double ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[3], double step)
+{
+  // Displace track with step along given direction. This will update the
+  // following track paramerters: position, direction, reduced safety.
+  typedef Vector3D<Precision> Vector3D_t;
+  SimpleNavigator nav;
+  double realstep = step;
+  track.fXdir = dir[0];
+  track.fYdir = dir[1];
+  track.fZdir = dir[2];
+  double newpos[3];
+  newpos[0] = track.fXpos + dir[0] * step;
+  newpos[1] = track.fYpos + dir[1] * step;
+  newpos[2] = track.fZpos + dir[2] * step;
+  // Check if the location is in the same volume
+  bool samepath = nav.HasSamePath(Vector3D_t(newpos[0], newpos[1], newpos[2]),
+                                  *track.fPath, *track.fNextpath);
+  if (!samepath) {
+    // The track has crossed a boundary. Find the distance to the boundary along
+    // the given direction and propagate.
+    ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(track);
+    assert(track.fBoundary && "track was supposed to be pushed on a boundary");
+    realstep = track.fSnext;
+  }
+
+  track.fXpos += step * track.fXdir;
+  track.fYpos += step * track.fYdir;
+  track.fZpos += step * track.fZdir;
+  track.fSafety -= step;
+  return realstep;
+}
+
+// for msc
+VECCORE_ATT_HOST_DEVICE
+void ScalarNavInterfaceVGM::NavFindNextBoundaryForMSC(GeantTrack &track, double distance) {
+// Find distance to next boundary, within proposed step.
+   typedef Vector3D<Precision> Vector3D_t;
+  // Retrieve navigator for the track
+  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+  // Check if current safety allows for the proposed step
+  if (track.fSafety > distance) {
+    track.fSnext = distance;  // or to set a high value i.e. 1.e+50 to indicate that we can go 'distance' for sure
+//    track.fBoundary = false;
+      //    *track.fNextpath = *track.fPath;
+    return;
+  }
+  track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+                             Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
+                             Math::Min<double>(1.E+20, distance),
+                             *track.fPath, !track.fBoundary, track.fSafety);
+//  track.fBoundary = track.fSnext < track.fPstep;
+  track.fSnext  = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
+  track.fSafety = Math::Max<double>(track.fSafety, 0);
+}
+
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

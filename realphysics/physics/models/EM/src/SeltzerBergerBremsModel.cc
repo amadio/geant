@@ -24,6 +24,9 @@
 #include "LightTrack.h"
 #include "PhysicsData.h"
 
+// from geantV
+#include "GeantTaskData.h"
+
 #include <cmath>
 #include <cstdio>
 #include <iostream>

@@ -24,6 +24,8 @@
 #include "GammaConversionProcess.h"
 #include "BetheHeitlerPairModel.h"
 
+#include "MSCProcess.h"
+#include "GSMSCModel.h"
 
 namespace geantphysics {
 
@@ -78,6 +80,16 @@ void PhysicsList1::Initialize() {
       //
       // add the process to the e- particle
       AddProcessToParticle(particle, eBremProc);
+      //
+      // create MSC process
+      EMPhysicsProcess *eMSCProc  = new MSCProcess("e-msc");
+      // create GS-msc model, set min/max usage limits
+      GSMSCModel       *gsMSCModel = new GSMSCModel();
+      gsMSCModel->SetLowEnergyUsageLimit(100.*geant::eV);
+      gsMSCModel->SetHighEnergyUsageLimit(100.*geant::TeV);
+      eMSCProc->AddModel(gsMSCModel);
+      // add process to particle
+      AddProcessToParticle(particle, eMSCProc);
     }
     if (particle==Positron::Definition()) {
       //std::cout<<"  Positron" <<std::endl;
@@ -120,6 +132,17 @@ void PhysicsList1::Initialize() {
       //
       // add the process to the e+ particle
       AddProcessToParticle(particle, eBremProc);
+      //
+      // create MSC process
+      EMPhysicsProcess *eMSCProc   = new MSCProcess("e+msc");
+      // create GS-msc model, set min/max usage limits
+      GSMSCModel       *gsMSCModel = new GSMSCModel(false); // for e+
+      gsMSCModel->SetLowEnergyUsageLimit(100.*geant::eV);
+      gsMSCModel->SetHighEnergyUsageLimit(100.*geant::TeV);
+      gsMSCModel->SetOptionPWAScreening(true);
+      eMSCProc->AddModel(gsMSCModel);
+      // add process to particle
+      AddProcessToParticle(particle, eMSCProc);
     }
     if (particle==Gamma::Definition()) {
       // create compton scattering process for gamma with 1 model:

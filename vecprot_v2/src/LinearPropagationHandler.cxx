@@ -2,8 +2,7 @@
 
 #include "GeantTaskData.h"
 #include "Geant/Error.h"
-#include "ScalarNavInterfaceVGM.h"
-#include "ScalarNavInterfaceTGeo.h"
+#include "Geant/NavigationInterface.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -21,7 +20,7 @@ VECCORE_ATT_HOST_DEVICE
 LinearPropagationHandler::~LinearPropagationHandler()
 {
 // Destructor
-}  
+}
 
 
 //______________________________________________________________________________
@@ -45,7 +44,7 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
       if (nsmall > 10) {
         // Most likely a nasty overlap, some smarter action required. For now, just
         // kill the track.
-        
+
         Error("LinearPropagator", "track %d from event %d stuck -> killing it",
               track->fParticle, track->fEvent);
         track->fStatus = kKilled;
@@ -66,7 +65,7 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
 
   if (track->fSnext < 1.E-8) track->fSnext = 0;
   if (track->fSafety < 1.E-8) track->fSafety = 0;
-  
+
   // Update time of flight and number of interaction lengths
   track->fTime += track->TimeStep(track->fStep);
   track->fNintLen -= track->fStep/track->fIntLen;
@@ -80,7 +79,7 @@ VECCORE_ATT_HOST_DEVICE
 void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
-  TrackVec_t &tracks = input.Tracks();  
+  TrackVec_t &tracks = input.Tracks();
   // This loop should autovectorize
   for (auto track : tracks) {
     if (track->fSnext < 1.E-8) td->fNsmall++;
@@ -120,9 +119,9 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
 
     // Update time of flight and number of interaction lengths
     track->fTime += track->TimeStep(track->fStep);
-    track->fNintLen -= track->fStep/track->fIntLen;  
+    track->fNintLen -= track->fStep/track->fIntLen;
   }
-  
+
 
   // Copy tracks to output
 #ifndef VECCORE_CUDA
@@ -140,7 +139,7 @@ bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *
     // Track stays in the same volume
     track.fBoundary = false;
     return true;
-  }  
+  }
   bool same;
 #ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::NavigationState *tmpstate = td->GetPath();

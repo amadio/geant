@@ -14,6 +14,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 // realphysics stages
 #include "ComputeIntLStage.h"
+#include "PrePropagationStage.h"
+#include "PostPropagationStage.h"
 #include "AlongStepActionStage.h"
 #include "PostStepActionStage.h"
 
@@ -136,6 +138,14 @@ public:
    */
   Geant::SimulationStage* CreateComputeIntLStage(Geant::GeantPropagator *prop) {
     return new ComputeIntLStage(prop);
+  }
+
+  Geant::SimulationStage* CreatePrePropagationStage(Geant::GeantPropagator *prop) {
+      return new PrePropagationStage(prop);
+  }
+
+  Geant::SimulationStage* CreatePostPropagationStage(Geant::GeantPropagator *prop) {
+      return new PostPropagationStage(prop);
   }
 
   /** @brief Obtain/create along step action (continuous part) computation stage.

@@ -220,6 +220,7 @@ void TestEM3ApplicationRP::SteppingActions(GeantTrack &track, GeantTaskData *td)
       fListDataPerThread[indx].fListDataPerAbsorber[iabs].fEdep     +=  track.fEdep;
       if (charge!=0.0) {
         fListDataPerThread[indx].fListDataPerAbsorber[iabs].fLength +=  track.fStep;
+//        std::cout<< track.fBoundary<< " "<<" iabs = "<< iabs<<" "<<std::setprecision(15)<<track.fStep << "  " << track.fTheZPathLenght << "  "<< track.fTheTrueStepLenght << "  "<<track.fPstep<<std::endl;
       }
     }
     if (track.fStatus!=Geant::kNew) { // do not count the creation step

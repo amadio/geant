@@ -22,6 +22,8 @@
 #include "AliasTable.h"
 #include "GLIntegral.h"
 
+// from geantV
+#include "GeantTaskData.h"
 
 namespace geantphysics {
 

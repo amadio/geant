@@ -4,6 +4,14 @@
 
 #include "EMModel.h"
 
+// from geantV
+#include "Geant/Config.h"
+namespace Geant {
+  inline namespace GEANT_IMPL_NAMESPACE {
+  class GeantTaskData;
+}
+}
+
 #include <string>
 
 namespace geantphysics {

@@ -70,8 +70,11 @@ enum ESimulationStage {
 #ifdef USE_REAL_PHYSICS
   kPreStepStage         = 0, // Actions at the beginning of the step
   kComputeIntLStage,         // Physics interaction length computation stage
+//  kGeometryStepStage,        // Compute geometry transport length
+  kPrePropagationStage,      // Special msc stage for step limit phase
   kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
+  kPostPropagationStage,     // Special msc stage for along-step action stage
 //  kMSCStage,               // Multiple scattering stage
   kAlongStepActionStage,     // Along step action stage (continuous part of the inetraction)
   kPostStepActionStage,      // Post step action stage (discrete part of the inetraction)
@@ -147,6 +150,46 @@ public:
   bool fOwnPath;         /** Marker for path ownership */
   VolumePath_t *fPath;   /** Paths for the particle in the geometry */
   VolumePath_t *fNextpath; /** Path for next volume */
+
+// msc members: added here in mixed mode (int,bool,double) just for the development phase i.e. need to change later
+//    -- NO SETTERS/GETTERS added
+//----
+//*****************
+double fLambda0;        // elastic mean free path
+double fLambda1;        // first transport mean free path
+double fScrA;           // screening parameter if any
+double fG1;             // first transport coef.
+double fRange;
+//******************
+double fTheInitialRange;                // the initial (first step or first step in volume) range value of the particle
+double fTheRangeFactor;                    // a step limit factor set
+double fTheTrueStepLenght;              // the true step length
+double fTheTransportDistance;           // the straight line distance between the pre- and true post-step points
+double fTheZPathLenght;                 // projection of transport distance along the original direction
+double fTheTrueGeomLimit;               // geometrical limit converted to true step length
+double fTheDisplacementVectorX;         // displacement vector components X,Y,Z
+double fTheDisplacementVectorY;
+double fTheDisplacementVectorZ;
+double fTheNewDirectionX;               // new direction components X,Y,Z (at the post-step point due to msc)
+double fTheNewDirectionY;
+double fTheNewDirectionZ;
+double fPar1;
+double fPar2;
+double fPar3;
+
+bool fIsEverythingWasDone;              // to indicate if everything could be done in the step limit phase
+bool fIsMultipleSacettring;             // to indicate that msc needs to be perform (i.e. compute angular deflection)
+bool fIsSingleScattering;               // to indicate that single scattering needs to be done
+bool fIsEndedUpOnBoundary;              // ?? flag to indicate that geometry was the winer
+bool fIsNoScatteringInMSC;              // to indicate that no scattering happend (i.e. forward) in msc
+bool fIsNoDisplace;                     // to indicate that displacement is not computed
+bool fIsInsideSkin;                     // to indicate that the particle is within skin from/to boundary
+bool fIsWasOnBoundary;                  // to indicate that boundary crossing happend recently
+bool fIsFirstStep;                      // to indicate that the first step is made with the particle
+bool fIsFirstRealStep;                  // to indicate that the particle is making the first real step in the volume i.e.
+                                        // just left the skin
+//---
+
 
   /**
   * @brief GeantTrack in place constructor
@@ -659,6 +702,37 @@ public:
     fXdir = dx;
     fYdir = dy;
     fZdir = dz;
+  }
+
+  /**
+   * @brief Function that set X, Y, Z component of the displacement vector provided by msc
+   *
+   * @param x X position
+   * @param y Y position
+   * @param z Z position
+   */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetDisplacement(double x, double y, double z) {
+    fTheDisplacementVectorX = x;
+    fTheDisplacementVectorY = y;
+    fTheDisplacementVectorZ = z;
+  }
+
+
+  /**
+   * @brief Function that set the new X, Y, Z directions proposed by msc (will be applied or not depending other conditions)
+   *
+   * @param dx X direction
+   * @param dy Y direction
+   * @param dz Z direction
+   */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetNewDirectionMsc(double dx, double dy, double dz) {
+    fTheNewDirectionX = dx;
+    fTheNewDirectionY = dy;
+    fTheNewDirectionZ = dz;
   }
 
   /**

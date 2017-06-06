@@ -39,7 +39,8 @@
 //#include "G4RayleighScattering.hh"
 //#include "G4KleinNishinaModel.hh"
 
-//#include "G4eMultipleScattering.hh"
+#include "G4eMultipleScattering.hh"
+#include "G4GoudsmitSaundersonMscModel.hh"
 #include "G4eIonisation.hh"
 #include "G4eBremsstrahlung.hh"
 //#include "G4eplusAnnihilation.hh"
@@ -62,6 +63,13 @@ PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstru
   param->SetVerbose(1);
   // inactivate energy loss fluctuations
   param->SetLossFluctuations(false);
+  //
+  //  param->SetMscRangeFactor(0.1);
+  //  param->SetMscStepLimitType(fUseSafetyPlus);// corresponds to Urban fUseSafety (kUseSaftey==>Error-free)
+  param->SetMscStepLimitType(fUseSafety);// corresponds to Urban fUseSafety (kUseSaftey==>Error-free)
+  //param->SetMscSkin(100000000);
+  param->SetMscSkin(3);
+
   // set min/max energy for tables: 100 eV - 100 TeV by default
   //param->SetMinEnergy(100*eV);
   //param->SetMaxEnergy(100*TeV);
@@ -100,12 +108,22 @@ void PhysListGVStandard::ConstructProcess()
       ph->RegisterProcess(new G4GammaConversion, particle);
     } else if (particleName == "e-") {
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
+      G4eMultipleScattering* msc = new G4eMultipleScattering;
+      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
+      msc1->SetOptionPWAScreening(false);
+      msc->AddEmModel(0, msc1);
+      ph->RegisterProcess(msc,particle);
       //
       G4eIonisation* eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
     } else if (particleName == "e+") {
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
+      G4eMultipleScattering* msc = new G4eMultipleScattering;
+      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
+      msc1->SetOptionPWAScreening(true);
+      msc->AddEmModel(0, msc1);
+      ph->RegisterProcess(msc,particle);
       //
       G4eIonisation* eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);

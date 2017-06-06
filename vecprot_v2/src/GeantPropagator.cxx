@@ -412,14 +412,23 @@ int GeantPropagator::CreateSimulationStages()
   stage = fPhysicsInterface->CreateComputeIntLStage(this);
   assert(stage->GetId() == int(kComputeIntLStage));
   // kGeometryStepStage
+//  stage = new GeomQueryStage(this);
+//  assert(stage->GetId() == int(kGeometryStepStage));
+  // kPrePropagationStage
+  stage = fPhysicsInterface->CreatePrePropagationStage(this);
+  assert(stage->GetId() == int(kPrePropagationStage));
+
   stage = new GeomQueryStage(this);
   assert(stage->GetId() == int(kGeometryStepStage));
+
+
   // kPropagationStage
   stage = new PropagationStage(this);
   assert(stage->GetId() == int(kPropagationStage));
-  // kMSCStage
-  // stage = new MSCStage(this);
-  //assert(stage->GetId() == int(kMSCStage));
+  // kPostPropagationStage
+  stage = fPhysicsInterface->CreatePostPropagationStage(this);
+  assert(stage->GetId() == int(kPostPropagationStage));
+
   // kContinuousProcStage
   stage = fPhysicsInterface->CreateAlongStepActionStage(this);
   assert(stage->GetId() == int(kAlongStepActionStage));
@@ -435,23 +444,39 @@ int GeantPropagator::CreateSimulationStages()
    **************************************/
   GetStage(kPreStepStage)->SetFollowUpStage(kComputeIntLStage, false);
   // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
-  GetStage(kPropagationStage)->ActivateBasketizing(false);
+  GetStage(kPreStepStage)->ActivateBasketizing(false);
   //        V
   //        V
   //        V
-  GetStage(kComputeIntLStage)->SetFollowUpStage(kGeometryStepStage, true);
+//  GetStage(kComputeIntLStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kComputeIntLStage)->SetFollowUpStage(kPrePropagationStage, true);
   GetStage(kComputeIntLStage)->ActivateBasketizing(true);
   //        V
   //        V
   //        V
+//  GetStage(kGeometryStepStage)->SetFollowUpStage(kPrePropagationStage, true);
+//  GetStage(kGeometryStepStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+//  GetStage(kPrePropagationStage)->SetFollowUpStage(kPropagationStage, true);
+  GetStage(kPrePropagationStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kPrePropagationStage)->ActivateBasketizing(false);
+  //        V
+
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
   GetStage(kGeometryStepStage)->ActivateBasketizing(true);
+
   //        V
   //        V
-  //        V
-  GetStage(kPropagationStage)->SetFollowUpStage(kAlongStepActionStage, false);
+  GetStage(kPropagationStage)->SetFollowUpStage(kPostPropagationStage, false);
   // Follow-up not unique: stuck tracks are killed -> SteppingActions
   GetStage(kPropagationStage)->ActivateBasketizing(true);
+  //        V
+  //        V
+  //        V
+  GetStage(kPostPropagationStage)->SetFollowUpStage(kAlongStepActionStage, true);
+  GetStage(kPrePropagationStage)->ActivateBasketizing(true);
   //        V
   //        V
   //        V

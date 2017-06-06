@@ -173,6 +173,9 @@ public:
   int  AlongStepAction(LightTrack &track, Geant::GeantTaskData *td);
   int  PostStepAction(LightTrack &track, Geant::GeantTaskData *td);
 
+  bool  HasMSCProcess() const { return fIsHasMSCProcess; }
+  const PhysicsProcess* GetMSCProcess() const;
+
 /*
 // only for testing; should be removed later
   void PrintLambda(const MaterialCuts *matcut){

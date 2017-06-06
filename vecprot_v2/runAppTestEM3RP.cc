@@ -222,6 +222,10 @@ int main(int argc, char *argv[]) {
   config->SetMonitored(Geant::GeantConfig::kMonTracksPerEvent, monitor);
   config->fNaverage = avNPrimPerEvt;   // Average number of tracks per event
 
+  //
+  // for msc if we run in single scattering setings:
+  config->fNstepsKillThr = 100.*config->fNstepsKillThr;
+  
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
   config->fPriorityThr = 0.05;

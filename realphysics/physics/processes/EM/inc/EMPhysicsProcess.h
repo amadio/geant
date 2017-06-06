@@ -133,6 +133,8 @@ public:
    */
   virtual double AlongStepLimitationLength(const LightTrack &track) const;
 
+  // for msc: act on GeantTrack directly
+  virtual void   AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {}
 
   /**
    * @brief Common implementation of the AlongStepDoIt method of the base PhysicsProcess class for ordinary
@@ -147,6 +149,10 @@ public:
    * @return    Number of secondary tracks created and stored in the sectracks vector.
    */
   virtual  int AlongStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
+
+  // for msc: no secondaries
+  virtual  void AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {}
+
 
   // Will be called only if disceret interaction was selected
   virtual  int PostStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
