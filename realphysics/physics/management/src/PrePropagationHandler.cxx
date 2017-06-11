@@ -51,7 +51,7 @@ void PrePropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   const MSCProcess *mscProc = static_cast<const MSCProcess*>(pManager->GetMSCProcess());
   assert(mscProc);  // make sure that it is not nullptr
   // invoke the step limit method
-//  Geant::ScalarNavInterfaceVGM::NavFindNextBoundaryForMSC(*track, track->fPstep);
+  Geant::ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(*track, track->fPstep);
   mscProc->AlongStepLimitationLength(track, td);
   // --
   // copy the input track to the output

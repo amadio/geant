@@ -24,7 +24,7 @@ GeantTrack::GeantTrack()
   fG1            = 0.;  // first transport coef.
   fRange         = 1.e+20; // range of the particle
   //******************
-  fTheInitialRange         = 0.;   // the initial (first step or first step in volume) range value of the particle
+  fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
   fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
@@ -90,7 +90,7 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
   fG1            = 0.;  // first transport coef.
   fRange         = 1.e+20;
   //******************
-  fTheInitialRange         = 0.;   // the initial (first step or first step in volume) range value of the particle
+  fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
   fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
@@ -139,7 +139,7 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
   fG1            = 0.;  // first transport coef.
   fRange         = 1.e+20;
   //******************
-  fTheInitialRange         = 0.;   // the initial (first step or first step in volume) range value of the particle
+  fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
   fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
@@ -358,7 +358,7 @@ void GeantTrack::Clear(const char *) {
   fG1            = 0.;  // first transport coef.
   fRange         = 1.e+20;
   //******************
-  fTheInitialRange         = 0.;   // the initial (first step or first step in volume) range value of the particle
+  fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
   fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points

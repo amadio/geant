@@ -65,13 +65,15 @@ void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::Gea
              << std::endl;
   }
   // protection: geometric legth must always be <= than the true physics step length
-  
-  gtrack->fPstep = std::min(gtrack->fTheZPathLenght, minPhysicsStepLength);
+  gtrack->fTheZPathLenght = std::min(gtrack->fTheZPathLenght, minPhysicsStepLength);
+  gtrack->fPstep          = gtrack->fTheZPathLenght;
+/*
   if (gtrack->fSnext > gtrack->fPstep) {
     // MSC has changed the proposed step, which became smaller than snext !!!
     gtrack->fSnext = gtrack->fPstep;
     gtrack->fBoundary = false;
   }
+*/
 }
 
 // called at the PostPropagationStage(in the Handler)
@@ -101,21 +103,19 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
       double dl = std::sqrt( gtrack->fTheDisplacementVectorX*gtrack->fTheDisplacementVectorX
                             +gtrack->fTheDisplacementVectorY*gtrack->fTheDisplacementVectorY
                             +gtrack->fTheDisplacementVectorZ*gtrack->fTheDisplacementVectorZ );
-      // apply displacement:
-      if (dl>GetGeomMinLimit()) {
+      // apply displacement: NOTE: no displacement at the moment !!!!
+      if (dl>GetGeomMinLimit() && !gtrack->fBoundary && gtrack->fSafety>0. && 0) {
         // displace the post-step point
-        double dir[]={gtrack->fTheDisplacementVectorX/dl, gtrack->fTheDisplacementVectorY/dl, gtrack->fTheDisplacementVectorZ/dl};
+        double dir[3]={gtrack->fTheDisplacementVectorX/dl, gtrack->fTheDisplacementVectorY/dl, gtrack->fTheDisplacementVectorZ/dl};
         ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl);
       }
       // apply msc nagular deflection if we are not on boundary
       // otherwise keep the original direction
-      if (!gtrack->fBoundary && hasNewDir) {
+//      if (!gtrack->fBoundary && hasNewDir) {
+      if (hasNewDir) {
         gtrack->fXdir = gtrack->fTheNewDirectionX;
         gtrack->fYdir = gtrack->fTheNewDirectionY;
         gtrack->fZdir = gtrack->fTheNewDirectionZ;
-//        std::cout<< gtrack->fTheNewDirectionX << " "<<orgDirX<< "   "
-//        << gtrack->fTheNewDirectionY <<" "<< orgDirY << "     "
-//        << gtrack->fTheNewDirectionZ <<" "<< orgDirZ<< std::endl;
       }
     }
   }

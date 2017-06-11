@@ -178,6 +178,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       // check if we are within skindepth distance from a boundary
       if (isOnBoundary || (presafety<skindepth)) {
         gtrack->fIsInsideSkin = true;
+        gtrack->fIsWasOnBoundary = true; // NOTE:
       }
       //Try single scattering:
       // - sample distance to next single scattering interaction (sslimit)
@@ -200,6 +201,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       // We will check if we need to perform the single-scattering angular
       // sampling i.e. if single elastic scattering was the winer!
       gtrack->fIsEverythingWasDone = true;
+      gtrack->fIsNoDisplace = true;  // NOTE:
     } else {
       // After checking we know that we cannot try single scattering so we will need to make an MSC step
       // Indicate that we need to make and MSC step. We do not check if we can do it now i.e. if
@@ -223,7 +225,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       //     (only in this volume, because after boundary crossing at the
       //     first-real MSC step we will reset)
       //  - don't let the partcile to cross the volume just in one step
-      if (gtrack->fIsFirstStep || gtrack->fIsFirstRealStep) {
+      if (gtrack->fIsFirstStep || gtrack->fIsFirstRealStep || gtrack->fTheInitialRange>1.e+20) { //NOTE:
         gtrack->fTheInitialRange = range;
         // If GeantTrack::fSnext(distance-to-boundary) < range then the particle might reach the boundary along its
         // initial direction before losing its energy (in this step). Otherwise, we can be sure that the particle will
@@ -320,6 +322,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       // We will check if we need to perform the single-scattering angular sampling i.e. if single elastic scattering
       // was the winer!
       gtrack->fIsEverythingWasDone = true;
+      gtrack->fIsNoDisplace        = true; //NOTE:
     } else {
       // After checking we know that we cannot try single scattering so we will
       // need to make an MSC step
@@ -356,7 +359,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     } else {
       // Urban like
       double fr = GetRangeFactor();
-      if (gtrack->fIsFirstStep || isOnBoundary) {
+      if (gtrack->fIsFirstStep || isOnBoundary || gtrack->fTheInitialRange>1.e+20) { //NOTE:
         gtrack->fTheInitialRange = range;
 // We don't use this: we won't converge to the single scattering results with
 //                    decreasing range-factor.
@@ -407,7 +410,7 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
                      gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
     // displacement is left to (0,0,0)
     //fParticleChange->ProposeMomentumDirection(fTheNewDirection);
-    return false; // i.e. no new direction
+    return true; // i.e. new direction
   } else if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kErrorFree) {
     if (gtrack->fIsEndedUpOnBoundary) {// do nothing
       // displacement is left to (0,0,0)
@@ -504,7 +507,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
                                 * (1.-std::pow(1.-gtrack->fPar1*gtrack->fTheTrueStepLenght,gtrack->fPar3));
     }
   }
-  gtrack->fTheZPathLenght = std::min(gtrack->fTheZPathLenght,gtrack->fLambda1);
+  gtrack->fTheZPathLenght = std::min(gtrack->fTheZPathLenght,gtrack->fLambda1); // NOTE:
 }
 
 
@@ -512,7 +515,8 @@ void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::
   // init
   gtrack->fIsEndedUpOnBoundary = false;
   // step was not defined by transportation: i.e. physics
-  if (gtrack->fStatus!=Geant::TrackStatus_t::kBoundary) {
+  if (!gtrack->fBoundary) {
+//  if ( std::abs(gtrack->fStep-gtrack->fTheZPathLenght)<1.e-8) {
     return; // fTheTrueStepLenght is known because the particle went as far as we expected
   }
   // else ::

@@ -332,14 +332,11 @@ double ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[
   SimpleNavigator nav;
   double realstep = step;
   double originalDir[3] = {track.fXdir, track.fYdir, track.fZdir};
-  if (track.fParticle == 151) {
-    track.Print("");
-  }
   track.fXdir = dir[0];
   track.fYdir = dir[1];
   track.fZdir = dir[2];
   double newpos[3];
-  constexpr double push = 1e-6;
+  constexpr double push = 1.E-6;
   newpos[0] = track.fXpos + dir[0] * step;
   newpos[1] = track.fYpos + dir[1] * step;
   newpos[2] = track.fZpos + dir[2] * step;
@@ -349,26 +346,127 @@ double ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[
   if (!samepath) {
     // The track has crossed a boundary. Find the distance to the boundary along
     // the given direction and propagate.
-    ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(track);
+    ScalarNavInterfaceVGM::NavFindNextBoundaryAndStepMSC(track,step);
     assert(track.fBoundary && "track was supposed to be pushed on a boundary");
     realstep = track.fSnext;
+    //
+    track.fXpos += realstep * dir[0];
+    track.fYpos += realstep * dir[1];
+    track.fZpos += realstep * dir[2];
+    track.fSafety =0.;//-= realstep;
+
     // Restore original direction and validate new path
     track.fXdir = originalDir[0];
     track.fYdir = originalDir[1];
     track.fZdir = originalDir[2];
-    samepath = nav.HasSamePath(Vector3D_t(newpos[0] + push*track.fXdir,
-                                          newpos[1] + push*track.fYdir, 
-                                          newpos[2] + push*track.fZdir), *track.fNextpath, *track.fNextpath);
+    samepath = nav.HasSamePath(Vector3D_t(track.fXpos + push*track.fXdir,
+                                          track.fYpos + push*track.fYdir,
+                                          track.fZpos + push*track.fZdir), *track.fNextpath, *track.fNextpath);
     if (!samepath) {
       std::cout << "After displacement, track is on boundary but points to the initial volume\n";
     }
+  } else {
+    // Restore original direction
+    track.fXdir = originalDir[0];
+    track.fYdir = originalDir[1];
+    track.fZdir = originalDir[2];
+
+    track.fXpos += step * dir[0];
+    track.fYpos += step * dir[1];
+    track.fZpos += step * dir[2];
+    track.fSafety -= step;
+  }
+  return realstep;
+}
+
+
+
+void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(GeantTrack &track, double dist) {
+//track.fIsEverythingWasDone = track.fBoundary;
+// Find distance to next boundary, within proposed step.
+   typedef Vector3D<Precision> Vector3D_t;
+  // Retrieve navigator for the track
+  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+  // Check if current safety allows for the proposed step
+  /* doesn't work well: I always need the precise safety and dist. to b.
+  if (track.fSafety > dist) {
+    track.fSnext = dist;
+//    track.fBoundary = false;
+//    *track.fNextpath = *track.fPath;
+    return;
+  }
+  */
+  track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+                             Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
+                             1.e+20, //Math::Min<double>(1.E20, dist),
+                             *track.fPath, true, track.fSafety);
+//if (track.fEvent==30 && track.fParticle==86)
+//std::cout<<std::setprecision(14) <<" track.fSafety = " << track.fSafety<<" dist ="<<dist<<std::endl;
+//  track.fBoundary = track.fSnext < track.fPstep;
+  track.fSnext  = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
+  if (track.fSnext>1.e+19) {
+    std::cerr<< " \n  ***** ComputeStepAndSafety gave fSnext=1.e+20 which means that we are out of the volume:\n";
+    track.Print("");
+    //GeoManager::Instance().GetWorld();
+    vecgeom::SimpleNavigator nav;
+//    if (track.fPath) {
+      track.fPath->Clear();
+//      track.fPath = VolumePath_t::MakeInstance(track.fMaxDepth);
+//    }
+//    if (track.fNextpath) {
+      track.fNextpath->Clear();
+//      track.fNextpath = VolumePath_t::MakeInstance(track.fMaxDepth);
+//    }
+
+    nav.LocatePoint(GeoManager::Instance().GetWorld(),
+                    Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.fPath, true);
+    track.fBoundary = track.fPath->IsOnBoundary();
+  //  if (!track.fNextpath)
+  //    track.fNextpath = VolumePath_t::MakeInstance(track.fMaxDepth);
+    *track.fNextpath = *track.fPath;
+    track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+                               Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
+                               1.e+20, //Math::Min<double>(1.E20, dist),
+                               *track.fPath, true, track.fSafety);
+    std::cerr<< " =====> corrected safety = "<< track.fSafety << " and Snext = " << track.fSnext << std::endl<< std::endl;
   }
 
-  track.fXpos += step * track.fXdir;
-  track.fYpos += step * track.fYdir;
-  track.fZpos += step * track.fZdir;
-  track.fSafety -= step;
-  return realstep;
+  track.fSafety = Math::Max<double>(track.fSafety,2. * gTolerance);
+
+
+//  track.fBoundary = track.fPath->IsOnBoundary();
+//  if (track.fSafety==0.) track.fBoundary=true;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStepMSC(GeantTrack &track, double step) {
+
+  typedef Vector3D<Precision> Vector3D_t;
+#ifdef VECCORE_CUDA
+  SimpleNavigator nav;
+#else
+  ABBoxNavigator nav;
+#endif // VECCORE_CUDA
+
+  // Retrieve navigator for the track
+  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+  // Check if current safety allows for the proposed step
+  if (track.fSafety > step) {
+    track.fSnext = step;
+    track.fBoundary = false;
+    *track.fNextpath = *track.fPath;
+    return;
+  }
+
+  track.fSnext = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+                             Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
+                             Math::Min<double>(1.E20, step),
+                             *track.fPath, *track.fNextpath, !track.fBoundary, track.fSafety);
+  track.fSnext = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
+  track.fSafety = Math::Max<double>(track.fSafety, 0);
+  // onboundary with respect to new point
+  track.fBoundary = track.fNextpath->IsOnBoundary();
 }
 
 } // GEANT_IMPL_NAMESPACE
