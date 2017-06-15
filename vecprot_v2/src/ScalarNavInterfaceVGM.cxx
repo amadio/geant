@@ -400,40 +400,6 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(GeantTrack &track, double dis
                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
                              1.e+20, //Math::Min<double>(1.E20, dist),
                              *track.fPath, true, track.fSafety);
-//if (track.fEvent==30 && track.fParticle==86)
-//std::cout<<std::setprecision(14) <<" track.fSafety = " << track.fSafety<<" dist ="<<dist<<std::endl;
-//  track.fBoundary = track.fSnext < track.fPstep;
-  track.fSnext  = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
-  if (track.fSnext>1.e+19) {
-    std::cerr<< " \n  ***** ComputeStepAndSafety gave fSnext=1.e+20 which means that we are out of the volume:\n";
-    track.Print("");
-    //GeoManager::Instance().GetWorld();
-    vecgeom::SimpleNavigator nav;
-//    if (track.fPath) {
-      track.fPath->Clear();
-//      track.fPath = VolumePath_t::MakeInstance(track.fMaxDepth);
-//    }
-//    if (track.fNextpath) {
-      track.fNextpath->Clear();
-//      track.fNextpath = VolumePath_t::MakeInstance(track.fMaxDepth);
-//    }
-
-    nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                    Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.fPath, true);
-    track.fBoundary = track.fPath->IsOnBoundary();
-  //  if (!track.fNextpath)
-  //    track.fNextpath = VolumePath_t::MakeInstance(track.fMaxDepth);
-    *track.fNextpath = *track.fPath;
-    track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
-                               Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
-                               1.e+20, //Math::Min<double>(1.E20, dist),
-                               *track.fPath, true, track.fSafety);
-    std::cerr<< " =====> corrected safety = "<< track.fSafety << " and Snext = " << track.fSnext << std::endl<< std::endl;
-  }
-
-  track.fSafety = Math::Max<double>(track.fSafety,2. * gTolerance);
-
-
 //  track.fBoundary = track.fPath->IsOnBoundary();
 //  if (track.fSafety==0.) track.fBoundary=true;
 }

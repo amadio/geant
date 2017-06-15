@@ -59,8 +59,8 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   //Update number of partial steps propagated in field
   td->fNmag++;
   // Update time of flight and number of interaction lengths
-  track->fTime += track->TimeStep(track->fStep);
-  track->fNintLen -= track->fStep/track->fIntLen;
+//  track->fTime += track->TimeStep(track->fStep);
+//  track->fNintLen -= track->fStep/track->fIntLen;
 
   // Set continuous processes stage as follow-up for tracks that reached the
   // physics process
@@ -69,7 +69,8 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
     td->fNphys++;
     td->fNsteps++;
 #ifdef USE_REAL_PHYSICS
-    track->SetStage(kAlongStepActionStage);
+//    track->SetStage(kAlongStepActionStage);
+    track->SetStage(kPostStepActionStage);
 #else
     track->SetStage(kContinuousProcStage);
 #endif
@@ -125,8 +126,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   int nvect = 0;
 #endif
   for (auto track : tracks) {
-    track->fTime += track->TimeStep(track->fStep);
-    track->fNintLen -= track->fStep/track->fIntLen;
+//    track->fTime += track->TimeStep(track->fStep);
+//    track->fNintLen -= track->fStep/track->fIntLen;
     if (track->fStatus == kPhysics) {
       // Update number of steps to physics and total number of steps
       td->fNphys++;
@@ -159,7 +160,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
       if (!IsSameLocation(*track, td)) {
         td->fNcross++;
 #ifdef USE_REAL_PHYSICS
-            track->SetStage(kAlongStepActionStage);
+//            track->SetStage(kAlongStepActionStage);
+            track->SetStage(kPostStepActionStage);
 #else
             track->SetStage(kContinuousProcStage);
 #endif

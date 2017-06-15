@@ -25,7 +25,6 @@ GeantTrack::GeantTrack()
   fRange         = 1.e+20; // range of the particle
   //******************
   fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-  fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
   fTheZPathLenght          = 0.;   // projection of transport distance along the original direction
@@ -91,7 +90,6 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
   fRange         = 1.e+20;
   //******************
   fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-  fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
   fTheZPathLenght          = 0.;   // projection of transport distance along the original direction
@@ -140,7 +138,6 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
   fRange         = 1.e+20;
   //******************
   fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-  fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
   fTheZPathLenght          = 0.;   // projection of transport distance along the original direction
@@ -193,7 +190,6 @@ GeantTrack::GeantTrack(const GeantTrack &other)
   fRange         = other.fRange;
   //******************
   fTheInitialRange         = other.fTheInitialRange;   // the initial (first step or first step in volume) range value of the particle
-  fTheRangeFactor          = other.fTheRangeFactor;   // a step limit factor set
   fTheTrueStepLenght       = other.fTheTrueStepLenght;   // the true step length
   fTheTransportDistance    = other.fTheTransportDistance;   // the straight line distance between the pre- and true post-step points
   fTheZPathLenght          = other.fTheZPathLenght;   // projection of transport distance along the original direction
@@ -272,7 +268,6 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fRange         = other.fRange;
     //******************
     fTheInitialRange         = other.fTheInitialRange;   // the initial (first step or first step in volume) range value of the particle
-    fTheRangeFactor          = other.fTheRangeFactor;   // a step limit factor set
     fTheTrueStepLenght       = other.fTheTrueStepLenght;   // the true step length
     fTheTransportDistance    = other.fTheTransportDistance;   // the straight line distance between the pre- and true post-step points
     fTheZPathLenght          = other.fTheZPathLenght;   // projection of transport distance along the original direction
@@ -359,7 +354,6 @@ void GeantTrack::Clear(const char *) {
   fRange         = 1.e+20;
   //******************
   fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-  fTheRangeFactor          = 0.;   // a step limit factor set
   fTheTrueStepLenght       = 0.;   // the true step length
   fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
   fTheZPathLenght          = 0.;   // projection of transport distance along the original direction

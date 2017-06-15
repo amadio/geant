@@ -162,7 +162,6 @@ double fG1;             // first transport coef.
 double fRange;
 //******************
 double fTheInitialRange;                // the initial (first step or first step in volume) range value of the particle
-double fTheRangeFactor;                    // a step limit factor set
 double fTheTrueStepLenght;              // the true step length
 double fTheTransportDistance;           // the straight line distance between the pre- and true post-step points
 double fTheZPathLenght;                 // projection of transport distance along the original direction

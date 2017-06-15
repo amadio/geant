@@ -47,7 +47,7 @@ void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::Gea
   MSCModel *mscModel = static_cast<MSCModel*>(GetModelManager()->SelectModel(ekin,regIndx));
   // check if:
   // - current true step length is > limit
-  // - current kinetic energy is above the minimum usea
+  // - current kinetic energy is above the minimum
   if (mscModel && minPhysicsStepLength>GetGeomMinLimit()) {
     // will check min/max usage limits, possible additional step limit, update the
     // gtrack->fTheTrueStepLenght and will convert the true->to->geometic length (that will be in gtrack->fTheZPathLenght)
@@ -90,13 +90,14 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
   // - current kinetic energy is above the minimum usea
   if (mscModel && gtrack->fTheTrueStepLenght>GetGeomMinLimit()) {
     truePathLength = gtrack->fTheTrueStepLenght;
-    // might update gtrack->fTheTrueStepLenght
+    // gtrack->fTheTrueStepLenght be updated during the conversion
     mscModel->ConvertGeometricToTrueLength(gtrack, td);
     // protection againts wrong true-geometic-true gonversion
     truePathLength = std::min(truePathLength,gtrack->fTheTrueStepLenght);
     // optimization: scattring is not sampled if the particle is reanged out in this step or short step
     if (gtrack->fRange>truePathLength && truePathLength>GetGeomMinLimit()) {
       // sample scattering: might have been done during the step limit phase
+// NOTE: in G4 the SampleScattering method won't use the possible shrinked truePathLength!!! but make it correct
       gtrack->fTheTrueStepLenght = truePathLength;
       bool hasNewDir = mscModel->SampleScattering(gtrack, td);
       // compute displacement vector length
@@ -104,7 +105,7 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
                             +gtrack->fTheDisplacementVectorY*gtrack->fTheDisplacementVectorY
                             +gtrack->fTheDisplacementVectorZ*gtrack->fTheDisplacementVectorZ );
       // apply displacement: NOTE: no displacement at the moment !!!!
-      if (dl>GetGeomMinLimit() && !gtrack->fBoundary && gtrack->fSafety>0. && 0) {
+      if (dl>GetGeomMinLimit() && !gtrack->fBoundary && 0) {
         // displace the post-step point
         double dir[3]={gtrack->fTheDisplacementVectorX/dl, gtrack->fTheDisplacementVectorY/dl, gtrack->fTheDisplacementVectorZ/dl};
         ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl);

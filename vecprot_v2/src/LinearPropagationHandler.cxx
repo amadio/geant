@@ -67,8 +67,8 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
   if (track->fSafety < 1.E-8) track->fSafety = 0;
 
   // Update time of flight and number of interaction lengths
-  track->fTime += track->TimeStep(track->fStep);
-  track->fNintLen -= track->fStep/track->fIntLen;
+//  track->fTime += track->TimeStep(track->fStep);
+//  track->fNintLen -= track->fStep/track->fIntLen;
 
   // Copy to output
   output.AddTrack(track);
@@ -118,8 +118,8 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
     if (track->fSafety < 1.E-8) track->fSafety = 0;
 
     // Update time of flight and number of interaction lengths
-    track->fTime += track->TimeStep(track->fStep);
-    track->fNintLen -= track->fStep/track->fIntLen;
+//    track->fTime += track->TimeStep(track->fStep);
+//    track->fNintLen -= track->fStep/track->fIntLen;
   }
 
 

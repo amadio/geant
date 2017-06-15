@@ -25,6 +25,7 @@
 #include "BetheHeitlerPairModel.h"
 
 #include "MSCProcess.h"
+#include "MSCModel.h"
 #include "GSMSCModel.h"
 
 namespace geantphysics {
@@ -85,6 +86,7 @@ void PhysicsList1::Initialize() {
       EMPhysicsProcess *eMSCProc  = new MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
       GSMSCModel       *gsMSCModel = new GSMSCModel();
+      gsMSCModel->SetMSCSteppingAlgorithm(MSCSteppingAlgorithm::kUseSaftey);
       gsMSCModel->SetLowEnergyUsageLimit(100.*geant::eV);
       gsMSCModel->SetHighEnergyUsageLimit(100.*geant::TeV);
       eMSCProc->AddModel(gsMSCModel);
@@ -137,6 +139,7 @@ void PhysicsList1::Initialize() {
       EMPhysicsProcess *eMSCProc   = new MSCProcess("e+msc");
       // create GS-msc model, set min/max usage limits
       GSMSCModel       *gsMSCModel = new GSMSCModel(false); // for e+
+      gsMSCModel->SetMSCSteppingAlgorithm(MSCSteppingAlgorithm::kUseSaftey);
       gsMSCModel->SetLowEnergyUsageLimit(100.*geant::eV);
       gsMSCModel->SetHighEnergyUsageLimit(100.*geant::TeV);
       gsMSCModel->SetOptionPWAScreening(true);

@@ -34,10 +34,11 @@
 #include "G4PhysicsListHelper.hh"
 
 #include "G4ComptonScattering.hh"
+//#include "G4KleinNishinaModel.hh"  // by defult in G4ComptonScattering
+
 #include "G4GammaConversion.hh"
 //#include "G4PhotoElectricEffect.hh"
 //#include "G4RayleighScattering.hh"
-//#include "G4KleinNishinaModel.hh"
 
 #include "G4eMultipleScattering.hh"
 #include "G4GoudsmitSaundersonMscModel.hh"
@@ -46,7 +47,7 @@
 //#include "G4eplusAnnihilation.hh"
 
 #include "G4EmParameters.hh"
-//#include "G4MscStepLimitType.hh"
+#include "G4MscStepLimitType.hh"
 
 #include "G4BuilderType.hh"
 #include "G4LossTableManager.hh"
@@ -63,13 +64,6 @@ PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstru
   param->SetVerbose(1);
   // inactivate energy loss fluctuations
   param->SetLossFluctuations(false);
-  //
-  //  param->SetMscRangeFactor(0.1);
-  //  param->SetMscStepLimitType(fUseSafetyPlus);// corresponds to Urban fUseSafety (kUseSaftey==>Error-free)
-  param->SetMscStepLimitType(fUseSafety);// corresponds to Urban fUseSafety (kUseSaftey==>Error-free)
-  //param->SetMscSkin(100000000);
-  param->SetMscSkin(3);
-
   // set min/max energy for tables: 100 eV - 100 TeV by default
   //param->SetMinEnergy(100*eV);
   //param->SetMaxEnergy(100*TeV);
@@ -80,6 +74,21 @@ PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstru
   // inactivate to use cuts as final range
   param->SetUseCutAsFinalRange(false);
 
+  //
+  // MSC options and parameters: 3 different stepping algorithms (can be set from the G4 macro)
+  // 1. fUseSafetyPlus: opt0 step limit [corresponds to G4-Urban fUseSafety that is fUseSafetyPlus in G4-GS]
+  param->SetMscStepLimitType(fUseSafetyPlus);
+  // 2. fUseDistanceToBoundary: opt3 step limit [corresponds to G4-Urban fUseDistanceToBoundary]
+  // param->SetMscStepLimitType(fUseDistanceToBoundary);
+  // 3. fUseSafety: error free G4-GS stepping [there is no corresponding G4-Urban]
+  // param->SetMscStepLimitType(fUseSafety);
+  // Skin depth: times elastic mean free path skin near boundaries (can be set from the G4 macro)
+  // - used by the G4-GS model when fUseDistanceToBoundary and fUseSafety stepping is set)
+  param->SetMscSkin(3);
+  // Range factor: (can be set from the G4 macro)
+  param->SetMscRangeFactor(0.1);
+
+  //
   SetPhysicsType(bElectromagnetic);
 }
 

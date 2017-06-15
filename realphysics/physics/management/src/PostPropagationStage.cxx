@@ -47,7 +47,12 @@ Geant::Handler* PostPropagationStage::Select(Geant::GeantTrack *track, Geant::Ge
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   if (!pManager || !(pManager->HasMSCProcess())) {
-    // no any physics process for the particle or no msc process
+    // No any physics process for the particle or no msc process
+    //
+    // True path length is identical to the geometrical one so update time and number of interaction left
+    // here based on fSnext
+    track->fTime += track->TimeStep(track->fStep);
+    track->fNintLen -= track->fStep/track->fIntLen;
     return nullptr;
   }
   // give back the only one handler that will perform the msc step limit phase actions
