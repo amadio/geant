@@ -31,10 +31,10 @@ struct kScalarFloat {
   const static bool_v kFalse = false;
 
   template <class Backend>
-  VECGEOM_CUDA_HEADER_BOTH
+  VECCORE_ATT_HOST_DEVICE
   static VECGEOM_CONSTEXPR_RETURN bool IsEqual() { return false; }
 
-  VECGEOM_CUDA_HEADER_BOTH
+  VECCORE_ATT_HOST_DEVICE
   VECGEOM_FORCE_INLINE
   static Precision Convert(Precision const &input) { return input; }
 };
@@ -54,7 +54,7 @@ constexpr size_t kVectorSize  = 1;
 #endif
 
 //template <>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //inline VECGEOM_CONSTEXPR_RETURN bool kScalar::IsEqual<kScalar>() {
 //  return true;
 //}
@@ -64,7 +64,7 @@ typedef kScalar::precision_v ScalarDouble;
 typedef kScalar::bool_v   ScalarBool;
 
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void CondAssign(const bool cond,
 //                Type const &thenval, Type const &elseval, Type *const output) {
@@ -72,68 +72,68 @@ typedef kScalar::bool_v   ScalarBool;
 //}
 
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void MaskedAssign(const bool cond,
 //                  Type const &thenval, Type *const output) {
 //  *output = (cond) ? thenval : *output;
 //}
 
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //bool IsFull(bool const &cond){
 //    return cond;
 //}
 //
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //bool Any(bool const &cond) {
 //  return cond;
 //}
 //
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //bool IsEmpty(bool const &cond){
 //    return !cond;
 //}
 
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type Pow(Type const &x, Type arg) {
 //   return pow(x,arg);
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type Pow(Type const &x, int arg) {
 //   return pow(x,arg);
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type Abs(const Type val) {
 //  return fabs(val);
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type Sqrt(const Type val) {
 //  return std::sqrt(val);
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type Pow(const Type val1, const Type val2) {
 //  return std::pow(val1, val2);
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type Cbrt(const Type val1) {
 //  return cbrt(val1);
@@ -141,7 +141,7 @@ typedef kScalar::bool_v   ScalarBool;
 //
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type ATan2(const Type y, const Type x) {
 //  if (x != 0) return  std::atan2(y, x);
@@ -151,7 +151,7 @@ typedef kScalar::bool_v   ScalarBool;
 //}
 //
 //template <typename T>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //T Min(T const &val1, T const &val2) {
 //#ifndef VECGEOM_NVCC_DEVICE
@@ -162,7 +162,7 @@ typedef kScalar::bool_v   ScalarBool;
 //}
 //
 //template <typename T>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //T Max(T const &val1, T const &val2) {
 //#ifndef VECGEOM_NVCC_DEVICE
@@ -172,25 +172,25 @@ typedef kScalar::bool_v   ScalarBool;
 //#endif
 //}
 
-VECGEOM_CUDA_HEADER_BOTH
+VECCORE_ATT_HOST_DEVICE
 VECGEOM_FORCE_INLINE
 float sin(const float radians) {
   return std::sin(radians);
 }
 
-VECGEOM_CUDA_HEADER_BOTH
+VECCORE_ATT_HOST_DEVICE
 VECGEOM_FORCE_INLINE
 float cos(const float radians) {
   return std::cos(radians);
 }
 
-VECGEOM_CUDA_HEADER_BOTH
+VECCORE_ATT_HOST_DEVICE
 VECGEOM_FORCE_INLINE
 float tan(const float radians) {
   return std::tan(radians);
 }
 
-VECGEOM_CUDA_HEADER_BOTH
+VECCORE_ATT_HOST_DEVICE
 VECGEOM_FORCE_INLINE
 float Floor( float val ){
     return std::floor(val);
@@ -198,7 +198,7 @@ float Floor( float val ){
 
 //#ifndef VECGEOM_USOLIDS
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void swap(Type &a, Type &b) {
 //  std::swap(a, b);
@@ -206,7 +206,7 @@ float Floor( float val ){
 //#endif
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void copy(Type const *begin, Type const *const end, Type *const target) {
 //#ifndef VECGEOM_NVCC_DEVICE
@@ -217,7 +217,7 @@ float Floor( float val ){
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void reverse_copy(Type const *const begin, Type const *end,
 //                  Type *const target) {
@@ -229,7 +229,7 @@ float Floor( float val ){
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void reverse(Type *begin, Type *end) {
 //#ifndef VECGEOM_NVCC_DEVICE
@@ -240,7 +240,7 @@ float Floor( float val ){
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //Type* AlignedAllocate(size_t size) {
 //#ifndef VECGEOM_NVCC
@@ -251,7 +251,7 @@ float Floor( float val ){
 //}
 //
 //template <typename Type>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //void AlignedFree(Type *allocated) {
 //#ifndef VECGEOM_NVCC
@@ -262,14 +262,14 @@ float Floor( float val ){
 //}
 //
 //template <typename IteratorType>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //IteratorType min_element(IteratorType first, IteratorType last) {
 //  return std::min_element(first, last);
 //}
 //
 //template <typename IteratorType>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //bool all_of(IteratorType first, IteratorType last) {
 //  return std::all_of(first, last, [](bool b){return b;});
@@ -277,7 +277,7 @@ float Floor( float val ){
 //}
 //
 //template <typename InputIterator1, typename InputIterator2>
-//VECGEOM_CUDA_HEADER_BOTH
+//VECCORE_ATT_HOST_DEVICE
 //VECGEOM_FORCE_INLINE
 //bool equal(InputIterator1 first, InputIterator1 last, InputIterator2 target) {
 //#ifndef VECGEOM_NVCC_DEVICE

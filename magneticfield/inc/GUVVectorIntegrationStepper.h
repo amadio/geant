@@ -47,7 +47,8 @@ class GUVVectorIntegrationStepper
         // ---------------------
         virtual void StepWithErrorEstimate( const Double_v y[],
                                             const Double_v dydx[],
-                                                  double h,
+//                                            const Double_v h,
+                                                  double   h, 
                                                   Double_v yout[],
                                                   Double_v yerr[]  ) = 0;
         // Integrate typically using Runge Kutta 

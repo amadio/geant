@@ -15,14 +15,14 @@ inline namespace VECGEOM_IMPL_NAMESPACE {
 
 struct kVcFloat {
   typedef Vc::int_v                   int_v;
-  typedef Vc::Vector<float>       precision_v;
-  typedef Vc::Vector<float>::Mask bool_v;
+  typedef Vc::Vector<float>           precision_v;
+  typedef Vc::Vector<float>::Mask     bool_v;
   typedef Vc::Vector<int>             inside_v;
   constexpr static bool early_returns = false;
-  const static precision_v kOne;
-  const static precision_v kZero;
-  const static bool_v kTrue;
-  const static bool_v kFalse;
+  const static precision_v            kOne;
+  const static precision_v            kZero;
+  const static bool_v                 kTrue;
+  const static bool_v                 kFalse;
   // alternative typedefs ( might supercede above typedefs )
   typedef Vc::int_v                   Int_t;
   typedef Vc::Vector<Precision>       Double_t;
@@ -31,10 +31,10 @@ struct kVcFloat {
 };
 
 //constexpr int kVectorSize = kVcFloat::precision_v::Size;
-typedef kVcFloat::int_v       VcIntFloat;
-typedef kVcFloat::precision_v VcPrecisionFloat;
-typedef kVcFloat::bool_v      VcBoolFloat;
-typedef kVcFloat::inside_v    VcInsideFloat;
+typedef kVcFloat::int_v           VcIntFloat;
+typedef kVcFloat::precision_v     VcPrecisionFloat;
+typedef kVcFloat::bool_v          VcBoolFloat;
+typedef kVcFloat::inside_v        VcInsideFloat;
 
 #if 0
 // The VcFloat backend is included at the same type as Vc backend, consequently

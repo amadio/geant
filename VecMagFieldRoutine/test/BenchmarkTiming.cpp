@@ -27,12 +27,13 @@
 
 #include "backend/vc/Backend.h"
 // #include "backend/vcfloat/Backend.h"
-#include "VcFloatBackend.h"
 #include "base/Vector.h"
 
 #include "base/Vector3D.h"
 #include "base/SOA3D.h"
 #include "base/Global.h"
+
+#include "VcFloatBackend.h"
 
 // #include "VC_NO_MEMBER_GATHER"
 

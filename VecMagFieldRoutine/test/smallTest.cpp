@@ -27,12 +27,13 @@
 
 #include "backend/vc/Backend.h"
 // #include "backend/vcfloat/Backend.h"
-#include "VcFloatBackend.h"
 #include "base/Vector.h"
 
 #include "base/Vector3D.h"
 #include "base/SOA3D.h"
 #include "base/Global.h"
+
+#include "VcFloatBackend.h"
 
 // #include "MagField.h"
 
@@ -40,12 +41,15 @@
 
 using namespace std;
 
+#if 1
 typedef vecgeom::Vector3D<double> ThreeVector; //normal Vector3D
 typedef vecgeom::Vector3D<vecgeom::kVc::precision_v> ThreeVecSimd_t;
 typedef vecgeom::Vector<double> VcVectorFloat;
-
-
-
+#else
+using ThreeVector=     vecgeom::Vector3D<double> ThreeVector; ; //normal Vector3D
+using ThreeVecSimd_t=  vecgeom::Vector3D<vecgeom::kVc::precision_v>;
+using VcVectorFloat =  vecgeom::Vector<double>;
+#endif
 
 int main(){
 

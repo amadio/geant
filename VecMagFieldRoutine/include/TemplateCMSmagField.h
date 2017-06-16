@@ -49,8 +49,10 @@
 #include "base/Global.h"
 
 #include "backend/Backend.h"
-// #include "backend/scalarfloat/Backend.h"
-#include "ScalarFloatBackend.h"
+// #include "backend/scalarfloat/Backend.h"   //  First adaptation (to removal) 2016
+// #include "ScalarFloatBackend.h"    // Trial replacement 2017.07.18
+// #include "Backend/Scalar.h"           //  New 2017.07.18
+// #include "Scalar.h"           //  New 2017.07.18
 
 // Configuration options - to be improved and incorporated in CMakeLists.txt
 //
@@ -352,10 +354,12 @@ void TemplateCMSmagField<Backend>
 // Scalar Backend method 
 template </*class Backend*/>
 INLINE_CHOICE 
-void TemplateCMSmagField<vecgeom::kScalarFloat>
-  ::Gather2(const typename vecgeom::kScalarFloat::precision_v index, 
-                  typename vecgeom::kScalarFloat::precision_v B1[3],
-                  typename vecgeom::kScalarFloat::precision_v B2[3])
+void TemplateCMSmagField<vecCore::Scalar<float>> // vecgeom::kScalarFloat>
+  ::Gather2(const typename vecCore::Scalar::Real_v index, 
+                  typename vecCore::Scalar::Real_v B1[3],
+                  typename vecCore::Scalar::Real_v B2[3])
+               // typename vecgeom::kScalarFloat::precision_v B2[3])
+   
 {
 
     int intIndex= (int) index;
@@ -506,7 +510,8 @@ void TemplateCMSmagField<Backend>
     CartesianToCylindrical(pos, cyl); 
     vecgeom::Vector3D<Float_v> rzField;
     GetFieldValueRZ(cyl[0], cyl[1], rzField); //cyl[2] =[r,z]
-    
+
+#ifdef OLD_CODE    
     float zero = 0.0f;
     float one  = 1.0f;
     Float_v sinTheta(zero), cosTheta(one); //initialize as theta=0
@@ -519,7 +524,13 @@ void TemplateCMSmagField<Backend>
     vecgeom::MaskedAssign(nonZero, 1.0f/cyl[0]    , &rInv    );
     sinTheta = pos.y()*rInv;
     vecgeom::MaskedAssign(nonZero, pos.x()*rInv, &cosTheta);
-
+#else
+    vecCore::Mask_v<float> nonZero = (cyl[0] != Float_v(0.0f) );     
+    Float_v rInv     = vecCore::Blend(nonZero, 1.0f / cyl[0],  Float_v(0.0f) );
+    Float_v sinTheta = pos.y() * rInv;
+    Float_v cosTheta = vecCore::Blend(nonZero, pos.x() * rInv, Float_v(1.0f) );
+#endif
+    
     CylindricalToCartesian(rzField, sinTheta, cosTheta, xyzField);
 
     xyzField *= fieldUnits::tesla;

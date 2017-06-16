@@ -63,7 +63,8 @@
 #include <Vc/Vc>
 #include "backend/vc/Backend.h"
 // #include "backend/vcfloat/Backend.h"
-#include "VcFloatBackend.h"
+
+#include "VcFloatBackend.h"    //  Trying to do without  2017.07.18  16.16
 
 #include "GUVMagneticField.h"
 
@@ -446,20 +447,28 @@ void CMSmagField::GetFieldValue(const vecgeom::Vector3D<typename Backend::precis
     CartesianToCylindrical<Backend>(pos, cyl); 
     vecgeom::Vector3D<Float_v> rzField;
     GetFieldValueRZ<Backend>(cyl[0], cyl[1], rzField); //cyl[2] =[r,z]
-    
+
+
+#ifdef OLD_CODE    
     float zero = 0.0f;
     float one  = 1.0f;
     Float_v sinTheta(zero), cosTheta(one); //initialize as theta=0
     //To take care of r =0 case 
-
+    Bool_v<  nonZero = (cyl[0] != zero);
+    Float_v rInv   = zero;
     //MaskedAssign(cond, value , var );
     //where cond is Bool_v, value is value calculated, var is the variable taking value 
-    Bool_v nonZero = (cyl[0] != zero); 
-    Float_v rInv   = zero;
     vecgeom::MaskedAssign<float>(nonZero, 1.0f/cyl[0]    , &rInv    );
-    sinTheta = pos.y()*rInv;
+    // vecCore::MaskedAssign<float>( &rInv, nonZero, 1.0f/cyl[0] );
     vecgeom::MaskedAssign<float>(nonZero, pos.x()*rInv, &cosTheta);
-
+#else
+    using vecCore::Mask_v;
+    // using vecCore::Float_v;
+    Mask_v<float> nonZero = (cyl[0] != 0.0f ); // Float_v(0.0f) );     
+    Float_v rInv     = vecCore::Blend(nonZero, 1.0f / cyl[0],  Float_v(0.0f) );
+    Float_v sinTheta = pos.y() * rInv;
+    Float_v cosTheta = vecCore::Blend(nonZero, pos.x() * rInv, Float_v(1.0f) );
+#endif
     CylindricalToCartesian<Backend>(rzField, sinTheta, cosTheta, xyzField);
 }
 
@@ -472,7 +481,8 @@ void CMSmagField::GetFieldValue(const vecgeom::Vector3D<double>  &pos_d,
    //                        vecgeom::Vector3D<float> &xyzField)
 
    const vecgeom::Vector3D<float>  &pos_f= pos_d;
-   GetFieldValue<vecgeom::kScalarFloat>( pos_f, xyzField );
+   // GetFieldValue<vecgeom::kScalarFloat>( pos_f, xyzField );
+   GetFieldValue( pos_f, xyzField );
 }
 
 // This class is thread safe.  So other threads can use the same instance

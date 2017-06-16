@@ -43,8 +43,9 @@ GUVVectorHelicalStepper::~GUVVectorHelicalStepper()
 
 void
 GUVVectorHelicalStepper::AdvanceHelix( const Vc::Vector<double>  yIn[],
-                                             vecgeom::Vector3D<Vc::Vector<double> > Bfld,    
-                                             double  h,
+                                             vecgeom::Vector3D<Vc::Vector<double> > Bfld,
+                                       //                              const Vc::Vector<double>  h,
+                                       double h,
                                              Vc::Vector<double>  yHelix[],
                                              Vc::Vector<double>  yHelix2[] )
 {
@@ -75,8 +76,6 @@ GUVVectorHelicalStepper::AdvanceHelix( const Vc::Vector<double>  yIn[],
   
   Double_v R_1 = GetInverseCurve(velocityVal,Bmag);
 
-
-
   //from if statement
   LinearStep( yIn, h, yHelix );
   
@@ -99,9 +98,9 @@ GUVVectorHelicalStepper::AdvanceHelix( const Vc::Vector<double>  yIn[],
   //if inside else
   Bool_v trigCond = Vc::abs(Theta) > approc_limit;
   // vecCore::MaskedAssign(&SinT, trigCond, Vc::sin(Theta));
-  vecCore__MaskedAssignFunc(&SinT, trigCond, Vc::sin(Theta));
+  vecCore__MaskedAssignFunc(SinT, trigCond, Vc::sin(Theta));
   // vecCore::MaskedAssign(&CosT, trigCond, Vc::cos(Theta));
-  vecCore__MaskedAssignFunc(&CosT, trigCond, Vc::cos(Theta));
+  vecCore__MaskedAssignFunc(CosT, trigCond, Vc::cos(Theta));
   
   Double_v R = 1.0 / R_1;
 
@@ -110,7 +109,7 @@ GUVVectorHelicalStepper::AdvanceHelix( const Vc::Vector<double>  yIn[],
 
   // Store the resulting position and tangent
 
-  // yHelix[0] = yIn[0] + positionMove.x(); 
+  // yHelix[0] = yIn[0] + positionMove.x();
   // yHelix[1] = yIn[1] + positionMove.y(); 
   // yHelix[2] = yIn[2] + positionMove.z();
   // yHelix[3] = velocityVal * endTangent.x();
@@ -140,20 +139,31 @@ GUVVectorHelicalStepper::AdvanceHelix( const Vc::Vector<double>  yIn[],
 
   Double_v ptan=velocityVal*B_v_P;
 
-  R_Helix =Vc::abs( ptan/(fUnitConstant  * fParticleCharge*Bmag));
-     
+  using vecCore::math::Abs;
 
+  R_Helix =Abs( ptan/(fUnitConstant  * fParticleCharge*Bmag));
+  // Was: 
+  //    R_Helix =Vc::abs( ptan/(fUnitConstant  * fParticleCharge*Bmag));
+  
   // for too small magnetic fields there is no curvature
   // (include momentum here) FIXME
+  // Bool_v
+  vecCore::Mask<Double_v>
+     noCurvatureCond = ( Abs(R_1) < 1e-10) || (Bmag<1e-12);
 
-  Bool_v noCurvatureCond = (Vc::abs(R_1) < 1e-10) || (Bmag<1e-12);
-  veccore__MaskedAssignFunc( &Theta,   noCurvatureCond, 1. );
-  veccore__MaskedAssignFunc( &R,       noCurvatureCond, h  );
-  veccore__MaskedAssignFunc( $R_Helix, noCurvatureCond, 0. );
+  vecCore::MaskedAssign( Theta,   noCurvatureCond, Double_v(1.) );
+  // vecCore__MaskedAssignFunc( Theta,   noCurvatureCond, 1. );  
+  // vecCore::MaskedAssign( R,       noCurvatureCond, h  );
+  vecCore::MaskedAssign( R,       noCurvatureCond, Double_v(h)  );  
+  // vecCore::MaskedAssign( R_Helix, noCurvatureCond, 0. );
+  vecCore::MaskedAssign( R_Helix, noCurvatureCond, Double_v(0.) );
 
-  SetAngCurve(Vc::abs(Theta));
-  SetCurve(Vc::abs(R));
-  SetRadHelix(R_Helix);
+  // R       = vecCore::Blend( noCurvatureCond, h  );  
+  // R_Helix = vecCore::Blend( noCurvatureCond, 0, Abs( ptan/(fUnitConstant  * fParticleCharge*Bmag)) );
+  
+  SetAngCurve( Vc::abs(Theta) );
+  SetCurve(    Vc::abs(R) );
+  SetRadHelix( R_Helix    );
 }
 
 
@@ -216,9 +226,9 @@ GUVVectorHelicalStepper::DistChord() const
   Vc::Vector<double> Ang=GetAngCurve();
   Vc::Vector<double> returnValue;
 
-  vecCore__MaskedAssignFunc( &returnValue, Ang<=pi,             GetRadHelix()*(1-Vc::cos(0.5*Ang)) );
-  vecCore__MaskedAssignFunc( &returnValue, Ang>pi && Ang<twopi, GetRadHelix()*(1+Vc::cos(0.5*(twopi-Ang))) ); 
-  vecCore__MaskedAssignFunc( &returnValue, Ang>= twopi,         2*GetRadHelix() ); 
+  vecCore__MaskedAssignFunc( returnValue, Ang<=pi,             GetRadHelix()*(1-Vc::cos(0.5*Ang)) );
+  vecCore__MaskedAssignFunc( returnValue, Ang>pi && Ang<twopi, GetRadHelix()*(1+Vc::cos(0.5*(twopi-Ang))) ); 
+  vecCore__MaskedAssignFunc( returnValue, Ang>= twopi,         2*GetRadHelix() ); 
 
   return returnValue;
 

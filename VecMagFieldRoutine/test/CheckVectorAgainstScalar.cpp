@@ -10,7 +10,7 @@
 #include <Vc/Vc>
 #include "backend/vc/Backend.h"
 // #include "backend/vcfloat/Backend.h"
-#include "VcFloatBackend.h"
+// #include "VcFloatBackend.h"
 #include "base/Vector.h"
 
 //#include "test/unit_tests/ApproxEqual.h"
