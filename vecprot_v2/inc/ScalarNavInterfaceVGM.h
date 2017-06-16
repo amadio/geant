@@ -61,10 +61,6 @@ public:
   static
   void NavFindNextBoundaryAndStep(GeantTrack &track);
 
-  VECCORE_ATT_HOST_DEVICE
-  static
-  void NavFindNextBoundaryAndStepMSC(GeantTrack &track, double step);
-
   /** @brief Find distance to next boundary */
   VECCORE_ATT_HOST_DEVICE
   static
@@ -111,7 +107,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   static
-  double DisplaceTrack(GeantTrack &track, const double dir[3], double step);
+  void DisplaceTrack(GeantTrack &track, const double dir[3], double step, double mindisp);
 
 };
 } // GEANT_IMPL_NAMESPACE

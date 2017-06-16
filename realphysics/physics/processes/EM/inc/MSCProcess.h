@@ -24,10 +24,11 @@ public:
   virtual void  AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const ;
 
   double GetGeomMinLimit() const     { return fGeomMinLimit; }
-  void   GetGeomMinLimit(double val) { fGeomMinLimit = val;  }
+  void   SetGeomMinLimit(double val) { fGeomMinLimit = val;  fGeomMinLimit2 = val*val;}
 
 private:
-  double fGeomMinLimit; // if the true step length is below this => no msc
+  double fGeomMinLimit;  // if the true step length is below this => no msc
+  double fGeomMinLimit2; // square of the above
 };
 
 }       // namespace geantphysics

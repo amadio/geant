@@ -20,6 +20,7 @@
 namespace geantphysics {
 
 MSCProcess::MSCProcess(const std::string &name) : EMPhysicsProcess(name), fGeomMinLimit(0.05*geant::nm) {
+  fGeomMinLimit2 = fGeomMinLimit*fGeomMinLimit;
   // process type is kElectromagnetic in the base EMPhysicsProcess calss so set it to kMSC
   SetType(ProcessType::kMSC);
   // set to be a pure continuous process
@@ -97,18 +98,18 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
     // optimization: scattring is not sampled if the particle is reanged out in this step or short step
     if (gtrack->fRange>truePathLength && truePathLength>GetGeomMinLimit()) {
       // sample scattering: might have been done during the step limit phase
-// NOTE: in G4 the SampleScattering method won't use the possible shrinked truePathLength!!! but make it correct
+      // NOTE: in G4 the SampleScattering method won't use the possible shrinked truePathLength!!! but make it correct
       gtrack->fTheTrueStepLenght = truePathLength;
       bool hasNewDir = mscModel->SampleScattering(gtrack, td);
       // compute displacement vector length
-      double dl = std::sqrt( gtrack->fTheDisplacementVectorX*gtrack->fTheDisplacementVectorX
-                            +gtrack->fTheDisplacementVectorY*gtrack->fTheDisplacementVectorY
-                            +gtrack->fTheDisplacementVectorZ*gtrack->fTheDisplacementVectorZ );
-      // apply displacement: NOTE: no displacement at the moment !!!!
-      if (dl>GetGeomMinLimit() && !gtrack->fBoundary && 0) {
+      double dl =   gtrack->fTheDisplacementVectorX*gtrack->fTheDisplacementVectorX
+                  + gtrack->fTheDisplacementVectorY*gtrack->fTheDisplacementVectorY
+                  + gtrack->fTheDisplacementVectorZ*gtrack->fTheDisplacementVectorZ;
+      if (dl>fGeomMinLimit2 && !gtrack->fBoundary) {
         // displace the post-step point
+        dl = std::sqrt(dl);
         double dir[3]={gtrack->fTheDisplacementVectorX/dl, gtrack->fTheDisplacementVectorY/dl, gtrack->fTheDisplacementVectorZ/dl};
-        ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl);
+        ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl,GetGeomMinLimit());
       }
       // apply msc nagular deflection if we are not on boundary
       // otherwise keep the original direction
