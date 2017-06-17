@@ -36,6 +36,10 @@ MSCProcess::~MSCProcess() {}
 // called at the PrePropagationStage(in the Handler)
 void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {
   // init all lengths to the current minimum physics step length (that is the true length)
+  //
+  bool isOnBoundaryPostStp = gtrack->fBoundary;
+  gtrack->fBoundary        = gtrack->fIsOnBoundaryPreStp;
+  // get the phyics step limit due to all (other than msc) physics processes (that was used in the geometry stage)
   double minPhysicsStepLength   = gtrack->fPstep;
   gtrack->fTheTrueStepLenght    = minPhysicsStepLength;
   gtrack->fTheTransportDistance = minPhysicsStepLength;
@@ -60,21 +64,18 @@ void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::Gea
   }
   // update gtrack->fPstep to be the geometric step length (this is what propagation needs):
   // straight line discrete along the original direction
-  if (gtrack->fPstep < gtrack->fTheZPathLenght) {
-    std::cerr<<" ********************  fPstep = "<<gtrack->fPstep
-             << " < gtrack->fTheZPathLenght = " << gtrack->fTheZPathLenght
-             << std::endl;
-  }
   // protection: geometric legth must always be <= than the true physics step length
   gtrack->fTheZPathLenght = std::min(gtrack->fTheZPathLenght, minPhysicsStepLength);
   gtrack->fPstep          = gtrack->fTheZPathLenght;
-/*
-  if (gtrack->fSnext > gtrack->fPstep) {
-    // MSC has changed the proposed step, which became smaller than snext !!!
-    gtrack->fSnext = gtrack->fPstep;
+  // check if the geometrical physics step (true is change now by MSC to geometric) become shorter than snext and limit
+  // snext to this geometrical physics step (track will be propagated to snext distance) and set the post-step point
+  // boundary flag to false (we pulled back)
+  if (gtrack->fSnext>gtrack->fPstep) {
+    gtrack->fSnext    = gtrack->fPstep;
     gtrack->fBoundary = false;
+  } else { // write back the original post-step point boundary flag and do nothing
+    gtrack->fBoundary = isOnBoundaryPostStp;
   }
-*/
 }
 
 // called at the PostPropagationStage(in the Handler)
@@ -111,8 +112,7 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
         double dir[3]={gtrack->fTheDisplacementVectorX/dl, gtrack->fTheDisplacementVectorY/dl, gtrack->fTheDisplacementVectorZ/dl};
         ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl,GetGeomMinLimit());
       }
-      // apply msc nagular deflection if we are not on boundary
-      // otherwise keep the original direction
+      // apply msc agular deflection
 //      if (!gtrack->fBoundary && hasNewDir) {
       if (hasNewDir) {
         gtrack->fXdir = gtrack->fTheNewDirectionX;

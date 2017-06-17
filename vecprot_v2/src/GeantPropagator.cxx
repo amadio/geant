@@ -412,14 +412,14 @@ int GeantPropagator::CreateSimulationStages()
   stage = fPhysicsInterface->CreateComputeIntLStage(this);
   assert(stage->GetId() == int(kComputeIntLStage));
   // kGeometryStepStage
-//  stage = new GeomQueryStage(this);
-//  assert(stage->GetId() == int(kGeometryStepStage));
+  stage = new GeomQueryStage(this);
+  assert(stage->GetId() == int(kGeometryStepStage));
   // kPrePropagationStage: possible msc step limit or msc
   stage = fPhysicsInterface->CreatePrePropagationStage(this);
   assert(stage->GetId() == int(kPrePropagationStage));
 
-  stage = new GeomQueryStage(this);
-  assert(stage->GetId() == int(kGeometryStepStage));
+//  stage = new GeomQueryStage(this);
+//  assert(stage->GetId() == int(kGeometryStepStage));
 
 
   // kPropagationStage
@@ -448,24 +448,24 @@ int GeantPropagator::CreateSimulationStages()
   //        V
   //        V
   //        V
-//  GetStage(kComputeIntLStage)->SetFollowUpStage(kGeometryStepStage, true);
-  GetStage(kComputeIntLStage)->SetFollowUpStage(kPrePropagationStage, true);
+  GetStage(kComputeIntLStage)->SetFollowUpStage(kGeometryStepStage, true);
+//  GetStage(kComputeIntLStage)->SetFollowUpStage(kPrePropagationStage, true);
   GetStage(kComputeIntLStage)->ActivateBasketizing(false);
   //        V
   //        V
   //        V
-//  GetStage(kGeometryStepStage)->SetFollowUpStage(kPrePropagationStage, true);
-//  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
+  GetStage(kGeometryStepStage)->SetFollowUpStage(kPrePropagationStage, true);
+  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
   //        V
   //        V
   //        V
-//  GetStage(kPrePropagationStage)->SetFollowUpStage(kPropagationStage, true);
-  GetStage(kPrePropagationStage)->SetFollowUpStage(kGeometryStepStage, true);
+  GetStage(kPrePropagationStage)->SetFollowUpStage(kPropagationStage, true);
+//  GetStage(kPrePropagationStage)->SetFollowUpStage(kGeometryStepStage, true);
   GetStage(kPrePropagationStage)->ActivateBasketizing(false);
   //        V
 
-  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
-  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
+//  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
+//  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
 
   //        V
   //        V

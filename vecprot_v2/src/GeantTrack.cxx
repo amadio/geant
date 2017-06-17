@@ -39,6 +39,7 @@ GeantTrack::GeantTrack()
   fPar2                    = 0.;
   fPar3                    = 0.;
 
+  fIsOnBoundaryPreStp        = false;
   fIsEverythingWasDone       = false; // to indicate if everything could be done in the step limit phase
   fIsMultipleSacettring      = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
   fIsSingleScattering        = false; // to indicate that single scattering needs to be done
@@ -104,6 +105,7 @@ GeantTrack::GeantTrack(int ipdg, int maxdepth)
   fPar2                    = 0.;
   fPar3                    = 0.;
 
+  fIsOnBoundaryPreStp        = false;
   fIsEverythingWasDone       = false; // to indicate if everything could be done in the step limit phase
   fIsMultipleSacettring      = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
   fIsSingleScattering        = false; // to indicate that single scattering needs to be done
@@ -152,6 +154,7 @@ GeantTrack::GeantTrack(void *addr, int maxdepth)
   fPar2                    = 0.;
   fPar3                    = 0.;
 
+  fIsOnBoundaryPreStp        = false;
   fIsEverythingWasDone       = false; // to indicate if everything could be done in the step limit phase
   fIsMultipleSacettring      = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
   fIsSingleScattering        = false; // to indicate that single scattering needs to be done
@@ -204,6 +207,7 @@ GeantTrack::GeantTrack(const GeantTrack &other)
   fPar2                    = other.fPar2;
   fPar3                    = other.fPar2;
 
+  fIsOnBoundaryPreStp      = other.fIsOnBoundaryPreStp;
   fIsEverythingWasDone     = other.fIsEverythingWasDone; // to indicate if everything could be done in the step limit phase
   fIsMultipleSacettring    = other.fIsMultipleSacettring; // to indicate that msc needs to be perform (i.e. compute angular deflection)
   fIsSingleScattering      = other.fIsSingleScattering; // to indicate that single scattering needs to be done
@@ -282,6 +286,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fPar2                    = other.fPar2;
     fPar3                    = other.fPar2;
 
+    fIsOnBoundaryPreStp      = other.fIsOnBoundaryPreStp;
     fIsEverythingWasDone     = other.fIsEverythingWasDone; // to indicate if everything could be done in the step limit phase
     fIsMultipleSacettring    = other.fIsMultipleSacettring; // to indicate that msc needs to be perform (i.e. compute angular deflection)
     fIsSingleScattering      = other.fIsSingleScattering; // to indicate that single scattering needs to be done
@@ -368,6 +373,7 @@ void GeantTrack::Clear(const char *) {
   fPar2                    = 0.;
   fPar3                    = 0.;
 
+  fIsOnBoundaryPreStp        = false;
   fIsEverythingWasDone       = false; // to indicate if everything could be done in the step limit phase
   fIsMultipleSacettring      = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
   fIsSingleScattering        = false; // to indicate that single scattering needs to be done

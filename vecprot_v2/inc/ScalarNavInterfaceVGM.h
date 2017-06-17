@@ -66,9 +66,9 @@ public:
   static
   void NavFindNextBoundary(GeantTrack &track);
 
-  VECCORE_ATT_HOST_DEVICE
-  static
-  void NavFindNextBoundaryMSC(GeantTrack &track,double dist);
+//  VECCORE_ATT_HOST_DEVICE
+//  static
+//  void NavFindNextBoundaryMSC(GeantTrack &track,double dist);
 
 
   /**

@@ -70,9 +70,9 @@ enum ESimulationStage {
 #ifdef USE_REAL_PHYSICS
   kPreStepStage         = 0, // Actions at the beginning of the step
   kComputeIntLStage,         // Physics interaction length computation stage
-//  kGeometryStepStage,        // Compute geometry transport length
-  kPrePropagationStage,      // Special msc stage for step limit phase
   kGeometryStepStage,        // Compute geometry transport length
+  kPrePropagationStage,      // Special msc stage for step limit phase
+//  kGeometryStepStage,        // Compute geometry transport length
   kPropagationStage,         // Propagation in field stage
   kPostPropagationStage,     // Special msc stage for along-step action stage
 //  kMSCStage,               // Multiple scattering stage
@@ -176,6 +176,7 @@ double fPar1;
 double fPar2;
 double fPar3;
 
+bool fIsOnBoundaryPreStp;               // to indicate that the particle was on boundary at the pre-step pint
 bool fIsEverythingWasDone;              // to indicate if everything could be done in the step limit phase
 bool fIsMultipleSacettring;             // to indicate that msc needs to be perform (i.e. compute angular deflection)
 bool fIsSingleScattering;               // to indicate that single scattering needs to be done

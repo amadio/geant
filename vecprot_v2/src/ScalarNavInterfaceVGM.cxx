@@ -186,8 +186,10 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
-// Find distance to next boundary, within proposed step.
-   typedef Vector3D<Precision> Vector3D_t;
+  // back-up the pre-step point boundary flag
+  track.fIsOnBoundaryPreStp = track.fBoundary;
+  // Find distance to next boundary, within proposed step.
+  typedef Vector3D<Precision> Vector3D_t;
   // Retrieve navigator for the track
   VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
   // Check if current safety allows for the proposed step
@@ -356,7 +358,7 @@ void ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[3]
   }
 }
 
-
+/*
 void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(GeantTrack &track, double dist) {
 //track.fIsEverythingWasDone = track.fBoundary;
 // Find distance to next boundary, within proposed step.
@@ -364,14 +366,14 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(GeantTrack &track, double dis
   // Retrieve navigator for the track
   VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
   // Check if current safety allows for the proposed step
-  /* doesn't work well: I always need the precise safety and dist. to b.
-  if (track.fSafety > dist) {
-    track.fSnext = dist;
-//    track.fBoundary = false;
-//    *track.fNextpath = *track.fPath;
-    return;
-  }
-  */
+  // doesn't work well: I always need the precise safety and dist. to b.
+  //if (track.fSafety > dist) {
+  //  track.fSnext = dist;
+  //    // track.fBoundary = false;
+  //    // *track.fNextpath = *track.fPath;
+  //  return;
+  //}
+
   track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
                              1.e+20, //Math::Min<double>(1.E20, dist),
@@ -379,6 +381,6 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(GeantTrack &track, double dis
 //  track.fBoundary = track.fPath->IsOnBoundary();
 //  if (track.fSafety==0.) track.fBoundary=true;
 }
-
+*/
 } // GEANT_IMPL_NAMESPACE
 } // Geant
