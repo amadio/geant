@@ -11,6 +11,14 @@ using GeantEventInfo   = Geant::GeantEventInfo;
 
 namespace geantphysics {
 
+/**
+ * @brief   A simple particle gun for some GeantV test applications.
+ * @class   ParticleGun
+ * @author  M Novak, A Ribon
+ * @date    april 2016
+ */
+
+
 class ParticleGun : public PrimaryGenerator {
 private:
   int fAverage; // Average number of tracks for Poisson distribution

@@ -18,6 +18,15 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Model for multiple scattering of e-/e+ based on pre-computed angular distributions computed by means of
+ *          Goudsmit-Saunderson theory based on screened Rutherford DCS.
+ * @class   GSMSCModel
+ * @author  M Novak
+ * @date    June 2017
+ */
+
+
 class GSMSCTable;
 class PWATotalXsecTable;
 class Particle;

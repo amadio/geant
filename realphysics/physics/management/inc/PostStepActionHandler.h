@@ -17,6 +17,13 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Handler for post-step actions (discrete interactions).
+ * @class   PostStepActionHandler
+ * @author  M Novak
+ * @date    May 2017
+ */
+
 class PostStepActionHandler : public Geant::Handler {
 public:
   /** @brief Default constructor */

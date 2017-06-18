@@ -32,11 +32,10 @@ PrePropagationHandler::~PrePropagationHandler() {}
 // active in the given region and (2) has msc process
 void PrePropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
   // ---
-  int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume later
   int   matIndx              = track->GetMaterial()->GetIndex();
   int   regIndx              = const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetRegion()->GetIndex();
-  const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
   // get the internal code of the particle
   int   particleCode         = track->GVcode();
   const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);

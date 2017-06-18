@@ -339,7 +339,7 @@ void ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[3]
     // Retrieve navigator for the track
     VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
     // NOTE: we should have a navigator method to compute only the safety and the following call should be change to that
-    double step = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
+    /*double step =*/ newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                                                Vector3D_t(dir[0], dir[1], dir[2]),
                                                disp, *track.fPath, true, postSafety);
     postSafety *= reduceFactor; // make sure that we never reach the boundary in displacement

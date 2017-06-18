@@ -17,6 +17,13 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Handler for along-step-actions.
+ * @class   AlongStepActionHandler
+ * @author  M Novak
+ * @date    May 2017
+ */
+
 class AlongStepActionHandler : public Geant::Handler {
 public:
   /** @brief Default constructor */

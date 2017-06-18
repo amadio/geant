@@ -8,6 +8,14 @@
 
 namespace geantphysics {
 
+/**
+ * @brief   Pre-prepared process to describe incoherent scattering of photons.
+ * @class   ComptonScatteringProcess
+ * @author  M Novak
+ * @date    April 2017
+ */
+
+
 class ComptonScatteringProcess : public EMPhysicsProcess {
 public:
   ComptonScatteringProcess(const std::string &name = "Compton");

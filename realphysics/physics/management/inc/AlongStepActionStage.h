@@ -17,6 +17,14 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 namespace geantphysics {
 
+/**
+ * @brief   Simulation stage for along-step-actions.
+ * @class   AlongStepActionStage
+ * @author  M Novak
+ * @date    May 2017
+ */
+
+
 class AlongStepActionStage : public Geant::SimulationStage {
 public:
 

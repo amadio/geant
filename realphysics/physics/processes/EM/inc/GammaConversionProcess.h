@@ -8,6 +8,14 @@
 
 namespace geantphysics {
 
+/**
+ * @brief   Pre-prepared process to describe conversion of photons into e-/e+ pair.
+ * @class   GammaConversionProcess
+ * @author  M Novak
+ * @date    April 2017
+ */
+
+
 class GammaConversionProcess : public EMPhysicsProcess {
 public:
   GammaConversionProcess(const std::string &name = "Pair");

@@ -40,7 +40,7 @@ public:
 
   // get the global Region table
   static const std::vector<Region*>& GetTheRegionTable() { return gTheRegionTable; }
-  
+
 private:
   std::string fName;
   int    fIndex; // index of this region

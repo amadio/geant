@@ -3,6 +3,15 @@
 #define PWATOTALXSECTABLE_H
 
 namespace geantphysics {
+
+/**
+ * @brief   Helper class for the GSMSCModel to handle the pre-computed numerical PWA elastic, first and second transport
+ *          cross sections for e-/e+.
+ * @class   PWATotalXsecTable
+ * @author  M Novak
+ * @date    June 2017
+ */
+
 //
 //  PWATotalXsecZ: sub-class for PWA xsec data that belong to a given Z number
 class PWATotalXsecZ {

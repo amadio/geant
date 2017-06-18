@@ -19,6 +19,13 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Base class for multiple Coulomb scattering models.
+ * @class   MSCModel
+ * @author  M Novak
+ * @date    June 2017
+ */
+
 
 enum class MSCSteppingAlgorithm {
   kUseSaftey,

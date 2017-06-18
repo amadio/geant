@@ -15,13 +15,21 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Base class for multiple Coulomb scattering processes.
+ * @class   MSCProcess
+ * @author  M Novak
+ * @date    June 2017
+ */
+
+
 class MSCProcess : public EMPhysicsProcess {
 public:
   MSCProcess(const std::string &name);
   virtual ~MSCProcess();
 
-  virtual void  AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const ;
-  virtual void  AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const ;
+  virtual void  AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
+  virtual void  AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
 
   double GetGeomMinLimit() const     { return fGeomMinLimit; }
   void   SetGeomMinLimit(double val) { fGeomMinLimit = val;  fGeomMinLimit2 = val*val;}

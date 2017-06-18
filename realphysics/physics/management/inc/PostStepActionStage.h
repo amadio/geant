@@ -17,6 +17,13 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 namespace geantphysics {
 
+/**
+ * @brief   Simulation stage to select particles that post-step action (discrete interaction) need to be invoked.
+ * @class   PostStepActionStage
+ * @author  M Novak
+ * @date    May 2017
+ */
+
 class PostStepActionStage : public Geant::SimulationStage {
 public:
 

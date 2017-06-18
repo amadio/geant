@@ -16,6 +16,16 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Special handler for msc to be invoked before the transportation.
+ * @class   PrePropagationHandler
+ * @author  M Novak
+ * @date    June 2017
+ *
+ * Multiple scattering process AlongStepLimitationLength method will be called, at the pre-step point (before the
+ * transportation). The true physics step length limit (due to all other physics processes) will also be changed to
+ * geometrical one that will be used by the transportation.
+ */
 
 class PrePropagationHandler : public Geant::Handler {
 public:

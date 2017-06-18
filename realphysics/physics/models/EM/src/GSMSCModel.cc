@@ -32,7 +32,7 @@ GSMSCTable*        GSMSCModel::gGSTable      = nullptr;
 PWATotalXsecTable* GSMSCModel::gPWAXsecTable = nullptr;
 
 
-GSMSCModel::GSMSCModel(bool iselectron, const std::string &name) : fIsElectron(iselectron),  MSCModel(name) {
+GSMSCModel::GSMSCModel(bool iselectron, const std::string &name) :  MSCModel(name), fIsElectron(iselectron) {
   fIsUseAccurate         = true;
   fIsOptimizationOn      = true;
 
@@ -456,7 +456,7 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
 }
 
 
-void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
+void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
   gtrack->fPar1 = -1.;
   gtrack->fPar2 =  0.;
   gtrack->fPar3 =  0.;
@@ -511,7 +511,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
 }
 
 
-void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
+void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
   // init
   gtrack->fIsEndedUpOnBoundary = false;
   // step was not defined by transportation: i.e. physics

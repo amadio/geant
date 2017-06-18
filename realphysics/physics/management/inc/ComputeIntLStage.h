@@ -17,6 +17,14 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 namespace geantphysics {
 
+/**
+ * @brief   Simulation stage for normal (non msc) physics step limit computation.
+ * @class   ComputeIntLStage
+ * @author  M Novak
+ * @date    May 2017
+ */
+
+
 class ComputeIntLStage : public Geant::SimulationStage {
 public:
   /** @brief ctr */

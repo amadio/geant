@@ -30,7 +30,6 @@ PostPropagationHandler::~PostPropagationHandler() {}
 // active in the given region and (2) has msc process
 void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
   // ---
-  int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume later
   int   matIndx              = track->GetMaterial()->GetIndex();
   int   regIndx              = const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetRegion()->GetIndex();
@@ -52,7 +51,7 @@ void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   mscProc->AlongStepDoIt(track, td);
   // Particles have been propagated by the geometrical step and after the msc AlongStepDoIt this geometrical step
   // is converted back to true step length. Time and number of interaction left must be updated by using this true
-  // path length (that have been written into fStep by msc).  
+  // path length (that have been written into fStep by msc).
   track->fTime += track->TimeStep(track->fStep);
   track->fNintLen -= track->fStep/track->fIntLen;
 

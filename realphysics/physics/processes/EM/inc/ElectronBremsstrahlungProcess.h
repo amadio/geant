@@ -11,6 +11,14 @@
 
 namespace geantphysics {
 
+/**
+ * @brief   Pre-prepared physics process to describe bremsstrahlung photon emission of e-/e+.
+ * @class   ElectronBremsstrahlungProcess
+ * @author  M Novak
+ * @date    September 2016
+ */
+
+
 class ElectronBremsstrahlungProcess : public EMPhysicsProcess {
 public:
   // CTR

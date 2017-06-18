@@ -17,6 +17,14 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Handler for computing the physics step limit forom normal (non msc) processes.
+ * @class   ComputeIntLHandler
+ * @author  M Novak
+ * @date    May 2017
+ */
+
+
 class ComputeIntLHandler : public Geant::Handler {
 public:
   /** @brief Default constructor */

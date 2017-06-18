@@ -16,6 +16,14 @@ namespace Geant {
 
 namespace geantphysics {
 
+/**
+ * @brief   Helper class for the GSMSCModel to handle the pre-computed angular distributions.
+ * @class   GSMSCTable
+ * @author  M Novak
+ * @date    June 2017
+ */
+
+
 class GSMSCTable {
 public:
   GSMSCTable();

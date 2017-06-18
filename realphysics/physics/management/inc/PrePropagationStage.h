@@ -16,6 +16,15 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 namespace geantphysics {
 
+/**
+ * @brief   Special simulation stage for msc to be invoked before the transportation.
+ * @class   PrePropagationStage
+ * @author  M Novak
+ * @date    June 2017
+ *
+ * Particles that have multiple scattering process will be selected at this stage.
+ */
+
 
 class PrePropagationStage : public Geant::SimulationStage {
 public:
