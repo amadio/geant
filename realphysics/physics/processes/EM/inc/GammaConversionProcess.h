@@ -9,7 +9,7 @@
 namespace geantphysics {
 
 /**
- * @brief   Pre-prepared process to describe conversion of photons into e-/e+ pair.
+ * @brief   Pre-prepared physics process to describe conversion of photons into e-/e+ pair.
  * @class   GammaConversionProcess
  * @author  M Novak
  * @date    April 2017
