@@ -137,6 +137,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   int maxdepth = TGeoManager::GetMaxLevels();
+  TrackDataMgr::GetInstance(maxdepth);
   if (nthreads > 1) gGeoManager->SetMaxThreads(nthreads);
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -162,7 +163,6 @@ int main(int argc, char *argv[]) {
   mgr->SetPolicy(NumaPolicy::kCompact);
   mgr->SetNblocks(100);
   mgr->SetBlockSize(10000);
-  mgr->SetMaxDepth(maxdepth);
   mgr->Init();
   int nnodes = mgr->GetNnodes();
   

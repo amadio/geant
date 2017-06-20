@@ -29,9 +29,9 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-template <typename T, bool D=false> class NumaBlockMgr {
+template <typename T> class NumaBlockMgr {
   using size_t = std::size_t;
-  using numa_block_ptr = NumaBlock<T,D>*;
+  using numa_block_ptr = NumaBlock<T>*;
   using queue_t = mpmc_bounded_queue<numa_block_ptr>;
 
   static size_t const cacheline_size = 64;
@@ -44,7 +44,6 @@ private:
   cacheline_pad_t pad0_;   //! Padding to protect the other data from the hot cache line above
   
   int             fNode;  // Numa node id
-  int             fMaxdepth; // Max depth used as extra parameter in allocations
   std::atomic_int fNblocks; // Number of blocks in flight
   std::atomic_int fNreleased; // Number of blocks in flight
   size_t          fBlockSize;  // Numa block size
@@ -53,8 +52,8 @@ private:
 public:
 
   /** @brief Constructor providing number of blocks to be initially created */
-  NumaBlockMgr(size_t nblocks, int numa_node, int maxdepth, size_t bsize) 
-    : fCurrent(nullptr), fNode(numa_node), fMaxdepth(maxdepth), fNblocks(0), fNreleased(0),
+  NumaBlockMgr(size_t nblocks, int numa_node, size_t bsize) 
+    : fCurrent(nullptr), fNode(numa_node), fNblocks(0), fNreleased(0),
       fBlockSize(bsize), fBlocks(queue_buff_size)
   {
     // Constructor creating nblocks
@@ -62,10 +61,7 @@ public:
     for (size_t i=0; i<nblocks; ++i) {
       int id = fNblocks.load();
       fNblocks++;
-      if (D)
-        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth, id);
-      else
-        block = NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, id);
+      block = NumaBlock<T>::MakeInstance(fBlockSize, fNode, id);
       if (i == 0)
         fCurrent.store(block);
       else
@@ -78,8 +74,7 @@ public:
   {
     int id = fNblocks.load();
     fNblocks++;
-    if (D) return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, fMaxdepth, id) );
-    return ( NumaBlock<T,D>::MakeInstance(fBlockSize, fNode, id) );
+    return ( NumaBlock<T>::MakeInstance(fBlockSize, fNode, id) );
   }
 
   /** @brief Get number of queued blocks */
@@ -97,10 +92,10 @@ public:
 //    std::cout << "deleting block manager: " << this << std::endl;
     while (fBlocks.dequeue(block)) {
       if (block == fCurrent.load()) continue;
-      NumaBlock<T,D>::ReleaseInstance(block);
+      NumaBlock<T>::ReleaseInstance(block);
     }
 //    std::cout << "  delete fCurrent\n";
-    NumaBlock<T,D>::ReleaseInstance(fCurrent.load());
+    NumaBlock<T>::ReleaseInstance(fCurrent.load());
   }
 
   /** @brief Get a free block */

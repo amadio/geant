@@ -14,12 +14,15 @@
 #define GEANT_TRACK
 #define NEW_NAVIGATION
 
+#include "base/Vector3D.h"
 #include "Geant/Config.h"
 #include "Geant/Math.h"
 
+#include <functional>
 #include <climits>
 #include <float.h>
 #include <atomic>
+#include <mutex>
 #include "Geant/Typedefs.h"
 
 #ifndef GEANT_ALIGN_PADDING
@@ -92,10 +95,35 @@ enum ESimulationStage {
 #endif
 };
 
-GEANT_DECLARE_CONSTANT(double, gTolerance);
-
 class GeantTaskData;
 class GeantTrack;
+class TrackDataMgr;
+
+using InplaceConstructFunc_t = std::function<void(void*)>;
+using Vector3 = vecgeom::Vector3D<double>;
+
+struct DataInplaceConstructor_t {
+  // A structure keeping a lambda function to construct user data in place, at
+  // a given offset with respect to a base address
+  size_t fDataOffset = 0;
+  InplaceConstructFunc_t fDataConstructor;
+    
+  void operator()(GeantTrack &track) {
+    fDataConstructor((char*)(&track) + fDataOffset);
+  }
+};
+
+struct StepPointInfo {
+  Vector3 fPos;          /** Position */
+  Vector3 fDir;          /** Direction */
+  double fE;             /** Energy */
+  double fP;             /** Momentum */
+  double fTime;          /** Time */
+  VolumePath_t *fPath;   /** Paths for the particle in the geometry */  
+};
+
+GEANT_DECLARE_CONSTANT(double, gTolerance);
+
 #ifndef VECCORE_CUDA
 #ifdef GEANT_USE_NUMA
 typedef NumaAllocator<GeantTrack*> TrackAllocator_t;
@@ -148,8 +176,20 @@ public:
   bool fBoundary;        /** True if starting from boundary */
   bool fPending;         /** Track pending to be processed */
   bool fOwnPath;         /** Marker for path ownership */
+#ifndef GEANT_NEW_DATA_FORMAT
   VolumePath_t *fPath;   /** Paths for the particle in the geometry */
   VolumePath_t *fNextpath; /** Path for next volume */
+#endif  
+  // The track memory layout will be as follows (* mark alignment padding).Sizes are managed by TrackDataMgr singleton.
+  // *_________________*_________________*_________________*_________________*_________________*_________________*_______________
+  // fEvent fEvslot ...  fPreStep fPostStep_________________user_data_1______user_data_2 ...____fPath_pre_step___fPath_post_step
+#ifdef GEANT_NEW_DATA_FORMAT
+  StepPointInfo fPreStep;  /** Pre-step state */
+  StepPointInfo fPostStep; /** Post-step state */
+#endif
+
+  //char fExtraData;        /** Start of user data (total size is stored in TrackDataMgr) */
+  // See: implementation of SizeOfInstance
 
 // msc members: added here in mixed mode (int,bool,double) just for the development phase i.e. need to change later
 //    -- NO SETTERS/GETTERS added
@@ -194,15 +234,19 @@ bool fIsFirstRealStep;                  // to indicate that the particle is maki
   /**
   * @brief GeantTrack in place constructor
   *
-  * @param maxdepth Maximum geometry depth
+  * @param addr Start address
   */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack(void *addr, int maxdepth);
+  GeantTrack(void *addr);
 
-public:
   /** @brief GeantTrack constructor  */
   VECCORE_ATT_HOST_DEVICE
   GeantTrack();
+
+public:
+  /** @brief GeantTrack destructor */
+  VECCORE_ATT_HOST_DEVICE
+  ~GeantTrack();
 
   /**
    * @brief GeantTrack copy constructor
@@ -213,19 +257,6 @@ public:
   /** @brief Operator = */
   VECCORE_ATT_HOST_DEVICE
   GeantTrack &operator=(const GeantTrack &other);
-
-  /**
-  * @brief GeantTrack parametrized constructor
-  *
-  * @param ipdg PDG code
-  * @param maxdepth Maximum geometry depth
-  */
-  VECCORE_ATT_HOST_DEVICE
-  GeantTrack(int ipdg, int maxdepth);
-
-  /** @brief GeantTrack destructor */
-  VECCORE_ATT_HOST_DEVICE
-  ~GeantTrack();
 
   /** @brief Function that return beta value */
   VECCORE_ATT_HOST_DEVICE
@@ -850,15 +881,15 @@ public:
   VECCORE_ATT_HOST_DEVICE
   void SetNextPath(VolumePath_t const *const path);
 
-  /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
+  /** @brief return the contiguous memory size needed to hold a GeantTrack*/
   VECCORE_ATT_HOST_DEVICE
-  static size_t SizeOfInstance(size_t maxdepth);
+  static size_t SizeOfInstance();
 
   /**
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_HOST_DEVICE
-  static GeantTrack *MakeInstanceAt(void *addr, int maxdepth);
+  static GeantTrack *MakeInstanceAt(void *addr);
 
   /**
    * @brief Rounds up an address to the aligned value
@@ -884,6 +915,77 @@ public:
     return (value + GEANT_ALIGN_PADDING - remainder);
   }
   //  ClassDefNV(GeantTrack, 1) // The track
+};
+
+// Track token for user data
+template <typename T>
+class TrackToken
+{
+private:
+  size_t fOffset;   /* offset with respect to track user data base address */
+public:
+  using ValueType_t = T;
+  
+  TrackToken(size_t offset) : fOffset(offset) {}
+  T &operator()(GeantTrack &track) {
+    return *(T*)((char*)(&track) + fOffset);
+  }
+};
+
+// User data manager singleton. Becomes read-only after registration phase
+class TrackDataMgr {
+private:
+  bool fLocked = false; /** Lock flag. User not allowed to register new data type.*/
+  size_t fTrackSize = 0; /** Total track size including alignment rounding */
+  size_t fDataOffset = GeantTrack::round_up_align(sizeof(GeantTrack)); /** Offset for the user data */
+  size_t fMaxDepth = 0;      /** Maximum geometry depth */
+  
+  vector_t<DataInplaceConstructor_t> fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
+  std::mutex fRegisterLock; /** Multithreading lock for the registration phase */
+  
+  TrackDataMgr(size_t maxdepth);
+
+public:
+  static
+  TrackDataMgr *GetInstance(size_t fMaxDepth = 0);
+  
+  GEANT_FORCE_INLINE
+  size_t GetMaxDepth() const { return fMaxDepth; }
+
+  GEANT_FORCE_INLINE
+  size_t GetTrackSize() const { return fTrackSize; }
+  
+  /** @brief Apply in-place construction of user-defined data on the track */
+  void InitializeTrack(GeantTrack &track) {
+    fLocked = true;
+    // Construct objects at base address + offset
+    for (auto construct : fConstructors)
+      construct(track);
+  }
+  
+  /** @brief Lock any further registration */
+  void Lock()
+  {
+    std::lock_guard<std::mutex> lock(fRegisterLock);
+    fLocked = true;
+  }
+  
+  template <typename T, typename... Params>
+  TrackToken<T> RegisterDataType(Params... params)
+  {
+    if (fLocked) throw std::runtime_error("Registering types in the track is locked");
+    std::lock_guard<std::mutex> lock(fRegisterLock);
+    auto userinplaceconstructor = [&](void * address) {
+      new (address) T(params...);
+    };
+    // Calculate data offset
+    size_t newsize = fTrackSize + sizeof(T);
+    DataInplaceConstructor_t ctor {fTrackSize, userinplaceconstructor};
+    fConstructors.push_back(ctor);
+    TrackToken<T> token(fTrackSize);
+    fTrackSize = newsize;
+    return token;
+  }
 };
 
 } // GEANT_IMPL_NAMESPACE

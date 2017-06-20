@@ -22,6 +22,7 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
   class GeantPropagator;
   class SimulationStage;
+  class TrackDataMgr;
 }
 }
 
@@ -33,6 +34,7 @@ class PhysicsInterface {
 public:
   using GeantTrack_v  = Geant::GeantTrack_v;
   using GeantTaskData = Geant::GeantTaskData;
+  using TrackDataMgr  = Geant::TrackDataMgr;
 
 public:
   /**
@@ -45,6 +47,9 @@ public:
 
   /** @brief Function of initialization */
   virtual void Initialize() {}
+
+  /** @brief Function for registering track custom data */
+  virtual void RegisterTrackData(TrackDataMgr */*dataMgr*/) {}
 
   // Interface methods to obtain physics realted symulation stages when V3 is used.
   // These methods are called from the Geant::GeantPropagator::CreateSimulationStages

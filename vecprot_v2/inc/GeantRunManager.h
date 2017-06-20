@@ -28,6 +28,7 @@ class GeantPropagator;
 class TaskBroker;
 class PhysicsProcessOld;
 class GeantVApplication;
+class GeantVDetectorConstruction;
 class GeantVTaskMgr;
 class GeantEventServer;
 class GeantEvent;
@@ -66,6 +67,7 @@ private:
 
   GeantVApplication *fApplication = nullptr;    /** User application */
   GeantVApplication *fStdApplication = nullptr; /** Standard application */
+  GeantVDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
   GeantVTaskMgr     *fTaskMgr = nullptr;        /** GeantV task manager */
   PhysicsProcessOld *fProcess = nullptr;           /** For now the only generic process pointing to the tabulated physics */
   PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
@@ -133,6 +135,9 @@ public:
   int  GetInitialShare() const { return fInitialShare; }
 
   GEANT_FORCE_INLINE
+  GeantVDetectorConstruction *GetDetectorConstruction() const { return fDetConstruction; }
+
+  GEANT_FORCE_INLINE
   void  SetInitialShare(int nbaskets) { fInitialShare = nbaskets; }
 
   GEANT_FORCE_INLINE
@@ -169,6 +174,9 @@ public:
 
   GEANT_FORCE_INLINE
   void SetUserApplication(GeantVApplication *app) { fApplication = app; }
+
+  GEANT_FORCE_INLINE
+  void SetDetectorConstruction(GeantVDetectorConstruction *det) { fDetConstruction = det; }
 
   GEANT_FORCE_INLINE
   void SetTaskMgr(GeantVTaskMgr *taskmgr) { fTaskMgr = taskmgr; }

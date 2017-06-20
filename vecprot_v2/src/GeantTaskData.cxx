@@ -21,17 +21,15 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
-    : fTrack(0, maxDepth)
+GeantTaskData::GeantTaskData(size_t nthreads, int maxPerBasket)
 {
   // Constructor
   fNthreads = nthreads;
-  fMaxDepth = maxDepth;
   fSizeBool = fSizeDbl = fSizeInt = 5 * maxPerBasket;
   fBoolArray = new bool[fSizeBool];
   fDblArray = new double[fSizeDbl];
   fIntArray = new int[fSizeInt];
-  fPath = VolumePath_t::MakeInstance(fMaxDepth);
+  fPath = VolumePath_t::MakeInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
   fPathV = new VolumePath_t*[maxPerBasket];
   fNextpathV = new VolumePath_t*[maxPerBasket];
   fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
@@ -43,32 +41,31 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket)
   fRndm = new TRandom();
 #endif
 #endif
-  fTransported = new GeantTrack_v(maxPerBasket, maxDepth);
-//  fStat = new TrackStat(this);
+  fTransported = new GeantTrack_v(maxPerBasket, TrackDataMgr::GetInstance()->GetMaxDepth());
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxPerBasket, GeantPropagator *prop)
-    : fPropagator(prop), fNthreads(nthreads), fMaxDepth(maxDepth), fTrack(0, maxDepth)
+GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, GeantPropagator *prop)
+    : fPropagator(prop), fNthreads(nthreads)
 {
   // Constructor
   char *buffer = (char*)addr;
   buffer += GeantTrack::round_up_align(sizeof(GeantTaskData));
   buffer = GeantTrack::round_up_align(buffer);
 
-  fPath = VolumePath_t::MakeInstanceAt(fMaxDepth,(void*)buffer);
+  fPath = VolumePath_t::MakeInstanceAt(TrackDataMgr::GetInstance()->GetMaxDepth(), (void*)buffer);
   fPathV = new VolumePath_t*[maxPerBasket];
   fNextpathV = new VolumePath_t*[maxPerBasket];
   fGeoTrack = GeantTrackGeo_v::MakeInstanceAt(buffer, 4*maxPerBasket);
   buffer += GeantTrackGeo_v::SizeOfInstance(4*maxPerBasket);
-  buffer += VolumePath_t::SizeOfInstance(fMaxDepth);
+  buffer += VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
   buffer = GeantTrack::round_up_align(buffer);
 
   // Previous, the size was hard coded to 1024, '4' is a guess on the max number
   // of produced particles ...
-  fTransported = GeantTrack_v::MakeInstanceAt(buffer, 4*maxPerBasket, fMaxDepth);
-  buffer += GeantTrack_v::SizeOfInstance(4*maxPerBasket, fMaxDepth);
+  fTransported = GeantTrack_v::MakeInstanceAt(buffer, 4*maxPerBasket, TrackDataMgr::GetInstance()->GetMaxDepth());
+  buffer += GeantTrack_v::SizeOfInstance(4*maxPerBasket, TrackDataMgr::GetInstance()->GetMaxDepth());
 
   fSizeInt = fSizeBool = fSizeDbl = 5 * maxPerBasket;
   fBoolArray = new (buffer) bool[fSizeBool];
@@ -78,6 +75,8 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxDepth, int maxP
   fIntArray = new (buffer) int[fSizeInt];
   buffer += fSizeInt*sizeof(int);
 
+  fBlock = fPropagator->fTrackMgr->GetNewBlock(); 
+  fTrack = &GetNewTrack();
 
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -94,6 +93,7 @@ GeantTaskData::~GeantTaskData()
 {
 // Destructor
 //  delete fMatrix;
+  ReleaseTrack(*fTrack);
 #ifndef VECCORE_CUDA
 #ifndef USE_VECGEOM_NAVIGATOR
   delete fRndm;
@@ -118,25 +118,25 @@ GeantTaskData::~GeantTaskData()
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop)
+GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop)
 {
    // GeantTrack MakeInstance based on a provided single buffer.
-   return new (addr) GeantTaskData(addr, nTracks, maxdepth, maxPerBasket, prop);
+   return new (addr) GeantTaskData(addr, nTracks, maxPerBasket, prop);
 }
 
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxDepth, int maxPerBasket)
+size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxPerBasket)
 {
-   // @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth
+   // @brief return the contiguous memory size needed to hold a GeantTrack_v
 
    const size_t bufSize = 5; // See constructor!
 
    size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<Geant::cuda::GeantTaskData>::SizeOf()
       + GeantTrack::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
-      + GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(maxDepth))
-      + GeantTrack_v::SizeOfInstance(4*maxPerBasket,maxDepth);
+      + GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth()))
+      + GeantTrack_v::SizeOfInstance(4*maxPerBasket,TrackDataMgr::GetInstance()->GetMaxDepth());
    return GeantTrack::round_up_align(need);
 }
 
@@ -204,10 +204,15 @@ GeantTrack &GeantTaskData::GetNewTrack()
   GeantTrack *track = fBlock->GetObject(index);
   track->Clear();
   track->fBindex = index;
-  track->fMaxDepth = fMaxDepth;
   return *track;
   
 //  return ( fPropagator->fTrackMgr->GetTrack() );
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void GeantTaskData::ReleaseTrack(GeantTrack &track) {
+  fPropagator->fTrackMgr->ReleaseTrack(track);
 }
 
 //______________________________________________________________________________

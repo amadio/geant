@@ -26,11 +26,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
  * @detailed A NUMA block is a concurrent templated factory holding contiguously a
  *           number of objects. It keeps a counters for numbers of used objects.
  */
-template <typename T, bool D=false> class NumaBlock {
+template <typename T> class NumaBlock {
 
   using size_t = std::size_t;
   using atomic_size_t = std::atomic<std::size_t>;
-  using NumaBlock_t = NumaBlock<T,D>;
+  using NumaBlock_t = NumaBlock<T>;
   static size_t const cacheline_size = 64;
   typedef char cacheline_pad_t[cacheline_size];
 
@@ -43,26 +43,14 @@ private:
   size_t        fSize;     // Number of tracks stored by the block
   int           fId;       // Block id
   int           fNode;     // NUMA node id
-  int           fMaxdepth; // Max depth in case D is used
   NumaBlock_t  *fAddress;  // Address of the block retreivable relative to the one of fArray
   T            *fArray;    //! Array of elements
   
 
 private:
-  /** @brief Constructor */
-  NumaBlock(size_t size, int node, int id) : fCurrent(0), fUsed(0), fSize(size), fId(id), fNode(node), fMaxdepth(0), fAddress(this)
-  {
-    // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
-    // on the memory associated with the given NUMA node.
-    static_assert(!std::is_polymorphic<T>::value, "Cannot use polymorphic types as NumaBlock");
-    static_assert(std::is_default_constructible<T>::value, "Type used in NumaBlock must have default ctor.");
-    static_assert(std::is_copy_constructible<T>::value, "Type used in NumaBlock must be copy constructible");
-    fArray = reinterpret_cast<T*>(&fArray + 1);
-    //printf("NEW block: %d (%d)\n", id, node);
-  }
 
-  /** @brief Constructor providing a maximum depth parameter*/
-  NumaBlock(size_t size, int node, int maxdepth, int id) : fCurrent(0), fUsed(0), fSize(size), fId(id), fNode(node), fMaxdepth(maxdepth), fAddress(this)
+  /** @brief Constructor */
+  NumaBlock(size_t size, int node, int id) : fCurrent(0), fUsed(0), fSize(size), fId(id), fNode(node), fAddress(this)
   {
     // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
     // on the memory associated with the given NUMA node.
@@ -70,8 +58,8 @@ private:
     static_assert(std::is_default_constructible<T>::value, "Type used in NumaBlock must have default ctor.");
     static_assert(std::is_copy_constructible<T>::value, "Type used in NumaBlock must be copy constructible");
     fArray = reinterpret_cast<T*>(&fArray + 1);
-    auto el_size = T::SizeOfInstance(maxdepth);
-    for (size_t i=0; i<size; ++i) T::MakeInstanceAt((char*)&fArray[0] + i*el_size, maxdepth);
+    auto el_size = T::SizeOfInstance();
+    for (size_t i=0; i<size; ++i) T::MakeInstanceAt((char*)&fArray[0] + i*el_size);
 //    std::cout << "Created block: " << this << std::endl;
     //printf("NEW block: %d (%d)\n", id, node);
   }
@@ -80,21 +68,13 @@ private:
   NumaBlock& operator=(const NumaBlock&) = delete;
 
 public:
+
   static NumaBlock *MakeInstance(size_t nvalues, int numa_node, int id)
   {
     // Make an instance. To be released using ReleaseInstance. 
     size_t needed = SizeOfInstance(nvalues);
     void *ptr = NumaUtils::NumaAlignedMalloc(needed, numa_node, 64);
     NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, id);
-    return ( block );    
-  }
-
-  static NumaBlock *MakeInstance(size_t nvalues, int numa_node, int maxdepth, int id)
-  {
-    // Make an instance. To be released using ReleaseInstance. 
-    size_t needed = SizeOfInstance(nvalues, maxdepth);
-    void *ptr = NumaUtils::NumaAlignedMalloc(needed, numa_node, 64);
-    NumaBlock *block = new (ptr) NumaBlock(nvalues, numa_node, maxdepth, id);
     return ( block );    
   }
 
@@ -106,24 +86,19 @@ public:
   }
     
   static constexpr size_t SizeOfInstance(size_t nvalues)
-  { return ( sizeof(NumaBlock_t) + nvalues*sizeof(T) ); }
-
-  static constexpr size_t SizeOfInstance(size_t nvalues, int maxdepth)
-  { return ( sizeof(NumaBlock_t) + nvalues * T::SizeOfInstance(maxdepth) ); }
+  { return ( sizeof(NumaBlock_t) + nvalues * T::SizeOfInstance() ); }
   
 public:
   GEANT_FORCE_INLINE T *GetValues() { return &fArray[0]; }
   GEANT_FORCE_INLINE const T *GetValues() const { return &fArray[0]; }
 
   GEANT_FORCE_INLINE T &operator[](size_t index) {
-    if (!D) return GetValues()[index];
-    auto el_size = T::SizeOfInstance(fMaxdepth);
+    auto el_size = T::SizeOfInstance();
     return *(T*)((char*)&fArray[0]+index*el_size);
   };
 
   GEANT_FORCE_INLINE const T &operator[](size_t index) const {
-    if (!D) return GetValues()[index];
-    auto el_size = T::SizeOfInstance(fMaxdepth);
+    auto el_size = T::SizeOfInstance();
     return *(T*)((char*)&fArray[0]+index*el_size);
   };
   

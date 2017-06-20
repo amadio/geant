@@ -39,7 +39,6 @@ private:
   TrackManager **fTrackMgr;        /** [fNnodes] Array of track managers */
   size_t fNblocks;                 /** Number of initial track blocks */
   size_t fBlockSize;               /** Number of tracks stored by each block */
-  int    fMaxdepth;                /** Maximum geometry depth */
 
 private:
   /** @brief Constructor */
@@ -110,14 +109,6 @@ public:
   /** @brief Getter for the block size.*/
   GEANT_FORCE_INLINE
   int GetBlockSize() const { return fBlockSize; }
-
-  /** @brief Setter for the maximum geometry depth.*/
-  GEANT_FORCE_INLINE
-  void SetMaxDepth(int maxdepth) { fMaxdepth = maxdepth; }
-
-  /** @brief Getter for the maximum geometry depth.*/
-  GEANT_FORCE_INLINE
-  int GetMaxDepth() const { return fMaxdepth; }
   
   /** @brief Initialize locality manager and allocate data.*/
   void Init();

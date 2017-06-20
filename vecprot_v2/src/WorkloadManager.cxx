@@ -357,6 +357,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
   td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   td->fBlock = prop->fTrackMgr->GetNewBlock();
+  td->fTrack = &td->GetNewTrack();
 
 //  int nworkers = propagator->fNthreads;
 //  WorkloadManager *wm = propagator->fWMgr;
@@ -560,6 +561,8 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
   td->fPropagator = prop;
+  td->fBlock = prop->fTrackMgr->GetNewBlock();
+  td->fTrack = &td->GetNewTrack();
 //  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
 //  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   int nworkers = propagator->fNthreads;

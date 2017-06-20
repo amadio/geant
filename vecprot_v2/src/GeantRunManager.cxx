@@ -9,6 +9,7 @@
 #include "PhysicsProcessOld.h"
 #include "StdApplication.h"
 #include "GeantVTaskMgr.h"
+#include "GeantVDetectorConstruction.h"
 #include "MCTruthMgr.h"
 #include "PrimaryGenerator.h"
 #include "GeantEvent.h"
@@ -108,6 +109,11 @@ bool GeantRunManager::Initialize() {
     return false;
   }
 
+  if (!fDetConstruction) {
+    Warning("GeantRunManager::Initialize", "The user detector construction has to be defined");
+    // return false;
+  }
+
 //  fPrimaryGenerator->InitPrimaryGenerator();
 
   for (auto i=0; i<fNpropagators; ++i) {
@@ -125,17 +131,52 @@ bool GeantRunManager::Initialize() {
     prop->fTruthMgr = fTruthMgr;
   }
 
-//#ifndef VECCORE_CUDA
-  LoadGeometry(fConfig->fGeomFileName.c_str());
+  // Temporary workaround to allow migration to detector construction
+  if (fDetConstruction) {
+    fDetConstruction->CreateMaterials();
+    fDetConstruction->CreateGeometry();
+  } else {
+    LoadGeometry(fConfig->fGeomFileName.c_str());
+  }
+#ifdef USE_VECGEOM_NAVIGATOR
+    fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
+#else
+    fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
+#endif
+  Info("GeantRunManager::Initialize", "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
 
-  // Configure the locality manager
+  // Now we know the geometry depth: create the track data manager
+  TrackDataMgr *dataMgr = TrackDataMgr::GetInstance(fConfig->fMaxDepth);
+
+  // Initialize the process(es)
+#ifdef USE_REAL_PHYSICS
+  if (!fPhysicsInterface) {
+    Geant::Fatal("GeantRunManager::Initialize", "The physics process interface has to be initialized before this");
+    return false;
+  }
+  // Initialize the physics
+  fPhysicsInterface->Initialize();
+  fPhysicsInterface->RegisterTrackData(dataMgr);
+#else
+  if (!fProcess) {
+    Geant::Fatal("GeantRunManager::Initialize", "The physics process has to be initialized before this");
+    return false;
+  }
+  // Initialize the process(es)
+  (void)dataMgr; // unused
+  fProcess->Initialize();
+  #if USE_VECPHYS == 1
+  fVectorPhysicsProcess->Initialize();
+  #endif
+#endif
+
+  // Configure the locality manager and create the tracks
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);     // <- must be configurable
     mgr->SetBlockSize(1000);  // <- must be configurable
-    mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
-#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
     if (fConfig->fUseNuma) {
       int nnodes = mgr->GetPolicy().GetNnumaNodes();
       mgr->SetPolicy(NumaPolicy::kCompact);
@@ -150,29 +191,7 @@ bool GeantRunManager::Initialize() {
 #endif
   }
 
-//#endif
-
   fDoneEvents = BitSet::MakeInstance(fConfig->fNtotal);
-
-  // Initialize the process(es)
-#ifdef USE_REAL_PHYSICS
-  if (!fPhysicsInterface) {
-    Geant::Fatal("GeantRunManager::Initialize", "The physics process interface has to be initialized before this");
-    return false;
-  }
-  // Initialize the physics
-  fPhysicsInterface->Initialize();
-#else
-  if (!fProcess) {
-    Geant::Fatal("GeantRunManager::Initialize", "The physics process has to be initialized before this");
-    return false;
-  }
-  // Initialize the process(es)
-  fProcess->Initialize();
-  #if USE_VECPHYS == 1
-  fVectorPhysicsProcess->Initialize();
-  #endif
-#endif
 
   if (fConfig->fUseRungeKutta) {
     PrepareRkIntegration();
@@ -181,7 +200,7 @@ bool GeantRunManager::Initialize() {
   int nthreads = GetNthreadsTotal();
   fTaskData = new GeantTaskData *[nthreads];
   for (int i = 0; i < nthreads; i++) {
-    fTaskData[i] = new GeantTaskData(nthreads, fConfig->fMaxDepth, fConfig->fMaxPerBasket);
+    fTaskData[i] = new GeantTaskData(nthreads, fConfig->fMaxPerBasket);
     fTaskData[i]->fTid = i;
   }
   if (fConfig->fUseStdScoring) {
@@ -245,18 +264,15 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
   if (geom) {
 #ifdef USE_VECGEOM_NAVIGATOR
     LoadVecGeomGeometry();
-    fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
 #else
     geom->SetMaxThreads(GetNthreadsTotal());
-    fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
     TObjArray *lvolumes = geom->GetListOfVolumes();
     fNvolumes = lvolumes->GetEntries();
     for (auto ivol = 0; ivol < fNvolumes; ivol++)
       fVolumes.push_back((TGeoVolume *)lvolumes->At(ivol));
 #endif
-    Info("GeantRunManager::LoadGeometry", "Geometry depth %d\n", fConfig->fMaxDepth);
   } else {
     Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
     return false;
@@ -265,10 +281,8 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
   if (geom) {
     geom->LoadGeometryFromSharedLib(filename);
-    fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
-    Info("GeantRunManager::LoadGeometry", "Geometry depth %d\n", fConfig->fMaxDepth);
   } else {
     Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
     return false;

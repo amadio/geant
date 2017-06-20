@@ -48,13 +48,13 @@ class TrackStat;
 class GeantTaskData {
 public:
 
-  using NumaTrackBlock_t = NumaBlock<GeantTrack, true>;
+  using NumaTrackBlock_t = NumaBlock<GeantTrack>;
 
+  GeantTrack *fTrack = nullptr; /** Temporary track */
   GeantPropagator *fPropagator = nullptr; /** GeantPropagator */
   int fTid = -1;         /** Thread unique id */
   int fNode = -1;        /** Locality node */
   size_t fNthreads = 0;  /** Number of transport threads */
-  int fMaxDepth = 0;     /** Maximum geometry depth */
   int fSizeBool = 0;     /** Size of bool array */
   int fSizeInt = 0;      /*  Size of int array */
   int fSizeDbl = 0;      /** Size of dbl array */
@@ -68,7 +68,6 @@ public:
   bool *fBoolArray = nullptr;              /** [fSizeBool] Thread array of bools */
   double *fDblArray = nullptr;             /** [fSizeDbl] Thread array of doubles */
   int *fIntArray = nullptr;                /** [fSizeInt] Thread array of ints */
-  GeantTrack fTrack;                       /** Track support for this thread */
   VolumePath_t *fPath = nullptr;           /** Volume path for the thread */
   VolumePath_t **fPathV = nullptr;         /** Volume path for the thread */
   VolumePath_t **fNextpathV = nullptr;     /** Volume path for the thread */
@@ -123,11 +122,11 @@ private:
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  GeantTaskData(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop = nullptr);
+  GeantTaskData(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop = nullptr);
 
 public:
   /** @brief GeantTaskData constructor */
-  GeantTaskData(size_t nthreads, int maxDepth, int maxPerBasket);
+  GeantTaskData(size_t nthreads, int maxPerBasket);
 
   /** @brief GeantTaskData destructor */
   ~GeantTaskData();
@@ -136,11 +135,11 @@ public:
    * @brief GeantTrack MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxdepth, int maxPerBasket, GeantPropagator *prop);
+  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop);
 
-  /** @brief return the contiguous memory size needed to hold a GeantTrack_v size_t nTracks, size_t maxdepth */
+  /** @brief return the contiguous memory size needed to hold a GeantTrack_v */
   VECCORE_ATT_DEVICE
-  static size_t SizeOfInstance(size_t nthreads, int maxDepth, int maxPerBasket);
+  static size_t SizeOfInstance(size_t nthreads, int maxPerBasket);
 
   /**
    * @brief Function that return double array
@@ -184,17 +183,17 @@ public:
     return fPath;
   }
 
-  /**
-   * @brief Get the cleared storedtrack
-   */
-  GeantTrack &GetTrack() {
-    fTrack.Clear();
-    return fTrack;
-  }
+  /** @brief Get new track from track manager */
+  VECCORE_ATT_HOST_DEVICE
+  GeantTrack &GetTrack() { return *fTrack; }
 
   /** @brief Get new track from track manager */
   VECCORE_ATT_HOST_DEVICE
   GeantTrack &GetNewTrack();
+
+  /** @brief Release the temporary track */
+  VECCORE_ATT_HOST_DEVICE
+  void ReleaseTrack(GeantTrack &track);
 
 #ifndef VECCORE_CUDA
   /**
@@ -238,13 +237,6 @@ public:
   /** @brief Getter for the toclean flag */
   bool NeedsToClean() const { return fToClean; }
   
-  /**
-   * @brief Function that returns a temporary track object per task data.
-   * @details Temporary track for the current caller thread
-   *
-   */
-  GeantTrack &GetTempTrack() { fTrack.Clear(); return fTrack; }
-
   /** @brief  Inspect simulation stages */
   void InspectStages(int istage);
 
