@@ -259,12 +259,12 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
     const geantphysics::Vector_t<geantphysics::Element*> theElemVect = mat->GetElementVector();
     const double *massFractionVect = mat->GetMassFractionVector();
     int nelem = mat->GetNumberOfElements();
-    std::cout<< " ==== material = " << mat->GetName() << std::endl;
+//    std::cout<< " ==== material = " << mat->GetName() << std::endl;
     for (int iel = 0; iel < nelem; ++iel) {
        z[iel] = theElemVect[iel]->GetZ();
        a[iel] = theElemVect[iel]->GetA()/(geant::g/geant::mole);
        w[iel] = massFractionVect[iel];
-       std::cout<< "iel = "<< iel <<" z = " << z[iel] << " a = " << a[iel] << " w = " << w[iel] << " density = " << mat->GetDensity()/(geant::g/geant::cm3) << std::endl;
+//       std::cout<< "iel = "<< iel <<" z = " << z[iel] << " a = " << a[iel] << " w = " << w[iel] << " density = " << mat->GetDensity()/(geant::g/geant::cm3) << std::endl;
     }
     if (nelem == 0) {
       std::cout<<mat<<std::endl;
@@ -293,13 +293,13 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
     double ad;
     double zd;
     double wd;
-    std::cout<< " ==== material = " << mat->GetName() << std::endl;
+//    std::cout<< " ==== material = " << mat->GetName() << std::endl;
     for (int iel = 0; iel < nelem; ++iel) {
       mat->GetElementProp(ad, zd, wd, iel);
       a[iel] = ad;
       z[iel] = zd;
       w[iel] = wd;
-      std::cout<< "iel = "<< iel <<" z = " << z[iel] << " a = " << a[iel] << " w = " << w[iel] << " density = " << mat->GetDensity() << std::endl;
+//      std::cout<< "iel = "<< iel <<" z = " << z[iel] << " a = " << a[iel] << " w = " << w[iel] << " density = " << mat->GetDensity() << std::endl;
     }
     if (nelem == 0) {
       mat->Dump();
