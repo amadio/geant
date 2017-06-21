@@ -88,6 +88,10 @@ private:
 private:
   bool LoadVecGeomGeometry();
   void InitNavigators();
+// It will go to the DetectorConstruction base class
+#ifdef USE_VECGEOM_NAVIGATOR
+  std::function<void*(TGeoMaterial const *)> CreateMaterialConversion();
+#endif
 
 public:
   GeantRunManager() {}

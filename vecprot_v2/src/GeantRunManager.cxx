@@ -57,51 +57,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace vecgeom;
 
-// This will go to the detector construction base class (as soon as we will have it) and will be used to.
-// convert Root::Material to geantphysics::Material in VecGeom when geometry is loaded from .root file.
-#ifdef USE_VECGEOM_NAVIGATOR
-auto materiallambda = [](TGeoMaterial const *rootmat) {
-    //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
-    int    numElem    = rootmat->GetNelements();
-    double density    = rootmat->GetDensity()*geant::g/geant::cm3; // in g/cm3
-    const std::string  name = rootmat->GetName();
-    // check if it is a G4 NIST material
-    std::string postName = "";
-    bool isNistMaterial = false;
-    if (name.substr(0,3)=="G4_") {
-      postName = name.substr(3);
-      isNistMaterial = true;
-    }
-    geantphysics::Material *gmat = nullptr;
-    if (isNistMaterial) {
-      std::string nistName = "NIST_MAT_"+postName;
-      gmat = geantphysics::Material::NISTMaterial(nistName);
-    } else {
-      // find or create material
-      gmat = geantphysics::Material::GetMaterial(name);
-      if (gmat) {
-        // std::cout<< " Material "<<name << " has already been created.!"<< std::endl;
-        return gmat;
-      }
-      gmat = new geantphysics::Material(name, density, numElem);
-      for (int j=0; j<numElem; ++j) {
-        double va;
-        double vz;
-        double vw;
-        const_cast<TGeoMaterial *>(rootmat)->GetElementProp(va, vz, vw, j);
-        // create NIST element
-        geantphysics::Element *elX = geantphysics::Element::NISTElement(vz);
-        // add to the Material
-        gmat->AddElement(elX, vw);
-     }
-   }
-   // std::cout<< "  geantphysics::name = " << gmat->GetName() << std::endl;
-   gmat->SetIsUsed(true);
-   return gmat;
- };
-#endif
-
-
 //______________________________________________________________________________
 GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthreads,
                                  GeantConfig *config)
@@ -336,7 +291,7 @@ bool GeantRunManager::LoadVecGeomGeometry() {
 #ifdef USE_VECGEOM_NAVIGATOR
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
 #ifdef USE_ROOT
-    vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(materiallambda);
+    vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(CreateMaterialConversion());
     printf("Now loading VecGeom geometry\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
     printf("Loading VecGeom geometry done\n");
@@ -551,6 +506,52 @@ void GeantRunManager::StopTransport() {
     fPropagators[i]->StopTransport();
   }
 }
+
+// It will go to the DetectorConstruction base class
+//______________________________________________________________________________
+#ifdef USE_VECGEOM_NAVIGATOR
+std::function<void*(TGeoMaterial const *)> GeantRunManager::CreateMaterialConversion() {
+  return [](TGeoMaterial const *rootmat) {
+      //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
+      int    numElem    = rootmat->GetNelements();
+      double density    = rootmat->GetDensity()*geant::g/geant::cm3; // in g/cm3
+      const std::string  name = rootmat->GetName();
+      // check if it is a G4 NIST material
+      std::string postName = "";
+      bool isNistMaterial = false;
+      if (name.substr(0,3)=="G4_") {
+        postName = name.substr(3);
+        isNistMaterial = true;
+      }
+      geantphysics::Material *gmat = nullptr;
+      if (isNistMaterial) {
+        std::string nistName = "NIST_MAT_"+postName;
+        gmat = geantphysics::Material::NISTMaterial(nistName);
+      } else {
+        // find or create material
+        gmat = geantphysics::Material::GetMaterial(name);
+        if (gmat) {
+          // std::cout<< " Material "<<name << " has already been created.!"<< std::endl;
+          return gmat;
+        }
+        gmat = new geantphysics::Material(name, density, numElem);
+        for (int j=0; j<numElem; ++j) {
+          double va;
+          double vz;
+          double vw;
+          const_cast<TGeoMaterial *>(rootmat)->GetElementProp(va, vz, vw, j);
+          // create NIST element
+          geantphysics::Element *elX = geantphysics::Element::NISTElement(vz);
+          // add to the Material
+          gmat->AddElement(elX, vw);
+       }
+     }
+     // std::cout<< "  geantphysics::name = " << gmat->GetName() << std::endl;
+     gmat->SetIsUsed(true);
+     return gmat;
+   };
+}
+#endif
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant
