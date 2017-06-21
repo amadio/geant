@@ -91,7 +91,7 @@ bool CMSApplication::Initialize() {
   TString svol, smat;
 #else
   std::string svol, smat;
-#endif  
+#endif
   int necal = 0;
   int nhcal = 0;
   for (int ivol = 0; ivol < nvolumes; ++ivol) {
@@ -109,7 +109,7 @@ bool CMSApplication::Initialize() {
 #else
     std::string ebry("EBRY");
     std::string efry("EFRY");
-  
+
     if (svol.compare(0,ebry.length(),ebry) == 1  || svol.compare(0,efry.length(),efry) == 1) {
 #endif
       fSensFlags[ivol] = true;
@@ -117,17 +117,17 @@ bool CMSApplication::Initialize() {
       fECALid[necal] = ivol;
       necal++;
     }
-    
+
     // HCAL cells
 #ifdef USE_VECGEOM_NAVIGATOR
     //    cout << __func__ << "::vol " << vol->GetName() << endl;
-    if (vol->GetTrackingMediumPtr())
-      smat = ((vecgeom::Medium *)vol->GetTrackingMediumPtr())->GetMaterial()->GetName();
+    if (vol->GetMaterialPtr())
+      smat = ((geantphysics::Material *)vol->GetMaterialPtr())->GetName();
 #else
     if (vol->GetMedium())
       smat = vol->GetMaterial()->GetName();
 #endif
-    
+
     if (smat == "Scintillator") {
       fSensFlags[idvol] = true;
       fHCALMap[idvol] = nhcal;
@@ -135,9 +135,9 @@ bool CMSApplication::Initialize() {
       nhcal++;
     }
   }
-  
+
   Geant::Printf("=== CMSApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
-  fInitialized = true;  
+  fInitialized = true;
   return true;
 }
 
@@ -165,7 +165,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 #endif
 
 
-    
+
     idtype = 0;
     if (fSensFlags[ivol]) {
       if (vol->GetName()[0] == 'E')
@@ -173,8 +173,8 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       else
         idtype = 2;
 
-      
-      
+
+
       switch (idtype) {
       case 1:
 	mod = fECALMap.find(ivol)->second;
@@ -185,7 +185,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 	fEdepHCAL[mod][tid] += tracks.fEdepV[itr];
         break;
       }
-      
+
     }
 #ifdef HITS_GRAPHICS
     if ((propagator)->fConfig->fFillTree) {
@@ -241,10 +241,10 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
     // Score in ECAL
     if (idtype == 1) {
       // Add scored entity
-      
+
       if (propagator->fNthreads > 1)
         fMHist.lock();
-      
+
 #ifdef USE_ROOT
       double capacity = 1.;
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -271,19 +271,19 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
       }
 #endif
       if (propagator->fNthreads > 1)
-        fMHist.unlock();      
+        fMHist.unlock();
 #ifdef USE_ROOT
-      
+
       if ((propagator)->fConfig->fFillTree) {
 	MyHit *hit;
-	
+
 	// Deposit hits
 	if (tracks.fEdepV[itr]>0.00002)
 	  {
 	    //	    Geant::Printf("hit with energy %f", tracks.fEdepV[itr]);
-	    
+
 	    hit = fFactory->NextFree(tracks.fEvslotV[itr], tid);
-	    
+
 	    hit->fX = tracks.fXposV[itr];
 	    hit->fY = tracks.fYposV[itr];
 	    hit->fZ = tracks.fZposV[itr];
@@ -292,7 +292,7 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
        hit->fEvent = tracks.fEventV[itr];
        hit->fTrack = tracks.fParticleV[itr];
 	    hit->fVolId = ivol;
-	    hit->fDetId = idtype; 
+	    hit->fDetId = idtype;
 	  }
       }
 #endif

@@ -20,8 +20,6 @@
 #include "management/GeoManager.h"
 #include "volumes/PlacedVolume.h"
 #include "volumes/LogicalVolume.h"
-#include "materials/Material.h"
-#include "materials/Medium.h"
 
 namespace geantphysics {
 
@@ -160,6 +158,11 @@ void MaterialCuts::ConvertAll() {
 void MaterialCuts::CreateAll() {
   // clear all if there were any created before
   ClearAll();
+  // set all Materials used flag to false
+  const Vector_t<Material*> theMaterialTable = Material::GetTheMaterialTable();
+  for (size_t i=0; i<theMaterialTable.size(); ++i) {
+    theMaterialTable[i]->SetIsUsed(false);
+  }
   // get number of regions
   int   numRegions = vecgeom::Region::GetNumberOfRegions();
   // get the world LogicalVolume from vecgeom: this const_cast is very dirty !!
@@ -183,15 +186,19 @@ void MaterialCuts::CreateAll() {
 
   // loop over all logical volumes, take the associated region and add the material of the given
   // logical volume to the given region.
-  // NOTE: we created (in PhysicsProcessHandler::BuildMaterials()) our geantphysics::Materials in the same order that
-  // the vecgeom::Materials so their global index will be the same.
   std::vector<vecgeom::LogicalVolume*> theLogicVolumes;
   vecgeom::GeoManager::Instance().GetAllLogicalVolumes(theLogicVolumes);
-  // get our Material table
-  const Vector_t<Material*> theMaterialTable = Material::GetTheMaterialTable();
   for (size_t i=0; i<theLogicVolumes.size(); ++i) {
-    vecgeom::Material *vgMat = ((vecgeom::Medium*)theLogicVolumes[i]->GetTrackingMediumPtr())->GetMaterial();
-    vecgeom::Region *reg     = theLogicVolumes[i]->GetRegion();
+    Material *mat = (Material*)theLogicVolumes[i]->GetMaterialPtr();
+    if (!mat) {
+      std::cerr << "  ***  ERROR:  MaterialCuts::CreateAll() \n"
+                << "        LogicalVolume with name = " << theLogicVolumes[i]->GetLabel() << " has no material! \n"
+                << std::endl;
+      exit(-1);
+    }
+    // set the used in geometry flag of the material to true
+    mat->SetIsUsed(true);
+    vecgeom::Region *reg = theLogicVolumes[i]->GetRegion();
     // region must be set for each logical volumes
     // check it and assign all logical volumes without region to the world region and give warning
     if (!reg) {
@@ -202,13 +209,12 @@ void MaterialCuts::CreateAll() {
                 << "        any Regions. It has been assigned to the world region ( " << regionWorld->GetName() << ")\n"
                 << std::endl;
     }
-    // get our material that corresponds to the vecgeom::Material vgMat
     // check if we have already created a MaterialCuts with this material in the current region
     // create a new if not yet
-    Material *mat = theMaterialTable[vgMat->GetIndex()];
     // it returns with a pointer to the MaterialCuts that will be set into the logical volume later!
-    //MaterialCuts *matCut = CheckMaterialForRegion(reg, mat);
-    CheckMaterialForRegion(reg, mat);
+    MaterialCuts *matCut = CheckMaterialForRegion(reg, mat);
+    // set the MaterialCuts pointer in the LogicalVolume
+    theLogicVolumes[i]->SetMaterialCutsPtr((void*)matCut);
   }
   // convert production cuts in lenght/energy to energy/lenght
   ConvertAll();

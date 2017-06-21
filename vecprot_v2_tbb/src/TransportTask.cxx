@@ -87,7 +87,7 @@ tbb::task* TransportTask::execute ()
   GeantPropagator *propagator = fTd->fPropagator;
   GeantRunManager *runmgr = propagator->fRunMgr;
   WorkloadManager *wm = propagator->fWMgr;
-  
+
   ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
 
   GeantTaskData *td = fTd;
@@ -118,7 +118,7 @@ tbb::task* TransportTask::execute ()
 
   // IO handling
 
-  bool concurrentWrite = propagator->fConfig->fConcurrentWrite && 
+  bool concurrentWrite = propagator->fConfig->fConcurrentWrite &&
                          propagator->fConfig->fFillTree;
   int treeSizeWriteThreshold = propagator->fConfig->fTreeSizeWriteThreshold;
 
@@ -129,7 +129,7 @@ tbb::task* TransportTask::execute ()
   TThreadMergingFile* file = threadData->fFiles[tid];
   TTree *tree = threadData->fTrees[tid];
   #endif
-  
+
   Material_t *mat = 0;
 
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -139,10 +139,10 @@ tbb::task* TransportTask::execute ()
     nav = gGeoManager->AddNavigator();
 #endif
 
-  bool firstTime = true;  
+  bool firstTime = true;
   // Activate events in the server
   evserv->ActivateEvents();
-  
+
   while (1) {
 
     if (runmgr->TransportCompleted())
@@ -152,7 +152,7 @@ tbb::task* TransportTask::execute ()
     if (!firstTime && !basket && !prioritizer->HasTracks() && !evserv->HasTracks() && (propagator->GetNworking() == 1)) {
       break;
    }
-    
+
     // Retrieve the reused basket from the task data
     if (!basket) basket = td->fReused;
 
@@ -238,7 +238,7 @@ tbb::task* TransportTask::execute ()
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
 #ifdef USE_VECGEOM_NAVIGATOR
-      mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
+      mat = ((Material_t *)td->fVolume->GetMaterialPtr());
 #else
       mat = td->fVolume->GetMaterial();
 #endif

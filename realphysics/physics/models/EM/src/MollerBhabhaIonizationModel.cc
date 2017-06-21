@@ -359,7 +359,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
       fGlobalMatCutIndxToLocal[i] = fNumDifferentElecCuts;
       ++fNumDifferentElecCuts;
     } else {
-      fGlobalMatCutIndxToLocal[i] = j;
+      fGlobalMatCutIndxToLocal[i] = fGlobalMatCutIndxToLocal[j];
     }
   }
 

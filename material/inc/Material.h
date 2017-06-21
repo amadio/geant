@@ -137,6 +137,13 @@ class Material {
    *  @return Name of this material. */
   const std::string& GetName() const {return fName;}
 
+  /** @brief Public method to get the flag that indicates whether the material is used or not in the geometry.
+   *  @return  that indicates whether the material is used or not in the geometry */
+  bool   IsUsed() const {return fIsUsed;}
+
+  /** @brief Public method to set the flag that indicates whether the material is used or not in the geometry.*/
+  void   SetIsUsed(bool val) {fIsUsed = val;}
+
   /** @brief Public method to get the density of this material.
    *  @return Density of this material in internal [weight/ length/f$^3/f$] units. */
   double  GetDensity() const {return fDensity;}
@@ -269,6 +276,10 @@ class Material {
 //@}
 
 
+// THESE ARE ONLY FOR THE TABULATED PHYSICS AND WILL BE REMOVED SOON
+  void  SetXsecPtr(void* xsec) { fTabXsecPtr = xsec; }
+  void* GetXsecPtr() const { return fTabXsecPtr; }
+//
 
  private:
    /** @brief Copy constructor. Not implemented yet */
@@ -293,6 +304,8 @@ class Material {
  private:
    /** @brief Name of the material. */
    std::string     fName;                 // material name
+   /** @brief Does the material used in the current geometry? */
+   bool            fIsUsed;
    /** @brief Density of the material in internal [weight/length/f$ ^3 /f$] units. */
    double          fDensity;              // material density
    /** @brief Temperature of the material in internal [temperature] units. */
@@ -329,6 +342,9 @@ class Material {
 
    /** @brief Object to store additional properties realted to this material (the class owns the object)*/
    MaterialProperties *fMaterialProperties;
+
+   /** @brief THIS MEMBER IS ONLY FOR THE TABULATED PHSYICS AND WILL BE REMOVED SOON */
+   void     *fTabXsecPtr;
 };
 
 } // namespace geantphysics

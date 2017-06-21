@@ -99,7 +99,7 @@ GeantTrack_v::GeantTrack_v(void *addr, unsigned int nTracks, int maxdepth)
       fSelected(0), fMaxDepth(maxdepth), fBufSize(0), fVPstart(0), fBuf(0), fEventV(0), fEvslotV(0), fParticleV(0), fMotherV(0),
       fPDGV(0), fGVcodeV(0), fEindexV(0), fBindexV(0), fChargeV(0), fProcessV(0), fNstepsV(0), fSpeciesV(0),
       fStatusV(0), fMassV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0), fPV(0), fEV(0),
-      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0), 
+      fTimeV(0), fEdepV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fNintLenV(0), fIntLenV(0), fBoundaryV(0), fPendingV(0),
       fPathV(0), fNextpathV(0) {
 
   // Constructor with maximum capacity.
@@ -1345,7 +1345,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 // ( stepper header has to be included )
 
   using ThreeVector = vecgeom::Vector3D<double>;
-  // typedef vecgeom::Vector3D<double>  ThreeVector;   
+  // typedef vecgeom::Vector3D<double>  ThreeVector;
   ThreeVector Position(fXposV[i], fYposV[i], fZposV[i]);
   ThreeVector Direction(fXdirV[i], fYdirV[i], fZdirV[i]);
   ThreeVector PositionNew(0.,0.,0.);
@@ -1368,7 +1368,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   fZposV[i] = PositionNew.z();
 
   //  maybe normalize direction here  // Math::Normalize(dirnew);
-  DirectionNew = DirectionNew.Unit();   
+  DirectionNew = DirectionNew.Unit();
   fXdirV[i] = DirectionNew.x();
   fYdirV[i] = DirectionNew.y();
   fZdirV[i] = DirectionNew.z();
@@ -1377,7 +1377,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   ThreeVector SimplePosition = Position + crtstep * Direction;
   // double diffpos2 = (PositionNew - Position).Mag2();
   double diffpos2 = (PositionNew - SimplePosition).Mag2();
-  //   -- if (Math::Sqrt(diffpos)>0.01*crtstep) {     
+  //   -- if (Math::Sqrt(diffpos)>0.01*crtstep) {
   const double drift= 0.01*crtstep;
   if ( diffpos2>drift*drift ){
       double diffpos= Math::Sqrt(diffpos2);
@@ -1483,7 +1483,7 @@ void GeantTrack_v::PrintTrack(int itr, const char *msg) const {
       fChargeV[itr], fProcessV[itr], fNstepsV[itr], (int)fSpeciesV[itr], status[int(fStatusV[itr])],
       fMassV[itr], fXposV[itr], fYposV[itr], fZposV[itr], fXdirV[itr], fYdirV[itr], fZdirV[itr], fPV[itr], fEV[itr],
       fTimeV[itr], fPstepV[itr], fStepV[itr], fSnextV[itr], fSafetyV[itr], fNintLenV[itr], fIntLenV[itr], fBoundaryV[itr]);
-  
+
 #ifndef VECCORE_CUDA
   fPathV[itr]->Print();
   fNextpathV[itr]->Print();
@@ -1543,12 +1543,12 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
   } else {
     if (nsel>0) Reshuffle();
     else return;
-  }    
+  }
   // Printf("In vec find next boundary and step\n");
 
   // call the vector interface
   VectorNavInterface
-    ::NavFindNextBoundaryAndStep(nsel, fPstepV, 
+    ::NavFindNextBoundaryAndStep(nsel, fPstepV,
                               fXposV, fYposV, fZposV,
                               fXdirV, fYdirV, fZdirV,
                               (const VolumePath_t **)fPathV, fNextpathV,
@@ -1581,7 +1581,7 @@ void GeantTrack_v::ComputeTransportLength(int ntracks, GeantTaskData *td) {
   for (int i = 0; i < ntracks; ++i) {
     ComputeTransportLengthSingle(i, td);
   }
-#endif // USE_VECGEOM_NAVIGATOR 
+#endif // USE_VECGEOM_NAVIGATOR
 }
 
 //______________________________________________________________________________
@@ -1654,7 +1654,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
 GeantPropagator *prop = td->fPropagator;
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
-  
+
   BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(ntracks, td);
@@ -1829,7 +1829,7 @@ GeantPropagator *prop = td->fPropagator;
       fBoundaryV[itr] = true;
       icrossed++;
       // Update number of steps to physics and total number of steps
-      td->fNsteps++;  
+      td->fNsteps++;
       if (fStepV[itr] < 1.E-8) td->fNsmall++;
       MarkRemoved(itr);
     }
@@ -1930,7 +1930,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // int stepNum= fNstepsV[itr];
     // Printf("track %d: Step #=%3d len=%g proposed=%g (safelen=%9.3g) bndrFlg= %d distLin=%g  ",
     //    itr, stepNum, step, fPstepV[itr], lmax, fFrombdrV[itr], fSnextV[itr] );
-    //  Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);          
+    //  Printf("track %d: step=%g (safelen=%g)", itr, step, lmax);
     PropagateInVolumeSingle(itr, step, td);
     //Update number of partial steps propagated in field
     td->fNmag++;
@@ -1985,7 +1985,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
       fBoundaryV[itr] = true;
       icrossed++;
       // Update number of steps to physics and total number of steps
-      td->fNsteps++;     
+      td->fNsteps++;
       if (fStepV[itr] < 1.E-8) td->fNsmall++;
       MarkRemoved(itr);
     }
@@ -2099,14 +2099,15 @@ Volume_t const*GeantTrack_v::GetVolume(int i) const {
 Material_t *GeantTrack_v::GetMaterial(int i) const {
   // Current material the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
-  Medium_t *med = (Medium_t *)GetVolume(i)->GetTrackingMediumPtr();
+  Material_t *mat = (Material_t *)GetVolume(i)->GetMaterialPtr();
+  return mat;
 #else
   Medium_t *med = (Medium_t *)GetVolume(i)->GetMedium();
-#endif
   // TODO: better to use assert
   if (!med)
     return nullptr;
   return med->GetMaterial();
+#endif
 }
 
 //______________________________________________________________________________

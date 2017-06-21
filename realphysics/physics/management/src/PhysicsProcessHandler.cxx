@@ -3,11 +3,6 @@
 
 #include "SystemOfUnits.h"
 
-// vecgeom materials
-//#ifdef USE_VECGEOM_NAVIGATOR
-#include "materials/Material.h"
-//#endif
-
 // realphysics material
 #include "Material.h"
 #include "Element.h"
@@ -50,9 +45,6 @@ PhysicsProcessHandler::~PhysicsProcessHandler() {
 
 
 void PhysicsProcessHandler::Initialize() {
-  //
-  // see the comments at its implementation
-  BuildMaterials();
   //
   // create all MaterialCuts
   MaterialCuts::CreateAll();
@@ -100,80 +92,12 @@ void PhysicsProcessHandler::Initialize() {
 }
 
 
-//
-//  This is a helper method to create proper geantphysics::Materials and one geantphysics::Region that are
-//  esential for having a real physics simulation.
-//
-void PhysicsProcessHandler::BuildMaterials() {
-  // Load elements from geometry, however in most cases it should already be done
- // vecgeom materials To geantphysics:;Material and creating 1 region and adding all material to that
- #ifdef USE_VECGEOM_NAVIGATOR
-   std::vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
-   if (matlist.size()==0) {
-     std::cerr<<"  ***** ERROR PhysicsProcessHandler::BuildMaterials(): \n"
-              <<"   No material was found! (vecgeom::Material::GetMaterials() returns with 0 size list)\n"
-              <<std::endl;
-     exit(-1);
-   }
-   for (unsigned long i=0; i<matlist.size(); ++i) {
-     std::cout<<"     -->  Creating Material with index = " << i <<" and vecgeom::name: "<<matlist[i]->GetName();
-     vecgeom::Material *vgMat = matlist[i];
-     int    numElem    = vgMat->GetNelements();
-     double density    = vgMat->GetDensity()*geant::g/geant::cm3; // in g/cm3
-     const std::string  name = vgMat->GetName();
-     // check if it is a G4 NIST material
-     std::string postName = "";
-     bool isNistMaterial = false;
-     if (name.substr(0,3)=="G4_") {
-       postName = name.substr(3);
-       isNistMaterial = true;
-     }
-     Material *matX = nullptr;
-     if (isNistMaterial) {
-       std::string nistName = "NIST_MAT_"+postName;
-       matX = Material::NISTMaterial(nistName);
-     } else {
-       // create material
-       matX = new Material(name, density, numElem);
-       for (int j=0; j<numElem; ++j) {
-         double va;
-         double vz;
-         double vw;
-         vgMat->GetElementProp(va, vz, vw, j);
-         // create NIST element
-         Element *elX = Element::NISTElement(vz);
-         // add to the Material
-         matX->AddElement(elX, vw);
-      }
-    }
-    std::cout<< "  geantphysics::name = " << matX->GetName() << std::endl;
-   }
-   std::cout<<" ================================================================ \n";
- #else
-  std::cerr<<"  ***** ERROR PhysicsProcessHandler::BuildMaterials(): \n"
-           <<"   RealPhysics support only VecGeom so build with -DUSE_VECGEOM_NAVIGATOR=ON\n"
-           <<std::endl;
-  exit(-1);
- #endif
-}
-
-
 void PhysicsProcessHandler::ComputeIntLen(Material_t * /*mat*/, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
                                           GeantTaskData *td) {
   for (int i=0; i<ntracks; ++i) {
-    // here we will get the MaterialCuts from the LogicalVolume later
-    int   matIndx = tracks.GetMaterial(i)->GetIndex();
-    int   regIndx = const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetRegion()->GetIndex();
-    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
-  /*
-    if (mat) {
-      matCut = MaterialCuts::GetMaterialCut(mat->GetIndex());
-    } else {
-      matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterial(i)->GetIndex());
-    }
-  */
-    int   particleCode       = tracks.fGVcodeV[i];
-    const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
+    const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetMaterialCutsPtr()));
+    int   particleCode         = tracks.fGVcodeV[i];
+    const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
     // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
     if (!pManager) {
@@ -215,20 +139,9 @@ void PhysicsProcessHandler::AlongStepAction(Material_t * /*mat*/, int ntracks, G
                                             GeantTaskData *td) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
-    // here we will get the MaterialCuts from the LogicalVolume later
-    int   matIndx = tracks.GetMaterial(i)->GetIndex();
-    int   regIndx = const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetRegion()->GetIndex();
-    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
-  /*
-    const MaterialCuts *matCut = nullptr;
-    if (mat) {
-      matCut = MaterialCuts::GetMaterialCut(mat->GetIndex());
-    } else {
-      matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterial(i)->GetIndex());
-    }
-  */
-    int particleCode         = tracks.fGVcodeV[i];
-    const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
+    const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetMaterialCutsPtr()));
+    int particleCode           = tracks.fGVcodeV[i];
+    const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
     // check if the partcile has anything along step
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
     if (!pManager) {
@@ -271,20 +184,9 @@ void PhysicsProcessHandler::PostStepAction(Material_t * /*mat*/, int ntracks, Ge
                                            GeantTaskData *td) {
   int numSecondaries = 0;
   for (int i=0; i<ntracks; ++i) {
-    // here we will get the MaterialCuts from the LogicalVolume later
-    int   matIndx = tracks.GetMaterial(i)->GetIndex();
-    int   regIndx = const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetRegion()->GetIndex();
-    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
-  /*
-    const MaterialCuts *matCut = nullptr;
-    if (mat) {
-     matCut = MaterialCuts::GetMaterialCut(mat->GetIndex());
-    } else {
-     matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterial(i)->GetIndex());
-    }
-  */
-    int particleCode         = tracks.fGVcodeV[i];
-    const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
+    const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(tracks.GetVolume(i))->GetMaterialCutsPtr()));
+    int particleCode           = tracks.fGVcodeV[i];
+    const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
     // check if the partcile has anything along step
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
     if (!pManager) {

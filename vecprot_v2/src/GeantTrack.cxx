@@ -417,13 +417,14 @@ Volume_t const*GeantTrack::GetNextVolume() const {
 Material_t *GeantTrack::GetMaterial() const {
    // Current material the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
-   auto med = (Medium_t *) GetVolume()->GetTrackingMediumPtr();
+   auto mat = (Material_t *) GetVolume()->GetMaterialPtr();
+   return mat;
 #else
    auto med = GetVolume()->GetMedium();
-#endif
    if (!med)
       return 0;
    return med->GetMaterial();
+#endif
 }
 
 //______________________________________________________________________________

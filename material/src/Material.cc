@@ -39,6 +39,7 @@ Material::Material(const std::string &name, double z, double a, double density, 
               << std::endl;
     density = kUniverseMeanDensity;
   }
+  fIsUsed      = false;
   fDensity     = density;
   fState       = state;
   fTemperature = temp;
@@ -100,6 +101,7 @@ Material::Material(const std::string &name, double density,int numcomponents, Ma
               << std::endl;
     density = kUniverseMeanDensity;
   }
+  fIsUsed      = false;
   fDensity     = density;
   fState       = state;
   fTemperature = temp;
@@ -369,6 +371,7 @@ void Material::InitialiseMembers() {
   fMaterialProperties      = nullptr;
 
   // initilized data members
+  fIsUsed              = false;
   fDensity             = 0.0;
   fTemperature         = 0.0;
   fPressure            = 0.0;

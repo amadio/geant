@@ -438,7 +438,7 @@ void RelativisticBremsModel::InitSamplingTables() {
       fGlobalMatGCutIndxToLocal[i] = fNumDifferentMaterialGCuts;
       ++fNumDifferentMaterialGCuts;
      } else {
-       fGlobalMatGCutIndxToLocal[i] = j;
+       fGlobalMatGCutIndxToLocal[i] = fGlobalMatGCutIndxToLocal[j];
      }
    }
    //std::cerr<<" === Number of local Material-Cuts = "<<fNumDifferentMaterialGCuts<<std::endl;

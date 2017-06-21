@@ -71,7 +71,7 @@ private:
   PrimaryGenerator *fPrimaryGenerator = nullptr;   /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
   GeantEventServer *fEventServer = nullptr;     /** The event server */
-   
+
   vector_t<GeantPropagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
 
@@ -84,7 +84,7 @@ private:
   GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
   GeantPropagator *fFedPropagator = nullptr; /** Propagator currently being fed */
   std::vector<std::thread> fListThreads; /** Vector of threads */
-  
+
 private:
   bool LoadVecGeomGeometry();
   void InitNavigators();
@@ -132,7 +132,7 @@ public:
 
   GEANT_FORCE_INLINE
   int GetNpriority() const { return fPriorityEvents.load(); }
-  
+
   GEANT_FORCE_INLINE
   Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
 
@@ -150,7 +150,7 @@ public:
 
 //  GEANT_FORCE_INLINE
 //  int GetNtracks(int islot) const { return fNtracks[islot]; }
-  
+
   GeantPropagator *GetIdlePropagator() const;
 
   GEANT_FORCE_INLINE
@@ -184,10 +184,10 @@ public:
   void SetPrimaryGenerator(PrimaryGenerator *gen) { fPrimaryGenerator = gen; }
 
   GEANT_FORCE_INLINE
-  void SetMCTruthMgr(MCTruthMgr *mcmgr) { fTruthMgr = mcmgr; } 
+  void SetMCTruthMgr(MCTruthMgr *mcmgr) { fTruthMgr = mcmgr; }
 
   GEANT_FORCE_INLINE
-  MCTruthMgr *GetMCTruthMgr() const { return fTruthMgr; } 
+  MCTruthMgr *GetMCTruthMgr() const { return fTruthMgr; }
 
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
@@ -203,7 +203,7 @@ public:
 
   /** @brief Implementation of work stealing */
   int ProvideWorkTo(GeantPropagator *prop);
-  
+
   void EventTransported(int evt);
   bool Initialize();
   bool FinishRun();

@@ -38,6 +38,7 @@ void MaterialProperties::InitialiseMembers() {
 
   fTotalNumOfAtomsPerVol     = 0.0;
   fTotalNumOfElectronsPerVol = 0.0;
+  fZeff                      = 0.0;
   fMeanExcitationEnergy      = 0.0;
 
   fPlasmaEnergy                   = 0.0;
@@ -63,6 +64,7 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
   // initialise corresponding members
   fTotalNumOfAtomsPerVol     = 0.0;
   fTotalNumOfElectronsPerVol = 0.0;
+  fZeff                      = 0.0;
   if (fNumOfAtomsPerVolVect)
     delete fNumOfAtomsPerVolVect;
   fNumOfAtomsPerVolVect = new double[numElems];
@@ -77,6 +79,7 @@ void MaterialProperties::ComputeBasicMaterialParameters() {
     fTotalNumOfAtomsPerVol     += fNumOfAtomsPerVolVect[i];
     fTotalNumOfElectronsPerVol += fNumOfAtomsPerVolVect[i]*zeff;
   }
+  fZeff = fTotalNumOfElectronsPerVol/fTotalNumOfAtomsPerVol;
 }
 
 

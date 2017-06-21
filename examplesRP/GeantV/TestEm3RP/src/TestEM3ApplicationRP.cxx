@@ -179,8 +179,6 @@ void TestEM3ApplicationRP::StepManager(int npart, const GeantTrack_v &tracks, Ge
 
   //  Printf("Thread %d produced %d hits", tid, nhits);
   //  Printf("StepManager: size of queue %zu", fFactory->fOutputs.size());
-
-  return;
 }
 
 

@@ -2,6 +2,11 @@
 # Add source files & include directories
 #
 include_directories(GeantV/ExN03RP/inc GeantV/TestEm3RP/inc ../vecprot_v2/inc ../numa/inc ../realphysics/dummies/inc ../realphysics/physics/management/inc)
+
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()

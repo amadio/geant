@@ -5,9 +5,14 @@
 # Setup Geant4 include directories and compile definitions
 include(${Geant4_USE_FILE})
 
-include_directories(include 
-  ${Geant4_INCLUDE_DIR} 
+include_directories(include
+  ${Geant4_INCLUDE_DIR}
   ../physics/particle/inc)
+
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
 
 if(USE_NUMA)
   include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
@@ -55,7 +60,7 @@ add_dependencies(testlhcb Geant_v Xsec)
 # relies on these scripts being in the current working directory.
 #
 set(TESTLHCB_SCRIPTS
-  g4macro_TPHYS.mac g4macro_G4.mac testLHCb.sh 
+  g4macro_TPHYS.mac g4macro_G4.mac testLHCb.sh
   )
 
 foreach(_script ${TESTLHCB_SCRIPTS})

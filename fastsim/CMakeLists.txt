@@ -13,6 +13,11 @@ include_directories(inc
   ${CMAKE_SOURCE_DIR}/physics/particle/inc
   ${CMAKE_SOURCE_DIR}/numa/inc)
 
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
+
 file(GLOB sources src/*.cxx src/GunGenerator.cxx)
 file(GLOB headers inc/*.h inc/GunGenerator.h)
 string(REGEX REPLACE "[^ ]*/fastsimLinkDef.h" "" headers "${headers}")
@@ -22,7 +27,7 @@ string(REGEX REPLACE "[^ ]*/fastsimLinkDef.h" "" headers "${headers}")
 #
 if(USE_ROOT)
   ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-  add_library(Fastsim SHARED ${sources} fastsimDict.cxx) 
+  add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
   target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
     ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 
@@ -40,14 +45,14 @@ add_custom_target(fastsimlib DEPENDS Fastsim)
 #----------------------------------------------------------------------------------------------
 # Install the files
 #
-if(APPLE) 
+if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS Fastsim DESTINATION lib)
 endif()
 if(USE_ROOT)
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim.rootmap 
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim.rootmap
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim_rdict.pcm DESTINATION lib)
 endif()
 

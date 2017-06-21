@@ -2,6 +2,11 @@
 # Add source files & include directories
 #
 include_directories(inc ../vecprot_v2/inc ../physics/particle/inc ../numa/inc)
+
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
@@ -11,7 +16,7 @@ set(sources
   src/CMSApplication.cxx
   src/LHCbApplication.cxx
   src/FastSimApplication.cxx
-  )     
+  )
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -22,20 +27,20 @@ set(sources
   src/CMSApplication.cxx
   src/LHCbApplication.cxx
   src/FastSimApplication.cxx
-  )     
+  )
 
 set(headers
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h 
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h 
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
-  )   
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h
+  )
 if (USE_ROOT)
   if (USE_UMESIMD)
-     ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples 
+     ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples
      LINKDEF inc/LinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
   else()
-     ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples 
+     ROOT_GENERATE_DICTIONARY(G__Examples ${headers} MODULE GeantExamples
      LINKDEF inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   endif()
     set(sources ${sources} G__Examples.cxx)
@@ -71,7 +76,7 @@ add_custom_target(Exampleslib DEPENDS GeantExamples)
 #----------------------------------------------------------------------------------------------
 # Install the files
 #
-if(APPLE) 
+if(APPLE)
   # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.so DESTINATION lib)
 else()
@@ -79,7 +84,7 @@ else()
 endif()
 
 if(USE_ROOT)
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.rootmap 
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples.rootmap
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamples_rdict.pcm DESTINATION lib)
 endif()
 

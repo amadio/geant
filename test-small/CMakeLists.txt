@@ -18,12 +18,17 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories(include 
+include_directories(include
   ${Geant4_INCLUDE_DIR}
   ${ROOT_INCLUDE_DIR}
-  ../xsec/inc 
+  ../xsec/inc
   ../physics/particle/inc
   )
+
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
 
 if(USE_NUMA)
   include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
@@ -61,7 +66,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 #
 add_executable(exampleN03 exampleN03.cc ${sources} ${headers})
 set_target_properties(exampleN03 PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-target_link_libraries(exampleN03 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
+target_link_libraries(exampleN03 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
   ${XSEC_LINK_LIBS} Geant_v NewPhysics)
 if(USE_VECGEOM_NAVIGATOR)
    target_link_libraries(exampleN03 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES})
@@ -103,6 +108,3 @@ install(TARGETS exampleN03 DESTINATION bin)
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
-
-
-

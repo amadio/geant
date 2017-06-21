@@ -37,6 +37,7 @@ void EMPhysicsProcess::Initialize() {
   PhysicsProcess::Initialize();
   // init the model manager that will init the models as well togeter with setting reagions where they active
   // the default active regions are determined by the active regions of the process that is given as parameter
+  std::cerr<<"  ----> EMPhysicsProcess Name = " << GetName() << "  is under initialization! "<< std::endl;
   fModelManager->Initialise(GetListActiveRegions(), GetName(), GetListParticlesAssignedTo());
   if (fModelManager==0) {
     std::cerr<<" **** ERROR: EMPhysicsProcess::Initialize() \n"
@@ -44,7 +45,6 @@ void EMPhysicsProcess::Initialize() {
              <<std::endl;
     exit(-1);
   }
-  std::cerr<<"  ----> EMPhysicsProcess Name = " << GetName() << "  is under initialization! "<< std::endl;
   // if it is an energy loss process register it for the list of particles that the process is assigned to into the
   // energy loss table manager (particle, ,this)
   if (ProcessType::kEnergyLoss==GetType()) {
@@ -65,7 +65,7 @@ void EMPhysicsProcess::Initialize() {
     fLinearEnergyLossLimit = physPar->GetLinearEnergyLossLimit();
     //
     // print-out
-    std::cerr<<"  ----> EMPhysicsProcess Name = " << GetName()
+    std::cerr<<"        EMPhysicsProcess Name = " << GetName()
              << "  is an EnergyLoss process! Registered for particles: ";
     for (unsigned long i=0; i<GetListParticlesAssignedTo().size(); ++i) {
       std::cerr<< GetListParticlesAssignedTo()[i]->GetName();
@@ -75,6 +75,7 @@ void EMPhysicsProcess::Initialize() {
         std::cout<<std::endl;
     }
   }
+  std::cerr<<"        EMPhysicsProcess Name = " << GetName() << "  is initialized! "<< std::endl;
 }
 
 

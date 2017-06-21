@@ -16,6 +16,11 @@ include_directories(inc)
 include_directories(${CMAKE_SOURCE_DIR}/physics/particle/inc)
 include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
 
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
+
 #----------------------------------------------------------------------------------------------
 # Add the library
 #
@@ -23,18 +28,18 @@ if (USE_ROOT)
    if (USE_UMESIMD)
       ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
       add_library(Xsec SHARED ${sources} xsecDict.cxx)
-      target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics 
+      target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
         ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${HEPMC_LIBRARIES})
    else()
       ROOT_GENERATE_DICTIONARY(xsecDict ${headers} MODULE Xsec LINKDEF inc/xsecLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
       add_library(Xsec SHARED ${sources} xsecDict.cxx)
-      target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics 
+      target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
          ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
    endif()
-  
+
 else()
   add_library(Xsec SHARED ${sources})
-  
+
   target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
     ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 endif()
@@ -72,7 +77,7 @@ if (CUDA)
   foreach(SRC ${SRC_CPP_RELATIVE})
     set(SRC_CPP ${SRC_CPP} ${CMAKE_SOURCE_DIR}/${SRC})
   endforeach()
-  
+
 
   foreach(SRC_FILE ${SRC_CPP})
     get_filename_component(SRC_FILENAME ${SRC_FILE} NAME_WE)
@@ -83,7 +88,7 @@ if (CUDA)
       ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
       DEPENDS ${SRC_FILE}
       )
-    
+
     set(
       SRC_CUDA ${SRC_CUDA}
       ${CMAKE_CURRENT_BINARY_DIR}/cuda_src/${SRC_FILENAME}.cu
@@ -94,14 +99,14 @@ if (CUDA)
     ${SRC_CUDA}
     SHARED
     OPTIONS ${CUDA_ARCH}
-    )  
+    )
 
   # Note: the repeat below is due the author of  cuda_add_library_depend
   # not knowing how to automatically go from the target to the real
   # file in add_custom_command
   cuda_add_library_depend(xseccuda ../lib/libNewPhysicsCuda_static.a ${VECGEOM_CUDA_STATIC_LIBRARY} )
   target_link_libraries(xseccuda NewPhysicsCuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL})
-  
+
   cuda_add_library(xseccudatest
     testserialReadCuda.cu
     SHARED
@@ -111,10 +116,10 @@ if (CUDA)
   # Note: the repeat below is due the author of  cuda_add_library_depend
   # not knowing how to automatically go from the target to the real
   # file in add_custom_command
-  cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a 
+  cuda_add_library_depend(xseccudatest xseccuda_static ../lib/libxseccuda_static.a
     ../lib/libNewPhysicsCuda_static.a ../lib/libGeant_v_static.a ${VECGEOM_CUDA_STATIC_LIBRARY})
   target_link_libraries(xseccudatest -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} xseccuda Geant_v)
-  
+
   add_executable(testserialReadCuda testserialReadCuda.cpp)
   target_link_libraries(testserialReadCuda -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} xseccudatest xseccuda Xsec Geant_v)
 
@@ -123,7 +128,7 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Install the files
 #
-if(APPLE) 
+if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
@@ -131,7 +136,7 @@ else()
 endif()
 
 if(USE_ROOT)
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap 
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec.rootmap
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libXsec_rdict.pcm DESTINATION lib)
 endif()
 
@@ -141,4 +146,3 @@ endif()
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
-

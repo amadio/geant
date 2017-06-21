@@ -5,6 +5,11 @@
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
 #include "base/RNG.h"
+#include "Types.h"
+#include "SystemOfUnits.h"
+#include "Material.h"
+#include "MaterialProperties.h"
+#include "Element.h"
 #else
 #include "TGeoManager.h"
 #include "TGeoBranchArray.h"
@@ -78,7 +83,7 @@ TTabPhysMgr::~TTabPhysMgr() {
   delete fHasNCaptureAtRest;
   fgInstance = 0;
 //  Particle_t::CreateParticles();
-#endif 
+#endif
 }
 
 //______________________________________________________________________________
@@ -107,7 +112,7 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
 // Load elements from geometry, however in most cases it should already be done
 #ifdef USE_VECGEOM_NAVIGATOR
   //td->fPropagator->LoadVecGeomGeometry();
-  std::vector<vecgeom::Material *> matlist = vecgeom::Material::GetMaterials();
+  const geantphysics::Vector_t<Material_t*> matlist = geantphysics::Material::GetTheMaterialTable();
 #else
   fGeom = gGeoManager;
   if (!fGeom)
@@ -160,10 +165,29 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
 #ifdef USE_VECGEOM_NAVIGATOR
   for (unsigned int i = 0; i < matlist.size(); ++i) {
     mat = matlist[i];
+    double zeff = mat->GetMaterialProperties()->GetEffectiveZ();
+    std::cout << mat->GetName() << "used " << mat->IsUsed() << " Zeff = "<< zeff << std::endl;
+    if (!mat->IsUsed() || zeff < 1.)
+      continue;
+    fNmaterials++;
+    int nelem = mat->GetNumberOfElements();
+    // Check if we are on the safe side; should exit otherwise
+    if (nelem > MAXNELEMENTS) {
+      Fatal("TTabPhysMgr", "Number of elements in %s is %d > TTabPhysMgr::MAXNELEMENTS=%d\n", mat->GetName().c_str(), nelem,
+            MAXNELEMENTS);
+    }
+    const geantphysics::Vector_t<geantphysics::Element*> elemVect =  mat->GetElementVector();
+    for (int iel=0; iel<nelem; ++iel) {
+      double zd = elemVect[iel]->GetZ();
+      if (zd < 1 || zd > NELEM) {
+        Fatal("TTabPhysMgr", "In material %s found element with z=%d > NELEM=%d", mat->GetName().c_str(), (int)zd, NELEM);
+      }
+      elements.SetBitNumber(zd);
+    }
+  }
 #else
   while ((mat = (Material_t *)next())) {
-#endif
-    std::cout << mat->GetName() << "used " << mat->IsUsed() << " Z " << mat->GetZ() << std::endl;
+    std::cout << mat->GetName() << "used " << mat->IsUsed() << " Zeff = "<< mat->GetZ() << std::endl;
     if (!mat->IsUsed() || mat->GetZ() < 1.)
       continue;
     fNmaterials++;
@@ -184,6 +208,8 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
       elements.SetBitNumber(zd);
     }
   }
+#endif
+
   fNelements = elements.CountBits();
   fElemXsec = new TEXsec *[NELEM];
   fElemFstate = new TEFstate *[NELEM];
@@ -220,18 +246,45 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
   // xsec and states now in memory
   // Go through all materials in the geometry and form the associated TMXsec
   // objects.
+
+#ifdef USE_VECGEOM_NAVIGATOR
   int *z = new int[MAXNELEMENTS];
   int *a = new int[MAXNELEMENTS];
   float *w = new float[MAXNELEMENTS];
   fNmaterials = 0;
-#ifdef USE_VECGEOM_NAVIGATOR
   for (unsigned int i = 0; i < matlist.size(); ++i) {
     mat = matlist[i];
+    if (!mat->IsUsed())
+      continue;
+    const geantphysics::Vector_t<geantphysics::Element*> theElemVect = mat->GetElementVector();
+    const double *massFractionVect = mat->GetMassFractionVector();
+    int nelem = mat->GetNumberOfElements();
+    std::cout<< " ==== material = " << mat->GetName() << std::endl;
+    for (int iel = 0; iel < nelem; ++iel) {
+       z[iel] = theElemVect[iel]->GetZ();
+       a[iel] = theElemVect[iel]->GetA()/(geant::g/geant::mole);
+       w[iel] = massFractionVect[iel];
+       std::cout<< "iel = "<< iel <<" z = " << z[iel] << " a = " << a[iel] << " w = " << w[iel] << " density = " << mat->GetDensity()/(geant::g/geant::cm3) << std::endl;
+    }
+    if (nelem == 0) {
+      std::cout<<mat<<std::endl;
+      Fatal("TTabPhysMgr", "The material (%s) seems to have no elements", mat->GetName().c_str());
+    }
+    // Construct the TMXsec object that corresponds to the current material
+    TMXsec *mxs = new TMXsec(mat->GetName().c_str(), mat->GetName().c_str(), z, a, w, nelem, mat->GetDensity()/(geant::g/geant::cm3), true, fDecay);
+    fMatXsec[fNmaterials++] = mxs;
+    mat->SetXsecPtr(static_cast<void *>(mxs));
+  } // End of while
+  delete[] z;
+  delete[] a;
+  delete[] w;
 #else
+  int *z = new int[MAXNELEMENTS];
+  int *a = new int[MAXNELEMENTS];
+  float *w = new float[MAXNELEMENTS];
+  fNmaterials = 0;
   next.Reset();
   while ((mat = (Material_t *)next())) {
-#endif
-    //    std::cout << __FILE__ << "::" << __func__ << "::Loading xsec for " << mat->GetName() << std::endl;
     if (!mat->IsUsed())
       continue;
     int nelem = mat->GetNelements();
@@ -240,11 +293,13 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
     double ad;
     double zd;
     double wd;
+    std::cout<< " ==== material = " << mat->GetName() << std::endl;
     for (int iel = 0; iel < nelem; ++iel) {
       mat->GetElementProp(ad, zd, wd, iel);
       a[iel] = ad;
       z[iel] = zd;
       w[iel] = wd;
+      std::cout<< "iel = "<< iel <<" z = " << z[iel] << " a = " << a[iel] << " w = " << w[iel] << " density = " << mat->GetDensity() << std::endl;
     }
     if (nelem == 0) {
       mat->Dump();
@@ -253,16 +308,12 @@ TTabPhysMgr::TTabPhysMgr(const char *xsecfilename, const char *finalsfilename)
     // Construct the TMXsec object that corresponds to the current material
     TMXsec *mxs = new TMXsec(mat->GetName(), mat->GetName(), z, a, w, nelem, mat->GetDensity(), true, fDecay);
     fMatXsec[fNmaterials++] = mxs;
-// Connect to Material
-#ifdef USE_VECGEOM_NAVIGATOR
-    mat->SetXsecPtr(static_cast<void *>(mxs));
-#else
     mat->SetFWExtension(new TGeoRCExtension(new TOMXsec(mxs)));
-#endif
   } // End of while
   delete[] z;
   delete[] a;
   delete[] w;
+#endif
 
   // After setting up all the necessary TMXsec objects we have the arra of the
   // loaded elemental TEXsec object pointers in: static TEXsec::TEXsec *fElements[NELEM]
@@ -638,7 +689,7 @@ void TTabPhysMgr::SampleTypeOfInteractions(int imat, int ntracks, GeantTrack_v &
   TMXsec *mxs = 0;
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = vecgeom::Material::GetMaterials()[imat];
+    mat = Material_t::GetTheMaterialTable()[imat];
     mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mat = (TGeoMaterial *)fGeom->GetListOfMaterials()->At(imat);
@@ -701,7 +752,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
   TMXsec *mxs = 0;
   if (imat >= 0) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = vecgeom::Material::GetMaterials()[imat];
+    mat = Material_t::GetTheMaterialTable()[imat];
     mxs = (TMXsec *)mat->GetXsecPtr();
 #else
     mat = (Material_t *)fGeom->GetListOfMaterials()->At(imat);

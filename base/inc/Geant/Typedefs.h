@@ -22,10 +22,8 @@
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
 typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
-#include "materials/Material.h"
-typedef VECGEOM_NAMESPACE::Material Material_t;
-#include "materials/Medium.h"
-typedef VECGEOM_NAMESPACE::Medium Medium_t;
+#include "Material.h"
+typedef geantphysics::Material Material_t;
 #include "volumes/LogicalVolume.h"
 typedef VECGEOM_NAMESPACE::LogicalVolume Volume_t;
 #include "volumes/PlacedVolume.h"

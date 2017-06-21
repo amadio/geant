@@ -36,7 +36,6 @@
 #if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
-#include "materials/Medium.h"
 #include "base/Stopwatch.h"
 #else
 #include "TGeoNavigator.h"
@@ -454,7 +453,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
   if (feedres == FeederResult::kStopProcessing)
      return feedres;
 
-  // Take tracks from the event server  
+  // Take tracks from the event server
   int ninjected = 0;
   GeantEventServer *evserv = td->fPropagator->fRunMgr->GetEventServer();
   if (evserv->HasTracks()) {
@@ -487,7 +486,7 @@ int WorkloadManager::FlushOneLane(GeantTaskData *td)
     ninjected += nlane;
   }
   return ( ninjected );
-}  
+}
 
 //______________________________________________________________________________
 int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
@@ -514,7 +513,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
 */
       ninput += nstart;
       if ( nstart || !flushed ) {
-        if (flush) 
+        if (flush)
           nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
         else
           nprocessed += td->fPropagator->fStages[istage]->Process(td);
@@ -572,7 +571,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   td->fBmgr = prioritizer;
   prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
   prioritizer->SetFeederQueue(feederQ);
-  
+
   GeantEventServer *evserv = runmgr->GetEventServer();
   int bindex = evserv->GetBindex();
   GeantBasket *bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
@@ -582,7 +581,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   bool firstTime = true;
   bool multiPropagator = runmgr->GetNpropagators() > 1;
   GeantPropagator *idle = nullptr;
-  
+
   // IO handling
   #ifdef USE_ROOT
   bool concurrentWrite = td->fPropagator->fConfig->fConcurrentWrite && td->fPropagator->fConfig->fFillTree;
@@ -606,7 +605,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       myhitFactory->queue_per_thread = true;
     }
   #endif
-    
+
   // Start the feeder for this propagator
 /*
   while (runmgr->GetFedPropagator() != propagator) {
@@ -651,7 +650,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
       ngcoll = 0;
       // std::atomic_int &priority_events = propagator->fRunMgr->GetPriorityEvents();
       // Max number of prioritized events should be configurable
-       
+
       while (!sch->GarbageCollect(td, true) &&
              !feederQ->size_async() &&
              !basket &&
@@ -718,7 +717,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
 #ifdef USE_VECGEOM_NAVIGATOR
-      mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
+      mat = (Material_t *)td->fVolume->GetMaterialPtr();
 #else
       mat = td->fVolume->GetMaterial();
 #endif
@@ -954,7 +953,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   GeantRunManager *runmgr = propagator->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
   td->fTid = tid;
-  
+
   int nworkers = propagator->fNthreads;
   WorkloadManager *wm = propagator->fWMgr;
   Geant::priority_queue<GeantBasket *> *feederQ = wm->FeederQueue();
@@ -1044,7 +1043,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
              }
            }
            // We have nothing, so let's wait.
-           
+
            if (propagator->fCompleted || wm->fStopped)
              break;
            propagator->fNidle++;
@@ -1093,7 +1092,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
     if (!basket->IsMixed()) {
       td->fVolume = basket->GetVolume();
 #ifdef USE_VECGEOM_NAVIGATOR
-      // mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
+      // mat = (Material_t *)td->fVolume->GetMaterialPtr();
 #else
       // mat = td->fVolume->GetMaterial();
 #endif

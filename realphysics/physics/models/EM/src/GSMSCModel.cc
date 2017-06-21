@@ -80,9 +80,10 @@ void GSMSCModel::Initialize() {
 
 void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
   bool   isOnBoundary         = gtrack->fBoundary;
-  int    matIndx              = gtrack->GetMaterial()->GetIndex();
-  int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
-  const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
+//  int    matIndx              = gtrack->GetMaterial()->GetIndex();
+//  int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
+//  const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double kineticEnergy        = gtrack->fE-gtrack->fMass;
 
   if (kineticEnergy<GetLowEnergyUsageLimit() || kineticEnergy>GetHighEnergyUsageLimit()) {
@@ -128,8 +129,9 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   gtrack->fIsNoDisplace         = false;
 
   // Zeff  = TotNbOfElectPerVolume/TotNbOfAtomsPerVolume
-  double fZeff = matCut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()/
-                 matCut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfAtomsPerVol();
+  double fZeff = matCut->GetMaterial()->GetMaterialProperties()->GetEffectiveZ();
+                 //matCut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()/
+                 //matCut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfAtomsPerVol();
 
   // distance will take into account max-fluct: we don't have fluctuation but use this for consistency
   double distance = range;
@@ -494,9 +496,10 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
         gtrack->fTheZPathLenght = 1./(gtrack->fPar1*gtrack->fPar3);
       }
     } else {
-      int    matIndx              = gtrack->GetMaterial()->GetIndex();
-      int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
-      const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
+//      int    matIndx              = gtrack->GetMaterial()->GetIndex();
+//      int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
+//      const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
+      const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
       double rfin    = std::max(gtrack->fRange-gtrack->fTheTrueStepLenght, 0.01*gtrack->fRange);
       double T1      = ELossTableManager::Instance().GetEnergyForRestrictedRange(matCut,fParticle,rfin);
       double lambda1 = GetTransportMeanFreePathOnly(matCut,T1);
@@ -558,9 +561,10 @@ void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::
 void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
   gtrack->fIsNoScatteringInMSC = false;
   //
-  int    matIndx              = gtrack->GetMaterial()->GetIndex();
-  int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
-  const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
+//  int    matIndx              = gtrack->GetMaterial()->GetIndex();
+//  int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
+//  const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double kineticEnergy        = gtrack->fE-gtrack->fMass;
   double range                = gtrack->fRange;             // set in the step limit phase
   double trueStepL            = gtrack->fTheTrueStepLenght; // proposed by all other physics

@@ -202,6 +202,11 @@ class MaterialProperties{
      */
     double         GetTotalNumOfElectronsPerVol() const {return fTotalNumOfElectronsPerVol;}
 
+    /** @brief Public method to get the effective atomic number of this material.
+     *  @return Effective atomic number: number of electons per volume per number of atoms per volume.
+     */
+    double         GetEffectiveZ() const {return fZeff;}
+
     /** @brief Public method to get the number of atoms per volume for each elements this material is built up.
      *  @return Number of atoms per volume for each elements this material is built up [Material::GetNumberOfElements()]. */
     const double*   GetNumOfAtomsPerVolumeVect() const {return fNumOfAtomsPerVolVect;}
@@ -274,6 +279,8 @@ class MaterialProperties{
    double        fTotalNumOfAtomsPerVol;
    /** @brief Total number of electrons per volume in this material. */
    double        fTotalNumOfElectronsPerVol;
+   /** @brief Effective atomic number. */
+   double        fZeff;
 //@}
 /**
 * @name Ionization parameter:

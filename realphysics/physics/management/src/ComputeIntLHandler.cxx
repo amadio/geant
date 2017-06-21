@@ -33,10 +33,8 @@ void ComputeIntLHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, G
   track->fStep=0.; // no setter for this member in GeantTrack
   track->SetEdep(0.);
   // ---
-  // here we will get the MaterialCuts from the LogicalVolume later
-  int   matIndx              = track->GetMaterial()->GetIndex();
-  int   regIndx              = const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetRegion()->GetIndex();
-  const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
+  // here we will get the MaterialCuts from the LogicalVolume
+  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
   int   particleCode         = track->GVcode();
   const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);

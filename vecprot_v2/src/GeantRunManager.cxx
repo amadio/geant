@@ -27,6 +27,8 @@
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"
+#include "Material.h"
+#include "Element.h"
 #ifdef USE_ROOT
 #include "management/RootGeoManager.h"
 #endif
@@ -54,6 +56,51 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace vecgeom;
+
+// This will go to the detector construction base class (as soon as we will have it) and will be used to.
+// convert Root::Material to geantphysics::Material in VecGeom when geometry is loaded from .root file.
+#ifdef USE_VECGEOM_NAVIGATOR
+auto materiallambda = [](TGeoMaterial const *rootmat) {
+    //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
+    int    numElem    = rootmat->GetNelements();
+    double density    = rootmat->GetDensity()*geant::g/geant::cm3; // in g/cm3
+    const std::string  name = rootmat->GetName();
+    // check if it is a G4 NIST material
+    std::string postName = "";
+    bool isNistMaterial = false;
+    if (name.substr(0,3)=="G4_") {
+      postName = name.substr(3);
+      isNistMaterial = true;
+    }
+    geantphysics::Material *gmat = nullptr;
+    if (isNistMaterial) {
+      std::string nistName = "NIST_MAT_"+postName;
+      gmat = geantphysics::Material::NISTMaterial(nistName);
+    } else {
+      // find or create material
+      gmat = geantphysics::Material::GetMaterial(name);
+      if (gmat) {
+        // std::cout<< " Material "<<name << " has already been created.!"<< std::endl;
+        return gmat;
+      }
+      gmat = new geantphysics::Material(name, density, numElem);
+      for (int j=0; j<numElem; ++j) {
+        double va;
+        double vz;
+        double vw;
+        const_cast<TGeoMaterial *>(rootmat)->GetElementProp(va, vz, vw, j);
+        // create NIST element
+        geantphysics::Element *elX = geantphysics::Element::NISTElement(vz);
+        // add to the Material
+        gmat->AddElement(elX, vw);
+     }
+   }
+   // std::cout<< "  geantphysics::name = " << gmat->GetName() << std::endl;
+   gmat->SetIsUsed(true);
+   return gmat;
+ };
+#endif
+
 
 //______________________________________________________________________________
 GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthreads,
@@ -133,7 +180,7 @@ bool GeantRunManager::Initialize() {
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->SetMaxDepth(fConfig->fMaxDepth);
     mgr->Init();
-#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (fConfig->fUseNuma) {
       int nnodes = mgr->GetPolicy().GetNnumaNodes();
       mgr->SetPolicy(NumaPolicy::kCompact);
@@ -289,6 +336,7 @@ bool GeantRunManager::LoadVecGeomGeometry() {
 #ifdef USE_VECGEOM_NAVIGATOR
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
 #ifdef USE_ROOT
+    vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(materiallambda);
     printf("Now loading VecGeom geometry\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
     printf("Loading VecGeom geometry done\n");
@@ -384,7 +432,7 @@ void GeantRunManager::EventTransported(int evt)
   // Digitizer (todo)
   Info("EventTransported", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
   LocalityManager *lmgr = LocalityManager::Instance();
-  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d", 
+  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
          lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   //fApplication->Digitize(event);
   fDoneEvents->SetBitNumber(evt);
@@ -471,7 +519,7 @@ void GeantRunManager::RunSimulation() {
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
          fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
   LocalityManager *lmgr = LocalityManager::Instance();
-  Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d", 
+  Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
          lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");

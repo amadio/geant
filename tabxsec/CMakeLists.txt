@@ -9,6 +9,10 @@ file(GLOB sources tabxsec.cc src/*.cc src/*.cxx)
 file(GLOB headers inc/*.hh src/*.h)
 include_directories(inc ${CMAKE_SOURCE_DIR}/physics/particle/inc)
 
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
+
 if(USE_NUMA)
   include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
 endif()
@@ -41,7 +45,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_NOW_FLAGS_RELWITHDEBINFO}")
 #
 add_executable(tabxsec tabxsec.cc ${sources} ${c_sources} ${headers})
 set_target_properties(tabxsec PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-target_link_libraries(tabxsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} 
+target_link_libraries(tabxsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CALLOC_LIBRARY} ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
                               ${VECGEOM_LIBRARIES} ${XSEC_LINK_LIBS} Geant_v NewPhysics)
 add_dependencies(tabxsec xseclib NewPhysics)
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_NOW_LINKER_FLAGS}")
@@ -84,4 +88,3 @@ install(TARGETS tabxsec DESTINATION bin)
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
-

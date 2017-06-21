@@ -184,9 +184,8 @@ vecgeom::LogicalVolume worldl(&worldParams);
 // create one region and assigne to the logical volume
 vecgeom::Region *aRegion = new vecgeom::Region("ARegion",iscutinlength, gcut, emcut, epcut);
 worldl.SetRegion(aRegion);
-// create a dummy vecgeom::media for this volume:
-// Only the vecgeom::material index (that will be 0) is used later to identify our material during the init.
-worldl.SetTrackingMediumPtr(new vecgeom::Medium((matDetector->GetName()).c_str(),new vecgeom::Material(),new double()));
+// set the material pointer in the world logical volume
+worldl.SetMaterialPtr((void*)matDetector);
 vecgeom::GeoManager::Instance().SetWorld(worldl.Place());
 vecgeom::GeoManager::Instance().CloseGeometry();
 

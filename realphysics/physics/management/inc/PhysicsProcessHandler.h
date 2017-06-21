@@ -40,9 +40,6 @@ private:
   PhysicsProcessHandler& operator=(const PhysicsProcessHandler &other) = delete;
 
 
-  /** Helper method to set up geantphysics::Material-s and reagion0 */
-  void BuildMaterials();
-
 public:
   /** @brief Default constructor */
   PhysicsProcessHandler();

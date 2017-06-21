@@ -250,7 +250,7 @@ void GeantPropagator::ApplyMsc(int /*ntracks*/, GeantTrack_v & /*tracks*/, Geant
   Material_t *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
+    mat = (Material_t *)td->fVolume->GetMaterialPtr();
 #else
     mat = td->fVolume->GetMaterial();
 #endif
@@ -275,8 +275,7 @@ void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskDa
   Material_t *mat = 0;
   if (td->fVolume)
 #ifdef USE_VECGEOM_NAVIGATOR
-    mat = ((Medium_t *)td->fVolume->GetTrackingMediumPtr())->GetMaterial();
-  ;
+    mat = (Material_t *)td->fVolume->GetMaterialPtr();
 #else
     mat = td->fVolume->GetMaterial();
 #endif

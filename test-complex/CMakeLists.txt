@@ -5,8 +5,13 @@
 # Setup Geant4 include directories and compile definitions
 include(${Geant4_USE_FILE})
 
-include_directories(include 
+include_directories(include
   ${Geant4_INCLUDE_DIR})
+
+
+if (USE_VECGEOM_NAVIGATOR)
+ include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+endif()
 
 if(USE_NUMA)
   include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
@@ -58,7 +63,7 @@ add_dependencies(testcomplex Geant_v Xsec)
 #
 
 set(TESTCOMPLEX_SCRIPTS
-  g4macro_TPHYS.mac g4macro_G4.mac testcomplex.sh 
+  g4macro_TPHYS.mac g4macro_G4.mac testcomplex.sh
   )
 
 foreach(_script ${TESTCOMPLEX_SCRIPTS})
@@ -75,12 +80,12 @@ endforeach()
 add_custom_target(TESTCOMPLEX_T DEPENDS testcomplex)
 
 #----------------------------------------------------------------------------
-# Setting Geant4 version compiler definition  
+# Setting Geant4 version compiler definition
 #
 if (Geant4_VERSION_MAJOR LESS 10)
-  set_target_properties(testcomplex PROPERTIES COMPILE_DEFINITIONS "GEANT4_LESS_10=1") 
+  set_target_properties(testcomplex PROPERTIES COMPILE_DEFINITIONS "GEANT4_LESS_10=1")
 else()
-  set_target_properties(testcomplex PROPERTIES COMPILE_DEFINITIONS "GEANT4_LESS_10=0") 
+  set_target_properties(testcomplex PROPERTIES COMPILE_DEFINITIONS "GEANT4_LESS_10=0")
 endif()
 
 
@@ -95,5 +100,3 @@ install(TARGETS testcomplex DESTINATION bin)
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
-
-
