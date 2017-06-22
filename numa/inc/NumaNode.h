@@ -19,7 +19,7 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-struct NumaCore;
+class NumaCore;
 
 /** Class describung NUMA node properties */
 //______________________________________________________________________________
