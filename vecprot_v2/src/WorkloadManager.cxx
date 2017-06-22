@@ -1566,6 +1566,7 @@ void *WorkloadManager::OutputThread(GeantPropagator* prop) {
     return 0;
 }
 
+#ifdef USE_ROOT
 //______________________________________________________________________________
 void *WorkloadManager::StartROOTApplication()
 {
@@ -1573,7 +1574,7 @@ void *WorkloadManager::StartROOTApplication()
   app->Run();
   return 0;
 }
-
+#endif
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

@@ -510,6 +510,7 @@ void GeantRunManager::StopTransport() {
 // It will go to the DetectorConstruction base class
 //______________________________________________________________________________
 #ifdef USE_VECGEOM_NAVIGATOR
+#ifdef USE_ROOT
 std::function<void*(TGeoMaterial const *)> GeantRunManager::CreateMaterialConversion() {
   return [](TGeoMaterial const *rootmat) {
       //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
@@ -551,6 +552,7 @@ std::function<void*(TGeoMaterial const *)> GeantRunManager::CreateMaterialConver
      return gmat;
    };
 }
+#endif
 #endif
 
 } // GEANT_IMPL_NAMESPACE

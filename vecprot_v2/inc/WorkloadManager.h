@@ -278,8 +278,10 @@ public:
    */  
   static void *OutputThread(GeantPropagator *prop);
 
+#ifdef USE_ROOT
   /** @brief Function that starts ROOT application */  
   static void *StartROOTApplication();
+#endif
 
   /**
    * @brief Function that provides transporting tracks
