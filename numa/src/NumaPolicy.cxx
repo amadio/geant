@@ -65,6 +65,7 @@ int NumaPolicy::AllocateNextThread(int node)
   }     
   return crt_node;
 #else
+  (void)node;
   return 0;
 #endif
 }
