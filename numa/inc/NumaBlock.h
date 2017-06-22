@@ -55,8 +55,8 @@ private:
     // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
     // on the memory associated with the given NUMA node.
     static_assert(!std::is_polymorphic<T>::value, "Cannot use polymorphic types as NumaBlock");
-    static_assert(std::is_default_constructible<T>::value, "Type used in NumaBlock must have default ctor.");
-    static_assert(std::is_copy_constructible<T>::value, "Type used in NumaBlock must be copy constructible");
+    // static_assert(std::is_default_constructible<T>::value, "Type used in NumaBlock must have default ctor.");
+    // static_assert(std::is_copy_constructible<T>::value, "Type used in NumaBlock must be copy constructible");
     fArray = reinterpret_cast<T*>(&fArray + 1);
     auto el_size = T::SizeOfInstance();
     for (size_t i=0; i<size; ++i) T::MakeInstanceAt((char*)&fArray[0] + i*el_size);

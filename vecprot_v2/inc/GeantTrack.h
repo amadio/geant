@@ -239,10 +239,6 @@ bool fIsFirstRealStep;                  // to indicate that the particle is maki
   VECCORE_ATT_HOST_DEVICE
   GeantTrack(void *addr);
 
-  /** @brief GeantTrack constructor  */
-  VECCORE_ATT_HOST_DEVICE
-  GeantTrack();
-
 public:
   /** @brief GeantTrack destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -252,7 +248,7 @@ public:
    * @brief GeantTrack copy constructor
    */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack(const GeantTrack &other);
+  GeantTrack(const GeantTrack &other) = delete;
 
   /** @brief Operator = */
   VECCORE_ATT_HOST_DEVICE
@@ -890,6 +886,12 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   static GeantTrack *MakeInstanceAt(void *addr);
+
+  /**
+   * @brief GeantTrack MakeInstance allocating the necessary buffer on the heap.
+   */
+  VECCORE_ATT_HOST_DEVICE
+  static GeantTrack *MakeInstance();
 
   /**
    * @brief Rounds up an address to the aligned value

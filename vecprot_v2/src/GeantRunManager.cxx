@@ -403,7 +403,8 @@ void GeantRunManager::EventTransported(int evt)
   LocalityManager *lmgr = LocalityManager::Instance();
   Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
          lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
-  //fApplication->Digitize(event);
+  fApplication->FinishEvent(event->GetEvent(), event->GetSlot());
+  fApplication->Digitize(event);
   fDoneEvents->SetBitNumber(evt);
 }
 
