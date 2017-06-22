@@ -253,9 +253,12 @@ namespace NumaUtils {
   #ifdef GEANT_USE_NUMA
     return ( NumaUtilsStruct::Instance()->NumaAlignedMalloc(bytes, node, alignment) );
   #else
+    (void)node;
     return _mm_malloc(bytes, alignment);
   #endif
   #else
+    (void)node;
+    (void)alignment;
     return malloc(bytes);
   #endif
   }
