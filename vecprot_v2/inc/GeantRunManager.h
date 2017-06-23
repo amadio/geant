@@ -17,7 +17,7 @@
 using namespace veccore;
 class PhysicsInterface;
 
-GEANT_DEVICE_DECLARE_CONV(class,GeantPropagator);
+GEANT_DEVICE_DECLARE_CONV(Geant,class,GeantPropagator);
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {

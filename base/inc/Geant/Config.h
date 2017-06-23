@@ -95,20 +95,20 @@
 
 #ifndef VECCORE_CUDA
 
-#define GEANT_DEVICE_DECLARE_CONV(classOrStruct,X)  \
-  namespace Geant {                                 \
-    namespace cuda { classOrStruct X; }             \
-    inline namespace cxx  { classOrStruct X; }      \
-  }                                                 \
-  namespace vecgeom {                               \
-    template <> struct kCudaType<Geant::cxx::X> {   \
-      using type_t = Geant::cuda::X;                \
-    };                                              \
+#define GEANT_DEVICE_DECLARE_CONV(NS,classOrStruct,X)  \
+  namespace NS {                                 \
+    namespace cuda { classOrStruct X; }          \
+    inline namespace cxx  { classOrStruct X; }   \
+  }                                              \
+  namespace vecgeom {                            \
+    template <> struct kCudaType<NS::cxx::X> {   \
+      using type_t = NS::cuda::X;                \
+    };                                           \
   } class __QuietSemi
 
 #else
 
-#define GEANT_DEVICE_DECLARE_CONV(classOrStruct,X) class __QuietSemi
+#define GEANT_DEVICE_DECLARE_CONV(NS,classOrStruct,X) class __QuietSemi
 
 #endif
 
