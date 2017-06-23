@@ -1,7 +1,14 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories(GeantV/ExN03RP/inc GeantV/TestEm3RP/inc ../vecprot_v2/inc ../numa/inc ../realphysics/dummies/inc ../realphysics/physics/management/inc)
+include_directories(
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc 
+  ${CMAKE_SOURCE_DIR}/vecprot_v2/inc 
+  ${CMAKE_SOURCE_DIR}/numa/inc 
+  ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc 
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
+)
 
 if (USE_VECGEOM_NAVIGATOR)
  include_directories(${CMAKE_SOURCE_DIR}/material/inc)
@@ -12,26 +19,26 @@ if (USE_TBB)
 endif()
 
 set(sources
-  GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
-  GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
-  )
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
+   )
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
 set(sources
-  GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
-  GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
   )
 
 set(headers
-  GeantV/ExN03RP/inc/ExN03ApplicationRP.h
-  GeantV/TestEm3RP/inc/TestEM3ApplicationRP.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/ExN03ApplicationRP.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc/TestEM3ApplicationRP.h
   )
 if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
-    LINKDEF   GeantV/ExN03RP/inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+    LINKDEF   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
     set(sources ${sources} G__ExamplesRP.cxx)
 endif()
 

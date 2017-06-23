@@ -145,15 +145,6 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack::~GeantTrack()
-{
-  // Destructor. To be called only for tracks created using MakeInstance()
-  if (fOwnPath)
-    delete [] (char*)this;
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
 void GeantTrack::Clear(const char *)
 {
   // Resets track content.
@@ -355,6 +346,14 @@ GeantTrack *GeantTrack::MakeInstance()
   GeantTrack *track = new (buffer) GeantTrack(buffer);
   track->fOwnPath = true;
   return track;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void GeantTrack::ReleaseInstance(GeantTrack *track)
+{
+  if (track->fOwnPath)
+    delete [] (char*)track; 
 }
 
 } // GEANT_IMPL_NAMESPACE

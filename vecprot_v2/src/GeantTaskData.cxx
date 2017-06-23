@@ -93,7 +93,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
 GeantTaskData::~GeantTaskData()
 {
 // Destructor
-  delete fTrack;
+  GeantTrack::ReleaseInstance(fTrack);
 #ifndef VECCORE_CUDA
 #ifndef USE_VECGEOM_NAVIGATOR
   delete fRndm;

@@ -242,7 +242,7 @@ char *fExtraData;                   /** Start of user data at first aligned addr
 public:
   /** @brief GeantTrack destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~GeantTrack();
+  ~GeantTrack() = delete;
 
   /**
    * @brief GeantTrack copy constructor
@@ -892,6 +892,12 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   static GeantTrack *MakeInstance();
+
+  /**
+   * @brief Releases track instance created using MakeInstance.
+   */
+  VECCORE_ATT_HOST_DEVICE
+  static void ReleaseInstance(GeantTrack *track);
 
   /**
    * @brief Rounds up an address to the aligned value
