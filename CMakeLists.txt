@@ -601,7 +601,7 @@ if (USE_REAL_PHYSICS)
  endif()
 endif()
 
-if (USE_VECGEOM_NAVIGATOR AND NOT (CUDA))
+if (USE_VECGEOM_NAVIGATOR)
   add_subdirectory(material)
 endif()
 
