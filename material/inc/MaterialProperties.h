@@ -4,7 +4,11 @@
 
 #include <iostream>
 
+#include "Geant/Config.h"
+
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
+
   /**
    * @brief   Class to represent derived material properties.
    * @class   MaterialProperties
@@ -170,7 +174,7 @@ namespace geantphysics {
    */
 class Material;
 
-class MaterialProperties{
+class MaterialProperties {
  public:
 /**
 * @name Constructors/destructors:
@@ -314,6 +318,7 @@ class MaterialProperties{
 
 };
 
+}    // inline namespace GEANT_IMPL_NAMESPACE {
 }    // namespace geantphysics
 
 #endif // MATERIALPROPERTIES_H

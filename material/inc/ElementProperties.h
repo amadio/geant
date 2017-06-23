@@ -2,7 +2,11 @@
 #ifndef ELEMENTPROPERTIES_H
 #define ELEMENTPROPERTIES_H
 
+#include "Geant/Config.h"
+
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
+
 /**
  * @brief   Class to represent some frequently used element/atom related variables.
  * @class   ElementProperties
@@ -80,6 +84,7 @@ private:
 
 };
 
+}       // inline namespace GEANT_IMPL_NAMESPACE {
 }       // namespace geantphysics
 
 #endif  // ELEMENTPROPERTIES_H

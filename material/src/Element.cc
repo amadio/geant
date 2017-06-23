@@ -11,6 +11,7 @@
 #include <cmath>
 
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 //static data member init
 Vector_t<Element*> Element::gTheElementTable;  // the global element table
@@ -395,4 +396,5 @@ std::ostream& operator<<(std::ostream& flux, Vector_t<Element*> elementtable) {
    return flux;
 }
 
+} // inline namespace GEANT_IMPL_NAMESPACE {
 } // namespace geantphysics

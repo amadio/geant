@@ -11,6 +11,7 @@
 #include <cmath>
 
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 Vector_t<Material*>    Material::gTheMaterialTable;
 Map_t<std::string,int> Material::gMapMaterialNameToIndex;
@@ -540,5 +541,5 @@ std::ostream& operator<<(std::ostream& flux, Vector_t<Material*> MaterialTable) 
   return flux;
 }
 
-
+} // inline namespace GEANT_IMPL_NAMESPACE
 } // namespace geantphysics

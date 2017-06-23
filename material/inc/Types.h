@@ -11,6 +11,7 @@
  * Makes possible to switch between vecgeom and std containers with a -DUSE_VECGEOM_CONTAINERS cmake option.
  *
  */
+#include "Geant/Config.h"
 
 #ifdef USE_VECGEOM_CONTAINERS
 #include "base/Vector.h"

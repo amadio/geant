@@ -2,11 +2,16 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
+#include "Geant/Config.h"
 #include "Types.h"
+#include "Isotope.h"
 
 #include <string>
 
+GEANT_DEVICE_DECLARE_CONV(geantphysics, class, Element);
+
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 class Isotope;
 class ElementProperties;
@@ -286,6 +291,7 @@ class Element {
    ElementProperties  *fElementProperties;
 };
 
+} // GEANT_IMPL_NAMESPACE
 } // namespace geantphysics
 
 #endif  // ELEMENT_H

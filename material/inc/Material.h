@@ -7,10 +7,14 @@
 
 #include "PhysicalConstants.h"
 #include "MaterialState.h"
+#include "Element.h"
 
 #include <string>
 
+GEANT_DEVICE_DECLARE_CONV(geantphysics, class, Material);
+
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 class MaterialProperties;
 class Element;
@@ -347,6 +351,7 @@ class Material {
    void     *fTabXsecPtr;
 };
 
+} // GEANT_IMPL_NAMESPACE
 } // namespace geantphysics
 
 #endif // MATERIAL_H

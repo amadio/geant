@@ -7,7 +7,11 @@
 
 #include <string>
 
+GEANT_DEVICE_DECLARE_CONV(geantphysics, class, Isotope);
+
 namespace geantphysics {
+inline namespace GEANT_IMPL_NAMESPACE {
+
   /**
    * @brief   Class to describe an isotope.
    * @class   Isotope
@@ -233,7 +237,7 @@ class Isotope {
     static Map_t<int,int>      gTheIsotopeMap;
 };
 
-
+} // inline namespace GEANT_IMPL_NAMESPACE {
 } // namespace geantphysics
 
 
