@@ -32,6 +32,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxPerBasket)
   fPath = VolumePath_t::MakeInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
   fPathV = new VolumePath_t*[maxPerBasket];
   fNextpathV = new VolumePath_t*[maxPerBasket];
+  fTrack = GeantTrack::MakeInstance();
   fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -76,7 +77,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
   buffer += fSizeInt*sizeof(int);
 
   fBlock = fPropagator->fTrackMgr->GetNewBlock(); 
-  fTrack = &GetNewTrack();
+  fTrack = GeantTrack::MakeInstance();
 
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -92,8 +93,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
 GeantTaskData::~GeantTaskData()
 {
 // Destructor
-//  delete fMatrix;
-  ReleaseTrack(*fTrack);
+  delete fTrack;
 #ifndef VECCORE_CUDA
 #ifndef USE_VECGEOM_NAVIGATOR
   delete fRndm;

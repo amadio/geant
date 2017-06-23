@@ -52,52 +52,14 @@ void printrace(void)
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 GeantTrack::GeantTrack(void *addr)
-    : fEvent(-1), fEvslot(-1), fParticle(-1), fMother(0), fPDG(0), fGVcode(0), fEindex(0), fCharge(0), fProcess(-1),
-      fNsteps(0), fMaxDepth(TrackDataMgr::GetInstance()->GetMaxDepth()), fStage(0), fGeneration(0), fSpecies(kHadron), fStatus(kAlive), fMass(0), fXpos(0), fYpos(0), fZpos(0), fXdir(0), fYdir(0),
-      fZdir(0), fP(0), fE(0), fTime(0), fEdep(0), fPstep(1.E20), fStep(0), fSnext(0), fSafety(0), fNintLen(0), fIntLen(0),
-      fBoundary(false), fPending(false), fOwnPath(false), fPath(nullptr), fNextpath(nullptr)
 {
   // In place private constructor
   size_t maxdepth = TrackDataMgr::GetInstance()->GetMaxDepth();
+  char *userdata_addr = round_up_align((char*)addr + sizeof(GeantTrack));
   char *path_addr = round_up_align((char*)addr + sizeof(GeantTrack));
   fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
   path_addr += round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
   fNextpath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
-  //
-  // msc ------
-  fLambda0       = 0.;  // elastic mean free path
-  fLambda1       = 0.;  // first transport mean free path
-  fScrA          = 0.;  // screening parameter if any
-  fG1            = 0.;  // first transport coef.
-  fRange         = 1.e+20;
-  //******************
-  fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-  fTheTrueStepLenght       = 0.;   // the true step length
-  fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
-  fTheZPathLenght          = 0.;   // projection of transport distance along the original direction
-  fTheTrueGeomLimit        = 1.e+20; // geometrical limit converted to true step length
-  fTheDisplacementVectorX  = 0.;   // displacement vector components X,Y,Z
-  fTheDisplacementVectorY  = 0.;
-  fTheDisplacementVectorZ  = 0.;
-  fTheNewDirectionX        = 0.;   // new direction components X,Y,Z (at the post-step point due to msc)
-  fTheNewDirectionY        = 0.;
-  fTheNewDirectionZ        = 1.;
-  fPar1                    =-1.;
-  fPar2                    = 0.;
-  fPar3                    = 0.;
-
-  fIsOnBoundaryPreStp        = false;
-  fIsEverythingWasDone       = false; // to indicate if everything could be done in the step limit phase
-  fIsMultipleSacettring      = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
-  fIsSingleScattering        = false; // to indicate that single scattering needs to be done
-  fIsEndedUpOnBoundary       = false; // ?? flag to indicate that geometry was the winer
-  fIsNoScatteringInMSC       = false; // to indicate that no scattering happend (i.e. forward) in msc
-  fIsNoDisplace              = false; // to indicate that displacement is not computed
-  fIsInsideSkin              = false; // to indicate that the particle is within skin from/to boundary
-  fIsWasOnBoundary           = false; // to indicate that boundary crossing happend recently
-  fIsFirstStep               = true ; // to indicate that the first step is made with the particle
-  fIsFirstRealStep           = false; // to indicate that the particle is making the first real step in the volume i.e.
-                                      // just left the skin
 }
 
 //______________________________________________________________________________

@@ -140,94 +140,94 @@ typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
  */
 class GeantTrack {
 public:
-  int fEvent;            /** Event number */
-  int fEvslot;           /** Event slot */
-  int fParticle;         /** Index of corresponding particle */
-  int fMother;           /** Index of mother particle */
-  int fPDG;              /** Particle pdg code */
-  int fGVcode;           /** GV particle code */
-  int fEindex;           /** Element index */
-  int fBindex;           /** Index in the track block */
-  int fCharge;           /** Particle charge */
-  int fProcess;          /** Current process */
-  int fNsteps;           /** Number of steps made */
-  int fMaxDepth;         /** Maximum geometry depth */
-  int fStage;            /** Simulation stage */
-  int fGeneration;       /** Track generation: 0=primary */
-  Species_t fSpecies;    /** Particle species */
-  TrackStatus_t fStatus; /** Track status */
-  double fMass;          /** Particle mass */
-  double fXpos;          /** X position */
-  double fYpos;          /** Y position */
-  double fZpos;          /** Z position */
-  double fXdir;          /** X direction */
-  double fYdir;          /** Y direction */
-  double fZdir;          /** Z direction */
-  double fP;             /** Momentum */
-  double fE;             /** Energy */
-  double fTime;          /** Time */
-  double fEdep;          /** Energy deposition in the step */
-  double fPstep;         /** Selected physical step */
-  double fStep;          /** Current step */
-  double fSnext;         /** Straight distance to next boundary */
-  double fSafety;        /** Safe distance to any boundary */
-  double fNintLen;       /** Number of interaction lenghts traveled in last step */
-  double fIntLen;        /** Cumulated interaction length since last discrete process */
-  bool fBoundary;        /** True if starting from boundary */
-  bool fPending;         /** Track pending to be processed */
-  bool fOwnPath;         /** Marker for path ownership */
+  int fEvent = -1;           /** Event number */
+  int fEvslot = -1;          /** Event slot */
+  int fParticle = -1;        /** Index of corresponding particle */
+  int fMother = 0;           /** Index of mother particle */
+  int fPDG = 0;              /** Particle pdg code */
+  int fGVcode = 0;           /** GV particle code */
+  int fEindex = 0;           /** Element index */
+  int fBindex = 0;           /** Index in the track block */
+  int fCharge = 0;           /** Particle charge */
+  int fProcess = -1;         /** Current process */
+  int fNsteps = 0;           /** Number of steps made */
+  int fMaxDepth = 0;         /** Maximum geometry depth */
+  int fStage = 0;            /** Simulation stage */
+  int fGeneration = 0;       /** Track generation: 0=primary */
+  Species_t fSpecies = kHadron;   /** Particle species */
+  TrackStatus_t fStatus = kAlive; /** Track status */
+  double fMass = 0;          /** Particle mass */
+  double fXpos = 0;          /** X position */
+  double fYpos = 0;          /** Y position */
+  double fZpos = 0;          /** Z position */
+  double fXdir = 0;          /** X direction */
+  double fYdir = 0;          /** Y direction */
+  double fZdir = 0;          /** Z direction */
+  double fP = 0;             /** Momentum */
+  double fE = 0;             /** Energy */
+  double fTime = 0;          /** Time */
+  double fEdep = 0;          /** Energy deposition in the step */
+  double fPstep = 1.e+20;    /** Selected physical step */
+  double fStep = 0;          /** Current step */
+  double fSnext = 0;         /** Straight distance to next boundary */
+  double fSafety = 0;        /** Safe distance to any boundary */
+  double fNintLen = 0;       /** Number of interaction lenghts traveled in last step */
+  double fIntLen = 0;        /** Cumulated interaction length since last discrete process */
+  bool fBoundary = false;    /** True if starting from boundary */
+  bool fPending = false;     /** Track pending to be processed */
+  bool fOwnPath = false;     /** Marker for path ownership */
 #ifndef GEANT_NEW_DATA_FORMAT
-  VolumePath_t *fPath;   /** Paths for the particle in the geometry */
-  VolumePath_t *fNextpath; /** Path for next volume */
+  VolumePath_t *fPath = nullptr;     /** Paths for the particle in the geometry */
+  VolumePath_t *fNextpath = nullptr; /** Path for next volume */
 #endif  
   // The track memory layout will be as follows (* mark alignment padding).Sizes are managed by TrackDataMgr singleton.
   // *_________________*_________________*_________________*_________________*_________________*_________________*_______________
   // fEvent fEvslot ...  fPreStep fPostStep_________________user_data_1______user_data_2 ...____fPath_pre_step___fPath_post_step
 #ifdef GEANT_NEW_DATA_FORMAT
-  StepPointInfo fPreStep;  /** Pre-step state */
-  StepPointInfo fPostStep; /** Post-step state */
+  StepPointInfo fPreStep;    /** Pre-step state */
+  StepPointInfo fPostStep;   /** Post-step state */
 #endif
-
-  //char fExtraData;        /** Start of user data (total size is stored in TrackDataMgr) */
-  // See: implementation of SizeOfInstance
 
 // msc members: added here in mixed mode (int,bool,double) just for the development phase i.e. need to change later
 //    -- NO SETTERS/GETTERS added
 //----
 //*****************
-double fLambda0;        // elastic mean free path
-double fLambda1;        // first transport mean free path
-double fScrA;           // screening parameter if any
-double fG1;             // first transport coef.
-double fRange;
+double fLambda0 = 0;         // elastic mean free path
+double fLambda1 = 0;         // first transport mean free path
+double fScrA = 0;            // screening parameter if any
+double fG1 = 0;              // first transport coef.
+double fRange = 1.2+20;
 //******************
-double fTheInitialRange;                // the initial (first step or first step in volume) range value of the particle
-double fTheTrueStepLenght;              // the true step length
-double fTheTransportDistance;           // the straight line distance between the pre- and true post-step points
-double fTheZPathLenght;                 // projection of transport distance along the original direction
-double fTheTrueGeomLimit;               // geometrical limit converted to true step length
-double fTheDisplacementVectorX;         // displacement vector components X,Y,Z
-double fTheDisplacementVectorY;
-double fTheDisplacementVectorZ;
-double fTheNewDirectionX;               // new direction components X,Y,Z (at the post-step point due to msc)
-double fTheNewDirectionY;
-double fTheNewDirectionZ;
-double fPar1;
-double fPar2;
-double fPar3;
+double fTheInitialRange = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
+double fTheTrueStepLenght = 0;      // the true step length
+double fTheTransportDistance = 0;   // the straight line distance between the pre- and true post-step points
+double fTheZPathLenght = 0;         // projection of transport distance along the original direction
+double fTheTrueGeomLimit = 1.e+20;  // geometrical limit converted to true step length
+double fTheDisplacementVectorX = 0; // displacement vector components X,Y,Z
+double fTheDisplacementVectorY = 0;
+double fTheDisplacementVectorZ = 0;
+double fTheNewDirectionX = 0;       // new direction components X,Y,Z (at the post-step point due to msc)
+double fTheNewDirectionY = 0;
+double fTheNewDirectionZ = 1;;
+double fPar1 = -1;
+double fPar2 = 0;
+double fPar3 = 0;
 
-bool fIsOnBoundaryPreStp;               // to indicate that the particle was on boundary at the pre-step pint
-bool fIsEverythingWasDone;              // to indicate if everything could be done in the step limit phase
-bool fIsMultipleSacettring;             // to indicate that msc needs to be perform (i.e. compute angular deflection)
-bool fIsSingleScattering;               // to indicate that single scattering needs to be done
-bool fIsEndedUpOnBoundary;              // ?? flag to indicate that geometry was the winer
-bool fIsNoScatteringInMSC;              // to indicate that no scattering happend (i.e. forward) in msc
-bool fIsNoDisplace;                     // to indicate that displacement is not computed
-bool fIsInsideSkin;                     // to indicate that the particle is within skin from/to boundary
-bool fIsWasOnBoundary;                  // to indicate that boundary crossing happend recently
-bool fIsFirstStep;                      // to indicate that the first step is made with the particle
-bool fIsFirstRealStep;                  // to indicate that the particle is making the first real step in the volume i.e.
-                                        // just left the skin
+bool fIsOnBoundaryPreStp = false;   // to indicate that the particle was on boundary at the pre-step pint
+bool fIsEverythingWasDone = false;  // to indicate if everything could be done in the step limit phase
+bool fIsMultipleSacettring = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
+bool fIsSingleScattering = false;   // to indicate that single scattering needs to be done
+bool fIsEndedUpOnBoundary = false;  // ?? flag to indicate that geometry was the winer
+bool fIsNoScatteringInMSC = false;  // to indicate that no scattering happend (i.e. forward) in msc
+bool fIsNoDisplace = false;         // to indicate that displacement is not computed
+bool fIsInsideSkin = false;         // to indicate that the particle is within skin from/to boundary
+bool fIsWasOnBoundary = false;      // to indicate that boundary crossing happend recently
+bool fIsFirstStep = true;           // to indicate that the first step is made with the particle
+bool fIsFirstRealStep = false;      // to indicate that the particle is making the first real step in the volume i.e.
+                                    // just left the skin
+
+char *fExtraData;                   /** Start of user data at first aligned address (total size is stored in TrackDataMgr) */
+  // See: implementation of SizeOfInstance
 //---
 
 
