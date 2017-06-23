@@ -2,16 +2,28 @@
 #ifndef PHYSICS_MANAGER_PER_PARTICLE
 #define PHYSICS_MANAGER_PER_PARTICLE
 
+// for inlice namespace GEANT_IMPL_NAMESPACE
+#include "Geant/Config.h"
+
+
 #include <string>
 #include <vector>
 
 #include "GeantTaskData.h"
 
+
+namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+  }
+}
+
+
 namespace geantphysics {
 
  // forward declarations
 class PhysicsParameters;
-class Material;
+//class Material;
 class MaterialCuts;
 class PhysicsProcess;
 class Particle;

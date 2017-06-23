@@ -12,13 +12,20 @@ namespace Geant {
 }
 }
 
+namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+    class Element;
+  }
+}
+
 #include <string>
 #include <vector>
 
 namespace geantphysics {
 
-class Material;
-class Element;
+//class Material;
+//class Element;
 class AliasTable;
 class MaterialCuts;
 class Particle;

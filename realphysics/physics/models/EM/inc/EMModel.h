@@ -14,12 +14,21 @@ namespace Geant {
 }
 
 namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+    class MaterialProperties;
+    class Element;
+  }
+}
+
+
+namespace geantphysics {
 
 // forward declarations
-class Material;
+//class Material;
 class MaterialCuts;
-class MaterialProperties;
-class Element;
+//class MaterialProperties;
+//class Element;
 class Particle;
 class PhysicsParameters;
 class EMElementSelector;

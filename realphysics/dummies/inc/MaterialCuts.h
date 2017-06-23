@@ -3,6 +3,8 @@
 
 // for inline namespace VECGEOM_IMPL_NAMESPACE
 #include "base/TypeMap.h"
+// for inlice namespace GEANT_IMPL_NAMESPACE
+#include "Geant/Config.h"
 
 #include <vector>
 #include <iostream>
@@ -13,9 +15,17 @@ namespace vecgeom {
   }
 }
 
+
+namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+  }
+}
+
+
 namespace geantphysics {
 
-class Material;
+//class Material;
 /**
  * @brief   Material - particle production cut object (dummy class at the moment).
  * @class   MaterialCuts

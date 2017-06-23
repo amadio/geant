@@ -12,6 +12,14 @@ namespace Geant {
 }
 }
 
+namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+    class Element;
+  }
+}
+
+
 #include <string>
 
 namespace geantphysics {
@@ -26,9 +34,9 @@ namespace geantphysics {
  * \cite bhabha1936scattering \cite crawford1970electron \f$[e^++e^-\to e^++e^-]\f$ scattering.
  */
 
-class Material;
+//class Material;
 class MaterialCuts;
-class Element;
+//class Element;
 class AliasTable;
 class Particle;
 class LightTrack;

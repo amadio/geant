@@ -1,11 +1,19 @@
 #ifndef CUTCONVERTER_H
 #define CUTCONVERTER_H
 
+#include "Geant/Config.h"
+
 #include "SystemOfUnits.h"
 
 namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+  }
+}
 
-class Material;
+namespace geantphysics {
+
+//class Material;
 /**
  * @brief   Base class to convert production threshold given in length to energy or given in energy to length.
  * @class   CutConverter
