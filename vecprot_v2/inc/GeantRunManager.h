@@ -11,8 +11,10 @@
 #include "GeantEventServer.h"
 #include "GeantConfig.h"
 #ifdef USE_ROOT
+class TGeoMaterial;
 #include "TGeoExtension.h"
 #endif
+
 
 using namespace veccore;
 class PhysicsInterface;
