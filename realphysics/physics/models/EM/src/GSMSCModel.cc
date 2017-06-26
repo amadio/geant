@@ -76,6 +76,8 @@ void GSMSCModel::Initialize() {
     }
     gPWAXsecTable->Initialise();
   }
+  // Register MSCData into the tracks data
+  fMSCdata = Geant::TrackDataMgr::GetInstance()->RegisterDataType<MSCdata>("MSCdata");
 }
 
 void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
@@ -100,33 +102,34 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   double lambtr1;
   double scra;
   double g1;
+  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
   ComputeParameters(matCut, kineticEnergy, lambel, lambtr1, scra, g1);
-  gtrack->fLambda0 = lambel;
-  gtrack->fLambda1 = lambtr1;
-  gtrack->fScrA    = scra;
-  gtrack->fG1      = g1;
-  gtrack->fRange   = range;
+  mscdata.fLambda0 = lambel;
+  mscdata.fLambda1 = lambtr1;
+  mscdata.fScrA    = scra;
+  mscdata.fG1      = g1;
+  mscdata.fRange   = range;
   //
   // Set initial values:
   //  : lengths are initialised to the current minimum physics step  which is the true, minimum
   //    step length from all other physics
-  gtrack->fTheTrueStepLenght    = gtrack->fPstep;
-  gtrack->fTheTransportDistance = gtrack->fPstep;
-  gtrack->fTheZPathLenght       = gtrack->fPstep;
-  gtrack->SetDisplacement(0.,0.,0.);
-  gtrack->SetNewDirectionMsc(0.,0.,1.);
+  mscdata.fTheTrueStepLenght    = gtrack->fPstep;
+  mscdata.fTheTransportDistance = gtrack->fPstep;
+  mscdata.fTheZPathLenght       = gtrack->fPstep;
+  mscdata.SetDisplacement(0.,0.,0.);
+  mscdata.SetNewDirectionMsc(0.,0.,1.);
 
   // Can everything be done in the step limit phase ?
-  gtrack->fIsEverythingWasDone  = false;
+  mscdata.fIsEverythingWasDone  = false;
   // Multiple scattering needs to be sample ?
-  gtrack->fIsMultipleSacettring = false;
+  mscdata.fIsMultipleSacettring = false;
   // Single scattering needs to be sample ?
-  gtrack->fIsSingleScattering   = false;
+  mscdata.fIsSingleScattering   = false;
   // Was zero deflection in multiple scattering sampling ?
-  gtrack->fIsNoScatteringInMSC  = false;
+  mscdata.fIsNoScatteringInMSC  = false;
   // Do not care about displacement in MSC sampling
   // ( used only in the case of fgIsOptimizationOn = true)
-  gtrack->fIsNoDisplace         = false;
+  mscdata.fIsNoDisplace         = false;
 
   // Zeff  = TotNbOfElectPerVolume/TotNbOfAtomsPerVolume
   double fZeff = matCut->GetMaterial()->GetMaterialProperties()->GetEffectiveZ();
@@ -145,8 +148,8 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   // distance < safety so don't use optimized-mode in such case.
   if (fIsOptimizationOn && (distance<presafety)) {
      // Indicate that we need to do MSC after transportation and no dispalcement.
-     gtrack->fIsMultipleSacettring = true;
-     gtrack->fIsNoDisplace = true;
+     mscdata.fIsMultipleSacettring = true;
+     mscdata.fIsNoDisplace = true;
   } else if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary) {
     //Compute geomlimit (and presafety) :
     // - geomlimit will be:
@@ -162,7 +165,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
 //      geomlimit = ComputeGeomLimit(track, presafety, currentRange);
     // Record that the particle is on a boundary
     if (isOnBoundary) {
-      gtrack->fIsWasOnBoundary = true;
+      mscdata.fIsWasOnBoundary = true;
     }
 //       if( (stepStatus==fGeomBoundary) || (stepStatus==fUndefined && presafety==0.0))
 //          fIsWasOnBoundary = true;
@@ -170,17 +173,17 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     // Set skin depth = skin x elastic_mean_free_path
     skindepth = GetSkin()*lambel;
     // Init the flag that indicates that the particle is within a skindepth distance from a boundary
-    gtrack->fIsInsideSkin = false;
+    mscdata.fIsInsideSkin = false;
     // Check if we can try Single Scattering because we are within skindepth
     // distance from/to a boundary OR the current minimum true-step-length is
     // shorter than skindepth. NOTICE: the latest has only efficieny reasons
     // because the MSC angular sampling is fine for any short steps but much
     // faster to try single scattering in case of short steps.
-    if (isOnBoundary || (presafety<skindepth) || (gtrack->fTheTrueStepLenght<skindepth)) {
+    if (isOnBoundary || (presafety<skindepth) || (mscdata.fTheTrueStepLenght<skindepth)) {
       // check if we are within skindepth distance from a boundary
       if (isOnBoundary || (presafety<skindepth)) {
-        gtrack->fIsInsideSkin = true;
-        gtrack->fIsWasOnBoundary = true; // NOTE:
+        mscdata.fIsInsideSkin = true;
+        mscdata.fIsWasOnBoundary = true; // NOTE:
       }
       //Try single scattering:
       // - sample distance to next single scattering interaction (sslimit)
@@ -193,33 +196,33 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       //  true path length are the same
       double sslimit = -1.*lambel*std::log(td->fRndm->uniform());
       // compare to current minimum step length
-      if (sslimit<gtrack->fTheTrueStepLenght) {
-        gtrack->fTheTrueStepLenght  = sslimit;
-        gtrack->fIsSingleScattering = true;
+      if (sslimit<mscdata.fTheTrueStepLenght) {
+        mscdata.fTheTrueStepLenght  = sslimit;
+        mscdata.fIsSingleScattering = true;
       }
       // short step -> true step length equal to geometrical path length
-      gtrack->fTheZPathLenght  = gtrack->fTheTrueStepLenght;
+      mscdata.fTheZPathLenght  = mscdata.fTheTrueStepLenght;
       // Set taht everything is done in step-limit phase so no MSC call
       // We will check if we need to perform the single-scattering angular
       // sampling i.e. if single elastic scattering was the winer!
-      gtrack->fIsEverythingWasDone = true;
-      gtrack->fIsNoDisplace = true;  // NOTE:
+      mscdata.fIsEverythingWasDone = true;
+      mscdata.fIsNoDisplace = true;  // NOTE:
     } else {
       // After checking we know that we cannot try single scattering so we will need to make an MSC step
       // Indicate that we need to make and MSC step. We do not check if we can do it now i.e. if
       // presafety>final_true_step_length so we let the fIsEverythingWasDone = false which indicates that
       // we will perform MSC after transportation.
-      gtrack->fIsMultipleSacettring = true;
+      mscdata.fIsMultipleSacettring = true;
       // Init the first-real-step falg: it will indicate if we do the first
       // non-single scattering step in this volume with this particle
-      gtrack->fIsFirstRealStep = false;
+      mscdata.fIsFirstRealStep = false;
       // If previously the partcile was on boundary it was within skin as
       // well. When it is not within skin anymore it has just left the skin
       // so we make the first real MSC step with the particle.
-      if (gtrack->fIsWasOnBoundary && !gtrack->fIsInsideSkin) {
+      if (mscdata.fIsWasOnBoundary && !mscdata.fIsInsideSkin) {
         // reset the 'was on boundary' indicator flag
-        gtrack->fIsWasOnBoundary = false;
-        gtrack->fIsFirstRealStep = true;
+        mscdata.fIsWasOnBoundary = false;
+        mscdata.fIsFirstRealStep = true;
       }
       // If this is the first-real msc step (the partcile has just left the skin) or this is the first step with
       // the particle (the particle has just born or primary):
@@ -227,8 +230,8 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       //     (only in this volume, because after boundary crossing at the
       //     first-real MSC step we will reset)
       //  - don't let the partcile to cross the volume just in one step
-      if (gtrack->fIsFirstStep || gtrack->fIsFirstRealStep || gtrack->fTheInitialRange>1.e+20) { //NOTE:
-        gtrack->fTheInitialRange = range;
+      if (mscdata.fIsFirstStep || mscdata.fIsFirstRealStep || mscdata.fTheInitialRange>1.e+20) { //NOTE:
+        mscdata.fTheInitialRange = range;
         // If GeantTrack::fSnext(distance-to-boundary) < range then the particle might reach the boundary along its
         // initial direction before losing its energy (in this step). Otherwise, we can be sure that the particle will
         // lose its energy before reaching the boundary along a starigth line so there is no geometrical limit appalied.
@@ -243,22 +246,22 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
             geomLimit = -lambtr1*std::log(1.-geomLimit/lambtr1);
           }
           // the 2-different cases that could lead us here:
-          // 1.: gtrack->fIsFirstRealStep
-          gtrack->fTheTrueGeomLimit = geomLimit;
-          // 2.: gtrack->fIsFirstStep otherwise
-          if (gtrack->fIsFirstStep) {
-            gtrack->fTheTrueGeomLimit *= 2.;
+          // 1.: mscdata.fIsFirstRealStep
+          mscdata.fTheTrueGeomLimit = geomLimit;
+          // 2.: mscdata.fIsFirstStep otherwise
+          if (mscdata.fIsFirstStep) {
+            mscdata.fTheTrueGeomLimit *= 2.;
           }
-          gtrack->fTheTrueGeomLimit /= GetGeomFactor(); // facgeom
+          mscdata.fTheTrueGeomLimit /= GetGeomFactor(); // facgeom
         } else {
-          gtrack->fTheTrueGeomLimit = 1.e+20;
+          mscdata.fTheTrueGeomLimit = 1.e+20;
         }
       }
       // True step length limit from range factor. Noteice, that the initial range is used that was set at the first
       // step or first-real MSC step in this volume with this particle.
-      double tlimit = GetRangeFactor()*gtrack->fTheInitialRange;
+      double tlimit = GetRangeFactor()*mscdata.fTheInitialRange;
       // Take the minimum of the true step length limits coming from geometrical constraint or range-factor limitation
-      tlimit = std::min(tlimit,gtrack->fTheTrueGeomLimit);
+      tlimit = std::min(tlimit,mscdata.fTheTrueGeomLimit);
       // Step reduction close to boundary: we try to end up within skindepth from the boundary ( Notice: in case of
       // magnetic field it might not work because geomlimit is the straigth line distance to the boundary in the
       // currect direction and mag. field can change the initial direction. So the particle might hit some boundary
@@ -270,28 +273,28 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       }
       //
       // randomize 1st step or 1st 'normal' step in volume: according to Laszlo's algorithm
-      if (gtrack->fIsFirstStep || gtrack->fIsFirstRealStep) {
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, RandomizeTrueStepLength(td, tlimit));
+      if (mscdata.fIsFirstStep || mscdata.fIsFirstRealStep) {
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, RandomizeTrueStepLength(td, tlimit));
       } else {
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, tlimit);
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, tlimit);
       }
 /*
       // randomize the true step length if msc limited the step
-      if (tlimit<gtrack->fTheTrueStepLenght) {
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, RandomizeTrueStepLength(td, tlimit));
+      if (tlimit<mscdata.fTheTrueStepLenght) {
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, RandomizeTrueStepLength(td, tlimit));
       } else {
       // just restrict the true step length to the msc limit
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, tlimit);
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, tlimit);
       }
 */
 // NOTE: we changed this according to Urban ! See above the original one. (we probably should combine the 2 and use
 //       this randomization only if msc limited the step in case of (1st or 1st normal steps))
 /*
       // randomize 1st step or 1st 'normal' step in volume: according to Laszlo's algorithm
-      if (gtrack->fIsFirstStep || gtrack->fIsFirstRealStep) {
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, RandomizeTrueStepLength());
+      if (mscdata.fIsFirstStep || mscdata.fIsFirstRealStep) {
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, RandomizeTrueStepLength());
       } else {
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, tlimit);
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, tlimit);
       }
 */
     }
@@ -302,7 +305,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     // Check if we can try Single Scattering because we are within skindepth distance from/to a boundary OR the current
     // minimum true-step-length is shorter than skindepth. NOTICE: the latest has only efficieny reasons because the
     // MSC angular sampling is fine for any short steps but much faster to try single scattering in case of short steps.
-    if (isOnBoundary || (presafety<skindepth) || (gtrack->fTheTrueStepLenght<skindepth)) {
+    if (isOnBoundary || (presafety<skindepth) || (mscdata.fTheTrueStepLenght<skindepth)) {
       //Try single scattering:
       // - sample distance to next single scattering interaction (sslimit)
       // - compare to current minimum length
@@ -314,35 +317,35 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       //  true path length are the same
       double sslimit = -1.*lambel*std::log(td->fRndm->uniform());
       // compare to current minimum step length
-      if (sslimit<gtrack->fTheTrueStepLenght) {
-        gtrack->fTheTrueStepLenght  = sslimit;
-        gtrack->fIsSingleScattering = true;
+      if (sslimit<mscdata.fTheTrueStepLenght) {
+        mscdata.fTheTrueStepLenght  = sslimit;
+        mscdata.fIsSingleScattering = true;
       }
       // short step -> true step length equal to geometrical path length
-      gtrack->fTheZPathLenght  = gtrack->fTheTrueStepLenght;
+      mscdata.fTheZPathLenght  = mscdata.fTheTrueStepLenght;
       // Set that everything is done in step-limit phase so no MSC call
       // We will check if we need to perform the single-scattering angular sampling i.e. if single elastic scattering
       // was the winer!
-      gtrack->fIsEverythingWasDone = true;
-      gtrack->fIsNoDisplace        = true; //NOTE:
+      mscdata.fIsEverythingWasDone = true;
+      mscdata.fIsNoDisplace        = true; //NOTE:
     } else {
       // After checking we know that we cannot try single scattering so we will
       // need to make an MSC step
       // Indicate that we need to make and MSC step.
-      gtrack->fIsMultipleSacettring = true;
-      gtrack->fIsEverythingWasDone  = true;
+      mscdata.fIsMultipleSacettring = true;
+      mscdata.fIsEverythingWasDone  = true;
       // limit from range factor
-      gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, GetRangeFactor()*gtrack->fRange);
+      mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, GetRangeFactor()*mscdata.fRange);
       // never let the particle go further than the safety if we are out of the skin
       // if we are here we are out of the skin, presafety > 0.
-      if (gtrack->fTheTrueStepLenght>presafety) {
-        gtrack->fTheTrueStepLenght = presafety;
+      if (mscdata.fTheTrueStepLenght>presafety) {
+        mscdata.fTheTrueStepLenght = presafety;
       }
       // make sure that we are still within the aplicability of condensed histry model
       // i.e. true step length is not longer than first transport mean free path.
       // We schould take into account energy loss along 0.5x lambda_transport1
       // step length as well. So let it 0.4 x lambda_transport1
-      gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, 0.4*lambtr1);
+      mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, 0.4*lambtr1);
     }
   } else if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseSaftey) {
     // This is the default stepping algorithm: the fastest but the least
@@ -354,15 +357,15 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     // compared to the elastic mean free path.)
 
     // indicate that MSC needs to be done (always and always after transportation)
-    gtrack->fIsMultipleSacettring = true;
+    mscdata.fIsMultipleSacettring = true;
     // far from boundary-> in optimized mode do not sample dispalcement. (safety is zero if we are on boundary)
     if ((distance < presafety) && (fIsOptimizationOn)) {
-      gtrack->fIsNoDisplace = true;
+      mscdata.fIsNoDisplace = true;
     } else {
       // Urban like
       double fr = GetRangeFactor();
-      if (gtrack->fIsFirstStep || isOnBoundary || gtrack->fTheInitialRange>1.e+20) { //NOTE:
-        gtrack->fTheInitialRange = range;
+      if (mscdata.fIsFirstStep || isOnBoundary || mscdata.fTheInitialRange>1.e+20) { //NOTE:
+        mscdata.fTheInitialRange = range;
 // We don't use this: we won't converge to the single scattering results with
 //                    decreasing range-factor.
 //              rangeinit = std::max(rangeinit, fLambda1);
@@ -371,12 +374,12 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
 //              }
       }
       //step limit
-      double tlimit = std::max(fr*gtrack->fTheInitialRange, GetSafetyFactor()*presafety);
+      double tlimit = std::max(fr*mscdata.fTheInitialRange, GetSafetyFactor()*presafety);
       // first step randomization
-      if (gtrack->fIsFirstStep || isOnBoundary) { // NOTE: we should probably randomize only if the step was limited by msc
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, RandomizeTrueStepLength(td, tlimit));
+      if (mscdata.fIsFirstStep || isOnBoundary) { // NOTE: we should probably randomize only if the step was limited by msc
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, RandomizeTrueStepLength(td, tlimit));
       } else {
-        gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght, tlimit);
+        mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght, tlimit);
       }
     }
   }
@@ -384,18 +387,18 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   //
   //
   // reset first step flag
-  gtrack->fIsFirstStep =false;
+  mscdata.fIsFirstStep =false;
   // performe single scattering, multiple scattering if this later can be done safely here
-  if (gtrack->fIsEverythingWasDone) {
-    if (gtrack->fIsSingleScattering) {
+  if (mscdata.fIsEverythingWasDone) {
+    if (mscdata.fIsSingleScattering) {
       // sample single scattering
       double cost,sint,cosPhi,sinPhi;
       SingleScattering(scra, td, cost, sint);
       double phi = geant::kTwoPi*td->fRndm->uniform();
       sinPhi = std::sin(phi);
       cosPhi = std::cos(phi);
-      gtrack->SetNewDirectionMsc(sint*cosPhi,sint*sinPhi,cost);
-    } else if (gtrack->fIsMultipleSacettring) {
+      mscdata.SetNewDirectionMsc(sint*cosPhi,sint*sinPhi,cost);
+    } else if (mscdata.fIsMultipleSacettring) {
       // sample multiple scattering
       SampleMSC(gtrack, td); // fTheZPathLenght, fTheDisplacementVector and fTheNewDirection will be set
     } // and if single scattering but it was longer => nothing to do
@@ -406,31 +409,32 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
 }
 
 bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
-  if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && gtrack->fIsEverythingWasDone && gtrack->fIsSingleScattering) { // ONLY single scattering is done in advance
+  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone && mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
-    RotateToLabFrame(gtrack->fTheNewDirectionX, gtrack->fTheNewDirectionY, gtrack->fTheNewDirectionZ,
+    RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
                      gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
     // displacement is left to (0,0,0)
     //fParticleChange->ProposeMomentumDirection(fTheNewDirection);
     return true; // i.e. new direction
   } else if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kErrorFree) {
-    if (gtrack->fIsEndedUpOnBoundary) {// do nothing
+    if (mscdata.fIsEndedUpOnBoundary) {// do nothing
       // displacement is left to (0,0,0)
       return false; // i.e. no new direction
-    } else if (gtrack->fIsEverythingWasDone) { // evrything is done if not optimizations case !!!
+    } else if (mscdata.fIsEverythingWasDone) { // evrything is done if not optimizations case !!!
       // check single scattering and see if it happened
-      if (gtrack->fIsSingleScattering) {
-        RotateToLabFrame(gtrack->fTheNewDirectionX, gtrack->fTheNewDirectionY, gtrack->fTheNewDirectionZ,
+      if (mscdata.fIsSingleScattering) {
+        RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
                          gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
         // displacement is left to (0,0,0)
         //fParticleChange->ProposeMomentumDirection(fTheNewDirection);
         return true; // i.e. new direction
       }
       // check if multiple scattering happened and do things only if scattering was really happening
-      if (gtrack->fIsMultipleSacettring && !gtrack->fIsNoScatteringInMSC) {
-        RotateToLabFrame(gtrack->fTheNewDirectionX, gtrack->fTheNewDirectionY, gtrack->fTheNewDirectionZ,
+      if (mscdata.fIsMultipleSacettring && !mscdata.fIsNoScatteringInMSC) {
+        RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
                          gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
-        RotateToLabFrame(gtrack->fTheDisplacementVectorX, gtrack->fTheDisplacementVectorY, gtrack->fTheDisplacementVectorZ,
+        RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY, mscdata.fTheDisplacementVectorZ,
                          gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
         return true; // i.e. new direction
       }
@@ -445,11 +449,11 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
   }
   // else MSC needs to be done here
   SampleMSC(gtrack, td);
-  if (!gtrack->fIsNoScatteringInMSC) {
-    RotateToLabFrame(gtrack->fTheNewDirectionX, gtrack->fTheNewDirectionY, gtrack->fTheNewDirectionZ,
+  if (!mscdata.fIsNoScatteringInMSC) {
+    RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
                      gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
-    if (!gtrack->fIsNoDisplace) {
-      RotateToLabFrame(gtrack->fTheDisplacementVectorX, gtrack->fTheDisplacementVectorY, gtrack->fTheDisplacementVectorZ,
+    if (!mscdata.fIsNoDisplace) {
+      RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY, mscdata.fTheDisplacementVectorZ,
                        gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
     }
     return true; // new direction
@@ -459,115 +463,118 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
 
 
 void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
-  gtrack->fPar1 = -1.;
-  gtrack->fPar2 =  0.;
-  gtrack->fPar3 =  0.;
+  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  mscdata.fPar1 = -1.;
+  mscdata.fPar2 =  0.;
+  mscdata.fPar3 =  0.;
   // if fIsEverythingWasDone = TRUE  => fTheZPathLenght is already set so return with the already known value
   // Otherwise:
-  if (!gtrack->fIsEverythingWasDone) {
+  if (!mscdata.fIsEverythingWasDone) {
     // this correction needed to run MSC with eIoni and eBrem inactivated
     // and makes no harm for a normal run
-    gtrack->fTheTrueStepLenght = std::min(gtrack->fTheTrueStepLenght,gtrack->fRange);
+    mscdata.fTheTrueStepLenght = std::min(mscdata.fTheTrueStepLenght,mscdata.fRange);
     //  do the true -> geom transformation
-    gtrack->fTheZPathLenght = gtrack->fTheTrueStepLenght;
+    mscdata.fTheZPathLenght = mscdata.fTheTrueStepLenght;
     // z = t for very small true-path-length
-    if (gtrack->fTheTrueStepLenght<fTLimitMinfix2) {
+    if (mscdata.fTheTrueStepLenght<fTLimitMinfix2) {
       return;
     }
     //
     double ekin = gtrack->fE-gtrack->fMass;
-    double tau  = gtrack->fTheTrueStepLenght/gtrack->fLambda1;
+    double tau  = mscdata.fTheTrueStepLenght/mscdata.fLambda1;
     if (tau<=fTauSmall) {
-      gtrack->fTheZPathLenght = std::min(gtrack->fTheTrueStepLenght, gtrack->fLambda1);
-    } else if (gtrack->fTheTrueStepLenght<gtrack->fRange*fDtrl) {
+      mscdata.fTheZPathLenght = std::min(mscdata.fTheTrueStepLenght, mscdata.fLambda1);
+    } else if (mscdata.fTheTrueStepLenght<mscdata.fRange*fDtrl) {
       if (tau<fTauLim) {
-        gtrack->fTheZPathLenght = gtrack->fTheTrueStepLenght*(1.-0.5*tau) ;
+        mscdata.fTheZPathLenght = mscdata.fTheTrueStepLenght*(1.-0.5*tau) ;
       } else {
-        gtrack->fTheZPathLenght = gtrack->fLambda1*(1.-std::exp(-tau));
+        mscdata.fTheZPathLenght = mscdata.fLambda1*(1.-std::exp(-tau));
       }
-    } else if(ekin<geant::kElectronMassC2 || gtrack->fTheTrueStepLenght==gtrack->fRange)  {
-      gtrack->fPar1 = 1./gtrack->fRange ;                    // alpha =1/range_init for Ekin<mass
-      gtrack->fPar2 = 1./(gtrack->fPar1*gtrack->fLambda1) ;  // 1/(alphaxlambda01)
-      gtrack->fPar3 = 1.+gtrack->fPar2 ;
-      if (gtrack->fTheTrueStepLenght<gtrack->fRange) {
-        gtrack->fTheZPathLenght = 1./(gtrack->fPar1*gtrack->fPar3)
-                                  * (1.-std::pow(1.-gtrack->fPar1*gtrack->fTheTrueStepLenght,gtrack->fPar3));
+    } else if(ekin<geant::kElectronMassC2 || mscdata.fTheTrueStepLenght==mscdata.fRange)  {
+      mscdata.fPar1 = 1./mscdata.fRange ;                    // alpha =1/range_init for Ekin<mass
+      mscdata.fPar2 = 1./(mscdata.fPar1*mscdata.fLambda1) ;  // 1/(alphaxlambda01)
+      mscdata.fPar3 = 1.+mscdata.fPar2 ;
+      if (mscdata.fTheTrueStepLenght<mscdata.fRange) {
+        mscdata.fTheZPathLenght = 1./(mscdata.fPar1*mscdata.fPar3)
+                                  * (1.-std::pow(1.-mscdata.fPar1*mscdata.fTheTrueStepLenght,mscdata.fPar3));
       } else {
-        gtrack->fTheZPathLenght = 1./(gtrack->fPar1*gtrack->fPar3);
+        mscdata.fTheZPathLenght = 1./(mscdata.fPar1*mscdata.fPar3);
       }
     } else {
 //      int    matIndx              = gtrack->GetMaterial()->GetIndex();
 //      int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
 //      const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
       const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-      double rfin    = std::max(gtrack->fRange-gtrack->fTheTrueStepLenght, 0.01*gtrack->fRange);
+      double rfin    = std::max(mscdata.fRange-mscdata.fTheTrueStepLenght, 0.01*mscdata.fRange);
       double T1      = ELossTableManager::Instance().GetEnergyForRestrictedRange(matCut,fParticle,rfin);
       double lambda1 = GetTransportMeanFreePathOnly(matCut,T1);
-      gtrack->fPar1  = (gtrack->fLambda1-lambda1)/(gtrack->fLambda1*gtrack->fTheTrueStepLenght);  // alpha
-      gtrack->fPar2  = 1./(gtrack->fPar1*gtrack->fLambda1);
-      gtrack->fPar3  = 1.+gtrack->fPar2;
-      gtrack->fTheZPathLenght = 1./(gtrack->fPar1*gtrack->fPar3)
-                                * (1.-std::pow(1.-gtrack->fPar1*gtrack->fTheTrueStepLenght,gtrack->fPar3));
+      mscdata.fPar1  = (mscdata.fLambda1-lambda1)/(mscdata.fLambda1*mscdata.fTheTrueStepLenght);  // alpha
+      mscdata.fPar2  = 1./(mscdata.fPar1*mscdata.fLambda1);
+      mscdata.fPar3  = 1.+mscdata.fPar2;
+      mscdata.fTheZPathLenght = 1./(mscdata.fPar1*mscdata.fPar3)
+                                * (1.-std::pow(1.-mscdata.fPar1*mscdata.fTheTrueStepLenght,mscdata.fPar3));
     }
   }
-  gtrack->fTheZPathLenght = std::min(gtrack->fTheZPathLenght,gtrack->fLambda1); // NOTE:
+  mscdata.fTheZPathLenght = std::min(mscdata.fTheZPathLenght,mscdata.fLambda1); // NOTE:
 }
 
 
 void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
   // init
-  gtrack->fIsEndedUpOnBoundary = false;
+  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  mscdata.fIsEndedUpOnBoundary = false;
   // step was not defined by transportation: i.e. physics
   if (!gtrack->fBoundary) {
-//  if ( std::abs(gtrack->fStep-gtrack->fTheZPathLenght)<1.e-8) {
+//  if ( std::abs(gtrack->fStep-mscdata.fTheZPathLenght)<1.e-8) {
     return; // fTheTrueStepLenght is known because the particle went as far as we expected
   }
   // else ::
   // - set the flag that transportation was the winer so DoNothin in DOIT !!
   // - convert geom -> true by using the mean value
-  gtrack->fIsEndedUpOnBoundary = true; // OR LAST STEP
+  mscdata.fIsEndedUpOnBoundary = true; // OR LAST STEP
   // get the geometrical step length
-  gtrack->fTheZPathLenght      = gtrack->fStep;
+  mscdata.fTheZPathLenght      = gtrack->fStep;
   // was a short single scattering step
-  if (gtrack->fIsEverythingWasDone && !gtrack->fIsMultipleSacettring) {
-    gtrack->fTheTrueStepLenght = gtrack->fStep;
+  if (mscdata.fIsEverythingWasDone && !mscdata.fIsMultipleSacettring) {
+    mscdata.fTheTrueStepLenght = gtrack->fStep;
     return;
   }
   // t = z for very small step
   if (gtrack->fStep<fTLimitMinfix2) {
-    gtrack->fTheTrueStepLenght = gtrack->fStep;
+    mscdata.fTheTrueStepLenght = gtrack->fStep;
     // recalculation
   } else {
     double tlength = gtrack->fStep;
-    if (gtrack->fStep>gtrack->fLambda1*fTauSmall) {
-      if (gtrack->fPar1< 0.) {
-        tlength = -gtrack->fLambda1*std::log(1.-gtrack->fStep/gtrack->fLambda1) ;
+    if (gtrack->fStep>mscdata.fLambda1*fTauSmall) {
+      if (mscdata.fPar1< 0.) {
+        tlength = -mscdata.fLambda1*std::log(1.-gtrack->fStep/mscdata.fLambda1) ;
       } else {
-        double dum = gtrack->fPar1*gtrack->fPar3*gtrack->fStep;
+        double dum = mscdata.fPar1*mscdata.fPar3*gtrack->fStep;
         if (dum<1.) {
-          tlength = (1.-std::pow(1.-dum,1./gtrack->fPar3))/gtrack->fPar1;
+          tlength = (1.-std::pow(1.-dum,1./mscdata.fPar3))/mscdata.fPar1;
         } else {
-          tlength = gtrack->fRange;
+          tlength = mscdata.fRange;
         }
       }
-      if (tlength<gtrack->fStep || tlength>gtrack->fTheTrueStepLenght) {
+      if (tlength<gtrack->fStep || tlength>mscdata.fTheTrueStepLenght) {
         tlength = gtrack->fStep;
       }
     }
-    gtrack->fTheTrueStepLenght = tlength;
+    mscdata.fTheTrueStepLenght = tlength;
   }
 }
 
 void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
-  gtrack->fIsNoScatteringInMSC = false;
+  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  mscdata.fIsNoScatteringInMSC = false;
   //
 //  int    matIndx              = gtrack->GetMaterial()->GetIndex();
 //  int    regIndx              = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
 //  const  MaterialCuts *matCut = MaterialCuts::GetMaterialCut(regIndx,matIndx);
   const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double kineticEnergy        = gtrack->fE-gtrack->fMass;
-  double range                = gtrack->fRange;             // set in the step limit phase
-  double trueStepL            = gtrack->fTheTrueStepLenght; // proposed by all other physics
+  double range                = mscdata.fRange;             // set in the step limit phase
+  double trueStepL            = mscdata.fTheTrueStepLenght; // proposed by all other physics
   //
   // Energy loss correction (2 versions): accurate and approximate
   //
@@ -576,7 +583,7 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
 
 //  if (fTheTrueStepLenght > currentRange*dtrl) {
 //    eloss = kineticEnergy-
-//      GetEnergy(particle,range-gtrack->fTheTrueStepLenght,currentCouple);
+//      GetEnergy(particle,range-mscdata.fTheTrueStepLenght,currentCouple);
 //  } else {
 //    eloss = fTheTrueStepLenght*GetDEDX(particle,kineticEnergy,currentCouple);
 //  }
@@ -624,10 +631,10 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     lambdan = efStep/lambel;
   }
   if (lambdan<=1.0e-12) {  //
-    if (gtrack->fIsEverythingWasDone) {
-      gtrack->fTheZPathLenght = trueStepL;
+    if (mscdata.fIsEverythingWasDone) {
+      mscdata.fTheZPathLenght = trueStepL;
     }
-    gtrack->fIsNoScatteringInMSC = true;
+    mscdata.fIsNoScatteringInMSC = true;
     return;
   }
   //
@@ -660,10 +667,10 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
      gGSTable->Sampling(0.5*lambdan, 0.5*Qn1, scra, cosTheta1, sinTheta1, td);
      gGSTable->Sampling(0.5*lambdan, 0.5*Qn1, scra, cosTheta2, sinTheta2, td);
      if (cosTheta1+cosTheta2>=2.) { // no scattering happened
-        if (gtrack->fIsEverythingWasDone) {
-           gtrack->fTheZPathLenght = trueStepL;
+        if (mscdata.fIsEverythingWasDone) {
+           mscdata.fTheZPathLenght = trueStepL;
         }
-        gtrack->fIsNoScatteringInMSC = true;
+        mscdata.fIsNoScatteringInMSC = true;
         return;
      }
   }
@@ -685,15 +692,15 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   wss  = cosTheta1*cosTheta2 - sinTheta1*u2;
   //
   // set the new direction proposed by msc: will be applied if the step doesn't end on boundary
-  gtrack->SetNewDirectionMsc(uss,vss,wss);
+  mscdata.SetNewDirectionMsc(uss,vss,wss);
   // set the fTheZPathLenght if we don't sample displacement and
   // we should do everything at the step-limit-phase before we return
-  if (gtrack->fIsNoDisplace && gtrack->fIsEverythingWasDone) {
-    gtrack->fTheZPathLenght = trueStepL;
+  if (mscdata.fIsNoDisplace && mscdata.fIsEverythingWasDone) {
+    mscdata.fTheZPathLenght = trueStepL;
   }
   //
   // in optimized-mode if the current-safety > current-range we do not use dispalcement
-  if (gtrack->fIsNoDisplace) {
+  if (mscdata.fIsNoDisplace) {
     return;
   }
   //
@@ -752,7 +759,7 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     y_coord = vt*trueStepL;
     z_coord = wt*trueStepL;
     //
-    if (gtrack->fIsEverythingWasDone) {
+    if (mscdata.fIsEverythingWasDone) {
       // We sample in the step limit so set fTheZPathLenght = transportDistance
       // and lateral displacement (x_coord,y_coord,z_coord-transportDistance)
       // Calculate transport distance
@@ -761,18 +768,18 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       if (transportDistance>trueStepL) {
         transportDistance = trueStepL;
       }
-      gtrack->fTheZPathLenght = transportDistance;
+      mscdata.fTheZPathLenght = transportDistance;
     }
     // else:: we sample in the post step point so
     //       the fTheZPathLenght was already set and was taken as transport along zet
-    gtrack->SetDisplacement(x_coord,y_coord,z_coord-gtrack->fTheZPathLenght);
+    mscdata.SetDisplacement(x_coord,y_coord,z_coord-mscdata.fTheZPathLenght);
   } else {
     // compute zz = <z>/tPathLength
     // s -> true-path-length
     // z -> geom-path-length:: when PRESTA is used z =(def.) <z>
     // r -> lateral displacement = s/2 sin(theta)  => x_f = r cos(phi); y_f = r sin(phi)
     double zz = 0.0;
-    if (gtrack->fIsEverythingWasDone) {
+    if (mscdata.fIsEverythingWasDone) {
       // We sample in the step limit so set fTheZPathLenght = transportDistance
       // and lateral displacement (x_coord,y_coord,z_coord-transportDistance)
       if (Qn1<0.1) { // use 3-order Taylor approximation of (1-exp(-x))/x around x=0
@@ -783,7 +790,7 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     } else {
       // we sample in the post step point so
       // the fTheZPathLenght was already set and was taken as transport along zet
-      zz = gtrack->fTheZPathLenght/trueStepL;
+      zz = mscdata.fTheZPathLenght/trueStepL;
     }
     //
     double rr = (1.-zz*zz)/(1.-wss*wss); // s^2 >= <z>^2+r^2  :: where r^2 = s^2/4 sin^2(theta)
@@ -794,11 +801,11 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     x_coord  = rperp*uss;
     y_coord  = rperp*vss;
     z_coord  = zz*trueStepL;
-    if (gtrack->fIsEverythingWasDone) {
+    if (mscdata.fIsEverythingWasDone) {
       double transportDistance = std::sqrt(x_coord*x_coord + y_coord*y_coord + z_coord*z_coord);
-      gtrack->fTheZPathLenght  = transportDistance;
+      mscdata.fTheZPathLenght  = transportDistance;
     }
-    gtrack->SetDisplacement(x_coord,y_coord,z_coord-gtrack->fTheZPathLenght);
+    mscdata.SetDisplacement(x_coord,y_coord,z_coord-mscdata.fTheZPathLenght);
   }
 }
 

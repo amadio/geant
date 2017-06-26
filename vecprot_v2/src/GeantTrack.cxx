@@ -57,6 +57,9 @@ GeantTrack::GeantTrack(void *addr)
   size_t maxdepth = TrackDataMgr::GetInstance()->GetMaxDepth();
   // The start address of the extra data block has to be aligned
   fExtraData = round_up_align((char*)addr + sizeof(GeantTrack));
+  // Initialize all user data calling the in-place constructors
+  TrackDataMgr::GetInstance()->InitializeTrack(*this);
+  // Geometry paths follow
   char *path_addr = fExtraData + TrackDataMgr::GetInstance()->GetDataSize();
   fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
   path_addr += round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
@@ -104,42 +107,6 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fGeneration = other.fGeneration;
     *fPath = *other.fPath;
     *fNextpath = *other.fNextpath;
-    //
-    // msc ----
-    // copy msc members
-    fLambda0       = other.fLambda0;  // elastic mean free path
-    fLambda1       = other.fLambda1;  // first transport mean free path
-    fScrA          = other.fScrA;  // screening parameter if any
-    fG1            = other.fG1;  // first transport coef.
-    fRange         = other.fRange;
-    //******************
-    fTheInitialRange         = other.fTheInitialRange;   // the initial (first step or first step in volume) range value of the particle
-    fTheTrueStepLenght       = other.fTheTrueStepLenght;   // the true step length
-    fTheTransportDistance    = other.fTheTransportDistance;   // the straight line distance between the pre- and true post-step points
-    fTheZPathLenght          = other.fTheZPathLenght;   // projection of transport distance along the original direction
-    fTheTrueGeomLimit        = other.fTheTrueGeomLimit; // geometrical limit converted to true step length
-    fTheDisplacementVectorX  = other.fTheDisplacementVectorX;   // displacement vector components X,Y,Z
-    fTheDisplacementVectorY  = other.fTheDisplacementVectorY;
-    fTheDisplacementVectorZ  = other.fTheDisplacementVectorZ;
-    fTheNewDirectionX        = other.fTheNewDirectionX;   // new direction components X,Y,Z (at the post-step point due to msc)
-    fTheNewDirectionY        = other.fTheNewDirectionY;
-    fTheNewDirectionZ        = other.fTheNewDirectionZ;
-    fPar1                    = other.fPar1;
-    fPar2                    = other.fPar2;
-    fPar3                    = other.fPar2;
-
-    fIsOnBoundaryPreStp      = other.fIsOnBoundaryPreStp;
-    fIsEverythingWasDone     = other.fIsEverythingWasDone; // to indicate if everything could be done in the step limit phase
-    fIsMultipleSacettring    = other.fIsMultipleSacettring; // to indicate that msc needs to be perform (i.e. compute angular deflection)
-    fIsSingleScattering      = other.fIsSingleScattering; // to indicate that single scattering needs to be done
-    fIsEndedUpOnBoundary     = other.fIsEndedUpOnBoundary; // ?? flag to indicate that geometry was the winer
-    fIsNoScatteringInMSC     = other.fIsNoScatteringInMSC; // to indicate that no scattering happend (i.e. forward) in msc
-    fIsNoDisplace            = other.fIsNoDisplace; // to indicate that displacement is not computed
-    fIsInsideSkin            = other.fIsInsideSkin; // to indicate that the particle is within skin from/to boundary
-    fIsWasOnBoundary         = other.fIsWasOnBoundary; // to indicate that boundary crossing happend recently
-    fIsFirstStep             = other.fIsFirstStep; // to indicate that the first step is made with the particle
-    fIsFirstRealStep         = other.fIsFirstRealStep; // to indicate that the particle is making the first real step in the volume i.e.
-                                        // just left the skin
   }
   return *this;
 }
@@ -183,41 +150,6 @@ void GeantTrack::Clear(const char *)
   fMaxDepth = 0;
   fStage = 0;
   fGeneration = 0;
-  //
-  // msc ------
-  fLambda0       = 0.;  // elastic mean free path
-  fLambda1       = 0.;  // first transport mean free path
-  fScrA          = 0.;  // screening parameter if any
-  fG1            = 0.;  // first transport coef.
-  fRange         = 1.e+20;
-  //******************
-  fTheInitialRange         = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-  fTheTrueStepLenght       = 0.;   // the true step length
-  fTheTransportDistance    = 0.;   // the straight line distance between the pre- and true post-step points
-  fTheZPathLenght          = 0.;   // projection of transport distance along the original direction
-  fTheTrueGeomLimit        = 1.e+20; // geometrical limit converted to true step length
-  fTheDisplacementVectorX  = 0.;   // displacement vector components X,Y,Z
-  fTheDisplacementVectorY  = 0.;
-  fTheDisplacementVectorZ  = 0.;
-  fTheNewDirectionX        = 0.;   // new direction components X,Y,Z (at the post-step point due to msc)
-  fTheNewDirectionY        = 0.;
-  fTheNewDirectionZ        = 1.;
-  fPar1                    =-1.;
-  fPar2                    = 0.;
-  fPar3                    = 0.;
-
-  fIsOnBoundaryPreStp        = false;
-  fIsEverythingWasDone       = false; // to indicate if everything could be done in the step limit phase
-  fIsMultipleSacettring      = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
-  fIsSingleScattering        = false; // to indicate that single scattering needs to be done
-  fIsEndedUpOnBoundary       = false; // ?? flag to indicate that geometry was the winer
-  fIsNoScatteringInMSC       = false; // to indicate that no scattering happend (i.e. forward) in msc
-  fIsNoDisplace              = false; // to indicate that displacement is not computed
-  fIsInsideSkin              = false; // to indicate that the particle is within skin from/to boundary
-  fIsWasOnBoundary           = false; // to indicate that boundary crossing happend recently
-  fIsFirstStep               = true ; // to indicate that the first step is made with the particle
-  fIsFirstRealStep           = false; // to indicate that the particle is making the first real step in the volume i.e.
-                                      // just left the skin
 #ifdef USE_VECGEOM_NAVIGATOR
   fPath->Clear();
   fNextpath->Clear();

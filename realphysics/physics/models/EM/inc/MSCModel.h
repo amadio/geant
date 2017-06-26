@@ -6,6 +6,7 @@
 #include <string>
 
 #include "EMModel.h"
+#include "MSCdata.h"
 
 // from geantV
 #include "Geant/Config.h"

@@ -28,6 +28,8 @@ public:
   MSCProcess(const std::string &name);
   virtual ~MSCProcess();
 
+  virtual void  Initialize();
+
   virtual void  AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
   virtual void  AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
 
@@ -37,6 +39,8 @@ public:
 private:
   double fGeomMinLimit;  // if the true step length is below this => no msc
   double fGeomMinLimit2; // square of the above
+  Geant::TrackToken *fMSCdata = nullptr;   // Handle for MSCData
+  
 };
 
 }       // namespace geantphysics

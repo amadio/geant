@@ -146,7 +146,7 @@ bool GeantRunManager::Initialize() {
   Info("GeantRunManager::Initialize", "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
 
   // Now we know the geometry depth: create the track data manager
-  TrackDataMgr::GetInstance(fConfig->fMaxDepth);
+  TrackDataMgr *dataMgr = TrackDataMgr::GetInstance(fConfig->fMaxDepth);
 
   // Initialize the process(es)
 #ifdef USE_REAL_PHYSICS
@@ -213,7 +213,8 @@ bool GeantRunManager::Initialize() {
 
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
-
+  
+  dataMgr->Print();
   fInitialized = true;
   return fInitialized;
 }

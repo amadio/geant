@@ -11,6 +11,7 @@
 namespace Geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTrack;
+  class TrackToken;
   class GeantTaskData;
 }
 }
@@ -77,6 +78,7 @@ private:
   double fDtrl;
 
   Particle* fParticle;    //e-/e+
+  Geant::TrackToken *fMSCdata = nullptr;   // Handle for MSCData
 
   static GSMSCTable         *gGSTable;
   static PWATotalXsecTable  *gPWAXsecTable;
