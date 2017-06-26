@@ -304,6 +304,8 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 void CMSApplication::Digitize(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   Geant::Printf("======= Statistics for event %d:\n", event);
+  
+  return;
   Geant::Printf("Energy deposit in ECAL [MeV/primary] ");
   Geant::Printf("================================================================================");
   double nprim = (double)(event->GetNtracks());

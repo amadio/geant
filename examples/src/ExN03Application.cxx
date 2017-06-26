@@ -156,6 +156,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 void ExN03Application::Digitize(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
+  return;
   printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
   printf("================================================================================");
   double nprim = (double)event->GetNtracks(); // fRunMgr->GetNprimaries()

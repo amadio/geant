@@ -15,8 +15,8 @@ TrackDataMgr::TrackDataMgr(size_t maxdepth) : fMaxDepth(maxdepth)
   // Private constructor. Make sure that the instance was initialized with a depth.
   if (fMaxDepth == 0) std::runtime_error("Track data manager was not provided a geometry depth");
   // Compute the total track size in the assumption that there is no user data
-  fTrackSize = GeantTrack::round_up_align(sizeof(GeantTrack)) + 
-               2 * GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
+  fTrackSize = sizeof(GeantTrack) + 
+               2 * VolumePath_t::SizeOfInstance(maxdepth) + 2 * GEANT_ALIGN_PADDING;
   // Each registered user data of type T will top up round_up_align(sizeof(T)) bytes.
 }
 
