@@ -13,6 +13,7 @@ namespace geantphysics {
 
 namespace geantphysics {
 
+// class Material;
 
 /**
  * @brief   Base class to convert production threshold given in length to energy or given in energy to length.
