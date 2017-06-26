@@ -15,9 +15,9 @@ TrackDataMgr::TrackDataMgr(size_t maxdepth) : fMaxDepth(maxdepth)
   // Private constructor. Make sure that the instance was initialized with a depth.
   if (fMaxDepth == 0) std::runtime_error("Track data manager was not provided a geometry depth");
   // Compute the total track size in the assumption that there is no user data
-  fTrackSize = sizeof(GeantTrack) + 
-               2 * VolumePath_t::SizeOfInstance(maxdepth) + 
-               2 * GEANT_ALIGN_PADDING;
+  fTrackSize = GeantTrack::round_up_align(sizeof(GeantTrack)) + 
+               2 * GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
+  // Each registered user data of type T will top up round_up_align(sizeof(T)) bytes.
 }
 
 //______________________________________________________________________________
@@ -53,10 +53,11 @@ void printrace(void)
 VECCORE_ATT_HOST_DEVICE
 GeantTrack::GeantTrack(void *addr)
 {
-  // In place private constructor
+  // In place private constructor. The provided address does NOT need to be aligned.
   size_t maxdepth = TrackDataMgr::GetInstance()->GetMaxDepth();
-  char *userdata_addr = round_up_align((char*)addr + sizeof(GeantTrack));
-  char *path_addr = round_up_align((char*)addr + sizeof(GeantTrack));
+  // The start address of the extra data block has to be aligned
+  fExtraData = round_up_align((char*)addr + sizeof(GeantTrack));
+  char *path_addr = fExtraData + TrackDataMgr::GetInstance()->GetDataSize();
   fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
   path_addr += round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
   fNextpath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
@@ -323,11 +324,6 @@ VECCORE_ATT_HOST_DEVICE
 size_t GeantTrack::SizeOfInstance()
 {
   // return the contiguous memory size needed to hold a GeantTrack
-  // The VecGeom navigation state requires alignment, so we need to account for the
-  // worst possible scenario:
-  //
-  // |--padding--|--padding--|--padding--|--padding--|--padding--| (adresses)
-  // |--*start----*empty_spc.*fPath-------*empty_spc.*fNextpath--  (obj. layout)
   return ( TrackDataMgr::GetInstance()->GetTrackSize() );
 }
 

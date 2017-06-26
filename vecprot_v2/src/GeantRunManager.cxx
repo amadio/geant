@@ -146,7 +146,7 @@ bool GeantRunManager::Initialize() {
   Info("GeantRunManager::Initialize", "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
 
   // Now we know the geometry depth: create the track data manager
-  TrackDataMgr *dataMgr = TrackDataMgr::GetInstance(fConfig->fMaxDepth);
+  TrackDataMgr::GetInstance(fConfig->fMaxDepth);
 
   // Initialize the process(es)
 #ifdef USE_REAL_PHYSICS
@@ -156,14 +156,12 @@ bool GeantRunManager::Initialize() {
   }
   // Initialize the physics
   fPhysicsInterface->Initialize();
-  fPhysicsInterface->RegisterTrackData(dataMgr);
 #else
   if (!fProcess) {
     Geant::Fatal("GeantRunManager::Initialize", "The physics process has to be initialized before this");
     return false;
   }
   // Initialize the process(es)
-  (void)dataMgr; // unused
   fProcess->Initialize();
   #if USE_VECPHYS == 1
   fVectorPhysicsProcess->Initialize();

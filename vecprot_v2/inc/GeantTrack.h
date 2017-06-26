@@ -102,17 +102,6 @@ class TrackDataMgr;
 using InplaceConstructFunc_t = std::function<void(void*)>;
 using Vector3 = vecgeom::Vector3D<double>;
 
-struct DataInplaceConstructor_t {
-  // A structure keeping a lambda function to construct user data in place, at
-  // a given offset with respect to a base address
-  size_t fDataOffset = 0;
-  InplaceConstructFunc_t fDataConstructor;
-    
-  void operator()(GeantTrack &track) {
-    fDataConstructor((char*)(&track) + fDataOffset);
-  }
-};
-
 struct StepPointInfo {
   Vector3 fPos;          /** Position */
   Vector3 fDir;          /** Direction */
@@ -180,14 +169,13 @@ public:
   VolumePath_t *fPath = nullptr;     /** Paths for the particle in the geometry */
   VolumePath_t *fNextpath = nullptr; /** Path for next volume */
 #endif  
-  // The track memory layout will be as follows (* mark alignment padding).Sizes are managed by TrackDataMgr singleton.
-  // *_________________*_________________*_________________*_________________*_________________*_________________*_______________
-  // fEvent fEvslot ...  fPreStep fPostStep_________________user_data_1______user_data_2 ...____fPath_pre_step___fPath_post_step
+
 #ifdef GEANT_NEW_DATA_FORMAT
   StepPointInfo fPreStep;    /** Pre-step state */
   StepPointInfo fPostStep;   /** Post-step state */
 #endif
 
+//== TO BE REMOVED ==
 // msc members: added here in mixed mode (int,bool,double) just for the development phase i.e. need to change later
 //    -- NO SETTERS/GETTERS added
 //----
@@ -226,9 +214,20 @@ bool fIsFirstStep = true;           // to indicate that the first step is made w
 bool fIsFirstRealStep = false;      // to indicate that the particle is making the first real step in the volume i.e.
                                     // just left the skin
 
-char *fExtraData;                   /** Start of user data at first aligned address (total size is stored in TrackDataMgr) */
-  // See: implementation of SizeOfInstance
-//---
+char *fExtraData;                   /** Start of user data at first aligned address. This needs to point to an aligned address. */
+  // See: implementation of SizeOfInstance. Offsets of user data blocks are with respect to the fExtraData address. We have to pinpoint this
+  // because the start address of the block of user data needs to be aligned, which make the offsets track-by-track dependent if they are
+  // relative to the start address of the track (which has to be un-aligned for space considerations)
+  // The track memory layout will be as follows (* mark alignment padding start, _ mark padding empty space).
+  // Sizes are managed by TrackDataMgr singleton.
+
+  // *__|addr______________*_________________*_________________*_________________*_________________*_________________*_________________*
+  //  __|++++track_data+++++++__padding______|++user_data_1++__|++user_data_2++_..._____________   |++fPath_pre_step+++|_______________|++fPath_post_step
+  //Addresses:
+  //    | addr (track start address)
+  //                                         | fExtraData = round_up_align(addr + sizeof(GeantTrack))
+  //                                                           | round_up_align(fExtraData + sizeof(user_data_1))
+  //                                                                                               | round_up_align(fExtraData + TrackDataMgr::fDataOffset))
 
 
   /**
@@ -930,23 +929,35 @@ template <typename T>
 class TrackToken
 {
 private:
-  size_t fOffset;   /* offset with respect to track user data base address */
+  size_t fOffset;         /** offset with respect to track user data base address */
+  std::string fName;      /** token name */
 public:
   using ValueType_t = T;
   
-  TrackToken(size_t offset) : fOffset(offset) {}
+  TrackToken(const char *name, size_t offset) : fName(name), fOffset(offset) {}
   T &operator()(GeantTrack &track) {
-    return *(T*)((char*)(&track) + fOffset);
+    return *(T*)(track.fExtraData + fOffset);
+  }
+};
+
+// A structure keeping a lambda function to construct user data in place, at
+// a given offset with respect to a base address
+struct DataInplaceConstructor_t {
+  size_t fDataOffset = 0;
+  InplaceConstructFunc_t fDataConstructor;
+    
+  void operator()(GeantTrack &track) {
+    fDataConstructor(track.fExtraData + fDataOffset);
   }
 };
 
 // User data manager singleton. Becomes read-only after registration phase
 class TrackDataMgr {
 private:
-  bool fLocked = false; /** Lock flag. User not allowed to register new data type.*/
-  size_t fTrackSize = 0; /** Total track size including alignment rounding */
-  size_t fDataOffset = GeantTrack::round_up_align(sizeof(GeantTrack)); /** Offset for the user data */
-  size_t fMaxDepth = 0;      /** Maximum geometry depth */
+  bool fLocked = false;   /** Lock flag. User not allowed to register new data type.*/
+  size_t fTrackSize = 0;  /** Total track size including alignment rounding */
+  size_t fDataOffset = 0; /** Offset for the user data start address with respect to GeantTrack::fExtraData pointer */
+  size_t fMaxDepth = 0;   /** Maximum geometry depth, to be provided at construction time */
   
   vector_t<DataInplaceConstructor_t> fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
   std::mutex fRegisterLock; /** Multithreading lock for the registration phase */
@@ -962,6 +973,9 @@ public:
 
   GEANT_FORCE_INLINE
   size_t GetTrackSize() const { return fTrackSize; }
+
+  GEANT_FORCE_INLINE
+  size_t GetDataSize() const { return fDataOffset; }
   
   /** @brief Apply in-place construction of user-defined data on the track */
   void InitializeTrack(GeantTrack &track) {
@@ -987,11 +1001,12 @@ public:
       new (address) T(params...);
     };
     // Calculate data offset
-    size_t newsize = fTrackSize + sizeof(T);
-    DataInplaceConstructor_t ctor {fTrackSize, userinplaceconstructor};
+    size_t block_size = GeantTrack::round_up_align(sizeof(T)); // multiple of the alignment padding
+    fTrackSize += block_size;
+    DataInplaceConstructor_t ctor {fDataOffset, userinplaceconstructor};
     fConstructors.push_back(ctor);
-    TrackToken<T> token(fTrackSize);
-    fTrackSize = newsize;
+    TrackToken<T> token(fDataOffset);
+    fDataOffset += block_size;
     return token;
   }
 };
