@@ -216,7 +216,7 @@ void GeantTrack::Print(const char *msg) const
 {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
 #ifdef USE_VECGEOM_NAVIGATOR
-  Geant::Print("",
+  printf(
       "%s: evt=%d slt=%d part=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
       "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n",
       msg, fEvent, fEvslot, fParticle, fMother, fPDG, fGVcode, fEindex, fBindex,
@@ -224,6 +224,7 @@ void GeantTrack::Print(const char *msg) const
       fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
       fTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
 
+  TrackDataMgr::GetInstance()->PrintUserData(*this);
 #ifndef VECCORE_CUDA
   fPath->Print();
   fNextpath->Print();

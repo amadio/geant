@@ -100,6 +100,7 @@ class GeantTrack;
 class TrackDataMgr;
 
 using InplaceConstructFunc_t = std::function<void(void*)>;
+using PrintUserDataFunc_t = std::function<void(void*)>;
 using Vector3 = vecgeom::Vector3D<double>;
 
 struct StepPointInfo {
@@ -176,41 +177,6 @@ public:
   StepPointInfo fPostStep;   /** Post-step state */
 #endif
 
-/*
-double fLambda0 = 0;         // elastic mean free path
-double fLambda1 = 0;         // first transport mean free path
-double fScrA = 0;            // screening parameter if any
-double fG1 = 0;              // first transport coef.
-double fRange = 1.2+20;
-
-double fTheInitialRange = 1.e+21;   // the initial (first step or first step in volume) range value of the particle
-double fTheTrueStepLenght = 0;      // the true step length
-double fTheTransportDistance = 0;   // the straight line distance between the pre- and true post-step points
-double fTheZPathLenght = 0;         // projection of transport distance along the original direction
-double fTheTrueGeomLimit = 1.e+20;  // geometrical limit converted to true step length
-double fTheDisplacementVectorX = 0; // displacement vector components X,Y,Z
-double fTheDisplacementVectorY = 0;
-double fTheDisplacementVectorZ = 0;
-double fTheNewDirectionX = 0;       // new direction components X,Y,Z (at the post-step point due to msc)
-double fTheNewDirectionY = 0;
-double fTheNewDirectionZ = 1;;
-double fPar1 = -1;
-double fPar2 = 0;
-double fPar3 = 0;
-
-bool fIsOnBoundaryPreStp = false;   // to indicate that the particle was on boundary at the pre-step pint
-bool fIsEverythingWasDone = false;  // to indicate if everything could be done in the step limit phase
-bool fIsMultipleSacettring = false; // to indicate that msc needs to be perform (i.e. compute angular deflection)
-bool fIsSingleScattering = false;   // to indicate that single scattering needs to be done
-bool fIsEndedUpOnBoundary = false;  // ?? flag to indicate that geometry was the winer
-bool fIsNoScatteringInMSC = false;  // to indicate that no scattering happend (i.e. forward) in msc
-bool fIsNoDisplace = false;         // to indicate that displacement is not computed
-bool fIsInsideSkin = false;         // to indicate that the particle is within skin from/to boundary
-bool fIsWasOnBoundary = false;      // to indicate that boundary crossing happend recently
-bool fIsFirstStep = true;           // to indicate that the first step is made with the particle
-bool fIsFirstRealStep = false;      // to indicate that the particle is making the first real step in the volume i.e.
-                                    // just left the skin
-*/
 char *fExtraData;                   /** Start of user data at first aligned address. This needs to point to an aligned address. */
   // See: implementation of SizeOfInstance. Offsets of user data blocks are with respect to the fExtraData address. We have to pinpoint this
   // because the start address of the block of user data needs to be aligned, which make the offsets track-by-track dependent if they are
@@ -912,12 +878,18 @@ public:
 struct DataInplaceConstructor_t {
   size_t fDataOffset = 0;
   InplaceConstructFunc_t fDataConstructor;
+  PrintUserDataFunc_t fPrintUserData;
     
   void operator()(GeantTrack &track) {
     fDataConstructor(track.fExtraData + fDataOffset);
   }
   
-  DataInplaceConstructor_t(size_t offset, InplaceConstructFunc_t ctor) : fDataOffset(offset), fDataConstructor(ctor) {}
+  void PrintUserData(GeantTrack const &track) const {
+    fPrintUserData(track.fExtraData + fDataOffset);
+  }
+  
+  DataInplaceConstructor_t(size_t offset, InplaceConstructFunc_t ctor, PrintUserDataFunc_t prfunc)
+    : fDataOffset(offset), fDataConstructor(ctor), fPrintUserData(prfunc) {}
 };
 
 // User data manager singleton. Becomes read-only after registration phase
@@ -961,6 +933,12 @@ public:
     for (auto construct : fConstructors)
       construct(track);
   }
+
+  /** @brief Invoke all registered print methods for user data */
+  void PrintUserData(GeantTrack const &track) const {
+    for (auto userdata : fConstructors)
+      userdata.PrintUserData(track);
+  }
   
   /** @brief Lock any further registration */
   void Lock()
@@ -991,10 +969,17 @@ public:
     auto userinplaceconstructor = [&](void * address) {
       new (address) T(/*params...*/);
     };
+
+    // Register print function for debugging
+    auto printuserdata = [&](void * address) {
+      T const &userdata = *(T*)(address);
+      userdata.Print();
+    };
+    
     // Calculate data offset
     size_t block_size = GeantTrack::round_up_align(sizeof(T)); // multiple of the alignment padding
     fTrackSize += block_size;
-    DataInplaceConstructor_t ctor {fDataOffset, userinplaceconstructor};
+    DataInplaceConstructor_t ctor {fDataOffset, userinplaceconstructor, printuserdata};
     fConstructors.push_back(ctor);
     
     // Create a new token

@@ -30,7 +30,7 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
   // If track made too many steps, deposit all kinetic energy and kill it
-  track->fNsteps++;
+  if (track->fStatus != kNew) track->fNsteps++;
   if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
     Error("SteppingActions", "track %d from event %d looping -> killing it",
           track->fParticle, track->fEvent);

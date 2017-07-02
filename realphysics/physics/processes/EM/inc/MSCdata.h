@@ -11,7 +11,7 @@ struct MSCdata {
   double fRange = 1.e+20;               /* range of the particle */
 
   double fTheInitialRange = 0.;         /* the initial (first step or first step in volume) range value of the particle */
-  double fTheRangeFactor = 0.;          /* a step limit factor set */
+//  double fTheRangeFactor = 0.;          /* a step limit factor set */
   double fTheTrueStepLenght = 0.;       /* the true step length */
   double fTheTransportDistance = 0.;    /* the straight line distance between the pre- and true post-step points */
   double fTheZPathLenght = 0.;          /* projection of transport distance along the original direction */
@@ -66,6 +66,22 @@ struct MSCdata {
     fTheNewDirectionX = dx;
     fTheNewDirectionY = dy;
     fTheNewDirectionZ = dz;
+  }
+  
+  void Print() const {
+    printf("fLambda0=%g fLambda1=%g fScrA=%g fG1=%g fRange=%g fTheInitialRange=%g \
+fTheTrueStepLenght=%g fTheTransportDistance=%g fTheZPathLenght=%g fTheTrueGeomLimit=%g \
+fTheDisplacementVectorX=%g fTheDisplacementVectorY=%g fTheDisplacementVectorZ=%g \
+fTheNewDirectionX=%g fTheNewDirectionY=%g fTheNewDirectionZ=%g fPar1=%g fPar2=%g fPar3=%g \
+fIsEverythingWasDone=%d fIsMultipleSacettring=%d fIsSingleScattering=%d fIsEndedUpOnBoundary=%d \
+fIsNoScatteringInMSC=%d fIsNoDisplace=%d fIsInsideSkin=%d fIsWasOnBoundary=%d \
+fIsFirstStep=%d fIsFirstRealStep=%d\n", fLambda0, fLambda1, fScrA, fG1, fRange, fTheInitialRange,
+           fTheTrueStepLenght, fTheTransportDistance, fTheZPathLenght, fTheTrueGeomLimit,
+           fTheDisplacementVectorX, fTheDisplacementVectorY, fTheDisplacementVectorZ,
+           fTheNewDirectionX, fTheNewDirectionY, fTheNewDirectionZ, fPar1, fPar2, fPar3,
+           fIsEverythingWasDone, fIsMultipleSacettring, fIsSingleScattering, fIsEndedUpOnBoundary,
+           fIsNoScatteringInMSC, fIsNoDisplace, fIsInsideSkin, fIsWasOnBoundary,
+           fIsFirstStep, fIsFirstRealStep);
   }
 };
 
