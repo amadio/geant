@@ -46,12 +46,6 @@ void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::Gea
   // init all lengths to the current minimum physics step length (that is the true length)
   //
   MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
-  // At this point the MSC data may come from a reused track object. We have to detect that this is the first
-  // time we use the MSC data by other means than the MSC data itself...
-  if (gtrack->fNsteps == 0) {
-    mscdata.fIsFirstStep = true;
-    mscdata.fIsFirstRealStep = false;
-  }
 
   bool isOnBoundaryPostStp = gtrack->fBoundary;
   gtrack->fBoundary        = gtrack->fIsOnBoundaryPreStp;

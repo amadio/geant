@@ -154,6 +154,8 @@ void GeantTrack::Clear(const char *)
   fPath->Clear();
   fNextpath->Clear();
 #endif
+  // Clear user data
+  TrackDataMgr::GetInstance()->InitializeTrack(*this);
 }
 
 //______________________________________________________________________________
