@@ -3,6 +3,7 @@
 #include "GeantTaskData.h"
 #include "GeantTrackGeo.h"
 #include "GeantRunManager.h"
+#include "VBconnector.h"
 
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
 #include "GeantNuma.h"

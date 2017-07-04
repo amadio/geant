@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "Geant/Error.h"
 
+#include "VBconnector.h"
 #include "GeantTrack.h"
 #include "GeantEvent.h"
 #include "GeantRunManager.h"
@@ -34,12 +35,14 @@ using namespace vecgeom;
 //______________________________________________________________________________
 GeantEventServer::GeantEventServer(int event_capacity, GeantRunManager *runmgr)
   :fNevents(event_capacity), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
-   fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr)
+   fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr), fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff))
 {
 // Constructor
   assert(event_capacity > 0);
   fLastActive.store(-1);
   fNactiveMax = runmgr->GetConfig()->fNbuff;
+  for (size_t slot = 0; slot < size_t(fNactiveMax); ++slot)
+    fFreeSlots.enqueue(slot);
   fEvents = new GeantEvent*[event_capacity];
   for (int i=0; i<event_capacity; ++i) {
     fEvents[i] = new GeantEvent();
@@ -184,7 +187,9 @@ GeantTrack *GeantEventServer::GetNextTrack()
     event->fNdispatched--;
     evt = fCurrentEvent.load();
   }
-  return event->GetPrimary(itr);
+  GeantTrack *track = event->GetPrimary(itr);
+  track->SetEvslot(event->GetSlot());
+  return track;
 }
 
 //______________________________________________________________________________
@@ -260,10 +265,14 @@ int GeantEventServer::ActivateEvents()
   int nactivated = 0;
   int nactive = fNactive.load();
   while (nactive < fNactiveMax && !fEventsServed) {
-    // Try to activate next event
-    if (fNactive.compare_exchange_strong(nactive, nactive+1)) {
+    // Try to activate next event by getting a slot
+    size_t slot = 0;
+    if (fFreeSlots.dequeue(slot)) {
+      fNactive++;
+//    if (fNactive.compare_exchange_strong(nactive, nactive+1)) {
       // We can actually activate one event
       int lastactive = fLastActive.fetch_add(1) + 1;
+      fEvents[lastactive]->SetSlot(slot);
       nactivated++;
       if (lastactive == fNevents - 1) fEventsServed = true;
       fHasTracks = true;
@@ -274,11 +283,12 @@ int GeantEventServer::ActivateEvents()
 }
 
 //______________________________________________________________________________
-void GeantEventServer::CompletedEvent(int /*evt*/)
+void GeantEventServer::CompletedEvent(int evt)
 {
 // Signals that event 'evt' was fully transported.
   fNactive--;
   fNcompleted++;
+  if (!fFreeSlots.enqueue(fEvents[evt]->GetSlot())) Fatal("CompletedEvent", "Cannot enqueue slot");
   ActivateEvents();
 }
 

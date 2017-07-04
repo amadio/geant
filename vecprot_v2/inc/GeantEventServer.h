@@ -8,6 +8,7 @@
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
 #include "GeantConfig.h"
+#include "mpmc_bounded_queue.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -35,6 +36,9 @@ class StackLikeBuffer;
 
 class GeantEventServer
 {
+
+using queue_t = mpmc_bounded_queue<size_t>;
+
 private:
   int fNevents = 0;                    /** Number of events to be filled */
   int fNactiveMax = 0;                 /** Maximum number of active events */
@@ -53,6 +57,7 @@ private:
   bool fInitialPhase = true;           /** Server in initial dispatch phase */
   GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
   int  fBindex = 0;                    /** Basket manager index */
+  queue_t fFreeSlots;                  /** Queue of free event slots */
 
 protected:
   GeantTrack *GetNextTrack();
@@ -60,6 +65,10 @@ protected:
 public:
   GeantEventServer(int event_capacity, GeantRunManager *runmgr);
   ~GeantEventServer();
+
+  GEANT_FORCE_INLINE
+  size_t  AdjustSize(size_t size) const
+  { size_t i = 1, new_size = 2; while ((size >> i++) > 0) new_size *= 2; return new_size; }
 
 // Accessors
   GEANT_FORCE_INLINE

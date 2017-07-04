@@ -1,5 +1,6 @@
 #include "GeomQueryStage.h"
 
+#include "VBconnector.h"
 #include "GeantRunManager.h"
 #include "GeomQueryHandler.h"
 

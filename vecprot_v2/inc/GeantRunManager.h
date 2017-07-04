@@ -35,22 +35,6 @@ class GeantEvent;
 class PrimaryGenerator;
 class MCTruthMgr;
 
-// Volume-basket manager connector structure attached to volumes as extension
-#if defined(USE_ROOT) && !defined(VECCORE_CUDA)
-class VBconnector : public TGeoExtension {
-#else
-class VBconnector {
-#endif
-public:
-  int index;                      /** Index of basket manager */
-  VECCORE_ATT_HOST_DEVICE
-  VBconnector(int i) : index(i) {}
-#if defined(USE_ROOT) && !defined(VECCORE_CUDA)
-  virtual TGeoExtension *Grab() { return this; }
-  virtual void Release() const {}
-#endif
-};
-
 class GeantRunManager
 {
 private:
@@ -89,16 +73,6 @@ private:
   GeantPropagator *fFedPropagator = nullptr; /** Propagator currently being fed */
   std::vector<std::thread> fListThreads; /** Vector of threads */
 
-private:
-  bool LoadVecGeomGeometry();
-  void InitNavigators();
-// It will go to the DetectorConstruction base class
-#ifdef USE_VECGEOM_NAVIGATOR
-#ifdef USE_ROOT
-  std::function<void*(TGeoMaterial const *)> CreateMaterialConversion();
-#endif
-#endif
-
 public:
   GeantRunManager() {}
   GeantRunManager(unsigned int npropagators, unsigned int nthreads, GeantConfig *config);
@@ -120,6 +94,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int  GetNvolumes() { return fNvolumes; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetNvolumes(int nvol) { fNvolumes = nvol; }
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE

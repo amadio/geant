@@ -10,6 +10,7 @@
 #include "GeantEvent.h"
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
+#include "VBconnector.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/SimpleNavigator.h"

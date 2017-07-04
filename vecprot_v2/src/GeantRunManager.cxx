@@ -3,6 +3,7 @@
 #include "base/Stopwatch.h"
 #include "GeantConfig.h"
 #include "Geant/Error.h"
+#include "VBconnector.h"
 #include "GeantPropagator.h"
 #include "TaskBroker.h"
 #include "PhysicsInterface.h"
@@ -135,6 +136,7 @@ bool GeantRunManager::Initialize() {
   if (fDetConstruction) {
     fDetConstruction->CreateMaterials();
     fDetConstruction->CreateGeometry();
+    fNvolumes = fDetConstruction->SetupGeometry(fVolumes);
   } else {
     LoadGeometry(fConfig->fGeomFileName.c_str());
   }
@@ -262,7 +264,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 #endif
   if (geom) {
 #ifdef USE_VECGEOM_NAVIGATOR
-    LoadVecGeomGeometry();
+    GeantVDetectorConstruction::LoadVecGeomGeometry(fBroker);
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
 #else
@@ -297,54 +299,6 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 #endif
   }
   return true;
-}
-
-//______________________________________________________________________________
-bool GeantRunManager::LoadVecGeomGeometry() {
-#ifdef USE_VECGEOM_NAVIGATOR
-  if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
-#ifdef USE_ROOT
-    vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(CreateMaterialConversion());
-    printf("Now loading VecGeom geometry\n");
-    vecgeom::RootGeoManager::Instance().LoadRootGeometry();
-    printf("Loading VecGeom geometry done\n");
-    std::vector<vecgeom::LogicalVolume *> v1;
-    vecgeom::GeoManager::Instance().GetAllLogicalVolumes(v1);
-    printf("Have logical volumes %ld\n", v1.size());
-    std::vector<vecgeom::VPlacedVolume *> v2;
-    vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
-    printf("Have placed volumes %ld\n", v2.size());
-    //    vecgeom::RootGeoManager::Instance().world()->PrintContent();
-#endif
-  }
-  if (fBroker) {
-    printf("Now upload VecGeom geometry to Coprocessor(s)\n");
-    return fBroker->UploadGeometry();
-  }
-  InitNavigators();
-  return true;
-#else
-  return false;
-#endif
-}
-
-//______________________________________________________________________________
-void GeantRunManager::InitNavigators() {
-#if USE_VECGEOM_NAVIGATOR == 1
-  for (auto &lvol : GeoManager::Instance().GetLogicalVolumesMap()) {
-    if (lvol.second->GetDaughtersp()->size() < 4) {
-      lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
-    }
-    if (lvol.second->GetDaughtersp()->size() >= 5) {
-      lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
-    }
-    if (lvol.second->GetDaughtersp()->size() >= 10) {
-      lvol.second->SetNavigator(HybridNavigator<>::Instance());
-      HybridManager2::Instance().InitStructure((lvol.second));
-    }
-    lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
-  }
-#endif
 }
 
 //______________________________________________________________________________
@@ -520,54 +474,6 @@ void GeantRunManager::StopTransport() {
     fPropagators[i]->StopTransport();
   }
 }
-
-// It will go to the DetectorConstruction base class
-//______________________________________________________________________________
-#ifdef USE_VECGEOM_NAVIGATOR
-#ifdef USE_ROOT
-std::function<void*(TGeoMaterial const *)> GeantRunManager::CreateMaterialConversion() {
-  return [](TGeoMaterial const *rootmat) {
-      //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
-      int    numElem    = rootmat->GetNelements();
-      double density    = rootmat->GetDensity()*geant::g/geant::cm3; // in g/cm3
-      const std::string  name = rootmat->GetName();
-      // check if it is a G4 NIST material
-      std::string postName = "";
-      bool isNistMaterial = false;
-      if (name.substr(0,3)=="G4_") {
-        postName = name.substr(3);
-        isNistMaterial = true;
-      }
-      geantphysics::Material *gmat = nullptr;
-      if (isNistMaterial) {
-        std::string nistName = "NIST_MAT_"+postName;
-        gmat = geantphysics::Material::NISTMaterial(nistName);
-      } else {
-        // find or create material
-        gmat = geantphysics::Material::GetMaterial(name);
-        if (gmat) {
-          // std::cout<< " Material "<<name << " has already been created.!"<< std::endl;
-          return gmat;
-        }
-        gmat = new geantphysics::Material(name, density, numElem);
-        for (int j=0; j<numElem; ++j) {
-          double va;
-          double vz;
-          double vw;
-          const_cast<TGeoMaterial *>(rootmat)->GetElementProp(va, vz, vw, j);
-          // create NIST element
-          geantphysics::Element *elX = geantphysics::Element::NISTElement(vz);
-          // add to the Material
-          gmat->AddElement(elX, vw);
-       }
-     }
-     // std::cout<< "  geantphysics::name = " << gmat->GetName() << std::endl;
-     gmat->SetIsUsed(true);
-     return gmat;
-   };
-}
-#endif
-#endif
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant
