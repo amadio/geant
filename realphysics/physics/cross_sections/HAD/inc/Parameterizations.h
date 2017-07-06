@@ -1,7 +1,6 @@
 #ifndef Parameterizations_H
 #define Parameterizations_H
 
-
 namespace geantphysics {
 
 /// Mandelstam

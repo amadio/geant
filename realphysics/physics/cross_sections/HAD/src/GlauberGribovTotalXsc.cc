@@ -25,10 +25,10 @@ namespace geantphysics{
   // [1] B.Z. Kopeliovich, nucl-th/0306044 + simplification above
 
   double GlauberGribovTotalXsc::GetIsotopeCrossSection(const int particleCode, const double energyKin, const double mass,
-						       const int Z, const int N)
+						       const int Z, const int A)
   {
     double xsection, sigma, cofTotal, nucleusSquare, ratio;
-    int A = Z + N;
+    int N = A - Z;
 
     int particlePDG = Particle::GetParticleByInternalCode(particleCode)->GetPDGCode(); 
 

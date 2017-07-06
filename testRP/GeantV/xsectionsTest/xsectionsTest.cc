@@ -34,7 +34,8 @@ int main(int /*argc*/, char** /*argv*/) {
   double kinEnergy = 10.* geant::MeV;
   int particlePDG = 2112;
   int Z = 82;
-  int N = 125;
+  // number of nucleons
+  int N = 207;
   double txs, ixs, exs;
 
   writef << iMax << std::endl;

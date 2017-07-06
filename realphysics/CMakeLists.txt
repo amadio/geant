@@ -1,11 +1,16 @@
 #----------------------------------------------------------------------------------------------
 # Add source, header files & include directories
 #----------------------------------------------------------------------------------------------
+
+include(${Geant4_USE_FILE})
+
 file(GLOB sources
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/src/*.cc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/src/*.cxx
   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/src/*.cc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/src/*.cc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/src/*.cc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/src/*.cc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/src/*.cc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/src/*.cc
 )
@@ -16,7 +21,9 @@ file(GLOB headers
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc/*.h
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc/*.h
   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/inc/*.h
   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/inc/*.h
   ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc/*.h
   ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc/*.h
 )
@@ -27,7 +34,9 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
    ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
    ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/inc
    ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/inc
    ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc
    ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc
    ${CMAKE_SOURCE_DIR}/numa/inc
@@ -65,7 +74,7 @@ endif()
 #----------------------------------------------------------------------------------------------
 add_library(RealPhysics SHARED ${sources})
 target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v ${_extraLibs}
-                      ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
+                      ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${Geant4_LIBRARIES})
 
 add_headers("${headers}")
 add_custom_target(realphyslib DEPENDS RealPhysics)

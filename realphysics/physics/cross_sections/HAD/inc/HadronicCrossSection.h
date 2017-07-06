@@ -82,7 +82,7 @@ class HadronicCrossSection {
    *  @param projectilekineticenergy is the projectile kinetic energy in GeV
    *  @param projectilemass is the projectile mass in GeV
    *  @param Z is the atomic number of the target
-   *  @param N is the number of neutrons of the target
+   *  @param N is the number of nucleons of the target
    */
   virtual double GetIsotopeCrossSection( const int projectilecode, const double projectilekineticenergy,
                                          const double projectilemass, const int Z, const int N ) = 0;

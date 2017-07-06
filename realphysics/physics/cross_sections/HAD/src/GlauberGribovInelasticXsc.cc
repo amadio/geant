@@ -6,6 +6,7 @@
 #include "Parameterizations.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace geantphysics {
 
@@ -25,14 +26,13 @@ namespace geantphysics {
   // [1] B.Z. Kopeliovich, nucl-th/0306044 + simplification above
 
   double GlauberGribovInelasticXsc::GetIsotopeCrossSection(const int particleCode, const double energyKin, const double mass,
-							   const int Z, const int N)
+							   const int Z, const int A)
   {
     double NucleusInelasticXsc, sigma, cofInelastic, cofTotal, nucleusSquare, ratio;
 
     int particlePDG = Particle::GetParticleByInternalCode(particleCode)->GetPDGCode(); 
 
-    int A = Z + N;
-
+    int N = A - Z;
     if( A > 1 )
       { 
 	double R = 0; 
