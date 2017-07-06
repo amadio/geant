@@ -50,6 +50,12 @@ public:
   //=== N E W   I N T E R F A C E S ===//
 
   /**
+   * @brief Method called at initialization allowing to attach user data to the
+   * task data whiteboard
+   */
+  virtual void AttachUserData(GeantTaskData *) {}
+
+  /**
    * @brief Begin a new event. 
    * @details The slot number is evt%ninflight, for easier user data management.
    */

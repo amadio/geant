@@ -59,6 +59,7 @@ private:
   PrimaryGenerator *fPrimaryGenerator = nullptr;   /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
   GeantEventServer *fEventServer = nullptr;     /** The event server */
+  TDManager *fTDManager = nullptr;              /** The task data manager */
 
   vector_t<GeantPropagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
@@ -69,7 +70,7 @@ private:
   BitSet *fDoneEvents = nullptr;   /** Array of bits marking done events */
 //  int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
 //  GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
-  GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
+//  GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
   GeantPropagator *fFedPropagator = nullptr; /** Propagator currently being fed */
   std::vector<std::thread> fListThreads; /** Vector of threads */
 
@@ -133,8 +134,8 @@ public:
   GEANT_FORCE_INLINE
   GeantEventServer *GetEventServer() const { return fEventServer; }
 
-  GEANT_FORCE_INLINE
-  GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
+//  GEANT_FORCE_INLINE
+//  GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
 
   GEANT_FORCE_INLINE
   int  GetTaskId() { return (fTaskId.fetch_add(1)); }
@@ -182,6 +183,9 @@ public:
 
   GEANT_FORCE_INLINE
   MCTruthMgr *GetMCTruthMgr() const { return fTruthMgr; }
+
+  GEANT_FORCE_INLINE
+  TDManager *GetTDManager() const { return fTDManager; }
 
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }

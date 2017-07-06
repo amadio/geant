@@ -198,11 +198,12 @@ bool GeantRunManager::Initialize() {
   }
 
   int nthreads = GetNthreadsTotal();
-  fTaskData = new GeantTaskData *[nthreads];
-  for (int i = 0; i < nthreads; i++) {
-    fTaskData[i] = new GeantTaskData(nthreads, fConfig->fMaxPerBasket);
-    fTaskData[i]->fTid = i;
-  }
+  fTDManager = new TDManager(nthreads, fConfig->fMaxPerBasket);
+//  fTaskData = new GeantTaskData *[nthreads];
+//  for (int i = 0; i < nthreads; i++) {
+//    fTaskData[i] = new GeantTaskData(nthreads, fConfig->fMaxPerBasket);
+//    fTaskData[i]->fTid = i;
+//  }
   if (fConfig->fUseStdScoring) {
     fStdApplication = new StdApplication(this);
     fStdApplication->Initialize();
@@ -243,11 +244,11 @@ GeantRunManager::~GeantRunManager() {
   delete fApplication;
   delete fTaskMgr;
 
-  if (fTaskData) {
-    for (auto i = 0; i < fNthreads; i++)
-      delete fTaskData[i];
-    delete[] fTaskData;
-  }
+//  if (fTaskData) {
+//    for (auto i = 0; i < fNthreads; i++)
+//      delete fTaskData[i];
+//    delete[] fTaskData;
+//  }
 
   delete fConfig;
 }

@@ -14,7 +14,11 @@
 #define GEANT_TASKDATA
 
 #include <deque>
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+#include <atomic>
+#endif
 #include "Geant/Typedefs.h"
+#include "mpmc_bounded_queue.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 #include "TrackManager.h"
@@ -49,6 +53,7 @@ class GeantTaskData {
 public:
 
   using NumaTrackBlock_t = NumaBlock<GeantTrack>;
+  using UserDataVect_t = vector_t<char*>;
 
   GeantTrack *fTrack = nullptr; /** Temporary track */
   GeantPropagator *fPropagator = nullptr; /** GeantPropagator */
@@ -105,9 +110,12 @@ public:
   geantphysics::PhysicsData  *fPhysicsData = nullptr; /** Physics data per thread */
 
 private:
+  UserDataVect_t fUserData;                /** User-defined data pointers */
+
+private:
    // a helper function checking internal arrays and allocating more space if necessary
   template <typename T> static
-   VECCORE_ATT_HOST_DEVICE
+  VECCORE_ATT_HOST_DEVICE
   void CheckSizeAndAlloc(T *&array, int &currentsize, size_t wantedsize) {
      if (wantedsize <= (size_t) currentsize)
       return;
@@ -240,6 +248,13 @@ public:
   /** @brief  Inspect simulation stages */
   void InspectStages(int istage);
 
+  /** @brief  Inspect simulation stages */
+  bool SetUserData(void *data, size_t index) {
+    if (fUserData[index]) return false;
+    fUserData[index] = (char*)data;
+    return true;
+  }
+
 private:
   /**
    * @brief Constructor GeantTaskData
@@ -255,6 +270,125 @@ private:
 
   // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
 };
+
+
+/** &brief Class representing a user data handle to be user with user task data */
+template <typename T>
+class TaskDataHandle {
+ friend class TDManager;
+private:
+  size_t fIndex;   // Data index
+  char fName[50];  // Name of the handle (thanks CUDA#@!)
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  std::atomic_flag fMergeLock;        // Lock for merging user data
+#endif
+  
+  TaskDataHandle(const char *name, size_t index) : fIndex(index) 
+  { strcpy(fName, name); }
+public:
+  TaskDataHandle(const TaskDataHandle &other) : fIndex(other.fIndex) {
+    memcpy(fName, other.fName, 50);
+  }
+  
+  TaskDataHandle &operator=(const TaskDataHandle &other) {
+    fIndex = other.fIndex;
+    memcpy(fName, other.fName, 50);
+  }
+  
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  GEANT_FORCE_INLINE
+  bool CanMerge() { return !fMergeLock.test_and_set(std::memory_order_acquire); }
+#endif
+
+  GEANT_FORCE_INLINE
+  const char *GetName() { return fName; }
+  
+  
+/** @brief User callable, allowing to attach per-thread data of the handle type
+  * @details User data corresponding to all pre-defined tokens can be allocated
+  *          in MyApplication::AttachUserData, to avoid run-time checks */
+  bool AttachUserData(T *data, GeantTaskData *td) {
+    return ( td->SetUserData(data, fIndex) );
+  }
+};
+
+/** &brief The task data manager, distributing task data objects concurrently */
+class TDManager {
+
+using queue_t = mpmc_bounded_queue<GeantTaskData*>;
+
+private:
+  int fMaxThreads = 0;   // Maximum number of threads
+  int fMaxPerBasket = 0; // Maximum number of tracks per basket  
+  queue_t fQueue; // Task data queue
+  vector_t<GeantTaskData*> fTaskData;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  std::atomic<size_t> fUserDataIndex; // Single registry point for user data
+#else
+  int fUserDataIndex; // CUDA does not need this
+#endif
+public:
+  TDManager(int maxthreads, int maxperbasket) : fMaxThreads(maxthreads), fMaxPerBasket(maxperbasket), fQueue(1024), fUserDataIndex(0) {
+    // Create initial task data
+    for (int tid=0; tid < maxthreads; ++tid) {
+      GeantTaskData *td = new GeantTaskData(fMaxThreads, fMaxPerBasket);
+      td->fTid = fTaskData.size();
+      fTaskData.push_back(td);
+      fQueue.enqueue(td);
+    }
+  }
+  
+  ~TDManager() {
+    // User data deleted by user in MyApplication::DeleteTaskData()
+    for (auto td : fTaskData) delete td;
+  }
+  
+  GeantTaskData *GetTaskData() {
+    GeantTaskData *td;
+    if (fQueue.dequeue(td)) return td;
+    td =  new GeantTaskData(fMaxThreads, fMaxPerBasket);
+    td->fTid = fTaskData.size();
+    fTaskData.push_back(td);
+    return td;
+  }
+
+  GEANT_FORCE_INLINE
+  GeantTaskData *GetTaskData(int index) { return fTaskData[index]; }
+
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  template <typename T>
+  TaskDataHandle<T> RegisterUserData(const char *name) {
+    return ( TaskDataHandle<T>(name, fUserDataIndex.fetch_add(1)) );
+  }
+
+  template <typename T>
+  void DeleteUserData(TaskDataHandle<T> &handle) {
+    for (auto td : fTaskData) delete handle(td);
+  }
+#endif
+
+  template <typename T>
+  T* MergeUserData(TaskDataHandle<T> const &handle) {
+    if (!handle.CanMerge()) return nullptr;
+    GeantTaskData *base = fTaskData.front();
+    for (auto td : fTaskData) {
+      if (td == base) continue;
+      // This will require the method T::Merge(T const &other) to exist
+      if (!handle(base)->Merge(*handle(td))) {
+        Error("MergeUserData", "Cannot recursively merge %s data", handle.GetName());
+        return nullptr;
+      }
+    }
+    return handle(base);
+  }
+  
+};
+
+    
+  
+
+
+
 } // GEANT_IMPL_NAMESPACE
 } // Geant
 #endif

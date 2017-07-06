@@ -332,17 +332,16 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
   int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
 //  if (node < 0) node = 0;
-  int tid = prop->fWMgr->ThreadId();
+  GeantPropagator *propagator = prop;
+  GeantRunManager *runmgr = prop->fRunMgr;
+  Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  int tid = td->fTid;
   //prop->SetNuma(node);
   if (useNuma)
     Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
                  tid, prop, node, cpu);
   else
     Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
-  GeantPropagator *propagator = prop;
-  GeantRunManager *runmgr = prop->fRunMgr;
-  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
-  td->fTid = tid;
   td->fNode = node;
   td->fPropagator = prop;
   td->fShuttleBasket = prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0);
@@ -551,14 +550,13 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int nout = 0;
   int ngcoll = 0;
   GeantBasket *basket = 0;
-  int tid = prop->fWMgr->ThreadId();
-  Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   GeantPropagator *propagator = prop;
   // Not NUMA aware version
   propagator->SetNuma(0);
   GeantRunManager *runmgr = prop->fRunMgr;
-  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
-  td->fTid = tid;
+  Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  int tid = td->fTid;
+  Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   td->fPropagator = prop;
   td->fBlock = prop->fTrackMgr->GetNewBlock();
 //  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
@@ -947,13 +945,11 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   int ngcoll = 0;
   GeantBasket *basket = 0;
 
-  int tid = prop->fWMgr->ThreadId();
-  Geant::Print("","=== Worker thread %d created for Coprocessor ===", tid);
-
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = propagator->fRunMgr;
-  Geant::GeantTaskData *td = runmgr->GetTaskData(tid);
-  td->fTid = tid;
+  Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  int tid = td->fTid;
+  Geant::Print("","=== Worker thread %d created for Coprocessor ===", tid);
 
   int nworkers = propagator->fNthreads;
   WorkloadManager *wm = propagator->fWMgr;
@@ -1234,7 +1230,7 @@ void *WorkloadManager::GarbageCollectorThread(GeantPropagator *prop) {
     }
     if (needClean) {
       for (int tid = 0; tid < nthreads; tid++) {
-        GeantTaskData *td = propagator->fRunMgr->GetTaskData(tid);
+        GeantTaskData *td = propagator->fRunMgr->GetTDManager()->GetTaskData(tid);
         td->SetToClean(true);
       }
     }
@@ -1427,7 +1423,7 @@ void *WorkloadManager::MonitoringThread(GeantPropagator* prop) {
       int nbaskets_mixed = 0;
       int nused_mixed = 0;
       for (j = 0; j < nthreads; j++) {
-        GeantTaskData *td = propagator->fRunMgr->GetTaskData(j);
+        GeantTaskData *td = propagator->fRunMgr->GetTDManager()->GetTaskData(j);
         nbaskets_mixed += td->fBmgr->GetNbaskets();
         nused_mixed += td->fBmgr->GetNused();
       }

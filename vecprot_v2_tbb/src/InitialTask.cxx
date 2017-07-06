@@ -29,8 +29,8 @@ tbb::task* InitialTask::execute ()
 
   tbb::task_scheduler_init init( runmgr->GetNthreadsTotal() );
 
-  int tid = runmgr->GetTaskId();
-  GeantTaskData *td = runmgr->GetTaskData(tid);
+  GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  int tid = td->fTid;
   td->fPropagator = fPropagator;
 
   printf("=== Initial task %d (%d) created ===\n", tid, td->fTid);

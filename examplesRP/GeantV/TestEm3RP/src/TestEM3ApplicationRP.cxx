@@ -64,7 +64,7 @@ bool TestEM3ApplicationRP::Initialize() {
   fWThreadIdToIndexMap.resize(numThreads);
   for (int i=0; i<numWThreads; ++i) {
     // first map the working thread ID to index
-    int curWThreadId = fRunMgr->GetTaskData(i)->fTid;
+    int curWThreadId = fRunMgr->GetTDManager()->GetTaskData(i)->fTid;
     fWThreadIdToIndexMap[curWThreadId] = i;
     // set up the data structure for this thread with index i
     // 1. init global data i.e. not per absorber data
@@ -86,7 +86,7 @@ bool TestEM3ApplicationRP::Initialize() {
 // CREATE PhysicsData here: should be done at the init of PhysicsProcessHandler but
 // GeantTaskData are constructed later than that call
   for (int i=0; i<fRunMgr->GetNthreadsTotal(); ++i) {
-    fRunMgr->GetTaskData(i)->fPhysicsData = new geantphysics::PhysicsData();
+    fRunMgr->GetTDManager()->GetTaskData(i)->fPhysicsData = new geantphysics::PhysicsData();
   }
 
   fInitialized = true;
