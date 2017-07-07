@@ -55,6 +55,8 @@ public:
   /** @brief HadronicProcess default constructor */
   HadronicProcess();
 
+  HadronicProcess( const std::string &name );
+
   /** @brief HadronicProcess complete constructor */
   HadronicProcess( const std::string &name, const std::vector< int > &particlecodevec, 
                    const HadronicProcessType type, const bool isatrest,

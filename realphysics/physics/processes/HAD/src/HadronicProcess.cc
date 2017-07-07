@@ -15,6 +15,14 @@ HadronicProcess::HadronicProcess() : PhysicsProcess(""), fType( HadronicProcessT
 {}
 
 
+HadronicProcess::HadronicProcess( const std::string &name ) :
+  PhysicsProcess( name ), fXsecStore( nullptr )
+{
+  fModelStore = new HadronicFinalStateModelStore();
+}
+
+
+
 HadronicProcess::HadronicProcess( const std::string &name, const std::vector< int > &particlecodevec, 
                                   const HadronicProcessType type, const bool isatrest,
                                   HadronicCrossSectionStore* xsecstore, HadronicFinalStateModelStore* modelstore ) :
