@@ -36,6 +36,15 @@ ExN03Application::ExN03Application(GeantRunManager *runmgr)
 }
 
 //______________________________________________________________________________
+void ExN03Application::AttachUserData(GeantTaskData *td)
+{
+  // Create task data for handling digits. Provide number of event slots.
+  ExN03ScoringData *data = new ExN03ScoringData(fRunMgr->GetConfig()->fNbuff, kNlayers);
+  fDigitsHandle->AttachUserData(data, td);
+  printf("Attached user data %p for tid=%d\n", data, td->fTid);
+}
+
+//______________________________________________________________________________
 bool ExN03Application::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
@@ -67,6 +76,8 @@ bool ExN03Application::Initialize() {
   fIdGap = lvGap->id();
   fIdAbs = lvAbs->id();
 #endif
+  // Register user data and get a handle for it with the task data manager
+  fDigitsHandle = fRunMgr->GetTDManager()->RegisterUserData<ExN03ScoringData>("ExN03digits");
   fInitialized = true;
   return true;
 }
@@ -153,9 +164,39 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
 }
 
 //______________________________________________________________________________
+void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
+{
+  if (!fInitialized) return;
+  // Loop all tracks, check if they are in the right volume and collect the
+  // energy deposit and step length
+  Node_t const *current;
+  int idvol = -1;
+  int idnode = -1;
+  int ilev = -1;
+  ilev = track.fPath->GetLevel();
+  if (ilev < 1) return;
+  current = track.fPath->Top();
+  if (!current) return;
+  idnode = track.fPath->At(ilev - 1)->id();
+  idvol = current->GetLogicalVolume()->id();
+  ExN03LayerDigit &digit = (*fDigitsHandle)(td).GetDigits(track.fEvslot).GetDigit(idnode);
+  if (idvol == fIdGap)
+    digit.ScoreInGap(track.fEdep, track.fStep);
+  else if (idvol == fIdAbs)
+    digit.ScoreInAbs(track.fEdep, track.fStep);
+}
+
+//______________________________________________________________________________
 void ExN03Application::Digitize(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
+  // Merge the digits for the event
+  ExN03ScoringData *digits = fRunMgr->GetTDManager()->MergeUserData(event, *fDigitsHandle);
+  if (digits) {
+    printf("=== Merged digits for event %d\n", event->GetEvent());
+    //digits->PrintDigits(event);
+    digits->Clear(event->GetSlot());
+  }
   return;
   printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");
   printf("================================================================================");

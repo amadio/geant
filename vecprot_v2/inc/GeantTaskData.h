@@ -18,9 +18,11 @@
 #include <atomic>
 #endif
 #include "Geant/Typedefs.h"
+#include "Geant/Error.h"
 #include "mpmc_bounded_queue.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
+#include "GeantEvent.h"
 #include "TrackManager.h"
 
 namespace geantphysics {
@@ -248,12 +250,17 @@ public:
   /** @brief  Inspect simulation stages */
   void InspectStages(int istage);
 
-  /** @brief  Inspect simulation stages */
+  /** @brief  Set user data */
   bool SetUserData(void *data, size_t index) {
-    if (fUserData[index]) return false;
+    if (index >= fUserData.size())
+      fUserData.resize(index + 1);
+    else if (fUserData[index]) return false;
     fUserData[index] = (char*)data;
     return true;
   }
+
+  /** @brief  Get user data */
+  void *GetUserData(size_t index) { return fUserData[index]; }
 
 private:
   /**
@@ -295,9 +302,17 @@ public:
     memcpy(fName, other.fName, 50);
   }
   
+  GEANT_FORCE_INLINE
+  T &operator()(GeantTaskData *td) {
+    return *(T*)td->GetUserData(fIndex);
+  }
+  
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   GEANT_FORCE_INLINE
-  bool CanMerge() { return !fMergeLock.test_and_set(std::memory_order_acquire); }
+  bool TryLock() { return !fMergeLock.test_and_set(std::memory_order_acquire); }
+
+  GEANT_FORCE_INLINE
+  void ClearLock() { fMergeLock.clear(std::memory_order_release); }
 #endif
 
   GEANT_FORCE_INLINE
@@ -355,10 +370,14 @@ public:
   GEANT_FORCE_INLINE
   GeantTaskData *GetTaskData(int index) { return fTaskData[index]; }
 
+  void ReleaseTaskData(GeantTaskData *td) {
+    while (!fQueue.enqueue(td)) {}
+  }
+  
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   template <typename T>
-  TaskDataHandle<T> RegisterUserData(const char *name) {
-    return ( TaskDataHandle<T>(name, fUserDataIndex.fetch_add(1)) );
+  TaskDataHandle<T> *RegisterUserData(const char *name) {
+    return ( new TaskDataHandle<T>(name, fUserDataIndex.fetch_add(1)) );
   }
 
   template <typename T>
@@ -368,18 +387,21 @@ public:
 #endif
 
   template <typename T>
-  T* MergeUserData(TaskDataHandle<T> const &handle) {
-    if (!handle.CanMerge()) return nullptr;
+  T* MergeUserData(GeantEvent *event, TaskDataHandle<T> &handle) {
+    // if (handle.TryLock()) return nullptr;
+    int evslot = event->GetSlot();
     GeantTaskData *base = fTaskData.front();
     for (auto td : fTaskData) {
       if (td == base) continue;
-      // This will require the method T::Merge(T const &other) to exist
-      if (!handle(base)->Merge(*handle(td))) {
+      // This will require the method T::Merge(int evslot, T const &other) to exist
+      // The user data should book as many event slots as GeantConfig::fNbuff
+      if (!handle(base).Merge(evslot, handle(td))) {
         Error("MergeUserData", "Cannot recursively merge %s data", handle.GetName());
         return nullptr;
       }
     }
-    return handle(base);
+    handle.ClearLock();
+    return &handle(base);
   }
   
 };

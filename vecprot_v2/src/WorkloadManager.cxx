@@ -433,6 +433,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     if (cpuexit != cpu)
       Geant::Print("","=== OS migrated worker %d from cpu #%d to cpu#%d", tid, cpu, cpuexit);
   }
+  runmgr->GetTDManager()->ReleaseTaskData(td);
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   #ifdef USE_ROOT
@@ -912,6 +913,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   // If transport is completed, make send the signal to the run manager
   if (runmgr->TransportCompleted())
     runmgr->StopTransport();
+  runmgr->GetTDManager()->ReleaseTaskData(td);
   Geant::Print("","=== Thread %d: exiting ===", tid);
 
   #ifdef USE_ROOT
@@ -1191,6 +1193,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   propagator->fNphys += td->fNphys;
   propagator->fNmag += td->fNmag;
   propagator->fNsmall += td->fNsmall;
+  runmgr->GetTDManager()->ReleaseTaskData(td);
   Geant::Print("","=== Coprocessor Thread %d: exiting === Processed %ld", tid, broker->GetTotalWork());
   return 0;
 }

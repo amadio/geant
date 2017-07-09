@@ -17,6 +17,7 @@
 #include "WorkloadManager.h"
 #include "GeantPropagator.h"
 #include "ExN03Application.h"
+#include "ExN03DetectorConstruction.h"
 
 #ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
@@ -255,6 +256,7 @@ int main(int argc, char *argv[]) {
   // runMgr->SetVectorPhysicsProcess(new GVectorPhysicsProcess(config->fEmin, nthreads));
   runMgr->SetPrimaryGenerator( new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0) );
   runMgr->SetUserApplication ( new ExN03Application(runMgr) );
+  runMgr->SetDetectorConstruction( new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr) );
 #ifdef GEANT_TBB
   if (tbbmode)
     runMgr->SetTaskMgr( new TaskMgrTBB() );

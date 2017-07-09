@@ -26,8 +26,10 @@
 #endif
 
 #include "Geant/Typedefs.h"
-
 #include "GeantFwd.h"
+#include "GeantTaskData.h"
+#include "ExN03ScoringData.h"
+
 
 /** @brief ExN03Application class */
 class ExN03Application : public Geant::GeantVApplication {
@@ -36,17 +38,23 @@ class ExN03Application : public Geant::GeantVApplication {
   using GeantRunManager = Geant::GeantRunManager;
   using GeantEvent = Geant::GeantEvent;
   using GeantTrack_v = Geant::GeantTrack_v;
+  using GeantTrack = Geant::GeantTrack;
   using GeantTaskData = Geant::GeantTaskData;
+  using DigitsHandle = Geant::TaskDataHandle<ExN03ScoringData>;
 
 private:
   bool fInitialized;                       /** Initialized flag */
   int fIdGap;                              /** ID for the gap volume */
   int fIdAbs;                              /** ID for the absorber volume */
+  // These are needed only for v2
   float fEdepGap[kNlayers][kMaxThreads];   /** Energy deposition per layer */
   float fLengthGap[kNlayers][kMaxThreads]; /** step length in every layer */
   float fEdepAbs[kNlayers][kMaxThreads];   /** Energy deposition per layer */
   float fLengthAbs[kNlayers][kMaxThreads]; /** Step length in every layer */
-  GeantFactory<MyHit> *fFactory;             /** Hits factory */
+
+  DigitsHandle *fDigitsHandle = nullptr;   /** Handler for digits */
+  
+  GeantFactory<MyHit> *fFactory;           /** Hits factory */
   
   /**
    * @brief Copy constructor ExN03Application
@@ -68,6 +76,12 @@ public:
   virtual ~ExN03Application() {}
 
   /**
+   * @brief Method called at initialization allowing to attach user data to the
+   * task data whiteboard. Called by every worker. in the initialization phase.
+   */
+  virtual void AttachUserData(GeantTaskData *td);
+
+  /**
    * @brief Function of initialization
    */
   virtual bool Initialize();
@@ -81,11 +95,14 @@ public:
    */
   virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
+  virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/);
+
   /**
    * @brief Function of digitization
    * 
    * @param event Event that should be digitized
    */
+
   virtual void Digitize(GeantEvent *event);
 
   /** @brief User FinishRun function */

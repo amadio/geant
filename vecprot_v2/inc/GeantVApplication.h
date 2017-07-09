@@ -51,9 +51,12 @@ public:
 
   /**
    * @brief Method called at initialization allowing to attach user data to the
-   * task data whiteboard
+   * task data whiteboard. Use handles provided with TDManager::RegisterUserData
    */
   virtual void AttachUserData(GeantTaskData *) {}
+  
+  /** @brief Use TDManager::DeleteUserData providing user data handles */
+  virtual void DeleteUserData() {}
 
   /**
    * @brief Begin a new event. 

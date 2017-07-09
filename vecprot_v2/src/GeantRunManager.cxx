@@ -199,16 +199,16 @@ bool GeantRunManager::Initialize() {
 
   int nthreads = GetNthreadsTotal();
   fTDManager = new TDManager(nthreads, fConfig->fMaxPerBasket);
-//  fTaskData = new GeantTaskData *[nthreads];
-//  for (int i = 0; i < nthreads; i++) {
-//    fTaskData[i] = new GeantTaskData(nthreads, fConfig->fMaxPerBasket);
-//    fTaskData[i]->fTid = i;
-//  }
   if (fConfig->fUseStdScoring) {
     fStdApplication = new StdApplication(this);
     fStdApplication->Initialize();
+    for (int i = 0; i < nthreads; i++)
+      fStdApplication->AttachUserData(fTDManager->GetTaskData(i));
   }
   fApplication->Initialize();
+  for (int i = 0; i < nthreads; i++)
+    fApplication->AttachUserData(fTDManager->GetTaskData(i));
+
   fPrimaryGenerator->InitPrimaryGenerator();
   fEventServer = new GeantEventServer(fConfig->fNtotal, this);
   for (int i=0; i<fConfig->fNtotal; ++i)
@@ -241,9 +241,15 @@ GeantRunManager::~GeantRunManager() {
   delete fProcess;
   delete fPhysicsInterface;
   delete fVectorPhysicsProcess;
+  if (fStdApplication) {
+    fStdApplication->DeleteUserData();
+    delete fStdApplication;
+  }
+  fApplication->DeleteUserData();
   delete fApplication;
   delete fTaskMgr;
-
+  
+  delete fTDManager;
 //  if (fTaskData) {
 //    for (auto i = 0; i < fNthreads; i++)
 //      delete fTaskData[i];
