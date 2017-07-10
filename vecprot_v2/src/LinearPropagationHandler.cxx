@@ -146,6 +146,7 @@ bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *
   ScalarNavInterfaceVGM::NavIsSameLocation(track, same, tmpstate);
 #else
 // ROOT navigation
+  (void)td;
   ScalarNavInterfaceTGeo::NavIsSameLocation(track, same);
 #endif // USE_VECGEOM_NAVIGATOR
   if (same) return true;

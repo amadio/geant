@@ -175,10 +175,19 @@ void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
   int ilev = -1;
   ilev = track.fPath->GetLevel();
   if (ilev < 1) return;
+#ifndef USE_VECGEOM_NAVIGATOR
+  current = track.fPath->GetCurrentNode();
+#else
   current = track.fPath->Top();
+#endif
   if (!current) return;
-  idnode = track.fPath->At(ilev - 1)->id();
-  idvol = current->GetLogicalVolume()->id();
+#ifndef USE_VECGEOM_NAVIGATOR
+    idnode = track.fPath->GetNode(ilev - 1)->GetNumber();
+    idvol = current->GetVolume()->GetNumber();
+#else
+    idnode = track.fPath->At(ilev - 1)->id();
+    idvol = current->GetLogicalVolume()->id();
+#endif
   ExN03LayerDigit &digit = (*fDigitsHandle)(td).GetDigits(track.fEvslot).GetDigit(idnode);
   if (idvol == fIdGap)
     digit.ScoreInGap(track.fEdep, track.fStep);

@@ -3,6 +3,7 @@
 #include "Geant/Error.h"
 #include "TaskBroker.h"
 #include "VBconnector.h"
+#include "GeantRunManager.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
@@ -44,11 +45,12 @@ int GeantVDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volume
     return 0;
   }  
 #else
+  (void)broker;
   if (!gGeoManager) {
     Fatal("GeantVDetectorConstruction::SetupGeometry", "ROOT geometry not loaded");
     return 0;
   }
-  gGeoManager->SetMaxThreads(GetNthreadsTotal());
+  gGeoManager->SetMaxThreads(fRunMgr->GetNthreadsTotal());
   TObjArray *lvolumes = gGeoManager->GetListOfVolumes();
   nvolumes = lvolumes->GetEntries();
   for (auto ivol = 0; ivol < nvolumes; ivol++)
@@ -109,6 +111,7 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
   InitNavigators();
   return true;
 #else
+  (void)broker;
   return false;
 #endif
 }

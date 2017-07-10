@@ -28,6 +28,7 @@ class TaskBroker;
 /** @brief GeantVDetectorConstruction class */
 class GeantVDetectorConstruction {
 private:
+  GeantRunManager *fRunMgr = nullptr;
 // Material conversion callback function
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
@@ -38,7 +39,7 @@ private:
 
 public:  
   /** @brief GeantVDetectorConstruction constructor */	
-  GeantVDetectorConstruction(GeantRunManager *) {}
+  GeantVDetectorConstruction(GeantRunManager *runmgr) { fRunMgr = runmgr; }
 
   /** @brief GeantVDetectorConstruction destructor */
   virtual ~GeantVDetectorConstruction() {}
