@@ -252,10 +252,12 @@ public:
 
   /** @brief  Set user data */
   bool SetUserData(void *data, size_t index) {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
     if (index >= fUserData.size())
       fUserData.resize(index + 1);
     else if (fUserData[index]) return false;
     fUserData[index] = (char*)data;
+#endif
     return true;
   }
 

@@ -13,7 +13,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 TrackDataMgr::TrackDataMgr(size_t maxdepth) : fMaxDepth(maxdepth)
 {
   // Private constructor. Make sure that the instance was initialized with a depth.
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fMaxDepth == 0) std::runtime_error("Track data manager was not provided a geometry depth");
+#endif
   // Compute the total track size in the assumption that there is no user data
   fTrackSize = sizeof(GeantTrack) + 
                2 * VolumePath_t::SizeOfInstance(maxdepth) + 2 * GEANT_ALIGN_PADDING;

@@ -904,12 +904,15 @@ private:
   vector_t<TrackToken *> fTokens;
   std::mutex fRegisterLock; /** Multithreading lock for the registration phase */
   
+  VECCORE_ATT_HOST_DEVICE
   TrackDataMgr(size_t maxdepth);
 
 public:
+  VECCORE_ATT_HOST_DEVICE
   static
   TrackDataMgr *GetInstance(size_t fMaxDepth = 0);
   
+  VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t GetMaxDepth() const { return fMaxDepth; }
 
