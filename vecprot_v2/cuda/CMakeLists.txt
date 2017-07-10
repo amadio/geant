@@ -16,8 +16,8 @@ endfunction(PREPEND)
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-set(CUDA_SRCDIR src)
-set(CUDA_INCDIR inc)
+set(CUDA_SRCDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(CUDA_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 set(GEANT_COMPILATION_FLAGS ${GEANT_COMPILATION_FLAGS} -DGEANT_CUDA_ENABLED)
 add_definitions(-DGEANT_CUDA_ENABLED)
