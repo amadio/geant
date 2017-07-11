@@ -31,7 +31,7 @@ template <typename T> class NumaBlock {
   using size_t = std::size_t;
   using atomic_size_t = std::atomic<std::size_t>;
   using NumaBlock_t = NumaBlock<T>;
-  static size_t const cacheline_size = 64;
+  static constexpr size_t cacheline_size = 64;
   typedef char cacheline_pad_t[cacheline_size];
 
 private:
