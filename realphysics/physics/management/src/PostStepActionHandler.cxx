@@ -97,6 +97,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       geantTrack.fNsteps   = 0;
       geantTrack.fStatus   = Geant::kNew;                // secondary is a new track
       geantTrack.SetStage(Geant::kSteppingActionsStage); // send this to the stepping action stage
+      geantTrack.fGeneration = track->fGeneration + 1;
       geantTrack.fMass     = secParticle->GetPDGMass();
       geantTrack.SetPosition(track->PosX(),track->PosY(),track->PosZ());
       geantTrack.SetDirection(secLt[isec].GetDirX(),secLt[isec].GetDirY(),secLt[isec].GetDirZ());
