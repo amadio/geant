@@ -30,8 +30,8 @@ public:
 
   virtual void  Initialize();
 
-  virtual void  AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
-  virtual void  AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
+  virtual double  AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
+  virtual void    AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
 
   double GetGeomMinLimit() const     { return fGeomMinLimit; }
   void   SetGeomMinLimit(double val) { fGeomMinLimit = val;  fGeomMinLimit2 = val*val;}
@@ -40,7 +40,7 @@ private:
   double fGeomMinLimit;  // if the true step length is below this => no msc
   double fGeomMinLimit2; // square of the above
   Geant::TrackToken *fMSCdata = nullptr;   // Handle for MSCData
-  
+
 };
 
 }       // namespace geantphysics

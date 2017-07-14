@@ -116,6 +116,9 @@ public:
    */
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle) const;
 
+  // used to determine the lowest energy of the lambda table when lambda table is requested to build by a given process
+  virtual double GetMinimumLambdaTableKineticEnergy(const MaterialCuts *matcut, const Particle*) const;
+
   /**
    * @brief Common implementation of the continuous step limit method of the base PhysicsProcess class for ordinary
    *        electromagnetic processes.
@@ -125,16 +128,12 @@ public:
    * along step limit from all kEnergyLoss processes i.e.: should make sure that only one kEnergyLoss process stays in
    * the continuous process vector because we use the cumulative energy loss related tables.
    *
-   * @param[in/out] track  A LightTrack object that contains all the necessary primary track information.
    * @return    Continuous step limit from this EMPhysicsProcess. In case of particles that have any kEnergyLoss
    *            processes: this will be the cumulative along step limit from all kEnergyLoss processes i.e.: should make
    *            sure that only one kEnergyLoss process stays in the continuous process vector because we use the
    *            cumulative energy loss related tables.
    */
-  virtual double AlongStepLimitationLength(const LightTrack &track) const;
-
-  // for msc: act on GeantTrack directly
-  virtual void   AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const {}
+   virtual double AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const;
 
   /**
    * @brief Common implementation of the AlongStepDoIt method of the base PhysicsProcess class for ordinary
@@ -150,7 +149,7 @@ public:
    */
   virtual  int AlongStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
 
-  // for msc: no secondaries
+  // for msc: no secondaries and acts directly on GeantTrack
   virtual  void AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const {}
 
 

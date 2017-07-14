@@ -311,13 +311,13 @@ if (matCut->GetMaterial()->GetNumberOfElements()==1) {
   isSingleElementMaterial = true;
 }
 
-getTotalMacXsec = thePhysManager->GetInvTotalLambda(matCut, kineticEnergy);
 for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
   PhysicsProcess *proc = thePostStepCandProcVect[i];
   processNameVect.push_back(proc->GetName());
   compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle));
   compTotalMacXsec += compMacXsecPerProcessVect[i];
-  getMacXsecPerProcessVect.push_back(thePhysManager->GetMacroscopicXSectionForProcess(matCut, kineticEnergy, i));
+  getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy));
+  getTotalMacXsec  += getMacXsecPerProcessVect[i];
   EMPhysicsProcess *emProc = nullptr;
   if (proc->GetType()==geantphysics::ProcessType::kElectromagnetic
       || proc->GetType()==geantphysics::ProcessType::kEnergyLoss) {

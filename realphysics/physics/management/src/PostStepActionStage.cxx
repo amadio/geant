@@ -44,27 +44,7 @@ Geant::Handler* PostStepActionStage::Select(Geant::GeantTrack *track, Geant::Gea
   if (track->fStatus==Geant::TrackStatus_t::kPhysics && track->fEindex==1000) {
     // these tracks should always have psorcesses active in the given region moreover should always have discrete
     // processes that limited the step (fEindex==1000)
-    //
-    // reset number of interaction length left
-    track->fNintLen = -1;
     return fHandlers[0];
-    /*
-    //
-    // here we will get the MaterialCuts from the LogicalVolume later
-    int   matIndx              = track->GetMaterial()->GetIndex();
-    int   regIndx              = const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetRegion()->GetIndex();
-    const MaterialCuts *matCut =  MaterialCuts::GetMaterialCut(regIndx,matIndx);
-    // get the internal code of the particle
-    int   particleCode         = track->GVcode();
-    const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
-    // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
-    PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
-    // here we could drop the
-    if (pManager && pManager->GetListPostStepCandidateProcesses().size()>0) {
-      // give back the only one handler for all other particles that will compute the along-step-action(s)
-      return fHandlers[0];
-    }
-    */
   }
   // not physics or not discrete part of limited the step
   return nullptr;

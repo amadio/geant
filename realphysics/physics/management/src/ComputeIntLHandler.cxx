@@ -14,7 +14,6 @@
 
 #include "PhysicsProcess.h"
 #include "PhysicsManagerPerParticle.h"
-#include "LightTrack.h"
 
 namespace geantphysics {
 
@@ -46,29 +45,7 @@ void ComputeIntLHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, G
   assert(pManager->GetListAlongStepProcesses().size()+pManager->GetListPostStepCandidateProcesses().size()!=0);
   //
   // compute the intercation length:
-  LightTrack primaryLT;
-  //LightTrack *lt = &(td->fPhysicsData->GetListOfSecondaries()[0]);
-  // we will use members:
-  //  fNintLen      <==>  fNintLen  // number of interaction left
-  //  fTargetZ      <==>  fEindex   // will be set to flag if disc. or cont. step limit won
-  //  fMaterialCutCoupleIndex <==>  // current MaterialCuts index
-  //  fKinE         <==>  fE-fMass  // kinetic energy
-  //  fGVcode       <==>  fGVcode   // internal particle code
-  //  fIntLen       <==>  fIntLen   // will be set to store the current inverse total lambda
-  //  fStepLength   <==>  fPstep    // will be set to store the physics step limit
-  primaryLT.SetNumOfInteractionLegthLeft(track->GetNintLen());
-  primaryLT.SetKinE(track->E()-track->Mass());
-  primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
-  primaryLT.SetGVcode(track->GVcode());
-  pManager->ComputeIntLen(primaryLT,td);
-  // update GeantTrack
-  track->SetPstep(primaryLT.GetStepLength());
-  track->SetIntLen(primaryLT.GetTotalMFP());
-  track->SetEindex(primaryLT.GetTargetZ()); // just indicates if along or post step limit happened
-  if (track->GetNintLen()<=0.0) { // was resampled in pManager->ComputeIntLen()
-    track->SetNintLen(primaryLT.GetNumOfInteractionLegthLeft());
-  }
-  // ---
+  pManager->ComputeIntLen(track,td);
   // copy input track to the output
   output.AddTrack(track);
 }

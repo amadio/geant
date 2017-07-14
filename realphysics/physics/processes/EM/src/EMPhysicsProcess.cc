@@ -158,13 +158,23 @@ double EMPhysicsProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, 
 }
 
 
-double EMPhysicsProcess::AlongStepLimitationLength(const LightTrack &track) const {
+double EMPhysicsProcess::GetMinimumLambdaTableKineticEnergy(const MaterialCuts *matcut, const Particle*) const {
+  double emin = 0.;
+  EMModel *lowestEnergyModel =  fModelManager->SelectModel(0., matcut->GetRegionIndex());
+  if (lowestEnergyModel) {
+    emin = lowestEnergyModel->MinimumPrimaryEnergy(matcut, GetParticle());
+  }
+  return emin;
+}
+
+double EMPhysicsProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData * /*td*/) const {
   double stepLimit = GetAVeryLargeValue();
   // if the process is kEnergyLoss process use the energy loss related data to limit the step
   if(GetType()==ProcessType::kEnergyLoss) {
-    const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-    const Particle     *part   = Particle::GetParticleByInternalCode(track.GetGVcode());
-    double              ekin   = track.GetKinE();
+    void *mcptr = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr();
+    const MaterialCuts *matCut = static_cast<const MaterialCuts*>(mcptr);
+    double ekin                = gtrack->fE-gtrack->fMass;
+    const Particle     *part   = Particle::GetParticleByInternalCode(gtrack->fGVcode);
     double range = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin);
     stepLimit    = range;
     if (range>fFinalRange) {
@@ -173,6 +183,7 @@ double EMPhysicsProcess::AlongStepLimitationLength(const LightTrack &track) cons
   }
   return stepLimit;
 }
+
 
 //
 // Hereve go: the range needs to be re-computed here. It was obtaind at the along step limit but we cannot store!!!

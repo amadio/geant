@@ -13,6 +13,8 @@ ElectronBremsstrahlungProcess::ElectronBremsstrahlungProcess(const std::string &
   // fill the list of particles that this process can be used to (note: models need to set either to be for e- or e+)
   AddToListParticlesAlloedToAssigned(Electron::Definition());
   AddToListParticlesAlloedToAssigned(Positron::Definition());
+  // request to build lambda table per-material-cuts (per-material by default)
+  RequestLambdaTables();
 }
 
 } // namespace geantphysics

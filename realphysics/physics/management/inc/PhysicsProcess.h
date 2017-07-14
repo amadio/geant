@@ -5,14 +5,16 @@
 #include <string>
 #include <vector>
 
+#include "GeantTrack.h"
 #include "GeantTaskData.h"
 
 namespace geantphysics {
 
 // Forward declarations
 class LightTrack;
-class LightTrack_v;
 class Particle;
+class LambdaTable;
+class PhysicsParameters;
 
 class MaterialCuts;
 class Particle;
@@ -76,35 +78,6 @@ public:
    */
   virtual bool IsApplicable(const LightTrack &/*track*/) const { return true; }
 
-// NOTE: These 2 methods must be changed:
-//        - virtual double GetAtomicCrossSection(  IS NOT NEEDED because only macroscopic cross sections needs to be
-//          provided by the processes
-//        - virtual double InverseLambda(const LightTrack &track) const IS NOT NEEDED,
-//          because a model needs to provide macroscopic cross section for a given material, energy, particle etc..
-//
-  /** @brief Methods that return the atomic (i.e. microscopic) cross section
-   *         (unit: 1/length^2) of the discrete part of this process.
-   *
-   *  These methods are meant to be called directly from user code
-   *  (e.g. for testing), and not in the simulation event loop.
-   *
-   *  The first method corresponds to the minimal signature:
-   *  @param projectileCode is the GV particle code of the projectile
-   *  @param projectileKineticEnergy is the projectile kinetic energy in MeV
-   *  @param targetZ is the atomic number (Z) of the target atom
-   *  @param targetN is the number of the nucleons of the target atom
-   *         (Note: the default, 0, value means that the average natural abundance
-   *                of the element should be considered)
-   *
-   *  The second method has a LightTrack object as input, and what it does is
-   *  simply to extra the information needed by the first method and then calls it.
-   */
-//  virtual double GetAtomicCrossSection(const int projectileCode,
-//                                        const double projectileKineticEnergy,
-//                                        const int targetZ, const int targetN = 0) const;
-
-//  double GetAtomicCrossSection(const LightTrack &track) const;
-
 
   /** @brief Method that returns the macroscopic cross section in internal [1/length] unit.
    *
@@ -130,6 +103,14 @@ public:
                                             const Particle * /*particle*/) const {return 0.;}
 
 
+  // the minimum kinetic energy for (optional) lambda table (macroscopic cross section) table: will be used only if
+  // the lambda table was requested per-material-cuts and even in that case the max of this and the
+  // PhysicsParameters->GetMinLambdaTableEnergy() will be taken. Therefore, only production cut dependent processes
+  // needs to be reimplement this method.
+  virtual double GetMinimumLambdaTableKineticEnergy(const MaterialCuts * /*matcut*/,
+                                                    const Particle * /*particle*/) const { return 0.;}
+
+
   /** @brief Method that returns the along-the-step limitation length
    *         (unit: length)
    *
@@ -138,7 +119,17 @@ public:
    *  that does not limit the step, then the method returns an arbitrary,
    *  very large value.
    */
-  virtual double AlongStepLimitationLength(const LightTrack &track) const;
+   virtual double AlongStepLimitationLength(Geant::GeantTrack * /*track*/, Geant::GeantTaskData * /*td*/) const;
+
+
+   /** @brief Method that returns the post-step limitation length
+    *         (unit: length)
+    *
+    *  This applies only for the cdiscrete part of this process.
+    *  If the process does not have a discrete part this method is not called.
+    */
+   virtual double PostStepLimitationLength(Geant::GeantTrack * /*track*/, Geant::GeantTaskData * /*td*/, bool haseloss=false);
+
 
   /** @brief Method that returns the average lifetime of this process
    *         (unit: time)
@@ -191,7 +182,18 @@ public:
    */
   virtual void AtRestDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return;}
 
+
+  virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }
+  // will be called only if GetMacroscopicXSectionMaximumEnergy < gAVeryLargeValue
+  virtual double MacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/) { return 0.; }
+
+  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin);
+  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, bool haseloss=false);
+
+
   //--- Getters ---
+
+  size_t  GetIndex() const { return fIndex; }
 
   /** Method that returns whether this process has a discrete part or not */
   bool GetIsDiscrete() const { return fIsDiscrete; }
@@ -211,12 +213,20 @@ public:
   /** Method that returns the name of this process */
   std::string GetName() const { return fName; }
 
+  bool  IsLambdaTablerequested() const { return fIsLambdaTableRequested; }
+
+  const PhysicsParameters* GetPhysicsParameters() const { return fPhysicsParameters; }
+
+  const Particle* GetParticle() const { return fParticle; }
+
   /** Methods that are needed for the new concept of physics-per-region:
       is this physics process active in the i-th region? */
   std::vector< bool >& GetListActiveRegions() { return fListActiveRegions; }
   bool IsActiveRegion(const int regionindx) const { return fListActiveRegions[regionindx]; }
 
   //--- Setters ---
+
+  void SetIndex(size_t val) { fIndex = val; }
 
   /**
    * @brief Method that sets whether this process has a discrete part or not
@@ -252,6 +262,20 @@ public:
     fType = aType;
   }
 
+  void SetPhysicsParameters(const PhysicsParameters *physpars) { fPhysicsParameters = physpars; }
+
+  void SetParticle(const Particle *particle) { fParticle = particle; }
+
+  void RequestLambdaTables(bool ispermaterial=true);
+
+  void SetSpecialLambdaTableBinNum(int val);
+
+  void BuildLambdaTables();
+
+  // kinetic energy of the maximum of macroscopic cross section: might be used in case of particles that has energy-loss p
+  // very large value indicates that actualy it won't play any role (and the GetMacroscopicXSectionMaximum won't be used)
+  double GetMacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/);
+  double GetMacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/);
 
   void AddToListParticlesAssignedTo(Particle* part) { fListParticlesAssignedTo.push_back(part); }
   const std::vector<Particle*>& GetListParticlesAssignedTo() const { return fListParticlesAssignedTo; }
@@ -273,10 +297,12 @@ private:
 
 
 private:
-  int  fIndex;
-  bool fIsDiscrete;    /** "true" if the process has a discrete part; "false" otherwise */
-  bool fIsContinuous;  /** "true" if the process has a continuous part; "false" otherwise */
-  bool fIsAtRest;      /** "true" if the process has an at-rest part; "false" otherwise */
+  size_t  fIndex;         /** Index of this process in the per particle process manager */
+  bool    fIsDiscrete;    /** "true" if the process has a discrete part; "false" otherwise */
+  bool    fIsContinuous;  /** "true" if the process has a continuous part; "false" otherwise */
+  bool    fIsAtRest;      /** "true" if the process has an at-rest part; "false" otherwise */
+  bool    fIsLambdaTableRequested; /** false to store if lambda table was requested by the process (flase by default) */
+
   ForcedCondition fForcedCondition;  /** type of ForcedCondition for this process */
   ProcessType fType;                 /** type of this process (MAYBE USEFUL IN THE FUTURE) */
   std::string fName;                 /** name of the process (useful for debugging) */
@@ -294,6 +320,16 @@ private:
   // unique collection of process object pointers that has been created so far; will be used to delete all
   // processes
   static std::vector<PhysicsProcess*> gThePhysicsProcessTable;
+
+  // pointer to the PhysicsParameters object active in region(s) where this process is active (will be set by the
+  // PhysicsManagerPerParticle )
+  const PhysicsParameters  *fPhysicsParameters;  // not owned by the process
+
+  // particle to which the process is assinged (will be set by the PhysicsManagerPerParticle)
+  const Particle           *fParticle;
+
+  // optional lambda table: table of macroscopic cross sections per materia/material-cuts
+  LambdaTable              *fLambdaTable;   // owned by the process”
 };
 
 }  // end of namespace geantphysics

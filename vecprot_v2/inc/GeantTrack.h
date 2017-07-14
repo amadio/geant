@@ -109,7 +109,7 @@ struct StepPointInfo {
   double fE;             /** Energy */
   double fP;             /** Momentum */
   double fTime;          /** Time */
-  VolumePath_t *fPath;   /** Paths for the particle in the geometry */  
+  VolumePath_t *fPath;   /** Paths for the particle in the geometry */
 };
 
 GEANT_DECLARE_CONSTANT(double, gTolerance);
@@ -170,12 +170,19 @@ public:
 #ifndef GEANT_NEW_DATA_FORMAT
   VolumePath_t *fPath = nullptr;     /** Paths for the particle in the geometry */
   VolumePath_t *fNextpath = nullptr; /** Path for next volume */
-#endif  
+#endif
 
 #ifdef GEANT_NEW_DATA_FORMAT
   StepPointInfo fPreStep;    /** Pre-step state */
   StepPointInfo fPostStep;   /** Post-step state */
 #endif
+
+
+  // max number of physics processesper particle is assumed to be 10!
+  static constexpr size_t fNumPhysicsProcess = 10;
+  size_t  fPhysicsProcessIndex;  // selected physics process
+  double  fPhysicsNumOfInteractLengthLeft[fNumPhysicsProcess];
+  double  fPhysicsInteractLength[fNumPhysicsProcess]; // mfp
 
 char *fExtraData;                   /** Start of user data at first aligned address. This needs to point to an aligned address. */
   // See: implementation of SizeOfInstance. Offsets of user data blocks are with respect to the fExtraData address. We have to pinpoint this
@@ -879,15 +886,15 @@ struct DataInplaceConstructor_t {
   size_t fDataOffset = 0;
   InplaceConstructFunc_t fDataConstructor;
   PrintUserDataFunc_t fPrintUserData;
-    
+
   void operator()(GeantTrack &track) {
     fDataConstructor(track.fExtraData + fDataOffset);
   }
-  
+
   void PrintUserData(GeantTrack const &track) const {
     fPrintUserData(track.fExtraData + fDataOffset);
   }
-  
+
   DataInplaceConstructor_t(size_t offset, InplaceConstructFunc_t ctor, PrintUserDataFunc_t prfunc)
     : fDataOffset(offset), fDataConstructor(ctor), fPrintUserData(prfunc) {}
 };
@@ -899,11 +906,11 @@ private:
   size_t fTrackSize = 0;  /** Total track size including alignment rounding */
   size_t fDataOffset = 0; /** Offset for the user data start address with respect to GeantTrack::fExtraData pointer */
   size_t fMaxDepth = 0;   /** Maximum geometry depth, to be provided at construction time */
-  
+
   vector_t<DataInplaceConstructor_t> fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
   vector_t<TrackToken *> fTokens;
   std::mutex fRegisterLock; /** Multithreading lock for the registration phase */
-  
+
   VECCORE_ATT_HOST_DEVICE
   TrackDataMgr(size_t maxdepth);
 
@@ -911,7 +918,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   static
   TrackDataMgr *GetInstance(size_t fMaxDepth = 0);
-  
+
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t GetMaxDepth() const { return fMaxDepth; }
@@ -928,7 +935,7 @@ public:
     for (auto token : fTokens) { if (token->GetName() == name) return (token); }
     return nullptr;
   }
- 
+
   /** @brief Apply in-place construction of user-defined data on the track */
   void InitializeTrack(GeantTrack &track) {
     fLocked = true;
@@ -942,14 +949,14 @@ public:
     for (auto userdata : fConstructors)
       userdata.PrintUserData(track);
   }
-  
+
   /** @brief Lock any further registration */
   void Lock()
   {
     std::lock_guard<std::mutex> lock(fRegisterLock);
     fLocked = true;
   }
-  
+
   void Print()
   {
     std::cout << "*** TrackDataMgr report: track size = " << fTrackSize << " bytes,  max. depth = " << fMaxDepth << std::endl;
@@ -957,7 +964,7 @@ public:
     for (auto token : fTokens) std::cout << token->GetName() << "  ";
     std::cout << "\n";
   }
-  
+
   template <typename T /*, typename... Params*/>
   TrackToken *RegisterDataType(const char *name /*, Params... params*/)
   {
@@ -967,7 +974,7 @@ public:
     // If a token with same name is found, return its reference
     TrackToken *token = GetToken(name);
     if (token) return (token);
-      
+
     // Register lambda for constructing in-place the user data
     auto userinplaceconstructor = [&](void * address) {
       new (address) T(/*params...*/);
@@ -978,13 +985,13 @@ public:
       T const &userdata = *(T*)(address);
       userdata.Print();
     };
-    
+
     // Calculate data offset
     size_t block_size = GeantTrack::round_up_align(sizeof(T)); // multiple of the alignment padding
     fTrackSize += block_size;
     DataInplaceConstructor_t ctor {fDataOffset, userinplaceconstructor, printuserdata};
     fConstructors.push_back(ctor);
-    
+
     // Create a new token
     token = new TrackToken(name, fDataOffset);
     fTokens.push_back(token);

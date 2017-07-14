@@ -550,9 +550,11 @@ void SeltzerBergerBremsModel::BuildOneLinAlias(int ialias, const Material *mat, 
            double zet  = theElements[ielem]->GetZ();
            int    izet = lrint(zet);
            // ln(y2) -ln(y1)
-           double dum2 = std::log(fLoadDCSForElements[izet-1][indxdcsh]/fLoadDCSForElements[izet-1][indxdcsl]);
-           double dcs  = dum2/dum1*dum0+std::log(fLoadDCSForElements[izet-1][indxdcsl]); //this is ln(dcs)
-           dcs = std::exp(dcs);
+           //           double dum2 = std::log(fLoadDCSForElements[izet-1][indxdcsh]/fLoadDCSForElements[izet-1][indxdcsl]);
+           //           double dcs  = dum2/dum1*dum0+std::log(fLoadDCSForElements[izet-1][indxdcsl]); //this is ln(dcs)
+           //           dcs = std::exp(dcs);
+           double dum2 = fLoadDCSForElements[izet-1][indxdcsh]-fLoadDCSForElements[izet-1][indxdcsl];
+           double dcs  = dum2/dum1*dum0+fLoadDCSForElements[izet-1][indxdcsl];
            dcs *= theAtomicNumDensityVector[ielem]*zet*zet;
            // correction for positrons
            if (!fIsElectron) {
@@ -757,9 +759,10 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
     double dcsl = fLoadDCSForElements[izet-1][indxdcsl];
     double dcsh = fLoadDCSForElements[izet-1][indxdcsh];
     // ln(y2) -ln(y1)
-    double dum2 = std::log(dcsh/dcsl);
-    double dcs  = dum2/dum1*dum0+std::log(dcsl);
-    dcs  = std::exp(dcs);
+    //    double dum2 = std::log(dcsh/dcsl);
+    //    double dcs  = dum2/dum1*dum0+std::log(dcsl);
+    //    dcs  = std::exp(dcs);
+    double dcs  = (dcsh-dcsl)/dum1*dum0+dcsl;
     // correction for positrons
 //    if (!fIsElectron)
 //      dcs *= PositronCorrection(electronekin, ibeta2, fLoadDCSReducedPhotonEnergyGrid[irpener], zet);
@@ -858,11 +861,11 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
       double zet  = theElements[ielem]->GetZ();
       int    izet = lrint(zet);
       // ln(y2) -ln(y1)
-      double dum2 = std::log(fLoadDCSForElements[izet-1][indxdcsh]/fLoadDCSForElements[izet-1][indxdcsl]);
-      double dcs  = dum2/dum1*dum0+std::log(fLoadDCSForElements[izet-1][indxdcsl]); //this is ln(dcs)
-//      //dcs  = std::exp(dcs);
-//      dcs += std::log(theAtomicNumDensityVector[ielem]*zet*zet);
-      dcs  = std::exp(dcs);
+      //      double dum2 = std::log(fLoadDCSForElements[izet-1][indxdcsh]/fLoadDCSForElements[izet-1][indxdcsl]);
+      //      double dcs  = dum2/dum1*dum0+std::log(fLoadDCSForElements[izet-1][indxdcsl]); //this is ln(dcs)
+      //      dcs  = std::exp(dcs);
+      double dum2 = fLoadDCSForElements[izet-1][indxdcsh]-fLoadDCSForElements[izet-1][indxdcsl];
+      double dcs  = dum2/dum1*dum0+fLoadDCSForElements[izet-1][indxdcsl];
       dcs *= theAtomicNumDensityVector[ielem]*zet*zet;
 
       // correction for positrons
@@ -1009,9 +1012,12 @@ double SeltzerBergerBremsModel::ComputeDEDXPerVolume(const Material *mat, double
       double zet  = theElements[ielem]->GetZ();
       int    izet = lrint(zet);
       // ln(y2) -ln(y1)
-      double dum2 = std::log(fLoadDCSForElements[izet-1][indxdcsh]/fLoadDCSForElements[izet-1][indxdcsl]);
-      double dcs  = dum2/dum1*dum0+std::log(fLoadDCSForElements[izet-1][indxdcsl]); //this is ln(dcs)
-      dcs  = std::exp(dcs);
+      //      double dum2 = std::log(fLoadDCSForElements[izet-1][indxdcsh]/fLoadDCSForElements[izet-1][indxdcsl]);
+      //      double dcs  = dum2/dum1*dum0+std::log(fLoadDCSForElements[izet-1][indxdcsl]); //this is ln(dcs)
+      //      dcs  = std::exp(dcs);
+      double dum2 = fLoadDCSForElements[izet-1][indxdcsh]-fLoadDCSForElements[izet-1][indxdcsl];
+      double dcs  = dum2/dum1*dum0+fLoadDCSForElements[izet-1][indxdcsl];
+
       dcs *= theAtomicNumDensityVector[ielem]*zet*zet;
 //      dcs += std::log(theAtomicNumDensityVector[ielem]*zet*zet);
       theDCS[ielem*fLoadDCSNumReducedPhotonEnergies+irpener] = dcs;

@@ -96,13 +96,7 @@ public:
    *            int EMModel::SampleTargetElementIndex(const MaterialCuts* matcut, double ekin, double rndm) method.
    *         :: PhysicsProcess-es set to be kEnergyLoss processes are registered in the ELossTableRegister for the given
    *            particle
-   *        1 lambda tables (if any, see more at PhysicsManagerPerParticle::BuildLambdaTables()) i.e. total(a) and per-
-   *          discrete process(b) macroscopic cross section tables are built over an kinetic energy grid and set up for
-   *           :: run time total discrete step limit(a) (i.e. total inverse lambda)
-   *              double PhysicsManagerPerParticle::GetInvTotalLambda(const MaterialCuts *matcut, double kinenergy)
-   *           :: discrete process sampling(b)
-   *              const PhysicsProcess* PhysicsManagerPerParticle:::SelectDiscreteInteraction(const MaterialCuts *matcut,
-   *                                                                double kinenergy, double rndm)
+   *
    *    # the ELossTableManager is initialised i.e. for all partciles that at least one PhysicsProcess::kEnergyLoss
    *      process had been registered in the ELossTableRegister: dedx, range, inverse range tables are built over an
    *      energy grid per material-cuts that belongs to region where the given process is active and run time
@@ -165,7 +159,7 @@ public:
 //@}
 
 
-  /** @brief The method proposes the step-length from the physics
+  /** @brief  NOT USED ANYMORE IN V3 !!! The method proposes the step-length from the physics
    *
    *  @param mat Material_t material
    *  @param ntracks Number of tracks
@@ -182,10 +176,10 @@ public:
    *        should be set negative.
    *  Note: this method should never be called for a particle at rest.
    */
-  virtual void ComputeIntLen(Material_t *mat, int ntracks, GeantTrack_v &tracks, double * /*lengths*/,
-                             GeantTaskData *td);
+  virtual void ComputeIntLen(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, double * /*lengths*/,
+                             GeantTaskData * /*td*/) {}
 
-  /** @brief The method invokes the "AlongStepDoIt" method of each continuous process
+  /** @brief  NOT USED ANYMORE IN V3 !!! The method invokes the "AlongStepDoIt" method of each continuous process
    *         associated to the particle
    *
    *  @param mat Material_t material
@@ -196,9 +190,11 @@ public:
    *
    *  Note that continuous processes do not compete but collaborate with each other.
    */
-  virtual void AlongStepAction(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td);
-  /** @brief The method selects the winner discrete process, then the target,
-   *         and finally produces a final-state.
+  virtual void AlongStepAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
+                               GeantTaskData * /*td*/) {}
+
+  /** @brief  NOT USED ANYMORE IN V3 !!! The method selects the winner discrete process, then the target,
+   *         and finally produces a final-state
    *
    *  @param mat Material_t material
    *  @param ntracks Number of tracks
@@ -216,9 +212,10 @@ public:
    *  Note that discrete processes compete against each other.
    *
    */
-  virtual void PostStepAction(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td);
+  virtual void PostStepAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
+                               GeantTaskData * /*td*/) {}
 
-  /** @brief The method selects the winner at-rest process, then the target
+  /** @brief NOT USED ANYMORE IN V3 !!! The method selects the winner at-rest process, then the target
    *         if needed (not for decays) and finally produces a final-state.
    *
    *  @param mat Material_t material
@@ -240,7 +237,8 @@ public:
    *                      ORIGINAL: NEED TO ADD THE MATERIAL POINTER, AS
    *                      FOR AlongStepAction AND AtRestAction.
    */
-  virtual void AtRestAction(Material_t *mat, int ntracks, GeantTrack_v &tracks, int &nout, GeantTaskData *td);
+  virtual void AtRestAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
+                               GeantTaskData * /*td*/) {}
 
 };
 

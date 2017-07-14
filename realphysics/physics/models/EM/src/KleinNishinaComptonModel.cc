@@ -73,7 +73,8 @@ void   KleinNishinaComptonModel::Initialize() {
 double KleinNishinaComptonModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
                                                             const Particle* /*particle*/) {
   double xsec = 0.0;
-  if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
+  // this equal just to get the G4 behaviour at the lowest edge lambda table 
+  if (kinenergy<=GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
     return xsec;
   }
   // compute the macroscopic cross section as the sum of the atomic cross sections weighted by the number of atoms in
@@ -94,7 +95,8 @@ double KleinNishinaComptonModel::ComputeMacroscopicXSection(const MaterialCuts *
 double KleinNishinaComptonModel::ComputeXSectionPerAtom(const Element *elem, const MaterialCuts* /*matcut*/,
                                                         double kinenergy, const Particle* /*particle*/) {
    double xsec  = 0.0;
-   if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
+   // this equal just to get the G4 behaviour at the lowest edge lambda table
+   if (kinenergy<=GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
      return xsec;
    }
    // compute the parametrized atomic cross section: depends only on target Z and gamma energy.

@@ -30,7 +30,7 @@ PostPropagationHandler::~PostPropagationHandler() {}
 // active in the given region and (2) has msc process
 void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
   // ---
-  // here we will get the MaterialCuts from the LogicalVolume 
+  // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
   int   particleCode         = track->GVcode();
@@ -51,9 +51,13 @@ void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   // is converted back to true step length. Time and number of interaction left must be updated by using this true
   // path length (that have been written into fStep by msc).
   track->fTime += track->TimeStep(track->fStep);
-  track->fNintLen -= track->fStep/track->fIntLen;
-
-  // --
+  // NOTE: we should save the previous step length in the GeantTrack and update this in the process or
+  // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
+  // step and we do it in the next step
+  // track->fNintLen -= track->fStep/track->fIntLen;
+  for (size_t i=0; i<track->fNumPhysicsProcess; ++i) {
+    track->fPhysicsNumOfInteractLengthLeft[i] -= track->fStep/track->fPhysicsInteractLength[i];
+  }
   // copy the input track to the output
   // (secondaries should be copied as well but there is no secondary production in the msc along-step-action)
   output.AddTrack(track);

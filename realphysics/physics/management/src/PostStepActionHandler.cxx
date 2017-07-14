@@ -62,7 +62,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   td->fPhysicsData->SetNumUsedSecondaries(0);
   //
   // invoke the PostStepAction of this particle PhysicsManagerPerParticle
-  int nSecParticles = pManager->PostStepAction(primaryLT, td);
+  int nSecParticles = pManager->PostStepAction(primaryLT, track, td);
   //
   // update GeantTrack
   double newEkin    = primaryLT.GetKinE();

@@ -17,7 +17,7 @@ TrackDataMgr::TrackDataMgr(size_t maxdepth) : fMaxDepth(maxdepth)
   if (fMaxDepth == 0) std::runtime_error("Track data manager was not provided a geometry depth");
 #endif
   // Compute the total track size in the assumption that there is no user data
-  fTrackSize = sizeof(GeantTrack) + 
+  fTrackSize = sizeof(GeantTrack) +
                2 * VolumePath_t::SizeOfInstance(maxdepth) + 2 * GEANT_ALIGN_PADDING;
   // Each registered user data of type T will top up round_up_align(sizeof(T)) bytes.
 }
@@ -109,6 +109,12 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fGeneration = other.fGeneration;
     *fPath = *other.fPath;
     *fNextpath = *other.fNextpath;
+
+    fPhysicsProcessIndex = other.fPhysicsProcessIndex;
+    for (size_t i=0; i<fNumPhysicsProcess; ++i) {
+      fPhysicsNumOfInteractLengthLeft[i] = other.fPhysicsNumOfInteractLengthLeft[i];
+      fPhysicsInteractLength[i]           = other.fPhysicsInteractLength[i];
+    }
   }
   return *this;
 }
@@ -156,6 +162,14 @@ void GeantTrack::Clear(const char *)
   fPath->Clear();
   fNextpath->Clear();
 #endif
+
+  // this will be changed/removed after we already have the previous step length stored in the track
+  fPhysicsProcessIndex = -1;
+  for (size_t i=0; i<fNumPhysicsProcess; ++i) {
+    fPhysicsNumOfInteractLengthLeft[i] = -1.0;
+    fPhysicsInteractLength[i]           = 1.0;
+  }
+
   // Clear user data
   TrackDataMgr::GetInstance()->InitializeTrack(*this);
 }
@@ -286,7 +300,7 @@ VECCORE_ATT_HOST_DEVICE
 void GeantTrack::ReleaseInstance(GeantTrack *track)
 {
   if (track->fOwnPath)
-    delete [] (char*)track; 
+    delete [] (char*)track;
 }
 
 } // GEANT_IMPL_NAMESPACE

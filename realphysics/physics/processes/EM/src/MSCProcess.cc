@@ -37,12 +37,12 @@ void MSCProcess::Initialize()
   EMPhysicsProcess::Initialize();
   fMSCdata = Geant::TrackDataMgr::GetInstance()->GetToken("MSCdata");
   assert(fMSCdata);
-}  
+}
 
 MSCProcess::~MSCProcess() {}
 
 // called at the PrePropagationStage(in the Handler)
-void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {
+double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {
   // init all lengths to the current minimum physics step length (that is the true length)
   //
   MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
@@ -86,6 +86,7 @@ void MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::Gea
   } else { // write back the original post-step point boundary flag and do nothing
     gtrack->fBoundary = isOnBoundaryPostStp;
   }
+  return 0.;// not used at all because the step limit is written directly into the GeantTrack (just the interface)  
 }
 
 // called at the PostPropagationStage(in the Handler)
@@ -93,7 +94,7 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
   // get the step length (the geometric one)
   double geometricStepLength = gtrack->fStep;
   double truePathLength      = geometricStepLength;
-  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);  
+  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
   // select msc model
   double ekin        = gtrack->fE-gtrack->fMass;
   int    regIndx     = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();

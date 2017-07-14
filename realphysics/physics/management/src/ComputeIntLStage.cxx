@@ -51,7 +51,6 @@ Geant::Handler* ComputeIntLStage::Select(Geant::GeantTrack *track, Geant::GeantT
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   if (!pManager || (pManager->GetListAlongStepProcesses().size()+pManager->GetListPostStepCandidateProcesses().size()==0)) {
     track->SetPstep(PhysicsProcess::GetAVeryLargeValue());
-    track->SetIntLen(1.0);
     // no physics limit nothing to do => no handler action
     return nullptr;
   }
