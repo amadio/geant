@@ -68,11 +68,13 @@
 #pragma link C++ class geantphysics::MollerBhabhaIonizationModel+;
 #pragma link C++ class geantphysics::RelativisticBremsModel+;
 #pragma link C++ class geantphysics::SeltzerBergerBremsModel+;
+#pragma link C++ class geantphysics::SauterGavrilaPhotoElectricModel+;
 #pragma link C++ class geantphysics::HadronicCrossSection+;
 #pragma link C++ class geantphysics::HadronicCrossSectionStore+;
 #pragma link C++ class geantphysics::HadronicFinalStateModel+;
 #pragma link C++ class geantphysics::HadronicFinalStateModelStore+;
 #pragma link C++ class geantphysics::DiffuseElasticModel+;
+
 
 #endif
 /* @(#)root/base:$Id: LinkDef2.h 42250 2011-11-25 17:30:31Z pcanal $ */
@@ -90,8 +92,8 @@
 #pragma link C++ class geantphysics::EMPhysicsProcess+;
 #pragma link C++ class geantphysics::ElectronBremsstrahlungProcess+;
 #pragma link C++ class geantphysics::ElectronIonizationProcess+;
+#pragma link C++ class geantphysics::GammaPhotoElectricProcess+;
 #pragma link C++ class geantphysics::HadronicProcess+;
-
 
 #endif
 /* @(#)root/base:$Id: LinkDef2.h 42250 2011-11-25 17:30:31Z pcanal $ */

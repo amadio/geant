@@ -113,6 +113,7 @@ void PhysicsManagerPerParticle::CheckProcesses() {
   }
   if (fIsHasMSCProcess) {
     fPostStepCandidateProcessVec[fPostStepCandidateProcessVec.size()-1] = theCopy[indxMSC];
+
   }
 }
 
