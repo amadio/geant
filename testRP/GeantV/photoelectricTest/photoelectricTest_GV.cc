@@ -456,7 +456,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     
     // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
     // sampling
-    Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1,1);
+    Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
     PhysicsData *phd = new PhysicsData();
     td->fPhysicsData = phd;
     // Set up a the primary light track for photoElectric.

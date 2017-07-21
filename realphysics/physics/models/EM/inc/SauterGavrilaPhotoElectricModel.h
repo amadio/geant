@@ -5,12 +5,26 @@
 #include "EMModel.h"
 #include "Spline.h"
 
+// from geantV
+#include "Geant/Config.h"
+namespace Geant {
+    inline namespace GEANT_IMPL_NAMESPACE {
+        class GeantTaskData;
+    }
+}
+
+namespace geantphysics {
+    inline namespace GEANT_IMPL_NAMESPACE {
+        class Material;
+        class Element;
+    }
+}
+
+
 #include <string>
 
 namespace geantphysics {
     
-    class Material;
-    class Element;
     class MaterialCuts;
     class AliasTable;
     class Particle;
