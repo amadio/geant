@@ -33,11 +33,7 @@ endif()
 #----------------------------------------------------------------------------------------------
 add_library(Material SHARED ${sources})
 
-if(USE_VECGEOM_CONTAINERS)
-  target_link_libraries(Material ${VECGEOM_LIBRARIES} ${_extraLibs})
-else()
-  target_link_libraries(Material ${_extraLibs})
-endif()
+target_link_libraries(Material ${VECGEOM_LIBRARIES} ${_extraLibs})
 
 add_headers("${headers}")
 add_custom_target(materiallib DEPENDS Material)
