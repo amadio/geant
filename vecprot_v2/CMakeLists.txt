@@ -320,7 +320,6 @@ else()
 set(TEST_EXECUTABLES
   runAppRP.cc
   runAppTestEM3RP.cc
-  runTestEm5.cc
   )
 
 macro(build_executables EXECUTABLES)
