@@ -49,8 +49,8 @@ tbb::task* FlowControllerTask::execute ()
 //    return SpawnFeederTask();
   }
 
-  ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
 #ifdef USE_ROOT
+  ThreadData *threadData = ThreadData::Instance(runmgr->GetNthreadsTotal());
   Geant::TThreadMergingFile* file = threadData->fFiles[fTd->fTid];
   bool concurrentWrite = propagator->fConfig->fConcurrentWrite &&
                          propagator->fConfig->fFillTree;
@@ -89,11 +89,13 @@ tbb::task* FlowControllerTask::execute ()
     propagator->fNsmall += fTd->fNsmall;
     propagator->fNcross += fTd->fNcross;
 
+#ifdef USE_ROOT
     if (wm->IsStopped()) wm->MergingServer()->Finish();
 
     if (concurrentWrite) {
       delete file;
     }
+#endif
   } else {
     // spawn feeder task
 //    if (runmgr->IsFeeding(propagator))
