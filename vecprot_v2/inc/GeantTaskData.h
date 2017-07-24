@@ -88,7 +88,7 @@ public:
   StackLikeBuffer *fStackBuffer = nullptr; /** Stack buffer tor this thread */
   TrackStat *fStat = nullptr;              /** Track statictics */
   NumaTrackBlock_t *fBlock = nullptr;      /** Current track block */
-  
+
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
   char fBPool[sizeof(std::deque<Basket *>)]; /** Pool of empty baskets */
@@ -246,7 +246,7 @@ public:
 
   /** @brief Getter for the toclean flag */
   bool NeedsToClean() const { return fToClean; }
-  
+
   /** @brief  Inspect simulation stages */
   void InspectStages(int istage);
 
@@ -291,24 +291,24 @@ private:
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fMergeLock;        // Lock for merging user data
 #endif
-  
-  TaskDataHandle(const char *name, size_t index) : fIndex(index) 
+
+  TaskDataHandle(const char *name, size_t index) : fIndex(index)
   { strcpy(fName, name); }
 public:
   TaskDataHandle(const TaskDataHandle &other) : fIndex(other.fIndex) {
     memcpy(fName, other.fName, 50);
   }
-  
+
   TaskDataHandle &operator=(const TaskDataHandle &other) {
     fIndex = other.fIndex;
     memcpy(fName, other.fName, 50);
   }
-  
+
   GEANT_FORCE_INLINE
   T &operator()(GeantTaskData *td) {
     return *(T*)td->GetUserData(fIndex);
   }
-  
+
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   GEANT_FORCE_INLINE
   bool TryLock() { return !fMergeLock.test_and_set(std::memory_order_acquire); }
@@ -319,8 +319,8 @@ public:
 
   GEANT_FORCE_INLINE
   const char *GetName() { return fName; }
-  
-  
+
+
 /** @brief User callable, allowing to attach per-thread data of the handle type
   * @details User data corresponding to all pre-defined tokens can be allocated
   *          in MyApplication::AttachUserData, to avoid run-time checks */
@@ -336,7 +336,7 @@ using queue_t = mpmc_bounded_queue<GeantTaskData*>;
 
 private:
   int fMaxThreads = 0;   // Maximum number of threads
-  int fMaxPerBasket = 0; // Maximum number of tracks per basket  
+  int fMaxPerBasket = 0; // Maximum number of tracks per basket
   queue_t fQueue; // Task data queue
   vector_t<GeantTaskData*> fTaskData;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -354,12 +354,12 @@ public:
       fQueue.enqueue(td);
     }
   }
-  
+
   ~TDManager() {
     // User data deleted by user in MyApplication::DeleteTaskData()
     for (auto td : fTaskData) delete td;
   }
-  
+
   GeantTaskData *GetTaskData() {
     GeantTaskData *td;
     if (fQueue.dequeue(td)) return td;
@@ -375,7 +375,7 @@ public:
   void ReleaseTaskData(GeantTaskData *td) {
     while (!fQueue.enqueue(td)) {}
   }
-  
+
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   template <typename T>
   TaskDataHandle<T> *RegisterUserData(const char *name) {
@@ -389,9 +389,8 @@ public:
 #endif
 
   template <typename T>
-  T* MergeUserData(GeantEvent *event, TaskDataHandle<T> &handle) {
+  T* MergeUserData(int evslot, TaskDataHandle<T> &handle) {
     // if (handle.TryLock()) return nullptr;
-    int evslot = event->GetSlot();
     GeantTaskData *base = fTaskData.front();
     for (auto td : fTaskData) {
       if (td == base) continue;
@@ -401,15 +400,16 @@ public:
         Error("MergeUserData", "Cannot recursively merge %s data", handle.GetName());
         return nullptr;
       }
+      handle(td).Clear(evslot);
     }
     handle.ClearLock();
     return &handle(base);
   }
-  
+
 };
 
-    
-  
+
+
 
 
 

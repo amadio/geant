@@ -15,10 +15,10 @@ std::vector<PhysicsProcess*> PhysicsProcess::gThePhysicsProcessTable;
 const double PhysicsProcess::gAVeryLargeValue = 1.0e20;
 
 PhysicsProcess::PhysicsProcess(const std::string &aName)
-: fIndex(-1), fIsDiscrete(false), fIsContinuous(false), fIsAtRest(false), fIsLambdaTableRequested(false),
+: fIndex(-1), fGlobalIndex(-1), fIsDiscrete(false), fIsContinuous(false), fIsAtRest(false), fIsLambdaTableRequested(false),
   fForcedCondition(ForcedCondition::kNotForced), fType(ProcessType::kNotDefined),
   fName(aName), fPhysicsParameters(nullptr), fParticle(nullptr), fLambdaTable(nullptr) {
-  fIndex = gThePhysicsProcessTable.size();
+  fGlobalIndex = gThePhysicsProcessTable.size();
   gThePhysicsProcessTable.push_back(this);
 }
 
@@ -26,9 +26,10 @@ PhysicsProcess::PhysicsProcess(const std::string &aName)
 PhysicsProcess::PhysicsProcess(const bool aIsDiscrete, const bool aIsContinuous,
                                const bool aIsAtRest, const ForcedCondition aForcedCondition,
                                const ProcessType aType, const std::string &aName)
-: fIndex(-1), fIsDiscrete(aIsDiscrete), fIsContinuous(aIsContinuous), fIsAtRest(aIsAtRest), fIsLambdaTableRequested(false), 
+: fIndex(-1), fGlobalIndex(-1), fIsDiscrete(aIsDiscrete), fIsContinuous(aIsContinuous), fIsAtRest(aIsAtRest), fIsLambdaTableRequested(false),
   fForcedCondition(aForcedCondition), fType(aType), fName(aName), fPhysicsParameters(nullptr), fParticle(nullptr),
   fLambdaTable(nullptr) {
+  fGlobalIndex = gThePhysicsProcessTable.size();
   gThePhysicsProcessTable.push_back(this);
 }
 
@@ -43,6 +44,7 @@ PhysicsProcess::~PhysicsProcess() {
 // the PhysicsParameters pointer is set by the PhysicsManagerPerParticle before calling this Initialize method
 void PhysicsProcess::Initialize() {
   // check if the process is assigned only to allowed particles
+  std::cerr<<"  ----> PhysicsProcess   Name = " << GetName() << "  is under initialization! "<< std::endl;
   for (unsigned long i=0; i<fListParticlesAssignedTo.size(); ++i) {
     Particle* part = fListParticlesAssignedTo[i];
     bool isok = false;

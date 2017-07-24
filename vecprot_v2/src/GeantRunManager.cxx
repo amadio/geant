@@ -176,7 +176,7 @@ bool GeantRunManager::Initialize() {
     mgr->SetNblocks(100);     // <- must be configurable
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->Init();
-#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)  
+#if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (fConfig->fUseNuma) {
       int nnodes = mgr->GetPolicy().GetNnumaNodes();
       mgr->SetPolicy(NumaPolicy::kCompact);
@@ -197,6 +197,11 @@ bool GeantRunManager::Initialize() {
     PrepareRkIntegration();
   }
 
+  fPrimaryGenerator->InitPrimaryGenerator();
+  fEventServer = new GeantEventServer(fConfig->fNtotal, this);
+  for (int i=0; i<fConfig->fNtotal; ++i)
+    fEventServer->AddEvent();
+
   int nthreads = GetNthreadsTotal();
   fTDManager = new TDManager(nthreads, fConfig->fMaxPerBasket);
   if (fConfig->fUseStdScoring) {
@@ -209,14 +214,9 @@ bool GeantRunManager::Initialize() {
   for (int i = 0; i < nthreads; i++)
     fApplication->AttachUserData(fTDManager->GetTaskData(i));
 
-  fPrimaryGenerator->InitPrimaryGenerator();
-  fEventServer = new GeantEventServer(fConfig->fNtotal, this);
-  for (int i=0; i<fConfig->fNtotal; ++i)
-    fEventServer->AddEvent();
-
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
-  
+
   dataMgr->Print();
   fInitialized = true;
   return fInitialized;
@@ -248,7 +248,7 @@ GeantRunManager::~GeantRunManager() {
   fApplication->DeleteUserData();
   delete fApplication;
   delete fTaskMgr;
-  
+
   delete fTDManager;
 //  if (fTaskData) {
 //    for (auto i = 0; i < fNthreads; i++)

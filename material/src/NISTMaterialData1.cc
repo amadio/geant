@@ -22,7 +22,6 @@ void NISTMaterialData::BuildTable() {
     using geant::kelvin;
     using geant::pascal;
     using geant::kUniverseMeanDensity;
-    using geant::kSTPTemperature;
     using geant::kNTPTemperature;
     using geant::kSTPPressure;
 

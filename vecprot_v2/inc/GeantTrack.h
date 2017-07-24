@@ -133,6 +133,7 @@ public:
   int fEvent = -1;           /** Event number */
   int fEvslot = -1;          /** Event slot */
   int fParticle = -1;        /** Index of corresponding particle */
+  int fPrimaryIndx = -1;     /** Index of the primary particle in the cuurent event */
   int fMother = 0;           /** Index of mother particle */
   int fPDG = 0;              /** Particle pdg code */
   int fGVcode = 0;           /** GV particle code */
@@ -463,6 +464,11 @@ public:
   GEANT_FORCE_INLINE
   int Particle() const { return fParticle; }
 
+  /** @brief Function that return index of the primary particle in the current event */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int PrimaryParticleIndex() const { return fPrimaryIndx; }
+
   /** @brief Function that returns index of mother particle */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -558,13 +564,13 @@ public:
   void SetEvslot(int slot) { fEvslot = slot; }
 
   /**
-   * @brief Function that set particle index
+   * @brief Function that sets the primary particle index in the current event
    *
-   * @param particle Particle that should be set as fParticle
+   * @param primaryindx Index of the primary particle in the current event that this track belongs to
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetParticle(int particle) { fParticle = particle; }
+  void SetPrimaryParticleIndex(int primaryindx) { fPrimaryIndx = primaryindx; }
 
   /** @brief Setter for stage */
   VECCORE_ATT_HOST_DEVICE

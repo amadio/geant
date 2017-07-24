@@ -93,7 +93,8 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       geantTrack.SetGVcode( secGVcode          );
       geantTrack.SetEindex( 0                  );
       geantTrack.SetCharge( secParticle->GetPDGCharge() );
-      geantTrack.fProcess  = 0;
+      // set the index of the process (in the global process vector) that limited the step i.e. generated this secondary
+      geantTrack.fProcess  = track->fProcess;
       geantTrack.fNsteps   = 0;
       geantTrack.fStatus   = Geant::kNew;                // secondary is a new track
       geantTrack.SetStage(Geant::kSteppingActionsStage); // send this to the stepping action stage
@@ -115,6 +116,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       *geantTrack.fPath    = *track->fPath;
       *geantTrack.fNextpath= *track->fPath;
       geantTrack.fMother   = track->fParticle;
+      geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
       // add GeantTrack
       td->fPropagator->AddTrack(geantTrack);
       output.Tracks().push_back(&geantTrack);

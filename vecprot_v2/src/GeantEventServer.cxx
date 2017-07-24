@@ -117,10 +117,11 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
 #endif
   fBindex = link->index;
   if (td) td->fVolume = vol;
-  
+
   for (int itr=0; itr<ntracks; ++itr) {
     GeantTrack &track = trk_mgr.GetTrack();
     track.fParticle = fEvents[evt]->AddPrimary(&track);
+    track.SetPrimaryParticleIndex(itr); 
     track.SetPath(startpath);
     track.SetNextPath(startpath);
     track.SetEvent(evt);
@@ -159,9 +160,9 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
 //______________________________________________________________________________
 GeantTrack *GeantEventServer::GetNextTrack()
 {
-// Fetch next track of the current event. Increments current event if no more 
+// Fetch next track of the current event. Increments current event if no more
 // tracks. If current event matches last activated one, resets fHasTracks flag.
-// If max event fully dispatched, sets the fDone flag. 
+// If max event fully dispatched, sets the fDone flag.
 
   int evt = fCurrentEvent.load();
   GeantEvent *event;
@@ -254,7 +255,7 @@ int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks)
   }
   return ndispatched;
 }
-  
+
 //______________________________________________________________________________
 int GeantEventServer::ActivateEvents()
 {

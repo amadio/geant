@@ -44,8 +44,8 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
         fPrioritize = true;
 //      std::cout << "### Event " << fEvent << " prioritized at " <<
 //        100.*fPriorityThr << " % threshold (npri=" << npriority << ")" << std::endl;
-        return true;  
-      }  
+        return true;
+      }
     }
   }
 #endif
@@ -55,7 +55,7 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
 //______________________________________________________________________________
 void GeantEvent::Print(const char *) const {
   // Print events content
-  std::cout << "Event " << fEvent << ": " << GetNtracks() << 
+  std::cout << "Event " << fEvent << ": " << GetNtracks() <<
     " tracks transported, max in flight " <<  GetNmax() << std::endl;
 }
 
@@ -70,6 +70,6 @@ bool GeantEvent::Prioritize() {
   fLock.clear(std::memory_order_release);
   return true;
 }
-  
+
 } // GEANT_IMPL_NAMESPACE
 } // Geant

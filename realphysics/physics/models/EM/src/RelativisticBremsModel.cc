@@ -1197,9 +1197,9 @@ double RelativisticBremsModel::ComputeURelDXSecPerAtom(double gammaenergy, doubl
   double varSprime = std::sqrt(0.125*y/(1.0-y)*lpmenergy/totalenergy);
   //  3. \xi(s') =
   //      \begin{cases}
-  //        2 & \quad \text{if}\; s' \leq \sqrt{2}s_1 \\
-  //        1+h-\frac{0.08(1-h)[1-(1-h)^2]}{\ln(\sqrt{2}s_1)} & \quad \text{if}\;  \sqrt{2}s_1 < s' < 1 \\
-  //        1 & \quad \text{if}\; s' \geq 1 \\
+  //        2 & \quad \text{if}\; s' \leq \sqrt{2}s_1
+  //        1+h-\frac{0.08(1-h)[1-(1-h)^2]}{\ln(\sqrt{2}s_1)} & \quad \text{if}\;  \sqrt{2}s_1 < s' < 1
+  //        1 & \quad \text{if}\; s' \geq 1
   //      \end{cases}
   // where h(s') \equiv (\ln(s'))/\ln(\sqrt{2}s_1)
   double funcXiSprime = 2.0;
@@ -1225,8 +1225,8 @@ double RelativisticBremsModel::ComputeURelDXSecPerAtom(double gammaenergy, doubl
   //   by replacing s with \hat{s}
   // \xi(s) =
   //   \begin{cases}
-  //    2 & \quad \text{if}\; s \leq s_1 \\
-  //    1+\frac{\ln(s)}{\ln(s_1)} & \quad \text{if}\; s_1 < s < 1 \\
+  //    2 & \quad \text{if}\; s \leq s_1
+  //    1+\frac{\ln(s)}{\ln(s_1)} & \quad \text{if}\; s_1 < s < 1
   //    1 & \quad \text{if}\; s \geq 1
   //    \end{cases}
   double funcXiS = 2.0;

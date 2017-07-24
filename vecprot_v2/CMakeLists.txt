@@ -8,8 +8,11 @@ if (USE_REAL_PHYSICS)
     ${CMAKE_SOURCE_DIR}/magneticfield/inc
     ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
     ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
+    ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
+    ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc
+    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
     )
 else()
   include_directories(
@@ -317,6 +320,7 @@ else()
 set(TEST_EXECUTABLES
   runAppRP.cc
   runAppTestEM3RP.cc
+  runTestEm5.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -355,8 +359,24 @@ if(CTEST)
   add_to_ctest("${TEST_EXECUTABLES}")
 endif()
 
-install(TARGETS runAppRP runAppTestEM3RP DESTINATION bin)
-add_dependencies(runAppRP Geant_v RealPhysics GeantExamplesRP)
+
+#----------------------------------------------------------------------------
+# Copy all scripts to the build directory
+set(RP_SCRIPTS
+    hanson_19.dat
+    hanson19_GV.mac
+   )
+foreach(_script ${RP_SCRIPTS})
+  configure_file(
+    ${_script}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
+    COPYONLY
+    )
+endforeach()
+
+
+install(TARGETS runAppRP runAppTestEM3RP runTestEm5 DESTINATION bin)
+add_dependencies(runAppRP Geant_v RealPhysics GeantExamplesRP Material)
 # -------  END == WITH REAL PHYSICS -------------------------------------------------------
 endif()
 

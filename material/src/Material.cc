@@ -26,7 +26,6 @@ Material::Material(const std::string &name, double z, double a, double density, 
   using geant::kUniverseMeanDensity;
   using geant::g;
   using geant::cm3;
-  using geant::kAvogadro;
   using geant::kGasThreshold;
 
   InitialiseMembers();
@@ -88,7 +87,6 @@ Material::Material(const std::string &name, double density,int numcomponents, Ma
   using geant::kUniverseMeanDensity;
   using geant::g;
   using geant::cm3;
-  using geant::kAvogadro;
   using geant::kGasThreshold;
 
   InitialiseMembers();
@@ -476,7 +474,6 @@ std::ostream& operator<<(std::ostream& flux, const Material* material) {
 
   using geant::g;
   using geant::cm3;
-  using geant::eV;
   using geant::atmosphere;
   using geant::kelvin;
   using geant::perCent;
@@ -495,7 +492,7 @@ std::ostream& operator<<(std::ostream& flux, const Material* material) {
     flux
     << std::setfill(' ') << std::setw(10) << " "
       << " Material properties:  "
-      << " Imean =  " << matp->GetMeanExcitationEnergy()/eV << " [eV]"
+      << " Imean =  " << matp->GetMeanExcitationEnergy()/geant::eV << " [eV]"
       << "\n";
   }
 */

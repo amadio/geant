@@ -152,6 +152,7 @@ void PhysicsManagerPerParticle::ComputeIntLen(Geant::GeantTrack *gtrack, Geant::
     if (cStepLimit<limit) {
       limit = cStepLimit;
       gtrack->fPhysicsProcessIndex = fAlongStepProcessVec[i]->GetIndex();
+      gtrack->fProcess = fAlongStepProcessVec[i]->GetGlobalIndex();       // set global indx of limiting process
     }
   }
   // set fEindex to -1.0 to indicate that continuous step limit happened; will be updated below if not
@@ -172,6 +173,7 @@ void PhysicsManagerPerParticle::ComputeIntLen(Geant::GeantTrack *gtrack, Geant::
     if (dStepLimit<limit) {
       limit = dStepLimit;
       gtrack->fPhysicsProcessIndex = fPostStepCandidateProcessVec[i]->GetIndex();
+      gtrack->fProcess = fPostStepCandidateProcessVec[i]->GetGlobalIndex();       // set global indx of limiting process
       // flag to indicate that discrete and NOT continous step limit
       gtrack->fEindex = 1000;
     }

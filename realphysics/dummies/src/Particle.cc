@@ -7,7 +7,8 @@ namespace geantphysics {
 
 std::vector<Particle*> Particle::gTheParticleTable;
 std::vector<Particle*> Particle::gInternalParticleCodes;
-std::map<unsigned int, unsigned int> Particle::gPDGtoInternalCode;
+std::map<unsigned int, unsigned int>   Particle::gPDGtoInternalCode;
+std::map<const std::string, Particle*> Particle::gNametoParticle;
 
 Particle::Particle(const std::string &name, int pdgcode, int intcode, double mass, double charge)
 : fName(name), fIndex(-1), fInternalCode(intcode), fPDGCode(pdgcode), fPDGMass(mass), fPDGCharge(charge) {
@@ -21,7 +22,7 @@ Particle::Particle(const std::string &name, int pdgcode, int intcode, double mas
   gInternalParticleCodes[icode] = this;
   //
   gPDGtoInternalCode[pdgcode] = icode;
-
+  gNametoParticle[name]       = this;
 }
 
 } // namespace geantphysics

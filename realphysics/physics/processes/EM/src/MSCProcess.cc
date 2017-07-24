@@ -70,6 +70,7 @@ double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::G
     // check if msc limited the step: set that continuous process was the winer
     if (mscdata.fTheTrueStepLenght<minPhysicsStepLength) {
       gtrack->fEindex = -1; // indicate that continuous process was the winer
+      gtrack->fProcess = GetGlobalIndex();       // set global indx of limiting process
     }
   }
   // update gtrack->fPstep to be the geometric step length (this is what propagation needs):
@@ -86,7 +87,7 @@ double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::G
   } else { // write back the original post-step point boundary flag and do nothing
     gtrack->fBoundary = isOnBoundaryPostStp;
   }
-  return 0.;// not used at all because the step limit is written directly into the GeantTrack (just the interface)  
+  return 0.;// not used at all because the step limit is written directly into the GeantTrack (just the interface)
 }
 
 // called at the PostPropagationStage(in the Handler)

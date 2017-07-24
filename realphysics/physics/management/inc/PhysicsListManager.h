@@ -84,6 +84,7 @@ public:
   void RegisterPhysicsList(PhysicsList *physlist, std::vector<bool> activeregionlist);
   void RegisterPhysicsList(PhysicsList *physlist);
 
+  size_t GetNumberOfRegisteredPhysicsLists() const { return fPhysicsListVector.size(); } 
 
   void BuildPhysicsLists();
 

@@ -137,7 +137,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
       if (idvol==fIdGap && tracks.fEdepV[i]>0.00002)
 	{
 	  hit = fFactory->NextFree(tracks.fEvslotV[i], tid);
-	  
+
 	  hit->fX = tracks.fXposV[i];
 	  hit->fY = tracks.fYposV[i];
 	  hit->fZ = tracks.fZposV[i];
@@ -147,7 +147,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
           hit->fTrack = tracks.fParticleV[i];
 	  hit->fVolId = idvol;
 	  hit->fDetId = idnode;
-	  
+
 	  //      if (track->path && track->path->GetCurrentNode()) {
 	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
 	  //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
@@ -160,7 +160,7 @@ void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantT
   //  Printf("Thread %d produced %d hits", tid, nhits);
   //  Printf("StepManager: size of queue %zu", fFactory->fOutputs.size());
 
-  return;  
+  return;
 }
 
 //______________________________________________________________________________
@@ -200,7 +200,7 @@ void ExN03Application::Digitize(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   printf("======= Statistics for event %d:\n", event);
   // Merge the digits for the event
-  ExN03ScoringData *digits = fRunMgr->GetTDManager()->MergeUserData(event, *fDigitsHandle);
+  ExN03ScoringData *digits = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDigitsHandle);
   if (digits) {
     printf("=== Merged digits for event %d\n", event->GetEvent());
     //digits->PrintDigits(event);

@@ -41,6 +41,7 @@ target_link_libraries(SimplyCalo ${Geant4_LIBRARIES})
 #
 set(SimplyCalo_SCRIPTS
     SimplyCalo_ExN03.mac
+    SimplyCalo_ATLASbar.mac
    )
 
 foreach(_script ${SimplyCalo_SCRIPTS})

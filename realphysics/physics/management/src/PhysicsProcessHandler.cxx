@@ -69,8 +69,10 @@ void PhysicsProcessHandler::Initialize() {
       PhysicsList *vecphysList = new VecPhysList("VecPhysList");
       PhysicsListManager::Instance().RegisterPhysicsList(vecphysList);
 #else
-      PhysicsList *physList1 = new PhysicsList1("Physics-List-1");
-      PhysicsListManager::Instance().RegisterPhysicsList(physList1);
+      if (!PhysicsListManager::Instance().GetNumberOfRegisteredPhysicsLists()) {
+        PhysicsList *physList1 = new PhysicsList1("Physics-List-1");
+        PhysicsListManager::Instance().RegisterPhysicsList(physList1);
+      }
 #endif
   //
   // after the user has created and registered their PhysicsList(s): build them and initialize the whole physics

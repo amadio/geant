@@ -47,6 +47,13 @@ public:
     return nullptr;
   }
 
+  static const Particle* GetParticleByName(const std::string pname) {
+    auto search = gNametoParticle.find(pname);
+    if (search != gNametoParticle.end())
+      return search->second;
+    return nullptr;
+  }
+
   static const std::vector<Particle*>& GetTheParticleTable() { return gTheParticleTable;}
 
 
@@ -67,6 +74,8 @@ private:
 
   // map of PDG codes to internal codes
   static std::map<unsigned int, unsigned int> gPDGtoInternalCode;
+  // map of name to particle ptr
+  static std::map<const std::string, Particle*> gNametoParticle;
 
 };
 

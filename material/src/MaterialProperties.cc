@@ -360,7 +360,6 @@ std::ostream& operator<<(std::ostream& flux, const MaterialProperties* matprop) 
   using geant::cm;
   using geant::g;
   using geant::mole;
-  using geant::perCent;
 
   std::ios::fmtflags mode = flux.flags();
   flux.setf(std::ios::fixed,std::ios::floatfield);

@@ -37,7 +37,6 @@ void EMPhysicsProcess::Initialize() {
   PhysicsProcess::Initialize();
   // init the model manager that will init the models as well togeter with setting reagions where they active
   // the default active regions are determined by the active regions of the process that is given as parameter
-  std::cerr<<"  ----> EMPhysicsProcess Name = " << GetName() << "  is under initialization! "<< std::endl;
   fModelManager->Initialise(GetListActiveRegions(), GetName(), GetListParticlesAssignedTo());
   if (fModelManager==0) {
     std::cerr<<" **** ERROR: EMPhysicsProcess::Initialize() \n"

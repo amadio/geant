@@ -192,8 +192,11 @@ public:
 
 
   //--- Getters ---
-
+  /** Method to get the index of this process in the per particle process manager */
   size_t  GetIndex() const { return fIndex; }
+
+  /** Method to get the index of this process in the global process table */
+  size_t  GetGlobalIndex() const { return fGlobalIndex; }
 
   /** Method that returns whether this process has a discrete part or not */
   bool GetIsDiscrete() const { return fIsDiscrete; }
@@ -288,6 +291,14 @@ public:
 
 
   static double GetAVeryLargeValue() {return gAVeryLargeValue;}
+
+  static const PhysicsProcess*  GetProcessByGlobalIndex(size_t gprocindx) {
+    PhysicsProcess *proc = nullptr;
+    if (gprocindx<gThePhysicsProcessTable.size())
+      proc = gThePhysicsProcessTable[gprocindx];
+    return proc;
+  }
+
 private:
   /** @brief PhysicsProcess copy constructor is not defined */
   PhysicsProcess(const PhysicsProcess &other);
@@ -298,6 +309,7 @@ private:
 
 private:
   size_t  fIndex;         /** Index of this process in the per particle process manager */
+  size_t  fGlobalIndex;   /** Index of this process in the global process table */
   bool    fIsDiscrete;    /** "true" if the process has a discrete part; "false" otherwise */
   bool    fIsContinuous;  /** "true" if the process has a continuous part; "false" otherwise */
   bool    fIsAtRest;      /** "true" if the process has an at-rest part; "false" otherwise */
@@ -318,7 +330,8 @@ private:
 
   static const double    gAVeryLargeValue; // for the along step limitation of those that do not limit the step
   // unique collection of process object pointers that has been created so far; will be used to delete all
-  // processes
+  // processes; each process stores its index in this table in its fGlobalIndex member and processes can be obtained
+  // by this index using the GetProcessByGlobalIndex(global_index) static metho
   static std::vector<PhysicsProcess*> gThePhysicsProcessTable;
 
   // pointer to the PhysicsParameters object active in region(s) where this process is active (will be set by the

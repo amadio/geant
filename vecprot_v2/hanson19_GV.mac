@@ -1,0 +1,34 @@
+###
+### GeantV TeatEm5 application script to simulate angular distribution of 15.7 MeV electrons
+### transmitted through thin gold foils. The corresponding experimental data (au_2.dat) are taken from
+### A.O.Hanson et al. Phys.Rev.84 (1951) page 634.
+###
+### Note, that the script shows all the possible input arguments that makes possible the configuration
+### of the TestEm5 GeantV application (target material, target thickness, secondary production cuts, etc.)
+###
+###
+./runTestEm5 \
+"### detector configuration parameters:"\
+  --det-Target-Material-Name             NIST_MAT_Au   "# material of the target"\
+  --det-Target-Thickness                 0.0019296     "# target thickness (in internal [length] unit)"\
+  --det-Production-Cuts                  0.            "# set production cuts in length for all particle (-1=>ignore)"\
+  --det-Gamma-Production-Cut             0.001300      "# secondary production cut for gamma particle (in internal [length] unit)"\
+  --det-Electron-Production-Cut          0.000112      "# secondary production cut for e- (in internal [length] unit)"\
+  --det-Positron-Production-Cut          0.000112      "# secondary production cut for e+ (in internal [length] unit)"\
+"### primary particle generation parameters:"\
+  --gun-Primary-Kinetic-Energy           0.0157        "# kinetic energy of the primary particle (in internal [energy] unit)"\
+  --gun-Primary-Particle-Name            e-            "# primary particle name"\
+"### hist1 (i.e. angular distribution of transmitted charged particles) parameters:"\
+  --app-Hist1-File-Name                  hanson19_GV_opt0.hist  "# name of the output hist1 histogram file"\
+  --app-Hist1-Bin-Number                 120           "# number of theta bins in hist1"\
+  --app-Hist1-Minum-Value                0.            "# minimum theta value of the hist1 histogram"\
+  --app-Hist1-Maximum-Value              30.           "# maximun theta value of the hist1 histogram"\
+"### run configuration parameters:"\
+  --config-Number-Of-Buffered-Events     4             "# number of events transported at once"\
+  --config-Total-Number-Of-Events        4000          "# total number of events to be simulated"\
+  --config-Number-Of-Primary-Per-Events  1000          "# number of primary particles per events"\
+  --config-Number-Of-Threads             4             "# number of working threads to be used"\
+  --config-Number-Of-Propagators         1             "# number of propagators"\
+"### physics process configuration parameters:"\
+  --process-MSC-Step-Limit               UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
+  --process-Step-Max-Value               1.e+20        "# maximum (real) step length limit in the user defined StepMaxProcess"

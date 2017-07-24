@@ -76,6 +76,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fEvent = other.fEvent;
     fEvslot = other.fEvslot;
     fParticle = other.fParticle;
+    fPrimaryIndx = other.fPrimaryIndx;
     fMother = other.fMother;
     fPDG = other.fPDG;
     fGVcode = other.fGVcode;
@@ -127,6 +128,7 @@ void GeantTrack::Clear(const char *)
   fEvent = -1;
   fEvslot = -1;
   fParticle = -1;
+  fPrimaryIndx = -1;
   fMother = 0;
   fPDG = 0;
   fGVcode = 0;
@@ -235,9 +237,9 @@ void GeantTrack::Print(const char *msg) const
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
 #ifdef USE_VECGEOM_NAVIGATOR
   printf(
-      "%s: evt=%d slt=%d part=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
+      "%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
       "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n",
-      msg, fEvent, fEvslot, fParticle, fMother, fPDG, fGVcode, fEindex, fBindex,
+      msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fPDG, fGVcode, fEindex, fBindex,
       fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
       fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
       fTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
@@ -253,10 +255,10 @@ void GeantTrack::Print(const char *msg) const
   TString nextpath;
   fNextpath->GetPath(nextpath);
 
-  Geant::Print("", "%s: evt=%d slt=%d part=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d "
+  Geant::Print("", "%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d "
          "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
          "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n pth=%s npth=%s\n",
-         msg, fEvent, fEvslot, fParticle, fMother, fPDG, fGVcode, fEindex, fBindex,
+         msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fPDG, fGVcode, fEindex, fBindex,
          fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
          fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
          fTime, fEdep, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary, path.Data(),
