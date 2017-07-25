@@ -320,6 +320,7 @@ else()
 set(TEST_EXECUTABLES
   runAppRP.cc
   runAppTestEM3RP.cc
+  runTestEm5.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -343,6 +344,8 @@ function(add_to_ctest EXECUTABLES)
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root)
       elseif(TARGET_NAME STREQUAL "runAppTestEM3RP")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ATLASbar.root)
+      elseif(TARGET_NAME STREQUAL "runTestEm5")
+          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}>)
       else()
         add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
       endif()
