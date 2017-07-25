@@ -8,9 +8,11 @@ add_subdirectory(GeantV/xsectionsTest)
 add_subdirectory(GeantV/conversionTest)
 
 #----------------------------------------------------------------------------------------------
-# The corresponding Geant4 version of the tests
+# The corresponding Geant4 version of the tests (only if build with Geant4 was requested)
 #
-add_subdirectory(Geant4/TestEm0)
-add_subdirectory(Geant4/bremTest)
-add_subdirectory(Geant4/comptonTest)
-add_subdirectory(Geant4/conversionTest)
+if (WITH_GEANT4)
+  add_subdirectory(Geant4/TestEm0)
+  add_subdirectory(Geant4/bremTest)
+  add_subdirectory(Geant4/comptonTest)
+  add_subdirectory(Geant4/conversionTest)
+endif()

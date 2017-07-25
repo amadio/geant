@@ -97,7 +97,9 @@ if(DOXYGEN_FOUND)
 endif()
 
 #----------------------------------------------------------------------------------------------
-# The Geant4 version of the example applications
+# The Geant4 version of the example applications (only if build with Geant4 was requested)
 #
-add_subdirectory(Geant4/SimplyCalo)
-add_subdirectory(Geant4/TestEm5)
+if (WITH_GEANT4)
+  add_subdirectory(Geant4/SimplyCalo)
+  add_subdirectory(Geant4/TestEm5)
+endif()
