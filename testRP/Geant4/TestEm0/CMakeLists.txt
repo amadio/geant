@@ -26,28 +26,34 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executables, and link it to the Geant4 libraries
 #
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/testRP/TestEm0/Geant4)
+set(OUTPUT bin/testRP/TestEm0/Geant4)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
 add_executable(TestEm0_G4 TestEm0.cc ${sources} ${headers})
 target_link_libraries(TestEm0_G4 ${Geant4_LIBRARIES} )
 
 #----------------------------------------------------------------------------
-# Copy all scripts to the build directory, i.e. the directory in which we
-# build TestEm0. This is so that we can run the executable directly because it
-# relies on these scripts being in the current working directory.
+# Copy all scripts to the build/install directory.
 #
 set(TestEm0_SCRIPTS
     TestEm0.in
-  )
+    README
+   )
 
 foreach(_script ${TestEm0_SCRIPTS})
   configure_file(
     ${_script}
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
+     ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
     COPYONLY
+    )
+    configure_file(
+      ${_script}
+      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
+      COPYONLY
     )
 endforeach()
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-install(TARGETS TestEm0_G4 DESTINATION bin/testRP/TestEm0/Geant4)
+install(TARGETS TestEm0_G4 DESTINATION ${OUTPUT})

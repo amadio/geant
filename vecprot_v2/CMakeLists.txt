@@ -363,22 +363,23 @@ endif()
 
 
 #----------------------------------------------------------------------------
-# Copy all scripts to the build directory
-set(RP_SCRIPTS
-    hanson_19.dat
-    hanson19_GV.mac
-   )
-foreach(_script ${RP_SCRIPTS})
+# Copy all scripts and install the executable(s)
+#
+### TestEm5 ###
+set(TestEm5_OUTPUT bin/examples/TestEm5/GeantV)
+set(TestEm5_SCRIPTS hanson19_GV.mac hanson_19.dat)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm5_OUTPUT})
+foreach(_script ${TestEm5_SCRIPTS})
   configure_file(
     ${_script}
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
+    ${CMAKE_INSTALL_PREFIX}/${TestEm5_OUTPUT}/${_script}
     COPYONLY
     )
 endforeach()
-
-
-install(TARGETS runAppRP runAppTestEM3RP runTestEm5 DESTINATION bin)
-add_dependencies(runAppRP Geant_v RealPhysics GeantExamplesRP Material)
+install(TARGETS runTestEm5 DESTINATION ${TestEm5_OUTPUT})
+### The remaining ### (calo applications that will be removed soon)
+set(runApps_OUTPUT bin/examples/Calorimeter/GeantV)
+install(TARGETS runAppRP runAppTestEM3RP DESTINATION ${runApps_OUTPUT})
 # -------  END == WITH REAL PHYSICS -------------------------------------------------------
 endif()
 

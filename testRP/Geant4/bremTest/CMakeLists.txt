@@ -24,6 +24,33 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executables, and link it to the Geant4 libraries
 #
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/testRP/bremTest/Geant4)
+set(OUTPUT bin/testRP/bremTest/Geant4)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
 add_executable(bremTest_G4 bremTest_G4.cc ${sources} ${headers})
 target_link_libraries(bremTest_G4 ${Geant4_LIBRARIES} )
+
+#----------------------------------------------------------------------------
+# Copy all scripts to the build/install directory.
+#
+set(bremTest_SCRIPTS
+    README
+   )
+
+foreach(_script ${bremTest_SCRIPTS})
+  configure_file(
+    ${_script}
+     ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+    COPYONLY
+    )
+    configure_file(
+      ${_script}
+      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
+      COPYONLY
+    )
+endforeach()
+
+#----------------------------------------------------------------------------
+# Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
+#
+install(TARGETS bremTest_G4 DESTINATION ${OUTPUT})

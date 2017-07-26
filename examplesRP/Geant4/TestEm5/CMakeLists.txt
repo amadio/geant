@@ -31,27 +31,34 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
+set(OUTPUT bin/examples/TestEm5/Geant4)
+
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
 add_executable(TestEm5 TestEm5.cc ${sources} ${headers} ${TOOLS_FORTRAN_OBJECTS})
 target_link_libraries(TestEm5 ${Geant4_LIBRARIES} ${HBOOK_LIBRARIES})
 
 #----------------------------------------------------------------------------
-# Copy all scripts to the build directory, i.e. the directory in which we
-# build TestEm5. This is so that we can run the executable directly because it
-# relies on these scripts being in the current working directory.
+# Copy all scripts to the build/install directory.
 #
 set(TestEm5_SCRIPTS
     hanson19_G4.mac
+    README
    )
 
-foreach(_script ${TestEm5_SCRIPTS})
-  configure_file(
-    ${_script}
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
-    COPYONLY
-    )
-endforeach()
+ foreach(_script ${TestEm5_SCRIPTS})
+   configure_file(
+     ${_script}
+      ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+     COPYONLY
+     )
+#     configure_file(
+#       ${_script}
+#       ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${OUTPUT}/${_script}
+#       COPYONLY
+#     )
+ endforeach()
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-install(TARGETS TestEm5 DESTINATION bin)
+install(TARGETS TestEm5 DESTINATION ${OUTPUT})
