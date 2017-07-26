@@ -1,8 +1,15 @@
 #----------------------------------------------------------------------------------------------
-# Add source files & include directories
-#
-file(GLOB sources src/*.cc)
-file(GLOB headers inc/*.h ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h)
+# Add source, header files & include directories
+#----------------------------------------------------------------------------------------------
+file(GLOB sources
+  ${CMAKE_SOURCE_DIR}/material/src/*.cc
+)
+
+file(GLOB headers
+  ${CMAKE_SOURCE_DIR}/material/inc/*.h
+  ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h
+  ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h
+)
 
 if(USE_VECGEOM_CONTAINERS)
   include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc ${VECGEOM_INCLUDE_DIR})
@@ -10,6 +17,9 @@ else()
   include_directories(inc ${CMAKE_SOURCE_DIR}/base/inc)
 endif()
 
+#----------------------------------------------------------------------------------------------
+#
+#----------------------------------------------------------------------------------------------
 set(_extraLibs "")
 
 if(USE_ROOT)
@@ -18,6 +28,9 @@ if(USE_ROOT)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()
 
+#----------------------------------------------------------------------------------------------
+# Add target library and links
+#----------------------------------------------------------------------------------------------
 add_library(Material SHARED ${sources})
 
 if(USE_VECGEOM_CONTAINERS)
@@ -31,7 +44,7 @@ add_custom_target(materiallib DEPENDS Material)
 
 #----------------------------------------------------------------------------------------------
 # Build a simple application that demonstrate the usage and capabilities of the material description.
-#
+#----------------------------------------------------------------------------------------------
 #add_executable(testMaterial ${CMAKE_SOURCE_DIR}/material/test/testMaterial.cc ${sources} ${headers})
 #if(USE_VECGEOM_CONTAINERS)
 #  target_link_libraries(testMaterial Material ${VECGEOM_LIBRARIES})
@@ -41,7 +54,7 @@ add_custom_target(materiallib DEPENDS Material)
 
 #----------------------------------------------------------------------------------------------
 # Install the files
-#
+#----------------------------------------------------------------------------------------------
 if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libMaterial${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
@@ -54,8 +67,8 @@ if(USE_ROOT)
 endif()
 
 #----------------------------------------------------------------------------------------------
-# Add source files & include directories
-#
+# Add source files & include directories to doxygen
+#----------------------------------------------------------------------------------------------
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
   set(DOXYFILE_CITE_BIB_FILES "${DOXYFILE_CITE_BIB_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/doc/biblio.bib" PARENT_SCOPE)
