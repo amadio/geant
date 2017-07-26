@@ -1,13 +1,38 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
-#
-file(GLOB sources dummies/src/*.cc physics/management/src/*.cxx physics/models/EM/src/*.cc
-                  physics/processes/EM/src/*.cc physics/utils/src/*.cc physics/cross_sections/HAD/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h
-                  dummies/inc/*.h physics/management/inc/*.h physics/models/EM/inc/*.h
-                  physics/processes/EM/inc/*.h physics/utils/inc/*.h physics/cross_sections/HAD/inc/*.h)
+#----------------------------------------------------------------------------------------------
+file(GLOB sources
+  ${CMAKE_SOURCE_DIR}/realphysics/dummies/src/*.cc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/management/src/*.cxx
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/src/*.cc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/src/*.cc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/src/*.cc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/src/*.cc
+)
 
-include_directories(${CMAKE_SOURCE_DIR}/material/inc ${CMAKE_SOURCE_DIR}/base/inc dummies/inc physics/management/inc physics/models/EM/inc physics/processes/EM/inc physics/utils/inc physics/cross_sections/HAD/inc ${CMAKE_SOURCE_DIR}/numa/inc)
+file(GLOB headers
+  ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h
+  ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h
+  ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc/*.h
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc/*.h
+)
+
+include_directories(
+   ${CMAKE_SOURCE_DIR}/material/inc
+   ${CMAKE_SOURCE_DIR}/base/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc
+   ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc
+   ${CMAKE_SOURCE_DIR}/numa/inc
+)
+
 
 set(_extraLibs "")
 
@@ -17,21 +42,26 @@ if(USE_ROOT)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()
 
+#----------------------------------------------------------------------------------------------
+# Add vec-phys sources, include directories and lib if vec-phys build was required explicitly
+#----------------------------------------------------------------------------------------------
 if(USE_VECPHYS)
-  set(sources ${sources} 
-      physics/vecem/src/GUGammaComptonProcess.cc
-      physics/vecem/src/GUGammaPhotoElectricProcess.cc
-      physics/vecem/src/GUGammaConversionProcess.cc 
-      physics/vecem/src/GUBetheHeitlerConversionModel.cc
-      physics/vecem/src/GUKleinNishinaComptonModel.cc 
-      physics/vecem/src/GUSauterGavrilaModel.cc 
+  set(sources ${sources}
+      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUGammaComptonProcess.cc
+      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUGammaPhotoElectricProcess.cc
+      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUGammaConversionProcess.cc
+      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUBetheHeitlerConversionModel.cc
+      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUKleinNishinaComptonModel.cc
+      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUSauterGavrilaModel.cc
   )
   include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc physics/vecem/inc)
   set(_extraLibs ${_extraLibs} "vecphys")
 endif()
 
+#----------------------------------------------------------------------------------------------
+# Add target library and links
+#----------------------------------------------------------------------------------------------
 add_library(RealPhysics SHARED ${sources})
-
 target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v ${_extraLibs}
                       ${VECGEOM_LIBRARIES} ${VC_LIBRARIES})
 
@@ -40,7 +70,7 @@ add_custom_target(realphyslib DEPENDS RealPhysics)
 
 #----------------------------------------------------------------------------------------------
 # Install the files
-#
+#----------------------------------------------------------------------------------------------
 if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libRealPhysics${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
@@ -53,8 +83,8 @@ if(USE_ROOT)
 endif()
 
 #----------------------------------------------------------------------------------------------
-# Add source files & include directories
-#
+# Add source files & include directories to doxygen
+#----------------------------------------------------------------------------------------------
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
   set(DOXYFILE_CITE_BIB_FILES "${DOXYFILE_CITE_BIB_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/physics/models/EM/doc/biblio.bib" PARENT_SCOPE)
