@@ -45,12 +45,12 @@ add_custom_target(materiallib DEPENDS Material)
 #----------------------------------------------------------------------------------------------
 # Build a simple application that demonstrate the usage and capabilities of the material description.
 #----------------------------------------------------------------------------------------------
-#add_executable(testMaterial ${CMAKE_SOURCE_DIR}/material/test/testMaterial.cc ${sources} ${headers})
-#if(USE_VECGEOM_CONTAINERS)
-#  target_link_libraries(testMaterial Material ${VECGEOM_LIBRARIES})
-#else()
-#  target_link_libraries(testMaterial Material)
-#endif()
+add_executable(testMaterial ${CMAKE_SOURCE_DIR}/material/test/testMaterial.cc ${sources} ${headers})
+if(USE_VECGEOM_CONTAINERS)
+  target_link_libraries(testMaterial Material ${VECGEOM_LIBRARIES})
+else()
+  target_link_libraries(testMaterial Material)
+endif()
 
 #----------------------------------------------------------------------------------------------
 # Install the files

@@ -26,7 +26,7 @@ double NISTElementData::GetAtomicMass(int z, int n) {
    using geant::kCLightSquare;
    constexpr double unitconv = kAvogadro/kCLightSquare;
 
-   double theMass = 0.0;
+   double theMass = -1.0;
    if (z>0 && z<=gNumberOfNISTElements) {
      int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
      int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
@@ -35,28 +35,46 @@ double NISTElementData::GetAtomicMass(int z, int n) {
                  - fBindingEnergies[z-1];
        theMass *= unitconv; // convert energy to [weight/mole]
    }
+   if (theMass<0.0) {
+     std::cerr << " *** ERROR NISTElementData::GetAtomicMass \n "
+               << "   unknown isotope: atomic number = " << z << " nucleon number = " << n
+               << std::endl;
+     exit(1);
+   }
   return theMass;
 }
 
 double NISTElementData::GetIsotopeMass(int z, int n) {
-   double theMass = 0.0;
+   double theMass = -1.0;
    if (z>0 && z<=gNumberOfNISTElements) {
      int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
      int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
      if (indxN>=0 && indxN<numisos)
        theMass = fNISTElementDataTable[z-1].fMassIsos[indxN];
    }
+   if (theMass<0.0) {
+     std::cerr << " *** ERROR NISTElementData::GetIsotopeMass \n "
+               << "   unknown isotope: atomic number = " << z << " nucleon number = " << n
+               << std::endl;
+     exit(1);
+   }
   return theMass;
 }
 
 // total electron binind energy in internal [energy] unit
 double NISTElementData::GetBindingEnergy(int z, int n) {
-   double theBE = 0.0;
+   double theBE = -1.0;
    if (z>0 && z<=gNumberOfNISTElements) {
      int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
      int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
      if (indxN>=0 && indxN<numisos)
        theBE = fBindingEnergies[z-1];
+   }
+   if (theBE<0.0) {
+     std::cerr << " *** ERROR NISTElementData::GetBindingEnergy \n "
+               << "   unknown isotope: atomic number = " << z << " nucleon number = " << n
+               << std::endl;
+     exit(1);
    }
   return theBE;
 }
