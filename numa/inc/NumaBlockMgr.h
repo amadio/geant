@@ -35,7 +35,7 @@ template <typename T> class NumaBlockMgr {
   using queue_t = mpmc_bounded_queue<numa_block_ptr>;
 
   static size_t const cacheline_size = 64;
-  static size_t const queue_buff_size = 4096;
+  static size_t const queue_buff_size = 1<<16;
   typedef char cacheline_pad_t[cacheline_size];
 
 private:
