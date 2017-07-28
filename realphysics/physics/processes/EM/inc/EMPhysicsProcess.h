@@ -103,18 +103,17 @@ public:
    * Each EMModel, that describes an interaction that can happen at the post step point, must implement the
    * corresponding base EMModel::ComputeMacroscopicXSection() method.
    *
-   * @param[in] matcut      Pointer to the MaterialCuts object in which the dEdx must be computed.
-   * @param[in] kinenergy   Kinetic energy of the Partcile at which the dEdx must be computed.
-   * @param[in] particle    Pointer to the Partcile object for which the dEdx must be computed.
-   * @param[in] istotal     Flag to indicate if full dEdx must be computed. False by default i.e. restricted dEdx is
-   *                        required.
+   * @param[in] matcut      Pointer to the MaterialCuts object in which the x-sec must be computed.
+   * @param[in] kinenergy   Kinetic energy of the Partcile at which the x-sec must be computed.
+   * @param[in] particle    Pointer to the Partcile object for which the x-sec must be computed.
+   * @param[in] mass        Dynamic mas of the particle.
    * @return    Macroscopic cross section computed by one of the EMModel models that had been added to this
    *            EMPhysicsProcess. One EMModel is selected based on the kinetic energy of the particle, the low/high
    *            energy usage limits of the EMModel-s (added to this EMPhysicsProcess) that are active in the region to
-   *            which the given MaterialCuts beongs to. The macroscopic cross section is provided in internal [length^2]
+   *            which the given MaterialCuts beongs to. The macroscopic cross section is provided in internal [1/length]
    *            units.
    */
-  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle) const;
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle, double mass) const;
 
   // used to determine the lowest energy of the lambda table when lambda table is requested to build by a given process
   virtual double GetMinimumLambdaTableKineticEnergy(const MaterialCuts *matcut, const Particle*) const;

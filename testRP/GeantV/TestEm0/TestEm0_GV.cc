@@ -311,12 +311,14 @@ if (matCut->GetMaterial()->GetNumberOfElements()==1) {
   isSingleElementMaterial = true;
 }
 
+// dynamic mass is set to the PDG mass
+double dynamicMass = particle->GetPDGMass();
 for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
   PhysicsProcess *proc = thePostStepCandProcVect[i];
   processNameVect.push_back(proc->GetName());
-  compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle));
+  compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, dynamicMass));
   compTotalMacXsec += compMacXsecPerProcessVect[i];
-  getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy));
+  getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, dynamicMass));
   getTotalMacXsec  += getMacXsecPerProcessVect[i];
   EMPhysicsProcess *emProc = nullptr;
   if (proc->GetType()==geantphysics::ProcessType::kElectromagnetic

@@ -45,6 +45,9 @@ PhysicsProcessHandler::~PhysicsProcessHandler() {
 
 
 void PhysicsProcessHandler::Initialize() {
+  PhysicsParameters::SetDefaultGammaCutInLength(0.07);
+  PhysicsParameters::SetDefaultElectronCutInLength(0.07);
+  PhysicsParameters::SetDefaultPositronCutInLength(0.07);
   //
   // create all MaterialCuts
   MaterialCuts::CreateAll();

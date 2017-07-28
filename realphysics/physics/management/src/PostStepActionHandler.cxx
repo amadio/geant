@@ -44,6 +44,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   // we will use members:
   //  fMaterialCutCoupleIndex <==>  // current MaterialCuts index
   //  fKinE         <==>  fE-fMass  // kinetic energy;  will be set to the new kinetic energy
+  //  fMass         <==>  fMass     // dynamic mass of the particle
   //  fGVcode       <==>  fGVcode   // internal particle code
   //  fIntLen       <==>  fIntLen   // pre-step lambda for accounting energy loss i.e. to see if it is a delta inter.
   //  fXdir         <==>  fXdir     // direction vector x comp. will be set to the new direction x comp.
@@ -51,12 +52,13 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
   primaryLT.SetKinE(track->E()-track->Mass());
+  primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
 //  primaryLT.SetTrackIndex(i);
   primaryLT.SetDirX(track->DirX());
   primaryLT.SetDirY(track->DirY());
   primaryLT.SetDirZ(track->DirZ());
-  primaryLT.SetTotalMFP(track->GetIntLen());
+//  primaryLT.SetTotalMFP(track->GetIntLen());
   //
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->SetNumUsedSecondaries(0);
@@ -66,6 +68,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   //
   // update GeantTrack
   double newEkin    = primaryLT.GetKinE();
+  track->SetMass(primaryLT.GetMass());
   track->SetE(newEkin+track->Mass());
   track->SetP(std::sqrt(newEkin*(newEkin+2.0*track->Mass())));
   track->SetDirection(primaryLT.GetDirX(),primaryLT.GetDirY(),primaryLT.GetDirZ());
@@ -99,7 +102,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       geantTrack.fStatus   = Geant::kNew;                // secondary is a new track
       geantTrack.SetStage(Geant::kSteppingActionsStage); // send this to the stepping action stage
       geantTrack.fGeneration = track->fGeneration + 1;
-      geantTrack.fMass     = secParticle->GetPDGMass();
+      geantTrack.fMass     = secLt[isec].GetMass();
       geantTrack.SetPosition(track->PosX(),track->PosY(),track->PosZ());
       geantTrack.SetDirection(secLt[isec].GetDirX(),secLt[isec].GetDirY(),secLt[isec].GetDirZ());
       double secEkin       = secLt[isec].GetKinE();

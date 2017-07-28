@@ -52,12 +52,14 @@ void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   //  fEdep         <==>  fEdep     // init to 0.0; will be set to the current energy deposit
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
   primaryLT.SetKinE(track->E()-track->Mass());
+  primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
   primaryLT.SetStepLength(track->GetStep());
   primaryLT.SetEnergyDeposit(0.0);
   int nSecParticles = pManager->AlongStepAction(primaryLT, td);
   // update GeantTrack
   double newEkin = primaryLT.GetKinE();
+  track->SetMass(primaryLT.GetMass());
   track->SetE(newEkin+track->Mass());
   track->SetP(std::sqrt(newEkin*(newEkin+2.0*track->Mass())));
   track->SetEdep(track->Edep()+primaryLT.GetEnergyDeposit());

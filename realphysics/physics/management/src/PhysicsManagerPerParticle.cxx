@@ -213,12 +213,13 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, Geant::GeantTra
   // get material-cuts, kinetic energy and pre-step mfp of the selected process
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
   double ekin          = track.GetKinE();
+  double mass          = track.GetMass();
   double preStepLambda = gtrack->fPhysicsInteractLength[physicsProcessIndx]; // pre-step mfp
   PhysicsProcess *proc = fProcessVec[physicsProcessIndx];
   if (HasEnergyLossProcess()) {
     // get the current i.e. for the post-step kinetic energy 1/lambda and compare to the pre-step i.e. overestimated
     // 1/lambda to see if it is just a delta interaction and return immediately with null process if yes
-    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin); // current 1/lambda
+    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, mass); // current 1/lambda
     // preStepLambda is lambda and not 1/lambda
     if (curMacrXsec<=0.0 || td->fRndm->uniform()>curMacrXsec*preStepLambda) { // delta interaction
       proc = nullptr;

@@ -75,11 +75,12 @@ double PhysicsProcess::PostStepLimitationLength(Geant::GeantTrack *gtrack, Geant
   // get the material-cuts and kinetic energy
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double ekin                = gtrack->fE-gtrack->fMass;
+  double mass                = gtrack->fMass; // dynamic mass of the particle
   // get/compute the mean free path by (1)getting/(2)computing the macroscopic scross section by Accounting Possible
   // Energy Losses along the step:
   // - (1) from lambda table requested to built by the process
   // - (2) or by calling the ComputeMacroscopicXSection interface method directly if there is no lambda-table
-  double macrXsec = GetMacroscopicXSectionForStepping(matCut, ekin, haseloss);
+  double macrXsec = GetMacroscopicXSectionForStepping(matCut, ekin, mass, haseloss);
   double mfp = GetAVeryLargeValue();
   if (macrXsec>0.) {
     mfp = 1./macrXsec;
@@ -148,14 +149,14 @@ double PhysicsProcess::GetMacroscopicXSectionMaximum(const MaterialCuts *matcut)
 }
 
 
-double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin) {
+double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass) {
   double macrXsec = 0.;
   // Get the macroscopic cross section form the lambda table if it was requested to be built by the process or
   // call the ComputeMacroscopicXSection interface method to compute it on-the-fly
   if (fLambdaTable) {
     macrXsec = fLambdaTable->GetMacroscopicXSection(matcut, ekin);
   } else {
-    macrXsec = ComputeMacroscopicXSection(matcut, ekin, fParticle);
+    macrXsec = ComputeMacroscopicXSection(matcut, ekin, fParticle, mass);
   }
   if (macrXsec<0.) {
     macrXsec =0.;
@@ -165,7 +166,7 @@ double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double
 
 
 // called only at the pre-step point
-double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, bool haseloss) {
+double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass, bool haseloss) {
   double macrXsec = 0.;
   // account possible energy loss along the step if the particle has energy loss process(es)
   if (haseloss) {
@@ -198,7 +199,7 @@ double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *mat
     // current, pre-step and post-step point energy:
   }
   //
-  macrXsec = GetMacroscopicXSection(matcut, ekin);
+  macrXsec = GetMacroscopicXSection(matcut, ekin, mass);
   return macrXsec;
 }
 

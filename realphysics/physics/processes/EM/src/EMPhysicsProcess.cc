@@ -119,7 +119,7 @@ double EMPhysicsProcess::ComputeDEDX(const MaterialCuts *matcut, double kinenerg
 
 
 double EMPhysicsProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
-                                                    const Particle *particle) const {
+                                                    const Particle *particle, double /*mass*/) const {
   double xsec = 0.0;
   // loop over the EMModel-s that are active in the region that the current MaterialCuts belongs to;
   // ask them to provide their xsec contribution;

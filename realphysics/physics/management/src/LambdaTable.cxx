@@ -151,7 +151,8 @@ void LambdaTable::BuildLambdaTables() {
 //          if (iener==0) {
 //            ekin += geant::eV;
 //          }
-          double macXsec = fProcess->ComputeMacroscopicXSection(matCut, ekin, fProcess->GetParticle());
+          // dynamic mass of the particle is not considered !
+          double macXsec = fProcess->ComputeMacroscopicXSection(matCut, ekin, fProcess->GetParticle(), 0.);
           if (macXsec<0.0) {
             macXsec = 0.0;
           }
@@ -193,8 +194,8 @@ std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<<
 //          if (iener==0) {
 //            ekin += geant::eV;
 //          }
-//std::cerr<< " e= " << ekin/geant::MeV << std::endl;
-          double macXsec = fProcess->ComputeMacroscopicXSection(matCut, ekin, fProcess->GetParticle());
+          // dynamic mass of the particle is not considered
+          double macXsec = fProcess->ComputeMacroscopicXSection(matCut, ekin, fProcess->GetParticle(), 0.);
           if (macXsec<0.0) {
             macXsec = 0.0;
           }

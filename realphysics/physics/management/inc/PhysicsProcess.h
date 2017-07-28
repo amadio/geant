@@ -97,10 +97,11 @@ public:
    *                        object.
    *  @param[in] kinenergy  Kinetic energy of the particle in internal [energy] unit.
    *  @param[in] particle   Pointer to the partcile object (NOTE:we pass this for processes that can be used for more than one particle).
+   *  @param[in] mass       Dynamic mass of the particle in internal [energy] units.
    *  @return               Computed macroscopic cross section in internal [1/length] unit.
    */
   virtual double ComputeMacroscopicXSection(const MaterialCuts * /*matcut*/, double /*kinenergy*/,
-                                            const Particle * /*particle*/) const {return 0.;}
+                                            const Particle * /*particle*/, double /*mass*/) const {return 0.;}
 
 
   // the minimum kinetic energy for (optional) lambda table (macroscopic cross section) table: will be used only if
@@ -187,8 +188,8 @@ public:
   // will be called only if GetMacroscopicXSectionMaximumEnergy < gAVeryLargeValue
   virtual double MacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/) { return 0.; }
 
-  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin);
-  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, bool haseloss=false);
+  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass);
+  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass, bool haseloss=false);
 
 
   //--- Getters ---
