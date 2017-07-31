@@ -348,7 +348,6 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
     compTotalUnRestrictedDEDX += compUnRestrictedDEDXVect[i];
   }
   if (isSingleElementMaterial) {
-    std::cout << "single element" << std::endl;
     if (emProc) {
       EMPhysicsProcess     *emProc         = static_cast<EMPhysicsProcess*>(proc);
       EMModelManager       *emModelManager = emProc->GetModelManager();
@@ -356,7 +355,7 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
       const Element        *elem           = (matCut->GetMaterial()->GetElementVector())[0];
       compAtomicXsectionVect.push_back(emModel->ComputeXSectionPerAtom(elem, matCut, kineticEnergy, particle));
     } else {
-      compAtomicXsectionVect.push_back(0.0);
+      compAtomicXsectionVect.push_back(static_cast<HadronicProcess*>(proc)->GetAtomicCrossSection(particle->GetInternalCode(), kineticEnergy, particle->GetPDGMass(), (matCut->GetMaterial()->GetElementVector())[0], matDetector));
     }
     compTotalAtomicXsec += compAtomicXsectionVect[i];
   }

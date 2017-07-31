@@ -64,13 +64,9 @@ double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, d
   int   numElems = theElements.size();
   
   for (int iel=0; iel<numElems; ++iel) {
-    // here I will need to replace the PDG mass with the dynamic mass
-
-    std::cout << "theAtomicNumDensityVector[iel] " << theAtomicNumDensityVector[iel] <<
-      " atomic XS " << GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, mass, theElements[iel], mat) << std::endl;
-
     xsec += theAtomicNumDensityVector[iel]*GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, mass, theElements[iel], mat);
   }
+
   return xsec;
 }
 
@@ -105,6 +101,8 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
 
 void HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) const {
 
+  // Comment below not up to date anymore
+  //
   // This method does the Lorentz boost of the primary from the Lab to the center-of-mass frame,
   // and the 3D spatial rotation to bring the primary direction from the initial arbitrary one to the z-axis.
   // The first argument is kept constant; the other three are the output of method.
