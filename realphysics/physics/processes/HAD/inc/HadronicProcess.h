@@ -73,7 +73,7 @@ public:
   virtual bool IsApplicable( const int particleGVcode ) const;
 
   virtual double ComputeMacroscopicXSection(const MaterialCuts * /*matcut*/, double /*kinenergy*/,
-                                            const Particle * /*particle*/) const;
+                                            const Particle * /*particle*/, double /*mass*/) const;
 
   /** Method that returns the atomic cross section, for an in-flight hadronic process */
   virtual double GetAtomicCrossSection( const int particlecode, const double particlekineticenergy, const double particlemass,

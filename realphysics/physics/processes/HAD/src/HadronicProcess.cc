@@ -53,7 +53,7 @@ bool HadronicProcess::IsApplicable( const int particlecode ) const {
 }
 
 double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
-				  const Particle *particle) const {
+						   const Particle *particle, double mass) const {
   double xsec = 0.0;
   // compute the macroscopic cross section as the sum of the atomic cross sections weighted by the number of atoms in
   // in unit volume.
@@ -67,9 +67,9 @@ double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, d
     // here I will need to replace the PDG mass with the dynamic mass
 
     std::cout << "theAtomicNumDensityVector[iel] " << theAtomicNumDensityVector[iel] <<
-      " atomic XS " << GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, particle->GetPDGMass(), theElements[iel], mat) << std::endl;
+      " atomic XS " << GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, mass, theElements[iel], mat) << std::endl;
 
-    xsec += theAtomicNumDensityVector[iel]*GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, particle->GetPDGMass(), theElements[iel], mat);
+    xsec += theAtomicNumDensityVector[iel]*GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, mass, theElements[iel], mat);
   }
   return xsec;
 }

@@ -326,9 +326,9 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
   PhysicsProcess *proc = thePostStepCandProcVect[i];
   processNameVect.push_back(proc->GetName());
       
-  compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle));
+  compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, particle->GetPDGMass()));
   compTotalMacXsec += compMacXsecPerProcessVect[i];
-  getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy));
+  getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, particle->GetPDGMass()));
   getTotalMacXsec  += getMacXsecPerProcessVect[i];
 
   EMPhysicsProcess *emProc = nullptr;
