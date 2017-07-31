@@ -24,15 +24,17 @@ namespace geantphysics {
 // Forward declarations
 class LightTrack;
 class LightTrack_v;
+class HadronicCrossSection;
 class HadronicCrossSectionStore;
 class HadronicFinalStateModelStore;
-namespace geantphysics {
-    inline namespace GEANT_IMPL_NAMESPACE {
-    class Isotope;
-    class Material;
-    class Element;
-    }
-  }
+class HadronicFinalStateModel;
+ 
+ inline namespace GEANT_IMPL_NAMESPACE {
+   class Isotope;
+   class Material;
+   class Element;
+ }
+  
 
 /** Hadronic process types */
 enum class HadronicProcessType {  
@@ -70,6 +72,9 @@ public:
   /** Method that returns "true" ("false") if the specified GV particle code is (not) accepted by this process */
   virtual bool IsApplicable( const int particleGVcode ) const;
 
+  virtual double ComputeMacroscopicXSection(const MaterialCuts * /*matcut*/, double /*kinenergy*/,
+                                            const Particle * /*particle*/) const;
+
   /** Method that returns the atomic cross section, for an in-flight hadronic process */
   virtual double GetAtomicCrossSection( const int particlecode, const double particlekineticenergy, const double particlemass,
                                         const Element* targetelement, const Material* targetmaterial ) const;
@@ -82,10 +87,16 @@ public:
   Isotope* SampleTarget( LightTrack &track ) const;
 
   /** Main method that produces the secondaries for an in-flight hadronic process */
-  virtual void PostStepDoIt( LightTrack &track, std::vector< LightTrack* > &output ) const;
+  virtual void PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) const;
 
   /** Main method that sample the target isotope and produces the secondaries for an at-rest hadronic process */
   virtual void AtRestDoIt( LightTrack &track, std::vector< LightTrack* > &output );
+
+  /** Method to add model to the process **/
+  void AddModel(HadronicFinalStateModel *model);
+
+  /** Method to add cross sections to the process **/
+  void AddCrossSection(HadronicCrossSection *xsection);
 
   //--- Getters ---
 
@@ -96,10 +107,10 @@ public:
   HadronicProcessType GetType() const { return fType; }
 
   /** Method that returns the pointer to the hadronic cross section store */
-  const HadronicCrossSectionStore* GetCrossSectionStoreStore() const { return fXsecStore; }
+  const HadronicCrossSectionStore* GetCrossSectionStore() const { return fXsecStore; }
 
   /** Method that returns the pointer to the hadronic final-state model store */
-  const HadronicFinalStateModelStore* GetFinalStateModelStoreStore() const { return fModelStore; }
+  const HadronicFinalStateModelStore* GetFinalStateModelStore() const { return fModelStore; }
 
   //--- Setters ---
 
@@ -119,7 +130,7 @@ public:
 
   /** Method that returns the pointer to the hadronic final-state model store */
   void SetFinalStateModelStoreStore( HadronicFinalStateModelStore* modelstore ) { fModelStore = modelstore; }
-
+  
 private:
   std::vector< int > fParticleCodeVec;        /** Vector of GV particle codes for the allowed particles */
   HadronicProcessType fType;                  /** Type of this hadronic process */

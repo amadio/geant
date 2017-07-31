@@ -63,7 +63,7 @@ RegisterHadronicFinalStateModel( HadronicFinalStateModel* ptrhadfs ) {
 
 int HadronicFinalStateModelStore::
 GetIndexChosenFinalStateModel( const int projectilecode, const double projectilekineticenergy,
-                               const Isotope* targetisotope ) {
+                               const Isotope* targetisotope ) const {
   int index = -1;
   std::vector< int > indexApplicableModelVec;
   for ( int i = 0; i < fHadFsVec.size(); i++ ) {

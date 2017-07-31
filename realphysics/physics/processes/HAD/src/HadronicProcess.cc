@@ -2,7 +2,11 @@
 #include "LightTrack.h"
 #include "HadronicCrossSectionStore.h"
 #include "HadronicFinalStateModelStore.h"
+#include "HadronicFinalStateModel.h"
 #include "Isotope.h"
+#include "Material.h"
+#include "MaterialCuts.h"
+#include "MaterialProperties.h"
 
 using namespace geantphysics;
 
@@ -16,9 +20,10 @@ HadronicProcess::HadronicProcess() : PhysicsProcess(""), fType( HadronicProcessT
 
 
 HadronicProcess::HadronicProcess( const std::string &name ) :
-  PhysicsProcess( name ), fXsecStore( nullptr )
+  PhysicsProcess( name )
 {
   fModelStore = new HadronicFinalStateModelStore();
+  fXsecStore = new HadronicCrossSectionStore();
 }
 
 
@@ -45,6 +50,28 @@ bool HadronicProcess::IsApplicable( const int particlecode ) const {
     } 
   }
   return isOK;
+}
+
+double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
+				  const Particle *particle) const {
+  double xsec = 0.0;
+  // compute the macroscopic cross section as the sum of the atomic cross sections weighted by the number of atoms in
+  // in unit volume.
+  const Material *mat =  matcut->GetMaterial();
+  // we will need the element composition of this material
+  const Vector_t<Element*> theElements    = mat->GetElementVector();
+  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  int   numElems = theElements.size();
+  
+  for (int iel=0; iel<numElems; ++iel) {
+    // here I will need to replace the PDG mass with the dynamic mass
+
+    std::cout << "theAtomicNumDensityVector[iel] " << theAtomicNumDensityVector[iel] <<
+      " atomic XS " << GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, particle->GetPDGMass(), theElements[iel], mat) << std::endl;
+
+    xsec += theAtomicNumDensityVector[iel]*GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, particle->GetPDGMass(), theElements[iel], mat);
+  }
+  return xsec;
 }
 
 
@@ -76,7 +103,7 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
 }
 
 
-void HadronicProcess::PostStepDoIt( LightTrack &track, std::vector< LightTrack* > &output ) const {
+void HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) const {
 
   // This method does the Lorentz boost of the primary from the Lab to the center-of-mass frame,
   // and the 3D spatial rotation to bring the primary direction from the initial arbitrary one to the z-axis.
@@ -84,12 +111,12 @@ void HadronicProcess::PostStepDoIt( LightTrack &track, std::vector< LightTrack* 
   // QUESTION: IS IT A GOOD IDEA TO ASSUME THIS TRANSFORMATION FOR ALL HADRONIC PROCESSES, INCLUDING ELASTIC?
   //BoostFromLabToCmsAndRotateToMakePrimaryAlongZ( track, transformedTrack, boost, rotation );
   
-  //Isotope* targetIsotope = SampleTarget( track );
+  Isotope* targetIsotope = SampleTarget( track );
 
   // Call now the hadronic model to get the secondaries:
-  //int indexModel = 
-  //  GetFinalStateModelStore()->GetIndexChosenFinalStateModel( track.GetGVcode(), track.GetKinE(), targetIsotope );
-  //  ( GetFinalStateModelStore()->GetHadronicFinalStateModelVec() )[ indexModel ]->SampleFinalState( track, targetIsotope, output );
+  int indexModel = 
+    GetFinalStateModelStore()->GetIndexChosenFinalStateModel( track.GetGVcode(), track.GetKinE(), targetIsotope );
+  ( GetFinalStateModelStore()->GetHadronicFinalStateModelVec() )[ indexModel ]->SampleFinalState( track, targetIsotope, td);
 
   //BoostBackFromCmsToLabAndRotateBackToOriginalPrimaryDirection( output, boost, rotation );
 
@@ -102,3 +129,38 @@ void HadronicProcess::PostStepDoIt( LightTrack &track, std::vector< LightTrack* 
 }
 
 void HadronicProcess::AtRestDoIt( LightTrack &track, std::vector< LightTrack* > &output ) {}
+
+
+void HadronicProcess::AddModel(HadronicFinalStateModel *model) {
+  if (!model) {
+    std::string partNames = "\n";
+    for (unsigned long p=0; p<GetListParticlesAssignedTo().size(); ++p)
+      partNames += GetListParticlesAssignedTo()[p]->GetName() + "  ";
+    partNames += "\n";
+    std::cerr<<" *** WARNING: HadronicProcess::AddModel() \n"
+             <<"  Attempt to add HadronicFinalStateModel = nullptr to process with Name = " << GetName() << " that is assigned to particles:"
+             << partNames << " is ignored."
+             << std::endl;
+  } else {
+    fModelStore->RegisterHadronicFinalStateModel(model);
+  }
+  return;
+}
+
+void HadronicProcess::AddCrossSection(HadronicCrossSection *xsection) {
+  if (!xsection) {
+    std::string partNames = "\n";
+    for (unsigned long p=0; p<GetListParticlesAssignedTo().size(); ++p)
+      partNames += GetListParticlesAssignedTo()[p]->GetName() + "  ";
+    partNames += "\n";
+    std::cerr<<" *** WARNING: HadronicProcess::AddCrossSection() \n"
+             <<"  Attempt to add HadronicCrossSection = nullptr to process with Name = " << GetName() << " that is assigned to particles:"
+             << partNames << " is ignored."
+             << std::endl;
+  } else {
+    fXsecStore->RegisterHadronicCrossSection(xsection);
+  }
+  return;
+}
+  
+

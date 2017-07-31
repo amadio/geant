@@ -68,7 +68,7 @@ GetIndexFirstApplicableXsec( const int projectilecode, const double projectileki
   int index = -1;
   for ( int i = fHadXsecVec.size() - 1; i >= 0 ; i-- ) {
     if ( fHadXsecVec[i]  && 
-         fHadXsecVec[i]->IsApplicable( projectilecode, projectilekineticenergy, targetelement->GetZ(), targetelement->GetA() ) ) {
+         fHadXsecVec[i]->IsApplicable( projectilecode, projectilekineticenergy, targetelement->GetZ(), targetelement->GetA()/(geant::g/geant::mole) ) ) {
       index = i;
       break;
     }
@@ -95,13 +95,14 @@ GetElementCrossSection( const int projectilecode, const double projectilekinetic
                         const Element* targetelement, const Material* targetmaterial ) {
   double xsec = -1.0;
   int index = GetIndexFirstApplicableXsec( projectilecode, projectilekineticenergy, targetelement, targetmaterial );
+
   if ( index >= 0 ) {
     const Vector_t< geantphysics::Isotope* > isotopeVector = targetelement->GetIsotopeVector();
       const double* abundanceIsotopeVector = targetelement->GetRelativeAbundanceVector();
       xsec = 0.0;
       for ( int i = 0; i < isotopeVector.size(); i++ ) {
 	double isotopeXsec = fHadXsecVec[index]->GetIsotopeCrossSection( projectilecode, projectilekineticenergy, projectilemass,
-									 isotopeVector[i]->GetZ(), isotopeVector[i]->GetN());
+									 isotopeVector[i]->GetZ(), isotopeVector[i]->GetN()/(geant::g/geant::mole));
 	if ( isotopeXsec < 0.0 ) {
 	  xsec = -1.0;
 	  break;

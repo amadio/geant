@@ -84,12 +84,12 @@ public:
    *  @param targetisotope is the pointer to the target isotope
    */
   int GetIndexChosenFinalStateModel( const int projectilecode, const double projectilekineticenergy,
-                                     const Isotope* targetisotope );
+                                     const Isotope* targetisotope ) const;
 
   //--- Getters ---
 
   /** Method that returns the vector of HadronicFinalStates */
-  std::vector< HadronicFinalStateModel* >& GetHadronicFinalStateModelVec() { return fHadFsVec; }
+  const std::vector< HadronicFinalStateModel* >& GetHadronicFinalStateModelVec() const { return fHadFsVec; }
 
   /** Method that returns the name of this hadronic final-state model store */
   std::string GetName() const { return fName; }

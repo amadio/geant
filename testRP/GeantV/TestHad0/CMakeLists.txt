@@ -15,6 +15,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/inc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/inc
+  ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc
   )
 

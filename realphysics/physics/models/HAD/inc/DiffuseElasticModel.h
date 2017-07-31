@@ -51,7 +51,7 @@ public:
   /** @brief Interface method to initilize the model. */
   virtual void   Initialize();
   /** @brief Interface method to generate final state of the interaction. */
-  virtual int  SampleFinalState(LightTrack &track, Isotope* targetisotope, std::vector<LightTrack>&,
+  virtual int  SampleFinalState(LightTrack &track, Isotope* targetisotope, 
 				Geant::GeantTaskData *td);
 
   // sample momentum transfer in the CMS system 

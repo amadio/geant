@@ -51,10 +51,16 @@
 #include "Electron.h"
 #include "Positron.h"
 #include "Gamma.h"
+#include "Proton.h"
+#include "Neutron.h"
 
 #include "EMPhysicsProcess.h"
 #include "EMModelManager.h"
 #include "EMModel.h"
+
+#include "HadronicProcess.h"
+#include "HadronicFinalStateModel.h"
+#include "HadronicFinalStateModelStore.h"
 
 
 using geantphysics::Material;
@@ -73,8 +79,11 @@ using geantphysics::Particle;
 using geantphysics::Electron;
 using geantphysics::Positron;
 using geantphysics::Gamma;
+using geantphysics::Proton;
+using geantphysics::Neutron;
 
 using geantphysics::EMPhysicsProcess;
+using geantphysics::HadronicProcess;
 
 using geantphysics::ELossTableManager;
 
@@ -83,7 +92,7 @@ using geantphysics::EMModel;
 
 //
 // default values of the input parameters
-static std::string   particleName("e-");            // primary particle is electron
+static std::string   particleName("proton");            // primary particle is proton
 static std::string   materialName("NIST_MAT_Pb");   // material is lead
 static double        primaryEnergy     = 0.1;       // primary particle energy in [GeV]
 static double        prodCutValue      = 0.1;       // by default in length and internal units i.e. [cm]
@@ -155,6 +164,8 @@ if (particleName=="e-") {
   particle = Positron::Definition();
 } else if (particleName=="gamma") {
   particle = Gamma::Definition();
+ } else if (particleName=="proton") {
+  particle = Proton::Definition();
 } else {
   std::cerr<< " ***** ERROR: unknown particle name: " << particleName << std::endl;
   help();
@@ -310,10 +321,11 @@ bool isSingleElementMaterial = false;
 if (matCut->GetMaterial()->GetNumberOfElements()==1) {
   isSingleElementMaterial = true;
 }
-
+ 
 for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
   PhysicsProcess *proc = thePostStepCandProcVect[i];
   processNameVect.push_back(proc->GetName());
+      
   compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle));
   compTotalMacXsec += compMacXsecPerProcessVect[i];
   getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy));
@@ -336,6 +348,7 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
     compTotalUnRestrictedDEDX += compUnRestrictedDEDXVect[i];
   }
   if (isSingleElementMaterial) {
+    std::cout << "single element" << std::endl;
     if (emProc) {
       EMPhysicsProcess     *emProc         = static_cast<EMPhysicsProcess*>(proc);
       EMModelManager       *emModelManager = emProc->GetModelManager();

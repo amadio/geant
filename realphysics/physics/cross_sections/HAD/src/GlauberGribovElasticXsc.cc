@@ -5,6 +5,12 @@ namespace geantphysics {
   GlauberGribovElasticXsc::GlauberGribovElasticXsc() 
   {
     this->SetName("GlauberGribovElasticXsc");
+
+    std::vector< int > projVec;
+    projVec.push_back(1);
+    projVec.push_back(3);
+    
+    this->SetProjectileCodeVec(projVec);
     
     GGTotalXsc = new GlauberGribovTotalXsc();
     GGInelasticXsc = new GlauberGribovInelasticXsc();

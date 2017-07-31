@@ -38,7 +38,7 @@ void DiffuseElasticModel::Initialize() {
 }
 
 
-int DiffuseElasticModel::SampleFinalState(LightTrack &track, Isotope* targetisotope, std::vector<LightTrack>&,
+int DiffuseElasticModel::SampleFinalState(LightTrack &track, Isotope* targetisotope,
 					  Geant::GeantTaskData *td)
 {
   int    numSecondaries      = 0;

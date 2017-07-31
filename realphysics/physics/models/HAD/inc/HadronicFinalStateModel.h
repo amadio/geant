@@ -19,7 +19,6 @@
 
 #include "GeantTaskData.h"
 
-namespace geantphysics {
 
 // Forward declarations
 namespace geantphysics {
@@ -29,7 +28,9 @@ namespace geantphysics {
     class Element;
   }
 }
-  
+
+namespace geantphysics {
+
 class LightTrack;
 
 /** Hadronic final-state model types */
@@ -92,7 +93,7 @@ public:
    *  @param xxx
    */
 
-  virtual int SampleFinalState(LightTrack &track, Isotope* targetisotope, std::vector<LightTrack>&, Geant::GeantTaskData *td) = 0;
+  virtual int SampleFinalState(LightTrack &track, Isotope* targetisotope, Geant::GeantTaskData *td) = 0;
 
   //--- Getters ---
 

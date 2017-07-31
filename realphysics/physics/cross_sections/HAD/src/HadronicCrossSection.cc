@@ -1,5 +1,5 @@
 #include "HadronicCrossSection.h"
-
+#include <iostream>
 using namespace geantphysics;
 
 //----------------------------------------
@@ -64,6 +64,7 @@ bool HadronicCrossSection::IsApplicable( const int projectilecode, const double 
       break;
     } 
   }
+
   if ( isOK ) {
     if ( projectilekineticenergy < fMinEnergy  ||  projectilekineticenergy > fMaxEnergy ) {
       isOK = false;

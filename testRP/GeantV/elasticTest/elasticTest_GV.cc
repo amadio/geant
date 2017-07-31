@@ -284,8 +284,6 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
   td->fPhysicsData         = phd;
   // Set up a the primary light track for brem.
   LightTrack primaryLT;
-  // And the secondary track container LightTrack secondaryLT;
-  std::vector<LightTrack> secLt;  // dummy because we fill secondaries into Geant::GeantTaskData::PhysicsData
   // init time
   clock_t  start_time = clock();
   for (long int i=0; i<numSamples; ++i) {
@@ -309,7 +307,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
      td->fPhysicsData->SetNumUsedSecondaries(0);     
      //
      // invoke the interaction
-     int numSecs = elModel->SampleFinalState(primaryLT, isotope, secLt, td);
+     int numSecs = elModel->SampleFinalState(primaryLT, isotope, td);
      
      // show updated primaryLT
      h1->Fill(std::acos(primaryLT.GetDirZ()));
