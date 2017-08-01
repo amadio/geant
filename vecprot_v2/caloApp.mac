@@ -1,0 +1,47 @@
+###
+### GeantV CaloApp application script to simulate calorimeter response to incident particles
+###
+### Note, that the script shows all the possible input arguments that makes possible the configuration
+### of the CaloApp GeantV application (target material, target thickness, number of absorbers/layers, secondary production cuts, etc.)
+###
+###
+./caloAppRP \
+"### primary particle generation parameters:"\
+  --gun-primary-energy        0.1      "# kinetic energy of the primary particle [in GeV]"\
+  --gun-primary-type          e-           "# primary particle name/type"\
+"### detector configuration parameters:"\
+  --det-yzLength             10              "# Length of Y and Z dimensions of the calorimeter (sets the YZ cross-section)"\
+  --det-numLayers            10              "# Number of layers in the calorimeter"\
+  --det-numAbsorbers          2   	     "# Number of absorbers in the calorimeter"\
+  --det-absorber-1-material   NIST_MAT_lAr   "# absorber 1 material"\
+  --det-absorber-1-thickness  5              "# absorber 1 thickness (in mm)"\
+  --det-absorber-2-material   NIST_MAT_Pb    "# absorber 2 material"\
+  --det-absorber-2-thickness  10             "# absorber 2 thickness (in mm)"\
+  --det-absorber-3-material   NIST_MAT_Fe    "# absorber 3 material"\
+  --det-absorber-3-thickness  12             "# absorber 3 thickness (in mm)"\
+	#Note: Not all absorbers are necessarily defined. Current absorber support is up to 3 types, and all these are active only if numAbsorbers=3
+"### run configuration parameters:"\
+  --config-number-events                 100           "# total number of events to be simulated"\
+  --config-number-primaries-per-event    1000          "# number of primary particles per event"\
+  --config-number-max-tracks-per-basket  500           "# number of maximum tracks per basket"\
+  --config-number-threads                4             "# number of working threads to be used"\
+  --config-number-propagators            1             "# number of propagators"\
+  --config-number-buffered-events        4             "# number of events transported at once"\
+  --config-flag-monitor                  false         "# bool flag to use monitoring"\
+  --config-flag-debug                    false         "# bool flag to use debugging mode"\
+  --config-flag-coprocessor              false         "# bool flag to use coprocessor processing/CUDA setup"\
+  --config-flag-tbbmode                  false         "# bool flag to use TBB task manager"\
+
+  --det-prod-cut-length                  0.            "# set production cuts in length for all particle (0=>ignore)"\
+  --det-prod-cut-energy                  0.            "# set production cuts in energy for all particle (0=>ignore)"\
+  --det-prod-cut-gamma                   0.            "# secondary production cut for gamma particle (in internal [length] unit)"\
+  --det-prod-cut-electron                0.            "# secondary production cut for e- (in internal [length] unit)"\
+  --det-prod-cut-positron                0.            "# secondary production cut for e+ (in internal [length] unit)"\
+"### histogram parameters:"\
+  --hist-name                            caloApp.hist  "# name of the output hist1 histogram file"\
+  --hist-bin-min                         0.            "# number of theta bins in hist1"\
+  --hist-bin-max                         10.           "# minimum theta value of the hist1 histogram"\
+  --hist-bin-number                      100.          "# maximun theta value of the hist1 histogram"\
+"### physics process configuration parameters:"\
+  --process-MSC-Step-Limit               UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
+  --process-Step-Max-Value               1.e+20        "# maximum (real) step length limit in the user defined StepMaxProcess"

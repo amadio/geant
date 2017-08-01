@@ -318,6 +318,7 @@ endif()
 else()
 # -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
+  caloAppRP.cc
   runAppRP.cc
   runAppTestEM3RP.cc
   runTestEm5.cc
@@ -342,6 +343,8 @@ function(add_to_ctest EXECUTABLES)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       if(TARGET_NAME STREQUAL "runAppRP")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root)
+      elseif(TARGET_NAME STREQUAL "caloAppRP")
+          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}>)
       elseif(TARGET_NAME STREQUAL "runAppTestEM3RP")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ATLASbar.root)
       elseif(TARGET_NAME STREQUAL "runTestEm5")
@@ -378,8 +381,15 @@ foreach(_script ${TestEm5_SCRIPTS})
 endforeach()
 install(TARGETS runTestEm5 DESTINATION ${TestEm5_OUTPUT})
 ### The remaining ### (calo applications that will be removed soon)
-set(runApps_OUTPUT bin/examples/Calorimeter/GeantV)
-install(TARGETS runAppRP runAppTestEM3RP DESTINATION ${runApps_OUTPUT})
+set(caloApp_OUTPUT bin/examples/Calorimeter/GeantV)
+set(caloApp_SCRIPTS caloApp.mac)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CaloApp_OUTPUT})
+  configure_file(
+    caloApp.mac
+    ${CMAKE_INSTALL_PREFIX}/${caloApp_OUTPUT}/caloApp.mac
+    COPYONLY
+    )
+install(TARGETS caloAppRP runAppRP runAppTestEM3RP DESTINATION ${caloApp_OUTPUT})
 # -------  END == WITH REAL PHYSICS -------------------------------------------------------
 endif()
 

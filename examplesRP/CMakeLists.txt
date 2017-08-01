@@ -2,6 +2,7 @@
 # Add include directories, sources and headers
 #
 include_directories(
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
@@ -20,6 +21,13 @@ if (USE_TBB)
 endif()
 
 set(sources
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloApp.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloDetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloAppData.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloPrimaryGenerator.cxx
+#  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/UserPhysicsList.cxx
+#  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/StepMaxProcess.cxx
+#  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/Hist.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5.cxx
@@ -32,6 +40,13 @@ set(sources
   )
 
 set(headers
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloApp.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloDetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloAppData.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloPrimaryGenerator.h
+#  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/UserPhysicsList.h
+#  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/StepMaxProcess.h
+#  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/Hist.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/ExN03ApplicationRP.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc/TestEM3ApplicationRP.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5.h
