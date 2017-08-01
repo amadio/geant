@@ -13,6 +13,14 @@ ElasticScatteringProcess::ElasticScatteringProcess(const std::string &name)
   // fill the list of particles that this process can be used to
   AddToListParticlesAlloedToAssigned(Proton::Definition());
   AddToListParticlesAlloedToAssigned(Neutron::Definition());
+  AddToListParticlesAlloedToAssigned(PionPlus::Definition());
+  AddToListParticlesAlloedToAssigned(PionMinus::Definition());
+  AddToListParticlesAlloedToAssigned(PionZero::Definition());
+  AddToListParticlesAlloedToAssigned(KaonPlus::Definition());
+  AddToListParticlesAlloedToAssigned(KaonMinus::Definition());
+  AddToListParticlesAlloedToAssigned(KaonZero::Definition());
+  AddToListParticlesAlloedToAssigned(KaonShort::Definition());
+  AddToListParticlesAlloedToAssigned(KaonLong::Definition());
 }
 
 } // namespace geantphysics

@@ -41,9 +41,6 @@
 // include the user defined physics list
 #include "UserPhysicsList.h"
 
-#include "ELossTableManager.h"
-
-
 #include "PhysicsManagerPerParticle.h"
 #include "PhysicsProcess.h"
 
@@ -53,10 +50,14 @@
 #include "Gamma.h"
 #include "Proton.h"
 #include "Neutron.h"
-
-#include "EMPhysicsProcess.h"
-#include "EMModelManager.h"
-#include "EMModel.h"
+#include "PionPlus.h"
+#include "PionMinus.h"
+#include "PionZero.h"
+#include "KaonPlus.h"
+#include "KaonMinus.h"
+#include "KaonZero.h"
+#include "KaonShort.h"
+#include "KaonLong.h"
 
 #include "HadronicProcess.h"
 #include "HadronicFinalStateModel.h"
@@ -81,30 +82,31 @@ using geantphysics::Positron;
 using geantphysics::Gamma;
 using geantphysics::Proton;
 using geantphysics::Neutron;
+using geantphysics::PionPlus;
+using geantphysics::PionMinus;
+using geantphysics::PionZero;
+using geantphysics::KaonPlus;
+using geantphysics::KaonMinus;
+using geantphysics::KaonZero;
+using geantphysics::KaonShort;
+using geantphysics::KaonLong;
 
-using geantphysics::EMPhysicsProcess;
 using geantphysics::HadronicProcess;
 
-using geantphysics::ELossTableManager;
-
-using geantphysics::EMModelManager;
-using geantphysics::EMModel;
 
 //
 // default values of the input parameters
-static std::string   particleName("proton");            // primary particle is proton
+static std::string   particleName("p");            // primary particle is proton
 static std::string   materialName("NIST_MAT_Pb");   // material is lead
 static double        primaryEnergy     = 0.1;       // primary particle energy in [GeV]
 static double        prodCutValue      = 0.1;       // by default in length and internal units i.e. [cm]
 static bool          isProdCutInLength = true;      // is the production cut value given in length ?
 
 static struct option options[] = {
-  {"particle-name    (possible particle names: e-, e+, gamma)                 - default: e-"          , required_argument, 0, 'p'},
-  {"material-name    (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb" , required_argument, 0, 'm'},
-  {"primary-energy   (in internal energy units i.e. [GeV])                    - default: 0.1"         , required_argument, 0, 'E'},
-  {"cut-vale         (secondary production threshold value for all particles) - default: 0.1"         , required_argument, 0, 'c'},
-  {"cut-in-energy    (is the production cut value given in energy ? )         - default: NO"          , no_argument, 0, 'e'},
-  {"help"                                                                                             , no_argument, 0, 'h'},
+  {"particle-name    (possible particles: p, n, pi+, pi-, pi0, K+, K-, K0, KS, KL) - default: p"           , required_argument, 0, 'p'},
+  {"material-name    (with a NIST_MAT_ prefix; see more in material doc.)          - default: NIST_MAT_Pb" , required_argument, 0, 'm'},
+  {"primary-energy   (in internal energy units i.e. [GeV])                         - default: 0.1"         , required_argument, 0, 'E'},
+  {"help"                                                                                                  , no_argument, 0, 'h'},
   {0, 0, 0, 0}
 };
 void help();
@@ -158,14 +160,26 @@ Material *matDetector = Material::NISTMaterial(materialName);
 //
 // Set particle (Electron,Positron,Gamma)
 Particle *particle = nullptr;
-if (particleName=="e-") {
-  particle = Electron::Definition();
-} else if (particleName=="e+") {
-  particle = Positron::Definition();
-} else if (particleName=="gamma") {
-  particle = Gamma::Definition();
- } else if (particleName=="proton") {
+if (particleName=="p") {
   particle = Proton::Definition();
+} else if (particleName=="n") {
+  particle = Neutron::Definition();
+} else if (particleName=="pi+") {
+  particle = PionPlus::Definition();
+ } else if (particleName=="pi-") {
+  particle = PionMinus::Definition();
+ } else if (particleName=="pi0") {
+  particle = PionZero::Definition();
+ } else if (particleName=="K+") {
+  particle = KaonPlus::Definition();
+ } else if (particleName=="K-") {
+  particle = KaonMinus::Definition();
+ } else if (particleName=="K0") {
+  particle = KaonZero::Definition();
+ } else if (particleName=="KS") {
+  particle = KaonShort::Definition();
+ } else if (particleName=="KL") {
+  particle = KaonLong::Definition();
 } else {
   std::cerr<< " ***** ERROR: unknown particle name: " << particleName << std::endl;
   help();
@@ -174,15 +188,6 @@ if (particleName=="e-") {
 //
 // Set particle kinetic energy
 double kineticEnergy = primaryEnergy;
-
-//
-// Set production cuts if needed
-bool   iscutinlength   = isProdCutInLength;
-double gcut            = prodCutValue;
-double emcut           = prodCutValue;
-double epcut           = prodCutValue;
-//===========================================================================================//
-
 
 
 //============= Initialization i.e. building up and init the physics ========================//
@@ -193,7 +198,7 @@ double epcut           = prodCutValue;
 vecgeom::UnplacedBox worldParams = vecgeom::UnplacedBox(1.,1.,1.);
 vecgeom::LogicalVolume worldl(&worldParams);
 // create one region and assigne to the logical volume
-vecgeom::Region *aRegion = new vecgeom::Region("ARegion",iscutinlength, gcut, emcut, epcut);
+ vecgeom::Region *aRegion = new vecgeom::Region("ARegion"); //,iscutinlength, gcut, emcut, epcut);
 worldl.SetRegion(aRegion);
 // set the material pointer in the world logical volume
 worldl.SetMaterialPtr((void*)matDetector);
@@ -203,20 +208,13 @@ vecgeom::GeoManager::Instance().CloseGeometry();
 // print the material table
 //std::cerr<< Material::GetTheMaterialTable();
 
-// We set the min value of the secondary production thresholds to 100eV according to Geant4/TestHad0
-// NOTE: these must be set before creating all the MaterialCuts-s
-PhysicsParameters::SetMinAllowedGammaCutEnergy   (100.*geant::eV);
-PhysicsParameters::SetMinAllowedElectronCutEnergy(100.*geant::eV);
-PhysicsParameters::SetMinAllowedPositronCutEnergy(100.*geant::eV);
-
 //
 // Create all MaterialCuts
 //
+
 MaterialCuts::CreateAll();
 // print all MaterialCuts
 // std::cout<<MaterialCuts::GetTheMaterialCutsTable()<<std::endl;
-
-
 
 
 //
@@ -241,10 +239,6 @@ PhysicsListManager::Instance().SetNumberOfRegions(vecgeom::Region::GetNumberOfRe
     // 2. register the physics list:
     PhysicsListManager::Instance().RegisterPhysicsList(thePhysicsList);
 
-//
-// print out the PhysicsParameters obejct: we ha only one physics list so we have only one physics parameter object
- std::cout<<PhysicsParameters::GetThePhysicsParametersTable()[0];
-
 // Build all registered physics lists: during normal physics init., it is done
 // automatically in the PhysicsProcessHandler::Initialize()
 PhysicsListManager::Instance().BuildPhysicsLists();
@@ -263,9 +257,7 @@ std::cout<< "   ================================================================
 
 // first get the MaterialCuts: we have only one
 const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
-std::cout<< "  "<< matCut->GetMaterial() << std::endl;
-std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   MaterialCuts: \n" << matCut;
+std::cout<< "   Material       =  " << matDetector->GetName() << std::endl;
 std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
 std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
 std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -297,25 +289,12 @@ if (!numPostStepCandidateProcesses) {
 
 double  compTotalMacXsec = 0.0;  // computed total macroscopic cross section i.e. summed up per-process mac. x-secs
 double  getTotalMacXsec  = 0.0;  // same but interpolated from the lambda table that is built at initialization
-double  compTotalRestrictedDEDX   = 0.0; // the corresponding can be obtained from table as well
-double  compTotalUnRestrictedDEDX = 0.0; // the corresponding can be obtained from table as well (if CSDA range is TRUE)
 double  compTotalAtomicXsec       = 0.0; // computed total atomic cross section (only if material has 1 element)
 std::vector<std::string> processNameVect; // process names
 std::vector<double>  compMacXsecPerProcessVect; // computed macroscopic cross sections per-process
 std::vector<double>  getMacXsecPerProcessVect;  // same but interpolated from the lambda table that is built at init.
-std::vector<double>  compRestrictedDEDXVect;    // computed restricted dE/dx per process (only if there is 1 ElossP.)
-std::vector<double>  compUnRestrictedDEDXVect;  // computed full dE/dx per process (only if there is 1 ElossP.)
 std::vector<double>  compAtomicXsectionVect;    // computed atomic cross sections (only if material has 1 element)
 
-
-// quick check if the particle has kEnergyLoss process (that is cont-discrete so...)
-bool isHasEnergyLossProcess = false;
-for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
-  if (thePostStepCandProcVect[i]->GetType()==geantphysics::ProcessType::kEnergyLoss) {
-    isHasEnergyLossProcess = true;
-    break;
-  }
-}
 
 bool isSingleElementMaterial = false;
 if (matCut->GetMaterial()->GetNumberOfElements()==1) {
@@ -331,32 +310,9 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
   getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, particle->GetPDGMass()));
   getTotalMacXsec  += getMacXsecPerProcessVect[i];
 
-  EMPhysicsProcess *emProc = nullptr;
-  if (proc->GetType()==geantphysics::ProcessType::kElectromagnetic
-      || proc->GetType()==geantphysics::ProcessType::kEnergyLoss) {
-    emProc = static_cast<EMPhysicsProcess*>(proc);
-  }
-  if (isHasEnergyLossProcess) {
-    if (emProc) {
-      compRestrictedDEDXVect.push_back(emProc->ComputeDEDX(matCut, kineticEnergy, particle));
-      compUnRestrictedDEDXVect.push_back(emProc->ComputeDEDX(matCut, kineticEnergy, particle, true));
-    } else {
-      compRestrictedDEDXVect.push_back(0.0);
-      compUnRestrictedDEDXVect.push_back(0.0);
-    }
-    compTotalRestrictedDEDX   += compRestrictedDEDXVect[i];
-    compTotalUnRestrictedDEDX += compUnRestrictedDEDXVect[i];
-  }
   if (isSingleElementMaterial) {
-    if (emProc) {
-      EMPhysicsProcess     *emProc         = static_cast<EMPhysicsProcess*>(proc);
-      EMModelManager       *emModelManager = emProc->GetModelManager();
-      EMModel              *emModel        = emModelManager->SelectModel(kineticEnergy, matCut->GetRegionIndex());
-      const Element        *elem           = (matCut->GetMaterial()->GetElementVector())[0];
-      compAtomicXsectionVect.push_back(emModel->ComputeXSectionPerAtom(elem, matCut, kineticEnergy, particle));
-    } else {
-      compAtomicXsectionVect.push_back(static_cast<HadronicProcess*>(proc)->GetAtomicCrossSection(particle->GetInternalCode(), kineticEnergy, particle->GetPDGMass(), (matCut->GetMaterial()->GetElementVector())[0], matDetector));
-    }
+    compAtomicXsectionVect.push_back(static_cast<HadronicProcess*>(proc)->GetAtomicCrossSection(particle->GetInternalCode(), kineticEnergy, particle->GetPDGMass(), (matCut->GetMaterial()->GetElementVector())[0], matDetector));
+    
     compTotalAtomicXsec += compAtomicXsectionVect[i];
   }
 }
@@ -364,8 +320,6 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
 processNameVect.push_back("total");
 compMacXsecPerProcessVect.push_back(compTotalMacXsec);
 getMacXsecPerProcessVect.push_back(getTotalMacXsec);
-compRestrictedDEDXVect.push_back(compTotalRestrictedDEDX);
-compUnRestrictedDEDXVect.push_back(compTotalUnRestrictedDEDX);
 compAtomicXsectionVect.push_back(compTotalAtomicXsec);
 
 
@@ -431,70 +385,6 @@ for (size_t i=0; i<processNameVect.size();++i) {
 std::cout<<std::endl; std::cout<<std::endl;
 
 
-if (isHasEnergyLossProcess) {
-  std::cout<< "   restricted dE/dx  (MeV/cm)  :";
-  for (size_t i=0; i<processNameVect.size();++i) {
-    std::cout<< std::setw(14) << std::scientific << std::right << compRestrictedDEDXVect[i]/(geant::MeV/geant::cm)
-             << std::setw(14) << std::left << "   [MeV/cm]";
-  }
-  std::cout<<std::endl;
-
-  double getRestrictedDEDX = ELossTableManager::Instance().GetRestrictedDEDX(matCut, particle,kineticEnergy)/(geant::MeV/geant::cm);
-  std::cout<< "   restricted dE/dx (MeV/cm)   :";
-  std::cout<< std::setw(29) << std::setfill('.') << std::right << " ( interpolated from"
-           << std::left << " the ELossTable )"
-           << std::setw(24) << std::scientific << std::right << getRestrictedDEDX << std::setfill(' ')
-           << std::setw(14) << std::left << "   [MeV/cm]";
-  std::cout<<std::endl; std::cout<<std::endl;
-
-
-  std::cout<< "   restricted dE/dx (MeVcm2/g) :";
-  for (size_t i=0; i<processNameVect.size();++i) {
-    std::cout<< std::setw(14) << std::scientific << std::right << compRestrictedDEDXVect[i]/(geant::MeV/geant::cm)/density
-             << std::setw(14) << std::left << " [MeVcm2/g]";
-  }
-  std::cout<<std::endl;
-
-  std::cout<< "   restricted dE/dx (MeVcm2/g) :";
-  std::cout<< std::setw(29) << std::setfill('.') <<std::right << " ( interpolated from"
-           << std::left << " the ELossTable )"
-           << std::setw(24) << std::scientific << std::right << getRestrictedDEDX/density << std::setfill(' ')
-           << std::setw(14) << std::left << " [MeVcm2/g]";
-  std::cout<<std::endl; std::cout<<std::endl;
-
-
-  std::cout<< "   unrestricted dE/dx (MeV/cm) :";
-  for (size_t i=0; i<processNameVect.size();++i) {
-    std::cout<< std::setw(14) << std::scientific << std::right << compUnRestrictedDEDXVect[i]/(geant::MeV/geant::cm)
-             << std::setw(14) << std::left << "   [MeV/cm]";
-  }
-  std::cout<<std::endl;
-
-  std::cout<< "   unrestricted dE/dx(MeVcm2/g):";
-  for (size_t i=0; i<processNameVect.size();++i) {
-    std::cout<< std::setw(14) << std::scientific << std::right << compUnRestrictedDEDXVect[i]/(geant::MeV/geant::cm)/density
-             << std::setw(14) << std::left << " [MeVcm2/g]";
-  }
-  std::cout<<std::endl; std::cout<<std::endl;
-
-  double getRestrictedRange = ELossTableManager::Instance().GetRestrictedRange(matCut, particle,kineticEnergy)/(geant::mm);
-  std::cout<< "   range from restricted dE/dx :";
-  std::cout<< std::setw(29) << std::setfill('.') << std::right << " ( interpolated from"
-           << std::left << " the ELossTable )"
-           << std::setw(24) << std::scientific << std::right << getRestrictedRange << std::setfill(' ')
-           << std::setw(14) << std::left << "       [mm]";
-  std::cout<<std::endl;
-
-  double getUnRestrictedRange = ELossTableManager::Instance().GetRange(matCut, particle,kineticEnergy)/(geant::mm);
-  std::cout<< "   range from full dE/dx       :";
-  std::cout<< std::setw(29) << std::setfill('.') << std::right << " ( interpolated from"
-           << std::left << " the ELossTable )"
-           << std::setw(24) << std::scientific << std::right << getUnRestrictedRange << std::setfill(' ')
-           << std::setw(14) << std::left << "       [mm]";
-  std::cout<<std::endl; std::cout<<std::endl;
-
-}
-
 std::cout << "   ================================================================================ "<< std::endl << std::endl;
 
 return 0;
@@ -502,7 +392,7 @@ return 0;
 
 void help() {
   std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-  std::cout<<"  TestHad0 like GeantV application for testing integrated physics quantities using a given user physics-list"
+  std::cout<<"  TestHad0 GeantV application for testing integrated physics quantities using a given user physics-list"
            << std::endl;
   std::cout<<"\n  Usage: TestHad0_GV [OPTIONS] \n"<<std::endl;
   for (int i = 0; options[i].name != NULL; i++) {

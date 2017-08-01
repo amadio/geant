@@ -6,6 +6,14 @@
 
 #include "Proton.h"
 #include "Neutron.h"
+#include "PionPlus.h"
+#include "PionMinus.h"
+#include "PionZero.h"
+#include "KaonPlus.h"
+#include "KaonMinus.h"
+#include "KaonZero.h"
+#include "KaonShort.h"
+#include "KaonLong.h"
 
 #include <string>
 

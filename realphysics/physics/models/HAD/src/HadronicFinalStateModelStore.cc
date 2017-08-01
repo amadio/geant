@@ -1,9 +1,6 @@
 #include "HadronicFinalStateModelStore.h"
 #include "HadronicFinalStateModel.h"
 #include "Isotope.h"
-#include "Element.h"
-#include "Material.h"
-#include "MaterialProperties.h"
 
 using namespace geantphysics;
 
