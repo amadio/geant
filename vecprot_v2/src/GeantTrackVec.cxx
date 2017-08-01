@@ -569,9 +569,9 @@ int GeantTrack_v::AddTrack(GeantTrack &track, bool /*import*/) {
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
   fPathV[itrack] = reinterpret_cast<VolumePath_t *>(fVPstart + itrack * size_vpath);
-  track.fPath->CopyTo(fPathV[itrack]);
+  track.Path()->CopyTo(fPathV[itrack]);
   fNextpathV[itrack] = reinterpret_cast<VolumePath_t *>(fVPstart + (fMaxtracks + itrack) * size_vpath);
-  track.fNextpath->CopyTo(fNextpathV[itrack]);
+  track.NextPath()->CopyTo(fNextpathV[itrack]);
   fNtracks++;
   return itrack;
 }
@@ -621,9 +621,9 @@ int GeantTrack_v::AddTrackSync(GeantTrack &track) {
   // Copy the volume paths
   size_t size_vpath = VolumePath_t::SizeOfInstance(fMaxDepth);
   fPathV[itrack] = reinterpret_cast<VolumePath_t *>(fVPstart + itrack * size_vpath);
-  track.fPath->CopyTo(fPathV[itrack]);
+  track.Path()->CopyTo(fPathV[itrack]);
   fNextpathV[itrack] = reinterpret_cast<VolumePath_t *>(fVPstart + (fMaxtracks + itrack) * size_vpath);
-  track.fNextpath->CopyTo(fNextpathV[itrack]);
+  track.NextPath()->CopyTo(fNextpathV[itrack]);
   return itrack;
 }
 
@@ -662,8 +662,8 @@ void GeantTrack_v::GetTrack(int i, GeantTrack &track) const {
   track.fIntLen = fIntLenV[i];
   track.fBoundary = fBoundaryV[i];
   track.fPending = fPendingV[i];
-  *track.fPath = *fPathV[i];
-  *track.fNextpath = *fNextpathV[i];
+  track.SetPath(fPathV[i]);
+  track.SetNextPath(fNextpathV[i]);
 }
 
 //______________________________________________________________________________

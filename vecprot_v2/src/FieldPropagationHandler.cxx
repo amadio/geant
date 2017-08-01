@@ -343,7 +343,7 @@ bool FieldPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *t
 
   track.fBoundary = true;
   track.fStatus = kBoundary;
-  if (track.fNextpath->IsOutside())
+  if (track.NextPath()->IsOutside())
     track.fStatus = kExitingSetup;
   if (track.fStep < 1.E-8) td->fNsmall++;
   return false;

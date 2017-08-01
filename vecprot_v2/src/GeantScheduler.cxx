@@ -167,11 +167,10 @@ void GeantScheduler::CreateBaskets(GeantPropagator* prop) {
 //______________________________________________________________________________
 int GeantScheduler::AddTrack(GeantTrack &track, GeantTaskData *td) {
 // Main method to inject generated tracks. Track status is kNew here.
+  Volume_t *vol = const_cast<Volume_t *>(track.GetVolume());
 #ifdef USE_VECGEOM_NAVIGATOR
-  Volume_t *vol = const_cast<Volume_t *>(track.fPath->Top()->GetLogicalVolume());
   VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
-  Volume_t *vol = track.fPath->GetCurrentNode()->GetVolume();
   VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
 #endif
   GeantBasketMgr *basket_mgr = fBasketMgr[link->index];

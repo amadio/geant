@@ -202,7 +202,8 @@ GeantTrack &GeantTaskData::GetNewTrack()
     assert(fBlock->GetCurrent() == 0 && fBlock->GetUsed() == 0);
   }
   GeantTrack *track = fBlock->GetObject(index);
-  track->Clear();
+  track->Reset(*fTrack);
+//  track->Clear();
   track->fBindex = index;
   return *track;
   

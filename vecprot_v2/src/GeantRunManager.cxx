@@ -174,7 +174,7 @@ bool GeantRunManager::Initialize() {
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);     // <- must be configurable
-    mgr->SetBlockSize(1000);  // <- must be configurable
+    mgr->SetBlockSize(10000);  // <- must be configurable
     mgr->Init();
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (fConfig->fUseNuma) {
@@ -358,11 +358,11 @@ void GeantRunManager::EventTransported(int evt)
   // closing event in MCTruthManager
   if(fTruthMgr) fTruthMgr->CloseEvent(evt);
   event->Print();
-  // Digitizer (todo)
+  // Digitizer
   Info("EventTransported", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
-  LocalityManager *lmgr = LocalityManager::Instance();
-  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
-         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
+//  LocalityManager *lmgr = LocalityManager::Instance();
+//  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
+//         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   fApplication->FinishEvent(event->GetEvent(), event->GetSlot());
   fApplication->Digitize(event);
   fDoneEvents->SetBitNumber(evt);

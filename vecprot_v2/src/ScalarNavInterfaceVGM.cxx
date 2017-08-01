@@ -125,23 +125,23 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 #endif // VECCORE_CUDA
 
   // Retrieve navigator for the track
-  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+  VNavigator const * newnav = track.GetVolume()->GetNavigator();
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
     track.fSnext = track.fPstep;
     track.fBoundary = false;
-    *track.fNextpath = *track.fPath;
+    track.UpdateSameNextPath();
     return;
   }
 
   track.fSnext = newnav->ComputeStepAndSafetyAndPropagatedState(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
                              Math::Min<double>(1.E20, track.fPstep),
-                             *track.fPath, *track.fNextpath, !track.fBoundary, track.fSafety);
+                             *track.Path(), *track.NextPath(), !track.fBoundary, track.fSafety);
   track.fSnext = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
   track.fSafety = Math::Max<double>(track.fSafety, 0);
   // onboundary with respect to new point
-  track.fBoundary = track.fNextpath->IsOnBoundary();
+  track.fBoundary = track.NextPath()->IsOnBoundary();
 
   //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
@@ -191,7 +191,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
   // Find distance to next boundary, within proposed step.
   typedef Vector3D<Precision> Vector3D_t;
   // Retrieve navigator for the track
-  VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+  VNavigator const * newnav = track.GetVolume()->GetNavigator();
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
     track.fSnext = track.fPstep;
@@ -202,7 +202,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
   track.fSnext = newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir),
                              Math::Min<double>(1.E20, track.fPstep),
-                             *track.fPath, !track.fBoundary, track.fSafety);
+                             *track.Path(), !track.fBoundary, track.fSafety);
   track.fBoundary = track.fSnext < track.fPstep;
   track.fSnext = Math::Max<double>(2. * gTolerance, track.fSnext + 2. * gTolerance);
   track.fSafety = Math::Max<double>(track.fSafety, 0);
@@ -289,8 +289,8 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(GeantTrack &track, bool &same, Vol
 
   // TODO: not using the direction yet here !!
   bool samepath = nav.HasSamePath(
-    Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.fPath, *tmpstate);
-  if (!samepath) tmpstate->CopyTo(track.fNextpath);
+    Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.Path(), *tmpstate);
+  if (!samepath) tmpstate->CopyTo(track.NextPath());
 
 #ifdef CROSSCHECK
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -337,11 +337,11 @@ void ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[3]
   double postSafety = track.fSafety*reduceFactor; // make sure that we never reach the boundary in displacement
   if (disp>postSafety) {
     // Retrieve navigator for the track
-    VNavigator const * newnav = track.fPath->Top()->GetLogicalVolume()->GetNavigator();
+    VNavigator const * newnav = track.GetVolume()->GetNavigator();
     // NOTE: we should have a navigator method to compute only the safety and the following call should be change to that
     /*double step =*/ newnav->ComputeStepAndSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                                                Vector3D_t(dir[0], dir[1], dir[2]),
-                                               disp, *track.fPath, true, postSafety);
+                                               disp, *track.Path(), true, postSafety);
     postSafety *= reduceFactor; // make sure that we never reach the boundary in displacement
     if (postSafety>mindisp) {
       realDisp = std::min(postSafety,disp);

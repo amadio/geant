@@ -116,8 +116,8 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       geantTrack.fSafety   = track->fSafety;
       geantTrack.fBoundary = track->fBoundary;
       geantTrack.fPending  = false;
-      *geantTrack.fPath    = *track->fPath;
-      *geantTrack.fNextpath= *track->fPath;
+      geantTrack.SetPath(track->Path());
+      geantTrack.SetNextPath(track->Path());
       geantTrack.fMother   = track->fParticle;
       geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
       // add GeantTrack

@@ -150,7 +150,7 @@ bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *
   ScalarNavInterfaceTGeo::NavIsSameLocation(track, same);
 #endif // USE_VECGEOM_NAVIGATOR
   if (same) return true;
-  if (track.fNextpath->IsOutside())
+  if (track.NextPath()->IsOutside())
     track.fStatus = kExitingSetup;
   return false;
 }

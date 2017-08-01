@@ -66,6 +66,12 @@ GeantTrack::GeantTrack(void *addr)
   fPath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
   path_addr += round_up_align(VolumePath_t::SizeOfInstance(maxdepth));
   fNextpath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
+
+  // this will be changed/removed after we already have the previous step length stored in the track
+  for (size_t i=0; i<fNumPhysicsProcess; ++i) {
+    fPhysicsNumOfInteractLengthLeft[i] = -1.0;
+    fPhysicsInteractLength[i]           = 1.0;
+  }
 }
 
 //______________________________________________________________________________
@@ -108,6 +114,10 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fMaxDepth = other.fMaxDepth;
     fStage = other.fStage;
     fGeneration = other.fGeneration;
+
+    // Copy user data
+    memcpy(fExtraData, other.fExtraData, TrackDataMgr::GetInstance()->GetDataSize());
+
     *fPath = *other.fPath;
     *fNextpath = *other.fNextpath;
 
@@ -178,26 +188,21 @@ void GeantTrack::Clear(const char *)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Volume_t const*GeantTrack::GetVolume() const
+void GeantTrack::Reset(GeantTrack const &blueprint)
 {
-#ifdef USE_VECGEOM_NAVIGATOR
-  return fPath->Top()->GetLogicalVolume();
-#else
-  return (fPath->GetCurrentNode()->GetVolume());
-#endif
-}
+// Fast reset of the content of an existing track, avoiding in-place construction
 
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
-Volume_t const*GeantTrack::GetNextVolume() const
-{
+  // Copy main content from blueprint, except the pointers to geometry states and user data
+  memcpy(&fEvent, &blueprint.fEvent, sizeof(GeantTrack)- 3 * sizeof(void*));
+  
+  // Copy user data
+  memcpy(fExtraData, blueprint.fExtraData, TrackDataMgr::GetInstance()->GetDataSize());
+
+  // Clear Geometry path
 #ifdef USE_VECGEOM_NAVIGATOR
-  // Next volume the track is entering
-  return fNextpath->Top()->GetLogicalVolume();
-#else
-  // Next volume the track is entering
-  return fNextpath->GetCurrentNode()->GetVolume();
-#endif
+  fPath->Clear();
+  fNextpath->Clear();
+#endif  
 }
 
 //______________________________________________________________________________
@@ -205,8 +210,7 @@ Material_t *GeantTrack::GetMaterial() const
 {
    // Current material the track is into
 #ifdef USE_VECGEOM_NAVIGATOR
-   auto mat = (Material_t *) GetVolume()->GetMaterialPtr();
-   return mat;
+   return ( (Material_t *) fVolume->GetMaterialPtr() );
 #else
    auto med = GetVolume()->GetMedium();
    if (!med)
@@ -221,6 +225,7 @@ void GeantTrack::SetPath(VolumePath_t const *const path)
 {
   // Set path.
   *fPath = *path;
+  UpdateVolume();
 }
 
 //______________________________________________________________________________

@@ -131,19 +131,19 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(GeantTrack &track) {
   if (track.fSafety > track.fPstep) {
     track.fStep = track.fPstep;
     track.fBoundary = false;
-    *track.fNextpath = *track.fPath;
+    track.UpdateSameNextPath();
     return;
   }
 
   nav.FindNextBoundaryAndStep(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
                               Vector3D_t(track.fXdir, track.fYdir, track.fZdir), 
-                              *track.fPath, *track.fNextpath, 
+                              *track.Path(), *track.NextPath(), 
                               Math::Min<double>(1.E20, track.fPstep), track.fStep);
   track.fStep = Math::Max<double>(2. * gTolerance, track.fStep + 2. * gTolerance);
-  track.fSafety = (track.fBoundary) ? 0 : nav.GetSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.fPath);
+  track.fSafety = (track.fBoundary) ? 0 : nav.GetSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.Path());
   track.fSafety = Math::Max<double>(track.fSafety, 0);
   // onboundary with respect to new point
-  track.fBoundary = track.fNextpath->IsOnBoundary();
+  track.fBoundary = track.NextPath()->IsOnBoundary();
 
   //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
@@ -266,8 +266,8 @@ void ScalarNavInterfaceVG::NavIsSameLocation(GeantTrack &track, bool &same, Volu
 
   // TODO: not using the direction yet here !!
   bool samepath = nav.HasSamePath(
-    Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.fPath, *tmpstate);
-  if (!samepath) tmpstate->CopyTo(track.fNextpath);
+    Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.Path(), *tmpstate);
+  if (!samepath) tmpstate->CopyTo(track.NextPath());
 
 #ifdef CROSSCHECK
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();

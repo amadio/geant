@@ -196,13 +196,13 @@ void TestEM3ApplicationRP::SteppingActions(GeantTrack &track, GeantTaskData *td)
   int idnode = -1;
   int ilev = -1;
 //  for (int i = 0; i < npart; i++) {
-    ilev = track.fPath->GetCurrentLevel() - 1;
+    ilev = track.Path()->GetCurrentLevel() - 1;
     if (ilev < 1)
       return;
-    current = track.fPath->Top();
+    current = track.Path()->Top();
     if (!current)
       return;
-    idnode = track.fPath->At(ilev - 1)->id();
+    idnode = track.Path()->At(ilev - 1)->id();
     idvol  = current->GetLogicalVolume()->id();
     int indx   = fWThreadIdToIndexMap[tid];
 //    int ilayer = idnode;
