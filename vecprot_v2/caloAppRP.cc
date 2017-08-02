@@ -1,9 +1,21 @@
-//#ifdef USE_ROOT
-//#include "Rtypes.h"
-//#include "TGeoManager.h"
-//#ifndef COPROCESSOR_REQUEST
-//#define COPROCESSOR_REQUEST false
-//#endif
+///////////////////////////////////////////////////////////////////////////////////////////
+////
+////                      caloAppRP.cc
+////                      Created: 1 August 2017
+////                      Author: Ryan Schmitz
+////
+//// Description: A (linear) calorimeter implemented using VecGeom libraries. This executable handles input
+//			arguments provided by a user (see list below), and passes arguments between
+//			classes. These arguments can be provided either through a macro (see caloApp.mac)
+//			or directly from terminal commands.
+//
+//			Note: In order to add more than 3 absorbers per layer, one only needs to copy the
+//			associated input arguments provided here and increment the number associated with the
+//			new absorber (e.g. copy argument det-absorber-3-material to det-absorber-4-material
+//			and change every 3 to a 4). Other parts of the application have been written to
+//			automatically account for this potential change.
+////
+////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <err.h>
 #include <getopt.h>

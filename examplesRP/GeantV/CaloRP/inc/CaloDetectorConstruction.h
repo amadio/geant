@@ -7,6 +7,7 @@
  * @file CaloDetectorConstruction.h
  * @brief Implementation of geometry for GeantV calorimeter prototype
  * @author Ryan Schmitz
+ * @date August 1, 2017
  */
 //===----------------------------------------------------------------------===//
 
@@ -17,7 +18,6 @@
 #include "GeantVDetectorConstruction.h"
 #include "Material.h"
 #include "Region.h"
-//if you change this value, also change it in CaloApp.h. Since we use 1-indexing, this max absorber count is actually 3
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantRunManager;

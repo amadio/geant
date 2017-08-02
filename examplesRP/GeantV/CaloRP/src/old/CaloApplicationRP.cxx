@@ -1,3 +1,18 @@
+///////////////////////////////////////////////////////////////////////////////////////////
+////
+////                      CaloApplicationRP.cxx
+////                      Created: 20 June 2017
+////                      Author: Ryan Schmitz
+////
+//// Description: A (linear) calorimeter implemented using VecGeom libraries. This construction is 
+//			very similar to CaloApp.cxx, but is implemented using a different data structure
+//			(outputting energy/track legnth per absorber, rather than per absorber type).
+//			This example also doesn't collect true standard deviations; the newer CaloApp
+//			example must be used to collect this information.
+////
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
 #include "CaloApplicationRP.h"
 
 //#ifdef USE_VECGEOM_NAVIGATOR

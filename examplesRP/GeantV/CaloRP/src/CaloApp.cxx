@@ -1,3 +1,11 @@
+//===--- CaloApp.cxx - GeantV ---------------------------------*- C++ -*-===//
+// @file CaloDetectorConstruction.h
+// @brief Implementation of application initialization and scoring for GeantV calorimeter prototype
+// @author Ryan Schmitz, derived from example by M Novak
+// @date August 1, 2017
+//
+//     //===----------------------------------------------------------------------===//
+//
 #include "CaloApp.h"
 
 // vecgeom::GeoManager

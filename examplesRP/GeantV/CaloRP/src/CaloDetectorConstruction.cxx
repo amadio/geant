@@ -4,6 +4,20 @@
 //			Created: 20 June 2017
 //			Author: Ryan Schmitz
 //
+// Description: A (linear) calorimeter implemented using VecGeom libraries, this detector construction
+// 		is fully customizable and can easily pass data about its structure to other
+// 		classes.
+// 		
+// 		Customizable features include:
+// 		-Number of calorimeter layers
+// 		-Number of absorbers per layer
+//		-Production cuts (on energy, length, or particle-specific for gammas, electrons, or positrons)
+//		-YZ calorimeter cross-section
+//
+//		Other features like incident particle energy and particle type may be set in the
+//		macro which executes this application, caloAppRP.cc, as well as in its accompanying
+//		macro.
+//
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #include "CaloDetectorConstruction.h"
@@ -30,13 +44,6 @@
 #include "volumes/Box.h"
 #include "volumes/LogicalVolume.h"
 /////////////////////////////////
-
-
-//_______________________________________________________________
-//CaloDetectorConstruction::CaloDetectorConstruction(GeantRunManager *runmgr)
-//:fRunMgr(runmgr)
-//{
-//}
 
 namespace userapplication {
 
@@ -85,10 +92,6 @@ void CaloDetectorConstruction::CreateMaterials() {
   using geantphysics::NISTElementData;
   using geantphysics::MaterialProperties;
   
-//  Material *matPb_nist = Material::NISTMaterial("NIST_MAT_Pb");
-//  Material *matFe_nist = Material::NISTMaterial("NIST_MAT_Fe");
-//  Material *matlAr_nist = Material::NISTMaterial("NIST_MAT_lAr");
-
     //Define vacuum
     density     = kUniverseMeanDensity;
     pressure    = 3.e-18*pascal;
@@ -112,24 +115,15 @@ void CaloDetectorConstruction::SetProductionCutsByEnergy(double energy){
   fGammaCut=energy*geant::eV;
   fElectronCut=energy*geant::eV;
   fPositronCut=energy*geant::eV;
-
-//  geantphysics::PhysicsParameters::SetDefaultGammaCutInEnergy   (energy*geant::eV);
-//  geantphysics::PhysicsParameters::SetDefaultElectronCutInEnergy(energy*geant::eV);
-//  geantphysics::PhysicsParameters::SetDefaultPositronCutInEnergy(energy*geant::eV);
-
 }
 
 void CaloDetectorConstruction::SetProductionCutsByLength(double length){
   fGammaCut=length*geant::mm;
   fElectronCut=length*geant::mm;
   fPositronCut=length*geant::mm;
-
-//  geantphysics::PhysicsParameters::SetDefaultGammaCutInLength   (length*geant::mm);
-//  geantphysics::PhysicsParameters::SetDefaultElectronCutInLength(length*geant::mm);
-//  geantphysics::PhysicsParameters::SetDefaultPositronCutInLength(length*geant::mm);
 }
 
-//all these settings are in length unless
+//all these settings are in length
 void CaloDetectorConstruction::SetDetectorGammaProductionCut(double length){  fGammaCut=length*geant::mm;}
 void CaloDetectorConstruction::SetDetectorElectronProductionCut(double length){  fElectronCut=length*geant::mm;}
 void CaloDetectorConstruction::SetDetectorPositronProductionCut(double length){  fPositronCut=length*geant::mm;}
@@ -208,15 +202,15 @@ void CaloDetectorConstruction::CreateGeometry() {
   //create default detector parameters if the user hasn't defined them
   if (!userLayerNum) numLayers = 10;
   if (!userAbsorberNum) numAbsorbers = 2;
-  //Abs1 = lAr
+  //Abs1 = liquidArgon by default
   if (!userThickness[1]) fAbsThickness[1] = 5*mm;
   if (!userMaterial[1]) fAbsMaterialName[1]="NIST_MAT_lAr";
-  //Abs2 = Lead
+  //Abs2 = Lead by default
   if (!userThickness[2]) fAbsThickness[2] = 10*mm;
   if (!userMaterial[2]) fAbsMaterialName[2]="NIST_MAT_Pb";
   if (numAbsorbers>=3){
   	for(int i=3;i<=numAbsorbers;i++){
-		if (userThickness[i] && userMaterial[i]) {}//good, the thickness and material is defined for this non-default absorber
+		if (userThickness[i] && userMaterial[i]) {}//good, the thickness and material are defined for this non-default absorber
 		else { std::cerr << "ERROR: Invalid absorber parameters. Try using SetAbsorberThickness and SetAbsorberMaterialName for absorbers 3+\n";}
 	}
   }
