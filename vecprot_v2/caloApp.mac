@@ -37,7 +37,7 @@
   --det-prod-cut-electron                0.            "# secondary production cut for e- (in internal [length] unit)"\
   --det-prod-cut-positron                0.            "# secondary production cut for e+ (in internal [length] unit)"\
 "### histogram parameters:"\
-  --hist-name                            caloApp.hist  "# name of the output hist1 histogram file"\
+  --hist-name                            caloApp  "# name of the output hist1 histogram file"\
   --hist-bin-min                         0.            "# number of theta bins in hist1"\
   --hist-bin-max                         10.           "# minimum theta value of the hist1 histogram"\
   --hist-bin-number                      100.          "# maximun theta value of the hist1 histogram"\

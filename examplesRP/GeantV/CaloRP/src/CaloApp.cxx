@@ -205,20 +205,11 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
         dataPerPrimary.AddELeakSecondary(energyLeak);
       }
     }
-    // angular distribution of transmitted charged particles: F(theta)[deg^-2] when written out
-    if (isTransmit && charge!=0.) {
-      // compute angular: angle of direction measured from x-dir
-      double cost  = track.fXdir;
-      if (cost>0.0) {
-        double theta = std::acos(cost);
-        double ww    = geant::degree*geant::degree;
-        theta        = theta/geant::degree;
-        if (theta>=fHist1Min && theta<fHist1Max) {
+    // add energy deposited in first absorber (per primary) to histogram
+    if (isTransmit && isPrimary) {
           // get the user defined thread local data structure for the run
           CaloAppThreadDataRun  &dataRun =  (*fDataHandlerRun)(td);
-          dataRun.GetHisto1()->Fill(theta,ww);
-        }
-      }
+          dataRun.GetHisto1()->Fill(dataPerPrimary.GetEdepInAbsorber(1));
     }
   }
 }
@@ -399,7 +390,7 @@ for(int k=1; k<=fNumAbsorbers; k++){
   std::cout<< "  Total track length (charged) in absorber per event = " << meanChTrackL[k]/geant::um << " +- " << rmsChTrackL[k]/geant::um <<  " [um] "<<std::endl;
   std::cout<< "  Total track length (neutral) in absorber per event = " << meanNeTrackL[k]/geant::um << " +- " << rmsNeTrackL[k]/geant::um <<  " [um] "<< std::endl;
   std::cout<< std::endl;
-  std::cout<< "  Normalised angular distribution histogram is written into file CaloAngHistAbs" << k << std::endl;
+  std::cout<< "  Energy Deposition of Transmitted Primaries histogram is written into file CaloAngHistAbs" << k << std::endl;
   std::cout<< " \n ============================================================================================== \n" << std::endl;
   //
   // print the merged histogram into file
