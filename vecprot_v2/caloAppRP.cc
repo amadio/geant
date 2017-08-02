@@ -99,11 +99,11 @@ double 		histMin	      = 0;
 double 		histMax       = 0;
 int 		histNumBins   = 0;
 
-int 		prodCutLength = 0;
-int 		prodCutEnergy = 0;
-int 		prodCutGamma  = 0;
-int 		prodCutElectron = 0;
-int 		prodCutPositron = 0;
+double 		prodCutLength = 0;
+double 		prodCutEnergy = 0;
+double 		prodCutGamma  = 0;
+double 		prodCutElectron = 0;
+double 		prodCutPositron = 0;
 
 std::string 	particleProcessMSCStepLimit;
 int 		particleProcessStepMaxValue = 0;
@@ -137,27 +137,27 @@ static struct option options[] = {{"gun-primary-energy", required_argument, 0, '
                                   {"config-number-buffered-events", required_argument, 0, 'r'},
 				  {"config-flag-monitor", no_argument, 0, 's'},
                                   {"config-flag-debug", no_argument, 0, 't'},
-                                  {"config-flag-coprocessor", required_argument, 0, 'u'},
-                                  {"config-flag-tbbmode", required_argument, 0, 'v'},
+                                  {"config-flag-coprocessor", no_argument, 0, 'u'},
+                                  {"config-flag-tbbmode", no_argument, 0, 'v'},
 
-				  {"hist-name", no_argument, 0, 'w'},
-				  {"hist-bin-min", no_argument, 0, 'x'},
-				  {"hist-bin-max", no_argument, 0, 'y'},
-				  {"hist-bin-number", no_argument, 0, 'z'},
+				  {"hist-name", required_argument, 0, 'w'},
+				  {"hist-bin-min", required_argument, 0, 'x'},
+				  {"hist-bin-max", required_argument, 0, 'y'},
+				  {"hist-bin-number", required_argument, 0, 'z'},
 
-				  {"det-prod-cut-length", no_argument, 0, 'A'},
-				  {"det-prod-cut-energy", no_argument, 0, 'B'},
-				  {"det-prod-cut-gamma", no_argument, 0, 'C'},
-				  {"det-prod-cut-electron", no_argument, 0, 'D'},
-				  {"det-prod-cut-positron", no_argument, 0, 'E'},
+				  {"det-prod-cut-length", required_argument, 0, 'A'},
+				  {"det-prod-cut-energy", required_argument, 0, 'B'},
+				  {"det-prod-cut-gamma", required_argument, 0, 'C'},
+				  {"det-prod-cut-electron", required_argument, 0, 'D'},
+				  {"det-prod-cut-positron", required_argument, 0, 'E'},
 
-				  {"particle-process-MSC-step-limit", no_argument, 0, 'F'},
-				  {"particle-process-step-max-value", no_argument, 0, 'G'},
+				  {"particle-process-MSC-step-limit", required_argument, 0, 'F'},
+				  {"particle-process-step-max-value", required_argument, 0, 'G'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
 
-
+ 
 void help() {
   printf("\nUsage: runAppRP [OPTIONS] INPUT_FILE\n\n");
 
@@ -322,7 +322,7 @@ void GetArguments(int argc, char *argv[]) {
       break;
 
     case 'u':
-      coprocessor = optarg;
+      coprocessor = true;
       break;
 
     case 'v':

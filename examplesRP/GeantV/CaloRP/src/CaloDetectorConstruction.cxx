@@ -185,7 +185,7 @@ double CaloDetectorConstruction::GetAbsorberThickness(int absNum){
 
 void CaloDetectorConstruction::SetDetectorYZ(double yz){
 	userCaloYZ=true;
-	fWorldSizeYZ=yz;
+	fCaloSizeYZ=yz;
 }
 
 double CaloDetectorConstruction::GetDetectorX() {return fLayerThickness*numLayers;}

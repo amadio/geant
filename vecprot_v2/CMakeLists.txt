@@ -13,6 +13,7 @@ if (USE_REAL_PHYSICS)
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
+    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc
     )
 else()
   include_directories(
