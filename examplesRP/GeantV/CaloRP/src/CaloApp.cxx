@@ -37,6 +37,11 @@
 #include <iostream>
 #include <iomanip>
 
+#ifdef USE_ROOT
+  #include "TH1D.h"
+  #include "TFile.h"
+#endif
+
 
 namespace userapplication {
 
@@ -390,7 +395,7 @@ for(int k=1; k<=fNumAbsorbers; k++){
   std::cout<< "  Total track length (charged) in absorber per event = " << meanChTrackL[k]/geant::um << " +- " << rmsChTrackL[k]/geant::um <<  " [um] "<<std::endl;
   std::cout<< "  Total track length (neutral) in absorber per event = " << meanNeTrackL[k]/geant::um << " +- " << rmsNeTrackL[k]/geant::um <<  " [um] "<< std::endl;
   std::cout<< std::endl;
-  std::cout<< "  Energy Deposition of Transmitted Primaries histogram is written into file CaloAngHistAbs" << k << std::endl;
+  std::cout<< "  Energy Deposition of Transmitted Primaries histogram is written into file CaloHist" << k << std::endl;
   std::cout<< " \n ============================================================================================== \n" << std::endl;
   //
   // print the merged histogram into file
@@ -401,14 +406,25 @@ for(int k=1; k<=fNumAbsorbers; k++){
   std::strcat(filename,".dat");
   FILE  *f        = fopen(filename,"w");
   Hist  *hist     = runData->GetHisto1();
-  double dTheta   = hist->GetDelta();
+#ifdef USE_ROOT
+  TFile *file = new TFile("CaloHist.root","UPDATE");
+  TH1D  *rootHist = new TH1D("rootHist","Calo Histogram",fHist1NumBins,fHist1Min,fHist1Max);
+#endif
+  double dEDep   = hist->GetDelta();
   for (int i=0; i<hist->GetNumBins(); ++i) {
-    double theta  = hist->GetX()[i];
-    double factor = geant::kTwoPi*(std::cos(theta*geant::degree) - std::cos((theta+dTheta)*geant::degree));
+    double EDep  = hist->GetX()[i];
     double val    = hist->GetY()[i];
-    fprintf(f,"%d\t%lg\t%lg\n",i,theta+0.5*dTheta,val*norm/factor);
+    fprintf(f,"%d\t%lg\t%lg\n",i,EDep+0.5*dEDep,val*norm); // norm = 1/nPrimaries, so the resulting plot is normalized to number of primaries
+#ifdef USE_ROOT
+    rootHist->SetBinContent(i,val);
+#endif
   }
   fclose(f);
+#ifdef USE_ROOT
+  rootHist->Write();
+  file->Close();
+#endif
+  
 std::cout << "---------------Finished data analysis for " << fDetector->GetAbsorberMaterialName(k) << " absorber-------------------" << std::endl;
 }
 //////////////////////////////////////////////end for loop ///////////////////////////////////////////////
