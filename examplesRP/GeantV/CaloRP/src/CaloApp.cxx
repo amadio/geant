@@ -38,7 +38,7 @@
 #include <iomanip>
 
 #ifdef USE_ROOT
-  #include "TH1D.h"
+  #include "TH1F.h"
   #include "TFile.h"
 #endif
 
@@ -408,7 +408,7 @@ for(int k=1; k<=fNumAbsorbers; k++){
   Hist  *hist     = runData->GetHisto1();
 #ifdef USE_ROOT
   TFile *file = new TFile("CaloHist.root","UPDATE");
-  TH1D  *rootHist = new TH1D("rootHist","Calo Histogram",fHist1NumBins,fHist1Min,fHist1Max);
+  TH1F  *rootHist = new TH1F("rootHist","Calo Histogram",fHist1NumBins,fHist1Min,fHist1Max);
 #endif
   double dEDep   = hist->GetDelta();
   for (int i=0; i<hist->GetNumBins(); ++i) {
