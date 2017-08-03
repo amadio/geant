@@ -1,7 +1,11 @@
 
 #include "CaloAppData.h"
 
-#include "Hist.h"
+#ifdef USE_ROOT
+  #include "TH1F.h"
+#else
+  #include "Hist.h"
+#endif
 
 
 namespace userapplication {
@@ -130,11 +134,19 @@ void CaloAppThreadDataRun::CreateHisto1(int nbins, double min, double max) {
   if (fHisto1) {
     delete fHisto1;
   }
+#ifdef USE_ROOT
+  fHisto1= new TH1F("HistName", "Hist Title", min, max, nbins);
+#else
   fHisto1= new Hist(min, max, nbins);
+#endif
 }
 
 bool CaloAppThreadDataRun::Merge(int /*evtslotindx*/, const CaloAppThreadDataRun& other) {
+#ifdef USE_ROOT
+  fHisto1->Add(other.GetHisto1(),1);
+#else
   (*fHisto1) += *(other.GetHisto1());
+#endif
   return true;
 }
 

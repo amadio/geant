@@ -1,6 +1,11 @@
 
 #ifndef CALOAPPDATA_H
 #define CALOAPPDATA_H
+#ifdef USE_ROOT
+  #include "TH1F.h"
+#else
+class Hist;
+#endif
 
 #include <vector>
 const int maxAbsorbers=10;
@@ -47,8 +52,6 @@ namespace userapplication {
  * protected (more than one threads can finish an (different)event and try to write into this global data structure).
  */
 
-
-class Hist;
 
 // Data structure per-primary particle for CaloApp
 class CaloAppDataPerPrimary {
@@ -230,14 +233,22 @@ public:
  ~CaloAppThreadDataRun();
 
  void   CreateHisto1(int nbins, double min, double max);
+#ifdef USE_ROOT
+ TH1F*  GetHisto1() const { return fHisto1; }
+#else
  Hist*  GetHisto1() const { return fHisto1; }
+#endif
  // nothing to clear: per-thread histograms will be merged at the end of the run
  void   Clear(int /*evtslotindx*/) {}
  bool   Merge(int /*evtslotindx*/, const CaloAppThreadDataRun& other);
 
 private:
-  // simple histogram to store angular distributions per working-threads (they will be merged at the end of run)
+  // simple histogram to store user data per working-threads (they will be merged at the end of run)
+#ifdef USE_ROOT
+  TH1F    *fHisto1;
+#else
   Hist    *fHisto1;
+#endif
 };
 
 

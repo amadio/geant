@@ -20,7 +20,12 @@ namespace GEANT_IMPL_NAMESPACE {
   }
 }
 
-#include "Hist.h"
+#ifdef USE_ROOT
+ #include "TH1F.h"
+#else
+ #include "Hist.h"
+#endif
+
 #include "CaloAppData.h"
 
 #include <mutex>
