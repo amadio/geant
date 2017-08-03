@@ -20,6 +20,20 @@ namespace geantphysics {
   DiffuseElasticModel::DiffuseElasticModel(const std::string &modelname) : HadronicFinalStateModel() {
     this->SetType(HadronicModelType::kElastic);
     this->SetName(modelname);
+    
+    std::vector< int > projVec;
+    projVec.push_back(1);
+    projVec.push_back(3);
+    projVec.push_back(10);
+    projVec.push_back(11);
+    projVec.push_back(12);
+    projVec.push_back(13);
+    projVec.push_back(14);
+    projVec.push_back(15);
+    projVec.push_back(16);
+    projVec.push_back(17);
+    
+    this->SetProjectileCodeVec(projVec);
   }
 
   DiffuseElasticModel::~DiffuseElasticModel() {
@@ -114,18 +128,19 @@ namespace geantphysics {
 
     } else {
 
-      double p = std::sqrt(nlv1.px()*nlv1.px() + nlv1.py()*nlv1.py() + nlv1.pz()*nlv1.pz());
+      //      double p = std::sqrt(nlv1.px()*nlv1.px() + nlv1.py()*nlv1.py() + nlv1.pz()*nlv1.pz());
 
       track.SetDirX(nlv1.vect().unit().x());
       track.SetDirY(nlv1.vect().unit().y());
       track.SetDirZ(nlv1.vect().unit().z());
-    
       track.SetKinE(eFinal);
       
     }  
   
     lv -= nlv1;
-    double erec =  lv.e() - mass2;
+
+    // double erec =  lv.e() - mass2;
+    
     /*
       std::cout << "Recoil: " <<" m= " << mass2 << " Erec(MeV)= " << erec
       << " 4-mom: " << lv 

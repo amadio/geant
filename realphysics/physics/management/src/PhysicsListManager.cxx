@@ -6,6 +6,16 @@
 #include  "Electron.h"
 #include  "Positron.h"
 #include  "Gamma.h"
+#include "Proton.h"
+#include "Neutron.h"
+#include "PionPlus.h"
+#include "PionMinus.h"
+#include "PionZero.h"
+#include "KaonPlus.h"
+#include "KaonMinus.h"
+#include "KaonZero.h"
+#include "KaonShort.h"
+#include "KaonLong.h"
 
 // the dummy temporary region
 #include  "Region.h"
@@ -42,6 +52,17 @@ void PhysicsListManager::CreateAllParticles() {
    Electron::Definition();
    Positron::Definition();
    Gamma::Definition();
+   Proton::Definition();
+   Neutron::Definition();
+   PionPlus::Definition();
+   PionMinus::Definition();
+   PionZero::Definition();
+   KaonPlus::Definition();
+   KaonMinus::Definition();
+   KaonZero::Definition();
+   KaonShort::Definition();
+   KaonLong::Definition();
+   
    // get the particle table and loop over them: init ProcessManagerPerParticle vector elements to null
    // for each particle
    std::vector<Particle*> pTable = Particle::GetTheParticleTable();

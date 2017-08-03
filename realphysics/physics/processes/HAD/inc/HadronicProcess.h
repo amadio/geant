@@ -70,7 +70,7 @@ public:
   // The methods below are those inherited from PhysicsProcess
  
   /** Method that returns "true" ("false") if the specified GV particle code is (not) accepted by this process */
-  virtual bool IsApplicable( const int particleGVcode ) const;
+  virtual bool IsApplicable( const LightTrack &/*track*/ ) const;
 
   virtual double ComputeMacroscopicXSection(const MaterialCuts * /*matcut*/, double /*kinenergy*/,
                                             const Particle * /*particle*/, double /*mass*/) const;
@@ -87,10 +87,10 @@ public:
   Isotope* SampleTarget( LightTrack &track ) const;
 
   /** Main method that produces the secondaries for an in-flight hadronic process */
-  virtual void PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) const;
+  virtual int PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td);
 
   /** Main method that sample the target isotope and produces the secondaries for an at-rest hadronic process */
-  virtual void AtRestDoIt( LightTrack &track, std::vector< LightTrack* > &output );
+  virtual void AtRestDoIt( LightTrack &track, Geant::GeantTaskData * td);
 
   /** Method to add model to the process **/
   void AddModel(HadronicFinalStateModel *model);
@@ -117,7 +117,7 @@ public:
   /** Method that sets the GV particle codes of the allowed particles */
   void SetParticleCodeVec( const std::vector< int > &particlecodevec ) { 
     fParticleCodeVec.clear();
-    for ( int i = 0; i < particlecodevec.size(); i++ ) {
+    for ( size_t i = 0; i < particlecodevec.size(); i++ ) {
       fParticleCodeVec.push_back( particlecodevec[i] );
     } 
   }

@@ -59,7 +59,8 @@ void HadronicFinalStateModel::Initialize( /* Not yet defined */ ) {}
 bool HadronicFinalStateModel::
 IsApplicable( const int projectilecode, const double projectilekineticenergy, const Isotope* targetisotope ) {
   bool isOK = false;
-  for ( int i = 0; i < fProjectileCodeVec.size(); i++ ) {
+  
+  for ( size_t i = 0; i < fProjectileCodeVec.size(); i++ ) {
     if ( fProjectileCodeVec[i] == projectilecode ) {
       isOK = true;
       break;

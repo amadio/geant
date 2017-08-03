@@ -11,6 +11,18 @@
 #include "Positron.h"
 #include "Gamma.h"
 
+#include "Proton.h"
+#include "Neutron.h"
+#include "PionPlus.h"
+#include "PionMinus.h"
+#include "PionZero.h"
+#include "KaonPlus.h"
+#include "KaonMinus.h"
+#include "KaonZero.h"
+#include "KaonShort.h"
+#include "KaonLong.h"
+
+
 #include "ElectronIonizationProcess.h"
 #include "MollerBhabhaIonizationModel.h"
 
@@ -29,6 +41,10 @@
 #include "GSMSCModel.h"
 
 #include "StepMaxProcess.h"
+
+#include "ElasticScatteringProcess.h"
+#include "DiffuseElasticModel.h"
+#include "GlauberGribovElasticXsc.h"
 
 namespace userapplication {
 
@@ -197,6 +213,35 @@ void UserPhysicsList::Initialize() {
       //
       // add the process to the gamma particle
       AddProcessToParticle(particle, convProc);
+    }
+    if (particle==geantphysics::Proton::Definition() || 
+	particle==geantphysics::Neutron::Definition() ||
+	particle==geantphysics::PionPlus::Definition() ||
+	particle==geantphysics::PionMinus::Definition() ||
+	particle==geantphysics::PionZero::Definition() ||
+	particle==geantphysics::KaonPlus::Definition() ||
+	particle==geantphysics::KaonMinus::Definition() ||
+	particle==geantphysics::KaonZero::Definition() ||
+	particle==geantphysics::KaonShort::Definition() ||
+	particle==geantphysics::KaonLong::Definition()) {
+      // create hadronic elastic process for proton:
+      //
+      geantphysics::HadronicProcess *helProc = new geantphysics::ElasticScatteringProcess();
+      // create the diffuse elastic model for elastic scattering
+      geantphysics::HadronicFinalStateModel *diffelModel  = new geantphysics::DiffuseElasticModel();
+      // create the cross sections
+      geantphysics::HadronicCrossSection *ggElasticXS = new geantphysics::GlauberGribovElasticXsc();
+      
+      // set min/max energies of the model
+      diffelModel->SetLowEnergyUsageLimit (100.0*geant::eV);
+      diffelModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+      // add the model to the process
+      helProc->AddModel(diffelModel);
+      // add the cross-sections to the process
+      helProc->AddCrossSection(ggElasticXS);
+      //
+      // add the process to the gamma particle
+      AddProcessToParticle(particle, helProc);
     }
   }
 }

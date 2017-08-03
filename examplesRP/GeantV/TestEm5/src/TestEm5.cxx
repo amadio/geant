@@ -324,7 +324,7 @@ void TestEm5::FinishRun() {
   // get kEnergyLoss process(es) for the primary particle (active in the target region) compute restricted and full dEdX
   double dEdXRestrComputed = 0.;
   double dEdXFullComputed  = 0.;
-  if (pManager->HasEnergyLossProcess()) {
+  if (pManager && pManager->HasEnergyLossProcess()) {
     const std::vector<geantphysics::PhysicsProcess*> &procVect =  pManager->GetListProcesses();
     for (size_t ip=0; ip<procVect.size(); ++ip) {
       if (procVect[ip]->GetType()==geantphysics::ProcessType::kEnergyLoss) {

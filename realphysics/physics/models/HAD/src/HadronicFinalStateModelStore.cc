@@ -19,7 +19,7 @@ HadronicFinalStateModelStore::HadronicFinalStateModelStore( const std::string na
 HadronicFinalStateModelStore::HadronicFinalStateModelStore( const HadronicFinalStateModelStore &other ) :
   fName( other.fName )
 {
-  for ( int i = 0; i < other.fHadFsVec.size(); i++ ) {
+  for ( size_t i = 0; i < other.fHadFsVec.size(); i++ ) {
     fHadFsVec.push_back( other.fHadFsVec[i] );
   }
 }
@@ -28,7 +28,7 @@ HadronicFinalStateModelStore::HadronicFinalStateModelStore( const HadronicFinalS
 HadronicFinalStateModelStore& HadronicFinalStateModelStore::operator=( const HadronicFinalStateModelStore &other ) {
   if ( this != &other ) {
     fHadFsVec.clear();
-    for ( int i = 0; i < other.fHadFsVec.size(); i++ ) {
+    for ( size_t i = 0; i < other.fHadFsVec.size(); i++ ) {
       fHadFsVec.push_back( other.fHadFsVec[i] );
     }
     fName = other.fName;  
@@ -40,7 +40,7 @@ HadronicFinalStateModelStore& HadronicFinalStateModelStore::operator=( const Had
 HadronicFinalStateModelStore::~HadronicFinalStateModelStore() {
   // We are assuming here that this class is the owner of the hadronic final-state models, therefore it is in charge
   // of deleting them at the end.
-  for ( int i = 0; i < fHadFsVec.size(); i++ ) {
+  for ( size_t i = 0; i < fHadFsVec.size(); i++ ) {
     delete fHadFsVec[i];
   }
   fHadFsVec.clear();
@@ -63,12 +63,18 @@ GetIndexChosenFinalStateModel( const int projectilecode, const double projectile
                                const Isotope* targetisotope ) const {
   int index = -1;
   std::vector< int > indexApplicableModelVec;
-  for ( int i = 0; i < fHadFsVec.size(); i++ ) {
+
+  std::cout << "fHadFsVec.size() " << fHadFsVec.size() << std::endl;
+  for ( size_t i = 0; i < fHadFsVec.size(); i++ ) {
+    std::cout << "fHadFsVec[i] " << fHadFsVec[i]->GetName() << std::endl;
     if ( fHadFsVec[i]  &&  fHadFsVec[i]->IsApplicable( projectilecode, projectilekineticenergy,
 						       targetisotope )) {
       indexApplicableModelVec.push_back( i );
     }
   }
+
+  std::cout << "indexApplicableModelVec.size() " << indexApplicableModelVec.size() << std::endl;
+  
   if ( indexApplicableModelVec.size() == 1 ) {
     index = indexApplicableModelVec[0];
   } else if ( indexApplicableModelVec.size() == 2 ) {

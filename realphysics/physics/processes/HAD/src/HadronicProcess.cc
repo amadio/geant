@@ -41,9 +41,11 @@ HadronicProcess::HadronicProcess( const std::string &name, const std::vector< in
 HadronicProcess::~HadronicProcess() {}
 
 
-bool HadronicProcess::IsApplicable( const int particlecode ) const {
+bool HadronicProcess::IsApplicable( const LightTrack &track ) const {
+  int particlecode = track.GetGVcode();
+  
   bool isOK = false;
-  for ( int i = 0; i < fParticleCodeVec.size(); i++ ) {
+  for ( size_t i = 0; i < fParticleCodeVec.size(); i++ ) {
     if ( fParticleCodeVec[i] == particlecode ) {
       isOK = true;
       break;
@@ -87,19 +89,20 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
   int particleCode = track.GetGVcode();
   double eKin = track.GetKinE();
   int indexMaterialCutCouple = track.GetMaterialCutCoupleIndex();
-  Material* material = nullptr;
+  Material* material = Material::GetTheMaterialTable()[indexMaterialCutCouple];
   //***LOOKHERE*** TO-DO : from the indexMaterialCutCouple get the material
   if ( fXsecStore ) {
     std::pair< int, int > pairZandN = fXsecStore->SampleTarget( particleCode, eKin, track.GetMass(), material );
     track.SetTargetZ( pairZandN.first );
     track.SetTargetN( pairZandN.second );
+    std::cout << "Z " << pairZandN.first << " N " << pairZandN.second << std::endl;
     targetIsotope = Isotope::GetIsotope( pairZandN.first, pairZandN.second );
   }
   return targetIsotope;
 }
 
 
-void HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) const {
+int HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) {
 
   // Comment below not up to date anymore
   //
@@ -123,10 +126,10 @@ void HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td)
   // This check could be done in the center-of-mass frame, or in the lab-frame.
   // QUESTION: BETTER TO CHECK CONSERVATION IN THE CMS FRAME OR IN THE LAB ?
   //CheckConservations( track, targetIsotope, output );
-
+  return 0;
 }
 
-void HadronicProcess::AtRestDoIt( LightTrack &track, std::vector< LightTrack* > &output ) {}
+void HadronicProcess::AtRestDoIt( LightTrack& /*track*/,  Geant::GeantTaskData * /*td*/ ) {}
 
 
 void HadronicProcess::AddModel(HadronicFinalStateModel *model) {

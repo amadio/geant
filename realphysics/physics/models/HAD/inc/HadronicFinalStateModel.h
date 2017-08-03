@@ -129,7 +129,7 @@ public:
   /** Method that sets the GV particle codes of the allowed projectiles */
   void SetProjectileCodeVec( const std::vector< int > &projectileCodeVec ) { 
     fProjectileCodeVec.clear();
-    for ( int i = 0; i < projectileCodeVec.size(); i++ ) {
+    for ( unsigned int i = 0; i < projectileCodeVec.size(); i++ ) {
       fProjectileCodeVec.push_back( projectileCodeVec[i] );
     } 
   }

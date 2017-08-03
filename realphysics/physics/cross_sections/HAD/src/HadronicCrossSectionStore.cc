@@ -22,7 +22,7 @@ HadronicCrossSectionStore::HadronicCrossSectionStore( const std::string name ) :
 HadronicCrossSectionStore::HadronicCrossSectionStore( const HadronicCrossSectionStore &other ) :
   fName( other.fName )
 {
-  for ( int i = 0; i < other.fHadXsecVec.size(); i++ ) {
+  for ( size_t i = 0; i < other.fHadXsecVec.size(); i++ ) {
     fHadXsecVec.push_back( other.fHadXsecVec[i] );
   }
 }
@@ -31,7 +31,7 @@ HadronicCrossSectionStore::HadronicCrossSectionStore( const HadronicCrossSection
 HadronicCrossSectionStore& HadronicCrossSectionStore::operator=( const HadronicCrossSectionStore &other ) {
   if ( this != &other ) {
     fHadXsecVec.clear();
-    for ( int i = 0; i < other.fHadXsecVec.size(); i++ ) {
+    for ( size_t i = 0; i < other.fHadXsecVec.size(); i++ ) {
       fHadXsecVec.push_back( other.fHadXsecVec[i] );
     }
     fName = other.fName;  
@@ -43,8 +43,7 @@ HadronicCrossSectionStore& HadronicCrossSectionStore::operator=( const HadronicC
 HadronicCrossSectionStore::~HadronicCrossSectionStore() {
   // We are assuming here that this class is the owner of the hadronic cross sections, therefore it is in charge
   // of deleting them at the end.
-  std::vector< HadronicCrossSection* > fHadXsecVec;
-  for ( int i = 0; i < fHadXsecVec.size(); i++ ) {
+  for ( size_t i = 0; i < fHadXsecVec.size(); i++ ) {
     delete fHadXsecVec[i];
   }
   fHadXsecVec.clear();
@@ -64,7 +63,7 @@ RegisterHadronicCrossSection( HadronicCrossSection* ptrhadxsec ) {
 
 int HadronicCrossSectionStore::
 GetIndexFirstApplicableXsec( const int projectilecode, const double projectilekineticenergy,
-                             const Element* targetelement, const Material* targetmaterial ) {
+                             const Element* targetelement, const Material* /*targetmaterial*/ ) {
   int index = -1;
   for ( int i = fHadXsecVec.size() - 1; i >= 0 ; i-- ) {
     if ( fHadXsecVec[i]  && 
@@ -100,7 +99,7 @@ GetElementCrossSection( const int projectilecode, const double projectilekinetic
     const Vector_t< geantphysics::Isotope* > isotopeVector = targetelement->GetIsotopeVector();
       const double* abundanceIsotopeVector = targetelement->GetRelativeAbundanceVector();
       xsec = 0.0;
-      for ( int i = 0; i < isotopeVector.size(); i++ ) {
+      for ( size_t i = 0; i < isotopeVector.size(); i++ ) {
 	double isotopeXsec = fHadXsecVec[index]->GetIsotopeCrossSection( projectilecode, projectilekineticenergy, projectilemass,
 									 isotopeVector[i]->GetZ(), isotopeVector[i]->GetN()/(geant::g/geant::mole));
 	if ( isotopeXsec < 0.0 ) {
@@ -122,7 +121,7 @@ GetMacroscopicCrossSection( const int projectilecode, const double projectilekin
     Vector_t< Element* > elementVector = targetmaterial->GetElementVector();
     const double* numOfAtomsPerVolumeVector = targetmaterial->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
     xsec = 0.0;
-    for ( int i = 0; i < elementVector.size(); i++ ) {
+    for ( size_t i = 0; i < elementVector.size(); i++ ) {
       double elementXsec = GetElementCrossSection( projectilecode, projectilekineticenergy, projectilemass,
                                                    elementVector[i], targetmaterial );
       if ( elementXsec < 0.0 ) {
@@ -146,12 +145,13 @@ SampleTarget( const int projectilecode, const double projectilekineticenergy, co
   int targetN = 0;
   if ( targetmaterial ) {
 
+    std::cout << "targetmaterial " << targetmaterial->GetName() << std::endl;
     // First select the element, i.e. the atomic number Z
     Vector_t< Element* > elementVector = targetmaterial->GetElementVector();
     const double* numOfAtomsPerVolumeVector = targetmaterial->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
     std::vector< double > sumElementXsecVector;
     double xsec = 0.0;
-    for ( int i = 0; i < elementVector.size(); i++ ) {
+    for ( size_t i = 0; i < elementVector.size(); i++ ) {
       double elementXsec = GetElementCrossSection( projectilecode, projectilekineticenergy, projectilemass,
                                                    elementVector[i], targetmaterial );
       if ( elementXsec < 0.0 ) break;
@@ -171,7 +171,7 @@ SampleTarget( const int projectilecode, const double projectilekineticenergy, co
       const double* abundanceIsotopeVector = elementVector[iEle]->GetRelativeAbundanceVector();
       std::vector< double > sumIsotopeXsecVector;
       xsec = 0.0;
-      for ( int i = 0; i < isotopeVector.size(); i++ ) {
+      for ( size_t i = 0; i < isotopeVector.size(); i++ ) {
         double isotopeXsec = GetIsotopeCrossSection( projectilecode, projectilekineticenergy, projectilemass,
                                                      isotopeVector[i], elementVector[iEle], targetmaterial);
         if ( isotopeXsec < 0.0 ) break;
@@ -180,7 +180,7 @@ SampleTarget( const int projectilecode, const double projectilekineticenergy, co
       }
       if ( xsec > 0.0  &&  sumIsotopeXsecVector.size() == isotopeVector.size() ) {
         double randomNumber2 = 0.5;  //***LOOKHERE*** TO-BE-REPLACED with a call to a random number generator.
-        int iIso = 0;
+        size_t iIso = 0;
         while ( iIso < isotopeVector.size()  &&  randomNumber2 > sumIsotopeXsecVector[iEle]/xsec ) {
           iIso++;
         }

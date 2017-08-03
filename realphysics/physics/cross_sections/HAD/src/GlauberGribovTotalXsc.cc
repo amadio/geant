@@ -12,6 +12,20 @@ namespace geantphysics{
   GlauberGribovTotalXsc::GlauberGribovTotalXsc() 
   {
     this->SetName("GlauberGribovTotalXsc");
+    
+    std::vector< int > projVec;
+    projVec.push_back(1);
+    projVec.push_back(3);
+    projVec.push_back(10);
+    projVec.push_back(11);
+    projVec.push_back(12);
+    projVec.push_back(13);
+    projVec.push_back(14);
+    projVec.push_back(15);
+    projVec.push_back(16);
+    projVec.push_back(17);
+    
+    this->SetProjectileCodeVec(projVec);
   }
 
 
