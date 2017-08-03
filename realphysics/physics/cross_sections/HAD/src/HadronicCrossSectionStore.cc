@@ -145,7 +145,6 @@ SampleTarget( const int projectilecode, const double projectilekineticenergy, co
   int targetN = 0;
   if ( targetmaterial ) {
 
-    std::cout << "targetmaterial " << targetmaterial->GetName() << std::endl;
     // First select the element, i.e. the atomic number Z
     Vector_t< Element* > elementVector = targetmaterial->GetElementVector();
     const double* numOfAtomsPerVolumeVector = targetmaterial->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();

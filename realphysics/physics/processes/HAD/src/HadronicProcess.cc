@@ -95,7 +95,6 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
     std::pair< int, int > pairZandN = fXsecStore->SampleTarget( particleCode, eKin, track.GetMass(), material );
     track.SetTargetZ( pairZandN.first );
     track.SetTargetN( pairZandN.second );
-    std::cout << "Z " << pairZandN.first << " N " << pairZandN.second << std::endl;
     targetIsotope = Isotope::GetIsotope( pairZandN.first, pairZandN.second );
   }
   return targetIsotope;

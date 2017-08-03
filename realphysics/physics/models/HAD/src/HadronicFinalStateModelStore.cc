@@ -64,16 +64,12 @@ GetIndexChosenFinalStateModel( const int projectilecode, const double projectile
   int index = -1;
   std::vector< int > indexApplicableModelVec;
 
-  std::cout << "fHadFsVec.size() " << fHadFsVec.size() << std::endl;
   for ( size_t i = 0; i < fHadFsVec.size(); i++ ) {
-    std::cout << "fHadFsVec[i] " << fHadFsVec[i]->GetName() << std::endl;
     if ( fHadFsVec[i]  &&  fHadFsVec[i]->IsApplicable( projectilecode, projectilekineticenergy,
 						       targetisotope )) {
       indexApplicableModelVec.push_back( i );
     }
   }
-
-  std::cout << "indexApplicableModelVec.size() " << indexApplicableModelVec.size() << std::endl;
   
   if ( indexApplicableModelVec.size() == 1 ) {
     index = indexApplicableModelVec[0];
