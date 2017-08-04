@@ -195,11 +195,6 @@ void PrintRunInfo(){
 void GetArguments(int argc, char *argv[]) {
   std::cout << "Avoid ctest truncation of output: CTEST_FULL_OUTPUT" << std::endl;
 
-  if (argc == 1) {
-    help();
-    exit(0);
-  }
-
   while (true) {
     int c, optidx=0;
 
