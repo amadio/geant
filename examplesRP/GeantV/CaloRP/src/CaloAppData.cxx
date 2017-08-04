@@ -135,7 +135,7 @@ void CaloAppThreadDataRun::CreateHisto1(int nbins, double min, double max) {
     delete fHisto1;
   }
 #ifdef USE_ROOT
-  fHisto1= new TH1F("HistName", "Hist Title", min, max, nbins);
+  fHisto1= new TH1F("HistName", "Hist Title", nbins, min, max);
 #else
   fHisto1= new Hist(min, max, nbins);
 #endif

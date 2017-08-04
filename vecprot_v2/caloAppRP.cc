@@ -108,8 +108,8 @@ bool 		userThickness[maxAbs+1];
 
 std::string 	histName="CaloHist";
 double 		histMin	      = 0;
-double 		histMax       = 0;
-int 		histNumBins   = 0;
+double 		histMax       = 1;
+int 		histNumBins   = 100;
 
 double 		prodCutLength = 0;
 double 		prodCutEnergy = 0;
