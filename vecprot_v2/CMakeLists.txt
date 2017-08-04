@@ -381,10 +381,10 @@ foreach(_script ${TestEm5_SCRIPTS})
     )
 endforeach()
 install(TARGETS runTestEm5 DESTINATION ${TestEm5_OUTPUT})
-### The remaining ### (calo applications that will be removed soon)
+### The remaining ### (calo applications; runAppRP and runAppTestEM3RP will be removed soon)
 set(caloApp_OUTPUT bin/examples/Calorimeter/GeantV)
 set(caloApp_SCRIPTS caloApp.mac)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CaloApp_OUTPUT})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${caloApp_OUTPUT})
   configure_file(
     caloApp.mac
     ${CMAKE_INSTALL_PREFIX}/${caloApp_OUTPUT}/caloApp.mac

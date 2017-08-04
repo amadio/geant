@@ -408,7 +408,7 @@ std::cout << "---------------Finished data analysis for " << fDetector->GetAbsor
 #ifdef USE_ROOT
   //ROOT-style TH1F output histogram of energy depositions by primaries
   std::strcat(filename,".root");
-  TFile *file = new TFile(filename,"UPDATE");
+  TFile *file = new TFile(filename,"RECREATE");
   TH1F  *rootHist = runData->GetHisto1();
   rootHist->Write();
   file->Close();

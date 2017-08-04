@@ -58,25 +58,24 @@ void CaloDetectorConstruction::CreateMaterials() {
   using geant::mg;
   using geant::mole;
   using geant::cm3;
-  using geant::bar;
+//  using geant::bar;
   using geant::pascal;
   using geant::kelvin;
   using geant::atmosphere;
-  using geant::perCent;
   using geant::kUniverseMeanDensity;
-  using geant::kSTPTemperature;
+//  using geant::perCent;
+//  using geant::kSTPTemperature;
 
   //useful variable declarations
   std::string name   = "";
   std::string symbol = "";
   double a       = 1.*g/mole,   // molar mass in internal [weight/mole] unit
          z       = 1.,          // mean numnber of protons
-         density = 1.*g/cm3,    // material density in internal [weight/length^3] unit
-         abundance;             // relative abundance of the i-th isotope
-  int isoZ, isoN;               // number of protons/nucleons in an isotope;
-  int numcomponents,            // number of components the naterial is built up
-      numatoms;                 // number of i-th atoms in the molecule (for Way 1) some useful variable declaration
-      numatoms;                 // number of i-th atoms in the molecule (for Way 1) some useful variable declaration
+         density = 1.*g/cm3;    // material density in internal [weight/length^3] unit
+//         abundance;             // relative abundance of the i-th isotope
+//  int isoZ, isoN;               // number of protons/nucleons in an isotope;
+//  int numcomponents,            // number of components the naterial is built up
+//      numatoms;                 // number of i-th atoms in the molecule (for Way 1) some useful variable declaration
 
   double pressure    = 1.*atmosphere;  // pressure
   double temperature = 273.15*kelvin; // temperature
@@ -100,12 +99,13 @@ void CaloDetectorConstruction::CreateMaterials() {
                  MaterialState::kStateGas,temperature,pressure);
   
     //Explicit Pb definition
-    density = 11.35*g/cm3;
-    a = 207.19*g/mole;
-    Material* Pb = new Material(name="Lead"     , z=82., a, density);
+ //   density = 11.35*g/cm3;
+//    a = 207.19*g/mole;
+//    Material* Pb = new Material(name="Lead"     , z=82., a, density);
 
     //Declare calo materials
     fWorldMaterialName = "Galactic";
+    fWorldMaterial     =  Galactic ;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,7 +139,9 @@ std::string CaloDetectorConstruction::GetAbsorberMaterialName(int absNum){return
 geantphysics::Material* CaloDetectorConstruction::GetAbsorberMaterial(int absNum){
 	if (absNum<=numAbsorbers){
 		return fAbsMaterial[absNum];
-	} else {std::cerr << "ERROR: There are too few absorbers! Increase the number of absorbers or set a different absorber's material.\n"; }
+	} else {std::cerr << "ERROR: There are too few absorbers! Increase the number of absorbers or set a different absorber's material.\n"; 
+	return nullptr;
+	}
 }
 void CaloDetectorConstruction::SetDetectorMaterials(){ //private, set each absorber to its material name
 	for (int i=1; i<=numAbsorbers; i++){
@@ -172,7 +174,9 @@ void CaloDetectorConstruction::SetAbsorberThickness(int absNum, double thickness
 double CaloDetectorConstruction::GetAbsorberThickness(int absNum){
 	if (absNum<=numAbsorbers){
 		return fAbsThickness[absNum];
-	} else {std::cerr << "ERROR: There are too few absorbers! Increase the number of absorbers or set a different absorber's material.\n"; }
+	} else {std::cerr << "ERROR: There are too few absorbers! Increase the number of absorbers or set a different absorber's material.\n";
+	return 0;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
