@@ -173,7 +173,11 @@ void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
   int idvol = -1;
   int idnode = -1;
   int ilev = -1;
-  ilev = track.fPath->GetLevel();
+#ifndef USE_VECGEOM_NAVIGATOR
+    ilev = tracks.fPath->GetLevel();
+#else
+    ilev = tracks.fPath->GetCurrentLevel() - 1;
+#endif
   if (ilev < 1) return;
 #ifndef USE_VECGEOM_NAVIGATOR
   current = track.fPath->GetCurrentNode();
