@@ -53,6 +53,12 @@
 #include "G4LossTableManager.hh"
 //#include "G4UAtomicDeexcitation.hh"
 
+
+#include "G4HadronElastic.hh"
+#include "G4HadronElasticProcess.hh"
+#include "G4ComponentGGHadronNucleusXsc.hh"
+#include "G4CrossSectionElastic.hh"
+
 #include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -133,6 +139,18 @@ void PhysListGVStandard::ConstructProcess()
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
       //
 //      ph->RegisterProcess(new G4eplusAnnihilation(), particle);
+    
+    } else if( particleName == "proton" ||
+               particleName == "pi-" ||
+               particleName == "pi+"    ) {
+
+      G4HadronElastic* lhep = new G4HadronElastic();
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
+      hel->AddDataSet(new G4CrossSectionElastic(new G4ComponentGGHadronNucleusXsc()));
+      hel->RegisterMe(lhep);
+
+      ph->RegisterProcess(hel, particle);        
+      
     }
   }
 

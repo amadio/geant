@@ -41,7 +41,9 @@ HadronicProcess::HadronicProcess( const std::string &name, const std::vector< in
 HadronicProcess::~HadronicProcess() {}
 
 
-bool HadronicProcess::IsApplicable( const LightTrack &track ) const {
+bool HadronicProcess::IsApplicable( const LightTrack &/*track*/ ) const {
+
+  /*
   int particlecode = track.GetGVcode();
   
   bool isOK = false;
@@ -51,7 +53,8 @@ bool HadronicProcess::IsApplicable( const LightTrack &track ) const {
       break;
     } 
   }
-  return isOK;
+  */
+  return true;
 }
 
 double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
@@ -89,8 +92,9 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
   int particleCode = track.GetGVcode();
   double eKin = track.GetKinE();
   int indexMaterialCutCouple = track.GetMaterialCutCoupleIndex();
-  Material* material = Material::GetTheMaterialTable()[indexMaterialCutCouple];
-  //***LOOKHERE*** TO-DO : from the indexMaterialCutCouple get the material
+
+  const Material* material = MaterialCuts::GetTheMaterialCutsTable()[indexMaterialCutCouple]->GetMaterial();
+  
   if ( fXsecStore ) {
     std::pair< int, int > pairZandN = fXsecStore->SampleTarget( particleCode, eKin, track.GetMass(), material );
     track.SetTargetZ( pairZandN.first );

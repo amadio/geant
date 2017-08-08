@@ -135,7 +135,7 @@ void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 
   if (id>0) {
     G4double theta  = std::acos(direction.x());
-    if (theta > 0.0) {
+    if (theta >= 0.0) {
       theta = theta/degree;
       G4double dteta  = analysisManager->GetH1Width(id);
       G4double unit   = analysisManager->GetH1Unit(id);
