@@ -16,6 +16,7 @@
 #include <atomic>
 #include <vector>
 #include "Geant/Config.h"
+#include "base/Vector3D.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -27,6 +28,7 @@ class GeantRunManager;
 class GeantEvent {
 
 private:
+  vecgeom::Vector3D<double> fVertex;     /** Vertex position */
   bool             fPrioritize = false;  /** Prioritize this event */
   bool             fTransported = false; /** Event transported */
   float            fPriorityThr = 0.01; /** Priority threshold in percent of max in flight */
@@ -70,17 +72,15 @@ public:
   GEANT_FORCE_INLINE
   void SetNprimaries(int nprim) { fNprimaries = nprim; fPrimaries.reserve(nprim);}
 
-  /**
-   * @brief Function that returns the event number
-   * @return Event number
-   */
+  /** @brief Function that returns the event vertex */
+  GEANT_FORCE_INLINE
+  vecgeom::Vector3D<double> GetVertex() const { return fVertex; }
+
+  /** @brief Function that returns the event number */
   GEANT_FORCE_INLINE
   int GetEvent() const { return fEvent; }
 
-  /**
-   * @brief Function that returns the number of slot
-   * @return Slot number
-   */
+  /** @brief Function that returns the slot number */
   GEANT_FORCE_INLINE
   int GetSlot() const { return fSlot; }
 
@@ -137,6 +137,10 @@ public:
    */
   GEANT_FORCE_INLINE
   void SetEvent(int event) { fEvent = event; }
+
+  /** @brief Function to set the vertex */
+  GEANT_FORCE_INLINE
+  void SetVertex(double x, double y, double z) { fVertex.Set(x, y, z); }
 
   /**
    * @brief Function to set the slot number

@@ -96,6 +96,15 @@ public:
   GeantEvent *GetEvent(int i) { return fEvents[i]; }
 
   GEANT_FORCE_INLINE
+  GeantEvent *GetEventPtr(int event) {
+    // trying to avoid concurrent map, but this could be smarter
+    for (int i=0; i<fNactiveMax; ++i) {
+      if (fEvents[i]->GetEvent() == event) return fEvents[i];
+    }
+    return nullptr;
+  } 
+
+  GEANT_FORCE_INLINE
   int GetBindex() { return fBindex; }
 
   GEANT_FORCE_INLINE
@@ -112,7 +121,10 @@ public:
   
   int AddEvent(GeantTaskData *td);
   
-  GeantEvent *GenerateNewEvent(GeantEvent *event);
+  /** @brief Add one event to the server */
+  bool AddEvent(GeantEvent *event);
+
+  GeantEvent *GenerateNewEvent(GeantEvent *event, GeantTaskData *td);
   
   int ActivateEvents();
   

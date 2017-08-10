@@ -15,6 +15,15 @@ class GeantConfig
 {
 public:
 	/**
+	* @brief Run mode
+	*/
+	enum ERunMode {
+    kGenerator = 0,
+    kExternalLoop,
+    kHPC
+  };
+
+	/**
 	* @brief Monitoring type
 	*/
 	enum EGeantMonitoringType {
@@ -27,6 +36,7 @@ public:
 		kMonTracks
 	};
 
+  ERunMode fRunMode = kGenerator; /** GeantV run mode */
   int fNtotal = 1000;     /** Total number of events to be transported */
   int fNbuff = 100;       /** Number of buffered events */
   int fNprocesses = 3;    /** Number of active physics processes */
