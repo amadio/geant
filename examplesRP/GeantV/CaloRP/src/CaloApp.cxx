@@ -131,11 +131,11 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
   Node_t const *current;
   int idvol = -1;
   int ilev = -1;
-  ilev = track.fPath->GetCurrentLevel() - 1;
+  ilev = track.GetPath()->GetCurrentLevel() - 1;
   if (ilev<1) {
     return;
   }
-  current = track.fPath->Top();
+  current = track.GetPath()->Top();
   if (!current) {
     return;
   }
