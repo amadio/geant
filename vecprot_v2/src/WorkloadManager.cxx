@@ -355,7 +355,6 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     td->fStageBuffers.push_back(prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0));
   td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
   td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
-  td->fBlock = prop->fTrackMgr->GetNewBlock();
 
 //  int nworkers = propagator->fNthreads;
 //  WorkloadManager *wm = propagator->fWMgr;
@@ -559,7 +558,6 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int tid = td->fTid;
   Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   td->fPropagator = prop;
-  td->fBlock = prop->fTrackMgr->GetNewBlock();
 //  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
 //  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
   int nworkers = propagator->fNthreads;

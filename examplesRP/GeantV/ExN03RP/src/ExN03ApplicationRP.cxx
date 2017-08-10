@@ -73,14 +73,6 @@ bool ExN03ApplicationRP::Initialize() {
     }
   }
 
-
-//
-// CREATE PhysicsData here: should be done at the init of PhysicsProcessHandler but
-// GeantTaskData are constructed later than that call
-  for (int i=0; i<fRunMgr->GetNthreadsTotal(); ++i) {
-    fRunMgr->GetTDManager()->GetTaskData(i)->fPhysicsData = new geantphysics::PhysicsData();
-  }
-
   fInitialized = true;
   return true;
 }

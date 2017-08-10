@@ -55,6 +55,9 @@ public:
   /* @brief Function for accounting adding a new track */
   int AddPrimary(GeantTrack *track) { fPrimaries.push_back(track); return AddTrack(); }
 
+  /* @brief Crear the event and release all primaries */
+  void Clear();
+
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE
   GeantTrack *GetPrimary(int i) { return fPrimaries[i]; }

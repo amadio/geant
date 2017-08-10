@@ -35,7 +35,9 @@ using namespace vecgeom;
 //______________________________________________________________________________
 GeantEventServer::GeantEventServer(int event_capacity, GeantRunManager *runmgr)
   :fNevents(event_capacity), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
-   fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr), fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff))
+   fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr),
+   fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)),
+   fPendingEvents(AdjustSize(runmgr->GetConfig()->fNbuff))
 {
 // Constructor
   assert(event_capacity > 0);
@@ -48,29 +50,33 @@ GeantEventServer::GeantEventServer(int event_capacity, GeantRunManager *runmgr)
     fEvents[i] = new GeantEvent();
     fEvents[i]->SetPriorityThr(runmgr->GetConfig()->fPriorityThr);
   }
+  fGenLock.clear(std::memory_order_release);
 }
 
 //______________________________________________________________________________
 GeantEventServer::~GeantEventServer()
 {
 // Destructor
-/* Activate when numa node added to track
-  LocalityManager *loc_mgr = LocalityManager::Instance();
-  GeantTrack *track;
-  int nprim;
-*/
   for (int i = 0; i < fNload.load(); ++i) {
-/* Activate when numa node added to track
-    nprim = event->GetNprimaries();
-    for (int j = 0; j < nprim; ++j) {
-      track = fEvents[i]->GetPrimary(j);
-      TrackManager &trk_mgr = loc_mgr->GetTrackManager(track->fNode);
-      trk_mgr->ReleaseTrack(track);
-    }
-*/
     delete fEvents[i];
   }
   delete [] fEvents;
+}
+
+//______________________________________________________________________________
+GeantEvent *GeantEventServer::GenerateNewEvent(GeantEvent *event)
+{
+// Generates a new event. The method has to be locked since NextEvent() is not
+// thread safe in the generator.
+  if (!fRunMgr->GetPrimaryGenerator())
+    return nullptr;
+  // Policy: if someone else working here, just return
+  if (fGenLock.test_and_set(std::memory_order_acquire)) return nullptr;
+  if (!event) event = new GeantEvent();
+  // Now just get next event from the generator
+  GeantEventInfo eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent();
+  fGenLock.clear(std::memory_order_release);
+  return event;
 }
 
 //______________________________________________________________________________
@@ -78,7 +84,6 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
 {
 // Import next event from the generator. Thread safety has to be handled
 // by the generator.
-  int node = (td == nullptr) ? 0 : td->fNode;
   int evt = fNload.fetch_add(1);
   if (evt >= fNevents) {
     fNload--;
@@ -93,8 +98,6 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   }
   fEvents[evt]->SetEvent(evt);
   fEvents[evt]->SetNprimaries(ntracks);
-  LocalityManager *loc_mgr = LocalityManager::Instance();
-  TrackManager &trk_mgr = loc_mgr->GetTrackManager(node);
 
   Volume_t *vol = 0;
   // Initialize the start path
@@ -119,7 +122,7 @@ int GeantEventServer::AddEvent(GeantTaskData *td)
   if (td) td->fVolume = vol;
 
   for (int itr=0; itr<ntracks; ++itr) {
-    GeantTrack &track = trk_mgr.GetTrack();
+    GeantTrack &track = td->GetNewTrack();
     track.fParticle = fEvents[evt]->AddPrimary(&track);
     track.SetPrimaryParticleIndex(itr); 
     track.SetPath(startpath);

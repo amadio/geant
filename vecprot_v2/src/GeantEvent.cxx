@@ -21,6 +21,24 @@ int GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
+void GeantEvent::Clear()
+{
+// Clear the event.
+  fPrioritize = false;
+  fTransported = false;
+  fEvent = 0;
+  fSlot = 0;
+  fNprimaries = 0;
+  fNtracks.store(0);
+  fNdone.store(0);
+  fNmax.store(0);
+  fNmax.store(0);
+  fLock.clear();
+  // Release primary tracks
+  fPrimaries.clear();
+}
+
+//______________________________________________________________________________
 bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.

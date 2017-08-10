@@ -38,6 +38,7 @@ class GeantEventServer
 {
 
 using queue_t = mpmc_bounded_queue<size_t>;
+using queue_events = mpmc_bounded_queue<GeantEvent*>;
 
 private:
   int fNevents = 0;                    /** Number of events to be filled */
@@ -50,6 +51,7 @@ private:
   std::atomic_int fNload;              /** Last load event in the server */
   std::atomic_int fNstored;            /** Number of stored events in the server */
   std::atomic_int fNcompleted;         /** Number of completed events */
+  std::atomic_flag fGenLock;           /** Generator lock */
   GeantRunManager *fRunMgr = nullptr;  /** Run manager */
   bool fEventsServed = false;          /** All events served */
   bool fDone = false;                  /** All events transported */
@@ -58,6 +60,7 @@ private:
   GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
   int  fBindex = 0;                    /** Basket manager index */
   queue_t fFreeSlots;                  /** Queue of free event slots */
+  queue_events fPendingEvents;         /** Queue of pending events */
 
 protected:
   GeantTrack *GetNextTrack();
@@ -107,7 +110,9 @@ public:
 
   int FillStackBuffer(StackLikeBuffer *buffer, int ntracks);
   
-  int AddEvent(GeantTaskData *td = nullptr);
+  int AddEvent(GeantTaskData *td);
+  
+  GeantEvent *GenerateNewEvent(GeantEvent *event);
   
   int ActivateEvents();
   

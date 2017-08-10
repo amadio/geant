@@ -76,7 +76,6 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
   fIntArray = new (buffer) int[fSizeInt];
   buffer += fSizeInt*sizeof(int);
 
-  fBlock = fPropagator->fTrackMgr->GetNewBlock(); 
   fTrack = GeantTrack::MakeInstance();
 
 #ifndef VECCORE_CUDA
@@ -195,19 +194,11 @@ VECCORE_ATT_HOST_DEVICE
 GeantTrack &GeantTaskData::GetNewTrack()
 {
   size_t index;
-  if (fBlock->IsDistributed()) {
-    fBlock = fPropagator->fTrackMgr->GetNewBlock();
-    //printf("== New block: %d (%d) current=%d used=%d\n",
-    //       fBlock->GetId(), fBlock->GetNode(), fBlock->GetCurrent(), fBlock->GetUsed());
-    assert(fBlock->GetCurrent() == 0 && fBlock->GetUsed() == 0);
-  }
-  GeantTrack *track = fBlock->GetObject(index);
-  track->Reset(*fTrack);
-//  track->Clear();
-  track->fBindex = index;
-  return *track;
-  
-//  return ( fPropagator->fTrackMgr->GetTrack() );
+  GeantTrack &track = fPropagator->fTrackMgr->GetTrack();
+  index = track.fBindex;
+  track.Reset(*fTrack);
+  track.fBindex = index;
+  return track;
 }
 
 //______________________________________________________________________________

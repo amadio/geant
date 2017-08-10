@@ -47,6 +47,9 @@ public:
   /** @brief PhysicsProcessHandler destructor */
   virtual ~PhysicsProcessHandler();
 
+  /** @brief Attach the physics data to task data */
+  void AttachUserData(GeantTaskData *td);
+  
   /** @brief Initialize the physics
    *
    *  This method is the main physics initialization mathod called directly from the kernel through the interface.

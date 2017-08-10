@@ -89,7 +89,6 @@ public:
   GeantBasket *fImported = nullptr;        /** Basket used to import tracks from the event server */
   StackLikeBuffer *fStackBuffer = nullptr; /** Stack buffer tor this thread */
   TrackStat *fStat = nullptr;              /** Track statictics */
-  NumaTrackBlock_t *fBlock = nullptr;      /** Current track block */
 
 #ifdef VECCORE_CUDA
   char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...

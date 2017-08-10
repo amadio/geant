@@ -198,24 +198,35 @@ bool GeantRunManager::Initialize() {
   }
 
   fPrimaryGenerator->InitPrimaryGenerator();
-  fEventServer = new GeantEventServer(fConfig->fNtotal, this);
-  for (int i=0; i<fConfig->fNtotal; ++i)
-    fEventServer->AddEvent();
 
+  // Initialize task data
   int nthreads = GetNthreadsTotal();
   fTDManager = new TDManager(nthreads, fConfig->fMaxPerBasket);
+
+  // Initialize application
   if (fConfig->fUseStdScoring) {
     fStdApplication = new StdApplication(this);
     fStdApplication->Initialize();
-    for (int i = 0; i < nthreads; i++)
-      fStdApplication->AttachUserData(fTDManager->GetTaskData(i));
   }
   fApplication->Initialize();
-  for (int i = 0; i < nthreads; i++)
-    fApplication->AttachUserData(fTDManager->GetTaskData(i));
+
+  // Attach user data and physics data to task data
+  for (int i = 0; i < nthreads; i++) {
+    GeantTaskData *td = fTDManager->GetTaskData(i);
+    if (fPhysicsInterface) fPhysicsInterface->AttachUserData(td);
+    if (fStdApplication) fStdApplication->AttachUserData(td);
+    fApplication->AttachUserData(td);
+  }
 
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
+
+  fEventServer = new GeantEventServer(fConfig->fNtotal, this);
+
+  GeantTaskData *td = fTDManager->GetTaskData(0);
+  td->fPropagator = fPropagators[0];
+  for (int i=0; i<fConfig->fNtotal; ++i)
+    fEventServer->AddEvent(td);
 
   dataMgr->Print();
   fInitialized = true;
@@ -365,6 +376,7 @@ void GeantRunManager::EventTransported(int evt)
 //         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   fApplication->FinishEvent(event->GetEvent(), event->GetSlot());
   fApplication->Digitize(event);
+  event->Clear();
   fDoneEvents->SetBitNumber(evt);
 }
 

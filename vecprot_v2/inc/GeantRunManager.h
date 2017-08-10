@@ -55,8 +55,8 @@ private:
   GeantVTaskMgr     *fTaskMgr = nullptr;        /** GeantV task manager */
   PhysicsProcessOld *fProcess = nullptr;           /** For now the only generic process pointing to the tabulated physics */
   PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
-  PhysicsInterface *fPhysicsInterface; /** The new, real physics interface */
-  PrimaryGenerator *fPrimaryGenerator = nullptr;   /** Primary generator */
+  PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
+  PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
   GeantEventServer *fEventServer = nullptr;     /** The event server */
   TDManager *fTDManager = nullptr;              /** The task data manager */

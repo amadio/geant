@@ -98,12 +98,6 @@ bool TestEm5::Initialize() {
   // create the unique, global data struture that will be used to store cumulated per-primary data during the simulation
   fData        = new TestEm5Data();
   //
-  // CREATE PhysicsData here: should be done at the init of PhysicsProcessHandler but
-  // GeantTaskData are constructed later than that call
-  for (int i=0; i<fRunMgr->GetNthreadsTotal(); ++i) {
-    fRunMgr->GetTDManager()->GetTaskData(i)->fPhysicsData = new geantphysics::PhysicsData();
-  }
-  //
   fInitialized = true;
   return true;
 }

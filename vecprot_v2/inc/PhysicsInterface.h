@@ -45,6 +45,9 @@ public:
   /** @brief PhysicsInterface destructor */
   virtual ~PhysicsInterface();
 
+  /** @brief Attach task data if needed */
+  virtual void AttachUserData(GeantTaskData *) {}
+
   /** @brief Function of initialization */
   virtual void Initialize() {}
 

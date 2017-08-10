@@ -43,6 +43,12 @@ PhysicsProcessHandler::~PhysicsProcessHandler() {
   PhysicsData::ClearAll();   // delete all PhysicsData objects
 }
 
+void PhysicsProcessHandler::AttachUserData(GeantTaskData *td) {
+  //
+  // attach physics data to tasks. This is called after the initialization of
+  // physics and after the task data structures get created.
+  td->fPhysicsData = new PhysicsData();
+}
 
 void PhysicsProcessHandler::Initialize() {
   //
@@ -81,16 +87,7 @@ void PhysicsProcessHandler::Initialize() {
   // print out the PhysicsParameters obejct: we ha only one physics list so we have only one physics parameter object
   std::cout<<PhysicsParameters::GetThePhysicsParametersTable()[0];
   //
-  // THIS is the place where we should construct as many PhysicsData objects as working threads and set their pointers
-  // in the corresponding GeantTaskData objects. HOWEVER, unfortunately those GeantTaskData objects are constructedhere
-  // at the moment only after the call to this Initialize() method (so we need to do it in the Application::Initialize()
-  // method at the moment.
-  //
-  // GeantTaskData are constructed later
-  //
-//  for (int i=0; i<GeantPropagator::Instance()->fNthreads; ++i) {
-//    GeantPropagator::Instance()->fThreadData[i]->fPhysicsData = new geantphysics::PhysicsData();
-//  }
+  // The physics data per task is connected when the framework calls AttachUserData later
 }
 
 
