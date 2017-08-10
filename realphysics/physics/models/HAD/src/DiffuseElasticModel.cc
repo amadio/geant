@@ -14,6 +14,7 @@
 // this should be replaced by some VecMath classes
 #include "G4LorentzVector.hh"
 #include "G4ThreeVector.hh"
+#include "G4LorentzRotation.hh"
 
 namespace geantphysics {
 
@@ -72,10 +73,16 @@ namespace geantphysics {
     double plab = std::sqrt(track.GetKinE()*(track.GetKinE()+2*track.GetMass()));
     
     G4LorentzVector lv1(plab*track.GetDirX(), plab*track.GetDirY(), plab*track.GetDirZ(), track.GetKinE() + track.GetMass());
+
+    G4LorentzRotation fromZ;
+    fromZ.rotateZ(lv1.phi());
+    fromZ.rotateY(lv1.theta());
+
     G4LorentzVector lv(0.0,0.0,0.0,mass2);   
     lv += lv1;
-
+     
     G4ThreeVector bst = lv.boostVector();
+    
     lv1.boost(-bst);
 
     G4ThreeVector p1 = lv1.vect();
@@ -110,10 +117,12 @@ namespace geantphysics {
     G4LorentzVector nlv1(v1.x(),v1.y(),v1.z(),
 			 std::sqrt(momentumCMS*momentumCMS + mass1*mass1));
 
+    nlv1 *= fromZ;
+
     nlv1.boost(bst); 
 
     G4double eFinal = nlv1.e() - mass1;
-    
+            
     if(eFinal <= GetLowEnergyUsageLimit()) {
       if(eFinal < 0.0) {
 	std::cout << "G4HadronElastic WARNING Efinal= " << eFinal
@@ -128,7 +137,9 @@ namespace geantphysics {
 
     } else {
 
-      //      double p = std::sqrt(nlv1.px()*nlv1.px() + nlv1.py()*nlv1.py() + nlv1.pz()*nlv1.pz());
+      // double p = std::sqrt(nlv1.px()*nlv1.px() + nlv1.py()*nlv1.py() + nlv1.pz()*nlv1.pz());
+
+      // rotate back to lab frame
 
       track.SetDirX(nlv1.vect().unit().x());
       track.SetDirY(nlv1.vect().unit().y());
@@ -136,10 +147,13 @@ namespace geantphysics {
       track.SetKinE(eFinal);
       
     }  
-  
+      
     lv -= nlv1;
 
-    // double erec =  lv.e() - mass2;
+    double erec =  lv.e() - mass2;
+
+    //
+    if(erec > 0.0) track.SetEnergyDeposit(erec);
     
     /*
       std::cout << "Recoil: " <<" m= " << mass2 << " Erec(MeV)= " << erec

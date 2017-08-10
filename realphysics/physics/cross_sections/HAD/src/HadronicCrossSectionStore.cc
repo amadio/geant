@@ -81,7 +81,7 @@ GetIsotopeCrossSection( const int projectilecode, const double projectilekinetic
 			const Isotope* targetisotope, const Element* targetelement, const Material* targetmaterial) {
   double xsec = -1.0;
   int index = GetIndexFirstApplicableXsec( projectilecode, projectilekineticenergy, targetelement, targetmaterial );
-  if ( index >= 0 ) {
+  if ( index >= 0 ) {      
     xsec = fHadXsecVec[index]->GetIsotopeCrossSection( projectilecode, projectilekineticenergy, 
                                                        projectilemass, targetisotope->GetZ(), targetisotope->GetN() );
   }
@@ -100,8 +100,9 @@ GetElementCrossSection( const int projectilecode, const double projectilekinetic
       const double* abundanceIsotopeVector = targetelement->GetRelativeAbundanceVector();
       xsec = 0.0;
       for ( size_t i = 0; i < isotopeVector.size(); i++ ) {
+
 	double isotopeXsec = fHadXsecVec[index]->GetIsotopeCrossSection( projectilecode, projectilekineticenergy, projectilemass,
-									 isotopeVector[i]->GetZ(), isotopeVector[i]->GetN()/(geant::g/geant::mole));
+									 isotopeVector[i]->GetZ(), isotopeVector[i]->GetN());
 	if ( isotopeXsec < 0.0 ) {
 	  xsec = -1.0;
 	  break;
@@ -128,7 +129,7 @@ GetMacroscopicCrossSection( const int projectilecode, const double projectilekin
         xsec = -1.0;
         continue;
       }
-      xsec += elementXsec * numOfAtomsPerVolumeVector[i];  
+      xsec += elementXsec * numOfAtomsPerVolumeVector[i];
     }
   }
   return xsec;
