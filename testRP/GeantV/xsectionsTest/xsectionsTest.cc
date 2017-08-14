@@ -8,6 +8,7 @@
 #include <string>
 #include "Proton.h"
 #include "Neutron.h"
+#include "KaonMinus.h"
 #include "Electron.h"
 
 #include "SystemOfUnits.h"
@@ -16,30 +17,34 @@
 using geantphysics::Particle;
 using geantphysics::Proton;
 using geantphysics::Neutron;
-
+using geantphysics::KaonMinus;
 
 int main(int /*argc*/, char** /*argv*/) {
-  // Proton*  p = geantphysics::Proton::Definition();
-  // Neutron* n = geantphysics::Neutron::Definition();
+  geantphysics::Proton::Definition();
+  geantphysics::Neutron::Definition();
+  geantphysics::KaonMinus::Definition();
 
   geantphysics::GlauberGribovTotalXsc totxs;
   geantphysics::GlauberGribovInelasticXsc inexs;
   geantphysics::GlauberGribovElasticXsc elaxs;
 
+ 
   std::ofstream writef("sumXsc.dat", std::ios::out ) ;
 
   writef.setf( std::ios::scientific, std::ios::floatfield );
 
-  int i, iMax = 105;
-  double kinEnergy = 10.* geant::MeV;
-  int particlePDG = 2112;
-  int Z = 82;
+  int i;
+  double kinEnergy = 50.* geant::MeV;
+  double maxEnergy = 1000 * geant::GeV;
+  int particlePDG = -321;
+  int Z = 1;
   // number of nucleons
-  int N = 207;
+  int N = 0;
   double txs, ixs, exs;
 
-  writef << iMax << std::endl;
-  for (i=0; i<iMax; i++) {
+  while (kinEnergy < maxEnergy)
+    {
+    
     txs = totxs.GetIsotopeCrossSection(geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetInternalCode(),
 			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::millibarn;
 
@@ -51,10 +56,10 @@ int main(int /*argc*/, char** /*argv*/) {
 
     std::cout <<"energyKin " << kinEnergy <<  " total " << txs << " elastic " << exs << " inelastic " << ixs <<  std::endl;
 
-    writef << kinEnergy/geant::MeV <<"  \t" << 0 << "  \t"
-     << 0 << "  \t"<< 0 << "  \t"<< txs << std::endl;
+    writef << kinEnergy/geant::MeV <<"  \t" << ixs << "  \t"
+     << exs << "  \t"<< 0 << "  \t"<< txs << std::endl;
 
-    kinEnergy *= 1.138;
+    kinEnergy *= 1.001;
   }
 
   return 0;
