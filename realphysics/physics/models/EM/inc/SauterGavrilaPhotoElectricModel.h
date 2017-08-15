@@ -82,6 +82,21 @@ namespace geantphysics {
         //@}
         
     private:
+
+        //Struct to handle tabulated cross-sections data -> one struct per element
+        struct CrossSectionsVector{
+            
+            std::vector<double>   fBinVector;       //Cross sections bin vector (i.e. x coordinate)
+            std::vector<double>   fDataVector;      //Cross sections data vector (i.e. y coordinate)
+            
+            size_t numberOfNodes;                   // Number of elements
+            double edgeMin;                         // Energy of first point
+            double edgeMax;                         // Energy of last point
+            Spline     *sp;                         // Spline interpolator
+            
+        };
+        
+        
         /**
          * @name Model specific private methods.
          */
@@ -102,9 +117,11 @@ namespace geantphysics {
          * @brief Public method to Sample the target index
          *
          */
-
-        int MySampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
         
+        int SampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
+        
+        
+        void testSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
         
         //---------------------------------------------
         //CalculateDiffCrossSection:: Differential cross section based on SauterGavrila distribution for k-shell
@@ -185,7 +202,7 @@ namespace geantphysics {
         
         //---------------------------------------------
         //Method to retrieve, given the energy of the incoming gamma, the corresponding bin index of the CrossSectionVector
-        inline size_t FindCSBinLocation(double energy,  size_t index, size_t numberofnodes, std::vector<double>   binvector){
+        inline size_t FindCSBinLocation(double energy,  size_t index, size_t numberofnodes, std::vector<double>   binvector) const{
             
             size_t bin= index;
             if(energy < binvector[1]) {
@@ -214,6 +231,28 @@ namespace geantphysics {
             ( datavector[idx + 1]-datavector[idx] ) * (energy - binvector[idx]) /( binvector[idx + 1]-binvector[idx] );
         }
         
+        //---------------------------------------------
+        //Get Bin Index corresponding to some energy
+        inline double GetIndex(double energy, CrossSectionsVector** fCSVector,  int Z) const
+        {
+            
+            size_t index=0;
+            double value;
+            
+            if(energy <= fCSVector[Z]->edgeMin)
+            {
+                index = 0;
+                value = fCSVector[Z]->fDataVector[0];
+            } else if(energy >= fCSVector[Z]->edgeMax) {
+                index = fCSVector[Z]->numberOfNodes-1;
+                value = fCSVector[Z]->fDataVector[index];
+                
+            } else {
+                index=FindCSBinLocation(energy, index, fCSVector[Z]->numberOfNodes, fCSVector[Z]->fBinVector);
+            }
+            return index;
+        }
+        
         //@}
         
         // data members
@@ -231,19 +270,7 @@ namespace geantphysics {
         };
         
         
-        //Struct to handle tabulated cross-sections data -> one struct per element
-        struct CrossSectionsVector{
-            
-            std::vector<double>   fBinVector;       //Cross sections bin vector (i.e. x coordinate)
-            std::vector<double>   fDataVector;      //Cross sections data vector (i.e. y coordinate)
-            
-            size_t numberOfNodes;                   // Number of elements
-            double edgeMin;                         // Energy of first point
-            double edgeMax;                         // Energy of last point
-            Spline     *sp;                         // Spline interpolator
-            
-        };
-        
+
         
         static std::vector<double>*  fParamHigh[gMaxSizeData];  //High-energy parameterization data
         static std::vector<double>*  fParamLow[gMaxSizeData];   //Low-energy parameterization data
@@ -288,7 +315,7 @@ namespace geantphysics {
         
         /** @brief Number of primary gamma kinetic energy grid points per decade. */
         int     fNumSamplingPrimEnergiesPerDecade;
-
+        
         
         //---------------------------------------------
         /** @brief Number of emitted pe cosTheta in [-1, 1] or transformed emitted photoelectron angle related variable in [log(e-12),log(2)]. */
@@ -328,8 +355,8 @@ namespace geantphysics {
          *  interval.
          */
         double *fLSamplingPrimEnergies;            // log of sampling gamma energies
- //@}
-
+        //@}
+        
         
         
         //---------------------------------------------

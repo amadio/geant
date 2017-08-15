@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
     std::cout<<"Creating the model SauterGavrilaPhotoElectricModel\n";
     EMModel *emModel = new SauterGavrilaPhotoElectricModel();
     // - Set low/high energy usage limits to their min/max possible values
-    emModel->SetLowEnergyUsageLimit ( 1.0*geant::keV);
+    emModel->SetLowEnergyUsageLimit ( 0.01*geant::keV);
     
     emModel->SetHighEnergyUsageLimit(100.0*geant::GeV);
     //
