@@ -37,6 +37,7 @@ set(TEST_FILES
 include_directories(BEFORE
     ${CMAKE_SOURCE_DIR}/BusyWaitCalibration)
 add_library(SingleThreadedTestModules SHARED ${TEST_FILES} SingleThreadedFrameworkCore)
+target_link_libraries(SingleThreadedTestModules SingleThreadedFrameworkCore)
 
 add_executable(SingleThreadedDemo main.cpp)
 target_link_libraries(SingleThreadedDemo SingleThreadedFrameworkCore SingleThreadedTestModules)

@@ -1,4 +1,7 @@
+*~
 *.o
 *.so
 BusyWaitCalibrate
 DispatchDemo
+doc
+build

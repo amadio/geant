@@ -23,7 +23,7 @@ ModuleWrapper::ModuleWrapper(Module* iModule, Event* iEvent):
 m_module(iModule),
 m_event(iEvent),
 m_runQueue( m_module->threadType() == kThreadSafeBetweenInstances? static_cast<SerialTaskQueue*>(nullptr) : new SerialTaskQueue{}),
-m_requestedPrefetch{ATOMIC_FLAG_INIT}
+m_requestedPrefetch ATOMIC_FLAG_INIT
 {
 }
 
@@ -31,7 +31,7 @@ ModuleWrapper::ModuleWrapper(const ModuleWrapper& iOther,
                              Event* iEvent):
 m_module(iOther.m_module),
 m_event(iEvent),
-m_requestedPrefetch{ATOMIC_FLAG_INIT}
+m_requestedPrefetch ATOMIC_FLAG_INIT
 {
   if(m_module->threadType() != kThreadSafeBetweenInstances) {
     //the same instance can not be called reentrantly so each Schedule must
@@ -44,7 +44,7 @@ ModuleWrapper::ModuleWrapper(const ModuleWrapper& iOther):
 m_module(iOther.m_module),
 m_event(iOther.m_event),
 m_runQueue(iOther.m_runQueue),
-m_requestedPrefetch{ATOMIC_FLAG_INIT}
+m_requestedPrefetch ATOMIC_FLAG_INIT
 {
 }
 

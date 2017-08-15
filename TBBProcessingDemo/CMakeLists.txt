@@ -3,6 +3,63 @@
 # including the discussion.
 include_directories(${TBB_INCLUDE_DIRS})
 
+#----------------------------------------------------------------------------------------------
+# Find VecGeom geometry headers library
+#
+find_package(HepMC REQUIRED)
+if(HepMC_FOUND)
+  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
+  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
+endif()
+
+#---Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
+find_package(ROOT REQUIRED COMPONENTS Geom Graf3d RIO Core Physics EG)
+
+#----------------------------------------------------------------------------------------------
+# Find VecGeom geometry headers library
+#
+set(VECGEOM_DIR "" CACHE DIRECTORY "Location of VecGeom")
+if(VECGEOM_DIR)
+  list(APPEND CMAKE_PREFIX_PATH ${VECGEOM_DIR})
+endif()
+if($ENV{VECGEOM_DIR})
+  list(APPEND CMAKE_PREFIX_PATH $ENV{VECGEOM_DIR})
+endif()
+
+find_package(VecGeom REQUIRED)
+if( VECGEOM_FOUND )
+   find_package(Vc REQUIRED)
+   if ( Vc_FOUND )
+      include_directories( AFTER SYSTEM ${Vc_INCLUDE_DIR})
+      set(VC_LIBRARIES ${Vc_LIBRARIES})
+   endif()
+   if( USE_VECGEOM_NAVIGATOR )
+     add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
+   endif()
+   include_directories(${VECGEOM_INCLUDE_DIR})
+else()
+   message(FATAL_ERROR "Required VecGeom library not found")
+endif()
+
+if(ROOT_FOUND)
+  include_directories(AFTER SYSTEM ${ROOT_INCLUDE_DIRS})
+  link_directories(${ROOT_LIBRARY_DIR})
+  set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES})
+endif()
+if(HepMC_FOUND)
+  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIRS})
+  set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${HEPMC_LIBRARIES})
+endif()
+
+include_directories("/Users/lima/work/geantv/base/inc")
+include_directories("/Users/lima/work/geantv/xsec/inc")
+include_directories("/Users/lima/work/geantv/vecprot_v2/inc")
+include_directories("/Users/lima/work/geantv/vecprot_v2_tbb/inc")
+include_directories("/Users/lima/work/geantv/examples/inc")
+set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeant_tbb.so ${GeantV_DIR}/lib/libGeantExamples.so ${GeantV_DIR}/lib/libXsec.so)
+
+include_directories("/opt/local/vecgeom/install/include")
+
 set(CORE_FILES
     TBBFrameworkCore/Event.cpp
     TBBFrameworkCore/EventProcessor.cpp
@@ -28,11 +85,12 @@ set(CORE_FILES
 include_directories(BEFORE
     ${CMAKE_CURRENT_SOURCE_DIR}/TBBFrameworkCore)
 add_library(TBBFrameworkCore SHARED ${CORE_FILES})
-target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES})
+target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES} ${GEANTV_LIBRARIES} ${VECGEOM_LIBRARIES})
 
 set(TEST_FILES
   TBBTestModules/BusyWaitPassFilter.cpp
   TBBTestModules/BusyWaitProducer.cpp
+  TBBTestModules/EventGeneratorProducer.cpp
   TBBTestModules/EventTimesBusyWaitPassFilter.cpp
   TBBTestModules/EventTimesBusyWaitProducer.cpp
   TBBTestModules/EventTimesPassFilterBase.cpp
@@ -46,6 +104,7 @@ set(TEST_FILES
   TBBTestModules/FastPassFilter.cpp
   TBBTestModules/FastProducer.cpp
   TBBTestModules/GeantVProducer.cpp
+  TBBTestModules/CMSApplicationTBB.cpp
   TBBTestModules/PassFilter.cpp
   TBBTestModules/SleepingPassFilter.cpp
   TBBTestModules/SleepingProducer.cpp
@@ -76,4 +135,4 @@ if(CPPUNIT_FOUND)
 endif()
 
 add_executable(TBBDemo main.cpp)
-target_link_libraries(TBBDemo TBBFrameworkCore TBBTestModules ${TBB_LIBRARY})
+target_link_libraries(TBBDemo TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})
