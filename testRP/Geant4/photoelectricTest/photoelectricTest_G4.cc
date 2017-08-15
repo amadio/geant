@@ -107,7 +107,7 @@ static struct option options[] = {
     {"primary-energy    (in internal energy units i.e. [MeV])       - default: 10"                  , required_argument, 0, 'E'},
     {"number-of-samples (number of required final state samples)    - default: 1.e+7"               , required_argument, 0, 'f'},
     {"number-of-bins    (number of bins in the histogram)           - default: 100"                 , required_argument, 0, 'n'},
-    {"model-name        (photoelectricFlu, photoelectricLiv)        - default: photoelectricFluo"   , required_argument, 0, 'b'},
+    {"model-name        (photoelectricFlu, photoelectricLiv, photoelectricLiv_new)        - default: photoelectricFluo"   , required_argument, 0, 'b'},
     {"cut-vale          (secondary production threshold [mm])       - default: 1.0"                 , required_argument, 0, 'c'},
     {"isangular         (angular distribution is required ?)        - default: false"               , no_argument      , 0, 'a'},
     {"help"                                                                                         , no_argument      , 0, 'h'},
@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
     if(!mat) { exit(1); }
     
     //we have only one model for the moment so we don't need this option
-    if (!(photoelectricModelName=="photoelectricFluo" || photoelectricModelName=="photoelectricLiv")) {
+    if (!(photoelectricModelName=="photoelectricFluo" || photoelectricModelName=="photoelectricLiv" || photoelectricModelName=="photoelectricLiv_new")) {
       G4cout << "  *** unknown photoelectric. model name = " << photoelectricModelName << G4endl;
       help();
       return 0;
@@ -255,25 +255,28 @@ int main(int argc, char** argv) {
     //  G4EmParameters::Instance()->Dump();
     // create models
     G4PEEffectFluoModel photoelectricFluo;
-    //G4LivermorePhotoElectricModel_new photoelectricLiv;
+    G4LivermorePhotoElectricModel_new photoelectricLiv_new;
     G4LivermorePhotoElectricModel photoelectricLiv;
     
     // Set particle change object
     G4ParticleChangeForGamma* fParticleChange = new G4ParticleChangeForGamma();
+    photoelectricLiv_new.SetParticleChange(fParticleChange, 0);
     photoelectricLiv.SetParticleChange(fParticleChange, 0);
     photoelectricFluo.SetParticleChange(fParticleChange, 0);
     
     // Initilise models
+    photoelectricLiv_new.Initialise(part, cuts);
+    photoelectricLiv_new.SetCurrentCouple(couple);
     photoelectricLiv.Initialise(part, cuts);
     photoelectricLiv.SetCurrentCouple(couple);
     photoelectricFluo.Initialise(part, cuts);
     photoelectricFluo.SetCurrentCouple(couple);
     
-    
     G4VEmModel *model  = &photoelectricFluo;
     if (photoelectricModelName=="photoelectricLiv") {
         model  = &photoelectricLiv;
-    }
+    } else if(photoelectricModelName=="photoelectricLiv_new")
+        model  = &photoelectricLiv_new;
 
     
     // ------- Histograms name
