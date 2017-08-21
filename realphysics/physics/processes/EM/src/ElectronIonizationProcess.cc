@@ -13,7 +13,7 @@ ElectronIonizationProcess::ElectronIonizationProcess(const std::string &name) : 
   AddToListParticlesAlloedToAssigned(Electron::Definition());
   AddToListParticlesAlloedToAssigned(Positron::Definition());
   // request to build lambda table per-material-cuts (per-material by default)
-  RequestLambdaTables();  
+  RequestLambdaTables(false);
 }
 
 } // namespace geantphysics
