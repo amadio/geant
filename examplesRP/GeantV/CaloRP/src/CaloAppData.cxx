@@ -1,11 +1,12 @@
 
-#include "CaloAppData.h"
 
 #ifdef USE_ROOT
   #include "TH1F.h"
 #else
   #include "Hist.h"
 #endif
+
+#include "CaloAppData.h"
 
 
 namespace userapplication {
