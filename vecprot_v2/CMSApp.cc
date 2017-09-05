@@ -32,7 +32,7 @@ static int n_reuse = 100000;
 static int n_propagators = 1;
 static int max_memory = 4000; /* MB */
 static bool monitor = false, score = false, debug = false, coprocessor = false;
-static bool tbbmode = false, usev3 = false, usenuma = false;
+static bool tbbmode = false, usev3 = true, usenuma = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"hepmc-event-file", required_argument, 0, 'E'},
