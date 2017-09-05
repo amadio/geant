@@ -329,9 +329,15 @@ namespace geantphysics {
             std::cout << "Calling ReadData() of SauterGavrilaPhotoElectricModel"
             << std::endl;
         }
+        //to change
+        //if( ( (fCrossSection[Z] && Z<23) || (!fCrossSection[Z] && Z>22 )) && ( (fCrossSectionLE[Z] && Z>2) || (!fCrossSectionLE[Z] && Z<3)) ) {std::cout<<"Data loaded before!\n"; return;}
+        //else std::cout<<"Data not loaded before!\n";
         
-        if( ( (fCrossSection[Z] && Z<23) || (!fCrossSection[Z] && Z>22 )) && ( (fCrossSectionLE[Z] && Z>2) || (!fCrossSectionLE[Z] && Z<3)) ) {std::cout<<"Data loaded before!\n"; return;}
+        if(  (fCrossSection[Z]) && ( (fCrossSectionLE[Z] && Z>2) || (!fCrossSectionLE[Z] && Z<3)) )
+        {std::cout<<"Data loaded before!\n"; return;}
         else std::cout<<"Data not loaded before!\n";
+        
+        
         
         // get the path to the main physics data directory
         char *path = std::getenv("GEANT_PHYSICS_DATA");
@@ -345,8 +351,9 @@ namespace geantphysics {
         
         // spline for photoeffect total x-section above K-shell - but below the parameterized ones
         
-        if(Z<23) //we have pe-cs file only below Z=23
-        {
+        //TO CHANGE
+        //if(Z<102) //we have pe-cs file only below Z=23
+        //{
             
             fCrossSection[Z] =true;
             //fCrossSection[Z]->SetSpline(true); //IMPORTANT
@@ -410,7 +417,7 @@ namespace geantphysics {
                 fin.close();
             }
             
-        }
+        //}
         
         
         // read high-energy fit parameters
@@ -794,53 +801,22 @@ namespace geantphysics {
         // Tabulated values above k-shell ionization energy
         else if(energy >= (*(fParamHigh[Z]))[1]) {
     
-            //TO DO: CREATE A GET VALUE METHOD
             size_t index=0;
             double value;
-            /*
-            if(energy <= fCSVector[Z]->edgeMin)
-            {
-                index = 0;
-                value = fCSVector[Z]->fDataVector[0];
-            } else if(energy >= fCSVector[Z]->edgeMax) {
-                index = fCSVector[Z]->numberOfNodes-1;
-                value = fCSVector[Z]->fDataVector[index];
-                
-            } else {
-                
-                index=FindCSBinLocation(energy, index, fCSVector[Z]->numberOfNodes, fCSVector[Z]->fBinVector);
-              */
-                
             index= GetIndex(energy,fCSVector, Z);
             ///THIS MUST BE SUBSTITUTED WITH SPLINE INTERPOLATOR
             value = LinearInterpolation(energy, fCSVector[Z]->fBinVector, fCSVector[Z]->fDataVector,  index);
-                
-            //}
             cs=x3*value;
             
         }
         // Tabulated values below k-shell ionization energy
         else
         {
-            
-            //TO DO  ::: CREATE A GET VALUE METHOD
             size_t index=0;
             double value;
-            /*
-            if(energy <= fLECSVector[Z]->edgeMin)
-            {
-                index = 0;
-                value = fLECSVector[Z]->fDataVector[0];
-            } else if(energy >= fLECSVector[Z]->edgeMax) {
-                index = fLECSVector[Z]->numberOfNodes-1;
-                value = fLECSVector[Z]->fDataVector[index];
-                
-            } else {
-                
-                index=FindCSBinLocation(energy, index, fLECSVector[Z]->numberOfNodes, fLECSVector[Z]->fBinVector);*/
+
             index= GetIndex(energy,fLECSVector, Z);
             value = LinearInterpolation(energy, fLECSVector[Z]->fBinVector, fLECSVector[Z]->fDataVector,  index);
-            //}
             cs=x3*value;
             
         }
@@ -879,7 +855,6 @@ namespace geantphysics {
     
     int SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, Geant::GeantTaskData *td)
     {
-        //TO TEST PROPERLY
         int index=0;
         //retrieve the elements vector
         const Vector_t<Element*> theElements = matCut->GetMaterial()->GetElementVector();
@@ -899,16 +874,14 @@ namespace geantphysics {
                 cumxsec += xsec;
                 if (rnd <= cumxsec)
                 {
-                    //index = i;
                     break;
                 }
             }
         }
-        //std::cout<<"DEB index: "<<index<<std::endl;
         return index;
     }
     
-    void SauterGavrilaPhotoElectricModel::testSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td){
+    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td){
     
         std::cout<<"testSampleTargetElementIndex\n";
         int index=0;
@@ -1078,22 +1051,8 @@ namespace geantphysics {
                 if(gammaekin0 >= (*(fParamHigh[Z]))[1]) {
                     //above K-shell binding energy
                     
-                    //TO DO:: CREATE A METHOD
                     size_t index=0;
                     double value;
-                    
-                    /*if(gammaekin0 <= fCSVector[Z]->edgeMin)
-                    {
-                        index = 0;
-                        value = fCSVector[Z]->fDataVector[0];
-                    } else if(gammaekin0 >= fCSVector[Z]->edgeMax) {
-                        index = fCSVector[Z]->numberOfNodes-1;
-                        value = fCSVector[Z]->fDataVector[index];
-                        
-                    } else {
-                        
-                        
-                        index=FindCSBinLocation(gammaekin0, index, fCSVector[Z]->numberOfNodes, fCSVector[Z]->fBinVector);*/
                     index= GetIndex(gammaekin0,fCSVector, Z);
                         //THIS MUST BE SUBSTITUTED WITH THE SPLINE INTERPOLATION
                     value = LinearInterpolation(gammaekin0, fCSVector[Z]->fBinVector, fCSVector[Z]->fDataVector,  index);
@@ -1105,25 +1064,10 @@ namespace geantphysics {
                 else
                 {
                     //below K-shell binding energy
-                    //TO DO:: BETTER TO CREATE A METHOD
                     size_t index=0;
                     double value;
-                    
-                    /*if(gammaekin0 <= fLECSVector[Z]->edgeMin)
-                    {
-                        index = 0;
-                        value = fLECSVector[Z]->fDataVector[0];
-                    } else if(gammaekin0 >= fLECSVector[Z]->edgeMax) {
-                        index = fLECSVector[Z]->numberOfNodes-1;
-                        value = fLECSVector[Z]->fDataVector[index];
-                        
-                    } else {
-                        
-                        index=FindCSBinLocation(gammaekin0, index, fLECSVector[Z]->numberOfNodes, fLECSVector[Z]->fBinVector);*/
                     index= GetIndex(gammaekin0,fLECSVector, Z);
                     value = LinearInterpolation(gammaekin0, fLECSVector[Z]->fBinVector, fLECSVector[Z]->fDataVector,  index);
-                    //}
-                    
                     cs*=value;
                 }
                 
@@ -1132,27 +1076,9 @@ namespace geantphysics {
                     shellIdx = (size_t)fShellCrossSection[Z]->fCompID[j];
                     if(gammaekin0 > (*(fParamLow[Z]))[7*shellIdx+1]) {
                         
-                        //FINDING THE BIN LOCATION---> TO DO: use find bin!
-                        size_t numberofnodes=(fShellCrossSection[Z]->fCompLength[shellIdx]);
-                        size_t bin=0;
-                        
-                        /*
-                        if(gammaekin0 < fShellCrossSection[Z]->fCompBinVector[shellIdx][1]) {
-                            bin = 0;
-                        } else if(gammaekin0 >= fShellCrossSection[Z]->fCompBinVector[shellIdx][numberofnodes-2]) {
-                            bin = numberofnodes - 2;
-                        } else if(bin >= numberofnodes || gammaekin0 < fShellCrossSection[Z]->fCompBinVector[shellIdx][bin]
-                                  || gammaekin0 > fShellCrossSection[Z]->fCompBinVector[shellIdx][bin+1])
-                        {
-                            // Bin location proposed by K.Genser (FNAL) from G4
-                            bin = std::lower_bound(fShellCrossSection[Z]->fCompBinVector[shellIdx].begin(), fShellCrossSection[Z]->fCompBinVector[shellIdx].end(), gammaekin0) - fShellCrossSection[Z]->fCompBinVector[shellIdx].begin() - 1;
-                        }
-                        size_t minV= std::min(bin, numberofnodes-2);*/
-                        
-                        bin= FindCSBinLocation(gammaekin0, bin, numberofnodes,fShellCrossSection[Z]->fCompBinVector[shellIdx]);
+                        size_t bin= FindCSBinLocation(gammaekin0,fShellCrossSection[Z]->fCompLength[shellIdx], fShellCrossSection[Z]->fCompBinVector[shellIdx]);
                         double value = LinearInterpolation (gammaekin0, fShellCrossSection[Z]->fCompBinVector[shellIdx], fShellCrossSection[Z]->fCompDataVector[shellIdx],  bin);
                         
-                        //double value = LinearInterpolation (gammaekin0, fShellCrossSection[Z]->fCompBinVector[shellIdx], fShellCrossSection[Z]->fCompDataVector[shellIdx],  minV);
                         cs-=value;
                     }
                     if(cs <= 0.0 || j+1 == nn) {break;}
