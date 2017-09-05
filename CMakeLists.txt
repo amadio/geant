@@ -298,6 +298,11 @@ endif()
 # Find if the system is NUMA aware
 #----------------------------------------------------------------------------
 set(NUMA_ALL_LIBRARIES GeantNuma)
+if (USE_NUMA AND APPLE)
+  # Disable NUMA for APPLE
+  set(USE_NUMA OFF)
+  message(STATUS "NUMA disabled on APPLE")
+endif()
 if (USE_NUMA)
   # Check the presence of hwloc library
   find_package(hwloc)
