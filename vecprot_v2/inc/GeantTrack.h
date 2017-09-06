@@ -924,7 +924,7 @@ private:
   std::string fName;      /** token name */
   size_t fOffset;         /** offset with respect to track user data base address */
 public:
-  TrackToken(const char *name, size_t offset) : fName(name), fOffset(offset) {}
+  TrackToken(const char *name = "", size_t offset = 0) : fName(name), fOffset(offset) {}
 
   std::string const GetName() const { return fName; }
 
@@ -962,7 +962,7 @@ private:
   size_t fMaxDepth = 0;   /** Maximum geometry depth, to be provided at construction time */
 
   vector_t<DataInplaceConstructor_t> fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
-  vector_t<TrackToken *> fTokens;
+  vector_t<TrackToken> fTokens;
   std::mutex fRegisterLock; /** Multithreading lock for the registration phase */
 
   VECCORE_ATT_HOST_DEVICE
@@ -984,9 +984,9 @@ public:
   size_t GetDataSize() const { return fDataOffset; }
 
   GEANT_FORCE_INLINE
-  TrackToken *GetToken(const char *name) const
+  const TrackToken *GetToken(const char *name) const
   {
-    for (auto token : fTokens) { if (token->GetName() == name) return (token); }
+    for (size_t i=0; i<fTokens.size(); ++i) { if (fTokens[i].GetName() == name) return &fTokens[i]; }
     return nullptr;
   }
 
@@ -1015,19 +1015,19 @@ public:
   {
     std::cout << "*** TrackDataMgr report: track size = " << fTrackSize << " bytes,  max. depth = " << fMaxDepth << std::endl;
     std::cout << "                         extra data size = " <<  fDataOffset << " bytes in the following blocks: ";
-    for (auto token : fTokens) std::cout << token->GetName() << "  ";
+    for (size_t i=0; i<fTokens.size(); ++i) std::cout << fTokens[i].GetName() << "  ";
     std::cout << "\n";
   }
 
   template <typename T /*, typename... Params*/>
-  TrackToken *RegisterDataType(const char *name /*, Params... params*/)
+  TrackToken RegisterDataType(const char *name /*, Params... params*/)
   {
     if (fLocked) throw std::runtime_error("Registering types in the track is locked");
     std::lock_guard<std::mutex> lock(fRegisterLock);
 
     // If a token with same name is found, return its reference
-    TrackToken *token = GetToken(name);
-    if (token) return (token);
+    const TrackToken *token = GetToken(name);
+    if (token) return (*token);
 
     // Register lambda for constructing in-place the user data
     auto userinplaceconstructor = [&](void * address) {
@@ -1047,10 +1047,10 @@ public:
     fConstructors.push_back(ctor);
 
     // Create a new token
-    token = new TrackToken(name, fDataOffset);
-    fTokens.push_back(token);
+    TrackToken newtoken(name, fDataOffset);
+    fTokens.push_back(newtoken);
     fDataOffset += block_size;
-    return (token);
+    return (newtoken);
   }
 };
 

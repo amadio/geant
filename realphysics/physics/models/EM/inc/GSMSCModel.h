@@ -8,10 +8,10 @@
 
 // from geantV
 #include "Geant/Config.h"
+#include "GeantTrack.h"
+
 namespace Geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTrack;
-  class TrackToken;
   class GeantTaskData;
 }
 }
@@ -65,20 +65,20 @@ private:
 //                           double &scra, double &g1);
 // data members
 private:
-  bool   fIsElectron;            // is the model for e- (e+ otherwise)
-  bool   fIsUsePWATotalXsecData; // use screening that gives back pwa first transport mean free path
-  bool   fIsUseAccurate;         // use accurate step limits
-  bool   fIsOptimizationOn;      // use optimisation in the step limit: check current range and pre-safety
+  bool   fIsElectron = false;            // is the model for e- (e+ otherwise)
+  bool   fIsUsePWATotalXsecData = false; // use screening that gives back pwa first transport mean free path
+  bool   fIsUseAccurate = true;          // use accurate step limits
+  bool   fIsOptimizationOn = true;       // use optimisation in the step limit: check current range and pre-safety
 
-  double fCharge;
+  double fCharge = 0.0;
 
-  double fTauSmall;
-  double fTauLim;
-  double fTLimitMinfix2;
-  double fDtrl;
+  double fTauSmall = 1.e-16;
+  double fTauLim = 1.e-6;
+  double fTLimitMinfix2 = 1.*geant::nm;
+  double fDtrl = 0.05;
 
-  Particle* fParticle;    //e-/e+
-  Geant::TrackToken *fMSCdata = nullptr;   // Handle for MSCData
+  Particle* fParticle = nullptr;    //e-/e+
+  Geant::TrackToken fMSCdata;   // Handle for MSCData
 
   static GSMSCTable         *gGSTable;
   static PWATotalXsecTable  *gPWAXsecTable;

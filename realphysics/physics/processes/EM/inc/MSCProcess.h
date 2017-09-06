@@ -6,9 +6,10 @@
 
 // from geantV
 #include "Geant/Config.h"
+#include "GeantTrack.h"
+
 namespace Geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTrack;
   class GeantTaskData;
 }
 }
@@ -41,7 +42,7 @@ public:
 private:
   double fGeomMinLimit;  // if the true step length is below this => no msc
   double fGeomMinLimit2; // square of the above
-  Geant::TrackToken *fMSCdata = nullptr;   // Handle for MSCData
+  Geant::TrackToken fMSCdata;   // Token for MSCData
 
 };
 

@@ -33,16 +33,6 @@ PWATotalXsecTable* GSMSCModel::gPWAXsecTable = nullptr;
 
 
 GSMSCModel::GSMSCModel(bool iselectron, const std::string &name) :  MSCModel(name), fIsElectron(iselectron) {
-  fIsUseAccurate         = true;
-  fIsOptimizationOn      = true;
-
-  fIsUsePWATotalXsecData = false;
-
-  fTauSmall       = 1.e-16;
-  fTauLim         = 1.e-6;
-  fTLimitMinfix2  = 1.*geant::nm;
-  fDtrl           = 0.05;
-
   fParticle = Electron::Definition();
   if (!fIsElectron) {
     fParticle = Positron::Definition();
@@ -102,7 +92,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   double lambtr1;
   double scra;
   double g1;
-  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   ComputeParameters(matCut, kineticEnergy, lambel, lambtr1, scra, g1);
   mscdata.fLambda0 = lambel;
   mscdata.fLambda1 = lambtr1;
@@ -409,7 +399,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
 }
 
 bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
-  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone && mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
     RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
@@ -463,7 +453,7 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
 
 
 void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
-  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fPar1 = -1.;
   mscdata.fPar2 =  0.;
   mscdata.fPar3 =  0.;
@@ -521,7 +511,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
 
 void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
   // init
-  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsEndedUpOnBoundary = false;
   // step was not defined by transportation: i.e. physics
   if (!gtrack->fBoundary) {
@@ -565,7 +555,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::
 }
 
 void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
-  MSCdata &mscdata = fMSCdata->Data<MSCdata>(gtrack);
+  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsNoScatteringInMSC = false;
   //
 //  int    matIndx              = gtrack->GetMaterial()->GetIndex();
