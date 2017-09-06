@@ -177,60 +177,59 @@ namespace geantphysics {
 	  {
 	    B0 = 7.5;
 	    A0 = 100. - B0*std::log(3.0e7);
-
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11
-	      // + 103*std::pow(2*0.93827*pE + pM*pM+0.93827*0.93827,-0.165);        //  mb
-	      + 103*std::pow(sMand,-0.165);        //  mb
+	    
+	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11 + 103*std::pow(sMand,-0.165); // mb
 	  }
 	else if( pLab >= 10.)
 	  {
 	    B0 = 7.5;
 	    A0 = 100. - B0*std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11
-	      + 103*std::pow(2*0.93827*pE + pM*pM+
-			     0.93827*0.93827,-0.165);        //  mb
+	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11 + 103*std::pow(2*0.93827*pE + pM*pM +0.93827*0.93827,-0.165); //  mb
 	  }
 	else  // pLab < 10 GeV/c
 	  {
 	    if( neutron )      // nn to be pp
 	      {
-		if( pLab < 0.4 ) {
-		  NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
-		} else if( pLab < 0.73 )
+		if( pLab < 0.4 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
+		  }
+		else if( pLab < 0.73 )
+		  {
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		  }
 		else if( pLab < 1.05  )
 		  {
-		    NucleonTotalXsc = 23 + 40*(std::log(pLab/0.73))*(std::log(pLab/0.73));
+		    double lp73 = std::log(pLab/0.73);
+		    NucleonTotalXsc = 23 + 40 * lp73 * lp73;
 		  }
 		else    // 1.05 - 10 GeV/c
 		  {
-		    NucleonTotalXsc = 39.0+75*(pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
+		    NucleonTotalXsc = 39.0 + 75 * (pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
 		  }
 	      }
 	    if( proton )   // pn to be np
 	      {
 		if( pLab < 0.02 )
 		  {
-		    NucleonTotalXsc = 4100+30*std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
+		    NucleonTotalXsc = 4100 + 30 * std::pow(std::log(1.3/pLab), 3.6); // was as pLab < 0.8
 		  }
 		else if( pLab < 0.8 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/1.3),4.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/1.3), 4.0);
 		  }
 		else if( pLab < 1.05 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95), 2.0);
 		  }
 		else if( pLab < 1.4 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95), 2.0);
 		  }
 		else    // 1.4 < pLab < 10.  )
 		  {
-		    NucleonTotalXsc = 33.3 + 20.8*(std::pow(pLab,2.0) - 1.35)/(std::pow(pLab,2.50) + 0.95);
+		    NucleonTotalXsc = 33.3 + 20.8 * (std::pow(pLab,2.0) - 1.35)/(std::pow(pLab,2.50) + 0.95);
 		  }
 	      }
 	  }
@@ -246,14 +245,14 @@ namespace geantphysics {
 	    B0 = 7.5;
 	    A0 = 100. - B0*std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11 + 103*std::pow(sMand,-0.165);        //  mb
+	    NucleonTotalXsc = A0 + B0 * std::log(pE) - 11 + 103 * std::pow(sMand,-0.165);        //  mb
 	  }
 	else if( pLab >= 10.)
 	  {
 	    B0 = 7.5;
-	    A0 = 100. - B0*std::log(3.0e7);
+	    A0 = 100. - B0 * std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11 + 103*std::pow(sMand,-0.165);        //  mb
+	    NucleonTotalXsc = A0 + B0 * std::log(pE) - 11 + 103 * std::pow(sMand,-0.165);        //  mb
     	  }
 	else
 	  {
@@ -263,43 +262,43 @@ namespace geantphysics {
 	      {
 		if( pLab < 0.4 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		  }
 		else if( pLab < 0.73 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		  }
 		else if( pLab < 1.05  )
 		  {
-		    NucleonTotalXsc = 23 + 40*(std::log(pLab/0.73))*
-		      (std::log(pLab/0.73));
+		    double lp73 = std::log(pLab/0.73);
+		    NucleonTotalXsc = 23 + 40 * lp73 * lp73;
 		  }
 		else    // 1.05 - 10 GeV/c
 		  {
-		    NucleonTotalXsc = 39.0+75*(pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
+		    NucleonTotalXsc = 39.0 + 75 * (pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
 		  }
 	      }
 	    if( neutron )     // pn to be np
 	      {
 		if( pLab < 0.02 )
 		  {
-		    NucleonTotalXsc = 4100+30*std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
+		    NucleonTotalXsc = 4100 + 30 * std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
 		  }
 		else if( pLab < 0.8 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/1.3),4.0);
-		  }
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/1.3),4.0);
+		  } 
 		else if( pLab < 1.05 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95),2.0);
 		  }
 		else if( pLab < 1.4 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95),2.0);
 		  }
 		else    // 1.4 < pLab < 10.  )
 		  {
-		    NucleonTotalXsc = 33.3 + 20.8*(std::pow(pLab,2.0) - 1.35)/(std::pow(pLab,2.50) + 0.95);
+		    NucleonTotalXsc = 33.3 + 20.8 * (std::pow(pLab,2.0) - 1.35)/(std::pow(pLab,2.50) + 0.95);
 		  }
 	      }
 	  }
@@ -308,13 +307,11 @@ namespace geantphysics {
       {
 	if( proton )
 	  {
-	    NucleonTotalXsc = 35.45 + B*std::pow(std::log(sMand/s0),2.)
-	      + 42.53*std::pow(sMand,-eta1) + 33.34*std::pow(sMand,-eta2);
+	    NucleonTotalXsc = 35.45 + B * std::pow(std::log(sMand/s0),2.) + 42.53 * std::pow(sMand,-eta1) + 33.34 * std::pow(sMand,-eta2);
 	  }
 	if( neutron ) // ???
 	  {
-	    NucleonTotalXsc = 35.80 + B*std::pow(std::log(sMand/s0),2.)
-	      + 40.15*std::pow(sMand,-eta1) + 30.*std::pow(sMand,-eta2);
+	    NucleonTotalXsc = 35.80 + B * std::pow(std::log(sMand/s0),2.) + 40.15 * std::pow(sMand,-eta1) + 30. * std::pow(sMand,-eta2);
 	  }
       }
     else if( particlePDG == 211 && pORn ) // pi+ /////////////////////////////////////////////
@@ -323,47 +320,45 @@ namespace geantphysics {
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 10./((logP + 1.273)*(logP + 1.273) + 0.05);
+		double lp1273 = logP + 1.273;
+		NucleonTotalXsc = 10./(lp1273 * lp1273 + 0.05);
 	      }
 	    else if( pLab < 0.4 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		double lp1273 = logP + 1.273;
+		NucleonTotalXsc = 14./(lp1273 * lp1273 + 0.07);
 	      }
 	    else if( pLab < 0.68 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
-	      }
-	    else if( pLab < 0.85 )
-	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
+		double lp1273 = logP + 1.273;
+		NucleonTotalXsc = 14./(lp1273 * lp1273 + 0.07);
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
+		double lp77 = std::log(pLab/0.77);
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
 	      }
 	    else if( pLab < 1.4) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
 	      }
 	    else if( pLab < 2.0 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
 	      }
 	    else if( pLab < 3.5 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
 	      }
 	    else if( pLab < 200. ) // my
 	      {
-		NucleonTotalXsc = 10.6 + 2.*std::log(pE) + 25*std::pow(pE, -0.43 ); // ns original
+		NucleonTotalXsc = 10.6 + 2.*std::log(pE) + 25 * std::pow(pE, -0.43 ); // ns original
 	      }
 	    else //  pLab > 100 // my
 	      {
@@ -374,56 +369,56 @@ namespace geantphysics {
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 0.288/((pLab - 0.28)*(pLab - 0.28) + 0.004);
+		NucleonTotalXsc       = 0.288/((pLab - 0.28) * (pLab - 0.28) + 0.004);
 	      }
 	    else if( pLab < 0.395676 ) // first peak
 	      {
-		NucleonTotalXsc       = 0.648/((pLab - 0.28)*(pLab - 0.28) + 0.009);
+		NucleonTotalXsc       = 0.648/((pLab - 0.28) * (pLab - 0.28) + 0.009);
 	      }
 	    else if( pLab < 0.5 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
+		NucleonTotalXsc       = 26 + 110 * (std::log(pLab/0.48)) * (std::log(pLab/0.48));
 	      }
 	    else if( pLab < 0.65 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
+		NucleonTotalXsc       = 26 + 110 * (std::log(pLab/0.48)) * (std::log(pLab/0.48));
 	      }
 	    else if( pLab < 0.72 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 0.88 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 1.03 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 1.3 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 2.6 ) // < 3.0) // ns original
 	      {
-		NucleonTotalXsc = 36.1 + 0.079-4.313*std::log(pLab)+
-		  3*std::exp(-(pLab-2.1)*(pLab-2.1)/0.4/0.4)+
-		  1.5*std::exp(-(pLab-1.4)*(pLab-1.4)/0.12/0.12);
+		NucleonTotalXsc = 36.1 + 0.079-4.313 * std::log(pLab) +
+		  3 * std::exp(-(pLab-2.1) * (pLab-2.1)/0.4/0.4) +
+		  1.5 * std::exp(-(pLab-1.4) * (pLab-1.4)/0.12/0.12);
 	      }
 	    else if( pLab < 20. ) // < 3.0) // ns original
 	      {
-		NucleonTotalXsc = 36.1 + 0.079 - 4.313*std::log(pLab)+
-		  3*std::exp(-(pLab-2.1)*(pLab-2.1)/0.4/0.4)+
-		  1.5*std::exp(-(pLab-1.4)*(pLab-1.4)/0.12/0.12);
+		NucleonTotalXsc = 36.1 + 0.079 - 4.313 * std::log(pLab) +
+		  3 * std::exp(-(pLab-2.1) * (pLab-2.1)/0.4/0.4) +
+		  1.5 * std::exp(-(pLab-1.4) * (pLab-1.4)/0.12/0.12);
 	      }
 	    else   // mb
 	      {
@@ -437,43 +432,43 @@ namespace geantphysics {
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 10./((logP + 1.273)*(logP + 1.273) + 0.05);
+		NucleonTotalXsc = 10./((logP + 1.273) * (logP + 1.273) + 0.05);
 	      }
 	    else if( pLab < 0.4 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 14./( (logP + 1.273) * (logP + 1.273) + 0.07);
 	      }
 	    else if( pLab < 0.68 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 14./( (logP + 1.273) * (logP + 1.273) + 0.07);
 	      }
 	    else if( pLab < 0.85 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
+		double lp77 = std::log(pLab/0.77);
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
+		double lp77 = std::log(pLab/0.77);
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
 	      }
 	    else if( pLab < 1.4) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
 	      }
 	    else if( pLab < 2.0 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
 		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
 	      }
 	    else if( pLab < 3.5 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
 	      }
 	    else if( pLab < 200. ) // my
 	      {
@@ -488,55 +483,57 @@ namespace geantphysics {
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 0.288/((pLab - 0.28)*(pLab - 0.28) + 0.004);
+		NucleonTotalXsc = 0.288/((pLab - 0.28) * (pLab - 0.28) + 0.004);
 	      }
 	    else if( pLab < 0.395676 ) // first peak
 	      {
-		NucleonTotalXsc       = 0.648/((pLab - 0.28)*(pLab - 0.28) + 0.009);
+		NucleonTotalXsc = 0.648/((pLab - 0.28) * (pLab - 0.28) + 0.009);
 	      }
 	    else if( pLab < 0.5 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
+		double lp48 = std::log(pLab/0.48);
+		NucleonTotalXsc = 26 + 110 * lp48 * lp48;
 	      }
 	    else if( pLab < 0.65 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
+		double lp48 = std::log(pLab/0.48);
+		NucleonTotalXsc = 26 + 110 * lp48 * lp48;
 	      }
 	    else if( pLab < 0.72 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 0.88 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 1.03 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 1.3 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 	      }
 	    else if( pLab < 2.6 ) // < 3.0) // ns original
 	      {
-		NucleonTotalXsc = 36.1+0.079-4.313*std::log(pLab)+
-		  3*std::exp(-(pLab-2.1)*(pLab-2.1)/0.4/0.4)+
-		  1.5*std::exp(-(pLab-1.4)*(pLab-1.4)/0.12/0.12);
+		NucleonTotalXsc = 36.1 + 0.079 - 4.313 * std::log(pLab) +
+		  3 * std::exp(-(pLab-2.1) * (pLab-2.1)/0.4/0.4) +
+		  1.5 * std::exp(-(pLab-1.4) * (pLab-1.4)/0.12/0.12);
 	      }
 	    else   // mb
 	      {
@@ -546,25 +543,25 @@ namespace geantphysics {
       }
     else if( particlePDG == 3112 && pORn )
       {
-	NucleonTotalXsc = 35.20 + B*std::pow(std::log(sMand/s0),2.)
-	  - 199.*std::pow(sMand,-eta1) + 264.*std::pow(sMand,-eta2);
+	NucleonTotalXsc = 35.20 + B * std::pow(std::log(sMand/s0),2.)
+	  - 199. * std::pow(sMand,-eta1) + 264. * std::pow(sMand,-eta2);
       }
     else if( particlePDG == 22  && pORn ) // modify later on
       {
-	NucleonTotalXsc = 0.0 + B*std::pow(std::log(sMand/s0),2.)
-	  + 0.032*std::pow(sMand,-eta1); // WP - 0.0*std::pow(sMand,-eta2);
+	NucleonTotalXsc = 0.0 + B * std::pow(std::log(sMand/s0),2.)
+	  + 0.032 * std::pow(sMand,-eta1); // WP - 0.0*std::pow(sMand,-eta2);
       }
     else  // other then p,n,pi+,pi-,K+,K- as proton ???
       {
 	if( proton )
 	  {
-	    NucleonTotalXsc = 35.45 + B*std::pow(std::log(sMand/s0),2.)
-	      + 42.53*std::pow(sMand,-eta1) - 33.34*std::pow(sMand,-eta2);
+	    NucleonTotalXsc = 35.45 + B * std::pow(std::log(sMand/s0),2.)
+	      + 42.53 * std::pow(sMand,-eta1) - 33.34 * std::pow(sMand,-eta2);
 	  }
 	if( neutron )
 	  {
-	    NucleonTotalXsc += 35.80 + B*std::pow(std::log(sMand/s0),2.)
-	      + 40.15*std::pow(sMand,-eta1) - 30.*std::pow(sMand,-eta2);
+	    NucleonTotalXsc += 35.80 + B * std::pow(std::log(sMand/s0),2.)
+	      + 40.15 * std::pow(sMand,-eta1) - 30. * std::pow(sMand,-eta2);
 	  }
       }
     NucleonTotalXsc   *= geant::millibarn; // parametrised in mb
@@ -603,28 +600,28 @@ namespace geantphysics {
 
 	if( pLab < pMin)
 	  {
-	    double psp = pLab*std::sqrt(pLab);
-	    NucleonTotalXsc    = 14./psp;
+	    double psp = pLab * std::sqrt(pLab);
+	    NucleonTotalXsc = 14./psp;
 	  }
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonTotalXsc = 1.1*cofLogT*ld2 + 19.7;
+	    double ld2 = ld * ld;
+	    NucleonTotalXsc = 1.1 * cofLogT * ld2 + 19.7;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double sp  = std::sqrt(pLab);
-	    double psp = pLab*sp;
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double psp = pLab * sp;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 
 	    double lh  = pLab - 0.98;
-	    double hd  = lh*lh + .045;
+	    double hd  = lh * lh + .045;
 
-	    NucleonTotalXsc    = 14./psp + (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
+	    NucleonTotalXsc = 14./psp + (1.1 * cofLogT * ld2 + 19.5)/(1. - .21/sp + .52/p4)
 	      //  + .006/md  + 0.01/hd1 + 0.02/hd2
 	      + .60/hd;
 	  }
@@ -634,19 +631,19 @@ namespace geantphysics {
 	if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonTotalXsc           = 1.1*cofLogT*ld2 + 19.7;
+	    double ld2 = ld * ld;
+	    NucleonTotalXsc = 1.1 * cofLogT * ld2 + 19.7;
 	  }
 	else
 	  {
 
 	    double lh  = pLab - 0.98;
-	    double hd  = lh*lh + .045;
+	    double hd  = lh * lh + .045;
 
 	    NucleonTotalXsc    = // 14./psp +
 	      //  (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
 	      // WP                     25.2 +  0. *std::pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
-	      25.2 + 0.38*sqrLogPlab - 2.9*LogPlab
+	      25.2 + 0.38 * sqrLogPlab - 2.9 * LogPlab
 	      //       + .006/md  + 0.01/hd1+ 0.02/hd2
 	      + 0.60/hd ;
 	  }
@@ -664,21 +661,21 @@ namespace geantphysics {
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonTotalXsc           = cofLogT*ld2 + 19.2;
+	    double ld2 = ld * ld;
+	    NucleonTotalXsc = cofLogT * ld2 + 19.2;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    //double lr  = pLab - .38;
 	    //double LE  = .7/(lr*lr + .076);
 	    double sp  = std::sqrt(pLab);
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - 0.8;
-	    double md  = lm*lm + .652;
-	    NucleonTotalXsc    = (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md; // + LE;
+	    double md  = lm * lm + .652;
+	    NucleonTotalXsc = (cofLogT * ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md; // + LE;
 	  }
       }
     else if( (particlePDG == 321 || particlePDG == 130) && neutron )  // Kpn/aKn //////////////////////////////////
@@ -686,25 +683,25 @@ namespace geantphysics {
 	if( pLab < pMin )
 	  {
 	    double lm = pLab - 0.94;
-	    double md = lm*lm + .392;
-	    NucleonTotalXsc   = 4.6/md;
+	    double md = lm * lm + .392;
+	    NucleonTotalXsc = 4.6/md;
 	  }
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonTotalXsc           = cofLogT*ld2 + 19.2;
+	    double ld2 = ld * ld;
+	    NucleonTotalXsc = cofLogT * ld2 + 19.2;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double sp  = std::sqrt(pLab);
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - 0.8;
-	    double md  = lm*lm + .652;
-	    NucleonTotalXsc    = (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md;
+	    double md  = lm * lm + .652;
+	    NucleonTotalXsc = (cofLogT * ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md;
 	  }
       }
     NucleonTotalXsc   *= geant::millibarn; // parametrised in mb
@@ -719,8 +716,7 @@ namespace geantphysics {
     return NucleonTotalXsc;
   }
 
-
-  // M. Novak: this method requires significant cleanup
+  // 
   double GetHadronNucleonInelasticXscNS(int particlePDG, double mass, double energyKin, int targetPDG) {
     double NucleonInelasticXsc(0), NucleonElasticXsc(0), NucleonTotalXsc(0);
 
@@ -728,19 +724,17 @@ namespace geantphysics {
 
     double tM = 0.939 * geant::GeV;  // ~mean neutron and proton ???
 
-    double pM   = mass;
-    double pE   = energyKin + mass; // total energy!!!!
-    double pLab  = std::sqrt(energyKin*(energyKin+2.*pM));
+    double pM = mass;
+    double pE = energyKin + mass; // total energy!!!!
+    double pLab = std::sqrt(energyKin * (energyKin + 2. * pM));
 
     double sMand = CalcMandelstamS ( pM , tM , pLab );
 
-
     double logP = std::log(pLab);
-
 
     // General PDG fit constants
 
-    double s0   = 5.38*5.38; // in Gev^2
+    double s0   = 5.38 * 5.38; // in Gev^2
     double eta1 = 0.458;
     double eta2 = 0.458;
     double B    = 0.308;
@@ -761,30 +755,28 @@ namespace geantphysics {
       {
 	if( pLab >= 373.)
 	  {
-	    NucleonTotalXsc =  GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+	    NucleonTotalXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
 
-	    NucleonElasticXsc = 6.5 + 0.308*std::pow(std::log(sMand/400.),1.65) + 9.19*std::pow(sMand,-0.458);
+	    NucleonElasticXsc = 6.5 + 0.308 * std::pow(std::log(sMand/400.),1.65) + 9.19 * std::pow(sMand,-0.458);
 	  }
 	else if( pLab >= 100.)
 	  {
 	    B0 = 7.5;
-	    A0 = 100. - B0*std::log(3.0e7);
+	    A0 = 100. - B0 * std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11
+	    NucleonTotalXsc = A0 + B0 * std::log(pE) - 11
 	      // + 103*std::pow(2*0.93827*pE + pM*pM+0.93827*0.93827,-0.165);        //  mb
-	      + 103*std::pow(sMand,-0.165);        //  mb
+	      + 103 * std::pow(sMand,-0.165);        //  mb
 
 	    NucleonElasticXsc = 5.53 + 0.308*std::pow(std::log(sMand/28.9),1.1) + 9.19*std::pow(sMand,-0.458);
 	  }
 	else if( pLab >= 10.)
 	  {
 	    B0 = 7.5;
-	    A0 = 100. - B0*std::log(3.0e7);
+	    A0 = 100. - B0 * std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11
-	      + 103*std::pow(2*0.93827*pE + pM*pM+
-			     0.93827*0.93827,-0.165);        //  mb
-	    NucleonElasticXsc =  6 + 20/( (logP-0.182)*(logP-0.182) + 1.0 );
+	    NucleonTotalXsc = A0 + B0 * std::log(pE) - 11 + 103 * std::pow(2 * 0.93827 * pE + pM * pM + 0.93827 * 0.93827,-0.165); //  mb
+	    NucleonElasticXsc =  6 + 20/( (logP-0.182) * (logP-0.182) + 1.0 );
 	  }
 	else  // pLab < 10 GeV/c
 	  {
@@ -792,55 +784,56 @@ namespace geantphysics {
 	      {
 		if( pLab < 0.4 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 0.73 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 1.05  )
 		  {
-		    NucleonTotalXsc = 23 + 40*(std::log(pLab/0.73))*
-		      (std::log(pLab/0.73));
-		    NucleonElasticXsc = 23 + 20*(std::log(pLab/0.73))*
-		      (std::log(pLab/0.73));
+		    double lp73 = std::log(pLab/0.73);
+		    NucleonTotalXsc = 23 + 40 * lp73 * lp73;
+		    NucleonElasticXsc = 23 + 20 * lp73 * lp73;
 		  }
 		else    // 1.05 - 10 GeV/c
 		  {
-		    NucleonTotalXsc = 39.0+75*(pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
+		    NucleonTotalXsc = 39.0 + 75 * (pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
 
-		    NucleonElasticXsc =  6 + 20/( (logP-0.182)*(logP-0.182) + 1.0 );
+		    NucleonElasticXsc = 6 + 20/((logP-0.182) * (logP-0.182) + 1.0);
 		  }
 	      }
 	    if( proton )   // pn to be np
 	      {
 		if( pLab < 0.02 )
 		  {
-		    NucleonTotalXsc = 4100+30*std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
+		    NucleonTotalXsc = 4100 + 30 * std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 0.8 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/1.3),4.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/1.3),4.0);
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 1.05 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
-		    NucleonElasticXsc =  6 + 52/( std::log(0.511/pLab)*std::log(0.511/pLab) + 1.6 );
+		    double l5p = std::log(0.511/pLab);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95),2.0);
+		    NucleonElasticXsc = 6 + 52/(l5p * l5p + 1.6);
 		  }
 		else if( pLab < 1.4 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
-		    NucleonElasticXsc =  6 + 52/( std::log(0.511/pLab)*std::log(0.511/pLab) + 1.6 );
+		    double l5p = std::log(0.511/pLab);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95),2.0);
+		    NucleonElasticXsc = 6 + 52/(l5p * l5p + 1.6 );
 		  }
 		else    // 1.4 < pLab < 10.  )
 		  {
-		    NucleonTotalXsc = 33.3 + 20.8*(std::pow(pLab,2.0) - 1.35)/(std::pow(pLab,2.50) + 0.95);
-
-		    NucleonElasticXsc =  6 + 20/( (logP-0.182)*(logP-0.182) + 1.0 );
+		    double lp0 = (logP-0.182);
+		    NucleonTotalXsc = 33.3 + 20.8 * (std::pow(pLab,2.0) - 1.35)/(std::pow(pLab,2.50) + 0.95);
+		    NucleonElasticXsc = 6 + 20/(lp0 * lp0 + 1.0);
 		  }
 	      }
 	  }
@@ -851,25 +844,25 @@ namespace geantphysics {
 	  {
 	    NucleonTotalXsc =  GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
 
-	    NucleonElasticXsc = 6.5 + 0.308*std::pow(std::log(sMand/400.),1.65) + 9.19*std::pow(sMand,-0.458);
+	    NucleonElasticXsc = 6.5 + 0.308 * std::pow(std::log(sMand/400.),1.65) + 9.19 * std::pow(sMand,-0.458);
 	  }
 	else if( pLab >= 100.)
 	  {
 	    B0 = 7.5;
-	    A0 = 100. - B0*std::log(3.0e7);
+	    A0 = 100. - B0 * std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11 + 103*std::pow(sMand,-0.165);        //  mb
+	    NucleonTotalXsc = A0 + B0 * std::log(pE) - 11 + 103 * std::pow(sMand,-0.165);        //  mb
 
-	    NucleonElasticXsc = 5.53 + 0.308*std::pow(std::log(sMand/28.9),1.1) + 9.19*std::pow(sMand,-0.458);
+	    NucleonElasticXsc = 5.53 + 0.308 * std::pow(std::log(sMand/28.9),1.1) + 9.19 * std::pow(sMand,-0.458);
 	  }
 	else if( pLab >= 10.)
 	  {
 	    B0 = 7.5;
-	    A0 = 100. - B0*std::log(3.0e7);
+	    A0 = 100. - B0 * std::log(3.0e7);
 
-	    NucleonTotalXsc = A0 + B0*std::log(pE) - 11 + 103*std::pow(sMand,-0.165);        //  mb
+	    NucleonTotalXsc = A0 + B0 * std::log(pE) - 11 + 103 * std::pow(sMand,-0.165);        //  mb
 
-	    NucleonElasticXsc =  6 + 20/( (logP-0.182)*(logP-0.182) + 1.0 );
+	    NucleonElasticXsc =  6 + 20/( (logP-0.182) * (logP-0.182) + 1.0 );
 	  }
 	else
 	  {
@@ -879,49 +872,49 @@ namespace geantphysics {
 	      {
 		if( pLab < 0.4 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 0.73 )
 		  {
-		    NucleonTotalXsc = 23 + 50*( std::pow( std::log(0.73/pLab), 3.5 ) );
+		    NucleonTotalXsc = 23 + 50 * ( std::pow( std::log(0.73/pLab), 3.5 ) );
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 1.05  )
 		  {
-		    NucleonTotalXsc = 23 + 40*(std::log(pLab/0.73))*
-		      (std::log(pLab/0.73));
-		    NucleonElasticXsc = 23 + 20*(std::log(pLab/0.73))*
-		      (std::log(pLab/0.73));
+		    double lp73 = std::log(pLab/0.73);
+		    NucleonTotalXsc = 23 + 40 * lp73 * lp73;
+		    NucleonElasticXsc = 23 + 20 * lp73 * lp73;
 		  }
 		else    // 1.05 - 10 GeV/c
 		  {
-		    NucleonTotalXsc = 39.0+75*(pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
-
-		    NucleonElasticXsc =  6 + 20/( (logP-0.182)*(logP-0.182) + 1.0 );
+		    NucleonTotalXsc = 39.0 + 75 * (pLab - 1.2)/(std::pow(pLab,3.0) + 0.15);
+		    NucleonElasticXsc = 6 + 20/( (logP-0.182) * (logP-0.182) + 1.0 );
 		  }
 	      }
 	    if( neutron )     // pn to be np
 	      {
 		if( pLab < 0.02 )
 		  {
-		    NucleonTotalXsc = 4100+30*std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
+		    NucleonTotalXsc = 4100 + 30 * std::pow(std::log(1.3/pLab),3.6); // was as pLab < 0.8
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 0.8 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/1.3),4.0);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/1.3),4.0);
 		    NucleonElasticXsc = NucleonTotalXsc;
 		  }
 		else if( pLab < 1.05 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
-		    NucleonElasticXsc =  6 + 52/( std::log(0.511/pLab)*std::log(0.511/pLab) + 1.6 );
+		    double l5p = std::log(0.511/pLab);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95),2.0);
+		    NucleonElasticXsc =  6 + 52/( l5p * l5p + 1.6 );
 		  }
 		else if( pLab < 1.4 )
 		  {
-		    NucleonTotalXsc = 33+30*std::pow(std::log(pLab/0.95),2.0);
-		    NucleonElasticXsc =  6 + 52/( std::log(0.511/pLab)*std::log(0.511/pLab) + 1.6 );
+		    double l5p = std::log(0.511/pLab);
+		    NucleonTotalXsc = 33 + 30 * std::pow(std::log(pLab/0.95),2.0);
+		    NucleonElasticXsc =  6 + 52/(l5p * l5p + 1.6 );
 		  }
 		else    // 1.4 < pLab < 10.  )
 		  {
@@ -936,13 +929,13 @@ namespace geantphysics {
       {
 	if( proton )
 	  {
-	    NucleonTotalXsc  = 35.45 + B*std::pow(std::log(sMand/s0),2.)
-	      + 42.53*std::pow(sMand,-eta1) + 33.34*std::pow(sMand,-eta2);
+	    NucleonTotalXsc  = 35.45 + B * std::pow(std::log(sMand/s0),2.)
+	      + 42.53 * std::pow(sMand,-eta1) + 33.34 * std::pow(sMand,-eta2);
 	  }
 	if( neutron ) // ???
 	  {
-	    NucleonTotalXsc = 35.80 + B*std::pow(std::log(sMand/s0),2.)
-	      + 40.15*std::pow(sMand,-eta1) + 30.*std::pow(sMand,-eta2);
+	    NucleonTotalXsc = 35.80 + B * std::pow(std::log(sMand/s0),2.)
+	      + 40.15 * std::pow(sMand,-eta1) + 30. * std::pow(sMand,-eta2);
 	  }
       }
     else if( particlePDG == 211 && pORn ) // pi+ /////////////////////////////////////////////
@@ -951,128 +944,129 @@ namespace geantphysics {
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 10./((logP + 1.273)*(logP + 1.273) + 0.05);
+		NucleonTotalXsc = 10./((logP + 1.273) * (logP + 1.273) + 0.05);
 		NucleonElasticXsc = NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.4 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 14./( (logP + 1.273) * (logP + 1.273) + 0.07);
 		NucleonElasticXsc = NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.68 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 14./( (logP + 1.273) * (logP + 1.273) + 0.07);
 		NucleonElasticXsc = NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.85 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
-		NucleonElasticXsc = NucleonTotalXsc*std::exp(-3.*(pLab - 0.68));
+		double lp77 = std::log(pLab/0.77);
+		
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
+		NucleonElasticXsc = NucleonTotalXsc * std::exp(-3.*(pLab - 0.68));
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
+		double lp77 = std::log(pLab/0.77);
 
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
 		NucleonElasticXsc = 6.0 + 1.4/(( pLab - 1.4)*( pLab - 1.4) + 0.1);
 	      }
 	    else if( pLab < 1.4) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
-		NucleonElasticXsc = 6.0 + 1.4/(( pLab - 1.4)*( pLab - 1.4) + 0.1);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
+		NucleonElasticXsc = 6.0 + 1.4/(( pLab - 1.4) * ( pLab - 1.4) + 0.1);
 	      }
 	    else if( pLab < 2.0 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
-		NucleonElasticXsc = 3.0 + 1.36/( (logP - 0.336)*(logP - 0.336) + 0.08);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
+		NucleonElasticXsc = 3.0 + 1.36/( (logP - 0.336) * (logP - 0.336) + 0.08);
 	      }
 	    else if( pLab < 3.5 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
-		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
+		NucleonElasticXsc = 3.0 + 6.20/((logP - 0.336) * (logP - 0.336) + 0.8);
 	      }
 	    else if( pLab < 200. ) // my
 	      {
-		NucleonTotalXsc = 10.6 + 2.*std::log(pE) + 25*std::pow(pE, -0.43 ); // ns original
-		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);
+		NucleonTotalXsc = 10.6 + 2. * std::log(pE) + 25 * std::pow(pE, -0.43 ); // ns original
+		NucleonElasticXsc = 3.0 + 6.20/((logP - 0.336) * (logP - 0.336) + 0.8);
 	      }
 	    else //  pLab > 100 // my
 	      {
 		NucleonTotalXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
-		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);
+		NucleonElasticXsc = 3.0 + 6.20/((logP - 0.336) * (logP - 0.336) + 0.8);
 	      }
 	  }
 	if( neutron )  // pi+ n = pi- p??
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 0.288/((pLab - 0.28)*(pLab - 0.28) + 0.004);
-		NucleonElasticXsc = 1.8/((logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 0.288/((pLab - 0.28) * (pLab - 0.28) + 0.004);
+		NucleonElasticXsc = 1.8/((logP + 1.273) * (logP + 1.273) + 0.07);
 	      }
 	    else if( pLab < 0.395676 ) // first peak
 	      {
-		NucleonTotalXsc       = 0.648/((pLab - 0.28)*(pLab - 0.28) + 0.009);
-		NucleonElasticXsc = 0.257/((pLab - 0.28)*(pLab - 0.28) + 0.01);
+		NucleonTotalXsc = 0.648/((pLab - 0.28) * (pLab - 0.28) + 0.009);
+		NucleonElasticXsc = 0.257/((pLab - 0.28) * (pLab - 0.28) + 0.01);
 	      }
 	    else if( pLab < 0.5 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
-		NucleonElasticXsc = 0.37*NucleonTotalXsc;
+		double lp48 = std::log(pLab/0.48);
+		NucleonTotalXsc = 26 + 110 * lp48 * lp48;
+		NucleonElasticXsc = 0.37 * NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.65 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
+		double lp48 = std::log(pLab/0.48);
+		NucleonTotalXsc = 26 + 110 * lp48 * lp48;
 		NucleonElasticXsc = 0.95/((pLab - 0.72)*(pLab - 0.72) + 0.049);
 	      }
 	    else if( pLab < 0.72 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 0.95/((pLab - 0.72)*(pLab - 0.72) + 0.049);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 0.95/((pLab - 0.72) * (pLab - 0.72) + 0.049);
 	      }
 	    else if( pLab < 0.88 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 0.95/((pLab - 0.72)*(pLab - 0.72) + 0.049);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 0.95/((pLab - 0.72) * (pLab - 0.72) + 0.049);
 	      }
 	    else if( pLab < 1.03 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03)*(pLab - 1.03) + 0.016);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06)+
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03) * (pLab - 1.03) + 0.016);
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03)*(pLab - 1.03) + 0.016);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03) * (pLab - 1.03) + 0.016);
 	      }
 	    else if( pLab < 1.3 )
 	      {
-		NucleonTotalXsc = 36.1 + 10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 + 10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 		NucleonElasticXsc = 3. + 13./pLab;
 	      }
 	    else if( pLab < 2.6 ) // < 3.0) // ns original
 	      {
-		NucleonTotalXsc = 36.1 + 0.079-4.313*std::log(pLab)+
-		  3*std::exp(-(pLab-2.1)*(pLab-2.1)/0.4/0.4)+
-		  1.5*std::exp(-(pLab-1.4)*(pLab-1.4)/0.12/0.12);
+		NucleonTotalXsc = 36.1 + 0.079-4.313 * std::log(pLab) + 3 * std::exp(-(pLab-2.1) * (pLab-2.1)/0.4/0.4) +
+		  1.5 * std::exp(-(pLab-1.4) * (pLab-1.4)/0.12/0.12);
 		NucleonElasticXsc = 3. + 13./pLab;
 	      }
 	    else if( pLab < 20. ) // < 3.0) // ns original
 	      {
-		NucleonTotalXsc = 36.1 + 0.079 - 4.313*std::log(pLab)+
-		  3*std::exp(-(pLab-2.1)*(pLab-2.1)/0.4/0.4)+
-		  1.5*std::exp(-(pLab-1.4)*(pLab-1.4)/0.12/0.12);
+		NucleonTotalXsc = 36.1 + 0.079 - 4.313 * std::log(pLab) + 3 * std::exp(-(pLab-2.1) * (pLab-2.1)/0.4/0.4) +
+		  1.5 * std::exp(-(pLab-1.4) * (pLab-1.4)/0.12/0.12);
 		NucleonElasticXsc = 3. + 13./pLab;
 	      }
 	    else   // mb
@@ -1088,126 +1082,128 @@ namespace geantphysics {
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 10./((logP + 1.273)*(logP + 1.273) + 0.05);
+		NucleonTotalXsc = 10./((logP + 1.273) * (logP + 1.273) + 0.05);
 		NucleonElasticXsc = NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.4 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 14./( (logP + 1.273) * (logP + 1.273) + 0.07);
 		NucleonElasticXsc = NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.68 )
 	      {
-		NucleonTotalXsc       = 14./( (logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 14./( (logP + 1.273) * (logP + 1.273) + 0.07);
 		NucleonElasticXsc = NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.85 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
-		NucleonElasticXsc = NucleonTotalXsc*std::exp(-3.*(pLab - 0.68));
+		double lp77 = std::log(pLab/0.77);
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
+		NucleonElasticXsc = NucleonTotalXsc*std::exp(-3. * (pLab - 0.68));
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		double Ex4 = 88*(std::log(pLab/0.77))*(std::log(pLab/0.77));
-		NucleonTotalXsc        = Ex4 + 14.9;
+		double lp77 = std::log(pLab/0.77);
+		NucleonTotalXsc = 88 * lp77 * lp77 + 14.9;
 
 		NucleonElasticXsc = 6.0 + 1.4/(( pLab - 1.4)*( pLab - 1.4) + 0.1);
 	      }
 	    else if( pLab < 1.4) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
-		NucleonElasticXsc = 6.0 + 1.4/(( pLab - 1.4)*( pLab - 1.4) + 0.1);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
+		NucleonElasticXsc = 6.0 + 1.4/(( pLab - 1.4) * ( pLab - 1.4) + 0.1);
 	      }
 	    else if( pLab < 2.0 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
-		NucleonElasticXsc = 3.0 + 1.36/( (logP - 0.336)*(logP - 0.336) + 0.08);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
+		NucleonElasticXsc = 3.0 + 1.36/( (logP - 0.336) * (logP - 0.336) + 0.08);
 	      }
 	    else if( pLab < 3.5 ) // ns original
 	      {
-		double Ex1 = 3.2*std::exp(-(pLab-2.55)*(pLab-2.55)/0.55/0.55);
-		double Ex2 = 12*std::exp(-(pLab-1.47)*(pLab-1.47)/0.225/0.225);
-		NucleonTotalXsc        = Ex1 + Ex2 + 27.5;
-		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);
+		double Ex1 = 3.2 * std::exp(-(pLab-2.55) * (pLab-2.55)/0.55/0.55);
+		double Ex2 = 12 * std::exp(-(pLab-1.47) * (pLab-1.47)/0.225/0.225);
+		NucleonTotalXsc = Ex1 + Ex2 + 27.5;
+		NucleonElasticXsc = 3.0 + 6.20/((logP - 0.336) * (logP - 0.336) + 0.8);
 	      }
 	    else if( pLab < 200. ) // my
 	      {
-		NucleonTotalXsc = 10.6 + 2.*std::log(pE) + 25*std::pow(pE, -0.43 ); // ns original
-		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);
+		NucleonTotalXsc = 10.6 + 2. * std::log(pE) + 25 * std::pow(pE, -0.43 ); // ns original
+		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336) * (logP - 0.336) + 0.8);
 	      }
 	    else //  pLab > 100 // my
 	      {
 		NucleonTotalXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
-		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);
+		NucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336) * (logP - 0.336) + 0.8);
 	      }
 	  }
 	if( proton )    // pi- p
 	  {
 	    if( pLab < 0.28 )
 	      {
-		NucleonTotalXsc       = 0.288/((pLab - 0.28)*(pLab - 0.28) + 0.004);
-		NucleonElasticXsc = 1.8/((logP + 1.273)*(logP + 1.273) + 0.07);
+		NucleonTotalXsc = 0.288/((pLab - 0.28) * (pLab - 0.28) + 0.004);
+		NucleonElasticXsc = 1.8/((logP + 1.273) * (logP + 1.273) + 0.07);
 	      }
 	    else if( pLab < 0.395676 ) // first peak
 	      {
-		NucleonTotalXsc       = 0.648/((pLab - 0.28)*(pLab - 0.28) + 0.009);
-		NucleonElasticXsc = 0.257/((pLab - 0.28)*(pLab - 0.28) + 0.01);
+		NucleonTotalXsc = 0.648/((pLab - 0.28) * (pLab - 0.28) + 0.009);
+		NucleonElasticXsc = 0.257/((pLab - 0.28) * (pLab - 0.28) + 0.01);
 	      }
 	    else if( pLab < 0.5 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
-		NucleonElasticXsc = 0.37*NucleonTotalXsc;
+		double lp48 = std::log(pLab/0.48);
+		NucleonTotalXsc = 26 + 110 * lp48 * lp48;
+		NucleonElasticXsc = 0.37 * NucleonTotalXsc;
 	      }
 	    else if( pLab < 0.65 )
 	      {
-		NucleonTotalXsc       = 26 + 110*(std::log(pLab/0.48))*(std::log(pLab/0.48));
-		NucleonElasticXsc = 0.95/((pLab - 0.72)*(pLab - 0.72) + 0.049);
+		double lp48 = std::log(pLab/0.48);
+		NucleonTotalXsc = 26 + 110 * lp48 * lp48;
+		NucleonElasticXsc = 0.95/((pLab - 0.72) * (pLab - 0.72) + 0.049);
 	      }
 	    else if( pLab < 0.72 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 0.95/((pLab - 0.72)*(pLab - 0.72) + 0.049);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 0.95/((pLab - 0.72) * (pLab - 0.72) + 0.049);
 	      }
 	    else if( pLab < 0.88 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 		NucleonElasticXsc = 0.95/((pLab - 0.72)*(pLab - 0.72) + 0.049);
 	      }
 	    else if( pLab < 1.03 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03)*(pLab - 1.03) + 0.016);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03) * (pLab - 1.03) + 0.016);
 	      }
 	    else if( pLab < 1.15 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
-		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03)*(pLab - 1.03) + 0.016);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
+		NucleonElasticXsc = 2.0 + 0.4/((pLab - 1.03) * (pLab - 1.03) + 0.016);
 	      }
 	    else if( pLab < 1.3 )
 	      {
-		NucleonTotalXsc = 36.1+
-		  10*std::exp(-(pLab-0.72)*(pLab-0.72)/0.06/0.06)+
-		  24*std::exp(-(pLab-1.015)*(pLab-1.015)/0.075/0.075);
+		NucleonTotalXsc = 36.1 +
+		  10 * std::exp(-(pLab-0.72) * (pLab-0.72)/0.06/0.06) +
+		  24 * std::exp(-(pLab-1.015) * (pLab-1.015)/0.075/0.075);
 		NucleonElasticXsc = 3. + 13./pLab;
 	      }
 	    else if( pLab < 2.6 ) // < 3.0) // ns original
 	      {
-		NucleonTotalXsc = 36.1+0.079-4.313*std::log(pLab)+
-		  3*std::exp(-(pLab-2.1)*(pLab-2.1)/0.4/0.4)+
-		  1.5*std::exp(-(pLab-1.4)*(pLab-1.4)/0.12/0.12);
+		NucleonTotalXsc = 36.1 + 0.079 - 4.313 * std::log(pLab) +
+		  3 * std::exp(-(pLab-2.1) * (pLab-2.1)/0.4/0.4) +
+		  1.5 * std::exp(-(pLab-1.4) * (pLab-1.4)/0.12/0.12);
 		NucleonElasticXsc = 3. +13./pLab; // *std::log(pLab*6.79);
 	      }
 	    else   // mb
@@ -1217,45 +1213,45 @@ namespace geantphysics {
 	      }
 	  }
       }
-    else if( (particlePDG ==  -321 || particlePDG == 310 ) && proton )   // Kmp/K0p //////
+    else if( (particlePDG == -321 || particlePDG == 310 ) && proton )   // Kmp/K0p //////
       {
 	if( pLab < pMin)
 	  {
 	    double psp = pLab*std::sqrt(pLab);
-	    NucleonElasticXsc  = 5.2/psp;
-	    NucleonTotalXsc    = 14./psp;
+	    NucleonElasticXsc = 5.2/psp;
+	    NucleonTotalXsc = 14./psp;
 	  }
 	else if( pLab > pMax )
 	  {
-	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = 1.1*cofLogT*ld2 + 19.7;
+	    double ld = std::log(pLab) - minLogP;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = 1.1 * cofLogT * ld2 + 19.7;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double sp  = std::sqrt(pLab);
-	    double psp = pLab*sp;
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double psp = pLab * sp;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - .39;
-	    double md  = lm*lm + .000356;
+	    double md  = lm * lm + .000356;
 
 	    double lh1  = pLab - 0.78;
-	    double hd1  = lh1*lh1 + .00166;
+	    double hd1  = lh1 * lh1 + .00166;
 
 	    double lh  = pLab - 1.01;
-	    double hd  = lh*lh + .011;
+	    double hd  = lh * lh + .011;
 
 	    double lh2  = pLab - 1.63;
-	    double hd2  = lh2*lh2 + .007;
+	    double hd2  = lh2 * lh2 + .007;
 
-	    NucleonElasticXsc  = 5.2/psp + (1.1*cofLogE*ld2 + 2.23)/(1. - .7/sp + .075/p4)
+	    NucleonElasticXsc = 5.2/psp + (1.1 * cofLogE * ld2 + 2.23)/(1. - .7/sp + .075/p4)
 	      + .004/md + 0.005/hd1+ 0.01/hd2 +.15/hd; // small peaks were added
 
-	    NucleonTotalXsc    = 14./psp + (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
+	    NucleonTotalXsc = 14./psp + (1.1 * cofLogT * ld2 + 19.5)/(1. - .21/sp + .52/p4)
 	      + .006/md  + 0.01/hd1+ 0.02/hd2 + .20/hd ;
 	  }
       }
@@ -1263,26 +1259,26 @@ namespace geantphysics {
       {
 	if( pLab > pMax )
 	  {
-	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = 1.1*cofLogT*ld2 + 19.7;
+	    double ld = std::log(pLab) - minLogP;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = 1.1 * cofLogT * ld2 + 19.7;
 	  }
 	else
 	  {
 
 	    double lh  = pLab - 0.98;
-	    double hd  = lh*lh + .021;
+	    double hd  = lh * lh + .021;
 
 	    double LogPlab = std::log( pLab );
 	    double sqrLogPlab = LogPlab * LogPlab;
 
 	    NucleonElasticXsc  = // 5.2/psp + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .075/p4) + .004/md
-	      5.0 +  8.1*std::pow(pLab,-1.8 ) + 0.16*sqrLogPlab - 1.3*LogPlab + .15/hd;
+	      5.0 +  8.1 * std::pow(pLab,-1.8 ) + 0.16 * sqrLogPlab - 1.3 * LogPlab + .15/hd;
 	    NucleonTotalXsc    = // 14./psp +
 	      //  (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
 	      // WP                     25.2 +  0. *std::pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
-	      25.2 +  0.38*sqrLogPlab - 2.9*LogPlab
+	      25.2 + 0.38*sqrLogPlab - 2.9*LogPlab
 	      //       + .006/md  + 0.01/hd1+ 0.02/hd2
 	      + 0.30/hd ;
 	  }
@@ -1293,16 +1289,16 @@ namespace geantphysics {
 	  {
 	    double lr = pLab - .38;
 	    double lm = pLab - 1.;
-	    double md = lm*lm + .392;
-	    NucleonElasticXsc = .7/(lr*lr + .076) + 2./md;
-	    NucleonTotalXsc   = .7/(lr*lr + .076) + 2.6/md;
+	    double md = lm * lm + .392;
+	    NucleonElasticXsc = .7/(lr * lr + .076) + 2./md;
+	    NucleonTotalXsc   = .7/(lr * lr + .076) + 2.6/md;
 	  }
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = cofLogT*ld2 + 19.2;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = cofLogT * ld2 + 19.2;
 	  }
 	else
 	  {
@@ -1311,12 +1307,12 @@ namespace geantphysics {
 	    double lr  = pLab - .38;
 	    double LE  = .7/(lr*lr + .076);
 	    double sp  = std::sqrt(pLab);
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - 1.;
-	    double md  = lm*lm + .392;
-	    NucleonElasticXsc  = LE + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
-	    NucleonTotalXsc    = LE + (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 2.6/md;
+	    double md  = lm * lm + .392;
+	    NucleonElasticXsc  = LE + (cofLogE * ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
+	    NucleonTotalXsc    = LE + (cofLogT * ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 2.6/md;
 	  }
       }
     else if(  (particlePDG ==  321 || particlePDG == 130) && neutron  )  // Kpn/aKn ///////////////////////
@@ -1324,51 +1320,51 @@ namespace geantphysics {
 	if( pLab < pMin )
 	  {
 	    double lm = pLab - 0.94;
-	    double md = lm*lm + .392;
+	    double md = lm * lm + .392;
 	    NucleonElasticXsc = 2./md;
 	    NucleonTotalXsc   = 4.6/md;
 	  }
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = cofLogT*ld2 + 19.2;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = cofLogT * ld2 + 19.2;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double sp  = std::sqrt(pLab);
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - 0.94;
-	    double md  = lm*lm + .392;
-	    NucleonElasticXsc  = (cofLogE*ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
-	    NucleonTotalXsc    = (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 4.6/md;
+	    double md  = lm * lm + .392;
+	    NucleonElasticXsc  = (cofLogE * ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
+	    NucleonTotalXsc    = (cofLogT * ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 4.6/md;
 	  }
       }
     else if( particlePDG == 3112 && pORn )
       {
-	NucleonTotalXsc  = 35.20 + B*std::pow(std::log(sMand/s0),2.)
-	  - 199.*std::pow(sMand,-eta1) + 264.*std::pow(sMand,-eta2);
+	NucleonTotalXsc  = 35.20 + B * std::pow(std::log(sMand/s0),2.)
+	  - 199. * std::pow(sMand,-eta1) + 264. * std::pow(sMand,-eta2);
       }
     else if( particlePDG == 22  && pORn ) // modify later on
       {
-	NucleonTotalXsc  = 0.0 + B*std::pow(std::log(sMand/s0),2.)
-	  + 0.032*std::pow(sMand,-eta1); // WP - 0.0*std::pow(sMand,-eta2);
+	NucleonTotalXsc  = 0.0 + B * std::pow(std::log(sMand/s0),2.)
+	  + 0.032 * std::pow(sMand,-eta1); // WP - 0.0*std::pow(sMand,-eta2);
       }
     else  // other then p,n,pi+,pi-,K+,K- as proton ???
       {
 	if( proton )
 	  {
-	    NucleonTotalXsc  = 35.45 + B*std::pow(std::log(sMand/s0),2.)
-	      + 42.53*std::pow(sMand,-eta1) - 33.34*std::pow(sMand,-eta2);
+	    NucleonTotalXsc = 35.45 + B * std::pow(std::log(sMand/s0),2.)
+	      + 42.53 * std::pow(sMand,-eta1) - 33.34 * std::pow(sMand,-eta2);
 	  }
 	if( neutron )
 	  {
-	    NucleonTotalXsc += 35.80 + B*std::pow(std::log(sMand/s0),2.)
-	      + 40.15*std::pow(sMand,-eta1) - 30.*std::pow(sMand,-eta2);
+	    NucleonTotalXsc += 35.80 + B * std::pow(std::log(sMand/s0),2.)
+	      + 40.15 * std::pow(sMand,-eta1) - 30. * std::pow(sMand,-eta2);
 	  }
       }
     NucleonTotalXsc   *= geant::millibarn; // parametrised in mb
@@ -1413,7 +1409,7 @@ namespace geantphysics {
 
 	if( pLab < pMin)
 	  {
-	    double psp = pLab*std::sqrt(pLab);
+	    double psp = pLab * std::sqrt(pLab);
 	    NucleonElasticXsc  = 5.2/psp;
 	    NucleonTotalXsc    = 14./psp;
 	  }
@@ -1421,25 +1417,25 @@ namespace geantphysics {
 	  {
 	    double ld  = std::log(pLab) - minLogP;
 	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = 1.1*cofLogT*ld2 + 19.7;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = 1.1 * cofLogT * ld2 + 19.7;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double sp  = std::sqrt(pLab);
-	    double psp = pLab*sp;
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double psp = pLab * sp;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 
 	    double lh  = pLab - 0.98;
-	    double hd  = lh*lh + .045;
+	    double hd  = lh * lh + .045;
 
 
-	    NucleonElasticXsc  = 5.2/psp + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .075/p4) // + .004/md
+	    NucleonElasticXsc  = 5.2/psp + (cofLogE * ld2 + 2.23)/(1. - .7/sp + .075/p4) // + .004/md
 	      + .15/hd;
-	    NucleonTotalXsc    = 14./psp + (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
+	    NucleonTotalXsc    = 14./psp + (1.1 * cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
 	      //  + .006/md  + 0.01/hd1 + 0.02/hd2
 	      + .60/hd;
 	  }
@@ -1449,22 +1445,22 @@ namespace geantphysics {
 	if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = 1.1*cofLogT*ld2 + 19.7;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = 1.1 * cofLogT * ld2 + 19.7;
 	  }
 	else
 	  {
 
 	    double lh  = pLab - 0.98;
-	    double hd  = lh*lh + .045;
+	    double hd  = lh * lh + .045;
 
 	    NucleonElasticXsc  = // 5.2/psp + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .075/p4) + .004/md
-	      5.0 +  8.1*std::pow(pLab,-1.8 ) + 0.16*sqrLogPlab - 1.3*LogPlab + .15/hd;
+	      5.0 +  8.1 * std::pow(pLab,-1.8 ) + 0.16 * sqrLogPlab - 1.3 * LogPlab + .15/hd;
 	    NucleonTotalXsc    = // 14./psp +
 	      //  (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
 	      // WP                     25.2 +  0. *std::pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
-	      25.2 + 0.38*sqrLogPlab - 2.9*LogPlab
+	      25.2 + 0.38 * sqrLogPlab - 2.9 * LogPlab
 	      //       + .006/md  + 0.01/hd1+ 0.02/hd2
 	      + 0.60/hd ;
 	  }
@@ -1475,31 +1471,31 @@ namespace geantphysics {
 	  {
 	    double lr = pLab - .38;
 	    double lm = pLab - 1.;
-	    double md = lm*lm + .392;
-	    NucleonElasticXsc = .7/(lr*lr + .076) + 2./md;
+	    double md = lm * lm + .392;
+	    NucleonElasticXsc = .7/(lr * lr + .076) + 2./md;
 	    NucleonTotalXsc   = // .7/(lr*lr + .076) +
 	      2.6/md;
 	  }
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = cofLogT*ld2 + 19.2;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = cofLogT * ld2 + 19.2;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double lr  = pLab - .38;
-	    double LE  = .7/(lr*lr + .076);
+	    double LE  = .7/(lr * lr + .076);
 	    double sp  = std::sqrt(pLab);
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - 0.8;
-	    double md  = lm*lm + .652;
-	    NucleonElasticXsc  = LE + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
-	    NucleonTotalXsc    = (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md; // + LE;
+	    double md  = lm * lm + .652;
+	    NucleonElasticXsc = LE + (cofLogE * ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
+	    NucleonTotalXsc = (cofLogT * ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md; // + LE;
 	  }
       }
     else if( (particlePDG == 321 || particlePDG == 130) && neutron )  // Kpn/aKn //////////////////////////////////
@@ -1507,28 +1503,28 @@ namespace geantphysics {
 	if( pLab < pMin )
 	  {
 	    double lm = pLab - 0.94;
-	    double md = lm*lm + .392;
+	    double md = lm * lm + .392;
 	    NucleonElasticXsc = 2./md;
 	    NucleonTotalXsc   = 4.6/md;
 	  }
 	else if( pLab > pMax )
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
-	    NucleonElasticXsc           = cofLogE*ld2 + 2.23;
-	    NucleonTotalXsc           = cofLogT*ld2 + 19.2;
+	    double ld2 = ld * ld;
+	    NucleonElasticXsc = cofLogE * ld2 + 2.23;
+	    NucleonTotalXsc = cofLogT * ld2 + 19.2;
 	  }
 	else
 	  {
 	    double ld  = std::log(pLab) - minLogP;
-	    double ld2 = ld*ld;
+	    double ld2 = ld * ld;
 	    double sp  = std::sqrt(pLab);
-	    double p2  = pLab*pLab;
-	    double p4  = p2*p2;
+	    double p2  = pLab * pLab;
+	    double p4  = p2 * p2;
 	    double lm  = pLab - 0.8;
-	    double md  = lm*lm + .652;
-	    NucleonElasticXsc  = (cofLogE*ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
-	    NucleonTotalXsc    = (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md;
+	    double md  = lm * lm + .652;
+	    NucleonElasticXsc  = (cofLogE * ld2 + 2.23)/(1. - .7/sp + .1/p4) + 2./md;
+	    NucleonTotalXsc    = (cofLogT * ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md;
 	  }
       }
     NucleonTotalXsc   *= geant::millibarn; // parametrised in mb
