@@ -1015,7 +1015,7 @@ public:
   {
     std::cout << "*** TrackDataMgr report: track size = " << fTrackSize << " bytes,  max. depth = " << fMaxDepth << std::endl;
     std::cout << "                         extra data size = " <<  fDataOffset << " bytes in the following blocks: ";
-    for (size_t i=0; i<fTokens.size(); ++i) std::cout << fTokens[i].GetName() << "  ";
+    for (const auto &token : fTokens) std::cout << token.GetName() << " ";
     std::cout << "\n";
   }
 
