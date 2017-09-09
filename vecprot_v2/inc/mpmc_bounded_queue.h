@@ -104,6 +104,36 @@ public:
     return true;
   }
 
+  /**
+   * @brief MPMC dequeue function trying to fetch into atomic variable, if this contains the expected value
+   * 
+   * @param data Data to be dequeued
+   */
+  inline
+  bool dequeue(std::atomic<T> &data, T &expected) {
+    cell_t *cell;
+    size_t pos = dequeue_pos_.load(std::memory_order_relaxed);
+    for (;;) {
+      cell = &buffer_[pos & buffer_mask_];
+      size_t seq = cell->sequence_.load(std::memory_order_acquire);
+      intptr_t dif = (intptr_t)seq - (intptr_t)(pos + 1);
+      if (dif == 0) {
+        if (!data.compare_exchange_strong(expected, cell->data_))
+          return false;
+        if (dequeue_pos_.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed))
+          break;
+      } else if (dif < 0)
+        return false;
+      else
+        pos = dequeue_pos_.load(std::memory_order_relaxed);
+    }
+    expected = cell->data_;
+    nstored_--;
+    cell->sequence_.store(pos + buffer_mask_ + 1, std::memory_order_release);
+    return true;
+  }
+
+
 private:
 
   /** @struct cell_t */
