@@ -50,7 +50,7 @@ private:
 private:
 
   /** @brief Constructor */
-  NumaBlock(size_t size, int node, int id) : fCurrent(0), fUsed(0), fSize(size), fId(id), fNode(node), fAddress(this)
+  NumaBlock(size_t block_size, int node, int id) : fCurrent(0), fUsed(0), fSize(block_size), fId(id), fNode(node), fAddress(this)
   {
     // NUMA block constructor. If the system is NUMA-aware, the block will be alocated
     // on the memory associated with the given NUMA node.
@@ -59,7 +59,7 @@ private:
     // static_assert(std::is_copy_constructible<T>::value, "Type used in NumaBlock must be copy constructible");
     fArray = reinterpret_cast<T*>(&fArray + 1);
     auto el_size = T::SizeOfInstance();
-    for (size_t i=0; i<size; ++i) T::MakeInstanceAt((char*)&fArray[0] + i*el_size);
+    for (size_t i=0; i<block_size; ++i) T::MakeInstanceAt((char*)&fArray[0] + i*el_size);
 //    std::cout << "Created block: " << this << std::endl;
     //printf("NEW block: %d (%d)\n", id, node);
   }
