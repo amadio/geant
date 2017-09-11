@@ -261,12 +261,10 @@ private:
  //
  // data to map all material-gamma production cut pair indices to local indices including only the subset of all
  // material-gamma production cut that are different. These data used only internally by the model.
- /** @brief Number of all material-gamma production cut pairs. */
- int     fNumMaterialCuts;                  // number of different matrial-gammacut pairs
  /** @brief Number of different material-gamma production cut pairs. */
  int     fNumDifferentMaterialGCuts;        // number of different matrial-gammacut pairs
  /** @brief Map from global to local material-gamma production cut indices. The size of the array is
-   *        SeltzerBergerBremsModel::fNumMaterialCuts.
+   *        SeltzerBergerBremsModel::numMaterialCuts.
    */
  int    *fGlobalMatGCutIndxToLocal;         // maps the global mat.-cut indices to local indices that are used here
 

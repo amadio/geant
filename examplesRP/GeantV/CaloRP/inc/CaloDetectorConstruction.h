@@ -29,13 +29,12 @@ class CaloDetectorConstruction : public Geant::GeantVDetectorConstruction {
 
 static const int maxAbsorbers = 10;
   private:
-	Geant::GeantRunManager *fRunMgr = nullptr;
 
 	std::string fWorldMaterialName;
-        std::string fAbsMaterialName[maxAbsorbers]; 
-	
+        std::string fAbsMaterialName[maxAbsorbers];
+
 	geantphysics::Material *fAbsMaterial[maxAbsorbers];
-	geantphysics::Material *fWorldMaterial;	
+	geantphysics::Material *fWorldMaterial;
 
 	bool userLayerNum=false;
         bool userAbsorberNum=false;
@@ -46,7 +45,7 @@ static const int maxAbsorbers = 10;
 
         int numAbsorbers;
         int numLayers;
-	int fAbsLogicVolumeID[maxAbsorbers];	
+	int fAbsLogicVolumeID[maxAbsorbers];
 	int fDetectorRegionIndex;
 	double fGammaCut=0.1;
 	double fElectronCut=0.1;
@@ -57,7 +56,7 @@ static const int maxAbsorbers = 10;
 
         double fCaloSizeYZ;
         double fWorldSizeX;
-	double fWorldSizeYZ;	
+	double fWorldSizeYZ;
 
 	void SetDetectorMaterials();
 

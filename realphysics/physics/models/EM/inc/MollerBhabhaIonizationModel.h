@@ -228,12 +228,10 @@ private:
   //
   // data to map all material-production cut pair indices to local indices including only the subset of all
   // electron production cuts that are different. These data used only internally by the model.
-  /** @brief Number of all material-production cut pairs. */
-  int     fNumMaterialCuts;
   /** @brief Number of different electron production cut pairs. */
   int     fNumDifferentElecCuts;
   /** @brief Map from global to local material-production cut indices. The size of the array is
-    *        MollerBhabhaIonizationModel::fNumMaterialCuts.
+    *        MollerBhabhaIonizationModel::numMaterialCuts.
     */
   int    *fGlobalMatCutIndxToLocal;
 

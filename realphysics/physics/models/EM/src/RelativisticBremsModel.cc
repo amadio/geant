@@ -186,7 +186,6 @@ RelativisticBremsModel::RelativisticBremsModel(bool isuselpm, const std::string 
    fSamplingElecEnergies      =  nullptr;     // will be set at initialisation
    fLSamplingElecEnergies     =  nullptr;     // will be set at initialisation
 
-   fNumMaterialCuts           =        0;      // will be set at initialisation
    fNumDifferentMaterialGCuts =        0;      // will be set at initialisation
    fGlobalMatGCutIndxToLocal  =  nullptr;      // will be set at initialisation
    fAliasData                 =  nullptr;      // will be set at initialisation
@@ -408,18 +407,18 @@ void RelativisticBremsModel::InitSamplingTables() {
    // - get number of different material-gammacut pairs
    // - allocate space and fill the global to local material-cut index map
    const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-   int fNumMaterialCuts = theMaterialCutsTable.size();
+   int numMaterialCuts = theMaterialCutsTable.size();
    if (fGlobalMatGCutIndxToLocal) {
      delete [] fGlobalMatGCutIndxToLocal;
      fGlobalMatGCutIndxToLocal = nullptr;
    }
-   fGlobalMatGCutIndxToLocal = new int[fNumMaterialCuts];
-   //std::cerr<<" === Number of global Material-Cuts = "<<fNumMaterialCuts<<std::endl;
+   fGlobalMatGCutIndxToLocal = new int[numMaterialCuts];
+   //std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
    // count diffenet material-gammacut pairs and set to global to local mat-cut index map
    int oldnumDif = fNumDifferentMaterialGCuts;
    int oldnumSEE = fNumSamplingElecEnergies;
    fNumDifferentMaterialGCuts = 0;
-   for (int i=0; i<fNumMaterialCuts; ++i) {
+   for (int i=0; i<numMaterialCuts; ++i) {
      // if the current MaterialCuts does not belong to the current active regions
      if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
        fGlobalMatGCutIndxToLocal[i] = -1;
@@ -464,7 +463,7 @@ void RelativisticBremsModel::InitSamplingTables() {
    for (int i=0; i<idum; ++i)
      fAliasData[i] = nullptr;
 
-   for (int i=0; i<fNumMaterialCuts; ++i) {
+   for (int i=0; i<numMaterialCuts; ++i) {
      //std::cerr<<"   See if Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
      int localindx = fGlobalMatGCutIndxToLocal[i];
      if (localindx<0) {
@@ -480,7 +479,7 @@ void RelativisticBremsModel::InitSamplingTables() {
    delete [] isdone;
 
    // print
-//   for (int i=0; i<fNumMaterialCuts; ++i)
+//   for (int i=0; i<numMaterialCuts; ++i)
 //     std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatGCutIndxToLocal[i] <<std::endl;
 }
 
@@ -1554,18 +1553,18 @@ void RelativisticBremsModel::InitSamplingTables1() {
   // - get number of different material-gammacut pairs
   // - allocate space and fill the global to local material-cut index map
   const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-  int fNumMaterialCuts = theMaterialCutsTable.size();
+  int numMaterialCuts = theMaterialCutsTable.size();
   if (fGlobalMatGCutIndxToLocal) {
     delete [] fGlobalMatGCutIndxToLocal;
     fGlobalMatGCutIndxToLocal = nullptr;
   }
-  fGlobalMatGCutIndxToLocal = new int[fNumMaterialCuts];
-  std::cerr<<" === Number of global Material-Cuts = "<<fNumMaterialCuts<<std::endl;
+  fGlobalMatGCutIndxToLocal = new int[numMaterialCuts];
+  std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
   // count diffenet material-gammacut pairs and set to global to local mat-cut index map
   int oldnumDif = fNumDifferentMaterialGCuts;
   int oldnumSEE = fNumSamplingElecEnergies;
   fNumDifferentMaterialGCuts = 0;
-  for (int i=0; i<fNumMaterialCuts; ++i) {
+  for (int i=0; i<numMaterialCuts; ++i) {
     bool isnew = true;
     int j = 0;
     for (; j<fNumDifferentMaterialGCuts; ++j) {
@@ -1608,7 +1607,7 @@ void RelativisticBremsModel::InitSamplingTables1() {
   for (int i=0; i<idum; ++i)
     fRatinAliasData[i] = nullptr;
 
-  for (int i=0; i<fNumMaterialCuts; ++i) {
+  for (int i=0; i<numMaterialCuts; ++i) {
     std::cerr<<"   See if Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
     int localindx = fGlobalMatGCutIndxToLocal[i];
     int ialias    = localindx*fNumSamplingElecEnergies;
@@ -1620,7 +1619,7 @@ void RelativisticBremsModel::InitSamplingTables1() {
   }
   delete [] isdone;
   // test
-  for (int i=0; i<fNumMaterialCuts; ++i)
+  for (int i=0; i<numMaterialCuts; ++i)
     std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatGCutIndxToLocal[i] <<std::endl;
 
 //

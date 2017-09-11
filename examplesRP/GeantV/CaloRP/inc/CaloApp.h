@@ -100,8 +100,7 @@ private:
   // ID of the target logical volume (used to check if the current step was done in the target)
   // this data will be obtained from the CaloDetectorConstruction at initialization
   int         fAbsorberLogicalVolumeID[maxAbsorber];
-  int	      fNumLayers;
-  int	      fNumAbsorbers;
+  int	        fNumAbsorbers;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)
   // these data will be obtained from the GeantRunManager::GeantConfig object at initialization
   int         fNumPrimaryPerEvent;

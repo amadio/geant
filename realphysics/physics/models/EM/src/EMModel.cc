@@ -103,7 +103,6 @@ void  EMModel::InitialiseElementSelectors(EMModel *emmodel, const Particle *part
    ClearElementSelectros();
    int numMatCuts       = MaterialCuts::GetTheMaterialCutsTable().size();
    int numMaterials     = Material::GetTheMaterialTable().size();
-
    if (ispermaterial) {
      fIsElementSelectorsPerMaterial = true;
      // the container will store nullptr at material indices that do not appear in any of the regions where this model
@@ -137,7 +136,6 @@ void  EMModel::InitialiseElementSelectors(EMModel *emmodel, const Particle *part
      }
    } else {
      fIsElementSelectorsPerMaterial = false;
-     int numMatCuts                 = MaterialCuts::GetTheMaterialCutsTable().size();
      fElementSelectors.resize(numMatCuts,nullptr);
      for (int i=0; i<numMatCuts; ++i) {
        const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[i];

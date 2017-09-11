@@ -31,6 +31,8 @@ public:
   virtual void  Initialize();
 
   virtual double  AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
+  // just to suppress warning since msc will implement only the second AlongStepDoIt
+  using           EMPhysicsProcess::AlongStepDoIt;
   virtual void    AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
 
   double GetGeomMinLimit() const     { return fGeomMinLimit; }

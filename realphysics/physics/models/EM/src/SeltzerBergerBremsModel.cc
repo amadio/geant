@@ -194,7 +194,6 @@ SeltzerBergerBremsModel::SeltzerBergerBremsModel(bool iselectron, int datafilein
   fSamplingElecEnergies    = nullptr;
   fLSamplingElecEnergies   = nullptr;
 
-  fNumMaterialCuts           = 0;
   fNumDifferentMaterialGCuts = 0;
   fGlobalMatGCutIndxToLocal = nullptr;
   fAliasData                = nullptr; //alias data for each matrial-gammacut pairs
@@ -379,19 +378,19 @@ void SeltzerBergerBremsModel::InitSamplingTables() {
   // - get number of different material-gammacut pairs
   // - allocate space and fill the global to local material-cut index map
   const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-  int fNumMaterialCuts = theMaterialCutsTable.size();
+  int numMaterialCuts = theMaterialCutsTable.size();
   if (fGlobalMatGCutIndxToLocal) {
     delete [] fGlobalMatGCutIndxToLocal;
     fGlobalMatGCutIndxToLocal = nullptr;
   }
-  fGlobalMatGCutIndxToLocal = new int[fNumMaterialCuts];
-  //std::cerr<<" === Number of global Material-Cuts = "<<fNumMaterialCuts<<std::endl;
+  fGlobalMatGCutIndxToLocal = new int[numMaterialCuts];
+  //std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
 
   // count diffenet material-gammacut pairs and set to global to local mat-cut index map
   int oldnumDif = fNumDifferentMaterialGCuts;
   int oldnumSEE = fNumSamplingElecEnergies;
   fNumDifferentMaterialGCuts = 0;
-  for (int i=0; i<fNumMaterialCuts; ++i) {
+  for (int i=0; i<numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
     if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
       fGlobalMatGCutIndxToLocal[i] = -1;
@@ -439,7 +438,7 @@ void SeltzerBergerBremsModel::InitSamplingTables() {
   for (int i=0; i<idum; ++i)
     fAliasData[i] = nullptr;
 
-  for (int i=0; i<fNumMaterialCuts; ++i) {
+  for (int i=0; i<numMaterialCuts; ++i) {
     //std::cerr<<"   See if Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
     int localindx = fGlobalMatGCutIndxToLocal[i];
     if (localindx<0) {
@@ -454,7 +453,7 @@ void SeltzerBergerBremsModel::InitSamplingTables() {
   }
   delete [] isdone;
   // test
-//  for (int i=0; i<fNumMaterialCuts; ++i)
+//  for (int i=0; i<numMaterialCuts; ++i)
 //    std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatGCutIndxToLocal[i] <<std::endl;
 }
 
@@ -630,8 +629,8 @@ void SeltzerBergerBremsModel::BuildOneLinAlias(int ialias, const Material *mat, 
            double xx = 0.5*(fAliasData[ialias]->fXdata[i]+fAliasData[ialias]->fXdata[i+1]); // mid point
            double yy = 0.5*(fAliasData[ialias]->fYdata[i]+fAliasData[ialias]->fYdata[i+1]); // lin func val at the mid point
 
-           double dum0  = (gcut*gcut+densityCor);
-           double dum1  = (eener*eener+densityCor)/dum0;
+           dum0  = (gcut*gcut+densityCor);
+           dum1  = (eener*eener+densityCor)/dum0;
            double    u  = dum0*std::exp(xx*std::log(dum1));
            double thekappa = std::sqrt( u-densityCor)/eener; // kappa
 

@@ -90,7 +90,6 @@ MollerBhabhaIonizationModel::MollerBhabhaIonizationModel(bool iselectron, const 
    fSamplingPrimEnergies    = nullptr;
    fLSamplingPrimEnergies   = nullptr;
 
-   fNumMaterialCuts         = 0;
    fNumDifferentElecCuts    = 0;
    fGlobalMatCutIndxToLocal = nullptr;
 
@@ -329,19 +328,19 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
   // - get number of different e- production cuts
   // - allocate space and fill the global to local material-cut index map
   const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-  int fNumMaterialCuts = theMaterialCutsTable.size();
+  int numMaterialCuts = theMaterialCutsTable.size();
   if (fGlobalMatCutIndxToLocal) {
     delete [] fGlobalMatCutIndxToLocal;
     fGlobalMatCutIndxToLocal = nullptr;
   }
-  fGlobalMatCutIndxToLocal = new int[fNumMaterialCuts];
-  //std::cerr<<" === Number of global Material-Cuts = "<<fNumMaterialCuts<<std::endl;
+  fGlobalMatCutIndxToLocal = new int[numMaterialCuts];
+  //std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
 
   // count diffenet e- production cuts and set the global to local mat-cut index map
   int oldnumDif = fNumDifferentElecCuts;
   int oldnumSPE = fNumSamplingPrimEnergies;
   fNumDifferentElecCuts = 0;
-  for (int i=0; i<fNumMaterialCuts; ++i) {
+  for (int i=0; i<numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
     if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
       fGlobalMatCutIndxToLocal[i] = -1;
@@ -388,7 +387,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
   for (int i=0; i<idum; ++i)
     fAliasData[i] = nullptr;
 
-  for (int i=0; i<fNumMaterialCuts; ++i) {
+  for (int i=0; i<numMaterialCuts; ++i) {
     //std::cerr<<"   See if Material +  e-cut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  e- cut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1]<<std::endl;
     int localindx = fGlobalMatCutIndxToLocal[i];
     if (localindx<0) {
@@ -403,7 +402,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables() {
   }
   delete [] isdone;
   // test
-//  for (int i=0; i<fNumMaterialCuts; ++i)
+//  for (int i=0; i<numMaterialCuts; ++i)
 //    std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatCutIndxToLocal[i] <<std::endl;
 }
 
