@@ -160,7 +160,7 @@ SampleTarget( const int projectilecode, const double projectilekineticenergy, co
     }
     if ( xsec > 0.0  &&  sumElementXsecVector.size() == elementVector.size() ) {
       double randomNumber1 = 0.5;  //***LOOKHERE*** TO-BE-REPLACED with a call to a random number generator.
-      int iEle = 0;
+      size_t iEle = 0;
       while ( iEle < elementVector.size()  &&  randomNumber1 > sumElementXsecVector[iEle]/xsec ) {
         iEle++;
       }

@@ -307,7 +307,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
      td->fPhysicsData->SetNumUsedSecondaries(0);     
      //
      // invoke the interaction
-     int numSecs = elModel->SampleFinalState(primaryLT, isotope, td);
+     elModel->SampleFinalState(primaryLT, isotope, td);
      
      // show updated primaryLT
      h1->Fill(std::acos(primaryLT.GetDirZ()));

@@ -33,7 +33,6 @@ int main(int /*argc*/, char** /*argv*/) {
 
   writef.setf( std::ios::scientific, std::ios::floatfield );
 
-  int i;
   double kinEnergy = 10.* geant::MeV;
   double maxEnergy = 1000 * geant::GeV;
   int particlePDG = -321;

@@ -239,7 +239,6 @@ int main(int argc, char** argv) {
   std::vector<G4DynamicParticle*> vdp;
   dParticle.SetKineticEnergy(energy);
   dParticle.SetMomentumDirection(0.,0.,1.);
-  G4double cost, e1, e2, z1, z2;
   G4Timer *timer;
 
   // hadron projectile
