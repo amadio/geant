@@ -1,0 +1,40 @@
+#
+# macro file for TestEm5.cc
+#
+# angle distribution of  15.7 MeV protons
+# transmitted through gold foils.
+#
+/control/cout/ignoreThreadsExcept 0
+/control/verbose 2
+/run/verbose 2
+#
+/testem/det/setAbsMat   G4_Au
+###/testem/det/setAbsThick 9.658 um
+/testem/det/setAbsThick 1.019296 cm
+/testem/det/setAbsYZ    1 cm
+#
+/run/setCut 1.12 um
+/run/setCutForAGivenParticle gamma 13 um
+#
+/testem/phys/addPhysics   GVStandard
+#/testem/phys/addPhysics  emstandard_opt0
+#/testem/phys/addPhysics  emstandardGS
+#
+#/process/msc/StepLimit UseDistanceToBoundary
+/process/msc/StepLimit UseSafetyPlus
+#/process/msc/Skin 3
+/process/msc/RangeFactor 0.1
+#
+/run/initialize
+#
+/testem/gun/setDefault
+/gun/particle proton
+/gun/energy 15.7 MeV
+#
+/analysis/setFileName  proton_GV
+/analysis/h1/set 12  120 0 30 deg		#space angle
+/analysis/h1/setAscii 12
+#
+#/run/printProgress 100000
+#
+/run/beamOn 4000000

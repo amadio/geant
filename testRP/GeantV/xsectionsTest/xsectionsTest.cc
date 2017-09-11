@@ -34,12 +34,13 @@ int main(int /*argc*/, char** /*argv*/) {
   writef.setf( std::ios::scientific, std::ios::floatfield );
 
   int i;
-  double kinEnergy = 50.* geant::MeV;
+  double kinEnergy = 10.* geant::MeV;
   double maxEnergy = 1000 * geant::GeV;
   int particlePDG = -321;
-  int Z = 1;
+  //int particlePDG = 2212;
+  int Z = 82;
   // number of nucleons
-  int N = 0;
+  int N =207;
   double txs, ixs, exs;
 
   while (kinEnergy < maxEnergy)
