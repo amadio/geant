@@ -142,7 +142,11 @@ void PhysListGVStandard::ConstructProcess()
     
     } else if( particleName == "proton" ||
                particleName == "pi-" ||
-               particleName == "pi+"    ) {
+               particleName == "pi+" ||
+	       particleName == "pi0" ||
+	       particleName == "kaon+" ||
+	       particleName == "kaon-"
+	       ) {
 
       G4HadronElastic* lhep = new G4HadronElastic();
       G4HadronElasticProcess* hel = new G4HadronElasticProcess();
