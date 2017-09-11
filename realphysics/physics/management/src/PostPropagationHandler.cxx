@@ -63,5 +63,15 @@ void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   output.AddTrack(track);
 }
 
+//______________________________________________________________________________
+void PostPropagationHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+{
+  // For the moment just loop and call scalar DoIt
+  Geant::TrackVec_t &tracks = input.Tracks();
+  for (auto track : tracks) {
+    DoIt(track, output, td);
+  }
+}
+
 
 }  // namespace geantphysics

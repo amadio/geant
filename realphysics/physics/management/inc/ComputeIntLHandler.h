@@ -43,7 +43,7 @@ public:
   virtual void DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
-  // virtual void DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td);
+  virtual void DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td);
 
 private:
   ComputeIntLHandler(const ComputeIntLHandler &) = delete;

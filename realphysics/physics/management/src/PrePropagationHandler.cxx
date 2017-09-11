@@ -57,5 +57,15 @@ void PrePropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   output.AddTrack(track);
 }
 
+//______________________________________________________________________________
+void PrePropagationHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+{
+  // For the moment just loop and call scalar DoIt
+  Geant::TrackVec_t &tracks = input.Tracks();
+  for (auto track : tracks) {
+    DoIt(track, output, td);
+  }
+}
+
 
 }  // namespace geantphysics
