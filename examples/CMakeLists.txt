@@ -19,7 +19,6 @@ include_directories(../magneticfield/inc  ../VecMagFieldRoutine/include)
 set(sources
   src/ExN03Application.cxx
   src/CMSApplication.cxx
-#  src/CMSDetectorConstruction.cxx
   src/LHCbApplication.cxx
   src/FastSimApplication.cxx
   )
@@ -38,7 +37,7 @@ set(sources
 set(headers
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSDetectorConstruction.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSFieldConstruction.h
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
   )   

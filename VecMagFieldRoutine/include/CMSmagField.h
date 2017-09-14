@@ -481,8 +481,8 @@ void CMSmagField::GetFieldValue(const vecgeom::Vector3D<double>  &pos_d,
    //                        vecgeom::Vector3D<float> &xyzField)
 
    const vecgeom::Vector3D<float>  &pos_f= pos_d;
-   // GetFieldValue<vecgeom::kScalarFloat>( pos_f, xyzField );
-   GetFieldValue( pos_f, xyzField );
+   GetFieldValue<vecgeom::kScalarFloat>( pos_f, xyzField );
+   // GetFieldValue( pos_f, xyzField );
 }
 
 // This class is thread safe.  So other threads can use the same instance

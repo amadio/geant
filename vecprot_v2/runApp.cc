@@ -20,7 +20,7 @@
 #include "ExN03DetectorConstruction.h"
 #include "ExternalFramework.h"
 
-// #include "UserDetectorConstruction.h"
+#include "UserFieldConstruction.h"
 
 using namespace Geant;
 
@@ -230,12 +230,12 @@ int main(int argc, char *argv[]) {
   config->fUseRungeKutta = useRungeKutta;
   config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
 
-  UserDetectorConstruction* detectorCt= new UserDetectorConstruction();
+  UserFieldConstruction* fieldConstructor= new UserFieldConstruction();
   float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
-  detectorCt->UseConstantMagField( fieldVec, "kilogauss" );
-  printf("runApp: Setting generic detector-construction to GeantPropagator - to create field.\n");
-  propagator->SetUserDetectorConstruction(detectorCt);
-  
+  fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
+  SetUserFieldConstructor(fieldConstructor);
+  printf("runApp: Set up generic field-construction - to create field.\n");
+
   // printf("Calling CreateFieldAndSolver from runCMS_new.C");
   // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
 
@@ -269,6 +269,9 @@ int main(int argc, char *argv[]) {
 #ifdef USE_VECGEOM_NAVIGATOR
 //  runMgr->LoadVecGeomGeometry();
 #endif
+
+  // Currently the run manager can set the field construction
+  runMgr->SetUserFieldConstruction(fieldConstructor);
 
   // for vector physics -OFF now
   // runMgr->SetVectorPhysicsProcess(new GVectorPhysicsProcess(config->fEmin, nthreads));

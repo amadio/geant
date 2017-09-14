@@ -308,7 +308,6 @@ int main(int argc, char *argv[]) {
   // Create the tab. phys process.
   runMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
 
-//===================
   // CMS magnetic field
   // propagator->fBmag = 40.; // 4 Tesla
 
@@ -319,21 +318,22 @@ int main(int argc, char *argv[]) {
   propagator->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
 
   if( useCMSfield ) {
-     CMSDetectorConstruction* CMSdetector= new CMSDetectorConstruction();
-     CMSdetector->SetFileForField(field_filename);
+     CMSFieldConstruction* CmsFieldCtr= new CMSFieldConstruction();
+     CmsFieldCtr->SetFileForField(field_filename);
      printf("CMSApp: Setting CMS-detector-construction to GeantPropagator\n");
-     propagator->SetUserDetectorConstruction(CMSdetector);
+     runMgr // ->GetDetectorConstruction()
+        ->SetUserFieldConstruction(CmsFieldCtr);
      // printf("Calling CreateFieldAndSolver from runCMS_new.C");
      // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
   } else {
-     UserDetectorConstruction* detectorCt= new UserDetectorConstruction();
+     UserFieldConstruction* fieldCtr= new UserFieldConstruction();
      float fieldVec[3] = { 0.0f, 0.0f, 38.0f };
-     detectorCt->UseConstantMagField( fieldVec, "kilogauss" );
+     fieldCtr->UseConstantMagField( fieldVec, "kilogauss" );
      printf("CMSApp: Setting generic detector-construction to GeantPropagator - created field= %f %f %f.\n",
             fieldVec[0], fieldVec[1], fieldVec[2] );
-     propagator->SetUserDetectorConstruction(detectorCt);
+     runMgr // ->GetDetectorConstruction()
+        ->SetUserFieldConstruction(fieldCtr);
   }
-// >>>>>>> Combined big commits of all changes for mag-field
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT

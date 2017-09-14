@@ -1,18 +1,18 @@
-//===--- UserDetectorConstruction.h - Geant-V ----------------------------*- C++ -*-===//
+//===--- UserFieldConstruction.h - Geant-V ----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file   UserDetectorConstruction.h
+ * @file   UserFieldConstruction.h
  * @brief  Base class for the user's mandatory initialization class
- *         for detector setup.
+ *         for field setup.
  * @author John Apostolakis
  */
 //===----------------------------------------------------------------------===//
 
-#ifndef USERDETECTORCONSTRUCTION_H
-#define USERDETECTORCONSTRUCTION_H 1
+#ifndef UserFieldConstruction_H
+#define UserFieldConstruction_H 1
 
 #include "base/Vector3D.h"
 // #include "Geant/Typedefs.h"
@@ -22,16 +22,16 @@
 
 #include "TUniformMagField.h"  //  For now - plan to strip it into separate 'simple' det constr.
 
-// GEANT_DEVICE_DECLARE_CONV(class,UserDetectorConstruction);
+// GEANT_DEVICE_DECLARE_CONV(class,UserFieldConstruction);
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class UserDetectorConstruction
+class UserFieldConstruction
 {
   public:
-    // UserDetectorConstruction();  // RootDL
-    virtual ~UserDetectorConstruction() {};
+    // UserFieldConstruction();  // RootDL
+    virtual ~UserFieldConstruction() {};
     // virtual bool Construct(const char *geomfile);
     // virtual bool CreateFieldAndSolver(bool useRungeKutta= true); // RootDL
 
@@ -76,8 +76,8 @@ class UserDetectorConstruction
 // --> Changed to accomodate Root needs for 
 public: // RootAdded
    
-// UserDetectorConstruction:: // RootComm
-UserDetectorConstruction() : 
+// UserFieldConstruction:: // RootComm
+UserFieldConstruction() : 
    fEpsilonRK(fEpsilonDefault), 
    fMinimumStepInField(fMinimumStepInFieldDef),
    fUseUniformField(false),
@@ -87,17 +87,17 @@ UserDetectorConstruction() :
    fpField(nullptr)
    {}
 
-// bool UserDetectorConstruction::Construct(const char *geomfile)
+// bool UserFieldConstruction::Construct(const char *geomfile)
 // {
 //    return LoadGeometry(geomfile));
 // }
 
 template <class Field_t>
 bool
-// UserDetectorConstruction:: // RootComm
+// UserFieldConstruction:: // RootComm
 CreateSolverForField(Field_t* ptrField)
 {
-   // printf(" -UserDetectorConstructio::CreateSolverForField() called.\n"); 
+   // printf(" -UserFieldConstruction::CreateSolverForField() called.\n"); 
   FieldPropagatorFactory::CreatePropagator<Field_t>( *ptrField,
                                                      fEpsilonRK,
                                                      fMinimumStepInField);
@@ -106,10 +106,10 @@ CreateSolverForField(Field_t* ptrField)
 }
 
 void
-// UserDetectorConstruction:: // RootComm
+// UserFieldConstruction:: // RootComm
 UseConstantMagField( float fieldVal[3],  const char* Units =0 )
 {
-  const char *methodName= "UserDetectorConstruction::UseConstantMagField";
+  const char *methodName= "UserFieldConstruction::UseConstantMagField";
   bool defaultUsed= false;
   double unit= 1;
   
@@ -148,12 +148,12 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
   */
 virtual
 bool
-// UserDetectorConstruction:: // RootComm
-CreateFieldAndSolver(bool /*useRungeKutta*/, GUVMagneticField** fieldPP=0 )
+// UserFieldConstruction:: // RootComm
+CreateFieldAndSolver(bool /*useRungeKutta*/, GUVMagneticField** fieldPP= nullptr )
 {
   using ThreeVectorF = vecgeom::Vector3D<float>;
 
-  static const char *method="UserDetectorConstruction::CreateFieldAndSolver";
+  static const char *method="UserFieldConstruction::CreateFieldAndSolver";
   bool rtv= false;
   if( fieldPP ) *fieldPP= nullptr;
    

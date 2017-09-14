@@ -49,7 +49,7 @@
 #endif
 #endif
 
-#include "UserDetectorConstruction.h"
+#include "UserFieldConstruction.h"
 
 // The classes for integrating in a non-uniform magnetic field
 #include "TUniformMagField.h"
@@ -77,6 +77,7 @@ GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthread
 
 //______________________________________________________________________________
 bool GeantRunManager::Initialize() {
+  const char* methodName= "GeantRunManager::Initialize";
   // Initialization of run manager
   if (fInitialized) return fInitialized;
   if (!fNthreads) {
@@ -85,7 +86,7 @@ bool GeantRunManager::Initialize() {
   }
 
   if (!fNpropagators) {
-    Print("Initialize", "Number of propagators set to 1");
+    Print(methodName, "Number of propagators set to 1");
     fNpropagators = 1;
   }
 
@@ -111,26 +112,29 @@ bool GeantRunManager::Initialize() {
   bool externalLoop = fConfig->fRunMode == GeantConfig::kExternalLoop;
   
   if (!fPrimaryGenerator && !externalLoop) {
-    Fatal("GeantRunManager::Initialize", "The primary generator has to be defined");
+    Fatal(methodName,  "The primary generator has to be defined");
     return false;
   }
 
-  if( !fUserDetectorCtion ){
-    Printf("- GeantRunManager::Initialize - %s.\n", " no User Detector Construction found." );
-    Printf("     Default object created with field= %f %f %f\n", fBfieldArr[0], fBfieldArr[1], fBfieldArr[2]
-          );
-    fUserDetectorCtion= new UserDetectorConstruction();
-    fUserDetectorCtion->UseConstantMagField( fBfieldArr );
-  }
-  
   if (!fApplication) {
-    Fatal("GeantRunManager::Initialize", "The user application has to be defined");
+    Fatal(methodName,  "The user application has to be defined");
     return false;
   }
 
   if (!fDetConstruction) {
-    Warning("GeantRunManager::Initialize", "The user detector construction has to be defined");
+    Warning(methodName,  "The user detector construction should be defined");
     // return false;
+  } else {
+     if( !(fDetConstruction->GetFieldConstruction()) ){
+      Printf("- GeantRunManager::Initialize - %s.\n",
+             " no User Field Construction found in Detector Construction." );
+      Printf("    Created a default field= %f %f %f\n",
+              fBfieldArr[0], fBfieldArr[1], fBfieldArr[2] );
+      auto fieldCtion= new UserFieldConstruction();
+      fieldCtion->UseConstantMagField( fBfieldArr );
+      SetUserFieldConstruction(fieldCtion);
+      Warning(methodName,  "A default field construction was defined");
+    }
   }
 
 //  fPrimaryGenerator->InitPrimaryGenerator();
@@ -163,7 +167,7 @@ bool GeantRunManager::Initialize() {
 #else
     fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
 #endif
-  Info("GeantRunManager::Initialize", "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
+  Info(methodName,  "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
 
   // Now we know the geometry depth: create the track data manager
   TrackDataMgr *dataMgr = TrackDataMgr::GetInstance(fConfig->fMaxDepth);
@@ -171,14 +175,14 @@ bool GeantRunManager::Initialize() {
   // Initialize the process(es)
 #ifdef USE_REAL_PHYSICS
   if (!fPhysicsInterface) {
-    Geant::Fatal("GeantRunManager::Initialize", "The physics process interface has to be initialized before this");
+    Geant::Fatal(methodName,  "The physics process interface has to be initialized before this");
     return false;
   }
   // Initialize the physics
   fPhysicsInterface->Initialize();
 #else
   if (!fProcess) {
-    Geant::Fatal("GeantRunManager::Initialize", "The physics process has to be initialized before this");
+    Geant::Fatal(methodName, "The physics process has to be initialized before this");
     return false;
   }
   // Initialize the process(es)
@@ -395,7 +399,17 @@ void GeantRunManager::PrepareRkIntegration() {
   }
 }
 
-
+//______________________________________________________________________________
+void GeantRunManager::SetUserFieldConstruction(UserFieldConstruction* udc)
+{
+  if( fDetConstruction )
+     fDetConstruction->SetUserFieldConstruction(udc);
+  else
+     Error("GeantRunManager::SetUserFieldConstruction",
+           "To define a field, the user detector construction has to be defined");
+  fInitialisedRKIntegration= false;  //  Needs to be re-done !!
+}
+  
 //______________________________________________________________________________
 void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
 {

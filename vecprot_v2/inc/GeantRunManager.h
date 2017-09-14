@@ -29,7 +29,7 @@ class TaskBroker;
 class PhysicsProcessOld;
 class GeantVApplication;
 class GeantVDetectorConstruction;
-class UserDetectorConstruction;
+class UserFieldConstruction;
 class GeantVTaskMgr;
 class GeantEventServer;
 class GeantEvent;
@@ -53,16 +53,16 @@ private:
   GeantVApplication *fApplication = nullptr;    /** User application */
   GeantVApplication *fStdApplication = nullptr; /** Standard application */
   GeantVDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
-  GeantVTaskMgr     *fTaskMgr = nullptr;        /** GeantV task manager */
-  PhysicsProcessOld *fProcess = nullptr;           /** For now the only generic process pointing to the tabulated physics */
+  // UserFieldConstruction *fFieldConstruction = nullptr; /** User class to create field */
+  
+  GeantVTaskMgr     *fTaskMgr = nullptr;  /** GeantV task manager */
+  PhysicsProcessOld *fProcess = nullptr;  /** For now the only generic process pointing to the tabulated physics */
   PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
   PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
   GeantEventServer *fEventServer = nullptr;     /** The event server */
   TDManager *fTDManager = nullptr;              /** The task data manager */
-
-  UserDetectorConstruction *fUserDetectorCtion= nullptr; /** Class to create detector, field */
 
   bool fInitialisedRKIntegration=false;  /** Flag: Is RK initialised for tracking in field  */
   float  fBfieldArr[3] = { 0.0, 0.0, 0.0 }; /** Constant Magnetic Field value - if any */
@@ -163,11 +163,7 @@ public:
   void SetUserApplication(GeantVApplication *app) { fApplication = app; }
 
   /** @brief Set object to initialize detector, field */
-  GEANT_FORCE_INLINE  
-  void SetUserDetectorConstruction(UserDetectorConstruction* udc) {
-    fUserDetectorCtion= udc;
-    fInitialisedRKIntegration= false;  //  Needs to be re-done !!
-  }
+  void SetUserFieldConstruction(UserFieldConstruction* udc);
     
   GEANT_FORCE_INLINE
   GeantVApplication *GetUserApplication() const { return fApplication; }

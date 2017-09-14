@@ -964,7 +964,6 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.SetBoundary(tracks.fBoundaryV[t]);
           track.SetfProcess(tracks.fProcessV[t]); // Record id of creating process -- Was 0
           track.fNsteps = 0;
-          track.fParentId= tracks.fParticleV[t]; // Identity of parent particle
           track.SetPath(tracks.fPathV[t]);
           track.SetNextPath(tracks.fPathV[t]);
           track.SetMother(tracks.fParticleV[t]);

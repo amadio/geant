@@ -24,11 +24,13 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantRunManager;
 class TaskBroker;
+class UserFieldConstruction;
 
 /** @brief GeantVDetectorConstruction class */
 class GeantVDetectorConstruction {
 private:
   GeantRunManager *fRunMgr = nullptr;
+  UserFieldConstruction *fFieldConstruction = nullptr; 
 // Material conversion callback function
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
@@ -60,6 +62,16 @@ public:
   /** Load geometry from a file. Can be called from the user-defined CreateGeometry */
   bool LoadGeometry(const char *filename);
 
+  /** Object which will create the EM field and the solvers for tracking in it */
+  void SetUserFieldConstruction(UserFieldConstruction* ufc) {
+    fFieldConstruction= ufc;
+    // fInitialisedRKIntegration= false;  //  Needs to be re-done !!
+  }
+
+  /** obtain the field c-tion object */
+  UserFieldConstruction* GetFieldConstruction() { return fFieldConstruction; }
+  const UserFieldConstruction* GetFieldConstruction() const { return fFieldConstruction; }    
+   
   // these methods will become private and non-static after migration to 
   // user detector construction is complete
   static bool LoadVecGeomGeometry(TaskBroker *broker = nullptr);
