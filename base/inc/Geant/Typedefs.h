@@ -2,6 +2,7 @@
 #define GEANT_TYPEDEFS_H
 
 #include "Geant/Config.h"
+#include "Geant/VectorTypes.h"
 
 #ifdef VECCORE_CUDA
 #include "base/Vector.h"

@@ -250,7 +250,7 @@ int main(int argc, char *args[])
        // new GUExactHelixStepper(gvEquation2);
 
     // Configure Stepper for current particle
-    exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
+    // exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
     // gvEquation2->InitializeCharge( particleCharge ); //  Different way - in case this works
     
     auto exactStepper = exactStepperGV;
@@ -383,7 +383,7 @@ int main(int argc, char *args[])
         cout<<setw(6)<<j ;           //Printing Step number
 
         // myStepper->RightHandSide(yIn, dydx);               //compute dydx - to supply the stepper
-        exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
+        exactStepper->RightHandSideVIS(yInX, particleCharge, dydxRef);   //compute the value of dydx for the exact stepper
 
         // Driver begins at the start !
         ThreeVector PositionOut;
@@ -412,7 +412,7 @@ int main(int argc, char *args[])
 #ifdef COMPARE_TO_G4        
            g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
 #else
-           exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           exactStepperGV->StepWithErrorEstimate(yInX,particleCharge,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
 #endif
         }
 

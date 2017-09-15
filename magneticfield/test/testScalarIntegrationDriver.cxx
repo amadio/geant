@@ -1,5 +1,5 @@
 //
-//  Test GUIntegrationDriver 
+//  Test ScalarIntegrationDriver 
 //   * compares with the output of a reference stepper (high accuracy) - ok for small steps
 // 
 //  Based on testStepperFixed.cc
@@ -32,8 +32,8 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 #include "GUVIntegrationStepper.h"
 #include "StepperFactory.h"
 
-#include "GUFieldTrack.h"
-#include "GUIntegrationDriver.h"
+#include "ScalarFieldTrack.h"
+#include "ScalarIntegrationDriver.h"
 
 
 // #define  COMPARE_TO_G4  1
@@ -147,7 +147,7 @@ int main(int argc, char *args[])
     // gvEquation->InitializeCharge( particleCharge );
 
     /*-------------------------PREPARING STEPPER-----------------------------*/
-    
+
     //Create a stepper :
     GUVIntegrationStepper *myStepper; // , *exactStepper;
     // G4MagIntegrationStepper *g4refStepper;    
@@ -156,7 +156,7 @@ int main(int argc, char *args[])
     bool useClonedStepper= (stepper_no > cloneBump);
     if(  useClonedStepper )
        stepper_no -= cloneBump;
- 
+
     myStepper= StepperFactory::CreateStepper<GvEquationType>(gvEquation, stepper_no);
     //         *****************************
     if( useClonedStepper ){
@@ -173,12 +173,12 @@ int main(int argc, char *args[])
     const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp; 
     cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
  
-    auto integrDriver= new GUIntegrationDriver( hminimum,
-                                                myStepper,
-                                                Nposmom,
-                                                statisticsVerbosity); 
+    auto integrDriver= new ScalarIntegrationDriver( hminimum,
+                                                    myStepper,
+                                                    Nposmom,
+                                                    statisticsVerbosity); 
     // myStepper->InitializeCharge( particleCharge );
-    integrDriver->InitializeCharge( particleCharge );
+    //integrDriver->InitializeCharge( particleCharge );
  
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
@@ -215,10 +215,10 @@ int main(int argc, char *args[])
     g4Equation->SetChargeMomentumMass( chargeState,
                                        G4ThreeVector(x_mom, y_mom, z_mom).mag(), //momentum magnitude
                                        mass);  // unused
-//  auto g4exactStepper = new G4ExactHelixStepper(g4Equation);
-    auto g4exactStepper = new G4ClassicalRK4(g4Equation);
-    
-    auto exactStepper = g4ExactStepperGV;
+    auto g4exactStepper =
+                           new G4ClassicalRK4(g4Equation);
+                        // new G4ExactHelixStepper(g4Equation);
+    auto exactStepper = g4ExactStepper;
 #else
     // double yInX[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
     //                 x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};    
@@ -234,7 +234,7 @@ int main(int argc, char *args[])
 
     //Creating the baseline stepper
     auto exactStepperGV =
-        new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation2);       
+        new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation2);
         // new TClassicalRK4<GvEquationType,Nposmom>(gvEquation2);
     cout << "#  Reference stepper is: GUTCashKarpRKF45 <GvEquationType,Nposmom>(gvEquation2);" << endl;
     // cout << "#  Reference stepper is: TClassicalRK4 <GvEquationType,Nposmom>(gvEquation2);" << endl;    
@@ -242,7 +242,7 @@ int main(int argc, char *args[])
        // new GUExactHelixStepper(gvEquation2);
 
     // Configure Stepper for current particle
-    exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
+    //exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
     // gvEquation2->InitializeCharge( particleCharge ); //  Different way - in case this works
     
     auto exactStepper = exactStepperGV;
@@ -360,7 +360,7 @@ int main(int argc, char *args[])
     const double momentumMagInit = startMomentum.Mag();
     cout << "# momentumMagInit = " << momentumMagInit << endl;
     
-    GUFieldTrack yStart( startPosition, startMomentum ); 
+    ScalarFieldTrack yStart( startPosition, startMomentum, particleCharge); 
     double total_step =0;
     /*----------------NOW STEPPING-----------------*/
     
@@ -371,11 +371,11 @@ int main(int argc, char *args[])
         cout<<setw(4)<<j ;           //Printing Step number
 
         // myStepper->RightHandSideVIS(yIn, dydx);               //compute dydx - to supply the stepper
-        exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
+        exactStepper->RightHandSideVIS(yInX, particleCharge, dydxRef);   //compute the value of dydx for the exact stepper
 
         // Driver begins at the start !
-        GUFieldTrack  yTrackIn(  startPosition, startMomentum );  // yStart
-        GUFieldTrack  yTrackOut( startPosition, startMomentum );  // yStart
+        ScalarFieldTrack  yTrackIn(  startPosition, startMomentum, particleCharge );  // yStart
+        ScalarFieldTrack  yTrackOut( startPosition, startMomentum, particleCharge );  // yStart
         
         if( j > 0 )  // Let's print the initial points!
         {
@@ -398,10 +398,12 @@ int main(int argc, char *args[])
 
            // Compare with a high-quality stepper -- expect it works well for this step size (check!)
            //   This builds on its previous step to create the solution !
+
+           // Call the reference stepper
 #ifdef COMPARE_TO_G4        
-           g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX);
 #else
-           exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,particleCharge,stepLengthRef,youtX,yerrX); 
 #endif
         }
         if( goodAdvance ) cout << " o";  // OK
@@ -601,11 +603,7 @@ int main(int argc, char *args[])
     /*-----------------END-STEPPING------------------*/
 
     /*------ Clean up ------*/
-    myStepper->InformDone(); 
     
-#ifndef COMPARE_TO_G4
-    exactStepper->InformDone();
-#endif
     delete myStepper;
     delete exactStepper;
     // delete gvEquation;  // The stepper now takes ownership of the equation

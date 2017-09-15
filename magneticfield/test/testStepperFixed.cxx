@@ -10,7 +10,6 @@
 // #include "G4UniformMagField.hh"
 // #include "G4SystemOfUnits.hh"
 #include "Units.h"
-#include <cfloat>
 
 // using fieldUnits::meter;
 using fieldUnits::millimeter;   
@@ -159,7 +158,7 @@ int main(int argc, char *args[])
     // double position[3] = { 0.0, 0.0, 0.0 }; 
     // double fieldArr[3] = { 0.0, 0.0, 0.0 };
     ThreeVectorD positionVec( 0.0, 0.0, 0.0 );
-    ThreeVectorF fieldVec( 0.0, 0.0, 0.0 );
+    ThreeVectorD fieldVec( 0.0, 0.0, 0.0 );
     
     gvField->GetFieldValue( positionVec, fieldVec );
     cout << "#DEBUG> Field value from TUniformMagField = " << fieldVec[0] / fieldUnits::kilogauss
@@ -196,7 +195,7 @@ int main(int argc, char *args[])
        myStepper = cloneStepper;
     }
 
-    myStepper->InitializeCharge( particleCharge );
+    //myStepper->InitializeCharge( particleCharge );
     
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
@@ -258,7 +257,7 @@ int main(int argc, char *args[])
        // new GUExactHelixStepper(gvEquation2);
 
     // Configure Stepper for current particle
-    exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
+    //exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
     // gvEquation2->InitializeCharge( particleCharge ); //  Different way - in case this works
     
     auto exactStepper = exactStepperGV;
@@ -348,17 +347,17 @@ int main(int argc, char *args[])
     {
         cout<<setw(6)<<j ;           //Printing Step number
 
-        myStepper->RightHandSideVIS(yIn, dydx);               //compute dydx - to supply the stepper
-        exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
+        myStepper->RightHandSideVIS(yIn, particleCharge, dydx);               //compute dydx - to supply the stepper
+        exactStepper->RightHandSideVIS(yInX, particleCharge, dydxRef);   //compute the value of dydx for the exact stepper
 
         if( j > 0 )  // Let's print the initial points!
         {
-           myStepper->StepWithErrorEstimate(yIn,dydx,step_len,yout,yerr);   //Call the 'trial' stepper
+           myStepper->StepWithErrorEstimate(yIn,particleCharge,dydx,step_len,yout,yerr);   //Call the 'trial' stepper
         
 #ifdef COMPARE_TO_G4        
            g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
 #else
-           exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           exactStepperGV->StepWithErrorEstimate(yInX,particleCharge,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
 #endif
         }
         //-> Then print the data

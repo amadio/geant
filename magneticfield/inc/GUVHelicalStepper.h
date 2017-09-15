@@ -36,33 +36,27 @@ class GUVHelicalStepper : public GUVIntegrationStepper
                       unsigned int order);
     virtual ~GUVHelicalStepper();
   
-    virtual void StepWithErrorEstimate( const double y[],  // virtual for ExactHelix 
-                  const double dydx[],
-                        double h,
-                        double yout[],
-                        double yerr[]  );
+    virtual void StepWithErrorEstimate( const double y[],  // virtual for ExactHelix
+                                        const double dydx[],
+                                        const double charge,
+                                              double h,
+                                              double yout[],
+                                              double yerr[]  );
       // The stepper for the Runge Kutta integration.
       // The stepsize is fixed, equal to h.
       // Integrates ODE starting values y[0 to 6]
       // Outputs yout[] and its estimated error yerr[].
   
     virtual  void StepWithoutErrorEstimate( const double y[],
-                               ThreeVector   Bfld,
-                               double  h,
-                               double yout[] ) = 0;
+                                             ThreeVector Bfld,
+                                                  double charge,
+                                                  double h,
+                                                  double yout[] ) = 0;
       // Performs a 'dump' Step without error calculation.
   
-    double DistChord()const ;
+    double DistChord(double charge) const ;
       // Estimate maximum distance of curved solution and chord ... 
 
-    virtual void InitializeCharge(double particleCharge)
-    {
-       fParticleCharge= particleCharge;
-       
-       // Pass it along as expected 
-       GUVIntegrationStepper::InitializeCharge(particleCharge);
-    }
-       //  GetEquationOfMotion()->InitializeCharge(particleCharge); }
   protected:  // with description
 
     inline void LinearStep( const double  yIn[],
@@ -71,16 +65,18 @@ class GUVHelicalStepper : public GUVIntegrationStepper
       // A linear Step in regions without magnetic field.
 
      void AdvanceHelix( const double  yIn[],
-                             ThreeVector   Bfld,
-                             double  h,
-                        double  yHelix[],double yHelix2[]=0);    // output 
+                        ThreeVector   Bfld,
+                             double   charge,                       
+                             double   h,
+                             double   yHelix[],       // output 
+                             double   yHelix2[]=0);   // output (optional)
       // A first order Step along a helix inside the field.
 
     inline void MagFieldEvaluate( const double y[], ThreeVector& Bfield );
       // Evaluate the field at a certain point.
 
   
-   inline double GetInverseCurve( const double Momentum, const double Bmag );
+    inline double GetInverseCurve( double Momentum, double charge, double Bmag );
       // Evaluate Inverse of Curvature of Track
 
       // Store and use the parameters of track : 
@@ -118,8 +114,6 @@ class GUVHelicalStepper : public GUVIntegrationStepper
       double frHelix;
     // Data stored in order to find the chord.
       ThreeVector yInitial, yMidPoint, yFinal;
-       
-      double fParticleCharge;
 };
 
 // #include  "GUVHelicalStepper.icc"
@@ -144,23 +138,22 @@ GUVHelicalStepper::LinearStep( const double  yIn[],
 
 inline void
 GUVHelicalStepper::MagFieldEvaluate(const double y[],
-                                      ThreeVector& Bfield )   
+                                    ThreeVector& Bfield )   
 {
-  double B[3];
-  GetEquationOfMotion()->  GetFieldValue(y, B);
-  Bfield= ThreeVector( B[0], B[1], B[2] );
+  GetEquationOfMotion()->GetFieldValue(ThreeVector(y[0], y[1], y[2]), Bfield);
 }
 
 inline double
-GUVHelicalStepper::GetInverseCurve( const double Momentum,
-                                    const double Bmag)   
+GUVHelicalStepper::GetInverseCurve( double Momentum,
+                                    double charge,                                    
+                                    double Bmag)   
 {
    // define EquationType = TMagFieldEquation<>;
    double  inv_momentum = 1.0 / Momentum ;
    // double particleCharge
    //    = (dynamic_cast<EquationType*>(fPtrMagEqOfMot))->GetParticleCharge(); 
    //     = fPtrMagEqOfMot->FCof() / (CLHEP::eplus*CLHEP::c_light); 
-   double fCoefficient = -fUnitConstant * fParticleCharge *inv_momentum;
+   double fCoefficient = -fUnitConstant * charge *inv_momentum;
  
   return  fCoefficient*Bmag;
 }

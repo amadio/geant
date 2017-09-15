@@ -144,7 +144,7 @@ int main(int /*argc*/, char ** /*args*/ )
                                                 myStepper,
                                                 Nposmom,
                                                 statisticsVerbosity); 
-    integrDriver->InitializeCharge( particleCharge );
+    // integrDriver->InitializeCharge( particleCharge );
  
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
@@ -165,7 +165,7 @@ int main(int /*argc*/, char ** /*args*/ )
 
 
     // Configure Stepper for current particle
-    exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
+    // exactStepperGV->InitializeCharge( particleCharge ); // Passes to Equation, is cached by stepper
     
     auto exactStepper = exactStepperGV;
 
@@ -197,7 +197,7 @@ int main(int /*argc*/, char ** /*args*/ )
     const double momentumMagInit = startMomentum.Mag();
     cout << "# momentumMagInit = " << momentumMagInit << endl;
     
-    GUFieldTrack yStart( startPosition, startMomentum ); 
+    GUFieldTrack yStart( startPosition, startMomentum, particleCharge); 
     double total_step =0;
     /*----------------NOW STEPPING-----------------*/
     
@@ -207,11 +207,11 @@ int main(int /*argc*/, char ** /*args*/ )
 
       cout<<setw(4)<<j ;           //Printing Step number
 
-      exactStepper->RightHandSideVIS(yInX, dydxRef);   //compute the value of dydx for the exact stepper
+      exactStepper->RightHandSideVIS(yInX, particleCharge, dydxRef);   //compute the value of dydx for the exact stepper
 
       // Driver begins at the start !
-      GUFieldTrack  yTrackIn ( startPosition, startMomentum );  // yStart
-      GUFieldTrack  yTrackOut( startPosition, startMomentum );  // yStart
+      GUFieldTrack  yTrackIn ( startPosition, startMomentum, particleCharge );  // yStart
+      GUFieldTrack  yTrackOut( startPosition, startMomentum, particleCharge );  // yStart
         
       if( j > 0 )  // Let's print the initial points!
       {
@@ -233,7 +233,7 @@ int main(int /*argc*/, char ** /*args*/ )
 
          // Compare with a high-quality stepper -- expect it works well for this step size (check!)
          //   This builds on its previous step to create the solution !
-         exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+         exactStepperGV->StepWithErrorEstimate(yInX,particleCharge,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
       }
 
       if( goodAdvance ) cout << " o";  // OK

@@ -8,7 +8,8 @@
 #ifndef CONSTVECTORFIELDHELIXSTEPPER_H_
 #define CONSTVECTORFIELDHELIXSTEPPER_H_
 
-#include "Geant/Config.h"
+#include <Geant/Config.h>
+#include <Geant/VectorTypes.h>
 
 
 /**
@@ -18,11 +19,15 @@
 */
 class ConstVectorBzFieldHelixStepper
 {
+
+   using Double_v = Geant::Double_v;
+   template <typename T>
+   using Vector3D = vecgeom::Vector3D<T>;
+
   private:
     double fBz;
 
   public:
-    typedef Vc::Vector<double>     Double_v;
 
     ConstVectorBzFieldHelixStepper( double Bz = 0. ) : fBz(Bz) {}
 
@@ -50,14 +55,14 @@ class ConstVectorBzFieldHelixStepper
        * input: current position, current direction, some particle properties
        * output: new position, new direction of particle
        */
-       template<typename Vector3D, typename BaseType, typename BaseIType>
-       void DoStep( Vector3D  const & pos     , 
-                    Vector3D  const & dir     ,
+       template<typename BaseType, typename BaseIType>
+       void DoStep( Vector3D<BaseType> const & pos     , 
+                    Vector3D<BaseType> const & dir     ,
                     BaseIType const & charge  , 
                     BaseType  const & momentum,
                     BaseType  const & step    ,
-                    Vector3D        & newpos  ,
-                    Vector3D        & newdir   ) const
+                    Vector3D<BaseType> & newpos  ,
+                    Vector3D<BaseType> & newdir   ) const
        {
            DoStep(pos[0], pos[1], pos[2], dir[0], dir[1], dir[2], charge, momentum, step,
                        newpos[0], newpos[1], newpos[2], newdir[0], newdir[1], newdir[2]);
@@ -90,7 +95,7 @@ void ConstVectorBzFieldHelixStepper::DoStep(
     const double kB2C_local = -0.299792458e-3;
     const double kSmall = 1.E-30;
     // could do a fast square root here
-    BaseDType dt = vecgeom::VECGEOM_IMPL_NAMESPACE::Sqrt((dx0*dx0) + (dy0*dy0)) + kSmall;
+    BaseDType dt = vecCore::math::Sqrt((dx0*dx0) + (dy0*dy0)) + kSmall;
     BaseDType invnorm=1./dt;
     // radius has sign and determines the sense of rotation
     BaseDType R = momentum*dt/((kB2C_local*BaseDType(charge))*(fBz));
@@ -99,8 +104,8 @@ void ConstVectorBzFieldHelixStepper::DoStep(
     BaseDType sina= dy0*invnorm;
     BaseDType phi = step * BaseDType(charge) * fBz * kB2C_local / momentum;
 
-    BaseDType cosphi = vecgeom::VECGEOM_IMPL_NAMESPACE::cos(phi);
-    BaseDType sinphi = vecgeom::VECGEOM_IMPL_NAMESPACE::sin(phi);
+    BaseDType cosphi = vecCore::math::Cos(phi);
+    BaseDType sinphi = vecCore::math::Sin(phi);
     // sincos(phi, &sinphi, &cosphi);
 
     x = x0 + R*( -sina - ( -cosphi*sina - sinphi*cosa ));
@@ -131,16 +136,14 @@ void ConstVectorBzFieldHelixStepper::DoStep_v(
 
      // alternative loop with Vc:
 
-     typedef Vc::Vector<double> Vcdouble_t;
-     typedef Vc::Vector<int> Vcint_t;
-     for (int i=0;i<np;i+=Vcdouble_t::Size)
+     for (int i=0; i<np; i+=Geant::kVecLenD)
      {
           // results cannot not be temporaries
-          Vcdouble_t newposx_v, newposy_v, newposz_v,
-                     newdirx_v, newdiry_v,newdirz_v;
-          DoStep( Vcdouble_t(posx[i]), Vcdouble_t(posy[i]), Vcdouble_t(posz[i]),
-                  Vcdouble_t(dirx[i]), Vcdouble_t(diry[i]), Vcdouble_t(dirz[i]),
-                  Vcint_t(charge[i]), Vcdouble_t(momentum[i]), Vcdouble_t(step[i]),
+          Double_v newposx_v, newposy_v, newposz_v,
+                   newdirx_v, newdiry_v,newdirz_v;
+          DoStep( Double_v(posx[i]), Double_v(posy[i]), Double_v(posz[i]),
+                  Double_v(dirx[i]), Double_v(diry[i]), Double_v(dirz[i]),
+                  Int_v(charge[i]), Double_v(momentum[i]), Double_v(step[i]),
                   newposx_v,
                   newposy_v,
                   newposz_v,

@@ -47,9 +47,9 @@ public:
 
   static GUFieldPropagator* CreatePropagator( // Field_t&    gvField,
                           //   Equation_t* gvEquation=  nullptr,
-                               GUIntegrationDriver&   integrDriver,
+                               ScalarIntegrationDriver&   integrDriver,
                                double                 relTol= fDefaultEpsTolerance);
-   // The GUIntegrationDriver object which is passed must be on the heap.
+   // The ScalarIntegrationDriver object which is passed must be on the heap.
    //  It will be owned by the Propagator
 
 private:
@@ -59,7 +59,7 @@ private:
 // template<typename Field_t> // , typename Equation_t>
 GUFieldPropagator*
 FieldPropagatorFactory::CreatePropagator( // Field_t&              gvField,
-                                          GUIntegrationDriver&  integrDriver,
+                                          ScalarIntegrationDriver&  integrDriver,
                                           double                relEpsilonTolerance)
 {
   // using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
@@ -105,7 +105,7 @@ FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
      aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
 
   int   statisticsVerbosity= 0;
-  auto integrDriver = new GUIntegrationDriver( minStepSize,
+  auto integrDriver = new ScalarIntegrationDriver( minStepSize,
                                                aStepper,
                                                Nvar,
                                                statisticsVerbosity);

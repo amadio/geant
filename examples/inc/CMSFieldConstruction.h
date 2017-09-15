@@ -15,6 +15,7 @@
 #include "UserFieldConstruction.h"
 
 class CMSmagField;
+class GUVMagneticField;
 
 class CMSFieldConstruction : public Geant::cxx::UserFieldConstruction 
 #ifdef  USE_ROOT_TObject
@@ -34,7 +35,7 @@ class CMSFieldConstruction : public Geant::cxx::UserFieldConstruction
 
     /** @brief Method to register a B-field, and create integrator for it. */
     bool CreateFieldAndSolver(bool useRungeKutta= true,
-                              GUVMagneticField** fieldPP= nullptr )  override  final;
+                              GUVField** fieldPP= nullptr )  override  final;
   private:
     std::string   fFieldFilename;
     CMSmagField*  fCMSfield;
@@ -70,7 +71,7 @@ CMSFieldConstruction::~CMSFieldConstruction() { delete fCMSfield; }
 
 bool
 CMSFieldConstruction::
-CreateFieldAndSolver(bool useRungeKutta, GUVMagneticField** fieldPP )
+CreateFieldAndSolver(bool useRungeKutta, GUVField** fieldPP )
 {
   using FieldType = CMSmagField;  
 

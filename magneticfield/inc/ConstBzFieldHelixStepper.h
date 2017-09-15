@@ -8,7 +8,8 @@
 #ifndef CONSTBzFIELDHELIXSTEPPER_H_
 #define CONSTBzFIELDHELIXSTEPPER_H_
 
-#include "Geant/Config.h"
+#include <Geant/Config.h>
+#include <Geant/VectorTypes.h>
 
 #include "GFldAuxFunctions.h"
 
@@ -165,16 +166,14 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
        // alternative loop with Vc:
 
-       typedef Vc::Vector<double> Vcdouble_t;
-       typedef Vc::Vector<int> Vcint_t;
-       for (int i=0;i<np;i+=Vcdouble_t::Size)
+       for (int i=0;i<np;i+=Double_v::Size)
        {
             // results cannot not be temporaries
-            Vcdouble_t newposx_v, newposy_v, newposz_v,
+            Double_v newposx_v, newposy_v, newposz_v,
                        newdirx_v, newdiry_v,newdirz_v;
-            DoStep( Vcdouble_t(posx[i]), Vcdouble_t(posy[i]), Vcdouble_t(posz[i]),
-                    Vcdouble_t(dirx[i]), Vcdouble_t(diry[i]), Vcdouble_t(dirz[i]),
-                    Vcint_t(charge[i]), Vcdouble_t(momentum[i]), Vcdouble_t(step[i]),
+            DoStep( Double_v(posx[i]), Double_v(posy[i]), Double_v(posz[i]),
+                    Double_v(dirx[i]), Double_v(diry[i]), Double_v(dirz[i]),
+                    Geant::Int_v(charge[i]), Double_v(momentum[i]), Double_v(step[i]),
                     newposx_v,
                     newposy_v,
                     newposz_v,

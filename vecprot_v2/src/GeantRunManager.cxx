@@ -55,7 +55,7 @@
 #include "TUniformMagField.h"
 #include "FieldEquationFactory.h"
 #include "StepperFactory.h"
-#include "GUIntegrationDriver.h"
+#include "ScalarIntegrationDriver.h"
 
 #include "GUFieldPropagator.h"
 #include "GUFieldPropagatorPool.h"
@@ -384,7 +384,7 @@ void GeantRunManager::PrepareRkIntegration() {
   cout << "Parameters for RK integration in magnetic field: " << endl;
   cout << "   Driver parameters:  eps_tol= " << fConfig->fEpsilonRK << "  h_min= " << hminimum << endl;
 
-  auto integrDriver = new GUIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
+  auto integrDriver = new ScalarIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
   // GUFieldPropagator *
   auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK); // epsTol);
 

@@ -35,86 +35,86 @@
 
 #include <vector>
 #include "base/Vector3D.h"
-#include "base/SOA3D.h"
 #include "base/Global.h"
-#include "backend/Backend.h"
+#include <Geant/VectorTypes.h>
 
 // #include "GUVTypes.hh"
 // #include "globals.hh"
 
 /**
- * @brief Class GUVField
+ * @brief Base class describing the scalar and vector interfaces for Field classes
  */
 
 class GUVField
 {
-  public:  // with description
 
-      /**
-       * @brief GeantTrack parametrized constructor
-       *
-       * @param Position - position (0,1,2=x,y,z)   [Input]   - Note: time is suppressed => B(t)=B(0)
-       * @param fieldArr - output values of field. Usual convention:
-       *                   0,1,2 = B_x, B_y, B_z
-       *                   3,4,5 = E_x, E_y, E_z  (foreseen extension)
-       *        Units are expected to be native GeantV units.
-       */
-      // virtual void  GetFieldValue( const double Position[4],
-      //                                    double *fieldArr ) const = 0;
-      virtual void GetFieldValue( const vecgeom::Vector3D<double> &Position,
-                                        vecgeom::Vector3D<float>  &FieldValue ) = 0;
+public:  // with description
 
-      /*
-       * The expected vector interface is: 
-       *
-       * virtual void GetFieldValue( const vecgeom::Vector3D<typename Backend::precision_v> &Position, 
-       *                                   vecgeom::Vector3D<typename Backend::precision_v> &FieldValue ) = 0;
-       */
+  using Double_v = Geant::Double_v;
+  using Float_v = Geant::Float_v;
+  
+  template <typename T>
+  using Vector3D = vecgeom::Vector3D<T>;
+  
 
-      inline
-      GUVField( int NumberOfComponents, bool changesEnergy );
-      inline
-      GUVField( const GUVField & );
-      virtual ~GUVField();
-      // inline GUVField& operator = (const GUVField &p); 
+  /**
+   * @brief Scalar interface for field retrieval
+   *
+   * @param Position - position (0,1,2=x,y,z)   [Input]   - Note: time is suppressed => B(t)=B(0)
+   * @param fieldArr - output values of field. Usual convention:
+   *                   0,1,2 = B_x, B_y, B_z
+   *                   3,4,5 = E_x, E_y, E_z  (foreseen extension)
+   *        Units are expected to be native GeantV units.
+   */
+  virtual void GetFieldValue( const Vector3D<double> &position,
+                                    Vector3D<double>  &fieldValue ) = 0;
 
-     // A field signature function that can be used to insure
-     // that the Equation of motion object and the GUVField object
-     // have the same "field signature"?
+  /** @brief Vector interface for field retrieval */
+  virtual void GetFieldValueSIMD( const Vector3D<Double_v> &position, 
+                                        Vector3D<Double_v> &fieldValue ) = 0;
 
-      bool   DoesFieldChangeEnergy() const { return fChangesEnergy; } 
-      int    GetNumberOfComponents() const { return fNumberOfComponents; } 
+  inline
+  GUVField( int numberOfComponents, bool changesEnergy )
+    : fNumberOfComponents(numberOfComponents), fChangesEnergy(changesEnergy) {}
 
-      GUVField& operator = (const GUVField &p); // Useful ?
-      
-      virtual GUVField* Clone() const = 0;
-        // Implements cloning, likely needed for MT 
+  inline
+  GUVField( const GUVField &field)
+    : fNumberOfComponents(field.fNumberOfComponents), fChangesEnergy(field.fChangesEnergy) {}
+  virtual ~GUVField() {}
+ 
+  // A field signature function that can be used to insure
+  // that the Equation of motion object and the GUVField object
+  // have the same "field signature"?
 
-      // Expect a method of the following signature
-      //  [Derived-Field-type] * CloneOrSafeSelf( bool* pSafe ) const
-      // to be implemented for each derived class.
-      // If the class is thread-safet, it can be implemented as:
-      //  { if( pSafe ) { *pSafe= false; } ; return Clone(); } 
+  bool   DoesFieldChangeEnergy() const { return fChangesEnergy; } 
+  int    GetNumberOfComponents() const { return fNumberOfComponents; } 
+
+  GUVField& operator = (const GUVField &field)
+  {
+    if (&field != this) {
+      fNumberOfComponents = field.fNumberOfComponents;
+      fChangesEnergy = field.fChangesEnergy;
+    }
+    return *this;
+  }
+  
+  virtual GUVField* Clone() const
+  {
+    std::runtime_error("Clone must be implemented by the derived field class");
+    return nullptr;
+    // Implements cloning, likely needed for MT 
+  }
+
+  // Expect a method of the following signature
+  //  [Derived-Field-type] * CloneOrSafeSelf( bool* pSafe ) const
+  // to be implemented for each derived class.
+  // If the class is thread-safet, it can be implemented as:
+  //  { if( pSafe ) { *pSafe= false; } ; return Clone(); } 
       
 private:
-      const int  fNumberOfComponents; // E.g.  B -> N=3 , ie x,y,z 
-                                     //       E+B -> N=6 
-      bool fChangesEnergy; 
-       //  Each type/class of field set this accordingly:
-       //    - an electric field     - "true"
-       //    - a pure magnetic field - "false"
+  int  fNumberOfComponents;       // E.g.  B -> N=3 , ie x,y,z 
+                                  //       E+B -> N=6 
+  bool fChangesEnergy;            // Electric: true, Magnetic: false
 };
 
-inline GUVField::GUVField( int NumberOfComponents, bool changesEnergy )
-   : fNumberOfComponents(NumberOfComponents),
-     fChangesEnergy(changesEnergy)
-{
-}
-
-inline GUVField::GUVField( const GUVField &field )
-   : fNumberOfComponents(field.fNumberOfComponents)
-{
-   // *this = field; 
-   fChangesEnergy= field.fChangesEnergy;
-}
 #endif /* GUVFIELD_HH */

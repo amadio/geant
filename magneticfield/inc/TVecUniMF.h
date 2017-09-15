@@ -4,10 +4,11 @@
 #define TVecUniMF_H
 
 #include <iostream>
-#include "base/Vector3D.h"
-#include "AlignedBase.h"
+#include <base/Vector3D.h>
+#include <base/AlignedBase.h>
+#include <Geant/VectorTypes.h>
 
-class TVecUniMF : public AlignedBase {  
+class TVecUniMF : public vecgeom::AlignedBase {  
     public:  
 
         TVecUniMF()
@@ -18,9 +19,7 @@ class TVecUniMF : public AlignedBase {
         ~TVecUniMF() {}
 
     private:
-        // vecgeom::Vector3D<typename Vc::Vector<float>> fFieldComponents;
-        typename Vc::Vector<double> fTestMember; 
-        //typename vecgeom::kVc::precision_v fTestMember2;
+        Geant::Double_v fTestMember; 
 };
 
 #endif

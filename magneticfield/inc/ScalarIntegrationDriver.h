@@ -11,30 +11,30 @@
 // - Created. J.Apostolakis.
 // --------------------------------------------------------------------
 
-#ifndef GUIntegrationDriver_Def
-#define GUIntegrationDriver_Def
+#ifndef ScalarIntegrationDriver_Def
+#define ScalarIntegrationDriver_Def
 
-#include "GUFieldTrack.h"
+#include "ScalarFieldTrack.h"
 
 // class GUVIntegrationStepper;
 #include "GUVIntegrationStepper.h"
 
-class GUIntegrationDriver
+class ScalarIntegrationDriver
 {
    public:  // with description
-     GUIntegrationDriver( double                 hminimum, //same
+     ScalarIntegrationDriver( double                 hminimum, //same
                           GUVIntegrationStepper *pStepper,
                           int                    numberOfComponents=6,
                           int                    statisticsVerbosity=1);
-     GUIntegrationDriver( const GUIntegrationDriver& );
+     ScalarIntegrationDriver( const ScalarIntegrationDriver& );
        // Copy constructor used to create Clone method
-     ~GUIntegrationDriver();
+     ~ScalarIntegrationDriver();
 
      // Core methods
-     bool  AccurateAdvance( const GUFieldTrack& y_current,
+     bool  AccurateAdvance( const ScalarFieldTrack& y_current,
                                         double  hstep,
                                         double  eps, //same             // Requested y_err/hstep
-                                  GUFieldTrack& yOutput,                            
+                                  ScalarFieldTrack& yOutput,                            
                                         double  hinitial=0.0);  // take it out 
        // Above drivers for integrator (Runge-Kutta) with stepsize control. 
        // Integrates ODE starting values y_current
@@ -42,7 +42,7 @@ class GUIntegrationDriver
        // On output ystart is replaced by value at end of interval. 
        // The concept is similar to the odeint routine from NRC p.721-722.
 
-     bool  QuickAdvance(      GUFieldTrack& y_posvel,        // INOUT
+     bool  QuickAdvance(      ScalarFieldTrack& y_posvel,        // INOUT
                           const double      dydx[],  
                                 double      hstep,           // IN
 #ifdef USE_DCHORD
@@ -55,12 +55,7 @@ class GUIntegrationDriver
        //    but does return the errors in  position and
        //        momentum (normalised: Delta_Integration(p^2)/(p^2) )
 
-     void  InitializeCharge(double charge) { fpStepper->InitializeCharge(charge);}
-       // Pass needed information and initialize 
-     void  DoneIntegration() { fpStepper->GetEquationOfMotion()->InformDone(); } 
-       // Pass along information about end of integration - can clears parameters, flag finished
-
-     GUIntegrationDriver* Clone() const;
+     ScalarIntegrationDriver* Clone() const;
        // Create an independent copy of the current object -- including independent 'owned' objects
        // 
        // Question:  If the current object and all sub-objects are const, can it return 'this' ?
@@ -75,8 +70,8 @@ class GUIntegrationDriver
      inline double GetPowerGrow()   const { return fPowerGrow; } 
      inline double GetErrcon()      const { return fErrcon; }
      
-     inline void   GetDerivatives( const GUFieldTrack &y_curr,     // const, INput
-                                     // double    charge, 
+     inline void   GetDerivatives( const ScalarFieldTrack &y_curr,     // const, INput
+                                        double    charge,
                                         double    dydx[]   );  //       OUTput
         // Accessors.
 
@@ -103,6 +98,7 @@ class GUIntegrationDriver
      inline GUVIntegrationStepper* GetStepper();
 
      void  OneGoodStep(       double  ystart[], // Like old RKF45step()
+                              double  charge,
                         const double  dydx[],
                               double& x,
                               double htry,
@@ -159,11 +155,11 @@ class GUIntegrationDriver
                               double       xcurrent, 
                               double       requestStep, 
                               int          subStepNo );
-     void PrintStatus(  const GUFieldTrack&  StartFT,
-                        const GUFieldTrack&  CurrentFT, 
+     void PrintStatus(  const ScalarFieldTrack&  StartFT,
+                        const ScalarFieldTrack&  CurrentFT, 
                               double       requestStep, 
                               int          subStepNo );
-     void PrintStat_Aux( const GUFieldTrack& aGUFieldTrack,
+     void PrintStat_Aux( const ScalarFieldTrack& aScalarFieldTrack,
                                double      requestStep, 
                                double      actualStep,
                                int         subStepNo,
@@ -185,7 +181,7 @@ class GUIntegrationDriver
 
    private:
 
-     GUIntegrationDriver& operator=(const GUIntegrationDriver&);
+     ScalarIntegrationDriver& operator=(const ScalarIntegrationDriver&);
         // Private copy constructor and assignment operator.
 
    private:
@@ -204,7 +200,7 @@ class GUIntegrationDriver
         //  below this fraction the current step will be the last 
 
      const int  fNoIntegrationVariables;  // Number of Variables in integration
-     const int  fMinNoVars;               // Minimum number for GUFieldTrack
+     const int  fMinNoVars;               // Minimum number for ScalarFieldTrack
      const int  fNoVars;                  // Full number of variable
 
      int   fMaxNoSteps;
@@ -247,14 +243,14 @@ class GUIntegrationDriver
 
 
 inline
-double GUIntegrationDriver::ComputeAndSetErrcon()
+double ScalarIntegrationDriver::ComputeAndSetErrcon()
 {
       fErrcon = std::pow(fMaxSteppingIncrease/fSafetyFactor,1.0/fPowerGrow);
       return fErrcon;
 } 
 
 inline
-void GUIntegrationDriver::ReSetParameters(double new_safety)
+void ScalarIntegrationDriver::ReSetParameters(double new_safety)
 {
       fSafetyFactor = new_safety;
       fPowerShrink  = -1.0 / fpStepper->IntegratorOrder();
@@ -263,63 +259,63 @@ void GUIntegrationDriver::ReSetParameters(double new_safety)
 }
 
 inline
-void GUIntegrationDriver::SetSafety(double val)
+void ScalarIntegrationDriver::SetSafety(double val)
 { 
       fSafetyFactor=val;
       ComputeAndSetErrcon();
 }
 
 inline
-void GUIntegrationDriver::SetPowerGrow(double  val)
+void ScalarIntegrationDriver::SetPowerGrow(double  val)
 { 
       fPowerGrow=val;
       ComputeAndSetErrcon(); 
 }
 
 inline
-void GUIntegrationDriver::SetErrcon(double val)
+void ScalarIntegrationDriver::SetErrcon(double val)
 { 
       fErrcon=val;
 }
 
 inline
-void GUIntegrationDriver::RenewStepperAndAdjust(GUVIntegrationStepper *pStepper)
+void ScalarIntegrationDriver::RenewStepperAndAdjust(GUVIntegrationStepper *pStepper)
 {  
       fpStepper = pStepper; 
       ReSetParameters();
 }
 
 inline
-const GUVIntegrationStepper* GUIntegrationDriver::GetStepper() const
+const GUVIntegrationStepper* ScalarIntegrationDriver::GetStepper() const
 {
   return fpStepper;
 }
 
 inline
-GUVIntegrationStepper* GUIntegrationDriver::GetStepper() 
+GUVIntegrationStepper* ScalarIntegrationDriver::GetStepper() 
 {
   return fpStepper;
 }
 
 inline
-int GUIntegrationDriver::GetMaxNoSteps() const
+int ScalarIntegrationDriver::GetMaxNoSteps() const
 {
   return fMaxNoSteps;
 }
 
 inline
-void GUIntegrationDriver::SetMaxNoSteps(int val)
+void ScalarIntegrationDriver::SetMaxNoSteps(int val)
 {
   fMaxNoSteps= val;
 }
 
 inline
-void GUIntegrationDriver::GetDerivatives(const GUFieldTrack &y_curr, // const, INput
-                                             /*double       charge, */
+void ScalarIntegrationDriver::GetDerivatives(const ScalarFieldTrack &y_curr, // const, INput
+                                               double       charge,
                                                double       dydx[])  // OUTput
 { 
-  double  tmpValArr[GUFieldTrack::ncompSVEC];
+  double  tmpValArr[ScalarFieldTrack::ncompSVEC];
   y_curr.DumpToArray( tmpValArr  );
-  fpStepper -> RightHandSideVIS( tmpValArr , /*charge,*/ dydx );
+  fpStepper -> RightHandSideVIS( tmpValArr , charge, dydx );
 }
-#endif /* GUIntegrationDriver_Def */
+#endif /* ScalarIntegrationDriver_Def */

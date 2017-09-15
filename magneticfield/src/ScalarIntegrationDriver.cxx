@@ -14,13 +14,13 @@
 // #include "globals.hh"
 // #include "G4SystemOfUnits.hh"
 // #include "G4GeometryTolerance.hh"
-#include "GUFieldTrack.h"
-#include "GUIntegrationDriver.h"
+#include "ScalarFieldTrack.h"
+#include "ScalarIntegrationDriver.h"
 
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper
 //
-const int  GUIntegrationDriver::fMaxStepBase = 250;  // Was 5000
+const int  ScalarIntegrationDriver::fMaxStepBase = 250;  // Was 5000
 
 // #ifndef G4NO_FIELD_STATISTICS
 // #define GVFLD_STATS  1
@@ -41,7 +41,7 @@ TH1F* gHistStepsInit=0;
 
 //  Constructor
 //
-GUIntegrationDriver::GUIntegrationDriver( double        hminimum, 
+ScalarIntegrationDriver::ScalarIntegrationDriver( double        hminimum, 
                                   GUVIntegrationStepper *pStepper,
                                   int                   numComponents,
                                   int                   statisticsVerbose)
@@ -97,7 +97,7 @@ GUIntegrationDriver::GUIntegrationDriver( double        hminimum,
 
 //  Copy Constructor - used by Clone
 //
-GUIntegrationDriver::GUIntegrationDriver( const GUIntegrationDriver& right ) 
+ScalarIntegrationDriver::ScalarIntegrationDriver( const ScalarIntegrationDriver& right ) 
    : fMinimumStep( right.fMinimumStep ),
      fSmallestFraction( right.fSmallestFraction ),
      fNoIntegrationVariables( right.fNoIntegrationVariables ),
@@ -142,7 +142,7 @@ GUIntegrationDriver::GUIntegrationDriver( const GUIntegrationDriver& right )
 
 //  Destructor
 //
-GUIntegrationDriver::~GUIntegrationDriver()
+ScalarIntegrationDriver::~ScalarIntegrationDriver()
 { 
   if( fStatisticsVerboseLevel > 1 )
   {
@@ -151,18 +151,18 @@ GUIntegrationDriver::~GUIntegrationDriver()
 }
 
 
-GUIntegrationDriver* GUIntegrationDriver::Clone() const
+ScalarIntegrationDriver* ScalarIntegrationDriver::Clone() const
 {
-   return new GUIntegrationDriver(*this);
+   return new ScalarIntegrationDriver(*this);
 }
 
 // ---------------------------------------------------------
 
 bool
-GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
+ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack& yInput,
                                               double     hstep,
                                               double     epsilon,
-                                           GUFieldTrack& yOutput,
+                                           ScalarFieldTrack& yOutput,
                                               double     hinitial
    )
 {
@@ -177,26 +177,26 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
   //  - the return value is 'true' if integration succeeded to the end of the interval,
   //    and 'false' otherwise.
   
-  // std::cout << "AccurateAdvance of GUIntegrationDriver" << std::endl;
+  // std::cout << "AccurateAdvance of ScalarIntegrationDriver" << std::endl;
 
   constexpr double perMillion  = 1.0e-6;
   constexpr double perThousand = 1.0e-3;
 
   int nstp, i, no_warnings=0;
   double x, hnext, hdid, h;
-  // double charge= y_current.GetCharge(); 
+  double charge= yInput.GetCharge(); 
 
 #ifdef GUDEBUG_FIELD
   static int dbg=1;
   static int nStpPr=50;   // For debug printing of long integrations
-  double ySubStepStart[GUFieldTrack::ncompSVEC];
-  // GUFieldTrack  yFldTrkStart(y_current);
+  double ySubStepStart[ScalarFieldTrack::ncompSVEC];
+  // ScalarFieldTrack  yFldTrkStart(y_current);
   // std::cout << " AccurateAdvance called with hstep= " << hstep
             // << " hinitial = " << hinitial  << std::endl;
 #endif
 
-  double y[GUFieldTrack::ncompSVEC], dydx[GUFieldTrack::ncompSVEC];
-  double ystart[GUFieldTrack::ncompSVEC], yEnd[GUFieldTrack::ncompSVEC]; 
+  double y[ScalarFieldTrack::ncompSVEC], dydx[ScalarFieldTrack::ncompSVEC];
+  double ystart[ScalarFieldTrack::ncompSVEC], yEnd[ScalarFieldTrack::ncompSVEC]; 
   double  x1, x2;
   bool succeeded = true, lastStepSucceeded;
 
@@ -205,9 +205,9 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
   int  noFullIntegr=0, noSmallIntegr = 0 ;
   // G4ThreadLocal
   static int  noGoodSteps =0 ;  // Bad = chord > curve-len 
-  const  int  nvar= fNoVars;
+  const  int  nvar=  fNoIntegrationVariables;  // 6; // fpStepper-> ... 
 
-  // GUFieldTrack yStartFT(yInput);
+  // ScalarFieldTrack yStartFT(yInput);
 
   //  Ensure that hstep > 0
   //
@@ -279,7 +279,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
     // fpStepper->ComputeRightHandSide( y, charge, dydx );
 
     // Back to simple, old method   - JA. 16 Oct 2015
-    fpStepper->RightHandSideVIS( y, /*charge,*/ dydx );   // TODO: change to inline
+    fpStepper->RightHandSideVIS( y, charge, dydx );   // TODO: change to inline
     fNoTotalSteps++;
 
     // Perform the Integration
@@ -287,7 +287,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
     if( h > fMinimumStep )
     { 
       // std::cout << "Calling       OneGoodStep " << std::endl;
-      OneGoodStep(y,dydx,x,h,epsilon,hdid,hnext) ;
+      OneGoodStep(y,charge,dydx,x,h,epsilon,hdid,hnext) ;
       // std::cout << "Returned from OneGoodStep" << std::endl;
 
       //--------------------------------------
@@ -300,8 +300,9 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
     }
     else
     {
-      GUFieldTrack yFldTrk( ThreeVector(0,0,0), 
-                            ThreeVector(0,0,0) );
+      ScalarFieldTrack yFldTrk( ThreeVector(0,0,0), 
+                            ThreeVector(0,0,0),
+                            charge );
       // double dchord_step;
       double dyerr_len_sq, dyerr_mom_rel_sq;   // What to do with these ?
       yFldTrk.LoadFromArray(y, fNoIntegrationVariables); 
@@ -511,7 +512,7 @@ GUIntegrationDriver::AccurateAdvance(const GUFieldTrack& yInput,
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::WarnSmallStepSize( double hnext,
+ScalarIntegrationDriver::WarnSmallStepSize( double hnext,
                                         double hstep, 
                                         double h,
                                         double xDone,
@@ -521,7 +522,7 @@ GUIntegrationDriver::WarnSmallStepSize( double hnext,
   const  int maxNoWarnings =  10;   // Number of verbose warnings
   // std::ostringstream message;
   // typedef std::cerr message;
-  std::cerr << " WARNING from GUIntegrationDriver::WarnSmallStepSize():  " ; // << std::endl;
+  std::cerr << " WARNING from scalarIntegrationDriver::WarnSmallStepSize():  " ; // << std::endl;
   if( (noWarningsIssued < maxNoWarnings) || fVerboseLevel > 10 )
   {
     std::cerr << "The stepsize for the next iteration, " << hnext
@@ -539,7 +540,7 @@ GUIntegrationDriver::WarnSmallStepSize( double hnext,
             << ",  req_tot_len: " << hstep 
             << ", done: " << xDone << ", min: " << GetHmin();
   }
-  // G4Exception("GUIntegrationDriver::WarnSmallStepSize()", "GeomField1001",
+  // G4Exception("ScalarIntegrationDriver::WarnSmallStepSize()", "GeomField1001",
   //             JustWarning, message);
   noWarningsIssued++;
 }
@@ -547,12 +548,12 @@ GUIntegrationDriver::WarnSmallStepSize( double hnext,
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::WarnTooManySteps( double x1start, 
+ScalarIntegrationDriver::WarnTooManySteps( double x1start, 
                                   double x2end, 
                                   double xCurrent)
 {
    // std::ostringstream message;
-   std::cerr << "WARNING from GUIntegrationDriver::WarnTooManySteps()" << std::endl;
+   std::cerr << "WARNING from ScalarIntegrationDriver::WarnTooManySteps()" << std::endl;
    std::cerr << "The number of steps used in the Integration driver"
              << " (Runge-Kutta) is too many." << std::endl
              << "Integration of the interval was not completed !" << std::endl;
@@ -567,14 +568,14 @@ GUIntegrationDriver::WarnTooManySteps( double x1start,
              << std::endl;
    // std::cerr.unsetf (std::ios_base::scientific);
    std::cerr.precision(oldPrec);
-   // G4Exception("GUIntegrationDriver::WarnTooManySteps()", "GeomField1001",
+   // G4Exception("ScalarIntegrationDriver::WarnTooManySteps()", "GeomField1001",
    //             JustWarning, message);
 }
 
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::WarnEndPointTooFar (double endPointDist, 
+ScalarIntegrationDriver::WarnEndPointTooFar (double endPointDist, 
                                          double   h , 
                                          double  epsilon,
                                          int     dbg)
@@ -591,7 +592,7 @@ GUIntegrationDriver::WarnEndPointTooFar (double endPointDist,
   { 
     static int noWarnings = 0;  // thread_local
     // std::ostringstream message;
-    std::cerr << "WARNING in GUIntegrationDriver::WarnEndPointTooFar()" << std::endl;
+    std::cerr << "WARNING in ScalarIntegrationDriver::WarnEndPointTooFar()" << std::endl;
     if( (noWarnings ++ < 10) || (dbg>2) )
     {
       std::cerr << "The integration produced an end-point which "
@@ -603,7 +604,7 @@ GUIntegrationDriver::WarnEndPointTooFar (double endPointDist,
               << "  Difference (curveLen-endpDist)= " << (h - endPointDist)
               << ", relative = " << (h-endPointDist) / h 
               << ", epsilon =  " << epsilon << std::endl;
-    // G4Exception("GUIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
+    // G4Exception("ScalarIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
     //             JustWarning, message);
   }
 }
@@ -611,7 +612,8 @@ GUIntegrationDriver::WarnEndPointTooFar (double endPointDist,
 // ---------------------------------------------------------
 
 void
-GUIntegrationDriver::OneGoodStep(  double y[],        // InOut
+ScalarIntegrationDriver::OneGoodStep(  double y[],        // InOut
+                                   double charge,
                              const double dydx[],
                                    double& x,         // InOut
                                    double htry,
@@ -636,7 +638,7 @@ GUIntegrationDriver::OneGoodStep(  double y[],        // InOut
   double errmax_sq;
   double h, htemp, xnew ;
 
-  double yerr[GUFieldTrack::ncompSVEC], ytemp[GUFieldTrack::ncompSVEC];
+  double yerr[ScalarFieldTrack::ncompSVEC], ytemp[ScalarFieldTrack::ncompSVEC];
 
   // bool verbose= false; // true;
   // if( verbose ) std::cout << "OneGoodStep called with htry= " << htry << std::endl;
@@ -661,7 +663,7 @@ GUIntegrationDriver::OneGoodStep(  double y[],        // InOut
   for (iter=0; iter<max_trials ;iter++)
   {
     tot_no_trials++;
-    fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr);
+    fpStepper-> StepWithErrorEstimate(y,dydx,charge,h,ytemp,yerr);
     // fStepperCalls++;
     //          *********************
     double eps_pos = eps_rel_max * std::max(h, fMinimumStep);  // Uses remaining step 'h'
@@ -680,7 +682,7 @@ GUIntegrationDriver::OneGoodStep(  double y[],        // InOut
        // errmom_sq = sumerr_sq * inv_magmom_sq;
        errmom_sq = sumerr_sq / magmom_sq; 
     } else {
-       std::cerr << "** GUIntegrationDriver: found case of zero momentum." 
+       std::cerr << "** ScalarIntegrationDriver: found case of zero momentum." 
                  << " iteration=  " << iter << " h= " << h << std::endl; 
        errmom_sq = sumerr_sq;
     }
@@ -761,8 +763,8 @@ GUIntegrationDriver::OneGoodStep(  double y[],        // InOut
 
 // QuickAdvance just tries one Step - it does not ensure accuracy
 //
-bool  GUIntegrationDriver::QuickAdvance(       
-                            GUFieldTrack& y_posvel,         // INOUT
+bool  ScalarIntegrationDriver::QuickAdvance(       
+                            ScalarFieldTrack& y_posvel,         // INOUT
                             const double     dydx[],  
                                   double     hstep,       // In
 #ifdef USE_DCHORD
@@ -772,10 +774,11 @@ bool  GUIntegrationDriver::QuickAdvance(
                                   double&    dyerr_mom_rel_sq )  
 {
   // double dyerr_pos_sq, dyerr_mom_rel_sq;  
-  double yerr_vec[GUFieldTrack::ncompSVEC],
-           yarrin[GUFieldTrack::ncompSVEC], yarrout[GUFieldTrack::ncompSVEC]; 
+  double yerr_vec[ScalarFieldTrack::ncompSVEC],
+           yarrin[ScalarFieldTrack::ncompSVEC], yarrout[ScalarFieldTrack::ncompSVEC]; 
   double s_start;
   double dyerr_mom_sq, vel_mag_sq, inv_vel_mag_sq;
+  double charge = y_posvel.GetCharge();
 
   static int no_call=0;  // thread_local 
   no_call ++; 
@@ -785,7 +788,7 @@ bool  GUIntegrationDriver::QuickAdvance(
   s_start = y_posvel.GetCurveLength();
 
   // Do an Integration Step
-  fpStepper-> StepWithErrorEstimate(yarrin, dydx, hstep, yarrout, yerr_vec) ; 
+  fpStepper-> StepWithErrorEstimate(yarrin, dydx, charge, hstep, yarrout, yerr_vec) ; 
   //          *********************
 
 #ifdef USE_DCHORD  
@@ -848,7 +851,7 @@ bool  GUIntegrationDriver::QuickAdvance(
 // --------------------------------------------------------------------------
 
 #ifdef QUICK_ADV_ARRAY_IN_AND_OUT
-bool  GUIntegrationDriver::QuickAdvance(       
+bool  ScalarIntegrationDriver::QuickAdvance(       
                                   double     yarrin[],    // In
                             const double     dydx[],  
                                   double     hstep,       // In
@@ -856,7 +859,7 @@ bool  GUIntegrationDriver::QuickAdvance(
                                   double&    dchord_step,
                                   double&    dyerr )      // In length
 {
-   std::cerr << "ERROR in GUIntegrationDriver::QuickAdvance()" << std::endl;
+   std::cerr << "ERROR in ScalarIntegrationDriver::QuickAdvance()" << std::endl;
    std::cerr << "      Method is not yet implemented." << std::endl;
 
    //            FatalException, "Not yet implemented.");
@@ -872,7 +875,7 @@ bool  GUIntegrationDriver::QuickAdvance(
 //   within  certain factors
 // 
 double 
-GUIntegrationDriver::ComputeNewStepSize( 
+ScalarIntegrationDriver::ComputeNewStepSize( 
                           double  errMaxNorm,    // max error  (normalised)
                           double  hstepCurrent)  // current step size
 {
@@ -902,7 +905,7 @@ GUIntegrationDriver::ComputeNewStepSize(
 // They are kept separate currently for optimisation.
 //
 double 
-GUIntegrationDriver::ComputeNewStepSize_WithinLimits( 
+ScalarIntegrationDriver::ComputeNewStepSize_WithinLimits( 
                           double  errMaxNorm,    // max error  (normalised)
                           double  hstepCurrent)  // current step size
 {
@@ -934,7 +937,7 @@ GUIntegrationDriver::ComputeNewStepSize_WithinLimits(
 
 // ---------------------------------------------------------------------------
 
-void GUIntegrationDriver::PrintStatus( const double*   StartArr,  
+void ScalarIntegrationDriver::PrintStatus( const double*   StartArr,  
                                    double          xstart,
                                    const double*   CurrentArr, 
                                    double          xcurrent,
@@ -945,8 +948,8 @@ void GUIntegrationDriver::PrintStatus( const double*   StartArr,
   //                                 stepTaken(hdid)  - last step taken
   //                                 nextStep (hnext) - proposal for size
 {
-   GUFieldTrack  StartFT( ThreeVector(0.,0.,0.), ThreeVector(0.,0.,0.), 0. );
-   GUFieldTrack  CurrentFT (StartFT);
+   ScalarFieldTrack  StartFT( ThreeVector(0.,0.,0.), ThreeVector(0.,0.,0.), 0. );
+   ScalarFieldTrack  CurrentFT (StartFT);
 
    StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
    StartFT.SetCurveLength( xstart);
@@ -958,9 +961,9 @@ void GUIntegrationDriver::PrintStatus( const double*   StartArr,
 
 // ---------------------------------------------------------------------------
 
-void GUIntegrationDriver::PrintStatus(
-                  const GUFieldTrack&  StartFT,
-                  const GUFieldTrack&  CurrentFT, 
+void ScalarIntegrationDriver::PrintStatus(
+                  const ScalarFieldTrack&  StartFT,
+                  const ScalarFieldTrack&  CurrentFT, 
                   double             requestStep, 
                   int                subStepNo)
 {
@@ -984,7 +987,7 @@ void GUIntegrationDriver::PrintStatus(
        subStepNo = - subStepNo;        // To allow printing banner
 
        std::cout << std::setw( 6)  << " " << std::setw( 25)
-              << " GUIntegrationDriver: Current Position  and  Direction" << " "
+              << " ScalarIntegrationDriver: Current Position  and  Direction" << " "
               << std::endl; 
        std::cout << std::setw( 5) << "Step#" << " "
               << std::setw( 7) << "s-curve" << " "
@@ -1036,16 +1039,16 @@ void GUIntegrationDriver::PrintStatus(
 
 // ---------------------------------------------------------------------------
 
-void GUIntegrationDriver::PrintStat_Aux(
-                  const GUFieldTrack&  aGUFieldTrack,
+void ScalarIntegrationDriver::PrintStat_Aux(
+                  const ScalarFieldTrack&  aScalarFieldTrack,
                   double             requestStep, 
                   double             step_len,
                   int                subStepNo,
                   double             subStepSize,
                   double             dotVeloc_StartCurr)
 {
-    const ThreeVector Position=      aGUFieldTrack.GetPosition();
-    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDirection();
+    const ThreeVector Position=      aScalarFieldTrack.GetPosition();
+    const ThreeVector UnitVelocity=  aScalarFieldTrack.GetMomentumDirection();
  
     if( subStepNo >= 0)
     {
@@ -1055,7 +1058,7 @@ void GUIntegrationDriver::PrintStat_Aux(
     {
        std::cout << std::setw( 5) << "Start" << " ";
     }
-    double curveLen= aGUFieldTrack.GetCurveLength();
+    double curveLen= aScalarFieldTrack.GetCurveLength();
     std::cout << std::setw( 7) << curveLen;
     std::cout << std::setw( 9) << Position.x() << " "
            << std::setw( 9) << Position.y() << " "
@@ -1068,7 +1071,7 @@ void GUIntegrationDriver::PrintStat_Aux(
     std::cout.precision(6);
     std::cout << std::setw(10) << dotVeloc_StartCurr << " ";
     std::cout.precision(oldprec);
-    // std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
+    // std::cout << std::setw( 7) << aScalarFieldTrack.GetKineticEnergy();
     std::cout << std::setw(12) << step_len << " ";
 
     static double oldCurveLength= 0.0;    // thread_local
@@ -1102,13 +1105,13 @@ void GUIntegrationDriver::PrintStat_Aux(
 
 // ---------------------------------------------------------------------------
 
-void GUIntegrationDriver::PrintStatisticsReport()
+void ScalarIntegrationDriver::PrintStatisticsReport()
 {
   int noPrecBig= 6;
   int oldPrec= std::cout.precision(noPrecBig);
 
-  std::cout << "GUIntegrationDriver Statistics of steps undertaken. " << std::endl;
-  std::cout << "GUIntegrationDriver: Number of Steps: "
+  std::cout << "ScalarIntegrationDriver Statistics of steps undertaken. " << std::endl;
+  std::cout << "ScalarIntegrationDriver: Number of Steps: "
          << " Total= " <<  fNoTotalSteps
          << " Bad= "   <<  fNoBadSteps 
          << " Small= " <<  fNoSmallSteps 
@@ -1151,7 +1154,7 @@ void GUIntegrationDriver::PrintStatisticsReport()
  
 // ---------------------------------------------------------------------------
 
-void GUIntegrationDriver::SetSmallestFraction(double newFraction)
+void ScalarIntegrationDriver::SetSmallestFraction(double newFraction)
 {
   if( (newFraction > 1.e-16) && (newFraction < 1e-8) )
   {

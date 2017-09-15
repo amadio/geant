@@ -16,10 +16,11 @@
 // #include "G4Types.hh"
 // #include "ThreeVector.h"
 #include <base/Vector3D.h> 
-typedef vecgeom::Vector3D<double>  ThreeVector; 
 
 class GULineSection
 {
+   using ThreeVector = vecgeom::Vector3D<double>;
+   
   public:  // with description
 
      inline GULineSection( const ThreeVector& PntA, const ThreeVector& PntB );
@@ -28,7 +29,7 @@ class GULineSection
 
      inline double GetABdistanceSq() const;
 
-     inline static double Distline( const ThreeVector& OtherPnt, 
+     inline static double   Distline( const ThreeVector& OtherPnt, 
                                       const ThreeVector& LinePntA, 
                                       const ThreeVector& LinePntB );
   private:

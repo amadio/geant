@@ -4,9 +4,10 @@
 file(GLOB sources src/*.cxx) # (T*.cxx src/GU*.cxx)
 file(GLOB headers inc/*.h)   # (T*.h inc/GU*.h)
 
-include_directories(inc)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
-include_directories(${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/inc)
+include_directories(
+  inc
+  ${CMAKE_SOURCE_DIR}/VecMagFieldRoutine/inc
+)  
 
 # - print include directories
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)

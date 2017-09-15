@@ -3,19 +3,17 @@
 #define _TOYCLASS_H_
 
 #include <iostream>
-#include "AlignedBase.h"
-#include <Vc/Vc>
 #include <stdlib.h>
-#include "base/Vector3D.h" //To utlimately include kVc, kScalar backends etc
-
+#include <base/AlignedBase.h>
+#include <base/Vector3D.h>
 
 using namespace std;
 
-class ToyClass : public AlignedBase
+class ToyClass : public vecgeom::AlignedBase
 {
-  typedef typename vecgeom::kVc::bool_v      Bool_v;
-  typedef typename vecgeom::kVc::precision_v Double_v;
-  typedef typename vecgeom::kVc::int_v       Int_v;
+  using Double_v = Geant::Double_v;
+  using Int_v = Geant::Int_v;
+  using Bool_v = Geant::MaskD_v;
 public:
   ToyClass(){};
 
@@ -37,7 +35,7 @@ public:
 
   //Initialize the Vc vector in beginning if not initialized. Assume 
   //uninitialized here. Later on replacement when work done for it 
-  void InitializeVcVector(double nTracks[]);
+  void InitializeVector(double nTracks[]);
 
   void PreProcess(double nTracks[], 
                   double fPreprocData[]);
@@ -48,7 +46,6 @@ public:
                         Bool_v Done                );
 
 private:
-  int kSizeOfVcVector = 4; //can use vecgeom::kVectorSize
   int fInputTotalTracks;
   double hstep = 0.1;
 
@@ -74,7 +71,7 @@ ToyClass::ToyClass(int n)
 {
   SetInputTracks(n);
   fPreprocData = new double[n];
-  fIndex       = new int[kSizeOfVcVector];
+  fIndex       = new int[Geant::kVecLenD];
 }
 
 ToyClass::~ToyClass()
@@ -88,9 +85,9 @@ void ToyClass::SetInputTracks(int n)
   fInputTotalTracks = n;
 }
 
-void ToyClass::InitializeVcVector(double nTracks[])
+void ToyClass::InitializeVector(double nTracks[])
 {
-  for (int i = 0; i < kSizeOfVcVector; ++i)
+  for (int i = 0; i < Geant::kVecLenD; ++i)
   {
     fPreProcVc[i] = nTracks[i];
     fIndex    [i] = i;    
@@ -108,9 +105,9 @@ void ToyClass::PreProcess(double nTracks[], double fPreprocData[])
   }
 }
 
-void ToyClass::PrintCurrentData(typename vecgeom::kVc::precision_v fPreProcVc, 
-                                typename vecgeom::kVc::precision_v outputSimpleMethod, 
-                                typename vecgeom::kVc::bool_v      Done                )
+void ToyClass::PrintCurrentData(Real_v fPreProcVc, 
+                                Real_v outputSimpleMethod, 
+                                Bool_v      Done                )
 {
   cout<<"\n----Currently:"<<endl;
   cout<<"----fPreProcVc is         : "<<fPreProcVc<<endl;
@@ -118,11 +115,11 @@ void ToyClass::PrintCurrentData(typename vecgeom::kVc::precision_v fPreProcVc,
   cout<<"----Done is              : "<<Done<<endl;
 }
 
-void ToyClass::SimpleMethod(typename vecgeom::kVc::precision_v &fPreProcVc, 
-                            typename vecgeom::kVc::precision_v &outputSimpleMethod)
+void ToyClass::SimpleMethod(Real_v &fPreProcVc, 
+                            Real_v &outputSimpleMethod)
 {
   // srand(time(NULL));
-  for (int i = 0; i < kSizeOfVcVector; ++i)
+  for (int i = 0; i < Geant::kVecLenD; ++i)
   {
     outputSimpleMethod[i] =  (float) rand()/(RAND_MAX) ;
   }
@@ -136,7 +133,7 @@ int ToyClass::ToyMethod(double nTracks[], double finalResults[])
 {
   PreProcess(nTracks, fPreprocData);
 
-  InitializeVcVector(fPreprocData);
+  InitializeVector(fPreprocData);
 
   int trackNextInput = 4; 
 
@@ -148,8 +145,6 @@ int ToyClass::ToyMethod(double nTracks[], double finalResults[])
   //else keep subtracting .1 and check
   //push in new tracks into the empty slot
 
-  typedef typename vecgeom::kVc::bool_v Bool_v;
-  typedef typename vecgeom::kVc::precision_v Double_v;
   Bool_v isDone(0.), isGoodStep(0.);
   Double_v outputSimpleMethod;
   // PrintCurrentData(fPreProcVc, outputSimpleMethod, isDone);
@@ -182,7 +177,7 @@ int ToyClass::ToyMethod(double nTracks[], double finalResults[])
     if(!(vecgeom::IsEmpty(isDone)))
     {
       cout<<"here1"<<endl;
-      for (int i = 0; i < kSizeOfVcVector; ++i)
+      for (int i = 0; i < Geant::kVecLenD; ++i)
       {
         cout<<"here2"<<endl;
         if(isDone[i]==1 && fIndex[i] != -1) 
@@ -231,7 +226,7 @@ int ToyClass::ToyMethod(double nTracks[], double finalResults[])
 
   //All are done. Store data if not stored already
   //now being taken care of in the do while loop since data is stored after isDone
-/*  for (int i = 0; i < kSizeOfVcVector; ++i)
+/*  for (int i = 0; i < Geant::kVecLenD; ++i)
   {
     cout<<"fIndex is: "<<fIndex[i]<<endl;
     if(fIndex[i] != -1)

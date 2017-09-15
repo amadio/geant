@@ -6,7 +6,7 @@
 
 #include <iomanip>
 
-#include "GUFieldTrack.hh"
+#include "ScalarFieldTrack.hh"
 #include "globals.hh"
 // #include "SystemOfUnits.hh"
 // #include "GeometryTolerance.hh"
@@ -44,7 +44,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
     typedef BlazePairType<Nvar>        BlazeOutVec; 
 
     inline bool
-        AccurateAdvance(GUFieldTrack& y_current,
+        AccurateAdvance(ScalarFieldTrack& y_current,
                 double     hstep,
                 double     eps,
                 double hinitial=0.0 );
@@ -53,7 +53,7 @@ class TIntegrationDriver // : public GUIntegrationDriver
     //----------------------------------------------------------------------
 
     bool  QuickAdvance(       
-            GUFieldTrack& y_posvel,         // INOUT
+            ScalarFieldTrack& y_posvel,         // INOUT
             const StateVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
@@ -124,9 +124,9 @@ class TIntegrationDriver // : public GUIntegrationDriver
     inline void SetMaxNoSteps(int val) { fMaxNoSteps= val; }
 
     inline
-        StateVec GetDerivatives(const GUFieldTrack &y_curr)
+        StateVec GetDerivatives(const ScalarFieldTrack &y_curr)
         { 
-            double  tmpValArr[GUFieldTrack::ncompSVEC];
+            double  tmpValArr[ScalarFieldTrack::ncompSVEC];
             y_curr.DumpToArray(tmpValArr);
             StateVec tmpValArrv(Nvar, tmpValArr);
             return pIntStepper->
@@ -238,13 +238,13 @@ class TIntegrationDriver // : public GUIntegrationDriver
         //                                 stepTaken(hdid)  - last step taken
         //                                 nextStep (hnext) - proposal for size
     {
-        GUFieldTrack  StartFT(ThreeVector(0,0,0),
+        ScalarFieldTrack  StartFT(ThreeVector(0,0,0),
                 ThreeVector(0,0,0), 0., 0., 0., 0. );
-        GUFieldTrack  CurrentFT (StartFT);
+        ScalarFieldTrack  CurrentFT (StartFT);
 
         StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
         StartFT.SetCurveLength( xstart);
-        double CurrentArrv[GUFieldTrack::ncompSVEC];
+        double CurrentArrv[ScalarFieldTrack::ncompSVEC];
         for(size_t i = 0; i < fNoVars; i ++) 
         {CurrentArrv[i] = CurrentArr[i];}
         CurrentFT.LoadFromArray( CurrentArrv, fNoIntegrationVariables); 
@@ -259,8 +259,8 @@ class TIntegrationDriver // : public GUIntegrationDriver
 template
 <class Stepper>
     void PrintStatus(
-            const GUFieldTrack&  StartFT,
-            const GUFieldTrack&  CurrentFT, 
+            const ScalarFieldTrack&  StartFT,
+            const ScalarFieldTrack&  CurrentFT, 
             double             requestStep, 
             int                subStepNo)
     {
@@ -336,7 +336,7 @@ template
 
     // ---------------------------------------------------------------------------
     void PrintStat_Aux(
-            const GUFieldTrack&  aFieldTrack,
+            const ScalarFieldTrack&  aFieldTrack,
             double             requestStep, 
             double             step_len,
             int                subStepNo,
@@ -384,7 +384,7 @@ template
     //  below this fraction the current step will be the last 
 
     const int  fNoIntegrationVariables;  // Number of Variables in integration
-    const int  fMinNoVars;               // Minimum number for GUFieldTrack
+    const int  fMinNoVars;               // Minimum number for ScalarFieldTrack
     const int  fNoVars;                  // Full number of variable
 
     int   fMaxNoSteps;
@@ -645,7 +645,7 @@ TIntegrationDriver::ComputeNewStepSize_WithinLimits(
 bool
 template
 <class Stepper>
-class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
+class TIntegrationDriver::AccurateAdvance(ScalarFieldTrack& y_current,
         double     hstep,
         double     eps,
         double hinitial=0.0 )
@@ -662,13 +662,13 @@ class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
 #ifdef DEBUG_FIELD
     static int dbg=1;
     static int nStpPr=50;   // For debug printing of long integrations
-    double ySubStepStart[GUFieldTrack::ncompSVEC];
-    GUFieldTrack  yFldTrkStart(y_current);
+    double ySubStepStart[ScalarFieldTrack::ncompSVEC];
+    ScalarFieldTrack  yFldTrkStart(y_current);
 #endif
 
     StateVec y; 
     StateVec dydx;
-    double ystart[GUFieldTrack::ncompSVEC], yEnd[GUFieldTrack::ncompSVEC]; 
+    double ystart[ScalarFieldTrack::ncompSVEC], yEnd[ScalarFieldTrack::ncompSVEC]; 
     double  x1, x2;
     bool succeeded = true, lastStepSucceeded;
 
@@ -677,7 +677,7 @@ class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
     int  noFullIntegr=0, noSmallIntegr = 0 ;
     static G4ThreadLocal int  noGoodSteps =0 ;  // Bad = chord > curve-len 
 
-    GUFieldTrack yStartFT(y_current);
+    ScalarFieldTrack yStartFT(y_current);
 
     //  Ensure that hstep > 0
     //
@@ -757,10 +757,10 @@ class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
         }
         else
         {
-            GUFieldTrack yFldTrk( ThreeVector(0,0,0), 
+            ScalarFieldTrack yFldTrk( ThreeVector(0,0,0), 
                     ThreeVector(0,0,0), 0., 0., 0., 0. );
             double dchord_step, dyerr, dyerr_len;   // What to do with these ?
-            double yv[GUFieldTrack::ncompSVEC];
+            double yv[ScalarFieldTrack::ncompSVEC];
             for(size_t i = 0; i < Nvar; i ++){ yv[i] = y[i];}
             yFldTrk.LoadFromArray(yv, fNoIntegrationVariables); 
             yFldTrk.SetCurveLength( x );
@@ -950,7 +950,7 @@ class TIntegrationDriver::AccurateAdvance(GUFieldTrack& y_current,
 bool
 template <class Stepper> TIntegrationDriver::
 QuickAdvance(       
-            GUFieldTrack& y_posvel,         // INOUT
+            ScalarFieldTrack& y_posvel,         // INOUT
             const StateVec &dydx,  
             double     hstep,       // In
             double&    dchord_step,
@@ -964,7 +964,7 @@ QuickAdvance(
     no_call ++; 
 
     // Move data into array
-    double yarrin[GUFieldTrack::ncompSVEC]; 
+    double yarrin[ScalarFieldTrack::ncompSVEC]; 
     y_posvel.DumpToArray( yarrin );      //  yarrin  <== y_posvel 
     s_start = y_posvel.GetCurveLength();
 
@@ -979,7 +979,7 @@ QuickAdvance(
     //                         *********
 
     // Put back the values.  yarrout ==> y_posvel
-    double yarrout[GUFieldTrack::ncompSVEC];
+    double yarrout[ScalarFieldTrack::ncompSVEC];
     for(size_t i = 0; i < Nvar; i ++){ yarrout[i] = yVec.out[i]; }
         y_posvel.LoadFromArray( yarrout, fNoIntegrationVariables );
     y_posvel.SetCurveLength( s_start + hstep );
@@ -1111,7 +1111,7 @@ template <class Stepper> TIntegrationDriver::
 void
 template <class Stepper> TIntegrationDriver::
  PrintStat_Aux(
-        const GUFieldTrack&  aFieldTrack,
+        const ScalarFieldTrack&  aFieldTrack,
         double             requestStep, 
         double             step_len,
         int                subStepNo,

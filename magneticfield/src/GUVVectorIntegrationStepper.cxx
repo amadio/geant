@@ -30,7 +30,7 @@ GUVVectorIntegrationStepper::~GUVVectorIntegrationStepper()
 //    this->RightHandSide( y, /*charge,*/ dydx );
 // }
 
-void GUVVectorIntegrationStepper::SetEquationOfMotion(GUVVectorEquationOfMotion* newEquation)
+void GUVVectorIntegrationStepper::SetABCEquationOfMotion(GUVVectorEquationOfMotion* newEquation)
 {
   if( newEquation != 0 )
   {

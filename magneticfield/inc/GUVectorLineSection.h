@@ -15,14 +15,17 @@
 
 
 #include <base/Vector3D.h> 
-
+#include <Geant/VectorTypes.h>
 
 class GUVectorLineSection
 {
+  using Double_v= Geant::Double_v;
+   
   public:  // with description
 
-    typedef vecgeom::Vector3D<typename vecgeom::kVc::precision_v>  ThreeVectorSimd; 
-    typedef typename vecgeom::kVc::precision_v Double_v;
+    template<typename T>
+       using Vector3D = vecgeom::Vector3D<T>;
+    typedef Vector3D<Double_v>  ThreeVectorSimd; 
 
     inline GUVectorLineSection( const ThreeVectorSimd& PntA, 
                                 const ThreeVectorSimd& PntB );
@@ -52,28 +55,28 @@ GUVectorLineSection::GUVectorLineSection( const ThreeVectorSimd& PntA,
 }
 
 inline
-typename vecgeom::kVc::precision_v GUVectorLineSection::GetABdistanceSq() const
+Geant::Double_v GUVectorLineSection::GetABdistanceSq() const
 {
   return fABdistanceSq;
 }
 
 inline
-typename vecgeom::kVc::precision_v GUVectorLineSection::Distline
-              ( const vecgeom::Vector3D<typename vecgeom::kVc::precision_v> & OtherPnt, 
-                const vecgeom::Vector3D<typename vecgeom::kVc::precision_v> & LinePntA, 
-                const vecgeom::Vector3D<typename vecgeom::kVc::precision_v> & LinePntB )
+Geant::Double_v GUVectorLineSection::Distline
+              ( const ThreeVectorSimd& OtherPnt, 
+                const ThreeVectorSimd& LinePntA, 
+                const ThreeVectorSimd& LinePntB )
 {
   GUVectorLineSection LineAB( LinePntA, LinePntB );  // Line from A to B
   return LineAB.Dist( OtherPnt );
 }
 
 
-typename vecgeom::kVc::precision_v GUVectorLineSection::Dist
-             ( vecgeom::Vector3D<typename vecgeom::kVc::precision_v> OtherPnt ) const
+Geant::Double_v GUVectorLineSection::Dist
+             ( ThreeVectorSimd OtherPnt ) const
 {
-  typename vecgeom::kVc::precision_v  dist_sq;  
-  vecgeom::Vector3D<typename vecgeom::kVc::precision_v>  VecAZ;
-  typename vecgeom::kVc::precision_v sq_VecAZ, inner_prod, unit_projection(10.0) ; 
+  Double_v  dist_sq;  
+  ThreeVectorSimd  VecAZ;
+  Double_v sq_VecAZ, inner_prod, unit_projection(10.0) ; 
 
   VecAZ= OtherPnt - EndpointA;
   sq_VecAZ = VecAZ.Mag2();
@@ -82,11 +85,29 @@ typename vecgeom::kVc::precision_v GUVectorLineSection::Dist
    
   //  Determine  Projection(AZ on AB) / Length(AB) 
 
-
-  vecgeom::MaskedAssign( fABdistanceSq != 0.0, inner_prod/fABdistanceSq, &unit_projection );
-  vecgeom::MaskedAssign( (0. <= unit_projection ) && (unit_projection <= 1.0 ), sq_VecAZ - unit_projection*inner_prod, &dist_sq );
-  vecgeom::MaskedAssign( unit_projection < 0.0, sq_VecAZ, &dist_sq);
-  vecgeom::MaskedAssign( (fABdistanceSq != 0.0) && (unit_projection > 1.0), (OtherPnt -(EndpointA + VecAtoB)).Mag2(), &dist_sq);
+  // veccore::MaskedAssign( fABdistanceSq != 0.0, inner_prod/fABdistanceSq, &unit_projection );
+  vecCore::MaskedAssign( unit_projection, fABdistanceSq != 0.0, inner_prod/fABdistanceSq );
+  
+  // vecCore::MaskedAssign( (0. <= unit_projection ) && (unit_projection <= 1.0 ), sq_VecAZ - unit_projection*inner_prod, &dist_sq );
+  // Mask<Geant::Double_v> goodProjection = (0. <= unit_projection ) && (unit_projection <= 1.0 );
+  vecCore::MaskedAssign( dist_sq,
+                         // goodProjection,
+                         (0. <= unit_projection ) && (unit_projection <= 1.0 ),                       
+                         sq_VecAZ - unit_projection*inner_prod );
+  
+  // -- vecCore::MaskedAssign( unit_projection < 0.0, sq_VecAZ, &dist_sq);
+  // Mask<Geant::Double_v> negativeProj = unit_projection < 0.0 ;  
+  // vecCore::MaskedAssign( dist_sq, negativeProj, sq_VecAZ );
+  vecCore::MaskedAssign( dist_sq, unit_projection < 0.0, sq_VecAZ );
+  
+  
+  // vecCore::MaskedAssign( (fABdistanceSq != 0.0) && (unit_projection > 1.0), (OtherPnt -(EndpointA + VecAtoB)).Mag2(), &dist_sq);
+  // Mask<Geant::Double_v> condDistProj=  (fABdistanceSq != 0.0) && (unit_projection > 1.0),;
+  vecCore::MaskedAssign( dist_sq, 
+                         // condDistProj,
+                         (fABdistanceSq != 0.0) && (unit_projection > 1.0),                         
+                         (OtherPnt -(EndpointA + VecAtoB)).Mag2());
+  
   // if( fABdistanceSq != 0.0 )
   // {
   //   unit_projection = inner_prod/fABdistanceSq;
@@ -111,14 +132,16 @@ typename vecgeom::kVc::precision_v GUVectorLineSection::Dist
   //   }
   // }
 
-  vecgeom::MaskedAssign( !(fABdistanceSq != 0.0), (OtherPnt - EndpointA).Mag2(), &dist_sq);
+  vecCore::MaskedAssign( dist_sq,  !(fABdistanceSq != 0.0), (OtherPnt - EndpointA).Mag2() );
   // else
   // {
   //    dist_sq = (OtherPnt - EndpointA).Mag2() ;   
   // }  
 
-  vecgeom::MaskedAssign( dist_sq < 0.0, 0.0, &dist_sq );
-
-  return Vc::sqrt(dist_sq) ;  
+  // vecgeom::MaskedAssign( dist_sq < 0.0, 0.0, &dist_sq );  
+  vecCore::MaskedAssign( dist_sq, dist_sq < Double_v(0.0), Double_v(0.0) );
+  // dist_sq = vecgeom::Max ( dist_sq, 0.0 );
+  
+  return vecCore::math::Sqrt(dist_sq) ;
 }
 #endif

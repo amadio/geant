@@ -20,7 +20,7 @@
 #ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
 #endif
-#include "CMSDetectorConstruction.h"
+#include "CMSFieldConstruction.h"
 
 using namespace Geant;
 
@@ -187,10 +187,6 @@ int main(int argc, char *argv[]) {
       xsec_filename = optarg;
       break;
 
-    case 'r':
-      coprocessor = optarg;
-      break;
-
     case 'i':
       tbbmode = true;
       break;
@@ -277,7 +273,7 @@ int main(int argc, char *argv[]) {
   // CRITICAL: the energy cut must correspond to xsec/final state files !  
   config->fEmin = 0.001; // [1 MeV] energy cut
   config->fEmax = 0.01;  // 10 MeV
-  printf("CMSApp> Production threshold set to %7.2g GeV\n", propagator->fEmin);  
+  printf("CMSApp> Production threshold set to %7.2g GeV\n", config->fEmin);  
   if (debug) {
     config->fUseDebug = true;
     config->fDebugTrk = 1;
@@ -312,10 +308,10 @@ int main(int argc, char *argv[]) {
   // propagator->fBmag = 40.; // 4 Tesla
 
   //  Enable use of RK integration in field for charged particles
-  // propagator->fUseRungeKutta = false;
-  propagator->fUseRungeKutta = useRungeKutta;
+  // config->fUseRungeKutta = false;
+  config->fUseRungeKutta = useRungeKutta;
 
-  propagator->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
+  config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
 
   if( useCMSfield ) {
      CMSFieldConstruction* CmsFieldCtr= new CMSFieldConstruction();
@@ -324,7 +320,7 @@ int main(int argc, char *argv[]) {
      runMgr // ->GetDetectorConstruction()
         ->SetUserFieldConstruction(CmsFieldCtr);
      // printf("Calling CreateFieldAndSolver from runCMS_new.C");
-     // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
+     // CmsFieldCtr->CreateFieldAndSolver(propagator->fUseRungeKutta);
   } else {
      UserFieldConstruction* fieldCtr= new UserFieldConstruction();
      float fieldVec[3] = { 0.0f, 0.0f, 38.0f };

@@ -13,25 +13,26 @@ pof p
 #include "TUniformMagField.h"
 #include <iostream>
 
-#include "base/Vector3D.h"
+#include <base/Vector3D.h>
+#include <Geant/VectorTypes.h>
 
 #include "Constants.h"  
 
 
 class TVectorUniformMagField : public GUVVectorMagneticField
 {  
-    typedef typename vecgeom::kVc::precision_v      Double_v;
-    typedef typename vecgeom::kVcFloat::precision_v Float_v;
+    using Double_v = Geant::Double_v;
+    using Float_v = Geant::Float_v;
     public:  
 
-        TVectorUniformMagField(const vecgeom::Vector3D<typename vecgeom::kVcFloat::precision_v>& FieldVector )
+        TVectorUniformMagField(const vecgeom::Vector3D<Float_v>& FieldVector )
            : GUVVectorMagneticField() 
         {
           std::cout<<"-- entered TVectorUniformMagField constructor ---"<<std::endl;
            //for (int i=0; i<3; i++) fFieldComponents[i] = /*(Double_v)*/ FieldVector[i];
         }
 
-        // TVectorUniformMagField(const vecgeom::Vector3D<typename vecgeom::kVcFloat::precision_v>& FieldVector )
+        // TVectorUniformMagField(const vecgeom::Vector3D<Float_v>& FieldVector )
         //    : GUVVectorMagneticField() 
         // {
         //   std::cout<<"-- entered TVectorUniformMagField constructor ---"<<std::endl;
@@ -108,9 +109,9 @@ class TVectorUniformMagField : public GUVVectorMagneticField
 
 // This function is not working now. Uncomment and compile to see error
 // discuss
-TVectorUniformMagField::TVectorUniformMagField(typename vecgeom::kVc::precision_v vField,
-                                               typename vecgeom::kVc::precision_v vTheta,
-                                               typename vecgeom::kVc::precision_v vPhi   )
+TVectorUniformMagField::TVectorUniformMagField(Double_v vField,
+                                               Double_v vTheta,
+                                               Double_v vPhi   )
   // : TUniformMagField(vField[0], vTheta[0], vPhi[0])
 {
    // if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
@@ -133,8 +134,8 @@ TVectorUniformMagField::TVectorUniformMagField(typename vecgeom::kVc::precision_
    }
 
   
-  fFieldComponents.Set((Float_v) (vField*Vc::sin(vTheta)*Vc::cos(vPhi)),
-                        (Float_v) (vField*Vc::sin(vTheta)*Vc::sin(vPhi)),
-                        (Float_v) (vField*Vc::cos(vTheta))              );
+  fFieldComponents.Set((Float_v) (vField*vecCore::math::Sin(vTheta)*vecCore::math::Cos(vPhi)),
+                        (Float_v) (vField*vecCore::math::Sin(vTheta)*vecCore::math::Sin(vPhi)),
+                        (Float_v) (vField*vecCore::math::Cos(vTheta))              );
 }
 #endif

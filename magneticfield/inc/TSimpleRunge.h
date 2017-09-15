@@ -26,11 +26,12 @@ class TSimpleRunge : public TMagErrorStepper
       inline  double IntegratorCorrection() { return  1./((1<<OrderSimpleR)-1); }
         
       inline __attribute__((always_inline)) 
-      void RightHandSide(double y[], double dydx[]) 
-      { fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
+      void RightHandSide(double y[], double charge, double dydx[]) 
+      { fEquation_Rhs->T_Equation::RightHandSide(y, charge, dydx); }
 
       inline __attribute__((always_inline)) 
       void StepWithoutErrorEst( const double  yIn[],
+                                      double charge,
                                 const double  dydx[],
                                       double  h,
                                       double  yOut[]);
@@ -102,6 +103,7 @@ template <class T_Equation, unsigned int Nvar>
    inline __attribute__((always_inline)) 
    void TSimpleRunge<T_Equation,Nvar>::
         StepWithoutErrorEst( const double  yIn[],
+                     double charge,
                      const double  dydx[],
                      double  h,
                      double  yOut[])
@@ -113,7 +115,7 @@ template <class T_Equation, unsigned int Nvar>
    {
       yTemp[i] = yIn[i] + 0.5 * h*dydx[i] ;
    }
-   this->RightHandSide(yTemp,dydxTemp);
+   this->RightHandSide(yTemp, charge, dydxTemp);
    
    for(unsigned int i = 0; i < Nvar; i++ )
    {

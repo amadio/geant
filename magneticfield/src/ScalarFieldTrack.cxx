@@ -1,15 +1,15 @@
 //
-// $Id: GUFieldTrack.cc 81175 2014-05-22 07:39:10Z gcosmo $
+// $Id: ScalarFieldTrack.cc 81175 2014-05-22 07:39:10Z gcosmo $
 //
 // -------------------------------------------------------------------
 
-#include "GUFieldTrack.h"
+#include "ScalarFieldTrack.h"
 
-GUFieldTrack::
-GUFieldTrack( const ThreeVector& pPosition, 
+ScalarFieldTrack::
+ScalarFieldTrack( const ThreeVector& pPosition, 
               const ThreeVector& pMomentum,
               // double       restMass_c2,
-              // double       charge, 
+              double       charge, 
               // double       LaboratoryTimeOfFlight,
               double       curve_length )
         // const ThreeVector& vecPolarization,
@@ -28,13 +28,14 @@ GUFieldTrack( const ThreeVector& pPosition,
 {
   SetMomentum( pMomentum ); 
 
-  SetPosition( pPosition ); 
+  SetPosition( pPosition );
+  SetCharge(charge);
   // SetPolarization( vecPolarization ); 
 }
 
 // -------------------------------------------------------------------
    
-GUFieldTrack::GUFieldTrack( char )                  //  Nothing is set !!
+ScalarFieldTrack::ScalarFieldTrack( char )                  //  Nothing is set !!
   // : fKineticEnergy(0.), 
     // fRestMass_c2(0.), 
     // fLabTimeOfFlight(0.),
@@ -44,6 +45,7 @@ GUFieldTrack::GUFieldTrack( char )                  //  Nothing is set !!
   ThreeVector Zero(0.0, 0.0, 0.0);
 
   SetCurvePnt( Zero, Zero, 0.0 );
+  SetCharge(0.0);
   // SetMomentum( Zero );  // Sets momentum direction as well.
   // SetPosition( Zero ); 
 
@@ -56,7 +58,7 @@ GUFieldTrack::GUFieldTrack( char )                  //  Nothing is set !!
 //  
 //   note that momentum direction must-be/is normalised
 
-void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
+void ScalarFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
                                        int noVarsIntegrated)
 {
   int i;
@@ -106,7 +108,7 @@ void GUFieldTrack::LoadFromArray(const double valArrIn[ncompSVEC],
   // fDistanceAlongCurve= valArr[]; 
 }  
 
-std::ostream& operator<<( std::ostream& os, const GUFieldTrack& SixVec)
+std::ostream& operator<<( std::ostream& os, const ScalarFieldTrack& SixVec)
 {
      const double *SixV = SixVec.SixVector;
      os << " ( ";

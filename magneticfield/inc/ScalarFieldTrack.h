@@ -1,5 +1,5 @@
 //
-// class GUFieldTrack
+// class ScalarFieldTrack
 //
 // Class description:
 //
@@ -13,29 +13,29 @@
 // - First version: Dec 9, 2014 John Apostolakis
 // -------------------------------------------------------------------
 
-#ifndef GUFieldTrack_HH
-#define GUFieldTrack_HH
+#ifndef ScalarFieldTrack_HH
+#define ScalarFieldTrack_HH
 
 #include "base/Vector3D.h"   // VecGeom/base/Vector3D.h 
 typedef vecgeom::Vector3D<double> ThreeVector;
 
 // #include "G4ChargeState.hh"
 
-class  GUFieldTrack
+class  ScalarFieldTrack
 {
    public:  // with description
 
-     GUFieldTrack( const ThreeVector& pPosition, 
+     ScalarFieldTrack( const ThreeVector& pPosition, 
                    const ThreeVector& pMomentum,
                          // double       restMass_c2,
-                         // double       charge,
+                         double       charge,
                          // double       laboratoryTimeOfFlight= 0.0,
                          double       curve_length= 0.0); 
 
-     GUFieldTrack( const GUFieldTrack&   pFieldTrack ); 
-     GUFieldTrack( char );   //  Almost default constructor
+     ScalarFieldTrack( const ScalarFieldTrack&   pFieldTrack ); 
+     ScalarFieldTrack( char );   //  Almost default constructor
 
-     ~GUFieldTrack();
+     ~ScalarFieldTrack();
        // End of preferred Constructors / Destructor 
 
      inline void
@@ -46,9 +46,9 @@ class  GUFieldTrack
         //  Update four-vectors for space/time and momentum/energy
         //    Also resets curve length.
 
-     // void SetCharge(double charge) { fCharge= charge; }
+     void SetCharge(double charge) { fCharge= charge; }
 
-     inline GUFieldTrack& operator = ( const GUFieldTrack & rStVec );
+     inline ScalarFieldTrack& operator = ( const ScalarFieldTrack & rStVec );
        // Assignment operator
 
      inline ThreeVector  GetMomentum() const;
@@ -80,7 +80,7 @@ class  GUFieldTrack
      // inline void SetRestMass(double Mass_c2) { fRestMass_c2= Mass_c2; }
 
        // Access
-     // inline double GetCharge() const { return fCharge; } 
+     inline double GetCharge() const { return fCharge; } 
    
      inline void SetCurveLength(double nCurve_s);
        // Distance along curve.
@@ -100,7 +100,7 @@ class  GUFieldTrack
      void LoadFromArray(const double valArr[ncompSVEC],
                               int noVarsIntegrated);
      friend  std::ostream&
-             operator<<( std::ostream& os, const GUFieldTrack& SixVec);
+             operator<<( std::ostream& os, const ScalarFieldTrack& SixVec);
 
 
 
@@ -117,22 +117,22 @@ class  GUFieldTrack
      // double  fInitialMomentumMag;  // At 'track' creation.
      // double  fLastMomentumMag;     // From last Update (for checking.)
 
-     // double fCharge;
+     double fCharge;
 
 
 }; 
 
-// #include "GUFieldTrack.icc"
+// #include "ScalarFieldTrack.icc"
 
 //
-// $Id: GUFieldTrack.icc 81175 2014-05-22 07:39:10Z gcosmo $
+// $Id: ScalarFieldTrack.icc 81175 2014-05-22 07:39:10Z gcosmo $
 //
 // -------------------------------------------------------------------
 
 inline
-GUFieldTrack::GUFieldTrack( const GUFieldTrack&  rStVec  )
+ScalarFieldTrack::ScalarFieldTrack( const ScalarFieldTrack&  rStVec  )
  : fDistanceAlongCurve( rStVec.fDistanceAlongCurve),
-   fMomentumMag( rStVec.fMomentumMag ) // ,
+   fMomentumMag( rStVec.fMomentumMag ),
    // fKineticEnergy( rStVec.fKineticEnergy ),
    // fRestMass_c2( rStVec.fRestMass_c2),
    // fLabTimeOfFlight( rStVec.fLabTimeOfFlight ), 
@@ -140,7 +140,7 @@ GUFieldTrack::GUFieldTrack( const GUFieldTrack&  rStVec  )
    // fMomentumModulus( rStVec.fMomentumModulus ),
    // fPolarization( rStVec.fPolarization ), 
    // fMomentumDir( rStVec.fMomentumDir ), 
-   // fCharge( rStVec.fCharge )
+   fCharge( rStVec.fCharge )
 {
   SixVector[0]= rStVec.SixVector[0];
   SixVector[1]= rStVec.SixVector[1];
@@ -155,13 +155,13 @@ GUFieldTrack::GUFieldTrack( const GUFieldTrack&  rStVec  )
 }
 
 inline
-GUFieldTrack::~GUFieldTrack()
+ScalarFieldTrack::~ScalarFieldTrack()
 {
   // delete fpChargeState; 
 }
 
 inline void
-GUFieldTrack::SetCurvePnt(const ThreeVector& pPosition, 
+ScalarFieldTrack::SetCurvePnt(const ThreeVector& pPosition, 
                           const ThreeVector& pMomentum,  
                                 double       s_curve )
 {
@@ -184,21 +184,21 @@ GUFieldTrack::SetCurvePnt(const ThreeVector& pPosition,
 } 
 
 inline
-ThreeVector GUFieldTrack::GetPosition() const
+ThreeVector ScalarFieldTrack::GetPosition() const
 {
    ThreeVector myPosition( SixVector[0], SixVector[1], SixVector[2] );
    return myPosition;
 } 
 
 inline
-ThreeVector GUFieldTrack::GetMomentumDirection() const 
+ThreeVector ScalarFieldTrack::GetMomentumDirection() const 
 {
    double inv_mag= 1.0 / fMomentumMag;
    return inv_mag * ThreeVector( SixVector[3], SixVector[4], SixVector[5] );
 } 
 
 inline
-void GUFieldTrack::SetPosition( ThreeVector pPosition) 
+void ScalarFieldTrack::SetPosition( ThreeVector pPosition) 
 {
    SixVector[0] = pPosition.x(); 
    SixVector[1] = pPosition.y(); 
@@ -206,7 +206,7 @@ void GUFieldTrack::SetPosition( ThreeVector pPosition)
 } 
 
 inline
-void GUFieldTrack::SetMomentum( ThreeVector vMomentum) 
+void ScalarFieldTrack::SetMomentum( ThreeVector vMomentum) 
 {
    SixVector[3] = vMomentum.x(); 
    SixVector[4] = vMomentum.y(); 
@@ -215,63 +215,63 @@ void GUFieldTrack::SetMomentum( ThreeVector vMomentum)
 } 
 
 inline
-double GUFieldTrack::GetMomentumMag() const 
+double ScalarFieldTrack::GetMomentumMag() const 
 {
    return fMomentumMag;
 } 
 
 inline
-double  GUFieldTrack::GetCurveLength() const 
+double  ScalarFieldTrack::GetCurveLength() const 
 {
      return  fDistanceAlongCurve;  
 }
 
 inline
-void GUFieldTrack::SetCurveLength(double nCurve_s)
+void ScalarFieldTrack::SetCurveLength(double nCurve_s)
 {
      fDistanceAlongCurve= nCurve_s;  
 }
 
-// inline double GUFieldTrack::GetKineticEnergy() const
+// inline double ScalarFieldTrack::GetKineticEnergy() const
 // { return fKineticEnergy; }
 
-// inline void GUFieldTrack::SetKineticEnergy(double newKinEnergy)
+// inline void ScalarFieldTrack::SetKineticEnergy(double newKinEnergy)
 // {  fKineticEnergy=newKinEnergy; }
 
-// inline ThreeVector GUFieldTrack::GetPolarization() const
+// inline ThreeVector ScalarFieldTrack::GetPolarization() const
 // { return fPolarization; }
 
-// inline void GUFieldTrack::SetPolarization(const ThreeVector& vecPlz)
+// inline void ScalarFieldTrack::SetPolarization(const ThreeVector& vecPlz)
 // { fPolarization= vecPlz; }
 
 #if 0
 inline
-double GUFieldTrack::GetLabTimeOfFlight() const
+double ScalarFieldTrack::GetLabTimeOfFlight() const
 {
    return fLabTimeOfFlight;
 }
 
 inline
-void GUFieldTrack::SetLabTimeOfFlight(double nTOF)
+void ScalarFieldTrack::SetLabTimeOfFlight(double nTOF)
 {
    fLabTimeOfFlight=nTOF;
 }
 
 inline
-double  GUFieldTrack::GetProperTimeOfFlight() const
+double  ScalarFieldTrack::GetProperTimeOfFlight() const
 {
    return fProperTimeOfFlight;
 }
 
 inline
-void GUFieldTrack::SetProperTimeOfFlight(double nTOF)
+void ScalarFieldTrack::SetProperTimeOfFlight(double nTOF)
 {
    fProperTimeOfFlight=nTOF;
 }
 #endif
 
 inline
-ThreeVector GUFieldTrack::GetMomentum() const 
+ThreeVector ScalarFieldTrack::GetMomentum() const 
 {
    return ThreeVector( SixVector[3], SixVector[4], SixVector[5] );
 } 
@@ -281,7 +281,7 @@ ThreeVector GUFieldTrack::GetMomentum() const
 //   note that momentum direction is not saved 
 
 inline
-void GUFieldTrack::DumpToArray(double valArr[ncompSVEC] ) const
+void ScalarFieldTrack::DumpToArray(double valArr[ncompSVEC] ) const
 {
   valArr[0]=SixVector[0];
   valArr[1]=SixVector[1];
@@ -309,7 +309,7 @@ void GUFieldTrack::DumpToArray(double valArr[ncompSVEC] ) const
 }
 
 inline
-GUFieldTrack & GUFieldTrack::operator = ( const GUFieldTrack& rStVec )
+ScalarFieldTrack & ScalarFieldTrack::operator = ( const ScalarFieldTrack& rStVec )
 {
   if (&rStVec == this) return *this;
 
@@ -328,7 +328,7 @@ GUFieldTrack & GUFieldTrack::operator = ( const GUFieldTrack& rStVec )
   // SetPolarization( rStVec.GetPolarization() );
   // fMomentumDir= rStVec.fMomentumDir;
 
-  // fCharge= rStVec.fCharge;
+  fCharge= rStVec.fCharge;
   // (*Fpchargestate)= *(rStVec.fpChargeState);
   // fpChargeState= rStVec.fpChargeState; // Handles!!
   return *this;
@@ -336,7 +336,7 @@ GUFieldTrack & GUFieldTrack::operator = ( const GUFieldTrack& rStVec )
 
 #if 0   
 inline void 
-GUFieldTrack::UpdateFourMomentum( double momentum_mag, 
+ScalarFieldTrack::UpdateFourMomentum( double momentum_mag, 
                                   const ThreeVector& momentumDirection )
 {
   // double momentum_mag  = std::sqrt(kineticEnergy*kineticEnergy
@@ -352,7 +352,7 @@ GUFieldTrack::UpdateFourMomentum( double momentum_mag,
   // fKineticEnergy= kineticEnergy;
 }
 
-inline void GUFieldTrack::UpdateState( const ThreeVector& position, 
+inline void ScalarFieldTrack::UpdateState( const ThreeVector& position, 
                                        // double             laboratoryTimeOfFlight,
                                 const ThreeVector& momentumDirection,
                                 double             kineticEnergy
@@ -367,4 +367,4 @@ inline void GUFieldTrack::UpdateState( const ThreeVector& position,
 }
 #endif
 
-#endif  /* End of ifndef GUFieldTrack_HH */
+#endif  /* End of ifndef ScalarFieldTrack_HH */

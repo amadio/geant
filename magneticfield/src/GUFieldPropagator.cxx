@@ -1,5 +1,5 @@
 //
-//  Simple interface class to GUIntegrationDriver (with does Runge Kutta integration)
+//  Simple interface class to ScalarIntegrationDriver (with does Runge Kutta integration)
 //   that follows the interface of TGeoHelix
 //
 #include <iostream>  // for  cout / cerr 
@@ -9,7 +9,7 @@
 // #include "GUVEquationOfMotion.h"
 #include "TMagFieldEquation.h"
 #include "GUVIntegrationStepper.h"
-#include "GUIntegrationDriver.h"
+#include "ScalarIntegrationDriver.h"
 #include "GUVEquationOfMotion.h"
 
 #include "TMagFieldEquation.h"
@@ -17,7 +17,7 @@
 
 using ThreeVector = vecgeom::Vector3D<double>;
 
-GUFieldPropagator::GUFieldPropagator(GUIntegrationDriver* driver, double eps)
+GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver* driver, double eps)
   : fDriver(driver), fEpsilon(eps)
 {
 }
@@ -38,7 +38,7 @@ GUFieldPropagator::GUFieldPropagator(FieldType* magField, double eps, double hmi
 
    // auto stepper = new StepperType<GvEquationType,NumEq>(gvEquation);
    auto stepper =      new TClassicalRK4<EquationType,NumEq>(pEquation);      
-   auto integrDriver = new GUIntegrationDriver( hminimum,
+   auto integrDriver = new ScalarIntegrationDriver( hminimum,
                                                stepper,
                                                NumEq,
                                                statVerbose);
@@ -61,14 +61,14 @@ GUFieldPropagator::DoStep( ThreeVector const & startPosition, ThreeVector const 
          )
 {
   // Do the work HERE
-  GUFieldTrack yTrackIn( startPosition, 
+  ScalarFieldTrack yTrackIn( startPosition, 
                         startDirection * startMomentumMag,
-                        // fCharge, 
+                        charge, 
                         0.0); // s_0  xo
-  GUFieldTrack yTrackOut( yTrackIn );
+  ScalarFieldTrack yTrackOut( yTrackIn );
   
   // Call the driver HERE
-  fDriver->InitializeCharge( charge );
+  //fDriver->InitializeCharge( charge );
   bool goodAdvance=
      fDriver->AccurateAdvance( yTrackIn, step, fEpsilon, yTrackOut ); // , hInitial );
 

@@ -10,7 +10,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 VECCORE_ATT_HOST_DEVICE
 void FieldLookup::GetFieldValue(Geant::GeantTaskData *td, vecgeom::Vector3D<double> Position, double B[3], double *bmag)
 {
-      using ThreeVector_f = vecgeom::Vector3D<float>;
+      // using ThreeVector_f = vecgeom::Vector3D<float>;
       using ThreeVector_d = vecgeom::Vector3D<double>;
       
       if( bmag ) *bmag= 0.0;
@@ -22,9 +22,7 @@ void FieldLookup::GetFieldValue(Geant::GeantTaskData *td, vecgeom::Vector3D<doub
       }
       else
       {
-         ThreeVector_f MagFldF;
-         td->fFieldObj->GetFieldValue(Position, MagFldF);
-         MagFldD = ThreeVector_d(MagFldF.x(), MagFldF.y(), MagFldF.z());
+         td->fFieldObj->GetFieldValue(Position, MagFldD);
          if( bmag ) *bmag= MagFldD.Mag();
          
          // printf(" GeantTrack_v::GetFieldValue>  Field at x,y,z= ( %f %f %f ) is (%f %f %f) kGauss - mag = %f \n",

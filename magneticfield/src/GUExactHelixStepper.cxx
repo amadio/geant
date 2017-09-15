@@ -16,9 +16,9 @@
 using Constants::pi;
 using Constants::twopi;
 
+#include <cfloat>
 
 #include "GUExactHelixStepper.h"
-#include <cfloat>
 // #include "GUPhysicalConstants.h"
 // #include "ThreeVector.h"
 // #include "GULineSection.h"
@@ -35,10 +35,11 @@ GUExactHelixStepper::~GUExactHelixStepper() {}
 
 void
 GUExactHelixStepper::StepWithErrorEstimate( const double yInput[],
-                              const double*,
-                                    double hstep,
-                                    double yOut[],
-                                    double yErr[]      )
+                                            const double*, // dydx
+                                                  double charge, 
+                                                  double hstep,
+                                                  double yOut[],
+                                                  double yErr[]  )
 {  
    const unsigned int nvar = 6;
 
@@ -47,7 +48,7 @@ GUExactHelixStepper::StepWithErrorEstimate( const double yInput[],
    MagFieldEvaluate(yInput, Bfld_value);
    // std::cout << " Exact Helix: B-field:  Bx = " << Bfld_value[0]
    //           << " By= " << Bfld_value[1] << " Bz= " << Bfld_value[2] << std::endl;
-   AdvanceHelix(yInput, Bfld_value, hstep, yOut);
+   AdvanceHelix(yInput, Bfld_value, charge, hstep, yOut);
 
   // We are assuming a constant field: helix is exact
   //
@@ -62,12 +63,13 @@ GUExactHelixStepper::StepWithErrorEstimate( const double yInput[],
 void
 GUExactHelixStepper::StepWithoutErrorEstimate( const double  yIn[],
                                         ThreeVector   Bfld,
+                                               double charge, 
                                         double  h,
                                         double  yOut[])
 {
   // Assuming a constant field: solution is a helix
 
-  AdvanceHelix(yIn, Bfld, h, yOut);
+  AdvanceHelix(yIn, Bfld, charge, h, yOut);
 
   std::cerr<<"GUExactHelixStepper::StepWithoutErrorEstimate"
            << "should *NEVER* be called. StepWithErrorEstimate must do the work." << std::endl;
@@ -77,7 +79,7 @@ GUExactHelixStepper::StepWithoutErrorEstimate( const double  yIn[],
 // ---------------------------------------------------------------------------
 
 double
-GUExactHelixStepper::DistChord() const 
+GUExactHelixStepper::DistChord( double /*charge*/ ) const 
 {
   // Implementation : must check whether h/R >  pi  !!
   //   If( h/R <  pi)   DistChord=h/2*std::tan(Ang_curve/4)                <

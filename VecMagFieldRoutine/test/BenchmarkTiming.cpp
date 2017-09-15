@@ -23,17 +23,12 @@
 #include <string>
 #include <functional>
 
-#include <Vc/Vc>
-
-#include "backend/vc/Backend.h"
-// #include "backend/vcfloat/Backend.h"
 #include "base/Vector.h"
 
 #include "base/Vector3D.h"
-#include "base/SOA3D.h"
 #include "base/Global.h"
+#include <Geant/VectorTypes.h>
 
-#include "VcFloatBackend.h"
 
 // #include "VC_NO_MEMBER_GATHER"
 
@@ -42,8 +37,11 @@
 
 using namespace std;
 
+using Double_v = Geant::Double_v;
+using Float_v = Geant::Float_v;
+
 typedef vecgeom::Vector3D<float> ThreeVector; //normal Vector3D
-typedef vecgeom::Vector3D<vecgeom::kVcFloat::precision_v> ThreeVecSimd_t;
+typedef vecgeom::Vector3D<Float_v> ThreeVecSimd_t;
 typedef vecgeom::Vector<float>   VcVectorFloat;
 
 // typedef MagVector3<float>         MagField;
@@ -112,7 +110,7 @@ float TimeScalar(CMSmagField &m1, const vecgeom::Vector<ThreeVector> &posVec, co
         for(int j=0;j<nRepetitions;j++){
             for (int i = 0; i < n; ++i)
             {
-                m1.GetFieldValue<vecgeom::kScalarFloat>(posVec[i], xyzField);
+                m1.GetFieldValue<float>(posVec[i], xyzField);
                 sumXYZField += xyzField;
             }
         }
@@ -143,24 +141,23 @@ float TimeScalar(CMSmagField &m1, const vecgeom::Vector<ThreeVector> &posVec, co
 
 float TimeVector(MagField &m1, const vecgeom::Vector<ThreeVector> &posVec, const int &n, const int &nRepetitions){
     cout<<"\nVector fields start: "<<endl;
-    vecgeom::kVcFloat::precision_v vX;
-    vecgeom::kVcFloat::precision_v vY;
-    vecgeom::kVcFloat::precision_v vZ;
+    Float_v vX;
+    Float_v vY;
+    Float_v vZ;
 
     //decides no. of doubles that one Vc vector can contain.
     //depends on architecture. 4 for avx. Later can be modified
     //to take the value itself from architecture
-    int noOfDoubles = 8;
     float totVecTime= 0.;
     vector<float> vecTimePerRepitition; 
     int noRunsAvg = 16;
 
-    int inputVcLen = ceil(((float)n)/noOfDoubles);
+    int inputVcLen = ceil(((float)n)/Geant::kVecLenF);
     ThreeVecSimd_t *inputForVec = new ThreeVecSimd_t[inputVcLen];
     int init = 0;
     
-    for (int i = 0; i < n; i=i+noOfDoubles){
-       for (int j = 0; j < noOfDoubles; ++j){
+    for (int i = 0; i < n; i=i+Geant::kVecLenF){
+       for (size_t j = 0; j < Geant::kVecLenF; ++j){
             vX[j]= posVec[i+j].x();
             vY[j]= posVec[i+j].y();
             vZ[j]= posVec[i+j].z();
@@ -181,7 +178,7 @@ float TimeVector(MagField &m1, const vecgeom::Vector<ThreeVector> &posVec, const
         clock_t clock1= clock();
         for (int j = 0; j < nRepetitions; ++j){
             for (int i = 0; i < inputVcLen; ++i){
-                m1.GetFieldValue<vecgeom::kVcFloat>(inputForVec[i], xyzField);
+                m1.GetFieldValue<Float_v>(inputForVec[i], xyzField);
                 sumXYZField += xyzField;
             }
         }

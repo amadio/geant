@@ -25,14 +25,15 @@
 // #include "GUVTypes.h"
 #include "GUVVectorEquationOfMotion.h"
 // class GUVVectorEquationOfMotion;
+#include <Geant/VectorTypes.h>
  
 class GUVVectorIntegrationStepper
 {
-    typedef typename vecgeom::kVc::precision_v Double_v;
-
   public:
+        using Double_v = Geant::Double_v;
+   
         // GUVVectorIntegrationStepper();   // DELET
-        GUVVectorIntegrationStepper( GUVVectorEquationOfMotion* equation, 
+        GUVVectorIntegrationStepper( GUVVectorEquationOfMotion* equation,
                                      unsigned int IntegrationOrder,
                                      unsigned int numIntegrationVariables,
                                      int          numStateVariables      ); // = -1 same? or  unsigned ?    // in G4 =12
@@ -45,17 +46,18 @@ class GUVVectorIntegrationStepper
 
         // Core methods
         // ---------------------
-        virtual void StepWithErrorEstimate( const Double_v y[],
-                                            const Double_v dydx[],
-//                                            const Double_v h,
-                                                  double   h, 
-                                                  Double_v yout[],
-                                                  Double_v yerr[]  ) = 0;
+        virtual void StepWithErrorEstimate( const Double_v  yInput[],
+                                            const Double_v  dydx[],
+                                            const Double_v& charge, 
+                                            const Double_v& hStep,
+                                                  Double_v  yOutput[],
+                                                  Double_v  yError[]  ) = 0;
         // Integrate typically using Runge Kutta 
         // Input:
         //          y[] = initial derivative
-        //       dydx[] = initial derivative        
-        //          h   = requested step
+        //       dydx[] = initial derivative
+        //       charge = particle Charge
+        //        hStep = requested step
         // Output:
         //       yout[] = output values of integration
         //       yerr[] = estimate of integration error
@@ -91,16 +93,10 @@ class GUVVectorIntegrationStepper
         // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
         // Simple utility function to (re)normalise 'unit spin' vector.
 
-        inline GUVVectorEquationOfMotion *GetEquationOfMotion() { return  fAbstrEquation; }
-        inline const GUVVectorEquationOfMotion *GetEquationOfMotion() const { return  fAbstrEquation; }        
+        inline GUVVectorEquationOfMotion *GetABCEquationOfMotion() { return  fAbstrEquation; }
+        inline const GUVVectorEquationOfMotion *GetABCEquationOfMotion() const { return  fAbstrEquation; }        
         // As some steppers require access to other methods of Eq_of_Mot
-        void SetEquationOfMotion(GUVVectorEquationOfMotion* newEquation); 
-
-        virtual void InitializeCharge(double particleCharge) { GetEquationOfMotion()->InitializeCharge(particleCharge); }
-           // Some steppers may need the value(s) / or status - they can intercept        
-
-        void InformDone() { GetEquationOfMotion()->InformDone();}
-          // InvalidateParameters()
+        void SetABCEquationOfMotion(GUVVectorEquationOfMotion* newEquation); 
 
     private:
 
@@ -122,9 +118,9 @@ class GUVVectorIntegrationStepper
 // #include  "GUVVectorIntegrationStepper.icc"
 inline
 void GUVVectorIntegrationStepper::
-RightHandSideVIS( const  typename vecgeom::kVc::precision_v y[], 
-                         typename vecgeom::kVc::precision_v charge,
-                         typename vecgeom::kVc::precision_v dydx[] )
+RightHandSideVIS( const  Double_v y[], 
+                         Double_v charge,
+                         Double_v dydx[] )
 {
    fAbstrEquation-> RightHandSide(y, charge, dydx);
 }

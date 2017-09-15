@@ -5,19 +5,15 @@
 #include "GUVEquationOfMotion.h"
 
 #include "GUVVectorEquationOfMotion.h"
-#include "GUVVectorField.h"
 #include "TVectorMagFieldEquation.h"
-#include "GUVMagneticField.h"
-#include "GUVVectorMagneticField.h"
-#include "TVectorUniformMagField.h"
 
 #include "GUVField.h"
-#include "TMagFieldEquation.h"
+#include "MagFieldEquation.h"
 #include "FieldEquationFactory.h"
 
-#include "TUniformMagField.h"
+#include "UniformMagField.h"
 
-#define CMS_FIELD 1
+//#define CMS_FIELD 1
 
 #ifdef CMS_FIELD
 // #include "VecMagFieldRoutine/CMSmagField.h"
@@ -25,17 +21,24 @@
 #endif
 
 
-using ThreeVector_f = vecgeom::Vector3D<float>;
-using ThreeVector_d = vecgeom::Vector3D<double>;
+using Double_v = Geant::Double_v;
+using Float_v = Geant::Float_v;
+
+template <typename T>
+using Vector3D = vecgeom::Vector3D<T>;
 
 using std::cout;
 using std::cerr;
 using std::endl;
+using namespace vecCore::math;
 
-GUVEquationOfMotion* CreateUniformFieldAndEquation(ThreeVector_f constFieldValue);
+MagFieldEquation<UniformMagField>* 
+CreateUniformFieldAndEquation(Vector3D<float> const &fieldValue);
+
 GUVEquationOfMotion* CreateFieldAndEquation(const char* filename);
 
-bool  TestEquation(GUVEquationOfMotion* );
+template <typename Real_v, typename Equation_t>
+bool  TestEquation(Equation_t *);
 
 constexpr unsigned int gNposmom= 6; // Position 3-vec + Momentum 3-vec
 
@@ -44,40 +47,43 @@ const char *defaultFieldFileName= "cmsmagfield2015.txt";
 int
 main( int, char** )
 {
-  ThreeVector_f  FieldValue(0.0, 0.0, 1.0);
-   
-  GUVEquationOfMotion* eq = CreateUniformFieldAndEquation( FieldValue );
-  TestEquation(eq);
+  Vector3D<float>  fieldValue(0.0, 0.0, 1.0);
 
+  using EquationConstField_t = MagFieldEquation<UniformMagField>;
+  
+  auto eq = CreateUniformFieldAndEquation(fieldValue);
+
+  cout << " Testing scalar.      "; // << endl;
+  bool okUniformScalar = TestEquation<double, EquationConstField_t>(eq);
+  cout << " Testing Vec Float.   "; // << endl;  
+  bool okUniformVecFloat = TestEquation<Float_v, EquationConstField_t>(eq);
+  cout << " Testing Vec Double . "; // << endl;    
+  bool okUniformVecDouble = TestEquation<Double_v, EquationConstField_t>(eq);
+
+  bool good = okUniformScalar && okUniformVecFloat && okUniformVecDouble;
+  
 #ifdef CMS_FIELD
   GUVEquationOfMotion* eq2 = CreateFieldAndEquation( defaultFieldFileName ); // ("cmsMagneticField2015.txt");
-  TestEquation(eq2);
+  bool okCMSfield = TestEquation(eq2);
+
+  good = good && okCMSfield;
 #endif
   
-  return 1;
+  return good;
 }
 
-GUVEquationOfMotion* CreateUniformFieldAndEquation(ThreeVector_f FieldValue)
+MagFieldEquation<UniformMagField>* 
+CreateUniformFieldAndEquation(Vector3D<float> const &fieldValue)
 {
-  // using Field_t = TUniformMagField;
-
-  TUniformMagField*   pConstBfield = new TUniformMagField( FieldValue );
-
-  // 1. Original way of creating an equation
-  // using EquationType = TMagFieldEquation<TUniformMagField, gNposmom>;
-  // GUVEquationOfMotion*  magEquation = new EquationType(pConstBfield);
-  // return magEquation;
-
-  //  2. Different method of creating equation:  Factory
-  return FieldEquationFactory::CreateMagEquation<TUniformMagField>(pConstBfield);
+  //  1. Simple method of creating equation
+  UniformMagField*   pConstBfield = new UniformMagField( fieldValue );
+  return new MagFieldEquation<UniformMagField>(pConstBfield);
 }
 
 #ifdef CMS_FIELD
 GUVEquationOfMotion* CreateFieldAndEquation(const char* filename)
 {
-  // const char *defaultFieldFileName= "cmsMagneticField2015.txt";
-   
-  //  3. Equation for CMS field
+  //  2. Equation for CMS field
   auto cmsField = new CMSmagField( filename ? filename : defaultFieldFileName ); 
   auto equationCMS = FieldEquationFactory::CreateMagEquation<CMSmagField>(cmsField);
 
@@ -87,19 +93,26 @@ GUVEquationOfMotion* CreateFieldAndEquation(const char* filename)
 
 int gVerbose = 1;
 
-bool TestEquation(GUVEquationOfMotion *equation)
+template <typename Real_v, typename Equation_t>
+bool TestEquation(Equation_t *equation)
 {
-  constexpr double perMillion = 1e-6;
+  const Real_v perMillion = Real_v(1e-6);
   bool   hasError = false;  // Return value
+  using Bool_v = vecCore::Mask<Real_v>;
   
-  ThreeVector_d PositionVec( 1., 2.,  3.);  // initial
-  ThreeVector_d MomentumVec( 0., 0.1, 1.);
-  ThreeVector_f FieldVec( 0., 0., 1.);  // Magnetic field value (constant)
+  Vector3D<Real_v> PositionVec( 1., 2., 3.);  // initial
+  Vector3D<Real_v> MomentumVec( 0., 0.1, 1.);
+  Vector3D<Real_v> FieldVec( 0., 0., 1.);  // Magnetic field value (constant)
 
   // double PositionTime[4] = { PositionVec.x(), PositionVec.y(), PositionVec.z(), 0.0};
-  double PositionMomentum[gNposmom];
-  double dydx[gNposmom];
-  double charge= -1;
+  Real_v PositionMomentum[gNposmom];
+  Real_v dydx[gNposmom];
+  int chargeVec[8] = { -1, 1, 2, -2, -3, -3, -3, -3 };
+
+  // Revise the values, so that they are no longer equal
+  Real_v charge = Real_v(0.0); 
+  for (size_t lane = 0; lane < vecCore::VectorSize<Real_v>(); ++lane)
+    vecCore::Set( charge, lane, chargeVec[lane % 8] );
 
   PositionMomentum[0] = PositionVec[0];
   PositionMomentum[1] = PositionVec[1];
@@ -108,37 +121,41 @@ bool TestEquation(GUVEquationOfMotion *equation)
   PositionMomentum[4] = MomentumVec[1];
   PositionMomentum[5] = MomentumVec[2];
 
-  // double FieldArr[3]= { FieldVec.x(), FieldVec.y(), FieldVec.z() };
-  
-  equation->InitializeCharge( charge );
-  equation->EvaluateRhsGivenB( PositionMomentum, FieldVec, /* charge, */ dydx );
+  equation->EvaluateRhsGivenB( PositionMomentum, FieldVec, charge, dydx );
 
-  ThreeVector_d  ForceVec( dydx[3], dydx[4], dydx[5]);
+  Vector3D<Real_v>  ForceVec( dydx[3], dydx[4], dydx[5]);
 
   // Check result
-  double MdotF = MomentumVec.Dot(ForceVec);
-  double BdotF = FieldVec.Dot(ForceVec);
+  Real_v MdotF = MomentumVec.Dot(ForceVec);
+  Real_v BdotF = FieldVec.Dot(ForceVec);
 
-  double momentumMag = MomentumVec.Mag();
-  double fieldMag =    FieldVec.Mag();
-  double sineAngle =   FieldVec.Cross( MomentumVec ).Mag() / ( momentumMag  * fieldMag );
+  Real_v momentumMag = MomentumVec.Mag();
+  Real_v fieldMag =    FieldVec.Mag();
+  Real_v sineAngle =   FieldVec.Cross( MomentumVec ).Mag() / ( momentumMag  * fieldMag );
 
-  double ForceMag =   ForceVec.Mag();
-  const double c = Constants::c_light;
+  Real_v ForceMag =   ForceVec.Mag();
+  const Real_v c = Real_v(Constants::c_light);
 
-  std::cout << "Test output:  "  << std::endl;     
-  if( ForceMag != c * std::fabs(charge) * fieldMag * sineAngle ) {
+  // Tolerance of difference in values (used below)
+  Real_v tolerance = perMillion;
+  
+  if ( gVerbose ) { std::cout << "Test output:  "  << std::endl; }
+  Bool_v error = (Abs(ForceMag - c * Abs(charge) * fieldMag * sineAngle)) > (tolerance * ForceMag);
+  if( !vecCore::MaskEmpty(error) ) {
      cerr << "ERROR: Force magnitude is not equal to   c * |charge| * |field| * sin( p, B )."  << endl;     
      cerr << "       Force magnitude = " << ForceMag << endl;
-     cerr << "         other side =    " <<  c * std::fabs(charge) * fieldMag * sineAngle ; 
+     cerr << "         other side =    " <<  c * Abs(charge) * fieldMag * sineAngle ; 
      cerr << " charge = " << charge 
                << " field-Mag= " << fieldMag  << std::endl;     
      cerr << "       Force = " << ForceVec[0] << " " << ForceVec[1] << " " << ForceVec[2] << " "  << endl;
+     hasError = true;
   }
      
-  assert( ForceMag != momentumMag * fieldMag );  // Must add coefficient !!
-  
-  if( std::fabs(MdotF) > perMillion * MomentumVec.Mag() * ForceVec.Mag() )
+  error = (ForceMag == momentumMag * fieldMag);
+  assert( vecCore::MaskEmpty(error) );  // Must add coefficient !!
+
+  error = Abs(MdotF) > tolerance * MomentumVec.Mag() * ForceVec.Mag();
+  if( !vecCore::MaskEmpty(error) )
   { 
      cerr << "ERROR: Force due to magnetic field is not perpendicular to momentum!!"  << endl;
      hasError= true;
@@ -147,7 +164,9 @@ bool TestEquation(GUVEquationOfMotion *equation)
   {
      cout << " Success:  Good (near zero) dot product momentum . force " << endl;
   }
-  if( std::fabs(BdotF) > perMillion * FieldVec.Mag() * ForceVec.Mag() )
+  
+  error = Abs(BdotF) > tolerance * FieldVec.Mag() * ForceVec.Mag();
+  if( !vecCore::MaskEmpty(error) )
   { 
     cerr << "ERROR: Force due to magnetic field is not perpendicular to B field!"
               << std::endl; 

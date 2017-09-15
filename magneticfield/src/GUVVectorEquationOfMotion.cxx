@@ -8,27 +8,22 @@
 #include "GUVEquationOfMotion.h"
 #include "GUVVectorEquationOfMotion.h"
 
-#include "VcFloatBackend.h"
-
 unsigned int GUVVectorEquationOfMotion::fNumObjectsCreated= 0;
 unsigned int GUVVectorEquationOfMotion::fNumObjectsDeleted= 0;
 
 GUVVectorEquationOfMotion::~GUVVectorEquationOfMotion()
 {
-  CheckDone();
   fNumObjectsDeleted++;
 }
 
 void
 GUVVectorEquationOfMotion::
-EvaluateRhsReturnB( const typename vecgeom::kVc::precision_v  y[],
-                          typename vecgeom::kVc::precision_v  dydx[],
-                          typename vecgeom::kVc::precision_v  charge,
-   vecgeom::Vector3D<typename vecgeom::kVcFloat::precision_v> &Field
-                                // vecgeom::Vector3D<Float_v> &Field                    // Tried alternative                    
+EvaluateRhsReturnB( const Double_v  y[],
+                          Double_v  dydx[],
+                          Double_v  charge,
+                          vecgeom::Vector3D<Double_v> &Field
    ) const
 {
-   typedef typename vecgeom::kVc::precision_v Double_v;
    Double_v  PositionAndTime[4];
    PositionAndTime[0] = y[0];
    PositionAndTime[1] = y[1];

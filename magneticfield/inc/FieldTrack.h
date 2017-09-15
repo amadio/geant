@@ -4,8 +4,10 @@
 /*---------------------
 Data structure in place of GUFieldTrack to be used 
 for input and output stream arrays of AccurateAdvance 
-in IntegrationDriver. Functions DumpToArray and LoadFromArray
-can be removed if PosMomVector is made public data member.
+in IntegrationDriver. 
+
+Functions DumpToArray and LoadFromArray can be removed 
+          if this is changed into a struct - i.e. PosMomVector is made public data member.
 Same goes for SetCurveLength and GetCurveLength functions.
 ----------------*/
 #include <iostream>
@@ -13,29 +15,29 @@ Same goes for SetCurveLength and GetCurveLength functions.
 struct FieldTrack{
 
 public: 
-  static constexpr int NumComp = 6;  // Number of components
+  static constexpr int NumCompFT = 6;  // Number of components
 
   // Constructors
   FieldTrack() : fDistanceAlongCurve(0.0) { LoadZeroes(); } 
-  FieldTrack( double PositionMomentum[NumComp], double length= 0.0) : fDistanceAlongCurve(length)
+  FieldTrack( double PositionMomentum[NumCompFT], double length= 0.0) : fDistanceAlongCurve(length)
                         { LoadFromArray( PositionMomentum ); }
   FieldTrack( std::vector<double> PositionMomentumVec, double length= 0.0) : fDistanceAlongCurve(length)
                         { LoadFromVector( PositionMomentumVec ); }   
   ~FieldTrack(){};
 
-  double GetComponent( int i ) {
-     // assert( 0 <= i && i < NumComp );
+  double GetComponent( int i ) const {
+     // assert( 0 <= i && i < NumCompFT );
      return fPosMomArr[i];
   }
 
   void   SetComponent( int i, double val ) {
-     // assert( 0 <= i && i < NumComp );
+     // assert( 0 <= i && i < NumCompFT );
      fPosMomArr[i] = val;
   }   
   
   // Access & set methods
-  void DumpToArray(double valArr[]) { //12 from ncompSVEC as in both TemplateGUIntegrationDriver
-    for (int i = 0; i < NumComp; ++i)        //and GUFieldTrack function
+  void DumpToArray(double valArr[]) const {
+    for (int i = 0; i < NumCompFT; ++i)        //and GUFieldTrack function
     {
       valArr[i] = fPosMomArr[i];
     }
@@ -44,8 +46,8 @@ public:
   void LoadFromArray(const double valArr[], int noVarsIntegrated = -1 )
   {
     if( noVarsIntegrated == -1 )
-       noVarsIntegrated= 6; // NumComp;
-    int top= std::min( noVarsIntegrated, 6 );  // NumComp ); 
+       noVarsIntegrated= 6; // NumCompFT;
+    int top= std::min( noVarsIntegrated, 6 );  // NumCompFT ); 
     for (int i = 0; i < top; ++i)
     {
       fPosMomArr[i] = valArr[i];
@@ -54,12 +56,12 @@ public:
 
   void LoadFromVector( const std::vector<double> valVec, double valRest = 0.0 )
   {
-    int top= std::min( (int)(valVec.size()) , NumComp ); 
+    int top= std::min( (int)(valVec.size()) , NumCompFT ); 
     for (int i = 0; i < top; ++i)
     {
       fPosMomArr[i] = valVec[i];
     }
-    for (int i= top; i < NumComp; ++i)
+    for (int i= top; i < NumCompFT; ++i)
     {
       fPosMomArr[i] = valRest;    //  Fill the rest, if any
     }
@@ -67,17 +69,17 @@ public:
 
   void LoadZeroes()
   {
-    for (int i = NumComp; i >=0; --i)
+    for (int i = NumCompFT; i >=0; --i)
        fPosMomArr[i] = 0.0;
   }
 
   void   SetCurveLength(double len){ fDistanceAlongCurve = len; }
-  double GetCurveLength(){ return fDistanceAlongCurve; }
+  double GetCurveLength() const { return fDistanceAlongCurve; }
 
 private: 
   //data members   
   double fDistanceAlongCurve = 0.0;
-  double fPosMomArr[NumComp];
+  double fPosMomArr[NumCompFT];
 
 public:
   

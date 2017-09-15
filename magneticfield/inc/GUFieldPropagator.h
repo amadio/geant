@@ -1,5 +1,5 @@
 //
-//  Simple interface class to GUIntegrationDriver (with does Runge Kutta integration)
+//  Simple interface class to ScalarIntegrationDriver (with does Runge Kutta integration)
 //   that follows the interface of ConstFieldHelixStepper.h
 //
 #ifndef GUFIELDPROPAGATOR_H
@@ -17,14 +17,14 @@
 template <class Backend>
 class TemplateGUIntegrationDriver;
 
-class GUIntegrationDriver;
+class ScalarIntegrationDriver;
 class GUVField;
 
 class GUFieldPropagator
 {
   public:
     // GUFieldPropagator(GUVField *); // First idea -- sidelined, at least for now
-    GUFieldPropagator(GUIntegrationDriver* driver, double epsilon); // (GUVField* field)
+    GUFieldPropagator(ScalarIntegrationDriver* driver, double epsilon); // (GUVField* field)
 
     template <typename Backend>
     GUFieldPropagator(TemplateGUIntegrationDriver<Backend>* driver, double epsilon);
@@ -49,8 +49,8 @@ class GUFieldPropagator
                   vecgeom::Vector3D<double>      & endDiretion
         ) ;   //  Goal => make it 'const';  -- including all classes it uses
 
-    GUIntegrationDriver* GetIntegrationDriver(){ return fDriver; }
-    const GUIntegrationDriver* GetIntegrationDriver() const { return fDriver; }
+    ScalarIntegrationDriver* GetIntegrationDriver(){ return fDriver; }
+    const ScalarIntegrationDriver* GetIntegrationDriver() const { return fDriver; }
     double GetEpsilon() { return fEpsilon; }
 
     GUVField* GetField();
@@ -85,8 +85,8 @@ class GUFieldPropagator
    *****/
 
 private:
-    GUIntegrationDriver* fDriver;
-    double               fEpsilon;
+    ScalarIntegrationDriver* fDriver;
+    double                  fEpsilon;
 };
 
 // } // GEANT_IMPL_NAMESPACE

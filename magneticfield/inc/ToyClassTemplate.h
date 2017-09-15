@@ -2,29 +2,24 @@
 #define _TOYCLASSTEMPLATE_H_
 
 #include <iostream>
-#include "AlignedBase.h"
-#include <Vc/Vc>
+#include <base/AlignedBase.h>
 #include <stdlib.h>
-#include "base/Vector3D.h" //To utlimately include kVc, kScalar backends etc
+#include <Geant/VectorTypes.h>
 
 
 using namespace std;
-// using Backend= vecgeom::kScalar;
-using Backend= vecgeom::kVc;
 
-class ToyClassTemplate : public AlignedBase
+class ToyClassTemplate : public vecgeom::AlignedBase
 {
-  typedef typename Backend::bool_v      Bool_v;
-  typedef typename Backend::precision_v Double_v;
-  typedef typename Backend::int_v       Int_v;
+  using Double_v = Geant::Double_v;
+  using Int_v = Geant::Int_v;
+  using Bool_v = Geant::MaskD_v;
 public:
   ToyClassTemplate(){};
 
   //used to set total number of tracks user might give
   //Can be modified later. Makes things easier for now.
   ToyClassTemplate(int n);
-
-  ToyClassTemplate(int n, int vcVectorSize=4);
 
   ~ToyClassTemplate();
 
@@ -38,9 +33,9 @@ public:
   //Called in constructor. Set input no. of tracks
   void SetInputTracks(int n);
 
-  //Initialize the Vc vector in beginning if not initialized. Assume 
+  //Initialize the vector in beginning if not initialized. Assume 
   //uninitialized here. Later on replacement when work done for it 
-  void InitializeVcVector(double nTracks[]);
+  void InitializeVector(double nTracks[]);
 
   void PreProcess(double nTracks[], 
                   double fPreprocessedData[]);
@@ -53,7 +48,6 @@ public:
                         Bool_v Done                );
 
 private:
-  int kSizeOfVcVector;// = 4; //can use vecgeom::kVectorSize
   int fInputTotalTracks;
   double kStep = 0.1;
 
@@ -79,16 +73,7 @@ ToyClassTemplate::ToyClassTemplate(int n)
 {
   SetInputTracks(n);
   fPreprocessedData = new double[n];
-  fIndex       = new int[kSizeOfVcVector];
-}
-
-ToyClassTemplate::ToyClassTemplate(int n, int vcVectorSize)
-{
-  kSizeOfVcVector = vcVectorSize;
-  SetInputTracks(n);
-  fPreprocessedData = new double[n];
-  fIndex       = new int[kSizeOfVcVector];
-
+  fIndex       = new int[Geant::kVecLenD];
 }
 
 ToyClassTemplate::~ToyClassTemplate()
@@ -102,9 +87,9 @@ void ToyClassTemplate::SetInputTracks(int n)
   fInputTotalTracks = n;
 }
 
-void ToyClassTemplate::InitializeVcVector(double nTracks[])
+void ToyClassTemplate::InitializeVector(double nTracks[])
 {
-  for (int i = 0; i < kSizeOfVcVector; ++i)
+  for (int i = 0; i < Geant::kVecLenD; ++i)
   {
     fPreProcLane    [i] = nTracks[i];
     fIndex          [i] = i;    
@@ -123,9 +108,9 @@ void ToyClassTemplate::PreProcess(double nTracks[], double fPreprocessedData[])
   }
 }
 
-void ToyClassTemplate::PrintCurrentData(typename Backend::precision_v fPreProcLane, 
-                                        typename Backend::precision_v outputSimpleMethod, 
-                                        typename Backend::bool_v      Done              )
+void ToyClassTemplate::PrintCurrentData(Double_v fPreProcLane, 
+                                        Double_v outputSimpleMethod, 
+                                        Bool_v      Done              )
 {
   cout<<"\n----Currently:"<<endl;
   cout<<"----fPreProcLane is      : "<<fPreProcLane      <<endl;
@@ -133,8 +118,8 @@ void ToyClassTemplate::PrintCurrentData(typename Backend::precision_v fPreProcLa
   cout<<"----Done is              : "<<Done              <<endl;
 }
 
-void ToyClassTemplate::PrintCurrentData(typename Backend::precision_v outputSimpleMethod, 
-                                        typename Backend::bool_v      Done               )
+void ToyClassTemplate::PrintCurrentData(Double_v outputSimpleMethod, 
+                                        Bool_v      Done               )
 {
   cout<<"\n----Currently:"<<endl;
   cout<<"----outputSimpleMethod is: "<<outputSimpleMethod<<endl;
@@ -142,11 +127,11 @@ void ToyClassTemplate::PrintCurrentData(typename Backend::precision_v outputSimp
 }
 
 
-void ToyClassTemplate::SimpleMethod(typename Backend::precision_v &fPreProcLane, 
-                                    typename Backend::precision_v &outputSimpleMethod)
+void ToyClassTemplate::SimpleMethod(Double_v &fPreProcLane, 
+                                    Double_v &outputSimpleMethod)
 {
   // srand(time(NULL));
-  for (int i = 0; i < kSizeOfVcVector; ++i)
+  for (int i = 0; i < Geant::kVecLenD; ++i)
   {
     outputSimpleMethod[i] =  (float) rand()/(RAND_MAX) ;
   }
@@ -160,13 +145,11 @@ void ToyClassTemplate::ToyMethod(double nTracks[], double finalResults[])
 {
   PreProcess(nTracks, fPreprocessedData);
 
-  InitializeVcVector(fPreprocessedData);
+  InitializeVector(fPreprocessedData);
 
   int trackNextInput = 4; 
 
   //now start working from preprocessed data
-  typedef typename Backend::bool_v Bool_v;
-  typedef typename Backend::precision_v Double_v;
   Bool_v isDone(0.), isGoodStep(0.);
   Double_v outputSimpleMethod;
 
@@ -205,7 +188,7 @@ void ToyClassTemplate::ToyMethod(double nTracks[], double finalResults[])
     if(!(vecgeom::IsEmpty(isDone)))
     {
       cout<<"here1"<<endl;
-      for (int i = 0; i < kSizeOfVcVector; ++i)
+      for (int i = 0; i < Geant::kVecLenD; ++i)
       {
         cout<<"here2"<<endl;
         if(isDone[i]==1 && fIndex[i] != -1) 

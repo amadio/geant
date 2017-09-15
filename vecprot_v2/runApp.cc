@@ -230,11 +230,9 @@ int main(int argc, char *argv[]) {
   config->fUseRungeKutta = useRungeKutta;
   config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
 
-  UserFieldConstruction* fieldConstructor= new UserFieldConstruction();
+  auto fieldConstructor= new UserFieldConstruction();
   float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
   fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
-  SetUserFieldConstructor(fieldConstructor);
-  printf("runApp: Set up generic field-construction - to create field.\n");
 
   // printf("Calling CreateFieldAndSolver from runCMS_new.C");
   // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
@@ -270,9 +268,6 @@ int main(int argc, char *argv[]) {
 //  runMgr->LoadVecGeomGeometry();
 #endif
 
-  // Currently the run manager can set the field construction
-  runMgr->SetUserFieldConstruction(fieldConstructor);
-
   // for vector physics -OFF now
   // runMgr->SetVectorPhysicsProcess(new GVectorPhysicsProcess(config->fEmin, nthreads));
 
@@ -280,12 +275,17 @@ int main(int argc, char *argv[]) {
   runMgr->SetPrimaryGenerator( generator );  
   runMgr->SetUserApplication ( new ExN03Application(runMgr) );
   runMgr->SetDetectorConstruction( new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr) );
+
+  runMgr->SetUserFieldConstruction(fieldConstructor);
+  // printf("runApp: Set up generic field-construction - to create field.\n");
+  
   if (external_loop) {
     userfw::Framework fw(n_propagators*n_threads, n_events, runMgr, generator);
     fw.Run();
   } else {
     runMgr->RunSimulation();
   }
+
   return 0;
 }
 #endif

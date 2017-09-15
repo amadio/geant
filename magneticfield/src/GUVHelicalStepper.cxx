@@ -36,7 +36,7 @@ GUVHelicalStepper::GUVHelicalStepper(GUVEquationOfMotion *EqRhs,
                            6,   // integrate over 6 variables only !! ( position & momentum )
                            6),  // state could be 8 - also t, E
                                
-     fPtrMagEqOfMot(EqRhs), fAngCurve(0.), frCurve(0.), frHelix(0.), fParticleCharge(0.0)
+     fPtrMagEqOfMot(EqRhs), fAngCurve(0.), frCurve(0.), frHelix(0.)
 {
 }
 
@@ -46,10 +46,11 @@ GUVHelicalStepper::~GUVHelicalStepper()
 
 void
 GUVHelicalStepper::AdvanceHelix( const double  yIn[],
-                                   ThreeVector   Bfld,    
-                                   double  h,
-                                   double  yHelix[],
-                                   double  yHelix2[] )
+                                 ThreeVector   Bfld,
+                                       double  charge, 
+                                       double  h,
+                                       double  yHelix[],
+                                       double  yHelix2[] )
 {
   // const G4int    nvar = 6;
  
@@ -74,7 +75,7 @@ GUVHelicalStepper::AdvanceHelix( const double  yIn[],
   double      velocityVal = initVelocity.Mag2();
   ThreeVector initTangent = (1.0/velocityVal) * initVelocity;
   
-  R_1=GetInverseCurve(velocityVal,Bmag);
+  R_1=GetInverseCurve(velocityVal,charge,Bmag);
 
   // for too small magnetic fields there is no curvature
   // (include momentum here) FIXME
@@ -164,7 +165,7 @@ GUVHelicalStepper::AdvanceHelix( const double  yIn[],
     double ptan=velocityVal*B_v_P;
 
     // double particleCharge = fPtrMagEqOfMot->FCof() / (eplus*c_light); 
-    R_Helix =std::abs( ptan/(fUnitConstant  * fParticleCharge*Bmag));
+    R_Helix =std::abs( ptan/(fUnitConstant  * charge * Bmag));
        
     SetAngCurve(std::abs(Theta));
     SetCurve(std::abs(R));
@@ -179,7 +180,8 @@ GUVHelicalStepper::AdvanceHelix( const double  yIn[],
 
 void
 GUVHelicalStepper::StepWithErrorEstimate( const double yInput[],
-                                          const double*,
+                                          const double*,      // dydx: Not relevant
+                                          const double charge,
                                           double hstep,
                                           double yOut[],
                                           double yErr[]  )
@@ -199,14 +201,14 @@ GUVHelicalStepper::StepWithErrorEstimate( const double yInput[],
 
    // Do two half steps
 
-   StepWithoutErrorEstimate(yIn,   Bfld_initial,  h, yTemp);
+   StepWithoutErrorEstimate(yIn,   Bfld_initial,  charge, h, yTemp);
    MagFieldEvaluate(yTemp, Bfld_midpoint) ;     
-   StepWithoutErrorEstimate(yTemp, Bfld_midpoint, h, yOut); 
+   StepWithoutErrorEstimate(yTemp, Bfld_midpoint, charge, h, yOut); 
 
    // Do a full Step
 
    h = hstep ;
-   StepWithoutErrorEstimate(yIn, Bfld_initial, h, yTemp);
+   StepWithoutErrorEstimate(yIn,   Bfld_initial,  charge, h, yTemp);
 
    // Error estimation
 
@@ -219,7 +221,7 @@ GUVHelicalStepper::StepWithErrorEstimate( const double yInput[],
 }
 
 double
-GUVHelicalStepper::DistChord() const 
+GUVHelicalStepper::DistChord(double /*charge*/ ) const 
 {
   // Check whether h/R >  pi  !!
   // Method DistLine is good only for <  pi

@@ -25,9 +25,9 @@ GUVIntegrationStepper::~GUVIntegrationStepper()
 }
 
 // This allows the method to cache the value etc - Not needed for now
-// void GUVIntegrationStepper::ComputeRightHandSide( const double y[], /*double charge,*/ double dydx[] ) 
+// void GUVIntegrationStepper::ComputeRightHandSide( const double y[], double charge, double dydx[] ) 
 // {
-//    this->RightHandSide( y, /*charge,*/ dydx );
+//    this->RightHandSide( y, charge, dydx );
 // }
 
 void GUVIntegrationStepper::SetEquationOfMotion(GUVEquationOfMotion* newEquation)

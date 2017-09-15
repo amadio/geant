@@ -7,20 +7,13 @@
 #include <iostream>
 
 #include "base/Vector3D.h"
-#include "base/SOA3D.h"
 #include "base/Global.h"
 //#include "test/unit_tests/ApproxEqual.h"
 #include "ApproxEqual.h"
 
-#include <Vc/Vc>
-#include "backend/vc/Backend.h"
-// #include "backend/vcfloat/Backend.h"
-#include "VcFloatBackend.h"
-// #include "backend/scalarfloat/Backend.h"
-#include "ScalarFloatBackend.h"
-
 // #include "MagField.h"
 #include "CMSmagField.h"
+#include <Geant/VectorTypes.h>
 
 // ensure asserts are compiled in                                                                                           
 #undef NDEBUG
@@ -100,7 +93,7 @@ int main(){
             // cout<<z<<endl;
             vecgeom::Vector3D<float> pos1(r,zero, z);
             vecgeom::Vector3D<float> xyzField1;
-            m1.GetFieldValue<vecgeom::kScalarFloat>(pos1,xyzField1);
+            m1.GetFieldValue<float>(pos1,xyzField1);
 
             int i = r*kRDiffInv*noZValues + halfZValues + z*kZDiffInv;
 
@@ -122,7 +115,7 @@ int main(){
 
             vecgeom::Vector3D<float> pos2(r+kRDiff*halfWeight,zero,z),  pos3(r,zero,z+kZDiff*halfWeight);
             vecgeom::Vector3D<float> xyzField2,  xyzField3;
-            m1.GetFieldValue<vecgeom::kScalarFloat>(pos2, xyzField2);
+            m1.GetFieldValue<float>(pos2, xyzField2);
 
             //Say i1, i2, i3, i4
             vecgeom::Vector3D<float> rzCheckField2, rzCheckField3;
@@ -147,7 +140,7 @@ int main(){
             // cout<<"xyzField2: "<<xyzField2<<" vs rzCheckField2: "<<rzCheckField2<<endl;
             assert(ApproxEqual(xyzField2, rzCheckField2, r, z, 1)); 
 
-            m1.GetFieldValue<vecgeom::kScalarFloat>(pos3, xyzField3);
+            m1.GetFieldValue<float>(pos3, xyzField3);
 
             rzCheckField3.x() = (dataMap.fBr[i3]   + dataMap.fBr[i4]  )*halfWeight;
             rzCheckField3.y() = (dataMap.fBphi[i3] + dataMap.fBphi[i4])*halfWeight;
@@ -167,7 +160,7 @@ int main(){
             //cout<<"r: "<<r<<" and z: "<<z<<endl;
             vecgeom::Vector3D<float> pos4(r + kRDiff*halfWeight, zero, z + kZDiff*halfWeight);
             vecgeom::Vector3D<float> xyzField4, rzCheckField4;
-            m1.GetFieldValue<vecgeom::kScalarFloat>(pos4, xyzField4);
+            m1.GetFieldValue<float>(pos4, xyzField4);
 
             //need to get rzcheckfield4
             //going to be average of 4 points

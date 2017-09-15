@@ -41,11 +41,12 @@ class TMagErrorStepper : public GUVIntegrationStepper
 
         virtual ~TMagErrorStepper() {delete fEquation_Rhs;}
 
-        inline void RightHandSide(double y[], double dydx[]) 
-          { assert(fEquation_Rhs); fEquation_Rhs->T_Equation::RightHandSide(y, dydx); }
+        inline void RightHandSide(double y[], double charge, double dydx[]) 
+          { assert(fEquation_Rhs); fEquation_Rhs->T_Equation::RightHandSide(y, charge, dydx); }
 
         inline void StepWithErrorEstimate( const double yInput[],
                                            const double dydx[],
+                                           double charge,
                                            double hstep,
                                            double yOutput[],
                                            double yError []      );
@@ -54,7 +55,7 @@ class TMagErrorStepper : public GUVIntegrationStepper
             // Integrates ODE starting values y[0 to 6].
             // Outputs yout[] and its estimated error yerr[].
 
-        double DistChord() const;
+        double DistChord(double charge) const;
 
         template<class T_Stepper_, class T_Equation_, int Nvar_>
         friend  std::ostream&
@@ -185,6 +186,7 @@ void
    TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
 StepWithErrorEstimate( const double yInput[],
                 const double dydx[],
+                double charge,
                 double hstep,
                 double yOutput[],
                 double yError []      )
@@ -220,9 +222,9 @@ StepWithErrorEstimate( const double yInput[],
 
    // Do two half steps
    
-   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial,  dydx,   halfStep, yMiddle);
-   this->RightHandSide(yMiddle, dydxMid);    
-   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yMiddle, dydxMid, halfStep, yOutput); 
+   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial,  charge, dydx,   halfStep, yMiddle);
+   this->RightHandSide(yMiddle, charge, dydxMid);
+   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yMiddle, charge, dydxMid, halfStep, yOutput); 
 
    // Store midpoint, chord calculation
 
@@ -230,7 +232,7 @@ StepWithErrorEstimate( const double yInput[],
 
    // Do a full Step
    //            static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
-   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, dydx, hstep, yOneStep);
+   static_cast<T_Stepper*>(this)->T_Stepper::StepWithoutErrorEst (yInitial, charge, dydx, hstep, yOneStep);
    for(unsigned int i=0;i<Nvar;i++) {
       yError [i] = yOutput[i] - yOneStep[i] ;
       yOutput[i] += yError[i]* static_cast<T_Stepper*>(this)->T_Stepper::IntegratorCorrection();  
@@ -249,7 +251,7 @@ StepWithErrorEstimate( const double yInput[],
 // #ifdef OPT_CHORD_FUNCTIONALITY
 template<class T_Stepper, class T_Equation, unsigned int Nvar>
 double
-TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord() const 
+TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord(double /*charge*/) const 
 {
             // Estimate the maximum distance from the curve to the chord
             //

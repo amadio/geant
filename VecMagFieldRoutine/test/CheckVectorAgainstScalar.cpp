@@ -7,20 +7,16 @@
 #include <cmath> //for sqrt
 #include <stdlib.h>
 
-#include <Vc/Vc>
-#include "backend/vc/Backend.h"
-// #include "backend/vcfloat/Backend.h"
-// #include "VcFloatBackend.h"
 #include "base/Vector.h"
 
 //#include "test/unit_tests/ApproxEqual.h"
 #include "ApproxEqual.h"
 
 #include "base/Vector3D.h"
-#include "base/SOA3D.h"
 #include "base/Global.h"
 
 #include "CMSmagField.h"
+#include <Geant/VectorTypes.h>
 
 #undef NDEBUG
 
@@ -29,13 +25,16 @@ typedef float dataType;
 
 using namespace std;
 typedef vecgeom::Vector3D<dataType> ThreeVector; //normal Vector3D
+using Double_v = Geant::Double_v;
+using Float_v = Geant::Float_v;
 
 typedef vecgeom::Vector3D<float>    ThreeVector_f;
 typedef vecgeom::Vector3D<double>   ThreeVector_d;
 
-typedef vecgeom::Vector3D<vecgeom::kVcFloat::precision_v> ThreeVecSimd_v;
+typedef vecgeom::Vector3D<Float_v> ThreeVecSimd_v;
 typedef vecgeom::Vector<dataType> VcVectorFloat;
 typedef vecgeom::Vector<ThreeVecSimd_v> VecGeomVector;
+
 
 
 const dataType kRMax=9000;
@@ -106,7 +105,7 @@ int main()
 
     for (int i = 0; i < n; ++i)
     {
-        m1.GetFieldValue<vecgeom::kScalarFloat>(posVec[i], xyzField);
+        m1.GetFieldValue<float>(posVec[i], xyzField);
         // m1.GetFieldValue(posVec[i], xyzField);        
         sumXYZField += xyzField;
         outputScalar.push_back(xyzField);
@@ -120,19 +119,17 @@ int main()
  
 
     cout<<"\nVector fields start: "<<endl;
-    vecgeom::kVcFloat::precision_v vX;
-    vecgeom::kVcFloat::precision_v vY;
-    vecgeom::kVcFloat::precision_v vZ;
+    Float_v vX;
+    Float_v vY;
+    Float_v vZ;
 
-    int noOfDoubles = 8;
-
-    int inputVcLen = ceil(((dataType)n)/noOfDoubles);
+    int inputVcLen = ceil(((dataType)n)/Geant::kVecLenF);
     ThreeVecSimd_v *inputForVec = new ThreeVecSimd_v[inputVcLen];
     //std::vector<ThreeVecSimd_v> outputVec;
     int init = 0;
     
-    for (int i = 0; i < n; i=i+noOfDoubles){
-       for (int j = 0; j < noOfDoubles; ++j){
+    for (int i = 0; i < n; i=i+Geant::kVecLenF){
+       for (size_t j = 0; j < Geant::kVecLenF; ++j){
             vX[j]= posVec[i+j].x();
             vY[j]= posVec[i+j].y();
             vZ[j]= posVec[i+j].z();
@@ -162,7 +159,7 @@ int main()
     VecGeomVector outputVec;
     ThreeVecSimd_v sumXYZField_v, xyzField_v;
     for (int i = 0; i < inputVcLen; ++i){
-        m1.GetFieldValue<vecgeom::kVcFloat>(inputForVec[i], xyzField_v);
+        m1.GetFieldValue<Float_v>(inputForVec[i], xyzField_v);
         outputVec.push_back(xyzField_v);
         sumXYZField_v += xyzField_v;
     }
@@ -172,7 +169,7 @@ int main()
 
     for (int i = 0, k=0; i < 256 ; ++i)
     {
-        for (int j = 0; j < noOfDoubles; ++j)
+        for (size_t j = 0; j < Geant::kVecLenF; ++j)
         {
             //ThreeVector testVec2(xyzField_v[0][j], xyzField_v[1][j], xyzField_v[2][j]);
             cout<<k<<endl;

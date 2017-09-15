@@ -37,19 +37,12 @@ class TClassicalRK4 : public  TMagErrorStepper
 
     // static const IntegratorCorrection = 1./((1<<4)-1); 
     inline double IntegratorCorrection() { return 1./((1<<OrderRK4)-1); }
-
-    /*
-    inline __attribute__((always_inline)) 
-     void 
-       RightHandSide(double y[], double dydx[]) const
-    { fEquation_Rhs->T_Equation::RightHandSide(y, //fCharge,
-                                               dydx); }
-     */
     
     // A stepper that does not know about errors.
     // It is used by the MagErrorStepper stepper.
     inline
     void  StepWithoutErrorEst( const double  yIn[],
+                               double charge,
                                const double  dydx[],
                                double  h,
                                double  yOut[]);  // override final;  => Not virtual method, must exist though!
@@ -133,6 +126,7 @@ template <class T_Equation, unsigned int Nvar>
 // __attribute__((noinline))
 #endif 
    void TClassicalRK4<T_Equation,Nvar>::StepWithoutErrorEst( const double  yIn[],
+                                                  double charge,
                                                   const double  dydx[],
                                                   double  h,
                                                   double  yOut[])
@@ -158,20 +152,20 @@ template <class T_Equation, unsigned int Nvar>
    {
       yt[i] = yIn[i] + hh*dydx[i] ;             // 1st Step K1=h*dydx
    }
-   this->RightHandSide(yt,dydxt) ;              // 2nd Step K2=h*dydxt
+   this->RightHandSide(yt, charge, dydxt) ;              // 2nd Step K2=h*dydxt
    
    for(i=0;i<Nvar;i++)
    { 
       yt[i] = yIn[i] + hh*dydxt[i] ;
    }
-   this->RightHandSide(yt,dydxm) ;              // 3rd Step K3=h*dydxm
+   this->RightHandSide(yt, charge, dydxm) ;              // 3rd Step K3=h*dydxm
 
    for(i=0;i<Nvar;i++)
    {
       yt[i]   = yIn[i] + h*dydxm[i] ;
       dydxm[i] += dydxt[i] ;                    // now dydxm=(K2+K3)/h
    }
-   this->RightHandSide(yt,dydxt) ;              // 4th Step K4=h*dydxt
+   this->RightHandSide(yt, charge, dydxt) ;              // 4th Step K4=h*dydxt
    
    for(i=0;i<Nvar;i++)    // Final RK4 output
    {

@@ -149,10 +149,8 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
 virtual
 bool
 // UserFieldConstruction:: // RootComm
-CreateFieldAndSolver(bool /*useRungeKutta*/, GUVMagneticField** fieldPP= nullptr )
+CreateFieldAndSolver(bool /*useRungeKutta*/, GUVField** fieldPP= nullptr )
 {
-  using ThreeVectorF = vecgeom::Vector3D<float>;
-
   static const char *method="UserFieldConstruction::CreateFieldAndSolver";
   bool rtv= false;
   if( fieldPP ) *fieldPP= nullptr;
@@ -174,7 +172,7 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, GUVMagneticField** fieldPP= nullptr
 
     // Check that field was correctedly created ...
     ThreeVector  Position( 0.0, 0.0, 0.1 );
-    ThreeVectorF fieldVal( 0.0, 0.0, 0.13579 );
+    ThreeVector fieldVal( 0.0, 0.0, 0.13579 );
     gvField->GetFieldValue(Position, fieldVal);
 
     rtv= CreateSolverForField<TUniformMagField>(gvField);
