@@ -402,20 +402,18 @@ std::cout << "---------------Finished data analysis for " << fDetector->GetAbsor
 //////////////////////////////////////////////end for loop ///////////////////////////////////////////////
   // print the merged histogram into file
 
-  char *filename = new char;
-  std::strcpy(filename,fHist1FileName.c_str());
-//  std::strcat(filename,std::to_string(k).c_str());
+  std::string filename(fHist1FileName);
 #ifdef USE_ROOT
   //ROOT-style TH1F output histogram of energy depositions by primaries
-  std::strcat(filename,".root");
-  TFile *file = new TFile(filename,"RECREATE");
+  filename.append(".root");
+  TFile *file = new TFile(filename.c_str(),"RECREATE");
   TH1F  *rootHist = runData->GetHisto1();
   rootHist->Write();
   file->Close();
 #else
   //ASCII-style histogram of energy depositions by primaries
-  std::strcat(filename,".dat");
-  FILE  *f        = fopen(filename,"w");
+  filename.append(".dat");
+  FILE  *f        = fopen(filename.c_str(),"w");
   Hist  *hist     = runData->GetHisto1();
   double dEDep   = hist->GetDelta();
   for (int i=0; i<hist->GetNumBins(); ++i) {
