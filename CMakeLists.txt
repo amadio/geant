@@ -48,6 +48,10 @@ option(CUDA "Enable compilation for CUDA." OFF)
 
 option(DATA_DOWNLOAD "Enable data download" OFF)
 
+option(DISABLE_WEFFC "Disable Weffc++ flag" ON)
+
+message(STATUS "DISABLE_WEFFC=" ${DISABLE_WEFFC})
+
 option(MAGIC_DEBUG "Debug xsec serialisation with magic number" ON)
 if(MAGIC_DEBUG)
   add_definitions(-DMAGIC_DEBUG)
@@ -398,10 +402,8 @@ if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-    set(DISABLE_WEFFC ON)
-  endif()
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5")
+    set(DISABLE_WEFFC ON)
     if ( Vc_FOUND )  # Actually this should really be if VecGeomConfigureToUseVC
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fabi-version=6")
     endif()
@@ -428,7 +430,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions(-DGEANT_DEBUG)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WEFFC_FLAG} -ggdb")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${WEFFC_FLAG} -ggdb")
   if(APPLE)
     #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunknown-pragmas")
