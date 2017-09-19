@@ -24,7 +24,7 @@ include_directories(
 #
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/testRP/xsectionsTest/GeantV)
 add_executable(xsectionsTest ${CMAKE_SOURCE_DIR}/testRP/GeantV/xsectionsTest/xsectionsTest.cc ${sources})
-target_link_libraries(xsectionsTest ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
+target_link_libraries(xsectionsTest -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v ${VECGEOM_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
