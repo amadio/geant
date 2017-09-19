@@ -2,7 +2,11 @@
 # Add source, header files & include directories
 #----------------------------------------------------------------------------------------------
 
-include(${Geant4_USE_FILE})
+if(WITH_GEANT4)
+# DO NOT INCLUDE EXPLICITLY THE FILE BELOW WHICH OVERWRITES CXX_FLAGS(DEBUG)
+# Rather append Geant4_CXX_FLAGS(_DEBUG) to existing ones
+#  include(${Geant4_USE_FILE})
+endif()
 
 file(GLOB sources
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/src/*.cc

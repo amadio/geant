@@ -12,9 +12,8 @@
 #include <iostream>
 
 // this should be replaced by some VecMath classes
-#include "G4LorentzVector.hh"
-#include "G4ThreeVector.hh"
-#include "G4LorentzRotation.hh"
+#include "base/Lorentz.h"
+#include "base/Vector3D.h"
 
 namespace geantphysics {
 
@@ -48,6 +47,10 @@ namespace geantphysics {
   int DiffuseElasticModel::SampleFinalState(LightTrack &track, Isotope* targetisotope,
 					    Geant::GeantTaskData *td)
   {
+    using vecgeom::Vector3D;
+    using vecgeom::LorentzVector;
+    using vecgeom::LorentzRotation;
+    
     int    numSecondaries      = 0;
     double Ek                  = track.GetKinE();
     double eps0                = geant::kElectronMassC2/Ek;
@@ -74,23 +77,23 @@ namespace geantphysics {
     // momentum in lab frame
     double plab = std::sqrt(Ek * (Ek + 2 * mass1));
     
-    G4LorentzVector lv1(plab * track.GetDirX(), plab * track.GetDirY(), plab * track.GetDirZ(), Ek + mass1);
+    LorentzVector<double> lv1(plab * track.GetDirX(), plab * track.GetDirY(), plab * track.GetDirZ(), Ek + mass1);
 
-    G4LorentzRotation fromZ;
-    fromZ.rotateZ(lv1.phi());
-    fromZ.rotateY(lv1.theta());
+    LorentzRotation<double> fromZ;
+    fromZ.rotateZ(lv1.Phi());
+    fromZ.rotateY(lv1.Theta());
 
-    G4LorentzVector lv(0.0,0.0,0.0,mass2);   
+    LorentzVector<double> lv(0.0,0.0,0.0,mass2);   
     lv += lv1;
      
-    G4ThreeVector bst = lv.boostVector();
+    Vector3D<double> bst = lv.BoostVector();
     
-    lv1.boost(-bst);
+    lv1.Boost(-bst);
 
-    G4ThreeVector p1 = lv1.vect();
+    Vector3D<double> p1 = lv1.vect();
     // momentum in CMS frame
-    G4double momentumCMS = p1.mag();
-    G4double tmax = 4.0 * momentumCMS * momentumCMS;
+    double momentumCMS = p1.Mag();
+    double tmax = 4.0 * momentumCMS * momentumCMS;
   
     // Sampling in CM system
     double t    = SampleInvariantT(mass1, plab, targetisotope, td);
@@ -101,11 +104,11 @@ namespace geantphysics {
     // problem in sampling
     if(cost > 1.0 || cost < -1.0) {
       std::cout << "G4HadronElastic WARNING (1 - cost)= " << 1 - cost
-		<< " after scattering of " 
-		<< track.GetGVcode()
-		<< " p(GeV/c)= " << plab/geant::GeV
-		<< " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN()
-		<< std::endl;
+                << " after scattering of " 
+                << track.GetGVcode()
+                << " p(GeV/c)= " << plab/geant::GeV
+                << " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN()
+                << std::endl;
       cost = 1.0;
       sint = 0.0;
 
@@ -115,39 +118,38 @@ namespace geantphysics {
     }
 
     
-    G4ThreeVector v1(sint * std::cos(phi),sint * std::sin(phi),cost);
+    Vector3D<double> v1(sint * std::cos(phi),sint * std::sin(phi),cost);
 
     v1 *= momentumCMS;
     
-    G4LorentzVector nlv1(v1.x(),v1.y(),v1.z(),
+    LorentzVector<double> nlv1(v1.x(),v1.y(),v1.z(),
 			 std::sqrt(momentumCMS * momentumCMS + mass1 * mass1));
 
     // rotation back from the Z axis
     nlv1 *= fromZ;
 
-    nlv1.boost(bst); 
+    nlv1.Boost(bst); 
 
-    G4double eFinal = nlv1.e() - mass1;
+    double eFinal = nlv1.e() - mass1;
             
     if(eFinal <= GetLowEnergyUsageLimit()) {
       if(eFinal < 0.0) {
-	std::cout << "G4HadronElastic WARNING Efinal= " << eFinal
-		  << " after scattering of " 
-		  << track.GetGVcode()
-		  << " p(GeV/c)= " << plab/geant::GeV
-		  << " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN()
-		  << std::endl;
+        std::cout << "G4HadronElastic WARNING Efinal= " << eFinal
+                  << " after scattering of " 
+                  << track.GetGVcode()
+                  << " p(GeV/c)= " << plab/geant::GeV
+                  << " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN()
+                  << std::endl;
       }
     
-      nlv1 = G4LorentzVector(0.0,0.0,0.0,mass1);
+      nlv1 = LorentzVector<double>(0.0,0.0,0.0,mass1);
 
     } else {
 
       // rotate back to lab frame
 
-      track.SetDirX(nlv1.vect().unit().x());
-      track.SetDirY(nlv1.vect().unit().y());
-      track.SetDirZ(nlv1.vect().unit().z());
+      Vector3D<double> newdir = nlv1.vect().Unit();
+      track.SetDirection(newdir.x(), newdir.y(), newdir.z());
       track.SetKinE(eFinal);
       
     }  
@@ -195,10 +197,10 @@ namespace geantphysics {
       aa = std::pow(A, 1.33)/bb;
       cc = 0.4 * std::pow(A, 0.4)/dd;
     }
-    G4double q1 = 1.0 - std::exp(-bb * tmax);
-    G4double q2 = 1.0 - std::exp(-dd * tmax);
-    G4double s1 = q1 * aa;
-    G4double s2 = q2 * cc;
+    double q1 = 1.0 - std::exp(-bb * tmax);
+    double q2 = 1.0 - std::exp(-dd * tmax);
+    double s1 = q1 * aa;
+    double s2 = q2 * cc;
 
     if((s1 + s2) * td->fRndm->uniform() < s2) {
       q1 = q2;

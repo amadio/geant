@@ -192,6 +192,17 @@ public:
   void SetTargetN( const int aTargetN ) { fTargetN = aTargetN; }
 
   /**
+   * @brief Method that sets direction
+   * @param aXdir, aYdir, aZdir direction components (normalized, adimensional)
+   */
+  void SetDirection( const double aXdir, const double aYdir, const double aZdir)
+  {
+    fXdir = aXdir;
+    fYdir = aYdir;
+    fZdir = aZdir;
+  }
+
+  /**
    * @brief Method that sets the X direction value
    * @param aXdir X direction (normalized, adimensional)
    */
