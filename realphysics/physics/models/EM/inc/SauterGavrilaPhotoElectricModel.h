@@ -3,7 +3,7 @@
 #define SAUTERGAVRILAPHOTOELECTRICMODEL_H
 
 #include "EMModel.h"
-#include "Spline.h"
+
 
 // from geantV
 #include "Geant/Config.h"
@@ -29,6 +29,7 @@ namespace geantphysics {
     class AliasTable;
     class Particle;
     class LightTrack;
+    class XSectionsVector;
     
     /**
      * @brief   Photoelectric model for gamma.
@@ -87,10 +88,9 @@ namespace geantphysics {
             size_t numberOfNodes;                   // Number of elements
             double edgeMin;                         // Energy of first point
             double edgeMax;                         // Energy of last point
-            Spline     *sp;                         // Spline interpolator
+            //Spline     *sp;                         // Spline interpolator
             
         };
-        
         
         /**
          * @name Model specific private methods.
@@ -226,57 +226,138 @@ namespace geantphysics {
          * @param[out] binvector
          * @return
          */
-        inline size_t FindCSBinLocation(double energy, size_t numberofnodes, std::vector<double>   binvector) const{
-            
-            size_t bin= 0;;
+        
+         size_t FindCSBinLocation(double energy, size_t numberofnodes, std::vector<double>   binvector) const{
+            size_t bin = 0;
             if(energy < binvector[1]) {
-                bin = 0;
-            } else if(energy >= binvector[numberofnodes-2]) {
-                bin = numberofnodes - 2;
-            } else if(bin >= numberofnodes || energy < binvector[bin]
+                return std::min(bin, numberofnodes-2);
+            } //else
+            if(energy >= binvector[numberofnodes-2]) {
+                return numberofnodes - 2;
+            } //else
+            if(bin >= numberofnodes || energy < binvector[bin]
                       || energy > binvector[bin+1])
             {
                 // Bin location proposed by K.Genser (FNAL) from G4
+                
                 bin = std::lower_bound(binvector.begin(), binvector.end(), energy) - binvector.begin() - 1;
             }
-            size_t minV=std::min(bin, numberofnodes-2);
-            return minV;
+            return std::min(bin, numberofnodes-2);
+
         }
+
+        inline double GetValue(double energy, int Z, size_t shellIdx){
+            size_t bin = 0;
+            //std::vector<double>   binvector=fShellCrossSection[Z]->fCompBinVector[shellIdx];
+            size_t numberofnodes= fShellCrossSection[Z]->fCompLength[shellIdx];
+            
+            if(energy < fShellCrossSection[Z]->fCompBinVector[shellIdx][1]) return std::min(bin, numberofnodes-2);
+            if(energy >= fShellCrossSection[Z]->fCompBinVector[shellIdx][numberofnodes-2]) return numberofnodes - 2;
+            if(bin >= numberofnodes || energy < fShellCrossSection[Z]->fCompBinVector[shellIdx][bin] || energy > fShellCrossSection[Z]->fCompBinVector[shellIdx][bin+1])
+                bin = std::lower_bound(fShellCrossSection[Z]->fCompBinVector[shellIdx].begin(), fShellCrossSection[Z]->fCompBinVector[shellIdx].end(), energy) - fShellCrossSection[Z]->fCompBinVector[shellIdx].begin() - 1;
+            bin=std::min(bin, numberofnodes-2);
+            
+            //std::vector<double>   datavector=fShellCrossSection[Z]->fCompDataVector[shellIdx];
+            return fShellCrossSection[Z]->fCompDataVector[shellIdx][bin] +( fShellCrossSection[Z]->fCompDataVector[shellIdx][bin + 1]-fShellCrossSection[Z]->fCompDataVector[shellIdx][bin] ) * (energy - fShellCrossSection[Z]->fCompBinVector[shellIdx][bin]) /( fShellCrossSection[Z]->fCompBinVector[shellIdx][bin + 1]-fShellCrossSection[Z]->fCompBinVector[shellIdx][bin] );
+        }
+
         
         //---------------------------------------------
         //Linear interpolation
-        inline double LinearInterpolation(double energy, std::vector<double>   binvector, std::vector<double>   datavector,  size_t idx) const
+        double LinearInterpolation(double energy, std::vector<double>   binvector, std::vector<double>   datavector,  size_t idx) const
         {
             // Linear interpolation is used to get the interpolated value for lowEnergy cross sections (below K-shell binding energy).
             //Before this method is called it is ensured that the energy is inside the bin
             // 0 < idx < numberOfNodes-1
             //std::cout<<"LinearInterpolation for index: "<<idx<<" : "<<datavector[idx]<<" ---- "<<datavector[idx+1]<<" ---- "<<binvector[idx]<<" ---- "<<binvector[idx+1]<<" ---- energy: "<<energy<<"\n";
-            return datavector[idx] +
-            ( datavector[idx + 1]-datavector[idx] ) * (energy - binvector[idx]) /( binvector[idx + 1]-binvector[idx] );
+            //return 4.631339e-26;
+            return datavector[idx] +( datavector[idx + 1]-datavector[idx] ) * (energy - binvector[idx]) /( binvector[idx + 1]-binvector[idx] );
         }
         
         //---------------------------------------------
         //Get Bin Index corresponding to some energy
-        inline double GetIndex(double energy, CrossSectionsVector** fCSVector,  int Z) const
+        /*
+        double GetIndex(double energy, CrossSectionsVector** fCSVector,  int Z) const
         {
-            
-            size_t index=0;
-            double value;
-            
+            //size_t index=0;
+            //double value;
             if(energy <= fCSVector[Z]->edgeMin)
             {
-                index = 0;
-                value = fCSVector[Z]->fDataVector[0];
-            } else if(energy >= fCSVector[Z]->edgeMax) {
-                index = fCSVector[Z]->numberOfNodes-1;
-                value = fCSVector[Z]->fDataVector[index];
-                
-            } else {
-                index=FindCSBinLocation(energy, fCSVector[Z]->numberOfNodes, fCSVector[Z]->fBinVector);
-                
+                //std::cout<<"GetIndex exit - 1"<<std::endl;
+                return 0;
+                //index = 0;
+                //value = fCSVector[Z]->fDataVector[0];
             }
-            return index;
-        }
+            if(energy >= fCSVector[Z]->edgeMax) {
+                //std::cout<<"GetIndex exit - 2"<<std::endl;
+                return fCSVector[Z]->numberOfNodes-1;
+                //value = fCSVector[Z]->fDataVector[index];
+            }
+            //std::cout<<"GetIndex:  Calling FindCSBinLocation\n";
+            return FindCSBinLocation(energy, fCSVector[Z]->numberOfNodes, fCSVector[Z]->fBinVector);
+            //return index;
+        }*/
+        
+        /*
+        inline double GetValuefCSVector(double energy, int Z){
+            
+            if(energy <= fCSVector[Z]->edgeMin)
+            {return 0;}
+            if(energy >= fCSVector[Z]->edgeMax) { return fCSVector[Z]->numberOfNodes-1;}
+            
+            //size_t bin=FindCSBinLocation(energy, fCSVector[Z]->numberOfNodes, fCSVector[Z]->fBinVector);
+            
+            
+            size_t bin = 0;
+            if(energy < fCSVector[Z]->fBinVector[1]) {
+                return std::min(bin, fCSVector[Z]->numberOfNodes-2);
+            } //else
+            if(energy >= fCSVector[Z]->fBinVector[fCSVector[Z]->numberOfNodes-2]) {
+                return fCSVector[Z]->numberOfNodes - 2;
+            } //else
+            if(bin >= fCSVector[Z]->numberOfNodes || energy < fCSVector[Z]->fBinVector[bin]
+               || energy > fCSVector[Z]->fBinVector[bin+1])
+            {
+                // Bin location proposed by K.Genser (FNAL) from G4
+                
+                bin = std::lower_bound(fCSVector[Z]->fBinVector.begin(), fCSVector[Z]->fBinVector.end(), energy) - fCSVector[Z]->fBinVector.begin() - 1;
+            }
+            bin=std::min(bin, fCSVector[Z]->numberOfNodes-2);
+
+            return fCSVector[Z]->fDataVector[bin] +( fCSVector[Z]->fDataVector[bin + 1]-fCSVector[Z]->fDataVector[bin] ) * (energy - fCSVector[Z]->fBinVector[bin]) /( fCSVector[Z]->fBinVector[bin + 1]-fCSVector[Z]->fBinVector[bin] );
+            
+        }*/
+
+        
+        /*
+        inline double GetValuefLECSVector(double energy, int Z){
+            
+            if(energy <= fLECSVector[Z]->edgeMin)
+            {return 0;}
+            if(energy >= fLECSVector[Z]->edgeMax) { return fLECSVector[Z]->numberOfNodes-1;}
+            
+            //size_t bin=FindCSBinLocation(energy, fLECSVector[Z]->numberOfNodes, fLECSVector[Z]->fBinVector);
+            
+            size_t bin = 0;
+            if(energy < fLECSVector[Z]->fBinVector[1]) {
+                bin= std::min(bin, fLECSVector[Z]->numberOfNodes-2);
+            } //else
+            if(energy >= fLECSVector[Z]->fBinVector[fLECSVector[Z]->numberOfNodes-2]) {
+                bin= fLECSVector[Z]->numberOfNodes - 2;
+            } //else
+            if(bin >= fLECSVector[Z]->numberOfNodes || energy < fLECSVector[Z]->fBinVector[bin]
+               || energy > fLECSVector[Z]->fBinVector[bin+1])
+            {
+                // Bin location proposed by K.Genser (FNAL) from G4
+                
+                bin = std::lower_bound(fLECSVector[Z]->fBinVector.begin(), fLECSVector[Z]->fBinVector.end(), energy) - fLECSVector[Z]->fBinVector.begin() - 1;
+            }
+            bin=std::min(bin, fLECSVector[Z]->numberOfNodes-2);
+            
+            
+            return fLECSVector[Z]->fDataVector[bin] +( fLECSVector[Z]->fDataVector[bin + 1]-fLECSVector[Z]->fDataVector[bin] ) * (energy - fLECSVector[Z]->fBinVector[bin]) /( fLECSVector[Z]->fBinVector[bin + 1]-fLECSVector[Z]->fBinVector[bin] );
+        
+        }*/
         
         //@}
         
@@ -309,9 +390,16 @@ namespace geantphysics {
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
         
-        ShellData  **fShellCrossSection;            //Several shells cross-sections data per Z
-        CrossSectionsVector ** fLECSVector;         //one LE cross-section struct per Z
-        CrossSectionsVector ** fCSVector;           //one !LE cross-section struct per Z
+        static ShellData  **fShellCrossSection;            //Several shells cross-sections data per Z
+        //static CrossSectionsVector ** fLECSVector33;         //one LE cross-section struct per Z
+        //static CrossSectionsVector ** fCSVector33;           //one !LE cross-section struct per Z
+        
+        
+        XSectionsVector * fLECSVector[99];
+        XSectionsVector * fCSVector[99];
+        
+        XSectionsVector * fLE[99];
+        XSectionsVector * fCS[99];
         
         bool* fCrossSection;                        //true if we have CrossSections data (for energies above k-shell binding energy)
         bool* fCrossSectionLE;                      //true if we have Low-Energy CrossSections data (for energies below k-shell binding energy)
