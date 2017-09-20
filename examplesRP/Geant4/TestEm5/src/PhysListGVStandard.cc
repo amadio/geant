@@ -36,7 +36,9 @@
 
 #include "G4ComptonScattering.hh"
 #include "G4GammaConversion.hh"
-//#include "G4PhotoElectricEffect.hh"
+#include "G4PhotoElectricEffect.hh"
+#include "G4LivermorePhotoElectricModel.hh"
+#include "G4LivermorePhotoElectricModel_new.hh"
 //#include "G4RayleighScattering.hh"
 //#include "G4KleinNishinaModel.hh"
 
@@ -65,6 +67,8 @@
 
 PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstructor(name)
 {
+    
+std::cout<<"PhysListGVStandard::PhysListGVStandard........."<<std::endl;
   G4EmParameters* param = G4EmParameters::Instance();
   param->SetDefaults();
   param->SetVerbose(1);
@@ -112,7 +116,20 @@ void PhysListGVStandard::ConstructProcess()
     G4String particleName = particle->GetParticleName();
 
     if (particleName == "gamma") {
-//      ph->RegisterProcess(new G4PhotoElectricEffect, particle);
+        
+      G4double LivermoreHighEnergyLimit = 100*TeV;
+      G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
+      //Livermore NEW PE
+      G4LivermorePhotoElectricModel_new* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel_new();
+      //LIVERMORE PE
+      //G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
+      
+      theLivermorePhotoElectricModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
+      thePhotoElectricEffect->AddEmModel(0, theLivermorePhotoElectricModel);
+      ph->RegisterProcess(thePhotoElectricEffect, particle);
+      
+      //Standard PE
+      //ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering(), particle);
       ph->RegisterProcess(new G4GammaConversion, particle);
     } else if (particleName == "e-") {
