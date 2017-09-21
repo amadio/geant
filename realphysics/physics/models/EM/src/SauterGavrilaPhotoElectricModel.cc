@@ -8,7 +8,7 @@
 
 #include "MaterialCuts.h"
 
-//#include "Spline.h"
+#include "Spline.h"
 #include "GLIntegral.h"
 #include "AliasTable.h"
 #include "XSectionsVector.h"
@@ -270,8 +270,7 @@ namespace geantphysics {
        
         
         fCrossSection[Z] =true;
-        //fCrossSection[Z]->SetSpline(true); //IMPORTANT
-        
+    
         std::ostringstream ost;
         ost << path << "/livermore/phot_epics2014/pe-cs-" << Z <<".dat";
         std::ifstream fin(ost.str().c_str());
@@ -323,8 +322,8 @@ namespace geantphysics {
             fCSVector[Z]->edgeMax = fCSVector[Z]->fBinVector[fCSVector[Z]->numberOfNodes-1];
             
             
-            //to do: add
-            //fCSVector[Z]->sp= new Spline(&(fCSVector[Z]->fBinVector[0]),&(fCSVector[Z]->fDataVector[0]),fCSVector[Z]->numberOfNodes);
+            //Use spline interpolator for Cross-sections vector
+            fCSVector[Z]->sp= new Spline((fCSVector[Z]->fBinVector.data()),(fCSVector[Z]->fDataVector.data()),fCSVector[Z]->numberOfNodes);
             fin.close();
         }
         
@@ -504,8 +503,6 @@ namespace geantphysics {
     
                 // binning
                 fLECSVector[Z]= new XSectionsVector;
-                //fLECSVector[Z]->fBinVector.clear();
-                //fLECSVector[Z]->fDataVector.clear();
                 
                 fin3 >> fLECSVector[Z]->edgeMin >> fLECSVector[Z]->edgeMax >> fLECSVector[Z]->numberOfNodes;
                 int siz=0;
@@ -546,7 +543,6 @@ namespace geantphysics {
                 fLECSVector[Z]->edgeMin = fLECSVector[Z]->fBinVector[0];
                 fLECSVector[Z]->edgeMax = fLECSVector[Z]->fBinVector[fLECSVector[Z]->numberOfNodes-1];
                 
-                //Here we will use LINEAR interpolation
                 fin3.close();
             }
             //std::cout<<"pe-le-cs- cross sections for ["<<Z<<"], loaded\n";
@@ -713,8 +709,9 @@ namespace geantphysics {
             //to do: is this index needed?
             size_t index=0;
             ///THIS MUST use the SPLINE INTERPOLATOR
-            double value=fCSVector[Z]->GetValue(energy, index);
-            cs=x3*value;
+            double splinevalue=fCSVector[Z]->sp->GetValueAt(energy);
+            //double value=fCSVector[Z]->GetValue(energy, index);
+            cs=x3*splinevalue;
         }
         // Tabulated values below k-shell ionization energy
         else
@@ -945,10 +942,8 @@ namespace geantphysics {
                 
                 if(gammaekin0 >= (*(fParamHigh[Z]))[1]) {
 
-                    //THIS MUST BE SUBSTITUTED WITH THE SPLINE INTERPOLATION
-                    size_t index=0;
-                    cs*=fCSVector[Z]->GetValue(gammaekin0, index);
-                    //std::cout<<"Intepolated value: "<< value <<" - new cs: " <<cs<<std::endl;
+                    double splineValue=fCSVector[Z]->sp->GetValueAt(gammaekin0);
+                    cs*=splineValue; //fCSVector[Z]->GetValue(gammaekin0, index);
                     
                 }
                 

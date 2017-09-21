@@ -4,6 +4,8 @@
 #include "EMModel.h"
 
 namespace geantphysics {
+    
+    class Spline;
     /**
      * @brief   Class to handle tabulated cross-sections data -> one object per element
      * @class   XSectionsVector
@@ -31,7 +33,7 @@ namespace geantphysics {
         size_t numberOfNodes;                   // Number of elements
         double edgeMin;                         // Energy of first point
         double edgeMax;                         // Energy of last point
-        //Spline     *sp;                         // Spline interpolator
+        Spline     *sp;                         // Spline interpolator
         
     };
 }
