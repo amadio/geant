@@ -43,8 +43,6 @@ namespace geantphysics {
     std::vector<double>*  SauterGavrilaPhotoElectricModel::fParamLow[] = {nullptr};
     
     SauterGavrilaPhotoElectricModel::ShellData  ** SauterGavrilaPhotoElectricModel::fShellCrossSection = {nullptr};
-    //SauterGavrilaPhotoElectricModel::CrossSectionsVector ** SauterGavrilaPhotoElectricModel::fLECSVector33 = {nullptr};
-    //SauterGavrilaPhotoElectricModel::CrossSectionsVector ** SauterGavrilaPhotoElectricModel::fCSVector33 = {nullptr};
     
     int                   SauterGavrilaPhotoElectricModel::fNShells[] = {0};
     int                   SauterGavrilaPhotoElectricModel::fNShellsUsed[] = {0};
@@ -76,8 +74,6 @@ namespace geantphysics {
         fShellCrossSection        = nullptr;
         fCrossSection             = nullptr;
         fCrossSectionLE           = nullptr;
-        //fCSVector33                = nullptr;
-        //fLECSVector33               = nullptr;
         
     }
     
@@ -94,38 +90,6 @@ namespace geantphysics {
             delete fParamLow[i];
             fParamLow[i] = 0;
         }
-        
-        /*//CLEANING fLECSVector33
-        if (fLECSVector33) {
-            for(int i=0; i<gMaxSizeData; i++)
-            {
-                if(fLECSVector33[i])
-                {
-                    fLECSVector33[i]->fBinVector = std::vector<double>();
-                    fLECSVector33[i]->fDataVector = std::vector<double>();
-                    //delete fLECSVector[i]->sp;
-                    delete fLECSVector33[i];
-                }
-            }
-            
-            delete [] fLECSVector33;
-        }
-        
-        //CLEANING fCSVector33
-        if (fCSVector33) {
-            for(int i=0; i<gMaxSizeData; i++)
-            {
-                if(fCSVector33[i])
-                {
-                    fCSVector33[i]->fBinVector = std::vector<double>();
-                    fCSVector33[i]->fDataVector = std::vector<double>();
-                    //delete fCSVector[i]->sp;
-                    delete fCSVector33[i];
-                }
-            }
-            
-            delete [] fCSVector33;
-        }*/
         
         //CLEANING fShellCrossSection
         if (fShellCrossSection) {
@@ -168,7 +132,7 @@ namespace geantphysics {
          }
          
          if (fAliasSampler)
-         delete fAliasSampler;//*/
+         delete fAliasSampler;
         
     }
     
@@ -210,19 +174,6 @@ namespace geantphysics {
             fCrossSectionLE[i] = false;
         }
         
-        if (fShellCrossSection) {
-            for (int i=0; i<99 ; i++){
-                
-                delete fLE[i];
-                fLE[i] = 0;
-                delete fCS[i];
-                fLE[i] = 0;
-                
-            }
-        }
-     
-        
-        
         //ALLOCATION fShellCrossSection
         if (fShellCrossSection) {
             for (int i=0; i<gMaxSizeData; ++i)
@@ -250,67 +201,6 @@ namespace geantphysics {
                 fShellCrossSection[i]->fCompLength=nullptr;
                 
             }
-        /*
-        //ALLOCATION fLECSVector
-        if (fLECSVector33) {
-            for(int i=0; i<gMaxSizeData; i++)
-            {
-                if(fLECSVector33[i])
-                {
-                    fLECSVector33[i]->fBinVector = std::vector<double>();
-                    fLECSVector33[i]->fDataVector = std::vector<double>();
-                    //delete fLECSVector[i]->sp;
-                    delete fLECSVector33[i];
-                }
-            }
-            
-            delete [] fLECSVector33;
-            fLECSVector33 = nullptr;
-            
-        }
-        
-        fLECSVector33= new CrossSectionsVector*[gMaxSizeData];
-        
-        for (int i=0; i<gMaxSizeData; i++)
-        {
-            fLECSVector33[i]=new CrossSectionsVector;
-            //fLECSVector[i]->sp=nullptr;
-            fLECSVector33[i]->fBinVector.clear();
-            fLECSVector33[i]->fDataVector.clear();
-        }
-        
-        
-        
-        
-        
-        //ALLOCATION fCSVector
-        if (fCSVector33) {
-            for(int i=0; i<gMaxSizeData; i++)
-            {
-                if(fCSVector33[i])
-                {
-                    fCSVector33[i]->fBinVector = std::vector<double>();
-                    fCSVector33[i]->fDataVector = std::vector<double>();
-                    //delete fCSVector[i]->sp;
-                    delete fCSVector33[i];
-                }
-            }
-            
-            delete [] fCSVector33;
-            fCSVector33 = nullptr;
-            
-        }
-        
-        fCSVector33= new CrossSectionsVector*[gMaxSizeData];
-        
-        for (int i=0; i<gMaxSizeData; i++)
-        {
-            fCSVector33[i]=new CrossSectionsVector;
-            //fCSVector[i]->sp=nullptr;
-            fCSVector33[i]->fBinVector.clear();
-            fCSVector33[i]->fDataVector.clear();
-        }
-         */
         
         fVerboseLevel=1;
         LoadData();
@@ -820,30 +710,18 @@ namespace geantphysics {
         
         // Tabulated values above k-shell ionization energy
         else if(energy >= (*(fParamHigh[Z]))[1]) {
-            
-            //size_t index=0;
-            //double value;
-            //size_t index= GetIndex(energy,fCSVector, Z);
-            ///THIS MUST BE SUBSTITUTED WITH SPLINE INTERPOLATOR
-            //double value = LinearInterpolation(energy, fCSVector[Z]->fBinVector, fCSVector[Z]->fDataVector,  index);
+            //to do: is this index needed?
             size_t index=0;
+            ///THIS MUST use the SPLINE INTERPOLATOR
             double value=fCSVector[Z]->GetValue(energy, index);
-            
-            //double value=GetValuefCSVector(energy,Z);
             cs=x3*value;
-            
         }
         // Tabulated values below k-shell ionization energy
         else
         {
-            //index=0;
-            //double value;
-            //size_t index= GetIndex(energy,fLECSVector, Z);
-            //double value = LinearInterpolation(energy, fLECSVector[Z]->fBinVector, fLECSVector[Z]->fDataVector,  index);
-            //double value=GetValuefLECSVector(energy,Z);
+            //to do: is this index needed?
             size_t index=0;
             double value=fLECSVector[Z]->GetValue(energy,index);
-            
             cs=x3*value;
             
         }
@@ -860,7 +738,6 @@ namespace geantphysics {
                                                                        const Particle* /*particle*/) {
         
         double xsec = 0.0;
-        //double xsecTemp= 0.0;
         if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
             return xsec;
         }
@@ -873,7 +750,6 @@ namespace geantphysics {
         const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
         int   numElems = theElements.size();
         for (int iel=0; iel<numElems; ++iel) {
-            //xsecTemp=ComputeXSectionPerAtom(theElements[iel]->GetZ(), egamma);
             xsec += theAtomicNumDensityVector[iel]*ComputeXSectionPerAtom(theElements[iel]->GetZ(), egamma);
         }
         return xsec;
@@ -989,7 +865,6 @@ namespace geantphysics {
         //SAMPLING OF THE SHELL
         size_t shellIdx = 0;
         size_t nn = fNShellsUsed[Z];
-        bool barbra= false;
         if(nn > 1)
         {
             // sample gamma energy
@@ -1069,57 +944,37 @@ namespace geantphysics {
                 double cs = rndArray[0];
                 
                 if(gammaekin0 >= (*(fParamHigh[Z]))[1]) {
-                    //above K-shell binding energy
-                    //std::cout<<"*********** ****** *** *** ***\n";
-                    //size_t index= GetIndex(gammaekin0,fCSVector, Z);
+
                     //THIS MUST BE SUBSTITUTED WITH THE SPLINE INTERPOLATION
-                    //std::cout<<"Index: "<<index<<" - gamma energy: "<<gammaekin0<<std::endl;
-                    //double value = LinearInterpolation(gammaekin0, fCSVector[Z]->fBinVector, fCSVector[Z]->fDataVector,  index);
-                    //double value=GetValuefCSVector(gammaekin0,Z);
                     size_t index=0;
-                    double value=fCSVector[Z]->GetValue(gammaekin0, index);
-                    cs*=value;
+                    cs*=fCSVector[Z]->GetValue(gammaekin0, index);
                     //std::cout<<"Intepolated value: "<< value <<" - new cs: " <<cs<<std::endl;
                     
                 }
                 
                 else
                 {
-         
                     //below K-shell binding energy
                     size_t index=0;
-                    if(barbra)std::cout<<"START \n 4. below K-shell binding energy\n";
-                    //double value= GetValuefLECSVector(gammaekin0,Z);
-                    
-                    double value=fLECSVector[Z]->GetValue(gammaekin0, index);
-                    //size_t index= GetIndex(gammaekin0,fLECSVector, Z);
-                    //if(barbra) std::cout<<"Index: "<<index<<" - gamma energy: "<<gammaekin0<<std::endl;
-                    //double value = LinearInterpolation(gammaekin0, fLECSVector[Z]->fBinVector, fLECSVector[Z]->fDataVector,  index);
-                    cs*=value;
-                    if(barbra) std::cout<<"Calculated CS is "<<cs<<" because value was: "<<value<<std::endl;
+                    cs*=fLECSVector[Z]->GetValue(gammaekin0, index);
                 }
                 size_t j=0;
-                //clock_t start_time = clock();
+                
                 
                 for(j=0; j<nn; ++j)
                 {
                     
                     shellIdx = (size_t)fShellCrossSection[Z]->fCompID[j];
-                    if(barbra)std::cout<<"\nshellIdx: "<<shellIdx<<std::endl;
-                    if(barbra)std::cout<<"gammaekin0: "<<gammaekin0<<" is > than "<<(*(fParamLow[Z]))[7*shellIdx+1]<<"?"<<std::endl;
                     if(gammaekin0 > (*(fParamLow[Z]))[7*shellIdx+1]) {
-                        //size_t bin= FindCSBinLocation(gammaekin0,fShellCrossSection[Z]->fCompLength[shellIdx], fShellCrossSection[Z]->fCompBinVector[shellIdx]);
-                        //double value = LinearInterpolation (gammaekin0, fShellCrossSection[Z]->fCompBinVector[shellIdx], fShellCrossSection[Z]->fCompDataVector[shellIdx],  bin);
                         cs-=GetValue(gammaekin0, Z, shellIdx);
-                        //if(barbra)std::cout<<"Yes, and cs now: cs - "<<value<<" = "<<cs<<"\n";
                     }
-                    if(cs <= 0.0 || j+1 == nn) {if(barbra) std::cout<<"I am breaking because: "<<cs<< "-- "<< j+1<< " --- "<<nn<<std::endl;
+                    if(cs <= 0.0 || j+1 == nn) {
+                        //if(barbra) std::cout<<"I am breaking because: "<<cs<< "-- "<< j+1<< " --- "<<nn<<std::endl;
                         break;}
                 }
             }
         }
         
-        //std::cout<<"END OF SAMPLING\n **********\n";
         // END: SAMPLING OF THE SHELL
         
         //Retrieving ionized shell bindingEnergy

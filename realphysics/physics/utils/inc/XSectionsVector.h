@@ -5,7 +5,7 @@
 
 namespace geantphysics {
     /**
-     * @brief   Class to store cross-sections table.
+     * @brief   Class to handle tabulated cross-sections data -> one object per element
      * @class   XSectionsVector
      * @author  M Bandieramonte
      * @date    September 2017
