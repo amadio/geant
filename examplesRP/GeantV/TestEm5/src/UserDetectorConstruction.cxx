@@ -21,9 +21,9 @@ UserDetectorConstruction::UserDetectorConstruction(Geant::GeantRunManager *runmg
   fTargetLogicalVolumeID    = -1;
   fTargetRegionIndx         = -1;
   fTargetX                  = 19.296*geant::um;     // set to thickness by defult and the half will be taken in ComputeSetup
-  fTargetYZ                 = fTargetX*1000.;
+  fTargetYZ                 = fTargetX*1000.;       // changed to fTargetYZ = 10.; for the hansonModified example - to test pe effect
   fWorldYZ                  = 1.2*fTargetYZ;
-  fWorldX                   = 1.2*fTargetX;
+  fWorldX                   = 1.2*fTargetX;         // changed to 28944 for the hansonModified example - to test pe effect
   //
   fTargetMaterial           = geantphysics::Material::NISTMaterial(fTargetMatName);
   fWorldMaterial            = geantphysics::Material::NISTMaterial("NIST_MAT_Galactic");
@@ -66,10 +66,11 @@ void UserDetectorConstruction::CreateMaterials() {
 
 void UserDetectorConstruction::ComputeSetup() {
   fTargetMaterial  = geantphysics::Material::NISTMaterial(fTargetMatName);
+  
   fTargetYZ       *= 0.5;
   fTargetX        *= 0.5;
   fWorldYZ         = 1.2*fTargetYZ;
-  fWorldX          = 1.2*fTargetX;
+  fWorldX          = 1.2*fTargetX; //commented out in the hansonModified test
 }
 
 void UserDetectorConstruction::CreateGeometry() {
@@ -83,6 +84,7 @@ void UserDetectorConstruction::CreateGeometry() {
   // create geometry
   vecgeom::UnplacedBox *world  = new vecgeom::UnplacedBox(fWorldX,fWorldYZ,fWorldYZ);
   vecgeom::UnplacedBox *target = new vecgeom::UnplacedBox(fTargetX,fTargetYZ,fTargetYZ);
+    
   // create the corresponding logical volumes
   vecgeom::LogicalVolume *logicWorld  = new vecgeom::LogicalVolume("world" ,world);
   vecgeom::LogicalVolume *logicTarget = new vecgeom::LogicalVolume("target",target);
@@ -97,7 +99,7 @@ void UserDetectorConstruction::CreateGeometry() {
   logicTarget->SetMaterialPtr((void*)fTargetMaterial);
   // place target into world
   vecgeom::Transformation3D placement(0.0, 0, 0);
-  logicWorld->PlaceDaughter("taget", logicTarget,&placement);
+  logicWorld->PlaceDaughter("target", logicTarget,&placement);
   // set world and close geometry
   vecgeom::GeoManager::Instance().SetWorld(logicWorld->Place());
   vecgeom::GeoManager::Instance().CloseGeometry();
