@@ -34,12 +34,15 @@ void GeantEvent::Clear()
   fNmax.store(0);
   fNmax.store(0);
   fLock.clear();
+  fNfilled.store(0);
   // Release primary tracks
   fPrimaries.clear();
+  fNdispatched.store(0);
+  fTransported = false;
 }
 
 //______________________________________________________________________________
-bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
+bool GeantEvent::StopTrack(GeantRunManager *runmgr, GeantTaskData *td) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.
 #ifdef VECCORE_CUDA
@@ -51,7 +54,7 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr) {
   if ((ndone>=fNprimaries) && (ninflight==0)) {
     fTransported = true;
     // Notify run manager that event is transported
-    runmgr->EventTransported(fEvent);
+    runmgr->EventTransported(this, td);
     return false;
   }
   if (!fPrioritize) {

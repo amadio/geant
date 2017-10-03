@@ -221,12 +221,18 @@ bool GeantRunManager::Initialize() {
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
 
-  fEventServer = new GeantEventServer(fConfig->fNtotal, this);
+  fEventServer = new GeantEventServer(fConfig->fNbuff, this);
 
   GeantTaskData *td = fTDManager->GetTaskData(0);
   td->fPropagator = fPropagators[0];
-  for (int i=0; i<fConfig->fNtotal; ++i)
-    fEventServer->AddEvent(td);
+  
+  if (fConfig->fRunMode == GeantConfig::kGenerator) {
+    for (int i=0; i<fConfig->fNbuff; ++i)
+      fEventServer->GenerateNewEvent(nullptr, td);
+    GeantEvent *event = nullptr;
+    unsigned int error = 0;
+    fEventServer->ActivateEvent(event, error);
+  }
 
   dataMgr->Print();
   fInitialized = true;
@@ -358,26 +364,25 @@ void GeantRunManager::PrepareRkIntegration() {
 
 
 //______________________________________________________________________________
-void GeantRunManager::EventTransported(int evt)
+void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
 {
 // Actions executed after an event is transported.
-  // Signal completion of one event to the event server
-  fEventServer->CompletedEvent(evt);
   // Adjust number of prioritized events
-  GeantEvent *event = fEventServer->GetEvent(evt);
   if (event->IsPrioritized()) fPriorityEvents--;
   // closing event in MCTruthManager
-  if(fTruthMgr) fTruthMgr->CloseEvent(evt);
+  if(fTruthMgr) fTruthMgr->CloseEvent(event->GetEvent());
   event->Print();
   // Digitizer
-  Info("EventTransported", " = digitizing event %d with %d tracks", evt, event->GetNtracks());
+  Info("EventTransported", " = digitizing event %d with %d tracks", event->GetEvent(), event->GetNtracks());
 //  LocalityManager *lmgr = LocalityManager::Instance();
 //  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
 //         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   fApplication->FinishEvent(event->GetEvent(), event->GetSlot());
   fApplication->Digitize(event);
-  event->Clear();
-  fDoneEvents->SetBitNumber(evt);
+  // Signal completion of one event to the event server
+  fDoneEvents->SetBitNumber(event->GetEvent());
+  assert(event->GetNtracks() > 0);
+  fEventServer->CompletedEvent(event, td);
 }
 
 //______________________________________________________________________________

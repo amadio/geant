@@ -289,7 +289,7 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit() {
       FeederQueue()->push_force(0);
     TransportedQueue()->push_force(0);
     Stop();
-    return FeederResult::kStopProcessing;
+    return FeederResult::kStop;
   }
   return FeederResult::kNone;
 }
@@ -358,7 +358,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 
 //  int nworkers = propagator->fNthreads;
 //  WorkloadManager *wm = propagator->fWMgr;
-  GeantEventServer *evserv = runmgr->GetEventServer();
+//  GeantEventServer *evserv = runmgr->GetEventServer();
 //  bool firstTime = true;
 //  bool multiPropagator = runmgr->GetNpropagators() > 1;
   // IO handling
@@ -385,10 +385,6 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     }
   #endif
 
-  // Activate events in the server
-  evserv->ActivateEvents();
-
-  bool flush = false;
 #ifndef USE_VECGEOM_NAVIGATOR
   // If we use ROOT make sure we have a navigator here
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -397,13 +393,17 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 #endif
 
 /*** STEPPING LOOP ***/
+  bool flush = false;
   while (1) {
     // Check if simulation has finished
-    auto feedres = PreloadTracksForStep(td);
-    if (feedres == FeederResult::kStopProcessing) {
-       break;
+    auto feedres = PreloadTracksForStep(td); 
+    if (feedres == FeederResult::kStop) break;
+    if (flush) {
+      if (feedres == FeederResult::kError)
+        Geant::Warning("","=== Task %d exited due to missing workload", tid);
+      break;
     }
-    flush = feedres == FeederResult::kNone;
+    flush = (feedres == FeederResult::kNone) | (feedres == FeederResult::kError);
     SteppingLoop(td, flush);
   }
   // WP
@@ -449,20 +449,22 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
  // The method will apply a policy to inject tracks into the first stepping
  // stage buffer. The policy has to be exhaustively described...
   auto feedres = td->fPropagator->fWMgr->CheckFeederAndExit();
-  if (feedres == FeederResult::kStopProcessing)
+  if (feedres == FeederResult::kStop)
      return feedres;
 
   // Take tracks from the event server
   int ninjected = 0;
+  unsigned int error = 0;
   GeantEventServer *evserv = td->fPropagator->fRunMgr->GetEventServer();
   if (evserv->HasTracks()) {
     // In the initial phase we distribute a fair share of baskets to all propagators
     if (!evserv->IsInitialPhase() ||
         td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
-      ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket);
+      ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket, error);
   }
   // td->fStat->AddTracks(ninjected);
-  if (ninjected) return FeederResult::kFeederWork;
+  if (ninjected) return FeederResult::kWork;
+  if (error) return FeederResult::kError;
   return FeederResult::kNone;
 }
 
@@ -549,8 +551,10 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int nphys = 0;
   int nout = 0;
   int ngcoll = 0;
+  unsigned int error = 0;
   GeantBasket *basket = 0;
   GeantPropagator *propagator = prop;
+  int basket_size = propagator->fConfig->fNperBasket;
   // Not NUMA aware version
   propagator->SetNuma(0);
   GeantRunManager *runmgr = prop->fRunMgr;
@@ -567,13 +571,13 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   int *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(prop,sch, 0, 0, true);
   td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
+  prioritizer->SetThreshold(basket_size);
   prioritizer->SetFeederQueue(feederQ);
 
   GeantEventServer *evserv = runmgr->GetEventServer();
   int bindex = evserv->GetBindex();
   GeantBasket *bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
-  bserv->SetThreshold(propagator->fConfig->fNperBasket);
+  bserv->SetThreshold(basket_size);
   td->fImported = bserv;
 
   bool firstTime = true;
@@ -615,7 +619,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
 */
 
   // Activate events in the server
-  evserv->ActivateEvents();
+  //evserv->ActivateEvents();
 
   Material_t *mat = 0;
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -629,7 +633,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   while (1) {
     // Call the feeder if in priority mode
     auto feedres = wm->CheckFeederAndExit();
-    if (feedres == FeederResult::kStopProcessing) {
+    if (feedres == FeederResult::kStop) {
        break;
     }
     // Collect info about the queue
@@ -668,7 +672,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
           // In the initial phase we distribute a fair share of baskets to all propagators
           if (!evserv->IsInitialPhase() ||
               propagator->fNbfeed < runmgr->GetInitialShare()) {
-            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
+            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, error);
             if (ntotransport) basket = bserv;
           }
         }
@@ -943,9 +947,11 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   int ntot = 0;
   int nkilled = 0;
   int ngcoll = 0;
+  unsigned int error = 0;
   GeantBasket *basket = 0;
 
   GeantPropagator *propagator = prop;
+  int basket_size = propagator->fConfig->fNperBasket;
   GeantRunManager *runmgr = propagator->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
   int tid = td->fTid;
@@ -958,13 +964,13 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   int *nvect = sch->GetNvect();
   GeantBasketMgr *prioritizer = new GeantBasketMgr(prop,sch, 0, 0, true);
   td->fBmgr = prioritizer;
-  prioritizer->SetThreshold(propagator->fConfig->fNperBasket);
+  prioritizer->SetThreshold(basket_size);
   prioritizer->SetFeederQueue(feederQ);
 
   GeantEventServer *evserv = runmgr->GetEventServer();
   int bindex = evserv->GetBindex();
   GeantBasket *bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
-  bserv->SetThreshold(propagator->fConfig->fNperBasket);
+  bserv->SetThreshold(basket_size);
   td->fImported = bserv;
 
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -975,14 +981,14 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
 #endif
 
   // Activate events in the server
-  evserv->ActivateEvents();
+  //evserv->ActivateEvents();
 
   // broker->SetPrioritizer(prioritizer);
   while (1) {
 
     // Call the feeder if in priority mode
     auto feedres = wm->CheckFeederAndExit();
-    if (feedres == FeederResult::kStopProcessing) {
+    if (feedres == FeederResult::kStop) {
        break;
     }
 
@@ -1035,7 +1041,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
            // In the initial phase we distribute a fair share of baskets to all propagators
              if (!evserv->IsInitialPhase() ||
                 propagator->fNbfeed < runmgr->GetInitialShare()) {
-               ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
+               ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, error);
                if (ntotransport) basket = bserv;
              }
            }

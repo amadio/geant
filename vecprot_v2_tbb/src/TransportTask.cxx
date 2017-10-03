@@ -83,6 +83,7 @@ tbb::task* TransportTask::execute ()
   int nphys = 0;
   int nout = 0;
   int ngcoll = 0;
+  unsigned int error = 0;
   GeantBasket *basket = 0;
   GeantPropagator *propagator = fTd->fPropagator;
   GeantRunManager *runmgr = propagator->fRunMgr;
@@ -105,10 +106,11 @@ tbb::task* TransportTask::execute ()
 
   GeantEventServer *evserv = runmgr->GetEventServer();
   GeantBasket *bserv = td->fImported;
+  int basket_size = propagator->fConfig->fNperBasket;
   if (!bserv) {
     int bindex = evserv->GetBindex();
     bserv = sch->GetBasketManagers()[bindex]->GetNextBasket(td);
-    bserv->SetThreshold(propagator->fConfig->fNperBasket);
+    bserv->SetThreshold(basket_size);
     td->fImported = bserv;
   }
 
@@ -141,7 +143,7 @@ tbb::task* TransportTask::execute ()
 
   bool firstTime = true;
   // Activate events in the server
-  evserv->ActivateEvents();
+  //evserv->ActivateEvents();
 
   while (1) {
 
@@ -188,7 +190,7 @@ tbb::task* TransportTask::execute ()
           // In the initial phase we distribute a fair share of baskets to all propagators
           if (!evserv->IsInitialPhase() ||
               propagator->fNbfeed.load() < runmgr->GetInitialShare()) {
-            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), propagator->fConfig->fNperBasket);
+            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, error);
             if (ntotransport) basket = bserv;
           }
         }

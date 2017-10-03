@@ -120,7 +120,7 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
   return 0;
 #else
     // Add a new track in the system. returns track number within the event.
-  track.fParticle = fRunMgr->GetEvent(track.fEvent)->AddTrack();
+  track.fParticle = fRunMgr->GetEvent(track.fEvslot)->AddTrack();
 
   // call MCTruth manager if it has been instantiated
   if(fTruthMgr) fTruthMgr->AddTrack(track);
@@ -148,7 +148,7 @@ int GeantPropagator::GetNpending() const {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
+void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr, GeantTaskData *td) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
 
@@ -160,7 +160,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
       if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
     }
 
-  if (fRunMgr->GetEvent(tracks.fEventV[itr])->StopTrack(fRunMgr)) {
+  if (fRunMgr->GetEvent(tracks.fEvslotV[itr])->StopTrack(fRunMgr, td)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
   }
@@ -168,7 +168,7 @@ void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::StopTrack(GeantTrack *track) {
+void GeantPropagator::StopTrack(GeantTrack *track, GeantTaskData *td) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
 
@@ -181,7 +181,7 @@ void GeantPropagator::StopTrack(GeantTrack *track) {
       if(track->fStatus == kKilled) fTruthMgr->EndTrack(track);
     }
 
-  if (fRunMgr->GetEvent(track->fEvent)->StopTrack(fRunMgr)) {
+  if (fRunMgr->GetEvent(track->fEvslot)->StopTrack(fRunMgr, td)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
     priority_events++;
   }

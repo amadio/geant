@@ -93,7 +93,7 @@ public:
   /** @brief Create basket function */
   void CreateBaskets(GeantPropagator* prop);
 
-  enum class FeederResult : char { kNone, kFeederWork, kStopProcessing };
+  enum class FeederResult : char { kNone, kError, kWork, kStop };
 
   /** @brief Call Feeder (if needed) and check exit condition. */
   FeederResult CheckFeederAndExit();

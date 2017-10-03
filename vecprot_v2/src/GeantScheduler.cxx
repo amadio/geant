@@ -238,7 +238,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     // We have to collect the killed tracks
     if (tracks.fStatusV[itr] == kKilled || tracks.fStatusV[itr] == kExitingSetup || tracks.fPathV[itr]->IsOutside()) {
       nkilled++;
-      td->fPropagator->StopTrack(tracks, itr);
+      td->fPropagator->StopTrack(tracks, itr, td);
       tracks.DeleteTrack(itr);
       continue;
     }
@@ -261,7 +261,7 @@ int GeantScheduler::AddTracks(GeantTrack_v &tracks, int &ntot, int &nnew, int &n
     fNstvol[ivol]++;
     long nsteps = ++fNsteps;
     // Detect if the event the track is coming from is prioritized
-    if (propagator->fRunMgr->GetEvent(tracks.fEventV[itr])->IsPrioritized()) {
+    if (propagator->fRunMgr->GetEvent(tracks.fEvslotV[itr])->IsPrioritized()) {
       ninjected += td->fBmgr->AddTrackSingleThread(tracks, itr, true, td);
       continue;
     }

@@ -50,7 +50,7 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
     if (fPropagator->fStdApplication)
       fPropagator->fStdApplication->FinishTrack(*track, td);
     fPropagator->fApplication->FinishTrack(*track, td);
-    fPropagator->StopTrack(track);
+    fPropagator->StopTrack(track, td);
     fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
     // Dead tracks are not copied to output
@@ -97,7 +97,7 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
       if (fPropagator->fStdApplication)
         fPropagator->fStdApplication->FinishTrack(*track, td);
       fPropagator->fApplication->FinishTrack(*track, td);
-      fPropagator->StopTrack(track);
+      fPropagator->StopTrack(track, td);
       fPropagator->fTrackMgr->ReleaseTrack(*track);
 #endif
     // Dead tracks are not copied to output

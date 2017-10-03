@@ -182,7 +182,7 @@ public:
    * @param track Track to be stopped
    * @param itr Track id
    */
-  void StopTrack(GeantTrack *track);
+  void StopTrack(GeantTrack *track, GeantTaskData *td);
 
   /**
    * @brief  Function for marking a track as stopped
@@ -190,7 +190,7 @@ public:
    * @param tracks Track array container
    * @param itr Track id
    */
-  void StopTrack(const GeantTrack_v &tracks, int itr);
+  void StopTrack(const GeantTrack_v &tracks, int itr, GeantTaskData *td);
 
   /**
    * @brief Propose the physics step for an array of tracks

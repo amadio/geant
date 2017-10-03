@@ -23,6 +23,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTrack;
 class GeantRunManager;
+class GeantTaskData;
 
 /** @brief Class GeantEvent that decribes events */
 class GeantEvent {
@@ -59,6 +60,18 @@ public:
 
   /* @brief Crear the event and release all primaries */
   void Clear();
+
+  /** @brief Dispatch track. */
+  GEANT_FORCE_INLINE
+  int DispatchTrack(bool &valid) {
+    int itr = fNdispatched.fetch_add(1);
+    valid = itr < fNprimaries;
+    return itr;
+  }
+
+  /** @brief Check if event is dispatched. */
+  GEANT_FORCE_INLINE
+  bool IsDispatched() const { return (fNdispatched.load() >= fNprimaries); }
 
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE
@@ -173,7 +186,7 @@ public:
    *
    * @return Flag true if stopping qa track started priority mode for the event
    */
-  bool StopTrack(GeantRunManager *runmgr);
+  bool StopTrack(GeantRunManager *runmgr, GeantTaskData *td);
 
   /** @brief Print function */
   void Print(const char *option = "") const;

@@ -129,7 +129,7 @@ public:
   Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
 
   GEANT_FORCE_INLINE
-  GeantEvent *GetEvent(int i) { return fEventServer->GetEvent(i); }
+  GeantEvent *GetEvent(int slot) { return fEventServer->GetEvent(slot); }
 
   GEANT_FORCE_INLINE
   GeantEventServer *GetEventServer() const { return fEventServer; }
@@ -202,7 +202,7 @@ public:
   /** @brief Implementation of work stealing */
   int ProvideWorkTo(GeantPropagator *prop);
 
-  void EventTransported(int evt);
+  void EventTransported(GeantEvent *event, GeantTaskData *td);
   bool Initialize();
   bool FinishRun();
   bool LoadGeometry(const char *filename);
