@@ -73,12 +73,10 @@ void CaloApp::AttachUserData(Geant::GeantTaskData *td) {
   // structure. Provide number of event-slots and number of primaries per event
   CaloAppThreadDataEvents *eventData = new CaloAppThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
   fDataHandlerEvents->AttachUserData(eventData, td);
-  printf("Attached user data %s %p for tid=%d\n", fDataHandlerEvents->GetName(), eventData, td->fTid);
   // Create application specific thread local data structure to collecet/handle thread local run-global data structure.
   CaloAppThreadDataRun *runData = new CaloAppThreadDataRun();
   runData->CreateHisto1(fHist1NumBins, fHist1Min, fHist1Max);
   fDataHandlerRun->AttachUserData(runData, td);
-  printf("Attached user data %s %p for tid=%d\n", fDataHandlerRun->GetName(), runData, td->fTid);
 }
 
 bool CaloApp::Initialize() {

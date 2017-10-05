@@ -62,12 +62,10 @@ void TestEm5::AttachUserData(Geant::GeantTaskData *td) {
   // structure. Provide number of event-slots and number of primaries per event
   TestEm5ThreadDataEvents *eventData = new TestEm5ThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
   fDataHandlerEvents->AttachUserData(eventData, td);
-  printf("Attached user data %s %p for tid=%d\n", fDataHandlerEvents->GetName(), eventData, td->fTid);
   // Create application specific thread local data structure to collecet/handle thread local run-global data structure.
   TestEm5ThreadDataRun *runData = new TestEm5ThreadDataRun();
   runData->CreateHisto1(fHist1NumBins, fHist1Min, fHist1Max);
   fDataHandlerRun->AttachUserData(runData, td);
-  printf("Attached user data %s %p for tid=%d\n", fDataHandlerRun->GetName(), runData, td->fTid);
 }
 
 bool TestEm5::Initialize() {

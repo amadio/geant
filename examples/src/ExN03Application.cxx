@@ -41,7 +41,6 @@ void ExN03Application::AttachUserData(GeantTaskData *td)
   // Create task data for handling digits. Provide number of event slots.
   ExN03ScoringData *data = new ExN03ScoringData(fRunMgr->GetConfig()->fNbuff, kNlayers);
   fDigitsHandle->AttachUserData(data, td);
-  printf("Attached user data %p for tid=%d\n", data, td->fTid);
 }
 
 //______________________________________________________________________________
