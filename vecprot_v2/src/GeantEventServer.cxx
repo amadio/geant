@@ -36,22 +36,45 @@ using namespace vecgeom;
 GeantEventServer::GeantEventServer(int nactive_max, GeantRunManager *runmgr)
   :fNevents(0), fNactiveMax(nactive_max), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
    fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr),
-   fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)),
-   fPendingEvents(4096)
+   fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)), fPendingEvents(4096), fEmptyEvents(4096)
 {
 // Constructor
   assert(nactive_max > 0 && nactive_max < 4096);
   fLastActive.store(-1);
-  for (size_t slot = 0; slot < size_t(fNactiveMax); ++slot)
-    fFreeSlots.enqueue(slot);
-  
-  if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator)
-    fNevents = fRunMgr->GetConfig()->fNtotal;
-  
+
+  // Create event slots
   fEvents = new GeantEvent*[fNactiveMax];
-  for (int i=0; i<fNactiveMax; ++i)
-    fEvents[i] = nullptr;
-  fGenLock.clear(std::memory_order_release);
+  for (size_t slot = 0; slot < size_t(fNactiveMax); ++slot) {
+    fEvents[slot] = nullptr;
+    fFreeSlots.enqueue(slot);
+  }
+
+  // Create empty events
+  bool generate = fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator;
+  int nthreads = runmgr->GetNthreadsTotal();  
+  int ngen = vecCore::math::Max(fNactiveMax, nthreads);
+  if (generate) {
+    fNevents = fRunMgr->GetConfig()->fNtotal;
+    ngen = vecCore::math::Min(ngen, fNevents);
+  }
+
+  for (int i = 0; i < ngen + nthreads; ++i)
+    fEmptyEvents.enqueue(new GeantEvent());
+
+  unsigned int error = 0;
+  if (generate) {
+    // Pre-generate events at least as many as threads if possible
+    fGenLock.clear(std::memory_order_release);
+    GeantTaskData *td = fRunMgr->GetTDManager()->GetTaskData(0);
+    for (int i = 0; i < ngen; ++i) {
+      GenerateNewEvent(td, error);
+      assert(error == 0 && "GeantEventServer::ctor ERROR in event generation");
+    }
+    GeantEvent *event = nullptr;
+    // Activate the first event
+    ActivateEvent(event, error);
+    assert(error == 0 && "GeantEventServer::ctor ERROR in event activation");
+  }
 }
 
 //______________________________________________________________________________
@@ -61,28 +84,54 @@ GeantEventServer::~GeantEventServer()
   for (int i = 0; i < fNactiveMax; ++i) {
     delete fEvents[i];
   }
-  delete [] fEvents;
+  GeantEvent *event;
+  while (fEmptyEvents.dequeue(event)) delete event;
 }
 
 //______________________________________________________________________________
-GeantEvent *GeantEventServer::GenerateNewEvent(GeantEvent *event, GeantTaskData *td)
+GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &error)
 {
-// Generates a new event in standalone GeantV mode.
-  if (!fRunMgr->GetPrimaryGenerator())
-    return nullptr;
-  // The method has to be locked since thread safety not yet required in the generator.
+// Generates a new event in standalone GeantV mode by filling an empty one and 
+// putting it in the pending events queue.
+//
+// The method may fail due to:
+// - the method is in use by another thread (error = 1)
+// - all events were generated already generated (error = 2)
+// - queue of empty events is empty. Should not happen. (error = 3)
+// - event could not be added to the pending queue. Should not happen (error = 4)
+
+  // The method has to be locked since thread safety not yet required for the generator.
   // Policy: if someone else working here, just return
-  if (fGenLock.test_and_set(std::memory_order_acquire)) return nullptr;
+  if (fGenLock.test_and_set(std::memory_order_acquire)) {
+    error = 1;
+    return nullptr;
+  }
+  int nload = fNload.load();
+  if (nload >= fNevents) {
+    error = 2;
+    fGenLock.clear(std::memory_order_release);
+    return nullptr;
+  }
+  error = 0;
   // Now just get next event from the generator
   GeantEventInfo eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent();
   int ntracks = eventinfo.ntracks;
-  if (!ntracks) return nullptr;
+  int nloadtmp = nload;
+  while (!ntracks) {
+    Error("GenerateNewEvent", "### Problem with generator: event %d has no tracks", nloadtmp++);
+    eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent();
+    ntracks = eventinfo.ntracks;
+  }
   
-  if (!event)
-    event = new GeantEvent();
-  else
-    event->Clear();
-  fNload++;
+  GeantEvent *event = nullptr;
+  if (!fEmptyEvents.dequeue(event)) {
+    Error("GenerateNewEvent", "### Problem with empty queue!!!");
+    error = 3;
+    fGenLock.clear(std::memory_order_release);
+    return nullptr;
+  }
+  // Clear the event. At this point the event must not be in use anywhere
+  event->Clear();
   event->SetNprimaries(ntracks);
   event->SetVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
 
@@ -127,7 +176,10 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantEvent *event, GeantTaskData 
   }
  
   fGenLock.clear(std::memory_order_release);
-  if (!AddEvent(event)) return nullptr;
+  if (!AddEvent(event)) {
+    error = 4;
+    return nullptr;
+  }
   return event;
 }
 
@@ -136,7 +188,6 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 {
 // Adds one event into the queue of pending events.
   int evt = fNload.fetch_add(1);
-
   if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop) {
     // The vertex must be defined
     vecgeom::Vector3D<double> vertex = event->GetVertex();
@@ -183,9 +234,11 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
   }
     
   if (!fPendingEvents.enqueue(event)) {
+    // Should never happen
     Error("AddEvent", "Event pool is full");
     return false;
   }
+  fNprimaries += event->GetNprimaries();
   event->SetPriorityThr(fRunMgr->GetConfig()->fPriorityThr);
   // Update number of stored events
   int nstored = fNstored.fetch_add(1) + 1;
@@ -200,7 +253,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     printf("=== Imported %d primaries from %d buffered events\n", fNtracksInit, fNactiveMax);
     printf("=== Buffering %d baskets of size %d feeding %d threads\n", fNbasketsInit, basket_size, nthreads);
     if (fNbasketsInit < nthreads) {
-      printf("### WARNING!    Concurrency settings are not optimal. Not enough baskets to feed all threads.\n###\n");
+      printf("### \e[5mWARNING!    Concurrency settings are not optimal. Not enough baskets to feed all threads.\e[m\n###\n");
       printf("###                          Rule of thumb:\n");
       printf("###  ==================================================================\n");
       printf("### ||  Nbuff_events * Nprimaries_per_event > Nthreads * basket_size  ||\n");
@@ -213,6 +266,92 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 
   fEventsServed = false;
   return true;
+}
+
+//______________________________________________________________________________
+GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &error)
+{
+// Activates one event replacing the current one (if matching the expected value).
+// The method can fail due to one of the following reasons:
+// - All events already served (nactive = ntotal) in generator mode
+// - All events from buffer served (nactive = nstored) in external loop mode
+// - No slots available (should never happen since activation is driven by slot release)
+// - All buffered events were served (should not happen in generator mode)
+
+  if (fEventsServed) {
+    error = kDone;
+    return nullptr;
+  }
+
+  // A slot should always be available when calling ActivateEvent
+  size_t slot;
+  if (!fFreeSlots.dequeue(slot)) {
+    error = kCSlots;
+    return nullptr;
+  }
+
+  // Move old event from slot to queue of empty events
+  if (fEvents[slot]) {
+    fEmptyEvents.enqueue(fEvents[slot]);
+    fEvents[slot] = nullptr;
+  }
+  
+  // Get a new generated event from pending queue
+  if (!fPendingEvents.dequeue(fEvents[slot])) {
+    fFreeSlots.enqueue(slot);
+    error = kCEvents;
+    return nullptr;
+  }
+  
+  // Pre-activate slot and event number
+  fEvents[slot]->SetSlot(slot);
+  int nactive = fNactive.fetch_add(1) + 1;
+  fEvents[slot]->SetEvent(nactive - 1);
+  
+  
+  // Try to replace the active event with the new one
+  if (!fEvent.compare_exchange_strong(event, fEvents[slot])) {
+    // Bad luck, someone else was faster.
+    // Now we have to release the event and then the slot
+    fNactive--;
+    fPendingEvents.enqueue(fEvents[slot]);
+    fEvents[slot] = nullptr;
+    fFreeSlots.enqueue(slot);
+    // 'event' contains now the pointer to the event activated by someone else
+    error = kNoerr;
+    return event;
+  }
+  
+  // Check if all events were served
+  if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator) {
+    if (nactive == fNevents) fEventsServed = true;
+  } else {
+    if (nactive == fNstored.load()) fEventsServed = true;
+  }
+  fHasTracks = true;
+  error = kNoerr;
+  return event;
+}
+
+//______________________________________________________________________________
+void GeantEventServer::CompletedEvent(GeantEvent *event, GeantTaskData *td)
+{
+// Signals that event 'evt' was fully transported.
+  size_t slot = event->GetSlot();
+  fNcompleted++;
+  
+  assert(event->Transported());
+  assert(event == fEvents[slot]);
+
+  // Release slot as fast as possible. Activation will take care of recycling
+  // the old event and putting a new generated one in place.
+  fFreeSlots.enqueue(slot);
+
+  // Generate new event
+  if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator) {
+    unsigned int error = 1; // Generator busy
+    while (error == 1) GenerateNewEvent(td, error);
+  }
 }
 
 //______________________________________________________________________________
@@ -231,7 +370,7 @@ GeantTrack *GeantEventServer::GetNextTrack(unsigned int &error)
     itr = event->DispatchTrack(valid);
     if (!valid) {
       assert(event->IsDispatched());
-      // Current event dispatched, try to fetch from next event
+      // Current event dispatched, try to activate new event
       event = ActivateEvent(event, error);
       if (!event) {
         if (error) return nullptr;
@@ -314,76 +453,6 @@ int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, unsi
   
   if (ndispatched > 0) error = kNoerr;
   return ndispatched;
-}
-
-//______________________________________________________________________________
-GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &error)
-{
-// Activates one event replacing the current one (if matching the expected value).
-// The method can fail due to one of the following reasons:
-// - All events already served (nactive = ntotal) in generator mode
-// - All events from buffer served (nactive = nstored) in external loop mode
-// - No slots available (should never happen since activation is driven by slot release)
-// - All buffered events were served (should not happen in generator mode)
-  if (fEventsServed) {
-    error = kDone;
-    return nullptr;
-  }
-  size_t slot = 0;
-
-  // A slot should always be available when calling ActivateEvent
-  if (!fFreeSlots.dequeue(slot)) {
-    error = kCSlots;
-    return nullptr;
-  }
-  printf("(A) slot #%ld taken\n", slot);
-
-  // The event stored at the retrieved slot has to be transported
-  if (fEvents[slot]) { assert(fEvents[slot]->Transported()); }
-  
-  // An event should also be prefetched into the waiting queue. If none
-  // is available it is due to generator being too slow.
-  if (!fPendingEvents.dequeue(fEvent, event)) {
-    fFreeSlots.enqueue(slot);
-    if (!fPendingEvents.size()) error |= kCEvents;
-    else error = kNoerr;
-    printf("(A) slot #%ld released (error %d)\n", slot, error);
-    return nullptr;
-  }
-  // Activate the event
-  fEvents[slot] = event;
-  fEvents[slot]->SetSlot(slot);
-  int nactive = fNactive.fetch_add(1) + 1;
-  fEvents[slot]->SetEvent(nactive - 1);
-  // Check if all events were served
-  if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator) {
-    if (nactive == fNevents) fEventsServed = true;
-  } else {
-    if (nactive == fNstored.load()) fEventsServed = true;
-  }
-  fHasTracks = true;
-  error = kNoerr;
-  // At this point other threads can feed from this new event.
-  // printf("Activated event %p on slot %ld\n", event, slot);
-  return event;
-}
-
-//______________________________________________________________________________
-void GeantEventServer::CompletedEvent(GeantEvent *event, GeantTaskData *td)
-{
-// Signals that event 'evt' was fully transported.
-  size_t slot = event->GetSlot();
-  fNcompleted++;
-  assert(event->Transported());
-  assert(event == fEvents[slot]);
-  fEvents[slot] = nullptr;
-  if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator &&
-      fNstored.load() < fNevents)
-    GenerateNewEvent(event, td);
-  // Now we can release the slot, making sure the current event has changed
-  while (!fEventsServed && event == fEvent.load()) {}
-  fFreeSlots.enqueue(slot);
-  printf("(C) slot #%ld released by task %d\n", slot, td->fTid);
 }
 
 } // GEANT_IMPL_NAMESPACE

@@ -45,11 +45,12 @@ enum ErrorType {
   kDone    = 0x04     // all events dispatched
 };
 
-using queue_t = mpmc_bounded_queue<size_t>;
+using queue_slots = mpmc_bounded_queue<size_t>;
 using queue_events = mpmc_bounded_queue<GeantEvent*>;
 
 private:
   int fNevents = 0;                    /** Number of events to be filled */
+  int fNprimaries = 0;                 /** Number of primaries served */
   int fNactiveMax = 0;                 /** Maximum number of active events (buffer size)*/
   int fNtracksInit = 0;                /** Initial number of tracks in the buffer. */
   int fNbasketsInit = 0;               /** Initial number of baskets to be served */
@@ -69,8 +70,9 @@ private:
   bool fInitialPhase = false;          /** Server in initial dispatch phase */
   GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
   int  fBindex = 0;                    /** Basket manager index */
-  queue_t fFreeSlots;                  /** Queue of free event slots */
+  queue_slots fFreeSlots;              /** Queue of free event slots */
   queue_events fPendingEvents;         /** Queue of pending events */
+  queue_events fEmptyEvents;           /** Queue of empty events */
 
 protected:
   GeantTrack *GetNextTrack(unsigned int &error);
@@ -86,6 +88,9 @@ public:
 // Accessors
   GEANT_FORCE_INLINE
   int  GetNevents() const { return fNevents; }
+
+  GEANT_FORCE_INLINE
+  int  GetNprimaries() const { return fNprimaries; }
 
   GEANT_FORCE_INLINE
   int  GetNbasketsInit() const { return fNbasketsInit; }
@@ -134,7 +139,7 @@ public:
   /** @brief Add one event to the server */
   bool AddEvent(GeantEvent *event);
 
-  GeantEvent *GenerateNewEvent(GeantEvent *event, GeantTaskData *td);
+  GeantEvent *GenerateNewEvent(GeantTaskData *td, unsigned int &error);
   
   GeantEvent *ActivateEvent(GeantEvent *expected, unsigned int &error);
   

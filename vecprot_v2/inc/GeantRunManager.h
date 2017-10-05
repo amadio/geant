@@ -42,7 +42,6 @@ private:
   int fNpropagators = 0;          /** Number of propagators */
   int fNthreads     = 0;          /** Number of threads per propagator */
   int fNvolumes     = 0;          /** Number of active volumes in the geometry */
-  int fNprimaries   = 0;          /** Total number of primaries in the run */
   int fNbuff        = 0;          /** Number of event slots per propagator */
   int fNfeedProp    = 0;          /** Number of propagators with initial feed */
   int fInitialShare = 0;          /** Initial basket share for each propagator */
@@ -105,10 +104,7 @@ public:
   vector_t<Volume_t const *> &GetVolumes() { return fVolumes; }
 
   GEANT_FORCE_INLINE
-  int  GetNprimaries() const { return fNprimaries; }
-
-  GEANT_FORCE_INLINE
-  void  SetNprimaries(int nprim) { fNprimaries = nprim; }
+  int  GetNprimaries() const { return (fEventServer) ? fEventServer->GetNprimaries() : 0; }
 
   GEANT_FORCE_INLINE
   int  GetInitialShare() const { return fInitialShare; }

@@ -463,8 +463,12 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
       ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket, error);
   }
   // td->fStat->AddTracks(ninjected);
-  if (ninjected) return FeederResult::kWork;
-  if (error) return FeederResult::kError;
+  if (ninjected)
+    return FeederResult::kWork;
+
+  if (error)
+    return FeederResult::kError;
+
   return FeederResult::kNone;
 }
 

@@ -218,22 +218,16 @@ bool GeantRunManager::Initialize() {
     fApplication->AttachUserData(td);
   }
 
+  // Initialize all propagators
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
 
-  fEventServer = new GeantEventServer(fConfig->fNbuff, this);
-
   GeantTaskData *td = fTDManager->GetTaskData(0);
   td->fPropagator = fPropagators[0];
-  
-  if (fConfig->fRunMode == GeantConfig::kGenerator) {
-    for (int i=0; i<fConfig->fNbuff; ++i)
-      fEventServer->GenerateNewEvent(nullptr, td);
-    GeantEvent *event = nullptr;
-    unsigned int error = 0;
-    fEventServer->ActivateEvent(event, error);
-  }
 
+  // Initialize the event server
+  fEventServer = new GeantEventServer(fConfig->fNbuff, this);
+  
   dataMgr->Print();
   fInitialized = true;
   return fInitialized;
@@ -371,14 +365,14 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
   if (event->IsPrioritized()) fPriorityEvents--;
   // closing event in MCTruthManager
   if(fTruthMgr) fTruthMgr->CloseEvent(event->GetEvent());
-  event->Print();
+  // event->Print();
   // Digitizer
-  Info("EventTransported", " = digitizing event %d with %d tracks", event->GetEvent(), event->GetNtracks());
+  Info("EventTransported", " = task %d digitizing event %d with %d tracks", td->fTid, event->GetEvent(), event->GetNtracks());
 //  LocalityManager *lmgr = LocalityManager::Instance();
 //  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
 //         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   fApplication->FinishEvent(event->GetEvent(), event->GetSlot());
-  fApplication->Digitize(event);
+  fApplication->Digitize(event);   // !!! deprecated !!!
   // Signal completion of one event to the event server
   fDoneEvents->SetBitNumber(event->GetEvent());
   assert(event->GetNtracks() > 0);
@@ -441,7 +435,7 @@ void GeantRunManager::RunSimulation() {
   timer.Stop();
   double rtime = timer.Elapsed();
   double ctime = timer.CpuElapsed();
-  long ntransported = fNprimaries;
+  long ntransported = fEventServer->GetNprimaries();
   long nsteps = 0;
   long nsnext = 0;
   long nphys = 0;
@@ -464,7 +458,7 @@ void GeantRunManager::RunSimulation() {
   }
   Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
-         fNpropagators, fNthreads, fNprimaries, ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
+         fNpropagators, fNthreads, fEventServer->GetNprimaries(), ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
   LocalityManager *lmgr = LocalityManager::Instance();
   Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
          lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
