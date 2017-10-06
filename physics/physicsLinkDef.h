@@ -10,6 +10,6 @@
 
 #ifdef __CINT__
 
-#pragma link C++ class geant::Particle+;
+#pragma link C++ class geant::ParticleOld+;
 
 #endif

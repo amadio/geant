@@ -26,35 +26,35 @@ VECGEOM_DEVICE_FORWARD_DECLARE(class Particle;);
 inline namespace GEANT_IMPL_NAMESPACE {
 
 #ifdef VECCORE_CUDA
-class Particle;
-extern VECCORE_ATT_DEVICE vecgeom::map<int, Particle> *fParticlesDev; // Particle list indexed by PDG code
-extern vecgeom::map<int, Particle> *fParticlesHost;                           // Particle list indexed by PDG code
+class ParticleOld;
+extern VECCORE_ATT_DEVICE vecgeom::map<int, ParticleOld> *fParticlesDev; // Particle list indexed by PDG code
+extern vecgeom::map<int, ParticleOld> *fParticlesHost;                           // Particle list indexed by PDG code
 #endif
 
-class Particle {
+class ParticleOld {
 public:
   class Decay;
 #ifdef VECCORE_CUDA
-  using Map_t         = vecgeom::map<int, Particle>;
+  using Map_t         = vecgeom::map<int, ParticleOld>;
   using VectorDecay_t = vecgeom::Vector<Decay>;
   using VectorInt_t   = vecgeom::Vector<int>;
 #else
-  using Map_t         = std::map<int, Particle>;
+  using Map_t         = std::map<int, ParticleOld>;
   using VectorDecay_t = std::vector<Decay>;
   using VectorInt_t   = std::vector<int>;
 #endif
 
   VECCORE_ATT_HOST_DEVICE
-  Particle();
+  ParticleOld();
   VECCORE_ATT_HOST_DEVICE
-  Particle(const char *name, int pdg, bool matter, const char *pclass, int pcode, double charge, double mass,
+  ParticleOld(const char *name, int pdg, bool matter, const char *pclass, int pcode, double charge, double mass,
            double width, int isospin, int iso3, int strange, int flavor, int track, int code = -1);
 
   VECCORE_ATT_HOST_DEVICE
-  Particle(const Particle &other);
+  ParticleOld(const ParticleOld &other);
 
   VECCORE_ATT_HOST_DEVICE
-  Particle &operator=(const Particle &part);
+  ParticleOld &operator=(const ParticleOld &part);
 
   VECCORE_ATT_HOST_DEVICE
   static void CreateParticles();
@@ -97,26 +97,26 @@ public:
 #endif
 
 #ifndef VECCORE_CUDA
-  static const Particle &GetParticle(int pdg)
+  static const ParticleOld &GetParticle(int pdg)
   {
     if (fParticles->find(pdg) != fParticles->end()) return (*fParticles)[pdg];
-    static Particle p;
+    static ParticleOld p;
     std::cout << __func__ << "::pdg:" << pdg << " does not exist" << std::endl;
     return p;
   }
 #else
-  static const Particle &GetParticle(int pdg)
+  static const ParticleOld &GetParticle(int pdg)
   {
     if (fParticlesHost->find(pdg) != fParticlesHost->end()) return (*fParticlesHost)[pdg];
-    static Particle p;
+    static ParticleOld p;
     printf(" pdg %d does not exist\n", pdg);
     return p;
   }
   VECCORE_ATT_DEVICE
-  static const Particle &GetParticleDev(int pdg)
+  static const ParticleOld &GetParticleDev(int pdg)
   {
     if (fParticlesDev->find(pdg) != fParticlesDev->end()) return (*fParticlesDev)[pdg];
-    // Particle p;
+    // ParticleOld p;
     printf(" pdg %d does not exist\n", pdg);
     return (*fParticlesDev)[1];
   }
@@ -125,7 +125,7 @@ public:
 #ifndef VECCORE_CUDA
   void NormDecay();
 
-  friend std::ostream &operator<<(std::ostream &os, const Particle &part);
+  friend std::ostream &operator<<(std::ostream &os, const ParticleOld &part);
 
 #endif
   VECCORE_ATT_HOST_DEVICE

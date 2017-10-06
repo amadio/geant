@@ -1,8 +1,3 @@
-#ifdef USE_VECGEOM_NAVIGATOR
-#undef USE_VECGEOM_NAVIGATOR
-#define RESTORE_USE_VECGEOM_NAVIGATOR
-#endif
-
 #include "G4Track.hh"
 #include "TabulatedDataManager.hh"
 
@@ -11,6 +6,7 @@
 #include "TError.h"
 #include "TBits.h"
 #include "TMath.h"
+#include "TDatabasePDG.h"
 
 #include "TPartIndex.h"
 #include "TEXsec.h"
@@ -32,10 +28,6 @@
 
 using CLHEP::GeV;
 using CLHEP::cm;
-
-#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
-#define USE_VECGEOM_NAVIGATOR
-#endif
 
 //#ifdef MAKESTAT
 // unsigned long TabulatedDataManager::killedTracks =0;

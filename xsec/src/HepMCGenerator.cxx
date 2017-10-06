@@ -13,13 +13,6 @@ using vecgeom::kPi;
 #include "HepMC/ReaderRoot.h"
 #endif
 
-#ifdef USE_VECGEOM_NAVIGATOR
-#include "Particle.h"
-using geant::Particle;
-#else
-class TParticlePDG;
-#endif
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -158,7 +151,7 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
 
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(gtrack.fPDG));
 #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle_t *const &part = &Particle::GetParticle(gtrack.fPDG);
+    const Particle_t *const &part = &Particle_t::GetParticle(gtrack.fPDG);
     gtrack.SetCharge(part->Charge());
 #else
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
@@ -219,7 +212,7 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
   tpy = genpart->momentum().py() * 1000.0;
   tpz = genpart->momentum().pz() * 1000.0;
 #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle_t *const &part = &Particle::GetParticle(pdg);
+    const Particle_t *const &part = &Particle_t::GetParticle(pdg);
 #else
     TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(pdg);
 #endif

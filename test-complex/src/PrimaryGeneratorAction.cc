@@ -39,18 +39,8 @@
 #include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
 
-
-#ifdef USE_VECGEOM_NAVIGATOR
-#undef USE_VECGEOM_NAVIGATOR
-#define RESTORE_USE_VECGEOM_NAVIGATOR
-#endif
-
 #include "HepMCGenerator.h"
 #include "PrimaryGeneratorAction.hh"
-
-#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
-#define USE_VECGEOM_NAVIGATOR
-#endif
 
 using namespace Geant;
 

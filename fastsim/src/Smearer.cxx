@@ -8,6 +8,7 @@
 #include "GeantTrackVec.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
+  #include "ParticleOld.h"
   #include "management/GeoManager.h"
   #include "navigation/NavigationState.h"
   #include "base/Global.h"
@@ -101,7 +102,7 @@ std::vector< double > Smearer::StepLengthProposedByParameterisation( int ntracks
   //std::cout << "Smearer::StepLengthProposedByParameterisation : Start" << std::endl;  // Debug
   const double aLargeValue = 9999999.9;
   std::vector< double > stepLengths;
-  GeantTrack& aTrack = aTaskData.GetTrack();
+  GeantTrack& aTrack = aTaskData.GetNewTrack();
   for ( int i = 0; i < ntracks; i++ ) {
     double value = aLargeValue;
      tracks.GetTrack(i, aTrack);
@@ -128,6 +129,7 @@ std::vector< double > Smearer::StepLengthProposedByParameterisation( int ntracks
     }
     stepLengths.push_back( value );
   }
+  aTaskData.ReleaseTrack(aTrack);
   //std::cout << "Smearer::StepLengthProposedByParameterisation : --- End ---" << std::endl;  // Debug
   return stepLengths;
 }
@@ -316,7 +318,7 @@ void Smearer::ApplyParameterisation( int ntracks, GeantTrack_v& tracks, GeantTas
   // parameterisation; else do nothing.
   //std::cout << "Smearer::ApplyParameterisation : Start" << std::endl;  // Debug
   const double aSmallValue = 1.0e-9;
-  GeantTrack& aTrack = aTaskData.GetTrack();
+  GeantTrack& aTrack = aTaskData.GetNewTrack();
   for ( int i = 0; i < ntracks; i++ ) {
     //std::cout << " Smearer::ApplyParameterisation : pdg=" << tracks.fPDGV[i] 
     //          << " ; volume=" << tracks.GetVolume(i)->GetName() << std::endl;  // Debug
@@ -372,6 +374,7 @@ void Smearer::ApplyParameterisation( int ntracks, GeantTrack_v& tracks, GeantTas
       }
     }
   }
+  aTaskData.ReleaseTrack(aTrack);
   //std::cout << "Smearer::ApplyParameterisation : --- End ---" << std::endl;  // Debug
 }
 
@@ -417,7 +420,7 @@ void Smearer::ApplyEcalParameterisation( GeantTrack_v& tracks, GeantTaskData& aT
   // As soon as the electron or positron or gamma enters the electromagnetic calorimeter,
   // its kinetic energy is smeared and deposited and then the particle is killed.
   #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle_t *const & partPDG = &Particle_t::GetParticle( tracks.fPDGV[index] );
+    const geant::ParticleOld *const & partPDG = &geant::ParticleOld::GetParticle( tracks.fPDGV[index] );
   #else
     TParticlePDG* partPDG = TDatabasePDG::Instance()->GetParticle( tracks.fPDGV[index] );
   #endif
@@ -456,7 +459,7 @@ void Smearer::ApplyHcalParameterisation( GeantTrack_v& tracks, GeantTaskData& aT
   // As soon as the hadron enters the hadronic calorimeter, its kinetic energy
   // is smeared and deposited and then the particle is killed.
   #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle_t *const & partPDG = &Particle_t::GetParticle( tracks.fPDGV[index] );
+    const geant::ParticleOld *const & partPDG = &geant::ParticleOld::GetParticle( tracks.fPDGV[index] );
   #else
     TParticlePDG* partPDG = TDatabasePDG::Instance()->GetParticle( tracks.fPDGV[index] );
   #endif

@@ -940,7 +940,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
-          GeantTrack &track = td->GetTrack();
+          GeantTrack &track = td->GetNewTrack();
           //          GeantTrack track;
           // set the new track properties
           track.fEvent = tracks.fEventV[t];
@@ -974,9 +974,9 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.fSafety = tracks.fSafetyV[t];
           track.fBoundary = tracks.fBoundaryV[t];
           track.fPending = false;
-          *track.fPath = *tracks.fPathV[t];
-          *track.fNextpath = *tracks.fPathV[t];
-	  track.fMother = tracks.fParticleV[t];
+          track.SetPath(tracks.fPathV[t]);
+          track.SetNextPath(tracks.fPathV[t]);
+          track.fMother = tracks.fParticleV[t];
 
           // Rotate new track to parent track's frame
           RotateNewTrack(oldXdir, oldYdir, oldZdir, track);
@@ -1226,8 +1226,8 @@ int TTabPhysMgr::SampleFinalStates(GeantTrack *track, TrackVec_t &output, GeantT
         track1.fSafety = track->fSafety;
         track1.fBoundary = track->fBoundary;
         track1.fPending = false;
-        *track1.fPath = *track->fPath;
-        *track1.fNextpath = *track->fPath;
+        track1.SetPath(track->GetPath());
+        track1.SetNextPath(track->GetPath());
 	      track1.fMother = track->fParticle;
 
         // Rotate new track to parent track's frame
@@ -1329,7 +1329,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 
       // need to do it one-by-one
       // 1. gamma
-      GeantTrack &track1 = td->GetTrack();
+      GeantTrack &track1 = td->GetNewTrack();
       // set the new track properties: 2 gamma with m_{e}*c*c
       track1.fEvent = tracks.fEventV[iintrack];
       track1.fEvslot = tracks.fEvslotV[iintrack];
@@ -1360,8 +1360,8 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track1.fSafety = tracks.fSafetyV[iintrack];
       track1.fBoundary = tracks.fBoundaryV[iintrack];
       track1.fPending = false;
-      *track1.fPath = *tracks.fPathV[iintrack];
-      *track1.fNextpath = *tracks.fPathV[iintrack];
+      track1.SetPath(tracks.fPathV[iintrack]);
+      track1.SetNextPath(tracks.fPathV[iintrack]);
 
       td->fPropagator->AddTrack(track1);
       tracks.AddTrack(track1);
@@ -1373,6 +1373,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
 
       td->fPropagator->AddTrack(track1);
       tracks.AddTrack(track1);
+      td->ReleaseTrack(track1);
 
       nTotSecPart += 2;
       return;
@@ -1449,7 +1450,7 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
     // Ekin of the i-th secondary is higher than the threshold
     if (secEkin > energyLimit) { // insert secondary into tracks_v
-      GeantTrack &track = td->GetTrack();
+      GeantTrack &track = td->GetNewTrack();
       // set the new track properties
       track.fEvent = tracks.fEventV[iintrack];
       track.fEvslot = tracks.fEvslotV[iintrack];
@@ -1482,14 +1483,15 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track.fSafety = tracks.fSafetyV[iintrack];
       track.fBoundary = tracks.fBoundaryV[iintrack];
       track.fPending = false;
-      *track.fPath = *tracks.fPathV[iintrack];
-      *track.fNextpath = *tracks.fPathV[iintrack];
+      track.SetPath(tracks.fPathV[iintrack]);
+      track.SetNextPath(tracks.fPathV[iintrack]);
 
       // rotate at-rest secondary by a common random theta and random phi
       RotateNewTrack(randDirX, randDirY, randDirZ, track);
 
       td->fPropagator->AddTrack(track);
       tracks.AddTrack(track);
+      td->ReleaseTrack(track);
 
       ++nTotSecPart; // increase # of secondaries in tracks_v
     } else {
@@ -1571,8 +1573,8 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     track1.fSafety = track->fSafety;
     track1.fBoundary = track->fBoundary;
     track1.fPending = false;
-    *track1.fPath = *track->fPath;
-    *track1.fNextpath = *track->fPath;
+    track1.SetPath(track->GetPath());
+    track1.SetNextPath(track->GetPath());
 
     td->fPropagator->AddTrack(track1);
     output.push_back(&track1);
@@ -1694,8 +1696,8 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track3.fSafety = track->fSafety;
       track3.fBoundary = track->fBoundary;
       track3.fPending = false;
-      *track3.fPath = *track->fPath;
-      *track3.fNextpath = *track->fPath;
+      track3.SetPath(track->GetPath());
+      track3.SetNextPath(track->GetPath());
 
       // rotate at-rest secondary by a common random theta and random phi
       RotateNewTrack(randDirX, randDirY, randDirZ, track3);
@@ -1776,7 +1778,7 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
       double secPtot = vecCore::math::Sqrt((secEtot - secMass) * (secEtot + secMass));
       double secEkin = secEtot - secMass;
       if (secEkin > energyLimit) { // insert secondary into tracks_v
-        GeantTrack &track = td->GetTrack();
+        GeantTrack &track = td->GetNewTrack();
         // set the new track properties
         track.fEvent = tracks.fEventV[iintrack];
         track.fEvslot = tracks.fEvslotV[iintrack];
@@ -1809,11 +1811,12 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track.fSafety = tracks.fSafetyV[iintrack];
         track.fBoundary = tracks.fBoundaryV[iintrack];
         track.fPending = false;
-        *track.fPath = *tracks.fPathV[iintrack];
-        *track.fNextpath = *tracks.fPathV[iintrack];
+        track.SetPath(tracks.fPathV[iintrack]);
+        track.SetNextPath(tracks.fPathV[iintrack]);
 
         td->fPropagator->AddTrack(track);
         tracks.AddTrack(track);
+        td->ReleaseTrack(track);
 
         ++nTotSecPart; // increase # of secondaries in tracks_v
       } else {
@@ -1924,8 +1927,8 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track1.fSafety = track->fSafety;
         track1.fBoundary = track->fBoundary;
         track1.fPending = false;
-        *track1.fPath = *track->fPath;
-        *track1.fNextpath = *track->fPath;
+        track1.SetPath(track->GetPath());
+        track1.SetNextPath(track->GetPath());
 
         td->fPropagator->AddTrack(track1);
         output.push_back(&track1);

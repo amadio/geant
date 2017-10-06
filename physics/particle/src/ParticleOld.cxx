@@ -1,4 +1,4 @@
-#include "Particle.h"
+#include "ParticleOld.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -20,8 +20,8 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 #ifdef VECCORE_CUDA
-VECCORE_ATT_DEVICE vecgeom::map<int, Particle> *fParticlesDev = nullptr;
-vecgeom::map<int, Particle> *fParticlesHost                       = nullptr;
+VECCORE_ATT_DEVICE vecgeom::map<int, ParticleOld> *fParticlesDev = nullptr;
+vecgeom::map<int, ParticleOld> *fParticlesHost                       = nullptr;
 
 VECCORE_ATT_HOST_DEVICE
 char *strncpy(char *dest, const char *src, size_t n)
@@ -36,11 +36,11 @@ char *strncpy(char *dest, const char *src, size_t n)
 }
 
 #else
-std::map<int, Particle> *Particle::fParticles=0;
+std::map<int, ParticleOld> *ParticleOld::fParticles=0;
 #endif
 
 #ifndef VECCORE_CUDA
-std::ostream &operator<<(std::ostream &os, const Particle &part)
+std::ostream &operator<<(std::ostream &os, const ParticleOld &part)
 {
   os << part.fName << "(" << part.fPDG << ") Class:" << part.fClass << " Q:" << part.fCharge << " m:" << part.fMass
      << " lt:" << part.fLife << " I:" << (int)part.fIsospin << " I3:" << (int)part.fIso3 << " S:" << (int)part.fStrange
@@ -51,7 +51,7 @@ std::ostream &operator<<(std::ostream &os, const Particle &part)
 
 //________________________________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Particle::Particle()
+ParticleOld::ParticleOld()
     : fPDG(0), fMatter(true), fPcode(0), fCharge(0), fMass(-1), fWidth(0), fIsospin(0), fIso3(0), fStrange(0),
       fFlavor(0), fTrack(0), fNdecay(0), fCode(-1)
 {
@@ -61,7 +61,7 @@ Particle::Particle()
 
 //________________________________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, int pcode, double charge, double mass,
+ParticleOld::ParticleOld(const char *name, int pdg, bool matter, const char *pclass, int pcode, double charge, double mass,
                    double width, int isospin, int iso3, int strange, int flavor, int track, int code)
     : fPDG(pdg), fMatter(matter), fPcode(pcode), fCharge(charge), fMass(mass), fWidth(width), fIsospin(isospin),
       fIso3(iso3), fStrange(strange), fFlavor(flavor), fTrack(track), fNdecay(0), fCode(code)
@@ -114,7 +114,7 @@ Particle::Particle(const char *name, int pdg, bool matter, const char *pclass, i
 }
 
 VECCORE_ATT_HOST_DEVICE
-Particle::Particle(const Particle &other)
+ParticleOld::ParticleOld(const ParticleOld &other)
     : fPDG(other.fPDG), fMatter(other.fMatter), fPcode(other.fPcode), fCharge(other.fCharge), fMass(other.fMass),
       fWidth(other.fWidth), fIsospin(other.fIsospin), fStrange(other.fStrange), fFlavor(other.fFlavor),
       fTrack(other.fTrack), fCode(other.fCode)
@@ -126,7 +126,7 @@ Particle::Particle(const Particle &other)
   fClass[255] = '\0';
 }
 VECCORE_ATT_HOST_DEVICE
-Particle &Particle::operator=(const Particle &part)
+ParticleOld &ParticleOld::operator=(const ParticleOld &part)
 {
   if (&part != this) {
     strncpy(fName, part.fName, 255);
@@ -149,7 +149,7 @@ Particle &Particle::operator=(const Particle &part)
     for (unsigned int i = 0; i < part.fDecayList.size(); ++i)
       fDecayList[i]     = part.fDecayList[i];
     fNdecay = (unsigned char) fDecayList.size();
-    // cout << "Particle::= called" << endl;
+    // cout << "ParticleOld::= called" << endl;
   }
   return *this;
 }
@@ -157,7 +157,7 @@ Particle &Particle::operator=(const Particle &part)
 #ifndef VECCORE_CUDA
 
 // Returns the number of lines written.
-static unsigned WriteOneParticle(std::stringstream &outline, const Particle &part, unsigned int nfuncs)
+static unsigned WriteOneParticle(std::stringstream &outline, const ParticleOld &part, unsigned int nfuncs)
 {
   unsigned int nlines = 0;
   std::string name(part.Name());
@@ -167,14 +167,14 @@ static unsigned WriteOneParticle(std::stringstream &outline, const Particle &par
             << setfill(' ') << setw(0);
     if (part.Ndecay() > 0) {
       outline << "   vector<int> daughters;\n";
-      outline << "   Particle *part = nullptr;\n";
+      outline << "   ParticleOld *part = nullptr;\n";
     }
   }
   outline << endl << "   // Creating " << name << endl;
   size_t quote = name.find_first_of("\\\"");
   if (quote != std::string::npos)
     name = name.substr(0, quote) + "\\\"" + name.substr(quote + 1, name.size() - quote);
-  outline << "   new Particle("
+  outline << "   new ParticleOld("
           << "\"" << name << "\", " << part.PDG() << ", " << part.Matter() << ", "
           << "\"" << part.Class() << "\", " << part.Pcode() << ", " << part.Charge() << ", " << part.Mass() << ", "
           << part.Width() << ", " << part.Isospin() << ", " << part.Iso3() << ", " << part.Strange() << ", "
@@ -182,15 +182,15 @@ static unsigned WriteOneParticle(std::stringstream &outline, const Particle &par
   //	 cout << name << " " << part.Ndecay() << endl;
   ++nlines;
   if (part.Ndecay() > 0) {
-    outline << "   part = const_cast<Particle*>(&Particle::Particles().at(" << part.PDG() << "));" << endl;
-    for (Particle::VectorDecay_t::const_iterator d = part.DecayList().begin(); d != part.DecayList().end(); ++d) {
+    outline << "   part = const_cast<ParticleOld*>(&ParticleOld::Particles().at(" << part.PDG() << "));" << endl;
+    for (ParticleOld::VectorDecay_t::const_iterator d = part.DecayList().begin(); d != part.DecayList().end(); ++d) {
       outline << "   daughters.clear();\n";
       ++nlines;
       for (int i = 0; i < d->NDaughters(); ++i) {
         outline << "   daughters.push_back(" << d->Daughter(i) << ");\n";
         ++nlines;
       }
-      outline << "   part->AddDecay(Particle::Decay(" << d->Type() << ", " << d->Br() << ", "
+      outline << "   part->AddDecay(ParticleOld::Decay(" << d->Type() << ", " << d->Br() << ", "
               << " daughters));\n";
       ++nlines;
     }
@@ -232,11 +232,11 @@ static void SwitchFile(std::stringstream &outline, unsigned int nfiles, unsigned
 
 static void StartFile(std::stringstream &outline, unsigned int nfiles, bool oneFuncPer = false)
 {
-  outline << "// This files was autogenerated by geant::Particle::ReadFile\n\n";
+  outline << "// This files was autogenerated by geant::ParticleOld::ReadFile\n\n";
   outline << "#if defined(__clang__) && !defined(__APPLE__)" << endl;
   outline << "#pragma clang optimize off" << endl;
   outline << "#endif" << endl;
-  outline << "#include \"Particle.h\"" << endl;
+  outline << "#include \"ParticleOld.h\"" << endl;
   outline << "#ifdef VECCORE_CUDA" << endl << "#include \"base/Vector.h\"" << endl
           << "template <typename T>" << endl << "using vector = vecgeom::Vector<T>;" << endl
           << "#else" << endl << "using std::vector;" << endl << "#endif" << endl << endl;
@@ -247,14 +247,14 @@ static void StartFile(std::stringstream &outline, unsigned int nfiles, bool oneF
     outline << "VECCORE_ATT_HOST_DEVICE" << endl << "void CreateParticle" << setfill('0') << setw(4) << nfiles << "() {" << endl
             << setfill(' ') << setw(0);
     outline << "   vector<int> daughters;\n";
-    outline << "   Particle *part = nullptr;\n";
+    outline << "   ParticleOld *part = nullptr;\n";
   } else {
     outline << "namespace {\n";
   }
 }
 
 //________________________________________________________________________________________________
-void Particle::ReadFile(std::string infilename, bool output)
+void ParticleOld::ReadFile(std::string infilename, bool output)
 {
   int count;
   std::string name;
@@ -333,9 +333,9 @@ void Particle::ReadFile(std::string infilename, bool output)
     if (pdg >= 0) {
       if (isospin != -100) isospin = (isospin - 1) / 2;
       if (strange != -100) strange = (strange - 1) / 2;
-      new Particle(name.c_str(), pdg, matter, pclass.c_str(), pcode, charge / 3., mass, width, isospin, iso3, strange,
+      new ParticleOld(name.c_str(), pdg, matter, pclass.c_str(), pcode, charge / 3., mass, width, isospin, iso3, strange,
                    flavor, track);
-      Particle &part = fParticles->at(pdg);
+      ParticleOld &part = fParticles->at(pdg);
       if (ndecay > 0) {
         for (int i = 0; i < 3; ++i) {
           getline(infile, line);
@@ -370,12 +370,12 @@ void Particle::ReadFile(std::string infilename, bool output)
         printf("Cannot build the antiparticle because the particle %d is not there!", -pdg);
         exit(1);
       }
-      Particle &p = fParticles->at(-pdg);
-      new Particle(name.c_str(), pdg, matter, p.Class(), p.Pcode(), p.Charge() == 0 ? 0 : -p.Charge(), p.Mass(),
+      ParticleOld &p = fParticles->at(-pdg);
+      new ParticleOld(name.c_str(), pdg, matter, p.Class(), p.Pcode(), p.Charge() == 0 ? 0 : -p.Charge(), p.Mass(),
                    p.Width(), p.Isospin() == 0 ? 0 : -p.Isospin(), p.Isospin() == 0 ? 0 : -p.Isospin(),
                    p.Iso3() == 0 ? 0 : -p.Iso3(), p.Strange() == 0 ? 0 : -p.Strange(),
                    p.Flavor() == 0 ? 0 : -p.Flavor(), p.Track());
-      Particle &part = fParticles->at(pdg);
+      ParticleOld &part = fParticles->at(pdg);
       Decay decay;
       auto dl = p.DecayList();
       for (int i = 0; i < p.Ndecay(); ++i) {
@@ -396,7 +396,7 @@ void Particle::ReadFile(std::string infilename, bool output)
     unsigned int nlines = 0;
     unsigned int nfiles = 0;
     unsigned int nfuncs = 0;
-    for (auto p = Particle::Particles().begin(); p != Particle::Particles().end(); ++p) {
+    for (auto p = ParticleOld::Particles().begin(); p != ParticleOld::Particles().end(); ++p) {
       if (nlines == 0 || nlines > kMaxLines) {
         //fprintf(stderr,"Switching to files number %d after count=%d and nlines=%d\n",nfiles,nparticles,nlines);
         if (nparticles > 0) {
@@ -419,8 +419,8 @@ void Particle::ReadFile(std::string infilename, bool output)
     }
 
     outfile.open("CreateParticles.cxx");
-    outfile << "// This files was autogenerated by geant::Particle::ReadFile\n\n";
-    outfile << "#include \"Particle.h\"" << endl;
+    outfile << "// This files was autogenerated by geant::ParticleOld::ReadFile\n\n";
+    outfile << "#include \"ParticleOld.h\"" << endl;
     outfile << "namespace geant {" << endl;
     outfile << "inline namespace GEANT_IMPL_NAMESPACE {" << endl << endl;
     for (unsigned int i = 0; i < nfiles; ++i) {
@@ -433,7 +433,7 @@ void Particle::ReadFile(std::string infilename, bool output)
     outfile << "#endif\n";
 
     outfile << endl << "//" << setw(80) << setfill('_') << "_" << endl << setfill(' ') << setw(0);
-    outfile << "VECCORE_ATT_HOST_DEVICE" << endl << "void Particle::CreateParticles() {" << endl;
+    outfile << "VECCORE_ATT_HOST_DEVICE" << endl << "void ParticleOld::CreateParticles() {" << endl;
     outfile << "#ifndef VECCORE_CUDA_DEVICE_COMPILATION\n";
     outfile << "  static bool fgCreateParticlesInitDone = false;\n";
     outfile << "#else\n";
@@ -454,7 +454,7 @@ void Particle::ReadFile(std::string infilename, bool output)
   }
 }
 //________________________________________________________________________________________________
-void Particle::GetDecay(const std::string &line, int &dcount, Decay &decay)
+void ParticleOld::GetDecay(const std::string &line, int &dcount, Decay &decay)
 {
   int dtype;
   double br;
@@ -476,7 +476,7 @@ void Particle::GetDecay(const std::string &line, int &dcount, Decay &decay)
 }
 
 //________________________________________________________________________________________________
-void Particle::NormDecay()
+void ParticleOld::NormDecay()
 {
   double brt = 0;
 
@@ -501,7 +501,7 @@ void Particle::NormDecay()
 }
 
 //________________________________________________________________________________________________
-void Particle::GetPart(const std::string &line, int &count, std::string &name, int &pdg, bool &matter, int &pcode,
+void ParticleOld::GetPart(const std::string &line, int &count, std::string &name, int &pdg, bool &matter, int &pcode,
                        std::string &pclass, int &charge, double &mass, double &width, int &isospin, int &iso3,
                        int &strange, int &flavor, int &track, int &ndecay, int &ipart, int &acode)
 {
@@ -553,14 +553,14 @@ void Particle::GetPart(const std::string &line, int &count, std::string &name, i
     ss >> ndecay;
   }
 }
-std::ostream &operator<<(std::ostream &os, const Particle::Decay &dec)
+std::ostream &operator<<(std::ostream &os, const ParticleOld::Decay &dec)
 {
   os << "Type " << static_cast<int>(dec.fType) << " br " << dec.fBr << " products: ";
   for (unsigned int i = 0; i < dec.fDaughters.size(); ++i)
     os << " " << dec.fDaughters[i];
 
   /*   for(int i=0; i<dec.fDaughters.size(); ++i)
- os << " " << Particle::Particles().at(dec.fDaughters[i]).Name(); */
+ os << " " << ParticleOld::Particles().at(dec.fDaughters[i]).Name(); */
 
   return os;
 }

@@ -8,6 +8,7 @@ include(${Geant4_USE_FILE})
 include_directories(include
   ${Geant4_INCLUDE_DIR})
 
+include_directories(${CMAKE_SOURCE_DIR}/physics/particle/inc)
 
 if (USE_VECGEOM_NAVIGATOR)
  include_directories(${CMAKE_SOURCE_DIR}/material/inc)

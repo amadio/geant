@@ -74,18 +74,9 @@
 
 #include "G4PhysicsListHelper.hh"
 
-#ifdef USE_VECGEOM_NAVIGATOR
-#undef USE_VECGEOM_NAVIGATOR
-#define RESTORE_USE_VECGEOM_NAVIGATOR
-#endif
-
 #include "TotalPhysicsProcess.hh"
 #include "TabulatedDataManager.hh"
 #include "TPartIndex.h"
-
-#ifdef RESTORE_USE_VECGEOM_NAVIGATOR
-#define USE_VECGEOM_NAVIGATOR
-#endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

@@ -128,7 +128,7 @@ private:
 #endif
 };
 
-#ifndef USE_VECGEOM_NAVIGATOR
+#ifdef USE_ROOT
 class TOMXsec : public TObject {
 public:
   TOMXsec(TMXsec *mxsec) : fMXsec(mxsec) {}

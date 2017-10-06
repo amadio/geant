@@ -21,6 +21,7 @@ else()
     ${CMAKE_SOURCE_DIR}/numa/inc
     ${CMAKE_SOURCE_DIR}/magneticfield/inc
     ${CMAKE_SOURCE_DIR}/physics/particle/inc
+    ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
     )
 endif()
 

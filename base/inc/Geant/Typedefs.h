@@ -19,6 +19,11 @@
 #endif
 #endif
 
+#ifdef USE_REAL_PHYSICS
+#include "Particle.h"
+typedef geantphysics::Particle Particle_t;
+#endif
+
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
 typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
@@ -28,12 +33,6 @@ typedef geantphysics::Material Material_t;
 typedef VECGEOM_NAMESPACE::LogicalVolume Volume_t;
 #include "volumes/PlacedVolume.h"
 typedef VECGEOM_NAMESPACE::VPlacedVolume Node_t;
-#include "Particle.h"
-#ifdef Particle_H
-typedef geant::Particle Particle_t;
-#else
-typedef geantphysics::Particle Particle_t;
-#endif
 #else
 #include "TGeoBranchArray.h"
 typedef TGeoBranchArray VolumePath_t;
@@ -45,7 +44,5 @@ typedef TGeoMedium Medium_t;
 typedef TGeoVolume Volume_t;
 #include "TGeoNode.h"
 typedef TGeoNode Node_t;
-#include "TDatabasePDG.h"
-typedef TParticlePDG Particle_t;
 #endif
 #endif
