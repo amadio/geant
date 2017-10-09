@@ -114,6 +114,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fMaxDepth = other.fMaxDepth;
     fStage = other.fStage;
     fGeneration = other.fGeneration;
+    fVolume = other.fVolume;
 
     // Copy user data
     memcpy(fExtraData, other.fExtraData, TrackDataMgr::GetInstance()->GetDataSize());
@@ -170,6 +171,7 @@ void GeantTrack::Clear(const char *)
   fMaxDepth = 0;
   fStage = 0;
   fGeneration = 0;
+  fVolume = nullptr;
 #ifdef USE_VECGEOM_NAVIGATOR
   fPath->Clear();
   fNextpath->Clear();

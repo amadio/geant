@@ -358,7 +358,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 
 //  int nworkers = propagator->fNthreads;
 //  WorkloadManager *wm = propagator->fWMgr;
-//  GeantEventServer *evserv = runmgr->GetEventServer();
+  GeantEventServer *evserv = runmgr->GetEventServer();
 //  bool firstTime = true;
 //  bool multiPropagator = runmgr->GetNpropagators() > 1;
   // IO handling
@@ -399,9 +399,11 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     auto feedres = PreloadTracksForStep(td); 
     if (feedres == FeederResult::kStop) break;
     if (flush) {
-      if (feedres == FeederResult::kError)
-        Geant::Warning("","=== Task %d exited due to missing workload", tid);
-      break;
+      if (feedres == FeederResult::kError) {
+        if (!evserv->EventsServed())
+          Geant::Warning("","=== Task %d exited due to missing workload", tid);
+        break;
+      }
     }
     flush = (feedres == FeederResult::kNone) | (feedres == FeederResult::kError);
     SteppingLoop(td, flush);
@@ -678,6 +680,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
               propagator->fNbfeed < runmgr->GetInitialShare()) {
             ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, error);
             if (ntotransport) basket = bserv;
+            else sch->GarbageCollect(td);
           }
         }
         // Try to get from work queue without waiting

@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
   // This is now the most important parameter for memory considerations
   config->fMaxPerBasket = n_track_max;   // Maximum vector size (tunable)
   config->fEmin = 3.E-6; // [3 KeV] energy cut
-  config->fEmax = 0.3;  // [30MeV] used for now to select particle gun energy
+  config->fEmax = 0.03;  // [30MeV] used for now to select particle gun energy
 
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase

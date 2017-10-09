@@ -265,6 +265,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
   }
 
   fEventsServed = false;
+  fHasTracks = true;
   return true;
 }
 
@@ -373,6 +374,7 @@ GeantTrack *GeantEventServer::GetNextTrack(unsigned int &error)
       // Current event dispatched, try to activate new event
       event = ActivateEvent(event, error);
       if (!event) {
+        if (error == kDone) fHasTracks = false;
         if (error) return nullptr;
         continue;
       }

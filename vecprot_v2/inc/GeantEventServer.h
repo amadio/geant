@@ -123,6 +123,9 @@ public:
   int GetBindex() { return fBindex; }
 
   GEANT_FORCE_INLINE
+  bool EventsServed() const { return fEventsServed; }
+
+  GEANT_FORCE_INLINE
   bool HasTracks() const { return fHasTracks; }
 
   GEANT_FORCE_INLINE
