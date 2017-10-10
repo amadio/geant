@@ -72,7 +72,7 @@ private:
   int  fBindex = 0;                    /** Basket manager index */
   queue_slots fFreeSlots;              /** Queue of free event slots */
   queue_events fPendingEvents;         /** Queue of pending events */
-  queue_events fEmptyEvents;           /** Queue of empty events */
+  queue_events fDoneEvents;            /** Queue of transported events */
 
 protected:
   GeantTrack *GetNextTrack(unsigned int &error);

@@ -174,7 +174,7 @@ bool GeantRunManager::Initialize() {
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(100);     // <- must be configurable
-    mgr->SetBlockSize(10000);  // <- must be configurable
+    mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->Init();
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (fConfig->fUseNuma) {
@@ -459,9 +459,9 @@ void GeantRunManager::RunSimulation() {
   Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
          fNpropagators, fNthreads, fEventServer->GetNprimaries(), ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
-  LocalityManager *lmgr = LocalityManager::Instance();
-  Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
-         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
+  //LocalityManager *lmgr = LocalityManager::Instance();
+  // Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
+  //       lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
 #ifdef USE_VECGEOM_NAVIGATOR
   Printf("=== Navigation done using VecGeom ====");
 #else

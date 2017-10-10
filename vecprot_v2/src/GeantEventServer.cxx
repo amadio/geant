@@ -36,7 +36,7 @@ using namespace vecgeom;
 GeantEventServer::GeantEventServer(int nactive_max, GeantRunManager *runmgr)
   :fNevents(0), fNactiveMax(nactive_max), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
    fNload(0), fNstored(0), fNcompleted(0), fRunMgr(runmgr),
-   fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)), fPendingEvents(4096), fEmptyEvents(4096)
+   fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)), fPendingEvents(4096), fDoneEvents(4096)
 {
 // Constructor
   assert(nactive_max > 0 && nactive_max < 4096);
@@ -57,9 +57,6 @@ GeantEventServer::GeantEventServer(int nactive_max, GeantRunManager *runmgr)
     fNevents = fRunMgr->GetConfig()->fNtotal;
     ngen = vecCore::math::Min(ngen, fNevents);
   }
-
-  for (int i = 0; i < ngen + nthreads; ++i)
-    fEmptyEvents.enqueue(new GeantEvent());
 
   unsigned int error = 0;
   if (generate) {
@@ -85,7 +82,7 @@ GeantEventServer::~GeantEventServer()
     delete fEvents[i];
   }
   GeantEvent *event;
-  while (fEmptyEvents.dequeue(event)) delete event;
+  while (fDoneEvents.dequeue(event)) delete event;
 }
 
 //______________________________________________________________________________
@@ -123,15 +120,7 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
     ntracks = eventinfo.ntracks;
   }
   
-  GeantEvent *event = nullptr;
-  if (!fEmptyEvents.dequeue(event)) {
-    Error("GenerateNewEvent", "### Problem with empty queue!!!");
-    error = 3;
-    fGenLock.clear(std::memory_order_release);
-    return nullptr;
-  }
-  // Clear the event. At this point the event must not be in use anywhere
-  event->Clear();
+  GeantEvent *event = new GeantEvent();
   event->SetNprimaries(ntracks);
   event->SetVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
 
@@ -296,7 +285,7 @@ GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &err
 
   // Move old event from slot to queue of empty events
   if (fEvents[slot]) {
-    fEmptyEvents.enqueue(fEvents[slot]);
+    fDoneEvents.enqueue(fEvents[slot]);
     fEvents[slot] = nullptr;
   }
   
