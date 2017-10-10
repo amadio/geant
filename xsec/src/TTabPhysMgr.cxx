@@ -983,6 +983,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
 
           propagator->AddTrack(track);
           tracks.AddTrack(track);
+          td->ReleaseTrack(track);
 
           ++nTotSecPart;
         } else {                       // {secondary Ekin < energyLimit} -> kill this secondary
