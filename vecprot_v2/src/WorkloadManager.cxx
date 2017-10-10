@@ -335,35 +335,24 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  td->AttachPropagator(prop, node);
   int tid = td->fTid;
-  //prop->SetNuma(node);
-  if (useNuma)
-    Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
-                 tid, prop, node, cpu);
-  else
-    Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
-  td->fNode = node;
-  td->fPropagator = prop;
-  td->fShuttleBasket = prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0);
+
   if (useNuma) {
+    Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
+                 tid, prop, node, cpu);    
     int membind = NumaUtils::NumaNodeAddr(td->fShuttleBasket->Tracks().data());
     if (node != membind)
       Geant::Print("","=== Thread #d: Wrong memory binding");
+  } else {
+    Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   }
-  td->fBvector = prop->fConfig->fUseNuma ? new Basket(256, 0, node) : new Basket(256, 0);
-  for (int i=0; i<=int(kSteppingActionsStage); ++i)
-    td->fStageBuffers.push_back(prop->fConfig->fUseNuma ? new Basket(1000, 0, node) : new Basket(1000, 0));
-  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
-  td->fStackBuffer->SetStageBuffer(td->fStageBuffers[0]);
 
-//  int nworkers = propagator->fNthreads;
-//  WorkloadManager *wm = propagator->fWMgr;
   GeantEventServer *evserv = runmgr->GetEventServer();
-//  bool firstTime = true;
-//  bool multiPropagator = runmgr->GetNpropagators() > 1;
+
   // IO handling
   #ifdef USE_ROOT
-  bool concurrentWrite = td->fPropagator->fConfig->fConcurrentWrite && td->fPropagator->fConfig->fFillTree;
+  bool concurrentWrite = prop->fConfig->fConcurrentWrite && prop->fConfig->fFillTree;
 //  int treeSizeWriteThreshold = td->fPropagator->fConfig->fTreeSizeWriteThreshold;
 
   GeantFactoryStore* factoryStore = GeantFactoryStore::Instance();
@@ -566,6 +555,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
   GeantRunManager *runmgr = prop->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
   int tid = td->fTid;
+  td->AttachPropagator(prop, 0);
   Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   td->fPropagator = prop;
 //  td->fStackBuffer = new StackLikeBuffer(propagator->fConfig->fNstackLanes, td);
@@ -962,6 +952,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
   GeantRunManager *runmgr = propagator->fRunMgr;
   Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
   int tid = td->fTid;
+  td->AttachPropagator(prop, 0);
   Geant::Print("","=== Worker thread %d created for Coprocessor ===", tid);
 
   int nworkers = propagator->fNthreads;

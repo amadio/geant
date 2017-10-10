@@ -252,8 +252,11 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     if (fNtracksInit % basket_size > 0) fNbasketsInit++;
     printf("=== Imported %d primaries from %d buffered events\n", fNtracksInit, fNactiveMax);
     printf("=== Buffering %d baskets of size %d feeding %d threads\n", fNbasketsInit, basket_size, nthreads);
-    if (fNbasketsInit < nthreads) {
-      printf("### \e[5mWARNING!    Concurrency settings are not optimal. Not enough baskets to feed all threads.\e[m\n###\n");
+    if (fNbasketsInit < nthreads || fNactiveMax < nthreads) {
+      if (fNbasketsInit < nthreads)
+        printf("### \e[5mWARNING!    Concurrency settings are not optimal. Not enough baskets to feed all threads.\e[m\n###\n");
+      if (fNactiveMax < nthreads)
+        printf("### \e[5mWARNING!    Increase number of buffered events to minimum %d\e[m\n###\n", nthreads);
       printf("###                          Rule of thumb:\n");
       printf("###  ==================================================================\n");
       printf("### ||  Nbuff_events * Nprimaries_per_event > Nthreads * basket_size  ||\n");

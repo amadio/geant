@@ -223,7 +223,7 @@ bool GeantRunManager::Initialize() {
     fPropagators[i]->Initialize();
 
   GeantTaskData *td = fTDManager->GetTaskData(0);
-  td->fPropagator = fPropagators[0];
+  td->AttachPropagator(fPropagators[0], 0);
 
   // Initialize the event server
   fEventServer = new GeantEventServer(fConfig->fNbuff, this);

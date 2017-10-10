@@ -116,6 +116,28 @@ GeantTaskData::~GeantTaskData()
 }
 
 //______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void GeantTaskData::AttachPropagator(GeantPropagator *prop, int node)
+{
+  // Attach to a given propagator and a given NUMA node.
+  if (fPropagator) {
+    assert(fPropagator == prop);
+    fNode = node;
+    return;
+  }
+  fPropagator = prop;
+  fNode = node;
+  bool usenuma = prop->fConfig->fUseNuma;
+  fShuttleBasket = usenuma ? new Basket(1000, 0, node) : new Basket(1000, 0);
+  fBvector = usenuma ? new Basket(256, 0, node) : new Basket(256, 0);
+  for (int i=0; i<=int(kSteppingActionsStage); ++i)
+    fStageBuffers.push_back(usenuma ? new Basket(1000, 0, node) : new Basket(1000, 0));
+  fStackBuffer = new StackLikeBuffer(prop->fConfig->fNstackLanes, this);
+  fStackBuffer->SetStageBuffer(fStageBuffers[0]);
+  fBlock = fPropagator->fTrackMgr->GetNewBlock();
+}  
+
+//______________________________________________________________________________
 VECCORE_ATT_DEVICE
 GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop)
 {
@@ -194,11 +216,21 @@ VECCORE_ATT_HOST_DEVICE
 GeantTrack &GeantTaskData::GetNewTrack()
 {
   size_t index;
-  GeantTrack &track = fPropagator->fTrackMgr->GetTrack();
-  index = track.fBindex;
-  track.Reset(*fTrack);
-  track.fBindex = index;
-  return track;
+  if (fBlock->IsDistributed()) {
+    fBlock = fPropagator->fTrackMgr->GetNewBlock();
+    //printf("== New block: %d (%d) current=%d used=%d\n",
+    //       fBlock->GetId(), fBlock->GetNode(), fBlock->GetCurrent(), fBlock->GetUsed());
+    assert(fBlock->GetCurrent() == 0 && fBlock->GetUsed() == 0);
+  }
+  GeantTrack *track = fBlock->GetObject(index);
+  track->Reset(*fTrack);
+  track->fBindex = index;
+  return *track;
+//  GeantTrack &track = fPropagator->fTrackMgr->GetTrack();
+//  index = track.fBindex;
+//  track.Reset(*fTrack);
+//  track.fBindex = index;
+//  return track;
 }
 
 //______________________________________________________________________________
