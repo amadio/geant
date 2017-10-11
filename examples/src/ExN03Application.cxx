@@ -173,22 +173,22 @@ void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
   int idnode = -1;
   int ilev = -1;
 #ifndef USE_VECGEOM_NAVIGATOR
-  ilev = track.fPath->GetLevel();
+  ilev = track.Path()->GetLevel();
 #else
-  ilev = track.GetPath()->GetCurrentLevel() - 1;
+  ilev = track.Path()->GetCurrentLevel() - 1;
 #endif
   if (ilev < 1) return;
 #ifndef USE_VECGEOM_NAVIGATOR
-  current = track.GetPath()->GetCurrentNode();
+  current = track.Path()->GetCurrentNode();
 #else
-  current = track.GetPath()->Top();
+  current = track.Path()->Top();
 #endif
   if (!current) return;
 #ifndef USE_VECGEOM_NAVIGATOR
-    idnode = track.GetPath()->GetNode(ilev - 1)->GetNumber();
+    idnode = track.Path()->GetNode(ilev - 1)->GetNumber();
     idvol = current->GetVolume()->GetNumber();
 #else
-    idnode = track.GetPath()->At(ilev - 1)->id();
+    idnode = track.Path()->At(ilev - 1)->id();
     idvol = current->GetLogicalVolume()->id();
 #endif
   ExN03LayerDigit &digit = (*fDigitsHandle)(td).GetDigits(track.fEvslot).GetDigit(idnode);
@@ -199,15 +199,16 @@ void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-void ExN03Application::Digitize(GeantEvent *event) {
+void ExN03Application::FinishEvent(int evt, int slot) {
   // User method to digitize a full event, which is at this stage fully transported
+  GeantEvent *event = fRunMgr->GetEvent(slot);
   //   printf("======= Statistics for event %d:\n", event);
   // Merge the digits for the event
   ExN03ScoringData *digits = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDigitsHandle);
   if (digits) {
-    printf("=== Merged digits for event %d\n", event->GetEvent());
+    printf("=== Merged digits for event %d\n", evt);
     //digits->PrintDigits(event);
-    digits->Clear(event->GetSlot());
+    digits->Clear(slot);
   }
   return;
   printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");

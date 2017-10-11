@@ -301,13 +301,14 @@ void CMSApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
 }
 
 //______________________________________________________________________________
-void CMSApplication::Digitize(GeantEvent *event) {
+void CMSApplication::FinishEvent(int evt, int slot) {
   // User method to digitize a full event, which is at this stage fully transported
   //   Geant::Printf("======= Statistics for event %d:\n", event);
   
   return;
-  Geant::Printf("Energy deposit in ECAL [MeV/primary] ");
+  Geant::Printf("Energy deposit for event %d in ECAL [MeV/primary] ", evt);
   Geant::Printf("================================================================================");
+  GeantEvent *event = fRunMgr->GetEvent(slot);
   double nprim = (double)(event->GetNtracks());
   for (int i = 0; i < kNECALModules; ++i) {
     for (int tid = 1; tid < kMaxThreads; ++tid) {

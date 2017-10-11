@@ -124,7 +124,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
     track.fSnext = track.fPstep;
-    *track.fNextpath = *track.fPath;
+    track.UpdateSameNextPath();
     track.fBoundary = false;
     return;
   }
@@ -134,7 +134,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
   // Setup start state
   nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
   nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
-  track.fPath->UpdateNavigator(nav);
+  track.Path()->UpdateNavigator(nav);
   nav->FindNextBoundary(Math::Min<double>(1.E20, track.fPstep), "", track.fBoundary);
   track.fSnext = nav->GetStep();
   track.fBoundary = track.fSnext < track.fPstep;
@@ -156,7 +156,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
   // Check if current safety allows for the proposed step
   if (track.fSafety > track.fPstep) {
     track.fStep = track.fPstep;
-    *track.fNextpath = *track.fPath;
+    track.UpdateSameNextPath();
     track.fBoundary = false;
     return;
   }
@@ -166,7 +166,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
   // Setup start state
   nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
   nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
-  track.fPath->UpdateNavigator(nav);
+  track.Path()->UpdateNavigator(nav);
   nextnode = nav->GetCurrentNode();
   while (nextnode) {
     lastnode = nextnode;
@@ -216,7 +216,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
   // Update safety, boundary flag and next path
   track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
   track.fBoundary = nav->IsOnBoundary();
-  track.fNextpath->InitFromNavigator(nav);
+  track.NextPath()->InitFromNavigator(nav);
 #ifdef VERBOSE
   double bruteforces = nav->Safety();
   Geant::Print("","##TGEOM  BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", track.fBoundary,
@@ -270,9 +270,9 @@ void ScalarNavInterfaceTGeo::NavIsSameLocation(GeantTrack &track, bool &same) {
   nav->SetLastSafetyForPoint(0, 0, 0, 0);
   nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
   nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
-  track.fPath->UpdateNavigator(nav);
+  track.Path()->UpdateNavigator(nav);
   if (!nav->IsSameLocation(track.fXpos, track.fYpos, track.fZpos, true)) {
-    track.fNextpath->InitFromNavigator(nav);
+    track.NextPath()->InitFromNavigator(nav);
     same = false;     
   } else {
   // Track not crossing

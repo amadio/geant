@@ -28,6 +28,7 @@
   #include "TBits.h"
   #include "TError.h"
   #include "TSystem.h"
+  #include "TDatabasePDG.h"
 #endif
 #include <strings.h>
 

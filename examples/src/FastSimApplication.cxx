@@ -136,9 +136,6 @@ void FastSimApplication::StepManager( int npart, const GeantTrack_v &tracks, Gea
 }
 
 //______________________________________________________________________________
-void FastSimApplication::Digitize( GeantEvent * /* event */ ) {}
-
-//______________________________________________________________________________
 void FastSimApplication::FinishRun() {
   //std::cout << "APPLICATION : FastSimApplication::FinishRun" << std::endl;  // Debug
   #ifdef  USE_ROOT

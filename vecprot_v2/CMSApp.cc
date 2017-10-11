@@ -173,6 +173,7 @@ int main(int argc, char *argv[]) {
 
     case 'v':
       usev3 = bool(strtol(optarg, NULL, 10));
+      if (!usev3) n_buffered = 4;
       break;
 
     case 'n':

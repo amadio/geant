@@ -1227,8 +1227,8 @@ int TTabPhysMgr::SampleFinalStates(GeantTrack *track, TrackVec_t &output, GeantT
         track1.fSafety = track->fSafety;
         track1.fBoundary = track->fBoundary;
         track1.fPending = false;
-        track1.SetPath(track->GetPath());
-        track1.SetNextPath(track->GetPath());
+        track1.SetPath(track->Path());
+        track1.SetNextPath(track->Path());
 	      track1.fMother = track->fParticle;
 
         // Rotate new track to parent track's frame
@@ -1574,8 +1574,8 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
     track1.fSafety = track->fSafety;
     track1.fBoundary = track->fBoundary;
     track1.fPending = false;
-    track1.SetPath(track->GetPath());
-    track1.SetNextPath(track->GetPath());
+    track1.SetPath(track->Path());
+    track1.SetNextPath(track->Path());
 
     td->fPropagator->AddTrack(track1);
     output.push_back(&track1);
@@ -1697,8 +1697,8 @@ void TTabPhysMgr::GetRestFinStates(int partindex, TMXsec *mxs, double energyLimi
       track3.fSafety = track->fSafety;
       track3.fBoundary = track->fBoundary;
       track3.fPending = false;
-      track3.SetPath(track->GetPath());
-      track3.SetNextPath(track->GetPath());
+      track3.SetPath(track->Path());
+      track3.SetNextPath(track->Path());
 
       // rotate at-rest secondary by a common random theta and random phi
       RotateNewTrack(randDirX, randDirY, randDirZ, track3);
@@ -1928,8 +1928,8 @@ void TTabPhysMgr::SampleDecayInFlight(int partindex, TMXsec *mxs, double energyL
         track1.fSafety = track->fSafety;
         track1.fBoundary = track->fBoundary;
         track1.fPending = false;
-        track1.SetPath(track->GetPath());
-        track1.SetNextPath(track->GetPath());
+        track1.SetPath(track->Path());
+        track1.SetNextPath(track->Path());
 
         td->fPropagator->AddTrack(track1);
         output.push_back(&track1);

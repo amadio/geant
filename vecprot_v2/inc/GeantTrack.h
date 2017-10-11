@@ -381,14 +381,6 @@ public:
   /** @brief Function that return material */
   Material_t *GetMaterial() const;
 
-  /** @brief Function that returns the current path (NavigationState) of the track */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  VolumePath_t *GetPath() const { return fPath; }
-
-  /** @brief Function that return next path (NavigationState) of the track */
-  VolumePath_t *GetNextPath() const { return fNextpath; }
-
   /** @brief Function that return number of physical step made */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE

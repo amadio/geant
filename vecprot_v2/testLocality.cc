@@ -79,7 +79,7 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
 #ifdef USE_VECGEOM_NAVIGATOR
   SimpleNavigator nav;
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                    Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.GetPath(), true);
+                    Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.Path(), true);
 #else
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->FindNode(track.fXpos, track.fYpos, track.fZpos);

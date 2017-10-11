@@ -21,6 +21,7 @@
 #ifndef VECCORE_CUDA
 #ifdef USE_ROOT
 #include "Rtypes.h"
+#include "TDatabasePDG.h"
 #endif
 #endif
 #include "ParticleOld.h"
@@ -63,7 +64,11 @@ extern VECCORE_ATT_DEVICE TPartIndex *fgPartIndexDev;
 extern TPartIndex *fgPartIndexHost;
 #endif
 
+#if defined(USE_VECGEOM_NAVIGATOR)
 typedef geant::ParticleOld Particle_t;
+#else
+typedef TParticlePDG Particle_t;
+#endif
 
 class TPartIndex {
 public:

@@ -119,12 +119,8 @@ public:
    */
   virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
-  /**
-   * @brief Function of digitization
-   * 
-   * @param event Event that should be digitized
-   */
-  virtual void Digitize(GeantEvent *event);
+  /** @brief  User FinishEvent function.*/
+  virtual void FinishEvent(int evt, int slot);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

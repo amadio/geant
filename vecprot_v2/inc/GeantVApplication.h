@@ -64,10 +64,13 @@ public:
    */
   virtual void BeginEvent(int /*evt*/, int /*islot*/) {}
   /**
-   * @brief  Finish an event.
+   * @brief  User FinishEvent function.
    * @details The slot released is evt%ninflight, for easier user data management.
    */
   virtual void FinishEvent(int /*evt*/, int /*islot*/) {}
+
+  /** @brief User FinishRun function */
+  virtual void FinishRun() {}
 
   /** @brief Begin new track(s). */
   virtual void BeginTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
@@ -80,16 +83,6 @@ public:
   /** @brief User stepping actions */
   virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
   virtual void SteppingActions(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
-
-  /**
-   * @brief Function of digitization
-   *
-   * @param event Event for digitization. The method will be deprecated.
-   */
-  virtual void Digitize(GeantEvent *event) = 0;
-
-  /** @brief User FinishRun function */
-  virtual void FinishRun() = 0;
 
 };
 
