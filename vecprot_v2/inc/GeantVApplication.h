@@ -67,7 +67,7 @@ public:
    * @brief  User FinishEvent function.
    * @details The slot released is evt%ninflight, for easier user data management.
    */
-  virtual void FinishEvent(int /*evt*/, int /*islot*/) {}
+  virtual void FinishEvent(GeantEvent */*event*/) {}
 
   /** @brief User FinishRun function */
   virtual void FinishRun() {}

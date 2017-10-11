@@ -388,7 +388,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     auto feedres = PreloadTracksForStep(td); 
     if (feedres == FeederResult::kStop) break;
     if (flush) {
-      if (feedres == FeederResult::kError) {
+      if ((feedres == FeederResult::kNone) | (feedres == FeederResult::kError)) {
         if (!evserv->EventsServed())
           Geant::Warning("","=== Task %d exited due to missing workload", tid);
         break;

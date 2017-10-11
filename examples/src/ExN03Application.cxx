@@ -82,87 +82,6 @@ bool ExN03Application::Initialize() {
 }
 
 //______________________________________________________________________________
-void ExN03Application::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
-  // Application stepping manager. The thread id has to be used to manage storage
-  // of hits independently per thread.
-  if (!fInitialized)
-    return; // FOR NOW
-  // Loop all tracks, check if they are in the right volume and collect the
-  // energy deposit and step length
-  int tid = td->fTid;
-  Node_t const *current;
-  int idvol = -1;
-  int idnode = -1;
-  int ilev = -1;
-  for (int i = 0; i < npart; i++) {
-//      printf("%d=>\n", i);
-//      tracks.PrintTrack(i);
-#ifndef USE_VECGEOM_NAVIGATOR
-    ilev = tracks.fPathV[i]->GetLevel();
-#else
-    ilev = tracks.fPathV[i]->GetCurrentLevel() - 1;
-#endif
-    if (ilev < 1)
-      continue;
-#ifndef USE_VECGEOM_NAVIGATOR
-    current = tracks.fPathV[i]->GetCurrentNode();
-#else
-    current = tracks.fPathV[i]->Top();
-#endif
-    if (!current)
-      continue;
-#ifndef USE_VECGEOM_NAVIGATOR
-    idnode = tracks.fPathV[i]->GetNode(ilev - 1)->GetNumber();
-    idvol = current->GetVolume()->GetNumber();
-#else
-    idnode = tracks.fPathV[i]->At(ilev - 1)->id();
-    idvol = current->GetLogicalVolume()->id();
-#endif
-    if (idvol == fIdGap) {
-      //         tracks.PrintTrack(i);
-      fEdepGap[idnode][tid] += tracks.fEdepV[i];
-      fLengthGap[idnode][tid] += tracks.fStepV[i];
-    } else if (idvol == fIdAbs) {
-      //         tracks.PrintTrack(i);
-      fEdepAbs[idnode][tid] += tracks.fEdepV[i];
-      fLengthAbs[idnode][tid] += tracks.fStepV[i];
-    }
-  }
-  if (fRunMgr->GetConfig()->fFillTree) {
-    MyHit *hit;
-    //    int nhits = 0;
-    for (int i = 0; i < npart; i++) {
-      // Deposit hits in scintillator
-      if (idvol==fIdGap && tracks.fEdepV[i]>0.00002)
-	{
-	  hit = fFactory->NextFree(tracks.fEvslotV[i], tid);
-
-	  hit->fX = tracks.fXposV[i];
-	  hit->fY = tracks.fYposV[i];
-	  hit->fZ = tracks.fZposV[i];
-	  hit->fEdep = tracks.fEdepV[i];
-          hit->fTime = tracks.fTimeV[i];
-          hit->fEvent = tracks.fEventV[i];
-          hit->fTrack = tracks.fParticleV[i];
-	  hit->fVolId = idvol;
-	  hit->fDetId = idnode;
-
-	  //      if (track->path && track->path->GetCurrentNode()) {
-	  //         hit->fVolId = track->path->GetCurrentNode()->GetVolume()->GetNumber();
-	  //         hit->fDetId = track->path->GetCurrentNode()->GetNumber();
-	  //      }
-	  //	  nhits++;
-	}
-    }
-  }
-
-  //  Printf("Thread %d produced %d hits", tid, nhits);
-  //  Printf("StepManager: size of queue %zu", fFactory->fOutputs.size());
-
-  return;
-}
-
-//______________________________________________________________________________
 void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
 {
   if (!fInitialized) return;
@@ -199,16 +118,15 @@ void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-void ExN03Application::FinishEvent(int evt, int slot) {
+void ExN03Application::FinishEvent(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
-  GeantEvent *event = fRunMgr->GetEvent(slot);
   //   printf("======= Statistics for event %d:\n", event);
   // Merge the digits for the event
   ExN03ScoringData *digits = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDigitsHandle);
   if (digits) {
     printf("=== Merged digits for event %d\n", evt);
     //digits->PrintDigits(event);
-    digits->Clear(slot);
+    digits->Clear(event->GetSlot());
   }
   return;
   printf("Energy deposit [MeV/primary] and cumulated track length [cm/primary] per layer");

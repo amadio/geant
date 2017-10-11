@@ -86,19 +86,11 @@ public:
    */
   virtual bool Initialize();
 
-  /**
-   * @brief Function that provides step manager 
-   * 
-   * @param tid ?????
-   * @param npart ?????
-   * @param tracks GeantV tracks
-   */
-  virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
-
+  /** @brief User scoring per step */
   virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/);
 
   /** @brief  User FinishEvent function.*/
-  virtual void FinishEvent(int evt, int slot);
+  virtual void FinishEvent(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun() {}

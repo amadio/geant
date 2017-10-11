@@ -371,7 +371,7 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
 //  LocalityManager *lmgr = LocalityManager::Instance();
 //  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
 //         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
-  fApplication->FinishEvent(event->GetEvent(), event->GetSlot());
+  fApplication->FinishEvent(event);
   // Signal completion of one event to the event server
   fDoneEvents->SetBitNumber(event->GetEvent());
   assert(event->GetNtracks() > 0);

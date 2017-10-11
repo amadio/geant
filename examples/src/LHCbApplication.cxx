@@ -232,10 +232,9 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
 }
 
 //______________________________________________________________________________
-void LHCbApplication::FinishEvent(int evt, int slot) {
+void LHCbApplication::FinishEvent(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   Printf("======= Statistics for event %d:\n", event);
-  GeantEvent *event = fRunMgr->GetEvent(slot);
   Printf("Energy deposit for event %d in ECAL [MeV/primary] ", evt);
   Printf("================================================================================");
   double nprim = (double)(event->GetNtracks());

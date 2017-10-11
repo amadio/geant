@@ -208,7 +208,7 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
 }
 
 
-void TestEm5::Digitize(Geant::GeantEvent *event) {
+void TestEm5::FinishEvent(Geant::GeantEvent *event) {
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
   // belongs to the event (that occupied a given event-slot) that has been just transported
   TestEm5ThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);

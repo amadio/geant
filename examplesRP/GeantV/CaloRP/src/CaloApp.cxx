@@ -129,11 +129,11 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
   Node_t const *current;
   int idvol = -1;
   int ilev = -1;
-  ilev = track.GetPath()->GetCurrentLevel() - 1;
+  ilev = track.Path()->GetCurrentLevel() - 1;
   if (ilev<1) {
     return;
   }
-  current = track.GetPath()->Top();
+  current = track.Path()->Top();
   if (!current) {
     return;
   }
@@ -217,7 +217,7 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
 }
 
 
-void CaloApp::Digitize(Geant::GeantEvent *event) {
+void CaloApp::FinishEvent(Geant::GeantEvent *event) {
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
   // belongs to the event (that occupied a given event-slot) that has been just transported
   CaloAppThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);

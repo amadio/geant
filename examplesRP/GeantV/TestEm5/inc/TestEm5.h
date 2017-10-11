@@ -70,7 +70,7 @@ public:
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
-  virtual void Digitize(Geant::GeantEvent *event);
+  virtual void FinishEvent(Geant::GeantEvent *event);
 
   /** @brief Interface method that is called at the end of the simulation (when the transportation of all events are
     *        are completed). */
