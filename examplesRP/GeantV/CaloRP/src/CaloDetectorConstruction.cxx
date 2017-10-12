@@ -259,34 +259,36 @@ void CaloDetectorConstruction::CreateGeometry() {
   fLayerLogic->SetMaterialPtr(fWorldMaterial);
 
   //initialize variables for placement of absorbers
-  char *volName = new char;
+  char *volName = new char[20];
   double xfront=-fLayerThickness/2;
   double xcenter=0;
 
   //create and place absorbers
   for (int k=1; k<=numAbsorbers; k++) {
    	sprintf(volName,"abs%d",k);
-        fAbsLogic[k] = new vecgeom::LogicalVolume(volName,fAbsBoxes[k]);
-    	fAbsLogic[k]->SetMaterialPtr(fAbsMaterial[k]);
-    	fAbsLogic[k]->SetRegion(calRegion);
-	fAbsLogicVolumeID[k]=fAbsLogic[k]->id();
-	std::cout << "logic volume id for " << k << " is " << fAbsLogicVolumeID[k] << std::endl;
-    	xcenter = xfront+0.5*fAbsThickness[k];
-    	xfront += fAbsThickness[k];
-    	vecgeom::Transformation3D *calPlace = new vecgeom::Transformation3D(xcenter,0,0, 0,0,0);
-    	fLayerLogic->PlaceDaughter(volName,fAbsLogic[k],calPlace);
-   }
+    fAbsLogic[k] = new vecgeom::LogicalVolume(volName,fAbsBoxes[k]);
+    fAbsLogic[k]->SetMaterialPtr(fAbsMaterial[k]);
+    fAbsLogic[k]->SetRegion(calRegion);
+    fAbsLogicVolumeID[k]=fAbsLogic[k]->id();
+    std::cout << "logic volume id for " << k << " is " << fAbsLogicVolumeID[k] << std::endl;
+    xcenter = xfront+0.5*fAbsThickness[k];
+    xfront += fAbsThickness[k];
+    vecgeom::Transformation3D *calPlace = new vecgeom::Transformation3D(xcenter,0,0, 0,0,0);
+    fLayerLogic->PlaceDaughter(volName,fAbsLogic[k],calPlace);
+  }
 
   double xfront_l=-0.5*numLayers*fLayerThickness;
   double xcenter_l=0;
 
   for (int j=1; j<=numLayers; j++) {
-	sprintf(volName,"Layer%d",j);
-        xcenter_l = xfront_l+fLayerThickness/2;
-	xfront_l += fLayerThickness;
-    	vecgeom::Transformation3D *layerPlace = new vecgeom::Transformation3D(xcenter_l,0,0, 0,0,0);
-	world->PlaceDaughter(volName,fLayerLogic,layerPlace);
+    sprintf(volName,"Layer%d",j);
+    xcenter_l = xfront_l+fLayerThickness/2;
+    xfront_l += fLayerThickness;
+    vecgeom::Transformation3D *layerPlace = new vecgeom::Transformation3D(xcenter_l,0,0, 0,0,0);
+    world->PlaceDaughter(volName,fLayerLogic,layerPlace);
   }
+  
+  delete [] volName;
 
   //place world volume, close geometry
   vecgeom::VPlacedVolume *w = world->Place();
