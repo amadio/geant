@@ -91,7 +91,7 @@ bool CaloApp::Initialize() {
 
   //get detector parameters/logical volume IDs
   fNumAbsorbers = fDetector->GetNumAbsorbers();
-  for (int k=1; k<=fNumAbsorbers; k++){
+  for (int k=0; k<fNumAbsorbers; k++){
   	fAbsorberLogicalVolumeID[k] = fDetector->GetAbsorberLogicalVolumeID(k);
   }
 
@@ -158,7 +158,7 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
   int currentAbsorber=0;
   bool validVolume=false;
 
-  for (int k=1; k<=fNumAbsorbers; k++){
+  for (int k=0; k<fNumAbsorbers; k++){
 	if (idvol==fAbsorberLogicalVolumeID[k]){
 		currentAbsorber=k;
 		validVolume=true;
@@ -211,7 +211,7 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
     if (isTransmit && isPrimary) {
           // get the user defined thread local data structure for the run
           CaloAppThreadDataRun  &dataRun =  (*fDataHandlerRun)(td);
-          dataRun.GetHisto1()->Fill(dataPerPrimary.GetEdepInAbsorber(1));
+          dataRun.GetHisto1()->Fill(dataPerPrimary.GetEdepInAbsorber(0));
     }
   }
 }
@@ -279,7 +279,7 @@ void CaloApp::FinishRun() {
   double rmsNeTrackL[fNumAbsorbers+1];
   double rmsEdep[fNumAbsorbers+1];
 
-  for (int k=1; k<=fNumAbsorbers; k++){
+  for (int k=0; k<fNumAbsorbers; k++){
 	rmsChTrackL[k]   = meanChTrackL2[k] - meanChTrackL[k]*meanChTrackL[k];
 	rmsNeTrackL[k]   = meanNeTrackL2[k] - meanNeTrackL[k]*meanNeTrackL[k];
 	rmsEdep[k]       = meanEdep2[k]     - meanEdep[k]*meanEdep[k];
@@ -287,7 +287,7 @@ void CaloApp::FinishRun() {
   double rmsELeakPr    = meanELeakPr2  - meanELeakPr*meanELeakPr;
   double rmsELeakSec   = meanELeakSec2 - meanELeakSec*meanELeakSec;
   // compute sigmas and write it into rms..
-  for (int k=1; k<=fNumAbsorbers; k++){
+  for (int k=0; k<fNumAbsorbers; k++){
 	  if (rmsChTrackL[k]>0.) {
 	    rmsChTrackL[k]  = std::sqrt(rmsChTrackL[k]*norm);
 	  } else {
@@ -328,7 +328,7 @@ void CaloApp::FinishRun() {
   //
   // some additional quantities:
   // 
-for(int k=1; k<=fNumAbsorbers; k++){
+for(int k=0; k<fNumAbsorbers; k++){
 ///////////////////////for loop start, looping over absorbers///////////////////////////////////////////
   std::cout << "---------------Started data analysis for " << fDetector->GetAbsorberMaterialName(k) << " absorber---------------------" << std::endl;
   const  geantphysics::Material* absorberMaterial = fDetector->GetAbsorberMaterial(k);

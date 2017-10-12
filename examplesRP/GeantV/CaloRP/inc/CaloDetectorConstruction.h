@@ -27,73 +27,73 @@ class Material;
 namespace userapplication {
 class CaloDetectorConstruction : public Geant::GeantVDetectorConstruction {
 
-static const int maxAbsorbers = 10;
-  private:
+  static const int kMaxAbsorbers = 10;
 
-	std::string fWorldMaterialName;
-        std::string fAbsMaterialName[maxAbsorbers];
+private:
+  std::string fWorldMaterialName;
+  std::string fAbsMaterialName[kMaxAbsorbers];
 
-	geantphysics::Material *fAbsMaterial[maxAbsorbers];
-	geantphysics::Material *fWorldMaterial;
+  geantphysics::Material *fAbsMaterial[kMaxAbsorbers];
+  geantphysics::Material *fWorldMaterial;
 
-	bool userLayerNum=false;
-        bool userAbsorberNum=false;
-        bool userCaloYZ=false;
-	bool userThickness[maxAbsorbers];
-	bool userMaterial[maxAbsorbers];
-	bool prodCutByLength=true;
+  bool fUserLayerNum    = false;
+  bool fUserAbsorberNum = false;
+  bool fUserCaloYZ      = false;
+  bool fUserThickness[kMaxAbsorbers];
+  bool fUserMaterial[kMaxAbsorbers];
+  bool fProdCutByLength = true;
 
-        int numAbsorbers;
-        int numLayers;
-	int fAbsLogicVolumeID[maxAbsorbers];
-	int fDetectorRegionIndex;
-	double fGammaCut=0.1;
-	double fElectronCut=0.1;
-	double fPositronCut=0.1;
+  int fNumAbsorbers;
+  int fNumLayers;
+  int fAbsLogicVolumeID[kMaxAbsorbers];
+  int fDetectorRegionIndex;
+  double fGammaCut    = 0.1;
+  double fElectronCut = 0.1;
+  double fPositronCut = 0.1;
 
-        double fAbsThickness[maxAbsorbers];
-        double fLayerThickness;
+  double fAbsThickness[kMaxAbsorbers];
+  double fLayerThickness;
 
-        double fCaloSizeYZ;
-        double fWorldSizeX;
-	double fWorldSizeYZ;
+  double fCaloSizeYZ;
+  double fWorldSizeX;
+  double fWorldSizeYZ;
 
-	void SetDetectorMaterials();
+  void SetDetectorMaterials();
 
-  public:
-	CaloDetectorConstruction(Geant::GeantRunManager *runmgr) : GeantVDetectorConstruction(runmgr) {}
-	~CaloDetectorConstruction();
+public:
+  CaloDetectorConstruction(Geant::GeantRunManager *runmgr) : GeantVDetectorConstruction(runmgr) {}
+  ~CaloDetectorConstruction();
 
-  public:
-        void SetAbsorberMaterialName(int,std::string);
-        std::string GetAbsorberMaterialName(int);
-        geantphysics::Material* GetAbsorberMaterial(int);
+public:
+  void SetAbsorberMaterialName(int absNum, std::string matName) { fUserMaterial[absNum] = true; fAbsMaterialName[absNum] = matName; }
+  std::string GetAbsorberMaterialName(int absNum) const { return fAbsMaterialName[absNum]; }
+  geantphysics::Material *GetAbsorberMaterial(int absNum) const { return fAbsMaterial[absNum]; }
 
-        void SetNumLayers(int);
-        void SetNumAbsorbers(int);
-        int GetNumLayers();
-        int GetNumAbsorbers();
+  void SetNumLayers(int nLayers) { fUserLayerNum = true; fNumLayers = nLayers; }
+  void SetNumAbsorbers(int nAbsorbers) { fUserAbsorberNum = true; fNumAbsorbers = nAbsorbers; }
+  int GetNumLayers() const { return fNumLayers; }
+  int GetNumAbsorbers() const { return fNumAbsorbers; }
 
-	void SetProductionCutsByEnergy(double);
-	void SetProductionCutsByLength(double);
-	void SetDetectorGammaProductionCut(double);
-	void SetDetectorElectronProductionCut(double);
-	void SetDetectorPositronProductionCut(double);
+  void SetProductionCutsByEnergy(double);
+  void SetProductionCutsByLength(double);
+  void SetDetectorGammaProductionCut(double);
+  void SetDetectorElectronProductionCut(double);
+  void SetDetectorPositronProductionCut(double);
 
-        void SetAbsorberThickness(int,double);
-        double GetAbsorberThickness(int);
+  void SetAbsorberThickness(int absNum, double thickness) { fUserThickness[absNum] = true; fAbsThickness[absNum] = thickness; }
+  double GetAbsorberThickness(int absNum) const { return fAbsThickness[absNum]; }
 
-	int GetAbsorberLogicalVolumeID(int);
-	int GetDetectorRegionIndex();
+  int GetAbsorberLogicalVolumeID(int absorber) const { return fAbsLogicVolumeID[absorber]; }
+  int GetDetectorRegionIndex() const { return fDetectorRegionIndex; }
 
-        void SetDetectorYZ(double);
-        double GetDetectorX();
-        double GetDetectorYZ();
-        double GetWorldX();
-        double GetWorldYZ();
+  void SetDetectorYZ(double yz) { fUserCaloYZ  = true; fCaloSizeYZ = yz; }
+  double GetDetectorX() const { return fLayerThickness * fNumLayers; }
+  double GetDetectorYZ() const { return fCaloSizeYZ; }
+  double GetWorldX() const { return fWorldSizeX; }
+  double GetWorldYZ() const { return fWorldSizeYZ; }
 
-	void CreateMaterials();
-	void CreateGeometry();
+  void CreateMaterials();
+  void CreateGeometry();
 };
 }
 #endif
