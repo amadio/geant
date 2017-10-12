@@ -21,7 +21,7 @@
 #pragma link C++ class geantphysics::ParticleGun+;
 #pragma link C++ class geantphysics::PhysicsParameters+;
 #pragma link C++ class geantphysics::Positron+;
-#pragma link C++ class geantphysics::Region+;
+//#pragma link C++ class geantphysics::Region+;
 
 #endif
 /* @(#)root/base:$Id: LinkDef2.h 42250 2011-11-25 17:30:31Z pcanal $ */

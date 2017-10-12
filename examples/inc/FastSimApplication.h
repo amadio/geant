@@ -82,7 +82,7 @@ class FastSimApplication : public Geant::GeantVApplication {
      * 
      * @param event Event that should be digitized
      */
-    virtual void FinishEvent(GeantEvent *event) {}
+    virtual void FinishEvent(GeantEvent */*event*/) {}
 
     /** @brief User FinishRun function */
     virtual void FinishRun();

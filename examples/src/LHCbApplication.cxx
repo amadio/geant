@@ -235,7 +235,7 @@ void LHCbApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTa
 void LHCbApplication::FinishEvent(GeantEvent *event) {
   // User method to digitize a full event, which is at this stage fully transported
   //   Printf("======= Statistics for event %d:\n", event);
-  Printf("Energy deposit for event %d in ECAL [MeV/primary] ", evt);
+  Printf("Energy deposit for event %d in ECAL [MeV/primary] ", event->GetEvent());
   Printf("================================================================================");
   double nprim = (double)(event->GetNtracks());
   for (int i = 0; i < kNECALModules; ++i) {

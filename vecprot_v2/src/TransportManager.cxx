@@ -24,7 +24,6 @@
 #include "TGeoNode.h"
 #endif
 #else
-#pragma message("Compiling against TGeo")
 #include "ScalarNavInterfaceTGeo.h"
 #include <iostream>
 #include "TGeoNavigator.h"

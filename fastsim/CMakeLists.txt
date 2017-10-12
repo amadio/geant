@@ -25,17 +25,9 @@ string(REGEX REPLACE "[^ ]*/fastsimLinkDef.h" "" headers "${headers}")
 #----------------------------------------------------------------------------------------------
 # Add the library
 #
-if(USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(fastsimDict ${headers} MODULE Fastsim LINKDEF inc/fastsimLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-  add_library(Fastsim SHARED ${sources} fastsimDict.cxx)
-  target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
-    ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
-
-else()
-  add_library(Fastsim SHARED ${sources})
-  target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
-    ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
-endif()
+add_library(Fastsim SHARED ${sources})
+target_link_libraries(Fastsim -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v NewPhysics
+  ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${HEPMC_LIBRARIES})
 
 set(FASTSIM_LINK_LIBS "Fastsim" ${HEPMC_LIBRARIES} PARENT_SCOPE)
 add_dependencies(Fastsim Geantlib_v NewPhysics)
@@ -50,10 +42,6 @@ if(APPLE)
   install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS Fastsim DESTINATION lib)
-endif()
-if(USE_ROOT)
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim.rootmap
-    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libFastsim_rdict.pcm DESTINATION lib)
 endif()
 
 #----------------------------------------------------------------------------------------------

@@ -120,7 +120,7 @@ public:
   virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
 
   /** @brief  User FinishEvent function.*/
-  virtual void FinishEvent(int evt, int slot);
+  virtual void FinishEvent(GeantEvent *event);
 
   /** @brief User FinishRun function */
   virtual void FinishRun();

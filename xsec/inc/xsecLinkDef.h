@@ -20,7 +20,7 @@
 #pragma link C++ class TPartIndex-;
 #pragma link C++ class Geant::TTabPhysMgr+;
 #pragma link C++ class Geant::TTabPhysProcess+;
-#pragma link C++ class Geant::TPrimaryGenerator+;
+//#pragma link C++ class Geant::TPrimaryGenerator+;
 #pragma link C++ class Geant::GunGenerator+;
 #pragma link C++ class TestProcess+;
 
