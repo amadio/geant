@@ -137,9 +137,9 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
   track.Path()->UpdateNavigator(nav);
   nav->FindNextBoundary(Math::Min<double>(1.E20, track.fPstep), "", track.fBoundary);
   track.fSnext = nav->GetStep();
+  track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
   track.fBoundary = track.fSnext < track.fPstep;
   track.fSnext = Math::Max<double>(2 * gTolerance, track.fSnext + 2 * gTolerance);
-  track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
 }
   
 //______________________________________________________________________________
