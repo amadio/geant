@@ -10,7 +10,6 @@ namespace geantphysics {
         
         fBinVector.clear();
         fDataVector.clear();
-        
     }
     
     XSectionsVector::~XSectionsVector(){}
@@ -35,20 +34,54 @@ namespace geantphysics {
         return id;
     }
     
-    
+    //Binary search algorithm to find the binIndex corresponding to 'energy'and retreiving the corresponding linear interpolated value.
+    double XSectionsVector::GetValueAt(double energy){
+        
+        size_t idx;
+        int    first,last,middle;
+        int    upperm2 = numberOfNodes-2;
+        // check if 'energy' is above/below the highes/lowest value
+        if (energy>=fBinVector[upperm2]) { //optimal
+            idx = upperm2;
+        } else if (energy<=fBinVector[1]) { //optimal
+            idx = 0;
+        } else {
+            // Perform a binary search to find the binIndex corresponding to 'energy'
+            first = 1;
+            last = upperm2;
+            while (std::abs(last-first)>1) {
+                middle = (first+last)/2.;
+                if (energy<fBinVector[middle])
+                    last = middle;
+                else
+                    first = middle;
+            }
+            idx = last-1;
+        }
+        // check if the 2 grid point is 0,0
+        if ((fDataVector[0]+idx)+(fDataVector[0]+idx+1)==0.0) {
+            return 0.0;
+        }
+        //std::cout<<"GetValueAt: "<<idx<<"\t"<<fBinVector[idx]<<"\t"<<fDataVector[idx]<<std::endl;
+        return fDataVector[idx] +( fDataVector[idx + 1]-fDataVector[idx] ) * (energy - fBinVector[idx]) /( fBinVector[idx + 1]-fBinVector[idx] );
+
+    }
     
     //_____________________________
     //Given an energy, first retrieve the binIndex corresponding to that energy and then calculate the interpolated value (Linear Interpolation) corresponding to the data stored at that bin index
     double XSectionsVector::GetValue(double energy, size_t& shellIdx){
         
-        
         if(energy <= edgeMin)
-        { shellIdx = 0; return fDataVector[0];}
+        { shellIdx = 0;
+            //std::cout<<"GetValue:   "<<shellIdx<<"\t"<<fBinVector[shellIdx]<<"\t"<<fDataVector[shellIdx]<<std::endl;
+            return fDataVector[0];}
         if(energy >= edgeMax) {
-            shellIdx= numberOfNodes-1;
+            shellIdx= numberOfNodes-2;
+            //std::cout<<"GetValue:   "<<shellIdx<<"\t"<<fBinVector[shellIdx]<<"\t"<<fDataVector[shellIdx]<<std::endl;
             return fDataVector[shellIdx];
         }
         shellIdx=FindCSBinLocation(energy, shellIdx);
+        //std::cout<<"GetValue:    "<<shellIdx<<"\t"<<fBinVector[shellIdx]<<"\t"<<fDataVector[shellIdx]<<std::endl;
         return LinearInterpolation(energy, shellIdx);
 
     }

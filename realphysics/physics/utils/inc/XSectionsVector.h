@@ -23,9 +23,9 @@ namespace geantphysics {
         ~XSectionsVector();
         
         size_t FindCSBinLocation(double energy, size_t idx)const;
+        double GetValueAt(double energy);
         double GetValue(double energy, size_t& shellIdx);
         double LinearInterpolation(double energy, size_t idx);
-        
         
         std::vector<double>   fBinVector;       //Cross sections bin vector (i.e. x coordinate)
         std::vector<double>   fDataVector;      //Cross sections data vector (i.e. y coordinate)
@@ -35,6 +35,7 @@ namespace geantphysics {
         double edgeMax;                         // Energy of last point
         Spline     *sp;                         // Spline interpolator
         
+
     };
 }
 
