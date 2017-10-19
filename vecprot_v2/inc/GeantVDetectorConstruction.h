@@ -37,6 +37,10 @@ private:
 #endif
 #endif
 
+protected:
+  /** @brief Import regions if available in ROOT geometry*/
+  static int ImportRegions();
+
 public:  
   /** @brief GeantVDetectorConstruction constructor */	
   GeantVDetectorConstruction(GeantRunManager *runmgr) { fRunMgr = runmgr; }

@@ -1,11 +1,13 @@
 #include "GeantVDetectorConstruction.h"
 
 #include "Geant/Error.h"
+#include "Region.h"
 #include "TaskBroker.h"
 #include "VBconnector.h"
 #include "GeantRunManager.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
+
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/NewSimpleNavigator.h"
@@ -15,17 +17,24 @@
 #include "Material.h"
 #include "Element.h"
 #ifdef USE_ROOT
+#include "TGeoRegion.h"
 #include "management/RootGeoManager.h"
 #endif
+#include "volumes/LogicalVolume.h"
 #include "volumes/PlacedVolume.h"
+
 #else
+
 #ifdef USE_ROOT
 #include "TGeoVolume.h"
 #include "TGeoManager.h"
 #include "TGeoVoxelFinder.h"
 #include "TGeoNode.h"
 #include "TGeoMaterial.h"
+#include "TGeoRegion.h"
+#include "TROOT.h"
 #endif
+
 #endif
 
 namespace Geant {
@@ -92,20 +101,23 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
 #ifdef USE_ROOT
     vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(CreateMaterialConversion());
-    printf("Now loading VecGeom geometry\n");
+    printf("Now loading VecGeom geometry...\n");
     vecgeom::RootGeoManager::Instance().LoadRootGeometry();
     printf("Loading VecGeom geometry done\n");
     std::vector<vecgeom::LogicalVolume *> v1;
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(v1);
-    printf("Have logical volumes %ld\n", v1.size());
+    printf("--- Have logical volumes %ld\n", v1.size());
     std::vector<vecgeom::VPlacedVolume *> v2;
     vecgeom::GeoManager::Instance().getAllPlacedVolumes(v2);
-    printf("Have placed volumes %ld\n", v2.size());
+    printf("--- Have placed volumes %ld\n", v2.size());
     //    vecgeom::RootGeoManager::Instance().world()->PrintContent();
+    // Create regions if any available in the ROOT geometry
+    int nregions = GeantVDetectorConstruction::ImportRegions();
+    printf("--- Imported %d regions\n", nregions);
 #endif
   }
   if (broker) {
-    printf("Now upload VecGeom geometry to Coprocessor(s)\n");
+    printf("Now uploading VecGeom geometry to Coprocessor(s)...\n");
     return broker->UploadGeometry();
   }
   InitNavigators();
@@ -114,6 +126,44 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
   (void)broker;
   return false;
 #endif
+}
+
+//______________________________________________________________________________
+int GeantVDetectorConstruction::ImportRegions() {
+
+  using Region = vecgeom::Region;
+  using LogicalVolume = vecgeom::LogicalVolume;
+  
+  int nregions = 0;
+#ifdef USE_ROOT
+  double electronCut, positronCut, gammaCut, protonCut;
+  // Loop on ROOT regions if any
+  nregions = gGeoManager->GetNregions();
+  for (int i=0; i<nregions; ++i) {
+    TGeoRegion *region_root = gGeoManager->GetRegion(i);
+    electronCut = positronCut = gammaCut = protonCut = -1.;
+    // loop cuts for this region
+    for (int icut=0; icut < region_root->GetNcuts(); ++icut) {
+      std::string cutname = region_root->GetCut(icut)->GetName();
+      double cutvalue = region_root->GetCut(icut)->GetCut();
+      if (cutname == "gamcut") gammaCut = cutvalue;
+      if (cutname == "ecut") electronCut = cutvalue;
+      if (cutname == "poscut") positronCut = cutvalue;
+      if (cutname == "pcut") protonCut = cutvalue;
+    }
+    Region *region = new Region(std::string(region_root->GetName()),
+                                gammaCut, electronCut, positronCut, protonCut);
+    printf("Created region %s with: gammaCut = %g [cm], eleCut = %g [cm], posCut = %g [cm], protonCut = %g [cm]\n",
+           region_root->GetName(), gammaCut, electronCut, positronCut, protonCut);
+    // loop volumes in the region. Volumes should be already converted to LogicalVolume
+    for (int ivol = 0; ivol < region_root->GetNvolumes(); ++ivol) {
+      LogicalVolume *vol = vecgeom::RootGeoManager::Instance().Convert(region_root->GetVolume(ivol));
+      vol->SetRegion(region);
+      // printf("   added to volume %s\n", vol->GetName());
+    }
+  }
+#endif
+  return nregions;
 }
 
 //______________________________________________________________________________
