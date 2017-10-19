@@ -379,6 +379,8 @@ if(DATA_DOWNLOAD)
       "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
     DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2015.root"
       "cms2015.root" "${CMAKE_SOURCE_DIR}/data/" "fb3ede867532b372c5e6f7138d00c07e")
+    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.root"
+      "cms2018.root" "${CMAKE_SOURCE_DIR}/data/" "caf4c95d19317d04d42d56c8c45db911")
     DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT_G496p02_1mev.root"
       "fstate_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "d7d3fc9fe2a835f9021bd3747cabf582")
     DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT.root"
