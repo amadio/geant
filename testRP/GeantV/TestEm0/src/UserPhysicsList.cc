@@ -124,9 +124,27 @@ void UserPhysicsList::Initialize() {
       AddProcessToParticle(particle, eBremProc);
     }
     if (particle==geantphysics::Gamma::Definition()) {
-      // create compton scattering process for gamma with 1 model:
+        
       //
-      geantphysics::EMPhysicsProcess *comptProc = new geantphysics::ComptonScatteringProcess();
+      // create photoelectric effect process for gamma with 1 model:
+      //
+      geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess("phot");
+      // create the Sauter-Gavrila model for photoelectric effect
+      geantphysics::EMModel           *sgModel = new geantphysics::SauterGavrilaPhotoElectricModel();
+      // set min/max energies of the model
+      sgModel->SetLowEnergyUsageLimit (  0.0*geant::eV);
+      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
+        
+      sgModel->SetHighEnergyUsageLimit(  100.0*geant::TeV);
+      // add the model to the process
+      photoelectricProc->AddModel(sgModel);
+      //
+      // add the process to the gamma particle
+      AddProcessToParticle(particle, photoelectricProc);
+      
+        // create compton scattering process for gamma with 1 model:
+      //
+      geantphysics::EMPhysicsProcess *comptProc = new geantphysics::ComptonScatteringProcess("compt");
       // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation
       geantphysics::EMModel          *kncModel  = new geantphysics::KleinNishinaComptonModel();
       // set min/max energies of the model
@@ -140,7 +158,7 @@ void UserPhysicsList::Initialize() {
       //
       // create gamma conversion process for gamma with 1 model:
       //
-      geantphysics::EMPhysicsProcess *convProc = new geantphysics::GammaConversionProcess();
+      geantphysics::EMPhysicsProcess *convProc = new geantphysics::GammaConversionProcess("conv");
       // create the Bethe-Heitler model for pair production i.e. for g + A -> e- + e+ intercation
       geantphysics::EMModel           *bhModel = new geantphysics::BetheHeitlerPairModel();
       // set min/max energies of the model
@@ -153,24 +171,6 @@ void UserPhysicsList::Initialize() {
       //
       // add the process to the gamma particle
       AddProcessToParticle(particle, convProc);
-        
-        
-      //
-      // create photoelectric effect process for gamma with 1 model:
-      //
-      geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess("gPhotoElectric");
-      // create the Sauter-Gavrila model for photoelectric effect
-      geantphysics::EMModel           *sgModel = new geantphysics::SauterGavrilaPhotoElectricModel();
-      // set min/max energies of the model
-      sgModel->SetLowEnergyUsageLimit (  2.0*geant::keV);
-      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
-        
-      sgModel->SetHighEnergyUsageLimit(  1.0*geant::TeV);
-      // add the model to the process
-      photoelectricProc->AddModel(sgModel);
-      //
-      // add the process to the gamma particle
-      AddProcessToParticle(particle, photoelectricProc);
         
     }
   }
