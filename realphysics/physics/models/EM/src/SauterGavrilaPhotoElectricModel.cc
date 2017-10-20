@@ -1,4 +1,3 @@
-
 #include "SauterGavrilaPhotoElectricModel.h"
 
 #include "PhysicalConstants.h"
@@ -14,13 +13,10 @@
 #include "XSectionsVector.h"
 
 #include "PhysicsParameters.h"
-
 #include "Gamma.h"
 #include "Electron.h"
-
 #include "LightTrack.h"
 #include "PhysicsData.h"
-
 
 #include <cmath>
 #include <cstdio>
@@ -29,8 +25,6 @@
 #include <string>
 #include <sstream>
 
-
-
 // from geantV
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
@@ -38,7 +32,6 @@
 
 using namespace std;
 namespace geantphysics {
-    
     std::vector<double>*  SauterGavrilaPhotoElectricModel::fParamHigh[] = {nullptr};
     std::vector<double>*  SauterGavrilaPhotoElectricModel::fParamLow[] = {nullptr};
     
@@ -70,7 +63,7 @@ namespace geantphysics {
         
         fAliasData                = nullptr;    // will be set in InitSamplingTables if needed
         fAliasSampler             = nullptr;
-    
+        
         fShellCrossSection        = nullptr;
         fCrossSection             = nullptr;
         fCrossSectionLE           = nullptr;
@@ -118,21 +111,21 @@ namespace geantphysics {
             delete [] fLSamplingPrimEnergies;
         
         // NO ALIAS FOR THE MOMENT
-         if (fAliasData) {
-         for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
-         if (fAliasData[i]) {
-         delete [] fAliasData[i]->fXdata;
-         delete [] fAliasData[i]->fYdata;
-         delete [] fAliasData[i]->fAliasW;
-         delete [] fAliasData[i]->fAliasIndx;
-         delete fAliasData[i];
-         }
-         }
-         delete [] fAliasData;
-         }
-         
-         if (fAliasSampler)
-         delete fAliasSampler;
+        if (fAliasData) {
+            for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
+                if (fAliasData[i]) {
+                    delete [] fAliasData[i]->fXdata;
+                    delete [] fAliasData[i]->fYdata;
+                    delete [] fAliasData[i]->fAliasW;
+                    delete [] fAliasData[i]->fAliasIndx;
+                    delete fAliasData[i];
+                }
+            }
+            delete [] fAliasData;
+        }
+        
+        if (fAliasSampler)
+            delete fAliasSampler;
         
     }
     
@@ -144,11 +137,8 @@ namespace geantphysics {
     
     void SauterGavrilaPhotoElectricModel::InitializeModel() {
         
-        
         fMinPrimEnergy                    = GetLowEnergyUsageLimit();
         fMaxPrimEnergy                    = GetHighEnergyUsageLimit();
-    
-        
         
         //ALLOCATION fCrossSection
         if (fCrossSection) {
@@ -160,7 +150,6 @@ namespace geantphysics {
         for (int i=0; i<gMaxSizeData; ++i) {
             fCrossSection[i] = false;
         }
-    
         
         //ALLOCATION fCrossSectionLE
         if (fCrossSectionLE) {
@@ -211,7 +200,6 @@ namespace geantphysics {
     
     void SauterGavrilaPhotoElectricModel::LoadData()
     {
-        
         int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
         // get list of active region
         std::vector<bool> isActiveInRegion = GetListActiveRegions();
@@ -253,8 +241,6 @@ namespace geantphysics {
             return;}
         //else std::cout<<"Data not loaded before!\n";
         
-        
-        
         // get the path to the main physics data directory
         char *path = std::getenv("GEANT_PHYSICS_DATA");
         if (!path) {
@@ -265,12 +251,7 @@ namespace geantphysics {
             exit(1);
         }
         
-        // spline for photoeffect total x-section above K-shell - but below the parameterized ones
-        
-       
-        
         fCrossSection[Z] =true;
-    
         std::ostringstream ost;
         ost << path << "/livermore/phot_epics2014/pe-cs-" << Z <<".dat";
         std::ifstream fin(ost.str().c_str());
@@ -328,7 +309,6 @@ namespace geantphysics {
         }
         
         //}
-        
         
         // read high-energy fit parameters
         fParamHigh[Z] = new std::vector<double>;
@@ -500,7 +480,7 @@ namespace geantphysics {
                     std::cout << "File " << ost3.str().c_str()
                     << " is opened by SauterGavrilaPhotoElectricModel" << std::endl;
                 }
-    
+                
                 // binning
                 fLECSVector[Z]= new XSectionsVector;
                 
@@ -682,7 +662,7 @@ namespace geantphysics {
         double x2 = x1*x1;
         double x3 = x2*x1;
         
-        // high energy parameterisation
+        // (*) High energy parameterisation
         if(energy >= (*(fParamHigh[Z]))[0]) {
             
             double x4 = x2*x2;
@@ -694,7 +674,7 @@ namespace geantphysics {
             
             
         }
-        // low energy parameterisation
+        // (**) Low energy parameterisation
         else if(energy >= (*(fParamLow[Z]))[0]) {
             
             double x4 = x2*x2;
@@ -704,23 +684,25 @@ namespace geantphysics {
                      + x4*(*(fParamLow[Z]))[idx+4]+ x5*(*(fParamLow[Z]))[idx+5]);
         }
         
-        // Tabulated values above k-shell ionization energy
+        // (***) Tabulated values above k-shell ionization energy
         else if(energy >= (*(fParamHigh[Z]))[1]) {
-            //to do: is this index needed?
-            size_t index=0;
-            ///THIS MUST use the SPLINE INTERPOLATOR
-            double splinevalue=fCSVector[Z]->sp->GetValueAt(energy);
-            //double value=fCSVector[Z]->GetValue(energy, index);
-            cs=x3*splinevalue;
+            
+            //this is an extra-check - if energy<fCSVector[Z]->edgeMin it should go to the next else (****)
+            if(energy<fCSVector[Z]->edgeMin)
+                cs=x3*fCSVector[Z]->fDataVector[0];
+            else
+                cs=x3*fCSVector[Z]->sp->GetValueAt(energy);
         }
-        // Tabulated values below k-shell ionization energy
+        
+        //(****) Tabulated values below k-shell ionization energy
         else
         {
-            //to do: is this index needed?
-            size_t index=0;
-            double value=fLECSVector[Z]->GetValue(energy,index);
-            cs=x3*value;
-            
+            //this check is needed to have a constant cross-section(cs) value for energies below the lowest cs point.
+            //in this way the gamma is always absorbed - instead of giving zero cs -
+            if(energy<fLECSVector[Z]->edgeMin)
+                cs=x3*fLECSVector[Z]->fDataVector[0];
+            else
+                cs=x3*fLECSVector[Z]->GetValueAt(energy);
         }
         if (verboseLevel > 1) {
             std::cout << "LivermorePhotoElectricModel: E(keV)= " << energy/keV
@@ -826,17 +808,14 @@ namespace geantphysics {
     int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track,
                                                            Geant::GeantTaskData *td){
         
-        
         using geant::MeV;
-        //int    numSecondaries      = 0;
         double gammaekin0          = track.GetKinE();
-        
         // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
         // check if kinetic energy is above fHighEnergyUsageLimit and do nothing if yes;
         
         if (gammaekin0<GetLowEnergyUsageLimit() || gammaekin0>GetHighEnergyUsageLimit())
         {
-            return 0; //numSecondaries
+            return 0; //numSecondaries is zero since the interaction is not happening
         }
         
         //interaction is possible so sample target element
@@ -851,14 +830,14 @@ namespace geantphysics {
         }
         double  zeta  = theElements[targetElemIndx]->GetZ();
         int     Z = std::lrint(zeta);
-    
+        
         // if element was not initialised, gamma should be absorbed
         if(!fCrossSectionLE[Z] && !fCrossSection[Z]) {
             track.SetEnergyDeposit(gammaekin0);
             //std::cout<<"Model not initialized, Exiting!\n";
             return 0;
         }
-    
+        
         //SAMPLING OF THE SHELL
         size_t shellIdx = 0;
         size_t nn = fNShellsUsed[Z];
@@ -868,6 +847,7 @@ namespace geantphysics {
             double *rndArray = td->fDblArray;
             td->fRndm->uniform_array(1, rndArray);
             
+            // (*) High energy parameterisation
             if(gammaekin0 >= (*(fParamHigh[Z]))[0])
             {
                 
@@ -904,16 +884,15 @@ namespace geantphysics {
                 if(shellIdx >= nn) { shellIdx = nn-1; }
                 
             }
+            // (**) Low energy parameterisation
             else if(gammaekin0 >= (*(fParamLow[Z]))[0])
             {
-                double x1 = MeV/gammaekin0;//Precision lost?
+                double x1 = MeV/gammaekin0;
                 double x2 = x1*x1;
                 double x3 = x2*x1;
                 double x4 = x3*x1;
                 double x5 = x4*x1;
                 int idx   = nn*7 - 5;
-                // when do sampling common factors are not taken into account
-                // so cross section is not real
                 double cs0 = rndArray[0]*((*(fParamLow[Z]))[idx]
                                           + x1*(*(fParamLow[Z]))[idx+1]
                                           + x2*(*(fParamLow[Z]))[idx+2]
@@ -935,37 +914,40 @@ namespace geantphysics {
             }
             else
             {
-                
-                // when do sampling common factors are not taken into account
-                // so cross section is not real
                 double cs = rndArray[0];
                 
+                // (***) Tabulated values above k-shell ionization energy
                 if(gammaekin0 >= (*(fParamHigh[Z]))[1]) {
-
-                    double splineValue=fCSVector[Z]->sp->GetValueAt(gammaekin0);
-                    cs*=splineValue; //fCSVector[Z]->GetValue(gammaekin0, index);
+                    //this is an extra-check - if energy<fCSVector[Z]->edgeMin it should go to the next else (****)
+                    if(gammaekin0<fCSVector[Z]->edgeMin)
+                        cs*=fCSVector[Z]->fDataVector[0];
+                    else
+                        cs*=fCSVector[Z]->sp->GetValueAt(gammaekin0);
                     
                 }
-                
+                //(****) Tabulated values below k-shell ionization energy
                 else
                 {
-                    //below K-shell binding energy
-                    size_t index=0;
-                    cs*=fLECSVector[Z]->GetValue(gammaekin0, index);
+                    //this check is needed to have a constant cross-section(cs) value for energies below the lowest cs point.
+                    //in this way the gamma is always absorbed - instead of giving zero cs -
+                    if(gammaekin0<fLECSVector[Z]->edgeMin)
+                        cs*=fLECSVector[Z]->fDataVector[0];
+                    else
+                        cs*=fLECSVector[Z]->GetValueAt(gammaekin0);
                 }
                 size_t j=0;
                 
                 
                 for(j=0; j<nn; ++j)
                 {
-                    
                     shellIdx = (size_t)fShellCrossSection[Z]->fCompID[j];
                     if(gammaekin0 > (*(fParamLow[Z]))[7*shellIdx+1]) {
+                        //TO DO: CHECK HERE
                         cs-=GetValue(gammaekin0, Z, shellIdx);
                     }
-                    if(cs <= 0.0 || j+1 == nn) {
-                        //if(barbra) std::cout<<"I am breaking because: "<<cs<< "-- "<< j+1<< " --- "<<nn<<std::endl;
-                        break;}
+                    
+                    if(cs <= 0.0 || j+1 == nn)
+                        break;
                 }
             }
         }
@@ -979,9 +961,10 @@ namespace geantphysics {
             track.SetEnergyDeposit(gammaekin0);
             return 0; //numSecondaries
         }
+        
         //since edep is equal to bindingenergy I get rid of it
         //double edep = bindingEnergy;
-     
+        
         //  deexcitation is MISSING for now
         /*
          DEEXCITATION
@@ -995,14 +978,14 @@ namespace geantphysics {
         double sinTheta = 0.0;
         double phi      = 0.0;
         
-        //*************START REJECTION SAMPLING
+        //************* START REJECTION SAMPLING ****
         //
         SamplePhotoElectronDirection_Rejection(gammaekin0, sinTheta, cosTheta, phi, td);
         //
-        //*************END REJECTION SAMPLING
+        //************* END REJECTION SAMPLING ****
         
         
-        //*************START ALIAS SAMPLING
+        //************* START ALIAS SAMPLING ****
         //
         //td->fRndm->uniform_array(4, rndArray);
         //double *rndArray2 = td->fDblArray;
@@ -1010,14 +993,14 @@ namespace geantphysics {
         //cosTheta=SamplePhotoElectronDirection_Alias(gammaekin0, rndArray2[0], rndArray2[1], rndArray2[2]);
         //phi = geant::kTwoPi * rndArray2[3];
         //sinTheta=std::sqrt((1 - cosTheta)*(1 + cosTheta));
-        //*************END ALIAS SAMPLING
+        //
+        //************* END ALIAS SAMPLING ****
         
         
         // new photoelectron direction in the scattering frame
         double eDirX1  = sinTheta*std::cos(phi);
         double eDirY1  = sinTheta*std::sin(phi);
         double eDirZ1  = cosTheta;
-        
         
         // store original gamma directions in the lab frame
         //double gamDirX0=track.GetDirX();
@@ -1027,7 +1010,6 @@ namespace geantphysics {
         
         // rotate new photoelectron direction to the lab frame:
         RotateToLabFrame(eDirX1, eDirY1, eDirZ1,track.GetDirX(), track.GetDirY(), track.GetDirZ());
-        
         
         // create the secondary particle i.e. the photoelectron
         //numSecondaries = 1;
@@ -1052,7 +1034,6 @@ namespace geantphysics {
         sectracks[secIndx].SetDirY(eDirY1);
         sectracks[secIndx].SetDirZ(eDirZ1);
         sectracks[secIndx].SetKinE(elecKineEnergy);
-        //std::cout<<"sectracks: elecKineEnergy: "<< elecKineEnergy<<"\n";
         sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // electron GV code
         sectracks[secIndx].SetMass(geant::kElectronMassC2);
         sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
