@@ -303,7 +303,7 @@ namespace geantphysics {
          * @return                  Linear interpolation of the cross-section values closest to the considered energy.
          */
         
-        inline double GetValue(double energy, int zeta, size_t shellIdx){
+        /*inline double GetValue(double energy, int zeta, size_t shellIdx){
             size_t bin = 0;
 
             size_t numberofnodes= fShellCrossSection[zeta]->fCompLength[shellIdx];
@@ -323,7 +323,7 @@ namespace geantphysics {
             //to do: check performance here
             return LinearInterpolation (energy,fShellCrossSection[zeta]->fCompBinVector[shellIdx],fShellCrossSection[zeta]->fCompDataVector[shellIdx], bin);
         }
-
+         */
         
         //---------------------------------------------
         //Linear interpolation
@@ -337,13 +337,13 @@ namespace geantphysics {
          * @param[in]  idx          Index of the bin for which retrieve the interpolated value.
          * @return                  Linear interpolation of xvalues (binvector) and yvalues (datavector) at index 'idx'.
          */
-        inline double LinearInterpolation(double energy, std::vector<double>   &binvector, std::vector<double>   &datavector,  size_t idx) const
+        /*inline double LinearInterpolation(double energy, std::vector<double>   &binvector, std::vector<double>   &datavector,  size_t idx) const
         {
             // Linear interpolation is used to get the interpolated value for lowEnergy cross sections (below K-shell binding energy).
             // Before this method is called it is ensured that the energy is inside the bin
             // 0 < idx < numberOfNodes-1
             return datavector[idx] +( datavector[idx + 1]-datavector[idx] ) * (energy - binvector[idx]) /( binvector[idx + 1]-binvector[idx] );
-        }
+        }*/
         
         //---------------------------------------------
         //LoadData
@@ -416,14 +416,13 @@ namespace geantphysics {
         static const int gNShellLimit = 100;         //Maximum number of shells per element
         
         //to do: this could be seen as a struct with an array of XSectionsVector + the int* fCompID;
-        /** @brief Struct to store subshells cross-sections data. */
-        struct ShellData{
+        /*struct ShellData{
             
             std::vector<double>* fCompBinVector;    // Bins for every shell of element Z
             std::vector<double>* fCompDataVector;   // Data for every shell of element Z
             int* fCompID;                           // Id for every shell of element Z
             size_t* fCompLength;                    // Total number of subshell cross-sections data per each subshell element Z
-        };
+        };*/
         
         /** @brief Vector storing high-energy parameterization data. */
         static std::vector<double>*  fParamHigh[gMaxSizeData];   //High-energy parameterization data
@@ -434,8 +433,11 @@ namespace geantphysics {
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
         
-        /** @brief Vector of pointers to ShellData cross-sections. Several ShellData struct per Z. */
-        static ShellData  **fShellCrossSection;            //Several shells cross-sections data per Z
+        
+        //static ShellData  **fShellCrossSection;            //Several shells cross-sections data per Z
+        
+        /** @brief Vector of pointers to XSectionsVector cross-sections. Several subshell XSectionsVector per Z. */
+        XSectionsVector** fShellVector[gMaxSizeData];     //Several subshell cross-section vector per Z
         
         /** @brief Array of pointers to Low-energy XSectionsVector (one LE cross-section vector per Z).*/
         XSectionsVector * fLECSVector[gMaxSizeData];  //one LE cross-section vector per Z

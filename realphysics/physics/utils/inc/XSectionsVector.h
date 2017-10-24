@@ -7,7 +7,7 @@ namespace geantphysics {
     
     class Spline;
     /**
-     * @brief   Class to handle tabulated cross-sections data -> one object per element
+     * @brief   Class to handle tabulated cross-sections data -> one object per element for total cross-sections and one object per subshell for partial cross-sections data.
      * @class   XSectionsVector
      * @author  M Bandieramonte
      * @date    September 2017
@@ -34,8 +34,8 @@ namespace geantphysics {
         double edgeMin;                         // Energy of first point
         double edgeMax;                         // Energy of last point
         Spline     *sp;                         // Spline interpolator
+        int   fCompID;                           // id of the object
         
-
     };
 }
 
