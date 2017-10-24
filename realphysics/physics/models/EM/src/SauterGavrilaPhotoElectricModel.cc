@@ -390,7 +390,10 @@ namespace geantphysics {
                     fShellVector[Z][i]->fDataVector.clear();
                     fShellVector[Z][i]->fBinVector.reserve(n3);
                     fShellVector[Z][i]->fDataVector.reserve(n3);
-                
+                    fShellVector[Z][i]->edgeMin=x*MeV;
+                    fShellVector[Z][i]->edgeMax=y*MeV;
+                    if(fVerboseLevel>3) std::cout<<"fShellVector["<<Z<<"]["<<i<<"]->edgeMin: "<<fShellVector[Z][i]->edgeMin<<"\t fShellVector["<<Z<<"]["<<i<<"]->edgeMax: "<<fShellVector[Z][i]->edgeMax<<std::endl;
+                    
                     for(int j=0; j<n3; ++j)
                     {
                         fin2 >> x >> y;
