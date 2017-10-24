@@ -289,61 +289,6 @@ namespace geantphysics {
                                                     double &phi,
                                                     Geant::GeantTaskData *td);
         
-
-        //---------------------------------------------
-        //GetValue
-        /**
-         * @brief Private method to retrieve the linear interpolated sub-shell cross section value, given the kinetic energy of the primary, 
-         * the Z of the element and the shell index.
-         *
-         *
-         * @param[in]  energy       Primary particle (gamma) kinetic energy.
-         * @param[in]  zeta         Atomic number Z of the element.
-         * @param[in]  shellIdx     Index of the subshell we want to retrieve the cs for.
-         * @return                  Linear interpolation of the cross-section values closest to the considered energy.
-         */
-        
-        /*inline double GetValue(double energy, int zeta, size_t shellIdx){
-            size_t bin = 0;
-
-            size_t numberofnodes= fShellCrossSection[zeta]->fCompLength[shellIdx];
-            //to do: check this: it needs a value
-            if(energy < fShellCrossSection[zeta]->fCompBinVector[shellIdx][1]) //return std::min(bin, numberofnodes-2);
-            {
-                //bin=std::min(bin, numberofnodes-2);
-                return fShellCrossSection[zeta]->fCompDataVector[shellIdx][std::min(bin, numberofnodes-2)];
-            }
-            
-            if(energy >= fShellCrossSection[zeta]->fCompBinVector[shellIdx][numberofnodes-2]) //return numberofnodes - 2;
-                return  fShellCrossSection[zeta]->fCompDataVector[shellIdx][numberofnodes - 2];
-            if(bin >= numberofnodes || energy < fShellCrossSection[zeta]->fCompBinVector[shellIdx][bin] || energy > fShellCrossSection[zeta]->fCompBinVector[shellIdx][bin+1])
-                bin = std::lower_bound(fShellCrossSection[zeta]->fCompBinVector[shellIdx].begin(), fShellCrossSection[zeta]->fCompBinVector[shellIdx].end(), energy) - fShellCrossSection[zeta]->fCompBinVector[shellIdx].begin() - 1;
-            bin=std::min(bin, numberofnodes-2);
-        
-            //to do: check performance here
-            return LinearInterpolation (energy,fShellCrossSection[zeta]->fCompBinVector[shellIdx],fShellCrossSection[zeta]->fCompDataVector[shellIdx], bin);
-        }
-         */
-        
-        //---------------------------------------------
-        //Linear interpolation
-        /**
-         * @brief Private method to retrieve a linear interpolated value. It is used to calculate the linear interpolation  of sub-shell cross section, given the energy of the primary and the shell index.
-         *
-         *
-         * @param[in]  energy       Primary particle (gamma) kinetic energy.
-         * @param[in]  binvector    Xvalues vector.
-         * @param[in]  datavector   Yvalues vector.
-         * @param[in]  idx          Index of the bin for which retrieve the interpolated value.
-         * @return                  Linear interpolation of xvalues (binvector) and yvalues (datavector) at index 'idx'.
-         */
-        /*inline double LinearInterpolation(double energy, std::vector<double>   &binvector, std::vector<double>   &datavector,  size_t idx) const
-        {
-            // Linear interpolation is used to get the interpolated value for lowEnergy cross sections (below K-shell binding energy).
-            // Before this method is called it is ensured that the energy is inside the bin
-            // 0 < idx < numberOfNodes-1
-            return datavector[idx] +( datavector[idx + 1]-datavector[idx] ) * (energy - binvector[idx]) /( binvector[idx + 1]-binvector[idx] );
-        }*/
         
         //---------------------------------------------
         //LoadData
@@ -370,7 +315,7 @@ namespace geantphysics {
          *  - pe-cs-zeta.dat:       Cross-section data above k-shell binding energy. They are stored in fCSVector[Z].
          *  - pe-low-zeta.dat:      Low-energy parameterization data. They are stored in fParamLow[Z].
          *  - pe-high-zeta.dat:     High-energy paramterization data. They are stored in fParamHigh[Z].
-         *  - pe-ss-cs-zeta.dat:    Subshells cross-sections data. They are stored in fShellCrossSection[Z].
+         *  - pe-ss-cs-zeta.dat:    Subshells cross-sections data. They are stored in fShellVector[Z].
          *
          *  @param[in]  zeta   Atomic number of the element for which to load the corresponding parameterization data.
          **/
@@ -432,9 +377,6 @@ namespace geantphysics {
         /** @brief Verbose level to control the printout. */
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
-        
-        
-        //static ShellData  **fShellCrossSection;            //Several shells cross-sections data per Z
         
         /** @brief Vector of pointers to XSectionsVector cross-sections. Several subshell XSectionsVector per Z. */
         XSectionsVector** fShellVector[gMaxSizeData];     //Several subshell cross-section vector per Z
