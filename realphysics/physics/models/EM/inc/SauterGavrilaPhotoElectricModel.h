@@ -95,20 +95,23 @@ namespace geantphysics {
          */
         virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
         
+        // Documentation from the EMModel base class method
         virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts*, double kinenergy, const Particle*);
         
         //SampleSecondaries
         /**
          * @brief Method for the final state sampling. 
-         *Primary track properties are updated and secondary track(s) are generated according to the photoelectric effect interaction.
-         * The incident photon is absorbed and an electron is emitted. The electron kinetic energy is the difference between the incident photon 
-         * energy and the binding energy of the electron before the interaction. The sub-shell, from which the electron is emitted, is randomly 
+         * Primary track properties are updated and secondary track(s) are generated according to the photoelectric effect interaction.
+         * After photoelectric interaction the incident photon is absorbed and an electron is emitted. 
+         * The electron kinetic energy is the difference between the incident photon energy and the binding energy of the electron 
+         * before the interaction. The sub-shell, from which the electron is emitted, is randomly
          * selected according to the relative cross-sections of all subshells, determined at the given energy. The interaction leaves the atom in 
          * an excited state but the deexcitation of the atom is not simulated yet.
          *
          * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
-         *                          some information about the current material-cut couple. It is updated by the method and
-         *                          it stores the post-interaction primary track properties at output.
+         *                          some information about the current material-cut couple (if needed). It is updated by the method and
+         *                          it stores the post-interaction primary track properties at output. After the interaction the gamma is
+         *                          absorbed and the status of the track is set to "kKill"
          * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will store
          *                          the secondary tracks generated in the interaction.
          * @return                  Number of secondary tracks generated in the interaction.
@@ -121,6 +124,10 @@ namespace geantphysics {
          * @name Model specific public methods:
          */
         //@{
+        //SetVerboseLevel
+        /**
+         * @brief Public method to set the verbose level (fVerboseLevel attribute).*/
+        void SetVerboseLevel(int lev);
         
         //@}
         
@@ -134,7 +141,7 @@ namespace geantphysics {
         //---------------------------------------------
         //InitializeModel
         /**
-         * @brief Internal method to Initialize the model and load the cross-section and parameterizations data.
+         * @brief Internal method to initialize the model and load and store the cross-section and parameterizations data.
          *
          */
         void InitializeModel();
@@ -158,7 +165,9 @@ namespace geantphysics {
         //TestSampleTargetElementIndex
         /**
          * @brief Private method to Test the correct sampling of the target element index.
-         *
+         * This is a unit test for SampleTargetElementIndex method. The methos is calculating the Macroscopic cross-section for all the materials 
+         * active in the simulation and storing it in xsec vector. Then SampleTargetElementIndex is called 10^9 times and sampled index used to 
+         * increment the corresponding entry of xsecSampled vector. The xsec and xsecSampled (normalized) vectors are then stored in an output file.
          *
          * @param[in] matcut    MaterialCuts to retrieve the element composition of the material.
          * @param[in] energy    primary particle (gamma) energy.
@@ -184,7 +193,7 @@ namespace geantphysics {
         //---------------------------------------------
         //CalculateDiffCrossSectionLog
         /**
-         * @brief Private method to calculate Differential cross section based on SauterGavrila distribution for k-shell  but using the transformed variable xsi/.
+         * @brief Private method to calculate Differential cross section based on SauterGavrila distribution for k-shell  but using the transformed variable \f$xsi\f$.
          *
          *
          * @param[in] energy    primary particle (gamma) kinetic energy.
@@ -200,17 +209,17 @@ namespace geantphysics {
          * @brief Private method to compute the cross-section per atom for the photoelectric effect. The computation is performed in a different way depending on the Z of the element and on the energy of the incident gamma. There are two parameterizations (low and high energy) and two sets of tabulated cross-section data (below k-shell binding energy and above k-shell binding energy).
          *
          * The total photoelectric and single shell cross-sections are tabulated from threshold to a lowParamThreshold that starts from 5keV
-         * and increases with the k-shell binding energy of the corresponding element. Above the lowParamThreshold, EPICS2014 cross sections [1]
-         * are parameterized as following:
+         * and increases with the k-shell binding energy of the corresponding element. Above the lowParamThreshold, EPICS2014 cross sections 
+         * \cite epics2014 are parameterized as following:
          *
          * \f[ 
          * \sigma(E)= \frac{a_1}{E}+\frac{a_2}{E^2} +\frac{a_3}{E^3} +\frac{a_4}{E^4} +\frac{a_5}{E^5}+\frac{a_6}{E^6}
          * \f]
-         * This method will use:
-         *   - le-cs data : for energies below k-shell binding energy - Linear interpolation of cs tabulated data (as done in Geant4).
+         * This method will use the following data files:
+         *   - le-cs data : for energies below k-shell binding energy - Linear interpolation of low-energy cs tabulated data (as done in Geant4).
          *   - cs data    : for energies above k-shell binding energy - Spline interpolation of cs tabulated data (as done in Geant4).
-         *   - low-param  : for energies above the lowParamThreshold  (i.e fParamLow  [Z][0] ).
-         *   - high param : for energies above the highParamThreshold (i.e fParamHigh [Z][0] ).
+         *   - low-param  : for energies above the lowParamThreshold  (stored in fParamLow  [Z][0] ).
+         *   - high param : for energies above the highParamThreshold (stored in fParamHigh [Z][0] ).
          *
          * To avoid tracking problems for very low-energy gamma, the photoelectric cross section is not equal to zero below the first ionisation
          * potential but it has a constant value (equal to corresponding value at the ionization potential). 
@@ -226,7 +235,8 @@ namespace geantphysics {
         //---------------------------------------------
         //SamplePhotoElectronDirection_Alias
         /**
-         * @brief Private method to sample PhotoElectron direction with Alias sampling. The tables are created at initialization phase.
+         * @brief Private method to sample PhotoElectron direction corresponding to a specific gamma kinetic energy, with Alias sampling.
+         * The tables are created at initialization phase.
          *
          * @param[in] energy    primary particle (gamma) kinetic energy.
          * @param[in] r1        random number used for sampling.
@@ -266,11 +276,11 @@ namespace geantphysics {
          * Though the Sauter distribution, strictly speaking, is adequate only for ionisation of the K-shell by high-energy photons, in many
          * practical simulations it does not introduce appreciable errors in the description of any photoionisation event, irrespective of the
          * atomic shell or of the photon energy.
-         * @param[in]  energy        primary particle (gamma) kinetic energy.
+         * @param[in]  energy        Primary particle (gamma) kinetic energy.
          * @param[in]  td            Geant::GeantTaskData used to generate random numbers.
-         * @param[out] sintheta      sinus of the polar angle (theta) of the secondary particle (photoelectron e-).
-         * @param[out] costheta      cosinus of the polar angle (theta) of the secondary particle (photoelectron e-).
-         * @param[out] phi           azimuthal angle of the secondary particle (photoelectron e-).
+         * @param[out] sintheta      Sinus of the polar angle (theta) of the secondary particle (photoelectron e-).
+         * @param[out] costheta      Cosinus of the polar angle (theta) of the secondary particle (photoelectron e-).
+         * @param[out] phi           Azimuthal angle of the secondary particle (photoelectron e-).
          *
          */
         void SamplePhotoElectronDirection_Rejection(double energy,
@@ -283,13 +293,14 @@ namespace geantphysics {
         //---------------------------------------------
         //GetValue
         /**
-         * @brief Private method to retrieve the linear interpolated sub-shell cross section value, given the energy of the primary and the shell index.
+         * @brief Private method to retrieve the linear interpolated sub-shell cross section value, given the kinetic energy of the primary, 
+         * the Z of the element and the shell index.
          *
          *
-         * @param[in]  energy       primary particle (gamma) kinetic energy.
+         * @param[in]  energy       Primary particle (gamma) kinetic energy.
          * @param[in]  zeta         Atomic number Z of the element.
-         * @param[in]  shellIdx     index of the subshell we want to retrieve the cs for.
-         * @return                  linear interpolation of the cross-section values closest to the considered energy.
+         * @param[in]  shellIdx     Index of the subshell we want to retrieve the cs for.
+         * @return                  Linear interpolation of the cross-section values closest to the considered energy.
          */
         
         inline double GetValue(double energy, int zeta, size_t shellIdx){
@@ -297,8 +308,14 @@ namespace geantphysics {
 
             size_t numberofnodes= fShellCrossSection[zeta]->fCompLength[shellIdx];
             //to do: check this: it needs a value
-            if(energy < fShellCrossSection[zeta]->fCompBinVector[shellIdx][1]) return std::min(bin, numberofnodes-2);
-            if(energy >= fShellCrossSection[zeta]->fCompBinVector[shellIdx][numberofnodes-2]) return numberofnodes - 2;
+            if(energy < fShellCrossSection[zeta]->fCompBinVector[shellIdx][1]) //return std::min(bin, numberofnodes-2);
+            {
+                //bin=std::min(bin, numberofnodes-2);
+                return fShellCrossSection[zeta]->fCompDataVector[shellIdx][std::min(bin, numberofnodes-2)];
+            }
+            
+            if(energy >= fShellCrossSection[zeta]->fCompBinVector[shellIdx][numberofnodes-2]) //return numberofnodes - 2;
+                return  fShellCrossSection[zeta]->fCompDataVector[shellIdx][numberofnodes - 2];
             if(bin >= numberofnodes || energy < fShellCrossSection[zeta]->fCompBinVector[shellIdx][bin] || energy > fShellCrossSection[zeta]->fCompBinVector[shellIdx][bin+1])
                 bin = std::lower_bound(fShellCrossSection[zeta]->fCompBinVector[shellIdx].begin(), fShellCrossSection[zeta]->fCompBinVector[shellIdx].end(), energy) - fShellCrossSection[zeta]->fCompBinVector[shellIdx].begin() - 1;
             bin=std::min(bin, numberofnodes-2);
@@ -314,11 +331,11 @@ namespace geantphysics {
          * @brief Private method to retrieve a linear interpolated value. It is used to calculate the linear interpolation  of sub-shell cross section, given the energy of the primary and the shell index.
          *
          *
-         * @param[in]  energy       primary particle (gamma) kinetic energy.
-         * @param[in]  binvector    xvalues vector.
-         * @param[in]  datavector   yvalues vector.
-         * @param[in]  idx          index for the linear interpolation.
-         * @return                  linear interpolation of xvalues (binvector) and yvalues (datavector) at index 'idx'.
+         * @param[in]  energy       Primary particle (gamma) kinetic energy.
+         * @param[in]  binvector    Xvalues vector.
+         * @param[in]  datavector   Yvalues vector.
+         * @param[in]  idx          Index of the bin for which retrieve the interpolated value.
+         * @return                  Linear interpolation of xvalues (binvector) and yvalues (datavector) at index 'idx'.
          */
         inline double LinearInterpolation(double energy, std::vector<double>   &binvector, std::vector<double>   &datavector,  size_t idx) const
         {
@@ -334,8 +351,8 @@ namespace geantphysics {
          * @brief Internal method to load parameterization data.
          *
          *  Used at initialisation of the model to load parameterization data used to calculate cross-sections. It selects only the materials
-         *  present in the list active regions and for each of them calls the internal method ReadData to read the corresponding parameterization
-         *  files.
+         *  present in the list of active regions and for each of them calls the internal method ReadData to read and store the corresponding
+         * parameterization files.
          *
          **/
         void   LoadData();
@@ -343,16 +360,17 @@ namespace geantphysics {
         //---------------------------------------------
         //ReadData
         /**
-         * @brief Internal method to read parameterization data corresponding to the 'active'element with atomic number Z.
+         * @brief Internal method to read parameterization data corresponding to the 'active' element with atomic number Z.
          *
          *  Used at initialisation of the model to read and store in the corresponding class members parameterization data 
-         *  corresponding to the selected element with atomic number Z.
+         *  of the selected element with atomic number Z.
+         *
          *  The files read are:
-         *  - pe-le-cs-zeta.dat:    low energy (below k-shell binding energy) cross-section data
-         *  - pe-cs-zeta.dat:       cross-section data above k-shell binding energy
-         *  - pe-low-zeta.dat:      low-energy parameterization data
-         *  - pe-high-zeta.dat:     high-energy paramterization data
-         *  - pe-ss-cs-zeta.dat:    subshells cross-sections data
+         *  - pe-le-cs-zeta.dat:    Low energy (below k-shell binding energy) cross-section data. They are stored in fLECSVector[Z].
+         *  - pe-cs-zeta.dat:       Cross-section data above k-shell binding energy. They are stored in fCSVector[Z].
+         *  - pe-low-zeta.dat:      Low-energy parameterization data. They are stored in fParamLow[Z].
+         *  - pe-high-zeta.dat:     High-energy paramterization data. They are stored in fParamHigh[Z].
+         *  - pe-ss-cs-zeta.dat:    Subshells cross-sections data. They are stored in fShellCrossSection[Z].
          *
          *  @param[in]  zeta   Atomic number of the element for which to load the corresponding parameterization data.
          **/
@@ -365,8 +383,8 @@ namespace geantphysics {
          *
          *  Used at initialisation of the model to prepare sampling tables over an initial gamma energy grid.
          *  The gamma energy grid is determined by the low/high energies at which the angle can be calculated and the
-         *  fNumSamplingPrimEnergiesPerDecade variable. For energies higher than 100MeV the secondary is supposed to go straight 
-         *  and follow the same direction as the incident gamma.
+         *  fNumSamplingPrimEnergiesPerDecade variable. For energies higher than 100MeV the secondary is considered to go straight
+         *  and being ejected from the atom with the same direction as the incident gamma.
          *  A sampling table, using Walker's discrete alias method combined with <em>linear approximation of the p.d.f.</em>, is 
          *  built at each gamma energy grid point using the BuildOneLinAlias() method. 
          *  These sampling tables are used at run-time to sample the secondary (photoelectron) direction.
@@ -404,7 +422,7 @@ namespace geantphysics {
             std::vector<double>* fCompBinVector;    // Bins for every shell of element Z
             std::vector<double>* fCompDataVector;   // Data for every shell of element Z
             int* fCompID;                           // Id for every shell of element Z
-            size_t* fCompLength;                    // Total number of shells per element Z
+            size_t* fCompLength;                    // Total number of subshell cross-sections data per each subshell element Z
         };
         
         /** @brief Vector storing high-energy parameterization data. */
@@ -416,7 +434,7 @@ namespace geantphysics {
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
         
-        /** @brief Vector of pointers to ShellData cross-sections. There are several shells cross-sections data per Z. */
+        /** @brief Vector of pointers to ShellData cross-sections. Several ShellData struct per Z. */
         static ShellData  **fShellCrossSection;            //Several shells cross-sections data per Z
         
         /** @brief Array of pointers to Low-energy XSectionsVector (one LE cross-section vector per Z).*/
@@ -426,11 +444,11 @@ namespace geantphysics {
         XSectionsVector * fCSVector[gMaxSizeData];    //one !LE cross-section vector per Z
         
         //to do:  check the use of these members
-        /** @brief Boolean true if there are CrossSections data (for energies above k-shell binding energy). */
-        bool* fCrossSection;                        //true if we have CrossSections data (for energies above k-shell binding energy)
+        /** @brief Vector of booleans. fCrossSection[Z] is true if there are CrossSections data (for energies above k-shell binding energy) for element Z. */
+        bool* fCrossSection;                        //true if there are CrossSections data (for energies above k-shell binding energy)
         
-        /** @brief Boolean true if we have Low-Energy CrossSections data (for energies below k-shell binding energy). */
-        bool* fCrossSectionLE;                      //true if we have Low-Energy CrossSections data (for energies below k-shell binding energy)
+        /** @brief Vector of booleans. fCrossSectionLE[Z] is true if there are Low-Energy CrossSections data (for energies below k-shell binding energy) for element Z. */
+        bool* fCrossSectionLE;                      //true if there are Low-Energy CrossSections data (for energies below k-shell binding energy)
         
         /** @brief Total number of shells per each element Z. */
         static int                   fNShells[gMaxSizeData];
@@ -452,16 +470,16 @@ namespace geantphysics {
          *
          * These variables describe and define the primary gamma kinetic energy grid on which we build sampling tables in the
          * InitSamplingTables() method for run-time sampling of the post interaction photoelectron (e-) direction.
-         * The min/max of the table is set to the min/max energy usage limits of the model and the number of discrete gamma energy points 
+         * The min/max of the table is set to fMinPrimEnergy and fMaxPrimEnergy limits and the number of discrete gamma energy points
          * will be determined by the value of SauterGavrilaPhotoElectricModel::fNumSamplingPrimEnergiesPerDecade variable. 
-         * The default value is ??? (to do check) and it can be changed by the user through the SetNumberOfPhotonEnergiesPerDecade()(to do: check) (?)
+         * The default value can be changed by the user through the SetNumberOfPhotonEnergiesPerDecade()(to do: add this method)
          * public method (must be set before the initialisation of the model!).
          *
          */
         //@{
         //---------------------------------------------
         /** @brief Number of gamma kinetic energy grid points in [SauterGavrilaPhotoElectricModel::fMinGammaEnergy,
-         *        SauterGavrilaPhotoElectricModel::fMaxGammaEnergy]. (to do: check)
+         *        SauterGavrilaPhotoElectricModel::fMaxGammaEnergy].
          */
         int     fNumSamplingPrimEnergies;
         
@@ -471,19 +489,19 @@ namespace geantphysics {
         
         
         //---------------------------------------------
-        /** @brief Number of emitted pe cosTheta in [-1, 1] or transformed emitted photoelectron angle related variable in [log(e-12),log(2)]. */
+        /** @brief Number of emitted photoelectron cosTheta considered in the range[-1, 1] or number of transformed emitted photoelectron angle related variable in [log(e-12),log(2)].*/
         int     fNumSamplingAngles;
         
         //---------------------------------------------
-        /** @brief Minimum of the gamma kinetic energy grid (default 1.0 [eV].) (to do: check)*/
+        /** @brief Minimum of the gamma kinetic energy grid (default 1.0 [eV]).*/
         double  fMinPrimEnergy;
         
         //---------------------------------------------
-        /** @brief Maximum of the gamma kinetic energy grid (default 100.0 [MeV] (to do: check). After this threshold the photoelectron is considered to go straight with the same direction as the incident photon) */
+        /** @brief Maximum of the gamma kinetic energy grid (default 100.0 [MeV]). After this threshold the photoelectron is considered to go straight with the same direction as the incident photon */
         double  fMaxPrimEnergy;
         
         //---------------------------------------------
-        /** @brief Logarithm of SauterGavrilaPhotoElectricModel::fMinGammaEnergy i.e. ln(fMinGammaEnergy) . */
+        /** @brief Logarithm of SauterGavrilaPhotoElectricModel::fMinGammaEnergy i.e. ln(fMinGammaEnergy). */
         double  fPrimEnLMin;                         // log min gamma energy
         
         //---------------------------------------------
@@ -523,11 +541,11 @@ namespace geantphysics {
             /** @brief Number of data points i.e. size of the arrays = SauterGavrilaPhotoElectricModel::fNumSamplingGammaEnergies. */
             int     fNumdata;
             
-            /** @brief This must be the gamma energies - maybe beginning of the bin? (transformed or not..it depends).(to do: check) */
+            /** @brief Gamma discrete kinetic energies stored in the alias table -  (transformed or not..it depends). */
             double *fXdata;
             
             /** @brief The probability density function values (not necessarily normalised) over the photoelectron angle
-             *        variable values. (to do: check) */
+             *        variable values. */
             double *fYdata;
             
             /** @brief The alias probabilities (not necessarily normalised) over the photoelectron angle
