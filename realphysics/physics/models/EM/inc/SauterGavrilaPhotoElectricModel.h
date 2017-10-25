@@ -441,7 +441,7 @@ namespace geantphysics {
         double  fMinPrimEnergy;
         
         //---------------------------------------------
-        /** @brief Maximum of the gamma kinetic energy grid (default 100.0 [MeV]). After this threshold the photoelectron is considered to go straight with the same direction as the incident photon */
+        /** @brief Maximum of the gamma kinetic energy grid (default 1.0 [GeV]). After this threshold the photoelectron is considered to go straight with the same direction as the incident photon */
         double  fMaxPrimEnergy;
         
         //---------------------------------------------
