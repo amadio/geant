@@ -40,6 +40,7 @@ class GeantBasket;
 class GeantScheduler;
 class TaskBroker;
 class GeantVTaskMgr;
+class EventSet;
 
 /**
  * @brief WorkloadManager class
@@ -296,6 +297,16 @@ public:
    * @param arg Arguments to be passed in the function
    */
   static void TransportTracksV3(GeantPropagator *prop);
+
+  /**
+   * @brief Function that provides transporting tracks
+   *
+   * @param td Task data
+   * @param workload Event set to be transported
+   * @return True if workload completed. If false, the work will be completed
+   *         by other task.
+   */
+  static bool TransportTracksTask(GeantTaskData *td, EventSet *workload);
   
   static
   FeederResult PreloadTracksForStep(GeantTaskData *td);

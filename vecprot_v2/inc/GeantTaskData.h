@@ -68,6 +68,7 @@ public:
   int fSizeInt = 0;      /*  Size of int array */
   int fSizeDbl = 0;      /** Size of dbl array */
   bool fToClean = false; /** Flag set when the basket queue is to be cleaned */
+  bool fTaskCompleted;   /** Flag set when a task is completed */
   Volume_t *fVolume = nullptr; /** Current volume per thread */
 #ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::RNG *fRndm = nullptr;           /** Random generator for thread */
@@ -409,11 +410,6 @@ public:
   }
 
 };
-
-
-
-
-
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

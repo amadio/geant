@@ -26,6 +26,7 @@
 #include "PhysicsProcessOld.h"
 #include "GeantScheduler.h"
 #include "GeantEvent.h"
+#include "EventSet.h"
 #include "GeantVApplication.h"
 #include "GeantVTaskMgr.h"
 #include "StackLikeBuffer.h"
@@ -319,6 +320,46 @@ int WorkloadManager::ShareBaskets(WorkloadManager *other)
   ReleaseShareLock();
   return nshared;
 }
+
+//______________________________________________________________________________
+bool WorkloadManager::TransportTracksTask(GeantTaskData *td, EventSet *workload) {
+// Re-entrant main transport method. This will co-operate with other identical
+// concurrent tasks (basketizing + transporting tracks for all events available
+// in the event server). The method will exit if it triggered finishing any of
+// the event sets registered in the event server.
+// Remarks:
+//   - this is a task mode, NUMA not enabled
+  GeantPropagator *propagator = td->fPropagator;
+  GeantRunManager *runmgr = propagator->fRunMgr;
+#ifndef USE_VECGEOM_NAVIGATOR
+  // If we use ROOT make sure we have a navigator here
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+  if (!nav)
+    nav = gGeoManager->AddNavigator();
+#endif
+/*** STEPPING LOOP ***/
+  bool flush = false;
+  while (!workload->IsDone()) {
+    // Check if simulation has finished
+    auto feedres = PreloadTracksForStep(td);
+    flush = (feedres == FeederResult::kNone) ||
+            (feedres == FeederResult::kError) ||
+            workload->IsDone();
+    SteppingLoop(td, flush);
+    if (workload->IsDone()) break;
+    if (flush) {
+      // There is no more work in the server but the workload is not yet
+      // completed. We return false, notifying the caller that the result will come
+      // later on. If the caller is a task, it could spawn a pause task checking
+      // regularly the state of the dataset.
+      break;
+    }
+  }
+  // Release the task data
+  runmgr->GetTDManager()->ReleaseTaskData(td);
+  return workload->IsDone();
+}
+
 //______________________________________________________________________________
 void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 

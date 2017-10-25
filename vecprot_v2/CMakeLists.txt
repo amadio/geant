@@ -60,6 +60,7 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantOutput.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantPropagator.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEvent.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/EventSet.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantScheduler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PhysicsInterface.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PhysicsProcessOld.cxx
@@ -119,6 +120,8 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MCTruthMgr.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/cuckoohash_map.hh
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantRunManager.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEvent.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/EventSet.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEventServer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantConfig.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
