@@ -93,17 +93,21 @@ static double        numSamples        = 1.e+07;           // number of required
 static double        primaryEnergy     = 0.01;             // primary particle energy in [GeV] - 0.01=10MeV
 static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
 static bool          isProdCutInLength = true;            // is the production cut value given in length ?
+static bool          isAlias           = false;            // is the Alias sampling active ?
 
 static struct option options[] = {
-    {"particle-name     (possible particle names: gamma)                        - default: gamma"                 , required_argument, 0, 'p'},
-    {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"        , required_argument, 0, 'm'},
+    
+    {"particle-name     (possible particle names: gamma)                         - default: gamma"               , required_argument, 0, 'p'},
+    {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"         , required_argument, 0, 'm'},
     {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.01"                , required_argument, 0, 'E'},
-    {"number-of-samples (number of required final state samples)                 - default: 1.e+7"              , required_argument, 0, 'f'},
-    {"number-of-bins    (number of bins in the histogram)                        - default: 100"                , required_argument, 0, 'n'},
+    {"number-of-samples (number of required final state samples)                 - default: 1.e+7"               , required_argument, 0, 'f'},
+    {"number-of-bins    (number of bins in the histogram)                        - default: 100"                 , required_argument, 0, 'n'},
     {"model-name        (sauterGavrilaPhotoElectric)                             - default: sauterGavrilaPhotoElectric"       , required_argument, 0, 'b'},
-    {"cut-vale          (secondary production threshold value for all particles) - default: 0.1"                , required_argument, 0, 'c'},
-    {"cut-in-energy     (is the production cut value given in energy ? )         - default: false"              , no_argument      , 0, 'e'},
-    {"help"                                                                                                     , no_argument      , 0, 'h'},
+    {"isAlias           (is the Alias sampling active ?)                         - default: false"               , required_argument, 0, 's'},
+    {"cut-value         (secondary production threshold value for all particles) - default: 0.1"                 , required_argument, 0, 'c'},
+    {"cut-in-energy     (is the production cut value given in energy ? )         - default: false"               , no_argument      , 0, 'e'},
+    {"help"                                                                                                      , no_argument      , 0, 'h'},
+
     {0, 0, 0, 0}
 };
 void help();
@@ -124,13 +128,16 @@ int main(int argc, char *argv[]) {
     //============================== Get input parameters =====================================//
     while (true) {
         int c, optidx = 0;
-        c = getopt_long(argc, argv, "eh:m:E:f:n:c:p:b:", options, &optidx);
+        c = getopt_long(argc, argv, "eh:m:E:f:n:c:p:b:s:", options, &optidx);
         if (c == -1)
             break;
         switch (c) {
             case 0:
                 c = options[optidx].val;
                 /* fall through */
+            case 's':
+                isAlias = true;
+                break;
             case 'm':
                 materialName = optarg;
                 break;
@@ -241,7 +248,7 @@ int main(int argc, char *argv[]) {
     // Create a SauterGavrilaPhotoElectricModel model for gammas:
     // - Create a SauterGavrilaPhotoElectricModel model
     std::cout<<"Creating the model SauterGavrilaPhotoElectricModel\n";
-    EMModel *emModel = new SauterGavrilaPhotoElectricModel();
+    EMModel *emModel = new SauterGavrilaPhotoElectricModel(photoElectricModelName, isAlias); //true to use Alias Sampling method
     // - Set low/high energy usage limits to their min/max possible values
     emModel->SetLowEnergyUsageLimit ( 0.01*geant::keV);
     
@@ -289,6 +296,9 @@ int main(int argc, char *argv[]) {
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
     std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+    std::cout<< "   Alias sampling =  " << isAlias << std::endl;
+    std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+
     // check if we compute atomic-cross section: only for single elemnt materials
     bool isSingleElementMaterial = false;
     if (matCut->GetMaterial()->GetNumberOfElements()==1) {
