@@ -42,14 +42,14 @@ namespace geantphysics {
     double                SauterGavrilaPhotoElectricModel::fWaterEnergyLimit = 0.0;
     
     
-    SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname)
+    SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname, bool aliasActive)
     : EMModel(modelname){
         
-        //TO DO: all these values need to be seen and set with the optimal values
-        fNumSamplingPrimEnergiesPerDecade = 20;    // Number of primary gamma kinetic energy grid points per decade. It should be set/get and must be done before init
+        fAliasActive = aliasActive;
+        fNumSamplingPrimEnergiesPerDecade = 40;    // Number of primary gamma kinetic energy grid points per decade. It should be set/get and must be done before init
         fNumSamplingPrimEnergies = 60;
-        fNumSamplingAngles = 60;                       // at each energy grid points
-        fMinPrimEnergy           =  1*geant::eV;       // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
+        fNumSamplingAngles = 80;                   // At each energy grid points
+        fMinPrimEnergy           =  1.e-12*geant::eV;  // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
         fMaxPrimEnergy           =  100*geant::MeV;    // Maximum of the gamma kinetic energy grid (after this threshold the e- is considered to follow the same direction as the incident gamma)
         
         fPrimEnLMin                = 0.;       // will be set in InitSamplingTables if needed
@@ -84,7 +84,6 @@ namespace geantphysics {
         if (fLSamplingPrimEnergies)
             delete [] fLSamplingPrimEnergies;
         
-        // NO ALIAS FOR THE MOMENT
         if (fAliasData) {
             for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
                 if (fAliasData[i]) {
@@ -111,9 +110,6 @@ namespace geantphysics {
     
     void SauterGavrilaPhotoElectricModel::InitializeModel() {
         
-        fMinPrimEnergy                    = GetLowEnergyUsageLimit();
-        fMaxPrimEnergy                    = GetHighEnergyUsageLimit();
-        
         //ALLOCATION fCrossSection
         if (fCrossSection) {
             delete [] fCrossSection;
@@ -139,8 +135,8 @@ namespace geantphysics {
         
         fVerboseLevel=1;
         LoadData();
-        //NOT NEEDED FOR THE MOMENT - NO ALIAS USED
-        //InitSamplingTables();
+        if(fAliasActive)
+            InitSamplingTables();
         
     }
     
@@ -483,7 +479,7 @@ namespace geantphysics {
         td->fRndm->uniform_array(1, rndArray);
         phi     = geant::kTwoPi * rndArray[0];
         
-        if (gammaEnIn > 1*geant::GeV) {
+        if (gammaEnIn > 100*geant::MeV) {
             
             sinTheta = std::sqrt((1 - cosTheta)*(1 + cosTheta));
             
@@ -529,14 +525,12 @@ namespace geantphysics {
     //____________________
     double SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Alias(double primekin, double r1, double r2, double r3){
         
-        
         // determine primary energy lower grid point
-        if (primekin > 1*geant::GeV) {
-            
+        if (primekin > 100*geant::MeV) {
             return 1.;
         } else
         {
-            
+            //std::cout<<"::::SamplePhotoElectronDirection_Alias::::\n";
             double lGammaEnergy  = std::log(primekin);
             int gammaEnergyIndx  = (int) ((lGammaEnergy-fPrimEnLMin)*fPrimEnILDelta);
             //
@@ -552,10 +546,9 @@ namespace geantphysics {
             
             //This have to be seen (Transformation)
             //double xsi=fAliasSampler->SampleLinear(fAliasData[gammaEnergyIndx]->fXdata, fAliasData[gammaEnergyIndx]->fYdata,fAliasData[gammaEnergyIndx]->fAliasW, fAliasData[gammaEnergyIndx]->fAliasIndx,fAliasData[gammaEnergyIndx]->fNumdata,r2,r3);
-            //double ecosTheta= 1-std::exp(xsi);
             
+            //double ecosTheta= std::exp(xsi)-2;
             return ecosTheta;
-            
         }
         
     }
@@ -923,21 +916,21 @@ namespace geantphysics {
         double phi      = 0.0;
         
         //************* START REJECTION SAMPLING ****
-        //
-        SamplePhotoElectronDirection_Rejection(gammaekin0, sinTheta, cosTheta, phi, td);
-        //
+        if(!fAliasActive)
+            SamplePhotoElectronDirection_Rejection(gammaekin0, sinTheta, cosTheta, phi, td);
+        
         //************* END REJECTION SAMPLING ****
         
         
         //************* START ALIAS SAMPLING ****
-        //
-        //td->fRndm->uniform_array(4, rndArray);
-        //double *rndArray2 = td->fDblArray;
-        //td->fRndm->uniform_array(4, rndArray2);
-        //cosTheta=SamplePhotoElectronDirection_Alias(gammaekin0, rndArray2[0], rndArray2[1], rndArray2[2]);
-        //phi = geant::kTwoPi * rndArray2[3];
-        //sinTheta=std::sqrt((1 - cosTheta)*(1 + cosTheta));
-        //
+        else{
+            
+            double *rndArray = td->fDblArray;
+            td->fRndm->uniform_array(4, rndArray);
+            cosTheta=SamplePhotoElectronDirection_Alias(gammaekin0, rndArray[0], rndArray[1], rndArray[2]);
+            phi = geant::kTwoPi * rndArray[3];
+            sinTheta=std::sqrt((1 - cosTheta)*(1 + cosTheta));
+        }
         //************* END ALIAS SAMPLING ****
         
         
@@ -1015,7 +1008,6 @@ namespace geantphysics {
         // set number of primary gamma energy grid points
         // keep the prev. value of primary energy grid points.
         int oldNumGridPoints = fNumSamplingPrimEnergies;
-        
         fNumSamplingPrimEnergies = fNumSamplingPrimEnergiesPerDecade*std::lrint(std::log10(fMaxPrimEnergy/fMinPrimEnergy))+1;
         if (fNumSamplingPrimEnergies<2) {
             fNumSamplingPrimEnergies = 2;
@@ -1070,9 +1062,8 @@ namespace geantphysics {
         // -the prepare each table one-by-one
         for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
             double egamma = fSamplingPrimEnergies[i];
-            double kappa  = egamma/geant::kElectronMassC2;
-            //std::cout<<"Creating AliasTable for: index "<<i<<" - energyGamma: "<<egamma<<" and egamma/geant::kElectronMassC2: "<<kappa<<std::endl;
-            BuildOneLinAlias(i,kappa);
+            double tau  = egamma/geant::kElectronMassC2;
+            BuildOneLinAlias(i,tau);
         }
     }
     
@@ -1088,8 +1079,8 @@ namespace geantphysics {
         
         //double tau = energy0 / geant::kElectronMassC2;
         
-        double cosTheta= 1-std::exp(xsi);
-        //if(cosTheta>(1-1.e-12)) cosTheta=1.e-12;
+        //std::cout<<"CalculateDiffCrossSectionLog. tau: "<<tau<<" and xsi: "<<xsi<<std::endl;
+        double cosTheta= std::exp(xsi) - 2;
         
         //gamma and beta: Lorentz factors of the photoelectron
         double gamma = tau + 1.0;
@@ -1101,8 +1092,8 @@ namespace geantphysics {
         double y = 1 - cosTheta * cosTheta; //sen^2(theta)
         
         double dsigmadcostheta = (y / z4) * (1 + 0.5 * gamma * (tau) * (gamma - 2) * z);
-        double dsigmadxsi=dsigmadcostheta*(-std::exp(xsi));
-        
+        double dsigmadxsi=dsigmadcostheta*(std::exp(xsi));
+        //std::cout<<"dsigmadcostheta: "<<dsigmadcostheta<<" and dsigmadxsi: "<<dsigmadxsi<<std::endl;
         return dsigmadxsi;
         
     }
@@ -1142,12 +1133,14 @@ namespace geantphysics {
         fAliasData[indx]->fAliasW     = new double[fNumSamplingAngles];
         fAliasData[indx]->fAliasIndx  = new    int[fNumSamplingAngles];
         
-        //fAliasData[indx]->fXdata[0] = std::log(1.e-12); //min
-        //fAliasData[indx]->fXdata[1] = (std::log(2)+std::log(1.e-12))/2;
-        //fAliasData[indx]->fXdata[2] = std::log(2);
-        //fAliasData[indx]->fYdata[0] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[0]);
-        //fAliasData[indx]->fYdata[1] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[1]);
-        //fAliasData[indx]->fYdata[2] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[2]);
+        /*fAliasData[indx]->fXdata[0] = 0; //min
+        fAliasData[indx]->fXdata[1] = (std::log(3) )/2;
+        fAliasData[indx]->fXdata[2] = std::log(3);
+        
+        fAliasData[indx]->fYdata[0] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[0]);
+        fAliasData[indx]->fYdata[1] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[1]);
+        fAliasData[indx]->fYdata[2] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[2]);
+        */
         
         // note: the variable is a cos in [-1,1]
         // so fill 3 initial values of cos:
@@ -1158,10 +1151,9 @@ namespace geantphysics {
         fAliasData[indx]->fXdata[0] = -1.;
         fAliasData[indx]->fXdata[1] = 0.;
         fAliasData[indx]->fXdata[2] = 1.0;
-        fAliasData[indx]->fYdata[0] = CalculateDiffCrossSection(tau, -1.);
-        fAliasData[indx]->fYdata[1] = CalculateDiffCrossSection(tau, 0.);
-        fAliasData[indx]->fYdata[2] = CalculateDiffCrossSection(tau, 1.);
-        
+        fAliasData[indx]->fYdata[0] = CalculateDiffCrossSection(tau, fAliasData[indx]->fXdata[0]);
+        fAliasData[indx]->fYdata[1] = CalculateDiffCrossSection(tau, fAliasData[indx]->fXdata[1]);
+        fAliasData[indx]->fYdata[2] = CalculateDiffCrossSection(tau, fAliasData[indx]->fXdata[2]);
         
         int curNumData = 3;
         // expand the data up to numdata points

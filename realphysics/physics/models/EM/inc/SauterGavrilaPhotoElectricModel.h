@@ -65,9 +65,11 @@ namespace geantphysics {
         /**
          * @brief Constructor.
          *
-         * @param[in] modelname   Name of the model.
+         * @param[in] modelname     Name of the model.
+         * @param[in] aliasActive   Boolean true if we want to use Alias Sampling to sample the secondary particle direction. By default is set to false and 
+         *                          model uses composition-rejection sampling
          */
-        SauterGavrilaPhotoElectricModel(const std::string &modelname = "SauterGavrilaPhotoElectric");
+        SauterGavrilaPhotoElectricModel(const std::string &modelname = "SauterGavrilaPhotoElectric", bool aliasActive = false);
         
         /** @brief Destructor. */
         ~SauterGavrilaPhotoElectricModel();
@@ -127,7 +129,14 @@ namespace geantphysics {
         //SetVerboseLevel
         /**
          * @brief Public method to set the verbose level (fVerboseLevel attribute).*/
-        void SetVerboseLevel(int lev);
+        void  SetVerboseLevel(int lev);
+        int   GetNumberOfPhotonEnergiesPerDecade()   const { return fNumSamplingPrimEnergiesPerDecade; }
+        // before initialisation
+        void  SetNumberOfPhotonEnergiesPerDecade(int val)  { fNumSamplingPrimEnergiesPerDecade = val;  }
+        //
+        int   GetNumberOfDiscretePDFSamples()        const { return fNumSamplingAngles;              }
+        // before initialisation
+        void  SetNumberOfDiscretePDFSamples(int val)       { fNumSamplingAngles = val;               }
         
         //@}
         
@@ -377,6 +386,9 @@ namespace geantphysics {
         /** @brief Verbose level to control the printout. */
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
+        
+        bool fAliasActive;                          //True if Alias sampling is used - not default option (false by default)
+
         
         /** @brief Vector of pointers to XSectionsVector cross-sections. Several subshell XSectionsVector per Z. */
         XSectionsVector** fShellVector[gMaxSizeData];     //Several subshell cross-section vector per Z
