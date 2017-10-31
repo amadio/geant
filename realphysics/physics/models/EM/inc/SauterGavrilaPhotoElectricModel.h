@@ -69,7 +69,7 @@ namespace geantphysics {
          * @param[in] aliasActive   Boolean true if we want to use Alias Sampling to sample the secondary particle direction. By default is set to false and 
          *                          model uses composition-rejection sampling
          */
-        SauterGavrilaPhotoElectricModel(const std::string &modelname = "SauterGavrilaPhotoElectric", bool aliasActive = false);
+        SauterGavrilaPhotoElectricModel(const std::string &modelname = "SauterGavrilaPhotoElectric", bool aliasActive = true);
         
         /** @brief Destructor. */
         ~SauterGavrilaPhotoElectricModel();
@@ -386,8 +386,6 @@ namespace geantphysics {
         /** @brief Verbose level to control the printout. */
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
-        
-        bool fAliasActive;                          //True if Alias sampling is used - not default option (false by default)
 
         
         /** @brief Vector of pointers to XSectionsVector cross-sections. Several subshell XSectionsVector per Z. */

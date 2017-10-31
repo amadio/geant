@@ -45,7 +45,7 @@ namespace geantphysics {
     SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname, bool aliasActive)
     : EMModel(modelname){
         
-        fAliasActive = aliasActive;
+        SetUseSamplingTables(aliasActive);
         fNumSamplingPrimEnergiesPerDecade = 40;    // Number of primary gamma kinetic energy grid points per decade. It should be set/get and must be done before init
         fNumSamplingPrimEnergies = 60;
         fNumSamplingAngles = 80;                   // At each energy grid points
@@ -135,7 +135,7 @@ namespace geantphysics {
         
         fVerboseLevel=1;
         LoadData();
-        if(fAliasActive)
+        if(GetUseSamplingTables())
             InitSamplingTables();
         
     }
@@ -915,8 +915,8 @@ namespace geantphysics {
         double sinTheta = 0.0;
         double phi      = 0.0;
         
-        //************* START REJECTION SAMPLING ****
-        if(!fAliasActive)
+        //************* START REJECTION SAMPLING ****]
+        if(!GetUseSamplingTables())
             SamplePhotoElectronDirection_Rejection(gammaekin0, sinTheta, cosTheta, phi, td);
         
         //************* END REJECTION SAMPLING ****
