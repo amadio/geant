@@ -34,6 +34,7 @@ class GeantEventServer;
 class GeantEvent;
 class PrimaryGenerator;
 class MCTruthMgr;
+class EventSet;
 
 class GeantRunManager
 {
@@ -62,6 +63,8 @@ private:
 
   vector_t<GeantPropagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
+  vector_t<EventSet *> fEventSets;              /** Registered event sets */
+  std::atomic_flag fEventSetsLock;              /** Spinlock for event set access locking */
 
   // State data
   std::atomic_int fPriorityEvents; /** Number of prioritized events */
@@ -79,6 +82,8 @@ public:
   ~GeantRunManager();
 
 // Accessors
+  void  AddEventSet(EventSet *workload);
+
   GEANT_FORCE_INLINE
   int  GetNthreads() { return fNthreads; }
 
@@ -198,11 +203,17 @@ public:
   /** @brief Implementation of work stealing */
   int ProvideWorkTo(GeantPropagator *prop);
 
+  void LockEventSets() { while (fEventSetsLock.test_and_set(std::memory_order_acquire)) {}; }
+  void UnlockEventSets() { fEventSetsLock.clear(std::memory_order_release); }
+ 
+  EventSet *NotifyEventSets(GeantEvent *finished_event);
+
   void EventTransported(GeantEvent *event, GeantTaskData *td);
   bool Initialize();
   bool FinishRun();
   bool LoadGeometry(const char *filename);
   void RunSimulation();
+  bool RunSimulationTask(EventSet *workload);
   void StopTransport();
 
 };

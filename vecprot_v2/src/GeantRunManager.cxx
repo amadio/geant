@@ -5,6 +5,7 @@
 #include "Geant/Error.h"
 #include "VBconnector.h"
 #include "GeantPropagator.h"
+#include "WorkloadManager.h"
 #include "TaskBroker.h"
 #include "PhysicsInterface.h"
 #include "PhysicsProcessOld.h"
@@ -14,6 +15,7 @@
 #include "MCTruthMgr.h"
 #include "PrimaryGenerator.h"
 #include "GeantEvent.h"
+#include "EventSet.h"
 #include "GeantEventServer.h"
 #include "LocalityManager.h"
 
@@ -66,6 +68,7 @@ GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthread
     fConfig(config) {
   fPriorityEvents.store(0);
   fTaskId.store(0);
+  fEventSetsLock.clear();
 }
 
 //______________________________________________________________________________
@@ -224,6 +227,15 @@ bool GeantRunManager::Initialize() {
 
   GeantTaskData *td = fTDManager->GetTaskData(0);
   td->AttachPropagator(fPropagators[0], 0);
+  
+  if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
+    for (auto i=0; i<fNpropagators; ++i) {
+      for (auto j=0; j< nthreads; ++j) {
+        td = fTDManager->GetTaskData(j);
+        td->AttachPropagator(fPropagators[i], 0);
+      }
+    }
+  }
 
   // Initialize the event server
   fEventServer = new GeantEventServer(fConfig->fNbuff, this);
@@ -375,6 +387,12 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
   // Signal completion of one event to the event server
   fDoneEvents->SetBitNumber(event->GetEvent());
   assert(event->GetNtracks() > 0);
+  // Notify event sets
+  if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
+    EventSet *completedSet = NotifyEventSets(event);
+    Info("EventTransported", "Event set completed");
+    delete completedSet;
+  }
   fEventServer->CompletedEvent(event, td);
 }
 
@@ -402,16 +420,64 @@ GeantPropagator *GeantRunManager::GetIdlePropagator() const {
 }
 
 //______________________________________________________________________________
+void GeantRunManager::AddEventSet(EventSet *workload)
+{
+// Add one event set to be processed in the system. Adds also the individual
+// events in the event server.
+  
+  LockEventSets();
+  fEventSets.push_back(workload);
+  UnlockEventSets();
+  workload->AddSetToServer(fEventServer);
+}
+
+//______________________________________________________________________________
+EventSet *GeantRunManager::NotifyEventSets(GeantEvent *finished_event)
+{
+// The method loops over registered event sets calling MarkDone method.
+  LockEventSets();
+  for (auto eventSet : fEventSets) {
+    if (eventSet->MarkDone(finished_event)) {
+      if (eventSet->IsDone()) {
+        fEventSets.erase(std::remove(fEventSets.begin(), fEventSets.end(), eventSet),
+                        fEventSets.end());
+        UnlockEventSets();
+        return eventSet;
+      }
+      UnlockEventSets();
+      return nullptr;
+    }
+  }
+  UnlockEventSets();
+  return nullptr;
+}
+
+//______________________________________________________________________________
+bool GeantRunManager::RunSimulationTask(EventSet *workload) {
+// Entry point for running simulation as asynchonous task. The user has to provide
+// an event set to be transported. The method will return only when the given
+// workload is completed. The actual thread executing this task will co-operate
+// to the completion of other workloads pipelined by other similar tasks. In case
+// the worker doesn't manage to complete the workload and there is no more work
+// to be done, the thread will go to sleep and be waken at the completion of the
+// event set.
+// The method is intended to work in an external event loop scenario, steered by
+// an external task.
+
+  // Register the workload in the manager and insert events in the server
+  AddEventSet(workload);
+  Printf("= GeantV transport task started");
+  bool completed = WorkloadManager::TransportTracksTask(workload, this);
+  return completed;
+}
+
+//______________________________________________________________________________
 void GeantRunManager::RunSimulation() {
   // Start simulation for all propagators
   Initialize();
 
   Printf("==========================================================================");
   Printf("= GeantV run started with %d propagator(s) using %d worker threads each ====", fNpropagators, fNthreads);
-  if (fConfig->fUsePhysics)
-    Printf("  Physics ON");
-  else
-    Printf("  Physics OFF");
   if (fConfig->fUseRungeKutta)
     Printf("  Runge-Kutta integration ON with epsilon= %g", fConfig->fEpsilonRK);
   else
