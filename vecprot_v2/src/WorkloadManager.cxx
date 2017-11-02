@@ -322,18 +322,20 @@ int WorkloadManager::ShareBaskets(WorkloadManager *other)
 }
 
 //______________________________________________________________________________
-bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantRunManager *runmgr) {
+bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td) {
 // Re-entrant main transport method. This will co-operate with other identical
 // concurrent tasks (basketizing + transporting tracks for all events available
 // in the event server). The method will exit if it triggered finishing any of
 // the event sets registered in the event server.
 // Remarks:
 //   - this is a task mode, NUMA not enabled
-  Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+//   - the task data has to be pre-booked using RunManager::BookTransportTask
   if (!td) {
     Error("TransportTracksTask", "No task data object available!!!");
     return false;
   }
+  GeantPropagator *propagator = td->fPropagator;
+  GeantRunManager *runmgr = propagator->fRunMgr;
 #ifndef USE_VECGEOM_NAVIGATOR
   // If we use ROOT make sure we have a navigator here
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();

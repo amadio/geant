@@ -5,10 +5,12 @@
 using vecgeom::GeoManager;
 #endif
 #include "GeantEvent.h"
+#include "EventSet.h"
 #include "GeantFactoryStore.h"
 #include "GeantTrackVec.h"
 #include "GeantRunManager.h"
 #include "GeantTaskData.h"
+#include "PrimaryGenerator.h"
 #include "globals.h"
 #ifdef USE_ROOT
 #include "TGeoNode.h"
@@ -25,7 +27,7 @@ using std::max;
 
 //______________________________________________________________________________
 ExN03Application::ExN03Application(GeantRunManager *runmgr)
-  : GeantVApplication(runmgr), fInitialized(false), fIdGap(0), fIdAbs(0), fFactory(0) {
+  : GeantVApplication(runmgr), fInitialized(false), fGenerator(nullptr), fIdGap(0), fIdAbs(0), fFactory(0) {
   // Ctor..
   GeantFactoryStore *store = GeantFactoryStore::Instance();
   fFactory = store->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());
@@ -77,8 +79,40 @@ bool ExN03Application::Initialize() {
 #endif
   // Register user data and get a handle for it with the task data manager
   fDigitsHandle = fRunMgr->GetTDManager()->RegisterUserData<ExN03ScoringData>("ExN03digits");
+  fGenerator->InitPrimaryGenerator();
   fInitialized = true;
   return true;
+}
+
+//______________________________________________________________________________
+void ExN03Application::SetGenerator(Geant::PrimaryGenerator *gen)
+{ 
+  fGenerator = gen;
+}
+
+//______________________________________________________________________________
+Geant::EventSet *ExN03Application::GenerateEventSet(size_t nevents, Geant::GeantTaskData *td)
+{
+  using EventSet = Geant::EventSet;
+  using GeantEvent = Geant::GeantEvent;
+  using GeantEventInfo = Geant::GeantEventInfo;
+  using GeantTrack = Geant::GeantTrack;
+  
+  EventSet *evset = new EventSet(nevents);
+  for (size_t i=0 ; i< nevents; ++i) {
+    GeantEvent *event = new GeantEvent();
+    GeantEventInfo event_info = fGenerator->NextEvent();
+    event->SetNprimaries(event_info.ntracks);
+    event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
+    for (int itr = 0; itr < event_info.ntracks; ++itr) {
+      GeantTrack &track = td->GetNewTrack();
+      track.fParticle = event->AddPrimary(&track);
+      track.SetPrimaryParticleIndex(itr);
+      fGenerator->GetTrack(itr, track);
+    }
+    evset->AddEvent(event);
+  }
+  return evset;
 }
 
 //______________________________________________________________________________

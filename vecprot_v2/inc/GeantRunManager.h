@@ -156,6 +156,9 @@ public:
   void SetUserApplication(GeantVApplication *app) { fApplication = app; }
 
   GEANT_FORCE_INLINE
+  GeantVApplication *GetUserApplication() const { return fApplication; }
+
+  GEANT_FORCE_INLINE
   void SetDetectorConstruction(GeantVDetectorConstruction *det) { fDetConstruction = det; }
 
   GEANT_FORCE_INLINE
@@ -187,6 +190,8 @@ public:
 
   GEANT_FORCE_INLINE
   TDManager *GetTDManager() const { return fTDManager; }
+  
+  GeantTaskData *BookTransportTask();
 
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
@@ -213,7 +218,7 @@ public:
   bool FinishRun();
   bool LoadGeometry(const char *filename);
   void RunSimulation();
-  bool RunSimulationTask(EventSet *workload);
+  bool RunSimulationTask(EventSet *workload, GeantTaskData *td);
   void StopTransport();
 
 };

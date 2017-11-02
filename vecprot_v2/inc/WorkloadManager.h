@@ -307,7 +307,7 @@ public:
    * @return True if workload completed. If false, the work will be completed
    *         by other task.
    */
-  static bool TransportTracksTask(EventSet *workload, GeantRunManager *runmgr);
+  static bool TransportTracksTask(EventSet *workload, GeantTaskData *td);
   
   static
   FeederResult PreloadTracksForStep(GeantTaskData *td);

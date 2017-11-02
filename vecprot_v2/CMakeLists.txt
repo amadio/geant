@@ -242,6 +242,7 @@ else()
   set(TEST_EXECUTABLES
     CMSApp.cc
     runApp.cc
+    runAppExternalLoop.cc
     testBasketizer.cc
 )
 endif()
@@ -304,7 +305,7 @@ endif()
 if(CUDA)
   install(TARGETS CMSGPUApp runGPUApp DESTINATION bin)
 else()
-  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
+  install(TARGETS CMSApp runApp runAppExternalLoop testBasketizer DESTINATION bin)
 endif()
 
 if(USE_ROOT)

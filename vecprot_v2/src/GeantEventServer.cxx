@@ -177,6 +177,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 {
 // Adds one event into the queue of pending events.
   int evt = fNload.fetch_add(1);
+  event->SetEvent(evt);
   if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop) {
     // The vertex must be defined
     vecgeom::Vector3D<double> vertex = event->GetVertex();
@@ -205,7 +206,6 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     fBindex = link->index;
     //td->fVolume = vol;
     // Check and fix tracks
-    event->SetEvent(evt);
     for (int itr=0; itr<ntracks; ++itr) {
       GeantTrack &track = *event->GetPrimary(itr);
       track.SetPrimaryParticleIndex(itr);
@@ -255,6 +255,15 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
       printf("###    => increase number of buffered events slots to minimum %d\n", nthreads * basket_size / ntracksperevent);
       printf("###    => decrease number of threads to maximum %d\n", vecCore::math::Max(1, fNtracksInit/basket_size));
     }
+  }
+ 
+  bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
+  if (external_loop && !fEvent.load()) {
+    unsigned int error = 0;
+    event = nullptr;
+    // Activate the first event
+    ActivateEvent(event, error);
+    assert(error == 0 && "GeantEventServer::AddEvent ERROR in event activation");
   }
 
   fEventsServed = false;
