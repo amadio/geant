@@ -330,10 +330,11 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td)
 // Remarks:
 //   - this is a task mode, NUMA not enabled
 //   - the task data has to be pre-booked using RunManager::BookTransportTask
-  if (!td) {
+   if (!td) {
     Error("TransportTracksTask", "No task data object available!!!");
     return false;
   }
+
   GeantPropagator *propagator = td->fPropagator;
   GeantRunManager *runmgr = propagator->fRunMgr;
 #ifndef USE_VECGEOM_NAVIGATOR
@@ -358,14 +359,18 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td)
       // put the thread on hold. This should not be significant overhead given
       // that it can only happen if the worker has finished its own work and there
       // is no other work from the server.
+      
       workload->SleepUntilDone();
       assert(workload->IsDone());
-      break;
+      continue;
     }
   }
+  
+  delete workload;
+
   // Release the task data
   runmgr->GetTDManager()->ReleaseTaskData(td);
-  return workload->IsDone();
+  return true;
 }
 
 //______________________________________________________________________________

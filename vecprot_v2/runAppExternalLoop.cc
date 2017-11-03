@@ -331,6 +331,7 @@ void RunSimulationTasks(size_t nthreads, GeantRunManager *runmgr)
   printf("RUNNING SIMULATION WITH EXTERNAL LOOP\n");
   size_t nperthread = n_buffered/nthreads;
   if (nperthread < 1) nperthread = 1;
+  printf("--- dataset size: %ld\n", nperthread);
   std::vector<std::thread> workers;
    for (size_t n = 0; n < nthreads; ++n) {
       workers.emplace_back(RunTransportTask, nperthread, runmgr);

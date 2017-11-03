@@ -389,7 +389,7 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
   if(fTruthMgr) fTruthMgr->CloseEvent(event->GetEvent());
   // event->Print();
   // Digitizer
-  Info("EventTransported", " = task %d digitizing event %d with %d tracks", td->fTid, event->GetEvent(), event->GetNtracks());
+  Info("EventTransported", " = task %d completed event %d with %d tracks", td->fTid, event->GetEvent(), event->GetNtracks());
 //  LocalityManager *lmgr = LocalityManager::Instance();
 //  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
 //         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
@@ -398,11 +398,9 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
   fDoneEvents->SetBitNumber(event->GetEvent());
   assert(event->GetNtracks() > 0);
   // Notify event sets
-  if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
-    EventSet *completedSet = NotifyEventSets(event);
-    Info("EventTransported", "Event set completed");
-    delete completedSet;
-  }
+  if (fConfig->fRunMode == GeantConfig::kExternalLoop)
+    NotifyEventSets(event);
+
   fEventServer->CompletedEvent(event, td);
 }
 
@@ -447,7 +445,7 @@ EventSet *GeantRunManager::NotifyEventSets(GeantEvent *finished_event)
 // The method loops over registered event sets calling MarkDone method.
   LockEventSets();
   for (auto eventSet : fEventSets) {
-    if (eventSet->MarkDone(finished_event)) {
+    if (eventSet->MarkDone(finished_event->GetEvent())) {
       if (eventSet->IsDone()) {
         fEventSets.erase(std::remove(fEventSets.begin(), fEventSets.end(), eventSet),
                         fEventSets.end());
@@ -478,7 +476,6 @@ bool GeantRunManager::RunSimulationTask(EventSet *workload, GeantTaskData *td) {
 
   // Register the workload in the manager and insert events in the server
   AddEventSet(workload);
-  Printf("= GeantV transport task started");
   bool completed = WorkloadManager::TransportTracksTask(workload, td);
   return completed;
 }

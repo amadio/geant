@@ -265,7 +265,6 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     ActivateEvent(event, error);
     assert(error == 0 && "GeantEventServer::AddEvent ERROR in event activation");
   }
-
   fEventsServed = false;
   fHasTracks = true;
   return true;

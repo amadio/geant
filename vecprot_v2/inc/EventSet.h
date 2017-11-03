@@ -29,6 +29,7 @@ class EventSet {
 
   struct EventMarker {
     GeantEvent *fEvent = nullptr;        /** Event */
+    int              fEventNumber;       /** Event number */
     std::atomic_flag fDone;              /** Done flag */
   };
 
@@ -45,37 +46,40 @@ private:
   EventSet(const EventSet &other);
   const EventSet &operator=(const EventSet &other);
 
-  /* @brief Check if an event is contained in the event set. */
+  /** @brief Check if an event is contained in the event set. */
   GEANT_FORCE_INLINE
-  bool Contains(GeantEvent *event, size_t &slot) const {
+  bool Contains(int event_number, size_t &slot) const {
     for (slot = 0; slot < fNevents; ++slot) 
-      if (fMarkers[slot]->fEvent == event) return true;
+      if (fMarkers[slot]->fEventNumber == event_number) return true;
     return false;
   }
 
 public:  
-  /* @brief Constructor allowing to define the event set content later-on. */
+  /** @brief Constructor allowing to define the event set content later-on. */
   EventSet(size_t nevents);
 
-  /* @brief Constructor providing the full set of events. */
+  /** @brief Constructor providing the full set of events. */
   EventSet(std::vector<GeantEvent*> const &events);
 
-  /* @brief Destructor */
+  /** @brief Destructor */
   ~EventSet() { delete [] fMarkers; }
 
-  /* @brief Complete the event set adding events one-by-one. */
+  /** @brief Complete the event set adding events one-by-one. */
   bool AddEvent(GeantEvent *event);
   
   void AddSetToServer(GeantEventServer *evserv) const;
 
-  /* @brief Mark one event in the set as done. Return true if the operation completes the set. */
-  bool MarkDone(GeantEvent *event);
+  /** @brief Mark one event in the set as done. Return true if the operation completes the set. */
+  bool MarkDone(int event_number);
   
-  /* @brief Check if the all events in the set are completed. */
+  /** @brief Print the data set */
+  void Print();
+  
+  /** @brief Check if the all events in the set are completed. */
   GEANT_FORCE_INLINE
   bool IsDone() const { return fDone; }
   
-  /* @brief Sleep until awaken by the completion of the event set */
+  /** @brief Sleep until awaken by the completion of the event set */
   void SleepUntilDone() { fLocker.Wait(); }
   
 };

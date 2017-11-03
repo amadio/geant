@@ -79,7 +79,7 @@ bool ExN03Application::Initialize() {
 #endif
   // Register user data and get a handle for it with the task data manager
   fDigitsHandle = fRunMgr->GetTDManager()->RegisterUserData<ExN03ScoringData>("ExN03digits");
-  fGenerator->InitPrimaryGenerator();
+  if (fGenerator) fGenerator->InitPrimaryGenerator();
   fInitialized = true;
   return true;
 }
@@ -102,6 +102,10 @@ Geant::EventSet *ExN03Application::GenerateEventSet(size_t nevents, Geant::Geant
   for (size_t i=0 ; i< nevents; ++i) {
     GeantEvent *event = new GeantEvent();
     GeantEventInfo event_info = fGenerator->NextEvent();
+    while (event_info.ntracks == 0) {
+      printf("Discarding empty event\n");
+      event_info = fGenerator->NextEvent();
+    }
     event->SetNprimaries(event_info.ntracks);
     event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
     for (int itr = 0; itr < event_info.ntracks; ++itr) {
