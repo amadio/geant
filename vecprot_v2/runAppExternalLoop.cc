@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
   config->SetMonitored(GeantConfig::kMonVectors, false);
   config->SetMonitored(GeantConfig::kMonConcurrency, false);
   config->SetMonitored(GeantConfig::kMonTracksPerEvent, false);
-  config->fNaverage = 5;   // Average number of tracks per event
+  config->fNaverage = 500;   // Average number of tracks per event
   
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
