@@ -363,7 +363,10 @@ namespace geantphysics {
         
         /**
          * @brief Public method to prepare sampling table for discretized continuous distribution with combination of alias
-         *        sampling and linear approximation of the p.d.f.
+         *        sampling and linear approximation of the p.d.f.  
+         *        This method is preparing data structure for Alias Sampling using an adaptive binning, The number of points used for 
+         *        binning is not fixed but varies from energy to energy to meet the precision requirements that is set to the value of
+         *        gsingleTableErrorThreshold variable
          *
          *
          * @param[in,out] xdata      Array of discrete samples of the random variable between its minimum and maximum values.
@@ -385,8 +388,9 @@ namespace geantphysics {
         static const int        gMaxSizeData                = 100;          //Maximum number of Z elements
         /** @brief Maximum number of shells per element. */
         static const int        gNShellLimit                = 100;          //Maximum number of shells per element
-        static constexpr double singleTableErrorThreshold   = 2.e-3;        //2 per mille error threshold
-        static const int        pointsForIntegral           = 200;
+        /** @brief Maximum error introduced by the use of Alias sampling at each decade energy*/
+        static constexpr double gsingleTableErrorThreshold   = 2.e-3;       //2 per mille error threshold
+        //static const int        gpointsForIntegral           = 200;       //not used for the moment
         
         /** @brief Vector storing high-energy parameterization data. */
         static std::vector<double>*  fParamHigh[gMaxSizeData];   //High-energy parameterization data
