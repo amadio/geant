@@ -229,15 +229,16 @@ bool GeantRunManager::Initialize() {
     fPropagators[i]->Initialize();
 
   GeantTaskData *td = fTDManager->GetTaskData(0);
-  td->AttachPropagator(fPropagators[0], 0);
   
   if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
     for (auto i=0; i<fNpropagators; ++i) {
-      for (auto j=0; j< nthreads; ++j) {
-        td = fTDManager->GetTaskData(j);
+      for (auto j=0; j< fNthreads; ++j) {
+        td = fTDManager->GetTaskData(i*fNthreads+j);
         td->AttachPropagator(fPropagators[i], 0);
       }
     }
+  } else {
+    td->AttachPropagator(fPropagators[0], 0);  
   }
 
   // Initialize the event server
