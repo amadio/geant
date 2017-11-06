@@ -360,23 +360,33 @@ namespace geantphysics {
         void   BuildOneLinAlias(int indx, double tau);
         
         
+        
+        /**
+         * @brief Public method to prepare sampling table for discretized continuous distribution with combination of alias
+         *        sampling and linear approximation of the p.d.f.
+         *
+         *
+         * @param[in,out] xdata      Array of discrete samples of the random variable between its minimum and maximum values.
+         *
+         * @param[in,out] ydata      Array of the (not necessarily normalised) p.d.f. at the discrete sample points of the
+         *                           random variable given in xdata. It will be used at sampling as well. 
+         *
+         * @param[in]     tau        Initial photon energy \f$ E_0 \f$ expressend in \f$e_m c^2\f$ units.
+         *
+         **/
+        
+         int PrepareLinAlias(double tau, std::vector<double> & x, std::vector<double> & y);
+        
         //@}
         
         // data members
     private:
         /** @brief Maximum number of Z elements. */
-        static const int gMaxSizeData = 100;         //Maximum number of Z elements
+        static const int        gMaxSizeData                = 100;          //Maximum number of Z elements
         /** @brief Maximum number of shells per element. */
-        static const int gNShellLimit = 100;         //Maximum number of shells per element
-        
-        //to do: this could be seen as a struct with an array of XSectionsVector + the int* fCompID;
-        /*struct ShellData{
-            
-            std::vector<double>* fCompBinVector;    // Bins for every shell of element Z
-            std::vector<double>* fCompDataVector;   // Data for every shell of element Z
-            int* fCompID;                           // Id for every shell of element Z
-            size_t* fCompLength;                    // Total number of subshell cross-sections data per each subshell element Z
-        };*/
+        static const int        gNShellLimit                = 100;          //Maximum number of shells per element
+        static constexpr double singleTableErrorThreshold   = 2.e-3;        //2 per mille error threshold
+        static const int        pointsForIntegral           = 200;
         
         /** @brief Vector storing high-energy parameterization data. */
         static std::vector<double>*  fParamHigh[gMaxSizeData];   //High-energy parameterization data

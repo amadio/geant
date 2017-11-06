@@ -46,9 +46,8 @@ namespace geantphysics {
     : EMModel(modelname){
         
         SetUseSamplingTables(aliasActive);
-        fNumSamplingPrimEnergiesPerDecade = 40;    // Number of primary gamma kinetic energy grid points per decade. It should be set/get and must be done before init
-        fNumSamplingPrimEnergies = 60;
-        fNumSamplingAngles = 80;                   // At each energy grid points
+        fNumSamplingPrimEnergiesPerDecade = 75;    // Number of primary gamma kinetic energy grid points per decade. 75 table per energy decade assures accuracy within 5% (alias sampling)        fNumSamplingPrimEnergies = 60;
+        fNumSamplingAngles = 80;                   // At each energy grid points. This is dinamically set at initialization time.
         fMinPrimEnergy           =  1.e-12*geant::eV;  // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
         fMaxPrimEnergy           =  100*geant::MeV;    // Maximum of the gamma kinetic energy grid (after this threshold the e- is considered to follow the same direction as the incident gamma)
         
@@ -1124,7 +1123,86 @@ namespace geantphysics {
         
     }
     
+    
+    int SauterGavrilaPhotoElectricModel::PrepareLinAlias(double tau, std::vector<double> & x, std::vector<double> & y){
+        
+        int numpoints=40;
+        int curNumData = 5;
+        double maxErrorThreshold = singleTableErrorThreshold;
+        
+        x.resize(numpoints);
+        y.resize(numpoints);
+        
+        //cosTheta variable between [-1, 1]
+        //start with 5 points: thetaMin, thetaMin+0.1, 0, thetaMax-0.1, thetaMax
+        double thetaMin=-1.;
+        double thetaMax=1.;
+        x[0] = thetaMin;
+        x[1] = thetaMin+0.1;
+        x[2] = 0.;
+        x[3] = thetaMax-0.1;
+        x[4] = thetaMax;
+        y[0] = CalculateDiffCrossSection(tau, x[0]);
+        y[1] = CalculateDiffCrossSection(tau, x[1]);
+        y[2] = CalculateDiffCrossSection(tau, x[2]);
+        y[3] = CalculateDiffCrossSection(tau, x[3]);
+        y[4] = CalculateDiffCrossSection(tau, x[4]);
+        double maxerr     = 1.0;
+        
+        // expand the data up to the required precision level
+        while (curNumData<numpoints &&  maxerr>=maxErrorThreshold ) {
+            // find the lower index of the bin, where we have the biggest linear interp. error
+            maxerr     = 0.0; // value of the current maximum error
+            double thexval    = 0.0;
+            double theyval    = 0.0;
+            int    maxerrindx = 0;   // the lower index of the corresponding bin
+            for (int i=0; i<curNumData-1; ++i) {
+                
+                double xx    = 0.5*(x[i]+x[i+1]);    // mid x point
+                double yy    = 0.5*(y[i]+y[i+1]);    // lin. interpolated pdf value at the mid point
+                double val   = CalculateDiffCrossSection(tau, xx); // real pdf value at the mid point
+                double err   = std::abs(1.-(yy/val));
+                if (err>maxerr) {
+                    maxerr     = err;
+                    maxerrindx = i;
+                    thexval    = xx;
+                    theyval    = val;
+                    
+                }
+                
+            }
+            // extend x,y data by putting a new real value at the mid point of the highest error bin
+            // first shift all values to the right
+            for (int j=curNumData; j>maxerrindx+1; --j) {
+                x[j] = x[j-1];
+                y[j] = y[j-1];
+            }
+            // fill x mid point
+            x[maxerrindx+1] = thexval;
+            y[maxerrindx+1] = theyval;
+            
+            // increase number of data
+            ++curNumData;
+            if(curNumData>=numpoints)
+            {
+                numpoints*=2;
+                x.resize(numpoints);
+                y.resize(numpoints);
+                
+            }
+        }// end while
+        
+        x.resize(curNumData);
+        y.resize(curNumData);
+        return curNumData;
+    }
+    
+    
     void SauterGavrilaPhotoElectricModel::BuildOneLinAlias(int indx, double tau){
+        
+        std::vector<double> x;
+        std::vector<double> y;
+        fNumSamplingAngles= PrepareLinAlias(tau, x, y);
         
         fAliasData[indx]              = new LinAlias();
         fAliasData[indx]->fNumdata    = fNumSamplingAngles;
@@ -1133,65 +1211,31 @@ namespace geantphysics {
         fAliasData[indx]->fAliasW     = new double[fNumSamplingAngles];
         fAliasData[indx]->fAliasIndx  = new    int[fNumSamplingAngles];
         
-        /*fAliasData[indx]->fXdata[0] = 0; //min
-        fAliasData[indx]->fXdata[1] = (std::log(3) )/2;
-        fAliasData[indx]->fXdata[2] = std::log(3);
+        //INTEGRAL CALCULATION : is not needed, the pdf can be not normalized
+        //GLIntegral  *gl   = new GLIntegral(pointsForIntegral, -1., 1.0);
+        //std::vector<double> glx  = gl->GetAbscissas();
+        //std::vector<double> glw  = gl->GetWeights();
         
-        fAliasData[indx]->fYdata[0] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[0]);
-        fAliasData[indx]->fYdata[1] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[1]);
-        fAliasData[indx]->fYdata[2] = CalculateDiffCrossSectionLog(tau, fAliasData[indx]->fXdata[2]);
-        */
+        //calculate the integral of the differential cross section
+        //double integral=0.;
+        //for(int i = 0 ; i < pointsForIntegral ; i++)
+        //    integral+= (glw[i]* CalculateDiffCrossSection(tau, glx[i]));
         
-        // note: the variable is a cos in [-1,1]
-        // so fill 3 initial values of cos:
-        //  -  xi_0 = x_min = -1.
-        //  -  xi_1 = (x_max-x_min)/2 = 0.
-        //  -  xi_2 = x_max = 1.
-        // and the corresponding y(i.e.~PDF) values
-        fAliasData[indx]->fXdata[0] = -1.;
-        fAliasData[indx]->fXdata[1] = 0.;
-        fAliasData[indx]->fXdata[2] = 1.0;
-        fAliasData[indx]->fYdata[0] = CalculateDiffCrossSection(tau, fAliasData[indx]->fXdata[0]);
-        fAliasData[indx]->fYdata[1] = CalculateDiffCrossSection(tau, fAliasData[indx]->fXdata[1]);
-        fAliasData[indx]->fYdata[2] = CalculateDiffCrossSection(tau, fAliasData[indx]->fXdata[2]);
+        //for (int i = 0; i < (int)y.size(); ++i) {
+        //    y[i]/=integral;
+       // }
         
-        int curNumData = 3;
-        // expand the data up to numdata points
-        while (curNumData<fAliasData[indx]->fNumdata) {
-            // find the lower index of the bin, where we have the biggest linear interp. error compared to spline
-            double maxerr     = 0.0; // value of the current maximum error
-            double thexval    = 0.0;
-            double theyval    = 0.0;
-            int    maxerrindx = 0;   // the lower index of the corresponding bin
-            for (int i=0; i<curNumData-1; ++i) {
-                double xx    = 0.5*(fAliasData[indx]->fXdata[i]+fAliasData[indx]->fXdata[i+1]);    // mid x point
-                double yy    = 0.5*(fAliasData[indx]->fYdata[i]+fAliasData[indx]->fYdata[i+1]);    // lin. interpolated pdf value at the mid point
-                //double val   = CalculateDiffCrossSectionLog(tau, xx); // real pdf value at the mid point
-                double val   = CalculateDiffCrossSection(tau, xx); // real pdf value at the mid point
-                double err   = std::abs(1.-(yy/val));
-                if (err>maxerr) {
-                    maxerr     = err;
-                    maxerrindx = i;
-                    thexval    = xx;
-                    theyval    = val;
-                }
-            }
-            // extend x,y data by puting a new real value at the mid point of the highest error bin
-            // first shift all values to the right
-            for (int j=curNumData; j>maxerrindx+1; --j) {
-                fAliasData[indx]->fXdata[j] = fAliasData[indx]->fXdata[j-1];
-                fAliasData[indx]->fYdata[j] = fAliasData[indx]->fYdata[j-1];
-            }
-            // fill x mid point
-            fAliasData[indx]->fXdata[maxerrindx+1] = thexval;
-            fAliasData[indx]->fYdata[maxerrindx+1] = theyval;
-            // increase number of data
-            ++curNumData;
-        } // end while
+        //copy data
+        for (int i = 0; i < (int) x.size(); i++)
+        {
+            fAliasData[indx]->fXdata[i]=x[i];
+            fAliasData[indx]->fYdata[i]=y[i];
+        }
+        
         // prepare the alias data for this PDF(x,y)
-        fAliasSampler->PreparLinearTable(fAliasData[indx]->fXdata, fAliasData[indx]->fYdata,
-                                         fAliasData[indx]->fAliasW, fAliasData[indx]->fAliasIndx,
-                                         fAliasData[indx]->fNumdata);
+        fAliasSampler->PreparLinearTable(fAliasData[indx]->fXdata, fAliasData[indx]->fYdata,fAliasData[indx]->fAliasW, fAliasData[indx]->fAliasIndx,fAliasData[indx]->fNumdata);
+        
     }
+    
     
 }   // namespace geantphysics
