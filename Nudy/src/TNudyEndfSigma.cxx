@@ -25,7 +25,9 @@ ClassImp(TNudyEndfSigma)
 #include "TRandom3.h"
 #endif
 
-    TNudyEndfSigma::TNudyEndfSigma()
+#include <algorithm>
+
+TNudyEndfSigma::TNudyEndfSigma()
     : rENDF(), sigDiff(0)
 {
 }
