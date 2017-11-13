@@ -130,12 +130,12 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
 
 //______________________________________________________________________________
 int GeantVDetectorConstruction::ImportRegions() {
-
+// Import regions if available in TGeo
+  int nregions = 0;
+#if defined(USE_VECGEOM_NAVIGATOR) && defined(USE_ROOT)
   using Region = vecgeom::Region;
   using LogicalVolume = vecgeom::LogicalVolume;
   
-  int nregions = 0;
-#ifdef USE_ROOT
   double electronCut, positronCut, gammaCut, protonCut;
   // Loop on ROOT regions if any
   nregions = gGeoManager->GetNregions();
