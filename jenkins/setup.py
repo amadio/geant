@@ -76,7 +76,7 @@ def main(argv):
    else :
       compiler = comp
 
-   rootDir = "/afs/cern.ch/sw/lcg/app/releases/GEANTV-externals/"+external
+   rootDir = "/cvmfs/sft.cern.ch/lcg/views/devgeantv/"+external
 
 
 # --------------------- Setting default OS
