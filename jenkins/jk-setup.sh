@@ -107,8 +107,7 @@ elif [[ $COMPILER == *clang* ]]; then
   clang37gcc=49
   clang38gcc=49
   GCCversion=${COMPILER}gcc
-  . /afs/cern.ch/sw/lcg/external/llvm/${!COMPILERversion}/${ARCH}-${LABEL_COMPILER}/setup.sh
-# . /cvmfs/sft.cern.ch/lcg/contrib/llvm/${!COMPILERversion}/${ARCH}-${LABEL_COMPILER}/setup.sh
+ . /cvmfs/sft.cern.ch/lcg/contrib/llvm/${!COMPILERversion}/${ARCH}-${LABEL_COMPILER}/setup.sh
   export CC=`which clang`
   export CXX=`which clang++`
   export FC=`which gfortran`
@@ -120,8 +119,4 @@ export CMAKE_BUILD_TYPE=$BUILDTYPE
 
 export CTEST_BUILD_OPTIONS=" -DUSE_ROOT=ON -DCTEST=ON ${ExtraCMakeOptions}"
 export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/installation
-#export BACKEND=$BACKEND
 export LD_LIBRARY_PATH=$WORKSPACE/lib:$LD_LIBRARY_PATH
-
-#echo ${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}
-#eval `${THIS}/setup.py -o ${LABEL} -c ${COMPILER} -b ${BUILDTYPE} -v ${EXTERNALS} -w ${WORKSPACE} -t ${TYPE}`
