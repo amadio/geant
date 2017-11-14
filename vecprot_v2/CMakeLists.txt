@@ -379,21 +379,23 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm5_OUTPUT})
 foreach(_script ${TestEm5_SCRIPTS})
   configure_file(
     ${_script}
-    ${CMAKE_INSTALL_PREFIX}/${TestEm5_OUTPUT}/${_script}
+    ${CMAKE_BINARY_DIR}/${TestEm5_OUTPUT}/${_script}
     COPYONLY
     )
 endforeach()
 install(TARGETS runTestEm5 DESTINATION ${TestEm5_OUTPUT})
+install(FILES ${TestEm5_SCRIPTS} DESTINATION ${TestEm5_OUTPUT})
 ### The remaining ### (calo applications; runAppRP and runAppTestEM3RP will be removed soon)
 set(caloApp_OUTPUT bin/examples/Calorimeter/GeantV)
 set(caloApp_SCRIPTS caloApp.mac)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${caloApp_OUTPUT})
   configure_file(
     caloApp.mac
-    ${CMAKE_INSTALL_PREFIX}/${caloApp_OUTPUT}/caloApp.mac
+    ${CMAKE_BINARY_DIR}/${caloApp_OUTPUT}/caloApp.mac
     COPYONLY
     )
 install(TARGETS caloAppRP runAppRP runAppTestEM3RP DESTINATION ${caloApp_OUTPUT})
+install(FILES caloApp.mac DESTINATION ${caloApp_OUTPUT})
 # -------  END == WITH REAL PHYSICS -------------------------------------------------------
 endif()
 

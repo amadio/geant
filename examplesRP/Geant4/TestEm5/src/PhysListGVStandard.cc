@@ -136,7 +136,6 @@ void PhysListGVStandard::ConstructProcess()
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
       G4eMultipleScattering* msc = new G4eMultipleScattering;
       G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
-      msc1->SetOptionPWAScreening(false);
       msc->AddEmModel(0, msc1);
       ph->RegisterProcess(msc,particle);
       //
@@ -147,7 +146,6 @@ void PhysListGVStandard::ConstructProcess()
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
       G4eMultipleScattering* msc = new G4eMultipleScattering;
       G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
-      msc1->SetOptionPWAScreening(true);
       msc->AddEmModel(0, msc1);
       ph->RegisterProcess(msc,particle);
       //

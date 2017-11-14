@@ -64,6 +64,8 @@ def main(argv):
        ops_sys = 'slc6'
    elif label == 'lcgapp-SLC6_64b' :
        ops_sys = 'slc6'
+   elif label == 'continuous-cc7' :
+       ops_sys = 'centos7'
    else :
       ops_sys = label
 

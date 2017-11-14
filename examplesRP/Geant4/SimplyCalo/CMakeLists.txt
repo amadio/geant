@@ -49,7 +49,7 @@ set(SimplyCalo_SCRIPTS
  foreach(_script ${SimplyCalo_SCRIPTS})
    configure_file(
      ${_script}
-      ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+      ${CMAKE_BINARY_DIR}/${OUTPUT}/${_script}
      COPYONLY
      )
 #     configure_file(
@@ -63,3 +63,4 @@ set(SimplyCalo_SCRIPTS
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS SimplyCalo DESTINATION ${OUTPUT})
+install(FILES ${SimplyCalo_SCRIPTS} DESTINATION ${OUTPUT})

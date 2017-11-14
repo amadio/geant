@@ -48,7 +48,7 @@ set(TestEm5_SCRIPTS
  foreach(_script ${TestEm5_SCRIPTS})
    configure_file(
      ${_script}
-      ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+      ${CMAKE_BINARY_DIR}/${OUTPUT}/${_script}
      COPYONLY
      )
 #     configure_file(
@@ -62,3 +62,4 @@ set(TestEm5_SCRIPTS
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS TestEm5 DESTINATION ${OUTPUT})
+install(FILES ${TestEm5_SCRIPTS} DESTINATION ${OUTPUT})
