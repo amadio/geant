@@ -341,7 +341,8 @@ include(cmake/modules/GeantMacros.cmake)
 #----------------------------------------------------------------------------------------------
 # see if we have CCACHE ( to avoid recompilation on branch switches )
 #
-find_program(CCACHE_FOUND ccache)
+# TBD: Temporary disabling ccache for GeantV (no sudo access to CI node)
+#find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
   message(STATUS "found ccache")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
