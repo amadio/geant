@@ -70,11 +70,10 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-static bool isTestEm3 = false, isPerformance = false;
+static bool isPerformance = false;
 static std::string  macrofile="";
 
 static struct option options[] = {
-   {"flag to run TestEM3 instead ExN03 (default FALSE)", no_argument, 0, 't'},
    {"flag to run the application in performance mode (default FALSE)", no_argument, 0, 'p'},
    {"standard Geant4 macro file", required_argument, 0, 'm'},
    {0, 0, 0, 0}
@@ -82,12 +81,10 @@ static struct option options[] = {
 
 void help() {
   std::cout<<"\n "<<std::setw(100)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-  std::cout<<"  Extended version of the standard Geant4 TestEM3 simplified calorimeter test that can be used \n"
-           <<"  for ExN03 appliaction (the corresponding GV application is runAppRP) or the orginal TestEM3. \n"
+  std::cout<<"  Extended version of the standard Geant4 TestEM3 simplified calorimeter test.    \n"
+           <<"  The corresponding GV application is caloAppRP. \n"
            << std::endl
            <<"  **** Parameters: \n"
-           <<"      -t :   flag  ==> run original TestEM3 application \n"
-           <<"         :    -    ==> run ExN03 application (default) \n"
            <<"      -p :   flag  ==> run the application in performance mode i.e. no scoring \n"
            <<"         :   -     ==> run the application in NON performance mode i.e. with scoring (default) \n"
            <<"      -m :   REQUIRED : the standard Geamt4 macro file\n"
@@ -113,26 +110,20 @@ int main(int argc,char** argv) {
   }
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "tpm:", options, &optidx);
+    c = getopt_long(argc, argv, "pm:", options, &optidx);
     if (c == -1)
       break;
-
+    //
     switch (c) {
     case 0:
       c = options[optidx].val;
     /* fall through */
-    case 't':
-      isTestEm3 = true;
-      break;
-
     case 'p':
       isPerformance = true;
       break;
-
     case 'm':
       macrofile = optarg;
       break;
-
     default:
       help();
       errx(1, "unknown option %c", c);
@@ -163,7 +154,7 @@ int main(int argc,char** argv) {
   runManager->SetUserInitialization(new PhysicsList);
 
   // set user action classes
-  runManager->SetUserInitialization(new ActionInitialization(detector,isTestEm3,isPerformance));
+  runManager->SetUserInitialization(new ActionInitialization(detector,isPerformance));
 
   // get the pointer to the User Interface manager
   G4UImanager* UI = G4UImanager::GetUIpointer();

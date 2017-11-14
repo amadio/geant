@@ -1,99 +1,109 @@
-//===--- CaloDetectorConstruction.h - GeantV ---------------------------------*- C++ -*-===//
-//
-//                     GeantV Prototype
-//
-//===----------------------------------------------------------------------===//
-/**
- * @file CaloDetectorConstruction.h
- * @brief Implementation of geometry for GeantV calorimeter prototype
- * @author Ryan Schmitz
- * @date August 1, 2017
- */
-//===----------------------------------------------------------------------===//
 
-#ifndef CALO_DETECTOR_CONSTRUCTION
-#define CALO_DETECTOR_CONSTRUCTION
-#define NEW_DETECTOR
-#include "GeantRunManager.h"
+#ifndef CALODETECTORCONSTRUCTION_H
+#define CALODETECTORCONSTRUCTION_H
+
 #include "GeantVDetectorConstruction.h"
-#include "Material.h"
-#include "Region.h"
+#include "Geant/Typedefs.h"
+#include "Geant/Config.h"
+#include "GeantFwd.h"
+
+#include <string>
+
 namespace Geant {
-inline namespace GEANT_IMPL_NAMESPACE {
-class GeantRunManager;
-class Material;
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class GeantVDetectorConstruction;
+    class GeantRunManager;
+  }
 }
+
+namespace geantphysics {
+  inline namespace GEANT_IMPL_NAMESPACE {
+    class Material;
+  }
 }
+
+
 namespace userapplication {
+
 class CaloDetectorConstruction : public Geant::GeantVDetectorConstruction {
 
-  static const int kMaxAbsorbers = 10;
+public:
+  // CTR
+  CaloDetectorConstruction(Geant::GeantRunManager *runmgr);
+  // DTR
+  ~CaloDetectorConstruction();
 
+  // interface mathod to define a set of custom materials for the application
+  virtual void CreateMaterials();
+  // interface method to define the geometry for the application
+  virtual void CreateGeometry();
+
+  // set/get number of absorbers per layer
+  void   SetNumberOfAbsorbersPerLayer(int numabs);
+  int    GetNumberOfAbsorbersPerLayer() const       { return fNumberOfAbsorbers;   }
+  // set/get number of layers
+  void   SetNumberOfLayers(int numlayers)           { fNumberOfLayers = numlayers; }
+  int    GetNumberOfLayers() const                  { return fNumberOfLayers;      }
+  // set/get absorber thickness
+  void   SetAbsorberThickness(int absindx, double thick);
+  double GetAbsorberThickness(int absindx) const;
+  // set absorber material name
+  void   SetAbsorberMaterialName(int absindx, const std::string &matname);
+  // get absorber material (must be used after the CreateMaterials interface method is called)
+  const geantphysics::Material* GetAbsorberMaterial(int absindx) const;
+  // set/get production cut (value in length for gamma/e-/e+)
+  void   SetProductionCut(double pcut)               { fProductionCut = pcut; }
+  double GetProductionCut() const                    { return fProductionCut; }
+  // set YZ size of the calorimeter (same for the layers, absorbers)
+  void   SetSizeYZ(double sizeyz)                    { fCaloSizeYZ = sizeyz; }
+  // get world and calorimeter size (used to position the primary gun)
+  double GetWorldSizeX() const { return fWorldSizeX; }
+  double GetCaloSizeX()  const { return fCaloSizeX;  }
+  //
+  int    GetAbsorberLogicalVolumeID(int absindx) const;
+
+
+  static int GetMaxNumberOfAbsorbers() { return gMaxNumAbsorbers; }
+
+  void   DetectorInfo();
+
+// private methods
 private:
+  // internal method to compute layer,calorimeter world size
+  void   ComputeCalorimeter();
+  // intenal (must be used after the CreateMaterials interface method is called)
+  void   SetAbsorberMaterial(int absindx, const std::string &matname);
+
+
+// data members
+private:
+  static const int gMaxNumAbsorbers = 10;
+
   std::string fWorldMaterialName;
-  std::string fAbsMaterialName[kMaxAbsorbers];
+  std::string fAbsorberMaterialNames[gMaxNumAbsorbers];
 
-  geantphysics::Material *fAbsMaterial[kMaxAbsorbers];
-  geantphysics::Material *fWorldMaterial;
+  int    fNumberOfAbsorbers;                    // number of absorbers per layer (2)
+  int    fNumberOfLayers;                  // number of layers (50)
 
-  bool fUserLayerNum    = false;
-  bool fUserAbsorberNum = false;
-  bool fUserCaloYZ      = false;
-  bool fUserThickness[kMaxAbsorbers];
-  bool fUserMaterial[kMaxAbsorbers];
-  bool fProdCutByLength = true;
+  int    fAbsorberLogicVolIDs[gMaxNumAbsorbers]; // logical volume ID's for each absorbers
 
-  int fNumAbsorbers;
-  int fNumLayers;
-  int fAbsLogicVolumeID[kMaxAbsorbers];
-  int fDetectorRegionIndex;
-  double fGammaCut    = 0.1;
-  double fElectronCut = 0.1;
-  double fPositronCut = 0.1;
+  double fAbsorberThicknesses[gMaxNumAbsorbers];
 
-  double fAbsThickness[kMaxAbsorbers];
   double fLayerThickness;
-
+  double fCaloSizeX;
   double fCaloSizeYZ;
   double fWorldSizeX;
   double fWorldSizeYZ;
 
-  void SetDetectorMaterials();
+  double fProductionCut;   // in length
 
-public:
-  CaloDetectorConstruction(Geant::GeantRunManager *runmgr) : GeantVDetectorConstruction(runmgr) {}
-  ~CaloDetectorConstruction();
+  geantphysics::Material *fAbsorberMaterials[gMaxNumAbsorbers];
+  geantphysics::Material *fWorldMaterial;
 
-public:
-  void SetAbsorberMaterialName(int absNum, std::string matName) { fUserMaterial[absNum] = true; fAbsMaterialName[absNum] = matName; }
-  std::string GetAbsorberMaterialName(int absNum) const { return fAbsMaterialName[absNum]; }
-  geantphysics::Material *GetAbsorberMaterial(int absNum) const { return fAbsMaterial[absNum]; }
+};   //
 
-  void SetNumLayers(int nLayers) { fUserLayerNum = true; fNumLayers = nLayers; }
-  void SetNumAbsorbers(int nAbsorbers) { fUserAbsorberNum = true; fNumAbsorbers = nAbsorbers; }
-  int GetNumLayers() const { return fNumLayers; }
-  int GetNumAbsorbers() const { return fNumAbsorbers; }
 
-  void SetProductionCutsByEnergy(double);
-  void SetProductionCutsByLength(double);
-  void SetDetectorGammaProductionCut(double);
-  void SetDetectorElectronProductionCut(double);
-  void SetDetectorPositronProductionCut(double);
+}       // namespace userapplication
 
-  void SetAbsorberThickness(int absNum, double thickness) { fUserThickness[absNum] = true; fAbsThickness[absNum] = thickness; }
-  double GetAbsorberThickness(int absNum) const { return fAbsThickness[absNum]; }
 
-  int GetAbsorberLogicalVolumeID(int absorber) const { return fAbsLogicVolumeID[absorber]; }
-  int GetDetectorRegionIndex() const { return fDetectorRegionIndex; }
-
-  void SetDetectorYZ(double yz) { fUserCaloYZ  = true; fCaloSizeYZ = yz; }
-  double GetDetectorX() const { return fLayerThickness * fNumLayers; }
-  double GetDetectorYZ() const { return fCaloSizeYZ; }
-  double GetWorldX() const { return fWorldSizeX; }
-  double GetWorldYZ() const { return fWorldSizeYZ; }
-
-  void CreateMaterials();
-  void CreateGeometry();
-};
-}
-#endif
+#endif  // CALODETECTORCONSTRUCTION_H

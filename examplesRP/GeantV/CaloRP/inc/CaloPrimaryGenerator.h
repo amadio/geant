@@ -65,7 +65,7 @@ private:
 
 private:
   std::string  fPrimaryParticleName; // name of the primary particle
-  int          fPrimaryPerEvent;           // number of primary particle to be generated per event
+  int          fPrimaryPerEvent;     // number of primary particle to be generated per event
   int    fPDG;          // PDG code of parimary particles
   int    fGVPartIndex;  // internal GV particle index of the primary
   double fPrimaryEkin;  // kinetic energy of the primary in internal [energy] unit
@@ -82,7 +82,7 @@ private:
   double fPTotal;       // total momentum of the primary in internal [energy] unit
   //
   const geantphysics::Particle    *fParticle; // the primary particle
-  CaloDetectorConstruction  *fDetector; // the detector
+  CaloDetectorConstruction        *fDetector; // the detector
 };
 
 }       // namespace userapplication

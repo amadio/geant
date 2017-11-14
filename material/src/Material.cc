@@ -118,8 +118,8 @@ Material::Material(const std::string &name, double density,int numcomponents, Ma
   // materials is composed from more than one element.
   fCurArrayLenght = numcomponents;
   fElementVector.reserve(fCurArrayLenght);
-  fMassFractionVector     = new double[fCurArrayLenght];
-  fRelNumOfAtomsPerVol    = new double[fCurArrayLenght];
+  fMassFractionVector     = new double[fCurArrayLenght]();
+  fRelNumOfAtomsPerVol    = new double[fCurArrayLenght]();
   // set material state if it was not defined
   // set state (if state was not given)
   if (fState==MaterialState::kStateUndefined) {
@@ -289,8 +289,8 @@ void Material::AddMaterial(Material *material, double massfraction) {
     int nold         = fCurArrayLenght;
     fCurArrayLenght += numNewElems-1;
     // allocate new space for the mass fraction and rel. number of atoms vectors
-    double *newMFR   = new double[fCurArrayLenght];
-    double *newRNA   = new double[fCurArrayLenght];
+    double *newMFR   = new double[fCurArrayLenght]();
+    double *newRNA   = new double[fCurArrayLenght]();
     // copy old data
     for (int i=0; i<nold; ++i) {
       newMFR[i] = fMassFractionVector[i];

@@ -1,14 +1,15 @@
 
 #ifndef CALOAPPDATA_H
 #define CALOAPPDATA_H
+/*
 #ifdef USE_ROOT
   #include "TH1F.h"
 #else
 class Hist;
 #endif
-
+*/
 #include <vector>
-const int maxAbsorbers=10;
+
 
 namespace userapplication {
 
@@ -56,8 +57,8 @@ namespace userapplication {
 // Data structure per-primary particle for CaloApp
 class CaloAppDataPerPrimary {
 public:
-  CaloAppDataPerPrimary();
- ~CaloAppDataPerPrimary() { /*nothing to do*/}
+  CaloAppDataPerPrimary(int numabs);
+ ~CaloAppDataPerPrimary();
 
 
   void   AddChargedStep()        { fNumChargedSteps += 1.;  }
@@ -67,10 +68,10 @@ public:
   double GetNeutralSteps() const { return fNumNeutralSteps; }
 
   void   AddChargedTrackL(double val, int absorber) { fChargedTrackL[absorber] += val; }
-  double GetChargedTrackL(int absorber) const     { return fChargedTrackL[absorber]; }
+  double GetChargedTrackL(int absorber) const       { return fChargedTrackL[absorber]; }
 
   void   AddNeutralTrackL(double val, int absorber) { fNeutralTrackL[absorber] += val; }
-  double GetNeutralTrackL(int absorber) const     { return fNeutralTrackL[absorber]; }
+  double GetNeutralTrackL(int absorber) const       { return fNeutralTrackL[absorber]; }
 
   void   AddGamma()           { fNumGammas += 1.;     }
   double GetGammas()    const { return fNumGammas;    }
@@ -81,38 +82,30 @@ public:
   void   AddPositron()        { fNumPositrons += 1.;  }
   double GetPositrons() const { return fNumPositrons; }
 
-  void   AddEdepInAbsorber(double val, int absorber)       { fEdepInAbsorber[absorber] += val; }
+  void   AddEdepInAbsorber(double val, int absorber)     { fEdepInAbsorber[absorber] += val; }
   double GetEdepInAbsorber(int absorber)           const { return fEdepInAbsorber[absorber]; }
-
-  void   AddELeakPrimary(double val)         { fELeakPrimary += val;   }
-  double GetELeakPrimary()             const { return fELeakPrimary;   }
-
-  void   AddELeakSecondary(double val)       { fELeakSecondary += val; }
-  double GetELeakSecondary()           const { return fELeakSecondary; }
 
   void   Clear();
   CaloAppDataPerPrimary& operator+=(const CaloAppDataPerPrimary& other);
 
 private:
+  int     fNumAbsorbers;        // number of absorbers
   double  fNumChargedSteps;     // mean number of charged steps per primary in calorimeter
   double  fNumNeutralSteps;     // mean number of neutral steps per primary in calorimeter
-  double  fChargedTrackL[maxAbsorbers];       // mean number of charged track length per primary in absorber
-  double  fNeutralTrackL[maxAbsorbers];       // mean number of neutral track length per primary in absorber
   double  fNumGammas;           // mean number of secondary gamma particles per primary
   double  fNumElectrons;        // mean number of secondary electron particles per primary
   double  fNumPositrons;        // mean number of secondary positron particles per primary
-  double  fEdepInAbsorber[maxAbsorbers];        // mean energy deposit per primary in the absorber
-  double  fELeakPrimary;        // mean primary particle energy leakage per primary particles
-  double  fELeakSecondary;      // mean secondary particle energy leakage per primary particles
-
+  std::vector<double>  fEdepInAbsorber;      // mean energy deposit per primary in the absorber
+  std::vector<double>  fChargedTrackL;       // mean number of charged track length per primary in absorber
+  std::vector<double>  fNeutralTrackL;       // mean number of neutral track length per primary in absorber
 };
 
 // Global data structure to accumulate per-primary data during the simulation. The only one object from this class
 // will be updated each time an event(with the corresponding primaries) is transported.
 class CaloAppData {
 public:
-  CaloAppData();
- ~CaloAppData() { /*nothing to do*/ }
+  CaloAppData(int numabs);
+ ~CaloAppData();
 
  void   AddChargedSteps(double val) { fNumChargedSteps += val; fNumChargedSteps2 += val*val; }
  double GetChargedSteps()  const    { return fNumChargedSteps;  }
@@ -143,39 +136,27 @@ public:
  double GetEdepInAbsorber(int absorber)           const { return fEdepInAbsorber[absorber];  }
  double GetEdepInAbsorber2(int absorber)          const { return fEdepInAbsorber2[absorber]; }
 
- void   AddELeakPrimary(double val)         { fELeakPrimary += val; fELeakPrimary2 += val*val; }
- double GetELeakPrimary()             const { return fELeakPrimary;  }
- double GetELeakPrimary2()            const { return fELeakPrimary2; }
-
- void   AddELeakSecondary(double val)       { fELeakSecondary += val; fELeakSecondary2 += val*val; }
- double GetELeakSecondary()           const { return fELeakSecondary;  }
- double GetELeakSecondary2()          const { return fELeakSecondary2; }
-
  void   Clear();
  // add data after one primary particle finished tracking
  void   AddDataPerPrimary(CaloAppDataPerPrimary& data);
 
 private:
+  int     fNumAbsorbers;       // number of absorbers
   double  fNumChargedSteps;    // mean number of charged steps per primary in target
   double  fNumChargedSteps2;   // mean number of charged steps per primary square in target
   double  fNumNeutralSteps;    // mean number of neutral steps per primary in target
   double  fNumNeutralSteps2;   // mean number of neutral steps per primary square in target
 
-  double  fChargedTrackL[maxAbsorbers];      // mean number of charged track length per primary in target
-  double  fChargedTrackL2[maxAbsorbers];     // mean number of charged track length  per primary square in target
-  double  fNeutralTrackL[maxAbsorbers];      // mean number of neutral track length  per primary in target
-  double  fNeutralTrackL2[maxAbsorbers];     // mean number of neutral track length  per primary square in target
-
   double  fNumGammas;          // mean number of secondary gamma particles per primary
   double  fNumElectrons;       // mean number of secondary electron particles per primary
   double  fNumPositrons;       // mean number of secondary positron particles per primary
 
-  double  fEdepInAbsorber[maxAbsorbers];       // mean energy deposit per primary in the target
-  double  fEdepInAbsorber2[maxAbsorbers];      // mean energy deposit per primary in the target square
-  double  fELeakPrimary;       // mean primary particle energy leakage per primary particles
-  double  fELeakPrimary2;      // mean primary particle energy leakage per primary particles square
-  double  fELeakSecondary;     // mean secondary particle energy leakage per primary particles
-  double  fELeakSecondary2;    // mean secondary particle energy leakage per primary particles square
+  std::vector<double>  fEdepInAbsorber;     // mean energy deposit per primary in the target
+  std::vector<double>  fEdepInAbsorber2;    // mean energy deposit per primary in the target square
+  std::vector<double>  fChargedTrackL;      // mean number of charged track length per primary in target
+  std::vector<double>  fChargedTrackL2;     // mean number of charged track length  per primary square in target
+  std::vector<double>  fNeutralTrackL;      // mean number of neutral track length  per primary in target
+  std::vector<double>  fNeutralTrackL2;     // mean number of neutral track length  per primary square in target
 };
 
 
@@ -183,7 +164,7 @@ private:
 // Data structure per-event for CaloApp(contain as many per-primary data structures as number of primaries in one event)
 class CaloAppDataPerEvent {
 public:
-  CaloAppDataPerEvent(int nprimperevent);
+  CaloAppDataPerEvent(int nprimperevent, int numabs);
  ~CaloAppDataPerEvent() {/*nothing to do*/}
 
   int GetNumberOfPrimaryPerEvent() const { return fNumPrimaryPerEvent; }
@@ -206,7 +187,7 @@ private:
 // is merged from all threads.
 class CaloAppThreadDataEvents {
 public:
-  CaloAppThreadDataEvents(int nevtbuffered, int nprimperevent);
+  CaloAppThreadDataEvents(int nevtbuffered, int nprimperevent, int numabs);
  ~CaloAppThreadDataEvents() {/*nothing to do*/}
 
   void  Clear(int evtslotindx) { fPerEventData[evtslotindx].Clear(); }
@@ -223,7 +204,7 @@ private:
   std::vector<CaloAppDataPerEvent>   fPerEventData;
 };
 
-
+/*
 // Thread local data structure for CaloApp to collecet/handle thread local run-global data structures. The user defined
 // needs to implement both the Merge and Clear methods: these methods are called when the simulation is completed and
 // these thread local run-global data are merged from the working threads.
@@ -239,8 +220,8 @@ public:
  Hist*  GetHisto1() const { return fHisto1; }
 #endif
  // nothing to clear: per-thread histograms will be merged at the end of the run
- void   Clear(int /*evtslotindx*/) {}
- bool   Merge(int /*evtslotindx*/, const CaloAppThreadDataRun& other);
+ void   Clear(int evtslotindx) {(void)evtslotindx;}
+ bool   Merge(int evtslotindx, const CaloAppThreadDataRun& other);
 
 private:
   // simple histogram to store user data per working-threads (they will be merged at the end of run)
@@ -250,7 +231,7 @@ private:
   Hist    *fHisto1;
 #endif
 };
-
+*/
 
 }       // namespace userapplication
 

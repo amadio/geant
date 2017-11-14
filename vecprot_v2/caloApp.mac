@@ -2,45 +2,27 @@
 ### GeantV CaloApp application script to simulate calorimeter response to incident particles
 ###
 ### Note, that the script shows all the possible input arguments that makes possible the configuration
-### of the CaloApp GeantV application (target material, target thickness, number of absorbers/layers, secondary production cuts, etc.)
+### of the CaloApp GeantV application.
 ###
 ###
 ./caloAppRP \
-"### primary particle generation parameters:"\
-  --gun-primary-energy        0.1      "# kinetic energy of the primary particle [in GeV]"\
-  --gun-primary-type          e-           "# primary particle name/type"\
 "### detector configuration parameters:"\
-  --det-yzLength             10              "# Length of Y and Z dimensions of the calorimeter (sets the YZ cross-section)"\
-  --det-numLayers            10              "# Number of layers in the calorimeter"\
-  --det-numAbsorbers          3   	     "# Number of absorbers in the calorimeter"\
-  --det-absorber-1-material   NIST_MAT_lAr   "# absorber 1 material"\
-  --det-absorber-1-thickness  5              "# absorber 1 thickness (in mm)"\
-  --det-absorber-2-material   NIST_MAT_Pb    "# absorber 2 material"\
-  --det-absorber-2-thickness  10             "# absorber 2 thickness (in mm)"\
-  --det-absorber-3-material   NIST_MAT_Fe    "# absorber 3 material"\
-  --det-absorber-3-thickness  12             "# absorber 3 thickness (in mm)"\
-	"###Note: Not all absorbers are necessarily defined. Current absorber support is up to 3 types, and all these are active only if numAbsorbers=3"\
+  --det-number-of-absorbers   2                       "# number of absorbers per layer"\
+  --det-number-of-layers     50                       "# number of layers"\
+  --det-set-absorber  absorber-index=0,material-name=NIST_MAT_Pb  "# set first absorber material"\
+  --det-set-absorber  absorber-index=0,thickness=0.23             "# set first absorber thickness [cm]"\
+  --det-set-absorber  absorber-index=1,material-name=NIST_MAT_lAr "# set second absorber material"\
+  --det-set-absorber  absorber-index=1,thickness=0.57             "# set second absorber thickness [cm]"\
+  --det-set-sizeYZ           40                       "# transverse size of the calorimeter [cm]"\
+  --det-prod-cut-length      0.07                     "# set production cut length [cm]"\
+"### primary particle generation parameters:"\
+  --gun-primary-energy       0.1                      "# kinetic energy of the primary particle [in GeV]"\
+  --gun-primary-type         e-                       "# primary particle name/type"\
 "### run configuration parameters:"\
-  --config-number-events                 10           "# total number of events to be simulated"\
-  --config-number-primaries-per-event    1000          "# number of primary particles per event"\
-  --config-number-max-tracks-per-basket  500           "# number of maximum tracks per basket"\
-  --config-number-threads                4             "# number of working threads to be used"\
-  --config-number-propagators            1             "# number of propagators"\
-  --config-number-buffered-events        4             "# number of events transported at once"\
-"#  --config-flag-monitor                 "\         "# flag to use monitoring"\
-"#  --config-flag-debug                   "\         "# flag to use debugging mode"\
-"#  --config-flag-coprocessor             "\         "# flag to use coprocessor processing/CUDA setup"\
-"#  --config-flag-tbbmode                 "\         "# flag to use TBB task manager"\
-  --det-prod-cut-length                  0.            "# set production cuts in length for all particle (0=>ignore)"\
-  --det-prod-cut-energy                  0.            "# set production cuts in energy for all particle (0=>ignore)"\
-  --det-prod-cut-gamma                   0.            "# secondary production cut for gamma particle (in internal [length] unit)"\
-  --det-prod-cut-electron                0.            "# secondary production cut for e- (in internal [length] unit)"\
-  --det-prod-cut-positron                0.            "# secondary production cut for e+ (in internal [length] unit)"\
-"### histogram parameters:"\
-  --hist-name                            caloApp  "# name of the output hist1 histogram file"\
-  --hist-bin-min                         0.            "# minimum bin value (of the hist1 histogram)"\
-  --hist-bin-max                         0.1.           "# maximum bin value"\
-  --hist-bin-number                      1000.          "# number of bins"\
+  --config-number-of-buffered-events        4         "# number of events transported at once"\
+  --config-total-number-of-events          10         "# total number of events to be simulated"\
+  --config-number-of-primary-per-events  1000         "# number of primary particles per event"\
+  --config-number-of-threads                4         "# number of working threads to be used"\
+  --config-number-of-propagators            1         "# number of propagators"\
 "### physics process configuration parameters:"\
-  --particle-process-MSC-step-limit               UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
-  --particle-process-step-max-value               1.e+20        "# maximum (real) step length limit in the user defined StepMaxProcess"
+  --particle-process-MSC-step-limit     UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\

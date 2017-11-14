@@ -1,5 +1,5 @@
 
-#include "UserPhysicsList.h"
+#include "CaloPhysicsList.h"
 
 #include "PhysicalConstants.h"
 #include "SystemOfUnits.h"
@@ -28,19 +28,17 @@
 #include "MSCModel.h"
 #include "GSMSCModel.h"
 
-#include "StepMaxProcess.h"
 
 namespace userapplication {
 
 
-UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {
+CaloPhysicsList::CaloPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {
   fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
-  fStepMaxValue         = geantphysics::PhysicsProcess::GetAVeryLargeValue();
 }
 
-UserPhysicsList::~UserPhysicsList() {}
+CaloPhysicsList::~CaloPhysicsList() {}
 
-void UserPhysicsList::Initialize() {
+void CaloPhysicsList::Initialize() {
   // get the partcile table and loop over it
   std::vector<geantphysics::Particle*> pTable = geantphysics::Particle::GetTheParticleTable();
   for (unsigned int i=0; i<pTable.size(); ++i) {
@@ -98,13 +96,6 @@ void UserPhysicsList::Initialize() {
       eMSCProc->AddModel(gsMSCModel);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
-
-      //
-      // Create and add the special user process
-      //
-      StepMaxProcess *stepMaxProc = new StepMaxProcess();
-      stepMaxProc->SetMaxStep(fStepMaxValue);
-      AddProcessToParticle(particle, stepMaxProc);
     }
     if (particle==geantphysics::Positron::Definition()) {
       //std::cout<<"  Positron" <<std::endl;
@@ -159,13 +150,6 @@ void UserPhysicsList::Initialize() {
       eMSCProc->AddModel(gsMSCModel);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
-
-      //
-      // Create and add the special user process
-      //
-      StepMaxProcess *stepMaxProc = new StepMaxProcess();
-      stepMaxProc->SetMaxStep(fStepMaxValue);
-      AddProcessToParticle(particle, stepMaxProc);
     }
     if (particle==geantphysics::Gamma::Definition()) {
       // create compton scattering process for gamma with 1 model:
@@ -201,11 +185,8 @@ void UserPhysicsList::Initialize() {
   }
 }
 
-void  UserPhysicsList::SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping) {
+void  CaloPhysicsList::SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping) {
   fMSCSteppingAlgorithm = stepping;
 }
-
-void  UserPhysicsList::SetStepMaxValue(double val) { fStepMaxValue = val; }
-
 
 }  // userapplication

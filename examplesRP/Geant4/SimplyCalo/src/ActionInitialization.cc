@@ -37,16 +37,10 @@
 #include "SteppingAction.hh"
 #include "SteppingVerbose.hh"
 
-
-#include "RunAction1.hh"
-#include "EventAction1.hh"
-#include "SteppingAction1.hh"
-
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization(DetectorConstruction* det, bool istestem3, bool isperformance)
- : G4VUserActionInitialization(),fDetector(det),fIsTestEM3(istestem3),fIsPerformance(isperformance)
+ActionInitialization::ActionInitialization(DetectorConstruction* det, bool isperformance)
+ : G4VUserActionInitialization(),fDetector(det),fIsPerformance(isperformance)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -58,10 +52,7 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::BuildForMaster() const
 {
-  /// HERE
-// SetUserAction(new RunAction(fDetector));
-SetUserAction(new RunAction1(fDetector));
-
+SetUserAction(new RunAction(fDetector));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -72,24 +63,12 @@ void ActionInitialization::Build() const
   PrimaryGeneratorAction* prim = new PrimaryGeneratorAction(fDetector);
   SetUserAction(prim);
   if (!fIsPerformance) {
-    if (fIsTestEM3) {
-      RunAction* run = new RunAction(fDetector,prim);
-      SetUserAction(run);
-
-      EventAction* event = new EventAction(fDetector);
-      SetUserAction(event);
-
-      SetUserAction(new TrackingAction(fDetector));
-
-      SetUserAction(new SteppingAction(fDetector,event));
-    } else {
-      RunAction1* run = new RunAction1(fDetector);
-       SetUserAction(run);
-       EventAction1* event = new EventAction1(fDetector);
-       SetUserAction(event);
-       //SetUserAction(new TrackingAction(fDetector));
-       SetUserAction(new SteppingAction1(fDetector,event));
-    }
+    RunAction* run = new RunAction(fDetector,prim);
+    SetUserAction(run);
+    EventAction* event = new EventAction(fDetector);
+    SetUserAction(event);
+    SetUserAction(new TrackingAction(fDetector));
+    SetUserAction(new SteppingAction(fDetector,event));
   }
 }
 

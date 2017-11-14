@@ -42,7 +42,7 @@ class G4VSteppingVerbose;
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization(DetectorConstruction*, bool istestem3=false, bool isperformance=false);
+    ActionInitialization(DetectorConstruction*, bool isperformance=false);
     virtual ~ActionInitialization();
 
     virtual void BuildForMaster() const;
@@ -51,11 +51,9 @@ class ActionInitialization : public G4VUserActionInitialization
     virtual G4VSteppingVerbose* InitializeSteppingVerbose() const;
 
     void SetPerformanceModeFlag(bool val) { fIsPerformance = val; }
-    void SetTestEM3Flag(bool val) { fIsTestEM3 = val; }
 
   private:
     DetectorConstruction *fDetector;
-    bool                  fIsTestEM3;
     bool                  fIsPerformance;
 
 };

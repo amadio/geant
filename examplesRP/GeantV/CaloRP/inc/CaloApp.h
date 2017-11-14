@@ -9,8 +9,7 @@
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
 #include "GeantTaskData.h"
-//if you change this, also change it in CaloDetectorConstruction.h and CaloAppData.h
-const int maxAbsorber=10;
+
 namespace GEANT_IMPL_NAMESPACE {
   namespace Geant {
     class GeantRunManager;
@@ -20,11 +19,13 @@ namespace GEANT_IMPL_NAMESPACE {
   }
 }
 
+/*
 #ifdef USE_ROOT
  #include "TH1F.h"
 #else
  #include "Hist.h"
 #endif
+*/
 
 #include "CaloAppData.h"
 
@@ -80,13 +81,6 @@ public:
   virtual void FinishRun();
 
 
-  // Some application specific methods to set the angular distribution histogram parameters.
-  void SetHist1FileName(const std::string &name) { fHist1FileName = name; }
-  void SetHist1NumBins(int val) { fHist1NumBins = val; }
-  void SetHist1Min(double val)  { fHist1Min     = val; }
-  void SetHist1Max(double val)  { fHist1Max     = val; }
-
-
 private:
   /** @brief Copy constructor CaloApp (deleted) */
   CaloApp(const CaloApp &) = delete;
@@ -95,22 +89,15 @@ private:
 
 
 private:
-  std::string fHist1FileName;
-  bool        fInitialized;
-  // ID of the target logical volume (used to check if the current step was done in the target)
-  // this data will be obtained from the CaloDetectorConstruction at initialization
-  int         fAbsorberLogicalVolumeID[maxAbsorber];
-  int	        fNumAbsorbers;
+  bool             fInitialized;
+  int	             fNumAbsorbers;
+  std::vector<int> fAbsorberLogicalVolumeID;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)
   // these data will be obtained from the GeantRunManager::GeantConfig object at initialization
-  int         fNumPrimaryPerEvent;
-  int         fNumBufferedEvents;
-  // histogram configuration data (can be changed from input arguments)
-  int         fHist1NumBins;
-  double      fHist1Min;
-  double      fHist1Max;
+  int              fNumPrimaryPerEvent;
+  int              fNumBufferedEvents;
   //
-  double      fPrimaryParticleCharge;
+  double           fPrimaryParticleCharge;
   // user defined thread local data structure handlers to obtain the thread local data structures (defined and
   // registered by the user) during the simulation (in the SteppingActions(i.e. at the end of each simulation step),
   // Digitization(i.e. at the end of an event) and FinishRun (i.e. at the end of the simulation):
@@ -119,7 +106,7 @@ private:
   //    particles) are completed
   Geant::TaskDataHandle<CaloAppThreadDataEvents>  *fDataHandlerEvents;
   // 2. merged from all working threads when transportation of all events (i.e. end of the simulation) are completed
-  Geant::TaskDataHandle<CaloAppThreadDataRun>     *fDataHandlerRun;
+//  Geant::TaskDataHandle<CaloAppThreadDataRun>     *fDataHandlerRun;
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle during the simulation
   CaloAppData  *fData;
   //

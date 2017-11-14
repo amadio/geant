@@ -13,32 +13,38 @@ namespace userapplication {
 
 //
 // CaloAppDataPerPrimary
-CaloAppDataPerPrimary::CaloAppDataPerPrimary() { Clear(); }
+CaloAppDataPerPrimary::CaloAppDataPerPrimary(int numabs) : fNumAbsorbers(numabs) {
+  fEdepInAbsorber.resize(fNumAbsorbers,0.);
+  fChargedTrackL.resize(fNumAbsorbers ,0.);
+  fNeutralTrackL.resize(fNumAbsorbers ,0.);
+  Clear();
+}
+
+CaloAppDataPerPrimary::~CaloAppDataPerPrimary() {
+  fEdepInAbsorber.clear();
+  fChargedTrackL.clear();
+  fNeutralTrackL.clear();
+}
 
 void CaloAppDataPerPrimary::Clear() {
-
-  for (int k=1;k<maxAbsorbers; k++){
+  for (int k=0;k<fNumAbsorbers; k++){
   	fChargedTrackL[k]  = fNeutralTrackL[k] = fEdepInAbsorber[k] = 0.;
   }
-
   fNumChargedSteps = fNumNeutralSteps = 0.;
   fNumGammas       = fNumElectrons    = fNumPositrons   = 0.;
-  fELeakPrimary    = fELeakSecondary = 0.;
 }
 
 CaloAppDataPerPrimary& CaloAppDataPerPrimary::operator+=(const CaloAppDataPerPrimary& other) {
-  for(int k=1;k<maxAbsorbers;k++) {
+  for(int k=0;k<fNumAbsorbers;k++) {
   	fChargedTrackL[k]   += other.fChargedTrackL[k];
   	fNeutralTrackL[k]   += other.fNeutralTrackL[k];
-  	fEdepInAbsorber[k]    += other.fEdepInAbsorber[k];
+  	fEdepInAbsorber[k]  += other.fEdepInAbsorber[k];
   }
   fNumChargedSteps += other.fNumChargedSteps;
   fNumNeutralSteps += other.fNumNeutralSteps;
   fNumGammas       += other.fNumGammas;
   fNumElectrons    += other.fNumElectrons;
   fNumPositrons    += other.fNumPositrons;
-  fELeakPrimary    += other.fELeakPrimary;
-  fELeakSecondary  += other.fELeakSecondary;
   return *this;
 }
 
@@ -47,24 +53,39 @@ CaloAppDataPerPrimary& CaloAppDataPerPrimary::operator+=(const CaloAppDataPerPri
 
 //
 // CaloAppData
-CaloAppData::CaloAppData() { Clear(); }
+CaloAppData::CaloAppData(int numabs) : fNumAbsorbers(numabs) {
+  fEdepInAbsorber.resize(fNumAbsorbers,0.);
+  fEdepInAbsorber2.resize(fNumAbsorbers,0.);
+  fChargedTrackL.resize(fNumAbsorbers,0.);
+  fChargedTrackL2.resize(fNumAbsorbers,0.);
+  fNeutralTrackL.resize(fNumAbsorbers,0.);
+  fNeutralTrackL2.resize(fNumAbsorbers,0.);
+  Clear();
+}
+
+CaloAppData::~CaloAppData(){
+  fEdepInAbsorber.clear();
+  fEdepInAbsorber2.clear();
+  fChargedTrackL.clear();
+  fChargedTrackL2.clear();
+  fNeutralTrackL.clear();
+  fNeutralTrackL2.clear();
+  Clear();
+}
 
 void CaloAppData::Clear() {
-  for (int k=1; k<maxAbsorbers;k++){
-  	fChargedTrackL[k]   = fNeutralTrackL[k]   = fChargedTrackL2[k]   = fNeutralTrackL2[k]   = 0.;
-  	fEdepInAbsorber[k]    = fEdepInAbsorber2[k]   = 0.;
+  for (int k=0; k<fNumAbsorbers;k++) {
+  	fChargedTrackL[k]   = fNeutralTrackL[k]     = fChargedTrackL2[k]   = fNeutralTrackL2[k]   = 0.;
+  	fEdepInAbsorber[k]  = fEdepInAbsorber2[k]   = 0.;
   }
-
   fNumChargedSteps = fNumNeutralSteps = fNumChargedSteps2 = fNumNeutralSteps2 = 0.;
   fNumGammas       = fNumElectrons    = fNumPositrons     = 0.;
-  fELeakPrimary    = fELeakSecondary  = fELeakPrimary2    = fELeakSecondary2  = 0.;
 }
 
 void CaloAppData::AddDataPerPrimary(CaloAppDataPerPrimary& data) {
   AddChargedSteps(data.GetChargedSteps());
   AddNeutralSteps(data.GetNeutralSteps());
-
-  for (int k=1; k<maxAbsorbers; k++){
+  for (int k=0; k<fNumAbsorbers; k++) {
   	AddChargedTrackL(data.GetChargedTrackL(k),k);
   	AddNeutralTrackL(data.GetNeutralTrackL(k),k);
   	AddEdepInAbsorber(data.GetEdepInAbsorber(k),k);
@@ -72,18 +93,14 @@ void CaloAppData::AddDataPerPrimary(CaloAppDataPerPrimary& data) {
   AddGammas   (data.GetGammas()   );
   AddElectrons(data.GetElectrons());
   AddPositrons(data.GetPositrons());
-
-
-  AddELeakPrimary(data.GetELeakPrimary());
-  AddELeakSecondary(data.GetELeakSecondary());
 }
 
 //
 // CaloAppDataPerEvent
-CaloAppDataPerEvent::CaloAppDataPerEvent(int nprimperevent) : fNumPrimaryPerEvent(nprimperevent) {
+CaloAppDataPerEvent::CaloAppDataPerEvent(int nprimperevent, int numabs) : fNumPrimaryPerEvent(nprimperevent) {
   fPerPrimaryData.reserve(fNumPrimaryPerEvent);
   for (int i=0; i<fNumPrimaryPerEvent; ++i) {
-    fPerPrimaryData.push_back(CaloAppDataPerPrimary());
+    fPerPrimaryData.push_back(CaloAppDataPerPrimary(numabs));
   }
 }
 
@@ -105,10 +122,10 @@ CaloAppDataPerEvent& CaloAppDataPerEvent::operator+=(const CaloAppDataPerEvent &
 
 //
 // CaloAppDataEvents
-CaloAppThreadDataEvents::CaloAppThreadDataEvents(int nevtbuffered, int nprimperevent) : fNumBufferedEvents(nevtbuffered) {
+CaloAppThreadDataEvents::CaloAppThreadDataEvents(int nevtbuffered, int nprimperevent, int numabs) : fNumBufferedEvents(nevtbuffered) {
   fPerEventData.reserve(fNumBufferedEvents);
   for (int i=0; i<fNumBufferedEvents; ++i) {
-    fPerEventData.push_back(CaloAppDataPerEvent(nprimperevent));
+    fPerEventData.push_back(CaloAppDataPerEvent(nprimperevent,numabs));
   }
 }
 
@@ -119,7 +136,7 @@ bool CaloAppThreadDataEvents::Merge(int evtslotindx, const CaloAppThreadDataEven
 
 
 
-
+/*
 //
 // CaloAppThreadDataRun
 CaloAppThreadDataRun::CaloAppThreadDataRun() : fHisto1(nullptr) {}
@@ -142,7 +159,8 @@ void CaloAppThreadDataRun::CreateHisto1(int nbins, double min, double max) {
 #endif
 }
 
-bool CaloAppThreadDataRun::Merge(int /*evtslotindx*/, const CaloAppThreadDataRun& other) {
+bool CaloAppThreadDataRun::Merge(int evtslotindx, const CaloAppThreadDataRun& other) {
+(void)evtslotindx;
 #ifdef USE_ROOT
   fHisto1->Add(other.GetHisto1(),1);
 #else
@@ -150,7 +168,7 @@ bool CaloAppThreadDataRun::Merge(int /*evtslotindx*/, const CaloAppThreadDataRun
 #endif
   return true;
 }
-
+*/
 
 
 
