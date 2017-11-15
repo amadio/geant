@@ -38,9 +38,6 @@
 #include "G4GammaConversion.hh"
 #include "G4PhotoElectricEffect.hh"
 #include "G4LivermorePhotoElectricModel.hh"
-#include "G4LivermorePhotoElectricModel_new.hh"
-//#include "G4RayleighScattering.hh"
-//#include "G4KleinNishinaModel.hh"
 
 #include "G4eMultipleScattering.hh"
 #include "G4GoudsmitSaundersonMscModel.hh"
@@ -119,10 +116,8 @@ void PhysListGVStandard::ConstructProcess()
         
       G4double LivermoreHighEnergyLimit = 100*TeV;
       G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
-      //Livermore NEW PE
-      G4LivermorePhotoElectricModel_new* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel_new();
       //LIVERMORE PE
-      //G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
+      G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
       
       theLivermorePhotoElectricModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
       thePhotoElectricEffect->AddEmModel(0, theLivermorePhotoElectricModel);
