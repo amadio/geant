@@ -4,28 +4,26 @@
 include_directories(${TBB_INCLUDE_DIRS})
 
 #----------------------------------------------------------------------------------------------
-# Find VecGeom geometry headers library
+# Find GeantV headers library
 #
-find_package(HepMC REQUIRED)
-if(HepMC_FOUND)
-  message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
-  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
+#find_package(GeantV REQUIRED)
+if(GeantV_DIR)
+  message(STATUS "GeantV includes: ${GeantV_DIR}/inc")
+  include_directories(AFTER SYSTEM ${GeantV_DIR}/inc)
 endif()
 
 #---Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
 find_package(ROOT REQUIRED COMPONENTS Geom Graf3d RIO Core Physics EG)
+if(ROOT_FOUND)
+  message(STATUS "ROOT found: ${ROOT_FOUND}")
+  message(STATUS "ROOT libraries: ${ROOT_LIBRARIES}")
+endif()
 
 #----------------------------------------------------------------------------------------------
 # Find VecGeom geometry headers library
 #
-set(VECGEOM_DIR "" CACHE DIRECTORY "Location of VecGeom")
-if(VECGEOM_DIR)
-  list(APPEND CMAKE_PREFIX_PATH ${VECGEOM_DIR})
-endif()
-if($ENV{VECGEOM_DIR})
-  list(APPEND CMAKE_PREFIX_PATH $ENV{VECGEOM_DIR})
-endif()
 
+message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 find_package(VecGeom REQUIRED)
 if( VECGEOM_FOUND )
    find_package(Vc REQUIRED)
@@ -46,8 +44,11 @@ if(ROOT_FOUND)
   link_directories(${ROOT_LIBRARY_DIR})
   set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES})
 endif()
+
+find_package(HepMC)
 if(HepMC_FOUND)
-  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIRS})
+  message(STATUS "HepMC_DIR: ${HepMC_DIR}")
+  include_directories(AFTER SYSTEM ${HEPMC_INCLUDE_DIR})
   set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${HEPMC_LIBRARIES})
 endif()
 
