@@ -471,52 +471,37 @@ namespace geantphysics {
     
     //____________________
     //NB: cosTheta is supposed to contain the dirZ of the incoming photon
-    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &sinTheta, double &cosTheta, double &phi, Geant::GeantTaskData *td){
+    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, Geant::GeantTaskData *td){
         
+        //1) initialize energy-dependent variables
+        // Variable naming according to Eq. (2.24) of Penelope Manual
+        // (pag. 44)
+        double gamma = 1.0 + gammaEnIn/geant::kElectronMassC2;
+        double gamma2 = gamma*gamma;
+        double beta = std::sqrt((gamma2-1.0)/gamma2);
+            
+        // ac corresponds to "A" of Eq. (2.31)
+        //
+        double ac = (1.0/beta) - 1.0;
+        double a1 = 0.5*beta*gamma*(gamma-1.0)*(gamma-2.0);
+        double a2 = ac + 2.0;
+        // gtmax = maximum of the rejection function according to Eq. (2.28), obtained for tsam=0
+        double gtmax = 2.0*(a1 + 1.0/ac);
+            
+        double tsam = 0;
+        double gtr = 0;
+            
+        //2) sampling. Eq. (2.31) of Penelope Manual
+        // tsam = 1-std::cos(theta)
+        // gtr = rejection function according to Eq. (2.28)
+        double rndArray[2];
+        do {
+          td->fRndm->uniform_array(2, rndArray);
+          tsam = 2.0*ac * (2.0*rndArray[0] + a2*std::sqrt(rndArray[0])) / (a2*a2 - 4.0*rndArray[0]);
+          gtr = (2.0 - tsam) * (a1 + 1.0/(ac+tsam));
+        } while (rndArray[1]*gtmax > gtr);
         
-        double *rndArray = td->fDblArray; //needed?
-        td->fRndm->uniform_array(1, rndArray);
-        phi     = geant::kTwoPi * rndArray[0];
-        
-        if (gammaEnIn > 100*geant::MeV) {
-            
-            sinTheta = std::sqrt((1 - cosTheta)*(1 + cosTheta));
-            
-        } else
-        {
-            
-            //1) initialize energy-dependent variables
-            // Variable naming according to Eq. (2.24) of Penelope Manual
-            // (pag. 44)
-            double gamma = 1.0 + gammaEnIn/geant::kElectronMassC2;
-            double gamma2 = gamma*gamma;
-            double beta = std::sqrt((gamma2-1.0)/gamma2);
-            
-            // ac corresponds to "A" of Eq. (2.31)
-            //
-            double ac = (1.0/beta) - 1.0;
-            double a1 = 0.5*beta*gamma*(gamma-1.0)*(gamma-2.0);
-            double a2 = ac + 2.0;
-            // gtmax = maximum of the rejection function according to Eq. (2.28), obtained for tsam=0
-            double gtmax = 2.0*(a1 + 1.0/ac);
-            
-            double tsam = 0;
-            double gtr = 0;
-            
-            //2) sampling. Eq. (2.31) of Penelope Manual
-            // tsam = 1-std::cos(theta)
-            // gtr = rejection function according to Eq. (2.28)
-            do{
-                //double rand = G4UniformRand();
-                td->fRndm->uniform_array(2, rndArray);
-                tsam = 2.0*ac * (2.0*rndArray[0] + a2*std::sqrt(rndArray[0])) / (a2*a2 - 4.0*rndArray[0]);
-                gtr = (2.0 - tsam) * (a1 + 1.0/(ac+tsam));
-            }while(rndArray[1]*gtmax > gtr);
-            
-            cosTheta = 1.0-tsam;
-            sinTheta = std::sqrt(1-cosTheta*cosTheta);
-            
-        }
+        cosTheta = 1.0-tsam;
         return;
     }
     
@@ -661,7 +646,7 @@ namespace geantphysics {
         const Material *mat =  matcut->GetMaterial();
         double       egamma = kinenergy;
         // we need the element composition of this material
-        const Vector_t<Element*> theElements    = mat->GetElementVector();
+        const Vector_t<Element*> &theElements    = mat->GetElementVector();
         const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
         int   numElems = theElements.size();
         for (int iel=0; iel<numElems; ++iel) {
@@ -671,11 +656,34 @@ namespace geantphysics {
     }
     
     
-    int SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, Geant::GeantTaskData *td)
+    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, Geant::GeantTaskData *td)
     {
+        size_t index =0;
+        std::vector<double> mxsec(20,0.);
+        
+        const Material *mat =  matCut->GetMaterial();
+        const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+ 
+        const Vector_t<Element*> &theElements = mat->GetElementVector();
+        size_t num    = matCut->GetMaterial()->GetNumberOfElements();
+        if (num>mxsec.size()) {mxsec.resize(num,0.);}
+        double cum =0.;
+        for (size_t i=0; i<num; ++i) {
+          double xx=theAtomicNumDensityVector[i]* ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);
+          cum += xx;
+          mxsec[i] = xx;
+        }
+        double rnd=cum * td->fRndm->uniform();
+        double cumxsec=mxsec[0];
+        for(; index<num-1 && rnd<cumxsec; ++index) {cumxsec += mxsec[index];}
+        return index;
+        
+        
+        
+/*
         int index=0;
         //retrieve the elements vector
-        const Vector_t<Element*> theElements = matCut->GetMaterial()->GetElementVector();
+        const Vector_t<Element*> &theElements = matCut->GetMaterial()->GetElementVector();
         //retrieve the number of elements in the material
         int num    = matCut->GetMaterial()->GetNumberOfElements();
         if (num > 1)
@@ -697,12 +705,13 @@ namespace geantphysics {
             }
         }
         return index;
-    }
+  */
+  }
     
     void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td){
         
         std::cout<<"testSampleTargetElementIndex\n";
-        int index=0;
+        size_t index=0;
         double sum=0;
         //retrieve the elements vector
         const Vector_t<Element*> theElements = matcut->GetMaterial()->GetElementVector();
@@ -758,7 +767,7 @@ namespace geantphysics {
         MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[track.GetMaterialCutCoupleIndex()];
         const Vector_t<Element*> theElements = matCut->GetMaterial()->GetElementVector();
         
-        int targetElemIndx = 0;
+        size_t targetElemIndx = 0;
         if (theElements.size()>1) {
             //uncomment the following line to test SampleTargetElementIndex
             //testSampleTargetElementIndex(matCut, gammaekin0, td );
@@ -780,8 +789,9 @@ namespace geantphysics {
         if(nn > 1)
         {
             // sample gamma energy
-            double *rndArray = td->fDblArray;
-            td->fRndm->uniform_array(1, rndArray);
+            //double *rndArray = td->fDblArray;
+            double rand=td->fRndm->uniform();
+            //td->fRndm->uniform_array(1, rndArray);
             
             // (*) High energy parameterisation
             if(gammaekin0 >= (*(fParamHigh[Z]))[0])
@@ -795,7 +805,7 @@ namespace geantphysics {
                 int idx   = nn*7 - 5;
                 // when do sampling common factors are not taken into account
                 // so cross section is not real
-                double cs0 = rndArray[0]*(     (*(fParamHigh[Z]))[idx]
+                double cs0 = rand*(     (*(fParamHigh[Z]))[idx]
                                           + x1*(*(fParamHigh[Z]))[idx+1]
                                           + x2*(*(fParamHigh[Z]))[idx+2]
                                           + x3*(*(fParamHigh[Z]))[idx+3]
@@ -829,7 +839,7 @@ namespace geantphysics {
                 double x4 = x3*x1;
                 double x5 = x4*x1;
                 int idx   = nn*7 - 5;
-                double cs0 = rndArray[0]*((*(fParamLow[Z]))[idx]
+                double cs0 = rand*((*(fParamLow[Z]))[idx]
                                           + x1*(*(fParamLow[Z]))[idx+1]
                                           + x2*(*(fParamLow[Z]))[idx+2]
                                           + x3*(*(fParamLow[Z]))[idx+3]
@@ -850,7 +860,7 @@ namespace geantphysics {
             }
             else
             {
-                double cs = rndArray[0];
+                double cs = rand;
                 
                 // (***) Tabulated values above k-shell ionization energy
                 if(gammaekin0 >= (*(fParamHigh[Z]))[1]) {
@@ -871,10 +881,8 @@ namespace geantphysics {
                     else
                         cs*=fLECSVector[Z]->GetValueAt(gammaekin0);
                 }
-                size_t j=0;
-                
-                
-                for(j=0; j<nn; ++j)
+                //size_t j=0;
+                for(size_t j=0; j<nn; ++j)
                 {
                     
                     shellIdx=(size_t)fShellVector[Z][j]->fCompID;
@@ -893,9 +901,9 @@ namespace geantphysics {
         //Retrieving ionized shell bindingEnergy
         double bindingEnergy = (*(fParamHigh[Z]))[shellIdx*7 + 1];
         
-        if(gammaekin0 < bindingEnergy) {
-            track.SetEnergyDeposit(gammaekin0);
-            return 0; //numSecondaries
+        if (gammaekin0 < bindingEnergy) {
+          track.SetEnergyDeposit(gammaekin0);
+          return 0; //numSecondaries
         }
         
         //since edep is equal to bindingenergy I get rid of it
@@ -912,41 +920,37 @@ namespace geantphysics {
         double elecKineEnergy = gammaekin0 - bindingEnergy;
         double cosTheta = track.GetDirZ();
         double sinTheta = 0.0;
-        double phi      = 0.0;
+        double phi = 0.0;
+        double eDirX1;
+        double eDirY1;
+        double eDirZ1;
         
-        //************* START REJECTION SAMPLING ****]
-        if(!GetUseSamplingTables())
-            SamplePhotoElectronDirection_Rejection(gammaekin0, sinTheta, cosTheta, phi, td);
-        
-        //************* END REJECTION SAMPLING ****
-        
-        
-        //************* START ALIAS SAMPLING ****
-        else{
+        if (gammaekin0 <= 100*geant::MeV) {
+            if (!GetUseSamplingTables()) {
+              SamplePhotoElectronDirection_Rejection(gammaekin0, cosTheta, td);
+            } else {
+              double *rndArray = td->fDblArray;
+              td->fRndm->uniform_array(3, rndArray);
+              cosTheta=SamplePhotoElectronDirection_Alias(gammaekin0, rndArray[0], rndArray[1], rndArray[2]);
+            }
+            sinTheta = std::sqrt((1 - cosTheta)*(1 + cosTheta));
+            double rnd = td->fRndm->uniform();
+            phi     = geant::kTwoPi * rnd;
             
-            double *rndArray = td->fDblArray;
-            td->fRndm->uniform_array(4, rndArray);
-            cosTheta=SamplePhotoElectronDirection_Alias(gammaekin0, rndArray[0], rndArray[1], rndArray[2]);
-            phi = geant::kTwoPi * rndArray[3];
-            sinTheta=std::sqrt((1 - cosTheta)*(1 + cosTheta));
+            // new photoelectron direction in the scattering frame
+            eDirX1  = sinTheta*std::cos(phi);
+            eDirY1  = sinTheta*std::sin(phi);
+            eDirZ1  = cosTheta;
+ 
+            // rotate new photoelectron direction to the lab frame:
+            RotateToLabFrame(eDirX1, eDirY1, eDirZ1,track.GetDirX(), track.GetDirY(), track.GetDirZ());
+            
+        } else {
+          eDirX1  = track.GetDirX();
+          eDirY1  = track.GetDirY();
+          eDirZ1  = track.GetDirZ();
         }
-        //************* END ALIAS SAMPLING ****
-        
-        
-        // new photoelectron direction in the scattering frame
-        double eDirX1  = sinTheta*std::cos(phi);
-        double eDirY1  = sinTheta*std::sin(phi);
-        double eDirZ1  = cosTheta;
-        
-        // store original gamma directions in the lab frame
-        //double gamDirX0=track.GetDirX();
-        //double gamDirY0=track.GetDirY();
-        //double gamDirZ0=track.GetDirZ();
-        //RotateToLabFrame(eDirX1, eDirY1, eDirZ1, track.GetDirX(), gamDirY0, gamDirZ0);
-        
-        // rotate new photoelectron direction to the lab frame:
-        RotateToLabFrame(eDirX1, eDirY1, eDirZ1,track.GetDirX(), track.GetDirY(), track.GetDirZ());
-        
+    
         // create the secondary particle i.e. the photoelectron
         //numSecondaries = 1;
         
@@ -993,8 +997,8 @@ namespace geantphysics {
         track.SetKinE(0.0);
         //edep is = bindingEnergy
         //if(edep > 0.0) {
-        if(bindingEnergy > 0.0) {
-            track.SetEnergyDeposit(bindingEnergy);
+        if (bindingEnergy > 0.0) {
+          track.SetEnergyDeposit(bindingEnergy);
             //track.SetEnergyDeposit(edep);
         }
         // return with number of secondaries i.e. 1 photoelectron

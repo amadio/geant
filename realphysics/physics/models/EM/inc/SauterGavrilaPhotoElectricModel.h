@@ -168,7 +168,7 @@ namespace geantphysics {
          * @return              Index of the element sampled from the material composition to be the one involved in photoelectric effect.
          */
         
-        int SampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
+        size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
         
         //---------------------------------------------
         //TestSampleTargetElementIndex
@@ -287,15 +287,12 @@ namespace geantphysics {
          * atomic shell or of the photon energy.
          * @param[in]  energy        Primary particle (gamma) kinetic energy.
          * @param[in]  td            Geant::GeantTaskData used to generate random numbers.
-         * @param[out] sintheta      Sinus of the polar angle (theta) of the secondary particle (photoelectron e-).
          * @param[out] costheta      Cosinus of the polar angle (theta) of the secondary particle (photoelectron e-).
-         * @param[out] phi           Azimuthal angle of the secondary particle (photoelectron e-).
+         * 
          *
          */
         void SamplePhotoElectronDirection_Rejection(double energy,
-                                                    double &sintheta,
                                                     double &costheta,
-                                                    double &phi,
                                                     Geant::GeantTaskData *td);
         
         
