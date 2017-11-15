@@ -170,7 +170,7 @@ public:
     fStepV[itrack] = track.fStep;
     fSnextV[itrack] = track.fSnext;
     fSafetyV[itrack] = track.fSafety;
-    fBoundaryV[itrack] = track.fBoundary;
+    fBoundaryV[itrack] = !track.fBoundary;
     fNtracks++;
     return itrack;
   }
@@ -203,7 +203,7 @@ public:
     track.fStep = fStepV[itr];
     track.fSnext = fSnextV[itr];
     track.fSafety = fSafetyV[itr];
-    track.fBoundary = fBoundaryV[itr];
+    track.fBoundary = !fBoundaryV[itr];
   }
 
   /**

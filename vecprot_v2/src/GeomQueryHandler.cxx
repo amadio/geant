@@ -119,16 +119,16 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   
 // We should make sure that track->fSafety < track->fPstep for these tracks
   TrackVec_t &tracks = input.Tracks();
-/*
+
 #ifdef USE_VECGEOM_NAVIGATOR
   // Copy relevant track fields to geometry SOA and process vectorized.
   GeantTrackGeo_v &track_geo = *td->fGeoTrack;
   track_geo.Clear();
-  int i = 0;
+  size_t i = 0;
   for (auto track : tracks) {
     track_geo.AddTrack(*track);
-    td->fPathV[i] = track->fPath;
-    td->fNextpathV[i] = track->fNextpath;
+    td->fPathV[i] = track->Path();
+    td->fNextpathV[i] = track->NextPath();
     i++;
   }
     
@@ -138,9 +138,10 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
                track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
                (const VolumePath_t **)td->fPathV,
                track_geo.fSnextV, track_geo.fSafetyV, track_geo.fBoundaryV);
-  
+    
   // Update original tracks
   track_geo.UpdateOriginalTracks();
+  
   // Count this as a single geometry call
   td->fNsnext += 1;
   // Copy tracks to output
@@ -154,11 +155,13 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   (void)tracks;
   Handler::DoIt(input, output, td);
 #endif
-*/
+
+/*
   // For the moment just loop and call scalar DoIt
   for (auto track : tracks) {
     DoIt(track, output, td);
   }
+*/
 }
 
 } // GEANT_IMPL_NAMESPACE

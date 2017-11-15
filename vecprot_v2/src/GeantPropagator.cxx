@@ -424,6 +424,13 @@ int GeantPropagator::CreateSimulationStages()
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));
 
+  // Create the handlers
+  for (auto stage : fStages) {
+    int nhandlers = stage->CreateHandlers();
+    (void)nhandlers;
+    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
+  }
+
   /**************************************
    *  Define connections between stages *
    **************************************/
@@ -482,11 +489,6 @@ int GeantPropagator::CreateSimulationStages()
   GetStage(kSteppingActionsStage)->SetEndStage();
   GetStage(kSteppingActionsStage)->ActivateBasketizing(false);
 
-  for (auto stage : fStages) {
-    int nhandlers = stage->CreateHandlers();
-    (void)nhandlers;
-    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
-  }
   return fStages.size();
 }
 #else
@@ -523,6 +525,13 @@ int GeantPropagator::CreateSimulationStages()
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));
 
+  // Create the handlers
+  for (auto stage : fStages) {
+    int nhandlers = stage->CreateHandlers();
+    (void)nhandlers;
+    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
+  }
+
   /**************************************
    *  Define connections between stages *
    **************************************/
@@ -538,7 +547,7 @@ int GeantPropagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
-  GetStage(kGeometryStepStage)->ActivateBasketizing(true);
+  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
   //        V
   //        V
   //        V
@@ -561,11 +570,6 @@ int GeantPropagator::CreateSimulationStages()
   GetStage(kSteppingActionsStage)->SetEndStage();
   GetStage(kSteppingActionsStage)->ActivateBasketizing(false);
 
-  for (auto stage : fStages) {
-    int nhandlers = stage->CreateHandlers();
-    (void)nhandlers;
-    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
-  }
   return fStages.size();
 }
 #endif

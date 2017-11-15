@@ -74,7 +74,7 @@ public:
   atomic_t<size_t> fNfilled; // Counter for filled slots
 
   VECCORE_ATT_HOST_DEVICE
-  BasketCounter() : fBsize(0), fNbooktot(0), fNfilled(0) { }
+  BasketCounter() : fBsize(0), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0) { }
 
   VECCORE_ATT_HOST_DEVICE
   BasketCounter(short bsize) : fBsize(bsize), fIbook(0), fNbook0(0), fNbooktot(0), fNfilled(0) { }

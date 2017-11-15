@@ -253,7 +253,7 @@ int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
     fStepV[fNtracks] = track->fStep;
     fSnextV[fNtracks] = track->fSnext;
     fSafetyV[fNtracks] = track->fSafety;
-    fBoundaryV[fNtracks] = track->fBoundary;
+    fBoundaryV[fNtracks] = !track->fBoundary;
     fNtracks++;
   }
   return fNtracks;  
