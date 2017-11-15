@@ -451,6 +451,17 @@ int main(int argc, char *argv[]) {
     fclose(f);
     delete histo;
     
+    
+    sprintf(fileName,"photoElectric_%s_GV_photoelectron_angular_rejection_%s_%sMeV.ascii",photoElectricModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str(), str.c_str());
+    f     = fopen(fileName,"w");
+    histo = histo_photoelectron_angular_rej;
+    norm  = 1./numSamples;
+    for (int i=0; i<histo->GetNumBins(); ++i) {
+        fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
+    }
+    fclose(f);
+    delete histo;
+    
     double xsec[numHistBins];
     double cosTheta;
     
