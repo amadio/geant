@@ -94,12 +94,12 @@
 // default values of the input parameters
 static std::string   particleName("gamma");                         // primary particle is gamma
 static std::string   materialName("G4_Pb");                         // material is lead
-static std::string   photoelectricModelName("photoelectricFluo");     // name of the photoelectric model to test
+static std::string   photoelectricModelName("photoelectricLiv");    // name of the photoelectric model to test
 static int           numHistBins       = 100;                       // number of histogram bins between min/max values
-static double        numSamples        = 1.e+07;                     // number of required final state samples 1.e+7
-static double        primaryEnergy     = 10;                      // primary particle energy in [MeV]
+static double        numSamples        = 1.e+07;                    // number of required final state samples 1.e+7
+static double        primaryEnergy     = 10;                        // primary particle energy in [MeV]
 static double        prodCutValue      = 1.0;                       // by default in length and internal units i.e. [mm]
-static bool          isAngular         = false;                      // angular or energy distribution is required ?
+static bool          isAngular         = false;                     // angular or energy distribution is required ?
 
 static struct option options[] = {
     {"particle-name     (possible particle names: gamma)            - default: gamma"               , required_argument, 0, 'p'},
@@ -107,7 +107,7 @@ static struct option options[] = {
     {"primary-energy    (in internal energy units i.e. [MeV])       - default: 10"                  , required_argument, 0, 'E'},
     {"number-of-samples (number of required final state samples)    - default: 1.e+7"               , required_argument, 0, 'f'},
     {"number-of-bins    (number of bins in the histogram)           - default: 100"                 , required_argument, 0, 'n'},
-    {"model-name        (photoelectricFluo, photoelectricLiv)        - default: photoelectricFluo"   , required_argument, 0, 'b'},
+    {"model-name        (photoelectricFluo, photoelectricLiv)       - default: photoelectricLiv"    , required_argument, 0, 'b'},
     {"cut-vale          (secondary production threshold [mm])       - default: 1.0"                 , required_argument, 0, 'c'},
     {"isangular         (angular distribution is required ?)        - default: false"               , no_argument      , 0, 'a'},
     {"help"                                                                                         , no_argument      , 0, 'h'},
@@ -325,7 +325,6 @@ int main(int argc, char** argv) {
     G4double cost, z, e;
     
     
-    // print outs
     G4cout<< mat;
     G4ProductionCutsTable::GetProductionCutsTable()->DumpCouples();
     G4cout<< "   -------------------------------------------------------------------------------- "<< G4endl;
