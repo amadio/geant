@@ -220,12 +220,12 @@ void CaloApp::FinishRun() {
 //  double rmsNeSteps    = std::sqrt(std::abs(meanNeSteps2  - meanNeSteps*meanNeSteps));
 
   double rmsChTrackL[fNumAbsorbers];
-  double rmsNeTrackL[fNumAbsorbers];
+//  double rmsNeTrackL[fNumAbsorbers];
   double rmsEdep[fNumAbsorbers];
 
   for (int k=0; k<fNumAbsorbers; k++){
   	rmsChTrackL[k]   = std::sqrt(std::abs(meanChTrackL2[k] - meanChTrackL[k]*meanChTrackL[k]));
-  	rmsNeTrackL[k]   = std::sqrt(std::abs(meanNeTrackL2[k] - meanNeTrackL[k]*meanNeTrackL[k]));
+//  	rmsNeTrackL[k]   = std::sqrt(std::abs(meanNeTrackL2[k] - meanNeTrackL[k]*meanNeTrackL[k]));
   	rmsEdep[k]       = std::sqrt(std::abs(meanEdep2[k]     - meanEdep[k]*meanEdep[k]));
   }
   //

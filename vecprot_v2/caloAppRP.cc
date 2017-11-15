@@ -24,11 +24,11 @@
 // some helper methods to get the possible input arguments and configure the user defined components of the application,
 // set up the run manager and run the simulation.
 void GetArguments(int argc, char *argv[]);
-void SetupCaloPhysicsList     (userapplication::CaloPhysicsList*            physlist);
-void SetupUserDetector        (userapplication::CaloDetectorConstruction*   detector);
-void SetupUserPrimaryGenerator(userapplication::CaloPrimaryGenerator*     primarygun);
-void SetupUserApplication     (userapplication::CaloApp*                     caloapp);
-void PrintRunInfo();
+void SetupCaloPhysicsList     (userapplication::CaloPhysicsList* physlist);
+void SetupUserDetector        (userapplication::CaloDetectorConstruction* detector);
+void SetupUserPrimaryGenerator(userapplication::CaloPrimaryGenerator* primarygun, int numprimsperevt);
+void SetupUserApplication     (userapplication::CaloApp* caloapp);
+void PrintRunInfo(userapplication::CaloPrimaryGenerator *gun, Geant::GeantRunManager *rmg);
 void PreSet(int num);
 Geant::GeantRunManager* RunManager();
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
   // Create Calo primary generator
   userapplication::CaloPrimaryGenerator *caloGun = new userapplication::CaloPrimaryGenerator(calo);
-  SetupUserPrimaryGenerator(caloGun);
+  SetupUserPrimaryGenerator(caloGun,runMgr->GetConfig()->fNaverage);
   runMgr->SetPrimaryGenerator(caloGun);
 
   // Create the real physics Calo application
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   runMgr->SetUserApplication(caloApplication);
 
   // Print basic parameters for the simulation
-  PrintRunInfo();
+  PrintRunInfo(caloGun, runMgr);
 
   // Run the simulation
   runMgr->RunSimulation();
@@ -92,12 +92,12 @@ std::string parGunPrimaryParticleName             =  "";  // i.e. default applic
 double      parGunPrimaryKinEnergy                =  0.;  // i.e. default application value
 //
 // run configuration parameters
-int         parConfigNumBufferedEvt   = 4;     // number of events taken to be transported on the same time (buffered)
-int         parConfigNumRunEvt        = 10;    // total number of events to be transported during the run
-int         parConfigNumPrimaryPerEvt = 100;   // number of primary particles per event
-int         parConfigNumThreads       = 4;     // number of working threads
-int         parConfigNumPropagators   = 1;     // number of propagators per working threads
-bool        parConfigIsPerformance    = false; // run without any user actions
+int         parConfigNumBufferedEvt   =     4;  // number of events taken to be transported on the same time (buffered)
+int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
+int         parConfigNumPrimaryPerEvt =  1000;  // number of primary particles per event
+int         parConfigNumThreads       =     4;  // number of working threads
+int         parConfigNumPropagators   =     1;  // number of propagators per working threads
+bool        parConfigIsPerformance    = false;  // run without any user actions
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit    = "";    // i.e. default application value
@@ -150,15 +150,18 @@ void help() {
   printf("\n\n");
 }
 
-void PrintRunInfo() {
+void PrintRunInfo(userapplication::CaloPrimaryGenerator *gun, Geant::GeantRunManager *rmg) {
   // Print run information
+  long int nevents    = rmg->GetConfig()->fNtotal;
+  long int nprimpere  = rmg->GetConfig()->fNaverage;
+  long int nprimtotal = nevents*nprimpere;
   std::cout<< "\n\n"
            << " ===================================================================================  \n"
-           << "  primary GV code      : " << parGunPrimaryParticleName                    << "       \n"
-           << "  primary energy       : " << parGunPrimaryKinEnergy                       << " [GeV] \n"
-           << "  #events              : " << parConfigNumRunEvt                           << "       \n"
-           << "  #primaries per event : " << parConfigNumPrimaryPerEvt                    << "       \n"
-           << "  total # primaries    : " << parConfigNumRunEvt*parConfigNumPrimaryPerEvt << "       \n"
+           << "  primary              : " << gun->GetPrimaryParticleName()                << "       \n"
+           << "  primary energy       : " << gun->GetPrimaryParticleEnergy()              << " [GeV] \n"
+           << "  #events              : " << nevents                                      << "       \n"
+           << "  #primaries per event : " << nprimpere                                    << "       \n"
+           << "  total # primaries    : " << nprimtotal                                   << "       \n"
            << "  performance mode?    : " << parConfigIsPerformance                       << "       \n"
            << " ===================================================================================\n\n";
 }
@@ -166,8 +169,8 @@ void PrintRunInfo() {
 void GetArguments(int argc, char *argv[]) {
   std::cout << "Avoid ctest truncation of output: CTEST_FULL_OUTPUT" << std::endl;
   // for the set-absorber sub-options
-  int    errfnd = 0;
-  int    absorberIndex;
+  int    errfnd        =  0;
+  int    absorberIndex = -1;
   char  *subopts;
   char  *value;
 
@@ -306,10 +309,9 @@ void SetupUserDetector(userapplication::CaloDetectorConstruction* det) {
 }
 
 
-void SetupUserPrimaryGenerator(userapplication::CaloPrimaryGenerator* primarygun) {
+void SetupUserPrimaryGenerator(userapplication::CaloPrimaryGenerator* primarygun, int numprimsperevt) {
   // it needs to be consistent with GeantConfig::fNaverage i.e. number of primary particles per event !!!
-  if (parConfigNumPrimaryPerEvt>0)
-     primarygun->SetNumberOfPrimaryParticlePerEvent(parConfigNumPrimaryPerEvt);
+  primarygun->SetNumberOfPrimaryParticlePerEvent(numprimsperevt);
   if (parGunPrimaryParticleName!="")
     primarygun->SetPrimaryParticleName(parGunPrimaryParticleName);
   if (parGunPrimaryKinEnergy>0.)

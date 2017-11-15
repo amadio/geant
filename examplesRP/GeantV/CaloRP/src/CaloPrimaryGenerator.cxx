@@ -18,7 +18,7 @@ CaloPrimaryGenerator::CaloPrimaryGenerator(CaloDetectorConstruction *det) : fDet
   fPDG                 = 0;
   fGVPartIndex         = 0;
   //
-  fPrimaryEkin         = 10.0*geant::GeV;
+  fPrimaryEkin         = 0.1*geant::GeV;
   //
   fXPos                = 0.;
   fYPos                = 0.;

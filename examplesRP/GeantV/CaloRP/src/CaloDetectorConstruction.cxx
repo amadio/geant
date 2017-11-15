@@ -41,11 +41,11 @@ CaloDetectorConstruction::CaloDetectorConstruction(Geant::GeantRunManager *runmg
   fAbsorberMaterialNames[0] = "NIST_MAT_Pb";
   fAbsorberMaterialNames[1] = "NIST_MAT_lAr";
   //
-  fProductionCut            = 1.0*geant::mm;
+  fProductionCut            = 0.7*geant::mm;
   //
   for (int i=0; i<gMaxNumAbsorbers; ++i) {
-    fAbsorberLogicVolIDs[i]   = -1;
-    fAbsorberMaterials[i]     = nullptr;
+    fAbsorberLogicVolIDs[i] = -1;
+    fAbsorberMaterials[i]   = nullptr;
   }
   fWorldMaterial            = nullptr;
 }
