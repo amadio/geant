@@ -187,7 +187,7 @@ void CaloPhysicsList::Initialize() {
       //
       // create photoelectric effect process for gamma with 1 model:
       //
-      geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess("phot");
+      geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess();
       // create the Sauter-Gavrila model for photoelectric effect
       geantphysics::EMModel           *sgModel = new geantphysics::SauterGavrilaPhotoElectricModel();
       // set min/max energies of the model

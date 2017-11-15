@@ -218,13 +218,11 @@ void UserPhysicsList::Initialize() {
       //
       // create photoelectric effect process for gamma with 1 model:
       //
-      geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess("gPhotoElectric");
+      geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess();
       // create the Sauter-Gavrila model for photoelectric effect
       geantphysics::EMModel           *sgModel = new geantphysics::SauterGavrilaPhotoElectricModel();
       // set min/max energies of the model
-      sgModel->SetLowEnergyUsageLimit (  2.0*geant::keV);
-      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
-        
+      sgModel->SetLowEnergyUsageLimit (  1.0*geant::eV);
       sgModel->SetHighEnergyUsageLimit(  1.0*geant::TeV);
       // add the model to the process
       photoelectricProc->AddModel(sgModel);

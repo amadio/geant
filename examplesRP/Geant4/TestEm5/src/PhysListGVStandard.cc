@@ -113,16 +113,14 @@ void PhysListGVStandard::ConstructProcess()
     G4String particleName = particle->GetParticleName();
 
     if (particleName == "gamma") {
-        
+      G4double LivermoreLowEnergyLimit = 1*eV;
       G4double LivermoreHighEnergyLimit = 100*TeV;
       G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
-      //LIVERMORE PE
       G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
-      
+      theLivermorePhotoElectricModel->SetLowEnergyLimit(LivermoreLowEnergyLimit);
       theLivermorePhotoElectricModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
       thePhotoElectricEffect->AddEmModel(0, theLivermorePhotoElectricModel);
       ph->RegisterProcess(thePhotoElectricEffect, particle);
-      
       //Standard PE
       //ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering(), particle);

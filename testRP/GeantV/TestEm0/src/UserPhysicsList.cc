@@ -132,10 +132,8 @@ void UserPhysicsList::Initialize() {
       // create the Sauter-Gavrila model for photoelectric effect
       geantphysics::EMModel           *sgModel = new geantphysics::SauterGavrilaPhotoElectricModel();
       // set min/max energies of the model
-      sgModel->SetLowEnergyUsageLimit (  0.0*geant::eV);
-      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
-        
-      sgModel->SetHighEnergyUsageLimit(  100.0*geant::TeV);
+      sgModel->SetLowEnergyUsageLimit ( 1.0*geant::eV);
+      sgModel->SetHighEnergyUsageLimit( 1.0*geant::TeV);
       // add the model to the process
       photoelectricProc->AddModel(sgModel);
       //
