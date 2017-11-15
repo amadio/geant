@@ -4,7 +4,7 @@ cmake_policy(SET CMP0042 NEW)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 find_package(TBB)
-find_package(CppUnit)
+#find_package(CppUnit)
 
 set(Boost_NO_BOOST_CMAKE ON)
 find_package(Boost)

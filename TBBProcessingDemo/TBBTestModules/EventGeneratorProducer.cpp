@@ -15,8 +15,6 @@
 //#include "Waiter.h"
 #include "GeantEventServer.h"
 
-#include "HepMCGenerator.h"
-using Geant::HepMCGenerator;
 
 namespace demo {
 
@@ -29,24 +27,18 @@ namespace demo {
     virtual void produce(edm::Event&);
 
     std::vector<const Getter*> m_getters;
-    HepMCGenerator* m_generator;
-    Geant::GeantEventServer* m_eventServer;
     //std::string hepmc_event_filename;
   };
 
   EventGeneratorProducer::EventGeneratorProducer(const boost::property_tree::ptree& iConfig):
   ConfiguredProducer(iConfig,thread_type_from_config(iConfig))
   //, Waiter(iConfig)
-  , m_generator(NULL)
   {
     registerProduct(demo::DataKey());
     //registerProduct(demo::DataKey("evgenKey"));
-    printf("EventGeneratorProducer constructor: initializing HepMCGenerator...%s\n", label().c_str());
 
     // read primary tracks from file
     std::string filename = iConfig.get<std::string>("fileName");
-    std::cout<<"EventGenProducer: HepMCGen filename="<< filename <<"\n";
-    m_generator = new HepMCGenerator( filename );
 
     // if (m_generator) {
     //   std::cout<<"*** GeantRunManager: setting up a GunGenerator...\n";
@@ -60,7 +52,7 @@ namespace demo {
     // }
 
     for(const boost::property_tree::ptree::value_type& v: iConfig.get_child("toGet")) {
-      const string par{ iConfig.get<std::string>("label") };
+      const std::string par{ iConfig.get<std::string>("label") };
       printf("EvtGenProducer: iConfig.get_child(""toGet"") = %s\n", par.c_str()); 
       m_getters.push_back(registerGet(v.second.get<std::string>("label"), ""));
     }
@@ -78,16 +70,12 @@ namespace demo {
   EventGeneratorProducer::produce(edm::Event& iEvent) {
     printf("Producer %s: produce()...\n",label().c_str());
 
-    Geant::GeantEventInfo evtInfo;
-    if(m_generator) evtInfo = m_generator->NextEvent();
-    printf("*** EvGenProducer: New event read: %i tracks at vertex: (%f; %f, %f, %f)\n",
-       evtInfo.ntracks, evtInfo.tvert, evtInfo.xvert, evtInfo.yvert, evtInfo.zvert);
 
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
         ++it) {
-      sum +=iEvent.get(*it);
+      sum += iEvent.get(*it);
       printf("%s got %s with value %i\n",label().c_str(), (*it)->label().c_str(), iEvent.get((*it)));
     }
     //wait(iEvent);

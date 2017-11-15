@@ -156,13 +156,29 @@ bool CMSApplicationTBB::Initialize() {
 }
 
 //______________________________________________________________________________
-void CMSApplicationTBB::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td) {
+void CMSApplicationTBB::SteppingActions(GeantTrack &track, GeantTaskData *td)
+{
+  static int count = 0;
+  ++count;
+  if(count%10000 == 0) {
+    std::cout<<"*** SteppingAction(): dummy body, count="<< count <<"\n";
+  }
+  //GeantTrack_v tracks;
+  //tracks.AddTrack(track);
+  //SteppingActions(tracks, td);
+}
+
+void CMSApplicationTBB::SteppingActions(GeantTrack_v &tracks, GeantTaskData *td) {
+
+  std::cout<<"*** SteppingAction(): #tracks="<< tracks.GetNtracks() <<"\n";
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   GeantPropagator *propagator = td->fPropagator;
   int tid = td->fTid;
-  if ((!fInitialized) || (fScore == kNoScore))
+  if ((!fInitialized) || (fScore == kNoScore)) {
+    std::cout<<"*** SteppingAction() @return: #tracks="<< tracks.GetNtracks() <<"\n";
     return;
+  }
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   int ivol;
@@ -170,6 +186,7 @@ void CMSApplicationTBB::StepManager(int npart, const GeantTrack_v &tracks, Geant
   int mod;
   Volume_t const *vol;
 
+  const int npart = tracks.GetNtracks();
   for (int itr = 0; itr < npart; itr++) {
     vol = tracks.GetVolume(itr);
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -178,8 +195,6 @@ void CMSApplicationTBB::StepManager(int npart, const GeantTrack_v &tracks, Geant
     ivol = vol->GetNumber();
 #endif
 
-
-    
     idtype = 0;
     if (fSensFlags[ivol]) {
       if (vol->GetName()[0] == 'E')
@@ -187,8 +202,6 @@ void CMSApplicationTBB::StepManager(int npart, const GeantTrack_v &tracks, Geant
       else
         idtype = 2;
 
-      
-      
       switch (idtype) {
       case 1:
 	mod = fECALMap.find(ivol)->second;
@@ -312,7 +325,10 @@ void CMSApplicationTBB::StepManager(int npart, const GeantTrack_v &tracks, Geant
 #endif
     }
   }
+  std::cout<<"*** SteppingAction() @return: #tracks="<< tracks.GetNtracks() <<"\n";
 }
+
+//______________________________________________________________________________
 
 //// User actions in terms of TBB tasks
 void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
@@ -320,23 +336,24 @@ void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
   printf("CMSApplicTBB::SetEvtContTask: ievt=%i, pTask=<%p>, map.size=%lu\n", ievt, pTask, m_postSimTaskMap.size());
 }
 
-//______________________________________________________________________________
-// any user tasks after simulation is complete (and before digitization)
-tbb::task *CMSApplicationTBB::SpawnUserEventFeeder(GeantEventServer *evserv) {
 
-  printf("-- CMSAppTBB::SpawnUserEventFeeder() called...");
-  //return static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication())->SpawnEventLoopTask(/*nevents*/);
-  return 0;
-}
+// //______________________________________________________________________________
+// // any user tasks after simulation is complete (and before digitization)
+// tbb::task *CMSApplicationTBB::SpawnUserEventFeeder(GeantEventServer *evserv) {
 
-//______________________________________________________________________________
-// any user tasks after simulation is complete (and before digitization)
- tbb::task *CMSApplicationTBB::SpawnUserEndRunTask() {
-   // any user tasks after simulation is complete (and before digitization)
-   printf("-- CMSAppTBB::SpawnUserEndRunTask() called...");
-   //return static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication())->SpawnEndRunTask();
-   return 0;
-}
+//   printf("-- CMSAppTBB::SpawnUserEventFeeder() called...");
+//   //return static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication())->SpawnEventLoopTask(/*nevents*/);
+//   return 0;
+// }
+
+// //______________________________________________________________________________
+// // any user tasks after simulation is complete (and before digitization)
+//  tbb::task *CMSApplicationTBB::SpawnUserEndRunTask() {
+//    // any user tasks after simulation is complete (and before digitization)
+//    printf("-- CMSAppTBB::SpawnUserEndRunTask() called...");
+//    //return static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication())->SpawnEndRunTask();
+//    return 0;
+// }
 
 //______________________________________________________________________________
 void CMSApplicationTBB::Digitize(GeantEvent *event) {

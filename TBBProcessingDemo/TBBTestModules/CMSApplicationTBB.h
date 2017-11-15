@@ -43,8 +43,9 @@ class TProfile;
 
 #include "base/Vector.h"
 
-using GeantTrack_v = Geant::GeantTrack_v;
 using GeantTaskData = Geant::GeantTaskData;
+using GeantTrack    = Geant::GeantTrack;
+using TrackVec_t    = Geant::GeantTrack_v;
 
 /** @brief CMSApplication class */
 class CMSApplicationTBB : public Geant::GeantVApplication {
@@ -60,10 +61,10 @@ public:
   //template <class T>
   //using vector_t = vecgeom::Vector<T>;
 
-enum EScoreType {
-  kNoScore = 0,
-  kScore
-};  
+  enum EScoreType {
+    kNoScore = 0,
+    kScore
+  };
 
 private:
 #if defined(USE_VECGEOM_NAVIGATOR) && defined(VECCORE_CUDA)
@@ -136,7 +137,8 @@ public:
    * @param npart Number of tracks
    * @param tracks GeantV track container
    */
-  virtual void StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData *td);
+  virtual void SteppingActions(GeantTrack &tracks, GeantTaskData *td);
+  virtual void SteppingActions(TrackVec_t &tracks, GeantTaskData *td);
 
   /**
    * @brief Function of digitization
@@ -155,8 +157,8 @@ public:
   virtual void FinishRun();
 
   // User actions in terms of TBB tasks
-  virtual tbb::task *SpawnUserEventFeeder(GeantEventServer *evserv);
+  //virtual tbb::task *SpawnUserEventFeeder(GeantEventServer *evserv);
 
-  virtual tbb::task *SpawnUserEndRunTask();
+  //virtual tbb::task *SpawnUserEndRunTask();
 };
 #endif
