@@ -1,36 +1,17 @@
-///////////////////////////////////////////////////////////////////////////////////////////
-//
-//			CaloDetectorConstruction.cxx
-//			Created: 20 June 2017
-//			Author: Ryan Schmitz
-//
-// Description: A (linear) calorimeter implemented using VecGeom libraries, this detector construction
-// 		is fully customizable and can easily pass data about its structure to other
-// 		classes.
-//
-// 		Customizable features include:
-// 		-Number of calorimeter layers
-// 		-Number of absorbers per layer
-//		-Production cuts (on energy, length, or particle-specific for gammas, electrons, or positrons)
-//		-YZ calorimeter cross-section
-//
-//		Other features like incident particle energy and particle type may be set in the
-//		macro which executes this application, caloAppRP.cc, as well as in its accompanying
-//		macro.
-//
-///////////////////////////////////////////////////////////////////////////////////////////
 
 #include "CaloDetectorConstruction.h"
+
 #include "GeantVDetectorConstruction.h"
+#include "GeantRunManager.h"
+
 #include <iostream>
 #include <vector>
 
 // Material includes
-#include "Isotope.h"
-#include "Element.h"
 #include "Material.h"
+#include "Element.h"
 #include "MaterialProperties.h"
-#include "NISTElementData.h"
+//#include "NISTElementData.h"
 #include "SystemOfUnits.h"
 #include "PhysicalConstants.h"
 
@@ -47,215 +28,247 @@
 
 namespace userapplication {
 
-CaloDetectorConstruction::~CaloDetectorConstruction()
-{
-}
-
-void CaloDetectorConstruction::CreateMaterials()
-{
-
-  // unit definitions
-  using geant::g;
-  using geant::mg;
-  using geant::mole;
-  using geant::cm3;
-  //  using geant::bar;
-  using geant::pascal;
-  using geant::kelvin;
-  using geant::atmosphere;
-  using geant::kUniverseMeanDensity;
-  //  using geant::perCent;
-  //  using geant::kSTPTemperature;
-
-  // useful variable declarations
-  std::string name   = "";
-  std::string symbol = "";
-  double a           = 1. * g / mole, // molar mass in internal [weight/mole] unit
-      z              = 1.,            // mean numnber of protons
-      density        = 1. * g / cm3;  // material density in internal [weight/length^3] unit
-                                      //         abundance;             // relative abundance of the i-th isotope
-                                      //  int isoZ, isoN;               // number of protons/nucleons in an isotope;
-                                      //  int numcomponents,            // number of components the naterial is built up
-  //      numatoms;                 // number of i-th atoms in the molecule (for Way 1) some useful variable declaration
-
-  double pressure    = 1. * atmosphere; // pressure
-  double temperature = 273.15 * kelvin; // temperature
-
-  // Isotope from geantphysics namespace
-  using geantphysics::Isotope;
-  // Element from geantphysics namespace
-  using geantphysics::Element;
-  // Material from the geantphysics namespace
-  using geantphysics::Material;
-  // MaterialState from geantphysics namespace
-  using geantphysics::MaterialState;
-  using geantphysics::NISTElementData;
-  using geantphysics::MaterialProperties;
-
-  // Define vacuum
-  density            = kUniverseMeanDensity;
-  pressure           = 3.e-18 * pascal;
-  temperature        = 2.73 * kelvin;
-  Material *Galactic = new Material(name = "Galactic", z = 1., a = 1.01 * g / mole, density, MaterialState::kStateGas,
-                                    temperature, pressure);
-
-  // Explicit Pb definition
-  //   density = 11.35*g/cm3;
-  //    a = 207.19*g/mole;
-  //    Material* Pb = new Material(name="Lead"     , z=82., a, density);
-
-  // Declare calo materials
-  fWorldMaterialName = "Galactic";
-  fWorldMaterial     = Galactic;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CaloDetectorConstruction::SetProductionCutsByEnergy(double energy)
-{
-
-  fProdCutByLength = false;
-  fGammaCut       = energy * geant::eV;
-  fElectronCut    = energy * geant::eV;
-  fPositronCut    = energy * geant::eV;
-}
-
-void CaloDetectorConstruction::SetProductionCutsByLength(double length)
-{
-  fGammaCut    = length * geant::mm;
-  fElectronCut = length * geant::mm;
-  fPositronCut = length * geant::mm;
-}
-
-// all these settings are in length
-void CaloDetectorConstruction::SetDetectorGammaProductionCut(double length)
-{
-  fGammaCut = length * geant::mm;
-}
-void CaloDetectorConstruction::SetDetectorElectronProductionCut(double length)
-{
-  fElectronCut = length * geant::mm;
-}
-void CaloDetectorConstruction::SetDetectorPositronProductionCut(double length)
-{
-  fPositronCut = length * geant::mm;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CaloDetectorConstruction::SetDetectorMaterials()
-{ // private, set each absorber to its material name
-  for (int i = 0; i < fNumAbsorbers; i++) {
-    fAbsMaterial[i] = geantphysics::Material::NISTMaterial(fAbsMaterialName[i]);
+CaloDetectorConstruction::CaloDetectorConstruction(Geant::GeantRunManager *runmgr) : Geant::GeantVDetectorConstruction(runmgr) {
+  fNumberOfAbsorbers        = 2;
+  fAbsorberThicknesses[0]   = 2.3*geant::mm;
+  fAbsorberThicknesses[1]   = 5.7*geant::mm;
+  fNumberOfLayers           = 50;
+  fCaloSizeYZ               = 40.*geant::cm;
+  //
+  ComputeCalorimeter();
+  //
+  fWorldMaterialName        = "Galactic";
+  fAbsorberMaterialNames[0] = "NIST_MAT_Pb";
+  fAbsorberMaterialNames[1] = "NIST_MAT_lAr";
+  //
+  fProductionCut            = 0.7*geant::mm;
+  //
+  for (int i=0; i<gMaxNumAbsorbers; ++i) {
+    fAbsorberLogicVolIDs[i] = -1;
+    fAbsorberMaterials[i]   = nullptr;
   }
+  fWorldMaterial            = nullptr;
+}
+
+
+CaloDetectorConstruction::~CaloDetectorConstruction() { /* nothing to do */}
+
+
+
+void   CaloDetectorConstruction::SetNumberOfAbsorbersPerLayer(int numabs) {
+  if (numabs>gMaxNumAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::SetNumberOfAbsorbersPerLayer() \n"
+                "    Number of absorbers per layer " << numabs << " > maximum " << gMaxNumAbsorbers
+             << std::endl;
+    exit(-1);
+  }
+  fNumberOfAbsorbers = numabs;
+}
+
+
+void   CaloDetectorConstruction::SetAbsorberThickness(int absindx, double thick) {
+  if (absindx>=fNumberOfAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::SetAbsorberThickness() \n"
+                "    Unknown absorber index = " << absindx << " ( should be <= " << fNumberOfAbsorbers-1 << " )"
+             << std::endl;
+    exit(-1);
+  }
+  fAbsorberThicknesses[absindx] = thick;
+}
+
+
+double CaloDetectorConstruction::GetAbsorberThickness(int absindx) const {
+  if (absindx>=fNumberOfAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::GetAbsorberThickness() \n"
+                "    Unknown absorber index = " << absindx << " ( should be <= " << fNumberOfAbsorbers-1 << " )"
+             << std::endl;
+    exit(-1);
+  }
+  return fAbsorberThicknesses[absindx];
+}
+
+
+void  CaloDetectorConstruction::SetAbsorberMaterialName(int absindx, const std::string &matname) {
+  if (absindx>=fNumberOfAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::SetAbsorberMaterialName() \n"
+                "    Unknown absorber index = " << absindx << " ( should be <= " << fNumberOfAbsorbers-1 << " )"
+             << std::endl;
+    exit(-1);
+  }
+  fAbsorberMaterialNames[absindx] = matname;
+}
+
+
+void   CaloDetectorConstruction::SetAbsorberMaterial(int absindx, const std::string &matname) {
+  if (absindx>=fNumberOfAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::SetAbsorberMaterial() \n"
+                "    Unknown absorber index = " << absindx << " ( should be <= " << fNumberOfAbsorbers-1 << " )"
+             << std::endl;
+    exit(-1);
+  }
+  // will report proper error msg if the material cannot be found or created
+  geantphysics::Material *mat = geantphysics::Material::NISTMaterial(matname);
+  fAbsorberMaterials[absindx] = mat;
+}
+
+
+const geantphysics::Material* CaloDetectorConstruction::GetAbsorberMaterial(int absindx) const {
+  if (absindx>=fNumberOfAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::GetAbsorberMaterial() \n"
+                "    Unknown absorber index = " << absindx << " ( should be <= " << fNumberOfAbsorbers-1 << " )"
+             << std::endl;
+    exit(-1);
+  }
+  return fAbsorberMaterials[absindx];
+}
+
+
+int    CaloDetectorConstruction::GetAbsorberLogicalVolumeID(int absindx) const {
+  if (absindx>=fNumberOfAbsorbers) {
+    std::cerr<< "  **** ERROR: CaloDetectorConstruction::GetAbsorberLogicalVolumeID() \n"
+                "    Unknown absorber index = " << absindx << " ( should be <= " << fNumberOfAbsorbers-1 << " )"
+             << std::endl;
+    exit(-1);
+  }
+  return fAbsorberLogicVolIDs[absindx];
+}
+
+
+
+void   CaloDetectorConstruction::ComputeCalorimeter() {
+  fLayerThickness = 0.0;
+  for (int i=0; i<fNumberOfAbsorbers; ++i) {
+    fLayerThickness += fAbsorberThicknesses[i];
+  }
+  fCaloSizeX   = fNumberOfLayers*fLayerThickness;
+  fWorldSizeYZ = 1.2*fCaloSizeYZ;
+  fWorldSizeX  = 1.2*fCaloSizeX;
+}
+
+void   CaloDetectorConstruction::DetectorInfo() {
+  std::cout<< "\n ========================    Detector Info   ========================================  "<< std::endl;
+  std::cout<< "     Calorimeter is " << fNumberOfLayers << " layers of [ ";
+           for (int i=0; i<fNumberOfAbsorbers; ++i) {
+             std::cerr<< fAbsorberThicknesses[i]/geant::mm << "  mm "
+                      << fAbsorberMaterialNames[i];
+             if (i<fNumberOfAbsorbers-1) std::cerr<<" + ";
+           }
+           std::cout<< " ]"<<std::endl;
+  std::cout<<" ====================================================================================  \n"<<std::endl;
+}
+
+
+void   CaloDetectorConstruction::CreateMaterials() {
+  geantphysics::Element* elH   = geantphysics::Element::NISTElement(1);
+  geantphysics::Element* elC   = geantphysics::Element::NISTElement(6);
+  geantphysics::Element* elPb  = geantphysics::Element::NISTElement(82);
+  //
+  // create material Galactic
+  double density      = geant::kUniverseMeanDensity;
+  double pressure     = 3.e-18*geant::pascal;
+  double temperature  = 2.73*geant::kelvin;
+  double z            = 1.;
+  double a            = 1.008*geant::g/geant::mole;
+  new geantphysics::Material("Galactic", z, a, density, geantphysics::MaterialState::kStateGas, temperature, pressure);
+  //
+  // create material Lead (by mass fraction)
+  double massfraction = 1.;
+  int ncomponents     = 1;
+  density             = 11.35*geant::g/geant::cm3;
+  geantphysics::Material *matLead = new geantphysics::Material("Lead", density, ncomponents);
+  matLead->AddElement(elPb, massfraction=1.0);
+  //
+  // create Scintillator (by atom count)
+  density             = 1.032*geant::g/geant::cm3;
+  ncomponents         = 2;
+  int natoms          = 1;
+  geantphysics::Material *matSci = new geantphysics::Material("Scintillator", density, ncomponents);
+  matSci->AddElement(elC, natoms =  9);
+  matSci->AddElement(elH, natoms = 10);
+  //
+  // create liquidArgon (from material NIST_MAT_lAr with different density by mass fraction)
+  geantphysics::Material *matlAr = geantphysics::Material::NISTMaterial("NIST_MAT_lAr");
+  density             = 1.390*geant::g/geant::cm3;
+  ncomponents         = 1;
+  massfraction        = 1.;
+  geantphysics::Material *lArEm3 = new geantphysics::Material("liquidArgon", density, ncomponents);
+  lArEm3->AddMaterial(matlAr, massfraction);
+}
+
+
+void CaloDetectorConstruction::CreateGeometry() {
+  // first set the materials that have been defined by their name
   fWorldMaterial = geantphysics::Material::NISTMaterial(fWorldMaterialName);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CaloDetectorConstruction::CreateGeometry()
-{
-
-  using geant::mm;
-  using geant::cm;
-
-  // create default detector parameters if the user hasn't defined them
-  if (!fUserLayerNum) fNumLayers       = 10;
-  if (!fUserAbsorberNum) fNumAbsorbers = 2;
-  // Abs1 = liquidArgon by default
-  if (!fUserThickness[0]) fAbsThickness[0]   = 5 * mm;
-  if (!fUserMaterial[0]) fAbsMaterialName[0] = "NIST_MAT_lAr";
-  // Abs2 = Lead by default
-  if (!fUserThickness[1]) fAbsThickness[1]   = 10 * mm;
-  if (!fUserMaterial[1]) fAbsMaterialName[1] = "NIST_MAT_Pb";
-  if (fNumAbsorbers > 2) {
-    for (int i = 2; i < fNumAbsorbers; i++) {
-      if (fUserThickness[i] && fUserMaterial[i]) {
-      } // good, the thickness and material are defined for this non-default absorber
-      else {
-        std::cerr << "ERROR: Invalid absorber parameters. Try using SetAbsorberThickness and SetAbsorberMaterialName "
-                     "for absorbers 3+\n";
-      }
-    }
+  for (int i=0; i<fNumberOfAbsorbers; ++i) {
+    SetAbsorberMaterial(i,fAbsorberMaterialNames[i]);
   }
-
-  std::cout << "There are " << fNumLayers << " layers\n";
-  std::cout << "There are " << fNumAbsorbers << " absorbers\n";
-  for (int p = 0; p < fNumAbsorbers; p++)
-    std::cout << "Absorber number " << p << " has material " << fAbsMaterialName[p] << " and thickness "
-              << fAbsThickness[p] << "cm" << std::endl;
-
-  if (!fUserCaloYZ) fCaloSizeYZ = 10 * cm;
-  std::cout << "The calo YZ cross-section has side length " << fCaloSizeYZ << " cm\n";
-  fLayerThickness = 0;
-  for (int i = 0; i < fNumAbsorbers; i++) {
-    fLayerThickness += fAbsThickness[i];
+  // create one region (with the production cut in length)
+  // all logical volume will be assigned to this region (i.e. enough to set for the world)
+  vecgeom::Region *aRegion = new vecgeom::Region("Region", true, fProductionCut, fProductionCut, fProductionCut);
+  //
+  // create geometry
+  vecgeom::UnplacedBox *world  = new vecgeom::UnplacedBox(0.5*fWorldSizeX,0.5*fWorldSizeYZ,0.5*fWorldSizeYZ);
+  // create the corresponding logical volume
+  vecgeom::LogicalVolume *logicWorld  = new vecgeom::LogicalVolume("world",world);
+  // set material pointer
+  logicWorld->SetMaterialPtr(fWorldMaterial);
+  //
+  // create layer
+  vecgeom::UnplacedBox *layer = new vecgeom::UnplacedBox("layer",0.5*fLayerThickness,0.5*fCaloSizeYZ,0.5*fCaloSizeYZ);
+  // create the corresponding logical volume
+  vecgeom::LogicalVolume *logicLayer  = new vecgeom::LogicalVolume("layer",layer);
+  // set material pointer
+  logicLayer->SetMaterialPtr(fWorldMaterial);
+  //
+  // create all absorbers and place them into the layer
+  char name[512];
+  double xcenter = 0.;
+  double xstart  = -0.5*fLayerThickness;
+  for (int i=0; i<fNumberOfAbsorbers; ++i) {
+    // create absorber i
+    sprintf(name,"abs_%d",i);
+    double sizeX  = 0.5*fAbsorberThicknesses[i];
+    double sizeYZ = 0.5*fCaloSizeYZ;
+    vecgeom::UnplacedBox *absor = new vecgeom::UnplacedBox(name,sizeX,sizeYZ,sizeYZ);
+    // create the corresponding logical volume
+    vecgeom::LogicalVolume *logicAbsor =  new vecgeom::LogicalVolume(name,absor);
+    // set material
+    logicAbsor->SetMaterialPtr(fAbsorberMaterials[i]);
+    // get the logical volume ID
+    fAbsorberLogicVolIDs[i] = logicAbsor->id();
+    // compute placement and place the absorber into the layer
+    xcenter = xstart+sizeX;
+    xstart += fAbsorberThicknesses[i];
+    vecgeom::Transformation3D *place = new vecgeom::Transformation3D(xcenter, 0, 0, 0, 0, 0);
+    logicLayer->PlaceDaughter(name, logicAbsor, place);
   }
-  fWorldSizeX  = 1.2 * fLayerThickness * fNumLayers;
-  fWorldSizeYZ = 1.2 * fCaloSizeYZ;
-  SetDetectorMaterials();
-
-  // define regions
-  // for now both regions have the same cuts; can change this if a user wants, but it's not very relevant for this
-  // example
-  vecgeom::Region *worldRegion =
-      new vecgeom::Region("WorldRegion", fProdCutByLength, fGammaCut, fElectronCut, fPositronCut);
-  vecgeom::Region *calRegion = new vecgeom::Region("CalRegion", fProdCutByLength, fGammaCut, fElectronCut, fPositronCut);
-  fDetectorRegionIndex       = calRegion->GetIndex();
-
-  // define world
-  vecgeom::UnplacedBox *worldUnplaced = new vecgeom::UnplacedBox(fWorldSizeX / 2, fWorldSizeYZ / 2, fWorldSizeYZ / 2);
-  vecgeom::LogicalVolume *world       = new vecgeom::LogicalVolume("world", worldUnplaced);
-  world->SetRegion(worldRegion);
-  world->SetMaterialPtr(fWorldMaterial);
-
-  // define unplaced solids and unfilled logical volumes for absorbers
-  vecgeom::UnplacedBox *fAbsBoxes[fNumAbsorbers + 1];
-  for (int i = 0; i < fNumAbsorbers; i++) {
-    fAbsBoxes[i] = new vecgeom::UnplacedBox("Absorber", fAbsThickness[i] / 2, fCaloSizeYZ / 2, fCaloSizeYZ / 2);
+  //
+  // create calorimeter and place fNumberOfLayers into the calorimeter
+  vecgeom::UnplacedBox *calo = new vecgeom::UnplacedBox("calo",0.5*fCaloSizeX,0.5*fCaloSizeYZ,0.5*fCaloSizeYZ);
+  // create the corresponding logical volume
+  vecgeom::LogicalVolume *logicCalo  = new vecgeom::LogicalVolume("calo",calo);
+  // set material pointer
+  logicCalo->SetMaterialPtr(fWorldMaterial);
+  xcenter = 0.;
+  xstart  = -0.5*fCaloSizeX;
+  for (int i=0; i<fNumberOfLayers; ++i) {
+    sprintf(name,"layer_%d",i);
+    xcenter = xstart+0.5*fLayerThickness;
+    xstart += fLayerThickness;
+    vecgeom::Transformation3D *place = new vecgeom::Transformation3D(xcenter, 0, 0, 0, 0, 0);
+    logicCalo->PlaceDaughter(name, logicLayer, place);
   }
-  vecgeom::LogicalVolume *fAbsLogic[fNumAbsorbers + 1];
-
-  // define layers
-  vecgeom::UnplacedBox *fLayerBox =
-      new vecgeom::UnplacedBox("Layer", fLayerThickness / 2, fCaloSizeYZ / 2, fCaloSizeYZ / 2);
-  vecgeom::LogicalVolume *fLayerLogic = new vecgeom::LogicalVolume("Layer", fLayerBox);
-  fLayerLogic->SetRegion(calRegion);
-  fLayerLogic->SetMaterialPtr(fWorldMaterial);
-
-  // initialize variables for placement of absorbers
-  char *volName  = new char[20];
-  double xfront  = -fLayerThickness / 2;
-  double xcenter = 0;
-
-  // create and place absorbers
-  for (int k = 0; k < fNumAbsorbers; k++) {
-    sprintf(volName, "abs%d", k);
-    fAbsLogic[k] = new vecgeom::LogicalVolume(volName, fAbsBoxes[k]);
-    fAbsLogic[k]->SetMaterialPtr(fAbsMaterial[k]);
-    fAbsLogic[k]->SetRegion(calRegion);
-    fAbsLogicVolumeID[k] = fAbsLogic[k]->id();
-    std::cout << "logic volume id for " << k << " is " << fAbsLogicVolumeID[k] << std::endl;
-    xcenter = xfront + 0.5 * fAbsThickness[k];
-    xfront += fAbsThickness[k];
-    vecgeom::Transformation3D *calPlace = new vecgeom::Transformation3D(xcenter, 0, 0, 0, 0, 0);
-    fLayerLogic->PlaceDaughter(volName, fAbsLogic[k], calPlace);
-  }
-
-  double xfront_l  = -0.5 * fNumLayers * fLayerThickness;
-  double xcenter_l = 0;
-
-  for (int j = 0; j <= fNumLayers; j++) {
-    sprintf(volName, "Layer%d", j);
-    xcenter_l = xfront_l + fLayerThickness / 2;
-    xfront_l += fLayerThickness;
-    vecgeom::Transformation3D *layerPlace = new vecgeom::Transformation3D(xcenter_l, 0, 0, 0, 0, 0);
-    world->PlaceDaughter(volName, fLayerLogic, layerPlace);
-  }
-
-  delete[] volName;
-
-  // place world volume, close geometry
-  vecgeom::VPlacedVolume *w = world->Place();
+  // place the calorimeter into the world
+  vecgeom::Transformation3D *place = new vecgeom::Transformation3D(0, 0, 0, 0, 0, 0);
+  logicWorld->PlaceDaughter("calorimeter", logicCalo, place);
+  //
+  // set the world logical volume, assigned it to the created region and close the geometry
+  vecgeom::VPlacedVolume *w = logicWorld->Place();
   vecgeom::GeoManager::Instance().SetWorld(w);
+  // set region for the world logical volume (will be set for all daughter volumes)
+  logicWorld->SetRegion(aRegion);
   vecgeom::GeoManager::Instance().CloseGeometry();
 }
-}
+
+
+}    // namespace userapplication

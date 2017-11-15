@@ -1,6 +1,4 @@
 #
-# Macro file for "TestEm3.cc"
-#
 # Geant4 macro for SimplyCalo simplified calorimeter modeling
 #
 /control/verbose 2
@@ -8,13 +6,12 @@
 /run/verbose 1
 /tracking/verbose 0
 #
-# The default geometry(ATLASbar) is used: 50 Layers of 2.3 mm Lead and 5.7 mm LiquidArgon
-#
-#/testem/det/setSizeYZ 10 cm
-#/testem/det/setNbOfLayers 10
-#/testem/det/setNbOfAbsor 2
-#/testem/det/setAbsor 1 Lead 1 cm
-#/testem/det/setAbsor 2 Scintillator 0.5 cm
+# Set up the ATLASbar simplf. calorimeter: 50 Layers of 2.3 mm Lead and 5.7 mm liquid-Argon
+/testem/det/setSizeYZ 40 cm
+/testem/det/setNbOfLayers 50
+/testem/det/setNbOfAbsor 2
+/testem/det/setAbsor 1 G4_Pb 2.3 mm
+/testem/det/setAbsor 2 G4_lAr 5.7 mm
 #
 # Set the physics list: GVStandard is our default
 #
@@ -25,20 +22,20 @@
 #
 /run/initialize
 #
-# Set the particle gun: 100 GeV e-
+# Set the particle gun: 100 MeV e-
 #
 /gun/particle e-
-/gun/energy 10 GeV
+/gun/energy 100 MeV
 #
-# Set production cuts: 1.0 mm
+# Set production cuts: 0.7 mm
 #
-/run/setCut 1.0 mm
+/run/setCut 0.7 mm
 #
-# Reinit run and execute the simulation: with 100000 events
+# Reinit run and execute the simulation: with 10000 primaries
 #
 /run/initialize
 /tracking/verbose 0
-/run/beamOn 50
+/run/beamOn 10000
 #
 # Print process list
 #

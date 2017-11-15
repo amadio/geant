@@ -41,9 +41,7 @@ target_link_libraries(SimplyCalo ${Geant4_LIBRARIES})
 # Copy all scripts to the build/install directory.
 #
 set(SimplyCalo_SCRIPTS
-    SimplyCalo_ExN03.mac
     SimplyCalo_ATLASbar.mac
-    README
    )
 
  foreach(_script ${SimplyCalo_SCRIPTS})

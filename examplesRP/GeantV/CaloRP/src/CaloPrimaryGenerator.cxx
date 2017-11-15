@@ -18,7 +18,7 @@ CaloPrimaryGenerator::CaloPrimaryGenerator(CaloDetectorConstruction *det) : fDet
   fPDG                 = 0;
   fGVPartIndex         = 0;
   //
-  fPrimaryEkin         = 15.7*geant::MeV;
+  fPrimaryEkin         = 0.1*geant::GeV;
   //
   fXPos                = 0.;
   fYPos                = 0.;
@@ -51,7 +51,7 @@ void CaloPrimaryGenerator::InitPrimaryGenerator() {
   fETotal              = fPrimaryEkin + fMass;
   fPTotal              = std::sqrt((fETotal - fMass) * (fETotal + fMass));
   //
-  fXPos                = -0.25*(fDetector->GetWorldX()+fDetector->GetDetectorX());
+  fXPos                = -0.25*(fDetector->GetWorldSizeX()+fDetector->GetCaloSizeX());
   fYPos                = 0.;
   fZPos                = 0.;
   //

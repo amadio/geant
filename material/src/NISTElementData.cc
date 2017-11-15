@@ -30,10 +30,11 @@ double NISTElementData::GetAtomicMass(int z, int n) {
    if (z>0 && z<=gNumberOfNISTElements) {
      int numisos = fNISTElementDataTable[z-1].fNumOfIsotopes;
      int indxN   = n - fNISTElementDataTable[z-1].fNIsos[0];
-     if (indxN>=0 && indxN<numisos)
+     if (indxN>=0 && indxN<numisos) {
        theMass = fNISTElementDataTable[z-1].fMassIsos[indxN] + z*kElectronMassC2
                  - fBindingEnergies[z-1];
-       theMass *= unitconv; // convert energy to [weight/mole]
+     }
+     theMass *= unitconv; // convert energy to [weight/mole]
    }
    if (theMass<0.0) {
      std::cerr << " *** ERROR NISTElementData::GetAtomicMass \n "
