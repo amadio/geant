@@ -27,6 +27,7 @@ void GetArguments(int argc, char *argv[]);
 void SetupCaloPhysicsList     (userapplication::CaloPhysicsList*            physlist);
 void SetupUserDetector        (userapplication::CaloDetectorConstruction*   detector);
 void SetupUserPrimaryGenerator(userapplication::CaloPrimaryGenerator*     primarygun);
+void SetupUserApplication     (userapplication::CaloApp*                     caloapp);
 void PrintRunInfo();
 void PreSet(int num);
 Geant::GeantRunManager* RunManager();
@@ -59,6 +60,7 @@ int main(int argc, char *argv[]) {
 
   // Create the real physics Calo application
   userapplication::CaloApp *caloApplication = new userapplication::CaloApp(runMgr,calo,caloGun);
+  SetupUserApplication(caloApplication);
   runMgr->SetUserApplication(caloApplication);
 
   // Print basic parameters for the simulation
@@ -95,6 +97,7 @@ int         parConfigNumRunEvt        = 10;    // total number of events to be t
 int         parConfigNumPrimaryPerEvt = 100;   // number of primary particles per event
 int         parConfigNumThreads       = 4;     // number of working threads
 int         parConfigNumPropagators   = 1;     // number of propagators per working threads
+bool        parConfigIsPerformance    = false; // run without any user actions
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit    = "";    // i.e. default application value
@@ -121,6 +124,7 @@ static struct option options[] = {
          {"config-number-of-primary-per-events" , required_argument, 0,  'o'},
          {"config-number-of-threads"            , required_argument, 0,  'p'},
          {"config-number-of-propagators"        , required_argument, 0,  'q'},
+         {"config-run-performance"              , no_argument      , 0,  'r'},
 
 				 {"particle-process-MSC-step-limit"    , required_argument, 0, 'A'},
 
@@ -155,6 +159,7 @@ void PrintRunInfo() {
            << "  #events              : " << parConfigNumRunEvt                           << "       \n"
            << "  #primaries per event : " << parConfigNumPrimaryPerEvt                    << "       \n"
            << "  total # primaries    : " << parConfigNumRunEvt*parConfigNumPrimaryPerEvt << "       \n"
+           << "  performance mode?    : " << parConfigIsPerformance                       << "       \n"
            << " ===================================================================================\n\n";
 }
 
@@ -235,6 +240,9 @@ void GetArguments(int argc, char *argv[]) {
        case 'q':
          parConfigNumPropagators   = (double)strtod(optarg, NULL);
          break;
+       case 'r':
+         parConfigIsPerformance    = true;
+         break;
        //---- Physics
        case 'A':
          parProcessMSCStepLimit = optarg;
@@ -273,7 +281,7 @@ Geant::GeantRunManager* RunManager() {
   runConfig->fNminReuse     = 100000;
   //
   // Activate standard scoring
-  runConfig->fUseStdScoring = true;
+  runConfig->fUseStdScoring = !parConfigIsPerformance;
 
   return runManager;
 }
@@ -323,5 +331,11 @@ void SetupCaloPhysicsList(userapplication::CaloPhysicsList *userPhysList){
                << std::endl;
       exit(-1);
     }
+  }
+}
+
+void SetupUserApplication(userapplication::CaloApp *caloapp) {
+  if (parConfigIsPerformance) {
+    caloapp->SetPerformanceMode(true);
   }
 }

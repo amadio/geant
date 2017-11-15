@@ -26,3 +26,4 @@
   --config-number-of-propagators            1         "# number of propagators"\
 "### physics process configuration parameters:"\
   --particle-process-MSC-step-limit     UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
+"##  --config-run-performance"\                       "# flag to activate performance mode i.e. no scoring"\

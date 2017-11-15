@@ -32,6 +32,7 @@ namespace userapplication {
 
 CaloApp::CaloApp(Geant::GeantRunManager *runmgr, CaloDetectorConstruction *det, CaloPrimaryGenerator *gun)
   : Geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
+  fIsPerformance         = false;
   fInitialized           = false;
   // all these will be set properly at initialization
   fNumPrimaryPerEvent    =   -1;
@@ -51,6 +52,8 @@ CaloApp::~CaloApp() {
 
 
 void CaloApp::AttachUserData(Geant::GeantTaskData *td) {
+  if (fIsPerformance)
+   return;
   // Create application specific thread local data structure to collecet/handle thread local multiple per-event data
   // structure. Provide number of event-slots and number of primaries per event
   CaloAppThreadDataEvents *eventData = new CaloAppThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent, fNumAbsorbers);
@@ -58,6 +61,8 @@ void CaloApp::AttachUserData(Geant::GeantTaskData *td) {
 }
 
 bool CaloApp::Initialize() {
+  if (fIsPerformance)
+    return true;
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return true;
@@ -98,6 +103,8 @@ bool CaloApp::Initialize() {
 
 
 void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td) {
+  if (fIsPerformance)
+   return;
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
   Node_t const *current;
   int idvol = -1;
@@ -158,6 +165,8 @@ void CaloApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
 
 
 void CaloApp::FinishEvent(Geant::GeantEvent *event) {
+  if (fIsPerformance)
+   return;
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
   // belongs to the event (that occupied a given event-slot) that has been just transported
   CaloAppThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);
@@ -175,6 +184,8 @@ void CaloApp::FinishEvent(Geant::GeantEvent *event) {
 }
 
 void CaloApp::FinishRun() {
+  if (fIsPerformance)
+   return;
   double norm = (double)fRunMgr->GetNprimaries();
   norm        = 1./norm;
   //

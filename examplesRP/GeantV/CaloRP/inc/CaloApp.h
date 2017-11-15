@@ -81,6 +81,8 @@ public:
   virtual void FinishRun();
 
 
+  void         SetPerformanceMode(bool val) { fIsPerformance = val; }
+
 private:
   /** @brief Copy constructor CaloApp (deleted) */
   CaloApp(const CaloApp &) = delete;
@@ -89,6 +91,7 @@ private:
 
 
 private:
+  bool             fIsPerformance;
   bool             fInitialized;
   int	             fNumAbsorbers;
   std::vector<int> fAbsorberLogicalVolumeID;
