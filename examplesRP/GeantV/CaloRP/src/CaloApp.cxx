@@ -197,16 +197,16 @@ void CaloApp::FinishRun() {
 
   double meanChTrackL[fNumAbsorbers];
   double meanChTrackL2[fNumAbsorbers];
-  double meanNeTrackL[fNumAbsorbers];
-  double meanNeTrackL2[fNumAbsorbers];
+//  double meanNeTrackL[fNumAbsorbers];
+//  double meanNeTrackL2[fNumAbsorbers];
   double meanEdep[fNumAbsorbers];
   double meanEdep2[fNumAbsorbers];
 
   for (int k=0; k<fNumAbsorbers; k++){
 	  meanChTrackL[k]  = fData->GetChargedTrackL(k)*norm;
 	  meanChTrackL2[k] = fData->GetChargedTrackL2(k)*norm;
-	  meanNeTrackL[k]  = fData->GetNeutralTrackL(k)*norm;
-	  meanNeTrackL2[k] = fData->GetNeutralTrackL2(k)*norm;
+//	  meanNeTrackL[k]  = fData->GetNeutralTrackL(k)*norm;
+//	  meanNeTrackL2[k] = fData->GetNeutralTrackL2(k)*norm;
 	  meanEdep[k]      = fData->GetEdepInAbsorber(k)*norm;
 	  meanEdep2[k]     = fData->GetEdepInAbsorber2(k)*norm;
   }
