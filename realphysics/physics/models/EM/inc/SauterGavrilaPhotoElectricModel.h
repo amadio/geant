@@ -69,7 +69,7 @@ namespace geantphysics {
          * @param[in] aliasActive   Boolean true if we want to use Alias Sampling to sample the secondary particle direction. By default is set to false and 
          *                          model uses composition-rejection sampling
          */
-        SauterGavrilaPhotoElectricModel(const std::string &modelname = "SauterGavrilaPhotoElectric", bool aliasActive = true);
+        SauterGavrilaPhotoElectricModel(const std::string &modelname = "SauterGavrilaPhotoElectric", bool aliasActive = false);
         
         /** @brief Destructor. */
         ~SauterGavrilaPhotoElectricModel();
