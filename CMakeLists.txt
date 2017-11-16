@@ -10,7 +10,7 @@ set(Boost_NO_BOOST_CMAKE ON)
 find_package(Boost)
 include_directories(${Boost_INCLUDE_DIR})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DUSE_VECGEOM_NAVIGATOR -I/Users/lima/work/geantv/include")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DUSE_VECGEOM_NAVIGATOR -I${GeantV_INCLUDE_DIR}/include")
 
 add_subdirectory(BusyWaitCalibration)
 add_subdirectory(SingleThreadedProcessingDemo)
