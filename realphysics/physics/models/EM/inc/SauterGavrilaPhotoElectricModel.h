@@ -147,6 +147,12 @@ namespace geantphysics {
          */
         //@{
         
+        /** @todo Still not implemented */
+        SauterGavrilaPhotoElectricModel(const SauterGavrilaPhotoElectricModel &);
+        
+        /** @todo Still not implemented operator = */
+        SauterGavrilaPhotoElectricModel &operator=(const SauterGavrilaPhotoElectricModel &);
+        
         //---------------------------------------------
         //InitializeModel
         /**
