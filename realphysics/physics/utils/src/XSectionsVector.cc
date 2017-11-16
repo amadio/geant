@@ -35,7 +35,7 @@ namespace geantphysics {
     }
     
     //Binary search algorithm to find the binIndex corresponding to 'energy'and retreiving the corresponding linear interpolated value.
-    double XSectionsVector::GetValueAt(double energy){
+    double XSectionsVector::GetValueAt(double energy) const {
         
         size_t idx;
         int    first,last,middle;
@@ -69,7 +69,7 @@ namespace geantphysics {
     
     //_____________________________
     //Given an energy, first retrieve the binIndex corresponding to that energy and then calculate the interpolated value (Linear Interpolation) corresponding to the data stored at that bin index
-    double XSectionsVector::GetValue(double energy, size_t& shellIdx){
+    double XSectionsVector::GetValue(double energy, size_t& shellIdx) const{
         
         if(energy <= fEdgeMin)
         { shellIdx = 0;
@@ -89,7 +89,7 @@ namespace geantphysics {
     
     // Linear interpolation is used to get the interpolated value for lowEnergy cross sections (below K-shell binding energy).
     //Before this method is called it is ensured that the energy is inside the bin
-    double XSectionsVector::LinearInterpolation(double energy, size_t idx)
+    double XSectionsVector::LinearInterpolation(double energy, size_t idx) const
     {
         return fDataVector[idx] +( fDataVector[idx + 1]-fDataVector[idx] ) * (energy - fBinVector[idx]) /( fBinVector[idx + 1]-fBinVector[idx] );
     
