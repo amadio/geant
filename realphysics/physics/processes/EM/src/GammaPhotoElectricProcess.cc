@@ -2,8 +2,8 @@
 
 namespace geantphysics {
 
-GammaPhotoElectricProcess::GammaPhotoElectricProcess(const std::string &name)
-: EMPhysicsProcess(name) {
+GammaPhotoElectricProcess::GammaPhotoElectricProcess(const std::string &name) : EMPhysicsProcess(name)
+{
   // set process type to be an electromagnetic process
   SetType(ProcessType::kElectromagnetic);
   // set to be a discrete process
