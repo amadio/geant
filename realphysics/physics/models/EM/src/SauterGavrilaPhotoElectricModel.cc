@@ -151,7 +151,7 @@ namespace geantphysics {
             // if this MaterialCuts belongs to a region where this model is active:
             if (isActiveInRegion[matCut->GetRegionIndex()]) {
                 // get the list of elements
-                const Vector_t<Element*> theElements =  matCut->GetMaterial()->GetElementVector();
+                const Vector_t<Element*> &theElements =  matCut->GetMaterial()->GetElementVector();
                 int numElems = theElements.size();
                 for (int j=0; j<numElems; ++j) {
                     double zet = theElements[j]->GetZ();
@@ -709,7 +709,7 @@ namespace geantphysics {
         size_t index=0;
         double sum=0;
         //retrieve the elements vector
-        const Vector_t<Element*> theElements = matcut->GetMaterial()->GetElementVector();
+        const Vector_t<Element*> &theElements = matcut->GetMaterial()->GetElementVector();
         //retrieve the number of elements in the material
         int num    = matcut->GetMaterial()->GetNumberOfElements();
         double xsec[num];
@@ -760,7 +760,7 @@ namespace geantphysics {
         
         //interaction is possible so sample target element
         MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[track.GetMaterialCutCoupleIndex()];
-        const Vector_t<Element*> theElements = matCut->GetMaterial()->GetElementVector();
+        const Vector_t<Element*> &theElements = matCut->GetMaterial()->GetElementVector();
         
         size_t targetElemIndx = 0;
         if (theElements.size()>1) {
@@ -781,6 +781,7 @@ namespace geantphysics {
         //SAMPLING OF THE SHELL
         size_t shellIdx = 0;
         size_t nn = fNShellsUsed[Z];
+    
         if(nn > 1)
         {
             // sample gamma energy
@@ -791,7 +792,6 @@ namespace geantphysics {
             // (*) High energy parameterisation
             if(gammaekin0 >= (*(fParamHigh[Z]))[0])
             {
-                
                 double x1 = (MeV)/gammaekin0;
                 double x2 = x1*x1;
                 double x3 = x2*x1;
@@ -823,7 +823,7 @@ namespace geantphysics {
                     }
                 }
                 if(shellIdx >= nn) { shellIdx = nn-1; }
-                
+        
             }
             // (**) Low energy parameterisation
             else if(gammaekin0 >= (*(fParamLow[Z]))[0])
