@@ -660,49 +660,47 @@ namespace geantphysics {
         
         const Material *mat =  matCut->GetMaterial();
         const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
- 
+        
         const Vector_t<Element*> &theElements = mat->GetElementVector();
         size_t num    = matCut->GetMaterial()->GetNumberOfElements();
         if (num>mxsec.size()) {mxsec.resize(num,0.);}
         double cum =0.;
         for (size_t i=0; i<num; ++i) {
-          double xx=theAtomicNumDensityVector[i]* ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);
-          cum += xx;
-          mxsec[i] = xx;
+            double xx=theAtomicNumDensityVector[i]* ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);
+            cum += xx;
+            mxsec[i] = xx;
         }
         double rnd=cum * td->fRndm->uniform();
         double cumxsec=mxsec[0];
-        for(; index<num-1 && rnd<cumxsec; ++index) {cumxsec += mxsec[index];}
+        for(; index<num-1 && rnd>cumxsec; ++index) {cumxsec += mxsec[index+1];}
+        //std::cout<<num<< " "<< index  << " " << rnd << " " << cum << std::endl;
         return index;
-        
-        
-        
-/*
-        int index=0;
-        //retrieve the elements vector
-        const Vector_t<Element*> &theElements = matCut->GetMaterial()->GetElementVector();
-        //retrieve the number of elements in the material
-        int num    = matCut->GetMaterial()->GetNumberOfElements();
-        if (num > 1)
-        {
-            double macxsec=ComputeMacroscopicXSection(matCut,gammaekin0, Gamma::Definition());
-            double rnd=macxsec * td->fRndm->uniform();
-            
-            const Material *mat =  matCut->GetMaterial();
-            const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-            double cumxsec=0.;
-            for(; index<num-1; ++index)
-            {
-                double xsec = theAtomicNumDensityVector[index]* ComputeXSectionPerAtom(theElements[index]->GetZ(), gammaekin0);
-                cumxsec += xsec;
-                if (rnd <= cumxsec)
-                {
-                    break;
-                }
-            }
-        }
-        return index;
-  */
+
+//        int index=0;
+//        //retrieve the elements vector
+//        const Vector_t<Element*> &theElements = matCut->GetMaterial()->GetElementVector();
+//        //retrieve the number of elements in the material
+//        int num    = matCut->GetMaterial()->GetNumberOfElements();
+//        if (num > 1)
+//        {
+//            double macxsec=ComputeMacroscopicXSection(matCut,gammaekin0, Gamma::Definition());
+//            double rnd=macxsec * td->fRndm->uniform();
+//            
+//            const Material *mat =  matCut->GetMaterial();
+//            const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+//            double cumxsec=0.;
+//            for(; index<num-1; ++index)
+//            {
+//                double xsec = theAtomicNumDensityVector[index]* ComputeXSectionPerAtom(theElements[index]->GetZ(), gammaekin0);
+//                cumxsec += xsec;
+//                if (rnd <= cumxsec)
+//                {
+//                    break;
+//                }
+//            }
+//        }
+//        return index;
+  
   }
     
     void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const{
