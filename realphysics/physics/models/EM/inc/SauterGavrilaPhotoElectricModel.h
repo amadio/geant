@@ -168,7 +168,7 @@ namespace geantphysics {
          * @return              Index of the element sampled from the material composition to be the one involved in photoelectric effect.
          */
         
-        size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
+        size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const;
         
         //---------------------------------------------
         //TestSampleTargetElementIndex
@@ -183,7 +183,7 @@ namespace geantphysics {
          * @param[in] td        GeantTaskData needed to generate random numbers.
          * @return              Output file SampleTargetElementIndexTest_Z that contains the expected pdf and the sampled one.
          */
-        void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td);
+        void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const;
         
         //---------------------------------------------
         //CalculateDiffCrossSection
@@ -196,7 +196,7 @@ namespace geantphysics {
          * @param[in] costheta  cosTheta of the secondary particle (photoelectron).
          * @return    dsigma    differential cross section based on SauterGavrila distribution (K-shell only).
          */
-        double CalculateDiffCrossSection(double energy, double costheta);
+        double CalculateDiffCrossSection(double energy, double costheta) const;
         
         
         //---------------------------------------------
@@ -209,7 +209,7 @@ namespace geantphysics {
          * @param[in] costheta  cosTheta of the secondary particle (photoelectron).
          * @return              differential cross section based on SauterGavrila distribution for k-shell.
          */
-        double CalculateDiffCrossSectionLog(double energy, double costheta);
+        double CalculateDiffCrossSectionLog(double energy, double costheta) const;
         
         
         //---------------------------------------------
@@ -238,7 +238,7 @@ namespace geantphysics {
          * @param[in] energy    primary particle (gamma) kinetic energy.
          * @return              photoelectric effect cross-section per atom.
          */
-        double ComputeXSectionPerAtom(double zeta, double energy);
+        double ComputeXSectionPerAtom(double zeta, double energy) const;
         
         
         //---------------------------------------------
@@ -256,7 +256,7 @@ namespace geantphysics {
         double SamplePhotoElectronDirection_Alias(double energy,
                                                   double r1,
                                                   double r2,
-                                                  double r3);
+                                                  double r3) const;
         
         
         //---------------------------------------------
@@ -293,7 +293,7 @@ namespace geantphysics {
          */
         void SamplePhotoElectronDirection_Rejection(double energy,
                                                     double &costheta,
-                                                    Geant::GeantTaskData *td);
+                                                    Geant::GeantTaskData *td) const;
         
         
         //---------------------------------------------
@@ -382,9 +382,9 @@ namespace geantphysics {
         // data members
     private:
         /** @brief Maximum number of Z elements. */
-        static const int        gMaxSizeData                = 100;          //Maximum number of Z elements
+        static constexpr int        gMaxSizeData                = 100;          //Maximum number of Z elements
         /** @brief Maximum number of shells per element. */
-        static const int        gNShellLimit                = 100;          //Maximum number of shells per element
+        static constexpr int        gNShellLimit                = 100;          //Maximum number of shells per element
         /** @brief Maximum error introduced by the use of Alias sampling at each decade energy*/
         static constexpr double gsingleTableErrorThreshold   = 2.e-3;       //2 per mille error threshold
         //static const int        gpointsForIntegral           = 200;       //not used for the moment
@@ -447,13 +447,11 @@ namespace geantphysics {
          */
         int     fNumSamplingPrimEnergies;
         
-        
-        /** @brief Number of primary gamma kinetic energy grid points per decade. */
-        int     fNumSamplingPrimEnergiesPerDecade;
-        
+        /** @brief Number of primary gamma kinetic energy grid points per decade. 75 table per energy decade assures accuracy within 5% (alias sampling) */
+        int     fNumSamplingPrimEnergiesPerDecade = 75;
         
         //---------------------------------------------
-        /** @brief Number of emitted photoelectron cosTheta considered in the range[-1, 1] or number of transformed emitted photoelectron angle related variable in [log(e-12),log(2)].*/
+        /** @brief Number of emitted photoelectron cosTheta considered in the range[-1, 1] or number of transformed emitted photoelectron angle related variable in [log(e-12),log(2)]. This is dinamically set at initialization time. */
         int     fNumSamplingAngles;
         
         //---------------------------------------------

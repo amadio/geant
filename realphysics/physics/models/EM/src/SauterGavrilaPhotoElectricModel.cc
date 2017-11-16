@@ -32,6 +32,7 @@
 
 using namespace std;
 namespace geantphysics {
+    
     std::vector<double>*  SauterGavrilaPhotoElectricModel::fParamHigh[] = {nullptr};
     std::vector<double>*  SauterGavrilaPhotoElectricModel::fParamLow[] = {nullptr};
     
@@ -51,35 +52,29 @@ namespace geantphysics {
     : EMModel(modelname){
         
         SetUseSamplingTables(aliasActive);
-        fNumSamplingPrimEnergiesPerDecade = 75;    // Number of primary gamma kinetic energy grid points per decade. 75 table per energy decade assures accuracy within 5% (alias sampling)        fNumSamplingPrimEnergies = 60;
-        fNumSamplingAngles = 80;                   // At each energy grid points. This is dinamically set at initialization time.
         fMinPrimEnergy           =  1.e-12*geant::eV;  // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
         fMaxPrimEnergy           =  100*geant::MeV;    // Maximum of the gamma kinetic energy grid (after this threshold the e- is considered to follow the same direction as the incident gamma)
         
-        fPrimEnLMin                = 0.;       // will be set in InitSamplingTables if needed
-        fPrimEnILDelta             = 0.;       // will be set in InitSamplingTables if needed
-        fSamplingPrimEnergies    = nullptr;    // will be set in InitSamplingTables if needed
-        fLSamplingPrimEnergies   = nullptr;    // will be set in InitSamplingTables if needed
+        fPrimEnLMin              = 0.;       // will be set in InitSamplingTables if needed
+        fPrimEnILDelta           = 0.;       // will be set in InitSamplingTables if needed
+        fSamplingPrimEnergies    = nullptr;  // will be set in InitSamplingTables if needed
+        fLSamplingPrimEnergies   = nullptr;  // will be set in InitSamplingTables if needed
         
-        fAliasData                = nullptr;    // will be set in InitSamplingTables if needed
-        fAliasSampler             = nullptr;
+        fAliasData               = nullptr;  // will be set in InitSamplingTables if needed
+        fAliasSampler            = nullptr;
         
-        fCrossSection             = nullptr;
-        fCrossSectionLE           = nullptr;
+        fCrossSection            = nullptr;
+        fCrossSectionLE          = nullptr;
         
     }
     
     SauterGavrilaPhotoElectricModel::~SauterGavrilaPhotoElectricModel() {
         
-        //CLEANING fParamHigh
+        //CLEANING fParamHigh and fParamLow
         for(int i=0; i<gMaxSizeData; ++i) {
             delete fParamHigh[i];
-            fParamHigh[i] = 0;
-            
-        }
-        //CLEANING fParamLow
-        for(int i=0; i<gMaxSizeData; ++i) {
             delete fParamLow[i];
+            fParamHigh[i] = 0;
             fParamLow[i] = 0;
         }
         
@@ -120,20 +115,18 @@ namespace geantphysics {
             fCrossSection = nullptr;
         }
         
-        fCrossSection = new bool [gMaxSizeData];
-        for (int i=0; i<gMaxSizeData; ++i) {
-            fCrossSection[i] = false;
-        }
-        
         //ALLOCATION fCrossSectionLE
         if (fCrossSectionLE) {
             delete [] fCrossSectionLE;
             fCrossSectionLE = nullptr;
             
         }
-        
+
+        fCrossSection   = new bool [gMaxSizeData];
         fCrossSectionLE = new bool [gMaxSizeData];
+        
         for (int i=0; i<gMaxSizeData; ++i) {
+            fCrossSection[i]   = false;
             fCrossSectionLE[i] = false;
         }
         
@@ -161,7 +154,6 @@ namespace geantphysics {
                 const Vector_t<Element*> theElements =  matCut->GetMaterial()->GetElementVector();
                 int numElems = theElements.size();
                 for (int j=0; j<numElems; ++j) {
-                    // if RatinAliasDataPerElement has not been built for this element yet => build
                     double zet = theElements[j]->GetZ();
                     int elementIndx = std::lrint(zet);
                     //std::cout<<"\n***Calling ReadData on: "<<elementIndx<<" ....\n";
@@ -476,7 +468,7 @@ namespace geantphysics {
     
     //____________________
     //NB: cosTheta is supposed to contain the dirZ of the incoming photon
-    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, Geant::GeantTaskData *td){
+    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, Geant::GeantTaskData *td) const{
         
         //1) initialize energy-dependent variables
         // Variable naming according to Eq. (2.24) of Penelope Manual
@@ -512,7 +504,7 @@ namespace geantphysics {
     
     
     //____________________
-    double SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Alias(double primekin, double r1, double r2, double r3){
+    double SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Alias(double primekin, double r1, double r2, double r3) const{
         
         // determine primary energy lower grid point
         if (primekin > 100*geant::MeV) {
@@ -555,7 +547,7 @@ namespace geantphysics {
     }
     
     
-    double SauterGavrilaPhotoElectricModel::ComputeXSectionPerAtom(double zeta, double energy)
+    double SauterGavrilaPhotoElectricModel::ComputeXSectionPerAtom(double zeta, double energy) const
     {
         
         int verboseLevel = 0;
@@ -661,7 +653,7 @@ namespace geantphysics {
     }
     
     
-    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, Geant::GeantTaskData *td)
+    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, Geant::GeantTaskData *td) const
     {
         size_t index =0;
         std::vector<double> mxsec(20,0.);
@@ -713,7 +705,7 @@ namespace geantphysics {
   */
   }
     
-    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td){
+    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const{
         
         std::cout<<"testSampleTargetElementIndex\n";
         size_t index=0;
@@ -1076,7 +1068,7 @@ namespace geantphysics {
     }
     
     //This method is calculating the differential cross section in the transformed variable xsi
-    double SauterGavrilaPhotoElectricModel::CalculateDiffCrossSectionLog(double tau, double xsi)
+    double SauterGavrilaPhotoElectricModel::CalculateDiffCrossSectionLog(double tau, double xsi) const
     {
         
         // Based on Geant4 : G4SauterGavrilaAngularDistribution
@@ -1107,7 +1099,7 @@ namespace geantphysics {
     }
     
     
-    double SauterGavrilaPhotoElectricModel::CalculateDiffCrossSection(double tau, double cosTheta)
+    double SauterGavrilaPhotoElectricModel::CalculateDiffCrossSection(double tau, double cosTheta)const
     {
         
         // Based on Geant4 : G4SauterGavrilaAngularDistribution
