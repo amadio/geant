@@ -37,7 +37,7 @@ static int n_learn_steps = 0;
 static int n_reuse = 100000;
 static int n_propagators = 1;
 static bool monitor = false, score = false, debug = false, coprocessor = false;
-static bool tbbmode = false, usev3 = true, usenuma = false;
+static bool tbbmode = true, usev3 = true, usenuma = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"fstate", required_argument, 0, 'f'},

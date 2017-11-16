@@ -14,6 +14,7 @@
 #define GEANT_EVENT_SET
 
 #include <atomic>
+#include <vector>
 
 #include "Geant/Config.h"
 #include "condition_locker.h"
