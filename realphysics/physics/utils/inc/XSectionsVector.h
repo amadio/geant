@@ -30,10 +30,10 @@ namespace geantphysics {
         std::vector<double>   fBinVector;       //Cross sections bin vector (i.e. x coordinate)
         std::vector<double>   fDataVector;      //Cross sections data vector (i.e. y coordinate)
         
-        size_t numberOfNodes;                   // Number of elements
-        double edgeMin;                         // Energy of first point
-        double edgeMax;                         // Energy of last point
-        Spline     *sp;                         // Spline interpolator
+        size_t fNumberOfNodes;                   // Number of elements
+        double fEdgeMin;                         // Energy of first point
+        double fEdgeMax;                         // Energy of last point
+        Spline *fSplineInt;                      // Spline interpolator
         int   fCompID;                           // id of the object
         
     };

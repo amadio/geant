@@ -21,15 +21,15 @@ namespace geantphysics {
         if(energy < fBinVector[1]) {
             id=0;
             //return std::min(bin, numberOfNodes-2);
-        } else if(energy >= fBinVector[numberOfNodes-2]) {
-            id = numberOfNodes - 2;
+        } else if(energy >= fBinVector[fNumberOfNodes-2]) {
+            id = fNumberOfNodes - 2;
         } //else
-        if(idx >= numberOfNodes || energy < fBinVector[idx]
+        if(idx >= fNumberOfNodes || energy < fBinVector[idx]
            || energy > fBinVector[idx+1])
         {
             // Bin location proposed by K.Genser (FNAL) from G4
             id = std::lower_bound(fBinVector.begin(), fBinVector.end(), energy) - fBinVector.begin() - 1;
-            id = std::min(id, numberOfNodes-2);
+            id = std::min(id, fNumberOfNodes-2);
         }
         return id;
     }
@@ -39,7 +39,7 @@ namespace geantphysics {
         
         size_t idx;
         int    first,last,middle;
-        int    upperm2 = numberOfNodes-2;
+        int    upperm2 = fNumberOfNodes-2;
         // check if 'energy' is above/below the highes/lowest value
         if (energy>=fBinVector[upperm2]) { //optimal
             idx = upperm2;
@@ -71,12 +71,12 @@ namespace geantphysics {
     //Given an energy, first retrieve the binIndex corresponding to that energy and then calculate the interpolated value (Linear Interpolation) corresponding to the data stored at that bin index
     double XSectionsVector::GetValue(double energy, size_t& shellIdx){
         
-        if(energy <= edgeMin)
+        if(energy <= fEdgeMin)
         { shellIdx = 0;
             //std::cout<<"GetValue:   "<<shellIdx<<"\t"<<fBinVector[shellIdx]<<"\t"<<fDataVector[shellIdx]<<std::endl;
             return fDataVector[0];}
-        if(energy >= edgeMax) {
-            shellIdx= numberOfNodes-2;
+        if(energy >= fEdgeMax) {
+            shellIdx= fNumberOfNodes-2;
             //std::cout<<"GetValue:   "<<shellIdx<<"\t"<<fBinVector[shellIdx]<<"\t"<<fDataVector[shellIdx]<<std::endl;
             return fDataVector[shellIdx];
         }
@@ -95,4 +95,4 @@ namespace geantphysics {
     
     }
 
-}
+}//end namespace geantphysics
