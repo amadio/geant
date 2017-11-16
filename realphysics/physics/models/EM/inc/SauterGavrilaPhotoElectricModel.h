@@ -398,22 +398,21 @@ namespace geantphysics {
         int  fVerboseLevel;                         //Verbose level to control the printout
         //bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
 
-        
         /** @brief Vector of pointers to XSectionsVector cross-sections. Several subshell XSectionsVector per Z. */
-        XSectionsVector** fShellVector[gMaxSizeData];     //Several subshell cross-section vector per Z
+        static XSectionsVector** fShellVector[gMaxSizeData];     //Several subshell cross-section vector per Z
         
         /** @brief Array of pointers to Low-energy XSectionsVector (one LE cross-section vector per Z).*/
-        XSectionsVector * fLECSVector[gMaxSizeData];  //one LE cross-section vector per Z
+        static XSectionsVector * fLECSVector[gMaxSizeData];  //one LE cross-section vector per Z
         
         /** @brief Array of pointers to High-energy XSectionsVector vector (one !LE cross-section vector per Z). */
-        XSectionsVector * fCSVector[gMaxSizeData];    //one !LE cross-section vector per Z
+        static XSectionsVector * fCSVector[gMaxSizeData];    //one !LE cross-section vector per Z
         
         //to do:  check the use of these members
         /** @brief Vector of booleans. fCrossSection[Z] is true if there are CrossSections data (for energies above k-shell binding energy) for element Z. */
-        bool* fCrossSection;                        //true if there are CrossSections data (for energies above k-shell binding energy)
+        static bool* fCrossSection;                        //true if there are CrossSections data (for energies above k-shell binding energy)
         
         /** @brief Vector of booleans. fCrossSectionLE[Z] is true if there are Low-Energy CrossSections data (for energies below k-shell binding energy) for element Z. */
-        bool* fCrossSectionLE;                      //true if there are Low-Energy CrossSections data (for energies below k-shell binding energy)
+        static bool* fCrossSectionLE;                      //true if there are Low-Energy CrossSections data (for energies below k-shell binding energy)
         
         /** @brief Total number of shells per each element Z. */
         static int                   fNShells[gMaxSizeData];

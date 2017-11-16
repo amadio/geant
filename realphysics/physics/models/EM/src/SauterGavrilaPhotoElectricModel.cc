@@ -41,7 +41,12 @@ namespace geantphysics {
     Material*             SauterGavrilaPhotoElectricModel::fWater = nullptr;
     double                SauterGavrilaPhotoElectricModel::fWaterEnergyLimit = 0.0;
     
-    
+    XSectionsVector** SauterGavrilaPhotoElectricModel::fShellVector[]= {nullptr};
+    XSectionsVector * SauterGavrilaPhotoElectricModel::fLECSVector[]= {nullptr};
+    XSectionsVector * SauterGavrilaPhotoElectricModel::fCSVector[]= {nullptr};
+    bool* SauterGavrilaPhotoElectricModel::fCrossSection = nullptr;
+    bool* SauterGavrilaPhotoElectricModel::fCrossSectionLE = nullptr;
+
     SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname, bool aliasActive)
     : EMModel(modelname){
         
