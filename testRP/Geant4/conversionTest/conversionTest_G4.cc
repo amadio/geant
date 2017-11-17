@@ -48,6 +48,10 @@
 #include <getopt.h>
 #include <err.h>
 
+// to be able to set the current element in G4VEmModel (protected)
+#define protected public
+
+
 #include "G4Material.hh"
 #include "G4ElementVector.hh"
 #include "G4ProcessManager.hh"
@@ -78,6 +82,7 @@
 #include "G4TouchableHistory.hh"
 
 #include "G4BetheHeitlerModel.hh"
+#include "G4PairProductionRelModel.hh"
 
 #include "G4ParticleChangeForGamma.hh"
 #include "G4UAtomicDeexcitation.hh"
@@ -87,16 +92,18 @@
 //
 // default values of the input parameters
 static std::string   materialName("G4_Pb");               // material is lead
+static std::string   pairModelName("bhPair");             // name of the pair-production model to test
 static int           numHistBins       = 100;             // number of histogram bins between min/max values
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 100.0;           // primary particle energy in [MeV]
 
 static struct option options[] = {
-  {"material-name     (with a G4_ prefix i.e. NIST material)      - default: G4_Pb"  , required_argument, 0, 'm'},
-  {"primary-energy    (in internal energy units i.e. [MeV])       - default: 100"    , required_argument, 0, 'E'},
-  {"number-of-samples (number of required final state samples)    - default: 1.e+7"  , required_argument, 0, 'f'},
-  {"number-of-bins    (number of bins in the histogram)           - default: 100"    , required_argument, 0, 'n'},
-  {"help"                                                                            , no_argument      , 0, 'h'},
+  {"material-name     (with a G4_ prefix i.e. NIST material)               - default: G4_Pb"  , required_argument, 0, 'm'},
+  {"model-name        (bhPair (Bethe-Heitler) or relPair (Relativistic))   - default: bhPair" , required_argument, 0, 'c'},
+  {"primary-energy    (in internal energy units i.e. [MeV])                - default: 100"    , required_argument, 0, 'E'},
+  {"number-of-samples (number of required final state samples)             - default: 1.e+7"  , required_argument, 0, 'f'},
+  {"number-of-bins    (number of bins in the histogram)                    - default: 100"    , required_argument, 0, 'n'},
+  {"help"                                                                                     , no_argument      , 0, 'h'},
   {0, 0, 0, 0}
 };
 void help();
@@ -108,7 +115,7 @@ int main(int argc, char** argv) {
   // Get input parameters
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "hm:E:f:n:", options, &optidx);
+    c = getopt_long(argc, argv, "hm:c:E:f:n:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
@@ -117,6 +124,9 @@ int main(int argc, char** argv) {
     /* fall through */
     case 'm':
        materialName = optarg;
+       break;
+    case 'c':
+       pairModelName = optarg;
        break;
     case 'E':
       primaryEnergy = (double)strtof(optarg, NULL);
@@ -148,13 +158,22 @@ int main(int argc, char** argv) {
   G4cout << "======            Coversion Test Starts         ========" << G4endl;
   G4cout << "========================================================" << G4endl;
 
+  if (!(pairModelName=="bhPair" || pairModelName=="relPair")) {
+    G4cerr << "  *** unknown pair-production model name = " << pairModelName << std::endl;
+    help();
+    return 0;
+  }
+
   G4String mname(materialName);         // material
   G4double   energy  = primaryEnergy;   // primary energy of the gamma photon
   G4double   stat    = numSamples;      // number of samples
   //G4int      verbose = 1;
   G4Material *mat    = G4NistManager::Instance()->FindOrBuildMaterial(mname);
 
-  if(!mat) { exit(1); }
+  if (!mat) {
+    G4cerr<< "  unknown material name = " << mname << G4endl;
+    exit(1);
+  }
 
   // Set random engine to MTwist: the same that we use in GeantV (we use the std c++11 inmp.)
   //CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
@@ -226,14 +245,17 @@ int main(int argc, char** argv) {
 //  de->InitialiseAtomicDeexcitation();
 
   // Instantiate models
-  G4BetheHeitlerModel pairBH;
+  G4BetheHeitlerModel       pairBH;
+  G4PairProductionRelModel  pairRel;
 
   // Set particle change object
   G4ParticleChangeForGamma* fParticleChange = new G4ParticleChangeForGamma();
   pairBH.SetParticleChange(fParticleChange, 0);
+  pairRel.SetParticleChange(fParticleChange, 0);
 
   // Initilise models
   pairBH.Initialise(part, cuts);
+  pairRel.Initialise(part, cuts);
 
 
   // -------- Track
@@ -247,7 +269,14 @@ int main(int argc, char** argv) {
   }
 
   // set the EmModel
-  G4VEmModel *model = &pairBH;
+  G4VEmModel *model = nullptr;
+  if (pairModelName=="bhPair") {    // BetheHeitlerPairModel
+    model = &pairBH;
+  } else {
+    model = &pairRel;
+  }
+
+  model->SetupForMaterial(part,mat,energy);
 
   // print outs
   G4cout<< mat;
@@ -280,6 +309,7 @@ int main(int argc, char** argv) {
   unRestrictedDEDX = model->ComputeDEDXPerVolume(mat, part, energy, energy);
   // use the model to compute atomic cross section (only in case of single element materials)
   if (isSingleElementMaterial) {
+    model->SetCurrentElement(mat->GetElement(0));
     atomicCrossSection  = model->ComputeCrossSectionPerAtom(part, energy, mat->GetZ(), mat->GetA());
   }
   // use the model to compute macroscopic cross section

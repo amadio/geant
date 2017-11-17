@@ -39,6 +39,7 @@
 
 #include "EMModel.h"
 #include "BetheHeitlerPairModel.h"
+#include "RelativisticPairModel.h"
 
 #include "LightTrack.h"
 #include "PhysicsData.h"
@@ -64,9 +65,10 @@ using geantphysics::Gamma;
 using geantphysics::ELossTableManager;
 using geantphysics::ELossTableRegister;
 
-// the two brem. model
+// the two pair. models
 using geantphysics::EMModel;
 using geantphysics::BetheHeitlerPairModel;
+using geantphysics::RelativisticPairModel;
 
 using geantphysics::LightTrack;
 using geantphysics::PhysicsData;
@@ -76,12 +78,16 @@ using userapplication::Hist;
 //
 // default values of the input parameters
 static std::string   materialName("NIST_MAT_Pb");         // material is lead
+static std::string   pairModelName("bhPair");             // name of the pair-production model to test
+static bool          isUseRejection    = false;           // use rejection sampling instead of sampling tables
 static int           numHistBins       = 100;             // number of histogram bins between min/max values
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 0.1;             // primary particle energy in [GeV]
 
 static struct option options[] = {
   {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"        , required_argument, 0, 'm'},
+  {"model-name        (bhPair (Bethe-Heitler) or relPair (Relativistic))       - default: bhPair"             , required_argument, 0, 'c'},
+  {"sampling-type     (flag to switch to rejection sampling)                   - default: no"                 , no_argument      , 0, 'r'},
   {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.1"                , required_argument, 0, 'E'},
   {"number-of-samples (number of required final state samples)                 - default: 1.e+7"              , required_argument, 0, 'f'},
   {"number-of-bins    (number of bins in the histogram)                        - default: 100"                , required_argument, 0, 'n'},
@@ -106,7 +112,7 @@ int main(int argc, char *argv[]) {
   //============================== Get input parameters =====================================//
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "h:m:E:f:n:", options, &optidx);
+    c = getopt_long(argc, argv, "h:m:c:rE:f:n:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
@@ -116,6 +122,12 @@ int main(int argc, char *argv[]) {
     case 'm':
        materialName = optarg;
        break;
+    case 'c':
+      pairModelName = optarg;
+      break;
+    case 'r':
+      isUseRejection = true;
+      break;
     case 'E':
       primaryEnergy = (double)strtof(optarg, NULL);
       if (primaryEnergy<=0)
@@ -143,6 +155,11 @@ int main(int argc, char *argv[]) {
   //===========================================================================================//
 
   //============================= Set user defined input data =================================//
+  if (!(pairModelName=="bhPair" || pairModelName=="relPair")) {
+    std::cerr << "  *** unknown pair-production model name = " << pairModelName << std::endl;
+    help();
+    return 0;
+  }
   // Create target material: which is supposed to be a NIST Material
   Material *matDetector = Material::NISTMaterial(materialName);
   //
@@ -152,7 +169,7 @@ int main(int argc, char *argv[]) {
   // Set particle kinetic energy
   double kineticEnergy    = primaryEnergy;
   //
-  // Set production cuts if needed: not used in Compton
+  // Set production cuts if needed: not needed in case of pair-production
   bool   iscutinlength    = true;
   double prodCutValue     = 1.*geant::mm;
   double gcut             = prodCutValue;
@@ -183,13 +200,23 @@ int main(int argc, char *argv[]) {
   //*******************************************************************************************//
   //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
   //
-  // Create a BetheHeitlerPairModel model for e-/e+ pair production:
-  EMModel *emModel = new BetheHeitlerPairModel();
-  // - Set low/high energy usage limits
-  emModel->SetLowEnergyUsageLimit (100.0*geant::eV);
-  emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
-  // by default, sampling tables are used: can be set to false not to use tables (==>rejection)
-  //emModel->SetUseSamplingTables(false);
+  // Create a BetheHeitlerPairModel or RelativisticPairModel model for e-/e+ pair production:
+  EMModel *emModel = nullptr;
+  if (pairModelName=="bhPair") {    // BetheHeitlerPairModel
+    emModel = new BetheHeitlerPairModel();
+    // - Set low/high energy usage limits
+    emModel->SetLowEnergyUsageLimit (100.0*geant::eV);
+    emModel->SetHighEnergyUsageLimit( 80.0*geant::GeV);
+    // by default, sampling tables are used: can be set to false not to use tables (==>rejection)
+    emModel->SetUseSamplingTables(!isUseRejection);
+  } else {                          // RelativisticPairModel
+    emModel = new RelativisticPairModel();
+    // - Set low/high energy usage limits
+    emModel->SetLowEnergyUsageLimit ( 80.0*geant::GeV);
+    emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+    // by default, sampling tables are used: can be set to false not to use tables (==>rejection)
+    emModel->SetUseSamplingTables(!isUseRejection);
+  }
   //
   //*******************************************************************************************//
 
@@ -222,6 +249,8 @@ int main(int argc, char *argv[]) {
   std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  std::cout<< "   Rejection ?    =  " << !emModel->GetUseSamplingTables() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   // check if we compute atomic-cross section: only for single elemnt materials
   bool isSingleElementMaterial = false;
@@ -376,7 +405,7 @@ return 0;
 
 void help() {
   std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-  std::cout<<"  Model-level GeantV test for testing GeantV Bethe-Heitler model for e-/e+"
+  std::cout<<"  Model-level GeantV test for testing GeantV models for e-/e+"
            <<"  pair production by photons."
            << std::endl;
   std::cout<<"\n  Usage: conversionTest_GV [OPTIONS] \n"<<std::endl;
