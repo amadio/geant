@@ -10,6 +10,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <cstdio>
 #include <ctime>
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
   Isotope* isotope = Isotope::GetIsotope( Z, N );
 
   std::cout << "mass " << isotope->GetIsoMass() << std::endl;
-  
+
   // Create target material: which is supposed to be a NIST Material
   Material *matDetector = Material::NISTMaterial(materialName);
   //
@@ -204,12 +205,12 @@ int main(int argc, char *argv[]) {
   //*******************************************************************************************//
   //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
   //
-  // Create a histogram to store the t 
-  // 
+  // Create a histogram to store the t
+  //
   double xMin =  0.0;
   double xMax =  1.0; //
   Hist *histo_t    = new Hist(xMin, xMax, numHistBins);
-  
+
   //
   //
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -276,7 +277,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
   double dirz       = 1.0;
   int    gvcode     = primParticle->GetInternalCode();  // internal code of the primary particle
   double mass       = primParticle->GetPDGMass();
-  
+
   // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
   Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
@@ -304,11 +305,11 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
 //       primaryLT.SetTotalMFP(1.0); // not important now
      //
      // clean the number of secondary tracks used (in PhysicsData)
-     td->fPhysicsData->SetNumUsedSecondaries(0);     
+     td->fPhysicsData->SetNumUsedSecondaries(0);
      //
      // invoke the interaction
      elModel->SampleFinalState(primaryLT, isotope, td);
-     
+
      // show updated primaryLT
      h1->Fill(std::acos(primaryLT.GetDirZ()));
 

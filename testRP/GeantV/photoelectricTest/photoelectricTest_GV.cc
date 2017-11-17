@@ -18,6 +18,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <cstdio>
 #include <ctime>
@@ -96,7 +97,7 @@ static bool          isProdCutInLength = true;            // is the production c
 static bool          isAlias           = false;            // is the Alias sampling active ?
 
 static struct option options[] = {
-    
+
     {"particle-name     (possible particle names: gamma)                         - default: gamma"               , required_argument, 0, 'p'},
     {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"         , required_argument, 0, 'm'},
     {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.01"                , required_argument, 0, 'E'},
@@ -182,7 +183,7 @@ int main(int argc, char *argv[]) {
         }
     }
     //===========================================================================================//
-    
+
     //============================= Set user defined input data =================================//
     // Create target material: which is supposed to be a NIST Material
     Material *matDetector = Material::NISTMaterial(materialName);
@@ -196,20 +197,20 @@ int main(int argc, char *argv[]) {
     double emcut            = prodCutValue;
     double epcut            = prodCutValue;
     //===========================================================================================//
-    
+
     //if (!(photoElectricModelName=="photoElectricSB" || photoElectricModelName=="photoElectricRel")) {
     //  std::cout << "  *** unknown photoElectric. model name = " << photoElectricModelName << std::endl;
     //  help();
     //  return 0;
     //}
-    
+
     // Create primary particle
     Particle *particle = Gamma::Definition();
     //bool         isElectron = true;
     std::string  pname;
-    
-    
-    
+
+
+
     //============= Initialization i.e. building up and init the physics ========================//
     // Create a dummy vecgeom::geometry:
     //  - with only one volume i.e. world
@@ -228,7 +229,7 @@ int main(int argc, char *argv[]) {
     // Create all(we have only one) MaterialCuts
     MaterialCuts::CreateAll();
     //===========================================================================================//
-    
+
     // if primary particle energy < gamma production cut => there is no secondary gamma production
     // So get the MaterialCuts of the target: we have only one
     const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
@@ -241,9 +242,9 @@ int main(int argc, char *argv[]) {
      << std::endl;
      return 0;
      }*/
-    
-    
-    
+
+
+
     //*******************************************************************************************//
     //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
     //
@@ -254,16 +255,16 @@ int main(int argc, char *argv[]) {
     EMModel *emModel_rej = new SauterGavrilaPhotoElectricModel(photoElectricModelName, false); //true to use Alias Sampling method
     // - Set low/high energy usage limits to their min/max possible values
     emModel->SetLowEnergyUsageLimit ( 0.01*geant::keV);
-    
+
     emModel->SetHighEnergyUsageLimit(100.0*geant::GeV);
-    
-    
+
+
     emModel_rej->SetLowEnergyUsageLimit ( 0.01*geant::keV);
-    
+
     emModel_rej->SetHighEnergyUsageLimit(100.0*geant::GeV);
     //
     //*******************************************************************************************//
-    
+
     // check is primary energy is within the usage limits of the model
     if (kineticEnergy<emModel->GetLowEnergyUsageLimit() || kineticEnergy>emModel->GetHighEnergyUsageLimit()) {
         std::cout<< " *** Primary energy = " << kineticEnergy/geant::GeV
@@ -275,8 +276,8 @@ int main(int argc, char *argv[]) {
         << std::endl;
         return 0;
     }
-    
-    
+
+
     //=========== Set the active regions of the model and one physics-parameter object ==========//
     // - Set the model to be active in region index 0
     (emModel->GetListActiveRegions()).resize(1); // one region
@@ -289,7 +290,7 @@ int main(int argc, char *argv[]) {
     // - Initialisation of the model
     emModel->Initialize();
     //===========================================================================================//
-    
+
     //=========== Set the active regions of the model and one physics-parameter object ==========//
     // - Set the model to be active in region index 0
     (emModel_rej->GetListActiveRegions()).resize(1); // one region
@@ -302,8 +303,8 @@ int main(int argc, char *argv[]) {
     // - Initialisation of the model
     emModel_rej->Initialize();
     //===========================================================================================//
-    
-    
+
+
     //===========================================================================================//
     //== Use the EMModel interface methods of the model to compute some integrated quantities  ==//
     //
@@ -326,25 +327,25 @@ int main(int argc, char *argv[]) {
         isSingleElementMaterial = true;
     }
     //
-    
-    
+
+
     // Note: atomicCrossSection is computed only in case of materials that has single element
     double atomicCrossSection      = 0.0;
     double macroscopicCrossSection = 0.0;
-    
+
     //
     // use the model to compute atomic cross section (only in case of single element materials)
     std::cout<< std::setw(14) << std::scientific <<std::endl;
     if (isSingleElementMaterial) {
-        
+
         const Element *elem = (matCut->GetMaterial()->GetElementVector())[0];
         std::cout<<std::setw(14)<<std::scientific<<std::endl;
         atomicCrossSection  = emModel->ComputeXSectionPerAtom(elem, matCut, kineticEnergy, particle);
-        
+
     }
     // use the model to compute macroscopic cross section
     macroscopicCrossSection = emModel->ComputeMacroscopicXSection(matCut, kineticEnergy, particle);
-    
+
     //
     // print out integrated quantities:
     // -atomic cross section
@@ -361,14 +362,14 @@ int main(int argc, char *argv[]) {
     << std::setw(14) << std::left << "     [1/cm]";
     std::cout<<std::endl;
     //===========================================================================================//
-    
-    
-    
+
+
+
     //*******************************************************************************************//
     //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
     //
-    
-    
+
+
     //std::string hname = photoElectricModelName + "_GV_" + str;
     // energy distribution(k) is sampled in varibale log10(k/primaryEnergy)
     // angular distribution(theta) is sampled in variable log10(1-cos(theta)*0.5)
@@ -384,13 +385,13 @@ int main(int argc, char *argv[]) {
     xMax     = 0.5;
     Hist *histo_photoelectron_angular = new Hist(xMin, xMax, numHistBins);
     Hist *histo_photoelectron_angular_rej = new Hist(xMin, xMax, numHistBins);
-    
+
     xMin     = -1.0001;
     xMax     = 1.0001;
     Hist *histo_angle = new Hist(xMin, xMax, numHistBins);
     Hist *histo_angle_rej = new Hist(xMin, xMax, numHistBins);
-    
-    
+
+
 
     //THE PRIMARY DOES NOT SURVIVE TO THE P.E. PROCESS SO WE DON'T NEED OTHER HISTOGRAMS - THEY MUST BE EMPTY
     ////The primary does not survive to photoelectric effect, so these other histo are not needed
@@ -403,32 +404,32 @@ int main(int argc, char *argv[]) {
     //xMin     = -16.;
     //xMax     = 0.5;
     //Hist *histo_prim_angular = new Hist(xMin, xMax, numHistBins);
-    
+
     // start sampling
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
     std::cout<< "   Sampling is running : .....................................................      " << std::endl;
-    
-    
+
+
     // call sampling method
     double timeInSec = sampleDistribution(numSamples, kineticEnergy, matCut, particle, emModel, histo_photoelectron_energy, histo_photoelectron_angular, histo_angle);
     double timeInSec_rej = sampleDistribution(numSamples, kineticEnergy, matCut, particle, emModel_rej, histo_photoelectron_energy_rej, histo_photoelectron_angular_rej, histo_angle_rej);
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
     std::cout<< "   Time of sampling Alias =  " << timeInSec << " [s]" << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-    
+
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
     std::cout<< "   Time of sampling Rejection =  " << timeInSec_rej << " [s]" << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-    
+
     std::cout<< "   Writing histograms into files. " << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-    
+
     // print out histogram to file: fileName
     char fileName[512];
     std::ostringstream strs;
     strs << primaryEnergy*1000;
     std::string str = strs.str();
-    
+
     sprintf(fileName,"photoElectric_%s_GV_photoelectron_energy_%s_%sMeV.ascii",photoElectricModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str(), str.c_str());
     FILE *f     = fopen(fileName,"w");
     Hist *histo = histo_photoelectron_energy;
@@ -439,7 +440,7 @@ int main(int argc, char *argv[]) {
     }
     fclose(f);
     delete histo;
-    
+
     //
     sprintf(fileName,"photoElectric_%s_GV_photoelectron_angular_%s_%sMeV.ascii",photoElectricModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str(), str.c_str());
     f     = fopen(fileName,"w");
@@ -450,8 +451,8 @@ int main(int argc, char *argv[]) {
     }
     fclose(f);
     delete histo;
-    
-    
+
+
     sprintf(fileName,"photoElectric_%s_GV_photoelectron_angular_rejection_%s_%sMeV.ascii",photoElectricModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str(), str.c_str());
     f     = fopen(fileName,"w");
     histo = histo_photoelectron_angular_rej;
@@ -461,10 +462,10 @@ int main(int argc, char *argv[]) {
     }
     fclose(f);
     delete histo;
-    
+
     double xsec[numHistBins];
     double cosTheta;
-    
+
     //sprintf(fileName,"GV_%s_cosTheta_%s_%sMeV.ascii",photoElectricModelName.c_str(),(matCut->GetMaterial()->GetName()).c_str(), str.c_str());
     sprintf(fileName,"cosTheta_%sMeV.ascii", str.c_str());
     f     = fopen(fileName,"w");
@@ -476,18 +477,18 @@ int main(int argc, char *argv[]) {
         xsec[i]= CalculateDiffCrossSection(kineticEnergy/geant::kElectronMassC2, cosTheta);
         sum+=xsec[i];
     }
-    
+
     for (int i=0; i<histo->GetNumBins(); ++i) {
         //fprintf(f,"%d\t%.8g\t%.8g\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm, xsec[i]/sum,(histo->GetY()[i]*norm)/(xsec[i]/sum) );
         fprintf(f,"%d\t%.8g\t%.8g\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i], histo_angle_rej->GetY()[i], ( (histo->GetY()[i])/(histo_angle_rej->GetY()[i]) ) );
-        
+
     }
     fclose(f);
     delete histo;
-    
+
 
     //*******************************************************************************************//
-    
+
     // end
     std::cout << "   ================================================================================ "
     << std::endl << std::endl;
@@ -499,7 +500,7 @@ int main(int argc, char *argv[]) {
     ELossTableRegister::Instance().Clear();
     MaterialCuts::ClearAll();
     Material::ClearAllMaterials(); // will delete all Elements and Isotoes as well
-    
+
     return 0;
 }
 
@@ -517,27 +518,27 @@ void help() {
 
 double CalculateDiffCrossSection(double tau, double cosTheta)
 {
-    
+
     // Based on Geant4 : G4SauterGavrilaAngularDistribution
     // SauterGavrila approximation for K-shell, correct to the first \alphaZ order
     // input  : energy0  (incoming photon energy)
     // input  : cosTheta (cons(theta) of photo-electron)
     // output : dsigma   (differential cross section, K-shell only)
-    
+
     //double tau = energy0 / geant::kElectronMassC2;
-    
+
     //gamma and beta: Lorentz factors of the photoelectron
     double gamma = tau + 1.0;
     double beta = std::sqrt(tau * (tau + 2.0)) / gamma;
-    
+
     double z = 1 - beta * cosTheta;
     double z2 = z * z;
     double z4 = z2 * z2;
     double y = 1 - cosTheta * cosTheta; //sen^2(theta)
-    
+
     double dsigma = (y / z4) * (1 + 0.5 * gamma * (tau) * (gamma - 2) * z);
     return dsigma;
-    
+
 }
 
 
@@ -548,14 +549,14 @@ double CalculateDiffCrossSection(double tau, double cosTheta)
 
 double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Particle *primParticle,
                           EMModel *emModel, Hist *histo1, Hist *histo2, Hist *histo3) {
-    
-    
+
+
     double ekin       = primaryEnergy;
     double dirx       = 0.0;   // direction
     double diry       = 0.0;
     double dirz       = 1.0;
     int    gvcode     = primParticle->GetInternalCode();        // internal code of the primary particle i.e. e-
-    
+
     // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
     // sampling
     Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
@@ -566,7 +567,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     // init time
     clock_t  start_time = clock();
     for (long int i=0; i<numSamples; ++i) {
-        
+
         // we will use members:
         //  fMaterialCutCoupleIndex <==>  // current MaterialCuts index
         //  fKinE         <==>  fE-fMass  // kinetic energy;  will be set to the new kinetic energy
@@ -597,7 +598,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
             if (ePhotoElectron>0.0) {
                 ePhotoElectron = log10((ekin - ePhotoElectron)*1000000);
                 histo1->Fill(ePhotoElectron,1.0);
-                
+
             }
             double costPhotoElectron = secondaryLT[0].GetDirZ();
             //if(costPhotoElectron>1) costPhotoElectron=1;
@@ -612,8 +613,8 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
             }
         }
     }
-    
-    
+
+
     clock_t end_time = clock();
     return (end_time-start_time)/(double(CLOCKS_PER_SEC));
 }

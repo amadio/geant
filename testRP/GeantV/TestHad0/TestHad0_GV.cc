@@ -20,6 +20,7 @@
  */
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 
 #include <getopt.h>
@@ -300,11 +301,11 @@ bool isSingleElementMaterial = false;
 if (matCut->GetMaterial()->GetNumberOfElements()==1) {
   isSingleElementMaterial = true;
 }
- 
+
 for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
   PhysicsProcess *proc = thePostStepCandProcVect[i];
   processNameVect.push_back(proc->GetName());
-      
+
   compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, particle->GetPDGMass()));
   compTotalMacXsec += compMacXsecPerProcessVect[i];
   getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, particle->GetPDGMass()));
@@ -312,7 +313,7 @@ for (size_t i=0; i<thePostStepCandProcVect.size(); ++i) {
 
   if (isSingleElementMaterial) {
     compAtomicXsectionVect.push_back(static_cast<HadronicProcess*>(proc)->GetAtomicCrossSection(particle->GetInternalCode(), kineticEnergy, particle->GetPDGMass(), (matCut->GetMaterial()->GetElementVector())[0], matDetector));
-    
+
     compTotalAtomicXsec += compAtomicXsectionVect[i];
   }
 }
