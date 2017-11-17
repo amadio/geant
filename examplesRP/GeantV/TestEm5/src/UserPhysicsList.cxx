@@ -35,6 +35,7 @@
 
 #include "GammaConversionProcess.h"
 #include "BetheHeitlerPairModel.h"
+#include "RelativisticPairModel.h"
 
 #include "GammaPhotoElectricProcess.h"
 #include "SauterGavrilaPhotoElectricModel.h"
@@ -207,11 +208,17 @@ void UserPhysicsList::Initialize() {
       geantphysics::EMModel           *bhModel = new geantphysics::BetheHeitlerPairModel();
       // set min/max energies of the model
       bhModel->SetLowEnergyUsageLimit (  2.0*geant::kElectronMassC2);
-      // the parametrized cross sections works only up t0 80-90 GeV but we will use it now up to 1 TeV
-      // it will be changed when we will have the high-energy model
-      bhModel->SetHighEnergyUsageLimit(  1.0*geant::TeV);
+      bhModel->SetHighEnergyUsageLimit( 80.0*geant::GeV);
       // add the model to the process
       convProc->AddModel(bhModel);
+      //
+      // create the relativistic model(with LPM) for pair production i.e. for g + A -> e- + e+ intercation
+      geantphysics::EMModel           *relModel = new geantphysics::RelativisticPairModel();
+      // set min/max energies of the model
+      relModel->SetLowEnergyUsageLimit (  80.0*geant::GeV);
+      relModel->SetHighEnergyUsageLimit( 100.0*geant::TeV);
+      // add the model to the process
+      convProc->AddModel(relModel);
       //
       // add the process to the gamma particle
       AddProcessToParticle(particle, convProc);
@@ -229,9 +236,9 @@ void UserPhysicsList::Initialize() {
       //
       // add the process to the gamma particle
       AddProcessToParticle(particle, photoelectricProc);
-      
+
     }
-    if (particle==geantphysics::Proton::Definition() || 
+    if (particle==geantphysics::Proton::Definition() ||
 	particle==geantphysics::Neutron::Definition() ||
 	particle==geantphysics::PionPlus::Definition() ||
 	particle==geantphysics::PionMinus::Definition() ||
@@ -248,7 +255,7 @@ void UserPhysicsList::Initialize() {
       geantphysics::HadronicFinalStateModel *diffelModel  = new geantphysics::DiffuseElasticModel();
       // create the cross sections
       geantphysics::HadronicCrossSection *ggElasticXS = new geantphysics::GlauberGribovElasticXsc();
-      
+
       // set min/max energies of the model
       diffelModel->SetLowEnergyUsageLimit (100.0*geant::eV);
       diffelModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
