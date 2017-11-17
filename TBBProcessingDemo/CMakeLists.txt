@@ -52,14 +52,14 @@ if(HepMC_FOUND)
   set(VECGEOM_LIBRARIES ${VECGEOM_LIBRARIES} ${HEPMC_LIBRARIES})
 endif()
 
-include_directories("/Users/lima/work/geantv/base/inc")
-include_directories("/Users/lima/work/geantv/xsec/inc")
-include_directories("/Users/lima/work/geantv/vecprot_v2/inc")
-include_directories("/Users/lima/work/geantv/vecprot_v2_tbb/inc")
-include_directories("/Users/lima/work/geantv/examples/inc")
-set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeant_tbb.so ${GeantV_DIR}/lib/libGeantExamples.so ${GeantV_DIR}/lib/libXsec.so)
+include_directories(${GeantV_INCLUDE_DIR}/base/inc)
+include_directories(${GeantV_INCLUDE_DIR}/xsec/inc)
+include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2/inc)
+include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2_tbb/inc)
+include_directories(${GeantV_INCLUDE_DIR}/examples/inc)
+set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeantExamples.so ${GeantV_DIR}/lib/libXsec.so)
 
-include_directories("/opt/local/vecgeom/install/include")
+include_directories(${VecGeom_INCLUDE_DIR})
 
 set(CORE_FILES
     TBBFrameworkCore/Event.cpp
