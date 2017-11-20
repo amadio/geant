@@ -582,7 +582,6 @@ namespace geantphysics {
         
         // (*) High energy parameterisation
         if(energy >= (*(fParamHigh[Z]))[0]) {
-            
             double x4 = x2*x2;
             double x5 = x4*x1;
             
@@ -594,7 +593,6 @@ namespace geantphysics {
         }
         // (**) Low energy parameterisation
         else if(energy >= (*(fParamLow[Z]))[0]) {
-            
             double x4 = x2*x2;
             double x5 = x4*x1;//this variable usage can probably be optimized
             cs = x1*((*(fParamLow[Z]))[idx] + x1*(*(fParamLow[Z]))[idx+1]
@@ -604,12 +602,16 @@ namespace geantphysics {
         
         // (***) Tabulated values above k-shell ionization energy
         else if(energy >= (*(fParamHigh[Z]))[1]) {
-            
             //this is an extra-check - if energy<fCSVector[Z]->edgeMin it should go to the next else (****)
             if(energy<fCSVector[Z]->fEdgeMin)
                 cs=x3*fCSVector[Z]->fDataVector[0];
             else
-                cs=x3*fCSVector[Z]->fSplineInt->GetValueAt(energy);
+            {
+                size_t idx=0;
+                idx=fCSVector[Z]->FindCSBinLocation(energy, idx);
+                cs=x3*fCSVector[Z]->fSplineInt->GetValueAt(energy, idx);
+            }
+            
         }
         
         //(****) Tabulated values below k-shell ionization energy
@@ -620,7 +622,10 @@ namespace geantphysics {
             if(energy<fLECSVector[Z]->fEdgeMin)
                 cs=x3*fLECSVector[Z]->fDataVector[0];
             else
-                cs=x3*fLECSVector[Z]->GetValueAt(energy);
+            {
+                size_t idx=0;
+                cs=x3*fLECSVector[Z]->GetValue(energy, idx);
+            }
         }
         if (verboseLevel > 1) {
             std::cout << "LivermorePhotoElectricModel: E(keV)= " << energy/keV
@@ -666,14 +671,15 @@ namespace geantphysics {
         if (num>mxsec.size()) {mxsec.resize(num,0.);}
         double cum =0.;
         for (size_t i=0; i<num; ++i) {
-            double xx=theAtomicNumDensityVector[i]* ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);
-            cum += xx;
-            mxsec[i] = xx;
+            //double xx=theAtomicNumDensityVector[i]* ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);
+            //calculate the Macroscopic Cross section
+            cum += theAtomicNumDensityVector[i]* ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);;
+            //store directly the cumulative
+            mxsec[i] = cum;
         }
         double rnd=cum * td->fRndm->uniform();
-        double cumxsec=mxsec[0];
-        for(; index<num-1 && rnd>cumxsec; ++index) {cumxsec += mxsec[index+1];}
-        //std::cout<<num<< " "<< index  << " " << rnd << " " << cum << std::endl;
+        //double cumxsec=mxsec[0];
+        for(; index<num-1 && rnd>mxsec[index]; ++index) {/*cumxsec += mxsec[index+1];*/}
         return index;
 
 //        int index=0;
@@ -770,14 +776,14 @@ namespace geantphysics {
         }
         double  zeta  = theElements[targetElemIndx]->GetZ();
         int     Z = std::lrint(zeta);
-        
+       
         // if element was not initialised, gamma should be absorbed
         if(!fCrossSectionLE[Z] && !fCrossSection[Z]) {
             track.SetEnergyDeposit(gammaekin0);
             //std::cout<<"Model not initialized, Exiting!\n";
             return 0;
         }
-        
+
         //SAMPLING OF THE SHELL
         size_t shellIdx = 0;
         size_t nn = fNShellsUsed[Z];
@@ -856,15 +862,17 @@ namespace geantphysics {
             else
             {
                 double cs = rand;
-                
+                size_t idx= 0;
                 // (***) Tabulated values above k-shell ionization energy
                 if(gammaekin0 >= (*(fParamHigh[Z]))[1]) {
                     //this is an extra-check - if energy<fCSVector[Z]->edgeMin it should go to the next else (****)
                     if(gammaekin0<fCSVector[Z]->fEdgeMin)
                         cs*=fCSVector[Z]->fDataVector[0];
                     else
-                        cs*=fCSVector[Z]->fSplineInt->GetValueAt(gammaekin0);
-                    
+                    {
+                        idx=fCSVector[Z]->FindCSBinLocation(gammaekin0, idx);
+                        cs*=fCSVector[Z]->fSplineInt->GetValueAt(gammaekin0, idx);
+                    }
                 }
                 //(****) Tabulated values below k-shell ionization energy
                 else
@@ -874,7 +882,8 @@ namespace geantphysics {
                     if(gammaekin0<fLECSVector[Z]->fEdgeMin)
                         cs*=fLECSVector[Z]->fDataVector[0];
                     else
-                        cs*=fLECSVector[Z]->GetValueAt(gammaekin0);
+                        //cs*=fLECSVector[Z]->GetValueAt(gammaekin0);
+                        cs*=fLECSVector[Z]->GetValue(gammaekin0, idx);
                 }
                 //size_t j=0;
                 for(size_t j=0; j<nn; ++j)
@@ -882,7 +891,9 @@ namespace geantphysics {
                     
                     shellIdx=(size_t)fShellVector[Z][j]->fCompID;
                     if(gammaekin0 > (*(fParamLow[Z]))[7*shellIdx+1]) {
-                        cs-=fShellVector[Z][j]->GetValueAt(gammaekin0);
+                        size_t idx=0;
+                        //cs-=fShellVector[Z][j]->GetValueAt(gammaekin0);
+                        cs-=fShellVector[Z][j]->GetValue(gammaekin0, idx);
                     }
                     
                     if(cs <= 0.0 || j+1 == nn)
