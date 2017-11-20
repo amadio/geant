@@ -343,9 +343,15 @@ int main(int argc, char *argv[]) {
         atomicCrossSection  = emModel->ComputeXSectionPerAtom(elem, matCut, kineticEnergy, particle);
 
     }
+    
+    //UNCOMMENT TO TEST CrossSectionPerVolume method
+    //clock_t  start = clock();
+    //for (int i= 0; i<stat; i++)
     // use the model to compute macroscopic cross section
     macroscopicCrossSection = emModel->ComputeMacroscopicXSection(matCut, kineticEnergy, particle);
-
+    //clock_t  end = clock();
+    //std::cout<<"ComputeMacroscopicXSection ex-time: "<<(end-start)/(double(CLOCKS_PER_SEC))<<std::endl;
+    
     //
     // print out integrated quantities:
     // -atomic cross section
@@ -603,7 +609,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
             double costPhotoElectron = secondaryLT[0].GetDirZ();
             //if(costPhotoElectron>1) costPhotoElectron=1;
             //else if (costPhotoElectron<-1) costPhotoElectron=-11;
-            histo3->Fill(costPhotoElectron, 1.0);
+            //histo3->Fill(costPhotoElectron, 1.0);
             costPhotoElectron = 0.5*(1.0-costPhotoElectron);
             if (costPhotoElectron>0.0) {
                 costPhotoElectron = std::log10(costPhotoElectron);

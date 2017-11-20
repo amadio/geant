@@ -353,8 +353,15 @@ int main(int argc, char** argv) {
     if (isSingleElementMaterial) {
         atomicCrossSection  = model->ComputeCrossSectionPerAtom(part, energy, mat->GetZ(), mat->GetA());
     }
+   
+    //UNCOMMENT TO TEST CrossSectionPerVolume method
+    //clock_t  start = clock();
+    //for (int i = 0; i<stat; i++)
     // use the model to compute macroscopic cross section
     macroscopicCrossSection = model->CrossSectionPerVolume(mat, part, energy);
+    //clock_t  end = clock();
+    //std::cout<<"CrossSectionPerVolume ex-time: "<<(end-start)/(double(CLOCKS_PER_SEC))<<std::endl;
+    
     //
     // print out integrated quantities:
     // -atomic cross section
