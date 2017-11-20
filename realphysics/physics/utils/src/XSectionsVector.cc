@@ -92,7 +92,7 @@ double XSectionsVector::GetValue(double energy, size_t &shellIdx) const
 // Linear interpolation is used to get the interpolated value for lowEnergy cross sections (below K-shell binding
 // energy).
 // Before this method is called it is ensured that the energy is inside the bin
-double XSectionsVector::LinearInterpolation(double energy, size_t idx) const
+inline double XSectionsVector::LinearInterpolation(double energy, size_t idx) const
 {
   return fDataVector[idx] + (fDataVector[idx + 1] - fDataVector[idx]) * (energy - fBinVector[idx]) /
                                 (fBinVector[idx + 1] - fBinVector[idx]);

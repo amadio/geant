@@ -26,7 +26,7 @@ public:
   size_t FindCSBinLocation(double energy, size_t idx) const;
   double GetValueAt(double energy) const;
   double GetValue(double energy, size_t &shellIdx) const;
-  double LinearInterpolation(double energy, size_t idx) const;
+  inline double LinearInterpolation(double energy, size_t idx) const;
 
   std::vector<double> fBinVector;  // Cross sections bin vector (i.e. x coordinate)
   std::vector<double> fDataVector; // Cross sections data vector (i.e. y coordinate)
