@@ -127,6 +127,11 @@ public:
 
 
 private:
+  /** @brief Copy constructor  (deleted) */
+  RelativisticPairModel(const RelativisticPairModel&) = delete;
+  /** @brief Operator=  (deleted) */
+  RelativisticPairModel &operator=(const RelativisticPairModel&) = delete;
+
   /** @brief Internal method to initilise the model.*/
   void   InitialiseModel();
 
@@ -203,7 +208,7 @@ private:
 
 // builds sampling tables for a given material over the discrete photon energy grid
 void BuildSamplingTablesForMaterial(const Material *mat);
-// builds one sampling table for a given material ata a given photon energy 
+// builds one sampling table for a given material ata a given photon energy
 void BuildOneRatinAlias(double egamma, const Material *mat, double *pdfarray, int egammaindx, int ilowestz);
 
 // data members

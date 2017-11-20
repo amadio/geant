@@ -198,13 +198,13 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   } else {
     uvar *= 0.53333;
   }
-  double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
-  double sintEle       = std::sin(thetaElectron);
-  double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
-  double sintPos       = -std::sin(thetaPositron);
-  double phi           = geant::kTwoPi*rndArray[3];
-  double sinphi        = std::sin(phi);
-  double cosphi        = std::cos(phi);
+  const double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
+  const double sintEle       = std::sin(thetaElectron);
+  const double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
+  const double sintPos       = -std::sin(thetaPositron);
+  const double phi           = geant::kTwoPi*rndArray[3];
+  const double sinphi        = std::sin(phi);
+  const double cosphi        = std::cos(phi);
   // e- direction
   double eleDirX = sintEle*cosphi;
   double eleDirY = sintEle*sinphi;
@@ -284,15 +284,15 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(double egamma, int matin
   // fRatinAliasDataForAllMaterials[matindx] should not be nullptr because it was checked in the caller
   RatinAliasData *raData = fRatinAliasDataForAllMaterials[matindx]->fRatinAliasDataForOneMaterial[gammaEnergyIndx];
   //
-  int    izet     = fRatinAliasDataForAllMaterials[matindx]->fILowestZ;
-  double eps0     = geant::kElectronMassC2/egamma;
-  double deltaMax = fElementData[izet]->fDeltaMaxTsai;
-  double epsp     = 0.5-0.5*std::sqrt(1.-4.*eps0*fElementData[izet]->fDeltaFactor/deltaMax);
-  double epsMin   = std::max(eps0,epsp);
+  const int    izet     = fRatinAliasDataForAllMaterials[matindx]->fILowestZ;
+  const double eps0     = geant::kElectronMassC2/egamma;
+  const double deltaMax = fElementData[izet]->fDeltaMaxTsai;
+  const double epsp     = 0.5-0.5*std::sqrt(1.-4.*eps0*fElementData[izet]->fDeltaFactor/deltaMax);
+  const double epsMin   = std::max(eps0,epsp);
   // we could put a static assert here to make sure that raData is not nullptr
   //
   // sample the transformed variable xi=... (such that linear aprx will be used in the first interval)
-  double  xi = fAliasSampler->SampleRatin(raData->fXdata, raData->fCumulative, raData->fParaA, raData->fParaB,
+  const double  xi = fAliasSampler->SampleRatin(raData->fXdata, raData->fCumulative, raData->fParaA, raData->fParaB,
                                           raData->fAliasW, raData->fAliasIndx, raData->fNumdata, r2, r3, 0);
   // transform back xi to eps = E_total_energy_transfer/E_{\gamma}
   return epsMin*std::exp(xi*std::log(0.5/epsMin));
@@ -349,10 +349,10 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(double epsmin, double ep
 double RelativisticPairModel::ComputeAtomicCrossSection(const Element *elem, const Material *mat, double egamma) {
   constexpr double constFactor = geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius;
   constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
-  double eps0        = geant::kElectronMassC2/egamma;
-  double zet         = elem->GetZ();
-  int izet           = std::lrint(zet);
+  const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
+  const double eps0        = geant::kElectronMassC2/egamma;
+  const double zet         = elem->GetZ();
+  const int izet           = std::lrint(zet);
 
   double deltaMax = fElementData[izet]->fDeltaMax;
   if (fIsUseTsaisScreening) {
@@ -388,9 +388,9 @@ double RelativisticPairModel::ComputeAtomicCrossSection(const Element *elem, con
 // transformd no - LPM
 double RelativisticPairModel::ComputeDXsectionPerAtom(double epsmin, double eps0, double df, double fz, double xi, bool istsai) {
   double lHalfPerEpsMin = std::log(0.5/epsmin);
-  double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
-  double meps           = 1.-eps;
-  double delta          = df*eps0/(eps*meps);
+  const double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
+  const double meps           = 1.-eps;
+  const double delta          = df*eps0/(eps*meps);
   double phi1           = 0.0;
   double phi2           = 0.0;
   ComputeScreeningFunctions(phi1,phi2,delta,istsai);
@@ -403,9 +403,9 @@ double RelativisticPairModel::ComputeDXsectionPerAtom(double epsmin, double eps0
 // transformd with - LPM
 double RelativisticPairModel::ComputeLPMDXsectionPerAtom(double epsmin, double df, double fz, double lpmenergy, double z23, double egamma, double xi, bool istsai) {
   double lHalfPerEpsMin = std::log(0.5/epsmin);
-  double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
-  double meps           = 1.-eps;
-  double delta          = df*geant::kElectronMassC2/(egamma*eps*meps);
+  const double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
+  const double meps           = 1.-eps;
+  const double delta          = df*geant::kElectronMassC2/(egamma*eps*meps);
   double phi1           = 0.0;
   double phi2           = 0.0;
   double lpmPhiS        = 0.0;
@@ -752,11 +752,11 @@ double RelativisticPairModel::ComputeDXsection(const Material *mat, double egamm
   for (int iel=0; iel<numElems; ++iel) {
     double zet  = theElements[iel]->GetZ();
     int izet    = std::lrint(zet);
-    double deltaMax = fElementData[izet]->fDeltaMax;
-    if (istsai) {
-      deltaMax = fElementData[izet]->fDeltaMaxTsai;
-    }
-//    double epsp   = 0.5-0.5*std::sqrt(1.-4.*fElementData[izet]->fDeltaFactor*eps0/deltaMax);
+//    double deltaMax = fElementData[izet]->fDeltaMax;
+//    if (istsai) {
+//      deltaMax = fElementData[izet]->fDeltaMaxTsai;
+//    }
+////    double epsp   = 0.5-0.5*std::sqrt(1.-4.*fElementData[izet]->fDeltaFactor*eps0/deltaMax);
     double xsec   = 0.0;
 //    if (epsp>=epsmin) {
       double fz     = fElementData[izet]->fFz;
