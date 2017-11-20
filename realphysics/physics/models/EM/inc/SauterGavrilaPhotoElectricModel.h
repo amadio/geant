@@ -142,10 +142,10 @@ private:
   //@{
 
   /** @todo Still not implemented */
-  SauterGavrilaPhotoElectricModel(const SauterGavrilaPhotoElectricModel &);
+  SauterGavrilaPhotoElectricModel(const SauterGavrilaPhotoElectricModel &)= delete;
 
   /** @todo Still not implemented operator = */
-  SauterGavrilaPhotoElectricModel &operator=(const SauterGavrilaPhotoElectricModel &);
+  SauterGavrilaPhotoElectricModel &operator=(const SauterGavrilaPhotoElectricModel &)= delete;
 
   //---------------------------------------------
   // InitializeModel
