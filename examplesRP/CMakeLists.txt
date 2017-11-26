@@ -60,15 +60,13 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/Hist.h
   )
 
-if (USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
-    LINKDEF
-##    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/LinkDef.h
-##    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc/LinkDef.h
-##    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/LinkDef.h
-    OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
-    set(sources ${sources} G__ExamplesRP.cxx)
-endif()
+#if (USE_ROOT)
+#  ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
+#    LINKDEF
+#    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/LinkDef.h
+#    OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+#    set(sources ${sources} G__ExamplesRP.cxx)
+#endif()
 #----------------------------------------------------------------------------------------------
 
 
@@ -101,10 +99,10 @@ else()
   install(TARGETS GeantExamplesRP DESTINATION lib)
 endif()
 
-if(USE_ROOT)
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamplesRP.rootmap
-    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamplesRP_rdict.pcm DESTINATION lib)
-endif()
+#if(USE_ROOT)
+#  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamplesRP.rootmap
+#    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeantExamplesRP_rdict.pcm DESTINATION lib)
+#endif()
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

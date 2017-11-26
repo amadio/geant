@@ -14,6 +14,8 @@
 // just for the printout at the end
 #include "CMSParticleGun.h"
 
+#include <iostream>
+#include <iomanip>
 
 namespace cmsapp {
 
