@@ -321,9 +321,11 @@ endif()
 else()
 # -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
-  fullCMS.cc
   TestEm3_GV.cc
   TestEm5_GV.cc
+  )
+set(NOTEST_EXECUTABLES
+  fullCMS.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -357,7 +359,7 @@ endfunction()
 link_directories(${PROJECT_BINARY_DIR}/lib)
 
 build_executables("${TEST_EXECUTABLES}")
-
+build_executables("${NOTEST_EXECUTABLES}")
 if(CTEST)
   add_to_ctest("${TEST_EXECUTABLES}")
 endif()
