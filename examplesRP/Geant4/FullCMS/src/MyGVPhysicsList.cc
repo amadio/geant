@@ -15,7 +15,8 @@
 
 #include "G4ComptonScattering.hh"
 #include "G4GammaConversion.hh"
-//#include "G4PhotoElectricEffect.hh"
+#include "G4PhotoElectricEffect.hh"
+#include "G4LivermorePhotoElectricModel.hh"
 //#include "G4RayleighScattering.hh"
 
 #include "G4eMultipleScattering.hh"
@@ -78,6 +79,14 @@ void MyGVPhysicsList::BuildEMPhysics() {
 //      ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering(), particle);
       ph->RegisterProcess(new G4GammaConversion, particle);
+      G4double LivermoreLowEnergyLimit = 1*eV;
+      G4double LivermoreHighEnergyLimit = 1*TeV;
+      G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
+      G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
+      theLivermorePhotoElectricModel->SetLowEnergyLimit(LivermoreLowEnergyLimit);
+      theLivermorePhotoElectricModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
+      thePhotoElectricEffect->AddEmModel(0, theLivermorePhotoElectricModel);
+      ph->RegisterProcess(thePhotoElectricEffect, particle);
     } else if (particleName =="e-") {
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
       G4eMultipleScattering* msc         = new G4eMultipleScattering;
