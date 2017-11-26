@@ -11,6 +11,7 @@
 namespace GEANT_IMPL_NAMESPACE {
   namespace Geant {
     class GeantTrack;
+    class GeantTaskData;
     class GeantEventInfo;
   }
 }
@@ -58,8 +59,8 @@ public:
 
   // interface methods
   virtual void InitPrimaryGenerator();
-  virtual Geant::GeantEventInfo NextEvent();
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack);
+  virtual Geant::GeantEventInfo NextEvent(Geant::GeantTaskData* td);
+  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td);
 
 private:
  UserPrimaryGenerator() = delete;

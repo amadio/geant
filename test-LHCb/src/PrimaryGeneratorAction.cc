@@ -31,7 +31,7 @@
 //
 //
 // Original Geant4 implementation was:
-//   examples/extended/persistency/gdml/G01/src/G01PrimaryGeneratorAction.cc 
+//   examples/extended/persistency/gdml/G01/src/G01PrimaryGeneratorAction.cc
 
 #include "G4Event.hh"
 #include "G4ParticleGun.hh"
@@ -46,7 +46,7 @@ using namespace Geant;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGeneratorAction::PrimaryGeneratorAction() 
+PrimaryGeneratorAction::PrimaryGeneratorAction()
  : G4VUserPrimaryGeneratorAction(),
    fParticleGun(0),
    fHepMCGenerator(0)
@@ -68,7 +68,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(std::string& filename)
    fParticleGun(0),
    fHepMCGenerator(0)
 {
- fHepMCGenerator = new Geant::HepMCGenerator(filename); 
+ fHepMCGenerator = new Geant::HepMCGenerator(filename);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -91,14 +91,14 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 }
 */
 
-// Take one HepMCGenerator event and fill Geant4 event with the primaries 
+// Take one HepMCGenerator event and fill Geant4 event with the primaries
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
    G4ParticleTable  *particleTable = G4ParticleTable::GetParticleTable();
    G4double         tpx, tpy, tpz, te, x0, y0, z0;
    G4int            pdg;
-   
-   GeantEventInfo eventinfo = fHepMCGenerator->NextEvent();
+
+   GeantEventInfo eventinfo = fHepMCGenerator->NextEvent(nullptr);
    G4PrimaryVertex  *pvertex = new G4PrimaryVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert, eventinfo.tvert);
 
    G4int ntracks = eventinfo.ntracks;
@@ -109,4 +109,3 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
    }
    anEvent->AddPrimaryVertex(pvertex);
 }
-

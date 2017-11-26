@@ -64,7 +64,7 @@ void UserPrimaryGenerator::InitPrimaryGenerator() {
 }
 
 
-Geant::GeantEventInfo UserPrimaryGenerator::NextEvent() {
+Geant::GeantEventInfo UserPrimaryGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
   Geant::GeantEventInfo current;
   current.ntracks = fPrimaryPerEvent;
   current.xvert   = fXPos;
@@ -74,7 +74,7 @@ Geant::GeantEventInfo UserPrimaryGenerator::NextEvent() {
 }
 
 
-void UserPrimaryGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack) {
+void UserPrimaryGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.fXpos = fXPos;

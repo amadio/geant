@@ -138,10 +138,10 @@ void LambdaTable::BuildLambdaTables() {
         if (fEnergyGrid.size()<1) {  // build the energy grid: only once
           GenerateEnergyGrid(matCut);
         }
-        std::cerr << "        ===> Mat = " << matCut->GetMaterial()->GetName()
-                  << "   emin  = " << fMinLambdaTableEnergy/geant::MeV
-                  << "   emax  = " << fMaxLambdaTableEnergy/geant::MeV
-                  << "   bins  = " << fNumLambdaTableBins << std::endl;
+//        std::cerr << "        ===> Mat = " << matCut->GetMaterial()->GetName()
+//                  << "   emin  = " << fMinLambdaTableEnergy/geant::MeV
+//                  << "   emax  = " << fMaxLambdaTableEnergy/geant::MeV
+//                  << "   bins  = " << fNumLambdaTableBins << std::endl;
         fLambdaTablesPerMaterial[matIndx]                   = new ALambdaTable();
         fLambdaTablesPerMaterial[matIndx]->fLambdaMax       = -1.0;
         fLambdaTablesPerMaterial[matIndx]->fLambdaMaxEnergy = -1.0;
@@ -163,8 +163,8 @@ void LambdaTable::BuildLambdaTables() {
           fLambdaTablesPerMaterial[matIndx]->fOneLambdaTable[iener] = macXsec;
         }
 
-std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMaxEnergy/geant::MeV
-<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMax*geant::mm << std::endl;
+//std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMaxEnergy/geant::MeV
+//<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMax*geant::mm << std::endl;
 
         fLambdaTablesPerMaterial[matIndx]->fSpline =
             new Spline(&fEnergyGrid[0], &(fLambdaTablesPerMaterial[matIndx]->fOneLambdaTable[0]), fNumLambdaTableBins);
@@ -185,10 +185,10 @@ std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<<
         fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMax       = -1.0;
         fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMaxEnergy = -1.0;
         GenerateEnergyGrid(matCut, fLambdaTablesPerMaterialCuts[matCutIndx]);
-        std::cerr << "        ===> MatCut = "<< matCut->GetMaterial()->GetName()
-                  << "   emin  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMinLambdaTableEnergy/geant::MeV
-                  << "   emax  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMaxLambdaTableEnergy/geant::MeV
-                  << "   bins  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins << std::endl;
+//        std::cerr << "        ===> MatCut = "<< matCut->GetMaterial()->GetName()
+//                  << "   emin  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMinLambdaTableEnergy/geant::MeV
+//                  << "   emax  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMaxLambdaTableEnergy/geant::MeV
+//                  << "   bins  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins << std::endl;
         for (int iener=0; iener<fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins; ++iener) {
           double ekin    = fLambdaTablesPerMaterialCuts[matCutIndx]->fEnergyGrid[iener];
 //          if (iener==0) {
@@ -209,8 +209,8 @@ std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<<
             new Spline(&(fLambdaTablesPerMaterialCuts[matCutIndx]->fEnergyGrid[0]),
                        &(fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaTable[0]),
                        fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins);
-std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMaxEnergy/geant::MeV
-<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMax*geant::mm << std::endl;
+//std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMaxEnergy/geant::MeV
+//<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMax*geant::mm << std::endl;
       }
     }
   }

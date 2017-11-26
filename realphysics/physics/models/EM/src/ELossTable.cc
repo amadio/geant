@@ -317,6 +317,7 @@ void ELossTable::InitializeEnergyGrid() {
 
 
 void ELossTable::BuildOneELossData(ELossData *lossdata, bool iscomputetotaldata) {
+/*
   std::cerr<<"  ---------------------------------------------------------------\n";
   std::cerr<<"  ====  Building ELossData for: \n"
            <<"      particle     = " << (lossdata->fParticle)->GetName() <<"\n"
@@ -327,15 +328,16 @@ void ELossTable::BuildOneELossData(ELossData *lossdata, bool iscomputetotaldata)
   std::cerr<<"      materialcuts = " << lossdata->fMaterialCuts;
   std::cerr<<std::endl;
   std::cerr<<"   --------- building restricted dxdx .............";
+*/
   BuildRestrictedDEDXTable(lossdata);
-  std::cerr<<"  is done! " << std::endl;
-  std::cerr<<"   --------- building restricted range ............";
+//  std::cerr<<"  is done! " << std::endl;
+//  std::cerr<<"   --------- building restricted range ............";
   BuildRestrictedRangeTable(lossdata);
-  std::cerr<<"  is done! " << std::endl;
+//  std::cerr<<"  is done! " << std::endl;
   if (iscomputetotaldata) {
-    std::cerr<<"   --------- building total(CSDA) range ........... ";
+//    std::cerr<<"   --------- building total(CSDA) range ........... ";
     BuildTotalRangeTable(lossdata);
-    std::cerr<<" is done! " << std::endl;
+//    std::cerr<<" is done! " << std::endl;
   }
 }
 
@@ -465,9 +467,9 @@ void ELossTable::Clear() {
     for (unsigned long j=0; j<fELossDataPerMaterialCutsPerParticle[i].size(); ++j) {
       if (fELossDataPerMaterialCutsPerParticle[i][j]) {
         ELossData *lossData = fELossDataPerMaterialCutsPerParticle[i][j];
-        std::cerr<<"  ++++  Deleting ELossData data for \n"
-                 <<"        particle     =  " <<lossData->fParticle->GetName() <<"\n"
-                 <<"        materialcut  = " <<lossData->fMaterialCuts<<std::endl;
+//        std::cerr<<"  ++++  Deleting ELossData data for \n"
+//                 <<"        particle     =  " <<lossData->fParticle->GetName() <<"\n"
+//                 <<"        materialcut  = " <<lossData->fMaterialCuts<<std::endl;
         delete [] lossData->fRestrictedDEDXData;
         delete [] lossData->fRestrictedRangeData;
         if (lossData->fRangeData) {    // if total data was also computed

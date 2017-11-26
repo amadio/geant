@@ -1,5 +1,6 @@
 #include "GunGenerator.h"
 #include "GeantTrackVec.h"
+#include "GeantTaskData.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
@@ -22,9 +23,9 @@ GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, 
                            double ydir, double zdir)
     : fAverage(aver), fPDG(partpdg),
       fPartEkin(partekin),
-      fXPos(xpos), fYPos(ypos), fZPos(zpos), 
-      fXDir(xdir), fYDir(ydir), fZDir(zdir), 
-      fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), 
+      fXPos(xpos), fYPos(ypos), fZPos(zpos),
+      fXDir(xdir), fYDir(ydir), fZDir(zdir),
+      fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0),
       fPTotal(0), fETotal(0),
       fRndgen(0) {
   // Constructor
@@ -41,7 +42,7 @@ GunGenerator::GunGenerator(int aver, int partpdg, double partekin, double xpos, 
 }
 
 //______________________________________________________________________________
-GunGenerator::~GunGenerator() { 
+GunGenerator::~GunGenerator() {
   // Destructor
   delete fRndgen;
 }
@@ -76,7 +77,7 @@ void GunGenerator::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-GeantEventInfo GunGenerator::NextEvent() {
+GeantEventInfo GunGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
   //
   int ntracks = 1;
   if (fAverage > 1)
@@ -97,7 +98,7 @@ GeantEventInfo GunGenerator::NextEvent() {
 }
 
 //______________________________________________________________________________
-void GunGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack) {
+void GunGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
 

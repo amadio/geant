@@ -56,10 +56,12 @@ void PhysicsProcessHandler::Initialize() {
   MaterialCuts::CreateAll();
   //
   // print out the MaterialCuts-table
-  std::cout<<MaterialCuts::GetTheMaterialCutsTable();
+  size_t numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
+  std::cerr<< " ====  Number of material-cuts = " << numMatCuts << std::endl;
+//  std::cout<<MaterialCuts::GetTheMaterialCutsTable();
   //
-  // print out the MaterialCuts-table
-  std::cout<<Material::GetTheMaterialTable();
+  // print out the Material-table
+//  std::cout<<Material::GetTheMaterialTable();
   //
   // set number of regions in the PhysicsListManager before we execute the user RegisterPhysicsList method(s)
   PhysicsListManager::Instance().SetNumberOfRegions(vecgeom::Region::GetNumberOfRegions());

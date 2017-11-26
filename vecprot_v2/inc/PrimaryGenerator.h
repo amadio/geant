@@ -23,6 +23,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using vecgeom::kRadToDeg;
 using vecgeom::kDegToRad;
 
+class GeantTaskData;
+
 struct GeantEventInfo {
   int      ntracks;    // number of tracks
   double   xvert;      // x position
@@ -61,16 +63,20 @@ public:
    */
   virtual void InitPrimaryGenerator() = 0;
 
-  /** @brief  Pure virtual function that produce next event */
-  virtual GeantEventInfo NextEvent() = 0;
+  /** @brief  Pure virtual function that produce next event
+    *
+    * @param td thread local data pointer
+    */
+  virtual GeantEventInfo NextEvent(Geant::GeantTaskData* td) = 0;
 
   /**
    * @brief Pure virtual function that returns track
    *
    * @param n Track index
    * @param gtrack track
+   * @param td thread local data pointer
    */
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack) = 0;
+  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td) = 0;
 
   /** @brief Getter for eta cut flag */
   bool HasEtaCut() const { return fEtaCut; }

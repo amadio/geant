@@ -11,6 +11,8 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+class GeantTaskData;
+
 class HepMCGenerator : public PrimaryGenerator {
 private:
   HepMC::Reader *input_file;
@@ -23,8 +25,8 @@ public:
 
   // set one GeantTrack primary track properties
   virtual void InitPrimaryGenerator();
-  virtual GeantEventInfo NextEvent();
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack);
+  virtual GeantEventInfo NextEvent(Geant::GeantTaskData* td);
+  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/);
   // used from Geant4 test-complex to take one primary track
   void GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0, double &z0, int &pdg);
 

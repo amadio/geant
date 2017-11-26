@@ -5,6 +5,7 @@ using vecgeom::kPi;
 #include "Geant/Error.h"
 
 #include "GeantTrackVec.h"
+#include "GeantTaskData.h"
 
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"
@@ -25,10 +26,10 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
   if (filename.substr(filename.find_last_of(".") + 1) == "hepmc3") {
     input_file = new HepMC::ReaderAscii(filename);
   }
-#ifdef USE_ROOT 
+#ifdef USE_ROOT
   else if (filename.substr(filename.find_last_of(".") + 1) == "root") {
     input_file = new HepMC::ReaderRoot(filename);
-  } 
+  }
 #endif
   else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
@@ -48,7 +49,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-GeantEventInfo HepMCGenerator::NextEvent() {
+GeantEventInfo HepMCGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
   //
   // Delete previous event
   delete search;
@@ -102,7 +103,7 @@ GeantEventInfo HepMCGenerator::NextEvent() {
   if (ntot > ntracks)
     std::cout << " out of " << ntot;
   std::cout << std::endl;
-  
+
   GeantEventInfo current;
   current.ntracks = ntracks;
   current.xvert = evt.event_pos().x();
@@ -113,7 +114,7 @@ GeantEventInfo HepMCGenerator::NextEvent() {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
+void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
   int itr = 0;
   double eta, phi, pmom = 0;
@@ -142,7 +143,7 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack) {
         if (pmom < fPMin || pmom > fPMax)
           continue;
       }
-    }    
+    }
 
     // here I have to create GeantTracks
     int pdg = genpart->pid();

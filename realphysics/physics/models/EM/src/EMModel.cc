@@ -84,13 +84,13 @@ int EMModel::SampleTargetElementIndex(const MaterialCuts* matcut, double ekin, d
                <<"         method of the derived class name = "<<GetName()<<" \n"
                <<std::endl;
     } else if (fIsElementSelectorsPerMaterial) {
-      els = fElementSelectors[matcut->GetIndex()];
-    } else {
       els = fElementSelectors[matcut->GetMaterial()->GetIndex()];
+    } else {
+      els = fElementSelectors[matcut->GetIndex()];
     }
     // just for the dev. to make sure
     if (els==nullptr) {
-      std::cerr<<" ---- nullptr the EMElementSelector \n"; exit(-1);
+      std::cerr<<" ---- nullptr the EMElementSelector : emmodel"<< GetName() << "  matcut = "<< matcut->GetMaterial()->GetName()<< "  matcut indx = "<<matcut->GetIndex() << "  matindx = "<< matcut->GetMaterial()->GetIndex()<<" \n"; exit(-1);
     }
     elIndx = els->SampleTargetElement(ekin,rndm);
   }

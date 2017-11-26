@@ -2,9 +2,8 @@
 # Add include directories, sources and headers
 #
 include_directories(
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
@@ -24,13 +23,15 @@ if (USE_TBB)
 endif()
 
 set(sources
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloApp.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloDetectorConstruction.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloAppData.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloPrimaryGenerator.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/src/CaloPhysicsList.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/src/ExN03ApplicationRP.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/src/TestEM3ApplicationRP.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSDetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSFullApp.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSData.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSParticleGun.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3App.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3DetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3Data.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3PrimaryGenerator.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3PhysicsList.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5Data.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/UserDetectorConstruction.cxx
@@ -41,13 +42,15 @@ set(sources
   )
 
 set(headers
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloApp.h
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloDetectorConstruction.h
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloAppData.h
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloPrimaryGenerator.h
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc/CaloPhysicsList.h
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/ExN03ApplicationRP.h
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc/TestEM3ApplicationRP.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSDetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSFullApp.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSData.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSParticleGun.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3App.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PrimaryGenerator.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PhysicsList.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/UserDetectorConstruction.h
@@ -60,7 +63,7 @@ set(headers
 if (USE_ROOT)
   ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
     LINKDEF
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/LinkDef.h
+##    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc/LinkDef.h
 ##    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc/LinkDef.h
 ##    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/LinkDef.h
     OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
@@ -114,6 +117,7 @@ endif()
 # The Geant4 version of the example applications (only if build with Geant4 was requested)
 #
 if (WITH_GEANT4)
-  add_subdirectory(Geant4/SimplyCalo)
+  add_subdirectory(Geant4/TestEm3)
   add_subdirectory(Geant4/TestEm5)
+  add_subdirectory(Geant4/FullCMS)
 endif()

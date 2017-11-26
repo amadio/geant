@@ -15,6 +15,8 @@ using vecgeom::RNG;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+class GeantTaskData;
+
 class GunGenerator : public PrimaryGenerator {
 private:
   int fAverage; // Average number of tracks for Poisson distribution
@@ -51,8 +53,8 @@ public:
 
   // set one GeantTrack primary track properties
   virtual void InitPrimaryGenerator();
-  virtual GeantEventInfo NextEvent();
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack);
+  virtual GeantEventInfo NextEvent(Geant::GeantTaskData* td);
+  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td);
 
 private:
   GunGenerator(const GunGenerator &);            // no imp.

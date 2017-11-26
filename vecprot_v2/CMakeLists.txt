@@ -10,10 +10,9 @@ if (USE_REAL_PHYSICS)
     ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
     ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
     ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/ExN03RP/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3RP/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/CaloRP/inc
+    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
+    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
     )
 else()
   include_directories(
@@ -322,10 +321,9 @@ endif()
 else()
 # -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
-  caloAppRP.cc
-  runAppRP.cc
-  runAppTestEM3RP.cc
-  runTestEm5.cc
+  fullCMS.cc
+  TestEm3_GV.cc
+  TestEm5_GV.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -345,13 +343,9 @@ function(add_to_ctest EXECUTABLES)
   foreach(EXECUTABLE ${EXECUTABLES})
     if (CTEST)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
-      if(TARGET_NAME STREQUAL "runAppRP")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root)
-      elseif(TARGET_NAME STREQUAL "caloAppRP")
+      if(TARGET_NAME STREQUAL "TestEm3_GV")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}>)
-      elseif(TARGET_NAME STREQUAL "runAppTestEM3RP")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ATLASbar.root)
-      elseif(TARGET_NAME STREQUAL "runTestEm5")
+      elseif(TARGET_NAME STREQUAL "TestEm5_GV")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}>)
       else()
         add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
@@ -372,30 +366,45 @@ endif()
 #----------------------------------------------------------------------------
 # Copy all scripts and install the executable(s)
 #
-### TestEm5 ###
-set(TestEm5_OUTPUT bin/examples/TestEm5/GeantV)
-set(TestEm5_SCRIPTS hanson19_GV.mac hanson_19.dat)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm5_OUTPUT})
-foreach(_script ${TestEm5_SCRIPTS})
+### TestEm5_GV ###
+set(TestEm5_GV_OUTPUT bin/examples/TestEm5/GeantV)
+set(TestEm5_GV_SCRIPTS TestEm5_GV_hanson19.mac hanson_19.dat README_TestEm5_GV)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm5_GV_OUTPUT})
+foreach(_script ${TestEm5_GV_SCRIPTS})
   configure_file(
     ${_script}
-    ${CMAKE_BINARY_DIR}/${TestEm5_OUTPUT}/${_script}
+    ${CMAKE_BINARY_DIR}/${TestEm5_GV_OUTPUT}/${_script}
     COPYONLY
     )
 endforeach()
-install(TARGETS runTestEm5 DESTINATION ${TestEm5_OUTPUT})
-install(FILES ${TestEm5_SCRIPTS} DESTINATION ${TestEm5_OUTPUT})
-### The remaining ### (calo applications; runAppRP and runAppTestEM3RP will be removed soon)
-set(caloApp_OUTPUT bin/examples/Calorimeter/GeantV)
-set(caloApp_SCRIPTS caloApp.mac)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${caloApp_OUTPUT})
+install(TARGETS TestEm5_GV DESTINATION ${TestEm5_GV_OUTPUT})
+install(FILES ${TestEm5_GV_SCRIPTS} DESTINATION ${TestEm5_GV_OUTPUT})
+### fullCMS ###
+set(fullCMS_OUTPUT bin/examples/FullCMS/GeantV)
+set(fullCMS_SCRIPTS fullCMS.mac README_fullCMS)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT})
+foreach(_script ${fullCMS_SCRIPTS})
   configure_file(
-    caloApp.mac
-    ${CMAKE_BINARY_DIR}/${caloApp_OUTPUT}/caloApp.mac
+    ${_script}
+    ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT}/${_script}
     COPYONLY
     )
-install(TARGETS caloAppRP runAppRP runAppTestEM3RP DESTINATION ${caloApp_OUTPUT})
-install(FILES caloApp.mac DESTINATION ${caloApp_OUTPUT})
+endforeach()
+install(TARGETS fullCMS DESTINATION ${fullCMS_OUTPUT})
+install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
+### TestEm3_GV ###
+set(TestEm3_GV_OUTPUT bin/examples/Calorimeter/GeantV)
+set(TestEm3_GV_SCRIPTS TestEm3_ATLASbar_GV.mac README_TestEm3_GV)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm3_GV_OUTPUT})
+foreach(_script ${TestEm3_GV_SCRIPTS})
+  configure_file(
+    ${_script}
+    ${CMAKE_BINARY_DIR}/${TestEm3_GV_OUTPUT}/${_script}
+    COPYONLY
+    )
+endforeach()
+install(TARGETS TestEm3_GV DESTINATION ${TestEm3_GV_OUTPUT})
+install(FILES ${TestEm3_GV_SCRIPTS} DESTINATION ${TestEm3_GV_OUTPUT})
 # -------  END == WITH REAL PHYSICS -------------------------------------------------------
 endif()
 
