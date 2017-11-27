@@ -101,10 +101,10 @@ Geant::EventSet *ExN03Application::GenerateEventSet(size_t nevents, Geant::Geant
   EventSet *evset = new EventSet(nevents);
   for (size_t i=0 ; i< nevents; ++i) {
     GeantEvent *event = new GeantEvent();
-    GeantEventInfo event_info = fGenerator->NextEvent();
+    GeantEventInfo event_info = fGenerator->NextEvent(td);
     while (event_info.ntracks == 0) {
       printf("Discarding empty event\n");
-      event_info = fGenerator->NextEvent();
+      event_info = fGenerator->NextEvent(td);
     }
     event->SetNprimaries(event_info.ntracks);
     event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
@@ -112,7 +112,7 @@ Geant::EventSet *ExN03Application::GenerateEventSet(size_t nevents, Geant::Geant
       GeantTrack &track = td->GetNewTrack();
       track.fParticle = event->AddPrimary(&track);
       track.SetPrimaryParticleIndex(itr);
-      fGenerator->GetTrack(itr, track);
+      fGenerator->GetTrack(itr, track, td);
     }
     evset->AddEvent(event);
   }
