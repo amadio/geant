@@ -136,26 +136,13 @@ int main(int argc, char *argv[]) {
     std::cout << "### Cannot load geometry from file " << file << std::endl;
     return 1;
   }
-  int maxdepth = TGeoManager::GetMaxLevels();
+  int maxdepth = TGeoManager::GetMaxLevels()+1;
   TrackDataMgr::GetInstance(maxdepth);
   if (nthreads > 1) gGeoManager->SetMaxThreads(nthreads);
 
 #ifdef USE_VECGEOM_NAVIGATOR
   RootGeoManager::Instance().LoadRootGeometry();
-  maxdepth = GeoManager::Instance().getMaxDepth();
-  for (auto &lvol : GeoManager::Instance().GetLogicalVolumesMap()) {
-    if (lvol.second->GetDaughtersp()->size() < 4) {
-      lvol.second->SetNavigator(NewSimpleNavigator<>::Instance());
-    }
-    if (lvol.second->GetDaughtersp()->size() >= 5) {
-      lvol.second->SetNavigator(SimpleABBoxNavigator<>::Instance());
-    }
-    if (lvol.second->GetDaughtersp()->size() >= 10) {
-      lvol.second->SetNavigator(HybridNavigator<>::Instance());
-      HybridManager2::Instance().InitStructure((lvol.second));
-    }
-    lvol.second->SetLevelLocator(SimpleABBoxLevelLocator::GetInstance());
-  }
+  //maxdepth = GeoManager::Instance().getMaxDepth();
 #endif
   
   // Configure the locality manager

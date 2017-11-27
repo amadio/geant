@@ -8,6 +8,8 @@ add_headers("${headers}")
 include_directories(inc 
                     ${CMAKE_SOURCE_DIR}/numa/inc)
 
+install(FILES ${headers} DESTINATION inc/Geant)
+
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen
 #

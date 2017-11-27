@@ -43,4 +43,5 @@ target_link_libraries(GeantNuma  ${NUMA_LIBRARIES} ${VECGEOM_LIBRARIES})
 #----------------------------------------------------------------------------
 add_headers("${headers}")
 
+install(FILES ${headers} DESTINATION inc)
 install(TARGETS GeantNuma DESTINATION lib)

@@ -84,6 +84,12 @@ set(sources
 set(headers
    ${CMAKE_SOURCE_DIR}/base/inc/Geant/Config.h
    ${CMAKE_SOURCE_DIR}/base/inc/Geant/Error.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/globals.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFwd.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/dcqueue.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/mpmc_bounded_queue.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/priority_queue.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/condition_locker.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsInterface.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcessOld.h
@@ -102,6 +108,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackVec.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackGeo.h
@@ -110,6 +117,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVDetectorConstruction.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactory.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactoryStore.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingFile.h
@@ -180,6 +188,8 @@ endif()
 
 set(GEANTV_HEADERS ${headers} )
 set(GEANTV_SOURCES ${sources} )
+
+install(FILES ${GEANTV_HEADERS} DESTINATION inc)
 
 #----------------------------------------------------------------------------------------------
 # CUDA section
