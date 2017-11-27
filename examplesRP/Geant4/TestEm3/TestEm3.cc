@@ -90,7 +90,7 @@ void help() {
            <<"      -m :   REQUIRED : the standard Geamt4 macro file\n"
            << std::endl;
 
-  std::cout<<"\nUsage: SimplyCalo [OPTIONS] INPUT_FILE\n\n"<<std::endl;
+  std::cout<<"\nUsage: TestEm3 [OPTIONS] INPUT_FILE\n\n"<<std::endl;
 
   for (int i = 0; options[i].name != NULL; i++) {
     printf("\t-%c  --%s\t%s\n", options[i].val, options[i].name, options[i].has_arg ? options[i].name : "");

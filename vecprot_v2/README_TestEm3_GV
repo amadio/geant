@@ -1,1 +1,192 @@
-will be added
+GeantV General Simplified Calorimeter Test (November, 2017, M.Novak)
+===============================================================================
+
+'TestEm3_GV' is fully configurable, general simplified calorimeter GeantV
+application. (The corresponding Geant4 application is 'TestEm3'.)
+
+
+----------------------------
+- DETECTOR
+----------------------------
+
+The detector is a general, simplified sampling calorimeter built up from boxes.
+The calorimeter itself is built up from arbitrary number of layers, where each
+layer is built up from arbitrary number of absorbers. The number of absorbers
+per layer, their thickness and material, the number of layers as well as the
+transverse size of the calorimeter can be set through input arguments:
+
+# Number of absorbers per layer:
+    The number of absorbers per layer can be specified by input argument
+
+    --det-number-of-absorbers   <number>
+
+    A sampling calorimeter usually built up from identical layers of 2
+    absorbers: absorber and gap. However, up to 10 absorbers can be specified
+    in this application and this maximum number can easily be increased by
+    changing the TestEm3DetectorConstruction::gMaxNumAbsorbers value.
+    The properties(thickness, material) of each absorber can be set by using
+    the  --det-set-absorber input argument:
+
+      == Setting the absorber material:
+
+        --det-set-absorber  absorber-index=<index>,material-name=<name>
+
+      where <index> is the index of the absorber which material is currently
+      specified. Note, that <name> should be identical either to a name of a
+      material defined in the TestEm3DetectorConstruction::CreateMaterials()
+      method or to a name of a pre-defined NIST material.
+
+      == Setting the absorber thickness:
+
+        --det-set-absorber  absorber-index=<index>,thickness=<value>
+
+      where <index> is the index of the absorber which thickness is currently
+      specified and <value> is the thickness value in [cm] units.
+
+    Note, that with these arguments (first setting number of absorbers per
+    layers, then giving the material and thickness of each absorber) one can
+    specify one layer of the sampling calorimeter.
+
+# Number of layers:
+    The number of layers can be specified by input argument
+
+    --det-number-of-layers  <number>
+
+# Transverse size of the calorimeter:
+    The transverse size of the calorimeter can be specified by input argument
+
+    --det-set-sizeYZ  <value>
+
+    where <value> is the transverse size in [cm] units.
+
+Note, that with the above input arguments one can specify any simplified
+sampling calorimeter (detector).
+
+
+----------------------------------
+- SECONDARY PRODUCTION THRESHOLD
+---------------------------------
+
+When the calorimeter is constructed it is placed into a detector region.
+The secondary production threshold of this region can be set by input argument
+
+  --det-prod-cut-length  <value>
+
+where value is the common secondary (gamma,e- and e+) production threshold in
+length (in [cm] unit).
+
+
+-----------------------------
+- PRIMARY GENERATOR
+-----------------------------
+
+The primary generator is a particle gun that will generate primary particles
+at a position determined automatically (placed between the calorimeter and the
+world) and pointing into the longitudinal direction of the calorimeter toward
+to the calorimeter (x-direction). The following options are available to set
+this primary generator:
+
+# Primary particle energy:
+    The primary particle energy can be set as an input argument by
+
+    --gun-primary-energy  <value>
+
+    where value is the kinetic energy of the primary particles in [GeV] unit.
+
+# Primary particle type:
+    The primary particle type can be set as an input argument
+
+    --gun-primary-type      <name>
+
+    where <name> should be identical one of the particle names that are
+    used in the physics list (i.e. e-,e+ or gamma).
+
+
+------------------------
+- PHYSICS LIST
+------------------------
+
+A custom GeantV physics list is used for the application that includes the
+standrad EM processes for e- (ionization, bremsstrahlung, Coulomb scattering),
+e+ (ionization, bremsstrahlung, Coulomb scattering) and gamma (photoelectric
+absorption, Compton scattering, e-e+ pair production). Note, that energy loss
+fluctuation and e+ annihilation are not included in the physics list. The
+corresponding Geant4 physics list (PhysListGVStandard) has been created and
+used as default in the equivalent 'TestEm3' Geant4 application.
+
+The multiple Coulomb scattering stepping algorithm can be specified as an
+input argument by
+
+  --process-MSC-step-limit  <name>
+
+where <name> should be identical to the name of one of the available stepping
+algorithms (i.e. UseSafety, UseDistanceToBoundary, ErrorFree).
+
+
+-------------------------
+- RUN CONFIGURATION
+-------------------------
+
+The application can be used both with single and multiple worker threads.
+GeantV can use multiple propagators per-worker threads and transport nultiple
+events simultaneously (the work/tracks will be distributed among the worker
+threads). The corresponding options:
+
+# Number of worker threads:
+    The number of worker threads can be specified as an input argument by
+
+    --config-number-of-threads  <number>
+
+# Number of propagators per-worker thread:
+    The number of propagators can be specified as an input argument by
+
+    --config-number-of-propagators <number>
+
+# Number of buffered events:
+    The number of events transported simultaneously can be set as an input
+    argument by
+
+    --config-number-of-buffered-events <number>
+
+# Total number of events to be transported:
+    The total number of events to be transported can be set as an input
+    argument by
+
+    --config-total-number-of-events  <number>
+
+# Number of primaries per event:
+    The number of primary particles per event can be set as an input argument
+
+    --config-number-of-primary-per-events <number>
+
+Note, config-number-of-primary-per-events times config-total-number-of-events
+primary particles will be transported during the entire simulation.
+
+A set of observable is collected during the simulation:
+  # per-absorber:
+    - mean energy deposit, resolution and charged track length per primary
+      particle
+  # per primary particle:
+    - mean number of secondary gamma, e- and e+, mean number of charged and
+      neutral steps per primary particle
+These information is reported at the end of the simulation.
+
+The simulation can be executed in "performance" mode by providing the
+
+  --config-run-performance
+
+flag as an input argument. User actions are not invoked (early returns) in this
+case. Therefore, there is no any scoring in this case.
+
+
+-------------------------
+- EXAMPLE
+-------------------------
+
+The 'TestEm3_GV_ATLASbar.mac' script is provided as an example to simulate 10
+events in an ATLAS barrel like simplified sampling calorimeter (50 layers of
+2.3 mm lead and 5.7 mm liquid argon). Each event will contain 1000 primary
+electrons with 100 MeV kinetic energy. 4 events will be taken and transported
+simultaneously by using 4 worker threads with one propagator each
+in non performance mode (i.e. user actions are active and statistics are
+reported after each event and at the end of the simulation).

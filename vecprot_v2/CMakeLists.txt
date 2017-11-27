@@ -400,7 +400,7 @@ install(TARGETS TestEm5_GV DESTINATION ${TestEm5_GV_OUTPUT})
 install(FILES ${TestEm5_GV_SCRIPTS} DESTINATION ${TestEm5_GV_OUTPUT})
 ### fullCMS ###
 set(fullCMS_OUTPUT bin/examples/FullCMS/GeantV)
-set(fullCMS_SCRIPTS fullCMS.mac README_fullCMS)
+set(fullCMS_SCRIPTS fullCMS.mac README_fullCMS ${CMAKE_SOURCE_DIR}/examplesRP/Geant4/FullCMS/cms.gdml)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT})
 foreach(_script ${fullCMS_SCRIPTS})
   configure_file(
@@ -413,7 +413,7 @@ install(TARGETS fullCMS DESTINATION ${fullCMS_OUTPUT})
 install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
 ### TestEm3_GV ###
 set(TestEm3_GV_OUTPUT bin/examples/Calorimeter/GeantV)
-set(TestEm3_GV_SCRIPTS TestEm3_ATLASbar_GV.mac README_TestEm3_GV)
+set(TestEm3_GV_SCRIPTS TestEm3_GV_ATLASbar.mac README_TestEm3_GV)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm3_GV_OUTPUT})
 foreach(_script ${TestEm3_GV_SCRIPTS})
   configure_file(

@@ -1,1 +1,180 @@
-will be added
+GeantV TestEm5 (November, 2017, M.Novak)
+===============================================================================
+
+'TestEm5_GV' is a GeantV application to simulate angular distribution of
+charged particles transmitted through a thin layer of material. Other
+quantities like transmission/reflection coefficients or primary/secondary
+leakage are also reported. (The corresponding Geant4 application is 'TestEm5'.)
+
+
+----------------------------
+- DETECTOR
+----------------------------
+
+The detector is a simple box with the following configurable parameters:
+
+# Target material
+    The target material can be specified as an input argument by
+
+    --det-Target-Material-Name <name>
+
+    Note, that <name> should be identical either to a name of a
+    material defined in the UserDetectorConstruction::CreateMaterials()
+    method or to a name of a pre-defined NIST material.
+
+# Target thickness:
+    The target thickness can be specified as an input argument by
+
+    --det-Target-Thickness <value>
+
+    where <value> is the desired thickness in [cm] unit.
+
+# Secondary production thresholds:
+    When the detector is constructed, it is placed into a region. Secondary
+    particle production threshold can be specified either for all particles
+    (i.e. for gamma, e- and e+) or individual values for particles. A common
+    value can be set by
+
+    --det-Production-Cuts <value>
+
+    where <value> is the common production threshold for all particles in
+    length (in [cm] unit). The value will be considered only if its > 0. Values
+    for individual particles can be set by
+
+    --det-Gamma-Production-Cut    <gamma-value>
+    --det-Electron-Production-Cut <electron-value>
+    --det-Positron-Production-Cut <positron-value>
+
+
+  -----------------------------
+  - PRIMARY GENERATOR
+  -----------------------------
+
+  The primary generator is a particle gun that will generate primary particles
+  at a position determined automatically (placed between the target and the
+  world) and pointing toward to the target. The following options are available
+  to set this primary generator:
+
+  # Primary particle energy:
+      The primary particle energy can be set as an input argument by
+
+      --gun-Primary-Kinetic-Energy  <value>
+
+      where value is the kinetic energy of the primary particles in [GeV] unit.
+
+  # Primary particle type:
+      The primary particle type can be set as an input argument
+
+      --gun-Primary-Particle-Name      <name>
+
+      where <name> should be identical one of the particle names that are
+      used in the physics list (i.e. e-, e+, gamma, proton, neutron, etc).
+
+
+------------------------
+- PHYSICS LIST
+------------------------
+
+A custom GeantV physics list is used for the application that includes the
+standrad EM processes for e- (ionization, bremsstrahlung, Coulomb scattering),
+e+ (ionization, bremsstrahlung, Coulomb scattering) and gamma (photoelectric
+absorption, Compton scattering, e-e+ pair production) and elastic process for
+hadrons. Note, that energy loss fluctuation and e+ annihilation are not
+included in the physics list. The corresponding Geant4 physics list (PhysList-
+GVStandard) has been created and used as default in the equivalent 'TestEm5'
+Geant4 application.
+
+The multiple Coulomb scattering stepping algorithm can be specified as an
+input argument by
+
+  --process-MSC-Step-Limit  <name>
+
+where <name> should be identical to the name of one of the available stepping
+algorithms (i.e. UseSafety, UseDistanceToBoundary, ErrorFree).
+The physics list contains an additional step limiter process. The maximum
+allowed (real) step length can be set by
+
+  --process-Step-Max-Value <value>
+
+where value is the maximum allowed real step length in [cm] unit.
+
+
+
+-------------------------
+- RUN CONFIGURATION
+-------------------------
+
+The application can be used both with single and multiple worker threads.
+GeantV can use multiple propagators per-worker threads and transport multiple
+events simultaneously (the work/tracks will be distributed among the worker
+threads). The corresponding options:
+
+# Number of worker threads:
+    The number of worker threads can be specified as an input argument by
+
+    --config-Number-Of-Threads  <number>
+
+# Number of propagators per-worker thread:
+    The number of propagators can be specified as an input argument by
+
+    --config-Number-Of-Propagators <number>
+
+# Number of buffered events:
+    The number of events transported simultaneously can be set as an input
+    argument by
+
+    --config-Number-Of-Buffered-Events <number>
+
+# Total number of events to be transported:
+    The total number of events to be transported can be set as an input
+    argument by
+
+    --config-Total-Number-Of-Events  <number>
+
+# Number of primaries per event:
+    The number of primary particles per event can be set as an input argument
+
+    --config-Number-Of-Primary-Per-Events <number>
+
+Note, config-Number-Of-Primary-Per-Events times Config-Total-Number-Of-Events
+primary particles will be transported during the entire simulation.
+
+A set of observable is collected during the simulation:
+  # Angular distribution of charged particles transmitted through the target.
+    One can set the corresponding histogram parameters:
+    ## Name of the histogram file:
+
+    --app-Hist1-File-Name <name>
+
+    ## Minimum theta value (in degree) of the histogram:
+
+    --app-Hist1-Minimum-Value <value>
+
+    ## Maximum theta value (in degree) of the histogram:
+
+    --app-Hist1-Maximum-Value <value>
+
+    ## Number of bins between the minimum-maximum values:
+
+    --app-Hist1-Bin-Number <value>
+
+  # Mean energy deposit in the target, primary, secondary leakage and energy
+    balance. Mean charged, neutral track lengths and number of steps in the
+    target. Mean number of secondary gamma, e- and e+ particles per primary.
+    Transmitted and backscattering coefficients.
+
+
+-------------------------
+- EXAMPLE
+-------------------------
+
+Experimental data 'hanson_19.dat' was taken from A.O.Hanson et al. Phys.Rev.84
+(1951) page 634: angular distribution of 15.7 [MeV] electrons transmitted
+through 19.296 [um] gold sample.
+
+The 'TestEm5_GV_hanson19.mac' script is provided as an example to simulate this
+experimental data using 4000 events. Each event will contain 1000 primary
+electrons with 15.7 [MeV] kinetic energy. 4 events will be taken and
+transported simultaneously by using 4 worker threads with one propagator each.
+The simulated angular distribution is written into the 'hanson19_GV_opt0.hist'
+file at the end of the simulation.

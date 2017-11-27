@@ -113,7 +113,7 @@ static struct option options[] = {
 
   {"app-Hist1-File-Name"          , required_argument, 0,  'i'},
   {"app-Hist1-Bin-Number"         , required_argument, 0,  'j'},
-  {"app-Hist1-Minum-Value"        , required_argument, 0,  'k'},
+  {"app-Hist1-Minimum-Value"      , required_argument, 0,  'k'},
   {"app-Hist1-Maximum-Value"      , required_argument, 0,  'l'},
 
   {"config-Number-Of-Buffered-Events"    , required_argument, 0,  'm'},

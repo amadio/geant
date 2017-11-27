@@ -126,7 +126,7 @@ static struct option options[] = {
          {"config-number-of-propagators"        , required_argument, 0,  'q'},
          {"config-run-performance"              , no_argument      , 0,  'r'},
 
-				 {"particle-process-MSC-step-limit"    , required_argument, 0, 'A'},
+				 {"process-MSC-step-limit"              , required_argument, 0,  'A'},
 
          {"help", no_argument, 0, 'h'},
          {0, 0, 0, 0}

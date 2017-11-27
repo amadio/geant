@@ -7,7 +7,7 @@
 ### of the TestEm5 GeantV application (target material, target thickness, secondary production cuts, etc.)
 ###
 ###
-./runTestEm5_GV \
+./TestEm5_GV \
 "### detector configuration parameters:"\
   --det-Target-Material-Name             NIST_MAT_Au   "# material of the target"\
   --det-Target-Thickness                 0.0019296     "# target thickness (in internal [length] unit)"\
@@ -21,7 +21,7 @@
 "### hist1 (i.e. angular distribution of transmitted charged particles) parameters:"\
   --app-Hist1-File-Name                  hanson19_GV_opt0.hist  "# name of the output hist1 histogram file"\
   --app-Hist1-Bin-Number                 120           "# number of theta bins in hist1"\
-  --app-Hist1-Minum-Value                0.            "# minimum theta value of the hist1 histogram"\
+  --app-Hist1-Minimum-Value              0.            "# minimum theta value of the hist1 histogram"\
   --app-Hist1-Maximum-Value              30.           "# maximun theta value of the hist1 histogram"\
 "### run configuration parameters:"\
   --config-Number-Of-Buffered-Events     4             "# number of events transported at once"\

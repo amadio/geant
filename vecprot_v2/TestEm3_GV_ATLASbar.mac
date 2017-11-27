@@ -1,8 +1,8 @@
 ###
-### GeantV TestEm3 application script to simulate calorimeter response to incident particles
+### GeantV TestEm3 application script to simulate calorimeter response.
 ###
 ### Note, that the script shows all the possible input arguments that makes possible the configuration
-### of the TestEm3 GeantV application. The default settings correspond to the ATLAS bar. simplified
+### of the TestEm3_GV GeantV application. The default settings correspond to the ATLAS bar. simplified
 ### calorimeter test.
 ###
 ###
@@ -26,5 +26,5 @@
   --config-number-of-threads                4         "# number of working threads to be used"\
   --config-number-of-propagators            1         "# number of propagators"\
 "### physics process configuration parameters:"\
-  --particle-process-MSC-step-limit     UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
+  --process-MSC-step-limit             UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
 "##  --config-run-performance"\                       "# flag to activate performance mode i.e. no scoring"\
