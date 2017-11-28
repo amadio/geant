@@ -68,6 +68,7 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> disx(-dx, dx), disy(-dy, dy), disz(-dz, dz);
   std::uniform_real_distribution<> disphi(0., 2.*M_PI), disrnd(0., 1.);
+  track.Clear();
   track.fXpos = disx(gen);
   track.fYpos = disy(gen);
   track.fZpos = disz(gen);
