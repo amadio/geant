@@ -1651,17 +1651,17 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   }
   if (action != kVector)
     return PropagateTracksScalar(td, 0);
-GeantPropagator *prop = td->fPropagator;
+  GeantPropagator *prop = td->fPropagator;
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
 
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateTracks");
+  BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(ntracks, td);
 //         Printf("====== After ComputeTransportLength:");
 //         PrintTracks();
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterCompTransLen");
+  BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterCompTransLen");
 #endif
 
   int itr = 0;
@@ -1839,7 +1839,7 @@ GeantPropagator *prop = td->fPropagator;
       Compact(&output);
   }
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateTracks");
+  BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateTracks");
 #endif
   return icrossed;
 }
@@ -1858,7 +1858,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
   // Compute transport length in geometry, limited by the physics step
   GeantPropagator *prop = td->fPropagator;
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "PropagateSingle", itr);
+  BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateSingle", itr);
 #endif
   ComputeTransportLengthSingle(itr, td);
 #ifdef BUG_HUNT
@@ -1907,7 +1907,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
 //            CheckLocationPathConsistency(itr);
 #endif
 #ifdef BUG_HUNT
-      BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingleNeutral",
+      BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateSingleNeutral",
                   itr);
 #endif
       return icrossed;
@@ -1994,7 +1994,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
 #endif
   }
 #ifdef BUG_HUNT
-  BreakOnStep(prop->fDebugEvt, prop->fDebugTrk, prop->fDebugStp, prop->fDebugRep, "AfterPropagateSingle", itr);
+  BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "AfterPropagateSingle", itr);
 #endif
   return icrossed;
 }

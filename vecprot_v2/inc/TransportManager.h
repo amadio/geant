@@ -217,7 +217,7 @@ namespace TransportManager {
   
   /** @brief Function allowing to debug a step */
   VECCORE_ATT_HOST_DEVICE
- bool BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp, int nsteps, const char *msg, int itr);
+ bool BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp, int nsteps, const char *msg, int itr=-1);
 
 };
 
