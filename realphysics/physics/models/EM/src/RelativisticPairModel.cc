@@ -869,7 +869,7 @@ void RelativisticPairModel::ComputeLPMFunctions(double &funcPhiS, double &funcGS
 
     //  4. s=\frac{s'}{\sqrt{\xi(s')}}
     double varShat    = varSprime/std::sqrt(funcXiS);
-
+/*
     // - compute \phi(s) and G(s) suppression functions according to Stanev (Geant4 approximations are slightly different)
     //   by replacing s with \hat{s} = s*(1+k_p^2/k^2)
     //  \f[
@@ -893,6 +893,7 @@ void RelativisticPairModel::ComputeLPMFunctions(double &funcPhiS, double &funcGS
     //    1 & \quad \text{if}\; s \geq 2
     //   \end{cases}
     //  \f]
+*/    
     funcPhiS = 6.0*varShat*(1.0-geant::kPi*varShat);
     double funcPsiS = 4.0*varShat;
     if (varShat>=2.0) {
