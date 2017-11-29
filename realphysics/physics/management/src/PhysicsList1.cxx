@@ -90,6 +90,7 @@ void PhysicsList1::Initialize() {
       EMPhysicsProcess *eMSCProc  = new MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
       GSMSCModel       *gsMSCModel = new GSMSCModel();
+      gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(MSCSteppingAlgorithm::kUseSaftey);
       gsMSCModel->SetLowEnergyUsageLimit(100.*geant::eV);
       gsMSCModel->SetHighEnergyUsageLimit(100.*geant::TeV);
@@ -144,9 +145,9 @@ void PhysicsList1::Initialize() {
       // create GS-msc model, set min/max usage limits
       GSMSCModel       *gsMSCModel = new GSMSCModel(false); // for e+
       gsMSCModel->SetMSCSteppingAlgorithm(MSCSteppingAlgorithm::kUseSaftey);
+      gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetLowEnergyUsageLimit(100.*geant::eV);
       gsMSCModel->SetHighEnergyUsageLimit(100.*geant::TeV);
-      gsMSCModel->SetOptionPWAScreening(true);
       eMSCProc->AddModel(gsMSCModel);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);

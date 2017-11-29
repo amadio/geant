@@ -73,13 +73,9 @@ std::cout<<"PhysListGVStandard::PhysListGVStandard........."<<std::endl;
   param->SetLossFluctuations(false);
   param->SetLowestElectronEnergy(1.*CLHEP::keV);
   //
-    param->SetMscRangeFactor(0.1);
-//    param->SetMscStepLimitType(fUseSafetyPlus);// corresponds to Urban fUseSafety (kUseSaftey==>Error-free)
-  param->SetMscStepLimitType(fUseSafety);// corresponds to Urban fUseSafety (kUseSaftey==>Error-free)
-  //param->SetMscSkin(100000000);
+  param->SetMscRangeFactor(0.06);
+  param->SetMscStepLimitType(fUseSafety);// corresponds to Urban fUseSafety
   param->SetMscSkin(3);
-//param->SetMscStepLimitType(fUseDistanceToBoundary);
-
   // set min/max energy for tables: 100 eV - 100 TeV by default
   //param->SetMinEnergy(100*eV);
   //param->SetMaxEnergy(100*TeV);
@@ -95,8 +91,7 @@ std::cout<<"PhysListGVStandard::PhysListGVStandard........."<<std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysListGVStandard::~PhysListGVStandard()
-{}
+PhysListGVStandard::~PhysListGVStandard() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -145,22 +140,14 @@ void PhysListGVStandard::ConstructProcess()
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
       //
 //      ph->RegisterProcess(new G4eplusAnnihilation(), particle);
-
-    } else if( particleName == "proton" ||
-               particleName == "pi-" ||
-               particleName == "pi+" ||
-	       particleName == "pi0" ||
-	       particleName == "kaon+" ||
-	       particleName == "kaon-"
-	       ) {
-
+    } else if (particleName=="proton" || particleName=="pi-"   || particleName=="pi+" ||
+	             particleName=="pi0"    || particleName=="kaon+" || particleName=="kaon-") {
       G4HadronElastic* lhep = new G4HadronElastic();
       G4HadronElasticProcess* hel = new G4HadronElasticProcess();
       hel->AddDataSet(new G4CrossSectionElastic(new G4ComponentGGHadronNucleusXsc()));
       hel->RegisterMe(lhep);
 
       ph->RegisterProcess(hel, particle);
-
     }
   }
 

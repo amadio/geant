@@ -8,7 +8,7 @@
 namespace geantphysics {
 
 
-MSCModel::MSCModel(const std::string& name) : EMModel(name), fRangeFactor(0.1), fSafetyFactor(0.6), fGeomFactor(2.5)
+MSCModel::MSCModel(const std::string& name) : EMModel(name), fRangeFactor(0.06), fSafetyFactor(0.6), fGeomFactor(2.5)
  , fSkin(3.), fMSCSteppingAlgorithm(MSCSteppingAlgorithm::kUseSaftey) {}
 
 MSCModel::~MSCModel() {}

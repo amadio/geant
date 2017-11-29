@@ -24,12 +24,12 @@ namespace geantphysics {
  *          Goudsmit-Saunderson theory based on screened Rutherford DCS.
  * @class   GSMSCModel
  * @author  M Novak
- * @date    June 2017
+ * @date    November 2017
  */
 
 
 class GSMSCTable;
-class PWATotalXsecTable;
+class GSPWACorrections;
 class Particle;
 
 class GSMSCModel : public MSCModel {
@@ -46,18 +46,19 @@ public:
   virtual void  ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
 
  // model specifc method
-  void SetOptionPWAScreening(bool val) { fIsUsePWATotalXsecData = val; }
+ void SetOptionPWACorrection(bool opt)  { fIsUsePWACorrection = opt; }
+ bool GetOptionPWACorrection() const    { return fIsUsePWACorrection; }
+
+ void SetOptionMottCorrection(bool opt) { fIsUseMottCorrection = opt; }
+ bool GetOptionMottCorrection() const   { return fIsUseMottCorrection; }
 
 
-// just for testing
-GSMSCTable* GetGSTable() const { return gGSTable; }
 // make it public for testing
 void   ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel, double &lambtr1,
-                         double &scra, double &g1);
+                         double &scra, double &g1, double &mccor1, double &mccor2);
 
 private:
   double RandomizeTrueStepLength(Geant::GeantTaskData *td, double tlimit);
-  void   SingleScattering(double scra, Geant::GeantTaskData *td, double &cost, double &sint);
   void   SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
   double GetTransportMeanFreePathOnly(const MaterialCuts *matcut, double ekin);
 
@@ -65,23 +66,24 @@ private:
 //                           double &scra, double &g1);
 // data members
 private:
-  bool   fIsElectron = false;            // is the model for e- (e+ otherwise)
-  bool   fIsUsePWATotalXsecData = false; // use screening that gives back pwa first transport mean free path
-  bool   fIsUseAccurate = true;          // use accurate step limits
-  bool   fIsOptimizationOn = true;       // use optimisation in the step limit: check current range and pre-safety
+  bool   fIsElectron          = false;      // is the model for e- (e+ otherwise)
+  bool   fIsUsePWACorrection  = true;       // use screening that gives back pwa first transport mean free path
+  bool   fIsUseMottCorrection = false;      // use Mott correction
+  bool   fIsUseAccurate       = true;       // use accurate step limits
+  bool   fIsOptimizationOn    = true;       // use optimisation in the step limit: check current range and pre-safety
 
-  double fCharge = 0.0;
+  double fCharge             = 0.0;
 
-  double fTauSmall = 1.e-16;
-  double fTauLim = 1.e-6;
-  double fTLimitMinfix2 = 1.*geant::nm;
-  double fDtrl = 0.05;
+  double fTauSmall           = 1.e-16;
+  double fTauLim             = 1.e-6;
+  double fTLimitMinfix2      = 1.*geant::nm;
+  double fDtrl               = 0.05;
 
-  Particle* fParticle = nullptr;    //e-/e+
+  Particle* fParticle        = nullptr;    //e-/e+
   Geant::TrackToken fMSCdata;   // Handle for MSCData
 
-  static GSMSCTable         *gGSTable;
-  static PWATotalXsecTable  *gPWAXsecTable;
+  GSMSCTable*       fGSTable        = nullptr;
+  GSPWACorrections* fPWACorrection  = nullptr;
 
 };
 

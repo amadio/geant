@@ -69,7 +69,7 @@ PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstru
   //param->SetMinEnergy(100*eV);
   //param->SetMaxEnergy(100*TeV);
   // set lowest kinetic energy i.e. tracking cut for charged particles having energy loss process: 1 keV by default
-  //param->SetLowestElectronEnergy(1*keV);
+  // param->SetLowestElectronEnergy(1.*keV);
   // activate/inactivate integral approach: true by default
   // param->SetIntegral(true);
   // inactivate to use cuts as final range
@@ -77,18 +77,17 @@ PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstru
 
   //
   // MSC options and parameters: 3 different stepping algorithms (can be set from the G4 macro)
-  // 1. fUseSafetyPlus: opt0 step limit [corresponds to G4-Urban fUseSafety that is fUseSafetyPlus in G4-GS]
-  param->SetMscStepLimitType(fUseSafetyPlus);
+  // 1. fUseSafety: opt0 step limit [corresponds to G4-Urban fUseSafety]
+  param->SetMscStepLimitType(fUseSafety);
   // 2. fUseDistanceToBoundary: opt3 step limit [corresponds to G4-Urban fUseDistanceToBoundary]
   // param->SetMscStepLimitType(fUseDistanceToBoundary);
-  // 3. fUseSafety: error free G4-GS stepping [there is no corresponding G4-Urban]
-  // param->SetMscStepLimitType(fUseSafety);
+  // 3. fUseSafetyPlus: error free G4-GS stepping [there is no corresponding G4-Urban]
+  // param->SetMscStepLimitType(fUseSafetyPlus);
   // Skin depth: times elastic mean free path skin near boundaries (can be set from the G4 macro)
   // - used by the G4-GS model when fUseDistanceToBoundary and fUseSafety stepping is set)
   param->SetMscSkin(3);
   // Range factor: (can be set from the G4 macro)
-  param->SetMscRangeFactor(0.1);
-
+  param->SetMscRangeFactor(0.06);
   //
   SetPhysicsType(bElectromagnetic);
 }

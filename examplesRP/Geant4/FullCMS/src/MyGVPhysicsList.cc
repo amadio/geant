@@ -63,9 +63,9 @@ void MyGVPhysicsList::BuildEMPhysics() {
   param->SetUseCutAsFinalRange(false);
   //
   // MSC options:
-  param->SetMscStepLimitType(fUseSafetyPlus);
+  param->SetMscStepLimitType(fUseSafety);
   param->SetMscSkin(3);
-  param->SetMscRangeFactor(0.1);
+  param->SetMscRangeFactor(0.06);
   G4LossTableManager::Instance();
   //
   // Add standard EM physics processes to e-/e+ and gamma that GeantV has
@@ -78,9 +78,9 @@ void MyGVPhysicsList::BuildEMPhysics() {
     if (particleName=="gamma") {
 //      ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering(), particle);
-      ph->RegisterProcess(new G4GammaConversion, particle);
-      G4double LivermoreLowEnergyLimit = 1*eV;
-      G4double LivermoreHighEnergyLimit = 1*TeV;
+      ph->RegisterProcess(new G4GammaConversion(), particle);
+      G4double LivermoreLowEnergyLimit  = 1.*eV;
+      G4double LivermoreHighEnergyLimit = 1.*TeV;
       G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
       G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
       theLivermorePhotoElectricModel->SetLowEnergyLimit(LivermoreLowEnergyLimit);

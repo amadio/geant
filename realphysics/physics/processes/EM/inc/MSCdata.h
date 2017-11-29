@@ -8,7 +8,7 @@ struct MSCdata {
   double fLambda1 = 0.;                 /* first transport mean free path */
   double fScrA = 0.;                    /* screening parameter if any */
   double fG1 = 0.;                      /* first transport coef. */
-  double fRange = 1.e+20;               /* range of the particle */
+  double fRange = 1.e+21;               /* range of the particle */
 
   double fTheInitialRange = 0.;         /* the initial (first step or first step in volume) range value of the particle */
 //  double fTheRangeFactor = 0.;          /* a step limit factor set */
@@ -67,7 +67,7 @@ struct MSCdata {
     fTheNewDirectionY = dy;
     fTheNewDirectionZ = dz;
   }
-  
+
   void Print() const {
     printf("fLambda0=%g fLambda1=%g fScrA=%g fG1=%g fRange=%g fTheInitialRange=%g \
 fTheTrueStepLenght=%g fTheTransportDistance=%g fTheZPathLenght=%g fTheTrueGeomLimit=%g \

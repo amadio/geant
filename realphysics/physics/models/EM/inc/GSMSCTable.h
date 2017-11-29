@@ -1,5 +1,4 @@
 
-
 #ifndef GSMSCTABLE_H
 #define GSMSCTABLE_H
 
@@ -7,8 +6,8 @@
 #include "Geant/Config.h"
 namespace Geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTaskData;
-}
+    class GeantTaskData;
+  }
 }
 
 #include <vector>
@@ -20,39 +19,62 @@ namespace geantphysics {
  * @brief   Helper class for the GSMSCModel to handle the pre-computed angular distributions.
  * @class   GSMSCTable
  * @author  M Novak
- * @date    June 2017
+ * @date    November 2017
  */
 
+class GSMottCorrection;
+class MaterialCuts;
 
 class GSMSCTable {
 public:
-  GSMSCTable();
+  GSMSCTable(bool iselectron);
  ~GSMSCTable();
 
-  void Initialize();
+  void Initialize(double lownergylimit, double highenergylimit, const std::vector<bool>& activeregionv);
 
   // structure to store one GS transformed angular distribution (for a given s/lambda_el,s/lambda_elG1)
   struct GSMSCAngularDtr {
     int     fNumData;    // # of data points
-    double  fQScale;
     double *fUValues;    // array of transformed variables
     double *fParamA;     // array of interpolation parameters a
     double *fParamB;     // array of interpolation parameters b
   };
 
-  // only for testing
-  GSMSCAngularDtr* GetOne(int indx) {return fGSMSCAngularDistributions1[indx];}
+  bool   Sampling(double lambdaval, double qval, double scra, double &cost, double &sint, double lekin, double beta2,
+                  int matindx, GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti, double &transfPar,
+                  Geant::GeantTaskData *td, bool isfirst);
 
-  void          Sampling(double lambdaval, double qval, double scra, double &cost, double &sint,  Geant::GeantTaskData *td);
-  double SampleCosTheta (double lambdaval, double qval, double scra, double rndm1, double rndm2, double rndm);
-  double SampleCosTheta1(double lambdaval, double qval, double scra, double rndm1, double rndm2, double rndm);
-  double SampleCosTheta2(double lambdaval, double qval, double scra, double rndm1, double rndm2, double rndm);
-  double GetScreeningParam(double G1);
+  double SampleCosTheta(double lambdaval, double qval, double scra, double lekin, double beta2, int matindx,
+                        GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti, double &transfPar,
+                        Geant::GeantTaskData *td, bool isfirst);
+
+  double SampleGSSRCosTheta(const GSMSCAngularDtr* gsDrt, double transfpar, Geant::GeantTaskData *td);
+
+  double SingleScattering(double lambdaval, double scra, double lekin, double beta2, int matindx,
+                          Geant::GeantTaskData *td);
+
+  GSMSCAngularDtr* GetGSAngularDtr(double scra, double &lambdaval, double &qval, double &transfpar,
+                                   Geant::GeantTaskData *td);
 
   // material dependent MSC parameters (computed at initialisation) regarding
   // Moliere's screening parameter
-  double GetMoliereBc (int matindx) { return fMoliereBc[matindx]; }
-  double GetMoliereXc2(int matindx) { return fMoliereXc2[matindx]; }
+  double GetMoliereBc(const int matindx)  { return gMoliereBc[matindx];  }
+
+  double GetMoliereXc2(const int matindx) { return gMoliereXc2[matindx]; }
+
+  void   GetMottCorrectionFactors(double logekin, double beta2, int matindx, double &mcToScr, double &mcToQ1,
+                                  double &mcToG2PerG1);
+
+  // set option to activate/inactivate Mott-correction
+  void   SetOptionMottCorrection(bool val) { fIsMottCorrection = val; }
+  // set option to activate/inactivate PWA-correction
+  void   SetOptionPWACorrection(bool val)  { fIsPWACorrection = val;  }
+
+  // this method returns with the scattering power correction (to avoid double counting of sub-threshold deflections)
+  // interpolated from tables prepared at initialisation
+  double ComputeScatteringPowerCorrection(const MaterialCuts *matcut, double ekin);
+
+  void   InitSCPCorrection(const std::vector<bool>& activeregionv);
 
 private:
   void LoadMSCData();
@@ -73,33 +95,35 @@ private:
   static constexpr double gQMAX1   = 0.99;      // maximum s/lambda_el G1 in the 1-st Q grid
   static constexpr double gQMIN2   = 0.99;      // minimum s/lambda_el G1 in the 1-st Q grid
   static constexpr double gQMAX2   = 7.99;      // maximum s/lambda_el G1 in the 1-st Q grid
-  // precomputed A(G1) function with its interpolation parameters
-  static constexpr double gSCRMIN1 = 1.93214991408357e-12;
-  static constexpr double gSCRMAX1 = 2.42974344203683e-01;
-  static constexpr double gSCRMAX2 = 5.50564555556202e+01;
   //
-  static const double gG1Values1[];
-  static const double gScrAValues1[];
-  static const double gScrBValues1[];
-  static const double gG1Values2[];
-  static const double gScrAValues2[];
-  static const double gScrBValues2[];
-
+  bool   fIsElectron;          // GS-table for e- (for e+ otherwise)
+  bool   fIsMottCorrection;    // flag to indicate if Mott-correction was requested to be used
+  bool   fIsPWACorrection;     // flag to indicate is PWA corrections were requested to be used
+  //
   double fLogLambda0;          // ln(gLAMBMIN)
   double fLogDeltaLambda;      // ln(gLAMBMAX/gLAMBMIN)/(gLAMBNUM-1)
   double fInvLogDeltaLambda;   // 1/[ln(gLAMBMAX/gLAMBMIN)/(gLAMBNUM-1)]
   double fInvDeltaQ1;          // 1/[(gQMAX1-gQMIN1)/(gQNUM1-1)]
   double fDeltaQ2;             // [(gQMAX2-gQMIN2)/(gQNUM2-1)]
   double fInvDeltaQ2;          // 1/[(gQMAX2-gQMIN2)/(gQNUM2-1)]
-  // for the precumputed A(G1) function
-  double fLogG1FuncMin1;
-  double fInvLogDeltaG1Func1;
-  double fLogG1FuncMin2;
-  double fInvLogDeltaG1Func2;
+  //
+  double fLowEnergyLimit;
+  double fHighEnergyLimit;
+  //
+  int      fNumSPCEbinPerDec;    // scattering power correction energy grid bins per decade
+  struct SCPCorrection {
+    bool   fIsUse;               //
+    double fPrCut;               // sec. e- production cut energy
+    double fLEmin;               // log min energy
+    double fILDel;               // inverse log delta kinetic energy
+    std::vector<double> fVSCPC;  // scattering power correction vector
+  };
+  std::vector<SCPCorrection*>  fSCPCPerMatCuts;
+  std::vector<bool>            fActiveRegionsVector;
 
-   // vector to store all GS transformed angular distributions
-   std::vector<GSMSCAngularDtr*> fGSMSCAngularDistributions1;
-   std::vector<GSMSCAngularDtr*> fGSMSCAngularDistributions2;
+  // vector to store all GS transformed angular distributions (cumputed based on the Screened-Rutherford DCS)
+  static std::vector<GSMSCAngularDtr*> gGSMSCAngularDistributions1;
+  static std::vector<GSMSCAngularDtr*> gGSMSCAngularDistributions2;
 
    /** Precomputed \f$ b_lambda_{c} $\f and \f$ \chi_c^{2} $\f material dependent
    *   Moliere parameters that can be used to compute the screening parameter,
@@ -107,8 +131,11 @@ private:
    *   screened Rutherford cross section approximation. (These are used in
    *   GSMSCModel if gIsUsePWATotalXsecData is FALSE.)
    */
-   std::vector<double> fMoliereBc;
-   std::vector<double> fMoliereXc2;
+   static std::vector<double> gMoliereBc;
+   static std::vector<double> gMoliereXc2;
+   //
+   //
+   GSMottCorrection   *fMottCorrection;
 };
 
 }      // namespace geantphysics
