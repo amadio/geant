@@ -18,7 +18,7 @@ TestEm3PrimaryGenerator::TestEm3PrimaryGenerator(TestEm3DetectorConstruction *de
   fPDG                 = 0;
   fGVPartIndex         = 0;
   //
-  fPrimaryEkin         = 0.1*geant::GeV;
+  fPrimaryEkin         = 10.*geant::GeV;
   //
   fXPos                = 0.;
   fYPos                = 0.;

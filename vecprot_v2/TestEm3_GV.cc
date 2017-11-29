@@ -92,9 +92,9 @@ std::string parGunPrimaryParticleName             =  "";  // i.e. default applic
 double      parGunPrimaryKinEnergy                =  0.;  // i.e. default application value
 //
 // run configuration parameters
-int         parConfigNumBufferedEvt   =     4;  // number of events taken to be transported on the same time (buffered)
+int         parConfigNumBufferedEvt   =     5;  // number of events taken to be transported on the same time (buffered)
 int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
-int         parConfigNumPrimaryPerEvt =  1000;  // number of primary particles per event
+int         parConfigNumPrimaryPerEvt =    10;  // number of primary particles per event
 int         parConfigNumThreads       =     4;  // number of working threads
 int         parConfigNumPropagators   =     1;  // number of propagators per working threads
 bool        parConfigIsPerformance    = false;  // run without any user actions
