@@ -20,12 +20,9 @@
 #
 /testem/phys/addPhysics   GVStandard
 #/testem/phys/addPhysics  emstandard_opt0
-#/testem/phys/addPhysics  emstandardGS
 #
-#/process/msc/StepLimit UseDistanceToBoundary
-/process/msc/StepLimit UseSafetyPlus
+/process/msc/StepLimit UseSafety
 #/process/msc/Skin 3
-/process/msc/RangeFactor 0.1
 #
 /run/initialize
 #

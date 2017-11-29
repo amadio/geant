@@ -22,10 +22,10 @@
 #
 /run/initialize
 #
-# Set the particle gun: 100 MeV e-
+# Set the particle gun: 10 GeV e-
 #
 /gun/particle e-
-/gun/energy 100 MeV
+/gun/energy 10 GeV
 #
 # Set production cuts: 0.7 mm
 #
@@ -35,7 +35,7 @@
 #
 /run/initialize
 /tracking/verbose 0
-/run/beamOn 10000
+/run/beamOn 100
 #
 # Print process list
 #

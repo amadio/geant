@@ -17,12 +17,12 @@
   --det-set-sizeYZ           40                       "# transverse size of the calorimeter [cm]"\
   --det-prod-cut-length      0.07                     "# set production cut length [cm]"\
 "### primary particle generation parameters:"\
-  --gun-primary-energy       0.1                      "# kinetic energy of the primary particle [in GeV]"\
+  --gun-primary-energy       10                       "# kinetic energy of the primary particle [in GeV]"\
   --gun-primary-type         e-                       "# primary particle name/type"\
 "### run configuration parameters:"\
-  --config-number-of-buffered-events        4         "# number of events transported at once"\
+  --config-number-of-buffered-events        5         "# number of events transported at once"\
   --config-total-number-of-events          10         "# total number of events to be simulated"\
-  --config-number-of-primary-per-events  1000         "# number of primary particles per event"\
+  --config-number-of-primary-per-events    10         "# number of primary particles per event"\
   --config-number-of-threads                4         "# number of working threads to be used"\
   --config-number-of-propagators            1         "# number of propagators"\
 "### physics process configuration parameters:"\
