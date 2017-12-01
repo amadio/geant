@@ -447,7 +447,7 @@ int GeantPropagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPrePropagationStage, true);
-  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
+  GetStage(kGeometryStepStage)->ActivateBasketizing(fConfig->fUseVectorizedGeom);
   //        V
   //        V
   //        V
@@ -547,7 +547,7 @@ int GeantPropagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
-  GetStage(kGeometryStepStage)->ActivateBasketizing(false);
+  GetStage(kGeometryStepStage)->ActivateBasketizing(fConfig->fUseVectorizedGeom);
   //        V
   //        V
   //        V

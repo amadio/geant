@@ -181,6 +181,10 @@ bool GeantRunManager::Initialize() {
     mgr->SetNblocks(100);     // <- must be configurable
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->Init();
+  if (fConfig->fUseVectorizedGeom)
+    printf("*** Using vectorized geometry\n");
+  else
+    printf("*** Using scalar geometry\n");
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (fConfig->fUseNuma) {
       int nnodes = mgr->GetPolicy().GetNnumaNodes();

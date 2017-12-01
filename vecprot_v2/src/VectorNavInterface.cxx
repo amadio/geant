@@ -116,19 +116,19 @@ void VectorNavInterface::NavFindNextBoundary(int ntracks, const double *pstep,
          const double *x, const double *y, const double *z,
          const double *dirx, const double *diry, const double *dirz, 
          const VolumePath_t **instate,
-         double *step, double *safe, bool *isonbdr) {
+         double *snext, double *safe, bool *compsafety) {
 // Find the next boundary and state after propagating to the boundary. 
 // Input:  ntracks - number of tracks
 //         pstep - proposed step
 //         x, y, z, dirx, diry, dirz - particle position and direction
 //         instate - input particle navigation state
 //         safe - estimated safety value for the input point
-//         isonbdr - starting point is on a boundary
+//         compsafety - starting point is on a boundary, so, compute safety
 // Output: outstate - navigation state after propagation. If boundary further
 //           than proposed step, outstate has to match instate
 //         step - propagation step for which the state is sampled
 //         safety - calculated safety value for the input point
-//         isonbdr - propagated point is on a boundary
+//         compsafety - propagated point is not on a boundary
 
   typedef SOA3D<double> SOA3D_t;
   VNavigator const * newnav = instate[0]->Top()->GetLogicalVolume()->GetNavigator();
@@ -136,15 +136,14 @@ void VectorNavInterface::NavFindNextBoundary(int ntracks, const double *pstep,
                               SOA3D_t(const_cast<double*>(dirx),const_cast<double*>(diry),const_cast<double*>(dirz),ntracks),
                               pstep, 
                               instate,
-                              step, isonbdr, safe);
+                              snext, compsafety, safe);
 
   for (int itr = 0; itr < ntracks; ++itr) {
     // onboundary with respect to new point
-    isonbdr[itr] = step[itr] > pstep[itr];
-    step[itr] = Math::Max<double>(2. * gTolerance, step[itr] + 2. * gTolerance);
-    // still call the old navigator for safety
-    //safe[itr] = (isonbdr[itr]) ? 0 : nav.GetSafety(Vector3D_t(x[itr], y[itr], z[itr]), *instate[itr]);
-    safe[itr] = Math::Max<double>(safe[itr], 0);
+    if (!compsafety[itr]) safe[itr] = 0.;
+    else                  safe[itr] = Math::Max<double>(safe[itr], 0.);
+    compsafety[itr] = snext[itr] >= pstep[itr];
+    snext[itr] = Math::Max<double>(2. * gTolerance, snext[itr] + 2. * gTolerance);
   }
 }
 

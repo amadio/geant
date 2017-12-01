@@ -118,32 +118,96 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 // Vector geometry length computation. The tracks are moved into the output basket.
   
 // We should make sure that track->fSafety < track->fPstep for these tracks
+  constexpr auto kVecSize =  vecCore::VectorSize<vecgeom::VectorBackend::Real_v>();
   TrackVec_t &tracks = input.Tracks();
-
+  const size_t ntr = tracks.size();
+// #define DEBUG_VECTOR_DOIT
 #ifdef USE_VECGEOM_NAVIGATOR
   // Copy relevant track fields to geometry SOA and process vectorized.
   GeantTrackGeo_v &track_geo = *td->fGeoTrack;
   track_geo.Clear();
   size_t i = 0;
-  for (auto track : tracks) {
-    track_geo.AddTrack(*track);
-    td->fPathV[i] = track->Path();
-    td->fNextpathV[i] = track->NextPath();
-    i++;
+  // Process first the tracks that start from a boundary
+  for (size_t itr = 0; itr < ntr; ++itr) {
+    GeantTrack *track = tracks[itr];
+    // Mark tracks to be processed
+    track->fPending = false;
+    if (track->fBoundary) {
+      td->fPathV[i] = track->Path();
+      track_geo.AddTrack(*track, itr);
+      track->fPending = true;
+      i++;
+    }
   }
-    
-  // The vectorized SOA call
-  VectorNavInterface::NavFindNextBoundary(tracks.size(), track_geo.fPstepV,
+  if (i >= kVecSize) {
+    // Process these tracks in vector mode
+    VectorNavInterface::NavFindNextBoundary(i, track_geo.fPstepV,
                track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
                track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
                (const VolumePath_t **)td->fPathV,
-               track_geo.fSnextV, track_geo.fSafetyV, track_geo.fBoundaryV);
+               track_geo.fSnextV, track_geo.fSafetyV, track_geo.fCompSafetyV);
+    for (size_t itr = 0; itr < i; ++itr) {
+      // Find the original track
+      GeantTrack *track = tracks[track_geo.fIdV[itr]];
+#ifdef DEBUG_VECTOR_DOIT
+      ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
+      if ( vecCore::math::Abs(track->fSnext - track_geo.fSnextV[itr]) > 1.e-10) {
+        printf("  track %d (ind=%ld): scalar (snext=%16.12f)  vector (snext=%16.12f)\n",
+                track->fParticle, itr, track->fSnext, track_geo.fSnextV[itr]);
+      }
+#endif
+      track->fSnext = track_geo.fSnextV[itr];
+      track->fSafety = 0.;
+      track->fBoundary = !track_geo.fCompSafetyV[itr];
+    }
+    track_geo.Clear();
+    i = 0;
+  }
     
-  // Update original tracks
-  track_geo.UpdateOriginalTracks();
-  
-  // Count this as a single geometry call
-  td->fNsnext += 1;
+  // Process the tracks having pstep > safety
+  for (size_t itr = 0; itr < ntr; ++itr) {
+    GeantTrack *track = tracks[itr];
+    if (track->fPending || track->fBoundary) continue;
+    // Skip tracks with big enough safety
+    if (track->fSafety > track->fPstep) {
+      track->fSnext = track->fPstep;
+      track->fBoundary = false;
+      continue;
+    }
+    td->fPathV[i] = track->Path();
+    track_geo.AddTrack(*track, itr);
+    track->fPending = true; // probably not needed
+    i++;
+  }
+  if (i >= kVecSize) {  
+    VectorNavInterface::NavFindNextBoundary(i, track_geo.fPstepV,
+               track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
+               track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
+               (const VolumePath_t **)td->fPathV,
+               track_geo.fSnextV, track_geo.fSafetyV, track_geo.fCompSafetyV);  
+    for (size_t itr = 0; itr < i; ++itr) {
+      // Find the original track
+      GeantTrack *track = tracks[track_geo.fIdV[itr]];
+#ifdef DEBUG_VECTOR_DOIT
+      ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
+      if ( vecCore::math::Abs(track->fSnext - track_geo.fSnextV[itr]) > 1.e-10 ||
+           vecCore::math::Abs(track->fSafety - track_geo.fSafetyV[itr]) > 1.e-10 ) {
+        printf("  track %d (ind=%ld): scalar (snext=%16.12f safety=%16.12f)  vector (snext=%16.12f safety=%16.12f)\n",
+                track->fParticle, itr, track->fSnext, track->fSafety, track_geo.fSnextV[itr], track_geo.fSafetyV[itr]);
+      }
+#endif
+      track->fSnext = track_geo.fSnextV[itr];
+      track->fSafety = track_geo.fSafetyV[itr];
+      track->fBoundary = !track_geo.fCompSafetyV[itr];
+    }
+  } else {
+    for (size_t itr = 0; itr < i; ++itr) {
+      GeantTrack *track = tracks[track_geo.fIdV[itr]];
+      ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
+    }
+  }
+    
+  td->fNsnext += ntr;
   // Copy tracks to output
 #ifndef VECCORE_CUDA
   std::move(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
@@ -155,13 +219,6 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   (void)tracks;
   Handler::DoIt(input, output, td);
 #endif
-
-/*
-  // For the moment just loop and call scalar DoIt
-  for (auto track : tracks) {
-    DoIt(track, output, td);
-  }
-*/
 }
 
 } // GEANT_IMPL_NAMESPACE

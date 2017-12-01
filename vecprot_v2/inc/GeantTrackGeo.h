@@ -26,6 +26,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
  */
 struct GeantTrackGeo {
   GeantTrack *fOriginal; /** Original track from which this was extracted */
+  size_t fId;            /** Id of original track in its container */
   double fXpos;          /** X position */
   double fYpos;          /** Y position */
   double fZpos;          /** Z position */
@@ -36,7 +37,7 @@ struct GeantTrackGeo {
   double fStep;          /** Current step */
   double fSnext;         /** Straight distance to next boundary */
   double fSafety;        /** Safe distance to any boundary */
-  bool   fBoundary;      /** True if starting from boundary */
+  bool   fCompSafety;    /** Safety needs to be computed (not on boundary) */
 };
 
 /**
@@ -58,17 +59,18 @@ public:
   char *fBuf;      /** Buffer holding tracks data */
 
   GeantTrack **fOriginalV; /** Track originals */
-  double *fXposV;          /** Array of track X positions */
-  double *fYposV;          /** Array of track Y positions */
-  double *fZposV;          /** Array of track Z positions */
-  double *fXdirV;          /** Array of track directions */
+  size_t *fIdV;            /** Id's in the original container */
+  double *fXposV;          /** Arrays of track positions */
+  double *fYposV;
+  double *fZposV;
+  double *fXdirV;          /** Arrays of track directions */
   double *fYdirV;
   double *fZdirV;
-  double *fPstepV;  /** Selected physical steps */
-  double *fStepV;   /** Current steps */
-  double *fSnextV;  /** Straight distances to next boundary */
-  double *fSafetyV; /** Safe distances to any boundary */
-  bool *fBoundaryV; /** True if starting from boundary */
+  double *fPstepV;         /** Selected physical steps */
+  double *fStepV;          /** Current steps */
+  double *fSnextV;         /** Straight distances to next boundary */
+  double *fSafetyV;        /** Safe distances to any boundary */
+  bool   *fCompSafetyV;    /** Safety needs to be computed (not on boundary) */
 
   /**
    * @brief Function that assign in current buffer
@@ -150,7 +152,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int AddTrack(GeantTrack &track) {
+  int AddTrack(GeantTrack &track, size_t id) {
     int itrack = fNtracks;
     if (itrack == fMaxtracks) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -160,6 +162,7 @@ public:
 #endif
     }
     fOriginalV[itrack] = &track;
+    fIdV[itrack]   = id;
     fXposV[itrack] = track.fXpos;
     fYposV[itrack] = track.fYpos;
     fZposV[itrack] = track.fZpos;
@@ -170,7 +173,7 @@ public:
     fStepV[itrack] = track.fStep;
     fSnextV[itrack] = track.fSnext;
     fSafetyV[itrack] = track.fSafety;
-    fBoundaryV[itrack] = !track.fBoundary;
+    fCompSafetyV[itrack] = !track.fBoundary;
     fNtracks++;
     return itrack;
   }
@@ -203,7 +206,7 @@ public:
     track.fStep = fStepV[itr];
     track.fSnext = fSnextV[itr];
     track.fSafety = fSafetyV[itr];
-    track.fBoundary = !fBoundaryV[itr];
+    track.fBoundary = !fCompSafetyV[itr];
   }
 
   /**
@@ -216,6 +219,29 @@ public:
       UpdateOriginalTrack(itr);
     }
   }
+
+  /** @brief Update tracks positions */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void UpdatePositions() const {
+    for (int itr=0; itr<fNtracks; ++itr) {
+      fOriginalV[itr]->fXpos = fXposV[itr];
+      fOriginalV[itr]->fYpos = fYposV[itr];
+      fOriginalV[itr]->fZpos = fZposV[itr];
+    }
+  }
+
+  /** @brief Update tracks directions */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void UpdateDirections() const {
+    for (int itr=0; itr<fNtracks; ++itr) {
+      fOriginalV[itr]->fXdir = fXdirV[itr];
+      fOriginalV[itr]->fYdir = fYdirV[itr];
+      fOriginalV[itr]->fZdir = fZdirV[itr];
+    }
+  }
+      
 
   /** @brief Function that return size of track */
   size_t Sizeof() const { return sizeof(GeantTrackGeo_v) + fBufSize; }

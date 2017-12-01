@@ -58,16 +58,16 @@ using namespace VECGEOM_NAMESPACE;
 //______________________________________________________________________________
 GeantTrackGeo_v::GeantTrackGeo_v()
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
-      fOriginalV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0) {
+      fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
+      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
   // Dummy ctor.
 }
 
 //______________________________________________________________________________
 GeantTrackGeo_v::GeantTrackGeo_v(int size)
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
-      fOriginalV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0) {
+      fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
+      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
   // Constructor with maximum capacity.
   Resize(size);
 }
@@ -82,8 +82,8 @@ GeantTrackGeo_v *GeantTrackGeo_v::MakeInstanceAt(void *addr, unsigned int nTrack
 VECCORE_ATT_DEVICE
 GeantTrackGeo_v::GeantTrackGeo_v(void *addr, unsigned int nTracks)
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
-      fOriginalV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fBoundaryV(0) {
+      fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
+      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
 
   // Constructor with maximum capacity.
   fBuf = ((char *)addr) + RoundUpAlign(sizeof(GeantTrackGeo_v));
@@ -108,6 +108,8 @@ void GeantTrackGeo_v::AssignInBuffer(char *buff, int size) {
   char *buf = buff;
   fOriginalV = (GeantTrack **)buf;
   buf += size * sizeof(GeantTrack *);
+  fIdV = (size_t *)buf;
+  buf += size * sizeof(size_t);
   fXposV = (double *)buf;
   buf += size_doublen;
   fYposV = (double *)buf;
@@ -128,7 +130,7 @@ void GeantTrackGeo_v::AssignInBuffer(char *buff, int size) {
   buf += size_doublen;
   fSafetyV = (double *)buf;
   buf += size_doublen;
-  fBoundaryV = (bool *)buf;
+  fCompSafetyV = (bool *)buf;
 //  buf += size_booln;
 }
 
@@ -141,6 +143,9 @@ void GeantTrackGeo_v::CopyToBuffer(char *buff, int size) {
   memcpy(buf, fOriginalV, size*sizeof(GeantTrack*));
   fOriginalV = (GeantTrack **)buf;
   buf += size*sizeof(GeantTrack*);
+  memcpy(buf, fIdV, size*sizeof(size_t));
+  fIdV = (size_t *)buf;
+  buf += size*sizeof(size_t);
   memcpy(buf, fXposV, size_double);
   fXposV = (double *)buf;
   buf += size_doublen;
@@ -171,8 +176,8 @@ void GeantTrackGeo_v::CopyToBuffer(char *buff, int size) {
   memcpy(buf, fSafetyV, size_double);
   fSafetyV = (double *)buf;
   buf += size_doublen;
-  memcpy(buf, fBoundaryV, fNtracks * sizeof(bool));
-  fBoundaryV = (bool *)buf;
+  memcpy(buf, fCompSafetyV, fNtracks * sizeof(bool));
+  fCompSafetyV = (bool *)buf;
 //  buf += size * sizeof(bool);
 }
 
@@ -243,6 +248,7 @@ int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
 
   for (auto track : array) {
     fOriginalV[fNtracks] = track;
+    fIdV[fNtracks] = fNtracks;
     fXposV[fNtracks] = track->fXpos;
     fYposV[fNtracks] = track->fYpos;
     fZposV[fNtracks] = track->fZpos;
@@ -253,7 +259,7 @@ int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
     fStepV[fNtracks] = track->fStep;
     fSnextV[fNtracks] = track->fSnext;
     fSafetyV[fNtracks] = track->fSafety;
-    fBoundaryV[fNtracks] = !track->fBoundary;
+    fCompSafetyV[fNtracks] = !track->fBoundary;
     fNtracks++;
   }
   return fNtracks;  

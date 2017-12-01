@@ -94,6 +94,7 @@ int         parConfigNumRunEvt        = 4000;  // total number of events to be t
 int         parConfigNumPrimaryPerEvt = 1000;  // number of primary particles per event
 int         parConfigNumThreads       = 4;     // number of working threads
 int         parConfigNumPropagators   = 1;     // number of propagators per working threads
+bool        parConfigVectorizedGeom   = 0;     // activate geometry basketizing
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit    = "";    // i.e. default application value
@@ -121,9 +122,10 @@ static struct option options[] = {
   {"config-Number-Of-Primary-Per-Events" , required_argument, 0,  'o'},
   {"config-Number-Of-Threads"            , required_argument, 0,  'p'},
   {"config-Number-Of-Propagators"        , required_argument, 0,  'q'},
+  {"config-Vectorized-Geom"              , required_argument, 0,  'r'},
 
-  {"process-MSC-Step-Limit"              , required_argument, 0,  'r'},
-  {"process-Step-Max-Value"              , required_argument, 0,  's'},
+  {"process-MSC-Step-Limit"              , required_argument, 0,  's'},
+  {"process-Step-Max-Value"              , required_argument, 0,  't'},
 
   {"help", required_argument, 0,  'x'},
   {0, 0, 0, 0}
@@ -200,9 +202,12 @@ void GetInputArguments(int argc, char *argv[]) {
       parConfigNumPropagators   = (double)strtof(optarg, NULL);
       break;
     case 'r':
-      parProcessMSCStepLimit    = optarg;
+      parConfigVectorizedGeom   = (bool)strtof(optarg, NULL);
       break;
     case 's':
+      parProcessMSCStepLimit    = optarg;
+      break;
+    case 't':
       parProcessStepMaxValue    = (double)strtof(optarg, NULL);
       break;
     case 'x':
@@ -225,22 +230,23 @@ Geant::GeantRunManager* RunManager() {
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //
   // Set parameters of the GeantConfig object:
-  runConfig->fNtotal        = parConfigNumRunEvt;
-  runConfig->fNbuff         = parConfigNumBufferedEvt;
-  runConfig->fNaverage      = parConfigNumPrimaryPerEvt;
+  runConfig->fNtotal            = parConfigNumRunEvt;
+  runConfig->fNbuff             = parConfigNumBufferedEvt;
+  runConfig->fNaverage          = parConfigNumPrimaryPerEvt;
+  runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
   //
   // Some additional parameters that have values in this application different than their default
   //
   // this should be true by default from now on since we use only V3
-  runConfig->fUseV3         = true;
-  runConfig->fNminThreshold = 5*parConfigNumThreads;
+  runConfig->fUseV3             = true;
+  runConfig->fNminThreshold     = 5*parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
-  runConfig->fNminReuse     = 100000;
+  runConfig->fNminReuse         = 100000;
   // Number of steps after the particle is killed:
   // for msc if we run in single scattering setings high number of steps are perfectly possible
-  runConfig->fNstepsKillThr = 100000000;
+  runConfig->fNstepsKillThr     = 100000000;
   // Activate standard scoring
-  runConfig->fUseStdScoring = true;
+  runConfig->fUseStdScoring     = true;
 
   return runManager;
 }

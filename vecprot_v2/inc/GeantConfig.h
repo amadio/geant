@@ -78,6 +78,7 @@ public:
   bool fUseStdScoring = false; /** Use standard scoring */
   bool fUseV3 = false;         /** Use version 3 of the scheduler */
   bool fUseNuma = false;       /** Use NUMA */
+  bool fUseVectorizedGeom = false; /** Use vectorized geometry */
 
   int fMonQueue = 0;      /** Monitor the work queue */
   int fMonMemory = 0;     /** Monitor the memory */

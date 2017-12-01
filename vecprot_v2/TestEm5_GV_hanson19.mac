@@ -29,6 +29,7 @@
   --config-Number-Of-Primary-Per-Events  1000          "# number of primary particles per events"\
   --config-Number-Of-Threads             4             "# number of working threads to be used"\
   --config-Number-Of-Propagators         1             "# number of propagators"\
+  --config-Vectorized-Geom               0             "# vectorized geometry"\
 "### physics process configuration parameters:"\
   --process-MSC-Step-Limit               UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
   --process-Step-Max-Value               1.e+20        "# maximum (real) step length limit in the user defined StepMaxProcess"
