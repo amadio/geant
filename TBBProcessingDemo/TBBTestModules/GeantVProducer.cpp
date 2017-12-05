@@ -52,8 +52,8 @@ namespace demo {
 
   static int n_events = 10;
   static int n_propagators = 1;
-  static int n_threads = 1;
-  static int n_buffered = 5;
+  static int n_threads = 4;
+  static int n_buffered = 12;
 
   class GeantVProducer : public ConfiguredProducer {
   public:
@@ -91,6 +91,9 @@ namespace demo {
                                       ""));
     }
 
+    n_threads = iConfig.get<int>("nGeantVthreads");
+    std::cerr<<"GeantVProducer: read nThreads="<< n_threads <<"\n";
+
     static int n_track_max = 500;
     static int n_learn_steps = 0;
     static int n_reuse = 100000;
@@ -98,8 +101,8 @@ namespace demo {
     bool performance = true;
 
     //std::string cms_geometry_filename("cms2015.root");
-    //std::string cms_geometry_filename("cms2018.gdml");
-    std::string cms_geometry_filename("ExN03.root");
+    std::string cms_geometry_filename("cms2018.gdml");
+    //std::string cms_geometry_filename("ExN03.root");
     std::string xsec_filename("xsec_FTFP_BERT.root");
     std::string fstate_filename("fstate_FTFP_BERT.root");
 
@@ -129,7 +132,7 @@ namespace demo {
 
     fConfig->fUseNuma = usenuma;
     fConfig->fNminThreshold = 5 * n_threads;
-    fConfig->fNaverage = 5;
+    fConfig->fNaverage = 50;
 
     fConfig->fUseMonitoring = monitor;
     fConfig->SetMonitored(GeantConfig::kMonQueue, false);
@@ -199,13 +202,17 @@ namespace demo {
 
     // Setup a primary generator
     if (hepmc_event_filename.empty()) {
-      fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 13, fConfig->fEmax, -8, 0, 0, 1, 0, 0);
       std::cerr<<"*** GeantRunManager: setting up a GunGenerator...\n";
+      double x = rand();
+      double y = rand();
+      double z = rand();
+      double r = sqrt(x*x+y*y+z*z);
+      fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, 0, 0, 0, x/r, y/r, z/r);
+      //fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, -8, 0, 0, 1, 0, 0);
     } else {
       std::cerr<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
       fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
     }
-    fPrimaryGenerator->InitPrimaryGenerator();
 
     CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr);
     std::cerr<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
@@ -219,6 +226,7 @@ namespace demo {
     // Start simulation for all propagators
     std::cerr<<"*** GeantRunManager: initializing...\n";
     fRunMgr->Initialize();
+    fPrimaryGenerator->InitPrimaryGenerator();
 
     /*
     printf("==========================================================================\n");
@@ -242,9 +250,6 @@ namespace demo {
     //CMSApplicationTBB *cmsApp = static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication());
     //cmsApp->SetEventContinuationTask( iEvent.index(), pWaitTask );
 
-    std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
-    RunTransportTask(1);
-
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
@@ -255,6 +260,8 @@ namespace demo {
 
     // std::cerr<<"GeantVProducer %s at %p: produce()... runSimulation(%p)\n",label().c_str(), this, pWaitTask);
     // runSimulation(pWaitTask);
+    std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
+    RunTransportTask(1);
 
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
     iEvent.put(this,"",static_cast<int>(sum));
@@ -275,14 +282,17 @@ namespace demo {
     int ntotransport = 0;
     while ((ntotransport = BookEvents(nevents))) {
       GeantTaskData *td = fRunMgr->BookTransportTask();
+      std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<"\n";
       if (!td) return false;
 
       // ... then create the event set using in this case the user application
+      std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents <<" and ntotransp="<< ntotransport <<"\n";
       Geant::EventSet *evset = GenerateEventSet(ntotransport, td);
 
       // ... finally invoke the GeantV transport task
       bool transported = fRunMgr->RunSimulationTask(evset, td);
       // Now we could run some post-transport task
+      std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents <<" and ntotransp="<< ntotransport <<": transported="<< transported <<"\n";
       if (!transported) return false;
     }
     return true;
@@ -308,10 +318,10 @@ namespace demo {
     EventSet *evset = new EventSet(nevents);
     for (size_t i=0 ; i< nevents; ++i) {
       GeantEvent *event = new GeantEvent();
-      GeantEventInfo event_info = fPrimaryGenerator->NextEvent();
+      GeantEventInfo event_info = fPrimaryGenerator->NextEvent(td);
       while (event_info.ntracks == 0) {
-	event_info = fPrimaryGenerator->NextEvent();
 	std::cerr<<"Discarding empty event\n";
+	event_info = fPrimaryGenerator->NextEvent(td);
       }
       event->SetNprimaries(event_info.ntracks);
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
@@ -319,7 +329,7 @@ namespace demo {
 	GeantTrack &track = td->GetNewTrack();
 	track.fParticle = event->AddPrimary(&track);
 	track.SetPrimaryParticleIndex(itr);
-	fPrimaryGenerator->GetTrack(itr, track);
+	fPrimaryGenerator->GetTrack(itr, track, td);
       }
       evset->AddEvent(event);
     }

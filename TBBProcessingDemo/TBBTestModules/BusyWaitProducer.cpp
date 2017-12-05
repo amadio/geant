@@ -6,6 +6,7 @@
 //  Copyright 2011 FNAL. All rights reserved.
 //
 
+#include <iostream>
 #include <vector>
 #include "ConfiguredProducer.h"
 #include "thread_type_from_config.h"
