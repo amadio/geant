@@ -11,7 +11,7 @@
    "source" :
    {
      "@type" : "demo::SimpleSource",
-     "iterations" : 2
+     "iterations" : 60
    },
    "filters" :
    [
@@ -31,6 +31,7 @@
        "@type" : "demo::GeantVProducer",
        "threadType" : "ThreadSafeBetweenInstances",
        "fileName" : "pp14TeVminbias.root",
+       "nGeantVthreads":1,
        "toGet" :[]
      },
      { "@label" : "digiA",

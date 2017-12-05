@@ -134,7 +134,7 @@ bool CMSApplicationTBB::Initialize() {
 
     // HCAL cells
 #ifdef USE_VECGEOM_NAVIGATOR
-    cout << __func__ << "::vol " << vol->GetName() << endl;
+    std::cerr << __func__ << "::vol " << vol->GetName() << endl;
     if (vol->GetMaterialPtr())
       smat = ((geantphysics::Material *)vol->GetMaterialPtr())->GetName();
 #else
@@ -158,25 +158,24 @@ bool CMSApplicationTBB::Initialize() {
 //______________________________________________________________________________
 void CMSApplicationTBB::SteppingActions(GeantTrack &track, GeantTaskData *td)
 {
-  static int count = 0;
+  static atomic<int> count{ 0 };
   ++count;
-  if(count%10000 == 0) {
-    std::cout<<"*** SteppingAction(): dummy body, count="<< count <<"\n";
+  int localValue = count.load();
+  if(localValue % 1000000 == 0) {
+    std::cerr<<"*** SteppingAction(): count="<< localValue <<", trk="<< &track <<", E="<< track.E()
+	     <<", pos=("<< track.PosX() <<", "<< track.PosY() <<", "<< track.PosZ() <<")\n";
   }
-  //GeantTrack_v tracks;
-  //tracks.AddTrack(track);
-  //SteppingActions(tracks, td);
 }
 
 void CMSApplicationTBB::SteppingActions(GeantTrack_v &tracks, GeantTaskData *td) {
 
-  std::cout<<"*** SteppingAction(): #tracks="<< tracks.GetNtracks() <<"\n";
+  std::cerr<<"*** SteppingAction(): #tracks="<< tracks.GetNtracks() <<"\n";
   // Application stepping manager. The thread id has to be used to manage storage
   // of hits independently per thread.
   GeantPropagator *propagator = td->fPropagator;
   int tid = td->fTid;
   if ((!fInitialized) || (fScore == kNoScore)) {
-    std::cout<<"*** SteppingAction() @return: #tracks="<< tracks.GetNtracks() <<"\n";
+    std::cerr<<"*** SteppingAction() @return: #tracks="<< tracks.GetNtracks() <<"\n";
     return;
   }
   // Loop all tracks, check if they are in the right volume and collect the
@@ -283,7 +282,7 @@ void CMSApplicationTBB::SteppingActions(GeantTrack_v &tracks, GeantTaskData *td)
         fFluxElec->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepElec->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       } else if (tracks.fPDGV[itr] == 22 || tracks.fPDGV[itr] == 0) {
-//        std::cout << tracks.GetVolume(itr)->GetName() << " " << tracks.fStepV[itr] << std::endl;
+//        std::cerr << tracks.GetVolume(itr)->GetName() << " " << tracks.fStepV[itr] << std::endl;
         fFluxGamma->Fill(1000. * tracks.fPV[itr], tracks.fStepV[itr] / capacity);
         fEdepGamma->Fill(1000. * tracks.fPV[itr], 1000. * tracks.fEdepV[itr] / capacity);
       } else if (tracks.fPDGV[itr] == 2212) {
@@ -325,7 +324,7 @@ void CMSApplicationTBB::SteppingActions(GeantTrack_v &tracks, GeantTaskData *td)
 #endif
     }
   }
-  std::cout<<"*** SteppingAction() @return: #tracks="<< tracks.GetNtracks() <<"\n";
+  std::cerr<<"*** SteppingAction() @return: #tracks="<< tracks.GetNtracks() <<"\n";
 }
 
 //______________________________________________________________________________
