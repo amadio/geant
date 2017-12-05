@@ -179,14 +179,14 @@ namespace demo {
     if (performance) fConfig->fUseStdScoring = false;
 
      // Create run manager
-    std::cout<<"*** GeantRunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
+    std::cerr<<"*** GeantRunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
     fRunMgr = new GeantRunManager(n_propagators, n_threads, fConfig);
 
     // Detector construction
     fRunMgr->SetDetectorConstruction( new CMSDetectorConstruction(cms_geometry_filename.c_str(), fRunMgr) );
 
     // Create the tabulated physics process
-    std::cout<<"*** GeantRunManager: setting physics process...\n";
+    std::cerr<<"*** GeantRunManager: setting physics process...\n";
     fRunMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
 
 #ifdef USE_VECGEOM_NAVIGATOR
@@ -199,16 +199,16 @@ namespace demo {
 
     // Setup a primary generator
     if (hepmc_event_filename.empty()) {
-      std::cout<<"*** GeantRunManager: setting up a GunGenerator...\n";
       fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 13, fConfig->fEmax, -8, 0, 0, 1, 0, 0);
+      std::cerr<<"*** GeantRunManager: setting up a GunGenerator...\n";
     } else {
-      std::cout<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
+      std::cerr<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
       fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
     }
     fPrimaryGenerator->InitPrimaryGenerator();
 
     CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr);
-    std::cout<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
+    std::cerr<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
     fRunMgr->SetUserApplication( cmsApp );
     if (score) {
       cmsApp->SetScoreType(CMSApplicationTBB::kScore);
@@ -217,7 +217,7 @@ namespace demo {
     }
 
     // Start simulation for all propagators
-    std::cout<<"*** GeantRunManager: initializing...\n";
+    std::cerr<<"*** GeantRunManager: initializing...\n";
     fRunMgr->Initialize();
 
     /*
@@ -242,23 +242,23 @@ namespace demo {
     //CMSApplicationTBB *cmsApp = static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication());
     //cmsApp->SetEventContinuationTask( iEvent.index(), pWaitTask );
 
-    printf("GeantVProducer::produce(): *** Run GeantV simulation task ***\n");
+    std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
     RunTransportTask(1);
 
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
         ++it) {
-      sum +=iEvent.get(*it);
+      sum += iEvent.get(*it);
     }
-    printf("GeantVProducer::produce(): m_getters.size() = %lu and sum=%i\n", m_getters.size(), sum);
+    std::cerr<<"GeantVProducer::produce(): m_getters.size() = "<< m_getters.size() <<" and sum="<< sum <<"\n";
 
-    // printf("GeantVProducer %s at %p: produce()... runSimulation(%p)\n",label().c_str(), this, pWaitTask);
+    // std::cerr<<"GeantVProducer %s at %p: produce()... runSimulation(%p)\n",label().c_str(), this, pWaitTask);
     // runSimulation(pWaitTask);
 
-    printf("GeantVProducer %s at %p: adding to event...\n",label().c_str(), this);
+    std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
     iEvent.put(this,"",static_cast<int>(sum));
-    printf("GeantVProducer %s at %p: done!\n",label().c_str(), this);
+    std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": done!\n";
   }
 
   /* GeantV interface code goes there */
@@ -310,8 +310,8 @@ namespace demo {
       GeantEvent *event = new GeantEvent();
       GeantEventInfo event_info = fPrimaryGenerator->NextEvent();
       while (event_info.ntracks == 0) {
-	printf("Discarding empty event\n");
 	event_info = fPrimaryGenerator->NextEvent();
+	std::cerr<<"Discarding empty event\n";
       }
       event->SetNprimaries(event_info.ntracks);
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);

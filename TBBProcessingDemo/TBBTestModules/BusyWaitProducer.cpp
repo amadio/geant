@@ -43,13 +43,13 @@ namespace demo {
   
   void 
   BusyWaitProducer::produce(edm::Event& iEvent) {
-    //printf("Producer %s\n",label().c_str());
+    std::cerr<<"Producer "<< label().c_str() <<"::produce()\n";
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
         ++it) {
       sum +=iEvent.get(*it);
-      //printf("%s got %s with value %i\n",label().c_str(), (*it)->label().c_str(), iEvent.get((*it)));
+      std::cerr<<"  "<< label().c_str() <<" got "<< (*it)->label().c_str() <<" with value "<< iEvent.get((*it)) <<"\n";
     }
     wait(iEvent);
     iEvent.put(this,"",static_cast<int>(sum));
