@@ -123,45 +123,11 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
   GeantEvent *event = new GeantEvent();
   event->SetNprimaries(ntracks);
   event->SetVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
-
-  // Initialize navigation path for the vertex
-  Volume_t *vol = 0;
-  // Initialize the start path
-  VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
-#ifdef USE_VECGEOM_NAVIGATOR
-  vecgeom::SimpleNavigator nav;
-  startpath->Clear();
-  nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                  Vector3D<Precision>(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert), *startpath, true);
-  vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
-  VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
-#else
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-  TGeoNode *geonode = nav->FindNode(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
-  vol = geonode->GetVolume();
-  VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
-  startpath->InitFromNavigator(nav);
-#endif
-  // There are needed for v2 only
-  fBindex = link->index;
-  td->fVolume = vol;
-
-  // Populate event with primary tracks
+  // Populate event with primary tracks from the generator
   for (int itr=0; itr<ntracks; ++itr) {
     GeantTrack &track = td->GetNewTrack();
     track.fParticle = event->AddPrimary(&track);
-    track.SetPrimaryParticleIndex(itr);
-    track.SetPath(startpath);
-    track.SetNextPath(startpath);
     fRunMgr->GetPrimaryGenerator()->GetTrack(itr, track, td);
-    if (!track.IsNormalized())
-      track.Print("Not normalized");
-    track.fBoundary = false;
-    track.fStatus = kNew;
-    event->fNfilled++;
-    if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
   }
 
   fGenLock.clear(std::memory_order_release);
@@ -178,50 +144,49 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 // Adds one event into the queue of pending events.
   int evt = fNload.fetch_add(1);
   event->SetEvent(evt);
-  if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop) {
-    // The vertex must be defined
-    vecgeom::Vector3D<double> vertex = event->GetVertex();
-    int ntracks = event->GetNprimaries();
-
-    // Initialize navigation path for the vertex
-    Volume_t *vol = 0;
-    // Initialize the start path
-    VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
+  // The vertex must be defined
+  vecgeom::Vector3D<double> vertex = event->GetVertex();
+  int ntracks = event->GetNprimaries();
+  // Initialize navigation path for the vertex
+  Volume_t *vol = 0;
+  // Initialize the start path
+  VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
 #ifdef USE_VECGEOM_NAVIGATOR
-    vecgeom::SimpleNavigator nav;
-    startpath->Clear();
-    nav.LocatePoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
-    vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
-    VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
+  vecgeom::SimpleNavigator nav;
+  startpath->Clear();
+  nav.LocatePoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
+  vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
+  VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
-    TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-    if (!nav)
-      nav = gGeoManager->AddNavigator();
-    TGeoNode *geonode = nav->FindNode(vertex.x(), vertex.y(), vertex.z());
-    vol = geonode->GetVolume();
-    VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
-    startpath->InitFromNavigator(nav);
+  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
+  if (!nav)
+    nav = gGeoManager->AddNavigator();
+  TGeoNode *geonode = nav->FindNode(vertex.x(), vertex.y(), vertex.z());
+  vol = geonode->GetVolume();
+  VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
+  startpath->InitFromNavigator(nav);
 #endif
-    // There are needed for v2 only
-    fBindex = link->index;
-    //td->fVolume = vol;
-    // Check and fix tracks
-    for (int itr=0; itr<ntracks; ++itr) {
-      GeantTrack &track = *event->GetPrimary(itr);
-      track.SetPrimaryParticleIndex(itr);
-      track.SetPath(startpath);
-      track.SetNextPath(startpath);
-      track.SetEvent(evt);
-      if (!track.IsNormalized())
-        track.Print("Not normalized");
-      track.fBoundary = false;
-      track.fStatus = kNew;
-      event->fNfilled++;
-      if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
+  fBindex = link->index;
+  // This is needed for v2 only
+  //td->fVolume = vol;
+
+  // Check and fix tracks
+  for (int itr=0; itr<ntracks; ++itr) {
+    GeantTrack &track = *event->GetPrimary(itr);
+    track.SetPrimaryParticleIndex(itr);
+    track.SetPath(startpath);
+    track.SetNextPath(startpath);
+    track.SetEvent(evt);
+    if (!track.IsNormalized()) {
+      track.Print("Not normalized");
+      track.Normalize();
     }
-    // Release path object
-    VolumePath_t::ReleaseInstance(startpath);
+    track.fBoundary = false;
+    track.fStatus = kNew;
+    event->fNfilled++;
+    if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
   }
+  VolumePath_t::ReleaseInstance(startpath);
 
   if (!fPendingEvents.enqueue(event)) {
     // Should never happen
@@ -357,7 +322,7 @@ void GeantEventServer::CompletedEvent(GeantEvent *event, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-GeantTrack *GeantEventServer::GetNextTrack(unsigned int &error)
+GeantTrack *GeantEventServer::GetNextTrack(GeantTaskData *td, unsigned int &error)
 {
 // Fetch next track of the current event. Increments current event if no more
 // tracks. If current event matches last activated one, resets fHasTracks flag.
@@ -383,14 +348,14 @@ GeantTrack *GeantEventServer::GetNextTrack(unsigned int &error)
     }
     if (valid) break;
   }
-  GeantTrack *track = event->GetPrimary(itr);
+  GeantTrack *track = event->GetPrimary(itr)->Clone(td);
   track->fEvent = event->GetEvent();
   track->fEvslot = event->GetSlot();
   return track;
 }
 
 //______________________________________________________________________________
-int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks, unsigned int &error)
+int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks, GeantTaskData *td, unsigned int &error)
 {
 // Fill concurrently a basket of tracks, up to the requested number of tracks.
 // The error codes returned: 0-normal fill 1-partial fill 2-
@@ -398,7 +363,7 @@ int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks, unsigned int
   if (!fHasTracks) return 0;
   int ndispatched = 0;
   for (int i=0; i<ntracks; ++i) {
-    GeantTrack *track = GetNextTrack(error);
+    GeantTrack *track = GetNextTrack(td, error);
     if (!track) break;
     tracks.AddTrack(*track);
     ndispatched++;
@@ -411,14 +376,14 @@ int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks, unsigned int
 }
 
 //______________________________________________________________________________
-int GeantEventServer::FillBasket(Basket *basket, int ntracks, unsigned int &error)
+int GeantEventServer::FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error)
 {
 // Fill concurrently a basket of tracks, up to the requested number of tracks.
 // The client should test first the track availability using HasTracks().
   if (!fHasTracks) return 0;
   int ndispatched = 0;
   for (int i=0; i<ntracks; ++i) {
-    GeantTrack *track = GetNextTrack(error);
+    GeantTrack *track = GetNextTrack(td, error);
     if (!track) break;
     basket->AddTrack(track);
     ndispatched++;
@@ -431,7 +396,7 @@ int GeantEventServer::FillBasket(Basket *basket, int ntracks, unsigned int &erro
 }
 
 //______________________________________________________________________________
-int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, unsigned int &error)
+int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error)
 {
 // Fill concurrently up to the requested number of tracks into a stack-like buffer.
 // The client should test first the track availability using HasTracks().
@@ -444,7 +409,7 @@ int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, unsi
   }
   int ndispatched = 0;
   for (int i=0; i<ntracks; ++i) {
-    GeantTrack *track = GetNextTrack(error);
+    GeantTrack *track = GetNextTrack(td, error);
     if (!track) break;
     buffer->AddTrack(track);
     ndispatched++;

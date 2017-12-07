@@ -247,6 +247,10 @@ public:
     return fabs(kB2C * qB / (Pt() + kTiny));
   }
 
+  /** @brief Clone this track using specific task data storage */
+  VECCORE_ATT_HOST_DEVICE
+  GeantTrack *Clone(GeantTaskData *td);  
+
   /** @brief Function that return pointer to X direction value */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE

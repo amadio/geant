@@ -505,7 +505,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
     // In the initial phase we distribute a fair share of baskets to all propagators
     if (!evserv->IsInitialPhase() ||
         td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
-      ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket, error);
+      ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket, td, error);
   }
   // td->fStat->AddTracks(ninjected);
   if (ninjected)
@@ -722,7 +722,7 @@ void *WorkloadManager::TransportTracks(GeantPropagator *prop) {
           // In the initial phase we distribute a fair share of baskets to all propagators
           if (!evserv->IsInitialPhase() ||
               propagator->fNbfeed < runmgr->GetInitialShare()) {
-            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, error);
+            ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, td, error);
             if (ntotransport) basket = bserv;
             else sch->GarbageCollect(td);
           }
@@ -1093,7 +1093,7 @@ void *WorkloadManager::TransportTracksCoprocessor(GeantPropagator *prop,TaskBrok
            // In the initial phase we distribute a fair share of baskets to all propagators
              if (!evserv->IsInitialPhase() ||
                 propagator->fNbfeed < runmgr->GetInitialShare()) {
-               ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, error);
+               ntotransport = evserv->FillBasket(bserv->GetInputTracks(), basket_size, td, error);
                if (ntotransport) basket = bserv;
              }
            }

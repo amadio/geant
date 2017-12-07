@@ -4,6 +4,7 @@
 #include "Geant/Error.h"
 #include <execinfo.h>
 #include "GeantPropagator.h"
+#include "GeantTaskData.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -90,6 +91,9 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fCharge = other.fCharge;
     fProcess = other.fProcess;
     fNsteps = other.fNsteps;
+    fMaxDepth = other.fMaxDepth;
+    fStage = other.fStage;
+    fGeneration = other.fGeneration;
     fSpecies = other.fSpecies;
     fStatus = other.fStatus;
     fMass = other.fMass;
@@ -111,9 +115,8 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     fIntLen = other.fIntLen;
     fBoundary = other.fBoundary;
     fPending = other.fPending;
-    fMaxDepth = other.fMaxDepth;
     fStage = other.fStage;
-    fGeneration = other.fGeneration;
+    fIsOnBoundaryPreStp = other.fIsOnBoundaryPreStp;
     fVolume = other.fVolume;
 
     // Copy user data
@@ -205,6 +208,15 @@ void GeantTrack::Reset(GeantTrack const &blueprint)
   fPath->Clear();
   fNextpath->Clear();
 #endif  
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+GeantTrack *GeantTrack::Clone(GeantTaskData *td)
+{
+  GeantTrack &track = td->GetNewTrack();
+  track = *this;
+  return &track;
 }
 
 //______________________________________________________________________________

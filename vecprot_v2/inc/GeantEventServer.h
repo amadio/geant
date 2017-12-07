@@ -75,7 +75,7 @@ private:
   queue_events fDoneEvents;            /** Queue of transported events */
 
 protected:
-  GeantTrack *GetNextTrack(unsigned int &error);
+  GeantTrack *GetNextTrack(GeantTaskData *td, unsigned int &error);
 
 public:
   GeantEventServer(int nactive_max, GeantRunManager *runmgr);
@@ -131,11 +131,11 @@ public:
   GEANT_FORCE_INLINE
   bool IsInitialPhase() const { return fInitialPhase; }
 
-  int FillBasket(GeantTrack_v &tracks, int ntracks, unsigned int &error);
+  int FillBasket(GeantTrack_v &tracks, int ntracks, GeantTaskData *td, unsigned int &error);
 
-  int FillBasket(Basket *basket, int ntracks, unsigned int &error);
+  int FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error);
 
-  int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, unsigned int &error);
+  int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error);
   
   // int AddEvent(GeantTaskData *td);
   
