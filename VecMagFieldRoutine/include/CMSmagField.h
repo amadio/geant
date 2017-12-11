@@ -48,7 +48,7 @@
 
 #define FORCE_INLINE   1
 
-#include "GUVField.h"
+// #include "VScalarField.h"
 
 // using namespace std;
 
@@ -70,7 +70,7 @@ struct MagVector3 {
   T fBz   =0.;
 };
 
-class CMSmagField : public GUVField
+class CMSmagField // : public VScalarField
 {
 public:
   CMSmagField();   
@@ -78,15 +78,17 @@ public:
   CMSmagField(const CMSmagField &right);
 
   /** @brief Scalar interface for field retrieval */
-  virtual void  GetFieldValue( const Vector3D<double> &position, 
-                                     Vector3D<double>  &fieldValue ) override
+  // virtual
+  void  GetFieldValue( const Vector3D<double> &position, 
+                             Vector3D<double>  &fieldValue ) // override
   {
     GetFieldValue<double>(position, fieldValue);
   }
 
   /** @brief Vector interface for field retrieval */
-  virtual void GetFieldValueSIMD( const Vector3D<Double_v> &position, 
-                                        Vector3D<Double_v> &fieldValue ) override
+  // virtual
+  void GetFieldValueSIMD( const Vector3D<Double_v> &position, 
+                                Vector3D<Double_v> &fieldValue ) // override
   {
     GetFieldValue<Double_v>(position, fieldValue);
   }
@@ -96,7 +98,8 @@ public:
   void GetFieldValue( const Vector3D<Real_v> &position,
                             Vector3D<Real_v> &fieldValue );
 
-  //Reads data from given 2D magnetic field map. Can be easily modified to read a given 2D map, in case the file changes
+  // Reads data from specific 2D magnetic field map.
+  //    ( Must be modified if used to read a different 2D map. )
   bool ReadVectorData(std::string inputMap);
    // Return value: success of finding and reading file.
 
@@ -114,9 +117,9 @@ public:
    
     const float kRMax   = 9000.  * millimeter;   //  Maximum value of R =  9.00 meters
     const float kZMax   = 16000. * millimeter;   //  Max value of Z = 16.00 meters
-    const int kNoZValues   = 161;
-    const int kNoRValues   = 181;
-    const int kHalfZValues = 80;
+    constexpr int kNoZValues   = 161;
+    constexpr int kNoRValues   = 181;
+    constexpr int kHalfZValues = 80;
     static constexpr int   gNumFieldComponents= 3;
     static constexpr bool  gFieldChangesEnergy= false;
 
@@ -151,36 +154,39 @@ protected:
                                       Vector3D<Real_v> &xyzField);
 
 
-    //Takes care of indexing into multiple places in AOS. Gather because using 
-    //defined in Vc class. Not self-defined gather like before 
+    //Takes care of indexing into multiple places in AOS. 
     template <typename Real_v>
-    void Gather2(const Real_v index, 
+    void Gather2(const Index<Real_v> index,
                        Real_v B1[3],
                        Real_v B2[3]);
 
 public:
   // Methods for Multi-treading
   CMSmagField* CloneOrSafeSelf( bool* pSafe );
-  GUVField*    Clone() const override;
-   
+   // VScalarField*    Clone() const override;
+
+  using Store_t= float; // Type used in storing values
+  enum  kIndexRPhiZ { kNumR = 0, kNumPhi= 1, kNumZ = 2 } ;
 private: 
-  MagVector3<float> *fMagvArray; //  = new MagVector3<float>[30000];
-  bool   fReadData;
-  bool   fVerbose;
-  bool   fPrimary;  /** Read in and own the data arrays */
+   // MagVector3<float> *fMagvArray; //  = new MagVector3<float>[30000];
+  Store_t fMagLinArray[3*kNoZValues*kNoRValues];
+  bool    fReadData;
+  bool    fVerbose;
+  bool    fPrimary;  /** Read in and own the data arrays */
 };
 
 CMSmagField::CMSmagField()
-  : GUVField(gNumFieldComponents, gFieldChangesEnergy),
+  : VScalarField(gNumFieldComponents, gFieldChangesEnergy),
     fReadData(false), fVerbose(true), fPrimary(false)
 {
-  fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
-  if( fVerbose ) {   ReportVersion();  }
+   // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
+   if( fVerbose ) {   ReportVersion();  }
 }
 
 CMSmagField::CMSmagField(std::string inputMap) : CMSmagField() 
 {
-   fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
+   // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
+   // fMagLinArray = new Store_t[3*kNoZValues*kNoRValues];   
 
    if( fVerbose ) {   
      // ReportVersion();  
@@ -203,17 +209,18 @@ void CMSmagField::ReportVersion()
 }
 
 CMSmagField::CMSmagField(const CMSmagField &right)
-  : GUVField(gNumFieldComponents, gFieldChangesEnergy),
+  : VScalarField(gNumFieldComponents, gFieldChangesEnergy),
     fReadData(right.fReadData),
     fVerbose(right.fVerbose),
     fPrimary(false)
 {
-   fMagvArray= right.fMagvArray;
+    // fMagvArray= right.fMagvArray;
 }
 
-CMSmagField::~CMSmagField(){
-   if( fPrimary )
-      delete[] fMagvArray;
+CMSmagField::~CMSmagField()
+{
+   // if( fPrimary )
+   //    delete[] fMagvArray;
 }
 
 INLINE_CHOICE
@@ -234,15 +241,20 @@ bool CMSmagField::ReadVectorData(std::string inputMap)
          //parsing all the parts. s0's store the string names which are of no use to us. 
          ss>> s0>> d1>> s1>> d0>> s2>> d2>> s3>> d3>> s4>> d4>> s5>> d5;
       
-         fMagvArray[ind].fBr = d4 * kAInverse;
-         fMagvArray[ind].fBphi = d5 * kAInverse;
-         fMagvArray[ind].fBz = d3 * kAInverse;
+         // fMagvArray[ind].fBr = d4 * kAInverse;
+         // fMagvArray[ind].fBphi = d5 * kAInverse;
+         // fMagvArray[ind].fBz = d3 * kAInverse;
+
+         fMagLinArray[ind+kr]   = d4 * kAInverse;
+         fMagLinArray[ind+kphi] = d5 * kAInverse;
+         fMagLinArray[ind+kz]   = d3 * kAInverse;
 #if    VERBOSE
          if( ind % 10 == 0 ) std::cout << "Read in line " << ind
                                        << " Values= " << d3 << " " << d4 << " "
                                        << d5 << std::endl;
 #endif         
          ind++;
+         indLocation+=3;
       }
       pFile.close();
    }
@@ -282,52 +294,51 @@ void CMSmagField::CylindricalToCartesian(const Vector3D<Real_v>  &rzField,
 
 template <typename Real_v>
 INLINE_CHOICE
-void CMSmagField::Gather2(const Real_v index, 
+void CMSmagField::Gather2(const Index<Real_v> index, 
                                 Real_v B1[3],
                                 Real_v B2[3])
 {
   using Index_v = vecCore::Index<Real_v>;
-  using Index = vecCore::Scalar<Index_v>;
-  using Real_s = vecCore::Scalar<Real_v>;
+  using index   = vecCore::Scalar<Index_v>;
+  using Real_s  = vecCore::Scalar<Real_v>;
   
-  const size_t kVecSize = vecCore::VectorSize<Real_v>();
-  // Gather won't work since the data is not stored in terms of Real_v
-  // Loop lanes
-  for (size_t lane = 0; lane < kVecSize; ++lane) {
-    Index ind1 = Index(vecCore::Get(index, lane));
-    Index ind2 = ind1 + kNoZValues;
+  Index_v ind1 = 3 * index1;           // 3 components per 'location'
+  Index_v ind2 = ind1   + 3 * kNoZValues;
+  
+  //Fetch one component of each point first, then the rest.
+  B1[0] = vecCore::Gather( fMagLinArray, ind1 );
+  B2[0] = vecCore::Gather( fMagLinArray, ind2 );
 
-    //Fetch one component of each point first, then the rest.
-    vecCore::Set(B1[0], lane, Real_s(fMagvArray[ind1].fBr));
-    vecCore::Set(B2[0], lane, Real_s(fMagvArray[ind2].fBr));
-
-    vecCore::Set(B1[1], lane, Real_s(fMagvArray[ind1].fBphi));
-    vecCore::Set(B2[1], lane, Real_s(fMagvArray[ind2].fBphi));
-
-    vecCore::Set(B1[2], lane, Real_s(fMagvArray[ind1].fBz));
-    vecCore::Set(B2[2], lane, Real_s(fMagvArray[ind2].fBz));    
-  }
+  Index_v ind1phi= ind1 + kNumPhi;
+  Index_v ind2phi= ind2 + kNumPhi;
+  B1[1] = vecCore::Gather( fMagLinArray, ind1phi );
+  B2[1] = vecCore::Gather( fMagLinArray, ind2phi );
+  
+  Index_v ind1z = ind1 + kNumZ;
+  Index_v ind2z = ind2 + kNumZ;
+  B1[2] = vecCore::Gather( fMagLinArray, ind1z );
+  B1[3] = vecCore::Gather( fMagLinArray, ind2z );
 }
 
 // Scalar specialization
 template <>
 INLINE_CHOICE 
-void CMSmagField::Gather2<double>(const double index, 
+void CMSmagField::Gather2<double>(const int    index,   // or double index ???
                                         double B1[3],
                                         double B2[3])
 {
-    int ind1= int(index);
-    int ind2 = ind1 + kNoZValues;
+    int ind1= 3 * int(index);
+    int ind2 = ind1 + 3 * kNoZValues;
 
     //Fetch one component of each point first, then the rest. 
-    B1[0] = fMagvArray[ind1].fBr;
-    B2[0] = fMagvArray[ind2].fBr;
+    B1[0] = fMagLinArray[ind1+kNumR];
+    B2[0] = fMagLinArray[ind2+kNumR];
 
-    B1[1] = fMagvArray[ind1].fBphi;
-    B2[1] = fMagvArray[ind2].fBphi;
+    B1[1] = fMagLinArray[ind1+kNumPhi];
+    B2[1] = fMagLinArray[ind2+kNumPhi];
     
-    B1[2] = fMagvArray[ind1].fBz;
-    B2[2] = fMagvArray[ind2].fBz;
+    B1[2] = fMagLinArray[ind1+kNumZ];
+    B2[2] = fMagLinArray[ind2+kNumZ];
 }
 
 template <typename Real_v>
@@ -340,7 +351,7 @@ void CMSmagField::GetFieldValueRZ(const Real_v &r,
     using namespace vecCore::math;
 
     //Take care that radius and z for out of limit values take values at end points 
-    Real_v radius = Min(r, Real_v(kRMax));
+    Real_v radius = Min(r, Real_v(kNumRMax));
     Real_v z = Max(Min(Z, Real_v(kZMax)), Real_v(-kZMax)); 
 
     //to make sense of the indices, consider any particular instance e.g. (25,-200)
@@ -415,7 +426,7 @@ CMSmagField* CMSmagField::CloneOrSafeSelf( bool* pSafe )
    return this;
 }
 
-GUVField* CMSmagField::Clone() const
+VScalarField* CMSmagField::Clone() const
 {
    return new CMSmagField( *this );
 }

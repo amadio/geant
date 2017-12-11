@@ -45,60 +45,16 @@
 #include "base/SOA3D.h"
 #include "base/Global.h"
 
-#include "backend/Backend.h"
-// #include "backend/scalarfloat/Backend.h"
-#include "ScalarFloatBackend.h"
+#include "VScalarField.h"
+#include "Units.h"
 
-// Configuration options - to be improved and incorporated in CMakeLists.txt
+// Configuration options - to be improved and incorporated in CMakeLists.txt ??
 //
-#define Vc_FOUND 1
-
-#define FORCE_INLINE   1
-
-// Start - Configuration for Vc Vector Backend
-#ifdef Vc_FOUND
-//  For efficience purposes methods which expose the backend (Vc) are needed
-#include <Vc/Vc>
-#include "backend/vc/Backend.h"
-// #include "backend/vcfloat/Backend.h"
-#include "VcFloatBackend.h"
-
-#include "GUVMagneticField.h"
-#include "TemplateGUVMagneticField.h"
-
- #include "TemplateCMSmagField.h"
-
- #include "Units.h"
-
-// Vc Version 0.7 and earlier had a 'Gather' method which obtained one 
-//    member of a class/struct. 
-// Vc Version 1.0 no longer has this method.
-// #if ( GREATER(VcVERSION,1.0) ) 
-#define VC_NO_MEMBER_GATHER 1
-// #endif
-#endif
-// End - Configuration for Vc Vector Backend
-
-// End of Configuration option
-
-#ifdef Vc_FOUND
-#include <Vc/vector>
-#endif 
-
-// using namespace std;
-
-#ifdef  NO_INLINE
-#define INLINE_CHOICE __attribute__ ((noinline))
-#else
-#ifdef FORCE_INLINE
+// #define INLINE_CHOICE __attribute__ ((noinline))
 #define INLINE_CHOICE inline __attribute__ ((always_inline))
-#else
-//  Default configuration
-#define INLINE_CHOICE inline
-#endif
-#endif
+// #define INLINE_CHOICE inline
 
-/*template<typename dataType>
+template<typename dataType>
 struct MagVector3{
 public:
     dataType Br   =0.;
@@ -111,7 +67,7 @@ public:
     dataType GetBr()   { return Br;   }
     dataType GetBphi() { return Bphi; }
     dataType GetBz()   { return Bz;   }
-};*/
+};
 
 class ScalarCMSmagField : public GUVMagneticField
 {
@@ -127,12 +83,6 @@ public:
 
     void GetFieldValue(const vecgeom::Vector3D<double>      &pos,
                              vecgeom::Vector3D<float> &xyzField) override final;
-
-    // void GetFieldValue(const vecgeom::Vector3D<typename vecgeom::kVc::precision_v>     &pos,
-    //                          vecgeom::Vector3D<double> &xyzField) /*override final*/ ;
-
-    // void GetFieldValue(const vecgeom::Vector3D<typename vecgeom::kScalar::precision_v>     &pos,
-    //                          vecgeom::Vector3D<double> &xyzField) /*override final*/ ;
 
     //Reads data from given 2D magnetic field map. Can be easily modified to read a given 2D map, in case the file changes
     bool ReadVectorData(std::string inputMap);
@@ -184,10 +134,6 @@ protected:
                                                   const double  cosTheta, 
                                      vecgeom::Vector3D<double> &xyzField);
 
-
-    //Takes care of indexing into multiple places in AOS. Gather because using 
-    //defined in Vc class. Not self-defined gather like before 
-    // 
     void Gather2(const double index, 
                        double B1[3],
                        double B2[3]);
@@ -195,16 +141,13 @@ protected:
 public:
     // Methods for Multi-treading
     ScalarCMSmagField* CloneOrSafeSelf( bool* pSafe );
-    GUVField*    Clone() const override;
+    VScalarField*    Clone() const override;
    
 private: 
     MagVector3<float> *fMagvArray; //  = new MagVector3<float>[30000];
     bool   fReadData;
     bool   fVerbose;
     bool   fPrimary;  /** Read in and own the data arrays */
-    #ifdef Vc_FOUND
-    Vc::vector<MagVector3<float>> *fVcMagVector3;
-    #endif 
 };
 
 ScalarCMSmagField
@@ -215,9 +158,6 @@ ScalarCMSmagField
     fVcMagVector3 = new Vc::vector<MagVector3<float>>;
     if( fVerbose ) {
       printf( "%s", "- ScalarCMSmagField class: Version: Reorder2 (floats)");
-#ifdef VC_NO_MEMBER_GATHER
-      printf( "%s", ", with VC_NO_MEMBER_GATHER enabled." );
-#endif
     }
 }
 
@@ -272,9 +212,6 @@ bool ScalarCMSmagField
          fMagvArray[ind].SetBr(d4*kAInverse);
          fMagvArray[ind].SetBphi(d5*kAInverse);
          fMagvArray[ind].SetBz(d3*kAInverse);
-#ifdef VC_NO_MEMBER_GATHER
-         fVcMagVector3->push_back(fMagvArray[ind]); 
-#endif
 #if    VERBOSE
          if( ind % 10 == 0 ) std::cout << "Read in line " << ind
                                        << " Values= " << d3 << " " << d4 << " "
@@ -399,16 +336,16 @@ void ScalarCMSmagField
 
 INLINE_CHOICE
 // __attribute__ ((noinline))
-// Sidenote: For theta =0; xyzField = rzField. 
-// theta =0 corresponds to y=0
 
 void ScalarCMSmagField
   ::GetFieldValue(const vecgeom::Vector3D<double>      &pos, 
                         vecgeom::Vector3D<double> &xyzField)
 {
+//  Sidenote: For theta =0; xyzField = rzField. 
+//  theta =0 corresponds to y=0
 
-    typedef double Float_v;
-    typedef bool   Bool_v;
+    using Float_v= double;
+    using Bool_v = bool;
 
     Float_v cyl[2];
     CartesianToCylindrical(pos, cyl); 
@@ -422,12 +359,17 @@ void ScalarCMSmagField
 
     // MaskedAssign(cond, value , var );
     // where cond is Bool_v, value is value calculated, var is the variable taking value 
-    Bool_v nonZero = (cyl[0] != zero); 
-    Float_v rInv   = zero;
-    vecgeom::MaskedAssign(nonZero, 1.0f/cyl[0]    , &rInv    );
-    sinTheta = pos.y()*rInv;
-    vecgeom::MaskedAssign(nonZero, pos.x()*rInv, &cosTheta);
 
+    bool xNonZero = (cyl[0] != zero);
+    if( xNonZero) { rInv= 1.0f / cyl[0]; } 
+    // Float_v rInv   = zero;
+    // vecgeom::MaskedAssign(xNonZero, 1.0f/cyl[0]    , &rInv    );
+    
+    sinTheta = pos.y()*rInv;
+    // vecgeom::MaskedAssign(xNonZero, pos.x()*rInv, &cosTheta);
+    if( xNonZero ) 
+       cosTheta= pos.x()*rInv;
+    
     CylindricalToCartesian(rzField, sinTheta, cosTheta, xyzField);
 
     xyzField *= fieldUnits::tesla;
@@ -460,12 +402,12 @@ ScalarCMSmagField* ScalarCMSmagField::CloneOrSafeSelf( bool* pSafe )
 }
 
 
-GUVField* ScalarCMSmagField::Clone() const
+VScalarField* ScalarCMSmagField::Clone() const
 {
    return new ScalarCMSmagField( *this );
 }
 
-#undef  NO_INLINE
+#undef NO_INLINE
 #undef FORCE_INLINE
 #undef INLINE_CHOICE
 

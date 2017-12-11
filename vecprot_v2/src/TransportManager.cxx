@@ -34,14 +34,14 @@
 #include "Basket.h"
 #include "GeantTaskData.h"
 #include "ConstBzFieldHelixStepper.h"
-#include "ConstVecFieldHelixStepper.h"
+#include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
 // #ifdef  RUNGE_KUTTA
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
 
-#include "GUVField.h"
+#include "VScalarField.h"
 #include "FieldLookup.h"
 
 // #endif
@@ -425,8 +425,9 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
      **/   
 #endif
   } else {
-     double BfieldInitial[3], bmag= 0.0;
-     FieldLookup::GetFieldValue(td, Position, BfieldInitial, &bmag);
+     ThreeVector BfieldInitial; // [3],
+     double bmag= 0.0;
+     FieldLookup::GetFieldValue( Position, BfieldInitial, bmag, td );
      double Bx= BfieldInitial[0], By= BfieldInitial[1], Bz= BfieldInitial[2];
      if ( std::fabs( Bz ) > 1.0e6 * std::max( std::fabs(Bx), std::fabs(By) ) )
      {
@@ -435,7 +436,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
                                                PositionNew, DirectionNew);
         // propagationType= 2;
      } else {
-        ConstVecFieldHelixStepper stepper( BfieldInitial );
+        ConstFieldHelixStepper stepper( BfieldInitial );
         stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,
                                          PositionNew, DirectionNew);
         // propagationType= 3;        
@@ -724,7 +725,8 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
 
-  double Bfield[3], bmag= 0.0;
+  vecgeom::Vector3D<double> Bfield;  
+  double bmag= 0.0;
   // const double bmag = td->fBfieldMag;
   
 // Compute transport length in geometry, limited by the physics step
@@ -758,7 +760,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
     if( !neutral ) {
        // printf( " PropagateSingleTrack> getting Field. Charge= %3d ", track.fCharge );
        vecgeom::Vector3D<double> Position( tracks[itr]->X(), tracks[itr]->Y(), tracks[itr]->Z() );
-       FieldLookup::GetFieldValue(td, Position, Bfield, &bmag);       
+       FieldLookup::GetFieldValue( Position, Bfield, bmag, td);
        // if( bmag < 1.E-10) { printf("TransportMgr::TrSnglTrk> Tiny field - mag = %f\n", bmag); }
     }
     if ( neutral || bmag < 1.E-10) {       

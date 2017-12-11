@@ -2,12 +2,12 @@
 #define FIELDEQUATIONFACTORY_H 1
 
 // Base types
-// #include "GUVField.h"
+// #include "VScalarField.h"
 #include "VScalarEquationOfMotion.h"
 
 // Concrete Types
 // #include "ScalarUniformMagField.h"
-#include "ScalarFieldEquation.h"
+#include "ScalarMagFieldEquation.h"
 
 class FieldEquationFactory
 {
@@ -16,28 +16,28 @@ class FieldEquationFactory
 
      template<typename FieldType>
         static
-        ScalarFieldEquation<FieldType,Nposmom> *   // VScalarEquationOfMotion*
+        ScalarMagFieldEquation<FieldType,Nposmom> *   // VScalarEquationOfMotion*
                CreateMagEquation(FieldType *field);
        //  Create an equation given a field type
 
      template<typename FieldType>
         static
-        ScalarFieldEquation<FieldType,Nposmom> *       
+        ScalarMagFieldEquation<FieldType,Nposmom> *       
                CreateMagEquation(FieldType &field);
       //  Similar for a field reference 
 };
 
 template<typename FieldType>
-ScalarFieldEquation<FieldType,FieldEquationFactory::Nposmom> *   // VScalarEquationOfMotion*
+ScalarMagFieldEquation<FieldType,FieldEquationFactory::Nposmom> *   // VScalarEquationOfMotion*
 FieldEquationFactory::CreateMagEquation(FieldType *pField)
 {
-    return new ScalarFieldEquation<FieldType, Nposmom>(pField);
+    return new ScalarMagFieldEquation<FieldType, Nposmom>(pField);
 }
 
 template<typename FieldType>
-ScalarFieldEquation<FieldType,FieldEquationFactory::Nposmom> *   // VScalarEquationOfMotion*
+ScalarMagFieldEquation<FieldType,FieldEquationFactory::Nposmom> *   // VScalarEquationOfMotion*
 FieldEquationFactory::CreateMagEquation(FieldType &field)
 {
-    return new ScalarFieldEquation<FieldType, Nposmom>(&field);
+    return new ScalarMagFieldEquation<FieldType, Nposmom>(&field);
 }
 #endif

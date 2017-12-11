@@ -2,7 +2,7 @@
 
 // For Geant::Print,  Printf
 #include "Geant/Error.h"
-#include "ConstVecFieldHelixStepper.h"
+#include "ConstFieldHelixStepper.h"
 #include "ConstBzFieldHelixStepper.h"
 
 VECCORE_ATT_HOST_DEVICE          
@@ -81,7 +81,7 @@ StepChecker::CheckStep( vecgeom::Vector3D<double> const & Position,
   ThreeVector DirectionNewHelix(0.,0.,0.);
 #if 1
   // Simpler version
-  Geant::ConstVecFieldHelixStepper stepper(BfieldVec[0], BfieldVec[1], BfieldVec[2]);
+  Geant::ConstFieldHelixStepper stepper(BfieldVec[0], BfieldVec[1], BfieldVec[2]);
   stepper.DoStep<ThreeVector,double,int>(Position, Direction, charge,
                                          momentum, step,
                                          PositionNewHelix, DirectionNewHelix);
@@ -93,7 +93,7 @@ StepChecker::CheckStep( vecgeom::Vector3D<double> const & Position,
      stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  charge, momentum, step,
                                             PositionNewHelix, DirectionNewHelix);
   } else {
-     Geant::ConstVecFieldHelixStepper stepper( Bfield ); // double Bfield[3] );
+     Geant::ConstFieldHelixStepper stepper( Bfield ); // double Bfield[3] );
      stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  charge, momentum, step,
                                             PositionNewHelix, DirectionNewHelix);
   }

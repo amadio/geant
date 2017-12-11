@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 /**
- * @file GUVField.h
+ * @file VScalarField.h
  * @brief  Abstract field class for Geant-V prototype
  * @author John Apostolakis
  */
@@ -8,7 +8,7 @@
 
 //
 //
-// class GUVField
+// class VScalarField
 //
 // Class description:
 //
@@ -30,8 +30,8 @@
 // same convention for the order of field components in the array "fieldArr"
 // -------------------------------------------------------------------
 
-#ifndef GUVFIELD_HH
-#define GUVFIELD_HH
+#ifndef VScalarField_HH
+#define VScalarField_HH
 
 #include <vector>
 #include "base/Vector3D.h"
@@ -45,7 +45,7 @@
  * @brief Base class describing the scalar and vector interfaces for Field classes
  */
 
-class GUVField
+class VScalarField
 {
 
 public:  // with description
@@ -74,22 +74,22 @@ public:  // with description
                                         Vector3D<Double_v> &fieldValue ) = 0;
 
   inline
-  GUVField( int numberOfComponents, bool changesEnergy )
+  VScalarField( int numberOfComponents, bool changesEnergy )
     : fNumberOfComponents(numberOfComponents), fChangesEnergy(changesEnergy) {}
 
   inline
-  GUVField( const GUVField &field)
+  VScalarField( const VScalarField &field)
     : fNumberOfComponents(field.fNumberOfComponents), fChangesEnergy(field.fChangesEnergy) {}
-  virtual ~GUVField() {}
+  virtual ~VScalarField() {}
  
   // A field signature function that can be used to insure
-  // that the Equation of motion object and the GUVField object
+  // that the Equation of motion object and the VScalarField object
   // have the same "field signature"?
 
   bool   DoesFieldChangeEnergy() const { return fChangesEnergy; } 
   int    GetNumberOfComponents() const { return fNumberOfComponents; } 
 
-  GUVField& operator = (const GUVField &field)
+  VScalarField& operator = (const VScalarField &field)
   {
     if (&field != this) {
       fNumberOfComponents = field.fNumberOfComponents;
@@ -98,7 +98,7 @@ public:  // with description
     return *this;
   }
   
-  virtual GUVField* Clone() const
+  virtual VScalarField* Clone() const
   {
     std::runtime_error("Clone must be implemented by the derived field class");
     return nullptr;
@@ -117,4 +117,4 @@ private:
   bool fChangesEnergy;            // Electric: true, Magnetic: false
 };
 
-#endif /* GUVFIELD_HH */
+#endif /* VScalarField_HH */

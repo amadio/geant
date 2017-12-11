@@ -162,7 +162,7 @@ ScalarFieldTrack::~ScalarFieldTrack()
 
 inline void
 ScalarFieldTrack::SetCurvePnt(const ThreeVector& pPosition, 
-                          const ThreeVector& pMomentum,  
+                              const ThreeVector& pMomentum,  
                                 double       s_curve )
 {
   SixVector[0] = pPosition.x(); 

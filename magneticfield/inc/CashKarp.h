@@ -15,28 +15,16 @@
 #define CASHKARPRKF45_H
 
 #include "GUVectorLineSection.h"
-#include "GUVVectorIntegrationStepper.h"
+// #include "VVectorIntegrationStepper.h"
 
-// #include "TMagErrorStepper.h" //for sake of GUIntegrationNms::NumVars
-
-// #include "AlignedBase.h"  // ==> Ensures alignment of storage for Vc objects
+// #include "AlignedBase.h"  // ==> Ensures alignment of storage for Vector objects
 
 // #define Outside_CashKarp     1
-// #define Inheriting_CashKarp  1    // ==> Inherit from GUVVectorIntegrationStepper
-
-/****
-#ifndef Inheriting_CashKarp
-#define override
-#define final
-#endif
- ****/
 
 template
 <class T_Equation, unsigned int Nvar>
    class CashKarp
-#ifdef Inheriting_CashKarp
-                   : public GUVVectorIntegrationStepper
-#endif   
+   // : public VVectorIntegrationStepper
 {
   public:
 
@@ -64,7 +52,7 @@ template
     
     virtual ~CashKarp();
 
-    // GUVVectorIntegrationStepper* Clone() const /*override*/ ;
+    // GUVVectorIntegrationStepper* Clone() const;
 
     template <typename Real_v> struct ScratchSpaceCashKarp; // defined below
 
@@ -89,12 +77,12 @@ template
                                const Double_v& charge,
                                const Double_v& hStep,
                                      Double_v  yOut[],
-                                     Double_v  yErr[]) // override final
+                                     Double_v  yErr[])
     {
        StepWithErrorEstimate<Double_v>(yInput,dydx,charge,hStep,yOut,yErr);
     }
 
-    Double_v DistChord() const /*override final*/ { return Double_v(0.0); }; 
+    Double_v DistChord() const { return Double_v(0.0); }; 
     //  -------- End of mandatory methods ( for transitional period. ) ------------
     
     
@@ -308,12 +296,6 @@ CashKarp<T_Equation,Nvar>::
    CashKarp(  T_Equation   *EqRhs,
               unsigned int  numStateVariables )
    :
-#ifdef Inheriting_CashKarp   
-       GUVVectorIntegrationStepper( nullptr,       // EqRhs,   ==>>  Does not inherit !!
-                                  sOrderMethod,
-                                  Nvar,
-                                  ((numStateVariables>0) ? numStateVariables : sNstore) ),
-#endif
      fEquation_Rhs(EqRhs),
      // fLastStepLength(0.),
      fOwnTheEquation(false)
@@ -339,9 +321,6 @@ void CashKarp<T_Equation,Nvar>::
 {
    fEquation_Rhs= equation;
    assert( fEquation_Rhs != nullptr );   
-#ifdef Inheriting_CashKarp   
-   // this->GUVVectorIntegrationStepper::SetABCEquationOfMotion(nullptr); // fEquation_Rhs);
-#endif   
 }
 
 // -------------------------------------------------------------------------------
@@ -353,12 +332,6 @@ inline
 CashKarp<T_Equation,Nvar>::
    CashKarp( const CashKarp& right )
    :
-#ifdef Inheriting_CashKarp
-       GUVVectorIntegrationStepper( (GUVVectorEquationOfMotion*) nullptr,
-                                              sOrderMethod,
-                                              Nvar,
-                                              right.GetNumberOfStateVariables() ),
-#endif   
      // fEquation_Rhs( (T_Equation*) nullptr ),
      fOwnTheEquation(false)
 {
@@ -444,14 +417,6 @@ CashKarp<T_Equation,Nvar>::
 
 // -------------------------------------------------------------------------------
 
-/***
-#ifndef Inheriting_CashKarp
-#undef override
-#undef final
-#else
-#undef Inheriting_CashKarp
-#endif
- ***/
 #ifdef Outside_CashKarp
 #undef Outside_CashKarp
 #endif

@@ -37,7 +37,7 @@ using veccore::BitSet;
 class PhysicsInterface;
 
 class GUFieldPropagator;
-class GUVField;
+class VScalarField;
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -56,7 +56,7 @@ class MCTruthMgr;
 class TaskBroker;
 class SimulationStage;
 class TrackManager;
-// class GUVField;
+// class VScalarField;
 // class GUFieldPropagator;
 
 // #include "GeantFwd.h"

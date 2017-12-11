@@ -33,10 +33,10 @@
 #include "GeantTaskData.h"
 #include "StepChecker.h"
 #include "ConstBzFieldHelixStepper.h"
-#include "ConstVecFieldHelixStepper.h"
+#include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
-#include "GUVField.h"
+#include "VScalarField.h"
 #include "Units.h"     //  Field Units - to be 'unified'
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
@@ -1285,7 +1285,11 @@ VECCORE_ATT_HOST_DEVICE
 void GeantTrack_v::GetFieldValue(GeantTaskData *td, int i, double BfieldOut[3], double *bmagOut) const
 {
    vecgeom::Vector3D<double> Position (fXposV[i], fYposV[i], fZposV[i]);
-   FieldLookup::GetFieldValue(td, Position, BfieldOut, bmagOut);
+   vecgeom::Vector3D<double> Bfield;
+   FieldLookup::GetFieldValue( Position, Bfield, *bmagOut, td);
+   BfieldOut[0]= Bfield[0];
+   BfieldOut[1]= Bfield[1];
+   BfieldOut[2]= Bfield[2];   
 }
 
 //______________________________________________________________________________
@@ -1413,7 +1417,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
 
         // Printf("Called Helix-General.  Bz= %g , Bx = %g, By= %g ", Bz, Bx, By );
         
-        Geant::ConstVecFieldHelixStepper stepper( BfieldInitial );
+        Geant::ConstFieldHelixStepper stepper( BfieldInitial );
         stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  fChargeV[i], fPV[i], crtstep,
                                                PositionNew, DirectionNew);
      }

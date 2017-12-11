@@ -27,7 +27,7 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 
 #include "ScalarUniformMagField.h"
 
-#include "TMagFieldEquation.h"
+#include "ScalarMagFieldEquation.h"
 
 #include "VScalarIntegrationStepper.h"
 #include "StepperFactory.h"
@@ -53,7 +53,7 @@ int main(int argc, char *args[])
 {
     constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
-    using  GvEquationType=  TMagFieldEquation<ScalarUniformMagField, Nposmom>;
+    using  GvEquationType=  ScalarMagFieldEquation<ScalarUniformMagField, Nposmom>;
  
     /* -----------------------------SETTINGS-------------------------------- */
     
@@ -143,7 +143,7 @@ int main(int argc, char *args[])
     //Create an Equation :
     auto gvEquation =
        new GvEquationType(gvField);
-       // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
+       // new ScalarMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
     // gvEquation->InitializeCharge( particleCharge );
 
     /*-------------------------PREPARING STEPPER-----------------------------*/
@@ -226,7 +226,7 @@ int main(int argc, char *args[])
     const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
     
     auto gvEquation2 = new GvEquationType(gvField);
-                   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
+                   // new ScalarMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
     // gvEquation2->InitializeCharge( particleCharge ); // Let's make sure
     
     // Should be able to share the Equation -- eventually

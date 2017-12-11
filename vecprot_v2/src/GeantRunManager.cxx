@@ -371,7 +371,7 @@ void GeantRunManager::PrepareRkIntegration() {
   // Initialise the classes required for tracking in field
   const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
   using Field_t = ScalarUniformMagField;
-  using Equation_t = TMagFieldEquation<Field_t, Nvar>;
+  using Equation_t = ScalarMagFieldEquation<Field_t, Nvar>;
 
   auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fConfig->fBmag));
   auto gvEquation = FieldEquationFactory::CreateMagEquation<Field_t>(gvField);

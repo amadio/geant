@@ -5,8 +5,8 @@
 
 #include "VScalarEquationOfMotion.h"
 
-#ifndef TMAGFIELDEQUATION_H
-#define TMAGFIELDEQUATION_H  1
+#ifndef SCALAR_MAG_FIELD_EQUATION_H
+#define SCALAR_MAG_FIELD_EQUATION_H  1
 
 // #include <vector>
 #include "base/Vector3D.h"
@@ -16,7 +16,7 @@
 //  Update to GeantV units ASAP
 
 template <class Field, unsigned int Size>
-class ScalarFieldEquation : public VScalarEquationOfMotion
+class ScalarMagFieldEquation : public VScalarEquationOfMotion
 {
 public:
 //  static const unsigned int  N   = Size;
@@ -29,14 +29,14 @@ public:
   // static constexpr double gCof    = Constants::c_light * fieldUnits::second /
   //     ( 1.0e9 * fieldUnits::meter * fieldUnits::meter );
 
-  ScalarFieldEquation(Field* pF) : VScalarEquationOfMotion(pF) { fPtrField = pF; }
+  ScalarMagFieldEquation(Field* pF) : VScalarEquationOfMotion(pF) { fPtrField = pF; }
 
-  ScalarFieldEquation(const ScalarFieldEquation& );
-  ~ScalarFieldEquation()  {}  // Was virtual - but now no inheritance
+  ScalarMagFieldEquation(const ScalarMagFieldEquation& );
+  ~ScalarMagFieldEquation()  {}  // Was virtual - but now no inheritance
 
-  ScalarFieldEquation<Field,Size>* Clone() const;
-  ScalarFieldEquation<Field,Size>* CloneOrSafeSelf(bool& safe);
-  ScalarFieldEquation<Field,Size>* CloneOrSafeSelf(bool* safe=0);
+  ScalarMagFieldEquation<Field,Size>* Clone() const;
+  ScalarMagFieldEquation<Field,Size>* CloneOrSafeSelf(bool& safe);
+  ScalarMagFieldEquation<Field,Size>* CloneOrSafeSelf(bool* safe=0);
     // If class is thread safe, return self ptr.  Else return clone
 
   Field* GetField() { return fPtrField; } 
@@ -112,45 +112,45 @@ private:
 };
 
 template <class Field, unsigned int Size>
-   ScalarFieldEquation<Field,Size>::ScalarFieldEquation(const ScalarFieldEquation& right)
-     : VScalarEquationOfMotion( (GUVField*) 0 ),
+   ScalarMagFieldEquation<Field,Size>::ScalarMagFieldEquation(const ScalarMagFieldEquation& right)
+     : VScalarEquationOfMotion( (VScalarField*) 0 ),
        fPtrField( right.fPtrField->CloneOrSafeSelf( (bool *)0 ) )
       // fPtrField( new Field(right.fPtrField) )
 {
    // G4bool threadSafe;
    // fPtrField = right.fPtrField->CloneOrSafeSelf( &threadSafe );
 
-   // std::cout <<  "ScalarFieldEquation - copy constructor called." << std::endl;
+   // std::cout <<  "ScalarMagFieldEquation - copy constructor called." << std::endl;
    VScalarEquationOfMotion::SetFieldObj( fPtrField ); //  Also stored in base class ... for now
 }
 
 template <class Field, unsigned int Size>
-   ScalarFieldEquation<Field,Size> *ScalarFieldEquation<Field,Size>::Clone() const
+   ScalarMagFieldEquation<Field,Size> *ScalarMagFieldEquation<Field,Size>::Clone() const
 {
    // bool safe= false;  // Field* pField= fPtrField->CloneOrSafeSelf(safe);
    Field* cloneField= fPtrField->Clone();   
-   std::cerr << " #ScalarFieldEquation<Field,Size>::Clone() called# " << std::endl;
-   return new ScalarFieldEquation( cloneField );
+   std::cerr << " #ScalarMagFieldEquation<Field,Size>::Clone() called# " << std::endl;
+   return new ScalarMagFieldEquation( cloneField );
 }
 
 template <class Field, unsigned int Size>
-ScalarFieldEquation<Field,Size> *ScalarFieldEquation<Field,Size>::CloneOrSafeSelf(bool& safe)
+ScalarMagFieldEquation<Field,Size> *ScalarMagFieldEquation<Field,Size>::CloneOrSafeSelf(bool& safe)
 {
-   ScalarFieldEquation<Field,Size>* equation;
+   ScalarMagFieldEquation<Field,Size>* equation;
    Field* pField=
       fPtrField->CloneOrSafeSelf(safe);
    // If Field does not have such a method:
    //  = new Field( fPtrField ); // Need copy constructor.
    //  safe= false;
 
-   std::cerr << " #ScalarFieldEquation<Field,Size>::CloneOrSafeSelf(bool& safe) called# " << std::endl;
+   std::cerr << " #ScalarMagFieldEquation<Field,Size>::CloneOrSafeSelf(bool& safe) called# " << std::endl;
 
    // safe = safe && fClassSafe;
    // if( safe )  {  equation = this; }
    //    Can be introduced when Equation is thread safe -- no state
    //     --> For now the particle Charge is preventing this 23.11.2015
    // else {
-      equation = new ScalarFieldEquation( pField );
+      equation = new ScalarMagFieldEquation( pField );
       safe= false;
    // }
 
@@ -158,10 +158,10 @@ ScalarFieldEquation<Field,Size> *ScalarFieldEquation<Field,Size>::CloneOrSafeSel
 }
 
 template <class Field, unsigned int Size>
-ScalarFieldEquation<Field,Size> *ScalarFieldEquation<Field,Size>::CloneOrSafeSelf(bool* pSafe)
+ScalarMagFieldEquation<Field,Size> *ScalarMagFieldEquation<Field,Size>::CloneOrSafeSelf(bool* pSafe)
 {
    bool safeLocal;
-   std::cerr << " #ScalarFieldEquation<Field,Size>::CloneOrSafeSelf(bool* safe) called#" << std::endl;
+   std::cerr << " #ScalarMagFieldEquation<Field,Size>::CloneOrSafeSelf(bool* safe) called#" << std::endl;
    if( !pSafe ) pSafe= &safeLocal;
    auto equation= CloneOrSafeSelf( pSafe );
    return equation;   
@@ -170,7 +170,7 @@ ScalarFieldEquation<Field,Size> *ScalarFieldEquation<Field,Size>::CloneOrSafeSel
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void  ScalarFieldEquation<Field, Size>::EvaluateRhsGivenB(
+void  ScalarMagFieldEquation<Field, Size>::EvaluateRhsGivenB(
                           const          double   y[],
                           const Vector3D<double> &B,
                                          double   charge,
@@ -195,7 +195,7 @@ void  ScalarFieldEquation<Field, Size>::EvaluateRhsGivenB(
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void  ScalarFieldEquation<Field, Size>::PrintAll(
+void  ScalarMagFieldEquation<Field, Size>::PrintAll(
                 double const  y[],
                 const vecgeom::Vector3D<double> &B,
                 double        charge,
@@ -228,7 +228,7 @@ void  ScalarFieldEquation<Field, Size>::PrintAll(
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void ScalarFieldEquation<Field,Size>
+void ScalarMagFieldEquation<Field,Size>
   ::FieldFromY(const double y[],  vecgeom::Vector3D<double> &Bfield ) const
 {
    fPtrField->GetFieldValue( Vector3D<double>(y[0], y[1], y[2]), Bfield );
@@ -237,7 +237,7 @@ void ScalarFieldEquation<Field,Size>
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void ScalarFieldEquation<Field,Size>
+void ScalarMagFieldEquation<Field,Size>
   ::RightHandSide(const double y[], double charge, double dydx[] ) const
 {
 
@@ -249,7 +249,7 @@ void ScalarFieldEquation<Field,Size>
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void ScalarFieldEquation<Field,Size>::RightHandSide(
+void ScalarMagFieldEquation<Field,Size>::RightHandSide(
                     const double  y[],
                     double  charge,
                     double  dydx[],
@@ -261,7 +261,7 @@ void ScalarFieldEquation<Field,Size>::RightHandSide(
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void ScalarFieldEquation<Field,Size>
+void ScalarMagFieldEquation<Field,Size>
   ::RightHandSide(const                   double   y[],
                   const          Vector3D<double> &position,
                                           double   charge,
@@ -274,7 +274,7 @@ void ScalarFieldEquation<Field,Size>
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void ScalarFieldEquation<Field,Size>
+void ScalarMagFieldEquation<Field,Size>
   ::TEvaluateRhsReturnB( const double           y[],
                           double          dydx[],
                           double          charge,
@@ -291,7 +291,7 @@ void ScalarFieldEquation<Field,Size>
 
 template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE
-void ScalarFieldEquation<Field,Size>
+void ScalarMagFieldEquation<Field,Size>
   ::PrintInputFieldAndDyDx(const double y[], double charge, double dydx[] ) const
 {
   RightHandSide(y, dydx);
@@ -319,4 +319,4 @@ void ScalarFieldEquation<Field,Size>
   std::cout << " dy/dx [3-5] (=dP/ds) = " << dydx[3]   << " " << dydx[4]   << " " << dydx[5] << std::endl;
   std::cout.unsetf(std::ios_base::fixed);
 }
-#endif  // TMAGFIELDEQUATION_H
+#endif  // SCALAR_MAG_FIELD_EQUATION_H

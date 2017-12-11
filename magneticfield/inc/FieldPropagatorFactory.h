@@ -17,9 +17,17 @@
 
 #include "GUFieldPropagator.h"
 #include "GUFieldPropagatorPool.h"
+
+#ifndef FLEXIBLE_FIELD
+#include "ScalarMagFieldEquation.h"
 #include "FieldEquationFactory.h"
 #include "StepperFactory.h"
 #include "ScalarIntegrationDriver.h"
+#else
+#include "MagFieldEquation.h"
+#include "CashKarp.h"
+#include "SimpleIntegrationDriver.h"
+#endif
 
 
 // template<typename Field_t> // , typename Equation_t>
@@ -88,28 +96,49 @@ FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
                                          double   relEpsilonTolerance,
                                          double   minStepSize)
 {
-  using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
-  // const char* method="FieldPropagatorFactory::CreatePropagator";
-  // cout << *method << " called. " << endl;
+  const char* methodName="FieldPropagatorFactory::CreatePropagator";
+  int   statisticsVerbosity= 0;
+  
+  // cout << methodName << " called. " << endl;
+
+#ifndef FLEXIBLE_FIELD
+  using Equation_t =  ScalarMagFieldEquation<Field_t, Nvar>;
   auto gvEquation = 
      FieldEquationFactory::CreateMagEquation<Field_t>(&gvField);
-  // cout << "Parameters for RK integration in magnetic field: "; //  << endl;
-  // cout << " - Driver minimum step (h_min) = " << minStepSize << endl;
-
-  Geant::Print("FieldPropagatorFactory::CreatePropagator",  
-               // "Parameters for RK integration in magnetic field: "
-               " - Driver minimum step (h_min) = %8.3g\n",
-               minStepSize); 
-  
   auto // VScalarIntegrationStepper*
      aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
 
-  int   statisticsVerbosity= 0;
   auto integrDriver = new ScalarIntegrationDriver( minStepSize,
                                                aStepper,
                                                Nvar,
                                                statisticsVerbosity);
+#else
+  // New flexible (scalar + vector) versions of field, equation, ...
+  constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
+  
+  using Equation_t =  MagFieldEquation<Field_t>(gvField);  // Flexible version  
+  auto gvEquation = new Equation_t(gvField);
+  
+  using StepperType = CashKarp<Equation_t, Nposmom>;
+  auto myStepper = new StepperType(gvEquation);
+  // new CashKarp<GvEquationType,Nposmom>(gvEquation);
 
+  int statsVerbose=1;  
+  using  DriverType = SimpleIntegrationDriver<StepperType,Nposmom>;
+  auto vectorDriver = new DriverType( hminimum,
+                                      myStepper,
+                                      Nposmom,
+                                      statsVerbose);
+#endif  
+
+  // cout << "Parameters for RK integration in magnetic field: "; //  << endl;
+  // cout << " - Driver minimum step (h_min) = " << minStepSize << endl;
+
+  Geant::Print(methodName, // "FieldPropagatorFactory::CreatePropagator",  
+               // "Parameters for RK integration in magnetic field: "
+               " - Driver minimum step (h_min) = %8.3g\n",
+               minStepSize); 
+  
   return CreatePropagator( *integrDriver, relEpsilonTolerance );
 }
 

@@ -1,9 +1,20 @@
 #include "FieldPropagationHandler.h"
 
+#include "FieldLookup.h"
+
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
 #include "ConstBzFieldHelixStepper.h"
-#include "ConstVecFieldHelixStepper.h"
+#include "ConstFieldHelixStepper.h"
+#include "FieldTrack.h"
+
+#include "GeantTrack.h"
+
+#include "base/SOA3D.h"
+// #include "SOA6D.h"
+#include "Geant/VectorTypes.h"   // Defines Geant::Double_v etc
+
+#include "FlexIntegrationDriver.h"
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
@@ -14,6 +25,8 @@
 #include "ScalarNavInterfaceTGeo.h"
 #endif
 
+using Double_v = Geant::Double_v;
+          
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -32,6 +45,34 @@ FieldPropagationHandler::~FieldPropagationHandler()
 // Destructor
 }
 
+        
+//______________________________________________________________________________
+// Curvature for general field   
+VECCORE_ATT_HOST_DEVICE
+double FieldPropagationHandler::Curvature(const GeantTrack  & track,
+                                          GeantTaskData     * td) const
+{
+  using ThreeVector_d = vecgeom::Vector3D<double>;
+  constexpr double tiny = 1.E-30;
+  ThreeVector_d MagFld;
+  double bmag= 0.0;
+
+  ThreeVector_d Position(track.fXpos, track.fYpos, track.fZpos);
+  FieldLookup::GetFieldValue(Position, MagFld, bmag, td);
+  // GetFieldValue(track, MagFld, bmag, td);
+
+  //  Calculate transverse momentum 'Pt' for field 'B'
+  // 
+  ThreeVector_d Momentum( track.fXdir, track.fYdir, track.fZdir );
+  Momentum *= track.fP;
+  ThreeVector_d PtransB;  //  Transverse wrt direction of B
+  double ratioOverFld = 0.0;
+  if( bmag > 0 ) ratioOverFld = Momentum.Dot( MagFld ) / (bmag*bmag);
+  PtransB = Momentum - ratioOverFld * MagFld ;
+  double Pt_mag = PtransB.Mag();
+
+  return fabs(GeantTrack::kB2C * track.fCharge * bmag / (Pt_mag + tiny));
+}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -41,14 +82,13 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   // Step selection
   double step, lmax;
   const double eps = 1.E-2; //
-  const double bmag = fPropagator->fConfig->fBmag;
 
   // We use the track sagitta to estimate the "bending" error,
   // i.e. what is the propagated length for which the track deviation in
   // magnetic field with respect to straight propagation is less than epsilon.
   // Take the maximum between the safety and the "bending" safety
-  lmax = SafeLength(*track, bmag, eps);
-  lmax = vecCore::math::Max<double>(lmax, track->GetSafety());
+  lmax = SafeLength(*track, td, eps);
+  lmax = vecCore::math::Max<double>(lmax, track->Safety());
   // Select step to propagate as the minimum among the "safe" step and:
   // the straight distance to boundary (if frombdr=1) or the proposed  physics
   // step (frombdr=0)
@@ -96,14 +136,13 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   TrackVec_t &tracks = input.Tracks();
   double lmax;
   const double eps = 1.E-2; //
-  const double bmag = fPropagator->fConfig->fBmag;
 
   int ntracks = tracks.size();
   double *steps = td->GetDblArray(ntracks);
   for (int itr = 0; itr < ntracks; itr++) {
     // Can this loop be vectorized?
     GeantTrack &track = *tracks[itr];
-    lmax = SafeLength(track, bmag, eps);
+    lmax = SafeLength(track, td, eps);
     lmax = vecCore::math::Max<double>(lmax, track.GetSafety());
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
@@ -204,18 +243,6 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double *crtstep,
-                                                GeantTaskData *td)
-{
-// THIS IS THE VECTORIZED IMPLEMENTATION PLACEHOLDER FOR MAGNETIC FIELD PROPAGATION.
-// Now implemented just as a loop
-  int ntracks = tracks.size();
-  for (int itr=0; itr<ntracks; ++itr)
-    PropagateInVolume(*tracks[itr], crtstep[itr], td);
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
 void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtstep, GeantTaskData * td)
 {
 // Single track propagation in a volume. The method is to be called
@@ -228,17 +255,13 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
    using ThreeVector = vecgeom::Vector3D<double>;  
    bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
    // double bmag = td->fPropagator->fConfig->fBmag;
-   double BfieldInitial[3], bmag;
+   double bmag;
+   ThreeVector BfieldInitial;      // double BfieldInitial[3]
    ThreeVector Position(track.X(), track.Y(), track.Z());
-   FieldLookup::GetFieldValue(td, Position, BfieldInitial, &bmag);   
+   FieldLookup::GetFieldValue(Position, BfieldInitial, bmag, td);
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-   GUFieldPropagator *fieldPropagator = nullptr;
-   if( useRungeKutta ){
-      fieldPropagator = td->fFieldPropagator;
-      assert( fieldPropagator );
-   }
-   // GUFieldPropagator *fieldPropagator = useRungeKutta ? td->fFieldPropagator : nullptr;   
+   auto fieldPropagator = GetFieldPropagator(td);   
 #endif
 
   // Reset relevant variables
@@ -249,9 +272,6 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
     track.SetStatus(kPhysics);
   }
   track.SetPstep(pstep);
-  double safety = track.GetSafety() - crtstep;
-  if (safety < 1.E-10) safety = 0;
-  track.SetSafety(safety);
   double snext = track.GetSnext() - crtstep;
   if (snext < 1.E-10) {
     snext = 0;
@@ -278,7 +298,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 #ifdef DEBUG_FIELD
   printf("--PropagateInVolume(Single): \n");
   printf("Curvature= %8.4g   CurvPlus= %8.4g  step= %f   Bmag=%8.4g   momentum mag=%f  angle= %g\n"
-         Curvature(td, i), curvaturePlus, crtstep, bmag, fPV[i], angle );
+         Curvature(td, i), curvaturePlus, crtstep, bmag, track.fP, angle );
 #endif
 
   ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
@@ -303,27 +323,31 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
                                                PositionNew, DirectionNew);
      } else {
         // Geant::
-        ConstVecFieldHelixStepper stepper( BfieldInitial );
+        double BfieldArr[3] = { BfieldInitial.x(), BfieldInitial.y(), BfieldInitial.z() };
+        ConstFieldHelixStepper stepper( BfieldArr );
         stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,                                           
                                                PositionNew, DirectionNew);        
      }
   }
 
+  //  may normalize direction here  // vecCore::math::Normalize(dirnew);
+  ThreeVector DirectionUnit = DirectionNew.Unit();
+  double posShift = (PositionNew - Position).Mag();  
+  
   track.SetPosition(PositionNew);
+  track.SetDirection(DirectionUnit);
 
-  //  maybe normalize direction here  // vecCore::math::Normalize(dirnew);
-  DirectionNew = DirectionNew.Unit();
-  track.SetDirection(DirectionNew);
-
+  track.DecreaseSafety(posShift); //  Was crtstep;
+  if (track.GetSafety() < 1.E-10)
+    track.SetSafety(0);
+  
 #ifdef REPORT_AND_CHECK
   double origMag= Direction.Mag();
   double oldMag= DirectionNew.Mag();
   double newMag= DirectionUnit.Mag();  
   Printf(" -- State after propagation in field:  Position= %f, %f, %f   Direction= %f, %f, %f  - mag original, integrated, integr-1.0, normed-1 = %10.8f %10.8f %7.2g %10.8f %7.2g",
-         track.X(),  track.Y(),  track.Z(),
-         track.Dx(),  track.Dy(),  track.Dz(),         
+         track.X(),  track.Y(),  track.Z(), track.Dx(),  track.Dy(),  track.Dz(),         
          origMag, oldMag, oldMag-1.0, newMag, newMag-1.0 );
-         // DirectionNew.Mag()-1.0  );
 
   const char* Msg[4]= { "After propagation in field - type Unknown(ERROR) ",
                         "After propagation in field - with RK           ",
@@ -345,6 +369,165 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
                    diffpos, diffpos/crtstep, crtstep);
   }
 #endif
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
+                                                const double *stepSize,
+                                                GeantTaskData *td)
+{
+// The Vectorized Implementation for Magnetic Field Propagation
+  int nTracks = tracks.size();
+#if 1 // VECTOR_FIELD_PROPAGATION
+  using vecgeom::SOA3D;
+  using vecgeom::Vector3D;
+  const int Npm= 6;
+  const double epsTol= 3.0e-5;
+  
+  // double yInput[8*nTracks], yOutput[8*nTracks];
+  bool       succeeded[nTracks];
+  int        intCharge[nTracks];
+  double     fltCharge[nTracks];
+  
+  // Choice 1.   SOA3D
+  SOA3D<double> position3D(nTracks);   // To-Do: Move into TaskData: 
+  SOA3D<double> direction3D(nTracks); // Alternative to momentum
+  double        momentumMag[nTracks];
+
+  // SOA3D<double> momentum3D(nTracks);   
+
+  //    ==> CheckSize(position3D, nTracks);
+  SOA3D<double> PositionOut(nTracks);   // To-Do: Move into TaskData: 
+  SOA3D<double> DirectionOut(nTracks);
+  
+  // Choice 2.   SOA6D
+  // SOA6D<double> PositMom6D( nTracks );
+
+  for (int itr=0; itr<nTracks; ++itr)
+  {
+     GeantTrack* pTrack= tracks[itr];
+
+     intCharge[itr]= pTrack->fCharge;
+     fltCharge[itr]= pTrack->fCharge;
+     momentumMag[itr] = pTrack->fP;
+
+     // PositMom6D.push_back( pTrack->fXpos, pTrack->fYpos, pTrack->fZpos, px, py, pz );
+     position3D.push_back( pTrack->fXpos, pTrack->fYpos, pTrack->fZpos );
+     direction3D.push_back( pTrack->fXdir, pTrack->fYdir, pTrack->fZdir );
+  }
+
+  // Trial Helix step -- now assumes a constant uniform field
+  if( td->fBfieldIsConst ) {
+     vecgeom::Vector3D<double> BfieldUniform= td->fConstFieldValue;
+     ConstFieldHelixStepper stepper( BfieldUniform );
+     // stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.fCharge, track.fP, stepSize,
+     //                                        PositionNew, DirectionNew);
+     
+     stepper.DoStepArr</*Geant::*/Double_v>( position3D.x(),  position3D.y(),  position3D.z(),
+                                         direction3D.x(), direction3D.y(), direction3D.z(),
+                                         intCharge,
+                                         momentumMag,
+                                         stepSize,
+                                         PositionOut.x(),  PositionOut.y(),  PositionOut.z(),
+                                         DirectionOut.x(), DirectionOut.y(), DirectionOut.z(),
+                                         nTracks
+        );
+     // Store revised positions and location in original tracks
+     for (int itr=0; itr<nTracks; ++itr)
+     {
+        GeantTrack& track= *tracks[itr];
+        Vector3D<double> positionMove = { track.fXpos,   //  - PositionOut.x(itr), 
+                                          track.fYpos,   //  - PositionOut.y(itr),
+                                          track.fZpos }; //  - PositionOut.z(itr) };
+        positionMove -= PositionOut[itr];
+        double posShift = positionMove.Mag();
+        track.fXpos= PositionOut.x(itr);
+        track.fYpos= PositionOut.y(itr);
+        track.fZpos= PositionOut.z(itr);
+        track.fXdir= DirectionOut.x(itr);
+        track.fYdir= DirectionOut.y(itr);
+        track.fZdir= DirectionOut.z(itr);
+        // Exact update of the safety - using true move (not distance along curve)
+        track.fSafety -= posShift; //  Was crtstep;
+        if (track.fSafety < 1.E-10)
+           track.fSafety = 0;
+     }
+  }
+  else
+  {
+     // Prepare for Runge Kutta stepping
+     
+     // Choice 3.   Array of FieldTrack 
+     FieldTrack fldTracksIn[nTracks], fldTracksOut[nTracks];
+     for (int itr=0; itr<nTracks; ++itr)
+     {
+        GeantTrack* pTrack= tracks[itr];        
+        // Alternative - directly momentum vector
+        double pmag= pTrack->fP, px=pTrack->fXdir, py=pTrack->fYdir, pz=pTrack->fZdir;
+        px *= pmag;
+        py *= pmag;
+        pz *= pmag;
+        // Momentum3D.push( px, py, pz );
+        
+        // Choice 3. --- Load
+        // yInput[itr].LoadFromTrack(*tracks[itr]);
+        double trackVals[Npm] = { pTrack->fXpos, pTrack->fYpos, pTrack->fZpos, px, py, pz };
+        fldTracksIn[itr].LoadFromArray( trackVals, Npm );
+     }
+
+     auto fieldPropagator = GetFieldPropagator(td);
+     auto vectorDriver = fieldPropagator ? fieldPropagator->GetFlexibleIntegrationDriver() : nullptr;
+
+     if( vectorDriver ) {
+        // Integrate using Runge Kutta method
+        vectorDriver
+           ->AccurateAdvance( fldTracksIn, stepSize, fltCharge, epsTol,
+                              fldTracksOut, nTracks, succeeded );
+
+        // Store revised positions and location in original tracks
+        for (int itr=0; itr<nTracks; ++itr)
+        {
+           GeantTrack& track= *tracks[itr];
+           FieldTrack& fldTrackEnd= fldTracksOut[itr];
+           Vector3D<double> startPosition = { track.fXpos, track.fYpos, track.fZpos };
+           Vector3D<double> endPosition = { fldTrackEnd[0], fldTrackEnd[1], fldTrackEnd[2] };
+           double posShift = (startPosition-endPosition).Mag();
+           track.fXpos= fldTrackEnd[0];
+           track.fYpos= fldTrackEnd[1];
+           track.fZpos= fldTrackEnd[2];
+           // Vector3D<double> endMomentum = { fldTrackEnd[3], fldTrackEnd[4], fldTrackEnd[5] };
+           double pX= fldTrackEnd[3];
+           double pY= fldTrackEnd[4];
+           double pZ= fldTrackEnd[5];
+           double pmag_inv= 1.0 / track.fP;
+           // Double check magnitude at end point
+           double pMag2End = ( pX*pX + pY * pY + pZ * pZ);
+           double relDiff = pMag2End * pmag_inv * pmag_inv - 1.0; 
+           if( relDiff > geant::perMillion ) { 
+                std::cerr << "Track " << itr << " has momentum magnitude difference "
+                   << relDiff << "  Momentum magnitude @ end = " << std::sqrt( pMag2End )
+                   << " vs. start = " << track.fP << std::endl;
+           }
+           track.fXdir= pmag_inv * pX;
+           track.fYdir= pmag_inv * pY;
+           track.fZdir= pmag_inv * pZ;
+           // Exact update of the safety - using true move (not distance along curve)
+           track.fSafety -= posShift; //  Was crtstep;
+           if (track.fSafety < 1.E-10)
+             track.fSafety = 0;
+        }
+     } else {
+        // Geant::Error( ... );
+        std::cerr << "FieldPropagationHandler: no Flexible/Vector Integration Driver found."
+                  << std::endl;
+     }
+  }
+#else   
+  // Placeholder - implemented just as a loop
+  for (int itr=0; itr<nTracks; ++itr)
+    PropagateInVolume(*tracks[itr], stepSize[itr], td);
+#endif  
 }
 
 //______________________________________________________________________________

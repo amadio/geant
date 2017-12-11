@@ -5,7 +5,7 @@
  *   Taken from TestConstBzStepper.cxx (written by swenzel)
  */
 
-#include "../inc/ConstFieldHelixStepper.h"
+#include "../inc/ScalarConstFieldHelixStepper.h"
 #include "mmalloc.h"
 #include "TGeoHelix.h"
 

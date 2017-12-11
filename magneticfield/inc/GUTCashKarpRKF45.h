@@ -31,7 +31,8 @@ using ThreeVector = vecgeom::Vector3D<double>;
 
 public:
   static constexpr unsigned int sOrderMethod= 4;
-  static constexpr unsigned int sNstore = (GUIntegrationNms::NumVarBase > Nvar) ? GUIntegrationNms::NumVarBase : Nvar;
+  static constexpr unsigned int sNumVarBase = 6; // Expected min number of Vars
+  static constexpr unsigned int sNstore = (sNumVarBase > Nvar) ? sNumVarBase : Nvar;
                   // std::max( GUIntegrationNms::NumVarBase,  Nvar);
 // static const IntegratorCorrection = 1./((1<<4)-1);
   inline double IntegratorCorrection() { return 1./((1<<4)-1); }

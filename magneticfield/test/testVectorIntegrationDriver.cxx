@@ -44,7 +44,7 @@ using fieldUnits::degree;
   #ifndef NEW_SCALAR_FIELD
   //  Transition measure --- compare to old Scalar field types 2017.11.16
     #include "ScalarUniformMagField.h"
-    #include "TMagFieldEquation.h"
+    #include "ScalarMagFieldEquation.h"
     #include "StepperFactory.h"
     #include "ScalarFieldTrack.h"
     #include "ScalarIntegrationDriver.h"
@@ -156,7 +156,7 @@ int main(/*int argc, char *args[]*/)
     //                           ^was MagFieldEquation
     auto  myStepperScalar= CashKarp<GvEquationTypeScalar,Nposmom>(gvEquationScalar);
 #else
-    using GvEquationTypeScalar=  TMagFieldEquation<Field_Type_Scalar, Nposmom>;
+    using GvEquationTypeScalar=  ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
     // If we plan to test against 'plain' scalar objects: field, equation, stepper, ... 
     auto fieldValueVec = fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field);
     auto gvFieldScalar = new ScalarUniformMagField( fieldValueVec );
@@ -235,7 +235,9 @@ int main(/*int argc, char *args[]*/)
        }
           
        vectorDriver
-          ->AccurateAdvance<Double_v>( yInput, hstep, charge, epsTol, yOutput, nTracks, succeeded );
+          ->AccurateAdvance<Double_v>( yInput, hstep, charge, epsTol, yOutput, 
+                                       succeeded, nTracks
+             );
        // ==========================
        cout<<"-- Vector Driver done (advanced)." << endl;
 

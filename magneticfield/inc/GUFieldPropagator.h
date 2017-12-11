@@ -17,14 +17,16 @@
 template <class Backend>
 class TemplateGUIntegrationDriver;
 
+class VScalarField;
 class ScalarIntegrationDriver;
-class GUVField;
+class FlexIntegrationDriver;
 
 class GUFieldPropagator
 {
   public:
-    // GUFieldPropagator(GUVField *); // First idea -- sidelined, at least for now
-    GUFieldPropagator(ScalarIntegrationDriver* driver, double epsilon); // (GUVField* field)
+    GUFieldPropagator(ScalarIntegrationDriver* scalarDriver,
+                      double                   epsilon, 
+                      FlexIntegrationDriver*   flexDriver = nullptr);
 
     template <typename Backend>
     GUFieldPropagator(TemplateGUIntegrationDriver<Backend>* driver, double epsilon);
@@ -49,12 +51,19 @@ class GUFieldPropagator
                   vecgeom::Vector3D<double>      & endDiretion
         ) ;   //  Goal => make it 'const';  -- including all classes it uses
 
-    ScalarIntegrationDriver* GetIntegrationDriver(){ return fDriver; }
-    const ScalarIntegrationDriver* GetIntegrationDriver() const { return fDriver; }
+    ScalarIntegrationDriver* GetScalarIntegrationDriver(){ return fScalarDriver; }
+    const ScalarIntegrationDriver* GetScalarIntegrationDriver() const { return fScalarDriver; }
+
+    // static FlexIntegrationDriver* GetFlexibleIntegrationDriver(){ return fVectorDriver; }
+    static const FlexIntegrationDriver* GetFlexibleIntegrationDriver() /*const*/ { return fVectorDriver; }
+    static void SetFlexIntegrationDriver( FlexIntegrationDriver * flexDrv);
+    
     double GetEpsilon() { return fEpsilon; }
 
-    GUVField* GetField();
-    GUFieldPropagator* Clone() const;
+    VScalarField* GetField();
+    GUFieldPropagator* Clone() const; // { return this; }
+         // Choice 1:  No longer allowing cloning !!  -- later solution
+         // Choice 2:  Clone only the scalar 'old' stepper.  Share the flexible stepper 
 
   /******
     template<typename Vector3D, typename DblType, typename IntType>
@@ -85,8 +94,9 @@ class GUFieldPropagator
    *****/
 
 private:
-    ScalarIntegrationDriver* fDriver;
-    double                  fEpsilon;
+    ScalarIntegrationDriver*       fScalarDriver= nullptr;
+    static FlexIntegrationDriver*  fVectorDriver;
+    double                         fEpsilon;
 };
 
 // } // GEANT_IMPL_NAMESPACE

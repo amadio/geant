@@ -50,7 +50,7 @@ class UserFieldConstruction
     double GetEpsilonRK() { return fEpsilonRK; }
     double GetMinimumStep() { return fMinimumStepInField; }
     bool   IsFieldCreated() { return fCreatedField; }
-    GUVField*    GetField() { return fpField; }
+    VScalarField*    GetField() { return fpField; }
    
   private:
     double           fEpsilonRK;
@@ -64,7 +64,7 @@ class UserFieldConstruction
     bool             fCalled;
 
   protected:
-    GUVField*        fpField;
+    VScalarField*        fpField;
 
   public:
     static constexpr double   fEpsilonDefault = 3.0e-5; 
@@ -149,7 +149,7 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
 virtual
 bool
 // UserFieldConstruction:: // RootComm
-CreateFieldAndSolver(bool /*useRungeKutta*/, GUVField** fieldPP= nullptr )
+CreateFieldAndSolver(bool /*useRungeKutta*/, VScalarField** fieldPP= nullptr )
 {
   static const char *method="UserFieldConstruction::CreateFieldAndSolver";
   bool rtv= false;

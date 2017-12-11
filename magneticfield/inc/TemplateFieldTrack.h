@@ -32,7 +32,6 @@
 template <class Real_v>
 class  TemplateFieldTrack
 {
-
    public:  // with description
 
      using ThreeVectorSIMD= vecgeom::Vector3D<Real_v>;
