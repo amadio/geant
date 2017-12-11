@@ -154,7 +154,6 @@ namespace demo {
     // This is now the most important parameter for memory considerations
     fConfig->fMaxPerBasket = n_track_max;  // Maximum vector size (tunable)
 
-    //if (fConfig) fConfig->fMaxRes = 0;  //??? why the if()!?  and why overwritting previous line?
     fConfig->fEmin = 3.e-6; //  [3 KeV] energy cut
     fConfig->fEmax = 0.3;   // [300MeV] used for now to select particle gun energy
 
@@ -229,7 +228,6 @@ namespace demo {
     fRunMgr->Initialize();
     fPrimaryGenerator->InitPrimaryGenerator();
 
-    /*
     printf("==========================================================================\n");
     printf("= GeantV run started with %d propagator(s) using %d worker threads each ====\n",
 	   fRunMgr->GetNpropagators(), fRunMgr->GetNthreads());
@@ -240,16 +238,10 @@ namespace demo {
     if (!fConfig->fUseRungeKutta) printf("  Runge-Kutta integration OFF\n");
     else                          printf("  Runge-Kutta integration ON with epsilon= %g\n", fConfig->fEpsilonRK);
     printf("==========================================================================\n");
-    */
   }
 
   void 
   GeantVProducer::produce(edm::Event& iEvent) {
-
-    // just pass pointer to task to be called when this event is simulated
-    // send waiting task to CMSApplication for decrementing when event simulation is complete
-    //CMSApplicationTBB *cmsApp = static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication());
-    //cmsApp->SetEventContinuationTask( iEvent.index(), pWaitTask );
 
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();

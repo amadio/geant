@@ -13,8 +13,6 @@
 //#include "busyWait.h"
 #include "Event.h"
 //#include "Waiter.h"
-#include "GeantEventServer.h"
-
 
 namespace demo {
 
