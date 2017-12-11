@@ -52,7 +52,7 @@
 #include "UserFieldConstruction.h"
 
 // The classes for integrating in a non-uniform magnetic field
-#include "TUniformMagField.h"
+#include "ScalarUniformMagField.h"
 #include "FieldEquationFactory.h"
 #include "StepperFactory.h"
 #include "ScalarIntegrationDriver.h"
@@ -370,13 +370,13 @@ void GeantRunManager::PrepareRkIntegration() {
   
   // Initialise the classes required for tracking in field
   const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
-  using Field_t = TUniformMagField;
+  using Field_t = ScalarUniformMagField;
   using Equation_t = TMagFieldEquation<Field_t, Nvar>;
 
   auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fConfig->fBmag));
   auto gvEquation = FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
 
-  GUVIntegrationStepper *aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
+  VScalarIntegrationStepper *aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
 
   const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
   // const double epsTol = 3.0e-4;               // Relative error tolerance of integration

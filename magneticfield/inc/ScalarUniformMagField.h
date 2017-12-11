@@ -2,8 +2,8 @@
 //  First version:      (Josh) - GSoC 2014 project
 //  Current version:  J. Apostolakis
 
-#ifndef TUniformMagField_H
-#define TUniformMagField_H
+#ifndef ScalarUniformMagField_H
+#define ScalarUniformMagField_H
 
 #include "GUVField.h"
 #include <iostream>
@@ -15,7 +15,7 @@
 // using fieldConstants::pi;
 // using fieldConstants::twopi;
 
-class TUniformMagField : public GUVField
+class ScalarUniformMagField : public GUVField
 {
 public:
 
@@ -23,25 +23,25 @@ public:
   static constexpr bool  gFieldChangesEnergy= false;
   
   /** @brief Constructor providing the constant field value (cartesian) */
-  TUniformMagField( const vecgeom::Vector3D<float>& fieldVector )
+  ScalarUniformMagField( const vecgeom::Vector3D<float>& fieldVector )
     : GUVField(gNumFieldComponents, gFieldChangesEnergy),
       fFieldComponents(fieldVector) {}
 
   /** @brief Constructor providing the constant field value (spherical) */
-  TUniformMagField(double vField,
+  ScalarUniformMagField(double vField,
                    double vTheta,
                    double vPhi  );
 
   /** @brief Destructor */
-  ~TUniformMagField() {}
+  ~ScalarUniformMagField() {}
 
   /** @brief Copy constructor */
-  TUniformMagField(const TUniformMagField &p)
+  ScalarUniformMagField(const ScalarUniformMagField &p)
     : GUVField(gNumFieldComponents, gFieldChangesEnergy),
       fFieldComponents(p.fFieldComponents) {}
 
   /** Assignment operator */
-  TUniformMagField& operator = (const TUniformMagField &p);
+  ScalarUniformMagField& operator = (const ScalarUniformMagField &p);
 
   /** @brief Scalar interface for field retrieval */
   virtual void  GetFieldValue( const Vector3D<double> &position, 
@@ -74,9 +74,9 @@ public:
   vecgeom::Vector3D<float> GetConstantFieldValue() const { return fFieldComponents; }
 
   /** IS THIS NEEDED ? */
-  TUniformMagField* Clone() const {  return new TUniformMagField( *this ); }
+  ScalarUniformMagField* Clone() const {  return new ScalarUniformMagField( *this ); }
 
-  TUniformMagField* CloneOrSafeSelf( bool* pSafe )
+  ScalarUniformMagField* CloneOrSafeSelf( bool* pSafe )
   {
      if( pSafe ) *pSafe= true;
      return this; // ->CloneOrSafeSelf(*pSafe);
@@ -87,8 +87,8 @@ private:
   vecgeom::Vector3D<float> fFieldComponents;
 };
 
-TUniformMagField& 
-TUniformMagField::operator = (const TUniformMagField &p)
+ScalarUniformMagField& 
+ScalarUniformMagField::operator = (const ScalarUniformMagField &p)
    // Copy constructor and assignment operator.
 {
    if (&p == this) return *this;
@@ -97,16 +97,16 @@ TUniformMagField::operator = (const TUniformMagField &p)
    return *this;
 }
 
-TUniformMagField::TUniformMagField(double vField,
+ScalarUniformMagField::ScalarUniformMagField(double vField,
                                    double vTheta,
                                    double vPhi     )
   : GUVField(gNumFieldComponents, gFieldChangesEnergy)
 {
    if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
    {
-      // Exception("TUniformMagField::TUniformMagField()",
+      // Exception("ScalarUniformMagField::ScalarUniformMagField()",
       //     "GeomField0002", FatalException, "Invalid parameters.") ;
-      std::cerr << "ERROR in TUniformMagField::TUniformMagField()"
+      std::cerr << "ERROR in ScalarUniformMagField::ScalarUniformMagField()"
                 << "Invalid parameter(s): expect " << std::endl;
       std::cerr << " - Theta angle: Value = " << vTheta
                 << "  Expected between 0 <= theta <= pi = " << Constants::pi << std::endl;

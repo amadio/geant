@@ -122,7 +122,7 @@ int main(int argc, char *args[])
     auto gvUniformField= new
           UniformMagField( fieldUnits::tesla * ThreeVector_f(x_field, y_field, z_field) ); // New classes
      //    VectorUniformMagField<Backend>( fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field) );
-     // TemplateTUniformMagField<Backend>( fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field) );
+     // TemplateScalarUniformMagField<Backend>( fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field) );
     
     if( debug ) cout<<"----UniformMagField Object constructed"<<endl;
     cout << "#  Initial  Field strength (GeantV) = "
@@ -181,7 +181,7 @@ int main(int argc, char *args[])
     const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
     
     // auto gvEquation2 = new GvEquationType(gvUniformField);
-                   // new TMagFieldEquation<TUniformMagField, Nposmom>(gvUniformField);
+                   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);
     // gvEquation2->InitializeCharge( particleCharge ); // Let's make sure
     
     // Should be able to share the Equation -- eventually

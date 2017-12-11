@@ -4,8 +4,8 @@
 
 // For implementation
 #include "GUFieldPropagator.h"
-#include "GUIntegrationDriver.h"
-#include "GUVEquationOfMotion.h"
+// #include "ScalarIntegrationDriver.h"
+#include "VScalarEquationOfMotion.h"
 #include "GUVField.h"
 
 #include <iostream>

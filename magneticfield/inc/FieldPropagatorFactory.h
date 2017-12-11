@@ -19,7 +19,7 @@
 #include "GUFieldPropagatorPool.h"
 #include "FieldEquationFactory.h"
 #include "StepperFactory.h"
-#include "GUIntegrationDriver.h"
+#include "ScalarIntegrationDriver.h"
 
 
 // template<typename Field_t> // , typename Equation_t>
@@ -101,7 +101,7 @@ FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
                " - Driver minimum step (h_min) = %8.3g\n",
                minStepSize); 
   
-  auto // GUVIntegrationStepper*
+  auto // VScalarIntegrationStepper*
      aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
 
   int   statisticsVerbosity= 0;

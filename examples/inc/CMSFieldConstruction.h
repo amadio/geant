@@ -39,7 +39,7 @@ class CMSFieldConstruction : public Geant::cxx::UserFieldConstruction
   private:
     std::string   fFieldFilename;
     CMSmagField*  fCMSfield;
-    // TUniformMagField*  fUniformField; // Alternative - for debugging only
+    // ScalarUniformMagField*  fUniformField; // Alternative - for debugging only
     /** Field is created and owned by this class */
 
     // ClassDef(CMSFieldConstruction, 1) // User application

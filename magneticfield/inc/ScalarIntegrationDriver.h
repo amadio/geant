@@ -16,14 +16,14 @@
 
 #include "ScalarFieldTrack.h"
 
-// class GUVIntegrationStepper;
-#include "GUVIntegrationStepper.h"
+// class VScalarIntegrationStepper;
+#include "VScalarIntegrationStepper.h"
 
 class ScalarIntegrationDriver
 {
    public:  // with description
      ScalarIntegrationDriver( double                 hminimum, //same
-                          GUVIntegrationStepper *pStepper,
+                          VScalarIntegrationStepper *pStepper,
                           int                    numberOfComponents=6,
                           int                    statisticsVerbosity=1);
      ScalarIntegrationDriver( const ScalarIntegrationDriver& );
@@ -60,8 +60,8 @@ class ScalarIntegrationDriver
        // 
        // Question:  If the current object and all sub-objects are const, can it return 'this' ?
      
-     GUVEquationOfMotion* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
-     const GUVEquationOfMotion* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); }
+     VScalarEquationOfMotion* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
+     const VScalarEquationOfMotion* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); }
 
      // Auxiliary methods
      inline double GetHmin()        const { return fMinimumStep; } 
@@ -75,7 +75,7 @@ class ScalarIntegrationDriver
                                         double    dydx[]   );  //       OUTput
         // Accessors.
 
-     inline void RenewStepperAndAdjust(GUVIntegrationStepper *Stepper);
+     inline void RenewStepperAndAdjust(VScalarIntegrationStepper *Stepper);
         // Sets a new stepper 'Stepper' for this driver. Then it calls
         // ReSetParameters to reset its parameters accordingly.
 
@@ -94,8 +94,8 @@ class ScalarIntegrationDriver
 
      inline double ComputeAndSetErrcon();
 
-     inline const GUVIntegrationStepper* GetStepper() const;
-     inline GUVIntegrationStepper* GetStepper();
+     inline const VScalarIntegrationStepper* GetStepper() const;
+     inline VScalarIntegrationStepper* GetStepper();
 
      void  OneGoodStep(       double  ystart[], // Like old RKF45step()
                               double  charge,
@@ -188,7 +188,7 @@ class ScalarIntegrationDriver
 
      // ---------------------------------------------------------------
      // DEPENDENT Objects
-     GUVIntegrationStepper *fpStepper;
+     VScalarIntegrationStepper *fpStepper;
      
      // ---------------------------------------------------------------
      //  INVARIANTS 
@@ -279,20 +279,20 @@ void ScalarIntegrationDriver::SetErrcon(double val)
 }
 
 inline
-void ScalarIntegrationDriver::RenewStepperAndAdjust(GUVIntegrationStepper *pStepper)
+void ScalarIntegrationDriver::RenewStepperAndAdjust(VScalarIntegrationStepper *pStepper)
 {  
       fpStepper = pStepper; 
       ReSetParameters();
 }
 
 inline
-const GUVIntegrationStepper* ScalarIntegrationDriver::GetStepper() const
+const VScalarIntegrationStepper* ScalarIntegrationDriver::GetStepper() const
 {
   return fpStepper;
 }
 
 inline
-GUVIntegrationStepper* ScalarIntegrationDriver::GetStepper() 
+VScalarIntegrationStepper* ScalarIntegrationDriver::GetStepper() 
 {
   return fpStepper;
 }

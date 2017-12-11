@@ -26,13 +26,13 @@
 #include "base/AlignedBase.h"
 #include "FieldTrack.h"
 
-// #include "TemplateGUVIntegrationStepper.h"
+// #include "TemplateVScalarIntegrationStepper.h"
 // #include "IntegrationStepper.h"
 
 #include "base/Vector.h"
 
 // Adding because adding scalar stepper for new constructor (KeepStepping)
-#include "GUVIntegrationStepper.h"
+#include "VScalarIntegrationStepper.h"
 
 // Adding to send in scalar driver to deal with 1/2 remaining lanes
 #include "ScalarIntegrationDriver.h"

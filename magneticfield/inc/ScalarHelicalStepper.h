@@ -13,28 +13,28 @@
 // - 16.10.15  J.Apostolakis   Created for testing other steppers
 // --------------------------------------------------------------------
 
-#ifndef GUVHelicalStepper_h
-#define GUVHelicalStepper_h  1
+#ifndef VScalarHelicalStepper_h
+#define VScalarHelicalStepper_h  1
 
 // #include <CLHEP/Units/PhysicalConstants.h>
 
 // #include "G4Types.hh"
 
-#include "GUVIntegrationStepper.h"
-#include "GUVEquationOfMotion.h"
-// #include "TMagFieldEquation.h"
+#include "VScalarIntegrationStepper.h"
+#include "VScalarEquationOfMotion.h"
+// #include "ScalarFieldEquation.h"
 
 // #include "ThreeVector.h"
 #include <base/Vector3D.h> 
 typedef vecgeom::Vector3D<double>  ThreeVector; 
 
-class GUVHelicalStepper : public GUVIntegrationStepper
+class VScalarHelicalStepper : public VScalarIntegrationStepper
 {
   public:  // with description
 
-    GUVHelicalStepper(GUVEquationOfMotion *EqRhs, // OR TMagFieldEquation *EqRhs,
+    VScalarHelicalStepper(VScalarEquationOfMotion *EqRhs, // OR ScalarFieldEquation *EqRhs,
                       unsigned int order);
-    virtual ~GUVHelicalStepper();
+    virtual ~VScalarHelicalStepper();
   
     virtual void StepWithErrorEstimate( const double y[],  // virtual for ExactHelix
                                         const double dydx[],
@@ -98,15 +98,15 @@ class GUVHelicalStepper : public GUVIntegrationStepper
 
   private:
 
-    GUVHelicalStepper(const GUVHelicalStepper&);
-    GUVHelicalStepper& operator=(const GUVHelicalStepper&);
+    VScalarHelicalStepper(const VScalarHelicalStepper&);
+    VScalarHelicalStepper& operator=(const VScalarHelicalStepper&);
       // Private copy constructor and assignment operator.
  
-    static const double fUnitConstant;   //  As in TMagFieldEquation.h/cc where it is not used.
+    static const double fUnitConstant;   //  As in ScalarFieldEquation.h/cc where it is not used.
   private:
    
-      // TMagFieldEquation*
-      GUVEquationOfMotion*  fPtrMagEqOfMot;
+      // ScalarFieldEquation*
+      VScalarEquationOfMotion*  fPtrMagEqOfMot;
 
     // Data stored in order to find the chord.
       double fAngCurve;
@@ -116,10 +116,10 @@ class GUVHelicalStepper : public GUVIntegrationStepper
       ThreeVector yInitial, yMidPoint, yFinal;
 };
 
-// #include  "GUVHelicalStepper.icc"
+// #include  "VScalarHelicalStepper.icc"
 
 inline void
-GUVHelicalStepper::LinearStep( const double  yIn[],
+VScalarHelicalStepper::LinearStep( const double  yIn[],
                                        double  h,
                                        double  yLinear[]) const
 {
@@ -137,18 +137,18 @@ GUVHelicalStepper::LinearStep( const double  yIn[],
 }
 
 inline void
-GUVHelicalStepper::MagFieldEvaluate(const double y[],
+VScalarHelicalStepper::MagFieldEvaluate(const double y[],
                                     ThreeVector& Bfield )   
 {
   GetEquationOfMotion()->GetFieldValue(ThreeVector(y[0], y[1], y[2]), Bfield);
 }
 
 inline double
-GUVHelicalStepper::GetInverseCurve( double Momentum,
+VScalarHelicalStepper::GetInverseCurve( double Momentum,
                                     double charge,                                    
                                     double Bmag)   
 {
-   // define EquationType = TMagFieldEquation<>;
+   // define EquationType = ScalarFieldEquation<>;
    double  inv_momentum = 1.0 / Momentum ;
    // double particleCharge
    //    = (dynamic_cast<EquationType*>(fPtrMagEqOfMot))->GetParticleCharge(); 
@@ -157,38 +157,38 @@ GUVHelicalStepper::GetInverseCurve( double Momentum,
  
   return  fCoefficient*Bmag;
 }
-inline void GUVHelicalStepper:: SetAngCurve(const double Ang)
+inline void VScalarHelicalStepper:: SetAngCurve(const double Ang)
 {                                                
    fAngCurve=Ang; 
 }
 
-inline double GUVHelicalStepper:: GetAngCurve() const 
+inline double VScalarHelicalStepper:: GetAngCurve() const 
 {
   return fAngCurve;  
 }
 
-inline void GUVHelicalStepper:: SetCurve(const double Curve)
+inline void VScalarHelicalStepper:: SetCurve(const double Curve)
 {
   frCurve=Curve;  
 }
 
-inline double GUVHelicalStepper:: GetCurve() const 
+inline double VScalarHelicalStepper:: GetCurve() const 
 {
   return frCurve;  
 }
 
-inline void GUVHelicalStepper:: SetRadHelix(const double Rad)
+inline void VScalarHelicalStepper:: SetRadHelix(const double Rad)
 {
   frHelix=Rad;  
 }
 
-inline double GUVHelicalStepper:: GetRadHelix() const 
+inline double VScalarHelicalStepper:: GetRadHelix() const 
 {
 return frHelix;  
 
 }
 
-#endif  /* GUVHelicalStepper_h */
+#endif  /* VScalarHelicalStepper_h */
 
 
 

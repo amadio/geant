@@ -23,8 +23,8 @@ using Constants::twopi;
 // #include "ThreeVector.h"
 // #include "GULineSection.h"
 
-GUExactHelixStepper::GUExactHelixStepper(GUVEquationOfMotion* EqRhs) // TMagFieldEquation
-   : GUVHelicalStepper(EqRhs, 1),  // "Order" = 1 - not really applicable
+GUExactHelixStepper::GUExactHelixStepper(VScalarEquationOfMotion* EqRhs) // TMagFieldEquation
+   : VScalarHelicalStepper(EqRhs, 1),  // "Order" = 1 - not really applicable
     fBfieldValue(DBL_MAX), // , DBL_MAX, DBL_MAX),
     fPtrMagEqOfMot(EqRhs)
 {

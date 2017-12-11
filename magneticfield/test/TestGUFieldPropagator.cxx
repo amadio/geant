@@ -14,9 +14,9 @@
 #include "Timer.h"
 
 #include "GUFieldPropagator.h"
-#include "GUVEquationOfMotion.h"
-#include "GUVIntegrationStepper.h"
-#include "GUIntegrationDriver.h"
+#include "VScalarEquationOfMotion.h"
+#include "VScalarIntegrationStepper.h"
+#include "ScalarIntegrationDriver.h"
 
 // #include "TMagFieldEquation.h"
 // #include "TClassicalRK4.h"
@@ -25,9 +25,9 @@ GUFieldPropagator* CreatePropagator()
 {
    constexpr int NumEq= 6;
    TMagFieldEquation *pEquation = TMagFieldEquation<ConstMagField,NumEq>(uniformField);
-  // GUVEquationOfMotion*  pEquation= EquationFactory::CreateMagEquation(field, NumEq);
-  // GUVIntegrationStepper = new TClassicalRK4<pEquation,NumEq>;
-  // fDriver  = new GUIntegrationDriver();
+  // VScalarEquationOfMotion*  pEquation= EquationFactory::CreateMagEquation(field, NumEq);
+  // VScalarIntegrationStepper = new TClassicalRK4<pEquation,NumEq>;
+  // fDriver  = new ScalarIntegrationDriver();
 }
 
 void testGUFieldPropagator(double * px, double * py, double * pz, double * dx, double * dy, double * dz, int * charges,

@@ -1,7 +1,7 @@
 //
-//  Test GUIntegrationDriver
+//  Test ScalarIntegrationDriver 
 //   * compares with the output of a reference stepper (high accuracy) - ok for small steps
-//
+// 
 //  Based on testStepperFixed.cc
 //    which was started from the work of Somnath Banerjee in GSoC 2015
 //
@@ -15,13 +15,11 @@
 #include <cfloat>
 
 // using fieldUnits::meter;
-using fieldUnits::millimeter;
-using fieldUnits::second;
-using fieldUnits::eplus;
+using fieldUnits::millimeter;   
+using fieldUnits::second;  
+using fieldUnits::eplus;  
 using fieldUnits::tesla;
 using fieldUnits::degree;
-
-// #include "G4ios.hh"
 
 // #include "ThreeVector.h"
 #include "base/Vector3D.h"
@@ -32,24 +30,11 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 #include "TMagFieldEquation.h"
 
 #include "VScalarIntegrationStepper.h"
-#include "TClassicalRK4.h"
-#include "GUTCashKarpRKF45.h"
-
-#include "TSimpleRunge.h"
-#include "GUExactHelixStepper.h"
-// #include "GULineSection.hh"
-
-// #include "BogackiShampine23.hh"
-// #include "DormandPrince745.hh"
-// #include "BogackiShampine45.h"
-// #include "G4SimpleHeum.hh"
+#include "StepperFactory.h"
 
 #include "ScalarFieldTrack.h"
 #include "ScalarIntegrationDriver.h"
-#include "GUFieldPropagator.h"
-#include "GUFieldPropagatorPool.h"
 
-#include "FieldPropagatorFactory.h"
 
 // #define  COMPARE_TO_G4  1
 
@@ -64,49 +49,26 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 using namespace std;
 // using namespace CLHEP;
 
-//Version 2.0 - Includes direct comparison with ExactHelix
-
-/* Stepper No.
- 0. GUExactHelix
- 4. TClassicalRK4
- 5. TCashKarpRKF45 
-
-Potential expansion:
- 2. G4SimpleHeum
- 3. BogackiShampine23
- 6. BogackiShampine45
- 7. DormandPrince745
- */
-
-const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
-
 int main(int argc, char *args[])
 {
+    constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
+
     using  GvEquationType=  TMagFieldEquation<ScalarUniformMagField, Nposmom>;
-    void Usage();
-
+ 
     /* -----------------------------SETTINGS-------------------------------- */
-
+    
     /* Parameters of test
      - Modify values  */
-
+    
     int no_of_steps = 20;         // No. of Steps for the stepper
     int stepper_no =  5;         // Choose stepper no., for refernce see above
-    double step_len_mm = 200.;    // meant as millimeter;  //Step length
+    double step_len_mm = 200.;    // meant as millimeter;  //Step length 
     double z_field_in = DBL_MAX;
-    double epsTolInp =  -1.0;
-    int    testPool  = 2;    //  0 or 1 means direct Propagator; 2+ means pool with that many instances
-
+    double epsTolInp =  -1.0; 
+    
     //Checking for command line values :
     if(argc>1)
         stepper_no = atoi(args[1]);
-
-    if(argc==1 || strcmp(args[1],"-u")==0
-               || strcmp(args[1],"--usage")==0) {
-        Usage();
-        exit(1);
-    }
-
     if(argc > 2)
        step_len_mm = (float)(stof(args[2]));   // *mm);
     if(argc > 3)
@@ -114,47 +76,36 @@ int main(int argc, char *args[])
     if(argc > 4)
        z_field_in = (float) (stof(args[4]));     // tesla
     if(argc > 5)
-       epsTolInp  = (float) (stof(args[5]));
-    if(argc > 6)
-       testPool   = atoi(args[6]);
+       epsTolInp  = (float) (stof(args[5]));     // number 
 
     double step_len = step_len_mm * fieldUnits::millimeter;
-    if( testPool <= 0 ) testPool =0;
-
-    if( stepper_no < 0 && argc <= 6) {
-       testPool =2;
-       stepper_no = - stepper_no;
-    }
-
+    
     //Set Charge etc.
     double particleCharge = +1.0;      // in e+ units
-     //  magneticMoment= 0.0,            // ignore the magnetic moment
 
     //Choice of output coordinates
     int
     columns[] =
     {
-       1 , 1 , 0 ,  // position  x, y, z
+       1 , 1 , 0 ,  // position  x, y, z 
        1 , 1 , 0 ,  // momentum  x, y, z
        0 , 0 , 0 ,  // dydx pos  x, y, z
        0 , 0 , 0    // dydx mom  x, y, z
     }; //Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
-    bool printGoodAdv = true; //  Was step report good - or not?
     bool printErr= 1,   // Print the predicted Error
-         printRef= 0,   // Print the reference Solution
-         printDiff= 1;  // Print the difference
+         printRef= 0,   // Print the reference Solution 
+         printDiff= 1;  // Print the difference 
     bool printSep = 0;  // separator  '|'
-    const int  printOk  = 2;  // "Ok" or "Bad" - for Vec (val>0) & for each component (val>2)
+    int  printOk  = 3;  // "Ok" or "Bad" - for Vec (val>0) & for each component (val>2)
                         //   Format:   1 Vec-Terse:    "Ok" Or "Bad"
-                        //   Format:  >1 Vec-Verbose:  "0 Ok" "1 Bad"
-                        //             3 [i]-Verbose minimal "Ok" or "Bad"
-                        //            >3 [i]-Verbose 'full'  "0 Ok" ..
+                        //   Format:  >1 Vec-Verbose:  "0 Ok" "1 Bad"    
+                        //            >3 [i]-Verbose: 
     bool printRatio    = 0;  //  yDiff / yAverage - per component
     bool printRatioVec = 1;  //                   - per vector  (ie Pos or Vector )
     bool printMagShift = 1;  //  Print  | p | / | p_0 | - 1.0
     bool printInp = 0;  // print the input values
-    bool printInpX= 0;  // print the input values for Ref
+    bool printInpX= 0;  // print the input values for Ref 
 
     const int    epsDigits = 3;       //  Digits - for printing the different
     const double errAmplif = 1.0e5;   //  Amplification for printing of error
@@ -163,14 +114,12 @@ int main(int argc, char *args[])
     const unsigned int wdf = wd + epsDigits - 3;
     const unsigned int wok = 5; //  2 for (0/1," ") + 3 for "Bad"/"Ok "
 
-    cout << "printOk = " << printOk << endl;
-
     //Set coordinates here
     double
        x_pos = 0.,                 //pos - position  : input unit = mm
        y_pos = 0.,
        z_pos = 0.;
-    double
+    double   
        x_mom = 0.0,                 //mom - momentum  : input unit = GeV / c
        y_mom = 1.0,
        z_mom = 1.0;
@@ -183,123 +132,67 @@ int main(int argc, char *args[])
     else
        z_field = -1.0;  //  Tesla // *tesla ;
 
-    GUFieldPropagator *fieldPropagator= nullptr;
-
     // Field
     auto gvField= new ScalarUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
 
     cout << "#  Initial  Field strength (GeantV) = "
-         << x_field << " , " << y_field << " , " << z_field
+         << x_field << " , " << y_field << " , " << z_field 
        // << (1.0/fieldUnits::tesla) * gvField->GetValue()->X() << ",  "
          << " Tesla " << endl;
     cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
+    //Create an Equation :
+    auto gvEquation =
+       new GvEquationType(gvField);
+       // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
+    // gvEquation->InitializeCharge( particleCharge );
 
+    /*-------------------------PREPARING STEPPER-----------------------------*/
+    
+    //Create a stepper :
+    VScalarIntegrationStepper *myStepper; // , *exactStepper;
+    // G4MagIntegrationStepper *g4refStepper;    
+
+    const int cloneBump= 10;
+    bool useClonedStepper= (stepper_no > cloneBump);
+    if(  useClonedStepper )
+       stepper_no -= cloneBump;
+ 
+    myStepper= StepperFactory::CreateStepper<GvEquationType>(gvEquation, stepper_no);
+    //         *****************************
+    if( useClonedStepper ){
+       auto cloneStepper = myStepper->Clone();
+       delete myStepper;
+       myStepper = cloneStepper;
+    }
+
+    /*-------------------------PREPARING DRIVER -----------------------------*/
     const double hminimum  = 0.0001 * millimeter;  // Minimum step = 0.1 microns
     const double epsTolDef = 1.0e-5;              // Relative error tolerance
     int   statisticsVerbosity= 1;
 
-    const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp;
+    const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp; 
     cout << "#  Driver parameters:  eps_tol= "  << epsTol << "  h_min= " << hminimum << endl;
-
-    int numPropagators=3; // Create three copies - to exercise machinery ...
-    if( testPool > 1 && testPool < 15 )
-       numPropagators = testPool;
-
-    static GUFieldPropagatorPool* fpPool= GUFieldPropagatorPool::Instance();
-    VScalarIntegrationStepper *myStepper= nullptr; // , *exactStepper;
-    
-    if( stepper_no == -2 || stepper_no == 2)
-    {
-      using Field_t    =  ScalarUniformMagField;
-
-      // using FieldPropagatorFactory = ::FieldPropagatorFactory;
-      fieldPropagator=
-        FieldPropagatorFactory::CreatePropagator<Field_t>( *gvField, 
-                                                           epsTol,
-                                                           hminimum);
-      cout << "# Using the default Stepper in FieldPropagatorFactory. " << endl;
-
-      // Create clones for other threads
-      fpPool->Initialize(3);  // GUFieldPropagatorPool::Instance()
-
-      if( testPool > 1 )         
-         fieldPropagator = fpPool->GetPropagator(1);
-    }else{
-
-      //Create an Equation :
-      auto gvEquation =
-        new GvEquationType(gvField);
-        // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
-      // gvEquation->InitializeCharge( particleCharge );
-
-      /*-------------------------PREPARING STEPPER-----------------------------*/
-    
-      //Create a stepper :
-      // G4MagIntegrationStepper *g4refStepper;    
-
-      cout << "#  Chosen the   ";
-      //Choose the stepper based on the command line argument
-      switch(stepper_no){
-         // case 0: myStepper = new GUExactHelixStepper(gvEquation);
-         //  cout << " GUExactHelix stepper. " << endl;
-         //  break;
-      case 1: myStepper = new TSimpleRunge<GvEquationType,Nposmom>(gvEquation);
-         cout << " TSimpleRunge stepper. " << endl;
-         break;         
-         // case 2: myStepper = new G4SimpleHeum(gvEquation);   break;
-         // case 3: myStepper = new BogackiShampine23(gvEquation); break;
-      case 4: myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-         cout << " TClassicalRK4 stepper. " << endl;         
-         break;
-      case 5: myStepper = new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation);
-         cout << " GUTCashKarpRKF45 stepper. " << endl;                  
-         break;         
-         // case 6: myStepper = new BogackiShampine45(gvEquation); break;
-         // case 7: myStepper = new DormandPrince745(gvEquation);  break;
-      default : myStepper = 0 ;
-         myStepper = new TClassicalRK4<GvEquationType,Nposmom>(gvEquation);
-         cout << " Invalid stepper choice -- using default " << endl;
-         cout << " TClassicalRK4 stepper. " << endl;                  
-      }
-
-      auto integrDriver= new GUIntegrationDriver( hminimum,
-                                                  myStepper,
-                                                  Nposmom,
-                                                  statisticsVerbosity);
-      // myStepper->InitializeCharge( particleCharge );
-      // integrDriver->InitializeCharge( particleCharge );
-      
-      auto fldPropPrototype=
-         new GUFieldPropagator(integrDriver, epsTol);
-        // new GUFieldPropagator<ScalarUniformMagField>(gvField, epsTol, hMinimum);
-    
-      if( testPool > 1 )
-      {
-         // Initialize -- move to GeantPropagator::Initialize()
-         assert( fpPool );  // Cannot be zero
-         fpPool->RegisterPrototype( fldPropPrototype );
-         
-         fpPool->Initialize(numPropagators);
-         
-         fieldPropagator = fpPool->GetPropagator(numPropagators-1);
-      } else {
-         fieldPropagator= fldPropPrototype;
-      }
-    }
-    assert( fieldPropagator && "Created field Propagator - mandatory." );
-    
+ 
+    auto integrDriver= new ScalarIntegrationDriver( hminimum,
+                                                myStepper,
+                                                Nposmom,
+                                                statisticsVerbosity); 
+    // myStepper->InitializeCharge( particleCharge );
+    //integrDriver->InitializeCharge( particleCharge );
+ 
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
     const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
                                          //   Else it must be divided by fieldUnits::c_light;
-    // = fieldUnits::GeV / Constants::c_light;     // OLD
+    // const double ppGVf = fieldUnits::GeV / Constants::c_light;     // OLD
 
+    // double yIn[] = {x_pos,y_pos,z_pos,x_mom,y_mom,z_mom};
     double yIn[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
                     x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};
     
 #if COMPARE_TO_G4
     double mass = 1;
-    
+
     const double mmG4 = CLHEP::millimeter;
     const double ppG4 = CLHEP::GeV ;  //  In G4 too 'p' means p*c -- so no division  / CLHEP::c_light;
 
@@ -322,10 +215,10 @@ int main(int argc, char *args[])
     g4Equation->SetChargeMomentumMass( chargeState,
                                        G4ThreeVector(x_mom, y_mom, z_mom).mag(), //momentum magnitude
                                        mass);  // unused
-//  auto g4exactStepper = new G4ExactHelixStepper(g4Equation);
-    auto g4exactStepper = new G4ClassicalRK4(g4Equation);
-    
-    auto exactStepper = g4ExactStepperGV;
+    auto g4exactStepper =
+                           new G4ClassicalRK4(g4Equation);
+                        // new G4ExactHelixStepper(g4Equation);
+    auto exactStepper = g4ExactStepper;
 #else
     // double yInX[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
     //                 x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};    
@@ -341,7 +234,7 @@ int main(int argc, char *args[])
 
     //Creating the baseline stepper
     auto exactStepperGV =
-        new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation2);       
+        new GUTCashKarpRKF45<GvEquationType,Nposmom>(gvEquation2);
         // new TClassicalRK4<GvEquationType,Nposmom>(gvEquation2);
     cout << "#  Reference stepper is: GUTCashKarpRKF45 <GvEquationType,Nposmom>(gvEquation2);" << endl;
     // cout << "#  Reference stepper is: TClassicalRK4 <GvEquationType,Nposmom>(gvEquation2);" << endl;    
@@ -365,9 +258,9 @@ int main(int argc, char *args[])
     //Empty buckets for results
     double dydx[8] = {0.,0.,0.,0.,0.,0.,0.,0.},  // 2 extra safety buffer
         dydxRef[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
-          yout [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
+           yout[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           youtX[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
-       // yerr [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
+      //  yerr [8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yerrX[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yDiff[8] = {0.,0.,0.,0.,0.,0.,0.,0.},
           yAver[8] = {0.,0.,0.,0.,0.,0.,0.,0.};          
@@ -378,8 +271,7 @@ int main(int argc, char *args[])
     //        -> First Print the (commented) title header
     cout<<"\n#";
     cout<<setw(5)<<"Step";
-    cout<<setw(9)<<" StepLen";
-    if( printGoodAdv ) cout << " " << setw(wok)<< "Advnc";
+    cout<<setw(9)<<" StepLen";    
     for (int i=0; i<6;i++) {
         if (columns[i])
         {
@@ -395,7 +287,7 @@ int main(int argc, char *args[])
               cout << setw(wd-1) << "yErrX[" << i << "]";
            if( printDiff )
               cout << setw(wd-2) << " Diff[" << i << "]";
-           if( printOk >= 3  ) cout << " Cmp";
+           if( printOk>1  ) cout << " Cmp";
            if( printRatio ) cout << setw(wd) << " Ratio ";
         }
         if( (i+1)%3 == 0 ){
@@ -429,12 +321,10 @@ int main(int argc, char *args[])
     const char *nameUnitMomentum= "GeV/c";
     cout<<setw(6)<<"#Numbr";
     cout<<setw(9)<<nameUnitLength;
-    if( printGoodAdv ) cout << " " << setw(wok)<< "OK/no";
-    
     for (int i=0; i<6;i++){
         if (columns[i])
         {
-           const char* nameUnit = ( i<3 ) ? nameUnitLength : nameUnitMomentum ;
+           const char* nameUnit = ( i<3 ) ? nameUnitLength : nameUnitMomentum ; 
            if( printSep ) cout << " | " ;  // Separator
            if( printInp ) cout << setw(wd-2)<< nameUnit;
            if( printInpX) cout << setw(wd-2)<< nameUnit;
@@ -445,7 +335,7 @@ int main(int argc, char *args[])
               cout << " * " << setw(wd-7) << errAmplif << " ";
            }
            if( printDiff ) cout << " " << setw(wdf-1) << nameUnit;    // Diff  new - ref
-           if( printOk >= 3  )  cout << "    ";
+           if( printOk > 1  )  cout << "    ";
            if( printRatio ) cout << setw(wd) << "/epsTol ";                      
         }
         if( (i+1)%3 == 0 ){
@@ -467,56 +357,57 @@ int main(int argc, char *args[])
 
     const ThreeVector  startPosition( yIn[0], yIn[1], yIn[2]);
     const ThreeVector  startMomentum( yIn[3], yIn[4], yIn[5]);
-
-    const ThreeVector  startDirection = startMomentum.Unit();
-    const double       startMomentumMag = startMomentum.Mag();
-    cout << "# momentumMagInit = " << startMomentumMag << endl;
+    const double momentumMagInit = startMomentum.Mag();
+    cout << "# momentumMagInit = " << momentumMagInit << endl;
     
-    // GUFieldTrack yStart( startPosition, startMomentum ); 
+    ScalarFieldTrack yStart( startPosition, startMomentum, particleCharge); 
     double total_step =0;
     /*----------------NOW STEPPING-----------------*/
-
+    
     for(int j=0; j<no_of_steps; j++)
     {
-        bool goodAdvance;
+        bool goodAdvance= true;
 
-        cout<<setw(6)<<j ;           //Printing Step number
+        cout<<setw(4)<<j ;           //Printing Step number
 
-        // myStepper->RightHandSide(yIn, dydx);               //compute dydx - to supply the stepper
+        // myStepper->RightHandSideVIS(yIn, dydx);               //compute dydx - to supply the stepper
         exactStepper->RightHandSideVIS(yInX, particleCharge, dydxRef);   //compute the value of dydx for the exact stepper
 
         // Driver begins at the start !
-        ThreeVector PositionOut;
-        ThreeVector DirectionOut;
+        ScalarFieldTrack  yTrackIn(  startPosition, startMomentum, particleCharge );  // yStart
+        ScalarFieldTrack  yTrackOut( startPosition, startMomentum, particleCharge );  // yStart
+        
         if( j > 0 )  // Let's print the initial points!
         {
            total_step += step_len;
+           
            goodAdvance=
-             fieldPropagator->DoStep( startPosition, startDirection, particleCharge, startMomentumMag,
-                                      total_step,
-                                      PositionOut, DirectionOut );
+              integrDriver->AccurateAdvance( yTrackIn, total_step, epsTol, yTrackOut ); // , hInitial );
+           // *****************************
+           
+           ThreeVector PositionOut = yTrackOut.GetPosition();
            yout[0]= PositionOut.x();
            yout[1]= PositionOut.y();
            yout[2]= PositionOut.z();
-           ThreeVector MomentumOut = DirectionOut * startMomentumMag;  // const magnitude
+           ThreeVector MomentumOut = yTrackOut.GetMomentum();
            yout[3]= MomentumOut.x();
            yout[4]= MomentumOut.y();
            yout[5]= MomentumOut.z();
-
-           // bool goodAdvance=
-           //   integrDriver->AccurateAdvance( yTrackIn, total_step, epsTol, yTrackOut ); // , hInitial );
-           // *****************************
-           
+  
            // myStepper->StepWithErrorEstimate(yIn,dydx,step_len,yout,yerr);   //Call the 'trial' stepper
 
            // Compare with a high-quality stepper -- expect it works well for this step size (check!)
            //   This builds on its previous step to create the solution !
+
+           // Call the reference stepper
 #ifdef COMPARE_TO_G4        
-           g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX);
 #else
-           exactStepperGV->StepWithErrorEstimate(yInX,particleCharge,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,particleCharge,stepLengthRef,youtX,yerrX); 
 #endif
         }
+        if( goodAdvance ) cout << " o";  // OK
+        else  cout << " x"; // Bad advance;
 
         // Check the results
         double sumDiffPos2= 0.0, sumDiffMom2= 0.0;  // Mag^2 |X-Xref|, |P-Pref|
@@ -550,10 +441,10 @@ int main(int argc, char *args[])
         
         double magDiffMom = MomentumDiff.Mag(); // sqrt( sumDiffMom2 );
         double relDiffMom =
-           (startMomentumMag > 0.0 ) ? magDiffMom / startMomentumMag : 0.0;
+           (momentumMagInit > 0.0 ) ? magDiffMom / momentumMagInit : 0.0;
         bool     goodMom= relDiffMom < epsTol;
         double  ratioMom= relDiffMom / epsTol;
-        double MomMagShift= sqrt(sumMom2new) / startMomentumMag - 1.0;
+        double MomMagShift= sqrt(sumMom2new) / momentumMagInit - 1.0; // MomentumNew.Mag(); 
 
         static ThreeVector totErrMomRefV= ThreeVector( 0., 0., 0. );        
         ThreeVector errMomRefV= ThreeVector( yerrX[3], yerrX[4], yerrX[5] );
@@ -564,7 +455,6 @@ int main(int argc, char *args[])
 
         cout.precision(1);
         cout << setw(9) << total_step / mmGVf << " ";
-        if( printGoodAdv ) cout << " " << setw(wok)<< (goodAdvance ? "1 ok " : "0 bad" );
 
         // Report Position        
         cout.precision(4);
@@ -580,9 +470,9 @@ int main(int argc, char *args[])
               if( printDiff ){
                  cout.precision(epsDigits);
                  cout<< setw(wdf)<< yDiff[i];
-              }
-              if( printOk >= 3 ){
-                 bool goodI =  fabs(yDiff[i]) <  epsTol * fabs(yAver[i]);
+              }               
+              bool goodI =  fabs(yDiff[i]) <  epsTol * fabs(yAver[i]);
+              if( printOk>2 ){
                  if( printOk > 3 ) cout << " " << setw(wok)<< (goodI ? "1 ok " : "0 bad" );
                  else              cout << " " << setw(3)<< (goodI ? "ok " : "bad" );
               }
@@ -619,7 +509,7 @@ int main(int argc, char *args[])
                if( printOk || printRatio ){
                   bool goodI =  fabs(yDiff[i]) <  epsTol * fabs(yAver[i]);
                   // if( printOk>1 ) cout<< " " << setw(3)<< (goodI ? "ok " : "bad" );
-                  if( printOk>=3 ){
+                  if( printOk>2 ){
                      if( printOk > 3 ) cout << " " << setw(wok)<< (goodI ? "1 ok " : "0 bad" );
                      else              cout << " " << setw(3)<< (goodI ? "ok " : "bad" );
                   }
@@ -713,40 +603,13 @@ int main(int argc, char *args[])
     /*-----------------END-STEPPING------------------*/
 
     /*------ Clean up ------*/
-
-    if( testPool ) {
-       auto curStepper= fieldPropagator->GetIntegrationDriver()->GetStepper();
-       curStepper->InformDone();
-    } else {
-       myStepper->InformDone();
-    }
-
-#ifndef COMPARE_TO_G4
-    gvEquation2->InformDone();    
-#endif
+    
     delete myStepper;
     delete exactStepper;
-    // delete gvEquation;
-    // delete gvEquation2;    // Steppers now own their equation
+    // delete gvEquation;  // The stepper now takes ownership of the equation
+    // delete gvEquation2;    
     delete gvField;
     
     cout<<"\n\n#-------------End of output-----------------\n";
     
 }
-
-void Usage()
-{
-  cout << endl;
-  cout <<   " This test cross-checks the output of GUFieldPropagator class against " 
-       <<   " a simple loop of steps." << endl << endl;
-  cout <<   " Usage of this test: " << endl;
-  cout <<   "   arg[1]:  stepper type (value= 4 or 5) or use FieldPropagatorFactory (value=1)" << endl
-       <<   "   arg[2]:  step_len_mm  - step length size (in mm) " << endl
-       <<   "   arg[3]:  no_of_steps  - number of steps. " << endl
-       <<   "   arg[4]:  z_field      - Magnetic field value (Tesla)" << endl
-       <<   "   arg[5]:  epsilonTol   - Maximum relative error in integration (also error in direction per integration step.)" <<endl
-       <<   "   arg[6]:  testPool     - Use a cloned FieldPropagator from a pool ( if > 1 )" << endl;
-}
-
-
-

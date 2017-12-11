@@ -4,7 +4,7 @@
 #include <algorithm> // for std::max
 
 // #include "G4Types.hh"
-#include "GUVIntegrationStepper.h"
+#include "VScalarIntegrationStepper.h"
 
 // #include "ThreeVector.h"
 #include <base/Vector3D.h> 
@@ -24,7 +24,7 @@ std::ostream& operator<<( std::ostream& ostr, const TMagErrorStepper<T_Stepper, 
 
 template
 <class T_Stepper, class T_Equation, unsigned int Nvar>
-class TMagErrorStepper : public GUVIntegrationStepper
+class TMagErrorStepper : public VScalarIntegrationStepper
 {
     public:  // with description
         static constexpr unsigned int NumVarStore = (Nvar > GUIntegrationNms::NumVarBase) ?
@@ -95,7 +95,7 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
    TMagErrorStepper( T_Equation *EqRhs,
                      unsigned int integrationOrder,
                      unsigned int numStateVariables)
-   : GUVIntegrationStepper( EqRhs,
+   : VScalarIntegrationStepper( EqRhs,
                             integrationOrder,
                             Nvar,                // Must pass it to base class
                             numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
@@ -126,7 +126,7 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
    TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
    TMagErrorStepper( const TMagErrorStepper& right )
     :
-       GUVIntegrationStepper( (T_Equation *) 0,
+       VScalarIntegrationStepper( (T_Equation *) 0,
                               right.IntegratorOrder(),
                               right.GetNumberOfVariables(),  // must be == Nvar
                               right.GetNumberOfStateVariables() ),
@@ -135,7 +135,7 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
 {
    assert(fEquation_Rhs!=0);
    // TMagErrorStepper<T_Stepper, T_Equation, Nvar>::
-   GUVIntegrationStepper::SetEquationOfMotion(fEquation_Rhs);
+   VScalarIntegrationStepper::SetEquationOfMotion(fEquation_Rhs);
    std::cerr << " TMagErrorStepper<T_Stepper, T_Equation, Nvar> " << std::endl;
    std::cerr << "   Copy Constructor created: " << *this << std::endl;
 
@@ -169,10 +169,10 @@ template<class T_Stepper, class T_Equation, unsigned int Nvar>
    assert( goodNvar );
    
    assert( fEquation_Rhs != 0);
-   // GUVIntegrationStepper* iStepper = dynamic_cast<GUVIntegrationStepper*>(this);
+   // VScalarIntegrationStepper* iStepper = dynamic_cast<VScalarIntegrationStepper*>(this);
 
-   // GUVEquationOfMotion *
-   auto iEquation = dynamic_cast<GUVEquationOfMotion*>(fEquation_Rhs);
+   // VScalarEquationOfMotion *
+   auto iEquation = dynamic_cast<VScalarEquationOfMotion*>(fEquation_Rhs);
    // assert ( iEquation == GetEquationOfMotion() );
    bool goodEq = ( iEquation == GetEquationOfMotion() );
    assert ( goodEq );

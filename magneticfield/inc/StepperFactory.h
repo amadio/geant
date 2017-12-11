@@ -12,8 +12,8 @@
 #include <ostream>
 
 // Base types
-#include "GUVEquationOfMotion.h"
-#include "GUVIntegrationStepper.h"
+#include "VScalarEquationOfMotion.h"
+#include "VScalarIntegrationStepper.h"
 
 // Concrete Types being created
 #include "TSimpleRunge.h"
@@ -41,7 +41,7 @@ class StepperFactory
        */
      template<typename EquationType>
         static
-        GUVIntegrationStepper *          
+        VScalarIntegrationStepper *          
           CreateStepper(EquationType *equation, 
                         int           StepperCode = DefaultStepperCode, 
                         bool          verbose = false );
@@ -50,10 +50,10 @@ class StepperFactory
 };
 
 template<typename EquationType>
-  GUVIntegrationStepper *          
+  VScalarIntegrationStepper *          
 StepperFactory::CreateStepper(EquationType *equation, int StepperCode, bool verbose )
 {
-    GUVIntegrationStepper *stepper; // , *exactStepper;
+    VScalarIntegrationStepper *stepper; // , *exactStepper;
 
     const char *stepperName=0;
     const char * const NameSimpleRunge = "TSimpleRunge";
@@ -84,7 +84,7 @@ StepperFactory::CreateStepper(EquationType *equation, int StepperCode, bool verb
          stepper = new GUTCashKarpRKF45<EquationType,Nposmom>(equation);
          stepperName= NameCashKarpRKF45;
          break;
-      default : stepper = (GUVIntegrationStepper*) 0 ;
+      default : stepper = (VScalarIntegrationStepper*) 0 ;
 	std::cerr << " ERROR> StepperFactory: No stepper selected. " << std::endl;
          // exit(1); 
     }

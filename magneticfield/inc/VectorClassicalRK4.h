@@ -10,9 +10,9 @@
 // template <class T> inline constexpr const T& MaxConst (const T& a, const T& b) { return (a<b)?b:a;  } 
 
 template
-<class BackendDouble_v, class T_Equation, unsigned int Nvar>
-class TemplateTClassicalRK4 : public  TemplateTMagErrorStepper
-                      <BackendDouble_v, TemplateTClassicalRK4<BackendDouble_v, T_Equation, Nvar>, T_Equation, Nvar>
+<class BackendType, class T_Equation, unsigned int Nvar>
+class VectorClassicalRK4 : public  TemplateTMagErrorStepper
+                      <BackendType, VectorClassicalRK4<BackendType, T_Equation, Nvar>, T_Equation, Nvar>
 {
   public:  // with description
     static constexpr unsigned int OrderRK4= 4;
@@ -20,19 +20,19 @@ class TemplateTClassicalRK4 : public  TemplateTMagErrorStepper
                         // MaxConst( GUIntegrationNms::NumVarBase,  Nvar);
                         // std::max( GUIntegrationNms::NumVarBase,  Nvar);
 
-    TemplateTClassicalRK4(T_Equation *EqRhs) // , int numberOfVariables = 8)
-       : TemplateTMagErrorStepper<BackendDouble_v, TemplateTClassicalRK4<BackendDouble_v, T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar)
+    VectorClassicalRK4(T_Equation *EqRhs) // , int numberOfVariables = 8)
+       : TemplateTMagErrorStepper<BackendType, VectorClassicalRK4<BackendType, T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderRK4, Nvar)
        // fEquation_Rhs(EqRhs)
     {
     }
 
-    TemplateTClassicalRK4(const TemplateTClassicalRK4& right);
+    VectorClassicalRK4(const VectorClassicalRK4& right);
 
-    virtual  TemplateGUVIntegrationStepper<BackendDouble_v>* Clone() const override final;
+    virtual  TemplateVScalarIntegrationStepper<BackendType>* Clone() const override final;
     
     // void SetOurEquationOfMotion(T_Equation* equation);
        
-    virtual ~TemplateTClassicalRK4(){ } // delete fEquation_Rhs;}
+    virtual ~VectorClassicalRK4(){ } // delete fEquation_Rhs;}
 
     // static const IntegratorCorrection = 1./((1<<4)-1); 
     inline double IntegratorCorrection() { return 1./((1<<OrderRK4)-1); }
@@ -47,18 +47,18 @@ class TemplateTClassicalRK4 : public  TemplateTMagErrorStepper
     
     // A stepper that does not know about errors.
     // It is used by the MagErrorStepper stepper.
-    void  StepWithoutErrorEst( const BackendDouble_v  yIn[],
-                               const BackendDouble_v  dydx[],
-                                     BackendDouble_v  h,
-                                     // BackendDouble_v  charge,
-                                     BackendDouble_v  yOut[]);  // override final;  => Not virtual method, must exist though!
+    void  StepWithoutErrorEst( const BackendType  yIn[],
+                               const BackendType  dydx[],
+                                     BackendType  h,
+                                     // BackendType  charge,
+                                     BackendType  yOut[]);  // override final;  => Not virtual method, must exist though!
  
   public:
     // __attribute__((always_inline)) 
     //  int IntegratorOrder() const { return OrderRK4; }
 
   private:
-    TemplateTClassicalRK4& operator=(const TemplateTClassicalRK4&) = delete;
+    VectorClassicalRK4& operator=(const VectorClassicalRK4&) = delete;
     // Private assignment operator.
 
   private:
@@ -71,27 +71,27 @@ class TemplateTClassicalRK4 : public  TemplateTMagErrorStepper
     // STATE
     
     // scratch space
-    BackendDouble_v dydxm[Nvarstor]; 
-    BackendDouble_v dydxt[Nvarstor]; 
-    BackendDouble_v yt[Nvarstor];
+    BackendType dydxm[Nvarstor]; 
+    BackendType dydxt[Nvarstor]; 
+    BackendType yt[Nvarstor];
 };
 
-template <class BackendDouble_v, class T_Equation, unsigned int Nvar>
-  TemplateTClassicalRK4<BackendDouble_v,T_Equation,Nvar>::
-  TemplateTClassicalRK4(const TemplateTClassicalRK4& right)
-   :  TemplateTMagErrorStepper<BackendDouble_v, TemplateTClassicalRK4<BackendDouble_v, T_Equation, Nvar>, T_Equation, Nvar>( // (T_Equation*) 0,
+template <class BackendType, class T_Equation, unsigned int Nvar>
+  VectorClassicalRK4<BackendType,T_Equation,Nvar>::
+  VectorClassicalRK4(const VectorClassicalRK4& right)
+   :  TemplateTMagErrorStepper<BackendType, VectorClassicalRK4<BackendType, T_Equation, Nvar>, T_Equation, Nvar>( // (T_Equation*) 0,
            new T_Equation(*(right.fEquation_Rhs)),
            OrderRK4,
            right.GetNumberOfStateVariables() )  
 {
 }  
 
-template <class BackendDouble_v, class T_Equation, unsigned int Nvar>
-TemplateGUVIntegrationStepper<BackendDouble_v>* 
-TemplateTClassicalRK4<BackendDouble_v,T_Equation,Nvar>::Clone() const
+template <class BackendType, class T_Equation, unsigned int Nvar>
+TemplateVScalarIntegrationStepper<BackendType>* 
+VectorClassicalRK4<BackendType,T_Equation,Nvar>::Clone() const
 {
-   // return new TemplateTClassicalRK4<BackendDouble_v,T_Equation,Nvar>( *this );
-   auto clone= new TemplateTClassicalRK4<BackendDouble_v,T_Equation,Nvar>( *this );
+   // return new VectorClassicalRK4<BackendType,T_Equation,Nvar>( *this );
+   auto clone= new VectorClassicalRK4<BackendType,T_Equation,Nvar>( *this );
    // clone->Check();
    assert ( clone->fEquation_Rhs != 0 );
    return clone;
@@ -101,19 +101,19 @@ static constexpr double inv6=1./6;
 
 #define INLINEDUMBSTEPPER 1
 
-template <class BackendDouble_v, class T_Equation, unsigned int Nvar>
+template <class BackendType, class T_Equation, unsigned int Nvar>
 #ifdef INLINEDUMBSTEPPER
    __attribute__((always_inline)) 
 #else
 #pragma message "NOT in-lining Dumb Stepper"   
 // __attribute__((noinline))
 #endif 
-void TemplateTClassicalRK4<BackendDouble_v,T_Equation,Nvar>
-  ::StepWithoutErrorEst( const BackendDouble_v  yIn[],
-                         const BackendDouble_v  dydx[],
-                               BackendDouble_v  h,
-                               // BackendDouble_v  charge,
-                               BackendDouble_v  yOut[])
+void VectorClassicalRK4<BackendType,T_Equation,Nvar>
+  ::StepWithoutErrorEst( const BackendType  yIn[],
+                         const BackendType  dydx[],
+                               BackendType  h,
+                               // BackendType  charge,
+                               BackendType  yOut[])
    // Given values for the variables y[0,..,n-1] and their derivatives
    // dydx[0,...,n-1] known at x, use the classical 4th Runge-Kutta
    // method to advance the solution over an interval h and return the

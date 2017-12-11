@@ -20,15 +20,15 @@
 
 // #include "G4Types.hh"
 
-#include "GUVVectorIntegrationStepper.h"
+// #include "GUVVectorIntegrationStepper.h"
 #include "GUVVectorEquationOfMotion.h"
-// #include "TMagFieldEquation.h"
+// #include "ScalarFieldEquation.h"
 
 // #include "ThreeVector.h"
 #include <base/Vector3D.h> 
 #include <Geant/VectorTypes.h>
 
-class GUVVectorHelicalStepper : public GUVVectorIntegrationStepper
+class GUVVectorHelicalStepper //  : public GUVVectorIntegrationStepper
 {
   using Double_v = Geant::Double_v;
   using Bool_v = Geant::MaskD_v;
@@ -36,7 +36,7 @@ class GUVVectorHelicalStepper : public GUVVectorIntegrationStepper
 
   public:  // with description
 
-    GUVVectorHelicalStepper(GUVVectorEquationOfMotion *EqRhs, // OR TMagFieldEquation *EqRhs,
+    GUVVectorHelicalStepper(GUVVectorEquationOfMotion *EqRhs, // OR ScalarFieldEquation *EqRhs,
                             unsigned int order              );
     virtual ~GUVVectorHelicalStepper();
   
@@ -106,10 +106,10 @@ class GUVVectorHelicalStepper : public GUVVectorIntegrationStepper
     GUVVectorHelicalStepper& operator=(const GUVVectorHelicalStepper&);
       // Private copy constructor and assignment operator.
  
-    static const double fUnitConstant;   //  As in TMagFieldEquation.h/cc where it is not used.
+    static const double fUnitConstant;   //  As in ScalarFieldEquation.h/cc where it is not used.
   private:
    
-      // TMagFieldEquation*
+      // ScalarFieldEquation*
       GUVVectorEquationOfMotion*  fPtrMagEqOfMot;
 
     // Data stored in order to find the chord.
@@ -166,7 +166,7 @@ inline
 Geant::Double_v GUVVectorHelicalStepper::GetInverseCurve(const Double_v Momentum,
                                                   const Double_v Bmag    )   
 {
-   // define EquationType = TMagFieldEquation<>;
+   // define EquationType = ScalarFieldEquation<>;
    Double_v  inv_momentum = 1.0 / Momentum ;
    // double particleCharge
    //    = (dynamic_cast<EquationType*>(fPtrMagEqOfMot))->GetParticleCharge(); 

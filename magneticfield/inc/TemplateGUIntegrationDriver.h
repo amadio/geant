@@ -1,95 +1,67 @@
 //
-// Driver for explicit Runge-Kutta methods
+//
+// Derived from G4MagInt_Drv class of Geant4 (in G4MagIntegratorDriver.hh/cc)
 //
 // Class description:
 //
-// Provides a driver that talks to the Integrator Stepper, and ensures
-//  that the errors are within acceptable bounds.
-// When multiple tracks are integrated, provide different ways to 
-//   handle the early end of some 'lanes' - while others continue.
+// Provides a driver that talks to the Integrator Stepper, and ensures that 
+// the error is within acceptable bounds.
 //
 // History:
-//
-// Adaptations of template interface: J. Apostolakis,     Nov 2017
-// First templated version:  Ananya, Feb/March 2016
-//     ( commit 95e1316bcc156a04c876d6ea0fc9e60a15eeac4f )
-// 
-// Adapted from G4MagInt_Drv class of Geant4 (G4MagIntegratorDriver)
-//
-// - Contributors: Ananya, J.Apostolakis                    2015-2017
+// - Created. J.Apostolakis.
 // --------------------------------------------------------------------
 
-#ifndef FlexibleIntegrationDriver_Def
-#define FlexibleIntegrationDriver_Def
+#ifndef TemplateScalarIntegrationDriver_Def
+#define TemplateScalarIntegrationDriver_Def
 
-#include "TemplateFieldTrack.h"
-#include "base/AlignedBase.h"
+#include "TemplateGUFieldTrack.h"
+#include "AlignedBase.h"
 #include "FieldTrack.h"
 
-// #include "TemplateGUVIntegrationStepper.h"
-// #include "IntegrationStepper.h"
+#include "TemplateVScalarIntegrationStepper.h"
 
 #include "base/Vector.h"
 
 // Adding because adding scalar stepper for new constructor (KeepStepping)
-#include "GUVIntegrationStepper.h"
+#include "VScalarIntegrationStepper.h"
 
 // Adding to send in scalar driver to deal with 1/2 remaining lanes
-#include "GUIntegrationDriver.h"
-// #include "ScalarFieldTrack.h"
+#include "ScalarIntegrationDriver.h"
+#include "GUFieldTrack.h"
 
-// #define NEWACCURATEADVANCE
+#define NEWACCURATEADVANCE
 
-// Eventual config: 
-// template <class T_Stepper, unsigned int Nvar>
-
-template <class Backend, class T_Stepper, unsigned int Nvar>
-   class FlexibleIntegrationDriver : public vecgeom::AlignedBase
+template <class Backend>
+class TemplateScalarIntegrationDriver : public AlignedBase
 {
+   public:  // with description
 
-  public:
+     typedef                   typename Backend::precision_v  Double_v;
+     typedef                   typename Backend::bool_v       Bool_v;
+     typedef vecgeom::Vector3D<typename Backend::precision_v> ThreeVectorSimd; 
 
-    template <typename T>
-       using Vector3D = vecgeom::Vector3D<T>;
+     TemplateScalarIntegrationDriver( double hminimum,  //same 
+                                  TemplateVScalarIntegrationStepper<Backend> *pStepper,
+                                  int    numberOfComponents  = 6,
+                                  int    statisticsVerbosity = 1                  );
 
-    using Real_v          = Backend;             // First adaptation
-    // using Double_v        = Geant::Double_v;
-    using Bool_v          = vecCore::Mask_v<Real_v>;
-    using ThreeVectorSimd = Vector3D<Real_v>;
-  
-    FlexibleIntegrationDriver( double     hminimum,  //same 
-                               T_Stepper *pStepper,
-                               int        numberOfComponents  = 6,
-                               int        statsVerbosity = 1     );
+     TemplateScalarIntegrationDriver( const TemplateScalarIntegrationDriver& );
+       // Copy constructor used to create Clone method
+     ~TemplateScalarIntegrationDriver();
 
-    FlexibleIntegrationDriver( const FlexibleIntegrationDriver& );
-    // Copy constructor used to create Clone method
-    ~FlexibleIntegrationDriver();
-
-    // template <class Backend>  // Eventual config
-    Bool_v  AccurateAdvance( const TemplateFieldTrack<Backend>& yInput,
-                                   Real_v    hstep,
-                                   Real_v    eps,                  // Requested y_err/hstep
-                                   TemplateFieldTrack<Backend>& yOutput   );                            
-                                   // Real_v  hinitial=0.0   );  // Suggested 1st interval
-                                                                   // (e.g. from previous step) 
+     Bool_v  AccurateAdvance( const TemplateGUFieldTrack<Backend>& y_current,
+                                    Double_v  hstep,
+                                    double    eps,      //same      // Requested y_err/hstep
+                                    TemplateGUFieldTrack<Backend>& yOutput   );                            
+                                    // Double_v  hinitial=0.0                  );  // Suggested 1st interval
        // Above drivers for integrator (Runge-Kutta) with stepsize control. 
-       // Integrates ODE starting values yInput 
+       // Integrates ODE starting values y_current
        // from current s (s=s0) to s=s0+h with accuracy eps. 
-       // On output yOutput is value at end of interval.
-       // The concept is similar to the odeint routine from NRC 2nd edition p.721
-
-     void  OneStepEach(   Real_v  ystart, // Like old RKF45step()
-                    const Real_v  dydx,
-                          Real_v& x,
-                          Real_v  htry,
-                          Real_v  eps,
-                          Real_v& hdid,
-                          Real_v& hnext ) ;
-    
+       // On output ystart is replaced by value at end of interval. 
+       // The concept is similar to the odeint routine from NRC p.721     
 #ifdef NEWACCURATEADVANCE
      // 2nd AccurateAdvance
-     // involves track insertion etc 
+     // invovles track insertion etc 
      // succeeded[] of length nTracks
      void  AccurateAdvance( /*const*/ FieldTrack yInput[],
                                   double      hstep[],
@@ -98,19 +70,19 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
                                   int         nTracks, 
                                   bool        succeeded[] );
 
-     void  OneStep(       Real_v  ystart[], // Like old RKF45step()
-                    const Real_v  dydx[],
-                          Real_v& x,
-                          Real_v  htry,
-                          Real_v  eps,      //  memb variables ?
-                          Real_v& hdid,
-                          Real_v& hnext ) ;
+     void  OneStep(       Double_v  ystart[], // Like old RKF45step()
+                    const Double_v  dydx[],
+                          Double_v& x,
+                          Double_v  htry,
+                          Double_v  eps,      //  memb variables ?
+                          Double_v& hdid,
+                          Double_v& hnext ) ;
 
      void  InitializeAccurateAdvance( /*const*/ FieldTrack yInput[],
                                      const double      hstep [],
-                                           Real_v    y[],
-                                           Real_v    &hStepLane,
-                                           Real_v    &startCurveLength);
+                                           Double_v    y[],
+                                           Double_v    &hStepLane,
+                                           Double_v    &startCurveLength);
 
      // Returns isDoneThisLane value i.e. whether the lane is done or not
      // True if the last lane left is an h<=0 lane, false for all else
@@ -119,12 +91,12 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
                           const int        currIndex,
                                 int&       trackNextInput,
                                 bool       succeeded[],
-                                Real_v   y[],
-                                Real_v   &hStepLane,
-                                Real_v   &startCurveLength );
+                                Double_v   y[],
+                                Double_v   &hStepLane,
+                                Double_v   &startCurveLength );
 
-     void  StoreOutput( const Real_v   y[],
-                        const Real_v   x,
+     void  StoreOutput( const Double_v   y[],
+                        const Double_v   x,
                               FieldTrack yOutput[],
                               int        currIndex,
                               double     hstep[],
@@ -132,28 +104,28 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
 
      void  SetNTracks( int nTracks );
 
-     void  KeepStepping(       Real_v  ystart[], // Like old RKF45step()
-                               Real_v  dydx[],
-                               Real_v& x,
-                               Real_v  htry,
-                               Real_v  eps,      //  memb variables ?
-                               Real_v& hdid,
-                               Real_v& hnext,
-                         const Real_v  hStepLane,
-                               Real_v& hTotalDoneSoFar ) ;
+     void  KeepStepping(       Double_v  ystart[], // Like old RKF45step()
+                               Double_v  dydx[],
+                               Double_v& x,
+                               Double_v  htry,
+                               Double_v  eps,      //  memb variables ?
+                               Double_v& hdid,
+                               Double_v& hnext,
+                         const Double_v  hStepLane,
+                               Double_v& hTotalDoneSoFar ) ;
 
-     FlexibleIntegrationDriver( double hminimum,  //same 
-                                T_Stepper *pStepper,
-                                GUVIntegrationStepper   *pScalarStepper,
-                                int    numberOfComponents  = 6,
-                                int    statsVerbosity      = 1 );
+     TemplateScalarIntegrationDriver( double hminimum,  //same 
+                                  TemplateVScalarIntegrationStepper<Backend> *pStepper,
+                                  VScalarIntegrationStepper                  *pScalarStepper,
+                                  int    numberOfComponents  = 6,
+                                  int    statisticsVerbosity = 1                        );
 
-     FlexibleIntegrationDriver( double hminimum,  //same 
-                                T_Stepper             *pStepper,
-                                GUVIntegrationStepper *pScalarStepper,
-                                GUIntegrationDriver   *pScalarDriver,
-                                int    numComponents  = 6,
-                                int    statsVerbosity = 1      );
+     TemplateScalarIntegrationDriver( double hminimum,  //same 
+                                  TemplateVScalarIntegrationStepper<Backend> *pStepper,
+                                  VScalarIntegrationStepper                  *pScalarStepper,
+                                  ScalarIntegrationDriver                    *pScalarDriver,
+                                  int    numberOfComponents  = 6,
+                                  int    statisticsVerbosity = 1                        );
 
      void SetPartDebug (bool debugValue);
 
@@ -161,23 +133,31 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
      void SetSteppingMethod (bool steppingMethod);
 #endif
 
-     Bool_v  QuickAdvance( TemplateFieldTrack<Backend>& y_posvel,        // INOUT
-                           const Real_v      dydx[],  
-                                 Real_v      hstep,           // IN
-                           // Real_v&     dchord_step, //take out
-                                 Real_v&     dyerr_pos_sq,
-                                 Real_v&     dyerr_mom_rel_sq ) ;
+     Bool_v  QuickAdvance( TemplateGUFieldTrack<Backend>& y_posvel,        // INOUT
+                           const Double_v      dydx[],  
+                                 Double_v      hstep,           // IN
+      #ifdef USE_DCHORD
+                                 Double_v&     dchord_step, //take out
+      #endif                       
+                                 Double_v&     dyerr_pos_sq,
+                                 Double_v&     dyerr_mom_rel_sq ) ;
        // New QuickAdvance that also just tries one Step
        //    (so also does not ensure accuracy)
        //    but does return the errors in  position and
        //        momentum (normalised: Delta_Integration(p^2)/(p^2) )
 
-     // FlexibleIntegrationDriver* Clone() const;
+     // void  InitializeCharge(Double_v charge) { fpStepper->InitializeCharge(charge);} //remove 
+       // Pass needed information and initialize 
+     void  DoneIntegration() { fpStepper->GetEquationOfMotion()->InformDone(); } 
+       // Pass along information about end of integration - can clears parameters, flag finished
+
+     TemplateScalarIntegrationDriver* Clone() const;
        // Create an independent copy of the current object -- including independent 'owned' objects
-       // NOTE: Evaluate whether this method is needed - 2017.11.09
+       // 
+       // Question:  If the current object and all sub-objects are const, can it return 'this' ?
      
-     // VEquationOfMotion<Backend>* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
-     // const VEquationOfMotion<Backend>* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); } 
+     TemplateVScalarEquationOfMotion<Backend>* GetEquationOfMotion() { return fpStepper->GetEquationOfMotion(); }
+     const TemplateVScalarEquationOfMotion<Backend>* GetEquationOfMotion() const { return fpStepper->GetEquationOfMotion(); } 
      
      // Auxiliary methods
      inline double GetHmin()        const { return fMinimumStep; } 
@@ -186,56 +166,53 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
      inline double GetPowerGrow()   const { return fPowerGrow; } 
      inline double GetErrcon()      const { return fErrcon; }
      
-     inline void   GetDerivatives( const TemplateFieldTrack<Backend> &y_curr,     // const, INput
-                                        Real_v    charge, 
-                                        Real_v    dydx[]   );  //       OUTput
+     inline void   GetDerivatives( const TemplateGUFieldTrack<Backend> &y_curr,     // const, INput
+                                        Double_v    charge, 
+                                        Double_v    dydx[]   );  //       OUTput
         // Accessors.
 
-     // ===> Set methods suppressed - parameters now const 2017.11.08
-     //
-     
-     // inline void RenewStepperAndAdjust(T_Stepper *Stepper);
+     inline void RenewStepperAndAdjust(TemplateVScalarIntegrationStepper<Backend> *Stepper);
         // Sets a new stepper 'Stepper' for this driver. Then it calls
         // ReSetParameters to reset its parameters accordingly.
 
-     // inline void ReSetParameters(double new_safety= 0.9 ); //same 
+     inline void ReSetParameters(double new_safety= 0.9 ); //same 
         //  i) sets the exponents (fPowerGrow & fPowerShrink), 
         //     using the current Stepper's order, 
         // ii) sets the safety
         // ii) calculates "fErrcon" according to the above values.
 
-     // inline void SetSafety(double valS) ;       // {fSafetyFactor= valS; }
-     // inline void SetPowerShrink(double valPs) ; // { fPowerShrink= valPs; } 
-     // inline void SetPowerGrow (double valPg) ;  // { fPowerGrow= valPg; }
-     // inline void SetErrcon(double valEc) ;      // { fErrcon= valEc; }
+     inline void SetSafety(double valS) ;       // {fSafetyFactor= valS; }
+     inline void SetPowerShrink(double valPs) ; // { fPowerShrink= valPs; } 
+     inline void SetPowerGrow (double valPg) ;  // { fPowerGrow= valPg; }
+     inline void SetErrcon(double valEc) ;      // { fErrcon= valEc; }
         // When setting safety or fPowerGrow, errcon will be set to a 
         // compatible value.
 
      inline double ComputeAndSetErrcon();
 
-     inline const T_Stepper* GetStepper() const;
-     inline       T_Stepper* GetStepper();
+     inline const TemplateVScalarIntegrationStepper<Backend>* GetStepper() const;
+     inline TemplateVScalarIntegrationStepper<Backend>* GetStepper();
 
-     void  OneGoodStep(       Real_v  ystart[], // Like old RKF45step()
-                        const Real_v  dydx[],
-                              Real_v& x,
-                              Real_v  htry,
-                              Real_v  eps,      //  memb variables ?
-                              Real_v& hdid,
-                              Real_v& hnext ) ;
+     void  OneGoodStep(       Double_v  ystart[], // Like old RKF45step()
+                        const Double_v  dydx[],
+                              Double_v& x,
+                              Double_v  htry,
+                              Double_v  eps,      //  memb variables ?
+                              Double_v& hdid,
+                              Double_v& hnext ) ;
         // This takes one Step that is as large as possible while 
         // satisfying the accuracy criterion of:
         // yerr < eps * |y_end-y_start|
 
-     Real_v ComputeNewStepSize( Real_v  errMaxNorm,    // normalised error
-                                  Real_v  hstepCurrent); // current step size
+     Double_v ComputeNewStepSize( Double_v  errMaxNorm,    // normalised error
+                                  Double_v  hstepCurrent); // current step size
         // Taking the last step's normalised error, calculate
         // a step size for the next step.
         // Do not limit the next step's size within a factor of the
         // current one.
 
-     Real_v ComputeNewStepSize_WithinLimits( Real_v  errMaxNorm,    // normalised error
-                                               Real_v  hstepCurrent); // current step size
+     Double_v ComputeNewStepSize_WithinLimits( Double_v  errMaxNorm,    // normalised error
+                                               Double_v  hstepCurrent); // current step size
         // Taking the last step's normalised error, calculate
         // a step size for the next step.
         // Limit the next step's size within a range around the current one.
@@ -256,64 +233,60 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
      void     SetSmallestFraction( double val ); 
 
    protected:  // without description
-     void WarnSmallStepSize( Real_v , // hnext, 
-                             Real_v , // hstep, 
-                             Real_v , // h,     
-                             Real_v , // xDone,
-                             int    /*noSteps*/) {} //;  //warnings per track, probably neeed to change all to double :ananya
-     /* void WarnTooManySteps ( Real_v , x1start, 
-                             Real_v x2end, 
-                             Real_v xCurrent) {} //; */
-     /* void WarnEndPointTooFar( Real_v  endPointDist, 
-                              Real_v  hStepSize , 
-                              Real_v  epsilonRelative,
-                              int     debugFlag) {}  */
+     void WarnSmallStepSize( Double_v hnext, 
+                             Double_v hstep, 
+                             Double_v h,     
+                             Double_v xDone,
+                             int      noSteps) {} //;  //warnings per track, probably neeed to change all to double :ananya
+     void WarnTooManySteps ( Double_v x1start, 
+                             Double_v x2end, 
+                             Double_v xCurrent) {} //;
+     void WarnEndPointTooFar( Double_v  endPointDist, 
+                              Double_v  hStepSize , 
+                              Double_v  epsilonRelative,
+                              int     debugFlag) {} //;
      //  Issue warnings for undesirable situations
-
-  /***********
      //add index in order to print one at a time :ananya 
-     void PrintStatus(  const Real_v*      StartArr,
-                              Real_v       xstart,
-                        const Real_v*      CurrentArr, 
-                              Real_v       xcurrent, 
-                              Real_v       requestStep, 
+     void PrintStatus(  const Double_v*      StartArr,
+                              Double_v       xstart,
+                        const Double_v*      CurrentArr, 
+                              Double_v       xcurrent, 
+                              Double_v       requestStep, 
                               int          subStepNo ) {} //;
-     void PrintStatus(  const TemplateFieldTrack<Backend>&  StartFT,
-                        const TemplateFieldTrack<Backend>&  CurrentFT, 
+     void PrintStatus(  const TemplateGUFieldTrack<Backend>&  StartFT,
+                        const TemplateGUFieldTrack<Backend>&  CurrentFT, 
                               double       requestStep, 
                               int          subStepNo ) {} //;
-     void PrintStat_Aux( const TemplateFieldTrack<Backend>& aScalarFieldTrack,
+     void PrintStat_Aux( const TemplateGUFieldTrack<Backend>& aGUFieldTrack,
                                double      requestStep, 
                                double      actualStep,
                                int         subStepNo,
                                double      subStepSize,
                                double      dotVelocities ) {} //;       
-  ***********/
-
      //  Verbose output for debugging
 
      void PrintStatisticsReport() {} //;
      //  Report on the number of steps, maximum errors etc.
 
 #ifdef QUICK_ADV_ARRAY_IN_AND_OUT      
-     Bool_v QuickAdvance(      Real_v     yarrin[],     // In
-                         const Real_v     dydx[],  
-                               Real_v     hstep,        
-                               Real_v     yarrout[],    // Out
-                               Real_v&    dchord_step,  // Out
-                               Real_v&    dyerr );      // in length
+     Bool_v QuickAdvance(      Double_v     yarrin[],     // In
+                         const Double_v     dydx[],  
+                               Double_v     hstep,        
+                               Double_v     yarrout[],    // Out
+                               Double_v&    dchord_step,  // Out
+                               Double_v&    dyerr );      // in length
 #endif
 
    private:
 
-     FlexibleIntegrationDriver& operator=(const FlexibleIntegrationDriver&);
+     TemplateScalarIntegrationDriver& operator=(const TemplateScalarIntegrationDriver&);
      // Private copy constructor and assignment operator.
 
    private:
 
      // ---------------------------------------------------------------
      // DEPENDENT Objects
-     T_Stepper *fpStepper;
+     TemplateVScalarIntegrationStepper<Backend> *fpStepper;
      
      // ---------------------------------------------------------------
      //  INVARIANTS 
@@ -325,22 +298,22 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
      //  below this fraction the current step will be the last 
 
      const int  fNoIntegrationVariables;  // Number of Variables in integration
-     const int  fMinNoVars;               // Minimum number for TemplateFieldTrack<Backend>
+     const int  fMinNoVars;               // Minimum number for TemplateGUFieldTrack<Backend>
      const int  fNoVars;                  // Full number of variable
 
      int   fMaxNoSteps;
      static const int  fMaxStepBase;  
 
-     const double fSafetyFactor;
-     const double fPowerShrink;   //  exponent for shrinking
-     const double fPowerGrow;    //  exponent for growth
-     const double fErrcon;
+     double fSafetyFactor;
+     double fPowerShrink;   //  exponent for shrinking
+     double fPowerGrow;    //  exponent for growth
+     double fErrcon;
      // Parameters used to grow and shrink trial stepsize.
 
      double fSurfaceTolerance; 
 
      //  Stepsize can increase by no more than 5.0
-     //           and decrease by no more than x10. = 0.1
+     //           and decrease by no more than x10. = 0.1 
      static constexpr double fMaxSteppingIncrease = 5.0;
      static constexpr double fMaxSteppingDecrease = 0.1;
      // Maximum stepsize increase/decrease factors.
@@ -352,21 +325,21 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
      //  STATE
     public:
      int    fNoTotalSteps, fNoBadSteps, fNoSmallSteps, fNoInitialSmallSteps; 
-     Real_v fDyerr_max, fDyerr_mx2;
-     Real_v fDyerrPos_smTot, fDyerrPos_lgTot, fDyerrVel_lgTot; 
-     Real_v fSumH_sm, fSumH_lg; 
+     Double_v fDyerr_max, fDyerr_mx2;
+     Double_v fDyerrPos_smTot, fDyerrPos_lgTot, fDyerrVel_lgTot; 
+     Double_v fSumH_sm, fSumH_lg; 
      // Step Statistics 
 
      int  fVerboseLevel;   // Verbosity level for printing (debug, ..)
      // Could be varied during tracking - to help identify issues
 #ifdef NEWACCURATEADVANCE
      //Variables required for track insertion algorithm
-     constexpr unsigned int kVectorSize = 4; // TODO: template it on the backend 
-     int fIndex[kVectorSize]; // int *fIndex; 
+     int kVectorSize = 4; //can be templated on the backend somehow
+     int *fIndex; // or int fIndex[kVectorSize]
      int fNTracks;
      int fStepperCalls = 0;
-     GUVIntegrationStepper *fpScalarStepper;
-     GUIntegrationDriver *fpScalarDriver;
+     VScalarIntegrationStepper *fpScalarStepper;
+     ScalarIntegrationDriver *fpScalarDriver;
      bool partDebug = false ; 
      bool oneStep = true; // false for KeepStepping
 #endif 
@@ -374,27 +347,25 @@ template <class Backend, class T_Stepper, unsigned int Nvar>
 
 // #include "GUIntegratorDriver.icc"
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
-constexpr double FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>::fMaxSteppingIncrease;
+template<class Backend>
+constexpr double TemplateScalarIntegrationDriver<Backend>::fMaxSteppingIncrease;
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
-constexpr double FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>::fMaxSteppingDecrease;
+template<class Backend>
+constexpr double TemplateScalarIntegrationDriver<Backend>::fMaxSteppingDecrease;
 
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-double FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-   ::ComputeAndSetErrcon()
+double TemplateScalarIntegrationDriver<Backend>
+  ::ComputeAndSetErrcon()
 {
   fErrcon = std::pow(fMaxSteppingIncrease/fSafetyFactor,1.0/fPowerGrow);
   return fErrcon;
 } 
 
-// START Methods to modify parameters ----- Suppressed
-#ifdef NON_CONST_PARAMS
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, unsigned int Nvar>
+void TemplateScalarIntegrationDriver<Backend>
   ::ReSetParameters(double new_safety)
 {
   fSafetyFactor = new_safety;
@@ -403,90 +374,88 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, unsigned int Nvar>
   ComputeAndSetErrcon();
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, unsigned int Nvar>
+void TemplateScalarIntegrationDriver<Backend>
   ::SetSafety(double val)
 { 
   fSafetyFactor=val;
   ComputeAndSetErrcon();
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, unsigned int Nvar>
+void TemplateScalarIntegrationDriver<Backend>
   ::SetPowerGrow(double  val)
 { 
   fPowerGrow=val;
   ComputeAndSetErrcon(); 
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, unsigned int Nvar>
+void TemplateScalarIntegrationDriver<Backend>
   ::SetErrcon(double val)
 { 
   fErrcon=val;
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, unsigned int Nvar>
-  ::RenewStepperAndAdjust(T_Stepper *pStepper)
+void TemplateScalarIntegrationDriver<Backend>
+  ::RenewStepperAndAdjust(TemplateVScalarIntegrationStepper<Backend> *pStepper)
 {  
   fpStepper = pStepper; 
   ReSetParameters();
 }
-#endif
-// END:   Methods to modify parameters ----- Suppressed
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-const T_Stepper* FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+const TemplateVScalarIntegrationStepper<Backend>* TemplateScalarIntegrationDriver<Backend>
   ::GetStepper() const
 {
   return fpStepper;
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-T_Stepper* FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateVScalarIntegrationStepper<Backend>* TemplateScalarIntegrationDriver<Backend>
   ::GetStepper() 
 {
   return fpStepper;
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-int FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+int TemplateScalarIntegrationDriver<Backend>
   ::GetMaxNoSteps() const
 {
   return fMaxNoSteps;
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+void TemplateScalarIntegrationDriver<Backend>
   ::SetMaxNoSteps(int val)
 {
   fMaxNoSteps= val;
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 inline
-void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::GetDerivatives(const TemplateFieldTrack<Backend> &y_curr, // const, INput
-                         Real_v  charge, 
-                         Real_v  dydx[])  // OUTput
+void TemplateScalarIntegrationDriver<Backend>
+  ::GetDerivatives(const TemplateGUFieldTrack<Backend> &y_curr, // const, INput
+                         typename Backend::precision_v  charge, 
+                         typename Backend::precision_v  dydx[])  // OUTput
 { 
-  Real_v  tmpValArr[TemplateFieldTrack<Backend>::ncompSVEC];
+  typename Backend::precision_v  tmpValArr[TemplateGUFieldTrack<Backend>::ncompSVEC];
   y_curr.DumpToArray( tmpValArr  );
   fpStepper -> RightHandSideVIS( tmpValArr , charge, dydx );
 }
 
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
-const int  FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>::fMaxStepBase = 250;  // Was 5000
+template <class Backend>
+const int  TemplateScalarIntegrationDriver<Backend>::fMaxStepBase = 250;  // Was 5000
 
 #ifndef G4NO_FIELD_STATISTICS
 #define GVFLD_STATS  1
@@ -509,10 +478,10 @@ TH1F* gHistStepsInit=0;
 
 //  Constructor
 //
-template <class Backend, class T_Stepper, unsigned int Nvar>
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::FlexibleIntegrationDriver( double  hminimum, 
-                                 T_Stepper *pStepper,
+template <class Backend>
+TemplateScalarIntegrationDriver<Backend>
+  ::TemplateScalarIntegrationDriver( double  hminimum, 
+                                 TemplateVScalarIntegrationStepper<Backend> *pStepper,
                                  int     numComponents,
                                  int     statisticsVerbose)
    : fMinimumStep( hminimum ),
@@ -565,14 +534,14 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 #endif
 
   //For track insertion
-  // fIndex = new int[kVectorSize];
+  fIndex = new int[kVectorSize];
+
 }
 
-
 //  Copy Constructor - used by Clone
-template <class Backend, class T_Stepper, unsigned int Nvar>
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-::FlexibleIntegrationDriver( const FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>& right ) 
+template <class Backend>
+TemplateScalarIntegrationDriver<Backend>
+::TemplateScalarIntegrationDriver( const TemplateScalarIntegrationDriver<Backend>& right ) 
  : fMinimumStep( right.fMinimumStep ),
    fSmallestFraction( right.fSmallestFraction ),
    fNoIntegrationVariables( right.fNoIntegrationVariables ),
@@ -593,7 +562,7 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 {  
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
-   const T_Stepper *protStepper = right.GetStepper();
+   const TemplateVScalarIntegrationStepper<Backend> *protStepper = right.GetStepper();
    fpStepper= protStepper->Clone();
    
    RenewStepperAndAdjust( fpStepper );
@@ -616,9 +585,9 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 // ---------------------------------------------------------
 
 //  Destructor
-template <class Backend, class T_Stepper, unsigned int Nvar>
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::~FlexibleIntegrationDriver()
+template <class Backend>
+TemplateScalarIntegrationDriver<Backend>
+  ::~TemplateScalarIntegrationDriver()
 { 
   if( fStatisticsVerboseLevel > 1 )
   {
@@ -626,25 +595,25 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
   }
 
   // delete[] fIndex;
+  delete fIndex;
   // delete fpScalarDriver;
   // delete fpScalarStepper;
   // delete fpStepper;
 }
 
-#if 0
-template <class Backend, class T_Stepper, unsigned int Nvar>
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>* 
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+
+template <class Backend>
+TemplateScalarIntegrationDriver<Backend>* 
+TemplateScalarIntegrationDriver<Backend>
   ::Clone() const
 {
-   return new FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>(*this);
+   return new TemplateScalarIntegrationDriver<Backend>(*this);
 }
-#endif
 
 // ---------------------------------------------------------
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template<>
 void
-   FlexibleIntegrationDriver<double,T_Stepper,Nvar>::OneGoodStep(  double y[],        // InOut
+TemplateScalarIntegrationDriver<vecgeom::kScalar>::OneGoodStep(  double y[],        // InOut
                              const double dydx[],
                                    double& x,         // InOut
                                    double htry,
@@ -669,7 +638,7 @@ void
   double errmax_sq;
   double h, htemp, xnew ;
 
-  int ncompSVEC = TemplateFieldTrack<double>::ncompSVEC;
+  int ncompSVEC = TemplateGUFieldTrack<vecgeom::kScalar>::ncompSVEC;
   double yerr[ncompSVEC], ytemp[ncompSVEC];
 
   bool verbose= false;
@@ -709,7 +678,7 @@ void
     if( magmom_sq > 0.0 ) { 
        errmom_sq = sumerr_sq / magmom_sq; 
     } else {
-       std::cerr << "** GUIntegrationDriver: found case of zero momentum." 
+       std::cerr << "** ScalarIntegrationDriver: found case of zero momentum." 
                  << " iteration=  " << iter << " h= " << h << std::endl; 
        errmom_sq = sumerr_sq;
     }
@@ -756,16 +725,15 @@ void
   return;
 }   // end of  OneGoodStep .............................
 
-// ----------------------------------------------------------------------------------
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template </*class Backend*/>
 bool 
-FlexibleIntegrationDriver<double>  // scalar
-  ::AccurateAdvance(const TemplateFieldTrack<double>& yInput,  // scalar
-                          double                      hstep,
-                          double                      epsilon,
-                          TemplateFieldTrack<double>& yOutput )
-                          // Real_v  hinitial)
+TemplateScalarIntegrationDriver<vecgeom::kScalar>
+  ::AccurateAdvance(const TemplateGUFieldTrack<vecgeom::kScalar>& yInput,
+                          double  hstep,
+                          double                         epsilon,
+                          TemplateGUFieldTrack<vecgeom::kScalar>& yOutput )
+                          // typename Backend::precision_v  hinitial)
 {
   // Driver for Runge-Kutta integration with adaptive stepsize control.
   // Integrate starting 'vector' y_current, over length 'hstep'
@@ -790,7 +758,7 @@ FlexibleIntegrationDriver<double>  // scalar
   int nstp, i;
   double x, hnext, hdid, h;
 
-  constexpr int ncompSVEC = TemplateFieldTrack<double>::ncompSVEC; // 12 ? 
+  int ncompSVEC = TemplateGUFieldTrack<vecgeom::kScalar>::ncompSVEC; //12, //to be derived from TemplateGUFieldTrack
 
 #ifdef GUDEBUG_FIELD
   static int dbg=1;
@@ -922,9 +890,9 @@ FlexibleIntegrationDriver<double>  // scalar
 
 // ---------------------------------------------------------
 
-/*template <class Backend, class T_Stepper, unsigned int Nvar>
+/*template <class Backend>
 void
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::WarnSmallStepSize( double hnext,
                        double hstep, 
                        double h,
@@ -935,7 +903,7 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
   const  int maxNoWarnings =  10;   // Number of verbose warnings
   // std::ostringstream message;
   // typedef std::cerr message;
-  std::cerr << " WARNING from FlexibleIntegrationDriver::WarnSmallStepSize():  " ; // << std::endl;
+  std::cerr << " WARNING from TemplateScalarIntegrationDriver::WarnSmallStepSize():  " ; // << std::endl;
   if( (noWarningsIssued < maxNoWarnings) || fVerboseLevel > 10 )
   {
     std::cerr << "The stepsize for the next iteration, " << hnext
@@ -953,22 +921,22 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
             << ",  req_tot_len: " << hstep 
             << ", done: " << xDone << ", min: " << GetHmin();
   }
-  // G4Exception("FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>::WarnSmallStepSize()", "GeomField1001",
+  // G4Exception("TemplateScalarIntegrationDriver<Backend>::WarnSmallStepSize()", "GeomField1001",
   //             JustWarning, message);
   noWarningsIssued++;
 }
 
 // ---------------------------------------------------------
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 void
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::WarnTooManySteps( double x1start, 
                       double x2end, 
                       double xCurrent)
 {
 
-   std::cerr << "WARNING from FlexibleIntegrationDriver::WarnTooManySteps()" << std::endl;
+   std::cerr << "WARNING from TemplateScalarIntegrationDriver::WarnTooManySteps()" << std::endl;
    std::cerr << "The number of steps used in the Integration driver"
              << " (Runge-Kutta) is too many." << std::endl
              << "Integration of the interval was not completed !" << std::endl;
@@ -983,15 +951,15 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
              << std::endl;
    // std::cerr.unsetf (std::ios_base::scientific);
    std::cerr.precision(oldPrec);
-   // G4Exception("FlexibleIntegrationDriver::WarnTooManySteps()", "GeomField1001",
+   // G4Exception("TemplateScalarIntegrationDriver::WarnTooManySteps()", "GeomField1001",
    //             JustWarning, message);
 }
 
 // ---------------------------------------------------------
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 void
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::WarnEndPointTooFar( double endPointDist, 
                         double h , 
                         double epsilon,
@@ -1009,7 +977,7 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
   { 
     static int noWarnings = 0;  // thread_local
     // std::ostringstream message;
-    std::cerr << "WARNING in FlexibleIntegrationDriver::WarnEndPointTooFar()" << std::endl;
+    std::cerr << "WARNING in TemplateScalarIntegrationDriver::WarnEndPointTooFar()" << std::endl;
     if( (noWarnings ++ < 10) || (dbg>2) )
     {
       std::cerr << "The integration produced an end-point which "
@@ -1021,7 +989,7 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
               << "  Difference (curveLen-endpDist)= " << (h - endPointDist)
               << ", relative = " << (h-endPointDist) / h 
               << ", epsilon =  " << epsilon << std::endl;
-    // G4Exception("FlexibleIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
+    // G4Exception("TemplateScalarIntegrationDriver::WarnEndPointTooFar()", "GeomField1001",
     //             JustWarning, message);
   }
 }*/
@@ -1030,14 +998,14 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 
 template </*class Backend*/>
 void
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
-  ::OneGoodStep(       Real_v y[],        // InOut
-                 const Real_v dydx[],
-                       Real_v& x,         // InOut
-                       Real_v htry,
-                       Real_v eps_rel_max,
-                       Real_v& hdid,      // Out
-                       Real_v& hnext      )    // Out
+TemplateScalarIntegrationDriver<vecgeom::kVc>
+  ::OneGoodStep(       typename vecgeom::kVc::precision_v  y[],        // InOut
+                 const typename vecgeom::kVc::precision_v  dydx[],
+                       typename vecgeom::kVc::precision_v& x,         // InOut
+                       typename vecgeom::kVc::precision_v  htry,
+                       typename vecgeom::kVc::precision_v  eps_rel_max,
+                       typename vecgeom::kVc::precision_v& hdid,      // Out
+                       typename vecgeom::kVc::precision_v& hnext      )    // Out
 
 // Driver for one Runge-Kutta Step with monitoring of local truncation error
 // to ensure accuracy and adjust stepsize. Input are dependent variable
@@ -1053,20 +1021,20 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 // 16.2 Adaptive StepSize Control for Runge-Kutta, p. 719
 
 {
-  Real_v errmax_sq;
-  Real_v h, htemp, xnew ;
+  Double_v errmax_sq;
+  Double_v h, htemp, xnew ;
 
-  Real_v yerr [TemplateFieldTrack<<Real_v, T_Stepper, Nvar>>::ncompSVEC], 
-           ytemp[TemplateFieldTrack<<Real_v, T_Stepper, Nvar>>::ncompSVEC];
+  Double_v yerr [TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC], 
+           ytemp[TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC];
 
   // std::cout << "OneGoodStep called with htry= " << htry << std::endl;
   
   h = htry ; // Set stepsize to the initial trial value
 
-  Real_v inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
+  Double_v inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
 
-  Real_v errpos_sq=0.0;    // square of displacement error
-  Real_v errmom_sq=0.0;    // square of momentum vector difference
+  Double_v errpos_sq=0.0;    // square of displacement error
+  Double_v errmom_sq=0.0;    // square of momentum vector difference
 
   int iter;
 
@@ -1080,16 +1048,16 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
       tot_no_trials++;
       fpStepper-> StepWithErrorEstimate(y,dydx,h,ytemp,yerr);
 
-      Real_v eps_pos = eps_rel_max * vecgeom::Max(h, fMinimumStep);  // Uses remaining step 'h'
-      Real_v inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
+      Double_v eps_pos = eps_rel_max * vecgeom::Max(h, fMinimumStep);  // Uses remaining step 'h'
+      Double_v inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
 
       // Evaluate accuracy
       errpos_sq =  yerr[0]*yerr[0] + yerr[1]*yerr[1] + yerr[2]*yerr[2] ; 
       errpos_sq *= inv_eps_pos_sq; // Scale relative to required tolerance
 
       // Accuracy for momentum
-      Real_v magmom_sq=  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
-      Real_v sumerr_sq=  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
+      Double_v magmom_sq=  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
+      Double_v sumerr_sq=  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
 
       vecgeom::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);
 
@@ -1107,7 +1075,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
       // Step failed; compute the size of retrial Step.
       // Ananya : adding a statement. Later check the sanity or work around
-      Real_v errPower = Vc::exp( (0.5*fPowerShrink)*vecgeom::Log(errmax_sq) );
+      Double_v errPower = Vc::exp( (0.5*fPowerShrink)*vecgeom::Log(errmax_sq) );
       htemp = fSafetyFactor *h* errPower;
 
       // htemp = fSafetyFactor *h* vecgeom::Pow( errmax_sq, 0.5*fPowerShrink );
@@ -1150,7 +1118,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 #endif
 
   // Compute size of next Step
-  Real_v errPower = Vc::exp( (0.5*GetPowerGrow())* vecgeom::Log(errmax_sq));
+  Double_v errPower = Vc::exp( (0.5*GetPowerGrow())* vecgeom::Log(errmax_sq));
   hnext = GetSafety()*errPower;
   // hnext = GetSafety()*vecgeom::Pow(errmax_sq, 0.5*GetPowerGrow());
   vecgeom::MaskedAssign(errmax_sq <= fErrcon*fErrcon, fMaxSteppingIncrease*h, &hnext); // No more than a factor of 5 increase
@@ -1167,24 +1135,26 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 #define SQR(a)   ((a)*(a))
 
 // QuickAdvance just tries one Step - it does not ensure accuracy
-template <class Backend, class T_Stepper, unsigned int Nvar>//
-typename Mask<Backend>
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::QuickAdvance( TemplateFieldTrack<Backend>&       y_posvel,         // INOUT
-                  const Real_v  dydx[],  
-                        Real_v  hstep,       // In
-                  // Real_v& dchord_step,
-                        Real_v& dyerr_pos_sq,
-                        Real_v& dyerr_mom_rel_sq )  
+template <class Backend>//
+typename Backend::bool_v  
+TemplateScalarIntegrationDriver<Backend>
+  ::QuickAdvance( TemplateGUFieldTrack<Backend>&       y_posvel,         // INOUT
+                  const typename Backend::precision_v  dydx[],  
+                        typename Backend::precision_v  hstep,       // In
+#ifdef USE_DCHORD
+                        typename Backend::precision_v& dchord_step,
+#endif
+                        typename Backend::precision_v& dyerr_pos_sq,
+                        typename Backend::precision_v& dyerr_mom_rel_sq )  
 {
-  // typedef typename Backend Real_v;
-//  typedef typename Mask<Backend>      Bool_v;
-  // Real_v dyerr_pos_sq, dyerr_mom_rel_sq;  
-  Real_v yerr_vec[TemplateFieldTrack<Backend>::ncompSVEC],
-           yarrin  [TemplateFieldTrack<Backend>::ncompSVEC], 
-           yarrout [TemplateFieldTrack<Backend>::ncompSVEC]; 
-  Real_v s_start;
-  Real_v dyerr_mom_sq, vel_mag_sq, inv_vel_mag_sq;
+  typedef typename Backend::precision_v Double_v;
+//  typedef typename Backend::bool_v      Bool_v;
+  // Double_v dyerr_pos_sq, dyerr_mom_rel_sq;  
+  Double_v yerr_vec[TemplateGUFieldTrack<Backend>::ncompSVEC],
+           yarrin  [TemplateGUFieldTrack<Backend>::ncompSVEC], 
+           yarrout [TemplateGUFieldTrack<Backend>::ncompSVEC]; 
+  Double_v s_start;
+  Double_v dyerr_mom_sq, vel_mag_sq, inv_vel_mag_sq;
 
   static int no_call=0;  // thread_local 
   no_call ++; 
@@ -1237,17 +1207,17 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 
 // --------------------------------------------------------------------------
 #ifdef QUICK_ADV_ARRAY_IN_AND_OUT
-template <class Backend, class T_Stepper, unsigned int Nvar>
-typename Mask<Backend>  
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::QuickAdvance(       Real_v     yarrin[],    // In
-                  const Real_v     dydx[],  
-                        Real_v     hstep,       // In
-                        Real_v     yarrout[],
-                        Real_v&    dchord_step,
-                        Real_v&    dyerr )      // In length
+template <class Backend>
+typename Backend::bool_v  
+TemplateScalarIntegrationDriver<Backend>
+  ::QuickAdvance(       typename Backend::precision_v     yarrin[],    // In
+                  const typename Backend::precision_v     dydx[],  
+                        typename Backend::precision_v     hstep,       // In
+                        typename Backend::precision_v     yarrout[],
+                        typename Backend::precision_v&    dchord_step,
+                        typename Backend::precision_v&    dyerr )      // In length
 {
-   std::cerr << "ERROR in FlexibleIntegrationDriver::QuickAdvance()" << std::endl;
+   std::cerr << "ERROR in TemplateScalarIntegrationDriver::QuickAdvance()" << std::endl;
    std::cerr << "      Method is not yet implemented." << std::endl;
 
    //            FatalException, "Not yet implemented.");
@@ -1262,13 +1232,13 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 //  This method computes new step sizes - but does not limit changes to
 //  within  certain factors
 // 
-template <class Backend, class T_Stepper, unsigned int Nvar>
-Real_v 
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::ComputeNewStepSize( Real_v  errMaxNorm,    // max error  (normalised)
-                        Real_v  hstepCurrent)  // current step size
+template <class Backend>
+typename Backend::precision_v 
+TemplateScalarIntegrationDriver<Backend>
+  ::ComputeNewStepSize( typename Backend::precision_v  errMaxNorm,    // max error  (normalised)
+                        typename Backend::precision_v  hstepCurrent)  // current step size
 {
-  Real_v hnew;
+  typename Backend::precision_v hnew;
 
   // Compute size of next Step for a failed step
   hnew = GetSafety()*hstepCurrent*vecgeom::Pow(errMaxNorm,GetPowerShrink()) ;
@@ -1301,13 +1271,13 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 // It shares its logic with AccurateAdvance.
 // They are kept separate currently for optimisation.
 //
-template <class Backend, class T_Stepper, unsigned int Nvar>
-Real_v 
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::ComputeNewStepSize_WithinLimits( Real_v  errMaxNorm,    // max error  (normalised)
-                                     Real_v  hstepCurrent)  // current step size
+template <class Backend>
+typename Backend::precision_v 
+TemplateScalarIntegrationDriver<Backend>
+  ::ComputeNewStepSize_WithinLimits( typename Backend::precision_v  errMaxNorm,    // max error  (normalised)
+                                     typename Backend::precision_v  hstepCurrent)  // current step size
 {
-  Real_v hnew, htemp;
+  typename Backend::precision_v hnew, htemp;
 
   hnew  = fMaxSteppingIncrease * hstepCurrent;
 
@@ -1347,9 +1317,9 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 }
 
 // ---------------------------------------------------------------------------
-/*template <class Backend, class T_Stepper, unsigned int Nvar>
+/*template <class Backend>
 void 
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
 ::PrintStatus( const double*   StartArr,  
                      double    xstart,
                const double*   CurrentArr, 
@@ -1361,9 +1331,9 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
   //                                 stepTaken(hdid)  - last step taken
   //                                 nextStep (hnext) - proposal for size
 {
-   ScalarFieldTrack  StartFT(ThreeVector(0,0,0),
+   GUFieldTrack  StartFT(ThreeVector(0,0,0),
                  ThreeVector(0,0,0), 0., 0. );
-   ScalarFieldTrack  CurrentFT (StartFT);
+   GUFieldTrack  CurrentFT (StartFT);
 
    StartFT.LoadFromArray( StartArr, fNoIntegrationVariables); 
    StartFT.SetCurveLength( xstart);
@@ -1374,10 +1344,10 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 }
 
 // ---------------------------------------------------------------------------
-template <class Backend, class T_Stepper, unsigned int Nvar>
-void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::PrintStatus( const TemplateFieldTrack<Backend>&  StartFT,
-                 const TemplateFieldTrack<Backend>&  CurrentFT, 
+template <class Backend>
+void TemplateScalarIntegrationDriver<Backend>
+  ::PrintStatus( const TemplateGUFieldTrack<Backend>&  StartFT,
+                 const TemplateGUFieldTrack<Backend>&  CurrentFT, 
                  double             requestStep, 
                  int                subStepNo  )
 {
@@ -1401,7 +1371,7 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
        subStepNo = - subStepNo;        // To allow printing banner
 
        std::cout << std::setw( 6)  << " " << std::setw( 25)
-              << " FlexibleIntegrationDriver: Current Position  and  Direction" << " "
+              << " TemplateScalarIntegrationDriver: Current Position  and  Direction" << " "
               << std::endl; 
        std::cout << std::setw( 5) << "Step#" << " "
               << std::setw( 7) << "s-curve" << " "
@@ -1452,17 +1422,17 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 }
 
 // ---------------------------------------------------------------------------
-template <class Backend, class T_Stepper, unsigned int Nvar>
-void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::PrintStat_Aux( const TemplateFieldTrack<Backend>&  aScalarFieldTrack,
+template <class Backend>
+void TemplateScalarIntegrationDriver<Backend>
+  ::PrintStat_Aux( const TemplateGUFieldTrack<Backend>&  aGUFieldTrack,
                    double             requestStep, 
                    double             step_len,
                    int                subStepNo,
                    double             subStepSize,
                    double             dotVeloc_StartCurr)
 {
-    const ThreeVector Position=      aScalarFieldTrack.GetPosition();
-    const ThreeVector UnitVelocity=  aScalarFieldTrack.GetMomentumDirection();
+    const ThreeVector Position=      aGUFieldTrack.GetPosition();
+    const ThreeVector UnitVelocity=  aGUFieldTrack.GetMomentumDirection();
  
     if( subStepNo >= 0)
     {
@@ -1472,7 +1442,7 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
     {
        std::cout << std::setw( 5) << "Start" << " ";
     }
-    double curveLen= aScalarFieldTrack.GetCurveLength();
+    double curveLen= aGUFieldTrack.GetCurveLength();
     std::cout << std::setw( 7) << curveLen;
     std::cout << std::setw( 9) << Position.x() << " "
            << std::setw( 9) << Position.y() << " "
@@ -1485,7 +1455,7 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
     std::cout.precision(6);
     std::cout << std::setw(10) << dotVeloc_StartCurr << " ";
     std::cout.precision(oldprec);
-    // std::cout << std::setw( 7) << aScalarFieldTrack.GetKineticEnergy();
+    // std::cout << std::setw( 7) << aGUFieldTrack.GetKineticEnergy();
     std::cout << std::setw(12) << step_len << " ";
 
     static double oldCurveLength= 0.0;    // thread_local
@@ -1518,16 +1488,16 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 }
 
 // ---------------------------------------------------------------------------
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 void 
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::PrintStatisticsReport()
 {
   int noPrecBig= 6;
   int oldPrec= std::cout.precision(noPrecBig);
 
-  std::cout << "FlexibleIntegrationDriver Statistics of steps undertaken. " << std::endl;
-  std::cout << "FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>: Number of Steps: "
+  std::cout << "TemplateScalarIntegrationDriver Statistics of steps undertaken. " << std::endl;
+  std::cout << "TemplateScalarIntegrationDriver<Backend>: Number of Steps: "
          << " Total= " <<  fNoTotalSteps
          << " Bad= "   <<  fNoBadSteps 
          << " Small= " <<  fNoSmallSteps 
@@ -1568,8 +1538,8 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 }*/
  
 // ---------------------------------------------------------------------------
-template <class Backend, class T_Stepper, unsigned int Nvar>
-void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+template <class Backend>
+void TemplateScalarIntegrationDriver<Backend>
   ::SetSmallestFraction(double newFraction)
 {
   if( (newFraction > 1.e-16) && (newFraction < 1e-8) )
@@ -1587,9 +1557,9 @@ void FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 
 
 // #ifdef NEWACCURATEADVANCE
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 void 
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::SetNTracks(int nTracks)
 // Set fNTracks 
 {
@@ -1600,12 +1570,12 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 
 template </*class Backend*/>
 void 
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
+TemplateScalarIntegrationDriver<vecgeom::kVc>
   ::InitializeAccurateAdvance(/*const*/ FieldTrack yInput[],
                               const double     hstep [],
-                                    Real_vy[],
-                                    Real_v&hStepLane,
-                                    Real_v&startCurveLength)
+                                    typename vecgeom::kVc::precision_v y[],
+                                    typename vecgeom::kVc::precision_v &hStepLane,
+                                    typename vecgeom::kVc::precision_v &startCurveLength)
 // Initialization step for AccurateAdvance/
 // Converts input scalar stream to acceptable form of Vc vectors
 // for vector processing in OneStep
@@ -1632,15 +1602,15 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
 template </*class Backend*/>
 bool 
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
+TemplateScalarIntegrationDriver<vecgeom::kVc>
   ::InsertNewTrack( /*const*/ FieldTrack                    yInput[],
                     const double                        hstep[],
                     const int                           currIndex,
                           int&                          trackNextInput,
                           bool                          succeeded[],
-                          Real_vy[],
-                          Real_v&hStepLane,
-                          Real_v&startCurveLength )
+                          typename vecgeom::kVc::precision_v y[],
+                          typename vecgeom::kVc::precision_v &hStepLane,
+                          typename vecgeom::kVc::precision_v &startCurveLength )
 // Inserts a new track whenever a lane is finished. 
 // returns isDoneLane = true for h<=0 case, false otherwise
 // because in former case, no further work is required
@@ -1697,13 +1667,13 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
 template </*class Backend*/>
 void 
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
-  ::StoreOutput(const Real_vy[],
-                const Real_vx,
-                      FieldTrack   yOutput[],
-                      int          currIndex,
-                      double       hstep[],
-                      bool         succeeded[] )
+TemplateScalarIntegrationDriver<vecgeom::kVc>
+  ::StoreOutput(const typename vecgeom::kVc::precision_v y[],
+                const typename vecgeom::kVc::precision_v x,
+                      FieldTrack                    yOutput[],
+                      int                           currIndex,
+                      double                        hstep[],
+                      bool                          succeeded[] )
 // Called whenever a lane is finished.
 // Stores value of succeeded in the bool[nTracks]
 // Stores final curve length and end position and momentum
@@ -1746,14 +1716,14 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
 template </*class Backend*/>
 void
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
-  ::OneStep(       Real_v y[],        // InOut
-             const Real_v dydx[],
-                   Real_v& x,         // InOut
-                   Real_v htry,
-                   Real_v eps_rel_max,
-                   Real_v& hdid,      // Out
-                   Real_v& hnext      )    // Out
+TemplateScalarIntegrationDriver<vecgeom::kVc>
+  ::OneStep(       typename vecgeom::kVc::precision_v  y[],        // InOut
+             const typename vecgeom::kVc::precision_v  dydx[],
+                   typename vecgeom::kVc::precision_v& x,         // InOut
+                   typename vecgeom::kVc::precision_v  htry,
+                   typename vecgeom::kVc::precision_v  eps_rel_max,
+                   typename vecgeom::kVc::precision_v& hdid,      // Out
+                   typename vecgeom::kVc::precision_v& hnext      )    // Out
 // Derived from OneGoodStep
 // Driver for one Runge-Kutta Step with monitoring of local truncation error
 // to ensure accuracy and adjust stepsize. Input are dependent variable
@@ -1773,20 +1743,20 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   }
 #endif 
 
-  Real_v errmax_sq;
-  Real_v h, htemp, xnew ;
+  Double_v errmax_sq;
+  Double_v h, htemp, xnew ;
 
-  int ncompSVEC = TemplateFieldTrack<Real_v>::ncompSVEC;
+  int ncompSVEC = TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC;
 
-  Real_v yerr [ncompSVEC], 
+  Double_v yerr [ncompSVEC], 
            ytemp[ncompSVEC];
 
   h = htry ; // Set stepsize to the initial trial value
 
-  Real_v inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
+  Double_v inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
 
-  Real_v errpos_sq=0.0;    // square of displacement error
-  Real_v errmom_sq=0.0;    // square of momentum vector difference
+  Double_v errpos_sq=0.0;    // square of displacement error
+  Double_v errmom_sq=0.0;    // square of momentum vector difference
 
   int iter;
 
@@ -1795,8 +1765,8 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
   int finished[kVectorSize] = {0,0,0,0};
 
-  Real_v hFinal, hnextFinal, xFinal, hdidFinal, errmax_sqFinal;
-  Real_v yFinal[ncompSVEC];
+  Double_v hFinal, hnextFinal, xFinal, hdidFinal, errmax_sqFinal;
+  Double_v yFinal[ncompSVEC];
   Bool_v errMaxLessThanOne(false), hIsZeroCond(false);
 
   for (iter = 0; iter < max_trials; iter++)
@@ -1819,16 +1789,16 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
         std::cout<< "----yerr is: " << yerr[0][0] <<" "<<yerr[1][0]<<" "<<yerr[2][0] << " " << yerr[3][0] << " " << yerr[4][0] << " " << yerr[5][0]  << std::endl;
       }
 #endif 
-      Real_v eps_pos = eps_rel_max * vecgeom::Max(h, fMinimumStep);  // Uses remaining step 'h'
-      Real_v inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
+      Double_v eps_pos = eps_rel_max * vecgeom::Max(h, fMinimumStep);  // Uses remaining step 'h'
+      Double_v inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
 
       // Evaluate accuracy
       errpos_sq =  yerr[0]*yerr[0] + yerr[1]*yerr[1] + yerr[2]*yerr[2] ; 
       errpos_sq *= inv_eps_pos_sq; // Scale relative to required tolerance
 
       // Accuracy for momentum
-      Real_v magmom_sq=  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
-      Real_v sumerr_sq=  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
+      Double_v magmom_sq=  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
+      Double_v sumerr_sq=  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
 
       vecgeom::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);
 
@@ -1869,7 +1839,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
       // Step failed; compute the size of retrial Step.
       // Ananya : adding a statement. Later check the sanity or work around
-      Real_v errPower = Vc::exp( (0.5*fPowerShrink)*vecgeom::Log(errmax_sq) ); 
+      Double_v errPower = Vc::exp( (0.5*fPowerShrink)*vecgeom::Log(errmax_sq) ); 
       htemp = fSafetyFactor *h* errPower;
       // htemp = fSafetyFactor *h* vecgeom::Pow( errmax_sq, 0.5*fPowerShrink );
       // Can use the loop below instead of the lines above since power is 
@@ -1919,7 +1889,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 #ifdef PARTDEBUG
   if (partDebug)
   {
-    std::cout << "FlexibleIntDrv: 1--step - Loop done at iter = " << iter << " with htry= " << htry <<std::endl;
+    std::cout << "TemplateGUIntDrv: 1--step - Loop done at iter = " << iter << " with htry= " << htry <<std::endl;
   }
 #endif 
 
@@ -1927,7 +1897,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   errmax_sq = errmax_sqFinal;
 
   // Compute size of next Step
-  Real_v errPower = Vc::exp( (0.5*GetPowerGrow())* vecgeom::Log(errmax_sq));
+  Double_v errPower = Vc::exp( (0.5*GetPowerGrow())* vecgeom::Log(errmax_sq));
   hnext = GetSafety() * h * errPower;
   // hnext = GetSafety()*vecgeom::Pow(errmax_sq, 0.5*GetPowerGrow());
   vecgeom::MaskedAssign(errmax_sq <= fErrcon*fErrcon, fMaxSteppingIncrease*h, &hnext); // No more than a factor of 5 increase
@@ -1948,16 +1918,16 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
 template </*class Backend*/>
 void
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
-  ::KeepStepping(       Real_v  y[],        // InOut
-                        Real_v  dydx[],
-                        Real_v& x,         // InOut
-                        Real_v  htry,
-                        Real_v  eps_rel_max,
-                        Real_v& hdid,      // Out
-                        Real_v& hnext,     // Out
-                  const Real_v  hStepLane,
-                        Real_v& hTotalDoneSoFar  )    
+TemplateScalarIntegrationDriver<vecgeom::kVc>
+  ::KeepStepping(       typename vecgeom::kVc::precision_v  y[],        // InOut
+                        typename vecgeom::kVc::precision_v  dydx[],
+                        typename vecgeom::kVc::precision_v& x,         // InOut
+                        typename vecgeom::kVc::precision_v  htry,
+                        typename vecgeom::kVc::precision_v  eps_rel_max,
+                        typename vecgeom::kVc::precision_v& hdid,      // Out
+                        typename vecgeom::kVc::precision_v& hnext,     // Out
+                  const typename vecgeom::kVc::precision_v  hStepLane,
+                        typename vecgeom::kVc::precision_v& hTotalDoneSoFar  )    
 
 // Derived from OneGoodStep
 // WIP
@@ -1970,18 +1940,18 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   }
 #endif 
 
-  Real_v errmax_sq;
-  Real_v h, htemp, xnew ;
+  Double_v errmax_sq;
+  Double_v h, htemp, xnew ;
 
-  Real_v yerr [TemplateFieldTrack<Real_v>::ncompSVEC], 
-           ytemp[TemplateFieldTrack<Real_v>::ncompSVEC];
+  Double_v yerr [TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC], 
+           ytemp[TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC];
 
   h = htry ; // Set stepsize to the initial trial value
 
-  Real_v inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
+  Double_v inv_eps_vel_sq = 1.0 / (eps_rel_max*eps_rel_max);
 
-  Real_v errpos_sq = 0.0;    // square of displacement error
-  Real_v errmom_sq = 0.0;    // square of momentum vector difference
+  Double_v errpos_sq = 0.0;    // square of displacement error
+  Double_v errmom_sq = 0.0;    // square of momentum vector difference
 
   int iter;
 
@@ -1991,21 +1961,21 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
   int finished[kVectorSize] = {0}; // This makes all elements of array 0
 
-  Real_v hFinal(0.), hnextFinal, xFinal, hdidFinal, errmax_sqFinal;
-  Real_v yFinal[TemplateFieldTrack<Real_v>::ncompSVEC]; // = y[]
-  for (int i = 0; i < TemplateFieldTrack<Real_v>::ncompSVEC; ++i)
+  Double_v hFinal(0.), hnextFinal, xFinal, hdidFinal, errmax_sqFinal;
+  Double_v yFinal[TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC]; // = y[]
+  for (int i = 0; i < TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC; ++i)
   {
     yFinal[i] = y[i];
   }
 
   Bool_v errMaxLessThanOne(false), hIsZeroCond(false);
 
-  Real_v x2 = x + (hStepLane - hTotalDoneSoFar);
-  // Real_v x2 = x + htry;
+  Double_v x2 = x + (hStepLane - hTotalDoneSoFar);
+  // Double_v x2 = x + htry;
   Bool_v  errMaxLessThanOneLocal(false), hIsZeroCondLocal(false);
   // int htryExhausted[kVectorSize] = {0};
   Bool_v   htryExhausted(false);
-  Real_v charge(+1.);
+  Double_v charge(+1.);
 
   for (iter = 0; iter < max_trials; iter++)
   {
@@ -2034,16 +2004,16 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
         std::cout<< "\n----yerr is: " << yerr[0] <<" "<<yerr[1]<<" "<<yerr[2] << std::endl;
       }
 #endif 
-      Real_v eps_pos = eps_rel_max * vecgeom::Max(h, fMinimumStep);  // Uses remaining step 'h'
-      Real_v inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
+      Double_v eps_pos = eps_rel_max * vecgeom::Max(h, fMinimumStep);  // Uses remaining step 'h'
+      Double_v inv_eps_pos_sq = 1.0 / (eps_pos*eps_pos);
 
       // Evaluate accuracy
       errpos_sq  =  yerr[0]*yerr[0] + yerr[1]*yerr[1] + yerr[2]*yerr[2] ; 
       errpos_sq *= inv_eps_pos_sq; // Scale relative to required tolerance
 
       // Accuracy for momentum
-      Real_v magmom_sq =  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
-      Real_v sumerr_sq =  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
+      Double_v magmom_sq =  y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
+      Double_v sumerr_sq =  yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5]; 
 
       vecgeom::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);
 
@@ -2093,7 +2063,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
               }
             #endif 
               errmax_sqFinal [i] = errmax_sq[i];
-              for (int j = 0; j < TemplateFieldTrack<Real_v>::ncompSVEC; ++j)
+              for (int j = 0; j < TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC; ++j)
               {
                 yFinal[j][i] = ytemp[j][i];
               }
@@ -2124,7 +2094,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
       // if ( vecgeom::IsFull(errMaxLessThanOneLocal) )  { break; } // Step succeeded. 
 
       // Step failed; compute the size of retrial Step.
-      Real_v errPower = Vc::exp( (0.5*fPowerShrink)*vecgeom::Log(errmax_sq) ); 
+      Double_v errPower = Vc::exp( (0.5*fPowerShrink)*vecgeom::Log(errmax_sq) ); 
       htemp = GetSafety() *h* errPower;
 
 
@@ -2165,7 +2135,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
               }
             #endif 
               errmax_sqFinal [i] = errmax_sq[i];
-              for (int j = 0; j < TemplateFieldTrack<Real_v>::ncompSVEC; ++j)
+              for (int j = 0; j < TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC; ++j)
               {
                 yFinal[j][i] = ytemp[j][i];
               }
@@ -2202,7 +2172,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
               std::cout<<"hFinal["<<i<<"] is: "<<hFinal[i]<<" (hIsZero Loop)"<<std::endl;
             #endif 
               errmax_sqFinal[i]  = errmax_sq[i];
-              for (int j = 0; j < TemplateFieldTrack<Backend>::ncompSVEC; ++j)
+              for (int j = 0; j < TemplateGUFieldTrack<Backend>::ncompSVEC; ++j)
               {
                 yFinal[j][i] = ytemp[j][i];
               }             
@@ -2232,7 +2202,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   errmax_sq = errmax_sqFinal;
 
   // Compute size of next Step
-  Real_v errPower = Vc::exp( (0.5*GetPowerGrow())* vecgeom::Log(errmax_sq));
+  Double_v errPower = Vc::exp( (0.5*GetPowerGrow())* vecgeom::Log(errmax_sq));
   hnext = GetSafety() * h * errPower;
   vecgeom::MaskedAssign(errmax_sq <= fErrcon*fErrcon, fMaxSteppingIncrease*h, &hnext); // No more than a factor of 5 increase
 
@@ -2245,7 +2215,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 #ifdef PARTDEBUG
   if (partDebug)
   {
-    std::cout << "FlexibleIxntDrv: 1--step - Loop done at iter = " << iter << " with htry= " << htry <<std::endl;
+    std::cout << "TemplateGUIntDrv: 1--step - Loop done at iter = " << iter << " with htry= " << htry <<std::endl;
     std::cout<< " hdid= "<<hdid<<" and hnext= "<<hnext<<  std::endl;
     std::cout<< "htryExhausted is: "<< htryExhausted << std::endl;
   }
@@ -2258,7 +2228,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 #ifdef NEWACCURATEADVANCE
 template </*class Backend*/>
 void
-FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
+TemplateScalarIntegrationDriver<vecgeom::kVc>
   ::AccurateAdvance(/*const*/ FieldTrack yInput[],
                           double     hstep[],
                           double     epsilon,
@@ -2283,16 +2253,18 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 
   #define PARTDEBUG
 
-  using ThreeVector = vecgeom::Vector3D<Real_v>;
+  typedef typename vecgeom::kVc::precision_v Double_v;
+  typedef typename vecgeom::kVc::bool_v      Bool_v;
+  typedef vecgeom::Vector3D<Double_v>   ThreeVector;
 
-  Real_v x, hnext, hdid, h;
+  Double_v x, hnext, hdid, h;
 
-  int ncompSVEC = TemplateFieldTrack<Real_v>::ncompSVEC; //12, to be derived from TemplateFieldTrack
+  int ncompSVEC = TemplateGUFieldTrack<vecgeom::kVc>::ncompSVEC; //12, to be derived from TemplateGUFieldTrack
 
 #ifdef GUDEBUG_FIELD
   // static int dbg=1;
   // static int nStpPr=50;   // For debug printing of long integrations
-  // Real_v ySubStepStart[ncompSVEC];
+  // Double_v ySubStepStart[ncompSVEC];
 #endif
 
 #ifdef PARTDEBUG
@@ -2307,22 +2279,22 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   }
 #endif 
 
-  Real_v  y   [ncompSVEC], 
+  Double_v  y   [ncompSVEC], 
             dydx[ncompSVEC];
-  Real_v  x1, x2;
+  Double_v  x1, x2;
   std::fill_n( succeeded, nTracks, 1); 
 
   Bool_v lastStepSucceeded;
 
-  Real_v startCurveLength;
+  Double_v startCurveLength;
 
   // G4ThreadLocal
 #ifdef COLLECT_STATISTICS
   static int  noGoodSteps =0 ;  // Bad = chord > curve-len 
 #endif 
 
-  Real_v hStepLane; 
-  Real_v hTotalDoneSoFar(0.); // To keep track of hDone in KeepStepping
+  Double_v hStepLane; 
+  Double_v hTotalDoneSoFar(0.); // To keep track of hDone in KeepStepping
   Bool_v   succeededLane(true); 
   Bool_v   isDoneLane(false); // set true when there is a return statement 
   int trackNextInput = 4; 
@@ -2372,13 +2344,13 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   // for (i=0; i<fNoVars; i++)  { y[i] = ystart[i]; }
 
   Bool_v   lastStep(false);
-  Real_v nstp(1); 
+  Double_v nstp(1); 
 
-  Real_v StartPosAr[3];
+  Double_v StartPosAr[3];
 
   // Ananya : making random charge now
   // needs to be passed in some other way finally
-  Real_v charge(-1.);
+  Double_v charge(-1.);
 
   // isDoneLane needed. In end, other conditions might keep changing
   // even if processing for that lane is finished. Need a way to store
@@ -2419,10 +2391,10 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
     ThreeVector EndPos( y[0], y[1], y[2] );
 
     // Check the endpoint
-    const Real_v edx= y[0] - StartPosAr[0];
-    const Real_v edy= y[1] - StartPosAr[1];
-    const Real_v edz= y[2] - StartPosAr[2];
-    Real_v endPointDist2= vecgeom::Sqrt(edx*edx+edy*edy+edz*edz) ; 
+    const Double_v edx= y[0] - StartPosAr[0];
+    const Double_v edy= y[1] - StartPosAr[1];
+    const Double_v edz= y[2] - StartPosAr[2];
+    Double_v endPointDist2= vecgeom::Sqrt(edx*edx+edy*edy+edz*edz) ; 
 
     // Ananya: discuss. What exactly is happening here?
     // h<=0 case: first condition false, second condition always true assuming smallest fraction and 
@@ -2433,7 +2405,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
     Bool_v avoidNumerousSmallSteps = (h < epsilon * hStepLane) || (h < fSmallestFraction * startCurveLength);
     lastStep = avoidNumerousSmallSteps || lastStep;
 
-    Real_v diff2 = (x2 - x);
+    Double_v diff2 = (x2 - x);
     // For rest, check the proposed next stepsize 
     h = vecgeom::Max(hnext, fMinimumStep);
   #ifdef PARTDEBUG
@@ -2446,7 +2418,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
       Bool_v diffXAndX2 = (x+h) > x2 ;
       std::cout<< "Bool_v x+h > x2 is: "<< diffXAndX2 << std::endl;
     }
-     Real_v diff = (x2 - x);
+     Double_v diff = (x2 - x);
   #endif 
 
 
@@ -2457,7 +2429,7 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
   #ifdef PARTDEBUG
     if (0)
     {
-      Real_v    hforDebug = x2 - x;
+      Double_v hforDebug = x2 - x;
       std::cout<< "x2 -x is :  "<< hforDebug << std::endl;
       std::cout<< "diff is: " << diff << std::endl;
     }
@@ -2581,8 +2553,8 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
          Pos[i] = y[i][indLastLane];
          Mom[i] = y[i+3][indLastLane];
        } 
-      ScalarFieldTrack y_input(Pos, Mom); 
-      ScalarFieldTrack y_output(Pos, Mom);
+      GUFieldTrack y_input(Pos, Mom); 
+      GUFieldTrack y_output(Pos, Mom);
       // y_input.SetCurveLength( hTotalDoneSoFar[indLastLane] ) ;
       fpScalarDriver->AccurateAdvance(y_input, hstep[ fIndex[indLastLane] ] - hTotalDoneSoFar[indLastLane], epsilon, y_output );
 
@@ -2599,33 +2571,35 @@ FlexibleIntegrationDriver<<Real_v, T_Stepper, Nvar>>
 #endif /*NEWACCURATEADVANCE*/
 
 
+
+
 // New constructor for KeepStepping method 
 // Scalar stepper passed 
-template <class Backend, class T_Stepper, unsigned int Nvar>
-FlexibleIntegrationDrivertemplate <Backend, T_Stepper, Nvar>   
-  ::FlexibleIntegrationDriver( double                  hminimum, 
-                               T_Stepper              *pStepper,
-                               GUVIntegrationStepper  *pScalarStepper,
-                               int                     numComponents,
-                               int                     statsVerbose )
-  : FlexibleIntegrationDriver( hminimum, 
+template <class Backend>
+TemplateScalarIntegrationDriver<Backend>
+  ::TemplateScalarIntegrationDriver( double  hminimum, 
+                                 TemplateVScalarIntegrationStepper<Backend> *pStepper,
+                                 VScalarIntegrationStepper                  *pScalarStepper,
+                                 int     numComponents,
+                                 int     statisticsVerbose                             )
+  : TemplateScalarIntegrationDriver( hminimum, 
                                  pStepper,
                                  numComponents,
-                               statsVerbose),
-   fpScalarStepper(pScalarStepper)
+                                 statisticsVerbose)
 {
+  fpScalarStepper = pScalarStepper; 
 }
 
 // New constructor. Takes in a scalar driver as well
-template <class Backend, class T_Stepper, unsigned int Nvar>
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
-  ::FlexibleIntegrationDriver( double  hminimum, 
-                                 T_Stepper *pStepper,
-                                 GUVIntegrationStepper                  *pScalarStepper,
-                                 GUIntegrationDriver                     *pScalarDriver,
+template <class Backend>
+TemplateScalarIntegrationDriver<Backend>
+  ::TemplateScalarIntegrationDriver( double  hminimum, 
+                                 TemplateVScalarIntegrationStepper<Backend> *pStepper,
+                                 VScalarIntegrationStepper                  *pScalarStepper,
+                                 ScalarIntegrationDriver                     *pScalarDriver,
                                  int     numComponents,
                                  int     statisticsVerbose                             )
-  : FlexibleIntegrationDriver( hminimum, 
+  : TemplateScalarIntegrationDriver( hminimum, 
                                  pStepper,
                                  numComponents,
                                  statisticsVerbose)
@@ -2635,21 +2609,20 @@ FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
 }
 
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 void
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::SetPartDebug(bool debugValue)
 {
   partDebug = debugValue;
 }
 
-template <class Backend, class T_Stepper, unsigned int Nvar>
+template <class Backend>
 void
-   
-FlexibleIntegrationDriver<Backend, T_Stepper, Nvar>
+TemplateScalarIntegrationDriver<Backend>
   ::SetSteppingMethod(bool steppingMethod)
 {
   oneStep = steppingMethod;
 }
 
-#endif /* FlexibleIntegrationDriver_Def */
+#endif /* TemplateScalarIntegrationDriver_Def */

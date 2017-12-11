@@ -25,11 +25,11 @@ using fieldUnits::degree;
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
-#include "TUniformMagField.h"
+#include "ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
 
-#include "GUVIntegrationStepper.h"
+// #include "IntegrationStepper.h"
 
 #include "ConstVecFieldHelixStepper.h"
 #include "ConstBzFieldHelixStepper.h"
@@ -38,8 +38,9 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 #include "TClassicalRK4.h"
 #include "GUTCashKarpRKF45.h"
 
-#include "GUFieldTrack.h"
-#include "GUIntegrationDriver.h"
+// #include "ScalarFieldTrack.h"
+// #include "ScalarIntegrationDriver.h"
+
 // #include "GUFieldPropagator.h"
 // #include "GUFieldPropagatorPool.h"
 // #include "FieldPropagatorFactory.h"
@@ -75,7 +76,7 @@ const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
 int main(int argc, char *args[])
 {
-    using  GvEquationType=  TMagFieldEquation<TUniformMagField, Nposmom>;
+    using  GvEquationType=  TMagFieldEquation<ScalarUniformMagField, Nposmom>;
     void Usage();
 
     /* -----------------------------SETTINGS-------------------------------- */
@@ -168,7 +169,7 @@ int main(int argc, char *args[])
     if( z_field_in < DBL_MAX )   z_field = z_field_in;
 
     // Field
-    auto gvField= new TUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
+    auto gvField= new ScalarUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
 
     cout << "#  Initial  Field strength (GeantV) = "
          << x_field << " , " << y_field << " , " << z_field
@@ -234,7 +235,7 @@ int main(int argc, char *args[])
     const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
     
     auto gvEquation2 = new GvEquationType(gvField);
-                   // new TMagFieldEquation<TUniformMagField, Nposmom>(gvField);
+                   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
     // gvEquation2->InitializeCharge( particleCharge ); // Let's make sure
     
     // Should be able to share the Equation -- eventually

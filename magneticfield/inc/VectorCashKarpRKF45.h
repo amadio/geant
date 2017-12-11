@@ -128,7 +128,7 @@ VectorCashKarpRKF45<T_Equation,Nvar>::
       std::cout<<"\n----Entered constructor of VectorCashKarpRKF45 "<<std::endl;
       std::cout<<"----In VectorCashKarpRKF45 constructor, Nvar is: "<<Nvar<<std::endl;
    }
-   // assert( dynamic_cast<TemplateGUVEquationOfMotion<Backend>*>(EqRhs) != 0 );
+   // assert( dynamic_cast<TemplateVScalarEquationOfMotion<Backend>*>(EqRhs) != 0 );
 
    fLastStepLength= Double_v(0.);
    

@@ -4,7 +4,7 @@
 #include <algorithm> // for std::max
 
 // #include "G4Types.hh"
-#include "TemplateGUVIntegrationStepper.h"
+#include "TemplateVScalarIntegrationStepper.h"
 
 // #include "ThreeVector.h"
 #include <base/Vector3D.h> 
@@ -20,16 +20,15 @@
    constexpr unsigned int NumVarBase  = 8;  //
 }*/
 
+//  UNFINISHED -- move to new 'flexible (=old 'Templated' on Backend )  11.12.2017
+
 template
-<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
-class VectorSimpleStepper : public TemplateGUVIntegrationStepper<BackendType>
+<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
+class VectorSimpleStepper  // : public TemplateVScalarIntegrationStepper<Real_v>
 {
     public:  // with description
 
-      // typedef typename BackendType        Double_v;
-      // typedef typename Mask<BackendType>  Bool_v;
-      using Double_v = typename BackendType;
-      using Bool_v   = typename Mask<BackendType>;
+      using Bool_v   = typename vecCore::Mask<Real_v>;
       
       static constexpr unsigned int NumVarStore = (Nvar > GUIntegrationNms::NumVarBase) ?
                                                    Nvar : GUIntegrationNms::NumVarBase ;
@@ -45,24 +44,24 @@ class VectorSimpleStepper : public TemplateGUVIntegrationStepper<BackendType>
 
       virtual ~VectorSimpleStepper() {delete fEquation_Rhs;}
 
-      inline void RightHandSide(Double_v y[], /*Double_v charge, */Double_v dydx[]) 
+      inline void RightHandSide(Real_v y[], /*Real_v charge, */Real_v dydx[]) 
         { assert(fEquation_Rhs); fEquation_Rhs->T_Equation::RightHandSide(y,/* charge,*/ dydx); }
 
-      inline void StepWithErrorEstimate( const Double_v yInput[],
-                                         const Double_v dydx[],
-                                               Double_v hstep, //fixed or variable?? Ananya : discuss.
-                                               Double_v yOutput[],
-                                               Double_v yError []      );
+      inline void StepWithErrorEstimate( const Real_v yInput[],
+                                         const Real_v dydx[],
+                                               Real_v hstep,
+                                               Real_v yOutput[],
+                                               Real_v yError [] );
           // The stepper for the Runge Kutta integration. The stepsize 
           // is fixed, with the Step size given by h.
           // Integrates ODE starting values y[0 to 6].
           // Outputs yout[] and its estimated error yerr[].
 
-      Double_v DistChord() const;
+      Real_v DistChord() const;
 
-      template<class BackendType_, class T_Stepper_, class T_Equation_, int Nvar_>
+      template<class Real_v_, class T_Stepper_, class T_Equation_, int Nvar_>
       friend  std::ostream&
-         operator<<( std::ostream& os, const VectorSimpleStepper<BackendType_, T_Stepper_, T_Equation_, Nvar_> &  );
+         operator<<( std::ostream& os, const VectorSimpleStepper<Real_v_, T_Stepper_, T_Equation_, Nvar_> &  );
 
       bool CheckInitialisation() const; //discuss bool or Bool_v
 
@@ -77,14 +76,14 @@ class VectorSimpleStepper : public TemplateGUVIntegrationStepper<BackendType>
     private:
 
       // STATE
-      vecgeom::Vector3D<Double_v> fInitialPoint, fMidPoint, fFinalPoint;  // ThreeVector
+      vecgeom::Vector3D<Real_v> fInitialPoint, fMidPoint, fFinalPoint;  // ThreeVector
       // Data stored in order to find the chord
 
       // Dependent Objects, owned --- part of the STATE 
-      Double_v yInitial[NumVarStore];   // [Nvar<8?8:Nvar];
-      Double_v yMiddle[NumVarStore];
-      Double_v dydxMid[NumVarStore];
-      Double_v yOneStep[NumVarStore];
+      Real_v yInitial[NumVarStore];   // [Nvar<8?8:Nvar];
+      Real_v yMiddle[NumVarStore];
+      Real_v dydxMid[NumVarStore];
+      Real_v yOneStep[NumVarStore];
       // The following arrays are used only for temporary storage
       // they are allocated at the class level only for efficiency -
       // so that calls to new and delete are not made in Stepper().
@@ -93,19 +92,19 @@ class VectorSimpleStepper : public TemplateGUVIntegrationStepper<BackendType>
 
 // ------------------------------------------------------------------
 
-template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
-   VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::
+template<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
+   VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>::
    VectorSimpleStepper( T_Equation *EqRhs,
                              unsigned int integrationOrder,
                              unsigned int numStateVariables)
-   : TemplateGUVIntegrationStepper<BackendType>( EqRhs,
+   : TemplateVScalarIntegrationStepper<Real_v>( EqRhs,
                                              integrationOrder,
                                              Nvar,                // Must pass it to base class
                                              numStateVariables ), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
     fEquation_Rhs(EqRhs)
 {
    // assert(EqRhs != 0);
-   std::cerr << "- VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar> Constructor 1 called: " << std::endl;
+   std::cerr << "- VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar> Constructor 1 called: " << std::endl;
    // std::cerr << "  Full info: " << *this << std::endl;
 
    std::cerr << "    Nvar = " << Nvar <<   "  numState = " << numStateVariables; // << std::endl;
@@ -125,11 +124,11 @@ template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar
    assert( numStateVariables <= NumVarStore );
 }
 
-template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
-   VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::
+template<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
+   VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>::
    VectorSimpleStepper( const VectorSimpleStepper& right )
     :
-       TemplateGUVIntegrationStepper<BackendType>( (T_Equation *) 0,
+       TemplateVScalarIntegrationStepper<Real_v>( (T_Equation *) 0,
                               right.IntegratorOrder(),
                               right.GetNumberOfVariables(),  // must be == Nvar
                               right.GetNumberOfStateVariables() ),
@@ -137,20 +136,20 @@ template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar
        // fEquation_Rhs(right.GetEquationOfMotion()->Clone())
 {
    assert(fEquation_Rhs!=0);
-   // VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::
-   TemplateGUVIntegrationStepper<BackendType>::SetEquationOfMotion(fEquation_Rhs);
-   std::cerr << " VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar> " << std::endl;
+   // VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>::
+   TemplateVScalarIntegrationStepper<Real_v>::SetEquationOfMotion(fEquation_Rhs);
+   std::cerr << " VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar> " << std::endl;
    std::cerr << "   Copy Constructor created: " << *this << std::endl;
 
    // unsigned nvar = std::max(this->GetNumberOfVariables(), 8);
    assert( this->GetNumberOfVariables() == Nvar );
 }
 
-template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
+template<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
 std::ostream&
-          operator<<( std::ostream& ostr, const VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar> &stepper )
+          operator<<( std::ostream& ostr, const VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar> &stepper )
 {
-   ostr << "- VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>: " << std::endl;
+   ostr << "- VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>: " << std::endl;
    ostr << "    order= " << stepper.IntegrationOrder() << std::endl;
    ostr << "    Nvar = " << Nvar <<   "  numState = " << stepper.GetNumberOfStateVariables() << std::endl;
    ostr << "    Eq-of-motion (here) = " << stepper.GetEquationOfMotion()
@@ -163,19 +162,19 @@ std::ostream&
    return ostr;
 }
 
-template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
+template<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
  bool
-   VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::
+   VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>::
    CheckInitialisation() const
 {
    bool goodNvar = ( this->GetNumberOfVariables() == Nvar );
    assert( goodNvar );
    
    assert( fEquation_Rhs != 0);
-   // TemplateGUVIntegrationStepper<BackendType>* iStepper = dynamic_cast<TemplateGUVIntegrationStepper<BackendType>*>(this);
+   // TemplateVScalarIntegrationStepper<Real_v>* iStepper = dynamic_cast<TemplateVScalarIntegrationStepper<Real_v>*>(this);
 
-   // GUVEquationOfMotion *
-   auto iEquation = dynamic_cast<TemplateGUVEquationOfMotion<BackendType>*>(fEquation_Rhs);
+   // VScalarEquationOfMotion *
+   auto iEquation = dynamic_cast<TemplateVScalarEquationOfMotion<Real_v>*>(fEquation_Rhs);
    // assert ( iEquation == GetEquationOfMotion() );
    bool goodEq = ( iEquation == this->GetEquationOfMotion() );
    assert ( goodEq );
@@ -184,14 +183,14 @@ template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar
 }
 
 // inline
-template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
+template<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
 void
-   VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::
-   StepWithErrorEstimate( const Double_v yInput[],
-                          const Double_v dydx[],
-                                Double_v hstep,
-                                Double_v yOutput[],
-                                Double_v yError []      )
+   VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>::
+   StepWithErrorEstimate( const Real_v yInput[],
+                          const Real_v dydx[],
+                                Real_v hstep,
+                                Real_v yOutput[],
+                                Real_v yError []      )
             // The stepper for the Runge Kutta integration. The stepsize 
             // is fixed, with the Step size given by h.
             // Integrates ODE starting values y[0 to 6].
@@ -203,8 +202,8 @@ void
    //double  correction = 1. / ( (1 << 
    //          static_cast<T_Stepper*>(this)->T_Stepper::IntegratorOrder()) -1 );
    //  Saving yInput because yInput and yOutput can be aliases for same array
-   typedef typename Backend::precision_v Double_v;
-   using ThreeVector = vecgeom::Vector3D<Double_v>;
+   typedef typename Backend::precision_v Real_v;
+   using ThreeVector = vecgeom::Vector3D<Real_v>;
    
    for(unsigned int i=0;i<NumVarStore;i++){
       yInitial[i]= yInput[i];
@@ -221,7 +220,7 @@ void
    // const unsigned maxvar= GetNumberOfStateVariables();
    // for(i=Nvar;i<maxvar;i++) yOutput[i]=yInput[i];
 
-   Double_v halfStep = hstep * 0.5; 
+   Real_v halfStep = hstep * 0.5; 
 
    // Do two half steps
    
@@ -252,9 +251,9 @@ void
 
 
 // #ifdef OPT_CHORD_FUNCTIONALITY
-template<class BackendType, class T_Stepper, class T_Equation, unsigned int Nvar>
-Double_v
-VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::DistChord() const 
+template<class Real_v, class T_Stepper, class T_Equation, unsigned int Nvar>
+Real_v
+VectorSimpleStepper<Real_v, T_Stepper, T_Equation, Nvar>::DistChord() const 
 {
   // Estimate the maximum distance from the curve to the chord
   //
@@ -264,14 +263,14 @@ VectorSimpleStepper<BackendType, T_Stepper, T_Equation, Nvar>::DistChord() const
   //  Method below is good only for angle deviations < 2 pi, 
   //   This restriction should not a problem for the Runge cutta methods, 
   //   which generally cannot integrate accurately for large angle deviations.
-  Double_v distLine, distChord; 
+  Real_v distLine, distChord; 
 
-    distChord = TemplateGULineSection<BackendType>::Distline( fMidPoint, fInitialPoint, fFinalPoint );
+    distChord = TemplateGULineSection<Real_v>::Distline( fMidPoint, fInitialPoint, fFinalPoint );
     vecgeom::MaskedAssign( fInitialPoint== fFinalPoint, (fMidPoint-fInitialPoint).Mag(), &distChord );
 
 
     // if (fInitialPoint != fFinalPoint) {
-    //     distLine= TemplateGULineSection<BackendType>::Distline( fMidPoint, fInitialPoint, fFinalPoint );
+    //     distLine= TemplateGULineSection<Real_v>::Distline( fMidPoint, fInitialPoint, fFinalPoint );
     //     // This is a class method that gives distance of Mid 
     //     //  from the Chord between the Initial and Final points.
 

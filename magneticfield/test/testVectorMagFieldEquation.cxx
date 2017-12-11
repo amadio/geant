@@ -7,13 +7,13 @@
 
 #include "GUVVectorEquationOfMotion.h"
 #include "TVectorMagFieldEquation.h"
-#include "TUniformMagField.h"
+#include "ScalarUniformMagField.h"
 
 #include "GUVField.h"
 #include "TMagFieldEquation.h"
 #include "FieldEquationFactory.h"
 
-// #include "TUniformMagField.h"
+// #include "ScalarUniformMagField.h"
 
 // #define CMS_FIELD 1
 
@@ -51,7 +51,7 @@ main( int, char** )
 {
   ThreeVector_f  fieldValue(0.0, 0.0, 1.0);
    
-  GUVVectorEquationOfMotion* eq = CreateUniformFieldAndEquation( FieldValue );
+  GUVVectorEquationOfMotion* eq = CreateUniformFieldAndEquation( fieldValue );
   bool errUniform = TestEquation(eq);
   bool bad = errUniform;
   
@@ -70,17 +70,17 @@ main( int, char** )
 
 GUVVectorEquationOfMotion* CreateUniformFieldAndEquation(ThreeVector_f fieldValue)
 {
-  // using Field_t = TUniformMagField;
+  // using Field_t = ScalarUniformMagField;
 
-  auto *pConstBfield = new TUniformMagField( fieldValue );
+  auto *pConstBfield = new ScalarUniformMagField( fieldValue );
 
   // 1. Original way of creating an equation
-  using EquationType = TVectorMagFieldEquation<TUniformMagField, gNposmom>;
+  using EquationType = TVectorMagFieldEquation<ScalarUniformMagField, gNposmom>;
   auto   magEquation = new EquationType(pConstBfield);
   return magEquation;
 
   //  2. Different method of creating equation:  Factory
-  // auto vecEquation = FieldEquationFactory::CreateMagEquation<TUniformMagField>(pConstBfield);  
+  // auto vecEquation = FieldEquationFactory::CreateMagEquation<ScalarUniformMagField>(pConstBfield);  
   // return vecEquation;
 }
 

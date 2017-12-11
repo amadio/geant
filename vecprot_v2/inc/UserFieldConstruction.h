@@ -20,7 +20,7 @@
 #include "FieldPropagatorFactory.h"
 #include "Units.h"  //  For fieldUnits
 
-#include "TUniformMagField.h"  //  For now - plan to strip it into separate 'simple' det constr.
+#include "ScalarUniformMagField.h"  //  For now - plan to strip it into separate 'simple' det constr.
 
 // GEANT_DEVICE_DECLARE_CONV(class,UserFieldConstruction);
 
@@ -165,7 +165,7 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, GUVField** fieldPP= nullptr )
 
   if( fUseUniformField )
   {
-    auto gvField= new TUniformMagField( fUniformMagField );
+    auto gvField= new ScalarUniformMagField( fUniformMagField );
 
     // printf("   Field class created - address= %p \n", gvField );
     fpField= gvField;
@@ -175,7 +175,7 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, GUVField** fieldPP= nullptr )
     ThreeVector fieldVal( 0.0, 0.0, 0.13579 );
     gvField->GetFieldValue(Position, fieldVal);
 
-    rtv= CreateSolverForField<TUniformMagField>(gvField);
+    rtv= CreateSolverForField<ScalarUniformMagField>(gvField);
 
     if( fieldPP ) *fieldPP= nullptr;
 

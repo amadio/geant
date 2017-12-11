@@ -322,7 +322,7 @@ CashKarp<T_Equation,Nvar>::
       std::cout<<"\n----Entered constructor of CashKarp "<<std::endl;
       std::cout<<"----In CashKarp constructor, Nvar is: "<<Nvar<<std::endl;
    }
-   // assert( dynamic_cast<TemplateGUVEquationOfMotion<Backend>*>(EqRhs) != 0 );
+   // assert( dynamic_cast<TemplateVScalarEquationOfMotion<Backend>*>(EqRhs) != 0 );
 #if ENABLE_CHORD_DIST
    fLastStepLength= Double_v(0.);
 #endif

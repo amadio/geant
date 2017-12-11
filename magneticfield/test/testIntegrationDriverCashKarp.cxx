@@ -23,11 +23,11 @@ using fieldUnits::degree;
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
-#include "TUniformMagField.h"
+#include "ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
 
-#include "GUVIntegrationStepper.h"
+#include "VScalarIntegrationStepper.h"
 #include "StepperFactory.h"
 
 #include "GUFieldTrack.h"
@@ -51,7 +51,7 @@ int main(int /*argc*/, char ** /*args*/ )
 {
     constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
-    using  GvEquationType=  TMagFieldEquation<TUniformMagField, Nposmom>;
+    using  GvEquationType=  TMagFieldEquation<ScalarUniformMagField, Nposmom>;
  
     /* -----------------------------SETTINGS-------------------------------- */
     
@@ -119,7 +119,7 @@ int main(int /*argc*/, char ** /*args*/ )
        z_field = -1.0;  //  Tesla // *tesla ;
 
     // Field
-    auto gvField    = new TUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
+    auto gvField    = new ScalarUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
 
     auto gvEquation = new GvEquationType(gvField);
 
@@ -127,7 +127,7 @@ int main(int /*argc*/, char ** /*args*/ )
     /*-------------------------PREPARING STEPPER-----------------------------*/
     
     //Create a stepper :
-    GUVIntegrationStepper *myStepper; 
+    VScalarIntegrationStepper *myStepper; 
  
     myStepper= StepperFactory::CreateStepper<GvEquationType>(gvEquation, stepper_no);
 

@@ -2,7 +2,7 @@
 //
 #include "base/Vector3D.h"
 
-#include "GUVEquationOfMotion.h"
+#include "VScalarEquationOfMotion.h"
 
 #include "GUVVectorEquationOfMotion.h"
 #include "TVectorMagFieldEquation.h"
@@ -35,7 +35,7 @@ using namespace vecCore::math;
 MagFieldEquation<UniformMagField>* 
 CreateUniformFieldAndEquation(Vector3D<float> const &fieldValue);
 
-GUVEquationOfMotion* CreateFieldAndEquation(const char* filename);
+VScalarEquationOfMotion* CreateFieldAndEquation(const char* filename);
 
 template <typename Real_v, typename Equation_t>
 bool  TestEquation(Equation_t *);
@@ -63,7 +63,7 @@ main( int, char** )
   bool good = okUniformScalar && okUniformVecFloat && okUniformVecDouble;
   
 #ifdef CMS_FIELD
-  GUVEquationOfMotion* eq2 = CreateFieldAndEquation( defaultFieldFileName ); // ("cmsMagneticField2015.txt");
+  VScalarEquationOfMotion* eq2 = CreateFieldAndEquation( defaultFieldFileName ); // ("cmsMagneticField2015.txt");
   bool okCMSfield = TestEquation(eq2);
 
   good = good && okCMSfield;
@@ -81,7 +81,7 @@ CreateUniformFieldAndEquation(Vector3D<float> const &fieldValue)
 }
 
 #ifdef CMS_FIELD
-GUVEquationOfMotion* CreateFieldAndEquation(const char* filename)
+VScalarEquationOfMotion* CreateFieldAndEquation(const char* filename)
 {
   //  2. Equation for CMS field
   auto cmsField = new CMSmagField( filename ? filename : defaultFieldFileName ); 

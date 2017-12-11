@@ -1,5 +1,5 @@
 //
-// class GUVIntegrationStepper
+// class VScalarIntegrationStepper
 //
 // Class description:
 //
@@ -19,27 +19,27 @@
 //                Derived from my G4MagIntegrationStepper class 
 // --------------------------------------------------------------------
 
-#ifndef GUVIntegrationStepper_h
-#define GUVIntegrationStepper_h
+#ifndef VScalarIntegrationStepper_h
+#define VScalarIntegrationStepper_h
 
 // #include "GUVTypes.h"
-#include "GUVEquationOfMotion.h"
-// class GUVEquationOfMotion;
+#include "VScalarEquationOfMotion.h"
+// class VScalarEquationOfMotion;
  
-class GUVIntegrationStepper
+class VScalarIntegrationStepper
 {
   public:
-        // GUVIntegrationStepper();   // DELET
-        GUVIntegrationStepper( GUVEquationOfMotion* equation, 
+        // VScalarIntegrationStepper();   // DELET
+        VScalarIntegrationStepper( VScalarEquationOfMotion* equation, 
                                unsigned int IntegrationOrder,
                                unsigned int numIntegrationVariables,
                                int numStateVariables); // = -1 same? or  unsigned ?    // in G4 =12
            // See explanations of each below - e.g. order => RK order
 
-        GUVIntegrationStepper( const GUVIntegrationStepper& );
+        VScalarIntegrationStepper( const VScalarIntegrationStepper& );
            // For use in Clone() method
         
-        virtual ~GUVIntegrationStepper();
+        virtual ~VScalarIntegrationStepper();
 
         // Core methods
         // ---------------------
@@ -64,7 +64,7 @@ class GUVIntegrationStepper
 
         // Auxiliary methods
         // ---------------------
-        virtual  GUVIntegrationStepper* Clone() const = 0;
+        virtual  VScalarIntegrationStepper* Clone() const = 0;
         // Create an independent copy of the current object -- including independent 'owned' objects
         
         inline void RightHandSideVIS( const double y[], double charge, double dydx[] );   
@@ -89,10 +89,10 @@ class GUVIntegrationStepper
         // inline void NormalisePolarizationVector( double vec[12] ); // TODO - add polarisation
         // Simple utility function to (re)normalise 'unit spin' vector.
 
-        inline GUVEquationOfMotion *GetEquationOfMotion() { return  fAbstrEquation; }
-        inline const GUVEquationOfMotion *GetEquationOfMotion() const { return  fAbstrEquation; }        
+        inline VScalarEquationOfMotion *GetEquationOfMotion() { return  fAbstrEquation; }
+        inline const VScalarEquationOfMotion *GetEquationOfMotion() const { return  fAbstrEquation; }        
         // As some steppers require access to other methods of Eq_of_Mot
-        void SetEquationOfMotion(GUVEquationOfMotion* newEquation); 
+        void SetEquationOfMotion(VScalarEquationOfMotion* newEquation); 
 
 //        virtual void InitializeCharge(double particleCharge) {
 //               GetEquationOfMotion()->InitializeCharge(particleCharge); }
@@ -100,12 +100,12 @@ class GUVIntegrationStepper
 
     private:
 
-        GUVIntegrationStepper& operator=(const GUVIntegrationStepper&);
+        VScalarIntegrationStepper& operator=(const VScalarIntegrationStepper&);
         // Private copy constructor and assignment operator.
 
     private:
 
-        GUVEquationOfMotion *fAbstrEquation;  // For use in calling RightHandSideVIS only
+        VScalarEquationOfMotion *fAbstrEquation;  // For use in calling RightHandSideVIS only
           // Object is typically owned by stepper, but if a separate pointer (TEquation)
           //  exists which points to the same object, it must not be deleted using
           //  this pointer!
@@ -115,9 +115,9 @@ class GUVIntegrationStepper
         const unsigned int fNoStateVariables;       // # required for FieldTrack
 };
 
-// #include  "GUVIntegrationStepper.icc"
+// #include  "VScalarIntegrationStepper.icc"
 inline
-void GUVIntegrationStepper::
+void VScalarIntegrationStepper::
 RightHandSideVIS( const  double y[], double charge, double dydx[] )
 {
    assert ( fAbstrEquation != nullptr ); 
@@ -125,16 +125,16 @@ RightHandSideVIS( const  double y[], double charge, double dydx[] )
 }
 
 inline
-unsigned int GUVIntegrationStepper::GetNumberOfVariables() const
+unsigned int VScalarIntegrationStepper::GetNumberOfVariables() const
 {
   return fNoIntegrationVariables;
 }
 
 
 inline
-unsigned int GUVIntegrationStepper::GetNumberOfStateVariables() const
+unsigned int VScalarIntegrationStepper::GetNumberOfStateVariables() const
 {
   return fNoStateVariables;
 }
 
-#endif  /* GUVIntegrationStepper */
+#endif  /* VScalarIntegrationStepper */

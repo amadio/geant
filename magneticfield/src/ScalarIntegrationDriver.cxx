@@ -1,7 +1,7 @@
 //
-// $Id: GVIntegratorDriver.cxx
+// $Id:    $
 //
-// Implementation for class GUIntegrationDriver
+// Implementation for class ScalarIntegrationDriver  (old name was GUIntegrationDriver)
 //   Tracking in space dependent magnetic field
 //
 // History of major changes:
@@ -42,7 +42,7 @@ TH1F* gHistStepsInit=0;
 //  Constructor
 //
 ScalarIntegrationDriver::ScalarIntegrationDriver( double        hminimum, 
-                                  GUVIntegrationStepper *pStepper,
+                                  VScalarIntegrationStepper *pStepper,
                                   int                   numComponents,
                                   int                   statisticsVerbose)
    : fMinimumStep( hminimum ),
@@ -118,7 +118,7 @@ ScalarIntegrationDriver::ScalarIntegrationDriver( const ScalarIntegrationDriver&
 {  
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
-   const GUVIntegrationStepper *protStepper = right.GetStepper();
+   const VScalarIntegrationStepper *protStepper = right.GetStepper();
    bool  statsEnabled= false;
 #ifdef GVFLD_STATS
    statsEnabled= true;

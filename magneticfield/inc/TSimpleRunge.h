@@ -19,7 +19,7 @@ class TSimpleRunge : public TMagErrorStepper
       TSimpleRunge(const TSimpleRunge& right);
       virtual ~TSimpleRunge(){ delete fEquation_Rhs; }
 
-      virtual  GUVIntegrationStepper* Clone() const;
+      virtual  VScalarIntegrationStepper* Clone() const;
 
       void SetEquationOfMotion(T_Equation* equation);
 
@@ -93,7 +93,7 @@ template <class T_Equation, unsigned int Nvar>
 }
 
 template <class T_Equation, unsigned int Nvar>
-GUVIntegrationStepper* 
+VScalarIntegrationStepper* 
    TSimpleRunge<T_Equation,Nvar>::Clone() const
 {
    return new TSimpleRunge<T_Equation,Nvar>( *this ); 

@@ -13,7 +13,7 @@
 #include <iostream>
 
 #include "GULineSection.h"
-#include "GUVIntegrationStepper.h"
+#include "VScalarIntegrationStepper.h"
 #include "base/Vector3D.h"
 
 #define INLINERHS 1
@@ -25,7 +25,7 @@
 #endif
 
 template <class T_Equation, unsigned int Nvar>
-class GUTCashKarpRKF45 : public GUVIntegrationStepper
+class GUTCashKarpRKF45 : public VScalarIntegrationStepper
 {
 using ThreeVector = vecgeom::Vector3D<double>;
 
@@ -47,7 +47,7 @@ public:
 
   virtual ~GUTCashKarpRKF45();
 
-  GUVIntegrationStepper* Clone() const override;
+  VScalarIntegrationStepper* Clone() const override;
 
   REALLY_INLINE
   void StepWithErrorEstimate(const double* yInput,    // Consider __restrict__
@@ -141,7 +141,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
                      // unsigned int noIntegrationVariables,
                      unsigned int numStateVariables,
                      bool verbose)
-   : GUVIntegrationStepper( EqRhs,    // dynamic_cast<GUVEquationOfMotion*>(EqRhs),
+   : VScalarIntegrationStepper( EqRhs,    // dynamic_cast<VScalarEquationOfMotion*>(EqRhs),
                             sOrderMethod,
                             Nvar,
                             ((numStateVariables>0) ? numStateVariables : sNstore) ),
@@ -151,7 +151,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
      fLastStepLength(0.),
      fVerbose(verbose)
 {
-  assert( dynamic_cast<GUVEquationOfMotion*>(EqRhs) != 0 );
+  assert( dynamic_cast<VScalarEquationOfMotion*>(EqRhs) != 0 );
   assert( (numStateVariables == 0) || (numStateVariables >= Nvar) );
 
   fLastInitialVector = new double[sNstore] ;
@@ -171,7 +171,7 @@ template <class T_Equation, unsigned int Nvar>
      SetEquationOfMotion(T_Equation* equation)
 {
   fEquation_Rhs= equation;
-  this->GUVIntegrationStepper::SetEquationOfMotion(fEquation_Rhs);
+  this->VScalarIntegrationStepper::SetEquationOfMotion(fEquation_Rhs);
 }
 
 //  Copy - Constructor
@@ -180,7 +180,7 @@ template <class T_Equation,unsigned int Nvar>
 inline
 GUTCashKarpRKF45<T_Equation,Nvar>::
    GUTCashKarpRKF45( const GUTCashKarpRKF45& right )
-   : GUVIntegrationStepper( (GUVEquationOfMotion*) 0,
+   : VScalarIntegrationStepper( (VScalarEquationOfMotion*) 0,
                             sOrderMethod,
                             Nvar,
                             right.GetNumberOfStateVariables() ),
@@ -194,7 +194,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::
   fOwnTheEquation=true;
   // fEquation_Rhs= right.GetEquationOfMotion()->Clone());
 
-  assert( dynamic_cast<GUVEquationOfMotion*>(fEquation_Rhs) != 0 );  
+  assert( dynamic_cast<VScalarEquationOfMotion*>(fEquation_Rhs) != 0 );  
   assert( GetNumberOfStateVariables() >= Nvar);
 
   fLastInitialVector = new double[sNstore] ;
@@ -233,7 +233,7 @@ GUTCashKarpRKF45<T_Equation,Nvar>::~GUTCashKarpRKF45()
 }
 
 template <class T_Equation, unsigned int Nvar>
-GUVIntegrationStepper* 
+VScalarIntegrationStepper* 
    GUTCashKarpRKF45<T_Equation,Nvar>::Clone() const
 {
   // return new GUTCashKarpRKF45( *this );

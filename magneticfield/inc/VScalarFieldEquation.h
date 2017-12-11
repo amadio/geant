@@ -1,5 +1,5 @@
 //
-// class GUVEquationOfMotion
+// class VScalarEquationOfMotion
 //
 // Class description:
 //
@@ -23,12 +23,12 @@
 // #include "GUVTypes.hh"      // "globals.hh"
 #include "GUVField.h"   // required in inline method implementations
 
-class GUVEquationOfMotion 
+class VScalarEquationOfMotion 
 {
   public:  // with description
 
-     GUVEquationOfMotion( GUVField *Field, unsigned short verbose=0 );
-     virtual ~GUVEquationOfMotion();
+     VScalarEquationOfMotion( GUVField *Field, unsigned short verbose=0 );
+     virtual ~VScalarEquationOfMotion();
        // Constructor and virtual destructor. No operations, just checks
 
      virtual void EvaluateRhsGivenB( const  double     yVec[],
@@ -77,7 +77,7 @@ class GUVEquationOfMotion
        // For debugging, checking
 
      friend std::ostream&
-             operator<<( std::ostream& os, const GUVEquationOfMotion& eq);
+             operator<<( std::ostream& os, const VScalarEquationOfMotion& eq);
 
   public:
      static const unsigned int idxTime=3;  // Convention for location of time 't' in vector
@@ -94,14 +94,14 @@ class GUVEquationOfMotion
      bool           fInitialised;
 };
 
-// #include "GUVEquationOfMotion.icc"
+// #include "VScalarEquationOfMotion.icc"
 
 //  Inline implementation
 //
 // -------------------------------------------------------------------
 
 inline
-GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField, unsigned short verbose)
+VScalarEquationOfMotion::VScalarEquationOfMotion(GUVField* pField, unsigned short verbose)
    : fField(pField), fEquationId(fNumObjectsCreated++),
      fVerbose(verbose), fInitialised(false)
 {
@@ -110,7 +110,7 @@ GUVEquationOfMotion::GUVEquationOfMotion(GUVField* pField, unsigned short verbos
 }
 
 inline
-void GUVEquationOfMotion::GetFieldValue( const vecgeom::Vector3D<double> &Position,
+void VScalarEquationOfMotion::GetFieldValue( const vecgeom::Vector3D<double> &Position,
                                                vecgeom::Vector3D<double>  &FieldValue ) const
 {
    fField-> GetFieldValue( Position, FieldValue );
@@ -118,7 +118,7 @@ void GUVEquationOfMotion::GetFieldValue( const vecgeom::Vector3D<double> &Positi
 
 GEANT_FORCE_INLINE
 void
-GUVEquationOfMotion::RightHandSide( const  double y[],
+VScalarEquationOfMotion::RightHandSide( const  double y[],
                                            double charge,
                                            double dydx[]  ) const
 {
@@ -143,7 +143,7 @@ GUVEquationOfMotion::RightHandSide( const  double y[],
 
 GEANT_FORCE_INLINE
 void
-GUVEquationOfMotion::
+VScalarEquationOfMotion::
 EvaluateRhsReturnB( const double           y[],
                           double          dydx[],
                           double          charge,

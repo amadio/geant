@@ -243,7 +243,7 @@ bool TestStepper(Stepper_t *stepper) // , Equation_t *equation)
     const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
     
     // auto gvEquation2 = new GvEquationType(gvUniformField);
-                   // new TMagFieldEquation<TUniformMagField, Nposmom>(gvUniformField);
+                   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);
 
     
     // Should be able to share the Equation -- eventually

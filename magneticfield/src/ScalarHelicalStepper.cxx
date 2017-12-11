@@ -16,10 +16,11 @@ using Constants::twopi;
 
 // #include "G4PhysicalConstants.hh"
 
-#include "GUVHelicalStepper.h"
+#include "VScalarHelicalStepper.h"
 
 // #include "GULineSection.h"
-#include "TMagFieldEquation.h"
+
+// #include "ScalarFieldEquation.h"
 
 // given a purely magnetic field a better approach than adding a straight line
 // (as in the normal runge-kutta-methods) is to add helix segments to the
@@ -27,11 +28,11 @@ using Constants::twopi;
 
 // Constant for determining unit conversion when using normal as integrand.
 //
-const double GUVHelicalStepper::fUnitConstant = 0.299792458*(GeV/(tesla*meter));
+const double VScalarHelicalStepper::fUnitConstant = 0.299792458*(GeV/(tesla*meter));
 
-GUVHelicalStepper::GUVHelicalStepper(GUVEquationOfMotion *EqRhs,
+VScalarHelicalStepper::VScalarHelicalStepper(VScalarEquationOfMotion *EqRhs,
                                      unsigned int order)
-   : GUVIntegrationStepper(EqRhs,
+   : VScalarIntegrationStepper(EqRhs,
                            order,
                            6,   // integrate over 6 variables only !! ( position & momentum )
                            6),  // state could be 8 - also t, E
@@ -40,12 +41,12 @@ GUVHelicalStepper::GUVHelicalStepper(GUVEquationOfMotion *EqRhs,
 {
 }
 
-GUVHelicalStepper::~GUVHelicalStepper()
+VScalarHelicalStepper::~VScalarHelicalStepper()
 {
 }
 
 void
-GUVHelicalStepper::AdvanceHelix( const double  yIn[],
+VScalarHelicalStepper::AdvanceHelix( const double  yIn[],
                                  ThreeVector   Bfld,
                                        double  charge, 
                                        double  h,
@@ -179,7 +180,7 @@ GUVHelicalStepper::AdvanceHelix( const double  yIn[],
 //
 
 void
-GUVHelicalStepper::StepWithErrorEstimate( const double yInput[],
+VScalarHelicalStepper::StepWithErrorEstimate( const double yInput[],
                                           const double*,      // dydx: Not relevant
                                           const double charge,
                                           double hstep,
@@ -221,7 +222,7 @@ GUVHelicalStepper::StepWithErrorEstimate( const double yInput[],
 }
 
 double
-GUVHelicalStepper::DistChord(double /*charge*/ ) const 
+VScalarHelicalStepper::DistChord(double /*charge*/ ) const 
 {
   // Check whether h/R >  pi  !!
   // Method DistLine is good only for <  pi

@@ -6,13 +6,13 @@
 
 #include "GUFieldPropagator.h"
 
-// #include "GUVEquationOfMotion.h"
-#include "TMagFieldEquation.h"
-#include "GUVIntegrationStepper.h"
+// #include "VScalarEquationOfMotion.h"
+#include "ScalarFieldEquation.h"
+#include "VScalarIntegrationStepper.h"
 #include "ScalarIntegrationDriver.h"
-#include "GUVEquationOfMotion.h"
+#include "VScalarEquationOfMotion.h"
 
-#include "TMagFieldEquation.h"
+#include "ScalarFieldEquation.h"
 #include "TClassicalRK4.h"
 
 using ThreeVector = vecgeom::Vector3D<double>;
@@ -30,11 +30,11 @@ GUFieldPropagator::GUFieldPropagator(FieldType* magField, double eps, double hmi
    : fEpsilon(eps)
 {
    constexpr int NumEq= 6;
-   using  EquationType=  TMagFieldEquation<FieldType, NumEq>;
+   using  EquationType=  ScalarFieldEquation<FieldType, NumEq>;
    
    int statVerbose= 1;
    auto *pEquation = new EquationType(magField, NumEq);
-      // new TMagFieldEquation<FieldType,NumEq>(magField, NumEq);
+      // new ScalarFieldEquation<FieldType,NumEq>(magField, NumEq);
 
    // auto stepper = new StepperType<GvEquationType,NumEq>(gvEquation);
    auto stepper =      new TClassicalRK4<EquationType,NumEq>(pEquation);      

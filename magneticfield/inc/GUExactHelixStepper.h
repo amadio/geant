@@ -15,15 +15,15 @@
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector; 
 
-// #include "GUVIntegrationStepper.h"
-#include "GUVHelicalStepper.h"
-#include "TMagFieldEquation.h"
+// #include "VScalarIntegrationStepper.h"
+#include "VScalarHelicalStepper.h"
+#include "ScalarFieldEquation.h"
 
-class GUExactHelixStepper : public GUVHelicalStepper
+class GUExactHelixStepper : public VScalarHelicalStepper
 {
   public:  // with description
 
-    GUExactHelixStepper(GUVEquationOfMotion *EqRhs); // TMagFieldEquation *EqRhs);
+    GUExactHelixStepper(VScalarEquationOfMotion *EqRhs); // ScalarFieldEquation *EqRhs);
     ~GUExactHelixStepper();
 
     void StepWithErrorEstimate( const double y[],
@@ -58,8 +58,8 @@ class GUExactHelixStepper : public GUVHelicalStepper
     vecgeom::Vector3D<double>   fBfieldValue;
       //  Initial value of field at last step
 
-  // TMagFieldEquation*
-    GUVEquationOfMotion* fPtrMagEqOfMot;
+  // ScalarFieldEquation*
+    VScalarEquationOfMotion* fPtrMagEqOfMot;
 };
 
 

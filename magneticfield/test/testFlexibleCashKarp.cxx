@@ -245,7 +245,7 @@ bool TestFlexibleStepper(Stepper_t *stepper) // , Equation_t *equation)
     //                 x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};    
     
     // auto gvEquation2 = new GvEquationType(gvUniformField);
-                   // new TMagFieldEquation<TUniformMagField, Nposmom>(gvUniformField);
+                   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);
 
     
     // Should be able to share the Equation -- eventually

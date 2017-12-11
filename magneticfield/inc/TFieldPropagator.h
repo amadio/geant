@@ -8,8 +8,8 @@ class TFieldPropagator : public GUFieldPropagator
    TFieldPropagator(T_Equation equation, T_Stepper stepper, driver);
    ~TFieldPropagator(){ delete fEquation; delete fStepper; delete fDriver;}
 
-   GUVEquationOfMotion*   fEquation;
-   GUVIntegrationStepper* fStepper;
+   VScalarEquationOfMotion*   fEquation;
+   VScalarIntegrationStepper* fStepper;
    GUIntegrationDriver*   fDriver;
 };
 
@@ -20,7 +20,7 @@ TFieldPropagator::TFieldPropagator(typename T_Field* field)
   // Must create the Driver, Stepper and Equation ??
   TMagFieldEquation*  pEquation = new TMagFieldEquation<field, Neq>;
   fEquation = pEquation;
-  // GUVIntegrationStepper* 
+  // VScalarIntegrationStepper* 
   fStepper = new TClassicalRK4<pEquation,Neq>;
   fDriver  = new TIntegrationDriver<fStepper>;
 }

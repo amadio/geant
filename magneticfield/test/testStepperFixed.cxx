@@ -22,12 +22,12 @@ using fieldUnits::degree;
 
 // #define  COMPARE_TO_G4  1
 
-#include "TUniformMagField.h"
+#include "ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
 #include "FieldEquationFactory.h"
 
-#include "GUVIntegrationStepper.h"
+#include "VScalarIntegrationStepper.h"
 #include "StepperFactory.h"
 
 #include "TClassicalRK4.h"
@@ -71,7 +71,7 @@ int main(int argc, char *args[])
 {
     constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
-    using  GvEquationType=  TMagFieldEquation<TUniformMagField, Nposmom>;
+    using  GvEquationType=  TMagFieldEquation<ScalarUniformMagField, Nposmom>;
     void Usage();
 
     using ThreeVectorF = vecgeom::Vector3D<float>;
@@ -153,7 +153,7 @@ int main(int argc, char *args[])
          << " Tesla " << endl;
 
     // Field
-    auto gvField= new TUniformMagField( fieldUnits::tesla * ThreeVectorF(x_field, y_field, z_field) );
+    auto gvField= new ScalarUniformMagField( fieldUnits::tesla * ThreeVectorF(x_field, y_field, z_field) );
 
     // double position[3] = { 0.0, 0.0, 0.0 }; 
     // double fieldArr[3] = { 0.0, 0.0, 0.0 };
@@ -161,24 +161,24 @@ int main(int argc, char *args[])
     ThreeVectorD fieldVec( 0.0, 0.0, 0.0 );
     
     gvField->GetFieldValue( positionVec, fieldVec );
-    cout << "#DEBUG> Field value from TUniformMagField = " << fieldVec[0] / fieldUnits::kilogauss
+    cout << "#DEBUG> Field value from ScalarUniformMagField = " << fieldVec[0] / fieldUnits::kilogauss
          << " ,  " << fieldVec[1] / fieldUnits::kilogauss
          << " , "  << fieldVec[2] / fieldUnits::kilogauss << " KGauss " << endl; 
 
     cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
     //Create an Equation :
     auto gvEquation =
-       FieldEquationFactory::CreateMagEquation<TUniformMagField>(gvField);
+       FieldEquationFactory::CreateMagEquation<ScalarUniformMagField>(gvField);
 
        // new GvEquationType(gvField);
-       // new TMagFieldEquation<TUniformMagField, Nposmom>(gvField);
+       // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
 
     // gvEquation->InitializeCharge( particleCharge );  // Send it via Stepper instead    
 
     /*-------------------------PREPARING STEPPER-----------------------------*/
     
     //Create a stepper :
-    GUVIntegrationStepper *myStepper; // , *exactStepper;
+    VScalarIntegrationStepper *myStepper; // , *exactStepper;
     // G4MagIntegrationStepper *g4refStepper;    
     const int cloneBump= 10;
     bool useClonedStepper= (stepper_no > cloneBump);
@@ -243,7 +243,7 @@ int main(int argc, char *args[])
     const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
     
     auto gvEquation2 = new GvEquationType(gvField);
-                   // new TMagFieldEquation<TUniformMagField, Nposmom>(gvField);
+                   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);
     // gvEquation2->InitializeCharge( particleCharge ); // Let's make sure
     
     // Should be able to share the Equation -- eventually

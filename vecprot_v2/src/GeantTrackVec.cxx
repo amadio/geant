@@ -1724,10 +1724,9 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   }
   if (action != kVector)
     return PropagateTracksScalar(td, 0);
-  GeantPropagator *prop = td->fPropagator;
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
-
+  GeantPropagator *prop = td->fPropagator;
   BreakOnStep(prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(ntracks, td);

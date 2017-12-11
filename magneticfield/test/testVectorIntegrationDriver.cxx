@@ -26,7 +26,7 @@ using fieldUnits::degree;
 
 // #include "TemplateTMagFieldEquation.h"
 // #include "TemplateFieldEquationFactory.h"
-// #include "TemplateGUVIntegrationStepper.h"
+// #include "TemplateVScalarIntegrationStepper.h"
 
 #include "CashKarp.h"
 #include "SimpleIntegrationDriver.h"
@@ -43,7 +43,7 @@ using fieldUnits::degree;
 #else
   #ifndef NEW_SCALAR_FIELD
   //  Transition measure --- compare to old Scalar field types 2017.11.16
-    #include "TUniformMagField.h"
+    #include "ScalarUniformMagField.h"
     #include "TMagFieldEquation.h"
     #include "StepperFactory.h"
     #include "ScalarFieldTrack.h"
@@ -72,12 +72,12 @@ int main(/*int argc, char *args[]*/)
     using Field_Type_Scalar = ScalarCMSmagField;
     // using Field_Type_Scalar = TemplateCMSmagField<vecgeom::kScalar>;
   #else
-    using Field_Type        = UniformMagField;  // TemplateTUniformMagField<Backend>;
+    using Field_Type        = UniformMagField;  // TemplateScalarUniformMagField<Backend>;
   #ifdef NEW_SCALAR_FIELD
     // New types ... under development  2017.11.16
     using Field_Type_Scalar = UniformMagField;
   #else
-    using Field_Type_Scalar = TUniformMagField;
+    using Field_Type_Scalar = ScalarUniformMagField;
   #endif
   #endif 
 
@@ -159,11 +159,11 @@ int main(/*int argc, char *args[]*/)
     using GvEquationTypeScalar=  TMagFieldEquation<Field_Type_Scalar, Nposmom>;
     // If we plan to test against 'plain' scalar objects: field, equation, stepper, ... 
     auto fieldValueVec = fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field);
-    auto gvFieldScalar = new TUniformMagField( fieldValueVec );
+    auto gvFieldScalar = new ScalarUniformMagField( fieldValueVec );
 //                      new Field_Type_Scalar( fieldValueVec );
     auto gvEquationScalar = new GvEquationTypeScalar(gvFieldScalar);
 
-    GUVIntegrationStepper *myStepperScalar; 
+    VScalarIntegrationStepper *myStepperScalar; 
     myStepperScalar= StepperFactory::CreateStepper<GvEquationTypeScalar>(gvEquationScalar, stepper_no);
 #endif
 #endif

@@ -29,7 +29,7 @@ class TClassicalRK4 : public  TMagErrorStepper
 
     TClassicalRK4(const TClassicalRK4& right);
 
-    virtual  GUVIntegrationStepper* Clone() const override final;
+    virtual  VScalarIntegrationStepper* Clone() const override final;
     
     // void SetOurEquationOfMotion(T_Equation* equation);
        
@@ -105,7 +105,7 @@ template <class T_Equation, unsigned int Nvar>
 }  
 
 template <class T_Equation, unsigned int Nvar>
-GUVIntegrationStepper* 
+VScalarIntegrationStepper* 
    TClassicalRK4<T_Equation,Nvar>::Clone() const
 {
    // return new TClassicalRK4<T_Equation,Nvar>( *this );
