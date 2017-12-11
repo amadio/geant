@@ -134,7 +134,7 @@ public:
   int fEvslot = -1;          /** Event slot */
   int fParticle = -1;        /** Index of corresponding particle */
   int fPrimaryIndx = -1;     /** Index of the primary particle in the cuurent event */
-  int fMother = 0;           /** Index of mother particle */
+  int fMother = -1;           /** Index of mother particle */
   int fPDG = 0;              /** Particle pdg code */
   int fGVcode = 0;           /** GV particle code */
   int fEindex = 0;           /** Element index */

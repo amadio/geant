@@ -32,6 +32,7 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3Data.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3PrimaryGenerator.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3PhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/HepMCTruth.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5Data.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/UserDetectorConstruction.cxx
@@ -51,6 +52,7 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PrimaryGenerator.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/HepMCTruth.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/UserDetectorConstruction.h
@@ -75,7 +77,7 @@ set(headers
 #
 add_library(GeantExamplesRP SHARED ${sources})
 
-target_link_libraries(GeantExamplesRP -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v RealPhysics Material
+target_link_libraries(GeantExamplesRP -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v RealPhysics Material ${HEPMC_LIBRARIES}
   ${TBB_LIBRARIES})
 
 if (USE_ROOT)

@@ -14,9 +14,9 @@ void MCTruthMgr::OpenEvent(int evID) {
 
 //______________________________________________________________________________
 void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
-  
-  // get the event from the map
-  MCEvent* current_event = events_map.find(gtrack.fEvent);;
+
+  // get the event from the map  
+  MCEvent* current_event = events_map.find(gtrack.fEvent);
   
   if(CheckTrack(gtrack, current_event))
     {
@@ -27,7 +27,7 @@ void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
       */ 
       
       MCParticle* part = new MCParticle();
-      part->pid = gtrack.fPDG;
+      part->pid = gtrack.fGVcode;
       part->motherid = gtrack.fMother;
       part->fPx = gtrack.fXdir * gtrack.fP; 
       part->fPy = gtrack.fYdir * gtrack.fP;
@@ -51,20 +51,18 @@ void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
 
 //______________________________________________________________________________
 void MCTruthMgr::EndTrack(const Geant::GeantTrack_v &tracks, int itr) {
-    
-  // get the event to which the track belongs  
-  if(events_map.contains(tracks.fEventV[itr]))
-    {
-      MCEvent* current_event = events_map.find(tracks.fEventV[itr]);
 
+  MCEvent* current_event = 0;
+  
+  // get the event to which the track belongs  
+  if(events_map.find(tracks.fEventV[itr], current_event))
+    {
       // check of the track was stored
       // if not, do nothing
-      if(current_event->particles.contains(tracks.fParticleV[itr]) )
+      MCParticle* current_particle = 0;
+      
+      if(current_event->particles.find(tracks.fParticleV[itr], current_particle))
 	{
-	  //  Printf("MCTruthMgr: Ending track ID %i in event %i", tracks.fParticleV[itr], tracks.fEventV[itr]);
-
-	  MCParticle* current_particle = current_event->particles.find(tracks.fParticleV[itr]);
-
 	  current_particle->fXend = tracks.fXposV[itr];
 	  current_particle->fYend = tracks.fYposV[itr];
 	  current_particle->fZend = tracks.fZposV[itr];
@@ -78,20 +76,18 @@ void MCTruthMgr::EndTrack(const Geant::GeantTrack_v &tracks, int itr) {
 
 //______________________________________________________________________________
 void MCTruthMgr::EndTrack(GeantTrack *track) {
-    
-  // get the event to which the track belongs  
-  if(events_map.contains(track->fEvent))
-    {
-      MCEvent* current_event = events_map.find(track->fEvent);
 
+  MCEvent* current_event = 0;
+  
+  // get the event to which the track belongs  
+  if(events_map.find(track->fEvent, current_event))
+    {
       // check of the track was stored
       // if not, do nothing
-      if(current_event->particles.contains(track->fParticle) )
+
+      MCParticle* current_particle = 0;
+      if(current_event->particles.find(track->fParticle, current_particle))
 	{
-	  //  Printf("MCTruthMgr: Ending track ID %i in event %i", tracks.fParticleV[itr], tracks.fEventV[itr]);
-
-	  MCParticle* current_particle = current_event->particles.find(track->fParticle);
-
 	  current_particle->fXend = track->fXpos;
 	  current_particle->fYend = track->fYpos;
 	  current_particle->fZend = track->fZpos;

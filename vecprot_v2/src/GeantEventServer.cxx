@@ -147,6 +147,10 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
   // The vertex must be defined
   vecgeom::Vector3D<double> vertex = event->GetVertex();
   int ntracks = event->GetNprimaries();
+
+  // start new event in MCTruthMgr
+  if(fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->OpenEvent(evt);
+  
   // Initialize navigation path for the vertex
   Volume_t *vol = 0;
   // Initialize the start path

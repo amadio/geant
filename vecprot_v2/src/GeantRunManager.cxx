@@ -386,8 +386,6 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
 // Actions executed after an event is transported.
   // Adjust number of prioritized events
   if (event->IsPrioritized()) fPriorityEvents--;
-  // closing event in MCTruthManager
-  if(fTruthMgr) fTruthMgr->CloseEvent(event->GetEvent());
   // event->Print();
   // Digitizer
   Info("EventTransported", " = task %d completed event %d with %d tracks", td->fTid, event->GetEvent(), event->GetNtracks());
@@ -402,7 +400,12 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
   if (fConfig->fRunMode == GeantConfig::kExternalLoop)
     NotifyEventSets(event);
 
+  int evtnb = event->GetEvent();
+
   fEventServer->CompletedEvent(event, td);
+
+  // closing event in MCTruthManager
+  if(fTruthMgr) fTruthMgr->CloseEvent(evtnb);
 }
 
 //______________________________________________________________________________

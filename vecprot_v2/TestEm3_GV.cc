@@ -20,6 +20,8 @@
 #include "TestEm3PrimaryGenerator.h"
 #include "TestEm3PhysicsList.h"
 
+#include "HepMCTruth.h"
+
 
 // some helper methods to get the possible input arguments and configure the user defined components of the application,
 // set up the run manager and run the simulation.
@@ -27,6 +29,7 @@ void GetArguments(int argc, char *argv[]);
 void SetupPhysicsList         (userapplication::TestEm3PhysicsList* physlist);
 void SetupUserDetector        (userapplication::TestEm3DetectorConstruction* detector);
 void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator* primarygun, int numprimsperevt);
+void SetupMCTruthHandling     (Geant::GeantRunManager* runMgr);
 void SetupUserApplication     (userapplication::TestEm3App* app);
 void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, Geant::GeantRunManager *rmg);
 void PreSet(int num);
@@ -58,11 +61,14 @@ int main(int argc, char *argv[]) {
   SetupUserPrimaryGenerator(gun,runMgr->GetConfig()->fNaverage);
   runMgr->SetPrimaryGenerator(gun);
 
+  // Setup the MCTruth handling
+  SetupMCTruthHandling(runMgr);
+
   // Create the real physics TestEm3 application
   userapplication::TestEm3App *app = new userapplication::TestEm3App(runMgr,det,gun);
   SetupUserApplication(app);
   runMgr->SetUserApplication(app);
-
+  
   // Print basic parameters for the simulation
   PrintRunInfo(gun, runMgr);
 
@@ -91,6 +97,11 @@ std::vector<std::string> parDetAbsMaterials;              // i.e. default applic
 std::string parGunPrimaryParticleName             =  "";  // i.e. default application value
 double      parGunPrimaryKinEnergy                =  0.;  // i.e. default application value
 //
+// MCTruth parameters 
+int         mctruthOn                 =     0;  // i.e. default application value
+double      mctruthminE               =     1.;  // i.e. default application value
+std::string mctruthFile               =     "testEm3.hepmc3"; // i.e. default application value
+//
 // run configuration parameters
 int         parConfigNumBufferedEvt   =     5;  // number of events taken to be transported on the same time (buffered)
 int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
@@ -117,8 +128,12 @@ static struct option options[] = {
          {"det-prod-cut-length"                , required_argument, 0, 'e'},
 
          {"gun-primary-energy"                 , required_argument, 0, 'f'},
-				 {"gun-primary-type"                   , required_argument, 0, 'g'},
+	 {"gun-primary-type"                   , required_argument, 0, 'g'},
 
+	 {"mctruth-store"                      , required_argument, 0, 'B'},
+	 {"mctruth-minE"                       , required_argument, 0, 'C'},
+	 {"mctruth-file"                       , required_argument, 0, 'D'},
+	 
          {"config-number-of-buffered-events"    , required_argument, 0,  'm'},
          {"config-total-number-of-events"       , required_argument, 0,  'n'},
          {"config-number-of-primary-per-events" , required_argument, 0,  'o'},
@@ -126,7 +141,7 @@ static struct option options[] = {
          {"config-number-of-propagators"        , required_argument, 0,  'q'},
          {"config-run-performance"              , no_argument      , 0,  'r'},
 
-				 {"process-MSC-step-limit"              , required_argument, 0,  'A'},
+	 {"process-MSC-step-limit"              , required_argument, 0,  'A'},
 
          {"help", no_argument, 0, 'h'},
          {0, 0, 0, 0}
@@ -246,6 +261,16 @@ void GetArguments(int argc, char *argv[]) {
        case 'r':
          parConfigIsPerformance    = true;
          break;
+       //---- MCTruth handling
+       case 'B':
+         mctruthOn    = (int)strtol(optarg, NULL, 10);
+         break;
+       case 'C':
+         mctruthminE  = strtod(optarg, NULL);
+         break;	 
+       case 'D':
+         mctruthFile  = optarg;
+         break;	 
        //---- Physics
        case 'A':
          parProcessMSCStepLimit = optarg;
@@ -316,6 +341,17 @@ void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator* primary
     primarygun->SetPrimaryParticleName(parGunPrimaryParticleName);
   if (parGunPrimaryKinEnergy>0.)
     primarygun->SetPrimaryParticleEnergy(parGunPrimaryKinEnergy);
+}
+
+void SetupMCTruthHandling(Geant::GeantRunManager* runMgr) {
+  if(mctruthOn)
+    {
+      std::string mc(mctruthFile);
+      userapplication::HepMCTruth* mctruth = new userapplication::HepMCTruth(mc);
+      mctruth->fEMin = mctruthminE;
+      
+      runMgr->SetMCTruthMgr(mctruth);
+    }
 }
 
 
