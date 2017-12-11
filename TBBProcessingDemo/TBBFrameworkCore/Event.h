@@ -85,6 +85,7 @@ namespace demo {
       
       unsigned long index() const {return m_event->index();}
       double relativeSpeed() const { return m_event->relativeSpeed();}
+      unsigned int transitionID() const { return m_event->transitionID();}
       
       //synchronously get data
       int get(const std::string& iModule, 

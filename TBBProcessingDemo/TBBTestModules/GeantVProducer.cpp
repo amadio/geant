@@ -63,7 +63,7 @@ namespace demo {
     //void runSimulation(tbb::task*);
 
     /** Functions using new GeantV interface */
-    bool RunTransportTask(size_t nevents);
+    bool RunTransportTask(size_t nevents, unsigned int eventID, unsigned int transitionID);
     int BookEvents(int nrequested);
 
     /** @brief Generate an event set to be processed by a single task.
@@ -254,7 +254,7 @@ namespace demo {
     // std::cerr<<"GeantVProducer %s at %p: produce()... runSimulation(%p)\n",label().c_str(), this, pWaitTask);
     // runSimulation(pWaitTask);
     std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
-    RunTransportTask(1);
+    RunTransportTask(1, iEvent.index(), iEvent.transitionID());
 
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
     iEvent.put(this,"",static_cast<int>(sum));
@@ -269,13 +269,13 @@ namespace demo {
   //}
 
   /// This is the entry point for the user code to transport as a task a set of events
-  bool GeantVProducer::RunTransportTask(size_t nevents)
+  bool GeantVProducer::RunTransportTask(size_t nevents, unsigned int iEventIndex, unsigned int iTransitionID)
   {
     // First book a transport task from GeantV run manager
     int ntotransport = 0;
     while ((ntotransport = BookEvents(nevents))) {
       GeantTaskData *td = fRunMgr->BookTransportTask();
-      std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<"\n";
+      std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<" toy EventID="<<iEventIndex<<" transID="<<iTransitionID<<"\n";
       if (!td) return false;
 
       // ... then create the event set using in this case the user application
