@@ -4,14 +4,14 @@
    "label" : "TEST",
    "options" :
    {
-     "nSimultaneousEvents" : 1,
-     "nThreads" : 1,
+     "nSimultaneousEvents" : 4,
+     "nThreads" : 4,
      "busyWaitScaleFactor" : 2.2e+07
    },
    "source" :
    {
      "@type" : "demo::SimpleSource",
-     "iterations" : 60
+     "iterations" : 8
    },
    "filters" :
    [
@@ -31,7 +31,9 @@
        "@type" : "demo::GeantVProducer",
        "threadType" : "ThreadSafeBetweenInstances",
        "fileName" : "pp14TeVminbias.root",
-       "nGeantVthreads":1,
+       "Nevents":8,
+       "Nthreads":4,
+       "Nbuffered":4,
        "toGet" :[]
      },
      { "@label" : "digiA",

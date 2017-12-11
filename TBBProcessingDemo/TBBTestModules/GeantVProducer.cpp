@@ -50,11 +50,6 @@ namespace {
 
 namespace demo {
 
-  static int n_events = 10;
-  static int n_propagators = 1;
-  static int n_threads = 4;
-  static int n_buffered = 12;
-
   class GeantVProducer : public ConfiguredProducer {
   public:
     GeantVProducer(const boost::property_tree::ptree& iConfig);
@@ -72,6 +67,7 @@ namespace demo {
     */
     Geant::EventSet* GenerateEventSet(size_t nevents, GeantTaskData *td);
 
+    int fNevents;
     std::vector<const Getter*> m_getters;
     GeantConfig* fConfig;
     GeantRunManager* fRunMgr;
@@ -83,6 +79,7 @@ namespace demo {
     , fConfig(0)
     , fRunMgr(0)
     , fPrimaryGenerator(0)
+    , fNevents(iConfig.get<int>("Nevents"))
   {
     registerProduct(demo::DataKey());
     
@@ -91,25 +88,25 @@ namespace demo {
                                       ""));
     }
 
-    n_threads = iConfig.get<int>("nGeantVthreads");
-    std::cerr<<"GeantVProducer: read nThreads="<< n_threads <<"\n";
-
-    static int n_track_max = 500;
-    static int n_learn_steps = 0;
-    static int n_reuse = 100000;
-    static bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true, usenuma = false;
+    int n_threads = iConfig.get<int>("Nthreads");
+    int n_propagators = 1;
+    int n_track_max = 500;
+    int n_learn_steps = 0;
+    int n_reuse = 100000;
+    bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true, usenuma = false;
     bool performance = true;
 
     //std::string cms_geometry_filename("cms2015.root");
     std::string cms_geometry_filename("cms2018.gdml");
     //std::string cms_geometry_filename("ExN03.root");
+    fConfig->fNbuff = iConfig.get<int>("Nbuffered");
 
     std::string xsec_filename("xsec_FTFP_BERT.root");
     std::string fstate_filename("fstate_FTFP_BERT.root");
 
-    //std::string hepmc_event_filename("pp14TeVminbias.root");  // sequence #stable: 608 962 569 499 476 497 429 486 465 619
+    std::string hepmc_event_filename("pp14TeVminbias.root");  // sequence #stable: 608 962 569 499 476 497 429 486 465 619
     //std::string hepmc_event_filename("minbias_14TeV.root"); // sequence #stable: 81 84 93 97 87 60 106 91 92 60
-    std::string hepmc_event_filename(""); // use gun generator!
+    //std::string hepmc_event_filename(""); // use gun generator!
 
     // instantiate configuration helper
     fConfig = new GeantConfig();
@@ -117,8 +114,8 @@ namespace demo {
     fConfig->fRunMode = GeantConfig::kExternalLoop;
 
     fConfig->fGeomFileName = cms_geometry_filename;
-    fConfig->fNtotal = n_events;
-    fConfig->fNbuff = n_buffered;
+    fConfig->fNtotal = fNevents;
+    fConfig->fNbuff = iConfig.get<int>("Nbuffered");
     // Default value is 1. (0.1 Tesla)
     fConfig->fBmag = 40.; // 4 Tesla
 
@@ -297,7 +294,7 @@ namespace demo {
     int nbooked = 0;
     for (int i = 0; i< nrequested; ++i) {
       int ibooked = ntotal.fetch_add(1);
-      if (ibooked < n_events) nbooked++;
+      if (ibooked < fNevents) nbooked++;
     }
     return nbooked;
   }
