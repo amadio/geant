@@ -11,7 +11,7 @@
    "source" :
    {
      "@type" : "demo::SimpleSource",
-     "iterations" : 30
+     "iterations" : 20
    },
    "filters" :
    [
@@ -33,7 +33,6 @@
        "fileName" : "pp14TeVminbias.root",
        "Nevents":9999,
        "Nthreads":8,
-       "Nbuffered":8,
        "toGet" :[]
      },
      { "@label" : "digiA",

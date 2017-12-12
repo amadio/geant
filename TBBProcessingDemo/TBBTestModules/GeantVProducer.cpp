@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <memory>
+#include <atomic>
 #include "ConfiguredProducer.h"
 #include "Event.h"
 #include "Waiter.h"
@@ -67,11 +68,15 @@ namespace demo {
     */
     Geant::EventSet* GenerateEventSet(size_t nevents, GeantTaskData *td);
 
+    inline void LockEventGenerator() { while (fEventGeneratorLock.test_and_set(std::memory_order_acquire)) {}; }
+    inline void UnlockEventGenerator() { fEventGeneratorLock.clear(std::memory_order_release); }
+
     int fNevents;
     std::vector<const Getter*> m_getters;
     GeantConfig* fConfig;
     GeantRunManager* fRunMgr;
     PrimaryGenerator* fPrimaryGenerator;
+    std::atomic_flag fEventGeneratorLock;              /** Spinlock for event set access locking */
   };
 
   GeantVProducer::GeantVProducer(const boost::property_tree::ptree& iConfig)
@@ -81,6 +86,7 @@ namespace demo {
     , fPrimaryGenerator(0)
     , fNevents(iConfig.get<int>("Nevents"))
   {
+    fEventGeneratorLock.clear();
     registerProduct(demo::DataKey());
     
     for(const boost::property_tree::ptree::value_type& v: iConfig.get_child("toGet")) {
@@ -104,8 +110,8 @@ namespace demo {
     std::string fstate_filename("fstate_FTFP_BERT.root");
 
     //std::string hepmc_event_filename("pp14TeVminbias.root");  // sequence #stable: 608 962 569 499 476 497 429 486 465 619
-    //std::string hepmc_event_filename("minbias_14TeV.root"); // sequence #stable: 81 84 93 97 87 60 106 91 92 60
-    std::string hepmc_event_filename(""); // use gun generator!
+    std::string hepmc_event_filename("minbias_14TeV.root"); // sequence #stable: 81 84 93 97 87 60 106 91 92 60
+    //std::string hepmc_event_filename(""); // use gun generator!
 
     // instantiate configuration helper
     fConfig = new GeantConfig();
@@ -114,7 +120,7 @@ namespace demo {
 
     fConfig->fGeomFileName = cms_geometry_filename;
     fConfig->fNtotal = fNevents;
-    fConfig->fNbuff = iConfig.get<int>("Nbuffered");
+    fConfig->fNbuff = n_threads; // iConfig.get<int>("Nbuffered");
     // Default value is 1. (0.1 Tesla)
     fConfig->fBmag = 40.; // 4 Tesla
 
@@ -239,15 +245,17 @@ namespace demo {
   void 
   GeantVProducer::produce(edm::Event& iEvent) {
 
+    // not actually needed because GeantVProducer does not depend on any other cms module
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
         ++it) {
       sum += iEvent.get(*it);
     }
-    std::cerr<<"GeantVProducer::produce(): m_getters.size() = "<< m_getters.size() <<" and sum="<< sum <<"\n";
+    //std::cerr<<"GeantVProducer::produce(): m_getters.size() = "<< m_getters.size() <<" and sum="<< sum <<"\n";
 
     std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
+    // if first argument is set to >1, then that number of events will be given to GeantV on each EvenSet
     RunTransportTask(1, iEvent.index(), iEvent.transitionID());
 
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
@@ -262,7 +270,7 @@ namespace demo {
     int ntotransport = BookEvents(nevents);
 
     GeantTaskData *td = fRunMgr->BookTransportTask();
-    std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<" toy EventID="<<iEventIndex<<" transID="<< iTransitionID <<", td="<< td <<"\n";
+    std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<" toy EventID="<<iEventIndex<<" transID="<< iTransitionID <<"\n";
     if (!td) return false;
 
     // ... then create the event set
@@ -296,6 +304,7 @@ namespace demo {
     using GeantTrack = Geant::GeantTrack;
 
     EventSet *evset = new EventSet(nevents);
+    LockEventGenerator();
     for (size_t i=0 ; i< nevents; ++i) {
       GeantEvent *event = new GeantEvent();
       GeantEventInfo event_info = fPrimaryGenerator->NextEvent(td);
@@ -313,6 +322,7 @@ namespace demo {
       }
       evset->AddEvent(event);
     }
+    UnlockEventGenerator();
     return evset;
   }
 

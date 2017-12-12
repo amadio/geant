@@ -150,7 +150,7 @@ bool CMSApplicationTBB::Initialize() {
     }
   }
 
-    Geant::Printf("=== CMSApplicationTBB::Initialize: necal=%d  nhcal=%d", necal, nhcal);
+  Geant::Printf("=== CMSApplicationTBB::Initialize: necal=%d  nhcal=%d", necal, nhcal);
   fInitialized = true;  
   return true;
 }
@@ -158,6 +158,8 @@ bool CMSApplicationTBB::Initialize() {
 //______________________________________________________________________________
 void CMSApplicationTBB::SteppingActions(GeantTrack &track, GeantTaskData *td)
 {
+  /*
+  // counting steps for debugging printouts
   static atomic<int> count{ 0 };
   ++count;
   int localValue = count.load();
@@ -165,6 +167,7 @@ void CMSApplicationTBB::SteppingActions(GeantTrack &track, GeantTaskData *td)
     std::cerr<<"*** SteppingAction(): count="<< localValue <<", trk="<< &track <<", E="<< track.E()
 	     <<", pos=("<< track.PosX() <<", "<< track.PosY() <<", "<< track.PosZ() <<")\n";
   }
+  */
 }
 
 void CMSApplicationTBB::SteppingActions(GeantTrack_v &tracks, GeantTaskData *td) {
