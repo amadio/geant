@@ -99,14 +99,13 @@ namespace demo {
     //std::string cms_geometry_filename("cms2015.root");
     std::string cms_geometry_filename("cms2018.gdml");
     //std::string cms_geometry_filename("ExN03.root");
-    fConfig->fNbuff = iConfig.get<int>("Nbuffered");
 
     std::string xsec_filename("xsec_FTFP_BERT.root");
     std::string fstate_filename("fstate_FTFP_BERT.root");
 
-    std::string hepmc_event_filename("pp14TeVminbias.root");  // sequence #stable: 608 962 569 499 476 497 429 486 465 619
+    //std::string hepmc_event_filename("pp14TeVminbias.root");  // sequence #stable: 608 962 569 499 476 497 429 486 465 619
     //std::string hepmc_event_filename("minbias_14TeV.root"); // sequence #stable: 81 84 93 97 87 60 106 91 92 60
-    //std::string hepmc_event_filename(""); // use gun generator!
+    std::string hepmc_event_filename(""); // use gun generator!
 
     // instantiate configuration helper
     fConfig = new GeantConfig();
@@ -248,45 +247,35 @@ namespace demo {
     }
     std::cerr<<"GeantVProducer::produce(): m_getters.size() = "<< m_getters.size() <<" and sum="<< sum <<"\n";
 
-    // std::cerr<<"GeantVProducer %s at %p: produce()... runSimulation(%p)\n",label().c_str(), this, pWaitTask);
-    // runSimulation(pWaitTask);
     std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
     RunTransportTask(1, iEvent.index(), iEvent.transitionID());
 
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
-    iEvent.put(this,"",static_cast<int>(sum));
+    iEvent.put(this,"",static_cast<int>(iEvent.index()));
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": done!\n";
   }
-
-  /* GeantV interface code goes there */
-  //void
-  //GeantVProducer::runSimulation(tbb::task* iWaitingTask) {
-    //auto simTask = new (tbb::task::allocate_root()) SimulateTask{iWaitingTask};
-    //tbb::task::spawn(*simTask);
-  //}
 
   /// This is the entry point for the user code to transport as a task a set of events
   bool GeantVProducer::RunTransportTask(size_t nevents, unsigned int iEventIndex, unsigned int iTransitionID)
   {
     // First book a transport task from GeantV run manager
-    int ntotransport = 0;
-    while ((ntotransport = BookEvents(nevents))) {
-      GeantTaskData *td = fRunMgr->BookTransportTask();
-      std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<" toy EventID="<<iEventIndex<<" transID="<<iTransitionID<<"\n";
-      if (!td) return false;
+    int ntotransport = BookEvents(nevents);
 
-      // ... then create the event set using in this case the user application
-      std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents <<" and ntotransp="<< ntotransport <<"\n";
-      Geant::EventSet *evset = GenerateEventSet(ntotransport, td);
+    GeantTaskData *td = fRunMgr->BookTransportTask();
+    std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<" toy EventID="<<iEventIndex<<" transID="<< iTransitionID <<", td="<< td <<"\n";
+    if (!td) return false;
 
-      // ... finally invoke the GeantV transport task
-      bool transported = fRunMgr->RunSimulationTask(evset, td);
-      // Now we could run some post-transport task
-      std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents
-	       <<" and ntotransp="<< ntotransport<<": transported="<< transported <<"\n";
-      if (!transported) return false;
-    }
-    return true;
+    // ... then create the event set
+    Geant::EventSet *evset = GenerateEventSet(ntotransport, td);
+
+    // ... finally invoke the GeantV transport task
+    bool transported = fRunMgr->RunSimulationTask(evset, td);
+
+    // Now we could run some post-transport task
+    std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents
+	     <<" and ntotransp="<< ntotransport<<": transported="<< transported <<"\n";
+
+    return transported;
   }
 
   int GeantVProducer::BookEvents(int nrequested) {
