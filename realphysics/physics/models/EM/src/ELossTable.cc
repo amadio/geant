@@ -20,18 +20,23 @@
 namespace geantphysics {
 
 ELossTable::ELossTable(PhysicsParameters *physpar) : fPhysicsParameters(physpar), fEnergyGrid(nullptr) {
-  fIsComputeCSDARange  = false;
+  fIsComputeCSDARange    = false;
+  fNGL                   =  8;
   fNumLossTableBins      = -1;
   fMinLossTableEnergy    = 0.0;
   fMaxLossTableEnergy    = 0.0;
   fLogMinLossTableEnergy = 1.0;
   fEnergyILDelta         = 0.0;
+  fGL                    = nullptr;
 }
 
 
 ELossTable::~ELossTable() {
   // clear all allocated memory and reset vector sizes
   Clear();
+  if (fGL) {
+    delete fGL;
+  }
 }
 
 
@@ -313,6 +318,9 @@ void ELossTable::InitializeEnergyGrid() {
   for (int i=1; i<fNumLossTableBins-1; ++i) {
     fEnergyGrid[i] = std::exp(fLogMinLossTableEnergy+i*delta);
   }
+  if (!fGL) {
+    fGL = new GLIntegral(fNGL,0.0,1.0);
+  }
 }
 
 
@@ -376,17 +384,15 @@ void ELossTable::BuildRestrictedRangeTable(ELossData *lossdata) {
   //set first
   lossdata->fRestrictedRangeData[ifirst] = rangeTail;
   // create a 16 point GL integral on [0,1]; integral between [E_i,E_i+1] will be transformed to [0,1]
-  int numGL      = 16;
-  GLIntegral *gl = new GLIntegral(numGL,0.0,1.0);
-  std::vector<double> glX = gl->GetAbscissas();
-  std::vector<double> glW = gl->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
+  const std::vector<double> &glW = fGL->GetWeights();
   for (int i=ifirst; i<lossdata->fNumData-1; ++i) {
     // for each E_i, E_i+1 interval apply the 16 point GL by substitution
     double emin  = lossdata->fEnergyGridData[i];
     double emax  = lossdata->fEnergyGridData[i+1];
     double delta = (emax-emin);
     double res   = 0.0;
-    for (int j=0; j<numGL; ++j) {
+    for (int j=0; j<fNGL; ++j) {
       double xi = delta*glX[j]+emin;
       dedx = lossdata->fSplineRestrictedDEDX->GetValueAt(xi,i); // i is the low Energy bin index
       if (dedx>0.0) {
@@ -435,17 +441,15 @@ void ELossTable::BuildTotalRangeTable(ELossData *lossdata) {
   //set first
   lossdata->fRangeData[ifirst] = rangeTail;
   // create a 16 point GL integral on [0,1]; integral between [E_i,E_i+1] will be transformed to [0,1]
-  int numGL      = 16;
-  GLIntegral *gl = new GLIntegral(numGL,0.0,1.0);
-  std::vector<double> glX = gl->GetAbscissas();
-  std::vector<double> glW = gl->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
+  const std::vector<double> &glW = fGL->GetWeights();
   for (int i=ifirst; i<lossdata->fNumData-1; ++i) {
     // for each E_i, E_i+1 interval apply the 16 point GL by substitution
     double emin  = lossdata->fEnergyGridData[i];
     double emax  = lossdata->fEnergyGridData[i+1];
     double delta = (emax-emin);
     double res   = 0.0;
-    for (int j=0; j<numGL; ++j) {
+    for (int j=0; j<fNGL; ++j) {
       double xi = delta*glX[j]+emin;
       dedx = sp->GetValueAt(xi,i); // i is the low Energy bin index
       if (dedx>0.0) {

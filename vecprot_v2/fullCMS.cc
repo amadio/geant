@@ -6,11 +6,13 @@
 #include "GeantRunManager.h"
 
 #include "PhysicsProcessHandler.h"
+#include "PhysicsListManager.h"
 
 //FULL-CMS application
 #include "CMSFullApp.h"
 #include "CMSDetectorConstruction.h"
 #include "CMSParticleGun.h"
+#include "CMSPhysicsList.h"
 
 
 
@@ -32,6 +34,9 @@ int main(int argc, char *argv[]) {
   //
   // Create and configure run manager
   Geant::GeantRunManager* runMgr = RunManager();
+  //
+  // Create user defined physics list for the full CMS application
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList());
   //
   // Create detector construction
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
@@ -222,7 +227,7 @@ Geant::GeantRunManager* RunManager() {
   runConfig->fNminReuse     = 100000;
   //
   // Activate standard scoring
-  runConfig->fUseStdScoring = true;
+  runConfig->fUseStdScoring = false;
 
   return runManager;
 }

@@ -177,6 +177,7 @@ double SeltzerBergerBremsModel::MinimumPrimaryEnergy(const MaterialCuts *matcut,
 
 SeltzerBergerBremsModel::SeltzerBergerBremsModel(bool iselectron, int datafileindx, const std::string &modelname)
 : EMModel(modelname), fIsElectron(iselectron), fDataFileIndx(datafileindx) {
+  fNGL                             = 64;
   fDCSMaxZet                       = 0;
   fLoadDCSNumElectronEnergies      = 0;
   fLoadDCSReducedPhotonEnergyGrid  = 0;
@@ -200,6 +201,8 @@ SeltzerBergerBremsModel::SeltzerBergerBremsModel(bool iselectron, int datafilein
   fAliasSampler             = nullptr;
 
   fSecondaryInternalCode    = -1;
+
+  fGL                       = nullptr;
 
   //Initialise();
 }
@@ -241,15 +244,22 @@ SeltzerBergerBremsModel::~SeltzerBergerBremsModel() {
     }
     delete [] fAliasData;
   }
-
-  if (fAliasSampler)
+  if (fAliasSampler) {
     delete fAliasSampler;
+  }
+  if (fGL) {
+    delete fGL;
+  }
+
 }
 
 
 
 void SeltzerBergerBremsModel::Initialise() {
   LoadDCSData();
+  if (!fGL) {
+    fGL = new GLIntegral(fNGL,0.0,1.0);
+  }
   InitSamplingTables();
   fAliasSampler          = new AliasTable();
   fSecondaryInternalCode = Gamma::Definition()->GetInternalCode();
@@ -769,16 +779,14 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
   }
 
   // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
+  const std::vector<double> &glW = fGL->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
   // we will need a natural cubic spile for the integral
   Spline     *sp = new Spline();
   sp->SetUpSpline(logReducedPhotonEnergyGrid, theDCS, fLoadDCSNumReducedPhotonEnergies);
 
   double integral = 0.0;
-  for (int i=0;i<ngl;++i) {
+  for (int i=0; i<fNGL; ++i) {
     double dumx = 1.0-std::exp(glX[i]*logikappacr)*kappacr; // ez a felso x -nek az exp(x)-e
     double x = std::log(dumx+1.0e-12);
     double egamma = (1.0-dumx)*electronekin;
@@ -792,7 +800,6 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
   delete [] theDCS;
   delete [] logReducedPhotonEnergyGrid;
   delete sp;
-  delete gl;
 
   return logikappacr*zet*zet*ibeta2*integral;
 }
@@ -877,10 +884,8 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
   }
 
   // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
+  const std::vector<double> &glW = fGL->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
   // we will need a natural cubic spile for the integral
 //  Spline     *sp = new Spline();
 //  sp->SetUpSpline(logReducedPhotonEnergyGrid, theDCS, fLoadDCSNumReducedPhotonEnergies);
@@ -892,7 +897,7 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
   }
 
   double integral = 0.0;
-  for (int i=0;i<ngl;++i) {
+  for (int i=0; i<fNGL; ++i) {
     double dumx = 1.0-std::exp(glX[i]*logikappacr)*kappacr; // ez a felso x -nek az exp(x)-e
     double x = std::log(dumx+1.0e-12);
     double egamma = (1.0-dumx)*electronekin;
@@ -915,7 +920,6 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
   for (int i=0; i<numElems; ++i)
     delete sp[i];
   delete [] sp;
-  delete gl;
   return logikappacr*ibeta2*integral;
 }
 
@@ -1024,10 +1028,8 @@ double SeltzerBergerBremsModel::ComputeDEDXPerVolume(const Material *mat, double
   }
 
   // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
+  const std::vector<double> &glW = fGL->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
   // we will need a natural cubic spile for the integral
 //  Spline     *sp = new Spline();
 //  sp->SetUpSpline(fLoadDCSReducedPhotonEnergyGrid, theDCS, fLoadDCSNumReducedPhotonEnergies);
@@ -1044,7 +1046,7 @@ double SeltzerBergerBremsModel::ComputeDEDXPerVolume(const Material *mat, double
   if (upperlimit>electronekin)
     upperlimit = electronekin;
   double kappacr = upperlimit/electronekin;
-  for (int i=0; i<ngl; ++i) {
+  for (int i=0; i<fNGL; ++i) {
     double t = glX[i]*kappacr;          // kappa
     double egamma = glX[i]*upperlimit;
     double sum = 0.0;
@@ -1067,7 +1069,6 @@ double SeltzerBergerBremsModel::ComputeDEDXPerVolume(const Material *mat, double
   for (int i=0; i<numElems; ++i)
     delete sp[i];
   delete [] sp;
-  delete gl;
 
   return upperlimit*ibeta2*integral;
 }

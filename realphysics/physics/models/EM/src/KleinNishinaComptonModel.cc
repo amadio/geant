@@ -23,39 +23,24 @@ namespace geantphysics {
 
 
 KleinNishinaComptonModel::KleinNishinaComptonModel(const std::string &modelname) : EMModel(modelname) {
-  fNumSamplingPrimEnergiesPerDecade = 10;    // should be set/get and must be done before init
-  fNumSamplingEnergies              = 60;    // should be set/get and must be done before init
-  fMinPrimEnergy                    = -1.;
-  fMaxPrimEnergy                    = -1.;
-  fNumSamplingPrimEnergies          = -1;      // will be set in InitSamplingTables if needed
-  fPrimEnLMin                       =  0.;     // will be set in InitSamplingTables if needed
-  fPrimEnILDelta                    =  0.;     // will be set in InitSamplingTables if needed
-  fSamplingPrimEnergies             = nullptr; // will be set in InitSamplingTables if needed
-  fLSamplingPrimEnergies            = nullptr; // will be set in InitSamplingTables if needed
+  fSecondaryInternalCode              = -1;    // will be set at init
 
-  fAliasData                        = nullptr;
+  fSTNumPhotonEnergiesPerDecade       = 10;    // ST=>SamplingTables
+  fSTNumDiscreteEnergyTransferVals    = 60;    // ST=>SamplingTables
+  fSTNumPhotonEnergies                = -1;    // ST=>SamplingTables: will be set at init
 
-  fAliasSampler                     = nullptr;
+  fSTLogMinPhotonEnergy               = -1.;   // ST=>SamplingTables: will be set at init
+  fSTILDeltaPhotonEnergy              = -1.;   // ST=>SamplingTables: will be set at init
+
+  fAliasSampler                       = nullptr;
+
   SetLowestSecondaryEnergy(100.0*geant::eV);    // zero by default in the base class
 }
 
 
 KleinNishinaComptonModel::~KleinNishinaComptonModel() {
-  if (fSamplingPrimEnergies) {
-    delete [] fSamplingPrimEnergies;
-    delete [] fLSamplingPrimEnergies;
-  }
-  if (fAliasData) {
-    for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
-      if (fAliasData[i]) {
-        delete [] fAliasData[i]->fXdata;
-        delete [] fAliasData[i]->fYdata;
-        delete [] fAliasData[i]->fAliasW;
-        delete [] fAliasData[i]->fAliasIndx;
-        delete fAliasData[i];
-      }
-    }
-    delete [] fAliasData;
+  if (GetUseSamplingTables()) {
+    ClearSamplingTables();
   }
   if (fAliasSampler) {
     delete fAliasSampler;
@@ -63,29 +48,31 @@ KleinNishinaComptonModel::~KleinNishinaComptonModel() {
 }
 
 
-void   KleinNishinaComptonModel::Initialize() {
+void KleinNishinaComptonModel::Initialize() {
   EMModel::Initialize();
   fSecondaryInternalCode = Electron::Definition()->GetInternalCode();
-  InitialiseModel();
+  if (GetUseSamplingTables()) {
+    InitSamplingTables();
+  }
 }
 
 
 double KleinNishinaComptonModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy,
                                                             const Particle* /*particle*/) {
   double xsec = 0.0;
-  // this equal just to get the G4 behaviour at the lowest edge lambda table 
+  // this equal just to get the G4 behaviour at the lowest edge lambda table
   if (kinenergy<=GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
     return xsec;
   }
   // compute the macroscopic cross section as the sum of the atomic cross sections weighted by the number of atoms in
   // in unit volume.
   const Material *mat =  matcut->GetMaterial();
-  double       egamma = kinenergy;
+  const double egamma = kinenergy;
   // we will need the element composition of this material
-  const Vector_t<Element*> theElements    = mat->GetElementVector();
+  const Vector_t<Element*> &theElements   = mat->GetElementVector();
   const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-  for (int iel=0; iel<numElems; ++iel) {
+  size_t numElems = theElements.size();
+  for (size_t iel=0; iel<numElems; ++iel) {
     xsec += theAtomicNumDensityVector[iel]*ComputeAtomicCrossSection(theElements[iel]->GetZ(), egamma);
   }
   return xsec;
@@ -105,9 +92,9 @@ double KleinNishinaComptonModel::ComputeXSectionPerAtom(const Element *elem, con
 }
 
 
-int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
-  int    numSecondaries      = 0;
-  double ekin                = track.GetKinE();
+int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+  int    numSecondaries = 0;
+  const double ekin     = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
   // check if kinetic energy is above fHighEnergyUsageLimit andd o nothing if yes
   if (ekin<GetLowEnergyUsageLimit() || ekin>GetHighEnergyUsageLimit()) {
@@ -117,12 +104,20 @@ int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::Gea
   // here we need 3 random number + later one more for sampling phi
   double *rndArray  = td->fDblArray;
   td->fRndm->uniform_array(4, rndArray);
-  double eps   = SampleReducedPhotonEnergy(ekin, rndArray[0], rndArray[1], rndArray[2]);
+  double eps, oneMinusCost, sint2;
+  if (GetUseSamplingTables()) {
+    eps = SampleReducedPhotonEnergy(ekin, rndArray[0], rndArray[1], rndArray[2]);
+    const double kappa = ekin/geant::kElectronMassC2;
+    oneMinusCost = (1./eps-1.)/kappa;
+    sint2        = oneMinusCost*(2.-oneMinusCost);
+  } else {
+    eps = SampleReducedPhotonEnergy(ekin, oneMinusCost, sint2, td);
+  }
   // compute gamma scattering angle (realtive to the origininal dir i.e. Z)
-  double kappa = ekin/geant::kElectronMassC2;
-  double cost  = 1.0-(1./eps-1.)/kappa; // 1-(1-cost)
-  double sint  = std::sqrt((1.0-cost)*(1.0+cost));
-  double phi   = geant::kTwoPi*(rndArray[3]);
+  sint2 = std::max(0.,sint2);
+  const double cost  = 1.0-oneMinusCost;
+  const double sint  = std::sqrt(sint2);
+  const double phi   = geant::kTwoPi*(rndArray[3]);
   // direction of the scattered gamma in the scattering frame
   double dirX  = sint*std::cos(phi);
   double dirY  = sint*std::sin(phi);
@@ -131,12 +126,12 @@ int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::Gea
   RotateToLabFrame(dirX, dirY, dirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   //
   // keep org. gamma dir in lab frame: will be updated but will be needed later
-  double orgGamDirX = track.GetDirX();
-  double orgGamDirY = track.GetDirY();
-  double orgGamDirZ = track.GetDirZ();
+  const double orgGamDirX = track.GetDirX();
+  const double orgGamDirY = track.GetDirY();
+  const double orgGamDirZ = track.GetDirZ();
   // Update primary gamma track properties i.e. the scattered gamma
-  double eDeposit   = 0.0;
-  double postGammaE = ekin*eps;
+  double eDeposit = 0.0;
+  const double postGammaE = ekin*eps;
   if (postGammaE>GetLowestSecondaryEnergy()) {
     // update primary track kinetic energy
     track.SetKinE(postGammaE);
@@ -151,7 +146,7 @@ int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::Gea
   }
   //
   // Compute secondary e- properties: first the enrgy to check
-  double elEnergy = ekin-postGammaE; // E_el = E_0-E_1
+  const double elEnergy = ekin-postGammaE; // E_el = E_0-E_1
   if (elEnergy>GetLowestSecondaryEnergy()) {
     // compute the secondary e- direction: from momentum vector conservation
     // final momentum of the secondary e- in the lab frame: = P_1-P_0 (binary col.)
@@ -159,7 +154,7 @@ int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::Gea
     double elDirY = ekin*orgGamDirY - postGammaE*dirY;
     double elDirZ = ekin*orgGamDirZ - postGammaE*dirZ;
     // normalisation factor
-    double norm  = 1.0/std::sqrt(elDirX*elDirX + elDirY*elDirY + elDirZ*elDirZ);
+    const double norm  = 1.0/std::sqrt(elDirX*elDirX + elDirY*elDirY + elDirZ*elDirZ);
     elDirX *= norm;
     elDirY *= norm;
     elDirZ *= norm;
@@ -197,13 +192,6 @@ int    KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::Gea
 }
 
 
-
-
-void KleinNishinaComptonModel::InitialiseModel() {
-  fMinPrimEnergy                    = GetLowEnergyUsageLimit();
-  fMaxPrimEnergy                    = GetHighEnergyUsageLimit();
-  InitSamplingTables();
-}
 
 /**
  * @internal
@@ -283,11 +271,11 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
   constexpr double f3 =   6.0480e-5*geant::barn;
   constexpr double f4 =   3.0274e-4*geant::barn;
   //
-  double z2  = z*z;
-  double p1Z = z*(d1 + e1*z + f1*z2);
-  double p2Z = z*(d2 + e2*z + f2*z2);
-  double p3Z = z*(d3 + e3*z + f3*z2);
-  double p4Z = z*(d4 + e4*z + f4*z2);
+  const double z2  = z*z;
+  const double p1Z = z*(d1 + e1*z + f1*z2);
+  const double p2Z = z*(d2 + e2*z + f2*z2);
+  const double p3Z = z*(d3 + e3*z + f3*z2);
+  const double p4Z = z*(d4 + e4*z + f4*z2);
   //
   double t0  = 15.0*geant::keV;
   if (z<1.5) {
@@ -304,14 +292,14 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
     kappa   = (t0+dt0)/geant::kElectronMassC2;
     kappa2  = kappa*kappa;
     kappa3  = kappa2*kappa;
-    double sigma = p1Z*std::log(1. + 2*kappa)/kappa + (p2Z + p3Z*kappa + p4Z*kappa2)/(1. + a*kappa + b*kappa2 + c*kappa3);
-    double    c1 = -t0*(sigma-xsec)/(xsec*dt0);
-    double    c2 = 0.15;
+    const double sigma = p1Z*std::log(1. + 2*kappa)/kappa + (p2Z + p3Z*kappa + p4Z*kappa2)/(1. + a*kappa + b*kappa2 + c*kappa3);
+    const double    c1 = -t0*(sigma-xsec)/(xsec*dt0);
+    double c2 = 0.15;
     if (z>1.5) {
       c2 = 0.375-0.0556*std::log(z);
     }
-    double y = std::log(egamma/t0);
-    xsec    *= std::exp(-y*(c1+c2*y));
+    const double y = std::log(egamma/t0);
+    xsec *= std::exp(-y*(c1+c2*y));
   }
   return xsec;
 }
@@ -334,29 +322,58 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
  *
  * @endinternal
  */
-double KleinNishinaComptonModel::SampleReducedPhotonEnergy(double primekin, double r1, double r2, double r3) {
-  // determine primary energy lower grid point
-  double lGammaEnergy  = std::log(primekin);
-  int gammaEnergyIndx  = (int) ((lGammaEnergy-fPrimEnLMin)*fPrimEnILDelta);
+double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, const double r1, const double r2,
+                                                            const double r3) {
+  // determine electron energy lower grid point
+  const double legamma = std::log(egamma);
   //
-  if (gammaEnergyIndx>=fNumSamplingPrimEnergies-1)
-    gammaEnergyIndx = fNumSamplingPrimEnergies-2;
-  //
-  double pLowerGammaEner = (fLSamplingPrimEnergies[gammaEnergyIndx+1]-lGammaEnergy)*fPrimEnILDelta;
-  if (r1>pLowerGammaEner) {
-     ++gammaEnergyIndx;
+  int indxEgamma = fSTNumPhotonEnergies-1;
+  if (egamma<GetHighEnergyUsageLimit()) {
+    const double val       = (legamma-fSTLogMinPhotonEnergy)*fSTILDeltaPhotonEnergy;
+    indxEgamma             = (int)val;  // lower electron energy bin index
+    const double pIndxHigh = val-indxEgamma;
+    if (r1<pIndxHigh)
+      ++indxEgamma;
   }
+  // sample the transformed variable
+  const LinAlias *als = fSamplingTables[indxEgamma];
   // sample the transformed variable xi=[\alpha-ln(ep)]/\alpha (where \alpha=ln(1/(1+2\kappa)))
   // that is in [0,1] when ep is in [ep_min=1/(1+2\kappa),ep_max=1] (that limits comes from energy and momentum
   // conservation in case of scattering on free electron at rest).
   // where ep = E_1/E_0 and kappa = E_0/(mc^2)
-  double  xi = fAliasSampler->SampleLinear(fAliasData[gammaEnergyIndx]->fXdata, fAliasData[gammaEnergyIndx]->fYdata,
-                                           fAliasData[gammaEnergyIndx]->fAliasW, fAliasData[gammaEnergyIndx]->fAliasIndx,
-                                           fAliasData[gammaEnergyIndx]->fNumdata,r2,r3);
+  const double  xi    = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
+                                                    &(als->fAliasIndx[0]), fSTNumDiscreteEnergyTransferVals, r2, r3);
   // transform it back to eps = E_1/E_0
   // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
-  double kappa = primekin/geant::kElectronMassC2;
+  const double kappa  = egamma/geant::kElectronMassC2;
   return std::exp(std::log(1.+2.*kappa)*(xi-1.)); // eps = E_1/E_0
+}
+
+
+double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2,
+                                                          const Geant::GeantTaskData *td) {
+  const double kappa = egamma/geant::kElectronMassC2;
+  const double eps0  = 1./(1.+2.*kappa);
+  const double eps02 = eps0*eps0;
+  const double al1   = -std::log(eps0);
+  const double cond  = al1/(al1+0.5*(1.-eps02));
+  //
+  double eps, eps2, gf;
+  double *rndArray = td->fDblArray;
+  do {
+    td->fRndm->uniform_array(3, rndArray);
+    if (cond>rndArray[0]) {
+      eps  = std::exp(-al1*rndArray[1]);
+      eps2 = eps*eps;
+    } else {
+      eps2 = eps02+(1.-eps02)*rndArray[1];
+      eps  = std::sqrt(eps2);
+    }
+    onemcost = (1.-eps)/(eps*kappa);
+    sint2    = onemcost*(2.-onemcost);
+    gf       = 1.-eps*sint2/(1.+eps2);
+  } while (gf<rndArray[2]);
+  return eps;
 }
 
 
@@ -428,11 +445,11 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(double primekin, doub
   * @endinternal
   */
 double KleinNishinaComptonModel::ComputeDXSecPerAtom(double xi, double kappa) {
-  double inv2Kappa  = 1./(1.+2.*kappa);
-  double linv2Kappa = std::log(inv2Kappa);
-  double eps        = std::exp(linv2Kappa*(1.-xi));
-  double invEps     = 1./eps;
-  double beta       = (1.-invEps)/kappa;
+  const double inv2Kappa  = 1./(1.+2.*kappa);
+  const double linv2Kappa = std::log(inv2Kappa);
+  const double eps        = std::exp(linv2Kappa*(1.-xi));
+  const double invEps     = 1./eps;
+  const double beta       = (1.-invEps)/kappa;
 
   return eps*(eps+invEps)*(1.+eps*beta*(2.+beta)/(1.+eps*eps));
 }
@@ -440,100 +457,67 @@ double KleinNishinaComptonModel::ComputeDXSecPerAtom(double xi, double kappa) {
 
 
 void KleinNishinaComptonModel::InitSamplingTables() {
+  ClearSamplingTables();
   // set number of primary gamma energy grid points
-  // keep the prev. value of primary energy grid points.
-  int oldNumGridPoints = fNumSamplingPrimEnergies;
-  fNumSamplingPrimEnergies = fNumSamplingPrimEnergiesPerDecade*std::lrint(std::log10(fMaxPrimEnergy/fMinPrimEnergy))+1;
-  if (fNumSamplingPrimEnergies<2) {
-    fNumSamplingPrimEnergies = 2;
-  }
+  const double minEprim = GetLowEnergyUsageLimit();
+  const double maxEprim = GetHighEnergyUsageLimit();
+  fSTNumPhotonEnergies = fSTNumPhotonEnergiesPerDecade*std::lrint(std::log10(maxEprim/minEprim))+1;
+  fSTNumPhotonEnergies = std::max(fSTNumPhotonEnergies,3);
   // set up the initial gamma energy grid
-  if (fSamplingPrimEnergies) {
-    delete [] fSamplingPrimEnergies;
-    delete [] fLSamplingPrimEnergies;
-    fSamplingPrimEnergies  = nullptr;
-    fLSamplingPrimEnergies = nullptr;
+  const double delta     = std::log(maxEprim/minEprim)/(fSTNumPhotonEnergies-1.0);
+  fSTLogMinPhotonEnergy  = std::log(minEprim);
+  fSTILDeltaPhotonEnergy = 1./delta;
+  std::vector<double> primEVect(fSTNumPhotonEnergies);
+  primEVect[0]                      = minEprim;
+  primEVect[fSTNumPhotonEnergies-1] = maxEprim;
+  for (int i=1; i<fSTNumPhotonEnergies-1; ++i) {
+    primEVect[i] = std::exp(fSTLogMinPhotonEnergy+i*delta);
   }
-  fSamplingPrimEnergies  = new double[fNumSamplingPrimEnergies];
-  fLSamplingPrimEnergies = new double[fNumSamplingPrimEnergies];
-  fPrimEnLMin    = std::log(fMinPrimEnergy);
-  double delta   = std::log(fMaxPrimEnergy/fMinPrimEnergy)/(fNumSamplingPrimEnergies-1.0);
-  fPrimEnILDelta = 1.0/delta;
-  fSamplingPrimEnergies[0]  = fMinPrimEnergy;
-  fLSamplingPrimEnergies[0] = fPrimEnLMin;
-  fSamplingPrimEnergies[fNumSamplingPrimEnergies-1]  = fMaxPrimEnergy;
-  fLSamplingPrimEnergies[fNumSamplingPrimEnergies-1] = std::log(fMaxPrimEnergy);
-  for (int i=1; i<fNumSamplingPrimEnergies-1; ++i) {
-    fLSamplingPrimEnergies[i] = fPrimEnLMin+i*delta;
-    fSamplingPrimEnergies[i]  = std::exp(fPrimEnLMin+i*delta);
-  }
-  //
-  // build the sampling tables at each primary gamma energy grid point.
-  //
-  // prepare the array that stores pointers to sampling data structures
-  if (fAliasData) {
-    for (int i=0; i<oldNumGridPoints; ++i) {
-      if (fAliasData[i]) {
-        delete [] fAliasData[i]->fXdata;
-        delete [] fAliasData[i]->fYdata;
-        delete [] fAliasData[i]->fAliasW;
-        delete [] fAliasData[i]->fAliasIndx;
-        delete fAliasData[i];
-      }
-    }
-    delete [] fAliasData;
-  }
-  // create new fAliasData array
-  fAliasData = new LinAlias*[fNumSamplingPrimEnergies];
-  for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
-    fAliasData[i] = nullptr;
-  }
-  // create one sampling data structure at each primary gamma energy grid point:
-  // -first create an AliasTable object
+  // 3. create an AliasTable object
   if (fAliasSampler) {
     delete fAliasSampler;
   }
-  // -the prepare each table one-by-one
-  for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
-    double egamma = fSamplingPrimEnergies[i];
-    double kappa  = egamma/geant::kElectronMassC2;
+  fAliasSampler = new AliasTable();
+  // 4. set up the container that stores sampling tables for all the materials (init to nullptr-s)
+  fSamplingTables.resize(fSTNumPhotonEnergies,nullptr);
+  // 5. prepare sampling tables one-by-one
+  for (int i=0; i<fSTNumPhotonEnergies; ++i) {
+    const double egamma = primEVect[i];
+    const double kappa  = egamma/geant::kElectronMassC2;
     BuildOneLinAlias(i,kappa);
   }
+  primEVect.clear();
 }
 
 
 void KleinNishinaComptonModel::BuildOneLinAlias(int indx, double kappa) {
-  fAliasData[indx]              = new LinAlias();
-  fAliasData[indx]->fNumdata    = fNumSamplingEnergies;
-  fAliasData[indx]->fXdata      = new double[fNumSamplingEnergies];
-  fAliasData[indx]->fYdata      = new double[fNumSamplingEnergies];;
-  fAliasData[indx]->fAliasW     = new double[fNumSamplingEnergies];;
-  fAliasData[indx]->fAliasIndx  = new    int[fNumSamplingEnergies];;
+  LinAlias *tb          = new LinAlias(fSTNumDiscreteEnergyTransferVals);
+  fSamplingTables[indx] = tb;
   // note: the transformd variable (xi) is in [0,1] when eps=E_1/E_0 in [eps_min, eps_max]
   // so fill 3 initial values of xi:
   //  -  xi_0 = x_min = 0
   //  -  xi_1 = (x_max-x_min)/2 = 0.5
   //  -  xi_2 = x_max = 1
   // and the corresponding y(i.e.~PDF) values
-  fAliasData[indx]->fXdata[0] = 0.0;
-  fAliasData[indx]->fXdata[1] = 0.5;
-  fAliasData[indx]->fXdata[2] = 1.0;
-  fAliasData[indx]->fYdata[0] = ComputeDXSecPerAtom(fAliasData[indx]->fXdata[0],kappa);
-  fAliasData[indx]->fYdata[1] = ComputeDXSecPerAtom(fAliasData[indx]->fXdata[1],kappa);
-  fAliasData[indx]->fYdata[2] = ComputeDXSecPerAtom(fAliasData[indx]->fXdata[2],kappa);
+  tb->fXdata[0] = 0.0;
+  tb->fXdata[1] = 0.5;
+  tb->fXdata[2] = 1.0;
+  tb->fYdata[0] = ComputeDXSecPerAtom(tb->fXdata[0],kappa);
+  tb->fYdata[1] = ComputeDXSecPerAtom(tb->fXdata[1],kappa);
+  tb->fYdata[2] = ComputeDXSecPerAtom(tb->fXdata[2],kappa);
   int curNumData = 3;
   // expand the data up to numdata points
-  while (curNumData<fAliasData[indx]->fNumdata) {
+  while (curNumData<fSTNumDiscreteEnergyTransferVals) {
     // find the lower index of the bin, where we have the biggest linear interp. error compared to spline
     double maxerr     = 0.0; // value of the current maximum error
     double thexval    = 0.0;
     double theyval    = 0.0;
     int    maxerrindx = 0;   // the lower index of the corresponding bin
     for (int i=0; i<curNumData-1; ++i) {
-      double xx    = 0.5*(fAliasData[indx]->fXdata[i]+fAliasData[indx]->fXdata[i+1]);    // mid x point
-      double yy    = 0.5*(fAliasData[indx]->fYdata[i]+fAliasData[indx]->fYdata[i+1]);    // lin. interpolated pdf value at the mid point
-      double val   = ComputeDXSecPerAtom(xx,kappa); // real pdf value at the mid point
-      double err   = std::abs(1.-(yy/val));
+      const double xx    = 0.5*(tb->fXdata[i]+tb->fXdata[i+1]);    // mid x point
+      const double yy    = 0.5*(tb->fYdata[i]+tb->fYdata[i+1]);    // lin. interpolated pdf value at the mid point
+      const double val   = ComputeDXSecPerAtom(xx,kappa); // real pdf value at the mid point
+      const double err   = std::abs(1.-(yy/val));
       if (err>maxerr) {
         maxerr     = err;
         maxerrindx = i;
@@ -544,20 +528,34 @@ void KleinNishinaComptonModel::BuildOneLinAlias(int indx, double kappa) {
     // extend x,y data by puting a new real value at the mid point of the highest error bin
     // first shift all values to the right
     for (int j=curNumData; j>maxerrindx+1; --j) {
-      fAliasData[indx]->fXdata[j] = fAliasData[indx]->fXdata[j-1];
-      fAliasData[indx]->fYdata[j] = fAliasData[indx]->fYdata[j-1];
+      tb->fXdata[j] = tb->fXdata[j-1];
+      tb->fYdata[j] = tb->fYdata[j-1];
     }
     // fill x mid point
-    fAliasData[indx]->fXdata[maxerrindx+1] = thexval;
-    fAliasData[indx]->fYdata[maxerrindx+1] = theyval;
+    tb->fXdata[maxerrindx+1] = thexval;
+    tb->fYdata[maxerrindx+1] = theyval;
     // increase number of data
     ++curNumData;
   } // end while
   // prepare the alias data for this PDF(x,y)
-  fAliasSampler->PreparLinearTable(fAliasData[indx]->fXdata, fAliasData[indx]->fYdata,
-                                   fAliasData[indx]->fAliasW, fAliasData[indx]->fAliasIndx,
-                                   fAliasData[indx]->fNumdata);
+  fAliasSampler->PreparLinearTable(&(tb->fXdata[0]), &(tb->fYdata[0]), &(tb->fAliasW[0]), &(tb->fAliasIndx[0]),
+                                   fSTNumDiscreteEnergyTransferVals);
 }
 
+
+void KleinNishinaComptonModel::ClearSamplingTables() {
+  size_t num = fSamplingTables.size();
+  for (size_t itb=0; itb<num; ++itb) {
+    LinAlias *tb = fSamplingTables[itb];
+    if (tb) {
+      tb->fXdata.clear();
+      tb->fYdata.clear();
+      tb->fAliasW.clear();
+      tb->fAliasIndx.clear();
+    }
+    delete tb;
+  }
+  fSamplingTables.clear();
+}
 
 }  // namespace geantphysics

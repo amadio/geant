@@ -2,6 +2,7 @@
 # The GeantV version of the real-physics tests
 #
 add_subdirectory(GeantV/TestEm0)
+add_subdirectory(GeantV/ioniTest)
 add_subdirectory(GeantV/bremTest)
 add_subdirectory(GeantV/comptonTest)
 add_subdirectory(GeantV/xsectionsTest)
@@ -15,6 +16,7 @@ add_subdirectory(GeantV/TestHad0)
 #
 if (WITH_GEANT4)
   add_subdirectory(Geant4/TestEm0)
+  add_subdirectory(Geant4/ioniTest)
   add_subdirectory(Geant4/bremTest)
   add_subdirectory(Geant4/comptonTest)
   add_subdirectory(Geant4/conversionTest)

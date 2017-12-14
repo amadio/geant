@@ -94,7 +94,9 @@ public:
     */
   double SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx, int *binindx,
                      int numdata, double rndm1, double rndm2, int above=-1);
-
+  double SampleRatin(const double *xdata, const double *comf, const double *paradata, const double *parbdata,
+                     const double *xx, const int *binindx, const int numdata, const double rndm1, const double rndm2,
+                     const int above);
   /**
     * @brief Public method to obtain random variable from continuous distribution using discrete samples and the
     *        combination of alias sampling with linear approximation of the p.d.f.. All
@@ -115,6 +117,8 @@ public:
     *                alias sampling and linear approximation of the p.d.f..
     */
   double SampleLinear(double *xdata, double *ydata, double *xx, int *binindx, int numdata, double rndm1, double rndm2);
+  double SampleLinear(const double *xdata, const double *ydata, const double *xx, const int *binindx, const int numdata,
+                      const double rndm1, const double rndm2);
 
   /**
     * @brief Public method to prepare rational interpolation based numerical inversion of c.d.f. obtained for a

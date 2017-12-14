@@ -22,199 +22,80 @@
 
 namespace geantphysics {
 
-  void MollerBhabhaIonizationModel::Initialize() {
-    EMModel::Initialize();
-    Initialise();
-    // if it needs element selector: particle is coded in the model in case of this model and due to the cut dependence
-    // we we need element selectors per MaterialCuts
-    // InitialiseElementSelectors(this, nullptr, false);
-  }
-
-  double MollerBhabhaIonizationModel::ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle*, bool istotal){
-    const Material *mat =  matcut->GetMaterial();
-    const double *cuts  =  matcut->GetProductionCutsInEnergy();
-    double elCut        =  cuts[1];
-    if (istotal) {
-      // normaly 2xEkin would be fine to get the total stopping power due to indistinguishability of the 2 final state
-      // electrons but due to the low energy threshold in the Moller model kinenergy will make sure to be higher than a
-      // threshold energy so we just set it to 1000xEkin
-      elCut = 1000.0*kinenergy;
-    }
-    return ComputeDEDXPerVolume(mat, elCut, kinenergy);
-  }
-
-
-  double MollerBhabhaIonizationModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle*) {
-    double xsec = 0.0;
-    if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
-      return xsec;
-    }
-    const Material *mat =  matcut->GetMaterial();
-    const double *cuts  =  matcut->GetProductionCutsInEnergy();
-    double elCut        =  cuts[1];
-    xsec = ComputeXSectionPerVolume(mat, elCut, kinenergy);
-    return xsec;
-  }
-
-
-  double MollerBhabhaIonizationModel::ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle*) {
-    double xsec = 0.0;
-    if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
-      return xsec;
-    }
-    const Material *mat =  matcut->GetMaterial();
-    const double *cuts  =  matcut->GetProductionCutsInEnergy();
-    double elCut        =  cuts[1];
-    xsec = ComputeXSectionPerAtom(elem, mat, elCut, kinenergy);
-    return xsec;
-  }
-
-  double MollerBhabhaIonizationModel::MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle*) const {
-    double mine = (matcut->GetProductionCutsInEnergy())[1]; // e- production cut in the material-cut
-    // in case of e- e- interaction the minimum primary energy is 2x the e- production cut
-    if (fIsElectron) {
-      mine += mine;
-    }
-    return mine;
-  }
-
-
 MollerBhabhaIonizationModel::MollerBhabhaIonizationModel(bool iselectron, const std::string &modelname)
 : EMModel(modelname), fIsElectron(iselectron) {
-   fNumSamplingPrimEnergies =  89;//276; // between the min/max e-/e+ kinetic energies //276->25 /decade
-   fNumSamplingElecEnergies =  101; // at each energy grid point we have this number of scattered e- energies
-   fMinPrimEnergy           =   1.0*geant::keV; // minimum kinetic energy of the interacting e-/e+
-   fMaxPrimEnergy           = 100.0*geant::TeV; // maximum kinetic energy of the interacting e-/e+
-   fPrimEnLMin              = 0.0;
-   fPrimEnILDelta           = 1.0;
-   fSamplingPrimEnergies    = nullptr;
-   fLSamplingPrimEnergies   = nullptr;
+  fSecondaryInternalCode         =  -1;
 
-   fNumDifferentElecCuts    = 0;
-   fGlobalMatCutIndxToLocal = nullptr;
+  fSTNumPrimaryEnergyPerDecade   =   8;   // ST=> sampling tables
+  fSTNumSamplingElecEnergies     = 101;   // ST=> sampling tables
 
-   fAliasData                = nullptr; //alias data for each different e- cut
-   fAliasSampler             = nullptr;
-
-   fSecondaryInternalCode    = -1;
-
-//   Initialise();
+  fAliasSampler                  = nullptr;
 }
+
 
 MollerBhabhaIonizationModel::~MollerBhabhaIonizationModel() {
-  if (fSamplingPrimEnergies)
-    delete [] fSamplingPrimEnergies;
-  if (fLSamplingPrimEnergies)
-    delete [] fLSamplingPrimEnergies;
-
-  if (fGlobalMatCutIndxToLocal)
-    delete [] fGlobalMatCutIndxToLocal;
-
-  if (fAliasData) {
-    for (int i=0; i<fNumDifferentElecCuts; ++i) {
-      for (int j=0; j<fNumSamplingPrimEnergies; ++j) {
-        int indx = i*fNumSamplingPrimEnergies+j;
-        if (fAliasData[indx]) {
-          delete [] fAliasData[indx]->fXdata;
-          delete [] fAliasData[indx]->fYdata;
-          delete [] fAliasData[indx]->fAliasW;
-          delete [] fAliasData[indx]->fAliasIndx;
-          delete fAliasData[indx];
-        }
-      }
-    }
-    delete [] fAliasData;
+  if (GetUseSamplingTables()) {
+    ClearSamplingTables();
   }
-
-  if (fAliasSampler)
+  if (fAliasSampler) {
     delete fAliasSampler;
+  }
 }
 
-void MollerBhabhaIonizationModel::Initialise() {
-  fAliasSampler = new AliasTable();
-  InitSamplingTables();
+
+void MollerBhabhaIonizationModel::Initialize() {
+  EMModel::Initialize();
+  if (GetUseSamplingTables()) {
+    InitSamplingTables();
+  }
   fSecondaryInternalCode = Electron::Definition()->GetInternalCode();
 }
 
 
-/**
-  *  The sampling is based on the sampling tables prepared at initialisation. Statistical interpolation is used to
-  *  select one of the primary particle kinetic energy grid points out of \f$ E_i \leq E_{kin} < E_{i+1}\f$ (linear
-  *  interpolation in log kinetic energy) at a given primary particle kinetic energy \f$E_{kin}\f$. Then the transformed
-  *  variable \f$\xi\in[0,1]\f$ is sampled from the sampling table (prepared at initialisation) that belongs to the
-  *  selected primary particle kinetic energy grid point. The kinetic energy transfered to the electron \f$T\f$ then is
-  *  obtained by applying the following transformation:
-  *  \f[
-  *     T =
-  *     \begin{cases}
-  *      T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})} & \textrm{in case of Moller scattering }[e^-+e^-\to e^-+e^-]\\
-  *      T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}    & \textrm{in case of Bhabha scattering }[e^++e^-\to e^++e^-]
-  *     \end{cases}
-  *  \f]
-  *  where \f$E_{kin}\f$ is the current primary particle (i.e. e-/e+) kinetic energy and \f$T_{cut}^{e-}\f$ is the
-  *  current electron kinetic energy production threshold.
-  */
-double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, double primekin, double r1, double r2, double r3) {
-/*
-// this is checked in the caller
-  if (fMaxPrimEnergy<primekin){
-    std::cerr<<" **** Primary energy = "<<primekin/geant::GeV<<" [GeV] > fMaxPrimEnergy = "<<fMaxPrimEnergy<<std::endl;
-    exit(-1);
+double MollerBhabhaIonizationModel::ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle*, bool istotal){
+  const Material *mat =  matcut->GetMaterial();
+  double elCut        =  matcut->GetProductionCutsInEnergy()[1];
+  if (istotal) {
+    // normaly 2xEkin would be fine to get the total stopping power due to indistinguishability of the 2 final state
+    // electrons but due to the low energy threshold in the Moller model kinenergy will make sure to be higher than a
+    // threshold energy so we just set it to 1000xEkin
+    elCut = 1000.0*kinenergy;
   }
-*/
-  if (primekin<fSamplingPrimEnergies[0])
-    primekin = fSamplingPrimEnergies[0];
+  return ComputeDEDXPerVolume(mat, elCut, kinenergy);
+}
 
-  double elProdCut = matcut->GetProductionCutsInEnergy()[1]; // e- production cut
-  double tmax      = primekin;
-  if (fIsElectron)
-    tmax *= 0.5;
-  if (!(tmax>elProdCut))
-    return 0.0;
 
-  int mcindx       = matcut->GetIndex();
-  int macindxlocal = fGlobalMatCutIndxToLocal[mcindx];
-  // the location of the first-primary-energy lin-alias data of this mut -- e-cut
-  int indxstart    = macindxlocal*fNumSamplingPrimEnergies;
-  // determine primary energy lower grid point
-  double leenergy  = std::log(primekin);
-  int eenergyindx  = (int) ((leenergy-fPrimEnLMin)*fPrimEnILDelta);
+double MollerBhabhaIonizationModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle*) {
+  double xsec = 0.0;
+  if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
+    return xsec;
+  }
+  const Material *mat =  matcut->GetMaterial();
+  const double elCut  =  matcut->GetProductionCutsInEnergy()[1];
+  xsec = ComputeXSectionPerVolume(mat, elCut, kinenergy);
+  return xsec;
+}
 
-  if (eenergyindx>=fNumSamplingPrimEnergies-1)
-    eenergyindx = fNumSamplingPrimEnergies-2;
 
-  double ploweener = (fLSamplingPrimEnergies[eenergyindx+1]-leenergy)*fPrimEnILDelta;
-
-  indxstart += eenergyindx;
-  if (r1>ploweener || !(fAliasData[indxstart]))
-     ++indxstart;
-
-  // sample the transformed variable xi=[kappa-ln(T_cut/T_0)]/[ln(T_cut/T_0)-ln(T_max/T_0)]
-  // where kappa = ln(eps) with eps = T/T_0
-  // so xi= [ln(T/T_0)-ln(T_cut/T_0)]/[ln(T_cut/T_0)-ln(T_max/T_0)] that is in [0,1]
-  double  xi = fAliasSampler->SampleLinear(fAliasData[indxstart]->fXdata, fAliasData[indxstart]->fYdata,
-                                     fAliasData[indxstart]->fAliasW, fAliasData[indxstart]->fAliasIndx,
-                                     fAliasData[indxstart]->fNumdata,r2,r3);
-  // transform it back
-  // note: can be further optimised away one log call!
-  static const double loghalf = std::log(0.5);
-  double dum0 = primekin/elProdCut;
-  // we save this log if we store all  log(1/elProdCut) values because log(primekin) is already computed above.
-  double dum1 = std::log(dum0);
-  if (fIsElectron)
-    dum1 += loghalf;
-  // return with the sampled kinetic energy transfered to the electron
-  return std::exp(xi*dum1)*elProdCut;
+double MollerBhabhaIonizationModel::ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut,
+                                                           double kinenergy, const Particle*) {
+  double xsec = 0.0;
+  if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
+    return xsec;
+  }
+  const Material *mat =  matcut->GetMaterial();
+  const double elCut  =  matcut->GetProductionCutsInEnergy()[1];
+  xsec = ComputeXSectionPerAtom(elem, mat, elCut, kinenergy);
+  return xsec;
 }
 
 
 int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
-  double ekin                = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-  const double *cuts         = matCut->GetProductionCutsInEnergy();
-  double electronCut         = cuts[1];
-
+  const double electronCut   = matCut->GetProductionCutsInEnergy()[1];
+  const double ekin          = track.GetKinE();
+  //
   double maxETransfer = ekin;
   if (fIsElectron) {
     maxETransfer *= 0.5;
@@ -225,23 +106,25 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   if (ekin<GetLowEnergyUsageLimit() || ekin>GetHighEnergyUsageLimit() || maxETransfer<=electronCut) {
     return numSecondaries;
   }
+  //
   // sample energy transfer and compute direction
-  double elInitTotalEnergy   = ekin+geant::kElectronMassC2;  // initial total energy of the e-/e+
-  double elInitTotalMomentum = std::sqrt(ekin*(elInitTotalEnergy+geant::kElectronMassC2));
-  // sample kinetic energy transfered to the e-
-  // here we need 3 random number + later one more for sampling phi
-  double *rndArray = td->fDblArray;
-  td->fRndm->uniform_array(4, rndArray);
-  double deltaKinEnergy      = SampleEnergyTransfer(matCut, ekin, rndArray[0], rndArray[1], rndArray[2]);
-  double deltaTotalMomentum  = std::sqrt(deltaKinEnergy*(deltaKinEnergy+2.0*geant::kElectronMassC2));
-  double cosTheta            = deltaKinEnergy*(elInitTotalEnergy+geant::kElectronMassC2)
-                              /(deltaTotalMomentum*elInitTotalMomentum);
-  // check cosTheta limit
-  if (cosTheta>1.0) {
-    cosTheta = 1.0;
+  const double elInitTotalEnergy   = ekin+geant::kElectronMassC2;  // initial total energy of the e-/e+
+  const double elInitTotalMomentum = std::sqrt(ekin*(elInitTotalEnergy+geant::kElectronMassC2));
+  double deltaKinEnergy = 0.;
+  if (GetUseSamplingTables()) {
+    double *rndArray = td->fDblArray;
+    td->fRndm->uniform_array(3, rndArray);
+    deltaKinEnergy = SampleEnergyTransfer(matCut, ekin, rndArray[0], rndArray[1], rndArray[2]);
+  } else {
+    deltaKinEnergy = SampleEnergyTransfer(matCut, ekin, td);
   }
-  double sinTheta  = std::sqrt((1.0-cosTheta)*(1.0+cosTheta));
-  double phi       = geant::kTwoPi*(rndArray[3]);
+  const double deltaTotalMomentum  = std::sqrt(deltaKinEnergy*(deltaKinEnergy+2.0*geant::kElectronMassC2));
+  const double cost                = deltaKinEnergy*(elInitTotalEnergy+geant::kElectronMassC2)
+                                    /(deltaTotalMomentum*elInitTotalMomentum);
+  // check cosTheta limit
+  const double cosTheta = std::min(cost,1.0);
+  const double sinTheta = std::sqrt((1.0-cosTheta)*(1.0+cosTheta));
+  const double phi       = geant::kTwoPi*td->fRndm->uniform();
   // direction of the delta e- in the scattering frame
   double deltaDirX = sinTheta*std::cos(phi);
   double deltaDirY = sinTheta*std::sin(phi);
@@ -262,28 +145,14 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   int secIndx = curNumUsedSecs;
   curNumUsedSecs +=numSecondaries;
   td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  // this is known since it is a secondary track
-//  sectracks[secIndx].SetTrackStatus(LTrackStatus::kNew); // to kew
   std::vector<LightTrack>& sectracks = td->fPhysicsData->GetListOfSecondaries();
   sectracks[secIndx].SetDirX(deltaDirX);
   sectracks[secIndx].SetDirY(deltaDirY);
   sectracks[secIndx].SetDirZ(deltaDirZ);
   sectracks[secIndx].SetKinE(deltaKinEnergy);
-  sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // e- GV code
+  sectracks[secIndx].SetGVcode(fSecondaryInternalCode);
   sectracks[secIndx].SetMass(geant::kElectronMassC2);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
-// these are known from the parent GeantTrack
-//  sectracks[secIndx].SetMaterialCutCoupleIndex(track.GetMaterialCutCoupleIndex());
-//  sectracks[secIndx].SetNumOfInteractionLegthLeft(-1.); // i.e. need to sample in the step limit
-//  sectracks[secIndx].SetInvTotalMFP(0.);
-//  sectracks[secIndx].SetStepLength(0.);
-//  sectracks[secIndx].SetEnergyDeposit(0.);
-//  sectracks[secIndx].SetTime(??);
-//  sectracks[secIndx].SetWeight(??);
-//  sectracks[secIndx].SetProcessIndex(-1); // ???
-//  sectracks[secIndx].SetTargetZ(-1);
-//  sectracks[secIndx].SetTargetN(-1);
-//
   //
   // compute the primary e-/e+ post interaction kinetic energy and direction: from momentum vector conservation
   // final momentum of the primary e-/e+ in the lab frame
@@ -291,7 +160,7 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   double elDirY = elInitTotalMomentum*track.GetDirY() - deltaTotalMomentum*deltaDirY;
   double elDirZ = elInitTotalMomentum*track.GetDirZ() - deltaTotalMomentum*deltaDirZ;
   // normalisation
-  double norm  = 1.0/std::sqrt(elDirX*elDirX + elDirY*elDirY + elDirZ*elDirZ);
+  const double norm  = 1.0/std::sqrt(elDirX*elDirX + elDirY*elDirY + elDirZ*elDirZ);
   // update primary track direction
   track.SetDirX(elDirX*norm);
   track.SetDirY(elDirY*norm);
@@ -303,155 +172,18 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   return numSecondaries;
 }
 
-void MollerBhabhaIonizationModel::InitSamplingTables() {
-  // set up the common electron energy grid
-  if (fSamplingPrimEnergies) {
-    delete [] fSamplingPrimEnergies;
-    delete [] fLSamplingPrimEnergies;
-    fSamplingPrimEnergies  = nullptr;
-    fLSamplingPrimEnergies = nullptr;
-  }
-  fSamplingPrimEnergies  = new double[fNumSamplingPrimEnergies];
-  fLSamplingPrimEnergies = new double[fNumSamplingPrimEnergies];
-  fPrimEnLMin    = std::log(fMinPrimEnergy);
-  double delta   = std::log(fMaxPrimEnergy/fMinPrimEnergy)/(fNumSamplingPrimEnergies-1.0);
-  fPrimEnILDelta = 1.0/delta;
-  fSamplingPrimEnergies[0]  = fMinPrimEnergy;
-  fLSamplingPrimEnergies[0] = fPrimEnLMin;
-  fSamplingPrimEnergies[fNumSamplingPrimEnergies-1]  = fMaxPrimEnergy;
-  fLSamplingPrimEnergies[fNumSamplingPrimEnergies-1] = std::log(fMaxPrimEnergy);
-  for (int i=1; i<fNumSamplingPrimEnergies-1; ++i){
-    fLSamplingPrimEnergies[i] = fPrimEnLMin+i*delta;
-    fSamplingPrimEnergies[i]  = std::exp(fPrimEnLMin+i*delta);
-//    std::cerr<<" E("<<i<<") = "<<fSamplingPrimEnergies[i]/geant::MeV<< " [MeV]"<<std::endl;
-  }
-  // - get number of different e- production cuts
-  // - allocate space and fill the global to local material-cut index map
-  const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-  int numMaterialCuts = theMaterialCutsTable.size();
-  if (fGlobalMatCutIndxToLocal) {
-    delete [] fGlobalMatCutIndxToLocal;
-    fGlobalMatCutIndxToLocal = nullptr;
-  }
-  fGlobalMatCutIndxToLocal = new int[numMaterialCuts];
-  //std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
 
-  // count diffenet e- production cuts and set the global to local mat-cut index map
-  int oldnumDif = fNumDifferentElecCuts;
-  int oldnumSPE = fNumSamplingPrimEnergies;
-  fNumDifferentElecCuts = 0;
-  for (int i=0; i<numMaterialCuts; ++i) {
-    // if the current MaterialCuts does not belong to the current active regions
-    if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
-      fGlobalMatCutIndxToLocal[i] = -1;
-      continue;
-    }
-    bool isnew = true;
-    int j = 0;
-    for (; j<fNumDifferentElecCuts; ++j) {
-      if (theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1]==theMaterialCutsTable[j]->GetProductionCutsInEnergy()[1]) {
-        isnew = false;
-        break;
-      }
-    }
-    if (isnew) {
-      fGlobalMatCutIndxToLocal[i] = fNumDifferentElecCuts;
-      ++fNumDifferentElecCuts;
-    } else {
-      fGlobalMatCutIndxToLocal[i] = fGlobalMatCutIndxToLocal[j];
-    }
+double MollerBhabhaIonizationModel::MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle*) const {
+  double mine = (matcut->GetProductionCutsInEnergy())[1]; // e- production cut in the material-cut
+  // in case of e- e- interaction the minimum primary energy is 2x the e- production cut
+  if (fIsElectron) {
+    mine += mine;
   }
-
-  // std::cerr<<" === Number of local e- cuts = "<<fNumDifferentElecCuts<<std::endl;
-  // allocate space for the different e- cut sampling tables and init these pointers to null
-  if (fAliasData) {
-    for (int i=0; i<oldnumDif; ++i) {
-      for (int j=0; j<oldnumSPE; ++j) {
-        int indx = i*oldnumSPE+j;
-        if (fAliasData[indx]) {
-          delete [] fAliasData[indx]->fXdata;
-          delete [] fAliasData[indx]->fYdata;
-          delete [] fAliasData[indx]->fAliasW;
-          delete [] fAliasData[indx]->fAliasIndx;
-          delete fAliasData[indx];
-        }
-      }
-    }
-    delete [] fAliasData;
-  }
-  int *isdone = new int[fNumDifferentElecCuts]();
-  // as many POSSIBLE alias table as (number of primary enery grig point)x(number of different e- cuts)
-  // some of them (those that are kinematically not allowed will remain nullptr!!!)
-  int  idum  = fNumDifferentElecCuts*fNumSamplingPrimEnergies;
-  fAliasData = new LinAlias*[idum];
-  for (int i=0; i<idum; ++i)
-    fAliasData[i] = nullptr;
-
-  for (int i=0; i<numMaterialCuts; ++i) {
-    //std::cerr<<"   See if Material +  e-cut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  e- cut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1]<<std::endl;
-    int localindx = fGlobalMatCutIndxToLocal[i];
-    if (localindx<0) {
-      continue;
-    }
-    int ialias    = localindx*fNumSamplingPrimEnergies;
-    if (!isdone[localindx]) { // init for this e- cut if it has not been done yet
-//       std::cerr<<"   -> Will init for Material  - e-cut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  e- cut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1]<<std::endl;
-       BuildOneLinAlias(ialias, theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1]);
-       isdone[localindx] = 1;
-    }
-  }
-  delete [] isdone;
-  // test
-//  for (int i=0; i<numMaterialCuts; ++i)
-//    std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatCutIndxToLocal[i] <<std::endl;
+  return mine;
 }
 
-// build alias tables over the fSamplingPrimEnergies primary particle kinetic energy grid (only at the kinematically
-// allowed e- production cut -- primary kinetic energy combinations) for the given e- production cut energy
-void MollerBhabhaIonizationModel::BuildOneLinAlias(int ialias, double elecprodcut) {
-  // go for the predefined kinetic eneries
-  for (int iprimener=0; iprimener<fNumSamplingPrimEnergies; ++iprimener) {
-    double primener = fSamplingPrimEnergies[iprimener]; // current primary kinetic energy
-    //double tmin     = elecprodcut; // minimum kinetic energy transferable to the scattered e-
-    double tmax     = primener;    // minimum kinetic energy transferable to the scattered e-
-    if (fIsElectron) {
-      tmax *= 0.5;
-    }
-    // check if it is a kinematically allowed primary-energy & e- production cut combination
-    // - build the alias table if yes
-    // - leave this alias tabe array point to be nullptr otherwise
-    if (tmax>elecprodcut) {
-      // create the alias data struct
-      fAliasData[ialias] = new LinAlias();
-      fAliasData[ialias]->fNumdata   = fNumSamplingElecEnergies;
-      fAliasData[ialias]->fXdata     = new double[fNumSamplingElecEnergies]();
-      fAliasData[ialias]->fYdata     = new double[fNumSamplingElecEnergies]();
-      fAliasData[ialias]->fAliasW    = new double[fNumSamplingElecEnergies]();
-      fAliasData[ialias]->fAliasIndx = new    int[fNumSamplingElecEnergies]();
-      // fill the x-scale i.e. the transformed xi variable values that are \in [0,1]
-      // and the corresponding scattered e- distribution
-      double adum = 1.0/(fNumSamplingElecEnergies-1.0);
-      for (int i=0; i<fNumSamplingElecEnergies; ++i) {
-        double xi = i*adum;
-        if (i==0) {
-          xi = 0.0;
-        } else if (i==fNumSamplingElecEnergies-1) {
-          xi = 1.0;
-        }
-        fAliasData[ialias]->fXdata[i]   = xi;
-        if (fIsElectron)
-          fAliasData[ialias]->fYdata[i] = ComputeMollerPDF(xi, elecprodcut, primener);
-        else
-          fAliasData[ialias]->fYdata[i] = ComputeBhabhaPDF(xi, elecprodcut, primener);
-      }
-      // init the alias data structure for this table
-      fAliasSampler->PreparLinearTable(fAliasData[ialias]->fXdata, fAliasData[ialias]->fYdata,
-                                       fAliasData[ialias]->fAliasW, fAliasData[ialias]->fAliasIndx,
-                                       fNumSamplingElecEnergies);//fAliasData[ialias]->fNumdata);
-    }
-    ++ialias;
-  }
-}
+
+
 
 
 /**
@@ -504,30 +236,30 @@ void MollerBhabhaIonizationModel::BuildOneLinAlias(int ialias, double elecprodcu
  *
  * (\f$^*\f$see more about \f$I\f$ and \f$\delta\f$ at MaterialProperties)
  */
-double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, double prodcutenergy, double particleekin) {
+double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, const double pcutenergy, const double primekin) {
   constexpr double factor     = geant::kTwoPi*geant::kClassicElectronRadius*geant::kClassicElectronRadius*geant::kElectronMassC2;
   const double twolog10inv    = 1.0/(2.0*std::log(10.0));
   // get the material properties
   MaterialProperties *matProp = mat->GetMaterialProperties();
   // get the electron denisty of the material
-  double elDensity     = matProp->GetTotalNumOfElectronsPerVol();
-  // get the mean excitation energy
-  double meanExcEnergy = matProp->GetMeanExcitationEnergy();
+  const double elDensity      = matProp->GetTotalNumOfElectronsPerVol();
   // effective atomic number for the kinetic energy threshold computation
-  double effZ          = matProp->GetTotalNumOfElectronsPerVol()/matProp->GetTotalNumOfAtomsPerVol();
+  const double effZ           = matProp->GetTotalNumOfElectronsPerVol()/matProp->GetTotalNumOfAtomsPerVol();
   // compute the kinetic energy threshold
-  double kineTh        = 0.25*std::sqrt(effZ)*geant::keV;
+  const double kineTh         = 0.25*std::sqrt(effZ)*geant::keV;
+  // get the mean excitation energy
+  double meanExcEnergy  = matProp->GetMeanExcitationEnergy();
   // set kinetic energy
-  double kineticEnergy = particleekin;
+  double kineticEnergy = primekin;
   if (kineticEnergy<kineTh) {
     kineticEnergy = kineTh;
   }
   // set other parameters
-  double tau       = kineticEnergy/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
-  double gamma     = tau + 1.0;       // = E_t/(mc^2)  i.e. E_t in (mc^2) units
-  double gamma2    = gamma*gamma;     // \gamma^2 = [E_t/(mc^2)]^2
-  double betagama2 = tau*(tau+2.0);   // = (\beta * \gamma)^2 = (P_t/(mc^2))^2 i.e. [P_t in (mc^2) units]^2
-  double beta2     = betagama2/gamma2;// \beta2 i.e. [P_t/E_t]^2
+  const double tau       = kineticEnergy/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+  const double gamma     = tau + 1.0;       // = E_t/(mc^2)  i.e. E_t in (mc^2) units
+  const double gamma2    = gamma*gamma;     // \gamma^2 = [E_t/(mc^2)]^2
+  const double betagama2 = tau*(tau+2.0);   // = (\beta * \gamma)^2 = (P_t/(mc^2))^2 i.e. [P_t in (mc^2) units]^2
+  const double beta2     = betagama2/gamma2;// \beta2 i.e. [P_t/E_t]^2
   meanExcEnergy   /= geant::kElectronMassC2;  // mean excitation energy in (mc^2) units
   meanExcEnergy   *= meanExcEnergy;
   // set maximum kinetic energy (in mc^2 units) that can be transformed to a free electron
@@ -537,7 +269,7 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, do
   }
   // set upper limit of tau: upper limit of the integral corresponding to the continuous part i.e.
   // min(e-/e+ production cut energy, maximum kinetic energy transfer) in mc^2 units
-  double tauUpLim  = prodcutenergy/geant::kElectronMassC2;
+  double tauUpLim  = pcutenergy/geant::kElectronMassC2;
   if (tauUpLim>taumax) {
     tauUpLim = taumax;
   }
@@ -549,10 +281,10 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, do
     dedx = std::log((tau-tauUpLim)*tauUpLim) + tau/(tau-tauUpLim)
            + (0.5*tauUpLim*tauUpLim + (2.0*tau + 1.0)*std::log(1.0-tauUpLim/tau))/gamma2 - 1.0 - beta2;
   } else {
-    double tauUpLim2 = tauUpLim*tauUpLim*0.5;   // \tau_up^2/2
-    double tauUpLim3 = tauUpLim2*tauUpLim/1.5;  // \tau_up^3/3
-    double tauUpLim4 = tauUpLim3*tauUpLim*0.75; // \tau_up^4/4
-    double y         = 1.0/(1.0 + gamma);
+    const double tauUpLim2 = tauUpLim*tauUpLim*0.5;   // \tau_up^2/2
+    const double tauUpLim3 = tauUpLim2*tauUpLim/1.5;  // \tau_up^3/3
+    const double tauUpLim4 = tauUpLim3*tauUpLim*0.75; // \tau_up^4/4
+    const double y         = 1.0/(1.0 + gamma);
     dedx = std::log(tau*tauUpLim) - beta2*(tau + 2.0*tauUpLim - y*(3.0*tauUpLim2 + y*(tauUpLim - tauUpLim3
            + y*(tauUpLim2 - tau*tauUpLim3 + tauUpLim4))))/tau;
   }
@@ -564,33 +296,247 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, do
   // apply the multiplicative factor to get the final dE/dx
   dedx        *= factor*elDensity/beta2;
   // very low energy extrapolation
-  if (particleekin<kineTh) {
-    dumx = particleekin/kineTh;
+  if (primekin<kineTh) {
+    dumx = primekin/kineTh;
     if (dumx>0.25) {
       dedx /= std::sqrt(dumx);
     } else {
       dedx *= 1.4*std::sqrt(dumx)/(dumx+0.1);
     }
   }
-  // final check
-  if (dedx<0.0) {
-    dedx = 0.0;
+  return std::max(dedx,0.0);
+}
+
+
+double MollerBhabhaIonizationModel::ComputeXSectionPerAtom(const Element *elem, const Material* /*mat*/,
+                                                           const double pcutenergy, const double primekin) {
+  const double xsec = elem->GetZ()*ComputeXSectionPerElectron(pcutenergy, primekin);
+  return std::max(xsec,0.0);
+}
+
+
+double MollerBhabhaIonizationModel::ComputeXSectionPerVolume(const Material *mat, const double pcutenergy,
+                                                             const double primekin) {
+  const double elDensity = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
+  const double xsec      = elDensity*ComputeXSectionPerElectron(pcutenergy, primekin);
+  return std::max(xsec,0.0);
+}
+
+
+/**
+  *  The sampling is based on the sampling tables prepared at initialisation. Statistical interpolation is used to
+  *  select one of the primary particle kinetic energy grid points out of \f$ E_i \leq E_{kin} < E_{i+1}\f$ (linear
+  *  interpolation in log kinetic energy) at a given primary particle kinetic energy \f$E_{kin}\f$. Then the transformed
+  *  variable \f$\xi\in[0,1]\f$ is sampled from the sampling table (prepared at initialisation) that belongs to the
+  *  selected primary particle kinetic energy grid point. The kinetic energy transfered to the electron \f$T\f$ then is
+  *  obtained by applying the following transformation:
+  *  \f[
+  *     T =
+  *     \begin{cases}
+  *      T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})} & \textrm{in case of Moller scattering }[e^-+e^-\to e^-+e^-]\\
+  *      T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}    & \textrm{in case of Bhabha scattering }[e^++e^-\to e^++e^-]
+  *     \end{cases}
+  *  \f]
+  *  where \f$E_{kin}\f$ is the current primary particle (i.e. e-/e+) kinetic energy and \f$T_{cut}^{e-}\f$ is the
+  *  current electron kinetic energy production threshold.
+  */
+double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
+                                                         const double r1, const double r2, const double r3) {
+  const double elProdCut = matcut->GetProductionCutsInEnergy()[1]; // e- production cut
+  const int  mcIndxLocal = fGlobalMatECutIndxToLocal[matcut->GetIndex()];
+  // determine electron energy lower grid point
+  const double lPrimEkin = std::log(primekin);
+  //
+  int indxPrimEkin = fSamplingTables[mcIndxLocal]->fNData-1;
+  if (primekin<GetHighEnergyUsageLimit()) {
+    const double val       = (lPrimEkin-fSamplingTables[mcIndxLocal]->fLogEmin)*fSamplingTables[mcIndxLocal]->fILDelta;
+    indxPrimEkin           = (int)val;  // lower primary electron/prositron energy bin index
+    const double pIndxHigh = val-indxPrimEkin;
+    if (r1<pIndxHigh)
+      ++indxPrimEkin;
   }
-  return dedx;
+  // sample the transformed variable
+  const LinAlias *als = fSamplingTables[mcIndxLocal]->fAliasData[indxPrimEkin];
+  const double xi     = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
+                                                    &(als->fAliasIndx[0]), fSTNumSamplingElecEnergies, r2, r3);
+  double dum1 = std::log(primekin/elProdCut);
+  if (fIsElectron) {
+    dum1 -= 0.693147180559945; // dum1 = dum1 + log(0.5)
+  }
+  // return with the sampled kinetic energy transfered to the electron
+  return std::exp(xi*dum1)*elProdCut;
 }
 
 
-double MollerBhabhaIonizationModel::ComputeXSectionPerAtom(const Element *elem, const Material * /*mat*/, double prodcutenergy,
-                                                           double particleekin) {
-  double xsec = elem->GetZ()*ComputeXSectionPerElectron(prodcutenergy, particleekin);
-  return xsec;
+double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
+                                                        const Geant::GeantTaskData* td) {
+  const double tmin   = matcut->GetProductionCutsInEnergy()[1];
+  const double tmax   = (fIsElectron) ? (0.5*primekin) : (primekin);
+  const double xmin   = tmin/primekin;
+  const double xmax   = tmax/primekin;
+//  const double tau    = primekin/geant::kElectronMassC2;
+  const double gamma  = primekin/geant::kElectronMassC2 + 1.0;
+  const double gamma2 = gamma*gamma;
+  const double beta2  = 1.-1./gamma2;
+  //
+  const double xminmax = xmin*xmax;
+  //
+  double dum;
+  double deltaEkin = 0.;
+  double *rndArray = td->fDblArray;
+  if (fIsElectron) { //Moller (e-e-) scattering
+    const double gg = (2.0*gamma-1.0)/gamma2;
+    const double  y = 1.-xmax;
+    const double gf = 1.0-gg*xmax+xmax*xmax*(1.0-gg+(1.0-gg*y)/(y*y));
+    do {
+      td->fRndm->uniform_array(2, rndArray);
+      deltaEkin = xminmax/(xmin*(1.0 -rndArray[0])+xmax*rndArray[0]);
+      const double xx = 1.0-deltaEkin;
+      dum       = 1.0 - gg*deltaEkin + deltaEkin*deltaEkin*(1.0-gg+(1.0-gg*xx)/(xx*xx));
+    } while (gf*rndArray[1]>dum);
+  } else  {          //Bhabha (e+e-) scattering
+    const double y     = 1.0/(1.0+gamma);
+    const double y2    = y*y;
+    const double y12   = 1.0-2.0*y;
+    const double b1    = 2.0-y2;
+    const double b2    = y12*(3.0+y2);
+    const double y122  = y12*y12;
+    const double b4    = y122*y12;
+    const double b3    = b4+y122;
+    const double xmax2 = xmax*xmax;
+    const double gf    = 1.0 + (xmax2*b4 - xmin*xmin*xmin*b3 + xmax2*b2 - xmin*b1)*beta2;
+    do {
+      td->fRndm->uniform_array(2, rndArray);
+      deltaEkin = xminmax/(xmin*(1.0 -rndArray[0])+xmax*rndArray[0]);
+      const double xx = deltaEkin*deltaEkin;
+      dum       = 1.0 + (xx*xx*b4 - deltaEkin*xx*b3 + xx*b2 - deltaEkin*b1)*beta2;
+    } while (gf*rndArray[1]>dum);
+  }
+  deltaEkin *= primekin;
+  return deltaEkin;
 }
 
 
-double MollerBhabhaIonizationModel::ComputeXSectionPerVolume(const Material *mat, double prodcutenergy, double particleekin) {
-  double elDensity = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
-  double xsec      = elDensity*ComputeXSectionPerElectron(prodcutenergy, particleekin);
-  return xsec;
+void MollerBhabhaIonizationModel::ClearSamplingTables() {
+  size_t numST = fSamplingTables.size();
+  for (size_t i=0; i<numST; ++i) {
+    AliasDataMaterialCuts* st = fSamplingTables[i];
+    if (st) {
+      size_t numAT = st->fAliasData.size();
+      for (size_t j=0; j<numAT; ++j) {
+        LinAlias* la = st->fAliasData[j];
+        if (la) {
+          la->fXdata.clear();
+          la->fYdata.clear();
+          la->fAliasW.clear();
+          la->fAliasIndx.clear();
+          delete la;
+        }
+      }
+      st->fAliasData.clear();
+      delete st;
+    }
+  }
+  fSamplingTables.clear();
+}
+
+
+void MollerBhabhaIonizationModel::InitSamplingTables() {
+  // clear all sampling tables (if any)
+  ClearSamplingTables();
+  // determine global-to-local matcut indices:
+  // - get number of different electron cuts (pdf do not depend on material nor on Z)
+  // - allocate space and fill the global to local material-cut index map
+  const std::vector<MaterialCuts*> &theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
+  int numMaterialCuts      = theMaterialCutsTable.size();
+  int numDifferentMatECuts = 0;
+  fGlobalMatECutIndxToLocal.resize(numMaterialCuts,-2);
+  for (int i=0; i<numMaterialCuts; ++i) {
+    // if the current MaterialCuts does not belong to the current active regions
+    if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
+      continue;
+    }
+    bool isnew = true;
+    int j = 0;
+    for (; j<numDifferentMatECuts; ++j) {
+      if (theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1]==theMaterialCutsTable[j]->GetProductionCutsInEnergy()[1]) {
+        isnew = false;
+        break;
+      }
+    }
+    if (isnew) {
+     fGlobalMatECutIndxToLocal[i] = numDifferentMatECuts;
+     ++numDifferentMatECuts;
+    } else {
+      fGlobalMatECutIndxToLocal[i] = fGlobalMatECutIndxToLocal[j];
+    }
+  }
+  fSamplingTables.resize(numDifferentMatECuts,nullptr);
+  // create an AliasTable object
+  if (fAliasSampler) {
+    delete fAliasSampler;
+  }
+  fAliasSampler = new AliasTable();
+  // build tables per material-cuts
+  for (int i=0; i<numMaterialCuts; ++i) {
+    const MaterialCuts *matCut = theMaterialCutsTable[i];
+    int indxLocal = fGlobalMatECutIndxToLocal[i];
+    if (indxLocal>-1 && !(fSamplingTables[indxLocal])) {
+      BuildSamplingTableForMaterialCut(matCut, indxLocal);
+    }
+  }
+}
+
+
+void MollerBhabhaIonizationModel::BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal) {
+  const double ecut   = (matcut->GetProductionCutsInEnergy())[1];
+  const double minPrimEnergy = std::max(MinimumPrimaryEnergy(matcut,nullptr),GetLowEnergyUsageLimit());
+  const double maxPrimEnergy = GetHighEnergyUsageLimit();
+  if (minPrimEnergy>=maxPrimEnergy) {
+    return;
+  }
+  double edge = ecut;
+  if (fIsElectron) {
+    edge += edge;
+  }
+  //
+  // compute number of e-/e+ kinetic energy grid
+  int numPrimEnergies  = fSTNumPrimaryEnergyPerDecade*std::lrint(std::log10(maxPrimEnergy/minPrimEnergy))+1;
+  numPrimEnergies      = std::max(numPrimEnergies,3);
+  double logEmin       = std::log(minPrimEnergy);
+  double delta         = std::log(maxPrimEnergy/minPrimEnergy)/(numPrimEnergies-1.0);
+  AliasDataMaterialCuts *dataMatCut = new AliasDataMaterialCuts(numPrimEnergies, logEmin, 1./delta);
+  fSamplingTables[indxlocal] = dataMatCut;
+  for (int ipe=0; ipe<numPrimEnergies; ++ipe) {
+    double pekin = std::exp(logEmin+ipe*delta);
+    if (ipe==0 && minPrimEnergy==edge) {
+      pekin = minPrimEnergy+1.*geant::eV; // would be zero otherwise
+    }
+    if (ipe==numPrimEnergies-1) {
+      pekin = maxPrimEnergy;
+    }
+    // create the alias data struct
+    LinAlias *als = new LinAlias(fSTNumSamplingElecEnergies);
+    const double adum = 1.0/(fSTNumSamplingElecEnergies-1.0);
+    for (int i=0; i<fSTNumSamplingElecEnergies; ++i) {
+      double xi = i*adum;
+      if (i==0) {
+        xi = 0.0;
+      } else if (i==fSTNumSamplingElecEnergies-1) {
+        xi = 1.0;
+      }
+      als->fXdata[i] = xi;
+      if (fIsElectron) {
+        als->fYdata[i] = ComputeMollerPDF(xi, ecut, pekin);
+      } else {
+        als->fYdata[i] = ComputeBhabhaPDF(xi, ecut, pekin);
+      }
+    }
+    //
+    fAliasSampler->PreparLinearTable(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                     fSTNumSamplingElecEnergies);
+    fSamplingTables[indxlocal]->fAliasData[ipe] = als;
+  }
 }
 
 
@@ -660,47 +606,49 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerVolume(const Material *mat
  * \f$ T_{pcut}^{e^-} \f$ and \f$E_{kin}\f$ i.e. the post interaction positron kinetic energy can be lower than
  * \f$ T_{pcut}^{e^-} \f$.
  */
-double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(double prodcutenergy, double particleekin) {
+double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcutenergy, const double primekin) {
+  constexpr double xsecFactor = geant::kTwoPi*geant::kClassicElectronRadius*geant::kClassicElectronRadius
+                               *geant::kElectronMassC2;
   // secondary e- produced only above production cut energy T_c:
   //   - for Moller scattering: kinetic energy of incident e- should be higher than 2T_c
   //   - for Bhabha scattering: kinetic energy of incident e+ should be higher than T_c
   // otherwise the discrete restricted cross section is zero.
-  double maxEkin = particleekin;
+  double maxEkin = primekin;
   if (fIsElectron) {
     maxEkin *= 0.5;
   }
   double xsec = 0.0;
-  if (maxEkin>prodcutenergy) {
+  if (maxEkin>pcutenergy) {
     //set min/max energies in incoming particle kinetic energy unit
-    double epsmin = prodcutenergy/particleekin;
-    double epsmax = maxEkin/particleekin;
+    const double epsmin = pcutenergy/primekin;
+    const double epsmax = maxEkin/primekin;
     // set other parameters
-    double tau       = particleekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
-    double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
-    double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
-    double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
+    const double tau       = primekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+    const double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
+    const double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
+    const double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
     if (fIsElectron) { // Moller scattering i.e. e- + e- -> e- + e-
-      double parC = (2.0*gamma-1.0)/gamma2;
-      xsec        = (epsmax-epsmin)*(1.0-parC + 1.0/(epsmin*epsmax) + 1.0/((1.0-epsmin)*(1.0-epsmax)))
-                    - parC*std::log((epsmax*(1.0-epsmin))/(epsmin*(1.0-epsmax)));
+      const double parC = (2.0*gamma-1.0)/gamma2;
+      xsec  = (epsmax-epsmin)*(1.0-parC + 1.0/(epsmin*epsmax) + 1.0/((1.0-epsmin)*(1.0-epsmax)))
+              - parC*std::log((epsmax*(1.0-epsmin))/(epsmin*(1.0-epsmax)));
       xsec /= beta2;
     } else {           // Bhabha scattering i.e. e+ + e- -> e+ + e-
-      double y     = 1.0/(1.0+gamma);
-      double y2    = y*y;
-      double ydum  = 1.0-2.0*y;
-      double ydum2 = ydum*ydum;
-      double b1    = 2.0-y2;
-      double b2    = ydum*(3.0+y2);
-      double b4    = ydum*ydum2;
-      double b3    = b4+ydum2;
-      double e1e2  = epsmin*epsmax;
-      double e1pe2 = epsmin+epsmax;
-      xsec         = (epsmax-epsmin)*(1.0/(beta2*e1e2) + b2 - 0.5*b3*e1pe2 + b4*(e1pe2*e1pe2-e1e2)/3.0)
-                     - b1*std::log(epsmax/epsmin);
+      const double y     = 1.0/(1.0+gamma);
+      const double y2    = y*y;
+      const double ydum  = 1.0-2.0*y;
+      const double ydum2 = ydum*ydum;
+      const double b1    = 2.0-y2;
+      const double b2    = ydum*(3.0+y2);
+      const double b4    = ydum*ydum2;
+      const double b3    = b4+ydum2;
+      const double e1e2  = epsmin*epsmax;
+      const double e1pe2 = epsmin+epsmax;
+      xsec  = (epsmax-epsmin)*(1.0/(beta2*e1e2) + b2 - 0.5*b3*e1pe2 + b4*(e1pe2*e1pe2-e1e2)/3.0)
+              - b1*std::log(epsmax/epsmin);
     }
   }
-  xsec *= geant::kTwoPi*geant::kClassicElectronRadius*geant::kClassicElectronRadius*geant::kElectronMassC2/particleekin;
-  return xsec;
+  xsec *= xsecFactor/primekin;
+  return std::max(xsec,0.0);
 }
 
 
@@ -755,20 +703,19 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(double prodcutene
   *  \f$\xi\f$ the kinetic energy transfer can be obtained as \f$T=T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})}\f$.
   *
   */
-double MollerBhabhaIonizationModel::ComputeMollerPDF(double xi, double prodcutenergy, double particleekin) {
-  double tau       = particleekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
-  double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
-  double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
+double MollerBhabhaIonizationModel::ComputeMollerPDF(const double xi, const double pcutenergy, const double primekin) {
+  const double tau       = primekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+  const double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
+  const double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
   //double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
-  double C1        = (gamma-1.0)/gamma;
+  double C1              = (gamma-1.0)/gamma;
   C1 *=C1;
-  double C2        = (2.0*gamma-1.0)/gamma2;
+  const double C2        = (2.0*gamma-1.0)/gamma2;
 
-  double dum0      = prodcutenergy/particleekin;
-  double dum1      = std::log(0.5/dum0);
-  double a         = std::exp(xi*dum1)*dum0; // this is eps =  exp(xi*ln(0.5*T_0/T_cut))*T_cut/T_0
-  double b         = 1.0-a;                  // eps'
-
+  const double dum0      = pcutenergy/primekin;
+  const double dum1      = std::log(0.5/dum0);
+  const double a         = std::exp(xi*dum1)*dum0; // this is eps =  exp(xi*ln(0.5*T_0/T_cut))*T_cut/T_0
+  const double b         = 1.0-a;                  // eps'
   return ((1.0/a-C2)+a*C1+a/b*(1.0/b-C2)) *dum0; // xdum0 is just scaling; this is the shape
 }
 
@@ -823,25 +770,26 @@ double MollerBhabhaIonizationModel::ComputeMollerPDF(double xi, double prodcuten
   *  \f$\xi\f$ the kinetic energy transfer can be obtained as \f$T=T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}\f$.
   *
   */
-double MollerBhabhaIonizationModel::ComputeBhabhaPDF(double xi, double prodcutenergy, double particleekin) {
-  double tau       = particleekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
-  double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
-  double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
-  double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
-  double y         = 1.0/(1.0+gamma);
-  double y2        = y*y;
-  double ydum      = 1.0-2.0*y;
-  double ydum2     = ydum*ydum;
-  double b1        = 2.0-y2;
-  double b2        = ydum*(3.0+y2);
-  double b4        = ydum*ydum2;
-  double b3        = b4+ydum2;
+double MollerBhabhaIonizationModel::ComputeBhabhaPDF(const double xi, const double pcutenergy, const double primekin) {
+  const double tau       = primekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+  const double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
+  const double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
+  const double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
+  const double y         = 1.0/(1.0+gamma);
+  const double y2        = y*y;
+  const double ydum      = 1.0-2.0*y;
+  const double ydum2     = ydum*ydum;
+  const double b1        = 2.0-y2;
+  const double b2        = ydum*(3.0+y2);
+  const double b4        = ydum*ydum2;
+  const double b3        = b4+ydum2;
 
-  double dum0      = prodcutenergy/particleekin;
-  double dum1      = std::log(1.0/dum0);
-  double a         = std::exp(xi*dum1)*dum0; // this is eps =  = exp(xi*ln(T_0/T_cut))*T_cut/T_0
+  const double dum0      = pcutenergy/primekin;
+  const double dum1      = std::log(1.0/dum0);
+  const double a         = std::exp(xi*dum1)*dum0; // this is eps =  = exp(xi*ln(T_0/T_cut))*T_cut/T_0
 
   return ((1.0/(a*beta2)-b1) + a*(b2+a*(a*b4-b3)));//
 }
 
-} // namespace geantphysics
+
+}  // namespace geantphysics

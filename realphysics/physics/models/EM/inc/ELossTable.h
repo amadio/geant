@@ -29,6 +29,7 @@ class PhysicsParameters;
 class EMPhysicsProcess;
 class MaterialCuts;
 class Particle;
+class GLIntegral;
 class Spline;
 
 class ELossTable {
@@ -336,6 +337,7 @@ private:
 
 
   bool        fIsComputeCSDARange;
+  int         fNGL;
   int         fNumLossTableBins;
   double      fMinLossTableEnergy;
   double      fMaxLossTableEnergy;
@@ -390,6 +392,8 @@ private:
   //                                       different set of regions where this ELossTable is active
   // The stored ELossData* are shared with fELossDataPerMaterialCutsPerParticle and deleted properly when that is cleared.
   std::vector<std::vector<ELossData*> > fELossDataPerMaterialPerParticle;
+
+  GLIntegral   *fGL;
 };
 
 }  // namespace geantphysics

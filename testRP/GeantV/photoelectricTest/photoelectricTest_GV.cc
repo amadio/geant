@@ -343,7 +343,7 @@ int main(int argc, char *argv[]) {
         atomicCrossSection  = emModel->ComputeXSectionPerAtom(elem, matCut, kineticEnergy, particle);
 
     }
-    
+
     //UNCOMMENT TO TEST CrossSectionPerVolume method
     //clock_t  start = clock();
     //for (int i= 0; i<stat; i++)
@@ -351,7 +351,7 @@ int main(int argc, char *argv[]) {
     macroscopicCrossSection = emModel->ComputeMacroscopicXSection(matCut, kineticEnergy, particle);
     //clock_t  end = clock();
     //std::cout<<"ComputeMacroscopicXSection ex-time: "<<(end-start)/(double(CLOCKS_PER_SEC))<<std::endl;
-    
+
     //
     // print out integrated quantities:
     // -atomic cross section
@@ -554,7 +554,7 @@ double CalculateDiffCrossSection(double tau, double cosTheta)
 // implementation of the final state distribution sampling
 
 double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Particle *primParticle,
-                          EMModel *emModel, Hist *histo1, Hist *histo2, Hist *histo3) {
+                          EMModel *emModel, Hist *histo1, Hist *histo2, Hist* /*histo3*/) {
 
 
     double ekin       = primaryEnergy;

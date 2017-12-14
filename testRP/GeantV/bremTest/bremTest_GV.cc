@@ -81,6 +81,7 @@ using userapplication::Hist;
 static std::string   particleName("e-");                  // primary particle is electron
 static std::string   materialName("NIST_MAT_Pb");         // material is lead
 static std::string   bremModelName("bremSB");             // name of the bremsstrahlung model to test
+static bool          isUseRejection    = false;           // use rejection sampling instead of sampling tables
 static int           numHistBins       = 100;             // number of histogram bins between min/max values
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 0.1;             // primary particle energy in [GeV]
@@ -91,6 +92,7 @@ static struct option options[] = {
   {"particle-name     (possible particle names: e-, e+)                        - default: e-"                 , required_argument, 0, 'p'},
   {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"        , required_argument, 0, 'm'},
   {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.1"                , required_argument, 0, 'E'},
+  {"sampling-type     (flag to switch to rejection sampling)                   - default: no"                 , no_argument      , 0, 'r'},
   {"number-of-samples (number of required final state samples)                 - default: 1.e+7"              , required_argument, 0, 'f'},
   {"number-of-bins    (number of bins in the histogram)                        - default: 100"                , required_argument, 0, 'n'},
   {"model-name        (bremSB, bremRel)                                        - default: bremSB"             , required_argument, 0, 'b'},
@@ -117,7 +119,7 @@ int main(int argc, char *argv[]) {
   //============================== Get input parameters =====================================//
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "eh:m:E:f:n:c:p:b:", options, &optidx);
+    c = getopt_long(argc, argv, "erh:m:E:f:n:c:p:b:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
@@ -127,13 +129,16 @@ int main(int argc, char *argv[]) {
     case 'm':
        materialName = optarg;
        break;
+    case 'r':
+      isUseRejection = true;
+      break;
     case 'E':
-      primaryEnergy = (double)strtof(optarg, NULL);
+      primaryEnergy = strtod(optarg, NULL);
       if (primaryEnergy<=0)
         errx(1, "primary particle energy must be positive");
       break;
     case 'f':
-      numSamples = (double)strtof(optarg, NULL);
+      numSamples = strtod(optarg, NULL);
       if (numSamples<=0)
         errx(1, "number of final state samples must be positive");
       break;
@@ -143,7 +148,7 @@ int main(int argc, char *argv[]) {
         errx(1, "number of histogram bins must be positive");
       break;
     case 'c':
-      prodCutValue = (double)strtof(optarg, NULL);
+      prodCutValue = strtod(optarg, NULL);
       if (prodCutValue<=0)
         errx(1, "production cut value must be positive");
       break;
@@ -255,6 +260,7 @@ int main(int argc, char *argv[]) {
     emModel->SetLowEnergyUsageLimit (  1.0*geant::GeV);
     emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
   }
+  emModel->SetUseSamplingTables(!isUseRejection);
   //
   //*******************************************************************************************//
 
@@ -298,6 +304,8 @@ int main(int argc, char *argv[]) {
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  std::cout<< "   Rejection ?    =  " << isUseRejection << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;  
   // check if we compute atomic-cross section: only for single elemnt materials
   bool isSingleElementMaterial = false;
   if (matCut->GetMaterial()->GetNumberOfElements()==1) {

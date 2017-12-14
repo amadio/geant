@@ -65,9 +65,9 @@
 #pragma link C++ class geantphysics::EMElementSelector+;
 #pragma link C++ class geantphysics::EMModel+;
 #pragma link C++ class geantphysics::EMModelManager+;
-#pragma link C++ class geantphysics::MollerBhabhaIonizationModel+;
-#pragma link C++ class geantphysics::RelativisticBremsModel+;
-#pragma link C++ class geantphysics::SeltzerBergerBremsModel+;
+// #pragma link C++ class geantphysics::MollerBhabhaIonizationModel+;
+// #pragma link C++ class geantphysics::RelativisticBremsModel+;
+// #pragma link C++ class geantphysics::SeltzerBergerBremsModel+;
 #pragma link C++ class geantphysics::SauterGavrilaPhotoElectricModel+;
 #pragma link C++ class geantphysics::HadronicCrossSection+;
 #pragma link C++ class geantphysics::HadronicCrossSectionStore+;

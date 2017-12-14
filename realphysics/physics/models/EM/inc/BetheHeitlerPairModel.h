@@ -21,6 +21,7 @@ namespace geantphysics {
 }
 
 #include <string>
+#include <vector>
 
 namespace geantphysics {
 /**
@@ -62,7 +63,7 @@ public:
   */
   BetheHeitlerPairModel(const std::string &modelname="PairBetheHeitler");
   /** @brief Destructor. */
-  ~BetheHeitlerPairModel();
+  virtual ~BetheHeitlerPairModel();
 //@}
 
 /**
@@ -115,33 +116,17 @@ public:
 //@}
 
 
-/**
-* @name Model specific public methods for customize sampling tables (if they are used):
-*/
-//@{
-  /** @brief Public method to set the number of primary photon energy grid points per decade for sampling tables.
-    *        Will be used only if sampling tables were required and must be set before initialisation.
-    */
-  int   GetNumberOfPhotonEnergiesPerDecade()   const { return fNumSamplingPrimEnergiesPerDecade; }
-  /** @brief Public method to get the number of primary photon energy grid points per decade for sampling tables.*/
-  void  SetNumberOfPhotonEnergiesPerDecade(int val)  { fNumSamplingPrimEnergiesPerDecade = val;  }
-  /** @brief Public method to set the number of discrete samples used by the sampling tables.
-    *        Will be used only if sampling tables were required and must be set before initialisation.
-    */
-  int   GetNumberOfDiscretePDFSamples()        const { return fNumSamplingEnergies;              }
-  /** @brief Public method to get the number of discrete samples used by the sampling tables.*/
-  void  SetNumberOfDiscretePDFSamples(int val)       { fNumSamplingEnergies = val;               }
-//@}
-
 
 private:
+  /** @brief Copy constructor  (deleted) */
+  BetheHeitlerPairModel(const BetheHeitlerPairModel&) = delete;
+  /** @brief Operator=  (deleted) */
+  BetheHeitlerPairModel &operator=(const BetheHeitlerPairModel&) = delete;
+
 /**
 * @name Model specific private methods.
 */
 //@{
-  /** @brief Internal method to initilise the model.*/
-  void   InitialiseModel();
-
   /**
    * @brief Internal method to compute parametrized atomic cross section of gammas conversion into e-/e+ pair
    *        for a given target atom, gamma particle kinetic energy.
@@ -161,10 +146,9 @@ private:
    *
    * Sampling tables are built at initialization for all target elements that belongs to materials that appear in
    * regions in which the model is active if sampling tables were requested. First the common, discrete, primary photon
-   * energy grid is generated between #fMinPrimEnergy and #fMaxPrimEnergy using #fNumSamplingPrimEnergies discrete
-   * points on log-linear scale. Then sampling tables are built for each element at all dicrete primary photon energies
-   * that are stored in separate #RatinAliasDataPerElement data structures for the different target elements. Such data
-   * structures for all possible target elements will be stored in the #fRatinAliasDataForAllElements data structure.
+   * energy grid is generated between. Then sampling tables are built for each element at all dicrete primary photon
+   * energies that are stored in separate #RatinAliasDataPerElement data structures for the different target elements.
+   * Such data structures for all possible target elements will be stored in the #fSamplingTables data structure.
    */
    void InitSamplingTables();
 
@@ -172,56 +156,65 @@ private:
     * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using sampling tables
     *        prepared at initialization}.
     *
-    * @param[in] primekin Gamma photon energy in internal [energy] units.
-    * @param[in] epsmin   Minimum value of the reduced total energy transfer at the given gamma photon energy (see more at
-    *                     #ComputeDXSection() method).
-    * @param[in] zindx    Index of the target element sampling table collection in #fRatinAliasDataForAllElements (Z).
+    * @param[in] egmma    Gamma photon energy in internal [energy] units.
+    * @param[in] izet     Index of the target element sampling table collection in #fRatinAliasDataForAllElements (Z).
     * @param[in] r1       Random number distributed uniformly in [0,1].
     * @param[in] r2       Random number distributed uniformly in [0,1].
     * @param[in] r3       Random number distributed uniformly in [0,1].
     * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
     */
-   double SampleTotalEnergyTransfer(double primekin, double epsmin, int zindx, double r1, double r2, double r3);
+   double SampleTotalEnergyTransfer(const double egamma, const int izet, const double r1, const double r2, const double r3);
 
    /**
     * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
     *
-    * @param[in]  epsmin      Minimum value of the reduced total energy transfer
-    *                         \f$ \epsilon_{\text{min}}=\text{max}[\epsilon_1,\epsilon_0] \f$.
-    * @param[in]  eps0        Kinematical minimum of the reduced total energy transfer
-    *                         \f$ \epsilon_0 \equiv m_ec^2/E_{\gamma} \f$.
-    * @param[in]  deltamin    \f$ \delta_{min} \equiv \delta( \epsilon_{\text{max}}=0.5)=4x136 Z^{-1/3} \epsilon_0 \f$
-    * @param[in]  fz          The creening function \f$ F(Z) \f$ (see #ComputeDXSection()).
-    * @param[in]  deltafactor Target atom dependent constant \f$ 136 Z^{-1/3}\f$.
-    * @param[in]  td          Pointer to the GeantV thread local data object (used to get random numbers).
-    * @return                 The sampled reduced total energy transfered to one of the e-/e+ pair.
+    * @param[in] egmma    Gamma photon energy in internal [energy] units.
+    * @param[in] izet     Index of the target element sampling table collection in #fRatinAliasDataForAllElements (Z).
+    * @param[in]  td      Pointer to the GeantV thread local data object (used to get random numbers).
+    * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
     */
-   double SampleTotalEnergyTransfer(double epsmin, double eps0, double deltamin, double fz,  double deltafactor,
-                                    Geant::GeantTaskData *td);
+   double SampleTotalEnergyTransfer(const double epsmin, const int izet, const Geant::GeantTaskData *td);
 
+
+   /**
+    * @brief Internal method to compute the screening functions.
+    *
+    * @param[in,out]  phi1 Screening function value \f$ \phi(\delta)_1 \f$ .
+    * @param[in,out]  phi2 Screening function value \f$ \phi(\delta)_2 \f$ .
+    * @param[in]      delta  Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @param[in]      istsai Flag to indicate if Tsai's screening function approximation needs to be used.
+    */
+   void   ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai);
+
+   /**
+    * @brief Same as ScreenFunction1() and ScreenFunction2() at once (used in the rejection algorithm).
+    */
+   void   ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai);
 
    /**
     * @brief Internal method used in the rejection algorithm to compute the screening funtion related part.
     *
-    * @param[in] Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @param[in] delta  Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @param[in] istsai Flag to indicate if Tsai's screening function approximation needs to be used.
     * @return    \f$ 3 \Phi_1(\delta) - \Phi_2(\delta) \f$ (see more at #ComputeDXSection()).
     */
-   double ScreenFunction1(double delta);
-
+   double ScreenFunction1(const double delta, const bool istsai);
    /**
     * @brief Internal method used in the rejection algorithm to compute the screening funtion related part.
     *
-    * @param[in] Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @param[in] delta   Screening variable \f$ \delta(\epsilon) = 136 Z^{-1/3} \epsilon_0/(\epsilon(1-\epsilon)) \f$.
+    * @param[in] istsai  Flag to indicate if Tsai's screening function approximation needs to be used.
     * @return    \f$ 1.5 \Phi_1(\delta) +0.5 \Phi_2(\delta) \f$ (see more at #ComputeDXSection()).
     */
-   double ScreenFunction2(double delta);
+   double ScreenFunction2(const double delta, const bool istsai);
+
 
    /**
      * @brief Internal method to build sampling tables for a given target element at all discrete photon energies.
      *
      * @param elem Pointer to the given target element object.
      */
-   void BuildSamplingTablesForElement(const Element *elem);
+   void BuildSamplingTablesForElement(const Element *elem, const std::vector<double> &primevect);
 
    /**
      * @brief Internal method to build one sampling table for a given photon energy and target element.
@@ -231,7 +224,7 @@ private:
      * @param thepdfdata Array to store some temporary pdf values (size is fNumSamplingEnergies).
      * @param egammaindx Index of the gamma photon energy in the gamma energy grid.
      */
-   void BuildOneRatinAlias(double egamma, const Element *elem, double *thepdfdata, int egammaindx);
+   void BuildOneRatinAlias(const double egamma, const int izet, double *thepdfdata, const int egammaindx);
 
    /**
      * @brief Internal method to compute the total energy, transferd to one of the e-/e+ pair, related transformed
@@ -256,30 +249,14 @@ private:
      *  @param[in] xi           Total energy transfer related transformed variable \f$ \xi \in [0,1] \f$ when
      *                          \f$ \epsilon \in [\epsilon_{\text{min}},0.5] \f$  and  \f$ \xi(\epsilon) =
      *                               \ln[\epsilon/\epsilon_{\text{min}}]/\ln[0.5/\epsilon_{\text{min}}]\f$
+     * @param[in] istsai        Flag to indicate if Tsai's screening function approximation needs to be used.
      *  @return                 The \f$\xi\f$ depends part of the transformed DCS \f$ \left( \mathrm{d}\sigma(Z,
      *                          \epsilon(\xi))/\mathrm{d}\xi \right)^* \f$ at the given input parameters.
      */
-   double ComputeDXSection(double epsmin, double eps0, double deltafactor, double fz, double xi) ;
+   double ComputeDXSection(double epsmin, double eps0, double deltafactor, double fz, double xi);
+
+   void   ClearSamplingTables();
 //@}
-
-
-// data members
-private:
-  /** @brief Size of some containers that store data per elements (\f$ Z_{\text{max}} = gMaxZet-1)\f$. */
-  static const int gMaxZet = 120; // max Z+1
-
-  /** @brief  Internal code of the secondary e-. */
-  int fElectronInternalCode;
-  /** @brief  Internal code of the secondary e+. */
-  int fPositronInternalCode;
-
-  /** @brief Minimum photon energy at which the discrete interaction can happen:
-             \f$ E_{\gamma}^{\text{min}} = \text{max}\{2m_ec^2,\text{min-energy-usage} \} \f$
-    */
-  double fMinimumPrimaryEnergy;
-
-  /** simplified sampling below this energy limit: 2 MeV */
-  double fGammaEneregyLimit;
 
 
   /** Data collection that stores some frequently used target atom specific constants for one atom. */
@@ -296,106 +273,88 @@ private:
     double  fDeltaMaxLow;
     /** @brief \f$ \exp[(42.24-(8\ln(Z)/3+f_c))/8.368]-0.952 \f$ */
     double  fDeltaMaxHigh;
+    /** @brief \f$ 1.36\sqrt{\exp(0.5*20.863-2.-0.25*(8\ln(Z)/3))-1.}/0.55846 \f$ */
+    double  fDeltaMaxLowTsai;
+    /** @brief \f$ 1.36\sqrt{\exp(0.5*20.863-2.-0.25*(8\ln(Z)/3+8f_c))-1.}/0.55846 \f$ */
+    double  fDeltaMaxHighTsai;
   };
 
-  /** @brief Container to store target atom specific data collections (ElementData ) for all target atoms which
-    *        the model needs to respond.
-    *
-    * The size of the container will be equal to #gMaxZet. After initialisation (i.e. calling the InitialiseElementData()
-    * method) an element with index \f$Z\f$ will contain data collection for target atom with atomic number \f$ Z \f$.
-    * Only those elements will be non-nullptr that corresponds to an atom with atomic number \f$ Z \f$ that the model
-    * needs to provide response(final state): i.e. that appears in materials that belongs to regions inwhich the model
-    * is active.
+  /** @brief Internal data structure to store data that are required to sample the energy (transfered to one of the e-/e+
+    *        pair) related transformed variable by using the combination of Walker's alias method and rational
+    *        interpolation based numerical inversion of the cumulative function (by using AliasTable::SampleRatin() method).
     */
-  ElementData  **fElementData;
+  struct RatinAliasData {
+    RatinAliasData(size_t n) {
+      fXdata.resize(n); fCumulative.resize(n); fParaA.resize(n); fParaB.resize(n);
+      fAliasW.resize(n); fAliasIndx.resize(n);
+    }
+    /** @brief Total energy (transfered to one of the secondaries) related transformed variable values. */
+    std::vector<double> fXdata;
+    /** @brief The cumulative distribution function values over the energy transfer related transformed variable values.*/
+    std::vector<double> fCumulative;
+    /** @brief Interpolation parameters over the energy transfer related transformed variable values.*/
+    std::vector<double> fParaA;
+    /** @brief Interpolation parameters over the energy transfer related transformed variable values.*/
+    std::vector<double> fParaB;
+    /** @brief The alias probabilities over the energy transfer related transformed variable values.*/
+    std::vector<double> fAliasW;
+    /** @brief The alias indices over the energy transfer related transformed variable values. */
+    std::vector<int>    fAliasIndx;
+  };
+
+  /** @brief Internal data structure to store RatinAliasData for a given target element. */
+  struct RatinAliasDataPerElement {
+    RatinAliasDataPerElement(int numeprims) {
+      fRatinAliasData.resize(numeprims,nullptr);
+    }
+    /** @brief Container that stores #fSTNumPhotonEnergies pointers to RatinAliasData structure over the primary gamma
+      *         energy gird for a specific target atom built at initialisation if sampling tables were requested.
+      */
+    std::vector<RatinAliasData*> fRatinAliasData;
+  };
 
 
-/**
- * @name Members to describe the common discrete photon energy grid for sampling tables:
- *
- * These variables describe and define the primary gamma kinetic energy grid above we build sampling tables in the
- * InitSamplingTables() method for run-time samling of the total energy transferd to one particle. The min of the table
- * is set to #fMinimumPrimaryEnergy and the max is the maximum energy usage limit of the model. The number of discrete
- * gamma energy points will be determined by the value of #fNumSamplingPrimEnergiesPerDecade variable. The default value
- * is 10 and it can be changed by the user through the SetNumberOfPhotonEnergiesPerDecade() public method (must be set
- * before the the initialisation of the model!).
- */
-//@{
-  /** @brief Number of primary gamma kinetic energy grid points in [#fMinPrimEnergy,#fMaxPrimEnergy].*/
-  int fNumSamplingPrimEnergies;
-  /** @brief Number of primary gamma kinetic energy grid points per decade. */
-  int fNumSamplingPrimEnergiesPerDecade;
-  /** @brief Number of "total energy transfered to one of the secondaries" related discrete transformed variable PDF
-    *        points in [0,1].
-    */
-  int fNumSamplingEnergies;
-  /** @brief Minimum of the primary gamma kinetic energy grid. */
-  double  fMinPrimEnergy;
-  /** @brief Maximum of the primary gamma kinetic energy grid. */
-  double  fMaxPrimEnergy;
-  /** @brief Logarithm of #fMinPrimEnergy ie ln(#fMinPrimEnergy) . */
-  double  fPrimEnLMin;
-  /** @brief Inverse of the primary gamma kinetic energy grid delta ie
-    *        ln[#fMaxPrimEnergy/#fMinPrimEnergy]/(#fNumSamplingPrimEnergies-1)
-    */
-  double  fPrimEnILDelta;
-  /** @brief The logarithmically spaced primary gamma kinetic energy grid.
-    *
-    * Size of the array is #fNumSamplingPrimEnergies points in the [#fMinPrimEnergy, #fMaxPrimEnergy] interval.
-    */
-  double *fSamplingPrimEnergies;
-  /** @brief The logarithm of #fSamplingPrimEnergies grid.
-    *
-    *  Size of the array is #fNumSamplingPrimEnergies points in the [ln(#fMinPrimEnergy), ln(#fMaxPrimEnergy)] interval.
-    */
-  double *fLSamplingPrimEnergies;
-//@}
+// data members
+private:
+  /** @brief Size of some containers that store data per elements (\f$ Z_{\text{max}} = gMaxZet-1)\f$. */
+  static const long  gMaxZet = 121; // max Z+1
+  static std::vector<ElementData*>  gElementData;
 
-/** @brief Internal data structure to store data that are required to sample the energy (transfered to one of the e-/e+
-  *        pair) related transformed variable by using the combination of Walker's alias method and rational
-  *        interpolation based numerical inversion of the cumulative function (by using AliasTable::SampleRatin() method).
-  */
-struct RatinAliasData {
-  /** @brief Number of dicrete data points ie size of the arrays = #fNumSamplingEnergies. */
-  int     fNumdata;
-  double  fXiDelta1;
-  /** @brief Total energy (transfered to one of the secondaries) related transformed variable values. */
-  double *fXdata;
-  /** @brief The cumulative distribution function values over the energy transfer related transformed variable values.*/
-  double *fCumulative;
-  /** @brief Interpolation parameters over the energy transfer related transformed variable values.*/
-  double *fParaA;
-  /** @brief Interpolation parameters over the energy transfer related transformed variable values.*/
-  double *fParaB;
-  /** @brief The alias probabilities over the energy transfer related transformed variable values.*/
-  double *fAliasW;
-  /** @brief The alias indices over the energy transfer related transformed variable values. */
-  int    *fAliasIndx;
-};
+  bool   fIsUseTsaisScreening;
 
-/** @brief Internal data structure to store RatinAliasData for a given target element. */
-struct RatinAliasDataPerElement {
-  /** @brief Container that stores #fNumSamplingEnergies pointers to RatinAliasData structure over the primary gamma
-    *         energy gird #fSamplingPrimEnergies for a specific target atom built at initialisation if sampling tables
-    *         were requested.
-    *  The indices of the RatinAliasData pointers correspond to the primary gamma energies in #fSamplingPrimEnergies.
+  /** @brief  Internal code of the secondary e-. */
+  int    fElectronInternalCode;
+  /** @brief  Internal code of the secondary e+. */
+  int    fPositronInternalCode;
+
+  int    fSTNumPhotonEnergiesPerDecade;    // ST=>SamplingTables
+  int    fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
+  int    fSTNumPhotonEnergies;             // ST=>SamplingTables
+
+  double fSTLogMinPhotonEnergy;            // ST=>SamplingTables
+  double fSTILDeltaPhotonEnergy;           // ST=>SamplingTables
+
+  /** @brief Minimum photon energy at which the discrete interaction can happen:
+             \f$ E_{\gamma}^{\text{min}} = \text{max}\{2m_ec^2,\text{min-energy-usage} \} \f$
     */
-  RatinAliasData **fRatinAliasDataForOneElement;
-};
+  double fMinimumPrimaryEnergy;
 
-/** @brief Container to store pointers to RatinAliasDataPerElement data structures for all target elements that the
-  *        model needs to respond.
-  *  Size of the container is equal to #gMaxZet and indexed by the atomic number of the target elements. The
-  *  corresponding RatinAliasDataPerElement data structures are built at initialization if sampling tables were required.
-  *  Non-nullptr only at indices that corresponds to target atomic number that appears in materials that belongs to
-  *  regions in which the model is active.
-  */
-RatinAliasDataPerElement **fRatinAliasDataForAllElements;
+  /** simplified sampling below this energy limit: 2 MeV */
+  double fGammaEneregyLimit;
 
-/** @brief Pointer to an AliasTable uitility object that is used both to prepare(at initialization) and to provide
-  *        samples(at run-time) from the sampling tables. (Used only if sampling tables were required).
-  */
-AliasTable *fAliasSampler;
+  /** @brief Container to store pointers to RatinAliasDataPerElement data structures for all target elements that the
+    *        model needs to respond.
+    *  Size of the container is equal to #gMaxZet and indexed by the atomic number of the target elements. The
+    *  corresponding RatinAliasDataPerElement data structures are built at initialization if sampling tables were required.
+    *  Non-nullptr only at indices that corresponds to target atomic number that appears in materials that belongs to
+    *  regions in which the model is active.
+    */
+  std::vector<RatinAliasDataPerElement*> fSamplingTables;
+
+  /** @brief Pointer to an AliasTable uitility object that is used both to prepare(at initialization) and to provide
+    *        samples(at run-time) from the sampling tables. (Used only if sampling tables were required).
+    */
+  AliasTable *fAliasSampler;
 
 
 };

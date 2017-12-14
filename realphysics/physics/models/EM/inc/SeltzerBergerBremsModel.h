@@ -30,6 +30,7 @@ class MaterialCuts;
 class AliasTable;
 class Particle;
 class LightTrack;
+class GLIntegral;
 
 /**
  * @brief   Low energy Bremsstrahlung models for electron/positron.
@@ -47,7 +48,7 @@ class LightTrack;
 class SeltzerBergerBremsModel : public EMModel {
 public:
 
-  virtual void Initialize(); // from EMModel
+  virtual void   Initialize(); // from EMModel
   virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle* particle,bool istotal=false);
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
@@ -81,7 +82,7 @@ public:
   SeltzerBergerBremsModel(bool iselectron, int datafileindx = 0, const std::string &modelname = "eSeltzerBergerBrems");
 
   /** @brief Destructor. */
- ~SeltzerBergerBremsModel();
+  virtual ~SeltzerBergerBremsModel();
 //@}
 
 
@@ -154,6 +155,11 @@ public:
 
 
 private:
+  /** @brief Copy constructor  (deleted) */
+  SeltzerBergerBremsModel(const SeltzerBergerBremsModel&) = delete;
+  /** @brief Operator=  (deleted) */
+  SeltzerBergerBremsModel &operator=(const SeltzerBergerBremsModel&) = delete;
+
   /**
    * @brief Internal method to load Seltzer-Berger atomic differential cross sections for bremsstrahlung photon emission
    *        from file.
@@ -201,6 +207,7 @@ private:
    */
  int      fDataFileIndx;                    // flag to indicate which SB data should be used
 
+ int      fNGL;
  // secondary related data
  int      fSecondaryInternalCode; // gamma GV code set at initialization
 
@@ -305,6 +312,8 @@ private:
  LinAlias   **fAliasData;                   //alias data structure for all different matrial-gammacut pairs
  /** @brief An alias sampler used at run-time sampling of the emitted photon energy. */
  AliasTable  *fAliasSampler;
+
+ GLIntegral  *fGL;
 
 };
 

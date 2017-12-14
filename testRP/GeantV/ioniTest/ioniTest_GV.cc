@@ -1,12 +1,10 @@
 /**
- * @brief  comptonTest_GV: GeantV-Real-physics test for testing models for incoherent(Compton) scattering of photons on
- *         atomic electrons.
- *
+ * @brief  ioniTest_GV: GeantV-Real-physics test for testing e-/e+ model for ionization.
  * @author M Novak
- * @date   April 2017
+ * @date   December 2017
  *
- * Run ./comptonTest_GV --help for more details!
- * The corresponding quantities/distributions can be obtained by using the comptonTest_G4 Geant4 test.
+ * Run ./ioniTest_GV --help for more details!
+ * The corresponding quantities/distributions can be obtained by using the ioniTest_G4 Geant4 test.
  */
 
 
@@ -40,7 +38,7 @@
 #include "Gamma.h"
 
 #include "EMModel.h"
-#include "KleinNishinaComptonModel.h"
+#include "MollerBhabhaIonizationModel.h"
 
 #include "LightTrack.h"
 #include "PhysicsData.h"
@@ -48,6 +46,7 @@
 // from geantV
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
+
 
 // a simple histogram class: can be changed later
 #include "Hist.h"
@@ -66,9 +65,9 @@ using geantphysics::Gamma;
 using geantphysics::ELossTableManager;
 using geantphysics::ELossTableRegister;
 
-// the two brem. model
+// the ioni model
 using geantphysics::EMModel;
-using geantphysics::KleinNishinaComptonModel;
+using geantphysics::MollerBhabhaIonizationModel;
 
 using geantphysics::LightTrack;
 using geantphysics::PhysicsData;
@@ -77,29 +76,34 @@ using userapplication::Hist;
 
 //
 // default values of the input parameters
+static std::string   particleName("e-");                  // primary particle is electron
 static std::string   materialName("NIST_MAT_Pb");         // material is lead
-static bool          isUseRejection    = false;           // use rejection sampling instead of sampling tables
+static bool          isRejection       = false;           // type of sampling algorithm
 static int           numHistBins       = 100;             // number of histogram bins between min/max values
 static double        numSamples        = 1.e+7;           // number of required final state samples
 static double        primaryEnergy     = 0.1;             // primary particle energy in [GeV]
+static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
+static bool          isProdCutInLength = true;            // is the production cut value given in length ?
 
 static struct option options[] = {
+  {"particle-name     (possible particle names: e-, e+)                        - default: e-"                 , required_argument, 0, 'p'},
   {"material-name     (with a NIST_MAT_ prefix; see more in material doc.)     - default: NIST_MAT_Pb"        , required_argument, 0, 'm'},
   {"primary-energy    (in internal energy units i.e. [GeV])                    - default: 0.1"                , required_argument, 0, 'E'},
-  {"sampling-type     (flag to switch to rejection sampling)                   - default: no"                 , no_argument      , 0, 'r'},
   {"number-of-samples (number of required final state samples)                 - default: 1.e+7"              , required_argument, 0, 'f'},
   {"number-of-bins    (number of bins in the histogram)                        - default: 100"                , required_argument, 0, 'n'},
+  {"cut-vale          (secondary production threshold value for all particles) - default: 0.1"                , required_argument, 0, 'c'},
+  {"use-rejection     (should rejection based sampling used ? )                - default: false"              , no_argument      , 0, 'r'},
+  {"cut-in-energy     (is the production cut value given in energy ? )         - default: false"              , no_argument      , 0, 'e'},
   {"help"                                                                                                     , no_argument      , 0, 'h'},
   {0, 0, 0, 0}
 };
 void help();
 
 //***********************************************************************************************//
-//***** THIS WILL BE MODEL SPECIFIC: contains the final state sampling and hist. building  ******//
-// method to create photon energy distribution using a SeltzerBergerBremsModel as input argument
+//***** THIS WILL BE MODEL SPECIFIC: contains the final state sampling and hist.           ******//
 double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut,
-                          Particle *primParticle, EMModel *emModel, Hist *h1, Hist *h2, Hist *h3,
-                          Hist *h4);
+                          Particle *primParticle, EMModel *model, Hist *histo1, Hist *histo2,
+                          Hist *histo3, Hist *histo4);
 //***********************************************************************************************//
 
 
@@ -110,7 +114,7 @@ int main(int argc, char *argv[]) {
   //============================== Get input parameters =====================================//
   while (true) {
     int c, optidx = 0;
-    c = getopt_long(argc, argv, "h:m:rE:f:n:", options, &optidx);
+    c = getopt_long(argc, argv, "erh:m:E:f:n:c:p:", options, &optidx);
     if (c == -1)
       break;
     switch (c) {
@@ -119,9 +123,6 @@ int main(int argc, char *argv[]) {
     /* fall through */
     case 'm':
        materialName = optarg;
-       break;
-    case 'r':
-       isUseRejection = true;
        break;
     case 'E':
       primaryEnergy = strtod(optarg, NULL);
@@ -138,6 +139,20 @@ int main(int argc, char *argv[]) {
       if (numHistBins<=0)
         errx(1, "number of histogram bins must be positive");
       break;
+    case 'c':
+      prodCutValue = strtod(optarg, NULL);
+      if (prodCutValue<=0)
+        errx(1, "production cut value must be positive");
+      break;
+    case 'p':
+       particleName = optarg;
+        break;
+    case 'r':
+      isRejection      = true;
+      break;
+    case 'e':
+      isProdCutInLength = false;
+      break;
     case 'h':
        help();
        return 0;
@@ -153,19 +168,33 @@ int main(int argc, char *argv[]) {
   // Create target material: which is supposed to be a NIST Material
   Material *matDetector = Material::NISTMaterial(materialName);
   //
-  // Create primnary particle (e-)
-  Particle *particle = Gamma::Definition();
-  //
   // Set particle kinetic energy
   double kineticEnergy    = primaryEnergy;
   //
-  // Set production cuts if needed: not used in Compton
-  bool   iscutinlength    = true;
-  double prodCutValue     = 1.*geant::mm;
+  // Set production cuts if needed
+  bool   iscutinlength    = isProdCutInLength;
   double gcut             = prodCutValue;
   double emcut            = prodCutValue;
   double epcut            = prodCutValue;
   //===========================================================================================//
+
+  // Create primnary particle
+  Particle    *particle   = nullptr;
+  bool         isElectron = true;
+  std::string  pname;
+  if (particleName=="e-") {
+    particle  = Electron::Definition();
+    pname     = "electron";
+  } else if (particleName=="e+") {
+    particle   = Positron::Definition();
+    pname      = "positron";
+    isElectron = false;
+  } else {
+    std::cout<< "  *** unknown particle name = " << particleName << std::endl;
+    help();
+    return 0;
+  }
+
 
   //============= Initialization i.e. building up and init the physics ========================//
   // Create a dummy vecgeom::geometry:
@@ -186,19 +215,48 @@ int main(int argc, char *argv[]) {
   MaterialCuts::CreateAll();
   //===========================================================================================//
 
+  // if primary particle energy < gamma production cut => there is no secondary gamma production
+  // So get the MaterialCuts of the target: we have only one
+  const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
+  // and get the e- production cut energy
+  double elCutEnergy = matCut->GetProductionCutsInEnergy()[1];
+  double minE        = elCutEnergy;
+  if (isElectron) {
+    minE += minE;
+  }
+  if (kineticEnergy<=minE) {
+    std::cout<< " *** Primary energy = " << kineticEnergy/geant::MeV
+             << " [MeV] is <= minimum energy = " << minE/geant::MeV
+             << " [MeV] so there is no secondary e- production at this energy!"
+             << std::endl;
+    return 0;
+  }
+
+
 
   //*******************************************************************************************//
   //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
   //
-  // Create a SeltzerBergerBremsModel model for e-:
-  // - Create a Seltzer-Berger bremsstrahlung model
-  EMModel *emModel = new KleinNishinaComptonModel();
-  // - Set low/high energy usage limits
-  emModel->SetLowEnergyUsageLimit (100.0*geant::eV);
+  // Create a MollerBhabhaIonizationModel model for ionization:
+  EMModel *emModel  = new MollerBhabhaIonizationModel(isElectron);
+  // - Set low/high energy usage limits to their min/max possible values
+  emModel->SetLowEnergyUsageLimit (  1.0*geant::keV);
   emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
-  emModel->SetUseSamplingTables(!isUseRejection);
+  emModel->SetUseSamplingTables(!isRejection);
   //
   //*******************************************************************************************//
+
+  // check if primary energy is within the usage limits of the model
+  if (kineticEnergy<emModel->GetLowEnergyUsageLimit() || kineticEnergy>emModel->GetHighEnergyUsageLimit()) {
+    std::cout<< " *** Primary energy = " << kineticEnergy/geant::GeV
+             << " [GeV] should be the min/max energy usage limits of the selected model: \n"
+             << "   - model name              = " << emModel->GetName() << " \n"
+             << "   - low energy usage limit  = " << emModel->GetLowEnergyUsageLimit()/geant::GeV<< " [GeV]\n"
+             << "   - high energy usage limit = " << emModel->GetHighEnergyUsageLimit()/geant::GeV<< " [GeV]\n"
+             << "  there is no secondary gamma production otherwise!"
+             << std::endl;
+    return 0;
+  }
 
 
   //=========== Set the active regions of the model and one physics-parameter object ==========//
@@ -218,8 +276,6 @@ int main(int argc, char *argv[]) {
   //===========================================================================================//
   //== Use the EMModel interface methods of the model to compute some integrated quantities  ==//
   //
-  // Get the MaterialCuts of the target: we have only one
-  const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
   std::cout<< "  "<< matCut->GetMaterial() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   MaterialCuts: \n"   << matCut;
@@ -230,8 +286,9 @@ int main(int argc, char *argv[]) {
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  std::cout<< "   Rejection ?    =  " << isUseRejection << std::endl;
+  std::cout<< "   Rejection ?    =  " << isRejection << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+
   // check if we compute atomic-cross section: only for single elemnt materials
   bool isSingleElementMaterial = false;
   if (matCut->GetMaterial()->GetNumberOfElements()==1) {
@@ -291,82 +348,91 @@ int main(int argc, char *argv[]) {
   //*******************************************************************************************//
   //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
   //
-  // Create a histogram to store the post interaction photon energy(E_1) distribution:
-  // - the distribution of epsilon=E_1/E_0 variable i
-  double xMin =  0.0; // kinematical minimum of epsilon = 1/(1+2kappa) with kappa = E_0/(mc^2)
-  double xMax =  1.0; // kinematical maximum of epsilon = 1  // create a simple histogram
-  Hist *histo_gamma_energy    = new Hist(xMin, xMax, numHistBins);
-  // Create histogram to store the post interaction photon direction: cos(\theta_gamma)
-  xMin = -1.;
-  xMax = +1.;
-  Hist *histo_gamma_angle     = new Hist(xMin, xMax, numHistBins);
-  // Create histogram to store the secondary electron energy distribution (relative to the E_0): E_el/E_0
-  xMin = 0.0;
-  xMax = 1.0;
-  Hist *histo_electron_energy = new Hist(xMin, xMax, numHistBins);
-  // Create histogram to store the secondary electron direction: cos(\theta_electron)
-  xMin = -1.;
-  xMax = +1.;
-  Hist *histo_electron_angle  = new Hist(xMin, xMax, numHistBins);
+  std::string hname = "ioni_GV_";
+  // energy distribution(t): is sampled in varibale t/primaryEnergy
+  // angular distribution(theta) is sampled in variable cos(theta)
   //
+  // set up a histogram for the secondary e- energy(t) : t/primaryEnergy
+  double xMin = 0.0;
+  double xMax = 1.0;
+  Hist *histo_secondary_energy = new Hist(xMin, xMax, numHistBins);
   //
+  // set up histogram for the secondary e- direction(theta) : cos(theta)
+  xMin     = -1.0;
+  xMax     =  1.0;
+  Hist *histo_secondary_angular = new Hist(xMin, xMax, numHistBins);
+  //
+  // set up a histogram for the post interaction primary e-/e+ energy(E1) : E1/primaryEnergy
+  xMin     = 0.0;
+  xMax     = 1.0;
+  Hist *histo_prim_energy = new Hist(xMin, xMax, numHistBins);
+  //
+  // set up a histogram for the post interaction primary e-/e+ direction(theta) : cos(theta)
+  xMin     = -1.0;
+  xMax     =  1.0;
+  Hist *histo_prim_angular = new Hist(xMin, xMax, numHistBins);
+
+  // start sampling
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Sampling is running : .....................................................      " << std::endl;
   // call sampling method
-  double timeInSec = sampleDistribution(numSamples, kineticEnergy, matCut, particle, emModel, histo_gamma_energy,
-                                        histo_gamma_angle, histo_electron_energy, histo_electron_angle);
+  double timeInSec = sampleDistribution(numSamples, kineticEnergy, matCut, particle, emModel, histo_secondary_energy,
+                                        histo_secondary_angular, histo_prim_energy, histo_prim_angular);
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Time of sampling =  " << timeInSec << " [s]" << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
 
+  std::cout<< "   Writing histograms into files. " << std::endl;
+  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+
   // print out histogram to file: fileName
   char fileName[512];
-  sprintf(fileName,"compton_GV_gamma_energy_%s",(matCut->GetMaterial()->GetName()).c_str());
+  sprintf(fileName,"ioni_GV_secondary_energy_%s",(matCut->GetMaterial()->GetName()).c_str());
   FILE *f     = fopen(fileName,"w");
-  double norm = 1./numSamples;
-  Hist *histo = histo_gamma_energy;
+  Hist *histo = histo_secondary_energy;
+  double norm = 0.25/numSamples;
   for (int i=0; i<histo->GetNumBins(); ++i) {
    fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
   }
-  delete histo;
   fclose(f);
+  delete histo;
   //
-  sprintf(fileName,"compton_GV_gamma_angular_%s",(matCut->GetMaterial()->GetName()).c_str());
+  sprintf(fileName,"ioni_GV_secondary_angular_%s",(matCut->GetMaterial()->GetName()).c_str());
   f     = fopen(fileName,"w");
-  histo = histo_gamma_angle;
+  histo = histo_secondary_angular;
+  norm  = 1./numSamples;
   for (int i=0; i<histo->GetNumBins(); ++i) {
    fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
   }
-  delete histo;
   fclose(f);
+  delete histo;
   //
-  sprintf(fileName,"compton_GV_electron_energy_%s",(matCut->GetMaterial()->GetName()).c_str());
+  sprintf(fileName,"ioni_GV_%s_energy_%s",pname.c_str(),(matCut->GetMaterial()->GetName()).c_str());
   f     = fopen(fileName,"w");
-  histo = histo_electron_energy;
+  histo = histo_prim_energy;
+  norm  = 0.25/numSamples;
   for (int i=0; i<histo->GetNumBins(); ++i) {
    fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
   }
-  delete histo;
   fclose(f);
+  delete histo;
   //
-  sprintf(fileName,"compton_GV_electron_angular_%s",(matCut->GetMaterial()->GetName()).c_str());
+  sprintf(fileName,"ioni_GV_%s_angular_%s",pname.c_str(),(matCut->GetMaterial()->GetName()).c_str());
   f     = fopen(fileName,"w");
-  histo = histo_electron_angle;
+  histo = histo_prim_angular;
+  norm  = 1./numSamples;
   for (int i=0; i<histo->GetNumBins(); ++i) {
    fprintf(f,"%d\t%.8g\t%.8g\n",i,histo->GetX()[i]+0.5*histo->GetDelta(),histo->GetY()[i]*norm);
   }
-  delete histo;
   fclose(f);
-  //
-  std::cout<< "   Histogram is written  into files ................................................"<< std::endl;
-  std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
+  delete histo;
   //*******************************************************************************************//
 
   // end
   std::cout << "   ================================================================================ "
             << std::endl << std::endl;
 
-  // delete the EMModel objects
+  // delete some objects
   delete emModel;
 
   PhysicsParameters::Clear();
@@ -382,10 +448,9 @@ return 0;
 
 void help() {
   std::cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<std::endl;
-  std::cout<<"  Model-level GeantV test for testing GeantV model for incoherent(Compton) scattering"
-           <<" of photons on atomic electrons."
+  std::cout<<"  Model-level GeantV test for testing GeantV e-/e+ model for ionization."
            << std::endl;
-  std::cout<<"\n  Usage: comptonTest_GV [OPTIONS] \n"<<std::endl;
+  std::cout<<"\n  Usage: ioniTest_GV [OPTIONS] \n"<<std::endl;
   for (int i = 0; options[i].name != NULL; i++) {
     printf("\t-%c  --%s\n", options[i].val, options[i].name);
   }
@@ -398,13 +463,13 @@ void help() {
 //************                 THIS CONTAINS MODEL SPECIFIC PARTS                 ***********//
 //
 // implementation of the final state distribution sampling
-double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut,
-                          Particle *primParticle, EMModel *emModel, Hist *h1, Hist *h2, Hist *h3,
-                          Hist *h4) {
+double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Particle *primParticle,
+                          EMModel *emModel, Hist *histo1, Hist *histo2, Hist *histo3, Hist *histo4) {
   double ekin       = primaryEnergy;
   double dirx       = 0.0;   // direction
   double diry       = 0.0;
   double dirz       = 1.0;
+//  double gamProdCut = matCut->GetProductionCutsInEnergy()[0]; // gamma production threshold
   int    gvcode     = primParticle->GetInternalCode();        // internal code of the primary particle i.e. e-
 
   // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
@@ -412,7 +477,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
   Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
   PhysicsData *phd = new PhysicsData();
   td->fPhysicsData = phd;
-  // Set up a the primary light track for brem.
+  // Set up a the primary light track for ioni.
   LightTrack primaryLT;
   // init time
   clock_t  start_time = clock();
@@ -438,23 +503,25 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      td->fPhysicsData->SetNumUsedSecondaries(0);
      //
      // invoke the interaction
-     int numSecs = emModel->SampleSecondaries(primaryLT,td);
-     // get the secondary track i.e. the e-
+     int numSecs = emModel->SampleSecondaries(primaryLT, td);
+     // get the secondary track i.e. the gamma
      if (numSecs>0) {
        std::vector<LightTrack> &secondaryLT = td->fPhysicsData->GetListOfSecondaries();
-       // get reduced gamma energy and cost
-       double gammaE    = primaryLT.GetKinE()/ekin;
-       if (gammaE>0.0) {
-         h1->Fill(gammaE,1.0);
-         double gammaCost = primaryLT.GetDirZ();
-         h2->Fill(gammaCost,1.0);
+       // secondary
+       double eSec = secondaryLT[0].GetKinE()/ekin;
+       if (eSec>0.0) {
+         histo1->Fill(eSec,1.0);
        }
-       // get reduced e- energy and cost
-       double eEnergy = secondaryLT[0].GetKinE()/ekin;
-       h3->Fill(eEnergy,1.0);
-       double eCost   = secondaryLT[0].GetDirZ();
-       h4->Fill(eCost,1.0);
-     } // end if there is secondary
+       double costSec = secondaryLT[0].GetDirZ();
+       histo2->Fill(costSec,1.0);
+       // go for the post interaction primary
+       double ePrim  = primaryLT.GetKinE()/ekin;
+       if (ePrim>0.0) {
+         histo3->Fill(ePrim,1.0);
+       }
+       double costPrim = primaryLT.GetDirZ();
+       histo4->Fill(costPrim,1.0);
+     }
    }
    clock_t end_time = clock();
    return (end_time-start_time)/(double(CLOCKS_PER_SEC));

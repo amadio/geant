@@ -1,13 +1,15 @@
 
 #include "RelativisticBremsModel.h"
+
 // from amterial
 #include "Types.h"
 
-
 #include "PhysicalConstants.h"
 #include "Material.h"
-#include "Element.h"
 #include "MaterialProperties.h"
+#include "Element.h"
+#include "ElementProperties.h"
+
 #include "MaterialCuts.h"
 
 #include "GLIntegral.h"
@@ -16,6 +18,8 @@
 #include "PhysicsParameters.h"
 
 #include "Gamma.h"
+#include "Electron.h"
+#include "Positron.h"
 
 #include "LightTrack.h"
 #include "PhysicsData.h"
@@ -27,19 +31,82 @@
 
 namespace geantphysics {
 
+// use these elastic and inelatic form factors for light elements instead of TFM
+// under the complete screening approximation
+// Tsai Table.B2.
+const double RelativisticBremsModel::gFelLowZet  [] = {0.0, 5.310, 4.790, 4.740, 4.710, 4.680, 4.620, 4.570};
+const double RelativisticBremsModel::gFinelLowZet[] = {0.0, 6.144, 5.621, 5.805, 5.924, 6.012, 5.891, 5.788};
+
+const double RelativisticBremsModel::gLPMFactor     = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
+// this is k_p^2 / E_{t-electron}^2
+const double RelativisticBremsModel::gDensityFactor = 4.0*geant::kPi*geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght*geant::kRedElectronComptonWLenght;
+
+RelativisticBremsModel::LPMFuncs  RelativisticBremsModel::gLPMFuncs;
+std::vector<RelativisticBremsModel::ElementData*>  RelativisticBremsModel::gElementData(gMaxZet,nullptr);
+
+RelativisticBremsModel::RelativisticBremsModel(const std::string &modelname) : EMModel(modelname) {
+   fIsUseLPM                     = true;       // use LPM suppression by default
+   fNGL                          = 64;
+   fSecondaryInternalCode        = -1;         // internal gamma particle index (set at init.)
+   // these are used only if sampling tables were requested
+   fSTNumElectronEnergyPerDecade = 8;          // number of sampling tables per decade (e-/e+ kinetic energy)
+   fSTNumSamplingPhotEnergies    = 100;
+   fAliasSampler                 = nullptr;    // will be set at initialisation
+   fGL                           = nullptr;
+}
+
+
+RelativisticBremsModel::~RelativisticBremsModel() {
+  // clear ElementData
+  for (size_t i=0; i<gElementData.size(); ++i) {
+    if (gElementData[i]) {
+      delete gElementData[i];
+    }
+  }
+  gElementData.clear();
+  //
+  // clear LPMFunctions (if any)
+  if (fIsUseLPM) {
+    gLPMFuncs.fLPMFuncG.clear();
+    gLPMFuncs.fLPMFuncPhi.clear();
+  }
+  //
+  // clear sampling tables (if any)
+  if (GetUseSamplingTables()) {
+    ClearSamplingTables();
+  }
+  fGlobalMatGCutIndxToLocal.clear();
+  if (fAliasSampler) {
+    delete fAliasSampler;
+  }
+  if (fGL) {
+    delete fGL;
+  }
+}
+
 
 void RelativisticBremsModel::Initialize() {
   EMModel::Initialize();
-  Initialise();
-  // if it needs element selector: particle is coded in the model in case of this model and due to the cut dependence
-  // we we need element selectors per MaterialCuts
-  // InitialiseElementSelectors(this, nullptr, false);
+  InitElementData();
+  fSecondaryInternalCode = Gamma::Definition()->GetInternalCode();
+  if (fIsUseLPM) {
+    InitLPMFunctions();  // build table for fast LPM G(s), Phi(s) evaluation
+  }
+  if (!fGL) {
+    fGL = new GLIntegral(fNGL,0.,1.);
+  }
+  if (GetUseSamplingTables()) { // if sampling tables were requested
+    InitSamplingTables();
+  } else {                      // rejection
+    // we need element selectors per MaterialCuts
+    InitialiseElementSelectors(this, nullptr, false);
+  }
 }
+
 
 double RelativisticBremsModel::ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle*, bool istotal){
   const Material *mat =  matcut->GetMaterial();
-  const double *cuts  =  matcut->GetProductionCutsInEnergy();
-  double gammacut     =  cuts[0];
+  double gammacut     =  (matcut->GetProductionCutsInEnergy())[0];
   if (istotal) {
     // for the total stopping power we just need a gamma production cut >=kinenergy
     gammacut = 1.01*kinenergy;
@@ -47,27 +114,27 @@ double RelativisticBremsModel::ComputeDEDX(const MaterialCuts *matcut, double ki
   return ComputeDEDXPerVolume(mat, gammacut, kinenergy);
 }
 
+
 double RelativisticBremsModel::ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle*) {
   double xsec = 0.0;
   if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
     return xsec;
   }
-  const Material *mat =  matcut->GetMaterial();
-  const double *cuts  =  matcut->GetProductionCutsInEnergy();
-  double gammacut     =  cuts[0];
+  const Material *mat   =  matcut->GetMaterial();
+  const double gammacut =  (matcut->GetProductionCutsInEnergy())[0];
   xsec = ComputeXSectionPerVolume(mat, gammacut, kinenergy);
   return xsec;
 }
 
 
-double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle*) {
+double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
+                                                       const Particle*) {
   double xsec = 0.0;
   if (kinenergy<GetLowEnergyUsageLimit() || kinenergy>GetHighEnergyUsageLimit()) {
     return xsec;
   }
-  const Material *mat =  matcut->GetMaterial();
-  const double *cuts  =  matcut->GetProductionCutsInEnergy();
-  double gammacut     =  cuts[0];
+  const Material *mat   =  matcut->GetMaterial();
+  const double gammacut =  (matcut->GetProductionCutsInEnergy())[0];
   xsec = ComputeXSectionPerAtom(elem, mat, gammacut, kinenergy);
   return xsec;
 }
@@ -75,10 +142,9 @@ double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const
 
 int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
-  double ekin                = track.GetKinE();
+  const double ekin          = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-  const double *cuts         = matCut->GetProductionCutsInEnergy();
-  double gammacut            = cuts[0];
+  const double gammacut      = (matCut->GetProductionCutsInEnergy())[0];
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
   // check if kinetic energy is above fHighEnergyUsageLimit andd o nothing if yes
   // check if kinetic energy is below gamma production cut and do nothing if yes
@@ -89,22 +155,25 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
   // here we need 3 random number + 2 later for photon direction theta phi sampling
   double *rndArray = td->fDblArray;
   td->fRndm->uniform_array(5, rndArray);
-  double gammaEnergy  = SamplePhotonEnergy(matCut, ekin, rndArray[0], rndArray[1], rndArray[2]);
+  double gammaEnergy  = 0.;
+  if (GetUseSamplingTables()) {
+    gammaEnergy = SamplePhotonEnergy(matCut, ekin, rndArray[0], rndArray[1], rndArray[2]);
+  } else {
+    gammaEnergy = SamplePhotonEnergy(matCut, ekin, td);
+  }
   // sample gamma scattering angle in the scattering frame i.e. which z-dir points to the orginal e-/e+ direction
-  double cosTheta = 1.0;
-  double sinTheta = 0.0;
+  double cosTheta  = 1.0;
+  double sinTheta  = 0.0;
   SamplePhotonDirection(ekin, sinTheta, cosTheta, rndArray[3]);
-  double phi      = geant::kTwoPi*(rndArray[4]);
+  const double phi = geant::kTwoPi*(rndArray[4]);
   // gamma direction in the scattering frame
-  double gamDirX  = sinTheta*std::cos(phi);
-  double gamDirY  = sinTheta*std::sin(phi);
-  double gamDirZ  = cosTheta;
+  double gamDirX   = sinTheta*std::cos(phi);
+  double gamDirY   = sinTheta*std::sin(phi);
+  double gamDirZ   = cosTheta;
   // rotate gamma direction to the lab frame:
   RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   // create the secondary partcile i.e. the gamma
   numSecondaries = 1;
-  // NO it can be dropped if we make sure that these secondary vectors are at least size 2
-//  PhysicsData *physData = td->fPhysicsData;
   // current capacity of secondary track container
   int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
   // currently used secondary tracks in the container
@@ -113,10 +182,8 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
     td->fPhysicsData->SetSizeListOfSecondaries(2*curSizeOfSecList);
   }
   int secIndx = curNumUsedSecs;
-  curNumUsedSecs +=numSecondaries;
+  curNumUsedSecs += numSecondaries;
   td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  // this is known since it is a secondary track
-//  sectracks[secIndx].SetTrackStatus(LTrackStatus::kNew); // to kew
   std::vector<LightTrack>& sectracks = td->fPhysicsData->GetListOfSecondaries();
   sectracks[secIndx].SetDirX(gamDirX);
   sectracks[secIndx].SetDirY(gamDirY);
@@ -125,27 +192,15 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
   sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
-// these are known from the parent GeantTrack
-//  sectracks[secIndx].SetMaterialCutCoupleIndex(track.GetMaterialCutCoupleIndex());
-//  sectracks[secIndx].SetNumOfInteractionLegthLeft(-1.); // i.e. need to sample in the step limit
-//  sectracks[secIndx].SetInvTotalMFP(0.);
-//  sectracks[secIndx].SetStepLength(0.);
-//  sectracks[secIndx].SetEnergyDeposit(0.);
-//  sectracks[secIndx].SetTime(??);
-//  sectracks[secIndx].SetWeight(??);
-//  sectracks[secIndx].SetProcessIndex(-1); // ???
-//  sectracks[secIndx].SetTargetZ(-1);
-//  sectracks[secIndx].SetTargetN(-1);
   //
   // compute the primary e-/e+ post interaction direction: from momentum vector conservation
-//  double elInitTotalEnergy   = ekin+geant::kElectronMassC2;
-  double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::kElectronMassC2));
+  const double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::kElectronMassC2));
   // final momentum of the e-/e+ in the lab frame
   double elDirX = elInitTotalMomentum*track.GetDirX() - gammaEnergy*gamDirX;
   double elDirY = elInitTotalMomentum*track.GetDirY() - gammaEnergy*gamDirY;
   double elDirZ = elInitTotalMomentum*track.GetDirZ() - gammaEnergy*gamDirZ;
   // normalisation
-  double norm  = 1.0/std::sqrt(elDirX*elDirX + elDirY*elDirY + elDirZ*elDirZ);
+  const double norm  = 1.0/std::sqrt(elDirX*elDirX + elDirY*elDirY + elDirZ*elDirZ);
   // update primary track direction
   track.SetDirX(elDirX*norm);
   track.SetDirY(elDirY*norm);
@@ -159,507 +214,59 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
 
 double RelativisticBremsModel::MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle*) const {
   double mine = (matcut->GetProductionCutsInEnergy())[0]; // gamma production cut in the given material-cuts
-  return mine;
-}
-
-// use these elastic and inelatic form factors for light elements instead of TFM
-// under the complete screening approximation
-// Tsai Table.B2.
-const double RelativisticBremsModel::gFelLowZet  [] = {0.0, 5.310, 4.790, 4.740, 4.710, 4.680, 4.620, 4.570};
-const double RelativisticBremsModel::gFinelLowZet[] = {0.0, 6.144, 5.621, 5.805, 5.924, 6.012, 5.891, 5.788};
-
-RelativisticBremsModel::RelativisticBremsModel(bool isuselpm, const std::string &modelname)
- : EMModel(modelname),fIsUseLPM(isuselpm) {
-   // set default values:
-   //
-   // the following variables(+the fIsUseLPM) can be changed through public setters:
-   //   ! All changes must be done before initialisation
-   fIsUseLinearSamplingTable  =     true;     // use linear approximation of the p.d.f. within bins
-   fNumSamplingElecEnergies   =       41;     // e-/e+ kinetic energy bin numbers
-   fNumSamplingPhotEnergies   =      100;     // number of emitted photon energy related transformed variables
-   fMinElecEnergy             =      1.0*geant::GeV; // minimum e-/e+ kinetic energy
-   fMaxElecEnergy             =    100.0*geant::TeV; // maximum e-/e+ kinetic energy
-
-   // the following variables will be set and used internally by the model
-   fElEnLMin                  =      0.0;     // will be set at initialisation
-   fElEnILDelta               =      1.0;     // will be set at initialisation
-   fSamplingElecEnergies      =  nullptr;     // will be set at initialisation
-   fLSamplingElecEnergies     =  nullptr;     // will be set at initialisation
-
-   fNumDifferentMaterialGCuts =        0;      // will be set at initialisation
-   fGlobalMatGCutIndxToLocal  =  nullptr;      // will be set at initialisation
-   fAliasData                 =  nullptr;      // will be set at initialisation
-   fRatinAliasData            =  nullptr;      // will be set at initialisation
-   fAliasSampler              =  nullptr;      // will be set at initialisation
-
-   fAliasSampler              =  new AliasTable(); // create an alias sampler util used for run time sampling
-
-   fSecondaryInternalCode     = -1;
-
-}
-
-void RelativisticBremsModel::Initialise() {
-   if (fIsUseLinearSamplingTable) {
-     InitSamplingTables();  // build the linear approximation(pdf) based alias sampling tables
-   } else {
-     InitSamplingTables1(); // build the rational interpolation(cdf) based alias sampling tables
-   }
-   fSecondaryInternalCode = Gamma::Definition()->GetInternalCode();
+  return std::max(mine,GetLowEnergyUsageLimit());
 }
 
 
-RelativisticBremsModel::~RelativisticBremsModel() {
-   if (fSamplingElecEnergies) {
-     delete [] fSamplingElecEnergies;
-     fSamplingElecEnergies = nullptr;
-   }
-   if (fLSamplingElecEnergies) {
-     delete [] fLSamplingElecEnergies;
-     fLSamplingElecEnergies = nullptr;
-   }
-   if (fGlobalMatGCutIndxToLocal) {
-     delete [] fGlobalMatGCutIndxToLocal;
-     fGlobalMatGCutIndxToLocal = nullptr;
-   }
-
-   if (fAliasData) {
-     for (int i=0; i<fNumDifferentMaterialGCuts; ++i) {
-       for (int j=0; j<fNumSamplingElecEnergies; ++j) {
-         int indx = i*fNumSamplingElecEnergies+j;
-         if (fAliasData[indx]) {
-           delete [] fAliasData[indx]->fXdata;
-           delete [] fAliasData[indx]->fYdata;
-           delete [] fAliasData[indx]->fAliasW;
-           delete [] fAliasData[indx]->fAliasIndx;
-           delete fAliasData[indx];
-         }
-       }
-     }
-     delete [] fAliasData;
-   }
-
-   if (fRatinAliasData) {
-     for (int i=0; i<fNumDifferentMaterialGCuts; ++i) {
-       for (int j=0; j<fNumSamplingElecEnergies; ++j) {
-         int indx = i*fNumSamplingElecEnergies+j;
-         if (fRatinAliasData[indx]) {
-           delete [] fRatinAliasData[indx]->fXdata;
-           delete [] fRatinAliasData[indx]->fAliasW;
-           delete [] fRatinAliasData[indx]->fA;
-           delete [] fRatinAliasData[indx]->fB;
-           delete [] fRatinAliasData[indx]->fAliasIndx;
-           delete fRatinAliasData[indx];
-         }
-       }
-     }
-     delete [] fRatinAliasData;
-   }
-
-   if (fAliasSampler) {
-     delete fAliasSampler;
-   }
-}
 
 
-/**
-  *  The sampling is based on the sampling tables prepared at initialisation. Statistical interpolation is used to
-  *  select one of the incident particle kinetic energy grid points out of \f$ E_i \leq E_{kin} < E_{i+1}\f$ (linear
-  *  interpolation in log kinetic energy) at a given primary particle kinetic energy \f$E_{kin}\f$. Then the transformed
-  *  variable \f$\xi\in[0,1]\f$ is sampled from the sampling table (prepared at initialisation) that belongs to the
-  *  selected incident particle kinetic energy grid point. The emitted photon energy \f$k\f$ then is obtained by
-  *  applying the following transformation:
-  *  \f[
-  *     k = \sqrt{[k_c^2+k_p^2]\exp{ \left[ \xi\ln\frac{E_{kin}^2+k_p^2}{k_c^2+k_p^2}\right]}-k_p^2}
-  *  \f]
-  *  where \f$E_{kin}\f$ is the current incident particle (i.e. e-/e+) kinetic energy, \f$k_c\f$ is the current gamma
-  *  particle kinetic energy production threshold and \f$ k_p = \hbar \omega_p \gamma= \hbar \omega_p E/(mc^2)\f$,
-  *  (\f$E\f$ is the total energy of the incident particle)
-  *  \f$\hbar \omega_p= \hbar c \sqrt{4\pi n_e r_e}\f$ (\f$n_e\f$ is the electron density of the current material and
-  *  \f$r_e\f$ is the classical electron radius).
-  */
-double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3) {
-   constexpr double  mgdl  = 4.0*geant::kPi*geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght*geant::kRedElectronComptonWLenght;
-   // gamma production cut in energy
-   double gcut = matcut->GetProductionCutsInEnergy()[0];
-/*
-// this is checked now in the caller
-   // protection: make sure that post interaction particle kinetic energy is within the range of the model
-   // should be nicer by using std::max and std::min
-   if (fMaxElecEnergy<eekin){
-     std::cerr<< "\n **** WARNING: RelativisticBremsModel::SamplePhotonEnergy()\n"
-              << "          Particle energy = " << eekin/geant::GeV << " [GeV] > fMaxElecEnergy = " << fMaxElecEnergy << " [GeV]"
-              << std::endl;
-     eekin = fMaxElecEnergy;
-   } else if (fMinElecEnergy>eekin) {
-     std::cerr<< "\n **** WARNING: RelativisticBremsModel::SamplePhotonEnergy()\n"
-              << "          Particle energy = " << eekin/geant::GeV << " [GeV] < fMinElecEnergy = " << fMinElecEnergy << " [GeV]"
-              << std::endl;
-     eekin = fMinElecEnergy;
-   }
-
-   // protection: no gamma production when the post-interaction particle kinetic energy is below the gamma production cut
-   // (at that primary energy the x-section should be zero so it should never happen)
-   if (eekin<gcut) {
-     return 0.0;
-   }
-*/
-   double densityFactor = matcut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*mgdl;
-   double etot          = eekin+geant::kElectronMassC2;
-   double densityCor    = densityFactor*etot*etot; // this is k_p^2
-
-   int    mcindx        = matcut->GetIndex();
-   int    macindxlocal  = fGlobalMatGCutIndxToLocal[mcindx];
-   // the location of the first-electron-energy sampling table data structure of this material-cut pair
-   int    indxstart     = macindxlocal*fNumSamplingElecEnergies;
-   // determine electron energy lower grid point
-   double leenergy      = std::log(eekin);
-   int    eenergyindx   = (int) ((leenergy-fElEnLMin)*fElEnILDelta);
-
-   if (eenergyindx>=fNumSamplingElecEnergies-1)
-     eenergyindx = fNumSamplingElecEnergies-2;
-
-   // prob of taking the lower energy edge of the bin
-   double ploweener = (fLSamplingElecEnergies[eenergyindx+1]-leenergy)*fElEnILDelta;
-
-   // the location of the lower kinetic energy sampling table data structure
-   indxstart += eenergyindx;
-   bool   isAtLimit = false;
-   if (fIsUseLinearSamplingTable && !(fAliasData[indxstart]))
-     isAtLimit = true;
-   if (!fIsUseLinearSamplingTable && !(fRatinAliasData[indxstart]))
-     isAtLimit = true;
-
-   if (r1>ploweener || isAtLimit)
-     ++indxstart;
-
-   // sample the transformed variable
-   double gammae = 0.0;
-   if (fIsUseLinearSamplingTable) {
-     gammae = fAliasSampler->SampleLinear(fAliasData[indxstart]->fXdata, fAliasData[indxstart]->fYdata,
-                                          fAliasData[indxstart]->fAliasW, fAliasData[indxstart]->fAliasIndx,
-                                          fNumSamplingPhotEnergies,r2,r3);
-   } else {
-     gammae = fAliasSampler->SampleRatin(fRatinAliasData[indxstart]->fXdata, fRatinAliasData[indxstart]->fC,
-                                         fRatinAliasData[indxstart]->fA,fRatinAliasData[indxstart]->fB,
-                                         fRatinAliasData[indxstart]->fAliasW, fRatinAliasData[indxstart]->fAliasIndx,
-                                         fRatinAliasData[indxstart]->fNumdata,r2,r3);
-   }
-   // transform back to gamma energy
-   double dum0  = (gcut*gcut+densityCor);
-   double dum1  = (eekin*eekin+densityCor)/dum0;
-   double    u  = dum0*std::exp(gammae*std::log(dum1));
-
-  return std::sqrt(u-densityCor);
-}
 
 
-// the simple DipBustgenerator
-void RelativisticBremsModel::SamplePhotonDirection(double elenergy, double &sinTheta, double &cosTheta, double rndm) {
-  double c = 4. - 8.*rndm;
-  double a = c;
-  double signc = 1.;
-  if (c<0.) {
-    signc = -1.;
-    a     = -c;
-  }
-  double delta  = std::sqrt(a*a+4.);
-  delta += a;
-  delta *= 0.5;
 
-  double cofA = -signc*std::exp(std::log(delta)/3.0);
-  cosTheta = cofA-1./cofA;
+// private methods
 
-  double tau  = elenergy/geant::kElectronMassC2;
-  double beta = std::sqrt(tau*(tau+2.))/(tau+1.);
-
-  cosTheta = (cosTheta+beta)/(1.+cosTheta*beta);
-  // check cosTheta limit
-  if (cosTheta>1.0) {
-    cosTheta = 1.0;
-  }
-  sinTheta = std::sqrt((1.-cosTheta)*(1.+cosTheta));
-}
-
-
-void RelativisticBremsModel::InitSamplingTables() {
-   // set up the common electron/positron energy grid
-   if (fSamplingElecEnergies) {
-     delete [] fSamplingElecEnergies;
-     delete [] fLSamplingElecEnergies;
-     fSamplingElecEnergies  = nullptr;
-     fLSamplingElecEnergies = nullptr;
-   }
-   fSamplingElecEnergies  = new double[fNumSamplingElecEnergies];
-   fLSamplingElecEnergies = new double[fNumSamplingElecEnergies];
-
-   fElEnLMin    = std::log(fMinElecEnergy);
-   double delta = std::log(fMaxElecEnergy/fMinElecEnergy)/(fNumSamplingElecEnergies-1.0);
-   fElEnILDelta = 1.0/delta;
-   fSamplingElecEnergies[0]  = fMinElecEnergy;
-   fLSamplingElecEnergies[0] = fElEnLMin;
-   fSamplingElecEnergies[fNumSamplingElecEnergies-1]  = fMaxElecEnergy;
-   fLSamplingElecEnergies[fNumSamplingElecEnergies-1] = std::log(fMaxElecEnergy);
-   for (int i=1; i<fNumSamplingElecEnergies-1; ++i) {
-     fLSamplingElecEnergies[i] = fElEnLMin+i*delta;
-     fSamplingElecEnergies[i]  = std::exp(fElEnLMin+i*delta);
-   }
-
-   // - get number of different material-gammacut pairs
-   // - allocate space and fill the global to local material-cut index map
-   const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-   int numMaterialCuts = theMaterialCutsTable.size();
-   if (fGlobalMatGCutIndxToLocal) {
-     delete [] fGlobalMatGCutIndxToLocal;
-     fGlobalMatGCutIndxToLocal = nullptr;
-   }
-   fGlobalMatGCutIndxToLocal = new int[numMaterialCuts];
-   //std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
-   // count diffenet material-gammacut pairs and set to global to local mat-cut index map
-   int oldnumDif = fNumDifferentMaterialGCuts;
-   int oldnumSEE = fNumSamplingElecEnergies;
-   fNumDifferentMaterialGCuts = 0;
-   for (int i=0; i<numMaterialCuts; ++i) {
-     // if the current MaterialCuts does not belong to the current active regions
-     if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
-       fGlobalMatGCutIndxToLocal[i] = -1;
-       continue;
-     }
-     bool isnew = true;
-     int j = 0;
-     for (; j<fNumDifferentMaterialGCuts; ++j) {
-       if (theMaterialCutsTable[i]->GetMaterial()->GetIndex()==theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
-           theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]==theMaterialCutsTable[j]->GetProductionCutsInEnergy()[0]) {
-         isnew = false;
-         break;
-       }
-     }
-     if (isnew) {
-      fGlobalMatGCutIndxToLocal[i] = fNumDifferentMaterialGCuts;
-      ++fNumDifferentMaterialGCuts;
-     } else {
-       fGlobalMatGCutIndxToLocal[i] = fGlobalMatGCutIndxToLocal[j];
-     }
-   }
-   //std::cerr<<" === Number of local Material-Cuts = "<<fNumDifferentMaterialGCuts<<std::endl;
-   // allocate space for the matrial-gcut sampling tables and init these pointers to null
-   if (fAliasData) {
-     for (int i=0; i<oldnumDif; ++i) {
-       for (int j=0; j<oldnumSEE; ++j) {
-         int indx = i*oldnumSEE+j;
-         if (fAliasData[indx]) {
-           delete [] fAliasData[indx]->fXdata;
-           delete [] fAliasData[indx]->fYdata;
-           delete [] fAliasData[indx]->fAliasW;
-           delete [] fAliasData[indx]->fAliasIndx;
-           delete fAliasData[indx];
-         }
-       }
-     }
-     delete [] fAliasData;
-   }
-   int *isdone = new int[fNumDifferentMaterialGCuts]();
-   int  idum   = fNumDifferentMaterialGCuts*fNumSamplingElecEnergies;
-   fAliasData  = new LinAlias*[idum];
-   for (int i=0; i<idum; ++i)
-     fAliasData[i] = nullptr;
-
-   for (int i=0; i<numMaterialCuts; ++i) {
-     //std::cerr<<"   See if Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
-     int localindx = fGlobalMatGCutIndxToLocal[i];
-     if (localindx<0) {
-       continue;
-     }
-     int ialias    = localindx*fNumSamplingElecEnergies;
-     if (!isdone[localindx]) { // init for this material-gammacut pair is it has not been done yet i.e. the last elec-energy bin sampling data is still null.
-//       std::cerr<<"   -> Will init for Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
-       BuildOneLinAlias(ialias, theMaterialCutsTable[i]->GetMaterial(), theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]);
-       isdone[localindx] = 1;
-     }
-   }
-   delete [] isdone;
-
-   // print
-//   for (int i=0; i<numMaterialCuts; ++i)
-//     std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatGCutIndxToLocal[i] <<std::endl;
-}
-
-/**
- *  The distribution of the energy of the emitted bremsstrahlung photons \f$ k \f$ is determined by the differential
- *  cross section (see the documentation of RelativisticBremsModel::ComputeDXSecPerAtom and
- *  RelativisticBremsModel::ComputeURelDXSecPerAtom).
- *  So
- *  \f[
- *    p(k) \propto \frac{\mathrm{d}\sigma}{\mathrm{d}k}
- *         \propto \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \frac{1}{k\Gamma(k)}
- *  \f]
- *  where \f$ \Gamma(k) = (1+k_p^2/k^2) \f$ is the main factor related to dielectric suppression. The dielectric
- *  suppression removes the infrared divergence and strongly suppresses the low photon energy tail of the distribution
- *  which results in a non-ideal shape from sampling point of view. Furthermore, since sampling tables are built only
- *  at discrete \f$ E_{i}^{kin} \f$ incident particle kinetic energies and during the simulation we always have incident
- *  particle with \f$ E_{i}^{kin} < E^{kin} < E_{i+1}^{kin}\f$, we need to transform the prepared distributions to the
- *  common range i.e. [0,1] in order to guarante that the sampled photon energy is always within the proper kinematic
- *  limits i.e. \f$ k \in [k_c,E^{kin}] \f$ where \f$ k_c \f$ is the kinetic energy threshold for gamma particle
- *  production. So we apply the following variable transformations:
- *
- *  - first \f$ k \to u(k)=\ln(k^2+k_p^2)\f$ that removes the strong low-energy \f$ k \f$ dependence introduced by the
- *    dielectric suppression factor:
- *
- *    \f$ k=\sqrt{\exp(u)-k_p^2} \f$ and \f$ \frac{\mathrm{d}k}{\mathrm{d}u}= \frac{\exp(u)}{2\sqrt{\exp(u)-k_p^2}}
- *    \left( = \frac{k^2+k_p^2}{2k} \right)\f$ so from the condition \f$ p(k)\mathrm{d}k \propto p(u)\mathrm{d}u\f$
- *    one can write \f$ p(u) \propto p(k)\frac{\mathrm{d}k}{\mathrm{d}u} = p(k)\frac{k^2+k_p^2}{2k} \propto
- *    \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \frac{1}{k}\frac{k^2}{k^2+k_p^2}\frac{k^2+k_p^2}{2k} \propto
- *    \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \f$
- *
- *  - then we apply the transformation \f$ u \to \xi=\frac{u-\ln(k_c^2+k_p^2)}{\ln[E^2+k_p^2]-\ln(k_c^2+k_p^2)}\;
- *    \in [0,1]\f$ where \f$ E \f$ is the kinetic energy of the incident particle:
- *
- *    \f$ u = \ln\frac{E^2+k_p^2}{k_c^2+k_p^2}\xi + \ln(k_c^2+k_p^2) \f$ and \f$ \frac{\mathrm{d}u}{\mathrm{d}\xi} =
- *    \ln\frac{E^2+k_p^2}{k_c^2+k_p^2} \f$ so from the condition \f$ p(u)\mathrm{d}u \propto p(\xi)\mathrm{d}\xi\f$
- *    one can write \f$ p(\xi) \propto p(u)\frac{\mathrm{d}u}{\mathrm{d}\xi} =  p(u) \ln\frac{E^2+k_p^2}{k_c^2+k_p^2}
- *    \propto \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \ln\frac{E^2+k_p^2}{k_c^2+k_p^2} \propto
- *    \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \f$ (the last factor was dropped since it is just a constant).
- *
- *  - therefore, insted of building tables to sample directly the emitted photon energy, we build tables to sample
- *    \f$ \xi \in [0,1]\f$ at some fixed, discrete values of incident particle kinetic energies
- *    \f$\left\{ E_{i}^{kin} \right\}_{i=1}^{N}\f$ (only at the kinematically allowed combinations of
- *    \f$(E_{i}^{kin},k_c)\f$) and at run-time for a given incident particle kinetic enegy \f$ E^{kin} \f$ the
- *    corresponding photon energy \f$ k \f$, distributed according to \f$ p(k) \f$, can be obtained by sampling
- *    \f$ \xi \f$ from the appropriate table and transforming back as
- *    \f[
- *     k=\sqrt{\exp(u)-k_p^2}=\sqrt{[k_c^2+k_p^2]\exp\left[ \xi \ln\frac{E^2+k_p^2}{k_c^2+k_p^2}
- *     \right] - k_p^2}
- *    \f]
- *    where \f$ E \f$ is the actual kinetic energy of the incident particle i.e.
- *    \f$ E_{i}^{kin} < E \equiv E^{kin} < E_{i+1}^{kin} \f$ and it is guaranted that \f$ k \f$ properly lies in the
- *    actual kinematically allowed energy range i.e. \f$ k\in [k_c,E^{kin}]\f$.
- */
-void RelativisticBremsModel::BuildOneLinAlias(int ialias, const Material *mat, double gcut) {
-  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  // material dependent constant
-  double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
-                        *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
-  // target i.e. Z dependent constant
-  constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  // material dependent constant
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
-  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
-  double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
-
-  // we will need the element composition of this material
-  const Vector_t<Element*> theElements    = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-
-  for (int ieener=0; ieener<fNumSamplingElecEnergies; ++ieener) {
-    double eener = fSamplingElecEnergies[ieener];
-    if (eener>gcut) { // otherwise no gamma production at that e- energy so let the sampling table to be nullptr
-      // particle is always e-/e+
-      double totalenergy = eener+geant::kElectronMassC2;
-      double densityCor  = densityFactor*totalenergy*totalenergy; // this is k_p^2
-
-      // create the alias data struct
-      fAliasData[ialias] = new LinAlias();
-      fAliasData[ialias]->fXdata     = new double[fNumSamplingPhotEnergies]();
-      fAliasData[ialias]->fYdata     = new double[fNumSamplingPhotEnergies]();
-      fAliasData[ialias]->fAliasW    = new double[fNumSamplingPhotEnergies]();
-      fAliasData[ialias]->fAliasIndx = new int[fNumSamplingPhotEnergies]();
-
-      // fill 3 values at 0,0.8,1 of the transformed variable
-      int numdata = 3;
-      fAliasData[ialias]->fXdata[0] = 0.0;
-      fAliasData[ialias]->fXdata[1] = 0.8;
-      fAliasData[ialias]->fXdata[2] = 1.0;
-
-      for (int i=0; i<numdata; ++i) {
-        double egamma = gcut;
-        if (i==0) {
-          egamma = gcut;
-        } else if (i==2) {
-          egamma = eener;
-        } else {
-          egamma = std::sqrt( (gcut*gcut+densityCor)*std::exp(fAliasData[ialias]->fXdata[i]*std::log((eener*eener+densityCor)/(gcut*gcut+densityCor) )) -densityCor);
-        }
-        double dcross = 0.0;
-        for (int ielem=0; ielem<numElems; ++ielem) {
-          double zet = theElements[ielem]->GetZ();
-          double val = 0.0;
-          if (totalenergy>energyThLPM)
-            val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-          else
-            val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-          dcross += theAtomicNumDensityVector[ielem]*zet*zet*val;
-        }
-        fAliasData[ialias]->fYdata[i] = dcross;
-      }
-
-//      for (int i=0; i<numdata; ++i) {
-//        std::cerr<< "  mat = "<<mat->GetName() <<" xi = "<<fAliasData[ialias]->fXdata[i] << " pdf = "<< fAliasData[ialias]->fYdata[i] << std::endl;
-//      }
-
-      // expand the data up to maximum
-      while(numdata<fNumSamplingPhotEnergies) {
-        // find the lower index of the bin, where we have the biggest linear interp. error compared to computed value
-        double maxerr     = 0.0; // value of the current maximum error
-        double thexval    = 0.0;
-        double theyval    = 0.0;
-        int    maxerrindx = 0;   // the lower index of the corresponding bin
-//std::cerr<<" numdata = "<<numdata<<std::endl;
-        for (int i=0; i<numdata-1; ++i) {
-//          std::cerr<< "   "<<i<<"-th = "<<fAliasData[ialias]->fXdata[i+1]<<std::endl;
-          double xx = 0.5*(fAliasData[ialias]->fXdata[i]+fAliasData[ialias]->fXdata[i+1]); // mid point
-          double yy = 0.5*(fAliasData[ialias]->fYdata[i]+fAliasData[ialias]->fYdata[i+1]); // lin func val at the mid point
-
-          double dum0  = (gcut*gcut+densityCor);
-          double dum1  = (eener*eener+densityCor)/dum0;
-          double    u  = dum0*std::exp(xx*std::log(dum1));
-          double egamma = std::sqrt( u-densityCor);
-
-          double dcross = 0.0;
-          for (int ielem=0; ielem<numElems; ++ielem) {
-            double zet = theElements[ielem]->GetZ();
-            double val = 0.0;
-            if (totalenergy>energyThLPM)
-              val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-            else
-              val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-            dcross += theAtomicNumDensityVector[ielem]*zet*zet*val;
+void RelativisticBremsModel::InitElementData() {
+  size_t numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
+  // get list of active region
+  std::vector<bool> &isActiveInRegion = GetListActiveRegions();
+  for (size_t imc=0; imc<numMatCuts; ++imc) {
+    const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[imc];
+    // if this MaterialCuts belongs to a region where this model is active:
+    if (isActiveInRegion[matCut->GetRegionIndex()]) {
+        // get the list of elements
+      const Vector_t<Element*> &theElemVect = matCut->GetMaterial()->GetElementVector();
+      size_t numElems = theElemVect.size();
+      for (size_t ie=0; ie<numElems; ++ie) {
+        const Element *elem = theElemVect[ie];
+        double zet = elem->GetZ();
+        int   izet = std::min(std::lrint(zet),gMaxZet-1);
+        if (!gElementData[izet]) {
+          ElementData *elemData  = new ElementData();
+          const double fc = elem->GetElementProperties()->GetCoulombCorrection();
+          double Fel      = 1.;
+          double Finel    = 1.;
+          elemData->fLogZ = std::log(zet);
+          elemData->fFz   = elemData->fLogZ/3.+fc;
+          if (izet<5) {
+            Fel   = gFelLowZet[izet];
+            Finel = gFinelLowZet[izet];
+          } else {
+            Fel   = std::log(184.15) -    elemData->fLogZ/3.;
+            Finel = std::log(1194)   - 2.*elemData->fLogZ/3.;
           }
-
-//          double err   = std::fabs(yy-dcross);
-//          double err   = std::fabs(1.0-yy/dcross);
-           double err   = std::fabs((yy-dcross)*(1.0-yy/dcross));
-
-          if (err>maxerr) {
-            maxerr     = err;
-            maxerrindx = i;
-            thexval    = xx;
-            theyval    = dcross;
-          }
+          elemData->fZFactor1      = (Fel-fc)+Finel/zet;
+          elemData->fZFactor2      = (1.+1./zet)/12.;
+          elemData->fVarS1         = std::pow(zet,2./3.)/(184.15*184.15);
+          elemData->fILVarS1Cond   = 1./(std::log(std::sqrt(2.0)*elemData->fVarS1));
+          elemData->fILVarS1       = 1./std::log(elemData->fVarS1);
+          elemData->fGammaFactor   = 100.0*geant::kElectronMassC2/std::pow(zet,1./3.);
+          elemData->fEpsilonFactor = 100.0*geant::kElectronMassC2/std::pow(zet,2./3.);
+          gElementData[izet] = elemData;
         }
-        // extend x,y data by puting a spline interp.ted value at the mid point of the highest error bin
-        // first shift all values to the right
-        for (int j=numdata; j>maxerrindx+1; --j) {
-          fAliasData[ialias]->fXdata[j] = fAliasData[ialias]->fXdata[j-1];
-          fAliasData[ialias]->fYdata[j] = fAliasData[ialias]->fYdata[j-1];
-        }
-        // fill x mid point
-        fAliasData[ialias]->fXdata[maxerrindx+1] = thexval;
-        fAliasData[ialias]->fYdata[maxerrindx+1] = theyval;
-        // increase number of data
-        ++numdata;
       }
-
-      // set up a linear alias sampler on this data
-      AliasTable *alst = new AliasTable();
-      alst->PreparLinearTable(fAliasData[ialias]->fXdata, fAliasData[ialias]->fYdata,
-                              fAliasData[ialias]->fAliasW, fAliasData[ialias]->fAliasIndx,
-                              fNumSamplingPhotEnergies);
-      delete alst;
     }
-    ++ialias;
   }
 }
-
 
 /**
  *   The restricted atomic cross section for bremsstrahlung photon emeission for target element with atomic number
@@ -691,309 +298,36 @@ void RelativisticBremsModel::BuildOneLinAlias(int ialias, const Material *mat, d
  *   where \f$\Gamma \f$ and \f$ (\mathrm{d}\sigma/\mathrm{d}k)^*\f$ must be evaluated at
  *   \f$ k = \exp(u)E= k_c\exp(\xi\ln(E/k_c))\f$ for a given \f$ \xi \f$.
  */
-double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const Material *mat, double gammaprodcutenergy, double particleekin) {
-  double xsec = 0.0;
-  if (particleekin<=gammaprodcutenergy) {
-//    std::cerr<<" particleekin = "<<particleekin/geant::MeV<< " gammaprodcutenergy = "<<gammaprodcutenergy/geant::MeV << std::endl;
-    return xsec;
+double RelativisticBremsModel::ComputeDXSecPerAtom(double egamma, double etotal, double zet) {
+  //constexpr double factor = 16.*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.;
+  double dcs         = 0.;
+  const double y     = egamma/etotal;
+  const double onemy = 1.-y;
+  const int    izet  = std::lrint(zet);
+  if (izet<5) {
+    // use complete screening (Tsai Eq.(3.83)) and L_el and L_inel from Tsai Table B2 for Z<5
+    dcs  = (onemy+0.75*y*y)*gElementData[izet]->fZFactor1;
+    dcs += onemy*gElementData[izet]->fZFactor2;
+    //dcs *= factor*zet*zet/egamma;
+  } else {
+    // Tsai: screening from Thomas-Fermi model of atom; Tsai Eq.(3.82)
+    // variables gamma and epsilon from Tsai Eq.(3.30) and Eq.(3.31)
+    const double invZ    = 1./zet;
+    const double Fz      = gElementData[izet]->fFz;
+    const double logZ    = gElementData[izet]->fLogZ;
+    const double dum0    = y/(etotal-egamma);
+    const double gamma   = dum0*gElementData[izet]->fGammaFactor;
+    const double epsilon = dum0*gElementData[izet]->fEpsilonFactor;
+    double phi1, phi1m2, xsi1, xsi1m2;
+    ComputeScreeningFunctions(phi1, phi1m2, xsi1, xsi1m2, gamma, epsilon);
+    dcs  = (onemy+0.75*y*y)*((0.25*phi1-Fz) + (0.25*xsi1-2.*logZ/3.)*invZ);
+    dcs += 0.125*onemy*(phi1m2 + xsi1m2*invZ);
+    //dcs *= factor*zet*zet/egamma;
   }
-  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  // material dependent constant
-  double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
-                        *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
-  // particle mass should be set at initialisation
-  double totalenergy = particleekin+geant::kElectronMassC2; // it is always e-/e+
-  //
-  double densityCor  = densityFactor*totalenergy*totalenergy; // this is k_p^2
-  // target i.e. Z dependent constant
-  constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  //
-  constexpr double factor      = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
-  // material dependent constant
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
-  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
-  double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
-
-  double lKappaPrimePerCr = std::log(particleekin/gammaprodcutenergy);
-
-  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
-  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
-  double zet      = elem->GetZ();
-  double zet2     = zet*zet;
-  double integral = 0.0;
-  for (int i=0;i<ngl;++i) {
-    double egamma = std::exp(glX[i]*lKappaPrimePerCr)*gammaprodcutenergy;
-    double val    = 0.0;
-    if (totalenergy>energyThLPM)
-      val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-    else
-      val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-    integral += glW[i]*val/(1.+densityCor/(egamma*egamma));
-  }
-
-  delete gl;
-
-  return lKappaPrimePerCr*factor*zet2*integral;
+  return std::max(dcs,0.0);
 }
 
 
-/**
- *   The restricted macroscopic cross section for bremsstrahlung photon emission for the given target material,
- *   gamma photon production energy threshold \f$k_c\f$ is computed for e-/e+ kinetic energy \f$E\f$ according to
- *  \f[
- *      \Sigma(E;k_c,\mathrm{material}) = \sum_i n_i \sigma_i(E;k_c,Z_i)
- *  \f]
- *  if \f$ E>k_c\f$ otherwise immediate return with \f$0\f$. The summation goes over the elements the matrial is
- *  composed from. \f$\sigma_i(E;k_c,Z_i)\f$ is the restricted atomic cross
- *  secion for the \f$i\f$-th element of the material with atomic number of \f$Z_i \f$ (computed similarly like
- *  RelativisticBremsModel::ComputeXSectionPerAtom()) and \f$n_i\f$ is the number of atoms per unit volume of
- *  \f$i \f$-th element of the material that is \f$ n_i = \mathcal{N}\rho w_i/A_i \f$ where \f$\mathcal{N}\f$ is the
- *  Avogadro number, \f$\rho\f$ is the material density, \f$w_i\f$ is the proportion by mass (or mass fraction) of the
- *  \f$i \f$-th element and \f$A_i\f$ is the molar mass of the \f$i \f$-th element. The corresponding mean free path
- *  is \f$\lambda = 1/\Sigma \f$.
- */
-double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, double gammaprodcutenergy, double particleekin) {
-  double xsec = 0.0;
-  if (particleekin<=gammaprodcutenergy) {
-//    std::cerr<<" particleekin = "<<particleekin/geant::MeV<< " gammaprodcutenergy = "<<gammaprodcutenergy/geant::MeV << std::endl;
-    return xsec;
-  }
-  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  // material dependent constant
-  double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
-                        *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
-  // particle mass should be set at initialisation
-  double totalenergy = particleekin+geant::kElectronMassC2; // it's always e-/e+
-
-  double densityCor  = densityFactor*totalenergy*totalenergy; // this is k_p^2
-  // target i.e. Z dependent constant
-  constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  // material dependent constant
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
-  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
-  double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
-  //
-  double factor      = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
-
-  double lKappaPrimePerCr = std::log(particleekin/gammaprodcutenergy);
-
-  // we will need the element composition of this material
-  const Vector_t<Element*> theElements    = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-
-  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
-  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
-  double integral = 0.0;
-  for (int i=0;i<ngl;++i) {
-    double egamma = std::exp(glX[i]*lKappaPrimePerCr)*gammaprodcutenergy;
-    double sum    = 0.0;
-    for (int ielem=0; ielem<numElems; ++ielem) {
-      double zet  = theElements[ielem]->GetZ();
-      double val  = 0.0;
-      if (totalenergy>energyThLPM)
-        val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-      else
-        val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-      sum  += theAtomicNumDensityVector[ielem]*zet*zet*val;
-    }
-    integral += glW[i]*sum/(1.+densityCor/(egamma*egamma));
-  }
-
-  delete gl;
-
-  return lKappaPrimePerCr*factor*integral;
-}
-
-/**
- *  The stopping power, i.e. average energy loss per unit path length, from bremsstrahlung photon emission is computed
- *  for the given e-/e+ kinetic energy \f$E\f$, the given material and gamma production threshold energy \f$k_c\f$
- *  \f[
- *      S(E;k_c,\mathrm{material})=\int_{0}^{\eta} k \sum_i n_i \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \mathrm{d}k
- *  \f]
- *  where
- *  \f[
- *     \eta =
- *      \begin{cases}
- *            E    & \quad \mathrm{if}\; E<k_c \\
- *            k_c  & \quad \mathrm{if}\; E \geq k_c
- *      \end{cases}
- *  \f]
- *  the summation goes over the elements the matrial is composed from. \f$ \mathrm{d}\sigma_i \mathrm{d}k\f$ is the
- *  differential cross section for bremsstrahlung photon emission for for the \f$i\f$-th element of the material with
- *  atomic number of \f$Z_i\f$ and \f$n_i\f$ is the number of atoms per unit volume of \f$i\f$-th element of the
- *  material that is \f$n_i=\mathcal{N}\rho w_i/A_i\f$ where \f$\mathcal{N}\f$ is the Avogadro number, \f$\rho\f$ is
- *  the material density, \f$w_i\f$ is the proportion by mass (or mass fraction) of the \f$i\f$-th element and \f$A_i\f$
- *  is the molar mass of the \f$i\f$-th element.
- *
- *  Using the form of the applied differential cross section (see RelativisticBremsModel::ComputeDXSecPerAtom and
- *  RelativisticBremsModel::ComputeURelDXSecPerAtom one can write
- *  \f[
- *      S(E;k_c,\mathrm{material})=\frac{16\alpha r_e^2}{3}\int_{0}^{\eta} \frac{1}{\Gamma} \sum_i n_i
- *        Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}k
- *  \f]
- *  The integral is computed by 64-points Gauss-Legendre quadrature after applying the following transformations:
- *  - first the emitted photon energy is transformed \f$ k \to u=\ln[1-\eta/E_t] \f$ where \f$E_t\f$ is the total energy
- *    of the e-/e+.
- *  - then the following transformation is applied \f$ u \to \xi = u/\ln[1-\eta/E_t] \in [0,1]\f$
- *
- *  The transformed integral
- *  \f[
- *  \int_{0}^{\eta} \frac{1}{\Gamma} \sum_i n_i Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}k
- *  = -E_t \int_{0}^{\ln[1-\eta/E_t]} \frac{e^u}{\Gamma}
- *     \sum_i n_i Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}u
- *  = -E_t \ln[1-\eta/E_t] \int_{0}^{1} \frac{e^{\xi\ln[1-\eta/E_t]}}{\Gamma}
- *     \sum_i n_i Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}\xi
- *  \f]
- *  where \f$\Gamma\f$ and \f$ \left(\mathrm{d}\sigma_i / \mathrm{d}k \right)^* \f$ must be evaluated at
- *  \f$ k=E_t[1-e^{\xi\ln[1-\eta/E_t]}] \f$ for a given \f$\xi\f$.
- */
-double RelativisticBremsModel::ComputeDEDXPerVolume(const Material *mat, double gammaprodcutenergy, double particleekin) {
-  double dedx = 0.0;
-  // TODO
-  // HERE WE need to check if the particleekin is below the minimum energy that the model is set and we return zero in this case
-  // if (GetLowEnergyLimit())
-
-
-  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  // material dependent constant
-  double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
-                        *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
-  // particle mass should be set at initialisation
-  double totalenergy = particleekin+geant::kElectronMassC2;  // it's always e-/e+
-
-  double densityCor  = densityFactor*totalenergy*totalenergy; // this is k_p^2
-  // target i.e. Z dependent constant
-  constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  // material dependent constant
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
-  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
-  double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
-  // the constant factor
-  double factor      = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
-
-  double upperlimit  = gammaprodcutenergy;
-  if (upperlimit>particleekin)
-    upperlimit = particleekin;
-  double kappacr      = upperlimit/totalenergy;
-  double log1mKappaCr = std::log(1.0-kappacr);
-
-  // we will need the element composition of this material
-  // const std::vector<Element*> theElements = mat->GetElementVector();
-  const Vector_t<Element*> theElements    = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-
-  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
-  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
-  double integral = 0.0;
-  for (int i=0;i<ngl;++i) {
-    double dumx   = 1.0-std::exp(glX[i]*log1mKappaCr);
-    double egamma = totalenergy*dumx;
-    double sum    = 0.0;
-    for (int ielem=0; ielem<numElems; ++ielem) {
-      double zet  = theElements[ielem]->GetZ();
-      //int    izet = std::lrint(zet);
-      double val  = 0.0;
-      if (totalenergy>energyThLPM)
-        val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-      else
-        val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-      sum  += theAtomicNumDensityVector[ielem]*zet*zet*val;
-    }
-    integral += glW[i]*sum*(egamma-totalenergy)/(1.+densityCor/(egamma*egamma));
-  }
-
-  delete gl;
-  dedx = log1mKappaCr*factor*integral;
-  return dedx;
-}
-
-/*
-// Transformation: k \to u=ln[1-k/E_kin+1e-6] then u to xi = u-ln[1+1e-6]/ln((1+1e-6-upperlimit/e_kin)(1+1e-6))
-//
-double RelativisticBremsModel::ComputeDEDXPerVolume1(Material *mat, double gammaprodcutenergy, double particleekin) {
-  double dedx = 0.0;
-  // TODO
-  // HERE WE need to check if the particleekin is below the minimum energy that the model is set and we return zero in this case
-
-  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  // material dependent constant
-  double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
-                        *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
-  // particle mass should be set at initialisation
-  double totalenergy = particleekin+geant::kElectronMassC2;  // it's always e-/e+
-
-  double densityCor  = densityFactor*totalenergy*totalenergy; // this is k_p^2
-  // target i.e. Z dependent constant
-  constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  // material dependent constant
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
-  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
-  double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
-  //
-  double factor      = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
-
-  double upperlimit  = gammaprodcutenergy;
-  if (upperlimit>particleekin)
-    upperlimit = particleekin;
-  double kappacr      = upperlimit/particleekin;
-  const  double phi   = 1e-6;
-  const  double onePlusPhi = 1.0+phi;
-  double log1mKappaCr = std::log(1.0-kappacr/onePlusPhi);
-
-  // we will need the element composition of this material
-  const std::vector<Element*> theElements = mat->GetElementVector();
-  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-
-  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
-  int ngl = 64;
-  GLIntegral *gl = new GLIntegral(ngl,0.0,1.0);
-  const std::vector<double> glW = gl->GetWeights();
-  const std::vector<double> glX = gl->GetAbscissas();
-  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
-  double integral = 0.0;
-  for (int i=0;i<ngl;++i) {
-    double dumx     = onePlusPhi*std::exp(glX[i]*log1mKappaCr);
-    double egamma   = (onePlusPhi-dumx)*particleekin;
-//    double egamma = totalenergy*dumx;
-    double sum    = 0.0;
-    for (int ielem=0; ielem<numElems; ++ielem) {
-      double zet  = theElements[ielem]->GetZ();
-      int    izet = std::lrint(zet);
-      double val  = 0.0;
-      if (totalenergy>energyThLPM)
-        val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-      else
-        val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-      sum  += theAtomicNumDensityVector[ielem]*zet*zet*val;
-    }
-    integral -= glW[i]*sum*dumx/(1.+densityCor/(egamma*egamma));
-  }
-
-  delete gl;
-
-  return log1mKappaCr*particleekin*factor*integral;
-}
-*/
-
-// compute differential cross section per atom: Tsai, complete screening with LPM plus dielectric suppressions
-// NOTE: to get the differential cross section the return value must be multiplied by (16 alpha r^2 Z^2)/(3*k)
-//       where alpha is the fine structure constant, r is the classical electron radius, Z is the target atomic number and k is
-//       the emitted photon energy.
 /**
  *  When LPM efect is active, the atomic cross section, differential in emitted photon energy, is based on the
  *  <em>complete screening</em> form of Tsai's differential cross section \cite tsai1974pair [Eq. (3.83)] (see more
@@ -1153,421 +487,167 @@ double RelativisticBremsModel::ComputeDEDXPerVolume1(Material *mat, double gamma
  *  \f]
  *
  */
-double RelativisticBremsModel::ComputeURelDXSecPerAtom(double gammaenergy, double totalenergy, double z, double lpmenergy, double densitycor) {
-  //return zero if gamma energy is < 0
-  if (gammaenergy<0.0) {
-    return 0.0;
-  }
-  double y = gammaenergy/totalenergy; // reduced photon energy
-  double firstTerm   = 0.0;
-  double secondTerm  = 0.0;
+double RelativisticBremsModel::ComputeURelDXSecPerAtom(double egamma, double etotal, double lpmenergy, double densitycor, int izet) {
+  const double y     = egamma/etotal;
+  const double onemy = 1.-y;
+  const double dum0  = 0.25*y*y;
+  double funcGS, funcPhiS, funcXiS;
+  ComputeLPMfunctions(funcXiS, funcGS, funcPhiS, lpmenergy, egamma, etotal, densitycor, izet);
+  double dcs = funcXiS*(dum0*funcGS+(onemy+2.0*dum0)*funcPhiS)*gElementData[izet]->fZFactor1
+              + onemy*gElementData[izet]->fZFactor2;
+  return std::max(dcs,0.0);
+}
 
-  // Coulomb correction from Davis,Bethe,Maximom PRL 1954 Eqs.(36-38)
-  // should be pulled out because it is constant for a given Z
-  double mu  = z*geant::kFineStructConst;
-  double mu2 = mu*mu;
-  double mu4 = mu2*mu2;
-  double mu6 = mu2*mu4;
-  double coulombCorrection = mu2*(1.0/(1.0+mu2) + 0.20206 - 0.0369*mu2 + 0.0083*mu4 - 0.002*mu6);
 
-  int    izet        = std::lrint(z);
+void RelativisticBremsModel::ComputeScreeningFunctions(double &phi1, double &phi1m2, double &xsi1, double &xsi1m2,
+                                                        const double gamma, const double epsilon) {
+  const double gamma2   = gamma*gamma;
+  phi1   = 16.863-2.0*std::log(1.0+0.311877*gamma2)+2.4*std::exp(-0.9*gamma)+1.6*std::exp(-1.5*gamma);
+  phi1m2 = 2.0/(3.0+19.5*gamma+18.0*gamma2);       // phi1-phi2
+  const double epsilon2 = epsilon*epsilon;
+  xsi1   = 24.34-2.0*std::log(1.0+13.111641*epsilon2)+2.8*std::exp(-8.0*epsilon)+1.2*std::exp(-29.2*epsilon);
+  xsi1m2 = 2.0/(3.0+120.0*epsilon+1200.0*epsilon2); //xsi1-xsi2
+}
 
-  // elastic and inelastic screening function values in the complete screening case i.e. \gamma=\epsilon=0; used only for Z>=5
-  // L_{el}   = [\ln (\exp(20.863/4)Z^{-1/3}) ] = \ln[184.1499 Z^{-1/3}]
-  // L_{inel} = [\ln (\exp(28.340/4)Z^{-2/3}) ] = \ln[1193.923 Z^{-2/3}]
-  // And these are the constant parts so they should be pulled out
-  const double factorFel   = std::log(184.1499);
-  const double factorFinel = std::log(1193.923);
 
-  // radiation length: is a material property so it should be set by the caller
-  // LPM energy is a material dependent constant so it should be set and provided by the caller
 
-  //
-  // compute the LPM functions s', s, \xi(s), G(s), \phi(s)
-  //
-  // DO IT ACCORDING TO Geant4 model:
-  // -compute s according to Stanev to avoid iterative solution: s1, s', \xi(s') then s
-  //  1. s_1 \equiv [Z^{1/3}/\exp(20.863/4)]^2 = Z^{2/3}/184.1499^2
-  //     std::pow(z,2/3) should be pulled out as the constant 184.1499^2 =
-  double varS1     = std::pow(z,2./3.)/(184.1499*184.1499);
-  //  2. in Geant4 s' is computed according to Klein (!not like E_LPM or k_LPM bevause they computed like Anthony!)
-  //     s'  = \sqrt{ \frac{1}{8} \frac{y}{1-y}   \frac{E^{KL}_{LPM}}{E}  }
-  //     In Geant4 E^{AN}_{LPM} is used instead of E^{KL}_{LPM}.
-  double varSprime = std::sqrt(0.125*y/(1.0-y)*lpmenergy/totalenergy);
-  //  3. \xi(s') =
-  //      \begin{cases}
-  //        2 & \quad \text{if}\; s' \leq \sqrt{2}s_1
-  //        1+h-\frac{0.08(1-h)[1-(1-h)^2]}{\ln(\sqrt{2}s_1)} & \quad \text{if}\;  \sqrt{2}s_1 < s' < 1
-  //        1 & \quad \text{if}\; s' \geq 1
-  //      \end{cases}
-  // where h(s') \equiv (\ln(s'))/\ln(\sqrt{2}s_1)
+void RelativisticBremsModel::ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS,
+                                                  const double lpmenergy, const double egamma, const double etot,
+                                                  const double densitycor, const int izet) {
+  static const double sqrt2 = std::sqrt(2.);
+  const double redegamma = egamma/etot;
+  //const double varSprime = std::sqrt(0.125*redegamma/(1.0-redegamma)*lpmenergy/etot);
+  const double varSprime = std::sqrt(0.125*redegamma*lpmenergy/((1.0-redegamma)*etot));
+  const double varS1     = gElementData[izet]->fVarS1;
+  const double condition = sqrt2*varS1;
   double funcXiSprime = 2.0;
-  // sqrt(2) constant should be pulled out
-  double condition    = std::sqrt(2.0)*varS1;
   if (varSprime>1.0) {
     funcXiSprime = 1.0;
   } else if (varSprime>condition) {
-    double dum0        = 1.0/std::log(condition);
-    double funcHSprime = std::log(varSprime)*dum0;
-    funcXiSprime       = 1.0+funcHSprime-(0.08*(1.0-funcHSprime)*(2.0*funcHSprime-funcHSprime*funcHSprime))*dum0;
+    const double funcHSprime = std::log(varSprime)*gElementData[izet]->fILVarS1Cond;
+    funcXiSprime = 1.0+funcHSprime-0.08*(1.0-funcHSprime)*funcHSprime*(2.0-funcHSprime)*gElementData[izet]->fILVarS1Cond;
   }
-
-  //  4. s=\frac{s'}{\sqrt{\xi(s')}}
-  double varS    = varSprime/std::sqrt(funcXiSprime);
-  // - include dielectric suppression effect into s according to Migdal i.e.
-  //   change s to \hat{s}=s\Gamma  where Gamma = (1+k_p^2/k^2) where k_p = \hbar \omega_p \gamma= \hbar \omega_p E/(mc^2)
-  //   where \hbar \omega_p= \hbar c \sqrt{4\pi n_e r_e}\f$ (\f$n_e\f$ is the electron density) and \f$k\f$ is the photon energy
-  //   NOTE: that k_p^2 is our usual densityCor variable (where we compute the plasma energy so it is not taken from e.g. NIST data)
-  //         densityFactor that is k_p^2/(E_t^2) is material dependent parameter!!! so should be provided by the caller
-  double varShat = varS*(1.0+densitycor/(gammaenergy*gammaenergy));
-  // - since we already know s compute \xi(s) according to Migdal
-  //   by replacing s with \hat{s}
-  // \xi(s) =
-  //   \begin{cases}
-  //    2 & \quad \text{if}\; s \leq s_1
-  //    1+\frac{\ln(s)}{\ln(s_1)} & \quad \text{if}\; s_1 < s < 1
-  //    1 & \quad \text{if}\; s \geq 1
-  //    \end{cases}
-  double funcXiS = 2.0;
+  const double varS    = varSprime/std::sqrt(funcXiSprime);
+  // - include dielectric suppression effect into s according to Migdal
+  const double varShat = varS*(1.0+densitycor/(egamma*egamma));
+  funcXiS = 2.0;
   if (varShat>1.0) {
     funcXiS = 1.0;
   } else if (varShat>varS1) {
-    funcXiS = 1.0+std::log(varShat)/std::log(varS1);
+    funcXiS = 1.0+std::log(varShat)*gElementData[izet]->fILVarS1;
   }
-/*
-  // - compute \phi(s) and G(s) suppression functions according to Stanev (Geant4 approximations are slightly different)
-  //   by replacing s with \hat{s} = s*(1+k_p^2/k^2)
-  //  \f[
-  //  \phi(s) \approx
-  //   \begin{cases}
-  //    6s(1-\pi s) & \quad \text{if}\; s \leq 0.01 \\
-  //    1-\exp \left\{  -6s[1+s(3-\pi)] + \frac{s^3}{0.623+0.796s+0.658s^2} \right\}  & \quad \text{if}\; 0.01 < s < 2 \\
-  //    1 & \quad \text{if}\; s \geq 2
-  //   \end{cases}
-  //  \f]
+  GetLPMFunctions(funcGS, funcPhiS, varShat);
+  //ComputeLPMGsPhis(funcGS, funcPhiS, varShat);
   //
-  //  \f[
-  //  G(s) = 3 \psi(s) - 2 \phi(s)
-  //  \f]
-  //  where
-  //  \f[
-  //  \psi(s) \approx
-  //   \begin{cases}
-  //    4s  & \quad \text{if}\; s \leq 0.01 \\
-  //    1-\exp \left\{  -4s  - \frac{8s^2}{1+3.936s+4.97s^2-0.05s^3+7.5s^4} \right\}  & \quad \text{if}\; 0.01 < s < 2 \\
-  //    1 & \quad \text{if}\; s \geq 2
-  //   \end{cases}
-  //  \f]
-  double funcPhiS = 6.0*varShat*(1.0-geant::kPi*varShat);
-  double funcPsiS = 4.0*varShat;
-  if (varShat>=2.0) {
-    funcPhiS = 1.0;
-    funcPsiS = 1.0;
-  } else if (varShat>0.01) {
-    double varShat2 = varShat*varShat;
-    double varShat3 = varShat*varShat2;
-    double varShat4 = varShat2*varShat2;
-    funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
-    funcPsiS = 1.0-std::exp(-4.0*varShat - 8.0*varShat2/(1.0+3.936*varShat+4.97*varShat2-0.05*varShat3+7.5*varShat4));
-  }
-  double funcGS   = 3.0*funcPsiS-2.0*funcPhiS;
-*/
-
-//// begin according to the genat4 model
-  // - compute \phi(s) and G(s) suppression functions according Geant4 model (slightly different than Stanev)
-  double varShat2 = varShat*varShat;
-  double varShat3 = varShat*varShat2;
-  double varShat4 = varShat2*varShat2;
-  double funcPhiS = 1.0;
-  double funcGS   = 1.0;
-  if (varShat<0.1) { // high suppression limit:
-    // 24s^3\sum_{j=1}^{\infty} \frac{1}{(j+s)^2+s^2} = 12 x^2 i {DigammaFunc[(1-i)s+1] - DigammaFunc[(1+i)s+1]}
-    // where DigammaFunc is the digamma function
-    // using Taylor approximation of  6s(1-\pi s) + 12 x^2 i {DigammaFunc[(1-i)s+1] - DigammaFunc[(1+i)s+1]} around s=0
-    // ==> 6s - 6\pi s^2 + 4\pi^2 s^3 - 48 Zeta(3) s^4
-    // where Zeta is the Riemann zeta function Zeta[3] \approx 1.202056903159594 is Apery's constant
-    funcPhiS = 6.0*varShat-18.84955592153876*varShat2+39.47841760435743*varShat3-57.69873135166053*varShat4;
-    // 48s^3\sum_{j=0}^{\infty} \frac{1}{(j+s+1/2)^2+s^2} = 24 x^2 i {DigammaFunc[(1-i)s+0.5] - DigammaFunc[(1+i)s+0.5]}
-    // using Taylor approximation of 12\pi s^2 - 24 x^2 i {DigammaFunc[(1-i)s+0.5] - DigammaFunc[(1+i)s+0.5]} aound s=0
-    // ==> 12\pi s^2 -24\pi^2 s^3 - 48 [Digamma''(0.5)] s^4
-    // where [Digamma''(0.5)] is the second derivative of the digamma function at 0.5 and 48*[Digamma''(0.5)] \approx  -807.782238923247359
-    funcGS   = 37.69911184307752*varShat2-236.8705056261446*varShat3+807.78223892324736*varShat4;
-  } else if (varShat<1.9516) { // intermediate suppression: use Stanev approximation for \phi(s)
-    // 1-\exp \left\{  -6s[1+s(3-\pi)] + \frac{s^3}{0.623+0.796s+0.658s^2} \right\}
-    funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
-    if (varShat<0.415827397755) { // use Stanev approximation: for \psi(s) and compute G(s)
-      // 1-\exp \left\{  -4s  - \frac{8s^2}{1+3.936s+4.97s^2-0.05s^3+7.5s^4} \right\}
-      double funcPsiS = 1.0-std::exp(-4.0*varShat - 8.0*varShat2/(1.0+3.936*varShat+4.97*varShat2-0.05*varShat3+7.5*varShat4));
-      // G(s) = 3 \psi(s) - 2 \phi(s)
-      funcGS = 3.0*funcPsiS - 2.0*funcPhiS;
-    } else { // use alternative parametrisation
-      double dum0 = -0.16072300849123999+3.7550300067531581*varShat-1.7981383069010097*varShat2+0.67282686077812381*varShat3-0.1207722909879257*varShat4;
-      funcGS = std::tanh(dum0);
-    }
-  } else { //low suppression limit:
-    // 24s^3\sum_{j=1}^{\infty} \frac{1}{(j+s)^2+s^2} = 12 x^2 i {DigammaFunc[(1-i)s+1] - DigammaFunc[(1+i)s+1]}
-    // usign Laurent series expansion of 6s(1-\pi s) + 12 x^2 i {DigammaFunc[(1-i)s+1] - DigammaFunc[(1+i)s+1]} around s=\infty
-    // ==> 1-1/(84s^4)
-    funcPhiS = 1.0-0.01190476/varShat4;
-    // 48s^3\sum_{j=0}^{\infty} \frac{1}{(j+s+1/2)^2+s^2} = 24 x^2 i {DigammaFunc[(1-i)s+0.5] - DigammaFunc[(1+i)s+0.5]}
-    // usign Laurent series expansion of 12\pi s^2 - 24 x^2 i {DigammaFunc[(1-i)s+0.5] - DigammaFunc[(1+i)s+0.5]} aound s=\infty
-    // ==> 1-0.0230655/s^4
-    funcGS   = 1.0-0.0230655/varShat4;
-  }
-
-
   //MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
   if (funcXiS*funcPhiS>1. || varShat>0.57) {
     funcXiS=1./funcPhiS;
   }
-
-  // -compute the dxsection: Tsai, complete screening, LMP according to Migdal
-  //  NOTE: - what is computed is not the expression below! one needs to multiply this by (16 alpha r^2 Z^2)/(3k\Gamma) to get it
-  //        - s\Gamma is varShat, \xi(s\Gamma) is funcXiS, G(s\Gamma) is funcGS, \phi(s\Gamma) is funcPhiS and all are
-  //          computed above
-  // \begin{split}
-  //   \frac{\mathrm{d}\sigma}{\mathrm{d}k} = & \frac{16 Z^2 \alpha r_e^2}{3k\Gamma}
-  //   \left\{ \xi(s\Gamma)
-  //   \left[ \frac{y^2}{4}G(s\Gamma) +(1-y+\frac{y^2}{4}) \phi(s\Gamma) \right]
-  //   \left[ (L_{el} -f)  +\frac{L_{inel}}{Z} \right]
-  //  \right. \\ & \left.
-  //   + \frac{1}{12}(1-y)\left[  1+\frac{1}{Z}  \right]
-  //   \right\}
-  //  \end{split}
-
-  // don't forget: complete screening is used (fine because LPM is active at high energies and at high energy screening
-  //               functions becoms independent on gamma and epsilon)
-  double dum0 = 0.25*y*y;
-  firstTerm   = funcXiS*(dum0*funcGS+(1.0-y+2.0*dum0)*funcPhiS);
-  secondTerm  = (1.0-y)/12.0*(1.0+1.0/z);
-  if (izet<5) {  // use complete screening (Tsai Eq.(3.83)) and L_el and L_inel from Tsai Table B2 for Z<5
-    firstTerm  *= (gFelLowZet[izet]-coulombCorrection+gFinelLowZet[izet]/z);
-  } else {       // use complete screening form of screening functions for Z>=5  case
-    double dum1 = std::log(z)/3.0;
-    firstTerm  *= (factorFel-dum1-coulombCorrection + (factorFinel-2.0*dum1)/z);
-  }
-
-  return (firstTerm+secondTerm);
 }
 
 
-/**
- *
- * The atomic cross section, differential in emitted photon energy, for \f$Z\geq5\f$ is computed according to Tsai
- * \cite tsai1974pair  [Eq. 3.82]
- *  \f[
- *    \begin{split}
- *    \frac{\mathrm{d}\sigma}{\mathrm{d}k} = \frac{\alpha r_e^2}{k} &
- *    \left\{
- *    \left(\frac{4}{3} -\frac{4}{3}y+y^2\right)
- *      \left[  Z^2\left(\varphi_1(\gamma) -\frac{4}{3}\ln(Z) -4f \right) + Z\left(\psi_1(\epsilon) -\frac{8}{3}\ln(Z) \right)  \right]
- *    \right. \\ & \left. \quad
- *      +\frac{2}{3}(1-y) \left[ Z^2(\varphi_1(\gamma) - \varphi_2(\gamma)) + Z(\psi_1(\epsilon) - \psi_2(\epsilon)) \right]
- *    \right\}
- *    \end{split}
- *  \f]
- * that we use in a slightly different form by pulling out \f$ \frac{16Z^2}{3} \f$
- *  \f[
- *    \frac{\mathrm{d}\sigma}{\mathrm{d}k} = \frac{16 \alpha r_e^2 Z^2}{3k} \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^*
- *  \f]
- * and we compute
- *  \f[
- *    \begin{split}
- *    \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* = &
- *    \left(1 - y + \frac{3}{4}y^2\right)
- *      \left[  \left(\frac{1}{4}\varphi_1(\gamma) -\frac{1}{3}\ln(Z) -f \right) + \frac{1}{Z}\left(\frac{1}{4}\psi_1(\epsilon) -\frac{2}{3}\ln(Z) \right)  \right]
- *    \\ & \quad
- *     + \frac{1}{8}(1-y) \left[ (\varphi_1(\gamma) - \varphi_2(\gamma)) + \frac{1}{Z}(\psi_1(\epsilon) - \psi_2(\epsilon)) \right]
- *    \end{split}
- *  \f]
- * in this method instead of \f$ \frac{\mathrm{d}\sigma}{\mathrm{d}k} \f$.
- * In the above equations, \f$\alpha\f$ is the fine structure constant, \f$r_e\f$ is the classical electron radius,
- * \f$k\f$ is the emitted photon energy, \f$y=k/E_t\f$ is the emitted photon energy in pre-interaction \f$e^-/e^+\f$ total
- *  energy (\f$ E_t\f$) units, \f$Z\f$ is the target atomic number, \f$f\f$ is the Coulomb correction \cite davies1954theory
- * [Eqs.(36-38)] (accounts that the interaction with electrons takes place in the field of the nucleus)
- *  \f[
- *   f(\nu) = \nu^2 \sum_{n=1}^{\infty} \frac{1}{n(n^2+\nu^2)} = \nu^2 \left[  1/(1+\nu^2)  + 0.20206 - 0.0369\nu^2
- *            + 0.0083\nu^4 - 0.002\nu^6 \right]
- *  \f]
- * where \f$\nu=\alpha Z\f$.
- * The elastic \f$\varphi_1, \varphi_2\f$ and inelastic \f$\psi_1, \psi_2\f$ screening functions are given in
- * \cite tsai1974pair [Eq.(3.14)-(3.17)]. Since these functions involve integrals that can be performed only numerically,
- * approximate expressions are given in \cite tsai1974pair [Eq. (3.38)-(3.41)]: the Thomas-Fermi model(TFM) of the atom
- * was adopted; the variables [Eq. (3.30) and (3.31)]
- *  \f[
- *   \begin{split}
- *   \gamma &=100 m_0c^2\frac{k}{E} \frac{Z^{-1/3}}{E'}
- *   \\ \epsilon &=100 m_0c^2\frac{k}{E} \frac{Z^{-2/3}}{E'}
- *   \end{split}
- *  \f]
- * with \f$E'=E_t-k\f$ were introduced since  \f$\varphi_1(\gamma), \varphi_2(\gamma), \psi_1(\epsilon), \psi_2(\epsilon)\f$
- * are universal i.e. \f$Z\f$ independent functions when the TFM is used; then  [Eqs.(3.14)-(3.17)] were computed
- * numerically by using the TFM model of atom; based on the numerical results, approximate analytical expressions were
- * obtained for \f$\varphi_1(\gamma), \varphi_2(\gamma)\f$ and \f$\psi_1(\epsilon), \psi_2(\epsilon)\f$ that reproduce
- * the numerical results with \f$0.5\f$\% \cite tsai1974pair [Eq. (3.38)-(3.41)]
- *  \f[
- *   \begin{split}
- *   \varphi_1(\gamma) = 20.863 -2\ln\left[ 1+(0.55846\gamma)^2  \right] - 4[ 1-0.6\exp(-0.9\gamma) - 0.4\exp(-1.5\gamma)]
- *   \end{split}
- *  \f]
- *  \f[
- *   \begin{split}
- *   \varphi_2(\gamma) = \varphi_1(\gamma) - \frac{2}{3(1+6.5\gamma+6\gamma^2)}
- *   \end{split}
- *  \f]
- *  \f[
- *   \begin{split}
- *   \psi_1(\epsilon) = 28.34 - 2\ln\left[ 1+(3.621\epsilon)^2  \right] - 4[ 1-0.7\exp(-8\epsilon) - 0.3\exp(-29.2\epsilon)]
- *   \end{split}
- *  \f]
- *  \f[
- *   \begin{split}
- *   \psi_2(\epsilon) = \psi_1(\epsilon) - \frac{2}{3(1+40\epsilon+400\epsilon^2)}
- *   \end{split}
- *  \f]
- * These expressions can be used for \f$Z\geq 5\f$ due to the limitation of the TFM model at low \f$Z\f$.
- * For \f$Z<5\f$ the <em>complete screening</em> i.e. \f$\gamma=\epsilon\approx 0\f$ form of the differential cross
- * section can be used \cite tsai1974pair (this will be valid at high energies \f$ > 10 \f$ [GeV] and when the detailed
- * shape of the bremsstrahlung spectrum at the high energy tip is not very important).
- * Under this conditions the differential cross section can be written \cite tsai1974pair [Eq. (3.83)]
- *  \f[
- *   \frac{\mathrm{d}\sigma}{\mathrm{d}k} = \frac{4\alpha r_e^2}{k}
- *   \left\{
- *   \left( \frac{4}{3} -\frac{4}{3}y+y^2 \right)
- *     \left[  Z^2\left(L_{el} -f \right) + ZL_{inel} \right] +
- *     \frac{1}{9}(1-y) \left[ Z^2+Z \right]
- *   \right\}
- *  \f]
- * that results in
- *  \f[
- *   \left( \frac{\mathrm{d}\sigma}{\mathrm{d}k} \right)^* =
- *     \left( 1 - y+\frac{3}{4}y^2 \right)
- *     \left[ \left(L_{el} -f \right) + \frac{1}{Z}L_{inel} \right] +
- *     \frac{1}{12}(1-y) \left[ 1+ \frac{1}{Z} \right]
- *  \f]
- * where
- *  \f[
- *   \begin{matrix}
- *    4L_{el}    & = & \left[\varphi_1(\gamma=0) -\frac{4}{3}\ln(Z)  \right]    & = & 4\left[ \ln \left(\exp(\varphi_1(\gamma=0)/4)Z^{-1/3}  \right)  \right] \\
- *    4L_{inel}  & = & \left[\psi_1(\epsilon=0)  -\frac{8}{3}\ln(Z)  \right]    & = & 4\left[  \ln \left( \exp(\psi_1(\epsilon=0)/4)Z^{-2/3} \right) \right]  \\
- *    \varphi_1(\gamma) - \varphi_2(\gamma)  & = & 2/3 && \\
- *    \psi_1(\epsilon) - \psi_2(\epsilon)    & =  & 2/3   &&
- *  \end{matrix}
- *  \f]
- * that in general gives \f$ 4L_{el} = 4\left[ \ln \left(\exp(20.863/4)Z^{-1/3}  \right)  \right] \f$ and
- * \f$ 4L_{inel} = 4\left[  \ln \left( \exp(\psi_1(\epsilon=0)/4)Z^{-2/3} \right) \right] \f$ when the above forms
- * of \f$ \varphi_1(\gamma),  \psi_1(\epsilon)\f$ (derived as approximations under the TFM) are used
- * i.e. \f$ L_{el} = \ln \left[ 184.1499 Z^{-1/3} \right] \f$ and  \f$ L_{inel} = \ln \left[ 1193.923 Z^{-2/3} \right] \f$.
- * Since the TFM model of atom is supposed to be good only for high \f$ Z \f$, Tsai \cite tsai1974pair [TABLE B.2.] gave the
- * best estimated values of \f$ L_{el} \f$ and \f$ L_{inel} \f$ for \f$ Z<5\f$
- *   <center>
- *   <table>
- *   <caption id="TsaiLowZ">Best estimated values for low Z elements </caption>
- *    <tr><th> Z                <th> 1     <th> 2     <th>  3     <th> 4     <th> 5     <th> 6     <th> 7
- *    <tr><td> L<sub>el</sub>   <td> 5.31  <td> 4.79  <td>  4.74  <td> 4.71  <td> 4.68  <td> 4.62  <td> 4.57
- *    <tr><td> L<sub>inel</sub> <td> 6.144 <td> 5.621 <td>  5.805 <td> 5.924 <td> 6.012 <td> 5.891 <td> 5.788
- *   </table>
- *   </center>
- * These values are used in the complete screening approximation to compute
- * \f$ \left(\frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \f$ for \f$ Z<5 \f$.
- */
-double RelativisticBremsModel::ComputeDXSecPerAtom(double gammaenergy, double totalenergy, double z) {
-  //return zero if gamma energy is < 0
-  if (gammaenergy<0.0) {
-    return 0.0;
+void RelativisticBremsModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat) {
+  if (varShat<0.01) {
+    funcPhiS = 6.0*varShat*(1.0-geant::kPi*varShat);
+    funcGS   = 12.0*varShat-2.0*funcPhiS;
+  } else {
+    double varShat2 = varShat*varShat;
+    double varShat3 = varShat*varShat2;
+    double varShat4 = varShat2*varShat2;
+    if (varShat<0.415827397755) { // use Stanev approximation: for \psi(s) and compute G(s)
+      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
+      // 1-\exp \left\{  -4s  - \frac{8s^2}{1+3.936s+4.97s^2-0.05s^3+7.5s^4} \right\}
+      const double funcPsiS = 1.0-std::exp(-4.0*varShat - 8.0*varShat2/(1.0+3.936*varShat+4.97*varShat2-0.05*varShat3+7.5*varShat4));
+      // G(s) = 3 \psi(s) - 2 \phi(s)
+      funcGS = 3.0*funcPsiS - 2.0*funcPhiS;
+    } else if (varShat<1.55) {
+      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
+      const double dum0 = -0.16072300849123999+3.7550300067531581*varShat-1.7981383069010097*varShat2+0.67282686077812381*varShat3-0.1207722909879257*varShat4;
+      funcGS = std::tanh(dum0);
+    } else {
+      funcPhiS = 1.0-0.01190476/varShat4;
+      if (varShat<1.9156) {
+        const double dum0 = -0.16072300849123999+3.7550300067531581*varShat-1.7981383069010097*varShat2+0.67282686077812381*varShat3-0.1207722909879257*varShat4;
+        funcGS = std::tanh(dum0);
+      } else {
+        funcGS   = 1.0-0.0230655/varShat4;
+      }
+    }
   }
-
-  double y = gammaenergy/totalenergy; // reduced photon energy
-  double firstTerm   = 0.0;
-  double secondTerm  = 0.0;
-
-  // Coulomb correction from Davis,Bethe,Maximom PRL 1954 Eqs.(36-38)
-  // should be pulled out because it is constant for a given Z
-  double mu  = z*geant::kFineStructConst;
-  double mu2 = mu*mu;
-  double mu4 = mu2*mu2;
-  double mu6 = mu2*mu4;
-  double coulombCorrection = mu2*(1.0/(1.0+mu2) + 0.20206 - 0.0369*mu2 + 0.0083*mu4 - 0.002*mu6);
-
-  int izet = std::lrint(z);
-
-  // 4/3Z^2 is pulled out in both cases so the multiplicative factor is (16 alpha r^2 Z^2)/(3*k)
-  if (izet<5) {  // use complete screening (Tsai Eq.(3.83)) and L_el and L_inel from Tsai Table B2 for Z<5
-    firstTerm  = (1.0-y+3./4.*y*y)*(gFelLowZet[izet]-coulombCorrection+gFinelLowZet[izet]/z);
-    secondTerm = (1.0-y)/12.0*(1.0+1.0/z);
-  } else { // Tsai: screening from Thomas-Fermi model of atom; Tsai Eq.(3.82)
-    // variables gamma and epsilon from Tsai Eq.(3.30) and Eq.(3.31)
-    // std::pow(...) should be pulled out because it is constant for a given Z
-    double dum0    = 100.0*geant::kElectronMassC2*y/(totalenergy-gammaenergy);
-    double gamma   = dum0/std::pow(z,1./3.);
-    double epsilon = dum0/std::pow(z,2./3.);
-    // compute TFM elastic and inelastic screening functions based on Tsai approximate expressions; Tsai Eqs.(3.38-3.41)
-    double phi1   = 20.863 - 2.0*std::log(1.0+(0.55846*gamma)*(0.55846*gamma)) - 4.0*(1.0-0.6*std::exp(-0.9*gamma)-0.4*std::exp(-1.5*gamma));
-    double phi1m2 = 2.0/(3.0+19.5*gamma+18.0*gamma*gamma);  // phi1-phi2
-    double psi1   = 28.34  - 2.0*std::log(1.0+(3.621*epsilon)*(3.621*epsilon)) - 4.0*(1.0-0.7*std::exp(-8.0*epsilon)-0.3*std::exp(-29.2*epsilon));
-    double psi1m2 = 2.0/(3.0+120.0*epsilon+1200.0*epsilon*epsilon); // psi1-psi2
-    // std::log(z) should be pulled out because it is constant for a given Z
-    firstTerm  = (1.0-y+3./4.*y*y)*( (0.25*phi1-1./3.*std::log(z)-coulombCorrection) + (0.25*psi1-2./3.*std::log(z))/z );
-    secondTerm = 0.125*(1.0-y)*(phi1m2+psi1m2/z);
-  }
-
-  // Note: to get the differential cross section this must be multiplied by (16 alpha r^2 Z^2)/(3*k)
-  // However, we will integrate by the transformed variable i.e. the (k * ds/dk) will be needed:
-  //\sigma(Z,E|W_{c}) =  \int_{\ln(\kappa_c)}^{0}  k \frac{\mathrm{d}\sigma}{\mathrm{d}k}  \mathrm{d}u
-  return firstTerm+secondTerm;
 }
 
-
-
-
-
-
-
-
-
-// Ratin Alias
-void RelativisticBremsModel::InitSamplingTables1() {
-  // set up the common electron energy grid
-  if (fSamplingElecEnergies) {
-    delete [] fSamplingElecEnergies;
-    delete [] fLSamplingElecEnergies;
-    fSamplingElecEnergies  = nullptr;
-    fLSamplingElecEnergies = nullptr;
+void RelativisticBremsModel::InitLPMFunctions() {
+  if (!gLPMFuncs.fIsInitialized) {
+//    gLPMFuncs.fSLimit = 2.;
+//    gLPMFuncs.fSDelta = 0.01;
+    const int num = gLPMFuncs.fSLimit/gLPMFuncs.fSDelta+1;
+    gLPMFuncs.fLPMFuncG.resize(num);
+    gLPMFuncs.fLPMFuncPhi.resize(num);
+    for (int i=0; i<num; ++i) {
+      const double s=i*gLPMFuncs.fSDelta;
+      ComputeLPMGsPhis(gLPMFuncs.fLPMFuncG[i],gLPMFuncs.fLPMFuncPhi[i],s);
+    }
+    gLPMFuncs.fIsInitialized = true;
   }
-  fSamplingElecEnergies = new double[fNumSamplingElecEnergies];
-  fLSamplingElecEnergies = new double[fNumSamplingElecEnergies];
-  double lMin  = std::log(fMinElecEnergy);
-  fElEnLMin    = lMin;
-  double lMax  = std::log(fMaxElecEnergy);
-  double delta = (lMax-lMin)/(fNumSamplingElecEnergies-1.0);
-  fElEnILDelta = 1.0/delta;
-  double dumle = 0.0;
-  for(int i = 0; i<fNumSamplingElecEnergies; ++i){
-    double ddum = lMin+dumle;
-    fLSamplingElecEnergies[i] = ddum;
-    fSamplingElecEnergies[i]  = std::exp(lMin+dumle);
-    std::cerr<<" E("<<i<<") = "<<fSamplingElecEnergies[i]/geant::MeV<<std::endl;
-    dumle+=delta;
-  }
+}
 
+void RelativisticBremsModel::GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s) {
+  if (s<gLPMFuncs.fSLimit) {
+    double     val = s/gLPMFuncs.fSDelta;
+    const int ilow = int(val);
+    val    -= ilow;
+    lpmGs   = (gLPMFuncs.fLPMFuncG[ilow+1]-gLPMFuncs.fLPMFuncG[ilow])*val + gLPMFuncs.fLPMFuncG[ilow];
+    lpmPhis = (gLPMFuncs.fLPMFuncPhi[ilow+1]-gLPMFuncs.fLPMFuncPhi[ilow])*val + gLPMFuncs.fLPMFuncPhi[ilow];
+  } else {
+    double ss = s*s;
+    ss *= ss;
+    lpmPhis = 1.0-0.01190476/ss;
+    lpmGs   = 1.0-0.0230655/ss;
+  }
+}
+
+// clear all sampling tables (if any)
+void RelativisticBremsModel::ClearSamplingTables() {
+  size_t numST = fSamplingTables.size();
+  for (size_t i=0; i<numST; ++i) {
+    AliasDataMaterialCuts* st = fSamplingTables[i];
+    if (st) {
+      size_t numAT = st->fAliasData.size();
+      for (size_t j=0; j<numAT; ++j) {
+        LinAlias* la = st->fAliasData[j];
+        if (la) {
+          la->fXdata.clear();
+          la->fYdata.clear();
+          la->fAliasW.clear();
+          la->fAliasIndx.clear();
+          delete la;
+        }
+      }
+      st->fAliasData.clear();
+      delete st;
+    }
+  }
+  fSamplingTables.clear();
+}
+
+void RelativisticBremsModel::InitSamplingTables() {
+  // clear all sampling tables (if any)
+  ClearSamplingTables();
+  // determine global-to-local matcut indices:
   // - get number of different material-gammacut pairs
   // - allocate space and fill the global to local material-cut index map
   const std::vector<MaterialCuts*> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
-  int numMaterialCuts = theMaterialCutsTable.size();
-  if (fGlobalMatGCutIndxToLocal) {
-    delete [] fGlobalMatGCutIndxToLocal;
-    fGlobalMatGCutIndxToLocal = nullptr;
-  }
-  fGlobalMatGCutIndxToLocal = new int[numMaterialCuts];
-  std::cerr<<" === Number of global Material-Cuts = "<<numMaterialCuts<<std::endl;
-  // count diffenet material-gammacut pairs and set to global to local mat-cut index map
-  int oldnumDif = fNumDifferentMaterialGCuts;
-  int oldnumSEE = fNumSamplingElecEnergies;
-  fNumDifferentMaterialGCuts = 0;
+  int numMaterialCuts      = theMaterialCutsTable.size();
+  int numDifferentMatGCuts = 0;
+  fGlobalMatGCutIndxToLocal.resize(numMaterialCuts,-2);
   for (int i=0; i<numMaterialCuts; ++i) {
+    // if the current MaterialCuts does not belong to the current active regions
+    if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
+      continue;
+    }
     bool isnew = true;
     int j = 0;
-    for (; j<fNumDifferentMaterialGCuts; ++j) {
+    for (; j<numDifferentMatGCuts; ++j) {
       if (theMaterialCutsTable[i]->GetMaterial()->GetIndex()==theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
           theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]==theMaterialCutsTable[j]->GetProductionCutsInEnergy()[0]) {
         isnew = false;
@@ -1575,271 +655,457 @@ void RelativisticBremsModel::InitSamplingTables1() {
       }
     }
     if (isnew) {
-      fGlobalMatGCutIndxToLocal[i] = fNumDifferentMaterialGCuts;
-      ++fNumDifferentMaterialGCuts;
+     fGlobalMatGCutIndxToLocal[i] = numDifferentMatGCuts;
+     ++numDifferentMatGCuts;
     } else {
-      fGlobalMatGCutIndxToLocal[i] = j;
+      fGlobalMatGCutIndxToLocal[i] = fGlobalMatGCutIndxToLocal[j];
     }
   }
-  std::cerr<<" === Number of local Material-Cuts = "<<fNumDifferentMaterialGCuts<<std::endl;
-  // allocate space for the matrial-gcut sampling tables and init these pointers to null
-  if (fRatinAliasData) {
-    for (int i=0; i<oldnumDif; ++i) {
-      for (int j=0; j<oldnumSEE; ++j) {
-        int indx = i*oldnumSEE+j;
-        if (fRatinAliasData[indx]) {
-          delete [] fRatinAliasData[indx]->fXdata;
-          delete [] fRatinAliasData[indx]->fAliasW;
-          delete [] fRatinAliasData[indx]->fC;
-          delete [] fRatinAliasData[indx]->fA;
-          delete [] fRatinAliasData[indx]->fB;
-          delete [] fRatinAliasData[indx]->fAliasIndx;
-          delete fRatinAliasData[indx];
-        }
-      }
-    }
-    delete [] fRatinAliasData;
+  fSamplingTables.resize(numDifferentMatGCuts,nullptr);
+  // create an AliasTable object
+  if (fAliasSampler) {
+    delete fAliasSampler;
   }
-
-  int *isdone = new int[fNumDifferentMaterialGCuts]();
-  int  idum   = fNumDifferentMaterialGCuts*fNumSamplingElecEnergies;
-  fRatinAliasData = new RatinAlias*[idum];
-  for (int i=0; i<idum; ++i)
-    fRatinAliasData[i] = nullptr;
-
+  fAliasSampler = new AliasTable();
   for (int i=0; i<numMaterialCuts; ++i) {
-    std::cerr<<"   See if Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
-    int localindx = fGlobalMatGCutIndxToLocal[i];
-    int ialias    = localindx*fNumSamplingElecEnergies;
-    if (!isdone[localindx]) { // init for this material-gammacut pair is it has not been done yet i.e. the last elec-energy bin sampling data is still null.
-       std::cerr<<"   -> Will init for Material-Gcut ==> " <<theMaterialCutsTable[i]->GetMaterial()->GetName()<<"  gCut = "<< theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]<<std::endl;
-       BuildOneRatinAlias1(ialias, theMaterialCutsTable[i]->GetMaterial(), theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0]);
-       isdone[localindx] = 1;
+    const MaterialCuts *matCut = theMaterialCutsTable[i];
+    int indxLocal = fGlobalMatGCutIndxToLocal[i];
+    if (indxLocal>-1 && !(fSamplingTables[indxLocal])) {
+      BuildSamplingTableForMaterialCut(matCut, indxLocal);
     }
   }
-  delete [] isdone;
-  // test
-  for (int i=0; i<numMaterialCuts; ++i)
-    std::cerr<<"     --> Global MatCut-indx = "<< i << " local indx = "<<fGlobalMatGCutIndxToLocal[i] <<std::endl;
-
-//
-//  for (int i=0; i<fNumSamplingPhotEnergies; ++i) {
-//    for (int j=0; j<fNumSamplingElecEnergies; ++j)
-//      std::cout<< (datx[j])[i] <<"  "<<(daty[j])[i] <<" ";
-//    std::cout<<std::endl;
-//  }
-
 }
 
-
-void RelativisticBremsModel::BuildOneRatinAlias1(int ialias, const Material *mat, double gcut) {
-  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  // material dependent constant
-  double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*4.0*geant::kPi
-                        *geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght *geant::kRedElectronComptonWLenght;
-  // target i.e. Z dependent constant
-  constexpr double lpmConstant = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
-  // material dependent constant
-  double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*lpmConstant;
+void RelativisticBremsModel::BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal) {
+  const Material *mat = matcut->GetMaterial();
+  const double gcut = (matcut->GetProductionCutsInEnergy())[0];
+  const double minElecEnergy = MinimumPrimaryEnergy(matcut,nullptr);
+  const double maxElecEnergy = GetHighEnergyUsageLimit();
+  if (minElecEnergy>=maxElecEnergy) {
+    return;
+  }
+  //
+  //
+  const double densityFactor = gDensityFactor*mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
+  const double lpmEnergy     = gLPMFactor*mat->GetMaterialProperties()->GetRadiationLength();
   // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
-  double energyThLPM = std::sqrt(densityFactor)*lpmEnergy;
-
-  // we will need the element composition of this material
-  const Vector_t<Element*> theElements    = mat->GetElementVector();
+  const double energyThLPM   = std::sqrt(densityFactor)*lpmEnergy;
+  //
+  //
+  const Vector_t<Element*> &theElements   = mat->GetElementVector();
   const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-
-  // pdf is needed only locally for the preparation
-  double *thePDF      = new double[fNumSamplingPhotEnergies]();
-  // create a local alias data structure with maximum number of points
-  RatinAlias *localRA = new RatinAlias();
-  localRA->fXdata     = new double[fNumSamplingPhotEnergies]();
-  localRA->fAliasW    = new double[fNumSamplingPhotEnergies]();
-  localRA->fC         = new double[fNumSamplingPhotEnergies]();
-  localRA->fA         = new double[fNumSamplingPhotEnergies]();
-  localRA->fB         = new double[fNumSamplingPhotEnergies]();
-  localRA->fAliasIndx = new    int[fNumSamplingPhotEnergies]();
-  // a local AliasTable helper
-  AliasTable *alst = new AliasTable();
-
-  for (int ieener=0; ieener<fNumSamplingElecEnergies; ++ieener) {
-    double eener = fSamplingElecEnergies[ieener];
-    if (eener>gcut) { // otherwise no gamma production at that e- energy so let the sampling table to be nullptr
-      // particle is always e-/e+
-      double totalenergy = eener+geant::kElectronMassC2;
-      double densityCor  = densityFactor*totalenergy*totalenergy; // this is k_p^2
-      double dum0  = gcut*gcut+densityCor;
-      double dum1  = (eener*eener+densityCor)/dum0;
-      double ldum1 = std::log(dum1);
-
-      // fill 3 initial values
-      int numdata = 3;
-      localRA->fXdata[0] = 0;
-      localRA->fXdata[1] = 0.5;
-      localRA->fXdata[2] = 1.0;
-
-      //
-      // expand the data up to maximum such that the error between the Rita interpolated and real PDF is minimised
-      //
-      double isDone = false;
-      while(!isDone && (numdata<fNumSamplingPhotEnergies)) {
-        // first get the distribution at the current x-points
-        for (int i=0; i<numdata; ++i) {
-          double egamma = gcut;
-          if (i==0) {
-            egamma = gcut;
-          } else if (i==numdata-1) {
-            egamma = eener;
-          } else {
-            egamma = std::sqrt(dum0*std::exp(localRA->fXdata[i]*ldum1)-densityCor);
-          }
-          double dcross = 0.0;
-          for (int ielem=0; ielem<numElems; ++ielem) {
-            double zet = theElements[ielem]->GetZ();
-            double val = 0.0;
-            if (totalenergy>energyThLPM)
-              val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-            else
-              val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-            dcross += theAtomicNumDensityVector[ielem]*zet*zet*val;
-          }
-          thePDF[i] = dcross;
-//          std::cerr << localRA->fXdata[i] << " "<<dcross<<std::endl;
-        }
-        // - set up a Rita table for the current pdf data (thePDF will be normaised so we need to recompute each time)
-        double normFactor = alst->PreparRatinForPDF(localRA->fXdata, thePDF, localRA->fC, localRA->fA, localRA->fB, numdata);
-
-        // - find the lower index of the bin, where we have the biggest interp. error compared to computed value
-        //   i.e. compute the integral of |p(x)-phat(x)| at each interval
-        double maxerr     = 0.0; // value of the current maximum error
-        int    maxerrindx = 0;   // the lower index of the corresponding bin
-        for (int i=0; i<numdata-1; ++i) {
-          double xx = 0.5*(localRA->fXdata[i]+localRA->fXdata[i+1]);// current midpoint
-          if (xx-localRA->fXdata[i]<1.e-6)
-            continue;
-          double  u = dum0*std::exp(xx*ldum1);
-          double egamma = std::sqrt(u-densityCor);
-          double dcross = 0.0;
-          for (int ielem=0; ielem<numElems; ++ielem) {
-            double zet = theElements[ielem]->GetZ();
-            double val = 0.0;
-            if (totalenergy>energyThLPM)
-              val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-            else
-              val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
-            dcross += theAtomicNumDensityVector[ielem]*zet*zet*val;
-          }
-          double curPx    = dcross*normFactor;
-          double curAprPx = alst->GetRatinForPDF1(xx, localRA->fXdata, localRA->fC, localRA->fA, localRA->fB, i);
-          double curError = std::fabs(1.0-curPx/curAprPx);
-
-          if (curError>maxerr) {
-            maxerr     = curError;
-            maxerrindx = i;
-          }
-        }
-
-        // check stopping
-        if (maxerr<1.e-3)
-          isDone = true;
-
-//if (eener>1.0)
- //if(isDone)
- //std::cerr<<"Eener = "<<eener<<" numdata = "<<numdata << " maxerror = "<<maxerr  << "  xmin = "<< localRA->fXdata[maxerrindx]<<std::endl;
-        // expand x,y data by puting an additional value at the mid point of the highest error bin
-        // -first shift all values to the right
-        for (int j=numdata; j>maxerrindx+1; --j) {
-          localRA->fXdata[j] = localRA->fXdata[j-1];
-        }
-        // fill x mid point
-        localRA->fXdata[maxerrindx+1] = 0.5*(localRA->fXdata[maxerrindx]+localRA->fXdata[maxerrindx+1]);
-        // increase number of data
-        ++numdata;
+  const int numElems = theElements.size();
+  //
+  // compute number of e-/e+ kinetic energy grid
+  int numElecEnergies  = fSTNumElectronEnergyPerDecade*std::lrint(std::log10(maxElecEnergy/minElecEnergy))+1;
+  numElecEnergies      = std::max(numElecEnergies,3);
+  double logEmin       = std::log(minElecEnergy);
+  double delta         = std::log(maxElecEnergy/minElecEnergy)/(numElecEnergies-1.0);
+  AliasDataMaterialCuts *dataMatCut = new AliasDataMaterialCuts(numElecEnergies, logEmin, 1./delta);
+  fSamplingTables[indxlocal] = dataMatCut;
+  for (int ie=0; ie<numElecEnergies; ++ie) {
+    double eekin = std::exp(dataMatCut->fLogEmin+ie*delta);
+    if (ie==0 && minElecEnergy==gcut) {
+      eekin = minElecEnergy+1.*geant::eV; // would be zero otherwise
+    }
+    if (ie==numElecEnergies-1) {
+      eekin = maxElecEnergy;
+    }
+    const double etot       = eekin+geant::kElectronMassC2;
+    const double densityCor = densityFactor*etot*etot; // this is k_p^2
+    const bool   isLPM      = (fIsUseLPM && etot>energyThLPM);
+    //
+    const double dumc0      = gcut*gcut+densityCor;
+    const double dumc1      = std::log((eekin*eekin+densityCor)/dumc0);
+    // create the alias data struct
+    LinAlias *als = new LinAlias(fSTNumSamplingPhotEnergies);
+    // fill 3 values at 0,0.8,1 of the transformed variable
+    int numdata = 3;
+    als->fXdata[0] = 0.0;
+    als->fXdata[1] = 0.8;
+    als->fXdata[2] = 1.0;
+    for (int i=0; i<numdata; ++i) {
+      double egamma = gcut;
+      if (i==0) {
+        egamma = gcut;
+      } else if (i==2) {
+        egamma = eekin;
+      } else {
+        egamma = std::sqrt(dumc0*std::exp(als->fXdata[i]*dumc1)-densityCor);
       }
-
-      // compute the PDF at the final x-points
-      for (int i=0; i<numdata; ++i) {
-        double egamma = gcut;
-        if (i==0) {
-          egamma = gcut;
-        } else if (i==numdata-1) {
-          egamma = eener;
+      double dcross = 0.0;
+      for (int ielem=0; ielem<numElems; ++ielem) {
+        double zet = theElements[ielem]->GetZ();
+        double val = 0.0;
+        if (isLPM) {
+          int izet = std::min(std::lrint(zet),gMaxZet-1);
+          val = ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCor, izet);
         } else {
-          egamma = std::sqrt(dum0*std::exp(localRA->fXdata[i]*ldum1)-densityCor);
+          val = ComputeDXSecPerAtom(egamma, etot, zet);
         }
-        double dcross = 0.0;
+        dcross += theAtomicNumDensityVector[ielem]*zet*zet*val;
+      }
+      als->fYdata[i] = dcross;
+    }
+    // fill in up to fSTNumSamplingPhotEnergies
+    while(numdata<fSTNumSamplingPhotEnergies) {
+      // find the lower index of the bin, where we have the biggest linear interp. error compared to computed value
+      double maxerr     = 0.0;
+      double thexval    = 0.0;
+      double theyval    = 0.0;
+      int    maxerrindx = 0;   // the lower index of the corresponding bin
+      for (int i=0; i<numdata-1; ++i) {
+        const double xx     = 0.5*(als->fXdata[i]+als->fXdata[i+1]); // mid point
+        const double yy     = 0.5*(als->fYdata[i]+als->fYdata[i+1]); // lin func val at the mid point
+        const double egamma = std::sqrt(dumc0*std::exp(xx*dumc1)-densityCor);
+        double dcross       = 0.0;
         for (int ielem=0; ielem<numElems; ++ielem) {
           double zet = theElements[ielem]->GetZ();
           double val = 0.0;
-          if (totalenergy>energyThLPM)
-            val = ComputeURelDXSecPerAtom(egamma, totalenergy, zet, lpmEnergy, densityCor);
-          else
-            val = ComputeDXSecPerAtom(egamma, totalenergy, zet);
+          if (isLPM) {
+            int izet = std::min(std::lrint(zet),gMaxZet-1);
+            val = ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCor, izet);
+          } else {
+            val = ComputeDXSecPerAtom(egamma, etot, zet);
+          }
           dcross += theAtomicNumDensityVector[ielem]*zet*zet*val;
         }
-        thePDF[i] = dcross;
+        double err   = std::fabs((yy-dcross)*(1.0-yy/dcross));
+        if (err>maxerr) {
+          maxerr     = err;
+          maxerrindx = i;
+          thexval    = xx;
+          theyval    = dcross;
+        }
       }
-
-      // create the final alias struct
-      fRatinAliasData[ialias]             = new RatinAlias();
-      fRatinAliasData[ialias]->fNumdata   = numdata;
-      fRatinAliasData[ialias]->fXdata     = new double[numdata]();
-      fRatinAliasData[ialias]->fAliasW    = new double[numdata]();
-      fRatinAliasData[ialias]->fC         = new double[numdata]();
-      fRatinAliasData[ialias]->fA         = new double[numdata]();
-      fRatinAliasData[ialias]->fB         = new double[numdata]();
-      fRatinAliasData[ialias]->fAliasIndx = new    int[numdata]();
-      for (int i=0;i<numdata;++i)
-        fRatinAliasData[ialias]->fXdata[i] = localRA->fXdata[i];
-
-      // set up the rational function aproxiamtion based alias sampler
-      alst->PreparRatinTable(fRatinAliasData[ialias]->fXdata,thePDF, fRatinAliasData[ialias]->fC,
-                            fRatinAliasData[ialias]->fA,fRatinAliasData[ialias]->fB,
-                            fRatinAliasData[ialias]->fAliasW, fRatinAliasData[ialias]->fAliasIndx,
-                            fRatinAliasData[ialias]->fNumdata);
-      std::cerr<<"  -- Material = "<<mat->GetName()<<  "  Eel = " <<eener << " [GeV] " <<" #data = "<<numdata <<std::endl;
-/*
-if (eener>9.8e+4 || 1) {
-//double nnorm =    alst->PreparRatinForPDF(fRatinAliasData[ialias]->fXdata, thePDF, fRatinAliasData[ialias]->fC,
-//                           fRatinAliasData[ialias]->fA, fRatinAliasData[ialias]->fB, numdata);
-
-  for (int i=0; i<1000001; ++i) {
-    double vval = alst->GetRatinForPDF(i*1.e-6, fRatinAliasData[ialias]->fXdata, fRatinAliasData[ialias]->fC, fRatinAliasData[ialias]->fA,
-                                           fRatinAliasData[ialias]->fB, numdata);
-// for (int i=0; i<numdata; ++i) {
-   double gg = std::sqrt( (gcut*gcut+densityCor)*std::exp(i*1.e-6*std::log((eener*eener+densityCor)/(gcut*gcut+densityCor) )) -densityCor);
-//double gg = std::sqrt( (gcut*gcut+densityCor)*std::exp(fRatinAliasData[ialias]->fXdata[i]*std::log((eener*eener+densityCor)/(gcut*gcut+densityCor) )) -densityCor);
-
-
-//   std::cout<<i*1.e-7<<" "<<vval /(1.0+densityCor/(gg*gg))<<std::endl;
-
-//std::cout<<i*1.e-6<<" "<<vval <<std::endl;
-std::cout<<std::log10(gg/eener)<<" "<<vval <<std::endl;
-//std::cout<<std::log10(gg/eener)<<" "<<thePDF[i] <<std::endl;
-
- }
-
-//for (int i=0; i<numdata; ++i)
-//   std::cout<<i<<" "<<fRatinAliasData[ialias]->fXdata[i]<< " "<<thePDF[i]/nnorm<<std::endl;
-
-exit(1);
-}
-*/
-
+      // extend x,y data by puting a value at the mid point of the highest error bin
+      // first shift all values to the right then insert x mid point
+      for (int j=numdata; j>maxerrindx+1; --j) {
+        als->fXdata[j] = als->fXdata[j-1];
+        als->fYdata[j] = als->fYdata[j-1];
+      }
+      als->fXdata[maxerrindx+1] = thexval;
+      als->fYdata[maxerrindx+1] = theyval;
+      // increase number of data
+      ++numdata;
     }
-    ++ialias;
+    //
+    fAliasSampler->PreparLinearTable(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                     fSTNumSamplingPhotEnergies);
+    fSamplingTables[indxlocal]->fAliasData[ie] = als;
   }
-  delete [] thePDF;
-  delete [] localRA->fXdata;
-  delete [] localRA->fAliasW;
-  delete [] localRA->fC;
-  delete [] localRA->fA;
-  delete [] localRA->fB;
-  delete [] localRA->fAliasIndx;
-  delete localRA;
-  delete alst;
+}
+
+double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3) {
+  const double gcut        = (matcut->GetProductionCutsInEnergy())[0];
+  const double etot        = eekin+geant::kElectronMassC2;
+  const double dum0        = gDensityFactor*matcut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
+  const double densityCor  = etot*etot*dum0; // this is k_p^2
+  const int    mcIndxLocal = fGlobalMatGCutIndxToLocal[matcut->GetIndex()];
+  // determine electron energy lower grid point
+  const double leekin      = std::log(eekin);
+  //
+  int indxEekin = fSamplingTables[mcIndxLocal]->fAliasData.size()-1;
+  if (eekin<GetHighEnergyUsageLimit()) {
+    const double val       = (leekin-fSamplingTables[mcIndxLocal]->fLogEmin)*fSamplingTables[mcIndxLocal]->fILDelta;
+    indxEekin              = (int)val;  // lower electron energy bin index
+    const double pIndxHigh = val-indxEekin;
+    if (r1<pIndxHigh)
+      ++indxEekin;
+  }
+  // sample the transformed variable
+  const LinAlias *als = fSamplingTables[mcIndxLocal]->fAliasData[indxEekin];
+  double gammae = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
+                                              &(als->fAliasIndx[0]), fSTNumSamplingPhotEnergies, r2, r3);
+  // transform back to gamma energy
+  const double dum1  = gcut*gcut+densityCor;
+  const double dum2  = (eekin*eekin+densityCor)/dum1;
+
+ return std::sqrt(dum1*std::exp(gammae*std::log(dum2))-densityCor);
 }
 
 
+double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, Geant::GeantTaskData* td) {
+  const double gcut        = (matcut->GetProductionCutsInEnergy())[0];
+  const Material *mat      = matcut->GetMaterial();
+  const double etot        = eekin+geant::kElectronMassC2;
+  const double dumc0       = gDensityFactor*mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
+  const double densityCor  = etot*etot*dumc0; // this is k_p^2
+  const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
+  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
+  const double energyThLPM = std::sqrt(dumc0)*lpmEnergy;
+  const bool   isLPM       = (fIsUseLPM && etot>energyThLPM);
 
-} //namespace geantphysics
+  // sample target element
+  const Vector_t<Element*> &theElements = mat->GetElementVector();
+  double targetElemIndx = 0;
+  if (theElements.size()>1) {
+    targetElemIndx = SampleTargetElementIndex(matcut, eekin, td->fRndm->uniform());
+  }
+  // sample the transformed variable: u(k) = ln(k^2+k_p^2) that is in [ln(k_c^2+k_p^2), ln(E_k^2+k_p^2)]
+  const double minVal    = std::log(gcut*gcut+densityCor);
+  const double valRange  = std::log(eekin*eekin+densityCor)-minVal;
+  const double zet       = theElements[targetElemIndx]->GetZ();
+  const int    izet      = std::min(std::lrint(zet),gMaxZet-1);
+  const double funcMax   = gElementData[izet]->fZFactor1+gElementData[izet]->fZFactor2;
+  double egamma, funcVal;
+
+  double *rndArray = td->fDblArray;
+  do {
+    td->fRndm->uniform_array(2, rndArray);
+    egamma  = std::sqrt(std::max(std::exp(minVal+rndArray[0]*valRange)-densityCor,0.));
+    funcVal = (isLPM) ? ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCor, izet)
+                      : ComputeDXSecPerAtom(egamma, etot, zet);
+  } while (funcVal<rndArray[1]*funcMax);
+
+  return egamma;
+}
+
+
+// the simple DipBustgenerator
+void RelativisticBremsModel::SamplePhotonDirection(double elenergy, double &sinTheta, double &cosTheta, double rndm) {
+  double c = 4. - 8.*rndm;
+  double a = c;
+  double signc = 1.;
+  if (c<0.) {
+    signc = -1.;
+    a     = -c;
+  }
+  double delta  = std::sqrt(a*a+4.);
+  delta += a;
+  delta *= 0.5;
+
+  double cofA = -signc*std::exp(std::log(delta)/3.0);
+  cosTheta = cofA-1./cofA;
+
+  double tau  = elenergy/geant::kElectronMassC2;
+  double beta = std::sqrt(tau*(tau+2.))/(tau+1.);
+
+  cosTheta = (cosTheta+beta)/(1.+cosTheta*beta);
+  // check cosTheta limit
+  if (cosTheta>1.0) {
+    cosTheta = 1.0;
+  }
+  sinTheta = std::sqrt((1.-cosTheta)*(1.+cosTheta));
+}
+
+/**
+ *  The stopping power, i.e. average energy loss per unit path length, from bremsstrahlung photon emission is computed
+ *  for the given e-/e+ kinetic energy \f$E\f$, the given material and gamma production threshold energy \f$k_c\f$
+ *  \f[
+ *      S(E;k_c,\mathrm{material})=\int_{0}^{\eta} k \sum_i n_i \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \mathrm{d}k
+ *  \f]
+ *  where
+ *  \f[
+ *     \eta =
+ *      \begin{cases}
+ *            E    & \quad \mathrm{if}\; E<k_c \\
+ *            k_c  & \quad \mathrm{if}\; E \geq k_c
+ *      \end{cases}
+ *  \f]
+ *  the summation goes over the elements the matrial is composed from. \f$ \mathrm{d}\sigma_i \mathrm{d}k\f$ is the
+ *  differential cross section for bremsstrahlung photon emission for for the \f$i\f$-th element of the material with
+ *  atomic number of \f$Z_i\f$ and \f$n_i\f$ is the number of atoms per unit volume of \f$i\f$-th element of the
+ *  material that is \f$n_i=\mathcal{N}\rho w_i/A_i\f$ where \f$\mathcal{N}\f$ is the Avogadro number, \f$\rho\f$ is
+ *  the material density, \f$w_i\f$ is the proportion by mass (or mass fraction) of the \f$i\f$-th element and \f$A_i\f$
+ *  is the molar mass of the \f$i\f$-th element.
+ *
+ *  Using the form of the applied differential cross section (see RelativisticBremsModel::ComputeDXSecPerAtom and
+ *  RelativisticBremsModel::ComputeURelDXSecPerAtom one can write
+ *  \f[
+ *      S(E;k_c,\mathrm{material})=\frac{16\alpha r_e^2}{3}\int_{0}^{\eta} \frac{1}{\Gamma} \sum_i n_i
+ *        Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}k
+ *  \f]
+ *  The integral is computed by 64-points Gauss-Legendre quadrature after applying the following transformations:
+ *  - first the emitted photon energy is transformed \f$ k \to u=\ln[1-\eta/E_t] \f$ where \f$E_t\f$ is the total energy
+ *    of the e-/e+.
+ *  - then the following transformation is applied \f$ u \to \xi = u/\ln[1-\eta/E_t] \in [0,1]\f$
+ *
+ *  The transformed integral
+ *  \f[
+ *  \int_{0}^{\eta} \frac{1}{\Gamma} \sum_i n_i Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}k
+ *  = -E_t \int_{0}^{\ln[1-\eta/E_t]} \frac{e^u}{\Gamma}
+ *     \sum_i n_i Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}u
+ *  = -E_t \ln[1-\eta/E_t] \int_{0}^{1} \frac{e^{\xi\ln[1-\eta/E_t]}}{\Gamma}
+ *     \sum_i n_i Z_i^2\left( \frac{\mathrm{d}\sigma_i}{\mathrm{d}k} \right)^* \mathrm{d}\xi
+ *  \f]
+ *  where \f$\Gamma\f$ and \f$ \left(\mathrm{d}\sigma_i / \mathrm{d}k \right)^* \f$ must be evaluated at
+ *  \f$ k=E_t[1-e^{\xi\ln[1-\eta/E_t]}] \f$ for a given \f$\xi\f$.
+ */
+double RelativisticBremsModel::ComputeDEDXPerVolume(const Material *mat, double gammacut, double eekin) {
+  const double xsecFactor = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
+  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
+  const double etot        = eekin+geant::kElectronMassC2;  // it's always e-/e+
+  const double dumc0       = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gDensityFactor;
+  const double densityCor  = dumc0*etot*etot;
+  const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
+  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
+  const double energyThLPM = std::sqrt(dumc0)*lpmEnergy;
+  const bool   isLPM       = (fIsUseLPM && etot>energyThLPM);
+
+  // upper limit of the integral
+  const double upperlimit  = std::min(gammacut,eekin);
+  const double kappacr     = upperlimit/etot;
+  const double log1mKappaCr= std::log(1.0-kappacr);
+  //
+  double dedx = 0.0;
+  // we will need the element composition of this material
+  const Vector_t<Element*> &theElements   = mat->GetElementVector();
+  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  int   numElems = theElements.size();
+  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
+  const std::vector<double> &glW = fGL->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
+  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
+  double integral = 0.0;
+  for (int i=0; i<fNGL; ++i) {
+    const double dumx   = 1.0-std::exp(glX[i]*log1mKappaCr);
+    const double egamma = etot*dumx;
+    double sum    = 0.0;
+    for (int ielem=0; ielem<numElems; ++ielem) {
+      double zet  = theElements[ielem]->GetZ();
+      double val  = 0.0;
+      if (isLPM) {
+        int izet = std::min(std::lrint(zet),gMaxZet-1);
+        val = ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCor, izet);
+      } else {
+        val = ComputeDXSecPerAtom(egamma, etot, zet);
+      }
+      sum  += theAtomicNumDensityVector[ielem]*zet*zet*val;
+    }
+    integral += glW[i]*sum*(egamma-etot)/(1.+densityCor/(egamma*egamma));
+  }
+  dedx = log1mKappaCr*xsecFactor*integral;
+  return dedx;
+}
+
+
+/**
+ *   The restricted atomic cross section for bremsstrahlung photon emeission for target element with atomic number
+ *   \f$Z\f$, gamma photon production energy threshold \f$k_c\f$ is computed for e-/e+ kinetic energy \f$E\f$ according to
+ *   \f[
+ *     \sigma(E;k_c,Z) = \int_{k_c}^{E} \frac{\mathrm{d}\sigma}{\mathrm{d}k}\mathrm{d}k =
+ *        \frac{16 \alpha r_e^2 Z^2}{3} \int_{k_c}^{E} \frac{1}{k\Gamma}
+ *        \left( \frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \mathrm{d}k
+ *   \f]
+ *   if \f$E>k_c\f$ and immediate return with \f$0\f$ otherwise.
+ *   At e-/e+ total energies \f$E_t\f$such that the corresponding \f$ k_{LPM} = E_t^2/E_{LPM} < k_p\f$ dielectric
+ *   suppression overwhelms LPM suppression and only LPM suppression is observable we turn off LPM suppression i.e.
+ *   \f$ \left( \frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \f$ is computed by
+ *   RelativisticBremsModel::ComputeDXSecPerAtom(). Otherwise, when both LPM and dielectric suppression is active it is
+ *   computed by RelativisticBremsModel::ComputeURelDXSecPerAtom(). The \f$1/\Gamma\f$ factor comes from the fact that
+ *   dielectric suppression is always considered.
+ *
+ *   The integral is computed by 64-points Gauss-Legendre quadrature after applying the following transformations:
+ *   - first the emitted photon energy is transformed \f$k\to u=\ln(k/E)\f$
+ *   - then the following transformation is applied \f$u\to \xi = (u-\ln(k_c/E)/(\ln(E/k_c))) \in [0,1] \f$
+ *
+ *   The transformed integral
+ *   \f[
+ *     \int_{k_c}^{E} \frac{1}{k\Gamma} \left( \frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \mathrm{d}k =
+ *     \int_{\ln(k_c/E)}^{0} \frac{1}{\exp(u)E\Gamma} \left( \frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^*
+ *     \exp(u)E\mathrm{d}u
+ *   = \ln\frac{E}{k_c} \int_{0}^{1} \frac{1}{\Gamma} \left( \frac{\mathrm{d}\sigma}{\mathrm{d}k}\right)^* \mathrm{d}\xi
+ *   \f]
+ *   where \f$\Gamma \f$ and \f$ (\mathrm{d}\sigma/\mathrm{d}k)^*\f$ must be evaluated at
+ *   \f$ k = \exp(u)E= k_c\exp(\xi\ln(E/k_c))\f$ for a given \f$ \xi \f$.
+ */
+double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const Material *mat, double gcut, double eekin) {
+  double xsec = 0.0;
+  if (eekin<=gcut) {
+    return xsec;
+  }
+  const double xsecFactor = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
+  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
+  const double etot        = eekin+geant::kElectronMassC2;  // it's always e-/e+
+  const double dumc0       = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gDensityFactor;
+  const double densityCor  = dumc0*etot*etot;
+  const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
+  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
+  const double energyThLPM = std::sqrt(dumc0)*lpmEnergy;
+  const bool   isLPM       = (fIsUseLPM && etot>energyThLPM);
+
+  const double lKappaPrimePerCr = std::log(eekin/gcut);
+  //
+  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
+  const std::vector<double> &glW = fGL->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
+  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
+  const double zet = elem->GetZ();
+  const int   izet = std::min(std::lrint(zet), gMaxZet-1);
+  double integral = 0.0;
+  for (int i=0; i<fNGL; ++i) {
+    const double egamma = std::exp(glX[i]*lKappaPrimePerCr)*gcut;
+    double val    = 0.0;
+    if (isLPM) {
+      val = ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCor, izet);
+    } else {
+      val = ComputeDXSecPerAtom(egamma, etot, zet);
+    }
+    integral += glW[i]*val/(1.+densityCor/(egamma*egamma));
+  }
+  return lKappaPrimePerCr*xsecFactor*zet*zet*integral;
+}
+
+
+/**
+ *   The restricted macroscopic cross section for bremsstrahlung photon emission for the given target material,
+ *   gamma photon production energy threshold \f$k_c\f$ is computed for e-/e+ kinetic energy \f$E\f$ according to
+ *  \f[
+ *      \Sigma(E;k_c,\mathrm{material}) = \sum_i n_i \sigma_i(E;k_c,Z_i)
+ *  \f]
+ *  if \f$ E>k_c\f$ otherwise immediate return with \f$0\f$. The summation goes over the elements the matrial is
+ *  composed from. \f$\sigma_i(E;k_c,Z_i)\f$ is the restricted atomic cross
+ *  secion for the \f$i\f$-th element of the material with atomic number of \f$Z_i \f$ (computed similarly like
+ *  RelativisticBremsModel::ComputeXSectionPerAtom()) and \f$n_i\f$ is the number of atoms per unit volume of
+ *  \f$i \f$-th element of the material that is \f$ n_i = \mathcal{N}\rho w_i/A_i \f$ where \f$\mathcal{N}\f$ is the
+ *  Avogadro number, \f$\rho\f$ is the material density, \f$w_i\f$ is the proportion by mass (or mass fraction) of the
+ *  \f$i \f$-th element and \f$A_i\f$ is the molar mass of the \f$i \f$-th element. The corresponding mean free path
+ *  is \f$\lambda = 1/\Sigma \f$.
+ */
+double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, double gcut, double eekin) {
+  double xsec = 0.0;
+  if (eekin<=gcut) {
+    return xsec;
+  }
+  const double xsecFactor = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
+  // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
+  const double etot        = eekin+geant::kElectronMassC2;  // it's always e-/e+
+  const double dumc0       = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gDensityFactor;
+  const double densityCor  = dumc0*etot*etot;
+  const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
+  // material dependent constant: the e-/e+ energy at which the corresponding k_LPM=k_p
+  const double energyThLPM = std::sqrt(dumc0)*lpmEnergy;
+  const bool   isLPM       = (fIsUseLPM && etot>energyThLPM);
+
+  const double lKappaPrimePerCr = std::log(eekin/gcut);
+  // we will need the element composition of this material
+  const Vector_t<Element*> &theElements   = mat->GetElementVector();
+  const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
+  const int     numElems = theElements.size();
+  // we need the abscissas and weights for the numerical integral 64-points GL between 0-1
+  const std::vector<double> &glW = fGL->GetWeights();
+  const std::vector<double> &glX = fGL->GetAbscissas();
+  // do the integration on reduced photon energy transformd to log(kappa) that transformed to integral between 0-1
+  double integral = 0.0;
+  for (int i=0; i<fNGL; ++i) {
+    const double egamma = std::exp(glX[i]*lKappaPrimePerCr)*gcut;
+    double sum = 0.0;
+    for (int ielem=0; ielem<numElems; ++ielem) {
+      const double zet  = theElements[ielem]->GetZ();
+      double val = 0.0;
+      if (isLPM) {
+        int izet = std::min(std::lrint(zet),gMaxZet-1);
+        val = ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCor, izet);
+      } else {
+        val = ComputeDXSecPerAtom(egamma, etot, zet);
+      }
+      sum  += theAtomicNumDensityVector[ielem]*zet*zet*val;
+    }
+    integral += glW[i]*sum/(1.+densityCor/(egamma*egamma));
+  }
+  return lKappaPrimePerCr*xsecFactor*integral;
+}
+
+
+} // namespace geantphysics

@@ -129,12 +129,12 @@ int main(int argc, char *argv[]) {
       isUseRejection = true;
       break;
     case 'E':
-      primaryEnergy = (double)strtof(optarg, NULL);
+      primaryEnergy = strtod(optarg, NULL);
       if (primaryEnergy<=0)
         errx(1, "primary particle energy must be positive");
       break;
     case 'f':
-      numSamples = (double)strtof(optarg, NULL);
+      numSamples = strtod(optarg, NULL);
       if (numSamples<=0)
         errx(1, "number of final state samples must be positive");
       break;

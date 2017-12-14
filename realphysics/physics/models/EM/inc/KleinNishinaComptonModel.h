@@ -20,6 +20,7 @@ namespace geantphysics {
 }
 
 #include <string>
+#include <vector>
 
 namespace geantphysics {
 
@@ -62,7 +63,7 @@ public:
   */
   KleinNishinaComptonModel(const std::string &modelname="ComptonKleinNishina");
   /** @brief Destructor. */
-  ~KleinNishinaComptonModel();
+  virtual ~KleinNishinaComptonModel();
 //@}
 
 /**
@@ -76,35 +77,18 @@ public:
 //@}
 
 
-/**
-* @name Model specific public methods:
-*/
-//@{
-   int   GetNumberOfPhotonEnergiesPerDecade()   const { return fNumSamplingPrimEnergiesPerDecade; }
-   // before initialisation
-   void  SetNumberOfPhotonEnergiesPerDecade(int val)  { fNumSamplingPrimEnergiesPerDecade = val;  }
-   //
-   int   GetNumberOfDiscretePDFSamples()        const { return fNumSamplingEnergies;              }
-   // before initialisation
-   void  SetNumberOfDiscretePDFSamples(int val)       { fNumSamplingEnergies = val;               }
-//@}
-
 
 private:
+  /** @brief Copy constructor  (deleted) */
+  KleinNishinaComptonModel(const KleinNishinaComptonModel&) = delete;
+  /** @brief Operator=  (deleted) */
+  KleinNishinaComptonModel &operator=(const KleinNishinaComptonModel&) = delete;
+
+
 /**
 * @name Model specific private methods.
 */
 //@{
-  /**
-   * @brief Internal method to initilise the model.
-   *
-   * Internal sampling tables for run time sampling of the post interaction gamma energy (relative to the initial gamma
-   * energy) will be created during the initialisation. This method always need to be invoked between the construction
-   * and usage of the model.
-   *
-   */
-  void   InitialiseModel();
-
 
   /**
    * @brief Internal method to compute parametrized atomic Compton scattering cross section for a given target atom,
@@ -120,14 +104,25 @@ private:
   /**
     * @brief Internal method to sample post interaction reduced photon energy from the prepared sampling tables.
     *
-    *  @param[in] primekin   Kinetic energy of the primary gamma particle \f$ E_0 \f$.
+    *  @param[in] egamma     Kinetic energy of the primary gamma particle \f$ E_0 \f$.
     *  @param[in] r1         Random number distributed uniformly in [0,1].
     *  @param[in] r2         Random number distributed uniformly in [0,1].
     *  @param[in] r3         Random number distributed uniformly in [0,1].
     *  @return    Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
     */
-  double SampleReducedPhotonEnergy(double primekin, double r1, double r2, double r3);
+  double SampleReducedPhotonEnergy(const double egamma, const double r1, const double r2, const double r3);
 
+
+  /**
+    * @brief Internal method to sample post interaction reduced photon energy.
+    *
+    *  @param[in]     egamma     Kinetic energy of the primary gamma particle \f$ E_0 \f$.
+    *  @param[in,out] onemcost   One minus cos theta.
+    *  @param[in,out] sint2      Sin theta square.
+    *  @param[in]     td         Pointer to the GeantV thread local data object (used to get random numbers).
+    *  @return    Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
+    */
+  double SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2, const Geant::GeantTaskData *td);
 
   /**
    * @brief Internal method to compute distribution of reduced (post interaction) photon energy related transformed
@@ -141,15 +136,7 @@ private:
   double ComputeDXSecPerAtom(double xi, double kappa);
 
 
-  /**
-   * @brief Internal method to build reduced (post interaction) photon energy related sampling tables.
-   *
-   *  Used at initialisation of the model to prepare reduced photon energy related transformed variable sampling tables
-   *  over an initial gamma energy grid. The gamma energy grid is determined by the low/high energy usage limits of the
-   *  model and the fNumSamplingPrimEnergiesPerDecade variable. A sampling table, using Walker's discrete alias method
-   *  combined with <em>linear approximation of the p.d.f.</em>, is built at each gamma energy grid point by using the
-   *  BuildOneLinAlias() method. These sampling tables are used at run-time to sample the post interaction photon energy.
-   */
+  /** @brief Internal method to build reduced (post interaction) photon energy related sampling tables.*/
   void   InitSamplingTables();
 
 
@@ -166,88 +153,44 @@ private:
    *  @param[in]  kappa  Initial photon energy \f$ E_0 \f$ dependent input variable \f$ \kappa=E_0/(m_ec^2)\f$.
    */
   void   BuildOneLinAlias(int indx, double kappa);
+
+  void   ClearSamplingTables();
 //@}
-
-
-// data members
-private:
-  /** @brief  Internal code of the secondary partcile (e-). */
-  int fSecondaryInternalCode;
-
-/**
- * @name Members to describe the discrete photon energy grid for sampling tables:
- *
- * These variables describe and define the primary gamma kinetic energy grid above we build sampling tables in the
- * InitSamplingTables() method for run-time samling of the post interaction photon energy. The min/max of the table is
- * set to the min/max energy usage limits of the model and the number of discrete gamma energy points will be determined
- * be the value of KleinNishinaComptonModel::fNumSamplingPrimEnergiesPerDecade variable. The default value is 10 and
- * it can be changed by the user through the SetNumberOfPhotonEnergiesPerDecade() public method (must be set before the
- * the initialisation of the model!).
- */
-//@{
-  /** @brief Number of primary gamma kinetic energy grid points in [KleinNishinaComptonModel::fMinPrimEnergy,
-    *        KleinNishinaComptonModel::fMaxPrimEnergy].
-    */
-  int fNumSamplingPrimEnergies;
-  /** @brief Number of primary gamma kinetic energy grid points per decade. */
-  int fNumSamplingPrimEnergiesPerDecade;
-  /** @brief Number of post interaction gamma energy related discrete transformed variable PDF points in [0,1]. */
-  int fNumSamplingEnergies;
-  /** @brief Minimum of the primary gamma kinetic energy grid. */
-  double  fMinPrimEnergy;
-  /** @brief Maximum of the primary gamma kinetic energy grid. */
-  double  fMaxPrimEnergy;
-  /** @brief Logarithm of KleinNishinaComptonModel::fMinPrimEnergy i.e. ln(KleinNishinaComptonModel::fMinPrimEnergy) . */
-  double  fPrimEnLMin;
-  /** @brief Inverse of the primary gamma kinetic energy grid delta i.e.
-    *        ln[fMaxPrimEnergy/fMinPrimEnergy]/(fNumSamplingElecEnergies-1)
-    */
-  double  fPrimEnILDelta;
-  /** @brief The logarithmically spaced primary gamma kinetic energy grid.
-    *
-    *        Size of the array is KleinNishinaComptonModel::fNumSamplingElecEnergies points in the
-    *        [KleinNishinaComptonModel::fMinPrimEnergy, KleinNishinaComptonModel::fMaxPrimEnergy] interval.
-    */
-  double *fSamplingPrimEnergies;
-  /** @brief The logarithm of KleinNishinaComptonModel::fSamplingElecEnergies grid.
-    *
-    *        Size of the array is KleinNishinaComptonModel::fNumSamplingElecEnergies points in the
-    *        [ln(KleinNishinaComptonModel::fMinPrimEnergy), ln(KleinNishinaComptonModel::fMaxPrimEnergy)] interval.
-    */
-  double *fLSamplingPrimEnergies;
-//@}
-
 
   /** @brief Internal data structure to store data for sampling the post interaction gaamma energy related transformd
     *        variable.
     *
     *  This data structure is set up at initialisation for each initial gamma kinetic energy grid point to sample the
     *  post interaction gamma energy related transformed variable using a combination  of Walker's alias sampling and
-    *  liner approximation. We will have as many data structure as primary gamma energy grid points i.e.
-    *  KleinNishinaComptonModel::fNumSamplingPrimEnergies and these data structure pointers are stored in the
-    *  KleinNishinaComptonModel::fAliasData linear array.
+    *  liner approximation. We will have as many data structure as discrete primary gamma energy grid points.
     */
   struct LinAlias{
-    /** @brief Number of data points i.e. size of the arrays = KleinNishinaComptonModel::fNumSamplingElecEnergies. */
-    int     fNumdata;
+    LinAlias(int num) { fXdata.resize(num); fYdata.resize(num); fAliasW.resize(num); fAliasIndx.resize(num); }
     /** @brief Post interaction gamma energy related transformed variable values. */
-    double *fXdata;
-    /** @brief The probability density function values (not necessarily normalised) over the energy transfer related
-      *        transformed variable values.
-      */
-    double *fYdata;
-    /** @brief The alias probabilities (not necessarily normalised) over the energy transfer related transformed variable
-      *        values.
-      */
-    double *fAliasW;
+    std::vector<double> fXdata;
+    /** @brief The pdf values (not necessarily normalised) over the energy transfer related variable values. */
+    std::vector<double> fYdata;
+    /** @brief The alias probabilities (not necessarily normalised) over the energy transfer related variables. */
+    std::vector<double> fAliasW;
     /** @brief The alias indices over the energy transfer related transformed variable values. */
-    int    *fAliasIndx;
+    std::vector<int>    fAliasIndx;
   };
-  /** @brief Linear array to store pointers to LinAlias data structures.
-    *
-    * The size is KleinNishinaComptonModel::fNumSamplingPrimEnergies.
-    */
-  LinAlias   **fAliasData;
+
+
+// data members
+private:
+  /** @brief  Internal code of the secondary partcile (e-). */
+  int    fSecondaryInternalCode;
+
+  int    fSTNumPhotonEnergiesPerDecade;    // ST=>SamplingTables
+  int    fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
+  int    fSTNumPhotonEnergies;             // ST=>SamplingTables
+
+  double fSTLogMinPhotonEnergy;            // ST=>SamplingTables
+  double fSTILDeltaPhotonEnergy;           // ST=>SamplingTables
+
+  /** @brief Container to store pointers to LinAlias data structures.*/
+  std::vector<LinAlias*>   fSamplingTables;
   /** @brief An alias sampler used at run-time sampling of the post interaction gamma kinetic energy related transfered
     *        variable from a LinAlias data structure (prepared at initialisation).
     */

@@ -27,81 +27,47 @@
 
 namespace geantphysics {
 
+std::vector<BetheHeitlerPairModel::ElementData*>  BetheHeitlerPairModel::gElementData(gMaxZet,nullptr);
 
 BetheHeitlerPairModel::BetheHeitlerPairModel(const std::string &modelname) : EMModel(modelname) {
+  fIsUseTsaisScreening              = false;
+
   fElectronInternalCode             = -1;      // will be set at init
   fPositronInternalCode             = -1;      // will be set at init
+
+  fSTNumPhotonEnergiesPerDecade     = 12;    // ST=>SamplingTables
+  fSTNumDiscreteEnergyTransferVals  = 54; // ST=>SamplingTables
+  fSTNumPhotonEnergies              = -1;      // will be set at init.
+
+  fSTLogMinPhotonEnergy             = -1.;     // will be set at init in case of sampling tables
+  fSTILDeltaPhotonEnergy            = -1.;     // will be set at init in case of sampling tables
+
   fMinimumPrimaryEnergy             =  2.*geant::kElectronMassC2; // final value will be set at init.
   fGammaEneregyLimit                =  2.*geant::MeV; // use simplified sampling below this gamma energy
 
-  fElementData                      = nullptr;
-
-  fNumSamplingPrimEnergiesPerDecade = 12;    // should be set/get and must be done before init
-  fNumSamplingEnergies              = 54;    // should be set/get and must be done before init
-  fMinPrimEnergy                    = -1.;
-  fMaxPrimEnergy                    = -1.;
-  fNumSamplingPrimEnergies          = -1;      // will be set in InitSamplingTables if needed
-  fPrimEnLMin                       =  0.;     // will be set in InitSamplingTables if needed
-  fPrimEnILDelta                    =  0.;     // will be set in InitSamplingTables if needed
-  fSamplingPrimEnergies             = nullptr; // will be set in InitSamplingTables if needed
-  fLSamplingPrimEnergies            = nullptr; // will be set in InitSamplingTables if needed
-
-  fRatinAliasDataForAllElements     = nullptr;
   fAliasSampler                     = nullptr;
 }
 
 
 BetheHeitlerPairModel::~BetheHeitlerPairModel() {
-  if (fElementData) {
-    for (int i=0; i<gMaxZet; ++i) {
-      if (fElementData[i]) {
-        delete fElementData[i];
-      }
+  // clear ElementData
+  for (size_t i=0; i<gElementData.size(); ++i) {
+    if (gElementData[i]) {
+      delete gElementData[i];
     }
-    delete [] fElementData;
   }
-  //
-  if (fSamplingPrimEnergies) {
-    delete [] fSamplingPrimEnergies;
-    delete [] fLSamplingPrimEnergies;
+  gElementData.clear();
+  // clear sampling tables if any
+  if (GetUseSamplingTables()) {
+    ClearSamplingTables();
   }
-  //
-  if (fRatinAliasDataForAllElements) {
-    for (int i=0; i<gMaxZet; ++i) {
-      RatinAliasDataPerElement *oneElem = fRatinAliasDataForAllElements[i];
-      if (oneElem) {
-        for (int j=0; j<fNumSamplingPrimEnergies; ++j) {
-          RatinAliasData *oneRatinAlias = oneElem->fRatinAliasDataForOneElement[j];
-          if (oneRatinAlias) {
-            delete [] oneRatinAlias->fXdata;
-            delete [] oneRatinAlias->fCumulative;
-            delete [] oneRatinAlias->fParaA;
-            delete [] oneRatinAlias->fParaB;
-            delete [] oneRatinAlias->fAliasW;
-            delete [] oneRatinAlias->fAliasIndx;
-            delete oneRatinAlias;
-          }
-        }
-        delete [] oneElem->fRatinAliasDataForOneElement;
-        delete oneElem;
-      }
-    }
-    delete [] fRatinAliasDataForAllElements;
-  }
-  //
   if (fAliasSampler) {
     delete fAliasSampler;
   }
 }
 
-/**
- * @internal
- *  Internal codes of secondary particles (i.e. e-/e+) will be set, the minimum value of the primary photon energy will
- *  be set (\f$ E_{\gamma}^{\text{min}} = \text{max}\{2m_ec^2,\text{min-energy-usage} \}\f$), the model is initialised
- *  by calling the InitialiseModel() method and a target element selector is required and initialised.
- * @endinternal
- */
-void   BetheHeitlerPairModel::Initialize() {
+
+void BetheHeitlerPairModel::Initialize() {
   EMModel::Initialize();  // will set the PhysicsParameters member
   fElectronInternalCode = Electron::Definition()->GetInternalCode();
   fPositronInternalCode = Positron::Definition()->GetInternalCode();
@@ -109,7 +75,10 @@ void   BetheHeitlerPairModel::Initialize() {
   if (GetLowEnergyUsageLimit()>fMinimumPrimaryEnergy) {
     fMinimumPrimaryEnergy = GetLowEnergyUsageLimit();
   }
-  InitialiseModel();
+  InitialiseElementData();
+  if (GetUseSamplingTables()) {
+    InitSamplingTables();
+  }
   // request to build target element selector for this model, for gamma particle and element selectors per material
   InitialiseElementSelectors(this,Gamma::Definition(),true);
 }
@@ -123,15 +92,15 @@ double BetheHeitlerPairModel::ComputeMacroscopicXSection(const MaterialCuts *mat
   // compute the macroscopic cross section as the sum of the atomic cross sections weighted by the number of atoms in
   // in unit volume.
   const Material *mat =  matcut->GetMaterial();
-  double       egamma = kinenergy;
+  const double egamma = kinenergy;
   // we will need the element composition of this material
-  const Vector_t<Element*> theElements    = mat->GetElementVector();
+  const Vector_t<Element*> &theElements   = mat->GetElementVector();
   const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
-  int   numElems = theElements.size();
-  for (int iel=0; iel<numElems; ++iel) {
+  size_t numElems = theElements.size();
+  for (size_t iel=0; iel<numElems; ++iel) {
     xsec += theAtomicNumDensityVector[iel]*ComputeAtomicCrossSection(theElements[iel]->GetZ(), egamma);
   }
-  return xsec;
+  return std::max(xsec,0.0);
 }
 
 
@@ -143,14 +112,14 @@ double BetheHeitlerPairModel::ComputeXSectionPerAtom(const Element *elem, const 
    }
    // compute the parametrized atomic cross section: depends only on target Z and gamma energy.
    xsec = ComputeAtomicCrossSection(elem->GetZ(), kinenergy);
-   return xsec;
+   return std::max(xsec,0.0);
 }
 
 
 int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
-  double ekin                = track.GetKinE();
-  double eps0                = geant::kElectronMassC2/ekin;
+  const double ekin          = track.GetKinE();
+  const double eps0          = geant::kElectronMassC2/ekin;
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
   // check if kinetic energy is above fHighEnergyUsageLimit andd o nothing if yes
   if (ekin<GetLowEnergyUsageLimit() || ekin>GetHighEnergyUsageLimit() || eps0>0.5) {
@@ -158,41 +127,26 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   }
   // interaction is possible so sample target element: will be needed anyway for the direction sampling
   MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[track.GetMaterialCutCoupleIndex()];
-  const Vector_t<Element*> theElements = matCut->GetMaterial()->GetElementVector();
+  const Vector_t<Element*> &theElements = matCut->GetMaterial()->GetElementVector();
   double targetElemIndx = 0;
   if (theElements.size()>1) {
     targetElemIndx = SampleTargetElementIndex(matCut, ekin, td->fRndm->uniform());
   }
-  double  zet  = theElements[targetElemIndx]->GetZ();
+  const double zet = theElements[targetElemIndx]->GetZ();
   //
   // sample the reduced total energy transfered to one of the secondary particles i.e. either e- or e+
   double eps = 0.0;
   if (ekin<fGammaEneregyLimit) {   // sample eps from uniform on [eps_0,0.5]
     eps = eps0 + (0.5-eps0)*td->fRndm->uniform();
   } else {
-    int           izet = std::lrint(zet);
-    double      epsMin = eps0;
-    double          FZ = fElementData[izet]->fFzLow;      // used only in case of rejection
-    double    deltaMax = fElementData[izet]->fDeltaMaxLow;
-    double deltaFactor = fElementData[izet]->fDeltaFactor;
-    if (ekin>50.*geant::MeV) {
-      FZ       = fElementData[izet]->fFzHigh;             // used only in case of rejection
-      deltaMax = fElementData[izet]->fDeltaMaxHigh;
-    }
-    double deltaMin = 4.*eps0*deltaFactor;
-    double eps1     = 0.5-0.5*std::sqrt(1.-deltaMin/deltaMax);
-    if (eps1>epsMin) {
-      epsMin = eps1;
-    }
+    const int izet = std::min(std::lrint(zet),gMaxZet-1);
     // sample the reduced total energy transferd to one of the e-/e+ pair by using tables or rejection
-    if (GetUseSamplingTables()) {
-      // sample eps using the sampling tables built at initialisation over a photon energy grid for each possible target
+    if (GetUseSamplingTables()) { // sample eps using the sampling tables
       double *rndArray  = td->fDblArray;
       td->fRndm->uniform_array(4, rndArray);
-      eps = SampleTotalEnergyTransfer(ekin, epsMin, izet, rndArray[0], rndArray[1], rndArray[2]);
-    } else {
-      // sample eps by rejection
-      eps = SampleTotalEnergyTransfer(epsMin, eps0, deltaMin, FZ, deltaFactor, td);
+      eps = SampleTotalEnergyTransfer(ekin, izet, rndArray[0], rndArray[1], rndArray[2]);
+    } else { // sample eps by rejection
+      eps = SampleTotalEnergyTransfer(ekin, izet, td);
     }
   }
   //
@@ -218,13 +172,13 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   } else {
     uvar *= 0.53333;
   }
-  double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
-  double sintEle       = std::sin(thetaElectron);
-  double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
-  double sintPos       = -std::sin(thetaPositron);
-  double phi           = geant::kTwoPi*rndArray[3];
-  double sinphi        = std::sin(phi);
-  double cosphi        = std::cos(phi);
+  const double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
+  const double sintEle       = std::sin(thetaElectron);
+  const double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
+  const double sintPos       = -std::sin(thetaPositron);
+  const double phi           = geant::kTwoPi*rndArray[3];
+  const double sinphi        = std::sin(phi);
+  const double cosphi        = std::cos(phi);
   // e- direction
   double eleDirX = sintEle*cosphi;
   double eleDirY = sintEle*sinphi;
@@ -238,16 +192,8 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);
   // 4. compute kinetic energy of e-/e+
-  double ekinElectron = (electronTotE-geant::kElectronMassC2);
-  // final check
-  if (ekinElectron<0.0) {
-    ekinElectron = 0.0;
-  }
-  double ekinPositron = (positronTotE-geant::kElectronMassC2);
-  // final check
-  if (ekinPositron<0.0) {
-    ekinPositron = 0.0;
-  }
+  const double ekinElectron = std::max((electronTotE-geant::kElectronMassC2),0.);
+  const double ekinPositron = std::max((positronTotE-geant::kElectronMassC2),0.);
   // 5. rotate direction back to the lab frame: current directions are relative to the photon dir as z-dir
   RotateToLabFrame(eleDirX, eleDirY, eleDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   RotateToLabFrame(posDirX, posDirY, posDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
@@ -286,27 +232,7 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   return numSecondaries;
 }
 
-/**
- * @internal
- *  A collection of frequently used target atom dependent variables is set up bu calling the InitialiseElementData()
- *  method. If sampling tables were requested to be used, then the min/max of the primary photon energy grid (which
- *  sampling tables will be built over) are set and sampling tables are initialized by calling the InitSamplingTables()
- *  method.
- * @endinternal
- */
-void BetheHeitlerPairModel::InitialiseModel() {
-  InitialiseElementData();
-  // everything from this line is for building sampling tables:
-  fMinPrimEnergy   = fGammaEneregyLimit;   // fGammaEneregyLimit = 2.*geant::MeV
-  if (fMinPrimEnergy<GetLowEnergyUsageLimit()) {
-    fMinPrimEnergy = GetLowEnergyUsageLimit();
-  }
-  fMaxPrimEnergy = GetHighEnergyUsageLimit();
-  if (GetUseSamplingTables()) {
-//    std::cerr<< "  === BH pair model: building sampling tables"<< std::endl;
-    InitSamplingTables();
-  }
-}
+
 
 /**
  * @internal
@@ -398,77 +324,61 @@ double BetheHeitlerPairModel::ComputeAtomicCrossSection(double z, double egamma)
     egamma = egammaLimit;
   }
   // log photon energy in electron rest mass units
-  double kappa  = std::log(egamma/geant::kElectronMassC2);
-  double kappa2 = kappa*kappa;
-  double kappa3 = kappa2*kappa;
-  double kappa4 = kappa2*kappa2;
-  double kappa5 = kappa4*kappa;
+  const double kappa  = std::log(egamma/geant::kElectronMassC2);
+  const double kappa2 = kappa*kappa;
+  const double kappa3 = kappa2*kappa;
+  const double kappa4 = kappa2*kappa2;
+  const double kappa5 = kappa4*kappa;
   //
-  double F1 = a0 + a1*kappa + a2*kappa2 + a3*kappa3 + a4*kappa4 + a5*kappa5;
-  double F2 = b0 + b1*kappa + b2*kappa2 + b3*kappa3 + b4*kappa4 + b5*kappa5;
-  double F3 = c0 + c1*kappa + c2*kappa2 + c3*kappa3 + c4*kappa4 + c5*kappa5;
+  const double F1 = a0 + a1*kappa + a2*kappa2 + a3*kappa3 + a4*kappa4 + a5*kappa5;
+  const double F2 = b0 + b1*kappa + b2*kappa2 + b3*kappa3 + b4*kappa4 + b5*kappa5;
+  const double F3 = c0 + c1*kappa + c2*kappa2 + c3*kappa3 + c4*kappa4 + c5*kappa5;
   // compute cross section
   xsec = (z+1.)*(F1*z+F2*z*z+F3);
   // low energy correction
   if (egammaOrg<egammaLimit) {
-    double dum = (egammaOrg-2.*geant::kElectronMassC2)/(egammaLimit-2.*geant::kElectronMassC2);
+    const double dum = (egammaOrg-2.*geant::kElectronMassC2)/(egammaLimit-2.*geant::kElectronMassC2);
     xsec *= dum*dum;
   }
   // protection against negative values
-  xsec = std::max(xsec, 0.);
-  return xsec;
+  return std::max(xsec, 0.);
 }
 
 /**
  * @internal
  *  One ElementData structure will be created for each target atom that the model needs to respond (i.e.
  *  for each elements that appears in material that belongs to a region in which the model is active).
- *  Pointers to these data structures are stored in the fElementData array indexed by atomic number (Z).
+ *  Pointers to these data structures are stored in the gElementData array indexed by atomic number (Z).
  *  Those indices, that corresponds to atomic numbers that the model do not need to respond, will remain
  *  nullptr-s.
  * @endinternal
  */
 void BetheHeitlerPairModel::InitialiseElementData() {
-  // clear element data if needed
-  if (fElementData) {
-    for (int i=0; i<gMaxZet; ++i) {
-      if (fElementData[i]) {
-        delete fElementData[i];
-      }
-    }
-    delete [] fElementData;
-  }
-  // create the container and fill with default nullptr-s
-  fElementData = new ElementData*[gMaxZet]();
-  for (int i=0; i<gMaxZet; ++i) {
-    fElementData[i] = nullptr;
-  }
-  //
-  int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
+  size_t numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
   // get list of active region
-  std::vector<bool> isActiveInRegion = GetListActiveRegions();
-  for (int i=0; i<numMatCuts; ++i) {
-    const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[i];
+  std::vector<bool> &isActiveInRegion = GetListActiveRegions();
+  for (size_t imc=0; imc<numMatCuts; ++imc) {
+    const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[imc];
     // if this MaterialCuts belongs to a region where this model is active:
     if (isActiveInRegion[matCut->GetRegionIndex()]) {
       // get the list of elements
-      const Vector_t<Element*> theElements =  matCut->GetMaterial()->GetElementVector();
-      int numElems = theElements.size();
-      for (int j=0; j<numElems; ++j) {
-        // if RatinAliasDataPerElement has not been built for this element yet => build
-        double zet = theElements[j]->GetZ();
-        int elementIndx = std::lrint(zet);
-//        std::cerr<< " === Building ElementData for " << theElements[j]->GetName() << std::endl;
-        if (!fElementData[elementIndx]) {
-          Element         *elem   = theElements[j];
-          ElementData *elemData   = new ElementData();
-          elemData->fDeltaFactor  = 136./elem->GetElementProperties()->GetZ13(); // 136/pow(z,1/3)
-          elemData->fCoulombCor   = elem->GetElementProperties()->GetCoulombCorrection();
-          elemData->fFzLow        = 8.*elem->GetElementProperties()->GetLogZ13(); //8.*std::log(z)/3.;
-          elemData->fFzHigh       = elemData->fFzLow+8*elemData->fCoulombCor;
-          elemData->fDeltaMaxLow  = std::exp((42.24-elemData->fFzLow)/8.368)-0.952;
-          elemData->fDeltaMaxHigh = std::exp((42.24-elemData->fFzHigh)/8.368)-0.952;
-          fElementData[elementIndx] = elemData;
+      const Vector_t<Element*> &theElemVect = matCut->GetMaterial()->GetElementVector();
+      size_t numElems = theElemVect.size();
+      for (size_t ie=0; ie<numElems; ++ie) {
+        const Element *elem = theElemVect[ie];
+        double zet = elem->GetZ();
+        int   izet = std::min(std::lrint(zet),gMaxZet-1);
+        if (!gElementData[izet]) {
+          ElementData *elemData       = new ElementData();
+          elemData->fDeltaFactor      = 136./elem->GetElementProperties()->GetZ13(); // 136/pow(z,1/3)
+          elemData->fCoulombCor       = elem->GetElementProperties()->GetCoulombCorrection();
+          elemData->fFzLow            = 8.*elem->GetElementProperties()->GetLogZ13(); //8.*std::log(z)/3.;
+          elemData->fFzHigh           = elemData->fFzLow+8*elemData->fCoulombCor;
+          elemData->fDeltaMaxLow      = std::exp((42.24-elemData->fFzLow)/8.368)-0.952;
+          elemData->fDeltaMaxHigh     = std::exp((42.24-elemData->fFzHigh)/8.368)-0.952;
+          elemData->fDeltaMaxLowTsai  = 1.36*std::sqrt( std::exp(0.5*16.863-0.25*elemData->fFzLow)-1. )/0.55846;
+          elemData->fDeltaMaxHighTsai = 1.36*std::sqrt( std::exp(0.5*16.863-0.25*elemData->fFzHigh)-1. )/0.55846;
+          gElementData[izet] = elemData;
         }
       }
     }
@@ -477,33 +387,39 @@ void BetheHeitlerPairModel::InitialiseElementData() {
 
 
 // samples the transformed variable for the given target atom(zindx), gamma energy, and transforms it back
-double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double primekin, double epsmin, int zindx, double r1, double r2,
-                                                        double r3) {
-  // determine primary energy lower grid point
-  double lGammaEnergy  = std::log(primekin);
-  int gammaEnergyIndx  = (int) ((lGammaEnergy-fPrimEnLMin)*fPrimEnILDelta);
+double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, const int izet, const double r1,
+                                                         const double r2, const double r3) {
+  // determine electron energy lower grid point
+  const double legamma = std::log(egamma);
   //
-  if (gammaEnergyIndx>=fNumSamplingPrimEnergies-1)
-    gammaEnergyIndx = fNumSamplingPrimEnergies-2;
-
-  double pLowerGammaEner = (fLSamplingPrimEnergies[gammaEnergyIndx+1]-lGammaEnergy)*fPrimEnILDelta;
-  if (r1>pLowerGammaEner) {
-     ++gammaEnergyIndx;
+  int indxEgamma = fSTNumPhotonEnergies-1;
+  if (egamma<GetHighEnergyUsageLimit()) {
+    const double val       = (legamma-fSTLogMinPhotonEnergy)*fSTILDeltaPhotonEnergy;
+    indxEgamma             = (int)val;  // lower electron energy bin index
+    const double pIndxHigh = val-indxEgamma;
+    if (r1<pIndxHigh)
+      ++indxEgamma;
   }
-  // get the RatinAliasData object pointer for the given Z-index and gamma-energy-index(that is gammaEnergyIndx)
-  // fRatinAliasDataForOneElement[zindx] should not be nullptr because it was checked in the caller
-  RatinAliasData *raData = fRatinAliasDataForAllElements[zindx]->fRatinAliasDataForOneElement[gammaEnergyIndx];
-
-  // we could put a static assert here to make sure that raData is not nullptr
+  // sample the transformed variable
+  const RatinAliasData *als = fSamplingTables[izet]->fRatinAliasData[indxEgamma];
+  // we could put a static assert here to make sure that als is not nullptr
   //
   // sample the transformed variable xi=... (such that linear aprx will be used in the first interval)
-  double  xi = fAliasSampler->SampleRatin(raData->fXdata, raData->fCumulative, raData->fParaA, raData->fParaB,
-                                          raData->fAliasW, raData->fAliasIndx, raData->fNumdata, r2, r3, 0);
-
+  const double  xi = fAliasSampler->SampleRatin(&(als->fXdata[0]), &(als->fCumulative[0]), &(als->fParaA[0]),
+                                                &(als->fParaB[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                                fSTNumDiscreteEnergyTransferVals, r2, r3, 0);
   // transform back xi to eps = E_total_energy_transfer/E_{\gamma}
-  double  lHalfPerEpsMin = std::log(0.5/epsmin);
-  return epsmin*std::exp(xi*lHalfPerEpsMin);
+  //
+  double deltaMax = gElementData[izet]->fDeltaMaxLowTsai;
+  if (egamma>50.*geant::MeV) {
+    deltaMax = gElementData[izet]->fDeltaMaxHighTsai;
+  }
+  const double eps0   = geant::kElectronMassC2/egamma;
+  const double epsp   = 0.5-0.5*std::sqrt(1.-4.*eps0*gElementData[izet]->fDeltaFactor/deltaMax);
+  const double epsMin = std::max(eps0,epsp);
+  return epsMin*std::exp(xi*std::log(0.5/epsMin));
 }
+
 
 /**
  * @internal
@@ -563,167 +479,227 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double primekin, double 
  *    \f$ \epsilon \f$ if \f$ g_i(\epsilon) < r_3 \f$
  * @endinternal
  */
-double BetheHeitlerPairModel::SampleTotalEnergyTransfer(double epsmin, double eps0, double deltamin, double fz,
-                                                        double deltafactor, Geant::GeantTaskData *td) {
-    double eps      = 0.0;
-    double epsRange = 0.5-epsmin;
+double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, const int izet, const Geant::GeantTaskData *td) {
+    double fz  = gElementData[izet]->fFzLow;
+    double deltaMax;
+    if (fIsUseTsaisScreening) {
+      deltaMax = gElementData[izet]->fDeltaMaxLowTsai;
+      if (egamma>50.*geant::MeV) {
+        fz       = gElementData[izet]->fFzHigh;
+        deltaMax = gElementData[izet]->fDeltaMaxHighTsai;
+      }
+    } else {
+      deltaMax = gElementData[izet]->fDeltaMaxLow;
+      if (egamma>50.*geant::MeV) {
+        fz       = gElementData[izet]->fFzHigh;
+        deltaMax = gElementData[izet]->fDeltaMaxHigh;
+      }
+    }
+    const double eps0     = geant::kElectronMassC2/egamma;
+    const double deltaFac = gElementData[izet]->fDeltaFactor;
+    const double deltaMin = 4.*eps0*deltaFac;
+    const double eps1     = 0.5-0.5*std::sqrt(1.-deltaMin/deltaMax);
+    const double epsMin   = std::max(eps0,eps1);
+    const double epsRange = 0.5-epsMin;
     //
-    double F10      = ScreenFunction1(deltamin) - fz;
-    double F20      = ScreenFunction2(deltamin) - fz;
-    double NormF1   = std::max(F10*epsRange*epsRange,0.);
-    double NormF2   = std::max(1.5*F20,0.);
-
+    double F10,F20;
+    ScreenFunction12(F10,F20,deltaMin,fIsUseTsaisScreening);
+    F10 -= fz;
+    F20 -= fz;
+    const double NormF1   = std::max(F10*epsRange*epsRange,0.);
+    const double NormF2   = std::max(1.5*F20,0.);
+    const double NormCond = NormF1/(NormF1+NormF2);
+    //
     double *rndArray = td->fDblArray;
     double greject   = 0.0;
+    double eps       = 0.0;
     do {
       td->fRndm->uniform_array(3, rndArray);
-      if (NormF1/(NormF1+NormF2)>rndArray[0]) {
-      	eps            = 0.5 - epsRange*std::pow(rndArray[1],1./3.);
-	      double delta   = deltafactor*eps0/(eps*(1.-eps));
-	      greject = (ScreenFunction1(delta) - fz)/F10;
+      if (NormCond>rndArray[0]) {
+      	eps = 0.5 - epsRange*std::pow(rndArray[1],1./3.);
+	      const double delta = deltaFac*eps0/(eps*(1.-eps));
+	      greject = (ScreenFunction1(delta,fIsUseTsaisScreening) - fz)/F10;
       } else {
-	      eps            = epsmin + epsRange*rndArray[1];
-        double delta   = deltafactor*eps0/(eps*(1.-eps));
-	      greject = (ScreenFunction2(delta) - fz)/F20;
+	      eps = epsMin + epsRange*rndArray[1];
+        const double delta = deltaFac*eps0/(eps*(1.-eps));
+	      greject = (ScreenFunction2(delta,fIsUseTsaisScreening) - fz)/F20;
       }
     } while (greject<rndArray[2]);
   return eps;
 }
 
-// 3xPhi_1 - Phi_2
-double BetheHeitlerPairModel::ScreenFunction1(double delta) {
-  double val;
-  if (delta>1.) {
-    val = 42.24 - 8.368*std::log(delta+0.952);
+
+void BetheHeitlerPairModel::ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai) {
+  if (istsai) {
+    const double gamma   = delta*0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const double gamma2  = gamma*gamma;
+    phi1   = 16.863-2.0*std::log(1.0+0.311877*gamma2)+2.4*std::exp(-0.9*gamma)+1.6*std::exp(-1.5*gamma);
+    phi2   = phi1-2.0/(3.0+19.5*gamma+18.0*gamma2);  // phi1-phi2
   } else {
-    val = 42.392 - delta*(7.796 - 1.961*delta);
+    if (delta>1.) {
+      phi1 = 21.12 - 4.184*std::log(delta+0.952);
+      phi2 = phi1;
+    } else {
+      const double delta2 = delta*delta;
+      phi1 = 20.867 - 3.242*delta + 0.625*delta2;
+      phi2 = 20.209 - 1.93 *delta - 0.086*delta2;
+    }
+  }
+}
+
+// val1 =  3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
+// val2 =  1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
+void BetheHeitlerPairModel::ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai) {
+  if (istsai) {
+    const double gamma  = delta*0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const double gamma2 = gamma*gamma;
+    const double dum1   = 33.726 - 4.*std::log(1.0+0.311877*gamma2) + 4.8*std::exp(-0.9*gamma) + 3.2*std::exp(-1.5*gamma);
+    const double dum2   = 2./(3.+19.5*gamma+18.*gamma2);
+    val1 = dum1 +     dum2;
+    val2 = dum1 - 0.5*dum2;
+  } else {
+    if (delta>1.) {
+      val1 = 42.24 - 8.368*std::log(delta+0.952);
+      val2 = val1;
+    } else {
+      val1 = 42.392 - delta*(7.796 - 1.961*delta);
+      val2 = 41.405 - delta*(5.828 - 0.8945*delta);
+    }
+  }
+}
+
+
+// 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
+double BetheHeitlerPairModel::ScreenFunction1(const double delta, const bool istsai) {
+  double val;
+  if (istsai) {
+    const double gamma   = delta*0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const double gamma2  = gamma*gamma;
+    val = 33.726 - 4.*std::log(1.0+0.311877*gamma2) + 4.8*std::exp(-0.9*gamma) + 3.2*std::exp(-1.5*gamma)
+          + 2./(3.+19.5*gamma+18.*gamma2);
+  } else {
+    if (delta>1.) {
+      val = 42.24 - 8.368*std::log(delta+0.952);
+    } else {
+      val = 42.392 - delta*(7.796 - 1.961*delta);
+    }
   }
   return val;
 }
 
-// 1.5*Phi_1 + 0.5*Phi_2
-double BetheHeitlerPairModel::ScreenFunction2(double delta) {
+// 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
+double BetheHeitlerPairModel::ScreenFunction2(const double delta, const bool istsai) {
   double val;
-  if (delta>1.) {
-    val = 42.24 - 8.368*std::log(delta+0.952);
+  if (istsai) {
+    const double gamma   = delta*0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const double gamma2  = gamma*gamma;
+    val = 33.726 - 4.*std::log(1.0+0.311877*gamma2) + 4.8*std::exp(-0.9*gamma) + 3.2*std::exp(-1.5*gamma)
+          - 1./(3.+19.5*gamma+18.*gamma2);
   } else {
-    val = 41.405 - delta*(5.828 - 0.8945*delta);
+    if (delta>1.) {
+      val = 42.24 - 8.368*std::log(delta+0.952);
+    } else {
+      val = 41.405 - delta*(5.828 - 0.8945*delta);
+    }
   }
   return val;
+}
+
+
+void BetheHeitlerPairModel::ClearSamplingTables() {
+  size_t num = fSamplingTables.size();
+  for (size_t im=0; im<num; ++im) {
+    RatinAliasDataPerElement *elData = fSamplingTables[im];
+    if (elData) {
+      size_t nTables = elData->fRatinAliasData.size();
+      for (size_t it=0; it<nTables; ++it) {
+        RatinAliasData *tb = elData->fRatinAliasData[it];
+        tb->fXdata.clear();
+        tb->fCumulative.clear();
+        tb->fParaA.clear();
+        tb->fParaB.clear();
+        tb->fAliasW.clear();
+        tb->fAliasIndx.clear();
+        delete tb;
+      }
+      elData->fRatinAliasData.clear();
+      delete elData;
+    }
+  }
+  fSamplingTables.clear();
 }
 
 
 void BetheHeitlerPairModel::InitSamplingTables() {
-  // set number of primary gamma energy grid points
-  // keep the prev. value of primary energy grid points.
-  int oldNumGridPoints     = fNumSamplingPrimEnergies;
-  fNumSamplingPrimEnergies = fNumSamplingPrimEnergiesPerDecade*std::lrint(std::log10(fMaxPrimEnergy/fMinPrimEnergy))+1;
-  if (fNumSamplingPrimEnergies<2) {
-    fNumSamplingPrimEnergies = 2;
-  }
+  // 1. clear sampling tables if any
+  ClearSamplingTables();
+  // 2. generate primary gamma energy grid
+  const double minEprim  = fMinimumPrimaryEnergy;
+  const double maxEprim  = GetHighEnergyUsageLimit();
+  fSTNumPhotonEnergies   = fSTNumPhotonEnergiesPerDecade*std::lrint(std::log10(maxEprim/minEprim))+1;
+  fSTNumPhotonEnergies   = std::max(fSTNumPhotonEnergies,3);
   // set up the initial gamma energy grid
-  if (fSamplingPrimEnergies) {
-    delete [] fSamplingPrimEnergies;
-    delete [] fLSamplingPrimEnergies;
-    fSamplingPrimEnergies  = nullptr;
-    fLSamplingPrimEnergies = nullptr;
+  const double delta     = std::log(maxEprim/minEprim)/(fSTNumPhotonEnergies-1.0);
+  fSTLogMinPhotonEnergy  = std::log(minEprim);
+  fSTILDeltaPhotonEnergy = 1./delta;
+  std::vector<double> primEVect(fSTNumPhotonEnergies);
+  primEVect[0]                      = minEprim;
+  primEVect[fSTNumPhotonEnergies-1] = maxEprim;
+  for (int i=1; i<fSTNumPhotonEnergies-1; ++i) {
+    primEVect[i] = std::exp(fSTLogMinPhotonEnergy+i*delta);
   }
-  fSamplingPrimEnergies  = new double[fNumSamplingPrimEnergies];
-  fLSamplingPrimEnergies = new double[fNumSamplingPrimEnergies];
-  fPrimEnLMin    = std::log(fMinPrimEnergy);
-  double delta   = std::log(fMaxPrimEnergy/fMinPrimEnergy)/(fNumSamplingPrimEnergies-1.0);
-  fPrimEnILDelta = 1.0/delta;
-  fSamplingPrimEnergies[0]  = fMinPrimEnergy;
-  fLSamplingPrimEnergies[0] = fPrimEnLMin;
-  fSamplingPrimEnergies[fNumSamplingPrimEnergies-1]  = fMaxPrimEnergy;
-  fLSamplingPrimEnergies[fNumSamplingPrimEnergies-1] = std::log(fMaxPrimEnergy);
-  for (int i=1; i<fNumSamplingPrimEnergies-1; ++i) {
-    fLSamplingPrimEnergies[i] = fPrimEnLMin+i*delta;
-    fSamplingPrimEnergies[i]  = std::exp(fPrimEnLMin+i*delta);
-  }
-  //
-  // clear (if needed) and create the container that can store sampling tables for all(active) elements
-  // 1. clear:
-  if (fRatinAliasDataForAllElements) {
-    for (int i=0; i<gMaxZet; ++i) {
-      RatinAliasDataPerElement *oneElem = fRatinAliasDataForAllElements[i];
-      if (oneElem) {
-        for (int j=0; j<oldNumGridPoints; ++j) {
-          RatinAliasData *oneRatinAlias = oneElem->fRatinAliasDataForOneElement[j];
-          if (oneRatinAlias) {
-            delete [] oneRatinAlias->fXdata;
-            delete [] oneRatinAlias->fCumulative;
-            delete [] oneRatinAlias->fParaA;
-            delete [] oneRatinAlias->fParaB;
-            delete [] oneRatinAlias->fAliasW;
-            delete [] oneRatinAlias->fAliasIndx;
-            delete oneRatinAlias;
-          }
-        }
-        delete [] oneElem->fRatinAliasDataForOneElement;
-        delete oneElem;
-      }
-    }
-    delete [] fRatinAliasDataForAllElements;
-  }
-  //
-  // 2. create an AliasTable object
+  // 3. create an AliasTable object
   if (fAliasSampler) {
     delete fAliasSampler;
   }
   fAliasSampler = new AliasTable();
-  //
-  // 3. create and fill with nullptr-s
-  fRatinAliasDataForAllElements = new RatinAliasDataPerElement*[gMaxZet];
-  for (int i=0; i<gMaxZet; ++i) {
-    fRatinAliasDataForAllElements[i] = nullptr;
-  }
-  //
+  // 4. set up the container that stores sampling tables for all elements (init to nullptr-s)
+  fSamplingTables.resize(gMaxZet-1,nullptr);
+  // 5. build the sampling tables:
   // get all MaterialCuts; loop over them and if they belongs to a region where this model is active:
-  //  - get the list of elements of the material that the MaterialCuts belongs to
-  //  - loop over the this list of elements and build RatinAliasDataPerElement for which it has not been done yet
+  //  - get the material that the MaterialCuts belongs to
+  //  - loop over its elements and build tables for them if not have been built yet.
   int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
   // get list of active region
-  std::vector<bool> isActiveInRegion = GetListActiveRegions();
+  std::vector<bool> &isActiveInRegion = GetListActiveRegions();
   for (int i=0; i<numMatCuts; ++i) {
     const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[i];
     // if this MaterialCuts belongs to a region where this model is active:
     if (isActiveInRegion[matCut->GetRegionIndex()]) {
-      // get the list of elements
-      const Vector_t<Element*> theElements =  matCut->GetMaterial()->GetElementVector();
-      int numElems = theElements.size();
-      for (int j=0; j<numElems; ++j) {
+      // get the material and the element vector
+      const Vector_t<Element*> &theElemVect = matCut->GetMaterial()->GetElementVector();
+      size_t numElems = theElemVect.size();
+      for (size_t iel=0; iel<numElems; ++iel) {
+        const Element *elem = theElemVect[iel];
+        const int izet      = std::min(std::lrint(elem->GetZ()),gMaxZet-1);
         // if RatinAliasDataPerElement has not been built for this element yet => build
-        double zet = theElements[j]->GetZ();
-        int elementIndx = std::lrint(zet);
-        if (!fRatinAliasDataForAllElements[elementIndx]) {
-          BuildSamplingTablesForElement(theElements[j]);
+        if (!fSamplingTables[izet]) {
+          BuildSamplingTablesForElement(elem, primEVect);
         }
       }
     }
   }
+  primEVect.clear();
 }
 
 
-void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem) {
+void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem, const std::vector<double> &primevect) {
   // prepare one RatinAliasDataPerElement structure
-  RatinAliasDataPerElement *perElem          = new RatinAliasDataPerElement();
-  perElem->fRatinAliasDataForOneElement      = new RatinAliasData*[fNumSamplingPrimEnergies];
-  int elementindx                            = std::lrint(elem->GetZ());
-  fRatinAliasDataForAllElements[elementindx] = perElem;
+  RatinAliasDataPerElement *perElem = new RatinAliasDataPerElement(fSTNumPhotonEnergies);
+  const int izet = std::min(std::lrint(elem->GetZ()),gMaxZet-1);
+  fSamplingTables[izet] = perElem;
   // allocate an array that will be used temporary:
-  double *thePdfdata = new double[fNumSamplingEnergies]();
+  double *thePdfdata = new double[fSTNumDiscreteEnergyTransferVals]();
   // loop over the photon energy grid and build one RatinAliasData structure at each photon energy for this element
-  for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
-    // note that egamma is for sure > 2mc^2,; moreover, for sure >= 2MeV
-    double egamma = fSamplingPrimEnergies[i];
+  for (int i=0; i<fSTNumPhotonEnergies; ++i) {
+    const double egamma = primevect[i];
     // build one table for the given: egamma, element
-//    std::cerr<<"  === Bulding table for:  elem = " << elem->GetName() << " egamma = " << egamma/geant::MeV << " [MeV]" << std::endl;
-    BuildOneRatinAlias(egamma, elem, thePdfdata, i);
+    BuildOneRatinAlias(egamma, izet, thePdfdata, i);
   }
   // delete the temporary array
   delete [] thePdfdata;
 }
+
 
 /**
  * @internal
@@ -732,179 +708,73 @@ void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem) {
  * \f$ \xi \f$ (see more at the #ComputeDXSection() method) at a given gamma energy and target atom pair. The pdf of the
  * transformed variable will be perpresented by #fNumSamplingEnergies discrete points. The locations of these discrete
  * sample points are determined by minimizing the approximation error comming from the discretization.
- *
- * Due to the different approximation of the screening function below and above \f$ \delta(\epsilon) =1 \f$, there is a
- * step (within 0.5 %) in the pdf (DCS) if the \f$ \delta \in [\delta(\epsilon_{max}=0.5),\delta(\epsilon_{min})] \f$
- * interval contains the value 1. The step is located at
- * \f$ \xi(\delta=1) = \ln[\epsilon(\delta=1)/\epsilon_{min}]/\ln[0.5/\epsilon_{min}] \f$
- * where \f$ \epsilon(\delta=1) = 0.5-0.5\sqrt{1.-4 136 Z^{-1/3} \epsilon_0}\f$ is the \f$ \epsilon \f$ value that
- * coresponds to \f$ \delta = 1 \f$ and \f$ \xi(\delta=1) \f$ is the corresponding transformed variable.A small interval
- * will be inserted around this \f$ \xi(\delta=1) \f$ value in the discretized pdf and this interval will be ignored in
- * the error computation. Thanks to this, the individual distributions will reproduce this step properly. However, the
- * position of this step depends on the gamma energy through \f$ \epsilon_0 \f$ and sampling tables are built only at
- * discrete gamma energies. A linear interpolation on log gamma energy scale is used at run-time to sample the energy
- * transfer related variable \f$ \xi \f$ from the pre-prepared tables. Therefore, the sampled distributions will contain
- * this step in an interval (between the position of the step at the upper and lower gamma energies) instead at a point.
+ * Tsai's screening function approximation will be used (always)!
  *
  * @endinternal
  */
-void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *elem, double *pdfarray, int egammaindx) {
+void BetheHeitlerPairModel::BuildOneRatinAlias(const double egamma, const int izet, double *pdfarray, const int egammaindx) {
   // compute the theoretical minimum of the reduced total energy transfer to the e+ (or to the e-)
-  double eps0        = geant::kElectronMassC2/egamma;
-  // set the real minimum to the theoretical one: will be updated
-  double epsMin      = eps0;
-  int    izet        = std::lrint(elem->GetZ());
-  double FZ          = fElementData[izet]->fFzLow;
-  double deltaMax    = fElementData[izet]->fDeltaMaxLow;
-  double deltaFactor = fElementData[izet]->fDeltaFactor;
+  const double eps0   = geant::kElectronMassC2/egamma;
+  const double dFact  = gElementData[izet]->fDeltaFactor;
+  const double dMin   = 4.*eps0*dFact;
+  double FZ           = gElementData[izet]->fFzLow;
+  double dMax         = gElementData[izet]->fDeltaMaxLowTsai;
   if (egamma>50.*geant::MeV) {
-    FZ       = fElementData[izet]->fFzHigh;
-    deltaMax = fElementData[izet]->fDeltaMaxHigh;
+    FZ   = gElementData[izet]->fFzHigh;
+    dMax = gElementData[izet]->fDeltaMaxHighTsai;
   }
-  double deltaMin = 4.*eps0*deltaFactor;  // 4*136*Z^(-1/3)*eps0
-  double eps1     = 0.5-0.5*std::sqrt(1.-deltaMin/deltaMax);
+  const double eps1   = 0.5-0.5*std::sqrt(1.-dMin/dMax);
   FZ *= 0.125; //this is how we use in our dxsec computation
-  if (eps1>epsMin) {
-    epsMin = eps1;
-  }
-  // there is an artificial step in the DCS due to the 2 different approximation to the screening funtion below/above
-  // delta = 1 => we need to locate this point and in the corresponding xi variable a small interval will be inserted
-  // that will be excluded from the error computation.
-  // compute delta(eps) at eps-limits
-  double deltaAtEpsMin = deltaFactor*eps0/(epsMin*(1.-epsMin)); // 136*Z^(-1/3) eps0/(epsMin*(1-epsMin))
-  double deltaAtEpsMax = 4.*deltaFactor*eps0;  // 4*136*Z^(-1/3) eps0
-  // compute eps that is such that delta(eps) = 1 if delta cross the value 1 between [epsMin,0.5]
-  double xiDeltaU  = -1.0;
-  double xiDeltaD  = -1.0;
-  double xiDelta1  = -1.0;
-  if (deltaAtEpsMax<1. && deltaAtEpsMin>1.) {
-    double epsDelta1 = 0.5-0.5*std::sqrt(1.-4*deltaFactor*eps0);
-    // the corresponding xi(epsDelta1) transformed variable
-    xiDelta1  = std::log(epsDelta1/epsMin)/std::log(0.5/epsMin);
-    // make a small interval that covers this xi(epsDelta1) value
-    xiDeltaU = xiDelta1+xiDelta1*(1.-xiDelta1)*1.e-3;
-    xiDeltaD = xiDelta1-xiDelta1*(1.-xiDelta1)*1.e-3;
-  }
-//std::cerr<< " xiDeltaD = " << xiDeltaD << std::endl;
-  //
+  const double epsMin = std::max(eps1,eps0);
   // allocate one RatinAliasData structure for the current element,gamma-energy combination
-  RatinAliasData *raData = new RatinAliasData();
-  raData->fNumdata       = fNumSamplingEnergies;
-  raData->fXiDelta1      = xiDelta1;
-  raData->fXdata         = new double[fNumSamplingEnergies]();
-  raData->fCumulative    = new double[fNumSamplingEnergies]();
-  raData->fParaA         = new double[fNumSamplingEnergies]();
-  raData->fParaB         = new double[fNumSamplingEnergies]();
-  raData->fAliasW        = new double[fNumSamplingEnergies]();
-  raData->fAliasIndx     = new int   [fNumSamplingEnergies]();
-
-  //
-  // fill in raData->fNumdata discrete sample point from the transformed variable and the corresponding pdf:
-  // 1.a. fill in xi[min], xi[midle], xi[max] if there is no step in the DCS on xi [0,1]
-  // 1.b. fill in xi[min], xi[max], the lower and upper limit of the small intervals plus one value
-  // 2. set the currently used data points to 3 or 5 depending on if 1.a. or 1.b. the case
+  RatinAliasData *raData = new RatinAliasData(fSTNumDiscreteEnergyTransferVals);
+  // fill in 3 values of the transformed variable
   int curNumData    = 3;
-  int skipIndx      = -1;
-  if (xiDeltaD<0.) {
-    raData->fXdata[0] = 0.0;
-    raData->fXdata[1] = 0.5;
-    raData->fXdata[2] = 1.0;
-  } else {
-    raData->fXdata[0] = 0.0;
-    raData->fXdata[4] = 1.0;
-    if (xiDeltaU<0.5) {
-      raData->fXdata[1] = xiDeltaD;
-      raData->fXdata[2] = xiDeltaU;
-      raData->fXdata[3] = 0.5;
-      skipIndx = 1;
-    } else if (xiDeltaD>0.5) {
-      raData->fXdata[1] = 0.5;
-      raData->fXdata[2] = xiDeltaD;
-      raData->fXdata[3] = xiDeltaU;
-      skipIndx = 2;
-    } else {
-      raData->fXdata[1] = xiDeltaD*0.5;
-      raData->fXdata[2] = xiDeltaD;
-      raData->fXdata[3] = xiDeltaU;
-      skipIndx = 2;
-    }
-    curNumData = 5;
-  }
-  // create a 16 point GL integral to compute the interpolation error at each interval
+  raData->fXdata[0] = 0.0;
+  raData->fXdata[1] = 0.5;
+  raData->fXdata[2] = 1.0;
   int glnum         = 4;
-/*
-  GLIntegral  *gl   = new GLIntegral(glnum, 0.0, 1.0);
-  std::vector<double> glx = gl->GetAbscissas();
-  std::vector<double> glw = gl->GetWeights();
-*/
-  //
-  // fill in the discrete pdf array by inserting raData->fNumdata discrete points such that the
-  // interpolation error is minimized: one new discrete point will be inserted at the end of each
-  // iteration of this while loop:
-  while (curNumData<raData->fNumdata) {
+  // fill in the discrete pdf array by inserting the remaining fSTNumDiscreteEnergyTransferVals-3 discrete points such
+  // that the interpolation error is minimized: one new discrete point will be inserted at the end of each  iteration of
+  // this while loop:
+  while (curNumData<fSTNumDiscreteEnergyTransferVals) {
     // compute the pdf values at the current discrete sample points
     for (int i=0;i<curNumData;++i) {
-      pdfarray[i] = ComputeDXSection(epsMin,eps0,deltaFactor,FZ,raData->fXdata[i]);
+      pdfarray[i] = ComputeDXSection(epsMin,eps0,dFact,FZ,raData->fXdata[i]);
     }
     double maxerr      = 0.0;
     double thexval     = 0.0;
     int    maxErrIndex = 0;
     // prepare data for the approximation of the pdf based on the current discretization
-    double norm = fAliasSampler->PreparRatinForPDF(raData->fXdata, pdfarray, raData->fCumulative, raData->fParaA,
-                                                   raData->fParaB, curNumData, true, glnum);
-    //
+    const double norm  = fAliasSampler->PreparRatinForPDF(&(raData->fXdata[0]), pdfarray, &(raData->fCumulative[0]),
+                                                          &(raData->fParaA[0]), &(raData->fParaB[0]), curNumData,
+                                                          false, glnum);
     // find the interval with the highest approximation error to the real pdf based on the current discretization
     for (int i=0; i<curNumData-1; ++i) {
-      // exclude the possible insterted small interval around the step in the DCS
-      if (i==skipIndx) {
-        continue;
-      }
-      double xx  = 0.5*(raData->fXdata[i]+raData->fXdata[i+1]);  // mid xi-point of the current(i.e. i-th) interval
+      const double xx  = 0.5*(raData->fXdata[i]+raData->fXdata[i+1]);  // mid xi-point of the current(i.e. i-th) interval
       double err = 0.0;
       // we shuld compute the integrated error (by transforming the integral from [xi[i],xi[i+1] to [0,1])
       // but we will use sample points to estimate the error: divide the interval into isub sub intervals and compute
       // some error measure at each edge points
-      int isub   = 10;
-      double dd  = (raData->fXdata[i+1]-raData->fXdata[i])/((double)isub);
+      const int isub   = 5;
+      const double dd  = (raData->fXdata[i+1]-raData->fXdata[i])/((double)isub);
       for (int j=1; j<isub; ++j) {
-        double    xval = raData->fXdata[i]+j*dd;
+        const double xval = raData->fXdata[i]+j*dd;
         double valAprx = 0.0;
         // - get the approximated pdf value based on the current discretization
         // - unless if the current interval is the first because we use linear appoximation in the first
         //   interval <= the pdf(xi[0])=0
         if (i>0) {
-          valAprx = fAliasSampler->GetRatinForPDF1(xval, raData->fXdata, raData->fCumulative, raData->fParaA,
-                                                   raData->fParaB, i);
+          valAprx = fAliasSampler->GetRatinForPDF1(xval, &(raData->fXdata[0]), &(raData->fCumulative[0]),
+                                                   &(raData->fParaA[0]), &(raData->fParaB[0]), i);
         } else { //linear aprx in the first interval because pdf[0] = 0
           valAprx = norm*pdfarray[i+1]/(raData->fXdata[i+1]-raData->fXdata[i])*(xval-raData->fXdata[i]);
         }
         // get the real value
-        double valReal = norm*ComputeDXSection(epsMin, eps0, deltaFactor, FZ, xval);
+        const double valReal = norm*ComputeDXSection(epsMin, eps0, dFact, FZ, xval);
         err += std::fabs((1.-valAprx/valReal)*(valAprx-valReal));
       }
       err *=(raData->fXdata[i+1]-raData->fXdata[i]);
-/*
-      // compute the integrated error (by transforming the integral from [xi[i],xi[i+1] to [0,1])
-      for (int j=0; j<glnum; ++j) {
-        double xval    = glx[j]*(raData->fXdata[i+1]-raData->fXdata[i])+raData->fXdata[i];
-        double valAprx = 0.0;
-        // - get the approximated pdf value based on the current discretization
-        // - unless if the current interval is the first because we use linear appoximation in the first
-        //   interval <= the pdf(xi[0])=0
-        if (i>0) {
-          valAprx = fAliasSampler->GetRatinForPDF1(xval, raData->fXdata, raData->fCumulative, raData->fParaA,
-                                                   raData->fParaB, i);
-        } else { //linear aprx in the first interval because pdf[0] = 0
-          valAprx = norm*pdfarray[i+1]/(raData->fXdata[i+1]-raData->fXdata[i])*(xval-raData->fXdata[i]);
-        }
-        // get the real value
-        double valReal = norm*ComputeDXSection(epsMin, eps0, deltaFactor, FZ, xval);
-        // compute the error and add-up to the integrated value
-        err += glw[j]*std::fabs((valAprx-valReal)*(1.-valAprx/valReal));
-      }
-      // due to the integral transform from [xi[i],xi[i+1]] to [0,1]
-      err *=(raData->fXdata[i+1]-raData->fXdata[i]);
-*/
       // if the current interval gives the highest approximation error so far then store some values :
       // i.e. current maximum error value, the mid-point of the current interval and the lower edge index
       if (err>maxerr) {
@@ -919,10 +789,6 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
     // 1. shift to the right all points above the maxErrIndex
     for (int i=curNumData; i>maxErrIndex+1; --i) {
       raData->fXdata[i] = raData->fXdata[i-1];
-      // update the position of the interval that we excluded from the procedure
-      if (i-1==skipIndx) {
-        skipIndx = i;
-      }
     }
     // 2. then insert the new discrete xi point
     raData->fXdata[maxErrIndex+1] = thexval;
@@ -933,16 +799,17 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
   // if all the available discrete xi points was filled, compute the corresponding values of the pdf at these discrete
   // points
   for (int i=0; i<curNumData; ++i) {
-    pdfarray[i] = ComputeDXSection(epsMin, eps0, deltaFactor, FZ, raData->fXdata[i]);
+    pdfarray[i] = ComputeDXSection(epsMin, eps0, dFact, FZ, raData->fXdata[i]);
   }
   //
   // and prepare the final ratin-alias sampling table structure:
-  fAliasSampler->PreparRatinTable(raData->fXdata, pdfarray, raData->fCumulative, raData->fParaA, raData->fParaB,
-                                  raData->fAliasW, raData->fAliasIndx, raData->fNumdata, true, glnum);
+  fAliasSampler->PreparRatinTable(&(raData->fXdata[0]), pdfarray, &(raData->fCumulative[0]), &(raData->fParaA[0]),
+                                  &(raData->fParaB[0]), &(raData->fAliasW[0]), &(raData->fAliasIndx[0]),
+                                  fSTNumDiscreteEnergyTransferVals, false, glnum);
   // fill in
-  int elementindx = std::lrint(elem->GetZ());
-  fRatinAliasDataForAllElements[elementindx]->fRatinAliasDataForOneElement[egammaindx]=raData;
+  fSamplingTables[izet]->fRatinAliasData[egammaindx]=raData;
 }
+
 
 /**
  * @internal
@@ -1067,26 +934,15 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(double egamma, const Element *ele
  * @endinternal
  */
 double BetheHeitlerPairModel::ComputeDXSection(double epsmin, double eps0, double deltafactor, double fz, double xi) {
-  double lHalfPerEpsMin = std::log(0.5/epsmin);
-  double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
-  double meps           = 1.-eps;
-  double delta          = deltafactor*eps0/(eps*meps);
-  double phi1           = 0.0;
-  double phi2           = 0.0;
-  if (delta>1.) {
-    phi1 = 21.12 - 4.184*std::log(delta+0.952);
-    phi2 = phi1;
-  } else {
-    double delta2 = delta*delta;
-    phi1 = 20.867 - 3.242*delta + 0.625*delta2;
-    phi2 = 20.209 - 1.93 *delta - 0.086*delta2;
-  }
-  double dxsec = (eps*eps+meps*meps)*(0.25*phi1-fz) + 2.*eps*meps*(0.25*phi2-fz)/3.;
-  dxsec *= eps;
-  if (dxsec<0.) {
-    dxsec = 0.0;
-  }
-  return dxsec;
+  const double lHalfPerEpsMin = std::log(0.5/epsmin);
+  const double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
+  const double meps           = 1.-eps;
+  const double delta          = deltafactor*eps0/(eps*meps);
+  double phi1, phi2;
+  ComputeScreeningFunctions(phi1, phi2, delta, true);
+  double dxsec = eps*( (eps*eps+meps*meps)*(0.25*phi1-fz) + 2.*eps*meps*(0.25*phi2-fz)/3.);
+  return std::max(dxsec, 0.0);
 }
 
-} // namespace geantphysics
+
+}  // namespace geantphysics
