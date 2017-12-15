@@ -182,7 +182,7 @@ bool GeantRunManager::Initialize() {
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->Init();
   if (fConfig->fUseVectorizedGeom)
-    printf("*** Using vectorized geometry\n");
+    printf("*** Using vectorized geometry, default basket size is %d\n", fConfig->fMaxPerBasket);
   else
     printf("*** Using scalar geometry\n");
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)

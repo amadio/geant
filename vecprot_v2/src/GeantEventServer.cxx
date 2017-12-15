@@ -152,27 +152,24 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
   if(fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->OpenEvent(evt);
   
   // Initialize navigation path for the vertex
-  Volume_t *vol = 0;
+  //Volume_t *vol = 0;
   // Initialize the start path
   VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
 #ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::SimpleNavigator nav;
   startpath->Clear();
   nav.LocatePoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
-  vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
-  VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
+  //vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
+  //VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
 #else
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   if (!nav)
     nav = gGeoManager->AddNavigator();
-  TGeoNode *geonode = nav->FindNode(vertex.x(), vertex.y(), vertex.z());
-  vol = geonode->GetVolume();
-  VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
+  //TGeoNode *geonode = nav->FindNode(vertex.x(), vertex.y(), vertex.z());
+  //vol = geonode->GetVolume();
+  //VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
   startpath->InitFromNavigator(nav);
 #endif
-  fBindex = link->index;
-  // This is needed for v2 only
-  //td->fVolume = vol;
 
   // Check and fix tracks
   for (int itr=0; itr<ntracks; ++itr) {

@@ -20,11 +20,13 @@
   --gun-primary-energy       10                       "# kinetic energy of the primary particle [in GeV]"\
   --gun-primary-type         e-                       "# primary particle name/type"\
 "### run configuration parameters:"\
-  --config-number-of-buffered-events        5         "# number of events transported at once"\
+  --config-number-of-buffered-events       10         "# number of events transported at once"\
   --config-total-number-of-events          10         "# total number of events to be simulated"\
   --config-number-of-primary-per-events    10         "# number of primary particles per event"\
   --config-number-of-threads                4         "# number of working threads to be used"\
   --config-number-of-propagators            1         "# number of propagators"\
+  --config-tracks-per-basket               16         "# default number of tracks per basket"\
 "### physics process configuration parameters:"\
   --process-MSC-step-limit             UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
 "##  --config-run-performance"\                       "# flag to activate performance mode i.e. no scoring"\
+"##  --config-vectorized-geom"\                       "# flag to activate vectorized geometry"

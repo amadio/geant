@@ -30,10 +30,10 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxPerBasket)
   fDblArray = new double[fSizeDbl];
   fIntArray = new int[fSizeInt];
   fPath = VolumePath_t::MakeInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
-  fPathV = new VolumePath_t*[maxPerBasket];
-  fNextpathV = new VolumePath_t*[maxPerBasket];
+  fPathV = new VolumePath_t*[4*maxPerBasket];
+  fNextpathV = new VolumePath_t*[4*maxPerBasket];
   fTrack = GeantTrack::MakeInstance();
-  fGeoTrack = new GeantTrackGeo_v(maxPerBasket);
+  fGeoTrack = new GeantTrackGeo_v(4*maxPerBasket);
 #ifndef VECCORE_CUDA
 #ifdef USE_VECGEOM_NAVIGATOR
 //  fRndm = &RNG::Instance();
@@ -56,8 +56,8 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
   buffer = GeantTrack::round_up_align(buffer);
 
   fPath = VolumePath_t::MakeInstanceAt(TrackDataMgr::GetInstance()->GetMaxDepth(), (void*)buffer);
-  fPathV = new VolumePath_t*[maxPerBasket];
-  fNextpathV = new VolumePath_t*[maxPerBasket];
+  fPathV = new VolumePath_t*[4*maxPerBasket];
+  fNextpathV = new VolumePath_t*[4*maxPerBasket];
   fGeoTrack = GeantTrackGeo_v::MakeInstanceAt(buffer, 4*maxPerBasket);
   buffer += GeantTrackGeo_v::SizeOfInstance(4*maxPerBasket);
   buffer += VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth());

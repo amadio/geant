@@ -108,7 +108,9 @@ int         parConfigNumRunEvt        =    10;  // total number of events to be 
 int         parConfigNumPrimaryPerEvt =    10;  // number of primary particles per event
 int         parConfigNumThreads       =     4;  // number of working threads
 int         parConfigNumPropagators   =     1;  // number of propagators per working threads
+int         parConfigNumTracksPerBasket =  16;  // default number of tracks per basket
 bool        parConfigIsPerformance    = false;  // run without any user actions
+bool        parConfigVectorizedGeom   = false;  // activate geometry basketizing
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit    = "";    // i.e. default application value
@@ -139,8 +141,9 @@ static struct option options[] = {
          {"config-number-of-primary-per-events" , required_argument, 0,  'o'},
          {"config-number-of-threads"            , required_argument, 0,  'p'},
          {"config-number-of-propagators"        , required_argument, 0,  'q'},
-         {"config-run-performance"              , no_argument      , 0,  'r'},
-
+         {"config-tracks-per-basket"            , required_argument, 0,  'r'},
+         {"config-run-performance"              , no_argument      , 0,  's'},
+         {"config-vectorized-geom"              , required_argument, 0,  't'},
 	 {"process-MSC-step-limit"              , required_argument, 0,  'A'},
 
          {"help", no_argument, 0, 'h'},
@@ -259,7 +262,13 @@ void GetArguments(int argc, char *argv[]) {
          parConfigNumPropagators   = (int)strtol(optarg, NULL, 10);
          break;
        case 'r':
+         parConfigNumTracksPerBasket   = (int)strtol(optarg, NULL, 10);
+         break;
+       case 's':
          parConfigIsPerformance    = true;
+         break;
+       case 't':
+         parConfigVectorizedGeom   = true;
          break;
        //---- MCTruth handling
        case 'B':
@@ -307,9 +316,11 @@ Geant::GeantRunManager* RunManager() {
   runConfig->fNminThreshold = 5*parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
   runConfig->fNminReuse     = 100000;
+  runConfig->fMaxPerBasket  = parConfigNumTracksPerBasket;
+  runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
   //
   // Activate standard scoring
-  runConfig->fUseStdScoring = !parConfigIsPerformance;
+  //runConfig->fUseStdScoring = !parConfigIsPerformance;
 
   return runManager;
 }

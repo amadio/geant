@@ -95,6 +95,7 @@ int         parConfigNumPrimaryPerEvt = 1000;  // number of primary particles pe
 int         parConfigNumThreads       = 4;     // number of working threads
 int         parConfigNumPropagators   = 1;     // number of propagators per working threads
 bool        parConfigVectorizedGeom   = 0;     // activate geometry basketizing
+int         parConfigNumPerBasket     = 16;    // default number of particles per basket
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit    = "";    // i.e. default application value
@@ -123,9 +124,10 @@ static struct option options[] = {
   {"config-Number-Of-Threads"            , required_argument, 0,  'p'},
   {"config-Number-Of-Propagators"        , required_argument, 0,  'q'},
   {"config-Vectorized-Geom"              , required_argument, 0,  'r'},
+  {"config-Tracks-Per-Basket"            , required_argument, 0,  's'},
 
-  {"process-MSC-Step-Limit"              , required_argument, 0,  's'},
-  {"process-Step-Max-Value"              , required_argument, 0,  't'},
+  {"process-MSC-Step-Limit"              , required_argument, 0,  't'},
+  {"process-Step-Max-Value"              , required_argument, 0,  'u'},
 
   {"help", required_argument, 0,  'x'},
   {0, 0, 0, 0}
@@ -205,9 +207,12 @@ void GetInputArguments(int argc, char *argv[]) {
       parConfigVectorizedGeom   = (bool)strtof(optarg, NULL);
       break;
     case 's':
-      parProcessMSCStepLimit    = optarg;
+      parConfigNumPerBasket     = (int)strtol(optarg, NULL, 10);
       break;
     case 't':
+      parProcessMSCStepLimit    = optarg;
+      break;
+    case 'u':
       parProcessStepMaxValue    = (double)strtof(optarg, NULL);
       break;
     case 'x':
@@ -233,6 +238,7 @@ Geant::GeantRunManager* RunManager() {
   runConfig->fNtotal            = parConfigNumRunEvt;
   runConfig->fNbuff             = parConfigNumBufferedEvt;
   runConfig->fNaverage          = parConfigNumPrimaryPerEvt;
+  runConfig->fMaxPerBasket      = parConfigNumPerBasket;
   runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
   //
   // Some additional parameters that have values in this application different than their default

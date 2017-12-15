@@ -122,6 +122,58 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   TrackVec_t &tracks = input.Tracks();
   const size_t ntr = tracks.size();
 // #define DEBUG_VECTOR_DOIT
+
+//#define TEST_SCALAR_LOOP
+#ifdef TEST_SCALAR_LOOP
+  {
+    GeantTrackGeo_v &track_geo = *td->fGeoTrack;
+    track_geo.Clear();
+    size_t i = 0;
+    for (size_t itr = 0; itr < ntr; ++itr) {
+      // emulate the extra work done in vector mode
+      GeantTrack *track = tracks[itr];
+      DoIt(track, output, td);
+      track->fPending = false;
+      if (track->fBoundary) {
+        td->fPathV[i] = track->Path();
+        track_geo.AddTrack(*track, itr);
+        track->fPending = true;
+        i++;
+      }
+    }
+    if (i >= kVecSize) {
+      for (size_t itr = 0; itr < i; ++itr) {
+        GeantTrack *track = tracks[itr];
+        track->fSnext = tracks[itr]->fSnext;
+        track->fSafety = tracks[itr]->fSafety;
+        track->fBoundary = tracks[itr]->fBoundary;
+      }
+      track_geo.Clear();
+      i = 0;
+    }
+    for (size_t itr = 0; itr < ntr; ++itr) {
+      GeantTrack *track = tracks[itr];
+      if (track->fPending || track->fBoundary) continue;
+      // Skip tracks with big enough safety
+      if (track->fSafety > track->fPstep) continue;
+      td->fPathV[i] = track->Path();
+      track_geo.AddTrack(*track, itr);
+      track->fPending = true; // probably not needed
+      i++;
+    }
+    if (i >= kVecSize) {
+      for (size_t itr = 0; itr < i; ++itr) {
+        // Find the original track
+        GeantTrack *track = tracks[itr];
+        track->fSnext = tracks[itr]->fSnext;
+        track->fSafety = tracks[itr]->fSafety;
+        track->fBoundary = tracks[itr]->fBoundary;
+      }
+    }
+  }
+  return;
+#endif
+
 #ifdef USE_VECGEOM_NAVIGATOR
   // Copy relevant track fields to geometry SOA and process vectorized.
   GeantTrackGeo_v &track_geo = *td->fGeoTrack;

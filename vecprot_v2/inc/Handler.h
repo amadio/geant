@@ -50,7 +50,9 @@ public:
 protected:  
   bool fActive = false;                ///< Activity flag
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
-  atomic_t<int> fThreshold;          ///< Basketizing threshold
+  atomic_t<int> fThreshold;            ///< Basketizing threshold
+  atomic_t<size_t> fNflushed;          ///< Number of basket flushes
+  atomic_t<size_t> fNfired;            ///< Number of times the basketizer fired
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this handler
   GeantPropagator *fPropagator = nullptr; ///< Associated propagator
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION

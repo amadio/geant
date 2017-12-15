@@ -12,7 +12,9 @@ Handler::Handler(int threshold, GeantPropagator *propagator)
   // Handler constructor. The handler needs to be manually activated to actually
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
-  fThreshold = threshold;
+  fThreshold.store(threshold);
+  fNflushed.store(0);
+  fNfired.store(0);
   // Make sure the threshold is a power of 2
   assert((threshold & (threshold - 1)) == 0 && "Handler threshold must be power of 2");
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
