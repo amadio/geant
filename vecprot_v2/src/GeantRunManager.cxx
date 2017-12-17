@@ -74,6 +74,7 @@ GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthread
 //______________________________________________________________________________
 bool GeantRunManager::Initialize() {
   // Initialization of run manager
+  if (fInitialized) return fInitialized;
   if (!fNthreads) {
     // Autodiscovery mode using NUMA detection
     fNthreads = 1;   // disabled detection for now

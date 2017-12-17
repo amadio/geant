@@ -21,7 +21,7 @@
 #include "TestEm3PhysicsList.h"
 
 #include "HepMCTruth.h"
-
+#include "ExternalFramework.h"
 
 // some helper methods to get the possible input arguments and configure the user defined components of the application,
 // set up the run manager and run the simulation.
@@ -34,6 +34,41 @@ void SetupUserApplication     (userapplication::TestEm3App* app);
 void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, Geant::GeantRunManager *rmg);
 void PreSet(int num);
 Geant::GeantRunManager* RunManager();
+
+//
+// Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun), the
+// application(parApp), run configuration(parConfig) and some physics processes(parProcess):
+//
+// detector parameters
+int                      parDetNumberOfAbsorbers  =  0;   // i.e. default application value
+int                      parDetNumberOfLayers     =  0;   // i.e. default application value
+double                   parDetProductionCuts     =  0.;  // i.e. default application value
+double                   parDetSizeYZ             =  0.;  // i.e. default application value
+std::vector<double>      parDetAbsThicknesses;            // i.e. default application values
+std::vector<std::string> parDetAbsMaterials;              // i.e. default application values
+//
+// primary generator parameters (primary particle gun)
+std::string parGunPrimaryParticleName             =  "";  // i.e. default application value
+double      parGunPrimaryKinEnergy                =  0.;  // i.e. default application value
+//
+// MCTruth parameters 
+int         mctruthOn                 =     0;  // i.e. default application value
+double      mctruthminE               =     1.;  // i.e. default application value
+std::string mctruthFile               =     "testEm3.hepmc3"; // i.e. default application value
+//
+// run configuration parameters
+int         parConfigNumBufferedEvt   =     5;  // number of events taken to be transported on the same time (buffered)
+int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
+int         parConfigNumPrimaryPerEvt =    10;  // number of primary particles per event
+int         parConfigNumThreads       =     4;  // number of working threads
+int         parConfigNumPropagators   =     1;  // number of propagators per working threads
+int         parConfigNumTracksPerBasket =  16;  // default number of tracks per basket
+int         parConfigIsPerformance    =     0;  // run without any user actions
+int         parConfigVectorizedGeom   =     0;  // activate geometry basketizing
+int         parConfigExternalLoop     =     0;  // activate external loop mode
+//
+// physics process configuration parameters:
+std::string parProcessMSCStepLimit    = "";    // i.e. default application value
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
 //                       generator, application and starts the simulation.
@@ -73,48 +108,16 @@ int main(int argc, char *argv[]) {
   PrintRunInfo(gun, runMgr);
 
   // Run the simulation
-  runMgr->RunSimulation();
+  if (parConfigExternalLoop) {
+    userfw::Framework fw(parConfigNumPropagators*parConfigNumThreads, parConfigNumRunEvt, runMgr, runMgr->GetPrimaryGenerator());
+    fw.Run();
+  } else {
+    runMgr->RunSimulation();
+    delete runMgr;
+  }
 
-  // Delete the run manager
-  delete runMgr;
   return 0;
 }
-
-
-//
-// Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun), the
-// application(parApp), run configuration(parConfig) and some physics processes(parProcess):
-//
-// detector parameters
-int                      parDetNumberOfAbsorbers  =  0;   // i.e. default application value
-int                      parDetNumberOfLayers     =  0;   // i.e. default application value
-double                   parDetProductionCuts     =  0.;  // i.e. default application value
-double                   parDetSizeYZ             =  0.;  // i.e. default application value
-std::vector<double>      parDetAbsThicknesses;            // i.e. default application values
-std::vector<std::string> parDetAbsMaterials;              // i.e. default application values
-//
-// primary generator parameters (primary particle gun)
-std::string parGunPrimaryParticleName             =  "";  // i.e. default application value
-double      parGunPrimaryKinEnergy                =  0.;  // i.e. default application value
-//
-// MCTruth parameters 
-int         mctruthOn                 =     0;  // i.e. default application value
-double      mctruthminE               =     1.;  // i.e. default application value
-std::string mctruthFile               =     "testEm3.hepmc3"; // i.e. default application value
-//
-// run configuration parameters
-int         parConfigNumBufferedEvt   =     5;  // number of events taken to be transported on the same time (buffered)
-int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
-int         parConfigNumPrimaryPerEvt =    10;  // number of primary particles per event
-int         parConfigNumThreads       =     4;  // number of working threads
-int         parConfigNumPropagators   =     1;  // number of propagators per working threads
-int         parConfigNumTracksPerBasket =  16;  // default number of tracks per basket
-bool        parConfigIsPerformance    = false;  // run without any user actions
-bool        parConfigVectorizedGeom   = false;  // activate geometry basketizing
-//
-// physics process configuration parameters:
-std::string parProcessMSCStepLimit    = "";    // i.e. default application value
-
 
 void PreSet(int num) {
   parDetAbsThicknesses.resize(num,0.);
@@ -142,8 +145,9 @@ static struct option options[] = {
          {"config-number-of-threads"            , required_argument, 0,  'p'},
          {"config-number-of-propagators"        , required_argument, 0,  'q'},
          {"config-tracks-per-basket"            , required_argument, 0,  'r'},
-         {"config-run-performance"              , no_argument      , 0,  's'},
+         {"config-run-performance"              , required_argument, 0,  's'},
          {"config-vectorized-geom"              , required_argument, 0,  't'},
+         {"config-external-loop"                , required_argument, 0,  'u'},
 	 {"process-MSC-step-limit"              , required_argument, 0,  'A'},
 
          {"help", no_argument, 0, 'h'},
@@ -265,11 +269,15 @@ void GetArguments(int argc, char *argv[]) {
          parConfigNumTracksPerBasket   = (int)strtol(optarg, NULL, 10);
          break;
        case 's':
-         parConfigIsPerformance    = true;
+         parConfigIsPerformance    = (int)strtol(optarg, NULL, 10);
          break;
        case 't':
-         parConfigVectorizedGeom   = true;
+         parConfigVectorizedGeom   = (int)strtol(optarg, NULL, 10);
          break;
+       case 'u':
+         parConfigExternalLoop     = (int)strtol(optarg, NULL, 10);
+         break;
+
        //---- MCTruth handling
        case 'B':
          mctruthOn    = (int)strtol(optarg, NULL, 10);

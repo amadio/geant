@@ -142,7 +142,9 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
 bool GeantEventServer::AddEvent(GeantEvent *event)
 {
 // Adds one event into the queue of pending events.
+  bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
   int evt = fNload.fetch_add(1);
+  if (external_loop) evt = event->GetEvent();
   event->SetEvent(evt);
   // The vertex must be defined
   vecgeom::Vector3D<double> vertex = event->GetVertex();
@@ -181,6 +183,10 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     if (!track.IsNormalized()) {
       track.Print("Not normalized");
       track.Normalize();
+    }
+    if (track.fGVcode < 0) {
+      Error("AddEvent", "GeantV particle codes not initialized. Looks like primary generator was not initialized !!!");
+      return false;
     }
     track.fBoundary = false;
     track.fStatus = kNew;
@@ -223,7 +229,6 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     }
   }
  
-  bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
   if (external_loop && !fEvent.load()) {
     unsigned int error = 0;
     event = nullptr;

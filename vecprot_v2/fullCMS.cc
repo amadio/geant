@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "GeantRunManager.h"
+#include "ExternalFramework.h"
 
 #include "PhysicsProcessHandler.h"
 #include "PhysicsListManager.h"
@@ -24,7 +25,30 @@ void SetupPrimaryGenerator     (cmsapp::CMSParticleGun* gun);
 void SetupApplication          (cmsapp::CMSFullApp* app);
 Geant::GeantRunManager* RunManager();
 
-
+//
+// Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun) and
+// run configuration(parConfig) :
+//
+// detector parameters
+std::string parDetGDMFile             = "";   // i.e. default application values
+//
+// primary generator parameters (primary particle gun)
+std::string parGunPrimaryParticleName =  "";  // i.e. default application value
+int         parGunPrimaryPerEvent     =   0;  // i.e. default application value
+double      parGunPrimaryKinEnergy    =  0.;  // i.e. default application value
+double      parGunPrimaryDir[3]       = {0.,0.,0.}; // i.e. default application value
+//
+// run configuration parameters
+int         parConfigNumBufferedEvt   =     4;  // number of events taken to be transported on the same time (buffered)
+int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
+int         parConfigNumThreads       =     4;  // number of working threads
+int         parConfigNumPropagators   =     1;  // number of propagators per working threads
+int         parConfigNumTracksPerBasket =  16;  // default number of tracks per basket
+int         parConfigIsPerformance    =     0;  // run without any user actions
+int         parConfigVectorizedGeom   =     0;  // activate geometry basketizing
+int         parConfigExternalLoop     =     0;  // activate external loop mode
+//
+//
 // The main application: gets the possible input arguments, sets up the run-manager, detector, primary generator,
 //                       application and starts the simulation.
 int main(int argc, char *argv[]) {
@@ -54,37 +78,18 @@ int main(int argc, char *argv[]) {
   runMgr->SetUserApplication(app);
   cmsapp::CMSParticleGun::Print();
   //
-  // Run the simulation
-  runMgr->RunSimulation();
-  //
-  // Delete the run manager
-  delete runMgr;
+    // Run the simulation
+  if (parConfigExternalLoop) {
+    userfw::Framework fw(parConfigNumPropagators*parConfigNumThreads, parConfigNumRunEvt, runMgr, runMgr->GetPrimaryGenerator());
+    fw.Run();
+  } else {
+    runMgr->RunSimulation();
+    delete runMgr;
+  }
 
   return 0;
 }
 
-
-//
-// Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun) and
-// run configuration(parConfig) :
-//
-// detector parameters
-std::string parDetGDMFile             = "";   // i.e. default application values
-//
-// primary generator parameters (primary particle gun)
-std::string parGunPrimaryParticleName =  "";  // i.e. default application value
-int         parGunPrimaryPerEvent     =   0;  // i.e. default application value
-double      parGunPrimaryKinEnergy    =  0.;  // i.e. default application value
-double      parGunPrimaryDir[3]       = {0.,0.,0.}; // i.e. default application value
-//
-// run configuration parameters
-int         parConfigNumBufferedEvt   =     4;  // number of events taken to be transported on the same time (buffered)
-int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
-int         parConfigNumThreads       =     4;  // number of working threads
-int         parConfigNumPropagators   =     1;  // number of propagators per working threads
-bool        parConfigIsPerformance    = false;  // run without any user actions
-//
-//
 static struct option options[] = {
          {"gun-set-primary-energy"             , required_argument, 0, 'a'},
 				 {"gun-set-primary-type"               , required_argument, 0, 'b'},
@@ -97,7 +102,10 @@ static struct option options[] = {
          {"config-total-number-of-events"      , required_argument, 0, 'n'},
          {"config-number-of-threads"           , required_argument, 0, 'p'},
          {"config-number-of-propagators"       , required_argument, 0, 'q'},
-         {"config-run-performance"             , no_argument      , 0, 'r'},
+         {"config-tracks-per-basket"           , required_argument, 0, 'r'},
+         {"config-run-performance"             , required_argument, 0, 's'},
+         {"config-vectorized-geom"             , required_argument, 0, 't'},
+         {"config-external-loop"               , required_argument, 0, 'u'},
 
          {"help", no_argument, 0, 'h'},
          {0, 0, 0, 0}
@@ -190,7 +198,16 @@ void GetArguments(int argc, char *argv[]) {
         parConfigNumPropagators   = (int)strtol(optarg, NULL, 10);
         break;
       case 'r':
-        parConfigIsPerformance    = true;
+        parConfigNumTracksPerBasket   = (int)strtol(optarg, NULL, 10);
+        break;
+      case 's':
+        parConfigIsPerformance    = (int)strtol(optarg, NULL, 10);
+        break;
+      case 't':
+        parConfigVectorizedGeom   = (int)strtol(optarg, NULL, 10);
+        break;
+      case 'u':
+        parConfigExternalLoop     = (int)strtol(optarg, NULL, 10);
         break;
       //---- Help
       case 'h':
@@ -225,9 +242,10 @@ Geant::GeantRunManager* RunManager() {
   runConfig->fNminThreshold = 5*parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
   runConfig->fNminReuse     = 100000;
+  runConfig->fMaxPerBasket  = parConfigNumTracksPerBasket;
   //
-  // Activate standard scoring
-  runConfig->fUseStdScoring = false;
+  // Activate vectorized geometry
+  runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
 
   return runManager;
 }

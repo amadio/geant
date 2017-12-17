@@ -18,10 +18,7 @@
 #include "GeantPropagator.h"
 #include "ExN03Application.h"
 #include "ExN03DetectorConstruction.h"
-
-#ifdef GEANT_TBB
-#include "TaskMgrTBB.h"
-#endif
+#include "ExternalFramework.h"
 
 using namespace Geant;
 
@@ -33,7 +30,7 @@ static int n_learn_steps = 0;
 static int n_reuse = 100000;
 static int n_propagators = 1;
 static bool monitor = false, score = false, debug = false, coprocessor = false;
-static bool tbbmode = false, usev3 = true, usenuma = false;
+static bool external_loop = false, usev3 = true, usenuma = false;
 
 static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"fstate", required_argument, 0, 'f'},
@@ -47,7 +44,7 @@ static struct option options[] = {{"events", required_argument, 0, 'e'},
                                   {"threads", required_argument, 0, 't'},
                                   {"xsec", required_argument, 0, 'x'},
                                   {"coprocessor", required_argument, 0, 'r'},
-                                  {"tbbmode", required_argument, 0, 'i'},
+                                  {"external_loop", required_argument, 0, 'i'},
                                   {"reuse", required_argument, 0, 'u'},
                                   {"propagators", required_argument, 0, 'p'},
                                   {"v3", required_argument, 0, 'v'},
@@ -148,7 +145,7 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'i':
-      tbbmode = true;
+      external_loop = true;
       break;
 
     case 'u':
@@ -255,16 +252,17 @@ int main(int argc, char *argv[]) {
 
   // for vector physics -OFF now
   // runMgr->SetVectorPhysicsProcess(new GVectorPhysicsProcess(config->fEmin, nthreads));
-  runMgr->SetPrimaryGenerator( new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0) );
+
+  GunGenerator *generator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
+  runMgr->SetPrimaryGenerator( generator );  
   runMgr->SetUserApplication ( new ExN03Application(runMgr) );
   runMgr->SetDetectorConstruction( new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr) );
-#ifdef GEANT_TBB
-  if (tbbmode)
-    runMgr->SetTaskMgr( new TaskMgrTBB() );
-#endif
-  
-  runMgr->RunSimulation();
-//  propagator->PropagatorGeom(exn03_geometry_filename.c_str(), n_threads, monitor);
+  if (external_loop) {
+    userfw::Framework fw(n_propagators*n_threads, n_events, runMgr, generator);
+    fw.Run();
+  } else {
+    runMgr->RunSimulation();
+  }
   return 0;
 }
 #endif

@@ -134,6 +134,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantConfig.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Region.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExternalFramework.h
 )
 
 # Add codes that describes some stages (and handlers) that are different when real-physics is used
@@ -252,7 +253,6 @@ else()
   set(TEST_EXECUTABLES
     CMSApp.cc
     runApp.cc
-    runAppExternalLoop.cc
     testBasketizer.cc
 )
 endif()
@@ -287,8 +287,6 @@ function(add_to_ctest EXECUTABLES)
       get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
       if(TARGET_NAME STREQUAL "runApp")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
-      elseif(TARGET_NAME STREQUAL "runAppExternalLoop")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
       elseif(TARGET_NAME STREQUAL "runGPUApp")
           add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
       elseif(TARGET_NAME STREQUAL "CMSGPUApp")
@@ -317,7 +315,7 @@ endif()
 if(CUDA)
   install(TARGETS CMSGPUApp runGPUApp DESTINATION bin)
 else()
-  install(TARGETS CMSApp runApp runAppExternalLoop testBasketizer DESTINATION bin)
+  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
 endif()
 
 if(USE_ROOT)
@@ -329,7 +327,6 @@ if(CUDA)
   add_dependencies(CMSGPUApp Geant_v Xsec GeantExamples)
 else()
   add_dependencies(runApp Geant_v Xsec GeantExamples)
-  add_dependencies(runAppExternalLoop Geant_v Xsec GeantExamples)
   add_dependencies(CMSApp Geant_v Xsec GeantExamples)
 endif()
 # -------  END == NOT WITH REAL PHYSICS -------------------------------------------------------

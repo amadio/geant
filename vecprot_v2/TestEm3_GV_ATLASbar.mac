@@ -27,6 +27,7 @@
   --config-number-of-propagators            1         "# number of propagators"\
   --config-tracks-per-basket               16         "# default number of tracks per basket"\
 "### physics process configuration parameters:"\
-  --process-MSC-step-limit             UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
-"##  --config-run-performance"\                       "# flag to activate performance mode i.e. no scoring"\
-"##  --config-vectorized-geom"\                       "# flag to activate vectorized geometry"
+  --process-MSC-step-limit             UseSafety      "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
+  --config-run-performance                  0         "# flag to activate performance mode i.e. no scoring"\
+  --config-vectorized-geom                  0         "# flag to activate vectorized geometry"\
+  --config-external-loop                    0         "# flag to run the application in external loop mode"

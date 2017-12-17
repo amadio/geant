@@ -190,7 +190,10 @@ public:
 
   GEANT_FORCE_INLINE
   TDManager *GetTDManager() const { return fTDManager; }
-  
+
+  GEANT_FORCE_INLINE
+  bool IsInitialized() { return fInitialized; }
+ 
   GeantTaskData *BookTransportTask();
 
   /** @brief Function checking if transport is completed */

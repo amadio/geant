@@ -18,4 +18,7 @@
   --config-total-number-of-events         100           "# total number of events to be simulated"\
   --config-number-of-threads                4           "# number of working threads to be used"\
   --config-number-of-propagators            1           "# number of propagators"\
-"##  --config-run-performance"\                         "# flag to activate performance mode i.e. no scoring"\
+  --config-tracks-per-basket               16           "# default number of tracks per basket"\
+  --config-run-performance                  0           "# flag to activate performance mode i.e. no scoring"\
+  --config-vectorized-geom                  0           "# flag to activate vectorized geometry"\
+  --config-external-loop                    0           "# flag to run the application in external loop mode"
