@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "GeantBasket.h"
 #include "Basket.h"
+#include "BasketCounters.h"
 #include "StackLikeBuffer.h"
 #include "GeantPropagator.h"
 #include "TrackManager.h"
@@ -135,7 +136,9 @@ void GeantTaskData::AttachPropagator(GeantPropagator *prop, int node)
   fStackBuffer = new StackLikeBuffer(prop->fConfig->fNstackLanes, this);
   fStackBuffer->SetStageBuffer(fStageBuffers[0]);
   fBlock = fPropagator->fTrackMgr->GetNewBlock();
-}  
+  for (size_t stage = 0; stage < kNstages; ++stage)
+    fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
+}
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE

@@ -85,8 +85,10 @@ bool Handler::AddTrack(GeantTrack *track, Basket &collector)
   // Make sure the collector is fit to store the number of tracks required
   collector.Tracks().reserve(fBcap);
   bool extracted = fBasketizer->AddElement(track, collector.Tracks());
-  if (extracted)
+  if (extracted) {
     collector.SetThreshold(fThreshold);
+    fNfired++;
+  }
   return extracted;
 }
 
@@ -99,9 +101,13 @@ bool Handler::Flush(Basket &collector)
 //       contains tracks in case it is 'hot' (e.g. adding tracks or finishing
 //       other flush). Flushing is blocking for other flushes!
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    // do not touch if other flushing operation is ongoing
   if (fLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
-  bool flushed = fBasketizer->Flush(collector.Tracks());
+  bool flushed = false;
+  while (!flushed && fBasketizer->GetNstored())
+    flushed = fBasketizer->Flush(collector.Tracks());
+  fNflushed += size_t(flushed);
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
 #endif

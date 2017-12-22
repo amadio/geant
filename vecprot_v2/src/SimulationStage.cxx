@@ -1,10 +1,10 @@
 #include "SimulationStage.h"
 
-#include "Handler.h"
 #include "GeantTaskData.h"
 #include "GeantPropagator.h"
 #include "StackLikeBuffer.h"
 #include "TrackStat.h"
+#include "BasketCounters.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -14,7 +14,11 @@ VECCORE_ATT_HOST_DEVICE
 SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
   : fType(type), fPropagator(prop)
 {
+  fCheckCountdown = 0;
   fId = prop->RegisterStage(this);
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  fCheckLock.clear();
+#endif
 }
 
 //______________________________________________________________________________
@@ -27,6 +31,57 @@ SimulationStage::~SimulationStage()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+int SimulationStage::CheckBasketizers(GeantTaskData *td, size_t flush_threshold)
+{
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    // do not touch if other checking operation is ongoing
+  if (fCheckLock.test_and_set(std::memory_order_acquire)) return false;
+#endif
+  fThrBasketCheck *= 1.5;
+  fCheckCountdown = fThrBasketCheck;
+  int nstopped = 0;
+  Basket &output = *td->fShuttleBasket;
+  output.Clear();
+  for (int i=0; i<GetNhandlers(); ++i) {
+    size_t nflushed = fHandlers[i]->GetNflushed();
+    if (!nflushed) continue;
+    size_t nfired = fHandlers[i]->GetNfired();
+    // Now we check if the firing rate compared to flushing is too low.
+    // We could first try to reduce the basket size.
+    if (nfired < nflushed * flush_threshold) {
+      fHandlers[i]->ActivateBasketizing(false);
+      FlushHandler(i, td, output);
+      nstopped++;
+    }
+  }
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  fCheckLock.clear();
+#endif
+  CopyToFollowUps(output, td);
+  if (nstopped) printf("--- discarded %d basketizers\n", nstopped);
+  return nstopped;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int SimulationStage::FlushHandler(int i, GeantTaskData *td, Basket &output)
+{
+  if (!fHandlers[i]->HasTracks()) return 0;
+  Basket &bvector = *td->fBvector;
+  bvector.Clear();
+  fHandlers[i]->Flush(bvector);
+  int nflushed = bvector.size();
+  if (nflushed >= fPropagator->fConfig->fNvecThreshold) {
+    fHandlers[i]->DoIt(bvector, output, td);
+  } else {
+    for (auto track : bvector.Tracks())
+      fHandlers[i]->DoIt(track, output, td);
+  }
+  return nflushed;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 int SimulationStage::FlushAndProcess(GeantTaskData *td)
 {
 // Flush all active handlers in the stage, executing their scalar DoIt methods.
@@ -35,11 +90,12 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
 // and continue to other handlers, then to the next stage.
 
   Basket &input = *td->fStageBuffers[fId];
+  int check_countdown = fCheckCountdown.fetch_sub(input.Tracks().size());
+  if (check_countdown <= 0) CheckBasketizers(td, 10);  // here 10 should be a config parameter
   Basket &bvector = *td->fBvector;
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
   output.Clear();
-  int ninput = 0;
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     // Default next stage is the follow-up
@@ -50,7 +106,6 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
       handler->DoIt(track, output, td);
     else output.AddTrack(track);
   }
-  ninput += input.size();
   // The stage buffer needs to be cleared
   input.Clear();
   
@@ -64,13 +119,10 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
         for (auto track : bvector.Tracks())
           fHandlers[i]->DoIt(track, output, td);
       }
-      ninput += bvector.size();
       bvector.Clear();
     }
   }
-  
-  //td->fStat->AddTracks(output.size() - ninput);
-  
+    
   return CopyToFollowUps(output, td);
 }
 
@@ -89,6 +141,8 @@ int SimulationStage::Process(GeantTaskData *td)
 
   assert(fFollowUpStage >= 0);
   Basket &input = *td->fStageBuffers[fId];
+  int ninput = input.Tracks().size();
+  fThrBasketCheck += ninput;
   Basket &bvector = *td->fBvector;
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
@@ -99,7 +153,6 @@ int SimulationStage::Process(GeantTaskData *td)
   //counter++;
   #endif
 
-  int ninput = 0;
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     // Default next stage is the follow-up
@@ -112,10 +165,10 @@ int SimulationStage::Process(GeantTaskData *td)
     // If no handler is selected the track does not perform this stage
     if (!handler) {
       output.AddTrack(track);
-      ninput++;
       continue;
     }
     
+    td->fCounters[fId]->fCounters[handler->GetId()]++;
     if (!handler->IsActive()) {
       // Scalar DoIt.
       // The track and its eventual progenies should be now copied to the output
@@ -123,12 +176,10 @@ int SimulationStage::Process(GeantTaskData *td)
       #ifdef GEANT_DEBUG
 //      assert(!output.HasTrackMany(track));
       #endif
-      ninput++;
     } else {
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
-        ninput += bvector.size();
         handler->DoIt(bvector, output, td);
         bvector.Clear();
       }
@@ -136,7 +187,6 @@ int SimulationStage::Process(GeantTaskData *td)
   }
   // The stage buffer needs to be cleared
   input.Clear();
-  //td->fStat->AddTracks(output.size()-ninput);
   return CopyToFollowUps(output, td);
 }
 

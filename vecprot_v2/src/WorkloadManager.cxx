@@ -542,15 +542,12 @@ int WorkloadManager::FlushOneLane(GeantTaskData *td)
 int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
 {
 // The main stepping loop over simulation stages.
-//  static int count = 0;
-  constexpr int nstages = int(ESimulationStage::kSteppingActionsStage) + 1;
   bool flushed = !flush;
   int nprocessed = 0;
   int ninput = 0;
   int istage = 0;
   while ( FlushOneLane(td) || !flushed ) {
     while (1) {
-//      count++;
       int nstart = td->fStageBuffers[istage]->size();
 /*
       for (auto track : td->fStageBuffers[istage]->Tracks()) {
@@ -568,7 +565,7 @@ int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
         else
           nprocessed += td->fPropagator->fStages[istage]->Process(td);
       }
-      istage = (istage + 1) % nstages;
+      istage = (istage + 1) % kNstages;
       if (istage == 0) {
         if (flush) flushed = true;
         if (ninput == 0) break;

@@ -49,6 +49,7 @@ public:
 
 protected:  
   bool fActive = false;                ///< Activity flag
+  size_t fId = 0;                      ///< Handler id in the stage
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
   atomic_t<int> fThreshold;            ///< Basketizing threshold
   atomic_t<size_t> fNflushed;          ///< Number of basket flushes
@@ -93,15 +94,51 @@ public:
   GEANT_FORCE_INLINE
   basketizer_t *GetBasketizer() const { return fBasketizer; }
 
+  /** @brief Handler id getter */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  size_t GetId() const { return fId; }
+
+  /** @brief Handler id getter */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetId(size_t id) { fId = id; }
+
   /** @brief Threshold getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
   
-  /** @brief NUMA node getter */
+  /** @brief getter for number of fired baskets */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  size_t GetNfired() const {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+    return fNfired;
+#else
+    return fNfired.load();
+#endif
+  }
+
+  /** @brief getter for number of flushed baskets */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  size_t GetNflushed() const {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+    return fNflushed;
+#else
+    return fNflushed.load();
+#endif
+  }
+ /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetNode() const { return fPropagator->fNuma; }
+
+  /** @brief Check if handler has basketized tracks */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool HasTracks() const { return fBasketizer->GetNstored() > 0; }
 
   /** @brief Check if handler is active for basketizing */
   VECCORE_ATT_HOST_DEVICE

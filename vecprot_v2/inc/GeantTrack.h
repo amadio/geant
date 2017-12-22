@@ -95,6 +95,8 @@ enum ESimulationStage {
 #endif
 };
 
+constexpr size_t kNstages = size_t(kSteppingActionsStage) + 1;
+
 class GeantTaskData;
 class GeantTrack;
 class TrackDataMgr;

@@ -23,19 +23,28 @@
 
 #include "Geant/Typedefs.h"
 #include "GeantTrack.h"
+#include "Handler.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
 class Basket;
-class Handler;
 class GeantPropagator;
 #include "GeantFwd.h"
 
 //template <ESimulationStage STAGE>
 class SimulationStage {
 
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+  // On cuda there is one propagator per thread.  So (for now), no need
+  // for atomics.
+  template <typename T>
+  using atomic_t = T;
+#else
+  template <typename T>
+  using atomic_t = std::atomic<T>;
+#endif
   using Handlers_t = vector_t<Handler *>;
 
 protected:  
@@ -44,20 +53,32 @@ protected:
   int fId = 0;                              ///< Unique stage id
   int fUserActionsStage = 0;                ///< User actions stage to be executed right after
   int fFollowUpStage = 0;                   ///< In case there is a single follow-up store its id
+  atomic_t<int> fCheckCountdown;            ///< Countdown fir checking basketizer efficiency
+  size_t fThrBasketCheck = 0;               ///< Threshold for starting checking efficiency of basketizing
+  size_t fNstaged = 0;                      ///< Total number of staged tracks
   bool fUniqueFollowUp = false;             ///< All tracks go to single follow-up after this stage
   bool fEndStage = false;                   ///< Marker for stage at end of stepping
 
-  Handlers_t fHandlers;                   ///< Array of handlers for the stage
-  
+  Handlers_t fHandlers;                     ///< Array of handlers for the stage
+ 
+ #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  std::atomic_flag fCheckLock;              ///< Lock for checking basketizers efficiency
+#endif
+ 
 private:
   SimulationStage(const SimulationStage &) = delete;
   SimulationStage &operator=(const SimulationStage &) = delete;
 
   VECCORE_ATT_HOST_DEVICE
   int CopyToFollowUps(Basket &output, GeantTaskData *td);
-// The functions below are the interfaces for derived simulation stages.
+
+ /** @brief  Check efficiency of basketizers. If less than threshold, flush and de-activate.
+   * @return number of deactivated basketizers */
+  VECCORE_ATT_HOST_DEVICE
+  int CheckBasketizers(GeantTaskData *td, size_t flush_threshold);
 
 public:
+// The functions below are the interfaces for derived simulation stages.
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
@@ -85,6 +106,15 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual const char *GetName() { return nullptr; }
   
+/** @brief Get checking countdown */
+  VECCORE_ATT_HOST_DEVICE
+  int GetCheckCountdown() const {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+   return fCheckCountdown;
+#else
+   return fCheckCountdown.load();
+#endif
+  }
 
 //=== The stage processing methods === //
 
@@ -106,7 +136,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   int FlushAndProcess(GeantTaskData *td);
 
-  /** @brief Getter for type */
+   /** @brief Flush a handler and return the number of flushed tracks */
+  VECCORE_ATT_HOST_DEVICE
+  int FlushHandler(int i, GeantTaskData *td, Basket &output);
+
+ /** @brief Getter for type */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   ESimulationStage GetType() const { return fType; }
@@ -133,7 +167,13 @@ public:
   /** @brief Add next handler */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void AddHandler(Handler *handler) { fHandlers.push_back(handler); }
+  void AddHandler(Handler *handler) {
+    size_t id = fHandlers.size();
+    handler->SetId(id);
+    fHandlers.push_back(handler);
+    fThrBasketCheck += handler->GetThreshold();
+    fCheckCountdown = fThrBasketCheck;
+  }
 
   /** @brief Getter for number of handlers */
   VECCORE_ATT_HOST_DEVICE
