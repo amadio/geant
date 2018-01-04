@@ -30,7 +30,10 @@
      { "@label" : "geantV",
        "@type" : "demo::GeantVProducer",
        "threadType" : "ThreadSafeBetweenInstances",
-       "fileName" : "pp14TeVminbias.root",
+       "geometry" : "cms2018.gdml",
+       "xsec" : "xsec_FTFP_BERT.root",
+       "fstate" : "fstate_FTFP_BERT.root",
+       "hepmc" : "minbias_14TeV.root",
        "Nevents":9999,
        "Nthreads":8,
        "toGet" :[]

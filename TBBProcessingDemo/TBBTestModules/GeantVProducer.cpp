@@ -39,7 +39,7 @@ namespace {
     tbb::task* execute() override {
       printf("SimTask: iWaiting=%p\n", m_waitingTask);
 
-      //IMPORTANT: decremeting the reference count is what
+      //IMPORTANT: decrementing the reference count is what
       // tells the framework the simulation is done with
       // this event.
       m_waitingTask->decrement_ref_count();
@@ -102,16 +102,16 @@ namespace demo {
     bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true, usenuma = false;
     bool performance = true;
 
-    //std::string cms_geometry_filename("cms2015.root");
-    std::string cms_geometry_filename("cms2018.gdml");
-    //std::string cms_geometry_filename("ExN03.root");
+    //e.g. cms2015.root, cms2018.gdml, ExN03.root
+    std::string cms_geometry_filename = iConfig.get<std::string>("geometry");
 
-    std::string xsec_filename("xsec_FTFP_BERT.root");
-    std::string fstate_filename("fstate_FTFP_BERT.root");
+    std::string xsec_filename = iConfig.get<std::string>("xsec");
+    std::string fstate_filename = iConfig.get<std::string>("fstate");
 
-    //std::string hepmc_event_filename("pp14TeVminbias.root");  // sequence #stable: 608 962 569 499 476 497 429 486 465 619
-    std::string hepmc_event_filename("minbias_14TeV.root"); // sequence #stable: 81 84 93 97 87 60 106 91 92 60
-    //std::string hepmc_event_filename(""); // use gun generator!
+    std::string hepmc_event_filename = iConfig.get<std::string>("hepmc");
+    // pp14TeVminbias.root sequence #stable: 608 962 569 499 476 497 429 486 465 619
+    // minbias_14TeV.root sequence #stable: 81 84 93 97 87 60 106 91 92 60
+    // if empty, use gun generator!
 
     // instantiate configuration helper
     fConfig = new GeantConfig();
