@@ -242,7 +242,7 @@ Geant::GeantRunManager* RunManager() {
   runConfig->fNminThreshold = 5*parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
   runConfig->fNminReuse     = 100000;
-  runConfig->fMaxPerBasket  = parConfigNumTracksPerBasket;
+  runConfig->fNperBasket  = parConfigNumTracksPerBasket;
   //
   // Activate vectorized geometry
   runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;

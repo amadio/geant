@@ -69,7 +69,8 @@ public:
   double fEmin = 1.E-4;   /** Min energy threshold [GeV] */
   double fEmax = 10;      /** Max energy threshold [GeV] */
   double fBmag = 0;       /** Magnetic field [kiloGauss] */
-  double fEpsilonRK = 3.e-4; /** Relative error in RK integration */
+  double fEpsilonRK = 3.e-4;  /** Relative error in RK integration */
+  float fFireFlushRatio = 2.; /** Ratio fired/flush to trigger basketizing */
 
   bool fUsePhysics = true;   /** Enable/disable physics */
   bool fUseRungeKutta = false; /** Enable/disable Runge-Kutta integration in field */

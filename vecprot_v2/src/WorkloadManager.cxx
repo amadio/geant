@@ -541,40 +541,51 @@ int WorkloadManager::FlushOneLane(GeantTaskData *td)
 //______________________________________________________________________________
 int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
 {
-// The main stepping loop over simulation stages.
-  bool flushed = !flush;
+// The main stepping loop over simulation stages. Called in flush mode when no tracks are
+// available from the event server. The flush mode works as following: if input tracks are
+// not available for a stage, the staged is processed in flush mode, otherwise the input
+// tracks are processed normally. The flush mode stops if tracks are available again in the
+// server.
+
   int nprocessed = 0;
+  int nproc = 0;
   int ninput = 0;
   int istage = 0;
-  while ( FlushOneLane(td) || !flushed ) {
+  int ninjected = FlushOneLane(td);
+  // Flush the input buffer lane by lane, starting with higher generations.
+  // Exit loop when buffer is empty or when the stages are cosidered flushed
+  while ( ninjected || flush ) {
     while (1) {
+      // How many particles at input of current stage?
+      SimulationStage *stage = td->fPropagator->fStages[istage];
       int nstart = td->fStageBuffers[istage]->size();
-/*
-      for (auto track : td->fStageBuffers[istage]->Tracks()) {
-        if (track->fEvent == 0 && track->fParticle == 0) {
-          td->InspectStages(istage);
-          track->Print("");
-          break;
-        }
-      }
-*/
       ninput += nstart;
-      if ( nstart || !flushed ) {
-        if (flush)
-          nprocessed += td->fPropagator->fStages[istage]->FlushAndProcess(td);
-        else
-          nprocessed += td->fPropagator->fStages[istage]->Process(td);
+      // If there is input just process normally
+      if (nstart) {
+        nproc += stage->Process(td);
+      } else {
+        // If flush mode requested and the stage is basketized, process in flush mode
+        if (flush && stage->IsBasketized())
+          nproc += stage->FlushAndProcess(td);
       }
+      nprocessed += nproc;
+      // Go to next stage
       istage = (istage + 1) % kNstages;
       if (istage == 0) {
-        if (flush) flushed = true;
-        if (ninput == 0) break;
+        // Checkpoint
+        // If no activity in the loop inject next lane from the buffer
+        if (ninput == 0 && nproc == 0) {
+          ninjected = FlushOneLane(td);
+          if (!ninjected) return nprocessed;
+          break;
+        }
+        // TO DO: In flush mode, check regularly the event server
         ninput = 0;
+        nproc = 0;
       }
-//      assert(td->fStat->CountBalance() == 0);
     }
   }
-  return nprocessed; // useless instruction intended for dummy compilers
+  return nprocessed;
 }
 
 //______________________________________________________________________________

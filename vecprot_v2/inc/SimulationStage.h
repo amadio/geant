@@ -55,10 +55,11 @@ protected:
   int fFollowUpStage = 0;                   ///< In case there is a single follow-up store its id
   atomic_t<int> fCheckCountdown;            ///< Countdown fir checking basketizer efficiency
   size_t fThrBasketCheck = 0;               ///< Threshold for starting checking efficiency of basketizing
+  float fFireFlushRatio = 0;                ///< Ratio fired/flushed baskets to trigger basketizing
   size_t fNstaged = 0;                      ///< Total number of staged tracks
   bool fUniqueFollowUp = false;             ///< All tracks go to single follow-up after this stage
   bool fEndStage = false;                   ///< Marker for stage at end of stepping
-
+  bool fBasketized = false;                 ///< Stage is basketized
   Handlers_t fHandlers;                     ///< Array of handlers for the stage
  
  #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -118,9 +119,16 @@ public:
 
 //=== The stage processing methods === //
 
-  /** @brief Process a basket of tracks marked for the stage
-   *  @return Number of tracks processed
-   */
+  /** @brief Set basketizing on/off */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetBasketizing(bool flag) { fBasketized = flag; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsBasketized() const { return fBasketized; }
+
+  /** @brief Activate basketizing */
   VECCORE_ATT_HOST_DEVICE
   virtual void ActivateBasketizing(bool) {}
 

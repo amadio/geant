@@ -53,7 +53,6 @@ VECCORE_ATT_HOST_DEVICE
 void Handler::ActivateBasketizing(bool flag)
 {
   if (fActive == flag) return;
-  fActive = flag;
   int basket_size = fThreshold;
   int buffer_size = 1 << 12; // 16 kBytes per handler
   assert(fThreshold < buffer_size);
@@ -71,6 +70,7 @@ void Handler::ActivateBasketizing(bool flag)
     fBasketizer = new basketizer_t(buffer_size, basket_size);
 #endif
   }
+  fActive = flag;
 }
 
 //______________________________________________________________________________

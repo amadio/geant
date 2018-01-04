@@ -15,6 +15,7 @@ SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
   : fType(type), fPropagator(prop)
 {
   fCheckCountdown = 0;
+  fFireFlushRatio = prop->fConfig->fFireFlushRatio;
   fId = prop->RegisterStage(this);
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fCheckLock.clear();
@@ -37,29 +38,50 @@ int SimulationStage::CheckBasketizers(GeantTaskData *td, size_t flush_threshold)
     // do not touch if other checking operation is ongoing
   if (fCheckLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
-  fThrBasketCheck *= 1.5;
+  fThrBasketCheck *= 2.;
   fCheckCountdown = fThrBasketCheck;
-  int nstopped = 0;
+  int nactivated = 0;
+  size_t nactive = 0;
   Basket &output = *td->fShuttleBasket;
   output.Clear();
+  size_t nflushedtot = 0;
+  size_t nfiredtot = 0;
   for (int i=0; i<GetNhandlers(); ++i) {
     size_t nflushed = fHandlers[i]->GetNflushed();
-    if (!nflushed) continue;
     size_t nfired = fHandlers[i]->GetNfired();
-    // Now we check if the firing rate compared to flushing is too low.
-    // We could first try to reduce the basket size.
-    if (nfired < nflushed * flush_threshold) {
-      fHandlers[i]->ActivateBasketizing(false);
-      FlushHandler(i, td, output);
-      nstopped++;
+    nflushedtot += nflushed;
+    nfiredtot += nfired;
+    if (fHandlers[i]->IsActive()) {
+      // Now we check if the firing rate compared to flushing is too low.
+      // We could first try to reduce the basket size.
+      nactive++;
+      if (nfired < nflushed * flush_threshold) {
+        fHandlers[i]->ActivateBasketizing(false);
+        FlushHandler(i, td, output);
+        nactivated--;
+      }
+    } else {
+      // We start basketizing if firing rate is above threshold
+      if (nfired > nflushed * flush_threshold) {
+        fHandlers[i]->ActivateBasketizing(true);
+        nactivated++;
+      }
     }
   }
+  float nbasketized = td->fCounters[fId]->fNvector;
+  float ntotal = nbasketized + td->fCounters[fId]->fNscalar;
+  Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld",
+        GetName(), int(100*nbasketized/ntotal),
+        size_t(ntotal-nbasketized), size_t(nbasketized), nfiredtot, nflushedtot);
+  
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fCheckLock.clear();
 #endif
   CopyToFollowUps(output, td);
-  if (nstopped) printf("--- discarded %d basketizers\n", nstopped);
-  return nstopped;
+  if (nactivated > 0)      Printf("--- activated %d basketizers\n", nactivated);
+  else if (nactivated < 0) Printf("--- stopped %d basketizers\n", -nactivated);
+  printf("%ld/%ld active basketizers\n", nactive, fHandlers.size());
+  return nactivated;
 }
 
 //______________________________________________________________________________
@@ -72,8 +94,10 @@ int SimulationStage::FlushHandler(int i, GeantTaskData *td, Basket &output)
   fHandlers[i]->Flush(bvector);
   int nflushed = bvector.size();
   if (nflushed >= fPropagator->fConfig->fNvecThreshold) {
+    td->fCounters[fId]->fNvector += bvector.size();
     fHandlers[i]->DoIt(bvector, output, td);
   } else {
+    td->fCounters[fId]->fNscalar += bvector.size();
     for (auto track : bvector.Tracks())
       fHandlers[i]->DoIt(track, output, td);
   }
@@ -90,8 +114,10 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
 // and continue to other handlers, then to the next stage.
 
   Basket &input = *td->fStageBuffers[fId];
-  int check_countdown = fCheckCountdown.fetch_sub(input.Tracks().size());
-  if (check_countdown <= 0) CheckBasketizers(td, 10);  // here 10 should be a config parameter
+  if (fBasketized) {
+    int check_countdown = fCheckCountdown.fetch_sub(input.Tracks().size()) - input.Tracks().size();
+    if (check_countdown <= 0) CheckBasketizers(td, fFireFlushRatio);
+  }
   Basket &bvector = *td->fBvector;
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
@@ -102,8 +128,10 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
     track->fStage = fFollowUpStage;
     Handler *handler = Select(track, td);
     // Execute in scalar mode the handler action
-    if (handler)
+    if (handler) {
+      td->fCounters[fId]->fNscalar++;
       handler->DoIt(track, output, td);
+    }
     else output.AddTrack(track);
   }
   // The stage buffer needs to be cleared
@@ -114,8 +142,10 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
     if (fHandlers[i]->IsActive() && fHandlers[i]->Flush(bvector)) {
       // btodo has some content, invoke DoIt
       if (bvector.size() >= fPropagator->fConfig->fNvecThreshold) {
+        td->fCounters[fId]->fNvector += bvector.size();
         fHandlers[i]->DoIt(bvector, output, td);
       } else {      
+        td->fCounters[fId]->fNscalar += bvector.size();
         for (auto track : bvector.Tracks())
           fHandlers[i]->DoIt(track, output, td);
       }
@@ -142,7 +172,10 @@ int SimulationStage::Process(GeantTaskData *td)
   assert(fFollowUpStage >= 0);
   Basket &input = *td->fStageBuffers[fId];
   int ninput = input.Tracks().size();
-  fThrBasketCheck += ninput;
+  if (fBasketized) {
+    int check_countdown = fCheckCountdown.fetch_sub(ninput) - ninput;
+    if (check_countdown <= 0) CheckBasketizers(td, fFireFlushRatio);
+  }
   Basket &bvector = *td->fBvector;
   bvector.Clear();
   Basket &output = *td->fShuttleBasket;
@@ -168,10 +201,18 @@ int SimulationStage::Process(GeantTaskData *td)
       continue;
     }
     
-    td->fCounters[fId]->fCounters[handler->GetId()]++;
     if (!handler->IsActive()) {
       // Scalar DoIt.
       // The track and its eventual progenies should be now copied to the output
+      if (fBasketized) {
+        size_t &counter = td->fCounters[fId]->fCounters[handler->GetId()];
+        counter++;
+        if ((int)counter == handler->GetThreshold()) {
+          counter = 0;
+          handler->AddFired();
+        }
+      }
+      td->fCounters[fId]->fNscalar++;
       handler->DoIt(track, output, td);
       #ifdef GEANT_DEBUG
 //      assert(!output.HasTrackMany(track));
@@ -180,6 +221,7 @@ int SimulationStage::Process(GeantTaskData *td)
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector)) {
       // Vector DoIt
+        td->fCounters[fId]->fNvector += bvector.size();
         handler->DoIt(bvector, output, td);
         bvector.Clear();
       }

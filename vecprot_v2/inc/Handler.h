@@ -109,6 +109,17 @@ public:
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
   
+  /** @brief Increment fired baskets */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  size_t AddFired() {
+#ifdef VECCORE_CUDA_DEVICE_COMPILATION
+    return ++fNfired;
+#else
+    return fNfired.fetch_add(1) + 1;
+#endif
+  }
+  
   /** @brief getter for number of fired baskets */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE

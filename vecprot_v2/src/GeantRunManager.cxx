@@ -18,6 +18,8 @@
 #include "EventSet.h"
 #include "GeantEventServer.h"
 #include "LocalityManager.h"
+#include "SimulationStage.h"
+#include "BasketCounters.h"
 
 #ifdef USE_ROOT
 #include "TApplication.h"
@@ -539,7 +541,22 @@ void GeantRunManager::RunSimulation() {
     npushed += fPropagators[i]->fNpushed.load();
     nkilled += fPropagators[i]->fNkilled.load();
   }
-  Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
+  
+  int nthreads = GetNthreadsTotal();
+  GeantTaskData *td0 = fTDManager->GetTaskData(0);
+  for (size_t stage = 0; stage < kNstages; ++stage) {
+    for (int i = 1; i < nthreads; ++i) {
+      GeantTaskData *td = fTDManager->GetTaskData(i);
+      *td0->fCounters[stage] += *td->fCounters[stage];
+    }
+    float nbasketized = td0->fCounters[stage]->fNvector;
+    float ntotal = nbasketized + td0->fCounters[stage]->fNscalar;
+    Printf("Stage %20s: basketized %d %% (nscalar = %ld  nvector = %ld)",
+           fPropagators[0]->GetStage(ESimulationStage(stage))->GetName(), int(100*nbasketized/ntotal),
+           size_t(ntotal-nbasketized), size_t(nbasketized));
+  }
+
+Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
          "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
          fNpropagators, fNthreads, fEventServer->GetNprimaries(), ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
   //LocalityManager *lmgr = LocalityManager::Instance();
