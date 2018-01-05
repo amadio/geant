@@ -56,13 +56,12 @@ void GeomQueryHandler::ActivateBasketizing(bool flag)
 {
 // Special basketizing in case of logical volumes
   if (fActive == flag) return;
-  fActive = flag;
   int basket_size = fThreshold;
   // Set a 'compromise' size for the basketizer buffer for all geometry handlers
   int buffer_size = 1 << 10; // This makes ~16 MBytes of basketizer buffers for 4K volumes
   assert(fThreshold < 512 && fThreshold < buffer_size);
   // Create basketizer the first time the handler is activated
-  if (fActive && !fBasketizer) {
+  if (flag && !fBasketizer) {
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);
@@ -75,6 +74,7 @@ void GeomQueryHandler::ActivateBasketizing(bool flag)
     fBasketizer = new basketizer_t(buffer_size, basket_size);
 #endif
   }
+  fActive = flag;
 }
 
 //______________________________________________________________________________
@@ -182,6 +182,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   // Process first the tracks that start from a boundary
   for (size_t itr = 0; itr < ntr; ++itr) {
     GeantTrack *track = tracks[itr];
+    track->fIsOnBoundaryPreStp = track->fBoundary;
     // Mark tracks to be processed
     track->fPending = false;
     if (track->fBoundary) {

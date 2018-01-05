@@ -50,6 +50,17 @@ void Handler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+void Handler::DoItScalar(Basket &input, Basket& output, GeantTaskData *td)
+{
+// Basketized DoIt method implemented as a loop. Overwrite to implement a natively
+// vectorized version.
+//  DoIt(input, output, td);
+  for (auto track: input.Tracks())
+    DoIt(track, output, td);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 void Handler::ActivateBasketizing(bool flag)
 {
   if (fActive == flag) return;

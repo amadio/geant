@@ -89,6 +89,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
 
+  /** @brief Scalar emulation of vector DoIt interface. Base class implements it as a loop. */
+  VECCORE_ATT_HOST_DEVICE
+  void DoItScalar(Basket &input, Basket& output, GeantTaskData *td);
+
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
