@@ -1,6 +1,5 @@
 #include "VectorNavInterface.h"
 
-#include "backend/Backend.h"
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/ABBoxNavigator.h"

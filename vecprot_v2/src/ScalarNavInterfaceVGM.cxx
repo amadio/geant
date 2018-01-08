@@ -1,6 +1,5 @@
 #include "ScalarNavInterfaceVGM.h"
 
-#include "backend/Backend.h"
 #include "navigation/VNavigator.h"
 #ifdef VECCORE_CUDA
 #include "navigation/SimpleNavigator.h"
