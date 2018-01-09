@@ -160,8 +160,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
       if (!IsSameLocation(*track, td)) {
         td->fNcross++;
 #ifdef USE_REAL_PHYSICS
-//            track->SetStage(kAlongStepActionStage);
-            track->SetStage(kPostStepActionStage);
+            track->SetStage(kPostPropagationStage);
 #else
             track->SetStage(kContinuousProcStage);
 #endif
