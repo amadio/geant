@@ -446,7 +446,9 @@ int GeantPropagator::CreateSimulationStages()
   //        V
   //        V
   //        V
-  GetStage(kGeometryStepStage)->SetFollowUpStage(kPrePropagationStage, true);
+  GetStage(kGeometryStepStage)->SetFollowUpStage(kPrePropagationStage, false);
+  // Follow-up not unique: tracks may have done pre-propagation/propagation returning to
+  // geometry due to partial field propagation
   GetStage(kGeometryStepStage)->SetBasketizing(fConfig->fUseVectorizedGeom);
   //        V
   //        V

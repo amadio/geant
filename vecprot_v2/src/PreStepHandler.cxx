@@ -41,6 +41,7 @@ void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
   } else {  
     // Set the status to "in flight"
     track->fStatus = kInFlight;
+    track->fPrePropagationDone = false;
   }
   // Copy to output
   output.AddTrack(track);

@@ -70,7 +70,7 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
     td->fNsteps++;
 #ifdef USE_REAL_PHYSICS
 //    track->SetStage(kAlongStepActionStage);
-    track->SetStage(kPostStepActionStage);
+    track->SetStage(kPostPropagationStage);
 #else
     track->SetStage(kContinuousProcStage);
 #endif

@@ -108,7 +108,13 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td
   ScalarNavInterfaceTGeo::NavFindNextBoundary(*track);
 #endif // USE_VECGEOM_NAVIGATOR
   td->fNsnext++;
-  output.AddTrack(track);  
+#ifdef USE_REAL_PHYSICS
+  if (track->fPrePropagationDone)
+    track->SetStage(kPropagationStage);
+  else
+    track->SetStage(kPrePropagationStage);
+#endif
+  output.AddTrack(track);
 }
 
 //______________________________________________________________________________
@@ -183,6 +189,12 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   for (size_t itr = 0; itr < ntr; ++itr) {
     GeantTrack *track = tracks[itr];
     track->fIsOnBoundaryPreStp = track->fBoundary;
+#ifdef USE_REAL_PHYSICS
+    if (track->fPrePropagationDone)
+      track->SetStage(kPropagationStage);
+    else
+      track->SetStage(kPrePropagationStage);
+#endif
     // Mark tracks to be processed
     track->fPending = false;
     if (track->fBoundary) {

@@ -169,7 +169,8 @@ public:
   bool fBoundary = false;    /** True if starting from boundary */
   bool fPending = false;     /** Track pending to be processed */
   bool fOwnPath = false;     /** Marker for path ownership */
-  bool fIsOnBoundaryPreStp = false;   // to indicate that the particle was on boundary at the pre-step pint
+  bool fIsOnBoundaryPreStp = false;  /** to indicate that the particle was on boundary at the pre-step pint */
+  bool fPrePropagationDone = false;  /** Indicate if pre-propagation stage was done for this particle. */
   Volume_t const *fVolume = nullptr; /** Current volume the particle is in */
 
   // max number of physics processesper particle is assumed to be 10!
