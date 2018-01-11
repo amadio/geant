@@ -43,6 +43,7 @@
 
 #include "base/Vector3D.h"
 #include "base/Global.h"
+#include <Geant/VectorTypes.h>
 
 #include "Units.h"
 
@@ -72,6 +73,11 @@ struct MagVector3 {
 
 class CMSmagField // : public VScalarField
 {
+  using Double_v = Geant::Double_v;
+  
+  template <typename T>
+  using Vector3D = vecgeom::Vector3D<T>;
+
 public:
   CMSmagField();   
   CMSmagField(std::string inputMap);
@@ -117,9 +123,9 @@ public:
    
     const float kRMax   = 9000.  * millimeter;   //  Maximum value of R =  9.00 meters
     const float kZMax   = 16000. * millimeter;   //  Max value of Z = 16.00 meters
-    constexpr int kNoZValues   = 161;
-    constexpr int kNoRValues   = 181;
-    constexpr int kHalfZValues = 80;
+    static constexpr int kNoZValues   = 161;
+    static constexpr int kNoRValues   = 181;
+    static constexpr int kHalfZValues = 80;
     static constexpr int   gNumFieldComponents= 3;
     static constexpr bool  gFieldChangesEnergy= false;
 
@@ -156,7 +162,7 @@ protected:
 
     //Takes care of indexing into multiple places in AOS. 
     template <typename Real_v>
-    void Gather2(const Index<Real_v> index,
+    void Gather2(const vecCore::Index<Real_v> index,
                        Real_v B1[3],
                        Real_v B2[3]);
 
@@ -176,7 +182,7 @@ private:
 };
 
 CMSmagField::CMSmagField()
-  : VScalarField(gNumFieldComponents, gFieldChangesEnergy),
+  : // VScalarField(gNumFieldComponents, gFieldChangesEnergy),
     fReadData(false), fVerbose(true), fPrimary(false)
 {
    // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
@@ -209,7 +215,7 @@ void CMSmagField::ReportVersion()
 }
 
 CMSmagField::CMSmagField(const CMSmagField &right)
-  : VScalarField(gNumFieldComponents, gFieldChangesEnergy),
+  : // VScalarField(gNumFieldComponents, gFieldChangesEnergy),
     fReadData(right.fReadData),
     fVerbose(right.fVerbose),
     fPrimary(false)
@@ -294,7 +300,7 @@ void CMSmagField::CylindricalToCartesian(const Vector3D<Real_v>  &rzField,
 
 template <typename Real_v>
 INLINE_CHOICE
-void CMSmagField::Gather2(const Index<Real_v> index, 
+void CMSmagField::Gather2(const vecCore::Index<Real_v> index, 
                                 Real_v B1[3],
                                 Real_v B2[3])
 {
@@ -420,6 +426,7 @@ void CMSmagField::GetFieldValue(const Vector3D<Real_v>      &pos,
 
 // This class is thread safe.  So other threads can use the same instance
 //
+/*
 CMSmagField* CMSmagField::CloneOrSafeSelf( bool* pSafe )
 {
    if( pSafe ) *pSafe= true;
@@ -430,4 +437,5 @@ VScalarField* CMSmagField::Clone() const
 {
    return new CMSmagField( *this );
 }
+*/
 #endif

@@ -37,7 +37,7 @@ set(sources
 set(headers
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExN03Application.h
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSApplication.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSFieldConstruction.h
+  #${CMAKE_CURRENT_SOURCE_DIR}/inc/CMSFieldConstruction.h
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/LHCbApplication.h 
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FastSimApplication.h 
   )   

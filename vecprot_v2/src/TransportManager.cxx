@@ -381,7 +381,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
-  double curvaturePlus= fabs(GeantTrack::kB2C * track.fCharge * bmag) / (track.fP + 1.0e-30);  // norm for step
+  double curvaturePlus= fabs(GeantTrack::kB2C * track.Charge() * bmag) / (track.P() + 1.0e-30);  // norm for step
   // 'Curvature' along the full track - not just in the plane perpendicular to the B-field vector
 
   constexpr double numRadiansMax= 10.0;   //  Too large an angle - many RK steps.  Potential change -> 2.0*PI;
@@ -756,7 +756,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
   }
   // Stage 0: straight propagation
   if (stage == 0) {
-    bool neutral = (track.fCharge == 0);
+    bool neutral = (track.Charge() == 0);
     if( !neutral ) {
        // printf( " PropagateSingleTrack> getting Field. Charge= %3d ", track.fCharge );
        vecgeom::Vector3D<double> Position( tracks[itr]->X(), tracks[itr]->Y(), tracks[itr]->Z() );

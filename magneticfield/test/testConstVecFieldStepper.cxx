@@ -27,11 +27,11 @@ typedef vecgeom::Vector3D<double>  ThreeVector;
 
 #include "ScalarUniformMagField.h"
 
-#include "TMagFieldEquation.h"
+#include "ScalarMagFieldEquation.h"
 
 // #include "IntegrationStepper.h"
 
-#include "ConstVecFieldHelixStepper.h"
+#include "ConstFieldHelixStepper.h"
 #include "ConstBzFieldHelixStepper.h"
 
 // For the baseline stepper:
@@ -76,7 +76,7 @@ const unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
 
 int main(int argc, char *args[])
 {
-    using  GvEquationType=  TMagFieldEquation<ScalarUniformMagField, Nposmom>;
+    using  GvEquationType=  ScalarMagFieldEquation<ScalarUniformMagField, Nposmom>;
     void Usage();
 
     /* -----------------------------SETTINGS-------------------------------- */
@@ -188,7 +188,7 @@ int main(int argc, char *args[])
     double TeslaToKiloGauss = 10.0;
     for( int ix= 0; ix < 3; ix++ ) { BfieldKG[ix] *= TeslaToKiloGauss; }
 
-    Geant::ConstVecFieldHelixStepper helixStepper( BfieldKG ); // double Bfield[3] );
+    Geant::ConstFieldHelixStepper helixStepper( BfieldKG ); // double Bfield[3] );
 
     //Initialising coordinates
     const double mmGVf = fieldUnits::millimeter;
@@ -413,7 +413,7 @@ int main(int argc, char *args[])
 #ifdef COMPARE_TO_G4        
            g4ExactStepper->Stepper(yInX,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
 #else
-           exactStepperGV->StepWithErrorEstimate(yInX,particleCharge,dydxRef,stepLengthRef,youtX,yerrX); //call the reference stepper
+           exactStepperGV->StepWithErrorEstimate(yInX,dydxRef,particleCharge,stepLengthRef,youtX,yerrX); //call the reference stepper
 #endif
         }
 
@@ -613,9 +613,6 @@ int main(int argc, char *args[])
 
     /*------ Clean up ------*/
 
-#ifndef COMPARE_TO_G4
-    gvEquation2->InformDone();    
-#endif
     delete exactStepper;
     // delete gvEquation;
     // delete gvEquation2;    // Steppers now own their equation
@@ -628,7 +625,7 @@ int main(int argc, char *args[])
 void Usage()
 {
   cout << endl;
-  cout <<   " This test cross-checks the output of ConstVecFieldStepper class against " 
+  cout <<   " This test cross-checks the output of ConstFieldStepper class against " 
        <<   "   an RK integrator undertaking a simple loop of steps." << endl << endl;
   cout <<   " Usage of this test: " << endl;
   cout <<   "   arg[1]:  step_len_mm  - step length size (in mm) " << endl

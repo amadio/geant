@@ -25,31 +25,30 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 
 ## Need -lGeant_v in order to obtain the function/template Geant::cxx::ErrorHandlerImpl
 
-add_executable(testMagFieldEquation testMagFieldEquation.cxx) ## ${sources} ${headers})
+#add_executable(testMagFieldEquation testMagFieldEquation.cxx) ## ${sources} ${headers})
 
-target_link_libraries(testMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#target_link_libraries(testMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 # target_link_libraries(testMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#message(STATUS "Created target for testMagFieldEquation")
 
-message(STATUS "Created target for testMagFieldEquation")
-
-add_executable(testVectorMagFieldEquation testVectorMagFieldEquation.cxx)
-target_link_libraries(testVectorMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-message(STATUS "Created target for testVectorMagFieldEquation")
+#add_executable(testVectorMagFieldEquation testVectorMagFieldEquation.cxx)
+#target_link_libraries(testVectorMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#message(STATUS "Created target for testVectorMagFieldEquation")
 
 ## Test for 'simple' scalar class
-add_executable(testScalarCashKarp testScalarCashKarp.cxx)
-target_link_libraries(testScalarCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-message(STATUS "Created target for testScalarCashKarp")
+#add_executable(testScalarCashKarp testScalarCashKarp.cxx)
+#target_link_libraries(testScalarCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#message(STATUS "Created target for testScalarCashKarp")
 
 ## Test for 'vector' Stepper class  ( renamed from testNewStepperFixedCashKarp )
-add_executable(testVectorCashKarp testVectorCashKarp.cxx)
-target_link_libraries(testVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-message(STATUS "Created target for testVectorCashKarp")
+#add_executable(testVectorCashKarp testVectorCashKarp.cxx)
+#target_link_libraries(testVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#message(STATUS "Created target for testVectorCashKarp")
 
 ## New test for 'vector' Stepper class  ( mid-version towards flexible test below )
-add_executable(templatedTestVectorCashKarp templatedTestVectorCashKarp.cxx)
-target_link_libraries(templatedTestVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-message(STATUS "Created target for templatedTestVectorCashKarp")
+#add_executable(templatedTestVectorCashKarp templatedTestVectorCashKarp.cxx)
+#target_link_libraries(templatedTestVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#message(STATUS "Created target for templatedTestVectorCashKarp")
 
 ## Test newest Cash Karp, that can integrate scalar or Double_v
 add_executable(testFlexibleCashKarp testFlexibleCashKarp.cxx)
@@ -79,26 +78,26 @@ message(STATUS "Created target for testVectorIntegrationDriver")
 #add_executable(TestConstBzStepper TestConstBzStepper.cxx) ## ${sources} ${headers})
 #target_link_libraries(TestConstBzStepper Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-add_executable(ReproduceError ReproduceError.cxx)
-target_link_libraries(ReproduceError Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#add_executable(ReproduceError ReproduceError.cxx)
+#target_link_libraries(ReproduceError Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 #message(STATUS "Created target for testVectorMagFieldEquation")
 
 # add_executable(testTClassicalRK4 testTClassicalRK4.cxx) ## ${sources} ${headers})
 # target_link_libraries(testTClassicalRK4 -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield ${VECGEOM_LIBRARIES})
 # message(STATUS "Created target for testTClassicalRK4")
 
-add_executable(testStepperFixed testStepperFixed.cxx)
-target_link_libraries(testStepperFixed -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield Geant_v ${VECGEOM_LIBRARIES})
-message(STATUS "Created target for testStepperFixed")
+#add_executable(testStepperFixed testStepperFixed.cxx)
+#target_link_libraries(testStepperFixed -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield Geant_v ${VECGEOM_LIBRARIES})
+#message(STATUS "Created target for testStepperFixed")
 
 ### Old test(s) ------
 # add_executable(testIntegrationDriver testIntegrationDriver.cxx) ## ${sources} ${headers})
 # target_link_libraries(testIntegrationDriver -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield Geant_v ${VECGEOM_LIBRARIES})
 # message(STATUS "Created target for testIntegrationDriver")
 
-add_executable(testGUPropagateField testGUPropagateField.cxx) ## ${sources} ${headers})
-target_link_libraries(testGUPropagateField -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield Geant_v ${VECGEOM_LIBRARIES})
-message(STATUS "Created target for testGUPropagateField")
+#add_executable(testGUPropagateField testGUPropagateField.cxx) ## ${sources} ${headers})
+#target_link_libraries(testGUPropagateField -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield Geant_v ${VECGEOM_LIBRARIES})
+#message(STATUS "Created target for testGUPropagateField")
 
 add_executable(testConstVecFieldStepper testConstVecFieldStepper.cxx) ## ${sources} ${headers})
 target_link_libraries(testConstVecFieldStepper Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
@@ -117,22 +116,22 @@ add_custom_target(testMagEq DEPENDS testMagFieldEquation)
 # Install the files
 #
 #install(TARGETS testFieldPropagator DESTINATION bin)
-install(TARGETS testMagFieldEquation DESTINATION bin)
-install(TARGETS testVectorMagFieldEquation DESTINATION bin)
+#install(TARGETS testMagFieldEquation DESTINATION bin)
+#install(TARGETS testVectorMagFieldEquation DESTINATION bin)
 # Stepper tests
-install(TARGETS testScalarCashKarp DESTINATION bin)
-install(TARGETS testVectorCashKarp DESTINATION bin)
-install(TARGETS templatedTestVectorCashKarp DESTINATION bin)
+#install(TARGETS testScalarCashKarp DESTINATION bin)
+#install(TARGETS testVectorCashKarp DESTINATION bin)
+#install(TARGETS templatedTestVectorCashKarp DESTINATION bin)
 install(TARGETS testFlexibleCashKarp DESTINATION bin)
 # Driver  tests
 ## install(TARGETS testFlexibleIntegrationDriver DESTINATION bin)
 install(TARGETS testVectorIntegrationDriver DESTINATION bin)
 # Old tests - steppers
-install(TARGETS testStepperFixed DESTINATION bin)
+#install(TARGETS testStepperFixed DESTINATION bin)
 install(TARGETS testConstVecFieldStepper DESTINATION bin)
 # Old tests - drivers
 install(TARGETS testScalarIntegrationDriver DESTINATION bin)
-install(TARGETS testGUPropagateField DESTINATION bin)
+#install(TARGETS testGUPropagateField DESTINATION bin)
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

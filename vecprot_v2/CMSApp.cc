@@ -20,7 +20,7 @@
 #ifdef GEANT_TBB
 #include "TaskMgrTBB.h"
 #endif
-#include "CMSFieldConstruction.h"
+//#include "CMSFieldConstruction.h"
 
 using namespace Geant;
 
@@ -313,6 +313,7 @@ int main(int argc, char *argv[]) {
 
   config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
 
+/*
   if( useCMSfield ) {
      CMSFieldConstruction* CmsFieldCtr= new CMSFieldConstruction();
      CmsFieldCtr->SetFileForField(field_filename);
@@ -330,6 +331,7 @@ int main(int argc, char *argv[]) {
      runMgr // ->GetDetectorConstruction()
         ->SetUserFieldConstruction(fieldCtr);
   }
+*/
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT

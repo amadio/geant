@@ -625,7 +625,7 @@ SimpleIntegrationDriver<T_Stepper, Nvar>
    fSmallestFraction( right.fSmallestFraction ),
    // fNoIntegrationVariables( right.fNoIntegrationVariables ),
    fMinNoVars( right.fMinNoVars ),
-   fNoVars( std::max( Nvar, fMinNoVars )),
+   fNoVars( std::max( (int)Nvar, fMinNoVars )),
    fPowerShrink( right.fPowerShrink ),
    fPowerGrow(   right.fPowerGrow),
    fErrcon( right.fErrcon ),

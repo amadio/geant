@@ -935,13 +935,12 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
         py *= corFactor;
         pz *= corFactor;
         double secPtot2 = px * px + py * py + pz * pz;       // total P^2 [GeV^2]
-        double secPtot = vecCore::math::Sqrt(secPtot2);                     // total P [GeV]
         double secEtot = vecCore::math::Sqrt(secPtot2 + secMass * secMass); // total energy in [Ge
         double secEkin = secEtot - secMass;                  // kinetic energy in [GeV]
         // Ekin of the i-th secondary is higher than the threshold
         if (secEkin >= energyLimit) { // insert secondary into OUT tracks_v and rotate
           GeantTrack &track = td->GetNewTrack();
-          double secPtot = sqrt(secPtot2);                     // total P [GeV]
+          double secPtot = vecCore::math::Sqrt(secPtot2);                     // total P [GeV]
           double inv_secPtot = 1.0 / secPtot;
           //          GeantTrack track;
           // set the new track properties
@@ -962,8 +961,7 @@ int TTabPhysMgr::SampleFinalStates(int imat, int ntracks, GeantTrack_v &tracks, 
           track.SetTime(tracks.fTimeV[t]); // global time
           track.SetSafety(tracks.fSafetyV[t]);
           track.SetBoundary(tracks.fBoundaryV[t]);
-          track.SetfProcess(tracks.fProcessV[t]); // Record id of creating process -- Was 0
-          track.fNsteps = 0;
+          track.SetProcess(tracks.fProcessV[t]); // Record id of creating process -- Was 0
           track.SetPath(tracks.fPathV[t]);
           track.SetNextPath(tracks.fPathV[t]);
           track.SetMother(tracks.fParticleV[t]);

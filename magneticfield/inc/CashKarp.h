@@ -187,7 +187,7 @@ CashKarp<T_Equation,Nvar>::
      )
 {
     // const double a2 = 0.2 , a3 = 0.3 , a4 = 0.6 , a5 = 1.0 , a6 = 0.875;
-    CashKarp<T_Equation,Nvar>::template ScratchSpaceCashKarp<Real_v> sp;
+    typename CashKarp<T_Equation,Nvar>::template ScratchSpaceCashKarp<Real_v> sp;
     
     unsigned int i;
 

@@ -7,7 +7,8 @@
 
 // g++ TestConstBzStepper.cxx -o TestConstBzStepper -O3 -std=c++11 -I$VCROOT/include -I`root-config --incdir` `root-config --libs` -lGeom $VCROOT/lib/libVc.a
 
-#include "../inc/ScalarConstFieldHelixStepper.h"
+#include "ScalarConstFieldHelixStepper.h"
+
 #include "mmalloc.h"
 #include "TGeoHelix.h"
 #include <math.h>
