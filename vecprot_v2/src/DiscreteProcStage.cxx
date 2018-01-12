@@ -30,13 +30,13 @@ VECCORE_ATT_HOST_DEVICE
 Handler *DiscreteProcStage::Select(GeantTrack *track, GeantTaskData *td)
 {
 // Select tracks with limiting discrete process
-  if (track->fStatus == kPhysics && track->fEindex == 1000) {
+  if (track->Status() == kPhysics && track->EIndex() == 1000) {
     // reset number of interaction length left
-    track->fNintLen = -1;
+    track->SetNintLen(-1);
     // Invoke PostStepTypeOfIntrActSampling
     fPropagator->Process()->PostStepTypeOfIntrActSampling(track, td);
 
-    return ( GetHandler(track->fProcess) );
+    return ( GetHandler(track->Process()) );
   }
   return nullptr;
 }

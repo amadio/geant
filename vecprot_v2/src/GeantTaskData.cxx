@@ -227,12 +227,12 @@ GeantTrack &GeantTaskData::GetNewTrack()
   }
   GeantTrack *track = fBlock->GetObject(index);
   track->Reset(*fTrack);
-  track->fBindex = index;
+  track->SetBindex(index);
   return *track;
 //  GeantTrack &track = fPropagator->fTrackMgr->GetTrack();
-//  index = track.fBindex;
+//  index = track.BIndex();
 //  track.Reset(*fTrack);
-//  track.fBindex = index;
+//  track.SetBindex(index);
 //  return track;
 }
 

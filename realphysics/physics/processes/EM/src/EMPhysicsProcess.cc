@@ -172,8 +172,8 @@ double EMPhysicsProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Ge
   if(GetType()==ProcessType::kEnergyLoss) {
     void *mcptr = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr();
     const MaterialCuts *matCut = static_cast<const MaterialCuts*>(mcptr);
-    double ekin                = gtrack->fE-gtrack->fMass;
-    const Particle     *part   = Particle::GetParticleByInternalCode(gtrack->fGVcode);
+    double ekin                = gtrack->T();
+    const Particle     *part   = Particle::GetParticleByInternalCode(gtrack->GVcode());
     double range = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin);
     stepLimit    = range;
     if (range>fFinalRange) {

@@ -82,10 +82,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   void AddTrack(GeantTrack *track)
   {
-    if (fPriorityMode && track->fEvent == fPriorityEvent) {
+    if (fPriorityMode && track->Event() == fPriorityEvent) {
       fPriorityLane->AddTrack(track);
     } else {
-      int lane = vecCore::math::Min(track->fGeneration, fNlanes-1);
+      int lane = vecCore::math::Min(track->GetGeneration(), fNlanes-1);
       fLanes[lane]->AddTrack(track);
       fLastLane = vecCore::math::Max(fLastLane, lane);
     }

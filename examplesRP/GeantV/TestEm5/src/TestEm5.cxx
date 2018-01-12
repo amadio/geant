@@ -116,36 +116,36 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
   }
   idvol  = current->GetLogicalVolume()->id();
   // get some particle properties
-  const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.fGVcode);
+  const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.GVcode());
   int    pdgCode = part->GetPDGCode();
   double  charge = part->GetPDGCharge();
-  double  ekin   = track.fE-track.fMass;
+  double  ekin   = track.T();
   //
-  bool isTransmit  = ( (track.fXdir>0. && track.fXpos>0.0 && track.fStatus==Geant::kBoundary) && ( ekin > 0.0 ) );
-  bool isReflected = ( (track.fXdir<0. && track.fXpos<0.0 && track.fStatus==Geant::kBoundary) && ( ekin > 0.0 ) );
-  bool isPrimary   = ( track.fGeneration==0 );
+  bool isTransmit  = ( (track.Dx()>0. && track.X()>0.0 && track.Status()==Geant::kBoundary) && ( ekin > 0.0 ) );
+  bool isReflected = ( (track.Dx()<0. && track.X()<0.0 && track.Status()==Geant::kBoundary) && ( ekin > 0.0 ) );
+  bool isPrimary   = ( track.GetGeneration()==0 );
   //
   // get the user defined thread local data structure per-primary particle for: the event-slot index (that defines the
   // per-event data structure) and the primary index (that defines the per-primary data structure within that per-event
   // data structure). NOTE: each tracks stores the event-slot and primary partcile index that event and primary particle
   // within that event the track belongs to.
-  TestEm5DataPerPrimary &dataPerPrimary =  (*fDataHandlerEvents)(td).GetDataPerEvent(track.fEvslot).GetDataPerPrimary(track.PrimaryParticleIndex());
+  TestEm5DataPerPrimary &dataPerPrimary =  (*fDataHandlerEvents)(td).GetDataPerEvent(track.EventSlot()).GetDataPerPrimary(track.PrimaryParticleIndex());
   // do the scoring if the current step was done in the target logical volume
   if (idvol==fTargetLogicalVolumeID) {
     // collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
     // that has just been added in this step)
-    if (track.fStatus!=Geant::kNew) {
+    if (track.Status()!=Geant::kNew) {
       if (charge==0.0) {
         dataPerPrimary.AddNeutralStep();
-        dataPerPrimary.AddNeutralTrackL(track.fStep);
+        dataPerPrimary.AddNeutralTrackL(track.GetStep());
       } else {
         dataPerPrimary.AddChargedStep();
-        dataPerPrimary.AddChargedTrackL(track.fStep);
+        dataPerPrimary.AddChargedTrackL(track.GetStep());
       }
-      dataPerPrimary.AddEdepInTarget(track.fEdep);
+      dataPerPrimary.AddEdepInTarget(track.Edep());
     }
     // collect secondary particle type statistics
-    if (track.fStatus==Geant::kNew) {
+    if (track.Status() == Geant::kNew) {
       switch(pdgCode) {
         // gamma
         case  22 : dataPerPrimary.AddGamma();
@@ -192,7 +192,7 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
     // angular distribution of transmitted charged particles: F(theta)[deg^-2] when written out
     if (isTransmit && charge!=0.) {
       // compute angular: angle of direction measured from x-dir
-      double cost  = track.fXdir;
+      double cost  = track.Dx();
       if (cost>0.0) {
         double theta = std::acos(cost);
         double ww    = geant::degree*geant::degree;

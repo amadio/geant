@@ -198,7 +198,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int size() { return fTracks.size(); }
+  size_t size() { return fTracks.size(); }
 
   /**
    * @brief Print the basket content

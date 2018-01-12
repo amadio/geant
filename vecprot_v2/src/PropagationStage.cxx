@@ -33,7 +33,7 @@ VECCORE_ATT_HOST_DEVICE
 Handler *PropagationStage::Select(GeantTrack *track, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the track charge
-  if (!fHasField || track->fCharge == 0)
+  if (!fHasField || track->Charge() == 0)
     return fHandlers[0];
   return fHandlers[1];
 }

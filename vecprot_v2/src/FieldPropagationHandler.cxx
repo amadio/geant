@@ -47,24 +47,21 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   // magnetic field with respect to straight propagation is less than epsilon.
   // Take the maximum between the safety and the "bending" safety
   lmax = SafeLength(*track, bmag, eps);
-  lmax = vecCore::math::Max<double>(lmax, track->fSafety);
+  lmax = vecCore::math::Max<double>(lmax, track->GetSafety());
   // Select step to propagate as the minimum among the "safe" step and:
   // the straight distance to boundary (if frombdr=1) or the proposed  physics
   // step (frombdr=0)
-  step = (track->fBoundary) ?
-           vecCore::math::Min<double>(lmax, vecCore::math::Max<double>(track->fSnext, 1.E-4))
-         : vecCore::math::Min<double>(lmax, track->fPstep);
+  step = (track->Boundary()) ?
+           vecCore::math::Min<double>(lmax, vecCore::math::Max<double>(track->GetSnext(), 1.E-4))
+         : vecCore::math::Min<double>(lmax, track->GetPstep());
   // Propagate in magnetic field
   PropagateInVolume(*track, step, td);
   //Update number of partial steps propagated in field
   td->fNmag++;
-  // Update time of flight and number of interaction lengths
-//  track->fTime += track->TimeStep(track->fStep);
-//  track->fNintLen -= track->fStep/track->fIntLen;
 
   // Set continuous processes stage as follow-up for tracks that reached the
   // physics process
-  if (track->fStatus == kPhysics) {
+  if (track->Status() == kPhysics) {
     // Update number of steps to physics and total number of steps
     td->fNphys++;
     td->fNsteps++;
@@ -106,13 +103,13 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
     // Can this loop be vectorized?
     GeantTrack &track = *tracks[itr];
     lmax = SafeLength(track, bmag, eps);
-    lmax = vecCore::math::Max<double>(lmax, track.fSafety);
+    lmax = vecCore::math::Max<double>(lmax, track.GetSafety());
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
     // step (fboundary=0)
-    steps[itr] = (track.fBoundary) ?
-                vecCore::math::Min<double>(lmax, vecCore::math::Max<double>(track.fSnext, 1.E-4))
-              : vecCore::math::Min<double>(lmax, track.fPstep);
+    steps[itr] = (track.Boundary()) ?
+                vecCore::math::Min<double>(lmax, vecCore::math::Max<double>(track.GetSnext(), 1.E-4))
+              : vecCore::math::Min<double>(lmax, track.GetPstep());
   }
   // Propagate the vector of tracks
   PropagateInVolume(input.Tracks(), steps, td);
@@ -126,9 +123,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   int nvect = 0;
 #endif
   for (auto track : tracks) {
-//    track->fTime += track->TimeStep(track->fStep);
-//    track->fNintLen -= track->fStep/track->fIntLen;
-    if (track->fStatus == kPhysics) {
+    if (track->Status() == kPhysics) {
       // Update number of steps to physics and total number of steps
       td->fNphys++;
       td->fNsteps++;
@@ -136,7 +131,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
       continue;
     }
 #if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
-    if (track->fSafety < 1.E-10 || track->fSnext < 1.E-10)
+    if (track->GetSafety() < 1.E-10 || track->GetSnext() < 1.E-10)
       nvect++;
 #else
     // Vector treatment was not requested, so proceed with scalar
@@ -156,7 +151,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   constexpr int kMinVecSize = 8; // this should be retrieved from elsewhere
   if (nvect < kMinVecSize) {
     for (auto track : tracks) {
-      if (track->fStatus == kPhysics) continue;
+      if (track->Status() == kPhysics) continue;
       if (!IsSameLocation(*track, td)) {
         td->fNcross++;
 #ifdef USE_REAL_PHYSICS
@@ -176,8 +171,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   // Copy data to SOA and dispatch for vector mode
   GeantTrackGeo_v &track_geo = *td.fGeoTrack;
   for (auto track : tracks) {
-    if (track.fStatus != kPhysics &&
-        (track.fSafety < 1.E-10 || track.fSnext < 1.E-10))
+    if (track.Status() != kPhysics &&
+        (track.GetSafety() < 1.E-10 || track.GetSnext() < 1.E-10))
       track_geo.AddTrack(*track);
   }
   bool *same = td->GetBoolArray(nvect);
@@ -192,13 +187,13 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
     if (!same[itr]) {
       td->fNcross++;
       td->fNsteps++;
-      track->fBoundary = true;
-      track->fStatus = kBoundary;
-      if (track->fNextpath->IsOutside())
-        track->fStatus = kExitingSetup;
-      if (track->fStep < 1.E-8) td->fNsmall++;
+      track->SetBoundary(true);
+      track->SetStatus(kBoundary);
+      if (track->NextPath()->IsOutside())
+        track->SetStatus(kExitingSetup);
+      if (track->GetStep() < 1.E-8) td->fNsmall++;
     } else {
-      track->fBoundary = false;
+      track->SetBoundary(false);
       track->SetStage(kGeometryStepStage);
     }
     output.AddTrack(track);
@@ -247,23 +242,24 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 #endif
 
   // Reset relevant variables
-  track.fStatus = kInFlight;
-  track.fPstep -= crtstep;
-  if (track.fPstep < 1.E-10) {
-    track.fPstep = 0;
-    track.fStatus = kPhysics;
+  track.SetStatus(kInFlight);
+  double pstep = track.GetPstep() - crtstep;
+  if (pstep < 1.E-10) {
+    pstep = 0;
+    track.SetStatus(kPhysics);
   }
-  track.fSafety -= crtstep;
-  if (track.fSafety < 1.E-10)
-    track.fSafety = 0;
-  track.fSnext -= crtstep;
-  if (track.fSnext < 1.E-10) {
-    track.fSnext = 0;
-    if (track.fBoundary) {
-      track.fStatus = kBoundary;
-    }
+  track.SetPstep(pstep);
+  double safety = track.GetSafety() - crtstep;
+  if (safety < 1.E-10) safety = 0;
+  track.SetSafety(safety);
+  double snext = track.GetSnext() - crtstep;
+  if (snext < 1.E-10) {
+    snext = 0;
+    if (track.Boundary())
+      track.SetStatus(kBoundary);
   }
-  track.fStep += crtstep;
+  track.SetSnext(snext);
+  track.IncreaseStep(crtstep);
 #ifdef USE_VECGEOM_NAVIGATOR
 //  CheckLocationPathConsistency(i);
 #endif
@@ -272,32 +268,28 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 
   using ThreeVector = vecgeom::Vector3D<double>;
   // typedef vecgeom::Vector3D<double>  ThreeVector;
-  ThreeVector Position(track.fXpos, track.fYpos, track.fZpos);
-  ThreeVector Direction(track.fXdir, track.fYdir, track.fZdir);
+  ThreeVector Position(track.X(), track.Y(), track.Z());
+  ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
   if( useRungeKutta ) {
 #ifndef VECCORE_CUDA
-     fieldPropagator->DoStep(Position,    Direction,    track.fCharge, track.fP, crtstep,
+     fieldPropagator->DoStep(Position,    Direction,    track.Charge(), track.P(), crtstep,
                              PositionNew, DirectionNew);
 #endif
   } else {
      // Old - constant field
      ConstBzFieldHelixStepper stepper(bmag);
-     stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    track.fCharge, track.fP, crtstep,
+     stepper.DoStep<ThreeVector,double,int>(Position,    Direction,    track.Charge(), track.P(), crtstep,
                                          PositionNew, DirectionNew);
   }
 
-  track.fXpos = PositionNew.x();
-  track.fYpos = PositionNew.y();
-  track.fZpos = PositionNew.z();
+  track.SetPosition(PositionNew);
 
   //  maybe normalize direction here  // vecCore::math::Normalize(dirnew);
   DirectionNew = DirectionNew.Unit();
-  track.fXdir = DirectionNew.x();
-  track.fYdir = DirectionNew.y();
-  track.fZdir = DirectionNew.z();
+  track.SetDirection(DirectionNew);
 
 #if 0
   ThreeVector SimplePosition = Position + crtstep * Direction;
@@ -320,9 +312,9 @@ bool FieldPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *t
 // Query geometry if the location has changed for a track
 // Returns number of tracks crossing the boundary (0 or 1)
 
-  if (track.fSafety > 1.E-10 && track.fSnext > 1.E-10) {
+  if (track.GetSafety() > 1.E-10 && track.GetSnext() > 1.E-10) {
     // Track stays in the same volume
-    track.fBoundary = false;
+    track.SetBoundary(false);
     return true;
   }
 
@@ -336,15 +328,15 @@ bool FieldPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *t
   ScalarNavInterfaceTGeo::NavIsSameLocation(track, same);
 #endif // USE_VECGEOM_NAVIGATOR
   if (same) {
-    track.fBoundary = false;
+    track.SetBoundary(false);
     return true;
   }
 
-  track.fBoundary = true;
-  track.fStatus = kBoundary;
+  track.SetBoundary(true);
+  track.SetStatus(kBoundary);
   if (track.NextPath()->IsOutside())
-    track.fStatus = kExitingSetup;
-  if (track.fStep < 1.E-8) td->fNsmall++;
+    track.SetStatus(kExitingSetup);
+  if (track.GetStep() < 1.E-8) td->fNsmall++;
   return false;
 }
 

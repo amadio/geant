@@ -150,25 +150,23 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTask
     gtrack.SetPDG(pdg);
 //    gtrack.SetPDG(2212);
 
-    gtrack.SetGVcode(TPartIndex::I()->PartIndex(gtrack.fPDG));
+    gtrack.SetGVcode(TPartIndex::I()->PartIndex(gtrack.PDG()));
 #ifdef USE_VECGEOM_NAVIGATOR
-    const Particle_t *const &part = &Particle_t::GetParticle(gtrack.fPDG);
+    const Particle_t *const &part = &Particle_t::GetParticle(gtrack.PDG());
     gtrack.SetCharge(part->Charge());
 #else
-    TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.fPDG);
+    TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.PDG());
     gtrack.SetCharge(part->Charge() / 3.);
 #endif
 
     gtrack.SetMass(part->Mass());
 
     if ((bool)genpart->production_vertex()) {
-      gtrack.fXpos = genpart->production_vertex()->position().x();
-      gtrack.fYpos = genpart->production_vertex()->position().y();
-      gtrack.fZpos = genpart->production_vertex()->position().z();
+      gtrack.SetPosition(genpart->production_vertex()->position().x(),
+                         genpart->production_vertex()->position().y(),
+                         genpart->production_vertex()->position().z());
     } else {
-      gtrack.fXpos = 0;
-      gtrack.fYpos = 0;
-      gtrack.fZpos = 0;
+      gtrack.SetPosition(0., 0., 0.);
     }
 
 
@@ -180,12 +178,12 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTask
              genpart->momentum().pz() * genpart->momentum().pz());
 
     gtrack.SetP(ptrack);
-    gtrack.fE = sqrt(ptrack*ptrack+gtrack.fMass*gtrack.fMass);
+    gtrack.SetE(sqrt(ptrack*ptrack+gtrack.Mass()*gtrack.Mass()));
 //    std::cout << "track momentum = " << ptrack*1000. << std::endl;
     // Correctly normalize direction
-    gtrack.fXdir = genpart->momentum().px() / ptrack;
-    gtrack.fYdir = genpart->momentum().py() / ptrack;
-    gtrack.fZdir = genpart->momentum().pz() / ptrack;
+    gtrack.SetDirection(genpart->momentum().px() / ptrack,
+                        genpart->momentum().py() / ptrack,
+                        genpart->momentum().pz() / ptrack);
     return;
   }
 }

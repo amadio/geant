@@ -30,14 +30,14 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
 // Scalar geometry length computation. The track is moved into the output basket.
 
   // Do straight propagation to physics process or boundary
-  if (track->fSnext < 1.E-8) td->fNsmall++;
-  track->MakeStep(track->fSnext);
+  if (track->GetSnext() < 1.E-8) td->fNsmall++;
+  track->MakeStep(track->GetSnext());
   // Update total number of steps
   td->fNsteps++;
   int nsmall = 0;
 
-  if (track->fBoundary) {
-    track->fStatus = kBoundary;
+  if (track->Boundary()) {
+    track->SetStatus(kBoundary);
     // Find out location after boundary
     while ( IsSameLocation(*track, td) ) {
       nsmall++;
@@ -46,8 +46,8 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
         // kill the track.
 
         Error("LinearPropagator", "track %d from event %d stuck -> killing it",
-              track->fParticle, track->fEvent);
-        track->fStatus = kKilled;
+              track->Particle(), track->Event());
+        track->SetStatus(kKilled);
         // Deposit track energy, then go directly to stepping actions
         track->Stop();
         track->SetStage(kSteppingActionsStage);
@@ -58,16 +58,16 @@ void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTask
       td->fNpushed++;
     }
   } else {
-    track->fStatus = kPhysics;
+    track->SetStatus(kPhysics);
     // Update number of steps to physics
     td->fNphys++;
   }
 
-  if (track->fSnext < 1.E-8) track->fSnext = 0;
-  if (track->fSafety < 1.E-8) track->fSafety = 0;
+  if (track->GetSnext() < 1.E-8) track->SetSnext(0);
+  if (track->GetSafety() < 1.E-8) track->SetSafety(0);
 
   // Update time of flight and number of interaction lengths
-//  track->fTime += track->TimeStep(track->fStep);
+//  track->Time += track->TimeStep(track->fStep);
 //  track->fNintLen -= track->fStep/track->fIntLen;
 
   // Copy to output
@@ -82,8 +82,8 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
   TrackVec_t &tracks = input.Tracks();
   // This loop should autovectorize
   for (auto track : tracks) {
-    if (track->fSnext < 1.E-8) td->fNsmall++;
-    track->MakeStep(track->fSnext);
+    if (track->GetSnext() < 1.E-8) td->fNsmall++;
+    track->MakeStep(track->GetSnext());
   }
 
   // Update total number of steps
@@ -91,14 +91,14 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
 
   for (auto track : tracks) {
     int nsmall = 0;
-    if (track->fBoundary) {
-      track->fStatus = kBoundary;
+    if (track->Boundary()) {
+      track->SetStatus(kBoundary);
       while ( IsSameLocation(*track, td) ) {
         nsmall++;
         if (nsmall > 10) {
           Error("LinearPropagator", "track %d from event %d stuck -> killing it",
-                track->fParticle, track->fEvent);
-          track->fStatus = kKilled;
+                track->Particle(), track->Event());
+          track->SetStatus(kKilled);
           // Deposit track energy, then go directly to stepping actions
           track->Stop();
           track->SetStage(kSteppingActionsStage);
@@ -109,13 +109,13 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
         td->fNpushed++;
       }
     } else {
-      track->fStatus = kPhysics;
+      track->SetStatus(kPhysics);
       // Update number of steps to physics
       td->fNphys++;
     }
 
-    if (track->fSnext < 1.E-8) track->fSnext = 0;
-    if (track->fSafety < 1.E-8) track->fSafety = 0;
+    if (track->GetSnext() < 1.E-8) track->SetSnext(0);
+    if (track->GetSafety() < 1.E-8) track->SetSafety(0);
 
     // Update time of flight and number of interaction lengths
 //    track->fTime += track->TimeStep(track->fStep);
@@ -135,9 +135,9 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
 VECCORE_ATT_HOST_DEVICE
 bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *td) {
 // Query geometry if the location has changed for a track
-  if (track.fSafety > 1.E-10 && track.fSnext > 1.E-10) {
+  if (track.GetSafety() > 1.E-10 && track.GetSnext() > 1.E-10) {
     // Track stays in the same volume
-    track.fBoundary = false;
+    track.SetBoundary(false);
     return true;
   }
   bool same;
@@ -151,7 +151,7 @@ bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *
 #endif // USE_VECGEOM_NAVIGATOR
   if (same) return true;
   if (track.NextPath()->IsOutside())
-    track.fStatus = kExitingSetup;
+    track.SetStatus(kExitingSetup);
   return false;
 }
 

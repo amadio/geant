@@ -29,7 +29,7 @@ ComputeIntLHandler::~ComputeIntLHandler() {}
 // processes that can limit the step.
 void ComputeIntLHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
   // reset step length and energy deposit
-  track->fStep=0.; // no setter for this member in GeantTrack
+  track->SetStep(0.); // no setter for this member in GeantTrack
   track->SetEdep(0.);
   // ---
   // here we will get the MaterialCuts from the LogicalVolume

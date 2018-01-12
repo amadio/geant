@@ -248,17 +248,17 @@ int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
   for (auto track : array) {
     fOriginalV[fNtracks] = track;
     fIdV[fNtracks] = fNtracks;
-    fXposV[fNtracks] = track->fXpos;
-    fYposV[fNtracks] = track->fYpos;
-    fZposV[fNtracks] = track->fZpos;
-    fXdirV[fNtracks] = track->fXdir;
-    fYdirV[fNtracks] = track->fYdir;
-    fZdirV[fNtracks] = track->fZdir;
-    fPstepV[fNtracks] = track->fPstep;
-    fStepV[fNtracks] = track->fStep;
-    fSnextV[fNtracks] = track->fSnext;
-    fSafetyV[fNtracks] = track->fSafety;
-    fCompSafetyV[fNtracks] = !track->fBoundary;
+    fXposV[fNtracks] = track->X();
+    fYposV[fNtracks] = track->Y();
+    fZposV[fNtracks] = track->Z();
+    fXdirV[fNtracks] = track->Dx();
+    fYdirV[fNtracks] = track->Dy();
+    fZdirV[fNtracks] = track->Dz();
+    fPstepV[fNtracks] = track->GetPstep();
+    fStepV[fNtracks] = track->GetStep();
+    fSnextV[fNtracks] = track->GetSnext();
+    fSafetyV[fNtracks] = track->GetSafety();
+    fCompSafetyV[fNtracks] = !track->Boundary();
     fNtracks++;
   }
   return fNtracks;  

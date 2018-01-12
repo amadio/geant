@@ -53,10 +53,10 @@ bool HepMCTruth::CheckTrack(GeantTrack &gtrack, MCEvent* evt)
   // 
   bool to_be_stored = false;
   
-  if (gtrack.fE > fEMin) to_be_stored = true;
-  else if(gtrack.fMother!=0 && evt->particles.contains(gtrack.fMother))
+  if (gtrack.E() > fEMin) to_be_stored = true;
+  else if(gtrack.Mother()!=0 && evt->particles.contains(gtrack.Mother()))
     {
-      double motherEnergy = (evt->particles).find(gtrack.fMother)->fE;
+      double motherEnergy = (evt->particles).find(gtrack.Mother())->fE;
       if(motherEnergy > fEMin) to_be_stored = true;
     }
   return to_be_stored;

@@ -49,13 +49,13 @@ Geant::Handler* PostPropagationStage::Select(Geant::GeantTrack *track, Geant::Ge
     //
     // True path length is identical to the geometrical one so update time and number of interaction left
     // here based on fSnext
-    track->fTime += track->TimeStep(track->fStep);
+    track->IncreaseTime(track->TimeStep(track->GetStep()));
     // NOTE: we should save the previous step length in the GeantTrack and update this in the process or
     // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
     // step and we do it in the next step
     // track->fNintLen -= track->fStep/track->fIntLen;
-    for (size_t i=0; i<track->fNumPhysicsProcess; ++i) {
-      track->fPhysicsNumOfInteractLengthLeft[i] -= track->fStep/track->fPhysicsInteractLength[i];
+    for (size_t i=0; i<Geant::kNumPhysicsProcess; ++i) {
+      track->DecreasePhysicsNumOfInteractLengthLeft(i, track->GetStep()/track->GetPhysicsInteractLength(i));
     }
     return nullptr;
   }

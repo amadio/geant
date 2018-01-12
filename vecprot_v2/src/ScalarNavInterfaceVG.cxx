@@ -127,22 +127,23 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(GeantTrack &track) {
 #endif // VECCORE_CUDA
 
   // Check if current safety allows for the proposed step
-  if (track.fSafety > track.fPstep) {
-    track.fStep = track.fPstep;
-    track.fBoundary = false;
+  if (track.GetSafety() > track.GetPstep()) {
+    track.SetStep(track.GetPstep());
+    track.SetBoundary(false);
     track.UpdateSameNextPath();
     return;
   }
 
-  nav.FindNextBoundaryAndStep(Vector3D_t(track.fXpos, track.fYpos, track.fZpos),
-                              Vector3D_t(track.fXdir, track.fYdir, track.fZdir), 
+  double step = track.GetStep();
+  nav.FindNextBoundaryAndStep(Vector3D_t(track.X(), track.Y(), track.Z()),
+                              Vector3D_t(track.Dx(), track.Dy(), track.Dz()), 
                               *track.Path(), *track.NextPath(), 
-                              Math::Min<double>(1.E20, track.fPstep), track.fStep);
-  track.fStep = Math::Max<double>(2. * gTolerance, track.fStep + 2. * gTolerance);
-  track.fSafety = (track.fBoundary) ? 0 : nav.GetSafety(Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.Path());
-  track.fSafety = Math::Max<double>(track.fSafety, 0);
+                              Math::Min<double>(1.E20, track.GetPstep()), step);
+  track.SetStep(Math::Max<double>(2. * gTolerance, step + 2. * gTolerance));
+  track.SetSafety((track.Boundary()) ? 0 : nav.GetSafety(Vector3D_t(track.X(), track.Y(), track.Z()), *track.Path()));
+  track.SetSafety(Math::Max<double>(track.GetSafety(), 0));
   // onboundary with respect to new point
-  track.fBoundary = track.NextPath()->IsOnBoundary();
+  track.SetBoundary(track.NextPath()->IsOnBoundary());
 
   //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
@@ -152,34 +153,34 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(GeantTrack &track) {
   //************
   TGeoNavigator *rootnav = gGeoManager->GetCurrentNavigator();
   rootnav->ResetState();
-  rootnav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
-  rootnav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
-  TGeoBranchArray *tmp = track.fPath->ToTGeoBranchArray();
+  rootnav->SetCurrentPoint(track.X(), track.Y(), track.Z());
+  rootnav->SetCurrentDirection(track.Dx(), track.Dy(), track.Dz());
+  TGeoBranchArray *tmp = track.Path()->ToTGeoBranchArray();
   tmp->UpdateNavigator(rootnav);
   delete tmp;
-  rootnav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.fPstep), !track.fBoundary);
+  rootnav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.GetPstep()), !track.Boundary());
   double stepcmp = Math::Max<double>(2 * gTolerance, rootnav->GetStep());
   double safecmp = rootnav->GetSafeDistance();
-  if (Math::Abs(track.fStep - stepcmp) > 1E-6) {
-    Geant::Print("","## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", track.fPstep, track.fStep, stepcmp);
-    Geant::Print("","## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", track.fPstep, track.fBoundary,
-           track.fSafety, rootnav->Safety());
+  if (Math::Abs(track.GetStep() - stepcmp) > 1E-6) {
+    Geant::Print("","## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", track.GetPstep(), track.GetStep(), stepcmp);
+    Geant::Print("","## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", track.GetPstep(), track.Boundary(),
+           track.GetSafety(), rootnav->Safety());
 
     // check nextpath
-    tmp = track.fNextpath->ToTGeoBranchArray();
+    tmp = track.NextPath()->ToTGeoBranchArray();
     tmp->InitFromNavigator(rootnav);
-    Geant::Print("","## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", track.fNextpath->GetCurrentNode(), tmp->GetCurrentNode());
-    Geant::Print("","## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", track.fNextpath->IsOnBoundary(), rootnav->IsOnBoundary());
+    Geant::Print("","## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", track.NextPath()->GetCurrentNode(), tmp->GetCurrentNode());
+    Geant::Print("","## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", track.NextPath()->IsOnBoundary(), rootnav->IsOnBoundary());
 
     Geant::Print("","INCONSISTENT STEP");
-    nav.InspectEnvironmentForPointAndDirection(Vector3D_t(track.fXpos, track.fYpos, track.fZpos) /*global pos*/,
-                                               Vector3D_t(track.fXdir, track.fYdir, track.fZdir), *track.fPath);
+    nav.InspectEnvironmentForPointAndDirection(Vector3D_t(track.X(), track.Y(), track.Z()) /*global pos*/,
+                                               Vector3D_t(track.Dx(), track.Dy(), track.Dz()), *track.Path());
   }
 #endif // CROSSCHECK
 
 #ifdef VERBOSE
-  Geant::Print("","navfindbound on %p with pstep %lf yields step %lf and safety %lf\n", this, track.fPstep, track.fStep,
-         track.fSafety);
+  Geant::Print("","navfindbound on %p with pstep %lf yields step %lf and safety %lf\n", this, track.GetPstep(), track.GetStep(),
+         track.GetSafety());
 #endif // VERBOSE
 }
 
@@ -259,34 +260,34 @@ void ScalarNavInterfaceVG::NavIsSameLocation(GeantTrack &track, bool &same, Volu
 
 // cross check with answer from ROOT
 #ifdef CROSSCHECK
-  TGeoBranchArray *sb = track.fPath->ToTGeoBranchArray();
-  TGeoBranchArray *eb = track.fNextpath->ToTGeoBranchArray();
+  TGeoBranchArray *sb = track.Path()->ToTGeoBranchArray();
+  TGeoBranchArray *eb = track.NextPath()->ToTGeoBranchArray();
 #endif
 
   // TODO: not using the direction yet here !!
   bool samepath = nav.HasSamePath(
-    Vector3D_t(track.fXpos, track.fYpos, track.fZpos), *track.Path(), *tmpstate);
+    Vector3D_t(track.X(), track.Y(), track.Z()), *track.Path(), *tmpstate);
   if (!samepath) tmpstate->CopyTo(track.NextPath());
 
 #ifdef CROSSCHECK
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();
   nav->SetLastSafetyForPoint(0, 0, 0, 0);
-  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
+  nav->SetCurrentPoint(track.X(), track.Y(), track.Z());
   sb->UpdateNavigator(nav);
-  bool rootsame = nav->IsSameLocation(track.fXpos, track.fYpos, track.fZpos, true);
+  bool rootsame = nav->IsSameLocation(track.X(), track.Y(), track.Z(), true);
   if (rootsame != samepath) {
     Geant::Print("","INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
-    std::cout << Vector3D_t(track.fXpos, track.fYpos, track.fZpos) << "\n";
+    std::cout << Vector3D_t(track.X(), track.Y(), track.Z()) << "\n";
     Geant::Print("","old state");
     sb->Print();
     nav->ResetState();
     nav->SetLastSafetyForPoint(0, 0, 0, 0);
-    nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
+    nav->SetCurrentPoint(track.X(), track.Y(), track.Z());
 //      nav->SetCurrentDirection(xdir, ydir, zdir);
     sb->UpdateNavigator(nav);
     nav->InspectState();
-    bool rootsame = nav->IsSameLocation(track.fXpos, track.fYpos, track.fZpos, true);
+    bool rootsame = nav->IsSameLocation(track.X(), track.Y(), track.Z(), true);
     nav->InspectState();
     eb->InitFromNavigator(nav);
     Geant::Print("","new state");

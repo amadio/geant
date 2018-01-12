@@ -112,11 +112,11 @@ void ExN03Application::SteppingActions(GeantTrack &track, GeantTaskData *td)
     idnode = track.Path()->At(ilev - 1)->id();
     idvol = current->GetLogicalVolume()->id();
 #endif
-  ExN03LayerDigit &digit = (*fDigitsHandle)(td).GetDigits(track.fEvslot).GetDigit(idnode);
+  ExN03LayerDigit &digit = (*fDigitsHandle)(td).GetDigits(track.EventSlot()).GetDigit(idnode);
   if (idvol == fIdGap)
-    digit.ScoreInGap(track.fEdep, track.fStep);
+    digit.ScoreInGap(track.Edep(), track.GetStep());
   else if (idvol == fIdAbs)
-    digit.ScoreInAbs(track.fEdep, track.fStep);
+    digit.ScoreInAbs(track.Edep(), track.GetStep());
 }
 
 //______________________________________________________________________________

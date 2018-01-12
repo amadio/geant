@@ -55,9 +55,9 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
 //  primaryLT.SetTrackIndex(i);
-  primaryLT.SetDirX(track->DirX());
-  primaryLT.SetDirY(track->DirY());
-  primaryLT.SetDirZ(track->DirZ());
+  primaryLT.SetDirX(track->Dx());
+  primaryLT.SetDirY(track->Dy());
+  primaryLT.SetDirZ(track->Dz());
 //  primaryLT.SetTotalMFP(track->GetIntLen());
   //
   // clean the number of secondary tracks used (in PhysicsData)
@@ -91,34 +91,27 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
       Geant::GeantTrack &geantTrack = td->GetNewTrack();
       // set the new track properties
 //      int t = secLt[isec].GetTrackIndex();          // parent GeantTrack index in the input GeantTrack_v
-      geantTrack.SetEvent ( track->Event()     );
-      geantTrack.SetEvslot( track->EventSlot()  );
-      geantTrack.SetGVcode( secGVcode          );
-      geantTrack.SetEindex( 0                  );
-      geantTrack.SetCharge( secParticle->GetPDGCharge() );
+      geantTrack.SetEvent (track->Event());
+      geantTrack.SetEvslot(track->EventSlot());
+      geantTrack.SetGVcode(secGVcode);
+      geantTrack.SetCharge(secParticle->GetPDGCharge());
       // set the index of the process (in the global process vector) that limited the step i.e. generated this secondary
-      geantTrack.fProcess  = track->fProcess;
-      geantTrack.fNsteps   = 0;
-      geantTrack.fStatus   = Geant::kNew;                // secondary is a new track
+      geantTrack.SetProcess(track->Process());
+      geantTrack.SetStatus(Geant::kNew);                // secondary is a new track
       geantTrack.SetStage(Geant::kSteppingActionsStage); // send this to the stepping action stage
-      geantTrack.fGeneration = track->fGeneration + 1;
-      geantTrack.fMass     = secLt[isec].GetMass();
-      geantTrack.SetPosition(track->PosX(),track->PosY(),track->PosZ());
+      geantTrack.SetGeneration( track->GetGeneration() + 1);
+      geantTrack.SetMass(secLt[isec].GetMass());
+      geantTrack.SetPosition(track->X(),track->Y(),track->Z());
       geantTrack.SetDirection(secLt[isec].GetDirX(),secLt[isec].GetDirY(),secLt[isec].GetDirZ());
       double secEkin       = secLt[isec].GetKinE();
       geantTrack.SetP(std::sqrt(secEkin*(secEkin+2.0*geantTrack.Mass()))); // momentum of this secondadry particle
       geantTrack.SetE(secEkin+geantTrack.Mass());                          // total E of this secondary particle
-      geantTrack.fTime     = track->fTime; // global time
-      geantTrack.fEdep     = 0.;
-      geantTrack.fPstep    = 0.;
-      geantTrack.fStep     = 0.;
-      geantTrack.fSnext    = 0.;
-      geantTrack.fSafety   = track->fSafety;
-      geantTrack.fBoundary = track->fBoundary;
-      geantTrack.fPending  = false;
+      geantTrack.SetTime(track->Time() ); // global time
+      geantTrack.SetSafety(track->GetSafety());
+      geantTrack.SetBoundary(track->Boundary());
       geantTrack.SetPath(track->Path());
       geantTrack.SetNextPath(track->Path());
-      geantTrack.fMother   = track->fParticle;
+      geantTrack.SetMother(track->Particle());
       geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
       // add GeantTrack
       td->fPropagator->AddTrack(geantTrack);

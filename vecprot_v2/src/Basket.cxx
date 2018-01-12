@@ -32,7 +32,7 @@ bool Basket::Contains(int evstart, int nevents) const {
   // Checks if any of the tracks in the input array belongs to the given event
   // range.
   for (auto track : fTracks) {
-    if (track->fEvent >= evstart && track->fEvent < evstart + nevents)
+    if (track->Event() >= evstart && track->Event() < evstart + nevents)
       return true;
   }
   return false;

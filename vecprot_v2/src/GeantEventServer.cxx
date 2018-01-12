@@ -126,7 +126,7 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
   // Populate event with primary tracks from the generator
   for (int itr=0; itr<ntracks; ++itr) {
     GeantTrack &track = td->GetNewTrack();
-    track.fParticle = event->AddPrimary(&track);
+    track.SetParticle(event->AddPrimary(&track));
     fRunMgr->GetPrimaryGenerator()->GetTrack(itr, track, td);
   }
 
@@ -184,12 +184,12 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
       track.Print("Not normalized");
       track.Normalize();
     }
-    if (track.fGVcode < 0) {
+    if (track.GVcode() < 0) {
       Error("AddEvent", "GeantV particle codes not initialized. Looks like primary generator was not initialized !!!");
       return false;
     }
-    track.fBoundary = false;
-    track.fStatus = kNew;
+    track.SetBoundary(false);
+    track.SetStatus(kNew);
     event->fNfilled++;
     if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
   }
@@ -355,8 +355,8 @@ GeantTrack *GeantEventServer::GetNextTrack(GeantTaskData *td, unsigned int &erro
     if (valid) break;
   }
   GeantTrack *track = event->GetPrimary(itr)->Clone(td);
-  track->fEvent = event->GetEvent();
-  track->fEvslot = event->GetSlot();
+  track->SetEvent(event->GetEvent());
+  track->SetEvslot(event->GetSlot());
   return track;
 }
 

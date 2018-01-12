@@ -28,8 +28,8 @@ void XSecSamplingHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData 
 {
 // Invoke scalar xsec sampling
   // First reset step and energy deposit
-  track->fStep = 0.;
-  track->fEdep = 0.;
+  track->SetStep(0.);
+  track->SetEdep(0.);
   fPropagator->fProcess->ComputeIntLen(track, td);
   // Copy to output
   output.AddTrack(track);
@@ -43,8 +43,8 @@ void XSecSamplingHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   TrackVec_t &tracks = input.Tracks();
   // First reset step and energy deposit
   for (auto track : tracks) {
-    track->fStep = 0.;
-    track->fEdep = 0.;
+    track->SetStep(0.);
+    track->SetEdep(0.);
   }
   fPropagator->fProcess->ComputeIntLen(tracks, td);
   // Copy tracks to output

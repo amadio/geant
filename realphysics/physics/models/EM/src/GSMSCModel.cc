@@ -88,9 +88,9 @@ void GSMSCModel::Initialize() {
 
 
 void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
-  bool   isOnBoundary         = gtrack->fBoundary;
+  bool   isOnBoundary         = gtrack->Boundary();
   const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double kineticEnergy        = gtrack->fE-gtrack->fMass;
+  double kineticEnergy        = gtrack->T();
 
   if (kineticEnergy<GetLowEnergyUsageLimit() || kineticEnergy>GetHighEnergyUsageLimit()) {
     return;
@@ -98,8 +98,8 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
 
   double range                = ELossTableManager::Instance().GetRestrictedRange(matCut,fParticle,kineticEnergy);
   double skindepth            = 0.;
-  double presafety            = gtrack->fSafety; // pre-step point safety
-  double geomLimit            = gtrack->fSnext;  // init to distance-to-boundary
+  double presafety            = gtrack->GetSafety(); // pre-step point safety
+  double geomLimit            = gtrack->GetSnext();  // init to distance-to-boundary
   //
   // Compute elastic mfp, first transport mfp, screening parameter and G1
   double lambel;
@@ -119,9 +119,9 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   // Set initial values:
   //  : lengths are initialised to the current minimum physics step  which is the true, minimum
   //    step length from all other physics
-  mscdata.fTheTrueStepLenght    = gtrack->fPstep;
-  mscdata.fTheTransportDistance = gtrack->fPstep;
-  mscdata.fTheZPathLenght       = gtrack->fPstep;
+  mscdata.fTheTrueStepLenght    = gtrack->GetPstep();
+  mscdata.fTheTransportDistance = gtrack->GetPstep();
+  mscdata.fTheZPathLenght       = gtrack->GetPstep();
   mscdata.SetDisplacement(0.,0.,0.);
   mscdata.SetNewDirectionMsc(0.,0.,1.);
 
@@ -407,7 +407,7 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
   if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone && mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
     RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
-                     gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
+                     gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     // displacement is left to (0,0,0)
     //fParticleChange->ProposeMomentumDirection(fTheNewDirection);
     return true; // i.e. new direction
@@ -419,7 +419,7 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
       // check single scattering and see if it happened
       if (mscdata.fIsSingleScattering) {
         RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
-                         gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
+                         gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
         // displacement is left to (0,0,0)
         //fParticleChange->ProposeMomentumDirection(fTheNewDirection);
         return true; // i.e. new direction
@@ -427,9 +427,9 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
       // check if multiple scattering happened and do things only if scattering was really happening
       if (mscdata.fIsMultipleSacettring && !mscdata.fIsNoScatteringInMSC) {
         RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
-                         gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
+                         gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
         RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY, mscdata.fTheDisplacementVectorZ,
-                         gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
+                         gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
         return true; // i.e. new direction
       }
       // The only thing that could happen if we are here (kErrorFree and fIsEverythingWasDone)
@@ -445,10 +445,10 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
   SampleMSC(gtrack, td);
   if (!mscdata.fIsNoScatteringInMSC) {
     RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
-                     gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
+                     gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     if (!mscdata.fIsNoDisplace) {
       RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY, mscdata.fTheDisplacementVectorZ,
-                       gtrack->fXdir, gtrack->fYdir, gtrack->fZdir);
+                       gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     }
     return true; // new direction
   }
@@ -474,7 +474,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
       return;
     }
     //
-    double ekin = gtrack->fE-gtrack->fMass;
+    double ekin = gtrack->T();
     double tau  = mscdata.fTheTrueStepLenght/mscdata.fLambda1;
     if (tau<=fTauSmall) {
       mscdata.fTheZPathLenght = std::min(mscdata.fTheTrueStepLenght, mscdata.fLambda1);
@@ -518,7 +518,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsEndedUpOnBoundary = false;
   // step was not defined by transportation: i.e. physics
-  if (!gtrack->fBoundary) {
+  if (!gtrack->Boundary()) {
 //  if ( std::abs(gtrack->fStep-mscdata.fTheZPathLenght)<1.e-8) {
     return; // fTheTrueStepLenght is known because the particle went as far as we expected
   }
@@ -527,31 +527,31 @@ void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::
   // - convert geom -> true by using the mean value
   mscdata.fIsEndedUpOnBoundary = true; // OR LAST STEP
   // get the geometrical step length
-  mscdata.fTheZPathLenght      = gtrack->fStep;
+  mscdata.fTheZPathLenght      = gtrack->GetStep();
   // was a short single scattering step
   if (mscdata.fIsEverythingWasDone && !mscdata.fIsMultipleSacettring) {
-    mscdata.fTheTrueStepLenght = gtrack->fStep;
+    mscdata.fTheTrueStepLenght = gtrack->GetStep();
     return;
   }
   // t = z for very small step
-  if (gtrack->fStep<fTLimitMinfix2) {
-    mscdata.fTheTrueStepLenght = gtrack->fStep;
+  if (gtrack->GetStep()<fTLimitMinfix2) {
+    mscdata.fTheTrueStepLenght = gtrack->GetStep();
     // recalculation
   } else {
-    double tlength = gtrack->fStep;
-    if (gtrack->fStep>mscdata.fLambda1*fTauSmall) {
+    double tlength = gtrack->GetStep();
+    if (gtrack->GetStep()>mscdata.fLambda1*fTauSmall) {
       if (mscdata.fPar1< 0.) {
-        tlength = -mscdata.fLambda1*std::log(1.-gtrack->fStep/mscdata.fLambda1) ;
+        tlength = -mscdata.fLambda1*std::log(1.-gtrack->GetStep()/mscdata.fLambda1) ;
       } else {
-        double dum = mscdata.fPar1*mscdata.fPar3*gtrack->fStep;
+        double dum = mscdata.fPar1*mscdata.fPar3*gtrack->GetStep();
         if (dum<1.) {
           tlength = (1.-std::pow(1.-dum,1./mscdata.fPar3))/mscdata.fPar1;
         } else {
           tlength = mscdata.fRange;
         }
       }
-      if (tlength<gtrack->fStep || tlength>mscdata.fTheTrueStepLenght) {
-        tlength = gtrack->fStep;
+      if (tlength<gtrack->GetStep() || tlength>mscdata.fTheTrueStepLenght) {
+        tlength = gtrack->GetStep();
       }
     }
     mscdata.fTheTrueStepLenght = tlength;
@@ -563,7 +563,7 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   mscdata.fIsNoScatteringInMSC = false;
   //
   const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double kineticEnergy        = gtrack->fE-gtrack->fMass;
+  double kineticEnergy        = gtrack->T();
   double range                = mscdata.fRange;             // set in the step limit phase
   double trueStepL            = mscdata.fTheTrueStepLenght; // proposed by all other physics
   //

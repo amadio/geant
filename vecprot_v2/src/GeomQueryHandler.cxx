@@ -109,7 +109,7 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td
 #endif // USE_VECGEOM_NAVIGATOR
   td->fNsnext++;
 #ifdef USE_REAL_PHYSICS
-  if (track->fPrePropagationDone)
+  if (track->IsPrePropagationDone())
     track->SetStage(kPropagationStage);
   else
     track->SetStage(kPrePropagationStage);
@@ -139,41 +139,41 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
       // emulate the extra work done in vector mode
       GeantTrack *track = tracks[itr];
       DoIt(track, output, td);
-      track->fPending = false;
-      if (track->fBoundary) {
+      track->SetPending(false);
+      if (track->Boundary()) {
         td->fPathV[i] = track->Path();
         track_geo.AddTrack(*track, itr);
-        track->fPending = true;
+        track->SetPending(true);
         i++;
       }
     }
     if (i >= kVecSize) {
       for (size_t itr = 0; itr < i; ++itr) {
         GeantTrack *track = tracks[itr];
-        track->fSnext = tracks[itr]->fSnext;
-        track->fSafety = tracks[itr]->fSafety;
-        track->fBoundary = tracks[itr]->fBoundary;
+        track->SetSnext(tracks[itr]->GetSnext());
+        track->SetSafety(tracks[itr]->GetSafety());
+        track->SetBoundary(tracks[itr]->Boundary());
       }
       track_geo.Clear();
       i = 0;
     }
     for (size_t itr = 0; itr < ntr; ++itr) {
       GeantTrack *track = tracks[itr];
-      if (track->fPending || track->fBoundary) continue;
+      if (track->Pending() || track->Boundary()) continue;
       // Skip tracks with big enough safety
-      if (track->fSafety > track->fPstep) continue;
+      if (track->GetSafety() > track->GetPstep()) continue;
       td->fPathV[i] = track->Path();
       track_geo.AddTrack(*track, itr);
-      track->fPending = true; // probably not needed
+      track->SetPending(true); // probably not needed
       i++;
     }
     if (i >= kVecSize) {
       for (size_t itr = 0; itr < i; ++itr) {
         // Find the original track
         GeantTrack *track = tracks[itr];
-        track->fSnext = tracks[itr]->fSnext;
-        track->fSafety = tracks[itr]->fSafety;
-        track->fBoundary = tracks[itr]->fBoundary;
+        track->SetSnext(tracks[itr]->GetSnext());
+        track->SetSafety(tracks[itr]->GetSafety());
+        track->SetBoundary(tracks[itr]->Boundary());
       }
     }
   }
@@ -188,19 +188,19 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   // Process first the tracks that start from a boundary
   for (size_t itr = 0; itr < ntr; ++itr) {
     GeantTrack *track = tracks[itr];
-    track->fIsOnBoundaryPreStp = track->fBoundary;
+    track->SetBoundaryPreStep(track->Boundary());
 #ifdef USE_REAL_PHYSICS
-    if (track->fPrePropagationDone)
+    if (track->IsPrePropagationDone())
       track->SetStage(kPropagationStage);
     else
       track->SetStage(kPrePropagationStage);
 #endif
     // Mark tracks to be processed
-    track->fPending = false;
-    if (track->fBoundary) {
+    track->SetPending(false);
+    if (track->Boundary()) {
       td->fPathV[i] = track->Path();
       track_geo.AddTrack(*track, itr);
-      track->fPending = true;
+      track->SetPending(true);
       i++;
     }
   }
@@ -221,9 +221,9 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
                 track->fParticle, itr, track->fSnext, track_geo.fSnextV[itr]);
       }
 #endif
-      track->fSnext = track_geo.fSnextV[itr];
-      track->fSafety = 0.;
-      track->fBoundary = !track_geo.fCompSafetyV[itr];
+      track->SetSnext(track_geo.fSnextV[itr]);
+      track->SetSafety(0);
+      track->SetBoundary(!track_geo.fCompSafetyV[itr]);
     }
     track_geo.Clear();
     i = 0;
@@ -232,16 +232,16 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   // Process the tracks having pstep > safety
   for (size_t itr = 0; itr < ntr; ++itr) {
     GeantTrack *track = tracks[itr];
-    if (track->fPending || track->fBoundary) continue;
+    if (track->Pending() || track->Boundary()) continue;
     // Skip tracks with big enough safety
-    if (track->fSafety > track->fPstep) {
-      track->fSnext = track->fPstep;
-      track->fBoundary = false;
+    if (track->GetSafety() > track->GetPstep()) {
+      track->SetSnext(track->GetPstep());
+      track->SetBoundary(false);
       continue;
     }
     td->fPathV[i] = track->Path();
     track_geo.AddTrack(*track, itr);
-    track->fPending = true; // probably not needed
+    track->SetPending(true); // probably not needed
     i++;
   }
   if (i >= kVecSize) {  
@@ -255,15 +255,15 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
       GeantTrack *track = tracks[track_geo.fIdV[itr]];
 #ifdef DEBUG_VECTOR_DOIT
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
-      if ( vecCore::math::Abs(track->fSnext - track_geo.fSnextV[itr]) > 1.e-10 ||
-           vecCore::math::Abs(track->fSafety - track_geo.fSafetyV[itr]) > 1.e-10 ) {
+      if ( vecCore::math::Abs(track->GetSnext() - track_geo.fSnextV[itr]) > 1.e-10 ||
+           vecCore::math::Abs(track->GetSafety() - track_geo.fSafetyV[itr]) > 1.e-10 ) {
         printf("  track %d (ind=%ld): scalar (snext=%16.12f safety=%16.12f)  vector (snext=%16.12f safety=%16.12f)\n",
-                track->fParticle, itr, track->fSnext, track->fSafety, track_geo.fSnextV[itr], track_geo.fSafetyV[itr]);
+                track->Particle(), itr, track->GetSnext(), track->GetSafety(), track_geo.fSnextV[itr], track_geo.fSafetyV[itr]);
       }
 #endif
-      track->fSnext = track_geo.fSnextV[itr];
-      track->fSafety = track_geo.fSafetyV[itr];
-      track->fBoundary = !track_geo.fCompSafetyV[itr];
+      track->SetSnext(track_geo.fSnextV[itr]);
+      track->SetSafety(track_geo.fSafetyV[itr]);
+      track->SetBoundary(!track_geo.fCompSafetyV[itr]);
     }
   } else {
     for (size_t itr = 0; itr < i; ++itr) {

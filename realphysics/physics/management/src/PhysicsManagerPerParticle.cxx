@@ -152,12 +152,12 @@ void PhysicsManagerPerParticle::ComputeIntLen(Geant::GeantTrack *gtrack, Geant::
     double cStepLimit = fAlongStepProcessVec[i]->AlongStepLimitationLength(gtrack, td);
     if (cStepLimit<limit) {
       limit = cStepLimit;
-      gtrack->fPhysicsProcessIndex = fAlongStepProcessVec[i]->GetIndex();
-      gtrack->fProcess = fAlongStepProcessVec[i]->GetGlobalIndex();       // set global indx of limiting process
+      gtrack->SetPhysicsProcessIndex(fAlongStepProcessVec[i]->GetIndex());
+      gtrack->SetProcess(fAlongStepProcessVec[i]->GetGlobalIndex());       // set global indx of limiting process
     }
   }
   // set fEindex to -1.0 to indicate that continuous step limit happened; will be updated below if not
-  gtrack->fEindex = -1.0;
+  gtrack->SetEindex(-1.0);
   //
   // 2. Discrete step limit if any
   // if it has MSC than go to last but one (UNTILL MSC is continuous-discrete)
@@ -173,14 +173,14 @@ void PhysicsManagerPerParticle::ComputeIntLen(Geant::GeantTrack *gtrack, Geant::
     double dStepLimit = fPostStepCandidateProcessVec[i]->PostStepLimitationLength(gtrack, td, haseloss);
     if (dStepLimit<limit) {
       limit = dStepLimit;
-      gtrack->fPhysicsProcessIndex = fPostStepCandidateProcessVec[i]->GetIndex();
-      gtrack->fProcess = fPostStepCandidateProcessVec[i]->GetGlobalIndex();       // set global indx of limiting process
+      gtrack->SetPhysicsProcessIndex(fPostStepCandidateProcessVec[i]->GetIndex());
+      gtrack->SetProcess(fPostStepCandidateProcessVec[i]->GetGlobalIndex());       // set global indx of limiting process
       // flag to indicate that discrete and NOT continous step limit
-      gtrack->fEindex = 1000;
+      gtrack->SetEindex(1000);
     }
   }
   // set the physics step limit (true one)
-  gtrack->fPstep = limit;
+  gtrack->SetPstep(limit);
 }
 
 
@@ -208,14 +208,14 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, Geant::GeantTra
   int numSecondaries = 0;
   // reset number of interaction length left for the dicsrete process that just happened to indicate that it will need
   // to be resample
-  size_t physicsProcessIndx = gtrack->fPhysicsProcessIndex;
+  size_t physicsProcessIndx = gtrack->GetPhysicsProcessIndex();
   // assert that physicsProcessIndx should never be < 0 at this point
-  gtrack->fPhysicsNumOfInteractLengthLeft[physicsProcessIndx] = -1.0;
+  gtrack->SetPhysicsNumOfInteractLengthLeft(physicsProcessIndx, -1.0);
   // get material-cuts, kinetic energy and pre-step mfp of the selected process
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
   double ekin          = track.GetKinE();
   double mass          = track.GetMass();
-  double preStepLambda = gtrack->fPhysicsInteractLength[physicsProcessIndx]; // pre-step mfp
+  double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx); // pre-step mfp
   PhysicsProcess *proc = fProcessVec[physicsProcessIndx];
   if (HasEnergyLossProcess()) {
     // get the current i.e. for the post-step kinetic energy 1/lambda and compare to the pre-step i.e. overestimated

@@ -102,16 +102,12 @@ void ParticleGun::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTas
   // they are all the same here, so no dependence on n
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
-  gtrack.fXpos = fXPos;
-  gtrack.fYpos = fYPos;
-  gtrack.fZpos = fZPos;
-  gtrack.fXdir = fXDir;
-  gtrack.fYdir = fYDir;
-  gtrack.fZdir = fZDir;
+  gtrack.SetPosition(fXPos, fYPos, fZPos);
+  gtrack.SetDirection(fXDir, fYDir, fZDir);
 
   gtrack.SetCharge(fCharge);
   gtrack.SetMass(fMass);
-  gtrack.fE = fETotal;
+  gtrack.SetE(fETotal);
   gtrack.SetP(fPTotal);
 }
 

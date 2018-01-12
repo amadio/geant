@@ -48,17 +48,17 @@ double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::G
   //
   MSCdata &mscdata = ((Geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
 
-  bool isOnBoundaryPostStp = gtrack->fBoundary;
-  gtrack->fBoundary        = gtrack->fIsOnBoundaryPreStp;
+  bool isOnBoundaryPostStp = gtrack->Boundary();
+  gtrack->SetBoundary(gtrack->IsOnBoundaryPreStp());
   // get the phyics step limit due to all (other than msc) physics processes (that was used in the geometry stage)
-  double minPhysicsStepLength   = gtrack->fPstep;
+  double minPhysicsStepLength   = gtrack->GetPstep();
   mscdata.fTheTrueStepLenght    = minPhysicsStepLength;
   mscdata.fTheTransportDistance = minPhysicsStepLength;
   mscdata.fTheZPathLenght       = minPhysicsStepLength;
   mscdata.SetDisplacement(0.,0.,0.);
   mscdata.SetNewDirectionMsc(0.,0.,1.);
   // select msc model
-  double ekin        = gtrack->fE-gtrack->fMass;
+  double ekin        = gtrack->T();
   int    regIndx     = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
   MSCModel *mscModel = static_cast<MSCModel*>(GetModelManager()->SelectModel(ekin,regIndx));
   // check if:
@@ -70,23 +70,23 @@ double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::G
     mscModel->StepLimit(gtrack, td);
     // check if msc limited the step: set that continuous process was the winer
     if (mscdata.fTheTrueStepLenght<minPhysicsStepLength) {
-      gtrack->fEindex = -1; // indicate that continuous process was the winer
-      gtrack->fProcess = GetGlobalIndex();       // set global indx of limiting process
+      gtrack->SetEindex(-1); // indicate that continuous process was the winer
+      gtrack->SetProcess(GetGlobalIndex());       // set global indx of limiting process
     }
   }
   // update gtrack->fPstep to be the geometric step length (this is what propagation needs):
   // straight line discrete along the original direction
   // protection: geometric legth must always be <= than the true physics step length
   mscdata.fTheZPathLenght = std::min(mscdata.fTheZPathLenght, minPhysicsStepLength);
-  gtrack->fPstep          = mscdata.fTheZPathLenght;
+  gtrack->SetPstep(mscdata.fTheZPathLenght);
   // check if the geometrical physics step (true is change now by MSC to geometric) become shorter than snext and limit
   // snext to this geometrical physics step (track will be propagated to snext distance) and set the post-step point
   // boundary flag to false (we pulled back)
-  if (gtrack->fSnext>gtrack->fPstep) {
-    gtrack->fSnext    = gtrack->fPstep;
-    gtrack->fBoundary = false;
+  if (gtrack->GetSnext() > gtrack->GetPstep()) {
+    gtrack->SetSnext(gtrack->GetPstep());
+    gtrack->SetBoundary(false);
   } else { // write back the original post-step point boundary flag and do nothing
-    gtrack->fBoundary = isOnBoundaryPostStp;
+    gtrack->SetBoundary(isOnBoundaryPostStp);
   }
   return 0.;// not used at all because the step limit is written directly into the GeantTrack (just the interface)
 }
@@ -94,11 +94,11 @@ double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::G
 // called at the PostPropagationStage(in the Handler)
 void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {
   // get the step length (the geometric one)
-  double geometricStepLength = gtrack->fStep;
+  double geometricStepLength = gtrack->GetStep();
   double truePathLength      = geometricStepLength;
   MSCdata &mscdata = ((Geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
   // select msc model
-  double ekin        = gtrack->fE-gtrack->fMass;
+  double ekin        = gtrack->T();
   int    regIndx     = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
   MSCModel *mscModel = static_cast<MSCModel*>(GetModelManager()->SelectModel(ekin,regIndx));
   // check if:
@@ -120,23 +120,20 @@ void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *
       double dl =   mscdata.fTheDisplacementVectorX*mscdata.fTheDisplacementVectorX
                   + mscdata.fTheDisplacementVectorY*mscdata.fTheDisplacementVectorY
                   + mscdata.fTheDisplacementVectorZ*mscdata.fTheDisplacementVectorZ;
-      if (dl>fGeomMinLimit2 && !gtrack->fBoundary) {
+      if (dl>fGeomMinLimit2 && !gtrack->Boundary()) {
         // displace the post-step point
         dl = std::sqrt(dl);
         double dir[3]={mscdata.fTheDisplacementVectorX/dl, mscdata.fTheDisplacementVectorY/dl, mscdata.fTheDisplacementVectorZ/dl};
         ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl,GetGeomMinLimit());
       }
       // apply msc agular deflection
-//      if (!gtrack->fBoundary && hasNewDir) {
-      if (hasNewDir) {
-        gtrack->fXdir = mscdata.fTheNewDirectionX;
-        gtrack->fYdir = mscdata.fTheNewDirectionY;
-        gtrack->fZdir = mscdata.fTheNewDirectionZ;
-      }
+//      if (!gtrack->Boundary() && hasNewDir) {
+      if (hasNewDir)
+        gtrack->SetDirection(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ);
     }
   }
   // update step length to store the true step length
-  gtrack->fStep = truePathLength;
+  gtrack->SetStep(truePathLength);
 }
 
 

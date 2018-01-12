@@ -118,7 +118,7 @@ void TestEm3App::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
   }
   idvol  = current->GetLogicalVolume()->id();
   // get some particle properties
-  const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.fGVcode);
+  const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.GVcode());
   int    pdgCode = part->GetPDGCode();
   double  charge = part->GetPDGCharge();
 //  double  ekin   = track.fE-track.fMass;
@@ -128,25 +128,25 @@ void TestEm3App::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
   // per-event data structure) and the primary index (that defines the per-primary data structure within that per-event
   // data structure). NOTE: each tracks stores the event-slot and primary partcile index that event and primary particle
   // within that event the track belongs to.
-  TestEm3DataPerPrimary &dataPerPrimary =  (*fDataHandlerEvents)(td).GetDataPerEvent(track.fEvslot).GetDataPerPrimary(track.PrimaryParticleIndex());
+  TestEm3DataPerPrimary &dataPerPrimary =  (*fDataHandlerEvents)(td).GetDataPerEvent(track.EventSlot()).GetDataPerPrimary(track.PrimaryParticleIndex());
   // do the scoring if the current step was done in the target logical volume
 
   int currentAbsorber=fAbsorberLogicalVolumeID[idvol];
   if (currentAbsorber>-1) {
     // collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
     // that has just been added in this step)
-    if (track.fStatus!=Geant::kNew) {
+    if (track.Status() != Geant::kNew) {
       if (charge==0.0) {
         dataPerPrimary.AddNeutralStep();
-        dataPerPrimary.AddNeutralTrackL(track.fStep,currentAbsorber);
+        dataPerPrimary.AddNeutralTrackL(track.GetStep(), currentAbsorber);
       } else {
         dataPerPrimary.AddChargedStep();
-        dataPerPrimary.AddChargedTrackL(track.fStep,currentAbsorber);
+        dataPerPrimary.AddChargedTrackL(track.GetStep(), currentAbsorber);
       }
-      dataPerPrimary.AddEdepInAbsorber(track.fEdep,currentAbsorber);
+      dataPerPrimary.AddEdepInAbsorber(track.Edep(), currentAbsorber);
     }
     // collect secondary particle type statistics
-    if (track.fStatus==Geant::kNew) {
+    if (track.Status() == Geant::kNew) {
       switch(pdgCode) {
         // gamma
         case  22 : dataPerPrimary.AddGamma();

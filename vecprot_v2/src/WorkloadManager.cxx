@@ -20,7 +20,6 @@
 #include "GeantEventServer.h"
 #include "GeantTrackVec.h"
 #include "GeantBasket.h"
-#include "GeantOutput.h"
 #include "GeantTaskData.h"
 #include "PhysicsInterface.h"
 #include "PhysicsProcessOld.h"

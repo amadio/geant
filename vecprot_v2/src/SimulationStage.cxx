@@ -125,7 +125,7 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
     // Default next stage is the follow-up
-    track->fStage = fFollowUpStage;
+    track->SetStage(fFollowUpStage);
     Handler *handler = Select(track, td);
     // Execute in scalar mode the handler action
     if (handler) {
@@ -141,7 +141,7 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
   for (int i=0; i < GetNhandlers(); ++i) {
     if (fHandlers[i]->IsActive() && fHandlers[i]->Flush(bvector)) {
       // btodo has some content, invoke DoIt
-      if (bvector.size() >= fPropagator->fConfig->fNvecThreshold) {
+      if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
         td->fCounters[fId]->fNvector += bvector.size();
         fHandlers[i]->DoIt(bvector, output, td);
       } else {      
@@ -193,7 +193,7 @@ int SimulationStage::Process(GeantTaskData *td)
 //    assert(!input.HasTrackMany(track));
 //    assert(!output.HasTrack(track));
     #endif
-    track->fStage = fFollowUpStage;
+    track->SetStage(fFollowUpStage);
     Handler *handler = Select(track, td);
     // If no handler is selected the track does not perform this stage
     if (!handler) {
@@ -258,8 +258,8 @@ int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
 #endif
   } else {
     for (auto track : output.Tracks()) {
-      assert(track->fStage != fId);         // no stage feeds itself
-      td->fStageBuffers[track->fStage]->AddTrack(track);
+      assert(track->GetStage() != fId);         // no stage feeds itself
+      td->fStageBuffers[track->GetStage()]->AddTrack(track);
     }
   }
   return ntracks;

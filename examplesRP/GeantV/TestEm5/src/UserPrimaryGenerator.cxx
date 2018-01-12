@@ -77,16 +77,12 @@ Geant::GeantEventInfo UserPrimaryGenerator::NextEvent(Geant::GeantTaskData* /*td
 void UserPrimaryGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
-  gtrack.fXpos = fXPos;
-  gtrack.fYpos = fYPos;
-  gtrack.fZpos = fZPos;
-  gtrack.fXdir = fXDir;
-  gtrack.fYdir = fYDir;
-  gtrack.fZdir = fZDir;
+  gtrack.SetPosition(fXPos, fYPos, fZPos);
+  gtrack.SetDirection(fXDir, fYDir, fZDir);
   //
   gtrack.SetCharge(fCharge);
   gtrack.SetMass(fMass);
-  gtrack.fE = fETotal;
+  gtrack.SetE(fETotal);
   gtrack.SetP(fPTotal);
 }
 

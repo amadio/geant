@@ -79,7 +79,7 @@ public:
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
       for (int itr = 0; itr < event_info.ntracks; ++itr) {
         GeantTrack &track = td->GetNewTrack();
-        track.fParticle = event->AddPrimary(&track);
+        track.SetParticle(event->AddPrimary(&track));
         track.SetPrimaryParticleIndex(itr);
         fGenerator->GetTrack(itr, track, td);
       }

@@ -163,17 +163,17 @@ public:
     }
     fOriginalV[itrack] = &track;
     fIdV[itrack]   = id;
-    fXposV[itrack] = track.fXpos;
-    fYposV[itrack] = track.fYpos;
-    fZposV[itrack] = track.fZpos;
-    fXdirV[itrack] = track.fXdir;
-    fYdirV[itrack] = track.fYdir;
-    fZdirV[itrack] = track.fZdir;
-    fPstepV[itrack] = track.fPstep;
-    fStepV[itrack] = track.fStep;
-    fSnextV[itrack] = track.fSnext;
-    fSafetyV[itrack] = track.fSafety;
-    fCompSafetyV[itrack] = !track.fBoundary;
+    fXposV[itrack] = track.X();
+    fYposV[itrack] = track.Y();
+    fZposV[itrack] = track.Z();
+    fXdirV[itrack] = track.Dx();
+    fYdirV[itrack] = track.Dy();
+    fZdirV[itrack] = track.Dz();
+    fPstepV[itrack] = track.GetPstep();
+    fStepV[itrack] = track.GetStep();
+    fSnextV[itrack] = track.GetSnext();
+    fSafetyV[itrack] = track.GetSafety();
+    fCompSafetyV[itrack] = !track.Boundary();
     fNtracks++;
     return itrack;
   }
@@ -196,17 +196,13 @@ public:
   void UpdateOriginalTrack(int itr) const {
     // Update the original track itr.
     GeantTrack &track = *fOriginalV[itr];
-    track.fXpos = fXposV[itr];
-    track.fYpos = fYposV[itr];
-    track.fZpos = fZposV[itr];
-    track.fXdir = fXdirV[itr];
-    track.fYdir = fYdirV[itr];
-    track.fZdir = fZdirV[itr];
-    track.fPstep = fPstepV[itr];
-    track.fStep = fStepV[itr];
-    track.fSnext = fSnextV[itr];
-    track.fSafety = fSafetyV[itr];
-    track.fBoundary = !fCompSafetyV[itr];
+    track.SetPosition(fXposV[itr], fYposV[itr], fZposV[itr]);
+    track.SetDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
+    track.SetPstep(fPstepV[itr]);
+    track.SetStep(fStepV[itr]);
+    track.SetSnext(fSnextV[itr]);
+    track.SetSafety(fSafetyV[itr]);
+    track.SetBoundary(!fCompSafetyV[itr]);
   }
 
   /**
@@ -224,22 +220,16 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void UpdatePositions() const {
-    for (int itr=0; itr<fNtracks; ++itr) {
-      fOriginalV[itr]->fXpos = fXposV[itr];
-      fOriginalV[itr]->fYpos = fYposV[itr];
-      fOriginalV[itr]->fZpos = fZposV[itr];
-    }
+    for (int itr=0; itr<fNtracks; ++itr)
+      fOriginalV[itr]->SetPosition(fXposV[itr], fYposV[itr], fZposV[itr]);
   }
 
   /** @brief Update tracks directions */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void UpdateDirections() const {
-    for (int itr=0; itr<fNtracks; ++itr) {
-      fOriginalV[itr]->fXdir = fXdirV[itr];
-      fOriginalV[itr]->fYdir = fYdirV[itr];
-      fOriginalV[itr]->fZdir = fZdirV[itr];
-    }
+    for (int itr=0; itr<fNtracks; ++itr)
+      fOriginalV[itr]->SetDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
   }
       
 

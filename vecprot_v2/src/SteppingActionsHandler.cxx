@@ -30,11 +30,11 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
   // If track made too many steps, deposit all kinetic energy and kill it
-  if (track->fStatus != kNew) track->fNsteps++;
-  if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
+  if (track->Status() != kNew) track->IncrementNsteps();
+  if (track->GetNsteps() > fPropagator->fConfig->fNstepsKillThr) {
     Error("SteppingActions", "track %d from event %d looping -> killing it",
-          track->fParticle, track->fEvent);
-    track->fStatus = kKilled;
+          track->Particle(), track->Event());
+    track->SetStatus(kKilled);
     track->Stop();
   }
   
@@ -45,7 +45,7 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
 #endif
 
   // The track may die at the end of the step
-  if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
+  if (track->Status() == kKilled || track->Status() == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     if (fPropagator->fStdApplication)
       fPropagator->fStdApplication->FinishTrack(*track, td);
@@ -58,7 +58,7 @@ void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskDa
   }
   
   // Update the particle location after the step
-  if (track->fStatus == kBoundary)
+  if (track->Status() == kBoundary)
     track->UpdateSwapPath();
   // Reset number of boundary steps
   //track->fNsteps = 0;
@@ -75,11 +75,11 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
   
   TrackVec_t &tracks = input.Tracks();
   for (auto track : tracks) {
-    track->fNsteps++;
-    if (track->fNsteps > fPropagator->fConfig->fNstepsKillThr) {
+    track->IncrementNsteps();
+    if (track->GetNsteps() > fPropagator->fConfig->fNstepsKillThr) {
       Error("SteppingActions", "track %d from event %d looping -> killing it",
-            track->fParticle, track->fEvent);
-      track->fStatus = kKilled;
+            track->Particle(), track->Event());
+      track->SetStatus(kKilled);
       track->Stop();
     }
   }
@@ -92,7 +92,7 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
 
   // Copy tracks alive to output, stop the others.
   for (auto track : tracks) {
-    if (track->fStatus == kKilled || track->fStatus == kExitingSetup) {
+    if (track->Status() == kKilled || track->Status() == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
       if (fPropagator->fStdApplication)
         fPropagator->fStdApplication->FinishTrack(*track, td);
@@ -105,7 +105,7 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *
     } 
        
     // Update the particle location after the step
-    if (track->fStatus == kBoundary)
+    if (track->Status() == kBoundary)
       track->UpdateSwapPath();
     // Reset number of boundary steps
     //track->fNsteps = 0;

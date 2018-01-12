@@ -25,7 +25,6 @@
 //#pragma link C++ class GeantScheduler+;
 #pragma link C++ class GeantPropagator+;
 #pragma link C++ class GeantBasketMgr+;
-#pragma link C++ class GeantOutput+;
 //#pragma link C++ class GeantVApplication+;
 //#pragma link C++ class WorkloadManager+;
 #pragma link C++ class PhysicsProcessOld+;

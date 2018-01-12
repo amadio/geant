@@ -57,7 +57,6 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PropagationStage.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/SteppingActionsStage.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/sync_objects.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantOutput.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantPropagator.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEvent.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/EventSet.cxx
@@ -112,7 +111,6 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackVec.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackGeo.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantOutput.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVDetectorConstruction.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h

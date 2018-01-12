@@ -53,7 +53,7 @@ public:
     size_t index;
     GeantTrack &track = fBlockMgr.GetObject(index);
     //track.Clear();
-    track.fBindex = index;
+    track.SetBindex(index);
     return track;
   }
 
@@ -75,7 +75,7 @@ public:
     // store just the track index in the track structure to retrieve the address
     // of the block
     auto tr_size = GeantTrack::SizeOfInstance();
-    return *((NumaTrackBlock_t**)((char*)&track - tr_size*track.fBindex - sizeof(NumaTrackBlock_t*) - sizeof(GeantTrack*)));
+    return *((NumaTrackBlock_t**)((char*)&track - tr_size*track.BIndex() - sizeof(NumaTrackBlock_t*) - sizeof(GeantTrack*)));
   }
 
   /** @brief Get a new NUMA block */

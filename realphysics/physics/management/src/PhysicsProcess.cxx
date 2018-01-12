@@ -74,8 +74,8 @@ double PhysicsProcess::PostStepLimitationLength(Geant::GeantTrack *gtrack, Geant
   double stepLimit = GetAVeryLargeValue();
   // get the material-cuts and kinetic energy
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double ekin                = gtrack->fE-gtrack->fMass;
-  double mass                = gtrack->fMass; // dynamic mass of the particle
+  double ekin                = gtrack->T();
+  double mass                = gtrack->Mass(); // dynamic mass of the particle
   // get/compute the mean free path by (1)getting/(2)computing the macroscopic scross section by Accounting Possible
   // Energy Losses along the step:
   // - (1) from lambda table requested to built by the process
@@ -87,14 +87,14 @@ double PhysicsProcess::PostStepLimitationLength(Geant::GeantTrack *gtrack, Geant
   }
   // check if we need to sample new num.-of-int.-length-left: it is updated either after propagation(particles that
   // doesn't have MSC) or after the post-propagation (particles that has MSC)
-  if (gtrack->fPhysicsNumOfInteractLengthLeft[GetIndex()]<=0.0) {
+  if (gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex())<=0.0) {
     double rndm = td->fRndm->uniform(); // use vecgeom RNG to get uniform random number
-    gtrack->fPhysicsNumOfInteractLengthLeft[GetIndex()] = -std::log(rndm);
+    gtrack->SetPhysicsNumOfInteractLengthLeft(GetIndex(), -std::log(rndm));
   }
   // save the mfp: to be used for the update num.-of-int.-length-left
-  gtrack->fPhysicsInteractLength[GetIndex()] = mfp;
+  gtrack->SetPhysicsInteractLength(GetIndex(), mfp);
   //update the step length => length = lambda * -1. * log(rndm) = lambda * number of interaction leght left;
-  stepLimit = mfp*gtrack->fPhysicsNumOfInteractLengthLeft[GetIndex()];
+  stepLimit = mfp*gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex());
   return stepLimit;
 }
 

@@ -55,18 +55,18 @@ void HepMCTruth::InitMCTruthMgr() {}
   // 
   bool to_be_stored = false;
 
-  if (gtrack.fE > fEMin) to_be_stored = true; // energy check
+  if (gtrack.E() > fEMin) to_be_stored = true; // energy check
   /*
-  else if(geantphysics::PhysicsProcess::GetProcessByGlobalIndex(gtrack.fProcess))
+  else if(geantphysics::PhysicsProcess::GetProcessByGlobalIndex(gtrack.Process()))
     {
-      if(geantphysics::PhysicsProcess::GetProcessByGlobalIndex(gtrack.fProcess)->GetName()==
+      if(geantphysics::PhysicsProcess::GetProcessByGlobalIndex(gtrack.Process())->GetName()==
 	 "Pair") to_be_stored = true; // process check
     }
   */
   /*
-    else if(gtrack.fMother!=-1 && evt->particles.contains(gtrack.fMother)) // mother energy check
+    else if(gtrack.Mother()!=-1 && evt->particles.contains(gtrack.Mother())) // mother energy check
     {
-    double motherEnergy = (evt->particles).find(gtrack.fMother)->fE;
+    double motherEnergy = (evt->particles).find(gtrack.Mother())->fE;
       if(motherEnergy > fEMin) to_be_stored = true;
     }
   

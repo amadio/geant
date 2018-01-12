@@ -69,7 +69,7 @@ GeantTrack::GeantTrack(void *addr)
   fNextpath = VolumePath_t::MakeInstanceAt(maxdepth, path_addr);
 
   // this will be changed/removed after we already have the previous step length stored in the track
-  for (size_t i=0; i<fNumPhysicsProcess; ++i) {
+  for (size_t i=0; i<kNumPhysicsProcess; ++i) {
     fPhysicsNumOfInteractLengthLeft[i] = -1.0;
     fPhysicsInteractLength[i]           = 1.0;
   }
@@ -126,7 +126,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
     *fNextpath = *other.fNextpath;
 
     fPhysicsProcessIndex = other.fPhysicsProcessIndex;
-    for (size_t i=0; i<fNumPhysicsProcess; ++i) {
+    for (size_t i=0; i<kNumPhysicsProcess; ++i) {
       fPhysicsNumOfInteractLengthLeft[i] = other.fPhysicsNumOfInteractLengthLeft[i];
       fPhysicsInteractLength[i]           = other.fPhysicsInteractLength[i];
     }
@@ -182,7 +182,7 @@ void GeantTrack::Clear(const char *)
 
   // this will be changed/removed after we already have the previous step length stored in the track
   fPhysicsProcessIndex = -1;
-  for (size_t i=0; i<fNumPhysicsProcess; ++i) {
+  for (size_t i=0; i<kNumPhysicsProcess; ++i) {
     fPhysicsNumOfInteractLengthLeft[i] = -1.0;
     fPhysicsInteractLength[i]           = 1.0;
   }

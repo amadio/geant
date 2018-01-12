@@ -81,7 +81,7 @@ void CMSFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
     return;
   }
   // get some particle properties
-  const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.fGVcode);
+  const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.GVcode());
   int    pdgCode = part->GetPDGCode();
   double  charge = part->GetPDGCharge();
   //
@@ -89,22 +89,22 @@ void CMSFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
   // per-event data structure) and the primary index (that defines the per-primary data structure within that per-event
   // data structure). NOTE: each tracks stores the event-slot and primary partcile index that event and primary particle
   // within that event the track belongs to.
-  CMSDataPerPrimary &dataPerPrimary =  (*fDataHandlerEvents)(td).GetDataPerEvent(track.fEvslot).GetDataPerPrimary(track.PrimaryParticleIndex());
+  CMSDataPerPrimary &dataPerPrimary =  (*fDataHandlerEvents)(td).GetDataPerEvent(track.EventSlot()).GetDataPerPrimary(track.PrimaryParticleIndex());
   // do the scoring:
   // 1. collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
   //    that has just been added in this step)
-  if (track.fStatus!=Geant::kNew) {
+  if (track.Status() != Geant::kNew) {
     if (charge==0.0) {
       dataPerPrimary.AddNeutralStep();
-      dataPerPrimary.AddNeutralTrackL(track.fStep);
+      dataPerPrimary.AddNeutralTrackL(track.GetStep());
     } else {
       dataPerPrimary.AddChargedStep();
-      dataPerPrimary.AddChargedTrackL(track.fStep);
+      dataPerPrimary.AddChargedTrackL(track.GetStep());
     }
-    dataPerPrimary.AddEdep(track.fEdep);
+    dataPerPrimary.AddEdep(track.Edep());
   }
   // collect secondary particle type statistics
-  if (track.fStatus==Geant::kNew) {
+  if (track.Status() == Geant::kNew) {
     switch(pdgCode) {
       // gamma
       case  22 : dataPerPrimary.AddGamma();
@@ -143,9 +143,9 @@ void CMSFullApp::FinishEvent(Geant::GeantEvent *event) {
       const std::string &primName  = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
       int         primTypeIndx     = CMSParticleGun::GetPrimaryTypeIndex(primName);
       double      primEkin         = primTrack->T();
-      double      xdir             = primTrack->DirX();
-      double      ydir             = primTrack->DirY();
-      double      zdir             = primTrack->DirZ();
+      double      xdir             = primTrack->Dx();
+      double      ydir             = primTrack->Dy();
+      double      zdir             = primTrack->Dz();
       fData->AddDataPerPrimaryType(dataPerEvent.GetDataPerPrimary(ip),primTypeIndx);
       std::cout << "  Primary Particle:  " << ip  << " (type inedx = " << primTypeIndx  << ")\n"
                 << "    Name      =  "     << primName                                  << " \n"

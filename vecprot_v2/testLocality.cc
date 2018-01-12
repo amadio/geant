@@ -69,21 +69,17 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   std::uniform_real_distribution<> disx(-dx, dx), disy(-dy, dy), disz(-dz, dz);
   std::uniform_real_distribution<> disphi(0., 2.*M_PI), disrnd(0., 1.);
   track.Clear();
-  track.fXpos = disx(gen);
-  track.fYpos = disy(gen);
-  track.fZpos = disz(gen);
+  track.SetPosition(disx(gen), disy(gen), disz(gen));
   double phi = disphi(gen);
   double theta = ACos(1. - 2*disrnd(gen));
-  track.fXdir = Sin(theta) * Cos(phi);
-  track.fYdir = Sin(theta) * Sin(phi);
-  track.fZdir = Cos(theta);
+  track.SetDirection(Sin(theta) * Cos(phi), Sin(theta) * Sin(phi), Cos(theta));
 #ifdef USE_VECGEOM_NAVIGATOR
   SimpleNavigator nav;
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
-                    Vector3D<Precision>(track.fXpos, track.fYpos, track.fZpos), *track.Path(), true);
+                    Vector3D<Precision>(track.X(), track.Y(), track.Z()), *track.Path(), true);
 #else
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  nav->FindNode(track.fXpos, track.fYpos, track.fZpos);
+  nav->FindNode(track.X(), track.Y(), track.Z());
 #endif
 }
 

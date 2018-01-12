@@ -15,6 +15,7 @@
 #define NEW_NAVIGATION
 
 #include "base/Vector3D.h"
+#include <VecCore/VecCore>
 #include "Geant/Config.h"
 #include "Geant/Math.h"
 
@@ -96,6 +97,7 @@ enum ESimulationStage {
 };
 
 constexpr size_t kNstages = size_t(kSteppingActionsStage) + 1;
+constexpr size_t kNumPhysicsProcess = 10;
 
 class GeantTaskData;
 class GeantTrack;
@@ -131,7 +133,11 @@ typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
  * @brief Class GeantTrack
  */
 class GeantTrack {
-public:
+
+template <typename T>
+using Vector3D = vecgeom::Vector3D<T>;
+
+private:
   int fEvent = -1;           /** Event number */
   int fEvslot = -1;          /** Event slot */
   int fParticle = -1;        /** Index of corresponding particle */
@@ -174,10 +180,9 @@ public:
   Volume_t const *fVolume = nullptr; /** Current volume the particle is in */
 
   // max number of physics processesper particle is assumed to be 10!
-  static constexpr size_t fNumPhysicsProcess = 10;
-  size_t  fPhysicsProcessIndex = -1;  // selected physics process
-  double  fPhysicsNumOfInteractLengthLeft[fNumPhysicsProcess];
-  double  fPhysicsInteractLength[fNumPhysicsProcess]; // mfp
+  int  fPhysicsProcessIndex = -1;  // selected physics process
+  double  fPhysicsNumOfInteractLengthLeft[kNumPhysicsProcess];
+  double  fPhysicsInteractLength[kNumPhysicsProcess]; // mfp
 
 private:
 #ifdef GEANT_NEW_DATA_FORMAT
@@ -218,9 +223,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   ~GeantTrack() = delete;
 
-  /**
-   * @brief GeantTrack copy constructor
-   */
+  /** @brief GeantTrack copy constructor */
   VECCORE_ATT_HOST_DEVICE
   GeantTrack(const GeantTrack &other) = delete;
 
@@ -228,17 +231,455 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GeantTrack &operator=(const GeantTrack &other);
 
-  /** @brief Function that return beta value */
+  //---------------------------------//
+  //*** Basic and derived getters ***//
+  //---------------------------------//
+
+  /** @brief Getter for the event number */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double Beta() const { return fP / fE; }
+  int Event() const { return fEvent; }
 
-  /** @brief Function that return charge value */
+  /** @brief Getter for the slot number */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int EventSlot() const { return fEvslot; }
+
+  /** @brief Getter for the index of corresponding particle */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int Particle() const { return fParticle; }
+
+  /** @brief Getter for the index of the primary particle in the current event */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int PrimaryParticleIndex() const { return fPrimaryIndx; }
+
+  /** @brief Getter for thes index of mother particle */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int Mother() const { return fMother; }
+
+  /** @brief Getter for the particle pdg code */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int PDG() const { return fPDG; }
+
+  /** @brief Getter for the GV particle code */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GVcode() const { return fGVcode; }
+
+  /** @brief Getter for the element index */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int EIndex() const { return fEindex; }
+
+  /** @brief Getter for the index in the track block */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int BIndex() const { return fBindex; }
+
+  /** @brief Getter for the charge value */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int Charge() const { return fCharge; }
 
-  /** @brief Function that return curvature. To be changed when handling properly field*/
+  /** @brief Fills scalar charge from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param e_v SIMD charges to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetCharge_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &charge_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i)
+      vecCore::Set(charge_v, i, tracks[offset + i]->Charge());
+    return nelem;
+  }
+
+  /** @brief Getter for the current process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int Process() const { return fProcess; }
+
+  /** @brief Getter for the number of physical step made */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetNsteps() const { return fNsteps; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetMaxDepth() const { return fMaxDepth; }
+
+  /** @brief Getter for simulation stage */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  ESimulationStage Stage() const { return (ESimulationStage)fStage; }
+
+  /** @brief Getter for simulation stage as integer */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetStage() const { return fStage; }
+
+  /** @brief Getter for track generation (0 = primary)*/
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetGeneration() const { return fGeneration; }
+
+  /** Getter for the particle species */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  Species_t Species() const { return fSpecies; }
+
+  /** Getter for the track status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  TrackStatus_t Status() const { return fStatus; }
+
+  /** @brief Getter for the rest mass value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Mass() const { return fMass; }
+
+  /** @brief X position */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double X() const { return fXpos; }
+
+  /** @brief Y position */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Y() const { return fYpos; }
+
+  /** @brief Z position */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Z() const { return fZpos; }
+
+  /** @brief Getter for the pointer to X position value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  const double *Position() const { return &fXpos; }
+
+  /** @brief Fills scalar position components from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param pos_v SIMD position to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetPos_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Vector3D<Real_v> &pos_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i) {
+      vecCore::Set(pos_v[0], i, tracks[offset + i]->X());
+      vecCore::Set(pos_v[1], i, tracks[offset + i]->Y());
+      vecCore::Set(pos_v[2], i, tracks[offset + i]->Z());
+    }
+    return nelem;
+  }
+
+  /** @brief Getter for the X direction value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Dx() const { return fXdir; }
+
+  /** @brief Getter for the Y direction value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Dy() const { return fYdir; }
+
+  /** @brief Getter for the Z direction value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Dz() const { return fZdir; }
+
+  /** @brief Getter for the pointer to X direction value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  const double *Direction() const { return &fXdir; }
+
+  /** @brief Fills scalar direction components from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param dir_v SIMD direction to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetDir_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Vector3D<Real_v> &dir_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i) {
+      vecCore::Set(dir_v[0], i, tracks[offset + i]->Dx());
+      vecCore::Set(dir_v[1], i, tracks[offset + i]->Dy());
+      vecCore::Set(dir_v[2], i, tracks[offset + i]->Dz());
+    }
+    return nelem;
+  }
+ 
+  /** @brief Getter for the momentum value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double P() const { return fP; }
+
+  /** @brief Getter for the momentum X component */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Px() const { return fP * fXdir; }
+
+  /** @brief Getter for the momentum Y component */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Py() const { return fP * fYdir; }
+
+  /** @brief Getter for the momentum Z component */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Pz() const { return fP * fZdir; }
+
+  /** @brief Fills scalar momentum components from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param pos_v SIMD momentum to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetP_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Vector3D<Real_v> &mom_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i) {
+      vecCore::Set(mom_v[0], i, tracks[offset + i]->Px());
+      vecCore::Set(mom_v[1], i, tracks[offset + i]->Py());
+      vecCore::Set(mom_v[2], i, tracks[offset + i]->Pz());
+    }
+    return nelem;
+  }
+
+  /** @brief Getter for the module momentum's value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Pt() const { return fP * Math::Sqrt(fXdir * fXdir + fYdir * fYdir); }
+
+  /** @brief Getter for the energy value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double E() const { return fE; }
+
+  /** @brief Fills scalar energy components from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param e_v SIMD energies to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetE_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &e_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i)
+      vecCore::Set(e_v, i, tracks[offset + i]->E());
+    return nelem;
+  }
+
+  /** @brief Getter for the kinetic energy value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double T() const { return (fE - fMass); }
+ 
+  /** @brief Fills scalar kinetic energy components from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param t_v SIMD kinetic energies to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetT_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &t_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i)
+      vecCore::Set(t_v, i, tracks[offset + i]->T());
+    return nelem;
+  }
+
+  /** Getter for the time */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Time() const { return fTime; }
+
+  /** @brief Getter for the energy deposition value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Edep() const { return fEdep; }
+
+  /** @brief Getter for the selected physical step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetPstep() const { return fPstep; }
+
+  /** @brief Getter for the physical step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetStep() const { return fStep; }
+
+  /** @brief Getter for the time traveled in the step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double TimeStep(double step) const { return fE*step/fP; }
+
+  /** @brief Getter for the straight distance to next boundary */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetSnext() const { return fSnext; }
+
+  /** @brief Getter for the safe distance to any boundary */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetSafety() const { return fSafety; }
+
+  /** @brief Getter for the number of interaction lengths travelled since last step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetNintLen() const { return fNintLen; }
+
+  /** @brief Getter for the interaction length since last discrete process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetIntLen() const { return fIntLen; }
+
+  /** @brief Getter for the true if starting from boundary */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool Boundary() const { return fBoundary; }
+
+  /** @brief Getter for the pending track status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool Pending() const { return fPending; }
+
+  /** @brief Getter for path ownership */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsOwnPath() const { return fOwnPath; }
+  
+  /** @brief Getter pre step boundary status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsOnBoundaryPreStp() const { return fIsOnBoundaryPreStp; }
+  
+  /** @brief Getter for pre propagation done status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsPrePropagationDone() const { return fPrePropagationDone; }
+
+  /** @brief Getter for the volume */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  Volume_t const *GetVolume() const { return fVolume; }
+
+  /** @brief Getter for the physics process index */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetPhysicsProcessIndex() const { return fPhysicsProcessIndex; }
+
+  /** @brief Get number of remaining interaction lengths to the physics process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetPhysicsNumOfInteractLengthLeft(int iproc) const { return fPhysicsNumOfInteractLengthLeft[iproc]; }
+
+  /** @brief Get total interaction length to the physics process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GetPhysicsInteractLength(int iproc) const { return fPhysicsInteractLength[iproc]; }
+  
+  /** @brief Getter for thes current path */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  VolumePath_t *Path() const { return fPath; }
+
+  /** @brief Getter for thes next path */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  VolumePath_t *NextPath() const { return fNextpath; }
+
+  /** @brief Getter for the next volume (no backup) */
+  VECCORE_ATT_HOST_DEVICE
+  Volume_t const *GetNextVolume() const {
+#ifdef USE_VECGEOM_NAVIGATOR
+    return ( fNextpath->Top()->GetLogicalVolume() );
+#else
+    return ( fNextpath->GetCurrentNode()->GetVolume() );
+#endif
+  }
+
+  /** @brief Getter for the material */
+  VECCORE_ATT_HOST_DEVICE
+  Material_t *GetMaterial() const;
+
+  /** @brief Getter for the beta value */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Beta() const { return fP / fE; }
+
+  /** @brief Fills scalar beta from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param beta_v SIMD betas to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetBeta_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &beta_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i)
+      vecCore::Set(beta_v, i, tracks[offset + i]->Beta());
+    return nelem;
+  }
+
+  /** @brief Getter for the curvature. To be changed when handling properly field*/
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double Curvature(double Bz) const {
@@ -250,104 +691,346 @@ public:
     return fabs(kB2C * qB / (Pt() + kTiny));
   }
 
+  /** @brief Getter for the gamma value*/
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Gamma() const { return fMass ? fE / fMass : DBL_MAX; }
+  
+  /** @brief Fills scalar gamma components from input vector into SIMD type.
+   *  @param tracks Vector of pointers to tracks
+   *  @param offset Start offset.
+   *  @param ntracks Number of tracks in the input vector
+   *  @param e_v SIMD gammas to fill
+   *  @return Number of filled lanes. User should check if deciding it is worth to extract the tail.
+   **/
+  template <typename Real_v, bool Tail = false>
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  static size_t GetGamma_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &gamma_v)
+  {
+    constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
+    size_t nelem = kVecSize;
+    if (Tail) nelem = ntracks - offset;
+    assert(offset <= ntracks - nelem );
+    for (size_t i = 0; i < nelem; ++i)
+      vecCore::Set(gamma_v, i, tracks[offset + i]->Gamma());
+    return nelem;
+  }
+
+  /** @brief Function that check if track is alive */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsAlive() const { return (fStatus != kKilled); }
+
+  /** @brief Function that check if track is on boundary */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsOnBoundary() const { return (fStatus == kBoundary); }
+
+  /** @brief  Check direction normalization within tolerance */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsNormalized(double tolerance = 1.E-8) const {
+    double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
+    if (fabs(1. - norm) > tolerance)
+      return false;
+    return true;
+  }
+
+  //---------------------//
+  //*** Basic setters ***//
+  //---------------------//
+
+  /** @brief Setter for event number */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetEvent(int event) { fEvent = event; }
+
+  /** @brief Setter for event slot number */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetEvslot(int slot) { fEvslot = slot; }
+
+  /** @brief Setter for particle id */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetParticle(int particle) { fParticle = particle; }
+
+  /** @brief Setter for primary particle index in the current event */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPrimaryParticleIndex(int primaryindx) { fPrimaryIndx = primaryindx; }
+
+  /** @brief Setter for mother index */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetMother(int mother) { fMother = mother; }
+
+  /** @brief Setter for particle pdg code */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPDG(int pdg) { fPDG = pdg; }
+
+  /** @brief Setter for GV particle code */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetGVcode(int gVcode) { fGVcode = gVcode; }
+
+  /** @brief Setter for element index */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetEindex(int ind) { fEindex = ind; }
+
+  /** @brief Setter for index of the track block */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetBindex(int ind) { fBindex = ind; }
+
+  /** @brief Setter for charge */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetCharge(int charge) { fCharge = charge; }
+
+  /** @brief Setter for process index */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetProcess(int process) { fProcess = process; }
+
+  /** @brief Setter for number of steps */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetNsteps(int nsteps) { fNsteps = nsteps; }
+
+  /** @brief Increment number of steps */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void IncrementNsteps(int nsteps = 1) { fNsteps += nsteps; }
+
+  /** @brief Setter for stage */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetStage(int stage) { fStage = stage; }
+
+  /** @brief Setter for particle generation */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetGeneration(int generation) { fGeneration = generation; }
+
+  /** @brief Setter for particle species */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetSpecies(Species_t species) { fSpecies = species; }
+
+  /** @brief Setter for track status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetStatus(TrackStatus_t status) { fStatus = status; }
+
+  /** @brief Setter for particle mass */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetMass(double mass) { fMass = mass; }
+
+  /** @brief Setter for position from components */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPosition(double x, double y, double z) {
+    fXpos = x;
+    fYpos = y;
+    fZpos = z;
+  }
+
+  /** @brief Setter for position from vector */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPosition(Vector3D<double> const &pos) {
+    fXpos = pos.x();
+    fYpos = pos.y();
+    fZpos = pos.z();
+  }
+
+  /** @brief Setter for direction from components */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetDirection(double dx, double dy, double dz) {
+    fXdir = dx;
+    fYdir = dy;
+    fZdir = dz;
+  }
+  
+  /** @brief Setter for direction from components */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetDirection(Vector3D<double> const &dir) {
+    fXdir = dir.x();
+    fYdir = dir.y();
+    fZdir = dir.z();
+  }
+
+  /** @brief Setter for momentum */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetP(double p) { fP = p; }
+
+  /** @brief Setter for energy */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetE(double e) { fE = e; }
+
+  /** @brief Setter for energy */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void DecreaseE(double e) { fE -= e; }
+
+  /** @brief Setter for time */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetTime(double time) { fTime = time; }
+
+  /** @brief Increase time */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void IncreaseTime(double time) { fTime += time; }
+
+  /** @brief Setter for energy deposition */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetEdep(double edep) { fEdep = edep; }
+
+  /** @brief Setter for energy deposition */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void IncreaseEdep(double edep) { fEdep += edep; }
+
+  /** @brief Setter for proposed physics step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPstep(double pstep) { fPstep = pstep; }
+
+  /** @brief Decrease proposed physics step after some propagation */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void DecreasePstep(double len) { fPstep -= len; }
+
+  /** @brief Setter for the physics step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetStep(double step) { fStep = step; }
+
+  /** @brief Increase progression step after some propagation */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void IncreaseStep(double len) { fStep += len; }
+
+  /** @brief Setter for straight distance to next boundary */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetSnext(double snext) { fSnext = snext; }
+
+  /** @brief Decrease snext after some propagation */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void DecreaseSnext(double len) { fSnext -= len; }
+
+  /** @brief Setter for the isotropic safe distance to volumes */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetSafety(double safety) { fSafety = safety; }
+
+  /** @brief Decrease safety after some propagation */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void DecreaseSafety(double len) { fSafety -= len; }
+
+  /** @brief Setter for the number of interaction lengths traveled */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetNintLen(double nradlen) { fNintLen = nradlen; }
+
+  /** @brief Setter for the interaction length since last discrete process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetIntLen(double intlen) { fIntLen = intlen; }
+
+  /** @brief Setter for the starting from boundary flag */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetBoundary(bool flag) { fBoundary = flag; }
+
+  /** @brief Setter for the pending status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPending(bool flag) { fPending = flag; }
+
+  /** @brief Setter for the on boundary pre-step status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetBoundaryPreStep(bool flag) { fIsOnBoundaryPreStp = flag; }
+
+  /** @brief Setter for the pre propagation done status */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPrePropagationDone(bool flag) { fPrePropagationDone = flag; }
+
+  /** @brief Setter for the physics process index */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPhysicsProcessIndex(int index) { fPhysicsProcessIndex = index; }
+
+  /** @brief Setter for the number of physics interaction lengths left for a process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPhysicsNumOfInteractLengthLeft(int iproc, double val) { fPhysicsNumOfInteractLengthLeft[iproc] = val; }
+
+  /** @brief Setter for the number of physics interaction lengths left for a process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void DecreasePhysicsNumOfInteractLengthLeft(int iproc, double val) { fPhysicsNumOfInteractLengthLeft[iproc] -= val; }
+
+  /** @brief Setter for mean free path for a process */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPhysicsInteractLength(int iproc, double val) { fPhysicsInteractLength[iproc] = val; }
+
+  /** @brief Setter for the current geometry path */
+  VECCORE_ATT_HOST_DEVICE
+  void SetPath(VolumePath_t const *const path);
+
+  /** @brief Setter for the next geometry path */
+  VECCORE_ATT_HOST_DEVICE
+  void SetNextPath(VolumePath_t const *const path);
+
+  //---------------------//
+  //***    Actions    ***//
+  //---------------------//
+
   /** @brief Clone this track using specific task data storage */
   VECCORE_ATT_HOST_DEVICE
   GeantTrack *Clone(GeantTaskData *td);  
-
-  /** @brief Function that return pointer to X direction value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  const double *Direction() const { return &fXdir; }
-
-  /** @brief Function that return X direction value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double DirX() const { return fXdir; }
-
-  /** @brief Function that return Y direction value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double DirY() const { return fYdir; }
-
-  /** @brief Function that return Z direction value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double DirZ() const { return fZdir; }
-
-  /** @brief Function that return energy value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double E() const { return fE; }
-
-  /** @brief Function that return kinetic energy value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double T() const { return (fE - fMass); }
 
   /** @brief Function that stops the track depositing its kinetic energy */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Stop() { fEdep = T(); fE = fMass; fP = 0; }
 
-  /** @brief Function that return energy deposition value */
+  /** @brief Setter for the status killed to track */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double Edep() const { return fEdep; }
+  void Kill() { fStatus = kKilled; }
 
-  /** @brief Function that return event number */
+   /** Clear function */
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int Event() const { return fEvent; }
+  void Clear(const char *option = "");
 
-  /** @brief Function that return slot number */
+  /** Fast reset function */
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int EventSlot() const { return fEvslot; }
+  void Reset(GeantTrack const &blueprint);
 
-  /** @brief Function that return true if starting from boundary */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  bool FromBoundary() const { return fBoundary; }
+  /** @brief Print function */
+  void Print(const char *msg = "") const;
 
-  /** @brief Function that return GV particle code */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int GVcode() const { return fGVcode; }
-
-  /** @brief Function that return element index */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int EIndex() const { return fEindex; }
-
-  /** @brief Function that return index in the track block */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int BIndex() const { return fBindex; }
-
-  /** @brief Function that return gamma value*/
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Gamma() const { return fMass ? fE / fMass : DBL_MAX; }
-
-  /** @brief Function that return selected physical step */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double GetPstep() const { return fPstep; }
-
-  /** @brief Function that return volume */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  Volume_t const *GetVolume() const { return fVolume; }
-
-  /** @brief Function that returns current path */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  VolumePath_t *Path() const { return fPath; }
-
-  /** @brief Function that returns next path */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  VolumePath_t *NextPath() const { return fNextpath; }
+  /** @brief Print function for a container of tracks */
+  static void PrintTracks(TrackVec_t &tracks);
 
   /** @brief Function that swaps path and next path */
   VECCORE_ATT_HOST_DEVICE
@@ -375,85 +1058,7 @@ public:
 #endif
   }
 
-  /** @brief Function that return next volume */
-  VECCORE_ATT_HOST_DEVICE
-  Volume_t const *GetNextVolume() const {
-#ifdef USE_VECGEOM_NAVIGATOR
-    return ( fNextpath->Top()->GetLogicalVolume() );
-#else
-    return ( fNextpath->GetCurrentNode()->GetVolume() );
-#endif
-  }
-
-  /** @brief Function that return material */
-  Material_t *GetMaterial() const;
-
-  /** @brief Function that return number of physical step made */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int GetNsteps() const { return fNsteps; }
-
-  /** @brief Function that return physical step */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double GetStep() const { return fStep; }
-
-  /** @brief Function that return time traveled in the step */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double TimeStep(double step) const { return fE*step/fP; }
-
-  /** @brief Function that return straight distance to next boundary */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double GetSnext() const { return fSnext; }
-
-  /** @brief Function that return safe distance to any boundary */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double GetSafety() const { return fSafety; }
-
-  /** @brief Function that return number of interaction lengths travelled since last step */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double GetNintLen() const { return fNintLen; }
-
-  /** @brief Function that return interaction length since last discrete process */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double GetIntLen() const { return fIntLen; }
-
-  /** @brief Function that check if track is alive */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  bool IsAlive() const { return (fStatus != kKilled); }
-
-  /** @brief Function that check if track is on boundary */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  bool IsOnBoundary() const { return (fStatus == kBoundary); }
-
-  /** @brief  Check direction normalization within tolerance */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  bool IsNormalized(double tolerance = 1.E-8) const {
-    double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
-    if (fabs(1. - norm) > tolerance)
-      return false;
-    return true;
-  }
-
-  /** @brief Function that set status killed to track */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void Kill() { fStatus = kKilled; }
-
-  /** @brief Function that return mass value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Mass() const { return fMass; }
-
-  /** @brief Function to normalize direction */
+ /** @brief Function to normalize direction */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Normalize() {
@@ -476,417 +1081,19 @@ public:
     fZpos += step * fZdir;
   }
 
-
-  /** @brief Function that return momentum value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double P() const { return fP; }
-
-  /** @brief Function that return momentum X component */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Px() const { return fP * fXdir; }
-
-  /** @brief Function that return momentum Y component */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Py() const { return fP * fYdir; }
-
-  /** @brief Function that return momentum Z component */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Pz() const { return fP * fZdir; }
-
-  /** @brief Function that return module momentum's value */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Pt() const { return fP * Math::Sqrt(fXdir * fXdir + fYdir * fYdir); }
-
-  /** @brief Function that return index of corresponding particle */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int Particle() const { return fParticle; }
-
-  /** @brief Function that return index of the primary particle in the current event */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int PrimaryParticleIndex() const { return fPrimaryIndx; }
-
-  /** @brief Function that returns index of mother particle */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int Mother() const { return fMother; }
-
-  /** @brief Function that set status pending to track */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  bool Pending() const { return fPending; }
-
-  /** @brief Function that return particle pdg code */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int PDG() const { return fPDG; }
-
-  /** @brief Function that return current process */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int Process() const { return fProcess; }
-  const double *Position() const { return &fXpos; }
-
-  /** @brief Function that return X position */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double PosX() const { return fXpos; }
-
-  /** @brief Function that return Y position */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double PosY() const { return fYpos; }
-
-  /** @brief Function that return Z position */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double PosZ() const { return fZpos; }
-
-  /** @brief Print function */
-  void Print(const char *msg = "") const;
-
-  /** @brief Print function for a container of tracks */
-  static void PrintTracks(TrackVec_t &tracks);
-
-  /** Function that return particle species */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  Species_t Species() const { return fSpecies; }
-
-  /** Function that return track status */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  TrackStatus_t Status() const { return fStatus; }
-
-  /** Function that return time */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Time() const { return fTime; }
-
-  /** Clear function */
-  VECCORE_ATT_HOST_DEVICE
-  void Clear(const char *option = "");
-
-  /** Fast reset function */
-  VECCORE_ATT_HOST_DEVICE
-  void Reset(GeantTrack const &blueprint);
-
-  /** @brief Function that return X coordinate */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double X() const { return fXpos; }
-
-  /** @brief Function that return Y coordinate */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Y() const { return fYpos; }
-
-  /** @brief Function that return Z coordinate */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Z() const { return fZpos; }
-
-  /**
-   * @brief Function that set event number
-   *
-   * @param event Event that should be set as fEvent
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetEvent(int event) { fEvent = event; }
-
-  /**
-   * @brief Function that set event slot number
-   *
-   * @param slot Event slot that should be set as fEvslot
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetEvslot(int slot) { fEvslot = slot; }
-
-  /**
-   * @brief Function that sets the primary particle index in the current event
-   *
-   * @param primaryindx Index of the primary particle in the current event that this track belongs to
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetPrimaryParticleIndex(int primaryindx) { fPrimaryIndx = primaryindx; }
-
-  /** @brief Setter for stage */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetStage(ESimulationStage stage) { fStage = stage; }
-
-  /**
-   * @brief Function that sets mother index
-   *
-   * @param mother Particle that should be set as fMother
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetMother(int mother) { fMother = mother; }
-
-  /**
-   * @brief Function that set particle pdg code
-   *
-   * @param pdg Particle pdg code that should be set as fPDG
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetPDG(int pdg) { fPDG = pdg; }
-
-  /**
-   * @brief Function that set GV particle code
-   *
-   * @param gVcode GV particle code that should be set as fGVcode
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetGVcode(int gVcode) { fGVcode = gVcode; }
-
-  /**
-   * @brief Function that set element index
-   *
-   * @param ind Element index that should be set as fEindex
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetEindex(int ind) { fEindex = ind; }
-
-  /**
-   * @brief Function that set index of the track block
-   *
-   * @param ind Index to be set
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetBindex(int ind) { fBindex = ind; }
-
-  /**
-   * @brief Function that set charge
-   *
-   * @param charge Charge that should be set as fCharge
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetCharge(int charge) { fCharge = charge; }
-
-  /**
-   * @brief Function that set process
-   *
-   * @param process Process that should be set as fProcess
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetProcess(int process) { fProcess = process; }
-
-  /**
-   * @brief Function that set current step
-   *
-   * @param nsteps Current step hat should be set as fNsteps
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetNsteps(int nsteps) { fNsteps = nsteps; }
-
-  /**
-   * @brief Function that set current species
-   *
-   * @param species Current species hat should be set as fSpecies
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetSpecies(Species_t species) { fSpecies = species; }
-
-  /**
-   * @brief Function that set track status
-   *
-   * @param status Current track status that should be set as fStatus
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetStatus(TrackStatus_t &status) { fStatus = status; }
-
-  /**
-   * @brief Function that set mass
-   *
-   * @param mass Current mass that should be set as fMass
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetMass(double mass) { fMass = mass; }
-
-  /**
-   * @brief Function that set X, Y, Z positions
-   *
-   * @param x X position
-   * @param y Y position
-   * @param z Z position
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetPosition(double x, double y, double z) {
-    fXpos = x;
-    fYpos = y;
-    fZpos = z;
-  }
-
-  /**
-   * @brief [Function that set X, Y, Z directions
-   *
-   * @param dx X direction
-   * @param dy Y direction
-   * @param dz Z direction
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetDirection(double dx, double dy, double dz) {
-    fXdir = dx;
-    fYdir = dy;
-    fZdir = dz;
-  }
-
-  /**
-   * @brief Function that set momentum
-   *
-   * @param p Current momentum should be set as fP
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetP(double p) { fP = p; }
-
-  /**
-   * @brief Function that set energy
-   *
-   * @param e Current E should be set as fE
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetE(double e) { fE = e; }
-
-  /**
-   * @brief Function that set time
-   *
-   * @param time Current time should be set as fTime
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetTime(double time) { fTime = time; }
-
-  /**
-   * @brief Function that set energy deposition
-   *
-   * @param edep Current energy deposition should be set as fEdep
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetEdep(double edep) { fEdep = edep; }
-
-  /**
-   * @brief Function that set current physical step
-   *
-   * @param pstep Current physical step should be set as fPstep
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetPstep(double pstep) { fPstep = pstep; }
-
-  /**
-   * @brief Function that set straight distance to next boundary
-   *
-   * @param snext Straight distance to next boundary should be set as fSnext
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetSnext(double snext) { fSnext = snext; }
-
-  /**
-   * @brief Function that set safe distance to any boundary
-   *
-   * @param safety Safe distance to any boundary hould be set as fSafety
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetSafety(double safety) { fSafety = safety; }
-
-  /**
-   * @brief Function that set number of interaction lengths traveled
-   *
-   * @param nradlen Number of interaction lengths travelled
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetNintLen(double nradlen) { fNintLen = nradlen; }
-
-  /**
-   * @brief Function that set interaction length since last discrete process
-   *
-   * @param intlen Interaction length
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetIntLen(double intlen) { fIntLen = intlen; }
-
-  /**
-   * @brief Function that set starting from boundary flag
-   *
-   * @param flag Flag that is true if starting from boundary
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetFrombdr(bool flag) { fBoundary = flag; }
-
-  /**
-   * @brief Function that set pending status
-   *
-   * @param flag Flag that should be set pending
-   */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetPending(bool flag) { fPending = flag; }
-
-  /**
-   * @brief Function that set next path
-   *
-   * @param path Volume path
-   */
-  VECCORE_ATT_HOST_DEVICE
-  void SetPath(VolumePath_t const *const path);
-
-  /**
-   * @brief Function that set next volume path
-   *
-   * @param path Volume path
-   */
-  VECCORE_ATT_HOST_DEVICE
-  void SetNextPath(VolumePath_t const *const path);
-
-  /** @brief return the contiguous memory size needed to hold a GeantTrack*/
+  /** @brief Returns the contiguous memory size needed to hold a GeantTrack*/
   VECCORE_ATT_HOST_DEVICE
   static size_t SizeOfInstance();
 
-  /**
-   * @brief GeantTrack MakeInstance based on a provided single buffer.
-   */
+  /** @brief GeantTrack MakeInstance based on a provided single buffer */
   VECCORE_ATT_HOST_DEVICE
   static GeantTrack *MakeInstanceAt(void *addr);
 
-  /**
-   * @brief GeantTrack MakeInstance allocating the necessary buffer on the heap.
-   */
+  /** @brief GeantTrack MakeInstance allocating the necessary buffer on the heap */
   VECCORE_ATT_HOST_DEVICE
   static GeantTrack *MakeInstance();
 
-  /**
-   * @brief Releases track instance created using MakeInstance.
-   */
+  /** @brief Releases track instance created using MakeInstance */
   VECCORE_ATT_HOST_DEVICE
   static void ReleaseInstance(GeantTrack *track);
 
