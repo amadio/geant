@@ -282,6 +282,8 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #else
 // ROOT geometry. Fall back to scalar implementation
   (void)tracks;
+  (void)ntr;
+  (void)kVecSize;
   Handler::DoIt(input, output, td);
 #endif
 }

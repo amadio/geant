@@ -122,24 +122,24 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
   // Check if current safety allows for the proposed step
-  if (track.fSafety > track.fPstep) {
-    track.fSnext = track.fPstep;
+  if (track.GetSafety() > track.GetPstep()) {
+    track.SetSnext(track.GetPstep());
     track.UpdateSameNextPath();
-    track.fBoundary = false;
+    track.SetBoundary(false);
     return;
   }
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   // Reset navigation state flags and safety to start fresh
   nav->ResetState();
   // Setup start state
-  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
-  nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
+  nav->SetCurrentPoint(track.X(), track.Y(), track.Z());
+  nav->SetCurrentDirection(track.Dx(), track.Dy(), track.Dz());
   track.Path()->UpdateNavigator(nav);
-  nav->FindNextBoundary(Math::Min<double>(1.E20, track.fPstep), "", track.fBoundary);
-  track.fSnext = nav->GetStep();
-  track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
-  track.fBoundary = track.fSnext < track.fPstep;
-  track.fSnext = Math::Max<double>(2 * gTolerance, track.fSnext + 2 * gTolerance);
+  nav->FindNextBoundary(Math::Min<double>(1.E20, track.GetPstep()), "", track.Boundary());
+  track.SetSnext(nav->GetStep());
+  track.SetSafety(track.Boundary() ? 0. : nav->GetSafeDistance());
+  track.SetBoundary(track.GetSnext() < track.GetPstep());
+  track.SetSnext(Math::Max<double>(2 * gTolerance, track.GetSnext() + 2 * gTolerance));
 }
   
 //______________________________________________________________________________
@@ -152,37 +152,37 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
   TGeoNode *nextnode, *lastnode;
   double pt[3];
   ismall = 0;
-  track.fStep = 0;
+  track.SetStep(0);
   // Check if current safety allows for the proposed step
-  if (track.fSafety > track.fPstep) {
-    track.fStep = track.fPstep;
+  if (track.GetSafety() > track.GetPstep()) {
+    track.SetStep(track.GetPstep());
     track.UpdateSameNextPath();
-    track.fBoundary = false;
+    track.SetBoundary(false);
     return;
   }
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   // Reset navigation state flags and safety to start fresh
   nav->ResetState();
   // Setup start state
-  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
-  nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
+  nav->SetCurrentPoint(track.X(), track.Y(), track.Z());
+  nav->SetCurrentDirection(track.Dx(), track.Dy(), track.Dz());
   track.Path()->UpdateNavigator(nav);
   nextnode = nav->GetCurrentNode();
   while (nextnode) {
     lastnode = nextnode;
     // Compute distance to next boundary and propagate internally
-    nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.fPstep), !track.fBoundary);
+    nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.GetPstep()), !track.Boundary());
     snext = nav->GetStep();
     // Adjust step to be non-negative and cross the boundary
-    track.fStep = Math::Max<double>(2 * gTolerance, snext + 2 * gTolerance);
+    track.SetStep(Math::Max<double>(2 * gTolerance, snext + 2 * gTolerance));
     // Check for repeated small steps starting from boundary
-    if (track.fBoundary && (snext < 1.E-8) && (track.fPstep > 1.E-8)) {
+    if (track.Boundary() && (snext < 1.E-8) && (track.GetPstep() > 1.E-8)) {
       ismall++;
       if ((ismall < 3) && (nextnode != lastnode)) {
         // Make sure we don't have a thin layer artefact so repeat search
-        nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.fPstep - snext), !track.fBoundary);
+        nextnode = nav->FindNextBoundaryAndStep(Math::Min<double>(1.E20, track.GetPstep() - snext), !track.Boundary());
         snext = nav->GetStep();
-        track.fStep += snext;
+        track.IncreaseStep(snext);
         // If step still small, repeat
         if (snext < 1.E-8)
           continue;
@@ -192,7 +192,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
       } else {
         if (ismall > 3) {
           // Mark track to be killed
-          track.fStep = -1;
+          track.SetStep(-1);
           break;
         }
         // The block below can only happen if crossing into the same node on different geometry
@@ -201,7 +201,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
         const double *dir = gGeoManager->GetCurrentDirection();
         for (int j = 0; j < 3; j++)
           pt[j] += epserr * dir[j];
-        track.fStep += epserr;
+        track.IncreaseStep(epserr);
         nav->CdTop();
         nextnode = nav->FindNode(pt[0], pt[1], pt[2]);
         if (nav->IsOutside())
@@ -214,13 +214,13 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
     break;
   }
   // Update safety, boundary flag and next path
-  track.fSafety = track.fBoundary ? 0. : nav->GetSafeDistance();
-  track.fBoundary = nav->IsOnBoundary();
+  track.SetSafety(track.Boundary() ? 0. : nav->GetSafeDistance());
+  track.SetBoundary(nav->IsOnBoundary());
   track.NextPath()->InitFromNavigator(nav);
 #ifdef VERBOSE
   double bruteforces = nav->Safety();
-  Geant::Print("","##TGEOM  BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", track.fBoundary,
-         track.fPstep, track.fStep, track.fSafety, bruteforces, nav->IsOnBoundary());
+  Geant::Print("","##TGEOM  BOUND %d PSTEP %lg STEP %lg SAFETY %lg BRUTEFORCES %lg TOBOUND %d", track.Boundary(),
+         track.GetPstep(), track.GetStep(), track.GetSafety(), bruteforces, nav->IsOnBoundary());
 // assert( track.fSafety<=bruteforces );
 #endif // VERBOSE
 }
@@ -268,10 +268,10 @@ void ScalarNavInterfaceTGeo::NavIsSameLocation(GeantTrack &track, bool &same) {
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   nav->ResetState();
   nav->SetLastSafetyForPoint(0, 0, 0, 0);
-  nav->SetCurrentPoint(track.fXpos, track.fYpos, track.fZpos);
-  nav->SetCurrentDirection(track.fXdir, track.fYdir, track.fZdir);
+  nav->SetCurrentPoint(track.X(), track.Y(), track.Z());
+  nav->SetCurrentDirection(track.Dx(), track.Dy(), track.Dz());
   track.Path()->UpdateNavigator(nav);
-  if (!nav->IsSameLocation(track.fXpos, track.fYpos, track.fZpos, true)) {
+  if (!nav->IsSameLocation(track.X(), track.Y(), track.Z(), true)) {
     track.NextPath()->InitFromNavigator(nav);
     same = false;     
   } else {
