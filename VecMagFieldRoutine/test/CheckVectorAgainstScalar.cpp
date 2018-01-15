@@ -1,190 +1,152 @@
 
-#include <string>
+//#include <string>
 #include <iostream>
 #include <vector>
 #include <cassert>
 #include <ctime>
-#include <cmath> //for sqrt
-#include <stdlib.h>
+#include <cmath>
 
-#include "base/Vector.h"
-
-//#include "test/unit_tests/ApproxEqual.h"
-#include "ApproxEqual.h"
-
-#include "base/Vector3D.h"
-#include "base/Global.h"
-
-#include "CMSmagField.h"
+#include <ApproxEqual.h>
 #include <Geant/VectorTypes.h>
+#include <base/Vector3D.h>
+#include <base/Global.h>
+#include "CMSmagField.h"
 
 #undef NDEBUG
-
-typedef float dataType;
-//typedef double dataType;
+//#define VERBOSE 1
 
 using namespace std;
-typedef vecgeom::Vector3D<dataType> ThreeVector; //normal Vector3D
-using Double_v = Geant::Double_v;
-using Float_v = Geant::Float_v;
 
-typedef vecgeom::Vector3D<float>    ThreeVector_f;
-typedef vecgeom::Vector3D<double>   ThreeVector_d;
+using Double_v      = Geant::Double_v;
+using ThreeVector   = vecgeom::Vector3D<double>;
+using ThreeVector_v = vecgeom::Vector3D<Double_v>;
 
-typedef vecgeom::Vector3D<Float_v> ThreeVecSimd_v;
-typedef vecgeom::Vector<dataType> VcVectorFloat;
-typedef vecgeom::Vector<ThreeVecSimd_v> VecGeomVector;
+template <typename T>
+using vector_t        = std::vector<T>;
+constexpr float tesla = geant::tesla;
+// constexpr float kilogauss = geant::kilogauss;
+constexpr float millimeter = geant::millimeter;
 
+const double kRMax = 9000 * millimeter;
+const double kZMax = 16000 * millimeter;
 
-
-const dataType kRMax=9000;
-const dataType kZMax= 16000;
-
-dataType RandR(){
-    dataType r = (dataType) rand()/(RAND_MAX) ;
-    r = r*kRMax; //because r is in range (0,9000) mm                                                                          
-    return r;
+double RandR()
+{
+  double rnd = (double)rand() / (RAND_MAX);
+  return rnd * kRMax;
 }
 
-dataType RandZ(){
-    dataType z = (dataType) rand()/(RAND_MAX) ;
-    z = z*kZMax; //range of z is between -16k and 16k                                                                         
-    int sign = rand()%2; //to define the sign, since it can be both positive and negative                                     
-    if (sign==0){
-            z= -z;
-    }
-    return z;
+double RandZ()
+{
+  double rnd = (double)rand() / (RAND_MAX);
+  return -kZMax + 2 * rnd * kZMax;
 }
 
-void GenVecCartSubR(dataType &x, dataType &y){
-    x = RandR();
-    y = RandR();
-    if((x*x + y*y)> kRMax*kRMax){
-        GenVecCartSubR(x,y);
-    }
-}
-
-void GenVecCart(ThreeVector &pos){
-    dataType x=0,y=0;
-    dataType z = RandZ();
+void GenVecCartSubR(double &x, double &y)
+{
+  x = RandR();
+  y = RandR();
+  if ((x * x + y * y) > kRMax * kRMax) {
     GenVecCartSubR(x, y);
-    pos.x()=x;
-    pos.y()=y;
-    pos.z()=z;
+  }
 }
 
-void GenVecCart(vecgeom::Vector<ThreeVector> &posVec, const int &n){
-    for (int i = 0; i < n; ++i)
-    {       
-        ThreeVector pos;
-        GenVecCart(pos);
-        posVec.push_back(pos);
+void GenVecCart(ThreeVector &pos)
+{
+  double rnd = (double)rand() / (RAND_MAX);
+  double phi = 2. * M_PI * rnd;
+  double r   = RandR();
+  double x   = r * vecCore::math::Cos(phi);
+  double y   = r * vecCore::math::Sin(phi);
+  double z   = RandZ();
+  pos.Set(x, y, z);
+}
 
-
-    }
+void GenVecCart(vector_t<ThreeVector> &posVec, const int &n)
+{
+  for (int i = 0; i < n; ++i) {
+    ThreeVector pos;
+    GenVecCart(pos);
+    posVec.push_back(pos);
+  }
 }
 
 int main()
 {
-    CMSmagField m1;
-    m1.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
-    vecgeom::Vector<ThreeVector> posVec;
-    
-    int n = 1e+4;
+  CMSmagField m1;
+  m1.ReadVectorData("../VecMagFieldRoutine/cmsmagfield2015.txt");
+  vector_t<ThreeVector> posVec;
 
-    srand(time(NULL));
-    //srand(2);
-    GenVecCart(posVec, n);
-    cout<<"Size of posVec is: "<<posVec.size()<<endl;
+  size_t n = 4;
 
-    ThreeVector sumXYZField(0., 0., 0.), xyzField;
-    vector<ThreeVector> outputScalar;
+  srand(time(NULL));
+  // srand(2);
+  GenVecCart(posVec, n);
 
-    vecgeom::Vector<ThreeVector> outputScalar2;
-    cout<<"Scalar fields start: "<<endl;
+  ThreeVector sumXYZField(0.), sumXYZFieldVec(0.), xyzField;
+  vector_t<ThreeVector> outputScalar;
 
-    for (int i = 0; i < n; ++i)
-    {
-        m1.GetFieldValue<float>(posVec[i], xyzField);
-        // m1.GetFieldValue(posVec[i], xyzField);        
-        sumXYZField += xyzField;
-        outputScalar.push_back(xyzField);
-        outputScalar2.push_back(xyzField);
+#ifdef VERBOSE
+  cout << "Size of posVec is: " << posVec.size() << endl;
+  cout << "Scalar fields start: " << endl;
+#endif
+
+  for (size_t i = 0; i < n; ++i) {
+    m1.GetFieldValue(posVec[i], xyzField);
+#ifdef VERBOSE
+    cout << "   point: " << posVec[i] << "   field: " << xyzField / tesla << endl;
+#endif
+    sumXYZField += xyzField;
+    outputScalar.push_back(xyzField);
+  }
+  cout << "   Scalar field sum: " << sumXYZField / tesla << " [Tesla]" << endl;
+
+#ifdef VERBOSE
+  cout << "\nVector fields start: " << endl;
+#endif
+  size_t inputVcLen          = ceil(((double)n) / Geant::kVecLenD);
+  ThreeVector_v *inputForVec = new ThreeVector_v[inputVcLen];
+  size_t init                = 0;
+  for (size_t i = 0; i < n; i += Geant::kVecLenD) {
+    for (size_t j = 0; j < Geant::kVecLenD; ++j) {
+      vecCore::Set(inputForVec[init].x(), j, posVec[i + j].x());
+      vecCore::Set(inputForVec[init].y(), j, posVec[i + j].y());
+      vecCore::Set(inputForVec[init].z(), j, posVec[i + j].z());
     }
-    cout<<sumXYZField<<endl;
-    for (int i = 0; i < 8; ++i)
-    {
-        cout<<outputScalar2[i]<<endl;
+    init++;
+  }
+
+  // vector_t<ThreeVector_v> outputVec;
+  ThreeVector_v *outputVec = new ThreeVector_v[inputVcLen];
+  ThreeVector_v sumXYZField_v(Double_v(0));
+  for (size_t i = 0; i < inputVcLen; ++i) {
+    m1.GetFieldValue(inputForVec[i], outputVec[i]);
+#ifdef VERBOSE
+    cout << "   point: " << inputForVec[i] << "   field: " << outputVec[i] / tesla << endl;
+#endif
+    sumXYZField_v += outputVec[i];
+  }
+
+  sumXYZFieldVec.Set(vecCore::ReduceAdd(sumXYZField_v.x()), vecCore::ReduceAdd(sumXYZField_v.y()),
+                     vecCore::ReduceAdd(sumXYZField_v.z()));
+  cout << "   Vector field sum (after ReduceAdd): " << sumXYZFieldVec / tesla << " [Tesla]" << endl;
+  assert(ApproxEqual(sumXYZField / tesla, sumXYZFieldVec / tesla));
+
+  // Now compare the results scalar/vector
+  for (size_t i = 0; i < inputVcLen; ++i) {
+    for (size_t lane = 0; lane < Geant::kVecLenD; ++lane) {
+      // ThreeVector testVec2(xyzField_v[0][j], xyzField_v[1][j], xyzField_v[2][j]);
+      size_t k = i * Geant::kVecLenD + lane;
+      ThreeVector testVec(vecCore::Get(outputVec[i].x(), lane), vecCore::Get(outputVec[i].y(), lane),
+                          vecCore::Get(outputVec[i].z(), lane));
+#ifdef VERBOSE
+      cout << k << ": " << testVec / tesla << " being tested against " << outputScalar[k] / tesla << endl;
+#endif
+      assert(ApproxEqual(testVec / tesla, outputScalar[k] / tesla));
+      k++;
     }
- 
+  }
 
-    cout<<"\nVector fields start: "<<endl;
-    Float_v vX;
-    Float_v vY;
-    Float_v vZ;
-
-    int inputVcLen = ceil(((dataType)n)/Geant::kVecLenF);
-    ThreeVecSimd_v *inputForVec = new ThreeVecSimd_v[inputVcLen];
-    //std::vector<ThreeVecSimd_v> outputVec;
-    int init = 0;
-    
-    for (int i = 0; i < n; i=i+Geant::kVecLenF){
-       for (size_t j = 0; j < Geant::kVecLenF; ++j){
-            vX[j]= posVec[i+j].x();
-            vY[j]= posVec[i+j].y();
-            vZ[j]= posVec[i+j].z();
-        }
-        ThreeVecSimd_v Pos;
-        Pos[0] = vX;
-        Pos[1] = vY;
-        Pos[2] = vZ;
-
-        inputForVec[init] = Pos;
-        init++;
-    }
-
-    //==================================================
-    //=================Test Block=======================
-    // ThreeVecSimd_v v1, v2, v3;
-    // // outputVec.push_back(v1);
-    // // outputVec.push_back(v2);
-    // // outputVec.push_back(v3);
-    // VecGeomVec VecGeomVec1;
-    // VecGeomVec1.push_back(v1);
-    // VecGeomVec1.push_back(v2);
-    // VecGeomVec1.push_back(v3);
-
-    //==================================================
-
-    VecGeomVector outputVec;
-    ThreeVecSimd_v sumXYZField_v, xyzField_v;
-    for (int i = 0; i < inputVcLen; ++i){
-        m1.GetFieldValue<Float_v>(inputForVec[i], xyzField_v);
-        outputVec.push_back(xyzField_v);
-        sumXYZField_v += xyzField_v;
-    }
-    cout<<sumXYZField<<endl;
-
-    cout<<outputVec[0]<<endl;
-
-    for (int i = 0, k=0; i < 256 ; ++i)
-    {
-        for (size_t j = 0; j < Geant::kVecLenF; ++j)
-        {
-            //ThreeVector testVec2(xyzField_v[0][j], xyzField_v[1][j], xyzField_v[2][j]);
-            cout<<k<<endl;
-            ThreeVector testVec(outputVec[i][0][j],outputVec[i][1][j] ,outputVec[i][2][j] );
-            cout<<testVec<<" being tested against "<<outputScalar[k]<<endl;
-            assert(ApproxEqual(testVec, outputScalar[k] ));
-            k++;
-        }
-       
-    }
-    
-
-
-    return 0;
-
+  std::cout << "=== VectorAgainstScalar: success\n";
+  return 0;
 }
-
-

@@ -5,7 +5,7 @@
 #include "iostream"
 #include <vector>
 #include <cstring>
-#include <fstream>
+#include <ifstream>
 #include <sstream>
 #include "base/Global.h"
 #include <Vc/Vc>

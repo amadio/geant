@@ -64,7 +64,7 @@ void GenVecCart(vector<Vector3D> &posVec, const int &n){
 int main(){
 
     MagField m1;
-    m1.ReadVectorData("VecMagFieldRoutine/cms2015.txt");
+    m1.ReadVectorData("VecMagFieldRoutine/cmsmagfield2015.txt");
     vector<Vector3D> posVec, fieldVec;
     vector<double> testVec;
     int n = 1e+6;
