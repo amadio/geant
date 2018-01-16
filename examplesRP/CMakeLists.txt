@@ -3,6 +3,7 @@
 #
 include_directories(
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
@@ -28,6 +29,10 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSData.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSParticleGun.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSPhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbDetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbFullApp.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCBData.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbParticleGun.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3App.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3DetectorConstruction.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3Data.cxx
@@ -49,6 +54,10 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSPhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbDetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbFullApp.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbData.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3App.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h
