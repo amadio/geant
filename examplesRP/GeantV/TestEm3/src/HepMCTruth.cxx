@@ -78,7 +78,7 @@ void HepMCTruth::InitMCTruthMgr() {}
 //______________________________________________________________________________
 void HepMCTruth::CloseEvent(int evID) {
   
-  HepMC::GenEvent genevt(HepMC::Units::GEV,HepMC::Units::MM);
+  HepMC::GenEvent genevt(HepMC::Units::GEV,HepMC::Units::CM);
   genevt.set_event_number(evID);
   
   // map to keep the relation GeantID -> GenParticle
