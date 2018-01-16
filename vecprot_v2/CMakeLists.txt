@@ -13,6 +13,7 @@ if (USE_REAL_PHYSICS)
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
     ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
+    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc
     )
 else()
   include_directories(
@@ -339,6 +340,7 @@ set(TEST_EXECUTABLES
   )
 set(NOTEST_EXECUTABLES
   fullCMS.cc
+  fullLHCb.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -407,6 +409,20 @@ foreach(_script ${fullCMS_SCRIPTS})
 endforeach()
 install(TARGETS fullCMS DESTINATION ${fullCMS_OUTPUT})
 install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
+### fullLHCb ###
+set(fullLHCb_OUTPUT bin/examples/FullLHCb/GeantV)
+set(fullLHCb_SCRIPTS fullLHCb.mac README_fullLHCb ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/LHCb_201603.gdml)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullLHCb_OUTPUT})
+foreach(_script ${fullLHCb_SCRIPTS})
+  configure_file(
+    ${_script}
+    ${CMAKE_BINARY_DIR}/${fullLHCb_OUTPUT}/${_script}
+    COPYONLY
+    )
+endforeach()
+install(TARGETS fullLHCb DESTINATION ${fullLHCb_OUTPUT})
+install(FILES ${fullLHCb_SCRIPTS} DESTINATION ${fullLHCb_OUTPUT})
+
 ### TestEm3_GV ###
 set(TestEm3_GV_OUTPUT bin/examples/Calorimeter/GeantV)
 set(TestEm3_GV_SCRIPTS TestEm3_GV_ATLASbar.mac README_TestEm3_GV)
