@@ -530,7 +530,7 @@ public:
    * @param  bmagOut       Output (optional) field magnitude
    */
   VECCORE_ATT_HOST_DEVICE
-  void GetFieldValue(GeantTaskData *td, int i, double BfieldOut[3], double *bmagOut) const;
+  void GetFieldValue( /*GeantTaskData *td,*/ int i, double BfieldOut[3], double *bmagOut) const;
   //  {
   //     vecgeom::Vector3D<double> Position (fXposV[i], fYposV[i], fZposV[i]);
   //     FieldLookup::GetFieldValue(td, Position, BfieldOut, bmagOut);
@@ -556,11 +556,11 @@ public:
    * @param  i Input bit number 'i'
    */
   VECCORE_ATT_HOST_DEVICE
-  double Curvature(GeantTaskData *td, int i) const;
+  double Curvature(int i) const;
    
   /** @brief Function that return safe length */
   VECCORE_ATT_HOST_DEVICE
-  double SafeLength(GeantTaskData *td, int i, double eps = 1.E-4);
+  double SafeLength(int i, double eps = 1.E-4);
 
   /**
    * @brief Function that return gamma value

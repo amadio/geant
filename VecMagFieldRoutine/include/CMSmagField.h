@@ -41,8 +41,8 @@
 #include <cassert>
 #include <ctime>
 
-#include "base/Vector3D.h"
-#include "base/Global.h"
+#include <base/Vector3D.h>
+#include <base/Global.h>
 #include <SystemOfUnits.h>
 #include <Geant/VectorTypes.h>
 
@@ -51,19 +51,6 @@
 #define FORCE_INLINE   1
 
 // #include "VVectorField.h"
-
-// using namespace std;
-
-#ifdef  NO_INLINE
-#define INLINE_CHOICE __attribute__ ((noinline))
-#else
-#ifdef FORCE_INLINE
-#define INLINE_CHOICE inline __attribute__ ((always_inline))
-#else
-//  Default configuration
-#define INLINE_CHOICE inline
-#endif
-#endif
 
 template<typename T>
 struct MagVector3 {
@@ -75,6 +62,7 @@ struct MagVector3 {
 class CMSmagField // : public VVectorField
 {
   using Double_v = Geant::Double_v;
+  using Float_v = Geant::Float_v;
   
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -150,19 +138,26 @@ protected:
     //Used to convert cartesian coordinates to cylindrical coordinates R-Z-phi
     //Does not calculate phi
     template <typename Real_v>
+    GEANT_FORCE_INLINE
     void CartesianToCylindrical(const Vector3D<Real_v> &cart, 
                                                Real_v   cyl[2]);
 
     //Converts cylindrical magnetic field to field in cartesian coordinates 
     template <typename Real_v>
+    GEANT_FORCE_INLINE
     void CylindricalToCartesian(const Vector3D<Real_v> &rzField, 
                                 const          Real_v  &sinTheta, 
                                 const          Real_v  &cosTheta, 
                                       Vector3D<Real_v> &xyzField);
 
+    //Gets the field array pointer in the appropriate form
+    template <typename Real_v>
+    GEANT_FORCE_INLINE
+    const typename vecCore::Scalar<Real_v> *GetFieldArray() const;
 
     //Takes care of indexing into multiple places in AOS. 
     template <typename Real_v>
+    GEANT_FORCE_INLINE
     void Gather2(const vecCore::Index<Real_v> index,
                        Real_v B1[3],
                        Real_v B2[3]);
@@ -172,11 +167,11 @@ public:
   CMSmagField* CloneOrSafeSelf( bool* pSafe );
    // VVectorField*    Clone() const override;
 
-  using Store_t= double; // Type used in storing values
   enum  kIndexRPhiZ { kNumR = 0, kNumPhi= 1, kNumZ = 2 } ;
 private: 
    // MagVector3<float> *fMagvArray; //  = new MagVector3<float>[30000];
-  Store_t fMagLinArray[3*kNoZValues*kNoRValues];
+  float   fMagLinArray[3*kNoZValues*kNoRValues];
+  double  fMagLinArrayD[3*kNoZValues*kNoRValues];
   bool    fReadData;
   bool    fVerbose;
   bool    fPrimary;  /** Read in and own the data arrays */
@@ -192,9 +187,6 @@ CMSmagField::CMSmagField()
 
 CMSmagField::CMSmagField(std::string inputMap) : CMSmagField() 
 {
-   // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
-   // fMagLinArray = new Store_t[3*kNoZValues*kNoRValues];   
-
    if( fVerbose ) {   
      // ReportVersion();  
      std::cout<<"- CMSmagField c-tor #2" << std::endl;
@@ -230,7 +222,6 @@ CMSmagField::~CMSmagField()
    //    delete[] fMagvArray;
 }
 
-INLINE_CHOICE
 bool CMSmagField::ReadVectorData(std::string inputMap)
 {
    std::cout << "CMSmagField::ReadVectorData called with filename= " << inputMap << std::endl;
@@ -248,10 +239,6 @@ bool CMSmagField::ReadVectorData(std::string inputMap)
          //parsing all the parts. s0's store the string names which are of no use to us. 
          ss>> s0>> d1>> s1>> d0>> s2>> d2>> s3>> d3>> s4>> d4>> s5>> d5;
       
-         // fMagvArray[ind].fBr = d4 * kAInverse;
-         // fMagvArray[ind].fBphi = d5 * kAInverse;
-         // fMagvArray[ind].fBz = d3 * kAInverse;
-
          fMagLinArray[ind+kNumR]   = d4 * kAInverse;
          fMagLinArray[ind+kNumPhi] = d5 * kAInverse;
          fMagLinArray[ind+kNumZ]   = d3 * kAInverse;
@@ -263,6 +250,8 @@ bool CMSmagField::ReadVectorData(std::string inputMap)
          ind += 3;
       }
       pFile.close();
+      for (size_t i = 0; i < 3*kNoZValues*kNoRValues; ++i)
+        fMagLinArrayD[i] = fMagLinArray[i];
    }
    else
    {
@@ -274,7 +263,7 @@ bool CMSmagField::ReadVectorData(std::string inputMap)
 }
 
 template <typename Real_v>
-INLINE_CHOICE
+GEANT_FORCE_INLINE
 void CMSmagField::CartesianToCylindrical(const Vector3D<Real_v> &cart, 
                                                Real_v            cyl[2])
 {
@@ -285,7 +274,7 @@ void CMSmagField::CartesianToCylindrical(const Vector3D<Real_v> &cart,
 }
 
 template <typename Real_v>
-INLINE_CHOICE
+GEANT_FORCE_INLINE
 void CMSmagField::CylindricalToCartesian(const Vector3D<Real_v>  &rzField, 
                                          const Real_v            &sinTheta, 
                                          const Real_v            &cosTheta, 
@@ -299,7 +288,28 @@ void CMSmagField::CylindricalToCartesian(const Vector3D<Real_v>  &rzField,
 }
 
 template <typename Real_v>
-INLINE_CHOICE
+GEANT_FORCE_INLINE
+const typename vecCore::Scalar<Real_v> *CMSmagField::GetFieldArray() const
+{
+  return nullptr;
+}
+
+template <>
+GEANT_FORCE_INLINE
+const float *CMSmagField::GetFieldArray<Geant::Float_v>() const
+{
+  return fMagLinArray;
+}
+
+template <>
+GEANT_FORCE_INLINE
+const double *CMSmagField::GetFieldArray<Geant::Double_v>() const
+{
+  return fMagLinArrayD;
+}
+
+template <typename Real_v>
+GEANT_FORCE_INLINE
 void CMSmagField::Gather2(const vecCore::Index<Real_v> index, 
                                 Real_v B1[3],
                                 Real_v B2[3])
@@ -309,7 +319,8 @@ void CMSmagField::Gather2(const vecCore::Index<Real_v> index,
   
   Index_v ind1 = 3 * index;           // 3 components per 'location'
   Index_v ind2 = ind1   + 3 * kNoZValues;
-  Real_s const *addr = (Real_s const *)fMagLinArray;
+  Real_s const *addr = GetFieldArray<Real_v>();
+  //float const *addr = (Real_s const *)fMagLinArray;
   
   //Fetch one component of each point first, then the rest.
   B1[0] = vecCore::Gather<Real_v>( addr, ind1 );
@@ -328,7 +339,7 @@ void CMSmagField::Gather2(const vecCore::Index<Real_v> index,
 
 // Scalar specialization
 template <>
-INLINE_CHOICE 
+GEANT_FORCE_INLINE
 void CMSmagField::Gather2<double>(const vecCore::Index<double> index,
                                         double B1[3],
                                         double B2[3])
@@ -337,18 +348,18 @@ void CMSmagField::Gather2<double>(const vecCore::Index<double> index,
     int ind2 = ind1 + 3 * kNoZValues;
 
     //Fetch one component of each point first, then the rest. 
-    B1[0] = fMagLinArray[ind1+kNumR];
-    B2[0] = fMagLinArray[ind2+kNumR];
+    B1[0] = fMagLinArrayD[ind1+kNumR];
+    B2[0] = fMagLinArrayD[ind2+kNumR];
 
-    B1[1] = fMagLinArray[ind1+kNumPhi];
-    B2[1] = fMagLinArray[ind2+kNumPhi];
+    B1[1] = fMagLinArrayD[ind1+kNumPhi];
+    B2[1] = fMagLinArrayD[ind2+kNumPhi];
     
-    B1[2] = fMagLinArray[ind1+kNumZ];
-    B2[2] = fMagLinArray[ind2+kNumZ];
+    B1[2] = fMagLinArrayD[ind1+kNumZ];
+    B2[2] = fMagLinArrayD[ind2+kNumZ];
 }
 
 template <typename Real_v>
-INLINE_CHOICE
+GEANT_FORCE_INLINE
 void CMSmagField::GetFieldValueRZ(const Real_v &r, 
                                   const Real_v &Z, 
                                   Vector3D<Real_v> &rzField)
@@ -401,15 +412,13 @@ void CMSmagField::GetFieldValueRZ(const Real_v &r,
 
 
 template <typename Real_v>
-INLINE_CHOICE
-//__attribute__ ((noinline))
-//Sidenote: For theta =0; xyzField = rzField. 
-//theta =0 corresponds to y=0
-
+GEANT_FORCE_INLINE
 void CMSmagField::GetFieldValue(const Vector3D<Real_v>      &pos,
                                       Vector3D<Real_v> &xyzField)
 {
 
+//Sidenote: For theta =0; xyzField = rzField. 
+//theta =0 corresponds to y=0
     Real_v cyl[2];
     CartesianToCylindrical<Real_v>(pos, cyl); 
     vecgeom::Vector3D<Real_v> rzField;

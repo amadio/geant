@@ -330,8 +330,10 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
    useRungeKutta= gPropagator_fUseRK;   //  Something like this is needed - TBD
 #else
-   const double bmag = td->fPropagator->fConfig->fBmag;
-   useRungeKutta= td->fPropagator->fConfig->fUseRungeKutta;
+   auto fieldConfig= FieldLookup::GetFieldConfig();
+   auto geantConfig= td->fPropagator->fConfig;
+   const double bmag = fieldConfig->GetUniformFieldMag();
+   useRungeKutta= geantConfig->fUseRungeKutta;
 #endif
 
    // static unsigned long icount= 0;
@@ -427,7 +429,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
   } else {
      ThreeVector BfieldInitial; // [3],
      double bmag= 0.0;
-     FieldLookup::GetFieldValue( Position, BfieldInitial, bmag, td );
+     FieldLookup::GetFieldValue( Position, BfieldInitial, bmag );
      double Bx= BfieldInitial[0], By= BfieldInitial[1], Bz= BfieldInitial[2];
      if ( std::fabs( Bz ) > 1.0e6 * std::max( std::fabs(Bx), std::fabs(By) ) )
      {
@@ -496,7 +498,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   int icrossed = 0;
   double lmax;
   const double eps = 1.E-2; // 100 micron
-  const double bmag = td->fBfieldMag;
+  const double bmag = FieldLookup::GetFieldConfig()->GetUniformFieldMag();
 
   // Remove dead tracks, propagate neutrals
   for (unsigned int itr=0; itr<tracks.size(); ++itr) {
@@ -625,14 +627,14 @@ VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateSingleTrack(GeantTrack *track, Basket *output, GeantTaskData *td, int stage)
 {
   // Propagate the track with its selected steps, starting from a given stage.
-  GeantPropagator *prop = td->fPropagator;
   int icrossed = 0;
   double step, lmax;
   const double eps = 1.E-2; // 1 micron
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   const double bmag = gPropagator_fConfig->fBmag;
 #else
-  const double bmag = prop->fConfig->fBmag;
+  auto fieldConfig= FieldLookup::GetFieldConfig();  
+  const double bmag = fieldConfig->GetUniformFieldMag();  
 #endif
 // Compute transport length in geometry, limited by the physics step
   ComputeTransportLengthSingle(*track, td);
@@ -760,7 +762,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
     if( !neutral ) {
        // printf( " PropagateSingleTrack> getting Field. Charge= %3d ", track.fCharge );
        vecgeom::Vector3D<double> Position( tracks[itr]->X(), tracks[itr]->Y(), tracks[itr]->Z() );
-       FieldLookup::GetFieldValue( Position, Bfield, bmag, td);
+       FieldLookup::GetFieldValue( Position, Bfield, bmag);
        // if( bmag < 1.E-10) { printf("TransportMgr::TrSnglTrk> Tiny field - mag = %f\n", bmag); }
     }
     if ( neutral || bmag < 1.E-10) {       

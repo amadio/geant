@@ -22,7 +22,7 @@ include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
 
 #Copies cms2015.txt to build/VecMagFieldRoutine at runtime 
 configure_file(${CMAKE_SOURCE_DIR}/VecMagFieldRoutine/cmsmagfield2015.txt cmsmagfield2015.txt COPYONLY)
-message(STATUS "CMake source directory is: " ${CMAKE_SOURCE_DIR})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmsmagfield2015.txt DESTINATION VecMagFieldRoutine)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
@@ -39,9 +39,11 @@ set( ALL_LIBRARIES Vmagfield ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} 
 
 add_executable(VecTimingTest ${CMAKE_CURRENT_SOURCE_DIR}/test/BenchmarkTiming.cpp ${sources})
 target_link_libraries(VecTimingTest ${ALL_LIBRARIES}) # ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB})
+install(TARGETS VecTimingTest DESTINATION bin)
 
 add_executable(VectorAgainstScalar ${CMAKE_CURRENT_SOURCE_DIR}/test/CheckVectorAgainstScalar.cpp ${sources})
 target_link_libraries(VectorAgainstScalar  ${ALL_LIBRARIES}) # ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB})
+install(TARGETS VectorAgainstScalar DESTINATION bin)
 
 add_executable(VecTestFunc ${CMAKE_CURRENT_SOURCE_DIR}/test/MainMagFieldTest.cpp ${sources})
 target_link_libraries(VecTestFunc  ${ALL_LIBRARIES}) #  ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB})

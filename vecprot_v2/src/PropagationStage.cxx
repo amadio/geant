@@ -16,7 +16,7 @@ PropagationStage::PropagationStage(GeantPropagator *prop)
    auto fldConfig= FieldLookup::GetFieldConfig();
    assert (fldConfig != nullptr );
    fHasField = fldConfig // FieldLookup::GetFieldConfig()
-      ->FieldExists(prop);
+      ->FieldExists();
 }
 
 //______________________________________________________________________________

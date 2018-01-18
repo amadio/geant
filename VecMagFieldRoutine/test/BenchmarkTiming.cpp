@@ -24,7 +24,6 @@
 #include <functional>
 
 #include "base/Vector3D.h"
-#include "base/Global.h"
 #include <Geant/VectorTypes.h>
 
 // #include "VC_NO_MEMBER_GATHER"
@@ -35,9 +34,11 @@
 using namespace std;
 
 using Double_v = Geant::Double_v;
+using Float_v = Geant::Float_v;
 
 typedef vecgeom::Vector3D<double> ThreeVector; // normal Vector3D
 typedef vecgeom::Vector3D<Double_v> ThreeVecSimd_t;
+typedef vecgeom::Vector3D<Float_v> ThreeVecSimdF_t;
 
 // typedef MagVector3<float>         MagField;
 // using MagField=MagVector3<float>
@@ -90,7 +91,7 @@ float TimeScalar(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
 
   size_t noRunsAvg = 16;
 
-  cout << "=== Scalar fields start: " << endl;
+  cout << "=== Scalar field start: " << endl;
   float tmin  = FLT_MAX;
   float tmax  = -FLT_MAX;
   size_t imin = 0, imax = 0;
@@ -99,6 +100,7 @@ float TimeScalar(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
     clock_t clock1 = clock();
     for (size_t i = 0; i < n; ++i) {
       m1.GetFieldValue(posVec[i], xyzField);
+      // std::cout << i << ": " << posVec[i] << " => " << xyzField << std::endl;
       sumField += xyzField;
       outputVec.push_back(xyzField);
     }
@@ -135,7 +137,7 @@ float TimeScalar(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
 
 float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVector> &outputVec, const size_t &n)
 {
-  cout << "\n=== Vector fields start: " << endl;
+  cout << "\n=== Vector field start: " << endl;
   float tmin  = FLT_MAX;
   float tmax  = -FLT_MAX;
   size_t imin = 0, imax = 0;
@@ -146,27 +148,38 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
   vector<float> vecTimePerRepitition;
   size_t noRunsAvg = 16;
 
-  size_t inputVcLen = ceil(((float)n) / Geant::kVecLenD);
-  ThreeVecSimd_t inputForVec;
-  ThreeVecSimd_t xyzField;
-
+  size_t inputVcLen = ceil(((float)n) / Geant::kVecLenF);
+  ThreeVecSimdF_t inputForVec;
+  // We read the field in float
+  ThreeVecSimdF_t xyzField;
+  // Then convert to double for later use
+  ThreeVecSimd_t xyzField1, xyzField2;
+  
   for (size_t k = 0; k < noRunsAvg; ++k) {
     clock_t clock1 = clock();
     for (size_t i = 0; i < inputVcLen; ++i) {
       // We benchmark also the AOS->SOA
-      for (size_t lane = 0; lane < Geant::kVecLenD; ++lane) {
-        vecCore::Set(inputForVec.x(), lane, posVec[i * Geant::kVecLenD + lane].x());
-        vecCore::Set(inputForVec.y(), lane, posVec[i * Geant::kVecLenD + lane].y());
-        vecCore::Set(inputForVec.z(), lane, posVec[i * Geant::kVecLenD + lane].z());
+      for (size_t lane = 0; lane < Geant::kVecLenF; ++lane) {
+        vecCore::Set(inputForVec.x(), lane, posVec[i * Geant::kVecLenF + lane].x());
+        vecCore::Set(inputForVec.y(), lane, posVec[i * Geant::kVecLenF + lane].y());
+        vecCore::Set(inputForVec.z(), lane, posVec[i * Geant::kVecLenF + lane].z());
       }
 
+      // We need the field in Double_v for further computations. We do a trick:
+      // extract field values with a Float_v which we then copy to two Double_v
       m1.GetFieldValue(inputForVec, xyzField);
-      // We benchmark also writing the scalar output
+      // std::cout << i << ": " << inputForVec << " => " << xyzField << std::endl;
+     // We benchmark also writing to the Double_v
+      Geant::CopyFltToDbl(xyzField, xyzField1, xyzField2);
       for (size_t lane = 0; lane < Geant::kVecLenD; ++lane) {
-        xyzFieldS.Set(vecCore::Get(xyzField.x(), lane), vecCore::Get(xyzField.y(), lane),
-                      vecCore::Get(xyzField.z(), lane));
-        outputVec.push_back(xyzFieldS);
+        xyzFieldS.Set(vecCore::Get(xyzField1.x(), lane), vecCore::Get(xyzField1.y(), lane),
+                      vecCore::Get(xyzField1.z(), lane));
         sumField += xyzFieldS;
+        outputVec.push_back(xyzFieldS);
+        xyzFieldS.Set(vecCore::Get(xyzField2.x(), lane), vecCore::Get(xyzField2.y(), lane),
+                      vecCore::Get(xyzField2.z(), lane));
+        sumField += xyzFieldS;
+        outputVec.push_back(xyzFieldS);
       }
     }
     clock1              = clock() - clock1;
@@ -210,7 +223,7 @@ int main() // int argc, char**argv)
   vector<ThreeVector> posVec;
   vector<ThreeVector> outputVec;
 
-  size_t n = 1e6;
+  size_t n = 1E5;
   // cout << "Give input vector size: ";
   // cin >> n;
 

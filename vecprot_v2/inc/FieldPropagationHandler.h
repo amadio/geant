@@ -72,13 +72,12 @@ private:
 
   /** @brief Curvature for general field    */
   VECCORE_ATT_HOST_DEVICE
-  double Curvature(const GeantTrack     & track,
-                         GeantTaskData * td) const;
+  double Curvature(const GeantTrack &track ) const;
    
   /** @brief Function that returns safe length */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double SafeLength(const GeantTrack &track, GeantTaskData *td, double eps = 1.E-4);
+  double SafeLength(const GeantTrack &track, double eps = 1.E-4);
 
   /** @brief Function that return Field Propagator, i.e. the holder of (RK) Integration Driver */
   GEANT_FORCE_INLINE   
@@ -92,12 +91,12 @@ VECCORE_ATT_HOST_DEVICE
 GEANT_FORCE_INLINE          
 double
 FieldPropagationHandler::
-SafeLength(const GeantTrack &track, GeantTaskData *td, double eps)
+SafeLength(const GeantTrack &track, double eps)
 {
    // Returns the propagation length in field such that the propagated point is
    // shifted less than eps with respect to the linear propagation.
    // OLD: return 2. * sqrt(eps / track.Curvature(Bz));
-   double c = Curvature(track, td);
+   double c = Curvature(track); //, td);
    double val= 0.0;
    // if (c < 1.E-10) { val= 1.E50; } else
    val = 2. * sqrt(eps / c);

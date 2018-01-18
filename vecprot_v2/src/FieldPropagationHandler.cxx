@@ -51,8 +51,7 @@ FieldPropagationHandler::~FieldPropagationHandler()
 //______________________________________________________________________________
 // Curvature for general field   
 VECCORE_ATT_HOST_DEVICE
-double FieldPropagationHandler::Curvature(const GeantTrack  & track,
-                                          GeantTaskData     * td) const
+double FieldPropagationHandler::Curvature(const GeantTrack  & track) const
 {
   using ThreeVector_d = vecgeom::Vector3D<double>;
   constexpr double tiny = 1.E-30;
@@ -60,8 +59,7 @@ double FieldPropagationHandler::Curvature(const GeantTrack  & track,
   double bmag= 0.0;
 
   ThreeVector_d Position(track.X(), track.Y(), track.Z());
-  FieldLookup::GetFieldValue(Position, MagFld, bmag, td);
-  // GetFieldValue(track, MagFld, bmag, td);
+  FieldLookup::GetFieldValue(Position, MagFld, bmag); // , td);
 
   //  Calculate transverse momentum 'Pt' for field 'B'
   // 
@@ -91,7 +89,7 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
   // i.e. what is the propagated length for which the track deviation in
   // magnetic field with respect to straight propagation is less than epsilon.
   // Take the maximum between the safety and the "bending" safety
-  lmax = SafeLength(*track, td, eps);
+  lmax = SafeLength(*track, eps);
   lmax = vecCore::math::Max<double>(lmax, track->GetSafety());
   // Select step to propagate as the minimum among the "safe" step and:
   // the straight distance to boundary (if frombdr=1) or the proposed  physics
@@ -146,7 +144,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   for (int itr = 0; itr < ntracks; itr++) {
     // Can this loop be vectorized?
     GeantTrack &track = *tracks[itr];
-    lmax = SafeLength(track, td, eps);
+    lmax = SafeLength(track, eps);
     lmax = vecCore::math::Max<double>(lmax, track.GetSafety());
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
@@ -265,7 +263,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
    double bmag;
    ThreeVector BfieldInitial;      // double BfieldInitial[3]
    ThreeVector Position(track.X(), track.Y(), track.Z());
-   FieldLookup::GetFieldValue(Position, BfieldInitial, bmag, td);
+   FieldLookup::GetFieldValue(Position, BfieldInitial, bmag); // , td);
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
    auto fieldPropagator = GetFieldPropagator(td);   

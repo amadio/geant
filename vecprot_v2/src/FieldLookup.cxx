@@ -26,7 +26,7 @@ void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
    double bmag= 0.0;
    assert( fFieldConfig != nullptr );
 
-   auto pField= fFieldConfig->GetFieldObjet();
+   auto pField= fFieldConfig->GetFieldObject();
    
    if( fFieldConfig->IsFieldUniform() ) {
       MagFieldOut= fFieldConfig->GetUniformFieldValue();

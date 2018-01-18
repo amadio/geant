@@ -1282,7 +1282,8 @@ void GeantTrack_v::PropagateInVolume(int ntracks, const double *crtstep, GeantTa
 
 //______________________________________________________________________________          
 VECCORE_ATT_HOST_DEVICE
-void GeantTrack_v::GetFieldValue(GeantTaskData *td, int i, double BfieldOut[3], double *bmagOut) const
+void GeantTrack_v::GetFieldValue( // GeantTaskData *td,
+                                 int i, double BfieldOut[3], double *bmagOut) const
 {
    vecgeom::Vector3D<double> Position (fXposV[i], fYposV[i], fZposV[i]);
    vecgeom::Vector3D<double> Bfield;
@@ -1308,7 +1309,7 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
   bool useRungeKutta= false;
   GUFieldPropagator *fieldPropagator = nullptr;
   double BfieldInitial[3], bmag= 0.0;
-  GetFieldValue(td, i, BfieldInitial, &bmag);
+  GetFieldValue(i, BfieldInitial, &bmag);
 
   useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
    
@@ -1774,7 +1775,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
     bool straightTraj= ( fChargeV[itr] == 0 );
     if( !straightTraj ) {
        numCharged++;
-       GetFieldValue(td, itr, Bfield, &bmag);
+       GetFieldValue( itr, Bfield, &bmag);
        // td->StoreFieldValue(itr, Bfield, bmag);   // Store it in Task-Data array !?
        straightTraj = bmag < 1.E-10 * fieldUnits::kilogauss;
        // printf("bmag = %9.3g kiloGauss\n", bmag / fieldUnits::kilogauss );
@@ -1873,7 +1874,7 @@ int GeantTrack_v::PropagateTracks(GeantTaskData *td) {
   ntracks = GetNtracks();
   double *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < fNtracks; itr++) {
-    lmax = SafeLength(td, itr, eps);
+    lmax = SafeLength(itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
@@ -2011,7 +2012,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     bool neutral = (fChargeV[itr] == 0);
     if( !neutral ) {
        // printf( " PropagateSingleTrack> getting Field. Charge= %3d ", fChargeV[itr]);
-       GetFieldValue(td, itr, Bfield, &bmag);
+       GetFieldValue(itr, Bfield, &bmag);
        // if( bmag < 1.E-10) { printf(" Tiny field - mag = %g at %f %f %f\n",
        //                             bmag,  fXposV[itr],  fYposV[itr],  fZposV[itr]); }
     }
@@ -2060,7 +2061,7 @@ int GeantTrack_v::PropagateSingleTrack(int itr, GeantTaskData *td, int stage) {
     // i.e. what is the propagated length for which the track deviation in magnetic
     // field with respect to straight propagation is less than epsilon.
     // Take the maximum between the safety and the "bending" safety
-    lmax = SafeLength(td,itr, eps);
+    lmax = SafeLength(itr, eps);
     lmax = Math::Max<double>(lmax, fSafetyV[itr]);
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if frombdr=1) or the proposed  physics
@@ -2166,7 +2167,7 @@ int GeantTrack_v::PropagateTracksScalar(GeantTaskData *td, int stage) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-double GeantTrack_v::Curvature(GeantTaskData *td, int i) const {
+double GeantTrack_v::Curvature(int i) const {
   using ThreeVector_d = vecgeom::Vector3D<double>;
   
   // Curvature for general field
@@ -2174,7 +2175,7 @@ double GeantTrack_v::Curvature(GeantTaskData *td, int i) const {
 
   double Bfield[3], bmag= 0.0;
   
-  GetFieldValue(td, i, Bfield, &bmag);
+  GetFieldValue(i, Bfield, &bmag);
   ThreeVector_d MagFld(Bfield[0], Bfield[1], Bfield[2]);
 
   //  Calculate transverse momentum 'Pt' for field 'B'
@@ -2192,10 +2193,10 @@ double GeantTrack_v::Curvature(GeantTaskData *td, int i) const {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-double GeantTrack_v::SafeLength(GeantTaskData *td, int i, double eps) {
+double GeantTrack_v::SafeLength(int i, double eps) {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.
-  double c = Curvature(td, i);
+  double c = Curvature(i);
   if (c < 1.E-10)
     return 1.E50;
   return 2. * sqrt(eps / c);
