@@ -41,7 +41,7 @@ class UserFieldConstruction
     /** Register a B-field, and create integrator for it. */ 
     // template <class Field_t>                   // RootDL
     // bool CreateSolverForField(Field_t* field); // RootDL
-
+   
     void SetEpsilonRK(double val) { fEpsilonRK = val; }
     void SetMinimumStep( double v) { fMinimumStepInField = v; }
 
@@ -50,7 +50,7 @@ class UserFieldConstruction
     double GetEpsilonRK() { return fEpsilonRK; }
     double GetMinimumStep() { return fMinimumStepInField; }
     bool   IsFieldCreated() { return fCreatedField; }
-    VScalarField*    GetField() { return fpField; }
+    VVectorField*    GetField() { return fpField; }
    
   private:
     double           fEpsilonRK;
@@ -64,7 +64,7 @@ class UserFieldConstruction
     bool             fCalled;
 
   protected:
-    VScalarField*        fpField;
+    VVectorField*        fpField;
 
   public:
     static constexpr double   fEpsilonDefault = 3.0e-5; 
@@ -72,7 +72,7 @@ class UserFieldConstruction
     // vecgeom::Vector3D<float>  fUniformMagFieldVec;
 
 // };   // RootComm
-  
+
 // --> Changed to accomodate Root needs for 
 public: // RootAdded
    
@@ -149,7 +149,7 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
 virtual
 bool
 // UserFieldConstruction:: // RootComm
-CreateFieldAndSolver(bool /*useRungeKutta*/, VScalarField** fieldPP= nullptr )
+CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
 {
   static const char *method="UserFieldConstruction::CreateFieldAndSolver";
   bool rtv= false;

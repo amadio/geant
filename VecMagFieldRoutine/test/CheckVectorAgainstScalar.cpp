@@ -42,15 +42,6 @@ double RandZ()
   return -kZMax + 2 * rnd * kZMax;
 }
 
-void GenVecCartSubR(double &x, double &y)
-{
-  x = RandR();
-  y = RandR();
-  if ((x * x + y * y) > kRMax * kRMax) {
-    GenVecCartSubR(x, y);
-  }
-}
-
 void GenVecCart(ThreeVector &pos)
 {
   double rnd = (double)rand() / (RAND_MAX);

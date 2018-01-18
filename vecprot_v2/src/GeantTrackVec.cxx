@@ -36,7 +36,7 @@
 #include "ConstFieldHelixStepper.h"
 #include "GeantScheduler.h"
 
-#include "VScalarField.h"
+// #include "VVectorField.h"
 #include "Units.h"     //  Field Units - to be 'unified'
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
@@ -1286,7 +1286,7 @@ void GeantTrack_v::GetFieldValue(GeantTaskData *td, int i, double BfieldOut[3], 
 {
    vecgeom::Vector3D<double> Position (fXposV[i], fYposV[i], fZposV[i]);
    vecgeom::Vector3D<double> Bfield;
-   FieldLookup::GetFieldValue( Position, Bfield, *bmagOut, td);
+   FieldLookup::GetFieldValue( Position, Bfield, *bmagOut); // , td);
    BfieldOut[0]= Bfield[0];
    BfieldOut[1]= Bfield[1];
    BfieldOut[2]= Bfield[2];   

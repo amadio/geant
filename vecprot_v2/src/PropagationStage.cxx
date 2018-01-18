@@ -1,6 +1,7 @@
 #include "PropagationStage.h"
 
 #include "GeantRunManager.h"
+#include "FieldLookup.h"
 #include "LinearPropagationHandler.h"
 #include "FieldPropagationHandler.h"
 
@@ -12,8 +13,10 @@ VECCORE_ATT_HOST_DEVICE
 PropagationStage::PropagationStage(GeantPropagator *prop)
   : SimulationStage(kPropagationStage, prop)
 {
-  const double bmag = prop->fConfig->fBmag;
-  fHasField = bmag > 1.e-10;
+   auto fldConfig= FieldLookup::GetFieldConfig();
+   assert (fldConfig != nullptr );
+   fHasField = fldConfig // FieldLookup::GetFieldConfig()
+      ->FieldExists(prop);
 }
 
 //______________________________________________________________________________

@@ -68,7 +68,7 @@ public:
   double fVertex[3];      /** Vertex position */
   double fEmin = 1.E-4;   /** Min energy threshold [GeV] */
   double fEmax = 10;      /** Max energy threshold [GeV] */
-  double fBmag = 0;       /** Magnetic field [kiloGauss] */
+  // double fBfieldMag = 0.0;   /** Magnitude of field in case of const field [kiloGauss] */
   double fEpsilonRK = 3.e-4;  /** Relative error in RK integration */
   float fFireFlushRatio = 2.; /** Ratio fired/flush to trigger basketizing */
 

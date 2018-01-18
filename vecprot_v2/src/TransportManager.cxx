@@ -41,7 +41,7 @@
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
 
-#include "VScalarField.h"
+// #include "VVectorField.h"
 #include "FieldLookup.h"
 
 // #endif

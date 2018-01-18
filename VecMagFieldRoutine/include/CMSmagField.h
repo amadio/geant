@@ -50,7 +50,7 @@
 
 #define FORCE_INLINE   1
 
-// #include "VScalarField.h"
+// #include "VVectorField.h"
 
 // using namespace std;
 
@@ -72,7 +72,7 @@ struct MagVector3 {
   T fBz   =0.;
 };
 
-class CMSmagField // : public VScalarField
+class CMSmagField // : public VVectorField
 {
   using Double_v = Geant::Double_v;
   
@@ -170,7 +170,7 @@ protected:
 public:
   // Methods for Multi-treading
   CMSmagField* CloneOrSafeSelf( bool* pSafe );
-   // VScalarField*    Clone() const override;
+   // VVectorField*    Clone() const override;
 
   using Store_t= double; // Type used in storing values
   enum  kIndexRPhiZ { kNumR = 0, kNumPhi= 1, kNumZ = 2 } ;
@@ -183,7 +183,7 @@ private:
 };
 
 CMSmagField::CMSmagField()
-  : // VScalarField(gNumFieldComponents, gFieldChangesEnergy),
+  : // VVectorField(gNumFieldComponents, gFieldChangesEnergy),
     fReadData(false), fVerbose(true), fPrimary(false)
 {
    // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
@@ -216,7 +216,7 @@ void CMSmagField::ReportVersion()
 }
 
 CMSmagField::CMSmagField(const CMSmagField &right)
-  : // VScalarField(gNumFieldComponents, gFieldChangesEnergy),
+  : // VVectorField(gNumFieldComponents, gFieldChangesEnergy),
     fReadData(right.fReadData),
     fVerbose(right.fVerbose),
     fPrimary(false)
@@ -434,7 +434,7 @@ CMSmagField* CMSmagField::CloneOrSafeSelf( bool* pSafe )
    return this;
 }
 
-VScalarField* CMSmagField::Clone() const
+VVectorField* CMSmagField::Clone() const
 {
    return new CMSmagField( *this );
 }

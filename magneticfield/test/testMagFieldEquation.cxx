@@ -7,7 +7,7 @@
 #include "GUVVectorEquationOfMotion.h"
 #include "TVectorMagFieldEquation.h"
 
-#include "VScalarField.h"
+#include "VVectorField.h"
 #include "MagFieldEquation.h"
 #include "FieldEquationFactory.h"
 

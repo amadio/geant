@@ -113,7 +113,7 @@ private:
 
 template <class Field, unsigned int Size>
    ScalarMagFieldEquation<Field,Size>::ScalarMagFieldEquation(const ScalarMagFieldEquation& right)
-     : VScalarEquationOfMotion( (VScalarField*) 0 ),
+     : VScalarEquationOfMotion( (VVectorField*) 0 ),
        fPtrField( right.fPtrField->CloneOrSafeSelf( (bool *)0 ) )
       // fPtrField( new Field(right.fPtrField) )
 {

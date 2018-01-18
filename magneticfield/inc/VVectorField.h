@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 /**
- * @file VScalarField.h
+ * @file VVectorField.h
  * @brief  Abstract field class for Geant-V prototype
  * @author John Apostolakis
  */
@@ -8,7 +8,7 @@
 
 //
 //
-// class VScalarField
+// class VVectorField
 //
 // Class description:
 //
@@ -30,8 +30,8 @@
 // same convention for the order of field components in the array "fieldArr"
 // -------------------------------------------------------------------
 
-#ifndef VScalarField_HH
-#define VScalarField_HH
+#ifndef VVectorField_HH
+#define VVectorField_HH
 
 #include <vector>
 #include "base/Vector3D.h"
@@ -45,7 +45,7 @@
  * @brief Base class describing the scalar and vector interfaces for Field classes
  */
 
-class VScalarField
+class VVectorField
 {
 
 public:  // with description
@@ -55,7 +55,6 @@ public:  // with description
   
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
-  
 
   /**
    * @brief Scalar interface for field retrieval
@@ -66,30 +65,30 @@ public:  // with description
    *                   3,4,5 = E_x, E_y, E_z  (foreseen extension)
    *        Units are expected to be native GeantV units.
    */
-  virtual void GetFieldValue( const Vector3D<double> &position,
-                                    Vector3D<double>  &fieldValue ) = 0;
+  virtual void ObtainFieldValue( const Vector3D<double> &position,
+                                       Vector3D<double>  &fieldValue ) = 0;
 
   /** @brief Vector interface for field retrieval */
-  virtual void GetFieldValueSIMD( const Vector3D<Double_v> &position, 
-                                        Vector3D<Double_v> &fieldValue ) = 0;
+  virtual void ObtainFieldValueSIMD( const Vector3D<Double_v> &position, 
+                                           Vector3D<Double_v> &fieldValue ) = 0;
 
   inline
-  VScalarField( int numberOfComponents, bool changesEnergy )
+  VVectorField( int numberOfComponents, bool changesEnergy )
     : fNumberOfComponents(numberOfComponents), fChangesEnergy(changesEnergy) {}
 
   inline
-  VScalarField( const VScalarField &field)
+  VVectorField( const VVectorField &field)
     : fNumberOfComponents(field.fNumberOfComponents), fChangesEnergy(field.fChangesEnergy) {}
-  virtual ~VScalarField() {}
+  virtual ~VVectorField() {}
  
   // A field signature function that can be used to insure
-  // that the Equation of motion object and the VScalarField object
+  // that the Equation of motion object and the VVectorField object
   // have the same "field signature"?
 
   bool   DoesFieldChangeEnergy() const { return fChangesEnergy; } 
   int    GetNumberOfComponents() const { return fNumberOfComponents; } 
 
-  VScalarField& operator = (const VScalarField &field)
+  VVectorField& operator = (const VVectorField &field)
   {
     if (&field != this) {
       fNumberOfComponents = field.fNumberOfComponents;
@@ -98,7 +97,7 @@ public:  // with description
     return *this;
   }
   
-  virtual VScalarField* Clone() const
+  virtual VVectorField* Clone() const
   {
     std::runtime_error("Clone must be implemented by the derived field class");
     return nullptr;
@@ -117,4 +116,4 @@ private:
   bool fChangesEnergy;            // Electric: true, Magnetic: false
 };
 
-#endif /* VScalarField_HH */
+#endif /* VVectorField_HH */

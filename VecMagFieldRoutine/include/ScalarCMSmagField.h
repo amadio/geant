@@ -45,7 +45,7 @@
 #include "base/SOA3D.h"
 #include "base/Global.h"
 
-#include "VScalarField.h"
+#include "VVectorField.h"
 #include "Units.h"
 
 // Configuration options - to be improved and incorporated in CMakeLists.txt ??
@@ -141,7 +141,7 @@ protected:
 public:
     // Methods for Multi-treading
     ScalarCMSmagField* CloneOrSafeSelf( bool* pSafe );
-    VScalarField*    Clone() const override;
+    VVectorField*    Clone() const override;
    
 private: 
     MagVector3<float> *fMagvArray; //  = new MagVector3<float>[30000];
@@ -402,7 +402,7 @@ ScalarCMSmagField* ScalarCMSmagField::CloneOrSafeSelf( bool* pSafe )
 }
 
 
-VScalarField* ScalarCMSmagField::Clone() const
+VVectorField* ScalarCMSmagField::Clone() const
 {
    return new ScalarCMSmagField( *this );
 }

@@ -1,5 +1,9 @@
-#include "VScalarField.h"
+#include <cassert>
+
+#include "VVectorField.h"
 #include "FieldLookup.h"
+
+#include "FieldConfig.h"
 
 #include "Geant/Error.h"
 #include "GeantTaskData.h"
@@ -8,28 +12,36 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
+FieldConfig* FieldLookup::fFieldConfig= nullptr;
+
 VECCORE_ATT_HOST_DEVICE
 void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
                                        vecgeom::Vector3D<double>& MagFieldOut,
-                                       double                   & bmag,
-                                 const Geant::GeantTaskData     * td
+                                       double                   & bmagOut
+                                 // , const Geant::GeantTaskData     * td  => Not needed !!
    )
 {
-   // using ThreeVector_f = vecgeom::Vector3D<float>;
-   // using ThreeVector_d = vecgeom::Vector3D<double>;
+//   auto tkp = td->fPropagator;
+//   auto config = tkp ? tkp->fConfig : nullptr;
+   double bmag= 0.0;
+   assert( fFieldConfig != nullptr );
+
+   auto pField= fFieldConfig->GetFieldObjet();
    
-   bmag= 0.0;
-   if( td->fBfieldIsConst ) {
-      MagFieldOut= td->fConstFieldValue;
-      bmag=        td->fBfieldMag;
+   if( fFieldConfig->IsFieldUniform() ) {
+      MagFieldOut= fFieldConfig->GetUniformFieldValue();
+      bmag=        fFieldConfig->GetUniformFieldMag();
    }
-   else
+   else // if( pField )
    {
-      td->fFieldObj->GetFieldValue(Position, MagFieldOut);
+      assert( pField != nullptr );
+      
+      pField->ObtainFieldValue(Position, MagFieldOut);
       bmag= MagFieldOut.Mag();
       // printf(" GeantTrack_v::GetFieldValue> Field at ( %f %f %f ) is (%f %f %f) kGauss - mag = %f \n",
          //       Position.x(), Position.y(), Position.z(), MagFldD.x(), MagFldD.y(), MagFldD.z(), *bmag );
    }
+   bmagOut= bmag;
 }
 
 #if 0
@@ -52,16 +64,5 @@ void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
 #endif
 //*****
 
-//______________________________________________________________________________          
-bool
-FieldLookup::CheckConfig( const Geant::GeantTaskData * td )
-{
-   bool ok= ( td->fBfieldIsConst || ( td->fFieldObj != nullptr ) );
-   if( !ok )
-      Error("FieldLookup::CheckConfig",
-            "Field configuration incorrect - neither uniform field nor is a field object set.");
-   return ok;
-}
-          
 }
 } // End of namespace Geant

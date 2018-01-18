@@ -9,7 +9,7 @@
 #include "TVectorMagFieldEquation.h"
 #include "ScalarUniformMagField.h"
 
-#include "VScalarField.h"
+#include "VVectorField.h"
 #include "TMagFieldEquation.h"
 #include "FieldEquationFactory.h"
 

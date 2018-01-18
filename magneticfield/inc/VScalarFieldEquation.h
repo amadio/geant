@@ -21,13 +21,13 @@
 #include <Geant/Config.h>  // To define GEANT_FORCE_INLINE
 
 // #include "GUVTypes.hh"      // "globals.hh"
-#include "VScalarField.h"   // required in inline method implementations
+#include "VVectorField.h"   // required in inline method implementations
 
 class VScalarEquationOfMotion 
 {
   public:  // with description
 
-     VScalarEquationOfMotion( VScalarField *Field, unsigned short verbose=0 );
+     VScalarEquationOfMotion( VVectorField *Field, unsigned short verbose=0 );
      virtual ~VScalarEquationOfMotion();
        // Constructor and virtual destructor. No operations, just checks
 
@@ -66,9 +66,9 @@ class VScalarEquationOfMotion
      void GetFieldValue( const vecgeom::Vector3D<double> &position,
                          vecgeom::Vector3D<double>       &fieldValue ) const;
 
-     const VScalarField* GetFieldObj() const {return fField;}
-           VScalarField* GetFieldObj()       {return fField;}
-     void            SetFieldObj(VScalarField* pField){fField=pField;}
+     const VVectorField* GetFieldObj() const {return fField;}
+           VVectorField* GetFieldObj()       {return fField;}
+     void            SetFieldObj(VVectorField* pField){fField=pField;}
 
      bool         Initialised() const { return fInitialised; } 
      unsigned int GetId() const       { return fEquationId; }
@@ -88,7 +88,7 @@ class VScalarEquationOfMotion
      // const int GUVmaximum_number_of_field_components = 24;
      enum { GUVmaximum_number_of_field_components = 24 } ;
 
-     VScalarField *     fField;
+     VVectorField *     fField;
      unsigned int   fEquationId;  //
      unsigned short fVerbose;
      bool           fInitialised;
@@ -101,7 +101,7 @@ class VScalarEquationOfMotion
 // -------------------------------------------------------------------
 
 inline
-VScalarEquationOfMotion::VScalarEquationOfMotion(VScalarField* pField, unsigned short verbose)
+VScalarEquationOfMotion::VScalarEquationOfMotion(VVectorField* pField, unsigned short verbose)
    : fField(pField), fEquationId(fNumObjectsCreated++),
      fVerbose(verbose), fInitialised(false)
 {
@@ -134,7 +134,7 @@ VScalarEquationOfMotion::RightHandSide( const  double y[],
    //  PositionAndTime[1] = y[1];
    //  PositionAndTime[2] = y[2];
    // Global Time -- ignored for now
-   //  PositionAndTime[3] = y[idxTime];  // See VScalarFieldTrack::LoadFromArray
+   //  PositionAndTime[3] = y[idxTime];  // See VVectorFieldTrack::LoadFromArray
 
    GetFieldValue( position, field );
    // GetFieldValue( y, Field_3vf );   

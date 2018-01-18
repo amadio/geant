@@ -1,7 +1,7 @@
 //===----------------------------------------------------------------------===//
 /**
- * @file   StepperFactory.h
- * @brief  Abstract field class for Geant-V prototype
+ * @file   FieldPropagatorFactory.h
+ * @brief  Class to create Field Propagator objects for Geant-V prototype
  * @author John Apostolakis
  * @date   12 January 2016
  */
@@ -43,20 +43,30 @@ public:
   static constexpr double   fDefaultMinStep      = 0.0001;  // = 1 micron
   static constexpr double   fDefaultEpsTolerance = 1.0e-4;
 
-  template<typename Field_t> // , typename Equation_t>
+  template<typename Field_t>
   static GUFieldPropagator* CreatePropagator(Field_t&    gvField,
-                               double      relativeEpsTolerance,
-                               double      minStepSize= fDefaultMinStep);
-  // Create a propagator for RK integration of the motion in the Field 'gvField'
+                                             double      relativeEpsTolerance,
+                                             double      minStepSize= fDefaultMinStep);
+  // Create a 'full' propagator with both scalar & vector/flexible drivers
+  // for RK integration of the motion in the Field 'gvField'
   // Then register it with the Pool (as the prototype)
+
+  template<typename Field_t>
+  static GUFieldPropagator* CreateScalarPropagator(Field_t&    gvField,
+                                                   double      relativeEpsTolerance,
+                                                   double      minStepSize= fDefaultMinStep);
+  // Create a 'scalar' propagator (with only scalar driver) for RK integration of the
+  //  motion in the Field 'gvField'.
+  // Then register it with the Pool (as the prototype)
+  
   //
   // The Field_t object which is passed must be on the heap.
   //  It will be owned by the Propagator
 
   static GUFieldPropagator* CreatePropagator( // Field_t&    gvField,
-                          //   Equation_t* gvEquation=  nullptr,
-                               ScalarIntegrationDriver&   integrDriver,
-                               double                 relTol= fDefaultEpsTolerance);
+                                              //   Equation_t* gvEquation=  nullptr,
+                                              ScalarIntegrationDriver&   integrDriver,
+                                              double                 relTol= fDefaultEpsTolerance);
    // The ScalarIntegrationDriver object which is passed must be on the heap.
    //  It will be owned by the Propagator
 
@@ -92,7 +102,7 @@ FieldPropagatorFactory::CreatePropagator( // Field_t&              gvField,
 
 template<typename Field_t> // , typename Equation_t>
 GUFieldPropagator*
-FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
+FieldPropagatorFactory::CreateScalarPropagator(Field_t& gvField,
                                          double   relEpsilonTolerance,
                                          double   minStepSize)
 {
@@ -112,7 +122,29 @@ FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
                                                aStepper,
                                                Nvar,
                                                statisticsVerbosity);
-#else
+
+  // cout << "Parameters for RK integration in magnetic field: "; //  << endl;
+  // cout << " - Driver minimum step (h_min) = " << minStepSize << endl;
+
+  Geant::Print(methodName, // "FieldPropagatorFactory::CreatePropagator",  
+               // "Parameters for RK integration in magnetic field: "
+               " - Driver minimum step (h_min) = %8.3g\n",
+               minStepSize); 
+  
+  return CreatePropagator( *integrDriver, relEpsilonTolerance );
+}
+
+template<typename Field_t>
+GUFieldPropagator*
+FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
+                                         double   relEpsilonTolerance,
+                                         double   minStepSize)
+{
+  const char* methodName="FieldPropagatorFactory::CreatePropagator";
+  int   statisticsVerbosity= 0;
+  
+  // cout << methodName << " called. " << endl;
+
   // New flexible (scalar + vector) versions of field, equation, ...
   constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
   
@@ -141,6 +173,7 @@ FieldPropagatorFactory::CreatePropagator(Field_t& gvField,
   
   return CreatePropagator( *integrDriver, relEpsilonTolerance );
 }
+
 
 // template<typename Field_t, typename Equation_t>
 void

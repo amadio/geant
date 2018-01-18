@@ -1,5 +1,6 @@
 #include "FieldPropagationHandler.h"
 
+#include "FieldConfig.h"
 #include "FieldLookup.h"
 
 #include "GUFieldPropagatorPool.h"
@@ -426,8 +427,13 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
   }
 
   // Trial Helix step -- now assumes a constant uniform field
-  if( td->fBfieldIsConst ) {
-     vecgeom::Vector3D<double> BfieldUniform= td->fConstFieldValue;
+  // auto config= td->fPropagator->fConfig;
+  auto fieldConfig = FieldLookup::GetFieldConfig();
+  assert ( fieldConfig != nullptr);
+  
+  if( fieldConfig->IsFieldUniform() )
+  {
+     vecgeom::Vector3D<double> BfieldUniform= fieldConfig->GetUniformFieldValue();
      ConstFieldHelixStepper stepper( BfieldUniform );
      // stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), stepSize,
      //                                        PositionNew, DirectionNew);

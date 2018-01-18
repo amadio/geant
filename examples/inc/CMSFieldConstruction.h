@@ -35,7 +35,7 @@ class CMSFieldConstruction : public Geant::cxx::UserFieldConstruction
 
     /** @brief Method to register a B-field, and create integrator for it. */
     bool CreateFieldAndSolver(bool useRungeKutta= true,
-                              VScalarField** fieldPP= nullptr )  override  final;
+                              VVectorField** fieldPP= nullptr )  override  final;
   private:
     std::string   fFieldFilename;
     CMSmagField*  fCMSfield;
@@ -71,7 +71,7 @@ CMSFieldConstruction::~CMSFieldConstruction() { delete fCMSfield; }
 
 bool
 CMSFieldConstruction::
-CreateFieldAndSolver(bool useRungeKutta, VScalarField** fieldPP )
+CreateFieldAndSolver(bool useRungeKutta, VVectorField** fieldPP )
 {
   using FieldType = CMSmagField;  
 

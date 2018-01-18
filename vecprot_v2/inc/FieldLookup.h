@@ -14,7 +14,9 @@
 #define FIELD_LOOKUP_H
 
 #include "Geant/Typedefs.h"
-#include "VScalarField.h"
+#include "VVectorField.h"
+
+#include "FieldConfig.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -41,8 +43,9 @@ class FieldLookup
    VECCORE_ATT_HOST_DEVICE   
    void GetFieldValue( const vecgeom::Vector3D<double>& Position,
                              vecgeom::Vector3D<double>& MagFieldValue, // Out
-                             double                   & bmag,
-                       const GeantTaskData            * td );
+                             double                   & bmag // ,
+                       // const GeantTaskData            * td
+      );
 
 #if 0   
    /**
@@ -55,14 +58,20 @@ class FieldLookup
    VECCORE_ATT_HOST_DEVICE
    void GetFieldValue( const vecgeom::Vector3D<double> & Position,
                              double                      BfieldOut[3],
-                             double                    & bmag,
-                       const Geant::GeantTaskData      * td                          
+                             double                    & bmag // ,
+                       // const Geant::GeantTaskData      * td                          
          );
 #endif
 
-   /* @brief Ensure that either a uniform field is set or a field class is registered. */
-   static   
-      bool CheckConfig( const Geant::GeantTaskData * td );
+   static void SetFieldConfig( FieldConfig* fldCfg ) { fFieldConfig = fldCfg; }
+
+   static FieldConfig* /*const*/ GetFieldConfig() { return fFieldConfig; }
+   
+private:
+   // static VVectorField               *fFieldObj;         // To get value of the field!
+   // static vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
+   // static bool                       fBfieldIsConst;      /** Flag - is the B field constant ?  */
+   static FieldConfig* fFieldConfig;
 };
 
 }

@@ -29,7 +29,7 @@
 // inline namespace GUFIELDPROPAGATION_IMPL_NAMESPACE {
 
 // class GUFieldPropagator;
-class VScalarField;
+class VVectorField;
 #include "GUFieldPropagator.h"
 
 class GUFieldPropagatorPool
@@ -61,7 +61,7 @@ class GUFieldPropagatorPool
        return fFieldPropagatorVec[num];
     }
   
-    VScalarField* GetField(unsigned int num) {
+    VVectorField* GetField(unsigned int num) {
       // CheckIndex(num);
       // return fFieldVec[num];
       GUFieldPropagator* pFP= fFieldPropagatorVec[num];
@@ -81,11 +81,11 @@ class GUFieldPropagatorPool
     unsigned int fNumberPropagators;
 
     const  GUFieldPropagator* fPrototype; //  Owned
-    VScalarField* fFieldPrototype;
+    VVectorField* fFieldPrototype;
 
     // Copies for use by threads
     static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
-    // static std::vector<VScalarField*>          fFieldVec;
+    // static std::vector<VVectorField*>          fFieldVec;
 };
 
 // }

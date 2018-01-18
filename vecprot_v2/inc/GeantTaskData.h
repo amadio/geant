@@ -37,7 +37,7 @@ class TRandom;
 #endif
 
 class GUFieldPropagator;
-class VScalarField;
+class VVectorField;
 
 /**
  * @brief Class GeantTaskData
@@ -118,10 +118,10 @@ public:
   int fNkilled = 0;      /** Total number of tracks killed */
 
   geantphysics::PhysicsData  *fPhysicsData = nullptr; /** Physics data per thread */
-  VScalarField           *fFieldObj;             // To get value of the field!
-  vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
-  double                     fBfieldMag;     // Magnitude of field for current track - or for const field
-  bool                       fBfieldIsConst; // Flag - is the B field constant ?
+  // vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
+  // double                     fBfieldMag;     // Magnitude of field for current track (??)- or for const field
+  // bool                       fBfieldIsConst; // Flag - is the B field constant ?
+  // ---> Moved to FieldConfig.h ( as these are shared by all threads. )
   GUFieldPropagator       *fFieldPropagator; // For RK integration of charged particle propagation
 
 private:

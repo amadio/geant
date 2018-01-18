@@ -5,7 +5,7 @@
 #ifndef ScalarUniformMagField_H
 #define ScalarUniformMagField_H
 
-#include "VScalarField.h"
+#include "VVectorField.h"
 #include <iostream>
 
 #include "base/Vector3D.h"
@@ -15,7 +15,7 @@
 // using fieldConstants::pi;
 // using fieldConstants::twopi;
 
-class ScalarUniformMagField : public VScalarField
+class ScalarUniformMagField : public VVectorField
 {
 public:
 
@@ -24,7 +24,7 @@ public:
   
   /** @brief Constructor providing the constant field value (cartesian) */
   ScalarUniformMagField( const vecgeom::Vector3D<float>& fieldVector )
-    : VScalarField(gNumFieldComponents, gFieldChangesEnergy),
+    : VVectorField(gNumFieldComponents, gFieldChangesEnergy),
       fFieldComponents(fieldVector) {}
 
   /** @brief Constructor providing the constant field value (spherical) */
@@ -37,7 +37,7 @@ public:
 
   /** @brief Copy constructor */
   ScalarUniformMagField(const ScalarUniformMagField &p)
-    : VScalarField(gNumFieldComponents, gFieldChangesEnergy),
+    : VVectorField(gNumFieldComponents, gFieldChangesEnergy),
       fFieldComponents(p.fFieldComponents) {}
 
   /** Assignment operator */
@@ -100,7 +100,7 @@ ScalarUniformMagField::operator = (const ScalarUniformMagField &p)
 ScalarUniformMagField::ScalarUniformMagField(double vField,
                                    double vTheta,
                                    double vPhi     )
-  : VScalarField(gNumFieldComponents, gFieldChangesEnergy)
+  : VVectorField(gNumFieldComponents, gFieldChangesEnergy)
 {
    if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
    {

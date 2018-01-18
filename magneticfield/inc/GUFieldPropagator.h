@@ -17,7 +17,7 @@
 template <class Backend>
 class TemplateGUIntegrationDriver;
 
-class VScalarField;
+class VVectorField;
 class ScalarIntegrationDriver;
 class FlexIntegrationDriver;
 
@@ -60,7 +60,7 @@ class GUFieldPropagator
     
     double GetEpsilon() { return fEpsilon; }
 
-    VScalarField* GetField();
+    VVectorField* GetField();
     GUFieldPropagator* Clone() const; // { return this; }
          // Choice 1:  No longer allowing cloning !!  -- later solution
          // Choice 2:  Clone only the scalar 'old' stepper.  Share the flexible stepper 
