@@ -71,6 +71,8 @@ void CMSPhysicsList::Initialize() {
       // set min/max energies of the model
       eSBModel->SetLowEnergyUsageLimit (1.0*geant::keV);
       eSBModel->SetHighEnergyUsageLimit(1.0*geant::GeV);
+      // turn off using sampling tables
+      eSBModel->SetUseSamplingTables(false);
       // how to inactivate this model in a given region i.e. region with index 1
       // active regions for a model are set based on their process active regions + user requested inactive regions
       //eSBModel->AddToUserRequestedInActiveRegions(1);
@@ -129,6 +131,8 @@ void CMSPhysicsList::Initialize() {
       // set min/max energies of the model
       eSBModel->SetLowEnergyUsageLimit (1.0*geant::keV);
       eSBModel->SetHighEnergyUsageLimit(1.0*geant::GeV);
+      // turn off using sampling tables
+      eSBModel->SetUseSamplingTables(false);            
       // how to inactivate this model in a given region i.e. region with index 1
       // active regions for a model are set based on their process active regions + user requested inactive regions
       //eSBModel->AddToUserRequestedInActiveRegions(1);

@@ -152,20 +152,21 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
     return numSecondaries;
   }
   // sample gamma energy
-  // here we need 3 random number + 2 later for photon direction theta phi sampling
-  double *rndArray = td->fDblArray;
-  td->fRndm->uniform_array(5, rndArray);
   double gammaEnergy  = 0.;
   if (GetUseSamplingTables()) {
+    double *rndArray = td->fDblArray;
+    td->fRndm->uniform_array(3, rndArray);
     gammaEnergy = SamplePhotonEnergy(matCut, ekin, rndArray[0], rndArray[1], rndArray[2]);
   } else {
     gammaEnergy = SamplePhotonEnergy(matCut, ekin, td);
   }
   // sample gamma scattering angle in the scattering frame i.e. which z-dir points to the orginal e-/e+ direction
+  double *rndArray = td->fDblArray;
+  td->fRndm->uniform_array(2, rndArray);
   double cosTheta  = 1.0;
   double sinTheta  = 0.0;
-  SamplePhotonDirection(ekin, sinTheta, cosTheta, rndArray[3]);
-  const double phi = geant::kTwoPi*(rndArray[4]);
+  SamplePhotonDirection(ekin, sinTheta, cosTheta, rndArray[0]);
+  const double phi = geant::kTwoPi*(rndArray[1]);
   // gamma direction in the scattering frame
   double gamDirX   = sinTheta*std::cos(phi);
   double gamDirY   = sinTheta*std::sin(phi);

@@ -58,22 +58,6 @@ if(USE_ROOT)
 endif()
 
 #----------------------------------------------------------------------------------------------
-# Add vec-phys sources, include directories and lib if vec-phys build was required explicitly
-#----------------------------------------------------------------------------------------------
-if(USE_VECPHYS)
-  set(sources ${sources}
-      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUGammaComptonProcess.cc
-      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUGammaPhotoElectricProcess.cc
-      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUGammaConversionProcess.cc
-      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUBetheHeitlerConversionModel.cc
-      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUKleinNishinaComptonModel.cc
-      ${CMAKE_SOURCE_DIR}/realphysics/physics/vecem/src/GUSauterGavrilaModel.cc
-  )
-  include_directories(${CMAKE_SOURCE_DIR}/vecphys/inc physics/vecem/inc)
-  set(_extraLibs ${_extraLibs} "vecphys")
-endif()
-
-#----------------------------------------------------------------------------------------------
 # Add target library and links
 #----------------------------------------------------------------------------------------------
 add_library(RealPhysics SHARED ${sources})
