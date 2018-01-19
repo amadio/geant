@@ -933,7 +933,7 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
         izet              = std::min(izet,fDCSMaxZet);
         double val = GetDXSECValue(izet, ielow, eresid, kappa)*theAtomicNumDensityVector[ielem]*zet*zet;
         if (!fIsElectron) {
-          val *= PositronCorrection1(eekin, kappa, gcut, zet);
+          val *= PositronCorrection1(eekin, std::min(kappa, 1.-1e-12), gcut, zet);
         }
         dcs += val;
       }
@@ -957,7 +957,7 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
           izet              = std::min(izet,fDCSMaxZet);
           double val = GetDXSECValue(izet, ielow, eresid, kappa)*theAtomicNumDensityVector[ielem]*zet*zet;
           if (!fIsElectron) {
-            val *= PositronCorrection1(eekin, kappa, gcut, zet);
+            val *= PositronCorrection1(eekin, std::min(kappa, 1.-1e-12), gcut, zet);
           }
           spval += val;
         }
