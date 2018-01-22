@@ -33,7 +33,7 @@ class GUFieldPropagator
     template<typename FieldType>  // , typename StepperType>
       GUFieldPropagator(FieldType* magField, double epsilon, double hminimum= 1.0e-4);
 
-    ~GUFieldPropagator() {}  // Not virtual anymore.
+    ~GUFieldPropagator(); // Was {} - now has debug info
 
     /**
       * Propagate track along in a field for length 'step'
@@ -93,9 +93,12 @@ class GUFieldPropagator
    *****/
 
 private:
-    ScalarIntegrationDriver*       fScalarDriver= nullptr;
     static FlexIntegrationDriver*  fVectorDriver;
-    double                         fEpsilon;
+    static double                  fEpsilon;
+    
+    ScalarIntegrationDriver*       fScalarDriver= nullptr;
+
+    bool                           fVerboseConstruct;
 };
 
 // } // GEANT_IMPL_NAMESPACE

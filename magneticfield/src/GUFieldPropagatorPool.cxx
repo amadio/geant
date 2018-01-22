@@ -65,6 +65,8 @@ GUFieldPropagatorPool::RegisterPrototype( GUFieldPropagator* prototype )
 bool
 GUFieldPropagatorPool::Initialize( unsigned int numThreads )
 {
+   const char *methodName="GUFieldPropagatorPool::Initialize";
+   std::cout << methodName << " called with " << numThreads << " threads." << std::endl;
    if( ! fPrototype ){
        std::cerr << "ERROR> from GUFieldPropagatorPool::Initialize:  "
                  << "Must register prototype propagator before calling Initialize. "
@@ -82,8 +84,8 @@ GUFieldPropagatorPool::Initialize( unsigned int numThreads )
    }
 
    size_t revSize= fFieldPropagatorVec.size();
-   std::cout << " Pool:  revised size= " << revSize
-             << " request= " << numThreads << std::endl;
+   std::cout << " (GU Field Propagator) Pool:  revised size= " << revSize
+             << " requested= " << numThreads << std::endl;
 
    goodExpansion = ( fFieldPropagatorVec.size() >= numThreads );
    assert (goodExpansion);
@@ -96,13 +98,14 @@ GUFieldPropagatorPool::Initialize( unsigned int numThreads )
 void
 GUFieldPropagatorPool::Extend(size_t noNeeded)
 {
+    const char *methodName="GUFieldPropagatorPool::Extend";
+   
     size_t num= fFieldPropagatorVec.size();
-    // size_t originalNum= num;
-    // const char* method= "GUFieldPropagatorPool::Extend";
+    size_t originalNum= num;
     assert( fPrototype );
     assert( num < noNeeded );
 
-    // printf("%s method called.  Num needed = %ld,  existing= %ld\n", method,
+    // printf("%s method called.  Num needed = %ld,  existing= %ld\n", methodName,
     //        noNeeded, num );
 
     while ( num < noNeeded )
@@ -112,6 +115,7 @@ GUFieldPropagatorPool::Extend(size_t noNeeded)
 
       num++;
 
+      std::cout << methodName << ": Created propagator " << prop << " for slot " << num << std::endl;
       // printf("            Created propagator %p for slot %ld\n", prop, num );
 
       // fFieldVec.push_back( fFieldPrototype->CloneOrSafeSelf() );
@@ -120,8 +124,10 @@ GUFieldPropagatorPool::Extend(size_t noNeeded)
       // auto field= prop->GetField();
       // fFieldVec.push_back( field );
     }
-    // printf("%s method ended.  Created %ld propagators.  New total= %ld\n", method,
+    // printf("%s method ended.  Created %ld propagators.  New total= %ld\n", methodName,
     //     num - originalNum, num );
+    std::cout << methodName << " method ended.  Created " << num - originalNum 
+              <<  " propagators.  New total = " << num << std::endl;
 }
 
 #if 0

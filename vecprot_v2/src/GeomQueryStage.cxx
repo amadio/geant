@@ -26,6 +26,7 @@ int GeomQueryStage::CreateHandlers()
   for (auto ivol = 0; ivol < nvolumes; ++ivol) {
     vol = (Volume_t *)volumes[ivol];
     GeomQueryHandler *handler = new GeomQueryHandler(vol, threshold, fPropagator, ivol);
+    handler->SetMayBasketize(true);
     AddHandler(handler);
     assert(handler == fHandlers[ivol]);
   }

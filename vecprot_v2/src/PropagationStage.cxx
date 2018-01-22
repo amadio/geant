@@ -26,7 +26,9 @@ int PropagationStage::CreateHandlers()
 // Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
   AddHandler(new LinearPropagationHandler(threshold, fPropagator));
-  AddHandler(new FieldPropagationHandler(threshold, fPropagator));
+  auto handler = new FieldPropagationHandler(threshold, fPropagator);
+  handler->SetMayBasketize(true);
+  AddHandler(handler);
   
   return 2;
 }

@@ -53,6 +53,7 @@ class GeantBasket;
 class GeantTrackGeo_v;
 class StackLikeBuffer;
 class TrackStat;
+struct WorkspaceForFieldPropagation;
 struct BasketCounters;
 
 class GeantTaskData {
@@ -118,10 +119,7 @@ public:
   int fNkilled = 0;      /** Total number of tracks killed */
 
   geantphysics::PhysicsData  *fPhysicsData = nullptr; /** Physics data per thread */
-  // vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
-  // double                     fBfieldMag;     // Magnitude of field for current track (??)- or for const field
-  // bool                       fBfieldIsConst; // Flag - is the B field constant ?
-  // ---> Moved to FieldConfig.h ( as these are shared by all threads. )
+  WorkspaceForFieldPropagation* fSpace4FieldProp = nullptr; /** Thread scratch for Field Propagation Stage */
   GUFieldPropagator       *fFieldPropagator; // For RK integration of charged particle propagation
 
 private:

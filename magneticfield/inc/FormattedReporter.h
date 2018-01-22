@@ -36,7 +36,7 @@ template< typename Real_v >
    widthVal = prec + 7;
    
    cout << std::setw( charName ) << varName << " : ";
-   for (int i = 0; i < vecgeom::kVectorSize; ++i) {   
+   for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {   
       cout << " " << std::setw( widthVal )
                 << std::setprecision( prec )
                 << vecCore::Get( varValue, i ) << " | ";      
@@ -158,7 +158,7 @@ inline
    if( widthVal < 0 ) { widthVal = sDefaultVarSize; }
    
    cout << std::setw( widthName ) << varName << " : ";
-   for (int i = 0; i < vecgeom::kVectorSize; ++i) {
+   for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
       cout << " " << std::setw( widthVal ) << vecCore::Get( var, i ) << " | ";
    }
    cout << std::endl;
@@ -184,7 +184,7 @@ ReportRowOfDoublesIf( std::string    varName,
    if( widthVal < 0 )  { widthVal = sDefaultVarSize; }
    
    cout << std::setw( widthName ) << varName << " : ";
-   for (int i = 0; i < vecgeom::kVectorSize; ++i) {
+   for (int i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
       if( Get( cond, i ) )
          cout << " " << std::setw( widthVal ) << Get(var, i) << " | ";      
    }

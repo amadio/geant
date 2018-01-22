@@ -68,7 +68,7 @@ void Handler::ActivateBasketizing(bool flag)
   int buffer_size = 1 << 12; // 16 kBytes per handler
   assert(fThreshold < buffer_size);
   // Create basketizer the first time the handler is activated
-  if (fActive && !fBasketizer) {
+  if (flag && !fBasketizer) {
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (GetNode() < 0) {
       fBasketizer = new basketizer_t(buffer_size, basket_size);

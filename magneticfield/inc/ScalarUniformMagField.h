@@ -10,10 +10,8 @@
 
 #include "base/Vector3D.h"
 
-#include "Constants.h"  //   For pi & twopi - Temporary solution ..
-
-// using fieldConstants::pi;
-// using fieldConstants::twopi;
+#include "SystemOfUnits.h"
+// #include "PhysicalConstants.h"
 
 class ScalarUniformMagField : public VVectorField
 {
@@ -102,18 +100,18 @@ ScalarUniformMagField::ScalarUniformMagField(double vField,
                                    double vPhi     )
   : VVectorField(gNumFieldComponents, gFieldChangesEnergy)
 {
-   if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
+   if ( (vField<0) || (vTheta<0) || (vTheta>geant::kPi) || (vPhi<0) || (vPhi>geant::kTwoPi) )
    {
       // Exception("ScalarUniformMagField::ScalarUniformMagField()",
       //     "GeomField0002", FatalException, "Invalid parameters.") ;
       std::cerr << "ERROR in ScalarUniformMagField::ScalarUniformMagField()"
                 << "Invalid parameter(s): expect " << std::endl;
       std::cerr << " - Theta angle: Value = " << vTheta
-                << "  Expected between 0 <= theta <= pi = " << Constants::pi << std::endl;
+                << "  Expected between 0 <= theta <= pi = " << geant::kPi << std::endl;
       std::cerr << " - Phi   angle: Value = " << vPhi
-                << "  Expected between 0 <=  phi  <= 2*pi = " << Constants::twopi << std::endl;
+                << "  Expected between 0 <=  phi  <= 2*pi = " << geant::kTwoPi << std::endl;
       std::cerr << " - Magnitude vField: Value = " << vField
-                << "  Expected vField > 0 " << Constants::twopi << std::endl;
+                << "  Expected vField > 0 " << geant::kTwoPi << std::endl;
    }
    fFieldComponents.Set( vField*std::sin(vTheta)*std::cos(vPhi),
                          vField*std::sin(vTheta)*std::sin(vPhi),

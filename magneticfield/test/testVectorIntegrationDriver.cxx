@@ -7,14 +7,14 @@
 #include <iomanip>
 #include <ctime>
 
-#include "Units.h"
+#include "SystemOfUnits.h"
 
 // using fieldUnits::meter;
-using fieldUnits::millimeter;   
-using fieldUnits::second;  
-using fieldUnits::eplus;  
-using fieldUnits::tesla;
-using fieldUnits::degree;
+using geant::millimeter;   
+using geant::second;  
+using geant::eplus;  
+using geant::tesla;
+using geant::degree;
 
 #include <base/Vector3D.h>
 #include <Geant/VectorTypes.h>
@@ -103,12 +103,12 @@ int main(/*int argc, char *args[]*/)
   #ifdef USECMSFIELD
     auto gvField = new Field_Type ("../VecMagFieldRoutine/cmsmagfield2015.txt");
   #else 
-    auto gvField = new Field_Type( fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field) );
+    auto gvField = new Field_Type( geant::tesla * ThreeVector_d(x_field, y_field, z_field) );
   #endif
 
     cout << "#  Initial  Field strength (GeantV) = "
          << x_field << " , " << y_field << " , " << z_field 
-       // << (1.0/fieldUnits::tesla) * gvField->GetValue()->X() << ",  "
+       // << (1.0/geant::tesla) * gvField->GetValue()->X() << ",  "
          << " Tesla " << endl;
     // cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
     
@@ -158,7 +158,7 @@ int main(/*int argc, char *args[]*/)
 #else
     using GvEquationTypeScalar=  ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
     // If we plan to test against 'plain' scalar objects: field, equation, stepper, ... 
-    auto fieldValueVec = fieldUnits::tesla * ThreeVector_d(x_field, y_field, z_field);
+    auto fieldValueVec = geant::tesla * ThreeVector_d(x_field, y_field, z_field);
     auto gvFieldScalar = new ScalarUniformMagField( fieldValueVec );
 //                      new Field_Type_Scalar( fieldValueVec );
     auto gvEquationScalar = new GvEquationTypeScalar(gvFieldScalar);
@@ -221,8 +221,8 @@ int main(/*int argc, char *args[]*/)
        double x_mom = 0. ;               //mom - momentum  : input unit = GeV / c
        double y_mom = 1. ;
        double z_mom = 1. ;
-       const double mmGVf = fieldUnits::millimeter;
-       const double ppGVf = fieldUnits::GeV ; 
+       const double mmGVf = geant::millimeter;
+       const double ppGVf = geant::GeV ; 
 
        double posMom[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
                           x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};

@@ -33,6 +33,8 @@ TH1F* gHistStepsLog=0;
 TH1F* gHistStepsInit=0;
 #endif
 
+std::atomic<unsigned long> errZeroStepCount;
+
 // To add much printing for debugging purposes, uncomment the following
 // and set verbose level to 1 or higher value !
 // #define  GUDEBUG_FIELD 1    
@@ -70,7 +72,9 @@ ScalarIntegrationDriver::ScalarIntegrationDriver( double        hminimum,
 #ifdef GVFLD_STATS
   statsEnabled= true;
 #endif
-  
+
+  errZeroStepCount = 0; // Counter for reporting zero step
+
   RenewStepperAndAdjust( pStepper );
   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
 #ifdef GUDEBUG_FIELD
@@ -181,10 +185,12 @@ ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack& yInput,
 
   constexpr double perMillion  = 1.0e-6;
   constexpr double perThousand = 1.0e-3;
+  const char *methodName= "ScalarIntegrationDriver::AccurateAdvance";
 
   int nstp, i, no_warnings=0;
   double x, hnext, hdid, h;
-  double charge= yInput.GetCharge(); 
+  double charge= yInput.GetCharge();
+  // std::cout << methodName << " > Charge= " << charge << std::endl;
 
 #ifdef GUDEBUG_FIELD
   static int dbg=1;
@@ -215,12 +221,15 @@ ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack& yInput,
   { 
     if(hstep==0.0)
     {
-      std::cerr << "Proposed step is zero; hstep = " << hstep << " !";
+      unsigned long numErr= errZeroStepCount++;
+      if( numErr % 500 < 1 ) 
+         std::cerr << methodName << ": Proposed step is zero; hstep = " << hstep << " !"
+                   << " occurence = " << numErr << std::endl;
       return succeeded; 
     }
     else
     { 
-      std::cerr << "Invalid run condition." << std::endl
+      std::cerr << methodName << "Invalid run condition." 
                 << "Proposed step is negative; hstep = " << hstep << "." << std::endl;
       return false;
     }

@@ -56,7 +56,7 @@ public:
 
   /** @ brief  Create object using given drivers (on the heap) - obtains their ownership. */
   static
-    GUFieldPropagator* CreatePropagator( ScalarIntegrationDriver& integrDriver,
+    GUFieldPropagator* CreatePropagator( ScalarIntegrationDriver* integrDriver,
                                          double                   relTolerance,
                                          FlexIntegrationDriver*   flexDrv = nullptr
         );
@@ -88,7 +88,10 @@ private:
     FlexIntegrationDriver* CreateFlexibleDriver(Field_t&    gvField,
                                                 double      relativeEpsTolerance,
                                                 double      minStepSize= fDefaultMinStep);
-  
+
+public:
+   static bool                           fVerboseConstruct;
+   // Verbosity for construction
   
 private:
    static void RegisterPropagator(GUFieldPropagator*);
@@ -99,24 +102,34 @@ private:
 inline
 GUFieldPropagator*
 FieldPropagatorFactory::CreatePropagator( // Field_t&              gvField,
-                                          ScalarIntegrationDriver&  integrDriver,
+                                          ScalarIntegrationDriver*  integrDriver,
                                           double                    relEpsilonTolerance,
                                           FlexIntegrationDriver*    flexDriver
    )
 {
   // using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
+  const char *methodName= "FieldPropagatorFactory::CreatePropagator";
   GUFieldPropagator* fieldPropagator = nullptr;
 
   // constexpr double epsTol = 3.0e-4;               // Relative error tolerance of integration
 
+  assert( integrDriver ); // Cannot be null!
+  if( fVerboseConstruct )
+     std::cout << "Check scalar Driver: max Num steps= " << integrDriver->GetMaxNoSteps() << std::endl;
+  
   // GUFieldPropagator *
   fieldPropagator =
-     new GUFieldPropagator(&integrDriver, relEpsilonTolerance, flexDriver );
+     new GUFieldPropagator( integrDriver, relEpsilonTolerance, flexDriver );
 
-  std::cout << " - Integration constraint:  eps_tol= " << relEpsilonTolerance << std::endl;
-  // Geant::Printf("FieldPropagatorFactory::CreatePropagator",  
-  //             "Parameters for RK integration in magnetic field: \n - Integration constraint:  eps_tol=  %8.3g\n",
-  //              relEpsilonTolerance); 
+  if( fVerboseConstruct ) {
+     std::cout << methodName << " ( scalar, double, flex-driver ) called "
+               << " - Integration constraint:  eps_tol= " << relEpsilonTolerance << std::endl;
+     std::cout << methodName << "  scalarDriver = " << &integrDriver << std::endl;  
+     std::cout << methodName << "  vectorDriver = " << flexDriver << std::endl;
+     // Geant::Printf("FieldPropagatorFactory::CreatePropagator",  
+     //             "Parameters for RK integration in magnetic field: \n - Integration constraint:  eps_tol=  %8.3g\n",
+     //              relEpsilonTolerance);
+  }
         
   RegisterPropagator(fieldPropagator);
 
@@ -131,11 +144,18 @@ FieldPropagatorFactory::CreatePropagator(Field_t&  gvField,
                                          double    relativeTolerance,
                                          double    minStep )
 {
+   const char *methodName= "FieldPropagatorFactory::CreatePropagator";
+   const char *methodSig=  "( templated<Field_t> field, double, double )";
+
+   if( fVerboseConstruct )
+      std::cout << methodName << " " << methodSig << " called " << std::endl;
+   
    auto  // ScalarIntegrationDriver
       scalarDriver = CreateScalarDriver( gvField, relativeTolerance, minStep );
    FlexIntegrationDriver*  // auto
       flexibleDriver = CreateFlexibleDriver( gvField, relativeTolerance, minStep );
-   return FieldPropagatorFactory::CreatePropagator( *scalarDriver, relativeTolerance, flexibleDriver );
+
+   return FieldPropagatorFactory::CreatePropagator( scalarDriver, relativeTolerance, flexibleDriver );
 }
 
 
@@ -162,13 +182,18 @@ FieldPropagatorFactory::CreateScalarDriver(Field_t& gvField,
                                                    aStepper,
                                                    Nvar,
                                                    statisticsVerbosity);
-  
-  std::cout << methodName << ": Parameters for RK integration in magnetic field: "; //  << endl;
-  std::cout << " - Driver minimum step (h_min) = " << minStepSize << std::endl;
+
+  if( fVerboseConstruct )
+  {
+     std::cout << methodName << ": Parameters for RK integration in magnetic field: "; //  << endl;
+     std::cout << " - Driver minimum step (h_min) = " << minStepSize 
+               <<   scalarDriver->GetMaxNoSteps() << std::endl;
+     // Test the object ... 
 
   // Geant::Print(methodName, 
                // "Parameters for RK integration in magnetic field: "
   //            " - Driver minimum step (h_min) = %8.3g\n", minStepSize); 
+  }
   
   return scalarDriver;
 }
@@ -184,7 +209,7 @@ FieldPropagatorFactory::CreateFlexibleDriver(Field_t&    gvField,
   const char* methodName="FieldPropagatorFactory::CreateFlexibleDriver";
   int   statsVerbose= 1;
   
-  // cout << methodName << " called. " << endl;
+  std::cout << methodName << " called. " << std::endl;
 
   // New flexible (scalar + vector) versions of field, equation, ...
   constexpr unsigned int Nposmom= 6; // Position 3-vec + Momentum 3-vec
@@ -202,13 +227,17 @@ FieldPropagatorFactory::CreateFlexibleDriver(Field_t&    gvField,
                                       Nposmom,
                                       statsVerbose);
 
-  std::cout << methodName << ": Parameters for RK integration in magnetic field: "
-            << " - Driver minimum step (h_min) = " << minStepSize << std::endl;
+  assert( vectorDriver );
 
-  // Geant::Print(methodName,
-               // "Parameters for RK integration in magnetic field: "
-  //            " - Driver minimum step (h_min) = %8.3g\n", minStepSize);
-               
+  if( fVerboseConstruct )
+  {
+    std::cout << methodName << ": Parameters for RK integration in magnetic field: "
+              << " - Driver minimum step (h_min) = " << minStepSize << std::endl;
+    std::cout << methodName << ": created vector driver = " << vectorDriver << std::endl;
+    // Geant::Print(methodName,
+    //              "Parameters for RK integration in magnetic field: "
+    //             " - Driver minimum step (h_min) = %8.3g\n", minStepSize);
+  }
   
   return vectorDriver;
 }

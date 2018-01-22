@@ -63,7 +63,7 @@ std::string mctruthFile               =     "testEm3.hepmc3"; // i.e. default ap
 int         parConfigNumBufferedEvt   =     5;  // number of events taken to be transported on the same time (buffered)
 int         parConfigNumRunEvt        =    10;  // total number of events to be transported during the run
 int         parConfigNumPrimaryPerEvt =    10;  // number of primary particles per event
-int         parConfigNumThreads       =     4;  // number of working threads
+int         parConfigNumThreads       =     1;  // number of working threads             // Default = 4 
 int         parConfigNumPropagators   =     1;  // number of propagators per working threads
 int         parConfigNumTracksPerBasket =  16;  // default number of tracks per basket
 int         parConfigIsPerformance    =     0;  // run without any user actions

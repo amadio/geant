@@ -47,6 +47,7 @@ int SimulationStage::CheckBasketizers(GeantTaskData *td, size_t flush_threshold)
   size_t nflushedtot = 0;
   size_t nfiredtot = 0;
   for (int i=0; i<GetNhandlers(); ++i) {
+    if (!fHandlers[i]->MayBasketize()) continue;
     size_t nflushed = fHandlers[i]->GetNflushed();
     size_t nfired = fHandlers[i]->GetNfired();
     nflushedtot += nflushed;
@@ -78,8 +79,8 @@ int SimulationStage::CheckBasketizers(GeantTaskData *td, size_t flush_threshold)
   fCheckLock.clear();
 #endif
   CopyToFollowUps(output, td);
-  if (nactivated > 0)      Printf("--- activated %d basketizers\n", nactivated);
-  else if (nactivated < 0) Printf("--- stopped %d basketizers\n", -nactivated);
+  if (nactivated > 0)      Printf("--- activated %d basketizers for stage %s\n", nactivated, GetName());
+  else if (nactivated < 0) Printf("--- stopped %d basketizers for stage %s\n", -nactivated, GetName());
   printf("%ld/%ld active basketizers\n", nactive, fHandlers.size());
   return nactivated;
 }

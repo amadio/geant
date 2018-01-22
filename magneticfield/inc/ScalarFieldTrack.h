@@ -26,11 +26,11 @@ class  ScalarFieldTrack
    public:  // with description
 
      ScalarFieldTrack( const ThreeVector& pPosition, 
-                   const ThreeVector& pMomentum,
+                       const ThreeVector& pMomentum,
                          // double       restMass_c2,
-                         double       charge,
+                       double       charge,
                          // double       laboratoryTimeOfFlight= 0.0,
-                         double       curve_length= 0.0); 
+                       double       curve_length= 0.0); 
 
      ScalarFieldTrack( const ScalarFieldTrack&   pFieldTrack ); 
      ScalarFieldTrack( char );   //  Almost default constructor
@@ -66,15 +66,15 @@ class  ScalarFieldTrack
      // inline double       GetKineticEnergy() const;
        // Accessors.
 
-     inline void SetPosition(ThreeVector nPos); 
-     inline void SetMomentum(ThreeVector nMom);
+     inline void SetPosition(const ThreeVector& nPos); 
+     inline void SetMomentum(const ThreeVector& nMom);
        // Does change mom-dir too.
 
      inline void SetCurvePnt(const ThreeVector& pPosition, 
                              const ThreeVector& pMomentum,  
                                    double       s_curve );
 
-     // inline void SetMomentumDir(ThreeVector nMomDir);
+     // inline void SetMomentumDir(const ThreeVector& nMomDir);
        // Does NOT change Momentum or Velocity Vector.
 
      // inline void SetRestMass(double Mass_c2) { fRestMass_c2= Mass_c2; }
@@ -102,12 +102,11 @@ class  ScalarFieldTrack
      friend  std::ostream&
              operator<<( std::ostream& os, const ScalarFieldTrack& SixVec);
 
-
-
-     double  SixVector[6];
    private:
+     double  SixVector[6];
      double  fDistanceAlongCurve;  // distance along curve of point
      double  fMomentumMag;
+     double  fCharge;
      // double  fKineticEnergy;
      // double  fRestMass_c2;
      // double  fLabTimeOfFlight;
@@ -116,10 +115,6 @@ class  ScalarFieldTrack
      // ThreeVector fMomentumDir;
      // double  fInitialMomentumMag;  // At 'track' creation.
      // double  fLastMomentumMag;     // From last Update (for checking.)
-
-     double fCharge;
-
-
 }; 
 
 // #include "ScalarFieldTrack.icc"
@@ -198,7 +193,7 @@ ThreeVector ScalarFieldTrack::GetMomentumDirection() const
 } 
 
 inline
-void ScalarFieldTrack::SetPosition( ThreeVector pPosition) 
+void ScalarFieldTrack::SetPosition( const ThreeVector& pPosition) 
 {
    SixVector[0] = pPosition.x(); 
    SixVector[1] = pPosition.y(); 
@@ -206,10 +201,10 @@ void ScalarFieldTrack::SetPosition( ThreeVector pPosition)
 } 
 
 inline
-void ScalarFieldTrack::SetMomentum( ThreeVector vMomentum) 
+void ScalarFieldTrack::SetMomentum( const ThreeVector& vMomentum) 
 {
-   SixVector[3] = vMomentum.x(); 
-   SixVector[4] = vMomentum.y(); 
+   SixVector[3] = vMomentum.x();
+   SixVector[4] = vMomentum.y();
    SixVector[5] = vMomentum.z();
    fMomentumMag= vMomentum.Mag();
 } 

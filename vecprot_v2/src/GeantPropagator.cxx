@@ -468,7 +468,9 @@ int GeantPropagator::CreateSimulationStages()
   //        V
   GetStage(kPropagationStage)->SetFollowUpStage(kPostPropagationStage, false);
   // Follow-up not unique: stuck tracks are killed -> SteppingActions
-  GetStage(kPropagationStage)->SetBasketizing(false);
+  bool useBasketsForField= true; // Whether FieldPropagation is vector (true) or scalar (false)
+  GetStage(kPropagationStage)->SetBasketizing(useBasketsForField); 
+  std::cout << " Field Propagation Basket flag= " << useBasketsForField << std::endl;
   //        V
   //        V
   //        V

@@ -49,6 +49,7 @@ public:
 
 protected:  
   bool fActive = false;                ///< Activity flag
+  bool fMayBasketize = false;          ///< This handler can basketize
   size_t fId = 0;                      ///< Handler id in the stage
   int fBcap = 0;                       ///< Minimum capacity for the handled baskets
   atomic_t<int> fThreshold;            ///< Basketizing threshold
@@ -112,6 +113,16 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
+
+  /** @brief Does this handler basketize */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool MayBasketize() const { return fMayBasketize; }
+
+  /** @brief Setter for may basketize flag */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetMayBasketize(bool flag = true) { fMayBasketize = flag; }
   
   /** @brief Increment fired baskets */
   VECCORE_ATT_HOST_DEVICE

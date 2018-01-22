@@ -308,6 +308,9 @@ CashKarp<T_Equation,Nvar>::
 #if ENABLE_CHORD_DIST
    fLastStepLength= Double_v(0.);
 #endif
+#ifndef GEANT_DEBUG
+   (void)numStateVariables;
+#endif
    assert( (numStateVariables == 0) || (numStateVariables >= Nvar) );
    assert( fEquation_Rhs != nullptr );
    std::cout<<"----end of constructor of CashKarp"<<std::endl;

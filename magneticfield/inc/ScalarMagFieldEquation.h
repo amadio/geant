@@ -11,16 +11,15 @@
 // #include <vector>
 #include "base/Vector3D.h"
 
-#include "Units.h"
-#include "Constants.h"
-//  Update to GeantV units ASAP
+#include "SystemOfUnits.h"
+#include "PhysicalConstants.h"
 
 template <class Field, unsigned int Size>
 class ScalarMagFieldEquation : public VScalarEquationOfMotion
 {
 public:
 //  static const unsigned int  N   = Size;
-  static constexpr double gCof   = Constants::c_light;  //   / fieldUnits::meter ;
+  static constexpr double gCof   = geant::kCLight;  //   / fieldUnits::meter ;
 
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -215,9 +214,9 @@ void  ScalarMagFieldEquation<Field, Size>::PrintAll(
 
     double Bmag2chk = B[0] * B[0] + B[1] * B[1] + B[2] * B[2];
     printf("            B-field= %10.3f %10.3f %10.3f  ( KGaus ) mag= %10.4f\n",
-           B[0] / fieldUnits::kilogauss ,
-           B[1] / fieldUnits::kilogauss ,
-           B[2] / fieldUnits::kilogauss ,
+           B[0] / geant::kilogauss ,
+           B[1] / geant::kilogauss ,
+           B[2] / geant::kilogauss ,
            std::sqrt(Bmag2chk) );
 
     printf("               P  = %12.6g %12.6g %12.6g - mag %12.6g\n",  y[3], y[4], y[5],

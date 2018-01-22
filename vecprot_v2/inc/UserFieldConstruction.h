@@ -18,7 +18,7 @@
 // #include "Geant/Typedefs.h"
 
 #include "FieldPropagatorFactory.h"
-#include "Units.h"  //  For fieldUnits
+#include "SystemOfUnits.h"
 
 #include "UniformMagField.h"   // For use in scalar and vector/flexible driver/stepper etc
 
@@ -108,14 +108,14 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
   double unit= 1;
   
   if( Units == 0  || strcmp(Units,"kilogauss") == 0 ) {
-    unit= fieldUnits::kilogauss;
+    unit= geant::kilogauss;
     defaultUsed = (Units == 0);
   } else if( ( strcmp(Units,"gauss") == 0 ) || ( strcmp(Units,"Gauss") == 0 ) ) {
-    unit= fieldUnits::gauss;
+    unit= geant::gauss;
   } else if( ( strcmp(Units,"tesla") == 0 ) || ( strcmp(Units,"Tesla") == 0 ) ) {
-    unit= fieldUnits::gauss;
+    unit= geant::gauss;
   } else {
-    unit= fieldUnits::kilogauss;
+    unit= geant::kilogauss;
     defaultUsed = (Units == 0);     
   }
 
@@ -128,9 +128,9 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
   /*
   printf("%s called. Field value = %9.3g , %9.3g  %9.3g  kiloGauss\n",
          methodName,
-         fMagFieldValue[0] / fieldUnits::kilogauss,
-         fMagFieldValue[1] / fieldUnits::kilogauss,
-         fMagFieldValue[2] / fieldUnits::kilogauss );
+         fMagFieldValue[0] / geant::kilogauss,
+         fMagFieldValue[1] / geant::kilogauss,
+         fMagFieldValue[2] / geant::kilogauss );
    */
 
   fUseUniformField= true;
@@ -150,9 +150,9 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
   Geant::Print(method, "%s - method called.  Use uniform= %d  Value= %f %f %f - kiloggauss.  Zero-Flag= %d",
                method,
                fUseUniformField,
-               fMagFieldValue[0]/fieldUnits::kilogauss,
-               fMagFieldValue[1]/fieldUnits::kilogauss,
-               fMagFieldValue[2]/fieldUnits::kilogauss,
+               fMagFieldValue[0]/geant::kilogauss,
+               fMagFieldValue[1]/geant::kilogauss,
+               fMagFieldValue[2]/geant::kilogauss,
                fZeroField );
 
   if( fUseUniformField )

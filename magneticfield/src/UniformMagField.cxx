@@ -1,9 +1,10 @@
 
 #include "UniformMagField.h"
-#include "Constants.h"  //   For pi & twopi - Temporary solution ..
+// #include "PhysicalConstants.h"  //   For pi & twopi - Temporary solution ..
+#include "SystemOfUnits.h"  //   For pi & twopi - Temporary solution ..
 
-// using fieldConstants::pi;
-// using fieldConstants::twopi;
+using geant::kPi;
+using geant::kTwoPi;
 
 // Virtual methods
 
@@ -28,18 +29,18 @@ UniformMagField::UniformMagField(double vField,
     :  VVectorField( 3, true )
 {
    using namespace vecCore::math;
-   if ( (vField<0) || (vTheta<0) || (vTheta>Constants::pi) || (vPhi<0) || (vPhi>Constants::twopi) )
+   if ( (vField<0) || (vTheta<0) || (vTheta>kPi) || (vPhi<0) || (vPhi>kTwoPi) )
    {
       // Exception("UniformMagField::UniformMagField()",
       //     "GeomField0002", FatalException, "Invalid parameters.") ;
       std::cerr << "ERROR in UniformMagField::UniformMagField()"
                 << "Invalid parameter(s): expect " << std::endl;
       std::cerr << " - Theta angle: Value = " << vTheta
-                << "  Expected between 0 <= theta <= pi = " << Constants::pi << std::endl;
+                << "  Expected between 0 <= theta <= pi = " << kPi << std::endl;
       std::cerr << " - Phi   angle: Value = " << vPhi
-                << "  Expected between 0 <=  phi  <= 2*pi = " << Constants::twopi << std::endl;
+                << "  Expected between 0 <=  phi  <= 2*pi = " << kTwoPi << std::endl;
       std::cerr << " - Magnitude vField: Value = " << vField
-                << "  Expected vField > 0 " << Constants::twopi << std::endl;
+                << "  Expected vField > 0 " << kTwoPi << std::endl;
    }
    fFieldComponents.Set( vField*Sin(vTheta)*Cos(vPhi),
                          vField*Sin(vTheta)*Sin(vPhi),

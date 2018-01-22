@@ -3,18 +3,17 @@
 //  Based on G4MagHelicalStepper  - meant for testing other steppers
 // --------------------------------------------------------------------
 
-// #include "G4SystemOfUnits.hh"
+#include "SystemOfUnits.h"
 
-#include "Units.h"     
-using fieldUnits::meter;  //  Update to GeantV units ASAP
-using fieldUnits::GeV;
-using fieldUnits::tesla;
+using geant::meter;  //  Update to GeantV units ASAP
+using geant::GeV;
+using geant::tesla;
 
-#include "Constants.h"
-using Constants::pi;
-using Constants::twopi;
+using geant::kPi;
+using geant::kTwoPi;
 
-// #include "G4PhysicalConstants.hh"
+#include "PhysicalConstants.h"
+// using pi;
 
 #include "VScalarHelicalStepper.h"
 
@@ -28,7 +27,7 @@ using Constants::twopi;
 
 // Constant for determining unit conversion when using normal as integrand.
 //
-const double VScalarHelicalStepper::fUnitConstant = 0.299792458*(GeV/(tesla*meter));
+constexpr double VScalarHelicalStepper::fUnitConstant = 0.299792458*(GeV/(tesla*meter));
 
 VScalarHelicalStepper::VScalarHelicalStepper(VScalarEquationOfMotion *EqRhs,
                                      unsigned int order)
@@ -228,15 +227,15 @@ VScalarHelicalStepper::DistChord(double /*charge*/ ) const
   // Method DistLine is good only for <  pi
 
   double Ang=GetAngCurve();
-  if(Ang<=pi)
+  if(Ang<=kPi)
   {
     return GetRadHelix()*(1-std::cos(0.5*Ang));
   }
   else
   {
-    if(Ang<twopi)
+    if(Ang<kTwoPi)
     {
-      return GetRadHelix()*(1+std::cos(0.5*(twopi-Ang)));
+      return GetRadHelix()*(1+std::cos(0.5*(kTwoPi-Ang)));
     }
     else  // return Diameter of projected circle
     {

@@ -12,9 +12,10 @@
 #include <cfloat>
 #include <iostream>
 
-#include "Constants.h"
-using Constants::pi;
-using Constants::twopi;
+// #include "PhysicalConstants.h"
+#include "SystemOfUnits.h"
+using geant::kPi;
+using geant::kTwoPi;
 
 #include <cfloat>
 
@@ -82,19 +83,19 @@ double
 GUExactHelixStepper::DistChord( double /*charge*/ ) const 
 {
   // Implementation : must check whether h/R >  pi  !!
-  //   If( h/R <  pi)   DistChord=h/2*std::tan(Ang_curve/4)                <
+  //   If( h/R <  Pi)   DistChord=h/2*std::tan(Ang_curve/4)                <
   //   Else             DistChord=2*R_helix    -- approximate.  True value ~ diameter
 
   double distChord;
   double Ang_curve=GetAngCurve();
 
-  if (Ang_curve<=pi)
+  if (Ang_curve<=kPi)
   {
     distChord=GetRadHelix()*(1-std::cos(0.5*Ang_curve));
   }
-  else if(Ang_curve<twopi)
+  else if(Ang_curve<kTwoPi)
   {
-    distChord=GetRadHelix()*(1+std::cos(0.5*(twopi-Ang_curve)));
+    distChord=GetRadHelix()*(1+std::cos(0.5*(kTwoPi-Ang_curve)));
   }
   else
   {

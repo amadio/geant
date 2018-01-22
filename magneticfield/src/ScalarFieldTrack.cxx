@@ -7,15 +7,15 @@
 
 ScalarFieldTrack::
 ScalarFieldTrack( const ThreeVector& pPosition, 
-              const ThreeVector& pMomentum,
-              // double       restMass_c2,
-              double       charge, 
-              // double       LaboratoryTimeOfFlight,
-              double       curve_length )
-        // const ThreeVector& vecPolarization,
-        // double       magnetic_dipole_moment,
-        // double       curve_length,
-        // double       pdgSpin )
+                  const ThreeVector& pMomentum,
+                  // double       restMass_c2,
+                  double       charge, 
+                  // double       LaboratoryTimeOfFlight,
+                  double       curve_length )
+                  // const ThreeVector& vecPolarization,
+                  // double       magnetic_dipole_moment,
+                  // double       curve_length,
+                  // double       pdgSpin )
  :  fDistanceAlongCurve(curve_length) // ,
    // fMomentumMag(pMomentum.Mag()),
    // fKineticEnergy(kineticEnergy), fRestMass_c2(restMass_c2),
@@ -42,14 +42,14 @@ ScalarFieldTrack::ScalarFieldTrack( char )                  //  Nothing is set !
     // fProperTimeOfFlight(0.) // , 
     // fCharge(  DBL_MAX )
 {
-  ThreeVector Zero(0.0, 0.0, 0.0);
+  ThreeVector ZeroVec(0.0, 0.0, 0.0);
 
-  SetCurvePnt( Zero, Zero, 0.0 );
+  SetCurvePnt( ZeroVec, ZeroVec, 0.0 );
   SetCharge(0.0);
-  // SetMomentum( Zero );  // Sets momentum direction as well.
-  // SetPosition( Zero ); 
+  // SetMomentum( ZeroVec );  // Sets momentum direction as well.
+  // SetPosition( ZeroVec ); 
 
-  // SetPolarization( Zero ); 
+  // SetPolarization( ZeroVec ); 
 }
 
 // -------------------------------------------------------------------

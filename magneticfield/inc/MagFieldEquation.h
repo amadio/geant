@@ -10,9 +10,9 @@
 #include "base/Vector3D.h"
 #include <Geant/Config.h>
 #include <Geant/VectorTypes.h>
-#include "Units.h"
-#include "Constants.h"
-//  Update to GeantV units ASAP
+
+#include "SystemOfUnits.h"
+#include "PhysicalConstants.h"
 
 // #define OUTSIDE_MagFieldEquation 1
 
@@ -24,7 +24,7 @@ public:
   using Double_v = Geant::Double_v;
   using Float_v = Geant::Float_v;
   
-  static constexpr double gCof   = Constants::c_light;  //   / fieldUnits::meter ;
+  static constexpr double gCof   = geant::kCLight;  //   / fieldUnits::meter ;
 
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -120,7 +120,8 @@ public:
                  Real_v const  dydx[]  ) const
   {
     using ThreeVector = Vector3D<Real_v>;
-   
+    using geant::kilogauss;
+    
     std::cout.precision(8);
     std::cout << "Equation:  gCof= " << gCof << " charge= " << charge << " cof= " << cof
               << " Bfield= " << B << std::endl;
@@ -130,8 +131,8 @@ public:
               << " - mag= " << std::sqrt( dydx[3] * dydx[3] + dydx[4] * dydx[4] + dydx[5] * dydx[5] ) << std::endl;
 
     Real_v Bmag = ThreeVector(B[0], B[1], B[2]).Mag();
-    std::cout << "            B-field= " << B[0] / fieldUnits::kilogauss << " " << B[1] / fieldUnits::kilogauss << " "
-              << B[2] / fieldUnits::kilogauss << "  ( KGaus ) mag= " << Bmag << std::endl;
+    std::cout << "            B-field= " << B[0] / kilogauss << " " << B[1] / kilogauss << " "
+              << B[2] / kilogauss << "  ( KGaus ) mag= " << Bmag << std::endl;
     std::cout << "               P  = " << y[3] << " " << y[4] << " " << y[5]
               << " = mag= " << ThreeVectorD(y[3],y[4],y[5]).Mag() << std::endl;
   }

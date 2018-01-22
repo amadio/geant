@@ -164,8 +164,8 @@ protected:
 
 public:
   // Methods for Multi-treading
-  CMSmagField* CloneOrSafeSelf( bool* pSafe );
-   // VVectorField*    Clone() const override;
+  // CMSmagField* CloneOrSafeSelf( bool* pSafe );
+  // VVectorField*    Clone() const override;
 
   enum  kIndexRPhiZ { kNumR = 0, kNumPhi= 1, kNumZ = 2 } ;
 private: 
@@ -366,6 +366,7 @@ void CMSmagField::GetFieldValueRZ(const Real_v &r,
 {
 
     using namespace vecCore::math;
+    using namespace Geant;
     using Index_v = vecCore::Index<Real_v>;
 
     //Take care that radius and z for out of limit values take values at end points 
@@ -374,7 +375,7 @@ void CMSmagField::GetFieldValueRZ(const Real_v &r,
 
     //to make sense of the indices, consider any particular instance e.g. (25,-200)
     Real_v rFloor = Floor(radius * kRDiffInv);
-    Real_v rIndLow = rFloor * kNoZValues;
+    Real_v rIndLow = rFloor * Real_v(kNoZValues);
     // Real_v rIndHigh = rIndLow + kNoZValues;
 
     //if we use z-z0 in place of two loops for Z<0 and Z>0
@@ -383,7 +384,8 @@ void CMSmagField::GetFieldValueRZ(const Real_v &r,
     //i.e. we are saying:
     Real_v zInd = Floor((z - Real_v(kZ0)) * Real_v(kZDiffInv));
     //need i1,i2,i3,i4 for 4 required indices
-    Index_v i1 = Index_v(rIndLow + zInd);
+    Index_v i1 = vecCore::Convert<Index_v>(rIndLow + zInd);
+    //Index_v i1 = Index_v(rIndLow + zInd);
     Index_v i2 = i1 + 1;
 
     Real_v zLow       = (zInd - Real_v(kHalfZValues)) * Real_v(kZDiff); //80 because it's the middle index in 0 to 160

@@ -45,7 +45,7 @@ typedef vecgeom::Vector3D<Float_v> ThreeVecSimdF_t;
 
 using MagField = CMSmagField;
 
-constexpr float tesla = geant::tesla;
+// constexpr float tesla = geant::tesla;
 // constexpr float kilogauss = geant::kilogauss;
 constexpr float millimeter = geant::millimeter;
 

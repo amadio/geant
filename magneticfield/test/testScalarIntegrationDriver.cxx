@@ -11,15 +11,15 @@
 
 // #include "G4UniformMagField.hh"
 // #include "G4SystemOfUnits.hh"
-#include "Units.h"
+#include "SystemOfUnits.h"
 #include <cfloat>
 
 // using fieldUnits::meter;
-using fieldUnits::millimeter;   
-using fieldUnits::second;  
-using fieldUnits::eplus;  
-using fieldUnits::tesla;
-using fieldUnits::degree;
+using geant::millimeter;   
+using geant::second;  
+using geant::eplus;  
+using geant::tesla;
+using geant::degree;
 
 // #include "ThreeVector.h"
 #include "base/Vector3D.h"
@@ -78,7 +78,7 @@ int main(int argc, char *args[])
     if(argc > 5)
        epsTolInp  = (float) (stof(args[5]));     // number 
 
-    double step_len = step_len_mm * fieldUnits::millimeter;
+    double step_len = step_len_mm * geant::millimeter;
     
     //Set Charge etc.
     double particleCharge = +1.0;      // in e+ units
@@ -133,11 +133,11 @@ int main(int argc, char *args[])
        z_field = -1.0;  //  Tesla // *tesla ;
 
     // Field
-    auto gvField= new ScalarUniformMagField( fieldUnits::tesla * ThreeVector(x_field, y_field, z_field) );
+    auto gvField= new ScalarUniformMagField( geant::tesla * ThreeVector(x_field, y_field, z_field) );
 
     cout << "#  Initial  Field strength (GeantV) = "
          << x_field << " , " << y_field << " , " << z_field 
-       // << (1.0/fieldUnits::tesla) * gvField->GetValue()->X() << ",  "
+       // << (1.0/geant::tesla) * gvField->GetValue()->X() << ",  "
          << " Tesla " << endl;
     cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
     //Create an Equation :
@@ -181,10 +181,10 @@ int main(int argc, char *args[])
     //integrDriver->InitializeCharge( particleCharge );
  
     //Initialising coordinates
-    const double mmGVf = fieldUnits::millimeter;
-    const double ppGVf = fieldUnits::GeV ;  //   it is really  momentum * c_light
-                                         //   Else it must be divided by fieldUnits::c_light;
-    // const double ppGVf = fieldUnits::GeV / Constants::c_light;     // OLD
+    const double mmGVf = geant::millimeter;
+    const double ppGVf = geant::GeV ;  //   it is really  momentum * c_light
+                                         //   Else it must be divided by geant::c_light;
+    // const double ppGVf = geant::GeV / Constants::c_light;     // OLD
 
     // double yIn[] = {x_pos,y_pos,z_pos,x_mom,y_mom,z_mom};
     double yIn[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
