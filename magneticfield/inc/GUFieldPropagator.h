@@ -9,13 +9,12 @@
 // #include "ThreeVector.h"
 #include "base/Vector3D.h"
 // typedef vecgeom::Vector3D<double>  ThreeVector; 
-// #include "TemplateGUIntegrationDriver.h"
+// #include "ScalarIntegrationDriver.h"
 
 // namespace Geant {
 // inline namespace GEANT_IMPL_NAMESPACE {
 
-template <class Backend>
-class TemplateGUIntegrationDriver;
+// template <class Backend> class TemplateGUIntegrationDriver;
 
 class VVectorField;
 class ScalarIntegrationDriver;
@@ -28,11 +27,11 @@ class GUFieldPropagator
                       double                   epsilon, 
                       FlexIntegrationDriver*   flexDriver = nullptr);
 
-    template <typename Backend>
-    GUFieldPropagator(TemplateGUIntegrationDriver<Backend>* driver, double epsilon);
+    // template <typename Backend>
+    // GUFieldPropagator(TemplateGUIntegrationDriver<Backend>* driver, double epsilon);
 
     template<typename FieldType>  // , typename StepperType>
-       GUFieldPropagator(FieldType* magField, double epsilon, double hminimum= 1.0e-4);
+      GUFieldPropagator(FieldType* magField, double epsilon, double hminimum= 1.0e-4);
 
     ~GUFieldPropagator() {}  // Not virtual anymore.
 

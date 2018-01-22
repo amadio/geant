@@ -145,6 +145,7 @@ template< typename Real_v >
 
 
 template< typename Real_v >
+inline
    void
    ReportRowOfBools( std::string                     varName,
                      const vecCore::Mask_v<Real_v> & var,
@@ -169,6 +170,7 @@ template< typename Real_v >
 // ===============  Selective Reporting / Printing ==================
 
 template< typename Real_v >
+inline
 void
 ReportRowOfDoublesIf( std::string    varName,
                       const Real_v   var, 
@@ -191,7 +193,7 @@ ReportRowOfDoublesIf( std::string    varName,
 
 
 // ----------------------------------------------------------------------------------
-
+inline
 void ReportArray( const std::string& methodName,
                   const std::string& variableName,                  
                   const double       Arr[],

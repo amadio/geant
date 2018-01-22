@@ -361,41 +361,44 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 }
 
 //______________________________________________________________________________
-void GeantRunManager::PrepareRkIntegration() {
-
+void GeantRunManager::PrepareRkIntegration()
+{
   using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
-  using GUFieldPropagator = ::GUFieldPropagator;
+  // using GUFieldPropagator = ::GUFieldPropagator;
   using std::cout;
   using std::endl;  
   
   // Initialise the classes required for tracking in field
-  const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
-  using Field_t = ScalarUniformMagField;
-  using Equation_t = ScalarMagFieldEquation<Field_t, Nvar>;
+  // const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
+  // const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
+  // int statisticsVerbosity = 0;
+  // cout << "Parameters for RK integration in magnetic field: " << endl;
+  // cout << "   Driver parameters:  eps_tol= " << fConfig->fEpsilonRK << "  h_min= " << hminimum << endl;
 
-  auto gvField = new Field_t(fieldUnits::kilogauss * ThreeVector(0.0, 0.0, fConfig->fBmag));
-  auto gvEquation = FieldEquationFactory::CreateMagEquation<Field_t>(gvField);
+  // auto integrDriver = new ScalarIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
+  // auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK);
 
-  VScalarIntegrationStepper *aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
-
-  const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
-  // const double epsTol = 3.0e-4;               // Relative error tolerance of integration
-  int statisticsVerbosity = 0;
-  cout << "Parameters for RK integration in magnetic field: " << endl;
-  cout << "   Driver parameters:  eps_tol= " << fConfig->fEpsilonRK << "  h_min= " << hminimum << endl;
-
-  auto integrDriver = new ScalarIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
-  // GUFieldPropagator *
-  auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK); // epsTol);
-
-  static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
-  assert(fpPool); // Cannot be zero
-  if (fpPool) {
-    fpPool->RegisterPrototype(fieldPropagator);
-    // Create clones for other threads
-    fpPool->Initialize(fNthreads);
+  
+  UserFieldConstruction* udc= fDetConstruction->GetFieldConstruction();
+  if( ! udc ) {
+     Geant::Error("PrepareRkIntegration", "Cannot find expected User Field Construction object.");
+     exit(1);
   } else {
-    Geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
+     // GUVVectorField** fieldPtr;
+     bool useRungeKutta= fConfig->fUseRungeKutta;
+     cout << "PrepareRkIntegration: creating field & solver.  Use RK= " << useRungeKutta << endl;     
+     udc->CreateFieldAndSolver( useRungeKutta ); // , fieldPtr );
+
+     static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
+     assert(fpPool); // Cannot be zero
+     if (fpPool) {
+        // fpPool->RegisterPrototype(fieldPropagator);
+        //     ==> Now done in UserFieldConstructor::CreateSolverForField
+        // Create clones for other threads
+        fpPool->Initialize(fNthreads);
+     } else {
+        Geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
+     }
   }
 }
 

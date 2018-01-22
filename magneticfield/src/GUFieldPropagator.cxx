@@ -6,13 +6,11 @@
 
 #include "GUFieldPropagator.h"
 
-// #include "VScalarEquationOfMotion.h"
+#include "VScalarEquationOfMotion.h"
 #include "ScalarMagFieldEquation.h"
 #include "VScalarIntegrationStepper.h"
 #include "ScalarIntegrationDriver.h"
-#include "VScalarEquationOfMotion.h"
 
-#include "ScalarMagFieldEquation.h"
 #include "GUTCashKarpRKF45.h"  //  ie ScalarCashKarp
 
 #include "MagFieldEquation.h"
@@ -66,7 +64,7 @@ GUFieldPropagator::GUFieldPropagator(FieldType* magField, double eps, double hmi
 {
    constexpr unsigned int Nposmom = 6; // Number of Integration variables - 3 position, 3 momentum
   
-#if 0
+// #if 0
    using  ScalarEquationType=  ScalarMagFieldEquation<FieldType, Nposmom>;
    int statVerbose= 1;
    auto *pEquation = new ScalarEquationType(magField, Nposmom);
@@ -80,9 +78,9 @@ GUFieldPropagator::GUFieldPropagator(FieldType* magField, double eps, double hmi
                                                     Nposmom,
                                                     statVerbose);
    fScalarDriver= scalarDriver;
-#else
-   fScalarDriver= nullptr;
-#endif
+// #else
+//    fScalarDriver= nullptr;
+// #endif
 
    if( ! fVectorDriver ) {    // Share it between all instances
       

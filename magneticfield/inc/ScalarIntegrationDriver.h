@@ -23,9 +23,9 @@ class ScalarIntegrationDriver
 {
    public:  // with description
      ScalarIntegrationDriver( double                 hminimum, //same
-                          VScalarIntegrationStepper *pStepper,
-                          int                    numberOfComponents=6,
-                          int                    statisticsVerbosity=1);
+                              VScalarIntegrationStepper *pStepper,
+                              int                    numberOfComponents=6,
+                              int                    statisticsVerbosity=1);
      ScalarIntegrationDriver( const ScalarIntegrationDriver& );
        // Copy constructor used to create Clone method
      ~ScalarIntegrationDriver();

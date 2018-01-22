@@ -75,6 +75,16 @@ public:
   /** @brief Field value getter */
   vecgeom::Vector3D<float> GetConstantFieldValue() const { return fFieldComponents; }
 
+  /** @brief For old interface - when cloning was needed for each thread */
+  UniformMagField* Clone() const {  return new UniformMagField( *this ); }
+
+  UniformMagField* CloneOrSafeSelf( bool* pSafe )
+  {
+     if( pSafe ) *pSafe= true;
+     return this;
+  }
+  //  Class is thread-safe, can use 'self' instead of clone
+  
   // STATE
 private:
   vecgeom::Vector3D<float> fFieldComponents;

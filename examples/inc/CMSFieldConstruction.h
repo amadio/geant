@@ -87,6 +87,9 @@ CreateFieldAndSolver(bool useRungeKutta, VVectorField** fieldPP )
   // fUniformField= nullptr;
   useRungeKutta= true;  // Must initialize it always -- 
   printf("CMSFieldConstruction::CratedFieldAndSolver> useRungeKutta - forced ON, until 'general helix' is available ");
+
+  auto fieldConfig= new FieldConfig( fUniformMagField, bool isUniform=true );
+  FieldLookup::SetFieldConfig( fieldConfig );
   
   auto fieldPtr = fCMSfield;  
 

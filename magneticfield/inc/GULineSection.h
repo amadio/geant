@@ -64,7 +64,7 @@ double GULineSection::Distline( const ThreeVector& OtherPnt,
   return LineAB.Dist( OtherPnt );
 }
 
-
+inline
 double GULineSection::Dist( ThreeVector OtherPnt ) const
 {
   double       dist_sq;  

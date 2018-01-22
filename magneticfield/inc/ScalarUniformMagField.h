@@ -44,14 +44,14 @@ public:
   ScalarUniformMagField& operator = (const ScalarUniformMagField &p);
 
   /** @brief Scalar interface for field retrieval */
-  virtual void  GetFieldValue( const Vector3D<double> &position, 
+  virtual void  ObtainFieldValue( const Vector3D<double> &position,
                                      Vector3D<double>  &fieldValue )
   {
     GetFieldValue<double>(position, fieldValue);
   }
 
   /** @brief Vector interface for field retrieval */
-  virtual void GetFieldValueSIMD( const Vector3D<Double_v> &position, 
+  virtual void  ObtainFieldValueSIMD( const Vector3D<Double_v> &position, 
                                         Vector3D<Double_v> &fieldValue )
   {
     GetFieldValue<Double_v>(position, fieldValue);

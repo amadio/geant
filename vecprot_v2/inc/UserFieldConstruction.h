@@ -20,7 +20,7 @@
 #include "FieldPropagatorFactory.h"
 #include "Units.h"  //  For fieldUnits
 
-#include "ScalarUniformMagField.h"  //  For now - plan to strip it into separate 'simple' det constr.
+#include "UniformMagField.h"   // For use in scalar and vector/flexible driver/stepper etc
 
 // GEANT_DEVICE_DECLARE_CONV(class,UserFieldConstruction);
 
@@ -30,9 +30,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class UserFieldConstruction
 {
   public:
-    // UserFieldConstruction();  // RootDL
+    // UserFieldConstruction();  // RootDL - i.e. moved below, where it is defined
     virtual ~UserFieldConstruction() {};
-    // virtual bool Construct(const char *geomfile);
     // virtual bool CreateFieldAndSolver(bool useRungeKutta= true); // RootDL
 
     /** Register a constanct B-field */ 
@@ -55,7 +54,7 @@ class UserFieldConstruction
   private:
     double           fEpsilonRK;
     double           fMinimumStepInField;
-    vecgeom::Vector3D<float>  fUniformMagField;
+    vecgeom::Vector3D<float>  fMagFieldValue;
     bool             fUseUniformField;
     bool             fZeroField;
 
@@ -69,7 +68,7 @@ class UserFieldConstruction
   public:
     static constexpr double   fEpsilonDefault = 3.0e-5; 
     static constexpr double   fMinimumStepInFieldDef= 1.0e-4; // GV units = cm
-    // vecgeom::Vector3D<float>  fUniformMagFieldVec;
+    // vecgeom::Vector3D<float>  fMagFieldValueVec;
 
 // };   // RootComm
 
@@ -86,11 +85,6 @@ UserFieldConstruction() :
    fCalled(false),
    fpField(nullptr)
    {}
-
-// bool UserFieldConstruction::Construct(const char *geomfile)
-// {
-//    return LoadGeometry(geomfile));
-// }
 
 template <class Field_t>
 bool
@@ -129,26 +123,24 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
      printf("%s - WARNING: No units provided - using kilogauss as default unit", 
             methodName );
 
-  fUniformMagField= vecgeom::Vector3D<float>( fieldVal[0] * unit, fieldVal[1] * unit, fieldVal[2] * unit );
+  fMagFieldValue= vecgeom::Vector3D<float>( fieldVal[0] * unit, fieldVal[1] * unit, fieldVal[2] * unit );
 
   /*
   printf("%s called. Field value = %9.3g , %9.3g  %9.3g  kiloGauss\n",
          methodName,
-         fUniformMagField[0] / fieldUnits::kilogauss,
-         fUniformMagField[1] / fieldUnits::kilogauss,
-         fUniformMagField[2] / fieldUnits::kilogauss );
+         fMagFieldValue[0] / fieldUnits::kilogauss,
+         fMagFieldValue[1] / fieldUnits::kilogauss,
+         fMagFieldValue[2] / fieldUnits::kilogauss );
    */
-  
+
   fUseUniformField= true;
-  fZeroField = ( fUniformMagField.Mag2() == 0.0 );
+  fZeroField = ( fMagFieldValue.Mag2() == 0.0 );
 }
 
-/**  This method must exist for derived classes, 
-  *    and must call CreateSolverForField() for concrete field class
-  */
+/** @brief Create the global magnetic field and classes to integrate it. Register field. */
+/** @description  Must call the templated CreateSolverForField method.                   */
 virtual
 bool
-// UserFieldConstruction:: // RootComm
 CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
 {
   static const char *method="UserFieldConstruction::CreateFieldAndSolver";
@@ -158,26 +150,29 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
   Geant::Print(method, "%s - method called.  Use uniform= %d  Value= %f %f %f - kiloggauss.  Zero-Flag= %d",
                method,
                fUseUniformField,
-               fUniformMagField[0]/fieldUnits::kilogauss,
-               fUniformMagField[1]/fieldUnits::kilogauss,
-               fUniformMagField[2]/fieldUnits::kilogauss,
+               fMagFieldValue[0]/fieldUnits::kilogauss,
+               fMagFieldValue[1]/fieldUnits::kilogauss,
+               fMagFieldValue[2]/fieldUnits::kilogauss,
                fZeroField );
 
   if( fUseUniformField )
   {
-    auto gvField= new ScalarUniformMagField( fUniformMagField );
-
-    // printf("   Field class created - address= %p \n", gvField );
-    fpField= gvField;
+    auto gvUniformField= new UniformMagField( fMagFieldValue );
+    bool isUniform=true;
+    auto fieldConfig= new FieldConfig( gvUniformField, isUniform );
+    FieldLookup::SetFieldConfig( fieldConfig );
+    
+    // printf("   Field class created - address= %p \n", gvUniformField );
+    fpField= gvUniformField;
 
     // Check that field was correctedly created ...
     ThreeVector  Position( 0.0, 0.0, 0.1 );
     ThreeVector fieldVal( 0.0, 0.0, 0.13579 );
-    gvField->GetFieldValue(Position, fieldVal);
+    gvUniformField->GetFieldValue(Position, fieldVal);
 
-    rtv= CreateSolverForField<ScalarUniformMagField>(gvField);
+    rtv= CreateSolverForField<UniformMagField>(gvUniformField);
 
-    if( fieldPP ) *fieldPP= nullptr;
+    if( fieldPP ) *fieldPP= gvUniformField; // Return it ??
 
     if (fZeroField) {
       Geant::Print(method," Zero Magnetic Field configured.");
@@ -190,7 +185,7 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
   return rtv;
 }
 
-}; // RootAdded
+};
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

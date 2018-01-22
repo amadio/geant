@@ -70,7 +70,7 @@ Geant::Double_v GUVectorLineSection::Distline
   return LineAB.Dist( OtherPnt );
 }
 
-
+inline
 Geant::Double_v GUVectorLineSection::Dist
              ( ThreeVectorSimd OtherPnt ) const
 {
