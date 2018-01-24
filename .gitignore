@@ -1,5 +1,6 @@
 #?
 .DS_Store
+.vscode
 
 # Compiled Object files
 *.slo
@@ -24,4 +25,8 @@ bin
 build
 /include
 doxygen.conf
+
+# ROOT data files
+*.root
+
 
