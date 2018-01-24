@@ -33,6 +33,7 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbFullApp.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCBData.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbParticleGun.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbPhysicsList.cxx   
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3App.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3DetectorConstruction.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3Data.cxx
@@ -58,6 +59,7 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbFullApp.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbParticleGun.h
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbPhysicsList.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3App.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h

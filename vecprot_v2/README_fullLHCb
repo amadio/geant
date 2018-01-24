@@ -1,0 +1,143 @@
+GeantV Full LHCb Benchmark (November, 2017, M.Novak)
+===============================================================================
+
+'fullLHCb' is a CPU benchmark test GeantV application based on the full LHCb
+detector imported via a .gdml/.root file. (The corresponding Geant4 application
+is 'full-cms'.) The 'cms.gdml' file is available in the repository under
+geant/examplesRP/Geant4/FullLHCb/cms.gdml
+
+
+----------------------------
+- DETECTOR
+----------------------------
+
+# Detector construction:
+    The detector is imported from GDML file. Any GDML file can be set
+    as an input argument by using the
+
+    --det-set-gdml <gdml-file-name.gdml>
+
+    The default value is "/.cms.gdml".
+
+
+
+-----------------------------
+- PRIMARY GENERATOR
+-----------------------------
+
+The primary generator is a particle gun that will generate primary particles
+at the (0,0,0) position with the following options:
+
+# Number of primaries per event:
+    The number of primary particles per event can be set as an input argument
+
+    --gun-set-primary-per-event <number>
+
+    By default, i.e. if it is not specified by the above argument, the number
+    of primary particles will be randomly selected for each individual event
+    from the [1, 10] interval uniformly.
+
+# Primary particle energy:
+    The primary particle energy can be set as an input argument (in [GeV] unit)
+
+    --gun-set-primary-energy  <energy-value>
+
+    By default, i.e. if it is not specified by the above argument, the kinetic
+    energy will be randomly selected for each individual primary particle from
+    the [1 GeV, 100 GeV] uniformly.
+
+# Primary particle direction:
+    The primary particle momentum direction can be set as an input argument
+
+    --gun-set-primary-direction  x=<xdir-value>,y=<ydir-value>,z=<zdir-value>
+
+    The user defined direction will be normalized automatically. By default,
+    i.e. if it is not specified by the above argument, the momentum direction
+    will be randomly selected for each individual primary particles from an
+    isotropic distribution.
+
+# Primary particle type:
+    The primary particle type can be set as an input argument
+
+    --gun-set-primary-type      <particle-name>
+
+    By default, i.e. if it is not specified by the above argument, the type
+    will be randomly selected from a pre-defined list for each individual
+    primary particle uniformly. The current list of particles includes e-,
+    e+ and gamma particles. It can be extended by adding more particles to
+    the list in the LHCbParticleGun class.
+
+
+------------------------
+- PHYSICS LIST
+------------------------
+
+The default GeantV physics list is used for the simulation that includes the
+standrad EM processes for e- (ionization, bremsstrahlung, Coulomb scattering),
+e+ (ionization, bremsstrahlung, Coulomb scattering) and gamma (photoelectric
+absorption, Compton scattering, e-e+ pair production). Note, that energy loss
+fluctuation and e+ annihilation are not included in the physics list. The
+corresponding Geant4 physics list (MyGVPhysicsList) has been created and used
+as default in the equivalent 'full-cms' Geant4 application.
+
+
+
+-------------------------
+- RUN CONFIGURATION
+-------------------------
+
+The application can be used both with single and multiple worker threads.
+GeantV can use multiple propagators per-worker threads and transport multiple
+events simultaneously (the work/tracks will be distributed among the worker
+threads). The corresponding options:
+
+# Number of worker threads:
+    The number of worker threads can be specified as an input argument by
+
+    --config-number-of-threads  <number>
+
+# Number of propagators per-worker thread:
+    The number of propagators can be specified as an input argument by
+
+    --config-number-of-propagators <number>
+
+# Number of buffered events:
+    The number of events transported simultaneously can be set as an input
+    argument by
+
+    --config-number-of-buffered-events <number>
+
+# Total number of events to be transported:
+    The total number of events to be transported can be set as an input
+    argument by
+
+    --config-total-number-of-events  <number>
+
+A minimal set of "observable" is collected during the simulation per-primary
+particle type: mean energy deposit, mean charged and neutral step lengths,
+mean number of steps made by charged and neutral particles, mean number of
+secondary e-, e+ and gamma particles. The result is reported at the end of
+each event for each primary particle that were transported in the given event.
+At the end of the simulation a final report is printed showing the primary
+generator settings used during the run, the total number of events and primary
+particles transported and the per-primary type simulation statistics of the
+above-mentioned quantities.
+
+The simulation can be executed in "performance" mode by providing the
+
+  --config-run-performance
+
+flag as an input argument. User actions are not invoked (early returns) in this
+case. Therefore, there is no any scoring in this case.
+
+
+-------------------------
+- EXAMPLE
+-------------------------
+
+The 'fullLHCb.mac' script is provided as an example to simulate 10 events in the
+LHCb detector such that each event will contain 2 primary electrons with 10 GeV
+kinetic energy pointing to a fixed direction. 4 events will be taken and
+transported simultaneously by using 4 worker threads with one propagator each
+in non performance mode (i.e. user actions are active and statistics are
+reported after each event and at the end of the simulation)
