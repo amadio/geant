@@ -7,6 +7,7 @@
 
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
+#include "GeantEvent.h"
 #include "GeantConfig.h"
 #include "priority_queue.h"
 
@@ -15,7 +16,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class PrimaryGenerator;
 class GeantTaskData;
-class GeantEvent;
 class Basket;
 class StackLikeBuffer;
 

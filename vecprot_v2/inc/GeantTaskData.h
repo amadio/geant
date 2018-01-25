@@ -22,7 +22,6 @@
 #include "mpmc_bounded_queue.h"
 #include "GeantTrackVec.h"
 #include "GeantPropagator.h"
-#include "GeantEvent.h"
 #include "GeantTrack.h"
 #include "TrackManager.h"
 
