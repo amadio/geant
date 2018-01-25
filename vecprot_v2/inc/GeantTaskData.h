@@ -21,9 +21,9 @@
 #include "Geant/Error.h"
 #include "mpmc_bounded_queue.h"
 #include "GeantTrackVec.h"
+#include "NumaBlockMgr.h"
 #include "GeantPropagator.h"
 #include "GeantTrack.h"
-#include "TrackManager.h"
 
 namespace geantphysics {
   class PhysicsData;
