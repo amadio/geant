@@ -94,6 +94,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcessOld.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Handler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basketizer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/StackLikeBuffer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SimulationStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PreStepHandler.h

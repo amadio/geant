@@ -81,6 +81,8 @@ if(USE_ROOT)
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libRealPhysics_rdict.pcm DESTINATION lib)
 endif()
 
+install(FILES ${headers} DESTINATION inc)
+
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories to doxygen
 #----------------------------------------------------------------------------------------------
