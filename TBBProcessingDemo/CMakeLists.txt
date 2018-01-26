@@ -57,7 +57,7 @@ include_directories(${GeantV_INCLUDE_DIR}/xsec/inc)
 include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2/inc)
 include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2_tbb/inc)
 include_directories(${GeantV_INCLUDE_DIR}/examples/inc)
-set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeantExamples.so ${GeantV_DIR}/lib/libXsec.so)
+set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeantExamplesRP.so ${GeantV_DIR}/lib/libRealPhysics.so)
 
 include_directories(${VecGeom_INCLUDE_DIR})
 
@@ -106,6 +106,8 @@ set(TEST_FILES
   TBBTestModules/FastProducer.cpp
   TBBTestModules/GeantVProducer.cpp
   TBBTestModules/CMSApplicationTBB.cpp
+  TBBTestModules/CMSParticleGun.cpp
+  TBBTestModules/CMSPhysicsList.cpp
   TBBTestModules/PassFilter.cpp
   TBBTestModules/SleepingPassFilter.cpp
   TBBTestModules/SleepingProducer.cpp

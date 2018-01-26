@@ -17,11 +17,15 @@
 #include "Geant/Config.h"
 #include "GeantRunManager.h"
 #include "EventSet.h"
-#include "GunGenerator.h"
-#include "HepMCGenerator.h"
-#include "TTabPhysProcess.h"
+
+//#include "HepMCGenerator.h"
+#include "PhysicsProcessHandler.h"
+#include "PhysicsListManager.h"
+
 #include "CMSApplicationTBB.h"
+#include "CMSPhysicsList.h"
 #include "CMSDetectorConstruction.h"
+#include "CMSParticleGun.h"
 
 using namespace Geant;
 
@@ -99,7 +103,7 @@ namespace demo {
     int n_track_max = 500;
     int n_learn_steps = 0;
     int n_reuse = 100000;
-    bool monitor = false, score = false, debug = false, coprocessor = false, tbbmode = false, usev3 = true, usenuma = false;
+    bool monitor = false, score = false, debug = false, coprocessor = false, usev3 = true, usenuma = false;
     bool performance = true;
 
     //e.g. cms2015.root, cms2018.gdml, ExN03.root
@@ -129,7 +133,6 @@ namespace demo {
     fConfig->fNmaxBuffSpill = 128;  // New configuration parameter!!!
     fConfig->fUseV3 = usev3;
 
-    if (tbbmode) fConfig->fRunMode = GeantConfig::kExternalLoop;
     fConfig->fUseRungeKutta = false;  // Enable use of RK integration in field for charged particles
     // prop->fEpsilonRK = 0.001;      // Revised / reduced accuracy - vs. 0.0003 default
 
@@ -183,6 +186,9 @@ namespace demo {
     fConfig->fUseStdScoring = true;
     if (performance) fConfig->fUseStdScoring = false;
 
+    // Activate vectorized geometry
+    fConfig->fUseVectorizedGeom = 10;
+
      // Create run manager
     std::cerr<<"*** GeantRunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
     fRunMgr = new GeantRunManager(n_propagators, n_threads, fConfig);
@@ -192,7 +198,13 @@ namespace demo {
 
     // Create the tabulated physics process
     std::cerr<<"*** GeantRunManager: setting physics process...\n";
-    fRunMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
+    //fRunMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
+
+    // create the real physics main manager/interface object and set it in the GeantRunManager
+    fRunMgr->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
+
+    // Create user defined physics list for the full CMS application
+    geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList());
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
@@ -203,18 +215,29 @@ namespace demo {
 #endif
 
     // Setup a primary generator
+    printf("hepmc_event_filename=%s\n", hepmc_event_filename.c_str());
     if (hepmc_event_filename.empty()) {
       std::cerr<<"*** GeantRunManager: setting up a GunGenerator...\n";
       double x = rand();
       double y = rand();
       double z = rand();
       double r = sqrt(x*x+y*y+z*z);
-      fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, 0, 0, 0, x/r, y/r, z/r);
+      //fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, 0, 0, 0, x/r, y/r, z/r);
       //fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, -8, 0, 0, 1, 0, 0);
-    } else {
-      std::cerr<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
-      fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
+
+      cmsapp::CMSParticleGun *cmsgun = new cmsapp::CMSParticleGun();
+      cmsgun->SetNumPrimaryPerEvt(fConfig->fNaverage);
+      cmsgun->SetPrimaryName("e-");
+      cmsgun->SetPrimaryEnergy(fConfig->fEmax);
+      //cmsgun->SetPrimaryDirection(parGunPrimaryDir);
+      fRunMgr->SetPrimaryGenerator(fPrimaryGenerator);
+      fPrimaryGenerator = cmsgun;
     }
+    // else {
+    //   //.. here for a HepMCGenerator
+    //   std::cerr<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
+    //   fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
+    // }
 
     CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr);
     std::cerr<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
@@ -316,7 +339,8 @@ namespace demo {
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
       for (int itr = 0; itr < event_info.ntracks; ++itr) {
 	GeantTrack &track = td->GetNewTrack();
-	track.fParticle = event->AddPrimary(&track);
+	int trackIndex = event->AddPrimary(&track);
+	track.SetParticle(trackIndex);
 	track.SetPrimaryParticleIndex(itr);
 	fPrimaryGenerator->GetTrack(itr, track, td);
       }
