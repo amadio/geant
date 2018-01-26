@@ -17,6 +17,9 @@ G__*.c
 G__*.cxx
 G__*.h
 
+# ROOT data files
+*.root
+
 # Other Stuff
 *.d
 *~
@@ -25,8 +28,4 @@ bin
 build
 /include
 doxygen.conf
-
-# ROOT data files
-*.root
-
-
+setmeup.sh

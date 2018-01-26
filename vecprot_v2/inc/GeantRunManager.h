@@ -44,7 +44,7 @@ private:
   int fNthreads     = 0;          /** Number of threads per propagator */
   int fNvolumes     = 0;          /** Number of active volumes in the geometry */
   int fNbuff        = 0;          /** Number of event slots per propagator */
-  int fNfeedProp    = 0;          /** Number of propagators with initial feed */
+  //int fNfeedProp    = 0;          /** Number of propagators with initial feed */
   int fInitialShare = 0;          /** Initial basket share for each propagator */
   GeantConfig *fConfig = nullptr; /** Run configuration */
   TaskBroker *fBroker = nullptr;  /** Task broker */

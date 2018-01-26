@@ -65,7 +65,7 @@ private:
   std::atomic<GeantEvent*> fEvent;     /** Current event being distributed */
   GeantRunManager *fRunMgr = nullptr;  /** Run manager */
   bool fEventsServed = false;          /** All events served */
-  bool fDone = false;                  /** All events transported */
+  //bool fDone = false;                  /** All events transported */
   bool fHasTracks = false;             /** Server has tracks to dispatch */
   bool fInitialPhase = false;          /** Server in initial dispatch phase */
   GeantEvent** fEvents = nullptr;      /** Events to be dispatched */

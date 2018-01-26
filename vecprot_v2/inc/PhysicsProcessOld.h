@@ -157,7 +157,7 @@ public:
    VECCORE_ATT_HOST_DEVICE
    virtual void ComputeIntLen(TrackVec_t &tracks, GeantTaskData *td) = 0;
   /**
-   * @brief Post step type of intraction sampling function
+   * @brief Post step type of interaction sampling function
    * @details Sampling:
    * 1. Target atom and type of the interaction for each primary tracks
    * 2. All inf. regarding sampling output is stored in the tracks
