@@ -1,5 +1,5 @@
 
-#include "PostStepActionHandler.h"
+#include "AtRestActionHandler.h"
 
 // from geantV
 #include "GeantPropagator.h"
@@ -19,13 +19,13 @@
 
 namespace geantphysics {
 
-PostStepActionHandler::PostStepActionHandler(int threshold, Geant::GeantPropagator *propagator)
+AtRestActionHandler::AtRestActionHandler(int threshold, Geant::GeantPropagator *propagator)
 : Geant::Handler(threshold, propagator) {}
 
 
-PostStepActionHandler::~PostStepActionHandler() {}
+AtRestActionHandler::~AtRestActionHandler() {}
 
-void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData * td) {
+void AtRestActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData * td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -36,9 +36,10 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   // put some asserts here to make sure (1) that the partcile has any processes, (2) the particle has at least one
-  // process with discrete
+  // process with at-rest part
+  // NOTE: kinetic energy should be <= 0 that was checked at the AtRestActionStage
   assert(pManager!=nullptr); // (1)
-  assert(pManager->GetListPostStepCandidateProcesses().size()!=0); // (2)
+  assert(pManager->GetListAtRestCandidateProcesses().size()!=0); // (2)
   //
   LightTrack primaryLT;
   // we will use members:
@@ -51,38 +52,37 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   //  fYdir         <==>  fYdir     // direction vector y comp. will be set to the new direction y comp.
   //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
-  primaryLT.SetKinE(track->E()-track->Mass());
+///  the primary track is stopped i.e. zero kinetic energy
+  primaryLT.SetKinE(0.);
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
 //  primaryLT.SetTrackIndex(i);
-  primaryLT.SetDirX(track->Dx());
-  primaryLT.SetDirY(track->Dy());
-  primaryLT.SetDirZ(track->Dz());
+///  the primary track is stopped i.e. zero kinetic energy
+///  primaryLT.SetDirX(track->Dx());
+///  primaryLT.SetDirY(track->Dy());
+///  primaryLT.SetDirZ(track->Dz());
 //  primaryLT.SetTotalMFP(track->GetIntLen());
   //
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->SetNumUsedSecondaries(0);
   //
-  // invoke the PostStepAction of this particle PhysicsManagerPerParticle
-  int nSecParticles = pManager->PostStepAction(primaryLT, track, td);
+  // invoke the AtRestAction of this particle PhysicsManagerPerParticle
+  int nSecParticles = pManager->AtRestAction(primaryLT, track, td);
   //
-  // update GeantTrack
-  double newEkin    = primaryLT.GetKinE();
-  track->SetMass(primaryLT.GetMass());
-  track->SetE(newEkin+track->Mass());
-  track->SetP(std::sqrt(newEkin*(newEkin+2.0*track->Mass())));
-  track->SetDirection(primaryLT.GetDirX(),primaryLT.GetDirY(),primaryLT.GetDirZ());
+  // update GeantTrack: the primary track was stopped before the interaction (i.e. zero kinetic energy) and killed
+  //                    in the interaction
+///  double newEkin    = primaryLT.GetKinE();
+///  track->SetMass(primaryLT.GetMass());
+///  track->SetE(newEkin+track->Mass());
+  track->SetE(track->Mass());
+///  track->SetP(std::sqrt(newEkin*(newEkin+2.0*track->Mass())));
+  track->SetP(0.);
+///  track->SetDirection(primaryLT.GetDirX(),primaryLT.GetDirY(),primaryLT.GetDirZ());
   track->SetEdep(track->Edep()+primaryLT.GetEnergyDeposit());
-  if (newEkin<=0.) {
-    if (pManager->GetListAtRestCandidateProcesses().size()>0  && primaryLT.GetTrackStatus()!=LTrackStatus::kKill) {
-      // send it to the AtRestAction stage
-      track->SetStage(Geant::kAtRestActionStage);
-    } else {
-      // kill the primary track and send the track to the last i.e. steppin-action stage
-      track->Kill();
-      track->SetStage(Geant::kSteppingActionsStage);
-    }
-  }
+//  if (primaryLT.GetTrackStatus()==LTrackStatus::kKill) { // as it should always be !!!
+    track->Kill();
+    track->SetStage(Geant::kSteppingActionsStage);
+//  }
   //
   // create secondary tracks if there are any
   if (nSecParticles) {
@@ -130,7 +130,7 @@ void PostStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
 }
 
 //______________________________________________________________________________
-void PostStepActionHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+void AtRestActionHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   Geant::TrackVec_t &tracks = input.Tracks();

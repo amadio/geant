@@ -420,6 +420,9 @@ int GeantPropagator::CreateSimulationStages()
   // kDiscreteProcStage
   stage = fPhysicsInterface->CreatePostStepActionStage(this);
   assert(stage->GetId() == int(kPostStepActionStage));
+  // kAtRestActionStage
+  stage = fPhysicsInterface->CreateAtRestActionStage(this);
+  assert(stage->GetId() == int(kAtRestActionStage));  
   // kSteppingActionsStage
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));

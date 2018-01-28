@@ -181,7 +181,7 @@ public:
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
-  virtual void AtRestDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return;}
+  virtual int AtRestDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return 0;}
 
 
   virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }

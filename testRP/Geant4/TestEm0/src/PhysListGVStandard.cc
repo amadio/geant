@@ -39,6 +39,7 @@
 #include "G4eBremsstrahlung.hh"
 #include "G4PhotoElectricEffect.hh"
 #include "G4LivermorePhotoElectricModel.hh"
+#include "G4eplusAnnihilation.hh"
 
 #include "G4EmParameters.hh"
 
@@ -112,7 +113,7 @@ void PhysListGVStandard::ConstructProcess()
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
       //
-//      ph->RegisterProcess(new G4eplusAnnihilation(), particle);
+      ph->RegisterProcess(new G4eplusAnnihilation(), particle);
     }
   }
 

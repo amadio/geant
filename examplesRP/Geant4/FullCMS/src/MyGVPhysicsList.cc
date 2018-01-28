@@ -23,7 +23,7 @@
 #include "G4GoudsmitSaundersonMscModel.hh"
 #include "G4eIonisation.hh"
 #include "G4eBremsstrahlung.hh"
-//#include "G4eplusAnnihilation.hh"
+#include "G4eplusAnnihilation.hh"
 
 #include "G4EmParameters.hh"
 #include "G4MscStepLimitType.hh"
@@ -108,7 +108,7 @@ void MyGVPhysicsList::BuildEMPhysics() {
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
       //
-//      ph->RegisterProcess(new G4eplusAnnihilation(), particle);
+      ph->RegisterProcess(new G4eplusAnnihilation(), particle);
     }
   }
 }

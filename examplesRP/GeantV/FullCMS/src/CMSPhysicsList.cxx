@@ -18,6 +18,8 @@
 #include "SeltzerBergerBremsModel.h"
 #include "RelativisticBremsModel.h"
 
+#include "PositronAnnihilationProcess.h"
+
 #include "ComptonScatteringProcess.h"
 #include "KleinNishinaComptonModel.h"
 
@@ -132,7 +134,7 @@ void CMSPhysicsList::Initialize() {
       eSBModel->SetLowEnergyUsageLimit (1.0*geant::keV);
       eSBModel->SetHighEnergyUsageLimit(1.0*geant::GeV);
       // turn off using sampling tables
-      eSBModel->SetUseSamplingTables(false);            
+      eSBModel->SetUseSamplingTables(false);
       // how to inactivate this model in a given region i.e. region with index 1
       // active regions for a model are set based on their process active regions + user requested inactive regions
       //eSBModel->AddToUserRequestedInActiveRegions(1);
@@ -164,6 +166,10 @@ void CMSPhysicsList::Initialize() {
       eMSCProc->AddModel(gsMSCModel);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
+      //
+      // create e+ electron annihilation into 2 gamma process
+      geantphysics::PositronAnnihilationProcess *pAnhProc = new geantphysics::PositronAnnihilationProcess();
+      AddProcessToParticle(particle, pAnhProc);
     }
     if (particle==geantphysics::Gamma::Definition()) {
       // create compton scattering process for gamma with 1 model:

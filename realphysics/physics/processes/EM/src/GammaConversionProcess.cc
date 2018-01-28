@@ -14,7 +14,7 @@ GammaConversionProcess::GammaConversionProcess(const std::string &name) : EMPhys
   // request to build lambda tables (by default it will be per material)
   RequestLambdaTables();
   // set special lambda table energy bin number
-  SetSpecialLambdaTableBinNum(220);  
+  SetSpecialLambdaTableBinNum(220);
 }
 
 }  // namespace geantphysics

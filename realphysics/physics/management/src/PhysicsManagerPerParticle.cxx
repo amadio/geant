@@ -240,4 +240,25 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, Geant::GeantTra
 }
 
 
+int PhysicsManagerPerParticle::AtRestAction(LightTrack &track, Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData *td) {
+  int numSecondaries = 0;
+  // get material-cuts, kinetic energy and pre-step mfp of the selected process
+//  const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
+//  double ekin          = track.GetKinE();
+//  double mass          = track.GetMass();
+//  double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx); // pre-step mfp
+  // select at-rest process if there are more than 1 active assigned to this particle:
+  //  - selection will based on the AverageLifetime value that each process will provide
+  //  - at the moment, we have only one particle with one at rest process (e+ annihilation) so no selection needed
+  size_t numAtRestProcesses = fAtRestCandidateProcessVec.size();
+  PhysicsProcess *proc = fAtRestCandidateProcessVec[0];
+  if (numAtRestProcesses>1) {
+    //select one...
+  }
+  // invoke the interaction
+  numSecondaries = proc->AtRestDoIt(track, td);
+  return numSecondaries;
+}
+
+
 }  // namespace geantphysics

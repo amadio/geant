@@ -77,6 +77,7 @@ public:
     */
   virtual  Geant::SimulationStage* CreatePostStepActionStage(Geant::GeantPropagator *prop) = 0;
 
+  virtual  Geant::SimulationStage* CreateAtRestActionStage(Geant::GeantPropagator *prop) = 0;
 
   /**
    * @brief Method that computes the physics step limit.

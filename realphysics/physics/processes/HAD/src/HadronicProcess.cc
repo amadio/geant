@@ -13,8 +13,8 @@ using namespace geantphysics;
 //-----------------------------------
 // HadronicProcess non-inline methods
 //-----------------------------------
- 
-HadronicProcess::HadronicProcess() : PhysicsProcess(""), fType( HadronicProcessType::kNotDefined ), 
+
+HadronicProcess::HadronicProcess() : PhysicsProcess(""), fType( HadronicProcessType::kNotDefined ),
   fXsecStore( nullptr ), fModelStore( nullptr )
 {}
 
@@ -28,7 +28,7 @@ HadronicProcess::HadronicProcess( const std::string &name ) :
 
 
 
-HadronicProcess::HadronicProcess( const std::string &name, const std::vector< int > &particlecodevec, 
+HadronicProcess::HadronicProcess( const std::string &name, const std::vector< int > &particlecodevec,
                                   const HadronicProcessType type, const bool isatrest,
                                   HadronicCrossSectionStore* xsecstore, HadronicFinalStateModelStore* modelstore ) :
   PhysicsProcess( true, false, isatrest, ForcedCondition::kNotForced, ProcessType::kHadronic, name ),
@@ -45,13 +45,13 @@ bool HadronicProcess::IsApplicable( const LightTrack &/*track*/ ) const {
 
   /*
   int particlecode = track.GetGVcode();
-  
+
   bool isOK = false;
   for ( size_t i = 0; i < fParticleCodeVec.size(); i++ ) {
     if ( fParticleCodeVec[i] == particlecode ) {
       isOK = true;
       break;
-    } 
+    }
   }
   */
   return true;
@@ -67,7 +67,7 @@ double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, d
   const Vector_t<Element*> theElements    = mat->GetElementVector();
   const double* theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int   numElems = theElements.size();
-  
+
   for (int iel=0; iel<numElems; ++iel) {
     xsec += theAtomicNumDensityVector[iel]*GetAtomicCrossSection(particle->GetInternalCode(), kinenergy, mass, theElements[iel], mat);
   }
@@ -94,7 +94,7 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
   int indexMaterialCutCouple = track.GetMaterialCutCoupleIndex();
 
   const Material* material = MaterialCuts::GetTheMaterialCutsTable()[indexMaterialCutCouple]->GetMaterial();
-  
+
   if ( fXsecStore ) {
     std::pair< int, int > pairZandN = fXsecStore->SampleTarget( particleCode, eKin, track.GetMass(), material );
     track.SetTargetZ( pairZandN.first );
@@ -114,17 +114,17 @@ int HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) 
   // The first argument is kept constant; the other three are the output of method.
   // QUESTION: IS IT A GOOD IDEA TO ASSUME THIS TRANSFORMATION FOR ALL HADRONIC PROCESSES, INCLUDING ELASTIC?
   //BoostFromLabToCmsAndRotateToMakePrimaryAlongZ( track, transformedTrack, boost, rotation );
-  
+
   Isotope* targetIsotope = SampleTarget( track );
 
   // Call now the hadronic model to get the secondaries:
-  int indexModel = 
+  int indexModel =
     GetFinalStateModelStore()->GetIndexChosenFinalStateModel( track.GetGVcode(), track.GetKinE(), targetIsotope );
   ( GetFinalStateModelStore()->GetHadronicFinalStateModelVec() )[ indexModel ]->SampleFinalState( track, targetIsotope, td);
 
   //BoostBackFromCmsToLabAndRotateBackToOriginalPrimaryDirection( output, boost, rotation );
 
-  // This method checks all the conservations - charge, energy, momentum, etc. - between the initial state 
+  // This method checks all the conservations - charge, energy, momentum, etc. - between the initial state
   // (the primary "track" and the target nucleus "target") and the final state (the secondaries "output").
   // This check could be done in the center-of-mass frame, or in the lab-frame.
   // QUESTION: BETTER TO CHECK CONSERVATION IN THE CMS FRAME OR IN THE LAB ?
@@ -132,7 +132,7 @@ int HadronicProcess::PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td) 
   return 0;
 }
 
-void HadronicProcess::AtRestDoIt( LightTrack& /*track*/,  Geant::GeantTaskData * /*td*/ ) {}
+int  HadronicProcess::AtRestDoIt( LightTrack& /*track*/,  Geant::GeantTaskData * /*td*/ ) { return 0; }
 
 
 void HadronicProcess::AddModel(HadronicFinalStateModel *model) {
@@ -166,5 +166,3 @@ void HadronicProcess::AddCrossSection(HadronicCrossSection *xsection) {
   }
   return;
 }
-  
-

@@ -82,7 +82,7 @@ enum ESimulationStage {
 //  kMSCStage,               // Multiple scattering stage
   kAlongStepActionStage,     // Along step action stage (continuous part of the inetraction)
   kPostStepActionStage,      // Post step action stage (discrete part of the inetraction)
-// kAtRestActionStage,       // At-rest action stage (at-rest part of the inetraction)
+  kAtRestActionStage,       // At-rest action stage (at-rest part of the inetraction)
   kSteppingActionsStage      // User actions
 #else
   kPreStepStage         = 0, // Actions at the beginning of the step
@@ -437,7 +437,7 @@ public:
     }
     return nelem;
   }
- 
+
   /** @brief Getter for the momentum value */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -517,7 +517,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double T() const { return (fE - fMass); }
- 
+
   /** @brief Fills scalar kinetic energy components from input vector into SIMD type.
    *  @param tracks Vector of pointers to tracks
    *  @param offset Start offset.
@@ -598,12 +598,12 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   bool IsOwnPath() const { return fOwnPath; }
-  
+
   /** @brief Getter pre step boundary status */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   bool IsOnBoundaryPreStp() const { return fIsOnBoundaryPreStp; }
-  
+
   /** @brief Getter for pre propagation done status */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -628,7 +628,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double GetPhysicsInteractLength(int iproc) const { return fPhysicsInteractLength[iproc]; }
-  
+
   /** @brief Getter for thes current path */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -695,7 +695,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double Gamma() const { return fMass ? fE / fMass : DBL_MAX; }
-  
+
   /** @brief Fills scalar gamma components from input vector into SIMD type.
    *  @param tracks Vector of pointers to tracks
    *  @param offset Start offset.
@@ -857,7 +857,7 @@ public:
     fYdir = dy;
     fZdir = dz;
   }
-  
+
   /** @brief Setter for direction from components */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -1006,7 +1006,7 @@ public:
 
   /** @brief Clone this track using specific task data storage */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack *Clone(GeantTaskData *td);  
+  GeantTrack *Clone(GeantTaskData *td);
 
   /** @brief Function that stops the track depositing its kinetic energy */
   VECCORE_ATT_HOST_DEVICE
@@ -1035,7 +1035,7 @@ public:
   /** @brief Function that swaps path and next path */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateSwapPath() { 
+  void UpdateSwapPath() {
     VolumePath_t *tmp = fNextpath;
     fNextpath = fPath;
     fPath = tmp;
@@ -1046,11 +1046,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void UpdateSameNextPath() { *fNextpath = *fPath; }
-  
+
   /** @brief Function that updates the current volume the particle is in */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateVolume() {   
+  void UpdateVolume() {
 #ifdef USE_VECGEOM_NAVIGATOR
     fVolume = fPath->Top()->GetLogicalVolume();
 #else

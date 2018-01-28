@@ -18,6 +18,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 #include "PostPropagationStage.h"
 #include "AlongStepActionStage.h"
 #include "PostStepActionStage.h"
+#include "AtRestActionStage.h"
 
 
 namespace geantphysics {
@@ -49,7 +50,7 @@ public:
 
   /** @brief Attach the physics data to task data */
   void AttachUserData(GeantTaskData *td);
-  
+
   /** @brief Initialize the physics
    *
    *  This method is the main physics initialization mathod called directly from the kernel through the interface.
@@ -159,6 +160,10 @@ public:
   Geant::SimulationStage* CreatePostStepActionStage(Geant::GeantPropagator *prop) {
       return new PostStepActionStage(prop);
   }
+
+  Geant::SimulationStage* CreateAtRestActionStage(Geant::GeantPropagator *prop) {
+     return new AtRestActionStage(prop);
+  }  
 //@}
 
 

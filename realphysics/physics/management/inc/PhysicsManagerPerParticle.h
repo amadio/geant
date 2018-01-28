@@ -123,6 +123,7 @@ public:
   void ComputeIntLen(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
   int  AlongStepAction(LightTrack &track, Geant::GeantTaskData *td);
   int  PostStepAction(LightTrack &track, Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
+  int  AtRestAction(LightTrack &track, Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
 
   bool  HasEnergyLossProcess() const { return fIsHasElossProcess; }
   bool  HasMSCProcess() const { return fIsHasMSCProcess; }

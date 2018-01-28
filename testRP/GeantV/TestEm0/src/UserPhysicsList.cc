@@ -18,6 +18,8 @@
 #include "SeltzerBergerBremsModel.h"
 #include "RelativisticBremsModel.h"
 
+#include "PositronAnnihilationProcess.h"
+
 #include "ComptonScatteringProcess.h"
 #include "KleinNishinaComptonModel.h"
 
@@ -123,6 +125,10 @@ void UserPhysicsList::Initialize() {
       //
       // add the process to the e+ particle
       AddProcessToParticle(particle, eBremProc);
+      //
+      // create e+ annihilation into 2 gamma process
+      geantphysics::PositronAnnihilationProcess *pAnhProc = new geantphysics::PositronAnnihilationProcess();
+      AddProcessToParticle(particle, pAnhProc);
     }
     if (particle==geantphysics::Gamma::Definition()) {
       //

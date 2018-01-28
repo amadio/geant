@@ -94,7 +94,7 @@ int EMModelManager::AddModel(EMModel *mod) {
 
 EMModel* EMModelManager::SelectModel(double ekin, int regionindx) {
   // get models for the given region
-  const std::vector<EMModel*> models = GetModelListInRegion(regionindx);
+  const std::vector<EMModel*> &models = GetModelListInRegion(regionindx);
   int numModels = models.size();
   EMModel *selectedEMModel = nullptr;
   if (numModels>0) {

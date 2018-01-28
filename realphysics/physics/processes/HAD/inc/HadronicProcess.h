@@ -5,7 +5,7 @@
  * @brief Base class for all hadronic physics processes in the Geant-V prototype.
  *
  * Similarly to the Geant4 class G4HadronicProcess, the class HadronicProcess is the base class for all
- * hadronic physics processes. 
+ * hadronic physics processes.
  *
  * @author Mihaly Novak & Alberto Ribon (Aug 2016)
  */
@@ -28,16 +28,16 @@ class HadronicCrossSection;
 class HadronicCrossSectionStore;
 class HadronicFinalStateModelStore;
 class HadronicFinalStateModel;
- 
+
  inline namespace GEANT_IMPL_NAMESPACE {
    class Isotope;
    class Material;
    class Element;
  }
-  
+
 
 /** Hadronic process types */
-enum class HadronicProcessType {  
+enum class HadronicProcessType {
              kNotDefined,        /** it does not fit any other type: default */
              kElastic,           /** elastic process */
              kQuasiElastic,      /** quasi-elastic process */
@@ -60,7 +60,7 @@ public:
   HadronicProcess( const std::string &name );
 
   /** @brief HadronicProcess complete constructor */
-  HadronicProcess( const std::string &name, const std::vector< int > &particlecodevec, 
+  HadronicProcess( const std::string &name, const std::vector< int > &particlecodevec,
                    const HadronicProcessType type, const bool isatrest,
                    HadronicCrossSectionStore* xsecstore, HadronicFinalStateModelStore* modelstore );
 
@@ -68,7 +68,7 @@ public:
   virtual ~HadronicProcess();
 
   // The methods below are those inherited from PhysicsProcess
- 
+
   /** Method that returns "true" ("false") if the specified GV particle code is (not) accepted by this process */
   virtual bool IsApplicable( const LightTrack &/*track*/ ) const;
 
@@ -90,7 +90,7 @@ public:
   virtual int PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td);
 
   /** Main method that sample the target isotope and produces the secondaries for an at-rest hadronic process */
-  virtual void AtRestDoIt( LightTrack &track, Geant::GeantTaskData * td);
+  virtual int AtRestDoIt( LightTrack &track, Geant::GeantTaskData * td);
 
   /** Method to add model to the process **/
   void AddModel(HadronicFinalStateModel *model);
@@ -115,11 +115,11 @@ public:
   //--- Setters ---
 
   /** Method that sets the GV particle codes of the allowed particles */
-  void SetParticleCodeVec( const std::vector< int > &particlecodevec ) { 
+  void SetParticleCodeVec( const std::vector< int > &particlecodevec ) {
     fParticleCodeVec.clear();
     for ( size_t i = 0; i < particlecodevec.size(); i++ ) {
       fParticleCodeVec.push_back( particlecodevec[i] );
-    } 
+    }
   }
 
   /** Method that sets the type of this process */
@@ -130,7 +130,7 @@ public:
 
   /** Method that returns the pointer to the hadronic final-state model store */
   void SetFinalStateModelStoreStore( HadronicFinalStateModelStore* modelstore ) { fModelStore = modelstore; }
-  
+
 private:
   std::vector< int > fParticleCodeVec;        /** Vector of GV particle codes for the allowed particles */
   HadronicProcessType fType;                  /** Type of this hadronic process */

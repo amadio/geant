@@ -63,11 +63,15 @@ void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   track->SetE(newEkin+track->Mass());
   track->SetP(std::sqrt(newEkin*(newEkin+2.0*track->Mass())));
   track->SetEdep(track->Edep()+primaryLT.GetEnergyDeposit());
-  if (primaryLT.GetTrackStatus()==LTrackStatus::kKill) {
-    // !! later on we will send them to the AtRestActionStage !
-    // kill the primary track and send the track to the last i.e. steppin-action stage
-    track->Kill();
-    track->SetStage(Geant::kSteppingActionsStage);
+  if (newEkin<=0.) {
+    if (pManager->GetListAtRestCandidateProcesses().size()>0 && primaryLT.GetTrackStatus()!=LTrackStatus::kKill) {
+      // send it to the AtRestAction stage
+      track->SetStage(Geant::kAtRestActionStage);
+    } else {
+      // kill the primary track and send the track to the last i.e. steppin-action stage
+      track->Kill();
+      track->SetStage(Geant::kSteppingActionsStage);
+    }
   }
   // no any secondary production so far so the next few lies does nothing
   numSecondaries += nSecParticles;
