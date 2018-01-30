@@ -1,0 +1,177 @@
+//
+//  WaitingTaskList_test.cpp
+//  DispatchProcessingDemo
+//
+//  Created by Chris Jones on 9/27/11.
+//  Copyright 2011 FNAL. All rights reserved.
+//
+
+#include <iostream>
+
+#include <cppunit/extensions/HelperMacros.h>
+#include <unistd.h>
+#include <memory>
+#include <atomic>
+#include <thread>
+#include "tbb/task.h"
+#include "WaitingTaskList.h"
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
+#define CXX_THREAD_AVAILABLE
+#endif
+
+class WaitingTaskList_test : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(WaitingTaskList_test);
+  CPPUNIT_TEST(addThenDone);
+  CPPUNIT_TEST(doneThenAdd);
+  CPPUNIT_TEST(stressTest);
+  CPPUNIT_TEST_SUITE_END();
+  
+public:
+  void addThenDone();
+  void doneThenAdd();
+  void stressTest();
+  void setUp(){}
+  void tearDown(){}
+};
+
+namespace  {
+   class TestCalledTask : public demo::WaitingTask {
+   public:
+      TestCalledTask(std::atomic<bool>& iCalled): m_called(iCalled) {}
+
+      tbb::task* execute() {
+         m_called = true;
+         return nullptr;
+      }
+      
+   private:
+      std::atomic<bool>& m_called;
+   };
+   
+   class TestValueSetTask : public demo::WaitingTask {
+   public:
+      TestValueSetTask(std::atomic<bool>& iValue): m_value(iValue) {}
+         tbb::task* execute() {
+            CPPUNIT_ASSERT(m_value);
+            return nullptr;
+         }
+
+      private:
+         std::atomic<bool>& m_value;
+   };
+   
+}
+
+void WaitingTaskList_test::addThenDone()
+{
+   std::atomic<bool> called{false};
+   
+   demo::WaitingTaskList waitList;
+   {
+      std::shared_ptr<tbb::task> waitTask{new (tbb::task::allocate_root()) tbb::empty_task{},
+                                            [](tbb::task* iTask){tbb::task::destroy(*iTask);} };
+      waitTask->set_ref_count(2);
+      //NOTE: allocate_child does NOT increment the ref_count of waitTask!
+      auto t = new (waitTask->allocate_child()) TestCalledTask{called};
+   
+      waitList.add(t);
+
+      usleep(10);
+      __sync_synchronize();
+      CPPUNIT_ASSERT(false==called);
+   
+      waitList.doneWaiting(nullptr);
+      waitTask->wait_for_all();
+      __sync_synchronize();
+      CPPUNIT_ASSERT(true==called);
+   }
+   
+   waitList.reset();
+   called = false;
+   
+   {
+      std::shared_ptr<tbb::task> waitTask{new (tbb::task::allocate_root()) tbb::empty_task{},
+                                            [](tbb::task* iTask){tbb::task::destroy(*iTask);} };
+      waitTask->set_ref_count(2);
+   
+      auto t = new (waitTask->allocate_child()) TestCalledTask{called};
+   
+      waitList.add(t);
+
+      usleep(10);
+      CPPUNIT_ASSERT(false==called);
+   
+      waitList.doneWaiting(nullptr);
+      waitTask->wait_for_all();
+      CPPUNIT_ASSERT(true==called);
+   }
+}
+
+void WaitingTaskList_test::doneThenAdd()
+{
+   std::atomic<bool> called{false};
+   demo::WaitingTaskList waitList;
+   {
+      std::shared_ptr<tbb::task> waitTask{new (tbb::task::allocate_root()) tbb::empty_task{},
+                                            [](tbb::task* iTask){tbb::task::destroy(*iTask);} };
+      waitTask->set_ref_count(2);
+   
+      auto t = new (waitTask->allocate_child()) TestCalledTask{called};
+
+      waitList.doneWaiting(nullptr);
+   
+      waitList.add(t);
+      waitTask->wait_for_all();
+      CPPUNIT_ASSERT(true==called);
+   }
+}
+
+namespace {
+#if defined(CXX_THREAD_AVAILABLE)
+   void join_thread(std::thread* iThread){ 
+      if(iThread->joinable()){iThread->join();}
+   }
+#endif
+}
+
+void WaitingTaskList_test::stressTest()
+{
+#if defined(CXX_THREAD_AVAILABLE)
+   std::atomic<bool> called{false};
+   demo::WaitingTaskList waitList;
+   
+   unsigned int index = 1000;
+   const unsigned int nTasks = 10000;
+   while(0 != --index) {
+      called = false;
+      std::shared_ptr<tbb::task> waitTask{new (tbb::task::allocate_root()) tbb::empty_task{},
+                                            [](tbb::task* iTask){tbb::task::destroy(*iTask);} };
+      waitTask->set_ref_count(3);
+      auto pWaitTask=waitTask.get();
+      
+      {
+         std::thread makeTasksThread([&waitList,pWaitTask,&called]{
+            for(unsigned int i = 0; i<nTasks;++i) {
+               auto t = new (tbb::task::allocate_additional_child_of(*pWaitTask)) TestCalledTask{called};
+               waitList.add(t);
+            }
+         
+            pWaitTask->decrement_ref_count();
+            });
+         std::shared_ptr<std::thread> guard(&makeTasksThread,join_thread);
+         
+         std::thread doneWaitThread([&waitList,&called,pWaitTask]{
+            called=true;
+            waitList.doneWaiting(nullptr);
+            pWaitTask->decrement_ref_count();
+            });
+         std::shared_ptr<std::thread> guard2(&doneWaitThread,join_thread);
+      }
+      waitTask->wait_for_all();
+   }
+#endif
+}
+
+
+CPPUNIT_TEST_SUITE_REGISTRATION( WaitingTaskList_test );
