@@ -5,6 +5,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
+  #  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
@@ -28,12 +29,14 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSData.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSParticleGun.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSPhysicsList.cxx
+
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3App.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3DetectorConstruction.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3Data.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3PrimaryGenerator.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3PhysicsList.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/HepMCTruth.cxx
+
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/TestEm5Data.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/UserDetectorConstruction.cxx
@@ -41,6 +44,8 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/UserPhysicsList.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/StepMaxProcess.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/src/Hist.cxx
+
+  #  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/main.cpp
   )
 
 set(headers
@@ -49,12 +54,14 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSPhysicsList.h
+
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3App.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PrimaryGenerator.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PhysicsList.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/HepMCTruth.h
+
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/UserDetectorConstruction.h
