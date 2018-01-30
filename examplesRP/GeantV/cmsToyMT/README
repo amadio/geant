@@ -1,3 +1,13 @@
+
+Note: This example was added into GeantV repository as an example, under examplesRP/GeantV/cmsToyMT subdirectory,
+from original github directory (https://github.com/Dr15Jones/toy-mt-framework), after verbal authorization
+obtained from one of original authors (Chris Jones, Fermilab) and with adaptations related to work with GeantV.
+
+                 With thanks to Chris, Kevin P. and *all* original authors,
+		 The GeantV Team.
+
+--------------------------------------
+
 This project is a simple demonstration of using different threading technologies as the basis of a HEP multi-threaded framemework
 
 --------------------------------------
