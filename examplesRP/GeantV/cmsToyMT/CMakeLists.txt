@@ -12,8 +12,6 @@ include_directories(${Boost_INCLUDE_DIR})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DUSE_VECGEOM_NAVIGATOR ")
 
-add_subdirectory(BusyWaitCalibration)
-add_subdirectory(SingleThreadedProcessingDemo)
 if(TBB_FOUND)
     add_subdirectory(TBBProcessingDemo)
 endif()

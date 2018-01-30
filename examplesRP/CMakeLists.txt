@@ -5,7 +5,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
-  #  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBTestModules
+
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
@@ -69,6 +71,14 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/UserPhysicsList.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/StepMaxProcess.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/Hist.h
+
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/Event.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/Filter.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/Module.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/Producer.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/Schedule.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/Path.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyMT/TBBProcessingDemo/TBBFrameworkCore/EventProcessor.cpp
   )
 
 #if (USE_ROOT)

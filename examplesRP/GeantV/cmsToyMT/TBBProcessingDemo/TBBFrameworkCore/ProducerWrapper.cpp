@@ -24,6 +24,7 @@ using namespace demo;
 
 static const std::string kPrefix("gov.fnal.");
 
+/*
 static unsigned long nextID() {
   static unsigned long s_id =0;
   ++s_id;
@@ -34,8 +35,8 @@ static std::string unique_name(const std::string& iString) {
   std::ostringstream os;
   os<<iString<<nextID();
   return os.str();
-}
-
+  }
+*/
 
 Producer* 
 ProducerWrapper::producer() const
@@ -56,8 +57,8 @@ ProducerWrapper::ProducerWrapper(const ProducerWrapper& iOther,
                                  Event* iEvent):
 ModuleWrapper(iOther,iEvent),
 PrefetchAndWorkWrapper(this),
-m_waitingList{},
 m_producer(iOther.m_producer),
+m_waitingList{},
 m_wasRun(false)
 {
 }
@@ -65,8 +66,8 @@ m_wasRun(false)
 ProducerWrapper::ProducerWrapper(const ProducerWrapper& iOther):
 ModuleWrapper(iOther),
 PrefetchAndWorkWrapper(this),
-m_waitingList{}, //we only use the copy constructor during cloning and we have no waiting at that time
 m_producer(iOther.m_producer),
+m_waitingList{}, //we only use the copy constructor during cloning and we have no waiting at that time
 m_wasRun(iOther.m_wasRun)
 {
 }

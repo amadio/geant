@@ -42,7 +42,7 @@ EventProcessor::setSource(Source* iSource) {
   m_source = std::shared_ptr<Source>(iSource);
 }
 void
-EventProcessor::addPath(const std::string& iName,
+EventProcessor::addPath(const std::string& /*iName*/,
                         const std::vector<std::string>& iModules) {
   m_schedules[0].m_schedule->addPath(iModules);
 }

@@ -57,7 +57,7 @@ include_directories(${GeantV_INCLUDE_DIR}/xsec/inc)
 include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2/inc)
 include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2_tbb/inc)
 include_directories(${GeantV_INCLUDE_DIR}/examples/inc)
-set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeantExamplesRP.so ${GeantV_DIR}/lib/libRealPhysics.so)
+#set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeantExamplesRP.so ${GeantV_DIR}/lib/libRealPhysics.so)
 
 include_directories(${VecGeom_INCLUDE_DIR})
 
@@ -89,37 +89,37 @@ add_library(TBBFrameworkCore SHARED ${CORE_FILES})
 target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES} ${GEANTV_LIBRARIES} ${VECGEOM_LIBRARIES})
 
 set(TEST_FILES
-  TBBTestModules/BusyWaitPassFilter.cpp
-  TBBTestModules/BusyWaitProducer.cpp
+  #TBBTestModules/BusyWaitPassFilter.cpp
+  #TBBTestModules/BusyWaitProducer.cpp
   TBBTestModules/EventGeneratorProducer.cpp
-  TBBTestModules/EventTimesBusyWaitPassFilter.cpp
-  TBBTestModules/EventTimesBusyWaitProducer.cpp
-  TBBTestModules/EventTimesPassFilterBase.cpp
-  TBBTestModules/EventTimesProducerBase.cpp
-  TBBTestModules/EventTimesSleepingPassFilter.cpp
-  TBBTestModules/EventTimesSleepingProducer.cpp
-  TBBTestModules/EventTimesSyncGetPassFilterBase.cpp
-  TBBTestModules/EventTimesSyncGetProducerBase.cpp
-  TBBTestModules/EventTimesSyncGetSleepingPassFilter.cpp
-  TBBTestModules/EventTimesSyncGetSleepingProducer.cpp
-  TBBTestModules/FastPassFilter.cpp
-  TBBTestModules/FastProducer.cpp
+  #TBBTestModules/EventTimesBusyWaitPassFilter.cpp
+  #TBBTestModules/EventTimesBusyWaitProducer.cpp
+  #TBBTestModules/EventTimesPassFilterBase.cpp
+  #TBBTestModules/EventTimesProducerBase.cpp
+  #TBBTestModules/EventTimesSleepingPassFilter.cpp
+  #TBBTestModules/EventTimesSleepingProducer.cpp
+  #TBBTestModules/EventTimesSyncGetPassFilterBase.cpp
+  #TBBTestModules/EventTimesSyncGetProducerBase.cpp
+  #TBBTestModules/EventTimesSyncGetSleepingPassFilter.cpp
+  #TBBTestModules/EventTimesSyncGetSleepingProducer.cpp
+  #TBBTestModules/FastPassFilter.cpp
+  #TBBTestModules/FastProducer.cpp
   TBBTestModules/GeantVProducer.cpp
   TBBTestModules/CMSApplicationTBB.cpp
   TBBTestModules/CMSParticleGun.cpp
   TBBTestModules/CMSPhysicsList.cpp
-  TBBTestModules/PassFilter.cpp
-  TBBTestModules/SleepingPassFilter.cpp
-  TBBTestModules/SleepingProducer.cpp
+  #TBBTestModules/PassFilter.cpp
+  #TBBTestModules/SleepingPassFilter.cpp
+  #TBBTestModules/SleepingProducer.cpp
   TBBTestModules/ThreadSafeProducer.cpp
   TBBTestModules/ThreadSafeWhichReadsProducer.cpp
   TBBTestModules/ThreadSaferGetterFilter.cpp
-  TBBTestModules/ThrowingFilter.cpp
-  TBBTestModules/ThrowingProducer.cpp
-  TBBTestModules/Waiter.cpp
-  TBBTestModules/thread_type_from_config.cpp
-  ${CMAKE_SOURCE_DIR}/BusyWaitCalibration/busyWait.cpp
-  ${CMAKE_SOURCE_DIR}/BusyWaitCalibration/busy_wait_scale_factor.cpp)
+  #TBBTestModules/ThrowingFilter.cpp
+  #TBBTestModules/ThrowingProducer.cpp
+  #TBBTestModules/Waiter.cpp
+  TBBTestModules/thread_type_from_config.cpp)
+  #  ${CMAKE_SOURCE_DIR}/BusyWaitCalibration/busyWait.cpp
+  #${CMAKE_SOURCE_DIR}/BusyWaitCalibration/busy_wait_scale_factor.cpp)
 
 include_directories(BEFORE
     ${CMAKE_SOURCE_DIR}/BusyWaitCalibration)

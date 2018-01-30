@@ -48,12 +48,12 @@ void Path::runFilterAsync(size_t iIndex) {
 void Path::reset() {
 }
   
-void Path::addFilter(FilterWrapper* iFilter,Event*iEvent) {
+void Path::addFilter(FilterWrapper* iFilter,Event */*iEvent*/) {
   m_filters.push_back(FilterOnPathWrapper(iFilter,this,m_filters.size()));
 }
 
   
-Path* Path::clone(const std::vector<std::shared_ptr<FilterWrapper> >& iWrappers, Event*iEvent) const {
+Path* Path::clone(const std::vector<std::shared_ptr<FilterWrapper> >& iWrappers, Event */*iEvent*/) const {
   std::auto_ptr<Path> newPath(new Path);
   newPath->m_filters.reserve(m_filters.size());
   for (const auto& fw: m_filters) {
