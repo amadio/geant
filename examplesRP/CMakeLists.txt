@@ -31,7 +31,7 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/src/CMSPhysicsList.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbDetectorConstruction.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbFullApp.cxx
-  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCBData.cxx
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbData.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbParticleGun.cxx
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/src/LHCbPhysicsList.cxx   
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/src/TestEm3App.cxx

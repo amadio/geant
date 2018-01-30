@@ -123,6 +123,7 @@ LHCbDataPerEvent& LHCbDataPerEvent::operator+=(const LHCbDataPerEvent &other) {
 
 bool  LHCbThreadDataEvents::Merge(int evtslotindx, const LHCbThreadDataEvents& other) {
   fPerEventData[evtslotindx] += other.GetDataPerEvent(evtslotindx);
+  file->Write();
   return true;
 }
 

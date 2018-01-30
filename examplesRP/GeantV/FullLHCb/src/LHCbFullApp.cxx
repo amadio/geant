@@ -59,17 +59,9 @@ void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
 
   eventData->tree = new TTree("Tree","Simulation output");
   eventData->tree->ResetBit(kMustCleanup);
-  eventData->branch = eventData->tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &(eventData->data));
-  eventData->directory = eventData->tree->GetDirectory();
-  
-  std::cout << "attaching td " << td << " file " << eventData->file << " tree " << eventData->tree
-	    << " branch " << eventData->branch
-	    << " &(eventData->data) " << &(eventData->data)
-	    << " getdirectory " << eventData->tree->GetDirectory() << " " << eventData->tree->GetDirectory()->GetName() << " " 
-	    << " getFile " <<  eventData->tree->GetDirectory()->GetFile() << std::endl;
-
-  
-  
+  //eventData->branch =
+  eventData->tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &(eventData->data));
+    
   fDataHandlerEvents->AttachUserData(eventData, td);
 
   fOutputBlockCounter = 0;
@@ -246,7 +238,7 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
     // Deposit hits
     //      if (idtype==1) {
     
-    Printf("hit at z %f id %i", track.Z(), idtype);
+    //   Printf("hit at z %f id %i", track.Z(), idtype);
     
     hit = fFactory->NextFree(track.EventSlot(), tid);
     hit->fX = track.X();
@@ -262,28 +254,11 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
   }
 
   LHCbThreadDataEvents &tde = (*fDataHandlerEvents)(td);
-
-  //  tde.tree->SetDirectory(tde.directory);
   
   while (!(fFactory->fOutputsArray[tid].empty()))
     {
       fOutputBlockCounter++;
       tde.data = fFactory->fOutputsArray[tid].back();
-
-      std::cout << "filling td " << td
-		<< " getdirectory " << tde.tree->GetDirectory()
-		<< std::endl;
-
-      std::cout << "get dir name " << tde.directory->GetName() << std::endl;
-
-      std::cout << "get file1 " << tde.directory->GetFile() << std::endl;
-      std::cout << "get file2 " << tde.tree->GetDirectory()->GetFile() << std::endl;
-      
-      std::cout << " current file " << tde.tree->GetCurrentFile()
-		<< " tree " << tde.tree 
-		<< " &(tde.data) " << &(tde.data)
-		<< " tde.file " << tde.file
-		<< std::endl;
       
       tde.tree->Fill();
 
@@ -295,7 +270,7 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
   
   if (fOutputBlockCounter > 10)
     {
-      std::cout << "Writing " << tde.tree->GetEntries()<< std::endl;
+      //      std::cout << "Writing " << tde.tree->GetEntries()<< std::endl;
       tde.file->Write();
       fOutputBlockCounter = 0;
     }
@@ -349,6 +324,8 @@ void LHCbFullApp::FinishRun() {
   if (fIsPerformance) {
     return;
   }
+
+  //  delete merger;
   //
   //
   int  numPrimTypes = fData->GetNumberOfPrimaryTypes();

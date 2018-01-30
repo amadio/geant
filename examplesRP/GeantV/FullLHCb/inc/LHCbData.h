@@ -189,8 +189,6 @@ public:
   
   //
   TTree* tree;
-  TBranch* branch;
-  TDirectory* directory;
   GeantBlock<MyHit>* data;
   std::shared_ptr<ROOT::Experimental::TBufferMergerFile> file;
   
