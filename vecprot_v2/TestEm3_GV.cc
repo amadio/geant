@@ -94,20 +94,23 @@ int main(int argc, char *argv[]) {
   SetupUserDetector(det);
   runMgr->SetDetectorConstruction(det);
 
-  // Create magnetic field and needed classes for trajectory integration
-  auto fieldConstructor= new Geant::UserFieldConstruction();
-  float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
-  fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
+  bool useMagField= false;  // To become a user flag
+  if( useMagField ) {
 
-  auto config= runMgr->GetConfig();
-  config->fUseRungeKutta= true;
-  config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default
+    // Create magnetic field and needed classes for trajectory integration
+     auto fieldConstructor= new Geant::UserFieldConstruction();
+     float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
+     fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
+     
+     auto config= runMgr->GetConfig();
+     config->fUseRungeKutta= true;
+     config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default
 
-  // config->fBag = 1;  // Trigger use of baskets !?  ( Andrei 11 Jan 2018 ) 
-  
-  runMgr->SetUserFieldConstruction(fieldConstructor);
-  // printf("runApp: Set up generic field-construction - to create field.\n");
-  
+     runMgr->SetUserFieldConstruction(fieldConstructor);
+     printf("main: Created uniform field and set up field-propagation.\n");
+  } else {
+     printf("main: not magnetic field configured.\n");     
+  }
   // Create TestEm3 primary generator
   userapplication::TestEm3PrimaryGenerator *gun = new userapplication::TestEm3PrimaryGenerator(det);
   SetupUserPrimaryGenerator(gun,runMgr->GetConfig()->fNaverage);
