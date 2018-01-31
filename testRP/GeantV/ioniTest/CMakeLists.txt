@@ -37,14 +37,9 @@ set(ioniTest_SCRIPTS
 foreach(_script ${ioniTest_SCRIPTS})
   configure_file(
     ${_script}
-     ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
-    )
-    configure_file(
-      ${_script}
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
-      COPYONLY
-    )
+  )
 endforeach()
 
 
@@ -52,3 +47,4 @@ endforeach()
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS ioniTest_GV DESTINATION ${OUTPUT})
+install(FILES ${ioniTest_SCRIPTS} DESTINATION ${OUTPUT})

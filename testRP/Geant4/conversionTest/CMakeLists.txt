@@ -40,17 +40,13 @@ set(conversionTest_SCRIPTS
 foreach(_script ${conversionTest_SCRIPTS})
   configure_file(
     ${_script}
-     ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
-    )
-    configure_file(
-      ${_script}
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
-      COPYONLY
-    )
+  )
 endforeach()
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS conversionTest_G4 DESTINATION ${OUTPUT})
+install(FILES ${conversionTest_SCRIPTS} DESTINATION ${OUTPUT})

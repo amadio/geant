@@ -37,14 +37,9 @@ set(bremTest_SCRIPTS
 foreach(_script ${bremTest_SCRIPTS})
   configure_file(
     ${_script}
-     ${CMAKE_INSTALL_PREFIX}/${OUTPUT}/${_script}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
     COPYONLY
-    )
-    configure_file(
-      ${_script}
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
-      COPYONLY
-    )
+  )
 endforeach()
 
 
@@ -52,3 +47,4 @@ endforeach()
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS bremTest_GV DESTINATION ${OUTPUT})
+install(FILES ${bremTest_SCRIPTS} DESTINATION ${OUTPUT})
