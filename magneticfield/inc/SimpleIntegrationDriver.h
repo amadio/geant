@@ -1373,10 +1373,12 @@ SimpleIntegrationDriver< /*Real_v,*/ T_Stepper, Nvar>
 //
 {
    if( partDebug) 
-      std::cout<<"----Storage position (out-arr): "<< indOut << std::endl;
+     std::cout << "----Storage position (out-arr): " << indOut
+            // << " (ntracks= " << nTracks << ")"
+               << std::endl;
 
-   // int     indOut = indexArr[currIndex]; // might be sent directly to StoreOutput as well
-   // (void)nTracks;
+   (void)nTracks;  // Use the value in case on non-Debug builds - avoids compilation warning
+   
    assert( 0 <= indOut && indOut < nTracks && "Track Index is Out of Range"  );
    assert( 0 <= currIndex && ((unsigned long)currIndex < vecCore::VectorSize<Real_v>() ) && "Lane Index is Out of Range" ) ;
 
