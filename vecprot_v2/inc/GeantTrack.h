@@ -17,7 +17,7 @@
 #include "base/Vector3D.h"
 #include <VecCore/VecCore>
 #include "Geant/Config.h"
-#include "Geant/Math.h"
+#include "Geant/math_wrappers.h"
 
 #include <functional>
 #include <climits>

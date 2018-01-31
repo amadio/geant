@@ -40,7 +40,7 @@
 #include <iostream>
 #include <time.h>
 
-#include "Geant/Math.h"
+#include "Geant/math_wrappers.h"
 using vecgeom::kPi;
 using vecgeom::kTwoPi;
 #ifndef VECCORE_CUDA

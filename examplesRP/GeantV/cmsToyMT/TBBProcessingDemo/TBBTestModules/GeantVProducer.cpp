@@ -208,9 +208,9 @@ namespace demo {
 
 #ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
-    fRunMgr->LoadVecGeomGeometry();
+    //fRunMgr->LoadVecGeomGeometry();
 #else
-    fRunMgr->LoadGeometry(cms_geometry_filename.c_str());
+    //fRunMgr->LoadGeometry(cms_geometry_filename.c_str());
 #endif
 #endif
 

@@ -2,7 +2,7 @@
 
 #include "globals.h"
 #include "Geant/Error.h"
-#include "Geant/Math.h"
+#include "Geant/math_wrappers.h"
 #include <execinfo.h>
 
 #include "TransportManager.h"

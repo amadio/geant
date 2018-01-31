@@ -57,6 +57,7 @@ include_directories(${GeantV_INCLUDE_DIR}/xsec/inc)
 include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2/inc)
 include_directories(${GeantV_INCLUDE_DIR}/vecprot_v2_tbb/inc)
 include_directories(${GeantV_INCLUDE_DIR}/examples/inc)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../BusyWaitCalibration)
 #set(GEANTV_LIBRARIES ${GEANTV_LIBRARIES} ${GeantV_DIR}/lib/libGeant_v.so ${GeantV_DIR}/lib/libGeantExamplesRP.so ${GeantV_DIR}/lib/libRealPhysics.so)
 
 include_directories(${VecGeom_INCLUDE_DIR})
@@ -86,7 +87,7 @@ set(CORE_FILES
 include_directories(BEFORE
     ${CMAKE_CURRENT_SOURCE_DIR}/TBBFrameworkCore)
 add_library(TBBFrameworkCore SHARED ${CORE_FILES})
-target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES} ${GEANTV_LIBRARIES} ${VECGEOM_LIBRARIES})
+target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES} ${GEANTV_LIBRARIES} ${VECGEOM_LIBRARIES} RealPhysics)
 
 set(TEST_FILES
   #TBBTestModules/BusyWaitPassFilter.cpp
@@ -117,12 +118,14 @@ set(TEST_FILES
   #TBBTestModules/ThrowingFilter.cpp
   #TBBTestModules/ThrowingProducer.cpp
   #TBBTestModules/Waiter.cpp
+  TBBTestModules/busyWait.cpp
+  TBBTestModules/busy_wait_scale_factor.cpp
   TBBTestModules/thread_type_from_config.cpp)
   #  ${CMAKE_SOURCE_DIR}/BusyWaitCalibration/busyWait.cpp
   #${CMAKE_SOURCE_DIR}/BusyWaitCalibration/busy_wait_scale_factor.cpp)
 
 include_directories(BEFORE
-    ${CMAKE_SOURCE_DIR}/BusyWaitCalibration)
+    ${CMAKE_CURRENT_SOURCE_DIR}/TBBTestModules)
 add_library(TBBTestModules SHARED ${TEST_FILES})
 target_link_libraries(TBBTestModules TBBFrameworkCore)
 
@@ -139,3 +142,5 @@ endif()
 
 add_executable(TBBDemo main.cpp)
 target_link_libraries(TBBDemo TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})
+add_executable(cmsToyMT cmsToyMT.cc)
+target_link_libraries(cmsToyMT TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})

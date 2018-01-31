@@ -17,7 +17,7 @@
 #include "Geant/Typedefs.h"
 
 #include "Geant/Config.h"
-#include "Geant/Math.h"
+#include "Geant/math_wrappers.h"
 #include "GeantTrack.h"
 
 namespace Geant {
