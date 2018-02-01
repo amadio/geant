@@ -138,6 +138,7 @@ void GeantTaskData::AttachPropagator(GeantPropagator *prop, int node)
   fBlock = fPropagator->fTrackMgr->GetNewBlock();
   for (size_t stage = 0; stage < kNstages; ++stage)
     fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
+  std::cerr<<"AttachProp(): prop="<< prop <<", node="<< node <<", fBlock="<< fBlock <<"\n";
 }
 
 //______________________________________________________________________________
