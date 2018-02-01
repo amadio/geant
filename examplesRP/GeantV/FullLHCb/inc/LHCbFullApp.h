@@ -115,8 +115,9 @@ private:
   std::map<int,int> fHCALMap;                     /** Map of ECAL modules */
 
   GeantFactory<MyHit> *fFactory;                  /** Hits factory */
-  ROOT::Experimental::TBufferMerger* merger;
+  ROOT::Experimental::TBufferMerger* fMerger;
   int fOutputBlockCounter;
+  int fOutputBlockWrite;
   
 };
  

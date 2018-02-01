@@ -55,7 +55,7 @@ void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
   LHCbThreadDataEvents *eventData = new LHCbThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
 
   // create here the TTree
-  eventData->file = merger->GetFile();
+  eventData->file = fMerger->GetFile();
 
   eventData->tree = new TTree("Tree","Simulation output");
   eventData->tree->ResetBit(kMustCleanup);
@@ -74,7 +74,10 @@ bool LHCbFullApp::Initialize() {
   }
 
   //IO
-  merger = new ROOT::Experimental::TBufferMerger("simu.root");
+  fMerger = new ROOT::Experimental::TBufferMerger("simu.root");
+  fOutputBlockCounter = 0;
+  fOutputBlockWrite = 10;
+  
 
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
@@ -268,7 +271,7 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
       fFactory->Recycle(tde.data, tid);
     }
   
-  if (fOutputBlockCounter > 10)
+  if (fOutputBlockCounter > fOutputBlockWrite)
     {
       //      std::cout << "Writing " << tde.tree->GetEntries()<< std::endl;
       tde.file->Write();
@@ -325,7 +328,6 @@ void LHCbFullApp::FinishRun() {
     return;
   }
 
-  //  delete merger;
   //
   //
   int  numPrimTypes = fData->GetNumberOfPrimaryTypes();
