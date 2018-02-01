@@ -85,7 +85,7 @@ set(CORE_FILES
     TBBFrameworkCore/WaitingTaskList.cpp)
 
 include_directories(BEFORE
-    ${CMAKE_CURRENT_SOURCE_DIR}/TBBFrameworkCore)
+    ${CMAKE_CURRENT_SOURCE_DIR}/TBBFrameworkCore ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc)
 add_library(TBBFrameworkCore SHARED ${CORE_FILES})
 target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES} ${GEANTV_LIBRARIES} ${VECGEOM_LIBRARIES} RealPhysics)
 
@@ -107,8 +107,6 @@ set(TEST_FILES
   #TBBTestModules/FastProducer.cpp
   TBBTestModules/GeantVProducer.cpp
   TBBTestModules/CMSApplicationTBB.cpp
-  TBBTestModules/CMSParticleGun.cpp
-  TBBTestModules/CMSPhysicsList.cpp
   #TBBTestModules/PassFilter.cpp
   #TBBTestModules/SleepingPassFilter.cpp
   #TBBTestModules/SleepingProducer.cpp
@@ -127,7 +125,7 @@ set(TEST_FILES
 include_directories(BEFORE
     ${CMAKE_CURRENT_SOURCE_DIR}/TBBTestModules)
 add_library(TBBTestModules SHARED ${TEST_FILES})
-target_link_libraries(TBBTestModules TBBFrameworkCore)
+target_link_libraries(TBBTestModules TBBFrameworkCore GeantExamplesRP)
 
 if(CPPUNIT_FOUND)
   include_directories(${CPPUNIT_INCLUDE_DIR})

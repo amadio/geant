@@ -28,6 +28,7 @@
 #include "CMSParticleGun.h"
 
 using namespace Geant;
+using namespace cmsapp;
 
 namespace {
 
@@ -77,17 +78,14 @@ namespace demo {
 
     int fNevents;
     std::vector<const Getter*> m_getters;
-    GeantConfig* fConfig;
-    GeantRunManager* fRunMgr;
-    PrimaryGenerator* fPrimaryGenerator;
+    GeantConfig* fConfig = nullptr;
+    GeantRunManager* fRunMgr = nullptr;
+    PrimaryGenerator* fPrimaryGenerator = nullptr;
     std::atomic_flag fEventGeneratorLock;              /** Spinlock for event set access locking */
   };
 
   GeantVProducer::GeantVProducer(const boost::property_tree::ptree& iConfig)
     : ConfiguredProducer(iConfig,kThreadSafeBetweenInstances)
-    , fConfig(0)
-    , fRunMgr(0)
-    , fPrimaryGenerator(0)
     , fNevents(iConfig.get<int>("Nevents"))
   {
     fEventGeneratorLock.clear();
@@ -103,14 +101,11 @@ namespace demo {
     int n_track_max = 500;
     int n_learn_steps = 0;
     int n_reuse = 100000;
-    bool monitor = false, score = false, debug = false, coprocessor = false, usev3 = true, usenuma = false;
+    bool monitor = false, debug = false, usev3 = true, usenuma = false;
     bool performance = true;
 
     //e.g. cms2015.root, cms2018.gdml, ExN03.root
     std::string cms_geometry_filename = iConfig.get<std::string>("geometry");
-
-    std::string xsec_filename = iConfig.get<std::string>("xsec");
-    std::string fstate_filename = iConfig.get<std::string>("fstate");
 
     std::string hepmc_event_filename = iConfig.get<std::string>("hepmc");
     // pp14TeVminbias.root sequence #stable: 608 962 569 499 476 497 429 486 465 619
@@ -194,7 +189,9 @@ namespace demo {
     fRunMgr = new GeantRunManager(n_propagators, n_threads, fConfig);
 
     // Detector construction
-    fRunMgr->SetDetectorConstruction( new CMSDetectorConstruction(cms_geometry_filename.c_str(), fRunMgr) );
+    auto detector_construction = new CMSDetectorConstruction(fRunMgr);
+    detector_construction->SetGDMLFile(cms_geometry_filename); 
+    fRunMgr->SetDetectorConstruction( detector_construction );
 
     // Create the tabulated physics process
     std::cerr<<"*** GeantRunManager: setting physics process...\n";
@@ -216,37 +213,32 @@ namespace demo {
 
     // Setup a primary generator
     printf("hepmc_event_filename=%s\n", hepmc_event_filename.c_str());
-    if (hepmc_event_filename.empty()) {
+//    if (hepmc_event_filename.empty()) {
       std::cerr<<"*** GeantRunManager: setting up a GunGenerator...\n";
-      double x = rand();
-      double y = rand();
-      double z = rand();
-      double r = sqrt(x*x+y*y+z*z);
+      //double x = rand();
+      //double y = rand();
+      //double z = rand();
+      //double r = sqrt(x*x+y*y+z*z);
       //fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, 0, 0, 0, x/r, y/r, z/r);
       //fPrimaryGenerator = new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, -8, 0, 0, 1, 0, 0);
 
-      cmsapp::CMSParticleGun *cmsgun = new cmsapp::CMSParticleGun();
+      CMSParticleGun *cmsgun = new CMSParticleGun();
       cmsgun->SetNumPrimaryPerEvt(fConfig->fNaverage);
       cmsgun->SetPrimaryName("e-");
       cmsgun->SetPrimaryEnergy(fConfig->fEmax);
       //cmsgun->SetPrimaryDirection(parGunPrimaryDir);
       fRunMgr->SetPrimaryGenerator(fPrimaryGenerator);
       fPrimaryGenerator = cmsgun;
-    }
+//    }
     // else {
     //   //.. here for a HepMCGenerator
     //   std::cerr<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
     //   fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
     // }
 
-    CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr);
+    CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr, cmsgun);
     std::cerr<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
     fRunMgr->SetUserApplication( cmsApp );
-    if (score) {
-      cmsApp->SetScoreType(CMSApplicationTBB::kScore);
-    } else {
-      cmsApp->SetScoreType(CMSApplicationTBB::kNoScore);
-    }
 
     // Start simulation for all propagators
     std::cerr<<"*** GeantRunManager: initializing...\n";
@@ -310,7 +302,7 @@ namespace demo {
   }
 
   int GeantVProducer::BookEvents(int nrequested) {
-    static atomic_int ntotal(0);
+    static std::atomic_int ntotal(0);
     int nbooked = 0;
     for (int i = 0; i< nrequested; ++i) {
       int ibooked = ntotal.fetch_add(1);
