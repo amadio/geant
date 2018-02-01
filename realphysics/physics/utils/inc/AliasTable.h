@@ -73,10 +73,8 @@ public:
     * @brief Public method to prepare sampling table for discrete distribution with alias sampling.
     *
     *
-    * @param[in,out] xdata      Array of the discrete random variable values.
-    *                           Size of the array must be provided in  numdata. It stays unchanged at output.
-    * @param[in,out] ydata      Array of the (not necessarily normaised) p.d.f. at the random variable values given
-    *                           in xdata. It stays unchanged at output and not used at sampling. 
+    * @param[in,out] ydata      Array of the (not necessarily normaised) p.d.f. at the discrete random variable values.
+    *                           It stays unchanged at output and not used at sampling. 
     * @param[in,out] xx         Array to store 1-alias probabilities. At input it should be  numdata size array and it
     *                           will contain the 1-alias probabilities at output.
     * @param[in,out] binindx    Array to store alias indices. At input it should be  numdata size array and it
@@ -84,7 +82,7 @@ public:
     * @param[in,out] numdata    Number of discrete random variable values i.e. size of the arrays.
     *
     */
-  void PreparDiscreteTable(double *xdata, double *ydata, double *xx, int *binindx, int numdata);
+  void PreparDiscreteTable(double *ydata, double *xx, int *binindx, int numdata);
 
 
   /**
@@ -144,15 +142,14 @@ public:
     * @brief Public method to obtain random variable from discrete distribution using alias sampling . All
     *        input data arrays must have been prepared previously by AliasTable::PreparDiscreteTable method.
     *
-    * @param[in]     xdata      Array of the discrete random variable values.
     * @param[in]     xx         Array that stores the 1-alias probabilities. Size of the array must be provided in
     *                           numdata.
     * @param[in]     binindx    Array that stores the alias indices. Size of the array must be provided in  numdata.
     * @param[in]     numdata    Number of discrete random variable values i.e. size of the arrays.
     * @param[in]     rndm1      Random number distributed uniformly in [0,1].
-    * @return        Random sample from the discrete distribution.
+    * @return        Index of the sampled discrete random variable.
     */
-  double SampleDiscrete(double *xdata, double *xx, int *binindx, int numdata, double rndm1);
+  int SampleDiscrete(double *xx, int *binindx, int numdata, double rndm1);
 
 
   /**

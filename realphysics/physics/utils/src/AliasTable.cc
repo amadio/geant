@@ -143,7 +143,7 @@ void AliasTable::PreparLinearTable(double *xdata, double *ydata, double *xx, int
   }
 }
 
-void AliasTable::PreparDiscreteTable(double *xdata, double *ydata, double *xx, int *binindx, int numdata) {
+void AliasTable::PreparDiscreteTable(double *ydata, double *xx, int *binindx, int numdata) {
   double sum = 0.0;
   for (int i=0; i<numdata; ++i) {
     xx[i]      = -ydata[i];
@@ -270,14 +270,13 @@ double AliasTable::SampleLinear(const double *xdata, const double *ydata, const 
   return xval + xdelta*std::sqrt(rndm2);
 }
 
-double AliasTable::SampleDiscrete(double *xdata, double *xx, int *binindx, int numdata, double rndm1) {
+int AliasTable::SampleDiscrete(double *xx, int *binindx, int numdata, double rndm1) {
   // select the discrete random variable 
   double rest  = rndm1*numdata;
   int    indxl = (int) (rest);
   if (xx[indxl]<rest-indxl)
     indxl = binindx[indxl];
-  double xval   = xdata[indxl];
-  return xval;
+  return indxl;
 }
 
 /**
