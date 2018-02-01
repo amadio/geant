@@ -392,7 +392,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat) {
         //    screening parameter (= (mc^2)^\alpha^2/(4(pc)^2C_{TF}^2) dumScr
         double scrCorTed = constFactor*dumScr/(4.*pt2);
         double dum0      = std::log(1.+1./scrCorTed);
-        perMatPerEkin->fMCFirstMoment = perMatPerEkin->fMCFirstMoment/(zs*(dum0-1./(1.-scrCorTed)));
+        perMatPerEkin->fMCFirstMoment = perMatPerEkin->fMCFirstMoment/(zs*(dum0-1./(1.+scrCorTed)));
         //
         // 3. the remaining part of the second moment correction and divide by the one computed by using the corrected
         //    screening parameter
