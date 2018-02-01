@@ -143,6 +143,42 @@ void AliasTable::PreparLinearTable(double *xdata, double *ydata, double *xx, int
   }
 }
 
+void AliasTable::PreparDiscreteTable(double *xdata, double *ydata, double *xx, int *binindx, int numdata) {
+  double sum = 0.0;
+  for (int i=0; i<numdata; ++i) {
+    xx[i]      = -ydata[i];
+    binindx[i] = -1;
+    sum += ydata[i];
+  }
+  // prepare alias table
+  sum /= (double)(numdata);
+  for (int i=0; i<numdata; ++i) {
+    int indxh = 0;
+    for (indxh = 0; indxh<numdata; ++indxh) {
+      if (xx[indxh]<0.0 && std::fabs(xx[indxh])>sum)
+        break;
+    }
+    int indxl = 0;
+    for (indxl = 0; indxl<numdata; ++indxl) {
+      if (xx[indxl]<0.0 && std::fabs(xx[indxl])<sum)
+        break;
+    }
+    if (indxl>numdata-1 || indxh>numdata-1) {
+      continue;
+    }
+    double dum0 = sum - std::fabs(xx[indxl]);
+    xx[indxh]  +=  dum0;
+    xx[indxl]   = -1.0*xx[indxl]/sum;
+    binindx[indxl] = indxh;
+  }
+  for (int i=0; i<numdata; ++i) {
+    if (binindx[i]<0) {
+      binindx[i] = i;
+      xx[i]      = 1.;
+    }
+  }
+}
+
 double AliasTable::SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx, int *binindx,
                                int numdata, double rndm1, double rndm2, int above) {
   // get the lower index of the bin by using the alias part
@@ -232,6 +268,16 @@ double AliasTable::SampleLinear(const double *xdata, const double *ydata, const 
       return xval + rndm2*xdelta*(1.0-0.5*dum*(rndm2-1.0)*(1.0+dum*rndm2));
   }
   return xval + xdelta*std::sqrt(rndm2);
+}
+
+double AliasTable::SampleDiscrete(double *xdata, double *xx, int *binindx, int numdata, double rndm1) {
+  // select the discrete random variable 
+  double rest  = rndm1*numdata;
+  int    indxl = (int) (rest);
+  if (xx[indxl]<rest-indxl)
+    indxl = binindx[indxl];
+  double xval   = xdata[indxl];
+  return xval;
 }
 
 /**
