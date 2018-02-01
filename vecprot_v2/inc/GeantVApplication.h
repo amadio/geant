@@ -56,7 +56,7 @@ public:
   virtual void AttachUserData(GeantTaskData *) {}
 
   /** @brief Use TDManager::DeleteUserData providing user data handles */
-  virtual void DeleteUserData() {}
+  virtual void DeleteUserData(GeantTaskData *) {}
 
   /**
    * @brief Begin a new event.

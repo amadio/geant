@@ -310,6 +310,11 @@ public:
   }
 
   GEANT_FORCE_INLINE
+  T *GetUserData(GeantTaskData *td) {
+    return (T*)td->GetUserData(fIndex);
+  }
+  
+  GEANT_FORCE_INLINE
   T &operator()(GeantTaskData *td) {
     return *(T*)td->GetUserData(fIndex);
   }
@@ -364,6 +369,9 @@ public:
     // User data deleted by user in MyApplication::DeleteTaskData()
     for (auto td : fTaskData) delete td;
   }
+
+  GEANT_FORCE_INLINE
+  size_t GetNtaskData() const { return fTaskData.size(); }
 
   GeantTaskData *GetTaskData() {
     GeantTaskData *td;

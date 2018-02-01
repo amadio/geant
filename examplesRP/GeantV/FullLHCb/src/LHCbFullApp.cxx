@@ -39,9 +39,8 @@ LHCbFullApp::LHCbFullApp(Geant::GeantRunManager* runmgr, LHCbParticleGun* gun)
 
 
 LHCbFullApp::~LHCbFullApp() {
-  if (fData) {
-    delete fData;
-  }
+  delete fData;
+  delete fMerger;
 }
 
 
@@ -67,6 +66,13 @@ void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
   fOutputBlockCounter = 0;
 }
 
+void LHCbFullApp::DeleteUserData(Geant::GeantTaskData *td) {
+  if (fIsPerformance) {
+    return;
+  }
+  LHCbThreadDataEvents *eventData = fDataHandlerEvents->GetUserData(td);
+  delete eventData;
+}
 
 bool LHCbFullApp::Initialize() {
   if (fIsPerformance) {

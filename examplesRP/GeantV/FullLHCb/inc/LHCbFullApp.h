@@ -49,6 +49,9 @@ public:
   /** @brief Interface method to allow registration of user defined thread local data. */
   virtual void AttachUserData(Geant::GeantTaskData *td);
 
+  /** @brief Applications creating data per thread have to clean it up */
+  virtual void DeleteUserData(Geant::GeantTaskData *td);
+
   /** @brief Interface method to initialize the application. */
   virtual bool Initialize();
 
@@ -87,7 +90,7 @@ private:
   Geant::TaskDataHandle<LHCbThreadDataEvents>  *fDataHandlerEvents;
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle type
   // during the simulation
-  LHCbData   *fData;
+  LHCbData   *fData = nullptr;
 
   // mutex to prevent multiple threads writing into the unique, run-global, unique LHCbData object (in the FinishEvent
   // after the merge of the user defined per-event data distributed among the threads)
@@ -114,8 +117,8 @@ private:
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
   std::map<int,int> fHCALMap;                     /** Map of ECAL modules */
 
-  GeantFactory<MyHit> *fFactory;                  /** Hits factory */
-  ROOT::Experimental::TBufferMerger* fMerger;
+  GeantFactory<MyHit> *fFactory = nullptr;        /** Hits factory */
+  ROOT::Experimental::TBufferMerger* fMerger = nullptr;
   int fOutputBlockCounter;
   int fOutputBlockWrite;
   

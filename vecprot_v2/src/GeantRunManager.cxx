@@ -286,22 +286,15 @@ GeantRunManager::~GeantRunManager() {
   delete fProcess;
   delete fPhysicsInterface;
   delete fVectorPhysicsProcess;
-  if (fStdApplication) {
-    fStdApplication->DeleteUserData();
-    delete fStdApplication;
-  }
-  fApplication->DeleteUserData();
-  delete fApplication;
   delete fTaskMgr;
 
+  // Cleanup user data attached to task data
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    fApplication->DeleteUserData(fTDManager->GetTaskData(i));
   delete fTDManager;
-//  if (fTaskData) {
-//    for (auto i = 0; i < fNthreads; i++)
-//      delete fTaskData[i];
-//    delete[] fTaskData;
-//  }
-
   delete fConfig;
+  delete fStdApplication;
+  delete fApplication;
 }
 
 //______________________________________________________________________________
@@ -546,11 +539,11 @@ void GeantRunManager::RunSimulation() {
     nkilled += fPropagators[i]->fNkilled.load();
   }
   
-  int nthreads = GetNthreadsTotal();
   GeantTaskData *td0 = fTDManager->GetTaskData(0);
   for (size_t stage = 0; stage < kNstages; ++stage) {
-    for (int i = 1; i < nthreads; ++i) {
+    for (size_t i = 1; i < fTDManager->GetNtaskData(); ++i) {
       GeantTaskData *td = fTDManager->GetTaskData(i);
+      // Merge stage counters
       *td0->fCounters[stage] += *td->fCounters[stage];
     }
     float nbasketized = td0->fCounters[stage]->fNvector;
@@ -574,7 +567,7 @@ Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  tot
 
   FinishRun();
 #ifdef USE_ROOT
-  if (gApplication) delete gApplication;
+//  if (gApplication) delete gApplication;
 #endif
 }
 
