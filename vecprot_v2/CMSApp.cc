@@ -313,6 +313,7 @@ int main(int argc, char *argv[]) {
 
   config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
 
+  std::cout << " Field: not configuring field.   Value of useCMSField = " << useCMSfield << std::endl;
 /*
   if( useCMSfield ) {
      CMSFieldConstruction* CmsFieldCtr= new CMSFieldConstruction();

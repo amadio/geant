@@ -39,7 +39,7 @@ const double FieldPropagationHandler::gEpsDeflection = 1.E-2 * geant::cm; //Unit
 #ifdef USE_REAL_PHYSICS  
   auto stageAfterCrossing= kPostPropagationStage;
 #else
-  auto stageAfterCrossing= kContinuousProcStage
+  auto stageAfterCrossing= kContinuousProcStage;
 #endif
           
 #ifdef STATS_METHODS

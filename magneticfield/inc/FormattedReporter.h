@@ -128,7 +128,7 @@ template< typename Real_v >
       ReportRowOfDoubles( "d|p|/|p|",   relDiff  );
       
       double thresholdRelativeDiff = 1.0e-5;   //  Later: 3 * epsilon ??         
-      if( ! MaskEmpty( abs(relDiff) > thresholdRelativeDiff ) )
+      if( ! MaskEmpty( vecCore::math::Abs(relDiff) > Real_v(thresholdRelativeDiff) ) )
       {
          int extraWidth= widthVal + 12;
          ReportRowOfDoubles( "|momEnd|",   momEnd,           widthNm, extraWidth  );

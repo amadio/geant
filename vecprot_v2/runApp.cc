@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
   config->fGeomFileName = exn03_geometry_filename;
   config->fNtotal = n_events;
   config->fNbuff = n_buffered;
-  config->fBmag = 1.; // 0.1 Tesla
+  
   // V3 options
   config->fNstackLanes = 10;
   config->fNmaxBuffSpill = 128;  // New configuration parameter!!!
@@ -274,7 +274,22 @@ int main(int argc, char *argv[]) {
   GunGenerator *generator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
   runMgr->SetPrimaryGenerator( generator );  
   runMgr->SetUserApplication ( new ExN03Application(runMgr) );
-  runMgr->SetDetectorConstruction( new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr) );
+  auto detectorCtor= 
+     new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr) );
+
+  double Bmag = 1. * geant::KiloGauss; // 0.1 Tesla
+  float fieldVec[3] = { 0.0f, 0.0f, Bmag };
+  UserFieldConstruction* fieldCtr= new UserFieldConstruction();
+  fieldCtr->UseConstantMagField( fieldVec, "kilogauss" );
+
+  printf("runApp: Setting generic detector-construction to GeantPropagator - created field= %f %f %f.\n",
+            fieldVec[0], fieldVec[1], fieldVec[2] );
+  detectorCtor->SetUserFieldConstruction(fieldCtr);
+
+  runMgr->SetDetectorConstruction( detectorCtor );
+
+  config->fUseRungeKutta = false;
+  printf("runApp: Configured use of helix for charged tracks.");
 
   runMgr->SetUserFieldConstruction(fieldConstructor);
   // printf("runApp: Set up generic field-construction - to create field.\n");
