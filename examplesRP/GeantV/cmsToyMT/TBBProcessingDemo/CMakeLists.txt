@@ -138,7 +138,5 @@ if(CPPUNIT_FOUND)
   target_link_libraries(TBBRunUnitTests TBBFrameworkCore ${TBB_LIBRARIES} ${CPPUNIT_LIBRARY} pthread)
 endif()
 
-add_executable(TBBDemo main.cpp)
-target_link_libraries(TBBDemo TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})
-add_executable(cmsToyMT cmsToyMT.cc)
+add_executable(cmsToyMT main.cpp)
 target_link_libraries(cmsToyMT TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})

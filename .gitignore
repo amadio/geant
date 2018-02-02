@@ -28,5 +28,6 @@ DispatchDemo
 *~
 *.bak
 build
+include
 doxygen.conf
 setmeup.sh

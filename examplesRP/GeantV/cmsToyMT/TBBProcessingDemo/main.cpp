@@ -24,7 +24,7 @@
 
 
 int main (int argc, char * const argv[]) {
-  
+  (void)argc;
   //demo::s_thread_safe_queue = dispatch_get_global_queue(0, 0);
   //demo::s_non_thread_safe_queue_stack.push_back(dispatch_queue_create("gov.fnal.non_thread_safe_0", NULL));
   //demo::s_non_thread_safe_queue_stack_back = demo::s_non_thread_safe_queue_stack.back();

@@ -13,7 +13,7 @@
 namespace demo {
 float busyWait(unsigned long long iCount) {
   float value = 0;
-  for (int i=0; i<iCount; ++i) {
+  for (unsigned long long i=0; i<iCount; ++i) {
     value += sin(float(i)/100);
   }
   return std::abs(value);
