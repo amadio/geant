@@ -119,7 +119,6 @@ private:
 
   GeantFactory<MyHit> *fFactory = nullptr;        /** Hits factory */
   ROOT::Experimental::TBufferMerger* fMerger = nullptr;
-  int fOutputBlockCounter;
   int fOutputBlockWrite;
   
 };

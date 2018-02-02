@@ -62,8 +62,6 @@ void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
   eventData->tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &(eventData->data));
     
   fDataHandlerEvents->AttachUserData(eventData, td);
-
-  fOutputBlockCounter = 0;
 }
 
 void LHCbFullApp::DeleteUserData(Geant::GeantTaskData *td) {
@@ -71,6 +69,12 @@ void LHCbFullApp::DeleteUserData(Geant::GeantTaskData *td) {
     return;
   }
   LHCbThreadDataEvents *eventData = fDataHandlerEvents->GetUserData(td);
+
+  // make sure that everything has been sent for merging
+  //  std::cout << "Writing before delete" << std::endl;
+
+  eventData->file->Write();
+    
   delete eventData;
 }
 
@@ -81,8 +85,7 @@ bool LHCbFullApp::Initialize() {
 
   //IO
   fMerger = new ROOT::Experimental::TBufferMerger("simu.root");
-  fOutputBlockCounter = 0;
-  fOutputBlockWrite = 10;
+  fOutputBlockWrite = 1000;
   
 
   // Initialize application. Geometry must be loaded.
@@ -266,7 +269,6 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
   
   while (!(fFactory->fOutputsArray[tid].empty()))
     {
-      fOutputBlockCounter++;
       tde.data = fFactory->fOutputsArray[tid].back();
       
       tde.tree->Fill();
@@ -277,11 +279,10 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
       fFactory->Recycle(tde.data, tid);
     }
   
-  if (fOutputBlockCounter > fOutputBlockWrite)
+  if (tde.tree->GetEntries() > fOutputBlockWrite)
     {
       //      std::cout << "Writing " << tde.tree->GetEntries()<< std::endl;
       tde.file->Write();
-      fOutputBlockCounter = 0;
     }
 }
 
@@ -303,6 +304,7 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
     std::cout << " \n================================================================= \n"
               << " ===  FinishEvent  --- event = " << event->GetEvent() << " with "<< nPrims << " primary:"
               << std::endl;
+    /*
     for (int ip=0; ip<nPrims; ++ip) {
       Geant::GeantTrack* primTrack = event->GetPrimary(ip);
       int         primGVCode       = primTrack->GVcode();
@@ -319,6 +321,8 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
                 << "    Direction = ("     << xdir << ", " << ydir << ", " << zdir      << ") \n";
       dataPerEvent.GetDataPerPrimary(ip).Print();
     }
+    */
+    
   fMutex.unlock();
   // clear the currently added ("master") thread local data (the event-slot, where the currently finished event was)
 
