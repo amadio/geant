@@ -280,7 +280,8 @@ int main(int argc, char *argv[]) {
   
   //  Enable (or not) use of RK integration in field for charged particles
   config->fUseRungeKutta = false;  // For now off.  Soon = useRungeKutta;
-  printf("runApp: Configured use of helix for charged tracks.");
+  printf("runApp: Configured use of helix for charged tracks. ( use RK was %d )\n",
+         useRungeKutta );
   config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
   
   if (external_loop) {

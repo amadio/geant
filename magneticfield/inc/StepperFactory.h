@@ -85,7 +85,8 @@ StepperFactory::CreateStepper(EquationType *equation, int StepperCode, bool verb
          stepperName= NameCashKarpRKF45;
          break;
       default : stepper = (VScalarIntegrationStepper*) 0 ;
-	std::cerr << " ERROR> StepperFactory: No stepper selected. " << std::endl;
+         std::cerr << " ERROR> StepperFactory: No stepper selected. " << std::endl;
+         break;
          // exit(1); 
     }
     if( stepperName && verbose )

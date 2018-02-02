@@ -10,6 +10,7 @@
 
 #include "G4Mag_UsualEqRhs.hh"
 #include "G4MagIntegratorStepper.hh"
+#include "G4MagIntegratorDriver.hh"
 #include "G4CashKarpRKF45.hh"
 
 #include "G4TransportationManager.hh"

@@ -160,7 +160,7 @@ public:
     // Get the number of monitored features
     return (fMonQueue + fMonMemory + fMonBasketsPerVol + fMonVectors + fMonConcurrency + fMonTracksPerEvent + fMonTracks);
   }
-	
+
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

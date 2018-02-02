@@ -317,8 +317,8 @@ void CMSmagField::Gather2(const vecCore::Index<Real_v> index,
   using Index_v = vecCore::Index<Real_v>;
   using Real_s = vecCore::Scalar<Real_v>;
   
-  Index_v ind1 = 3 * index;           // 3 components per 'location'
-  Index_v ind2 = ind1   + 3 * kNoZValues;
+  const Index_v ind1 = 3 * index;           // 3 components per 'location'
+  const Index_v ind2 = ind1   + 3 * kNoZValues;
   Real_s const *addr = GetFieldArray<Real_v>();
   //float const *addr = (Real_s const *)fMagLinArray;
   
@@ -326,13 +326,13 @@ void CMSmagField::Gather2(const vecCore::Index<Real_v> index,
   B1[0] = vecCore::Gather<Real_v>( addr, ind1 );
   B2[0] = vecCore::Gather<Real_v>( addr, ind2 );
 
-  Index_v ind1phi= ind1 + kNumPhi;
-  Index_v ind2phi= ind2 + kNumPhi;
+  const Index_v ind1phi= ind1 + kNumPhi;
+  const Index_v ind2phi= ind2 + kNumPhi;
   B1[1] = vecCore::Gather<Real_v>( addr, ind1phi );
   B2[1] = vecCore::Gather<Real_v>( addr, ind2phi );
   
-  Index_v ind1z = ind1 + kNumZ;
-  Index_v ind2z = ind2 + kNumZ;
+  const Index_v ind1z = ind1 + kNumZ;
+  const Index_v ind2z = ind2 + kNumZ;
   B1[2] = vecCore::Gather<Real_v>( addr, ind1z );
   B2[2] = vecCore::Gather<Real_v>( addr, ind2z );
 }
@@ -344,8 +344,8 @@ void CMSmagField::Gather2<double>(const vecCore::Index<double> index,
                                         double B1[3],
                                         double B2[3])
 {
-    int ind1= 3 * int(index);
-    int ind2 = ind1 + 3 * kNoZValues;
+    const int ind1= 3 * int(index);
+    const int ind2 = ind1 + 3 * kNoZValues;
 
     //Fetch one component of each point first, then the rest. 
     B1[0] = fMagLinArrayD[ind1+kNumR];
@@ -360,56 +360,54 @@ void CMSmagField::Gather2<double>(const vecCore::Index<double> index,
 
 template <typename Real_v>
 GEANT_FORCE_INLINE
-void CMSmagField::GetFieldValueRZ(const Real_v &r, 
-                                  const Real_v &Z, 
+void CMSmagField::GetFieldValueRZ(const Real_v     &r, 
+                                  const Real_v     &Z, 
                                   Vector3D<Real_v> &rzField)
 {
+    // Convention for return value:  x -> R,  y-> Phi, z->Z
 
     using namespace vecCore::math;
     using namespace Geant;
     using Index_v = vecCore::Index<Real_v>;
 
     //Take care that radius and z for out of limit values take values at end points 
-    Real_v radius = Min(r, Real_v(kRMax));
-    Real_v z = Max(Min(Z, Real_v(kZMax)), Real_v(-kZMax)); 
+    const Real_v radius = Min(r, Real_v(kRMax));
+    const Real_v z = Max(Min(Z, Real_v(kZMax)), Real_v(-kZMax)); 
 
     //to make sense of the indices, consider any particular instance e.g. (25,-200)
-    Real_v rFloor = Floor(radius * kRDiffInv);
-    Real_v rIndLow = rFloor * Real_v(kNoZValues);
+    const Real_v rFloor = Floor(radius * kRDiffInv);
+    const Real_v rIndLow = rFloor * Real_v(kNoZValues);
     // Real_v rIndHigh = rIndLow + kNoZValues;
 
     //if we use z-z0 in place of two loops for Z<0 and Z>0
     //z-z0 = [0,32000]
     //so indices 0 to 160 : total 161 indices for (z-z0)/200
     //i.e. we are saying:
-    Real_v zInd = Floor((z - Real_v(kZ0)) * Real_v(kZDiffInv));
+    const Real_v zInd = Floor((z - Real_v(kZ0)) * Real_v(kZDiffInv));
     //need i1,i2,i3,i4 for 4 required indices
-    Index_v i1 = vecCore::Convert<Index_v>(rIndLow + zInd);
+    const Index_v i1 = vecCore::Convert<Index_v>(rIndLow + zInd);
     //Index_v i1 = Index_v(rIndLow + zInd);
-    Index_v i2 = i1 + 1;
-
-    Real_v zLow       = (zInd - Real_v(kHalfZValues)) * Real_v(kZDiff); //80 because it's the middle index in 0 to 160
-    Real_v zHigh      = zLow + Real_v(kZDiff);
-    Real_v radiusLow  = rFloor * Real_v(kRDiff);
-    Real_v radiusHigh = radiusLow + Real_v(kRDiff);
-
-    Real_v a1 = (radiusHigh - radius) * (zHigh - z); //area to be multiplied with i1
-    Real_v a2 = (radiusHigh - radius) * (z - zLow);
-    Real_v a3 = (radius - radiusLow) * (zHigh - z);
-    Real_v a4 = (radius - radiusLow) * (z- zLow);
-
+    const Index_v i2 = i1 + 1;
     
     Real_v B1[3], B2[3], B3[3], B4[3];
+
     Gather2<Real_v>(i1, B1, B3);
+    
+    const Real_v zLow       = (zInd - Real_v(kHalfZValues)) * Real_v(kZDiff); //80 because it's the middle index in 0 to 160
+    const Real_v zHigh      = zLow + Real_v(kZDiff);
+    const Real_v radiusLow  = rFloor * Real_v(kRDiff);
+    const Real_v radiusHigh = radiusLow + Real_v(kRDiff);
+
     Gather2<Real_v>(i2, B2, B4);
+    
+    const Real_v a1 = (radiusHigh - radius) * (zHigh - z); //area to be multiplied with i1
+    const Real_v a2 = (radiusHigh - radius) * (z - zLow);
+    const Real_v a3 = (radius - radiusLow) * (zHigh - z);
+    const Real_v a4 = (radius - radiusLow) * (z- zLow);
 
-    Real_v BR   = B1[0]  *a1 + B2[0]  *a2 + B3[0]  *a3 + B4[0]  *a4; 
-    Real_v BPhi = B1[1]  *a1 + B2[1]  *a2 + B3[1]  *a3 + B4[1]  *a4; 
-    Real_v BZ   = B1[2]  *a1 + B2[2]  *a2 + B3[2]  *a3 + B4[2]  *a4; 
-
-    rzField.x()= BR;
-    rzField.y()= BPhi;
-    rzField.z()= BZ;
+    rzField.x()  = B1[0]  *a1 + B2[0]  *a2 + B3[0]  *a3 + B4[0]  *a4;  // BR
+    rzField.y()  = B1[1]  *a1 + B2[1]  *a2 + B3[1]  *a3 + B4[1]  *a4;  // BPhi
+    rzField.z()  = B1[2]  *a1 + B2[2]  *a2 + B3[2]  *a3 + B4[2]  *a4;  // BZ
 }
 
 
