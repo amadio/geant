@@ -226,17 +226,6 @@ int main(int argc, char *argv[]) {
   config->fEmin = 3.E-6; // [3 KeV] energy cut
   config->fEmax = 0.3;  // [300MeV] used for now to select particle gun energy
 
-  //  Enable use of RK integration in field for charged particles
-  config->fUseRungeKutta = useRungeKutta;
-  config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
-
-  auto fieldConstructor= new UserFieldConstruction();
-  float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
-  fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
-
-  // printf("Calling CreateFieldAndSolver from runCMS_new.C");
-  // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
-
    // Number of steps for learning phase (tunable [0, 1e6])
    // if set to 0 disable learning phase
   config->fLearnSteps = n_learn_steps;
@@ -275,9 +264,9 @@ int main(int argc, char *argv[]) {
   runMgr->SetPrimaryGenerator( generator );  
   runMgr->SetUserApplication ( new ExN03Application(runMgr) );
   auto detectorCtor= 
-     new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr) );
+     new ExN03DetectorConstruction(exn03_geometry_filename.c_str(), runMgr);
 
-  double Bmag = 1. * geant::KiloGauss; // 0.1 Tesla
+  float Bmag = 1. * (float) geant::kilogauss; // 0.1 * tesla
   float fieldVec[3] = { 0.0f, 0.0f, Bmag };
   UserFieldConstruction* fieldCtr= new UserFieldConstruction();
   fieldCtr->UseConstantMagField( fieldVec, "kilogauss" );
@@ -287,12 +276,12 @@ int main(int argc, char *argv[]) {
   detectorCtor->SetUserFieldConstruction(fieldCtr);
 
   runMgr->SetDetectorConstruction( detectorCtor );
-
-  config->fUseRungeKutta = false;
+  printf("runApp: Set up generic field-construction - to create field.\n");
+  
+  //  Enable (or not) use of RK integration in field for charged particles
+  config->fUseRungeKutta = false;  // For now off.  Soon = useRungeKutta;
   printf("runApp: Configured use of helix for charged tracks.");
-
-  runMgr->SetUserFieldConstruction(fieldConstructor);
-  // printf("runApp: Set up generic field-construction - to create field.\n");
+  config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default 
   
   if (external_loop) {
     userfw::Framework fw(n_propagators*n_threads, n_events, runMgr, generator);

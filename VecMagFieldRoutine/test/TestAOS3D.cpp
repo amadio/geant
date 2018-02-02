@@ -8,8 +8,6 @@
 #include "base/SOA3D.h"
 #include "base/AOS3D.h"
 #include "base/Global.h"
-#include <Vc/Vc>
-#include "backend/vc/Backend.h"
 #include "backend/Backend.h"
 #include <cassert>
 #include <ctime>
@@ -63,7 +61,6 @@ int main(){
   cout<<r1.Rndm()<<endl;
   cout<<r1.Rndm()<<endl;
   cout<<x<<" "<<y<<" "<<z<<endl;
-
 
   return 0;
 }

@@ -96,8 +96,7 @@ int main(int argc, char *argv[]) {
 
   bool useMagField= false;  // To become a user flag
   if( useMagField ) {
-
-    // Create magnetic field and needed classes for trajectory integration
+     // Create magnetic field and needed classes for trajectory integration
      auto fieldConstructor= new Geant::UserFieldConstruction();
      float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
      fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
