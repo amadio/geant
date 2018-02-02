@@ -230,7 +230,8 @@ class ScalarIntegrationDriver
      double fDyerrPos_smTot, fDyerrPos_lgTot, fDyerrVel_lgTot;
      double fSumH_sm, fSumH_lg;
         // Step Statistics
-
+     unsigned long fErrZeroStepCount; // Reduce warnings about zero steps
+     
      int  fVerboseLevel;   // Verbosity level for printing (debug, ..)
         // Could be varied during tracking - to help identify issues
      int fStepperCalls=0.;     

@@ -33,7 +33,8 @@ TH1F* gHistStepsLog=0;
 TH1F* gHistStepsInit=0;
 #endif
 
-std::atomic<unsigned long> errZeroStepCount;
+// std::atomic<unsigned long>
+// std::atomic_ulong    errZeroStepCount;
 
 // To add much printing for debugging purposes, uncomment the following
 // and set verbose level to 1 or higher value !
@@ -73,7 +74,7 @@ ScalarIntegrationDriver::ScalarIntegrationDriver( double        hminimum,
   statsEnabled= true;
 #endif
 
-  errZeroStepCount = 0; // Counter for reporting zero step
+  fErrZeroStepCount = 0; // Counter for reporting zero step
 
   RenewStepperAndAdjust( pStepper );
   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
@@ -221,7 +222,7 @@ ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack& yInput,
   { 
     if(hstep==0.0)
     {
-      unsigned long numErr= errZeroStepCount++;
+      unsigned long numErr= fErrZeroStepCount++;
       if( numErr % 500 < 1 ) 
          std::cerr << methodName << ": Proposed step is zero; hstep = " << hstep << " !"
                    << " occurence = " << numErr << std::endl;
