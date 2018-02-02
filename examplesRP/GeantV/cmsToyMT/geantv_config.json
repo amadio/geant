@@ -4,14 +4,14 @@
    "label" : "TEST",
    "options" :
    {
-     "nSimultaneousEvents" : 4,
-     "nThreads" : 12,
+     "nSimultaneousEvents" : 8,
+     "nThreads" : 8,
      "busyWaitScaleFactor" : 2.2e+07
    },
    "source" :
    {
      "@type" : "demo::SimpleSource",
-     "iterations" : 3000
+     "iterations" : 20
    },
    "filters" :
    [
@@ -27,15 +27,16 @@
    ],
    "producers" :
    [
-     { "@label" : "generator",
-       "@type" : "demo::BusyWaitProducer",
-       "threadType" : "ThreadSafeBetweenInstances",
-       "averageTime":0.01,
-       "toGet" :[]
-     },
      { "@label" : "geantV",
        "@type" : "demo::GeantVProducer",
-       "toGet" :[ {"label":"generator","product":""} ]
+       "threadType" : "ThreadSafeBetweenInstances",
+       "geometry" : "cms2018.gdml",
+       "xsec" : "xsec_FTFP_BERT.root",
+       "fstate" : "fstate_FTFP_BERT.root",
+       "hepmc" : "",
+       "Nevents":9999,
+       "Nthreads":8,
+       "toGet" :[]
      },
      { "@label" : "digiA",
        "@type" : "demo::BusyWaitProducer",

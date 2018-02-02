@@ -17,6 +17,7 @@ PassFilter::PassFilter(const boost::property_tree::ptree& iConfig):
   
 bool 
 PassFilter::filter(const edm::Event& iEvent) {
+  (void)iEvent;
   //printf("filter %s was Run on event %lu\n",label().c_str(),iEvent.index());
   float v = busyWait(10000);
   return v>0;

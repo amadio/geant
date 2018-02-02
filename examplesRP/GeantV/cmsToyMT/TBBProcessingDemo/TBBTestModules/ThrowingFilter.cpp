@@ -38,8 +38,8 @@ namespace demo {
   
   bool 
   ThrowingFilter::filter(const edm::Event& iEvent) {
+    (void)iEvent;
     printf("Producer %s\n",label().c_str());
-    
     throw std::runtime_error("exception test");
     return true;
   }

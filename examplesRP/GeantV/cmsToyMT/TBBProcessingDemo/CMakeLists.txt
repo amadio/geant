@@ -90,32 +90,32 @@ add_library(TBBFrameworkCore SHARED ${CORE_FILES})
 target_link_libraries(TBBFrameworkCore ${TBB_LIBRARIES} ${GEANTV_LIBRARIES} ${VECGEOM_LIBRARIES} RealPhysics)
 
 set(TEST_FILES
-  #TBBTestModules/BusyWaitPassFilter.cpp
-  #TBBTestModules/BusyWaitProducer.cpp
+  TBBTestModules/BusyWaitPassFilter.cpp
+  TBBTestModules/BusyWaitProducer.cpp
   TBBTestModules/EventGeneratorProducer.cpp
-  #TBBTestModules/EventTimesBusyWaitPassFilter.cpp
-  #TBBTestModules/EventTimesBusyWaitProducer.cpp
-  #TBBTestModules/EventTimesPassFilterBase.cpp
-  #TBBTestModules/EventTimesProducerBase.cpp
-  #TBBTestModules/EventTimesSleepingPassFilter.cpp
-  #TBBTestModules/EventTimesSleepingProducer.cpp
-  #TBBTestModules/EventTimesSyncGetPassFilterBase.cpp
-  #TBBTestModules/EventTimesSyncGetProducerBase.cpp
-  #TBBTestModules/EventTimesSyncGetSleepingPassFilter.cpp
-  #TBBTestModules/EventTimesSyncGetSleepingProducer.cpp
-  #TBBTestModules/FastPassFilter.cpp
-  #TBBTestModules/FastProducer.cpp
+  TBBTestModules/EventTimesBusyWaitPassFilter.cpp
+  TBBTestModules/EventTimesBusyWaitProducer.cpp
+  TBBTestModules/EventTimesPassFilterBase.cpp
+  TBBTestModules/EventTimesProducerBase.cpp
+  TBBTestModules/EventTimesSleepingPassFilter.cpp
+  TBBTestModules/EventTimesSleepingProducer.cpp
+  TBBTestModules/EventTimesSyncGetPassFilterBase.cpp
+  TBBTestModules/EventTimesSyncGetProducerBase.cpp
+  TBBTestModules/EventTimesSyncGetSleepingPassFilter.cpp
+  TBBTestModules/EventTimesSyncGetSleepingProducer.cpp
+  TBBTestModules/FastPassFilter.cpp
+  TBBTestModules/FastProducer.cpp
   TBBTestModules/GeantVProducer.cpp
   TBBTestModules/CMSApplicationTBB.cpp
-  #TBBTestModules/PassFilter.cpp
-  #TBBTestModules/SleepingPassFilter.cpp
-  #TBBTestModules/SleepingProducer.cpp
+  TBBTestModules/PassFilter.cpp
+  TBBTestModules/SleepingPassFilter.cpp
+  TBBTestModules/SleepingProducer.cpp
   TBBTestModules/ThreadSafeProducer.cpp
   TBBTestModules/ThreadSafeWhichReadsProducer.cpp
   TBBTestModules/ThreadSaferGetterFilter.cpp
-  #TBBTestModules/ThrowingFilter.cpp
-  #TBBTestModules/ThrowingProducer.cpp
-  #TBBTestModules/Waiter.cpp
+  TBBTestModules/ThrowingFilter.cpp
+  TBBTestModules/ThrowingProducer.cpp
+  TBBTestModules/Waiter.cpp
   TBBTestModules/busyWait.cpp
   TBBTestModules/busy_wait_scale_factor.cpp
   TBBTestModules/thread_type_from_config.cpp)
