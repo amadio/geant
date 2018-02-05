@@ -1,25 +1,18 @@
 #----------------------------------------------------------------------------------------------
-# Add subdirectories
-#
-
-add_subdirectory (base)
-add_subdirectory (concurrency)
-add_subdirectory (numa)
-add_subdirectory (interfaces)
-
-#----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories("${PROJECT_SOURCE_DIR}/base/inc")
+include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
 
 file(GLOB sources src/*.cxx)
+file(GLOB oldheaders inc/*.h)
 file(GLOB headers inc/Geant/*.h)
+add_headers("${oldheaders}")
 add_headers("${headers}")
 
-include_directories(inc 
-                    ${CMAKE_SOURCE_DIR}/numa/inc)
+# library building currently handled by run/scheduler/CMakeLists.txt
 
 install(FILES ${headers} DESTINATION inc/Geant)
+install(FILES ${oldheaders} DESTINATION inc)
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

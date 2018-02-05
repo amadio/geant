@@ -581,7 +581,6 @@ endif()
 #
 include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
 include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
-include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 if(USE_REAL_PHYSICS)
   include_directories("${PROJECT_SOURCE_DIR}/examplesRP/inc")
 else()
@@ -599,8 +598,10 @@ string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 add_custom_target(_headers ALL)
 
 message(STATUS "COMPILATION FLAGS ARE -${GEANTV_CXX_FLAGS} - ${GEANTV_COMPILATION_FLAGS}")
-add_subdirectory (base)
-add_subdirectory (numa)
+
+add_subdirectory (core)
+
+
 if(NOT USE_REAL_PHYSICS)
   add_subdirectory (xsec)
 endif()
