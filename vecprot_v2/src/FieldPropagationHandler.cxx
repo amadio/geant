@@ -14,6 +14,7 @@
 #include "base/SOA3D.h"
 // #include "SOA6D.h"
 #include "Geant/VectorTypes.h"   // Defines Geant::Double_v etc
+#include "SystemOfUnits.h"
 
 #include "WorkspaceForFieldPropagation.h"
 #include "FlexIntegrationDriver.h"
