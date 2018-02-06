@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories("${PROJECT_SOURCE_DIR}/core/inter/inc")
+include_directories("${PROJECT_SOURCE_DIR}/core/interfaces/inc")
 
 file(GLOB sources src/*.cxx)
 file(GLOB oldheaders inc/*.h)
