@@ -9,41 +9,45 @@ if(WITH_GEANT4)
 endif()
 
 file(GLOB sources
-  ${CMAKE_SOURCE_DIR}/realphysics/dummies/src/*.cc
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/management/src/*.cxx
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/src/*.cc
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/src/*.cc
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/src/*.cc
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/src/*.cc
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/src/*.cc
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/cuts/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/management/src/*.cxx
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/hadron/models/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/hadron/processes/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/utils/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/src/*.cc
 )
 
 file(GLOB headers
-  ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h
-  ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h
-  ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc/*.h
-  ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc/*.h
+  ${CMAKE_SOURCE_DIR}/core/base/inc/PhysicalConstants.h
+  ${CMAKE_SOURCE_DIR}/core/base/inc/SystemOfUnits.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/hadron/models/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/hadron/processes/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/inc/*.h
 )
 
 include_directories(
-   ${CMAKE_SOURCE_DIR}/material/inc
-   ${CMAKE_SOURCE_DIR}/base/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/HAD/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/HAD/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/utils/inc
-   ${CMAKE_SOURCE_DIR}/realphysics/physics/cross_sections/HAD/inc
-   ${CMAKE_SOURCE_DIR}/numa/inc
+   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
+   ${CMAKE_SOURCE_DIR}/physics/kernel/cuts/inc
+   ${CMAKE_SOURCE_DIR}/core/base/inc
+   ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
+   ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
+   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
+   ${CMAKE_SOURCE_DIR}/physics/hadron/models/inc
+   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
+   ${CMAKE_SOURCE_DIR}/physics/hadron/processes/inc
+   ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
+   ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/inc
+   ${CMAKE_SOURCE_DIR}/core/concurrency/inc
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+   ${CMAKE_SOURCE_DIR}/core/numa/inc
 )
 
 #----------------------------------------------------------------------------------------------
@@ -52,7 +56,7 @@ include_directories(
 set(_extraLibs "")
 
 if(USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(realphysicsDict ${headers} MODULE RealPhysics LINKDEF realphysicsLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  ROOT_GENERATE_DICTIONARY(realphysicsDict ${headers} MODULE RealPhysics LINKDEF rootdict/realphysicsLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   set(sources ${sources} realphysicsDict.cxx)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()

@@ -10,6 +10,7 @@ MACRO(add_headers headers)
   add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/include
   		   COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/include)
   string(REPLACE ${PROJECT_SOURCE_DIR}/ "" _leaf ${CMAKE_CURRENT_SOURCE_DIR})
+  string(REPLACE "/" "_" _leaf ${_leaf})
   add_custom_target(${_leaf}_headers DEPENDS ${PROJECT_SOURCE_DIR}/include ${allh})
   add_dependencies(_headers ${_leaf}_headers)
 endmacro(add_headers)

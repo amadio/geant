@@ -7,14 +7,14 @@ file(GLOB c_sources src/*.c)
 
 file(GLOB sources tabxsec.cc src/*.cc src/*.cxx)
 file(GLOB headers inc/*.hh src/*.h)
-include_directories(inc ${CMAKE_SOURCE_DIR}/physics/particle/inc)
+include_directories(inc ${CMAKE_SOURCE_DIR}/physics/particles/inc)
 
 if (USE_VECGEOM_NAVIGATOR)
- include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+ include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
 endif()
 
 if(USE_NUMA)
-  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+  include_directories(${CMAKE_SOURCE_DIR}/core/numa/inc)
 endif()
 
 #----------------------------------------------------------------------------------------------

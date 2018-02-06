@@ -18,24 +18,25 @@ include(${Geant4_USE_FILE})
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-include_directories(include
+include_directories(inc
   ${Geant4_INCLUDE_DIR}
   ${ROOT_INCLUDE_DIR}
-  ../xsec/inc
-  ../physics/particle/inc
+  ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+  ${CMAKE_SOURCE_DIR}/physics/xsec/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
   )
 
 if (USE_VECGEOM_NAVIGATOR)
- include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+ include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
 endif()
 
 
 if(USE_NUMA)
-  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+  include_directories(${CMAKE_SOURCE_DIR}/core/numa/inc)
 endif()
 
 file(GLOB sources src/*.cc)
-file(GLOB headers include/*.hh)
+file(GLOB headers inc/*.hh)
 
 #----------------------------------------------------------------------------------------------
 # Deal with compilation flags, since they are superseded by Geant4

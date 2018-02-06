@@ -26,7 +26,7 @@ include(${Geant4_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${Geant4_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
+file(GLOB headers ${PROJECT_SOURCE_DIR}/inc/*.hh)
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
@@ -34,7 +34,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 set(OUTPUT bin/examples/Calorimeter/Geant4)
 
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
-add_executable(TestEm3 ${CMAKE_SOURCE_DIR}/examplesRP/Geant4/TestEm3/TestEm3.cc ${sources} ${headers})
+add_executable(TestEm3 ${CMAKE_SOURCE_DIR}/examples/physics/Geant4/TestEm3/TestEm3.cc ${sources} ${headers})
 target_link_libraries(TestEm3 ${Geant4_LIBRARIES})
 
 #----------------------------------------------------------------------------

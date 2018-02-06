@@ -4,29 +4,39 @@
 if (USE_REAL_PHYSICS)
   include_directories(
     inc
-    ${CMAKE_SOURCE_DIR}/numa/inc
-    ${CMAKE_SOURCE_DIR}/magneticfield/inc
-    ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
-    ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
-    ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
-    ${CMAKE_SOURCE_DIR}/realphysics/physics/processes/EM/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc
-    ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc
+    ${CMAKE_SOURCE_DIR}/core/numa/inc
+    ${CMAKE_SOURCE_DIR}/core/concurrency/inc
+    ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+    ${CMAKE_SOURCE_DIR}/run/userapp/inc
+    ${CMAKE_SOURCE_DIR}/run/magneticfield/inc
+    ${CMAKE_SOURCE_DIR}/physics/generators/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
+    ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
+    ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
+    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
+    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc
+    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc
+    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc
     )
 else()
   include_directories(
     inc
-    ${CMAKE_SOURCE_DIR}/numa/inc
-    ${CMAKE_SOURCE_DIR}/magneticfield/inc
-    ${CMAKE_SOURCE_DIR}/physics/particle/inc
-    ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
+    ${CMAKE_SOURCE_DIR}/core/numa/inc
+    ${CMAKE_SOURCE_DIR}/core/concurrency/inc
+    ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+    ${CMAKE_SOURCE_DIR}/run/userapp/inc
+    ${CMAKE_SOURCE_DIR}/run/magneticfield/inc
+    ${CMAKE_SOURCE_DIR}/physics/generators/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
     )
 endif()
 
+# For TThreadingMerger
+include_directories(${CMAKE_SOURCE_DIR}/obsolete/inc)
+
 if (USE_VECGEOM_NAVIGATOR)
-  include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+  include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
 endif()
 
 if (USE_TBB)
@@ -39,10 +49,10 @@ if( USE_VECGEOM_NAVIGATOR )
 endif()
 
 set(sources
-   ${CMAKE_SOURCE_DIR}/base/src/Error.cxx
+   ${CMAKE_SOURCE_DIR}/core/base/src/Error.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrack.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackVec.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantTrack.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantTrackVec.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantBasket.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Basket.cxx
@@ -58,46 +68,46 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeomQueryStage.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PropagationStage.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/SteppingActionsStage.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/sync_objects.cxx
+   ${CMAKE_SOURCE_DIR}/core/concurrency/src/sync_objects.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantPropagator.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEvent.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/EventSet.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantEvent.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/EventSet.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantScheduler.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/PhysicsInterface.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/PhysicsProcessOld.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsInterface.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsProcessOld.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/WorkloadManager.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantVApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantVDetectorConstruction.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantFactoryStore.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/MyHit.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/StdApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingFile.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/TThreadMergingServer.cxx
+   ${CMAKE_SOURCE_DIR}/run/userapp/src/GeantVApplication.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantVDetectorConstruction.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantFactoryStore.cxx
+   ${CMAKE_SOURCE_DIR}/run/userapp/src/MyHit.cxx
+   ${CMAKE_SOURCE_DIR}/run/userapp/src/StdApplication.cxx
+   ${CMAKE_SOURCE_DIR}/obsolete/src/TThreadMergingFile.cxx
+   ${CMAKE_SOURCE_DIR}/obsolete/src/TThreadMergingServer.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TransportManager.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/LocalityManager.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/MCTruthMgr.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/MCTruthMgr.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantRunManager.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEventServer.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackStat.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/Region.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/Region.cxx
 )
 
 set(headers
-   ${CMAKE_SOURCE_DIR}/base/inc/Geant/Config.h
-   ${CMAKE_SOURCE_DIR}/base/inc/Geant/Error.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/globals.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFwd.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/dcqueue.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/mpmc_bounded_queue.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/priority_queue.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/condition_locker.h
+   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Config.h
+   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Error.h
+   ${CMAKE_SOURCE_DIR}/core/base/inc/globals.h
+   ${CMAKE_SOURCE_DIR}/core/base/inc/GeantFwd.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency/inc/dcqueue.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/mpmc_bounded_queue.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/priority_queue.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/condition_locker.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsInterface.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PhysicsProcessOld.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PhysicsInterface.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PhysicsProcessOld.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Handler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basketizer.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/StackLikeBuffer.h
+ #  ${CMAKE_CURRENT_SOURCE_DIR}/inc/StackLikeBuffer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SimulationStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PreStepHandler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeomQueryHandler.h
@@ -112,31 +122,31 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrack.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackVec.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTrackGeo.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVApplication.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantVDetectorConstruction.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MyHit.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactory.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantFactoryStore.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/StdApplication.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PrimaryGenerator.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingFile.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TThreadMergingServer.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantTrack.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantTrackVec.h
+#   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/GeantVApplication.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantVDetectorConstruction.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/MyHit.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantFactory.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantFactoryStore.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/StdApplication.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PrimaryGenerator.h
+   ${CMAKE_SOURCE_DIR}/obsolete/inc/TThreadMergingFile.h
+   ${CMAKE_SOURCE_DIR}/obsolete/inc/TThreadMergingServer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackManager.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TransportManager.h
+#   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TransportManager.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/LocalityManager.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/MCTruthMgr.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/cuckoohash_map.hh
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/MCTruthMgr.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency/inc/cuckoohash_map.hh
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantRunManager.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEvent.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/EventSet.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantEvent.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/EventSet.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEventServer.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantConfig.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Region.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/ExternalFramework.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantConfig.h
+#   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Region.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/ExternalFramework.h
 )
 
 # Add codes that describes some stages (and handlers) that are different when real-physics is used
@@ -160,21 +170,21 @@ if (NOT USE_REAL_PHYSICS)
 endif ()
 
 if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
-   set(sources ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceTGeo.cxx)
-   set(headers ${headers} ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceTGeo.h)
+   set(sources ${sources} ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceTGeo.cxx)
+   set(headers ${headers} ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceTGeo.h)
 endif()
 
 if(USE_VECGEOM_NAVIGATOR)
   set(sources ${sources}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVG.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScalarNavInterfaceVGM.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VectorNavInterface.cxx
+    ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVG.cxx
+    ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVGM.cxx
+    ${CMAKE_SOURCE_DIR}/core/interfaces/src/VectorNavInterface.cxx
     )
 
   set(headers ${headers}
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceVG.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ScalarNavInterfaceVGM.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/VectorNavInterface.h
+    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVG.h
+    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVGM.h
+    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/VectorNavInterface.h
     )
 endif()
 
@@ -248,22 +258,22 @@ if(NOT (USE_REAL_PHYSICS))
 # -------
 if(CUDA)
   set(TEST_EXECUTABLES
-    CMSGPUApp.cc
-    runGPUApp.cc
+    ./examples/CMSGPUApp.cc
+    ./examples/runGPUApp.cc
 #   testBasketizer.cc
 )
 else()
   set(TEST_EXECUTABLES
-    CMSApp.cc
-    runApp.cc
-    testBasketizer.cc
+    ./examples/CMSApp.cc
+    ./examples/runApp.cc
+    ./tests/testBasketizer.cc
 )
 endif()
 
 if(USE_ROOT)
   set(TEST_EXECUTABLES
     ${TEST_EXECUTABLES}
-    testLocality.cc
+    ./tests/testLocality.cc
     )
 endif()
 
@@ -338,12 +348,12 @@ endif()
 else()
 # -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
-  TestEm3_GV.cc
-  TestEm5_GV.cc
+  examples/TestEm3_GV.cc
+  examples/TestEm5_GV.cc
   )
 set(NOTEST_EXECUTABLES
-  fullCMS.cc
-  fullLHCb.cc
+  examples/fullCMS.cc
+  examples/fullLHCb.cc
   )
 
 macro(build_executables EXECUTABLES)
@@ -388,7 +398,7 @@ endif()
 #
 ### TestEm5_GV ###
 set(TestEm5_GV_OUTPUT bin/examples/TestEm5/GeantV)
-set(TestEm5_GV_SCRIPTS TestEm5_GV_hanson19.mac hanson_19.dat README_TestEm5_GV)
+set(TestEm5_GV_SCRIPTS examples/TestEm5_GV_hanson19.mac examples/hanson_19.dat examples/README_TestEm5_GV)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm5_GV_OUTPUT})
 foreach(_script ${TestEm5_GV_SCRIPTS})
   configure_file(
@@ -401,7 +411,7 @@ install(TARGETS TestEm5_GV DESTINATION ${TestEm5_GV_OUTPUT})
 install(FILES ${TestEm5_GV_SCRIPTS} DESTINATION ${TestEm5_GV_OUTPUT})
 ### fullCMS ###
 set(fullCMS_OUTPUT bin/examples/FullCMS/GeantV)
-set(fullCMS_SCRIPTS fullCMS.mac README_fullCMS ${CMAKE_SOURCE_DIR}/examplesRP/Geant4/FullCMS/cms.gdml)
+set(fullCMS_SCRIPTS examples/fullCMS.mac examples/README_fullCMS ${CMAKE_SOURCE_DIR}/examples/physics/Geant4/FullCMS/cms.gdml)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT})
 foreach(_script ${fullCMS_SCRIPTS})
   configure_file(
@@ -414,7 +424,7 @@ install(TARGETS fullCMS DESTINATION ${fullCMS_OUTPUT})
 install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
 ### fullLHCb ###
 set(fullLHCb_OUTPUT bin/examples/FullLHCb/GeantV)
-set(fullLHCb_SCRIPTS fullLHCb.mac README_fullLHCb ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/LHCb_201603.gdml)
+set(fullLHCb_SCRIPTS examples/fullLHCb.mac examples/README_fullLHCb ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/LHCb_201603.gdml)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullLHCb_OUTPUT})
 foreach(_script ${fullLHCb_SCRIPTS})
   configure_file(
@@ -428,7 +438,7 @@ install(FILES ${fullLHCb_SCRIPTS} DESTINATION ${fullLHCb_OUTPUT})
 
 ### TestEm3_GV ###
 set(TestEm3_GV_OUTPUT bin/examples/Calorimeter/GeantV)
-set(TestEm3_GV_SCRIPTS TestEm3_GV_ATLASbar.mac README_TestEm3_GV)
+set(TestEm3_GV_SCRIPTS examples/TestEm3_GV_ATLASbar.mac examples/README_TestEm3_GV)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestEm3_GV_OUTPUT})
 foreach(_script ${TestEm3_GV_SCRIPTS})
   configure_file(

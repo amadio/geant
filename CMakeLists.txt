@@ -579,14 +579,16 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Include directories
 #
-include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
-include_directories("${PROJECT_SOURCE_DIR}/vecprot_v2/inc")
+include_directories("${PROJECT_SOURCE_DIR}/run/scheduler/inc")
+include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
+include_directories("${PROJECT_SOURCE_DIR}/run/magneticfield/inc")
+#include_directories("${PROJECT_SOURCE_DIR}/physics/kernel/material/inc")
 if(USE_REAL_PHYSICS)
-  include_directories("${PROJECT_SOURCE_DIR}/examplesRP/inc")
+include_directories("${PROJECT_SOURCE_DIR}/examples/physics/inc")
 else()
-  include_directories("${PROJECT_SOURCE_DIR}/xsec/inc")
-  include_directories("${PROJECT_SOURCE_DIR}/fastsim/inc")
-  include_directories("${PROJECT_SOURCE_DIR}/examples/inc")
+  include_directories("${PROJECT_SOURCE_DIR}/physics/xsec/inc")
+  include_directories("${PROJECT_SOURCE_DIR}/physics/fastsim/inc")
+  include_directories("${PROJECT_SOURCE_DIR}/examples/tabulated/inc")
 endif()
 include_directories("${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/include")
 
@@ -621,7 +623,7 @@ else()
     add_subdirectory (tests/cmstrack)
   endif()
 endif()
-add_subdirectory (run/magneticfield)
+
 if(USE_ROOT AND NOT (USE_REAL_PHYSICS))
   add_subdirectory (physics/fastsim)
 endif()
@@ -629,10 +631,8 @@ if (ROOT_mathmore_FOUND)
   add_subdirectory (physics/neutron/nudy)
 endif()
 
-add_subdirectory (VecMagFieldRoutine)
-
 if (NOT (USE_REAL_PHYSICS))
-  add_subdirectory(physics/tabulated)
+  add_subdirectory(physics/kernel)
 endif()
 
 if (USE_REAL_PHYSICS)
@@ -646,6 +646,7 @@ if (USE_VECGEOM_NAVIGATOR)
   add_subdirectory(physics/kernel/material)
 endif()
 
+add_subdirectory(physics/generators)
 
 
 

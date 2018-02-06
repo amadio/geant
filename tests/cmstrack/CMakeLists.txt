@@ -13,10 +13,10 @@ endif()
 
 find_package(Pythia8 REQUIRED)
 
-include_directories(include)
+include_directories(inc)
 include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIR} ${PYTHIA8_INCLUDE_DIR})
 file(GLOB sources src/*.cc)
-file(GLOB headers include/*.hh)
+file(GLOB headers inc/*.hh)
 
 #----------------------------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries

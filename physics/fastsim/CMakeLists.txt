@@ -10,11 +10,16 @@ if(HepMC_FOUND)
 endif()
 
 include_directories(inc
-  ${CMAKE_SOURCE_DIR}/physics/particle/inc
-  ${CMAKE_SOURCE_DIR}/numa/inc)
+  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
+  ${CMAKE_SOURCE_DIR}/run/userapp/inc
+  ${CMAKE_SOURCE_DIR}/core/concurrency/inc
+  ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+  ${CMAKE_SOURCE_DIR}/core/numa/inc)
+
+  include_directories(${CMAKE_SOURCE_DIR}/obsolete/inc)
 
 if (USE_VECGEOM_NAVIGATOR)
- include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+ include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
 endif()
 
 

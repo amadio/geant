@@ -6,8 +6,8 @@ include_directories("${PROJECT_SOURCE_DIR}/core/concurrency/inc")
 file(GLOB sources src/*.cxx)
 file(GLOB oldheaders inc/*.h)
 file(GLOB headers inc/Geant/*.h)
-add_headers("${oldheaders}")
-add_headers("${headers}")
+file(GLOB all_headers inc/*.h inc/Geant/*.h)
+add_headers("${all_headers}")
 
 # library building currently handled by run/scheduler/CMakeLists.txt
 

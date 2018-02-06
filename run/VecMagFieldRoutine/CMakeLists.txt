@@ -18,14 +18,14 @@ find_package(ROOT)
 include_directories(${VECGEOM_INCLUDE_DIR} ${ROOT_INCLUDE_DIR})
 link_directories(${ROOT_LIBRARY_DIR})
 
-include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
+include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)
 
 #Copies cms2015.txt to build/VecMagFieldRoutine at runtime 
-configure_file(${CMAKE_SOURCE_DIR}/VecMagFieldRoutine/cmsmagfield2015.txt cmsmagfield2015.txt COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/run/VecMagFieldRoutine/cmsmagfield2015.txt cmsmagfield2015.txt COPYONLY)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmsmagfield2015.txt DESTINATION VecMagFieldRoutine)
 
-include_directories(include)
-include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
+include_directories(inc)
+include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)
 
 file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 

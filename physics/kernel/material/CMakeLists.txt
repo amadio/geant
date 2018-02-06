@@ -2,13 +2,13 @@
 # Add source, header files & include directories
 #----------------------------------------------------------------------------------------------
 file(GLOB sources
-  ${CMAKE_SOURCE_DIR}/material/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/material/src/*.cc
 )
 
 file(GLOB headers
-  ${CMAKE_SOURCE_DIR}/material/inc/*.h
-  ${CMAKE_SOURCE_DIR}/base/inc/PhysicalConstants.h
-  ${CMAKE_SOURCE_DIR}/base/inc/SystemOfUnits.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc/*.h
+  ${CMAKE_SOURCE_DIR}/core/base/inc/PhysicalConstants.h
+  ${CMAKE_SOURCE_DIR}/core/base/inc/SystemOfUnits.h
 )
 
 if(USE_VECGEOM_CONTAINERS)

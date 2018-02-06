@@ -1,23 +1,29 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources src/T*.cxx src/GunGenerator.cxx src/TestProcess.cxx)
-file(GLOB headers inc/T*.h inc/GunGenerator.h inc/TestProcess.h)
+file(GLOB sources src/T*.cxx ../generators/src/GunGenerator.cxx src/TestProcess.cxx)
+file(GLOB headers inc/T*.h ../generators/inc/GunGenerator.h inc/TestProcess.h)
 
 if(HepMC_FOUND)
   add_definitions(-DHEPMC)
-  file(GLOB _mcg_cxx src/HepMCGenerator.cxx src/HepMCTruth.cxx)
-  file(GLOB _mcg_h   inc/HepMCGenerator.h inc/HepMCTruth.h)
+  file(GLOB _mcg_cxx ../generators/src/HepMCGenerator.cxx src/HepMCTruth.cxx)
+  file(GLOB _mcg_h   ../generators/inc/HepMCGenerator.h inc/HepMCTruth.h)
   set(sources ${sources} ${_mcg_cxx})
   set(headers ${headers} ${_mcg_h})
 endif()
 
 include_directories(inc)
-include_directories(${CMAKE_SOURCE_DIR}/physics/particle/inc)
-include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/interfaces/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/concurrency/inc)
+include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc)
+include_directories(${CMAKE_SOURCE_DIR}/physics/generators/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/numa/inc)
+include_directories(${CMAKE_SOURCE_DIR}/run/userapp/inc)
+
+include_directories(${CMAKE_SOURCE_DIR}/obsolete/inc)
 
 if (USE_VECGEOM_NAVIGATOR)
- include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+ include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
 endif()
 
 

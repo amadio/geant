@@ -1,11 +1,13 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources particle/src/*.cxx particle/src/generated/*.cxx)
-file(GLOB headers particle/inc/*.h)
+file(GLOB sources particles/src/*.cxx particles/src/generated/*.cxx)
+file(GLOB headers particles/inc/*.h)
 
-include_directories(particle/inc)
-include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+include_directories(particles/inc)
+include_directories(material/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/numa/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/interfaces/inc)
 
 set(_extraLibs "")
 

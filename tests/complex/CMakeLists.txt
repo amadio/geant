@@ -5,21 +5,24 @@
 # Setup Geant4 include directories and compile definitions
 include(${Geant4_USE_FILE})
 
-include_directories(include
+include_directories(inc
   ${Geant4_INCLUDE_DIR})
 
-include_directories(${CMAKE_SOURCE_DIR}/physics/particle/inc)
+include_directories(
+   ${CMAKE_SOURCE_DIR}/physics/generators/inc
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+   ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc)
 
 if (USE_VECGEOM_NAVIGATOR)
- include_directories(${CMAKE_SOURCE_DIR}/material/inc)
+ include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
 endif()
 
 if(USE_NUMA)
-  include_directories(${CMAKE_SOURCE_DIR}/numa/inc)
+  include_directories(${CMAKE_SOURCE_DIR}/core/numa/inc)
 endif()
 
 file(GLOB sources src/*.cc)
-file(GLOB headers include/*.hh)
+file(GLOB headers inc/*.hh)
 
 #----------------------------------------------------------------------------------------------
 # Redefine compiler flags since Geant4 is overriding them

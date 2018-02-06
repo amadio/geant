@@ -5,7 +5,16 @@
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-include_directories(inc ../vecprot_v2/inc ../physics/particle/inc ../numa/inc)
+include_directories(inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/concurrency/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/interfaces/inc)
+include_directories(${CMAKE_SOURCE_DIR}/core/numa/inc)
+include_directories(${CMAKE_SOURCE_DIR}/run/scheduler/inc)
+include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)
+include_directories(${CMAKE_SOURCE_DIR}/run/userapp/inc)
+include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc)
+include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
+
 
 if (USE_VECGEOM_NAVIGATOR)
  include_directories(${CMAKE_SOURCE_DIR}/material/inc)

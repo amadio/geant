@@ -27,7 +27,7 @@ add_headers("${headers}")
 #
 install(TARGETS Vmagfield LIBRARY DESTINATION lib)
 
-add_subdirectory(test)
+add_subdirectory(tests)
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen
