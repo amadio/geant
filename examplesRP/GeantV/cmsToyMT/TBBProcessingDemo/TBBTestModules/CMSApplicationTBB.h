@@ -31,7 +31,8 @@ namespace cmsapp {
 class CMSApplicationTBB : public CMSFullApp {
 
 private:
-  std::map<int,tbb::task*> m_postSimTaskMap;  /** Map of in-flight event numbers to post-simulation task */
+  std::map<int,tbb::task*> fPostSimTaskMap; /** Map of in-flight event numbers to post-simulation task */
+  std::mutex fMapLock;
 
   CMSApplicationTBB(const CMSApplicationTBB &) = delete;
   CMSApplicationTBB &operator=(const CMSApplicationTBB &) = delete;

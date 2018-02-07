@@ -21,8 +21,9 @@ using namespace Geant;
 namespace cmsapp {
 //// User actions in terms of TBB tasks
 void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
-  m_postSimTaskMap.insert( std::pair<int,tbb::task*>(ievt, pTask) );
-  printf("CMSApplicTBB::SetEvtContTask: ievt=%i, pTask=<%p>, map.size=%lu\n", ievt, pTask, m_postSimTaskMap.size());
+  std::lock_guard<std::mutex> lock(fMapLock);
+  fPostSimTaskMap.insert( std::pair<int,tbb::task*>(ievt, pTask) );
+  printf("CMSApplicTBB::SetEvtContTask: ievt=%i, pTask=<%p>, map.size=%lu\n", ievt, pTask, fPostSimTaskMap.size());
 }
 
 
@@ -48,11 +49,14 @@ void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
 void CMSApplicationTBB::FinishEvent(Geant::GeantEvent *event) {
   // find next tbb::task and decrement its ref count
   CMSFullApp::FinishEvent(event);
-  std::map<int,tbb::task*>::const_iterator iter = m_postSimTaskMap.find(event->GetEvent());
-  tbb::task* pTask = iter->second;
-  printf("CMSAppTBB::FinishEvent(%i,%i), iter=<%p>, map.size=%lu\n", event->GetEvent(), event->GetSlot(), pTask, m_postSimTaskMap.size());
-  pTask->decrement_ref_count();
-  printf("CMSAppTBB::FinishEvent: pTask ref count=%i\n", pTask->ref_count());
+  std::lock_guard<std::mutex> lock(fMapLock);
+  auto iter = fPostSimTaskMap.find(event->GetEvent());
+  if (iter != fPostSimTaskMap.end()) {
+    tbb::task* pTask = iter->second;
+    printf("CMSAppTBB::FinishEvent(%i,%i), iter=<%p>, map.size=%lu\n", event->GetEvent(), event->GetSlot(), pTask, fPostSimTaskMap.size());
+    pTask->decrement_ref_count();
+    printf("CMSAppTBB::FinishEvent: pTask ref count=%i\n", pTask->ref_count());
+  }
 }
 
 }
