@@ -59,7 +59,7 @@ public:
   int AddPrimary(GeantTrack *track) { fPrimaries.push_back(track); return AddTrack(); }
 
   /* @brief Crear the event and release all primaries */
-  void Clear();
+  void Clear(GeantTaskData *td);
 
   /** @brief Dispatch track. */
   GEANT_FORCE_INLINE

@@ -242,7 +242,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 }
 
 //______________________________________________________________________________
-GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &error)
+GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &error, GeantTaskData *td)
 {
 // Activates one event replacing the current one (if matching the expected value).
 // The method can fail due to one of the following reasons:
@@ -265,8 +265,10 @@ GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &err
 
   // Move old event from slot to queue of empty events
   if (fEvents[slot]) {
-    fDoneEvents.enqueue(fEvents[slot]);
+    GeantEvent *done_event = fEvents[slot];
     fEvents[slot] = nullptr;
+    done_event->Clear(td);
+    fDoneEvents.enqueue(done_event);
   }
 
   // Get a new generated event from pending queue
@@ -344,7 +346,7 @@ GeantTrack *GeantEventServer::GetNextTrack(GeantTaskData *td, unsigned int &erro
     if (!valid) {
       assert(event->IsDispatched());
       // Current event dispatched, try to activate new event
-      event = ActivateEvent(event, error);
+      event = ActivateEvent(event, error, td);
       if (!event) {
         if (error == kDone) fHasTracks = false;
         if (error) return nullptr;

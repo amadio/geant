@@ -195,7 +195,7 @@ bool GeantRunManager::Initialize() {
   // Configure the locality manager and create the tracks
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
-    mgr->SetNblocks(100);     // <- must be configurable
+    mgr->SetNblocks(10);     // <- must be configurable
     mgr->SetBlockSize(1000);  // <- must be configurable
     mgr->Init();
   if (fConfig->fUseVectorizedGeom) {

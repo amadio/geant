@@ -144,7 +144,7 @@ public:
 
   GeantEvent *GenerateNewEvent(GeantTaskData *td, unsigned int &error);
   
-  GeantEvent *ActivateEvent(GeantEvent *expected, unsigned int &error);
+  GeantEvent *ActivateEvent(GeantEvent *expected, unsigned int &error, GeantTaskData *td=nullptr);
   
   void CompletedEvent(GeantEvent *event, GeantTaskData *td);
 };

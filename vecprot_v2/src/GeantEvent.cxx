@@ -21,7 +21,7 @@ int GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
-void GeantEvent::Clear()
+void GeantEvent::Clear(GeantTaskData *td)
 {
 // Clear the event.
   fPrioritize = false;
@@ -36,6 +36,8 @@ void GeantEvent::Clear()
   fLock.clear();
   fNfilled.store(0);
   // Release primary tracks
+  if (td)
+    for (auto track : fPrimaries) td->ReleaseTrack(*track);
   fPrimaries.clear();
   fNdispatched.store(0);
   fTransported = false;
