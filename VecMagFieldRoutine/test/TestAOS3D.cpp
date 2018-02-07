@@ -12,7 +12,13 @@
 #include <cassert>
 #include <ctime>
 #include "base/Vector.h"
+#ifdef USE_ROOT
 #include "TRandom1.h"
+#else
+#include "base/RNG.h"
+using VECGEOM_NAMESPACE::RNG;
+#endif
+
 using namespace std;
 
 int main(){
@@ -52,7 +58,8 @@ int main(){
   //cout<<Br[10]<<endl;
   cout<<Br[1][3]<<endl;*/
 
-  // TRandom1::TRandom1  (   UInt_t seed,Int_t   lux = 3 )   
+#ifdef USE_ROOT
+  // TRandom1::TRandom1  (   UInt_t seed,Int_t   lux = 3 )
   TRandom1 r1(0,4);
   TRandom1 *r2= new TRandom1(0,4);
   double x = r2->Rndm(1);
@@ -61,6 +68,17 @@ int main(){
   cout<<r1.Rndm()<<endl;
   cout<<r1.Rndm()<<endl;
   cout<<x<<" "<<y<<" "<<z<<endl;
+#else
+  // TRandom1::TRandom1  (   UInt_t seed,Int_t   lux = 3 )
+  RNG r1; // (0,4);
+  RNG *r2 = new RNG; // (0,4);
+  double x = r2->uniform(1);
+  double y = r2->uniform(2);
+  float z = r2->uniform();
+  cout<<r1.uniform()<<endl;
+  cout<<r1.uniform()<<endl;
+  cout<<x<<" "<<y<<" "<<z<<endl;
+#endif
 
   return 0;
 }
