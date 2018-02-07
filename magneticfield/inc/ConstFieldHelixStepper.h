@@ -305,7 +305,7 @@ template<typename Vector3D_t, typename BaseDType, typename BaseIType>
        using vecCore::Store;
        using vecCore::Set;
 
-       std::cout << " --- ConstFieldHelixStepper::DoStepArr called." << std::endl;
+      // std::cout << " --- ConstFieldHelixStepper::DoStepArr called." << std::endl;
 
        int i;
        for ( i=0; i < np ; i+= vectorSize )
