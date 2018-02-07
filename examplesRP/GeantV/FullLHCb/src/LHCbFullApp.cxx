@@ -296,7 +296,8 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
   LHCbThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);
   // after the merge, we write the data into the user defined unique, global data structure. However, since more than
   // one thread can write into this global data structure, we need to protect the global data object by a lock:
-  LHCbDataPerEvent &dataPerEvent = data->GetDataPerEvent(event->GetSlot());
+
+  //LHCbDataPerEvent &dataPerEvent = data->GetDataPerEvent(event->GetSlot());
   
   fMutex.lock();
     // get the event number and print
