@@ -364,7 +364,7 @@ void SetupUserDetector(userapplication::TestEm3DetectorConstruction* det) {
     if (thick>0) {
       det->SetAbsorberThickness(i,thick);
     }
-    if (matName>0) {
+    if (matName.size()>0) {
       det->SetAbsorberMaterialName(i,matName);
     }
   }
