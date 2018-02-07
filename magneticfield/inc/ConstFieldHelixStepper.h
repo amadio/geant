@@ -319,7 +319,7 @@ template<typename Vector3D_t, typename BaseDType, typename BaseIType>
             Real_v momentum_v, stepSz_v;
             
             vecCore::Index<Real_v> chargeVint;
-            Load( chargeVint, &charge[i] );  // ==> Does not work for index Type !!
+            Load( chargeVint, (const unsigned long*)&charge[i] );  // ==> Does not work for index Type !!
             for( size_t j = 0; j < vectorSize; ++j )
                Set( chargeVint, j, charge[i+j] );
                

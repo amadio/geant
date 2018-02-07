@@ -1,6 +1,4 @@
-#ifdef USE_ROOT
-#include "Rtypes.h"
-#include "TGeoManager.h"
+
 #ifndef COPROCESSOR_REQUEST
 #define COPROCESSOR_REQUEST false
 #endif
@@ -293,4 +291,3 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
-#endif
