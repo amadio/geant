@@ -14,6 +14,7 @@
 
 #include "tbb/task.h"
 
+#include <base/Vector3D.h>
 #include "Geant/Config.h"
 #include "GeantRunManager.h"
 #include "EventSet.h"
@@ -64,14 +65,14 @@ namespace demo {
     //void runSimulation(tbb::task*);
 
     /** Functions using new GeantV interface */
-    bool RunTransportTask(size_t nevents, unsigned int eventID, unsigned int transitionID);
+    bool RunTransportTask(size_t nevents, const size_t *event_index);
     int BookEvents(int nrequested);
 
     /** @brief Generate an event set to be processed by a single task.
 	Not required as application functionality, the event reading or generation
 	can in the external event loop.
     */
-    Geant::EventSet* GenerateEventSet(size_t nevents, GeantTaskData *td);
+    Geant::EventSet* GenerateEventSet(size_t nevents, const size_t *event_index, GeantTaskData *td);
 
     inline void LockEventGenerator() { while (fEventGeneratorLock.test_and_set(std::memory_order_acquire)) {}; }
     inline void UnlockEventGenerator() { fEventGeneratorLock.clear(std::memory_order_release); }
@@ -99,9 +100,8 @@ namespace demo {
     int n_threads = iConfig.get<int>("Nthreads");
     int n_propagators = 1;
     int n_track_max = 500;
-    int n_learn_steps = 0;
     int n_reuse = 100000;
-    bool monitor = false, debug = false, usev3 = true, usenuma = false;
+    bool usev3 = true, usenuma = false;
     bool performance = true;
 
     //e.g. cms2015.root, cms2018.gdml, ExN03.root
@@ -121,7 +121,8 @@ namespace demo {
     fConfig->fNtotal = fNevents;
     fConfig->fNbuff = n_threads; // iConfig.get<int>("Nbuffered");
     // Default value is 1. (0.1 Tesla)
-    fConfig->fBmag = 40.; // 4 Tesla
+    fConfig->fBmag = 0.; // 4 Tesla
+    //fConfig->fBmag = 40.; // 4 Tesla
 
     // V3 options
     fConfig->fNstackLanes = 10;
@@ -135,18 +136,6 @@ namespace demo {
     fConfig->fNminThreshold = 5 * n_threads;
     fConfig->fNaverage = 50;
 
-    fConfig->fUseMonitoring = monitor;
-    fConfig->SetMonitored(GeantConfig::kMonQueue, false);
-    fConfig->SetMonitored(GeantConfig::kMonMemory, monitor);
-    fConfig->SetMonitored(GeantConfig::kMonBasketsPerVol, false);
-    fConfig->SetMonitored(GeantConfig::kMonVectors, false);
-    fConfig->SetMonitored(GeantConfig::kMonConcurrency, false);
-    fConfig->SetMonitored(GeantConfig::kMonTracksPerEvent, false);
-
-    // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
-    // If set to 0 takes the default value of 0.01
-    fConfig->fPriorityThr = 0.05;
-
     // Initial vector size, this is no longer an important model parameter,
     // because is gets dynamically modified to accomodate the track flow
     fConfig->fNperBasket = 16; // Initial vector size (tunable)
@@ -154,22 +143,8 @@ namespace demo {
     // This is now the most important parameter for memory considerations
     fConfig->fMaxPerBasket = n_track_max;  // Maximum vector size (tunable)
 
-    fConfig->fEmin = 3.e-6; //  [3 KeV] energy cut
-    fConfig->fEmax = 0.3;   // [300MeV] used for now to select particle gun energy
-
-    // Activate debugging using -DBUG_HUNT=ON in your cmake build
-    if (debug) {
-      fConfig->fUseDebug = true;
-      fConfig->fDebugTrk = 1;
-      //propagator->fDebugEvt = 0;
-      //propagator->fDebugStp = 0;
-      //propagator->fDebugRep = 10;
-    }
-
-    // Number of steps for learning phase (tunable [0, 1e6])
-    // if set to 0 disable learning phase
-    fConfig->fLearnSteps = n_learn_steps;
-    if (performance) fConfig->fLearnSteps = 0;
+    // This is temporarily used as gun energy
+    fConfig->fEmax = 10;   // [GeV] used for now to select particle gun energy
 
     // Activate I/O
     fConfig->fFillTree = false;
@@ -178,20 +153,15 @@ namespace demo {
     fConfig->fNminReuse = n_reuse;
 
     // Activate standard scoring   
-    fConfig->fUseStdScoring = true;
+    fConfig->fUseStdScoring = false;
     if (performance) fConfig->fUseStdScoring = false;
 
-    // Activate vectorized geometry
-    fConfig->fUseVectorizedGeom = 10;
+    // Activate vectorized geometry (for now does not work properly with MT)
+    fConfig->fUseVectorizedGeom = false;
 
      // Create run manager
     std::cerr<<"*** GeantRunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
     fRunMgr = new GeantRunManager(n_propagators, n_threads, fConfig);
-
-    // Detector construction
-    auto detector_construction = new CMSDetectorConstruction(fRunMgr);
-    detector_construction->SetGDMLFile(cms_geometry_filename); 
-    fRunMgr->SetDetectorConstruction( detector_construction );
 
     // Create the tabulated physics process
     std::cerr<<"*** GeantRunManager: setting physics process...\n";
@@ -203,16 +173,13 @@ namespace demo {
     // Create user defined physics list for the full CMS application
     geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList());
 
-#ifdef USE_VECGEOM_NAVIGATOR
-#ifdef USE_ROOT
-    //fRunMgr->LoadVecGeomGeometry();
-#else
-    //fRunMgr->LoadGeometry(cms_geometry_filename.c_str());
-#endif
-#endif
+    // Detector construction
+    auto detector_construction = new CMSDetectorConstruction(fRunMgr);
+    detector_construction->SetGDMLFile(cms_geometry_filename); 
+    fRunMgr->SetDetectorConstruction( detector_construction );
 
     // Setup a primary generator
-    printf("hepmc_event_filename=%s\n", hepmc_event_filename.c_str());
+//    printf("hepmc_event_filename=%s\n", hepmc_event_filename.c_str());
 //    if (hepmc_event_filename.empty()) {
       std::cerr<<"*** GeantRunManager: setting up a GunGenerator...\n";
       //double x = rand();
@@ -226,7 +193,8 @@ namespace demo {
       cmsgun->SetNumPrimaryPerEvt(fConfig->fNaverage);
       cmsgun->SetPrimaryName("e-");
       cmsgun->SetPrimaryEnergy(fConfig->fEmax);
-      //cmsgun->SetPrimaryDirection(parGunPrimaryDir);
+      double parGunPrimaryDir[3] = {0.1, 0.9, 0.1}; // will get normalized
+      cmsgun->SetPrimaryDirection(parGunPrimaryDir);
       fRunMgr->SetPrimaryGenerator(fPrimaryGenerator);
       fPrimaryGenerator = cmsgun;
 //    }
@@ -237,6 +205,7 @@ namespace demo {
     // }
 
     CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr, cmsgun);
+    cmsApp->SetPerformanceMode(performance);
     std::cerr<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
     fRunMgr->SetUserApplication( cmsApp );
 
@@ -245,22 +214,17 @@ namespace demo {
     fRunMgr->Initialize();
     fPrimaryGenerator->InitPrimaryGenerator();
 
-    printf("==========================================================================\n");
-    printf("= GeantV run started with %d propagator(s) using %d worker threads each ====\n",
-	   fRunMgr->GetNpropagators(), fRunMgr->GetNthreads());
-
-    if (!fConfig->fUsePhysics) printf("  Physics OFF\n");
-    else                       printf("  Physics ON\n");
-
-    if (!fConfig->fUseRungeKutta) printf("  Runge-Kutta integration OFF\n");
-    else                          printf("  Runge-Kutta integration ON with epsilon= %g\n", fConfig->fEpsilonRK);
-    printf("==========================================================================\n");
+    printf("==========================================================\n");
+    printf("= GeantV initialized using maximum %d worker threads ====\n",
+	   fRunMgr->GetNthreads());
+    printf("==========================================================\n");
   }
 
   void 
   GeantVProducer::produce(edm::Event& iEvent) {
 
     // not actually needed because GeantVProducer does not depend on any other cms module
+    constexpr size_t kNMax = 100;
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
@@ -271,7 +235,10 @@ namespace demo {
 
     std::cerr << "GeantVProducer::produce(): *** Run GeantV simulation task ***\n";
     // if first argument is set to >1, then that number of events will be given to GeantV on each EvenSet
-    RunTransportTask(1, iEvent.index(), iEvent.transitionID());
+    // Provisionally prepare for more events in future
+    size_t event_indices[kNMax];
+    event_indices[0] = iEvent.index();
+    RunTransportTask(1, event_indices);
 
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
     iEvent.put(this,"",static_cast<int>(iEvent.index()));
@@ -279,24 +246,24 @@ namespace demo {
   }
 
   /// This is the entry point for the user code to transport as a task a set of events
-  bool GeantVProducer::RunTransportTask(size_t nevents, unsigned int iEventIndex, unsigned int iTransitionID)
+  bool GeantVProducer::RunTransportTask(size_t nevents, const size_t *event_index)
   {
     // First book a transport task from GeantV run manager
-    int ntotransport = BookEvents(nevents);
+    //int ntotransport = BookEvents(nevents);
 
     GeantTaskData *td = fRunMgr->BookTransportTask();
-    std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" and ntotransp="<< ntotransport <<" toy EventID="<<iEventIndex<<" transID="<< iTransitionID <<"\n";
+    std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" toy EventID="<<event_index[0]<<"\n";
     if (!td) return false;
 
     // ... then create the event set
-    Geant::EventSet *evset = GenerateEventSet(ntotransport, td);
+    Geant::EventSet *evset = GenerateEventSet(nevents, event_index, td);
 
     // ... finally invoke the GeantV transport task
     bool transported = fRunMgr->RunSimulationTask(evset, td);
 
     // Now we could run some post-transport task
     std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents
-	     <<" and ntotransp="<< ntotransport<<": transported="<< transported <<"\n";
+	     <<": transported="<< transported <<"\n";
 
     return transported;
   }
@@ -311,7 +278,7 @@ namespace demo {
     return nbooked;
   }
 
-  Geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, Geant::GeantTaskData *td)
+  Geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, const size_t *event_index, Geant::GeantTaskData *td)
   {
     using EventSet = Geant::EventSet;
     using GeantEvent = Geant::GeantEvent;
@@ -324,17 +291,18 @@ namespace demo {
       GeantEvent *event = new GeantEvent();
       GeantEventInfo event_info = fPrimaryGenerator->NextEvent(td);
       while (event_info.ntracks == 0) {
-	std::cerr<<"Discarding empty event\n";
-	event_info = fPrimaryGenerator->NextEvent(td);
+        std::cerr<<"Discarding empty event\n";
+        event_info = fPrimaryGenerator->NextEvent(td);
       }
+      event->SetEvent(event_index[i]);
       event->SetNprimaries(event_info.ntracks);
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
       for (int itr = 0; itr < event_info.ntracks; ++itr) {
-	GeantTrack &track = td->GetNewTrack();
-	int trackIndex = event->AddPrimary(&track);
-	track.SetParticle(trackIndex);
-	track.SetPrimaryParticleIndex(itr);
-	fPrimaryGenerator->GetTrack(itr, track, td);
+        GeantTrack &track = td->GetNewTrack();
+        int trackIndex = event->AddPrimary(&track);
+        track.SetParticle(trackIndex);
+        track.SetPrimaryParticleIndex(itr);
+        fPrimaryGenerator->GetTrack(itr, track, td);
       }
       evset->AddEvent(event);
     }
