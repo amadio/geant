@@ -138,5 +138,6 @@ if(CPPUNIT_FOUND)
   target_link_libraries(TBBRunUnitTests TBBFrameworkCore ${TBB_LIBRARIES} ${CPPUNIT_LIBRARY} pthread)
 endif()
 
-add_executable(cmsToyMT main.cpp)
-target_link_libraries(cmsToyMT TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})
+add_executable(cmsToyGV main.cpp)
+target_link_libraries(cmsToyGV TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})
+install (TARGETS cmsToyGV DESTINATION bin/examples/cmsToyGV)

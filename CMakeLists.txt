@@ -605,7 +605,6 @@ if(NOT USE_REAL_PHYSICS)
 endif()
 if(USE_TBB)
   #add_subdirectory (vecprot_v2_tbb)
-  add_subdirectory(examplesRP/GeantV/cmsToyMT)
 endif()
 
 add_subdirectory (vecprot_v2)
