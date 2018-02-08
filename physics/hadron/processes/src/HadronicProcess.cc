@@ -7,6 +7,7 @@
 #include "Material.h"
 #include "MaterialCuts.h"
 #include "MaterialProperties.h"
+#include "Particle.h"
 
 using namespace geantphysics;
 

@@ -13,6 +13,8 @@
 
 #include "SystemOfUnits.h"
 
+#include "Particle.h"
+
 // just for the printout at the end
 #include "LHCbParticleGun.h"
 

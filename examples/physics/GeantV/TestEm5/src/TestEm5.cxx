@@ -19,6 +19,7 @@
 #include "PhysicsProcess.h"
 #include "EMPhysicsProcess.h"
 #include "PhysicsManagerPerParticle.h"
+#include "Particle.h"
 
 
 #include "UserDetectorConstruction.h"

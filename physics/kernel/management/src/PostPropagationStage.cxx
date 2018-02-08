@@ -11,6 +11,7 @@
 #include "Material.h"
 #include "MaterialCuts.h"
 #include "Region.h"
+#include "Particle.h"
 
 #include "PhysicsProcess.h"
 #include "PhysicsManagerPerParticle.h"
