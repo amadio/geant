@@ -439,8 +439,8 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
         // propagationType= 2;
      } else {
         ConstFieldHelixStepper stepper( BfieldInitial );
-        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,
-                                         PositionNew, DirectionNew);
+        stepper.DoStep<double>(Position,    Direction,  track.Charge(), track.P(), crtstep,
+                               PositionNew, DirectionNew);
         // propagationType= 3;        
      }     
   }

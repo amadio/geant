@@ -386,9 +386,9 @@ int main(int argc, char *args[])
         {
            total_step += step_len;
            // goodAdvance=
-           helixStepper.DoStep<ThreeVector,double,int>( startPosition, startDirection, particleCharge, startMomentumMag,
-                                                        total_step,
-                                                        PositionOut, DirectionOut );
+           helixStepper.DoStep<double>( startPosition, startDirection, particleCharge, startMomentumMag,
+                                        total_step,
+                                        PositionOut, DirectionOut );
            yout[0]= PositionOut.x();
            yout[1]= PositionOut.y();
            yout[2]= PositionOut.z();

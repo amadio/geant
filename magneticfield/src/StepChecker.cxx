@@ -10,7 +10,7 @@ bool
 StepChecker::
  CompareStep( vecgeom::Vector3D<double> const & Position,  
               vecgeom::Vector3D<double> const & Direction,
-                                    int         charge,              
+                                 double         charge,              
                                  double         momentum,
                                  double         step,                            
               vecgeom::Vector3D<double> const & endPosition,
@@ -23,7 +23,7 @@ StepChecker::
 
   if( fVerbose )
   {
-     printf("Particle with charge %d  momentum = %8.4g Position= %10.6f %10.6f %10.6f  Momentum= %10.6f %10.6f %10.6f \n",
+     printf("Particle with charge %g  momentum = %8.4g Position= %10.6f %10.6f %10.6f  Momentum= %10.6f %10.6f %10.6f \n",
             charge, momentum, Position[0], Position[1], Position[2], 
             Direction[0],  Direction[1], Direction[2] );
      /* Printf("                  End    Position= %10.6f  %10.6f  %10.6f  Momentum= %10.6f %10.6f %10.6f \n",
@@ -68,7 +68,7 @@ StepChecker::
 bool 
 StepChecker::CheckStep( vecgeom::Vector3D<double> const & Position,
                         vecgeom::Vector3D<double> const & Direction,
-                                              int         charge,
+                                           double         charge,
                                            double         momentum,
                                            double         step,
                         vecgeom::Vector3D<double> const & endPosition,
@@ -82,9 +82,9 @@ StepChecker::CheckStep( vecgeom::Vector3D<double> const & Position,
 #if 1
   // Simpler version
   Geant::ConstFieldHelixStepper stepper(BfieldVec[0], BfieldVec[1], BfieldVec[2]);
-  stepper.DoStep<ThreeVector,double,int>(Position, Direction, charge,
-                                         momentum, step,
-                                         PositionNewHelix, DirectionNewHelix);
+  stepper.DoStep<double>(Position, Direction, charge,
+                         momentum, step,
+                         PositionNewHelix, DirectionNewHelix);
 #else
   // More complicated version ...
   if ( std::fabs( BfieldVec[2] ) > 1e6 * std::max( std::fabs(BfieldVec[0]), std::fabs(BfieldVec[1]) ) ) {

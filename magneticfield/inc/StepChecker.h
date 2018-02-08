@@ -23,7 +23,7 @@ class StepChecker
    bool
    CompareStep( vecgeom::Vector3D<double> const & position,
                 vecgeom::Vector3D<double> const & direction,
-                                      int         charge,
+                                   double         charge,
                                    double         momentum,
                                    double         step,
                 vecgeom::Vector3D<double> const & endPosition1,
@@ -35,7 +35,7 @@ class StepChecker
    bool
    CheckStep( vecgeom::Vector3D<double> const & position,  
               vecgeom::Vector3D<double> const & direction,
-                                    int         charge,
+                                 double         charge,
                                  double         momentum,
                                  double         step,
               vecgeom::Vector3D<double> const & endPosition,

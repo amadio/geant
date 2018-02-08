@@ -1419,8 +1419,8 @@ void GeantTrack_v::PropagateInVolumeSingle(int i, double crtstep, GeantTaskData 
         // Printf("Called Helix-General.  Bz= %g , Bx = %g, By= %g ", Bz, Bx, By );
         
         Geant::ConstFieldHelixStepper stepper( BfieldInitial );
-        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  fChargeV[i], fPV[i], crtstep,
-                                               PositionNew, DirectionNew);
+        stepper.DoStep<double>(Position,    Direction,  fChargeV[i], fPV[i], crtstep,
+                               PositionNew, DirectionNew);
      }
   }
 

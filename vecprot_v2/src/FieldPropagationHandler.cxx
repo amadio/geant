@@ -396,7 +396,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
         // Geant::
         double BfieldArr[3] = { BfieldInitial.x(), BfieldInitial.y(), BfieldInitial.z() };
         ConstFieldHelixStepper stepper( BfieldArr );
-        stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), crtstep,
+        stepper.DoStep<double>(Position,    Direction,  track.Charge(), track.P(), crtstep,
                                                PositionNew, DirectionNew);
 #ifdef STATS_METHODS
         numHelixGen++;
@@ -479,7 +479,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
 
   // double yInput[8*nTracks], yOutput[8*nTracks];
   bool       succeeded[nTracks];
-  int        intCharge[nTracks];
+  // int        intCharge[nTracks];
   double     fltCharge[nTracks];
 
   // Choice 1.  SOA3D
@@ -500,7 +500,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
   {
      GeantTrack* pTrack= tracks[itr];
 
-     intCharge[itr]= pTrack->Charge();
+     // intCharge[itr]= pTrack->Charge();
      fltCharge[itr]= pTrack->Charge();
      momentumMag[itr] = pTrack->P();
 
@@ -524,14 +524,14 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
      // std::cout << "Before Helix stepper - Position addresses: x= " << PositionOut.x() << " y= " << PositionOut.y()
      //           << " z=" << PositionOut.z() << std::endl;
 
-     stepper.DoStepArr</*Geant::*/Double_v>( position3D.x(),  position3D.y(),  position3D.z(),
-                                         direction3D.x(), direction3D.y(), direction3D.z(),
-                                         intCharge,
-                                         momentumMag,
-                                         stepSize,
-                                         PositionOut.x(),  PositionOut.y(),  PositionOut.z(),
-                                         DirectionOut.x(), DirectionOut.y(), DirectionOut.z(),
-                                         nTracks
+     stepper.DoStepArr<Double_v>( position3D.x(),  position3D.y(),  position3D.z(),
+                                  direction3D.x(), direction3D.y(), direction3D.z(),
+                                  fltCharge,
+                                  momentumMag,
+                                  stepSize,
+                                  PositionOut.x(),  PositionOut.y(),  PositionOut.z(),
+                                  DirectionOut.x(), DirectionOut.y(), DirectionOut.z(),
+                                  nTracks
         );
      // Store revised positions and location in original tracks
      for (int itr=0; itr<nTracks; ++itr)
