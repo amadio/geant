@@ -21,7 +21,9 @@
 #endif
 
 #ifdef USE_REAL_PHYSICS
-#include "Particle.h"
+namespace geantphysics {
+   class Particle;
+}
 typedef geantphysics::Particle Particle_t;
 #endif
 
