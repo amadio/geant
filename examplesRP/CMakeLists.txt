@@ -58,15 +58,13 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSPhysicsList.h
-<<<<<<< HEAD
+
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbDetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbFullApp.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbPhysicsList.h
-=======
-
->>>>>>> 0002-add-cmsToyMT
+  
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3App.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h
