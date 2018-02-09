@@ -7,12 +7,12 @@
 ###
 ./fullLHCb \
 "### detector parameters:"\
-  --det-set-gdml               cms.gdml                 "# number of absorbers per layer"\
+  --det-set-gdml               LHCb_201603.root         "# geometry file"\
 "### primary particle generation parameters:"\
   --gun-set-primary-energy     10                       "# kinetic energy of the primary particle [in GeV]"\
   --gun-set-primary-type       e-                       "# primary particle name/type"\
   --gun-set-primary-per-event  2                        "# number of primary particles per event"\
-  --gun-set-primary-direction  x=0.1,y=0.9,z=0.1        "# primary particle direction(will be normalized)"\
+  --gun-set-primary-direction  x=0.1,y=0.1,z=0.9        "# primary particle direction(will be normalized)"\
 "### run configuration parameters:"\
   --config-number-of-buffered-events        4           "# number of events transported at once"\
   --config-total-number-of-events         100           "# total number of events to be simulated"\

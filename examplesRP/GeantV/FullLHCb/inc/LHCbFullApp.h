@@ -105,7 +105,7 @@ private:
   static const int kNHCALModules = 112;
   
   bool  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
-  //  float fEdepVELO[kNVELOModules][kMaxThreads];  /** Energy deposition in ECAL */
+  float fEdepVELO[kNVELOModules][kMaxThreads];  /** Energy deposition in ECAL */
   float fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
   float fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
   

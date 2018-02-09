@@ -54,12 +54,11 @@ void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
   LHCbThreadDataEvents *eventData = new LHCbThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
 
   // create here the TTree
-  eventData->file = fMerger->GetFile();
+  eventData->fHitsFile = fMerger->GetFile();
 
-  eventData->tree = new TTree("Tree","Simulation output");
-  eventData->tree->ResetBit(kMustCleanup);
-  //eventData->branch =
-  eventData->tree->Branch("hitblockoutput", "GeantBlock<MyHit>", &(eventData->data));
+  eventData->fHitsTree = new TTree("Tree","Simulation output");
+  eventData->fHitsTree->ResetBit(kMustCleanup);
+  eventData->fHitsTree->Branch("hitblockoutput", "GeantBlock<MyHit>", &(eventData->fHitsBlock));
     
   fDataHandlerEvents->AttachUserData(eventData, td);
 }
@@ -73,7 +72,7 @@ void LHCbFullApp::DeleteUserData(Geant::GeantTaskData *td) {
   // make sure that everything has been sent for merging
   //  std::cout << "Writing before delete" << std::endl;
 
-  eventData->file->Write();
+  eventData->fHitsFile->Write();
     
   delete eventData;
 }
@@ -235,7 +234,11 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
     else if (vol->GetName()[30] == 'H')
       idtype = 2;
     
-    switch (idtype) {
+    switch (idtype) {      
+    case 0:
+      mod = fVELOMap.find(ivol)->second;
+      fEdepVELO[mod][tid] += track.Edep();
+      break;
     case 1:
       mod = fECALMap.find(ivol)->second;
       fEdepECAL[mod][tid] += track.Edep();
@@ -269,20 +272,20 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
   
   while (!(fFactory->fOutputsArray[tid].empty()))
     {
-      tde.data = fFactory->fOutputsArray[tid].back();
+      tde.fHitsBlock = fFactory->fOutputsArray[tid].back();
       
-      tde.tree->Fill();
+      tde.fHitsTree->Fill();
 
       fFactory->fOutputsArray[tid].pop_back();
 
       // now we can recycle data memory
-      fFactory->Recycle(tde.data, tid);
+      fFactory->Recycle(tde.fHitsBlock, tid);
     }
   
-  if (tde.tree->GetEntries() > fOutputBlockWrite)
+  if (tde.fHitsTree->GetEntries() > fOutputBlockWrite)
     {
       //      std::cout << "Writing " << tde.tree->GetEntries()<< std::endl;
-      tde.file->Write();
+      tde.fHitsFile->Write();
     }
 }
 
@@ -297,7 +300,7 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
   // after the merge, we write the data into the user defined unique, global data structure. However, since more than
   // one thread can write into this global data structure, we need to protect the global data object by a lock:
 
-  //LHCbDataPerEvent &dataPerEvent = data->GetDataPerEvent(event->GetSlot());
+  LHCbDataPerEvent &dataPerEvent = data->GetDataPerEvent(event->GetSlot());
   
   fMutex.lock();
     // get the event number and print
@@ -305,24 +308,29 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
     std::cout << " \n================================================================= \n"
               << " ===  FinishEvent  --- event = " << event->GetEvent() << " with "<< nPrims << " primary:"
               << std::endl;
-    /*
+    
     for (int ip=0; ip<nPrims; ++ip) {
       Geant::GeantTrack* primTrack = event->GetPrimary(ip);
       int         primGVCode       = primTrack->GVcode();
       const std::string &primName  = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
       int         primTypeIndx     = LHCbParticleGun::GetPrimaryTypeIndex(primName);
+
+      fData->AddDataPerPrimaryType(dataPerEvent.GetDataPerPrimary(ip),primTypeIndx);
+      /*
       double      primEkin         = primTrack->T();
       double      xdir             = primTrack->Dx();
       double      ydir             = primTrack->Dy();
       double      zdir             = primTrack->Dz();
-      fData->AddDataPerPrimaryType(dataPerEvent.GetDataPerPrimary(ip),primTypeIndx);
+
       std::cout << "  Primary Particle:  " << ip  << " (type inedx = " << primTypeIndx  << ")\n"
                 << "    Name      =  "     << primName                                  << " \n"
                 << "    Energy    =  "     << primEkin/geant::GeV                       << " [GeV]\n"
                 << "    Direction = ("     << xdir << ", " << ydir << ", " << zdir      << ") \n";
+      
       dataPerEvent.GetDataPerPrimary(ip).Print();
+      */
     }
-    */
+    
     
   fMutex.unlock();
   // clear the currently added ("master") thread local data (the event-slot, where the currently finished event was)

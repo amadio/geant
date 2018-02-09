@@ -188,13 +188,13 @@ public:
   const LHCbDataPerEvent& GetDataPerEvent(int evtslotindx) const { return fPerEventData[evtslotindx]; }
   
   //
-  TTree* tree;
-  GeantBlock<MyHit>* data;
-  std::shared_ptr<ROOT::Experimental::TBufferMergerFile> file;
+  TTree* fHitsTree;
+  GeantBlock<MyHit>* fHitsBlock;
+  std::shared_ptr<ROOT::Experimental::TBufferMergerFile> fHitsFile;
   
 private:
   int                            fNumBufferedEvents;
-  std::vector<LHCbDataPerEvent>   fPerEventData;
+  std::vector<LHCbDataPerEvent>  fPerEventData;
 };
 
 
