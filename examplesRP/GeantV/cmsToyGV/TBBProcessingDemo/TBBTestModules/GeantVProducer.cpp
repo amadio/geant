@@ -120,9 +120,6 @@ namespace demo {
     fConfig->fGeomFileName = cms_geometry_filename;
     fConfig->fNtotal = fNevents;
     fConfig->fNbuff = n_threads; // iConfig.get<int>("Nbuffered");
-    // Default value is 1. (0.1 Tesla)
-    fConfig->fBmag = 0.; // 4 Tesla
-    //fConfig->fBmag = 40.; // 4 Tesla
 
     // V3 options
     fConfig->fNstackLanes = 10;
