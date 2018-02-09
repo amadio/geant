@@ -55,8 +55,8 @@ void EventSet::Print()
 {
   // Print the event set content
   for (size_t i = 0; i < fNevents; ++i)
-    printf(" %d", fMarkers[i]->fEventNumber);
-  printf("\n");
+    std::cerr<<" "<< fMarkers[i]->fEventNumber;
+  std::cerr <<"\n";
 }
 
 //______________________________________________________________________________

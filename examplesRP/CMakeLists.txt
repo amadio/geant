@@ -6,6 +6,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBTestModules
+
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/management/inc
   ${CMAKE_SOURCE_DIR}/realphysics/physics/models/EM/inc
@@ -55,17 +58,22 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullCMS/inc/CMSPhysicsList.h
+<<<<<<< HEAD
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbDetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbFullApp.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbData.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbParticleGun.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/FullLHCb/inc/LHCbPhysicsList.h
+=======
+
+>>>>>>> 0002-add-cmsToyMT
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3App.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PrimaryGenerator.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/TestEm3PhysicsList.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm3/inc/HepMCTruth.h
+
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/TestEm5Data.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/UserDetectorConstruction.h
@@ -73,6 +81,14 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/UserPhysicsList.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/StepMaxProcess.h
   ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/TestEm5/inc/Hist.h
+
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Event.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Filter.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Module.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Producer.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Schedule.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Path.cpp
+  ${CMAKE_SOURCE_DIR}/examplesRP/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/EventProcessor.cpp
   )
 
 #if (USE_ROOT)
@@ -133,4 +149,8 @@ if (WITH_GEANT4)
   add_subdirectory(Geant4/TestEm3)
   add_subdirectory(Geant4/TestEm5)
   add_subdirectory(Geant4/FullCMS)
+endif()
+
+if(USE_TBB)
+  add_subdirectory(GeantV/cmsToyGV)
 endif()

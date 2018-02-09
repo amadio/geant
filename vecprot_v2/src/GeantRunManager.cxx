@@ -513,7 +513,19 @@ bool GeantRunManager::RunSimulationTask(EventSet *workload, GeantTaskData *td) {
 
   // Register the workload in the manager and insert events in the server
   AddEventSet(workload);
+
+  //LockEventSets();
+  //std::cerr<<"Task "<< td->fTid <<" started event set:\n";
+  //workload->Print();
+  //UnlockEventSets();
+
   bool completed = WorkloadManager::TransportTracksTask(workload, td);
+
+  //LockEventSets();
+  //std::cerr<<"Task "<< td->fTid <<" finished event set:\n";
+  //workload->Print();
+  //UnlockEventSets();
+
   return completed;
 }
 

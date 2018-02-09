@@ -17,7 +17,7 @@
 #include "base/Vector3D.h"
 #include <VecCore/VecCore>
 #include "Geant/Config.h"
-#include "Geant/Math.h"
+#include "Geant/math_wrappers.h"
 
 #include <functional>
 #include <climits>
@@ -141,7 +141,7 @@ private:
   int fEvent = -1;           /** Event number */
   int fEvslot = -1;          /** Event slot */
   int fParticle = -1;        /** Index of corresponding particle */
-  int fPrimaryIndx = -1;     /** Index of the primary particle in the cuurent event */
+  int fPrimaryIndx = -1;     /** Index of the primary particle in the current event */
   int fMother = -1;           /** Index of mother particle */
   int fPDG = 0;              /** Particle pdg code */
   int fGVcode = 0;           /** GV particle code */
