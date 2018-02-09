@@ -297,8 +297,6 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
   // belongs to the event (that occupied a given event-slot) that has been just transported
   LHCbThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);
-  // after the merge, we write the data into the user defined unique, global data structure. However, since more than
-  // one thread can write into this global data structure, we need to protect the global data object by a lock:
 
   LHCbDataPerEvent &dataPerEvent = data->GetDataPerEvent(event->GetSlot());
   
