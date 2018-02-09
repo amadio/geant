@@ -105,7 +105,7 @@ private:
   static const int kNHCALModules = 112;
   
   bool  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
-  float fEdepVELO[kNVELOModules][kMaxThreads];  /** Energy deposition in ECAL */
+  float fEdepVELO[kNVELOModules][kMaxThreads];  /** Energy deposition in Velo */
   float fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
   float fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
   
@@ -113,9 +113,9 @@ private:
   int fECALid[kNECALModules];                   /** ECAL volume id's */
   int fHCALid[kNHCALModules];                   /** HCAL volume id's */
   
-  std::map<int,int> fVELOMap;                     /** Map of ECAL modules */
+  std::map<int,int> fVELOMap;                     /** Map of Velo modules */
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
-  std::map<int,int> fHCALMap;                     /** Map of ECAL modules */
+  std::map<int,int> fHCALMap;                     /** Map of HCAL modules */
 
   GeantFactory<MyHit> *fFactory = nullptr;        /** Hits factory */
   ROOT::Experimental::TBufferMerger* fMerger = nullptr;
