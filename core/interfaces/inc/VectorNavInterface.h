@@ -14,7 +14,6 @@
 #define GEANT_VECTORNAVINTERFACE
 
 #include "Geant/Config.h"
-#include "GeantTrackVec.h"
 #include "Geant/Typedefs.h"
 
 namespace Geant {

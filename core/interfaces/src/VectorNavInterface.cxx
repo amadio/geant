@@ -60,11 +60,12 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
                               step);
 
   // Loop calling safety (not vectorized)
+  constexpr double gTolerance = 1.e-9;
   for (int itr = 0; itr < ntracks; ++itr) {
-    step[itr] = Math::Max<double>(2. * gTolerance, step[itr] + 2. * gTolerance);
+    step[itr] = vecCore::math::Max<double>(2. * gTolerance, step[itr] + 2. * gTolerance);
     // still call the old navigator for safety
     safe[itr] = (isonbdr[itr]) ? 0 : nav.GetSafety(Vector3D_t(x[itr], y[itr], z[itr]), *instate[itr]);
-    safe[itr] = Math::Max<double>(safe[itr], 0);
+    safe[itr] = vecCore::math::Max<double>(safe[itr], 0);
     // onboundary with respect to new point
     isonbdr[itr] = outstate[itr]->IsOnBoundary();
     
@@ -130,6 +131,7 @@ void VectorNavInterface::NavFindNextBoundary(int ntracks, const double *pstep,
 //         compsafety - propagated point is not on a boundary
 
   typedef SOA3D<double> SOA3D_t;
+  constexpr double gTolerance = 1.e-9;
   VNavigator const * newnav = instate[0]->Top()->GetLogicalVolume()->GetNavigator();
   newnav->ComputeStepsAndSafeties(SOA3D_t(const_cast<double*>(x),const_cast<double*>(y),const_cast<double*>(z),ntracks),
                               SOA3D_t(const_cast<double*>(dirx),const_cast<double*>(diry),const_cast<double*>(dirz),ntracks),
@@ -140,9 +142,9 @@ void VectorNavInterface::NavFindNextBoundary(int ntracks, const double *pstep,
   for (int itr = 0; itr < ntracks; ++itr) {
     // onboundary with respect to new point
     if (!compsafety[itr]) safe[itr] = 0.;
-    else                  safe[itr] = Math::Max<double>(safe[itr], 0.);
+    else                  safe[itr] = vecCore::math::Max<double>(safe[itr], 0.);
     compsafety[itr] = snext[itr] >= pstep[itr];
-    snext[itr] = Math::Max<double>(2. * gTolerance, snext[itr] + 2. * gTolerance);
+    snext[itr] = vecCore::math::Max<double>(2. * gTolerance, snext[itr] + 2. * gTolerance);
   }
 }
 

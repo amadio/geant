@@ -131,8 +131,6 @@ public:
   GEANT_FORCE_INLINE
   bool IsInitialPhase() const { return fInitialPhase; }
 
-  int FillBasket(GeantTrack_v &tracks, int ntracks, GeantTaskData *td, unsigned int &error);
-
   int FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error);
 
   int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error);

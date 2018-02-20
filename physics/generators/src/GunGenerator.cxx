@@ -1,5 +1,4 @@
 #include "GunGenerator.h"
-#include "GeantTrackVec.h"
 #include "GeantTaskData.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"

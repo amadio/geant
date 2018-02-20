@@ -13,10 +13,6 @@
 #ifndef GEANT_PROPAGATOR
 #define GEANT_PROPAGATOR
 
-#ifndef GEANT_TRACK
-#include "GeantTrackVec.h"
-#endif
-
 #include <vector>
 #include <atomic>
 #include <mutex>
@@ -33,6 +29,7 @@ class TStopwatch;
 using veccore::BitSet;
 
 #include "GeantConfig.h"
+#include "GeantTrack.h"
 
 class PhysicsInterface;
 
@@ -42,7 +39,6 @@ class VVectorField;
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTrack_v;
 class GeantRunManager;
 class GeantEvent;
 class GeantVApplication;
@@ -89,7 +85,6 @@ public:
   atomic_t<long> fNcross;              /** Total number of boundaries crossed */
   atomic_t<long> fNpushed;             /** Total number of pushes of 1E-3 */
   atomic_t<long> fNkilled;             /** Total number of killed tracks */
-  atomic_t<int>  fNidle;               /** Number of idle threads */
   atomic_t<int>  fNbfeed;              /** Number of baskets fed from server */
 
   bool fTransportOngoing = false;      /** Flag for ongoing transport */
@@ -109,7 +104,6 @@ public:
   PhysicsProcessOld *fProcess = nullptr;              /** For now the only generic process pointing to the tabulated physics */
   PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** interface to vector physics final state sampling */
   PhysicsInterface *fPhysicsInterface = nullptr;     /** The new, real physics interface */
-  GeantTrack_v *fStoredTracks = nullptr;         /** Stored array of tracks (history?) */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;               /** MCTruth manager */
   TrackManager *fTrackMgr = nullptr;             /** Track manager */
@@ -151,21 +145,6 @@ public:
   GEANT_FORCE_INLINE
   long GetNtransported() const { return fNtransported; }
 
-  /** @brief Check if the propagator threads are frozen */
-  bool IsIdle() const;
-
-  /** @brief Get number of idle workers */
-  GEANT_FORCE_INLINE
-  int GetNidle() const { return fNidle; }
-
-  /** @brief Get number of pending baskets */
-  GEANT_FORCE_INLINE
-  int GetNpending() const;
-
-  /** @brief Get number of working threads */
-  GEANT_FORCE_INLINE
-  int GetNworking() const { return (fNthreads - fNidle); }
-
   /** @brief Stop the transport threads */
   void StopTransport();
 
@@ -177,46 +156,12 @@ public:
   int AddTrack(GeantTrack &track);
 
   /**
-   * @brief Function to dispatch a track
-   *
-   * @param track Track that should be dispatched
-   */
-  int DispatchTrack(GeantTrack &track, GeantTaskData *td);
-
-  /**
    * @brief  Function for marking a track as stopped
    *
    * @param track Track to be stopped
    * @param itr Track id
    */
   void StopTrack(GeantTrack *track, GeantTaskData *td);
-
-  /**
-   * @brief  Function for marking a track as stopped
-   *
-   * @param tracks Track array container
-   * @param itr Track id
-   */
-  void StopTrack(const GeantTrack_v &tracks, int itr, GeantTaskData *td);
-
-  /**
-   * @brief Propose the physics step for an array of tracks
-   *
-   * @param ntracks Number of ttracks
-   * @param tracks Vector of tracks
-   * @param td Thread data
-   */
-  void ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
-
-  /**
-   * @brief Apply multiple scattering process
-   *
-   * @param ntracks Number of tracks
-   * @param tracks Vector of tracks
-   * @param td Thread data
-   */
-  void ApplyMsc(int ntracks, GeantTrack_v &tracks, GeantTaskData *td);
-  //   PhysicsProcess  *Process(int iproc) const {return fProcesses[iproc];}
 
   /**
    * @brief Getter for the process
@@ -266,9 +211,6 @@ public:
 
   /** @brief  Synchronize with run configuration */
   void SetConfig(GeantConfig* config);
-
-  /** @brief  Share work with some other propagator */
-  int ShareWork(GeantPropagator &other);
 
   /** @brief  Register a simulation stage */
   GEANT_FORCE_INLINE

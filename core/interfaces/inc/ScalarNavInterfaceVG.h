@@ -14,8 +14,8 @@
 #define GEANT_SCALARNAVINTERFACEVG
 
 #include "Geant/Config.h"
-#include "GeantTrackVec.h"
 #include "Geant/Typedefs.h"
+#include "GeantTrack.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {

@@ -2,7 +2,6 @@
 #include "CMSFullApp.h"
 
 #include "GeantEvent.h"
-#include "GeantTrackVec.h"
 #include "GeantRunManager.h"
 #include "GeantTaskData.h"
 #include "globals.h"

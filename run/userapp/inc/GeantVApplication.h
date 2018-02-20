@@ -38,15 +38,6 @@ public:
   /** @brief Function of initialization */
   virtual bool Initialize() = 0;
 
-  /**
-   * @brief User callback function for scoring
-   *
-   * @param tid  Thread ID
-   * @param npart Number of tracks
-   * @param tracks Set of tracks
-   */
-  virtual void StepManager(int /*npart*/, const GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {}
-
   //=== N E W   I N T E R F A C E S ===//
 
   /**

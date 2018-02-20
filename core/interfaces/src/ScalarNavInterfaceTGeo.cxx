@@ -31,7 +31,8 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 //         safety - calculated safety value for the input point
 //         isonbdr - propagated point is on a boundary
 
-  const double epserr = 1.E-3; // push value in case of repeated geom error
+  constexpr double epserr = 1.E-3; // push value in case of repeated geom error
+  constexpr double gTolerance = 1.e-9;
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
   int ismall;
   double snext;
@@ -122,6 +123,7 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(int ntracks, const doubl
 VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
   // Check if current safety allows for the proposed step
+  constexpr double gTolerance = 1.e-9;
   if (track.GetSafety() > track.GetPstep()) {
     track.SetSnext(track.GetPstep());
     track.UpdateSameNextPath();
@@ -146,7 +148,8 @@ void ScalarNavInterfaceTGeo::NavFindNextBoundary(GeantTrack &track) {
 VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceTGeo::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
-  const double epserr = 1.E-3; // push value in case of repeated geom error
+  constexpr double epserr = 1.E-3; // push value in case of repeated geom error
+  constexpr double gTolerance = 1.e-9;
   int ismall;
   double snext;
   TGeoNode *nextnode, *lastnode;

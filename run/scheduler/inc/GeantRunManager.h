@@ -45,7 +45,6 @@ private:
   int fNthreads     = 0;          /** Number of threads per propagator */
   int fNvolumes     = 0;          /** Number of active volumes in the geometry */
   int fNbuff        = 0;          /** Number of event slots per propagator */
-  //int fNfeedProp    = 0;          /** Number of propagators with initial feed */
   int fInitialShare = 0;          /** Initial basket share for each propagator */
   GeantConfig *fConfig = nullptr; /** Run configuration */
   TaskBroker *fBroker = nullptr;  /** Task broker */
@@ -53,7 +52,6 @@ private:
   GeantVApplication *fApplication = nullptr;    /** User application */
   GeantVApplication *fStdApplication = nullptr; /** Standard application */
   GeantVDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
-  // UserFieldConstruction *fFieldConstruction = nullptr; /** User class to create field */
   
   GeantVTaskMgr     *fTaskMgr = nullptr;  /** GeantV task manager */
   PhysicsProcessOld *fProcess = nullptr;  /** For now the only generic process pointing to the tabulated physics */
@@ -76,10 +74,6 @@ private:
   std::atomic_int fPriorityEvents; /** Number of prioritized events */
   std::atomic_int fTaskId; /** Counter providing unique task id's */
   BitSet *fDoneEvents = nullptr;   /** Array of bits marking done events */
-//  int *fNtracks = nullptr;         /** ![fNbuff] Number of tracks per slot */
-//  GeantEvent **fEvents = nullptr;  /** ![fNbuff]    Array of events */
-//  GeantTaskData **fTaskData = nullptr; /** ![fNthreads] Data private to threads */
-  GeantPropagator *fFedPropagator = nullptr; /** Propagator currently being fed */
   std::vector<std::thread> fListThreads; /** Vector of threads */
 
 public:
@@ -151,11 +145,6 @@ public:
 //  GEANT_FORCE_INLINE
 //  int GetNtracks(int islot) const { return fNtracks[islot]; }
 
-  GeantPropagator *GetIdlePropagator() const;
-
-  GEANT_FORCE_INLINE
-  GeantPropagator *GetFedPropagator() const { return fFedPropagator; }
-
   GEANT_FORCE_INLINE
   void SetCoprocessorBroker(TaskBroker *broker) { fBroker = broker; }
 
@@ -217,9 +206,6 @@ public:
 
   /** @brief Initialize classes for RK Integration */
   void PrepareRkIntegration();
-
-  /** @brief Implementation of work stealing */
-  int ProvideWorkTo(GeantPropagator *prop);
 
   void LockEventSets() { while (fEventSetsLock.test_and_set(std::memory_order_acquire)) {}; }
   void UnlockEventSets() { fEventSetsLock.clear(std::memory_order_release); }

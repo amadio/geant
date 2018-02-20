@@ -442,29 +442,6 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-int GeantRunManager::ProvideWorkTo(GeantPropagator *prop)
-{
-// Provide work to a given propagator which became idle
-  int nshared = 0;
-  for (auto i=0; i<fNpropagators; ++i) {
-    if (fPropagators[i] == prop) continue;
-    nshared += fPropagators[i]->ShareWork(*prop);
-  }
-  // if (nshared) Printf("Propagator %p stole %d baskets", prop, nshared);
-  return nshared;
-}
-
-//______________________________________________________________________________
-GeantPropagator *GeantRunManager::GetIdlePropagator() const {
-// Returns the first found idle propagator if any
-  for (auto i=0; i<fNpropagators; ++i) {
-    if (fPropagators[i]->fCompleted) continue;
-    if (fPropagators[i]->IsIdle()) return fPropagators[i];
-  }
-  return nullptr;
-}
-
-//______________________________________________________________________________
 void GeantRunManager::AddEventSet(EventSet *workload)
 {
 // Add one event set to be processed in the system. Adds also the individual

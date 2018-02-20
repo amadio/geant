@@ -44,18 +44,15 @@
 #include "LocalityManager.h"
 #include "TrackManager.h"
 #include "GeantRunManager.h"
-#include "GeantTrackVec.h"
 #include "PhysicsInterface.h"
 #include "PhysicsProcessOld.h"
 #include "WorkloadManager.h"
-#include "GeantBasket.h"
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
 #include "GeantVTaskMgr.h"
 #include "StdApplication.h"
 #include "GeantFactoryStore.h"
 #include "GeantEvent.h"
-#include "GeantScheduler.h"
 #include "PrimaryGenerator.h"
 #include "MCTruthMgr.h"
 
@@ -80,7 +77,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 VECCORE_ATT_HOST_DEVICE
 GeantPropagator::GeantPropagator(int nthreads)
     : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0),
-      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNpushed(0), fNkilled(0), fNidle(0), fNbfeed(0) {
+      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNpushed(0), fNkilled(0), fNbfeed(0) {
   // Constructor
   // Single instance of the propagator
 
@@ -131,43 +128,6 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
 }
 
 //______________________________________________________________________________
-int GeantPropagator::DispatchTrack(GeantTrack &track, GeantTaskData *td) {
-  // Dispatch a registered track produced by the generator.
-#ifdef VECCORE_CUDA
-  assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
-  return 0;
-#else  // stoping track in MCTruthManager
-  return fWMgr->GetScheduler()->AddTrack(track, td);
-#endif
-}
-
-//______________________________________________________________________________
-int GeantPropagator::GetNpending() const {
-  // Returns number of baskets pending in the queue
-  return fWMgr->GetNpending();
-}
-
-//______________________________________________________________________________
-void GeantPropagator::StopTrack(const GeantTrack_v &tracks, int itr, GeantTaskData *td) {
-  // Mark track as stopped for tracking.
-  //   Printf("Stopping track %d", track->particle);
-
-#ifdef VECCORE_CUDA
-  assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
-#else  // stoping track in MCTruthManager
-  if(fTruthMgr)
-    {
-      if(tracks.fStatusV[itr] == kKilled) fTruthMgr->EndTrack(tracks, itr);
-    }
-
-  if (fRunMgr->GetEvent(tracks.fEvslotV[itr])->StopTrack(fRunMgr, td)) {
-    std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
-    priority_events++;
-  }
-#endif
-}
-
-//______________________________________________________________________________
 void GeantPropagator::StopTrack(GeantTrack *track, GeantTaskData *td) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
@@ -189,12 +149,6 @@ void GeantPropagator::StopTrack(GeantTrack *track, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-bool GeantPropagator::IsIdle() const {
-  // Check if work queue is empty and all used threads are waiting
-  return (!fCompleted && GetNworking()==0 && GetNpending()==0);
-}
-
-//______________________________________________________________________________
 void GeantPropagator::Initialize() {
   // Initialize the propagator.
 #ifndef VECCORE_CUDA
@@ -203,13 +157,7 @@ void GeantPropagator::Initialize() {
   fTrackMgr = &mgr->GetTrackManager(numa);
 #endif
 
-  // Add some empty baskets in the queue
-#ifdef VECCORE_CUDA
-  // assert(0 && "Initialize not implemented yet for CUDA host/device code.");
-#else
-  if (!fConfig->fUseV3)
-    fWMgr->CreateBaskets(this);
-#endif
+  // Create the simulation stages
   CreateSimulationStages();
 }
 
@@ -225,51 +173,6 @@ void GeantPropagator::SetNuma(int numa)
     fTrackMgr = &mgr->GetTrackManager(numa);
   else
     fTrackMgr = &mgr->GetTrackManager(0);
-#endif
-}
-
-//NOTE: We don't do anything here so it's not called from the WorkloadManager anymore
-//______________________________________________________________________________
-void GeantPropagator::ApplyMsc(int /*ntracks*/, GeantTrack_v & /*tracks*/, GeantTaskData * /*td*/) {
-/*
-  // Apply multiple scattering for charged particles.
-  Material_t *mat = 0;
-  if (td->fVolume)
-#ifdef USE_VECGEOM_NAVIGATOR
-    mat = (Material_t *)td->fVolume->GetMaterialPtr();
-#else
-    mat = td->fVolume->GetMaterial();
-#endif
-
-#ifdef USE_REAL_PHYSICS
-  tracks;
-#else
-  // actually nothing happens in this call in the TTabPhysProcess
-  fProcess->ApplyMsc(mat, ntracks, tracks, td);
-#endif
-*/
-}
-
-//______________________________________________________________________________
-void GeantPropagator::ProposeStep(int ntracks, GeantTrack_v &tracks, GeantTaskData *td) {
-  // Generate all physics steps for the tracks in trackin.
-  // Reset the current step length to 0
-  for (int i = 0; i < ntracks; ++i) {
-    tracks.fStepV[i] = 0.;
-    tracks.fEdepV[i] = 0.;
-  }
-  Material_t *mat = 0;
-  if (td->fVolume)
-#ifdef USE_VECGEOM_NAVIGATOR
-    mat = (Material_t *)td->fVolume->GetMaterialPtr();
-#else
-    mat = td->fVolume->GetMaterial();
-#endif
-
-#ifdef USE_REAL_PHYSICS
-  fPhysicsInterface->ComputeIntLen(mat, ntracks, tracks, 0, td);
-#else
-  fProcess->ComputeIntLen(mat, ntracks, tracks, td);
 #endif
 }
 
@@ -299,7 +202,7 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 #endif
 
   // Start system tasks
-  if (!fWMgr->StartTasks(fTaskMgr)) {
+  if (!fWMgr->StartTasks()) {
     Fatal("PropagatorGeom", "%s", "Cannot start tasks.");
     return;
   }
@@ -369,17 +272,6 @@ void GeantPropagator::SetConfig(GeantConfig *config)
   }
   // Instantiate factory store
   GeantFactoryStore::Instance(fNbuff);
-}
-
-//______________________________________________________________________________
-int GeantPropagator::ShareWork(GeantPropagator &other)
-{
-#ifdef VECCORE_CUDA
-  assert(0 && "ShareWork not implemented yet for CUDA host/device code.");
-  return 0;
-#else
-  return ( fWMgr->ShareBaskets(other.fWMgr) );
-#endif
 }
 
 #ifdef USE_REAL_PHYSICS

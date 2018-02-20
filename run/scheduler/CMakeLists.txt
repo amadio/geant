@@ -52,9 +52,7 @@ set(sources
    ${CMAKE_SOURCE_DIR}/core/base/src/Error.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantTrack.cxx
-   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantTrackVec.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantBasket.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Basket.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Handler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/SimulationStage.cxx
@@ -72,7 +70,6 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantPropagator.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantEvent.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/EventSet.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantScheduler.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsInterface.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsProcessOld.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/WorkloadManager.cxx
@@ -119,12 +116,9 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeomQueryStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PropagationStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantBasket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantScheduler.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantTrack.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantTrackVec.h
-#   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/GeantVApplication.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantVDetectorConstruction.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/MyHit.h

@@ -35,7 +35,6 @@
 #include "GeantTaskData.h"
 #include "ConstBzFieldHelixStepper.h"
 #include "ConstFieldHelixStepper.h"
-#include "GeantScheduler.h"
 
 // #ifdef  RUNGE_KUTTA
 #include "GUFieldPropagatorPool.h"

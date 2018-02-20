@@ -17,7 +17,6 @@
 
 #include "GeantFwd.h"
 #include "GeantTrack.h"
-#include "GeantTrackVec.h"
 
 #include "cuckoohash_map.hh"
 
@@ -83,13 +82,6 @@ public:
    * @param gtrack track
    */
   void AddTrack(Geant::GeantTrack &gtrack);
-
-  /**
-   * @brief Function that indicates a track stopping
-   *
-   * @param tracks tracks
-   */
-  void EndTrack(const Geant::GeantTrack_v &tracks, int itr);
 
   /**
    * @brief Function that indicates a track stopping

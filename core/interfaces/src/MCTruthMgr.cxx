@@ -50,31 +50,6 @@ void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
 }
 
 //______________________________________________________________________________
-void MCTruthMgr::EndTrack(const Geant::GeantTrack_v &tracks, int itr) {
-
-  MCEvent* current_event = 0;
-  
-  // get the event to which the track belongs  
-  if(events_map.find(tracks.fEventV[itr], current_event))
-    {
-      // check of the track was stored
-      // if not, do nothing
-      MCParticle* current_particle = 0;
-      
-      if(current_event->particles.find(tracks.fParticleV[itr], current_particle))
-	{
-	  current_particle->fXend = tracks.fXposV[itr];
-	  current_particle->fYend = tracks.fYposV[itr];
-	  current_particle->fZend = tracks.fZposV[itr];
-	  current_particle->fTend = tracks.fTimeV[itr];
-	  current_particle->has_end = true;
-	}
-      else return;      
-    }
-  else return; 
-}
-
-//______________________________________________________________________________
 void MCTruthMgr::EndTrack(GeantTrack *track) {
 
   MCEvent* current_event = 0;

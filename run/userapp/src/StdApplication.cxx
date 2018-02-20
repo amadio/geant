@@ -1,5 +1,4 @@
 #include "StdApplication.h"
-#include "GeantTrackVec.h"
 #include "GeantPropagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
@@ -66,9 +65,8 @@ bool StdApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTaskData * td) {
-  // Application stepping manager. The thread id has to be used to manage storage
-  // of hits independently per thread.
+void StdApplication::SteppingActions(GeantTrack &track, GeantTaskData * td) {
+  // Application stepping actions.
 #ifdef USE_ROOT
   GeantPropagator *propagator = td->fPropagator;
   if ((!fInitialized) || (fScore == kNoScore))
@@ -76,37 +74,28 @@ void StdApplication::StepManager(int npart, const GeantTrack_v &tracks, GeantTas
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   double theta, eta;
-  for (int itr = 0; itr < npart; itr++) {
-    if (tracks.fZdirV[itr] == 1)
-      eta = 1.E30;
-    else {
-      theta = acos(tracks.fZdirV[itr]);
-      eta = -log(tan(0.5 * theta));
-    }
-    if (propagator->fNthreads > 1)
-      fMHist.lock();
-    fHeta->Fill(eta);
-    fHpt->Fill(tracks.Pt(itr));
-    fHStep->Fill(tracks.fStepV[itr]);
-    fStepSize->Fill(eta, tracks.fStepV[itr]);
-    if ((tracks.fStatusV[itr] == kKilled) || (tracks.fStatusV[itr] == kExitingSetup) ||
-        (tracks.fPathV[itr]->IsOutside()))
-      fStepCnt->Fill(eta, tracks.fNstepsV[itr]);
-    if (propagator->fNthreads > 1)
-      fMHist.unlock();
+  if (track.Dz() == 1)
+    eta = 1.E30;
+  else {
+    theta = acos(track.Dz());
+    eta = -log(tan(0.5 * theta));
+  }
+  if (propagator->fNthreads > 1)
+    fMHist.lock();
+  fHeta->Fill(eta);
+  fHpt->Fill(track.Pt());
+  fHStep->Fill(track.GetStep());
+  fStepSize->Fill(eta, track.GetStep());
+  if ((track.Status() == kKilled) || (track.Status() == kExitingSetup) ||
+      (track.Path()->IsOutside()))
+      fStepCnt->Fill(eta, track.GetNsteps());
+  if (propagator->fNthreads > 1)
+    fMHist.unlock();
   }
 #else
-  (void)npart;
-  (void)tracks;
+  (void)track;
   (void)td;
 #endif
-}
-
-//______________________________________________________________________________
-void StdApplication::Digitize(GeantEvent */* event */) {
-  // User method to digitize a full event, which is at this stage fully transported
-  //   Geant::Printf("======= Statistics for event %d:\n", event);
-}
 
 //______________________________________________________________________________
 void StdApplication::FinishRun() {

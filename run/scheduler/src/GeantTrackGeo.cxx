@@ -35,8 +35,6 @@
 
 #include "GeantTaskData.h"
 
-#include "GeantScheduler.h"
-
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
 #include "FieldLookup.h"

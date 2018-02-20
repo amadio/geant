@@ -20,7 +20,6 @@
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 #include "mpmc_bounded_queue.h"
-#include "GeantTrackVec.h"
 #include "NumaBlockMgr.h"
 #include "GeantPropagator.h"
 #include "GeantTrack.h"
@@ -48,8 +47,6 @@ namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class Basket;
-class GeantBasketMgr;
-class GeantBasket;
 class GeantTrackGeo_v;
 class StackLikeBuffer;
 class TrackStat;
@@ -87,25 +84,19 @@ public:
   VolumePath_t **fPathV = nullptr;         /** Volume path for the thread */
   VolumePath_t **fNextpathV = nullptr;     /** Volume path for the thread */
   GeantTrackGeo_v *fGeoTrack = nullptr;    /** Geometry track SOA */
-  GeantBasketMgr *fBmgr = nullptr;         /** Basket manager collecting mixed tracks */
-  GeantBasket *fReused = nullptr;          /** Basket having tracks to be reused in the same volume */
   Basket *fBvector = nullptr;              /** Buffer basket used for vector API */
   Basket *fShuttleBasket = nullptr;        /** Shuttle basket from selectors to follow-up simulation stage */
   vector_t<Basket *> fStageBuffers;        /** Buffers for tracks at input of simulation stages */
-  GeantBasket *fImported = nullptr;        /** Basket used to import tracks from the event server */
   StackLikeBuffer *fStackBuffer = nullptr; /** Stack buffer tor this thread */
   TrackStat *fStat = nullptr;              /** Track statictics */
   NumaTrackBlock_t *fBlock = nullptr;      /** Current track block */
   BasketCounters *fCounters[kNstages];     /** Counters for stage handlers */
 
 #ifdef VECCORE_CUDA
-  char fPool[sizeof(std::deque<GeantBasket *>)]; // Use the same space ...
   char fBPool[sizeof(std::deque<Basket *>)]; /** Pool of empty baskets */
 #else
-  std::deque<GeantBasket *> fPool; /** Pool of empty baskets */
   std::deque<Basket *> fBPool; /** Pool of empty baskets */
 #endif
-  GeantTrack_v  *fTransported;              // Transported tracks in current step
   vector_t<GeantTrack *> fTransported1;     // Transported tracks in current step
   int fNkeepvol = 0;     /** Number of tracks keeping the same volume */
   int fNsteps = 0;       /** Total number of steps per thread */
@@ -218,38 +209,12 @@ public:
 
 #ifndef VECCORE_CUDA
   /**
-   * @brief Get next free basket or null if not available
-   * @details Get pointer to next free basket
-   */
-  GeantBasket *GetNextBasket();
-
-  /**
    * @brief Recycles a given basket
    *
-   * @param b Pointer to current GeantBasket for recycling
-   */
-  void RecycleBasket(GeantBasket *b);
-
-  /**
-   * @brief Recycles a given basket
-   *
-   * @param b Pointer to current GeantBasket for recycling
+   * @param b Pointer to current basket for recycling
    */
   void RecycleBasket(Basket *b);
 
-  /*
-   * @brief Return the size of the basket pool
-   *
-   */
-  size_t GetBasketPoolSize() const { return fPool.size(); }
-
-  /**
-   * @brief Function cleaning a number of free baskets
-   *
-   * @param ntoclean Number of baskets to be cleaned
-   * @return Number of baskets actually cleaned
-   */
-  int CleanBaskets(size_t ntoclean);
 #endif
 
   /** @brief Setter for the toclean flag */

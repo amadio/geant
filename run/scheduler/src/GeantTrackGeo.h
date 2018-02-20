@@ -14,11 +14,10 @@
 #define GEANT_TRACK_GEO
 
 #include <vector>
-#include "GeantTrackVec.h"
+#include <GeantTrack.h>
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-
 
 /**
  * @brief AOS for tracs used at processing time by geometry

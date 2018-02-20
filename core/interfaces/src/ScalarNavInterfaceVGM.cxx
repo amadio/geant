@@ -47,6 +47,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
 //         isonbdr - propagated point is on a boundary
 
   typedef Vector3D<Precision> Vector3D_t;
+  constexpr double gTolerance = 1.e-9;
 #ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
@@ -117,6 +118,7 @@ VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
   typedef Vector3D<Precision> Vector3D_t;
+  constexpr double gTolerance = 1.e-9;
 #ifdef VECCORE_CUDA
   SimpleNavigator nav;
 #else
@@ -187,6 +189,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
+  constexpr double gTolerance = 1.e-9;
   // back-up the pre-step point boundary flag
   track.SetBoundaryPreStep(track.Boundary());
   // Find distance to next boundary, within proposed step.

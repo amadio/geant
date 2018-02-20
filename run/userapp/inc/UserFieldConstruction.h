@@ -17,6 +17,7 @@
 #include "base/Vector3D.h"
 // #include "Geant/Typedefs.h"
 
+#include "FieldLookup.h"
 #include "FieldPropagatorFactory.h"
 #include "SystemOfUnits.h"
 

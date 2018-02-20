@@ -7,7 +7,6 @@
 
 #include "Geant/Error.h"
 #include "GeantTaskData.h"
-#include "GeantTrackVec.h"
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -38,8 +37,6 @@ void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
       
       pField->ObtainFieldValue(Position, MagFieldOut);
       bmag= MagFieldOut.Mag();
-      // printf(" GeantTrack_v::GetFieldValue> Field at ( %f %f %f ) is (%f %f %f) kGauss - mag = %f \n",
-         //       Position.x(), Position.y(), Position.z(), MagFldD.x(), MagFldD.y(), MagFldD.z(), *bmag );
    }
    bmagOut= bmag;
 }

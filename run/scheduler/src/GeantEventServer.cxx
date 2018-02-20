@@ -10,7 +10,6 @@
 #include "LocalityManager.h"
 #include "PrimaryGenerator.h"
 #include "GeantTaskData.h"
-#include "GeantBasket.h"
 #include "Basket.h"
 #include "StackLikeBuffer.h"
 #include "MCTruthMgr.h"
@@ -360,27 +359,6 @@ GeantTrack *GeantEventServer::GetNextTrack(GeantTaskData *td, unsigned int &erro
   track->SetEvent(event->GetEvent());
   track->SetEvslot(event->GetSlot());
   return track;
-}
-
-//______________________________________________________________________________
-int GeantEventServer::FillBasket(GeantTrack_v &tracks, int ntracks, GeantTaskData *td, unsigned int &error)
-{
-// Fill concurrently a basket of tracks, up to the requested number of tracks.
-// The error codes returned: 0-normal fill 1-partial fill 2-
-// The client should test first the track availability using HasTracks().
-  if (!fHasTracks) return 0;
-  int ndispatched = 0;
-  for (int i=0; i<ntracks; ++i) {
-    GeantTrack *track = GetNextTrack(td, error);
-    if (!track) break;
-    tracks.AddTrack(*track);
-    ndispatched++;
-  }
-  if (fInitialPhase) {
-    int nserved = fNserved.fetch_add(1) + 1;
-    if (nserved >= fNbasketsInit) fInitialPhase = false;
-  }
-  return ndispatched;
 }
 
 //______________________________________________________________________________
