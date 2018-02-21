@@ -20,7 +20,6 @@
 #include "GeantEventServer.h"
 #include "GeantTaskData.h"
 #include "PhysicsInterface.h"
-#include "PhysicsProcessOld.h"
 #include "GeantEvent.h"
 #include "EventSet.h"
 #include "GeantVApplication.h"
@@ -30,29 +29,10 @@
 #include "TrackStat.h"
 #include "LocalityManager.h"
 #include "TrackManager.h"
-#if USE_VECGEOM_NAVIGATOR
 #include "base/TLS.h"
 #include "management/GeoManager.h"
 #include "base/Stopwatch.h"
-#else
-#include "TGeoNavigator.h"
-#include "TGeoManager.h"
-#endif
 #include "TaskBroker.h"
-
-// added by WP for output handling
-#ifndef GEANT_MYHIT
-#include "MyHit.h"
-#endif
-#ifndef GEANT_FACTORY
-#include "GeantFactory.h"
-#endif
-#ifdef USE_ROOT
-#include "TThreadMergingFile.h"
-#endif
-#include "GeantFactoryStore.h"
-
-using std::max;
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -158,12 +138,6 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td)
 
   GeantPropagator *propagator = td->fPropagator;
   GeantRunManager *runmgr = propagator->fRunMgr;
-#ifndef USE_VECGEOM_NAVIGATOR
-  // If we use ROOT make sure we have a navigator here
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-#endif
 /*** STEPPING LOOP ***/
   bool flush = false;
   while (!workload->IsDone()) {
@@ -224,13 +198,6 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   }
 
   GeantEventServer *evserv = runmgr->GetEventServer();
-
-#ifndef USE_VECGEOM_NAVIGATOR
-  // If we use ROOT make sure we have a navigator here
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-#endif
 
 /*** STEPPING LOOP ***/
   bool flush = false;

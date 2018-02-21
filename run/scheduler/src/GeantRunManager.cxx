@@ -8,7 +8,6 @@
 #include "WorkloadManager.h"
 #include "TaskBroker.h"
 #include "PhysicsInterface.h"
-#include "PhysicsProcessOld.h"
 #include "StdApplication.h"
 #include "GeantVTaskMgr.h"
 #include "GeantVDetectorConstruction.h"
@@ -24,9 +23,9 @@
 #ifdef USE_ROOT
 #include "TApplication.h"
 #include "TCanvas.h"
+#include "management/RootGeoManager.h"
 #endif
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/NewSimpleNavigator.h"
@@ -35,19 +34,7 @@
 #include "navigation/HybridNavigator2.h"
 #include "Material.h"
 #include "Element.h"
-#ifdef USE_ROOT
-#include "management/RootGeoManager.h"
-#endif
 #include "volumes/PlacedVolume.h"
-#else
-#ifdef USE_ROOT
-#include "TGeoVolume.h"
-#include "TGeoManager.h"
-#include "TGeoVoxelFinder.h"
-#include "TGeoNode.h"
-#include "TGeoMaterial.h"
-#endif
-#endif
 
 #include "UserFieldConstruction.h"
 
@@ -147,9 +134,7 @@ bool GeantRunManager::Initialize() {
     prop->fApplication = fApplication;
     prop->fStdApplication = fStdApplication;
     prop->fTaskMgr = fTaskMgr;
-    prop->fProcess = fProcess;
     prop->fPhysicsInterface = fPhysicsInterface;
-    prop->fVectorPhysicsProcess = fVectorPhysicsProcess;
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr = fTruthMgr;
   }
@@ -162,35 +147,19 @@ bool GeantRunManager::Initialize() {
   } else {
     LoadGeometry(fConfig->fGeomFileName.c_str());
   }
-#ifdef USE_VECGEOM_NAVIGATOR
-    fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
-#else
-    fConfig->fMaxDepth = TGeoManager::GetMaxLevels();
-#endif
+  fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
   Info(methodName,  "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
 
   // Now we know the geometry depth: create the track data manager
   TrackDataMgr *dataMgr = TrackDataMgr::GetInstance(fConfig->fMaxDepth);
 
   // Initialize the process(es)
-#ifdef USE_REAL_PHYSICS
   if (!fPhysicsInterface) {
     Geant::Fatal(methodName,  "The physics process interface has to be initialized before this");
     return false;
   }
   // Initialize the physics
   fPhysicsInterface->Initialize();
-#else
-  if (!fProcess) {
-    Geant::Fatal(methodName, "The physics process has to be initialized before this");
-    return false;
-  }
-  // Initialize the process(es)
-  fProcess->Initialize();
-  #if USE_VECPHYS == 1
-  fVectorPhysicsProcess->Initialize();
-  #endif
-#endif
 
   // Configure the locality manager and create the tracks
   LocalityManager *mgr = LocalityManager::Instance();
@@ -287,19 +256,12 @@ GeantRunManager::~GeantRunManager() {
   fPropagators.clear();
   for (auto i=0; i<fNvolumes; ++i) {
     Volume_t *vol = (Volume_t*)fVolumes[i];
-#ifdef USE_VECGEOM_NAVIGATOR
     VBconnector *connector = (VBconnector*)vol->GetBasketManagerPtr();
     vol->SetBasketManagerPtr(nullptr);
-#else
-    VBconnector *connector = (VBconnector*)vol->GetFWExtension();
-    vol->SetFWExtension(nullptr);
-#endif
     delete connector;
   }
   BitSet::ReleaseInstance(fDoneEvents);
-  delete fProcess;
   delete fPhysicsInterface;
-  delete fVectorPhysicsProcess;
   delete fTaskMgr;
 
   // Cleanup user data attached to task data
@@ -316,23 +278,11 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 // Load geometry from given file.
 #ifdef USE_ROOT
   if (!gGeoManager) TGeoManager::Import(filename);
-#ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
-#else
-  TGeoManager *geom = gGeoManager;
-#endif
   if (geom) {
-#ifdef USE_VECGEOM_NAVIGATOR
     GeantVDetectorConstruction::LoadVecGeomGeometry(fBroker);
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
-#else
-    geom->SetMaxThreads(GetNthreadsTotal());
-    TObjArray *lvolumes = geom->GetListOfVolumes();
-    fNvolumes = lvolumes->GetEntries();
-    for (auto ivol = 0; ivol < fNvolumes; ivol++)
-      fVolumes.push_back((TGeoVolume *)lvolumes->At(ivol));
-#endif
   } else {
     Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
     return false;
@@ -351,11 +301,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
   for (auto i=0; i<fNvolumes; ++i) {
     Volume_t *vol = (Volume_t*)fVolumes[i];
     VBconnector *connector = new VBconnector(i);
-#ifdef USE_VECGEOM_NAVIGATOR
     vol->SetBasketManagerPtr(connector);
-#else
-    vol->SetFWExtension(connector);
-#endif
   }
   return true;
 }
@@ -577,15 +523,9 @@ Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  tot
   //LocalityManager *lmgr = LocalityManager::Instance();
   // Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
   //       lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
-#ifdef USE_VECGEOM_NAVIGATOR
-  Printf("=== Navigation done using VecGeom ====");
-#else
-  Printf("=== Navigation done using TGeo    ====");
-#endif
-
   FinishRun();
 #ifdef USE_ROOT
-//  if (gApplication) delete gApplication;
+  if (gApplication) delete gApplication;
 #endif
 }
 

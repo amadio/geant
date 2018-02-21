@@ -7,7 +7,6 @@
 
 #include "TransportManager.h"
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "ScalarNavInterfaceVG.h"
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
@@ -20,16 +19,6 @@
 #include "base/Global.h"
 #include "management/GeoManager.h"
 #include "base/SOA3D.h"
-#ifdef CROSSCHECK
-#include "TGeoNavigator.h"
-#include "TGeoNode.h"
-#endif
-#else
-#include "ScalarNavInterfaceTGeo.h"
-#include <iostream>
-#include "TGeoNavigator.h"
-#include "TGeoNode.h"
-#endif
 
 #include "WorkloadManager.h"
 
@@ -51,9 +40,7 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifdef USE_VECGEOM_NAVIGATOR
 using namespace VECGEOM_NAMESPACE;
-#endif
 
 //______________________________________________________________________________
 GeantTrackGeo_v::GeantTrackGeo_v()

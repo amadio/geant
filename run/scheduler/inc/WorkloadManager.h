@@ -19,10 +19,6 @@
 #include "dcqueue.h"
 #include "condition_locker.h"
 
-#ifndef USE_VECGEOM_NAVIGATOR
-#include "TGeoManager.h"
-#endif
-
 #include "GeantPropagator.h"
 
 #include "GeantTaskData.h"

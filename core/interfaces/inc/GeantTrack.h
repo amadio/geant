@@ -71,7 +71,6 @@ enum Species_t { kHadron, kLepton };
 
 /** Basket simulation stages. */
 enum ESimulationStage {
-#ifdef USE_REAL_PHYSICS
   kPreStepStage         = 0, // Actions at the beginning of the step
   kComputeIntLStage,         // Physics interaction length computation stage
   kGeometryStepStage,        // Compute geometry transport length
@@ -84,16 +83,6 @@ enum ESimulationStage {
   kPostStepActionStage,      // Post step action stage (discrete part of the inetraction)
   kAtRestActionStage,       // At-rest action stage (at-rest part of the inetraction)
   kSteppingActionsStage      // User actions
-#else
-  kPreStepStage         = 0, // Actions at the beginning of the step
-  kXSecSamplingStage,        // Propose physics step by sampling total Xsec
-  kGeometryStepStage,        // Compute geometry transport length
-  kPropagationStage,         // Propagation in field stage
-  //  kMSCStage,                 // Multiple scattering stage
-  kContinuousProcStage,      // Continuous processes stage
-  kDiscreteProcStage,        // Discrete processes stage
-  kSteppingActionsStage      // User actions
-#endif
 };
 
 constexpr size_t kNstages = size_t(kSteppingActionsStage) + 1;
@@ -644,11 +633,7 @@ public:
   /** @brief Getter for the next volume (no backup) */
   VECCORE_ATT_HOST_DEVICE
   Volume_t const *GetNextVolume() const {
-#ifdef USE_VECGEOM_NAVIGATOR
     return ( fNextpath->Top()->GetLogicalVolume() );
-#else
-    return ( fNextpath->GetCurrentNode()->GetVolume() );
-#endif
   }
 
   /** @brief Getter for the material */
@@ -1051,11 +1036,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void UpdateVolume() {
-#ifdef USE_VECGEOM_NAVIGATOR
     fVolume = fPath->Top()->GetLogicalVolume();
-#else
-    fVolume = fPath->GetCurrentNode()->GetVolume();
-#endif
   }
 
  /** @brief Function to normalize direction */

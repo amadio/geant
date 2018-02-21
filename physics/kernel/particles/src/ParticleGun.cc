@@ -49,18 +49,6 @@ ParticleGun::~ParticleGun() {
 
 //______________________________________________________________________________
 void ParticleGun::InitPrimaryGenerator() {
-//#ifdef USE_VECGEOM_NAVIGATOR
-//  Particle_t::CreateParticles();
-//#endif
-  // set GV particle index
-//  fGVPartIndex = 22;//TPartIndex::I()->PartIndex(fPDG);
-// set TDatabasePDG ptr
-//#ifdef USE_VECGEOM_NAVIGATOR
-//  fPartPDG = const_cast<Particle_t *>(&Particle_t::GetParticle(fPDG));
-//#else
-//  fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
-//#endif
-  // set rest mass [GeV]
 
   const Particle *part = Particle::GetParticleByInternalCode(fGVPartIndex);
   if (part) {

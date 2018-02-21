@@ -13,7 +13,6 @@
 #include "TGeoManager.h"
 #include "TGeoBBox.h"
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "management/RootGeoManager.h"
 #include "management/GeoManager.h"
 #include "navigation/VNavigator.h"
@@ -22,7 +21,6 @@
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"
-#endif
 
 //______________________________________________________________________________
 void help() { std::cout << "Usage: testLocality [nthreads] [geom]>\n"; }
@@ -73,14 +71,9 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
   double phi = disphi(gen);
   double theta = ACos(1. - 2*disrnd(gen));
   track.SetDirection(Sin(theta) * Cos(phi), Sin(theta) * Sin(phi), Cos(theta));
-#ifdef USE_VECGEOM_NAVIGATOR
   SimpleNavigator nav;
   nav.LocatePoint(GeoManager::Instance().GetWorld(),
                     Vector3D<Precision>(track.X(), track.Y(), track.Z()), *track.Path(), true);
-#else
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  nav->FindNode(track.X(), track.Y(), track.Z());
-#endif
 }
 
 //______________________________________________________________________________
@@ -102,11 +95,6 @@ void ConsumeTracks(size_t tid, LocalData *ldata) {
   double dx = box->GetDX();
   double dy = box->GetDY();
   double dz = box->GetDZ();
-#ifndef USE_VECGEOM_NAVIGATOR
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-#endif
   for (int itr=0; itr<1000000; ++itr) {
     GeantTrack &track = trk_mgr.GetTrack();
     InitTrack(track, dx, dy, dz);
@@ -137,10 +125,8 @@ int main(int argc, char *argv[]) {
   TrackDataMgr::GetInstance(maxdepth);
   if (nthreads > 1) gGeoManager->SetMaxThreads(nthreads);
 
-#ifdef USE_VECGEOM_NAVIGATOR
   RootGeoManager::Instance().LoadRootGeometry();
   //maxdepth = GeoManager::Instance().getMaxDepth();
-#endif
   
   // Configure the locality manager
   LocalityManager *mgr = LocalityManager::Instance();

@@ -37,14 +37,7 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxPerBasket)
   fNextpathV = new VolumePath_t*[4*maxPerBasket];
   fTrack = GeantTrack::MakeInstance();
   fGeoTrack = new GeantTrackGeo_v(4*maxPerBasket);
-#ifndef VECCORE_CUDA
-#ifdef USE_VECGEOM_NAVIGATOR
-//  fRndm = &RNG::Instance();
   fRndm = new vecgeom::RNG; // what about the seed?
-#elif USE_ROOT
-  fRndm = new TRandom();
-#endif
-#endif
 }
 
 //______________________________________________________________________________
@@ -77,14 +70,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
 
   fTrack = GeantTrack::MakeInstance();
 
-#ifndef VECCORE_CUDA
-#ifdef USE_VECGEOM_NAVIGATOR
   fRndm = &vecgeom::RNG::Instance();
-#elif USE_ROOT
-  fRndm = new TRandom();
-#endif
-#endif
-//  fStat = new TrackStat(this);
 }
 
 //______________________________________________________________________________
@@ -92,11 +78,6 @@ GeantTaskData::~GeantTaskData()
 {
 // Destructor
   GeantTrack::ReleaseInstance(fTrack);
-#ifndef VECCORE_CUDA
-#ifndef USE_VECGEOM_NAVIGATOR
-  delete fRndm;
-#endif
-#endif
   delete[] fBoolArray;
   delete[] fDblArray;
   delete[] fIntArray;

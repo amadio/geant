@@ -175,10 +175,8 @@ void GeantTrack::Clear(const char *)
   fStage = 0;
   fGeneration = 0;
   fVolume = nullptr;
-#ifdef USE_VECGEOM_NAVIGATOR
   fPath->Clear();
   fNextpath->Clear();
-#endif
 
   // this will be changed/removed after we already have the previous step length stored in the track
   fPhysicsProcessIndex = -1;
@@ -204,10 +202,8 @@ void GeantTrack::Reset(GeantTrack const &blueprint)
   memcpy(fExtraData, blueprint.fExtraData, TrackDataMgr::GetInstance()->GetDataSize());
 
   // Clear Geometry path
-#ifdef USE_VECGEOM_NAVIGATOR
   fPath->Clear();
   fNextpath->Clear();
-#endif  
 }
 
 //______________________________________________________________________________
@@ -223,14 +219,7 @@ GeantTrack *GeantTrack::Clone(GeantTaskData *td)
 Material_t *GeantTrack::GetMaterial() const
 {
    // Current material the track is into
-#ifdef USE_VECGEOM_NAVIGATOR
    return ( (Material_t *) fVolume->GetMaterialPtr() );
-#else
-   auto med = GetVolume()->GetMedium();
-   if (!med)
-      return 0;
-   return med->GetMaterial();
-#endif
 }
 
 //______________________________________________________________________________
@@ -254,7 +243,6 @@ void GeantTrack::SetNextPath(VolumePath_t const *const path)
 void GeantTrack::Print(const char *msg) const
 {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
-#ifdef USE_VECGEOM_NAVIGATOR
   printf(
       "%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
       "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n",
@@ -267,21 +255,6 @@ void GeantTrack::Print(const char *msg) const
 #ifndef VECCORE_CUDA
   fPath->Print();
   fNextpath->Print();
-#endif
-#else
-  TString path;
-  fPath->GetPath(path);
-  TString nextpath;
-  fNextpath->GetPath(nextpath);
-
-  Geant::Print("", "%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d "
-         "spc=%d status=%s mass=%g xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g "
-         "time=%g edep=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n pth=%s npth=%s\n",
-         msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fPDG, fGVcode, fEindex, fBindex,
-         fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
-         fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
-         fTime, fEdep, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary, path.Data(),
-         nextpath.Data());
 #endif
 }
 

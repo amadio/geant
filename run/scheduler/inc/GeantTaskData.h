@@ -28,12 +28,7 @@ namespace geantphysics {
   class PhysicsData;
 }
 
-#ifdef USE_ROOT
-class TRandom;
-#endif
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "base/RNG.h"
-#endif
 
 class GUFieldPropagator;
 class VVectorField;
@@ -72,11 +67,7 @@ public:
   bool fToClean = false; /** Flag set when the basket queue is to be cleaned */
   bool fTaskCompleted;   /** Flag set when a task is completed */
   Volume_t *fVolume = nullptr; /** Current volume per thread */
-#ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::RNG *fRndm = nullptr;           /** Random generator for thread */
-#elif USE_ROOT
-  TRandom *fRndm = nullptr;                /** Random generator for thread */
-#endif
   bool *fBoolArray = nullptr;              /** [fSizeBool] Thread array of bools */
   double *fDblArray = nullptr;             /** [fSizeDbl] Thread array of doubles */
   int *fIntArray = nullptr;                /** [fSizeInt] Thread array of ints */

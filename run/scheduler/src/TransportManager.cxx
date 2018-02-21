@@ -5,7 +5,6 @@
 #include <execinfo.h>
 
 #include "GeantTrackGeo.h"
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "ScalarNavInterfaceVG.h"
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
@@ -18,16 +17,6 @@
 #include "base/Global.h"
 #include "management/GeoManager.h"
 #include "base/SOA3D.h"
-#ifdef CROSSCHECK
-#include "TGeoNavigator.h"
-#include "TGeoNode.h"
-#endif
-#else
-#include "ScalarNavInterfaceTGeo.h"
-#include <iostream>
-#include "TGeoNavigator.h"
-#include "TGeoNode.h"
-#endif
 
 #include "WorkloadManager.h"
 
@@ -55,9 +44,7 @@
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-#ifdef USE_VECGEOM_NAVIGATOR
 using namespace VECGEOM_NAMESPACE;
-#endif
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -152,7 +139,6 @@ int TransportManager::CheckSameLocationSingle(GeantTrack &track,
 
   // Track may have crossed, check it
   bool same;
-#ifdef USE_VECGEOM_NAVIGATOR
   NavigationState *tmpstate = td->GetPath();
 #ifdef NEW_NAVIGATION
   ScalarNavInterfaceVGM
@@ -161,11 +147,6 @@ int TransportManager::CheckSameLocationSingle(GeantTrack &track,
   ScalarNavInterfaceVG
 #endif // NEW_NAVIGATION
     ::NavIsSameLocation(track, same, tmpstate);
-#else
-// ROOT navigation
-  ScalarNavInterfaceTGeo
-    ::NavIsSameLocation(track, same);
-#endif // USE_VECGEOM_NAVIGATOR
   if (same) {
     track.SetBoundary(false);
     return 0;
@@ -187,7 +168,6 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
 // Vector version for proposing the geometry step. All tracks have to be
 // in the same volume. This may still fall back on the scalar implementation
 // in case the vector size is too small.
-#ifdef USE_VECGEOM_NAVIGATOR
 //#define VECTORIZED_GEOMETRY
 #ifdef VECTORIZED_GEOMETRY
   constexpr int kMinVecSize = 4; // this should be retrieved from elsewhere
@@ -245,13 +225,6 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
     if ((track->NextPath()->IsOutside() && track->GetSnext() < 1.E-6) || track->GetSnext() > 1.E19)
       track->SetStatus(kExitingSetup);
   }
-#else
-  // TGeo implementation fall back on looped version
-  (void)ntracks;
-  for (auto track : tracks) {
-    ComputeTransportLengthSingle(*track, td);
-  }
-#endif // USE_VECGEOM_NAVIGATOR
 }
 
 //______________________________________________________________________________
@@ -261,7 +234,6 @@ void TransportManager::ComputeTransportLengthSingle(GeantTrack &track, GeantTask
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
 
-#ifdef USE_VECGEOM_NAVIGATOR
 //#define NEW_NAVIGATION
 #ifdef NEW_NAVIGATION
   ScalarNavInterfaceVGM
@@ -270,11 +242,6 @@ void TransportManager::ComputeTransportLengthSingle(GeantTrack &track, GeantTask
   ScalarNavInterfaceVG
    ::NavFindNextBoundaryAndStep(track);
 #endif // NEW_NAVIGATION
-#else
-// ROOT geometry
-  ScalarNavInterfaceTGeo
-   ::NavFindNextBoundaryAndStep(track);
-#endif // USE_VECGEOM_NAVIGATOR
   // Update number of calls to geometry
   td->fNsnext++;
   // if outside detector or enormous step mark particle as exiting the detector
@@ -370,11 +337,6 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
     }
   }
   track.IncreaseStep(crtstep);
-#ifdef USE_VECGEOM_NAVIGATOR
-//  CheckLocationPathConsistency(i);
-#endif
-// alternative code with lean stepper would be:
-// ( stepper header has to be included )
 
   using ThreeVector = vecgeom::Vector3D<double>;
   ThreeVector Position(track.X(), track.Y(), track.Z());
@@ -604,7 +566,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   ntracks = tracks.size();
   td->fNsteps += ntracks;
 
-#if (defined(USE_VECGEOM_NAVIGATOR) && defined(VECTORIZED_GEOMETRY))
+#if (defined(VECTORIZED_GEOMETRY))
   icrossed += CheckSameLocation(tracks, ntracks, td);
 #else
   for (itr = 0; itr < ntracks; itr++) {

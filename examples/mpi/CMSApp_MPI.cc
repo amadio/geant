@@ -371,9 +371,7 @@ int main(int argc, char *argv[]) {
   propagator->fEmin = 0.001; // [10 MeV] energy cut
   propagator->fEmax = 0.01;  // 10 MeV
 
-#ifdef USE_VECGEOM_NAVIGATOR
   propagator->LoadVecGeomGeometry();
-#endif
   propagator->fProcess = new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str());
 
   if (hepmc_event_filename.empty()) {

@@ -141,14 +141,8 @@ bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *
     return true;
   }
   bool same;
-#ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::NavigationState *tmpstate = td->GetPath();
   ScalarNavInterfaceVGM::NavIsSameLocation(track, same, tmpstate);
-#else
-// ROOT navigation
-  (void)td;
-  ScalarNavInterfaceTGeo::NavIsSameLocation(track, same);
-#endif // USE_VECGEOM_NAVIGATOR
   if (same) return true;
   if (track.NextPath()->IsOutside())
     track.SetStatus(kExitingSetup);

@@ -19,14 +19,10 @@
 #include "WorkspaceForFieldPropagation.h"
 #include "FlexIntegrationDriver.h"
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/NavigationState.h"
 #include "ScalarNavInterfaceVG.h"
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
-#else
-#include "ScalarNavInterfaceTGeo.h"
-#endif
 
 using Double_v = Geant::Double_v;
 
@@ -37,11 +33,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 const double FieldPropagationHandler::gEpsDeflection = 1.E-2 * geant::cm; //Units
           
-#ifdef USE_REAL_PHYSICS  
-  auto stageAfterCrossing= kPostPropagationStage;
-#else
-  auto stageAfterCrossing= kContinuousProcStage;
-#endif
+auto stageAfterCrossing= kPostPropagationStage;
           
 #ifdef STATS_METHODS
 static std::atomic<unsigned long> numRK      ,
@@ -338,9 +330,6 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
   }
   track.SetSnext(snext);
   track.IncreaseStep(crtstep);
-#ifdef USE_VECGEOM_NAVIGATOR
-//  CheckLocationPathConsistency(i);
-#endif
 
 #if 0
   constexpr double inv_kilogauss = 1.0 / geant::kilogauss;
@@ -727,13 +716,8 @@ bool FieldPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *t
 
   // Track may have crossed, check it
   bool same;
-#ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::NavigationState *tmpstate = td->GetPath();
   ScalarNavInterfaceVGM::NavIsSameLocation(track, same, tmpstate);
-#else
-// ROOT navigation
-  ScalarNavInterfaceTGeo::NavIsSameLocation(track, same);
-#endif // USE_VECGEOM_NAVIGATOR
   if (same) {
     track.SetBoundary(false);
     return true;

@@ -42,7 +42,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class GeantRunManager;
 class GeantEvent;
 class GeantVApplication;
-class PhysicsProcessOld;
 class GeantBasket;
 class GeantBasketMgr;
 class WorkloadManager;
@@ -101,8 +100,6 @@ public:
   vecgeom::Stopwatch *fTimer = nullptr;         /** Timer */
   #endif
 
-  PhysicsProcessOld *fProcess = nullptr;              /** For now the only generic process pointing to the tabulated physics */
-  PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** interface to vector physics final state sampling */
   PhysicsInterface *fPhysicsInterface = nullptr;     /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;               /** MCTruth manager */
@@ -162,13 +159,6 @@ public:
    * @param itr Track id
    */
   void StopTrack(GeantTrack *track, GeantTaskData *td);
-
-  /**
-   * @brief Getter for the process
-   * @return  Generic process pointing to the tabulated physics
-   */
-  VECCORE_ATT_HOST_DEVICE
-  PhysicsProcessOld *Process() const { return fProcess; }
 
   /**
    * @brief Setter for the real physics interface
@@ -236,12 +226,7 @@ public:
   int GetNstages() { return fStages.size(); }
 
   /** @brief Function creating all simulation stages for a propagator */
-  #ifdef USE_REAL_PHYSICS
-    int CreateSimulationStages();
-  #else
-    VECCORE_ATT_HOST_DEVICE
-    int CreateSimulationStages();
-  #endif
+  int CreateSimulationStages();
 
   /** @brief Function allowing to retrieve the next simulation stage for a track */
   VECCORE_ATT_HOST_DEVICE

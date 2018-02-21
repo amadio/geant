@@ -50,11 +50,7 @@ Handler *GeomQueryStage::Select(GeantTrack *track, GeantTaskData *)
 // Tracks that are killed or exit the setup should be filtered out by the relocator stage
 // and never reach this point.
   Volume_t *vol = const_cast<Volume_t *>(track->GetVolume());
-#ifdef USE_VECGEOM_NAVIGATOR
   VBconnector *link = reinterpret_cast<VBconnector *>(vol->GetBasketManagerPtr());
-#else
-  VBconnector *link = reinterpret_cast<VBconnector *>(vol->GetFWExtension());
-#endif
   return ( fHandlers[link->index] );
 }
 

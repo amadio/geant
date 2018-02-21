@@ -26,26 +26,17 @@
 #endif
 
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/VNavigator.h"
 #ifdef USE_ROOT
 #include "management/RootGeoManager.h"
 #endif
 #include "volumes/PlacedVolume.h"
-#else
-#include "TGeoVolume.h"
-#include "TGeoManager.h"
-#include "TGeoVoxelFinder.h"
-#include "TGeoNode.h"
-#include "TGeoMaterial.h"
-#endif
 
 #include "Geant/Error.h"
 #include "LocalityManager.h"
 #include "TrackManager.h"
 #include "GeantRunManager.h"
 #include "PhysicsInterface.h"
-#include "PhysicsProcessOld.h"
 #include "WorkloadManager.h"
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
@@ -57,11 +48,8 @@
 #include "MCTruthMgr.h"
 
 #include "PreStepStage.h"
-#include "XSecSamplingStage.h"
 #include "GeomQueryStage.h"
 #include "PropagationStage.h"
-#include "ContinuousProcStage.h"
-#include "DiscreteProcStage.h"
 #include "SteppingActionsStage.h"
 
 #ifdef USE_CALLGRIND_CONTROL
@@ -95,9 +83,7 @@ GeantPropagator::GeantPropagator(const GeantPropagator &orig) : GeantPropagator(
   fApplication = orig.fApplication;
   fStdApplication = orig.fStdApplication;
   fTaskMgr = orig.fTaskMgr;
-  fProcess = orig.fProcess;
   fPhysicsInterface = orig.fPhysicsInterface;
-  fVectorPhysicsProcess = orig.fVectorPhysicsProcess;
   fPrimaryGenerator = orig.fPrimaryGenerator;
   fTruthMgr = orig.fTruthMgr;
 
@@ -274,7 +260,6 @@ void GeantPropagator::SetConfig(GeantConfig *config)
   GeantFactoryStore::Instance(fNbuff);
 }
 
-#ifdef USE_REAL_PHYSICS
 //______________________________________________________________________________
 int GeantPropagator::CreateSimulationStages()
 {
@@ -390,88 +375,6 @@ int GeantPropagator::CreateSimulationStages()
 
   return fStages.size();
 }
-#else
-//______________________________________________________________________________
-VECCORE_ATT_HOST_DEVICE
-int GeantPropagator::CreateSimulationStages()
-{
-  // Create stages in the same order as the enumeration ESimulationStage
-  SimulationStage *stage = nullptr;
-  (void)stage;
-  // kPreStepStage
-  stage = new PreStepStage(this);
-  if (stage->GetId() != int(kPreStepStage))
-    Fatal("CreateSimulationStages", "Wrong stages start index");
-  // kXSecSamplingStage
-  stage = new XSecSamplingStage(this);
-  assert(stage->GetId() == int(kXSecSamplingStage));
-  // kGeometryStepStage
-  stage = new GeomQueryStage(this);
-  assert(stage->GetId() == int(kGeometryStepStage));
-  // kPropagationStage
-  stage = new PropagationStage(this);
-  assert(stage->GetId() == int(kPropagationStage));
-  // kMSCStage
-  // stage = new MSCStage(this);
-  //assert(stage->GetId() == int(kMSCStage));
-  // kContinuousProcStage
-  stage = new ContinuousProcStage(this);
-  assert(stage->GetId() == int(kContinuousProcStage));
-  // kDiscreteProcStage
-  stage = new DiscreteProcStage(this);
-  assert(stage->GetId() == int(kDiscreteProcStage));
-  // kSteppingActionsStage
-  stage = new SteppingActionsStage(this);
-  assert(stage->GetId() == int(kSteppingActionsStage));
-
-  // Create the handlers
-  for (auto stage : fStages) {
-    int nhandlers = stage->CreateHandlers();
-    (void)nhandlers;
-    assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
-  }
-
-  /**************************************
-   *  Define connections between stages *
-   **************************************/
-  GetStage(kPreStepStage)->SetFollowUpStage(kXSecSamplingStage, false);
-  // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
-  GetStage(kPreStepStage)->SetBasketizing(false);
-  //        V
-  //        V
-  //        V
-  GetStage(kXSecSamplingStage)->SetFollowUpStage(kGeometryStepStage, true);
-  GetStage(kXSecSamplingStage)->SetBasketizing(false);
-  //        V
-  //        V
-  //        V
-  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
-  GetStage(kGeometryStepStage)->SetBasketizing(false);
-  //        V
-  //        V
-  //        V
-  GetStage(kPropagationStage)->SetFollowUpStage(kContinuousProcStage, false);
-  // Follow-up not unique: stuck tracks are killed -> SteppingActions
-  GetStage(kPropagationStage)->SetBasketizing(false);
-  //        V
-  //        V
-  //        V
-  GetStage(kContinuousProcStage)->SetFollowUpStage(kDiscreteProcStage, true);
-  GetStage(kContinuousProcStage)->SetBasketizing(false);
-  //        V
-  //        V
-  //        V
-  GetStage(kDiscreteProcStage)->SetFollowUpStage(kSteppingActionsStage, true);
-  GetStage(kDiscreteProcStage)->SetBasketizing(false);
-  //        V
-  //        V
-  //        V
-  GetStage(kSteppingActionsStage)->SetEndStage();
-  GetStage(kSteppingActionsStage)->SetBasketizing(false);
-
-  return fStages.size();
-}
-#endif
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

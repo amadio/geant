@@ -32,11 +32,9 @@ private:
   GeantRunManager *fRunMgr = nullptr;
   UserFieldConstruction *fFieldConstruction = nullptr; 
 // Material conversion callback function
-#ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
   static
   std::function<void*(TGeoMaterial const *)> CreateMaterialConversion();
-#endif
 #endif
 
 protected:

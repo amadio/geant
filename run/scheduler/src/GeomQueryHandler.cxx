@@ -9,12 +9,8 @@
 #include "GeantNuma.h"
 #endif
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
-#else
-#include "ScalarNavInterfaceTGeo.h"
-#endif
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -42,12 +38,7 @@ VECCORE_ATT_HOST_DEVICE
 void GeomQueryHandler::ConnectToVolume()
 {
   VBconnector *connector = new VBconnector(fIndex);
-#ifdef USE_VECGEOM_NAVIGATOR
-    fVolume->SetBasketManagerPtr(connector);
-#else
-    fVolume->SetFWExtension(connector);
-#endif
-  
+  fVolume->SetBasketManagerPtr(connector);  
 }
 
 //______________________________________________________________________________
@@ -83,14 +74,9 @@ void GeomQueryHandler::DisconnectVolume()
 {
   if (!fVolume) return;
   VBconnector *connector = nullptr;
-#ifdef USE_VECGEOM_NAVIGATOR
-    connector = static_cast<VBconnector*>(fVolume->GetBasketManagerPtr());
-    fVolume->SetBasketManagerPtr(nullptr);
-#else
-    connector = static_cast<VBconnector*>(fVolume->GetFWExtension());
-    fVolume->SetFWExtension(nullptr);
-#endif
-    delete connector;
+  connector = static_cast<VBconnector*>(fVolume->GetBasketManagerPtr());
+  fVolume->SetBasketManagerPtr(nullptr);
+  delete connector;
 }
 
 //______________________________________________________________________________
@@ -101,19 +87,12 @@ void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td
 
   // Below we should call just finding the next boundary. Relocation should
   // be handled separately
-#ifdef USE_VECGEOM_NAVIGATOR
   ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
-#else
-// ROOT geometry
-  ScalarNavInterfaceTGeo::NavFindNextBoundary(*track);
-#endif // USE_VECGEOM_NAVIGATOR
   td->fNsnext++;
-#ifdef USE_REAL_PHYSICS
   if (track->IsPrePropagationDone())
     track->SetStage(kPropagationStage);
   else
     track->SetStage(kPrePropagationStage);
-#endif
   output.AddTrack(track);
 }
 
@@ -180,7 +159,6 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   return;
 #endif
 
-#ifdef USE_VECGEOM_NAVIGATOR
   // Copy relevant track fields to geometry SOA and process vectorized.
   GeantTrackGeo_v &track_geo = *td->fGeoTrack;
   track_geo.Clear();
@@ -189,12 +167,10 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   for (size_t itr = 0; itr < ntr; ++itr) {
     GeantTrack *track = tracks[itr];
     track->SetBoundaryPreStep(track->Boundary());
-#ifdef USE_REAL_PHYSICS
     if (track->IsPrePropagationDone())
       track->SetStage(kPropagationStage);
     else
       track->SetStage(kPrePropagationStage);
-#endif
     // Mark tracks to be processed
     track->SetPending(false);
     if (track->Boundary()) {
@@ -278,13 +254,6 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   std::move(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
 #else
   for (auto track : tracks) output.AddTrack(track);
-#endif
-#else
-// ROOT geometry. Fall back to scalar implementation
-  (void)tracks;
-  (void)ntr;
-  (void)kVecSize;
-  Handler::DoIt(input, output, td);
 #endif
 }
 

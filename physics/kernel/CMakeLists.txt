@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources particles/src/*.cxx particles/src/generated/*.cxx)
+file(GLOB sources particles/src/*.cxx)
 file(GLOB headers particles/inc/*.h)
 
 include_directories(particles/inc)
@@ -12,7 +12,7 @@ include_directories(${CMAKE_SOURCE_DIR}/core/interfaces/inc)
 set(_extraLibs "")
 
 if(USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(physicsDict ${headers} MODULE NewPhysics LINKDEF physicsLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  ROOT_GENERATE_DICTIONARY(physicsDict ${headers} MODULE NewPhysics OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
   set(sources ${sources} physicsDict.cxx)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()

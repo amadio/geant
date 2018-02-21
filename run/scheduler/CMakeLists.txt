@@ -1,52 +1,32 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-if (USE_REAL_PHYSICS)
-  include_directories(
-    inc
-    ${CMAKE_SOURCE_DIR}/core/numa/inc
-    ${CMAKE_SOURCE_DIR}/core/concurrency/inc
-    ${CMAKE_SOURCE_DIR}/core/interfaces/inc
-    ${CMAKE_SOURCE_DIR}/run/userapp/inc
-    ${CMAKE_SOURCE_DIR}/run/magneticfield/inc
-    ${CMAKE_SOURCE_DIR}/physics/generators/inc
-    ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
-    ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
-    ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
-    ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
-    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
-    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc
-    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc
-    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc
-    )
-else()
-  include_directories(
-    inc
-    ${CMAKE_SOURCE_DIR}/core/numa/inc
-    ${CMAKE_SOURCE_DIR}/core/concurrency/inc
-    ${CMAKE_SOURCE_DIR}/core/interfaces/inc
-    ${CMAKE_SOURCE_DIR}/run/userapp/inc
-    ${CMAKE_SOURCE_DIR}/run/magneticfield/inc
-    ${CMAKE_SOURCE_DIR}/physics/generators/inc
-    ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
-    )
-endif()
-
-# For TThreadingMerger
-include_directories(${CMAKE_SOURCE_DIR}/obsolete/inc)
-
-if (USE_VECGEOM_NAVIGATOR)
-  include_directories(${CMAKE_SOURCE_DIR}/physics/kernel/material/inc)
-endif()
+include_directories(
+  inc
+  ${CMAKE_SOURCE_DIR}/core/numa/inc
+  ${CMAKE_SOURCE_DIR}/core/concurrency/inc
+  ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+  ${CMAKE_SOURCE_DIR}/run/userapp/inc
+  ${CMAKE_SOURCE_DIR}/run/magneticfield/inc
+  ${CMAKE_SOURCE_DIR}/physics/generators/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
+  )
 
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
 
-if( USE_VECGEOM_NAVIGATOR )
 # Bug in VC (?), cannot compile without optimisation
   set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-endif()
 
 set(sources
    ${CMAKE_SOURCE_DIR}/core/base/src/Error.cxx
@@ -71,15 +51,12 @@ set(sources
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantEvent.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/EventSet.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsInterface.cxx
-   ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsProcessOld.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/WorkloadManager.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/GeantVApplication.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantVDetectorConstruction.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantFactoryStore.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/MyHit.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/StdApplication.cxx
-   ${CMAKE_SOURCE_DIR}/obsolete/src/TThreadMergingFile.cxx
-   ${CMAKE_SOURCE_DIR}/obsolete/src/TThreadMergingServer.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TransportManager.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/LocalityManager.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/MCTruthMgr.cxx
@@ -87,6 +64,9 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEventServer.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackStat.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/Region.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVG.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVGM.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/VectorNavInterface.cxx
 )
 
 set(headers
@@ -100,7 +80,6 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/condition_locker.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PhysicsInterface.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PhysicsProcessOld.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Handler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basketizer.h
@@ -126,8 +105,6 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantFactoryStore.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/StdApplication.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PrimaryGenerator.h
-   ${CMAKE_SOURCE_DIR}/obsolete/inc/TThreadMergingFile.h
-   ${CMAKE_SOURCE_DIR}/obsolete/inc/TThreadMergingServer.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackManager.h
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TransportManager.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/LocalityManager.h
@@ -141,46 +118,10 @@ set(headers
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Region.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/ExternalFramework.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVG.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVGM.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/VectorNavInterface.h
 )
-
-# Add codes that describes some stages (and handlers) that are different when real-physics is used
-if (NOT USE_REAL_PHYSICS)
-  set (sources ${sources}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/XSecSamplingStage.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/XSecSamplingHandler.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ContinuousProcStage.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ContinuousProcHandler.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DiscreteProcStage.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DiscreteProcHandler.cxx
-    )
-  set (headers ${headers}
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/XSecSamplingStage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/XSecSamplingHandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ContinuousProcStage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/ContinuousProcHandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/DiscreteProcStage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/DiscreteProcHandler.h
-    )
-endif ()
-
-if(USE_ROOT AND (NOT USE_VECGEOM_NAVIGATOR))
-   set(sources ${sources} ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceTGeo.cxx)
-   set(headers ${headers} ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceTGeo.h)
-endif()
-
-if(USE_VECGEOM_NAVIGATOR)
-  set(sources ${sources}
-    ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVG.cxx
-    ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVGM.cxx
-    ${CMAKE_SOURCE_DIR}/core/interfaces/src/VectorNavInterface.cxx
-    )
-
-  set(headers ${headers}
-    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVG.h
-    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVGM.h
-    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/VectorNavInterface.h
-    )
-endif()
 
 if (USE_ROOT)
   if (USE_UMESIMD)
@@ -209,27 +150,19 @@ else()
     set(sources ${sources} G__Geant.cxx)
   endif()
   add_library(Geant_v SHARED ${sources})
-  if (NOT USE_VECGEOM_NAVIGATOR)
-    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} )
-  else()
-    target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} Material)
-  endif()
+  target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} Material)
 
-  if( VECGEOM_FOUND )
-    target_link_libraries(Geant_v ${VC_LIBRARIES})
-
-    if (VECGEOM_GEANT4)
-      include(${Geant4_USE_FILE})
-      include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
-      target_link_libraries(Geant_v ${Geant4_LIBRARIES})
-    endif()
+  if (VECGEOM_GEANT4)
+    include(${Geant4_USE_FILE})
+    include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
+    target_link_libraries(Geant_v ${Geant4_LIBRARIES})
   endif()
 
 #----------------------------------------------------------------------------------------------
 # Install files
 #
-   add_custom_target(Geantlib_v DEPENDS Geant_v)
-   add_dependencies(Geantlib_v GeantNuma)
+  add_custom_target(Geantlib_v DEPENDS Geant_v)
+  add_dependencies(Geantlib_v GeantNuma)
 
   if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
@@ -247,100 +180,7 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Build executables
 #
-# -------  START == NOT WITH REAL PHYSICS -------------------------------------------------------
-if(NOT (USE_REAL_PHYSICS))
-# -------
-if(CUDA)
-  set(TEST_EXECUTABLES
-    ./examples/CMSGPUApp.cc
-    ./examples/runGPUApp.cc
-#   testBasketizer.cc
-)
-else()
-  set(TEST_EXECUTABLES
-    ./examples/CMSApp.cc
-    ./examples/runApp.cc
-    ./tests/testBasketizer.cc
-)
-endif()
 
-if(USE_ROOT)
-  set(TEST_EXECUTABLES
-    ${TEST_EXECUTABLES}
-    ./tests/testLocality.cc
-    )
-endif()
-
-macro(build_executables EXECUTABLES)
-  foreach(EXECUTABLE ${EXECUTABLES})
-    get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
-    add_executable(${TARGET_NAME} ${EXECUTABLE})
-    if(USE_VECGEOM_NAVIGATOR)
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Xsec Geant_v GeantExamples Vmagfield ${VECGEOM_LIBRARIES} ${ROOT_LIBRARIES} -lpthread ${VC_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
-    else()
-      target_link_libraries(${TARGET_NAME} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY}  Geant_v Xsec GeantExamples Vmagfield ${ROOT_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
-    endif()
-#    if (USE_TBB)
-#      target_link_libraries(${TARGET_NAME} Geant_tbb  ${TBB_LIBS})
-#    endif()
-    add_dependencies(${TARGET_NAME} Geant_v Xsec GeantExamples GeantNuma)
-    set(GEANTV_EXECUTABLES ${EXECUTABLES} ${TARGET_NAME})
-  endforeach()
-endmacro()
-
-function(add_to_ctest EXECUTABLES)
-  foreach(EXECUTABLE ${EXECUTABLES})
-    if (CTEST)
-      get_filename_component(TARGET_NAME ${EXECUTABLE} NAME_WE)
-      if(TARGET_NAME STREQUAL "runApp")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
-      elseif(TARGET_NAME STREQUAL "runGPUApp")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/ExN03.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT.root)
-      elseif(TARGET_NAME STREQUAL "CMSGPUApp")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
-      elseif(TARGET_NAME STREQUAL "CMSApp")
-          add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> -g ${CMAKE_SOURCE_DIR}/data/cms2015.root -x ${CMAKE_SOURCE_DIR}/data/xsec_FTFP_BERT_G496p02_1mev.root -f ${CMAKE_SOURCE_DIR}/data/fstate_FTFP_BERT_G496p02_1mev.root -E ${CMAKE_SOURCE_DIR}/data/pp14TeVminbias.root)
-      elseif(TARGET_NAME STREQUAL "testBasketizer")
-        add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> 8)
-      elseif(TARGET_NAME STREQUAL "testLocality")
-        add_test(NAME ${TARGET_NAME} WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND  $<TARGET_FILE:${TARGET_NAME}> 8 ${CMAKE_SOURCE_DIR}/data/ExN03.root)
-      else()
-        add_test(NAME ${TARGET_NAME} ${TARGET_NAME})
-      endif()
-    endif()
-  endforeach()
-endfunction()
-
-link_directories(${OUTPUTDIR}/lib)
-
-build_executables("${TEST_EXECUTABLES}")
-
-if(CTEST)
-  add_to_ctest("${TEST_EXECUTABLES}")
-endif()
-
-if(CUDA)
-  install(TARGETS CMSGPUApp runGPUApp DESTINATION bin)
-else()
-  install(TARGETS CMSApp runApp testBasketizer DESTINATION bin)
-endif()
-
-if(USE_ROOT)
-  install(TARGETS testLocality DESTINATION bin)
-endif()
-
-if(CUDA)
-  add_dependencies(runGPUApp Geant_v Xsec GeantExamples)
-  add_dependencies(CMSGPUApp Geant_v Xsec GeantExamples)
-else()
-  add_dependencies(runApp Geant_v Xsec GeantExamples)
-  add_dependencies(CMSApp Geant_v Xsec GeantExamples)
-endif()
-# -------  END == NOT WITH REAL PHYSICS -------------------------------------------------------
-
-
-else()
-# -------  START == WITH REAL PHYSICS -------------------------------------------------------
 set(TEST_EXECUTABLES
   examples/TestEm3_GV.cc
   examples/TestEm5_GV.cc
@@ -443,9 +283,6 @@ foreach(_script ${TestEm3_GV_SCRIPTS})
 endforeach()
 install(TARGETS TestEm3_GV DESTINATION ${TestEm3_GV_OUTPUT})
 install(FILES ${TestEm3_GV_SCRIPTS} DESTINATION ${TestEm3_GV_OUTPUT})
-# -------  END == WITH REAL PHYSICS -------------------------------------------------------
-endif()
-
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

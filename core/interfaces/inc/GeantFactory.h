@@ -23,10 +23,6 @@
 #include <typeinfo>
 #include <type_traits>
 #include "dcqueue.h"
-#ifdef USE_VECGEOM_NAVIGATOR
-#else
-#include "TGeoManager.h"
-#endif
 
 using namespace std;
 

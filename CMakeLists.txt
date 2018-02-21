@@ -118,47 +118,24 @@ else()
 endif()
 
 option(BUG_HUNT "Enable crosschecks for finding bugs." OFF)
-option(USE_VECGEOM_NAVIGATOR "Use the navigator from VecGeom" ON)
 option(USE_ROOT "Use ROOT" ON)
 option(USE_NUMA "Use NUMA" ON)
 option(USE_TBB "Use threading building blocks" OFF)
 
-option(USE_REAL_PHYSICS "Use the real physics interface in the simulation" OFF)
-if(USE_REAL_PHYSICS)
-  message(STATUS "USE_REAL_PHYSICS ON  : Simulation with the real physics interface")
-  if (NOT (USE_VECGEOM_NAVIGATOR))
-    message (FATAL_ERROR "Real physics depends on VecGeom but USE_VECGEOM_NAVIGATOR=OFF")
-  endif()
-  add_definitions(-DUSE_REAL_PHYSICS)
-else()
-  message(STATUS "USE_REAL_PHYSICS OFF : Simulation with the old physics interface")
-endif()
-
 option(BUILD_REAL_PHYSICS_TESTS "Build real-physics GeantV and the corresponding Geant4 test applications." OFF)
-if(BUILD_REAL_PHYSICS_TESTS AND USE_REAL_PHYSICS)
-  message (STATUS "BUILD_REAL_PHYSICS_TESTS ON  : Real-physics tests will be built.")
+if(BUILD_REAL_PHYSICS_TESTS)
+  message (STATUS "BUILD_PHYSICS_TESTS ON  : Physics tests will be built.")
   add_definitions(-DBUILD_REAL_PHYSICS_TESTS)
 else()
-  message (STATUS "BUILD_REAL_PHYSICS_TESTS OFF : Real-physics tests won't be built.")
+  message (STATUS "BUILD_PHYSICS_TESTS OFF : Physics tests won't be built.")
 endif()
 
 option(USE_VECGEOM_CONTAINERS "Replace std::vector, std::map with vecgeom::Vector, vecgeom::map in the material lib." ON)
-if (USE_VECGEOM_NAVIGATOR AND USE_VECGEOM_CONTAINERS)
+if (USE_VECGEOM_CONTAINERS)
   message(STATUS "USE_VECGEOM_CONTAINERS ON : Material library will be built with vecgeom::Vector and vecgeom::map.")
   add_definitions(-DUSE_VECGEOM_CONTAINERS)
 else()
   message(STATUS "USE_VECGEOM_CONTAINERS OFF : Material library will be built with std::vector and std::map.")
-endif()
-
-
-#---------------------------------------------------------------------------
-# Debuging options
-#
-if(BUG_HUNT)
-  add_definitions(-DBUG_HUNT)
-  message(STATUS "BUG_HUNT ON  : Bug hunting mode !")
-else()
-  message(STATUS "BUG_HUNT OFF  : No bug hunting...")
 endif()
 
 #----------------------------------------------------------------------------------------------
@@ -232,9 +209,7 @@ if( VECGEOM_FOUND )
       include_directories( AFTER SYSTEM ${Vc_INCLUDE_DIR})
       set(VC_LIBRARIES ${Vc_LIBRARIES})
    endif()
-   if( USE_VECGEOM_NAVIGATOR )
-     add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
-   endif()
+   add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
    include_directories(${VECGEOM_INCLUDE_DIR})
    set ( VECGEOM_ROOT OFF )
    if ( VECGEOM_DEFINITIONS MATCHES VECGEOM_ROOT )
@@ -370,31 +345,14 @@ if(DATA_DOWNLOAD)
   file(MAKE_DIRECTORY data)
   message(STATUS "Downloading data files")
 
-  if (USE_REAL_PHYSICS)
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ExN03.root"
-      "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ATLASbar.root"
-      "ATLASbar.root" "${CMAKE_SOURCE_DIR}/data/" "b0a579a0158b2bf704ace490744d858d")
-  else()
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ExN03.root"
-      "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2015.root"
-      "cms2015.root" "${CMAKE_SOURCE_DIR}/data/" "fb3ede867532b372c5e6f7138d00c07e")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.root"
-      "cms2018.root" "${CMAKE_SOURCE_DIR}/data/" "caf4c95d19317d04d42d56c8c45db911")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT_G496p02_1mev.root"
-      "fstate_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "d7d3fc9fe2a835f9021bd3747cabf582")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/fstate_FTFP_BERT.root"
-      "fstate_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "4eea5710c691749980f5f8ad02a42231")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/xsec_FTFP_BERT_G496p02_1mev.root"
-      "xsec_FTFP_BERT_G496p02_1mev.root" "${CMAKE_SOURCE_DIR}/data/" "648b4f4136d9a4cb6b590d98dc9182d8")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/xsec_FTFP_BERT.root"
-      "xsec_FTFP_BERT.root" "${CMAKE_SOURCE_DIR}/data/" "90c8ef05770cea48c7807e0241921cab")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/pp14TeVminbias.root"
-      "pp14TeVminbias.root" "${CMAKE_SOURCE_DIR}/data/" "109b827c595ae4a62b74f08f860abbb7")
-    DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ATLASbar.root"
-      "ATLASbar.root" "${CMAKE_SOURCE_DIR}/data/" "b0a579a0158b2bf704ace490744d858d")
-   endif()
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ExN03.root"
+    "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ATLASbar.root"
+    "ATLASbar.root" "${CMAKE_SOURCE_DIR}/data/" "b0a579a0158b2bf704ace490744d858d")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.root"
+    "cms2018.root" "${CMAKE_SOURCE_DIR}/data/" "caf4c95d19317d04d42d56c8c45db911")
+  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/pp14TeVminbias.root"
+    "pp14TeVminbias.root" "${CMAKE_SOURCE_DIR}/data/" "109b827c595ae4a62b74f08f860abbb7")
 endif()
 
 #----------------------------------------------------------------------------------------------
@@ -583,13 +541,7 @@ include_directories("${PROJECT_SOURCE_DIR}/run/scheduler/inc")
 include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
 include_directories("${PROJECT_SOURCE_DIR}/run/magneticfield/inc")
 #include_directories("${PROJECT_SOURCE_DIR}/physics/kernel/material/inc")
-if(USE_REAL_PHYSICS)
 include_directories("${PROJECT_SOURCE_DIR}/examples/physics/inc")
-else()
-  include_directories("${PROJECT_SOURCE_DIR}/physics/xsec/inc")
-  include_directories("${PROJECT_SOURCE_DIR}/physics/fastsim/inc")
-  include_directories("${PROJECT_SOURCE_DIR}/examples/tabulated/inc")
-endif()
 include_directories("${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/include")
 
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -603,30 +555,10 @@ message(STATUS "COMPILATION FLAGS ARE -${GEANTV_CXX_FLAGS} - ${GEANTV_COMPILATIO
 
 add_subdirectory (core)
 
-
-if(NOT USE_REAL_PHYSICS)
-  # Remove soon
-  add_subdirectory (physics/xsec)
-endif()
-
 add_subdirectory (run)
 
-if(USE_REAL_PHYSICS)
-  add_subdirectory (examples/physics)
-else()
-  add_subdirectory (examples/tabulated)
-  if(WITH_GEANT4 AND NOT (CUDA) AND USE_ROOT AND NOT (USE_REAL_PHYSICS))
-    add_subdirectory (tools/tabxsec)
-    add_subdirectory (tests/small)
-    add_subdirectory (tests/complex)
-    add_subdirectory (tests/LHCb)
-    add_subdirectory (tests/cmstrack)
-  endif()
-endif()
+add_subdirectory (examples/physics)
 
-if(USE_ROOT AND NOT (USE_REAL_PHYSICS))
-  add_subdirectory (physics/fastsim)
-endif()
 if (ROOT_mathmore_FOUND)
   add_subdirectory (physics/neutron/nudy)
 endif()
@@ -635,16 +567,12 @@ if (NOT (USE_REAL_PHYSICS))
   add_subdirectory(physics/kernel)
 endif()
 
-if (USE_REAL_PHYSICS)
- add_subdirectory(physics)
- if (BUILD_REAL_PHYSICS_TESTS)
-   add_subdirectory(tests/physics)
- endif()
+add_subdirectory(physics)
+if (BUILD_REAL_PHYSICS_TESTS)
+  add_subdirectory(tests/physics)
 endif()
 
-if (USE_VECGEOM_NAVIGATOR)
-  add_subdirectory(physics/kernel/material)
-endif()
+add_subdirectory(physics/kernel/material)
 
 add_subdirectory(physics/generators)
 

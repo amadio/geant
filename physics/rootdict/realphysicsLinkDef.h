@@ -10,13 +10,13 @@
 
 #ifdef __CINT__
 
-#pragma link C++ class geantphysics::CutConverter+;
-#pragma link C++ class geantphysics::CutConverterForElectron+;
-#pragma link C++ class geantphysics::CutConverterForGamma+;
-#pragma link C++ class geantphysics::CutConverterForPositron+;
+//#pragma link C++ class geantphysics::CutConverter+;
+//#pragma link C++ class geantphysics::CutConverterForElectron+;
+//#pragma link C++ class geantphysics::CutConverterForGamma+;
+//#pragma link C++ class geantphysics::CutConverterForPositron+;
 #pragma link C++ class geantphysics::Electron+;
 #pragma link C++ class geantphysics::Gamma+;
-#pragma link C++ class geantphysics::MaterialCuts+;
+//#pragma link C++ class geantphysics::MaterialCuts+;
 #pragma link C++ class geantphysics::Particle+;
 #pragma link C++ class geantphysics::ParticleGun+;
 #pragma link C++ class geantphysics::PhysicsParameters+;

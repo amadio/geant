@@ -42,25 +42,15 @@ void TPrimaryGenerator::SetParticleByPDGCode(int pdgcode) {
 
 //______________________________________________________________________________
 void TPrimaryGenerator::InitPrimaryGenerator() {
-#ifdef USE_VECGEOM_NAVIGATOR
   Particle_t::CreateParticles();
-#endif
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
 // set TDatabasePDG ptr
-#ifdef USE_VECGEOM_NAVIGATOR
   fPartPDG = const_cast<Particle_t *>(&Particle_t::GetParticle(fPDG));
-#else
-  fPartPDG = TDatabasePDG::Instance()->GetParticle(fPDG);
-#endif
   // set rest mass [GeV]
   fMass = fPartPDG->Mass();
   // set charge
-#ifdef USE_VECGEOM_NAVIGATOR
   fCharge = fPartPDG->Charge();
-#else
-  fCharge = fPartPDG->Charge() / 3.;
-#endif
   if ((int)fCharge != fCharge)
      Geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
 

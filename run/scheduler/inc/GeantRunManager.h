@@ -26,7 +26,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantPropagator;
 class TaskBroker;
-class PhysicsProcessOld;
 class GeantVApplication;
 class GeantVDetectorConstruction;
 class UserFieldConstruction;
@@ -54,8 +53,6 @@ private:
   GeantVDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
   
   GeantVTaskMgr     *fTaskMgr = nullptr;  /** GeantV task manager */
-  PhysicsProcessOld *fProcess = nullptr;  /** For now the only generic process pointing to the tabulated physics */
-  PhysicsProcessOld *fVectorPhysicsProcess = nullptr; /** Interface to vector physics final state sampling */
   PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
@@ -168,12 +165,6 @@ public:
 
   GEANT_FORCE_INLINE
   PhysicsInterface *GetPhysicsInterface() const { return fPhysicsInterface; }
-
-  GEANT_FORCE_INLINE
-  void SetPhysicsProcess(PhysicsProcessOld *proc) { fProcess = proc; }
-
-  GEANT_FORCE_INLINE
-  void SetVectorPhysicsProcess(PhysicsProcessOld *proc) { fVectorPhysicsProcess = proc; }
 
   GEANT_FORCE_INLINE
   PrimaryGenerator *GetPrimaryGenerator() const { return fPrimaryGenerator; }

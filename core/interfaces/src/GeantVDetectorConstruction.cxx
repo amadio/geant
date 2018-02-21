@@ -6,8 +6,6 @@
 #include "VBconnector.h"
 #include "GeantRunManager.h"
 
-#ifdef USE_VECGEOM_NAVIGATOR
-
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/NewSimpleNavigator.h"
@@ -23,20 +21,6 @@
 #include "volumes/LogicalVolume.h"
 #include "volumes/PlacedVolume.h"
 
-#else
-
-#ifdef USE_ROOT
-#include "TGeoVolume.h"
-#include "TGeoManager.h"
-#include "TGeoVoxelFinder.h"
-#include "TGeoNode.h"
-#include "TGeoMaterial.h"
-#include "TGeoRegion.h"
-#include "TROOT.h"
-#endif
-
-#endif
-
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -45,7 +29,6 @@ int GeantVDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volume
 {
   // Setup geometry after being constructed by the user (or loaded from file)
   int nvolumes = 0;
-#ifdef USE_VECGEOM_NAVIGATOR
   LoadVecGeomGeometry(broker);
   vecgeom::GeoManager::Instance().GetAllLogicalVolumes(volumes);
   nvolumes = volumes.size();
@@ -53,27 +36,11 @@ int GeantVDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volume
     Fatal("GeantVDetectorConstruction::SetupGeometry", "Geometry is empty");
     return 0;
   }  
-#else
-  (void)broker;
-  if (!gGeoManager) {
-    Fatal("GeantVDetectorConstruction::SetupGeometry", "ROOT geometry not loaded");
-    return 0;
-  }
-  gGeoManager->SetMaxThreads(fRunMgr->GetNthreadsTotal());
-  TObjArray *lvolumes = gGeoManager->GetListOfVolumes();
-  nvolumes = lvolumes->GetEntries();
-  for (auto ivol = 0; ivol < nvolumes; ivol++)
-    volumes.push_back((TGeoVolume *)lvolumes->At(ivol));
-#endif
 
   for (auto i=0; i<nvolumes; ++i) {
     Volume_t *vol = (Volume_t*)volumes[i];
     VBconnector *connector = new VBconnector(i);
-#ifdef USE_VECGEOM_NAVIGATOR
     vol->SetBasketManagerPtr(connector);
-#else
-    vol->SetFWExtension(connector);
-#endif
   }
   return nvolumes;
 }
@@ -97,7 +64,6 @@ bool GeantVDetectorConstruction::LoadGeometry(const char *filename) {
 
 //______________________________________________________________________________
 bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
-#ifdef USE_VECGEOM_NAVIGATOR
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
 #ifdef USE_ROOT
     vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(CreateMaterialConversion());
@@ -122,17 +88,13 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
   }
   InitNavigators();
   return true;
-#else
-  (void)broker;
-  return false;
-#endif
 }
 
 //______________________________________________________________________________
 int GeantVDetectorConstruction::ImportRegions() {
 // Import regions if available in TGeo
   int nregions = 0;
-#if defined(USE_VECGEOM_NAVIGATOR) && defined(USE_ROOT)
+#if defined(USE_ROOT)
   using Region = vecgeom::Region;
   using LogicalVolume = vecgeom::LogicalVolume;
   
@@ -168,7 +130,6 @@ int GeantVDetectorConstruction::ImportRegions() {
 
 //______________________________________________________________________________
 void GeantVDetectorConstruction::InitNavigators() {
-#ifdef USE_VECGEOM_NAVIGATOR
   for (auto &lvol : vecgeom::GeoManager::Instance().GetLogicalVolumesMap()) {
     if (lvol.second->GetDaughtersp()->size() < 4) {
       lvol.second->SetNavigator(vecgeom::NewSimpleNavigator<>::Instance());
@@ -182,11 +143,9 @@ void GeantVDetectorConstruction::InitNavigators() {
     }
     lvol.second->SetLevelLocator(vecgeom::SimpleABBoxLevelLocator::GetInstance());
   }
-#endif
 }
 
 //______________________________________________________________________________
-#ifdef USE_VECGEOM_NAVIGATOR
 #ifdef USE_ROOT
 std::function<void*(TGeoMaterial const *)> GeantVDetectorConstruction::CreateMaterialConversion() {
   return [](TGeoMaterial const *rootmat) {
@@ -229,7 +188,6 @@ std::function<void*(TGeoMaterial const *)> GeantVDetectorConstruction::CreateMat
      return gmat;
    };
 }
-#endif
 #endif
 
 } // GEANT_IMPL_NAMESPACE

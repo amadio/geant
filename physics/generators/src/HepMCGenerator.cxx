@@ -33,9 +33,7 @@ HepMCGenerator::HepMCGenerator(std::string &filename) : input_file(0), search(0)
   else {
     std::cout << "Unrecognized filename extension (must be .hepmc3 or .root)" << std::endl;
   }
-#ifdef USE_VECGEOM_NAVIGATOR
   Particle_t::CreateParticles();
-#endif
 }
 
 //______________________________________________________________________________
@@ -150,14 +148,8 @@ void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTask
 //    gtrack.SetPDG(2212);
 
     gtrack.SetGVcode(TPartIndex::I()->PartIndex(gtrack.PDG()));
-#ifdef USE_VECGEOM_NAVIGATOR
     const Particle_t *const &part = &Particle_t::GetParticle(gtrack.PDG());
     gtrack.SetCharge(part->Charge());
-#else
-    TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(gtrack.PDG());
-    gtrack.SetCharge(part->Charge() / 3.);
-#endif
-
     gtrack.SetMass(part->Mass());
 
     if ((bool)genpart->production_vertex()) {
@@ -209,11 +201,7 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
   tpx = genpart->momentum().px() * 1000.0;
   tpy = genpart->momentum().py() * 1000.0;
   tpz = genpart->momentum().pz() * 1000.0;
-#ifdef USE_VECGEOM_NAVIGATOR
     const Particle_t *const &part = &Particle_t::GetParticle(pdg);
-#else
-    TParticlePDG *part = TDatabasePDG::Instance()->GetParticle(pdg);
-#endif
   te = sqrt(tpx*tpx+tpy*tpy+tpz*tpz+part->Mass()*part->Mass()*1E6);
 //  std::cout << "track momentum = " << te << std::endl;
 //  te = genpart->momentum().e() * 1000.0;

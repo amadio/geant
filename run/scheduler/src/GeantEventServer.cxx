@@ -14,17 +14,9 @@
 #include "StackLikeBuffer.h"
 #include "MCTruthMgr.h"
 
-#ifdef USE_VECGEOM_NAVIGATOR
 #include "navigation/SimpleNavigator.h"
 #include "volumes/PlacedVolume.h"
 #include "management/GeoManager.h"
-#else
-#ifdef USE_ROOT
-#include "TGeoVolume.h"
-#include "TGeoManager.h"
-#include "TGeoNode.h"
-#endif
-#endif
 
 namespace Geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -156,21 +148,9 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
   //Volume_t *vol = 0;
   // Initialize the start path
   VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
-#ifdef USE_VECGEOM_NAVIGATOR
   vecgeom::SimpleNavigator nav;
   startpath->Clear();
   nav.LocatePoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
-  //vol = const_cast<Volume_t *>(startpath->Top()->GetLogicalVolume());
-  //VBconnector *link = static_cast<VBconnector *>(vol->GetBasketManagerPtr());
-#else
-  TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
-  if (!nav)
-    nav = gGeoManager->AddNavigator();
-  //TGeoNode *geonode = nav->FindNode(vertex.x(), vertex.y(), vertex.z());
-  //vol = geonode->GetVolume();
-  //VBconnector *link = static_cast<VBconnector *>(vol->GetFWExtension());
-  startpath->InitFromNavigator(nav);
-#endif
 
   // Check and fix tracks
   for (int itr=0; itr<ntracks; ++itr) {

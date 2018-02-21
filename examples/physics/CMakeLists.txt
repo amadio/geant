@@ -108,7 +108,7 @@ set(headers
 #
 add_library(GeantExamplesRP SHARED ${sources})
 
-target_link_libraries(GeantExamplesRP -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v RealPhysics Material ${HEPMC_LIBRARIES}
+target_link_libraries(GeantExamplesRP -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v Physics Material ${HEPMC_LIBRARIES}
   ${TBB_LIBRARIES})
 
 if (USE_ROOT)

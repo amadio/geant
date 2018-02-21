@@ -119,11 +119,7 @@ bool LHCbFullApp::Initialize() {
   for (int ivol = 0; ivol < nvolumes; ++ivol) {
     vol = lvolumes[ivol];
     if (!vol) break;
-#ifdef USE_VECGEOM_NAVIGATOR
     int idvol = vol->id();
-#else
-    int idvol = vol->GetNumber();
-#endif
     svol = vol->GetName();
 
 
