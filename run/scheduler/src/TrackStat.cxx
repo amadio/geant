@@ -21,7 +21,7 @@ int TrackStat::CountBalance()
   fNstagebuff = 0;
   fNbasketized = 0;
   SimulationStage * stage;
-  Basketizer<GeantTrack> *basketizer;
+  Basketizer<Track> *basketizer;
   for (int istage = 0; istage < nstages; ++istage) {
     // Count tracks in the input buffer
     fNstagebuff += fTd->fStageBuffers[istage]->size();

@@ -189,7 +189,7 @@ int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, geant::GeantTa
   sectracks[secIndx].SetKinE(gammaEnergy);
   sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   //
   // compute the primary e-/e+ post interaction direction: from momentum vector conservation
   const double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::units::kElectronMassC2));

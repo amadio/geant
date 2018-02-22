@@ -25,14 +25,14 @@ using vecgeom::kDegToRad;
 
 class GeantTaskData;
 
-struct GeantEventInfo {
+struct EventInfo {
   int      ntracks;    // number of tracks
   double   xvert;      // x position
   double   yvert;      // y position
   double   zvert;      // z position
   double   tvert;      // time
 // ... to be extended
-  GeantEventInfo() : xvert(0), yvert(0), zvert(0) {}
+  EventInfo() : xvert(0), yvert(0), zvert(0) {}
 };
 
 /**
@@ -59,7 +59,7 @@ public:
 
   /**
    * @brief Pure virtual function of initialization of primary generator
-   * @details Set one GeantTrack primary track properties
+   * @details Set one Track primary track properties
    */
   virtual void InitPrimaryGenerator() = 0;
 
@@ -67,7 +67,7 @@ public:
     *
     * @param td thread local data pointer
     */
-  virtual GeantEventInfo NextEvent(geant::GeantTaskData* td) = 0;
+  virtual EventInfo NextEvent(geant::GeantTaskData* td) = 0;
 
   /**
    * @brief Pure virtual function that returns track
@@ -76,7 +76,7 @@ public:
    * @param gtrack track
    * @param td thread local data pointer
    */
-  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* td) = 0;
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* td) = 0;
 
   /** @brief Getter for eta cut flag */
   bool HasEtaCut() const { return fEtaCut; }

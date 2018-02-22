@@ -4,10 +4,10 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "TaskBroker.h"
 #include "WorkloadManager.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 
 // realphysics
 #include "PhysicsProcessHandler.h"
@@ -32,11 +32,11 @@ void GetArguments(int argc, char *argv[]);
 void SetupPhysicsList         (userapplication::TestEm3PhysicsList* physlist);
 void SetupUserDetector        (userapplication::TestEm3DetectorConstruction* detector);
 void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator* primarygun, int numprimsperevt);
-void SetupMCTruthHandling     (geant::GeantRunManager* runMgr);
+void SetupMCTruthHandling     (geant::RunManager* runMgr);
 void SetupUserApplication     (userapplication::TestEm3App* app);
-void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::GeantRunManager *rmg);
+void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::RunManager *rmg);
 void PreSet(int num);
-geant::GeantRunManager* RunManager();
+geant::RunManager* RunManager();
 
 //
 // Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun), the
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   GetArguments(argc, argv);
   //
   // Create and configure run manager
-  geant::GeantRunManager* runMgr = RunManager();
+  geant::RunManager* runMgr = RunManager();
 
   // Create user defined physics list for TestEm3
   userapplication::TestEm3PhysicsList *userPhysList = new userapplication::TestEm3PhysicsList("TestEm3PhysicsList");
@@ -191,7 +191,7 @@ void help() {
   printf("\n\n");
 }
 
-void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::GeantRunManager *rmg) {
+void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::RunManager *rmg) {
   // Print run information
   long int nevents    = rmg->GetConfig()->fNtotal;
   long int nprimpere  = rmg->GetConfig()->fNaverage;
@@ -324,11 +324,11 @@ void GetArguments(int argc, char *argv[]) {
 }
 
 
-geant::GeantRunManager* RunManager() {
-  // create the GeantConfiguration object and the GeantRunManager object
+geant::RunManager* RunManager() {
+  // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig*     runConfig  = new geant::GeantConfig();
-  geant::GeantRunManager* runManager = new geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
-  // create the real physics main manager/interface object and set it in the GeantRunManager
+  geant::RunManager* runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
+  // create the real physics main manager/interface object and set it in the RunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //
   // Set parameters of the GeantConfig object:
@@ -381,7 +381,7 @@ void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator* primary
     primarygun->SetPrimaryParticleEnergy(parGunPrimaryKinEnergy);
 }
 
-void SetupMCTruthHandling(geant::GeantRunManager* runMgr) {
+void SetupMCTruthHandling(geant::RunManager* runMgr) {
   if(mctruthOn)
     {
       std::string mc(mctruthFile);

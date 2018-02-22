@@ -10,7 +10,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SteppingActionsHandler::SteppingActionsHandler(int threshold, GeantPropagator *propagator)
+SteppingActionsHandler::SteppingActionsHandler(int threshold, Propagator *propagator)
                : Handler(threshold, propagator)
 {
 // Default constructor
@@ -26,7 +26,7 @@ SteppingActionsHandler::~SteppingActionsHandler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void SteppingActionsHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void SteppingActionsHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
   // If track made too many steps, deposit all kinetic energy and kill it

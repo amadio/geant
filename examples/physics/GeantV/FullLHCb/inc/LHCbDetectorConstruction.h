@@ -11,7 +11,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-    class GeantRunManager;
+    class RunManager;
   }
 }
 
@@ -21,7 +21,7 @@ namespace lhcbapp {
 class LHCbDetectorConstruction : public geant::GeantVDetectorConstruction {
 public:
 
-  LHCbDetectorConstruction(geant::GeantRunManager *runmgr);
+  LHCbDetectorConstruction(geant::RunManager *runmgr);
 
   virtual ~LHCbDetectorConstruction();
 

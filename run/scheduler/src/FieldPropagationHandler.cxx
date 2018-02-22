@@ -9,7 +9,7 @@
 #include "ConstFieldHelixStepper.h"
 #include "FieldTrack.h"
 
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "base/SOA3D.h"
 // #include "SOA6D.h"
@@ -44,7 +44,7 @@ static std::atomic<unsigned long> numRK      ,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-FieldPropagationHandler::FieldPropagationHandler(int threshold, GeantPropagator *propagator)
+FieldPropagationHandler::FieldPropagationHandler(int threshold, Propagator *propagator)
                : Handler(threshold, propagator)
 {
 // Default constructor
@@ -74,7 +74,7 @@ FieldPropagationHandler::Initialize(GeantTaskData * td)
   bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
 
   if( useRungeKutta ){
-     // Initialize for the current thread -- move to GeantPropagator::Initialize() or per thread Init method
+     // Initialize for the current thread -- move to Propagator::Initialize() or per thread Init method
      static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
      assert( fieldPropPool );
 
@@ -101,7 +101,7 @@ void FieldPropagationHandler::Cleanup(GeantTaskData * td)
 //______________________________________________________________________________
 // Curvature for general field
 VECCORE_ATT_HOST_DEVICE
-double FieldPropagationHandler::Curvature(const GeantTrack  & track) const
+double FieldPropagationHandler::Curvature(const Track  & track) const
 {
   using ThreeVector_d = vecgeom::Vector3D<double>;
   constexpr double tiny = 1.E-30;
@@ -123,12 +123,12 @@ double FieldPropagationHandler::Curvature(const GeantTrack  & track) const
   PtransB = Momentum - ratioOverFld * MagFld ;
   double Pt_mag = PtransB.Mag();
 
-  return fabs(GeantTrack::kB2C * track.Charge() * bmag / (Pt_mag + tiny));
+  return fabs(Track::kB2C * track.Charge() * bmag / (Pt_mag + tiny));
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void FieldPropagationHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
   // Step selection
@@ -195,7 +195,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   double *steps = td->GetDblArray(ntracks);
   for (int itr = 0; itr < ntracks; itr++) {
     // Can this loop be vectorized?
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     lmax = SafeLength(track, gEpsDeflection);
     lmax = vecCore::math::Max<double>(lmax, track.GetSafety());
     // Select step to propagate as the minimum among the "safe" step and:
@@ -267,7 +267,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
                    (const VolumePath_t**)fPathV, fNextpathV, same, tmpstate);
   track_geo.UpdateOriginalTracks();
   for (itr = 0; itr < nsel; itr++) {
-    GeantTrack *track = track_geo.fOriginalV[itr];
+    Track *track = track_geo.fOriginalV[itr];
     if (!same[itr]) {
       td->fNcross++;
       td->fNsteps++;
@@ -288,7 +288,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtstep, GeantTaskData * td)
+void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, GeantTaskData * td)
 {
 // Single track propagation in a volume. The method is to be called
 // only with  charged tracks in magnetic field.The method decreases the fPstepV
@@ -333,7 +333,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 
 #if 0
   constexpr double inv_kilogauss = 1.0 / geant::units::kilogauss;
-  double curvaturePlus= fabs(GeantTrack::kB2C * track.Charge() * (bmag* inv_kilogauss)) / (track.P() + 1.0e-30);  // norm for step
+  double curvaturePlus= fabs(Track::kB2C * track.Charge() * (bmag* inv_kilogauss)) / (track.P() + 1.0e-30);  // norm for step
 
   const double angle= crtstep * curvaturePlus;
   constexpr double numRadiansMax= 10.0; // Too large an angle - many RK steps.  Potential change -> 2.0*PI;
@@ -487,7 +487,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
 
   for (int itr=0; itr<nTracks; ++itr)
   {
-     GeantTrack* pTrack= tracks[itr];
+     Track* pTrack= tracks[itr];
 
      // intCharge[itr]= pTrack->Charge();
      fltCharge[itr]= pTrack->Charge();
@@ -525,7 +525,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
      // Store revised positions and location in original tracks
      for (int itr=0; itr<nTracks; ++itr)
      {
-        GeantTrack& track= *tracks[itr];
+        Track& track= *tracks[itr];
         Vector3D<double> positionMove = { track.X(),   //  - PositionOut.x(itr),
                                           track.Y(),   //  - PositionOut.y(itr),
                                           track.Z() }; //  - PositionOut.z(itr) };
@@ -556,7 +556,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
      FieldTrack fldTracksIn[nTracks], fldTracksOut[nTracks];
      for (int itr=0; itr<nTracks; ++itr)
      {
-        GeantTrack* pTrack= tracks[itr];
+        Track* pTrack= tracks[itr];
         // Alternative - directly momentum vector
         double pmag= pTrack->P(), px=pTrack->Dx(), py=pTrack->Dy(), pz=pTrack->Dz();
         px *= pmag;
@@ -596,7 +596,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
         // Store revised positions and location in original tracks
         for (int itr=0; itr<nTracks; ++itr)
         {
-           GeantTrack& track= *tracks[itr];
+           Track& track= *tracks[itr];
            FieldTrack& fldTrackEnd= fldTracksOut[itr];
            Vector3D<double> startPosition  = { track.X(), track.Y(), track.Z() };
            Vector3D<double> startDirection = { track.Dx(), track.Dy(), track.Dz() };
@@ -704,7 +704,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool FieldPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *td) {
+bool FieldPropagationHandler::IsSameLocation(Track &track, GeantTaskData *td) {
 // Query geometry if the location has changed for a track
 // Returns number of tracks crossing the boundary (0 or 1)
 

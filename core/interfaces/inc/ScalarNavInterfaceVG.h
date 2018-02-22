@@ -15,7 +15,7 @@
 
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -59,7 +59,7 @@ public:
   * @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavFindNextBoundaryAndStep(GeantTrack &track);
+  void NavFindNextBoundaryAndStep(Track &track);
 
   /**
    * @brief Function for navigation that checks if location is the same or not
@@ -87,7 +87,7 @@ public:
   * @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavIsSameLocation(GeantTrack &track, bool &same, VolumePath_t *tmpstate);
+  void NavIsSameLocation(Track &track, bool &same, VolumePath_t *tmpstate);
   
 };
 } // GEANT_IMPL_NAMESPACE

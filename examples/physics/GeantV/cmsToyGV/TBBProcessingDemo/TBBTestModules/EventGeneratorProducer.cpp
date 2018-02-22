@@ -39,10 +39,10 @@ namespace demo {
     std::string filename = iConfig.get<std::string>("fileName");
 
     // if (m_generator) {
-    //   std::cout<<"*** GeantRunManager: setting up a GunGenerator...\n";
+    //   std::cout<<"*** RunManager: setting up a GunGenerator...\n";
     //   fRunMgr->SetPrimaryGenerator( new GunGenerator(fConfig->fNaverage, 11, fConfig->fEmax, -8, 0, 0, 1, 0, 0) );
     // } else {
-    //   std::cout<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
+    //   std::cout<<"*** RunManager: setting up a HepMCGenerator...\n";
     //   // propagator->fPrimaryGenerator->SetEtaRange(-2.,2.);
     //   // propagator->fPrimaryGenerator->SetMomRange(0.,0.5);
     //   // propagator->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");

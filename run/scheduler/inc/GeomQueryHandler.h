@@ -63,7 +63,7 @@ public:
    * @param vol Associated volume
    */
   VECCORE_ATT_HOST_DEVICE
-  GeomQueryHandler(Volume_t *vol, int threshold, GeantPropagator *propagator, int index = -1);
+  GeomQueryHandler(Volume_t *vol, int threshold, Propagator *propagator, int index = -1);
 
   /** @brief Geometry filter destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -75,7 +75,7 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(GeantTrack *track, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE

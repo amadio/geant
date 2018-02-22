@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "CMSApplicationTBB.h"
-#include "GeantEvent.h"
+#include "Geant/Event.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 #include "Geant/Error.h"
@@ -29,7 +29,7 @@ void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
 
 // //______________________________________________________________________________
 // // any user tasks after simulation is complete (and before digitization)
-// tbb::task *CMSApplicationTBB::SpawnUserEventFeeder(GeantEventServer *evserv) {
+// tbb::task *CMSApplicationTBB::SpawnUserEventFeeder(EventServer *evserv) {
 
 //   printf("-- CMSAppTBB::SpawnUserEventFeeder() called...");
 //   //return static_cast<CMSApplicationTBB*>(fRunMgr->GetUserApplication())->SpawnEventLoopTask(/*nevents*/);
@@ -46,7 +46,7 @@ void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
 // }
 
 //______________________________________________________________________________
-void CMSApplicationTBB::FinishEvent(geant::GeantEvent *event) {
+void CMSApplicationTBB::FinishEvent(geant::Event *event) {
   // find next tbb::task and decrement its ref count
   CMSFullApp::FinishEvent(event);
   std::lock_guard<std::mutex> lock(fMapLock);

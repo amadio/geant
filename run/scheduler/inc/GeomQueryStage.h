@@ -38,7 +38,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track, GeantTaskData *td);
+  virtual Handler *Select(Track *track, GeantTaskData *td);
 
 public:
   /** @brief Dummy GeomQueryStage constructor */
@@ -47,7 +47,7 @@ public:
 
   /** @brief Standard GeomQueryStage constructor */
   VECCORE_ATT_HOST_DEVICE
-  GeomQueryStage(GeantPropagator *prop);
+  GeomQueryStage(Propagator *prop);
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE

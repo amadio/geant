@@ -13,7 +13,7 @@
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
-  class GeantTrack;
+  class Track;
 }
 }
 
@@ -43,10 +43,10 @@ public:
   virtual void  Initialize();
 
 // special MSC model interface methods
-  virtual void  StepLimit(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) {}
-  virtual void  ConvertTrueToGeometricLength(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) {}
-  virtual void  ConvertGeometricToTrueLength(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) {}
-  virtual bool  SampleScattering(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) {return false;}
+  virtual void  StepLimit(geant::Track* /*gtrack*/, geant::GeantTaskData* /*td*/) {}
+  virtual void  ConvertTrueToGeometricLength(geant::Track* /*gtrack*/, geant::GeantTaskData* /*td*/) {}
+  virtual void  ConvertGeometricToTrueLength(geant::Track* /*gtrack*/, geant::GeantTaskData* /*td*/) {}
+  virtual bool  SampleScattering(geant::Track* /*gtrack*/, geant::GeantTaskData* /*td*/) {return false;}
 
 //
   void SetMSCSteppingAlgorithm(MSCSteppingAlgorithm steppingalg) { fMSCSteppingAlgorithm = steppingalg; }

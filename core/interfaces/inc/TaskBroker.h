@@ -37,7 +37,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData;
 class GeantBasket;
 class GeantConfig;
-class GeantPropagator;
+class Propagator;
 
 /**
  * @brief Class TaskBroker
@@ -61,7 +61,7 @@ public:
   virtual bool IsSelective() const = 0;
 
   /** @brief Create the baskets for each stream */
-  virtual void CreateBaskets(GeantPropagator *config) = 0;
+  virtual void CreateBaskets(Propagator *config) = 0;
 
   /** @brief Virtual function that get next stream */
   virtual Stream GetNextStream() = 0;

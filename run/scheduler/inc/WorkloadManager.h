@@ -19,7 +19,7 @@
 #include "dcqueue.h"
 #include "condition_locker.h"
 
-#include "GeantPropagator.h"
+#include "Propagator.h"
 
 #include "GeantTaskData.h"
 
@@ -32,7 +32,7 @@ class GeantScheduler;
 class TaskBroker;
 class GeantVTaskMgr;
 class EventSet;
-class GeantRunManager;
+class RunManager;
 
 /**
  * @brief WorkloadManager class
@@ -42,7 +42,7 @@ class GeantRunManager;
  */
 class WorkloadManager {
 protected:
-  GeantPropagator* fPropagator = nullptr; /** propagator,... */
+  Propagator* fPropagator = nullptr; /** propagator,... */
   int fNthreads = 0;                      /** Number of managed threads */
   bool fStarted = false;                  /** Start flag */
   bool fStopped = false;                  /** Stop flag */
@@ -56,7 +56,7 @@ protected:
    *
    * @param  nthreads Number of threads foe workload manager
    */
-  WorkloadManager(int nthreads, GeantPropagator* prop) : fPropagator(prop), fNthreads(nthreads)
+  WorkloadManager(int nthreads, Propagator* prop) : fPropagator(prop), fNthreads(nthreads)
   {
     fDoneQ = new priority_queue<Basket *>(1 << 10, nthreads);
   }
@@ -87,7 +87,7 @@ public:
    *
    * @param nthreads Number of threads (by default 0)
    */
-  static WorkloadManager *NewInstance(GeantPropagator *prop= nullptr, int nthreads = 0);
+  static WorkloadManager *NewInstance(Propagator *prop= nullptr, int nthreads = 0);
 
   /** @brief Function that check stop flag */
   GEANT_FORCE_INLINE
@@ -124,7 +124,7 @@ public:
    *
    * @param arg Arguments to be passed in the function
    */
-  static void TransportTracksV3(GeantPropagator *prop);
+  static void TransportTracksV3(Propagator *prop);
 
   /**
    * @brief Function that provides transporting tracks

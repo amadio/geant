@@ -23,10 +23,10 @@ public:
   HepMCGenerator(std::string &filename);
   ~HepMCGenerator();
 
-  // set one GeantTrack primary track properties
+  // set one Track primary track properties
   virtual void InitPrimaryGenerator();
-  virtual GeantEventInfo NextEvent(geant::GeantTaskData* td);
-  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/);
+  virtual EventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* /*td*/);
   // used from Geant4 test-complex to take one primary track
   void GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0, double &z0, int &pdg);
 

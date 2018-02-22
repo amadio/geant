@@ -1,10 +1,10 @@
-//===--- GeantTrack.h - GeantV ---------------------------------*- C++ -*-===//
+//===--- Track.h - GeantV ---------------------------------*- C++ -*-===//
 //
 //                     GeantV Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantTrack.h
+ * @file Track.h
  * @brief Implementation of track for GeantV prototype
  * @author Andrei Gheata
  */
@@ -89,7 +89,7 @@ constexpr size_t kNstages = size_t(kSteppingActionsStage) + 1;
 constexpr size_t kNumPhysicsProcess = 10;
 
 class GeantTaskData;
-class GeantTrack;
+class Track;
 class TrackDataMgr;
 
 using InplaceConstructFunc_t = std::function<void(void*)>;
@@ -109,19 +109,19 @@ GEANT_DECLARE_CONSTANT(double, gTolerance);
 
 #ifndef VECCORE_CUDA
 #ifdef GEANT_USE_NUMA
-typedef NumaAllocator<GeantTrack*> TrackAllocator_t;
-typedef std::vector<GeantTrack *, TrackAllocator_t> TrackVec_t;
+typedef NumaAllocator<Track*> TrackAllocator_t;
+typedef std::vector<Track *, TrackAllocator_t> TrackVec_t;
 #else
-typedef vector_t<GeantTrack *> TrackVec_t;
+typedef vector_t<Track *> TrackVec_t;
 #endif
 #else
-typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
+typedef vecgeom::Vector<Track *> TrackVec_t;
 #endif
 
 /**
- * @brief Class GeantTrack
+ * @brief Class Track
  */
-class GeantTrack {
+class Track {
 
 template <typename T>
 using Vector3D = vecgeom::Vector3D<T>;
@@ -194,7 +194,7 @@ char *fExtraData;                   /** Start of user data at first aligned addr
   //  __|++++track_data+++++++__padding______|++user_data_1++__|++user_data_2++_..._____________   |++fPath_pre_step+++|_______________|++fPath_post_step
   //Addresses:
   //    | addr (track start address)
-  //                                         | fExtraData = round_up_align(addr + sizeof(GeantTrack))
+  //                                         | fExtraData = round_up_align(addr + sizeof(Track))
   //                                                           | round_up_align(fExtraData + sizeof(user_data_1))
   //                                                                                               | round_up_align(fExtraData + TrackDataMgr::fDataOffset))
 
@@ -202,25 +202,25 @@ char *fExtraData;                   /** Start of user data at first aligned addr
   static constexpr double kTiny = 1.E-50;
 
   /**
-  * @brief GeantTrack in place constructor
+  * @brief Track in place constructor
   *
   * @param addr Start address
   */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack(void *addr);
+  Track(void *addr);
 
 public:
-  /** @brief GeantTrack destructor */
+  /** @brief Track destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~GeantTrack() = delete;
+  ~Track() = delete;
 
-  /** @brief GeantTrack copy constructor */
+  /** @brief Track copy constructor */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack(const GeantTrack &other) = delete;
+  Track(const Track &other) = delete;
 
   /** @brief Operator = */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack &operator=(const GeantTrack &other);
+  Track &operator=(const Track &other);
 
   //---------------------------------//
   //*** Basic and derived getters ***//
@@ -991,7 +991,7 @@ public:
 
   /** @brief Clone this track using specific task data storage */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack *Clone(GeantTaskData *td);
+  Track *Clone(GeantTaskData *td);
 
   /** @brief Function that stops the track depositing its kinetic energy */
   VECCORE_ATT_HOST_DEVICE
@@ -1009,7 +1009,7 @@ public:
 
   /** Fast reset function */
   VECCORE_ATT_HOST_DEVICE
-  void Reset(GeantTrack const &blueprint);
+  void Reset(Track const &blueprint);
 
   /** @brief Print function */
   void Print(const char *msg = "") const;
@@ -1062,21 +1062,21 @@ public:
     fZpos += step * fZdir;
   }
 
-  /** @brief Returns the contiguous memory size needed to hold a GeantTrack*/
+  /** @brief Returns the contiguous memory size needed to hold a Track*/
   VECCORE_ATT_HOST_DEVICE
   static size_t SizeOfInstance();
 
-  /** @brief GeantTrack MakeInstance based on a provided single buffer */
+  /** @brief Track MakeInstance based on a provided single buffer */
   VECCORE_ATT_HOST_DEVICE
-  static GeantTrack *MakeInstanceAt(void *addr);
+  static Track *MakeInstanceAt(void *addr);
 
-  /** @brief GeantTrack MakeInstance allocating the necessary buffer on the heap */
+  /** @brief Track MakeInstance allocating the necessary buffer on the heap */
   VECCORE_ATT_HOST_DEVICE
-  static GeantTrack *MakeInstance();
+  static Track *MakeInstance();
 
   /** @brief Releases track instance created using MakeInstance */
   VECCORE_ATT_HOST_DEVICE
-  static void ReleaseInstance(GeantTrack *track);
+  static void ReleaseInstance(Track *track);
 
   /**
    * @brief Rounds up an address to the aligned value
@@ -1101,7 +1101,7 @@ public:
       return value;
     return (value + GEANT_ALIGN_PADDING - remainder);
   }
-  //  ClassDefNV(GeantTrack, 1) // The track
+  //  ClassDefNV(Track, 1) // The track
 };
 
 // Track token for user data
@@ -1116,7 +1116,7 @@ public:
   std::string const GetName() const { return fName; }
 
   template <typename T>
-  T &Data(GeantTrack *track) {
+  T &Data(Track *track) {
     return *(T*)(track->fExtraData + fOffset);
   }
 };
@@ -1128,11 +1128,11 @@ struct DataInplaceConstructor_t {
   InplaceConstructFunc_t fDataConstructor;
   PrintUserDataFunc_t fPrintUserData;
 
-  void operator()(GeantTrack &track) {
+  void operator()(Track &track) {
     fDataConstructor(track.fExtraData + fDataOffset);
   }
 
-  void PrintUserData(GeantTrack const &track) const {
+  void PrintUserData(Track const &track) const {
     fPrintUserData(track.fExtraData + fDataOffset);
   }
 
@@ -1145,7 +1145,7 @@ class TrackDataMgr {
 private:
   bool fLocked = false;   /** Lock flag. User not allowed to register new data type.*/
   size_t fTrackSize = 0;  /** Total track size including alignment rounding */
-  size_t fDataOffset = 0; /** Offset for the user data start address with respect to GeantTrack::fExtraData pointer */
+  size_t fDataOffset = 0; /** Offset for the user data start address with respect to Track::fExtraData pointer */
   size_t fMaxDepth = 0;   /** Maximum geometry depth, to be provided at construction time */
 
   vector_t<DataInplaceConstructor_t> fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
@@ -1178,7 +1178,7 @@ public:
   }
 
   /** @brief Apply in-place construction of user-defined data on the track */
-  void InitializeTrack(GeantTrack &track) {
+  void InitializeTrack(Track &track) {
     fLocked = true;
     // Construct objects at base address + offset
     for (auto construct : fConstructors)
@@ -1186,7 +1186,7 @@ public:
   }
 
   /** @brief Invoke all registered print methods for user data */
-  void PrintUserData(GeantTrack const &track) const {
+  void PrintUserData(Track const &track) const {
     for (auto userdata : fConstructors)
       userdata.PrintUserData(track);
   }
@@ -1228,7 +1228,7 @@ public:
     };
 
     // Calculate data offset
-    size_t block_size = GeantTrack::round_up_align(sizeof(T)); // multiple of the alignment padding
+    size_t block_size = Track::round_up_align(sizeof(T)); // multiple of the alignment padding
     fTrackSize += block_size;
     DataInplaceConstructor_t ctor {fDataOffset, userinplaceconstructor, printuserdata};
     fConstructors.push_back(ctor);

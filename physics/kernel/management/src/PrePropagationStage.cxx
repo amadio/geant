@@ -2,9 +2,9 @@
 #include "PrePropagationStage.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Handler.h"
 
 // from realphysics
@@ -21,7 +21,7 @@
 
 namespace geantphysics {
 
-PrePropagationStage::PrePropagationStage(geant::GeantPropagator *prop)
+PrePropagationStage::PrePropagationStage(geant::Propagator *prop)
 : SimulationStage(geant::kPrePropagationStage, prop) { }
 
 // base class will delete the created handlers
@@ -37,7 +37,7 @@ int PrePropagationStage::CreateHandlers() {
 }
 
 // Selects tracks that have msc process
-geant::Handler* PrePropagationStage::Select(geant::GeantTrack *track, geant::GeantTaskData * /*td*/) {
+geant::Handler* PrePropagationStage::Select(geant::Track *track, geant::GeantTaskData * /*td*/) {
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle

@@ -2,9 +2,9 @@
 #include "PostStepActionHandler.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Basket.h"
 
 // from realphysics
@@ -20,13 +20,13 @@
 
 namespace geantphysics {
 
-PostStepActionHandler::PostStepActionHandler(int threshold, geant::GeantPropagator *propagator)
+PostStepActionHandler::PostStepActionHandler(int threshold, geant::Propagator *propagator)
 : geant::Handler(threshold, propagator) {}
 
 
 PostStepActionHandler::~PostStepActionHandler() {}
 
-void PostStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData * td) {
+void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData * td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -67,7 +67,7 @@ void PostStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output
   // invoke the PostStepAction of this particle PhysicsManagerPerParticle
   int nSecParticles = pManager->PostStepAction(primaryLT, track, td);
   //
-  // update GeantTrack
+  // update Track
   double newEkin    = primaryLT.GetKinE();
   track->SetMass(primaryLT.GetMass());
   track->SetE(newEkin+track->Mass());
@@ -92,10 +92,10 @@ void PostStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output
     for (int isec=0; isec<nSecParticles; ++isec) {
       int   secGVcode = secLt[isec].GetGVcode(); // GV index of this secondary particle
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
-      // get a GeantTrack geantTrack;
-      geant::GeantTrack &geantTrack = td->GetNewTrack();
+      // get a Track geantTrack;
+      geant::Track &geantTrack = td->GetNewTrack();
       // set the new track properties
-//      int t = secLt[isec].GetTrackIndex();          // parent GeantTrack index in the input GeantTrack_v
+//      int t = secLt[isec].GetTrackIndex();          // parent Track index in the input Track_v
       geantTrack.SetEvent (track->Event());
       geantTrack.SetEvslot(track->EventSlot());
       geantTrack.SetGVcode(secGVcode);
@@ -118,7 +118,7 @@ void PostStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output
       geantTrack.SetNextPath(track->Path());
       geantTrack.SetMother(track->Particle());
       geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
-      // add GeantTrack
+      // add Track
       td->fPropagator->AddTrack(geantTrack);
       output.Tracks().push_back(&geantTrack);
       // increase the number of secondaries inserted

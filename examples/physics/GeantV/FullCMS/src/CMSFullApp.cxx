@@ -1,8 +1,8 @@
 
 #include "CMSFullApp.h"
 
-#include "GeantEvent.h"
-#include "GeantRunManager.h"
+#include "Geant/Event.h"
+#include "RunManager.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 
@@ -20,7 +20,7 @@
 
 namespace cmsapp {
 
-CMSFullApp::CMSFullApp(geant::GeantRunManager* runmgr, CMSParticleGun* gun)
+CMSFullApp::CMSFullApp(geant::RunManager* runmgr, CMSParticleGun* gun)
 : geant::GeantVApplication(runmgr), fGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
@@ -77,7 +77,7 @@ bool CMSFullApp::Initialize() {
 
 
 
-void CMSFullApp::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
+void CMSFullApp::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -121,7 +121,7 @@ void CMSFullApp::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData 
 }
 
 
-void CMSFullApp::FinishEvent(geant::GeantEvent *event) {
+void CMSFullApp::FinishEvent(geant::Event *event) {
   if (fIsPerformance) {
     return;
   }
@@ -139,7 +139,7 @@ void CMSFullApp::FinishEvent(geant::GeantEvent *event) {
               << " ===  FinishEvent  --- event = " << event->GetEvent() << " with "<< nPrims << " primary:"
               << std::endl;
     for (int ip=0; ip<nPrims; ++ip) {
-      geant::GeantTrack* primTrack = event->GetPrimary(ip);
+      geant::Track* primTrack = event->GetPrimary(ip);
       int         primGVCode       = primTrack->GVcode();
       const std::string &primName  = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
       int         primTypeIndx     = CMSParticleGun::GetPrimaryTypeIndex(primName);

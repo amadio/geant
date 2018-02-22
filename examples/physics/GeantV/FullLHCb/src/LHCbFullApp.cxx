@@ -1,8 +1,8 @@
 
 #include "LHCbFullApp.h"
 
-#include "GeantEvent.h"
-#include "GeantRunManager.h"
+#include "Geant/Event.h"
+#include "RunManager.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 
@@ -22,7 +22,7 @@
 
 namespace lhcbapp {
 
-LHCbFullApp::LHCbFullApp(geant::GeantRunManager* runmgr, LHCbParticleGun* gun)
+LHCbFullApp::LHCbFullApp(geant::RunManager* runmgr, LHCbParticleGun* gun)
 : geant::GeantVApplication(runmgr), fGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
@@ -170,7 +170,7 @@ bool LHCbFullApp::Initialize() {
 
 
 
-void LHCbFullApp::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
+void LHCbFullApp::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -287,7 +287,7 @@ void LHCbFullApp::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData
 }
 
 
-void LHCbFullApp::FinishEvent(geant::GeantEvent *event) {
+void LHCbFullApp::FinishEvent(geant::Event *event) {
   if (fIsPerformance) {
     return;
   }
@@ -305,7 +305,7 @@ void LHCbFullApp::FinishEvent(geant::GeantEvent *event) {
               << std::endl;
     
     for (int ip=0; ip<nPrims; ++ip) {
-      geant::GeantTrack* primTrack = event->GetPrimary(ip);
+      geant::Track* primTrack = event->GetPrimary(ip);
       int         primGVCode       = primTrack->GVcode();
       const std::string &primName  = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
       int         primTypeIndx     = LHCbParticleGun::GetPrimaryTypeIndex(primName);

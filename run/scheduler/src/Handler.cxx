@@ -7,7 +7,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler::Handler(int threshold, GeantPropagator *propagator)
+Handler::Handler(int threshold, Propagator *propagator)
   : fPropagator(propagator) {
   // Handler constructor. The handler needs to be manually activated to actually
   // allocate the basketizer.
@@ -86,7 +86,7 @@ void Handler::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Handler::AddTrack(GeantTrack *track, Basket &collector)
+bool Handler::AddTrack(Track *track, Basket &collector)
 {
 // Adding a track to the handler assumes that the handler is basketized.
 // The track will be pushed into the basketizer. The calling thread has to 

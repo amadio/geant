@@ -3,8 +3,8 @@
 // vecgeom::GeoManager
 #include "management/GeoManager.h"
 //
-#include "GeantEvent.h"
-#include "GeantRunManager.h"
+#include "Geant/Event.h"
+#include "RunManager.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 
@@ -32,7 +32,7 @@
 
 namespace userapplication {
 
-TestEm5::TestEm5(geant::GeantRunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun)
+TestEm5::TestEm5(geant::RunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun)
   : geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
   fHist1FileName         = "testEm5Hist1.dat";
   fInitialized           = false;
@@ -101,7 +101,7 @@ bool TestEm5::Initialize() {
 }
 
 
-void TestEm5::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
+void TestEm5::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
   Node_t const *current;
   int idvol = -1;
@@ -208,7 +208,7 @@ void TestEm5::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td
 }
 
 
-void TestEm5::FinishEvent(geant::GeantEvent *event) {
+void TestEm5::FinishEvent(geant::Event *event) {
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
   // belongs to the event (that occupied a given event-slot) that has been just transported
   TestEm5ThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);

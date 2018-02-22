@@ -20,7 +20,7 @@
 #include "HepMCGenerator.h"
 #include "TaskBroker.h"
 #include "WorkloadManager.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "TTabPhysProcess.h"
 #include "CMSApplication.h"
 #include "HepMC/WriterRoot.h"
@@ -343,17 +343,17 @@ int main(int argc, char *argv[]) {
 #endif
   }
 
-  GeantPropagator *propagator = GeantPropagator::Instance(n_events, n_buffered);
+  Propagator *propagator = Propagator::Instance(n_events, n_buffered);
   if (broker) propagator->SetTaskBroker(broker);
   wmanager->SetNminThreshold(5 * n_threads);
   propagator->fUseMonitoring = monitor;
 
-  wmanager->SetMonitored(GeantPropagator::kMonQueue, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonMemory, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonBasketsPerVol, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonVectors, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonConcurrency, monitor);
-  wmanager->SetMonitored(GeantPropagator::kMonTracksPerEvent, monitor);
+  wmanager->SetMonitored(Propagator::kMonQueue, monitor);
+  wmanager->SetMonitored(Propagator::kMonMemory, monitor);
+  wmanager->SetMonitored(Propagator::kMonBasketsPerVol, monitor);
+  wmanager->SetMonitored(Propagator::kMonVectors, monitor);
+  wmanager->SetMonitored(Propagator::kMonConcurrency, monitor);
+  wmanager->SetMonitored(Propagator::kMonTracksPerEvent, monitor);
   // Threshold for prioritizing events (tunable [0, 1], normally <0.1)
   // If set to 0 takes the default value of 0.01
   propagator->fPriorityThr = 0.1;

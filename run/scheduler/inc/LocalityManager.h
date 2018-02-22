@@ -15,7 +15,7 @@
 #include "GeantNuma.h"
 #include "Geant/Config.h"
 #include "TrackManager.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 /**
  * @brief Class TrackManager
@@ -123,7 +123,7 @@ public:
       
   /** @brief Service to recycle tracks */
   GEANT_FORCE_INLINE
-  bool ReleaseTrack(GeantTrack const &track) {
+  bool ReleaseTrack(Track const &track) {
     int node = fTrackMgr[0]->GetNode(track);
     return ( fTrackMgr[node]->ReleaseTrack(track) );
   }

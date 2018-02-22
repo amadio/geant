@@ -2,9 +2,9 @@
 #include "AlongStepActionHandler.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Basket.h"
 
 // from realphysics
@@ -19,7 +19,7 @@
 
 namespace geantphysics {
 
-AlongStepActionHandler::AlongStepActionHandler(int threshold, geant::GeantPropagator *propagator)
+AlongStepActionHandler::AlongStepActionHandler(int threshold, geant::Propagator *propagator)
 : geant::Handler(threshold, propagator) {}
 
 
@@ -28,7 +28,7 @@ AlongStepActionHandler::~AlongStepActionHandler() {}
 
 // The AlongStepActionStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has any continuous processes i.e. has along-step-action
-void AlongStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
+void AlongStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -58,7 +58,7 @@ void AlongStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& outpu
   primaryLT.SetStepLength(track->GetStep());
   primaryLT.SetEnergyDeposit(0.0);
   int nSecParticles = pManager->AlongStepAction(primaryLT, td);
-  // update GeantTrack
+  // update Track
   double newEkin = primaryLT.GetKinE();
   track->SetMass(primaryLT.GetMass());
   track->SetE(newEkin+track->Mass());

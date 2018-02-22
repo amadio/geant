@@ -12,7 +12,7 @@ namespace geantphysics {
  * @author M Novak, A Ribon
  * @date   november 2015
  *
- * As the name suggests, this class is supposed to be a smaller, lighter version of GeantTrack, to be used by the
+ * As the name suggests, this class is supposed to be a smaller, lighter version of Track, to be used by the
  * physics processes. It is foreseen that different processes, in particular electromagnetic and hadronic ones, need
  * different information: this should be placed in a new object, whose class should be inherited from the (now empty)
  * ExtraInfo class, and the pointer to this object is kept in the LightTrack.
@@ -38,7 +38,7 @@ class LightTrack {
 private:
   LTrackStatus fTrackStatus;    /** Status of the track */
   int fGVcode;                  /** GV particle code */
-  int fGTrackIndex;             /** Index of the track in the GeantTrack_v vector */
+  int fGTrackIndex;             /** Index of the track in the Track_v vector */
   int fMaterialCutCoupleIndex;  /** Index of the material-cut couple where the track is */
   int fProcessIndex;            /** Index of the selected process (in the list of
                                     active discrete or at-rest processes kept by the
@@ -297,7 +297,7 @@ private:
 
   LTrackStatus *fTrackStatusV;    /** Status of the tracks */
   int *fGVcodeV;                  /** GV particle codes */
-  int *fGTrackIndexV;             /** Indices of the tracks in the GeantTrack_v vector */
+  int *fGTrackIndexV;             /** Indices of the tracks in the Track_v vector */
   int *fMaterialCutCoupleIndexV;  /** Indices of the material-cut couples where the tracks are */
   int *fProcessIndexV;            /** Indices of the selected processes (in the list of
                                       active discrete or at-rest processes kept by the

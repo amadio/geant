@@ -11,7 +11,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-    class GeantRunManager;
+    class RunManager;
   }
 }
 
@@ -21,7 +21,7 @@ namespace cmsapp {
 class CMSDetectorConstruction : public geant::GeantVDetectorConstruction {
 public:
 
-  CMSDetectorConstruction(geant::GeantRunManager *runmgr);
+  CMSDetectorConstruction(geant::RunManager *runmgr);
 
   virtual ~CMSDetectorConstruction();
 

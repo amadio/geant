@@ -244,7 +244,7 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::GeantT
   sectracks[secIndx].SetKinE(ekinElectron);
   sectracks[secIndx].SetGVcode(fElectronInternalCode);
   sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // then set the e+
   ++secIndx;
   sectracks[secIndx].SetDirX(posDirX);
@@ -253,7 +253,7 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::GeantT
   sectracks[secIndx].SetKinE(ekinPositron);
   sectracks[secIndx].SetGVcode(fPositronInternalCode);
   sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
 
   return numSecondaries;
 }

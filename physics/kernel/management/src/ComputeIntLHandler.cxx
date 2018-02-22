@@ -2,9 +2,9 @@
 #include "ComputeIntLHandler.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Basket.h"
 
 // from realphysics
@@ -18,7 +18,7 @@
 
 namespace geantphysics {
 
-ComputeIntLHandler::ComputeIntLHandler(int threshold, geant::GeantPropagator *propagator)
+ComputeIntLHandler::ComputeIntLHandler(int threshold, geant::Propagator *propagator)
 : geant::Handler(threshold, propagator) {}
 
 
@@ -28,9 +28,9 @@ ComputeIntLHandler::~ComputeIntLHandler() {}
 // The select method of the ComputeIntLStage selected only those tracks that (1) that has any process assigned i.e.
 // their PhysicsManagerPerParticle object is not null in the given region and (2) they has AlongStep and/or PostStep
 // processes that can limit the step.
-void ComputeIntLHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
+void ComputeIntLHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td) {
   // reset step length and energy deposit
-  track->SetStep(0.); // no setter for this member in GeantTrack
+  track->SetStep(0.); // no setter for this member in Track
   track->SetEdep(0.);
   // ---
   // here we will get the MaterialCuts from the LogicalVolume

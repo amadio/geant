@@ -4,8 +4,8 @@
 // vecgeom::GeoManager
 #include "management/GeoManager.h"
 //
-#include "GeantEvent.h"
-#include "GeantRunManager.h"
+#include "Geant/Event.h"
+#include "RunManager.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 
@@ -29,7 +29,7 @@
 
 namespace userapplication {
 
-TestEm3App::TestEm3App(geant::GeantRunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun)
+TestEm3App::TestEm3App(geant::RunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun)
   : geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
@@ -100,7 +100,7 @@ bool TestEm3App::Initialize() {
 }
 
 
-void TestEm3App::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
+void TestEm3App::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
   if (fIsPerformance)
    return;
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
@@ -162,7 +162,7 @@ void TestEm3App::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData 
 }
 
 
-void TestEm3App::FinishEvent(geant::GeantEvent *event) {
+void TestEm3App::FinishEvent(geant::Event *event) {
   if (fIsPerformance)
    return;
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that

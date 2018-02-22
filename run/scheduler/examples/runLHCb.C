@@ -5,9 +5,9 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-// Autoload the library early so that GeantPropagator is defined when applicable.
+// Autoload the library early so that Propagator is defined when applicable.
 class TaskBroker;
-class GeantPropagator;
+class Propagator;
 
 void runLHCb(const int ncputhreads=4,
             const bool performance=true,
@@ -63,7 +63,7 @@ void runLHCb(const int ncputhreads=4,
 #endif
    }
 
-   GeantPropagator *prop = GeantPropagator::NewInstance(ntotal, nbuffered, nthreads);
+   Propagator *prop = Propagator::NewInstance(ntotal, nbuffered, nthreads);
    prop->fBmag = magfield; // 4 Tesla
 
    //  Enable use of RK integration in field for charged particles
@@ -74,13 +74,13 @@ void runLHCb(const int ncputhreads=4,
 
    // Monitor different features
    prop->SetNminThreshold(5*nthreads);
-   prop->SetMonitored(GeantPropagator::kMonQueue,          false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracks,         false & (!performance));
+   prop->SetMonitored(Propagator::kMonQueue,          false & (!performance));
+   prop->SetMonitored(Propagator::kMonMemory,         false & (!performance));
+   prop->SetMonitored(Propagator::kMonBasketsPerVol,  false & (!performance));
+   prop->SetMonitored(Propagator::kMonVectors,        false & (!performance));
+   prop->SetMonitored(Propagator::kMonConcurrency,    false & (!performance));
+   prop->SetMonitored(Propagator::kMonTracksPerEvent, false & (!performance));
+   prop->SetMonitored(Propagator::kMonTracks,         false & (!performance));
    bool graphics = (prop->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;   
 

@@ -1,5 +1,5 @@
 #include "StdApplication.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
 #include "globals.h"
 #include "Geant/Error.h"
@@ -12,7 +12,7 @@
 #endif
 
 //______________________________________________________________________________
-StdApplication::StdApplication(GeantRunManager *runmgr)
+StdApplication::StdApplication(RunManager *runmgr)
   : geant::GeantVApplication(runmgr), fInitialized(false),
 #ifdef USE_ROOT
     fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
@@ -65,10 +65,10 @@ bool StdApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void StdApplication::SteppingActions(GeantTrack &track, GeantTaskData * td) {
+void StdApplication::SteppingActions(Track &track, GeantTaskData * td) {
   // Application stepping actions.
 #ifdef USE_ROOT
-  GeantPropagator *propagator = td->fPropagator;
+  Propagator *propagator = td->fPropagator;
   if ((!fInitialized) || (fScore == kNoScore))
     return;
   // Loop all tracks, check if they are in the right volume and collect the

@@ -67,7 +67,7 @@ void GunGenerator::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-GeantEventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+EventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
   //
   int ntracks = 1;
   if (fAverage > 1)
@@ -79,7 +79,7 @@ GeantEventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
     // no need to do it in this specific case, because all the particles are the same
   }
 
-  GeantEventInfo current;
+  EventInfo current;
   current.ntracks = ntracks;
   current.xvert = fXPos;
   current.yvert = fYPos;
@@ -88,7 +88,7 @@ GeantEventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void GunGenerator::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
+void GunGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
 

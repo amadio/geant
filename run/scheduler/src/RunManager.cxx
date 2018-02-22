@@ -1,10 +1,10 @@
-#include "GeantRunManager.h"
+#include "RunManager.h"
 
 #include "base/Stopwatch.h"
 #include "GeantConfig.h"
 #include "Geant/Error.h"
 #include "VBconnector.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "WorkloadManager.h"
 #include "TaskBroker.h"
 #include "PhysicsInterface.h"
@@ -13,9 +13,9 @@
 #include "GeantVDetectorConstruction.h"
 #include "MCTruthMgr.h"
 #include "PrimaryGenerator.h"
-#include "GeantEvent.h"
+#include "Geant/Event.h"
 #include "EventSet.h"
-#include "GeantEventServer.h"
+#include "EventServer.h"
 #include "LocalityManager.h"
 #include "SimulationStage.h"
 #include "BasketCounters.h"
@@ -53,7 +53,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace vecgeom;
 
 //______________________________________________________________________________
-GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthreads,
+RunManager::RunManager(unsigned int npropagators, unsigned int nthreads,
                                  GeantConfig *config)
   : fInitialized(false), fNpropagators(npropagators), fNthreads(nthreads),
     fConfig(config) {
@@ -63,8 +63,8 @@ GeantRunManager::GeantRunManager(unsigned int npropagators, unsigned int nthread
 }
 
 //______________________________________________________________________________
-bool GeantRunManager::Initialize() {
-  const char* methodName= "GeantRunManager::Initialize";
+bool RunManager::Initialize() {
+  const char* methodName= "RunManager::Initialize";
   // Initialization of run manager
   if (fInitialized) return fInitialized;
   if (!fNthreads) {
@@ -113,7 +113,7 @@ bool GeantRunManager::Initialize() {
     // return false;
   } else {
      if( !(fDetConstruction->GetFieldConstruction()) ){
-      Printf("- GeantRunManager::Initialize - %s.\n",
+      Printf("- RunManager::Initialize - %s.\n",
              " no User Field Construction found in Detector Construction." );
       Printf("    Created a default field= %f %f %f\n",
               fBfieldArr[0], fBfieldArr[1], fBfieldArr[2] );
@@ -127,7 +127,7 @@ bool GeantRunManager::Initialize() {
 //  fPrimaryGenerator->InitPrimaryGenerator();
 
   for (auto i=0; i<fNpropagators; ++i) {
-    GeantPropagator *prop = new GeantPropagator(fNthreads);
+    Propagator *prop = new Propagator(fNthreads);
     fPropagators.push_back(prop);
     prop->fRunMgr = this;
     prop->SetConfig(fConfig);
@@ -236,7 +236,7 @@ bool GeantRunManager::Initialize() {
   }
 
   // Initialize the event server
-  fEventServer = new GeantEventServer(fConfig->fNbuff, this);
+  fEventServer = new EventServer(fConfig->fNbuff, this);
   
   dataMgr->Print();
   fInitialized = true;
@@ -244,14 +244,14 @@ bool GeantRunManager::Initialize() {
 }
 
 //______________________________________________________________________________
-GeantTaskData *GeantRunManager::BookTransportTask()
+GeantTaskData *RunManager::BookTransportTask()
 {
 // Book a transport task to be used with RunSimulationTask.
   return fTDManager->GetTaskData();
 }
 
 //______________________________________________________________________________
-GeantRunManager::~GeantRunManager() {
+RunManager::~RunManager() {
   for (auto i=0; i<fNpropagators; ++i) delete fPropagators[i];
   fPropagators.clear();
   for (auto i=0; i<fNvolumes; ++i) {
@@ -274,7 +274,7 @@ GeantRunManager::~GeantRunManager() {
 }
 
 //______________________________________________________________________________
-bool GeantRunManager::LoadGeometry(const char *filename) {
+bool RunManager::LoadGeometry(const char *filename) {
 // Load geometry from given file.
 #ifdef USE_ROOT
   if (!gGeoManager) TGeoManager::Import(filename);
@@ -284,7 +284,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
   } else {
-    Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
+    Error("Propagator::LoadGeometry", "Cannot load geometry from file %s", filename);
     return false;
   }
 #else
@@ -294,7 +294,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
   } else {
-    Error("GeantPropagator::LoadGeometry", "Cannot load geometry from file %s", filename);
+    Error("Propagator::LoadGeometry", "Cannot load geometry from file %s", filename);
     return false;
   }
 #endif
@@ -307,7 +307,7 @@ bool GeantRunManager::LoadGeometry(const char *filename) {
 }
 
 //______________________________________________________________________________
-void GeantRunManager::PrepareRkIntegration()
+void RunManager::PrepareRkIntegration()
 {
   using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
   // using GUFieldPropagator = ::GUFieldPropagator;
@@ -349,18 +349,18 @@ void GeantRunManager::PrepareRkIntegration()
 }
 
 //______________________________________________________________________________
-void GeantRunManager::SetUserFieldConstruction(UserFieldConstruction* udc)
+void RunManager::SetUserFieldConstruction(UserFieldConstruction* udc)
 {
   if( fDetConstruction )
      fDetConstruction->SetUserFieldConstruction(udc);
   else
-     Error("GeantRunManager::SetUserFieldConstruction",
+     Error("RunManager::SetUserFieldConstruction",
            "To define a field, the user detector construction has to be defined");
   fInitialisedRKIntegration= false;  //  Needs to be re-done !!
 }
   
 //______________________________________________________________________________
-void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
+void RunManager::EventTransported(Event *event, GeantTaskData *td)
 {
 // Actions executed after an event is transported.
   // Adjust number of prioritized events
@@ -388,7 +388,7 @@ void GeantRunManager::EventTransported(GeantEvent *event, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-void GeantRunManager::AddEventSet(EventSet *workload)
+void RunManager::AddEventSet(EventSet *workload)
 {
 // Add one event set to be processed in the system. Adds also the individual
 // events in the event server.
@@ -400,7 +400,7 @@ void GeantRunManager::AddEventSet(EventSet *workload)
 }
 
 //______________________________________________________________________________
-EventSet *GeantRunManager::NotifyEventSets(GeantEvent *finished_event)
+EventSet *RunManager::NotifyEventSets(Event *finished_event)
 {
 // The method loops over registered event sets calling MarkDone method.
   LockEventSets();
@@ -421,7 +421,7 @@ EventSet *GeantRunManager::NotifyEventSets(GeantEvent *finished_event)
 }
 
 //______________________________________________________________________________
-bool GeantRunManager::RunSimulationTask(EventSet *workload, GeantTaskData *td) {
+bool RunManager::RunSimulationTask(EventSet *workload, GeantTaskData *td) {
 // Entry point for running simulation as asynchonous task. The user has to provide
 // an event set to be transported, and to pre-book the transport task. The method 
 // will return only when the given workload is completed.
@@ -453,7 +453,7 @@ bool GeantRunManager::RunSimulationTask(EventSet *workload, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-void GeantRunManager::RunSimulation() {
+void RunManager::RunSimulation() {
   // Start simulation for all propagators
   Initialize();
 
@@ -473,7 +473,7 @@ void GeantRunManager::RunSimulation() {
   vecgeom::Stopwatch timer;
   timer.Start();
   for (auto i=0; i<fNpropagators; ++i)
-    fListThreads.emplace_back(GeantPropagator::RunSimulation, fPropagators[i], fNthreads);
+    fListThreads.emplace_back(Propagator::RunSimulation, fPropagators[i], fNthreads);
 
   for (auto &t : fListThreads) {
     t.join();
@@ -530,7 +530,7 @@ Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  tot
 }
 
 //______________________________________________________________________________
-bool GeantRunManager::FinishRun() {
+bool RunManager::FinishRun() {
   // Run termination actions.
   if (fTaskMgr) fTaskMgr->Finalize();
   fApplication->FinishRun();
@@ -541,7 +541,7 @@ bool GeantRunManager::FinishRun() {
 }
 
 //______________________________________________________________________________
-void GeantRunManager::StopTransport() {
+void RunManager::StopTransport() {
   // Signal all propagators that transport has stopped
   for (auto i=0; i<fNpropagators; ++i) {
     fPropagators[i]->StopTransport();

@@ -5,39 +5,39 @@
 #include <atomic>
 #include <vector>
 #include "Geant/Config.h"
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "GeantTaskData.h"
 #include "GeantVApplication.h"
 #include "PrimaryGenerator.h"
 #include "EventSet.h"
-#include "GeantEvent.h"
-#include "GeantEventServer.h"
+#include "Geant/Event.h"
+#include "EventServer.h"
 #include "GeantConfig.h"
 
 namespace userfw {
 
 class Framework
 {
-  using GeantRunManager = geant::GeantRunManager;
+  using RunManager = geant::RunManager;
   using GeantVApplication = geant::GeantVApplication;
   using PrimaryGenerator = geant::PrimaryGenerator;
   using GeantConfig = geant::GeantConfig;
   using GeantTaskData = geant::GeantTaskData;
   using EventSet = geant::EventSet;
-  using GeantEvent = geant::GeantEvent;
-  using GeantEventInfo = geant::GeantEventInfo;
-  using GeantTrack = geant::GeantTrack;
+  using Event = geant::Event;
+  using EventInfo = geant::EventInfo;
+  using Track = geant::Track;
 
 private:
   bool fInitialized = false;                 /** Initialization flag */
   size_t fNthreads = 1;                      /** Number of threads */
   size_t fNevents = 0;                       /** Number of events to be transported */
   std::atomic<size_t> fIevent;               /** Current generated event */
-  GeantRunManager *fGeantRunMgr = nullptr;   /** Geant run manager */
+  RunManager *fGeantRunMgr = nullptr;   /** Geant run manager */
   PrimaryGenerator *fGenerator = nullptr;    /** Generator used in external loop mode */
   
 public:
-  Framework(size_t nthreads, size_t nevents, GeantRunManager *mgr, PrimaryGenerator *gen)
+  Framework(size_t nthreads, size_t nevents, RunManager *mgr, PrimaryGenerator *gen)
     :fNthreads(nthreads), fNevents(nevents), fGeantRunMgr(mgr), fGenerator(gen) {}
   Framework(const Framework &) = delete;
 
@@ -49,7 +49,7 @@ public:
   
   Framework &operator=(const Framework &) = delete;
 
-  GeantRunManager *GetRunMgr() const { return fGeantRunMgr; }
+  RunManager *GetRunMgr() const { return fGeantRunMgr; }
 
   void Initialize() {
     if (fInitialized) return;
@@ -62,14 +62,14 @@ public:
   
   EventSet *GenerateEventSet(size_t nevents, GeantTaskData *td)
   {  
-    GeantEvent **events = new GeantEvent*[nevents];
+    Event **events = new Event*[nevents];
     size_t nstored = 0;
     for (size_t i=0 ; i< nevents; ++i) {
       // Book an event number
       const size_t evt = fIevent.fetch_add(1);
       if (evt >= fNevents) break;
-      GeantEvent *event = new GeantEvent();
-      GeantEventInfo event_info = fGenerator->NextEvent(td);
+      Event *event = new Event();
+      EventInfo event_info = fGenerator->NextEvent(td);
       while (event_info.ntracks == 0) {
         printf("Discarding empty event\n");
         event_info = fGenerator->NextEvent(td);
@@ -78,7 +78,7 @@ public:
       event->SetNprimaries(event_info.ntracks);
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
       for (int itr = 0; itr < event_info.ntracks; ++itr) {
-        GeantTrack &track = td->GetNewTrack();
+        Track &track = td->GetNewTrack();
         track.SetParticle(event->AddPrimary(&track));
         track.SetPrimaryParticleIndex(itr);
         fGenerator->GetTrack(itr, track, td);
@@ -100,7 +100,7 @@ public:
     // This is the entry point for the user code to transport as a task a set of
     // events.
   
-    GeantRunManager *runMgr = fw->GetRunMgr();
+    RunManager *runMgr = fw->GetRunMgr();
     // First book a transport task from GeantV run manager
     while (1) {
       GeantTaskData *td = runMgr->BookTransportTask();

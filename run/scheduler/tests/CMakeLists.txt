@@ -10,13 +10,13 @@ set(headers
    inc/PhysicsProcess.h
    inc/GeantBasket.h
    inc/GeantScheduler.h
-   inc/GeantPropagator.h
-   inc/GeantEvent.h
-   inc/GeantTrack.h
+   inc/Propagator.h
+   inc/Geant/Event.h
+   inc/Track.h
    inc/GeantOutput.h
    inc/WorkloadManager.h
    inc/GeantVApplication.h
-   inc/GeantTrackStat.h
+   inc/TrackStat.h
    inc/MyHit.h
    ../examples/inc/ExN03Application.h
    ../inc/PrimaryGenerator.h

@@ -12,7 +12,7 @@
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantVDetectorConstruction;
-    class GeantRunManager;
+    class RunManager;
   }
 }
 
@@ -29,7 +29,7 @@ class TestEm3DetectorConstruction : public geant::GeantVDetectorConstruction {
 
 public:
   // CTR
-  TestEm3DetectorConstruction(geant::GeantRunManager *runmgr);
+  TestEm3DetectorConstruction(geant::RunManager *runmgr);
   // DTR
   ~TestEm3DetectorConstruction();
 

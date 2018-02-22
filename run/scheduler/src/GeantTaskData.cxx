@@ -3,7 +3,7 @@
 #include "Basket.h"
 #include "BasketCounters.h"
 #include "StackLikeBuffer.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "TrackManager.h"
 #include "GeantTrackGeo.h"
 #include "Geant/Typedefs.h"
@@ -35,20 +35,20 @@ GeantTaskData::GeantTaskData(size_t nthreads, int maxPerBasket)
   fPath = VolumePath_t::MakeInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
   fPathV = new VolumePath_t*[4*maxPerBasket];
   fNextpathV = new VolumePath_t*[4*maxPerBasket];
-  fTrack = GeantTrack::MakeInstance();
+  fTrack = Track::MakeInstance();
   fGeoTrack = new GeantTrackGeo_v(4*maxPerBasket);
   fRndm = new vecgeom::RNG; // what about the seed?
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, GeantPropagator *prop)
+GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Propagator *prop)
     : fPropagator(prop), fNthreads(nthreads)
 {
   // Constructor
   char *buffer = (char*)addr;
-  buffer += GeantTrack::round_up_align(sizeof(GeantTaskData));
-  buffer = GeantTrack::round_up_align(buffer);
+  buffer += Track::round_up_align(sizeof(GeantTaskData));
+  buffer = Track::round_up_align(buffer);
 
   fPath = VolumePath_t::MakeInstanceAt(TrackDataMgr::GetInstance()->GetMaxDepth(), (void*)buffer);
   fPathV = new VolumePath_t*[4*maxPerBasket];
@@ -56,7 +56,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
   fGeoTrack = GeantTrackGeo_v::MakeInstanceAt(buffer, 4*maxPerBasket);
   buffer += GeantTrackGeo_v::SizeOfInstance(4*maxPerBasket);
   buffer += VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
-  buffer = GeantTrack::round_up_align(buffer);
+  buffer = Track::round_up_align(buffer);
 
   // Previous, the size was hard coded to 1024, '4' is a guess on the max number
   // of produced particles ...
@@ -68,7 +68,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
   fIntArray = new (buffer) int[fSizeInt];
   buffer += fSizeInt*sizeof(int);
 
-  fTrack = GeantTrack::MakeInstance();
+  fTrack = Track::MakeInstance();
 
   fRndm = &vecgeom::RNG::Instance();
 }
@@ -77,7 +77,7 @@ GeantTaskData::GeantTaskData(void *addr, size_t nthreads, int maxPerBasket, Gean
 GeantTaskData::~GeantTaskData()
 {
 // Destructor
-  GeantTrack::ReleaseInstance(fTrack);
+  Track::ReleaseInstance(fTrack);
   delete[] fBoolArray;
   delete[] fDblArray;
   delete[] fIntArray;
@@ -96,7 +96,7 @@ GeantTaskData::~GeantTaskData()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTaskData::AttachPropagator(GeantPropagator *prop, int node)
+void GeantTaskData::AttachPropagator(Propagator *prop, int node)
 {
   // Attach to a given propagator and a given NUMA node.
   if (fPropagator) {
@@ -121,9 +121,9 @@ void GeantTaskData::AttachPropagator(GeantPropagator *prop, int node)
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop)
+GeantTaskData *GeantTaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop)
 {
-   // GeantTrack MakeInstance based on a provided single buffer.
+   // Track MakeInstance based on a provided single buffer.
    return new (addr) GeantTaskData(addr, nTracks, maxPerBasket, prop);
 }
 
@@ -137,9 +137,9 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxPerBasket)
    const size_t bufSize = 5; // See constructor!
 
    size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<geant::cuda::GeantTaskData>::SizeOf()
-      + GeantTrack::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
-      + GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth()));
-   return GeantTrack::round_up_align(need);
+      + Track::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
+      + Track::round_up_align(VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth()));
+   return Track::round_up_align(need);
 }
 
 
@@ -154,7 +154,7 @@ void GeantTaskData::RecycleBasket(Basket *b)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack &GeantTaskData::GetNewTrack()
+Track &GeantTaskData::GetNewTrack()
 {
   size_t index;
   if (fBlock->IsDistributed()) {
@@ -163,11 +163,11 @@ GeantTrack &GeantTaskData::GetNewTrack()
     //       fBlock->GetId(), fBlock->GetNode(), fBlock->GetCurrent(), fBlock->GetUsed());
     assert(fBlock->GetCurrent() == 0 && fBlock->GetUsed() == 0);
   }
-  GeantTrack *track = fBlock->GetObject(index);
+  Track *track = fBlock->GetObject(index);
   track->Reset(*fTrack);
   track->SetBindex(index);
   return *track;
-//  GeantTrack &track = fPropagator->fTrackMgr->GetTrack();
+//  Track &track = fPropagator->fTrackMgr->GetTrack();
 //  index = track.BIndex();
 //  track.Reset(*fTrack);
 //  track.SetBindex(index);
@@ -176,7 +176,7 @@ GeantTrack &GeantTaskData::GetNewTrack()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTaskData::ReleaseTrack(GeantTrack &track) {
+void GeantTaskData::ReleaseTrack(Track &track) {
   fPropagator->fTrackMgr->ReleaseTrack(track);
 }
 

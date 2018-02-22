@@ -65,12 +65,12 @@ void PhysicsProcess::Initialize() {
 }
 
 
-double PhysicsProcess::AlongStepLimitationLength(geant::GeantTrack * /*track*/, geant::GeantTaskData * /*td*/) const {
+double PhysicsProcess::AlongStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/) const {
   return gAVeryLargeValue;
 }
 
 
-double PhysicsProcess::PostStepLimitationLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td, bool haseloss) {
+double PhysicsProcess::PostStepLimitationLength(geant::Track *gtrack, geant::GeantTaskData *td, bool haseloss) {
   double stepLimit = GetAVeryLargeValue();
   // get the material-cuts and kinetic energy
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));

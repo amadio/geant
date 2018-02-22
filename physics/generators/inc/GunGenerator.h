@@ -51,10 +51,10 @@ public:
 
   ~GunGenerator();
 
-  // set one GeantTrack primary track properties
+  // set one Track primary track properties
   virtual void InitPrimaryGenerator();
-  virtual GeantEventInfo NextEvent(geant::GeantTaskData* td);
-  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* td);
+  virtual EventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* td);
 
 private:
   GunGenerator(const GunGenerator &);            // no imp.

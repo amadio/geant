@@ -36,7 +36,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track, GeantTaskData *td);
+  virtual Handler *Select(Track *track, GeantTaskData *td);
 
 public:
   /** @brief Dummy PropagationStage constructor */
@@ -45,7 +45,7 @@ public:
 
   /** @brief Standard PropagationStage constructor */
   VECCORE_ATT_HOST_DEVICE
-  PropagationStage(GeantPropagator *prop);
+  PropagationStage(Propagator *prop);
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE

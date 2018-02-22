@@ -1,7 +1,7 @@
 #include "ParticleGun.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "Particle.h"
 
@@ -63,7 +63,7 @@ void ParticleGun::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-GeantEventInfo ParticleGun::NextEvent(geant::GeantTaskData* /*td*/) {
+EventInfo ParticleGun::NextEvent(geant::GeantTaskData* /*td*/) {
   //
   int ntracks = 1;
   ntracks = fAverage;
@@ -76,7 +76,7 @@ GeantEventInfo ParticleGun::NextEvent(geant::GeantTaskData* /*td*/) {
     // no need to do it in this specific case, because all the particles are the same
   //}
 
-  GeantEventInfo current;
+  EventInfo current;
   current.ntracks = ntracks;
   current.xvert = fXPos;
   current.yvert = fYPos;
@@ -85,7 +85,7 @@ GeantEventInfo ParticleGun::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void ParticleGun::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
+void ParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
   gtrack.SetPDG(fPDG);

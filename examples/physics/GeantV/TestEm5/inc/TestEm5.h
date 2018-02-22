@@ -12,10 +12,10 @@
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
-    class GeantRunManager;
+    class RunManager;
     class GeantTaskDataHandle;
-    class GeantEvent;
-    class GeantTrack;
+    class Event;
+    class Track;
   }
 }
 
@@ -54,7 +54,7 @@ class TestEm5 : public geant::GeantVApplication {
 public:
 
   /** @brief Constructor TestEm5 */
-  TestEm5(geant::GeantRunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun);
+  TestEm5(geant::RunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun);
 
   /** @brief Destructor TestEm5 */
   virtual ~TestEm5();
@@ -66,11 +66,11 @@ public:
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::Track &track, geant::GeantTaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
-  virtual void FinishEvent(geant::GeantEvent *event);
+  virtual void FinishEvent(geant::Event *event);
 
   /** @brief Interface method that is called at the end of the simulation (when the transportation of all events are
     *        are completed). */
@@ -98,7 +98,7 @@ private:
   // this data will be obtained from the UserDetectorConstruction at initialization
   int         fTargetLogicalVolumeID;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)
-  // these data will be obtained from the GeantRunManager::GeantConfig object at initialization
+  // these data will be obtained from the RunManager::GeantConfig object at initialization
   int         fNumPrimaryPerEvent;
   int         fNumBufferedEvents;
   // histogram configuration data (can be changed from input arguments)

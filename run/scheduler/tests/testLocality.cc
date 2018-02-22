@@ -8,7 +8,7 @@
 #include "NumaAllocator.h"
 
 #include "Basketizer.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "TGeoManager.h"
 #include "TGeoBBox.h"
@@ -40,7 +40,7 @@ double get_cpu_time() { return (double)clock() / CLOCKS_PER_SEC; }
 
 //______________________________________________________________________________
 struct LocalData {
-  using Basketizer = geant::Basketizer<geant::cxx::GeantTrack*>;
+  using Basketizer = geant::Basketizer<geant::cxx::Track*>;
   size_t bsize;
   size_t buffer_size;
   std::atomic_flag fLock;
@@ -56,7 +56,7 @@ struct LocalData {
 };
 
 //______________________________________________________________________________
-inline void InitTrack(geant::cxx::GeantTrack &track, double dx, double dy, double dz) {
+inline void InitTrack(geant::cxx::Track &track, double dx, double dy, double dz) {
 // Initialize track position within the range (-dx,dx), (-dy,dy), (-dz,dz)
 // Compute initial path and initialize direction randomly.
   using namespace geant;
@@ -85,9 +85,9 @@ void ConsumeTracks(size_t tid, LocalData *ldata) {
   std::cout << "thread " << tid << " on node " << node << std::endl;
   ldata->Unlock();
   
-  using track_allocator = NumaAllocator<GeantTrack*>;
+  using track_allocator = NumaAllocator<Track*>;
   // The basket collecting the tracks
-  std::vector<GeantTrack*, track_allocator> basket(ldata[node].bsize, nullptr, track_allocator(node));
+  std::vector<Track*, track_allocator> basket(ldata[node].bsize, nullptr, track_allocator(node));
 
   TrackManager &trk_mgr = loc_mgr->GetTrackManager(node);
 
@@ -96,7 +96,7 @@ void ConsumeTracks(size_t tid, LocalData *ldata) {
   double dy = box->GetDY();
   double dz = box->GetDZ();
   for (int itr=0; itr<1000000; ++itr) {
-    GeantTrack &track = trk_mgr.GetTrack();
+    Track &track = trk_mgr.GetTrack();
     InitTrack(track, dx, dy, dz);
     // Basketize the track
     loc_mgr->ReleaseTrack(track);
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
   mgr->Init();
   int nnodes = mgr->GetNnodes();
   
-  using Basketizer = geant::Basketizer<GeantTrack*>;
+  using Basketizer = geant::Basketizer<Track*>;
   LocalData *ldata = new LocalData[nnodes];
 
   // Use NumaAllocator for the thread basket

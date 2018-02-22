@@ -2,9 +2,9 @@
 #include "PostPropagationHandler.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Basket.h"
 
 // from realphysics
@@ -20,7 +20,7 @@
 
 namespace geantphysics {
 
-PostPropagationHandler::PostPropagationHandler(int threshold, geant::GeantPropagator *propagator)
+PostPropagationHandler::PostPropagationHandler(int threshold, geant::Propagator *propagator)
 : geant::Handler(threshold, propagator) {}
 
 
@@ -29,7 +29,7 @@ PostPropagationHandler::~PostPropagationHandler() {}
 
 // The PostPropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process
-void PostPropagationHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
+void PostPropagationHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td) {
   // ---
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
@@ -52,7 +52,7 @@ void PostPropagationHandler::DoIt(geant::GeantTrack *track, geant::Basket& outpu
   // is converted back to true step length. Time and number of interaction left must be updated by using this true
   // path length (that have been written into fStep by msc).
   track->IncreaseTime(track->TimeStep(track->GetStep()));
-  // NOTE: we should save the previous step length in the GeantTrack and update this in the process or
+  // NOTE: we should save the previous step length in the Track and update this in the process or
   // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
   // step and we do it in the next step
   // track->fNintLen -= track->fStep/track->fIntLen;

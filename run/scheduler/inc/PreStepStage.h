@@ -33,7 +33,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track, GeantTaskData *td);
+  virtual Handler *Select(Track *track, GeantTaskData *td);
 
 public:
   /** @brief Dummy PreStepStage constructor */
@@ -42,7 +42,7 @@ public:
 
   /** @brief Standard PreStepStage constructor */
   VECCORE_ATT_HOST_DEVICE
-  PreStepStage(GeantPropagator *prop);
+  PreStepStage(Propagator *prop);
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE

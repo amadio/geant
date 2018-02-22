@@ -21,8 +21,8 @@
 #include "Geant/Error.h"
 #include "mpmc_bounded_queue.h"
 #include "NumaBlockMgr.h"
-#include "GeantPropagator.h"
-#include "GeantTrack.h"
+#include "Propagator.h"
+#include "Track.h"
 
 namespace geantphysics {
   class PhysicsData;
@@ -50,14 +50,14 @@ struct BasketCounters;
 
 class GeantTaskData {
 private:
-  GeantTrack *fTrack = nullptr; /** Blueprint track */
+  Track *fTrack = nullptr; /** Blueprint track */
 
 public:
 
-  using NumaTrackBlock_t = NumaBlock<GeantTrack>;
+  using NumaTrackBlock_t = NumaBlock<Track>;
   using UserDataVect_t = vector_t<char*>;
 
-  GeantPropagator *fPropagator = nullptr; /** GeantPropagator */
+  Propagator *fPropagator = nullptr; /** Propagator */
   int fTid = -1;         /** Thread unique id */
   int fNode = -1;        /** Locality node */
   size_t fNthreads = 0;  /** Number of transport threads */
@@ -88,7 +88,7 @@ public:
 #else
   std::deque<Basket *> fBPool; /** Pool of empty baskets */
 #endif
-  vector_t<GeantTrack *> fTransported1;     // Transported tracks in current step
+  vector_t<Track *> fTransported1;     // Transported tracks in current step
   int fNkeepvol = 0;     /** Number of tracks keeping the same volume */
   int fNsteps = 0;       /** Total number of steps per thread */
   int fNsnext = 0;       /** Total number of calls to getting distance to next boundary */
@@ -125,7 +125,7 @@ private:
    * @brief GeantTaskData constructor based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  GeantTaskData(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop = nullptr);
+  GeantTaskData(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop = nullptr);
 
 public:
   /** @brief GeantTaskData constructor */
@@ -136,15 +136,15 @@ public:
 
   /** @brief Attach a propagator on a numa node. */
   VECCORE_ATT_HOST_DEVICE
-  void AttachPropagator(GeantPropagator *prop, int node);
+  void AttachPropagator(Propagator *prop, int node);
   
   /**
-   * @brief GeantTrack MakeInstance based on a provided single buffer.
+   * @brief Track MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, GeantPropagator *prop);
+  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop);
 
-  /** @brief return the contiguous memory size needed to hold a GeantTrack_v */
+  /** @brief return the contiguous memory size needed to hold a Track_v */
   VECCORE_ATT_DEVICE
   static size_t SizeOfInstance(size_t nthreads, int maxPerBasket);
 
@@ -192,11 +192,11 @@ public:
 
   /** @brief Get new track from track manager */
   VECCORE_ATT_HOST_DEVICE
-  GeantTrack &GetNewTrack();
+  Track &GetNewTrack();
 
   /** @brief Release the temporary track */
   VECCORE_ATT_HOST_DEVICE
-  void ReleaseTrack(GeantTrack &track);
+  void ReleaseTrack(Track &track);
 
 #ifndef VECCORE_CUDA
   /**

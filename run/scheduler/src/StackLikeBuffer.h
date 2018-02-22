@@ -21,14 +21,14 @@
 
 #include <VecCore/VecCore>
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Basket.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
-class GeantPropagator;
+class Propagator;
 //#include "GeantFwd.h"
 
 class StackLikeBuffer {
@@ -80,7 +80,7 @@ public:
   /** @brief Add one track to the buffer */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
-  void AddTrack(GeantTrack *track)
+  void AddTrack(Track *track)
   {
     if (fPriorityMode && track->Event() == fPriorityEvent) {
       fPriorityLane->AddTrack(track);

@@ -1,7 +1,7 @@
 #include "SimulationStage.h"
 
 #include "GeantTaskData.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "StackLikeBuffer.h"
 #include "TrackStat.h"
 #include "BasketCounters.h"
@@ -11,7 +11,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SimulationStage::SimulationStage(ESimulationStage type, GeantPropagator *prop)
+SimulationStage::SimulationStage(ESimulationStage type, Propagator *prop)
   : fType(type), fPropagator(prop)
 {
   fCheckCountdown = 0;

@@ -93,8 +93,8 @@ void GeantTrackGeo_v::AssignInBuffer(char *buff, int size) {
 
   const int size_doublen = size * sizeof(double);
   char *buf = buff;
-  fOriginalV = (GeantTrack **)buf;
-  buf += size * sizeof(GeantTrack *);
+  fOriginalV = (Track **)buf;
+  buf += size * sizeof(Track *);
   fIdV = (size_t *)buf;
   buf += size * sizeof(size_t);
   fXposV = (double *)buf;
@@ -127,9 +127,9 @@ void GeantTrackGeo_v::CopyToBuffer(char *buff, int size) {
   const int size_double = fNtracks * sizeof(double);
   const int size_doublen = size * sizeof(double);
   char *buf = buff;
-  memcpy(buf, fOriginalV, size*sizeof(GeantTrack*));
-  fOriginalV = (GeantTrack **)buf;
-  buf += size*sizeof(GeantTrack*);
+  memcpy(buf, fOriginalV, size*sizeof(Track*));
+  fOriginalV = (Track **)buf;
+  buf += size*sizeof(Track*);
   memcpy(buf, fIdV, size*sizeof(size_t));
   fIdV = (size_t *)buf;
   buf += size*sizeof(size_t);

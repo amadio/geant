@@ -14,23 +14,23 @@
 #define GEANT_VAPPLICATION
 
 #include "GeantFwd.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantRunManager;
-class GeantEvent;
+class RunManager;
+class Event;
 
 /** @brief GeantVApplication class */
 class GeantVApplication {
 public:
-  GeantRunManager *fRunMgr; /*taskData*/
+  RunManager *fRunMgr; /*taskData*/
 
   /** @brief GeantVApplication constructor */
-  GeantVApplication(GeantRunManager *runmgr);
+  GeantVApplication(RunManager *runmgr);
 
-  void SetRunManager(GeantRunManager *runmgr);
+  void SetRunManager(RunManager *runmgr);
 
   /** @brief GeantVApplication destructor */
   virtual ~GeantVApplication() {}
@@ -58,21 +58,21 @@ public:
    * @brief  User FinishEvent function.
    * @details The slot released is evt%ninflight, for easier user data management.
    */
-  virtual void FinishEvent(GeantEvent */*event*/) {}
+  virtual void FinishEvent(Event */*event*/) {}
 
   /** @brief User FinishRun function */
   virtual void FinishRun() {}
 
   /** @brief Begin new track(s). */
-  virtual void BeginTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
+  virtual void BeginTrack(Track &/*track*/, GeantTaskData */*td*/) {}
   virtual void BeginTrack(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
 
   /** @brief Finish track(s). */
-  virtual void FinishTrack(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
+  virtual void FinishTrack(Track &/*track*/, GeantTaskData */*td*/) {}
   virtual void FinishTrack(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
 
   /** @brief User stepping actions */
-  virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/) {}
+  virtual void SteppingActions(Track &/*track*/, GeantTaskData */*td*/) {}
   virtual void SteppingActions(TrackVec_t &/*tracks*/, GeantTaskData */*td*/);
 
 };

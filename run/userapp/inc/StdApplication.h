@@ -62,7 +62,7 @@ private:
 public:
 
   /** @brief Constructor StdApplication */
-  StdApplication(GeantRunManager *runmgr);
+  StdApplication(RunManager *runmgr);
 
   /** @brief Destructor StdApplication */
   virtual ~StdApplication() {}
@@ -75,7 +75,7 @@ public:
    * @param lmin Low axis limit (positive)
    * @param lmax High axis limit (greater than lmin)
    */
-  virtual void SteppingActions(GeantTrack &/*track*/, GeantTaskData */*td*/);
+  virtual void SteppingActions(Track &/*track*/, GeantTaskData */*td*/);
 
   static double *MakeUniformLogArray(int nbins, double lmin, double lmax);
 

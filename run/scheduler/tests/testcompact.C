@@ -22,7 +22,7 @@ void testcompact()
 
 void Compact(TBits& fHoles, Int_t nactive)
 {
-// Same algorithm as in GeantTrack
+// Same algorithm as in Track
    PrintBits(fHoles, nactive);
    if (nactive == 0) return;
    Int_t firsthole = fHoles.FirstSetBit();

@@ -1,10 +1,10 @@
-//===--- GeantEvent.h - Geant-V ---------------------------------*- C++ -*-===//
+//===--- Event.h - Geant-V ---------------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantEvent.h
+ * @file Event.h
  * @brief Implementation of event for GeantV prototype
  * @author Andrei Gheata
  */
@@ -21,12 +21,12 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTrack;
-class GeantRunManager;
+class Track;
+class RunManager;
 class GeantTaskData;
 
-/** @brief Class GeantEvent that decribes events */
-class GeantEvent {
+/** @brief Class Event that decribes events */
+class Event {
 
 private:
   vecgeom::Vector3D<double> fVertex;     /** Vertex position */
@@ -40,23 +40,23 @@ private:
   std::atomic_int  fNdone;          /** Number of done tracks */
   std::atomic_int  fNmax;           /** Maximum number of tracks in flight */
   std::atomic_flag fLock;           /** Lock for priority forcing */
-  std::vector<GeantTrack*> fPrimaries; /** Vector containing all primary tracks */
+  std::vector<Track*> fPrimaries; /** Vector containing all primary tracks */
 public:
 
   std::atomic_int  fNfilled;        /** Number of tracks copied in buffer */
   std::atomic_int  fNdispatched;    /** Number of tracks dispatched */
 
-  /** @brief GeantEvent default constructor */
-  GeantEvent() : fNtracks(0), fNdone(0), fNmax(0), fLock(), fNfilled(0), fNdispatched(0) {}
+  /** @brief Event default constructor */
+  Event() : fNtracks(0), fNdone(0), fNmax(0), fLock(), fNfilled(0), fNdispatched(0) {}
 
-  /** @brief GeantEvent destructor */
-  ~GeantEvent() {}
+  /** @brief Event destructor */
+  ~Event() {}
 
   /* @brief Function for accounting adding a new track */
   int AddTrack();
 
   /* @brief Function for accounting adding a new track */
-  int AddPrimary(GeantTrack *track) { fPrimaries.push_back(track); return AddTrack(); }
+  int AddPrimary(Track *track) { fPrimaries.push_back(track); return AddTrack(); }
 
   /* @brief Crear the event and release all primaries */
   void Clear(GeantTaskData *td);
@@ -75,7 +75,7 @@ public:
 
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE
-  GeantTrack *GetPrimary(int i) { return fPrimaries[i]; }
+  Track *GetPrimary(int i) { return fPrimaries[i]; }
 
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE
@@ -186,7 +186,7 @@ public:
    *
    * @return Flag true if stopping qa track started priority mode for the event
    */
-  bool StopTrack(GeantRunManager *runmgr, GeantTaskData *td);
+  bool StopTrack(RunManager *runmgr, GeantTaskData *td);
 
   /** @brief Print function */
   void Print(const char *option = "") const;

@@ -33,7 +33,7 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(GeantTrack *track, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
@@ -49,7 +49,7 @@ public:
    * @param propagator Propagator working with this handler
    */
   VECCORE_ATT_HOST_DEVICE
-  FieldPropagationHandler(int threshold, GeantPropagator *propagator);
+  FieldPropagationHandler(int threshold, Propagator *propagator);
 
   /** @brief Field Propagation filter destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -60,7 +60,7 @@ public:
 
 protected:
   VECCORE_ATT_HOST_DEVICE
-  bool IsSameLocation(GeantTrack &track, GeantTaskData *td);
+  bool IsSameLocation(Track &track, GeantTaskData *td);
 
 private:
   FieldPropagationHandler(const FieldPropagationHandler &) = delete;
@@ -68,7 +68,7 @@ private:
 
   /** @brief Scalar implementation for magnetic field propagation */
   VECCORE_ATT_HOST_DEVICE
-  void PropagateInVolume(GeantTrack &track, double crtstep, GeantTaskData * td);
+  void PropagateInVolume(Track &track, double crtstep, GeantTaskData * td);
 
   /** @brief Vector implementation for magnetic field propagation */
   VECCORE_ATT_HOST_DEVICE
@@ -76,12 +76,12 @@ private:
 
   /** @brief Curvature for general field    */
   VECCORE_ATT_HOST_DEVICE
-  double Curvature(const GeantTrack &track ) const;
+  double Curvature(const Track &track ) const;
 
   /** @brief Function that returns safe length */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double SafeLength(const GeantTrack &track, double eps = 1.E-4);
+  double SafeLength(const Track &track, double eps = 1.E-4);
 
   /** @brief Function that return Field Propagator, i.e. the holder of (RK) Integration Driver */
   GEANT_FORCE_INLINE
@@ -109,7 +109,7 @@ VECCORE_ATT_HOST_DEVICE
 GEANT_FORCE_INLINE
 double
 FieldPropagationHandler::
-SafeLength(const GeantTrack &track, double eps)
+SafeLength(const Track &track, double eps)
 {
    // Returns the propagation length in field such that the propagated point is
    // shifted less than eps with respect to the linear propagation.

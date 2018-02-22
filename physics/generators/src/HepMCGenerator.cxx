@@ -46,7 +46,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-GeantEventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+EventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
   //
   // Delete previous event
   delete search;
@@ -101,7 +101,7 @@ GeantEventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
     std::cout << " out of " << ntot;
   std::cout << std::endl;
 
-  GeantEventInfo current;
+  EventInfo current;
   current.ntracks = ntracks;
   current.xvert = evt.event_pos().x();
   current.yvert = evt.event_pos().y();
@@ -111,7 +111,7 @@ GeantEventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
+void HepMCGenerator::GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
   int itr = 0;
   double eta, phi, pmom = 0;
@@ -142,7 +142,7 @@ void HepMCGenerator::GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTask
       }
     }
 
-    // here I have to create GeantTracks
+    // here I have to create Tracks
     int pdg = genpart->pid();
     gtrack.SetPDG(pdg);
 //    gtrack.SetPDG(2212);
@@ -184,7 +184,7 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
                               double &z0, int &pdg) {
 
   const HepMC::GenParticlePtr &genpart = search->results()[n];
-  // here I have to create GeantTracks
+  // here I have to create Tracks
   pdg = genpart->pid();
 //  pdg = 2212;
   if ((bool)genpart->production_vertex()) {
@@ -232,7 +232,7 @@ void HepMCGenerator::GetTrack(int n, double &tpx, double &tpy, double &tpz, doub
         if (pmom<fPMin || pmom>fPMax) continue;
       }
       if (itr++<n) continue;
-      // here I have to create GeantTracks
+      // here I have to create Tracks
       pdg = genpart->pdg_id();
       if ((bool)genpart->production_vertex()) {
         // current default unit is [mm] that is the default Geant4 length unit as well

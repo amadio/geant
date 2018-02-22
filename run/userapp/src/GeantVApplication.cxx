@@ -4,14 +4,14 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GeantVApplication::GeantVApplication(GeantRunManager *runmgr):fRunMgr(runmgr)
+GeantVApplication::GeantVApplication(RunManager *runmgr):fRunMgr(runmgr)
 {
   // Ctor..
 
 }
 
 //______________________________________________________________________________
-void GeantVApplication::SetRunManager(GeantRunManager *runmgr) {
+void GeantVApplication::SetRunManager(RunManager *runmgr) {
   fRunMgr = runmgr;
 }
 

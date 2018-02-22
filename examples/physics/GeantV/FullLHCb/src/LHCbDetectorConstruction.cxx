@@ -1,12 +1,12 @@
 
 #include "LHCbDetectorConstruction.h"
 
-#include "GeantRunManager.h"
+#include "RunManager.h"
 
 
 namespace lhcbapp {
 
-LHCbDetectorConstruction::LHCbDetectorConstruction(geant::GeantRunManager *runmgr)
+LHCbDetectorConstruction::LHCbDetectorConstruction(geant::RunManager *runmgr)
 : geant::GeantVDetectorConstruction(runmgr), fGDMLFileName("LHCb_201603.gdml") {}
 
 

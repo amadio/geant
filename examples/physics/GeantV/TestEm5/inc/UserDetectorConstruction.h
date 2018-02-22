@@ -12,7 +12,7 @@
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantVDetectorConstruction;
-    class GeantRunManager;
+    class RunManager;
   }
 }
 
@@ -41,7 +41,7 @@ namespace userapplication {
 class UserDetectorConstruction : public geant::GeantVDetectorConstruction {
 public:
   // CTR
-  UserDetectorConstruction(geant::GeantRunManager *runmgr);
+  UserDetectorConstruction(geant::RunManager *runmgr);
   // DTR
  ~UserDetectorConstruction();
 

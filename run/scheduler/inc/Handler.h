@@ -20,13 +20,13 @@
 #include "Geant/Typedefs.h"
 #include "Basketizer.h"
 #include "Basket.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
-class GeantTrack;
+class Track;
 #include "GeantFwd.h"
 
 /**
@@ -45,7 +45,7 @@ class Handler {
 #endif
 
 public:
-  using basketizer_t = Basketizer<GeantTrack>;
+  using basketizer_t = Basketizer<Track>;
 
 protected:  
   bool fActive = false;                ///< Activity flag
@@ -56,7 +56,7 @@ protected:
   atomic_t<size_t> fNflushed;          ///< Number of basket flushes
   atomic_t<size_t> fNfired;            ///< Number of times the basketizer fired
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this handler
-  GeantPropagator *fPropagator = nullptr; ///< Associated propagator
+  Propagator *fPropagator = nullptr; ///< Associated propagator
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fLock;              ///< Lock for flushing
 #endif
@@ -76,7 +76,7 @@ public:
    * @param vol Associated volume
    */
   VECCORE_ATT_HOST_DEVICE
-  Handler(int threshold, GeantPropagator *propagator);
+  Handler(int threshold, Propagator *propagator);
 
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -84,7 +84,7 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(GeantTrack *track, Basket& output, GeantTaskData *td) = 0;
+  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td) = 0;
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
@@ -187,7 +187,7 @@ public:
 
   /** @brief Add a track pointer to handler. */
   VECCORE_ATT_HOST_DEVICE
-  bool AddTrack(GeantTrack *track, Basket &collector);
+  bool AddTrack(Track *track, Basket &collector);
 
   /** @brief Flush all tracks from the handler into a collector basket
    *  @return Number of tracks flushed

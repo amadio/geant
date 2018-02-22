@@ -2,9 +2,9 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-// Autoload the library early so that GeantPropagator is defined when applicable.
+// Autoload the library early so that Propagator is defined when applicable.
 class TaskBroker;
-class GeantPropagator;
+class Propagator;
 
 void runFastSim( int ncputhreads=4,
                  bool performance=true,
@@ -35,18 +35,18 @@ void runFastSim( int ncputhreads=4,
       std::cerr << "Error: Coprocessor processing requested but support was not enabled\n";
 #endif
    }
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
+   Propagator *prop = Propagator::Instance(ntotal, nbuffered, nthreads);
 
    if (broker) prop->SetTaskBroker(broker);
 
    // Monitor different features
    prop->SetNminThreshold(5*nthreads);
-   prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
+   prop->SetMonitored(Propagator::kMonQueue,          true & (!performance));
+   prop->SetMonitored(Propagator::kMonMemory,         false & (!performance));
+   prop->SetMonitored(Propagator::kMonBasketsPerVol,  false & (!performance));
+   prop->SetMonitored(Propagator::kMonVectors,        false & (!performance));
+   prop->SetMonitored(Propagator::kMonConcurrency,    false & (!performance));
+   prop->SetMonitored(Propagator::kMonTracksPerEvent, false & (!performance));
    bool graphics = (prop->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;
    prop->fNaverage = 10;   // Average number of tracks per event

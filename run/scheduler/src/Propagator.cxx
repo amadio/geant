@@ -16,7 +16,7 @@
 // and safety subtracted from the physical step, then the procedure is repeated
 // until C*snext/4 < 1E-6 (tangent of angle with sagita, C=1/R is the curvature)
 //
-#include "GeantPropagator.h"
+#include "Propagator.h"
 
 #ifdef USE_ROOT
 #include "TTimer.h"
@@ -35,7 +35,7 @@
 #include "Geant/Error.h"
 #include "LocalityManager.h"
 #include "TrackManager.h"
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "PhysicsInterface.h"
 #include "WorkloadManager.h"
 #include "GeantTaskData.h"
@@ -43,7 +43,7 @@
 #include "GeantVTaskMgr.h"
 #include "StdApplication.h"
 #include "GeantFactoryStore.h"
-#include "GeantEvent.h"
+#include "Geant/Event.h"
 #include "PrimaryGenerator.h"
 #include "MCTruthMgr.h"
 
@@ -63,7 +63,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantPropagator::GeantPropagator(int nthreads)
+Propagator::Propagator(int nthreads)
     : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0),
       fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNpushed(0), fNkilled(0), fNbfeed(0) {
   // Constructor
@@ -76,7 +76,7 @@ GeantPropagator::GeantPropagator(int nthreads)
 }
 
 //______________________________________________________________________________
-GeantPropagator::GeantPropagator(const GeantPropagator &orig) : GeantPropagator(orig.fNthreads) {
+Propagator::Propagator(const Propagator &orig) : Propagator(orig.fNthreads) {
 
   fRunMgr = orig.fRunMgr;
   SetConfig(orig.fConfig);
@@ -90,14 +90,14 @@ GeantPropagator::GeantPropagator(const GeantPropagator &orig) : GeantPropagator(
 }
 
 //______________________________________________________________________________
-GeantPropagator::~GeantPropagator() {
+Propagator::~Propagator() {
   // Destructor
   delete fTimer;
   delete fWMgr;
 }
 
 //______________________________________________________________________________
-int GeantPropagator::AddTrack(GeantTrack &track) {
+int Propagator::AddTrack(Track &track) {
 #ifdef VECCORE_CUDA
   assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
   return 0;
@@ -114,7 +114,7 @@ int GeantPropagator::AddTrack(GeantTrack &track) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::StopTrack(GeantTrack *track, GeantTaskData *td) {
+void Propagator::StopTrack(Track *track, GeantTaskData *td) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
 
@@ -135,7 +135,7 @@ void GeantPropagator::StopTrack(GeantTrack *track, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::Initialize() {
+void Propagator::Initialize() {
   // Initialize the propagator.
 #ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
@@ -148,7 +148,7 @@ void GeantPropagator::Initialize() {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::SetNuma(int numa)
+void Propagator::SetNuma(int numa)
 {
 // Set locality for the propagator
 #ifndef VECCORE_CUDA
@@ -163,7 +163,7 @@ void GeantPropagator::SetNuma(int numa)
 }
 
 //______________________________________________________________________________
-void GeantPropagator::RunSimulation(GeantPropagator *prop, int nthreads)
+void Propagator::RunSimulation(Propagator *prop, int nthreads)
 {
 // Static thread running the simulation for one propagator
   Info("RunSimulation", "Starting propagator %p with %d threads", prop, nthreads);
@@ -171,7 +171,7 @@ void GeantPropagator::RunSimulation(GeantPropagator *prop, int nthreads)
 }
 
 //______________________________________________________________________________
-void GeantPropagator::PropagatorGeom(int nthreads) {
+void Propagator::PropagatorGeom(int nthreads) {
 #ifdef VECCORE_CUDA
   assert(0 && "PropagatorGeom not implemented yet for CUDA host/device code.");
 #else
@@ -205,7 +205,7 @@ void GeantPropagator::PropagatorGeom(int nthreads) {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::StopTransport()
+void Propagator::StopTransport()
 {
 // Stop the transport threads. Needed only when controlling the transport
 // from the transport manager
@@ -221,7 +221,7 @@ void GeantPropagator::StopTransport()
 }
 
 //______________________________________________________________________________
-void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
+void Propagator::SetTaskBroker(TaskBroker *broker) {
   // Setter for task broker
 #ifdef VECCORE_CUDA
   assert(0 && "SetTaskBroker not implemented yet for CUDA host/device code.");
@@ -231,7 +231,7 @@ void GeantPropagator::SetTaskBroker(TaskBroker *broker) {
 }
 
 //______________________________________________________________________________
-TaskBroker *GeantPropagator::GetTaskBroker() {
+TaskBroker *Propagator::GetTaskBroker() {
   // Getter for task broker
 #ifdef VECCORE_CUDA
   assert(0 && "GetTaskBroker not implemented yet for CUDA host/device code.");
@@ -242,18 +242,18 @@ TaskBroker *GeantPropagator::GetTaskBroker() {
 }
 
 //______________________________________________________________________________
-void GeantPropagator::SetConfig(GeantConfig *config)
+void Propagator::SetConfig(GeantConfig *config)
 {
 // Set run configuration.
   fConfig = config;
   fNbuff = config->fNbuff;
   fNtotal = config->fNtotal;
   if (fNtotal <= 0 || fNbuff <= 0) {
-    Fatal("GeantPropagator::SetConfig", "%s", "Number of transported/buffered events should be positive");
+    Fatal("Propagator::SetConfig", "%s", "Number of transported/buffered events should be positive");
     return;
   }
   if (fNbuff > fNtotal) {
-    Info("GeantPropagator::SetCofig", "%s", "Number of buffered events changed to %d", fNtotal);
+    Info("Propagator::SetCofig", "%s", "Number of buffered events changed to %d", fNtotal);
     fNbuff = fNtotal;
   }
   // Instantiate factory store
@@ -261,7 +261,7 @@ void GeantPropagator::SetConfig(GeantConfig *config)
 }
 
 //______________________________________________________________________________
-int GeantPropagator::CreateSimulationStages()
+int Propagator::CreateSimulationStages()
 {
   // Create stages in the same order as the enumeration ESimulationStage
   SimulationStage *stage = nullptr;
@@ -378,7 +378,7 @@ int GeantPropagator::CreateSimulationStages()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int GeantPropagator::GetNextStage(GeantTrack &/*track*/, int /*current*/)
+int Propagator::GetNextStage(Track &/*track*/, int /*current*/)
 {
 // Get the next simulation stage for a track
 //  0 - Sample X-sec for discrete processes to propose the physics step

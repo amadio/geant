@@ -20,7 +20,7 @@
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantPropagator;
+  class Propagator;
   class SimulationStage;
   class TrackDataMgr;
 }
@@ -32,7 +32,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PhysicsInterface {
 
 public:
-  using GeantTrack_v  = geant::GeantTrack_v;
   using GeantTaskData = geant::GeantTaskData;
   using TrackDataMgr  = geant::TrackDataMgr;
 
@@ -52,7 +51,7 @@ public:
   virtual void Initialize() {}
 
   // Interface methods to obtain physics realted symulation stages when V3 is used.
-  // These methods are called from the geant::GeantPropagator::CreateSimulationStages
+  // These methods are called from the geant::Propagator::CreateSimulationStages
   // methods (when real-physics is used) to obtain the pointers to the physics
   // simulation stages defined in the real-physics library.
   /** @brief Obtain/create physics step limit computation stage.
@@ -60,77 +59,24 @@ public:
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
     */
-  virtual  geant::SimulationStage* CreateComputeIntLStage(geant::GeantPropagator *prop) = 0;
-  virtual  geant::SimulationStage* CreatePrePropagationStage(geant::GeantPropagator *prop) = 0;
-  virtual  geant::SimulationStage* CreatePostPropagationStage(geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreateComputeIntLStage(geant::Propagator *prop) = 0;
+  virtual  geant::SimulationStage* CreatePrePropagationStage(geant::Propagator *prop) = 0;
+  virtual  geant::SimulationStage* CreatePostPropagationStage(geant::Propagator *prop) = 0;
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
     *
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
     */
-  virtual  geant::SimulationStage* CreateAlongStepActionStage(geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreateAlongStepActionStage(geant::Propagator *prop) = 0;
   /** @brief Obtain/create post step action (discrete part) computation stage.
     *
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created PostStepAction real-physics simulation stage object.
     */
-  virtual  geant::SimulationStage* CreatePostStepActionStage(geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreatePostStepActionStage(geant::Propagator *prop) = 0;
 
-  virtual  geant::SimulationStage* CreateAtRestActionStage(geant::GeantPropagator *prop) = 0;
-
-  /**
-   * @brief Method that computes the physics step limit.
-   *
-   * Both continuous and discrete physics step limits are included. The shorter will be provided.
-   *
-   * @param[in,out] mat Material_t material
-   * @param[in,out] ntracks Number of tracks
-   * @param[in,out] tracks Vector of tracks_v
-   * @param[in,out] lengths Partial process lengths
-   * @param[in,out] td Thread data
-   */
-  virtual void ComputeIntLen(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, double * /*lengths*/,
-                             GeantTaskData * /*td*/) {}//= 0;
-
-
-  /**
-   * @brief Method that performs the along-the-step, i.e. the continuous part, action of the in-flight interactions if
-   *        any.
-   *
-   * @param[in,out] mat Material_t material
-   * @param[in,out] ntracks Number of input tracks
-   * @param[in,out] tracks Vector of input tracks_v
-   * @param[in,out] nout  Number of secondary tracks created
-   * @param[in,out] td Thread data
-   */
-  virtual void AlongStepAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
-                               GeantTaskData * /*td*/) {}
-
-  /**
-   * @brief Method that performs the post step action i.e. discrete interaction.
-   *
-   * @param[in,out] mat Material_t material
-   * @param[in,out] ntracks Number of input tracks
-   * @param[in,out] tracks Vector of input tracks_v
-   * @param[in,out] nout  Number of secondary tracks created
-   * @param[in,out] td Thread data
-   */
-  virtual void PostStepAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
-                              GeantTaskData * /*td*/) {} //= 0;
-
-  /**
-   * @brief Method that performs the at rest action i.e. discrete interaction.
-   *
-   * @param[in,out] mat Material_t material
-   * @param[in,out] ntracks Number of input tracks
-   * @param[in,out] tracks Vector of input tracks_v
-   * @param[in,out] nout  Number of secondary tracks created
-   * @param[in,out] td Thread data
-   */
-  virtual void AtRestAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
-                            GeantTaskData * /*td*/) {};
-
+  virtual  geant::SimulationStage* CreateAtRestActionStage(geant::Propagator *prop) = 0;
 
 };
 

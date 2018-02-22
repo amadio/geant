@@ -54,8 +54,8 @@ public:
   double GetparticlePTotal() const { return fPTotal; }
   double GetparticleETotal() const { return fETotal; }
 
-  // set one GeantTrack primary track properties
-  void InitPrimaryTrack(geant::GeantTrack &gtrack);
+  // set one Track primary track properties
+  void InitPrimaryTrack(geant::Track &gtrack);
 
 private:
   void InitPrimaryGenerator();

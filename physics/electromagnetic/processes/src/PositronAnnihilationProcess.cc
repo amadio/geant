@@ -77,7 +77,7 @@ int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::GeantTa
   sectracks[secIndx].SetKinE(geant::units::kElectronMassC2);
   sectracks[secIndx].SetGVcode(Gamma::Definition()->GetInternalCode());  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // first gamma
   ++secIndx;
   sectracks[secIndx].SetDirX(-xdir);
@@ -86,7 +86,7 @@ int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::GeantTa
   sectracks[secIndx].SetKinE(geant::units::kElectronMassC2);
   sectracks[secIndx].SetGVcode(Gamma::Definition()->GetInternalCode());  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // kill the primary e+
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);

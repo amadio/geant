@@ -22,7 +22,7 @@
 #define GEANT_SIMULATION_STAGE
 
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Handler.h"
 
 namespace geant {
@@ -30,7 +30,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
 class Basket;
-class GeantPropagator;
+class Propagator;
 #include "GeantFwd.h"
 
 //template <ESimulationStage STAGE>
@@ -49,7 +49,7 @@ class SimulationStage {
 
 protected:  
   ESimulationStage fType = kPreStepStage;   ///< Processing stage type
-  GeantPropagator *fPropagator = nullptr;   ///< Propagator owning this stage
+  Propagator *fPropagator = nullptr;   ///< Propagator owning this stage
   int fId = 0;                              ///< Unique stage id
   int fUserActionsStage = 0;                ///< User actions stage to be executed right after
   int fFollowUpStage = 0;                   ///< In case there is a single follow-up store its id
@@ -88,7 +88,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(GeantTrack *track, GeantTaskData *td) = 0;
+  virtual Handler *Select(Track *track, GeantTaskData *td) = 0;
 
 public:
   /** @brief Dummy SimulationStage constructor */
@@ -97,7 +97,7 @@ public:
 
   /** @brief Standard SimulationStage constructor */
   VECCORE_ATT_HOST_DEVICE
-  SimulationStage(ESimulationStage type, GeantPropagator *prop);
+  SimulationStage(ESimulationStage type, Propagator *prop);
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE

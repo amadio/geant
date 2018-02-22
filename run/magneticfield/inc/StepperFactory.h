@@ -33,7 +33,7 @@ class StepperFactory
      static const int DefaultStepperCode= 5;  // Cash Karp
 
       /**
-       * @brief GeantTrack parametrized constructor
+       * @brief Track parametrized constructor
        *
        * @param EquationType - Type of Equation of Motion
        * @param equation     - Instance of Equaiton of Motion (type: EquationType)

@@ -31,7 +31,7 @@ endif()
 set(sources
    ${CMAKE_SOURCE_DIR}/core/base/src/Error.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
-   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantTrack.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/Track.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Basket.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Handler.cxx
@@ -47,8 +47,8 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/PropagationStage.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/SteppingActionsStage.cxx
    ${CMAKE_SOURCE_DIR}/core/concurrency/src/sync_objects.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantPropagator.cxx
-   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantEvent.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/Propagator.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/Event.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/EventSet.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsInterface.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/WorkloadManager.cxx
@@ -60,8 +60,8 @@ set(sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TransportManager.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/LocalityManager.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/MCTruthMgr.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantRunManager.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantEventServer.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/RunManager.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/EventServer.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackStat.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/Region.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/ScalarNavInterfaceVG.cxx
@@ -95,8 +95,8 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeomQueryStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PropagationStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantPropagator.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantTrack.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Propagator.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Track.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/GeantVApplication.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantVDetectorConstruction.h
@@ -110,10 +110,10 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/LocalityManager.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/MCTruthMgr.h
    ${CMAKE_SOURCE_DIR}/core/concurrency/inc/cuckoohash_map.hh
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantRunManager.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantEvent.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/RunManager.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Event.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/EventSet.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantEventServer.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/EventServer.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantConfig.h
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Region.h

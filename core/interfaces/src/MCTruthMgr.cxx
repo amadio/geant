@@ -13,7 +13,7 @@ void MCTruthMgr::OpenEvent(int evID) {
 }
 
 //______________________________________________________________________________
-void MCTruthMgr::AddTrack(geant::GeantTrack &gtrack) {
+void MCTruthMgr::AddTrack(geant::Track &gtrack) {
 
   // get the event from the map  
   MCEvent* current_event = events_map.find(gtrack.Event());
@@ -39,7 +39,7 @@ void MCTruthMgr::AddTrack(geant::GeantTrack &gtrack) {
       part->fE = gtrack.E();
       part->has_end = false;
 
-      // add to the map GeantTrackID -> MCParticle*
+      // add to the map TrackID -> MCParticle*
       (current_event->particles)[gtrack.Particle()] = part;
     }
   /*
@@ -50,7 +50,7 @@ void MCTruthMgr::AddTrack(geant::GeantTrack &gtrack) {
 }
 
 //______________________________________________________________________________
-void MCTruthMgr::EndTrack(GeantTrack *track) {
+void MCTruthMgr::EndTrack(Track *track) {
 
   MCEvent* current_event = 0;
   

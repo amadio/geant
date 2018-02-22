@@ -4,7 +4,7 @@
 #include "Region.h"
 #include "TaskBroker.h"
 #include "VBconnector.h"
-#include "GeantRunManager.h"
+#include "RunManager.h"
 
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"

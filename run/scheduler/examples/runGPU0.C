@@ -113,7 +113,7 @@ void runGPU0(Int_t nthreads=4, Bool_t graphics=false,
    Int_t ntotal   = 20;  // Number of events to be transported
    Int_t nbuffered  = 10;   // Number of buffered events
    
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
+   Propagator *prop = Propagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
    //CoprocessorBroker *gpuBroker = new CoprocessorBroker();

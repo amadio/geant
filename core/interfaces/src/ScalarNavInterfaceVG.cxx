@@ -19,7 +19,7 @@
 #endif
 
 #ifdef BUG_HUNT
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #endif
 
 namespace geant {
@@ -118,7 +118,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(GeantTrack &track) {
+void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(Track &track) {
 
   typedef Vector3D<Precision> Vector3D_t;
   constexpr double gTolerance = 1.e-9;
@@ -254,7 +254,7 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks,
 }
 
 //______________________________________________________________________________
-void ScalarNavInterfaceVG::NavIsSameLocation(GeantTrack &track, bool &same, VolumePath_t *tmpstate) {
+void ScalarNavInterfaceVG::NavIsSameLocation(Track &track, bool &same, VolumePath_t *tmpstate) {
   
   typedef Vector3D<Precision> Vector3D_t;
 

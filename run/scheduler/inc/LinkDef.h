@@ -18,7 +18,7 @@
 
 #pragma link C++ class geant::cxx::GeantTaskData+;
 #pragma link C++ class Basket+;
-#pragma link C++ class GeantPropagator+;
+#pragma link C++ class Propagator+;
 #pragma link C++ class StdApplication+;
 #pragma link C++ class MCTruthMgr+;
 #pragma link C++ class geant::GeantConfig+;

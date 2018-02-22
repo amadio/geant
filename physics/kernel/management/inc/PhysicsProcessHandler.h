@@ -7,7 +7,7 @@
 // geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantPropagator;
+  class Propagator;
   class SimulationStage;
 }
 }
@@ -121,7 +121,7 @@ public:
 /**
  * @name Interface methods to obtain physics realted symulation stages when V3 is used.
  *
- * These methods are called from the geant::GeantPropagator::CreateSimulationStages
+ * These methods are called from the geant::Propagator::CreateSimulationStages
  * methods (when real-physics is used) to obtain the pointers to the physics
  * simulation stages defined in the real-physics library.
  */
@@ -131,15 +131,15 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
    */
-  geant::SimulationStage* CreateComputeIntLStage(geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreateComputeIntLStage(geant::Propagator *prop) {
     return new ComputeIntLStage(prop);
   }
 
-  geant::SimulationStage* CreatePrePropagationStage(geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreatePrePropagationStage(geant::Propagator *prop) {
       return new PrePropagationStage(prop);
   }
 
-  geant::SimulationStage* CreatePostPropagationStage(geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreatePostPropagationStage(geant::Propagator *prop) {
       return new PostPropagationStage(prop);
   }
 
@@ -148,7 +148,7 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
    */
-  geant::SimulationStage* CreateAlongStepActionStage(geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreateAlongStepActionStage(geant::Propagator *prop) {
     return new AlongStepActionStage(prop);
   }
 
@@ -157,96 +157,14 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created PostStepAction real-physics simulation stage object.
    */
-  geant::SimulationStage* CreatePostStepActionStage(geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreatePostStepActionStage(geant::Propagator *prop) {
       return new PostStepActionStage(prop);
   }
 
-  geant::SimulationStage* CreateAtRestActionStage(geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreateAtRestActionStage(geant::Propagator *prop) {
      return new AtRestActionStage(prop);
   }  
 //@}
-
-
-  /** @brief  NOT USED ANYMORE IN V3 !!! The method proposes the step-length from the physics
-   *
-   *  @param mat Material_t material
-   *  @param ntracks Number of tracks
-   *  @param tracks Vector of tracks_v
-   *  @param lengths Partial process lengths
-   *  @param td Thread data
-   *
-   *  This length is the minimum of the following lengths:
-   *  - the sampled value from an exponential distribution whose parameter
-   *    is given by the total lambda table obtained from PhysicsManagerPerParticle
-   *  - the returned value of the method PhysicsProcess::AlongStepLimitationLength
-   *    for each of the continuous processes associated to the particle.
-   *  Note: if the winner is a continuous process, then the process index
-   *        should be set negative.
-   *  Note: this method should never be called for a particle at rest.
-   */
-  virtual void ComputeIntLen(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, double * /*lengths*/,
-                             GeantTaskData * /*td*/) {}
-
-  /** @brief  NOT USED ANYMORE IN V3 !!! The method invokes the "AlongStepDoIt" method of each continuous process
-   *         associated to the particle
-   *
-   *  @param mat Material_t material
-   *  @param ntracks Number of tracks
-   *  @param tracks Vector of tracks_v
-   *  @param nout Number of tracks in the output
-   *  @param td Thread data
-   *
-   *  Note that continuous processes do not compete but collaborate with each other.
-   */
-  virtual void AlongStepAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
-                               GeantTaskData * /*td*/) {}
-
-  /** @brief  NOT USED ANYMORE IN V3 !!! The method selects the winner discrete process, then the target,
-   *         and finally produces a final-state
-   *
-   *  @param mat Material_t material
-   *  @param ntracks Number of tracks
-   *  @param tracks Vector of tracks_v
-   *  @param nout Number of tracks in the output
-   *  @param td Thread data
-   *
-   *  This method does the following:
-   *  1. Selects the winner process between all the discrete processes
-   *     associated to the particle by drawing a random number and using
-   *     their  PhysicsProcess::InverseLambda  values.
-   *  2. Selects the target (Z, N) by calling PhysicsProcess::SampleTarget .
-   *  3. Calls, for the winner discrete process (and eventually the "Forced"
-   *     discrete processes), the method PhysicsProcess::PostStepDoIt .
-   *  Note that discrete processes compete against each other.
-   *
-   */
-  virtual void PostStepAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
-                               GeantTaskData * /*td*/) {}
-
-  /** @brief NOT USED ANYMORE IN V3 !!! The method selects the winner at-rest process, then the target
-   *         if needed (not for decays) and finally produces a final-state.
-   *
-   *  @param mat Material_t material
-   *  @param ntracks Number of tracks
-   *  @param tracks Vector of tracks_v
-   *  @param nout Number of tracks in the output
-   *  @param td Thread data
-   *
-   *  This method does the following:
-   *  1. Selects the winner process between all the at-rest processes
-   *     associated to the particle by drawing a random number and using
-   *     their  PhysicsProcess::AverageLifetime  values.
-   *  2. Calls, for the winner process (and eventually the "Forced" at-rest
-   *     processes) the method  PhysicsProcess::AtRestDoIt , which, if needed
-   *     (e.g. nuclear capture, but not for decays), selects also the target (Z, N).
-   *  Note that at-rest processes compete against each other.
-   *
-   *  NOTE-TO-BE-DELETED: THE SIGNATURE IS SLIGHTLY DIFFERENT FROM THE
-   *                      ORIGINAL: NEED TO ADD THE MATERIAL POINTER, AS
-   *                      FOR AlongStepAction AND AtRestAction.
-   */
-  virtual void AtRestAction(Material_t * /*mat*/, int /*ntracks*/, GeantTrack_v & /*tracks*/, int & /*nout*/,
-                               GeantTaskData * /*td*/) {}
 
 };
 

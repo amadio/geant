@@ -7,7 +7,7 @@
 
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
-#include "GeantEvent.h"
+#include "Geant/Event.h"
 #include "GeantConfig.h"
 #include "priority_queue.h"
 
@@ -34,7 +34,7 @@ class StackLikeBuffer;
 //  fNDispatched[0] ...                    ->    Number of dispatched per evt.
 //------------------------------------------------------------------------------
 
-class GeantEventServer
+class EventServer
 {
 public:
 
@@ -46,7 +46,7 @@ enum ErrorType {
 };
 
 using queue_slots = mpmc_bounded_queue<size_t>;
-using queue_events = mpmc_bounded_queue<GeantEvent*>;
+using queue_events = mpmc_bounded_queue<Event*>;
 
 private:
   int fNevents = 0;                    /** Number of events to be filled */
@@ -62,24 +62,24 @@ private:
   std::atomic_int fNstored;            /** Number of stored events in the server */
   std::atomic_int fNcompleted;         /** Number of completed events */
   std::atomic_flag fGenLock;           /** Generator lock */
-  std::atomic<GeantEvent*> fEvent;     /** Current event being distributed */
-  GeantRunManager *fRunMgr = nullptr;  /** Run manager */
+  std::atomic<Event*> fEvent;     /** Current event being distributed */
+  RunManager *fRunMgr = nullptr;  /** Run manager */
   bool fEventsServed = false;          /** All events served */
   //bool fDone = false;                  /** All events transported */
   bool fHasTracks = false;             /** Server has tracks to dispatch */
   bool fInitialPhase = false;          /** Server in initial dispatch phase */
-  GeantEvent** fEvents = nullptr;      /** Events to be dispatched */
+  Event** fEvents = nullptr;      /** Events to be dispatched */
   int  fBindex = 0;                    /** Basket manager index */
   queue_slots fFreeSlots;              /** Queue of free event slots */
   queue_events fPendingEvents;         /** Queue of pending events */
   queue_events fDoneEvents;            /** Queue of transported events */
 
 protected:
-  GeantTrack *GetNextTrack(GeantTaskData *td, unsigned int &error);
+  Track *GetNextTrack(GeantTaskData *td, unsigned int &error);
 
 public:
-  GeantEventServer(int nactive_max, GeantRunManager *runmgr);
-  ~GeantEventServer();
+  EventServer(int nactive_max, RunManager *runmgr);
+  ~EventServer();
 
   GEANT_FORCE_INLINE
   size_t  AdjustSize(size_t size) const
@@ -108,10 +108,10 @@ public:
   int  GetNstored() const { return fNstored.load(); }
   
   GEANT_FORCE_INLINE
-  GeantEvent *GetEvent(int slot) { return fEvents[slot]; }
+  Event *GetEvent(int slot) { return fEvents[slot]; }
 
   GEANT_FORCE_INLINE
-  GeantEvent *FindEvent(int event) {
+  Event *FindEvent(int event) {
     // trying to avoid concurrent map, but this could be smarter
     for (int i=0; i<fNactiveMax; ++i) {
       if (fEvents[i]->GetEvent() == event) return fEvents[i];
@@ -138,13 +138,13 @@ public:
   // int AddEvent(GeantTaskData *td);
   
   /** @brief Add one event to the server */
-  bool AddEvent(GeantEvent *event);
+  bool AddEvent(Event *event);
 
-  GeantEvent *GenerateNewEvent(GeantTaskData *td, unsigned int &error);
+  Event *GenerateNewEvent(GeantTaskData *td, unsigned int &error);
   
-  GeantEvent *ActivateEvent(GeantEvent *expected, unsigned int &error, GeantTaskData *td=nullptr);
+  Event *ActivateEvent(Event *expected, unsigned int &error, GeantTaskData *td=nullptr);
   
-  void CompletedEvent(GeantEvent *event, GeantTaskData *td);
+  void CompletedEvent(Event *event, GeantTaskData *td);
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -9,7 +9,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PreStepHandler::PreStepHandler(int threshold, GeantPropagator *propagator)
+PreStepHandler::PreStepHandler(int threshold, Propagator *propagator)
                : Handler(threshold, propagator)
 {
 // Default constructor
@@ -25,7 +25,7 @@ PreStepHandler::~PreStepHandler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void PreStepHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void PreStepHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 {
 // Invoke scalar BeginTrack user actions.
 

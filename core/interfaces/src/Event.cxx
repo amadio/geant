@@ -1,12 +1,12 @@
-#include "GeantEvent.h"
-#include "GeantRunManager.h"
+#include "Geant/Event.h"
+#include "RunManager.h"
 #include <iostream>
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-int GeantEvent::AddTrack() {
+int Event::AddTrack() {
   // Thread safe track addition
   int ntracks = ++fNtracks;
   int ninflight = ntracks - fNdone.load();
@@ -21,7 +21,7 @@ int GeantEvent::AddTrack() {
 }
 
 //______________________________________________________________________________
-void GeantEvent::Clear(GeantTaskData *td)
+void Event::Clear(GeantTaskData *td)
 {
 // Clear the event.
   fPrioritize = false;
@@ -44,7 +44,7 @@ void GeantEvent::Clear(GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-bool GeantEvent::StopTrack(GeantRunManager *runmgr, GeantTaskData *td) {
+bool Event::StopTrack(RunManager *runmgr, GeantTaskData *td) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.
 #ifdef VECCORE_CUDA
@@ -76,14 +76,14 @@ bool GeantEvent::StopTrack(GeantRunManager *runmgr, GeantTaskData *td) {
 }
 
 //______________________________________________________________________________
-void GeantEvent::Print(const char *) const {
+void Event::Print(const char *) const {
   // Print events content
   std::cout << "Event " << fEvent << ": " << GetNtracks() <<
     " tracks transported, max in flight " <<  GetNmax() << std::endl;
 }
 
 //______________________________________________________________________________
-bool GeantEvent::Prioritize() {
+bool Event::Prioritize() {
   // Prioritize the event
   if (fLock.test_and_set(std::memory_order_acquire) || fPrioritize) return false;
   if (GetNinflight()) {

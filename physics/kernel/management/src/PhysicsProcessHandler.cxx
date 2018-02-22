@@ -18,7 +18,7 @@
 #include "LightTrack.h"
 #include "PhysicsData.h"
 
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
 
 #include "PhysicsParameters.h"

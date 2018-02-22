@@ -1,8 +1,8 @@
 #include "EventSet.h"
 
 #include "Geant/Error.h"
-#include "GeantEvent.h"
-#include "GeantEventServer.h"
+#include "Geant/Event.h"
+#include "EventServer.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -18,7 +18,7 @@ EventSet::EventSet(size_t nevents) : fNdone(0) {
 }
 
 //______________________________________________________________________________
-EventSet::EventSet(std::vector<GeantEvent*> const &events) : fNdone(0) {
+EventSet::EventSet(std::vector<Event*> const &events) : fNdone(0) {
   fNevents = (int)events.size();
   fMarkers = new EventMarker*[fNevents];
   for (size_t i = 0; i < fNevents; ++i) {
@@ -30,7 +30,7 @@ EventSet::EventSet(std::vector<GeantEvent*> const &events) : fNdone(0) {
 }
 
 //______________________________________________________________________________
-void EventSet::AddSetToServer(GeantEventServer *evserv) const
+void EventSet::AddSetToServer(EventServer *evserv) const
 {
   for (size_t i = 0; i < fNevents; ++i) {
     evserv->AddEvent(fMarkers[i]->fEvent);
@@ -40,7 +40,7 @@ void EventSet::AddSetToServer(GeantEventServer *evserv) const
 }
 
 //______________________________________________________________________________
-bool EventSet::AddEvent(GeantEvent *event) {
+bool EventSet::AddEvent(Event *event) {
   if (fNadded == fNevents) {
     Error("EventSet::AddEvent", "The event set already complete");
     return false;

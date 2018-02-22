@@ -10,9 +10,9 @@
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
-    class GeantTrack;
+    class Track;
     class GeantTaskData;
-    class GeantEventInfo;
+    class EventInfo;
   }
 }
 
@@ -36,8 +36,8 @@ public:
 
   // interface methods
   virtual void InitPrimaryGenerator() {/*nothing to do*/}
-  virtual geant::GeantEventInfo NextEvent(geant::GeantTaskData* td);
-  virtual void GetTrack(int n, geant::GeantTrack& gtrack, geant::GeantTaskData* td);
+  virtual geant::EventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::Track& gtrack, geant::GeantTaskData* td);
 
   // public setters/getters
   void SetNumPrimaryPerEvt(const int pperevt);

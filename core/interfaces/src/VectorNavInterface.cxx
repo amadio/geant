@@ -17,7 +17,7 @@
 #endif
 
 #ifdef BUG_HUNT
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #endif
 
 namespace geant {

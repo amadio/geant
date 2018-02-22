@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "GeantTrack.h"
+#include "Track.h"
 #include "GeantTaskData.h"
 
 namespace geantphysics {
@@ -120,7 +120,7 @@ public:
    *  that does not limit the step, then the method returns an arbitrary,
    *  very large value.
    */
-   virtual double AlongStepLimitationLength(geant::GeantTrack * /*track*/, geant::GeantTaskData * /*td*/) const;
+   virtual double AlongStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/) const;
 
 
    /** @brief Method that returns the post-step limitation length
@@ -129,7 +129,7 @@ public:
     *  This applies only for the cdiscrete part of this process.
     *  If the process does not have a discrete part this method is not called.
     */
-   virtual double PostStepLimitationLength(geant::GeantTrack * /*track*/, geant::GeantTaskData * /*td*/, bool haseloss=false);
+   virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/, bool haseloss=false);
 
 
   /** @brief Method that returns the average lifetime of this process

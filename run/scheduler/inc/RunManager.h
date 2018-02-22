@@ -8,7 +8,7 @@
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
 #include "GeantTaskData.h"
-#include "GeantEventServer.h"
+#include "EventServer.h"
 #include "GeantConfig.h"
 #ifdef USE_ROOT
 class TGeoMaterial;
@@ -19,24 +19,24 @@ class TGeoMaterial;
 using namespace veccore;
 class PhysicsInterface;
 
-GEANT_DEVICE_DECLARE_CONV(Geant,class,GeantPropagator);
+GEANT_DEVICE_DECLARE_CONV(Geant,class,Propagator);
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantPropagator;
+class Propagator;
 class TaskBroker;
 class GeantVApplication;
 class GeantVDetectorConstruction;
 class UserFieldConstruction;
 class GeantVTaskMgr;
-class GeantEventServer;
-class GeantEvent;
+class EventServer;
+class Event;
 class PrimaryGenerator;
 class MCTruthMgr;
 class EventSet;
 
-class GeantRunManager
+class RunManager
 {
 private:
   bool fInitialized = false;
@@ -56,13 +56,13 @@ private:
   PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
-  GeantEventServer *fEventServer = nullptr;     /** The event server */
+  EventServer *fEventServer = nullptr;     /** The event server */
   TDManager *fTDManager = nullptr;              /** The task data manager */
 
   bool fInitialisedRKIntegration=false;  /** Flag: Is RK initialised for tracking in field  */
   float  fBfieldArr[3] = { 0.0, 0.0, 0.0 }; /** Constant Magnetic Field value - if any */
 
-  vector_t<GeantPropagator *> fPropagators;
+  vector_t<Propagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
   vector_t<EventSet *> fEventSets;              /** Registered event sets */
   std::atomic_flag fEventSetsLock;              /** Spinlock for event set access locking */
@@ -74,9 +74,9 @@ private:
   std::vector<std::thread> fListThreads; /** Vector of threads */
 
 public:
-  GeantRunManager() {}
-  GeantRunManager(unsigned int npropagators, unsigned int nthreads, GeantConfig *config);
-  ~GeantRunManager();
+  RunManager() {}
+  RunManager(unsigned int npropagators, unsigned int nthreads, GeantConfig *config);
+  ~RunManager();
 
 // Accessors
   void  AddEventSet(EventSet *workload);
@@ -128,10 +128,10 @@ public:
 
 
   GEANT_FORCE_INLINE
-  GeantEvent *GetEvent(int slot) { return fEventServer->GetEvent(slot); }
+  Event *GetEvent(int slot) { return fEventServer->GetEvent(slot); }
 
   GEANT_FORCE_INLINE
-  GeantEventServer *GetEventServer() const { return fEventServer; }
+  EventServer *GetEventServer() const { return fEventServer; }
 
 //  GEANT_FORCE_INLINE
 //  GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
@@ -201,9 +201,9 @@ public:
   void LockEventSets() { while (fEventSetsLock.test_and_set(std::memory_order_acquire)) {}; }
   void UnlockEventSets() { fEventSetsLock.clear(std::memory_order_release); }
  
-  EventSet *NotifyEventSets(GeantEvent *finished_event);
+  EventSet *NotifyEventSets(Event *finished_event);
 
-  void EventTransported(GeantEvent *event, GeantTaskData *td);
+  void EventTransported(Event *event, GeantTaskData *td);
   bool Initialize();
   bool FinishRun();
   bool LoadGeometry(const char *filename);

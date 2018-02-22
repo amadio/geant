@@ -16,7 +16,7 @@
 
 #include <base/Vector3D.h>
 #include "Geant/Config.h"
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "EventSet.h"
 
 //#include "HepMCGenerator.h"
@@ -80,7 +80,7 @@ namespace demo {
     int fNevents;
     std::vector<const Getter*> m_getters;
     GeantConfig* fConfig = nullptr;
-    GeantRunManager* fRunMgr = nullptr;
+    RunManager* fRunMgr = nullptr;
     PrimaryGenerator* fPrimaryGenerator = nullptr;
     std::atomic_flag fEventGeneratorLock;              /** Spinlock for event set access locking */
   };
@@ -157,14 +157,14 @@ namespace demo {
     fConfig->fUseVectorizedGeom = false;
 
      // Create run manager
-    std::cerr<<"*** GeantRunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
-    fRunMgr = new GeantRunManager(n_propagators, n_threads, fConfig);
+    std::cerr<<"*** RunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
+    fRunMgr = new RunManager(n_propagators, n_threads, fConfig);
 
     // Create the tabulated physics process
-    std::cerr<<"*** GeantRunManager: setting physics process...\n";
+    std::cerr<<"*** RunManager: setting physics process...\n";
     //fRunMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
 
-    // create the real physics main manager/interface object and set it in the GeantRunManager
+    // create the real physics main manager/interface object and set it in the RunManager
     fRunMgr->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
 
     // Create user defined physics list for the full CMS application
@@ -178,7 +178,7 @@ namespace demo {
     // Setup a primary generator
 //    printf("hepmc_event_filename=%s\n", hepmc_event_filename.c_str());
 //    if (hepmc_event_filename.empty()) {
-      std::cerr<<"*** GeantRunManager: setting up a GunGenerator...\n";
+      std::cerr<<"*** RunManager: setting up a GunGenerator...\n";
       //double x = rand();
       //double y = rand();
       //double z = rand();
@@ -197,17 +197,17 @@ namespace demo {
 //    }
     // else {
     //   //.. here for a HepMCGenerator
-    //   std::cerr<<"*** GeantRunManager: setting up a HepMCGenerator...\n";
+    //   std::cerr<<"*** RunManager: setting up a HepMCGenerator...\n";
     //   fPrimaryGenerator = new HepMCGenerator(hepmc_event_filename);
     // }
 
     CMSApplicationTBB *cmsApp = new CMSApplicationTBB(fRunMgr, cmsgun);
     cmsApp->SetPerformanceMode(performance);
-    std::cerr<<"*** GeantRunManager: setting up CMSApplicationTBB...\n";
+    std::cerr<<"*** RunManager: setting up CMSApplicationTBB...\n";
     fRunMgr->SetUserApplication( cmsApp );
 
     // Start simulation for all propagators
-    std::cerr<<"*** GeantRunManager: initializing...\n";
+    std::cerr<<"*** RunManager: initializing...\n";
     fRunMgr->Initialize();
     fPrimaryGenerator->InitPrimaryGenerator();
 
@@ -278,15 +278,15 @@ namespace demo {
   geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, const size_t *event_index, geant::GeantTaskData *td)
   {
     using EventSet = geant::EventSet;
-    using GeantEvent = geant::GeantEvent;
-    using GeantEventInfo = geant::GeantEventInfo;
-    using GeantTrack = geant::GeantTrack;
+    using Event = geant::Event;
+    using EventInfo = geant::EventInfo;
+    using Track = geant::Track;
 
     EventSet *evset = new EventSet(nevents);
     LockEventGenerator();
     for (size_t i=0 ; i< nevents; ++i) {
-      GeantEvent *event = new GeantEvent();
-      GeantEventInfo event_info = fPrimaryGenerator->NextEvent(td);
+      Event *event = new Event();
+      EventInfo event_info = fPrimaryGenerator->NextEvent(td);
       while (event_info.ntracks == 0) {
         std::cerr<<"Discarding empty event\n";
         event_info = fPrimaryGenerator->NextEvent(td);
@@ -295,7 +295,7 @@ namespace demo {
       event->SetNprimaries(event_info.ntracks);
       event->SetVertex(event_info.xvert, event_info.yvert, event_info.zvert);
       for (int itr = 0; itr < event_info.ntracks; ++itr) {
-        GeantTrack &track = td->GetNewTrack();
+        Track &track = td->GetNewTrack();
         int trackIndex = event->AddPrimary(&track);
         track.SetParticle(trackIndex);
         track.SetPrimaryParticleIndex(itr);

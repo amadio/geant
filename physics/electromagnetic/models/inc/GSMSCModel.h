@@ -8,7 +8,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
@@ -40,10 +40,10 @@ public:
  // implemented base class method
   virtual void  Initialize();
  // implemented MSC base class model methods
-  virtual void  StepLimit(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
-  virtual bool  SampleScattering(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
-  virtual void  ConvertTrueToGeometricLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
-  virtual void  ConvertGeometricToTrueLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
+  virtual void  StepLimit(geant::Track *gtrack, geant::GeantTaskData *td);
+  virtual bool  SampleScattering(geant::Track *gtrack, geant::GeantTaskData *td);
+  virtual void  ConvertTrueToGeometricLength(geant::Track *gtrack, geant::GeantTaskData *td);
+  virtual void  ConvertGeometricToTrueLength(geant::Track *gtrack, geant::GeantTaskData *td);
 
  // model specifc method
  void SetOptionPWACorrection(bool opt)  { fIsUsePWACorrection = opt; }
@@ -59,7 +59,7 @@ void   ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel
 
 private:
   double RandomizeTrueStepLength(geant::GeantTaskData *td, double tlimit);
-  void   SampleMSC(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
+  void   SampleMSC(geant::Track *gtrack, geant::GeantTaskData *td);
   double GetTransportMeanFreePathOnly(const MaterialCuts *matcut, double ekin);
 
 //  void   ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel, double &lambtr1,

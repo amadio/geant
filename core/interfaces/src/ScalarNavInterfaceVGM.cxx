@@ -18,7 +18,7 @@
 #endif
 
 #ifdef BUG_HUNT
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #endif
 
 namespace geant {
@@ -115,7 +115,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
+void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(Track &track) {
 
   typedef Vector3D<Precision> Vector3D_t;
   constexpr double gTolerance = 1.e-9;
@@ -188,7 +188,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(GeantTrack &track) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void ScalarNavInterfaceVGM::NavFindNextBoundary(GeantTrack &track) {
+void ScalarNavInterfaceVGM::NavFindNextBoundary(Track &track) {
   constexpr double gTolerance = 1.e-9;
   // back-up the pre-step point boundary flag
   track.SetBoundaryPreStep(track.Boundary());
@@ -278,7 +278,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks,
 }
 
 //______________________________________________________________________________
-void ScalarNavInterfaceVGM::NavIsSameLocation(GeantTrack &track, bool &same, VolumePath_t *tmpstate) {
+void ScalarNavInterfaceVGM::NavIsSameLocation(Track &track, bool &same, VolumePath_t *tmpstate) {
 
   //#### NOT USING YET THE NEW NAVIGATORS ####//
 
@@ -330,7 +330,7 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(GeantTrack &track, bool &same, Vol
 }
 
 //______________________________________________________________________________
-void ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[3], double disp, double mindisp)
+void ScalarNavInterfaceVGM::DisplaceTrack(Track &track, const double dir[3], double disp, double mindisp)
 {
   // before calling displacement it must be checked that the point is not on boundary! It is done in the caller.
   typedef Vector3D<Precision> Vector3D_t;
@@ -363,7 +363,7 @@ void ScalarNavInterfaceVGM::DisplaceTrack(GeantTrack &track, const double dir[3]
 }
 
 /*
-void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(GeantTrack &track, double dist) {
+void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(Track &track, double dist) {
 //track.fIsEverythingWasDone = track.fBoundary;
 // Find distance to next boundary, within proposed step.
    typedef Vector3D<Precision> Vector3D_t;

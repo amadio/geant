@@ -152,7 +152,7 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::Gea
   sectracks[secIndx].SetKinE(deltaKinEnergy);
   sectracks[secIndx].SetGVcode(fSecondaryInternalCode);
   sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   //
   // compute the primary e-/e+ post interaction kinetic energy and direction: from momentum vector conservation
   // final momentum of the primary e-/e+ in the lab frame

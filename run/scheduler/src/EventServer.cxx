@@ -1,12 +1,12 @@
-#include "GeantEventServer.h"
+#include "EventServer.h"
 
 #include "globals.h"
 #include "Geant/Error.h"
 
 #include "VBconnector.h"
-#include "GeantTrack.h"
-#include "GeantEvent.h"
-#include "GeantRunManager.h"
+#include "Track.h"
+#include "Geant/Event.h"
+#include "RunManager.h"
 #include "LocalityManager.h"
 #include "PrimaryGenerator.h"
 #include "GeantTaskData.h"
@@ -24,7 +24,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace vecgeom;
 
 //______________________________________________________________________________
-GeantEventServer::GeantEventServer(int nactive_max, GeantRunManager *runmgr)
+EventServer::EventServer(int nactive_max, RunManager *runmgr)
   :fNevents(0), fNactiveMax(nactive_max), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
    fNload(0), fNstored(0), fNcompleted(0), fEvent(nullptr), fRunMgr(runmgr),
    fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)), fPendingEvents(4096), fDoneEvents(4096)
@@ -34,7 +34,7 @@ GeantEventServer::GeantEventServer(int nactive_max, GeantRunManager *runmgr)
   fLastActive.store(-1);
 
   // Create event slots
-  fEvents = new GeantEvent*[fNactiveMax];
+  fEvents = new Event*[fNactiveMax];
   for (size_t slot = 0; slot < size_t(fNactiveMax); ++slot) {
     fEvents[slot] = nullptr;
     fFreeSlots.enqueue(slot);
@@ -56,28 +56,28 @@ GeantEventServer::GeantEventServer(int nactive_max, GeantRunManager *runmgr)
     GeantTaskData *td = fRunMgr->GetTDManager()->GetTaskData(0);
     for (int i = 0; i < ngen; ++i) {
       GenerateNewEvent(td, error);
-      assert(error == 0 && "GeantEventServer::ctor ERROR in event generation");
+      assert(error == 0 && "EventServer::ctor ERROR in event generation");
     }
-    GeantEvent *event = nullptr;
+    Event *event = nullptr;
     // Activate the first event
     ActivateEvent(event, error);
-    assert(error == 0 && "GeantEventServer::ctor ERROR in event activation");
+    assert(error == 0 && "EventServer::ctor ERROR in event activation");
   }
 }
 
 //______________________________________________________________________________
-GeantEventServer::~GeantEventServer()
+EventServer::~EventServer()
 {
 // Destructor
   for (int i = 0; i < fNactiveMax; ++i) {
     delete fEvents[i];
   }
-  GeantEvent *event;
+  Event *event;
   while (fDoneEvents.dequeue(event)) delete event;
 }
 
 //______________________________________________________________________________
-GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &error)
+Event *EventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &error)
 {
 // Generates a new event in standalone GeantV mode by filling an empty one and
 // putting it in the pending events queue.
@@ -102,7 +102,7 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
   }
   error = 0;
   // Now just get next event from the generator
-  GeantEventInfo eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent(td);
+  EventInfo eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent(td);
   int ntracks = eventinfo.ntracks;
   int nloadtmp = nload;
   while (!ntracks) {
@@ -111,12 +111,12 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
     ntracks = eventinfo.ntracks;
   }
 
-  GeantEvent *event = new GeantEvent();
+  Event *event = new Event();
   event->SetNprimaries(ntracks);
   event->SetVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
   // Populate event with primary tracks from the generator
   for (int itr=0; itr<ntracks; ++itr) {
-    GeantTrack &track = td->GetNewTrack();
+    Track &track = td->GetNewTrack();
     track.SetParticle(event->AddPrimary(&track));
     fRunMgr->GetPrimaryGenerator()->GetTrack(itr, track, td);
   }
@@ -130,7 +130,7 @@ GeantEvent *GeantEventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &
 }
 
 //______________________________________________________________________________
-bool GeantEventServer::AddEvent(GeantEvent *event)
+bool EventServer::AddEvent(Event *event)
 {
 // Adds one event into the queue of pending events.
   bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
@@ -154,7 +154,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 
   // Check and fix tracks
   for (int itr=0; itr<ntracks; ++itr) {
-    GeantTrack &track = *event->GetPrimary(itr);
+    Track &track = *event->GetPrimary(itr);
     track.SetPrimaryParticleIndex(itr);
     track.SetPath(startpath);
     track.SetNextPath(startpath);
@@ -213,7 +213,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
     event = nullptr;
     // Activate the first event
     ActivateEvent(event, error);
-    assert(error == 0 && "GeantEventServer::AddEvent ERROR in event activation");
+    assert(error == 0 && "EventServer::AddEvent ERROR in event activation");
   }
   fEventsServed = false;
   fHasTracks = true;
@@ -221,7 +221,7 @@ bool GeantEventServer::AddEvent(GeantEvent *event)
 }
 
 //______________________________________________________________________________
-GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &error, GeantTaskData *td)
+Event *EventServer::ActivateEvent(Event *event, unsigned int &error, GeantTaskData *td)
 {
 // Activates one event replacing the current one (if matching the expected value).
 // The method can fail due to one of the following reasons:
@@ -244,7 +244,7 @@ GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &err
 
   // Move old event from slot to queue of empty events
   if (fEvents[slot]) {
-    GeantEvent *done_event = fEvents[slot];
+    Event *done_event = fEvents[slot];
     fEvents[slot] = nullptr;
     done_event->Clear(td);
     fDoneEvents.enqueue(done_event);
@@ -288,7 +288,7 @@ GeantEvent *GeantEventServer::ActivateEvent(GeantEvent *event, unsigned int &err
 }
 
 //______________________________________________________________________________
-void GeantEventServer::CompletedEvent(GeantEvent *event, GeantTaskData *td)
+void EventServer::CompletedEvent(Event *event, GeantTaskData *td)
 {
 // Signals that event 'evt' was fully transported.
   size_t slot = event->GetSlot();
@@ -309,13 +309,13 @@ void GeantEventServer::CompletedEvent(GeantEvent *event, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-GeantTrack *GeantEventServer::GetNextTrack(GeantTaskData *td, unsigned int &error)
+Track *EventServer::GetNextTrack(GeantTaskData *td, unsigned int &error)
 {
 // Fetch next track of the current event. Increments current event if no more
 // tracks. If current event matches last activated one, resets fHasTracks flag.
 // If max event fully dispatched, sets the fDone flag.
 
-  GeantEvent *event = nullptr;
+  Event *event = nullptr;
   int itr;
   while (1) {
     // Book next track index
@@ -335,21 +335,21 @@ GeantTrack *GeantEventServer::GetNextTrack(GeantTaskData *td, unsigned int &erro
     }
     if (valid) break;
   }
-  GeantTrack *track = event->GetPrimary(itr)->Clone(td);
+  Track *track = event->GetPrimary(itr)->Clone(td);
   track->SetEvent(event->GetEvent());
   track->SetEvslot(event->GetSlot());
   return track;
 }
 
 //______________________________________________________________________________
-int GeantEventServer::FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error)
+int EventServer::FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error)
 {
 // Fill concurrently a basket of tracks, up to the requested number of tracks.
 // The client should test first the track availability using HasTracks().
   if (!fHasTracks) return 0;
   int ndispatched = 0;
   for (int i=0; i<ntracks; ++i) {
-    GeantTrack *track = GetNextTrack(td, error);
+    Track *track = GetNextTrack(td, error);
     if (!track) break;
     basket->AddTrack(track);
     ndispatched++;
@@ -362,20 +362,20 @@ int GeantEventServer::FillBasket(Basket *basket, int ntracks, GeantTaskData *td,
 }
 
 //______________________________________________________________________________
-int GeantEventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error)
+int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error)
 {
 // Fill concurrently up to the requested number of tracks into a stack-like buffer.
 // The client should test first the track availability using HasTracks().
 
 // *** I should template on the container to be filled, making sure that all
-//     containers provide AddTrack(GeantTrack *)
+//     containers provide AddTrack(Track *)
   if (!fHasTracks) {
     error = kDone;
     return 0;
   }
   int ndispatched = 0;
   for (int i=0; i<ntracks; ++i) {
-    GeantTrack *track = GetNextTrack(td, error);
+    Track *track = GetNextTrack(td, error);
     if (!track) break;
     buffer->AddTrack(track);
     ndispatched++;

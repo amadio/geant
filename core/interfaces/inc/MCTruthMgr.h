@@ -16,7 +16,7 @@
 #include "base/Global.h"
 
 #include "GeantFwd.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "cuckoohash_map.hh"
 
@@ -74,21 +74,21 @@ public:
    * @brief Pure virtual function checking the conditions of the track to be stored
    * @details Looks at different tracks properties and returns yes/no to be stored
    */
-  virtual bool CheckTrack(geant::GeantTrack &gtrack, MCEvent* evt) = 0;
+  virtual bool CheckTrack(geant::Track &gtrack, MCEvent* evt) = 0;
 
   /**
    * @brief Function that adds a track
    *
    * @param gtrack track
    */
-  void AddTrack(geant::GeantTrack &gtrack);
+  void AddTrack(geant::Track &gtrack);
 
   /**
    * @brief Function that indicates a track stopping
    *
    * @param track Track to be stopped
    */
-  void EndTrack(GeantTrack *track);
+  void EndTrack(Track *track);
 
     /**
    * @brief Function that opens an event

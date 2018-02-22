@@ -22,14 +22,14 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantEvent;
-class GeantEventServer;
+class Event;
+class EventServer;
 
 /** @brief Class describing a set of events as GeantV workload */
 class EventSet {
 
   struct EventMarker {
-    GeantEvent *fEvent = nullptr;        /** Event */
+    Event *fEvent = nullptr;        /** Event */
     int              fEventNumber;       /** Event number */
     std::atomic_flag fDone;              /** Done flag */
   };
@@ -60,15 +60,15 @@ public:
   EventSet(size_t nevents);
 
   /** @brief Constructor providing the full set of events. */
-  EventSet(std::vector<GeantEvent*> const &events);
+  EventSet(std::vector<Event*> const &events);
 
   /** @brief Destructor */
   ~EventSet() { delete [] fMarkers; }
 
   /** @brief Complete the event set adding events one-by-one. */
-  bool AddEvent(GeantEvent *event);
+  bool AddEvent(Event *event);
   
-  void AddSetToServer(GeantEventServer *evserv) const;
+  void AddSetToServer(EventServer *evserv) const;
 
   /** @brief Mark one event in the set as done. Return true if the operation completes the set. */
   bool MarkDone(int event_number);

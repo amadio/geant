@@ -1,10 +1,10 @@
-//===--- GeantPropagator.h - Geant-V ----------------------------*- C++ -*-===//
+//===--- Propagator.h - Geant-V ----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantPropagator.h
+ * @file Propagator.h
  * @brief Implementation of propogator in Geant-V prototype.
  * @author Andrei Gheata
  */
@@ -29,7 +29,7 @@ class TStopwatch;
 using veccore::BitSet;
 
 #include "GeantConfig.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 class PhysicsInterface;
 
@@ -39,8 +39,8 @@ class VVectorField;
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantRunManager;
-class GeantEvent;
+class RunManager;
+class Event;
 class GeantVApplication;
 class GeantBasket;
 class GeantBasketMgr;
@@ -56,7 +56,7 @@ class TrackManager;
 
 // #include "GeantFwd.h"
 
-class GeantPropagator {
+class Propagator {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   // On cuda there is one propagator per thread.  So (for now), no need
   // for atomics.
@@ -69,7 +69,7 @@ class GeantPropagator {
 
 public:
   GeantConfig *fConfig = nullptr;      /** Run configuration*/
-  GeantRunManager *fRunMgr = nullptr;  /** Run manager */
+  RunManager *fRunMgr = nullptr;  /** Run manager */
   int fNuma = -1;                      /** NUMA id */
 
   int fNthreads = 0;                   /** Number of worker threads */
@@ -108,7 +108,7 @@ public:
 
   // Data per event
   int *fNtracks = nullptr;        /** ![fNbuff] Number of tracks per slot */
-  GeantEvent **fEvents = nullptr; /** ![fNbuff]    Array of events */
+  Event **fEvents = nullptr; /** ![fNbuff]    Array of events */
   bool fCompleted = false;     /** Completion flag */
   bool fInitialFeed = false;   /** Flag marking that events were injected */
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -122,18 +122,18 @@ public:
   void InitializeAfterGeom();
 
 public:
-  /** @brief GeantPropagator constructor
+  /** @brief Propagator constructor
    * @param ntotal Total number of tracks
    * old param nbuffered Number of buffered tracks
    */
   VECCORE_ATT_HOST_DEVICE
-  GeantPropagator(int nthreads = 0);
+  Propagator(int nthreads = 0);
 
   /** @brief Copy constructor */
-  GeantPropagator(const GeantPropagator &);
+  Propagator(const Propagator &);
 
-  /** @brief GeantPropagator destructor */
-  virtual ~GeantPropagator();
+  /** @brief Propagator destructor */
+  virtual ~Propagator();
 
   /**
    * @brief Function that returns the number of transported tracks (C++11)
@@ -150,7 +150,7 @@ public:
    *
    * @param track Track that should be added
    */
-  int AddTrack(GeantTrack &track);
+  int AddTrack(Track &track);
 
   /**
    * @brief  Function for marking a track as stopped
@@ -158,7 +158,7 @@ public:
    * @param track Track to be stopped
    * @param itr Track id
    */
-  void StopTrack(GeantTrack *track, GeantTaskData *td);
+  void StopTrack(Track *track, GeantTaskData *td);
 
   /**
    * @brief Setter for the real physics interface
@@ -174,7 +174,7 @@ public:
 
 
   /** @brief Entry point to start simulation with GeantV */
-  static void RunSimulation(GeantPropagator *prop, int nthreads);
+  static void RunSimulation(Propagator *prop, int nthreads);
 
   /**
    * @brief Entry point to start simulation with GeantV
@@ -230,14 +230,14 @@ public:
 
   /** @brief Function allowing to retrieve the next simulation stage for a track */
   VECCORE_ATT_HOST_DEVICE
-  int GetNextStage(GeantTrack &track, int current);
+  int GetNextStage(Track &track, int current);
 
   /** @brief Setter for locality */
   void SetNuma(int numa);
 
 private:
   /** @brief Assignment operator not implemented */
-  GeantPropagator &operator=(const GeantPropagator &);
+  Propagator &operator=(const Propagator &);
 
 };
 

@@ -1,6 +1,6 @@
 #include "PreStepStage.h"
 
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "PreStepHandler.h"
 
 namespace geant {
@@ -8,7 +8,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PreStepStage::PreStepStage(GeantPropagator *prop)
+PreStepStage::PreStepStage(Propagator *prop)
   : SimulationStage(kPreStepStage, prop)
 {
 }
@@ -26,7 +26,7 @@ int PreStepStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *PreStepStage::Select(GeantTrack *, GeantTaskData *)
+Handler *PreStepStage::Select(Track *, GeantTaskData *)
 {
 // All tracks selected
   return fHandlers[0];

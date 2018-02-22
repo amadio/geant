@@ -5,7 +5,7 @@
 #include "PhysicalConstants.h"
 
 // from geantV
-#include "GeantTrack.h"
+#include "Track.h"
 #include "GeantTaskData.h"
 
 #include <cmath>
@@ -61,8 +61,8 @@ CMSParticleGun::~CMSParticleGun() {}
 
 
 // set number of primary vertex and the fixed vertex position and give it back to the EventServer
-geant::GeantEventInfo CMSParticleGun::NextEvent(geant::GeantTaskData* td) {
-  geant::GeantEventInfo current;
+geant::EventInfo CMSParticleGun::NextEvent(geant::GeantTaskData* td) {
+  geant::EventInfo current;
   // check if user set fix number of primaries per event and generate randomly if not
   int numPrimPerEvt = fNumPrimaryPerEvt;
   if (!fIsUserNumPrimaryPerEvt) {
@@ -78,7 +78,7 @@ geant::GeantEventInfo CMSParticleGun::NextEvent(geant::GeantTaskData* td) {
 }
 
 
-void CMSParticleGun::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* td) {
+void CMSParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* td) {
   // Select randomly the primary particle if it was not set by the user
   std::string &pParticleName = fPrimaryParticleName;
   if (!fIsUserPrimaryType) {

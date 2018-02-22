@@ -2,7 +2,7 @@
 #include "Basket.h"
 #include "GeantTaskData.h"
 #include "GeantTrackGeo.h"
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "VBconnector.h"
 
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
@@ -17,7 +17,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomQueryHandler::GeomQueryHandler(Volume_t *vol, int threshold, GeantPropagator *propagator, int index)
+GeomQueryHandler::GeomQueryHandler(Volume_t *vol, int threshold, Propagator *propagator, int index)
                : Handler(threshold, propagator), fVolume(vol), fIndex(index)
 {
 // Default constructor
@@ -81,7 +81,7 @@ void GeomQueryHandler::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomQueryHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void GeomQueryHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -116,7 +116,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
     size_t i = 0;
     for (size_t itr = 0; itr < ntr; ++itr) {
       // emulate the extra work done in vector mode
-      GeantTrack *track = tracks[itr];
+      Track *track = tracks[itr];
       DoIt(track, output, td);
       track->SetPending(false);
       if (track->Boundary()) {
@@ -128,7 +128,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
     }
     if (i >= kVecSize) {
       for (size_t itr = 0; itr < i; ++itr) {
-        GeantTrack *track = tracks[itr];
+        Track *track = tracks[itr];
         track->SetSnext(tracks[itr]->GetSnext());
         track->SetSafety(tracks[itr]->GetSafety());
         track->SetBoundary(tracks[itr]->Boundary());
@@ -137,7 +137,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
       i = 0;
     }
     for (size_t itr = 0; itr < ntr; ++itr) {
-      GeantTrack *track = tracks[itr];
+      Track *track = tracks[itr];
       if (track->Pending() || track->Boundary()) continue;
       // Skip tracks with big enough safety
       if (track->GetSafety() > track->GetPstep()) continue;
@@ -149,7 +149,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
     if (i >= kVecSize) {
       for (size_t itr = 0; itr < i; ++itr) {
         // Find the original track
-        GeantTrack *track = tracks[itr];
+        Track *track = tracks[itr];
         track->SetSnext(tracks[itr]->GetSnext());
         track->SetSafety(tracks[itr]->GetSafety());
         track->SetBoundary(tracks[itr]->Boundary());
@@ -165,7 +165,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
   size_t i = 0;
   // Process first the tracks that start from a boundary
   for (size_t itr = 0; itr < ntr; ++itr) {
-    GeantTrack *track = tracks[itr];
+    Track *track = tracks[itr];
     track->SetBoundaryPreStep(track->Boundary());
     if (track->IsPrePropagationDone())
       track->SetStage(kPropagationStage);
@@ -189,7 +189,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
                track_geo.fSnextV, track_geo.fSafetyV, track_geo.fCompSafetyV);
     for (size_t itr = 0; itr < i; ++itr) {
       // Find the original track
-      GeantTrack *track = tracks[track_geo.fIdV[itr]];
+      Track *track = tracks[track_geo.fIdV[itr]];
 #ifdef DEBUG_VECTOR_DOIT
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
       if ( vecCore::math::Abs(track->fSnext - track_geo.fSnextV[itr]) > 1.e-10) {
@@ -207,7 +207,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
     
   // Process the tracks having pstep > safety
   for (size_t itr = 0; itr < ntr; ++itr) {
-    GeantTrack *track = tracks[itr];
+    Track *track = tracks[itr];
     if (track->Pending() || track->Boundary()) continue;
     // Skip tracks with big enough safety
     if (track->GetSafety() > track->GetPstep()) {
@@ -228,7 +228,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
                track_geo.fSnextV, track_geo.fSafetyV, track_geo.fCompSafetyV);  
     for (size_t itr = 0; itr < i; ++itr) {
       // Find the original track
-      GeantTrack *track = tracks[track_geo.fIdV[itr]];
+      Track *track = tracks[track_geo.fIdV[itr]];
 #ifdef DEBUG_VECTOR_DOIT
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
       if ( vecCore::math::Abs(track->GetSnext() - track_geo.fSnextV[itr]) > 1.e-10 ||
@@ -243,7 +243,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
     }
   } else {
     for (size_t itr = 0; itr < i; ++itr) {
-      GeantTrack *track = tracks[track_geo.fIdV[itr]];
+      Track *track = tracks[track_geo.fIdV[itr]];
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
     }
   }

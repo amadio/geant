@@ -58,7 +58,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
   int icrossed = 0;
   int nsel = ntracks;
   for (int itr = 0; itr < ntracks; itr++) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     if (track.GetSafety() > 1.E-10 && track.GetSnext() > 1.E-10) {
       // Track stays in the same volume
       track.SetBoundary(false);
@@ -73,7 +73,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 #endif
     // The scalar treatment is always done in case of non-vector compilation
     for (unsigned int itr = 0; itr < tracks.size(); itr++) {
-      GeantTrack &track = *tracks[itr];
+      Track &track = *tracks[itr];
       int crossed = CheckSameLocationSingle(track, td);
       if (crossed) MoveTrack(itr--, tracks, output);
       icrossed += crossed;
@@ -89,7 +89,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
   GeantTrackGeo_v &track_geo = *td.fGeoTrack;
   track_geo.Clear();
   for (int itr = 0; itr < tracks.size(); itr++) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     if (track.GetSafety() < 1.E-10 || track.GetSnext() < 1.E-10)
       track_geo.AddTrack(track);
   }
@@ -116,7 +116,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 
   // Move crossing tracks to the output container
   for (int itr = 0; itr < ntracks; itr++) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     if (track.Boundary()) MoveTrack(itr--, tracks, output);
   }
 
@@ -126,7 +126,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int TransportManager::CheckSameLocationSingle(GeantTrack &track,
+int TransportManager::CheckSameLocationSingle(Track &track,
                                          GeantTaskData *td) {
 // Query geometry if the location has changed for a track
 // Returns number of tracks crossing the boundary (0 or 1)
@@ -229,7 +229,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TransportManager::ComputeTransportLengthSingle(GeantTrack &track, GeantTaskData *td) {
+void TransportManager::ComputeTransportLengthSingle(Track &track, GeantTaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
@@ -265,7 +265,7 @@ void TransportManager::PropagateInVolume(TrackVec_t &tracks,
 
   // For the moment fall back on scalar propagation
   for (int itr=0; itr<ntracks; ++itr) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     PropagateInVolumeSingle(track, crtstep[itr++], td);
   }
 }
@@ -273,7 +273,7 @@ void TransportManager::PropagateInVolume(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep, GeantTaskData * td) {
+void TransportManager::PropagateInVolumeSingle(Track &track, double crtstep, GeantTaskData * td) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -309,7 +309,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
    GUFieldPropagator *fieldPropagator = nullptr;
    if( useRungeKutta ){
-      // Initialize for the current thread -- move to GeantPropagator::Initialize() or per thread Init method
+      // Initialize for the current thread -- move to Propagator::Initialize() or per thread Init method
       static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
       assert( fieldPropPool );
 
@@ -344,7 +344,7 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
   ThreeVector PositionNew(0.,0.,0.);
   ThreeVector DirectionNew(0.,0.,0.);
 
-  double curvaturePlus= fabs(GeantTrack::kB2C * track.Charge() * bmag) / (track.P() + 1.0e-30);  // norm for step
+  double curvaturePlus= fabs(Track::kB2C * track.Charge() * bmag) / (track.P() + 1.0e-30);  // norm for step
   // 'Curvature' along the full track - not just in the plane perpendicular to the B-field vector
 
   constexpr double numRadiansMax= 10.0;   //  Too large an angle - many RK steps.  Potential change -> 2.0*PI;
@@ -445,7 +445,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
     return PropagateTracksScalar(tracks, td);
 // Compute transport length in geometry, limited by the physics step
 #ifdef BUG_HUNT
-  GeantPropagator *prop = td->fPropagator;  
+  Propagator *prop = td->fPropagator;  
   BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep, "PropagateTracks");
 #endif
   ComputeTransportLength(tracks, ntracks, td);
@@ -463,7 +463,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 
   // Remove dead tracks, propagate neutrals
   for (unsigned int itr=0; itr<tracks.size(); ++itr) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     // Move dead to output
     if (track.GetSnext() < 0) {
       Error("ComputeTransportLength", "Track %d cannot cross boundary and has to be killed", track.Particle());
@@ -524,7 +524,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   // Take the maximum between the safety and the "bending" safety
   double *steps = td->GetDblArray(ntracks);
   for (itr = 0; itr < ntracks; itr++) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     lmax = SafeLength(track, bmag, eps);
     lmax = Math::Max<double>(lmax, track.GetSafety());
     // Select step to propagate as the minimum among the "safe" step and:
@@ -549,7 +549,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 
   // Select tracks that made it to physics and copy to output
   for (unsigned int itr=0; itr<tracks.size(); ++itr) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     if (track.Status() == kPhysics) {
       // Update number of steps to physics and total number of steps
       td->fNphys++;
@@ -570,7 +570,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
   icrossed += CheckSameLocation(tracks, ntracks, td);
 #else
   for (itr = 0; itr < ntracks; itr++) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     int crossed = CheckSameLocationSingle(track, td);
     if (crossed) MoveTrack(itr--, tracks, output);
     icrossed += crossed;
@@ -585,7 +585,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int TransportManager::PropagateSingleTrack(GeantTrack *track, Basket *output, GeantTaskData *td, int stage)
+int TransportManager::PropagateSingleTrack(Track *track, Basket *output, GeantTaskData *td, int stage)
 {
   // Propagate the track with its selected steps, starting from a given stage.
   int icrossed = 0;
@@ -695,13 +695,13 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
 // Compute transport length in geometry, limited by the physics step
 
 #ifdef BUG_HUNT
-  GeantPropagator *prop = td->fPropagator;
+  Propagator *prop = td->fPropagator;
   BreakOnStep(tracks, prop->fConfig->fDebugEvt, prop->fConfig->fDebugTrk, prop->fConfig->fDebugStp, prop->fConfig->fDebugRep,
               "PropagateSingle", itr);
 #endif
 
   TrackVec_t &output = td->fTransported1;
-  GeantTrack &track = *tracks[itr];
+  Track &track = *tracks[itr];
   ComputeTransportLengthSingle(track, td);
 
 #ifdef BUG_HUNT
@@ -843,7 +843,7 @@ bool TransportManager::BreakOnStep(TrackVec_t &tracks, int evt, int trk, int stp
     end = itr + 1;
   }
   for (itr = start; itr < end; ++itr) {
-    GeantTrack &track = *tracks[itr];
+    Track &track = *tracks[itr];
     if ((track.Particle() == trk) && (track.Event() == evt) &&
         ((track.GetNsteps() >= stp) && (track.GetNsteps() < stp + nsteps))) {
       has_it = true;

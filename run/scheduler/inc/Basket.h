@@ -18,7 +18,7 @@
 #endif
 
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -79,7 +79,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void AddTrack(GeantTrack *track) { fTracks.push_back(track); }
+  void AddTrack(Track *track) { fTracks.push_back(track); }
 
   /**
    * @brief Add several tracks to the basket.
@@ -146,7 +146,7 @@ public:
   /** @brief Function checking if a track is already contained */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int HasTrack(GeantTrack* const track) const
+  int HasTrack(Track* const track) const
   {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     return ( std::find(fTracks.begin(), fTracks.end(), track) != fTracks.end() );
@@ -161,7 +161,7 @@ public:
   /** @brief Function checking if a track is contained repeatedly */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int HasTrackMany(GeantTrack* const track) const
+  int HasTrackMany(Track* const track) const
   {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     auto it = std::find(fTracks.begin(), fTracks.end(), track);
@@ -225,7 +225,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   size_t SizeOfInstance() const {
-    return ( sizeof(this) + fTracks.capacity() * sizeof(GeantTrack*) );
+    return ( sizeof(this) + fTracks.capacity() * sizeof(Track*) );
   }
 
   /**

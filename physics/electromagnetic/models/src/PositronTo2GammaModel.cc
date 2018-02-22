@@ -151,7 +151,7 @@ int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::GeantT
   sectracks[secIndx].SetKinE(gamEner);
   sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   //
   // go for the second gamma properties
   const double posInitTotalMomentum = std::sqrt(pekin*(pekin+2.0*geant::units::kElectronMassC2));
@@ -169,7 +169,7 @@ int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::GeantT
   sectracks[secIndx].SetKinE(tEnergy-gamEner);
   sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // kill the primary e+
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);

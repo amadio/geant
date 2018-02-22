@@ -1,8 +1,8 @@
 // See also GeantCudaUtils.cxx
 
 #include "GeantCudaUtils.h"
-#include "GeantPropagator.h"
-#include "GeantTrack.h"
+#include "Propagator.h"
+#include "Track.h"
 #include "GeantConfig.h"
 #include "globals.h"
 

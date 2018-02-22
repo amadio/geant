@@ -2,9 +2,9 @@
 #include "AlongStepActionStage.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Handler.h"
 
 // from realphysics
@@ -23,7 +23,7 @@
 
 namespace geantphysics {
 
-AlongStepActionStage::AlongStepActionStage(geant::GeantPropagator *prop)
+AlongStepActionStage::AlongStepActionStage(geant::Propagator *prop)
 : SimulationStage(geant::kAlongStepActionStage, prop) {}
 
 // base class will delete the created handlers
@@ -39,7 +39,7 @@ int AlongStepActionStage::CreateHandlers() {
 }
 
 // Selects tracks that have any along step processes i.e. continuous part
-geant::Handler* AlongStepActionStage::Select(geant::GeantTrack *track, geant::GeantTaskData * /*td*/) {
+geant::Handler* AlongStepActionStage::Select(geant::Track *track, geant::GeantTaskData * /*td*/) {
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle

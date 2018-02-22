@@ -23,8 +23,7 @@
 #include "base/Vector.h"
 
 using GeantTaskData = geant::GeantTaskData;
-using GeantTrack    = geant::GeantTrack;
-using TrackVec_t    = geant::GeantTrack_v;
+using Track    = geant::Track;
 
 namespace cmsapp {
 /** @brief CMSApplication class */
@@ -40,7 +39,7 @@ private:
 public:
 
   /** @brief Constructor CMSApplicationTBB */
-  CMSApplicationTBB(geant::GeantRunManager *runmgr, CMSParticleGun* gun)
+  CMSApplicationTBB(geant::RunManager *runmgr, CMSParticleGun* gun)
     : CMSFullApp(runmgr, gun) {}
 
   /** @brief Destructor CMSApplicationTBB */
@@ -48,7 +47,7 @@ public:
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
-  virtual void FinishEvent(geant::GeantEvent *event);
+  virtual void FinishEvent(geant::Event *event);
 
   /**
    * @brief  Receive a pointer to the tbb::task to be run once a given event has been fully simulated.

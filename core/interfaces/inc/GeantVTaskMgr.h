@@ -18,7 +18,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantPropagator;
+class Propagator;
 
 /** @brief GeantVTaskMgr class */
 class GeantVTaskMgr {
@@ -31,7 +31,7 @@ public:
   virtual ~GeantVTaskMgr() {}
 
   /** @brief Function of initialization */
-  virtual bool Initialize(int nthreads, GeantPropagator *prop) = 0;
+  virtual bool Initialize(int nthreads, Propagator *prop) = 0;
 
   /** @brief Function for final actions */
   virtual void Finalize() = 0;

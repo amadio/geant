@@ -2,9 +2,9 @@
 #include "AtRestActionStage.h"
 
 // from geantV
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "Handler.h"
 
 // from realphysics
@@ -23,7 +23,7 @@
 
 namespace geantphysics {
 
-AtRestActionStage::AtRestActionStage(geant::GeantPropagator *prop)
+AtRestActionStage::AtRestActionStage(geant::Propagator *prop)
 : SimulationStage(geant::kAtRestActionStage, prop) {}
 
 
@@ -41,7 +41,7 @@ int AtRestActionStage::CreateHandlers() {
 
 
 // Selects tracks that have any at-rest processes
-geant::Handler* AtRestActionStage::Select(geant::GeantTrack *track, geant::GeantTaskData * /*td*/) {
+geant::Handler* AtRestActionStage::Select(geant::Track *track, geant::GeantTaskData * /*td*/) {
   if (track->T()<=0.) {
     // here we will get the MaterialCuts from the LogicalVolume
     const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));

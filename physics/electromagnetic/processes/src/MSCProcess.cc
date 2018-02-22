@@ -13,7 +13,7 @@
 
 // from geantV
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "Geant/NavigationInterface.h"
 
@@ -43,7 +43,7 @@ void MSCProcess::Initialize()
 MSCProcess::~MSCProcess() {}
 
 // called at the PrePropagationStage(in the Handler)
-double MSCProcess::AlongStepLimitationLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td) const {
+double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::GeantTaskData *td) const {
   // init all lengths to the current minimum physics step length (that is the true length)
   //
   MSCdata &mscdata = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
@@ -88,11 +88,11 @@ double MSCProcess::AlongStepLimitationLength(geant::GeantTrack *gtrack, geant::G
   } else { // write back the original post-step point boundary flag and do nothing
     gtrack->SetBoundary(isOnBoundaryPostStp);
   }
-  return 0.;// not used at all because the step limit is written directly into the GeantTrack (just the interface)
+  return 0.;// not used at all because the step limit is written directly into the Track (just the interface)
 }
 
 // called at the PostPropagationStage(in the Handler)
-void MSCProcess::AlongStepDoIt(geant::GeantTrack *gtrack, geant::GeantTaskData *td) const {
+void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::GeantTaskData *td) const {
   // get the step length (the geometric one)
   double geometricStepLength = gtrack->GetStep();
   double truePathLength      = geometricStepLength;

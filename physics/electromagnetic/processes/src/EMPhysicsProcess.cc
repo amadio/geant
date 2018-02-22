@@ -166,7 +166,7 @@ double EMPhysicsProcess::GetMinimumLambdaTableKineticEnergy(const MaterialCuts *
   return emin;
 }
 
-double EMPhysicsProcess::AlongStepLimitationLength(geant::GeantTrack *gtrack, geant::GeantTaskData * /*td*/) const {
+double EMPhysicsProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::GeantTaskData * /*td*/) const {
   double stepLimit = GetAVeryLargeValue();
   // if the process is kEnergyLoss process use the energy loss related data to limit the step
   if(GetType()==ProcessType::kEnergyLoss) {

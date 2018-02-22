@@ -10,7 +10,7 @@
 #endif
 
 #include "TThread.h"
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantScheduler.h"
 #include "WorkloadManager.h"
 #include "PhysicsProcess.h"
@@ -22,7 +22,7 @@
 #include "GeantVApplication.h"
 #include "ExN03Application.h"
 #include "GeantFactoryStore.h"
-#include "GeantTrack.h"
+#include "Track.h"
 #include "TROOT.h"
 #include <iostream>
 #include "GunGenerator.h"
@@ -60,7 +60,7 @@ void run(int nthreads=4,
    int nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
    TGeoManager::Import(geomfile);
 
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
+   Propagator *prop = Propagator::Instance(ntotal, nbuffered, nthreads);
    // Monitor different features
    prop->SetNminThreshold(5*nthreads);
    if (coprocessor) {
@@ -73,12 +73,12 @@ void run(int nthreads=4,
 #endif
    }
 
-   prop->SetMonitored(GeantPropagator::kMonQueue,          true & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonMemory,         false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonBasketsPerVol,  false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonVectors,        false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonConcurrency,    false & (!performance));
-   prop->SetMonitored(GeantPropagator::kMonTracksPerEvent, false & (!performance));
+   prop->SetMonitored(Propagator::kMonQueue,          true & (!performance));
+   prop->SetMonitored(Propagator::kMonMemory,         false & (!performance));
+   prop->SetMonitored(Propagator::kMonBasketsPerVol,  false & (!performance));
+   prop->SetMonitored(Propagator::kMonVectors,        false & (!performance));
+   prop->SetMonitored(Propagator::kMonConcurrency,    false & (!performance));
+   prop->SetMonitored(Propagator::kMonTracksPerEvent, false & (!performance));
    bool graphics = (prop->GetMonFeatures()) ? true : false;
    prop->fUseMonitoring = graphics;
    prop->fNaverage = 500;   // Average number of tracks per event

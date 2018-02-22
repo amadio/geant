@@ -12,10 +12,10 @@
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
-    class GeantRunManager;
+    class RunManager;
     class GeantTaskDataHandle;
-    class GeantEvent;
-    class GeantTrack;
+    class Event;
+    class Track;
   }
 }
 
@@ -34,7 +34,7 @@ class CMSFullApp : public geant::GeantVApplication {
 public:
 
 
-  CMSFullApp(geant::GeantRunManager *runmgr, CMSParticleGun* gun);
+  CMSFullApp(geant::RunManager *runmgr, CMSParticleGun* gun);
   virtual ~CMSFullApp();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
@@ -44,11 +44,11 @@ public:
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::Track &track, geant::GeantTaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
-  virtual void FinishEvent(geant::GeantEvent *event);
+  virtual void FinishEvent(geant::Event *event);
 
   /** @brief Interface method that is called at the end of the simulation (when the transportation of all events are
     *        are completed). */

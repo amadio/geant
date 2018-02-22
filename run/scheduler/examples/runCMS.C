@@ -5,11 +5,11 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-// Autoload the library early so that GeantPropagator is defined when applicable.
+// Autoload the library early so that Propagator is defined when applicable.
 namespace geant {
 inline namespace cxx {
 class TaskBroker;
-class GeantPropagator;
+class Propagator;
 }
 }
 
@@ -80,7 +80,7 @@ void runCMS(const int ncputhreads=4,
    config->fNbuff = nbuffered;
    // config->fBmag = magfield; // 4 Tesla
 
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered, nthreads);
+   Propagator *prop = Propagator::Instance(ntotal, nbuffered, nthreads);
    // prop->fBmag = magfield; // 4 Tesla
    prop->fBfieldArr[0] = 0.0; 
    prop->fBfieldArr[1] = 0.0; 
@@ -137,7 +137,7 @@ void runCMS(const int ncputhreads=4,
    if( useCMSfield ) {
       CMSDetectorConstruction* CMSdetector= new CMSDetectorConstruction();
       CMSdetector->SetFileForField(fieldfile);
-      printf("CMSApp: Setting CMS-detector-construction to GeantPropagator with file %s\n",fieldfile);
+      printf("CMSApp: Setting CMS-detector-construction to Propagator with file %s\n",fieldfile);
       prop->SetUserDetectorConstruction(CMSdetector);
       // printf("Calling CreateFieldAndSolver from runCMS_new.C");
       // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
@@ -145,7 +145,7 @@ void runCMS(const int ncputhreads=4,
       UserDetectorConstruction* detectorCt= new UserDetectorConstruction();
       float fieldVec[3] = { 0.0f, 0.0f, 38.0f };
       detectorCt->UseConstantMagField( fieldVec, "kilogauss" );
-      printf("CMSApp: Setting generic detector-construction to GeantPropagator - created field= %f %f %f.\n",
+      printf("CMSApp: Setting generic detector-construction to Propagator - created field= %f %f %f.\n",
 	     fieldVec[0], fieldVec[1], fieldVec[2] );
       prop->SetUserDetectorConstruction(detectorCt);
    }
@@ -175,7 +175,7 @@ void runCMS(const int ncputhreads=4,
    config->fDebugRep = 10;
 
 
-   GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
+   RunManager *runMgr = new RunManager(npropagators, nthreads, config);
    if (broker) runMgr->SetCoprocessorBroker(broker);
 
    runMgr->SetPhysicsProcess( new geant::TTabPhysProcess("tab_phys", xsec, fstate));

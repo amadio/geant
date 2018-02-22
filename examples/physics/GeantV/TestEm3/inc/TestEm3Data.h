@@ -19,7 +19,7 @@ namespace userapplication {
  * application specific thread local (data) objects in this thread local storage. When the transportation of an event,
  * that currently occupies one of the event-slots (one out of the "number of buffered events" possible places) is
  * completed (i.e. all the primary particles that belongs to the corresponding event and their secondaries are fully
- * transported) an application interface method [Digitize(geant::GeantEvent*)] is invoked. GeantV provides the
+ * transported) an application interface method [Digitize(geant::Event*)] is invoked. GeantV provides the
  * possibility to merge the thread local user defined data (filled in the SteppingAction() interface method after each
  * simulation step in a thread local way) related to the finished event and distributed among multiple working threads.
  * This merge will return with a pointer to one of the user defined thread local data that contains the result of the

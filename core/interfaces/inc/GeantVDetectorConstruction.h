@@ -22,14 +22,14 @@ class TGeoMaterial;
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantRunManager;
+class RunManager;
 class TaskBroker;
 class UserFieldConstruction;
 
 /** @brief GeantVDetectorConstruction class */
 class GeantVDetectorConstruction {
 private:
-  GeantRunManager *fRunMgr = nullptr;
+  RunManager *fRunMgr = nullptr;
   UserFieldConstruction *fFieldConstruction = nullptr; 
 // Material conversion callback function
 #ifdef USE_ROOT
@@ -43,7 +43,7 @@ protected:
 
 public:  
   /** @brief GeantVDetectorConstruction constructor */	
-  GeantVDetectorConstruction(GeantRunManager *runmgr) { fRunMgr = runmgr; }
+  GeantVDetectorConstruction(RunManager *runmgr) { fRunMgr = runmgr; }
 
   /** @brief GeantVDetectorConstruction destructor */
   virtual ~GeantVDetectorConstruction() {}

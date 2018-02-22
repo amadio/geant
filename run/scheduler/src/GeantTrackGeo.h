@@ -14,7 +14,7 @@
 #define GEANT_TRACK_GEO
 
 #include <vector>
-#include <GeantTrack.h>
+#include <Track.h>
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -24,7 +24,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
  *
  */
 struct GeantTrackGeo {
-  GeantTrack *fOriginal; /** Original track from which this was extracted */
+  Track *fOriginal; /** Original track from which this was extracted */
   size_t fId;            /** Id of original track in its container */
   double fXpos;          /** X position */
   double fYpos;          /** Y position */
@@ -45,9 +45,9 @@ struct GeantTrackGeo {
  */
 class GeantTrackGeo_v {
 #ifndef VECCORE_CUDA
-  typedef std::vector<GeantTrack *> TrackVec_t;
+  typedef std::vector<Track *> TrackVec_t;
 #else
-  typedef vecgeom::Vector<GeantTrack *> TrackVec_t;
+  typedef vecgeom::Vector<Track *> TrackVec_t;
 #endif
 
 public:
@@ -57,7 +57,7 @@ public:
   size_t fBufSize; /** Size of the internal buffer */
   char *fBuf;      /** Buffer holding tracks data */
 
-  GeantTrack **fOriginalV; /** Track originals */
+  Track **fOriginalV; /** Track originals */
   size_t *fIdV;            /** Id's in the original container */
   double *fXposV;          /** Arrays of track positions */
   double *fYposV;
@@ -111,7 +111,7 @@ public:
   GeantTrackGeo_v(int size);
 
   /**
-   * @brief GeantTrack MakeInstance based on a provided single buffer.
+   * @brief Track MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
   static GeantTrackGeo_v *MakeInstanceAt(void *addr, unsigned int nTracks);
@@ -151,7 +151,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int AddTrack(GeantTrack &track, size_t id) {
+  int AddTrack(Track &track, size_t id) {
     int itrack = fNtracks;
     if (itrack == fMaxtracks) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -194,7 +194,7 @@ public:
   GEANT_FORCE_INLINE
   void UpdateOriginalTrack(int itr) const {
     // Update the original track itr.
-    GeantTrack &track = *fOriginalV[itr];
+    Track &track = *fOriginalV[itr];
     track.SetPosition(fXposV[itr], fYposV[itr], fZposV[itr]);
     track.SetDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
     track.SetPstep(fPstepV[itr]);
@@ -278,7 +278,7 @@ public:
     return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
-  //  ClassDefNV(GeantTrackGeo_v, 1) // SOA for GeantTrack class
+  //  ClassDefNV(GeantTrackGeo_v, 1) // SOA for Track class
 };
 } // GEANT_IMPL_NAMESPACE
 

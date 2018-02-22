@@ -13,7 +13,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-    class GeantTrack;
+    class Track;
     struct MCEvent;
   }
 }
@@ -32,7 +32,7 @@ public:
 
   virtual void InitMCTruthMgr();
 
-  virtual bool CheckTrack(geant::GeantTrack &gtrack, geant::MCEvent* evt);
+  virtual bool CheckTrack(geant::Track &gtrack, geant::MCEvent* evt);
   
   virtual void CloseEvent(int evID);
 

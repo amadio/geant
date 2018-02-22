@@ -5,11 +5,11 @@
 #define COPROCESSOR_REQUEST false
 #endif
 
-// Autoload the library early so that GeantPropagator is defined when applicable.
+// Autoload the library early so that Propagator is defined when applicable.
 namespace geant {
 inline namespace cxx {
 class TaskBroker;
-class GeantPropagator;
+class Propagator;
 }
 }
 
@@ -119,7 +119,7 @@ void run(int ncputhreads=1,
    config->fUseAppMonitoring = false;
 
    
-   GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
+   RunManager *runMgr = new RunManager(npropagators, nthreads, config);
    if (broker) runMgr->SetCoprocessorBroker(broker);
 
    // Create the tab. phys process.

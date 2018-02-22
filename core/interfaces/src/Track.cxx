@@ -1,9 +1,9 @@
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "globals.h"
 #include "Geant/Error.h"
 #include <execinfo.h>
-#include "GeantPropagator.h"
+#include "Propagator.h"
 #include "GeantTaskData.h"
 
 namespace geant {
@@ -18,7 +18,7 @@ TrackDataMgr::TrackDataMgr(size_t maxdepth) : fMaxDepth(maxdepth)
   if (fMaxDepth == 0) std::runtime_error("Track data manager was not provided a geometry depth");
 #endif
   // Compute the total track size in the assumption that there is no user data
-  fTrackSize = sizeof(GeantTrack) +
+  fTrackSize = sizeof(Track) +
                2 * VolumePath_t::SizeOfInstance(maxdepth) + 2 * GEANT_ALIGN_PADDING;
   // Each registered user data of type T will top up round_up_align(sizeof(T)) bytes.
 }
@@ -54,12 +54,12 @@ void printrace(void)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack::GeantTrack(void *addr)
+Track::Track(void *addr)
 {
   // In place private constructor. The provided address does NOT need to be aligned.
   size_t maxdepth = TrackDataMgr::GetInstance()->GetMaxDepth();
   // The start address of the extra data block has to be aligned
-  fExtraData = round_up_align((char*)addr + sizeof(GeantTrack));
+  fExtraData = round_up_align((char*)addr + sizeof(Track));
   // Initialize all user data calling the in-place constructors
   TrackDataMgr::GetInstance()->InitializeTrack(*this);
   // Geometry paths follow
@@ -77,7 +77,7 @@ GeantTrack::GeantTrack(void *addr)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
+Track &Track::operator=(const Track &other) {
   // Assignment
   if (&other != this) {
     fEvent = other.fEvent;
@@ -136,7 +136,7 @@ GeantTrack &GeantTrack::operator=(const GeantTrack &other) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTrack::Clear(const char *)
+void Track::Clear(const char *)
 {
   // Resets track content.
   fEvent = -1;
@@ -191,12 +191,12 @@ void GeantTrack::Clear(const char *)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTrack::Reset(GeantTrack const &blueprint)
+void Track::Reset(Track const &blueprint)
 {
 // Fast reset of the content of an existing track, avoiding in-place construction
 
   // Copy main content from blueprint, except the pointers to geometry states and user data
-  memcpy(&fEvent, &blueprint.fEvent, sizeof(GeantTrack)- 3 * sizeof(void*));
+  memcpy(&fEvent, &blueprint.fEvent, sizeof(Track)- 3 * sizeof(void*));
   
   // Copy user data
   memcpy(fExtraData, blueprint.fExtraData, TrackDataMgr::GetInstance()->GetDataSize());
@@ -208,15 +208,15 @@ void GeantTrack::Reset(GeantTrack const &blueprint)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack *GeantTrack::Clone(GeantTaskData *td)
+Track *Track::Clone(GeantTaskData *td)
 {
-  GeantTrack &track = td->GetNewTrack();
+  Track &track = td->GetNewTrack();
   track = *this;
   return &track;
 }
 
 //______________________________________________________________________________
-Material_t *GeantTrack::GetMaterial() const
+Material_t *Track::GetMaterial() const
 {
    // Current material the track is into
    return ( (Material_t *) fVolume->GetMaterialPtr() );
@@ -224,7 +224,7 @@ Material_t *GeantTrack::GetMaterial() const
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTrack::SetPath(VolumePath_t const *const path)
+void Track::SetPath(VolumePath_t const *const path)
 {
   // Set path.
   *fPath = *path;
@@ -233,14 +233,14 @@ void GeantTrack::SetPath(VolumePath_t const *const path)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTrack::SetNextPath(VolumePath_t const *const path)
+void Track::SetNextPath(VolumePath_t const *const path)
 {
   // Set next path.
   *fNextpath = *path;
 }
 
 //______________________________________________________________________________
-void GeantTrack::Print(const char *msg) const
+void Track::Print(const char *msg) const
 {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
   printf(
@@ -259,39 +259,39 @@ void GeantTrack::Print(const char *msg) const
 }
 
 //______________________________________________________________________________
-void GeantTrack::PrintTracks(TrackVec_t &tracks)
+void Track::PrintTracks(TrackVec_t &tracks)
 {
   for (auto track : tracks) track->Print("xxx");
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-size_t GeantTrack::SizeOfInstance()
+size_t Track::SizeOfInstance()
 {
-  // return the contiguous memory size needed to hold a GeantTrack
+  // return the contiguous memory size needed to hold a Track
   return ( TrackDataMgr::GetInstance()->GetTrackSize() );
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack *GeantTrack::MakeInstanceAt(void *addr)
+Track *Track::MakeInstanceAt(void *addr)
 {
-  return new (addr) GeantTrack(addr);
+  return new (addr) Track(addr);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeantTrack *GeantTrack::MakeInstance()
+Track *Track::MakeInstance()
 {
-  char *buffer = new char[GeantTrack::SizeOfInstance()];
-  GeantTrack *track = new (buffer) GeantTrack(buffer);
+  char *buffer = new char[Track::SizeOfInstance()];
+  Track *track = new (buffer) Track(buffer);
   track->fOwnPath = true;
   return track;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeantTrack::ReleaseInstance(GeantTrack *track)
+void Track::ReleaseInstance(Track *track)
 {
   if (track->fOwnPath)
     delete [] (char*)track;

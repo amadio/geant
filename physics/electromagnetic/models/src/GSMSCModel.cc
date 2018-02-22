@@ -21,7 +21,7 @@
 
 // from geantV
 #include "GeantTaskData.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include <cmath>
 
@@ -87,7 +87,7 @@ void GSMSCModel::Initialize() {
 }
 
 
-void GSMSCModel::StepLimit(geant::GeantTrack *gtrack, geant::GeantTaskData *td) {
+void GSMSCModel::StepLimit(geant::Track *gtrack, geant::GeantTaskData *td) {
   bool   isOnBoundary         = gtrack->Boundary();
   const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double kineticEnergy        = gtrack->T();
@@ -238,7 +238,7 @@ void GSMSCModel::StepLimit(geant::GeantTrack *gtrack, geant::GeantTaskData *td) 
       //  - don't let the partcile to cross the volume just in one step
       if (mscdata.fIsFirstStep || mscdata.fIsFirstRealStep || mscdata.fTheInitialRange>1.e+20) { //NOTE:
         mscdata.fTheInitialRange = range;
-        // If GeantTrack::fSnext(distance-to-boundary) < range then the particle might reach the boundary along its
+        // If Track::fSnext(distance-to-boundary) < range then the particle might reach the boundary along its
         // initial direction before losing its energy (in this step). Otherwise, we can be sure that the particle will
         // lose its energy before reaching the boundary along a starigth line so there is no geometrical limit appalied.
         // [However, tgeom is set only in the first or the first-real MSC step. After the first or first real MSC step
@@ -402,7 +402,7 @@ void GSMSCModel::StepLimit(geant::GeantTrack *gtrack, geant::GeantTaskData *td) 
   ConvertTrueToGeometricLength(gtrack, td);
 }
 
-bool GSMSCModel::SampleScattering(geant::GeantTrack *gtrack, geant::GeantTaskData *td) {
+bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::GeantTaskData *td) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone && mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
@@ -456,7 +456,7 @@ bool GSMSCModel::SampleScattering(geant::GeantTrack *gtrack, geant::GeantTaskDat
 }
 
 
-void GSMSCModel::ConvertTrueToGeometricLength(geant::GeantTrack *gtrack, geant::GeantTaskData* /*td*/) {
+void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::GeantTaskData* /*td*/) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fPar1 = -1.;
   mscdata.fPar2 =  0.;
@@ -513,7 +513,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(geant::GeantTrack *gtrack, geant::
 }
 
 
-void GSMSCModel::ConvertGeometricToTrueLength(geant::GeantTrack *gtrack, geant::GeantTaskData* /*td*/) {
+void GSMSCModel::ConvertGeometricToTrueLength(geant::Track *gtrack, geant::GeantTaskData* /*td*/) {
   // init
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsEndedUpOnBoundary = false;
@@ -558,7 +558,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(geant::GeantTrack *gtrack, geant::
   }
 }
 
-void GSMSCModel::SampleMSC(geant::GeantTrack *gtrack, geant::GeantTaskData *td) {
+void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::GeantTaskData *td) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsNoScatteringInMSC = false;
   //

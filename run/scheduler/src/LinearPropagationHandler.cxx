@@ -9,7 +9,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-LinearPropagationHandler::LinearPropagationHandler(int threshold, GeantPropagator *propagator)
+LinearPropagationHandler::LinearPropagationHandler(int threshold, Propagator *propagator)
                : Handler(threshold, propagator)
 {
 // Default constructor
@@ -25,7 +25,7 @@ LinearPropagationHandler::~LinearPropagationHandler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void LinearPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskData *td)
+void LinearPropagationHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -133,7 +133,7 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool LinearPropagationHandler::IsSameLocation(GeantTrack &track, GeantTaskData *td) {
+bool LinearPropagationHandler::IsSameLocation(Track &track, GeantTaskData *td) {
 // Query geometry if the location has changed for a track
   if (track.GetSafety() > 1.E-10 && track.GetSnext() > 1.E-10) {
     // Track stays in the same volume

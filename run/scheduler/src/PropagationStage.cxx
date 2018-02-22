@@ -1,6 +1,6 @@
 #include "PropagationStage.h"
 
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "FieldLookup.h"
 #include "LinearPropagationHandler.h"
 #include "FieldPropagationHandler.h"
@@ -10,7 +10,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PropagationStage::PropagationStage(GeantPropagator *prop)
+PropagationStage::PropagationStage(Propagator *prop)
   : SimulationStage(kPropagationStage, prop)
 {
    auto fldConfig= FieldLookup::GetFieldConfig();
@@ -35,7 +35,7 @@ int PropagationStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *PropagationStage::Select(GeantTrack *track, GeantTaskData *)
+Handler *PropagationStage::Select(Track *track, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the track charge
   if (!fHasField || track->Charge() == 0)

@@ -18,7 +18,7 @@
 
 #include "Geant/Config.h"
 #include "Geant/math_wrappers.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -27,7 +27,7 @@ class GeantTaskData;
 class Basket;
 
 /**
- * @brief Class GeantTrack
+ * @brief Class Track
  */
 namespace TransportManager {
 
@@ -50,7 +50,7 @@ namespace TransportManager {
    * @param td TaskData object
    */
   VECCORE_ATT_HOST_DEVICE
-  int CheckSameLocationSingle(GeantTrack &track,
+  int CheckSameLocationSingle(Track &track,
                          GeantTaskData *td);
 
   /**
@@ -72,7 +72,7 @@ namespace TransportManager {
    * @param td TaskData object
    */
   VECCORE_ATT_HOST_DEVICE
-  void ComputeTransportLengthSingle(GeantTrack &track,
+  void ComputeTransportLengthSingle(Track &track,
                                     GeantTaskData *td);
 
   /**
@@ -160,7 +160,7 @@ namespace TransportManager {
    * @param td Task data object
    */
   VECCORE_ATT_HOST_DEVICE
-  void PropagateInVolumeSingle(GeantTrack &track,
+  void PropagateInVolumeSingle(Track &track,
                                double crtstep,
                                GeantTaskData *td);
 
@@ -201,7 +201,7 @@ namespace TransportManager {
                            int stage);
 
   VECCORE_ATT_HOST_DEVICE
-  int PropagateSingleTrack(GeantTrack *track,
+  int PropagateSingleTrack(Track *track,
                            Basket *output,
                            GeantTaskData *td,
                            int stage);
@@ -209,7 +209,7 @@ namespace TransportManager {
   /** @brief Function that returns safe length */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double SafeLength(const GeantTrack &track, double Bz, double eps = 1.E-4) {
+  double SafeLength(const Track &track, double Bz, double eps = 1.E-4) {
     // Returns the propagation length in field such that the propagated point is
     // shifted less than eps with respect to the linear propagation.
     return 2. * sqrt(eps / track.Curvature(Bz));

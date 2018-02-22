@@ -16,11 +16,11 @@
 #include "TMath.h"
 #endif
 
-#include "GeantRunManager.h"
-#include "GeantEventServer.h"
+#include "RunManager.h"
+#include "EventServer.h"
 #include "GeantTaskData.h"
 #include "PhysicsInterface.h"
-#include "GeantEvent.h"
+#include "Geant/Event.h"
 #include "EventSet.h"
 #include "GeantVApplication.h"
 #include "GeantVTaskMgr.h"
@@ -38,7 +38,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-WorkloadManager *WorkloadManager::NewInstance(GeantPropagator *prop, int nthreads) {
+WorkloadManager *WorkloadManager::NewInstance(Propagator *prop, int nthreads) {
   // Return singleton instance.
   if (!nthreads || !prop) {
     geant::Error("WorkloadManager::NewInstance", "%s", "You should provide number of threads.");
@@ -55,7 +55,7 @@ void WorkloadManager::SetTaskBroker(TaskBroker *broker) {
 
 //______________________________________________________________________________
 bool WorkloadManager::StartTasks() {
-  GeantPropagator *prop=fPropagator;
+  Propagator *prop=fPropagator;
   // Start the threads
   fStarted = true;
   if (!fListThreads.empty())
@@ -136,8 +136,8 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td)
     return false;
   }
 
-  GeantPropagator *propagator = td->fPropagator;
-  GeantRunManager *runmgr = propagator->fRunMgr;
+  Propagator *propagator = td->fPropagator;
+  RunManager *runmgr = propagator->fRunMgr;
 /*** STEPPING LOOP ***/
   bool flush = false;
   while (!workload->IsDone()) {
@@ -169,7 +169,7 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
+void WorkloadManager::TransportTracksV3(Propagator *prop) {
 
 //  int nstacked = 0;
 //  int nprioritized = 0;
@@ -181,8 +181,8 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
   int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
 //  if (node < 0) node = 0;
-  GeantPropagator *propagator = prop;
-  GeantRunManager *runmgr = prop->fRunMgr;
+  Propagator *propagator = prop;
+  RunManager *runmgr = prop->fRunMgr;
   geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
   td->AttachPropagator(prop, node);
   int tid = td->fTid;
@@ -197,7 +197,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   }
 
-  GeantEventServer *evserv = runmgr->GetEventServer();
+  EventServer *evserv = runmgr->GetEventServer();
 
 /*** STEPPING LOOP ***/
   bool flush = false;
@@ -249,7 +249,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
   // Take tracks from the event server
   int ninjected = 0;
   unsigned int error = 0;
-  GeantEventServer *evserv = td->fPropagator->fRunMgr->GetEventServer();
+  EventServer *evserv = td->fPropagator->fRunMgr->GetEventServer();
   if (evserv->HasTracks()) {
     // In the initial phase we distribute a fair share of baskets to all propagators
     if (!evserv->IsInitialPhase() ||

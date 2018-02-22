@@ -1,12 +1,12 @@
 
 #include "CMSDetectorConstruction.h"
 
-#include "GeantRunManager.h"
+#include "RunManager.h"
 
 
 namespace cmsapp {
 
-CMSDetectorConstruction::CMSDetectorConstruction(geant::GeantRunManager *runmgr)
+CMSDetectorConstruction::CMSDetectorConstruction(geant::RunManager *runmgr)
 : geant::GeantVDetectorConstruction(runmgr), fGDMLFileName("cms.gdml") {}
 
 

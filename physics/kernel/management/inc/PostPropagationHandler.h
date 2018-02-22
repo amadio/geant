@@ -7,8 +7,8 @@
 // from geantV
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantPropagator;
-  class GeantTrack;
+  class Propagator;
+  class Track;
   class GeantTaskData;
   class Basket;
 }
@@ -37,13 +37,13 @@ public:
    * @brief Default constructor
    * @param propagator Propagator working with this handler
    */
-  PostPropagationHandler(int threshold, geant::GeantPropagator *propagator);
+  PostPropagationHandler(int threshold, geant::Propagator *propagator);
 
   /** @brief dtr */
   virtual ~PostPropagationHandler();
 
   /** @brief Scalar DoIt interface */
-  virtual void DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td);
+  virtual void DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   virtual void DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td);

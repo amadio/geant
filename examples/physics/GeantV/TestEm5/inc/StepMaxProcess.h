@@ -25,7 +25,7 @@ public:
  ~StepMaxProcess();
 
   // interface method
- virtual double PostStepLimitationLength(geant::GeantTrack * /*track*/, geant::GeantTaskData * /*td*/, bool haseloss=false);
+ virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/, bool haseloss=false);
 
 
  void SetMaxStep(double val) { fMaxStep = val; }

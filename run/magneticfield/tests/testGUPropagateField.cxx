@@ -275,7 +275,7 @@ int main(int argc, char *args[])
     
       if( testPool > 1 )
       {
-         // Initialize -- move to GeantPropagator::Initialize()
+         // Initialize -- move to Propagator::Initialize()
          assert( fpPool );  // Cannot be zero
          fpPool->RegisterPrototype( fldPropPrototype );
          

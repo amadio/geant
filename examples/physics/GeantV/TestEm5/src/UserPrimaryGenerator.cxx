@@ -5,7 +5,7 @@
 #include "Particle.h"
 
 // from geantV
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include <cmath>
 
@@ -64,8 +64,8 @@ void UserPrimaryGenerator::InitPrimaryGenerator() {
 }
 
 
-geant::GeantEventInfo UserPrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
-  geant::GeantEventInfo current;
+geant::EventInfo UserPrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+  geant::EventInfo current;
   current.ntracks = fPrimaryPerEvent;
   current.xvert   = fXPos;
   current.yvert   = fYPos;
@@ -74,7 +74,7 @@ geant::GeantEventInfo UserPrimaryGenerator::NextEvent(geant::GeantTaskData* /*td
 }
 
 
-void UserPrimaryGenerator::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
+void UserPrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);

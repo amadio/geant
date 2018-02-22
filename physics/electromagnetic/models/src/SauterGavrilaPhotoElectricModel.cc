@@ -982,7 +982,7 @@ namespace geantphysics {
         sectracks[secIndx].SetKinE(elecKineEnergy);
         sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // electron GV code
         sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-        sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+        sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
         
         
         /*if(fabs(gammaekin0 - elecKineEnergy - esec - edep) > geant::units::eV) {

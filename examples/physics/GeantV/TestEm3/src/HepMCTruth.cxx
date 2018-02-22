@@ -1,6 +1,6 @@
 #include "HepMCTruth.h"
 
-#include "GeantTrack.h"
+#include "Track.h"
 
 #include "Particle.h"
 #include "PhysicsProcess.h"
@@ -49,7 +49,7 @@ HepMCTruth::~HepMCTruth() {
 void HepMCTruth::InitMCTruthMgr() {}
 
 //______________________________________________________________________________
-  bool HepMCTruth::CheckTrack(GeantTrack &gtrack, MCEvent* /*evt*/)
+  bool HepMCTruth::CheckTrack(Track &gtrack, MCEvent* /*evt*/)
 {
   // check if the track satisfies the condition to be stored
   // 

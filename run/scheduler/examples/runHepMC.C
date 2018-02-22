@@ -20,7 +20,7 @@ void runHepMC(Int_t nthreads=4,
    Int_t nbuffered  = 10;   // Number of buffered events
    TGeoManager::Import(geomfile);
    
-   GeantPropagator *prop = GeantPropagator::Instance(ntotal, nbuffered);
+   Propagator *prop = Propagator::Instance(ntotal, nbuffered);
    WorkloadManager *wmgr = WorkloadManager::Instance(nthreads);
    wmgr->SetNminThreshold(5*nthreads);
    prop->fNaverage = 400;   // Average number of tracks per event

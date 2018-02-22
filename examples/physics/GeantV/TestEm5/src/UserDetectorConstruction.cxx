@@ -1,7 +1,7 @@
 
 #include "UserDetectorConstruction.h"
 
-#include "GeantRunManager.h"
+#include "RunManager.h"
 
 #include "SystemOfUnits.h"
 #include "Material.h"
@@ -16,7 +16,7 @@
 namespace userapplication {
 
 
-UserDetectorConstruction::UserDetectorConstruction(geant::GeantRunManager *runmgr) : geant::GeantVDetectorConstruction(runmgr) {
+UserDetectorConstruction::UserDetectorConstruction(geant::RunManager *runmgr) : geant::GeantVDetectorConstruction(runmgr) {
   fTargetMatName            = "NIST_MAT_Au";        // default target material is NIST Au
   fTargetLogicalVolumeID    = -1;
   fTargetRegionIndx         = -1;

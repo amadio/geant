@@ -15,7 +15,7 @@
 
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
-#include "GeantTrack.h"
+#include "Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -59,16 +59,16 @@ public:
   * @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavFindNextBoundaryAndStep(GeantTrack &track);
+  void NavFindNextBoundaryAndStep(Track &track);
 
   /** @brief Find distance to next boundary */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavFindNextBoundary(GeantTrack &track);
+  void NavFindNextBoundary(Track &track);
 
 //  VECCORE_ATT_HOST_DEVICE
 //  static
-//  void NavFindNextBoundaryMSC(GeantTrack &track,double dist);
+//  void NavFindNextBoundaryMSC(Track &track,double dist);
 
 
   /**
@@ -96,7 +96,7 @@ public:
   /** @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
   static
-  void NavIsSameLocation(GeantTrack &track, bool &same, VolumePath_t *tmpstate);
+  void NavIsSameLocation(Track &track, bool &same, VolumePath_t *tmpstate);
 
   /** @brief Displace track along given normalized direction with given step. If boundary is crossed,
        displace to boundary and relocate, setting the boundary flag
@@ -107,7 +107,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   static
-  void DisplaceTrack(GeantTrack &track, const double dir[3], double step, double mindisp);
+  void DisplaceTrack(Track &track, const double dir[3], double step, double mindisp);
 
 };
 } // GEANT_IMPL_NAMESPACE

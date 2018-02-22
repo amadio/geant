@@ -1,7 +1,7 @@
 #include "GeomQueryStage.h"
 
 #include "VBconnector.h"
-#include "GeantRunManager.h"
+#include "RunManager.h"
 #include "GeomQueryHandler.h"
 
 namespace geant {
@@ -9,7 +9,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomQueryStage::GeomQueryStage(GeantPropagator *prop)
+GeomQueryStage::GeomQueryStage(Propagator *prop)
   : SimulationStage(kGeometryStepStage, prop)
 {
 }
@@ -44,7 +44,7 @@ void GeomQueryStage::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *GeomQueryStage::Select(GeantTrack *track, GeantTaskData *)
+Handler *GeomQueryStage::Select(Track *track, GeantTaskData *)
 {
 // Retrieve the appropriate handler depending on the current volume.
 // Tracks that are killed or exit the setup should be filtered out by the relocator stage

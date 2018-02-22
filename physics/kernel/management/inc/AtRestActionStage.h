@@ -7,8 +7,8 @@
 // from geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantPropagator;
-  class GeantTrack;
+  class Propagator;
+  class Track;
   class GeantTaskData;
   class Handler;
 }
@@ -31,7 +31,7 @@ public:
   AtRestActionStage() {}
 
   /** @brief ctr */
-  AtRestActionStage(geant::GeantPropagator *prop);
+  AtRestActionStage(geant::Propagator *prop);
 
   /** @brief dtr */
   ~AtRestActionStage();
@@ -44,7 +44,7 @@ public:
   virtual int CreateHandlers();
 
   /** @brief Interface to select the handler matching a track */
-  virtual geant::Handler *Select(geant::GeantTrack *track, geant::GeantTaskData *td);
+  virtual geant::Handler *Select(geant::Track *track, geant::GeantTaskData *td);
 
 private:
 

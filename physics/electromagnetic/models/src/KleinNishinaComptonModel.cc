@@ -179,7 +179,7 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::GeantT
     sectracks[secIndx].SetKinE(elEnergy);
     sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // e- GV code
     sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-    sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
+    sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
   } else {
     eDeposit += elEnergy;
   }
