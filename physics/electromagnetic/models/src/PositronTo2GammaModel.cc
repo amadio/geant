@@ -86,10 +86,10 @@ double PositronTo2GammaModel::ComputeXSectionPerAtom(const Element *elem, const 
 
 
 double PositronTo2GammaModel::ComputeXsectionPerElectron(double pekin) {
-  constexpr double factor = geant::kPi*geant::kClassicElectronRadius*geant::kClassicElectronRadius;
+  constexpr double factor = geant::units::kPi*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius;
   //
-  pekin         = std::max(1.*geant::eV, pekin);
-  double tau   = pekin/geant::kElectronMassC2; // E_kin of the e+ in rest mass units
+  pekin         = std::max(1.*geant::units::eV, pekin);
+  double tau   = pekin/geant::units::kElectronMassC2; // E_kin of the e+ in rest mass units
   double gamma = tau+1.;
   double g2m1  = tau*(tau+2.);    // gamma^2-1
   double sqx   = std::sqrt(g2m1); // sqrt(gamma^2-1)
@@ -100,12 +100,12 @@ double PositronTo2GammaModel::ComputeXsectionPerElectron(double pekin) {
 
 //
 // Samples the in-flight e+ e- annihilation (NOTE: the at rest annihilation is implemented into the process)
-int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int numSecondaries = 0;
   // sample gamma energy
   const double pekin = track.GetKinE();
 
-  const double tau   = pekin/geant::kElectronMassC2; // E_kin of the e+ in rest mass units
+  const double tau   = pekin/geant::units::kElectronMassC2; // E_kin of the e+ in rest mass units
   const double tau2  = tau+2.;
   const double gamma = tau+1.;
   double eps = 0.;
@@ -121,7 +121,7 @@ int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   double ct         = (eps*tau2-1.)/(eps*std::sqrt(tau*tau2));
   const double cost = std::max(std::min(ct,1.),-1.);
   const double sint = std::sqrt((1.+cost)*(1.-cost));
-  const double phi  = geant::kTwoPi*td->fRndm->uniform();
+  const double phi  = geant::units::kTwoPi*td->fRndm->uniform();
   double gamDirX    = sint*std::cos(phi);
   double gamDirY    = sint*std::sin(phi);
   double gamDirZ    = cost;
@@ -129,7 +129,7 @@ int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   //
   // kinematics of the first gamma
-  const double tEnergy = pekin+2*geant::kElectronMassC2;
+  const double tEnergy = pekin+2*geant::units::kElectronMassC2;
   const double gamEner = eps*tEnergy;
   //
   // create the secondary partcile i.e. the gamma
@@ -154,7 +154,7 @@ int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   //
   // go for the second gamma properties
-  const double posInitTotalMomentum = std::sqrt(pekin*(pekin+2.0*geant::kElectronMassC2));
+  const double posInitTotalMomentum = std::sqrt(pekin*(pekin+2.0*geant::units::kElectronMassC2));
   // momentum of the second gamma in the lab frame (mom. cons.)
   gamDirX = posInitTotalMomentum*track.GetDirX() - gamEner*gamDirX;
   gamDirY = posInitTotalMomentum*track.GetDirY() - gamEner*gamDirY;
@@ -203,7 +203,7 @@ double PositronTo2GammaModel::SampleEnergyTransfer(double pekin, double gamma, d
 }
 
 
-double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, Geant::GeantTaskData *td) {
+double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, geant::GeantTaskData *td) {
   const double minEps = 0.5*(1.-std::sqrt((gamma-1.)/(gamma+1.)));
   const double maxEps = 0.5*(1.+std::sqrt((gamma-1.)/(gamma+1.)));
   const double dum1   = std::log(maxEps/minEps);
@@ -245,7 +245,7 @@ void PositronTo2GammaModel::InitSamplingTables() {
   // 5. prepare sampling tables one-by-one
   for (int i=0; i<fSTNumPositronEnergies; ++i) {
     const double pekin  = primEVect[i];
-    const double gamma  = pekin/geant::kElectronMassC2 + 1.0;
+    const double gamma  = pekin/geant::units::kElectronMassC2 + 1.0;
     BuildOneLinAlias(i,gamma);
   }
   primEVect.clear();

@@ -23,8 +23,8 @@ namespace geantphysics {
  */
 class CutConverter {
 public:
-  CutConverter(int particleindx=-1, int numebins = 301, double mincutenergy = 100.0*geant::eV,
-               double maxcutenergy = 10.0*geant::GeV);
+  CutConverter(int particleindx=-1, int numebins = 301, double mincutenergy = 100.0*geant::units::eV,
+               double maxcutenergy = 10.0*geant::units::GeV);
   virtual ~CutConverter();
 
   virtual double Convert(const Material *mat, double cut, bool isfromlength=true);

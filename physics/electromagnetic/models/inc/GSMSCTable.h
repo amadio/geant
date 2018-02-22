@@ -4,7 +4,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantTaskData;
   }
@@ -42,19 +42,19 @@ public:
 
   bool   Sampling(double lambdaval, double qval, double scra, double &cost, double &sint, double lekin, double beta2,
                   int matindx, GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti, double &transfPar,
-                  Geant::GeantTaskData *td, bool isfirst);
+                  geant::GeantTaskData *td, bool isfirst);
 
   double SampleCosTheta(double lambdaval, double qval, double scra, double lekin, double beta2, int matindx,
                         GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti, double &transfPar,
-                        Geant::GeantTaskData *td, bool isfirst);
+                        geant::GeantTaskData *td, bool isfirst);
 
-  double SampleGSSRCosTheta(const GSMSCAngularDtr* gsDrt, double transfpar, Geant::GeantTaskData *td);
+  double SampleGSSRCosTheta(const GSMSCAngularDtr* gsDrt, double transfpar, geant::GeantTaskData *td);
 
   double SingleScattering(double lambdaval, double scra, double lekin, double beta2, int matindx,
-                          Geant::GeantTaskData *td);
+                          geant::GeantTaskData *td);
 
   GSMSCAngularDtr* GetGSAngularDtr(double scra, double &lambdaval, double &qval, double &transfpar,
-                                   Geant::GeantTaskData *td);
+                                   geant::GeantTaskData *td);
 
   // material dependent MSC parameters (computed at initialisation) regarding
   // Moliere's screening parameter

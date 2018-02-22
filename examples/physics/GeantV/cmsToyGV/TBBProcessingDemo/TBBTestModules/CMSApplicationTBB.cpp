@@ -16,7 +16,7 @@
 #include "globals.h"
 #include "Geant/Error.h"
 
-using namespace Geant;
+using namespace geant;
 
 namespace cmsapp {
 //// User actions in terms of TBB tasks
@@ -46,7 +46,7 @@ void CMSApplicationTBB::SetEventContinuationTask(int ievt, tbb::task *pTask) {
 // }
 
 //______________________________________________________________________________
-void CMSApplicationTBB::FinishEvent(Geant::GeantEvent *event) {
+void CMSApplicationTBB::FinishEvent(geant::GeantEvent *event) {
   // find next tbb::task and decrement its ref count
   CMSFullApp::FinishEvent(event);
   std::lock_guard<std::mutex> lock(fMapLock);

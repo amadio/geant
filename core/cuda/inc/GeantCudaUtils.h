@@ -25,15 +25,15 @@
 // #include "driver_types.h" // Required for cudaError_t type
 #include "cuda_runtime.h" // Required for cudaGetErrorString
 
-#define GEANT_CUDA_ERROR(err) (Geant::HandleCudaError(err, __FILE__, __LINE__))
+#define GEANT_CUDA_ERROR(err) (geant::HandleCudaError(err, __FILE__, __LINE__))
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 inline void HandleCudaError(cudaError_t err, const char *file, int line)
 {
   if (err != cudaSuccess) {
-    ::Geant::Fatal("Cuda", "%s (%d) in %s at line %d\n", cudaGetErrorString(err), err, file, line);
+    ::geant::Fatal("Cuda", "%s (%d) in %s at line %d\n", cudaGetErrorString(err), err, file, line);
   }
 }
 

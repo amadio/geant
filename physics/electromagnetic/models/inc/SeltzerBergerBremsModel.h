@@ -6,7 +6,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -73,7 +73,7 @@ public:
   virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle* particle,bool istotal=false);
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
+  virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
   virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
 //
 //@}
@@ -89,7 +89,7 @@ private:
   double   ComputeXSectionPerVolume(const Material *mat, double gammaprodcutenergy, double electronekin);
   double   ComputeXSectionPerAtom(const Element *elem, const Material *mat, double gammaprodcutenergy,double electronekin);
   double   SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3);
-  double   SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, Geant::GeantTaskData *td);
+  double   SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, geant::GeantTaskData *td);
   void     SamplePhotonDirection(double elenergy, double &sinTheta, double &cosTheta, double rndm);
 
   void     ClearLoadDCSData();

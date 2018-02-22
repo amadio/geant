@@ -6,7 +6,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -69,7 +69,7 @@ public:
     virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
     virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
                                           const Particle *particle);
-    virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
+    virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
 
     virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
 //
@@ -146,7 +146,7 @@ private:
     *  @return    Sample of kinetic energy transfered to the electron (in internal [energy] units) in Moller/Bhabha
     *             interaction.
     */
-  double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const Geant::GeantTaskData* td);
+  double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const geant::GeantTaskData* td);
 
   /** @brief Internal method to build energy transfer sampling tables under <em>linear approximation of
    *         the p.d.f.</em>.

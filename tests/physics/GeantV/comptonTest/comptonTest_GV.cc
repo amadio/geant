@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
   //
   // Set production cuts if needed: not used in Compton
   bool   iscutinlength    = true;
-  double prodCutValue     = 1.*geant::mm;
+  double prodCutValue     = 1.*geant::units::mm;
   double gcut             = prodCutValue;
   double emcut            = prodCutValue;
   double epcut            = prodCutValue;
@@ -194,8 +194,8 @@ int main(int argc, char *argv[]) {
   // - Create a Seltzer-Berger bremsstrahlung model
   EMModel *emModel = new KleinNishinaComptonModel();
   // - Set low/high energy usage limits
-  emModel->SetLowEnergyUsageLimit (100.0*geant::eV);
-  emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+  emModel->SetLowEnergyUsageLimit (100.0*geant::units::eV);
+  emModel->SetHighEnergyUsageLimit(100.0*geant::units::TeV);
   emModel->SetUseSamplingTables(!isUseRejection);
   //
   //*******************************************************************************************//
@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
+  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::units::MeV << "  [MeV] " << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -262,26 +262,26 @@ int main(int argc, char *argv[]) {
   // -atomic cross section
   if (isSingleElementMaterial) {
     std::cout<< "   cross section per atom      :";
-    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::barn)
+    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::units::barn)
              << std::setw(14) << std::left << "     [barn]";
     std::cout<<std::endl;
   }
   //
   // -macroscopic cross section
   std::cout<< "   cross section per volume    :";
-  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::units::cm)
            << std::setw(14) << std::left << "     [1/cm]";
   std::cout<<std::endl;
   //
   // -restricted stopping power
   std::cout<< "   resricted dE/dx  (MeV/cm)   :";
-  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(geant::MeV/geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(geant::units::MeV/geant::units::cm)
            << std::setw(14) << std::left << "   [MeV/cm]";
   std::cout<<std::endl;
   //
   // -unrestricted stopping power
   std::cout<< "   unresricted dE/dx (MeV/cm)  :";
-  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(geant::MeV/geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(geant::units::MeV/geant::units::cm)
            << std::setw(14) << std::left << "   [MeV/cm]";
   std::cout<<std::endl;
   //===========================================================================================//
@@ -407,9 +407,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
   double dirz       = 1.0;
   int    gvcode     = primParticle->GetInternalCode();        // internal code of the primary particle i.e. e-
 
-  // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
+  // Set up a dummy geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
-  Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
+  geant::GeantTaskData *td = new geant::GeantTaskData(1,1);
   PhysicsData *phd = new PhysicsData();
   td->fPhysicsData = phd;
   // Set up a the primary light track for brem.

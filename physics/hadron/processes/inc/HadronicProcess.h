@@ -87,10 +87,10 @@ public:
   Isotope* SampleTarget( LightTrack &track ) const;
 
   /** Main method that produces the secondaries for an in-flight hadronic process */
-  virtual int PostStepDoIt( LightTrack &track, Geant::GeantTaskData *td);
+  virtual int PostStepDoIt( LightTrack &track, geant::GeantTaskData *td);
 
   /** Main method that sample the target isotope and produces the secondaries for an at-rest hadronic process */
-  virtual int AtRestDoIt( LightTrack &track, Geant::GeantTaskData * td);
+  virtual int AtRestDoIt( LightTrack &track, geant::GeantTaskData * td);
 
   /** Method to add model to the process **/
   void AddModel(HadronicFinalStateModel *model);

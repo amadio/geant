@@ -18,7 +18,7 @@
 #include "volumes/PlacedVolume.h"
 #include "management/GeoManager.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace vecgeom;

@@ -31,7 +31,7 @@ namespace vecgeom {
   }
 }
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
@@ -80,7 +80,7 @@ public:
    * @param threadid Thread ID
    * @param basket GeantBasket object
    */
-  virtual void runTask(Geant::GeantTaskData &td, GeantBasket &basket) = 0;
+  virtual void runTask(geant::GeantTaskData &td, GeantBasket &basket) = 0;
 
   /**
    * @brief Virtual function that launch tasks
@@ -99,7 +99,7 @@ public:
   virtual unsigned int GetNstream() = 0;
 
   /** @brief If the coprocessor has outstanding work, return it */
-  virtual GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td) = 0;
+  virtual GeantBasket *GetBasketForTransport(geant::GeantTaskData &td) = 0;
 
   /** @brief Tell the tasks which priotizer to use */
   virtual int SetPrioritizer() = 0;

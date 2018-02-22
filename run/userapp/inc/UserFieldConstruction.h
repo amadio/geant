@@ -25,7 +25,7 @@
 
 // GEANT_DEVICE_DECLARE_CONV(class,UserFieldConstruction);
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class UserFieldConstruction
@@ -109,14 +109,14 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
   double unit= 1;
   
   if( Units == 0  || strcmp(Units,"kilogauss") == 0 ) {
-    unit= geant::kilogauss;
+    unit= geant::units::kilogauss;
     defaultUsed = (Units == 0);
   } else if( ( strcmp(Units,"gauss") == 0 ) || ( strcmp(Units,"Gauss") == 0 ) ) {
-    unit= geant::gauss;
+    unit= geant::units::gauss;
   } else if( ( strcmp(Units,"tesla") == 0 ) || ( strcmp(Units,"Tesla") == 0 ) ) {
-    unit= geant::gauss;
+    unit= geant::units::gauss;
   } else {
-    unit= geant::kilogauss;
+    unit= geant::units::kilogauss;
     defaultUsed = (Units == 0);     
   }
 
@@ -129,9 +129,9 @@ UseConstantMagField( float fieldVal[3],  const char* Units =0 )
   /*
   printf("%s called. Field value = %9.3g , %9.3g  %9.3g  kiloGauss\n",
          methodName,
-         fMagFieldValue[0] / geant::kilogauss,
-         fMagFieldValue[1] / geant::kilogauss,
-         fMagFieldValue[2] / geant::kilogauss );
+         fMagFieldValue[0] / geant::units::kilogauss,
+         fMagFieldValue[1] / geant::units::kilogauss,
+         fMagFieldValue[2] / geant::units::kilogauss );
    */
 
   fUseUniformField= true;
@@ -148,12 +148,12 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
   bool rtv= false;
   if( fieldPP ) *fieldPP= nullptr;
    
-  Geant::Print(method, "%s - method called.  Use uniform= %d  Value= %f %f %f - kiloggauss.  Zero-Flag= %d",
+  geant::Print(method, "%s - method called.  Use uniform= %d  Value= %f %f %f - kiloggauss.  Zero-Flag= %d",
                method,
                fUseUniformField,
-               fMagFieldValue[0]/geant::kilogauss,
-               fMagFieldValue[1]/geant::kilogauss,
-               fMagFieldValue[2]/geant::kilogauss,
+               fMagFieldValue[0]/geant::units::kilogauss,
+               fMagFieldValue[1]/geant::units::kilogauss,
+               fMagFieldValue[2]/geant::units::kilogauss,
                fZeroField );
 
   if( fUseUniformField )
@@ -176,12 +176,12 @@ CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField** fieldPP= nullptr )
     if( fieldPP ) *fieldPP= gvUniformField; // Return it ??
 
     if (fZeroField) {
-      Geant::Print(method," Zero Magnetic Field configured.");
+      geant::Print(method," Zero Magnetic Field configured.");
     }
     fCalled = true;
   } else {
     fCalled = true;
-    Geant::Error(method,"No user Magnetic Field is registered.");
+    geant::Error(method,"No user Magnetic Field is registered.");
   }
   return rtv;
 }

@@ -100,18 +100,18 @@ ScalarUniformMagField::ScalarUniformMagField(double vField,
                                    double vPhi     )
   : VVectorField(gNumFieldComponents, gFieldChangesEnergy)
 {
-   if ( (vField<0) || (vTheta<0) || (vTheta>geant::kPi) || (vPhi<0) || (vPhi>geant::kTwoPi) )
+   if ( (vField<0) || (vTheta<0) || (vTheta>geant::units::kPi) || (vPhi<0) || (vPhi>geant::units::kTwoPi) )
    {
       // Exception("ScalarUniformMagField::ScalarUniformMagField()",
       //     "GeomField0002", FatalException, "Invalid parameters.") ;
       std::cerr << "ERROR in ScalarUniformMagField::ScalarUniformMagField()"
                 << "Invalid parameter(s): expect " << std::endl;
       std::cerr << " - Theta angle: Value = " << vTheta
-                << "  Expected between 0 <= theta <= pi = " << geant::kPi << std::endl;
+                << "  Expected between 0 <= theta <= pi = " << geant::units::kPi << std::endl;
       std::cerr << " - Phi   angle: Value = " << vPhi
-                << "  Expected between 0 <=  phi  <= 2*pi = " << geant::kTwoPi << std::endl;
+                << "  Expected between 0 <=  phi  <= 2*pi = " << geant::units::kTwoPi << std::endl;
       std::cerr << " - Magnitude vField: Value = " << vField
-                << "  Expected vField > 0 " << geant::kTwoPi << std::endl;
+                << "  Expected vField > 0 " << geant::units::kTwoPi << std::endl;
    }
    fFieldComponents.Set( vField*std::sin(vTheta)*std::cos(vPhi),
                          vField*std::sin(vTheta)*std::sin(vPhi),

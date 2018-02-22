@@ -19,7 +19,7 @@
 
 #include "Geant/Config.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 namespace NumaUtils {

@@ -14,11 +14,11 @@ namespace userapplication {
  * GeantV takes multiple events(number of event-slots=number of buffered events), multiple primary partciles per event
  * and transport them on the same time by multiple working threads. It means that tracks (primary, secondary) that
  * belong to more than one events are distributed among multiple threads. GeantV associates a thread local data storage
- * (Geant::GeantTaskData) to each working threads and provides the possibility to the user(user application) to register
+ * (geant::GeantTaskData) to each working threads and provides the possibility to the user(user application) to register
  * application specific thread local (data) objects in this thread local storage. When the transportation of an event,
  * that currently occupies one of the event-slots (one out of the "number of buffered events" possible places) is
  * completed (i.e. all the primary particles that belongs to the corresponding event and their secondaries are fully
- * transported) an application interface method [Digitize(Geant::GeantEvent*)] is invoked. GeantV provides the
+ * transported) an application interface method [Digitize(geant::GeantEvent*)] is invoked. GeantV provides the
  * possibility to merge the thread local user defined data (filled in the SteppingAction() interface method after each
  * simulation step in a thread local way) related to the finished event and distributed among multiple working threads.
  * This merge will return with a pointer to one of the user defined thread local data that contains the result of the

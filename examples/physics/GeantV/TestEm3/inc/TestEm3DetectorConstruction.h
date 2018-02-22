@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantVDetectorConstruction;
     class GeantRunManager;
@@ -25,11 +25,11 @@ namespace geantphysics {
 
 namespace userapplication {
 
-class TestEm3DetectorConstruction : public Geant::GeantVDetectorConstruction {
+class TestEm3DetectorConstruction : public geant::GeantVDetectorConstruction {
 
 public:
   // CTR
-  TestEm3DetectorConstruction(Geant::GeantRunManager *runmgr);
+  TestEm3DetectorConstruction(geant::GeantRunManager *runmgr);
   // DTR
   ~TestEm3DetectorConstruction();
 

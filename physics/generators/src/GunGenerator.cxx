@@ -3,7 +3,7 @@
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
@@ -58,7 +58,7 @@ void GunGenerator::InitPrimaryGenerator() {
   // set charge
   fCharge = fPartPDG->Charge();
   if ((int)fCharge != fCharge)
-     Geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
+     geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
 
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
@@ -67,7 +67,7 @@ void GunGenerator::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-GeantEventInfo GunGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
+GeantEventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
   //
   int ntracks = 1;
   if (fAverage > 1)
@@ -88,7 +88,7 @@ GeantEventInfo GunGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void GunGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
+void GunGenerator::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
 

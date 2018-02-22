@@ -134,8 +134,8 @@ public:
    if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx &&
        (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
      for (int i=0; i<lossData->fNumData; ++i) {
-       std::cout<< std::setprecision(16)<<lossData->fEnergyGridData[i]/geant::MeV << "  "
-                << std::setprecision(12)<< lossData->fRestrictedDEDXData[i]/(geant::MeV/geant::mm)
+       std::cout<< std::setprecision(16)<<lossData->fEnergyGridData[i]/geant::units::MeV << "  "
+                << std::setprecision(12)<< lossData->fRestrictedDEDXData[i]/(geant::units::MeV/geant::units::mm)
                 <<std::endl;
      }
    } else {
@@ -151,8 +151,8 @@ public:
    if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx &&
        (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
      for (int i=0; i<lossData->fNumData; ++i) {
-       std::cout<< std::setprecision(6)<< lossData->fEnergyGridData[i]/geant::MeV << "  "
-                << std::setprecision(12)<< lossData->fRestrictedRangeData[i]/(geant::mm)
+       std::cout<< std::setprecision(6)<< lossData->fEnergyGridData[i]/geant::units::MeV << "  "
+                << std::setprecision(12)<< lossData->fRestrictedRangeData[i]/(geant::units::mm)
                 <<std::endl;
      }
    } else {
@@ -179,8 +179,8 @@ public:
        && lossData->fRangeData
       ) {
      for (int i=0; i<lossData->fNumData; ++i) {
-       std::cout<< std::setprecision(16)<< lossData->fEnergyGridData[i]/geant::MeV << " "
-                << std::setprecision(16)<< lossData->fRangeData[i]*Material::GetTheMaterialTable()[matindx]->GetDensity()/(geant::g/(geant::cm*geant::cm))
+       std::cout<< std::setprecision(16)<< lossData->fEnergyGridData[i]/geant::units::MeV << " "
+                << std::setprecision(16)<< lossData->fRangeData[i]*Material::GetTheMaterialTable()[matindx]->GetDensity()/(geant::units::g/(geant::units::cm*geant::units::cm))
                 <<std::endl;
      }
    } else {

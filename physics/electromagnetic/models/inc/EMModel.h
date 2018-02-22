@@ -7,7 +7,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -130,7 +130,7 @@ public:
    * This method is responsible for the final state generation of the discrete part of the interaction: primary track
    * properties must be updated and secondary track(s) must be generated according to the model of intercation.
    * Note, that the 'sectracks' input parameter (container to store secondary tracks) is currently not used: secondary
-   * tracks are inserted into the Geant::GeantTaskData::fPhysicsData object that guaranties thread safe behaviour.
+   * tracks are inserted into the geant::GeantTaskData::fPhysicsData object that guaranties thread safe behaviour.
    *
    * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
    *                          some information about the current material-cut couple. It is updated by the method and
@@ -140,7 +140,7 @@ public:
    *                          the seconadry tracks generated in the interaction.
    * @return                  Number of secondary tracks generated in the interaction.
    */
-  virtual int    SampleSecondaries(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) { return 0; }
+  virtual int    SampleSecondaries(LightTrack & /*track*/, geant::GeantTaskData * /*td*/) { return 0; }
 
   /**
    * @brief Method to obtain minim primary particle kinetic energy at which the discrete part (if any) of the interaction

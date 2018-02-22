@@ -178,8 +178,8 @@ int main(int argc, char *argv[]) {
   // Create DiffuseElasticModel model
   HadronicFinalStateModel *elModel = new DiffuseElasticModel();
   // - Set low/high energy usage limits
-  elModel->SetLowEnergyUsageLimit (100.0*geant::eV);
-  elModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+  elModel->SetLowEnergyUsageLimit (100.0*geant::units::eV);
+  elModel->SetHighEnergyUsageLimit(100.0*geant::units::TeV);
   //
   //*******************************************************************************************//
 
@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
+  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::units::MeV << "  [MeV] " << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Model name     =  " << elModel->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -278,9 +278,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
   int    gvcode     = primParticle->GetInternalCode();  // internal code of the primary particle
   double mass       = primParticle->GetPDGMass();
 
-  // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
+  // Set up a dummy geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
-  Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
+  geant::GeantTaskData *td = new geant::GeantTaskData(1,1);
   PhysicsData         *phd = new PhysicsData();
   td->fPhysicsData         = phd;
   // Set up a the primary light track for brem.

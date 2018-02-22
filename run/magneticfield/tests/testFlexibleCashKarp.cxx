@@ -24,11 +24,11 @@ using namespace vecCore::math;
 #include "SystemOfUnits.h"
 
 // using geant::meter;
-using geant::millimeter;   
-using geant::second;  
-using geant::eplus;  
-using geant::tesla;
-using geant::degree;
+using geant::units::millimeter;   
+using geant::units::second;  
+using geant::units::eplus;  
+using geant::units::tesla;
+using geant::units::degree;
 
 // using namespace std;
 using std::cout;
@@ -95,7 +95,7 @@ int main(int argc, char *args[])
     // using Backend = vecgeom::kVc ;
     // typedef typename Backend::precision_v Double_v;
 
-    using Double_v  = Geant::Double_v;
+    using Double_v  = geant::Double_v;
     // template <typename Tpod>
     // using Vector3D  = vecgeom::Vector3D<Tpod>;
     using ThreeVector_f   = vecgeom::Vector3D<float>;
@@ -116,11 +116,11 @@ int main(int argc, char *args[])
     if( debug ) cout<<"---- Creating UniformMagField object"<<endl;
     // Vector3D<float>
     ThreeVector_f fieldValInput( x_field, y_field, z_field ); // ( 0.0, 0.0, -1.0);
-    fieldValInput *= geant::tesla;
+    fieldValInput *= geant::units::tesla;
     
     // Field
     auto gvUniformField= new UniformMagField( fieldValInput ); // New class
-    //  UniformMagField( geant::tesla * ThreeVector_f(x_field, y_field, z_field) );
+    //  UniformMagField( geant::units::tesla * ThreeVector_f(x_field, y_field, z_field) );
 
     if( debug ) { 
        cout << "#  Initial  Field strength (GeantV) = "
@@ -130,9 +130,9 @@ int main(int argc, char *args[])
        ThreeVector_d origin(0.0, 0.0, 0.0), fieldValue;
        gvUniformField->GetFieldValue( origin, fieldValue );
        cout << "#    Values in object created       = "
-            << (1.0/geant::tesla) * fieldValue.x() << ",  "
-            << (1.0/geant::tesla) * fieldValue.y() << ",  "
-            << (1.0/geant::tesla) * fieldValue.z() << endl;
+            << (1.0/geant::units::tesla) * fieldValue.x() << ",  "
+            << (1.0/geant::units::tesla) * fieldValue.y() << ",  "
+            << (1.0/geant::units::tesla) * fieldValue.z() << endl;
        cout << endl;
     }
     
@@ -192,8 +192,8 @@ int main(int argc, char *args[])
     return good;
 }
 
-const double mmGVf = geant::millimeter;
-const double ppGVf = geant::GeV ;  //   it is really  momentum * c_light
+const double mmGVf = geant::units::millimeter;
+const double ppGVf = geant::units::GeV ;  //   it is really  momentum * c_light
                                         //   Else it must be divided by geant::c_light;
 
 template < typename Real_v, typename scalar_t, int Ncomp >
@@ -220,7 +220,7 @@ bool TestFlexibleStepper(Stepper_t *stepper) // , Equation_t *equation)
 {
     // Initialising 'parameters'
     Real_v  chargeVec(-1.);
-    double stepLengthValue = step_len_mm * geant::millimeter;
+    double stepLengthValue = step_len_mm * geant::units::millimeter;
 
     // auto scratch = stepper->ObtainScratchSpace<Double_v>();
         // Scratch space needed for this thread / task ...

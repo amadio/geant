@@ -278,13 +278,13 @@ std::ostream& operator<<(std::ostream& flux, const MaterialCuts* matcut) {
   flux << "\n   Material-cut index : " << matcut->GetIndex() << ", Production cuts were given" << str;
   flux << "\n   Production cuts    : " << "     gamma         e-            e+"
        << "\n    In length         : "
-       << cutslenght[0]/geant::mm << " [mm]  "
-       << cutslenght[1]/geant::mm << " [mm]  "
-       << cutslenght[2]/geant::mm << " [mm]  "
+       << cutslenght[0]/geant::units::mm << " [mm]  "
+       << cutslenght[1]/geant::units::mm << " [mm]  "
+       << cutslenght[2]/geant::units::mm << " [mm]  "
        << "\n    In energy         : "
-       << cutsenergy[0]/geant::MeV << " [MeV] "
-       << cutsenergy[1]/geant::MeV << " [MeV] "
-       << cutsenergy[2]/geant::MeV << " [MeV] "
+       << cutsenergy[0]/geant::units::MeV << " [MeV] "
+       << cutsenergy[1]/geant::units::MeV << " [MeV] "
+       << cutsenergy[2]/geant::units::MeV << " [MeV] "
        << "\n";
 
   return flux;

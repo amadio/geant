@@ -24,8 +24,8 @@
 namespace geantphysics {
 
 
-ComputeIntLStage::ComputeIntLStage(Geant::GeantPropagator *prop)
-: SimulationStage(Geant::kComputeIntLStage, prop) {}
+ComputeIntLStage::ComputeIntLStage(geant::GeantPropagator *prop)
+: SimulationStage(geant::kComputeIntLStage, prop) {}
 
 
 // base class will delete the created handlers
@@ -42,7 +42,7 @@ int ComputeIntLStage::CreateHandlers() {
 
 
 // Selects tracks that have any physics processes and set some members to others
-Geant::Handler* ComputeIntLStage::Select(Geant::GeantTrack *track, Geant::GeantTaskData * /*td*/) {
+geant::Handler* ComputeIntLStage::Select(geant::GeantTrack *track, geant::GeantTaskData * /*td*/) {
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle

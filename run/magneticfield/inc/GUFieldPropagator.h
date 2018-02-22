@@ -11,7 +11,7 @@
 // typedef vecgeom::Vector3D<double>  ThreeVector; 
 // #include "ScalarIntegrationDriver.h"
 
-// namespace Geant {
+// namespace geant {
 // inline namespace GEANT_IMPL_NAMESPACE {
 
 // template <class Backend> class TemplateGUIntegrationDriver;

@@ -34,7 +34,7 @@ KleinNishinaComptonModel::KleinNishinaComptonModel(const std::string &modelname)
 
   fAliasSampler                       = nullptr;
 
-  SetLowestSecondaryEnergy(100.0*geant::eV);    // zero by default in the base class
+  SetLowestSecondaryEnergy(100.0*geant::units::eV);    // zero by default in the base class
 }
 
 
@@ -92,7 +92,7 @@ double KleinNishinaComptonModel::ComputeXSectionPerAtom(const Element *elem, con
 }
 
 
-int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int    numSecondaries = 0;
   const double ekin     = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
@@ -107,7 +107,7 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   double eps, oneMinusCost, sint2;
   if (GetUseSamplingTables()) {
     eps = SampleReducedPhotonEnergy(ekin, rndArray[0], rndArray[1], rndArray[2]);
-    const double kappa = ekin/geant::kElectronMassC2;
+    const double kappa = ekin/geant::units::kElectronMassC2;
     oneMinusCost = (1./eps-1.)/kappa;
     sint2        = oneMinusCost*(2.-oneMinusCost);
   } else {
@@ -117,7 +117,7 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   sint2 = std::max(0.,sint2);
   const double cost  = 1.0-oneMinusCost;
   const double sint  = std::sqrt(sint2);
-  const double phi   = geant::kTwoPi*(rndArray[3]);
+  const double phi   = geant::units::kTwoPi*(rndArray[3]);
   // direction of the scattered gamma in the scattering frame
   double dirX  = sint*std::cos(phi);
   double dirY  = sint*std::sin(phi);
@@ -178,7 +178,7 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, Geant::GeantT
     sectracks[secIndx].SetDirZ(elDirZ);
     sectracks[secIndx].SetKinE(elEnergy);
     sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // e- GV code
-    sectracks[secIndx].SetMass(geant::kElectronMassC2);
+    sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
     sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   } else {
     eDeposit += elEnergy;
@@ -256,20 +256,20 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
   constexpr double b  = 230.0;
   constexpr double c  = 440.0;
   //
-  constexpr double d1 =   2.7965e-1*geant::barn;
-  constexpr double d2 =  -1.8300e-1*geant::barn;
-  constexpr double d3 =   6.7527   *geant::barn;
-  constexpr double d4 =  -1.9798e+1*geant::barn;
+  constexpr double d1 =   2.7965e-1*geant::units::barn;
+  constexpr double d2 =  -1.8300e-1*geant::units::barn;
+  constexpr double d3 =   6.7527   *geant::units::barn;
+  constexpr double d4 =  -1.9798e+1*geant::units::barn;
   //
-  constexpr double e1 =   1.9756e-5*geant::barn;
-  constexpr double e2 =  -1.0205e-2*geant::barn;
-  constexpr double e3 =  -7.3913e-2*geant::barn;
-  constexpr double e4 =   2.7079e-2*geant::barn;
+  constexpr double e1 =   1.9756e-5*geant::units::barn;
+  constexpr double e2 =  -1.0205e-2*geant::units::barn;
+  constexpr double e3 =  -7.3913e-2*geant::units::barn;
+  constexpr double e4 =   2.7079e-2*geant::units::barn;
   //
-  constexpr double f1 =  -3.9178e-7*geant::barn;
-  constexpr double f2 =   6.8241e-5*geant::barn;
-  constexpr double f3 =   6.0480e-5*geant::barn;
-  constexpr double f4 =   3.0274e-4*geant::barn;
+  constexpr double f1 =  -3.9178e-7*geant::units::barn;
+  constexpr double f2 =   6.8241e-5*geant::units::barn;
+  constexpr double f3 =   6.0480e-5*geant::units::barn;
+  constexpr double f4 =   3.0274e-4*geant::units::barn;
   //
   const double z2  = z*z;
   const double p1Z = z*(d1 + e1*z + f1*z2);
@@ -277,19 +277,19 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
   const double p3Z = z*(d3 + e3*z + f3*z2);
   const double p4Z = z*(d4 + e4*z + f4*z2);
   //
-  double t0  = 15.0*geant::keV;
+  double t0  = 15.0*geant::units::keV;
   if (z<1.5) {
-    t0 = 40.0*geant::keV;
+    t0 = 40.0*geant::units::keV;
   }
   //
-  double kappa  = std::max(egamma,t0)/geant::kElectronMassC2;
+  double kappa  = std::max(egamma,t0)/geant::units::kElectronMassC2;
   double kappa2 = kappa*kappa;
   double kappa3 = kappa2*kappa;
   xsec  = p1Z*std::log(1. + 2.*kappa)/kappa + (p2Z + p3Z*kappa + p4Z*kappa2)/(1. + a*kappa + b*kappa2 + c*kappa3);
   // low energy correction:
   if (egamma<t0) {
-    constexpr double dt0 = 1.*geant::keV;
-    kappa   = (t0+dt0)/geant::kElectronMassC2;
+    constexpr double dt0 = 1.*geant::units::keV;
+    kappa   = (t0+dt0)/geant::units::kElectronMassC2;
     kappa2  = kappa*kappa;
     kappa3  = kappa2*kappa;
     const double sigma = p1Z*std::log(1. + 2*kappa)/kappa + (p2Z + p3Z*kappa + p4Z*kappa2)/(1. + a*kappa + b*kappa2 + c*kappa3);
@@ -345,14 +345,14 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
                                                     &(als->fAliasIndx[0]), fSTNumDiscreteEnergyTransferVals, r2, r3);
   // transform it back to eps = E_1/E_0
   // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
-  const double kappa  = egamma/geant::kElectronMassC2;
+  const double kappa  = egamma/geant::units::kElectronMassC2;
   return std::exp(std::log(1.+2.*kappa)*(xi-1.)); // eps = E_1/E_0
 }
 
 
 double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2,
-                                                          const Geant::GeantTaskData *td) {
-  const double kappa = egamma/geant::kElectronMassC2;
+                                                          const geant::GeantTaskData *td) {
+  const double kappa = egamma/geant::units::kElectronMassC2;
   const double eps0  = 1./(1.+2.*kappa);
   const double eps02 = eps0*eps0;
   const double al1   = -std::log(eps0);
@@ -483,7 +483,7 @@ void KleinNishinaComptonModel::InitSamplingTables() {
   // 5. prepare sampling tables one-by-one
   for (int i=0; i<fSTNumPhotonEnergies; ++i) {
     const double egamma = primEVect[i];
-    const double kappa  = egamma/geant::kElectronMassC2;
+    const double kappa  = egamma/geant::units::kElectronMassC2;
     BuildOneLinAlias(i,kappa);
   }
   primEVect.clear();

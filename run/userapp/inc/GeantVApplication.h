@@ -16,7 +16,7 @@
 #include "GeantFwd.h"
 #include "GeantTrack.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantRunManager;

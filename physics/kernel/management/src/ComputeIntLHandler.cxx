@@ -18,8 +18,8 @@
 
 namespace geantphysics {
 
-ComputeIntLHandler::ComputeIntLHandler(int threshold, Geant::GeantPropagator *propagator)
-: Geant::Handler(threshold, propagator) {}
+ComputeIntLHandler::ComputeIntLHandler(int threshold, geant::GeantPropagator *propagator)
+: geant::Handler(threshold, propagator) {}
 
 
 ComputeIntLHandler::~ComputeIntLHandler() {}
@@ -28,7 +28,7 @@ ComputeIntLHandler::~ComputeIntLHandler() {}
 // The select method of the ComputeIntLStage selected only those tracks that (1) that has any process assigned i.e.
 // their PhysicsManagerPerParticle object is not null in the given region and (2) they has AlongStep and/or PostStep
 // processes that can limit the step.
-void ComputeIntLHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
+void ComputeIntLHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
   // reset step length and energy deposit
   track->SetStep(0.); // no setter for this member in GeantTrack
   track->SetEdep(0.);
@@ -52,10 +52,10 @@ void ComputeIntLHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, G
 }
 
 //______________________________________________________________________________
-void ComputeIntLHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+void ComputeIntLHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
 {
   // For the moment just loop and call scalar DoIt
-  Geant::TrackVec_t &tracks = input.Tracks();
+  geant::TrackVec_t &tracks = input.Tracks();
   for (auto track : tracks) {
     DoIt(track, output, td);
   }

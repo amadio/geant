@@ -104,8 +104,8 @@ double CutConverter::Convert(const Material *mat, double cut, bool isfromlength)
   // go for length - to - energy conversation
   double cutInEnergy = ConvertLengthToKineticEnergy(cut);
   // low energy correction for e-/e+
-  const double lowen = 30.0*geant::keV;
-  const double tune  = 0.0025*geant::g/geant::cm2;
+  const double lowen = 30.0*geant::units::keV;
+  const double tune  = 0.0025*geant::units::g/geant::units::cm2;
   if ((fParticleIndx==1 || fParticleIndx==2) && cutInEnergy<lowen) {
     cutInEnergy /= (1.0+(1.0-cutInEnergy/lowen)*tune/(cut*mat->GetDensity()));
   }
@@ -148,7 +148,7 @@ void CutConverter::BuildLengthVector(const Material *mat) {
     fLengthVector[i] = (sum-0.5*q)*deltae;
   }
 //  for (int i=0; i<fNumEBins; ++i)
-//    std::cerr<<fEnergyGrid[i]/geant::MeV<<" "<<fLengthVector[i]/geant::mm<<std::endl;
+//    std::cerr<<fEnergyGrid[i]/geant::units::MeV<<" "<<fLengthVector[i]/geant::units::mm<<std::endl;
 }
 
 

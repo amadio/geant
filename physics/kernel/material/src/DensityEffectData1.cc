@@ -6,7 +6,7 @@
 namespace geantphysics {
 
 void DensityEffectData::BuildTable() {
-  using geant::eV;
+  using geant::units::eV;
 
   // NIST_MAT_lH2 --------------------------------------------------------------------------
   fDensityEffectDataTable[  0].fName              = "NIST_MAT_lH2";

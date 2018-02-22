@@ -58,7 +58,7 @@
 
 using namespace vecgeom;
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

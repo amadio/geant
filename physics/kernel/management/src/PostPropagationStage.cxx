@@ -21,8 +21,8 @@
 
 namespace geantphysics {
 
-PostPropagationStage::PostPropagationStage(Geant::GeantPropagator *prop)
-: SimulationStage(Geant::kPostPropagationStage, prop) { }
+PostPropagationStage::PostPropagationStage(geant::GeantPropagator *prop)
+: SimulationStage(geant::kPostPropagationStage, prop) { }
 
 // base class will delete the created handlers
 PostPropagationStage::~PostPropagationStage() {}
@@ -37,7 +37,7 @@ int PostPropagationStage::CreateHandlers() {
 }
 
 // Selects tracks that have msc process
-Geant::Handler* PostPropagationStage::Select(Geant::GeantTrack *track, Geant::GeantTaskData * /*td*/) {
+geant::Handler* PostPropagationStage::Select(geant::GeantTrack *track, geant::GeantTaskData * /*td*/) {
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
@@ -55,7 +55,7 @@ Geant::Handler* PostPropagationStage::Select(Geant::GeantTrack *track, Geant::Ge
     // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
     // step and we do it in the next step
     // track->fNintLen -= track->fStep/track->fIntLen;
-    for (size_t i=0; i<Geant::kNumPhysicsProcess; ++i) {
+    for (size_t i=0; i<geant::kNumPhysicsProcess; ++i) {
       track->DecreasePhysicsNumOfInteractLengthLeft(i, track->GetStep()/track->GetPhysicsInteractLength(i));
     }
     return nullptr;

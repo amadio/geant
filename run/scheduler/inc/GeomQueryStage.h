@@ -18,7 +18,7 @@
 
 #include "SimulationStage.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeomQueryStage : public SimulationStage {

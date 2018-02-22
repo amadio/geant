@@ -17,7 +17,7 @@
 #include "Geant/Typedefs.h"
 #include "VVectorField.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 // This class owns the field Object which it is passed.
@@ -136,6 +136,6 @@ void FieldConfig::SetUniformField( VVectorField *fldUnif )
 }
 
 }
-} // namespace Geant 
+} // namespace geant 
 
 #endif

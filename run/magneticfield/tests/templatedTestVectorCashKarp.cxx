@@ -95,7 +95,7 @@ int main(int argc, char *args[])
     // using Backend = vecgeom::kVc ;
     // typedef typename Backend::precision_v Double_v;
 
-    using Double_v  = Geant::Double_v;
+    using Double_v  = geant::Double_v;
     // template <typename Tpod>
     // using Vector3D  = vecgeom::Vector3D<Tpod>;
     using ThreeVector_f   = vecgeom::Vector3D<float>;

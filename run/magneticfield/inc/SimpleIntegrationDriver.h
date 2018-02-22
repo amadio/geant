@@ -41,7 +41,7 @@
 #include "FlexIntegrationDriver.h"
 #include "FormattedReporter.h"
 
-#include "Geant/VectorTypes.h"   //  Defines Geant::Double_v
+#include "Geant/VectorTypes.h"   //  Defines geant::Double_v
 
 #ifndef NO_FIELD_STATISTICS
 #define GVFLD_STATS  1
@@ -2229,7 +2229,7 @@ SimpleIntegrationDriver<T_Stepper, Nvar>
                           bool       stillOK[]
      ) const
 {
-    AccurateAdvance<Geant::Double_v>( yInput,
+    AccurateAdvance<geant::Double_v>( yInput,
                                       hstep,
                                       charge,
                                       epsilon,   // Can be scalar or varying 

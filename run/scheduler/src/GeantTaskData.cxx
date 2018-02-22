@@ -20,7 +20,7 @@
 
 using std::min;
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
@@ -136,7 +136,7 @@ size_t GeantTaskData::SizeOfInstance(size_t /*nthreads*/, int maxPerBasket)
 
    const size_t bufSize = 5; // See constructor!
 
-   size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<Geant::cuda::GeantTaskData>::SizeOf()
+   size_t need = sizeof(GeantTaskData) // vecgeom::DevicePtr<geant::cuda::GeantTaskData>::SizeOf()
       + GeantTrack::round_up_align(bufSize*maxPerBasket*(sizeof(bool)+sizeof(double)+sizeof(int)))
       + GeantTrack::round_up_align(VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth()));
    return GeantTrack::round_up_align(need);

@@ -11,7 +11,7 @@
 #include "GeantConfig.h"
 #include "priority_queue.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class PrimaryGenerator;

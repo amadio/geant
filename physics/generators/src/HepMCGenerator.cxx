@@ -13,7 +13,7 @@ using vecgeom::kPi;
 #include "HepMC/ReaderRoot.h"
 #endif
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
@@ -46,7 +46,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-GeantEventInfo HepMCGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
+GeantEventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
   //
   // Delete previous event
   delete search;
@@ -54,7 +54,7 @@ GeantEventInfo HepMCGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
   HepMC::GenEvent evt(HepMC::Units::GEV, HepMC::Units::MM);
 
   if (!(input_file->read_event(evt)))
-    Geant::Fatal("HepMCGenerator::ImportTracks", "No more particles to read!");
+    geant::Fatal("HepMCGenerator::ImportTracks", "No more particles to read!");
 
   //  std::cout << std::endl
   //            << "Find all stable particles: " << std::endl;
@@ -111,7 +111,7 @@ GeantEventInfo HepMCGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
+void HepMCGenerator::GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
   int itr = 0;
   double eta, phi, pmom = 0;

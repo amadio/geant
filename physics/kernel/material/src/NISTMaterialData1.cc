@@ -16,14 +16,14 @@ void NISTMaterialData::BuildTable() {
     // Space Science Materials   ==> index [294-296]
     // Biochemical Materials     ==> index [297-315]
 
-    using geant::g;
-    using geant::cm3;
-    using geant::eV;
-    using geant::kelvin;
-    using geant::pascal;
-    using geant::kUniverseMeanDensity;
-    using geant::kNTPTemperature;
-    using geant::kSTPPressure;
+    using geant::units::g;
+    using geant::units::cm3;
+    using geant::units::eV;
+    using geant::units::kelvin;
+    using geant::units::pascal;
+    using geant::units::kUniverseMeanDensity;
+    using geant::units::kNTPTemperature;
+    using geant::units::kSTPPressure;
 
     // =======================================================================================
     // Elemental materials Z = 1-98 ==> index 0-97

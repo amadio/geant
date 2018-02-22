@@ -21,8 +21,8 @@ LambdaTable::LambdaTable(const PhysicsProcess *process, bool ispermaterial)
   fIsSpecialLambdaTableBinNum    = false;
   fNumLambdaTableBins            = 3;
   fNumSpecialLambdaTableBins     = 3;
-  fMinLambdaTableEnergy          = 100.*geant::eV;
-  fMaxLambdaTableEnergy          = 100.*geant::TeV;
+  fMinLambdaTableEnergy          = 100.*geant::units::eV;
+  fMaxLambdaTableEnergy          = 100.*geant::units::TeV;
   fLogMinLambdaTableEnergy       = 1.;
   fEnergyILDelta                 = 1.;
 }
@@ -139,8 +139,8 @@ void LambdaTable::BuildLambdaTables() {
           GenerateEnergyGrid(matCut);
         }
 //        std::cerr << "        ===> Mat = " << matCut->GetMaterial()->GetName()
-//                  << "   emin  = " << fMinLambdaTableEnergy/geant::MeV
-//                  << "   emax  = " << fMaxLambdaTableEnergy/geant::MeV
+//                  << "   emin  = " << fMinLambdaTableEnergy/geant::units::MeV
+//                  << "   emax  = " << fMaxLambdaTableEnergy/geant::units::MeV
 //                  << "   bins  = " << fNumLambdaTableBins << std::endl;
         fLambdaTablesPerMaterial[matIndx]                   = new ALambdaTable();
         fLambdaTablesPerMaterial[matIndx]->fLambdaMax       = -1.0;
@@ -149,7 +149,7 @@ void LambdaTable::BuildLambdaTables() {
         for (int iener=0; iener<fNumLambdaTableBins; ++iener) {
           double ekin    = fEnergyGrid[iener];
 //          if (iener==0) {
-//            ekin += geant::eV;
+//            ekin += geant::units::eV;
 //          }
           // dynamic mass of the particle is not considered !
           double macXsec = fProcess->ComputeMacroscopicXSection(matCut, ekin, fProcess->GetParticle(), 0.);
@@ -163,8 +163,8 @@ void LambdaTable::BuildLambdaTables() {
           fLambdaTablesPerMaterial[matIndx]->fOneLambdaTable[iener] = macXsec;
         }
 
-//std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMaxEnergy/geant::MeV
-//<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMax*geant::mm << std::endl;
+//std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMaxEnergy/geant::units::MeV
+//<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterial[matIndx]->fLambdaMax*geant::units::mm << std::endl;
 
         fLambdaTablesPerMaterial[matIndx]->fSpline =
             new Spline(&fEnergyGrid[0], &(fLambdaTablesPerMaterial[matIndx]->fOneLambdaTable[0]), fNumLambdaTableBins);
@@ -186,13 +186,13 @@ void LambdaTable::BuildLambdaTables() {
         fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMaxEnergy = -1.0;
         GenerateEnergyGrid(matCut, fLambdaTablesPerMaterialCuts[matCutIndx]);
 //        std::cerr << "        ===> MatCut = "<< matCut->GetMaterial()->GetName()
-//                  << "   emin  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMinLambdaTableEnergy/geant::MeV
-//                  << "   emax  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMaxLambdaTableEnergy/geant::MeV
+//                  << "   emin  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMinLambdaTableEnergy/geant::units::MeV
+//                  << "   emax  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fMaxLambdaTableEnergy/geant::units::MeV
 //                  << "   bins  = " << fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins << std::endl;
         for (int iener=0; iener<fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins; ++iener) {
           double ekin    = fLambdaTablesPerMaterialCuts[matCutIndx]->fEnergyGrid[iener];
 //          if (iener==0) {
-//            ekin += geant::eV;
+//            ekin += geant::units::eV;
 //          }
           // dynamic mass of the particle is not considered
           double macXsec = fProcess->ComputeMacroscopicXSection(matCut, ekin, fProcess->GetParticle(), 0.);
@@ -209,8 +209,8 @@ void LambdaTable::BuildLambdaTables() {
             new Spline(&(fLambdaTablesPerMaterialCuts[matCutIndx]->fEnergyGrid[0]),
                        &(fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaTable[0]),
                        fLambdaTablesPerMaterialCuts[matCutIndx]->fNumLambdaTableBins);
-//std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMaxEnergy/geant::MeV
-//<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMax*geant::mm << std::endl;
+//std::cerr<< " particle = " << fProcess->GetParticle()->GetName() << " proc = "<< fProcess->GetName()<< "  Sigma_max E (MeV) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMaxEnergy/geant::units::MeV
+//<< " Sigma_Max (1/mm) = " <<  fLambdaTablesPerMaterialCuts[matCutIndx]->fLambdaMax*geant::units::mm << std::endl;
       }
     }
   }
@@ -228,7 +228,7 @@ void LambdaTable::GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTa
       nbin = fNumSpecialLambdaTableBins;
     }
     double scl  = std::log(emax/emin);
-//    std::cerr<< "   ++++ emin = " << emin/geant::MeV << "  emax = " <<emax/geant::MeV << " nbin = " << nbin << " scale = "<< scl << std::endl;
+//    std::cerr<< "   ++++ emin = " << emin/geant::units::MeV << "  emax = " <<emax/geant::units::MeV << " nbin = " << nbin << " scale = "<< scl << std::endl;
     fMinLambdaTableEnergy = std::max(fProcess->GetMinimumLambdaTableKineticEnergy(matcut, fProcess->GetParticle()), emin);
     fMaxLambdaTableEnergy = emax;
     if (fMinLambdaTableEnergy>=fMaxLambdaTableEnergy) {
@@ -263,7 +263,7 @@ void LambdaTable::GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTa
       nbin = fNumSpecialLambdaTableBins;
     }
     double scl  = std::log(emax/emin);
-//    std::cerr<< "   ++++ emin = " << emin/geant::MeV << "  emax = " <<emax/geant::MeV << " nbin = " << nbin << " scale = "<< scl << std::endl;
+//    std::cerr<< "   ++++ emin = " << emin/geant::units::MeV << "  emax = " <<emax/geant::units::MeV << " nbin = " << nbin << " scale = "<< scl << std::endl;
     data->fMinLambdaTableEnergy = std::max(fProcess->GetMinimumLambdaTableKineticEnergy(matcut, fProcess->GetParticle()), emin);
     data->fMaxLambdaTableEnergy = emax;
     if (data->fMinLambdaTableEnergy>=data->fMaxLambdaTableEnergy) {

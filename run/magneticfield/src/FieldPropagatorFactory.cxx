@@ -14,11 +14,11 @@ FieldPropagatorFactory::RegisterPropagator(GUFieldPropagator* fieldPropagator)
   if( fpPool ) {
      fpPool->RegisterPrototype( fieldPropagator );
      // Not complete until   fpPool->Initialize( numThreads ); is called
-     // Geant::Printf( "FieldPropagatorFactory: Registered Prototype field-prop %p\n", fieldPropagator );
+     // geant::Printf( "FieldPropagatorFactory: Registered Prototype field-prop %p\n", fieldPropagator );
      std::cout << "FieldPropagatorFactory: Registered Prototype field-prop " << fieldPropagator
                << std::endl;
   } else {
-     // Geant::Error("PrepareRkIntegration","Cannot find GUFieldPropagatorPool Instance.");
+     // geant::Error("PrepareRkIntegration","Cannot find GUFieldPropagatorPool Instance.");
      std::cerr << "ERROR in PrepareRkIntegration: "
                << "Cannot find GUFieldPropagatorPool Instance." << std::endl;
   }

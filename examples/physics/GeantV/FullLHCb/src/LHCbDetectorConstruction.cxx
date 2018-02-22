@@ -6,8 +6,8 @@
 
 namespace lhcbapp {
 
-LHCbDetectorConstruction::LHCbDetectorConstruction(Geant::GeantRunManager *runmgr)
-: Geant::GeantVDetectorConstruction(runmgr), fGDMLFileName("LHCb_201603.gdml") {}
+LHCbDetectorConstruction::LHCbDetectorConstruction(geant::GeantRunManager *runmgr)
+: geant::GeantVDetectorConstruction(runmgr), fGDMLFileName("LHCb_201603.gdml") {}
 
 
 LHCbDetectorConstruction::~LHCbDetectorConstruction() {}

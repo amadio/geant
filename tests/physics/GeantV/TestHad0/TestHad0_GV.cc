@@ -262,7 +262,7 @@ std::cout<< "   Material       =  " << matDetector->GetName() << std::endl;
 std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
 std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
 std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
+std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::units::MeV << "  [MeV] " << std::endl;
 std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
 std::cout<< "   Physics list   =  " << thePhysicsList->GetName() << std::endl;
 std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -333,7 +333,7 @@ std::cout<<std::endl; std::cout<<std::endl;
 if (isSingleElementMaterial) {
   std::cout<< "   cross section per atom      :";
   for (size_t i=0; i<processNameVect.size();++i) {
-    std::cout<< std::setw(14) << std::scientific << std::right << compAtomicXsectionVect[i]/(geant::barn)
+    std::cout<< std::setw(14) << std::scientific << std::right << compAtomicXsectionVect[i]/(geant::units::barn)
              << std::setw(14) << std::left << "     [barn]";
   }
   std::cout<<std::endl; std::cout<<std::endl;
@@ -341,22 +341,22 @@ if (isSingleElementMaterial) {
 
 std::cout<< "   compCrossSectionPerVolume   :";
 for (size_t i=0; i<processNameVect.size();++i) {
-  std::cout<< std::setw(14) << std::scientific << std::right << compMacXsecPerProcessVect[i]/(1./geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << compMacXsecPerProcessVect[i]/(1./geant::units::cm)
            << std::setw(14) << std::left << "     [1/cm]";
 }
 std::cout<<std::endl;
 
 std::cout<< "   cross section per volume    :";
 for (size_t i=0; i<processNameVect.size();++i) {
-  std::cout<< std::setw(14) << std::scientific << std::right << getMacXsecPerProcessVect[i]/(1./geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << getMacXsecPerProcessVect[i]/(1./geant::units::cm)
            << std::setw(14) << std::left << "     [1/cm]";
 }
 std::cout<<std::endl;
 
-double density = matCut->GetMaterial()->GetDensity()/(geant::g/geant::cm3); // density in [g/cm3]
+double density = matCut->GetMaterial()->GetDensity()/(geant::units::g/geant::units::cm3); // density in [g/cm3]
 std::cout<< "   cross section per mass      :";
 for (size_t i=0; i<processNameVect.size();++i) {
-  std::cout<< std::setw(14) << std::scientific << std::right << getMacXsecPerProcessVect[i]/density/(1./geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << getMacXsecPerProcessVect[i]/density/(1./geant::units::cm)
            << std::setw(14) << std::left << "    [cm2/g]";
 }
 std::cout<<std::endl; std::cout<<std::endl;
@@ -366,7 +366,7 @@ std::cout<< "   mean free path (length)     :";
 for (size_t i=0; i<processNameVect.size();++i) {
   double lambda = PhysicsProcess::GetAVeryLargeValue();
   if (getMacXsecPerProcessVect[i]>0.) {
-    lambda = 1./getMacXsecPerProcessVect[i]/geant::cm;
+    lambda = 1./getMacXsecPerProcessVect[i]/geant::units::cm;
   }
   std::cout<< std::setw(14) << std::scientific << std::right << lambda
            << std::setw(14) << std::left << "       [cm]";
@@ -377,7 +377,7 @@ std::cout<< "   mean free path (g/cm2)      :";
 for (size_t i=0; i<processNameVect.size();++i) {
   double lambda = PhysicsProcess::GetAVeryLargeValue();
   if (getMacXsecPerProcessVect[i]>0.) {
-    lambda = getMacXsecPerProcessVect[i]/density/(1./geant::cm);
+    lambda = getMacXsecPerProcessVect[i]/density/(1./geant::units::cm);
     lambda = 1./lambda;
   }
   std::cout<< std::setw(14) << std::scientific << std::right << lambda

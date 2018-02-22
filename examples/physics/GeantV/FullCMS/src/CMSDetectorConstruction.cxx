@@ -6,8 +6,8 @@
 
 namespace cmsapp {
 
-CMSDetectorConstruction::CMSDetectorConstruction(Geant::GeantRunManager *runmgr)
-: Geant::GeantVDetectorConstruction(runmgr), fGDMLFileName("cms.gdml") {}
+CMSDetectorConstruction::CMSDetectorConstruction(geant::GeantRunManager *runmgr)
+: geant::GeantVDetectorConstruction(runmgr), fGDMLFileName("cms.gdml") {}
 
 
 CMSDetectorConstruction::~CMSDetectorConstruction() {}

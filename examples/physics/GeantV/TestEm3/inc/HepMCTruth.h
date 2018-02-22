@@ -11,7 +11,7 @@
 
 #include <string>
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantTrack;
     struct MCEvent;
@@ -21,7 +21,7 @@ namespace Geant {
 
 namespace userapplication {
 
-class HepMCTruth : public Geant::MCTruthMgr {
+class HepMCTruth : public geant::MCTruthMgr {
 private:
   HepMC::Writer *output_file;
 
@@ -32,7 +32,7 @@ public:
 
   virtual void InitMCTruthMgr();
 
-  virtual bool CheckTrack(Geant::GeantTrack &gtrack, Geant::MCEvent* evt);
+  virtual bool CheckTrack(geant::GeantTrack &gtrack, geant::MCEvent* evt);
   
   virtual void CloseEvent(int evID);
 

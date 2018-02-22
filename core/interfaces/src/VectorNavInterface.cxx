@@ -20,7 +20,7 @@
 #include "GeantPropagator.h"
 #endif
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace VECGEOM_NAMESPACE;
@@ -86,24 +86,24 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
     double stepcmp = Math::Max<double>(2 * gTolerance, rootnav->GetStep());
     double safecmp = rootnav->GetSafeDistance();
     if (Math::Abs(step[itr] - stepcmp) > 1E-6) {
-      Geant::Print("","## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[itr], step[itr], stepcmp);
-      Geant::Print("","## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", pstep[itr], isonbdr[itr],
+      geant::Print("","## PSTEP %lf VECGEOMSTEP %lf ROOTSTEP %lf", pstep[itr], step[itr], stepcmp);
+      geant::Print("","## PSTEP %lf ONBOUND %d VECGEOMSAFETY %lf ROOTSAFETY %lf BRUTEFORCEROOT %lf", pstep[itr], isonbdr[itr],
              safe[itr], rootnav->Safety());
 
       // check nextpath
       tmp = outstate[itr]->ToTGeoBranchArray();
       tmp->InitFromNavigator(rootnav);
-      Geant::Print("","## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", outstate[itr]->GetCurrentNode(), tmp->GetCurrentNode());
-      Geant::Print("","## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", outstate[itr]->IsOnBoundary(), rootnav->IsOnBoundary());
+      geant::Print("","## VECGEOMNEXTNODE %p ROOTNEXTNODE %p", outstate[itr]->GetCurrentNode(), tmp->GetCurrentNode());
+      geant::Print("","## VECGEOMBOUNDARY %d ROOTBOUNDARY %d", outstate[itr]->IsOnBoundary(), rootnav->IsOnBoundary());
 
-      Geant::Print("","INCONSISTENT STEP");
+      geant::Print("","INCONSISTENT STEP");
       nav.InspectEnvironmentForPointAndDirection(Vector3D_t(x[itr], y[itr], z[itr]) /*global pos*/,
                                                  Vector3D_t(dirx[itr], diry[itr], dirz[itr]), *instate[itr]);
     }
 #endif // CROSSCHECK
 
 #ifdef VERBOSE
-    Geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
+    geant::Print("","navfindbound on %p track %d with pstep %lf yields step %lf and safety %lf\n", this, itr, pstep[itr], step[itr],
            safe[itr]);
 #endif // VERBOSE
   }
@@ -192,9 +192,9 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
     sb->UpdateNavigator(nav);
     bool rootsame = nav->IsSameLocation(x[itr], y[itr], z[itr], true);
     if (rootsame != samepath) {
-      Geant::Print("","INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
+      geant::Print("","INCONSISTENT ANSWER ROOT(%d) VECGEOM(%d)", rootsame, samepath);
       std::cout << Vector3D_t(x[itr], y[itr], z[itr]) << "\n";
-      Geant::Print("","old state");
+      geant::Print("","old state");
       sb->Print();
       nav->ResetState();
       nav->SetLastSafetyForPoint(0, 0, 0, 0);
@@ -205,9 +205,9 @@ void VectorNavInterface::NavIsSameLocation(int ntracks,
       bool rootsame = nav->IsSameLocation(x[itr], y[itr], z[itr], true);
       nav->InspectState();
       eb->InitFromNavigator(nav);
-      Geant::Print("","new state");
+      geant::Print("","new state");
       eb->Print();
-      Geant::Print("","VERSUS VECGEOM OLD AND NEW");
+      geant::Print("","VERSUS VECGEOM OLD AND NEW");
       start[itr]->printVolumePath();
       end[itr]->printVolumePath();
     }

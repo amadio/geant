@@ -103,7 +103,7 @@ int main(int argc, char *args[])
     if(argc > 5)
        z_field_in = (float) (stof(args[5]));     // tesla
 
-    double step_len = step_len_mm * geant::millimeter;
+    double step_len = step_len_mm * geant::units::millimeter;
 
     //Set Charge etc.
     double particleCharge = +1.0;      // in e+ units
@@ -162,15 +162,15 @@ int main(int argc, char *args[])
     if( z_field_in < DBL_MAX )   z_field = z_field_in;
 
     // Field
-    auto gvField= new ScalarUniformMagField( geant::tesla * ThreeVector(x_field, y_field, z_field) );
+    auto gvField= new ScalarUniformMagField( geant::units::tesla * ThreeVector(x_field, y_field, z_field) );
 
     cout << "#  Initial  Field strength (GeantV) = "
          << x_field << " , " << y_field << " , " << z_field
-       // << (1.0/geant::tesla) * gvField->GetValue()->X() << ",  "
+       // << (1.0/geant::units::tesla) * gvField->GetValue()->X() << ",  "
          << " Tesla " << endl;
     cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
 
-    const double hminimum  = 0.0001 * geant::millimeter;  // Minimum step = 0.1 microns
+    const double hminimum  = 0.0001 * geant::units::millimeter;  // Minimum step = 0.1 microns
     const double epsTolDef = 1.0e-5;              // Relative error tolerance
 
     const double epsTol =  ( epsTolInp < 0.0 ) ? epsTolDef : epsTolInp;
@@ -181,13 +181,13 @@ int main(int argc, char *args[])
     double TeslaToKiloGauss = 10.0;
     for( int ix= 0; ix < 3; ix++ ) { BfieldKG[ix] *= TeslaToKiloGauss; }
 
-    Geant::ConstFieldHelixStepper helixStepper( BfieldKG ); // double Bfield[3] );
+    geant::ConstFieldHelixStepper helixStepper( BfieldKG ); // double Bfield[3] );
 
     //Initialising coordinates
-    const double mmGVf = geant::millimeter;
-    const double ppGVf = geant::GeV ;  //   it is really  momentum * c_light
+    const double mmGVf = geant::units::millimeter;
+    const double ppGVf = geant::units::GeV ;  //   it is really  momentum * c_light
                                          //   Else it must be divided by geant::c_light;
-    // = geant::GeV / Constants::c_light;     // OLD
+    // = geant::units::GeV / Constants::c_light;     // OLD
 
     double yIn[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
                     x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};
@@ -587,10 +587,10 @@ int main(int argc, char *args[])
            // cout.unsetf(ios_base::scientific);
            cout.setf (ios_base::fixed);                         
            cout.precision(2);
-           cout<<setw(wd) << atan2(yout[1],yout[0])/geant::degree;
+           cout<<setw(wd) << atan2(yout[1],yout[0])/geant::units::degree;
                              // atan(yout[1]/yout[0])/degree;
            if( printRef ) 
-             cout<<setw(wd) << atan2(youtX[1],youtX[0])/geant::degree;
+             cout<<setw(wd) << atan2(youtX[1],youtX[0])/geant::units::degree;
            
            //Copy yout into yIn
            for(int i=0; i<6;i++){

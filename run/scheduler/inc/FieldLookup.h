@@ -18,7 +18,7 @@
 
 #include "FieldConfig.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
@@ -59,7 +59,7 @@ class FieldLookup
    void GetFieldValue( const vecgeom::Vector3D<double> & Position,
                              double                      BfieldOut[3],
                              double                    & bmag // ,
-                       // const Geant::GeantTaskData      * td                          
+                       // const geant::GeantTaskData      * td                          
          );
 #endif
 
@@ -75,6 +75,6 @@ private:
 };
 
 }
-} // namespace Geant 
+} // namespace geant 
 
 #endif

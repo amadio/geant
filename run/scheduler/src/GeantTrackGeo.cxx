@@ -37,7 +37,7 @@
 #endif
 #include <cassert>
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace VECGEOM_NAMESPACE;
@@ -198,7 +198,7 @@ void GeantTrackGeo_v::Resize(int newsize) {
   // Resize the container.
   int size = RoundUpAlign(newsize);
   if (size < GetNtracks()) {
-    Geant::Error("Resize","%s","Cannot resize to less than current track content");
+    geant::Error("Resize","%s","Cannot resize to less than current track content");
     return;
   }
   fBufSize = BufferSize(size);

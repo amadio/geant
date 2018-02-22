@@ -24,7 +24,7 @@ public:
 
   virtual double AverageLifetime(const LightTrack &track) const;
 
-  virtual int    AtRestDoIt(LightTrack &track, Geant::GeantTaskData *td);
+  virtual int    AtRestDoIt(LightTrack &track, geant::GeantTaskData *td);
 };
 
 }        // namespace geantphysics

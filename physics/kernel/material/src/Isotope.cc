@@ -44,8 +44,8 @@ Isotope* Isotope::GetIsotope(int z, int n, double a, int isol, double isomass, c
          isomass = NISTElementData::Instance().GetIsotopeMass(z,n);
        }
      } else if (isomass<=0.) {
-       isomass =  a/geant::kAvogadro * geant::kCLightSquare
-                - z*geant::kElectronMassC2
+       isomass =  a/geant::units::kAvogadro * geant::units::kCLightSquare
+                - z*geant::units::kElectronMassC2
                 + NISTElementData::Instance().GetBindingEnergy(z,n);
      }
      if (name!="") {
@@ -113,8 +113,8 @@ std::ostream& operator<<(std::ostream& flux, const Isotope* isotope) {
     << "   Z = " << std::setw(2)    << isotope->fZ
     << "   N = " << std::setw(3)    << isotope->fN
     << "   A = " << std::setw(6)    << std::setprecision(6)
-    << (isotope->fA)/(geant::g/geant::mole) << " [g/mole]"
-    << "   mass of nucleus = "  << isotope->fIsoMass/(geant::GeV) << " [GeV]";
+    << (isotope->fA)/(geant::units::g/geant::units::mole) << " [g/mole]"
+    << "   mass of nucleus = "  << isotope->fIsoMass/(geant::units::GeV) << " [GeV]";
 
   flux.precision(prec);
   flux.setf(mode,std::ios::floatfield);

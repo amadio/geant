@@ -35,6 +35,7 @@
 #define SYSTEMOFUNITS_H
 
 namespace geant {
+namespace units {
 
   //
   // (kPi is used here (degree) so we declare here and not among the constants.)
@@ -300,6 +301,7 @@ namespace geant {
   static constexpr double perThousand = 0.001;
   static constexpr double perMillion  = 0.000001;
 
+}  // namespace units
 }  // namespace geant
 
 #endif // SYSTEMOFUNITS_H

@@ -25,7 +25,7 @@
  * @param buffer_size Buffer size for queue
  * @tparam T Type of objects
  */
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 template <typename O, typename I>

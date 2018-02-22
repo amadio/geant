@@ -22,8 +22,8 @@
 
 namespace geantphysics {
 
-PostStepActionStage::PostStepActionStage(Geant::GeantPropagator *prop)
-: SimulationStage(Geant::kPostStepActionStage, prop) {}
+PostStepActionStage::PostStepActionStage(geant::GeantPropagator *prop)
+: SimulationStage(geant::kPostStepActionStage, prop) {}
 
 
 // base class will delete the created handlers
@@ -40,8 +40,8 @@ int PostStepActionStage::CreateHandlers() {
 
 
 // Selects tracks that have any processes, any post step processes i.e. discrete part and that limited the step
-Geant::Handler* PostStepActionStage::Select(Geant::GeantTrack *track, Geant::GeantTaskData * /*td*/) {
-  if (track->Status() == Geant::TrackStatus_t::kPhysics && track->EIndex() == 1000) {
+geant::Handler* PostStepActionStage::Select(geant::GeantTrack *track, geant::GeantTaskData * /*td*/) {
+  if (track->Status() == geant::TrackStatus_t::kPhysics && track->EIndex() == 1000) {
     // these tracks should always have psorcesses active in the given region moreover should always have discrete
     // processes that limited the step (fEindex==1000)
     return fHandlers[0];

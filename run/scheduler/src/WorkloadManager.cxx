@@ -34,14 +34,14 @@
 #include "base/Stopwatch.h"
 #include "TaskBroker.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 WorkloadManager *WorkloadManager::NewInstance(GeantPropagator *prop, int nthreads) {
   // Return singleton instance.
   if (!nthreads || !prop) {
-    Geant::Error("WorkloadManager::NewInstance", "%s", "You should provide number of threads.");
+    geant::Error("WorkloadManager::NewInstance", "%s", "You should provide number of threads.");
     return 0;
   }
   return new WorkloadManager(nthreads,prop);
@@ -63,15 +63,15 @@ bool WorkloadManager::StartTasks() {
   int ith = 0;
   if (fBroker) {
      if (fBroker->GetNstream() > (unsigned int)fNthreads) {
-       Geant::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
+       geant::Fatal("StartThreads", "The task broker is using too many threads (%d out of %d)", fBroker->GetNstream(),
                     fNthreads);
        return false;
     }
-    Geant::Info("StartThreads", "Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
+    geant::Info("StartThreads", "Running with a coprocessor broker (using %d threads).",fBroker->GetNstream()+1);
     // fListThreads.emplace_back(WorkloadManager::TransportTracksCoprocessor, prop, fBroker);
     ith += fBroker->GetNstream() + 1;
     if (ith == fNthreads && fBroker->IsSelective()) {
-       Geant::Fatal("WorkloadManager::StartThreads","All %d threads are used by the coprocessor broker but it can only process a subset of particles.",fNthreads);
+       geant::Fatal("WorkloadManager::StartThreads","All %d threads are used by the coprocessor broker but it can only process a subset of particles.",fNthreads);
        return false;
     }
   }
@@ -93,7 +93,7 @@ void WorkloadManager::WaitWorkers() {
   while (ntowait) {
     fDoneQ->wait_and_pop(signal);
     ntowait--;
-    Geant::Print("", "=== %d workers finished", fNthreads - ntowait);
+    geant::Print("", "=== %d workers finished", fNthreads - ntowait);
   }
   //   fBasketGeneration++;
 }
@@ -183,18 +183,18 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
 //  if (node < 0) node = 0;
   GeantPropagator *propagator = prop;
   GeantRunManager *runmgr = prop->fRunMgr;
-  Geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
   td->AttachPropagator(prop, node);
   int tid = td->fTid;
 
   if (useNuma) {
-    Geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
+    geant::Print("","=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===",
                  tid, prop, node, cpu);    
     int membind = NumaUtils::NumaNodeAddr(td->fShuttleBasket->Tracks().data());
     if (node != membind)
-      Geant::Print("","=== Thread #d: Wrong memory binding");
+      geant::Print("","=== Thread #d: Wrong memory binding");
   } else {
-    Geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
+    geant::Print("","=== Worker thread %d created for propagator %p ===", tid, prop);
   }
 
   GeantEventServer *evserv = runmgr->GetEventServer();
@@ -208,7 +208,7 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
     if (flush) {
       if ((feedres == FeederResult::kNone) | (feedres == FeederResult::kError)) {
         if (!evserv->EventsServed())
-          Geant::Warning("","=== Task %d exited due to missing workload", tid);
+          geant::Warning("","=== Task %d exited due to missing workload", tid);
         break;
       }
     }
@@ -232,10 +232,10 @@ void WorkloadManager::TransportTracksV3(GeantPropagator *prop) {
   if (useNuma) {
     int cpuexit = NumaUtils::GetCpuBinding();
     if (cpuexit != cpu)
-      Geant::Print("","=== OS migrated worker %d from cpu #%d to cpu#%d", tid, cpu, cpuexit);
+      geant::Print("","=== OS migrated worker %d from cpu #%d to cpu#%d", tid, cpu, cpuexit);
   }
   runmgr->GetTDManager()->ReleaseTaskData(td);
-  Geant::Print("","=== Thread %d: exiting ===", tid);
+  geant::Print("","=== Thread %d: exiting ===", tid);
 }
 
 //______________________________________________________________________________

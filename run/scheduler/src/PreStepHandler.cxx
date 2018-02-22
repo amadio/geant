@@ -4,7 +4,7 @@
 #include "GeantVApplication.h"
 #include "TrackManager.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

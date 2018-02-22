@@ -20,7 +20,7 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace Geant {
+namespace geant {
 
 /** @brief Class of priority queue */
 template <typename T> class priority_queue {
@@ -188,6 +188,6 @@ void priority_queue<T>::wait_and_pop(T &data) {
   n_waiting_--;
   lk.unlock();
 }
-} // namespace Geant
+} // namespace geant
 
 #endif

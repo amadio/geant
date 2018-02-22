@@ -4,7 +4,7 @@
 #endif
 #include <stdarg.h>
 
-namespace Geant {
+namespace geant {
 inline namespace cxx {
 
 

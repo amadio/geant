@@ -1,6 +1,6 @@
 #include "MCTruthMgr.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
@@ -13,7 +13,7 @@ void MCTruthMgr::OpenEvent(int evID) {
 }
 
 //______________________________________________________________________________
-void MCTruthMgr::AddTrack(Geant::GeantTrack &gtrack) {
+void MCTruthMgr::AddTrack(geant::GeantTrack &gtrack) {
 
   // get the event from the map  
   MCEvent* current_event = events_map.find(gtrack.Event());

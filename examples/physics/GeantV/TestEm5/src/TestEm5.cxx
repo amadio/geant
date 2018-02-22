@@ -32,8 +32,8 @@
 
 namespace userapplication {
 
-TestEm5::TestEm5(Geant::GeantRunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun)
-  : Geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
+TestEm5::TestEm5(geant::GeantRunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun)
+  : geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
   fHist1FileName         = "testEm5Hist1.dat";
   fInitialized           = false;
   // all these will be set properly at initialization
@@ -57,7 +57,7 @@ TestEm5::~TestEm5() {
 }
 
 
-void TestEm5::AttachUserData(Geant::GeantTaskData *td) {
+void TestEm5::AttachUserData(geant::GeantTaskData *td) {
   // Create application specific thread local data structure to collecet/handle thread local multiple per-event data
   // structure. Provide number of event-slots and number of primaries per event
   TestEm5ThreadDataEvents *eventData = new TestEm5ThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
@@ -74,18 +74,18 @@ bool TestEm5::Initialize() {
     return true;
   // check if the detector is set and get all information that the detector should provide
   if (!fDetector) {
-    Geant::Error("TestEm5::Initialize", "Geometry not available!");
+    geant::Error("TestEm5::Initialize", "Geometry not available!");
     return false;
   }
   fTargetLogicalVolumeID = fDetector->GetTargetLogicalVolumeID();
   // get all information that the primary generator (simple gun) should provide
   if (!fPrimaryGun) {
-    Geant::Error("TestEm5::Initialize", "PrimaryGenertaor not available!");
+    geant::Error("TestEm5::Initialize", "PrimaryGenertaor not available!");
     return false;
   }
   fPrimaryParticleCharge = fPrimaryGun->GetPrimaryParticle()->GetPDGCharge();
   //
-  // get number of primary per event and number of event-slots from Geant::GeantConfig
+  // get number of primary per event and number of event-slots from geant::GeantConfig
   fNumPrimaryPerEvent    = fRunMgr->GetConfig()->fNaverage;
   fNumBufferedEvents     = fRunMgr->GetConfig()->fNbuff;
   //
@@ -101,7 +101,7 @@ bool TestEm5::Initialize() {
 }
 
 
-void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td) {
+void TestEm5::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
   Node_t const *current;
   int idvol = -1;
@@ -121,8 +121,8 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
   double  charge = part->GetPDGCharge();
   double  ekin   = track.T();
   //
-  bool isTransmit  = ( (track.Dx()>0. && track.X()>0.0 && track.Status()==Geant::kBoundary) && ( ekin > 0.0 ) );
-  bool isReflected = ( (track.Dx()<0. && track.X()<0.0 && track.Status()==Geant::kBoundary) && ( ekin > 0.0 ) );
+  bool isTransmit  = ( (track.Dx()>0. && track.X()>0.0 && track.Status()==geant::kBoundary) && ( ekin > 0.0 ) );
+  bool isReflected = ( (track.Dx()<0. && track.X()<0.0 && track.Status()==geant::kBoundary) && ( ekin > 0.0 ) );
   bool isPrimary   = ( track.GetGeneration()==0 );
   //
   // get the user defined thread local data structure per-primary particle for: the event-slot index (that defines the
@@ -134,7 +134,7 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
   if (idvol==fTargetLogicalVolumeID) {
     // collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
     // that has just been added in this step)
-    if (track.Status()!=Geant::kNew) {
+    if (track.Status()!=geant::kNew) {
       if (charge==0.0) {
         dataPerPrimary.AddNeutralStep();
         dataPerPrimary.AddNeutralTrackL(track.GetStep());
@@ -145,7 +145,7 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
       dataPerPrimary.AddEdepInTarget(track.Edep());
     }
     // collect secondary particle type statistics
-    if (track.Status() == Geant::kNew) {
+    if (track.Status() == geant::kNew) {
       switch(pdgCode) {
         // gamma
         case  22 : dataPerPrimary.AddGamma();
@@ -181,7 +181,7 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
       double energyLeak = ekin;
       // e+ created during the simulation so add its 2 e- rest mass energy
       if (!isPrimary && pdgCode==-11) {
-        energyLeak += 2.*geant::kElectronMassC2;
+        energyLeak += 2.*geant::units::kElectronMassC2;
       }
       if (isPrimary) {
         dataPerPrimary.AddELeakPrimary(energyLeak);
@@ -195,8 +195,8 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
       double cost  = track.Dx();
       if (cost>0.0) {
         double theta = std::acos(cost);
-        double ww    = geant::degree*geant::degree;
-        theta        = theta/geant::degree;
+        double ww    = geant::units::degree*geant::units::degree;
+        theta        = theta/geant::units::degree;
         if (theta>=fHist1Min && theta<fHist1Max) {
           // get the user defined thread local data structure for the run
           TestEm5ThreadDataRun  &dataRun =  (*fDataHandlerRun)(td);
@@ -208,7 +208,7 @@ void TestEm5::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td
 }
 
 
-void TestEm5::FinishEvent(Geant::GeantEvent *event) {
+void TestEm5::FinishEvent(geant::GeantEvent *event) {
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
   // belongs to the event (that occupied a given event-slot) that has been just transported
   TestEm5ThreadDataEvents *data = fRunMgr->GetTDManager()->MergeUserData(event->GetSlot(), *fDataHandlerEvents);
@@ -335,45 +335,45 @@ void TestEm5::FinishRun() {
   std::cout<< std::setprecision(3);
   std::cout<< "  The run was " << fRunMgr->GetNprimaries()                           << " "
                                << fPrimaryGun->GetPrimaryParticle()->GetName()       << " of "
-                               << fPrimaryGun->GetPrimaryParticleEnergy()/geant::MeV << " [MeV] through "
-                               << targetThickness/geant::um                          << " [um] of "
+                               << fPrimaryGun->GetPrimaryParticleEnergy()/geant::units::MeV << " [MeV] through "
+                               << targetThickness/geant::units::um                          << " [um] of "
                                << fDetector->GetTargetMaterial()->GetName()          << " ("
-                               << targetDensity/(geant::g/geant::cm3)                << " [g/cm3])"
+                               << targetDensity/(geant::units::g/geant::units::cm3)                << " [g/cm3])"
                                << std::endl;
   std::cout<< std::endl;
   std::cout<< std::setprecision(4);
-  std::cout<< "  Total energy deposit in target per event = " << meanEdep/geant::keV <<  " +- " << rmsEdep/geant::keV << " [keV] " << std::endl;
+  std::cout<< "  Total energy deposit in target per event = " << meanEdep/geant::units::keV <<  " +- " << rmsEdep/geant::units::keV << " [keV] " << std::endl;
   std::cout<< std::endl;
-  std::cout<< "  -----> Mean dE/dx = " << meandEdx/(geant::MeV/geant::cm)                        << " [MeV/cm]     ("
-                                       << meanStoppingPower/(geant::MeV*geant::cm2/geant::g)     << " [MeV*cm2/g]) "
+  std::cout<< "  -----> Mean dE/dx = " << meandEdx/(geant::units::MeV/geant::units::cm)                        << " [MeV/cm]     ("
+                                       << meanStoppingPower/(geant::units::MeV*geant::units::cm2/geant::units::g)     << " [MeV*cm2/g]) "
                                        << std::endl;
   std::cout<< std::endl;
   std::cout<< "  From formulas : " << std::endl
-           << "    restricted dEdx = " << dEdXRestrComputed/(geant::MeV/geant::cm)               << " [MeV/cm]     ("
-                                       << stpPowerRestrComputed/(geant::MeV*geant::cm2/geant::g) << " [MeV*cm2/g]) "
+           << "    restricted dEdx = " << dEdXRestrComputed/(geant::units::MeV/geant::units::cm)               << " [MeV/cm]     ("
+                                       << stpPowerRestrComputed/(geant::units::MeV*geant::units::cm2/geant::units::g) << " [MeV*cm2/g]) "
                                        << std::endl;
-  std::cout<< "    full dEdx       = " << dEdXFullComputed/(geant::MeV/geant::cm)                << " [MeV/cm]     ("
-                                       << stpPowerFullComputed/(geant::MeV*geant::cm2/geant::g)  << " [MeV*cm2/g]) "
+  std::cout<< "    full dEdx       = " << dEdXFullComputed/(geant::units::MeV/geant::units::cm)                << " [MeV/cm]     ("
+                                       << stpPowerFullComputed/(geant::units::MeV*geant::units::cm2/geant::units::g)  << " [MeV*cm2/g]) "
                                        << std::endl;
   std::cout<< std::endl;
-  std::cout<< "  Leakage :  primary = " << meanELeakPr/geant::MeV  << " +- " << rmsELeakPr/geant::MeV  << " [MeV] "
-           << "  secondaries = "        << meanELeakSec/geant::MeV << " +- " << rmsELeakSec/geant::MeV << " [MeV] "
+  std::cout<< "  Leakage :  primary = " << meanELeakPr/geant::units::MeV  << " +- " << rmsELeakPr/geant::units::MeV  << " [MeV] "
+           << "  secondaries = "        << meanELeakSec/geant::units::MeV << " +- " << rmsELeakSec/geant::units::MeV << " [MeV] "
            << std::endl;
-  std::cout<< "  Energy balance :  edep + eleak = " << (meanEdep + meanELeakPr + meanELeakSec)/geant::MeV << " [MeV] " << std::endl;
+  std::cout<< "  Energy balance :  edep + eleak = " << (meanEdep + meanELeakPr + meanELeakSec)/geant::units::MeV << " [MeV] " << std::endl;
   std::cout<< std::endl;
-  std::cout<< "  Total track length (charged) in absorber per event = " << meanChTrackL/geant::um << " +- " << rmsChTrackL/geant::um <<  " [um] "<<std::endl;
-  std::cout<< "  Total track length (neutral) in absorber per event = " << meanNeTrackL/geant::um << " +- " << rmsNeTrackL/geant::um <<  " [um] "<< std::endl;
+  std::cout<< "  Total track length (charged) in absorber per event = " << meanChTrackL/geant::units::um << " +- " << rmsChTrackL/geant::units::um <<  " [um] "<<std::endl;
+  std::cout<< "  Total track length (neutral) in absorber per event = " << meanNeTrackL/geant::units::um << " +- " << rmsNeTrackL/geant::units::um <<  " [um] "<< std::endl;
   std::cout<< std::endl;
   std::cout<< "  Number of steps (charged) in absorber per event = " << meanChSteps << " +- " << rmsChSteps << std::endl;
   std::cout<< "  Number of steps (neutral) in absorber per event = " << meanNeSteps << " +- " << rmsNeSteps << std::endl;
   std::cout<< std::endl;
   std::cout<< "  Number of secondaries per event : Gammas = " << meanNGamma <<";   electrons = " << meanNElectron << ";   positrons = " << meanNPositron << std::endl;
   std::cout<< std::endl;
-  std::cout<< "  Number of events with the primary particle transmitted = " << meanPrimTrans/geant::perCent << " [%] " <<std::endl;
-  std::cout<< "  Number of events with at least  1 particle transmitted (same charge as primary) = " << meanOneTrans/geant::perCent << " [%] " << std::endl;
+  std::cout<< "  Number of events with the primary particle transmitted = " << meanPrimTrans/geant::units::perCent << " [%] " <<std::endl;
+  std::cout<< "  Number of events with at least  1 particle transmitted (same charge as primary) = " << meanOneTrans/geant::units::perCent << " [%] " << std::endl;
   std::cout<< std::endl;
-  std::cout<< "  Number of events with the primary particle reflected = " << meanPrimRefl/geant::perCent << " [%] " <<std::endl;
-  std::cout<< "  Number of events with at least  1 particle reflected (same charge as primary) = " << meanOneRefl/geant::perCent << " [%] " << std::endl;
+  std::cout<< "  Number of events with the primary particle reflected = " << meanPrimRefl/geant::units::perCent << " [%] " <<std::endl;
+  std::cout<< "  Number of events with at least  1 particle reflected (same charge as primary) = " << meanOneRefl/geant::units::perCent << " [%] " << std::endl;
   std::cout<< std::endl;
   std::cout<< "  Normalised angular distribution histogram is written into file: " << fHist1FileName << std::endl;
   std::cout<< " \n ============================================================================================== \n" << std::endl;
@@ -384,7 +384,7 @@ void TestEm5::FinishRun() {
   double dTheta   = hist->GetDelta();
   for (int i=0; i<hist->GetNumBins(); ++i) {
     double theta  = hist->GetX()[i];
-    double factor = geant::kTwoPi*(std::cos(theta*geant::degree) - std::cos((theta+dTheta)*geant::degree));
+    double factor = geant::units::kTwoPi*(std::cos(theta*geant::units::degree) - std::cos((theta+dTheta)*geant::units::degree));
     double val    = hist->GetY()[i];
     fprintf(f,"%d\t%lg\t%lg\n",i,theta+0.5*dTheta,val*norm/factor);
   }

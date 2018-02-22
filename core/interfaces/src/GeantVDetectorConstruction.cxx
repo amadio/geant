@@ -21,7 +21,7 @@
 #include "volumes/LogicalVolume.h"
 #include "volumes/PlacedVolume.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
@@ -151,7 +151,7 @@ std::function<void*(TGeoMaterial const *)> GeantVDetectorConstruction::CreateMat
   return [](TGeoMaterial const *rootmat) {
       //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
       int    numElem    = rootmat->GetNelements();
-      double density    = rootmat->GetDensity()*geant::g/geant::cm3; // in g/cm3
+      double density    = rootmat->GetDensity()*geant::units::g/geant::units::cm3; // in g/cm3
       const std::string  name = rootmat->GetName();
       // check if it is a G4 NIST material
       std::string postName = "";

@@ -19,7 +19,7 @@ class ScalarMagFieldEquation : public VScalarEquationOfMotion
 {
 public:
 //  static const unsigned int  N   = Size;
-  static constexpr double gCof   = geant::kCLight;  //   / fieldUnits::meter ;
+  static constexpr double gCof   = geant::units::kCLight;  //   / fieldUnits::meter ;
 
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -214,9 +214,9 @@ void  ScalarMagFieldEquation<Field, Size>::PrintAll(
 
     double Bmag2chk = B[0] * B[0] + B[1] * B[1] + B[2] * B[2];
     printf("            B-field= %10.3f %10.3f %10.3f  ( KGaus ) mag= %10.4f\n",
-           B[0] / geant::kilogauss ,
-           B[1] / geant::kilogauss ,
-           B[2] / geant::kilogauss ,
+           B[0] / geant::units::kilogauss ,
+           B[1] / geant::units::kilogauss ,
+           B[2] / geant::units::kilogauss ,
            std::sqrt(Bmag2chk) );
 
     printf("               P  = %12.6g %12.6g %12.6g - mag %12.6g\n",  y[3], y[4], y[5],

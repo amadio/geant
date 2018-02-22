@@ -31,7 +31,7 @@ template
     template <typename T>
        using Vector3D = vecgeom::Vector3D<T>;
   
-    using Double_v        = Geant::Double_v;
+    using Double_v        = geant::Double_v;
     using ThreeVectorSimd = Vector3D<Double_v>;
   
     static constexpr unsigned int sOrderMethod= 4;
@@ -303,7 +303,7 @@ VectorCashKarpRKF45<T_Equation,Nvar>::
 
 template <class T_Equation, unsigned int Nvar>
 inline 
-Geant::Double_v
+geant::Double_v
 VectorCashKarpRKF45<T_Equation,Nvar>::
   DistChord()  const
 {

@@ -19,8 +19,8 @@
 
 namespace geantphysics {
 
-AlongStepActionHandler::AlongStepActionHandler(int threshold, Geant::GeantPropagator *propagator)
-: Geant::Handler(threshold, propagator) {}
+AlongStepActionHandler::AlongStepActionHandler(int threshold, geant::GeantPropagator *propagator)
+: geant::Handler(threshold, propagator) {}
 
 
 AlongStepActionHandler::~AlongStepActionHandler() {}
@@ -28,7 +28,7 @@ AlongStepActionHandler::~AlongStepActionHandler() {}
 
 // The AlongStepActionStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has any continuous processes i.e. has along-step-action
-void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
+void AlongStepActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -67,11 +67,11 @@ void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   if (newEkin<=0.) {
     if (pManager->GetListAtRestCandidateProcesses().size()>0 && primaryLT.GetTrackStatus()!=LTrackStatus::kKill) {
       // send it to the AtRestAction stage
-      track->SetStage(Geant::kAtRestActionStage);
+      track->SetStage(geant::kAtRestActionStage);
     } else {
       // kill the primary track and send the track to the last i.e. steppin-action stage
       track->Kill();
-      track->SetStage(Geant::kSteppingActionsStage);
+      track->SetStage(geant::kSteppingActionsStage);
     }
   }
   // no any secondary production so far so the next few lies does nothing
@@ -86,10 +86,10 @@ void AlongStepActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
 }
 
 //______________________________________________________________________________
-void AlongStepActionHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+void AlongStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
 {
   // For the moment just loop and call scalar DoIt
-  Geant::TrackVec_t &tracks = input.Tracks();
+  geant::TrackVec_t &tracks = input.Tracks();
   for (auto track : tracks) {
     DoIt(track, output, td);
   }

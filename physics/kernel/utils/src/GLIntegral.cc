@@ -17,7 +17,7 @@ GLIntegral::GLIntegral(int npoints, double xmin, double xmax) {
 }
 
 void GLIntegral::SetParameters() {
-    using geant::kPi;
+    using geant::units::kPi;
     const double epsilon = 1.0e-13;
     double xm,xl,z,z1,p1,p2,p3,pp;
     int m = (int)((fNPoints + 1.)/2.);

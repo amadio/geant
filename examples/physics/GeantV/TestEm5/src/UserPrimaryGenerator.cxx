@@ -19,7 +19,7 @@ UserPrimaryGenerator::UserPrimaryGenerator(const UserDetectorConstruction *det) 
   fPDG                 = 0;
   fGVPartIndex         = 0;
   //
-  fPrimaryEkin         = 15.7*geant::MeV;
+  fPrimaryEkin         = 15.7*geant::units::MeV;
   //
   fXPos                = 0.;
   fYPos                = 0.;
@@ -64,8 +64,8 @@ void UserPrimaryGenerator::InitPrimaryGenerator() {
 }
 
 
-Geant::GeantEventInfo UserPrimaryGenerator::NextEvent(Geant::GeantTaskData* /*td*/) {
-  Geant::GeantEventInfo current;
+geant::GeantEventInfo UserPrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+  geant::GeantEventInfo current;
   current.ntracks = fPrimaryPerEvent;
   current.xvert   = fXPos;
   current.yvert   = fYPos;
@@ -74,7 +74,7 @@ Geant::GeantEventInfo UserPrimaryGenerator::NextEvent(Geant::GeantTaskData* /*td
 }
 
 
-void UserPrimaryGenerator::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/) {
+void UserPrimaryGenerator::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);

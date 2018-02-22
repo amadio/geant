@@ -22,16 +22,16 @@
 
 int main() {
   // Units and physical constants used in the example
-  using geant::g;
-  using geant::mg;
-  using geant::mole;
-  using geant::cm3;
+  using geant::units::g;
+  using geant::units::mg;
+  using geant::units::mole;
+  using geant::units::cm3;
   using geant::bar;
-  using geant::pascal;
-  using geant::kelvin;
-  using geant::atmosphere;
-  using geant::perCent;
-  using geant::kUniverseMeanDensity;
+  using geant::units::pascal;
+  using geant::units::kelvin;
+  using geant::units::atmosphere;
+  using geant::units::perCent;
+  using geant::units::kUniverseMeanDensity;
   using geant::kSTPTemperature;
 
 

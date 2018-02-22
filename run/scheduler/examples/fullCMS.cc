@@ -23,7 +23,7 @@ void GetArguments(int argc, char *argv[]);
 void SetupDetectorConstruction (cmsapp::CMSDetectorConstruction* det);
 void SetupPrimaryGenerator     (cmsapp::CMSParticleGun* gun);
 void SetupApplication          (cmsapp::CMSFullApp* app);
-Geant::GeantRunManager* RunManager();
+geant::GeantRunManager* RunManager();
 
 //
 // Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun) and
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   GetArguments(argc, argv);
   //
   // Create and configure run manager
-  Geant::GeantRunManager* runMgr = RunManager();
+  geant::GeantRunManager* runMgr = RunManager();
   //
   // Create user defined physics list for the full CMS application
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList());
@@ -223,10 +223,10 @@ void GetArguments(int argc, char *argv[]) {
 
 
 
-Geant::GeantRunManager* RunManager() {
+geant::GeantRunManager* RunManager() {
   // create the GeantConfiguration object and the GeantRunManager object
-  Geant::GeantConfig*     runConfig  = new Geant::GeantConfig();
-  Geant::GeantRunManager* runManager = new Geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
+  geant::GeantConfig*     runConfig  = new geant::GeantConfig();
+  geant::GeantRunManager* runManager = new geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
   // create the real physics main manager/interface object and set it in the GeantRunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //

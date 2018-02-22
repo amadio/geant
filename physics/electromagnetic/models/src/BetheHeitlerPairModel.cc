@@ -42,8 +42,8 @@ BetheHeitlerPairModel::BetheHeitlerPairModel(const std::string &modelname) : EMM
   fSTLogMinPhotonEnergy             = -1.;     // will be set at init in case of sampling tables
   fSTILDeltaPhotonEnergy            = -1.;     // will be set at init in case of sampling tables
 
-  fMinimumPrimaryEnergy             =  2.*geant::kElectronMassC2; // final value will be set at init.
-  fGammaEneregyLimit                =  2.*geant::MeV; // use simplified sampling below this gamma energy
+  fMinimumPrimaryEnergy             =  2.*geant::units::kElectronMassC2; // final value will be set at init.
+  fGammaEneregyLimit                =  2.*geant::units::MeV; // use simplified sampling below this gamma energy
 
   fAliasSampler                     = nullptr;
 }
@@ -71,7 +71,7 @@ void BetheHeitlerPairModel::Initialize() {
   EMModel::Initialize();  // will set the PhysicsParameters member
   fElectronInternalCode = Electron::Definition()->GetInternalCode();
   fPositronInternalCode = Positron::Definition()->GetInternalCode();
-  fMinimumPrimaryEnergy = 2.*geant::kElectronMassC2; // will be used to build table in target element selector
+  fMinimumPrimaryEnergy = 2.*geant::units::kElectronMassC2; // will be used to build table in target element selector
   if (GetLowEnergyUsageLimit()>fMinimumPrimaryEnergy) {
     fMinimumPrimaryEnergy = GetLowEnergyUsageLimit();
   }
@@ -116,10 +116,10 @@ double BetheHeitlerPairModel::ComputeXSectionPerAtom(const Element *elem, const 
 }
 
 
-int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   const double ekin          = track.GetKinE();
-  const double eps0          = geant::kElectronMassC2/ekin;
+  const double eps0          = geant::units::kElectronMassC2/ekin;
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
   // check if kinetic energy is above fHighEnergyUsageLimit andd o nothing if yes
   if (ekin<GetLowEnergyUsageLimit() || ekin>GetHighEnergyUsageLimit() || eps0>0.5) {
@@ -172,11 +172,11 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   } else {
     uvar *= 0.53333;
   }
-  const double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
+  const double thetaElectron = uvar*geant::units::kElectronMassC2/electronTotE;
   const double sintEle       = std::sin(thetaElectron);
-  const double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
+  const double thetaPositron = uvar*geant::units::kElectronMassC2/positronTotE;
   const double sintPos       = -std::sin(thetaPositron);
-  const double phi           = geant::kTwoPi*rndArray[3];
+  const double phi           = geant::units::kTwoPi*rndArray[3];
   const double sinphi        = std::sin(phi);
   const double cosphi        = std::cos(phi);
   // e- direction
@@ -192,8 +192,8 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);
   // 4. compute kinetic energy of e-/e+
-  const double ekinElectron = std::max((electronTotE-geant::kElectronMassC2),0.);
-  const double ekinPositron = std::max((positronTotE-geant::kElectronMassC2),0.);
+  const double ekinElectron = std::max((electronTotE-geant::units::kElectronMassC2),0.);
+  const double ekinPositron = std::max((positronTotE-geant::units::kElectronMassC2),0.);
   // 5. rotate direction back to the lab frame: current directions are relative to the photon dir as z-dir
   RotateToLabFrame(eleDirX, eleDirY, eleDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   RotateToLabFrame(posDirX, posDirY, posDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
@@ -217,7 +217,7 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   sectracks[secIndx].SetDirZ(eleDirZ);
   sectracks[secIndx].SetKinE(ekinElectron);
   sectracks[secIndx].SetGVcode(fElectronInternalCode);
-  sectracks[secIndx].SetMass(geant::kElectronMassC2);
+  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   // then set the e+
   ++secIndx;
@@ -226,7 +226,7 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
   sectracks[secIndx].SetDirZ(posDirZ);
   sectracks[secIndx].SetKinE(ekinPositron);
   sectracks[secIndx].SetGVcode(fPositronInternalCode);
-  sectracks[secIndx].SetMass(geant::kElectronMassC2);
+  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
 
   return numSecondaries;
@@ -291,40 +291,40 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTask
  */
 double BetheHeitlerPairModel::ComputeAtomicCrossSection(double z, double egamma) {
   double xsec = 0.0;
-  if (z<0.9 || egamma<=2.0*geant::kElectronMassC2) {
+  if (z<0.9 || egamma<=2.0*geant::units::kElectronMassC2) {
     return xsec;
   }
   // limit for low energy extrapolation
-  constexpr double egammaLimit = 1.5*geant::MeV;
+  constexpr double egammaLimit = 1.5*geant::units::MeV;
   // parameter values
   // a
-  constexpr double a0 =  8.7842e+2*geant::microbarn;
-  constexpr double a1 = -1.9625e+3*geant::microbarn;
-  constexpr double a2 =  1.2949e+3*geant::microbarn;
-  constexpr double a3 = -2.0028e+2*geant::microbarn;
-  constexpr double a4 =  1.2575e+1*geant::microbarn;
-  constexpr double a5 = -2.8333e-1*geant::microbarn;
+  constexpr double a0 =  8.7842e+2*geant::units::microbarn;
+  constexpr double a1 = -1.9625e+3*geant::units::microbarn;
+  constexpr double a2 =  1.2949e+3*geant::units::microbarn;
+  constexpr double a3 = -2.0028e+2*geant::units::microbarn;
+  constexpr double a4 =  1.2575e+1*geant::units::microbarn;
+  constexpr double a5 = -2.8333e-1*geant::units::microbarn;
   // b
-  constexpr double b0 = -1.0342e+1*geant::microbarn;
-  constexpr double b1 =  1.7692e+1*geant::microbarn;
-  constexpr double b2 = -8.2381   *geant::microbarn;
-  constexpr double b3 =  1.3063   *geant::microbarn;
-  constexpr double b4 = -9.0815e-2*geant::microbarn;
-  constexpr double b5 =  2.3586e-3*geant::microbarn;
+  constexpr double b0 = -1.0342e+1*geant::units::microbarn;
+  constexpr double b1 =  1.7692e+1*geant::units::microbarn;
+  constexpr double b2 = -8.2381   *geant::units::microbarn;
+  constexpr double b3 =  1.3063   *geant::units::microbarn;
+  constexpr double b4 = -9.0815e-2*geant::units::microbarn;
+  constexpr double b5 =  2.3586e-3*geant::units::microbarn;
   // c
-  constexpr double c0 = -4.5263e+2*geant::microbarn;
-  constexpr double c1 =  1.1161e+3*geant::microbarn;
-  constexpr double c2 = -8.6749e+2*geant::microbarn;
-  constexpr double c3 =  2.1773e+2*geant::microbarn;
-  constexpr double c4 = -2.0467e+1*geant::microbarn;
-  constexpr double c5 =  6.5372e-1*geant::microbarn;
+  constexpr double c0 = -4.5263e+2*geant::units::microbarn;
+  constexpr double c1 =  1.1161e+3*geant::units::microbarn;
+  constexpr double c2 = -8.6749e+2*geant::units::microbarn;
+  constexpr double c3 =  2.1773e+2*geant::units::microbarn;
+  constexpr double c4 = -2.0467e+1*geant::units::microbarn;
+  constexpr double c5 =  6.5372e-1*geant::units::microbarn;
   //
   double egammaOrg = egamma;
   if (egamma<egammaLimit) {
     egamma = egammaLimit;
   }
   // log photon energy in electron rest mass units
-  const double kappa  = std::log(egamma/geant::kElectronMassC2);
+  const double kappa  = std::log(egamma/geant::units::kElectronMassC2);
   const double kappa2 = kappa*kappa;
   const double kappa3 = kappa2*kappa;
   const double kappa4 = kappa2*kappa2;
@@ -337,7 +337,7 @@ double BetheHeitlerPairModel::ComputeAtomicCrossSection(double z, double egamma)
   xsec = (z+1.)*(F1*z+F2*z*z+F3);
   // low energy correction
   if (egammaOrg<egammaLimit) {
-    const double dum = (egammaOrg-2.*geant::kElectronMassC2)/(egammaLimit-2.*geant::kElectronMassC2);
+    const double dum = (egammaOrg-2.*geant::units::kElectronMassC2)/(egammaLimit-2.*geant::units::kElectronMassC2);
     xsec *= dum*dum;
   }
   // protection against negative values
@@ -411,10 +411,10 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
   // transform back xi to eps = E_total_energy_transfer/E_{\gamma}
   //
   double deltaMax = gElementData[izet]->fDeltaMaxLowTsai;
-  if (egamma>50.*geant::MeV) {
+  if (egamma>50.*geant::units::MeV) {
     deltaMax = gElementData[izet]->fDeltaMaxHighTsai;
   }
-  const double eps0   = geant::kElectronMassC2/egamma;
+  const double eps0   = geant::units::kElectronMassC2/egamma;
   const double epsp   = 0.5-0.5*std::sqrt(1.-4.*eps0*gElementData[izet]->fDeltaFactor/deltaMax);
   const double epsMin = std::max(eps0,epsp);
   return epsMin*std::exp(xi*std::log(0.5/epsMin));
@@ -479,23 +479,23 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
  *    \f$ \epsilon \f$ if \f$ g_i(\epsilon) < r_3 \f$
  * @endinternal
  */
-double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, const int izet, const Geant::GeantTaskData *td) {
+double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, const int izet, const geant::GeantTaskData *td) {
     double fz  = gElementData[izet]->fFzLow;
     double deltaMax;
     if (fIsUseTsaisScreening) {
       deltaMax = gElementData[izet]->fDeltaMaxLowTsai;
-      if (egamma>50.*geant::MeV) {
+      if (egamma>50.*geant::units::MeV) {
         fz       = gElementData[izet]->fFzHigh;
         deltaMax = gElementData[izet]->fDeltaMaxHighTsai;
       }
     } else {
       deltaMax = gElementData[izet]->fDeltaMaxLow;
-      if (egamma>50.*geant::MeV) {
+      if (egamma>50.*geant::units::MeV) {
         fz       = gElementData[izet]->fFzHigh;
         deltaMax = gElementData[izet]->fDeltaMaxHigh;
       }
     }
-    const double eps0     = geant::kElectronMassC2/egamma;
+    const double eps0     = geant::units::kElectronMassC2/egamma;
     const double deltaFac = gElementData[izet]->fDeltaFactor;
     const double deltaMin = 4.*eps0*deltaFac;
     const double eps1     = 0.5-0.5*std::sqrt(1.-deltaMin/deltaMax);
@@ -714,12 +714,12 @@ void BetheHeitlerPairModel::BuildSamplingTablesForElement(const Element *elem, c
  */
 void BetheHeitlerPairModel::BuildOneRatinAlias(const double egamma, const int izet, double *pdfarray, const int egammaindx) {
   // compute the theoretical minimum of the reduced total energy transfer to the e+ (or to the e-)
-  const double eps0   = geant::kElectronMassC2/egamma;
+  const double eps0   = geant::units::kElectronMassC2/egamma;
   const double dFact  = gElementData[izet]->fDeltaFactor;
   const double dMin   = 4.*eps0*dFact;
   double FZ           = gElementData[izet]->fFzLow;
   double dMax         = gElementData[izet]->fDeltaMaxLowTsai;
-  if (egamma>50.*geant::MeV) {
+  if (egamma>50.*geant::units::MeV) {
     FZ   = gElementData[izet]->fFzHigh;
     dMax = gElementData[izet]->fDeltaMaxHighTsai;
   }

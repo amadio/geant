@@ -22,8 +22,8 @@
 
 namespace geantphysics {
 
-PrePropagationHandler::PrePropagationHandler(int threshold, Geant::GeantPropagator *propagator)
-: Geant::Handler(threshold, propagator) {}
+PrePropagationHandler::PrePropagationHandler(int threshold, geant::GeantPropagator *propagator)
+: geant::Handler(threshold, propagator) {}
 
 
 PrePropagationHandler::~PrePropagationHandler() {}
@@ -31,7 +31,7 @@ PrePropagationHandler::~PrePropagationHandler() {}
 
 // The PrePropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process
-void PrePropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
+void PrePropagationHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
   // ---
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
@@ -50,7 +50,7 @@ void PrePropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
   assert(mscProc);  // make sure that it is not nullptr
   // invoke the step limit method
   //  no extra geometry call anymore: geometry stage is invoked before the prepropagation stage
-  //  Geant::ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(*track, track->fPstep);
+  //  geant::ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(*track, track->fPstep);
   mscProc->AlongStepLimitationLength(track, td);
   // --
   // copy the input track to the output
@@ -59,10 +59,10 @@ void PrePropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output
 }
 
 //______________________________________________________________________________
-void PrePropagationHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+void PrePropagationHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
 {
   // For the moment just loop and call scalar DoIt
-  Geant::TrackVec_t &tracks = input.Tracks();
+  geant::TrackVec_t &tracks = input.Tracks();
   for (auto track : tracks) {
     DoIt(track, output, td);
   }

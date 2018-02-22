@@ -5,12 +5,12 @@
 
 #include "SystemOfUnits.h"
 
-using geant::meter;  //  Update to GeantV units ASAP
-using geant::GeV;
-using geant::tesla;
+using geant::units::meter;  //  Update to GeantV units ASAP
+using geant::units::GeV;
+using geant::units::tesla;
 
-using geant::kPi;
-using geant::kTwoPi;
+using geant::units::kPi;
+using geant::units::kTwoPi;
 
 #include "PhysicalConstants.h"
 // using pi;

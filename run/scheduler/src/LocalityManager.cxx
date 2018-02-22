@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 LocalityManager *LocalityManager::fgInstance = nullptr;

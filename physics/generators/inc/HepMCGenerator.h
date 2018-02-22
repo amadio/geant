@@ -8,7 +8,7 @@
 #include "HepMC/GenEvent.h"
 #include "HepMC/Search/FindParticles.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;
@@ -25,8 +25,8 @@ public:
 
   // set one GeantTrack primary track properties
   virtual void InitPrimaryGenerator();
-  virtual GeantEventInfo NextEvent(Geant::GeantTaskData* td);
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* /*td*/);
+  virtual GeantEventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* /*td*/);
   // used from Geant4 test-complex to take one primary track
   void GetTrack(int n, double &tpx, double &tpy, double &tpz, double &te, double &x0, double &y0, double &z0, int &pdg);
 

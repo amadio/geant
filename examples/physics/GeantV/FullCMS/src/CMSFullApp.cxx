@@ -20,8 +20,8 @@
 
 namespace cmsapp {
 
-CMSFullApp::CMSFullApp(Geant::GeantRunManager* runmgr, CMSParticleGun* gun)
-: Geant::GeantVApplication(runmgr), fGun(gun) {
+CMSFullApp::CMSFullApp(geant::GeantRunManager* runmgr, CMSParticleGun* gun)
+: geant::GeantVApplication(runmgr), fGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
   fNumPrimaryPerEvent    = CMSParticleGun::GetMaxNumberOfPrimariesPerEvent();
@@ -38,7 +38,7 @@ CMSFullApp::~CMSFullApp() {
 }
 
 
-void CMSFullApp::AttachUserData(Geant::GeantTaskData *td) {
+void CMSFullApp::AttachUserData(geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -57,7 +57,7 @@ bool CMSFullApp::Initialize() {
   if (fInitialized)
     return true;
   //
-  // get number of primary per event and number of event-slots from Geant::GeantConfig
+  // get number of primary per event and number of event-slots from geant::GeantConfig
   int maxPrimPerEvt      = fGun->GetNumPrimaryPerEvt();
   // if it was set by the user
   if (maxPrimPerEvt>0) {
@@ -77,7 +77,7 @@ bool CMSFullApp::Initialize() {
 
 
 
-void CMSFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td) {
+void CMSFullApp::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -94,7 +94,7 @@ void CMSFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
   // do the scoring:
   // 1. collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
   //    that has just been added in this step)
-  if (track.Status() != Geant::kNew) {
+  if (track.Status() != geant::kNew) {
     if (charge==0.0) {
       dataPerPrimary.AddNeutralStep();
       dataPerPrimary.AddNeutralTrackL(track.GetStep());
@@ -105,7 +105,7 @@ void CMSFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
     dataPerPrimary.AddEdep(track.Edep());
   }
   // collect secondary particle type statistics
-  if (track.Status() == Geant::kNew) {
+  if (track.Status() == geant::kNew) {
     switch(pdgCode) {
       // gamma
       case  22 : dataPerPrimary.AddGamma();
@@ -121,7 +121,7 @@ void CMSFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
 }
 
 
-void CMSFullApp::FinishEvent(Geant::GeantEvent *event) {
+void CMSFullApp::FinishEvent(geant::GeantEvent *event) {
   if (fIsPerformance) {
     return;
   }
@@ -139,7 +139,7 @@ void CMSFullApp::FinishEvent(Geant::GeantEvent *event) {
               << " ===  FinishEvent  --- event = " << event->GetEvent() << " with "<< nPrims << " primary:"
               << std::endl;
     for (int ip=0; ip<nPrims; ++ip) {
-      Geant::GeantTrack* primTrack = event->GetPrimary(ip);
+      geant::GeantTrack* primTrack = event->GetPrimary(ip);
       int         primGVCode       = primTrack->GVcode();
       const std::string &primName  = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
       int         primTypeIndx     = CMSParticleGun::GetPrimaryTypeIndex(primName);
@@ -150,7 +150,7 @@ void CMSFullApp::FinishEvent(Geant::GeantEvent *event) {
       fData->AddDataPerPrimaryType(dataPerEvent.GetDataPerPrimary(ip),primTypeIndx);
       std::cout << "  Primary Particle:  " << ip  << " (type inedx = " << primTypeIndx  << ")\n"
                 << "    Name      =  "     << primName                                  << " \n"
-                << "    Energy    =  "     << primEkin/geant::GeV                       << " [GeV]\n"
+                << "    Energy    =  "     << primEkin/geant::units::GeV                       << " [GeV]\n"
                 << "    Direction = ("     << xdir << ", " << ydir << ", " << zdir      << ") \n";
       dataPerEvent.GetDataPerPrimary(ip).Print();
     }

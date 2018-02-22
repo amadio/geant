@@ -7,7 +7,7 @@ constexpr size_t MByte = 1024*1024;
 constexpr size_t kByte = 1024;
 #endif
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

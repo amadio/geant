@@ -13,7 +13,7 @@
 
 //______________________________________________________________________________
 StdApplication::StdApplication(GeantRunManager *runmgr)
-  : Geant::GeantVApplication(runmgr), fInitialized(false),
+  : geant::GeantVApplication(runmgr), fInitialized(false),
 #ifdef USE_ROOT
     fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
 #endif
@@ -59,7 +59,7 @@ bool StdApplication::Initialize() {
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
     return true;
-  Geant::Printf("=== StdApplication::Initialize done");
+  geant::Printf("=== StdApplication::Initialize done");
   fInitialized = true;
   return true;
 }

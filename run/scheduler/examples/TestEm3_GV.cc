@@ -32,11 +32,11 @@ void GetArguments(int argc, char *argv[]);
 void SetupPhysicsList         (userapplication::TestEm3PhysicsList* physlist);
 void SetupUserDetector        (userapplication::TestEm3DetectorConstruction* detector);
 void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator* primarygun, int numprimsperevt);
-void SetupMCTruthHandling     (Geant::GeantRunManager* runMgr);
+void SetupMCTruthHandling     (geant::GeantRunManager* runMgr);
 void SetupUserApplication     (userapplication::TestEm3App* app);
-void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, Geant::GeantRunManager *rmg);
+void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::GeantRunManager *rmg);
 void PreSet(int num);
-Geant::GeantRunManager* RunManager();
+geant::GeantRunManager* RunManager();
 
 //
 // Optional input arguments that make possible the configuration of detector(parDet), primary generator(parGun), the
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   GetArguments(argc, argv);
   //
   // Create and configure run manager
-  Geant::GeantRunManager* runMgr = RunManager();
+  geant::GeantRunManager* runMgr = RunManager();
 
   // Create user defined physics list for TestEm3
   userapplication::TestEm3PhysicsList *userPhysList = new userapplication::TestEm3PhysicsList("TestEm3PhysicsList");
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
   bool useMagField= false;  // To become a user flag
   if( useMagField ) {
      // Create magnetic field and needed classes for trajectory integration
-     auto fieldConstructor= new Geant::UserFieldConstruction();
+     auto fieldConstructor= new geant::UserFieldConstruction();
      float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
      fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
      
@@ -191,7 +191,7 @@ void help() {
   printf("\n\n");
 }
 
-void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, Geant::GeantRunManager *rmg) {
+void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::GeantRunManager *rmg) {
   // Print run information
   long int nevents    = rmg->GetConfig()->fNtotal;
   long int nprimpere  = rmg->GetConfig()->fNaverage;
@@ -324,10 +324,10 @@ void GetArguments(int argc, char *argv[]) {
 }
 
 
-Geant::GeantRunManager* RunManager() {
+geant::GeantRunManager* RunManager() {
   // create the GeantConfiguration object and the GeantRunManager object
-  Geant::GeantConfig*     runConfig  = new Geant::GeantConfig();
-  Geant::GeantRunManager* runManager = new Geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
+  geant::GeantConfig*     runConfig  = new geant::GeantConfig();
+  geant::GeantRunManager* runManager = new geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
   // create the real physics main manager/interface object and set it in the GeantRunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //
@@ -381,7 +381,7 @@ void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator* primary
     primarygun->SetPrimaryParticleEnergy(parGunPrimaryKinEnergy);
 }
 
-void SetupMCTruthHandling(Geant::GeantRunManager* runMgr) {
+void SetupMCTruthHandling(geant::GeantRunManager* runMgr) {
   if(mctruthOn)
     {
       std::string mc(mctruthFile);

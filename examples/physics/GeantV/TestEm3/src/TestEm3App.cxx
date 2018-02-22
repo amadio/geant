@@ -29,8 +29,8 @@
 
 namespace userapplication {
 
-TestEm3App::TestEm3App(Geant::GeantRunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun)
-  : Geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
+TestEm3App::TestEm3App(geant::GeantRunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun)
+  : geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
   // all these will be set properly at initialization
@@ -50,7 +50,7 @@ TestEm3App::~TestEm3App() {
 }
 
 
-void TestEm3App::AttachUserData(Geant::GeantTaskData *td) {
+void TestEm3App::AttachUserData(geant::GeantTaskData *td) {
   if (fIsPerformance)
    return;
   // Create application specific thread local data structure to collecet/handle thread local multiple per-event data
@@ -67,7 +67,7 @@ bool TestEm3App::Initialize() {
     return true;
   // check if the detector is set and get all information that the detector should provide
   if (!fDetector) {
-    Geant::Error("TestEm3App::Initialize", "Geometry not available!");
+    geant::Error("TestEm3App::Initialize", "Geometry not available!");
     return false;
   }
 
@@ -80,12 +80,12 @@ bool TestEm3App::Initialize() {
   }
   // get all information that the primary generator (simple gun) should provide
   if (!fPrimaryGun) {
-    Geant::Error("TestEm3App::Initialize", "PrimaryGenerator not available!");
+    geant::Error("TestEm3App::Initialize", "PrimaryGenerator not available!");
     return false;
   }
   fPrimaryParticleCharge = fPrimaryGun->GetPrimaryParticle()->GetPDGCharge();
   //
-  // get number of primary per event and number of event-slots from Geant::GeantConfig
+  // get number of primary per event and number of event-slots from geant::GeantConfig
   fNumPrimaryPerEvent    = fRunMgr->GetConfig()->fNaverage;
   fNumBufferedEvents     = fRunMgr->GetConfig()->fNbuff;
   //
@@ -100,7 +100,7 @@ bool TestEm3App::Initialize() {
 }
 
 
-void TestEm3App::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td) {
+void TestEm3App::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
   if (fIsPerformance)
    return;
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
@@ -134,7 +134,7 @@ void TestEm3App::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
   if (currentAbsorber>-1) {
     // collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
     // that has just been added in this step)
-    if (track.Status() != Geant::kNew) {
+    if (track.Status() != geant::kNew) {
       if (charge==0.0) {
         dataPerPrimary.AddNeutralStep();
         dataPerPrimary.AddNeutralTrackL(track.GetStep(), currentAbsorber);
@@ -145,7 +145,7 @@ void TestEm3App::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
       dataPerPrimary.AddEdepInAbsorber(track.Edep(), currentAbsorber);
     }
     // collect secondary particle type statistics
-    if (track.Status() == Geant::kNew) {
+    if (track.Status() == geant::kNew) {
       switch(pdgCode) {
         // gamma
         case  22 : dataPerPrimary.AddGamma();
@@ -162,7 +162,7 @@ void TestEm3App::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData 
 }
 
 
-void TestEm3App::FinishEvent(Geant::GeantEvent *event) {
+void TestEm3App::FinishEvent(geant::GeantEvent *event) {
   if (fIsPerformance)
    return;
   // merge the thread local data (filled in the SteppingActions() and distributed now in the different threads) that
@@ -241,14 +241,14 @@ void TestEm3App::FinishRun() {
   double eprim = fPrimaryGun->GetPrimaryParticleEnergy();
   for (int k=0; k<fNumAbsorbers; k++) {
     const std::string absMatName = fDetector->GetAbsorberMaterial(k)->GetName();
-    double absMeanEdep           = meanEdep[k]/geant::MeV;
-    double absEdepRMS            = rmsEdep[k]/geant::MeV;
-    double absMeanChTrl          = meanChTrackL[k]/geant::cm;
-    double absChTrlRMS           = rmsChTrackL[k]/geant::cm;
+    double absMeanEdep           = meanEdep[k]/geant::units::MeV;
+    double absEdepRMS            = rmsEdep[k]/geant::units::MeV;
+    double absMeanChTrl          = meanChTrackL[k]/geant::units::cm;
+    double absChTrlRMS           = rmsChTrackL[k]/geant::units::cm;
 //    double absEvis               = meanEdep[k]/eprim;
     double absResolution         = 0.;
     if (meanEdep[k]>0.) {
-      absResolution = 100.*std::sqrt(eprim/geant::GeV)*rmsEdep[k]/meanEdep[k];
+      absResolution = 100.*std::sqrt(eprim/geant::units::GeV)*rmsEdep[k]/meanEdep[k];
     }
     double absResolutionRMS     = absResolution*std::sqrt(norm);
     // print out

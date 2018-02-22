@@ -6,7 +6,7 @@
 #endif
 
 // Autoload the library early so that GeantPropagator is defined when applicable.
-namespace Geant {
+namespace geant {
 inline namespace cxx {
 class TaskBroker;
 class GeantPropagator;
@@ -46,7 +46,7 @@ void run(int ncputhreads=1,
    int nbuffered  = 10;   // Number of buffered events (tunable [1,ntotal])
    int npropagators = 1;
 
-   Geant::TaskBroker *broker = nullptr;
+   geant::TaskBroker *broker = nullptr;
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -59,7 +59,7 @@ void run(int ncputhreads=1,
 #endif
    }
 
-   Geant::GeantConfig* config = new Geant::GeantConfig();
+   geant::GeantConfig* config = new geant::GeantConfig();
    config->fGeomFileName = geomfile;
 
    // Monitor different features
@@ -123,7 +123,7 @@ void run(int ncputhreads=1,
    if (broker) runMgr->SetCoprocessorBroker(broker);
 
    // Create the tab. phys process.
-   runMgr->SetPhysicsProcess( new Geant::TTabPhysProcess("tab_phys", xsec, fstate));
+   runMgr->SetPhysicsProcess( new geant::TTabPhysProcess("tab_phys", xsec, fstate));
 
    // for vector physics -OFF now
    // config->fVectorPhysicsProcess = new GVectorPhysicsProcess(config->fEmin, nthreads);

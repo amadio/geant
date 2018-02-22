@@ -21,7 +21,7 @@
  * @detailed The class is managing allocation of blocks of tracks for a given NUMA
  *           node. The allocation for single blocks is using numa_aligned_malloc.
  */
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 /**
  * @brief Class TrackManager

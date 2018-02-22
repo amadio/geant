@@ -40,7 +40,7 @@ double get_cpu_time() { return (double)clock() / CLOCKS_PER_SEC; }
 
 //______________________________________________________________________________
 struct LocalData {
-  using Basketizer = Geant::Basketizer<Geant::cxx::GeantTrack*>;
+  using Basketizer = geant::Basketizer<geant::cxx::GeantTrack*>;
   size_t bsize;
   size_t buffer_size;
   std::atomic_flag fLock;
@@ -56,10 +56,10 @@ struct LocalData {
 };
 
 //______________________________________________________________________________
-inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, double dz) {
+inline void InitTrack(geant::cxx::GeantTrack &track, double dx, double dy, double dz) {
 // Initialize track position within the range (-dx,dx), (-dy,dy), (-dz,dz)
 // Compute initial path and initialize direction randomly.
-  using namespace Geant;
+  using namespace geant;
   using namespace vecgeom;
   using namespace vecCore::math;
   std::random_device rd;
@@ -78,7 +78,7 @@ inline void InitTrack(Geant::cxx::GeantTrack &track, double dx, double dy, doubl
 
 //______________________________________________________________________________
 void ConsumeTracks(size_t tid, LocalData *ldata) {
-  using namespace Geant;
+  using namespace geant;
   LocalityManager *loc_mgr = LocalityManager::Instance();
   int node = loc_mgr->GetPolicy().AllocateNextThread();
   ldata->Lock();
@@ -105,7 +105,7 @@ void ConsumeTracks(size_t tid, LocalData *ldata) {
 
 //______________________________________________________________________________
 int main(int argc, char *argv[]) {
-  using namespace Geant;
+  using namespace geant;
   using namespace vecgeom;
 
   if (argc < 3) {
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
   mgr->Init();
   int nnodes = mgr->GetNnodes();
   
-  using Basketizer = Geant::Basketizer<GeantTrack*>;
+  using Basketizer = geant::Basketizer<GeantTrack*>;
   LocalData *ldata = new LocalData[nnodes];
 
   // Use NumaAllocator for the thread basket

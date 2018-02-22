@@ -61,7 +61,7 @@ namespace geantphysics {
     
 	    cofInelastic = 2.2;
 	    cofTotal     = 2.0;
-	    R = 1.3*geant::fermi;
+	    R = 1.3*geant::units::fermi;
 	    R *= std::pow(double(A), 0.3333);
 	  }
 	else
@@ -74,7 +74,7 @@ namespace geantphysics {
 	    R = GetNucleusRadius(A);   
 	  }
 
-	nucleusSquare = cofTotal*geant::kPi*R*R;   // basically 2piRR
+	nucleusSquare = cofTotal*geant::units::kPi*R*R;   // basically 2piRR
 	ratio = sigma/nucleusSquare;
 
 	double fAxsc2piR2 = cofInelastic*ratio;

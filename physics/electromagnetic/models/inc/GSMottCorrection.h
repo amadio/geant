@@ -12,7 +12,7 @@
 // from geantV
 #include "Geant/Config.h"
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantTaskData;
   }
@@ -78,7 +78,7 @@ public:
                                     double &mcToG2PerG1);
 
   double   GetMottRejectionValue(double logekin, double beta2, double q1, double cost, int matindx, int &ekindx,
-                                 int &deltindx, Geant::GeantTaskData* td);
+                                 int &deltindx, geant::GeantTaskData* td);
 
   static int GetMaxZet() { return gMaxZet; }
 
@@ -142,8 +142,8 @@ private:
   static constexpr int     gNumDelta  = 28;                 // \delta values between [0(1.e-3)-0.9]
   static constexpr int     gNumAngle  = 32;                 //
   static constexpr int     gMaxZet    = 98;                 // max. Z for which Mott-correction data were computed (98)
-  static constexpr double  gMinEkin   =   1.*geant::keV;    // minimum kinetic energy value
-  static constexpr double  gMidEkin   = 100.*geant::keV;    // kinetic energy at the border of the E_{kin}-\beta^2 grids
+  static constexpr double  gMinEkin   =   1.*geant::units::keV;    // minimum kinetic energy value
+  static constexpr double  gMidEkin   = 100.*geant::units::keV;    // kinetic energy at the border of the E_{kin}-\beta^2 grids
   static constexpr double  gMaxBeta2  =   0.9999;           // maximum \beta^2 value
   static constexpr double  gMaxDelta  =   0.9;              // maximum \delta value (the minimum is 0(1.e-3))
   //

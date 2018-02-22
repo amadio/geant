@@ -11,7 +11,7 @@
 #include "GeantTaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
-  namespace Geant {
+  namespace geant {
     class GeantRunManager;
     class GeantTaskDataHandle;
     class GeantEvent;
@@ -47,27 +47,27 @@ class TestEm3DetectorConstruction;
 class TestEm3PrimaryGenerator;
 //
 /** @brief TestEm3App user application */
-class TestEm3App : public Geant::GeantVApplication {
+class TestEm3App : public geant::GeantVApplication {
 public:
 
   /** @brief Constructor TestEm3App */
-  TestEm3App(Geant::GeantRunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun);
+  TestEm3App(geant::GeantRunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun);
 
   /** @brief Destructor TestEm3App*/
   virtual ~TestEm3App();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
-  virtual void AttachUserData(Geant::GeantTaskData *td);
+  virtual void AttachUserData(geant::GeantTaskData *td);
 
   /** @brief Interface method to initialize the application. */
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
-  virtual void FinishEvent(Geant::GeantEvent *event);
+  virtual void FinishEvent(geant::GeantEvent *event);
 
   /** @brief Interface method that is called at the end of the simulation (when the transportation of all events are
     *        are completed). */
@@ -100,7 +100,7 @@ private:
   //
   // 1. merged from all working threads when transportation of an event (with all corresponding primary and secondary
   //    particles) are completed
-  Geant::TaskDataHandle<TestEm3ThreadDataEvents>  *fDataHandlerEvents;
+  geant::TaskDataHandle<TestEm3ThreadDataEvents>  *fDataHandlerEvents;
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle during the simulation
   TestEm3Data  *fData;
   //

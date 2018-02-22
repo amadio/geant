@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
   //
   // Set production cuts if needed: not needed in case of pair-production
   bool   iscutinlength    = true;
-  double prodCutValue     = 1.*geant::mm;
+  double prodCutValue     = 1.*geant::units::mm;
   double gcut             = prodCutValue;
   double emcut            = prodCutValue;
   double epcut            = prodCutValue;
@@ -205,15 +205,15 @@ int main(int argc, char *argv[]) {
   if (pairModelName=="bhPair") {    // BetheHeitlerPairModel
     emModel = new BetheHeitlerPairModel();
     // - Set low/high energy usage limits
-    emModel->SetLowEnergyUsageLimit (100.0*geant::eV);
-    emModel->SetHighEnergyUsageLimit( 80.0*geant::GeV);
+    emModel->SetLowEnergyUsageLimit (100.0*geant::units::eV);
+    emModel->SetHighEnergyUsageLimit( 80.0*geant::units::GeV);
     // by default, sampling tables are used: can be set to false not to use tables (==>rejection)
     emModel->SetUseSamplingTables(!isUseRejection);
   } else {                          // RelativisticPairModel
     emModel = new RelativisticPairModel();
     // - Set low/high energy usage limits
-    emModel->SetLowEnergyUsageLimit ( 80.0*geant::GeV);
-    emModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+    emModel->SetLowEnergyUsageLimit ( 80.0*geant::units::GeV);
+    emModel->SetHighEnergyUsageLimit(100.0*geant::units::TeV);
     // by default, sampling tables are used: can be set to false not to use tables (==>rejection)
     emModel->SetUseSamplingTables(!isUseRejection);
   }
@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
+  std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::units::MeV << "  [MeV] " << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
   std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
   std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -282,26 +282,26 @@ int main(int argc, char *argv[]) {
   // -atomic cross section
   if (isSingleElementMaterial) {
     std::cout<< "   cross section per atom      :";
-    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::barn)
+    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::units::barn)
              << std::setw(14) << std::left << "     [barn]";
     std::cout<<std::endl;
   }
   //
   // -macroscopic cross section
   std::cout<< "   cross section per volume    :";
-  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::units::cm)
            << std::setw(14) << std::left << "     [1/cm]";
   std::cout<<std::endl;
   //
   // -restricted stopping power
   std::cout<< "   resricted dE/dx  (MeV/cm)   :";
-  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(geant::MeV/geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(geant::units::MeV/geant::units::cm)
            << std::setw(14) << std::left << "   [MeV/cm]";
   std::cout<<std::endl;
   //
   // -unrestricted stopping power
   std::cout<< "   unresricted dE/dx (MeV/cm)  :";
-  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(geant::MeV/geant::cm)
+  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(geant::units::MeV/geant::units::cm)
            << std::setw(14) << std::left << "   [MeV/cm]";
   std::cout<<std::endl;
   //===========================================================================================//
@@ -430,9 +430,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
   double dirz       = 1.0;
   int    gvcode     = primParticle->GetInternalCode();  // internal code of the primary particle i.e. gamma
 
-  // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
+  // Set up a dummy geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
-  Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
+  geant::GeantTaskData *td = new geant::GeantTaskData(1,1);
   PhysicsData         *phd = new PhysicsData();
   td->fPhysicsData         = phd;
   // Set up a the primary light track for brem.
@@ -466,7 +466,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
      if (numSecs==2) {
        std::vector<LightTrack> &secLTracks = td->fPhysicsData->GetListOfSecondaries();
        // get reduced e- total energy and cost
-       double epsEl = (secLTracks[0].GetKinE()+geant::kElectronMassC2)/ekin;
+       double epsEl = (secLTracks[0].GetKinE()+geant::units::kElectronMassC2)/ekin;
        h1->Fill(epsEl,1.0);
        double costEl = secLTracks[0].GetDirZ();
        double elZ = 0.5*(1.-costEl);
@@ -477,7 +477,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
          }
        }
        // do the same for the e+ i.e. e+ total energy and cost
-       double epsPos  = (secLTracks[1].GetKinE()+geant::kElectronMassC2)/ekin;
+       double epsPos  = (secLTracks[1].GetKinE()+geant::units::kElectronMassC2)/ekin;
        h3->Fill(epsPos,1.0);
        double costPos = secLTracks[1].GetDirZ();
        double posZ    = 0.5*(1.-costPos);

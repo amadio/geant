@@ -8,7 +8,7 @@
 #include "Geant/Typedefs.h"
 
 namespace GEANT_IMPL_NAMESPACE {
-  namespace Geant {
+  namespace geant {
     class GeantTrack;
     class GeantTaskData;
     class GeantEventInfo;
@@ -36,7 +36,7 @@ namespace userapplication {
 
 class TestEm3DetectorConstruction;
 
-class TestEm3PrimaryGenerator : public Geant::PrimaryGenerator {
+class TestEm3PrimaryGenerator : public geant::PrimaryGenerator {
 public:
   // CTR DTR
   TestEm3PrimaryGenerator(TestEm3DetectorConstruction *det);
@@ -56,8 +56,8 @@ public:
 
   // interface methods
   virtual void InitPrimaryGenerator();
-  virtual Geant::GeantEventInfo NextEvent(Geant::GeantTaskData* td);
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td);
+  virtual geant::GeantEventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* td);
 
 private:
  TestEm3PrimaryGenerator() = delete;

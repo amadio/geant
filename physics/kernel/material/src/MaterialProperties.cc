@@ -58,7 +58,7 @@ void MaterialProperties::InitialiseMembers() {
 
 
 void MaterialProperties::ComputeBasicMaterialParameters() {
-  using geant::kAvogadro;
+  using geant::units::kAvogadro;
   // get number of elements in the material and the density
   int     numElems = fMaterial->GetNumberOfElements();
   double  density  = fMaterial->GetDensity();
@@ -120,12 +120,12 @@ void MaterialProperties::ComputeIonizationParameters() {
 
 
 void MaterialProperties::ComputeDensityEffectParameters() {
-  using geant::kPi;
-  using geant::kClassicElectronRadius;
-  using geant::kHBarPlanckCLightSquare;
-  using geant::eV;
-  using geant::kSTPPressure;
-  using geant::kSTPTemperature;
+  using geant::units::kPi;
+  using geant::units::kClassicElectronRadius;
+  using geant::units::kHBarPlanckCLightSquare;
+  using geant::units::eV;
+  using geant::units::kSTPPressure;
+  using geant::units::kSTPTemperature;
 
   const double twolog10 = 2.0*std::log(10.0);
   // density and/or non-tandard gas corrector factor
@@ -320,7 +320,9 @@ void MaterialProperties::ComputeRadiationLength() {
   constexpr double FelLowZet  [] = {0.0, 5.310, 4.790, 4.740, 4.710, 4.680, 4.620, 4.570};
   constexpr double FinelLowZet[] = {0.0, 6.144, 5.621, 5.805, 5.924, 6.012, 5.891, 5.788};
   // up the constant factor
-  constexpr double factor = 4.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius;
+  constexpr double factor = 4.0*geant::units::kFineStructConst
+                               *geant::units::kClassicElectronRadius
+                               *geant::units::kClassicElectronRadius;
   // constant factors for L_el and L_inel under TFM and complete screening i.e. Tsai
   const double factorLel   = std::log(184.1499);
   const double factorLinel = std::log(1193.923);
@@ -334,7 +336,7 @@ void MaterialProperties::ComputeRadiationLength() {
     // Coulomb correction from Davis,Bethe,Maximom PRL 1954 Eqs.(36-38)
     double zet = theElements[i]->GetZ();
     int izet   = std::lrint(zet);
-    double mu  = zet*geant::kFineStructConst;
+    double mu  = zet*geant::units::kFineStructConst;
     double mu2 = mu*mu;
     double mu4 = mu2*mu2;
     double mu6 = mu2*mu4;
@@ -356,10 +358,10 @@ void MaterialProperties::ComputeRadiationLength() {
 //
 // Printouts
 std::ostream& operator<<(std::ostream& flux, const MaterialProperties* matprop) {
-  using geant::eV;
-  using geant::cm;
-  using geant::g;
-  using geant::mole;
+  using geant::units::eV;
+  using geant::units::cm;
+  using geant::units::g;
+  using geant::units::mole;
 
   std::ios::fmtflags mode = flux.flags();
   flux.setf(std::ios::fixed,std::ios::floatfield);

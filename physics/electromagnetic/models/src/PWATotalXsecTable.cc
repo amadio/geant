@@ -75,7 +75,7 @@ void PWATotalXsecZ::LoadPWATotalXsecZ(int Z){
       } else {
         // load pwa xsection that are stored in cm2 units in file and change to
         infile >> dummy;
-        fPWAXsecs[(j-1)*gNumTotalXsecBins+i] = dummy*geant::cm2;
+        fPWAXsecs[(j-1)*gNumTotalXsecBins+i] = dummy*geant::units::cm2;
       }
     }
   }

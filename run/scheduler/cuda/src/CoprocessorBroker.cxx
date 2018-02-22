@@ -26,13 +26,13 @@
 #include "GeantVApplication.h"
 #include "PhysicsProcessOld.h"
 
-using namespace Geant;
+using namespace geant;
 
 struct GeneralTask : public CoprocessorBroker::Task {
   GeneralTask() : Task(PropagateGeantTrack_gpu) {}
 
   const char *Name() { return "GeneralTask"; }
-  bool Select(Geant::GeantTrack_v & /* host_track */, int /* track */)
+  bool Select(geant::GeantTrack_v & /* host_track */, int /* track */)
   {
     // Currently we can only handle electron, which we pretend are the only
     // particle to have charge -1.
@@ -46,7 +46,7 @@ struct GeneralChargedTask : public CoprocessorBroker::Task {
   short fCharge;
 
   const char *Name() { return "GeneralChargedTask"; }
-  bool Select(Geant::GeantTrack_v &host_track, int track)
+  bool Select(geant::GeantTrack_v &host_track, int track)
   {
     // Currently we can only handle electron, which we pretend are the only
     // particle to have charge -1.
@@ -60,7 +60,7 @@ struct ElectronTask : public CoprocessorBroker::Task {
    ElectronTask() : Task( tracking_electron_gpu ) {}
 
    const char *Name() { return "ElectronTask"; }
-   bool Select(Geant::GeantTrack_v &host_track, int track)
+   bool Select(geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle electron, which we pretend are the only
       // particle to have charge -1.
@@ -73,7 +73,7 @@ struct PhotonTask : public CoprocessorBroker::Task {
    PhotonTask() : Task( tracking_photon_gpu ) {}
 
    const char *Name() { return "PhotonTask"; }
-   bool Select(Geant::GeantTrack_v &host_track, int track)
+   bool Select(geant::GeantTrack_v &host_track, int track)
    {
       // Currently we can only handle photon, which we pretend are the only
       // particle to have charge 0.
@@ -102,14 +102,14 @@ CoprocessorBroker::TaskData::~TaskData()
   GEANT_CUDA_ERROR(cudaStreamDestroy(fStream));
 }
 
-bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<Geant::cuda::GeantPropagator > &devPropagator)
+bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<geant::cuda::GeantPropagator > &devPropagator)
 {
   int maxdepth = propagator->fConfig->fMaxDepth;
   unsigned int maxTrackPerKernel = nblocks * nthreads * maxTrackPerThread;
   fChunkSize = maxTrackPerKernel;
   fDevMaxTracks = 2 * fChunkSize;
 
-  fGeantTaskData = new Geant::GeantTaskData(nthreads, fDevMaxTracks);
+  fGeantTaskData = new geant::GeantTaskData(nthreads, fDevMaxTracks);
   fGeantTaskData->fPropagator = new GeantPropagator(*propagator);
   fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
   fGeantTaskData->fBmgr = new GeantBasketMgr(propagator, 0, 0, true);
@@ -133,7 +133,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   fDevTaskWorkspaceSizeOf = size_needed;
 
   fDevTaskWorkspace.Malloc(maxThreads * size_needed); // Allocate(maxThreads);
-  Geant::cuda::MakeInstanceArrayAt(
+  geant::cuda::MakeInstanceArrayAt(
       fDevTaskWorkspace.GetPtr(), 4096 /* maxThreads */, size_needed, (size_t)maxThreads, maxdepth,
       (int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e.
              // maxTrackPerThread) unless we need space for extras/new tracks ...
@@ -141,11 +141,11 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
       );
 
   // need to allocate enough for one object containing many tracks ...
-  fDevTrackInput.Malloc(Geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks, maxdepth));
-  Geant::cuda::MakeInstanceAt(fDevTrackInput.GetPtr(), fDevMaxTracks, maxdepth);
+  fDevTrackInput.Malloc(geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks, maxdepth));
+  geant::cuda::MakeInstanceAt(fDevTrackInput.GetPtr(), fDevMaxTracks, maxdepth);
 
-  fDevTrackOutput.Malloc(Geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks, maxdepth));
-  Geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(), fDevMaxTracks, maxdepth);
+  fDevTrackOutput.Malloc(geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks, maxdepth));
+  geant::cuda::MakeInstanceAt(fDevTrackOutput.GetPtr(), fDevMaxTracks, maxdepth);
 
   fInputBasket = new GeantBasket(propagator, fDevMaxTracks, fGeantTaskData->fBmgr);
   fInputBasket->SetMixed(true);
@@ -252,7 +252,7 @@ void setup(CoprocessorBroker * /* broker */, int /* nphi */ = 4, int /* nz */ = 
   // 4. Prepare EM physics tables
 }
 
-namespace Geant {
+namespace geant {
 namespace cuda {
 void CoprocessorBrokerInitConstant();
 }
@@ -294,7 +294,7 @@ void CoprocessorBroker::CreateBaskets(GeantPropagator* propagator)
   cudaDeviceSetLimit(cudaLimitStackSize, 3 * 4096);
 
   // Initialize global constants.
-  Geant::cuda::CoprocessorBrokerInitConstant();
+  geant::cuda::CoprocessorBrokerInitConstant();
 }
 
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
@@ -502,7 +502,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
           propagator->Process()->PostStepFinalStateSampling(mat, nphys, output, ntotnext, td);
 
           if (0 /*ntotnext*/) {
-            Geant::Printf("============= Basket.\n");
+            geant::Printf("============= Basket.\n");
             output.PrintTracks();
           }
         }
@@ -596,7 +596,7 @@ void TrackToHost(cudaStream_t /* stream */, cudaError_t /* status */, void *user
 
 void ClearTrack_v(cudaStream_t /* stream */, cudaError_t /* status */, void *userData)
 {
-  Geant::GeantTrack_v *tracks = (Geant::GeantTrack_v *)userData;
+  geant::GeantTrack_v *tracks = (geant::GeantTrack_v *)userData;
   tracks->Clear();
 }
 
@@ -681,7 +681,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
 }
 
 /** @brief If the coprocessor has outstanding work, return it */
-GeantBasket *CoprocessorBroker::GetBasketForTransport(Geant::GeantTaskData &maintd)
+GeantBasket *CoprocessorBroker::GetBasketForTransport(geant::GeantTaskData &maintd)
 {
   GeantBasketMgr *prioritizer = maintd.fBmgr;
   if (prioritizer && prioritizer->HasTracks()) {

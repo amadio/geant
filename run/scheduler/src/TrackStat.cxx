@@ -7,7 +7,7 @@
 #include "Handler.h"
 #include "Basketizer.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

@@ -33,7 +33,7 @@ namespace geantphysics {
 const double RelativisticPairModel::gFelLowZet  [] = {0.0, 5.310, 4.790, 4.740, 4.710, 4.680, 4.620, 4.570};
 const double RelativisticPairModel::gFinelLowZet[] = {0.0, 6.144, 5.621, 5.805, 5.924, 6.012, 5.891, 5.788};
 
-const double RelativisticPairModel::gLPMFactor     = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
+const double RelativisticPairModel::gLPMFactor     = 0.25*geant::units::kFineStructConst*geant::units::kElectronMassC2*geant::units::kElectronMassC2/(geant::units::kPi*geant::units::kHBarPlanckCLight);
 
 RelativisticPairModel::LPMFuncs  RelativisticPairModel::gLPMFuncs;
 std::vector<RelativisticPairModel::ElementData*>  RelativisticPairModel::gElementData(gMaxZet,nullptr);
@@ -47,7 +47,7 @@ RelativisticPairModel::RelativisticPairModel(const std::string &modelname) : EMM
   fElectronInternalCode             = -1;      // will be set at init
   fPositronInternalCode             = -1;      // will be set at init
 
-  fLPMEnergyLimit                   = 100.0*geant::GeV;  // photon energy limit above which LPM is active
+  fLPMEnergyLimit                   = 100.0*geant::units::GeV;  // photon energy limit above which LPM is active
 
   fSTNumPhotonEnergiesPerDecade     = 12;      // used only in case of sampling tables
   fSTNumDiscreteEnergyTransferVals  = 84;      // used only in case of sampling tables
@@ -90,7 +90,7 @@ void RelativisticPairModel::Initialize() {
   EMModel::Initialize();  // will set the PhysicsParameters member
   fElectronInternalCode = Electron::Definition()->GetInternalCode();
   fPositronInternalCode = Positron::Definition()->GetInternalCode();
-  if (GetLowEnergyUsageLimit()<50.*geant::MeV) {
+  if (GetLowEnergyUsageLimit()<50.*geant::units::MeV) {
     std::cerr<< "  *** ERROR: RelativisticPairModel::Initialize()  \n"
              << "      The model should not be used below 50 [MeV]   "
              << std::endl;
@@ -145,7 +145,7 @@ double RelativisticPairModel::ComputeXSectionPerAtom(const Element *elem, const 
 }
 
 
-int    RelativisticPairModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int    RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int    numSecondaries = 0;
   const double ekin     = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit (its minimum is 50 [MeV]) and do nothing if yes;
@@ -198,11 +198,11 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   } else {
     uvar *= 0.53333;
   }
-  const double thetaElectron = uvar*geant::kElectronMassC2/electronTotE;
+  const double thetaElectron = uvar*geant::units::kElectronMassC2/electronTotE;
   const double sintEle       = std::sin(thetaElectron);
-  const double thetaPositron = uvar*geant::kElectronMassC2/positronTotE;
+  const double thetaPositron = uvar*geant::units::kElectronMassC2/positronTotE;
   const double sintPos       = -std::sin(thetaPositron);
-  const double phi           = geant::kTwoPi*rndArray[3];
+  const double phi           = geant::units::kTwoPi*rndArray[3];
   const double sinphi        = std::sin(phi);
   const double cosphi        = std::cos(phi);
   // e- direction
@@ -218,8 +218,8 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);
   // 4. compute kinetic energy of e-/e+
-  const double ekinElectron = std::max((electronTotE-geant::kElectronMassC2),0.);
-  const double ekinPositron = std::max((positronTotE-geant::kElectronMassC2),0.);
+  const double ekinElectron = std::max((electronTotE-geant::units::kElectronMassC2),0.);
+  const double ekinPositron = std::max((positronTotE-geant::units::kElectronMassC2),0.);
   // 5. rotate direction back to the lab frame: current directions are relative to the photon dir as z-dir
   RotateToLabFrame(eleDirX, eleDirY, eleDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   RotateToLabFrame(posDirX, posDirY, posDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
@@ -243,7 +243,7 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   sectracks[secIndx].SetDirZ(eleDirZ);
   sectracks[secIndx].SetKinE(ekinElectron);
   sectracks[secIndx].SetGVcode(fElectronInternalCode);
-  sectracks[secIndx].SetMass(geant::kElectronMassC2);
+  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   // then set the e+
   ++secIndx;
@@ -252,7 +252,7 @@ int    RelativisticPairModel::SampleSecondaries(LightTrack &track, Geant::GeantT
   sectracks[secIndx].SetDirZ(posDirZ);
   sectracks[secIndx].SetKinE(ekinPositron);
   sectracks[secIndx].SetGVcode(fPositronInternalCode);
-  sectracks[secIndx].SetMass(geant::kElectronMassC2);
+  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
 
   return numSecondaries;
@@ -279,7 +279,7 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
   const RatinAliasData *als = fSamplingTables[matindx]->fRatinAliasData[indxEgamma];
   //
   const int    izet     = fSamplingTables[matindx]->fILowestZ;
-  const double eps0     = geant::kElectronMassC2/egamma;
+  const double eps0     = geant::units::kElectronMassC2/egamma;
   const double deltaMax = gElementData[izet]->fDeltaMaxTsai;
   const double epsp     = 0.5-0.5*std::sqrt(1.-4.*eps0*gElementData[izet]->fDeltaFactor/deltaMax);
   const double epsMin   = std::max(eps0,epsp);
@@ -298,9 +298,9 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
 // needs to be sampled and there is an option if Tsai's screening is used or not: if Tsai's screening is used then
 // epsmin, and so on must be evaluated with Tsai's screening
 double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, const double lpmenergy, const int izet,
-                                                        const Geant::GeantTaskData *td) {
+                                                        const geant::GeantTaskData *td) {
     const bool  isLPM     = (fIsUseLPM && egamma>fLPMEnergyLimit);
-    const double eps0     = geant::kElectronMassC2/egamma;
+    const double eps0     = geant::units::kElectronMassC2/egamma;
     const double deltaFac = gElementData[izet]->fDeltaFactor;
     const double deltaMin = 4.*eps0*deltaFac;
     double deltaMax = gElementData[izet]->fDeltaMax;
@@ -354,8 +354,8 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
 
 
 double RelativisticPairModel::ComputeAtomicCrossSection(const Element *elem, const Material *mat, const double egamma) {
-  const double xsecFactor  = geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius;
-  const double eps0        = geant::kElectronMassC2/egamma;
+  const double xsecFactor  = geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius;
+  const double eps0        = geant::units::kElectronMassC2/egamma;
   const double zet         = elem->GetZ();
   const int   izet         = std::lrint(zet);
   const bool  isLPM        = (fIsUseLPM && egamma>fLPMEnergyLimit);
@@ -395,7 +395,7 @@ double RelativisticPairModel::ComputeDXsectionPerAtom(const double epsmin, const
   const double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
   const double meps           = 1.-eps;
   const double halfFz         = 0.5*gElementData[izet]->fFz;
-  const double delta          = gElementData[izet]->fDeltaFactor*geant::kElectronMassC2/(egamma*eps*meps);
+  const double delta          = gElementData[izet]->fDeltaFactor*geant::units::kElectronMassC2/(egamma*eps*meps);
   double phi1, phi2;
   ComputeScreeningFunctions(phi1,phi2,delta,istsai);
   double dxsec = (eps*eps+meps*meps)*(phi1-halfFz) + twoThird*eps*meps*(phi2-halfFz);
@@ -411,7 +411,7 @@ double RelativisticPairModel::ComputeLPMDXsectionPerAtom(const double epsmin, co
   const double eps            = epsmin*std::exp(xi*lHalfPerEpsMin);
   const double meps           = 1.-eps;
   const double halfFz         = 0.5*gElementData[izet]->fFz;
-  const double delta          = gElementData[izet]->fDeltaFactor*geant::kElectronMassC2/(egamma*eps*meps);
+  const double delta          = gElementData[izet]->fDeltaFactor*geant::units::kElectronMassC2/(egamma*eps*meps);
   double phi1, phi2, lpmPhiS, lpmGS, lpmXiS;
   ComputeScreeningFunctions(phi1,phi2,delta,istsai);
   ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmenergy, eps, egamma, izet);
@@ -593,20 +593,20 @@ void RelativisticPairModel::ComputeLPMfunctions(double &funcXiS, double &funcGS,
 
 void RelativisticPairModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat) {
   if (varShat<0.01) {
-    funcPhiS = 6.0*varShat*(1.0-geant::kPi*varShat);
+    funcPhiS = 6.0*varShat*(1.0-geant::units::kPi*varShat);
     funcGS   = 12.0*varShat-2.0*funcPhiS;
   } else {
     double varShat2 = varShat*varShat;
     double varShat3 = varShat*varShat2;
     double varShat4 = varShat2*varShat2;
     if (varShat<0.415827397755) { // use Stanev approximation: for \psi(s) and compute G(s)
-      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
+      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::units::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
       // 1-\exp \left\{  -4s  - \frac{8s^2}{1+3.936s+4.97s^2-0.05s^3+7.5s^4} \right\}
       const double funcPsiS = 1.0-std::exp(-4.0*varShat - 8.0*varShat2/(1.0+3.936*varShat+4.97*varShat2-0.05*varShat3+7.5*varShat4));
       // G(s) = 3 \psi(s) - 2 \phi(s)
       funcGS = 3.0*funcPsiS - 2.0*funcPhiS;
     } else if (varShat<1.55) {
-      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
+      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::units::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
       const double dum0 = -0.16072300849123999+3.7550300067531581*varShat-1.7981383069010097*varShat2+0.67282686077812381*varShat3-0.1207722909879257*varShat4;
       funcGS = std::tanh(dum0);
     } else {
@@ -759,7 +759,7 @@ void RelativisticPairModel::BuildSamplingTablesForMaterial(const Material *mat, 
 void RelativisticPairModel::BuildOneRatinAlias(const double egamma, const Material *mat, double *pdfarray,
                                                 const int egammaindx, const int ilowestz) {
   // compute the theoretical minimum of the reduced total energy transfer to the e+ (or to the e-)
-  const double eps0    = geant::kElectronMassC2/egamma;
+  const double eps0    = geant::units::kElectronMassC2/egamma;
   // deterime the lowest eps': that will belong to the lowest Z of the material
   const double dMax    = gElementData[ilowestz]->fDeltaMaxTsai;  // Tsai's screening apr. will be used for the tables
   const double dFactor = gElementData[ilowestz]->fDeltaFactor;

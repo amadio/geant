@@ -47,7 +47,7 @@
 #include "GUFieldPropagator.h"
 #include "GUFieldPropagatorPool.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace vecgeom;
@@ -155,7 +155,7 @@ bool GeantRunManager::Initialize() {
 
   // Initialize the process(es)
   if (!fPhysicsInterface) {
-    Geant::Fatal(methodName,  "The physics process interface has to be initialized before this");
+    geant::Fatal(methodName,  "The physics process interface has to be initialized before this");
     return false;
   }
   // Initialize the physics
@@ -327,7 +327,7 @@ void GeantRunManager::PrepareRkIntegration()
   
   UserFieldConstruction* udc= fDetConstruction->GetFieldConstruction();
   if( ! udc ) {
-     Geant::Error("PrepareRkIntegration", "Cannot find expected User Field Construction object.");
+     geant::Error("PrepareRkIntegration", "Cannot find expected User Field Construction object.");
      exit(1);
   } else {
      // GUVVectorField** fieldPtr;
@@ -343,7 +343,7 @@ void GeantRunManager::PrepareRkIntegration()
         // Create clones for other threads
         fpPool->Initialize(fNthreads);
      } else {
-        Geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
+        geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
      }
   }
 }

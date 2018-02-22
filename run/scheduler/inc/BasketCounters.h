@@ -21,7 +21,7 @@
  * @details Basket counters per simulation stage
  *
  */
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 struct BasketCounters {

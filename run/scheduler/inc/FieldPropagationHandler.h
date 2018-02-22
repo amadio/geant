@@ -19,7 +19,7 @@
 
 #include "WorkspaceForFieldPropagation.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /**
@@ -56,7 +56,7 @@ public:
   virtual ~FieldPropagationHandler();
 
   /** @brief maximum acceptable deflection from curved trajectory */
-  static const double gEpsDeflection; // = 1.E-2 * geant::cm;
+  static const double gEpsDeflection; // = 1.E-2 * geant::units::cm;
 
 protected:
   VECCORE_ATT_HOST_DEVICE

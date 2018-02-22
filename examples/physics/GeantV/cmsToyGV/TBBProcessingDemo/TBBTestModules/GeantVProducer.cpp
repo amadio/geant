@@ -28,7 +28,7 @@
 #include "CMSDetectorConstruction.h"
 #include "CMSParticleGun.h"
 
-using namespace Geant;
+using namespace geant;
 using namespace cmsapp;
 
 namespace {
@@ -72,7 +72,7 @@ namespace demo {
 	Not required as application functionality, the event reading or generation
 	can in the external event loop.
     */
-    Geant::EventSet* GenerateEventSet(size_t nevents, const size_t *event_index, GeantTaskData *td);
+    geant::EventSet* GenerateEventSet(size_t nevents, const size_t *event_index, GeantTaskData *td);
 
     inline void LockEventGenerator() { while (fEventGeneratorLock.test_and_set(std::memory_order_acquire)) {}; }
     inline void UnlockEventGenerator() { fEventGeneratorLock.clear(std::memory_order_release); }
@@ -253,7 +253,7 @@ namespace demo {
     if (!td) return false;
 
     // ... then create the event set
-    Geant::EventSet *evset = GenerateEventSet(nevents, event_index, td);
+    geant::EventSet *evset = GenerateEventSet(nevents, event_index, td);
 
     // ... finally invoke the GeantV transport task
     bool transported = fRunMgr->RunSimulationTask(evset, td);
@@ -275,12 +275,12 @@ namespace demo {
     return nbooked;
   }
 
-  Geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, const size_t *event_index, Geant::GeantTaskData *td)
+  geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, const size_t *event_index, geant::GeantTaskData *td)
   {
-    using EventSet = Geant::EventSet;
-    using GeantEvent = Geant::GeantEvent;
-    using GeantEventInfo = Geant::GeantEventInfo;
-    using GeantTrack = Geant::GeantTrack;
+    using EventSet = geant::EventSet;
+    using GeantEvent = geant::GeantEvent;
+    using GeantEventInfo = geant::GeantEventInfo;
+    using GeantTrack = geant::GeantTrack;
 
     EventSet *evset = new EventSet(nevents);
     LockEventGenerator();

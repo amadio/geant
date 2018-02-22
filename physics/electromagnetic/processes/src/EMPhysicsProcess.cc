@@ -101,14 +101,14 @@ double EMPhysicsProcess::ComputeDEDX(const MaterialCuts *matcut, double kinenerg
         double lowEnergyLimit = models[i]->GetLowEnergyUsageLimit();
         double dedx1 = models[i-1]->ComputeDEDX(matcut, lowEnergyLimit, particle, istotal);
         double dedx2 = models[i]->ComputeDEDX(matcut, lowEnergyLimit, particle, istotal);
-       //std::cout<< "====== " <<kinenergy<<" "<<lowEnergyLimit << dedx1/(geant::MeV/geant::mm) <<"  "<<dedx2/(geant::MeV/geant::mm) <<std::endl;
+       //std::cout<< "====== " <<kinenergy<<" "<<lowEnergyLimit << dedx1/(geant::units::MeV/geant::units::mm) <<"  "<<dedx2/(geant::units::MeV/geant::units::mm) <<std::endl;
         if (dedx2>0.0) {
           delta = (dedx1/dedx2-1.0)*lowEnergyLimit;
         }
-//          std::cout<< "====== " <<kinenergy<<" "<<delta<<" "<<lowEnergyLimit << dedx1/(geant::MeV/geant::mm) <<"  "<<dedx2/(geant::MeV/geant::mm) <<std::endl;
+//          std::cout<< "====== " <<kinenergy<<" "<<delta<<" "<<lowEnergyLimit << dedx1/(geant::units::MeV/geant::units::mm) <<"  "<<dedx2/(geant::units::MeV/geant::units::mm) <<std::endl;
       }
       dedx  = models[i]->ComputeDEDX(matcut, kinenergy, particle, istotal);
-//        std::cerr<< "  dedx = " << dedx/(geant::MeV/geant::mm)<< " delta = "<<delta<<std::endl;
+//        std::cerr<< "  dedx = " << dedx/(geant::units::MeV/geant::units::mm)<< " delta = "<<delta<<std::endl;
       dedx *= (1.0+delta/kinenergy);
     }
     if (dedx<0.0)
@@ -140,14 +140,14 @@ double EMPhysicsProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, 
       double lowEnergyLimit = models[i]->GetLowEnergyUsageLimit();
       double xsec1 = models[i-1]->ComputeMacroscopicXSection(matcut, lowEnergyLimit, particle);
       double xsec2 = models[i]->ComputeMacroscopicXSection(matcut, lowEnergyLimit, particle);
-     //std::cout<< "====== " <<kinenergy<<" "<<lowEnergyLimit << dedx1/(geant::MeV/geant::mm) <<"  "<<dedx2/(geant::MeV/geant::mm) <<std::endl;
+     //std::cout<< "====== " <<kinenergy<<" "<<lowEnergyLimit << dedx1/(geant::units::MeV/geant::units::mm) <<"  "<<dedx2/(geant::units::MeV/geant::units::mm) <<std::endl;
       if (xsec2>0.0) {
         delta = (xsec1/xsec2-1.0)*lowEnergyLimit;
       }
-//          std::cout<< "====== " <<kinenergy<<" "<<delta<<" "<<lowEnergyLimit << dedx1/(geant::MeV/geant::mm) <<"  "<<dedx2/(geant::MeV/geant::mm) <<std::endl;
+//          std::cout<< "====== " <<kinenergy<<" "<<delta<<" "<<lowEnergyLimit << dedx1/(geant::units::MeV/geant::units::mm) <<"  "<<dedx2/(geant::units::MeV/geant::units::mm) <<std::endl;
     }
     xsec  = models[i]->ComputeMacroscopicXSection(matcut, kinenergy, particle);
-//        std::cerr<< "  dedx = " << dedx/(geant::MeV/geant::mm)<< " delta = "<<delta<<std::endl;
+//        std::cerr<< "  dedx = " << dedx/(geant::units::MeV/geant::units::mm)<< " delta = "<<delta<<std::endl;
     xsec *= (1.0+delta/kinenergy);
   }
   if (xsec<0.0)
@@ -166,7 +166,7 @@ double EMPhysicsProcess::GetMinimumLambdaTableKineticEnergy(const MaterialCuts *
   return emin;
 }
 
-double EMPhysicsProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData * /*td*/) const {
+double EMPhysicsProcess::AlongStepLimitationLength(geant::GeantTrack *gtrack, geant::GeantTaskData * /*td*/) const {
   double stepLimit = GetAVeryLargeValue();
   // if the process is kEnergyLoss process use the energy loss related data to limit the step
   if(GetType()==ProcessType::kEnergyLoss) {
@@ -191,7 +191,7 @@ double EMPhysicsProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Ge
 // We need to check on the caller side if kinetic energy become zero after this call and we need to set the track
 // status track.SetTrackStatus(??); should be set to stopped but alive i.e. we should check here is the partcile
 // has anything to do at rest
-int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, Geant::GeantTaskData * /*td*/) {
+int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, geant::GeantTaskData * /*td*/) {
   int numSecondaries = 0;
 //  if (!IsApplicable(track)) {
 //    return numSecondaries;
@@ -256,7 +256,7 @@ int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, Geant::GeantTaskData * /*
 //   double curInvLambda  =
 // }
 // IN case of intergral approach it is called only if the discrete interaction indeed happens
-int EMPhysicsProcess::PostStepDoIt(LightTrack &track , Geant::GeantTaskData *td) {
+int EMPhysicsProcess::PostStepDoIt(LightTrack &track , geant::GeantTaskData *td) {
   int numSecondaries = 0;
   // for kEnergyLoss processes: check if the particle energy is below the common tracking cut and do nothing if this is
   //                            the case

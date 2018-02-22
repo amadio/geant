@@ -49,10 +49,10 @@ namespace geantphysics {
   
     /** @brief Interface method to generate final state of the interaction. */
     virtual int  SampleFinalState(LightTrack &track, Isotope* targetisotope, 
-				  Geant::GeantTaskData *td);
+				  geant::GeantTaskData *td);
 
     // sample momentum transfer in the CMS system 
-    double SampleInvariantT(double mass, double plab, Isotope* targetisotope, Geant::GeantTaskData *td);  
+    double SampleInvariantT(double mass, double plab, Isotope* targetisotope, geant::GeantTaskData *td);  
 
     //
     //@}

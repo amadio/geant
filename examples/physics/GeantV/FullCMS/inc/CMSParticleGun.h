@@ -9,7 +9,7 @@
 #include "Geant/Typedefs.h"
 
 namespace GEANT_IMPL_NAMESPACE {
-  namespace Geant {
+  namespace geant {
     class GeantTrack;
     class GeantTaskData;
     class GeantEventInfo;
@@ -28,7 +28,7 @@ namespace geantphysics {
 namespace cmsapp {
 
 
-class CMSParticleGun : public Geant::PrimaryGenerator {
+class CMSParticleGun : public geant::PrimaryGenerator {
 public:
   // CTR DTR
   CMSParticleGun();
@@ -36,8 +36,8 @@ public:
 
   // interface methods
   virtual void InitPrimaryGenerator() {/*nothing to do*/}
-  virtual Geant::GeantEventInfo NextEvent(Geant::GeantTaskData* td);
-  virtual void GetTrack(int n, Geant::GeantTrack& gtrack, Geant::GeantTaskData* td);
+  virtual geant::GeantEventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::GeantTrack& gtrack, geant::GeantTaskData* td);
 
   // public setters/getters
   void SetNumPrimaryPerEvt(const int pperevt);

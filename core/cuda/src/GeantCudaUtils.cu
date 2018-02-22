@@ -6,7 +6,7 @@
 #include "GeantConfig.h"
 #include "globals.h"
 
-namespace Geant {
+namespace geant {
 inline namespace cuda {
 
 void CoprocessorBrokerInitConstant()

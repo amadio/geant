@@ -52,8 +52,8 @@ namespace geantphysics {
     : EMModel(modelname){
         
         SetUseSamplingTables(aliasActive);
-        fMinPrimEnergy           =  1.e-12*geant::eV;  // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
-        fMaxPrimEnergy           =  100*geant::MeV;    // Maximum of the gamma kinetic energy grid (after this threshold the e- is considered to follow the same direction as the incident gamma)
+        fMinPrimEnergy           =  1.e-12*geant::units::eV;  // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
+        fMaxPrimEnergy           =  100*geant::units::MeV;    // Maximum of the gamma kinetic energy grid (after this threshold the e- is considered to follow the same direction as the incident gamma)
         
         fPrimEnLMin              = 0.;       // will be set in InitSamplingTables if needed
         fPrimEnILDelta           = 0.;       // will be set in InitSamplingTables if needed
@@ -166,8 +166,8 @@ namespace geantphysics {
     void SauterGavrilaPhotoElectricModel::ReadData(int Z)
     {
         //bool debug= false;
-        using geant::MeV;
-        using geant::barn;
+        using geant::units::MeV;
+        using geant::units::barn;
         
         if (fVerboseLevel > 1)
         {
@@ -468,12 +468,12 @@ namespace geantphysics {
     
     //____________________
     //NB: cosTheta is supposed to contain the dirZ of the incoming photon
-    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, Geant::GeantTaskData *td) const{
+    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, geant::GeantTaskData *td) const{
         
         //1) initialize energy-dependent variables
         // Variable naming according to Eq. (2.24) of Penelope Manual
         // (pag. 44)
-        double gamma = 1.0 + gammaEnIn/geant::kElectronMassC2;
+        double gamma = 1.0 + gammaEnIn/geant::units::kElectronMassC2;
         double gamma2 = gamma*gamma;
         double beta = std::sqrt((gamma2-1.0)/gamma2);
             
@@ -507,7 +507,7 @@ namespace geantphysics {
     double SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Alias(double primekin, double r1, double r2, double r3) const{
         
         // determine primary energy lower grid point
-        if (primekin > 100*geant::MeV) {
+        if (primekin > 100*geant::units::MeV) {
             return 1.;
         } else
         {
@@ -551,9 +551,9 @@ namespace geantphysics {
     {
         
         int verboseLevel = 0;
-        using geant::keV;
-        using geant::MeV;
-        using geant::barn;
+        using geant::units::keV;
+        using geant::units::MeV;
+        using geant::units::barn;
         
         
         if (verboseLevel > 3) {
@@ -658,7 +658,7 @@ namespace geantphysics {
     }
     
     
-    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, Geant::GeantTaskData *td) const
+    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, geant::GeantTaskData *td) const
     {
         size_t index =0;
         std::vector<double> mxsec(20,0.);
@@ -709,7 +709,7 @@ namespace geantphysics {
   
   }
     
-    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const{
+    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::GeantTaskData *td) const{
         
         std::cout<<"testSampleTargetElementIndex\n";
         size_t index=0;
@@ -752,9 +752,9 @@ namespace geantphysics {
     
     
     int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track,
-                                                           Geant::GeantTaskData *td){
+                                                           geant::GeantTaskData *td){
         
-        using geant::MeV;
+        using geant::units::MeV;
         double gammaekin0          = track.GetKinE();
         // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
         // check if kinetic energy is above fHighEnergyUsageLimit and do nothing if yes;
@@ -931,7 +931,7 @@ namespace geantphysics {
         double eDirY1;
         double eDirZ1;
         
-        if (gammaekin0 <= 100*geant::MeV) {
+        if (gammaekin0 <= 100*geant::units::MeV) {
             if (!GetUseSamplingTables()) {
               SamplePhotoElectronDirection_Rejection(gammaekin0, cosTheta, td);
             } else {
@@ -941,7 +941,7 @@ namespace geantphysics {
             }
             sinTheta = std::sqrt((1 - cosTheta)*(1 + cosTheta));
             double rnd = td->fRndm->uniform();
-            phi     = geant::kTwoPi * rnd;
+            phi     = geant::units::kTwoPi * rnd;
             
             // new photoelectron direction in the scattering frame
             eDirX1  = sinTheta*std::cos(phi);
@@ -981,19 +981,19 @@ namespace geantphysics {
         sectracks[secIndx].SetDirZ(eDirZ1);
         sectracks[secIndx].SetKinE(elecKineEnergy);
         sectracks[secIndx].SetGVcode(fSecondaryInternalCode);  // electron GV code
-        sectracks[secIndx].SetMass(geant::kElectronMassC2);
+        sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
         sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
         
         
-        /*if(fabs(gammaekin0 - elecKineEnergy - esec - edep) > geant::eV) {
+        /*if(fabs(gammaekin0 - elecKineEnergy - esec - edep) > geant::units::eV) {
          std::cout << "### SauterGavrilaPhotoElectricModel dE(eV)= "
-         << (gammaekin0 - elecKineEnergy - esec - edep)/geant::eV
+         << (gammaekin0 - elecKineEnergy - esec - edep)/geant::units::eV
          << "  shell= " << shellIdx
-         << "  E(keV)= " << gammaekin0/geant::keV
-         << "  Ebind(keV)= " << bindingEnergy/geant::keV
-         << "  Ee(keV)= " << elecKineEnergy/geant::keV
-         << "  Esec(keV)= " << esec/geant::keV
-         << "  Edep(keV)= " << edep/geant::keV
+         << "  E(keV)= " << gammaekin0/geant::units::keV
+         << "  Ebind(keV)= " << bindingEnergy/geant::units::keV
+         << "  Ee(keV)= " << elecKineEnergy/geant::units::keV
+         << "  Esec(keV)= " << esec/geant::units::keV
+         << "  Edep(keV)= " << edep/geant::units::keV
          << std::endl;
          }*/
         
@@ -1071,7 +1071,7 @@ namespace geantphysics {
         // -the prepare each table one-by-one
         for (int i=0; i<fNumSamplingPrimEnergies; ++i) {
             double egamma = fSamplingPrimEnergies[i];
-            double tau  = egamma/geant::kElectronMassC2;
+            double tau  = egamma/geant::units::kElectronMassC2;
             BuildOneLinAlias(i,tau);
         }
     }
@@ -1086,7 +1086,7 @@ namespace geantphysics {
         // input  : cosTheta (cons(theta) of photo-electron)
         // output : dsigma   (differential cross section, K-shell only)
         
-        //double tau = energy0 / geant::kElectronMassC2;
+        //double tau = energy0 / geant::units::kElectronMassC2;
         
         //std::cout<<"CalculateDiffCrossSectionLog. tau: "<<tau<<" and xsi: "<<xsi<<std::endl;
         double cosTheta= std::exp(xsi) - 2;
@@ -1117,7 +1117,7 @@ namespace geantphysics {
         // input  : cosTheta (cons(theta) of photo-electron)
         // output : dsigma   (differential cross section, K-shell only)
         
-        //double tau = energy0 / geant::kElectronMassC2;
+        //double tau = energy0 / geant::units::kElectronMassC2;
         
         //gamma and beta: Lorentz factors of the photoelectron
         double gamma = tau + 1.0;

@@ -6,7 +6,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -69,7 +69,7 @@ public:
     virtual void   Initialize();
     virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
     virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
+    virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
 //
 //@}
 
@@ -82,7 +82,7 @@ private:
 
   double ComputeXsectionPerElectron(double pekin);
   double SampleEnergyTransfer(double pekin, double gamma, double r1, double r2, double r3);
-  double SampleEnergyTransfer(double gamma, Geant::GeantTaskData *td);
+  double SampleEnergyTransfer(double gamma, geant::GeantTaskData *td);
 
 
   /** @brief Internal method to build energy transfer (to one of the gammas) related sampling tables.*/

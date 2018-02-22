@@ -20,7 +20,7 @@
 
 #include "cuckoohash_map.hh"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 struct MCParticle
@@ -74,14 +74,14 @@ public:
    * @brief Pure virtual function checking the conditions of the track to be stored
    * @details Looks at different tracks properties and returns yes/no to be stored
    */
-  virtual bool CheckTrack(Geant::GeantTrack &gtrack, MCEvent* evt) = 0;
+  virtual bool CheckTrack(geant::GeantTrack &gtrack, MCEvent* evt) = 0;
 
   /**
    * @brief Function that adds a track
    *
    * @param gtrack track
    */
-  void AddTrack(Geant::GeantTrack &gtrack);
+  void AddTrack(geant::GeantTrack &gtrack);
 
   /**
    * @brief Function that indicates a track stopping

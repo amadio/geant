@@ -5,7 +5,7 @@
 #include "LinearPropagationHandler.h"
 #include "FieldPropagationHandler.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

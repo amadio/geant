@@ -55,7 +55,7 @@ void Process(vector_t<test_track *> &basket) {
   }
 }
 
-using namespace Geant;
+using namespace geant;
 //______________________________________________________________________________
 struct Workload {
   NumaPolicy policy_; // kSysDefault, kCompact, kScatter
@@ -81,9 +81,9 @@ struct Workload {
 
   Workload(size_t nthreads)
       :
-        policy_(Geant::NumaPolicy::kCompact),
+        policy_(geant::NumaPolicy::kCompact),
         nnodes_(1), nthreads_(nthreads), fLock() {
-    using Basketizer = Geant::Basketizer<test_track>;
+    using Basketizer = geant::Basketizer<test_track>;
     std::cout << *policy_.GetTopology() << std::endl;
     nnodes_ = policy_.fTopo.fNodes;
     if (nnodes_ < 1) nnodes_ = 1;
@@ -126,7 +126,7 @@ struct Workload {
 
   void InitBasketizers(size_t node) {
     // Create basketizers for each numa node. To be call by workers.
-    using Basketizer = Geant::Basketizer<test_track>;
+    using Basketizer = geant::Basketizer<test_track>;
     Lock();
     size_t basket_size = Basketizer::SizeofInstance(buf_size_);
     if (!basketizers_[node]) {
@@ -193,7 +193,7 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
 
 //______________________________________________________________________________
 int main(int argc, char *argv[]) {
-  using namespace Geant;
+  using namespace geant;
 
   if (argc == 1) {
     help();

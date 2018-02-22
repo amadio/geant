@@ -18,9 +18,9 @@ CutConverterForGamma::CutConverterForGamma(int numebins, double mincutenergy, do
   , fZ(-1.), fS200keV(0.), fTmin(0.), fSmin(0.), fCmin(0.), fTlow(0.), fSlow(0.), fS1keV(0.), fClow(0.), fChigh(0.) {
   if (fMinCutEnergy>=fMaxCutEnergy) {
     std::cerr << "  *** ERROR in CutConverterForGamma::CutConverterForGamma() " << std::endl
-              << "       minenergy = "<< mincutenergy/geant::GeV
+              << "       minenergy = "<< mincutenergy/geant::units::GeV
               << " [GeV] >= maxenergy = "
-              << maxcutenergy/geant::GeV << " [GeV]"
+              << maxcutenergy/geant::units::GeV << " [GeV]"
               << std::endl;
     exit(-1);
   }
@@ -64,9 +64,9 @@ void CutConverterForGamma::BuildLengthVector(const Material *mat) {
 // Compute the photon "absorption" cross section: sum of destructive (approximated) cross sections like
 // pair production, Compton scattering and photoelectric effect (taken from Geant4)
 double CutConverterForGamma::ComputeELossOrAbsXsecPerAtom(double zet, double ekin) {
-  const double t1keV   =   1.0*geant::keV;
-  const double t200keV = 200.0*geant::keV;
-  const double t100MeV = 100.0*geant::MeV;
+  const double t1keV   =   1.0*geant::units::keV;
+  const double t200keV = 200.0*geant::units::keV;
+  const double t100MeV = 100.0*geant::units::MeV;
   //  compute Z dependent quantities if the cached Z is different than zet
   if (std::abs(zet-fZ)>0.1) {
     fZ = zet;
@@ -75,10 +75,10 @@ double CutConverterForGamma::ComputeELossOrAbsXsecPerAtom(double zet, double eki
     double Zlogsquare = Zlog*Zlog;
     // set some Z dependent variables
     fS200keV = (0.2651-0.1501*Zlog+0.02283*Zlogsquare)*Zsquare;
-    fTmin    = (0.552+218.5/fZ+557.17/Zsquare)*geant::MeV;
+    fTmin    = (0.552+218.5/fZ+557.17/Zsquare)*geant::units::MeV;
     fSmin    = (0.01239+0.005585*Zlog-0.000923*Zlogsquare)*std::exp(1.5*Zlog);
     fCmin    = std::log(fS200keV/fSmin)/(std::log(fTmin/t200keV)*std::log(fTmin/t200keV));
-    fTlow    = 0.2*std::exp(-7.355/std::sqrt(fZ))*geant::MeV;
+    fTlow    = 0.2*std::exp(-7.355/std::sqrt(fZ))*geant::units::MeV;
     fSlow    = fS200keV*std::exp(0.042*fZ*std::log(t200keV/fTlow)*std::log(t200keV/fTlow));
     fS1keV   = 300.0*Zsquare;
     fClow    = std::log(fS1keV/fSlow)/std::log(fTlow/t1keV);
@@ -99,7 +99,7 @@ double CutConverterForGamma::ComputeELossOrAbsXsecPerAtom(double zet, double eki
   } else {
     xs = fSmin+fChigh*std::log(ekin/fTmin);
   }
-  return xs*geant::barn;
+  return xs*geant::units::barn;
 }
 
 } // namespace geantphysics

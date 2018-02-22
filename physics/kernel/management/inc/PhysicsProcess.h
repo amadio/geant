@@ -120,7 +120,7 @@ public:
    *  that does not limit the step, then the method returns an arbitrary,
    *  very large value.
    */
-   virtual double AlongStepLimitationLength(Geant::GeantTrack * /*track*/, Geant::GeantTaskData * /*td*/) const;
+   virtual double AlongStepLimitationLength(geant::GeantTrack * /*track*/, geant::GeantTaskData * /*td*/) const;
 
 
    /** @brief Method that returns the post-step limitation length
@@ -129,7 +129,7 @@ public:
     *  This applies only for the cdiscrete part of this process.
     *  If the process does not have a discrete part this method is not called.
     */
-   virtual double PostStepLimitationLength(Geant::GeantTrack * /*track*/, Geant::GeantTaskData * /*td*/, bool haseloss=false);
+   virtual double PostStepLimitationLength(geant::GeantTrack * /*track*/, geant::GeantTaskData * /*td*/, bool haseloss=false);
 
 
   /** @brief Method that returns the average lifetime of this process
@@ -161,7 +161,7 @@ public:
    *  with the number of created secondary tracks that are stored in the sectracks
    *  vector.
    */
-  virtual  int AlongStepDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return 0;}
+  virtual  int AlongStepDoIt(LightTrack & /*track*/, geant::GeantTaskData * /*td*/) {return 0;}
 
   /** @brief Method that does the post-step, i.e. the discrete part, action.
    *
@@ -170,7 +170,7 @@ public:
    *  The new particles created by the discrete part of the process are stored
    *  in the GeantTaskData::PhysicsDada object.
    */
-  virtual int PostStepDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/)  {return 0;}
+  virtual int PostStepDoIt(LightTrack & /*track*/, geant::GeantTaskData * /*td*/)  {return 0;}
 
   /** @brief Method that does the at-rest action of the process.
    *
@@ -181,7 +181,7 @@ public:
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
-  virtual int AtRestDoIt(LightTrack & /*track*/, Geant::GeantTaskData * /*td*/) {return 0;}
+  virtual int AtRestDoIt(LightTrack & /*track*/, geant::GeantTaskData * /*td*/) {return 0;}
 
 
   virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }

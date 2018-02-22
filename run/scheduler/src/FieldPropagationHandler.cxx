@@ -13,7 +13,7 @@
 
 #include "base/SOA3D.h"
 // #include "SOA6D.h"
-#include "Geant/VectorTypes.h"   // Defines Geant::Double_v etc
+#include "Geant/VectorTypes.h"   // Defines geant::Double_v etc
 #include "SystemOfUnits.h"
 
 #include "WorkspaceForFieldPropagation.h"
@@ -24,14 +24,14 @@
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
 
-using Double_v = Geant::Double_v;
+using Double_v = geant::Double_v;
 
 // #define CHECK_VS_SCALAR  1
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-const double FieldPropagationHandler::gEpsDeflection = 1.E-2 * geant::cm; //Units
+const double FieldPropagationHandler::gEpsDeflection = 1.E-2 * units::cm; //Units
           
 auto stageAfterCrossing= kPostPropagationStage;
           
@@ -105,7 +105,7 @@ double FieldPropagationHandler::Curvature(const GeantTrack  & track) const
 {
   using ThreeVector_d = vecgeom::Vector3D<double>;
   constexpr double tiny = 1.E-30;
-  constexpr double inv_kilogauss = 1.0 / geant::kilogauss;
+  constexpr double inv_kilogauss = 1.0 / units::kilogauss;
   ThreeVector_d MagFld;
   double bmag= 0.0;
 
@@ -133,7 +133,7 @@ void FieldPropagationHandler::DoIt(GeantTrack *track, Basket& output, GeantTaskD
 // Scalar geometry length computation. The track is moved into the output basket.
   // Step selection
   double step, lmax;
-  const double epsDeflection = 1.E-2 * geant::cm;  // Units!
+  const double epsDeflection = 1.E-2 * units::cm;  // Units!
   
   // std::cout <<" FieldPropagationHandler::DoIt(*track) called for 1 ptrTrack." << std::endl;
 
@@ -182,7 +182,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
 // Vector geometry length computation. The tracks are moved into the output basket.
   TrackVec_t &tracks = input.Tracks();
   double lmax;
-  // const double gEpsDeflection = 1.E-2 * geant::cm;  // Units!
+  // const double gEpsDeflection = 1.E-2 * geant::units::cm;  // Units!
   
   // using minD= vecCore::math::Min<double>;
   // using maxD= vecCore::math::Max<double>;
@@ -332,7 +332,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
   track.IncreaseStep(crtstep);
 
 #if 0
-  constexpr double inv_kilogauss = 1.0 / geant::kilogauss;
+  constexpr double inv_kilogauss = 1.0 / geant::units::kilogauss;
   double curvaturePlus= fabs(GeantTrack::kB2C * track.Charge() * (bmag* inv_kilogauss)) / (track.P() + 1.0e-30);  // norm for step
 
   const double angle= crtstep * curvaturePlus;
@@ -351,7 +351,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
 #ifdef DEBUG_FIELD
   printf("--PropagateInVolume(Single): ");
   printf("Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= %g\n",
-         (track.P()/geant::MeV), Curvature(track)*geant::mm, curvaturePlus*geant::mm, crtstep/geant::mm,
+         (track.P()/geant::units::MeV), Curvature(track)*geant::units::mm, curvaturePlus*geant::units::mm, crtstep/geant::units::mm,
          bmag*inv_kilogauss,  angle );
 #endif
 
@@ -382,7 +382,7 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
         numHelixZ++;
 #endif
      } else {
-        // Geant::
+        // geant::
         double BfieldArr[3] = { BfieldInitial.x(), BfieldInitial.y(), BfieldInitial.z() };
         ConstFieldHelixStepper stepper( BfieldArr );
         stepper.DoStep<double>(Position,    Direction,  track.Charge(), track.P(), crtstep,
@@ -443,8 +443,8 @@ void FieldPropagationHandler::PropagateInVolume(GeantTrack &track, double crtste
   const double drift= 0.01*crtstep;
   if ( diffpos2>drift*drift ){
       double diffpos= vecCore::math::Sqrt(diffpos2);
-      // Geant::Print("PropagateInVolume/Single","relative difference in pos = %g", diffpos/crtstep);
-      Geant::Print("PropagateInVolume/Single","difference in pos = %g (abs) %g (relative) , step= %g",
+      // geant::Print("PropagateInVolume/Single","relative difference in pos = %g", diffpos/crtstep);
+      geant::Print("PropagateInVolume/Single","difference in pos = %g (abs) %g (relative) , step= %g",
                    diffpos, diffpos/crtstep, crtstep);
   }
 #endif
@@ -690,7 +690,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
              track.SetSafety(0);
         }
      } else {
-        // Geant::Error( ... );
+        // geant::Error( ... );
         std::cerr << "FieldPropagationHandler: no Flexible/Vector Integration Driver found."
                   << std::endl;
      }

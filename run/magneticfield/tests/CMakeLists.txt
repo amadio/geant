@@ -23,7 +23,7 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 # include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc ${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/include)
 
 
-## Need -lGeant_v in order to obtain the function/template Geant::cxx::ErrorHandlerImpl
+## Need -lGeant_v in order to obtain the function/template geant::cxx::ErrorHandlerImpl
 
 #add_executable(testMagFieldEquation testMagFieldEquation.cxx) ## ${sources} ${headers})
 

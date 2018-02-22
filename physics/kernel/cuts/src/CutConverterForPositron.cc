@@ -14,9 +14,9 @@ CutConverterForPositron::CutConverterForPositron(int numebins, double mincutener
 : CutConverter(2, numebins, mincutenergy, maxcutenergy) {
   if (fMinCutEnergy>=fMaxCutEnergy) {
     std::cerr << "  *** ERROR in CutConverterForPositron::CutConverterForPositron() " << std::endl
-              << "       minenergy = "<< mincutenergy/geant::GeV
+              << "       minenergy = "<< mincutenergy/geant::units::GeV
               << " [GeV] >= maxenergy = "
-              << maxcutenergy/geant::GeV << " [GeV]"
+              << maxcutenergy/geant::units::GeV << " [GeV]"
               << std::endl;
     exit(-1);
   }
@@ -39,12 +39,12 @@ double CutConverterForPositron::ComputeELossOrAbsXsecPerAtom(double zet, double 
   const double cbr2 = -5.7e-5;
   const double cbr3 = 1.;
   const double cbr4 = 0.072;
-  const double tlow = 10.*geant::keV;
-  const double thigh = 1.*geant::GeV;
-  const double mass = geant::kElectronMassC2;
+  const double tlow = 10.*geant::units::keV;
+  const double thigh = 1.*geant::units::GeV;
+  const double mass = geant::units::kElectronMassC2;
   const double taul = tlow/mass;
-  const double cpot = 1.6e-5*geant::MeV;
-  const double fact = geant::kTwoPi*geant::kElectronMassC2*geant::kClassicElectronRadius*geant::kClassicElectronRadius;
+  const double cpot = 1.6e-5*geant::units::MeV;
+  const double fact = geant::units::kTwoPi*geant::units::kElectronMassC2*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius;
 
   double ionpot     = cpot*std::exp(0.9*std::log(zet))/mass;
   double ionpotlog  = std::log(ionpot);

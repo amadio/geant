@@ -26,8 +26,8 @@
 using ThreeVector_f = vecgeom::Vector3D<float>;  // vecgeom::Vector3D<float>;
 using ThreeVector_d = vecgeom::Vector3D<double>; // vecgeom::Vector3D<double>;
 
-using Double_v = Geant::Double_v;
-//using Float_v  = Geant::Float_v;
+using Double_v = geant::Double_v;
+//using Float_v  = geant::Float_v;
 
 // using ThreeVec_DblV = vecgeom::Vector3D<Double_v>;
 // using ThreeVec_FltV = vecgeom::Vector3D<Float_v>; 
@@ -129,7 +129,7 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
 
   // Revise the values, so that they are no longer equal
   Double_v chargeVec= Double_v(0.0);  // { -1.0, 1.0, 2.0, -2.0 } ; 
-  for (size_t lane = 0; lane < Geant::kVecLenD; ++lane)
+  for (size_t lane = 0; lane < geant::kVecLenD; ++lane)
     vecCore::Set( chargeVec, lane, (double)chargeVecScalar[lane % 8] );
 
   vecgeom::Vector3D<Double_v> FieldVec = { Double_v( BFieldValue[0] ),
@@ -214,7 +214,7 @@ bool CheckDerivativeInLanesAndReport( const Double_v & chargeVec,
 {
   bool hasError= false;
      
-  for( unsigned int lane= 0; lane < Geant::kVecLenD; lane++ )
+  for( unsigned int lane= 0; lane < geant::kVecLenD; lane++ )
   // int lane= 0; 
   {
      double     dydxArr[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };   // To ensure zeroes at each iteration

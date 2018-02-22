@@ -24,7 +24,7 @@
 #include "GeantTrack.h"
 #include "Basket.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTaskData;

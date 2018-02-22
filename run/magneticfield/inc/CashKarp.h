@@ -31,7 +31,7 @@ template
     template <typename T>
        using Vector3D = vecgeom::Vector3D<T>;
   
-    using Double_v        = Geant::Double_v;
+    using Double_v        = geant::Double_v;
     using ThreeVectorSimd = Vector3D<Double_v>;
   
     static constexpr unsigned int sOrderMethod= 4;
@@ -388,7 +388,7 @@ CashKarp<T_Equation,Nvar>::Clone() const
 #if ENABLE_CHORD_DIST    
 template <class Real_v, class T_Equation, unsigned int Nvar>
 inline 
-Geant::Real_v
+geant::Real_v
 CashKarp<T_Equation,Nvar>::
   DistChord()  const
 {

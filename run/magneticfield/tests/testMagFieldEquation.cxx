@@ -21,8 +21,8 @@
 #endif
 
 
-using Double_v = Geant::Double_v;
-using Float_v = Geant::Float_v;
+using Double_v = geant::Double_v;
+using Float_v = geant::Float_v;
 
 template <typename T>
 using Vector3D = vecgeom::Vector3D<T>;

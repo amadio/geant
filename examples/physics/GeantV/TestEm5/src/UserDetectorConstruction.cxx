@@ -16,11 +16,11 @@
 namespace userapplication {
 
 
-UserDetectorConstruction::UserDetectorConstruction(Geant::GeantRunManager *runmgr) : Geant::GeantVDetectorConstruction(runmgr) {
+UserDetectorConstruction::UserDetectorConstruction(geant::GeantRunManager *runmgr) : geant::GeantVDetectorConstruction(runmgr) {
   fTargetMatName            = "NIST_MAT_Au";        // default target material is NIST Au
   fTargetLogicalVolumeID    = -1;
   fTargetRegionIndx         = -1;
-  fTargetX                  = 19.296*geant::um;     // set to thickness by defult and the half will be taken in ComputeSetup
+  fTargetX                  = 19.296*geant::units::um;     // set to thickness by defult and the half will be taken in ComputeSetup
   fTargetYZ                 = fTargetX*1000.;       // changed to fTargetYZ = 10.; for the hansonModified example - to test pe effect
   fWorldYZ                  = 1.2*fTargetYZ;
   fWorldX                   = 1.2*fTargetX;         // changed to 28944 for the hansonModified example - to test pe effect
@@ -28,8 +28,8 @@ UserDetectorConstruction::UserDetectorConstruction(Geant::GeantRunManager *runmg
   fTargetMaterial           = geantphysics::Material::NISTMaterial(fTargetMatName);
   fWorldMaterial            = geantphysics::Material::NISTMaterial("NIST_MAT_Galactic");
   //
-  fGammaCut                 = 13.00*geant::um;
-  fElectronCut              =  1.12*geant::um;
+  fGammaCut                 = 13.00*geant::units::um;
+  fElectronCut              =  1.12*geant::units::um;
   fPositronCut              =  fElectronCut;
 }
 
@@ -44,14 +44,14 @@ void UserDetectorConstruction::CreateMaterials() {
   double a, density, massfraction;
   //
   // create simple (single element) custom material Gold:
-  new geantphysics::Material("Gold", z=79, a=196.97*geant::g/geant::mole, density=19.32*geant::g/geant::cm3);
+  new geantphysics::Material("Gold", z=79, a=196.97*geant::units::g/geant::units::mole, density=19.32*geant::units::g/geant::units::cm3);
   //
   // create complex custom material Water (adding elements with number of atoms in the molecule):
   // 1. create the custom H and O elements
-  geantphysics::Element*  elH    = new geantphysics::Element("Hydrogen", "H", z =  1, a =  1.01 *geant::g/geant::mole);
-  geantphysics::Element*  elO    = new geantphysics::Element("Oxygen"  , "O", z =  8, a = 16.00 *geant::g/geant::mole);
+  geantphysics::Element*  elH    = new geantphysics::Element("Hydrogen", "H", z =  1, a =  1.01 *geant::units::g/geant::units::mole);
+  geantphysics::Element*  elO    = new geantphysics::Element("Oxygen"  , "O", z =  8, a = 16.00 *geant::units::g/geant::units::mole);
   // 2. create the material object by specifying density and number of components to be added
-  geantphysics::Material* matH2O = new geantphysics::Material("Water"  , density = 1.000*geant::g/geant::cm3 , ncomponents = 2);
+  geantphysics::Material* matH2O = new geantphysics::Material("Water"  , density = 1.000*geant::units::g/geant::units::cm3 , ncomponents = 2);
   matH2O->AddElement(elH, natoms = 2);
   matH2O->AddElement(elO, natoms = 1);
   // 3. add the elements(components) to the material by specifying number of atoms from the given element
@@ -59,7 +59,7 @@ void UserDetectorConstruction::CreateMaterials() {
   // create complex custom material (adding components by fractional mass) Air:
   // 1. use NIST element N and the previously created custom element elO
   // 2. create the material object by specifying density and number of components to be added
-  geantphysics::Material* matAir = new geantphysics::Material("Air"    , density = 1.290*geant::mg/geant::cm3, ncomponents = 2);
+  geantphysics::Material* matAir = new geantphysics::Material("Air"    , density = 1.290*geant::units::mg/geant::units::cm3, ncomponents = 2);
   matAir->AddElement(geantphysics::Element::NISTElement(z=7), massfraction = 0.7);
   matAir->AddElement(elO                                    , massfraction = 0.3);
 }

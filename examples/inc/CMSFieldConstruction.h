@@ -17,7 +17,7 @@
 class CMSmagField;
 class GUVMagneticField;
 
-class CMSFieldConstruction : public Geant::cxx::UserFieldConstruction 
+class CMSFieldConstruction : public geant::cxx::UserFieldConstruction 
 #ifdef  USE_ROOT_TObject
                                , public TObject
 #endif
@@ -75,7 +75,7 @@ CreateFieldAndSolver(bool useRungeKutta, VVectorField** fieldPP )
 {
   using FieldType = CMSmagField;  
 
-  Geant::Print("CMSFieldConstruction::CreateFieldAndSolver", " Called with Arg: useRungeKutta=");
+  geant::Print("CMSFieldConstruction::CreateFieldAndSolver", " Called with Arg: useRungeKutta=");
   if(useRungeKutta )   { printf("on"); }  else { printf("Off"); }
 
   if( fieldPP ) {
@@ -97,7 +97,7 @@ CreateFieldAndSolver(bool useRungeKutta, VVectorField** fieldPP )
 
   fpField= fieldPtr;  // UserFieldConstruction::SetField( fieldPtr ); 
   
-  Geant::Print("CMSFieldConstruction::CreateFieldAndSolver", "CMSmagfield created.");
+  geant::Print("CMSFieldConstruction::CreateFieldAndSolver", "CMSmagfield created.");
   
   if(useRungeKutta){
     CreateSolverForField<FieldType>(fieldPtr);

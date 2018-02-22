@@ -21,9 +21,9 @@ NISTElementData::NISTElementData() {
 
 // we compute from the isotope mass to conserve consistency with some particle masses
 double NISTElementData::GetAtomicMass(int z, int n) {
-   using geant::kElectronMassC2;
-   using geant::kAvogadro;
-   using geant::kCLightSquare;
+   using geant::units::kElectronMassC2;
+   using geant::units::kAvogadro;
+   using geant::units::kCLightSquare;
    constexpr double unitconv = kAvogadro/kCLightSquare;
 
    double theMass = -1.0;
@@ -81,11 +81,11 @@ double NISTElementData::GetBindingEnergy(int z, int n) {
 }
 
 void NISTElementData::PrintData(int z) {
-   using geant::g;
-   using geant::mole;
-   using geant::kAvogadro;
-   using geant::perCent;
-   using geant::GeV;
+   using geant::units::g;
+   using geant::units::mole;
+   using geant::units::kAvogadro;
+   using geant::units::perCent;
+   using geant::units::GeV;
 
    std::cout<<"   *** NIST element data for "<<GetElementSymbol(z)<<" Z = "<<z<<" :"<<std::endl;
    std::cout<<"   Mean Atomic mass = "<<GetMeanAtomicMass(z)/(g/mole) << " [g/mole]" <<std::endl;

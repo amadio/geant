@@ -49,7 +49,7 @@ Vector_t<Element*> Element::gTheElementTable;  // the global element table
 //ctr for direct build
 Element::Element(const std::string &name, const std::string &symbol, double  zeff, double  aeff)
   : fName(name), fSymbol(symbol), fElementProperties(nullptr) {
-     using geant::perMillion;
+     using geant::units::perMillion;
 
      int iz = std::lrint(zeff);
      if (iz<1) {
@@ -353,9 +353,9 @@ void Element::AddNaturalIsotopes() {
 //
 // Printouts
 std::ostream& operator<<(std::ostream& flux, const Element* element) {
-  using geant::g;
-  using geant::mole;
-  using geant::perCent;
+  using geant::units::g;
+  using geant::units::mole;
+  using geant::units::perCent;
 
   std::ios::fmtflags mode = flux.flags();
   flux.setf(std::ios::fixed,std::ios::floatfield);

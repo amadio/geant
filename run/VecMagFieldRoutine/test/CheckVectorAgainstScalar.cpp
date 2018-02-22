@@ -17,15 +17,15 @@
 
 using namespace std;
 
-using Double_v      = Geant::Double_v;
+using Double_v      = geant::Double_v;
 using ThreeVector   = vecgeom::Vector3D<double>;
 using ThreeVector_v = vecgeom::Vector3D<Double_v>;
 
 template <typename T>
 using vector_t        = std::vector<T>;
-constexpr float tesla = geant::tesla;
-// constexpr float kilogauss = geant::kilogauss;
-constexpr float millimeter = geant::millimeter;
+constexpr float tesla = geant::units::tesla;
+// constexpr float kilogauss = geant::units::kilogauss;
+constexpr float millimeter = geant::units::millimeter;
 
 const double kRMax = 9000 * millimeter;
 const double kZMax = 16000 * millimeter;
@@ -95,11 +95,11 @@ int main()
 #ifdef VERBOSE
   cout << "\nVector fields start: " << endl;
 #endif
-  size_t inputVcLen          = ceil(((double)n) / Geant::kVecLenD);
+  size_t inputVcLen          = ceil(((double)n) / geant::kVecLenD);
   ThreeVector_v *inputForVec = new ThreeVector_v[inputVcLen];
   size_t init                = 0;
-  for (size_t i = 0; i < n; i += Geant::kVecLenD) {
-    for (size_t j = 0; j < Geant::kVecLenD; ++j) {
+  for (size_t i = 0; i < n; i += geant::kVecLenD) {
+    for (size_t j = 0; j < geant::kVecLenD; ++j) {
       vecCore::Set(inputForVec[init].x(), j, posVec[i + j].x());
       vecCore::Set(inputForVec[init].y(), j, posVec[i + j].y());
       vecCore::Set(inputForVec[init].z(), j, posVec[i + j].z());
@@ -125,9 +125,9 @@ int main()
 
   // Now compare the results scalar/vector
   for (size_t i = 0; i < inputVcLen; ++i) {
-    for (size_t lane = 0; lane < Geant::kVecLenD; ++lane) {
+    for (size_t lane = 0; lane < geant::kVecLenD; ++lane) {
       // ThreeVector testVec2(xyzField_v[0][j], xyzField_v[1][j], xyzField_v[2][j]);
-      size_t k = i * Geant::kVecLenD + lane;
+      size_t k = i * geant::kVecLenD + lane;
       ThreeVector testVec(vecCore::Get(outputVec[i].x(), lane), vecCore::Get(outputVec[i].y(), lane),
                           vecCore::Get(outputVec[i].z(), lane));
 #ifdef VERBOSE

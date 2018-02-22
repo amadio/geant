@@ -5,7 +5,7 @@
 #include <base/Vector3D.h>
 #include <Geant/Config.h>
 
-namespace Geant {
+namespace geant {
 
   typedef vecgeom::VectorBackend::Float_v Float_v;
   typedef vecgeom::VectorBackend::Real_v Double_v;

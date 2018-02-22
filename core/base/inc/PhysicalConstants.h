@@ -30,6 +30,7 @@
 #include "SystemOfUnits.h"
 
 namespace geant {
+namespace units {
 
 //
 //
@@ -109,6 +110,7 @@ static constexpr double kGasThreshold   = 10.*mg/cm3;
 //
 static constexpr double kUniverseMeanDensity = 1.e-25*g/cm3;
 
+}  // namespace constants
 }  // namespace geant
 
 #endif // PHYSICALCONSTANTS_H

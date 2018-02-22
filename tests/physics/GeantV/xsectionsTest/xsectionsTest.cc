@@ -33,8 +33,8 @@ int main(int /*argc*/, char** /*argv*/) {
 
   writef.setf( std::ios::scientific, std::ios::floatfield );
 
-  double kinEnergy = 10.* geant::MeV;
-  double maxEnergy = 1000 * geant::GeV;
+  double kinEnergy = 10.* geant::units::MeV;
+  double maxEnergy = 1000 * geant::units::GeV;
   int particlePDG = -321;
   //int particlePDG = 2212;
   int Z = 82;
@@ -46,17 +46,17 @@ int main(int /*argc*/, char** /*argv*/) {
     {
     
     txs = totxs.GetIsotopeCrossSection(geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetInternalCode(),
-			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::millibarn;
+			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::units::millibarn;
 
     ixs = inexs.GetIsotopeCrossSection(geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetInternalCode(),
-			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::millibarn;
+			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::units::millibarn;
 
     exs = elaxs.GetIsotopeCrossSection(geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetInternalCode(),
-			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::millibarn;
+			       kinEnergy, geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGMass(), Z, N) / geant::units::millibarn;
 
     std::cout <<"energyKin " << kinEnergy <<  " total " << txs << " elastic " << exs << " inelastic " << ixs <<  std::endl;
 
-    writef << kinEnergy/geant::MeV <<"  \t" << ixs << "  \t"
+    writef << kinEnergy/geant::units::MeV <<"  \t" << ixs << "  \t"
      << exs << "  \t"<< 0 << "  \t"<< txs << std::endl;
 
     kinEnergy *= 1.001;

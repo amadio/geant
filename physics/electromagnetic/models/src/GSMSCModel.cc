@@ -83,11 +83,11 @@ void GSMSCModel::Initialize() {
     fPWACorrection->Initialise(GetListActiveRegions());
   }
   // Register MSCData into the tracks data
-  fMSCdata = Geant::TrackDataMgr::GetInstance()->RegisterDataType<MSCdata>("MSCdata");
+  fMSCdata = geant::TrackDataMgr::GetInstance()->RegisterDataType<MSCdata>("MSCdata");
 }
 
 
-void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
+void GSMSCModel::StepLimit(geant::GeantTrack *gtrack, geant::GeantTaskData *td) {
   bool   isOnBoundary         = gtrack->Boundary();
   const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double kineticEnergy        = gtrack->T();
@@ -379,8 +379,8 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
     if (mscdata.fIsSingleScattering) {
       // sample single scattering
       double lekin  = std::log(kineticEnergy);
-      double pt2    = kineticEnergy*(kineticEnergy+2.0*geant::kElectronMassC2);
-      double beta2  = pt2/(pt2+geant::kElectronMassC2*geant::kElectronMassC2);
+      double pt2    = kineticEnergy*(kineticEnergy+2.0*geant::units::kElectronMassC2);
+      double beta2  = pt2/(pt2+geant::units::kElectronMassC2*geant::units::kElectronMassC2);
       double cost   = fGSTable->SingleScattering(1., scra, lekin, beta2, matCut->GetMaterial()->GetIndex(), td);
       // protection
       cost = std::max(cost,-1.0);
@@ -388,7 +388,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
       // compute sint
       double dum    = 1.-cost;
       double sint   = std::sqrt(dum*(2.-dum));
-      double phi    = geant::kTwoPi*td->fRndm->uniform();
+      double phi    = geant::units::kTwoPi*td->fRndm->uniform();
       double sinPhi = std::sin(phi);
       double cosPhi = std::cos(phi);
       mscdata.SetNewDirectionMsc(sint*cosPhi,sint*sinPhi,cost);
@@ -402,7 +402,7 @@ void GSMSCModel::StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   ConvertTrueToGeometricLength(gtrack, td);
 }
 
-bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
+bool GSMSCModel::SampleScattering(geant::GeantTrack *gtrack, geant::GeantTaskData *td) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone && mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
@@ -456,7 +456,7 @@ bool GSMSCModel::SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskDat
 }
 
 
-void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
+void GSMSCModel::ConvertTrueToGeometricLength(geant::GeantTrack *gtrack, geant::GeantTaskData* /*td*/) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fPar1 = -1.;
   mscdata.fPar2 =  0.;
@@ -484,7 +484,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
       } else {
         mscdata.fTheZPathLenght = mscdata.fLambda1*(1.-std::exp(-tau));
       }
-    } else if(ekin<geant::kElectronMassC2 || mscdata.fTheTrueStepLenght==mscdata.fRange)  {
+    } else if(ekin<geant::units::kElectronMassC2 || mscdata.fTheTrueStepLenght==mscdata.fRange)  {
       mscdata.fPar1 = 1./mscdata.fRange ;                    // alpha =1/range_init for Ekin<mass
       mscdata.fPar2 = 1./(mscdata.fPar1*mscdata.fLambda1) ;  // 1/(alphaxlambda01)
       mscdata.fPar3 = 1.+mscdata.fPar2 ;
@@ -513,7 +513,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::
 }
 
 
-void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData* /*td*/) {
+void GSMSCModel::ConvertGeometricToTrueLength(geant::GeantTrack *gtrack, geant::GeantTaskData* /*td*/) {
   // init
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsEndedUpOnBoundary = false;
@@ -558,7 +558,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::
   }
 }
 
-void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) {
+void GSMSCModel::SampleMSC(geant::GeantTrack *gtrack, geant::GeantTaskData *td) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsNoScatteringInMSC = false;
   //
@@ -592,7 +592,7 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   if (fIsUseAccurate) {    // - use accurate energy loss correction
     kineticEnergy -= 0.5*eloss;  // mean energy along the full step
     // other parameters for energy loss corrections
-    tau    = kineticEnergy/geant::kElectronMassC2; // where kinEnergy is the mean kinetic energy
+    tau    = kineticEnergy/geant::units::kElectronMassC2; // where kinEnergy is the mean kinetic energy
     tau2   = tau*tau;
     eps0   = eloss/kineticEnergy0; // energy loss fraction to the begin step energy
     epsm   = eloss/kineticEnergy;  // energy loss fraction to the mean step energy
@@ -603,7 +603,7 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   } else {                  // - take only mean energy
       kineticEnergy  -= 0.5*eloss;  // mean energy along the full step
       efEnergy        = kineticEnergy;
-      double factor   = 1./(1. + kineticEnergy/(2.*geant::kElectronMassC2));
+      double factor   = 1./(1. + kineticEnergy/(2.*geant::units::kElectronMassC2));
       eps0            = eloss/kineticEnergy0;
       epsm            = eps0/(1.-0.5*eps0);
       double dum      = 0.3*(1.-factor*(1.-0.333333*factor))*eps0*eps0;
@@ -653,8 +653,8 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   } else {
     // sample 2 scattering cost1, sint1, cost2 and sint2 for half path
     double lekin  = std::log(efEnergy);
-    double pt2    = efEnergy*(efEnergy+2.0*geant::kElectronMassC2);
-    double beta2  = pt2/(pt2+geant::kElectronMassC2*geant::kElectronMassC2);
+    double pt2    = efEnergy*(efEnergy+2.0*geant::units::kElectronMassC2);
+    double beta2  = pt2/(pt2+geant::units::kElectronMassC2*geant::units::kElectronMassC2);
      // backup GS angular dtr pointer (kinetic energy and delta index in case of Mott-correction)
      // if the first was an msc sampling (the same will be used if the second is also an msc step)
      GSMSCTable::GSMSCAngularDtr *gsDtr = nullptr;
@@ -678,10 +678,10 @@ void GSMSCModel::SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) 
   // sample 2 azimuthal angles
   // get 2 random numbers
   td->fRndm->uniform_array(2, rndArray);
-  double phi1 = geant::kTwoPi*rndArray[0];
+  double phi1 = geant::units::kTwoPi*rndArray[0];
   sinPhi1     = std::sin(phi1);
   cosPhi1     = std::cos(phi1);
-  double phi2 = geant::kTwoPi*rndArray[1];
+  double phi2 = geant::units::kTwoPi*rndArray[1];
   sinPhi2     = std::sin(phi2);
   cosPhi2     = std::cos(phi2);
   // compute final direction realtive to z-dir
@@ -827,11 +827,11 @@ void GSMSCModel::ComputeParameters(const MaterialCuts *matcut, double ekin, doub
  pMCtoG2PerG1 = 1.0;
  //
  // use Moliere's screening (with Mott-corretion if it was requested)
- if (ekin<10.*geant::eV) ekin = 10.*geant::eV;
+ if (ekin<10.*geant::units::eV) ekin = 10.*geant::units::eV;
  // total mometum square
- double pt2     = ekin*(ekin+2.0*geant::kElectronMassC2);
+ double pt2     = ekin*(ekin+2.0*geant::units::kElectronMassC2);
  // beta square
- double beta2   = pt2/(pt2+geant::kElectronMassC2*geant::kElectronMassC2);
+ double beta2   = pt2/(pt2+geant::units::kElectronMassC2*geant::units::kElectronMassC2);
  // current material index
  int    matindx = mat->GetIndex();
  // Moliere's b_c
@@ -873,10 +873,10 @@ double GSMSCModel::GetTransportMeanFreePathOnly(const MaterialCuts *matcut, doub
   double g1      = 0.0; // first transport mean free path
   //
   // use Moliere's screening (with Mott-corretion if it was requested)
-  if  (ekin<10.*geant::eV) ekin = 10.*geant::eV;
+  if  (ekin<10.*geant::units::eV) ekin = 10.*geant::units::eV;
   // total mometum square in Geant4 internal energy2 units which is MeV2
-  double pt2     = ekin*(ekin+2.0*geant::kElectronMassC2);
-  double beta2   = pt2/(pt2+geant::kElectronMassC2*geant::kElectronMassC2);
+  double pt2     = ekin*(ekin+2.0*geant::units::kElectronMassC2);
+  double beta2   = pt2/(pt2+geant::units::kElectronMassC2*geant::units::kElectronMassC2);
   int    matindx = mat->GetIndex();
   double bc      = fGSTable->GetMoliereBc(matindx);
   // get the Mott-correcton factors if Mott-correcton was requested by the user
@@ -900,7 +900,7 @@ double GSMSCModel::GetTransportMeanFreePathOnly(const MaterialCuts *matcut, doub
 }
 
 
-double GSMSCModel::RandomizeTrueStepLength(Geant::GeantTaskData *td, double tlimit) {
+double GSMSCModel::RandomizeTrueStepLength(geant::GeantTaskData *td, double tlimit) {
   double tempTLimit = tlimit;
   do {
     tempTLimit = td->fRndm->Gauss(tlimit,0.1*tlimit);

@@ -67,8 +67,8 @@ private:
   static constexpr int     gMaxZet    = 98;                 // max. Z for which correction data were computed (98)
   static constexpr int     gNumEkin   = 31;                 // number of kinetic energy grid points for Mott correction
   static constexpr int     gNumBeta2  = 16;                 // \beta^2 values between [fMinBeta2-fMaxBeta2]
-  static constexpr double  gMinEkin   =   1.*geant::keV;    // minimum kinetic energy value
-  static constexpr double  gMidEkin   = 100.*geant::keV;    // kinetic energy at the border of the E_{kin}-\beta^2 grids
+  static constexpr double  gMinEkin   =   1.*geant::units::keV;    // minimum kinetic energy value
+  static constexpr double  gMidEkin   = 100.*geant::units::keV;    // kinetic energy at the border of the E_{kin}-\beta^2 grids
   static constexpr double  gMaxBeta2  =   0.9999;           // maximum \beta^2 value
   //
   double                   fMaxEkin;        // from max fMaxBeta2 = 0.9999 (~50.5889 [MeV])

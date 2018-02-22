@@ -23,8 +23,8 @@
   cudaStream_t stream
  */
 
-__global__ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t workspaceSizeOf, size_t ntracks,
-                                    Geant::GeantTrack_v *input, Geant::GeantTrack_v *output)
+__global__ void PropagateGeantTrack(geant::GeantTaskData *workSpace, size_t workspaceSizeOf, size_t ntracks,
+                                    geant::GeantTrack_v *input, geant::GeantTrack_v *output)
 {
 
   /* All at once would be:
@@ -32,7 +32,7 @@ __global__ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t work
   input->PropagateTracks(*output,tid);
   */
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  Geant::GeantTaskData *td = (Geant::GeantTaskData *)(((char *)workSpace) + workspaceSizeOf * tid);
+  geant::GeantTaskData *td = (geant::GeantTaskData *)(((char *)workSpace) + workspaceSizeOf * tid);
   td->fTransported->Clear();
 
 #if 0
@@ -64,9 +64,9 @@ __global__ void PropagateGeantTrack(Geant::GeantTaskData *workSpace, size_t work
     printf("output bitset %ld\n", output->fSelected->GetNbits());
 }
 
-int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
-                            size_t ntracks, vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
-                            vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,
+int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
+                            size_t ntracks, vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &input,
+                            vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &output,
 
                             int nBlocks, int nThreads, cudaStream_t stream)
 {
@@ -86,7 +86,7 @@ __global__
 void transport_kernel()
 {
   unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  Geant::GeantTaskData *td = (Geant::GeantTaskData * )(((char *) workSpace) + workspaceSizeOf * tid);
+  geant::GeantTaskData *td = (geant::GeantTaskData * )(((char *) workSpace) + workspaceSizeOf * tid);
   td->fTransported->Clear();
 
   GeantPropagator *propagator = td->fPropagator;

@@ -5,7 +5,7 @@
 #include "TGeoExtension.h"
 #endif
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /** @brief Volume-basket manager connector structure attached to volumes as extension */

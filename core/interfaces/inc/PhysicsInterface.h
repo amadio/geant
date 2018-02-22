@@ -18,7 +18,7 @@
 #include "base/Global.h"
 #include "GeantFwd.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
   class GeantPropagator;
   class SimulationStage;
@@ -32,9 +32,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PhysicsInterface {
 
 public:
-  using GeantTrack_v  = Geant::GeantTrack_v;
-  using GeantTaskData = Geant::GeantTaskData;
-  using TrackDataMgr  = Geant::TrackDataMgr;
+  using GeantTrack_v  = geant::GeantTrack_v;
+  using GeantTaskData = geant::GeantTaskData;
+  using TrackDataMgr  = geant::TrackDataMgr;
 
 public:
   /**
@@ -52,7 +52,7 @@ public:
   virtual void Initialize() {}
 
   // Interface methods to obtain physics realted symulation stages when V3 is used.
-  // These methods are called from the Geant::GeantPropagator::CreateSimulationStages
+  // These methods are called from the geant::GeantPropagator::CreateSimulationStages
   // methods (when real-physics is used) to obtain the pointers to the physics
   // simulation stages defined in the real-physics library.
   /** @brief Obtain/create physics step limit computation stage.
@@ -60,24 +60,24 @@ public:
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
     */
-  virtual  Geant::SimulationStage* CreateComputeIntLStage(Geant::GeantPropagator *prop) = 0;
-  virtual  Geant::SimulationStage* CreatePrePropagationStage(Geant::GeantPropagator *prop) = 0;
-  virtual  Geant::SimulationStage* CreatePostPropagationStage(Geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreateComputeIntLStage(geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreatePrePropagationStage(geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreatePostPropagationStage(geant::GeantPropagator *prop) = 0;
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
     *
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
     */
-  virtual  Geant::SimulationStage* CreateAlongStepActionStage(Geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreateAlongStepActionStage(geant::GeantPropagator *prop) = 0;
   /** @brief Obtain/create post step action (discrete part) computation stage.
     *
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created PostStepAction real-physics simulation stage object.
     */
-  virtual  Geant::SimulationStage* CreatePostStepActionStage(Geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreatePostStepActionStage(geant::GeantPropagator *prop) = 0;
 
-  virtual  Geant::SimulationStage* CreateAtRestActionStage(Geant::GeantPropagator *prop) = 0;
+  virtual  geant::SimulationStage* CreateAtRestActionStage(geant::GeantPropagator *prop) = 0;
 
   /**
    * @brief Method that computes the physics step limit.

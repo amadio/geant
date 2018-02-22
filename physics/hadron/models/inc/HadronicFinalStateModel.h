@@ -93,7 +93,7 @@ public:
    *  @param xxx
    */
 
-  virtual int SampleFinalState(LightTrack &track, Isotope* targetisotope, Geant::GeantTaskData *td) = 0;
+  virtual int SampleFinalState(LightTrack &track, Isotope* targetisotope, geant::GeantTaskData *td) = 0;
 
   //--- Getters ---
 

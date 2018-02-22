@@ -33,8 +33,8 @@
 //    __constant device_constant::gTolerance;
 //
 // In gcc and nvcc host code host_constant::gTolerance is aliased
-// to Geant::cxx::gTolerance and Geant::cuda::gTolerance respectively.
-// In nvcc device code, Geant::cuda::gTolerance is aliased to
+// to geant::cxx::gTolerance and geant::cuda::gTolerance respectively.
+// In nvcc device code, geant::cuda::gTolerance is aliased to
 // device_constant::gTolerance.
 
 #ifndef VECCORE_CUDA

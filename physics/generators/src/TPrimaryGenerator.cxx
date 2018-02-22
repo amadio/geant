@@ -52,7 +52,7 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
   // set charge
   fCharge = fPartPDG->Charge();
   if ((int)fCharge != fCharge)
-     Geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
+     geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
 
 
   // set total energy [GeV]
@@ -71,7 +71,7 @@ void TPrimaryGenerator::SetParticleXYZDir(double xdir, double ydir, double zdir)
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::InitPrimaryTrack(Geant::GeantTrack &gtrack) {
+void TPrimaryGenerator::InitPrimaryTrack(geant::GeantTrack &gtrack) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);

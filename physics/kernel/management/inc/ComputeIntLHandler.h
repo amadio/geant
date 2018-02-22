@@ -5,7 +5,7 @@
 // from geantV
 #include "Handler.h"
 // from geantV
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantPropagator;
   class GeantTrack;
@@ -25,25 +25,25 @@ namespace geantphysics {
  */
 
 
-class ComputeIntLHandler : public Geant::Handler {
+class ComputeIntLHandler : public geant::Handler {
 public:
   /** @brief Default constructor */
-  ComputeIntLHandler() : Geant::Handler() {}
+  ComputeIntLHandler() : geant::Handler() {}
 
   /**
    * @brief Default constructor
    * @param propagator Propagator working with this handler
    */
-  ComputeIntLHandler(int threshold, Geant::GeantPropagator *propagator);
+  ComputeIntLHandler(int threshold, geant::GeantPropagator *propagator);
 
   /** @brief dtr */
   virtual ~ComputeIntLHandler();
 
   /** @brief Scalar DoIt interface */
-  virtual void DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td);
+  virtual void DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
-  virtual void DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td);
+  virtual void DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td);
 
 private:
   ComputeIntLHandler(const ComputeIntLHandler &) = delete;

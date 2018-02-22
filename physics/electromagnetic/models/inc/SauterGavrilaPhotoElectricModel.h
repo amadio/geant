@@ -6,11 +6,11 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class GeantTaskData;
 }
-} // namespace Geant
+} // namespace geant
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -114,7 +114,7 @@ public:
    *                          the secondary tracks generated in the interaction.
    * @return                  Number of secondary tracks generated in the interaction.
    */
-  virtual int SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
+  virtual int SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
   //@}
 
   /**
@@ -168,7 +168,7 @@ private:
    * photoelectric effect.
    */
 
-  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const;
+  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::GeantTaskData *td) const;
 
   //---------------------------------------------
   // TestSampleTargetElementIndex
@@ -184,7 +184,7 @@ private:
    * @param[in] td        GeantTaskData needed to generate random numbers.
    * @return              Output file SampleTargetElementIndexTest_Z that contains the expected pdf and the sampled one.
    */
-  void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, Geant::GeantTaskData *td) const;
+  void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::GeantTaskData *td) const;
 
   //---------------------------------------------
   // CalculateDiffCrossSection
@@ -286,12 +286,12 @@ private:
    * does not introduce appreciable errors in the description of any photoionisation event, irrespective of the atomic
    * shell or of the photon energy.
    * @param[in]  energy        Primary particle (gamma) kinetic energy.
-   * @param[in]  td            Geant::GeantTaskData used to generate random numbers.
+   * @param[in]  td            geant::GeantTaskData used to generate random numbers.
    * @param[out] costheta      Cosinus of the polar angle (theta) of the secondary particle (photoelectron e-).
    *
    *
    */
-  void SamplePhotoElectronDirection_Rejection(double energy, double &costheta, Geant::GeantTaskData *td) const;
+  void SamplePhotoElectronDirection_Rejection(double energy, double &costheta, geant::GeantTaskData *td) const;
 
   //---------------------------------------------
   // LoadData

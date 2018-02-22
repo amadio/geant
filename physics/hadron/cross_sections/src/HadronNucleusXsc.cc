@@ -63,7 +63,7 @@ double HadronNucleusXsc::CalculateCrossSection(int particlePDG, double mass, dou
     
     cofInelastic = 2.2;
     cofTotal     = 2.0;
-    R = 1.3*geant::fermi;
+    R = 1.3*geant::units::fermi;
     R *= std::pow(double(A), 0.3333);
   }
   else
@@ -87,7 +87,7 @@ double HadronNucleusXsc::CalculateCrossSection(int particlePDG, double mass, dou
 
   if( A > 1 )
   { 
-    nucleusSquare = cofTotal*geant::kPi*R*R;   // basically 2piRR
+    nucleusSquare = cofTotal*geant::units::kPi*R*R;   // basically 2piRR
     ratio = sigma/nucleusSquare;
 
     xsection =  nucleusSquare*std::log( 1. + ratio );
@@ -175,7 +175,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
   double hnXsc(0);
 
 
-  double tM = 0.939 * geant::GeV;  // ~mean neutron and proton ???
+  double tM = 0.939 * geant::units::GeV;  // ~mean neutron and proton ???
 
   double pM   = mass;
   double pE   = energyKin + mass; // total energy!!!!
@@ -210,7 +210,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
   {
     if( pLab >= 373.)
     {
-      xsection =  GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+      xsection =  GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::units::millibarn;
 
       fNucleonElasticXsc = 6.5 + 0.308*std::pow(std::log(sMand/400.),1.65) + 9.19*std::pow(sMand,-0.458);
     
@@ -306,7 +306,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
   {
     if( pLab >= 373.) // pdg due to TOTEM data
     {
-      xsection =  GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+      xsection =  GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::units::millibarn;
 
       fNucleonElasticXsc = 6.5 + 0.308*std::pow(std::log(sMand/400.),1.65) + 9.19*std::pow(sMand,-0.458);
      
@@ -471,7 +471,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
       }
       else //  pLab > 100 // my
       {
-        hpXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+        hpXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::units::millibarn;
         fNucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);    
       }
       fNucleonTotalXsc = hpXsc;
@@ -544,7 +544,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
       }
       else   // mb 
       {
-        hnXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+        hnXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::units::millibarn;
         fNucleonElasticXsc = 3. + 13./pLab;
       }
       fNucleonTotalXsc = hnXsc;
@@ -610,7 +610,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
       }
       else //  pLab > 100 // my
       {
-        hnXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+        hnXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::units::millibarn;
         fNucleonElasticXsc = 3.0 + 6.20/( (logP - 0.336)*(logP - 0.336) + 0.8);    
       }
       fNucleonTotalXsc = hnXsc;
@@ -681,7 +681,7 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
       }
       else   // mb
       {
-        hpXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::millibarn;
+        hpXsc = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG)/geant::units::millibarn;
         fNucleonElasticXsc = 3. + 13./pLab;
       }
       fNucleonTotalXsc = hpXsc;
@@ -843,12 +843,12 @@ HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, double ene
     }
     fNucleonTotalXsc = xsection;
   } 
-  fNucleonTotalXsc   *= geant::millibarn; // parametrised in mb
-  fNucleonElasticXsc *= geant::millibarn; // parametrised in mb
+  fNucleonTotalXsc   *= geant::units::millibarn; // parametrised in mb
+  fNucleonElasticXsc *= geant::units::millibarn; // parametrised in mb
 
   if( proton && geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGCharge() > 0. )
   {
-    double proton_mass = geant::kProtonMassC2;
+    double proton_mass = geant::units::kProtonMassC2;
     double cB = GetCoulombBarrier(particlePDG, mass, energyKin, targetPDG, proton_mass);
     fNucleonTotalXsc   *= cB;
     fNucleonElasticXsc *= cB; 
@@ -871,14 +871,14 @@ HadronNucleusXsc::GetHadronNucleonXscPDG(int particlePDG, double mass, double en
   double xsection(0);
   int Zt=1, Nt=1, At=1;
 
-  double targ_mass = 0.939 * geant::GeV;  // ~mean neutron and proton ???
+  double targ_mass = 0.939 * geant::units::GeV;  // ~mean neutron and proton ???
 
   double proj_mass     = mass;
   double proj_momentum = std::sqrt(energyKin*(energyKin + 2*proj_mass));
  
   double sMand = CalcMandelstamS ( proj_mass , targ_mass , proj_momentum );
 
-  sMand         /= geant::GeV * geant::GeV;  // in GeV for parametrisation
+  sMand         /= geant::units::GeV * geant::units::GeV;  // in GeV for parametrisation
 
   // General PDG fit constants
 
@@ -992,7 +992,7 @@ HadronNucleusXsc::GetHadronNucleonXscPDG(int particlePDG, double mass, double en
                       + 40.15*std::pow(sMand,-eta1) - 30.*std::pow(sMand,-eta2));
     }
   } 
-  xsection *= geant::millibarn; // parametrised in mb
+  xsection *= geant::units::millibarn; // parametrised in mb
 
   fNucleonTotalXsc     = xsection;
   fNucleonInelasticXsc = 0.75*xsection;
@@ -1011,7 +1011,7 @@ double HadronNucleusXsc::GetKaonNucleonXscGG(int particlePDG, double mass, doubl
 
   double pLab = std::sqrt(energyKin*(energyKin + 2*mass));
   
-  pLab /= geant::GeV;
+  pLab /= geant::units::GeV;
   double LogPlab = std::log( pLab );
   double sqrLogPlab = LogPlab * LogPlab;
 
@@ -1148,12 +1148,12 @@ double HadronNucleusXsc::GetKaonNucleonXscGG(int particlePDG, double mass, doubl
       fNucleonTotalXsc    = (cofLogT*ld2 + 19.5)/(1. + .46/sp + 1.6/p4) + 7.6/md;
     }
   }
-  fNucleonTotalXsc   *= geant::millibarn; // parametrised in mb
-  fNucleonElasticXsc *= geant::millibarn; // parametrised in mb
+  fNucleonTotalXsc   *= geant::units::millibarn; // parametrised in mb
+  fNucleonElasticXsc *= geant::units::millibarn; // parametrised in mb
 
   if( proton && geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGCharge() > 0. )
   {
-    double proton_mass = geant::kProtonMassC2;
+    double proton_mass = geant::units::kProtonMassC2;
     double cB = GetCoulombBarrier(particlePDG, mass, energyKin, targetPDG, proton_mass);
     fNucleonTotalXsc   *= cB;
     fNucleonElasticXsc *= cB; 
@@ -1183,12 +1183,12 @@ double HadronNucleusXsc::GetCoulombBarrier(int particlePDG, double proj_mass, do
 {
   double ratio;
 
-  double tR = 0.895*geant::fermi, pR;
+  double tR = 0.895*geant::units::fermi, pR;
 
-  if     ( particlePDG == 2212 ) pR = 0.895*geant::fermi;
-  else if( particlePDG == 211 )  pR = 0.663*geant::fermi;
-  else if( particlePDG == 321 )  pR = 0.340*geant::fermi;
-  else                           pR = 0.500*geant::fermi;
+  if     ( particlePDG == 2212 ) pR = 0.895*geant::units::fermi;
+  else if( particlePDG == 211 )  pR = 0.663*geant::units::fermi;
+  else if( particlePDG == 321 )  pR = 0.340*geant::units::fermi;
+  else                           pR = 0.500*geant::units::fermi;
 
   double pZ = geantphysics::Particle::GetParticleByPDGCode(particlePDG)->GetPDGCharge();
   double tZ = geantphysics::Particle::GetParticleByPDGCode(targetPDG)->GetPDGCharge(); 
@@ -1204,7 +1204,7 @@ double HadronNucleusXsc::GetCoulombBarrier(int particlePDG, double proj_mass, do
 
   double totTcm  = totEcm - pM -tM;
 
-  double bC    = geant::kFineStructConst * geant::kHBarPlanckCLight *pZ*tZ;
+  double bC    = geant::units::kFineStructConst * geant::units::kHBarPlanckCLight *pZ*tZ;
            bC   /= pR + tR;
            bC   /= 2.;  // 4., 2. parametrisation cof ??? vmg
 
@@ -1222,7 +1222,7 @@ double HadronNucleusXsc::GetNucleusRadius(int At)
 {
   double oneThird = 1.0/3.0;
   double cubicrAt = std::pow(double(At), oneThird); 
-  const double RadiusConst = 1.08 * geant::fermi;
+  const double RadiusConst = 1.08 * geant::units::fermi;
   
   double R;
 

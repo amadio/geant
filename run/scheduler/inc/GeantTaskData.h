@@ -38,7 +38,7 @@ class VVectorField;
  * @details Class descripting data organized per thread
  *
  */
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class Basket;

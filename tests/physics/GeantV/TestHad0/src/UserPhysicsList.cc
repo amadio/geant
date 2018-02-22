@@ -68,8 +68,8 @@ namespace userapplication {
 	geantphysics::HadronicCrossSection *ggElasticXS = new geantphysics::GlauberGribovElasticXsc();
       
 	// set min/max energies of the model
-	diffelModel->SetLowEnergyUsageLimit (100.0*geant::eV);
-	diffelModel->SetHighEnergyUsageLimit(100.0*geant::TeV);
+	diffelModel->SetLowEnergyUsageLimit (100.0*geant::units::eV);
+	diffelModel->SetHighEnergyUsageLimit(100.0*geant::units::TeV);
 	// add the model to the process
 	helProc->AddModel(diffelModel);
 	// add the cross-sections to the process

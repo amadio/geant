@@ -236,8 +236,8 @@ int main(int argc, char *argv[]) {
     // and get the gamma production cut energy
     //double gammaCutEnergy = matCut->GetProductionCutsInEnergy()[0];
     /*if (kineticEnergy<=gammaCutEnergy) {
-     std::cout<< " *** Primary energy = " << kineticEnergy/geant::MeV
-     << " [MeV] is <= gamma production cut = " << gammaCutEnergy/geant::MeV
+     std::cout<< " *** Primary energy = " << kineticEnergy/geant::units::MeV
+     << " [MeV] is <= gamma production cut = " << gammaCutEnergy/geant::units::MeV
      << " [MeV] so there is no secondary gamma production at this energy!"
      << std::endl;
      return 0;
@@ -254,24 +254,24 @@ int main(int argc, char *argv[]) {
     EMModel *emModel = new SauterGavrilaPhotoElectricModel(photoElectricModelName, true); //true to use Alias Sampling method
     EMModel *emModel_rej = new SauterGavrilaPhotoElectricModel(photoElectricModelName, false); //true to use Alias Sampling method
     // - Set low/high energy usage limits to their min/max possible values
-    emModel->SetLowEnergyUsageLimit ( 0.01*geant::keV);
+    emModel->SetLowEnergyUsageLimit ( 0.01*geant::units::keV);
 
-    emModel->SetHighEnergyUsageLimit(100.0*geant::GeV);
+    emModel->SetHighEnergyUsageLimit(100.0*geant::units::GeV);
 
 
-    emModel_rej->SetLowEnergyUsageLimit ( 0.01*geant::keV);
+    emModel_rej->SetLowEnergyUsageLimit ( 0.01*geant::units::keV);
 
-    emModel_rej->SetHighEnergyUsageLimit(100.0*geant::GeV);
+    emModel_rej->SetHighEnergyUsageLimit(100.0*geant::units::GeV);
     //
     //*******************************************************************************************//
 
     // check is primary energy is within the usage limits of the model
     if (kineticEnergy<emModel->GetLowEnergyUsageLimit() || kineticEnergy>emModel->GetHighEnergyUsageLimit()) {
-        std::cout<< " *** Primary energy = " << kineticEnergy/geant::GeV
+        std::cout<< " *** Primary energy = " << kineticEnergy/geant::units::GeV
         << " [GeV] should be the min/max energy usage limits of the selected model: \n"
         << "   - model name              = " << emModel->GetName() << " \n"
-        << "   - low energy usage limit  = " << emModel->GetLowEnergyUsageLimit()/geant::GeV<< " [GeV]\n"
-        << "   - high energy usage limit = " << emModel->GetHighEnergyUsageLimit()/geant::GeV<< " [GeV]\n"
+        << "   - low energy usage limit  = " << emModel->GetLowEnergyUsageLimit()/geant::units::GeV<< " [GeV]\n"
+        << "   - high energy usage limit = " << emModel->GetHighEnergyUsageLimit()/geant::units::GeV<< " [GeV]\n"
         << "  there is no secondary gamma production otherwise!"
         << std::endl;
         return 0;
@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
     std::cout<< "   Particle       =  " << particle->GetName() << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
-    std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::MeV << "  [MeV] " << std::endl;
+    std::cout<< "   Kinetic energy =  " << kineticEnergy/geant::units::MeV << "  [MeV] " << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
     std::cout<< "   Model name     =  " << emModel->GetName() << std::endl;
     std::cout<< "   -------------------------------------------------------------------------------- "<<std::endl;
@@ -357,14 +357,14 @@ int main(int argc, char *argv[]) {
     // -atomic cross section
     if (isSingleElementMaterial) {
         std::cout<< "   cross section per atom      :";
-        std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::barn)
+        std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/(geant::units::barn)
         << std::setw(14) << std::left << "     [barn]";
         std::cout<<std::endl;
     }
     //
     // -macroscopic cross section
     std::cout<< "   cross section per volume    :";
-    std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::cm)
+    std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./geant::units::cm)
     << std::setw(14) << std::left << "     [1/cm]";
     std::cout<<std::endl;
     //===========================================================================================//
@@ -480,7 +480,7 @@ int main(int argc, char *argv[]) {
     double sum=0;
     for (int i=0; i<histo->GetNumBins(); ++i) {
         cosTheta=histo->GetX()[i]+0.5*histo->GetDelta();//+0.5*deltaTheta;
-        xsec[i]= CalculateDiffCrossSection(kineticEnergy/geant::kElectronMassC2, cosTheta);
+        xsec[i]= CalculateDiffCrossSection(kineticEnergy/geant::units::kElectronMassC2, cosTheta);
         sum+=xsec[i];
     }
 
@@ -531,7 +531,7 @@ double CalculateDiffCrossSection(double tau, double cosTheta)
     // input  : cosTheta (cons(theta) of photo-electron)
     // output : dsigma   (differential cross section, K-shell only)
 
-    //double tau = energy0 / geant::kElectronMassC2;
+    //double tau = energy0 / geant::units::kElectronMassC2;
 
     //gamma and beta: Lorentz factors of the photoelectron
     double gamma = tau + 1.0;
@@ -563,9 +563,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     double dirz       = 1.0;
     int    gvcode     = primParticle->GetInternalCode();        // internal code of the primary particle i.e. e-
 
-    // Set up a dummy Geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
+    // Set up a dummy geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
     // sampling
-    Geant::GeantTaskData *td = new Geant::GeantTaskData(1,1);
+    geant::GeantTaskData *td = new geant::GeantTaskData(1,1);
     PhysicsData *phd = new PhysicsData();
     td->fPhysicsData = phd;
     // Set up a the primary light track for photoElectric.

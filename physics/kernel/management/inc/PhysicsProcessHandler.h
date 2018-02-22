@@ -5,7 +5,7 @@
 #include "PhysicsInterface.h"
 
 // geantV
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
   class GeantPropagator;
   class SimulationStage;
@@ -121,7 +121,7 @@ public:
 /**
  * @name Interface methods to obtain physics realted symulation stages when V3 is used.
  *
- * These methods are called from the Geant::GeantPropagator::CreateSimulationStages
+ * These methods are called from the geant::GeantPropagator::CreateSimulationStages
  * methods (when real-physics is used) to obtain the pointers to the physics
  * simulation stages defined in the real-physics library.
  */
@@ -131,15 +131,15 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
    */
-  Geant::SimulationStage* CreateComputeIntLStage(Geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreateComputeIntLStage(geant::GeantPropagator *prop) {
     return new ComputeIntLStage(prop);
   }
 
-  Geant::SimulationStage* CreatePrePropagationStage(Geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreatePrePropagationStage(geant::GeantPropagator *prop) {
       return new PrePropagationStage(prop);
   }
 
-  Geant::SimulationStage* CreatePostPropagationStage(Geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreatePostPropagationStage(geant::GeantPropagator *prop) {
       return new PostPropagationStage(prop);
   }
 
@@ -148,7 +148,7 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
    */
-  Geant::SimulationStage* CreateAlongStepActionStage(Geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreateAlongStepActionStage(geant::GeantPropagator *prop) {
     return new AlongStepActionStage(prop);
   }
 
@@ -157,11 +157,11 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created PostStepAction real-physics simulation stage object.
    */
-  Geant::SimulationStage* CreatePostStepActionStage(Geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreatePostStepActionStage(geant::GeantPropagator *prop) {
       return new PostStepActionStage(prop);
   }
 
-  Geant::SimulationStage* CreateAtRestActionStage(Geant::GeantPropagator *prop) {
+  geant::SimulationStage* CreateAtRestActionStage(geant::GeantPropagator *prop) {
      return new AtRestActionStage(prop);
   }  
 //@}

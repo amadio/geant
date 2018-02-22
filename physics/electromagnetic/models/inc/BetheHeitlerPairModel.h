@@ -6,7 +6,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -98,7 +98,7 @@ public:
     *                          the seconadry tracks generated in the interaction.
     * @return                  Number of secondary tracks generated in the interaction.
     */
-  virtual int    SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td);
+  virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
 
   /**
    * @brief Method to obtain the minimum primary gamma energy at which the interaction can happen.
@@ -173,7 +173,7 @@ private:
     * @param[in]  td      Pointer to the GeantV thread local data object (used to get random numbers).
     * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
     */
-   double SampleTotalEnergyTransfer(const double epsmin, const int izet, const Geant::GeantTaskData *td);
+   double SampleTotalEnergyTransfer(const double epsmin, const int izet, const geant::GeantTaskData *td);
 
 
    /**

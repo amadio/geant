@@ -2,7 +2,7 @@
 #include "GeantRunManager.h"
 #include <iostream>
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

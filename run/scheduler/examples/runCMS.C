@@ -6,7 +6,7 @@
 #endif
 
 // Autoload the library early so that GeantPropagator is defined when applicable.
-namespace Geant {
+namespace geant {
 inline namespace cxx {
 class TaskBroker;
 class GeantPropagator;
@@ -61,7 +61,7 @@ void runCMS(const int ncputhreads=4,
    int nbuffered  = 5;   // Number of buffered events (tunable [1,ntotal])
    int npropagators = 1;
 
-   Geant::TaskBroker *broker = nullptr;
+   geant::TaskBroker *broker = nullptr;
    if (coprocessor) {
 #ifdef GEANTCUDA_REPLACE
       CoprocessorBroker *gpuBroker = new CoprocessorBroker();
@@ -74,7 +74,7 @@ void runCMS(const int ncputhreads=4,
 #endif
    }
 
-   Geant::GeantConfig* config = new Geant::GeantConfig();
+   geant::GeantConfig* config = new geant::GeantConfig();
    config->fGeomFileName = geomfile;
    config->fNtotal = ntotal;
    config->fNbuff = nbuffered;
@@ -178,12 +178,12 @@ void runCMS(const int ncputhreads=4,
    GeantRunManager *runMgr = new GeantRunManager(npropagators, nthreads, config);
    if (broker) runMgr->SetCoprocessorBroker(broker);
 
-   runMgr->SetPhysicsProcess( new Geant::TTabPhysProcess("tab_phys", xsec, fstate));
+   runMgr->SetPhysicsProcess( new geant::TTabPhysProcess("tab_phys", xsec, fstate));
 //   config->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
    //   config->fPrimaryGenerator = new GunGenerator(config->fNaverage, 11, config->fEmax, -8, 0, 0, 1, 0, 0);
 //   config->fPrimaryGenerator = new GunGenerator(1, 0, 1., 0, 0, 0, 0.362783697740757, 0.259450124768640, 0.882633622956438);
    std::string s(eventfile);
-   runMgr->SetPrimaryGenerator(new Geant::HepMCGenerator(s));
+   runMgr->SetPrimaryGenerator(new geant::HepMCGenerator(s));
 //   config->fPrimaryGenerator->SetEtaRange(-2.4,2.4);
 //   config->fPrimaryGenerator->SetMomRange(0.,0.5);
    //   config->fPrimaryGenerator = new HepMCGenerator("pp14TeVminbias.hepmc3");

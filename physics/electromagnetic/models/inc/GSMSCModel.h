@@ -10,7 +10,7 @@
 #include "Geant/Config.h"
 #include "GeantTrack.h"
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -40,10 +40,10 @@ public:
  // implemented base class method
   virtual void  Initialize();
  // implemented MSC base class model methods
-  virtual void  StepLimit(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
-  virtual bool  SampleScattering(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
-  virtual void  ConvertTrueToGeometricLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
-  virtual void  ConvertGeometricToTrueLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
+  virtual void  StepLimit(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
+  virtual bool  SampleScattering(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
+  virtual void  ConvertTrueToGeometricLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
+  virtual void  ConvertGeometricToTrueLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
 
  // model specifc method
  void SetOptionPWACorrection(bool opt)  { fIsUsePWACorrection = opt; }
@@ -58,8 +58,8 @@ void   ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel
                          double &scra, double &g1, double &mccor1, double &mccor2);
 
 private:
-  double RandomizeTrueStepLength(Geant::GeantTaskData *td, double tlimit);
-  void   SampleMSC(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td);
+  double RandomizeTrueStepLength(geant::GeantTaskData *td, double tlimit);
+  void   SampleMSC(geant::GeantTrack *gtrack, geant::GeantTaskData *td);
   double GetTransportMeanFreePathOnly(const MaterialCuts *matcut, double ekin);
 
 //  void   ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel, double &lambtr1,
@@ -76,11 +76,11 @@ private:
 
   double fTauSmall           = 1.e-16;
   double fTauLim             = 1.e-6;
-  double fTLimitMinfix2      = 1.*geant::nm;
+  double fTLimitMinfix2      = 1.*geant::units::nm;
   double fDtrl               = 0.05;
 
   Particle* fParticle        = nullptr;    //e-/e+
-  Geant::TrackToken fMSCdata;   // Handle for MSCData
+  geant::TrackToken fMSCdata;   // Handle for MSCData
 
   GSMSCTable*       fGSTable        = nullptr;
   GSPWACorrections* fPWACorrection  = nullptr;

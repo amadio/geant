@@ -8,7 +8,7 @@
 #endif
 #include <stdarg.h>
 
-namespace Geant {
+namespace geant {
 inline namespace cxx {
 
 // Code to be compiled only by gcc (i.e. not nvcc).

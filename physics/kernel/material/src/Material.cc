@@ -23,10 +23,10 @@ Map_t<std::string,int> Material::gMapMaterialNameToIndex;
  */
 Material::Material(const std::string &name, double z, double a, double density, MaterialState state, double temp,
                    double pressure) : fName(name) {
-  using geant::kUniverseMeanDensity;
-  using geant::g;
-  using geant::cm3;
-  using geant::kGasThreshold;
+  using geant::units::kUniverseMeanDensity;
+  using geant::units::g;
+  using geant::units::cm3;
+  using geant::units::kGasThreshold;
 
   InitialiseMembers();
 
@@ -84,10 +84,10 @@ Material::Material(const std::string &name, double z, double a, double density, 
 // subsequently added via AddElement and/or AddMaterial
 Material::Material(const std::string &name, double density,int numcomponents, MaterialState state, double temp,
                    double pressure) : fName(name) {
-  using geant::kUniverseMeanDensity;
-  using geant::g;
-  using geant::cm3;
-  using geant::kGasThreshold;
+  using geant::units::kUniverseMeanDensity;
+  using geant::units::g;
+  using geant::units::cm3;
+  using geant::units::kGasThreshold;
 
   InitialiseMembers();
 
@@ -241,7 +241,7 @@ void Material::AddElement(Element *element, double massfraction) {
       fRelNumOfAtomsPerVol[i] = fMassFractionVector[i]/fElementVector[i]->GetA();
       normFactor += fRelNumOfAtomsPerVol[i];
     }
-    if (std::fabs(1.-sumWeight)>geant::perThousand) {
+    if (std::fabs(1.-sumWeight)>geant::units::perThousand) {
       std::cerr << "WARNING !! Material::AddElement by mass fraction :"
                 << std::endl <<" Sum of fractional masses = " << sumWeight
                 << " is not = 1. This can lead to wrong results! "
@@ -343,7 +343,7 @@ void Material::AddMaterial(Material *material, double massfraction) {
       fRelNumOfAtomsPerVol[i] = fMassFractionVector[i]/fElementVector[i]->GetA();
       normFactor += fRelNumOfAtomsPerVol[i];
     }
-    if (std::fabs(1.-sumWeight)>geant::perThousand) {
+    if (std::fabs(1.-sumWeight)>geant::units::perThousand) {
       std::cerr << "WARNING !! Material::AddMaterial by mass fraction :"
                 << std::endl <<" Sum of fractional masses = " << sumWeight
                 << " is not = 1. This can lead to wrong results! "
@@ -472,11 +472,11 @@ std::ostream& operator<<(std::ostream& flux, const Material* material) {
   flux.setf(std::ios::fixed,std::ios::floatfield);
   long prec = flux.precision(3);
 
-  using geant::g;
-  using geant::cm3;
-  using geant::atmosphere;
-  using geant::kelvin;
-  using geant::perCent;
+  using geant::units::g;
+  using geant::units::cm3;
+  using geant::units::atmosphere;
+  using geant::units::kelvin;
+  using geant::units::perCent;
 
   flux
     << " Material: "          << std::setw(8) <<  material->fName
@@ -492,7 +492,7 @@ std::ostream& operator<<(std::ostream& flux, const Material* material) {
     flux
     << std::setfill(' ') << std::setw(10) << " "
       << " Material properties:  "
-      << " Imean =  " << matp->GetMeanExcitationEnergy()/geant::eV << " [eV]"
+      << " Imean =  " << matp->GetMeanExcitationEnergy()/geant::units::eV << " [eV]"
       << "\n";
   }
 */

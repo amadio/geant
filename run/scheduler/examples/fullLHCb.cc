@@ -22,7 +22,7 @@ void GetArguments(int argc, char *argv[]);
 void SetupDetectorConstruction (lhcbapp::LHCbDetectorConstruction* det);
 void SetupPrimaryGenerator     (lhcbapp::LHCbParticleGun* gun);
 void SetupApplication          (lhcbapp::LHCbFullApp* app);
-Geant::GeantRunManager* RunManager();
+geant::GeantRunManager* RunManager();
 
 
 // The main application: gets the possible input arguments, sets up the run-manager, detector, primary generator,
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   GetArguments(argc, argv);
   //
   // Create and configure run manager
-  Geant::GeantRunManager* runMgr = RunManager();
+  geant::GeantRunManager* runMgr = RunManager();
   
   // Create user defined physics list for the full LHCb application
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new lhcbapp::LHCbPhysicsList());
@@ -208,10 +208,10 @@ void GetArguments(int argc, char *argv[]) {
 
 
 
-Geant::GeantRunManager* RunManager() {
+geant::GeantRunManager* RunManager() {
   // create the GeantConfiguration object and the GeantRunManager object
-  Geant::GeantConfig*     runConfig  = new Geant::GeantConfig();
-  Geant::GeantRunManager* runManager = new Geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
+  geant::GeantConfig*     runConfig  = new geant::GeantConfig();
+  geant::GeantRunManager* runManager = new geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
   // create the real physics main manager/interface object and set it in the GeantRunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //

@@ -22,8 +22,8 @@
 
 namespace lhcbapp {
 
-LHCbFullApp::LHCbFullApp(Geant::GeantRunManager* runmgr, LHCbParticleGun* gun)
-: Geant::GeantVApplication(runmgr), fGun(gun) {
+LHCbFullApp::LHCbFullApp(geant::GeantRunManager* runmgr, LHCbParticleGun* gun)
+: geant::GeantVApplication(runmgr), fGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
   fNumPrimaryPerEvent    = LHCbParticleGun::GetMaxNumberOfPrimariesPerEvent();
@@ -45,7 +45,7 @@ LHCbFullApp::~LHCbFullApp() {
 }
 
 
-void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
+void LHCbFullApp::AttachUserData(geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -64,7 +64,7 @@ void LHCbFullApp::AttachUserData(Geant::GeantTaskData *td) {
   fDataHandlerEvents->AttachUserData(eventData, td);
 }
 
-void LHCbFullApp::DeleteUserData(Geant::GeantTaskData *td) {
+void LHCbFullApp::DeleteUserData(geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -92,7 +92,7 @@ bool LHCbFullApp::Initialize() {
   if (fInitialized)
     return true;
   //
-  // get number of primary per event and number of event-slots from Geant::GeantConfig
+  // get number of primary per event and number of event-slots from geant::GeantConfig
   int maxPrimPerEvt      = fGun->GetNumPrimaryPerEvt();
   // if it was set by the user
   if (maxPrimPerEvt>0) {
@@ -170,7 +170,7 @@ bool LHCbFullApp::Initialize() {
 
 
 
-void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData *td) {
+void LHCbFullApp::SteppingActions(geant::GeantTrack &track, geant::GeantTaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -187,7 +187,7 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
   // do the scoring:
   // 1. collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
   //    that has just been added in this step)
-  if (track.Status()!=Geant::kNew) {
+  if (track.Status()!=geant::kNew) {
     if (charge==0.0) {
       dataPerPrimary.AddNeutralStep();
       dataPerPrimary.AddNeutralTrackL(track.GetStep());
@@ -198,7 +198,7 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
     dataPerPrimary.AddEdep(track.Edep());
   }
   // collect secondary particle type statistics
-  if (track.Status()==Geant::kNew) {
+  if (track.Status()==geant::kNew) {
     switch(pdgCode) {
       // gamma
       case  22 : dataPerPrimary.AddGamma();
@@ -287,7 +287,7 @@ void LHCbFullApp::SteppingActions(Geant::GeantTrack &track, Geant::GeantTaskData
 }
 
 
-void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
+void LHCbFullApp::FinishEvent(geant::GeantEvent *event) {
   if (fIsPerformance) {
     return;
   }
@@ -305,7 +305,7 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
               << std::endl;
     
     for (int ip=0; ip<nPrims; ++ip) {
-      Geant::GeantTrack* primTrack = event->GetPrimary(ip);
+      geant::GeantTrack* primTrack = event->GetPrimary(ip);
       int         primGVCode       = primTrack->GVcode();
       const std::string &primName  = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
       int         primTypeIndx     = LHCbParticleGun::GetPrimaryTypeIndex(primName);
@@ -319,7 +319,7 @@ void LHCbFullApp::FinishEvent(Geant::GeantEvent *event) {
 
       std::cout << "  Primary Particle:  " << ip  << " (type inedx = " << primTypeIndx  << ")\n"
                 << "    Name      =  "     << primName                                  << " \n"
-                << "    Energy    =  "     << primEkin/geant::GeV                       << " [GeV]\n"
+                << "    Energy    =  "     << primEkin/geant::units::GeV                       << " [GeV]\n"
                 << "    Direction = ("     << xdir << ", " << ydir << ", " << zdir      << ") \n";
       
       dataPerEvent.GetDataPerPrimary(ip).Print();

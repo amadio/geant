@@ -32,8 +32,8 @@ void   PositronAnnihilationProcess::Initialize() {
   // model to handle the discrete part pf the interaction (within the EM framework; at-rest part
   // will be handled directly by the process itself in the AtRestDoIt method)
   PositronTo2GammaModel *mod = new PositronTo2GammaModel();
-  mod->SetLowEnergyUsageLimit( 100.*geant::eV);
-  mod->SetHighEnergyUsageLimit(100.*geant::TeV);
+  mod->SetLowEnergyUsageLimit( 100.*geant::units::eV);
+  mod->SetHighEnergyUsageLimit(100.*geant::units::TeV);
   AddModel(mod);
   // call the EMPhysicsProcess base class init method at the end (after models has been added)
   EMPhysicsProcess::Initialize();
@@ -47,14 +47,14 @@ double PositronAnnihilationProcess::AverageLifetime(const LightTrack &track) con
 }
 
 
-int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, Geant::GeantTaskData *td) {
+int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::GeantTaskData *td) {
   int numSecondaries = 2;
   // sample random direction of first photon
   double *rndArray = td->fDblArray;
   td->fRndm->uniform_array(2, rndArray);
   double cost = 2.*rndArray[0]-1.;
   double sint = std::sqrt((1.-cost)*(1.0+cost));
-  double phi  = geant::kTwoPi*rndArray[1];
+  double phi  = geant::units::kTwoPi*rndArray[1];
   // create the 2 secondary partciles i.e. the gammas
   numSecondaries = 2;
   // current capacity of secondary track container
@@ -74,7 +74,7 @@ int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, Geant::GeantTa
   sectracks[secIndx].SetDirX(xdir);
   sectracks[secIndx].SetDirY(ydir);
   sectracks[secIndx].SetDirZ(cost);
-  sectracks[secIndx].SetKinE(geant::kElectronMassC2);
+  sectracks[secIndx].SetKinE(geant::units::kElectronMassC2);
   sectracks[secIndx].SetGVcode(Gamma::Definition()->GetInternalCode());  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
@@ -83,7 +83,7 @@ int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, Geant::GeantTa
   sectracks[secIndx].SetDirX(-xdir);
   sectracks[secIndx].SetDirY(-ydir);
   sectracks[secIndx].SetDirZ(-cost);
-  sectracks[secIndx].SetKinE(geant::kElectronMassC2);
+  sectracks[secIndx].SetKinE(geant::units::kElectronMassC2);
   sectracks[secIndx].SetGVcode(Gamma::Definition()->GetInternalCode());  // gamma GV code
   sectracks[secIndx].SetMass(0.0);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index

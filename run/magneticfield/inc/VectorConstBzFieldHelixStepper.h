@@ -20,7 +20,7 @@
 class ConstVectorBzFieldHelixStepper
 {
 
-   using Double_v = Geant::Double_v;
+   using Double_v = geant::Double_v;
    template <typename T>
    using Vector3D = vecgeom::Vector3D<T>;
 
@@ -136,7 +136,7 @@ void ConstVectorBzFieldHelixStepper::DoStep_v(
 
      // alternative loop with Vc:
 
-     for (int i=0; i<np; i+=Geant::kVecLenD)
+     for (int i=0; i<np; i+=geant::kVecLenD)
      {
           // results cannot not be temporaries
           Double_v newposx_v, newposy_v, newposz_v,

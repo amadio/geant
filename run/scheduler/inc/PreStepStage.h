@@ -16,7 +16,7 @@
 
 #include "SimulationStage.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class PreStepStage : public SimulationStage {

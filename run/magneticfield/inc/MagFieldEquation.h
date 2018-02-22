@@ -21,10 +21,10 @@ class MagFieldEquation
 {
 public:
 //  static const unsigned int  N   = Size;
-  using Double_v = Geant::Double_v;
-  using Float_v = Geant::Float_v;
+  using Double_v = geant::Double_v;
+  using Float_v = geant::Float_v;
   
-  static constexpr double gCof   = geant::kCLight;  //   / fieldUnits::meter ;
+  static constexpr double gCof   = geant::units::kCLight;  //   / fieldUnits::meter ;
 
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -120,7 +120,7 @@ public:
                  Real_v const  dydx[]  ) const
   {
     using ThreeVector = Vector3D<Real_v>;
-    using geant::kilogauss;
+    using geant::units::kilogauss;
     
     std::cout.precision(8);
     std::cout << "Equation:  gCof= " << gCof << " charge= " << charge << " cof= " << cof

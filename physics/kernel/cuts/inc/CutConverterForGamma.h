@@ -14,7 +14,7 @@ namespace geantphysics {
  */
 class CutConverterForGamma : public CutConverter {
 public:
-  CutConverterForGamma(int numebins = 301, double mincutenergy = 100.0*geant::eV, double maxcutenergy = 10.0*geant::GeV);
+  CutConverterForGamma(int numebins = 301, double mincutenergy = 100.0*geant::units::eV, double maxcutenergy = 10.0*geant::units::GeV);
   virtual ~CutConverterForGamma();
 
   virtual void   Initialise();

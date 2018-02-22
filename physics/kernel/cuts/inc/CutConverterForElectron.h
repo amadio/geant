@@ -13,8 +13,8 @@ namespace geantphysics {
  */
 class CutConverterForElectron : public CutConverter {
 public:
-  CutConverterForElectron(int numebins = 301, double mincutenergy = 100.0*geant::eV,
-                          double maxcutenergy = 10.0*geant::GeV);
+  CutConverterForElectron(int numebins = 301, double mincutenergy = 100.0*geant::units::eV,
+                          double maxcutenergy = 10.0*geant::units::GeV);
   virtual ~CutConverterForElectron();
 
   virtual void   Initialise();

@@ -8,7 +8,7 @@
 #include "Geant/Error.h"
 #include "GeantTaskData.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 FieldConfig* FieldLookup::fFieldConfig= nullptr;
@@ -17,7 +17,7 @@ VECCORE_ATT_HOST_DEVICE
 void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
                                        vecgeom::Vector3D<double>& MagFieldOut,
                                        double                   & bmagOut
-                                 // , const Geant::GeantTaskData     * td  => Not needed !!
+                                 // , const geant::GeantTaskData     * td  => Not needed !!
    )
 {
 //   auto tkp = td->fPropagator;
@@ -48,7 +48,7 @@ VECCORE_ATT_HOST_DEVICE
 void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
                                        double                     Bfield[3],   // Out
                                        double                   & bmag,
-                                 const Geant::GeantTaskData     * td
+                                 const geant::GeantTaskData     * td
    )
 {
    using ThreeVector_d = vecgeom::Vector3D<double>;
@@ -62,4 +62,4 @@ void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
 //*****
 
 }
-} // End of namespace Geant
+} // End of namespace geant

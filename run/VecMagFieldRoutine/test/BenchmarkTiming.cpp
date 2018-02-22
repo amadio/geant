@@ -33,8 +33,8 @@
 
 using namespace std;
 
-using Double_v = Geant::Double_v;
-using Float_v = Geant::Float_v;
+using Double_v = geant::Double_v;
+using Float_v = geant::Float_v;
 
 typedef vecgeom::Vector3D<double> ThreeVector; // normal Vector3D
 typedef vecgeom::Vector3D<Double_v> ThreeVecSimd_t;
@@ -45,9 +45,9 @@ typedef vecgeom::Vector3D<Float_v> ThreeVecSimdF_t;
 
 using MagField = CMSmagField;
 
-// constexpr float tesla = geant::tesla;
-// constexpr float kilogauss = geant::kilogauss;
-constexpr float millimeter = geant::millimeter;
+// constexpr float tesla = geant::units::tesla;
+// constexpr float kilogauss = geant::units::kilogauss;
+constexpr float millimeter = geant::units::millimeter;
 
 const float kRMax = 9000 * millimeter;
 const float kZMax = 16000 * millimeter;
@@ -148,7 +148,7 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
   vector<float> vecTimePerRepitition;
   size_t noRunsAvg = 16;
 
-  size_t inputVcLen = ceil(((float)n) / Geant::kVecLenF);
+  size_t inputVcLen = ceil(((float)n) / geant::kVecLenF);
   ThreeVecSimdF_t inputForVec;
   // We read the field in float
   ThreeVecSimdF_t xyzField;
@@ -159,10 +159,10 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
     clock_t clock1 = clock();
     for (size_t i = 0; i < inputVcLen; ++i) {
       // We benchmark also the AOS->SOA
-      for (size_t lane = 0; lane < Geant::kVecLenF; ++lane) {
-        vecCore::Set(inputForVec.x(), lane, posVec[i * Geant::kVecLenF + lane].x());
-        vecCore::Set(inputForVec.y(), lane, posVec[i * Geant::kVecLenF + lane].y());
-        vecCore::Set(inputForVec.z(), lane, posVec[i * Geant::kVecLenF + lane].z());
+      for (size_t lane = 0; lane < geant::kVecLenF; ++lane) {
+        vecCore::Set(inputForVec.x(), lane, posVec[i * geant::kVecLenF + lane].x());
+        vecCore::Set(inputForVec.y(), lane, posVec[i * geant::kVecLenF + lane].y());
+        vecCore::Set(inputForVec.z(), lane, posVec[i * geant::kVecLenF + lane].z());
       }
 
       // We need the field in Double_v for further computations. We do a trick:
@@ -170,8 +170,8 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
       m1.GetFieldValue(inputForVec, xyzField);
       // std::cout << i << ": " << inputForVec << " => " << xyzField << std::endl;
      // We benchmark also writing to the Double_v
-      Geant::CopyFltToDbl(xyzField, xyzField1, xyzField2);
-      for (size_t lane = 0; lane < Geant::kVecLenD; ++lane) {
+      geant::CopyFltToDbl(xyzField, xyzField1, xyzField2);
+      for (size_t lane = 0; lane < geant::kVecLenD; ++lane) {
         xyzFieldS.Set(vecCore::Get(xyzField1.x(), lane), vecCore::Get(xyzField1.y(), lane),
                       vecCore::Get(xyzField1.z(), lane));
         sumField += xyzFieldS;

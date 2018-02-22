@@ -18,7 +18,7 @@
 #include "Geant/Config.h"
 #include "base/Vector3D.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantTrack;

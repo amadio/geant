@@ -20,13 +20,13 @@
 
 namespace geantphysics {
 
-AtRestActionHandler::AtRestActionHandler(int threshold, Geant::GeantPropagator *propagator)
-: Geant::Handler(threshold, propagator) {}
+AtRestActionHandler::AtRestActionHandler(int threshold, geant::GeantPropagator *propagator)
+: geant::Handler(threshold, propagator) {}
 
 
 AtRestActionHandler::~AtRestActionHandler() {}
 
-void AtRestActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData * td) {
+void AtRestActionHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData * td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -82,7 +82,7 @@ void AtRestActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, 
   track->SetEdep(track->Edep()+primaryLT.GetEnergyDeposit());
 //  if (primaryLT.GetTrackStatus()==LTrackStatus::kKill) { // as it should always be !!!
     track->Kill();
-    track->SetStage(Geant::kSteppingActionsStage);
+    track->SetStage(geant::kSteppingActionsStage);
 //  }
   //
   // create secondary tracks if there are any
@@ -93,7 +93,7 @@ void AtRestActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, 
       int   secGVcode = secLt[isec].GetGVcode(); // GV index of this secondary particle
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
       // get a GeantTrack geantTrack;
-      Geant::GeantTrack &geantTrack = td->GetNewTrack();
+      geant::GeantTrack &geantTrack = td->GetNewTrack();
       // set the new track properties
 //      int t = secLt[isec].GetTrackIndex();          // parent GeantTrack index in the input GeantTrack_v
       geantTrack.SetEvent (track->Event());
@@ -102,8 +102,8 @@ void AtRestActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, 
       geantTrack.SetCharge(secParticle->GetPDGCharge());
       // set the index of the process (in the global process vector) that limited the step i.e. generated this secondary
       geantTrack.SetProcess(track->Process());
-      geantTrack.SetStatus(Geant::kNew);                // secondary is a new track
-      geantTrack.SetStage(Geant::kSteppingActionsStage); // send this to the stepping action stage
+      geantTrack.SetStatus(geant::kNew);                // secondary is a new track
+      geantTrack.SetStage(geant::kSteppingActionsStage); // send this to the stepping action stage
       geantTrack.SetGeneration( track->GetGeneration() + 1);
       geantTrack.SetMass(secLt[isec].GetMass());
       geantTrack.SetPosition(track->X(),track->Y(),track->Z());
@@ -131,10 +131,10 @@ void AtRestActionHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, 
 }
 
 //______________________________________________________________________________
-void AtRestActionHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+void AtRestActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
 {
   // For the moment just loop and call scalar DoIt
-  Geant::TrackVec_t &tracks = input.Tracks();
+  geant::TrackVec_t &tracks = input.Tracks();
   for (auto track : tracks) {
     DoIt(track, output, td);
   }

@@ -61,8 +61,8 @@ struct MagVector3 {
 
 class CMSmagField // : public VVectorField
 {
-  using Double_v = Geant::Double_v;
-  using Float_v = Geant::Float_v;
+  using Double_v = geant::Double_v;
+  using Float_v = geant::Float_v;
   
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -106,9 +106,9 @@ public:
     //  Invariants -- parameters of the field 
     // static constexpr float millimeter = 0.1;             // Equal to Native GeantV unit
     // static constexpr float tesla = 10.0;                 // Navite unit = KiloGauss
-    static constexpr float tesla     = geant::tesla; 
-    static constexpr float kilogauss = geant::kilogauss;
-    static constexpr float millimeter = geant::millimeter;
+    static constexpr float tesla     = geant::units::tesla; 
+    static constexpr float kilogauss = geant::units::kilogauss;
+    static constexpr float millimeter = geant::units::millimeter;
    
     const float kRMax   = 9000.  * millimeter;   //  Maximum value of R =  9.00 meters
     const float kZMax   = 16000. * millimeter;   //  Max value of Z = 16.00 meters
@@ -296,14 +296,14 @@ const typename vecCore::Scalar<Real_v> *CMSmagField::GetFieldArray() const
 
 template <>
 GEANT_FORCE_INLINE
-const float *CMSmagField::GetFieldArray<Geant::Float_v>() const
+const float *CMSmagField::GetFieldArray<geant::Float_v>() const
 {
   return fMagLinArray;
 }
 
 template <>
 GEANT_FORCE_INLINE
-const double *CMSmagField::GetFieldArray<Geant::Double_v>() const
+const double *CMSmagField::GetFieldArray<geant::Double_v>() const
 {
   return fMagLinArrayD;
 }
@@ -367,7 +367,7 @@ void CMSmagField::GetFieldValueRZ(const Real_v     &r,
     // Convention for return value:  x -> R,  y-> Phi, z->Z
 
     using namespace vecCore::math;
-    using namespace Geant;
+    using namespace geant;
     using Index_v = vecCore::Index<Real_v>;
 
     //Take care that radius and z for out of limit values take values at end points 

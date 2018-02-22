@@ -132,7 +132,7 @@ public:
    *            sure that only one kEnergyLoss process stays in the continuous process vector because we use the
    *            cumulative energy loss related tables.
    */
-   virtual double AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const;
+   virtual double AlongStepLimitationLength(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) const;
 
   /**
    * @brief Common implementation of the AlongStepDoIt method of the base PhysicsProcess class for ordinary
@@ -146,14 +146,14 @@ public:
    * @param[in/out]  sectracks List of secondary tracks created in this DoIt method.
    * @return    Number of secondary tracks created and stored in the sectracks vector.
    */
-  virtual  int AlongStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
+  virtual  int AlongStepDoIt(LightTrack &track, geant::GeantTaskData *td);
 
   // for msc: no secondaries and acts directly on GeantTrack
-  virtual  void AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const {}
+  virtual  void AlongStepDoIt(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) const {}
 
 
   // Will be called only if disceret interaction was selected
-  virtual  int PostStepDoIt(LightTrack &track, Geant::GeantTaskData *td);
+  virtual  int PostStepDoIt(LightTrack &track, geant::GeantTaskData *td);
 
 
   /**

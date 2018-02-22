@@ -90,7 +90,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerAtom(const Element *elem, 
 }
 
 
-int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
   const double electronCut   = matCut->GetProductionCutsInEnergy()[1];
@@ -108,8 +108,8 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   }
   //
   // sample energy transfer and compute direction
-  const double elInitTotalEnergy   = ekin+geant::kElectronMassC2;  // initial total energy of the e-/e+
-  const double elInitTotalMomentum = std::sqrt(ekin*(elInitTotalEnergy+geant::kElectronMassC2));
+  const double elInitTotalEnergy   = ekin+geant::units::kElectronMassC2;  // initial total energy of the e-/e+
+  const double elInitTotalMomentum = std::sqrt(ekin*(elInitTotalEnergy+geant::units::kElectronMassC2));
   double deltaKinEnergy = 0.;
   if (GetUseSamplingTables()) {
     double *rndArray = td->fDblArray;
@@ -118,13 +118,13 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   } else {
     deltaKinEnergy = SampleEnergyTransfer(matCut, ekin, td);
   }
-  const double deltaTotalMomentum  = std::sqrt(deltaKinEnergy*(deltaKinEnergy+2.0*geant::kElectronMassC2));
-  const double cost                = deltaKinEnergy*(elInitTotalEnergy+geant::kElectronMassC2)
+  const double deltaTotalMomentum  = std::sqrt(deltaKinEnergy*(deltaKinEnergy+2.0*geant::units::kElectronMassC2));
+  const double cost                = deltaKinEnergy*(elInitTotalEnergy+geant::units::kElectronMassC2)
                                     /(deltaTotalMomentum*elInitTotalMomentum);
   // check cosTheta limit
   const double cosTheta = std::min(cost,1.0);
   const double sinTheta = std::sqrt((1.0-cosTheta)*(1.0+cosTheta));
-  const double phi       = geant::kTwoPi*td->fRndm->uniform();
+  const double phi       = geant::units::kTwoPi*td->fRndm->uniform();
   // direction of the delta e- in the scattering frame
   double deltaDirX = sinTheta*std::cos(phi);
   double deltaDirY = sinTheta*std::sin(phi);
@@ -151,7 +151,7 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, Geant::Gea
   sectracks[secIndx].SetDirZ(deltaDirZ);
   sectracks[secIndx].SetKinE(deltaKinEnergy);
   sectracks[secIndx].SetGVcode(fSecondaryInternalCode);
-  sectracks[secIndx].SetMass(geant::kElectronMassC2);
+  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   //
   // compute the primary e-/e+ post interaction kinetic energy and direction: from momentum vector conservation
@@ -237,7 +237,7 @@ double MollerBhabhaIonizationModel::MinimumPrimaryEnergy(const MaterialCuts *mat
  * (\f$^*\f$see more about \f$I\f$ and \f$\delta\f$ at MaterialProperties)
  */
 double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, const double pcutenergy, const double primekin) {
-  constexpr double factor     = geant::kTwoPi*geant::kClassicElectronRadius*geant::kClassicElectronRadius*geant::kElectronMassC2;
+  constexpr double factor     = geant::units::kTwoPi*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius*geant::units::kElectronMassC2;
   const double twolog10inv    = 1.0/(2.0*std::log(10.0));
   // get the material properties
   MaterialProperties *matProp = mat->GetMaterialProperties();
@@ -246,7 +246,7 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, co
   // effective atomic number for the kinetic energy threshold computation
   const double effZ           = matProp->GetTotalNumOfElectronsPerVol()/matProp->GetTotalNumOfAtomsPerVol();
   // compute the kinetic energy threshold
-  const double kineTh         = 0.25*std::sqrt(effZ)*geant::keV;
+  const double kineTh         = 0.25*std::sqrt(effZ)*geant::units::keV;
   // get the mean excitation energy
   double meanExcEnergy  = matProp->GetMeanExcitationEnergy();
   // set kinetic energy
@@ -255,12 +255,12 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, co
     kineticEnergy = kineTh;
   }
   // set other parameters
-  const double tau       = kineticEnergy/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+  const double tau       = kineticEnergy/geant::units::kElectronMassC2; // i.e. E_kin in (mc^2) units
   const double gamma     = tau + 1.0;       // = E_t/(mc^2)  i.e. E_t in (mc^2) units
   const double gamma2    = gamma*gamma;     // \gamma^2 = [E_t/(mc^2)]^2
   const double betagama2 = tau*(tau+2.0);   // = (\beta * \gamma)^2 = (P_t/(mc^2))^2 i.e. [P_t in (mc^2) units]^2
   const double beta2     = betagama2/gamma2;// \beta2 i.e. [P_t/E_t]^2
-  meanExcEnergy   /= geant::kElectronMassC2;  // mean excitation energy in (mc^2) units
+  meanExcEnergy   /= geant::units::kElectronMassC2;  // mean excitation energy in (mc^2) units
   meanExcEnergy   *= meanExcEnergy;
   // set maximum kinetic energy (in mc^2 units) that can be transformed to a free electron
   double taumax    = tau;  // for e+ : E_kin is the maximum kinetic energy transfer
@@ -269,7 +269,7 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, co
   }
   // set upper limit of tau: upper limit of the integral corresponding to the continuous part i.e.
   // min(e-/e+ production cut energy, maximum kinetic energy transfer) in mc^2 units
-  double tauUpLim  = pcutenergy/geant::kElectronMassC2;
+  double tauUpLim  = pcutenergy/geant::units::kElectronMassC2;
   if (tauUpLim>taumax) {
     tauUpLim = taumax;
   }
@@ -369,13 +369,13 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
 
 
 double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
-                                                        const Geant::GeantTaskData* td) {
+                                                        const geant::GeantTaskData* td) {
   const double tmin   = matcut->GetProductionCutsInEnergy()[1];
   const double tmax   = (fIsElectron) ? (0.5*primekin) : (primekin);
   const double xmin   = tmin/primekin;
   const double xmax   = tmax/primekin;
-//  const double tau    = primekin/geant::kElectronMassC2;
-  const double gamma  = primekin/geant::kElectronMassC2 + 1.0;
+//  const double tau    = primekin/geant::units::kElectronMassC2;
+  const double gamma  = primekin/geant::units::kElectronMassC2 + 1.0;
   const double gamma2 = gamma*gamma;
   const double beta2  = 1.-1./gamma2;
   //
@@ -510,7 +510,7 @@ void MollerBhabhaIonizationModel::BuildSamplingTableForMaterialCut(const Materia
   for (int ipe=0; ipe<numPrimEnergies; ++ipe) {
     double pekin = std::exp(logEmin+ipe*delta);
     if (ipe==0 && minPrimEnergy==edge) {
-      pekin = minPrimEnergy+1.*geant::eV; // would be zero otherwise
+      pekin = minPrimEnergy+1.*geant::units::eV; // would be zero otherwise
     }
     if (ipe==numPrimEnergies-1) {
       pekin = maxPrimEnergy;
@@ -607,8 +607,8 @@ void MollerBhabhaIonizationModel::BuildSamplingTableForMaterialCut(const Materia
  * \f$ T_{pcut}^{e^-} \f$.
  */
 double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcutenergy, const double primekin) {
-  constexpr double xsecFactor = geant::kTwoPi*geant::kClassicElectronRadius*geant::kClassicElectronRadius
-                               *geant::kElectronMassC2;
+  constexpr double xsecFactor = geant::units::kTwoPi*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius
+                               *geant::units::kElectronMassC2;
   // secondary e- produced only above production cut energy T_c:
   //   - for Moller scattering: kinetic energy of incident e- should be higher than 2T_c
   //   - for Bhabha scattering: kinetic energy of incident e+ should be higher than T_c
@@ -623,7 +623,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcut
     const double epsmin = pcutenergy/primekin;
     const double epsmax = maxEkin/primekin;
     // set other parameters
-    const double tau       = primekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+    const double tau       = primekin/geant::units::kElectronMassC2; // i.e. E_kin in (mc^2) units
     const double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
     const double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
     const double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
@@ -704,7 +704,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcut
   *
   */
 double MollerBhabhaIonizationModel::ComputeMollerPDF(const double xi, const double pcutenergy, const double primekin) {
-  const double tau       = primekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+  const double tau       = primekin/geant::units::kElectronMassC2; // i.e. E_kin in (mc^2) units
   const double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
   const double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
   //double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2
@@ -771,7 +771,7 @@ double MollerBhabhaIonizationModel::ComputeMollerPDF(const double xi, const doub
   *
   */
 double MollerBhabhaIonizationModel::ComputeBhabhaPDF(const double xi, const double pcutenergy, const double primekin) {
-  const double tau       = primekin/geant::kElectronMassC2; // i.e. E_kin in (mc^2) units
+  const double tau       = primekin/geant::units::kElectronMassC2; // i.e. E_kin in (mc^2) units
   const double gamma     = tau + 1.0;            // = E_t/(mc^2)  i.e. E_t in (mc^2) units
   const double gamma2    = gamma*gamma;          // \gamma^2 = [E_t/(mc^2)]^2
   const double beta2     = tau*(tau+2.0)/gamma2; // \beta2 i.e. [P_t/E_t]^2

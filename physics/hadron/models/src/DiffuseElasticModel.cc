@@ -45,7 +45,7 @@ namespace geantphysics {
 
   
   int DiffuseElasticModel::SampleFinalState(LightTrack &track, Isotope* targetisotope,
-					    Geant::GeantTaskData *td)
+					    geant::GeantTaskData *td)
   {
     using vecgeom::Vector3D;
     using vecgeom::LorentzVector;
@@ -53,7 +53,7 @@ namespace geantphysics {
     
     int    numSecondaries      = 0;
     double Ek                  = track.GetKinE();
-    double eps0                = geant::kElectronMassC2/Ek;
+    double eps0                = geant::units::kElectronMassC2/Ek;
 
     // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
     // check if kinetic energy is above fHighEnergyUsageLimit andd o nothing if yes
@@ -64,7 +64,7 @@ namespace geantphysics {
     /*
       std::cout << "DiffuseElasticModel: " 
       << track.GetGVcode()
-      << " Ekin(MeV) = " << ekin/geant::MeV
+      << " Ekin(MeV) = " << ekin/geant::units::MeV
       << " scattered off Z= " << targetisotope->GetZ() 
       << " N= " << targetisotope->GetN()
       << std::endl;
@@ -97,7 +97,7 @@ namespace geantphysics {
   
     // Sampling in CM system
     double t    = SampleInvariantT(mass1, plab, targetisotope, td);
-    double phi  = td->fRndm->uniform() * 2 * geant::kPi;
+    double phi  = td->fRndm->uniform() * 2 * geant::units::kPi;
     double cost = 1. - 2.0 * t / tmax;
     double sint;
 
@@ -106,7 +106,7 @@ namespace geantphysics {
       std::cout << "G4HadronElastic WARNING (1 - cost)= " << 1 - cost
                 << " after scattering of " 
                 << track.GetGVcode()
-                << " p(GeV/c)= " << plab/geant::GeV
+                << " p(GeV/c)= " << plab/geant::units::GeV
                 << " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN()
                 << std::endl;
       cost = 1.0;
@@ -137,7 +137,7 @@ namespace geantphysics {
         std::cout << "G4HadronElastic WARNING Efinal= " << eFinal
                   << " after scattering of " 
                   << track.GetGVcode()
-                  << " p(GeV/c)= " << plab/geant::GeV
+                  << " p(GeV/c)= " << plab/geant::units::GeV
                   << " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN()
                   << std::endl;
       }
@@ -172,9 +172,9 @@ namespace geantphysics {
   
 
   double DiffuseElasticModel::SampleInvariantT(double mass, 
-					       double plab, Isotope* targetisotope, Geant::GeantTaskData *td)
+					       double plab, Isotope* targetisotope, geant::GeantTaskData *td)
   {
-    static const double GeV2 = geant::GeV * geant::GeV;
+    static const double GeV2 = geant::units::GeV * geant::units::GeV;
 
     double A = (double)targetisotope->GetN();
 

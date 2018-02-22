@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantRunManager;
   }
@@ -18,10 +18,10 @@ namespace Geant {
 
 namespace lhcbapp {
 
-class LHCbDetectorConstruction : public Geant::GeantVDetectorConstruction {
+class LHCbDetectorConstruction : public geant::GeantVDetectorConstruction {
 public:
 
-  LHCbDetectorConstruction(Geant::GeantRunManager *runmgr);
+  LHCbDetectorConstruction(geant::GeantRunManager *runmgr);
 
   virtual ~LHCbDetectorConstruction();
 

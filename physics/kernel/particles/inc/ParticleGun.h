@@ -6,9 +6,9 @@
 
 #include "Geant/Typedefs.h"
 
-using PrimaryGenerator = Geant::PrimaryGenerator;
-using GeantEventInfo   = Geant::GeantEventInfo;
-using GeantTaskData    = Geant::GeantTaskData;
+using PrimaryGenerator = geant::PrimaryGenerator;
+using GeantEventInfo   = geant::GeantEventInfo;
+using GeantTaskData    = geant::GeantTaskData;
 
 namespace geantphysics {
 
@@ -58,8 +58,8 @@ public:
 
   // set one GeantTrack primary track properties
   virtual void InitPrimaryGenerator();
-  virtual GeantEventInfo NextEvent(Geant::GeantTaskData* td);
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td);
+  virtual GeantEventInfo NextEvent(geant::GeantTaskData* td);
+  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* td);
 
 private:
   ParticleGun(const ParticleGun &);            // no imp.

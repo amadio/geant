@@ -3,7 +3,7 @@
 #include <cuda.h>
 #include <curand.h>
 
-namespace Geant {
+namespace geant {
 #ifdef VECCORE_CUDA
 inline
 #endif
@@ -57,18 +57,18 @@ void MakeInstanceArrayAt(DataType *addr, size_t nElements, size_t sizeOf, ArgsTy
 } // cuda
 } // Geant
 
-int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
-                            size_t ntracks, vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
-                            vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,
+int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
+                            size_t ntracks, vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &input,
+                            vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &output,
 
                             int nBlocks, int nThreads, cudaStream_t stream);
-namespace Geant {
+namespace geant {
 #ifdef VECCORE_CUDA
 inline
 #endif
 namespace cuda {
 
-int Clear_gpu(vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &tracks, int nBlocks, int nThreads,
+int Clear_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &tracks, int nBlocks, int nThreads,
               cudaStream_t stream);
 } // cuda
 } // Geant

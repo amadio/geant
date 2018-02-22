@@ -18,7 +18,7 @@
 #include "NumaTopology.h"
 #endif
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /* NUMA policy class  */

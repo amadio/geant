@@ -28,11 +28,11 @@ const std::string GSMottCorrection::gElemSymbols[] = {"H","He","Li","Be","B" ,
 
 GSMottCorrection::GSMottCorrection(bool iselectron) : fIsElectron(iselectron) {
   // init grids related data member values
-  fMaxEkin        = geant::kElectronMassC2*(1./std::sqrt(1.-gMaxBeta2)-1.);
+  fMaxEkin        = geant::units::kElectronMassC2*(1./std::sqrt(1.-gMaxBeta2)-1.);
   fLogMinEkin     = std::log(gMinEkin);
   fInvLogDelEkin  = (gNumEkin-gNumBeta2)/std::log(gMidEkin/gMinEkin);
-  double pt2      = gMidEkin*(gMidEkin+2.0*geant::kElectronMassC2);
-  fMinBeta2       = pt2/(pt2+geant::kElectronMassC2*geant::kElectronMassC2);
+  double pt2      = gMidEkin*(gMidEkin+2.0*geant::units::kElectronMassC2);
+  fMinBeta2       = pt2/(pt2+geant::units::kElectronMassC2*geant::units::kElectronMassC2);
   fInvDelBeta2    = (gNumBeta2-1.)/(gMaxBeta2-fMinBeta2);
   fInvDelDelta    = (gNumDelta-1.)/gMaxDelta;
   fInvDelAngle    = gNumAngle-1.;
@@ -78,7 +78,7 @@ void GSMottCorrection::GetMottCorrectionFactors(double logekin, double beta2, in
 
 // accept cost if rndm [0,1] < return value
 double GSMottCorrection::GetMottRejectionValue(double logekin, double beta2, double q1, double cost, int matindx,
-                                               int &ekindx, int &deltindx, Geant::GeantTaskData* td) {
+                                               int &ekindx, int &deltindx, geant::GeantTaskData* td) {
   double val   = 1.0;
   double delta = q1/(0.5+q1);
   // check if converged to 1 for all angles => accept cost
@@ -271,7 +271,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat) {
   constexpr double const2   = 0.1569;      // [cm2 MeV2 / g]
   constexpr double finstrc2 = 5.325135453E-5; // fine-structure const. square
 
-  double constFactor        = geant::kElectronMassC2*geant::kFineStructConst/0.88534;
+  double constFactor        = geant::units::kElectronMassC2*geant::units::kFineStructConst/0.88534;
   constFactor              *= constFactor;  // (mc^2)^2\alpha^2/( C_{TF}^2)
   // allocate memory
   DataPerMaterial *perMat   = new DataPerMaterial();
@@ -297,7 +297,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat) {
     if (zet>gMaxZet) {
       zet = (double)gMaxZet;
     }
-    double iwa  = elemVect[ielem]->GetA()*geant::mole/geant::g;  // [g/mole]
+    double iwa  = elemVect[ielem]->GetA()*geant::units::mole/geant::units::g;  // [g/mole]
     double ipz  = nbAtomsPerVolVect[ielem]/totNbAtomsPerVol;
     double dum  = ipz*zet*(zet+xi);
     zs         += dum;
@@ -305,23 +305,23 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat) {
     zx         += dum*std::log(1.0+3.34*finstrc2*zet*zet);
     sa         += ipz*iwa;
   }
-  double density = mat->GetDensity()*geant::cm3/geant::g; // [g/cm3]
+  double density = mat->GetDensity()*geant::units::cm3/geant::units::g; // [g/cm3]
   //
   moliereBc  = const1*density*zs/sa*std::exp(ze/zs)/std::exp(zx/zs);  //[1/cm]
   moliereXc2 = const2*density*zs/sa;  // [MeV2/cm]
   // change to Geant4 internal units of 1/length and energ2/length
-  moliereBc  *= 1.0/geant::cm;
-  moliereXc2 *= geant::MeV*geant::MeV/geant::cm;
+  moliereBc  *= 1.0/geant::units::cm;
+  moliereXc2 *= geant::units::MeV*geant::units::MeV/geant::units::cm;
   //
   // 2. loop over the kinetic energy grid
   for (int iek=0; iek<gNumEkin; ++iek) {
     // 2./a. set current kinetic energy and pt2 value
       double ekin = std::exp(fLogMinEkin+iek/fInvLogDelEkin);
-      double pt2  = ekin*(ekin+2.0*geant::kElectronMassC2);
+      double pt2  = ekin*(ekin+2.0*geant::units::kElectronMassC2);
       if (ekin>gMidEkin) {
         double b2   = fMinBeta2+(iek-(gNumEkin-gNumBeta2))/fInvDelBeta2;
-        ekin = geant::kElectronMassC2*(1./std::sqrt(1.-b2)-1.);
-        pt2  = ekin*(ekin+2.0*geant::kElectronMassC2);
+        ekin = geant::units::kElectronMassC2*(1./std::sqrt(1.-b2)-1.);
+        pt2  = ekin*(ekin+2.0*geant::units::kElectronMassC2);
       }
     // 2./b. loop over the elements at the current kinetic energy point
     for (int ielem=0; ielem<numElems; ++ielem) {

@@ -19,7 +19,7 @@
 
 namespace geantphysics {
 
-MSCProcess::MSCProcess(const std::string &name) : EMPhysicsProcess(name), fGeomMinLimit(0.05*geant::nm) {
+MSCProcess::MSCProcess(const std::string &name) : EMPhysicsProcess(name), fGeomMinLimit(0.05*geant::units::nm) {
   fGeomMinLimit2 = fGeomMinLimit*fGeomMinLimit;
   // process type is kElectromagnetic in the base EMPhysicsProcess calss so set it to kMSC
   SetType(ProcessType::kMSC);
@@ -35,7 +35,7 @@ void MSCProcess::Initialize()
 {
   // Call initialization via EMPhysicsProcess, then register MSCdata
   EMPhysicsProcess::Initialize();
-  const Geant::TrackToken* mscdata = Geant::TrackDataMgr::GetInstance()->GetToken("MSCdata");
+  const geant::TrackToken* mscdata = geant::TrackDataMgr::GetInstance()->GetToken("MSCdata");
   assert(mscdata);
   fMSCdata = *mscdata;
 }
@@ -43,10 +43,10 @@ void MSCProcess::Initialize()
 MSCProcess::~MSCProcess() {}
 
 // called at the PrePropagationStage(in the Handler)
-double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {
+double MSCProcess::AlongStepLimitationLength(geant::GeantTrack *gtrack, geant::GeantTaskData *td) const {
   // init all lengths to the current minimum physics step length (that is the true length)
   //
-  MSCdata &mscdata = ((Geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
+  MSCdata &mscdata = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
 
   bool isOnBoundaryPostStp = gtrack->Boundary();
   gtrack->SetBoundary(gtrack->IsOnBoundaryPreStp());
@@ -92,11 +92,11 @@ double MSCProcess::AlongStepLimitationLength(Geant::GeantTrack *gtrack, Geant::G
 }
 
 // called at the PostPropagationStage(in the Handler)
-void MSCProcess::AlongStepDoIt(Geant::GeantTrack *gtrack, Geant::GeantTaskData *td) const {
+void MSCProcess::AlongStepDoIt(geant::GeantTrack *gtrack, geant::GeantTaskData *td) const {
   // get the step length (the geometric one)
   double geometricStepLength = gtrack->GetStep();
   double truePathLength      = geometricStepLength;
-  MSCdata &mscdata = ((Geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
+  MSCdata &mscdata = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
   // select msc model
   double ekin        = gtrack->T();
   int    regIndx     = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();

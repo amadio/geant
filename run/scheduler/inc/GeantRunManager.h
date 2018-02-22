@@ -21,7 +21,7 @@ class PhysicsInterface;
 
 GEANT_DEVICE_DECLARE_CONV(Geant,class,GeantPropagator);
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeantPropagator;

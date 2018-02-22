@@ -1,6 +1,6 @@
 #include "StepChecker.h"
 
-// For Geant::Print,  Printf
+// For geant::Print,  Printf
 #include "Geant/Error.h"
 #include "ConstFieldHelixStepper.h"
 #include "ConstBzFieldHelixStepper.h"
@@ -81,7 +81,7 @@ StepChecker::CheckStep( vecgeom::Vector3D<double> const & Position,
   ThreeVector DirectionNewHelix(0.,0.,0.);
 #if 1
   // Simpler version
-  Geant::ConstFieldHelixStepper stepper(BfieldVec[0], BfieldVec[1], BfieldVec[2]);
+  geant::ConstFieldHelixStepper stepper(BfieldVec[0], BfieldVec[1], BfieldVec[2]);
   stepper.DoStep<double>(Position, Direction, charge,
                          momentum, step,
                          PositionNewHelix, DirectionNewHelix);
@@ -89,11 +89,11 @@ StepChecker::CheckStep( vecgeom::Vector3D<double> const & Position,
   // More complicated version ...
   if ( std::fabs( BfieldVec[2] ) > 1e6 * std::max( std::fabs(BfieldVec[0]), std::fabs(BfieldVec[1]) ) ) {
      // Old - constant field in Z-direction
-     Geant::ConstBzFieldHelixStepper stepper( BfieldVec[2] ); // z-component
+     geant::ConstBzFieldHelixStepper stepper( BfieldVec[2] ); // z-component
      stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  charge, momentum, step,
                                             PositionNewHelix, DirectionNewHelix);
   } else {
-     Geant::ConstFieldHelixStepper stepper( Bfield ); // double Bfield[3] );
+     geant::ConstFieldHelixStepper stepper( Bfield ); // double Bfield[3] );
      stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  charge, momentum, step,
                                             PositionNewHelix, DirectionNewHelix);
   }

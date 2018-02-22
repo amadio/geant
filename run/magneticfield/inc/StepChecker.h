@@ -9,7 +9,7 @@
 
 #include "Geant/Config.h"
 
-// namespace Geant {
+// namespace geant {
 // inline namespace MagField {
 
 class StepChecker
@@ -60,6 +60,6 @@ StepChecker::StepChecker( double eps, double maxLengthDiff, bool verbose )
 }
 
 //  } // End inline namespace MagField
-// } // namespace Geant
+// } // namespace geant
 
 #endif

@@ -13,7 +13,7 @@
 
 #include "GFldAuxFunctions.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
   /**
@@ -173,7 +173,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
                        newdirx_v, newdiry_v,newdirz_v;
             DoStep( Double_v(posx[i]), Double_v(posy[i]), Double_v(posz[i]),
                     Double_v(dirx[i]), Double_v(diry[i]), Double_v(dirz[i]),
-                    Geant::Int_v(charge[i]), Double_v(momentum[i]), Double_v(step[i]),
+                    geant::Int_v(charge[i]), Double_v(momentum[i]), Double_v(step[i]),
                     newposx_v,
                     newposy_v,
                     newposz_v,

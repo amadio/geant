@@ -18,15 +18,15 @@ namespace userfw {
 
 class Framework
 {
-  using GeantRunManager = Geant::GeantRunManager;
-  using GeantVApplication = Geant::GeantVApplication;
-  using PrimaryGenerator = Geant::PrimaryGenerator;
-  using GeantConfig = Geant::GeantConfig;
-  using GeantTaskData = Geant::GeantTaskData;
-  using EventSet = Geant::EventSet;
-  using GeantEvent = Geant::GeantEvent;
-  using GeantEventInfo = Geant::GeantEventInfo;
-  using GeantTrack = Geant::GeantTrack;
+  using GeantRunManager = geant::GeantRunManager;
+  using GeantVApplication = geant::GeantVApplication;
+  using PrimaryGenerator = geant::PrimaryGenerator;
+  using GeantConfig = geant::GeantConfig;
+  using GeantTaskData = geant::GeantTaskData;
+  using EventSet = geant::EventSet;
+  using GeantEvent = geant::GeantEvent;
+  using GeantEventInfo = geant::GeantEventInfo;
+  using GeantTrack = geant::GeantTrack;
 
 private:
   bool fInitialized = false;                 /** Initialization flag */

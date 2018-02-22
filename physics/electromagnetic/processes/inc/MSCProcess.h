@@ -8,7 +8,7 @@
 #include "Geant/Config.h"
 #include "GeantTrack.h"
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantTaskData;
 }
@@ -31,10 +31,10 @@ public:
 
   virtual void  Initialize();
 
-  virtual double  AlongStepLimitationLength(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
+  virtual double  AlongStepLimitationLength(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) const ;
   // just to suppress warning since msc will implement only the second AlongStepDoIt
   using           EMPhysicsProcess::AlongStepDoIt;
-  virtual void    AlongStepDoIt(Geant::GeantTrack* /*gtrack*/, Geant::GeantTaskData* /*td*/) const ;
+  virtual void    AlongStepDoIt(geant::GeantTrack* /*gtrack*/, geant::GeantTaskData* /*td*/) const ;
 
   double GetGeomMinLimit() const     { return fGeomMinLimit; }
   void   SetGeomMinLimit(double val) { fGeomMinLimit = val;  fGeomMinLimit2 = val*val;}
@@ -42,7 +42,7 @@ public:
 private:
   double fGeomMinLimit;  // if the true step length is below this => no msc
   double fGeomMinLimit2; // square of the above
-  Geant::TrackToken fMSCdata;   // Token for MSCData
+  geant::TrackToken fMSCdata;   // Token for MSCData
 
 };
 

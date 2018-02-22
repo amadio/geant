@@ -67,7 +67,7 @@ GetIndexFirstApplicableXsec( const int projectilecode, const double projectileki
   int index = -1;
   for ( int i = fHadXsecVec.size() - 1; i >= 0 ; i-- ) {
     if ( fHadXsecVec[i]  && 
-         fHadXsecVec[i]->IsApplicable( projectilecode, projectilekineticenergy, targetelement->GetZ(), targetelement->GetA()/(geant::g/geant::mole) ) ) {
+         fHadXsecVec[i]->IsApplicable( projectilecode, projectilekineticenergy, targetelement->GetZ(), targetelement->GetA()/(geant::units::g/geant::units::mole) ) ) {
       index = i;
       break;
     }

@@ -563,10 +563,6 @@ if (ROOT_mathmore_FOUND)
   add_subdirectory (physics/neutron/nudy)
 endif()
 
-if (NOT (USE_REAL_PHYSICS))
-  add_subdirectory(physics/kernel)
-endif()
-
 add_subdirectory(physics)
 if (BUILD_REAL_PHYSICS_TESTS)
   add_subdirectory(tests/physics)

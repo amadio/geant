@@ -16,8 +16,8 @@ namespace lhcbapp {
 const int      LHCbParticleGun::gInfNumPrimaryPerEvt =  1;
 const int      LHCbParticleGun::gSupNumPrimaryPerEvt = 10;
 
-const double   LHCbParticleGun::gInfBeamEnergy       =   1.*geant::GeV;
-const double   LHCbParticleGun::gSupBeamEnergy       = 100.*geant::GeV;
+const double   LHCbParticleGun::gInfBeamEnergy       =   1.*geant::units::GeV;
+const double   LHCbParticleGun::gSupBeamEnergy       = 100.*geant::units::GeV;
 
 // these static variables stores the gun configuration just for the Print()
 int          LHCbParticleGun::gNumPrimaryPerEvt(-1);
@@ -46,7 +46,7 @@ LHCbParticleGun::LHCbParticleGun()  {
   fIsUserPrimaryEnergy        = false;
   fNumPrimaryPerEvt           =  1;
   fPrimaryParticleName        = "e-";
-  fPrimaryParticleEnergy      = 10.*geant::GeV;
+  fPrimaryParticleEnergy      = 10.*geant::units::GeV;
   // position will be fixed to (0.,0.,0.)
   fXPos                       = 0.;
   fYPos                       = 0.;
@@ -61,8 +61,8 @@ LHCbParticleGun::~LHCbParticleGun() {}
 
 
 // set number of primary vertex and the fixed vertex position and give it back to the EventServer
-Geant::GeantEventInfo LHCbParticleGun::NextEvent(Geant::GeantTaskData* td) {
-  Geant::GeantEventInfo current;
+geant::GeantEventInfo LHCbParticleGun::NextEvent(geant::GeantTaskData* td) {
+  geant::GeantEventInfo current;
   // check if user set fix number of primaries per event and generate randomly if not
   int numPrimPerEvt = fNumPrimaryPerEvt;
   if (!fIsUserNumPrimaryPerEvt) {
@@ -78,7 +78,7 @@ Geant::GeantEventInfo LHCbParticleGun::NextEvent(Geant::GeantTaskData* td) {
 }
 
 
-void LHCbParticleGun::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td) {
+void LHCbParticleGun::GetTrack(int /*n*/, geant::GeantTrack &gtrack, geant::GeantTaskData* td) {
   // Select randomly the primary particle if it was not set by the user
   std::string &pParticleName = fPrimaryParticleName;
   if (!fIsUserPrimaryType) {
@@ -101,7 +101,7 @@ void LHCbParticleGun::GetTrack(int /*n*/, Geant::GeantTrack &gtrack, Geant::Gean
       sint2 = 0.;
     }
     const double sint = std::sqrt(sint2);
-    const double phi  = rndArray[1]*geant::kTwoPi;
+    const double phi  = rndArray[1]*geant::units::kTwoPi;
     pParticleDir[0]   = sint*std::cos(phi);
     pParticleDir[1]   = sint*std::sin(phi);
     pParticleDir[2]   = cost;
@@ -170,7 +170,7 @@ int LHCbParticleGun::GetPrimaryTypeIndex(const std::string& pname) {
 
 // will give proper results only at the end of the run
 void  LHCbParticleGun::Print() {
-  using geant::GeV;
+  using geant::units::GeV;
   std::string str = "  Primaries were generated : \n";
   if (gNumPrimaryPerEvt<0) {
     str += "     Primaries per event   : random for ecah event on ["

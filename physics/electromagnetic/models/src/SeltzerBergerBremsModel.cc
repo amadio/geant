@@ -34,8 +34,8 @@
 
 namespace geantphysics {
 
-const double SeltzerBergerBremsModel::gMigdalConst = 4.0*geant::kPi*geant::kClassicElectronRadius
-                                                     *geant::kRedElectronComptonWLenght*geant::kRedElectronComptonWLenght;
+const double SeltzerBergerBremsModel::gMigdalConst = 4.0*geant::units::kPi*geant::units::kClassicElectronRadius
+                                                     *geant::units::kRedElectronComptonWLenght*geant::units::kRedElectronComptonWLenght;
 std::vector<SeltzerBergerBremsModel::XsecDataZet*>  SeltzerBergerBremsModel::fXsecDataPerZet;
 std::vector<double>        SeltzerBergerBremsModel::fXsecLimits;
 std::vector<double>        SeltzerBergerBremsModel::fLoadDCSElectronEnergyGrid;
@@ -131,7 +131,7 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
 }
 
 
-int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
@@ -163,7 +163,7 @@ int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTa
   double cosTheta = 1.0;
   double sinTheta = 0.0;
   SamplePhotonDirection(ekin, sinTheta, cosTheta, rndArray[0]);
-  const double phi = geant::kTwoPi*(rndArray[1]);
+  const double phi = geant::units::kTwoPi*(rndArray[1]);
   // gamma direction in the scattering frame
   double gamDirX   = sinTheta*std::cos(phi);
   double gamDirY   = sinTheta*std::sin(phi);
@@ -192,7 +192,7 @@ int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTa
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   //
   // compute the primary e-/e+ post interaction direction: from momentum vector conservation
-  const double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::kElectronMassC2));
+  const double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::units::kElectronMassC2));
   // final momentum of the e-/e+ in the lab frame
   double elDirX = elInitTotalMomentum*track.GetDirX() - gammaEnergy*gamDirX;
   double elDirY = elInitTotalMomentum*track.GetDirY() - gammaEnergy*gamDirY;
@@ -268,7 +268,7 @@ void SeltzerBergerBremsModel::LoadDCSData() {
   fLoadDCSReducedPhotonEnergyGrid.resize(fLoadDCSNumReducedPhotonEnergies,0.);
   for (int i=0; i<fLoadDCSNumElectronEnergies; ++i) {
     nmatches = fscanf(f,"%lf",&(fLoadDCSElectronEnergyGrid[i]));
-    fLoadDCSElectronEnergyGrid[i] *= geant::MeV;   // change to internal energy units
+    fLoadDCSElectronEnergyGrid[i] *= geant::units::MeV;   // change to internal energy units
   }
   fLogLoadDCSMinElecEnergy  = std::log(fLoadDCSElectronEnergyGrid[0]);
   fInvLogLoadDCSDeltaEnergy = 1./(std::log(fLoadDCSElectronEnergyGrid[1]/fLoadDCSElectronEnergyGrid[0]));
@@ -300,7 +300,7 @@ void SeltzerBergerBremsModel::LoadDCSData() {
       for (int ik=0; ik<fLoadDCSNumReducedPhotonEnergies; ++ik) {
         double dum = 0.;
         nmatches = fscanf(f,"%lf",&dum);
-        fXsecDataPerZet[zet-1]->fXsecDataVect[ie][ik] = dum*geant::millibarn;   // change to internal units
+        fXsecDataPerZet[zet-1]->fXsecDataVect[ie][ik] = dum*geant::units::millibarn;   // change to internal units
       }
       //set up Spline for this elektron energy
       fXsecDataPerZet[zet-1]->fSplineVect[ie] =
@@ -308,7 +308,7 @@ void SeltzerBergerBremsModel::LoadDCSData() {
                    fLoadDCSNumReducedPhotonEnergies);
     }
     // determine ylimit i.e. value at kappa=0.97 and log(E) = 4*log(10MeV)
-    fXsecLimits[zet-1] = GetDXSECValue(zet, std::exp(4.*std::log(10.*geant::MeV)), 0.97);
+    fXsecLimits[zet-1] = GetDXSECValue(zet, std::exp(4.*std::log(10.*geant::units::MeV)), 0.97);
     fclose(f);
   }
 }
@@ -460,8 +460,8 @@ double SeltzerBergerBremsModel::ComputeDEDXPerVolume(const Material *mat, double
   // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
   double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gMigdalConst;
 
-  double ptot2      = electronekin*(electronekin+2.0*geant::kElectronMassC2);
-  double etot2      = ptot2+geant::kElectronMassC2*geant::kElectronMassC2;
+  double ptot2      = electronekin*(electronekin+2.0*geant::units::kElectronMassC2);
+  double etot2      = ptot2+geant::units::kElectronMassC2*geant::units::kElectronMassC2;
   double ibeta2     = etot2/ptot2;
   double densityCor = densityFactor*etot2;//*electronekin*electronekin;  // this is k_p^2
 
@@ -526,8 +526,8 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
     return xsec;
   // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
   double densityFactor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gMigdalConst;
-  double ptot2      = electronekin*(electronekin+2.0*geant::kElectronMassC2);
-  double etot2      = ptot2+geant::kElectronMassC2*geant::kElectronMassC2;
+  double ptot2      = electronekin*(electronekin+2.0*geant::units::kElectronMassC2);
+  double etot2      = ptot2+geant::units::kElectronMassC2*geant::units::kElectronMassC2;
   double ibeta2     = etot2/ptot2;
   double densityCor = densityFactor*etot2;//electronekin*electronekin;  // this is k_p^2
   double kappacr    = gammaprodcutenergy/electronekin;
@@ -621,8 +621,8 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
   double zet         = elem->GetZ();
   int    izet        = std::lrint(zet);
   izet               = std::min(izet,fDCSMaxZet);
-  double ptot2       = electronekin*(electronekin+2.0*geant::kElectronMassC2);
-  double etot2       = ptot2+geant::kElectronMassC2*geant::kElectronMassC2;
+  double ptot2       = electronekin*(electronekin+2.0*geant::units::kElectronMassC2);
+  double etot2       = ptot2+geant::units::kElectronMassC2*geant::units::kElectronMassC2;
   double ibeta2      = etot2/ptot2;
   double densityCor  = densityFactor*etot2;//electronekin*electronekin;  // this is k_p^2
   double kappacr     = gammaprodcutenergy/electronekin;
@@ -655,12 +655,12 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
 // ephoton is the reduced photon energy
 double SeltzerBergerBremsModel::PositronCorrection(double ekinelectron, double ibeta2electron,
                                                    double ephoton, double z) {
-    constexpr double dum1 = geant::kTwoPi*geant::kFineStructConst;
+    constexpr double dum1 = geant::units::kTwoPi*geant::units::kFineStructConst;
     double poscor = 0.0;
     double ibeta1   = std::sqrt(ibeta2electron);
     double e2       = ekinelectron * (1.0 - ephoton);
     if (e2 > 0.0) {
-      double ibeta2 = (e2 + geant::kElectronMassC2)/std::sqrt(e2*(e2+2.0*geant::kElectronMassC2));
+      double ibeta2 = (e2 + geant::units::kElectronMassC2)/std::sqrt(e2*(e2+2.0*geant::units::kElectronMassC2));
       double dum0   = dum1*z*(ibeta1-ibeta2);
       if (dum0<-12.0) {
         poscor = 0.0;
@@ -677,12 +677,12 @@ double SeltzerBergerBremsModel::PositronCorrection(double ekinelectron, double i
 
 //ephoton is the reduced photon energy
 double SeltzerBergerBremsModel::PositronCorrection1(double ekinelectron, double ephoton, double gcutener, double z) {
-    constexpr double dum1 = geant::kTwoPi*geant::kFineStructConst;
+    constexpr double dum1 = geant::units::kTwoPi*geant::units::kFineStructConst;
     double poscor = 0.0;
     double e1     = ekinelectron-gcutener;  // here is the dif.
-    double ibeta1 = (e1+geant::kElectronMassC2)/std::sqrt(e1*(e1+2.0*geant::kElectronMassC2));
+    double ibeta1 = (e1+geant::units::kElectronMassC2)/std::sqrt(e1*(e1+2.0*geant::units::kElectronMassC2));
     double e2     = ekinelectron * (1.0 - ephoton);
-    double ibeta2 = (e2+geant::kElectronMassC2)/std::sqrt(e2*(e2+2.0*geant::kElectronMassC2));
+    double ibeta2 = (e2+geant::units::kElectronMassC2)/std::sqrt(e2*(e2+2.0*geant::units::kElectronMassC2));
     double ddum   = dum1*z*(ibeta1-ibeta2);
     if (ddum<-12.0) {
       poscor = 0.0;
@@ -697,7 +697,7 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, d
   double egamma = 0.;
   //
   const double gcut        = (matcut->GetProductionCutsInEnergy())[0];
-  const double etot        = eekin + geant::kElectronMassC2;
+  const double etot        = eekin + geant::units::kElectronMassC2;
   const double densityCor  = matcut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gMigdalConst*(etot*etot); // k_p^2
   const int    mcIndxLocal = fGlobalMatGCutIndxToLocal[matcut->GetIndex()];
   // determine electron energy lower grid point
@@ -723,10 +723,10 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, d
 }
 
 
-double   SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, Geant::GeantTaskData *td) {
+double   SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, geant::GeantTaskData *td) {
   double egamma = 0.;
   //
-  const double etot       = eekin + geant::kElectronMassC2;
+  const double etot       = eekin + geant::units::kElectronMassC2;
   const double densityCor = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gMigdalConst*(etot*etot); // k_p^2
   const double kappac     = gcut/eekin;
   int izet          = std::lrint(zet);
@@ -738,8 +738,8 @@ double   SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, 
   double vmax       = 1.02*GetDXSECValue(izet, ie, eresid, kappac);
   //
   // majoranta corrected vmax for e-
-  constexpr double epeaklimit = 300.0*geant::MeV;
-  constexpr double elowlimit  =  20.0*geant::keV;
+  constexpr double epeaklimit = 300.0*geant::units::MeV;
+  constexpr double elowlimit  =  20.0*geant::units::keV;
   if (fIsElectron && kappac<0.97 && ((eekin>epeaklimit) || (eekin<elowlimit))) {
     vmax        = std::max(vmax, std::min(fXsecLimits[izet-1],1.1*GetDXSECValue(izet, ie, eresid, 0.97)));
   }
@@ -785,7 +785,7 @@ void SeltzerBergerBremsModel::SamplePhotonDirection(double elenergy, double &sin
   const double cofA = -signc*std::exp(std::log(delta)/3.0);
   cosTheta = cofA-1./cofA;
 
-  const double tau  = elenergy/geant::kElectronMassC2;
+  const double tau  = elenergy/geant::units::kElectronMassC2;
   const double beta = std::sqrt(tau*(tau+2.))/(tau+1.);
 
   cosTheta = (cosTheta+beta)/(1.+cosTheta*beta);
@@ -894,12 +894,12 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
   for (int ie=0; ie<numElecEnergies; ++ie) {
     double eekin  = std::exp(dataMatCut->fLogEmin+ie*delta);  // E_kin_i
     if (ie==0 && minElecEnergy==gcut) {
-      eekin  = minElecEnergy+1.*geant::eV; // would be zero otherwise
+      eekin  = minElecEnergy+1.*geant::units::eV; // would be zero otherwise
     }
     if (ie==numElecEnergies-1) {
       eekin  = maxElecEnergy;
     }
-    const double etot       = eekin+geant::kElectronMassC2;
+    const double etot       = eekin+geant::units::kElectronMassC2;
     const double densityCor = densityFactor*etot*etot; // this is k_p^2
     // xi(kappa) = log(kappa^2*E^2 + k_p^2)  ==> kappa =
     const double kappac     = gcut/eekin;

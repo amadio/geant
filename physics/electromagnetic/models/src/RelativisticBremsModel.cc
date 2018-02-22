@@ -37,9 +37,9 @@ namespace geantphysics {
 const double RelativisticBremsModel::gFelLowZet  [] = {0.0, 5.310, 4.790, 4.740, 4.710, 4.680, 4.620, 4.570};
 const double RelativisticBremsModel::gFinelLowZet[] = {0.0, 6.144, 5.621, 5.805, 5.924, 6.012, 5.891, 5.788};
 
-const double RelativisticBremsModel::gLPMFactor     = 0.25*geant::kFineStructConst*geant::kElectronMassC2*geant::kElectronMassC2/(geant::kPi*geant::kHBarPlanckCLight);
+const double RelativisticBremsModel::gLPMFactor     = 0.25*geant::units::kFineStructConst*geant::units::kElectronMassC2*geant::units::kElectronMassC2/(geant::units::kPi*geant::units::kHBarPlanckCLight);
 // this is k_p^2 / E_{t-electron}^2
-const double RelativisticBremsModel::gDensityFactor = 4.0*geant::kPi*geant::kClassicElectronRadius*geant::kRedElectronComptonWLenght*geant::kRedElectronComptonWLenght;
+const double RelativisticBremsModel::gDensityFactor = 4.0*geant::units::kPi*geant::units::kClassicElectronRadius*geant::units::kRedElectronComptonWLenght*geant::units::kRedElectronComptonWLenght;
 
 RelativisticBremsModel::LPMFuncs  RelativisticBremsModel::gLPMFuncs;
 std::vector<RelativisticBremsModel::ElementData*>  RelativisticBremsModel::gElementData(gMaxZet,nullptr);
@@ -140,7 +140,7 @@ double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const
 }
 
 
-int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTaskData *td) {
+int RelativisticBremsModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
   int    numSecondaries      = 0;
   const double ekin          = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
@@ -166,7 +166,7 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
   double cosTheta  = 1.0;
   double sinTheta  = 0.0;
   SamplePhotonDirection(ekin, sinTheta, cosTheta, rndArray[0]);
-  const double phi = geant::kTwoPi*(rndArray[1]);
+  const double phi = geant::units::kTwoPi*(rndArray[1]);
   // gamma direction in the scattering frame
   double gamDirX   = sinTheta*std::cos(phi);
   double gamDirY   = sinTheta*std::sin(phi);
@@ -195,7 +195,7 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, Geant::GeantTas
   sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent GeantTrack index
   //
   // compute the primary e-/e+ post interaction direction: from momentum vector conservation
-  const double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::kElectronMassC2));
+  const double elInitTotalMomentum = std::sqrt(ekin*(ekin+2.0*geant::units::kElectronMassC2));
   // final momentum of the e-/e+ in the lab frame
   double elDirX = elInitTotalMomentum*track.GetDirX() - gammaEnergy*gamDirX;
   double elDirY = elInitTotalMomentum*track.GetDirY() - gammaEnergy*gamDirY;
@@ -260,8 +260,8 @@ void RelativisticBremsModel::InitElementData() {
           elemData->fVarS1         = std::pow(zet,2./3.)/(184.15*184.15);
           elemData->fILVarS1Cond   = 1./(std::log(std::sqrt(2.0)*elemData->fVarS1));
           elemData->fILVarS1       = 1./std::log(elemData->fVarS1);
-          elemData->fGammaFactor   = 100.0*geant::kElectronMassC2/std::pow(zet,1./3.);
-          elemData->fEpsilonFactor = 100.0*geant::kElectronMassC2/std::pow(zet,2./3.);
+          elemData->fGammaFactor   = 100.0*geant::units::kElectronMassC2/std::pow(zet,1./3.);
+          elemData->fEpsilonFactor = 100.0*geant::units::kElectronMassC2/std::pow(zet,2./3.);
           gElementData[izet] = elemData;
         }
       }
@@ -300,7 +300,7 @@ void RelativisticBremsModel::InitElementData() {
  *   \f$ k = \exp(u)E= k_c\exp(\xi\ln(E/k_c))\f$ for a given \f$ \xi \f$.
  */
 double RelativisticBremsModel::ComputeDXSecPerAtom(double egamma, double etotal, double zet) {
-  //constexpr double factor = 16.*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.;
+  //constexpr double factor = 16.*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.;
   double dcs         = 0.;
   const double y     = egamma/etotal;
   const double onemy = 1.-y;
@@ -549,20 +549,20 @@ void RelativisticBremsModel::ComputeLPMfunctions(double &funcXiS, double &funcGS
 
 void RelativisticBremsModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat) {
   if (varShat<0.01) {
-    funcPhiS = 6.0*varShat*(1.0-geant::kPi*varShat);
+    funcPhiS = 6.0*varShat*(1.0-geant::units::kPi*varShat);
     funcGS   = 12.0*varShat-2.0*funcPhiS;
   } else {
     double varShat2 = varShat*varShat;
     double varShat3 = varShat*varShat2;
     double varShat4 = varShat2*varShat2;
     if (varShat<0.415827397755) { // use Stanev approximation: for \psi(s) and compute G(s)
-      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
+      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::units::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
       // 1-\exp \left\{  -4s  - \frac{8s^2}{1+3.936s+4.97s^2-0.05s^3+7.5s^4} \right\}
       const double funcPsiS = 1.0-std::exp(-4.0*varShat - 8.0*varShat2/(1.0+3.936*varShat+4.97*varShat2-0.05*varShat3+7.5*varShat4));
       // G(s) = 3 \psi(s) - 2 \phi(s)
       funcGS = 3.0*funcPsiS - 2.0*funcPhiS;
     } else if (varShat<1.55) {
-      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
+      funcPhiS = 1.0-std::exp(-6.0*varShat*(1.0+varShat*(3.0-geant::units::kPi)) + varShat3/(0.623+0.796*varShat+0.658*varShat2));
       const double dum0 = -0.16072300849123999+3.7550300067531581*varShat-1.7981383069010097*varShat2+0.67282686077812381*varShat3-0.1207722909879257*varShat4;
       funcGS = std::tanh(dum0);
     } else {
@@ -707,12 +707,12 @@ void RelativisticBremsModel::BuildSamplingTableForMaterialCut(const MaterialCuts
   for (int ie=0; ie<numElecEnergies; ++ie) {
     double eekin = std::exp(dataMatCut->fLogEmin+ie*delta);
     if (ie==0 && minElecEnergy==gcut) {
-      eekin = minElecEnergy+1.*geant::eV; // would be zero otherwise
+      eekin = minElecEnergy+1.*geant::units::eV; // would be zero otherwise
     }
     if (ie==numElecEnergies-1) {
       eekin = maxElecEnergy;
     }
-    const double etot       = eekin+geant::kElectronMassC2;
+    const double etot       = eekin+geant::units::kElectronMassC2;
     const double densityCor = densityFactor*etot*etot; // this is k_p^2
     const bool   isLPM      = (fIsUseLPM && etot>energyThLPM);
     //
@@ -799,7 +799,7 @@ void RelativisticBremsModel::BuildSamplingTableForMaterialCut(const MaterialCuts
 
 double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3) {
   const double gcut        = (matcut->GetProductionCutsInEnergy())[0];
-  const double etot        = eekin+geant::kElectronMassC2;
+  const double etot        = eekin+geant::units::kElectronMassC2;
   const double dum0        = gDensityFactor*matcut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
   const double densityCor  = etot*etot*dum0; // this is k_p^2
   const int    mcIndxLocal = fGlobalMatGCutIndxToLocal[matcut->GetIndex()];
@@ -826,10 +826,10 @@ double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, do
 }
 
 
-double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, Geant::GeantTaskData* td) {
+double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::GeantTaskData* td) {
   const double gcut        = (matcut->GetProductionCutsInEnergy())[0];
   const Material *mat      = matcut->GetMaterial();
-  const double etot        = eekin+geant::kElectronMassC2;
+  const double etot        = eekin+geant::units::kElectronMassC2;
   const double dumc0       = gDensityFactor*mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
   const double densityCor  = etot*etot*dumc0; // this is k_p^2
   const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
@@ -879,7 +879,7 @@ void RelativisticBremsModel::SamplePhotonDirection(double elenergy, double &sinT
   double cofA = -signc*std::exp(std::log(delta)/3.0);
   cosTheta = cofA-1./cofA;
 
-  double tau  = elenergy/geant::kElectronMassC2;
+  double tau  = elenergy/geant::units::kElectronMassC2;
   double beta = std::sqrt(tau*(tau+2.))/(tau+1.);
 
   cosTheta = (cosTheta+beta)/(1.+cosTheta*beta);
@@ -934,9 +934,9 @@ void RelativisticBremsModel::SamplePhotonDirection(double elenergy, double &sinT
  *  \f$ k=E_t[1-e^{\xi\ln[1-\eta/E_t]}] \f$ for a given \f$\xi\f$.
  */
 double RelativisticBremsModel::ComputeDEDXPerVolume(const Material *mat, double gammacut, double eekin) {
-  const double xsecFactor = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
+  const double xsecFactor = 16.0*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.0;
   // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  const double etot        = eekin+geant::kElectronMassC2;  // it's always e-/e+
+  const double etot        = eekin+geant::units::kElectronMassC2;  // it's always e-/e+
   const double dumc0       = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gDensityFactor;
   const double densityCor  = dumc0*etot*etot;
   const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
@@ -1016,9 +1016,9 @@ double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const
   if (eekin<=gcut) {
     return xsec;
   }
-  const double xsecFactor = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
+  const double xsecFactor = 16.0*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.0;
   // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  const double etot        = eekin+geant::kElectronMassC2;  // it's always e-/e+
+  const double etot        = eekin+geant::units::kElectronMassC2;  // it's always e-/e+
   const double dumc0       = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gDensityFactor;
   const double densityCor  = dumc0*etot*etot;
   const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;
@@ -1069,9 +1069,9 @@ double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, dou
   if (eekin<=gcut) {
     return xsec;
   }
-  const double xsecFactor = 16.0*geant::kFineStructConst*geant::kClassicElectronRadius*geant::kClassicElectronRadius/3.0;
+  const double xsecFactor = 16.0*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.0;
   // this is k_p^2 / E_{t-electron}^2 that is independent from E_{t-electron}^2
-  const double etot        = eekin+geant::kElectronMassC2;  // it's always e-/e+
+  const double etot        = eekin+geant::units::kElectronMassC2;  // it's always e-/e+
   const double dumc0       = mat->GetMaterialProperties()->GetTotalNumOfElectronsPerVol()*gDensityFactor;
   const double densityCor  = dumc0*etot*etot;
   const double lpmEnergy   = mat->GetMaterialProperties()->GetRadiationLength()*gLPMFactor;

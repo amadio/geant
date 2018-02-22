@@ -26,7 +26,7 @@ class curandState;
 #include "GeantTrack.h"
 #include "sync_objects.h"
 
-namespace Geant {
+namespace geant {
 #ifdef VECCORE_CUDA
 inline
 #endif
@@ -46,7 +46,7 @@ namespace cxx {
  }
 }
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 
@@ -54,10 +54,10 @@ inline namespace GEANT_IMPL_NAMESPACE {
   const unsigned int kMaxSecondaryPerStep = 2; // maxSecondaryPerStep;
 
   typedef int (*kernelFunc_t)(
-      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> &workSpace,
+      vecgeom::cxx::DevicePtr<geant::cuda::GeantTaskData> &workSpace,
       size_t workspaceSizeOf,
-      size_t ntracks, vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &input,
-      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> &output,
+      size_t ntracks, vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &input,
+      vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &output,
 
       int nBlocks, int nThreads, cudaStream_t stream);
 
@@ -76,7 +76,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
       TaskData();
       ~TaskData();
 
-      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<Geant::cuda::GeantPropagator > &devPropagator);
+      bool CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<geant::cuda::GeantPropagator > &devPropagator);
 
       unsigned int
       AddTrack(Task *task, GeantBasket &basket, unsigned int hostIdx);
@@ -86,7 +86,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
       unsigned int TrackToHost();
 
-      Geant::GeantTaskData *fGeantTaskData;
+      geant::GeantTaskData *fGeantTaskData;
       GeantBasket *fInputBasket;
       GeantBasket *fOutputBasket; // Work manager track (pre)-queue
 
@@ -100,8 +100,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
       cudaStream_t fStream;
 
       size_t fDevTaskWorkspaceSizeOf;
-      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTaskData> fDevTaskWorkspace;
-      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> fDevTrackInput;
+      vecgeom::cxx::DevicePtr<geant::cuda::GeantTaskData> fDevTaskWorkspace;
+      vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> fDevTrackInput;
 
       dcqueue<CoprocessorBroker::TaskData *> *fQueue; // Queue recording whether this helper is available or not.
 
@@ -110,17 +110,17 @@ inline namespace GEANT_IMPL_NAMESPACE {
         char *basket = (char *) &(*fDevTrackInput);
         return vecgeom::DevicePtr<char>(
             basket +
-            vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+            vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v>::SizeOf());
       }
 
-      vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v> fDevTrackOutput;
+      vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> fDevTrackOutput;
 
       vecgeom::cxx::DevicePtr<char> GetDevTrackOutputtBuf()
       {
         char *basket = (char *) &(*fDevTrackOutput);
         return vecgeom::DevicePtr<char>(
             basket +
-            vecgeom::cxx::DevicePtr<Geant::cuda::GeantTrack_v>::SizeOf());
+            vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v>::SizeOf());
       }
 
       void ResetNStaged() { fNStaged = 0; }
@@ -166,7 +166,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
     bool AddTrack(GeantBasket &input, unsigned int trkid);
 
-    void runTask(Geant::GeantTaskData &td, GeantBasket &basket);
+    void runTask(geant::GeantTaskData &td, GeantBasket &basket);
 
     Stream launchTask(bool wait = false);
 
@@ -179,7 +179,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
     unsigned int GetNstream() { return fNConcurrentStream + fTasks.size(); }
 
     /** @brief If the coprocessor has outstanding work, return it */
-    GeantBasket *GetBasketForTransport(Geant::GeantTaskData &td);
+    GeantBasket *GetBasketForTransport(geant::GeantTaskData &td);
 
   private:
     char *fdGeometry; // Point to a GPGeomManager in GPU land.
@@ -205,7 +205,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
       virtual const char *
       Name() = 0;                                           // Id of the task.
-      virtual bool Select(Geant::cxx::GeantTrack_v &host_track,
+      virtual bool Select(geant::cxx::GeantTrack_v &host_track,
                           int track) = 0; // Selection routine.
     };
 
@@ -224,8 +224,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
     TaskData *fNextTaskData;
     dcqueue<CoprocessorBroker::TaskData *> fHelpers;
 
-    vecgeom::cxx::DevicePtr<Geant::cuda::GeantConfig> fDevConfig;
-    vecgeom::cxx::DevicePtr<Geant::cuda::GeantPropagator> fDevPropagator;
+    vecgeom::cxx::DevicePtr<geant::cuda::GeantConfig> fDevConfig;
+    vecgeom::cxx::DevicePtr<geant::cuda::GeantPropagator> fDevPropagator;
 
     int fNblocks;           // Number of cuda blocks
     int fNthreads;          // Number of cuda threads

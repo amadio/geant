@@ -5,7 +5,7 @@
 // from geantV
 #include "SimulationStage.h"
 // from geantV
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
   class GeantPropagator;
   class GeantTrack;
@@ -25,13 +25,13 @@ namespace geantphysics {
  */
 
 
-class ComputeIntLStage : public Geant::SimulationStage {
+class ComputeIntLStage : public geant::SimulationStage {
 public:
   /** @brief ctr */
   ComputeIntLStage() {}
 
   /** @brief ctr */
-  ComputeIntLStage(Geant::GeantPropagator *prop);
+  ComputeIntLStage(geant::GeantPropagator *prop);
 
   /** @brief dtr */
   ~ComputeIntLStage();
@@ -44,7 +44,7 @@ public:
   virtual int CreateHandlers();
 
   /** @brief Interface to select the handler matching a track */
-  virtual Geant::Handler *Select(Geant::GeantTrack *track, Geant::GeantTaskData *td);
+  virtual geant::Handler *Select(geant::GeantTrack *track, geant::GeantTaskData *td);
 
 
 private:

@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
     class GeantRunManager;
   }
@@ -18,10 +18,10 @@ namespace Geant {
 
 namespace cmsapp {
 
-class CMSDetectorConstruction : public Geant::GeantVDetectorConstruction {
+class CMSDetectorConstruction : public geant::GeantVDetectorConstruction {
 public:
 
-  CMSDetectorConstruction(Geant::GeantRunManager *runmgr);
+  CMSDetectorConstruction(geant::GeantRunManager *runmgr);
 
   virtual ~CMSDetectorConstruction();
 

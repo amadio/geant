@@ -26,7 +26,7 @@
  * @detailed The class is managing allocation of blocks of POD data for a given 
  *           NUMA node. The allocation for single blocks is using numa_aligned_malloc.
  */
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 template <typename T> class NumaBlockMgr {

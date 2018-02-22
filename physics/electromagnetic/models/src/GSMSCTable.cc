@@ -44,8 +44,8 @@ GSMSCTable::GSMSCTable(bool iselectron) : fIsElectron (iselectron) {
   fDeltaQ2            = 0.;
   fInvDeltaQ2         = 0.;
   //
-  fLowEnergyLimit     =   0.1*geant::keV; // will be set properly at init.
-  fHighEnergyLimit    = 100.0*geant::MeV; // will be set properly at init.
+  fLowEnergyLimit     =   0.1*geant::units::keV; // will be set properly at init.
+  fHighEnergyLimit    = 100.0*geant::units::MeV; // will be set properly at init.
   //
   fIsMottCorrection   = false;            // will be set properly at init.
   fIsPWACorrection    = false;            // will be set properly at init.
@@ -143,7 +143,7 @@ void GSMSCTable::Initialize(double lownergylimit, double highenergylimit, const 
 // returns true if it was msc
 bool GSMSCTable::Sampling(double lambdaval, double qval, double scra, double &cost, double &sint, double lekin,
                           double beta2, int matindx, GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti,
-                          double &transfPar, Geant::GeantTaskData *td, bool isfirst) {
+                          double &transfPar, geant::GeantTaskData *td, bool isfirst) {
   double rand0 = td->fRndm->uniform();
   double expn  = std::exp(-lambdaval);
   //
@@ -205,7 +205,7 @@ bool GSMSCTable::Sampling(double lambdaval, double qval, double scra, double &co
       // then update cos(theta) sin(theta)
       if (cursint>1.0e-20) {
         cursint         = std::sqrt(cursint);
-        double curphi   = geant::kTwoPi*td->fRndm->uniform();
+        double curphi   = geant::units::kTwoPi*td->fRndm->uniform();
         cost            = cost*curcost-sint*cursint*std::cos(curphi);
         sint            = std::sqrt(std::max(0.0, (1.0-cost)*(1.0+cost)));
       }
@@ -239,7 +239,7 @@ bool GSMSCTable::Sampling(double lambdaval, double qval, double scra, double &co
 
 double GSMSCTable::SampleCosTheta(double lambdaval, double qval, double scra, double lekin, double beta2, int matindx,
                                   GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti, double &transfPar,
-                                  Geant::GeantTaskData *td, bool isfirst) {
+                                  geant::GeantTaskData *td, bool isfirst) {
   double cost = 1.;
   // determine the base GS angular distribution if it is the first call (when sub-step sampling is used)
   if (isfirst) {
@@ -265,7 +265,7 @@ double GSMSCTable::SampleCosTheta(double lambdaval, double qval, double scra, do
 
 
 // returns with cost sampled from the GS angular distribution computed based on Screened-Rutherford DCS
-double GSMSCTable::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, double transfpar, Geant::GeantTaskData *td) {
+double GSMSCTable::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, double transfpar, geant::GeantTaskData *td) {
   // check if isotropic theta (i.e. cost is uniform on [-1:1])
   if (!gsDtr) {
     return 1.-2.0*td->fRndm->uniform();
@@ -291,7 +291,7 @@ double GSMSCTable::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, double trans
 
 // determine the GS angular distribution we need to sample from: will set other things as well ...
 GSMSCTable::GSMSCAngularDtr* GSMSCTable::GetGSAngularDtr(double scra, double &lambdaval, double &qval,
-                                                         double &transfpar, Geant::GeantTaskData *td) {
+                                                         double &transfpar, geant::GeantTaskData *td) {
   GSMSCAngularDtr *dtr = nullptr;
   bool first           = false;
   // isotropic cost above gQMAX2 (i.e. dtr stays nullptr)
@@ -451,7 +451,7 @@ void GSMSCTable::LoadMSCData() {
 // samples cost in single scattering based on Screened-Rutherford DCS
 // (with Mott-correction if it was requested)
 double GSMSCTable::SingleScattering(double /*lambdaval*/, double scra, double lekin, double beta2, int matindx,
-                                    Geant::GeantTaskData *td) {
+                                    geant::GeantTaskData *td) {
   double rand1 = td->fRndm->uniform();
   // sample cost from the Screened-Rutherford DCS
   double cost  = 1.-2.0*scra*rand1/(1.0-rand1+scra);
@@ -522,7 +522,7 @@ void GSMSCTable::InitMoliereMSCParams() {
        if (zet>maxZ) {
          zet = (double)maxZ;
        }
-       double iwa  = theElemVect[ielem]->GetA()*geant::mole/geant::g;
+       double iwa  = theElemVect[ielem]->GetA()*geant::units::mole/geant::units::g;
        double ipz  = theNbAtomsPerVolVect[ielem]/theTotNbAtomsPerVol;
        double dum  = ipz*zet*(zet+xi);
        zs         += dum;
@@ -530,13 +530,13 @@ void GSMSCTable::InitMoliereMSCParams() {
        zx         += dum*std::log(1.0+3.34*finstrc2*zet*zet);
        sa         += ipz*iwa;
      }
-     double density = theMaterial->GetDensity()*geant::cm3/geant::g; // [g/cm3]
+     double density = theMaterial->GetDensity()*geant::units::cm3/geant::units::g; // [g/cm3]
      //
      gMoliereBc[theMaterial->GetIndex()]  = const1*density*zs/sa*std::exp(ze/zs)/std::exp(zx/zs);  //[1/cm]
      gMoliereXc2[theMaterial->GetIndex()] = const2*density*zs/sa;  // [MeV2/cm]
      // change to internal units of 1/length and energ2/length
-     gMoliereBc[theMaterial->GetIndex()]  *= 1.0/geant::cm;
-     gMoliereXc2[theMaterial->GetIndex()] *= geant::MeV*geant::MeV/geant::cm;
+     gMoliereBc[theMaterial->GetIndex()]  *= 1.0/geant::units::cm;
+     gMoliereXc2[theMaterial->GetIndex()] *= geant::units::MeV*geant::units::MeV/geant::units::cm;
    }
 }
 
@@ -614,8 +614,8 @@ void GSMSCTable::InitSCPCorrection(const std::vector<bool>& activeregionv) {
       double scpCorr = 1.0;
       // compute correction factor: I.Kawrakow NIMB 114(1996)307-326 (Eqs(32-37))
       if (ie>0) {
-         double tau     = ekin/geant::kElectronMassC2;
-         double tauCut  = ecut/geant::kElectronMassC2;
+         double tau     = ekin/geant::units::kElectronMassC2;
+         double tauCut  = ecut/geant::units::kElectronMassC2;
          // Moliere's screening parameter
          int    matindx = matCut->GetMaterial()->GetIndex();
          double A       = GetMoliereXc2(matindx)/(4.0*tau*(tau+2.)*GetMoliereBc(matindx));

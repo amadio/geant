@@ -14,7 +14,7 @@
 #include "HepMC/Print.h"
 #include "Geant/Error.h"
 
-using namespace Geant;
+using namespace geant;
 
 
 namespace userapplication {
@@ -149,7 +149,7 @@ void HepMCTruth::CloseEvent(int evID) {
 	      // coming from a 'secondary' primary vertex
 	      // need to find/create the corresponding vertex
 	      // not handled yet
-	      Geant::Printf("HepMCTruth: Looks like you have more than one 'primary' vertex. Handling of such a case is not implemented yet."); 
+	      geant::Printf("HepMCTruth: Looks like you have more than one 'primary' vertex. Handling of such a case is not implemented yet."); 
 	    }
 	}
       else // not a primary particle

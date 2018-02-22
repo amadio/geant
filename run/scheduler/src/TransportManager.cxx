@@ -41,7 +41,7 @@
 #endif
 #include <cassert>
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using namespace VECGEOM_NAMESPACE;
@@ -289,8 +289,8 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
 
    
    bool useRungeKutta;
-   // using Geant::ConstBzFieldHelixStepper;
-   // using Geant::cxx::ConstBzFieldHelixStepper;   
+   // using geant::ConstBzFieldHelixStepper;
+   // using geant::cxx::ConstBzFieldHelixStepper;   
    
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
    constexpr auto gPropagator_fUseRK = false; // Temporary work-around until actual implementation ..
@@ -419,8 +419,8 @@ void TransportManager::PropagateInVolumeSingle(GeantTrack &track, double crtstep
   const double drift= 0.01*crtstep;
   if ( diffpos2>drift*drift ){
       double diffpos= Math::Sqrt(diffpos2);
-      // Geant::Print("PropagateInVolumeSingle","relative difference in pos = %g", diffpos/crtstep);
-      Geant::Print("PropagateInVolumeSingle","difference in pos = %g (abs) %g (relative) , step= %g",
+      // geant::Print("PropagateInVolumeSingle","relative difference in pos = %g", diffpos/crtstep);
+      geant::Print("PropagateInVolumeSingle","difference in pos = %g (abs) %g (relative) , step= %g",
                    diffpos, diffpos/crtstep, crtstep);
   }
 #endif

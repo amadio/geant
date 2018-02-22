@@ -24,7 +24,7 @@ void SetupUserPhysicsList     (userapplication::UserPhysicsList*            phys
 void SetupUserDetector        (userapplication::UserDetectorConstruction*   detector);
 void SetupUserPrimaryGenerator(userapplication::UserPrimaryGenerator*     primarygun);
 void SetupUserApplication     (userapplication::TestEm5*                         app);
-Geant::GeantRunManager* RunManager();
+geant::GeantRunManager* RunManager();
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
 //                       generator, application and starts the simulation.
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   GetInputArguments(argc, argv);
   //
   // Create run manager and set configuration parameters
-  Geant::GeantRunManager *runManager = RunManager();
+  geant::GeantRunManager *runManager = RunManager();
   //
   // Create a user defined pysics list object, set its configurable parameters and register it in the global PhysicsListManager
   // NOTE: if the user not register its own physics list then the default physics list will be used
@@ -227,10 +227,10 @@ void GetInputArguments(int argc, char *argv[]) {
 }
 
 
-Geant::GeantRunManager* RunManager() {
+geant::GeantRunManager* RunManager() {
   // create the GeantConfiguration object and the GeantRunManager object
-  Geant::GeantConfig*     runConfig  = new Geant::GeantConfig();
-  Geant::GeantRunManager* runManager = new Geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
+  geant::GeantConfig*     runConfig  = new geant::GeantConfig();
+  geant::GeantRunManager* runManager = new geant::GeantRunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
   // create the real physics main manager/interface object and set it in the GeantRunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //

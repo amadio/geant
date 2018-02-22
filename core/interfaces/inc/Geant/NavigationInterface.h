@@ -3,6 +3,6 @@
 
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
-typedef Geant::ScalarNavInterfaceVGM ScalarNavInterface;
+typedef geant::ScalarNavInterfaceVGM ScalarNavInterface;
 
 #endif

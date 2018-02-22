@@ -20,8 +20,8 @@
 
 namespace geantphysics {
 
-PostPropagationHandler::PostPropagationHandler(int threshold, Geant::GeantPropagator *propagator)
-: Geant::Handler(threshold, propagator) {}
+PostPropagationHandler::PostPropagationHandler(int threshold, geant::GeantPropagator *propagator)
+: geant::Handler(threshold, propagator) {}
 
 
 PostPropagationHandler::~PostPropagationHandler() {}
@@ -29,7 +29,7 @@ PostPropagationHandler::~PostPropagationHandler() {}
 
 // The PostPropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process
-void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td) {
+void PostPropagationHandler::DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td) {
   // ---
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
@@ -56,7 +56,7 @@ void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
   // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
   // step and we do it in the next step
   // track->fNintLen -= track->fStep/track->fIntLen;
-  for (size_t i=0; i<Geant::kNumPhysicsProcess; ++i) {
+  for (size_t i=0; i<geant::kNumPhysicsProcess; ++i) {
     track->DecreasePhysicsNumOfInteractLengthLeft(i, track->GetStep()/track->GetPhysicsInteractLength(i));
   }
   // copy the input track to the output
@@ -65,10 +65,10 @@ void PostPropagationHandler::DoIt(Geant::GeantTrack *track, Geant::Basket& outpu
 }
 
 //______________________________________________________________________________
-void PostPropagationHandler::DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td)
+void PostPropagationHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
 {
   // For the moment just loop and call scalar DoIt
-  Geant::TrackVec_t &tracks = input.Tracks();
+  geant::TrackVec_t &tracks = input.Tracks();
   for (auto track : tracks) {
     DoIt(track, output, td);
   }

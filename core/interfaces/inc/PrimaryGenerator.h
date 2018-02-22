@@ -17,7 +17,7 @@
 
 #include "GeantFwd.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 using vecgeom::kRadToDeg;
@@ -67,7 +67,7 @@ public:
     *
     * @param td thread local data pointer
     */
-  virtual GeantEventInfo NextEvent(Geant::GeantTaskData* td) = 0;
+  virtual GeantEventInfo NextEvent(geant::GeantTaskData* td) = 0;
 
   /**
    * @brief Pure virtual function that returns track
@@ -76,7 +76,7 @@ public:
    * @param gtrack track
    * @param td thread local data pointer
    */
-  virtual void GetTrack(int n, Geant::GeantTrack &gtrack, Geant::GeantTaskData* td) = 0;
+  virtual void GetTrack(int n, geant::GeantTrack &gtrack, geant::GeantTaskData* td) = 0;
 
   /** @brief Getter for eta cut flag */
   bool HasEtaCut() const { return fEtaCut; }

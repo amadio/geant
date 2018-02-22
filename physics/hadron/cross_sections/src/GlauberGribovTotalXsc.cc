@@ -60,7 +60,7 @@ namespace geantphysics{
 	    sigma += N * GetKaonNucleonTotalXscGG(particlePDG, mass, energyKin, 2112);
     
 	    cofTotal = 2.0;
-	    R = 1.3 * geant::fermi;
+	    R = 1.3 * geant::units::fermi;
 	    R *= std::pow(double(A), 0.3333);
 	  }
 	else
@@ -72,7 +72,7 @@ namespace geantphysics{
 	    R = GetNucleusRadius(A); 
 	  }
 
-	nucleusSquare = cofTotal * geant::kPi * R * R;   // basically 2piRR
+	nucleusSquare = cofTotal * geant::units::kPi * R * R;   // basically 2piRR
 	ratio = sigma / nucleusSquare;
 
 	xsection =  nucleusSquare * std::log(1. + ratio);

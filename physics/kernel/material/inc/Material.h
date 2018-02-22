@@ -74,8 +74,8 @@ class Material {
     // Ctr to create a material from single element
    Material(const std::string &name, double z, double a, double density,
             MaterialState state  = MaterialState::kStateUndefined,
-            double temp          = geant::kNTPTemperature,
-            double pressure      = geant::kSTPPressure);
+            double temp          = geant::units::kNTPTemperature,
+            double pressure      = geant::units::kSTPPressure);
 
    /**
     * @brief Constructor to create material from elements and/or materials.
@@ -94,8 +94,8 @@ class Material {
     // subsequently added via AddElement and/or AddMaterial
    Material(const std::string &name, double density,int numcomponents,
              MaterialState state  = MaterialState::kStateUndefined,
-             double temp          = geant::kNTPTemperature,
-             double pressure      = geant::kSTPPressure);
+             double temp          = geant::units::kNTPTemperature,
+             double pressure      = geant::units::kSTPPressure);
 
    /**
     * @brief Method to add an element to the material based on molecular composition.

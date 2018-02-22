@@ -5,7 +5,7 @@
 // from geantV
 #include "Handler.h"
 // from geantV
-namespace Geant {
+namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
   class GeantPropagator;
   class GeantTrack;
@@ -24,25 +24,25 @@ namespace geantphysics {
  * @date    May 2017
  */
 
-class PostStepActionHandler : public Geant::Handler {
+class PostStepActionHandler : public geant::Handler {
 public:
   /** @brief Default constructor */
-  PostStepActionHandler() : Geant::Handler() {}
+  PostStepActionHandler() : geant::Handler() {}
 
   /**
    * @brief Default constructor
    * @param propagator Propagator working with this handler
    */
-  PostStepActionHandler(int threshold, Geant::GeantPropagator *propagator);
+  PostStepActionHandler(int threshold, geant::GeantPropagator *propagator);
 
   /** @brief dtr */
   virtual ~PostStepActionHandler();
 
   /** @brief Scalar DoIt interface */
-  virtual void DoIt(Geant::GeantTrack *track, Geant::Basket& output, Geant::GeantTaskData *td);
+  virtual void DoIt(geant::GeantTrack *track, geant::Basket& output, geant::GeantTaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
-  virtual void DoIt(Geant::Basket &input, Geant::Basket& output, Geant::GeantTaskData *td);
+  virtual void DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td);
 
 private:
   PostStepActionHandler(const PostStepActionHandler &) = delete;

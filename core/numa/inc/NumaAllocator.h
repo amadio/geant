@@ -24,7 +24,7 @@
     std::vector<T, NumaAllocator<T>> basket(init_size, init_value, NumaAllocator<T>(numafNode));
 */
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
   template <typename T>

@@ -4,7 +4,7 @@
 #include "GeantRunManager.h"
 #include "GeomQueryHandler.h"
 
-namespace Geant {
+namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________

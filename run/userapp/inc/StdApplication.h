@@ -28,10 +28,10 @@ class TProfile;
 #endif
 #include "GeantFwd.h"
 
-using namespace Geant;
+using namespace geant;
 
 /** @brief StdApplication class */
-class StdApplication : public Geant::GeantVApplication {
+class StdApplication : public geant::GeantVApplication {
 public:
 enum EScoreType {
   kNoScore = 0,
