@@ -27,7 +27,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 class Propagator;
 //#include "GeantFwd.h"
 
@@ -47,7 +47,7 @@ private:
   StackLikeBuffer &operator=(const StackLikeBuffer &) = delete;
 
 public:
-  StackLikeBuffer(int maxgen, GeantTaskData *td) : fNlanes(maxgen+1) 
+  StackLikeBuffer(int maxgen, TaskData *td) : fNlanes(maxgen+1) 
   {
     if (td->fPropagator->fConfig->fUseNuma) {
       for (int i=0; i<fNlanes; ++i) {

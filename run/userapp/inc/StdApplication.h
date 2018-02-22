@@ -18,7 +18,7 @@
 #endif
 #include <mutex>
 #ifndef GEANT_VAPPLICATION
-#include "GeantVApplication.h"
+#include "UserApplication.h"
 #endif
 
 #ifdef USE_ROOT
@@ -31,7 +31,7 @@ class TProfile;
 using namespace geant;
 
 /** @brief StdApplication class */
-class StdApplication : public geant::GeantVApplication {
+class StdApplication : public geant::UserApplication {
 public:
 enum EScoreType {
   kNoScore = 0,
@@ -75,7 +75,7 @@ public:
    * @param lmin Low axis limit (positive)
    * @param lmax High axis limit (greater than lmin)
    */
-  virtual void SteppingActions(Track &/*track*/, GeantTaskData */*td*/);
+  virtual void SteppingActions(Track &/*track*/, TaskData */*td*/);
 
   static double *MakeUniformLogArray(int nbins, double lmin, double lmax);
 

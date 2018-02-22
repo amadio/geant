@@ -1,7 +1,7 @@
 #include "PreStepHandler.h"
 
-#include "GeantTaskData.h"
-#include "GeantVApplication.h"
+#include "TaskData.h"
+#include "UserApplication.h"
 #include "TrackManager.h"
 
 namespace geant {
@@ -25,7 +25,7 @@ PreStepHandler::~PreStepHandler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void PreStepHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
+void PreStepHandler::DoIt(Track *track, Basket& output, TaskData *td)
 {
 // Invoke scalar BeginTrack user actions.
 
@@ -49,7 +49,7 @@ void PreStepHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void PreStepHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void PreStepHandler::DoIt(Basket &input, Basket& output, TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   TrackVec_t &tracks = input.Tracks();

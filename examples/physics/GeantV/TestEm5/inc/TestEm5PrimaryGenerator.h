@@ -11,7 +11,7 @@
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
     class Track;
-    class GeantTaskData;
+    class TaskData;
     class EventInfo;
   }
 }
@@ -31,19 +31,19 @@ namespace userapplication {
  *
  * The primary generator is a simple particle gun with configurable primary particle type and kinetic energy.
  *
- * @class   UserPrimaryGenerator
+ * @class   TestEm5PrimaryGenerator
  * @author  M Novak
  * @date    July 2017
  */
 
 
-class UserDetectorConstruction;
+class TestEm5DetectorConstruction;
 
-class UserPrimaryGenerator : public geant::PrimaryGenerator {
+class TestEm5PrimaryGenerator : public geant::PrimaryGenerator {
 public:
   // CTR DTR
-  UserPrimaryGenerator(const UserDetectorConstruction *det);
- ~UserPrimaryGenerator();
+  TestEm5PrimaryGenerator(const TestEm5DetectorConstruction *det);
+ ~TestEm5PrimaryGenerator();
 
   // public setters/getters
   void SetPrimaryParticleName(std::string pname) { fPrimaryParticleName = pname; }
@@ -59,13 +59,13 @@ public:
 
   // interface methods
   virtual void InitPrimaryGenerator();
-  virtual geant::EventInfo NextEvent(geant::GeantTaskData* td);
-  virtual void GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* td);
+  virtual geant::EventInfo NextEvent(geant::TaskData* td);
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData* td);
 
 private:
- UserPrimaryGenerator() = delete;
- UserPrimaryGenerator(const UserPrimaryGenerator &) = delete;
- UserPrimaryGenerator &operator=(const UserPrimaryGenerator &) = delete;
+ TestEm5PrimaryGenerator() = delete;
+ TestEm5PrimaryGenerator(const TestEm5PrimaryGenerator &) = delete;
+ TestEm5PrimaryGenerator &operator=(const TestEm5PrimaryGenerator &) = delete;
 
 private:
   std::string  fPrimaryParticleName; // name of the primary particle
@@ -86,7 +86,7 @@ private:
   double fPTotal;       // total momentum of the primary in internal [energy] unit
   //
   const geantphysics::Particle    *fParticle; // the primary particle
-  const UserDetectorConstruction  *fDetector; // the detector
+  const TestEm5DetectorConstruction  *fDetector; // the detector
 };
 
 }       // namespace userapplication

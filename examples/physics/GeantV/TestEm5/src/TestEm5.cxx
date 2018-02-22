@@ -5,7 +5,7 @@
 //
 #include "Geant/Event.h"
 #include "RunManager.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "globals.h"
 
 #include "Geant/Error.h"
@@ -21,8 +21,8 @@
 #include "Particle.h"
 
 
-#include "UserDetectorConstruction.h"
-#include "UserPrimaryGenerator.h"
+#include "TestEm5DetectorConstruction.h"
+#include "TestEm5PrimaryGenerator.h"
 
 
 #include <cassert>
@@ -32,8 +32,8 @@
 
 namespace userapplication {
 
-TestEm5::TestEm5(geant::RunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun)
-  : geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
+TestEm5::TestEm5(geant::RunManager *runmgr, TestEm5DetectorConstruction *det, TestEm5PrimaryGenerator *gun)
+  : geant::UserApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
   fHist1FileName         = "testEm5Hist1.dat";
   fInitialized           = false;
   // all these will be set properly at initialization
@@ -57,7 +57,7 @@ TestEm5::~TestEm5() {
 }
 
 
-void TestEm5::AttachUserData(geant::GeantTaskData *td) {
+void TestEm5::AttachUserData(geant::TaskData *td) {
   // Create application specific thread local data structure to collecet/handle thread local multiple per-event data
   // structure. Provide number of event-slots and number of primaries per event
   TestEm5ThreadDataEvents *eventData = new TestEm5ThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
@@ -101,7 +101,7 @@ bool TestEm5::Initialize() {
 }
 
 
-void TestEm5::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
+void TestEm5::SteppingActions(geant::Track &track, geant::TaskData *td) {
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
   Node_t const *current;
   int idvol = -1;

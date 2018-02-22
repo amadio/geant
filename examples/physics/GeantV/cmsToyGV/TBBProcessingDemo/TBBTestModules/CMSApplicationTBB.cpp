@@ -12,7 +12,7 @@
 
 #include "CMSApplicationTBB.h"
 #include "Geant/Event.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "globals.h"
 #include "Geant/Error.h"
 

@@ -3,7 +3,7 @@
 
 #include "Geant/Event.h"
 #include "RunManager.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "globals.h"
 
 #include "Geant/Error.h"
@@ -21,7 +21,7 @@
 namespace cmsapp {
 
 CMSFullApp::CMSFullApp(geant::RunManager* runmgr, CMSParticleGun* gun)
-: geant::GeantVApplication(runmgr), fGun(gun) {
+: geant::UserApplication(runmgr), fGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
   fNumPrimaryPerEvent    = CMSParticleGun::GetMaxNumberOfPrimariesPerEvent();
@@ -38,7 +38,7 @@ CMSFullApp::~CMSFullApp() {
 }
 
 
-void CMSFullApp::AttachUserData(geant::GeantTaskData *td) {
+void CMSFullApp::AttachUserData(geant::TaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -77,7 +77,7 @@ bool CMSFullApp::Initialize() {
 
 
 
-void CMSFullApp::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
+void CMSFullApp::SteppingActions(geant::Track &track, geant::TaskData *td) {
   if (fIsPerformance) {
     return;
   }

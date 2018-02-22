@@ -16,7 +16,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class geant::cxx::GeantTaskData+;
+#pragma link C++ class geant::cxx::TaskData+;
 #pragma link C++ class Basket+;
 #pragma link C++ class Propagator+;
 #pragma link C++ class StdApplication+;

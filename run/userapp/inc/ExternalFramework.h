@@ -6,8 +6,8 @@
 #include <vector>
 #include "Geant/Config.h"
 #include "RunManager.h"
-#include "GeantTaskData.h"
-#include "GeantVApplication.h"
+#include "TaskData.h"
+#include "UserApplication.h"
 #include "PrimaryGenerator.h"
 #include "EventSet.h"
 #include "Geant/Event.h"
@@ -19,10 +19,10 @@ namespace userfw {
 class Framework
 {
   using RunManager = geant::RunManager;
-  using GeantVApplication = geant::GeantVApplication;
+  using UserApplication = geant::UserApplication;
   using PrimaryGenerator = geant::PrimaryGenerator;
   using GeantConfig = geant::GeantConfig;
-  using GeantTaskData = geant::GeantTaskData;
+  using TaskData = geant::TaskData;
   using EventSet = geant::EventSet;
   using Event = geant::Event;
   using EventInfo = geant::EventInfo;
@@ -60,7 +60,7 @@ public:
     fInitialized = true;
   }
   
-  EventSet *GenerateEventSet(size_t nevents, GeantTaskData *td)
+  EventSet *GenerateEventSet(size_t nevents, TaskData *td)
   {  
     Event **events = new Event*[nevents];
     size_t nstored = 0;
@@ -103,7 +103,7 @@ public:
     RunManager *runMgr = fw->GetRunMgr();
     // First book a transport task from GeantV run manager
     while (1) {
-      GeantTaskData *td = runMgr->BookTransportTask();
+      TaskData *td = runMgr->BookTransportTask();
       if (!td) return false;
   
       // ... then create the event set

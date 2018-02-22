@@ -3,7 +3,7 @@
 
 // from geantV
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 #include "Handler.h"
 
@@ -37,7 +37,7 @@ int PrePropagationStage::CreateHandlers() {
 }
 
 // Selects tracks that have msc process
-geant::Handler* PrePropagationStage::Select(geant::Track *track, geant::GeantTaskData * /*td*/) {
+geant::Handler* PrePropagationStage::Select(geant::Track *track, geant::TaskData * /*td*/) {
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle

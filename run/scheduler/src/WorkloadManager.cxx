@@ -18,12 +18,11 @@
 
 #include "RunManager.h"
 #include "EventServer.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "PhysicsInterface.h"
 #include "Geant/Event.h"
 #include "EventSet.h"
-#include "GeantVApplication.h"
-#include "GeantVTaskMgr.h"
+#include "UserApplication.h"
 #include "StackLikeBuffer.h"
 #include "SimulationStage.h"
 #include "TrackStat.h"
@@ -123,7 +122,7 @@ WorkloadManager::FeederResult WorkloadManager::CheckFeederAndExit() {
 }
 
 //______________________________________________________________________________
-bool WorkloadManager::TransportTracksTask(EventSet *workload, GeantTaskData *td) {
+bool WorkloadManager::TransportTracksTask(EventSet *workload, TaskData *td) {
 // Re-entrant main transport method. This will co-operate with other identical
 // concurrent tasks (basketizing + transporting tracks for all events available
 // in the event server). The method will exit if it triggered finishing any of
@@ -183,7 +182,7 @@ void WorkloadManager::TransportTracksV3(Propagator *prop) {
 //  if (node < 0) node = 0;
   Propagator *propagator = prop;
   RunManager *runmgr = prop->fRunMgr;
-  geant::GeantTaskData *td = runmgr->GetTDManager()->GetTaskData();
+  geant::TaskData *td = runmgr->GetTDManager()->GetTaskData();
   td->AttachPropagator(prop, node);
   int tid = td->fTid;
 
@@ -239,7 +238,7 @@ void WorkloadManager::TransportTracksV3(Propagator *prop) {
 }
 
 //______________________________________________________________________________
-WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskData *td) {
+WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(TaskData *td) {
  // The method will apply a policy to inject tracks into the first stepping
  // stage buffer. The policy has to be exhaustively described...
   auto feedres = td->fPropagator->fWMgr->CheckFeederAndExit();
@@ -267,7 +266,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(GeantTaskDat
 }
 
 //______________________________________________________________________________
-int WorkloadManager::FlushOneLane(GeantTaskData *td)
+int WorkloadManager::FlushOneLane(TaskData *td)
 {
 // Flush a single track lane from the stack-like buffer into the first stage.
   // Check the stack buffer and flush priority events first
@@ -288,7 +287,7 @@ int WorkloadManager::FlushOneLane(GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-int WorkloadManager::SteppingLoop(GeantTaskData *td, bool flush)
+int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
 {
 // The main stepping loop over simulation stages. Called in flush mode when no tracks are
 // available from the event server. The flush mode works as following: if input tracks are

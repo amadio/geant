@@ -1,10 +1,10 @@
-//===--- GeantVDetectorConstruction.h - Geant-V --------------------------*- C++ -*-===//
+//===--- UserDetectorConstruction.h - Geant-V --------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantVDetectorConstruction.h
+ * @file UserDetectorConstruction.h
  * @brief Implementation of user detector construction in Geant-V prototype 
  * @author Andrei Gheata 
  */
@@ -26,8 +26,8 @@ class RunManager;
 class TaskBroker;
 class UserFieldConstruction;
 
-/** @brief GeantVDetectorConstruction class */
-class GeantVDetectorConstruction {
+/** @brief UserDetectorConstruction class */
+class UserDetectorConstruction {
 private:
   RunManager *fRunMgr = nullptr;
   UserFieldConstruction *fFieldConstruction = nullptr; 
@@ -42,11 +42,11 @@ protected:
   static int ImportRegions();
 
 public:  
-  /** @brief GeantVDetectorConstruction constructor */	
-  GeantVDetectorConstruction(RunManager *runmgr) { fRunMgr = runmgr; }
+  /** @brief UserDetectorConstruction constructor */	
+  UserDetectorConstruction(RunManager *runmgr) { fRunMgr = runmgr; }
 
-  /** @brief GeantVDetectorConstruction destructor */
-  virtual ~GeantVDetectorConstruction() {}
+  /** @brief UserDetectorConstruction destructor */
+  virtual ~UserDetectorConstruction() {}
 
   /** @brief Creation of materials (optional) */
   virtual void CreateMaterials() {}

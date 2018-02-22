@@ -46,7 +46,7 @@
 
 // from geantV
 #include "Geant/Typedefs.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 // a simple histogram class: can be changed later
 #include "Hist.h"
@@ -430,9 +430,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
   double dirz       = 1.0;
   int    gvcode     = primParticle->GetInternalCode();  // internal code of the primary particle i.e. gamma
 
-  // Set up a dummy geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
+  // Set up a dummy geant::TaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
-  geant::GeantTaskData *td = new geant::GeantTaskData(1,1);
+  geant::TaskData *td = new geant::TaskData(1,1);
   PhysicsData         *phd = new PhysicsData();
   td->fPhysicsData         = phd;
   // Set up a the primary light track for brem.

@@ -28,7 +28,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 class Basket;
 class Propagator;
 #include "GeantFwd.h"
@@ -71,12 +71,12 @@ private:
   SimulationStage &operator=(const SimulationStage &) = delete;
 
   VECCORE_ATT_HOST_DEVICE
-  int CopyToFollowUps(Basket &output, GeantTaskData *td);
+  int CopyToFollowUps(Basket &output, TaskData *td);
 
  /** @brief  Check efficiency of basketizers. If less than threshold, flush and de-activate.
    * @return number of deactivated basketizers */
   VECCORE_ATT_HOST_DEVICE
-  int CheckBasketizers(GeantTaskData *td, size_t flush_threshold);
+  int CheckBasketizers(TaskData *td, size_t flush_threshold);
 
 public:
 // The functions below are the interfaces for derived simulation stages.
@@ -88,7 +88,7 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   VECCORE_ATT_HOST_DEVICE
-  virtual Handler *Select(Track *track, GeantTaskData *td) = 0;
+  virtual Handler *Select(Track *track, TaskData *td) = 0;
 
 public:
   /** @brief Dummy SimulationStage constructor */
@@ -136,17 +136,17 @@ public:
    *  @return Number of tracks processed
    */
   VECCORE_ATT_HOST_DEVICE
-  int Process(GeantTaskData *td);
+  int Process(TaskData *td);
 
   /** @brief Flush all tracks from the simulation stage basketizers and execute stage
    *  @return Number of tracks flushed
    */
   VECCORE_ATT_HOST_DEVICE
-  int FlushAndProcess(GeantTaskData *td);
+  int FlushAndProcess(TaskData *td);
 
    /** @brief Flush a handler and return the number of flushed tracks */
   VECCORE_ATT_HOST_DEVICE
-  int FlushHandler(int i, GeantTaskData *td, Basket &output);
+  int FlushHandler(int i, TaskData *td, Basket &output);
 
  /** @brief Getter for type */
   VECCORE_ATT_HOST_DEVICE

@@ -15,7 +15,7 @@
 #define GEANT_FIELD_PROPAGATION_HANDLER
 
 #include "Handler.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include "WorkspaceForFieldPropagation.h"
 
@@ -33,11 +33,11 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Track *track, Basket& output, TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Basket &input, Basket& output, TaskData *td);
 
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
@@ -60,7 +60,7 @@ public:
 
 protected:
   VECCORE_ATT_HOST_DEVICE
-  bool IsSameLocation(Track &track, GeantTaskData *td);
+  bool IsSameLocation(Track &track, TaskData *td);
 
 private:
   FieldPropagationHandler(const FieldPropagationHandler &) = delete;
@@ -68,11 +68,11 @@ private:
 
   /** @brief Scalar implementation for magnetic field propagation */
   VECCORE_ATT_HOST_DEVICE
-  void PropagateInVolume(Track &track, double crtstep, GeantTaskData * td);
+  void PropagateInVolume(Track &track, double crtstep, TaskData * td);
 
   /** @brief Vector implementation for magnetic field propagation */
   VECCORE_ATT_HOST_DEVICE
-  void PropagateInVolume(TrackVec_t &tracks, const double *crtstep, GeantTaskData *td);
+  void PropagateInVolume(TrackVec_t &tracks, const double *crtstep, TaskData *td);
 
   /** @brief Curvature for general field    */
   VECCORE_ATT_HOST_DEVICE
@@ -85,21 +85,21 @@ private:
 
   /** @brief Function that return Field Propagator, i.e. the holder of (RK) Integration Driver */
   GEANT_FORCE_INLINE
-  GUFieldPropagator * GetFieldPropagator(GeantTaskData *td);
+  GUFieldPropagator * GetFieldPropagator(TaskData *td);
 
   // - Book keeping methods for task data
 
   /** @brief Connect with thread's FieldPropagator & create working buffers */
   VECCORE_ATT_HOST_DEVICE
-  GUFieldPropagator * Initialize(GeantTaskData * td);
+  GUFieldPropagator * Initialize(TaskData * td);
 
   /** @brief Cleanup the thread working buffers */
   VECCORE_ATT_HOST_DEVICE
-  void Cleanup(GeantTaskData * td);
+  void Cleanup(TaskData * td);
 
   /** @brief Clear the old buffers and create new working buffers */
   VECCORE_ATT_HOST_DEVICE
-  void PrepareBuffers( size_t nTracks, GeantTaskData *td );
+  void PrepareBuffers( size_t nTracks, TaskData *td );
 };
 
 // ---------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ SafeLength(const Track &track, double eps)
 //______________________________________________________________________________
 // VECCORE_ATT_HOST_DEVICE -- not yet
 GUFieldPropagator *
-FieldPropagationHandler::GetFieldPropagator( GeantTaskData *td )
+FieldPropagationHandler::GetFieldPropagator( TaskData *td )
 {
    GUFieldPropagator *fieldPropagator = nullptr;
    bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
@@ -145,7 +145,7 @@ FieldPropagationHandler::GetFieldPropagator( GeantTaskData *td )
 //______________________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 inline
-void FieldPropagationHandler::PrepareBuffers( size_t nTracks, GeantTaskData *td )
+void FieldPropagationHandler::PrepareBuffers( size_t nTracks, TaskData *td )
 {
    auto wsp = td->fSpace4FieldProp;
    assert(wsp);

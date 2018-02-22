@@ -21,7 +21,7 @@ int Event::AddTrack() {
 }
 
 //______________________________________________________________________________
-void Event::Clear(GeantTaskData *td)
+void Event::Clear(TaskData *td)
 {
 // Clear the event.
   fPrioritize = false;
@@ -44,7 +44,7 @@ void Event::Clear(GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-bool Event::StopTrack(RunManager *runmgr, GeantTaskData *td) {
+bool Event::StopTrack(RunManager *runmgr, TaskData *td) {
   // Mark one track as stopped. Check if event has to be prioritized and return
   // true in this case.
 #ifdef VECCORE_CUDA

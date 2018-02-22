@@ -6,7 +6,7 @@
 #include <vector>
 #include "ROOT/TBufferMerger.hxx"
 #include "TTree.h"
-#include "GeantFactory.h"
+#include "Geant/Factory.h"
 #include "MyHit.h"
 
 

@@ -72,7 +72,7 @@ namespace demo {
 	Not required as application functionality, the event reading or generation
 	can in the external event loop.
     */
-    geant::EventSet* GenerateEventSet(size_t nevents, const size_t *event_index, GeantTaskData *td);
+    geant::EventSet* GenerateEventSet(size_t nevents, const size_t *event_index, TaskData *td);
 
     inline void LockEventGenerator() { while (fEventGeneratorLock.test_and_set(std::memory_order_acquire)) {}; }
     inline void UnlockEventGenerator() { fEventGeneratorLock.clear(std::memory_order_release); }
@@ -248,7 +248,7 @@ namespace demo {
     // First book a transport task from GeantV run manager
     //int ntotransport = BookEvents(nevents);
 
-    GeantTaskData *td = fRunMgr->BookTransportTask();
+    TaskData *td = fRunMgr->BookTransportTask();
     std::cerr<<" RunTransportTask: td= "<< td <<", nevts="<< nevents <<" toy EventID="<<event_index[0]<<"\n";
     if (!td) return false;
 
@@ -275,7 +275,7 @@ namespace demo {
     return nbooked;
   }
 
-  geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, const size_t *event_index, geant::GeantTaskData *td)
+  geant::EventSet *GeantVProducer::GenerateEventSet(size_t nevents, const size_t *event_index, geant::TaskData *td)
   {
     using EventSet = geant::EventSet;
     using Event = geant::Event;

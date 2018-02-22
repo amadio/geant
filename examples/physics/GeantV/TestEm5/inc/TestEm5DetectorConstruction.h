@@ -2,7 +2,7 @@
 #ifndef USERDETECTORCONSTRUCTION_H
 #define USERDETECTORCONSTRUCTION_H
 
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "GeantFwd.h"
@@ -11,7 +11,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-    class GeantVDetectorConstruction;
+    class UserDetectorConstruction;
     class RunManager;
   }
 }
@@ -31,19 +31,19 @@ namespace userapplication {
  * The detector is a simple slab (with configurable thickness and material) in a world. The whole detector is in a
  * user defined region with configurable secondary particle production threads.
  *
- * @class   UserDetectorConstruction
+ * @class   TestEm5DetectorConstruction
  * @author  M Novak
  * @date    July 2017
  */
 
 
 
-class UserDetectorConstruction : public geant::GeantVDetectorConstruction {
+class TestEm5DetectorConstruction : public geant::UserDetectorConstruction {
 public:
   // CTR
-  UserDetectorConstruction(geant::RunManager *runmgr);
+  TestEm5DetectorConstruction(geant::RunManager *runmgr);
   // DTR
- ~UserDetectorConstruction();
+ ~TestEm5DetectorConstruction();
 
   // interface mathod to define a set of custom materials for the application
   virtual void CreateMaterials();

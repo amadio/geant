@@ -1,5 +1,5 @@
 #include "Handler.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "GeantNuma.h"
 
 namespace geant {
@@ -40,7 +40,7 @@ Handler::~Handler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Handler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void Handler::DoIt(Basket &input, Basket& output, TaskData *td)
 {
 // Vector DoIt method implemented as a loop. Overwrite to implement a natively
 // vectorized version.
@@ -50,7 +50,7 @@ void Handler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Handler::DoItScalar(Basket &input, Basket& output, GeantTaskData *td)
+void Handler::DoItScalar(Basket &input, Basket& output, TaskData *td)
 {
 // Basketized DoIt method implemented as a loop. Overwrite to implement a natively
 // vectorized version.

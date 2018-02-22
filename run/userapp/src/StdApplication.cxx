@@ -1,6 +1,6 @@
 #include "StdApplication.h"
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "globals.h"
 #include "Geant/Error.h"
 #ifdef USE_ROOT
@@ -13,7 +13,7 @@
 
 //______________________________________________________________________________
 StdApplication::StdApplication(RunManager *runmgr)
-  : geant::GeantVApplication(runmgr), fInitialized(false),
+  : geant::UserApplication(runmgr), fInitialized(false),
 #ifdef USE_ROOT
     fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
 #endif
@@ -65,7 +65,7 @@ bool StdApplication::Initialize() {
 }
 
 //______________________________________________________________________________
-void StdApplication::SteppingActions(Track &track, GeantTaskData * td) {
+void StdApplication::SteppingActions(Track &track, TaskData * td) {
   // Application stepping actions.
 #ifdef USE_ROOT
   Propagator *propagator = td->fPropagator;

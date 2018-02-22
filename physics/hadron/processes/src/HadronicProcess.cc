@@ -106,7 +106,7 @@ Isotope* HadronicProcess::SampleTarget( LightTrack &track ) const {
 }
 
 
-int HadronicProcess::PostStepDoIt( LightTrack &track, geant::GeantTaskData *td) {
+int HadronicProcess::PostStepDoIt( LightTrack &track, geant::TaskData *td) {
 
   // Comment below not up to date anymore
   //
@@ -133,7 +133,7 @@ int HadronicProcess::PostStepDoIt( LightTrack &track, geant::GeantTaskData *td) 
   return 0;
 }
 
-int  HadronicProcess::AtRestDoIt( LightTrack& /*track*/,  geant::GeantTaskData * /*td*/ ) { return 0; }
+int  HadronicProcess::AtRestDoIt( LightTrack& /*track*/,  geant::TaskData * /*td*/ ) { return 0; }
 
 
 void HadronicProcess::AddModel(HadronicFinalStateModel *model) {

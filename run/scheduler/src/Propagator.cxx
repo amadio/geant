@@ -38,11 +38,10 @@
 #include "RunManager.h"
 #include "PhysicsInterface.h"
 #include "WorkloadManager.h"
-#include "GeantTaskData.h"
-#include "GeantVApplication.h"
-#include "GeantVTaskMgr.h"
+#include "TaskData.h"
+#include "UserApplication.h"
 #include "StdApplication.h"
-#include "GeantFactoryStore.h"
+#include "Geant/FactoryStore.h"
 #include "Geant/Event.h"
 #include "PrimaryGenerator.h"
 #include "MCTruthMgr.h"
@@ -82,7 +81,6 @@ Propagator::Propagator(const Propagator &orig) : Propagator(orig.fNthreads) {
   SetConfig(orig.fConfig);
   fApplication = orig.fApplication;
   fStdApplication = orig.fStdApplication;
-  fTaskMgr = orig.fTaskMgr;
   fPhysicsInterface = orig.fPhysicsInterface;
   fPrimaryGenerator = orig.fPrimaryGenerator;
   fTruthMgr = orig.fTruthMgr;
@@ -114,7 +112,7 @@ int Propagator::AddTrack(Track &track) {
 }
 
 //______________________________________________________________________________
-void Propagator::StopTrack(Track *track, GeantTaskData *td) {
+void Propagator::StopTrack(Track *track, TaskData *td) {
   // Mark track as stopped for tracking.
   //   Printf("Stopping track %d", track->particle);
 
@@ -257,7 +255,7 @@ void Propagator::SetConfig(GeantConfig *config)
     fNbuff = fNtotal;
   }
   // Instantiate factory store
-  GeantFactoryStore::Instance(fNbuff);
+  FactoryStore::Instance(fNbuff);
 }
 
 //______________________________________________________________________________

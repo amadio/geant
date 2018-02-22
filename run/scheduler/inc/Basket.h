@@ -23,7 +23,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 class SimulationStage;
 #include "GeantFwd.h"
 
@@ -216,7 +216,7 @@ public:
 
   /** @brief Recycle this basket */
   VECCORE_ATT_HOST_DEVICE
-  void Recycle(GeantTaskData *td);
+  void Recycle(TaskData *td);
 
   /**
    * @brief  Function that providing the size of this basket in bytes

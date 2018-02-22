@@ -14,7 +14,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-    class GeantTaskData;
+    class TaskData;
   }
 }
 
@@ -78,7 +78,7 @@ public:
                                     double &mcToG2PerG1);
 
   double   GetMottRejectionValue(double logekin, double beta2, double q1, double cost, int matindx, int &ekindx,
-                                 int &deltindx, geant::GeantTaskData* td);
+                                 int &deltindx, geant::TaskData* td);
 
   static int GetMaxZet() { return gMaxZet; }
 

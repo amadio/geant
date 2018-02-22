@@ -2,7 +2,7 @@
 #ifndef CMSDETECTORCONSTRUCTION_H
 #define CMSDETECTORCONSTRUCTION_H
 
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "GeantFwd.h"
@@ -18,7 +18,7 @@ namespace geant {
 
 namespace cmsapp {
 
-class CMSDetectorConstruction : public geant::GeantVDetectorConstruction {
+class CMSDetectorConstruction : public geant::UserDetectorConstruction {
 public:
 
   CMSDetectorConstruction(geant::RunManager *runmgr);

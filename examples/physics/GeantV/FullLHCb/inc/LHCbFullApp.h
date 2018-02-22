@@ -3,17 +3,17 @@
 #define LHCbFULLAPP_H
 
 #ifndef GEANT_VAPPLICATION
-  #include "GeantVApplication.h"
+  #include "UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
     class RunManager;
-    class GeantTaskDataHandle;
+    class TaskDataHandle;
     class Event;
     class Track;
   }
@@ -22,7 +22,7 @@ namespace GEANT_IMPL_NAMESPACE {
 
 #include "LHCbData.h"
 
-#include "GeantFactory.h"
+#include "Geant/Factory.h"
 #include "MyHit.h"
 
 #include <mutex>
@@ -39,7 +39,7 @@ namespace lhcbapp {
 
 class LHCbParticleGun;
 
-class LHCbFullApp : public geant::GeantVApplication {
+class LHCbFullApp : public geant::UserApplication {
 public:
 
 
@@ -47,16 +47,16 @@ public:
   virtual ~LHCbFullApp();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
-  virtual void AttachUserData(geant::GeantTaskData *td);
+  virtual void AttachUserData(geant::TaskData *td);
 
   /** @brief Applications creating data per thread have to clean it up */
-  virtual void DeleteUserData(geant::GeantTaskData *td);
+  virtual void DeleteUserData(geant::TaskData *td);
 
   /** @brief Interface method to initialize the application. */
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(geant::Track &track, geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::Track &track, geant::TaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
@@ -117,7 +117,7 @@ private:
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
   std::map<int,int> fHCALMap;                     /** Map of HCAL modules */
 
-  GeantFactory<MyHit> *fFactory = nullptr;        /** Hits factory */
+  Factory<MyHit> *fFactory = nullptr;        /** Hits factory */
   ROOT::Experimental::TBufferMerger* fMerger = nullptr;
   int fOutputBlockWrite;
   

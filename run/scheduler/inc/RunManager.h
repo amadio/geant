@@ -7,7 +7,7 @@
 #include "base/BitSet.h"
 #include "Geant/Config.h"
 #include "Geant/Typedefs.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "EventServer.h"
 #include "GeantConfig.h"
 #ifdef USE_ROOT
@@ -26,10 +26,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class Propagator;
 class TaskBroker;
-class GeantVApplication;
-class GeantVDetectorConstruction;
+class UserApplication;
+class UserDetectorConstruction;
 class UserFieldConstruction;
-class GeantVTaskMgr;
 class EventServer;
 class Event;
 class PrimaryGenerator;
@@ -48,11 +47,10 @@ private:
   GeantConfig *fConfig = nullptr; /** Run configuration */
   TaskBroker *fBroker = nullptr;  /** Task broker */
 
-  GeantVApplication *fApplication = nullptr;    /** User application */
-  GeantVApplication *fStdApplication = nullptr; /** Standard application */
-  GeantVDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
+  UserApplication *fApplication = nullptr;    /** User application */
+  UserApplication *fStdApplication = nullptr; /** Standard application */
+  UserDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
   
-  GeantVTaskMgr     *fTaskMgr = nullptr;  /** GeantV task manager */
   PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
   MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
@@ -112,7 +110,7 @@ public:
   int  GetInitialShare() const { return fInitialShare; }
 
   GEANT_FORCE_INLINE
-  GeantVDetectorConstruction *GetDetectorConstruction() const { return fDetConstruction; }
+  UserDetectorConstruction *GetDetectorConstruction() const { return fDetConstruction; }
 
   GEANT_FORCE_INLINE
   void  SetInitialShare(int nbaskets) { fInitialShare = nbaskets; }
@@ -134,7 +132,7 @@ public:
   EventServer *GetEventServer() const { return fEventServer; }
 
 //  GEANT_FORCE_INLINE
-//  GeantTaskData *GetTaskData(int tid) { return fTaskData[tid]; }
+//  TaskData *GetTaskData(int tid) { return fTaskData[tid]; }
 
   GEANT_FORCE_INLINE
   int  GetTaskId() { return (fTaskId.fetch_add(1)); }
@@ -146,19 +144,16 @@ public:
   void SetCoprocessorBroker(TaskBroker *broker) { fBroker = broker; }
 
   GEANT_FORCE_INLINE
-  void SetUserApplication(GeantVApplication *app) { fApplication = app; }
+  void SetUserApplication(UserApplication *app) { fApplication = app; }
 
   /** @brief Set object to initialize detector, field */
   void SetUserFieldConstruction(UserFieldConstruction* udc);
     
   GEANT_FORCE_INLINE
-  GeantVApplication *GetUserApplication() const { return fApplication; }
+  UserApplication *GetUserApplication() const { return fApplication; }
 
   GEANT_FORCE_INLINE
-  void SetDetectorConstruction(GeantVDetectorConstruction *det) { fDetConstruction = det; }
-
-  GEANT_FORCE_INLINE
-  void SetTaskMgr(GeantVTaskMgr *taskmgr) { fTaskMgr = taskmgr; }
+  void SetDetectorConstruction(UserDetectorConstruction *det) { fDetConstruction = det; }
 
   GEANT_FORCE_INLINE
   void SetPhysicsInterface(PhysicsInterface *interface) { fPhysicsInterface = interface; }
@@ -184,7 +179,7 @@ public:
   GEANT_FORCE_INLINE
   bool IsInitialized() { return fInitialized; }
  
-  GeantTaskData *BookTransportTask();
+  TaskData *BookTransportTask();
 
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
@@ -203,12 +198,12 @@ public:
  
   EventSet *NotifyEventSets(Event *finished_event);
 
-  void EventTransported(Event *event, GeantTaskData *td);
+  void EventTransported(Event *event, TaskData *td);
   bool Initialize();
   bool FinishRun();
   bool LoadGeometry(const char *filename);
   void RunSimulation();
-  bool RunSimulationTask(EventSet *workload, GeantTaskData *td);
+  bool RunSimulationTask(EventSet *workload, TaskData *td);
   void StopTransport();
 
 };

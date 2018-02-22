@@ -18,17 +18,17 @@ namespace userapplication {
  * The step limit value of the this StepMaxProcess and the multiple Coulomb scattering process stepping algorithm type
  * are configurable from input arguments.
  *
- * @class   UserPhysicsList
+ * @class   TestEm5PhysicsList
  * @author  M Novak
  * @date    July 2017
  */
 
-class UserPhysicsList : public geantphysics::PhysicsList {
+class TestEm5PhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  UserPhysicsList(const std::string &name);
+  TestEm5PhysicsList(const std::string &name);
   // DTR
- ~UserPhysicsList();
+ ~TestEm5PhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 

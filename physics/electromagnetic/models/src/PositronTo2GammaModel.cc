@@ -21,7 +21,7 @@
 #include "PhysicsData.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <cmath>
 
@@ -100,7 +100,7 @@ double PositronTo2GammaModel::ComputeXsectionPerElectron(double pekin) {
 
 //
 // Samples the in-flight e+ e- annihilation (NOTE: the at rest annihilation is implemented into the process)
-int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int    PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int numSecondaries = 0;
   // sample gamma energy
   const double pekin = track.GetKinE();
@@ -203,7 +203,7 @@ double PositronTo2GammaModel::SampleEnergyTransfer(double pekin, double gamma, d
 }
 
 
-double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, geant::GeantTaskData *td) {
+double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, geant::TaskData *td) {
   const double minEps = 0.5*(1.-std::sqrt((gamma-1.)/(gamma+1.)));
   const double maxEps = 0.5*(1.+std::sqrt((gamma-1.)/(gamma+1.)));
   const double dum1   = std::log(maxEps/minEps);

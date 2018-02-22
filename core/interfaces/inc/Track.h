@@ -88,7 +88,7 @@ enum ESimulationStage {
 constexpr size_t kNstages = size_t(kSteppingActionsStage) + 1;
 constexpr size_t kNumPhysicsProcess = 10;
 
-class GeantTaskData;
+class TaskData;
 class Track;
 class TrackDataMgr;
 
@@ -991,7 +991,7 @@ public:
 
   /** @brief Clone this track using specific task data storage */
   VECCORE_ATT_HOST_DEVICE
-  Track *Clone(GeantTaskData *td);
+  Track *Clone(TaskData *td);
 
   /** @brief Function that stops the track depositing its kinetic energy */
   VECCORE_ATT_HOST_DEVICE

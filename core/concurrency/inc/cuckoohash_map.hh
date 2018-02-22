@@ -664,7 +664,7 @@ private:
         static_assert(N >= 1 && N <= 3, "BucketContainer should only be used"
                       " for between 1 and 3 locks");
         const cuckoohash_map* map;
-        std::array<size_t, N> i;
+        std::array<size_t, N> i = {};
 
         BucketContainer() : map(nullptr) {}
 

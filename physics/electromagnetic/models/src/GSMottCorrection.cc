@@ -10,7 +10,7 @@
 #include "MaterialCuts.h"
 
 // only for rng
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <iostream>
 #include <fstream>
@@ -78,7 +78,7 @@ void GSMottCorrection::GetMottCorrectionFactors(double logekin, double beta2, in
 
 // accept cost if rndm [0,1] < return value
 double GSMottCorrection::GetMottRejectionValue(double logekin, double beta2, double q1, double cost, int matindx,
-                                               int &ekindx, int &deltindx, geant::GeantTaskData* td) {
+                                               int &ekindx, int &deltindx, geant::TaskData* td) {
   double val   = 1.0;
   double delta = q1/(0.5+q1);
   // check if converged to 1 for all angles => accept cost

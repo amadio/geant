@@ -3,17 +3,17 @@
 #define CMSFULLAPP_H
 
 #ifndef GEANT_VAPPLICATION
-  #include "GeantVApplication.h"
+  #include "UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
     class RunManager;
-    class GeantTaskDataHandle;
+    class TaskDataHandle;
     class Event;
     class Track;
   }
@@ -30,7 +30,7 @@ namespace cmsapp {
 
 class CMSParticleGun;
 
-class CMSFullApp : public geant::GeantVApplication {
+class CMSFullApp : public geant::UserApplication {
 public:
 
 
@@ -38,13 +38,13 @@ public:
   virtual ~CMSFullApp();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
-  virtual void AttachUserData(geant::GeantTaskData *td);
+  virtual void AttachUserData(geant::TaskData *td);
 
   /** @brief Interface method to initialize the application. */
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(geant::Track &track, geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::Track &track, geant::TaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/

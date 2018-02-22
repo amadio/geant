@@ -8,7 +8,7 @@
 #include "Geant/Config.h"
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTaskData;
+  class TaskData;
 }
 }
 
@@ -102,7 +102,7 @@ public:
     *                          the seconadry tracks generated in the interaction.
     * @return                  Number of secondary tracks generated in the interaction.
     */
-  virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
+  virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
 //
 //@}
 
@@ -152,7 +152,7 @@ private:
    * @return                 The sampled reduced total energy transfered to one of the e-/e+ pair.
    */
   double SampleTotalEnergyTransfer(const double egamma, const double lpmenergy, const int izet,
-                                   const geant::GeantTaskData *td);
+                                   const geant::TaskData *td);
   /**
    * @brief Internal helper method to integrate the DCS in order to get the atomic cross scection.
    *

@@ -32,7 +32,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PhysicsInterface {
 
 public:
-  using GeantTaskData = geant::GeantTaskData;
+  using TaskData = geant::TaskData;
   using TrackDataMgr  = geant::TrackDataMgr;
 
 public:
@@ -45,7 +45,7 @@ public:
   virtual ~PhysicsInterface();
 
   /** @brief Attach task data if needed */
-  virtual void AttachUserData(GeantTaskData *) {}
+  virtual void AttachUserData(TaskData *) {}
 
   /** @brief Function of initialization */
   virtual void Initialize() {}

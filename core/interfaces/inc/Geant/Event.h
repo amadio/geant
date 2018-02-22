@@ -23,7 +23,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class Track;
 class RunManager;
-class GeantTaskData;
+class TaskData;
 
 /** @brief Class Event that decribes events */
 class Event {
@@ -59,7 +59,7 @@ public:
   int AddPrimary(Track *track) { fPrimaries.push_back(track); return AddTrack(); }
 
   /* @brief Crear the event and release all primaries */
-  void Clear(GeantTaskData *td);
+  void Clear(TaskData *td);
 
   /** @brief Dispatch track. */
   GEANT_FORCE_INLINE
@@ -186,7 +186,7 @@ public:
    *
    * @return Flag true if stopping qa track started priority mode for the event
    */
-  bool StopTrack(RunManager *runmgr, GeantTaskData *td);
+  bool StopTrack(RunManager *runmgr, TaskData *td);
 
   /** @brief Print function */
   void Print(const char *option = "") const;

@@ -61,7 +61,7 @@ void TestEm3PrimaryGenerator::InitPrimaryGenerator() {
 }
 
 
-geant::EventInfo TestEm3PrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+geant::EventInfo TestEm3PrimaryGenerator::NextEvent(geant::TaskData* /*td*/) {
   geant::EventInfo current;
   current.ntracks = fPrimaryPerEvent;
   current.xvert   = fXPos;
@@ -71,7 +71,7 @@ geant::EventInfo TestEm3PrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/
 }
 
 
-void TestEm3PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
+void TestEm3PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData* /*td*/) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);

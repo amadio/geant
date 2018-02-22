@@ -3,7 +3,7 @@
 
 // from geantV
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 #include "Basket.h"
 
@@ -28,7 +28,7 @@ AlongStepActionHandler::~AlongStepActionHandler() {}
 
 // The AlongStepActionStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has any continuous processes i.e. has along-step-action
-void AlongStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td) {
+void AlongStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -86,7 +86,7 @@ void AlongStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, ge
 }
 
 //______________________________________________________________________________
-void AlongStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
+void AlongStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();

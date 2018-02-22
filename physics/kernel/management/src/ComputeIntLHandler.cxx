@@ -3,7 +3,7 @@
 
 // from geantV
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 #include "Basket.h"
 
@@ -28,7 +28,7 @@ ComputeIntLHandler::~ComputeIntLHandler() {}
 // The select method of the ComputeIntLStage selected only those tracks that (1) that has any process assigned i.e.
 // their PhysicsManagerPerParticle object is not null in the given region and (2) they has AlongStep and/or PostStep
 // processes that can limit the step.
-void ComputeIntLHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td) {
+void ComputeIntLHandler::DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td) {
   // reset step length and energy deposit
   track->SetStep(0.); // no setter for this member in Track
   track->SetEdep(0.);
@@ -52,7 +52,7 @@ void ComputeIntLHandler::DoIt(geant::Track *track, geant::Basket& output, geant:
 }
 
 //______________________________________________________________________________
-void ComputeIntLHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
+void ComputeIntLHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();

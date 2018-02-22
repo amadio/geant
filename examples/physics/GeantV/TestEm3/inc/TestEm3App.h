@@ -3,17 +3,17 @@
 #define TESTEM3APP_H
 
 #ifndef GEANT_VAPPLICATION
-#include "GeantVApplication.h"
+#include "UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
     class RunManager;
-    class GeantTaskDataHandle;
+    class TaskDataHandle;
     class Event;
     class Track;
   }
@@ -47,7 +47,7 @@ class TestEm3DetectorConstruction;
 class TestEm3PrimaryGenerator;
 //
 /** @brief TestEm3App user application */
-class TestEm3App : public geant::GeantVApplication {
+class TestEm3App : public geant::UserApplication {
 public:
 
   /** @brief Constructor TestEm3App */
@@ -57,13 +57,13 @@ public:
   virtual ~TestEm3App();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
-  virtual void AttachUserData(geant::GeantTaskData *td);
+  virtual void AttachUserData(geant::TaskData *td);
 
   /** @brief Interface method to initialize the application. */
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(geant::Track &track, geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::Track &track, geant::TaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/

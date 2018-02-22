@@ -4,7 +4,7 @@
 #include "Geant/Error.h"
 #include <execinfo.h>
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -208,7 +208,7 @@ void Track::Reset(Track const &blueprint)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Track *Track::Clone(GeantTaskData *td)
+Track *Track::Clone(TaskData *td)
 {
   Track &track = td->GetNewTrack();
   track = *this;

@@ -25,7 +25,7 @@
 #include "PhysicsData.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <cmath>
 #include <cstdio>
@@ -131,7 +131,7 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
 }
 
 
-int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int    numSecondaries      = 0;
   double ekin                = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
@@ -723,7 +723,7 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, d
 }
 
 
-double   SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, geant::GeantTaskData *td) {
+double   SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, geant::TaskData *td) {
   double egamma = 0.;
   //
   const double etot       = eekin + geant::units::kElectronMassC2;

@@ -17,7 +17,7 @@
 #include "PhysicsData.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geantphysics {
 
@@ -92,7 +92,7 @@ double KleinNishinaComptonModel::ComputeXSectionPerAtom(const Element *elem, con
 }
 
 
-int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int    numSecondaries = 0;
   const double ekin     = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
@@ -351,7 +351,7 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
 
 
 double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2,
-                                                          const geant::GeantTaskData *td) {
+                                                          const geant::TaskData *td) {
   const double kappa = egamma/geant::units::kElectronMassC2;
   const double eps0  = 1./(1.+2.*kappa);
   const double eps02 = eps0*eps0;

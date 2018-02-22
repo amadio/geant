@@ -1,4 +1,4 @@
-#include "GeantTrackGeo.h"
+#include "TrackGeo.h"
 
 #include "globals.h"
 #include "Geant/Error.h"
@@ -22,7 +22,7 @@
 
 #include "WorkloadManager.h"
 
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include "GUFieldPropagatorPool.h"
 #include "GUFieldPropagator.h"
@@ -43,7 +43,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace VECGEOM_NAMESPACE;
 
 //______________________________________________________________________________
-GeantTrackGeo_v::GeantTrackGeo_v()
+TrackGeo_v::TrackGeo_v()
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
       fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
@@ -51,7 +51,7 @@ GeantTrackGeo_v::GeantTrackGeo_v()
 }
 
 //______________________________________________________________________________
-GeantTrackGeo_v::GeantTrackGeo_v(int size)
+TrackGeo_v::TrackGeo_v(int size)
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
       fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
@@ -61,33 +61,33 @@ GeantTrackGeo_v::GeantTrackGeo_v(int size)
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTrackGeo_v *GeantTrackGeo_v::MakeInstanceAt(void *addr, unsigned int nTracks) {
-  return new (addr) GeantTrackGeo_v(addr, nTracks);
+TrackGeo_v *TrackGeo_v::MakeInstanceAt(void *addr, unsigned int nTracks) {
+  return new (addr) TrackGeo_v(addr, nTracks);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-GeantTrackGeo_v::GeantTrackGeo_v(void *addr, unsigned int nTracks)
+TrackGeo_v::TrackGeo_v(void *addr, unsigned int nTracks)
     : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
       fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
       fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
 
   // Constructor with maximum capacity.
-  fBuf = ((char *)addr) + RoundUpAlign(sizeof(GeantTrackGeo_v));
+  fBuf = ((char *)addr) + RoundUpAlign(sizeof(TrackGeo_v));
   fBufSize = BufferSize(nTracks);
   memset(fBuf, 0, fBufSize);
   AssignInBuffer(fBuf, nTracks);
 }
 
 //______________________________________________________________________________
-GeantTrackGeo_v::~GeantTrackGeo_v() {
+TrackGeo_v::~TrackGeo_v() {
   // Destructor.
   _mm_free(fBuf);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-void GeantTrackGeo_v::AssignInBuffer(char *buff, int size) {
+void TrackGeo_v::AssignInBuffer(char *buff, int size) {
   // Assign all internal class arrays in the supplied buffer, padded by supplied
   // size.
 
@@ -122,7 +122,7 @@ void GeantTrackGeo_v::AssignInBuffer(char *buff, int size) {
 }
 
 //______________________________________________________________________________
-void GeantTrackGeo_v::CopyToBuffer(char *buff, int size) {
+void TrackGeo_v::CopyToBuffer(char *buff, int size) {
   // Copy existing track arrays into new buffer, padded by supplied size
   const int size_double = fNtracks * sizeof(double);
   const int size_doublen = size * sizeof(double);
@@ -169,7 +169,7 @@ void GeantTrackGeo_v::CopyToBuffer(char *buff, int size) {
 }
 
 //______________________________________________________________________________
-bool GeantTrackGeo_v::IsNormalized(int itr, double tolerance) const {
+bool TrackGeo_v::IsNormalized(int itr, double tolerance) const {
   // Check if track direction is normalized within tolerance
   double norm = fXdirV[itr] * fXdirV[itr] + fYdirV[itr] * fYdirV[itr] + fZdirV[itr] * fZdirV[itr];
   if (fabs(1. - norm) > tolerance)
@@ -179,22 +179,22 @@ bool GeantTrackGeo_v::IsNormalized(int itr, double tolerance) const {
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-size_t GeantTrackGeo_v::BufferSize(size_t nTracks) {
-  // return the contiguous memory size needed to hold a GeantTrackGeo's data
+size_t TrackGeo_v::BufferSize(size_t nTracks) {
+  // return the contiguous memory size needed to hold a TrackGeo's data
   size_t size = RoundUpAlign(nTracks);
-  return size * sizeof(GeantTrackGeo);
+  return size * sizeof(TrackGeo);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-size_t GeantTrackGeo_v::SizeOfInstance(size_t nTracks) {
-  // return the contiguous memory size needed to hold a GeantTrackGeo
+size_t TrackGeo_v::SizeOfInstance(size_t nTracks) {
+  // return the contiguous memory size needed to hold a TrackGeo
 
-  return RoundUpAlign(sizeof(GeantTrackGeo_v))+BufferSize(nTracks);
+  return RoundUpAlign(sizeof(TrackGeo_v))+BufferSize(nTracks);
 }
 
 //______________________________________________________________________________
-void GeantTrackGeo_v::Resize(int newsize) {
+void TrackGeo_v::Resize(int newsize) {
   // Resize the container.
   int size = RoundUpAlign(newsize);
   if (size < GetNtracks()) {
@@ -221,7 +221,7 @@ void GeantTrackGeo_v::Resize(int newsize) {
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
+int TrackGeo_v::AddTracks(TrackVec_t const &array) {
   // Add all tracks from a vector into the SOA array. 
   // Returns the number of tracks after the operation.
 
@@ -229,7 +229,7 @@ int GeantTrackGeo_v::AddTracks(TrackVec_t const &array) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     Resize(Math::Max<int>(2 * fMaxtracks, fNtracks + array.size()));
 #else
-    printf("Error in GeantTrackGeo::AddTrack, resizing is not supported in device code\n");
+    printf("Error in TrackGeo::AddTrack, resizing is not supported in device code\n");
 #endif
   }
 

@@ -4,7 +4,7 @@
 #include "Geant/Error.h"
 #include <execinfo.h>
 
-#include "GeantTrackGeo.h"
+#include "TrackGeo.h"
 #include "ScalarNavInterfaceVG.h"
 #include "ScalarNavInterfaceVGM.h"
 #include "VectorNavInterface.h"
@@ -21,7 +21,7 @@
 #include "WorkloadManager.h"
 
 #include "Basket.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "ConstBzFieldHelixStepper.h"
 #include "ConstFieldHelixStepper.h"
 
@@ -50,7 +50,7 @@ using namespace VECGEOM_NAMESPACE;
 VECCORE_ATT_HOST_DEVICE
 int TransportManager::CheckSameLocation(TrackVec_t &tracks,
                                          int ntracks,
-                                         GeantTaskData *td) {
+                                         TaskData *td) {
 // Query geometry if the location has changed for a vector of particles
 // Returns number of tracks crossing the boundary.
 
@@ -86,7 +86,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 #if (defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   // Vector treatment
   // Copy data to SOA and dispatch for vector mode
-  GeantTrackGeo_v &track_geo = *td.fGeoTrack;
+  TrackGeo_v &track_geo = *td.fGeoTrack;
   track_geo.Clear();
   for (int itr = 0; itr < tracks.size(); itr++) {
     Track &track = *tracks[itr];
@@ -127,7 +127,7 @@ int TransportManager::CheckSameLocation(TrackVec_t &tracks,
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 int TransportManager::CheckSameLocationSingle(Track &track,
-                                         GeantTaskData *td) {
+                                         TaskData *td) {
 // Query geometry if the location has changed for a track
 // Returns number of tracks crossing the boundary (0 or 1)
 
@@ -164,7 +164,7 @@ int TransportManager::CheckSameLocationSingle(Track &track,
 VECCORE_ATT_HOST_DEVICE
 void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
                                               int ntracks,
-                                              GeantTaskData *td) {
+                                              TaskData *td) {
 // Vector version for proposing the geometry step. All tracks have to be
 // in the same volume. This may still fall back on the scalar implementation
 // in case the vector size is too small.
@@ -183,7 +183,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
   } else {
     // Copy interesting tracks to SOA and process vectorized.
     // This is overhead but cannot be avoided.
-    GeantTrackGeo_v &track_geo = *td->fGeoTrack;
+    TrackGeo_v &track_geo = *td->fGeoTrack;
     track_geo.Clear();
     int i = 0;
     // This selection should happen in the propagation stage
@@ -229,7 +229,7 @@ void TransportManager::ComputeTransportLength(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TransportManager::ComputeTransportLengthSingle(Track &track, GeantTaskData *td) {
+void TransportManager::ComputeTransportLengthSingle(Track &track, TaskData *td) {
 // Computes snext and safety for a single track. For charged tracks these are the only
 // computed values, while for neutral ones the next node is checked and the boundary flag is set if
 // closer than the proposed physics step.
@@ -254,7 +254,7 @@ VECCORE_ATT_HOST_DEVICE
 void TransportManager::PropagateInVolume(TrackVec_t &tracks,
                                       int ntracks,
                                       const double *crtstep,
-                                      GeantTaskData *td) {
+                                      TaskData *td) {
   // Propagate the selected tracks with crtstep values. The method is to be called
   // only with  charged tracks in magnetic field. The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -273,7 +273,7 @@ void TransportManager::PropagateInVolume(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void TransportManager::PropagateInVolumeSingle(Track &track, double crtstep, GeantTaskData * td) {
+void TransportManager::PropagateInVolumeSingle(Track &track, double crtstep, TaskData * td) {
   // Propagate the selected track with crtstep value. The method is to be called
   // only with  charged tracks in magnetic field.The method decreases the fPstepV
   // fSafetyV and fSnextV with the propagated values while increasing the fStepV.
@@ -427,7 +427,7 @@ void TransportManager::PropagateInVolumeSingle(Track &track, double crtstep, Gea
 }
 
 //______________________________________________________________________________
-int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
+int TransportManager::PropagateTracks(TrackVec_t &tracks, TaskData *td) {
   // Propagate the ntracks in the current volume with their physics steps (already
   // computed)
   // Vectors are pushed downstream when efficient.
@@ -585,7 +585,7 @@ int TransportManager::PropagateTracks(TrackVec_t &tracks, GeantTaskData *td) {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int TransportManager::PropagateSingleTrack(Track *track, Basket *output, GeantTaskData *td, int stage)
+int TransportManager::PropagateSingleTrack(Track *track, Basket *output, TaskData *td, int stage)
 {
   // Propagate the track with its selected steps, starting from a given stage.
   int icrossed = 0;
@@ -681,7 +681,7 @@ int TransportManager::PropagateSingleTrack(Track *track, Basket *output, GeantTa
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTaskData *td, int stage) {
+int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, TaskData *td, int stage) {
   // Propagate the track with its selected steps, starting from a given stage.
 
   int icrossed = 0;
@@ -805,7 +805,7 @@ int TransportManager::PropagateSingleTrack(TrackVec_t &tracks, int &itr, GeantTa
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 int TransportManager::PropagateTracksScalar(TrackVec_t &tracks,
-                                         GeantTaskData *td,
+                                         TaskData *td,
                                          int stage) {
 
   // Propagate the tracks with their selected steps in a single loop,

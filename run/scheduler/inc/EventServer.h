@@ -6,7 +6,7 @@
 #include <list>
 
 #include "Geant/Typedefs.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Geant/Event.h"
 #include "GeantConfig.h"
 #include "priority_queue.h"
@@ -15,7 +15,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class PrimaryGenerator;
-class GeantTaskData;
+class TaskData;
 class Basket;
 class StackLikeBuffer;
 
@@ -75,7 +75,7 @@ private:
   queue_events fDoneEvents;            /** Queue of transported events */
 
 protected:
-  Track *GetNextTrack(GeantTaskData *td, unsigned int &error);
+  Track *GetNextTrack(TaskData *td, unsigned int &error);
 
 public:
   EventServer(int nactive_max, RunManager *runmgr);
@@ -131,20 +131,20 @@ public:
   GEANT_FORCE_INLINE
   bool IsInitialPhase() const { return fInitialPhase; }
 
-  int FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error);
+  int FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned int &error);
 
-  int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error);
+  int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData *td, unsigned int &error);
   
-  // int AddEvent(GeantTaskData *td);
+  // int AddEvent(TaskData *td);
   
   /** @brief Add one event to the server */
   bool AddEvent(Event *event);
 
-  Event *GenerateNewEvent(GeantTaskData *td, unsigned int &error);
+  Event *GenerateNewEvent(TaskData *td, unsigned int &error);
   
-  Event *ActivateEvent(Event *expected, unsigned int &error, GeantTaskData *td=nullptr);
+  Event *ActivateEvent(Event *expected, unsigned int &error, TaskData *td=nullptr);
   
-  void CompletedEvent(Event *event, GeantTaskData *td);
+  void CompletedEvent(Event *event, TaskData *td);
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -23,7 +23,7 @@
 #include "GLIntegral.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geantphysics {
 
@@ -145,7 +145,7 @@ double RelativisticPairModel::ComputeXSectionPerAtom(const Element *elem, const 
 }
 
 
-int    RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int    RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int    numSecondaries = 0;
   const double ekin     = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit (its minimum is 50 [MeV]) and do nothing if yes;
@@ -298,7 +298,7 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
 // needs to be sampled and there is an option if Tsai's screening is used or not: if Tsai's screening is used then
 // epsmin, and so on must be evaluated with Tsai's screening
 double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, const double lpmenergy, const int izet,
-                                                        const geant::GeantTaskData *td) {
+                                                        const geant::TaskData *td) {
     const bool  isLPM     = (fIsUseLPM && egamma>fLPMEnergyLimit);
     const double eps0     = geant::units::kElectronMassC2/egamma;
     const double deltaFac = gElementData[izet]->fDeltaFactor;

@@ -45,7 +45,7 @@ namespace geantphysics {
 
   
   int DiffuseElasticModel::SampleFinalState(LightTrack &track, Isotope* targetisotope,
-					    geant::GeantTaskData *td)
+					    geant::TaskData *td)
   {
     using vecgeom::Vector3D;
     using vecgeom::LorentzVector;
@@ -172,7 +172,7 @@ namespace geantphysics {
   
 
   double DiffuseElasticModel::SampleInvariantT(double mass, 
-					       double plab, Isotope* targetisotope, geant::GeantTaskData *td)
+					       double plab, Isotope* targetisotope, geant::TaskData *td)
   {
     static const double GeV2 = geant::units::GeV * geant::units::GeV;
 

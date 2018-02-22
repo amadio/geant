@@ -8,7 +8,7 @@
 #include "Geant/Config.h"
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTaskData;
+  class TaskData;
 }
 }
 
@@ -73,7 +73,7 @@ public:
     virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle* particle, bool istotal=false);
     virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
     virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
+    virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
 
     virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
 //
@@ -165,7 +165,7 @@ private:
    * @return              An emitted bremsstrahlung photon energy (sampled from the distribution specified by
    *                      given configuration and the model) in internal [energy] units.
    */
-  double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::GeantTaskData* td);
+  double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::TaskData* td);
 
   /**
    * @brief Internal method to sample the emitted (restricted) bremsstrahlung photon energy (with rejection).

@@ -1,7 +1,7 @@
 
-#include "UserPrimaryGenerator.h"
+#include "TestEm5PrimaryGenerator.h"
 
-#include "UserDetectorConstruction.h"
+#include "TestEm5DetectorConstruction.h"
 #include "Particle.h"
 
 // from geantV
@@ -11,7 +11,7 @@
 
 namespace userapplication {
 
-UserPrimaryGenerator::UserPrimaryGenerator(const UserDetectorConstruction *det) : fDetector(det) {
+TestEm5PrimaryGenerator::TestEm5PrimaryGenerator(const TestEm5DetectorConstruction *det) : fDetector(det) {
   fPrimaryParticleName = "e-";
   fPrimaryPerEvent     = 1;
   fParticle            = nullptr;
@@ -36,13 +36,13 @@ UserPrimaryGenerator::UserPrimaryGenerator(const UserDetectorConstruction *det) 
 }
 
 
-UserPrimaryGenerator::~UserPrimaryGenerator() {}
+TestEm5PrimaryGenerator::~TestEm5PrimaryGenerator() {}
 
 
-void UserPrimaryGenerator::InitPrimaryGenerator() {
+void TestEm5PrimaryGenerator::InitPrimaryGenerator() {
   fParticle            = geantphysics::Particle::GetParticleByName(fPrimaryParticleName);
   if (!fParticle) {
-    std::cerr<< "   \n *** ERROR::UserPrimaryGenerator::InitPrimaryGenerator()    \n"
+    std::cerr<< "   \n *** ERROR::TestEm5PrimaryGenerator::InitPrimaryGenerator()    \n"
              << "          unknown particle name = " << fPrimaryParticleName << " \n"
              << std::endl;
     exit(-1);
@@ -64,7 +64,7 @@ void UserPrimaryGenerator::InitPrimaryGenerator() {
 }
 
 
-geant::EventInfo UserPrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+geant::EventInfo TestEm5PrimaryGenerator::NextEvent(geant::TaskData* /*td*/) {
   geant::EventInfo current;
   current.ntracks = fPrimaryPerEvent;
   current.xvert   = fXPos;
@@ -74,7 +74,7 @@ geant::EventInfo UserPrimaryGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 
-void UserPrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
+void TestEm5PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData* /*td*/) {
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);

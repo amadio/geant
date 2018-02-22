@@ -12,7 +12,7 @@
 #include "EMModelManager.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 
 #include "Geant/NavigationInterface.h"
@@ -43,7 +43,7 @@ void MSCProcess::Initialize()
 MSCProcess::~MSCProcess() {}
 
 // called at the PrePropagationStage(in the Handler)
-double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::GeantTaskData *td) const {
+double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskData *td) const {
   // init all lengths to the current minimum physics step length (that is the true length)
   //
   MSCdata &mscdata = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
@@ -92,7 +92,7 @@ double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::GeantT
 }
 
 // called at the PostPropagationStage(in the Handler)
-void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::GeantTaskData *td) const {
+void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td) const {
   // get the step length (the geometric one)
   double geometricStepLength = gtrack->GetStep();
   double truePathLength      = geometricStepLength;

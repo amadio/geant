@@ -10,7 +10,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTaskData;
+  class TaskData;
 }
 }
 
@@ -31,10 +31,10 @@ public:
 
   virtual void  Initialize();
 
-  virtual double  AlongStepLimitationLength(geant::Track* /*gtrack*/, geant::GeantTaskData* /*td*/) const ;
+  virtual double  AlongStepLimitationLength(geant::Track* /*gtrack*/, geant::TaskData* /*td*/) const ;
   // just to suppress warning since msc will implement only the second AlongStepDoIt
   using           EMPhysicsProcess::AlongStepDoIt;
-  virtual void    AlongStepDoIt(geant::Track* /*gtrack*/, geant::GeantTaskData* /*td*/) const ;
+  virtual void    AlongStepDoIt(geant::Track* /*gtrack*/, geant::TaskData* /*td*/) const ;
 
   double GetGeomMinLimit() const     { return fGeomMinLimit; }
   void   SetGeomMinLimit(double val) { fGeomMinLimit = val;  fGeomMinLimit2 = val*val;}

@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Track.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geantphysics {
 
@@ -120,7 +120,7 @@ public:
    *  that does not limit the step, then the method returns an arbitrary,
    *  very large value.
    */
-   virtual double AlongStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/) const;
+   virtual double AlongStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/) const;
 
 
    /** @brief Method that returns the post-step limitation length
@@ -129,7 +129,7 @@ public:
     *  This applies only for the cdiscrete part of this process.
     *  If the process does not have a discrete part this method is not called.
     */
-   virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/, bool haseloss=false);
+   virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/, bool haseloss=false);
 
 
   /** @brief Method that returns the average lifetime of this process
@@ -157,31 +157,31 @@ public:
    *  local energy deposit can be changed in this method.
    *  New particles, created along-the-step (this is rare, but possible:
    *  e.g. for sub-cutoff production; or from atomic de-excitation) are stored
-   *  in the GeantTaskData::PhysicsDada object. Will return
+   *  in the TaskData::PhysicsDada object. Will return
    *  with the number of created secondary tracks that are stored in the sectracks
    *  vector.
    */
-  virtual  int AlongStepDoIt(LightTrack & /*track*/, geant::GeantTaskData * /*td*/) {return 0;}
+  virtual  int AlongStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) {return 0;}
 
   /** @brief Method that does the post-step, i.e. the discrete part, action.
    *
    *  The input parameter, a LightTrack object, can be modified: typically
    *  the track status is changed in this method.
    *  The new particles created by the discrete part of the process are stored
-   *  in the GeantTaskData::PhysicsDada object.
+   *  in the TaskData::PhysicsDada object.
    */
-  virtual int PostStepDoIt(LightTrack & /*track*/, geant::GeantTaskData * /*td*/)  {return 0;}
+  virtual int PostStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/)  {return 0;}
 
   /** @brief Method that does the at-rest action of the process.
    *
    *  The input parameter, a LightTrack object, can be modified: typically
    *  the track status is changed in this method.
    *  The new particles created by the at-rest part of the process are stored
-   *  in the GeantTaskData::PhysicsDada object.
+   *  in the TaskData::PhysicsDada object.
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
-  virtual int AtRestDoIt(LightTrack & /*track*/, geant::GeantTaskData * /*td*/) {return 0;}
+  virtual int AtRestDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) {return 0;}
 
 
   virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }

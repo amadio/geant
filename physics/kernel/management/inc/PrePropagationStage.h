@@ -9,7 +9,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
   class Propagator;
   class Track;
-  class GeantTaskData;
+  class TaskData;
   class Handler;
 }
 }
@@ -45,7 +45,7 @@ public:
   virtual int CreateHandlers();
 
   /** @brief Interface to select the handler matching a track */
-  virtual geant::Handler *Select(geant::Track *track, geant::GeantTaskData *td);
+  virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
 private:
 

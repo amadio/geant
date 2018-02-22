@@ -1,7 +1,7 @@
 
 #include "TestEm3DetectorConstruction.h"
 
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 #include "RunManager.h"
 
 #include <iostream>
@@ -28,7 +28,7 @@
 
 namespace userapplication {
 
-TestEm3DetectorConstruction::TestEm3DetectorConstruction(geant::RunManager *runmgr) : geant::GeantVDetectorConstruction(runmgr) {
+TestEm3DetectorConstruction::TestEm3DetectorConstruction(geant::RunManager *runmgr) : geant::UserDetectorConstruction(runmgr) {
   fNumberOfAbsorbers        = 2;
   fAbsorberThicknesses[0]   = 2.3*geant::units::mm;
   fAbsorberThicknesses[1]   = 5.7*geant::units::mm;

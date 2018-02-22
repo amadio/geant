@@ -22,7 +22,7 @@
 
 #include "base/Vector.h"
 
-using GeantTaskData = geant::GeantTaskData;
+using TaskData = geant::TaskData;
 using Track    = geant::Track;
 
 namespace cmsapp {

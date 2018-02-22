@@ -30,9 +30,9 @@ endif()
 
 set(sources
    ${CMAKE_SOURCE_DIR}/core/base/src/Error.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTaskData.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/TaskData.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/Track.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.cxx
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackGeo.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Basket.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/Handler.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/SimulationStage.cxx
@@ -52,9 +52,9 @@ set(sources
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/EventSet.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/PhysicsInterface.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/WorkloadManager.cxx
-   ${CMAKE_SOURCE_DIR}/run/userapp/src/GeantVApplication.cxx
-   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantVDetectorConstruction.cxx
-   ${CMAKE_SOURCE_DIR}/core/interfaces/src/GeantFactoryStore.cxx
+   ${CMAKE_SOURCE_DIR}/run/userapp/src/UserApplication.cxx
+   ${CMAKE_SOURCE_DIR}/run/userapp/src/UserDetectorConstruction.cxx
+   ${CMAKE_SOURCE_DIR}/core/interfaces/src/FactoryStore.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/MyHit.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/StdApplication.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/TransportManager.cxx
@@ -78,7 +78,7 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/mpmc_bounded_queue.h
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/priority_queue.h
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/condition_locker.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantTaskData.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TaskData.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PhysicsInterface.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Handler.h
@@ -97,12 +97,12 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Propagator.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Track.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeantTrackGeo.h
-   ${CMAKE_SOURCE_DIR}/run/userapp/inc/GeantVApplication.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantVDetectorConstruction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackGeo.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/UserApplication.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/UserDetectorConstruction.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/MyHit.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantFactory.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantFactoryStore.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Factory.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/FactoryStore.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/StdApplication.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PrimaryGenerator.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackManager.h

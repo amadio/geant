@@ -1,5 +1,5 @@
 
-#include "UserPhysicsList.h"
+#include "TestEm5PhysicsList.h"
 
 #include "PhysicalConstants.h"
 #include "SystemOfUnits.h"
@@ -54,14 +54,14 @@
 
 namespace userapplication {
 
-UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {
+TestEm5PhysicsList::TestEm5PhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {
   fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
   fStepMaxValue         = geantphysics::PhysicsProcess::GetAVeryLargeValue();
 }
 
-UserPhysicsList::~UserPhysicsList() {}
+TestEm5PhysicsList::~TestEm5PhysicsList() {}
 
-void UserPhysicsList::Initialize() {
+void TestEm5PhysicsList::Initialize() {
   // get the partcile table and loop over it
   std::vector<geantphysics::Particle*> pTable = geantphysics::Particle::GetTheParticleTable();
   for (unsigned int i=0; i<pTable.size(); ++i) {
@@ -272,11 +272,11 @@ void UserPhysicsList::Initialize() {
   }
 }
 
-void  UserPhysicsList::SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping) {
+void  TestEm5PhysicsList::SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping) {
   fMSCSteppingAlgorithm = stepping;
 }
 
-void  UserPhysicsList::SetStepMaxValue(double val) { fStepMaxValue = val; }
+void  TestEm5PhysicsList::SetStepMaxValue(double val) { fStepMaxValue = val; }
 
 
 }  // userapplication

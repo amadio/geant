@@ -1,7 +1,7 @@
 #include "GeomQueryHandler.h"
 #include "Basket.h"
-#include "GeantTaskData.h"
-#include "GeantTrackGeo.h"
+#include "TaskData.h"
+#include "TrackGeo.h"
 #include "RunManager.h"
 #include "VBconnector.h"
 
@@ -81,7 +81,7 @@ void GeomQueryHandler::DisconnectVolume()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomQueryHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
+void GeomQueryHandler::DoIt(Track *track, Basket& output, TaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
 
@@ -98,7 +98,7 @@ void GeomQueryHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void GeomQueryHandler::DoIt(Basket &input, Basket& output, TaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   
@@ -111,7 +111,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 //#define TEST_SCALAR_LOOP
 #ifdef TEST_SCALAR_LOOP
   {
-    GeantTrackGeo_v &track_geo = *td->fGeoTrack;
+    TrackGeo_v &track_geo = *td->fGeoTrack;
     track_geo.Clear();
     size_t i = 0;
     for (size_t itr = 0; itr < ntr; ++itr) {
@@ -160,7 +160,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
 #endif
 
   // Copy relevant track fields to geometry SOA and process vectorized.
-  GeantTrackGeo_v &track_geo = *td->fGeoTrack;
+  TrackGeo_v &track_geo = *td->fGeoTrack;
   track_geo.Clear();
   size_t i = 0;
   // Process first the tracks that start from a boundary

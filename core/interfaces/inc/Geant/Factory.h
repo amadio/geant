@@ -1,15 +1,15 @@
-//===--- GeantFactory.h - GeantV -------------------------------*- C++ -*-===//
+//===--- Factory.h - GeantV -------------------------------*- C++ -*-===//
 //
 //                     GeantV Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantFactory.h
+ * @file Factory.h
  * @brief Implementation of factory of user objects in Geant-V prototype
  * @details The file contains the template definitions of:
  * GeantBlock - a fixed-size vector of objects having user-defined type
  * GeantBlockArray - an array of GeantBlock objects (one per thread)
- * GeantFactory - a factory created on demand and handling GeantBlockArray
+ * Factory - a factory created on demand and handling GeantBlockArray
  *  objects for a fixed number of event slots
  * @author Andrei Gheata
  */
@@ -199,24 +199,24 @@ public:
 };
 
 /**
- * @brief Class GeantFactory
+ * @brief Class Factory
  * @details Templated factory of user objects, allocated in contiguous
  * blocks. It can serve a number of concurrent clients with id's from 0 to N.
  */
-template <typename T> class GeantFactory {
-  friend class GeantFactoryStore;
+template <typename T> class Factory {
+  friend class FactoryStore;
   typedef void (*ProcessHitFunc_t)(const vector<T> &, int);
 
 private:
   /**
-   * @brief GeantFactory parameterised constructor. Can only be called by a
-   * GeantFactoryStore instance.
+   * @brief Factory parameterised constructor. Can only be called by a
+   * FactoryStore instance.
    *
    * @param nthreads Number of threads
    * @param blocksize Block size
    * @param callback Callback (by default = 0)
    */
-  GeantFactory(int nslots, int blocksize, int nthreads, ProcessHitFunc_t callback = 0)
+  Factory(int nslots, int blocksize, int nthreads, ProcessHitFunc_t callback = 0)
     : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs(),
       queue_per_thread(false) {
     // Reserve the space for the block arrays on event slots
@@ -240,11 +240,11 @@ private:
     }
   }
 
-  /** @brief Copy constructor GeantFactory */
-  GeantFactory(const GeantFactory &);
+  /** @brief Copy constructor Factory */
+  Factory(const Factory &);
 
   /** @brief Operator= */
-  GeantFactory &operator=(const GeantFactory &);
+  Factory &operator=(const Factory &);
 
 public:
   int fNslots;                       /** Number of event slots */
@@ -259,8 +259,8 @@ public:
   std::deque<GeantBlock<T> *> *fPoolArray;    /** [fNthreads] array of queues (per thread) of empty/recycled blocks */
   std::deque<GeantBlock<T> *> *fOutputsArray; /** [fNthreads] array of queues (per thread) of filled blocks */
 
-  /** @brief GeantFactory destructor */
-  ~GeantFactory() {
+  /** @brief Factory destructor */
+  ~Factory() {
     for (int iev = 0; iev < fNslots; ++iev)
       delete[] fBlockA[iev];
     delete[] fBlockA;

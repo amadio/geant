@@ -15,7 +15,7 @@ set(headers
    inc/Track.h
    inc/GeantOutput.h
    inc/WorkloadManager.h
-   inc/GeantVApplication.h
+   inc/UserApplication.h
    inc/TrackStat.h
    inc/MyHit.h
    ../examples/inc/ExN03Application.h

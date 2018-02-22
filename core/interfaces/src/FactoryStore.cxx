@@ -1,13 +1,13 @@
-#include "GeantFactoryStore.h"
+#include "Geant/FactoryStore.h"
 
-GeantFactoryStore *GeantFactoryStore::fgInstance = 0;
+FactoryStore *FactoryStore::fgInstance = 0;
 
 /**
  * @details Creates a factory store that can serve a
  * given number of thread clients.
  */
 //______________________________________________________________________________
-GeantFactoryStore::GeantFactoryStore(int nclients)
+FactoryStore::FactoryStore(int nclients)
     : fNclients(nclients), fNFactories(0), fCapacity(100), fTypes(0), fFactories(0), fMutex() {
   // Private constructor
   fTypes = new const void *[fCapacity];
@@ -21,11 +21,11 @@ GeantFactoryStore::GeantFactoryStore(int nclients)
  * existing create one.
  */
 //______________________________________________________________________________
-GeantFactoryStore *GeantFactoryStore::Instance(int nclients) {
+FactoryStore *FactoryStore::Instance(int nclients) {
   // Returns singleton for the factory store.
   if (fgInstance)
     return fgInstance;
-  fgInstance = new GeantFactoryStore(nclients);
+  fgInstance = new FactoryStore(nclients);
   return fgInstance;
 }
 
@@ -33,7 +33,7 @@ GeantFactoryStore *GeantFactoryStore::Instance(int nclients) {
  * @Delete all stored types and factories, ressetting the singleton pointer
  */
 //______________________________________________________________________________
-GeantFactoryStore::~GeantFactoryStore() {
+FactoryStore::~FactoryStore() {
   // Destructor
   delete [] fTypes;
   //   for (int i=0; i<fNFactories; i++) delete fFactories[i];
@@ -45,7 +45,7 @@ GeantFactoryStore::~GeantFactoryStore() {
  * @Delete a single factory at the given slot.
  */
 //______________________________________________________________________________
-void GeantFactoryStore::RemoveFactory(int islot) {
+void FactoryStore::RemoveFactory(int islot) {
   // Remove a factory from the store. Called by the destructor of the factory.
   fNFactories--;
   if (islot == fNFactories)

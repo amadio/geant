@@ -13,17 +13,17 @@
 
 // application includes
 #include "TestEm5.h"
-#include "UserDetectorConstruction.h"
-#include "UserPrimaryGenerator.h"
-#include "UserPhysicsList.h"
+#include "TestEm5DetectorConstruction.h"
+#include "TestEm5PrimaryGenerator.h"
+#include "TestEm5PhysicsList.h"
 
 // some helper methods to get the possible input arguments and configure the user defined components of the application,
 // set up the run manager and run the simulation.
 void GetInputArguments(int argc, char *argv[]);
-void SetupUserPhysicsList     (userapplication::UserPhysicsList*            physlist);
-void SetupUserDetector        (userapplication::UserDetectorConstruction*   detector);
-void SetupUserPrimaryGenerator(userapplication::UserPrimaryGenerator*     primarygun);
-void SetupUserApplication     (userapplication::TestEm5*                         app);
+void SetupUserPhysicsList     (userapplication::TestEm5PhysicsList*            physlist);
+void SetupUserDetector        (userapplication::TestEm5DetectorConstruction*   detector);
+void SetupUserPrimaryGenerator(userapplication::TestEm5PrimaryGenerator*       primarygun);
+void SetupUserApplication     (userapplication::TestEm5*                       app);
 geant::RunManager* RunManager();
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
@@ -38,17 +38,17 @@ int main(int argc, char *argv[]) {
   //
   // Create a user defined pysics list object, set its configurable parameters and register it in the global PhysicsListManager
   // NOTE: if the user not register its own physics list then the default physics list will be used
-  userapplication::UserPhysicsList *userPhysList         = new userapplication::UserPhysicsList("testEm5-user-physics");
+  userapplication::TestEm5PhysicsList *userPhysList         = new userapplication::TestEm5PhysicsList("testEm5-user-physics");
   SetupUserPhysicsList(userPhysList);
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(userPhysList);
   //
   // create the user detector construction object, set its configurable parameters and register in the RunManager
-  userapplication::UserDetectorConstruction *detector    = new userapplication::UserDetectorConstruction(runManager);
+  userapplication::TestEm5DetectorConstruction *detector    = new userapplication::TestEm5DetectorConstruction(runManager);
   SetupUserDetector(detector);
   runManager->SetDetectorConstruction(detector);
   //
   // create the user primary generator object, set its configurable parameters and register in the RunManager
-  userapplication::UserPrimaryGenerator *primaryGenerator = new userapplication::UserPrimaryGenerator(detector);
+  userapplication::TestEm5PrimaryGenerator *primaryGenerator = new userapplication::TestEm5PrimaryGenerator(detector);
   SetupUserPrimaryGenerator(primaryGenerator);
   runManager->SetPrimaryGenerator(primaryGenerator);
   //
@@ -257,7 +257,7 @@ geant::RunManager* RunManager() {
   return runManager;
 }
 
-void SetupUserDetector(userapplication::UserDetectorConstruction* detector) {
+void SetupUserDetector(userapplication::TestEm5DetectorConstruction* detector) {
   if (parDetTargetMaterial!="")
     detector->SetTargetMaterialName   (parDetTargetMaterial );
   if (parDetTargetThickness>0.)
@@ -274,7 +274,7 @@ void SetupUserDetector(userapplication::UserDetectorConstruction* detector) {
   }
 }
 
-void SetupUserPrimaryGenerator(userapplication::UserPrimaryGenerator* primarygun) {
+void SetupUserPrimaryGenerator(userapplication::TestEm5PrimaryGenerator* primarygun) {
   // it needs to be consistent with GeantConfig::fNaverage i.e. number of primary particles per event !!!
   if (parConfigNumPrimaryPerEvt>0)
      primarygun->SetNumberOfPrimaryParticlePerEvent(parConfigNumPrimaryPerEvt);
@@ -295,7 +295,7 @@ void SetupUserApplication(userapplication::TestEm5* app) {
     app->SetHist1NumBins(parAppHist1NumBins);
 }
 
-void SetupUserPhysicsList(userapplication::UserPhysicsList* physlist) {
+void SetupUserPhysicsList(userapplication::TestEm5PhysicsList* physlist) {
   if (parProcessMSCStepLimit!="") {
     if (parProcessMSCStepLimit=="UseSafety") {
       physlist->SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm::kUseSaftey);

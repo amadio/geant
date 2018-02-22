@@ -6,7 +6,7 @@
 //
 #include "Geant/Event.h"
 #include "RunManager.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "globals.h"
 
 #include "Geant/Error.h"
@@ -30,7 +30,7 @@
 namespace userapplication {
 
 TestEm3App::TestEm3App(geant::RunManager *runmgr, TestEm3DetectorConstruction *det, TestEm3PrimaryGenerator *gun)
-  : geant::GeantVApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
+  : geant::UserApplication(runmgr), fDetector(det), fPrimaryGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
   // all these will be set properly at initialization
@@ -50,7 +50,7 @@ TestEm3App::~TestEm3App() {
 }
 
 
-void TestEm3App::AttachUserData(geant::GeantTaskData *td) {
+void TestEm3App::AttachUserData(geant::TaskData *td) {
   if (fIsPerformance)
    return;
   // Create application specific thread local data structure to collecet/handle thread local multiple per-event data
@@ -100,7 +100,7 @@ bool TestEm3App::Initialize() {
 }
 
 
-void TestEm3App::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
+void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td) {
   if (fIsPerformance)
    return;
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done

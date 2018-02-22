@@ -32,7 +32,7 @@ private:
   LinearPropagationHandler &operator=(const LinearPropagationHandler &) = delete;
 
   VECCORE_ATT_HOST_DEVICE
-  bool IsSameLocation(Track &track, GeantTaskData *td);
+  bool IsSameLocation(Track &track, TaskData *td);
 public:
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
@@ -52,11 +52,11 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Track *track, Basket& output, TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Basket &input, Basket& output, TaskData *td);
 
 };
 

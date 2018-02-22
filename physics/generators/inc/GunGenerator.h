@@ -15,7 +15,7 @@ using vecgeom::RNG;
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 
 class GunGenerator : public PrimaryGenerator {
 private:
@@ -53,8 +53,8 @@ public:
 
   // set one Track primary track properties
   virtual void InitPrimaryGenerator();
-  virtual EventInfo NextEvent(geant::GeantTaskData* td);
-  virtual void GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* td);
+  virtual EventInfo NextEvent(geant::TaskData* td);
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData* td);
 
 private:
   GunGenerator(const GunGenerator &);            // no imp.

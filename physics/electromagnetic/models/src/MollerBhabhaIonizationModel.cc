@@ -15,7 +15,7 @@
 #include "PhysicsData.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <iostream>
 #include <cmath>
@@ -90,7 +90,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerAtom(const Element *elem, 
 }
 
 
-int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int    numSecondaries      = 0;
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
   const double electronCut   = matCut->GetProductionCutsInEnergy()[1];
@@ -369,7 +369,7 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
 
 
 double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
-                                                        const geant::GeantTaskData* td) {
+                                                        const geant::TaskData* td) {
   const double tmin   = matcut->GetProductionCutsInEnergy()[1];
   const double tmax   = (fIsElectron) ? (0.5*primekin) : (primekin);
   const double xmin   = tmin/primekin;

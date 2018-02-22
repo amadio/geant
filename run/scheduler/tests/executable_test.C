@@ -19,9 +19,9 @@
 #include "TGeoVolume.h"
 #include "TGeoNavigator.h"
 #include "TObject.h"
-#include "GeantVApplication.h"
+#include "UserApplication.h"
 #include "ExN03Application.h"
-#include "GeantFactoryStore.h"
+#include "FactoryStore.h"
 #include "Track.h"
 #include "TROOT.h"
 #include <iostream>

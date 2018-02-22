@@ -3,7 +3,7 @@
 
 // from geantV
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 #include "Handler.h"
 
@@ -40,7 +40,7 @@ int PostStepActionStage::CreateHandlers() {
 
 
 // Selects tracks that have any processes, any post step processes i.e. discrete part and that limited the step
-geant::Handler* PostStepActionStage::Select(geant::Track *track, geant::GeantTaskData * /*td*/) {
+geant::Handler* PostStepActionStage::Select(geant::Track *track, geant::TaskData * /*td*/) {
   if (track->Status() == geant::TrackStatus_t::kPhysics && track->EIndex() == 1000) {
     // these tracks should always have psorcesses active in the given region moreover should always have discrete
     // processes that limited the step (fEindex==1000)

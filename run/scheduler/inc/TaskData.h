@@ -1,10 +1,10 @@
-//===--- GeantTaskData.h - Geant-V ----------------------------*- C++ -*-===//
+//===--- TaskData.h - Geant-V ----------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantTaskData.h
+ * @file TaskData.h
  * @brief Implementation of data organized per thread Geant-V prototype
  * @author Andrei Gheata
  */
@@ -34,7 +34,7 @@ class GUFieldPropagator;
 class VVectorField;
 
 /**
- * @brief Class GeantTaskData
+ * @brief Class TaskData
  * @details Class descripting data organized per thread
  *
  */
@@ -42,13 +42,13 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class Basket;
-class GeantTrackGeo_v;
+class TrackGeo_v;
 class StackLikeBuffer;
 class TrackStat;
 struct WorkspaceForFieldPropagation;
 struct BasketCounters;
 
-class GeantTaskData {
+class TaskData {
 private:
   Track *fTrack = nullptr; /** Blueprint track */
 
@@ -74,7 +74,7 @@ public:
   VolumePath_t *fPath = nullptr;           /** Volume path for the thread */
   VolumePath_t **fPathV = nullptr;         /** Volume path for the thread */
   VolumePath_t **fNextpathV = nullptr;     /** Volume path for the thread */
-  GeantTrackGeo_v *fGeoTrack = nullptr;    /** Geometry track SOA */
+  TrackGeo_v *fGeoTrack = nullptr;    /** Geometry track SOA */
   Basket *fBvector = nullptr;              /** Buffer basket used for vector API */
   Basket *fShuttleBasket = nullptr;        /** Shuttle basket from selectors to follow-up simulation stage */
   vector_t<Basket *> fStageBuffers;        /** Buffers for tracks at input of simulation stages */
@@ -122,17 +122,17 @@ private:
   }
 
   /**
-   * @brief GeantTaskData constructor based on a provided single buffer.
+   * @brief TaskData constructor based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  GeantTaskData(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop = nullptr);
+  TaskData(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop = nullptr);
 
 public:
-  /** @brief GeantTaskData constructor */
-  GeantTaskData(size_t nthreads, int maxPerBasket);
+  /** @brief TaskData constructor */
+  TaskData(size_t nthreads, int maxPerBasket);
 
-  /** @brief GeantTaskData destructor */
-  ~GeantTaskData();
+  /** @brief TaskData destructor */
+  ~TaskData();
 
   /** @brief Attach a propagator on a numa node. */
   VECCORE_ATT_HOST_DEVICE
@@ -142,7 +142,7 @@ public:
    * @brief Track MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  static GeantTaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop);
+  static TaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop);
 
   /** @brief return the contiguous memory size needed to hold a Track_v */
   VECCORE_ATT_DEVICE
@@ -233,18 +233,18 @@ public:
 
 private:
   /**
-   * @brief Constructor GeantTaskData
+   * @brief Constructor TaskData
    * @todo Still not implemented
    */
-  GeantTaskData(const GeantTaskData &);
+  TaskData(const TaskData &);
 
   /**
    * @brief Operator &operator=
    * @todo Still not implemented
    */
-  GeantTaskData &operator=(const GeantTaskData &);
+  TaskData &operator=(const TaskData &);
 
-  // ClassDef(GeantTaskData, 1) // Stateful data organized per thread
+  // ClassDef(TaskData, 1) // Stateful data organized per thread
 };
 
 
@@ -272,12 +272,12 @@ public:
   }
 
   GEANT_FORCE_INLINE
-  T *GetUserData(GeantTaskData *td) {
+  T *GetUserData(TaskData *td) {
     return (T*)td->GetUserData(fIndex);
   }
   
   GEANT_FORCE_INLINE
-  T &operator()(GeantTaskData *td) {
+  T &operator()(TaskData *td) {
     return *(T*)td->GetUserData(fIndex);
   }
 
@@ -296,7 +296,7 @@ public:
 /** @brief User callable, allowing to attach per-thread data of the handle type
   * @details User data corresponding to all pre-defined tokens can be allocated
   *          in MyApplication::AttachUserData, to avoid run-time checks */
-  bool AttachUserData(T *data, GeantTaskData *td) {
+  bool AttachUserData(T *data, TaskData *td) {
     return ( td->SetUserData(data, fIndex) );
   }
 };
@@ -304,13 +304,13 @@ public:
 /** &brief The task data manager, distributing task data objects concurrently */
 class TDManager {
 
-using queue_t = mpmc_bounded_queue<GeantTaskData*>;
+using queue_t = mpmc_bounded_queue<TaskData*>;
 
 private:
   int fMaxThreads = 0;   // Maximum number of threads
   int fMaxPerBasket = 0; // Maximum number of tracks per basket
   queue_t fQueue; // Task data queue
-  vector_t<GeantTaskData*> fTaskData;
+  vector_t<TaskData*> fTaskData;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic<size_t> fUserDataIndex; // Single registry point for user data
 #else
@@ -320,7 +320,7 @@ public:
   TDManager(int maxthreads, int maxperbasket) : fMaxThreads(maxthreads), fMaxPerBasket(maxperbasket), fQueue(1024), fUserDataIndex(0) {
     // Create initial task data
     for (int tid=0; tid < maxthreads; ++tid) {
-      GeantTaskData *td = new GeantTaskData(fMaxThreads, fMaxPerBasket);
+      TaskData *td = new TaskData(fMaxThreads, fMaxPerBasket);
       td->fTid = fTaskData.size();
       fTaskData.push_back(td);
       fQueue.enqueue(td);
@@ -335,19 +335,19 @@ public:
   GEANT_FORCE_INLINE
   size_t GetNtaskData() const { return fTaskData.size(); }
 
-  GeantTaskData *GetTaskData() {
-    GeantTaskData *td;
+  TaskData *GetTaskData() {
+    TaskData *td;
     if (fQueue.dequeue(td)) return td;
-    td =  new GeantTaskData(fMaxThreads, fMaxPerBasket);
+    td =  new TaskData(fMaxThreads, fMaxPerBasket);
     td->fTid = fTaskData.size();
     fTaskData.push_back(td);
     return td;
   }
 
   GEANT_FORCE_INLINE
-  GeantTaskData *GetTaskData(int index) { return fTaskData[index]; }
+  TaskData *GetTaskData(int index) { return fTaskData[index]; }
 
-  void ReleaseTaskData(GeantTaskData *td) {
+  void ReleaseTaskData(TaskData *td) {
     while (!fQueue.enqueue(td)) {}
   }
 
@@ -366,7 +366,7 @@ public:
   template <typename T>
   T* MergeUserData(int evslot, TaskDataHandle<T> &handle) {
     // if (handle.TryLock()) return nullptr;
-    GeantTaskData *base = fTaskData.front();
+    TaskData *base = fTaskData.front();
     for (auto td : fTaskData) {
       if (td == base) continue;
       // This will require the method T::Merge(int evslot, T const &other) to exist

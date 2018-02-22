@@ -3,7 +3,7 @@
 
 // from geantV
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 #include "Basket.h"
 
@@ -31,7 +31,7 @@ PrePropagationHandler::~PrePropagationHandler() {}
 
 // The PrePropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process
-void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData *td) {
+void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td) {
   // ---
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
@@ -59,7 +59,7 @@ void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket& output, gea
 }
 
 //______________________________________________________________________________
-void PrePropagationHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
+void PrePropagationHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();

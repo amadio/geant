@@ -1,6 +1,6 @@
 #include "SimulationStage.h"
 
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Propagator.h"
 #include "StackLikeBuffer.h"
 #include "TrackStat.h"
@@ -32,7 +32,7 @@ SimulationStage::~SimulationStage()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::CheckBasketizers(GeantTaskData *td, size_t flush_threshold)
+int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
 {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     // do not touch if other checking operation is ongoing
@@ -87,7 +87,7 @@ int SimulationStage::CheckBasketizers(GeantTaskData *td, size_t flush_threshold)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::FlushHandler(int i, GeantTaskData *td, Basket &output)
+int SimulationStage::FlushHandler(int i, TaskData *td, Basket &output)
 {
   if (!fHandlers[i]->HasTracks()) return 0;
   Basket &bvector = *td->fBvector;
@@ -107,7 +107,7 @@ int SimulationStage::FlushHandler(int i, GeantTaskData *td, Basket &output)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::FlushAndProcess(GeantTaskData *td)
+int SimulationStage::FlushAndProcess(TaskData *td)
 {
 // Flush all active handlers in the stage, executing their scalar DoIt methods.
 // Flushing the handlers is opportunistic, as a handler is flushed by the first
@@ -159,7 +159,7 @@ int SimulationStage::FlushAndProcess(GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::Process(GeantTaskData *td)
+int SimulationStage::Process(TaskData *td)
 {
 // Processing is concurrent for all tasks/threads serving the same propagator.
 // The input basket is the task data-specific container for the caller thread
@@ -235,7 +235,7 @@ int SimulationStage::Process(GeantTaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int SimulationStage::CopyToFollowUps(Basket &output, GeantTaskData *td)
+int SimulationStage::CopyToFollowUps(Basket &output, TaskData *td)
 {
 // Copy tracks from output basket to follow-up stages. Output needs to be cleared.
   int ntracks = output.size();

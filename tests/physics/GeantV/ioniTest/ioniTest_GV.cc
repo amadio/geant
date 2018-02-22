@@ -45,7 +45,7 @@
 
 // from geantV
 #include "Geant/Typedefs.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 
 // a simple histogram class: can be changed later
@@ -472,9 +472,9 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
 //  double gamProdCut = matCut->GetProductionCutsInEnergy()[0]; // gamma production threshold
   int    gvcode     = primParticle->GetInternalCode();        // internal code of the primary particle i.e. e-
 
-  // Set up a dummy geant::GeantTaskData and its geantphysics::PhysicsData member: they are needed in the final state
+  // Set up a dummy geant::TaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
-  geant::GeantTaskData *td = new geant::GeantTaskData(1,1);
+  geant::TaskData *td = new geant::TaskData(1,1);
   PhysicsData *phd = new PhysicsData();
   td->fPhysicsData = phd;
   // Set up a the primary light track for ioni.

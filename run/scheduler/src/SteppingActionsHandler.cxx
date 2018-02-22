@@ -1,8 +1,8 @@
 #include "SteppingActionsHandler.h"
 
 #include "Geant/Error.h"
-#include "GeantTaskData.h"
-#include "GeantVApplication.h"
+#include "TaskData.h"
+#include "UserApplication.h"
 #include "TrackManager.h"
 
 namespace geant {
@@ -26,7 +26,7 @@ SteppingActionsHandler::~SteppingActionsHandler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void SteppingActionsHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
+void SteppingActionsHandler::DoIt(Track *track, Basket& output, TaskData *td)
 {
 // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
   // If track made too many steps, deposit all kinetic energy and kill it
@@ -69,7 +69,7 @@ void SteppingActionsHandler::DoIt(Track *track, Basket& output, GeantTaskData *t
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void SteppingActionsHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void SteppingActionsHandler::DoIt(Basket &input, Basket& output, TaskData *td)
 {
 // Vector handling of stepping actions.
   

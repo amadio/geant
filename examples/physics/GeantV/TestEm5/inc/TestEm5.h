@@ -3,17 +3,17 @@
 #define TESTEM5_H
 
 #ifndef GEANT_VAPPLICATION
-#include "GeantVApplication.h"
+#include "UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
 #include "GeantFwd.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
     class RunManager;
-    class GeantTaskDataHandle;
+    class TaskDataHandle;
     class Event;
     class Track;
   }
@@ -46,27 +46,27 @@ namespace userapplication {
  */
 
 
-class UserDetectorConstruction;
-class UserPrimaryGenerator;
+class TestEm5DetectorConstruction;
+class TestEm5PrimaryGenerator;
 
 /** @brief TestEm5 user application */
-class TestEm5 : public geant::GeantVApplication {
+class TestEm5 : public geant::UserApplication {
 public:
 
   /** @brief Constructor TestEm5 */
-  TestEm5(geant::RunManager *runmgr, UserDetectorConstruction *det, UserPrimaryGenerator *gun);
+  TestEm5(geant::RunManager *runmgr, TestEm5DetectorConstruction *det, TestEm5PrimaryGenerator *gun);
 
   /** @brief Destructor TestEm5 */
   virtual ~TestEm5();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
-  virtual void AttachUserData(geant::GeantTaskData *td);
+  virtual void AttachUserData(geant::TaskData *td);
 
   /** @brief Interface method to initialize the application. */
   virtual bool Initialize();
 
   /** @brief Interace method that is called at the end of each simulation step. */
-  virtual void SteppingActions(geant::Track &track, geant::GeantTaskData *td);
+  virtual void SteppingActions(geant::Track &track, geant::TaskData *td);
 
   /** @brief Interace method that is called when the transportation of an event (including all primary and their
     *        secondary particles) is completed .*/
@@ -95,7 +95,7 @@ private:
   std::string fHist1FileName;
   bool        fInitialized;
   // ID of the target logical volume (used to check if the current step was done in the target)
-  // this data will be obtained from the UserDetectorConstruction at initialization
+  // this data will be obtained from the TestEm5DetectorConstruction at initialization
   int         fTargetLogicalVolumeID;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)
   // these data will be obtained from the RunManager::GeantConfig object at initialization
@@ -119,8 +119,8 @@ private:
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle during the simulation
   TestEm5Data  *fData;
   //
-  UserDetectorConstruction      *fDetector;
-  UserPrimaryGenerator          *fPrimaryGun;
+  TestEm5DetectorConstruction      *fDetector;
+  TestEm5PrimaryGenerator          *fPrimaryGun;
   // mutex to prevent multiple threads writing into the unique, run-global TestEm5Data object (in the Digitization after
   // the merge of the user defined per-event data distributed among the threads)
   std::mutex fMutex;

@@ -20,7 +20,7 @@
 #include "Positron.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 
 #include <cmath>
@@ -87,7 +87,7 @@ void GSMSCModel::Initialize() {
 }
 
 
-void GSMSCModel::StepLimit(geant::Track *gtrack, geant::GeantTaskData *td) {
+void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td) {
   bool   isOnBoundary         = gtrack->Boundary();
   const MaterialCuts *matCut  = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   double kineticEnergy        = gtrack->T();
@@ -402,7 +402,7 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::GeantTaskData *td) {
   ConvertTrueToGeometricLength(gtrack, td);
 }
 
-bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::GeantTaskData *td) {
+bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::TaskData *td) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   if (GetMSCSteppingAlgorithm()==MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone && mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
@@ -456,7 +456,7 @@ bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::GeantTaskData *td
 }
 
 
-void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::GeantTaskData* /*td*/) {
+void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskData* /*td*/) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fPar1 = -1.;
   mscdata.fPar2 =  0.;
@@ -513,7 +513,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::Geant
 }
 
 
-void GSMSCModel::ConvertGeometricToTrueLength(geant::Track *gtrack, geant::GeantTaskData* /*td*/) {
+void GSMSCModel::ConvertGeometricToTrueLength(geant::Track *gtrack, geant::TaskData* /*td*/) {
   // init
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsEndedUpOnBoundary = false;
@@ -558,7 +558,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(geant::Track *gtrack, geant::Geant
   }
 }
 
-void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::GeantTaskData *td) {
+void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td) {
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   mscdata.fIsNoScatteringInMSC = false;
   //
@@ -900,7 +900,7 @@ double GSMSCModel::GetTransportMeanFreePathOnly(const MaterialCuts *matcut, doub
 }
 
 
-double GSMSCModel::RandomizeTrueStepLength(geant::GeantTaskData *td, double tlimit) {
+double GSMSCModel::RandomizeTrueStepLength(geant::TaskData *td, double tlimit) {
   double tempTLimit = tlimit;
   do {
     tempTLimit = td->fRndm->Gauss(tlimit,0.1*tlimit);

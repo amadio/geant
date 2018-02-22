@@ -41,11 +41,10 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class RunManager;
 class Event;
-class GeantVApplication;
+class UserApplication;
 class GeantBasket;
 class GeantBasketMgr;
 class WorkloadManager;
-class GeantVTaskMgr;
 class PrimaryGenerator;
 class MCTruthMgr;
 class TaskBroker;
@@ -90,9 +89,8 @@ public:
   bool fSingleTrack = false;           /** Use single track transport mode */
 
   WorkloadManager   *fWMgr = nullptr;           /** Workload manager */
-  GeantVApplication *fApplication = nullptr;    /** User application */
-  GeantVApplication *fStdApplication = nullptr; /** Standard application */
-  GeantVTaskMgr     *fTaskMgr = nullptr;        /** GeantV task manager */
+  UserApplication *fApplication = nullptr;    /** User application */
+  UserApplication *fStdApplication = nullptr; /** Standard application */
 
   #ifdef USE_ROOT
   TStopwatch *fTimer = nullptr;                 /** Timer */
@@ -158,7 +156,7 @@ public:
    * @param track Track to be stopped
    * @param itr Track id
    */
-  void StopTrack(Track *track, GeantTaskData *td);
+  void StopTrack(Track *track, TaskData *td);
 
   /**
    * @brief Setter for the real physics interface

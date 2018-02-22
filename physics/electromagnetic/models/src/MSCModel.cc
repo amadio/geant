@@ -2,7 +2,7 @@
 #include "MSCModel.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 
 namespace geantphysics {

@@ -3,10 +3,10 @@
 
 #include "Geant/Event.h"
 #include "RunManager.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "globals.h"
 
-#include "GeantFactoryStore.h"
+#include "Geant/FactoryStore.h"
 
 #include "Geant/Error.h"
 
@@ -23,7 +23,7 @@
 namespace lhcbapp {
 
 LHCbFullApp::LHCbFullApp(geant::RunManager* runmgr, LHCbParticleGun* gun)
-: geant::GeantVApplication(runmgr), fGun(gun) {
+: geant::UserApplication(runmgr), fGun(gun) {
   fIsPerformance         = false;
   fInitialized           = false;
   fNumPrimaryPerEvent    = LHCbParticleGun::GetMaxNumberOfPrimariesPerEvent();
@@ -31,7 +31,7 @@ LHCbFullApp::LHCbFullApp(geant::RunManager* runmgr, LHCbParticleGun* gun)
   fDataHandlerEvents     = nullptr;
   fData                  = nullptr;
 
-  GeantFactoryStore *store = GeantFactoryStore::Instance(runmgr->GetConfig()->fNbuff);
+  FactoryStore *store = FactoryStore::Instance(runmgr->GetConfig()->fNbuff);
   fFactory = store->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());
   // set factory to use thread-local queues
   fFactory->queue_per_thread = true;
@@ -45,7 +45,7 @@ LHCbFullApp::~LHCbFullApp() {
 }
 
 
-void LHCbFullApp::AttachUserData(geant::GeantTaskData *td) {
+void LHCbFullApp::AttachUserData(geant::TaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -64,7 +64,7 @@ void LHCbFullApp::AttachUserData(geant::GeantTaskData *td) {
   fDataHandlerEvents->AttachUserData(eventData, td);
 }
 
-void LHCbFullApp::DeleteUserData(geant::GeantTaskData *td) {
+void LHCbFullApp::DeleteUserData(geant::TaskData *td) {
   if (fIsPerformance) {
     return;
   }
@@ -170,7 +170,7 @@ bool LHCbFullApp::Initialize() {
 
 
 
-void LHCbFullApp::SteppingActions(geant::Track &track, geant::GeantTaskData *td) {
+void LHCbFullApp::SteppingActions(geant::Track &track, geant::TaskData *td) {
   if (fIsPerformance) {
     return;
   }

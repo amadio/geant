@@ -23,7 +23,7 @@
 #include "GLIntegral.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geantphysics {
 
@@ -116,7 +116,7 @@ double BetheHeitlerPairModel::ComputeXSectionPerAtom(const Element *elem, const 
 }
 
 
-int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int    numSecondaries      = 0;
   const double ekin          = track.GetKinE();
   const double eps0          = geant::units::kElectronMassC2/ekin;
@@ -479,7 +479,7 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
  *    \f$ \epsilon \f$ if \f$ g_i(\epsilon) < r_3 \f$
  * @endinternal
  */
-double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, const int izet, const geant::GeantTaskData *td) {
+double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, const int izet, const geant::TaskData *td) {
     double fz  = gElementData[izet]->fFzLow;
     double deltaMax;
     if (fIsUseTsaisScreening) {

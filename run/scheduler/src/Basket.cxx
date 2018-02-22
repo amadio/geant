@@ -1,6 +1,6 @@
 #include "Basket.h"
 #include "Geant/Error.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -64,7 +64,7 @@ void Basket::PrintTrack(int itr) const {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Basket::Recycle(GeantTaskData */*td*/) {
+void Basket::Recycle(TaskData */*td*/) {
   // Recycle the basket to the volume scheduler.
 //  td->RecycleBasket(this);
 }

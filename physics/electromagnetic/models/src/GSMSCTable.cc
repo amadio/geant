@@ -15,7 +15,7 @@
 #include "GSMottCorrection.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <fstream>
 //#include <cstdlib>
@@ -143,7 +143,7 @@ void GSMSCTable::Initialize(double lownergylimit, double highenergylimit, const 
 // returns true if it was msc
 bool GSMSCTable::Sampling(double lambdaval, double qval, double scra, double &cost, double &sint, double lekin,
                           double beta2, int matindx, GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti,
-                          double &transfPar, geant::GeantTaskData *td, bool isfirst) {
+                          double &transfPar, geant::TaskData *td, bool isfirst) {
   double rand0 = td->fRndm->uniform();
   double expn  = std::exp(-lambdaval);
   //
@@ -239,7 +239,7 @@ bool GSMSCTable::Sampling(double lambdaval, double qval, double scra, double &co
 
 double GSMSCTable::SampleCosTheta(double lambdaval, double qval, double scra, double lekin, double beta2, int matindx,
                                   GSMSCAngularDtr **gsDtr, int &mcekini, int &mcdelti, double &transfPar,
-                                  geant::GeantTaskData *td, bool isfirst) {
+                                  geant::TaskData *td, bool isfirst) {
   double cost = 1.;
   // determine the base GS angular distribution if it is the first call (when sub-step sampling is used)
   if (isfirst) {
@@ -265,7 +265,7 @@ double GSMSCTable::SampleCosTheta(double lambdaval, double qval, double scra, do
 
 
 // returns with cost sampled from the GS angular distribution computed based on Screened-Rutherford DCS
-double GSMSCTable::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, double transfpar, geant::GeantTaskData *td) {
+double GSMSCTable::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, double transfpar, geant::TaskData *td) {
   // check if isotropic theta (i.e. cost is uniform on [-1:1])
   if (!gsDtr) {
     return 1.-2.0*td->fRndm->uniform();
@@ -291,7 +291,7 @@ double GSMSCTable::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, double trans
 
 // determine the GS angular distribution we need to sample from: will set other things as well ...
 GSMSCTable::GSMSCAngularDtr* GSMSCTable::GetGSAngularDtr(double scra, double &lambdaval, double &qval,
-                                                         double &transfpar, geant::GeantTaskData *td) {
+                                                         double &transfpar, geant::TaskData *td) {
   GSMSCAngularDtr *dtr = nullptr;
   bool first           = false;
   // isotropic cost above gQMAX2 (i.e. dtr stays nullptr)
@@ -451,7 +451,7 @@ void GSMSCTable::LoadMSCData() {
 // samples cost in single scattering based on Screened-Rutherford DCS
 // (with Mott-correction if it was requested)
 double GSMSCTable::SingleScattering(double /*lambdaval*/, double scra, double lekin, double beta2, int matindx,
-                                    geant::GeantTaskData *td) {
+                                    geant::TaskData *td) {
   double rand1 = td->fRndm->uniform();
   // sample cost from the Screened-Rutherford DCS
   double cost  = 1.-2.0*scra*rand1/(1.0-rand1+scra);

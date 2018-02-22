@@ -6,7 +6,7 @@
 
 // from geantV
 #include "Track.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <cmath>
 
@@ -61,7 +61,7 @@ LHCbParticleGun::~LHCbParticleGun() {}
 
 
 // set number of primary vertex and the fixed vertex position and give it back to the EventServer
-geant::EventInfo LHCbParticleGun::NextEvent(geant::GeantTaskData* td) {
+geant::EventInfo LHCbParticleGun::NextEvent(geant::TaskData* td) {
   geant::EventInfo current;
   // check if user set fix number of primaries per event and generate randomly if not
   int numPrimPerEvt = fNumPrimaryPerEvt;
@@ -78,7 +78,7 @@ geant::EventInfo LHCbParticleGun::NextEvent(geant::GeantTaskData* td) {
 }
 
 
-void LHCbParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* td) {
+void LHCbParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData* td) {
   // Select randomly the primary particle if it was not set by the user
   std::string &pParticleName = fPrimaryParticleName;
   if (!fIsUserPrimaryType) {

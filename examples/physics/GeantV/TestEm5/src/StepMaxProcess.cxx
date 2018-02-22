@@ -22,7 +22,7 @@ StepMaxProcess::StepMaxProcess(const std::string &name) : geantphysics::PhysicsP
 
 StepMaxProcess::~StepMaxProcess() {}
 
-double StepMaxProcess::PostStepLimitationLength(geant::Track * /*track*/, geant::GeantTaskData * /*td*/, bool /*haseloss*/) {
+double StepMaxProcess::PostStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/, bool /*haseloss*/) {
   return fMaxStep;
 }
 

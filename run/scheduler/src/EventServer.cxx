@@ -9,7 +9,7 @@
 #include "RunManager.h"
 #include "LocalityManager.h"
 #include "PrimaryGenerator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Basket.h"
 #include "StackLikeBuffer.h"
 #include "MCTruthMgr.h"
@@ -53,7 +53,7 @@ EventServer::EventServer(int nactive_max, RunManager *runmgr)
   if (generate) {
     // Pre-generate events at least as many as threads if possible
     fGenLock.clear(std::memory_order_release);
-    GeantTaskData *td = fRunMgr->GetTDManager()->GetTaskData(0);
+    TaskData *td = fRunMgr->GetTDManager()->GetTaskData(0);
     for (int i = 0; i < ngen; ++i) {
       GenerateNewEvent(td, error);
       assert(error == 0 && "EventServer::ctor ERROR in event generation");
@@ -77,7 +77,7 @@ EventServer::~EventServer()
 }
 
 //______________________________________________________________________________
-Event *EventServer::GenerateNewEvent(GeantTaskData *td, unsigned int &error)
+Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
 {
 // Generates a new event in standalone GeantV mode by filling an empty one and
 // putting it in the pending events queue.
@@ -221,7 +221,7 @@ bool EventServer::AddEvent(Event *event)
 }
 
 //______________________________________________________________________________
-Event *EventServer::ActivateEvent(Event *event, unsigned int &error, GeantTaskData *td)
+Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *td)
 {
 // Activates one event replacing the current one (if matching the expected value).
 // The method can fail due to one of the following reasons:
@@ -288,7 +288,7 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, GeantTaskDa
 }
 
 //______________________________________________________________________________
-void EventServer::CompletedEvent(Event *event, GeantTaskData *td)
+void EventServer::CompletedEvent(Event *event, TaskData *td)
 {
 // Signals that event 'evt' was fully transported.
   size_t slot = event->GetSlot();
@@ -309,7 +309,7 @@ void EventServer::CompletedEvent(Event *event, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-Track *EventServer::GetNextTrack(GeantTaskData *td, unsigned int &error)
+Track *EventServer::GetNextTrack(TaskData *td, unsigned int &error)
 {
 // Fetch next track of the current event. Increments current event if no more
 // tracks. If current event matches last activated one, resets fHasTracks flag.
@@ -342,7 +342,7 @@ Track *EventServer::GetNextTrack(GeantTaskData *td, unsigned int &error)
 }
 
 //______________________________________________________________________________
-int EventServer::FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsigned int &error)
+int EventServer::FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned int &error)
 {
 // Fill concurrently a basket of tracks, up to the requested number of tracks.
 // The client should test first the track availability using HasTracks().
@@ -362,7 +362,7 @@ int EventServer::FillBasket(Basket *basket, int ntracks, GeantTaskData *td, unsi
 }
 
 //______________________________________________________________________________
-int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, GeantTaskData *td, unsigned int &error)
+int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData *td, unsigned int &error)
 {
 // Fill concurrently up to the requested number of tracks into a stack-like buffer.
 // The client should test first the track availability using HasTracks().

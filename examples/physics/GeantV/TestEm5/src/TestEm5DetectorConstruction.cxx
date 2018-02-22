@@ -1,5 +1,5 @@
 
-#include "UserDetectorConstruction.h"
+#include "TestEm5DetectorConstruction.h"
 
 #include "RunManager.h"
 
@@ -16,7 +16,7 @@
 namespace userapplication {
 
 
-UserDetectorConstruction::UserDetectorConstruction(geant::RunManager *runmgr) : geant::GeantVDetectorConstruction(runmgr) {
+TestEm5DetectorConstruction::TestEm5DetectorConstruction(geant::RunManager *runmgr) : geant::UserDetectorConstruction(runmgr) {
   fTargetMatName            = "NIST_MAT_Au";        // default target material is NIST Au
   fTargetLogicalVolumeID    = -1;
   fTargetRegionIndx         = -1;
@@ -33,13 +33,13 @@ UserDetectorConstruction::UserDetectorConstruction(geant::RunManager *runmgr) : 
   fPositronCut              =  fElectronCut;
 }
 
-UserDetectorConstruction::~UserDetectorConstruction() {/* nothing to do */}
+TestEm5DetectorConstruction::~TestEm5DetectorConstruction() {/* nothing to do */}
 
 // NOTE: custom materials are created only for demonstration but when simulation results are supposed to be compared to
 //       the corresponding Geant4 simulation we strongly suggest to use pre-defined NIST materials on both sides!
 // we create only 3 custom materials that can be selected by the user by name; all pre-defined NIST materials are
 // available and the user can select them by name or the user can add more custom materials to this method
-void UserDetectorConstruction::CreateMaterials() {
+void TestEm5DetectorConstruction::CreateMaterials() {
   int    z, ncomponents, natoms;
   double a, density, massfraction;
   //
@@ -64,7 +64,7 @@ void UserDetectorConstruction::CreateMaterials() {
   matAir->AddElement(elO                                    , massfraction = 0.3);
 }
 
-void UserDetectorConstruction::ComputeSetup() {
+void TestEm5DetectorConstruction::ComputeSetup() {
   fTargetMaterial  = geantphysics::Material::NISTMaterial(fTargetMatName);
   
   fTargetYZ       *= 0.5;
@@ -73,7 +73,7 @@ void UserDetectorConstruction::ComputeSetup() {
   fWorldX          = 1.2*fTargetX; //commented out in the hansonModified test
 }
 
-void UserDetectorConstruction::CreateGeometry() {
+void TestEm5DetectorConstruction::CreateGeometry() {
 //  LoadGeometry("/Users/mnovak/opt/Data/GV/hanson_19.root");
 //  return;
   // compute geometry setup parameters

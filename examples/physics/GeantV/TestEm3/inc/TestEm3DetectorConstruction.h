@@ -2,7 +2,7 @@
 #ifndef TESTEM3DETECTORCONSTRUCTION_H
 #define TESTEM3DETECTORCONSTRUCTION_H
 
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "GeantFwd.h"
@@ -11,7 +11,7 @@
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-    class GeantVDetectorConstruction;
+    class UserDetectorConstruction;
     class RunManager;
   }
 }
@@ -25,7 +25,7 @@ namespace geantphysics {
 
 namespace userapplication {
 
-class TestEm3DetectorConstruction : public geant::GeantVDetectorConstruction {
+class TestEm3DetectorConstruction : public geant::UserDetectorConstruction {
 
 public:
   // CTR

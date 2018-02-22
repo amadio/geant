@@ -135,7 +135,7 @@ void PhysicsManagerPerParticle::PrepareForRun() {
 }
 
 
-void PhysicsManagerPerParticle::ComputeIntLen(geant::Track *gtrack, geant::GeantTaskData *td) {
+void PhysicsManagerPerParticle::ComputeIntLen(geant::Track *gtrack, geant::TaskData *td) {
   // mfp (gtrack->fPhysicsInteractLength[]) is initialized to 1.0 for all possible processes to handle properly
   // particles that has no interaction when number-of-interaction length-left is updated
   //
@@ -184,7 +184,7 @@ void PhysicsManagerPerParticle::ComputeIntLen(geant::Track *gtrack, geant::Geant
 }
 
 
-int PhysicsManagerPerParticle::AlongStepAction(LightTrack &track, geant::GeantTaskData *td) {
+int PhysicsManagerPerParticle::AlongStepAction(LightTrack &track, geant::TaskData *td) {
   int numSecondaries = 0;
   for (unsigned long i=0; i<fAlongStepProcessVec.size(); ++i) {
     numSecondaries += fAlongStepProcessVec[i]->AlongStepDoIt(track, td);
@@ -204,7 +204,7 @@ int PhysicsManagerPerParticle::AlongStepAction(LightTrack &track, geant::GeantTa
 
 
 
-int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, geant::Track *gtrack, geant::GeantTaskData *td) {
+int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td) {
   int numSecondaries = 0;
   // reset number of interaction length left for the dicsrete process that just happened to indicate that it will need
   // to be resample
@@ -240,7 +240,7 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, geant::Track *g
 }
 
 
-int PhysicsManagerPerParticle::AtRestAction(LightTrack &track, geant::Track* /*gtrack*/, geant::GeantTaskData *td) {
+int PhysicsManagerPerParticle::AtRestAction(LightTrack &track, geant::Track* /*gtrack*/, geant::TaskData *td) {
   int numSecondaries = 0;
   // get material-cuts, kinetic energy and pre-step mfp of the selected process
 //  const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());

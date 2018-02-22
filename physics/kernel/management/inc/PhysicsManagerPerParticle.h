@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 
 namespace geantphysics {
@@ -120,10 +120,10 @@ public:
 
   void PrepareForRun();
 
-  void ComputeIntLen(geant::Track *gtrack, geant::GeantTaskData *td);
-  int  AlongStepAction(LightTrack &track, geant::GeantTaskData *td);
-  int  PostStepAction(LightTrack &track, geant::Track *gtrack, geant::GeantTaskData *td);
-  int  AtRestAction(LightTrack &track, geant::Track *gtrack, geant::GeantTaskData *td);
+  void ComputeIntLen(geant::Track *gtrack, geant::TaskData *td);
+  int  AlongStepAction(LightTrack &track, geant::TaskData *td);
+  int  PostStepAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
+  int  AtRestAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
 
   bool  HasEnergyLossProcess() const { return fIsHasElossProcess; }
   bool  HasMSCProcess() const { return fIsHasMSCProcess; }

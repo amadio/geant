@@ -49,9 +49,9 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/HepMCTruth.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5Data.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/UserDetectorConstruction.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/UserPrimaryGenerator.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/UserPhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5DetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5PrimaryGenerator.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5PhysicsList.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/StepMaxProcess.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/Hist.cxx
   )
@@ -78,9 +78,9 @@ set(headers
 
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5.h
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5Data.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/UserDetectorConstruction.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/UserPrimaryGenerator.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/UserPhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5DetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5PrimaryGenerator.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5PhysicsList.h
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/StepMaxProcess.h
   ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/Hist.h
 

@@ -4,7 +4,7 @@ using vecgeom::kPi;
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"
@@ -46,7 +46,7 @@ HepMCGenerator::~HepMCGenerator() {
 void HepMCGenerator::InitPrimaryGenerator() {}
 
 //______________________________________________________________________________
-EventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+EventInfo HepMCGenerator::NextEvent(geant::TaskData* /*td*/) {
   //
   // Delete previous event
   delete search;
@@ -111,7 +111,7 @@ EventInfo HepMCGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void HepMCGenerator::GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
+void HepMCGenerator::GetTrack(int n, geant::Track &gtrack, geant::TaskData* /*td*/) {
   //  const HepMC::GenParticlePtr &genpart = search->results()[n];
   int itr = 0;
   double eta, phi, pmom = 0;

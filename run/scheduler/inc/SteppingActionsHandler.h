@@ -49,11 +49,11 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Track *track, Basket& output, TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Basket &input, Basket& output, TaskData *td);
 
 };
 

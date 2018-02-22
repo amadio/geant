@@ -1,5 +1,5 @@
 #include "GunGenerator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 
@@ -67,7 +67,7 @@ void GunGenerator::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-EventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
+EventInfo GunGenerator::NextEvent(geant::TaskData* /*td*/) {
   //
   int ntracks = 1;
   if (fAverage > 1)
@@ -88,7 +88,7 @@ EventInfo GunGenerator::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void GunGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
+void GunGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData* /*td*/) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
 

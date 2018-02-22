@@ -63,7 +63,7 @@ void ParticleGun::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-EventInfo ParticleGun::NextEvent(geant::GeantTaskData* /*td*/) {
+EventInfo ParticleGun::NextEvent(geant::TaskData* /*td*/) {
   //
   int ntracks = 1;
   ntracks = fAverage;
@@ -85,7 +85,7 @@ EventInfo ParticleGun::NextEvent(geant::GeantTaskData* /*td*/) {
 }
 
 //______________________________________________________________________________
-void ParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::GeantTaskData* /*td*/) {
+void ParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData* /*td*/) {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
   gtrack.SetPDG(fPDG);

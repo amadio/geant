@@ -49,7 +49,7 @@ public:
   virtual ~PhysicsProcessHandler();
 
   /** @brief Attach the physics data to task data */
-  void AttachUserData(GeantTaskData *td);
+  void AttachUserData(TaskData *td);
 
   /** @brief Initialize the physics
    *

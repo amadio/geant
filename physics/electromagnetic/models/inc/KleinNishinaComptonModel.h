@@ -8,7 +8,7 @@
 #include "Geant/Config.h"
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {
-  class GeantTaskData;
+  class TaskData;
 }
 }
 
@@ -73,7 +73,7 @@ public:
   virtual void   Initialize();
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  virtual int    SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
+  virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
 //@}
 
 
@@ -122,7 +122,7 @@ private:
     *  @param[in]     td         Pointer to the GeantV thread local data object (used to get random numbers).
     *  @return    Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
     */
-  double SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2, const geant::GeantTaskData *td);
+  double SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2, const geant::TaskData *td);
 
   /**
    * @brief Internal method to compute distribution of reduced (post interaction) photon energy related transformed

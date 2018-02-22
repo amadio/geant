@@ -1,10 +1,10 @@
-//===--- GeantTrackGeo.h - GeantV ---------------------------------*- C++ -*-===//
+//===--- TrackGeo.h - GeantV ---------------------------------*- C++ -*-===//
 //
 //                     GeantV Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantTrackGeo.h
+ * @file TrackGeo.h
  * @brief Non-concurrent SOA for geometry tracks.
  * @author Andrei Gheata
  */
@@ -23,7 +23,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
  * @brief AOS for tracs used at processing time by geometry
  *
  */
-struct GeantTrackGeo {
+struct TrackGeo {
   Track *fOriginal; /** Original track from which this was extracted */
   size_t fId;            /** Id of original track in its container */
   double fXpos;          /** X position */
@@ -43,7 +43,7 @@ struct GeantTrackGeo {
  * @brief SOA for tracs used at processing time by geometry
  *
  */
-class GeantTrackGeo_v {
+class TrackGeo_v {
 #ifndef VECCORE_CUDA
   typedef std::vector<Track *> TrackVec_t;
 #else
@@ -90,36 +90,36 @@ public:
 
 private:
 
-  GeantTrackGeo_v(const GeantTrackGeo_v &track_v) = delete;
-  GeantTrackGeo_v &operator=(const GeantTrackGeo_v &track_v) = delete;
+  TrackGeo_v(const TrackGeo_v &track_v) = delete;
+  TrackGeo_v &operator=(const TrackGeo_v &track_v) = delete;
 
   /**
-   * @brief GeantTrackGeo_v constructor based on a provided single buffer.
+   * @brief TrackGeo_v constructor based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  GeantTrackGeo_v(void *addr, unsigned int nTracks);
+  TrackGeo_v(void *addr, unsigned int nTracks);
 
 public:
-  /** @brief GeantTrackGeo_v default constructor */
-  GeantTrackGeo_v();
+  /** @brief TrackGeo_v default constructor */
+  TrackGeo_v();
 
   /**
-   * @brief GeantTrackGeo_v parametrized constructor
+   * @brief TrackGeo_v parametrized constructor
    *
    * @param size Initial capacity
    */
-  GeantTrackGeo_v(int size);
+  TrackGeo_v(int size);
 
   /**
    * @brief Track MakeInstance based on a provided single buffer.
    */
   VECCORE_ATT_DEVICE
-  static GeantTrackGeo_v *MakeInstanceAt(void *addr, unsigned int nTracks);
+  static TrackGeo_v *MakeInstanceAt(void *addr, unsigned int nTracks);
 
-  /** @brief GeantTrackGeo_v destructor */
-  ~GeantTrackGeo_v();
+  /** @brief TrackGeo_v destructor */
+  ~TrackGeo_v();
 
-  /** @brief return the contiguous memory size needed to hold a GeantTrackGeo_v */
+  /** @brief return the contiguous memory size needed to hold a TrackGeo_v */
   VECCORE_ATT_DEVICE
   static size_t SizeOfInstance(size_t nTracks);
 
@@ -157,7 +157,7 @@ public:
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
       Resize(2 * fMaxtracks);
 #else
-      printf("Error in GeantTrackGeo::AddTrack, resizing is not supported in device code\n");
+      printf("Error in TrackGeo::AddTrack, resizing is not supported in device code\n");
 #endif
     }
     fOriginalV[itrack] = &track;
@@ -233,7 +233,7 @@ public:
       
 
   /** @brief Function that return size of track */
-  size_t Sizeof() const { return sizeof(GeantTrackGeo_v) + fBufSize; }
+  size_t Sizeof() const { return sizeof(TrackGeo_v) + fBufSize; }
 
   /** @brief Function to normalize direction */
   void Normalize(int itr) __attribute__((always_inline)) {
@@ -278,17 +278,17 @@ public:
     return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
-  //  ClassDefNV(GeantTrackGeo_v, 1) // SOA for Track class
+  //  ClassDefNV(TrackGeo_v, 1) // SOA for Track class
 };
 } // GEANT_IMPL_NAMESPACE
 
 #ifdef VECCORE_CUDA
 namespace cxx {
-class GeantTrackGeo_v;
+class TrackGeo_v;
 }
 #else
 namespace cuda {
-class GeantTrackGeo_v;
+class TrackGeo_v;
 }
 #endif
 

@@ -19,12 +19,12 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 
 class TrackStat {
 
 private:
-  GeantTaskData *fTd = nullptr;   ///< Task data
+  TaskData *fTd = nullptr;   ///< Task data
   int fNtotal = 0;                ///< Total number of tracks injected by the thread
   int fNstacked = 0;              ///< Number of tracks in the stack-like buffer
   int fNstagebuff = 0;            ///< Number of tracks in stage buffers
@@ -33,7 +33,7 @@ private:
 public:
   /** @brief Track stat constructor */
   VECCORE_ATT_HOST_DEVICE
-  TrackStat(GeantTaskData *td) : fTd(td) {}
+  TrackStat(TaskData *td) : fTd(td) {}
 
   /** @brief Track stat destructor */
   VECCORE_ATT_HOST_DEVICE

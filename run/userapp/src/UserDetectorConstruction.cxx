@@ -1,4 +1,4 @@
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 
 #include "Geant/Error.h"
 #include "Region.h"
@@ -25,7 +25,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-int GeantVDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volumes, TaskBroker *broker)
+int UserDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volumes, TaskBroker *broker)
 {
   // Setup geometry after being constructed by the user (or loaded from file)
   int nvolumes = 0;
@@ -33,7 +33,7 @@ int GeantVDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volume
   vecgeom::GeoManager::Instance().GetAllLogicalVolumes(volumes);
   nvolumes = volumes.size();
   if (!nvolumes) {
-    Fatal("GeantVDetectorConstruction::SetupGeometry", "Geometry is empty");
+    Fatal("UserDetectorConstruction::SetupGeometry", "Geometry is empty");
     return 0;
   }  
 
@@ -46,7 +46,7 @@ int GeantVDetectorConstruction::SetupGeometry(vector_t<Volume_t const *> &volume
 }
 
 //______________________________________________________________________________
-bool GeantVDetectorConstruction::LoadGeometry(const char *filename) {
+bool UserDetectorConstruction::LoadGeometry(const char *filename) {
 // Load geometry from file. This is callable from the user detector construction class.
 #ifdef USE_ROOT
   if (gGeoManager || TGeoManager::Import(filename))
@@ -58,12 +58,12 @@ bool GeantVDetectorConstruction::LoadGeometry(const char *filename) {
     return true;
   }
 #endif
-  Error("GeantVDetectorConstruction::LoadGeometry", "Cannot load geometry from file %s", filename);
+  Error("UserDetectorConstruction::LoadGeometry", "Cannot load geometry from file %s", filename);
   return false;
 }
 
 //______________________________________________________________________________
-bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
+bool UserDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
   if (vecgeom::GeoManager::Instance().GetWorld() == NULL) {
 #ifdef USE_ROOT
     vecgeom::RootGeoManager::Instance().SetMaterialConversionHook(CreateMaterialConversion());
@@ -78,7 +78,7 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
     printf("--- Have placed volumes %ld\n", v2.size());
     //    vecgeom::RootGeoManager::Instance().world()->PrintContent();
     // Create regions if any available in the ROOT geometry
-    int nregions = GeantVDetectorConstruction::ImportRegions();
+    int nregions = UserDetectorConstruction::ImportRegions();
     printf("--- Imported %d regions\n", nregions);
 #endif
   }
@@ -91,7 +91,7 @@ bool GeantVDetectorConstruction::LoadVecGeomGeometry(TaskBroker *broker) {
 }
 
 //______________________________________________________________________________
-int GeantVDetectorConstruction::ImportRegions() {
+int UserDetectorConstruction::ImportRegions() {
 // Import regions if available in TGeo
   int nregions = 0;
 #if defined(USE_ROOT)
@@ -129,7 +129,7 @@ int GeantVDetectorConstruction::ImportRegions() {
 }
 
 //______________________________________________________________________________
-void GeantVDetectorConstruction::InitNavigators() {
+void UserDetectorConstruction::InitNavigators() {
   for (auto &lvol : vecgeom::GeoManager::Instance().GetLogicalVolumesMap()) {
     if (lvol.second->GetDaughtersp()->size() < 4) {
       lvol.second->SetNavigator(vecgeom::NewSimpleNavigator<>::Instance());
@@ -147,7 +147,7 @@ void GeantVDetectorConstruction::InitNavigators() {
 
 //______________________________________________________________________________
 #ifdef USE_ROOT
-std::function<void*(TGeoMaterial const *)> GeantVDetectorConstruction::CreateMaterialConversion() {
+std::function<void*(TGeoMaterial const *)> UserDetectorConstruction::CreateMaterialConversion() {
   return [](TGeoMaterial const *rootmat) {
       //std::cout<<"     -->  Creating Material  "<<rootmat->GetName();
       int    numElem    = rootmat->GetNelements();

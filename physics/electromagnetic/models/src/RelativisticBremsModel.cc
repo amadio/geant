@@ -25,7 +25,7 @@
 #include "PhysicsData.h"
 
 // from geantV
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include <cmath>
 
@@ -140,7 +140,7 @@ double RelativisticBremsModel::ComputeXSectionPerAtom(const Element *elem, const
 }
 
 
-int RelativisticBremsModel::SampleSecondaries(LightTrack &track, geant::GeantTaskData *td) {
+int RelativisticBremsModel::SampleSecondaries(LightTrack &track, geant::TaskData *td) {
   int    numSecondaries      = 0;
   const double ekin          = track.GetKinE();
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
@@ -826,7 +826,7 @@ double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, do
 }
 
 
-double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::GeantTaskData* td) {
+double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::TaskData* td) {
   const double gcut        = (matcut->GetProductionCutsInEnergy())[0];
   const Material *mat      = matcut->GetMaterial();
   const double etot        = eekin+geant::units::kElectronMassC2;

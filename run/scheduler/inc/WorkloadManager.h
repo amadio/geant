@@ -21,7 +21,7 @@
 
 #include "Propagator.h"
 
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -30,7 +30,6 @@ class GeantBasketMgr;
 class Basket;
 class GeantScheduler;
 class TaskBroker;
-class GeantVTaskMgr;
 class EventSet;
 class RunManager;
 
@@ -134,16 +133,16 @@ public:
    * @return True if workload completed. If false, the work will be completed
    *         by other task.
    */
-  static bool TransportTracksTask(EventSet *workload, GeantTaskData *td);
+  static bool TransportTracksTask(EventSet *workload, TaskData *td);
   
   static
-  FeederResult PreloadTracksForStep(GeantTaskData *td);
+  FeederResult PreloadTracksForStep(TaskData *td);
   
   static
-  int SteppingLoop(GeantTaskData *td, bool flush);
+  int SteppingLoop(TaskData *td, bool flush);
 
   static
-  int FlushOneLane(GeantTaskData *td);
+  int FlushOneLane(TaskData *td);
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();

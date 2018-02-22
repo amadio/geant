@@ -47,7 +47,7 @@ double PositronAnnihilationProcess::AverageLifetime(const LightTrack &track) con
 }
 
 
-int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::GeantTaskData *td) {
+int    PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::TaskData *td) {
   int numSecondaries = 2;
   // sample random direction of first photon
   double *rndArray = td->fDblArray;

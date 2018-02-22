@@ -21,7 +21,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
    
 /**
  * @brief  Enable case of constant field without field access method
@@ -44,7 +44,7 @@ class FieldLookup
    void GetFieldValue( const vecgeom::Vector3D<double>& Position,
                              vecgeom::Vector3D<double>& MagFieldValue, // Out
                              double                   & bmag // ,
-                       // const GeantTaskData            * td
+                       // const TaskData            * td
       );
 
 #if 0   
@@ -59,7 +59,7 @@ class FieldLookup
    void GetFieldValue( const vecgeom::Vector3D<double> & Position,
                              double                      BfieldOut[3],
                              double                    & bmag // ,
-                       // const geant::GeantTaskData      * td                          
+                       // const geant::TaskData      * td                          
          );
 #endif
 

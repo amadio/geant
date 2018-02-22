@@ -23,7 +23,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 class Basket;
 
 /**
@@ -41,7 +41,7 @@ namespace TransportManager {
   VECCORE_ATT_HOST_DEVICE
   int CheckSameLocation(TrackVec_t &tracks,
                          int ntracks,
-                         GeantTaskData *td);
+                         TaskData *td);
 
   /**
    * @brief Check if the geometry location changed for a track
@@ -51,7 +51,7 @@ namespace TransportManager {
    */
   VECCORE_ATT_HOST_DEVICE
   int CheckSameLocationSingle(Track &track,
-                         GeantTaskData *td);
+                         TaskData *td);
 
   /**
    * @brief Compute transport length for a vector of tracks
@@ -63,7 +63,7 @@ namespace TransportManager {
   VECCORE_ATT_HOST_DEVICE
   void ComputeTransportLength(TrackVec_t &tracks,
                               int ntracks,
-                              GeantTaskData *td);
+                              TaskData *td);
 
   /**
    * @brief Compute transport length for single track
@@ -73,7 +73,7 @@ namespace TransportManager {
    */
   VECCORE_ATT_HOST_DEVICE
   void ComputeTransportLengthSingle(Track &track,
-                                    GeantTaskData *td);
+                                    TaskData *td);
 
   /**
    * @brief Function that provides postponed action for tracks
@@ -150,7 +150,7 @@ namespace TransportManager {
   void PropagateInVolume(TrackVec_t &tracks,
                          int ntracks,
                          const double *crtstep,
-                         GeantTaskData *td);
+                         TaskData *td);
 
   /**
    * @brief Propagate a single track in its current volume
@@ -162,7 +162,7 @@ namespace TransportManager {
   VECCORE_ATT_HOST_DEVICE
   void PropagateInVolumeSingle(Track &track,
                                double crtstep,
-                               GeantTaskData *td);
+                               TaskData *td);
 
   /**
    * @brief Propagate a vector of tracks according their proposed physics steps
@@ -172,7 +172,7 @@ namespace TransportManager {
    */
   VECCORE_ATT_HOST_DEVICE
   int PropagateTracks(TrackVec_t &tracks,
-                      GeantTaskData *td);
+                      TaskData *td);
 
   /**
    * @brief Propagate a vector of tracks in scalar mode
@@ -183,7 +183,7 @@ namespace TransportManager {
    */
   VECCORE_ATT_HOST_DEVICE
   int PropagateTracksScalar(TrackVec_t &tracks,
-                            GeantTaskData *td,
+                            TaskData *td,
                             int stage = 0);
 
   /**
@@ -197,13 +197,13 @@ namespace TransportManager {
   VECCORE_ATT_HOST_DEVICE
   int PropagateSingleTrack(TrackVec_t &tracks,
                            int &itr,
-                           GeantTaskData *td,
+                           TaskData *td,
                            int stage);
 
   VECCORE_ATT_HOST_DEVICE
   int PropagateSingleTrack(Track *track,
                            Basket *output,
-                           GeantTaskData *td,
+                           TaskData *td,
                            int stage);
 
   /** @brief Function that returns safe length */

@@ -67,7 +67,7 @@ FieldPropagationHandler::~FieldPropagationHandler()
 
 //______________________________________________________________________________
 GUFieldPropagator *
-FieldPropagationHandler::Initialize(GeantTaskData * td)
+FieldPropagationHandler::Initialize(TaskData * td)
 {
   GUFieldPropagator *fieldPropagator = nullptr;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -92,7 +92,7 @@ FieldPropagationHandler::Initialize(GeantTaskData * td)
 }
 
 //______________________________________________________________________________
-void FieldPropagationHandler::Cleanup(GeantTaskData * td)
+void FieldPropagationHandler::Cleanup(TaskData * td)
 {
    delete td->fSpace4FieldProp;
    td->fSpace4FieldProp = nullptr;
@@ -128,7 +128,7 @@ double FieldPropagationHandler::Curvature(const Track  & track) const
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::DoIt(Track *track, Basket& output, GeantTaskData *td)
+void FieldPropagationHandler::DoIt(Track *track, Basket& output, TaskData *td)
 {
 // Scalar geometry length computation. The track is moved into the output basket.
   // Step selection
@@ -177,7 +177,7 @@ void FieldPropagationHandler::DoIt(Track *track, Basket& output, GeantTaskData *
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData *td)
+void FieldPropagationHandler::DoIt(Basket &input, Basket& output, TaskData *td)
 {
 // Vector geometry length computation. The tracks are moved into the output basket.
   TrackVec_t &tracks = input.Tracks();
@@ -253,7 +253,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
   }
   // This part deals with vectorized treatment
   // Copy data to SOA and dispatch for vector mode
-  GeantTrackGeo_v &track_geo = *td.fGeoTrack;
+  TrackGeo_v &track_geo = *td.fGeoTrack;
   for (auto track : tracks) {
     if (track.Status() != kPhysics &&
         (track.GetSafety() < 1.E-10 || track.GetSnext() < 1.E-10))
@@ -288,7 +288,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket& output, GeantTaskData 
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, GeantTaskData * td)
+void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, TaskData * td)
 {
 // Single track propagation in a volume. The method is to be called
 // only with  charged tracks in magnetic field.The method decreases the fPstepV
@@ -454,7 +454,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ge
 VECCORE_ATT_HOST_DEVICE
 void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
                                                 const double *stepSize,
-                                                GeantTaskData *td)
+                                                TaskData *td)
 {
 // The Vectorized Implementation for Magnetic Field Propagation
    // std::cout << "FieldPropagationHandler::PropagateInVolume called for Many tracks" << std::endl;
@@ -704,7 +704,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks,
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool FieldPropagationHandler::IsSameLocation(Track &track, GeantTaskData *td) {
+bool FieldPropagationHandler::IsSameLocation(Track &track, TaskData *td) {
 // Query geometry if the location has changed for a track
 // Returns number of tracks crossing the boundary (0 or 1)
 

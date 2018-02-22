@@ -1,22 +1,22 @@
-#include "GeantVApplication.h"
+#include "UserApplication.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-GeantVApplication::GeantVApplication(RunManager *runmgr):fRunMgr(runmgr)
+UserApplication::UserApplication(RunManager *runmgr):fRunMgr(runmgr)
 {
   // Ctor..
 
 }
 
 //______________________________________________________________________________
-void GeantVApplication::SetRunManager(RunManager *runmgr) {
+void UserApplication::SetRunManager(RunManager *runmgr) {
   fRunMgr = runmgr;
 }
 
 //______________________________________________________________________________
-void GeantVApplication::BeginTrack(TrackVec_t &tracks, GeantTaskData *td)
+void UserApplication::BeginTrack(TrackVec_t &tracks, TaskData *td)
 {
   // Invoke by default the scalar version
   for (auto track : tracks)
@@ -24,7 +24,7 @@ void GeantVApplication::BeginTrack(TrackVec_t &tracks, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-void GeantVApplication::FinishTrack(TrackVec_t &tracks, GeantTaskData *td)
+void UserApplication::FinishTrack(TrackVec_t &tracks, TaskData *td)
 {
   // Invoke by default the scalar version
   for (auto track : tracks)
@@ -32,7 +32,7 @@ void GeantVApplication::FinishTrack(TrackVec_t &tracks, GeantTaskData *td)
 }
 
 //______________________________________________________________________________
-void GeantVApplication::SteppingActions(TrackVec_t &tracks, GeantTaskData *td)
+void UserApplication::SteppingActions(TrackVec_t &tracks, TaskData *td)
 {
   // Invoke by default the scalar version
   for (auto track : tracks)

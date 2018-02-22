@@ -5,8 +5,7 @@
 #include <string>
 #endif
 
-class GeantVApplication;
-class GeantVTaskMgr;
+class UserApplication;
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

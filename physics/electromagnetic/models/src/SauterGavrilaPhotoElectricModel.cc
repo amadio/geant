@@ -27,7 +27,7 @@
 
 // from geantV
 #include "Geant/Typedefs.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 
 using namespace std;
@@ -468,7 +468,7 @@ namespace geantphysics {
     
     //____________________
     //NB: cosTheta is supposed to contain the dirZ of the incoming photon
-    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, geant::GeantTaskData *td) const{
+    void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(double gammaEnIn, double &cosTheta, geant::TaskData *td) const{
         
         //1) initialize energy-dependent variables
         // Variable naming according to Eq. (2.24) of Penelope Manual
@@ -658,7 +658,7 @@ namespace geantphysics {
     }
     
     
-    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, geant::GeantTaskData *td) const
+    size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex (const MaterialCuts *matCut, double gammaekin0, geant::TaskData *td) const
     {
         size_t index =0;
         std::vector<double> mxsec(20,0.);
@@ -709,7 +709,7 @@ namespace geantphysics {
   
   }
     
-    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::GeantTaskData *td) const{
+    void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) const{
         
         std::cout<<"testSampleTargetElementIndex\n";
         size_t index=0;
@@ -752,7 +752,7 @@ namespace geantphysics {
     
     
     int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track,
-                                                           geant::GeantTaskData *td){
+                                                           geant::TaskData *td){
         
         using geant::units::MeV;
         double gammaekin0          = track.GetKinE();

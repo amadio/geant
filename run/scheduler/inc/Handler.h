@@ -25,7 +25,7 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-class GeantTaskData;
+class TaskData;
 class Track;
 #include "GeantFwd.h"
 
@@ -84,15 +84,15 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Track *track, Basket& output, GeantTaskData *td) = 0;
+  virtual void DoIt(Track *track, Basket& output, TaskData *td) = 0;
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Basket &input, Basket& output, GeantTaskData *td);
+  virtual void DoIt(Basket &input, Basket& output, TaskData *td);
 
   /** @brief Scalar emulation of vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  void DoItScalar(Basket &input, Basket& output, GeantTaskData *td);
+  void DoItScalar(Basket &input, Basket& output, TaskData *td);
 
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE

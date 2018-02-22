@@ -3,7 +3,7 @@
 
 // from geantV
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 #include "Track.h"
 #include "Basket.h"
 
@@ -26,7 +26,7 @@ PostStepActionHandler::PostStepActionHandler(int threshold, geant::Propagator *p
 
 PostStepActionHandler::~PostStepActionHandler() {}
 
-void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::GeantTaskData * td) {
+void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::TaskData * td) {
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
@@ -131,7 +131,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, gea
 }
 
 //______________________________________________________________________________
-void PostStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::GeantTaskData *td)
+void PostStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();

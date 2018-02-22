@@ -1,10 +1,10 @@
-//===--- GeantFactoryStore.h - GeantV --------------------------*- C++ -*-===//
+//===--- FactoryStore.h - GeantV --------------------------*- C++ -*-===//
 //
 //                     Geant-V Prototype               
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file GeantFactoryStore.h
+ * @file FactoryStore.h
  * @brief Implementation of store keeping factories one factory per user type 
  * in GeantV prototype
  * @author Andrei Gheata 
@@ -19,14 +19,14 @@
 #include <cstring>
 
 #ifndef GEANT_FACTORY
-#include "GeantFactory.h"
+#include "Geant/Factory.h"
 #endif
 
 /** 
- * @brief Class GeantFactoryStore
+ * @brief Class FactoryStore
  * @details  Store of factories holding one factory per user type.
  */
-class GeantFactoryStore {
+class FactoryStore {
 private:
   int          fNclients;               /** Number of thread clients */
   int          fNFactories;             /** Number of factories stored */
@@ -34,14 +34,14 @@ private:
   const void **fTypes;                  /** Factory types */
   void       **fFactories;              /** Stored factories */
   std::mutex   fMutex;                  /** Mutex for factory creation */
-  static GeantFactoryStore *fgInstance; /** Static instance of the store */
+  static FactoryStore *fgInstance; /** Static instance of the store */
   
   /**
-   * @brief Constructor for GeantFactoryStore
+   * @brief Constructor for FactoryStore
    * 
    * @param nclients Number of thread clients 
    */
-  GeantFactoryStore(int nclients);
+  FactoryStore(int nclients);
   
   /**
    * @brief Function for removing a factory
@@ -51,24 +51,24 @@ private:
   void RemoveFactory(int islot);
 
   /**
-   * @brief Constructor GeantFactoryStore */
-  GeantFactoryStore(const GeantFactoryStore &);
+   * @brief Constructor FactoryStore */
+  FactoryStore(const FactoryStore &);
 
   /**
    * @brief Operator= not allowed */
-  GeantFactoryStore &operator=(const GeantFactoryStore &);
+  FactoryStore &operator=(const FactoryStore &);
 public:
   
   /** 
-  * @brief Destructor GeantFactoryStore */
-  ~GeantFactoryStore();
+  * @brief Destructor FactoryStore */
+  ~FactoryStore();
   
   /**
    * @brief  Function that creates one instance of the factory store
    * 
    * @param nclients Number of thread clients (by default 1)
    */
-  static GeantFactoryStore *Instance(int nclients = 1);
+  static FactoryStore *Instance(int nclients = 1);
   
   /**
    * @brief Templated function that return factory object
@@ -76,7 +76,7 @@ public:
    * @tparam Data type for the factory
    * @param blocksize Size of block
    */
-  template <class T> GeantFactory<T> *GetFactory(int blocksize, int nthreads);
+  template <class T> Factory<T> *GetFactory(int blocksize, int nthreads);
   
   /** @brief Function that provides deletion of factory of the provided type 
    *
@@ -89,13 +89,13 @@ public:
  * @details Returns existing factory for the user type or create new one.
  * @return Factory object
  */
-template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(int blocksize, int nthreads) {
+template <class T> Factory<T> *FactoryStore::GetFactory(int blocksize, int nthreads) {
   const std::type_info *type = &typeid(T);
   for (int i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type)
-      return (GeantFactory<T> *)fFactories[i];
+      return (Factory<T> *)fFactories[i];
   }
-  GeantFactory<T> *factory = new GeantFactory<T>(fNclients, blocksize, nthreads);
+  Factory<T> *factory = new Factory<T>(fNclients, blocksize, nthreads);
   fMutex.lock();
   if (fNFactories == fCapacity) {
     // Resize arrays
@@ -121,11 +121,11 @@ template <class T> GeantFactory<T> *GeantFactoryStore::GetFactory(int blocksize,
  * @details Checks the typeid of the provided type and deletes the
  * corresponding factory if it finds one
  */
-template <class T> void GeantFactoryStore::DeleteFactory() {
+template <class T> void FactoryStore::DeleteFactory() {
   const std::type_info *type = &typeid(T);
   for (int i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type) {
-      GeantFactory<T> *factory = (GeantFactory<T> *)fFactories[i];
+      Factory<T> *factory = (Factory<T> *)fFactories[i];
       delete factory;
       RemoveFactory(i);
       return;

@@ -8,7 +8,7 @@
 
 using PrimaryGenerator = geant::PrimaryGenerator;
 using EventInfo   = geant::EventInfo;
-using GeantTaskData    = geant::GeantTaskData;
+using TaskData    = geant::TaskData;
 
 namespace geantphysics {
 
@@ -58,8 +58,8 @@ public:
 
   // set one Track primary track properties
   virtual void InitPrimaryGenerator();
-  virtual EventInfo NextEvent(geant::GeantTaskData* td);
-  virtual void GetTrack(int n, geant::Track &gtrack, geant::GeantTaskData* td);
+  virtual EventInfo NextEvent(geant::TaskData* td);
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData* td);
 
 private:
   ParticleGun(const ParticleGun &);            // no imp.

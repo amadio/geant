@@ -19,7 +19,7 @@ The detector is a simple box with the following configurable parameters:
     --det-Target-Material-Name <name>
 
     Note, that <name> should be identical either to a name of a
-    material defined in the UserDetectorConstruction::CreateMaterials()
+    material defined in the TestEm5DetectorConstruction::CreateMaterials()
     method or to a name of a pre-defined NIST material.
 
 # Target thickness:

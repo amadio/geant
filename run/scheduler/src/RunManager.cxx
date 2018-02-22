@@ -9,8 +9,7 @@
 #include "TaskBroker.h"
 #include "PhysicsInterface.h"
 #include "StdApplication.h"
-#include "GeantVTaskMgr.h"
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 #include "MCTruthMgr.h"
 #include "PrimaryGenerator.h"
 #include "Geant/Event.h"
@@ -133,7 +132,6 @@ bool RunManager::Initialize() {
     prop->SetConfig(fConfig);
     prop->fApplication = fApplication;
     prop->fStdApplication = fStdApplication;
-    prop->fTaskMgr = fTaskMgr;
     prop->fPhysicsInterface = fPhysicsInterface;
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr = fTruthMgr;
@@ -212,7 +210,7 @@ bool RunManager::Initialize() {
 
   // Attach user data and physics data to task data
   for (int i = 0; i < nthreads; i++) {
-    GeantTaskData *td = fTDManager->GetTaskData(i);
+    TaskData *td = fTDManager->GetTaskData(i);
     if (fPhysicsInterface) fPhysicsInterface->AttachUserData(td);
     if (fStdApplication) fStdApplication->AttachUserData(td);
     fApplication->AttachUserData(td);
@@ -222,7 +220,7 @@ bool RunManager::Initialize() {
   for (auto i=0; i<fNpropagators; ++i)
     fPropagators[i]->Initialize();
 
-  GeantTaskData *td = fTDManager->GetTaskData(0);
+  TaskData *td = fTDManager->GetTaskData(0);
   
   if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
     for (auto i=0; i<fNpropagators; ++i) {
@@ -244,7 +242,7 @@ bool RunManager::Initialize() {
 }
 
 //______________________________________________________________________________
-GeantTaskData *RunManager::BookTransportTask()
+TaskData *RunManager::BookTransportTask()
 {
 // Book a transport task to be used with RunSimulationTask.
   return fTDManager->GetTaskData();
@@ -262,7 +260,6 @@ RunManager::~RunManager() {
   }
   BitSet::ReleaseInstance(fDoneEvents);
   delete fPhysicsInterface;
-  delete fTaskMgr;
 
   // Cleanup user data attached to task data
   for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
@@ -280,7 +277,7 @@ bool RunManager::LoadGeometry(const char *filename) {
   if (!gGeoManager) TGeoManager::Import(filename);
   vecgeom::GeoManager *geom = &vecgeom::GeoManager::Instance();
   if (geom) {
-    GeantVDetectorConstruction::LoadVecGeomGeometry(fBroker);
+    UserDetectorConstruction::LoadVecGeomGeometry(fBroker);
     vecgeom::GeoManager::Instance().GetAllLogicalVolumes(fVolumes);
     fNvolumes = fVolumes.size();
   } else {
@@ -360,7 +357,7 @@ void RunManager::SetUserFieldConstruction(UserFieldConstruction* udc)
 }
   
 //______________________________________________________________________________
-void RunManager::EventTransported(Event *event, GeantTaskData *td)
+void RunManager::EventTransported(Event *event, TaskData *td)
 {
 // Actions executed after an event is transported.
   // Adjust number of prioritized events
@@ -421,7 +418,7 @@ EventSet *RunManager::NotifyEventSets(Event *finished_event)
 }
 
 //______________________________________________________________________________
-bool RunManager::RunSimulationTask(EventSet *workload, GeantTaskData *td) {
+bool RunManager::RunSimulationTask(EventSet *workload, TaskData *td) {
 // Entry point for running simulation as asynchonous task. The user has to provide
 // an event set to be transported, and to pre-book the transport task. The method 
 // will return only when the given workload is completed.
@@ -503,10 +500,10 @@ void RunManager::RunSimulation() {
     nkilled += fPropagators[i]->fNkilled.load();
   }
   
-  GeantTaskData *td0 = fTDManager->GetTaskData(0);
+  TaskData *td0 = fTDManager->GetTaskData(0);
   for (size_t stage = 0; stage < kNstages; ++stage) {
     for (size_t i = 1; i < fTDManager->GetNtaskData(); ++i) {
-      GeantTaskData *td = fTDManager->GetTaskData(i);
+      TaskData *td = fTDManager->GetTaskData(i);
       // Merge stage counters
       *td0->fCounters[stage] += *td->fCounters[stage];
     }
@@ -532,7 +529,6 @@ Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  tot
 //______________________________________________________________________________
 bool RunManager::FinishRun() {
   // Run termination actions.
-  if (fTaskMgr) fTaskMgr->Finalize();
   fApplication->FinishRun();
   if (fStdApplication)
     fStdApplication->FinishRun();

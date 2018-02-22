@@ -26,7 +26,7 @@ int PreStepStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *PreStepStage::Select(Track *, GeantTaskData *)
+Handler *PreStepStage::Select(Track *, TaskData *)
 {
 // All tracks selected
   return fHandlers[0];

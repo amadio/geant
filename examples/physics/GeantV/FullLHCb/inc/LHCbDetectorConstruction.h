@@ -2,7 +2,7 @@
 #ifndef LHCbDETECTORCONSTRUCTION_H
 #define LHCbDETECTORCONSTRUCTION_H
 
-#include "GeantVDetectorConstruction.h"
+#include "UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "GeantFwd.h"
@@ -18,7 +18,7 @@ namespace geant {
 
 namespace lhcbapp {
 
-class LHCbDetectorConstruction : public geant::GeantVDetectorConstruction {
+class LHCbDetectorConstruction : public geant::UserDetectorConstruction {
 public:
 
   LHCbDetectorConstruction(geant::RunManager *runmgr);

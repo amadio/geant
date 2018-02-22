@@ -8,7 +8,7 @@
 #include "Geant/Config.h"
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-class GeantTaskData;
+class TaskData;
 }
 } // namespace geant
 
@@ -114,7 +114,7 @@ public:
    *                          the secondary tracks generated in the interaction.
    * @return                  Number of secondary tracks generated in the interaction.
    */
-  virtual int SampleSecondaries(LightTrack &track, geant::GeantTaskData *td);
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
   //@}
 
   /**
@@ -163,12 +163,12 @@ private:
    *
    * @param[in] matcut    MaterialCuts to retrieve the element composition of the material.
    * @param[in] energy    Primary particle (gamma) kinetic energy.
-   * @param[in] td        GeantTaskData needed to generate random numbers.
+   * @param[in] td        TaskData needed to generate random numbers.
    * @return              Index of the element sampled from the material composition to be the one involved in
    * photoelectric effect.
    */
 
-  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::GeantTaskData *td) const;
+  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) const;
 
   //---------------------------------------------
   // TestSampleTargetElementIndex
@@ -181,10 +181,10 @@ private:
    *
    * @param[in] matcut    MaterialCuts to retrieve the element composition of the material.
    * @param[in] energy    primary particle (gamma) energy.
-   * @param[in] td        GeantTaskData needed to generate random numbers.
+   * @param[in] td        TaskData needed to generate random numbers.
    * @return              Output file SampleTargetElementIndexTest_Z that contains the expected pdf and the sampled one.
    */
-  void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::GeantTaskData *td) const;
+  void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) const;
 
   //---------------------------------------------
   // CalculateDiffCrossSection
@@ -286,12 +286,12 @@ private:
    * does not introduce appreciable errors in the description of any photoionisation event, irrespective of the atomic
    * shell or of the photon energy.
    * @param[in]  energy        Primary particle (gamma) kinetic energy.
-   * @param[in]  td            geant::GeantTaskData used to generate random numbers.
+   * @param[in]  td            geant::TaskData used to generate random numbers.
    * @param[out] costheta      Cosinus of the polar angle (theta) of the secondary particle (photoelectron e-).
    *
    *
    */
-  void SamplePhotoElectronDirection_Rejection(double energy, double &costheta, geant::GeantTaskData *td) const;
+  void SamplePhotoElectronDirection_Rejection(double energy, double &costheta, geant::TaskData *td) const;
 
   //---------------------------------------------
   // LoadData

@@ -19,7 +19,7 @@
 #include "PhysicsData.h"
 
 #include "Propagator.h"
-#include "GeantTaskData.h"
+#include "TaskData.h"
 
 #include "PhysicsParameters.h"
 
@@ -39,7 +39,7 @@ PhysicsProcessHandler::~PhysicsProcessHandler() {
   PhysicsData::ClearAll();   // delete all PhysicsData objects
 }
 
-void PhysicsProcessHandler::AttachUserData(GeantTaskData *td) {
+void PhysicsProcessHandler::AttachUserData(TaskData *td) {
   //
   // attach physics data to tasks. This is called after the initialization of
   // physics and after the task data structures get created.
