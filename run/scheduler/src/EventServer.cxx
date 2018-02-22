@@ -1,6 +1,5 @@
 #include "EventServer.h"
 
-#include "globals.h"
 #include "Geant/Error.h"
 
 #include "VBconnector.h"

@@ -7,7 +7,6 @@
 #include "Geant/Event.h"
 #include "RunManager.h"
 #include "TaskData.h"
-#include "globals.h"
 
 #include "Geant/Error.h"
 

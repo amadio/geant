@@ -4,7 +4,6 @@
 #include "Propagator.h"
 #include "Track.h"
 #include "GeantConfig.h"
-#include "globals.h"
 
 namespace geant {
 inline namespace cuda {

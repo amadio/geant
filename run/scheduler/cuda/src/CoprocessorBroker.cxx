@@ -12,7 +12,6 @@
 #include "GeantScheduler.h"
 #include "GeantTaskData.h"
 #include "WorkloadManager.h"
-#include "globals.h"
 
 #include "GeantCudaUtils.h"
 #include "management/CudaManager.h"

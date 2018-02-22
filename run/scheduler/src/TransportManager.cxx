@@ -1,6 +1,5 @@
 #include "TransportManager.h"
 
-#include "globals.h"
 #include "Geant/Error.h"
 #include <execinfo.h>
 

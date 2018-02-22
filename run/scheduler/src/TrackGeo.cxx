@@ -1,6 +1,5 @@
 #include "TrackGeo.h"
 
-#include "globals.h"
 #include "Geant/Error.h"
 #include "Geant/math_wrappers.h"
 #include <execinfo.h>

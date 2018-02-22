@@ -13,7 +13,6 @@
 #include "CMSApplicationTBB.h"
 #include "Geant/Event.h"
 #include "TaskData.h"
-#include "globals.h"
 #include "Geant/Error.h"
 
 using namespace geant;

@@ -1,7 +1,6 @@
 #include "StdApplication.h"
 #include "Propagator.h"
 #include "TaskData.h"
-#include "globals.h"
 #include "Geant/Error.h"
 #ifdef USE_ROOT
 #include "TProfile.h"

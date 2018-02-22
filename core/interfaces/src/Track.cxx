@@ -1,6 +1,5 @@
 #include "Track.h"
 
-#include "globals.h"
 #include "Geant/Error.h"
 #include <execinfo.h>
 #include "Propagator.h"

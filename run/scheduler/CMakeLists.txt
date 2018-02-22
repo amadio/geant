@@ -72,7 +72,6 @@ set(sources
 set(headers
    ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Config.h
    ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Error.h
-   ${CMAKE_SOURCE_DIR}/core/base/inc/globals.h
    ${CMAKE_SOURCE_DIR}/core/base/inc/GeantFwd.h
    ${CMAKE_SOURCE_DIR}/core/concurrency/inc/dcqueue.h
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/mpmc_bounded_queue.h

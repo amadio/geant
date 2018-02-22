@@ -1,5 +1,4 @@
 #include "TaskData.h"
-#include "globals.h"
 #include "Basket.h"
 #include "BasketCounters.h"
 #include "StackLikeBuffer.h"
