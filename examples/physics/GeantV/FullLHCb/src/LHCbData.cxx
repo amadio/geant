@@ -113,7 +113,10 @@ LHCbDataPerEvent& LHCbDataPerEvent::operator+=(const LHCbDataPerEvent &other) {
 
 //--------------------------------------------------------------------------------------------------------------------//
 // LHCbThreadDataEvents
-  LHCbThreadDataEvents::LHCbThreadDataEvents(int nevtbuffered, int nprimperevent) : fHitsTree(0), fHitsBlock(0),
+  LHCbThreadDataEvents::LHCbThreadDataEvents(int nevtbuffered, int nprimperevent) :
+#ifdef USE_ROOT
+                        fHitsTree(0), fHitsBlock(0),
+#endif
 										    fNumBufferedEvents(nevtbuffered) {
     fPerEventData.reserve(fNumBufferedEvents);
     for (int i=0; i<fNumBufferedEvents; ++i) {

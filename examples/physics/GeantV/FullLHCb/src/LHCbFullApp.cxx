@@ -30,17 +30,20 @@ LHCbFullApp::LHCbFullApp(geant::RunManager* runmgr, LHCbParticleGun* gun)
   fDataHandlerEvents     = nullptr;
   fData                  = nullptr;
 
+#ifdef USE_ROOT
   FactoryStore *store = FactoryStore::Instance(runmgr->GetConfig()->fNbuff);
   fFactory = store->GetFactory<MyHit>(16, runmgr->GetNthreadsTotal());
   // set factory to use thread-local queues
   fFactory->queue_per_thread = true;
-
+#endif
 }
 
 
 LHCbFullApp::~LHCbFullApp() {
   delete fData;
+#ifdef USE_ROOT
   delete fMerger;
+#endif
 }
 
 
@@ -53,13 +56,15 @@ void LHCbFullApp::AttachUserData(geant::TaskData *td) {
   // structure. Provide number of event-slots and number of primaries per event
   LHCbThreadDataEvents *eventData = new LHCbThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent);
 
+#ifdef USE_ROOT
   // create here the TTree
   eventData->fHitsFile = fMerger->GetFile();
 
   eventData->fHitsTree = new TTree("Tree","Simulation output");
   eventData->fHitsTree->ResetBit(kMustCleanup);
   eventData->fHitsTree->Branch("hitblockoutput", "GeantBlock<MyHit>", &(eventData->fHitsBlock));
-    
+#endif
+
   fDataHandlerEvents->AttachUserData(eventData, td);
 }
 
@@ -69,11 +74,12 @@ void LHCbFullApp::DeleteUserData(geant::TaskData *td) {
   }
   LHCbThreadDataEvents *eventData = fDataHandlerEvents->GetUserData(td);
 
+#ifdef USE_ROOT
   // make sure that everything has been sent for merging
   //  std::cout << "Writing before delete" << std::endl;
-
   eventData->fHitsFile->Write();
-    
+#endif
+
   delete eventData;
 }
 
@@ -82,10 +88,11 @@ bool LHCbFullApp::Initialize() {
     return true;
   }
 
+#ifdef USE_ROOT
   //IO
   fMerger = new ROOT::Experimental::TBufferMerger("simu.root");
   fOutputBlockWrite = 1000;
-  
+#endif  
 
   // Initialize application. Geometry must be loaded.
   if (fInitialized)
@@ -109,9 +116,9 @@ bool LHCbFullApp::Initialize() {
   // Loop unique volume id's
   int nvolumes = fRunMgr->GetNvolumes();
   vector_t<Volume_t const *> &lvolumes = fRunMgr->GetVolumes();
-  Printf("Found %d logical volumes", nvolumes);
+  geant::Printf("Found %d logical volumes", nvolumes);
   const Volume_t *vol;
-  TString svol, smat;
+  std::string svol, smat;
   int nvelo = 0;
   int necal = 0;
   int nhcal = 0;
@@ -123,16 +130,16 @@ bool LHCbFullApp::Initialize() {
 
 
     // VELO & TT
-    if (svol.BeginsWith("/dd/Geometry/BeforeMagnetRegion/Velo/Sensors/lvVeloRDetectorPU") ||
-	svol.BeginsWith("/dd/Geometry/BeforeMagnetRegion/Velo/Sensors/lvVeloPhiDetector") ||
-	svol.BeginsWith("/dd/Geometry/BeforeMagnetRegion/Velo/Sensors/lvVeloRDetector") ||
-	svol.BeginsWith("/dd/Geometry/BeforeMagnetRegion/TT/Modules/lvSensor") ||
-	svol.BeginsWith("/dd/Geometry/AfterMagnetRegion/T/IT/Ladder/lvLong") ||
-	svol.BeginsWith("/dd/Geometry/AfterMagnetRegion/T/IT/Ladder/lvShort") ||
-	svol.BeginsWith("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvS3ModuleA") ||
-	svol.BeginsWith("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvS1ModuleA") ||
-	svol.BeginsWith("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvLModuleA") ||
-	svol.BeginsWith("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvS2ModuleA"))
+    if (svol.find("/dd/Geometry/BeforeMagnetRegion/Velo/Sensors/lvVeloRDetectorPU") == 0 ||
+	      svol.find("/dd/Geometry/BeforeMagnetRegion/Velo/Sensors/lvVeloPhiDetector") == 0 ||
+        svol.find("/dd/Geometry/BeforeMagnetRegion/Velo/Sensors/lvVeloRDetector") == 0 ||
+        svol.find("/dd/Geometry/BeforeMagnetRegion/TT/Modules/lvSensor") == 0 ||
+        svol.find("/dd/Geometry/AfterMagnetRegion/T/IT/Ladder/lvLong") == 0 ||
+        svol.find("/dd/Geometry/AfterMagnetRegion/T/IT/Ladder/lvShort") == 0 ||
+        svol.find("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvS3ModuleA") == 0 ||
+        svol.find("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvS1ModuleA") == 0 ||
+        svol.find("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvLModuleA") == 0 ||
+        svol.find("/dd/Geometry/AfterMagnetRegion/T/OT/Modules/lvS2ModuleA") == 0)
       {
       fSensFlags[idvol] = true;
       fVELOMap[idvol] = nvelo;
@@ -141,9 +148,9 @@ bool LHCbFullApp::Initialize() {
     }
     
     // ECAL cells
-    if (svol.BeginsWith("/dd/Geometry/DownstreamRegion/Ecal/Modules/InnCell") ||
-	svol.BeginsWith("/dd/Geometry/DownstreamRegion/Ecal/Modules/MidCell") ||
-	svol.BeginsWith("/dd/Geometry/DownstreamRegion/Ecal/Modules/OutCell")) {
+    if (svol.find("/dd/Geometry/DownstreamRegion/Ecal/Modules/InnCell") == 0 ||
+        svol.find("/dd/Geometry/DownstreamRegion/Ecal/Modules/MidCell") == 0 ||
+        svol.find("/dd/Geometry/DownstreamRegion/Ecal/Modules/OutCell") == 0) {
       fSensFlags[idvol] = true;
       fECALMap[idvol] = necal;
       fECALid[necal] = idvol;
@@ -151,9 +158,9 @@ bool LHCbFullApp::Initialize() {
     }
     
     // HCAL cells
-    if (svol.BeginsWith("/dd/Geometry/DownstreamRegion/Hcal/Cells/lvHcalInnCellUpScTile") ||
-	svol.BeginsWith("/dd/Geometry/DownstreamRegion/Hcal/Cells/lvHcalInnCellLowScTile") || 
-	svol.BeginsWith("/dd/Geometry/DownstreamRegion/Hcal/Cells/lvHcalOutCellScTile")) {
+    if (svol.find("/dd/Geometry/DownstreamRegion/Hcal/Cells/lvHcalInnCellUpScTile") == 0 ||
+	      svol.find("/dd/Geometry/DownstreamRegion/Hcal/Cells/lvHcalInnCellLowScTile") == 0 || 
+	      svol.find("/dd/Geometry/DownstreamRegion/Hcal/Cells/lvHcalOutCellScTile") == 0) {
       fSensFlags[idvol] = true;
       fHCALMap[idvol] = nhcal;
       fHCALid[nhcal] = idvol;
@@ -161,7 +168,7 @@ bool LHCbFullApp::Initialize() {
     }
   }
   
-  Printf("=== LHCbApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
+  geant::Printf("=== LHCbApplication::Initialize: necal=%d  nhcal=%d", necal, nhcal);
   
   fInitialized = true;
   return true;
@@ -245,6 +252,7 @@ void LHCbFullApp::SteppingActions(geant::Track &track, geant::TaskData *td) {
       break;
     }
     
+#ifdef USE_ROOT
     MyHit *hit;
     // Deposit hits
     //      if (idtype==1) {
@@ -261,9 +269,10 @@ void LHCbFullApp::SteppingActions(geant::Track &track, geant::TaskData *td) {
     hit->fTrack = track.Particle();
     hit->fVolId = ivol;
     hit->fDetId = idtype;
-    
+#endif // USE_ROOT
   }
 
+#ifdef USE_ROOT
   LHCbThreadDataEvents &tde = (*fDataHandlerEvents)(td);
   
   while (!(fFactory->fOutputsArray[tid].empty()))
@@ -283,6 +292,7 @@ void LHCbFullApp::SteppingActions(geant::Track &track, geant::TaskData *td) {
       //      std::cout << "Writing " << tde.tree->GetEntries()<< std::endl;
       tde.fHitsFile->Write();
     }
+#endif  // USE_ROOT
 }
 
 

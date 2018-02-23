@@ -28,7 +28,9 @@ geant::RunManager* RunManager();
 // The main application: gets the possible input arguments, sets up the run-manager, detector, primary generator,
 //                       application and starts the simulation.
 int main(int argc, char *argv[]) {
-   ROOT::EnableThreadSafety();
+#ifdef USE_ROOT
+  ROOT::EnableThreadSafety();
+#endif
   //
   // Read in user arguments
   GetArguments(argc, argv);

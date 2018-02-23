@@ -4,11 +4,13 @@
 
 
 #include <vector>
+
+#ifdef USE_ROOT
 #include "ROOT/TBufferMerger.hxx"
 #include "TTree.h"
 #include "Geant/Factory.h"
 #include "MyHit.h"
-
+#endif
 
 namespace lhcbapp {
 
@@ -188,9 +190,11 @@ public:
   const LHCbDataPerEvent& GetDataPerEvent(int evtslotindx) const { return fPerEventData[evtslotindx]; }
   
   //
+#ifdef USE_ROOT
   TTree* fHitsTree;
   GeantBlock<MyHit>* fHitsBlock;
   std::shared_ptr<ROOT::Experimental::TBufferMergerFile> fHitsFile;
+#endif
   
 private:
   int                            fNumBufferedEvents;

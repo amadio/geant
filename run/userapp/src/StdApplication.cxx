@@ -90,11 +90,11 @@ void StdApplication::SteppingActions(Track &track, TaskData * td) {
       fStepCnt->Fill(eta, track.GetNsteps());
   if (propagator->fNthreads > 1)
     fMHist.unlock();
-  }
 #else
   (void)track;
   (void)td;
 #endif
+}
 
 //______________________________________________________________________________
 void StdApplication::FinishRun() {

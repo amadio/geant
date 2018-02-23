@@ -22,18 +22,19 @@ namespace GEANT_IMPL_NAMESPACE {
 
 #include "LHCbData.h"
 
-#include "Geant/Factory.h"
-#include "MyHit.h"
-
 #include <mutex>
 #include <vector>
 
+#ifdef USE_ROOT
+#include "Geant/Factory.h"
+#include "MyHit.h"
 #include "TTree.h"
 #include "ROOT/TBufferMerger.hxx"
 #include "ROOT/TTaskGroup.hxx"
 
 #include "TFile.h"
 #include "TROOT.h"
+#endif
 
 namespace lhcbapp {
 
@@ -117,9 +118,11 @@ private:
   std::map<int,int> fECALMap;                     /** Map of ECAL modules */
   std::map<int,int> fHCALMap;                     /** Map of HCAL modules */
 
+#ifdef USE_ROOT
   Factory<MyHit> *fFactory = nullptr;        /** Hits factory */
   ROOT::Experimental::TBufferMerger* fMerger = nullptr;
   int fOutputBlockWrite;
+#endif
   
 };
  
