@@ -22,24 +22,13 @@ COMPILING
 5) Then just compile
 	make 
 
-You will wind up with four executables
+You will wind up with two executables.
 
 BusyWaitCalibration/BusyWaitCalibrate: 
 Used to calibrate how long it takes to run a simple integration function. This is used for tests where you want a module to actually do work (as apposed to just sleep).
 
 TBBProcessingDemo/TBBDemo:
 Processes configuration files to run trivial modules via TBB in a way analogous to a full HEP framework. Useful for testing scalability of the system.
-
-OpenMPProcessingDemo/OpenMPDemo:
-Processes configuration files to run trivial modules via OpenMP in a way analogous to a full HEP framework. Useful for testing scalability of the system.
-
-SingleThreadedDemo:
-Similar to the other *Demos exception only uses one thread and is implemented in the most trivial (and fastest) way possible. Used for timing comparisons with the same configurations passed to *Demos.
-
-NOTE:  The DispatchProcessingDemo which made use of Apple's Grand Central Dispatch system is no longer supported. It is possible to build it on Linux using
-	https://www.heily.com/trac/libdispatch
-which need libkqueue
-	http://mark.heily.com/book/export/html/52
 
 --------------------------------------
 TESTING
