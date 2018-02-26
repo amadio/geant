@@ -340,7 +340,7 @@ if(DATA_DOWNLOAD)
   DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.root"
     "cms2018.root" "${CMAKE_SOURCE_DIR}/data/" "caf4c95d19317d04d42d56c8c45db911")
   DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.gdml"
-    "cms2018.gdml" "${CMAKE_SOURCE_DIR}/data/" "caf4c95d19317d04d42d56c8c45db911")
+    "cms2018.gdml" "${CMAKE_SOURCE_DIR}/data/" "e7abc674d0e28b7a713a97c35b7c4bb9")
   DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/pp14TeVminbias.root"
     "pp14TeVminbias.root" "${CMAKE_SOURCE_DIR}/data/" "109b827c595ae4a62b74f08f860abbb7")
 endif()
