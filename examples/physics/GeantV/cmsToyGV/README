@@ -1,10 +1,19 @@
 
-Note: This example was added into GeantV repository as an example, under examplesRP/GeantV/cmsToyMT subdirectory,
+Note: This example was added into GeantV repository as an example, under examples/physics/GeantV/cmsToyGV subdirectory,
 from original github directory (https://github.com/Dr15Jones/toy-mt-framework), after verbal authorization
 obtained from one of original authors (Chris Jones, Fermilab) and with adaptations related to work with GeantV.
 
-                 With thanks to Chris, Kevin P. and *all* original authors,
+                 With thanks to Chris, Kevin Pedro, and *all* original authors,
 		 The GeantV Team.
+
+Input files should be obtained from [the Geant installation page](http://geant.cern.ch/content/installation#toc-special-physics-lists-files-to-download-EkG2k3g1).
+
+To run the GeantV example (while in the build directory after compiling, described below):
+TBBProcessingDemo/TBBDemo geantv_inputFromFile.json
+
+The input file locations and number of threads are configurable in the json input file.
+
+Below, you can find more information about compiling and running the toy framework.
 
 --------------------------------------
 
