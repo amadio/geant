@@ -7,7 +7,7 @@
 
 #include "Geant/Error.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "Particle.h"
 

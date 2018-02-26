@@ -1,8 +1,8 @@
 
 #include "Parameterizations.h"
 
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 #include "Proton.h"
 #include "Neutron.h"
 

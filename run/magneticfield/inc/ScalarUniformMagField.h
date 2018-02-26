@@ -10,8 +10,8 @@
 
 #include "base/Vector3D.h"
 
-#include "SystemOfUnits.h"
-// #include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+// #include "Geant/PhysicalConstants.h"
 
 class ScalarUniformMagField : public VVectorField
 {

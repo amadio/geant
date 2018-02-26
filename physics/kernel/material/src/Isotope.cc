@@ -2,7 +2,7 @@
 #include "Isotope.h"
 
 #include "NISTElementData.h"
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 
 #include <iostream>
 #include <iomanip>

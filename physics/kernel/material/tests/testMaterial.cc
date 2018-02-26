@@ -17,8 +17,8 @@
 
 #include "NISTElementData.h"
 
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 
 int main() {
   // Units and physical constants used in the example

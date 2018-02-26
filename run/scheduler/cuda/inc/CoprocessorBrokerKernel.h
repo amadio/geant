@@ -1,4 +1,4 @@
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 #include <cuda.h>
 #include <curand.h>

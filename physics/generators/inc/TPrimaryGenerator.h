@@ -3,7 +3,7 @@
 
 #include "TPartIndex.h"
 #include "Geant/Typedefs.h"
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 class TPrimaryGenerator {
 private:

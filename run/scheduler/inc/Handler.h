@@ -27,7 +27,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class TaskData;
 class Track;
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 /**
  * @brief The base class for track handlers having a dedicated basketizer.

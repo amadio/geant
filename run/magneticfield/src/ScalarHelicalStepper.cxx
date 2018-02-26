@@ -3,7 +3,7 @@
 //  Based on G4MagHelicalStepper  - meant for testing other steppers
 // --------------------------------------------------------------------
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 using geant::units::meter;  //  Update to GeantV units ASAP
 using geant::units::GeV;
@@ -12,7 +12,7 @@ using geant::units::tesla;
 using geant::units::kPi;
 using geant::units::kTwoPi;
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 // using pi;
 
 #include "VScalarHelicalStepper.h"

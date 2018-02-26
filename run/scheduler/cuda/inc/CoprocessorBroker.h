@@ -22,7 +22,7 @@ class cudaStream_t;
 class curandState;
 #endif
 
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 #include "GeantTrack.h"
 #include "sync_objects.h"
 

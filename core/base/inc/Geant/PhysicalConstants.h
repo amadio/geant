@@ -1,7 +1,7 @@
 
 /**
  * @brief   Physical constants in internal units.
- * @file    PhysicalConstants.h
+ * @file    Geant/PhysicalConstants.h
  * @author  M Novak, A Ribon
  * @date    december 2015
  *
@@ -24,10 +24,10 @@
  */
 
 
-#ifndef PHYSICALCONSTANTS_H
-#define PHYSICALCONSTANTS_H
+#ifndef GEANT_PHYSICALCONSTANTS_H
+#define GEANT_PHYSICALCONSTANTS_H
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 namespace geant {
 namespace units {
@@ -57,7 +57,7 @@ static constexpr double kHBarPlanckCLightSquare = kHBarPlanckCLight * kHBarPlanc
 //
 //
 //
-static constexpr double kElectronCharge   = - eplus; // see SystemOfUnits.h
+static constexpr double kElectronCharge   = - eplus; // see Geant/SystemOfUnits.h
 static constexpr double kUnitChargeSquare = eplus * eplus;
 
 //

@@ -31,7 +31,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 class Basket;
 class Propagator;
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 //template <ESimulationStage STAGE>
 class SimulationStage {

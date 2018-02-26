@@ -1,7 +1,7 @@
 
 #include "PhysicsProcessHandler.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 // realphysics material
 #include "Material.h"

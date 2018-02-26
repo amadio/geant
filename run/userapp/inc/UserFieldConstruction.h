@@ -19,7 +19,7 @@
 
 #include "FieldLookup.h"
 #include "FieldPropagatorFactory.h"
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "UniformMagField.h"   // For use in scalar and vector/flexible driver/stepper etc
 

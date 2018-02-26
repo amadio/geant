@@ -1,8 +1,8 @@
 
 #include "UserPhysicsList.h"
 
-#include "PhysicalConstants.h"
-#include "SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "PhysicsProcess.h"
 

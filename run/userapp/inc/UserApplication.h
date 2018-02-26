@@ -13,7 +13,7 @@
 #ifndef GEANT_VAPPLICATION
 #define GEANT_VAPPLICATION
 
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 #include "Track.h"
 
 namespace geant {

@@ -7,7 +7,7 @@
 #endif
 
 #include "Geant/Typedefs.h"
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 #include "TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {

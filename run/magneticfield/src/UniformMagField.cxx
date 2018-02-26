@@ -1,7 +1,7 @@
 
 #include "UniformMagField.h"
-// #include "PhysicalConstants.h"  //   For pi & twopi - Temporary solution ..
-#include "SystemOfUnits.h"  //   For pi & twopi - Temporary solution ..
+// #include "Geant/PhysicalConstants.h"  //   For pi & twopi - Temporary solution ..
+#include "Geant/SystemOfUnits.h"  //   For pi & twopi - Temporary solution ..
 
 using geant::units::kPi;
 using geant::units::kTwoPi;

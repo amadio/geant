@@ -5,7 +5,7 @@
 
 #include "Types.h"
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 #include "MaterialState.h"
 #include "Element.h"
 

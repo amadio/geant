@@ -7,7 +7,7 @@
 #include "PhysicsProcess.h"
 #include "Particle.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "LightTrack.h"
 

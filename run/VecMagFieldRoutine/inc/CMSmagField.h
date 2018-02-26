@@ -43,7 +43,7 @@
 
 #include <base/Vector3D.h>
 #include <base/Global.h>
-#include <SystemOfUnits.h>
+#include <Geant/SystemOfUnits.h>
 #include <Geant/VectorTypes.h>
 
 //#include "Units.h"

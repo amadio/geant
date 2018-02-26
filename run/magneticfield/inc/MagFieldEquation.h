@@ -11,8 +11,8 @@
 #include <Geant/Config.h>
 #include <Geant/VectorTypes.h>
 
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 
 // #define OUTSIDE_MagFieldEquation 1
 

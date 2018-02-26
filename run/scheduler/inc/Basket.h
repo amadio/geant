@@ -25,7 +25,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class TaskData;
 class SimulationStage;
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 /**
  * @brief A basket holding track pointers.

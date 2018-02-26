@@ -1,7 +1,7 @@
 
 #include "ElementProperties.h"
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 #include "Element.h"
 
 #include <cmath>

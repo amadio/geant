@@ -2,7 +2,7 @@
 #include "LHCbParticleGun.h"
 
 #include "Particle.h"
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 
 // from geantV
 #include "Track.h"

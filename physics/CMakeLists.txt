@@ -21,8 +21,8 @@ file(GLOB sources
 )
 
 file(GLOB headers
-  ${CMAKE_SOURCE_DIR}/core/base/inc/PhysicalConstants.h
-  ${CMAKE_SOURCE_DIR}/core/base/inc/SystemOfUnits.h
+  ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/PhysicalConstants.h
+  ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/SystemOfUnits.h
   ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc/*.h
   ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc/*.h
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc/*.h

@@ -29,7 +29,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class TaskData;
 class Propagator;
-//#include "GeantFwd.h"
+//#include "Geant/Fwd.h"
 
 class StackLikeBuffer {
 

@@ -11,8 +11,8 @@
 // #include <vector>
 #include "base/Vector3D.h"
 
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 
 template <class Field, unsigned int Size>
 class ScalarMagFieldEquation : public VScalarEquationOfMotion

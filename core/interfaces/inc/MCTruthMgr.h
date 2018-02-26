@@ -15,7 +15,7 @@
 
 #include "base/Global.h"
 
-#include "GeantFwd.h"
+#include "Geant/Geant/Fwd.h"
 #include "Track.h"
 
 #include "cuckoohash_map.hh"

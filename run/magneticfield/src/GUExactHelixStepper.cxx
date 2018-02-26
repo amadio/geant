@@ -12,8 +12,8 @@
 #include <cfloat>
 #include <iostream>
 
-// #include "PhysicalConstants.h"
-#include "SystemOfUnits.h"
+// #include "Geant/PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
 using geant::units::kPi;
 using geant::units::kTwoPi;
 

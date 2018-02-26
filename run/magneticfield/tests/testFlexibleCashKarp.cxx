@@ -21,7 +21,7 @@ using namespace vecCore::math;
 // #include "SimpleRunge.h"
 // #include "ExactHelixStepper.h"    
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 // using geant::meter;
 using geant::units::millimeter;   

@@ -2,7 +2,7 @@
 #ifndef GSPWACORRECTIONS_H
 #define GSPWACORRECTIONS_H
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include <vector>
 #include <string>

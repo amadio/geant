@@ -9,7 +9,7 @@
 
 #include "Geant/Error.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 #include "PhysicsData.h"
 #include "MaterialCuts.h"
 #include "Material.h"

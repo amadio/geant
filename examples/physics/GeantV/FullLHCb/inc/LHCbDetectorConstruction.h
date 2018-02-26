@@ -5,7 +5,7 @@
 #include "UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 #include <string>
 

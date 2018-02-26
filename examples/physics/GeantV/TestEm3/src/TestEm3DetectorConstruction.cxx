@@ -12,8 +12,8 @@
 #include "Element.h"
 #include "MaterialProperties.h"
 //#include "NISTElementData.h"
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 
 // Region and productionCut includes
 #include "Region.h"

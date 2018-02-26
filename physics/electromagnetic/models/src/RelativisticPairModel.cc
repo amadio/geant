@@ -1,7 +1,7 @@
 
 #include "RelativisticPairModel.h"
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 // for Vector_t
 #include "Types.h"
 

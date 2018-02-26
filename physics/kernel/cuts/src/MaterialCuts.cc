@@ -10,7 +10,7 @@
 
 #include "PhysicsParameters.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "Region.h"
 

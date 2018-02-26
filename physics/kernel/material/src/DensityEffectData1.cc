@@ -1,6 +1,6 @@
 
 #include "DensityEffectData.h"
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 #include "MaterialState.h"
 
 namespace geantphysics {

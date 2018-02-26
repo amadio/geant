@@ -1,7 +1,7 @@
 
 #include "GLIntegral.h"
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 
 #include <cmath>
 

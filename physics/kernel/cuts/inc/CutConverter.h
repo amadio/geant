@@ -3,7 +3,7 @@
 
 #include "Geant/Config.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 namespace geantphysics {
   inline namespace GEANT_IMPL_NAMESPACE {

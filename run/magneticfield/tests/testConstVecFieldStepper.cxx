@@ -10,7 +10,7 @@
 
 // #include "G4UniformMagField.hh"
 // #include "G4SystemOfUnits.hh"
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 // #include "G4ios.hh"
 

@@ -1,7 +1,7 @@
 
 #include "Element.h"
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 #include "Isotope.h"
 #include "NISTElementData.h"
 #include "ElementProperties.h"

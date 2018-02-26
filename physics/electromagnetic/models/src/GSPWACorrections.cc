@@ -1,10 +1,10 @@
 
 #include "GSPWACorrections.h"
 
-#include "PhysicalConstants.h"
+#include "Geant/PhysicalConstants.h"
 
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 
 #include "Material.h"
 #include "MaterialProperties.h"

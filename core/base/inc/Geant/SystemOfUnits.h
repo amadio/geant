@@ -1,7 +1,7 @@
 
 /**
  * @brief   System of units.
- * @file    SystemOfUnits.h
+ * @file    Geant/SystemOfUnits.h
  * @author  M Novak, A Ribon
  * @date    december 2015
  *
@@ -24,15 +24,15 @@
  *
  * The value of \f$ \pi \f$ (kPi) is defined here as it is needed for radian to degree
  * conversion. The other physical constants are defined in the header file :
- * PhysicalConstants.h
+ * Geant/PhysicalConstants.h
  *
  * You can add your own units.
  *
  */
 
 
-#ifndef SYSTEMOFUNITS_H
-#define SYSTEMOFUNITS_H
+#ifndef Geant_SystemOfUnits_h
+#define Geant_SystemOfUnits_h
 
 namespace geant {
 namespace units {
@@ -304,4 +304,4 @@ namespace units {
 }  // namespace units
 }  // namespace geant
 
-#endif // SYSTEMOFUNITS_H
+#endif // Geant_SystemOfUnits_h

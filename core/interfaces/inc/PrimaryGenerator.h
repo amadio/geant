@@ -15,7 +15,7 @@
 
 #include "base/Global.h"
 
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

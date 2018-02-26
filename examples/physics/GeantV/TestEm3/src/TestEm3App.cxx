@@ -10,7 +10,7 @@
 
 #include "Geant/Error.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "TestEm3DetectorConstruction.h"
 #include "TestEm3PrimaryGenerator.h"

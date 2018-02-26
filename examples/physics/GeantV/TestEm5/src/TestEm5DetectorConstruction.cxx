@@ -3,7 +3,7 @@
 
 #include "RunManager.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 #include "Material.h"
 #include "Region.h"
 

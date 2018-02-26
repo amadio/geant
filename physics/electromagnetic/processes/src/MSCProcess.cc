@@ -1,7 +1,7 @@
 
 #include "MSCProcess.h"
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 #include "Electron.h"
 #include "Positron.h"

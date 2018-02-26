@@ -1,7 +1,7 @@
 
 #include "Particle.h"
 
-//#include "PhysicalConstants.h"
+//#include "Geant/PhysicalConstants.h"
 
 namespace geantphysics {
 

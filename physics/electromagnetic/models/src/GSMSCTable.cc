@@ -1,8 +1,8 @@
 
 #include "GSMSCTable.h"
 
-#include "SystemOfUnits.h"
-#include "PhysicalConstants.h"
+#include "Geant/SystemOfUnits.h"
+#include "Geant/PhysicalConstants.h"
 
 // from material
 #include "Types.h"

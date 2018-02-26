@@ -53,7 +53,7 @@ class TrackManager;
 // class VVectorField;
 // class GUFieldPropagator;
 
-// #include "GeantFwd.h"
+// #include "Geant/Fwd.h"
 
 class Propagator {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION

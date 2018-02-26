@@ -2,7 +2,7 @@
 #ifndef GSMOTTCORRECTION_H
 #define GSMOTTCORRECTION_H
 
-#include "SystemOfUnits.h"
+#include "Geant/SystemOfUnits.h"
 
 
 #include <vector>

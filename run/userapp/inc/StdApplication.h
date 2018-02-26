@@ -26,7 +26,7 @@ class TH1F;
 class TH1D;
 class TProfile;
 #endif
-#include "GeantFwd.h"
+#include "Geant/Fwd.h"
 
 using namespace geant;
 
