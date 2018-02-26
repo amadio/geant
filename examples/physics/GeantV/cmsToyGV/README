@@ -6,7 +6,8 @@ obtained from one of original authors (Chris Jones, Fermilab) and with adaptatio
                  With thanks to Chris, Kevin Pedro, and *all* original authors,
 		 The GeantV Team.
 
-Input files should be obtained from [the Geant installation page](http://geant.cern.ch/content/installation#toc-special-physics-lists-files-to-download-EkG2k3g1).
+Input files should be obtained from [the Geant installation page](http://geant.cern.ch/content/installation#toc-special-physics-lists-files-to-download-EkG2k3g1),
+except for cms2018.gdml, which will be downloaded automatically.
 
 To run the GeantV example (while in the build directory after compiling, described below):
 TBBProcessingDemo/TBBDemo geantv_inputFromFile.json
