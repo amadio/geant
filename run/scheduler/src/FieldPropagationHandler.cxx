@@ -224,9 +224,9 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   // Update number of partial steps propagated in field
   td->fNmag += ntracks;
 
-// Update time of flight and number of interaction lengths.
-// Check also if it makes sense to call the vector interfaces
-
+  // Update time of flight and number of interaction lengths.
+  // Check also if it makes sense to call the vector interfaces
+  
 #if !(defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   for (auto track : tracks) {
     if (track->Status() == kPhysics) {
@@ -638,7 +638,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         const double pZ       = fldTrackEnd[5];
         const double pmag_inv = 1.0 / track.P();
 
-// ---- Perform checks
+        // ---- Perform checks
         using ThreeVector = vecgeom::Vector3D<double>;
         ThreeVector endDirVector(pmag_inv * pX, pmag_inv * pY, pmag_inv * pZ);
         endDirVector.Normalize();
@@ -650,7 +650,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         double dirErr = (endDirScalar - endDirVector).Mag();
         if (posErr > 1.e-3 * posShift || dirErr > 1.e-6) {
           std::cout << "*** position/direction shift scalar RK vs. vector RK :" << posErr << " / " << dirErr << "\n";
-    }
+        }
 
 #ifdef CHECK_VS_SCALAR
         if (checkVsScalar) {
@@ -831,7 +831,7 @@ void FieldPropagationHandler::CheckTrack(Track &track, const char *msg, double e
                                     " Bad position.",                 // [1]
                                     " Bad direction.",                // [2]
                                     " Bad direction and position. "}; // [3]
-    int iM = 0;
+    int iM                       = 0;
     if (badPosition) {
       iM++;
     }
