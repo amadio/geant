@@ -11,9 +11,9 @@
 #include "backend/vc/Backend.h"
 #include "backend/Backend.h"
 //#include "GatherAlias.h"
-#include "ReadVectorData.h"
+#include "Geant/ReadVectorData.h"
 
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 
 using namespace std;
 /*

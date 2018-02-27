@@ -22,18 +22,18 @@ using fieldUnits::degree;
 
 // #define  COMPARE_TO_G4  1
 
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
-#include "FieldEquationFactory.h"
+#include "Geant/FieldEquationFactory.h"
 
-#include "VScalarIntegrationStepper.h"
-#include "StepperFactory.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/StepperFactory.h"
 
-#include "TClassicalRK4.h"
-#include "GUTCashKarpRKF45.h"
-#include "TSimpleRunge.h"
-#include "GUExactHelixStepper.h"
+#include "Geant/TClassicalRK4.h"
+#include "Geant/GUTCashKarpRKF45.h"
+#include "Geant/TSimpleRunge.h"
+#include "Geant/GUExactHelixStepper.h"
 
 // #include "BogackiShampine23.hh"
 // #include "DormandPrince745.hh"

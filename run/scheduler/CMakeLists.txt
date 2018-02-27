@@ -77,46 +77,46 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/mpmc_bounded_queue.h
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/priority_queue.h
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/condition_locker.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TaskData.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/TaskData.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/PhysicsInterface.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basket.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Handler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basketizer.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/Basket.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/Handler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/Basketizer.h
  #  ${CMAKE_CURRENT_SOURCE_DIR}/inc/StackLikeBuffer.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/SimulationStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PreStepHandler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeomQueryHandler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FieldPropagationHandler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/FieldLookup.h   
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinearPropagationHandler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsHandler.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PreStepStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeomQueryStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/PropagationStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsStage.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Propagator.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/SimulationStage.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/PreStepHandler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/GeomQueryHandler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/FieldPropagationHandler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/FieldLookup.h   
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LinearPropagationHandler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/SteppingActionsHandler.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/PreStepStage.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/GeomQueryStage.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/PropagationStage.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/SteppingActionsStage.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/Propagator.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Track.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackGeo.h
-   ${CMAKE_SOURCE_DIR}/run/userapp/inc/UserApplication.h
-   ${CMAKE_SOURCE_DIR}/run/userapp/inc/UserDetectorConstruction.h
-   ${CMAKE_SOURCE_DIR}/run/userapp/inc/MyHit.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/UserApplication.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/UserDetectorConstruction.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/MyHit.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Factory.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/FactoryStore.h
-   ${CMAKE_SOURCE_DIR}/run/userapp/inc/StdApplication.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/StdApplication.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/PrimaryGenerator.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackManager.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/TrackManager.h
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TransportManager.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/LocalityManager.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LocalityManager.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/MCTruthMgr.h
    ${CMAKE_SOURCE_DIR}/core/concurrency/inc/Geant/cuckoohash_map.hh
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/RunManager.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/RunManager.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Event.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/EventSet.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/EventServer.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/EventServer.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantConfig.h
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Region.h
-   ${CMAKE_SOURCE_DIR}/run/userapp/inc/ExternalFramework.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/ExternalFramework.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/ScalarNavInterfaceVG.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/ScalarNavInterfaceVGM.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/VectorNavInterface.h
@@ -124,9 +124,9 @@ set(headers
 
 if (USE_ROOT)
   if (USE_UMESIMD)
-     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
+     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
    else()
-     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
    endif()
 endif()
 

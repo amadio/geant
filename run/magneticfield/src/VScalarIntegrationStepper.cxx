@@ -4,7 +4,7 @@
 //
 // --------------------------------------------------------------------
 
-#include "VScalarIntegrationStepper.h"
+#include "Geant/VScalarIntegrationStepper.h"
 
 // Constructor for stepper abstract base class. 
 // 

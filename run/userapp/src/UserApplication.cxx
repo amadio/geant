@@ -1,4 +1,4 @@
-#include "UserApplication.h"
+#include "Geant/UserApplication.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

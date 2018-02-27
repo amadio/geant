@@ -12,7 +12,7 @@
 #include "EMModelManager.h"
 
 // from geantV
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 #include "Geant/Track.h"
 
 #include "Geant/NavigationInterface.h"

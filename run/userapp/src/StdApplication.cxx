@@ -1,6 +1,6 @@
-#include "StdApplication.h"
-#include "Propagator.h"
-#include "TaskData.h"
+#include "Geant/StdApplication.h"
+#include "Geant/Propagator.h"
+#include "Geant/TaskData.h"
 #include "Geant/Error.h"
 #ifdef USE_ROOT
 #include "TProfile.h"

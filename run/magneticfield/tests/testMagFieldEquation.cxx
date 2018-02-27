@@ -2,22 +2,22 @@
 //
 #include "base/Vector3D.h"
 
-#include "VScalarEquationOfMotion.h"
+#include "Geant/VScalarEquationOfMotion.h"
 
 #include "GUVVectorEquationOfMotion.h"
 #include "TVectorMagFieldEquation.h"
 
-#include "VVectorField.h"
-#include "MagFieldEquation.h"
-#include "FieldEquationFactory.h"
+#include "Geant/VVectorField.h"
+#include "Geant/MagFieldEquation.h"
+#include "Geant/FieldEquationFactory.h"
 
-#include "UniformMagField.h"
+#include "Geant/UniformMagField.h"
 
 //#define CMS_FIELD 1
 
 #ifdef CMS_FIELD
 // #include "VecMagFieldRoutine/CMSmagField.h"
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 #endif
 
 

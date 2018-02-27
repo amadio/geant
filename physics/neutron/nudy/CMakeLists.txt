@@ -6,7 +6,7 @@ file(GLOB headers inc/T*.h)
 
 include_directories(inc)
 
-ROOT_GENERATE_DICTIONARY(NudyDict ${headers} MODULE Nudy LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(NudyDict ${headers} MODULE Nudy LINKDEF inc/Geant/LinkDef.h)
 
 #----------------------------------------------------------------------------------------------
 # Add the executable

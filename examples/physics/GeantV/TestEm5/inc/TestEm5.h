@@ -3,12 +3,12 @@
 #define TESTEM5_H
 
 #ifndef GEANT_VAPPLICATION
-#include "UserApplication.h"
+#include "Geant/UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
 #include "Geant/Fwd.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {

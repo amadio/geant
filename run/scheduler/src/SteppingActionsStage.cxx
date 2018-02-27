@@ -1,7 +1,7 @@
-#include "SteppingActionsStage.h"
+#include "Geant/SteppingActionsStage.h"
 
-#include "RunManager.h"
-#include "SteppingActionsHandler.h"
+#include "Geant/RunManager.h"
+#include "Geant/SteppingActionsHandler.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

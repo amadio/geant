@@ -2,7 +2,7 @@
 #ifndef LHCbDETECTORCONSTRUCTION_H
 #define LHCbDETECTORCONSTRUCTION_H
 
-#include "UserDetectorConstruction.h"
+#include "Geant/UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "Geant/Fwd.h"

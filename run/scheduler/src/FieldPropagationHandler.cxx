@@ -1,13 +1,13 @@
-#include "FieldPropagationHandler.h"
+#include "Geant/FieldPropagationHandler.h"
 
-#include "FieldConfig.h"
-#include "FieldLookup.h"
+#include "Geant/FieldConfig.h"
+#include "Geant/FieldLookup.h"
 
-#include "GUFieldPropagatorPool.h"
-#include "GUFieldPropagator.h"
-#include "ConstBzFieldHelixStepper.h"
-#include "ConstFieldHelixStepper.h"
-#include "FieldTrack.h"
+#include "Geant/GUFieldPropagatorPool.h"
+#include "Geant/GUFieldPropagator.h"
+#include "Geant/ConstBzFieldHelixStepper.h"
+#include "Geant/ConstFieldHelixStepper.h"
+#include "Geant/FieldTrack.h"
 
 #include "Geant/Track.h"
 
@@ -16,8 +16,8 @@
 #include "Geant/VectorTypes.h"   // Defines geant::Double_v etc
 #include "Geant/SystemOfUnits.h"
 
-#include "WorkspaceForFieldPropagation.h"
-#include "FlexIntegrationDriver.h"
+#include "Geant/WorkspaceForFieldPropagation.h"
+#include "Geant/FlexIntegrationDriver.h"
 
 #include "navigation/NavigationState.h"
 #include "Geant/ScalarNavInterfaceVG.h"

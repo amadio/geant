@@ -5,7 +5,7 @@
  *      Author: J. Apostolakis
  */
 
-// #include "../inc/ConstFieldHelixStepper.h"
+// #include "../inc/Geant/ConstFieldHelixStepper.h"
 #include "mmalloc.h"
 // #include "TGeoHelix.h"
 
@@ -13,13 +13,13 @@
 #define ET_TIMER_RESULT_VAR_TYPE double*
 #include "Timer.h"
 
-#include "GUFieldPropagator.h"
-#include "VScalarEquationOfMotion.h"
-#include "VScalarIntegrationStepper.h"
-#include "ScalarIntegrationDriver.h"
+#include "Geant/GUFieldPropagator.h"
+#include "Geant/VScalarEquationOfMotion.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/ScalarIntegrationDriver.h"
 
 // #include "TMagFieldEquation.h"
-// #include "TClassicalRK4.h"
+// #include "Geant/TClassicalRK4.h"
 
 GUFieldPropagator* CreatePropagator()
 {

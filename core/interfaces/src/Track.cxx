@@ -2,8 +2,8 @@
 
 #include "Geant/Error.h"
 #include <execinfo.h>
-#include "Propagator.h"
-#include "TaskData.h"
+#include "Geant/Propagator.h"
+#include "Geant/TaskData.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

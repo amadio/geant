@@ -16,7 +16,7 @@
 // and safety subtracted from the physical step, then the procedure is repeated
 // until C*snext/4 < 1E-6 (tangent of angle with sagita, C=1/R is the curvature)
 //
-#include "Propagator.h"
+#include "Geant/Propagator.h"
 
 #ifdef USE_ROOT
 #include "TTimer.h"
@@ -33,23 +33,23 @@
 #include "volumes/PlacedVolume.h"
 
 #include "Geant/Error.h"
-#include "LocalityManager.h"
-#include "TrackManager.h"
-#include "RunManager.h"
+#include "Geant/LocalityManager.h"
+#include "Geant/TrackManager.h"
+#include "Geant/RunManager.h"
 #include "Geant/PhysicsInterface.h"
-#include "WorkloadManager.h"
-#include "TaskData.h"
-#include "UserApplication.h"
-#include "StdApplication.h"
+#include "Geant/WorkloadManager.h"
+#include "Geant/TaskData.h"
+#include "Geant/UserApplication.h"
+#include "Geant/StdApplication.h"
 #include "Geant/FactoryStore.h"
 #include "Geant/Event.h"
 #include "Geant/PrimaryGenerator.h"
 #include "Geant/MCTruthMgr.h"
 
-#include "PreStepStage.h"
-#include "GeomQueryStage.h"
-#include "PropagationStage.h"
-#include "SteppingActionsStage.h"
+#include "Geant/PreStepStage.h"
+#include "Geant/GeomQueryStage.h"
+#include "Geant/PropagationStage.h"
+#include "Geant/SteppingActionsStage.h"
 
 #ifdef USE_CALLGRIND_CONTROL
 #include <valgrind/callgrind.h>

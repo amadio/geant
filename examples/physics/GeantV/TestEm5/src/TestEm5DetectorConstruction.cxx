@@ -1,7 +1,7 @@
 
 #include "TestEm5DetectorConstruction.h"
 
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 
 #include "Geant/SystemOfUnits.h"
 #include "Material.h"

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 #include "Geant/Track.h"
 
 namespace geantphysics {

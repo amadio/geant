@@ -1,8 +1,8 @@
 
 #include "TestEm3DetectorConstruction.h"
 
-#include "UserDetectorConstruction.h"
-#include "RunManager.h"
+#include "Geant/UserDetectorConstruction.h"
+#include "Geant/RunManager.h"
 
 #include <iostream>
 #include <vector>

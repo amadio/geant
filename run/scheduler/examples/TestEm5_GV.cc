@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 // GeantV include
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 
 // real-physics includes
 #include "PhysicsProcessHandler.h"

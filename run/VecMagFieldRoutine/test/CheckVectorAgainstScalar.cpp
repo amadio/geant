@@ -6,11 +6,11 @@
 #include <ctime>
 #include <cmath>
 
-#include <ApproxEqual.h>
-#include <Geant/VectorTypes.h>
+#include "Geant/ApproxEqual.h"
+#include "Geant/VectorTypes.h"
 #include <base/Vector3D.h>
 #include <base/Global.h>
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 
 #undef NDEBUG
 //#define VERBOSE 1

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "RunManager.h"
-#include "ExternalFramework.h"
+#include "Geant/RunManager.h"
+#include "Geant/ExternalFramework.h"
 
 #include "PhysicsProcessHandler.h"
 #include "PhysicsListManager.h"

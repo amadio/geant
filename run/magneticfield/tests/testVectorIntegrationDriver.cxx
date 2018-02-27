@@ -19,8 +19,8 @@ using geant::units::degree;
 #include <base/Vector3D.h>
 #include <Geant/VectorTypes.h>
 
-#include "UniformMagField.h"
-#include "MagFieldEquation.h"
+#include "Geant/UniformMagField.h"
+#include "Geant/MagFieldEquation.h"
 
 // #include "IntegrationStepper.h"
 
@@ -28,26 +28,26 @@ using geant::units::degree;
 // #include "TemplateFieldEquationFactory.h"
 // #include "TemplateVScalarIntegrationStepper.h"
 
-#include "CashKarp.h"
-#include "SimpleIntegrationDriver.h"
+#include "Geant/CashKarp.h"
+#include "Geant/SimpleIntegrationDriver.h"
 
-#include "FieldTrack.h"
-// #include "TemplateFieldTrack.h"
+#include "Geant/FieldTrack.h"
+// #include "Geant/TemplateFieldTrack.h"
 
 // #define  NEW_SCALAR_FIELD 1
 
 // #define USECMSFIELD
 #ifdef   USECMSFIELD
 #include "TemplateCMSmagField.h"
-#include "ScalarCMSmagField.h"
+#include "Geant/ScalarCMSmagField.h"
 #else
   #ifndef NEW_SCALAR_FIELD
   //  Transition measure --- compare to old Scalar field types 2017.11.16
-    #include "ScalarUniformMagField.h"
-    #include "ScalarMagFieldEquation.h"
-    #include "StepperFactory.h"
-    #include "ScalarFieldTrack.h"
-    #include "ScalarIntegrationDriver.h"
+    #include "Geant/ScalarUniformMagField.h"
+    #include "Geant/ScalarMagFieldEquation.h"
+    #include "Geant/StepperFactory.h"
+    #include "Geant/ScalarFieldTrack.h"
+    #include "Geant/ScalarIntegrationDriver.h"
   #endif
 #endif
 

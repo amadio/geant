@@ -1,17 +1,17 @@
-#include "CoprocessorBroker.h"
+#include "Geant/CoprocessorBroker.h"
 
 #include <fstream>
 #include <iostream>
 #include <math.h>
 #include <vector>
 
-#include "CoprocessorBrokerKernel.h"
+#include "Geant/CoprocessorBrokerKernel.h"
 
 // To access the list of baskets.
 #include "GeantBasket.h"
 #include "GeantScheduler.h"
 #include "GeantTaskData.h"
-#include "WorkloadManager.h"
+#include "Geant/WorkloadManager.h"
 
 #include "GeantCudaUtils.h"
 #include "management/CudaManager.h"

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 
 #include "PhysicsProcessHandler.h"
 #include "PhysicsListManager.h"

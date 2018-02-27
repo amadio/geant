@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Geant/Track.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 namespace geantphysics {
 

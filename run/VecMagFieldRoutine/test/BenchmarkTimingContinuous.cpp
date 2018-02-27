@@ -13,7 +13,7 @@
 #include "backend/vcfloat/Backend.h"
 #include "base/Vector.h"
 
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 
 using namespace std;
 typedef vecgeom::Vector3D<float> ThreeVector; //normal Vector3D

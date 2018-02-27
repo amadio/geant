@@ -2,7 +2,7 @@
 
 #include "Geant/Error.h"
 #include "Geant/Event.h"
-#include "EventServer.h"
+#include "Geant/EventServer.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

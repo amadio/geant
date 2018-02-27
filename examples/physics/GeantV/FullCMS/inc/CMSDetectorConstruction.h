@@ -2,7 +2,7 @@
 #ifndef CMSDETECTORCONSTRUCTION_H
 #define CMSDETECTORCONSTRUCTION_H
 
-#include "UserDetectorConstruction.h"
+#include "Geant/UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "Geant/Fwd.h"

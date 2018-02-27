@@ -1,11 +1,11 @@
 #include "TrackStat.h"
 
 #include "Geant/Typedefs.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 #include "StackLikeBuffer.h"
-#include "SimulationStage.h"
-#include "Handler.h"
-#include "Basketizer.h"
+#include "Geant/SimulationStage.h"
+#include "Geant/Handler.h"
+#include "Geant/Basketizer.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

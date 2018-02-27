@@ -28,7 +28,7 @@
 
 // #include "VC_NO_MEMBER_GATHER"
 
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 // using MagField=MagField3<float>
 
 using namespace std;

@@ -1,4 +1,4 @@
-#include "FieldPropagatorFactory.h"
+#include "Geant/FieldPropagatorFactory.h"
 
 // #include "Geant/Error.h"
 bool  FieldPropagatorFactory::fVerboseConstruct= false;

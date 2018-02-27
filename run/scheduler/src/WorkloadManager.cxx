@@ -1,4 +1,4 @@
-#include "WorkloadManager.h"
+#include "Geant/WorkloadManager.h"
 
 #include "Geant/Error.h"
 
@@ -16,18 +16,18 @@
 #include "TMath.h"
 #endif
 
-#include "RunManager.h"
-#include "EventServer.h"
-#include "TaskData.h"
+#include "Geant/RunManager.h"
+#include "Geant/EventServer.h"
+#include "Geant/TaskData.h"
 #include "Geant/PhysicsInterface.h"
 #include "Geant/Event.h"
 #include "Geant/EventSet.h"
-#include "UserApplication.h"
+#include "Geant/UserApplication.h"
 #include "StackLikeBuffer.h"
-#include "SimulationStage.h"
+#include "Geant/SimulationStage.h"
 #include "TrackStat.h"
-#include "LocalityManager.h"
-#include "TrackManager.h"
+#include "Geant/LocalityManager.h"
+#include "Geant/TrackManager.h"
 #include "base/TLS.h"
 #include "management/GeoManager.h"
 #include "base/Stopwatch.h"

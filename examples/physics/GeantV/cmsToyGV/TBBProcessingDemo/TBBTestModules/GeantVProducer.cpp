@@ -16,7 +16,7 @@
 
 #include <base/Vector3D.h>
 #include "Geant/Config.h"
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 #include "Geant/EventSet.h"
 
 //#include "HepMCGenerator.h"

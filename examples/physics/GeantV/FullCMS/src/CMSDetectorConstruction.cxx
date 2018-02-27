@@ -1,7 +1,7 @@
 
 #include "CMSDetectorConstruction.h"
 
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 
 
 namespace cmsapp {

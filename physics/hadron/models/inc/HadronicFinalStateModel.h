@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 
 // Forward declarations

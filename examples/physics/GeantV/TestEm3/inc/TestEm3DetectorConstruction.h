@@ -2,7 +2,7 @@
 #ifndef TESTEM3DETECTORCONSTRUCTION_H
 #define TESTEM3DETECTORCONSTRUCTION_H
 
-#include "UserDetectorConstruction.h"
+#include "Geant/UserDetectorConstruction.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Config.h"
 #include "Geant/Fwd.h"

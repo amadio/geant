@@ -96,7 +96,7 @@ set(headers
 #if (USE_ROOT)
 #  ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
 #    LINKDEF
-#    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/LinkDef.h
+#    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/Geant/LinkDef.h
 #    OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 #    set(sources ${sources} G__ExamplesRP.cxx)
 #endif()

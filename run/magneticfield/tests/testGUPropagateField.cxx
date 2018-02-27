@@ -27,29 +27,29 @@ using fieldUnits::degree;
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
 
-#include "VScalarIntegrationStepper.h"
-#include "TClassicalRK4.h"
-#include "GUTCashKarpRKF45.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/TClassicalRK4.h"
+#include "Geant/GUTCashKarpRKF45.h"
 
-#include "TSimpleRunge.h"
-#include "GUExactHelixStepper.h"
-// #include "GULineSection.hh"
+#include "Geant/TSimpleRunge.h"
+#include "Geant/GUExactHelixStepper.h"
+// #include "Geant/GULineSection.hh"
 
 // #include "BogackiShampine23.hh"
 // #include "DormandPrince745.hh"
 // #include "BogackiShampine45.h"
 // #include "G4SimpleHeum.hh"
 
-#include "ScalarFieldTrack.h"
-#include "ScalarIntegrationDriver.h"
-#include "GUFieldPropagator.h"
-#include "GUFieldPropagatorPool.h"
+#include "Geant/ScalarFieldTrack.h"
+#include "Geant/ScalarIntegrationDriver.h"
+#include "Geant/GUFieldPropagator.h"
+#include "Geant/GUFieldPropagatorPool.h"
 
-#include "FieldPropagatorFactory.h"
+#include "Geant/FieldPropagatorFactory.h"
 
 // #define  COMPARE_TO_G4  1
 

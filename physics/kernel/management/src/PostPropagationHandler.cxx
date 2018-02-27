@@ -2,10 +2,10 @@
 #include "PostPropagationHandler.h"
 
 // from geantV
-#include "Propagator.h"
-#include "TaskData.h"
+#include "Geant/Propagator.h"
+#include "Geant/TaskData.h"
 #include "Geant/Track.h"
-#include "Basket.h"
+#include "Geant/Basket.h"
 
 // from realphysics
 #include "Material.h"

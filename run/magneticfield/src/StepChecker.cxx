@@ -1,9 +1,9 @@
-#include "StepChecker.h"
+#include "Geant/StepChecker.h"
 
 // For geant::Print,  Printf
 #include "Geant/Error.h"
-#include "ConstFieldHelixStepper.h"
-#include "ConstBzFieldHelixStepper.h"
+#include "Geant/ConstFieldHelixStepper.h"
+#include "Geant/ConstBzFieldHelixStepper.h"
 
 VECCORE_ATT_HOST_DEVICE          
 bool

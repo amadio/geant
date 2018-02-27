@@ -17,7 +17,7 @@
 #include "PhysicsData.h"
 
 // from geantV
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 namespace geantphysics {
 

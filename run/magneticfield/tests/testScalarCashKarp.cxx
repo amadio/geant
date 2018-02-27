@@ -23,18 +23,18 @@ using fieldUnits::tesla;
 using fieldUnits::degree;
 
 
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
-#include "FieldEquationFactory.h"
+#include "Geant/FieldEquationFactory.h"
 
-#include "VScalarIntegrationStepper.h"
-#include "StepperFactory.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/StepperFactory.h"
 
-#include "TClassicalRK4.h"
-#include "GUTCashKarpRKF45.h"
-#include "TSimpleRunge.h"
-#include "GUExactHelixStepper.h"
+#include "Geant/TClassicalRK4.h"
+#include "Geant/GUTCashKarpRKF45.h"
+#include "Geant/TSimpleRunge.h"
+#include "Geant/GUExactHelixStepper.h"
 
 using namespace std;
 

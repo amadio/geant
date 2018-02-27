@@ -1,4 +1,4 @@
-#include "MyHit.h"
+#include "Geant/MyHit.h"
 #include "Geant/FactoryStore.h"
 
 //______________________________________________________________________________

@@ -2,7 +2,7 @@
 #include "GeantCudaUtils.h"
 #include "backend/cuda/Interface.h"
 
-#include "CoprocessorBrokerKernel.h"
+#include "Geant/CoprocessorBrokerKernel.h"
 #include "GeantTaskData.h"
 #include "GeantTrack.h"
 

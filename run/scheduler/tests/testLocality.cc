@@ -1,4 +1,4 @@
-#include "LocalityManager.h"
+#include "Geant/LocalityManager.h"
 #include <iostream>
 #include <random>
 #include <sys/time.h>
@@ -7,7 +7,7 @@
 #include "GeantNuma.h"
 #include "Geant/NumaAllocator.h"
 
-#include "Basketizer.h"
+#include "Geant/Basketizer.h"
 #include "Geant/Track.h"
 
 #include "TGeoManager.h"

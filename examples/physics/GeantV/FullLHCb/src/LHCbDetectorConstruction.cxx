@@ -1,7 +1,7 @@
 
 #include "LHCbDetectorConstruction.h"
 
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 
 
 namespace lhcbapp {

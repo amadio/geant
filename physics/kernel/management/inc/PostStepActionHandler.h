@@ -3,7 +3,7 @@
 #define POSTSTEPACTIONHANDLER_H
 
 // from geantV
-#include "Handler.h"
+#include "Geant/Handler.h"
 // from geantV
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {

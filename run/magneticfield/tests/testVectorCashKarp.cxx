@@ -11,14 +11,14 @@
 
 using namespace vecCore::math;
 
-#include "UniformMagField.h"          // New type (universal) class
+#include "Geant/UniformMagField.h"          // New type (universal) class
 
 // #include "GUVVectorEquationOfMotion.h"
 
-#include "MagFieldEquation.h"
+#include "Geant/MagFieldEquation.h"
 
 #include "GUVVectorIntegrationStepper.h"
-#include "VectorCashKarpRKF45.h"
+#include "Geant/VectorCashKarpRKF45.h"
 
 // #include "TemplateTSimpleRunge.h"
 // #include "TemplateGUExactHelixStepper.h"

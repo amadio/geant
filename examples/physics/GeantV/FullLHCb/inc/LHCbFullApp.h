@@ -3,12 +3,12 @@
 #define LHCbFULLAPP_H
 
 #ifndef GEANT_VAPPLICATION
-  #include "UserApplication.h"
+  #include "Geant/UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
 #include "Geant/Fwd.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
   namespace geant {
@@ -27,7 +27,7 @@ namespace GEANT_IMPL_NAMESPACE {
 
 #ifdef USE_ROOT
 #include "Geant/Factory.h"
-#include "MyHit.h"
+#include "Geant/MyHit.h"
 #include "TTree.h"
 #include "ROOT/TBufferMerger.hxx"
 #include "ROOT/TTaskGroup.hxx"

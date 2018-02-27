@@ -1,10 +1,10 @@
-#include "SimulationStage.h"
+#include "Geant/SimulationStage.h"
 
-#include "TaskData.h"
-#include "Propagator.h"
+#include "Geant/TaskData.h"
+#include "Geant/Propagator.h"
 #include "StackLikeBuffer.h"
 #include "TrackStat.h"
-#include "BasketCounters.h"
+#include "Geant/BasketCounters.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

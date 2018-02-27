@@ -1,7 +1,7 @@
-#include "PreStepStage.h"
+#include "Geant/PreStepStage.h"
 
-#include "RunManager.h"
-#include "PreStepHandler.h"
+#include "Geant/RunManager.h"
+#include "Geant/PreStepHandler.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

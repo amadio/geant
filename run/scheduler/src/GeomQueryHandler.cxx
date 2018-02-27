@@ -1,8 +1,8 @@
-#include "GeomQueryHandler.h"
-#include "Basket.h"
-#include "TaskData.h"
+#include "Geant/GeomQueryHandler.h"
+#include "Geant/Basket.h"
+#include "Geant/TaskData.h"
 #include "TrackGeo.h"
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 #include "Geant/VBconnector.h"
 
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)

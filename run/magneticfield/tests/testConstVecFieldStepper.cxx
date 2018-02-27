@@ -18,25 +18,25 @@
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
-#include "ScalarMagFieldEquation.h"
+#include "Geant/ScalarMagFieldEquation.h"
 
 // #include "IntegrationStepper.h"
 
-#include "ConstFieldHelixStepper.h"
-#include "ConstBzFieldHelixStepper.h"
+#include "Geant/ConstFieldHelixStepper.h"
+#include "Geant/ConstBzFieldHelixStepper.h"
 
 // For the baseline stepper:
-#include "TClassicalRK4.h"
-#include "GUTCashKarpRKF45.h"
+#include "Geant/TClassicalRK4.h"
+#include "Geant/GUTCashKarpRKF45.h"
 
-// #include "ScalarFieldTrack.h"
-// #include "ScalarIntegrationDriver.h"
+// #include "Geant/ScalarFieldTrack.h"
+// #include "Geant/ScalarIntegrationDriver.h"
 
-// #include "GUFieldPropagator.h"
-// #include "GUFieldPropagatorPool.h"
-// #include "FieldPropagatorFactory.h"
+// #include "Geant/GUFieldPropagator.h"
+// #include "Geant/GUFieldPropagatorPool.h"
+// #include "Geant/FieldPropagatorFactory.h"
 
 // #define  COMPARE_TO_G4  1
 

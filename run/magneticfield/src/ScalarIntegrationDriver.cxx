@@ -14,8 +14,8 @@
 // #include "globals.hh"
 // #include "G4SystemOfUnits.hh"
 // #include "G4GeometryTolerance.hh"
-#include "ScalarFieldTrack.h"
-#include "ScalarIntegrationDriver.h"
+#include "Geant/ScalarFieldTrack.h"
+#include "Geant/ScalarIntegrationDriver.h"
 
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper

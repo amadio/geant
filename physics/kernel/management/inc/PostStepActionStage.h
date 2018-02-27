@@ -3,7 +3,7 @@
 #define POSTSTEPACTIONSTAGE_H
 
 // from geantV
-#include "SimulationStage.h"
+#include "Geant/SimulationStage.h"
 // from geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

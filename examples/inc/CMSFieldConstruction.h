@@ -1,7 +1,7 @@
 #ifndef GEANT_CMS_Detector_Construction
 #define GEANT_CMS_Detector_Construction
 
-#include "UserFieldConstruction.h"
+#include "Geant/UserFieldConstruction.h"
 
 // Delete ASAP - if possible.    JA 2017.09.14
 #ifdef  USE_ROOT_TObject
@@ -12,7 +12,7 @@
 
 #include <string>
 #include "Geant/Error.h"
-#include "UserFieldConstruction.h"
+#include "Geant/UserFieldConstruction.h"
 
 class CMSmagField;
 class GUVMagneticField;
@@ -65,7 +65,7 @@ CMSFieldConstruction(std::string fieldFilename) :
 // ClassImp(CMSFieldConstruction);
 };
 
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 
 CMSFieldConstruction::~CMSFieldConstruction() { delete fCMSfield; }    
 

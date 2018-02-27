@@ -22,7 +22,7 @@
 #include <VecCore/VecCore>
 #include "Geant/Typedefs.h"
 #include "Geant/Track.h"
-#include "Basket.h"
+#include "Geant/Basket.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

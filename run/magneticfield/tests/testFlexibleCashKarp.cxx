@@ -11,11 +11,11 @@
 
 using namespace vecCore::math;
 
-#include "UniformMagField.h"          // New type (universal) class
-#include "MagFieldEquation.h"
+#include "Geant/UniformMagField.h"          // New type (universal) class
+#include "Geant/MagFieldEquation.h"
 
 // #include "VIntegrationStepper.h"   // Supressed ?
-#include "CashKarp.h"
+#include "Geant/CashKarp.h"
 
 // ---- Future 'general' steppers (i.e. scalar + vector )
 // #include "SimpleRunge.h"

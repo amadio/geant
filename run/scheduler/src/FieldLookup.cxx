@@ -1,12 +1,12 @@
 #include <cassert>
 
-#include "VVectorField.h"
-#include "FieldLookup.h"
+#include "Geant/VVectorField.h"
+#include "Geant/FieldLookup.h"
 
-#include "FieldConfig.h"
+#include "Geant/FieldConfig.h"
 
 #include "Geant/Error.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

@@ -1,8 +1,8 @@
-#include "GeomQueryStage.h"
+#include "Geant/GeomQueryStage.h"
 
 #include "Geant/VBconnector.h"
-#include "RunManager.h"
-#include "GeomQueryHandler.h"
+#include "Geant/RunManager.h"
+#include "Geant/GeomQueryHandler.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

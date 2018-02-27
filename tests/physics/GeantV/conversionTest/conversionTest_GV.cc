@@ -46,7 +46,7 @@
 
 // from geantV
 #include "Geant/Typedefs.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 // a simple histogram class: can be changed later
 #include "Hist.h"

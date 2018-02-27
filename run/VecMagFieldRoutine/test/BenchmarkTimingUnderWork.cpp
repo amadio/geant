@@ -7,10 +7,10 @@
 #include <iostream>
 
 // #include "MagField.h"
-// #include "MagFieldCellVersion.h"
-// #include "MagFieldVcGather.h"
-// #include "MagFieldReorder.h"
-// #include "MagFieldAutoVec.h"
+// #include "Geant/MagFieldCellVersion.h"
+// #include "Geant/MagFieldVcGather.h"
+// #include "Geant/MagFieldReorder.h"
+// #include "Geant/MagFieldAutoVec.h"
 #include "base/Vector3D.h"
 #include "base/SOA3D.h"
 #include "base/Global.h"
@@ -21,7 +21,7 @@
 #include "base/Vector.h"
 #include "TRandom1.h"
 
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 
 using namespace std;
 typedef vecgeom::Vector3D<float> ThreeVector; //normal Vector3D

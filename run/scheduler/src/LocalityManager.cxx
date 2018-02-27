@@ -1,4 +1,4 @@
-#include "LocalityManager.h"
+#include "Geant/LocalityManager.h"
 
 #include <cassert>
 #include <iostream>

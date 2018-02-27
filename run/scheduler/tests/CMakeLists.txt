@@ -10,14 +10,14 @@ set(headers
    inc/PhysicsProcess.h
    inc/GeantBasket.h
    inc/GeantScheduler.h
-   inc/Propagator.h
+   inc/Geant/Propagator.h
    inc/Geant/Event.h
    inc/Geant/Track.h
    inc/GeantOutput.h
-   inc/WorkloadManager.h
-   inc/UserApplication.h
+   inc/Geant/WorkloadManager.h
+   inc/Geant/UserApplication.h
    inc/TrackStat.h
-   inc/MyHit.h
+   inc/Geant/MyHit.h
    ../examples/inc/ExN03Application.h
    ../inc/Geant/PrimaryGenerator.h
    ../xsec/inc/GunGenerator.h
@@ -39,7 +39,7 @@ set(CMAKE_CXX_FLAGS_RELEASE        "${GEANTV_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GEANTV_CXX_FLAGS_RELWITHDEBINFO}")
 set(CMAKE_EXE_LINKER_FLAGS         "${GEANTV_EXE_LINKER_FLAGS}")
 
-ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/LinkDef.h)
+ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF inc/Geant/LinkDef.h)
 
 #----------------------------------------------------------------------------------------------
 # CTEST section

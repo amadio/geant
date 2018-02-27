@@ -23,12 +23,12 @@ using fieldUnits::degree;
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
 #include "TMagFieldEquation.h"
 
-#include "VScalarIntegrationStepper.h"
-#include "StepperFactory.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/StepperFactory.h"
 
 #include "GUFieldTrack.h"
 #include "GUIntegrationDriver.h"

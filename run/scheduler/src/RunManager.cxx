@@ -1,23 +1,23 @@
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 
 #include "base/Stopwatch.h"
 #include "GeantConfig.h"
 #include "Geant/Error.h"
 #include "Geant/VBconnector.h"
-#include "Propagator.h"
-#include "WorkloadManager.h"
+#include "Geant/Propagator.h"
+#include "Geant/WorkloadManager.h"
 #include "Geant/TaskBroker.h"
 #include "Geant/PhysicsInterface.h"
-#include "StdApplication.h"
-#include "UserDetectorConstruction.h"
+#include "Geant/StdApplication.h"
+#include "Geant/UserDetectorConstruction.h"
 #include "Geant/MCTruthMgr.h"
 #include "Geant/PrimaryGenerator.h"
 #include "Geant/Event.h"
 #include "Geant/EventSet.h"
-#include "EventServer.h"
-#include "LocalityManager.h"
-#include "SimulationStage.h"
-#include "BasketCounters.h"
+#include "Geant/EventServer.h"
+#include "Geant/LocalityManager.h"
+#include "Geant/SimulationStage.h"
+#include "Geant/BasketCounters.h"
 
 #ifdef USE_ROOT
 #include "TApplication.h"
@@ -35,16 +35,16 @@
 #include "Element.h"
 #include "volumes/PlacedVolume.h"
 
-#include "UserFieldConstruction.h"
+#include "Geant/UserFieldConstruction.h"
 
 // The classes for integrating in a non-uniform magnetic field
-#include "ScalarUniformMagField.h"
-#include "FieldEquationFactory.h"
-#include "StepperFactory.h"
-#include "ScalarIntegrationDriver.h"
+#include "Geant/ScalarUniformMagField.h"
+#include "Geant/FieldEquationFactory.h"
+#include "Geant/StepperFactory.h"
+#include "Geant/ScalarIntegrationDriver.h"
 
-#include "GUFieldPropagator.h"
-#include "GUFieldPropagatorPool.h"
+#include "Geant/GUFieldPropagator.h"
+#include "Geant/GUFieldPropagatorPool.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

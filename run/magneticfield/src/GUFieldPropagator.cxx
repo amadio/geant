@@ -4,19 +4,19 @@
 //
 #include <iostream>  // for  cout / cerr 
 
-#include "GUFieldPropagator.h"
+#include "Geant/GUFieldPropagator.h"
 
-#include "VScalarEquationOfMotion.h"
-#include "ScalarMagFieldEquation.h"
-#include "VScalarIntegrationStepper.h"
-#include "ScalarIntegrationDriver.h"
+#include "Geant/VScalarEquationOfMotion.h"
+#include "Geant/ScalarMagFieldEquation.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/ScalarIntegrationDriver.h"
 
-#include "GUTCashKarpRKF45.h"  //  ie ScalarCashKarp
+#include "Geant/GUTCashKarpRKF45.h"  //  ie ScalarCashKarp
 
-#include "MagFieldEquation.h"
-#include "CashKarp.h"
-#include "FlexIntegrationDriver.h"
-#include "SimpleIntegrationDriver.h"
+#include "Geant/MagFieldEquation.h"
+#include "Geant/CashKarp.h"
+#include "Geant/FlexIntegrationDriver.h"
+#include "Geant/SimpleIntegrationDriver.h"
 
 // template <class Equation, unsigned int> using ScalarCashKarp= GUTCashKarpRKF45;
 

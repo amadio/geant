@@ -5,7 +5,7 @@
 
 // #include <iostream>
 
-#include "VScalarEquationOfMotion.h"
+#include "Geant/VScalarEquationOfMotion.h"
 
 unsigned int VScalarEquationOfMotion::fNumObjectsCreated= 0;
 unsigned int VScalarEquationOfMotion::fNumObjectsDeleted= 0;

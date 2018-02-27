@@ -9,10 +9,10 @@
 #include "base/Vector3D.h"
 #include "base/Global.h"
 //#include "test/unit_tests/ApproxEqual.h"
-#include "ApproxEqual.h"
+#include "Geant/ApproxEqual.h"
 
 // #include "MagField.h"
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 #include <Geant/VectorTypes.h>
 
 // ensure asserts are compiled in                                                                                           

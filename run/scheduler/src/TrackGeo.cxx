@@ -19,14 +19,14 @@
 #include "management/GeoManager.h"
 #include "base/SOA3D.h"
 
-#include "WorkloadManager.h"
+#include "Geant/WorkloadManager.h"
 
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
-#include "GUFieldPropagatorPool.h"
-#include "GUFieldPropagator.h"
-#include "FieldLookup.h"
-// #include "ConstBzFieldHelixStepper.h"
+#include "Geant/GUFieldPropagatorPool.h"
+#include "Geant/GUFieldPropagator.h"
+#include "Geant/FieldLookup.h"
+// #include "Geant/ConstBzFieldHelixStepper.h"
 // #include "ConstVecFieldHelixStepper.h"
 
 #ifdef __INTEL_COMPILER

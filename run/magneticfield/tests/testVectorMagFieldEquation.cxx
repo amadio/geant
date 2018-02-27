@@ -7,19 +7,19 @@
 
 #include "GUVVectorEquationOfMotion.h"
 #include "TVectorMagFieldEquation.h"
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
-#include "VVectorField.h"
+#include "Geant/VVectorField.h"
 #include "TMagFieldEquation.h"
-#include "FieldEquationFactory.h"
+#include "Geant/FieldEquationFactory.h"
 
-// #include "ScalarUniformMagField.h"
+// #include "Geant/ScalarUniformMagField.h"
 
 // #define CMS_FIELD 1
 
 #ifdef CMS_FIELD
 // #include "VecMagFieldRoutine/CMSmagField.h"
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 #endif
 
 

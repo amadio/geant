@@ -25,15 +25,15 @@ using geant::units::degree;
 #include "base/Vector3D.h"
 typedef vecgeom::Vector3D<double>  ThreeVector;
 
-#include "ScalarUniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
 
-#include "ScalarMagFieldEquation.h"
+#include "Geant/ScalarMagFieldEquation.h"
 
-#include "VScalarIntegrationStepper.h"
-#include "StepperFactory.h"
+#include "Geant/VScalarIntegrationStepper.h"
+#include "Geant/StepperFactory.h"
 
-#include "ScalarFieldTrack.h"
-#include "ScalarIntegrationDriver.h"
+#include "Geant/ScalarFieldTrack.h"
+#include "Geant/ScalarIntegrationDriver.h"
 
 
 // #define  COMPARE_TO_G4  1

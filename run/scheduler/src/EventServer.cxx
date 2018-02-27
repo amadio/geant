@@ -1,15 +1,15 @@
-#include "EventServer.h"
+#include "Geant/EventServer.h"
 
 #include "Geant/Error.h"
 
 #include "Geant/VBconnector.h"
 #include "Geant/Track.h"
 #include "Geant/Event.h"
-#include "RunManager.h"
-#include "LocalityManager.h"
+#include "Geant/RunManager.h"
+#include "Geant/LocalityManager.h"
 #include "Geant/PrimaryGenerator.h"
-#include "TaskData.h"
-#include "Basket.h"
+#include "Geant/TaskData.h"
+#include "Geant/Basket.h"
 #include "StackLikeBuffer.h"
 #include "Geant/MCTruthMgr.h"
 

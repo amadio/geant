@@ -3,7 +3,7 @@
 //
 // -------------------------------------------------------------------
 
-#include "ScalarFieldTrack.h"
+#include "Geant/ScalarFieldTrack.h"
 
 ScalarFieldTrack::
 ScalarFieldTrack( const ThreeVector& pPosition, 

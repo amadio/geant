@@ -4,10 +4,10 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "RunManager.h"
+#include "Geant/RunManager.h"
 #include "Geant/TaskBroker.h"
-#include "WorkloadManager.h"
-#include "Propagator.h"
+#include "Geant/WorkloadManager.h"
+#include "Geant/Propagator.h"
 
 // realphysics
 #include "PhysicsProcessHandler.h"
@@ -21,10 +21,10 @@
 #include "TestEm3PhysicsList.h"
 
 // Class for constant B-field
-#include "UserFieldConstruction.h"
+#include "Geant/UserFieldConstruction.h"
 
 #include "HepMCTruth.h"
-#include "ExternalFramework.h"
+#include "Geant/ExternalFramework.h"
 
 // some helper methods to get the possible input arguments and configure the user defined components of the application,
 // set up the run manager and run the simulation.

@@ -26,7 +26,7 @@ using fieldUnits::degree;
 #include "TemplateGUTCashKarpRKF45.h"
 
 #include "TemplateScalarIntegrationDriver.h"
-#include "FieldTrack.h"
+#include "Geant/FieldTrack.h"
 
 using namespace std;
 

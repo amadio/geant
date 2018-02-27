@@ -10,7 +10,7 @@
 #include "base/SOA3D.h"
 #include "base/Global.h"
 //#include "test/unit_tests/ApproxEqual.h"
-#include "ApproxEqual.h"
+#include "Geant/ApproxEqual.h"
 
 #include <Vc/Vc>
 #include "backend/vc/Backend.h"
@@ -18,7 +18,7 @@
 #include "backend/scalarfloat/Backend.h"
 
 // #include "MagField.h"
-#include "CMSmagField.h"
+#include "Geant/CMSmagField.h"
 
 // ensure asserts are compiled in                                                                                           
 #undef NDEBUG

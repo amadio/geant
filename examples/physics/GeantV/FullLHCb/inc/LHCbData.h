@@ -9,7 +9,7 @@
 #include "ROOT/TBufferMerger.hxx"
 #include "TTree.h"
 #include "Geant/Factory.h"
-#include "MyHit.h"
+#include "Geant/MyHit.h"
 #endif
 
 namespace lhcbapp {

@@ -1,9 +1,9 @@
-#include "PropagationStage.h"
+#include "Geant/PropagationStage.h"
 
-#include "RunManager.h"
-#include "FieldLookup.h"
-#include "LinearPropagationHandler.h"
-#include "FieldPropagationHandler.h"
+#include "Geant/RunManager.h"
+#include "Geant/FieldLookup.h"
+#include "Geant/LinearPropagationHandler.h"
+#include "Geant/FieldPropagationHandler.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

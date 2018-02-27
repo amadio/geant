@@ -1,12 +1,12 @@
 #include <cassert>
 
-#include "GUFieldPropagatorPool.h"
+#include "Geant/GUFieldPropagatorPool.h"
 
 // For implementation
-#include "GUFieldPropagator.h"
-// #include "ScalarIntegrationDriver.h"
-#include "VScalarEquationOfMotion.h"
-#include "VVectorField.h"
+#include "Geant/GUFieldPropagator.h"
+// #include "Geant/ScalarIntegrationDriver.h"
+#include "Geant/VScalarEquationOfMotion.h"
+#include "Geant/VVectorField.h"
 
 #include <iostream>
 
@@ -15,7 +15,7 @@ std::vector<GUFieldPropagator*> // GUFieldPropagation:: // namespace ...
    GUFieldPropagatorPool::fFieldPropagatorVec;
 
 /// --------------  GUFieldPropagatorPool ------------------------------------
-// #include "GUFieldPropagatorPool.h"   // For now, not a separate file
+// #include "Geant/GUFieldPropagatorPool.h"   // For now, not a separate file
 
 // static
 GUFieldPropagatorPool* 

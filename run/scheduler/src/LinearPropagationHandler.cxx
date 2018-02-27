@@ -1,6 +1,6 @@
-#include "LinearPropagationHandler.h"
+#include "Geant/LinearPropagationHandler.h"
 
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 #include "Geant/Error.h"
 #include "Geant/NavigationInterface.h"
 

@@ -27,7 +27,7 @@
 
 // from geantV
 #include "Geant/Typedefs.h"
-#include "TaskData.h"
+#include "Geant/TaskData.h"
 
 
 using namespace std;

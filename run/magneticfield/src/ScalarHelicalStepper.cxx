@@ -15,9 +15,9 @@ using geant::units::kTwoPi;
 #include "Geant/PhysicalConstants.h"
 // using pi;
 
-#include "VScalarHelicalStepper.h"
+#include "Geant/VScalarHelicalStepper.h"
 
-// #include "GULineSection.h"
+// #include "Geant/GULineSection.h"
 
 // #include "ScalarFieldEquation.h"
 

@@ -17,19 +17,19 @@
 #include "management/GeoManager.h"
 #include "base/SOA3D.h"
 
-#include "WorkloadManager.h"
+#include "Geant/WorkloadManager.h"
 
-#include "Basket.h"
-#include "TaskData.h"
-#include "ConstBzFieldHelixStepper.h"
-#include "ConstFieldHelixStepper.h"
+#include "Geant/Basket.h"
+#include "Geant/TaskData.h"
+#include "Geant/ConstBzFieldHelixStepper.h"
+#include "Geant/ConstFieldHelixStepper.h"
 
 // #ifdef  RUNGE_KUTTA
-#include "GUFieldPropagatorPool.h"
-#include "GUFieldPropagator.h"
+#include "Geant/GUFieldPropagatorPool.h"
+#include "Geant/GUFieldPropagator.h"
 
-// #include "VVectorField.h"
-#include "FieldLookup.h"
+// #include "Geant/VVectorField.h"
+#include "Geant/FieldLookup.h"
 
 // #endif
 
