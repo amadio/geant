@@ -5,7 +5,6 @@ include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
 
 file(GLOB sources src/*.cxx)
 file(GLOB headers inc/Geant/*.h)
-add_headers("${headers}")
 
 # library building currently handled by run/scheduler/CMakeLists.txt
 

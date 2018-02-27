@@ -20,7 +20,6 @@ include_directories(
 # ROOT_GENERATE_DICTIONARY(vMagFieldDict ${headers} MODULE Vphysproc LINKDEF inc/Geant/LinkDef.h)
 add_library(Vmagfield SHARED ${sources} )
 target_link_libraries(Vmagfield  -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_LIBRARIES})
-add_headers("${headers}")
 
 #----------------------------------------------------------------------------------------------
 # Install the files

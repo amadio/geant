@@ -35,7 +35,6 @@ add_library(Material SHARED ${sources})
 
 target_link_libraries(Material ${VECGEOM_LIBRARIES} ${_extraLibs})
 
-add_headers("${headers}")
 add_custom_target(materiallib DEPENDS Material)
 
 #----------------------------------------------------------------------------------------------

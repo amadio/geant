@@ -14,7 +14,6 @@ include_directories("${PROJECT_SOURCE_DIR}/base/inc")
 
 file(GLOB sources src/*.cxx)
 file(GLOB headers inc/Geant/*.h)
-add_headers("${headers}")
 
 include_directories(inc 
                     ${CMAKE_SOURCE_DIR}/numa/inc)
