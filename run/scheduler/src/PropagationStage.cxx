@@ -14,8 +14,7 @@ PropagationStage::PropagationStage(Propagator *prop) : SimulationStage(kPropagat
 {
   auto fldConfig = FieldLookup::GetFieldConfig();
   assert(fldConfig != nullptr);
-  fHasField = fldConfig // FieldLookup::GetFieldConfig()
-                  ->FieldExists();
+  fHasField = fldConfig->FieldExists();
 }
 
 //______________________________________________________________________________
@@ -41,5 +40,5 @@ Handler *PropagationStage::Select(Track *track, TaskData *)
   return fHandlers[1];
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

@@ -26,7 +26,19 @@
 
 using Double_v = geant::Double_v;
 
-// #define CHECK_VS_SCALAR  1
+// #define CHECK_VS_RK   1
+#define CHECK_VS_HELIX 1
+#define REPORT_AND_CHECK 1
+
+#define STATS_METHODS 1
+
+#ifdef CHECK_VS_HELIX
+#define CHECK_VS_SCALAR 1
+#endif
+
+#ifdef CHECK_VS_RK
+#define CHECK_VS_SCALAR 1
+#endif
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -41,16 +53,23 @@ static std::atomic<unsigned long> numRK, numHelixZ, numHelixGen, numTot;
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-FieldPropagationHandler::FieldPropagationHandler(int threshold, Propagator *propagator) : Handler(threshold, propagator)
+FieldPropagationHandler::FieldPropagationHandler(int threshold, Propagator *propagator, double epsTol)
+    : Handler(threshold, propagator), fEpsTol(epsTol)
 {
 // Default constructor
 // std::cout << " FieldPropagationHandler c-tor called:  threshold= " << threshold << std::endl;
 
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void FieldPropagationHandler::InitializeStats()
+{
 #ifdef STATS_METHODS
   numTot      = 0;
   numRK       = 0;
   numHelixZ   = 0;
   numHelixGen = 0;
+#else
+  std::cout << " Field Propagation Handler: no statistics for types of steps." << std::endl;
 #endif
 }
 
@@ -59,6 +78,7 @@ VECCORE_ATT_HOST_DEVICE
 FieldPropagationHandler::~FieldPropagationHandler()
 {
   // Destructor
+  PrintStats();
 }
 
 //______________________________________________________________________________
@@ -204,8 +224,9 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   // Update number of partial steps propagated in field
   td->fNmag += ntracks;
 
-// Update time of flight and number of interaction lengths.
-// Check also if it makes sense to call the vector interfaces
+  // Update time of flight and number of interaction lengths.
+  // Check also if it makes sense to call the vector interfaces
+  
 #if !(defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   for (auto track : tracks) {
     if (track->Status() == kPhysics) {
@@ -379,19 +400,13 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 #endif
     }
   }
+
 #ifdef STATS_METHODS
-  unsigned long nTot;
-  nTot = numTot++;
-#ifdef PRINT_STATS
-  // unsigned long nTot = numTot;
   unsigned long modbase = 10000;
   if (numTot % modbase < 1) {
-    unsigned long rk = numRK, hZ = numHelixZ, hGen = numHelixGen;
-    std::cerr << "Step statistics (field Propagation):  total= " << nTot << " RK = " << rk << "  HelixGen = " << hGen
-              << " Helix-Z = " << hZ << std::endl;
+    PrintStats();
+    if (numTot > 10 * modbase) modbase = 10 * modbase;
   }
-  if (numTot > 10 * modbase) modbase = 10 * modbase;
-#endif
 #endif
 
   //  may normalize direction here  // vecCore::math::Normalize(dirnew);
@@ -405,18 +420,22 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   if (track.GetSafety() < 1.E-10) track.SetSafety(0);
 
 #ifdef REPORT_AND_CHECK
-  double origMag = Direction.Mag();
-  double oldMag  = DirectionNew.Mag();
-  double newMag  = DirectionUnit.Mag();
-  Printf(" -- State after propagation in field:  Position= %f, %f, %f   Direction= %f, %f, %f  - mag original, "
-         "integrated, integr-1.0, normed-1 = %10.8f %10.8f %7.2g %10.8f %7.2g",
-         track.X(), track.Y(), track.Z(), track.Dx(), track.Dy(), track.Dz(), origMag, oldMag, oldMag - 1.0, newMag,
-         newMag - 1.0);
+  /*****
+  double origMag= Direction.Mag();
+  double oldMag= DirectionNew.Mag();
+  double newMag= DirectionUnit.Mag();
+  Printf(" -- State after propagation in field:  event %d track %p Position= %f, %f, %f   Direction= %f, %f, %f  - mag
+  original, integrated, integr-1.0, normed-1 = %7.5f %7.5f %4.2g %7.5f %4.2g", track.Event(), (void*) &track, track.X(),
+  track.Y(),  track.Z(), track.Dx(),  track.Dy(),  track.Dz(), origMag, oldMag, oldMag-1.0, newMag, newMag-1.0 );
+  ****/
 
-  const char *Msg[4] = {
-      "After propagation in field - type Unknown(ERROR) ", "After propagation in field - with RK           ",
-      "After propagation in field - with Helix-Bz     ", "After propagation in field - with Helix-General"};
-  CheckTrack(i, Msg[propagationType]);
+  // int propagationType = 5;
+  /*  const char* Msg[4]= { "After propagation in field - type Unknown(ERROR) ",
+                        "After propagation in field - with RK           ",
+                        "After propagation in field - with Helix-Bz     ",
+                        "After propagation in field - with Helix-General" };  */
+
+  CheckTrack(track, "End of Propagate-In-Volume", 1.0e-5); // Msg[propagationType] );
 #endif
 
 #if 0
@@ -445,8 +464,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 #if 1 // VECTOR_FIELD_PROPAGATION
   using vecgeom::SOA3D;
   using vecgeom::Vector3D;
-  const int Npm       = 6;
-  const double epsTol = 3.0e-5;
+  const int Npm = 6;
 
   // double yInput[8*nTracks], yOutput[8*nTracks];
   bool succeeded[nTracks];
@@ -484,8 +502,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   auto fieldConfig = FieldLookup::GetFieldConfig();
   assert(fieldConfig != nullptr);
 
-  if (0) // fieldConfig->IsFieldUniform() )
-  {
+  if (fieldConfig->IsFieldUniform()) {
     vecgeom::Vector3D<double> BfieldUniform = fieldConfig->GetUniformFieldValue();
     ConstFieldHelixStepper stepper(BfieldUniform);
     // stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), stepSize,
@@ -553,7 +570,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
     if (vectorDriver) {
       // Integrate using Runge Kutta method
-      vectorDriver->AccurateAdvance(fldTracksIn, stepSize, fltCharge, epsTol, fldTracksOut, nTracks, succeeded);
+      vectorDriver->AccurateAdvance(fldTracksIn, stepSize, fltCharge, fEpsTol, fldTracksOut, nTracks, succeeded);
 
 #ifdef CHECK_VS_SCALAR
       bool checkVsScalar     = true;
@@ -575,13 +592,15 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         const double pY       = fldTrackEnd[4];
         const double pZ       = fldTrackEnd[5];
         const double pmag_inv = 1.0 / track.P();
-// ---- Perform checks
+
+        // ---- Perform checks
+        
 #ifdef CHECK_VS_SCALAR
         if (checkVsScalar) {
           // 1. Double check magnitude at end point
           double pMag2End = (pX * pX + pY * pY + pZ * pZ);
           double relDiff  = pMag2End * pmag_inv * pmag_inv - 1.0;
-          if (std::fabs(relDiff) > geant::perMillion) {
+          if (std::fabs(relDiff) > units::perMillion) {
             if (!bannerUsed) {
               std::cerr << diffBanner << std::endl;
               bannerUsed = true;
@@ -594,26 +613,37 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
           // 2. Check against 'scalar' propagation of the same track
           using ThreeVector = vecgeom::Vector3D<double>;
-          ThreeVector Position(track.X(), track.Y(), track.Z());
-          ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
-          ThreeVector EndPositionScalar(0., 0., 0.);
-          ThreeVector EndDirScalar(0., 0., 0.);
-          fieldPropagator->DoStep(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr],
-                                  EndPositionScalar, EndDirScalar);
+
+          ThreeVector EndPositionScalar(0., 0., 0.), EndDirScalar(0., 0., 0.);
+
+#ifdef CHECK_VS_HELIX
+          vecgeom::Vector3D<double> BfieldInitial;
+          double bmag, charge = track.Charge();
+          FieldLookup::GetFieldValue(startPosition, BfieldInitial, bmag);
+          ConstFieldHelixStepper stepper(BfieldInitial);
+          stepper.DoStep<double>(startPosition, startDirection, charge, track.P(), stepSize[itr], EndPositionScalar,
+                                 EndDirScalar);
+#else
+          fieldPropagator->DoStep(startPosition, startDirection, charge, track.P(), stepSize[itr], EndPositionScalar,
+                                  EndDirScalar);
+#endif
           //      checking direction
           ThreeVector EndDirVector(pmag_inv * pX, pmag_inv * pY, pmag_inv * pZ);
-          ThreeVector diffDir = EndDirVector - EndDirScalar;
-          double diffDirMag   = diffDir.Mag();
-          if (diffDirMag > geant::perMillion) {
+          ThreeVector diffDir     = EndDirVector - EndDirScalar;
+          double diffDirMag       = diffDir.Mag();
+          const double maxDiffMom = 1.5 * fEpsTol; // 10.0 * units::perMillion;
+          if (diffDirMag > maxDiffMom) {
             if (!bannerUsed) {
               std::cerr << diffBanner << std::endl;
               bannerUsed = true;
             }
-
+            // const Track* pTrack= tracks[itr];
+            double curv = Curvature(track); // (*tracks[itr] ) ;
             std::cerr << "Track [" << itr << "] : direction differs "
                       << " by " << diffDir << "  ( mag = " << diffDirMag << " ) "
                       << " Direction vector = " << EndDirVector << "  scalar = " << EndDirScalar
-                      << " End position= " << endPosition << std::endl;
+                      << " stepSize = " << stepSize[itr] << " curv = " << curv << " End position= " << endPosition
+                      << std::endl;
           } else {
             //   checking against magnitude of direction difference
             ThreeVector changeDirVector  = EndDirVector - startDirection;
@@ -636,8 +666,9 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
           }
 
           //      checking position
-          ThreeVector diffPos = endPosition - EndPositionScalar;
-          if (diffPos.Mag() > geant::perMillion) {
+          ThreeVector diffPos     = endPosition - EndPositionScalar;
+          const double maxDiffPos = 1.5 * fEpsTol; // * distanceAlongPath
+          if (diffPos.Mag() > maxDiffPos) {
             if (!bannerUsed) {
               std::cerr << diffBanner << std::endl;
               bannerUsed = true;
@@ -700,5 +731,63 @@ bool FieldPropagationHandler::IsSameLocation(Track &track, TaskData *td)
   return false;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+#define IsNan(x) (!(x > 0 || x <= 0.0))
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void FieldPropagationHandler::CheckTrack(Track &track, const char *msg, double epsilon) const
+{
+  // Ensure that values are 'sensible' - else print msg and track
+  if (epsilon <= 0.0 || epsilon > 0.01) {
+    epsilon = 1.e-6;
+  }
+
+  double x = track.X(), y = track.Y(), z = track.Z();
+  bool badPosition       = IsNan(x) || IsNan(y) || IsNan(z);
+  const double maxRadius = 10000.0; // Should be a property of the geometry
+  const double maxRadXY  = 5000.0;  // Should be a property of the geometry
+
+  // const double maxUnitDev =  1.0e-4;  // Deviation from unit of the norm of the direction
+  double radiusXy2 = x * x + y * y;
+  double radius2   = radiusXy2 + z * z;
+  badPosition      = badPosition || (radiusXy2 > maxRadXY * maxRadXY) || (radius2 > maxRadius * maxRadius);
+
+  const double maxUnitDev = epsilon; // Use epsilon for max deviation of direction norm from 1.0
+
+  double dx = track.Dx(), dy = track.Dy(), dz = track.Dz();
+  double dirNorm2   = dx * dx + dy * dy + dz * dz;
+  bool badDirection = std::fabs(dirNorm2 - 1.0) > maxUnitDev;
+  if (badPosition || badDirection) {
+    static const char *errMsg[4] = {" All ok - No error. ",
+                                    " Bad position.",                 // [1]
+                                    " Bad direction.",                // [2]
+                                    " Bad direction and position. "}; // [3]
+    int iM                       = 0;
+    if (badPosition) {
+      iM++;
+    }
+    if (badDirection) {
+      iM += 2;
+    }
+    // if( badDirection ) {
+    //   Printf( " Norm^2 direction= %f ,  Norm -1 = %g", dirNorm2, sqrt(dirNorm2)-1.0 );
+    // }
+    Printf("ERROR> Problem with track %p . Issue: %s. Info message: %s -- Mag^2(dir)= %9.6f Norm-1= %g", (void *)&track,
+           errMsg[iM], msg, dirNorm2, sqrt(dirNorm2) - 1.0);
+    track.Print(msg);
+  }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void FieldPropagationHandler::PrintStats()
+{
+#ifdef STATS_METHODS
+  unsigned long nTot = numTot++;
+  unsigned long rk = numRK, hZ = numHelixZ, hGen = numHelixGen;
+  std::cerr << "Step statistics (field Propagation):  total= " << nTot << " RK = " << rk << "  HelixGen = " << hGen
+            << " Helix-Z = " << hZ << std::endl;
+#endif
+}
+
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

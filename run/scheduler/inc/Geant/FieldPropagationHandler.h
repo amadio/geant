@@ -39,7 +39,7 @@ public:
 
   /** @brief Default constructor */
   VECCORE_ATT_HOST_DEVICE
-  FieldPropagationHandler() : Handler() {}
+  FieldPropagationHandler() : Handler(), fEpsTol(3.0e-5) {}
 
   /**
    * @brief Default constructor
@@ -47,7 +47,7 @@ public:
    * @param propagator Propagator working with this handler
    */
   VECCORE_ATT_HOST_DEVICE
-  FieldPropagationHandler(int threshold, Propagator *propagator);
+  FieldPropagationHandler(int threshold, Propagator *propagator, double relativeError = 3.0e-5);
 
   /** @brief Field Propagation filter destructor */
   VECCORE_ATT_HOST_DEVICE
@@ -60,9 +60,21 @@ protected:
   VECCORE_ATT_HOST_DEVICE
   bool IsSameLocation(Track &track, TaskData *td);
 
+  VECCORE_ATT_HOST_DEVICE
+  void CheckTrack(Track &track, const char *msg, double epsilon = 1.0e-5) const;
+
+  VECCORE_ATT_HOST_DEVICE
+  static void InitializeStats();
+
+  VECCORE_ATT_HOST_DEVICE
+  void PrintStats();
+
 private:
   FieldPropagationHandler(const FieldPropagationHandler &) = delete;
   FieldPropagationHandler &operator=(const FieldPropagationHandler &) = delete;
+
+  /** @brief Relative error acceptable in Runge-Kutta integration */
+  const double fEpsTol;
 
   /** @brief Scalar implementation for magnetic field propagation */
   VECCORE_ATT_HOST_DEVICE
@@ -152,7 +164,7 @@ inline void FieldPropagationHandler::PrepareBuffers(size_t nTracks, TaskData *td
   }
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

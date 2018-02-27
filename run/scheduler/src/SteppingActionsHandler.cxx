@@ -30,10 +30,20 @@ void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
   // If track made too many steps, deposit all kinetic energy and kill it
   if (track->Status() != kNew) track->IncrementNsteps();
   if (track->GetNsteps() > fPropagator->fConfig->fNstepsKillThr) {
-    Error("SteppingActions", "track %d from event %d looping -> killing it", track->Particle(), track->Event());
+    Error(
+        "SteppingActions",
+        "track %d from event %d looping -> killing it. Momentum = %7.4g , type = %d, pdg= %d, parent = %d  primary= %d",
+        track->Particle(), track->Event(), track->P(), track->GVcode(), track->PDG(), track->Mother(),
+        track->PrimaryParticleIndex());
     track->SetStatus(kKilled);
     track->Stop();
   }
+#ifdef GV_VERBOSE_STEPPING
+  else {
+    // Optional 'tracking verbose' output
+    track->Print("Verbose track/SteppingAction");
+  }
+#endif
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (fPropagator->fStdApplication) fPropagator->fStdApplication->SteppingActions(*track, td);
@@ -104,5 +114,5 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   }
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
