@@ -1,4 +1,4 @@
-#include <XSectionsVector.h>
+#include "Geant/XSectionsVector.h"
 
 using namespace std;
 namespace geantphysics {

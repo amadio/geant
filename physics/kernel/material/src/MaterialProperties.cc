@@ -1,14 +1,14 @@
 
-#include "MaterialProperties.h"
+#include "Geant/MaterialProperties.h"
 
-#include "Types.h"
+#include "Geant/Types.h"
 
 #include "Geant/PhysicalConstants.h"
 
-#include "Material.h"
-#include "Element.h"
-#include "NISTMaterialData.h"
-#include "DensityEffectData.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
+#include "Geant/NISTMaterialData.h"
+#include "Geant/DensityEffectData.h"
 
 #include <cmath>
 #include <limits>

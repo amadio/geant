@@ -1,8 +1,8 @@
 
-#include "EMModelManager.h"
+#include "Geant/EMModelManager.h"
 
-#include "EMModel.h"
-#include "Particle.h"
+#include "Geant/EMModel.h"
+#include "Geant/Particle.h"
 
 #include <iostream>
 

@@ -1,15 +1,15 @@
-#include "PhysicsManagerPerParticle.h"
+#include "Geant/PhysicsManagerPerParticle.h"
 
-#include "PhysicsParameters.h"
-#include "Material.h"
-#include "MaterialCuts.h"
+#include "Geant/PhysicsParameters.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
 
-#include "PhysicsProcess.h"
-#include "Particle.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/Particle.h"
 
 #include "Geant/SystemOfUnits.h"
 
-#include "LightTrack.h"
+#include "Geant/LightTrack.h"
 
 #include <cmath>
 #include <iostream>

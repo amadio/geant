@@ -2,7 +2,7 @@
 #ifndef STEPMAXPROCESS_H
 #define STEPMAXPROCESS_H
 
-#include "PhysicsProcess.h"
+#include "Geant/PhysicsProcess.h"
 
 namespace userapplication {
 

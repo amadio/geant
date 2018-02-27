@@ -1,9 +1,9 @@
 
 #include "StepMaxProcess.h"
 
-#include "Electron.h"
-#include "Positron.h"
-#include "Gamma.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 
 //#include "Geant/SystemOfUnits.h"
 

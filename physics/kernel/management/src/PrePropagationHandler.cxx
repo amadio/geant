@@ -1,5 +1,5 @@
 
-#include "PrePropagationHandler.h"
+#include "Geant/PrePropagationHandler.h"
 
 // from geantV
 #include "Geant/Propagator.h"
@@ -8,14 +8,14 @@
 #include "Geant/Basket.h"
 
 // from realphysics
-#include "Material.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
 #include "Geant/Region.h"
-#include "Particle.h"
+#include "Geant/Particle.h"
 
-#include "PhysicsProcess.h"
-#include "PhysicsManagerPerParticle.h"
-#include "MSCProcess.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/MSCProcess.h"
 
 #include "Geant/NavigationInterface.h"
 

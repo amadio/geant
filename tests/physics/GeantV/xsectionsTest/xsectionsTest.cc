@@ -1,15 +1,15 @@
-#include "GlauberGribovTotalXsc.h"
-#include "GlauberGribovInelasticXsc.h"
-#include "GlauberGribovElasticXsc.h"
-#include "Particle.h"
+#include "Geant/GlauberGribovTotalXsc.h"
+#include "Geant/GlauberGribovInelasticXsc.h"
+#include "Geant/GlauberGribovElasticXsc.h"
+#include "Geant/Particle.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include "Proton.h"
-#include "Neutron.h"
-#include "KaonMinus.h"
-#include "Electron.h"
+#include "Geant/Proton.h"
+#include "Geant/Neutron.h"
+#include "Geant/KaonMinus.h"
+#include "Geant/Electron.h"
 
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"

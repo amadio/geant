@@ -1,7 +1,7 @@
-#include "TNudyDB.h"
-#include "TNudyEndfTape.h"
+#include "Geant/TNudyDB.h"
+#include "Geant/TNudyEndfTape.h"
 #include "TFile.h"
-#include "TNudyLibrary.h"
+#include "Geant/TNudyLibrary.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyDB)

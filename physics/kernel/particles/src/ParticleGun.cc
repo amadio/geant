@@ -1,9 +1,9 @@
-#include "ParticleGun.h"
+#include "Geant/ParticleGun.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
 #include "Geant/Track.h"
 
-#include "Particle.h"
+#include "Geant/Particle.h"
 
 namespace geantphysics {
 

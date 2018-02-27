@@ -1,14 +1,14 @@
 
-#include "MaterialCuts.h"
+#include "Geant/MaterialCuts.h"
 
-#include "Material.h"
+#include "Geant/Material.h"
 
-#include "CutConverter.h"
-#include "CutConverterForGamma.h"
-#include "CutConverterForElectron.h"
-#include "CutConverterForPositron.h"
+#include "Geant/CutConverter.h"
+#include "Geant/CutConverterForGamma.h"
+#include "Geant/CutConverterForElectron.h"
+#include "Geant/CutConverterForPositron.h"
 
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsParameters.h"
 
 #include "Geant/SystemOfUnits.h"
 

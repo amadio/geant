@@ -1,4 +1,4 @@
-#include "TNudyElementRN.h"
+#include "Geant/TNudyElementRN.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyElementRN)

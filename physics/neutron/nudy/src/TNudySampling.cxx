@@ -3,14 +3,14 @@
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: June 22, 2016
 #include <iostream>
-//#include "TNudyEndfDoppler.h"
-//#include "TNudyEndfAng.h"
-//#include "TNudyEndfEnergy.h"
-//#include "TNudyEndfEnergyAng.h"
-//#include "TNudyEndfFissionYield.h"
-#include "TNudyCore.h"
-#include "TNudyEndfRecoPoint.h"
-#include "TNudySampling.h"
+//#include "Geant/TNudyEndfDoppler.h"
+//#include "Geant/TNudyEndfAng.h"
+//#include "Geant/TNudyEndfEnergy.h"
+//#include "Geant/TNudyEndfEnergyAng.h"
+//#include "Geant/TNudyEndfFissionYield.h"
+#include "Geant/TNudyCore.h"
+#include "Geant/TNudyEndfRecoPoint.h"
+#include "Geant/TNudySampling.h"
 #ifdef USE_ROOT
 #include "TRandom3.h"
 #endif

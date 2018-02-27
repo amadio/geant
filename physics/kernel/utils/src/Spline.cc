@@ -1,6 +1,6 @@
 
 
-#include "Spline.h"
+#include "Geant/Spline.h"
 
 // cstdlib is for std::abs(int)
 #include <cstdlib>

@@ -1,5 +1,5 @@
 
-#include "AlongStepActionStage.h"
+#include "Geant/AlongStepActionStage.h"
 
 // from geantV
 #include "Geant/Propagator.h"
@@ -8,17 +8,17 @@
 #include "Geant/Handler.h"
 
 // from realphysics
-#include "Material.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
 #include "Geant/Region.h"
-#include "Particle.h"
+#include "Geant/Particle.h"
 
-#include "PhysicsProcess.h"
-#include "PhysicsManagerPerParticle.h"
-#include "LightTrack.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/LightTrack.h"
 
 // handler(s)
-#include "AlongStepActionHandler.h"
+#include "Geant/AlongStepActionHandler.h"
 
 
 namespace geantphysics {

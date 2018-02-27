@@ -5,8 +5,8 @@
 
 #include "Geant/RunManager.h"
 
-#include "PhysicsProcessHandler.h"
-#include "PhysicsListManager.h"
+#include "Geant/PhysicsProcessHandler.h"
+#include "Geant/PhysicsListManager.h"
 
 //FULL-LHCb application
 #include "LHCbFullApp.h"

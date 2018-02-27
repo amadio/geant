@@ -1,9 +1,9 @@
-#include "GlauberGribovInelasticXsc.h"
-#include "Proton.h"
-#include "Neutron.h"
+#include "Geant/GlauberGribovInelasticXsc.h"
+#include "Geant/Proton.h"
+#include "Geant/Neutron.h"
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
-#include "Parameterizations.h"
+#include "Geant/Parameterizations.h"
 
 #include <cmath>
 #include <iostream>

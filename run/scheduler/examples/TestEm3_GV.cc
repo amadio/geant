@@ -10,9 +10,9 @@
 #include "Geant/Propagator.h"
 
 // realphysics
-#include "PhysicsProcessHandler.h"
-#include "PhysicsListManager.h"
-#include "MSCModel.h"
+#include "Geant/PhysicsProcessHandler.h"
+#include "Geant/PhysicsListManager.h"
+#include "Geant/MSCModel.h"
 
 // application
 #include "TestEm3App.h"

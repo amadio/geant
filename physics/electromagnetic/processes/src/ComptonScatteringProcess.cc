@@ -1,7 +1,7 @@
 
-#include "ComptonScatteringProcess.h"
+#include "Geant/ComptonScatteringProcess.h"
 
-#include "Gamma.h"
+#include "Geant/Gamma.h"
 
 namespace geantphysics {
 

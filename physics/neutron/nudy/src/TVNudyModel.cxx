@@ -1,4 +1,4 @@
-#include "TVNudyModel.h"
+#include "Geant/TVNudyModel.h"
 
 #include <TFrame.h>
 #include <TStyle.h>
@@ -9,13 +9,13 @@
 #include "TMath.h"
 #include "Math/SpecFuncMathMore.h"
 #include "base/Global.h"
-#include "TNudyCore.h"
-#include "TNudyEndfMat.h"
-#include "TNudyAliasCont.h"
-#include "TNudyEndfCont.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyEndfList.h"
+#include "Geant/TNudyCore.h"
+#include "Geant/TNudyEndfMat.h"
+#include "Geant/TNudyAliasCont.h"
+#include "Geant/TNudyEndfCont.h"
+#include "Geant/TNudyEndfTab1.h"
+#include "Geant/TNudyEndfTab2.h"
+#include "Geant/TNudyEndfList.h"
 
 #ifdef USE_ROOT
 ClassImp(TVNudyModel)

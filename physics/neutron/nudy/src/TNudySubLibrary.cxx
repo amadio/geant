@@ -1,9 +1,9 @@
-#include "TNudySubLibrary.h"
+#include "Geant/TNudySubLibrary.h"
 #include "TParticlePDG.h"
 #include "TBtree.h"
-#include "TVNudyModel.h"
-#include "TNudyCore.h"
-#include "TNudyEndfMat.h"
+#include "Geant/TVNudyModel.h"
+#include "Geant/TNudyCore.h"
+#include "Geant/TNudyEndfMat.h"
 #include "TROOT.h"
 #include "TFile.h"
 

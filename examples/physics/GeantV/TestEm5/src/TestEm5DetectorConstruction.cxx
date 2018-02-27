@@ -4,7 +4,7 @@
 #include "Geant/RunManager.h"
 
 #include "Geant/SystemOfUnits.h"
-#include "Material.h"
+#include "Geant/Material.h"
 #include "Geant/Region.h"
 
 // vecgeom includes

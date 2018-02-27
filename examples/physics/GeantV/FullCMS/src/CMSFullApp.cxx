@@ -9,7 +9,7 @@
 
 #include "Geant/SystemOfUnits.h"
 
-#include "Particle.h"
+#include "Geant/Particle.h"
 
 // just for the printout at the end
 #include "CMSParticleGun.h"

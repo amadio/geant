@@ -1,9 +1,9 @@
 
-#include "CutConverterForElectron.h"
+#include "Geant/CutConverterForElectron.h"
 
-#include "Material.h"
-#include "MaterialProperties.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/Element.h"
 
 #include <cmath>
 #include <iostream>

@@ -7,7 +7,7 @@ set(TEST_EXECUTABLES
 
 set(headers
    inc/GeantThreadData.h
-   inc/PhysicsProcess.h
+   inc/Geant/PhysicsProcess.h
    inc/GeantBasket.h
    inc/GeantScheduler.h
    inc/Geant/Propagator.h
@@ -20,7 +20,7 @@ set(headers
    inc/Geant/MyHit.h
    ../examples/inc/ExN03Application.h
    ../inc/Geant/PrimaryGenerator.h
-   ../xsec/inc/GunGenerator.h
+   ../xsec/inc/Geant/GunGenerator.h
    ../xsec/inc/TTabPhysProcess.h
    )
 

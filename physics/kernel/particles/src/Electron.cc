@@ -1,4 +1,4 @@
-#include "Electron.h"
+#include "Geant/Electron.h"
 
 #include "Geant/PhysicalConstants.h"
 #include "Geant/SystemOfUnits.h"

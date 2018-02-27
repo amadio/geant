@@ -1,7 +1,7 @@
 
-#include "Isotope.h"
+#include "Geant/Isotope.h"
 
-#include "NISTElementData.h"
+#include "Geant/NISTElementData.h"
 #include "Geant/PhysicalConstants.h"
 
 #include <iostream>

@@ -1,17 +1,17 @@
 
-#include "ELossTable.h"
+#include "Geant/ELossTable.h"
 // from material
-#include "Types.h"
+#include "Geant/Types.h"
 
-#include "ELossTableRegister.h"
-#include "PhysicsParameters.h"
-#include "EMPhysicsProcess.h"
-#include "Material.h"
-#include "MaterialCuts.h"
-#include "Particle.h"
+#include "Geant/ELossTableRegister.h"
+#include "Geant/PhysicsParameters.h"
+#include "Geant/EMPhysicsProcess.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
+#include "Geant/Particle.h"
 
-#include "Spline.h"
-#include "GLIntegral.h"
+#include "Geant/Spline.h"
+#include "Geant/GLIntegral.h"
 
 #include <cmath>
 #include <iostream>

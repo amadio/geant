@@ -1,5 +1,5 @@
 
-#include "ElectronIonizationProcess.h"
+#include "Geant/ElectronIonizationProcess.h"
 
 namespace geantphysics {
 

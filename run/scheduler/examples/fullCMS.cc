@@ -6,8 +6,8 @@
 #include "Geant/RunManager.h"
 #include "Geant/ExternalFramework.h"
 
-#include "PhysicsProcessHandler.h"
-#include "PhysicsListManager.h"
+#include "Geant/PhysicsProcessHandler.h"
+#include "Geant/PhysicsListManager.h"
 
 //FULL-CMS application
 #include "CMSFullApp.h"

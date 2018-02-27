@@ -14,7 +14,7 @@
 
 #include "TestEm3DetectorConstruction.h"
 #include "TestEm3PrimaryGenerator.h"
-#include "Particle.h"
+#include "Geant/Particle.h"
 
 #include <cassert>
 #include <iostream>

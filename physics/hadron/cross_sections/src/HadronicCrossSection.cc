@@ -1,4 +1,4 @@
-#include "HadronicCrossSection.h"
+#include "Geant/HadronicCrossSection.h"
 #include <iostream>
 using namespace geantphysics;
 

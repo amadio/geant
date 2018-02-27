@@ -1,5 +1,5 @@
-#include "TNudyCore.h"
-#include "TNudyAliasCont.h"
+#include "Geant/TNudyCore.h"
+#include "Geant/TNudyAliasCont.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyAlias)

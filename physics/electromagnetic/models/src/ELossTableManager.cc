@@ -1,12 +1,12 @@
 
-#include "ELossTableManager.h"
+#include "Geant/ELossTableManager.h"
 
-#include "PhysicsParameters.h"
-#include "ELossTableRegister.h"
-#include "ELossTable.h"
-#include "Material.h"
-#include "MaterialCuts.h"
-#include "Particle.h"
+#include "Geant/PhysicsParameters.h"
+#include "Geant/ELossTableRegister.h"
+#include "Geant/ELossTable.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
+#include "Geant/Particle.h"
 
 #include <iostream>
 

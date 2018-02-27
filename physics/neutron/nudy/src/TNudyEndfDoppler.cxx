@@ -5,7 +5,7 @@
 
 #include <math.h>
 #include <iostream>
-#include "TNudyEndfDoppler.h"
+#include "Geant/TNudyEndfDoppler.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfDoppler)

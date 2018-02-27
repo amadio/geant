@@ -1,6 +1,6 @@
-#include "HadronicFinalStateModelStore.h"
-#include "HadronicFinalStateModel.h"
-#include "Isotope.h"
+#include "Geant/HadronicFinalStateModelStore.h"
+#include "Geant/HadronicFinalStateModel.h"
+#include "Geant/Isotope.h"
 
 using namespace geantphysics;
 

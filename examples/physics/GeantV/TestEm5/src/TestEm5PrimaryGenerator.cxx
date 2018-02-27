@@ -2,7 +2,7 @@
 #include "TestEm5PrimaryGenerator.h"
 
 #include "TestEm5DetectorConstruction.h"
-#include "Particle.h"
+#include "Geant/Particle.h"
 
 // from geantV
 #include "Geant/Track.h"

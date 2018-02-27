@@ -1,7 +1,7 @@
 
-#include "GammaConversionProcess.h"
+#include "Geant/GammaConversionProcess.h"
 
-#include "Gamma.h"
+#include "Geant/Gamma.h"
 
 namespace geantphysics {
 

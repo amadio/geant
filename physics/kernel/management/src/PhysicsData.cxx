@@ -1,7 +1,7 @@
 
-#include "PhysicsData.h"
+#include "Geant/PhysicsData.h"
 
-#include "LightTrack.h"
+#include "Geant/LightTrack.h"
 
 namespace geantphysics {
 

@@ -1,15 +1,15 @@
 
-#include "LambdaTable.h"
+#include "Geant/LambdaTable.h"
 
-#include "PhysicsProcess.h"
-#include "PhysicsParameters.h"
-#include "Particle.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/PhysicsParameters.h"
+#include "Geant/Particle.h"
 
-#include "Types.h"
-#include "Material.h"
-#include "MaterialCuts.h"
+#include "Geant/Types.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
 
-#include "Spline.h"
+#include "Geant/Spline.h"
 
 #include <iostream>
 

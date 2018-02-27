@@ -1,4 +1,4 @@
-#include "Proton.h"
+#include "Geant/Proton.h"
 
 #include "Geant/PhysicalConstants.h"
 #include "Geant/SystemOfUnits.h"

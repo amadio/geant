@@ -1,13 +1,13 @@
-#include "HadronicProcess.h"
-#include "LightTrack.h"
-#include "HadronicCrossSectionStore.h"
-#include "HadronicFinalStateModelStore.h"
-#include "HadronicFinalStateModel.h"
-#include "Isotope.h"
-#include "Material.h"
-#include "MaterialCuts.h"
-#include "MaterialProperties.h"
-#include "Particle.h"
+#include "Geant/HadronicProcess.h"
+#include "Geant/LightTrack.h"
+#include "Geant/HadronicCrossSectionStore.h"
+#include "Geant/HadronicFinalStateModelStore.h"
+#include "Geant/HadronicFinalStateModel.h"
+#include "Geant/Isotope.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/Particle.h"
 
 using namespace geantphysics;
 

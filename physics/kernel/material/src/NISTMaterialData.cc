@@ -1,7 +1,7 @@
 
-#include "NISTMaterialData.h"
+#include "Geant/NISTMaterialData.h"
 #include "Geant/PhysicalConstants.h"
-#include "MaterialState.h"
+#include "Geant/MaterialState.h"
 
 namespace geantphysics {
 

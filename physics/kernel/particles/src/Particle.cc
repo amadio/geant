@@ -1,5 +1,5 @@
 
-#include "Particle.h"
+#include "Geant/Particle.h"
 
 //#include "Geant/PhysicalConstants.h"
 

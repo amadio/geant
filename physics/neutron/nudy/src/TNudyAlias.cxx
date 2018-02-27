@@ -3,7 +3,7 @@
  * @brief Implementation file for Alias Sampling
 */
 
-#include "TNudyAlias.h"
+#include "Geant/TNudyAlias.h"
 
 #ifdef USE_ROOT
 #include "TRandom.h"

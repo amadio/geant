@@ -1,5 +1,5 @@
 
-#include "MSCModel.h"
+#include "Geant/MSCModel.h"
 
 // from geantV
 #include "Geant/TaskData.h"

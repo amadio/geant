@@ -1,7 +1,7 @@
 
-#include "DensityEffectData.h"
+#include "Geant/DensityEffectData.h"
 #include "Geant/PhysicalConstants.h"
-#include "MaterialState.h"
+#include "Geant/MaterialState.h"
 
 #include <iostream>
 

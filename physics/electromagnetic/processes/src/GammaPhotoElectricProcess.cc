@@ -1,4 +1,4 @@
-#include "GammaPhotoElectricProcess.h"
+#include "Geant/GammaPhotoElectricProcess.h"
 
 namespace geantphysics {
 

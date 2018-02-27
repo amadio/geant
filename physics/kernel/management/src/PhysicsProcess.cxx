@@ -1,10 +1,10 @@
 
-#include "PhysicsProcess.h"
+#include "Geant/PhysicsProcess.h"
 
-#include "LightTrack.h"
-#include "Particle.h"
+#include "Geant/LightTrack.h"
+#include "Geant/Particle.h"
 
-#include "LambdaTable.h"
+#include "Geant/LambdaTable.h"
 
 #include <iostream>
 

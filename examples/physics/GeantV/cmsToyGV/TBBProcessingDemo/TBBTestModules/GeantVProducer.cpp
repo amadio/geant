@@ -19,9 +19,9 @@
 #include "Geant/RunManager.h"
 #include "Geant/EventSet.h"
 
-//#include "HepMCGenerator.h"
-#include "PhysicsProcessHandler.h"
-#include "PhysicsListManager.h"
+//#include "Geant/HepMCGenerator.h"
+#include "Geant/PhysicsProcessHandler.h"
+#include "Geant/PhysicsListManager.h"
 
 #include "CMSApplicationTBB.h"
 #include "CMSPhysicsList.h"

@@ -1,5 +1,5 @@
 
-#include "AtRestActionHandler.h"
+#include "Geant/AtRestActionHandler.h"
 
 // from geantV
 #include "Geant/Propagator.h"
@@ -8,15 +8,15 @@
 #include "Geant/Basket.h"
 
 // from realphysics
-#include "Material.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialCuts.h"
 #include "Geant/Region.h"
-#include "Particle.h"
+#include "Geant/Particle.h"
 
-#include "PhysicsProcess.h"
-#include "PhysicsManagerPerParticle.h"
-#include "LightTrack.h"
-#include "PhysicsData.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsData.h"
 
 namespace geantphysics {
 

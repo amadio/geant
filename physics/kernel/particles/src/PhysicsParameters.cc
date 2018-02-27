@@ -1,5 +1,5 @@
 
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsParameters.h"
 
 #include "Geant/SystemOfUnits.h"
 

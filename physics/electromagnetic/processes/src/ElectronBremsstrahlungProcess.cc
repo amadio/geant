@@ -1,5 +1,5 @@
 
-#include "ElectronBremsstrahlungProcess.h"
+#include "Geant/ElectronBremsstrahlungProcess.h"
 
 namespace geantphysics {
 

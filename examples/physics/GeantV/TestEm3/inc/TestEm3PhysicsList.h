@@ -2,9 +2,9 @@
 #ifndef TESTEM3PHYSICSLIST_H
 #define TESTEM3PHYSICSLIST_H
 
-#include "PhysicsList.h"
+#include "Geant/PhysicsList.h"
 // for the MSCSteppingAlgorithm enums
-#include "MSCModel.h"
+#include "Geant/MSCModel.h"
 
 #include <string>
 

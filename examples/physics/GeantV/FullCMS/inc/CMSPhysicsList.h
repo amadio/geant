@@ -2,7 +2,7 @@
 #ifndef CMSPHYSICSLIST_H
 #define CMSPHYSICSLIST_H
 
-#include "PhysicsList.h"
+#include "Geant/PhysicsList.h"
 
 #include <string>
 

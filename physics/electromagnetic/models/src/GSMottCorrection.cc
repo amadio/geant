@@ -1,13 +1,13 @@
 
-#include "GSMottCorrection.h"
+#include "Geant/GSMottCorrection.h"
 
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
 
-#include "Material.h"
-#include "MaterialProperties.h"
-#include "Element.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/Element.h"
+#include "Geant/MaterialCuts.h"
 
 // only for rng
 #include "Geant/TaskData.h"

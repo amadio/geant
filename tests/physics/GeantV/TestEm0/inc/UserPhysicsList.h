@@ -2,7 +2,7 @@
 #ifndef USERPHYSICSLIST_H
 #define USERPHYSICSLIST_H
 
-#include "PhysicsList.h"
+#include "Geant/PhysicsList.h"
 #include <string>
 
 namespace userapplication {

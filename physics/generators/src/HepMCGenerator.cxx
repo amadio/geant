@@ -1,4 +1,4 @@
-#include "HepMCGenerator.h"
+#include "Geant/HepMCGenerator.h"
 #include "base/Global.h"
 using vecgeom::kPi;
 #include "Geant/Typedefs.h"

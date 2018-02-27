@@ -1,11 +1,11 @@
 
-#include "PWATotalXsecTable.h"
+#include "Geant/PWATotalXsecTable.h"
 
-#include "Material.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
 
 // from material
-#include "Types.h"
+#include "Geant/Types.h"
 
 #include <iostream>
 #include <fstream>

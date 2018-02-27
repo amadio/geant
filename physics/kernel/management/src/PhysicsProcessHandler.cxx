@@ -1,27 +1,27 @@
 
-#include "PhysicsProcessHandler.h"
+#include "Geant/PhysicsProcessHandler.h"
 
 #include "Geant/SystemOfUnits.h"
 
 // realphysics material
-#include "Material.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
 #include "Geant/Region.h"
-#include "MaterialCuts.h"
+#include "Geant/MaterialCuts.h"
 
-#include "PhysicsListManager.h"
-#include "PhysicsProcess.h"
-#include "PhysicsList.h"
-#include "PhysicsList1.h"
+#include "Geant/PhysicsListManager.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/PhysicsList.h"
+#include "Geant/PhysicsList1.h"
 
-#include "PhysicsManagerPerParticle.h"
-#include "LightTrack.h"
-#include "PhysicsData.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsData.h"
 
 #include "Geant/Propagator.h"
 #include "Geant/TaskData.h"
 
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsParameters.h"
 
 #include <iostream>
 

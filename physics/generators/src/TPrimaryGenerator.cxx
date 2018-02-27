@@ -1,4 +1,4 @@
-#include "TPrimaryGenerator.h"
+#include "Geant/TPrimaryGenerator.h"
 
 #include "Geant/Error.h"
 

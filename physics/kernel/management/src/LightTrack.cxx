@@ -1,5 +1,5 @@
 
-#include "LightTrack.h"
+#include "Geant/LightTrack.h"
 
 namespace geantphysics {
 

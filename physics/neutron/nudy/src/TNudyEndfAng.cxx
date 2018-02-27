@@ -5,13 +5,13 @@
 // 	date of creation: March 24, 2016
 
 #include "TList.h"
-#include "TNudyEndfAng.h"
-#include "TNudyEndfFile.h"
-#include "TNudyEndfCont.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyEndfList.h"
-#include "TNudyCore.h"
+#include "Geant/TNudyEndfAng.h"
+#include "Geant/TNudyEndfFile.h"
+#include "Geant/TNudyEndfCont.h"
+#include "Geant/TNudyEndfTab1.h"
+#include "Geant/TNudyEndfTab2.h"
+#include "Geant/TNudyEndfList.h"
+#include "Geant/TNudyCore.h"
 #include "Math/SpecFuncMathMore.h"
 
 #ifdef USE_ROOT

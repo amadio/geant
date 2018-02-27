@@ -1,4 +1,4 @@
-#include "PionMinus.h"
+#include "Geant/PionMinus.h"
 
 #include "Geant/PhysicalConstants.h"
 #include "Geant/SystemOfUnits.h"

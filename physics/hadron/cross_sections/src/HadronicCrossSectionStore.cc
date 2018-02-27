@@ -1,9 +1,9 @@
-#include "HadronicCrossSectionStore.h"
-#include "HadronicCrossSection.h"
-#include "Isotope.h"
-#include "Element.h"
-#include "Material.h"
-#include "MaterialProperties.h"
+#include "Geant/HadronicCrossSectionStore.h"
+#include "Geant/HadronicCrossSection.h"
+#include "Geant/Isotope.h"
+#include "Geant/Element.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
 
 using namespace geantphysics;
 

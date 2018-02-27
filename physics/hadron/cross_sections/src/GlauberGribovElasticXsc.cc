@@ -1,4 +1,4 @@
-#include "GlauberGribovElasticXsc.h"
+#include "Geant/GlauberGribovElasticXsc.h"
 #include <iostream>
 namespace geantphysics {
 

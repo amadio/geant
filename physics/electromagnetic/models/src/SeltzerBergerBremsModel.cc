@@ -1,28 +1,28 @@
 
-#include "SeltzerBergerBremsModel.h"
+#include "Geant/SeltzerBergerBremsModel.h"
 // from material
-#include "Types.h"
+#include "Geant/Types.h"
 
 
 #include "Geant/PhysicalConstants.h"
 
 #include "Geant/PhysicalConstants.h"
-#include "Material.h"
-#include "Element.h"
-#include "MaterialProperties.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
+#include "Geant/MaterialProperties.h"
 
-#include "MaterialCuts.h"
+#include "Geant/MaterialCuts.h"
 
-#include "Spline.h"
-#include "GLIntegral.h"
-#include "AliasTable.h"
+#include "Geant/Spline.h"
+#include "Geant/GLIntegral.h"
+#include "Geant/AliasTable.h"
 
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsParameters.h"
 
-#include "Gamma.h"
+#include "Geant/Gamma.h"
 
-#include "LightTrack.h"
-#include "PhysicsData.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsData.h"
 
 // from geantV
 #include "Geant/TaskData.h"

@@ -1,6 +1,6 @@
-#include "GlauberGribovTotalXsc.h"
-#include "Proton.h"
-#include "Neutron.h"
+#include "Geant/GlauberGribovTotalXsc.h"
+#include "Geant/Proton.h"
+#include "Geant/Neutron.h"
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
 

@@ -1,15 +1,15 @@
 
-#include "EMPhysicsProcess.h"
+#include "Geant/EMPhysicsProcess.h"
 
-#include "MaterialCuts.h"
-#include "Particle.h"
-#include "PhysicsParameters.h"
-#include "EMModel.h"
-#include "EMModelManager.h"
-#include "ELossTableRegister.h"
-#include "ELossTableManager.h"
+#include "Geant/MaterialCuts.h"
+#include "Geant/Particle.h"
+#include "Geant/PhysicsParameters.h"
+#include "Geant/EMModel.h"
+#include "Geant/EMModelManager.h"
+#include "Geant/ELossTableRegister.h"
+#include "Geant/ELossTableManager.h"
 
-#include "LightTrack.h"
+#include "Geant/LightTrack.h"
 
 #include <iostream>
 

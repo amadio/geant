@@ -1,15 +1,15 @@
 
-#include "MSCProcess.h"
+#include "Geant/MSCProcess.h"
 
 #include "Geant/SystemOfUnits.h"
 
-#include "Electron.h"
-#include "Positron.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
 
 #include "Geant/Region.h"
 
-#include "MSCModel.h"
-#include "EMModelManager.h"
+#include "Geant/MSCModel.h"
+#include "Geant/EMModelManager.h"
 
 // from geantV
 #include "Geant/TaskData.h"

@@ -19,31 +19,31 @@
 #include <getopt.h>
 #include <err.h>
 
-#include "Material.h"
-#include "Element.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
+#include "Geant/MaterialCuts.h"
 
 // vecgeom includes
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
 
 #include "Geant/Region.h"
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsParameters.h"
 
 // just to clear them
-#include "ELossTableManager.h"
-#include "ELossTableRegister.h"
+#include "Geant/ELossTableManager.h"
+#include "Geant/ELossTableRegister.h"
 
-#include "Particle.h"
-#include "Electron.h"
-#include "Positron.h"
-#include "Gamma.h"
+#include "Geant/Particle.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 
-#include "EMModel.h"
-#include "KleinNishinaComptonModel.h"
+#include "Geant/EMModel.h"
+#include "Geant/KleinNishinaComptonModel.h"
 
-#include "LightTrack.h"
-#include "PhysicsData.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsData.h"
 
 // from geantV
 #include "Geant/Typedefs.h"

@@ -1,8 +1,8 @@
-#include "TVNudyModel.h"
+#include "Geant/TVNudyModel.h"
 #include "TList.h"
-#include "TNudyEndfFile.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyCore.h"
+#include "Geant/TNudyEndfFile.h"
+#include "Geant/TNudyEndfTab1.h"
+#include "Geant/TNudyCore.h"
 
 //______________________________________________________________________________
 void TVNudyModel::ReadFile3(TNudyEndfFile *file)

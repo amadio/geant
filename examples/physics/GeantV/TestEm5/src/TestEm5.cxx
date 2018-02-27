@@ -10,14 +10,14 @@
 #include "Geant/Error.h"
 
 #include "Geant/SystemOfUnits.h"
-#include "PhysicsData.h"
-#include "MaterialCuts.h"
-#include "Material.h"
-#include "LightTrack.h"
-#include "PhysicsProcess.h"
-#include "EMPhysicsProcess.h"
-#include "PhysicsManagerPerParticle.h"
-#include "Particle.h"
+#include "Geant/PhysicsData.h"
+#include "Geant/MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/EMPhysicsProcess.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/Particle.h"
 
 
 #include "TestEm5DetectorConstruction.h"

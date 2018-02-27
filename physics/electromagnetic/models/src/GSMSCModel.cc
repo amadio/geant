@@ -1,23 +1,23 @@
 
-#include "GSMSCModel.h"
+#include "Geant/GSMSCModel.h"
 
 
 // from material
-#include "Types.h"
-#include "Material.h"
-#include "MaterialProperties.h"
-#include "MaterialCuts.h"
-#include "Element.h"
+#include "Geant/Types.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/MaterialCuts.h"
+#include "Geant/Element.h"
 
 #include "Geant/Region.h"
-#include "ELossTableManager.h"
+#include "Geant/ELossTableManager.h"
 
-#include "GSMSCTable.h"
-#include "GSPWACorrections.h"
+#include "Geant/GSMSCTable.h"
+#include "Geant/GSPWACorrections.h"
 
-#include "Particle.h"
-#include "Electron.h"
-#include "Positron.h"
+#include "Geant/Particle.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
 
 // from geantV
 #include "Geant/TaskData.h"

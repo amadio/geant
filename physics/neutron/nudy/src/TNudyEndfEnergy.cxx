@@ -5,11 +5,11 @@
 // 	date of creation: March 24, 2016
 
 #include "TList.h"
-#include "TNudyEndfFile.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyCore.h"
-#include "TNudyEndfEnergy.h"
+#include "Geant/TNudyEndfFile.h"
+#include "Geant/TNudyEndfTab1.h"
+#include "Geant/TNudyEndfTab2.h"
+#include "Geant/TNudyCore.h"
+#include "Geant/TNudyEndfEnergy.h"
 #include "Math/SpecFuncMathMore.h"
 #include "TMath.h"
 

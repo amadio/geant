@@ -1,8 +1,8 @@
-#include "TNudyManager.h"
-#include "TNudyEndfTape.h"
-#include "TNudySubLibrary.h"
-#include "TVNudyModel.h"
-#include "TNudyENDF.h"
+#include "Geant/TNudyManager.h"
+#include "Geant/TNudyEndfTape.h"
+#include "Geant/TNudySubLibrary.h"
+#include "Geant/TVNudyModel.h"
+#include "Geant/TNudyENDF.h"
 #include "TFile.h"
 #include <TROOT.h>
 

@@ -1,9 +1,9 @@
 
-#include "PhysicsList.h"
+#include "Geant/PhysicsList.h"
 
-#include "PhysicsProcess.h"
-#include "Particle.h"
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/Particle.h"
+#include "Geant/PhysicsParameters.h"
 
 namespace geantphysics {
 

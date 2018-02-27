@@ -18,30 +18,30 @@
 #include <getopt.h>
 #include <err.h>
 
-#include "Material.h"
-#include "Element.h"
-#include "Isotope.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
+#include "Geant/Isotope.h"
 
 // vecgeom includes
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
 
 #include "Geant/Region.h"
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsParameters.h"
 
-#include "ELossTableManager.h"
-#include "ELossTableRegister.h"
+#include "Geant/ELossTableManager.h"
+#include "Geant/ELossTableRegister.h"
 
-#include "Particle.h"
-#include "Proton.h"
-#include "Electron.h"
-#include "Positron.h"
-#include "Gamma.h"
+#include "Geant/Particle.h"
+#include "Geant/Proton.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 
-#include "DiffuseElasticModel.h"
+#include "Geant/DiffuseElasticModel.h"
 
-#include "LightTrack.h"
-#include "PhysicsData.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsData.h"
 
 // a simple histogram class: can be changed later
 #include "Hist.h"

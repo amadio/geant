@@ -1,18 +1,18 @@
 
-#include "GSMSCTable.h"
+#include "Geant/GSMSCTable.h"
 
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
 
 // from material
-#include "Types.h"
+#include "Geant/Types.h"
 
-#include "Material.h"
-#include "MaterialProperties.h"
-#include "Element.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/Element.h"
+#include "Geant/MaterialCuts.h"
 
-#include "GSMottCorrection.h"
+#include "Geant/GSMottCorrection.h"
 
 // from geantV
 #include "Geant/TaskData.h"

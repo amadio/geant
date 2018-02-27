@@ -1,13 +1,13 @@
 //
-#include "DiffuseElasticModel.h"
+#include "Geant/DiffuseElasticModel.h"
 
 #include "Geant/PhysicalConstants.h"
 // for Vector_t
-#include "Types.h"
+#include "Geant/Types.h"
 
-#include "Isotope.h"
+#include "Geant/Isotope.h"
 
-#include "LightTrack.h"
+#include "Geant/LightTrack.h"
 
 #include <iostream>
 

@@ -1,12 +1,12 @@
 
-#include "PositronAnnihilationProcess.h"
+#include "Geant/PositronAnnihilationProcess.h"
 
-#include "PositronTo2GammaModel.h"
-#include "Positron.h"
-#include "Gamma.h"
+#include "Geant/PositronTo2GammaModel.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 
-#include "LightTrack.h"
-#include "PhysicsData.h"
+#include "Geant/LightTrack.h"
+#include "Geant/PhysicsData.h"
 
 
 #include "Geant/PhysicalConstants.h"

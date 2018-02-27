@@ -8,14 +8,14 @@
 #include <string>
 #include <iostream>
 
-#include "TNudyENDF.h"
-#include "TNudyEndfTape.h"
-#include "TNudyEndfMat.h"
-#include "TNudyEndfCont.h"
-#include "TNudyEndfList.h"
-#include "TNudyEndfTab1.h"
-#include "TNudyEndfTab2.h"
-#include "TNudyEndfINTG.h"
+#include "Geant/TNudyENDF.h"
+#include "Geant/TNudyEndfTape.h"
+#include "Geant/TNudyEndfMat.h"
+#include "Geant/TNudyEndfCont.h"
+#include "Geant/TNudyEndfList.h"
+#include "Geant/TNudyEndfTab1.h"
+#include "Geant/TNudyEndfTab2.h"
+#include "Geant/TNudyEndfINTG.h"
 
 #include "TFile.h"
 #include "TError.h"

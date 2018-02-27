@@ -8,7 +8,7 @@
 #include <iostream>
 #include "TList.h"
 #include <TNudyEndfTape.h>
-#include "TNudyEndfMat.h"
+#include "Geant/TNudyEndfMat.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfTape)

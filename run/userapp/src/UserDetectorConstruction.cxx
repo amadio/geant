@@ -12,8 +12,8 @@
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"
-#include "Material.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
 #ifdef USE_ROOT
 #include "TGeoRegion.h"
 #include "management/RootGeoManager.h"

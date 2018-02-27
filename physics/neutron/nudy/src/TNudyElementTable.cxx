@@ -1,8 +1,8 @@
-#include "TNudyElementTable.h"
+#include "Geant/TNudyElementTable.h"
 #include "TGeoManager.h"
 #include "TCanvas.h"
 #include "TButton.h"
-#include "TNudyElementRN.h"
+#include "Geant/TNudyElementRN.h"
 #include <iostream>
 
 #ifdef USE_ROOT

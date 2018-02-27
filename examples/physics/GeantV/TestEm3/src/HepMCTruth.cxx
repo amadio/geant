@@ -2,8 +2,8 @@
 
 #include "Geant/Track.h"
 
-#include "Particle.h"
-#include "PhysicsProcess.h"
+#include "Geant/Particle.h"
+#include "Geant/PhysicsProcess.h"
 
 #include "HepMC/GenParticle.h"
 #include "HepMC/GenVertex.h"

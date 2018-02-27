@@ -11,7 +11,7 @@
 #include "TPFstate.h"
 #include "TPXsec.h"
 #include "TPartIndex.h"
-#include "TPrimaryGenerator.h"
+#include "Geant/TPrimaryGenerator.h"
 #include "TTabPhysMgr.h"
 #include "TTabPhysProcess.h"
 #endif

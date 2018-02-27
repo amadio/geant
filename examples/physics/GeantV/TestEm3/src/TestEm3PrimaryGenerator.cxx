@@ -1,7 +1,7 @@
 
 #include "TestEm3PrimaryGenerator.h"
 #include "TestEm3DetectorConstruction.h"
-#include "Particle.h"
+#include "Geant/Particle.h"
 
 // from geantV
 #include "Geant/Track.h"

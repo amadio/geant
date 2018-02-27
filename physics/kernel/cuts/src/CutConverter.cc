@@ -1,15 +1,15 @@
 
-#include "CutConverter.h"
+#include "Geant/CutConverter.h"
 
-#include "Material.h"
-#include "MaterialProperties.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/Element.h"
 
-#include "GLIntegral.h"
-#include "Spline.h"
+#include "Geant/GLIntegral.h"
+#include "Geant/Spline.h"
 
 // from material
-#include "Types.h"
+#include "Geant/Types.h"
 
 #include <cmath>
 #include <iostream>

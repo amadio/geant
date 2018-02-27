@@ -16,8 +16,8 @@
 #include "Rtypes.h"
 #include "TGeoManager.h"
 
-#include "GunGenerator.h"
-#include "HepMCGenerator.h"
+#include "Geant/GunGenerator.h"
+#include "Geant/HepMCGenerator.h"
 #include "Geant/TaskBroker.h"
 #include "Geant/WorkloadManager.h"
 #include "Geant/Propagator.h"
@@ -27,7 +27,7 @@
 #include "HepMC/ReaderRoot.h"
 #include "HepMC/GenEvent.h"
 //#include "HepMC/HepMC.h"
-#include "HepMCGenerator.h"
+#include "Geant/HepMCGenerator.h"
 
 using namespace HepMC;
 

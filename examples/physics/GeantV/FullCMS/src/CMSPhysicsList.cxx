@@ -4,35 +4,35 @@
 #include "Geant/PhysicalConstants.h"
 #include "Geant/SystemOfUnits.h"
 
-#include "PhysicsProcess.h"
+#include "Geant/PhysicsProcess.h"
 
-#include "Particle.h"
-#include "Electron.h"
-#include "Positron.h"
-#include "Gamma.h"
+#include "Geant/Particle.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 
-#include "ElectronIonizationProcess.h"
-#include "MollerBhabhaIonizationModel.h"
+#include "Geant/ElectronIonizationProcess.h"
+#include "Geant/MollerBhabhaIonizationModel.h"
 
-#include "ElectronBremsstrahlungProcess.h"
-#include "SeltzerBergerBremsModel.h"
-#include "RelativisticBremsModel.h"
+#include "Geant/ElectronBremsstrahlungProcess.h"
+#include "Geant/SeltzerBergerBremsModel.h"
+#include "Geant/RelativisticBremsModel.h"
 
-#include "PositronAnnihilationProcess.h"
+#include "Geant/PositronAnnihilationProcess.h"
 
-#include "ComptonScatteringProcess.h"
-#include "KleinNishinaComptonModel.h"
+#include "Geant/ComptonScatteringProcess.h"
+#include "Geant/KleinNishinaComptonModel.h"
 
-#include "GammaConversionProcess.h"
-#include "BetheHeitlerPairModel.h"
-#include "RelativisticPairModel.h"
+#include "Geant/GammaConversionProcess.h"
+#include "Geant/BetheHeitlerPairModel.h"
+#include "Geant/RelativisticPairModel.h"
 
-#include "GammaPhotoElectricProcess.h"
-#include "SauterGavrilaPhotoElectricModel.h"
+#include "Geant/GammaPhotoElectricProcess.h"
+#include "Geant/SauterGavrilaPhotoElectricModel.h"
 
-#include "MSCProcess.h"
-#include "MSCModel.h"
-#include "GSMSCModel.h"
+#include "Geant/MSCProcess.h"
+#include "Geant/MSCModel.h"
+#include "Geant/GSMSCModel.h"
 
 
 namespace cmsapp {

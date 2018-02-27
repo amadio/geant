@@ -1,5 +1,5 @@
 
-#include "ELossTableRegister.h"
+#include "Geant/ELossTableRegister.h"
 
 namespace geantphysics {
 

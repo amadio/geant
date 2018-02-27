@@ -9,13 +9,13 @@
 #include <string>
 #include <cmath>
 
-#include "Isotope.h"
-#include "Element.h"
-#include "Material.h"
+#include "Geant/Isotope.h"
+#include "Geant/Element.h"
+#include "Geant/Material.h"
 
-#include "MaterialProperties.h"
+#include "Geant/MaterialProperties.h"
 
-#include "NISTElementData.h"
+#include "Geant/NISTElementData.h"
 
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"

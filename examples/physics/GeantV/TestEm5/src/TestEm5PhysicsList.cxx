@@ -4,53 +4,53 @@
 #include "Geant/PhysicalConstants.h"
 #include "Geant/SystemOfUnits.h"
 
-#include "PhysicsProcess.h"
+#include "Geant/PhysicsProcess.h"
 
-#include "Particle.h"
-#include "Electron.h"
-#include "Positron.h"
-#include "Gamma.h"
+#include "Geant/Particle.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 
-#include "Proton.h"
-#include "Neutron.h"
-#include "PionPlus.h"
-#include "PionMinus.h"
-#include "PionZero.h"
-#include "KaonPlus.h"
-#include "KaonMinus.h"
-#include "KaonZero.h"
-#include "KaonShort.h"
-#include "KaonLong.h"
+#include "Geant/Proton.h"
+#include "Geant/Neutron.h"
+#include "Geant/PionPlus.h"
+#include "Geant/PionMinus.h"
+#include "Geant/PionZero.h"
+#include "Geant/KaonPlus.h"
+#include "Geant/KaonMinus.h"
+#include "Geant/KaonZero.h"
+#include "Geant/KaonShort.h"
+#include "Geant/KaonLong.h"
 
 
-#include "ElectronIonizationProcess.h"
-#include "MollerBhabhaIonizationModel.h"
+#include "Geant/ElectronIonizationProcess.h"
+#include "Geant/MollerBhabhaIonizationModel.h"
 
-#include "ElectronBremsstrahlungProcess.h"
-#include "SeltzerBergerBremsModel.h"
-#include "RelativisticBremsModel.h"
+#include "Geant/ElectronBremsstrahlungProcess.h"
+#include "Geant/SeltzerBergerBremsModel.h"
+#include "Geant/RelativisticBremsModel.h"
 
-#include "PositronAnnihilationProcess.h"
+#include "Geant/PositronAnnihilationProcess.h"
 
-#include "ComptonScatteringProcess.h"
-#include "KleinNishinaComptonModel.h"
+#include "Geant/ComptonScatteringProcess.h"
+#include "Geant/KleinNishinaComptonModel.h"
 
-#include "GammaConversionProcess.h"
-#include "BetheHeitlerPairModel.h"
-#include "RelativisticPairModel.h"
+#include "Geant/GammaConversionProcess.h"
+#include "Geant/BetheHeitlerPairModel.h"
+#include "Geant/RelativisticPairModel.h"
 
-#include "GammaPhotoElectricProcess.h"
-#include "SauterGavrilaPhotoElectricModel.h"
+#include "Geant/GammaPhotoElectricProcess.h"
+#include "Geant/SauterGavrilaPhotoElectricModel.h"
 
-#include "MSCProcess.h"
-#include "MSCModel.h"
-#include "GSMSCModel.h"
+#include "Geant/MSCProcess.h"
+#include "Geant/MSCModel.h"
+#include "Geant/GSMSCModel.h"
 
 #include "StepMaxProcess.h"
 
-#include "ElasticScatteringProcess.h"
-#include "DiffuseElasticModel.h"
-#include "GlauberGribovElasticXsc.h"
+#include "Geant/ElasticScatteringProcess.h"
+#include "Geant/DiffuseElasticModel.h"
+#include "Geant/GlauberGribovElasticXsc.h"
 
 namespace userapplication {
 

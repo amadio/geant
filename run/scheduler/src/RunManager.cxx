@@ -31,8 +31,8 @@
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"
-#include "Material.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
 #include "volumes/PlacedVolume.h"
 
 #include "Geant/UserFieldConstruction.h"

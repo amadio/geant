@@ -7,9 +7,9 @@
 #include "Geant/RunManager.h"
 
 // real-physics includes
-#include "PhysicsProcessHandler.h"
-#include "PhysicsListManager.h"
-#include "MSCModel.h"
+#include "Geant/PhysicsProcessHandler.h"
+#include "Geant/PhysicsListManager.h"
+#include "Geant/MSCModel.h"
 
 // application includes
 #include "TestEm5.h"

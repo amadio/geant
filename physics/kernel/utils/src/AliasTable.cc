@@ -1,8 +1,8 @@
 
-#include "AliasTable.h"
+#include "Geant/AliasTable.h"
 
-#include "Spline.h"
-#include "GLIntegral.h"
+#include "Geant/Spline.h"
+#include "Geant/GLIntegral.h"
 
 // cstdlib is for std::abs(int)
 #include <cstdlib>

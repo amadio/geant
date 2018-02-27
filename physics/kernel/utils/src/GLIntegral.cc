@@ -1,5 +1,5 @@
 
-#include "GLIntegral.h"
+#include "Geant/GLIntegral.h"
 
 #include "Geant/PhysicalConstants.h"
 

@@ -1,12 +1,12 @@
 
 
-#include "CutConverterForGamma.h"
+#include "Geant/CutConverterForGamma.h"
 // from material
-#include "Types.h"
+#include "Geant/Types.h"
 
-#include "Material.h"
-#include "MaterialProperties.h"
-#include "Element.h"
+#include "Geant/Material.h"
+#include "Geant/MaterialProperties.h"
+#include "Geant/Element.h"
 
 #include <cmath>
 #include <iostream>

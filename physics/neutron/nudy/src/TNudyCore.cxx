@@ -2,7 +2,7 @@
 
 #include "TSystem.h"
 #include "TGeoManager.h"
-#include "TNudyCore.h"
+#include "Geant/TNudyCore.h"
 #include "TParticle.h"
 
 using std::max;

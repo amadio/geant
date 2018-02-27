@@ -13,7 +13,7 @@
 #include "Geant/Propagator.h"
 #include "GeantScheduler.h"
 #include "Geant/WorkloadManager.h"
-#include "PhysicsProcess.h"
+#include "Geant/PhysicsProcess.h"
 #include "TGeoNode.h"
 #include "TGeoManager.h"
 #include "TGeoVolume.h"
@@ -25,7 +25,7 @@
 #include "Geant/Track.h"
 #include "TROOT.h"
 #include <iostream>
-#include "GunGenerator.h"
+#include "Geant/GunGenerator.h"
 #include "TTabPhysProcess.h"
 
 void run(int nthreads=4,

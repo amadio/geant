@@ -1,4 +1,4 @@
-#include "KaonPlus.h"
+#include "Geant/KaonPlus.h"
 
 #include "Geant/PhysicalConstants.h"
 #include "Geant/SystemOfUnits.h"

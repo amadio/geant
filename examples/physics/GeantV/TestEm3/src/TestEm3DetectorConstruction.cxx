@@ -8,17 +8,17 @@
 #include <vector>
 
 // Material includes
-#include "Material.h"
-#include "Element.h"
-#include "MaterialProperties.h"
-//#include "NISTElementData.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
+#include "Geant/MaterialProperties.h"
+//#include "Geant/NISTElementData.h"
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
 
 // Region and productionCut includes
 #include "Geant/Region.h"
-#include "PhysicsParameters.h"
-#include "MaterialCuts.h"
+#include "Geant/PhysicsParameters.h"
+#include "Geant/MaterialCuts.h"
 /////////////////////////////////
 // VecGeom includes
 #include "management/GeoManager.h"

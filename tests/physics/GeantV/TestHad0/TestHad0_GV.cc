@@ -26,43 +26,43 @@
 #include <getopt.h>
 #include <err.h>
 
-#include "Material.h"
-#include "Element.h"
-#include "MaterialCuts.h"
+#include "Geant/Material.h"
+#include "Geant/Element.h"
+#include "Geant/MaterialCuts.h"
 
 // vecgeom includes
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
 
 #include "Geant/Region.h"
-#include "PhysicsListManager.h"
-#include "PhysicsList.h"
-#include "PhysicsParameters.h"
+#include "Geant/PhysicsListManager.h"
+#include "Geant/PhysicsList.h"
+#include "Geant/PhysicsParameters.h"
 
 // include the user defined physics list
 #include "UserPhysicsList.h"
 
-#include "PhysicsManagerPerParticle.h"
-#include "PhysicsProcess.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/PhysicsProcess.h"
 
-#include "Particle.h"
-#include "Electron.h"
-#include "Positron.h"
-#include "Gamma.h"
-#include "Proton.h"
-#include "Neutron.h"
-#include "PionPlus.h"
-#include "PionMinus.h"
-#include "PionZero.h"
-#include "KaonPlus.h"
-#include "KaonMinus.h"
-#include "KaonZero.h"
-#include "KaonShort.h"
-#include "KaonLong.h"
+#include "Geant/Particle.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
+#include "Geant/Proton.h"
+#include "Geant/Neutron.h"
+#include "Geant/PionPlus.h"
+#include "Geant/PionMinus.h"
+#include "Geant/PionZero.h"
+#include "Geant/KaonPlus.h"
+#include "Geant/KaonMinus.h"
+#include "Geant/KaonZero.h"
+#include "Geant/KaonShort.h"
+#include "Geant/KaonLong.h"
 
-#include "HadronicProcess.h"
-#include "HadronicFinalStateModel.h"
-#include "HadronicFinalStateModelStore.h"
+#include "Geant/HadronicProcess.h"
+#include "Geant/HadronicFinalStateModel.h"
+#include "Geant/HadronicFinalStateModelStore.h"
 
 
 using geantphysics::Material;

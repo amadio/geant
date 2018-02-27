@@ -1,5 +1,5 @@
 
-#include "ElasticScatteringProcess.h"
+#include "Geant/ElasticScatteringProcess.h"
 
 namespace geantphysics {
 

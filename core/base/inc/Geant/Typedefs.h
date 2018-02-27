@@ -27,7 +27,7 @@ typedef geantphysics::Particle Particle_t;
 
 #include "navigation/NavigationState.h"
 typedef VECGEOM_NAMESPACE::NavigationState VolumePath_t;
-#include "Material.h"
+#include "Geant/Material.h"
 typedef geantphysics::Material Material_t;
 #include "volumes/LogicalVolume.h"
 typedef VECGEOM_NAMESPACE::LogicalVolume Volume_t;

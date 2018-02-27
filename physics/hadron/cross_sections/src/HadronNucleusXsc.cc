@@ -1,6 +1,6 @@
-#include "HadronNucleusXsc.h"
-#include "Proton.h"
-#include "Neutron.h"
+#include "Geant/HadronNucleusXsc.h"
+#include "Geant/Proton.h"
+#include "Geant/Neutron.h"
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
 
