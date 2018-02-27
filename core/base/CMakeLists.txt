@@ -4,15 +4,12 @@
 include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
 
 file(GLOB sources src/*.cxx)
-file(GLOB oldheaders inc/*.h)
 file(GLOB headers inc/Geant/*.h)
-file(GLOB all_headers inc/*.h inc/Geant/*.h)
-add_headers("${all_headers}")
+add_headers("${headers}")
 
 # library building currently handled by run/scheduler/CMakeLists.txt
 
 install(FILES ${headers} DESTINATION inc/Geant)
-install(FILES ${oldheaders} DESTINATION inc)
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

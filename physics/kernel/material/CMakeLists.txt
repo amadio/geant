@@ -6,7 +6,7 @@ file(GLOB sources
 )
 
 file(GLOB headers
-  ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc/Geant/*.h
   ${CMAKE_SOURCE_DIR}/core/base/inc/PhysicalConstants.h
   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/SystemOfUnits.h
 )

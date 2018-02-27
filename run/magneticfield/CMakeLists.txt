@@ -2,7 +2,7 @@
 # Add source files & include directories
 #
 file(GLOB sources src/*.cxx) # (T*.cxx src/GU*.cxx)
-file(GLOB headers inc/*.h)   # (T*.h inc/GU*.h)
+file(GLOB headers inc/Geant/*.h)   # (T*.h inc/GU*.h)
 
 include_directories(
   inc

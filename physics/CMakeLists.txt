@@ -23,14 +23,14 @@ file(GLOB sources
 file(GLOB headers
   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/PhysicalConstants.h
   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/SystemOfUnits.h
-  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/hadron/models/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/hadron/processes/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc/*.h
-  ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/inc/*.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/hadron/models/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/hadron/processes/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/inc/Geant/*.h
 )
 
 include_directories(
