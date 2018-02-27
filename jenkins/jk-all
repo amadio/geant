@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
 THIS=$(dirname $0)
+echo source $THIS/jk-setup.sh $LABEL $COMPILER $BUILDTYPE $EXTERNALS $WORKSPACE $TYPE $BACKEND > setup.sh
 source $THIS/jk-setup.sh $LABEL $COMPILER $BUILDTYPE $EXTERNALS $WORKSPACE $TYPE $BACKEND
 
 echo "Dumping the full environment ---------------------------------------------------------"
 env | sort | sed 's/:/:?     /g' | tr '?' '\n'
 echo "--------------------------------------------------------------------------------------"
 #---Run the CTest script depending on the compiler------------------------------------------
-ctest -VV -S ${THIS}/../geantv-ctest.cmake,Nightly
+ctest -VV -S ${THIS}/geantv-ctest.cmake,Nightly
 status=$?
 
 exit $status

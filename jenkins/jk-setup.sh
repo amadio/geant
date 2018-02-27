@@ -116,7 +116,7 @@ elif [[ $COMPILER == *clang* ]]; then
 fi
 
 export CMAKE_SOURCE_DIR=$WORKSPACE/geant
-export CMAKE_BINARY_DIR=$WORKSPACE/geant/builds
+export CMAKE_BINARY_DIR=$WORKSPACE/build
 export CMAKE_BUILD_TYPE=$BUILDTYPE
 
 export CTEST_BUILD_OPTIONS=" -DCMAKE_CXX_STANDARD=14 -DUSE_ROOT=ON -DCTEST=ON ${ExtraCMakeOptions}"
