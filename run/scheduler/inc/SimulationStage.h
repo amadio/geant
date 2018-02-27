@@ -22,7 +22,7 @@
 #define GEANT_SIMULATION_STAGE
 
 #include "Geant/Typedefs.h"
-#include "Track.h"
+#include "Geant/Track.h"
 #include "Handler.h"
 
 namespace geant {

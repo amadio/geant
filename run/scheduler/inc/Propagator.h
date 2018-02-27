@@ -29,7 +29,7 @@ class TStopwatch;
 using veccore::BitSet;
 
 #include "GeantConfig.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 class PhysicsInterface;
 

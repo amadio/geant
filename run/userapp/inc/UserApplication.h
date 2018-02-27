@@ -14,7 +14,7 @@
 #define GEANT_VAPPLICATION
 
 #include "Geant/Fwd.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

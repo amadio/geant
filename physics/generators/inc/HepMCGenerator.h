@@ -2,7 +2,7 @@
 #define HepMCGenerator_h
 
 #include "TPartIndex.h"
-#include "PrimaryGenerator.h"
+#include "Geant/PrimaryGenerator.h"
 
 #include "HepMC/Reader.h"
 #include "HepMC/GenEvent.h"

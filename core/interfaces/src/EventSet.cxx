@@ -1,4 +1,4 @@
-#include "EventSet.h"
+#include "Geant/EventSet.h"
 
 #include "Geant/Error.h"
 #include "Geant/Event.h"

@@ -9,7 +9,7 @@
 #include "ConstFieldHelixStepper.h"
 #include "FieldTrack.h"
 
-#include "Track.h"
+#include "Geant/Track.h"
 
 #include "base/SOA3D.h"
 // #include "SOA6D.h"
@@ -20,9 +20,9 @@
 #include "FlexIntegrationDriver.h"
 
 #include "navigation/NavigationState.h"
-#include "ScalarNavInterfaceVG.h"
-#include "ScalarNavInterfaceVGM.h"
-#include "VectorNavInterface.h"
+#include "Geant/ScalarNavInterfaceVG.h"
+#include "Geant/ScalarNavInterfaceVGM.h"
+#include "Geant/VectorNavInterface.h"
 
 using Double_v = geant::Double_v;
 

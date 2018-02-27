@@ -34,7 +34,7 @@
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
 
-#include "Region.h"
+#include "Geant/Region.h"
 #include "PhysicsListManager.h"
 #include "PhysicsList.h"
 #include "PhysicsParameters.h"

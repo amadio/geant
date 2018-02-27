@@ -5,10 +5,10 @@
 #include <thread>
 #include <VecCore/VecMath.h>
 #include "GeantNuma.h"
-#include "NumaAllocator.h"
+#include "Geant/NumaAllocator.h"
 
 #include "Basketizer.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 #include "TGeoManager.h"
 #include "TGeoBBox.h"

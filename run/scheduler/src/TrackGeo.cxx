@@ -6,9 +6,9 @@
 
 #include "TransportManager.h"
 
-#include "ScalarNavInterfaceVG.h"
-#include "ScalarNavInterfaceVGM.h"
-#include "VectorNavInterface.h"
+#include "Geant/ScalarNavInterfaceVG.h"
+#include "Geant/ScalarNavInterfaceVGM.h"
+#include "Geant/VectorNavInterface.h"
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"
 #include "navigation/ABBoxNavigator.h"

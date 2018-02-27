@@ -2,9 +2,9 @@
 #include <unistd.h>
 #endif
 
-#include "NumaUtils.h"
-#include "NumaTopology.h"
-#include "NumaNode.h"
+#include "Geant/NumaUtils.h"
+#include "Geant/NumaTopology.h"
+#include "Geant/NumaNode.h"
 
 
 namespace geant {

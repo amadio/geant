@@ -14,7 +14,7 @@
 #define GEANT_PRIORITY_QUEUE
 
 #ifndef GEANT_MPMC_BOUNDED_QUEUE
-#include "mpmc_bounded_queue.h"
+#include "Geant/mpmc_bounded_queue.h"
 #endif
 
 #include <mutex>

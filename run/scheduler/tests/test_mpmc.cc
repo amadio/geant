@@ -1,8 +1,8 @@
-#include "../inc/mpmc_bounded_queue.h"
-#include "../inc/priority_queue.h"
-#include "../inc/dcqueue.h"
+#include "../inc/Geant/mpmc_bounded_queue.h"
+#include "../inc/Geant/priority_queue.h"
+#include "../inc/Geant/dcqueue.h"
 #include <boost/lockfree/queue.hpp>
-#include "../inc/array_lock_free_queue.h"
+#include "../inc/Geant/array_lock_free_queue.h"
 #include <thread>
 #include <iostream>
 #include <vector>

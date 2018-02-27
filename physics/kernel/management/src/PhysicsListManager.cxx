@@ -18,7 +18,7 @@
 #include "KaonLong.h"
 
 // the dummy temporary region
-#include  "Region.h"
+#include  "Geant/Region.h"
 
 #include  "PhysicsProcess.h"
 #include  "PhysicsList.h"

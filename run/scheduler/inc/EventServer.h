@@ -9,7 +9,7 @@
 #include "TaskData.h"
 #include "Geant/Event.h"
 #include "GeantConfig.h"
-#include "priority_queue.h"
+#include "Geant/priority_queue.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

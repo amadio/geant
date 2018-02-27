@@ -73,12 +73,12 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Config.h
    ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Error.h
    ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/Fwd.h
-   ${CMAKE_SOURCE_DIR}/core/concurrency/inc/dcqueue.h
-   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/mpmc_bounded_queue.h
-   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/priority_queue.h
-   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/condition_locker.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency/inc/Geant/dcqueue.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/mpmc_bounded_queue.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/priority_queue.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/condition_locker.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TaskData.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PhysicsInterface.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/PhysicsInterface.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Handler.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Basketizer.h
@@ -95,7 +95,7 @@ set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/PropagationStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/SteppingActionsStage.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Propagator.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Track.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Track.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackGeo.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/UserApplication.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/UserDetectorConstruction.h
@@ -103,23 +103,23 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Factory.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/FactoryStore.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/StdApplication.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/PrimaryGenerator.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/PrimaryGenerator.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackManager.h
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TransportManager.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/LocalityManager.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/MCTruthMgr.h
-   ${CMAKE_SOURCE_DIR}/core/concurrency/inc/cuckoohash_map.hh
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/MCTruthMgr.h
+   ${CMAKE_SOURCE_DIR}/core/concurrency/inc/Geant/cuckoohash_map.hh
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/RunManager.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Event.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/EventSet.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/EventSet.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/EventServer.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/GeantConfig.h
 #   ${CMAKE_CURRENT_SOURCE_DIR}/inc/TrackStat.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Region.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Region.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/ExternalFramework.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVG.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/ScalarNavInterfaceVGM.h
-   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/VectorNavInterface.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/ScalarNavInterfaceVG.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/ScalarNavInterfaceVGM.h
+   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/VectorNavInterface.h
 )
 
 if (USE_ROOT)

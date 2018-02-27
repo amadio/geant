@@ -1,4 +1,4 @@
-#include "VectorNavInterface.h"
+#include "Geant/VectorNavInterface.h"
 
 #include "navigation/VNavigator.h"
 #include "navigation/SimpleNavigator.h"

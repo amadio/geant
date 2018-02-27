@@ -1,7 +1,7 @@
 #ifndef PARTICLEGUN_H
 #define PARTICLEGUN_H
 
-#include "PrimaryGenerator.h"
+#include "Geant/PrimaryGenerator.h"
 #include "base/RNG.h"
 
 #include "Geant/Typedefs.h"

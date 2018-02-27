@@ -1,4 +1,4 @@
-#include "NumaUtils.h"
+#include "Geant/NumaUtils.h"
 
 #include <iostream>
 #ifndef GEANT_USE_NUMA

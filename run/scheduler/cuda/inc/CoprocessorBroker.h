@@ -8,11 +8,11 @@
 #endif
 
 #ifndef GEANT_TASKBROKER
-#include "TaskBroker.h"
+#include "Geant/TaskBroker.h"
 #endif
 
 #include "backend/cuda/Interface.h"
-#include "dcqueue.h"
+#include "Geant/dcqueue.h"
 
 #ifndef __CINT__
 #include <cuda.h>
@@ -24,7 +24,7 @@ class curandState;
 
 #include "Geant/Fwd.h"
 #include "GeantTrack.h"
-#include "sync_objects.h"
+#include "Geant/sync_objects.h"
 
 namespace geant {
 #ifdef VECCORE_CUDA

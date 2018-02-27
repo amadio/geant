@@ -2,7 +2,7 @@
 #define GunGenerator_h
 
 #include "TPartIndex.h"
-#include "PrimaryGenerator.h"
+#include "Geant/PrimaryGenerator.h"
 #ifdef USE_ROOT
 #include "TRandom.h"
 #else

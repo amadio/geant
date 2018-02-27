@@ -15,10 +15,10 @@
 
 #include "base/Global.h"
 
-#include "Geant/Geant/Fwd.h"
-#include "Track.h"
+#include "Geant/Fwd.h"
+#include "Geant/Track.h"
 
-#include "cuckoohash_map.hh"
+#include "Geant/cuckoohash_map.hh"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

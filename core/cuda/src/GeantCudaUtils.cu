@@ -2,7 +2,7 @@
 
 #include "GeantCudaUtils.h"
 #include "Propagator.h"
-#include "Track.h"
+#include "Geant/Track.h"
 #include "GeantConfig.h"
 
 namespace geant {

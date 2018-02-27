@@ -1,6 +1,6 @@
-#include "NumaNode.h"
-#include "NumaCore.h"
-#include "NumaUtils.h"
+#include "Geant/NumaNode.h"
+#include "Geant/NumaCore.h"
+#include "Geant/NumaUtils.h"
 
 #ifdef GEANT_USE_NUMA
 constexpr size_t MByte = 1024*1024;

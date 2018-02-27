@@ -15,9 +15,9 @@
 
 #include <thread>
 #include <list>
-#include "priority_queue.h"
-#include "dcqueue.h"
-#include "condition_locker.h"
+#include "Geant/priority_queue.h"
+#include "Geant/dcqueue.h"
+#include "Geant/condition_locker.h"
 
 #include "Propagator.h"
 

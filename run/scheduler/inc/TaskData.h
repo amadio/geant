@@ -19,10 +19,10 @@
 #endif
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
-#include "mpmc_bounded_queue.h"
-#include "NumaBlockMgr.h"
+#include "Geant/mpmc_bounded_queue.h"
+#include "Geant/NumaBlockMgr.h"
 #include "Propagator.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 namespace geantphysics {
   class PhysicsData;

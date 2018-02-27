@@ -18,8 +18,8 @@
 #include <iostream>
 #include <type_traits>
 #include "Geant/Config.h"
-#include "mpmc_bounded_queue.h"
-#include "NumaBlock.h"
+#include "Geant/mpmc_bounded_queue.h"
+#include "Geant/NumaBlock.h"
 
 /**
  * @brief Class NumaBlockMgr

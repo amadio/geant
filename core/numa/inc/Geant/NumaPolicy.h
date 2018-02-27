@@ -15,7 +15,7 @@
 #include "Geant/Config.h"
 
 #ifndef GEANT_NUMA_TOPOLOGY
-#include "NumaTopology.h"
+#include "Geant/NumaTopology.h"
 #endif
 
 namespace geant {

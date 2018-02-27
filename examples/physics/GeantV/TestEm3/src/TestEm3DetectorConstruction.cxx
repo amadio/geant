@@ -16,7 +16,7 @@
 #include "Geant/PhysicalConstants.h"
 
 // Region and productionCut includes
-#include "Region.h"
+#include "Geant/Region.h"
 #include "PhysicsParameters.h"
 #include "MaterialCuts.h"
 /////////////////////////////////

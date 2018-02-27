@@ -9,7 +9,7 @@
 #include "MaterialCuts.h"
 #include "Element.h"
 
-#include "Region.h"
+#include "Geant/Region.h"
 #include "ELossTableManager.h"
 
 #include "GSMSCTable.h"
@@ -21,7 +21,7 @@
 
 // from geantV
 #include "TaskData.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 #include <cmath>
 

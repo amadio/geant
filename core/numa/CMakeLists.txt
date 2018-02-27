@@ -22,14 +22,14 @@ set(sources
 
 set(headers
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/GeantNuma.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaBlock.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaBlockMgr.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaNode.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaCore.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaPolicy.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaTopology.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaUtils.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/NumaAllocator.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaBlock.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaBlockMgr.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaNode.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaCore.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaPolicy.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaTopology.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaUtils.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/NumaAllocator.h
 )
 
 #----------------------------------------------------------------------------

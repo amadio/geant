@@ -2,16 +2,16 @@
 
 #include "Geant/Error.h"
 
-#include "VBconnector.h"
-#include "Track.h"
+#include "Geant/VBconnector.h"
+#include "Geant/Track.h"
 #include "Geant/Event.h"
 #include "RunManager.h"
 #include "LocalityManager.h"
-#include "PrimaryGenerator.h"
+#include "Geant/PrimaryGenerator.h"
 #include "TaskData.h"
 #include "Basket.h"
 #include "StackLikeBuffer.h"
-#include "MCTruthMgr.h"
+#include "Geant/MCTruthMgr.h"
 
 #include "navigation/SimpleNavigator.h"
 #include "volumes/PlacedVolume.h"

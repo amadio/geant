@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <thread>
 #include <vector>
-#include "cuckoohash_config.hh" // for LIBCUCKOO_DEBUG
+#include "Geant/cuckoohash_config.hh" // for LIBCUCKOO_DEBUG
 
 #if LIBCUCKOO_DEBUG
 #  define LIBCUCKOO_DBG(fmt, args...)                                   \

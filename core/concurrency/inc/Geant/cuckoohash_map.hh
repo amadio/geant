@@ -27,10 +27,10 @@
 #include <utility>
 #include <vector>
 
-#include "cuckoohash_config.hh"
-#include "cuckoohash_util.hh"
-#include "lazy_array.hh"
-#include "default_hasher.hh"
+#include "Geant/cuckoohash_config.hh"
+#include "Geant/cuckoohash_util.hh"
+#include "Geant/lazy_array.hh"
+#include "Geant/default_hasher.hh"
 
 //! cuckoohash_map is the hash table class.
 template < class Key,

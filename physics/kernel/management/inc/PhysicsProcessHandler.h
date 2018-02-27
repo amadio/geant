@@ -2,7 +2,7 @@
 #ifndef PHYSICS_PROCESS_HANDLER
 #define PHYSICS_PROCESS_HANDLER
 
-#include "PhysicsInterface.h"
+#include "Geant/PhysicsInterface.h"
 
 // geantV
 namespace geant {

@@ -13,8 +13,8 @@
 #define GEANT_TRACK_MANAGER
 
 #include "Geant/Config.h"
-#include "NumaBlockMgr.h"
-#include "Track.h"
+#include "Geant/NumaBlockMgr.h"
+#include "Geant/Track.h"
 
 /**
  * @brief Class TrackManager

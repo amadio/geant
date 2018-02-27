@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "Geant/Config.h"
-#include "condition_locker.h"
+#include "Geant/condition_locker.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

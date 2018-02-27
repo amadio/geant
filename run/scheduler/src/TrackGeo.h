@@ -14,7 +14,7 @@
 #define GEANT_TRACK_GEO
 
 #include <vector>
-#include <Track.h>
+#include "Geant/Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

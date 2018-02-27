@@ -12,7 +12,7 @@
 
 #ifndef GEANT_OBJECTPOOL
 #define GEANT_OBJECTPOOL
-#include "priority_queue.h"
+#include "Geant/priority_queue.h"
 #include <type_traits>
 
 /**

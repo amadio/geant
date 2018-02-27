@@ -15,7 +15,7 @@
 #include "GeantNuma.h"
 #include "Geant/Config.h"
 #include "TrackManager.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 /**
  * @brief Class TrackManager

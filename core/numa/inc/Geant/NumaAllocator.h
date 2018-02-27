@@ -15,7 +15,7 @@
 #include <iostream>
 
 #ifndef GEANT_NUMA_UTILS
-#include "NumaUtils.h"
+#include "Geant/NumaUtils.h"
 #endif
 
 /**

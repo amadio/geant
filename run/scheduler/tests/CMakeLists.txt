@@ -12,14 +12,14 @@ set(headers
    inc/GeantScheduler.h
    inc/Propagator.h
    inc/Geant/Event.h
-   inc/Track.h
+   inc/Geant/Track.h
    inc/GeantOutput.h
    inc/WorkloadManager.h
    inc/UserApplication.h
    inc/TrackStat.h
    inc/MyHit.h
    ../examples/inc/ExN03Application.h
-   ../inc/PrimaryGenerator.h
+   ../inc/Geant/PrimaryGenerator.h
    ../xsec/inc/GunGenerator.h
    ../xsec/inc/TTabPhysProcess.h
    )

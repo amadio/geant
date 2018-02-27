@@ -8,7 +8,7 @@
 
 // from geantV
 #include "Geant/Config.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 namespace geant {
   inline namespace GEANT_IMPL_NAMESPACE {

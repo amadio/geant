@@ -1,7 +1,7 @@
 #include "ParticleGun.h"
 #include "Geant/Typedefs.h"
 #include "Geant/Error.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 #include "Particle.h"
 

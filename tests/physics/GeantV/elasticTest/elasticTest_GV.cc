@@ -26,7 +26,7 @@
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
 
-#include "Region.h"
+#include "Geant/Region.h"
 #include "PhysicsParameters.h"
 
 #include "ELossTableManager.h"

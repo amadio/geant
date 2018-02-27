@@ -1,5 +1,5 @@
 #ifdef USE_ROOT
-#include "sync_objects.h"
+#include "Geant/sync_objects.h"
 #include "TThread.h"
 #include "TGeoManager.h"
 #include "TH1.h"

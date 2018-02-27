@@ -22,7 +22,7 @@
 #include <cassert>
 #include <typeinfo>
 #include <type_traits>
-#include "dcqueue.h"
+#include "Geant/dcqueue.h"
 
 using namespace std;
 

@@ -1,7 +1,7 @@
 #ifndef HepMCTruth_h
 #define HepMCTruth_h
 
-#include "MCTruthMgr.h"
+#include "Geant/MCTruthMgr.h"
 
 #include "HepMC/Writer.h"
 #include "HepMC/GenEvent.h"

@@ -1,4 +1,4 @@
-#include "MCTruthMgr.h"
+#include "Geant/MCTruthMgr.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

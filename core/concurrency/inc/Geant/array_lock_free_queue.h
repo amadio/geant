@@ -40,7 +40,7 @@
 #define __ARRAY_LOCK_FREE_QUEUE_H__
 
 #include <stdint.h>     // uint32_t
-#include "atomic_ops.h" // atomic operations wrappers
+#include "Geant/atomic_ops.h" // atomic operations wrappers
 
 #define ARRAY_LOCK_FREE_Q_DEFAULT_SIZE 65535 // (2^16)
 
@@ -135,6 +135,6 @@ private:
 };
 
 // include the implementation file
-#include "array_lock_free_queue_impl.h"
+#include "Geant/array_lock_free_queue_impl.h"
 
 #endif // __ARRAY_LOCK_FREE_QUEUE_H__

@@ -3,7 +3,7 @@
 #define CMSPARTICLEGUN_H
 
 // from GeantV
-#include "PrimaryGenerator.h"
+#include "Geant/PrimaryGenerator.h"
 
 // for GEANT_IMPL_NAMESPACE
 #include "Geant/Typedefs.h"

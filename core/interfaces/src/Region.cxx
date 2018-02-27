@@ -1,5 +1,5 @@
 
-#include "Region.h"
+#include "Geant/Region.h"
 
 namespace vecgeom {
 inline namespace VECGEOM_IMPL_NAMESPACE {

@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "cuckoohash_util.hh"
+#include "Geant/cuckoohash_util.hh"
 
 // lazy array. A fixed-size array, broken up into segments that are dynamically
 // allocated, only when requested. The array size and segment size are

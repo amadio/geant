@@ -19,9 +19,9 @@
 #include "RunManager.h"
 #include "EventServer.h"
 #include "TaskData.h"
-#include "PhysicsInterface.h"
+#include "Geant/PhysicsInterface.h"
 #include "Geant/Event.h"
-#include "EventSet.h"
+#include "Geant/EventSet.h"
 #include "UserApplication.h"
 #include "StackLikeBuffer.h"
 #include "SimulationStage.h"
@@ -31,7 +31,7 @@
 #include "base/TLS.h"
 #include "management/GeoManager.h"
 #include "base/Stopwatch.h"
-#include "TaskBroker.h"
+#include "Geant/TaskBroker.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

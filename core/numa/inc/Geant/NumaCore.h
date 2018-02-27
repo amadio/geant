@@ -13,7 +13,7 @@
 #define GEANT_NUMA_CORE
 
 #include <iostream>
-#include "NumaUtils.h"
+#include "Geant/NumaUtils.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

@@ -1,9 +1,9 @@
 #include "UserDetectorConstruction.h"
 
 #include "Geant/Error.h"
-#include "Region.h"
-#include "TaskBroker.h"
-#include "VBconnector.h"
+#include "Geant/Region.h"
+#include "Geant/TaskBroker.h"
+#include "Geant/VBconnector.h"
 #include "RunManager.h"
 
 #include "navigation/VNavigator.h"

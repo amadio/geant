@@ -3,14 +3,14 @@
 #include "TaskData.h"
 #include "TrackGeo.h"
 #include "RunManager.h"
-#include "VBconnector.h"
+#include "Geant/VBconnector.h"
 
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
 #include "GeantNuma.h"
 #endif
 
-#include "ScalarNavInterfaceVGM.h"
-#include "VectorNavInterface.h"
+#include "Geant/ScalarNavInterfaceVGM.h"
+#include "Geant/VectorNavInterface.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

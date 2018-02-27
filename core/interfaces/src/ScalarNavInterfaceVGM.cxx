@@ -1,4 +1,4 @@
-#include "ScalarNavInterfaceVGM.h"
+#include "Geant/ScalarNavInterfaceVGM.h"
 
 #include "navigation/VNavigator.h"
 #ifdef VECCORE_CUDA

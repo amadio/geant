@@ -18,7 +18,7 @@
 
 #include "Geant/Config.h"
 #include "Geant/math_wrappers.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {

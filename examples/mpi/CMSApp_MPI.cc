@@ -18,7 +18,7 @@
 
 #include "GunGenerator.h"
 #include "HepMCGenerator.h"
-#include "TaskBroker.h"
+#include "Geant/TaskBroker.h"
 #include "WorkloadManager.h"
 #include "Propagator.h"
 #include "TTabPhysProcess.h"

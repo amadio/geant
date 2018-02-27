@@ -9,8 +9,8 @@
  * @author Andrei Gheata 
  */
 //===----------------------------------------------------------------------===//
-#include "NumaUtils.h"
-#include "NumaAllocator.h"
-#include "NumaNode.h"
-#include "NumaTopology.h"
-#include "NumaPolicy.h"
+#include "Geant/NumaUtils.h"
+#include "Geant/NumaAllocator.h"
+#include "Geant/NumaNode.h"
+#include "Geant/NumaTopology.h"
+#include "Geant/NumaPolicy.h"

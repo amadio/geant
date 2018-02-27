@@ -12,7 +12,7 @@
 
 #include "Geant/SystemOfUnits.h"
 
-#include "Region.h"
+#include "Geant/Region.h"
 
 #include <iostream>
 

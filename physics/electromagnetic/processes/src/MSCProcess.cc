@@ -6,14 +6,14 @@
 #include "Electron.h"
 #include "Positron.h"
 
-#include "Region.h"
+#include "Geant/Region.h"
 
 #include "MSCModel.h"
 #include "EMModelManager.h"
 
 // from geantV
 #include "TaskData.h"
-#include "Track.h"
+#include "Geant/Track.h"
 
 #include "Geant/NavigationInterface.h"
 

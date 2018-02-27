@@ -5,13 +5,13 @@
 
 #include "Geant/SystemOfUnits.h"
 #include "Material.h"
-#include "Region.h"
+#include "Geant/Region.h"
 
 // vecgeom includes
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
 
-#include "Region.h"
+#include "Geant/Region.h"
 
 namespace userapplication {
 

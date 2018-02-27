@@ -4,13 +4,13 @@
 // from geantV
 #include "Propagator.h"
 #include "TaskData.h"
-#include "Track.h"
+#include "Geant/Track.h"
 #include "Handler.h"
 
 // from realphysics
 #include "Material.h"
 #include "MaterialCuts.h"
-#include "Region.h"
+#include "Geant/Region.h"
 #include "Particle.h"
 
 #include "PhysicsProcess.h"

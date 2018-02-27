@@ -37,7 +37,7 @@ typedef veccore::BitSet BitSet;
 
 #ifndef VECCORE_CUDA
 #ifdef GEANT_USE_NUMA
-#include "NumaAllocator.h"
+#include "Geant/NumaAllocator.h"
 #endif
 #endif
 

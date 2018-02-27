@@ -1,6 +1,6 @@
-#include "NumaPolicy.h"
-#include "NumaUtils.h"
-#include "NumaNode.h"
+#include "Geant/NumaPolicy.h"
+#include "Geant/NumaUtils.h"
+#include "Geant/NumaNode.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
