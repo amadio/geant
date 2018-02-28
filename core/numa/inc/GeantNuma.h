@@ -1,12 +1,12 @@
 //===--- GeantNuma.h - Geant-V ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file GeantNuma.h
  * @brief Global include file for the GeantNuma library
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 #include "Geant/NumaUtils.h"

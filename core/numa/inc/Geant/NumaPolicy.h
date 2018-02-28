@@ -1,12 +1,12 @@
 //===--- NumaPolicy.h - Geant-V ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file NumaPolicy.h
  * @brief Class for implementing thread allocation NUMA policies
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 #ifndef GEANT_NUMA_POLICY
@@ -26,18 +26,18 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class NumaPolicy {
 public:
   enum EPolicyType {
-    kSysDefault = 0,       /** System default scheduling policy */
-    kCompact    = 1 << 0,  /** Compact allocation until filling every NUMA node */
-    kScatter    = 1 << 1,  /** Scatter threads evenly across the system */
-    kHTcompact  = 1 << 2   /** Use HT in compact mode before pinning to next NUMA node */
+    kSysDefault = 0,      /** System default scheduling policy */
+    kCompact    = 1 << 0, /** Compact allocation until filling every NUMA node */
+    kScatter    = 1 << 1, /** Scatter threads evenly across the system */
+    kHTcompact  = 1 << 2  /** Use HT in compact mode before pinning to next NUMA node */
   };
 
-  int          fNthreads;        /* Number of threads to be pinned */
-  NumaTopology fTopo;            /* Numa topology of the machine */
-  EPolicyType  fPolicy;          /* NUMA policy */
-  
+  int fNthreads;       /* Number of threads to be pinned */
+  NumaTopology fTopo;  /* Numa topology of the machine */
+  EPolicyType fPolicy; /* NUMA policy */
+
   NumaPolicy(EPolicyType policy) : fNthreads(0), fTopo(), fPolicy(policy) {}
-  
+
   NumaTopology *GetTopology() { return &fTopo; }
   void SetPolicy(EPolicyType policy) { fPolicy = policy; }
 

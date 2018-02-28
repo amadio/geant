@@ -1,12 +1,12 @@
 //===--- NumaUtils.h - Geant-V ---------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file NumaUtils.h
  * @brief Utilities for NUMA management
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 #ifndef GEANT_NUMA_UTILS
@@ -23,25 +23,25 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 namespace NumaUtils {
-  VECCORE_ATT_HOST_DEVICE
-  void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment);
+VECCORE_ATT_HOST_DEVICE
+void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment);
 
-  VECCORE_ATT_HOST_DEVICE
-  void  NumaAlignedFree(void *p);
+VECCORE_ATT_HOST_DEVICE
+void NumaAlignedFree(void *p);
 
-  /* @brief NUMA memory address inspector */
-  VECCORE_ATT_HOST_DEVICE
-  int   NumaNodeAddr(void *ptr);
-  
-  /* @brief Pin a thread to a core */
-  VECCORE_ATT_HOST_DEVICE
-  int GetCpuBinding();
-  
-  VECCORE_ATT_HOST_DEVICE
-  bool NumaAvailable();
+/* @brief NUMA memory address inspector */
+VECCORE_ATT_HOST_DEVICE
+int NumaNodeAddr(void *ptr);
+
+/* @brief Pin a thread to a core */
+VECCORE_ATT_HOST_DEVICE
+int GetCpuBinding();
+
+VECCORE_ATT_HOST_DEVICE
+bool NumaAvailable();
 
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
-  hwloc_topology_t const &Topology();
+hwloc_topology_t const &Topology();
 #endif
 }
 
@@ -60,27 +60,25 @@ struct NumaUtilsStruct {
   /** @brief Destructor **/
   VECCORE_ATT_HOST_DEVICE
   ~NumaUtilsStruct();
-  
+
   /** @brief Function that creates NumaUtils instance **/
   VECCORE_ATT_HOST_DEVICE
-  static NumaUtilsStruct* Instance();
+  static NumaUtilsStruct *Instance();
 
-  
   /* @brief NUMA aligned memory allocator */
   VECCORE_ATT_HOST_DEVICE
   void *NumaAlignedMalloc(std::size_t bytes, int node, std::size_t alignment);
 
   VECCORE_ATT_HOST_DEVICE
-  void  NumaAlignedFree(void *p);
+  void NumaAlignedFree(void *p);
 
   /* @brief NUMA memory address inspector */
   VECCORE_ATT_HOST_DEVICE
-  int   NumaNodeAddr(void *ptr);
-  
+  int NumaNodeAddr(void *ptr);
+
   /* @brief Pin a thread to a core */
   VECCORE_ATT_HOST_DEVICE
   int GetCpuBinding() const;
-  
 };
 
 #endif
