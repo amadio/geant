@@ -3,8 +3,8 @@
 
 namespace geantphysics {
 
-ElasticScatteringProcess::ElasticScatteringProcess(const std::string &name)
-: HadronicProcess(name) {
+ElasticScatteringProcess::ElasticScatteringProcess(const std::string &name) : HadronicProcess(name)
+{
   // set process type to be an elastic scattering process
   SetType(HadronicProcessType::kElastic);
   // set to be a continuous-discrete process

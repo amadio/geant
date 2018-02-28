@@ -4,7 +4,7 @@
  * @file HadronicCrossSectionStore.h
  * @brief Class for all Geant-V hadronic process cross sections.
  *
- * Similarly to the Geant4 G4CrossSectionDataStore class, this class specifies a cross section 
+ * Similarly to the Geant4 G4CrossSectionDataStore class, this class specifies a cross section
  * (e.g. elastic or inelastic) for a hadronic process. More hadronic cross sections - as objects derived
  * from the abstract base class HadronicCrossSection - can be combined, with the convention (as in Geant4)
  * of "last-in-first-out", i.e. the cross sections are checked starting from the back of the list, and the
@@ -22,7 +22,7 @@
  * In the event simulation, the sampling of the target isotope is needed: this can be done on-the-fly, by
  * calling the "microscopic" cross sections, or, better, in a much faster way by using some special tables
  * built during the initialization. Currently the first method is used, but later the second one should be tried out.
- * 
+ *
  * @author Mihaly Novak & Alberto Ribon (Aug 2016)
  */
 //====================================================================================================================
@@ -40,11 +40,11 @@ namespace geantphysics {
 // Forward declarations
 class HadronicCrossSection;
 
-    inline namespace GEANT_IMPL_NAMESPACE {
-    class Isotope;
-    class Material;
-    class Element;
-    }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Isotope;
+class Material;
+class Element;
+}
 
 /**
  * @brief Class HadronicCrossSectionStore
@@ -55,42 +55,42 @@ public:
   HadronicCrossSectionStore();
 
   /** @brief HadronicCrossSectionStore complete constructor */
-  HadronicCrossSectionStore( const std::string name );
+  HadronicCrossSectionStore(const std::string name);
 
   /** @brief HadronicCrossSectionStore copy constructor */
-  HadronicCrossSectionStore( const HadronicCrossSectionStore &other );
+  HadronicCrossSectionStore(const HadronicCrossSectionStore &other);
 
   /** @brief Operator = */
-  HadronicCrossSectionStore& operator=( const HadronicCrossSectionStore &other );
+  HadronicCrossSectionStore &operator=(const HadronicCrossSectionStore &other);
 
   /** @brief HadronicCrossSectionStore destructor */
   ~HadronicCrossSectionStore();
 
-  /** @brief Method that is called once only at initialization. 
-   *  SIGNATURE (INPUT PARAMETERS AND RETURN TYPE) AND ACTION TO BE 
+  /** @brief Method that is called once only at initialization.
+   *  SIGNATURE (INPUT PARAMETERS AND RETURN TYPE) AND ACTION TO BE
    *  DEFINED EVENTUALLY LATER...
    */
-  void Initialize( /* Not yet defined */ );
+  void Initialize(/* Not yet defined */);
 
-  /** @brief Method that register a hadronic cross section to the store. 
+  /** @brief Method that register a hadronic cross section to the store.
    *
    *  Note that the ordering in which hadronic cross sections are registered is crucial: the later a cross section
    *  is registered, the higher is the priority of that cross sections (i.e. LIFO (Last In First Out) structure).
    *
    *  @param ptrhadxsec is a pointer to a HadronicCrossSection object
   */
-  void RegisterHadronicCrossSection( HadronicCrossSection* ptrhadxsec );
+  void RegisterHadronicCrossSection(HadronicCrossSection *ptrhadxsec);
 
-  /** @brief Method that returns the index of the applicable cross section that has been registered last. 
+  /** @brief Method that returns the index of the applicable cross section that has been registered last.
    *         If none, returns -1.
-   *  
+   *
    *  @param projectilecode is the GV particle code of the projectile
    *  @param projectilekineticenergy is the projectile kinetic energy in GeV
    *  @param targetelement is the pointer to the target element
    *  @param targetmaterial is the pointer to the target material (made of the single element)
    */
-  int GetIndexFirstApplicableXsec( const int projectilecode, const double projectilekineticenergy,
-                                   const Element* targetelement, const Material* targetmaterial );
+  int GetIndexFirstApplicableXsec(const int projectilecode, const double projectilekineticenergy,
+                                  const Element *targetelement, const Material *targetmaterial);
 
   /** @brief Methods that return, respectively, the isotope, element, and macroscopic hadronic cross sections.
    *
@@ -105,30 +105,32 @@ public:
    *  @param Z is the atomic number of the target
    *  @param N is the number of nucleons of the target
    */
-  double GetIsotopeCrossSection( const int projectilecode, const double projectilekineticenergy, const double projectilemass,
-				 const Isotope* targetisotope, const Element* targetelement, const Material* targetmaterial);
+  double GetIsotopeCrossSection(const int projectilecode, const double projectilekineticenergy,
+                                const double projectilemass, const Isotope *targetisotope, const Element *targetelement,
+                                const Material *targetmaterial);
 
-  double GetElementCrossSection( const int projectilecode, const double projectilekineticenergy, const double projectilemass,
-                                 const Element* targetelement, const Material* targetmaterial );
+  double GetElementCrossSection(const int projectilecode, const double projectilekineticenergy,
+                                const double projectilemass, const Element *targetelement,
+                                const Material *targetmaterial);
 
-  double GetMacroscopicCrossSection( const int projectilecode, const double projectilekineticenergy, const double projectilemass,
-                                     const Material* targetmaterial );
+  double GetMacroscopicCrossSection(const int projectilecode, const double projectilekineticenergy,
+                                    const double projectilemass, const Material *targetmaterial);
 
-  /** @brief Method that returns a target nucleus, as a pair of Z (atomic number) and N (number of nucleons). 
-   *  
+  /** @brief Method that returns a target nucleus, as a pair of Z (atomic number) and N (number of nucleons).
+   *
    *  To sample a nucleus in the target material, ...
    *
    *  @param projectilecode is the GV particle code of the projectile
    *  @param projectilekineticenergy is the projectile kinetic energy in GeV
    *  @param targetmaterial is the pointer to the target material
    */
-  std::pair< int, int > SampleTarget( const int projectilecode, const double projectilekineticenergy, const double projectilemass,
-                                      const Material* targetmaterial );
+  std::pair<int, int> SampleTarget(const int projectilecode, const double projectilekineticenergy,
+                                   const double projectilemass, const Material *targetmaterial);
 
   //--- Getters ---
 
   /** Method that returns the vector of HadronicCrossSections */
-  std::vector< HadronicCrossSection* >& GetHadronicCrossSectionVec() { return fHadXsecVec; }
+  std::vector<HadronicCrossSection *> &GetHadronicCrossSectionVec() { return fHadXsecVec; }
 
   /** Method that returns the name of this hadronic cross section */
   std::string GetName() const { return fName; }
@@ -136,13 +138,13 @@ public:
   //--- Setters ---
 
   /** Method that sets the name of this hadronic cross section */
-  void SetName( const std::string &name ) { fName = name; }
+  void SetName(const std::string &name) { fName = name; }
 
 private:
-  std::vector< HadronicCrossSection* > fHadXsecVec;  /* Vector of hadronic cross sections */
-  std::string fName;                                 /* Hadronic cross section store name */
+  std::vector<HadronicCrossSection *> fHadXsecVec; /* Vector of hadronic cross sections */
+  std::string fName;                               /* Hadronic cross section store name */
 };
 
-}  // end of namespace geant
+} // end of namespace geant
 
 #endif

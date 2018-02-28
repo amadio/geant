@@ -26,7 +26,6 @@ namespace geantphysics {
  * @date    June 2017
  */
 
-
 class ElasticScatteringProcess : public HadronicProcess {
 public:
   // CTR

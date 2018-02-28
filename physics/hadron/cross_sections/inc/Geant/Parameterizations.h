@@ -28,6 +28,6 @@ double GetHadronNucleonInelasticXscNS(int particlePDG, double mass, double energ
 // Returns kaon-nucleon inelastic cross-section based on smoothed NS for GG model
 double GetKaonNucleonInelasticXscGG(int particlePDG, double mass, double energyKin, int targetPDG);
 
-}      // namespace geantphysics
+} // namespace geantphysics
 
 #endif // Parameterizations_H

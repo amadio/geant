@@ -30,17 +30,14 @@
 // Forward declarations
 
 namespace geantphysics {
-    inline namespace GEANT_IMPL_NAMESPACE {
-    class Isotope;
-    }
-  }
-
+inline namespace GEANT_IMPL_NAMESPACE {
+class Isotope;
+}
+}
 
 namespace geantphysics {
 
-  
 class HadronicFinalStateModel;
-
 
 /**
  * @brief Class HadronicFinalStateModelStore
@@ -51,43 +48,43 @@ public:
   HadronicFinalStateModelStore();
 
   /** @brief HadronicFinalStateModelStore complete constructor */
-  HadronicFinalStateModelStore( const std::string name );
+  HadronicFinalStateModelStore(const std::string name);
 
   /** @brief HadronicFinalStateModelStore copy constructor */
-  HadronicFinalStateModelStore( const HadronicFinalStateModelStore &other );
+  HadronicFinalStateModelStore(const HadronicFinalStateModelStore &other);
 
   /** @brief Operator = */
-  HadronicFinalStateModelStore& operator=( const HadronicFinalStateModelStore &other );
+  HadronicFinalStateModelStore &operator=(const HadronicFinalStateModelStore &other);
 
   /** @brief HadronicFinalStateModelStore destructor */
   ~HadronicFinalStateModelStore();
 
-  /** @brief Method that is called once only at initialization. 
+  /** @brief Method that is called once only at initialization.
    *  SIGNATURE (INPUT PARAMETERS AND RETURN TYPE) AND ACTION TO BE DEFINED EVENTUALLY LATER...
    */
-  void Initialize( /* Not yet defined */ );
+  void Initialize(/* Not yet defined */);
 
-  /** @brief Method that register a hadronic final-state model to the store. 
+  /** @brief Method that register a hadronic final-state model to the store.
    *
    *  Note that the ordering in which hadronic final-state models are registered does not matter: ...
    *
    *  @param ptrhadfs is a pointer to a HadronicFinalState object
   */
-  void RegisterHadronicFinalStateModel( HadronicFinalStateModel* ptrhadfs );
+  void RegisterHadronicFinalStateModel(HadronicFinalStateModel *ptrhadfs);
 
   /** @brief Method that returns the index of the chosen hadronic final-state model. If none, returns -1 .
-   *  
+   *
    *  @param projectilecode is the GV particle code of the projectile
    *  @param projectilekineticenergy is the projectile kinetic energy in GeV
    *  @param targetisotope is the pointer to the target isotope
    */
-  int GetIndexChosenFinalStateModel( const int projectilecode, const double projectilekineticenergy,
-                                     const Isotope* targetisotope ) const;
+  int GetIndexChosenFinalStateModel(const int projectilecode, const double projectilekineticenergy,
+                                    const Isotope *targetisotope) const;
 
   //--- Getters ---
 
   /** Method that returns the vector of HadronicFinalStates */
-  const std::vector< HadronicFinalStateModel* >& GetHadronicFinalStateModelVec() const { return fHadFsVec; }
+  const std::vector<HadronicFinalStateModel *> &GetHadronicFinalStateModelVec() const { return fHadFsVec; }
 
   /** Method that returns the name of this hadronic final-state model store */
   std::string GetName() const { return fName; }
@@ -95,13 +92,13 @@ public:
   //--- Setters ---
 
   /** Method that sets the name of this hadronic cross section */
-  void SetName( const std::string &name ) { fName = name; }
+  void SetName(const std::string &name) { fName = name; }
 
 private:
-  std::vector< HadronicFinalStateModel* > fHadFsVec;  /* Vector of hadronic final-state models */
-  std::string fName;                                  /* Hadronic final-state model store name */
+  std::vector<HadronicFinalStateModel *> fHadFsVec; /* Vector of hadronic final-state models */
+  std::string fName;                                /* Hadronic final-state model store name */
 };
 
-}  // end of namespace geant
+} // end of namespace geant
 
 #endif

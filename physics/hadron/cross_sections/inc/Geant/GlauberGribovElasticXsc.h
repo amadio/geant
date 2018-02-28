@@ -7,23 +7,19 @@
 
 namespace geantphysics {
 
-  class GlauberGribovElasticXsc : public HadronicCrossSection
-  {
-  public:
+class GlauberGribovElasticXsc : public HadronicCrossSection {
+public:
+  GlauberGribovElasticXsc();
+  virtual ~GlauberGribovElasticXsc();
 
-    GlauberGribovElasticXsc ();
-    virtual ~GlauberGribovElasticXsc ();
-   
-    double GetIsotopeCrossSection(const int particleCode, const double energyKin, const double mass,
-				  const int Z, const int N);
-    
-  private:
+  double GetIsotopeCrossSection(const int particleCode, const double energyKin, const double mass, const int Z,
+                                const int N);
 
-    GlauberGribovTotalXsc* GGTotalXsc;
-    GlauberGribovInelasticXsc* GGInelasticXsc;
-  };
+private:
+  GlauberGribovTotalXsc *GGTotalXsc;
+  GlauberGribovInelasticXsc *GGInelasticXsc;
+};
 
-}       // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // GlauberGribovElasticXsc_H
-
+#endif // GlauberGribovElasticXsc_H
