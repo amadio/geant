@@ -45,62 +45,59 @@ namespace geantphysics {
   * be used then to sample \f$x\f$ based on the procedure described above.
   */
 void AliasTable::PreparRatinTable(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata,
-                                  double *xx, int *binindx, int numdata, bool isconstraintspline, int glnum) {
+                                  double *xx, int *binindx, int numdata, bool isconstraintspline, int glnum)
+{
   // compute (integral) probability within each bin; compute c.d.f.
-  GLIntegral *gl = new GLIntegral(glnum, 0.0, 1.0);
+  GLIntegral *gl                 = new GLIntegral(glnum, 0.0, 1.0);
   const std::vector<double> &glx = gl->GetAbscissas();
   const std::vector<double> &glw = gl->GetWeights();
-  Spline *sp = new Spline(xdata, ydata, numdata, true, isconstraintspline); // use cubic spline
-  double sum = 0.0;
-  comf[0]    = 0.0;
-  for (int i=1; i<numdata; ++i) {
+  Spline *sp                     = new Spline(xdata, ydata, numdata, true, isconstraintspline); // use cubic spline
+  double sum                     = 0.0;
+  comf[0]                        = 0.0;
+  for (int i = 1; i < numdata; ++i) {
     double dum0 = 0.0;
-    for (int j=0; j<glnum; ++j) {
-      double xval = glx[j]*(xdata[i]-xdata[i-1])+xdata[i-1];
-      dum0 += glw[j]*(xdata[i]-xdata[i-1])*sp->GetValueAt(xval);
+    for (int j = 0; j < glnum; ++j) {
+      double xval = glx[j] * (xdata[i] - xdata[i - 1]) + xdata[i - 1];
+      dum0 += glw[j] * (xdata[i] - xdata[i - 1]) * sp->GetValueAt(xval);
     }
-    if (dum0<1.e-40)
-      dum0 = 1.e-40;
-    xx[i-1]      = -dum0;
-    binindx[i-1] = i-1;
-    sum       += dum0;
-    comf[i]    = sum;
+    if (dum0 < 1.e-40) dum0 = 1.e-40;
+    xx[i - 1]               = -dum0;
+    binindx[i - 1]          = i - 1;
+    sum += dum0;
+    comf[i] = sum;
   }
   // prepare alias table
-  sum /= (double)(numdata-1);
-  for (int i=0; i<numdata-1; ++i) {
+  sum /= (double)(numdata - 1);
+  for (int i = 0; i < numdata - 1; ++i) {
     int indxh = 0;
-    for (indxh = 0; indxh<numdata-1; ++indxh) {
-      if (xx[indxh]<0.0 && std::fabs(xx[indxh])>sum)
-        break;
+    for (indxh = 0; indxh < numdata - 1; ++indxh) {
+      if (xx[indxh] < 0.0 && std::fabs(xx[indxh]) > sum) break;
     }
     int indxl = 0;
-    for (indxl = 0; indxl<numdata-1; ++indxl) {
-      if (xx[indxl]<0.0 && std::fabs(xx[indxl])<sum)
-        break;
+    for (indxl = 0; indxl < numdata - 1; ++indxl) {
+      if (xx[indxl] < 0.0 && std::fabs(xx[indxl]) < sum) break;
     }
     double dum0 = sum - std::fabs(xx[indxl]);
-    xx[indxh] +=  dum0;
-    xx[indxl] = -1.0*xx[indxl]/sum;
+    xx[indxh] += dum0;
+    xx[indxl]      = -1.0 * xx[indxl] / sum;
     binindx[indxl] = indxh;
-    if (i==numdata-2) {
+    if (i == numdata - 2) {
       xx[indxh] = 1.0;
       xx[indxl] = 1.0;
     }
   }
   // ensure normality of the p.d.f. (and c.d.f.)
-  double norm = 1.0/comf[numdata-1];
-  for (int j=0; j<numdata; ++j) {
-    comf[j]   *= norm;
-    ydata[j]  *= norm;
-    if (ydata[j]<1.e-40)
-      ydata[j] = 1.e-40;
+  double norm = 1.0 / comf[numdata - 1];
+  for (int j = 0; j < numdata; ++j) {
+    comf[j] *= norm;
+    ydata[j] *= norm;
+    if (ydata[j] < 1.e-40) ydata[j] = 1.e-40;
   }
   // compute parameters a,b of ratin
-  for (int j=0; j<numdata-1; ++j) {
-    double dum1 = (comf[j+1]-comf[j])/(xdata[j+1]-xdata[j]);
-    double parb = 1.0-dum1*dum1/(ydata[j]*ydata[j+1]);
-    double para = dum1/ydata[j]-1.0-parb;
+  for (int j = 0; j < numdata - 1; ++j) {
+    double dum1 = (comf[j + 1] - comf[j]) / (xdata[j + 1] - xdata[j]);
+    double parb = 1.0 - dum1 * dum1 / (ydata[j] * ydata[j + 1]);
+    double para = dum1 / ydata[j] - 1.0 - parb;
     paradata[j] = para;
     parbdata[j] = parb;
   }
@@ -108,174 +105,169 @@ void AliasTable::PreparRatinTable(double *xdata, double *ydata, double *comf, do
   delete sp;
 }
 
-void AliasTable::PreparLinearTable(double *xdata, double *ydata, double *xx, int *binindx, int numdata) {
+void AliasTable::PreparLinearTable(double *xdata, double *ydata, double *xx, int *binindx, int numdata)
+{
   // compute (integral) probability within each bin; compute c.d.f.
   double sum = 0.0;
-  for (int i=1; i<numdata; ++i) {
-    double dum0 = 0.5*(xdata[i]-xdata[i-1])*(ydata[i]+ydata[i-1]);
-    if (dum0<1.e-40)
-     dum0 = 1.e-40;
-    xx[i-1]      = -dum0;
-    binindx[i-1] = i-1;
+  for (int i = 1; i < numdata; ++i) {
+    double dum0             = 0.5 * (xdata[i] - xdata[i - 1]) * (ydata[i] + ydata[i - 1]);
+    if (dum0 < 1.e-40) dum0 = 1.e-40;
+    xx[i - 1]               = -dum0;
+    binindx[i - 1]          = i - 1;
     sum += dum0;
   }
   // prepare alias table
-  sum /= (double)(numdata-1);
-  for (int i=0; i<numdata-1; ++i) {
+  sum /= (double)(numdata - 1);
+  for (int i = 0; i < numdata - 1; ++i) {
     int indxh = 0;
-    for (indxh = 0; indxh<numdata-1; ++indxh) {
-      if (xx[indxh]<0.0 && std::fabs(xx[indxh])>sum)
-        break;
+    for (indxh = 0; indxh < numdata - 1; ++indxh) {
+      if (xx[indxh] < 0.0 && std::fabs(xx[indxh]) > sum) break;
     }
     int indxl = 0;
-    for (indxl = 0; indxl<numdata-1; ++indxl) {
-      if (xx[indxl]<0.0 && std::fabs(xx[indxl])<sum)
-        break;
+    for (indxl = 0; indxl < numdata - 1; ++indxl) {
+      if (xx[indxl] < 0.0 && std::fabs(xx[indxl]) < sum) break;
     }
     double dum0 = sum - std::fabs(xx[indxl]);
-    xx[indxh] +=  dum0;
-    xx[indxl] = -1.0*xx[indxl]/sum;
+    xx[indxh] += dum0;
+    xx[indxl]      = -1.0 * xx[indxl] / sum;
     binindx[indxl] = indxh;
-    if (i==numdata-2) {
+    if (i == numdata - 2) {
       xx[indxh] = 1.0;
       xx[indxl] = 1.0;
     }
   }
 }
 
-void AliasTable::PreparDiscreteTable(double *ydata, double *xx, int *binindx, int numdata) {
+void AliasTable::PreparDiscreteTable(double *ydata, double *xx, int *binindx, int numdata)
+{
   double sum = 0.0;
-  for (int i=0; i<numdata; ++i) {
+  for (int i = 0; i < numdata; ++i) {
     xx[i]      = -ydata[i];
     binindx[i] = -1;
     sum += ydata[i];
   }
   // prepare alias table
   sum /= (double)(numdata);
-  for (int i=0; i<numdata; ++i) {
+  for (int i = 0; i < numdata; ++i) {
     int indxh = 0;
-    for (indxh = 0; indxh<numdata; ++indxh) {
-      if (xx[indxh]<0.0 && std::fabs(xx[indxh])>sum)
-        break;
+    for (indxh = 0; indxh < numdata; ++indxh) {
+      if (xx[indxh] < 0.0 && std::fabs(xx[indxh]) > sum) break;
     }
     int indxl = 0;
-    for (indxl = 0; indxl<numdata; ++indxl) {
-      if (xx[indxl]<0.0 && std::fabs(xx[indxl])<sum)
-        break;
+    for (indxl = 0; indxl < numdata; ++indxl) {
+      if (xx[indxl] < 0.0 && std::fabs(xx[indxl]) < sum) break;
     }
-    if (indxl>numdata-1 || indxh>numdata-1) {
+    if (indxl > numdata - 1 || indxh > numdata - 1) {
       continue;
     }
     double dum0 = sum - std::fabs(xx[indxl]);
-    xx[indxh]  +=  dum0;
-    xx[indxl]   = -1.0*xx[indxl]/sum;
+    xx[indxh] += dum0;
+    xx[indxl]      = -1.0 * xx[indxl] / sum;
     binindx[indxl] = indxh;
   }
-  for (int i=0; i<numdata; ++i) {
-    if (binindx[i]<0) {
+  for (int i = 0; i < numdata; ++i) {
+    if (binindx[i] < 0) {
       binindx[i] = i;
       xx[i]      = 1.;
     }
   }
 }
 
-double AliasTable::SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx, int *binindx,
-                               int numdata, double rndm1, double rndm2, int above) {
+double AliasTable::SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx,
+                               int *binindx, int numdata, double rndm1, double rndm2, int above)
+{
   // get the lower index of the bin by using the alias part
-  const double rest = rndm1*(numdata-1);
-  int indxl         = (int) (rest);
-  const double dum0 = rest-indxl;
-  if (xx[indxl]<dum0)
-    indxl = binindx[indxl];
+  const double rest           = rndm1 * (numdata - 1);
+  int indxl                   = (int)(rest);
+  const double dum0           = rest - indxl;
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
 
   double res = 0.0;
-  if (indxl>above) {
+  if (indxl > above) {
     // sample value within the selected bin by using ratin based numerical inversion
-    const double  delta = comf[indxl+1]-comf[indxl];
-    const double  aval  =  rndm2 * delta;
-    const double  dum1  = (1.0+paradata[indxl]+parbdata[indxl])*delta*aval;
-    const double  dum2  = delta*delta+paradata[indxl]*delta*aval+parbdata[indxl]*aval*aval;
-    res = xdata[indxl] +  dum1/dum2 *(xdata[indxl+1]-xdata[indxl]);
+    const double delta = comf[indxl + 1] - comf[indxl];
+    const double aval  = rndm2 * delta;
+    const double dum1  = (1.0 + paradata[indxl] + parbdata[indxl]) * delta * aval;
+    const double dum2  = delta * delta + paradata[indxl] * delta * aval + parbdata[indxl] * aval * aval;
+    res                = xdata[indxl] + dum1 / dum2 * (xdata[indxl + 1] - xdata[indxl]);
   } else { // use linear aprx by assuming that pdf[indxl]=0.0
-    res = xdata[indxl] +  (xdata[indxl+1]-xdata[indxl])*std::sqrt(rndm2);
+    res = xdata[indxl] + (xdata[indxl + 1] - xdata[indxl]) * std::sqrt(rndm2);
   }
   return res;
 }
-
 
 double AliasTable::SampleRatin(const double *xdata, const double *comf, const double *paradata, const double *parbdata,
                                const double *xx, const int *binindx, const int numdata, const double rndm1,
-                               const double rndm2, const int above) {
+                               const double rndm2, const int above)
+{
   // get the lower index of the bin by using the alias part
-  const double rest = rndm1*(numdata-1);
-  int indxl         = (int) (rest);
-  const double dum0 = rest-indxl;
-  if (xx[indxl]<dum0)
-    indxl = binindx[indxl];
+  const double rest           = rndm1 * (numdata - 1);
+  int indxl                   = (int)(rest);
+  const double dum0           = rest - indxl;
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
 
   double res = 0.0;
-  if (indxl>above) {
+  if (indxl > above) {
     // sample value within the selected bin by using ratin based numerical inversion
-    const double  delta = comf[indxl+1]-comf[indxl];
-    const double  aval  =  rndm2 * delta;
-    const double  dum1  = (1.0+paradata[indxl]+parbdata[indxl])*delta*aval;
-    const double  dum2  = delta*delta+paradata[indxl]*delta*aval+parbdata[indxl]*aval*aval;
-    res = xdata[indxl] +  dum1/dum2 *(xdata[indxl+1]-xdata[indxl]);
+    const double delta = comf[indxl + 1] - comf[indxl];
+    const double aval  = rndm2 * delta;
+    const double dum1  = (1.0 + paradata[indxl] + parbdata[indxl]) * delta * aval;
+    const double dum2  = delta * delta + paradata[indxl] * delta * aval + parbdata[indxl] * aval * aval;
+    res                = xdata[indxl] + dum1 / dum2 * (xdata[indxl + 1] - xdata[indxl]);
   } else { // use linear aprx by assuming that pdf[indxl]=0.0
-    res = xdata[indxl] +  (xdata[indxl+1]-xdata[indxl])*std::sqrt(rndm2);
+    res = xdata[indxl] + (xdata[indxl + 1] - xdata[indxl]) * std::sqrt(rndm2);
   }
   return res;
 }
 
-
 double AliasTable::SampleLinear(double *xdata, double *ydata, double *xx, int *binindx, int numdata, double rndm1,
-                                double rndm2) {
+                                double rndm2)
+{
   // get the lower index of the bin by using the alias part
-  const double rest = rndm1*(numdata-1);
-  int indxl         = (int) (rest);
-  const double dum0 = rest-indxl;
-  if (xx[indxl]<dum0)
-    indxl = binindx[indxl];
+  const double rest           = rndm1 * (numdata - 1);
+  int indxl                   = (int)(rest);
+  const double dum0           = rest - indxl;
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
   // sample value within the selected bin by using linear approximation
   const double xval   = xdata[indxl];
-  const double xdelta = xdata[indxl+1]-xval;
+  const double xdelta = xdata[indxl + 1] - xval;
   if (ydata[indxl] > 0.0) {
-    const double dum = (ydata[indxl+1]-ydata[indxl])/ydata[indxl];
-    if (std::abs(dum)>0.1)
-      return xval - xdelta/dum * (1.0 - std::sqrt(1.0+rndm2*dum*(dum+2.0)));
+    const double dum = (ydata[indxl + 1] - ydata[indxl]) / ydata[indxl];
+    if (std::abs(dum) > 0.1)
+      return xval - xdelta / dum * (1.0 - std::sqrt(1.0 + rndm2 * dum * (dum + 2.0)));
     else // use second order Taylor around dum = 0.0
-      return xval + rndm2*xdelta*(1.0-0.5*dum*(rndm2-1.0)*(1.0+dum*rndm2));
+      return xval + rndm2 * xdelta * (1.0 - 0.5 * dum * (rndm2 - 1.0) * (1.0 + dum * rndm2));
   }
-  return xval + xdelta*std::sqrt(rndm2);
+  return xval + xdelta * std::sqrt(rndm2);
 }
 
 double AliasTable::SampleLinear(const double *xdata, const double *ydata, const double *xx, const int *binindx,
-                                const int numdata, const double rndm1, const double rndm2) {
+                                const int numdata, const double rndm1, const double rndm2)
+{
   // get the lower index of the bin by using the alias part
-  const double rest = rndm1*(numdata-1);
-  int indxl         = (int) (rest);
-  const double dum0 = rest-indxl;
-  if (xx[indxl]<dum0)
-    indxl = binindx[indxl];
+  const double rest           = rndm1 * (numdata - 1);
+  int indxl                   = (int)(rest);
+  const double dum0           = rest - indxl;
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
   // sample value within the selected bin by using linear approximation
   const double xval   = xdata[indxl];
-  const double xdelta = xdata[indxl+1]-xval;
+  const double xdelta = xdata[indxl + 1] - xval;
   if (ydata[indxl] > 0.0) {
-    const double dum = (ydata[indxl+1]-ydata[indxl])/ydata[indxl];
-    if (std::abs(dum)>0.1)
-      return xval - xdelta/dum * (1.0 - std::sqrt(1.0+rndm2*dum*(dum+2.0)));
+    const double dum = (ydata[indxl + 1] - ydata[indxl]) / ydata[indxl];
+    if (std::abs(dum) > 0.1)
+      return xval - xdelta / dum * (1.0 - std::sqrt(1.0 + rndm2 * dum * (dum + 2.0)));
     else // use second order Taylor around dum = 0.0
-      return xval + rndm2*xdelta*(1.0-0.5*dum*(rndm2-1.0)*(1.0+dum*rndm2));
+      return xval + rndm2 * xdelta * (1.0 - 0.5 * dum * (rndm2 - 1.0) * (1.0 + dum * rndm2));
   }
-  return xval + xdelta*std::sqrt(rndm2);
+  return xval + xdelta * std::sqrt(rndm2);
 }
 
-int AliasTable::SampleDiscrete(double *xx, int *binindx, int numdata, double rndm1) {
-  // select the discrete random variable 
-  double rest  = rndm1*numdata;
-  int    indxl = (int) (rest);
-  if (xx[indxl]<rest-indxl)
-    indxl = binindx[indxl];
+int AliasTable::SampleDiscrete(double *xx, int *binindx, int numdata, double rndm1)
+{
+  // select the discrete random variable
+  double rest                         = rndm1 * numdata;
+  int indxl                           = (int)(rest);
+  if (xx[indxl] < rest - indxl) indxl = binindx[indxl];
   return indxl;
 }
 
@@ -309,107 +301,108 @@ int AliasTable::SampleDiscrete(double *xx, int *binindx, int numdata, double rnd
   * approximation error.
   */
 double AliasTable::PreparRatinForPDF(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata,
-                                     int numdata, bool isconstraintspline, int glnum) {
+                                     int numdata, bool isconstraintspline, int glnum)
+{
   // compute (integral) probability within each bin; compute c.d.f.
-  GLIntegral *gl = new GLIntegral(glnum, 0.0, 1.0);
+  GLIntegral *gl                 = new GLIntegral(glnum, 0.0, 1.0);
   const std::vector<double> &glx = gl->GetAbscissas();
   const std::vector<double> &glw = gl->GetWeights();
-  Spline     *sp = new Spline(xdata, ydata, numdata, true, isconstraintspline);
-  double sum   = 0.0;
-  comf[0]      = 0.0;
-  for (int i=1; i<numdata; ++i) {
+  Spline *sp                     = new Spline(xdata, ydata, numdata, true, isconstraintspline);
+  double sum                     = 0.0;
+  comf[0]                        = 0.0;
+  for (int i = 1; i < numdata; ++i) {
     double dum0 = 0.0;
-    for (int j=0; j<glnum; ++j) {
-      const double xval = glx[j]*(xdata[i]-xdata[i-1])+xdata[i-1];
-      dum0 += glw[j]*(xdata[i]-xdata[i-1])*sp->GetValueAt(xval);
+    for (int j = 0; j < glnum; ++j) {
+      const double xval = glx[j] * (xdata[i] - xdata[i - 1]) + xdata[i - 1];
+      dum0 += glw[j] * (xdata[i] - xdata[i - 1]) * sp->GetValueAt(xval);
     }
-    sum     += dum0;
-    comf[i]  = sum;
+    sum += dum0;
+    comf[i] = sum;
   }
   // ensure normality of the p.d.f. (and c.d.f.)
-  const double norm = 1.0/comf[numdata-1];
-  for (int j=0; j<numdata; ++j) {
-    comf[j]   *= norm;
-    ydata[j]  *= norm;
-    if (ydata[j]<1.e-40)
-      ydata[j] = 1.e-40;
+  const double norm = 1.0 / comf[numdata - 1];
+  for (int j = 0; j < numdata; ++j) {
+    comf[j] *= norm;
+    ydata[j] *= norm;
+    if (ydata[j] < 1.e-40) ydata[j] = 1.e-40;
   }
   // compute parameters a,b of ratin
-  for (int j=0; j<numdata-1; ++j) {
-    const double dum1 = (comf[j+1]-comf[j])/(xdata[j+1]-xdata[j]);
-    const double parb = 1.0-dum1*dum1/(ydata[j]*ydata[j+1]);
-    const double para = dum1/ydata[j]-1.0-parb;
-    paradata[j] = para;
-    parbdata[j] = parb;
+  for (int j = 0; j < numdata - 1; ++j) {
+    const double dum1 = (comf[j + 1] - comf[j]) / (xdata[j + 1] - xdata[j]);
+    const double parb = 1.0 - dum1 * dum1 / (ydata[j] * ydata[j + 1]);
+    const double para = dum1 / ydata[j] - 1.0 - parb;
+    paradata[j]       = para;
+    parbdata[j]       = parb;
   }
   delete gl;
   delete sp;
   return norm;
 }
 
-double AliasTable::GetRatinForPDF(double x, double *xdata, double *comf, double *paradata, double *parbdata, int numdata) {
+double AliasTable::GetRatinForPDF(double x, double *xdata, double *comf, double *paradata, double *parbdata,
+                                  int numdata)
+{
   // find indx of lower bin of xdata where x is located
   const int lindx = BSearch(x, xdata, numdata);
   // compute the approximated p.d.f. value
-  const double lx  = xdata[lindx];
-  const double la  = paradata[lindx];
-  const double lb  = parbdata[lindx];
-  const double invDeltX = 1.0/(xdata[lindx+1]-xdata[lindx]);
-  const double deltCum  = comf[lindx+1]-comf[lindx];
-  const double tau  = (x-lx)*invDeltX;
-  const double dum0 = 1.0+la+lb-la*tau;
-  double eta  = dum0/(2.0*lb*tau)*(1.0-std::sqrt(1.0-4.0*lb*tau*tau/(dum0*dum0)));
-  if (x==lx)
-    eta = 0.0;
-  const double dum1  = 1.0+la*eta+lb*eta*eta;
-  return dum1*dum1*deltCum*invDeltX/((1.0+la+lb)*(1.0-lb*eta*eta));
+  const double lx       = xdata[lindx];
+  const double la       = paradata[lindx];
+  const double lb       = parbdata[lindx];
+  const double invDeltX = 1.0 / (xdata[lindx + 1] - xdata[lindx]);
+  const double deltCum  = comf[lindx + 1] - comf[lindx];
+  const double tau      = (x - lx) * invDeltX;
+  const double dum0     = 1.0 + la + lb - la * tau;
+  double eta            = dum0 / (2.0 * lb * tau) * (1.0 - std::sqrt(1.0 - 4.0 * lb * tau * tau / (dum0 * dum0)));
+  if (x == lx) eta      = 0.0;
+  const double dum1     = 1.0 + la * eta + lb * eta * eta;
+  return dum1 * dum1 * deltCum * invDeltX / ((1.0 + la + lb) * (1.0 - lb * eta * eta));
 }
 
-double AliasTable::GetRatinForPDF1(double x, double *xdata, double *comf, double *paradata, double *parbdata, int lindx) {
-  const double lx  = xdata[lindx];
-  const double la  = paradata[lindx];
-  const double lb  = parbdata[lindx];
-  const double invDeltX = 1.0/(xdata[lindx+1]-xdata[lindx]);
-  const double deltCum  = comf[lindx+1]-comf[lindx];
-  const double tau  = (x-lx)*invDeltX;
-  const double dum0 = 1.0+la+lb-la*tau;
-  double eta  = dum0/(2.0*lb*tau)*(1.0-std::sqrt(1.0-4.0*lb*tau*tau/(dum0*dum0)));
-  if (x==lx)
-    eta = 0.0;
-  const double dum1 = 1.0+la*eta+lb*eta*eta;
-  return dum1*dum1*deltCum*invDeltX/((1.0+la+lb)*(1.0-lb*eta*eta));
+double AliasTable::GetRatinForPDF1(double x, double *xdata, double *comf, double *paradata, double *parbdata, int lindx)
+{
+  const double lx       = xdata[lindx];
+  const double la       = paradata[lindx];
+  const double lb       = parbdata[lindx];
+  const double invDeltX = 1.0 / (xdata[lindx + 1] - xdata[lindx]);
+  const double deltCum  = comf[lindx + 1] - comf[lindx];
+  const double tau      = (x - lx) * invDeltX;
+  const double dum0     = 1.0 + la + lb - la * tau;
+  double eta            = dum0 / (2.0 * lb * tau) * (1.0 - std::sqrt(1.0 - 4.0 * lb * tau * tau / (dum0 * dum0)));
+  if (x == lx) eta      = 0.0;
+  const double dum1     = 1.0 + la * eta + lb * eta * eta;
+  return dum1 * dum1 * deltCum * invDeltX / ((1.0 + la + lb) * (1.0 - lb * eta * eta));
 }
 
-double AliasTable::BSearch(double val, double *xdata, int npoints) {
-  int lowerm,upperm,direction,m,ml,mu,mav;
-  if (xdata[0]>xdata[npoints-1]) {
+double AliasTable::BSearch(double val, double *xdata, int npoints)
+{
+  int lowerm, upperm, direction, m, ml, mu, mav;
+  if (xdata[0] > xdata[npoints - 1]) {
     direction = 1;
-    lowerm    = npoints-1;
+    lowerm    = npoints - 1;
     upperm    = -1;
   } else {
     direction = 0;
     lowerm    = -1;
-    upperm    = npoints-1;
+    upperm    = npoints - 1;
   }
   // check if 'val' is above/below the highes/lowest value
-  if (val>=xdata[upperm+direction]) {
-    m = upperm+2*direction-1;
-  } else if (val<=xdata[lowerm+1-direction]) {
-    m = lowerm-2*direction+1;
-  } else {  // Perform a binary search to find the interval val is in
+  if (val >= xdata[upperm + direction]) {
+    m = upperm + 2 * direction - 1;
+  } else if (val <= xdata[lowerm + 1 - direction]) {
+    m = lowerm - 2 * direction + 1;
+  } else { // Perform a binary search to find the interval val is in
     ml = lowerm;
     mu = upperm;
-    while (std::abs(mu-ml)>1) {
-      mav = (ml+mu)/2.;
-      if (val<xdata[mav])
+    while (std::abs(mu - ml) > 1) {
+      mav = (ml + mu) / 2.;
+      if (val < xdata[mav])
         mu = mav;
       else
         ml = mav;
-      }
-    m = mu+direction-1;
+    }
+    m = mu + direction - 1;
   }
- return m;
+  return m;
 }
-
 
 } // namespace geantphysics

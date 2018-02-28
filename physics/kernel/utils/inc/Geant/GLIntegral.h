@@ -1,6 +1,6 @@
 
-#ifndef  GLINTEGRAL_H
-#define  GLINTEGRAL_H
+#ifndef GLINTEGRAL_H
+#define GLINTEGRAL_H
 
 #include <vector>
 
@@ -20,10 +20,10 @@ namespace geantphysics {
 
 class GLIntegral {
 public:
-/**
-* @name Constructor, destructor:
-*/
-//@{
+  /**
+  * @name Constructor, destructor:
+  */
+  //@{
   /**
     * @brief Constructor.
     *
@@ -35,18 +35,18 @@ public:
     */
   GLIntegral(int npoints, double xmin, double xmax);
   /** @brief Destructor. */
- ~GLIntegral() {}
-//@}
+  ~GLIntegral() {}
+  //@}
 
-/**
-* @name Public getters.
-*/
-//@{
+  /**
+  * @name Public getters.
+  */
+  //@{
   /** @brief Public method to get the weight vector. Size of the vector is GLIntegral::fNPoints. */
-  const std::vector<double>& GetWeights()   const { return fWeights;   }
+  const std::vector<double> &GetWeights() const { return fWeights; }
   /** @brief Public method to get the abscissa vector. Size of the vector is GLIntegral::fNPoints. */
-  const std::vector<double>& GetAbscissas() const { return fAbscissas; }
-//@}
+  const std::vector<double> &GetAbscissas() const { return fAbscissas; }
+  //@}
 
 private:
   /** @brief Intenal method to compute abscissas and weights. Used at construction. */
@@ -54,17 +54,17 @@ private:
 
 private:
   /** @brief Order of appoximation i.e. number of abscissas and weights. */
-  int     fNPoints;
+  int fNPoints;
   /** @brief Lower limit of the integral. */
-  double  fXmin;
+  double fXmin;
   /** @brief Upper limit of the integral. */
-  double  fXmax;
+  double fXmax;
   /** @brief Container to store the generated weights. Size of the vector is GLIntegral::fNPoints. */
   std::vector<double> fWeights;
   /** @brief Container to store the generated abscissas. Size of the vector is GLIntegral::fNPoints. */
   std::vector<double> fAbscissas;
 };
 
-} //namespace geantphysics
+} // namespace geantphysics
 
-#endif  // GLINTEGRAL_H
+#endif // GLINTEGRAL_H

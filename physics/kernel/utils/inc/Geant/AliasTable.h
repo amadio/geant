@@ -16,8 +16,8 @@ namespace geantphysics {
 
 class AliasTable {
 public:
-  AliasTable(){}
- ~AliasTable(){}
+  AliasTable() {}
+  ~AliasTable() {}
 
   /**
     * @brief Public method to prepare sampling table for discretized continuous distribution with combination of alias
@@ -47,7 +47,7 @@ public:
     *
     */
   void PreparRatinTable(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata, double *xx,
-                        int *binindx, int numdata, bool isconstraintspline=false, int glnum=16);
+                        int *binindx, int numdata, bool isconstraintspline = false, int glnum = 16);
 
   /**
     * @brief Public method to prepare sampling table for discretized continuous distribution with combination of alias
@@ -68,13 +68,12 @@ public:
     */
   void PreparLinearTable(double *xdata, double *ydata, double *xx, int *binindx, int numdata);
 
-
   /**
     * @brief Public method to prepare sampling table for discrete distribution with alias sampling.
     *
     *
     * @param[in,out] ydata      Array of the (not necessarily normaised) p.d.f. at the discrete random variable values.
-    *                           It stays unchanged at output and not used at sampling. 
+    *                           It stays unchanged at output and not used at sampling.
     * @param[in,out] xx         Array to store 1-alias probabilities. At input it should be  numdata size array and it
     *                           will contain the 1-alias probabilities at output.
     * @param[in,out] binindx    Array to store alias indices. At input it should be  numdata size array and it
@@ -83,7 +82,6 @@ public:
     *
     */
   void PreparDiscreteTable(double *ydata, double *xx, int *binindx, int numdata);
-
 
   /**
     * @brief Public method to obtain random variable from continuous distribution using discrete samples and the
@@ -110,7 +108,7 @@ public:
     *                alias sampling and rational interpolation based numerical inversion of the c.d.f..
     */
   double SampleRatin(double *xdata, double *comf, double *paradata, double *parbdata, double *xx, int *binindx,
-                     int numdata, double rndm1, double rndm2, int above=-1);
+                     int numdata, double rndm1, double rndm2, int above = -1);
   double SampleRatin(const double *xdata, const double *comf, const double *paradata, const double *parbdata,
                      const double *xx, const int *binindx, const int numdata, const double rndm1, const double rndm2,
                      const int above);
@@ -137,7 +135,6 @@ public:
   double SampleLinear(const double *xdata, const double *ydata, const double *xx, const int *binindx, const int numdata,
                       const double rndm1, const double rndm2);
 
-
   /**
     * @brief Public method to obtain random variable from discrete distribution using alias sampling . All
     *        input data arrays must have been prepared previously by AliasTable::PreparDiscreteTable method.
@@ -150,7 +147,6 @@ public:
     * @return        Index of the sampled discrete random variable.
     */
   int SampleDiscrete(double *xx, int *binindx, int numdata, double rndm1);
-
 
   /**
     * @brief Public method to prepare rational interpolation based numerical inversion of c.d.f. obtained for a
@@ -178,7 +174,7 @@ public:
     *
     */
   double PreparRatinForPDF(double *xdata, double *ydata, double *comf, double *paradata, double *parbdata, int numdata,
-                           bool isconstraintspline=false, int glnum=16);
+                           bool isconstraintspline = false, int glnum = 16);
 
   /**
     * @brief Public method to obtain approximated p.d.f. value by using rational interpolation based numerical inversion
@@ -203,7 +199,8 @@ public:
     */
   double GetRatinForPDF(double x, double *xdata, double *comf, double *paradata, double *parbdata, int numdata);
 
-  /** @brief Same as AliasTable::GetRatinForPDF but the binary search part is skipped since the indx of lower bin of xdata
+  /** @brief Same as AliasTable::GetRatinForPDF but the binary search part is skipped since the indx of lower bin of
+   * xdata
     *        where x is located is provided as the last input parameter.
     *
     *  See more at AliasTable::PreparRatinForPDF.

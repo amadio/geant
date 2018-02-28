@@ -12,7 +12,9 @@ XSectionsVector::XSectionsVector()
   fDataVector.clear();
 }
 
-XSectionsVector::~XSectionsVector() {}
+XSectionsVector::~XSectionsVector()
+{
+}
 
 // Given and energy, retrieve the bin index corresponding to that energy
 size_t XSectionsVector::FindCSBinLocation(double energy, size_t idx) const
@@ -64,8 +66,9 @@ double XSectionsVector::GetValueAt(double energy) const
     return 0.0;
   }
   // std::cout<<"GetValueAt: "<<idx<<"\t"<<fBinVector[idx]<<"\t"<<fDataVector[idx]<<std::endl;
-  return fDataVector[idx] + (fDataVector[idx + 1] - fDataVector[idx]) * (energy - fBinVector[idx]) /
-                                (fBinVector[idx + 1] - fBinVector[idx]);
+  return fDataVector[idx] +
+         (fDataVector[idx + 1] - fDataVector[idx]) * (energy - fBinVector[idx]) /
+             (fBinVector[idx + 1] - fBinVector[idx]);
 }
 
 //_____________________________
@@ -94,8 +97,9 @@ double XSectionsVector::GetValue(double energy, size_t &shellIdx) const
 // Before this method is called it is ensured that the energy is inside the bin
 inline double XSectionsVector::LinearInterpolation(double energy, size_t idx) const
 {
-  return fDataVector[idx] + (fDataVector[idx + 1] - fDataVector[idx]) * (energy - fBinVector[idx]) /
-                                (fBinVector[idx + 1] - fBinVector[idx]);
+  return fDataVector[idx] +
+         (fDataVector[idx + 1] - fDataVector[idx]) * (energy - fBinVector[idx]) /
+             (fBinVector[idx + 1] - fBinVector[idx]);
 }
 
 } // end namespace geantphysics
