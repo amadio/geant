@@ -11,22 +11,19 @@
 #include "Geant/TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
-  namespace geant {
-    class RunManager;
-    class TaskDataHandle;
-    class Event;
-    class Track;
-  }
+namespace geant {
+class RunManager;
+class TaskDataHandle;
+class Event;
+class Track;
 }
-
-
+}
 
 #include "Hist.h"
 #include "TestEm5Data.h"
 
 #include <mutex>
 #include <vector>
-
 
 namespace userapplication {
 
@@ -45,14 +42,12 @@ namespace userapplication {
  * @date    July 2017
  */
 
-
 class TestEm5DetectorConstruction;
 class TestEm5PrimaryGenerator;
 
 /** @brief TestEm5 user application */
 class TestEm5 : public geant::UserApplication {
 public:
-
   /** @brief Constructor TestEm5 */
   TestEm5(geant::RunManager *runmgr, TestEm5DetectorConstruction *det, TestEm5PrimaryGenerator *gun);
 
@@ -76,13 +71,11 @@ public:
     *        are completed). */
   virtual void FinishRun();
 
-
   // Some application specific methods to set the angular distribution histogram parameters.
   void SetHist1FileName(const std::string &name) { fHist1FileName = name; }
   void SetHist1NumBins(int val) { fHist1NumBins = val; }
-  void SetHist1Min(double val)  { fHist1Min     = val; }
-  void SetHist1Max(double val)  { fHist1Max     = val; }
-
+  void SetHist1Min(double val) { fHist1Min = val; }
+  void SetHist1Max(double val) { fHist1Max = val; }
 
 private:
   /** @brief Copy constructor TestEm5 (deleted) */
@@ -90,42 +83,42 @@ private:
   /** @brief Operator= for TestEm5 (deleted) */
   TestEm5 &operator=(const TestEm5 &) = delete;
 
-
 private:
   std::string fHist1FileName;
-  bool        fInitialized;
+  bool fInitialized;
   // ID of the target logical volume (used to check if the current step was done in the target)
   // this data will be obtained from the TestEm5DetectorConstruction at initialization
-  int         fTargetLogicalVolumeID;
+  int fTargetLogicalVolumeID;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)
   // these data will be obtained from the RunManager::GeantConfig object at initialization
-  int         fNumPrimaryPerEvent;
-  int         fNumBufferedEvents;
+  int fNumPrimaryPerEvent;
+  int fNumBufferedEvents;
   // histogram configuration data (can be changed from input arguments)
-  int         fHist1NumBins;
-  double      fHist1Min;
-  double      fHist1Max;
+  int fHist1NumBins;
+  double fHist1Min;
+  double fHist1Max;
   //
-  double      fPrimaryParticleCharge;
+  double fPrimaryParticleCharge;
   // user defined thread local data structure handlers to obtain the thread local data structures (defined and
   // registered by the user) during the simulation (in the SteppingActions(i.e. at the end of each simulation step),
   // Digitization(i.e. at the end of an event) and FinishRun (i.e. at the end of the simulation):
   //
   // 1. merged from all working threads when transportation of an event (with all corresponding primary and secondary
   //    particles) are completed
-  geant::TaskDataHandle<TestEm5ThreadDataEvents>  *fDataHandlerEvents;
+  geant::TaskDataHandle<TestEm5ThreadDataEvents> *fDataHandlerEvents;
   // 2. merged from all working threads when transportation of all events (i.e. end of the simulation) are completed
-  geant::TaskDataHandle<TestEm5ThreadDataRun>     *fDataHandlerRun;
-  // a unique, run-global user defined data structure to store cumulated quantities per primary particle during the simulation
-  TestEm5Data  *fData;
+  geant::TaskDataHandle<TestEm5ThreadDataRun> *fDataHandlerRun;
+  // a unique, run-global user defined data structure to store cumulated quantities per primary particle during the
+  // simulation
+  TestEm5Data *fData;
   //
-  TestEm5DetectorConstruction      *fDetector;
-  TestEm5PrimaryGenerator          *fPrimaryGun;
+  TestEm5DetectorConstruction *fDetector;
+  TestEm5PrimaryGenerator *fPrimaryGun;
   // mutex to prevent multiple threads writing into the unique, run-global TestEm5Data object (in the Digitization after
   // the merge of the user defined per-event data distributed among the threads)
   std::mutex fMutex;
 };
 
-}      // namespace userapplication
+} // namespace userapplication
 
 #endif // TESTEM5_H

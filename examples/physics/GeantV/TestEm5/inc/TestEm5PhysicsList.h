@@ -8,7 +8,6 @@
 
 #include <string>
 
-
 namespace userapplication {
 
 /**
@@ -28,7 +27,7 @@ public:
   // CTR
   TestEm5PhysicsList(const std::string &name);
   // DTR
- ~TestEm5PhysicsList();
+  ~TestEm5PhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 
@@ -38,11 +37,10 @@ public:
   void SetStepMaxValue(double val);
 
 private:
-  geantphysics::MSCSteppingAlgorithm  fMSCSteppingAlgorithm;
-  double                              fStepMaxValue;
+  geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm;
+  double fStepMaxValue;
 };
 
-}      //  namespace userapplication
-
+} //  namespace userapplication
 
 #endif // USERPHYSICSLIST_H

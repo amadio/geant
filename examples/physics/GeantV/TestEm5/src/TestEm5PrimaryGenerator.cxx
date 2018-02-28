@@ -11,60 +11,62 @@
 
 namespace userapplication {
 
-TestEm5PrimaryGenerator::TestEm5PrimaryGenerator(const TestEm5DetectorConstruction *det) : fDetector(det) {
+TestEm5PrimaryGenerator::TestEm5PrimaryGenerator(const TestEm5DetectorConstruction *det) : fDetector(det)
+{
   fPrimaryParticleName = "e-";
   fPrimaryPerEvent     = 1;
   fParticle            = nullptr;
   //
-  fPDG                 = 0;
-  fGVPartIndex         = 0;
+  fPDG         = 0;
+  fGVPartIndex = 0;
   //
-  fPrimaryEkin         = 15.7*geant::units::MeV;
+  fPrimaryEkin = 15.7 * geant::units::MeV;
   //
-  fXPos                = 0.;
-  fYPos                = 0.;
-  fZPos                = 0.;
+  fXPos = 0.;
+  fYPos = 0.;
+  fZPos = 0.;
   //
-  fXDir                = 1.;
-  fYDir                = 0.;
-  fZDir                = 0.;
+  fXDir = 1.;
+  fYDir = 0.;
+  fZDir = 0.;
   //
-  fMass                = 0.;
-  fCharge              = 0.;
-  fETotal              = 0.;
-  fPTotal              = 0.;
+  fMass   = 0.;
+  fCharge = 0.;
+  fETotal = 0.;
+  fPTotal = 0.;
 }
 
+TestEm5PrimaryGenerator::~TestEm5PrimaryGenerator()
+{
+}
 
-TestEm5PrimaryGenerator::~TestEm5PrimaryGenerator() {}
-
-
-void TestEm5PrimaryGenerator::InitPrimaryGenerator() {
-  fParticle            = geantphysics::Particle::GetParticleByName(fPrimaryParticleName);
+void TestEm5PrimaryGenerator::InitPrimaryGenerator()
+{
+  fParticle = geantphysics::Particle::GetParticleByName(fPrimaryParticleName);
   if (!fParticle) {
-    std::cerr<< "   \n *** ERROR::TestEm5PrimaryGenerator::InitPrimaryGenerator()    \n"
-             << "          unknown particle name = " << fPrimaryParticleName << " \n"
-             << std::endl;
+    std::cerr << "   \n *** ERROR::TestEm5PrimaryGenerator::InitPrimaryGenerator()    \n"
+              << "          unknown particle name = " << fPrimaryParticleName << " \n"
+              << std::endl;
     exit(-1);
   }
-  fPDG                 = fParticle->GetPDGCode();
-  fGVPartIndex         = fParticle->GetInternalCode();
-  fMass                = fParticle->GetPDGMass();
-  fCharge              = fParticle->GetPDGCharge();
-  fETotal              = fPrimaryEkin + fMass;
-  fPTotal              = std::sqrt((fETotal - fMass) * (fETotal + fMass));
+  fPDG         = fParticle->GetPDGCode();
+  fGVPartIndex = fParticle->GetInternalCode();
+  fMass        = fParticle->GetPDGMass();
+  fCharge      = fParticle->GetPDGCharge();
+  fETotal      = fPrimaryEkin + fMass;
+  fPTotal      = std::sqrt((fETotal - fMass) * (fETotal + fMass));
   //
-  fXPos                = 0.5*(fDetector->GetWorldXStart()+fDetector->GetTargetXStart());
-  fYPos                = 0.;
-  fZPos                = 0.;
+  fXPos = 0.5 * (fDetector->GetWorldXStart() + fDetector->GetTargetXStart());
+  fYPos = 0.;
+  fZPos = 0.;
   //
-  fXDir                = 1.;
-  fYDir                = 0.;
-  fZDir                = 0.;
+  fXDir = 1.;
+  fYDir = 0.;
+  fZDir = 0.;
 }
 
-
-geant::EventInfo TestEm5PrimaryGenerator::NextEvent(geant::TaskData* /*td*/) {
+geant::EventInfo TestEm5PrimaryGenerator::NextEvent(geant::TaskData * /*td*/)
+{
   geant::EventInfo current;
   current.ntracks = fPrimaryPerEvent;
   current.xvert   = fXPos;
@@ -73,8 +75,8 @@ geant::EventInfo TestEm5PrimaryGenerator::NextEvent(geant::TaskData* /*td*/) {
   return current;
 }
 
-
-void TestEm5PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData* /*td*/) {
+void TestEm5PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData * /*td*/)
+{
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);
@@ -86,5 +88,4 @@ void TestEm5PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::T
   gtrack.SetP(fPTotal);
 }
 
-
-}  // namespace userapplication
+} // namespace userapplication

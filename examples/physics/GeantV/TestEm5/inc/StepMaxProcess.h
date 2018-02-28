@@ -22,19 +22,17 @@ namespace userapplication {
 class StepMaxProcess : public geantphysics::PhysicsProcess {
 public:
   StepMaxProcess(const std::string &name = "Step-max-process");
- ~StepMaxProcess();
+  ~StepMaxProcess();
 
   // interface method
- virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/, bool haseloss=false);
+  virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/, bool haseloss = false);
 
-
- void SetMaxStep(double val) { fMaxStep = val; }
+  void SetMaxStep(double val) { fMaxStep = val; }
 
 private:
-  double  fMaxStep;
-
+  double fMaxStep;
 };
 
-}        // namespace userapplication
+} // namespace userapplication
 
-#endif   // STEPMAXPROCESS_H
+#endif // STEPMAXPROCESS_H

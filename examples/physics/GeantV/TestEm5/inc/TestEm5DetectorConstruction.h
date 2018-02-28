@@ -10,18 +10,17 @@
 #include <string>
 
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class UserDetectorConstruction;
-    class RunManager;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class UserDetectorConstruction;
+class RunManager;
+}
 }
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
 }
-
+}
 
 namespace userapplication {
 
@@ -36,14 +35,12 @@ namespace userapplication {
  * @date    July 2017
  */
 
-
-
 class TestEm5DetectorConstruction : public geant::UserDetectorConstruction {
 public:
   // CTR
   TestEm5DetectorConstruction(geant::RunManager *runmgr);
   // DTR
- ~TestEm5DetectorConstruction();
+  ~TestEm5DetectorConstruction();
 
   // interface mathod to define a set of custom materials for the application
   virtual void CreateMaterials();
@@ -58,43 +55,43 @@ public:
   // method to set the target thickness (in internal [length] units)
   void SetTargetThickness(double val) { fTargetX = val; }
   // methods to set the secondary production cuts in length (internal [length] unit)
-  void SetProductionCuts(double val)        { fGammaCut    = fElectronCut = fPositronCut = val; }
-  void SetGammaProductionCut(double val)    { fGammaCut    = val; }
+  void SetProductionCuts(double val) { fGammaCut = fElectronCut = fPositronCut = val; }
+  void SetGammaProductionCut(double val) { fGammaCut = val; }
   void SetElectronProductionCut(double val) { fElectronCut = val; }
   void SetPositronProductionCut(double val) { fPositronCut = val; }
   //
   // the following methods will give the proper response only after the detector is Initialized (after CreateGeometry())
   //
   // method to get the target material of the actual detector
-  const geantphysics::Material* GetTargetMaterial()        const { return fTargetMaterial; }
+  const geantphysics::Material *GetTargetMaterial() const { return fTargetMaterial; }
   // method to get the target start x coordinate of the actual detector
-  double                        GetWorldXStart()           const { return -fWorldX; }
+  double GetWorldXStart() const { return -fWorldX; }
   // method to get the target end x coordinate of the actual detector
-  double                        GetTargetXStart()          const { return -fTargetX; }
+  double GetTargetXStart() const { return -fTargetX; }
   // method to get the target logical volume ID of the actual detector
-  int                           GetTargetLogicalVolumeID() const { return fTargetLogicalVolumeID; }
+  int GetTargetLogicalVolumeID() const { return fTargetLogicalVolumeID; }
   // method to get the index of the reagion in which the target is located in the actual detector
-  int                           GetTargetRegionIndex()     const { return fTargetRegionIndx; }
+  int GetTargetRegionIndex() const { return fTargetRegionIndx; }
 
 private:
   // internal method to comupte/set detector parameters
   void ComputeSetup();
 
 private:
-  std::string             fTargetMatName;
-  int                     fTargetLogicalVolumeID;
-  int                     fTargetRegionIndx;
-  double                  fTargetYZ;
-  double                  fTargetX;
-  double                  fWorldYZ;
-  double                  fWorldX;
-  double                  fGammaCut;
-  double                  fElectronCut;
-  double                  fPositronCut;
+  std::string fTargetMatName;
+  int fTargetLogicalVolumeID;
+  int fTargetRegionIndx;
+  double fTargetYZ;
+  double fTargetX;
+  double fWorldYZ;
+  double fWorldX;
+  double fGammaCut;
+  double fElectronCut;
+  double fPositronCut;
   geantphysics::Material *fTargetMaterial;
   geantphysics::Material *fWorldMaterial;
 };
 
-}        // namespace userapplication
+} // namespace userapplication
 
-#endif   // DETECTORCONSTRUCTION_H
+#endif // DETECTORCONSTRUCTION_H
