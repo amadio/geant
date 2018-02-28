@@ -4,13 +4,13 @@
 #include "Geant/Config.h"
 
 namespace geant {
-   inline namespace GEANT_IMPL_NAMESPACE {
-      class Track;
-      class Event;
-      class TaskData;
-      class GeantBasket;
-      class GeantBasketMgr;
-   } // GEANT_IMPL_NAMESPACE
+inline namespace GEANT_IMPL_NAMESPACE {
+class Track;
+class Event;
+class TaskData;
+class GeantBasket;
+class GeantBasketMgr;
+} // GEANT_IMPL_NAMESPACE
 } // Geant
 
 #endif // GEANTFWD_H

@@ -12,14 +12,15 @@
 
 // Inlining
 #ifdef __INTEL_COMPILER
-  #define GEANT_FORCE_INLINE inline
+#define GEANT_FORCE_INLINE inline
 #else
-  #if (defined(__GNUC__) || defined(__GNUG__)) && !defined(__clang__) && !defined(__NO_INLINE__) && !defined( GEANT_NOINLINE )
-    #define GEANT_FORCE_INLINE inline __attribute__((always_inline))
-  #else
-  // Clang or forced inlining is disabled ( by falling back to compiler decision )
-    #define GEANT_FORCE_INLINE inline
-  #endif
+#if (defined(__GNUC__) || defined(__GNUG__)) && !defined(__clang__) && !defined(__NO_INLINE__) && \
+    !defined(GEANT_NOINLINE)
+#define GEANT_FORCE_INLINE inline __attribute__((always_inline))
+#else
+// Clang or forced inlining is disabled ( by falling back to compiler decision )
+#define GEANT_FORCE_INLINE inline
+#endif
 #endif
 
 //////////////////////////////////////////
@@ -41,74 +42,80 @@
 
 #define GEANT_IMPL_NAMESPACE cxx
 
-#define GEANT_DECLARE_CONSTANT(type,name) \
-   namespace host_constant { \
-      extern const type name; \
-   } \
-   using host_constant::name
+#define GEANT_DECLARE_CONSTANT(type, name) \
+  namespace host_constant {                \
+  extern const type name;                  \
+  }                                        \
+  using host_constant::name
 #else
 
 #define GEANT_IMPL_NAMESPACE cuda
 
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
 #ifdef CUDA_SEP_COMP
-#define GEANT_DECLARE_CONSTANT(type,name) \
-   namespace host_constant { \
-      extern const type name; \
-   } \
-   namespace device_constant { \
-      extern __constant__ type name; \
-   } \
-   using device_constant::name
+#define GEANT_DECLARE_CONSTANT(type, name) \
+  namespace host_constant {                \
+  extern const type name;                  \
+  }                                        \
+  namespace device_constant {              \
+  extern __constant__ type name;           \
+  }                                        \
+  using device_constant::name
 #else // CUDA_SEP_COMP
-#define GEANT_DECLARE_CONSTANT(type,name) \
-   namespace host_constant { \
-      extern const type name; \
-   } \
-   namespace device_constant { \
-      __constant__ type name; \
-   } \
-   using device_constant::name
+#define GEANT_DECLARE_CONSTANT(type, name) \
+  namespace host_constant {                \
+  extern const type name;                  \
+  }                                        \
+  namespace device_constant {              \
+  __constant__ type name;                  \
+  }                                        \
+  using device_constant::name
 #endif // CUDA_SEP_COMP
-#else // VECCORE_CUDA_DEVICE_COMPILATION
+#else  // VECCORE_CUDA_DEVICE_COMPILATION
 #ifdef CUDA_SEP_COMP
-#define GEANT_DECLARE_CONSTANT(type,name)       \
-   namespace host_constant { \
-      extern const type name; \
-   } \
-   namespace device_constant { \
-      extern __constant__ type name; \
-   } \
-   using host_constant::name
+#define GEANT_DECLARE_CONSTANT(type, name) \
+  namespace host_constant {                \
+  extern const type name;                  \
+  }                                        \
+  namespace device_constant {              \
+  extern __constant__ type name;           \
+  }                                        \
+  using host_constant::name
 #else // CUDA_SEP_COMP
-#define GEANT_DECLARE_CONSTANT(type,name)       \
-   namespace host_constant { \
-      extern const type name; \
-   } \
-   namespace device_constant { \
-      __constant__ type name; \
-   } \
-   using host_constant::name
+#define GEANT_DECLARE_CONSTANT(type, name) \
+  namespace host_constant {                \
+  extern const type name;                  \
+  }                                        \
+  namespace device_constant {              \
+  __constant__ type name;                  \
+  }                                        \
+  using host_constant::name
 #endif // CUDA_SEP_COMP
 #endif // Device build or not
 #endif // gcc or nvcc
 
 #ifndef VECCORE_CUDA
 
-#define GEANT_DEVICE_DECLARE_CONV(NS,classOrStruct,X)  \
-  namespace NS {                                 \
-    namespace cuda { classOrStruct X; }          \
-    inline namespace cxx  { classOrStruct X; }   \
-  }                                              \
-  namespace vecgeom {                            \
-    template <> struct kCudaType<NS::cxx::X> {   \
-      using type_t = NS::cuda::X;                \
-    };                                           \
-  } class __QuietSemi
+#define GEANT_DEVICE_DECLARE_CONV(NS, classOrStruct, X) \
+  namespace NS {                                        \
+  namespace cuda {                                      \
+  classOrStruct X;                                      \
+  }                                                     \
+  inline namespace cxx {                                \
+  classOrStruct X;                                      \
+  }                                                     \
+  }                                                     \
+  namespace vecgeom {                                   \
+  template <>                                           \
+  struct kCudaType<NS::cxx::X> {                        \
+    using type_t = NS::cuda::X;                         \
+  };                                                    \
+  }                                                     \
+  class __QuietSemi
 
 #else
 
-#define GEANT_DEVICE_DECLARE_CONV(NS,classOrStruct,X) class __QuietSemi
+#define GEANT_DEVICE_DECLARE_CONV(NS, classOrStruct, X) class __QuietSemi
 
 #endif
 

@@ -6,22 +6,22 @@
 
 #ifdef VECCORE_CUDA
 #include "base/Vector.h"
-  template <class T>
-  using vector_t = vecgeom::Vector<T>;
+template <class T>
+using vector_t = vecgeom::Vector<T>;
 #else
 #include <vector>
 #ifdef GEANT_USE_NUMA
 #include <GeantNuma.h>
-  template <class T>
-  using vector_t = std::vector<T, geant::NumaAllocator<T>>;
+template <class T>
+using vector_t = std::vector<T, geant::NumaAllocator<T>>;
 #else
-  template <class T>
-  using vector_t = std::vector<T>;
+template <class T>
+using vector_t = std::vector<T>;
 #endif
 #endif
 
 namespace geantphysics {
-   class Particle;
+class Particle;
 }
 typedef geantphysics::Particle Particle_t;
 
