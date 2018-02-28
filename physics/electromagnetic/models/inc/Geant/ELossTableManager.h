@@ -25,7 +25,8 @@ class Particle;
  * energy loss table might be different. So as many ELossTable-s will be created as many different PhysicsParameters
  * objects and each of them will handle only those MaterialCuts and kEnergyLoss physics process(es) that belongs to
  * region in which the PhysicsParameters object is active. Energy loss data like dedx, range, inverse range ... can be
- * obtained at run-time through the GetRestrictedDEDX, GetRestrictedRange, GetEnergyForRestrictedRange methods by passing
+ * obtained at run-time through the GetRestrictedDEDX, GetRestrictedRange, GetEnergyForRestrictedRange methods by
+ * passing
  * pointers to the MaterialCuts and Particle object and specifying the kinetic energy of the particle.
  *
  * At the end of the run or in case of re-initialization one needs to call ELossTableManager::Clear() method to delete
@@ -39,13 +40,11 @@ public:
   /**
    * @brief Static method to obtain the singletone object.
    */
-  static ELossTableManager& Instance();
-
+  static ELossTableManager &Instance();
 
   // copy CTR and assignment operators as deleted
-  ELossTableManager(const ELossTableManager&) = delete;
-  ELossTableManager& operator=(const ELossTableManager&) = delete;
-
+  ELossTableManager(const ELossTableManager &) = delete;
+  ELossTableManager &operator=(const ELossTableManager &) = delete;
 
   /**
    *  @brief The main method to build all energy loss tables for all regions (for all PhysicsParameters objects), for
@@ -63,14 +62,12 @@ public:
    */
   void BuildELossTables();
 
-
   /**
    * @brief  Method to clear up all memory i.e. delete all ELossTable objects and reset container sizes. One needs to
    *         class this method at the end of the run or in case of re-initialization (before calling ELossTableManager::
    *         BuildELossTables()).
    */
   void Clear();
-
 
   /** @brief  Run time method to obtain restricted stopping power for the given MaterialCuts, Particle and kinetic
    *          energy.
@@ -88,7 +85,6 @@ public:
    */
   double GetRestrictedDEDX(const MaterialCuts *matcut, const Particle *part, double kinenergy);
 
-
   /** @brief  Run time method to obtain restricted range for the given MaterialCuts, Particle and kinetic energy.
    *
    * The restricted range table is built at initialization for each MaterialCuts, for each particle that has at least
@@ -103,7 +99,6 @@ public:
    *            A high (1.0e+20) value otherwise.
    */
   double GetRestrictedRange(const MaterialCuts *matcut, const Particle *part, double kinenergy);
-
 
   /** @brief  Run time method to obtain the kinetic energy that corresponds to a given restricted range in the given
    *          MaterialCuts and Particle.
@@ -121,11 +116,11 @@ public:
    */
   double GetEnergyForRestrictedRange(const MaterialCuts *matcut, const Particle *part, double range);
 
-
   /**
    * @brief   Method to obtain full (CSDA) range for the given Material(that specified by the MaterialCut), Particle and
    *          kinetic energy. Available only if the corresponding (full) range table was requested to be built by
-   *          setting the fIsComputeCSDARange member of the corresponding PhysicsParameters object before initialisation.
+   *          setting the fIsComputeCSDARange member of the corresponding PhysicsParameters object before
+   * initialisation.
    *
    * The full (CSDA) range table is built at initialization if it was requested (false by default), by computing the
    * full stopping power (i.e. setting the upper limit of the integral to be very large or equal to the primary kinetic
@@ -143,53 +138,49 @@ public:
    */
   double GetRange(const MaterialCuts *matcut, const Particle *part, double kinenergy);
 
-
-/*
-  // just for testing
-  void PrintRestrictedDEDX(const MaterialCuts *matcut, const Particle *part) {
-    if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
-      fElossTablePerMaterialCuts[matcut->GetIndex()]->PrintRestrictedDEDX(matcut->GetIndex(),part->GetInternalCode());
-    } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
-      std::cerr<<"  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
-      std::cerr<<matcut<<std::endl;
+  /*
+    // just for testing
+    void PrintRestrictedDEDX(const MaterialCuts *matcut, const Particle *part) {
+      if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
+        fElossTablePerMaterialCuts[matcut->GetIndex()]->PrintRestrictedDEDX(matcut->GetIndex(),part->GetInternalCode());
+      } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
+        std::cerr<<"  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
+        std::cerr<<matcut<<std::endl;
+      }
     }
-  }
-  // just for testing
-  void PrintRestrictedRange(const MaterialCuts *matcut, const Particle *part) {
-    if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
-      fElossTablePerMaterialCuts[matcut->GetIndex()]->PrintRestrictedRange(matcut->GetIndex(),part->GetInternalCode());
-    } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
-      std::cerr<<"  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
-      std::cerr<<matcut<<std::endl;
+    // just for testing
+    void PrintRestrictedRange(const MaterialCuts *matcut, const Particle *part) {
+      if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
+        fElossTablePerMaterialCuts[matcut->GetIndex()]->PrintRestrictedRange(matcut->GetIndex(),part->GetInternalCode());
+      } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
+        std::cerr<<"  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
+        std::cerr<<matcut<<std::endl;
+      }
     }
-  }
-  // just for testing
-  void PrintRange(const MaterialCuts *matcut, const Particle *part) {
-    if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
-      fElossTablePerMaterialCuts[matcut->GetIndex()]->PrintRange(matcut->GetMaterial()->GetIndex(),part->GetInternalCode());
-    } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
-      std::cerr<<"  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
-      std::cerr<<matcut<<std::endl;
+    // just for testing
+    void PrintRange(const MaterialCuts *matcut, const Particle *part) {
+      if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
+        fElossTablePerMaterialCuts[matcut->GetIndex()]->PrintRange(matcut->GetMaterial()->GetIndex(),part->GetInternalCode());
+      } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
+        std::cerr<<"  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
+        std::cerr<<matcut<<std::endl;
+      }
     }
-  }
-*/
-
+  */
 
 private:
   // CTR private
   ELossTableManager() {}
 
-
 private:
-  std::vector<ELossTable*>      fElossTablePerMaterialCuts;  // size will be #MaterialCuts and each element will
-                                                             // point to the ELossTable object that that MatrialCuts
-                                                             // belongs to; this should not be deleted because stored
-                                                             // below
-  std::vector<ELossTable*>      fTheElossTables;  // as many ELossTables object as registered PhysicsParameters; the
-                                                  // class owns these obejcts
-
+  std::vector<ELossTable *> fElossTablePerMaterialCuts; // size will be #MaterialCuts and each element will
+                                                        // point to the ELossTable object that that MatrialCuts
+                                                        // belongs to; this should not be deleted because stored
+                                                        // below
+  std::vector<ELossTable *> fTheElossTables; // as many ELossTables object as registered PhysicsParameters; the
+                                             // class owns these obejcts
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // ELOSSTABLEMANAGER_H
+#endif // ELOSSTABLEMANAGER_H

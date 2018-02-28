@@ -27,7 +27,6 @@ class Particle;
  * EMModel-s: each EMModel-s will be initilized only for reagions where they are active.
  */
 
-
 class EMModelManager {
 public:
   /**
@@ -57,11 +56,11 @@ public:
    * @param[in] listofisactiveregions  List of active region vector (that is the same as the corresponding
    *                                   EMPhysicsProcess list of active region).
    * @param[in] procname               Name of the EMPhysicsProcess to provide information in case of warnings.
-   * @param[in] particlelist           List of particles the EMPhysicsProcess to provide information in case of warnings.
+   * @param[in] particlelist           List of particles the EMPhysicsProcess to provide information in case of
+   * warnings.
    */
   void Initialise(std::vector<bool> &listofisactiveregions, const std::string &procname,
-                  const std::vector<Particle*> &particlelist);
-
+                  const std::vector<Particle *> &particlelist);
 
   /**
    * @brief Method to add EMModel to the model manager.
@@ -78,8 +77,7 @@ public:
   // the particle is within the usage limits of the model. If the kinetic energy is lower than the lowest usgae limits
   // of the models it will return with the lowest energy model. So we always check in the model if we are within the
   // usage limits of the model in the final state sampling
-  EMModel* SelectModel(double ekin, int regionindx);
-
+  EMModel *SelectModel(double ekin, int regionindx);
 
   /**
    * @brief Public method to obtain the list of EMModels from the manager that are active in a given region.
@@ -88,8 +86,7 @@ public:
    *                        is not checked)
    * @return    List of EMModel-s that are active in the given region.
    */
-  const std::vector<EMModel*>& GetModelListInRegion(int regionindx) const { return fModelListsPerRegions[regionindx]; }
-
+  const std::vector<EMModel *> &GetModelListInRegion(int regionindx) const { return fModelListsPerRegions[regionindx]; }
 
   /**
    * @brief Public method to obtain the collections of active EMModel-s per region.
@@ -99,7 +96,7 @@ public:
    *
    * @return    Collections of active EMModel-s per region.
    */
-  const std::vector< std::vector< EMModel*> >& GetModelListPerRegions() const { return fModelListsPerRegions; }
+  const std::vector<std::vector<EMModel *>> &GetModelListPerRegions() const { return fModelListsPerRegions; }
 
   /**
    * @brief Public method to get the number of EMModel-s that have been added so far to thid mamanger.
@@ -107,7 +104,6 @@ public:
    * @return Number of EMModel-s that have been added so far to thid mamanger.
    */
   int GetNumberOfModels() const { return fNumModels; }
-
 
   /**
    * @brief Method to obtain one EMModel by its index.
@@ -118,27 +114,24 @@ public:
    * @param[in]  modelindx  Index of the required EMModel.
    * @return     Pointer to the EMModel with the specified index.
    */
-  EMModel* GetModelByIndex(int modelindx) { return fModelList[modelindx]; }
-
+  EMModel *GetModelByIndex(int modelindx) { return fModelList[modelindx]; }
 
   /**
    * @brief Public method to obtain the full list of EMModel-s that have been added to this model manager so far.
    *
    * @return List of EMModel-s that have been added so far to this model manager.
    */
-  const std::vector<EMModel*>& GetModelList() const { return fModelList; }
+  const std::vector<EMModel *> &GetModelList() const { return fModelList; }
 
-
-//
-// data members
-//
+  //
+  // data members
+  //
 private:
-  int                      fNumModels; /** number of models added to this manager */
-  std::vector<EMModel*>    fModelList; /** list of models added to this manager; the manager owns the models; the model
-                                           indices are set to the index of the model in this vector */
-  std::vector< std::vector<EMModel*> >  fModelListsPerRegions;
-//  std::vector<double>      fLowEnergyUsageLimits; /** the low energy usage limits for each model */
-
+  int fNumModels;                    /** number of models added to this manager */
+  std::vector<EMModel *> fModelList; /** list of models added to this manager; the manager owns the models; the model
+                                         indices are set to the index of the model in this vector */
+  std::vector<std::vector<EMModel *>> fModelListsPerRegions;
+  //  std::vector<double>      fLowEnergyUsageLimits; /** the low energy usage limits for each model */
 };
 
 } // namespace geantphysics

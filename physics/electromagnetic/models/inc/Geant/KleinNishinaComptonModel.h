@@ -7,16 +7,16 @@
 // from geantV
 #include "Geant/Config.h"
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class TaskData;
+inline namespace GEANT_IMPL_NAMESPACE {
+class TaskData;
 }
 }
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-    class Element;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
+class Element;
+}
 }
 
 #include <string>
@@ -43,52 +43,50 @@ namespace geantphysics {
  *
  */
 
-//class Material;
+// class Material;
 class MaterialCuts;
-//class Element;
+// class Element;
 class AliasTable;
 class Particle;
 class LightTrack;
 
 class KleinNishinaComptonModel : public EMModel {
 public:
-/**
-* @name Constructor, destructor:
-*/
-//@{
+  /**
+  * @name Constructor, destructor:
+  */
+  //@{
   /**
   * @brief Constructor.
   *
   * @param[in] modelname   Name of the model.
   */
-  KleinNishinaComptonModel(const std::string &modelname="ComptonKleinNishina");
+  KleinNishinaComptonModel(const std::string &modelname = "ComptonKleinNishina");
   /** @brief Destructor. */
   virtual ~KleinNishinaComptonModel();
-//@}
+  //@}
 
-/**
-* @name Implemented EMModel base class methods:
-*/
-//@{
-  virtual void   Initialize();
+  /**
+  * @name Implemented EMModel base class methods:
+  */
+  //@{
+  virtual void Initialize();
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-  virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
-//@}
-
-
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
+                                        const Particle *particle);
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  //@}
 
 private:
   /** @brief Copy constructor  (deleted) */
-  KleinNishinaComptonModel(const KleinNishinaComptonModel&) = delete;
+  KleinNishinaComptonModel(const KleinNishinaComptonModel &) = delete;
   /** @brief Operator=  (deleted) */
-  KleinNishinaComptonModel &operator=(const KleinNishinaComptonModel&) = delete;
+  KleinNishinaComptonModel &operator=(const KleinNishinaComptonModel &) = delete;
 
-
-/**
-* @name Model specific private methods.
-*/
-//@{
+  /**
+  * @name Model specific private methods.
+  */
+  //@{
 
   /**
    * @brief Internal method to compute parametrized atomic Compton scattering cross section for a given target atom,
@@ -100,7 +98,6 @@ private:
    */
   double ComputeAtomicCrossSection(double z, double egamma);
 
-
   /**
     * @brief Internal method to sample post interaction reduced photon energy from the prepared sampling tables.
     *
@@ -111,7 +108,6 @@ private:
     *  @return    Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
     */
   double SampleReducedPhotonEnergy(const double egamma, const double r1, const double r2, const double r3);
-
 
   /**
     * @brief Internal method to sample post interaction reduced photon energy.
@@ -135,10 +131,8 @@ private:
    */
   double ComputeDXSecPerAtom(double xi, double kappa);
 
-
   /** @brief Internal method to build reduced (post interaction) photon energy related sampling tables.*/
-  void   InitSamplingTables();
-
+  void InitSamplingTables();
 
   /** @brief Internal method to build one reduced (post interaction) photon energy sampling tables for a given initial
    *         gamma energy.
@@ -152,10 +146,10 @@ private:
    *  @param[in]  indx   Index of the alias table data structure to build in the container.
    *  @param[in]  kappa  Initial photon energy \f$ E_0 \f$ dependent input variable \f$ \kappa=E_0/(m_ec^2)\f$.
    */
-  void   BuildOneLinAlias(int indx, double kappa);
+  void BuildOneLinAlias(int indx, double kappa);
 
-  void   ClearSamplingTables();
-//@}
+  void ClearSamplingTables();
+  //@}
 
   /** @brief Internal data structure to store data for sampling the post interaction gaamma energy related transformd
     *        variable.
@@ -164,8 +158,14 @@ private:
     *  post interaction gamma energy related transformed variable using a combination  of Walker's alias sampling and
     *  liner approximation. We will have as many data structure as discrete primary gamma energy grid points.
     */
-  struct LinAlias{
-    LinAlias(int num) { fXdata.resize(num); fYdata.resize(num); fAliasW.resize(num); fAliasIndx.resize(num); }
+  struct LinAlias {
+    LinAlias(int num)
+    {
+      fXdata.resize(num);
+      fYdata.resize(num);
+      fAliasW.resize(num);
+      fAliasIndx.resize(num);
+    }
     /** @brief Post interaction gamma energy related transformed variable values. */
     std::vector<double> fXdata;
     /** @brief The pdf values (not necessarily normalised) over the energy transfer related variable values. */
@@ -173,30 +173,29 @@ private:
     /** @brief The alias probabilities (not necessarily normalised) over the energy transfer related variables. */
     std::vector<double> fAliasW;
     /** @brief The alias indices over the energy transfer related transformed variable values. */
-    std::vector<int>    fAliasIndx;
+    std::vector<int> fAliasIndx;
   };
 
-
-// data members
+  // data members
 private:
   /** @brief  Internal code of the secondary partcile (e-). */
-  int    fSecondaryInternalCode;
+  int fSecondaryInternalCode;
 
-  int    fSTNumPhotonEnergiesPerDecade;    // ST=>SamplingTables
-  int    fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
-  int    fSTNumPhotonEnergies;             // ST=>SamplingTables
+  int fSTNumPhotonEnergiesPerDecade;    // ST=>SamplingTables
+  int fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
+  int fSTNumPhotonEnergies;             // ST=>SamplingTables
 
-  double fSTLogMinPhotonEnergy;            // ST=>SamplingTables
-  double fSTILDeltaPhotonEnergy;           // ST=>SamplingTables
+  double fSTLogMinPhotonEnergy;  // ST=>SamplingTables
+  double fSTILDeltaPhotonEnergy; // ST=>SamplingTables
 
   /** @brief Container to store pointers to LinAlias data structures.*/
-  std::vector<LinAlias*>   fSamplingTables;
+  std::vector<LinAlias *> fSamplingTables;
   /** @brief An alias sampler used at run-time sampling of the post interaction gamma kinetic energy related transfered
     *        variable from a LinAlias data structure (prepared at initialisation).
     */
   AliasTable *fAliasSampler;
 };
 
-}        // namespace geantphysics
+} // namespace geantphysics
 
-#endif   // KLEINNISHINACOMPTONMODEL_H
+#endif // KLEINNISHINACOMPTONMODEL_H

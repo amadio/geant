@@ -7,16 +7,16 @@
 // from geantV
 #include "Geant/Config.h"
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class TaskData;
+inline namespace GEANT_IMPL_NAMESPACE {
+class TaskData;
 }
 }
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-    class Element;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
+class Element;
+}
 }
 
 #include <string>
@@ -24,8 +24,8 @@ namespace geantphysics {
 
 namespace geantphysics {
 
-//class Material;
-//class Element;
+// class Material;
+// class Element;
 class AliasTable;
 class MaterialCuts;
 class Particle;
@@ -47,58 +47,58 @@ class GLIntegral;
  * not active) the Seltzer-Berger model (SeltzerBergerBremsModel) is more accurate.
  */
 
-class RelativisticBremsModel: public EMModel {
+class RelativisticBremsModel : public EMModel {
 public:
-/**
-* @name Constructor, destructor:
-*/
-//@{
-     /**
-      * @brief Constructor.
-      *
-      * @param[in] modelname Name of the model.
-      */
-    RelativisticBremsModel(const std::string &modelname="eRelativisticBrems");
-     /** @brief Destructor. */
-    virtual ~RelativisticBremsModel();
-//@}
+  /**
+  * @name Constructor, destructor:
+  */
+  //@{
+  /**
+   * @brief Constructor.
+   *
+   * @param[in] modelname Name of the model.
+   */
+  RelativisticBremsModel(const std::string &modelname = "eRelativisticBrems");
+  /** @brief Destructor. */
+  virtual ~RelativisticBremsModel();
+  //@}
 
-/**
-* @name Implemented EMModel base class methods:
-*/
-//@{
-    /** @brief Interface method to initilize the model. */
-    virtual void   Initialize();
+  /**
+  * @name Implemented EMModel base class methods:
+  */
+  //@{
+  /** @brief Interface method to initilize the model. */
+  virtual void Initialize();
 
-    virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle* particle, bool istotal=false);
-    virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle *particle,
+                             bool istotal = false);
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
+                                        const Particle *particle);
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
 
-    virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
-//
-//@}
+  virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
+  //
+  //@}
 
-/**
- * @name Field related setters/getters:
- */
-//@{
+  /**
+   * @name Field related setters/getters:
+   */
+  //@{
   /** @brief Get the flag that indicates if LPM suppression is active (true by default). */
-  bool  GetLPMFlag()  {return fIsUseLPM;}
+  bool GetLPMFlag() { return fIsUseLPM; }
   /** @brief Set the flag that indicates if LPM suppression is active (true by default).
     *
     * Must be set before initialisation if not the default value required.
     */
-  void  SetLPMFlag(bool islpm) {fIsUseLPM = islpm;}
-//@}
-
+  void SetLPMFlag(bool islpm) { fIsUseLPM = islpm; }
+  //@}
 
 private:
-
   /** @brief Copy constructor  (deleted) */
-  RelativisticBremsModel(const RelativisticBremsModel&) = delete;
+  RelativisticBremsModel(const RelativisticBremsModel &) = delete;
   /** @brief Operator=  (deleted) */
-  RelativisticBremsModel &operator=(const RelativisticBremsModel&) = delete;
+  RelativisticBremsModel &operator=(const RelativisticBremsModel &) = delete;
 
   /**
    * @brief Internal method to obtain (restricted) radiative stopping power.
@@ -165,7 +165,7 @@ private:
    * @return              An emitted bremsstrahlung photon energy (sampled from the distribution specified by
    *                      given configuration and the model) in internal [energy] units.
    */
-  double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::TaskData* td);
+  double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::TaskData *td);
 
   /**
    * @brief Internal method to sample the emitted (restricted) bremsstrahlung photon energy (with rejection).
@@ -178,57 +178,60 @@ private:
    * @param[in,out] cosTheta  Result of the emitted photon direction sampling.
    * @param[in]     rndm      A random number distributed uniformly on [0,1).
    */
-  void   SamplePhotonDirection(double eekin, double &sinTheta, double &cosTheta, double rndm);
+  void SamplePhotonDirection(double eekin, double &sinTheta, double &cosTheta, double rndm);
 
-
-  void   InitElementData();
+  void InitElementData();
   double ComputeDXSecPerAtom(double egamma, double etotal, double zet);
   double ComputeURelDXSecPerAtom(double egamma, double etotal, double lpmenergy, double densitycor, int izet);
 
-  void   ComputeScreeningFunctions(double &phi1, double &phi1m2, double &xsi1, double &xsi1m2, const double gamma,
-                                   const double epsilon);
+  void ComputeScreeningFunctions(double &phi1, double &phi1m2, double &xsi1, double &xsi1m2, const double gamma,
+                                 const double epsilon);
   //
-  void   ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS, const double lpmenergy,
-                             const double egamma, const double etot, const double densitycor, const int izet);
-  void   ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
-  void   InitLPMFunctions();
-  void   GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
+  void ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS, const double lpmenergy,
+                           const double egamma, const double etot, const double densitycor, const int izet);
+  void ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
+  void InitLPMFunctions();
+  void GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
   //
-  void   ClearSamplingTables();
-  void   InitSamplingTables();
-  void   BuildSamplingTableForMaterialCut(const MaterialCuts *matCut, int indxlocal);
-
-
+  void ClearSamplingTables();
+  void InitSamplingTables();
+  void BuildSamplingTableForMaterialCut(const MaterialCuts *matCut, int indxlocal);
 
   struct ElementData {
     /** @brief \f$ \ln(Z) \f$  */
-    double  fLogZ;
+    double fLogZ;
     /** @brief \f$ \ln(Z)/3 + f_c \f$  */
-    double  fFz;
+    double fFz;
     /** @brief \f$ ((Fel-fc)+Finel*invZ)\f$  */
-    double  fZFactor1;
+    double fZFactor1;
     /** @brief \f$ (1.0+invZ)/12  \f$  */
-    double  fZFactor2;
+    double fZFactor2;
     // LPM variables
-    double  fVarS1;
-    double  fILVarS1;
-    double  fILVarS1Cond;
+    double fVarS1;
+    double fILVarS1;
+    double fILVarS1Cond;
     // constant factors to the screening function evaluations
-    double  fGammaFactor;
-    double  fEpsilonFactor;
+    double fGammaFactor;
+    double fEpsilonFactor;
   };
 
   struct LPMFuncs {
     LPMFuncs() : fIsInitialized(false), fSDelta(0.01), fSLimit(2.) {}
-    bool   fIsInitialized;
+    bool fIsInitialized;
     double fSDelta;
     double fSLimit;
-    std::vector<double>  fLPMFuncG;
-    std::vector<double>  fLPMFuncPhi;
+    std::vector<double> fLPMFuncG;
+    std::vector<double> fLPMFuncPhi;
   };
 
   struct LinAlias {
-    LinAlias(int num) {fXdata.resize(num); fYdata.resize(num); fAliasW.resize(num); fAliasIndx.resize(num);}
+    LinAlias(int num)
+    {
+      fXdata.resize(num);
+      fYdata.resize(num);
+      fAliasW.resize(num);
+      fAliasIndx.resize(num);
+    }
     /** @brief Reduced photon energy related transformed variable values. */
     std::vector<double> fXdata;
     /** @brief The probability density function values (not necessarily normalised) over the reduced photon energy
@@ -240,44 +243,43 @@ private:
       */
     std::vector<double> fAliasW;
     /** @brief The alias indices over the reduced photon energy related transformed variable values. */
-    std::vector<int>    fAliasIndx;
+    std::vector<int> fAliasIndx;
   };
 
   struct AliasDataMaterialCuts {
-    AliasDataMaterialCuts(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel) {
-      fAliasData.resize(ntables,nullptr);
+    AliasDataMaterialCuts(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
+    {
+      fAliasData.resize(ntables, nullptr);
     }
-    int    fNData;
+    int fNData;
     double fLogEmin;
     double fILDelta;
-    std::vector<LinAlias*>  fAliasData;
+    std::vector<LinAlias *> fAliasData;
   };
 
-// data members
+  // data members
 private:
-
-  static const long   gMaxZet = 121;
+  static const long gMaxZet = 121;
   static const double gFelLowZet[8];
   static const double gFinelLowZet[8];
   static const double gLPMFactor;
   static const double gDensityFactor;
-  static LPMFuncs     gLPMFuncs;
-  static std::vector<ElementData*>  gElementData;
+  static LPMFuncs gLPMFuncs;
+  static std::vector<ElementData *> gElementData;
 
-  bool    fIsUseLPM;
-  int     fNGL;
-  int     fSecondaryInternalCode;
-  int     fSTNumElectronEnergyPerDecade;   // ST=> sampling tables
-  int     fSTNumSamplingPhotEnergies;      // ST=> sampling tables
+  bool fIsUseLPM;
+  int fNGL;
+  int fSecondaryInternalCode;
+  int fSTNumElectronEnergyPerDecade; // ST=> sampling tables
+  int fSTNumSamplingPhotEnergies;    // ST=> sampling tables
 
   GLIntegral *fGL;
 
-  AliasTable*                          fAliasSampler;
-  std::vector<int>                     fGlobalMatGCutIndxToLocal;
-  std::vector<AliasDataMaterialCuts*>  fSamplingTables;
+  AliasTable *fAliasSampler;
+  std::vector<int> fGlobalMatGCutIndxToLocal;
+  std::vector<AliasDataMaterialCuts *> fSamplingTables;
 };
 
+} // namespace geantphysics
 
-}       // namespace geantphysics
-
-#endif  // RELATIVISTICBREMSMODEL_H
+#endif // RELATIVISTICBREMSMODEL_H

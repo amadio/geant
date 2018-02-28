@@ -15,18 +15,19 @@ namespace geantphysics {
 //
 //  PWATotalXsecZ: sub-class for PWA xsec data that belong to a given Z number
 class PWATotalXsecZ {
-friend class PWATotalXsecTable;
+  friend class PWATotalXsecTable;
+
 public:
   //
   // out of energy grid cases
-  int    GetLowestEnergyBinIndex() const { return 0; }
-  int    GetHighestEnergyBinIndex()const { return gNumTotalXsecBins-1; }
-  static double GetLowestEnergy()  { return gPWATotalXsecEnergyGrid[0]; }
-  static double GetHighestEnergy() { return gPWATotalXsecEnergyGrid[gNumTotalXsecBins-1]; }
+  int GetLowestEnergyBinIndex() const { return 0; }
+  int GetHighestEnergyBinIndex() const { return gNumTotalXsecBins - 1; }
+  static double GetLowestEnergy() { return gPWATotalXsecEnergyGrid[0]; }
+  static double GetHighestEnergy() { return gPWATotalXsecEnergyGrid[gNumTotalXsecBins - 1]; }
 
   // see below what is input parameter j
-  double GetLowestXsecValue(int j)  const { return fPWAXsecs[j*gNumTotalXsecBins];}
-  double GetHighestXsecValue(int j) const { return fPWAXsecs[(j+1)*gNumTotalXsecBins-1];}
+  double GetLowestXsecValue(int j) const { return fPWAXsecs[j * gNumTotalXsecBins]; }
+  double GetHighestXsecValue(int j) const { return fPWAXsecs[(j + 1) * gNumTotalXsecBins - 1]; }
 
   //
   // normal cases i.e. energy is within the grid
@@ -47,24 +48,23 @@ public:
   // utation because it depends only on the energy of the particle while the      //
   // cross sections depends on Z and particle type as well                        //
   //------------------------------------------------------------------------------//
-  double GetInterpXsec(double energy, int elowindex, int j) const ;
-  double GetInterpXsec(double energy, int j) const ;
+  double GetInterpXsec(double energy, int elowindex, int j) const;
+  double GetInterpXsec(double energy, int j) const;
 
 private:
   // ctr and dtr can be called only by the PWATotalXsecTable friend
   PWATotalXsecZ(int Z);
- ~PWATotalXsecZ() {}
+  ~PWATotalXsecZ() {}
 
   //  hide assignment operator and cpy ctr.
-  PWATotalXsecZ & operator=(const PWATotalXsecZ &right);
-  PWATotalXsecZ(const PWATotalXsecZ&);
+  PWATotalXsecZ &operator=(const PWATotalXsecZ &right);
+  PWATotalXsecZ(const PWATotalXsecZ &);
 
   void LoadPWATotalXsecZ(int Z);
 
-
 private:
-  //size of the common energy grid //
-  static const int gNumTotalXsecBins =  106;
+  // size of the common energy grid //
+  static const int gNumTotalXsecBins = 106;
 
   // common energy grid in [1.e-4;1.e+3] MeV //
   // size is fgNumTotalXsecBins
@@ -72,40 +72,40 @@ private:
 
   // elastic cross sections, first and second transport cross sections for e-/e+
   // over the common energy grid gPWATotalXsecEnergyGrid in geantV internal length^2
-  double fPWAXsecs[gNumTotalXsecBins*6];
+  double fPWAXsecs[gNumTotalXsecBins * 6];
   // interpolation parameters if log-log linear interpolation is used
-  double fInterpParamA[gNumTotalXsecBins*6];
-  double fInterpParamB[gNumTotalXsecBins*6];
+  double fInterpParamA[gNumTotalXsecBins * 6];
+  double fInterpParamB[gNumTotalXsecBins * 6];
 };
-
 
 //
 //  PWATotalXsecTable
 class PWATotalXsecTable {
 public:
   PWATotalXsecTable() {}
- ~PWATotalXsecTable();
+  ~PWATotalXsecTable();
 
   void Initialise();
 
-  const PWATotalXsecZ* GetPWATotalXsecForZet(int Z) const{
-        Z = Z>gNumZet ? gNumZet : Z;
-        return gPWATotalXsecTable[Z-1];
+  const PWATotalXsecZ *GetPWATotalXsecForZet(int Z) const
+  {
+    Z = Z > gNumZet ? gNumZet : Z;
+    return gPWATotalXsecTable[Z - 1];
   }
 
 private:
   //  hide assignment operator and cpy ctr.
-  PWATotalXsecTable & operator=(const PWATotalXsecTable &right);
-  PWATotalXsecTable(const PWATotalXsecTable&);
+  PWATotalXsecTable &operator=(const PWATotalXsecTable &right);
+  PWATotalXsecTable(const PWATotalXsecTable &);
 
- private:
-   // size of the table: Z=1-103 //
-   static const int gNumZet =  103;
+private:
+  // size of the table: Z=1-103 //
+  static const int gNumZet = 103;
 
-   // PWATotalXsecZ pointers for Z=1-103 //
-   static PWATotalXsecZ *gPWATotalXsecTable[gNumZet];
+  // PWATotalXsecZ pointers for Z=1-103 //
+  static PWATotalXsecZ *gPWATotalXsecTable[gNumZet];
 };
 
-}       // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // PWATOTALXSECTABLE_H
+#endif // PWATOTALXSECTABLE_H

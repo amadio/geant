@@ -7,17 +7,16 @@
 // from geantV
 #include "Geant/Config.h"
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class TaskData;
+inline namespace GEANT_IMPL_NAMESPACE {
+class TaskData;
 }
 }
-
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-    class Element;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
+class Element;
+}
 }
 
 #include <string>
@@ -42,11 +41,9 @@ namespace geantphysics {
  * [GeV].
  */
 
-
-
-//class Material;
+// class Material;
 class MaterialCuts;
-//class Element;
+// class Element;
 class AliasTable;
 class Particle;
 class LightTrack;
@@ -54,33 +51,34 @@ class GLIntegral;
 
 class RelativisticPairModel : public EMModel {
 public:
-/**
-* @name Constructor, destructor:
-*/
-//@{
+  /**
+  * @name Constructor, destructor:
+  */
+  //@{
   /**
   * @brief Constructor.
   *
   * @param[in] modelname   Name of the model.
   */
 
-  RelativisticPairModel(const std::string &modelname="PairRelativisticLPM");
+  RelativisticPairModel(const std::string &modelname = "PairRelativisticLPM");
   /** @brief Destructor. */
   virtual ~RelativisticPairModel();
-//@}
+  //@}
 
-/**
-* @name Implemented EMModel base class methods:
-*/
-//@{
+  /**
+  * @name Implemented EMModel base class methods:
+  */
+  //@{
   /** @brief Interface method to initilize the model. */
-  virtual void   Initialize();
+  virtual void Initialize();
 
   /**
     * @brief Interface method to obtain macroscopic cross sections.
     *
     * @param[in] matcut      Pointer to the MaterialCuts object in which the macroscopic cross section must be computed.
-    * @param[in] kinenergy   Kinetic energy of the gamma particle at which the macroscopic cross section must be computed.
+    * @param[in] kinenergy   Kinetic energy of the gamma particle at which the macroscopic cross section must be
+   * computed.
     * @return    Macroscopic pair-production cross section in internal [1/length] units.
     */
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *);
@@ -91,31 +89,30 @@ public:
     * @param[in] kinenergy   Kinetic energy of the gamma particle at which the atomic cross section must be computed.
     * @return    Atomic pair-production cross section in internal [length^2] units.
     */
-  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts*, double kinenergy, const Particle*);
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *, double kinenergy, const Particle *);
   /**
     * @brief Interface method to generate final state of the interaction.
     *
     * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
     *                          some information about the current material-cut couple. It is updated by the method and
     *                          it stores the post-interaction primary track properties at output.
-    * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will store
+    * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will
+   * store
     *                          the seconadry tracks generated in the interaction.
     * @return                  Number of secondary tracks generated in the interaction.
     */
-  virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
-//
-//@}
-
-
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  //
+  //@}
 
 private:
   /** @brief Copy constructor  (deleted) */
-  RelativisticPairModel(const RelativisticPairModel&) = delete;
+  RelativisticPairModel(const RelativisticPairModel &) = delete;
   /** @brief Operator=  (deleted) */
-  RelativisticPairModel &operator=(const RelativisticPairModel&) = delete;
+  RelativisticPairModel &operator=(const RelativisticPairModel &) = delete;
 
   /** @brief Internal method to build data collection of some frequently used target atom dependent variables. */
-  void   InitialiseElementData();
+  void InitialiseElementData();
 
   /**
    * @brief Internal method to build sampling table data structures for fast run-time sampling of the reduced total
@@ -128,7 +125,7 @@ private:
    * #RatinAliasDataPerMaterial data structures for the different target Materials. Such data structures for all
    * possible target materials will be stored in the #fRatinAliasDataForAllMaterials data structure.
    */
-  void   InitSamplingTables();
+  void InitSamplingTables();
 
   /**
    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using sampling tables
@@ -141,7 +138,8 @@ private:
    * @param[in] r3       Random number distributed uniformly in [0,1].
    * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
    */
-  double SampleTotalEnergyTransfer(const double egamma, const int matindx, const double r1, const double r2, const double r3);
+  double SampleTotalEnergyTransfer(const double egamma, const int matindx, const double r1, const double r2,
+                                   const double r3);
 
   /**
    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
@@ -163,80 +161,84 @@ private:
    */
   double ComputeAtomicCrossSection(const Element *elem, const Material *mat, const double egamma);
 
-
   // the 2 DCS (with and without LPM) plus a third method that computes these two transformed DCS for the sampling table
   double ComputeDXsectionPerAtom(const double epsmin, const double egamma, const double xi, const int izet,
-                                 bool istsai=false);
+                                 bool istsai = false);
   double ComputeLPMDXsectionPerAtom(const double epsmin, const double egamma, const double xi, const double lpmenergy,
-                                    const int izet,  bool istsai=false);
+                                    const int izet, bool istsai = false);
   // for the sampling table
   double ComputeDXsection(const Material *mat, double egamma, double epsmin, double xi, bool istsai);
 
-
   //
-  void   ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS, const double lpmenergy, const double eps,
-                             const double egamma, const int izet);
-  void   ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
-  void   InitLPMFunctions();
-  void   GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
+  void ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS, const double lpmenergy, const double eps,
+                           const double egamma, const int izet);
+  void ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
+  void InitLPMFunctions();
+  void GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
 
-
-  void   ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai);
+  void ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai);
   // these 3 are used only in the rejection
-  void   ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai);
+  void ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai);
   double ScreenFunction1(const double delta, const bool istsai);
   double ScreenFunction2(const double delta, const bool istsai);
 
-
-  void   ClearSamplingTables();
+  void ClearSamplingTables();
 
   // builds sampling tables for a given material over the discrete photon energy grid
-  void   BuildSamplingTablesForMaterial(const Material *mat, const std::vector<double> &primevect);
+  void BuildSamplingTablesForMaterial(const Material *mat, const std::vector<double> &primevect);
   // builds one sampling table for a given material ata a given photon energy
-  void   BuildOneRatinAlias(const double egamma, const Material *mat, double *pdfarray, const int egammaindx, const int ilowestz);
-
+  void BuildOneRatinAlias(const double egamma, const Material *mat, double *pdfarray, const int egammaindx,
+                          const int ilowestz);
 
   /** Data collection that stores some frequently used target atom specific constants for one atom. */
   struct ElementData {
     /** @brief Coulomb correction \f$ f_c \f$ as in \cite davies1954theory [Eqs(36-38)] */
-    double  fCoulombCor;
+    double fCoulombCor;
     /** @brief \f$ 136*Z^{-1/3} \f$ */
-    double  fDeltaFactor;
+    double fDeltaFactor;
     /** @brief \f$ 8\ln(Z)/3 + f_c \f$ */
-    double  fFz;
+    double fFz;
     /** @brief \f$ \exp[(42.24-(8\ln(Z)/3+8f_c))/8.368]-0.952 \f$ */
-    double  fDeltaMax;
+    double fDeltaMax;
     /** @brief \f$   1.36\sqrt{\exp(0.5*20.863-2.-0.25*(8\ln(Z)/3+8f_c))-1.}/0.55846 \f$ */
-    double  fDeltaMaxTsai;
+    double fDeltaMaxTsai;
     /** @brief \f$ Z(Z+\eta(Z)) \f$ with \f$ \eta(Z) = L_{inel}/[L_{el}-f_c]\f$*/
-    double  fEtaValue;
+    double fEtaValue;
     /** @brief \f$ s_1 = \sqrt{2} Z^{2/3}/(184.15^2)*/
-    double  fVarS1Cond;
+    double fVarS1Cond;
     /** @brief \f$  1/\ln(s_1) */
-    double  fILVarS1Cond;
+    double fILVarS1Cond;
   };
 
   struct LPMFuncs {
     LPMFuncs() : fIsInitialized(false), fSDelta(0.01), fSLimit(2.) {}
-    bool   fIsInitialized;
+    bool fIsInitialized;
     double fSDelta;
     double fSLimit;
-    std::vector<double>  fLPMFuncG;
-    std::vector<double>  fLPMFuncPhi;
+    std::vector<double> fLPMFuncG;
+    std::vector<double> fLPMFuncPhi;
   };
 
-  /** @brief Internal data structure to store data that are required to sample the energy (transfered to one of the e-/e+
+  /** @brief Internal data structure to store data that are required to sample the energy (transfered to one of the
+   * e-/e+
     *        pair) related transformed variable by using the combination of Walker's alias method and rational
-    *        interpolation based numerical inversion of the cumulative function (by using AliasTable::SampleRatin() method).
+    *        interpolation based numerical inversion of the cumulative function (by using AliasTable::SampleRatin()
+   * method).
     */
   struct RatinAliasData {
-    RatinAliasData(size_t n) {
-      fXdata.resize(n); fCumulative.resize(n); fParaA.resize(n); fParaB.resize(n);
-      fAliasW.resize(n); fAliasIndx.resize(n);
+    RatinAliasData(size_t n)
+    {
+      fXdata.resize(n);
+      fCumulative.resize(n);
+      fParaA.resize(n);
+      fParaB.resize(n);
+      fAliasW.resize(n);
+      fAliasIndx.resize(n);
     }
     /** @brief Total energy (transfered to one of the secondaries) related transformed variable values. */
     std::vector<double> fXdata;
-    /** @brief The cumulative distribution function values over the energy transfer related transformed variable values.*/
+    /** @brief The cumulative distribution function values over the energy transfer related transformed variable
+     * values.*/
     std::vector<double> fCumulative;
     /** @brief Interpolation parameters over the energy transfer related transformed variable values.*/
     std::vector<double> fParaA;
@@ -245,63 +247,63 @@ private:
     /** @brief The alias probabilities over the energy transfer related transformed variable values.*/
     std::vector<double> fAliasW;
     /** @brief The alias indices over the energy transfer related transformed variable values. */
-    std::vector<int>    fAliasIndx;
+    std::vector<int> fAliasIndx;
   };
 
   /** @brief Internal data structure to store RatinAliasData for a given target material. */
   struct RatinAliasDataPerMaterial {
-    RatinAliasDataPerMaterial(int numeprims) {
+    RatinAliasDataPerMaterial(int numeprims)
+    {
       fILowestZ = 200;
-      fRatinAliasData.resize(numeprims,nullptr);
+      fRatinAliasData.resize(numeprims, nullptr);
     }
-    int  fILowestZ; // lowest Z in the corresponding material (used for the variable transform)
-    /** @brief Container that stores pointers to RatinAliasData structure over the primary gamma
-      *         energy gird for a specific material built at initialisation if sampling tables were requested.
-      */
-    std::vector<RatinAliasData*> fRatinAliasData;
+    int fILowestZ; // lowest Z in the corresponding material (used for the variable transform)
+                   /** @brief Container that stores pointers to RatinAliasData structure over the primary gamma
+                     *         energy gird for a specific material built at initialisation if sampling tables were requested.
+                     */
+    std::vector<RatinAliasData *> fRatinAliasData;
   };
 
-
-// data members
+  // data members
 private:
   /** @brief Size of some containers that store data per elements (\f$ Z_{\text{max}} = gMaxZet-1)\f$. */
-  static const long                 gMaxZet = 121; // max Z+1
+  static const long gMaxZet = 121; // max Z+1
   /** @brief Elastic form factors for elements Z<8 from \cite tsai1974pair Table B2. */
-  static const double               gFelLowZet[8];
+  static const double gFelLowZet[8];
   /** @brief Inelastic form factors for elements Z<8 from \cite tsai1974pair Table B2. */
-  static const double               gFinelLowZet[8];
-  static const double               gLPMFactor;
-  static LPMFuncs                   gLPMFuncs;
-  static std::vector<ElementData*>  gElementData;
+  static const double gFinelLowZet[8];
+  static const double gLPMFactor;
+  static LPMFuncs gLPMFuncs;
+  static std::vector<ElementData *> gElementData;
 
-
-  bool   fIsUseTsaisScreening;
-  bool   fIsUseLPM;
+  bool fIsUseTsaisScreening;
+  bool fIsUseLPM;
 
   /** @brief  GL integral number of abscissas and weights. */
-  int    fNGL;
+  int fNGL;
   /** @brief  Internal code of the secondary e-. */
-  int    fElectronInternalCode;
+  int fElectronInternalCode;
   /** @brief  Internal code of the secondary e+. */
-  int    fPositronInternalCode;
+  int fPositronInternalCode;
 
-  int    fSTNumPhotonEnergiesPerDecade;    // ST=>SamplingTables
-  int    fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
-  int    fSTNumPhotonEnergies;             // ST=>SamplingTables
+  int fSTNumPhotonEnergiesPerDecade;    // ST=>SamplingTables
+  int fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
+  int fSTNumPhotonEnergies;             // ST=>SamplingTables
 
-  double fLPMEnergyLimit;  // setter/getter
+  double fLPMEnergyLimit; // setter/getter
 
-  double fSTLogMinPhotonEnergy;            // ST=>SamplingTables
-  double fSTILDeltaPhotonEnergy;           // ST=>SamplingTables
+  double fSTLogMinPhotonEnergy;  // ST=>SamplingTables
+  double fSTILDeltaPhotonEnergy; // ST=>SamplingTables
 
   /** @brief Container to store pointers to RatinAliasDataPerMaterial data structures for all target materials that the
     *        model needs to respond.
     *  Size of the container is equal to number of materials in the detector and indexed by the material index. The
-    *  corresponding RatinAliasDataPerElement data structures are built at initialization if sampling tables were required.
+    *  corresponding RatinAliasDataPerElement data structures are built at initialization if sampling tables were
+   * required.
     *  Non-nullptr only at indices that corresponds to materials (with the same index) that belongs to regions in
     *  which the model is active.
     */
-  std::vector<RatinAliasDataPerMaterial*> fSamplingTables;
+  std::vector<RatinAliasDataPerMaterial *> fSamplingTables;
 
   /** @brief Pointer to an AliasTable uitility object that is used both to prepare(at initialization) and to provide
     *        samples(at run-time) from the sampling tables. (Used only if sampling tables were required).
@@ -312,7 +314,6 @@ private:
   GLIntegral *fGL;
 };
 
+} // namespace geantphysics
 
-}         // namespace geantphysics
-
-#endif    // RELATIVISTICPAIRMODEL_H
+#endif // RELATIVISTICPAIRMODEL_H

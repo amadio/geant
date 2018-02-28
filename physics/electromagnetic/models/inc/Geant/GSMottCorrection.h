@@ -4,27 +4,24 @@
 
 #include "Geant/SystemOfUnits.h"
 
-
 #include <vector>
 #include <string>
-
 
 // from geantV
 #include "Geant/Config.h"
 
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class TaskData;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class TaskData;
+}
 }
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-    class Element;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
+class Element;
 }
-
+}
 
 namespace geantphysics {
 
@@ -65,55 +62,54 @@ namespace geantphysics {
  *   [3] F.Salvat, A.Jablonski, C.J. Powell, CPC 165(2005) 157-190
  **/
 
-
 class GSMottCorrection {
 public:
-  GSMottCorrection(bool iselectron=true);
+  GSMottCorrection(bool iselectron = true);
 
- ~GSMottCorrection();
+  ~GSMottCorrection();
 
-  void     Initialise(const std::vector<bool>& activeregionv);
+  void Initialise(const std::vector<bool> &activeregionv);
 
-  void     GetMottCorrectionFactors(double logekin, double beta2, int matindx, double &mcToScr, double &mcToQ1,
-                                    double &mcToG2PerG1);
+  void GetMottCorrectionFactors(double logekin, double beta2, int matindx, double &mcToScr, double &mcToQ1,
+                                double &mcToG2PerG1);
 
-  double   GetMottRejectionValue(double logekin, double beta2, double q1, double cost, int matindx, int &ekindx,
-                                 int &deltindx, geant::TaskData* td);
+  double GetMottRejectionValue(double logekin, double beta2, double q1, double cost, int matindx, int &ekindx,
+                               int &deltindx, geant::TaskData *td);
 
   static int GetMaxZet() { return gMaxZet; }
 
 private:
-  void InitMCDataPerElement(const std::vector<bool>& activeregionv);
+  void InitMCDataPerElement(const std::vector<bool> &activeregionv);
 
-  void InitMCDataPerMaterials(const std::vector<bool>& activeregionv);
+  void InitMCDataPerMaterials(const std::vector<bool> &activeregionv);
 
-  void LoadMCDataElement(const Element*);
+  void LoadMCDataElement(const Element *);
 
-  void InitMCDataMaterial(const Material*);
+  void InitMCDataMaterial(const Material *);
   //
   // dat structures
   struct DataPerDelta {
-    double         fSA;             // a,b,c,d spline interpolation parameters for the last \sin(0.5\theta) bin
-    double         fSB;
-    double         fSC;
-    double         fSD;
-    double        *fRejFuntion;     // rejection func. for a given E_{kin}, \delta, e^-/e^+ over the \sin(0.5\theta) grid
+    double fSA; // a,b,c,d spline interpolation parameters for the last \sin(0.5\theta) bin
+    double fSB;
+    double fSC;
+    double fSD;
+    double *fRejFuntion; // rejection func. for a given E_{kin}, \delta, e^-/e^+ over the \sin(0.5\theta) grid
   };
 
   struct DataPerEkin {
-    double         fMCScreening;    // correction factor to Moliere screening parameter
-    double         fMCFirstMoment;  // correction factor to first moment
-    double         fMCSecondMoment; // correction factor to second
-    DataPerDelta   **fDataPerDelta; // per delta value data structure for each delta values
+    double fMCScreening;          // correction factor to Moliere screening parameter
+    double fMCFirstMoment;        // correction factor to first moment
+    double fMCSecondMoment;       // correction factor to second
+    DataPerDelta **fDataPerDelta; // per delta value data structure for each delta values
   };
 
   // either per material or per Z
   struct DataPerMaterial {
-    DataPerEkin  **fDataPerEkin;    // per kinetic energy data structure for each kinetic energy value
+    DataPerEkin **fDataPerEkin; // per kinetic energy data structure for each kinetic energy value
   };
   //
-  void AllocateDataPerMaterial(DataPerMaterial*);
-  void DeAllocateDataPerMaterial(DataPerMaterial*);
+  void AllocateDataPerMaterial(DataPerMaterial *);
+  void DeAllocateDataPerMaterial(DataPerMaterial *);
   void ClearMCDataPerElement();
   void ClearMCDataPerMaterial();
   //
@@ -122,45 +118,51 @@ private:
   //  I.  Kinetic energy grid [both rejection functions and correction factors]:
   //      1. kinetic energy grid from 1[keV] - 100[keV] with log-spacing 16 points:
   //                 # linear interpolation on \ln[E_{kin}] will be used
-  //      2. \beta^2 grid from E_{kin} = 100[keV](~0.300546) - \beta^2=0.9999(~50.5889MeV]) with linear spacing 16 points:
+  //      2. \beta^2 grid from E_{kin} = 100[keV](~0.300546) - \beta^2=0.9999(~50.5889MeV]) with linear spacing 16
+  //      points:
   //                 # linear interpolation on \beta^2 will be used
-  //      3. the overall kinetic energy grid is from E_{kin}=1[keV] - E_{kin}<=\beta^2=0.9999(~50.5889MeV]) with 31 points
+  //      3. the overall kinetic energy grid is from E_{kin}=1[keV] - E_{kin}<=\beta^2=0.9999(~50.5889MeV]) with 31
+  //      points
   //  II. Delta value grid [rejection functions at a given kinetic energy(also depends on \theta;Z,e-/e+)]:
   //      1. \delta=2 Q_{1SR} (\eta_{MCcor})/ [1-2 Q_{1SR} (\eta_{MCcor})] where Q_{1SR} is the first moment i.e.
-  //         Q_{1SR}(\eta_{MCcor}) =s/\lambda_{el}G_{1SR}(\eta_{MCcor}) where s/\lambda_{el} is the mean number of elastic
-  //         scattering along the path s and G_{1SR}(\eta_{MCcor}) is the first, Screened-Rutherford transport coefficient
+  //         Q_{1SR}(\eta_{MCcor}) =s/\lambda_{el}G_{1SR}(\eta_{MCcor}) where s/\lambda_{el} is the mean number of
+  //         elastic
+  //         scattering along the path s and G_{1SR}(\eta_{MCcor}) is the first, Screened-Rutherford transport
+  //         coefficient
   //         but computed by using the Mott-corrected Moliere screening parameter
   //      2. the delta value grid is from [0(1e-3) - 0.9] with linear spacing of 28 points:
   //                 # linear interpolation will be used on \delta
-  // III. \sin(0.5\theta) grid[rejection function at a given kinetic energy - delta value pair (also depends on Z,e-/e+)]:
+  // III. \sin(0.5\theta) grid[rejection function at a given kinetic energy - delta value pair (also depends on
+  // Z,e-/e+)]:
   //      1. 32 \sin(0.5\theta) pints between [0,1] with linear spacing: # linear interpolation on \sin(0.5\theta) will
   //         be used exept the last bin where spline is used (the corresponding 4 spline parameters are also stored)
 private:
-  bool                     fIsElectron;
-  static constexpr int     gNumEkin   = 31;                 // number of kinetic energy grid points for Mott correction
-  static constexpr int     gNumBeta2  = 16;                 // \beta^2 values between [fMinBeta2-fMaxBeta2]
-  static constexpr int     gNumDelta  = 28;                 // \delta values between [0(1.e-3)-0.9]
-  static constexpr int     gNumAngle  = 32;                 //
-  static constexpr int     gMaxZet    = 98;                 // max. Z for which Mott-correction data were computed (98)
-  static constexpr double  gMinEkin   =   1.*geant::units::keV;    // minimum kinetic energy value
-  static constexpr double  gMidEkin   = 100.*geant::units::keV;    // kinetic energy at the border of the E_{kin}-\beta^2 grids
-  static constexpr double  gMaxBeta2  =   0.9999;           // maximum \beta^2 value
-  static constexpr double  gMaxDelta  =   0.9;              // maximum \delta value (the minimum is 0(1.e-3))
+  bool fIsElectron;
+  static constexpr int gNumEkin    = 31;                     // number of kinetic energy grid points for Mott correction
+  static constexpr int gNumBeta2   = 16;                     // \beta^2 values between [fMinBeta2-fMaxBeta2]
+  static constexpr int gNumDelta   = 28;                     // \delta values between [0(1.e-3)-0.9]
+  static constexpr int gNumAngle   = 32;                     //
+  static constexpr int gMaxZet     = 98;                     // max. Z for which Mott-correction data were computed (98)
+  static constexpr double gMinEkin = 1. * geant::units::keV; // minimum kinetic energy value
+  static constexpr double gMidEkin =
+      100. * geant::units::keV;               // kinetic energy at the border of the E_{kin}-\beta^2 grids
+  static constexpr double gMaxBeta2 = 0.9999; // maximum \beta^2 value
+  static constexpr double gMaxDelta = 0.9;    // maximum \delta value (the minimum is 0(1.e-3))
   //
-  double                   fMaxEkin;        // from max fMaxBeta2 = 0.9999 (~50.5889 [MeV])
-  double                   fLogMinEkin;     // \ln[fMinEkin]
-  double                   fInvLogDelEkin;  // 1/[\ln(fMidEkin/fMinEkin)/(fNumEkin-fNumBeta2)]
-  double                   fMinBeta2;       // <= E_{kin}=100 [keV] (~0.300546)
-  double                   fInvDelBeta2;    // 1/[(fMaxBeta2-fMinBeta2)/(fNumBeta2-1)]
-  double                   fInvDelDelta;    // 1/[0.9/(fNumDelta-1)]
-  double                   fInvDelAngle;    // 1/[(1-0)/fNumAngle-1]
+  double fMaxEkin;       // from max fMaxBeta2 = 0.9999 (~50.5889 [MeV])
+  double fLogMinEkin;    // \ln[fMinEkin]
+  double fInvLogDelEkin; // 1/[\ln(fMidEkin/fMinEkin)/(fNumEkin-fNumBeta2)]
+  double fMinBeta2;      // <= E_{kin}=100 [keV] (~0.300546)
+  double fInvDelBeta2;   // 1/[(fMaxBeta2-fMinBeta2)/(fNumBeta2-1)]
+  double fInvDelDelta;   // 1/[0.9/(fNumDelta-1)]
+  double fInvDelAngle;   // 1/[(1-0)/fNumAngle-1]
   //
-  static const std::string   gElemSymbols[];
+  static const std::string gElemSymbols[];
   //
-  std::vector<DataPerMaterial*>  fMCDataPerElement;   // size will be gMaxZet+1; won't be null only at used Z indices
-  std::vector<DataPerMaterial*>  fMCDataPerMaterial;  // size will #materials; won't be null only at used mat. indices
+  std::vector<DataPerMaterial *> fMCDataPerElement;  // size will be gMaxZet+1; won't be null only at used Z indices
+  std::vector<DataPerMaterial *> fMCDataPerMaterial; // size will #materials; won't be null only at used mat. indices
 };
 
-}      // namespace geantphysics
+} // namespace geantphysics
 
 #endif // GSMottCorrection_h

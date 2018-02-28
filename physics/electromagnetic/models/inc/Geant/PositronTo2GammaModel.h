@@ -7,16 +7,16 @@
 // from geantV
 #include "Geant/Config.h"
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class TaskData;
+inline namespace GEANT_IMPL_NAMESPACE {
+class TaskData;
 }
 }
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-    class Element;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
+class Element;
+}
 }
 
 #include <string>
@@ -24,8 +24,8 @@ namespace geantphysics {
 
 namespace geantphysics {
 
-//class Material;
-//class Element;
+// class Material;
+// class Element;
 class AliasTable;
 class MaterialCuts;
 class Particle;
@@ -44,66 +44,69 @@ class LightTrack;
  *
  */
 
-
 class PositronTo2GammaModel : public EMModel {
 public:
-/**
-* @name Constructor, destructor:
-*/
-//@{
-     /**
-      * @brief Constructor.
-      *
-      * @param[in] modelname Name of the model.
-      */
-    PositronTo2GammaModel(const std::string &modelname="e2GammaAnnih");
-     /** @brief Destructor. */
-    virtual ~PositronTo2GammaModel();
-//@}
+  /**
+  * @name Constructor, destructor:
+  */
+  //@{
+  /**
+   * @brief Constructor.
+   *
+   * @param[in] modelname Name of the model.
+   */
+  PositronTo2GammaModel(const std::string &modelname = "e2GammaAnnih");
+  /** @brief Destructor. */
+  virtual ~PositronTo2GammaModel();
+  //@}
 
-/**
-* @name Implemented EMModel base class methods:
-*/
-//@{
-    /** @brief Interface method to initilize the model. */
-    virtual void   Initialize();
-    virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
-//
-//@}
+  /**
+  * @name Implemented EMModel base class methods:
+  */
+  //@{
+  /** @brief Interface method to initilize the model. */
+  virtual void Initialize();
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
+                                        const Particle *particle);
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  //
+  //@}
 
 private:
-
   /** @brief Copy constructor  (deleted) */
-  PositronTo2GammaModel(const PositronTo2GammaModel&) = delete;
+  PositronTo2GammaModel(const PositronTo2GammaModel &) = delete;
   /** @brief Operator=  (deleted) */
-  PositronTo2GammaModel &operator=(const PositronTo2GammaModel&) = delete;
+  PositronTo2GammaModel &operator=(const PositronTo2GammaModel &) = delete;
 
   double ComputeXsectionPerElectron(double pekin);
   double SampleEnergyTransfer(double pekin, double gamma, double r1, double r2, double r3);
   double SampleEnergyTransfer(double gamma, geant::TaskData *td);
 
-
   /** @brief Internal method to build energy transfer (to one of the gammas) related sampling tables.*/
-  void   InitSamplingTables();
-
+  void InitSamplingTables();
 
   /** @brief Internal method to build one sampling tables.
    *
    *  @param[in]  indx   Index of the alias table data structure to build in the container.
    *  @param[in]  gamma  Initial e+ total energy in rest mass units \f$ \gamma=(E_k+m_ec^2)/(m_ec^2)\f$.
    */
-  void   BuildOneLinAlias(int indx, double gamma);
+  void BuildOneLinAlias(int indx, double gamma);
 
-  void   ClearSamplingTables();
+  void ClearSamplingTables();
 
   double ComputeTransfDXSec(double xi, double gamma, double mineps, double maxeps);
-//@}
+  //@}
 
   /** @brief Internal data structure to store data for sampling tables. */
-  struct LinAlias{
-    LinAlias(int num) { fXdata.resize(num); fYdata.resize(num); fAliasW.resize(num); fAliasIndx.resize(num); }
+  struct LinAlias {
+    LinAlias(int num)
+    {
+      fXdata.resize(num);
+      fYdata.resize(num);
+      fAliasW.resize(num);
+      fAliasIndx.resize(num);
+    }
     /** @brief Transformed variable values. */
     std::vector<double> fXdata;
     /** @brief The pdf values (not necessarily normalised) over the energy transfer related variable values. */
@@ -111,30 +114,27 @@ private:
     /** @brief The alias probabilities (not necessarily normalised) over the energy transfer related variables. */
     std::vector<double> fAliasW;
     /** @brief The alias indices over the energy transfer related transformed variable values. */
-    std::vector<int>    fAliasIndx;
+    std::vector<int> fAliasIndx;
   };
 
 private:
+  int fSecondaryInternalCode;
 
-  int    fSecondaryInternalCode;
+  int fSTNumPositronEnergiesPerDecade;  // ST=>SamplingTables
+  int fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
+  int fSTNumPositronEnergies;           // ST=>SamplingTables
 
-  int    fSTNumPositronEnergiesPerDecade;  // ST=>SamplingTables
-  int    fSTNumDiscreteEnergyTransferVals; // ST=>SamplingTables
-  int    fSTNumPositronEnergies;           // ST=>SamplingTables
-
-  double fSTLogMinPositronEnergy;          // ST=>SamplingTables
-  double fSTILDeltaPositronEnergy;         // ST=>SamplingTables
+  double fSTLogMinPositronEnergy;  // ST=>SamplingTables
+  double fSTILDeltaPositronEnergy; // ST=>SamplingTables
 
   /** @brief Container to store pointers to LinAlias data structures.*/
-  std::vector<LinAlias*>   fSamplingTables;
+  std::vector<LinAlias *> fSamplingTables;
   /** @brief An alias sampler used at run-time sampling of the energy transfered to one of the gammas
     *        variable from a LinAlias data structure (prepared at initialisation).
     */
   AliasTable *fAliasSampler;
-
-
 };
 
-}      // namespace geantphysics
+} // namespace geantphysics
 
 #endif // POSITRONTO2GAMMAMODEL_H

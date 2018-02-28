@@ -7,18 +7,17 @@
 // from geantV
 #include "Geant/Config.h"
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class TaskData;
+inline namespace GEANT_IMPL_NAMESPACE {
+class TaskData;
 }
 }
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-    class Element;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
+class Element;
 }
-
+}
 
 #include <string>
 
@@ -34,55 +33,52 @@ namespace geantphysics {
  * \cite bhabha1936scattering \cite crawford1970electron \f$[e^++e^-\to e^++e^-]\f$ scattering.
  */
 
-//class Material;
+// class Material;
 class MaterialCuts;
-//class Element;
+// class Element;
 class AliasTable;
 class Particle;
 class LightTrack;
 
 class MollerBhabhaIonizationModel : public EMModel {
 public:
-/**
-* @name Constructor, destructor:
-*/
-//@{
-   /**
-    * @brief Constructor.
-    *
-    * @param[in] iselectron  Flag to indicate that the model is for electron or for psitron.
-    * @param[in] modelname   Name of the model.
-    */
-  MollerBhabhaIonizationModel(bool iselectron, const std::string &modelname="ieioniMollerBhabha");
+  /**
+  * @name Constructor, destructor:
+  */
+  //@{
+  /**
+   * @brief Constructor.
+   *
+   * @param[in] iselectron  Flag to indicate that the model is for electron or for psitron.
+   * @param[in] modelname   Name of the model.
+   */
+  MollerBhabhaIonizationModel(bool iselectron, const std::string &modelname = "ieioniMollerBhabha");
   /** @brief Destructor. */
   virtual ~MollerBhabhaIonizationModel();
-//@}
+  //@}
 
-/**
-* @name Implemented EMModel base class methods:
-*/
-//@{
-    /** @brief Interface method to initilize the model. */
-    virtual void   Initialize();
-    virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle* particle,
-                               bool istotal=false);
-    virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
-    virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
-                                          const Particle *particle);
-    virtual int    SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  /**
+  * @name Implemented EMModel base class methods:
+  */
+  //@{
+  /** @brief Interface method to initilize the model. */
+  virtual void Initialize();
+  virtual double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle *particle,
+                             bool istotal = false);
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
+                                        const Particle *particle);
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
 
-    virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
-//
-//@}
-
+  virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
+  //
+  //@}
 
 private:
-
   /** @brief Copy constructor  (deleted) */
-  MollerBhabhaIonizationModel(const MollerBhabhaIonizationModel&) = delete;
+  MollerBhabhaIonizationModel(const MollerBhabhaIonizationModel &) = delete;
   /** @brief Operator=  (deleted) */
-  MollerBhabhaIonizationModel &operator=(const MollerBhabhaIonizationModel&) = delete;
-
+  MollerBhabhaIonizationModel &operator=(const MollerBhabhaIonizationModel &) = delete;
 
   /**
    * @brief Public method to obtain (restricted) collision stopping power for a given material, particle kinetic energy
@@ -108,7 +104,8 @@ private:
    * @param[in] primekin   Kinetic energy of the particle (e-/e+) internal energy units.
    * @return    The computed (restricted) atomic ionization scross section in internal [lenght^2] units.
    */
-  double ComputeXSectionPerAtom(const Element *elem, const Material *mat, const double pcutenergy, const double primekin);
+  double ComputeXSectionPerAtom(const Element *elem, const Material *mat, const double pcutenergy,
+                                const double primekin);
 
   /**
    * @brief Public method to obtain (restricted) macroscopic ionization cross section for a given material, particle
@@ -146,7 +143,7 @@ private:
     *  @return    Sample of kinetic energy transfered to the electron (in internal [energy] units) in Moller/Bhabha
     *             interaction.
     */
-  double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const geant::TaskData* td);
+  double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const geant::TaskData *td);
 
   /** @brief Internal method to build energy transfer sampling tables under <em>linear approximation of
    *         the p.d.f.</em>.
@@ -156,9 +153,9 @@ private:
    *  These tables are prepared for Walker's alias method combined with <em>linear approximation of the p.d.f.</em>
    *  within the e-/e+ kinetic energy bins.
    */
-  void   InitSamplingTables();
+  void InitSamplingTables();
 
-  void   BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal);
+  void BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal);
 
   /** @brief Internal method to compute (restricted) ionization atomic cross section per electron.
     *
@@ -194,11 +191,16 @@ private:
     */
   double ComputeBhabhaPDF(const double xi, const double pcutenergy, const double primekin);
 
-
-  void   ClearSamplingTables();
+  void ClearSamplingTables();
 
   struct LinAlias {
-    LinAlias(int num) {fXdata.resize(num); fYdata.resize(num); fAliasW.resize(num); fAliasIndx.resize(num);}
+    LinAlias(int num)
+    {
+      fXdata.resize(num);
+      fYdata.resize(num);
+      fAliasW.resize(num);
+      fAliasIndx.resize(num);
+    }
     /** @brief Reduced photon energy related transformed variable values. */
     std::vector<double> fXdata;
     /** @brief The probability density function values (not necessarily normalised) over the reduced photon energy
@@ -210,31 +212,32 @@ private:
       */
     std::vector<double> fAliasW;
     /** @brief The alias indices over the reduced photon energy related transformed variable values. */
-    std::vector<int>    fAliasIndx;
+    std::vector<int> fAliasIndx;
   };
 
   struct AliasDataMaterialCuts {
-    AliasDataMaterialCuts(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel) {
-      fAliasData.resize(ntables,nullptr);
+    AliasDataMaterialCuts(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
+    {
+      fAliasData.resize(ntables, nullptr);
     }
-    int    fNData;
+    int fNData;
     double fLogEmin;
     double fILDelta;
-    std::vector<LinAlias*>  fAliasData;
+    std::vector<LinAlias *> fAliasData;
   };
 
 private:
   /** @brief Flag to indicate if the model is for electron or positron interaction. */
-  bool    fIsElectron;
+  bool fIsElectron;
 
-  int     fSecondaryInternalCode;
+  int fSecondaryInternalCode;
 
-  int     fSTNumPrimaryEnergyPerDecade;   // ST=> sampling tables
-  int     fSTNumSamplingElecEnergies;     // ST=> sampling tables
+  int fSTNumPrimaryEnergyPerDecade; // ST=> sampling tables
+  int fSTNumSamplingElecEnergies;   // ST=> sampling tables
 
-  AliasTable*                          fAliasSampler;
-  std::vector<int>                     fGlobalMatECutIndxToLocal;
-  std::vector<AliasDataMaterialCuts*>  fSamplingTables;
+  AliasTable *fAliasSampler;
+  std::vector<int> fGlobalMatECutIndxToLocal;
+  std::vector<AliasDataMaterialCuts *> fSamplingTables;
 };
 
 } // namespace geantphysics

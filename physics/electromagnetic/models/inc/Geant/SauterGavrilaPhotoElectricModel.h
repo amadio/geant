@@ -142,10 +142,10 @@ private:
   //@{
 
   /** @todo Still not implemented */
-  SauterGavrilaPhotoElectricModel(const SauterGavrilaPhotoElectricModel &)= delete;
+  SauterGavrilaPhotoElectricModel(const SauterGavrilaPhotoElectricModel &) = delete;
 
   /** @todo Still not implemented operator = */
-  SauterGavrilaPhotoElectricModel &operator=(const SauterGavrilaPhotoElectricModel &)= delete;
+  SauterGavrilaPhotoElectricModel &operator=(const SauterGavrilaPhotoElectricModel &) = delete;
 
   //---------------------------------------------
   // InitializeModel
@@ -492,7 +492,7 @@ private:
    *  interval.
    */
   double *fLSamplingPrimEnergies; // log of sampling gamma energies
-  //@}
+                                  //@}
 
   //---------------------------------------------
   /** @brief Internal data structure to store data for sampling the emitted photoelectron direction

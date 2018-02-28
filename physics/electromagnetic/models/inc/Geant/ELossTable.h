@@ -40,7 +40,7 @@ public:
    *        objects exists. Note, each PhysicsList has its own PhysicsParameters object.
    */
   ELossTable(PhysicsParameters *physpar);
- ~ELossTable();
+  ~ELossTable();
 
   /** @brief  Run time method to obtain restricted stopping power for the given MaterialCuts index, particle and kinetic
    *          energy.
@@ -76,7 +76,6 @@ public:
    *            if the corresponding range table was built in internal [length] units. A big (1.0e+20) otherwise.
    */
   double GetRestrictedRange(int matcutindx, int partindx, double kinenergy);
-
 
   /** @brief  Run time method to obtain the kinetic energy that corresponds to a given restricted range in the
    *          MaterialCuts specified by its index.
@@ -125,72 +124,73 @@ public:
    */
   double GetRange(int matindx, int partindx, double kinenergy);
 
-/*
-//
-//  THESE ARE ONLY FOR TESTING
-//
- void PrintRestrictedDEDX(int matcutindx, int partindx) {
-   ELossData *lossData = nullptr;
-   if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx &&
-       (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
-     for (int i=0; i<lossData->fNumData; ++i) {
-       std::cout<< std::setprecision(16)<<lossData->fEnergyGridData[i]/geant::units::MeV << "  "
-                << std::setprecision(12)<< lossData->fRestrictedDEDXData[i]/(geant::units::MeV/geant::units::mm)
-                <<std::endl;
+  /*
+  //
+  //  THESE ARE ONLY FOR TESTING
+  //
+   void PrintRestrictedDEDX(int matcutindx, int partindx) {
+     ELossData *lossData = nullptr;
+     if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx &&
+         (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
+       for (int i=0; i<lossData->fNumData; ++i) {
+         std::cout<< std::setprecision(16)<<lossData->fEnergyGridData[i]/geant::units::MeV << "  "
+                  << std::setprecision(12)<< lossData->fRestrictedDEDXData[i]/(geant::units::MeV/geant::units::mm)
+                  <<std::endl;
+       }
+     } else {
+       std::cerr << " ======= ELossTable: no ELossData for Particle = "
+                 << Particle::GetParticleByInteralCode(partindx)->GetName()
+                 << "  in MaterialCuts: \n";
+       std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
      }
-   } else {
-     std::cerr << " ======= ELossTable: no ELossData for Particle = "
-               << Particle::GetParticleByInteralCode(partindx)->GetName()
-               << "  in MaterialCuts: \n";
-     std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
    }
- }
 
- void PrintRestrictedRange(int matcutindx, int partindx) {
-   ELossData *lossData = nullptr;
-   if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx &&
-       (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
-     for (int i=0; i<lossData->fNumData; ++i) {
-       std::cout<< std::setprecision(6)<< lossData->fEnergyGridData[i]/geant::units::MeV << "  "
-                << std::setprecision(12)<< lossData->fRestrictedRangeData[i]/(geant::units::mm)
-                <<std::endl;
+   void PrintRestrictedRange(int matcutindx, int partindx) {
+     ELossData *lossData = nullptr;
+     if (fELossDataPerMaterialCutsPerParticle[matcutindx].size()>partindx &&
+         (lossData = fELossDataPerMaterialCutsPerParticle[matcutindx][partindx])) {
+       for (int i=0; i<lossData->fNumData; ++i) {
+         std::cout<< std::setprecision(6)<< lossData->fEnergyGridData[i]/geant::units::MeV << "  "
+                  << std::setprecision(12)<< lossData->fRestrictedRangeData[i]/(geant::units::mm)
+                  <<std::endl;
+       }
+     } else {
+       std::cerr << " ======= ELossTable: no ELossData for Particle = "
+                 << Particle::GetParticleByInteralCode(partindx)->GetName()
+                 << "  in MaterialCuts: \n";
+       std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
      }
-   } else {
-     std::cerr << " ======= ELossTable: no ELossData for Particle = "
-               << Particle::GetParticleByInteralCode(partindx)->GetName()
-               << "  in MaterialCuts: \n";
-     std::cerr << MaterialCuts::GetTheMaterialCutsTable()[matcutindx] <<std::endl;
    }
- }
 
- void PrintRange(int matindx, int partindx) {
-   if (!fIsComputeCSDARange) {
-     std::cerr << "\n ======= ELossTable::PrintRange : CSDA Rnage computation was not requested. \n"
-               << " Make sure that CSDA range computation is set to requested in PhysicsParameters \n"
-               << " because no Range data are avaialbe for Particle = "
-               << Particle::GetParticleByInteralCode(partindx)->GetName()
-               << "  in Material: \n";
-               std::cerr << Material::GetTheMaterialTable()[matindx] <<std::endl;
-     return;
-   }
-   ELossData *lossData = nullptr;
-   if (fELossDataPerMaterialPerParticle[matindx].size()>partindx
-       && (lossData = fELossDataPerMaterialPerParticle[matindx][partindx])
-       && lossData->fRangeData
-      ) {
-     for (int i=0; i<lossData->fNumData; ++i) {
-       std::cout<< std::setprecision(16)<< lossData->fEnergyGridData[i]/geant::units::MeV << " "
-                << std::setprecision(16)<< lossData->fRangeData[i]*Material::GetTheMaterialTable()[matindx]->GetDensity()/(geant::units::g/(geant::units::cm*geant::units::cm))
-                <<std::endl;
+   void PrintRange(int matindx, int partindx) {
+     if (!fIsComputeCSDARange) {
+       std::cerr << "\n ======= ELossTable::PrintRange : CSDA Rnage computation was not requested. \n"
+                 << " Make sure that CSDA range computation is set to requested in PhysicsParameters \n"
+                 << " because no Range data are avaialbe for Particle = "
+                 << Particle::GetParticleByInteralCode(partindx)->GetName()
+                 << "  in Material: \n";
+                 std::cerr << Material::GetTheMaterialTable()[matindx] <<std::endl;
+       return;
      }
-   } else {
-     std::cerr << " ======= ELossTable::PrintRange : no Range data are avaialbe for Particle = "
-               << Particle::GetParticleByInteralCode(partindx)->GetName()
-               << "  in Material: \n";
-     std::cerr << Material::GetTheMaterialTable()[matindx] <<std::endl;
+     ELossData *lossData = nullptr;
+     if (fELossDataPerMaterialPerParticle[matindx].size()>partindx
+         && (lossData = fELossDataPerMaterialPerParticle[matindx][partindx])
+         && lossData->fRangeData
+        ) {
+       for (int i=0; i<lossData->fNumData; ++i) {
+         std::cout<< std::setprecision(16)<< lossData->fEnergyGridData[i]/geant::units::MeV << " "
+                  << std::setprecision(16)<<
+  lossData->fRangeData[i]*Material::GetTheMaterialTable()[matindx]->GetDensity()/(geant::units::g/(geant::units::cm*geant::units::cm))
+                  <<std::endl;
+       }
+     } else {
+       std::cerr << " ======= ELossTable::PrintRange : no Range data are avaialbe for Particle = "
+                 << Particle::GetParticleByInteralCode(partindx)->GetName()
+                 << "  in Material: \n";
+       std::cerr << Material::GetTheMaterialTable()[matindx] <<std::endl;
+     }
    }
- }
-*/
+  */
 
   /**
    * @brief Method to build and set up all energy loss related tables for all particles that has kEnergyLoss process(es)
@@ -200,7 +200,7 @@ public:
    * @param[in]  elosstablespermatcut Vector from ELossTableManager that stores the energy loss related tables for each
    *                                  MaterialCuts.
    */
-  void BuildELossTable(std::vector<ELossTable*> &elosstablespermatcut);
+  void BuildELossTable(std::vector<ELossTable *> &elosstablespermatcut);
 
   // data structure to store both restricted and total energy loss related data;
   // - (restricted)ELossData are created and stored per partcile per MaterialCuts:
@@ -210,48 +210,47 @@ public:
   //   PhysicsParameters through the SetIsComputeCSDARange(false/true) method (by def. false):
   //     # total range of the particle in the given material that corresponds to the total dedx
   struct ELossData {
-    int                  fNumData;             // size of data arrays determined by some members of the fPhysicsParameters
-    const MaterialCuts  *fMaterialCuts;        // pointer to the MaterialCuts object this data belongs to; the calss do
-                                               // NOT own the MaterialCuts object;
-    const Particle      *fParticle;            // pointer to the particle object this data belongs to; the class do NOT
-                                               // own the Particle object
-    double              *fEnergyGridData;      // pointer to the common energy grid determined by some members of the
-                                               // fPhysicsParameters; the struct do NOT own this data because there is
-                                               // only one energy grid per ELossTable that is owned by the ELossTable
+    int fNumData;                      // size of data arrays determined by some members of the fPhysicsParameters
+    const MaterialCuts *fMaterialCuts; // pointer to the MaterialCuts object this data belongs to; the calss do
+                                       // NOT own the MaterialCuts object;
+    const Particle *fParticle;         // pointer to the particle object this data belongs to; the class do NOT
+                                       // own the Particle object
+    double *fEnergyGridData;           // pointer to the common energy grid determined by some members of the
+                                       // fPhysicsParameters; the struct do NOT own this data because there is
+                                       // only one energy grid per ELossTable that is owned by the ELossTable
     // the struct do own the following data i.e. need to delete them.
-    double              *fRestrictedDEDXData;    // restricted dedx for the given particle
-                                                 // and MaterialCuts; the struct own the data;
-    double              *fRestrictedRangeData;   // restricted range for the given particle
-                                                 // and MaterialCuts; the struct own the data;
-    double              *fRangeData;             // set only if total data was requested in BuildOneELossData i.e. if
-                                                 // the parameter fIsComputeCSDARange was set to true in the
-                                                 // corresponding PhysicsParameters object;
-                                                 // total range of the particle in the given material that corresponds
-                                                 // to the total  dedx; the struct do own the data;
+    double *fRestrictedDEDXData;  // restricted dedx for the given particle
+                                  // and MaterialCuts; the struct own the data;
+    double *fRestrictedRangeData; // restricted range for the given particle
+                                  // and MaterialCuts; the struct own the data;
+    double *fRangeData;           // set only if total data was requested in BuildOneELossData i.e. if
+                                  // the parameter fIsComputeCSDARange was set to true in the
+                                  // corresponding PhysicsParameters object;
+                                  // total range of the particle in the given material that corresponds
+                                  // to the total  dedx; the struct do own the data;
     // spline interpolators
-    Spline              *fSplineRestrictedDEDX;    // spline interpolator to obtain
-                                                   // restricted dedx values at run time for the given partcile and
-                                                   // MaterialCuts; the struct do own the data;
-    Spline              *fSplineRestrictedRange;   // spline interpolator to obtain
-                                                   // restricted range values at run time for the given partcile and
-                                                   // MaterialCuts; the struct do own the data;
-    Spline              *fSplineRestrictedInvRange;// spline interpolator to obtain
-                                                   // restricted inverse range values at run time for the given partcile
-                                                   // and MaterialCuts; the struct do own the data;
-    Spline              *fSplineRange;             // set only if total data was requested in BuildOneELossData;
-                                                   // spline interpolator to obtain total range values at run time for
-                                                   // the given partcile and Material; the struct do own the data;
-    std::vector<EMPhysicsProcess*>  fLossProcesses; // list of energy loss processes that are active in the set of regions
-                                                    // handeled by this ELossTable for the given partcile; the class do NOT
-                                                    // own this PhysicsProcess-es
-
+    Spline *fSplineRestrictedDEDX;     // spline interpolator to obtain
+                                       // restricted dedx values at run time for the given partcile and
+                                       // MaterialCuts; the struct do own the data;
+    Spline *fSplineRestrictedRange;    // spline interpolator to obtain
+                                       // restricted range values at run time for the given partcile and
+                                       // MaterialCuts; the struct do own the data;
+    Spline *fSplineRestrictedInvRange; // spline interpolator to obtain
+                                       // restricted inverse range values at run time for the given partcile
+                                       // and MaterialCuts; the struct do own the data;
+    Spline *fSplineRange;              // set only if total data was requested in BuildOneELossData;
+                                       // spline interpolator to obtain total range values at run time for
+                                       // the given partcile and Material; the struct do own the data;
+    std::vector<EMPhysicsProcess *>
+        fLossProcesses; // list of energy loss processes that are active in the set of regions
+                        // handeled by this ELossTable for the given partcile; the class do NOT
+                        // own this PhysicsProcess-es
   };
 
-//
-// private methods
-//
+  //
+  // private methods
+  //
 private:
-
   /**
    * @brief Method to set the common energy grid for all energy loss related tables.
    *
@@ -259,7 +258,6 @@ private:
    * PhysicsParameters class members that this ELossTable belongs to.
    */
   void InitializeEnergyGrid();
-
 
   /**
    * @brief Helper method to build and set up one ELossData structure i.e. for a given MaterialCuts and Particle.
@@ -269,16 +267,17 @@ private:
    *
    * @param[in] lossdata           Pointer to one ELossData structure (created and set up i.e. energy grid, grid size,
    *                               MatrialCuts and Particle pointers are set properly in the BuildELossTable() before).
-   * @param[in] iscomputetotaldata Flag to indicate if the total data i.e. full CSDA range data must be computed for as well.
+   * @param[in] iscomputetotaldata Flag to indicate if the total data i.e. full CSDA range data must be computed for as
+   * well.
    */
   void BuildOneELossData(ELossData *lossdata, bool iscomputetotaldata);
-
 
   /**
    * @brief Helper method to compute restricted stopping power table for a given MaterialCuts and Particle.
    *
    * The method is expected to be called from the BuildOneELossData helper method to handle the dEdx computation part.
-   * Computes dE/dx by summing up contributions from all kEnergyLoss EMPhysicsProcess(es) assigned to the given Particle.
+   * Computes dE/dx by summing up contributions from all kEnergyLoss EMPhysicsProcess(es) assigned to the given
+   * Particle.
    * The ComputeDEDX method of the registred kEnergyLoss EMPhysicsProcess-es are invoked and a spline interpollatior is
    * set up on the computed dEdx table for run-time interpolation.
    *
@@ -287,7 +286,6 @@ private:
    *                      and then sets up a spline interpolator on the dEdx table.
    */
   void BuildRestrictedDEDXTable(ELossData *lossdata);
-
 
   /**
    * @brief Helper method to compute restricted range table for a given MaterialCuts and Particle.
@@ -303,7 +301,6 @@ private:
    *                      range and restricted inverse range interpolations.
    */
   void BuildRestrictedRangeTable(ELossData *lossdata);
-
 
   /**
    * @brief Helper method to compute full CSDA range table for a given MaterialCuts and Particle.
@@ -321,31 +318,28 @@ private:
    * @param[in] lossdata  Pointer to one ELossData structure (created and set up i.e. energy grid, grid size,
    *                      MatrialCuts and Particle pointers are set properly in the BuildELossTable() before).
    */
-  void  BuildTotalRangeTable(ELossData *lossdata);
+  void BuildTotalRangeTable(ELossData *lossdata);
 
   /**
    * @brief Method to clean up all allocated memory, data structures and reset container sizes.
    */
   void Clear();
 
-//
-// private data members
-//
+  //
+  // private data members
+  //
 private:
-  PhysicsParameters   *fPhysicsParameters;  // PhysicsParameters that this ELossTable need to use; the class do NOT own
-                                            // the PhysicsParameters object
+  PhysicsParameters *fPhysicsParameters; // PhysicsParameters that this ELossTable need to use; the class do NOT own
+                                         // the PhysicsParameters object
 
-
-  bool        fIsComputeCSDARange;
-  int         fNGL;
-  int         fNumLossTableBins;
-  double      fMinLossTableEnergy;
-  double      fMaxLossTableEnergy;
-  double      fLogMinLossTableEnergy;
-  double      fEnergyILDelta;
-  double     *fEnergyGrid;     // common energy grid determined by some of the members of the PhysicsParameters; owned
-
-
+  bool fIsComputeCSDARange;
+  int fNGL;
+  int fNumLossTableBins;
+  double fMinLossTableEnergy;
+  double fMaxLossTableEnergy;
+  double fLogMinLossTableEnergy;
+  double fEnergyILDelta;
+  double *fEnergyGrid; // common energy grid determined by some of the members of the PhysicsParameters; owned
 
   // Restricted data:
   // first dimension will be number of MaterialCuts in the global MaterialCuts table; element, with index that
@@ -368,7 +362,7 @@ private:
   //                                       registered for the Particle with internal particle code j in
   //                                       ELossTableRegister OR the registered EnergyLoss processes are active in
   //                                       different set of regions where this ELossTable is active
-  std::vector<std::vector<ELossData*> > fELossDataPerMaterialCutsPerParticle;
+  std::vector<std::vector<ELossData *>> fELossDataPerMaterialCutsPerParticle;
   // Unrestricted data:
   // first dimension will be number of Material-s in the global Material table; element, with index that
   // correspond to a Matrial that belongs to any of the regions where this ELossTable is active (active regions
@@ -390,12 +384,13 @@ private:
   //                                       registered for the Particle with internal particle code j in
   //                                       ELossTableRegister OR the registered EnergyLoss processes are active in
   //                                       different set of regions where this ELossTable is active
-  // The stored ELossData* are shared with fELossDataPerMaterialCutsPerParticle and deleted properly when that is cleared.
-  std::vector<std::vector<ELossData*> > fELossDataPerMaterialPerParticle;
+  // The stored ELossData* are shared with fELossDataPerMaterialCutsPerParticle and deleted properly when that is
+  // cleared.
+  std::vector<std::vector<ELossData *>> fELossDataPerMaterialPerParticle;
 
-  GLIntegral   *fGL;
+  GLIntegral *fGL;
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
 #endif // ELOSSTABLE_H

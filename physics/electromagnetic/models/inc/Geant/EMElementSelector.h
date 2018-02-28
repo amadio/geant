@@ -26,7 +26,6 @@ class Particle;
  * will be created, build, stored at initialization and handled at run-time by the EMModel base class.
  */
 
-
 class EMElementSelector {
 public:
   /**
@@ -45,19 +44,18 @@ public:
   /**
    * @brief DTR.
    */
- ~EMElementSelector();
+  ~EMElementSelector();
 
-
- /**
-  * @brief Method to build up i.e. initilize the element selector.
-  *
-  * The method is expceted to be called from EMModel::InitialiseElementSelectors() after the EMElementSelector object
-  * has been created.
-  *
-  * @param[in] matcut  Pointer to the MaterialCuts object which(or which Material) this element selector belongs to.
-  * param[in]  part    Pointer to the Particle object the EMModel, that this element selector belongs to, assigned to.
-  */
- void    Build(const MaterialCuts *matcut, const Particle *part);
+  /**
+   * @brief Method to build up i.e. initilize the element selector.
+   *
+   * The method is expceted to be called from EMModel::InitialiseElementSelectors() after the EMElementSelector object
+   * has been created.
+   *
+   * @param[in] matcut  Pointer to the MaterialCuts object which(or which Material) this element selector belongs to.
+   * param[in]  part    Pointer to the Particle object the EMModel, that this element selector belongs to, assigned to.
+   */
+  void Build(const MaterialCuts *matcut, const Particle *part);
 
   /**
    * @brief Run-time method to sample one traget element.
@@ -68,11 +66,11 @@ public:
    * @param[in] ekin  Kinetic energy of the particle at wich target element must be sampled for discrete interaction.
    * @param[in] rndm  Random number uniformly distributed on [0,1).
    */
-  int     SampleTargetElement(double ekin, double rndm);
+  int SampleTargetElement(double ekin, double rndm);
 
-//
-// private methods
-//
+  //
+  // private methods
+  //
 private:
   /**
    * @brief Utility method to set up the kinetic energy grid over this element selector needs to be built.
@@ -81,25 +79,25 @@ private:
    */
   void InitializeEnergyGrid(int binsperdecade);
 
-//
-// data members
-//
+  //
+  // data members
+  //
 private:
   // data to describe the energy grid of this element selector
-  int         fNumEnergyBins;
-  double      fMinEnergy;
-  double      fMaxEnergy;
-  double      fLogMinEnergy;
-  double      fEnergyILDelta;
-  double     *fEnergyGrid;      // owned; size is fNumEnergyBins
+  int fNumEnergyBins;
+  double fMinEnergy;
+  double fMaxEnergy;
+  double fLogMinEnergy;
+  double fEnergyILDelta;
+  double *fEnergyGrid; // owned; size is fNumEnergyBins
 
-  EMModel    *fEMModel;        // NOT owned
+  EMModel *fEMModel; // NOT owned
 
-  std::vector<double*>  fProbsPerElements; // normalized cumulative probabilities per target elements for each energy
+  std::vector<double *> fProbsPerElements; // normalized cumulative probabilities per target elements for each energy
                                            // grid point, for each element; the vector will store #elements,
                                            // fNumEnergyBins size double arrays; the class do own these arrays
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
 #endif //  EMELEMENTSELECTOR_H
