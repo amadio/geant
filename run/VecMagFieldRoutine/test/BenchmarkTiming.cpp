@@ -34,7 +34,7 @@
 using namespace std;
 
 using Double_v = geant::Double_v;
-using Float_v = geant::Float_v;
+using Float_v  = geant::Float_v;
 
 typedef vecgeom::Vector3D<double> ThreeVector; // normal Vector3D
 typedef vecgeom::Vector3D<Double_v> ThreeVecSimd_t;
@@ -154,7 +154,7 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
   ThreeVecSimdF_t xyzField;
   // Then convert to double for later use
   ThreeVecSimd_t xyzField1, xyzField2;
-  
+
   for (size_t k = 0; k < noRunsAvg; ++k) {
     clock_t clock1 = clock();
     for (size_t i = 0; i < inputVcLen; ++i) {
@@ -169,7 +169,7 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
       // extract field values with a Float_v which we then copy to two Double_v
       m1.GetFieldValue(inputForVec, xyzField);
       // std::cout << i << ": " << inputForVec << " => " << xyzField << std::endl;
-     // We benchmark also writing to the Double_v
+      // We benchmark also writing to the Double_v
       geant::CopyFltToDbl(xyzField, xyzField1, xyzField2);
       for (size_t lane = 0; lane < geant::kVecLenD; ++lane) {
         xyzFieldS.Set(vecCore::Get(xyzField1.x(), lane), vecCore::Get(xyzField1.y(), lane),

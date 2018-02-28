@@ -19,13 +19,13 @@ using namespace std;
 /*
 class ReadVectorData
 {
-public: 
+public:
   vector<double> fRadius, fPhi, fZ, fBr, fBz, fBphi;
   ReadVectorData(string inputMap){
     dataFile = inputMap;
     PleaseReadData();
   };
-  
+
   ~ReadVectorData(){}
 
 private:
@@ -62,7 +62,7 @@ void GatherAlias(typename kVc::Index_t    index, typename kVc::Double_t  &probNA
   //gather for alias table lookups - (backend type has no ptr arithmetic)
   //vecgeom::kVectorSize == vecphys::kVc::kSize
   ReadVectorData dataMap("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
-  for(int i = 0; i < vecgeom::kVectorSize ; ++i) 
+  for(int i = 0; i < vecgeom::kVectorSize ; ++i)
   {
     int ind = index[i];
 
@@ -73,13 +73,13 @@ void GatherAlias(typename kVc::Index_t    index, typename kVc::Double_t  &probNA
 
     //assert( z > 0  && z <= fMaxZelement );
     //    assert( ind >= 0 && ind < fAliasTable[z]->SizeOfGrid() );
-  
+
   //Say index has 5 indices a,b,c,d,e i.e. 5 particles
   //ind=a.  Now for first particle, need to fill probNA with Br[a.. .. e]
   //so say
   probNA[i] = dataMap.fBr[ind];
   //... but access to fBr needed which we will have obviously
-  
+
 
 
     // int tableIndex = fAliasTableManager->GetTableIndex(z);
@@ -89,33 +89,31 @@ void GatherAlias(typename kVc::Index_t    index, typename kVc::Double_t  &probNA
 };
 
 */
-int main(){
+int main()
+{
 
   ReadVectorData r1("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
 
   typedef vecgeom::kVc::precision_v Double_t;
   typedef vecgeom::kVc::Index_t Index_t;
   typedef vecgeom::kVc::Int_t Int_t;
-  Index_t i1; 
+  Index_t i1;
   Double_t probNAtest;
   srand(time(NULL));
-  for (int i = 0; i < vecgeom::kVectorSize; ++i)
-  {
-    i1[i] = i + ((double) rand()/(RAND_MAX))*100;
+  for (int i = 0; i < vecgeom::kVectorSize; ++i) {
+    i1[i] = i + ((double)rand() / (RAND_MAX)) * 100;
   }
 
-  cout<<"i1 randomizes is: "<<i1<<endl;
-  cout<<"probNAtest before gatheralias is: "<<probNAtest<<endl;
-    int count  = 1e+8;
-    for (int i = 0; i < count; ++i)
-    {
-       r1.GatherAlias<vecgeom::kVc>(i1, probNAtest);
-    }
-  
-  cout<<"probNAtest after gatheralias is: "<<probNAtest<<endl;
+  cout << "i1 randomizes is: " << i1 << endl;
+  cout << "probNAtest before gatheralias is: " << probNAtest << endl;
+  int count = 1e+8;
+  for (int i = 0; i < count; ++i) {
+    r1.GatherAlias<vecgeom::kVc>(i1, probNAtest);
+  }
+
+  cout << "probNAtest after gatheralias is: " << probNAtest << endl;
   // typedef vecgeom::Vector3D<vecgeom::Precision> Vec_t;
   // typedef vecgeom::Vector3D<vecgeom::kVc::precision_v> VEC_t;
-
 
   // int temp_arr[150];
   // double *arr = new double[150];
@@ -124,31 +122,31 @@ int main(){
   //   temp_arr[i] = i;
   // }
 
-  //vecgeom::gather(arr, temp_arr);
+  // vecgeom::gather(arr, temp_arr);
 
-  vecgeom::kVc::precision_v v1; 
-  double arr2[] = {12,14,16,18,20};
-  int ind2[] = {0,1,2,3,4,5};
-  cout<<"v1 before gather: "<<v1<<endl;
+  vecgeom::kVc::precision_v v1;
+  double arr2[] = {12, 14, 16, 18, 20};
+  int ind2[]    = {0, 1, 2, 3, 4, 5};
+  cout << "v1 before gather: " << v1 << endl;
   v1.gather(arr2, ind2);
-  cout<<"v1 after gather: "<<v1<<endl;
+  cout << "v1 after gather: " << v1 << endl;
 
   Int_t i2;
   i2[0] = 2;
   i2[1] = 3;
   i2[2] = 1;
   i2[3] = 0;
-  cout<<"i2 looks like: "<<i2<<endl;
+  cout << "i2 looks like: " << i2 << endl;
   v1.gather(arr2, i2);
-  cout<<"v1 after new gather: "<<v1<<endl;
+  cout << "v1 after new gather: " << v1 << endl;
 
-  Int_t i3 = (Int_t) i1;
-  v1.gather(arr2,i3);
-  cout<<"i3 looks like: "<<i3<<endl;
-  cout<<"v1 after 3rd gather is: "<<v1<<endl;
+  Int_t i3 = (Int_t)i1;
+  v1.gather(arr2, i3);
+  cout << "i3 looks like: " << i3 << endl;
+  cout << "v1 after 3rd gather is: " << v1 << endl;
 
-  vecgeom::kVc::precision_v v3; 
-  vecgeom::kVc::precision_v arr3; 
+  vecgeom::kVc::precision_v v3;
+  vecgeom::kVc::precision_v arr3;
   arr3[0] = 5.0;
   arr3[1] = 51.0;
   arr3[2] = 115.0;
@@ -158,7 +156,6 @@ int main(){
   // ThreeVector v4;
   // v4.gather(arr2, i3);
   // cout<<"v3 now looks like: "<<v3<<endl;
-
 
   return 0;
 }
@@ -185,7 +182,7 @@ GatherAlias(typename Backend::Index_t    index,
   //  assert( (zElement > 0)  && (zElement <= fMaxZelement) );
 
   int     intIndex= (int) index;
-   
+
 #ifdef CHECK
   //  int     tableSize= fAliasTable[zElement]->SizeOfGrid();
   //  INDEX_CHECK( intIndex, 0, tableSize, "Index", "TableSize" );
@@ -203,15 +200,15 @@ template<>
 inline
 VECPHYS_CUDA_HEADER_BOTH
 void GUAliasSampler::
-GatherAlias<kVc>(typename kVc::Index_t    index, 
+GatherAlias<kVc>(typename kVc::Index_t    index,
                  typename kVc::Index_t    zElement,
-                 typename kVc::Double_t  &probNA,  
+                 typename kVc::Double_t  &probNA,
                  typename kVc::Double_t  &aliasInd
 
-                ) const 
+                ) const
 {
   //gather for alias table lookups - (backend type has no ptr arithmetic)
-  for(int i = 0; i < kVc::kSize ; ++i) 
+  for(int i = 0; i < kVc::kSize ; ++i)
   {
     int z= zElement[i];
     int ind = index[i];

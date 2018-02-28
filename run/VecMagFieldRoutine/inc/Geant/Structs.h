@@ -1,51 +1,37 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
-
 typedef float dataType;
 
-struct MagVector{
+struct MagVector {
 public:
-    dataType Br   =0.;
-    dataType Bz   =0.;
-    dataType Bphi =0.;
+  dataType Br   = 0.;
+  dataType Bz   = 0.;
+  dataType Bphi = 0.;
+
 public:
-    void SetBr(dataType a){
-        Br = a;
-    }
+  void SetBr(dataType a) { Br = a; }
 
-    void SetBz(dataType a){
-        Bz = a;
-    }
+  void SetBz(dataType a) { Bz = a; }
 
-    void SetBphi(dataType a){
-        Bphi=a;
-    }
+  void SetBphi(dataType a) { Bphi = a; }
 
-    dataType GetBr(){
-        return Br;
-    }
+  dataType GetBr() { return Br; }
 
-    dataType GetBz(){
-        return Bz;
-    }
+  dataType GetBz() { return Bz; }
 
-    dataType GetBphi(){
-        return Bphi;
-    }
+  dataType GetBphi() { return Bphi; }
 };
 
-
-struct MagCellStructs{
+struct MagCellStructs {
 public:
-    MagVector m0,m1, m2,m3;
+  MagVector m0, m1, m2, m3;
 };
 
-
-struct MagCellArrays{
-    dataType sBr[4];
-    dataType sBphi[4];
-    dataType sBz[4];
+struct MagCellArrays {
+  dataType sBr[4];
+  dataType sBphi[4];
+  dataType sBz[4];
 };
 
 #endif
