@@ -41,45 +41,44 @@
 
 namespace userapplication {
 
-  UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {}
-  UserPhysicsList::~UserPhysicsList() {}
+UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name)
+{
+}
+UserPhysicsList::~UserPhysicsList()
+{
+}
 
-  void UserPhysicsList::Initialize() {
-    // get the partcile table and loop over it
-    std::vector<geantphysics::Particle*> pTable = geantphysics::Particle::GetTheParticleTable();
-    for (unsigned int i=0; i<pTable.size(); ++i) {
-      geantphysics::Particle *particle = pTable[i];
-      if (particle==geantphysics::Proton::Definition() || 
-	  particle==geantphysics::Neutron::Definition() ||
-	  particle==geantphysics::PionPlus::Definition() ||
-	  particle==geantphysics::PionMinus::Definition() ||
-	  particle==geantphysics::PionZero::Definition() ||
-	  particle==geantphysics::KaonPlus::Definition() ||
-	  particle==geantphysics::KaonMinus::Definition() ||
-	  particle==geantphysics::KaonZero::Definition() ||
-	  particle==geantphysics::KaonShort::Definition() ||
-	  particle==geantphysics::KaonLong::Definition()) {
-	// create hadronic elastic process for proton:
-	//
-	geantphysics::HadronicProcess *helProc = new geantphysics::ElasticScatteringProcess();
-	// create the diffuse elastic model for elastic scattering
-	geantphysics::HadronicFinalStateModel *diffelModel  = new geantphysics::DiffuseElasticModel();
-	// create the cross sections
-	geantphysics::HadronicCrossSection *ggElasticXS = new geantphysics::GlauberGribovElasticXsc();
-      
-	// set min/max energies of the model
-	diffelModel->SetLowEnergyUsageLimit (100.0*geant::units::eV);
-	diffelModel->SetHighEnergyUsageLimit(100.0*geant::units::TeV);
-	// add the model to the process
-	helProc->AddModel(diffelModel);
-	// add the cross-sections to the process
-	helProc->AddCrossSection(ggElasticXS);
-	//
-	// add the process to the gamma particle
-	AddProcessToParticle(particle, helProc);
-      }
+void UserPhysicsList::Initialize()
+{
+  // get the partcile table and loop over it
+  std::vector<geantphysics::Particle *> pTable = geantphysics::Particle::GetTheParticleTable();
+  for (unsigned int i = 0; i < pTable.size(); ++i) {
+    geantphysics::Particle *particle = pTable[i];
+    if (particle == geantphysics::Proton::Definition() || particle == geantphysics::Neutron::Definition() ||
+        particle == geantphysics::PionPlus::Definition() || particle == geantphysics::PionMinus::Definition() ||
+        particle == geantphysics::PionZero::Definition() || particle == geantphysics::KaonPlus::Definition() ||
+        particle == geantphysics::KaonMinus::Definition() || particle == geantphysics::KaonZero::Definition() ||
+        particle == geantphysics::KaonShort::Definition() || particle == geantphysics::KaonLong::Definition()) {
+      // create hadronic elastic process for proton:
+      //
+      geantphysics::HadronicProcess *helProc = new geantphysics::ElasticScatteringProcess();
+      // create the diffuse elastic model for elastic scattering
+      geantphysics::HadronicFinalStateModel *diffelModel = new geantphysics::DiffuseElasticModel();
+      // create the cross sections
+      geantphysics::HadronicCrossSection *ggElasticXS = new geantphysics::GlauberGribovElasticXsc();
+
+      // set min/max energies of the model
+      diffelModel->SetLowEnergyUsageLimit(100.0 * geant::units::eV);
+      diffelModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
+      // add the model to the process
+      helProc->AddModel(diffelModel);
+      // add the cross-sections to the process
+      helProc->AddCrossSection(ggElasticXS);
+      //
+      // add the process to the gamma particle
+      AddProcessToParticle(particle, helProc);
     }
   }
+}
 
-
-}  // userapplication
+} // userapplication

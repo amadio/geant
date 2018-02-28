@@ -12,11 +12,10 @@ namespace userapplication {
 class UserPhysicsList : public geantphysics::PhysicsList {
 public:
   UserPhysicsList(const std::string &name);
- ~UserPhysicsList();
+  ~UserPhysicsList();
   virtual void Initialize();
 };
 
 } // userapplication
-
 
 #endif // USERPHYSICSLIST_H
