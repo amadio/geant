@@ -36,39 +36,36 @@ using namespace std;
 // 16 byte value that can be passed around by value. It also supports
 // conversion to string (via the stream operator <<) and conversion from a
 // string via constructor.
-class Guid
-{
-  public:
+class Guid {
+public:
+  // create a guid from vector of bytes
+  Guid(const vector<unsigned char> &bytes);
 
-    // create a guid from vector of bytes
-    Guid(const vector<unsigned char> &bytes);
+  // create a guid from array of bytes
+  Guid(const unsigned char *bytes);
 
-    // create a guid from array of bytes
-    Guid(const unsigned char *bytes);
+  // create a guid from string
+  Guid(const string &fromString);
 
-    // create a guid from string
-    Guid(const string &fromString);
+  // create empty guid
+  Guid();
 
-    // create empty guid
-    Guid();
+  // copy constructor
+  Guid(const Guid &other);
 
-    // copy constructor
-    Guid(const Guid &other);
+  // overload assignment operator
+  Guid &operator=(const Guid &other);
 
-    // overload assignment operator
-    Guid &operator=(const Guid &other);
+  // overload equality and inequality operator
+  bool operator==(const Guid &other) const;
+  bool operator!=(const Guid &other) const;
 
-    // overload equality and inequality operator
-    bool operator==(const Guid &other) const;
-    bool operator!=(const Guid &other) const;
+private:
+  // actual data
+  vector<unsigned char> _bytes;
 
-  private:
-
-    // actual data
-    vector<unsigned char> _bytes;
-
-    // make the << operator a friend so it can access _bytes
-    friend ostream &operator<<(ostream &s, const Guid &guid);
+  // make the << operator a friend so it can access _bytes
+  friend ostream &operator<<(ostream &s, const Guid &guid);
 };
 
 // Class that can create new guids. The only reason this exists instead of
@@ -78,10 +75,9 @@ class Guid
 // function would no longer be cross-platform if we parameterized the android
 // version. Instead, construction of the GuidGenerator may be different on
 // each platform, but the use of newGuid is uniform.
-class GuidGenerator
-{
-  public:
-    GuidGenerator() { }
+class GuidGenerator {
+public:
+  GuidGenerator() {}
 
-    Guid newGuid();
+  Guid newGuid();
 };

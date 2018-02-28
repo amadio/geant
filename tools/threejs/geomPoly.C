@@ -1,8 +1,8 @@
 void geomPoly()
 {
-   TGeoManager::Import("./polycone.root");
-   gGeoManager->DefaultColors();
+  TGeoManager::Import("./polycone.root");
+  gGeoManager->DefaultColors();
 
-   //gGeoManager->GetVolume("ALIC")->Draw("ogl");
-   new TBrowser;
+  // gGeoManager->GetVolume("ALIC")->Draw("ogl");
+  new TBrowser;
 }
