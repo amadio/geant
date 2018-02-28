@@ -13,15 +13,14 @@ namespace geantphysics {
  */
 class CutConverterForElectron : public CutConverter {
 public:
-  CutConverterForElectron(int numebins = 301, double mincutenergy = 100.0*geant::units::eV,
-                          double maxcutenergy = 10.0*geant::units::GeV);
+  CutConverterForElectron(int numebins = 301, double mincutenergy = 100.0 * geant::units::eV,
+                          double maxcutenergy = 10.0 * geant::units::GeV);
   virtual ~CutConverterForElectron();
 
-  virtual void   Initialise();
+  virtual void Initialise();
 
 protected:
   virtual double ComputeELossOrAbsXsecPerAtom(double zet, double ekin);
-
 };
 
 } // namespace geantphysics

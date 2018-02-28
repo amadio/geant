@@ -10,22 +10,20 @@
 #include <iostream>
 
 namespace vecgeom {
-  inline namespace VECGEOM_IMPL_NAMESPACE {
-    class Region;
-  }
+inline namespace VECGEOM_IMPL_NAMESPACE {
+class Region;
 }
-
+}
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
 }
-
+}
 
 namespace geantphysics {
 
-//class Material;
+// class Material;
 /**
  * @brief   Material - particle production cut object (dummy class at the moment).
  * @class   MaterialCuts
@@ -57,41 +55,40 @@ namespace geantphysics {
  *        threshold or possibility to set production cuts either in energy threshold or length will be added.
  *        More detailed documentation will be provided later with the implementation of these new functionalities.
  */
-class MaterialCuts{
+class MaterialCuts {
 public:
   // creates all MaterialCuts and converts length/energy to energy/lenght
-  static void  CreateAll();
-// deletes all MaterialCuts objects and set the table to default (zero) size
-  static void  ClearAll();
+  static void CreateAll();
+  // deletes all MaterialCuts objects and set the table to default (zero) size
+  static void ClearAll();
 
   /** @brief Public method to obtain the index of this material-cuts object in the global table. */
-  int             GetIndex() const { return fIndex; }
-  int             GetRegionIndex() const { return fRegionIndex; }
+  int GetIndex() const { return fIndex; }
+  int GetRegionIndex() const { return fRegionIndex; }
 
-  const double*   GetProductionCutsInLength() const { return fProductionCutsInLength;}
-  const double*   GetProductionCutsInEnergy() const { return fProductionCutsInEnergy;}
-  bool            IsProductionCutsGivenInLength() const { return fIsProductionCutsGivenInLength; }
+  const double *GetProductionCutsInLength() const { return fProductionCutsInLength; }
+  const double *GetProductionCutsInEnergy() const { return fProductionCutsInEnergy; }
+  bool IsProductionCutsGivenInLength() const { return fIsProductionCutsGivenInLength; }
 
-  const Material* GetMaterial() const { return fMaterial; }
+  const Material *GetMaterial() const { return fMaterial; }
   // get a MaterialCuts object pointer by its index
-  static const MaterialCuts* GetMaterialCut(int indx);
+  static const MaterialCuts *GetMaterialCut(int indx);
   // get a MaterialCuts object by specifying the Region index and the Material index
   // TODO: we should get rid of it by writing the MaterialCuts global index into the Reagion and requested the kernel
   //       to provide it at each physics call
-  static const MaterialCuts* GetMaterialCut(int regionindx, int materialindx);
+  static const MaterialCuts *GetMaterialCut(int regionindx, int materialindx);
 
   // get the global mategrial-cuts table
-  static const std::vector<MaterialCuts*>& GetTheMaterialCutsTable() { return gTheMaterialCutsTable; }
+  static const std::vector<MaterialCuts *> &GetTheMaterialCutsTable() { return gTheMaterialCutsTable; }
 
-
-/**
- * @name Printouts:
- */
-//@{
-  friend std::ostream& operator<<(std::ostream&, const MaterialCuts*);
-  friend std::ostream& operator<<(std::ostream&, const MaterialCuts&);
-  friend std::ostream& operator<<(std::ostream&, std::vector<MaterialCuts*>);
-//@}
+  /**
+   * @name Printouts:
+   */
+  //@{
+  friend std::ostream &operator<<(std::ostream &, const MaterialCuts *);
+  friend std::ostream &operator<<(std::ostream &, const MaterialCuts &);
+  friend std::ostream &operator<<(std::ostream &, std::vector<MaterialCuts *>);
+  //@}
 
 private:
   /**
@@ -109,41 +106,39 @@ private:
     */
   MaterialCuts(int regionindx, const Material *mat, bool iscutinlength, double gcut, double emcut, double epcut);
   /** @brief Destructor */
- ~MaterialCuts(){};
+  ~MaterialCuts(){};
 
- // NOTE: they might be private if we create all matcuts automatically
- // if not   // TODO: add check of indices
- void            SetProductionCutEnergy(int indx, double val) {fProductionCutsInEnergy[indx] = val;}
- void            SetProductionCutLength(int indx, double val) {fProductionCutsInLength[indx] = val;}
+  // NOTE: they might be private if we create all matcuts automatically
+  // if not   // TODO: add check of indices
+  void SetProductionCutEnergy(int indx, double val) { fProductionCutsInEnergy[indx] = val; }
+  void SetProductionCutLength(int indx, double val) { fProductionCutsInLength[indx] = val; }
 
-
- // checks if MaterialCuts has already been created for the given Material in this Region:
- // if not, it will create a new MaterialCuts and will return a pointer to the corresponding MaterialCuts object
- static MaterialCuts* CheckMaterialForRegion(const vecgeom::Region *region, const Material *mat);
- // convert gamma,e-,e+ cuts length to energy or energy to length
- static void  ConvertAll();
+  // checks if MaterialCuts has already been created for the given Material in this Region:
+  // if not, it will create a new MaterialCuts and will return a pointer to the corresponding MaterialCuts object
+  static MaterialCuts *CheckMaterialForRegion(const vecgeom::Region *region, const Material *mat);
+  // convert gamma,e-,e+ cuts length to energy or energy to length
+  static void ConvertAll();
 
 private:
   static const int kNumProdCuts = 3;
-  int    fRegionIndex; // index of the region where this material-cuts is located
-  int    fIndex; // in the global table
-  bool   fIsProductionCutsGivenInLength;  // is production cuts are given by the user in length
+  int fRegionIndex;                    // index of the region where this material-cuts is located
+  int fIndex;                          // in the global table
+  bool fIsProductionCutsGivenInLength; // is production cuts are given by the user in length
   double fProductionCutsInLength[kNumProdCuts];
   double fProductionCutsInEnergy[kNumProdCuts];
 
-  const Material *fMaterial;  // does not own this material onject
+  const Material *fMaterial; // does not own this material onject
 
   // the global mategrial-cuts table; filled constatntly when MaterialCuts obejcts are created
-  static std::vector<MaterialCuts*> gTheMaterialCutsTable;
+  static std::vector<MaterialCuts *> gTheMaterialCutsTable;
   // the material-cuts table per Regions; size will be [#regions][#MaterialCuts in that Region]
   // filled constatntly when MaterialCuts obejcts are created
-  static std::vector< std::vector<MaterialCuts*> > gTheMaterialCutsPerRegion;
+  static std::vector<std::vector<MaterialCuts *>> gTheMaterialCutsPerRegion;
   // the material-cuts table per Regions; size will be [#regions][#Matrials]
   // filled constatntly when MaterialCuts obejcts are created
-  static std::vector< std::vector<MaterialCuts*> > gTheMaterialCutsPerRegionPerMaterial;
-
+  static std::vector<std::vector<MaterialCuts *>> gTheMaterialCutsPerRegionPerMaterial;
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
 #endif // MATERIALCUT_H
