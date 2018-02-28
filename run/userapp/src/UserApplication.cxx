@@ -4,14 +4,14 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-UserApplication::UserApplication(RunManager *runmgr):fRunMgr(runmgr)
+UserApplication::UserApplication(RunManager *runmgr) : fRunMgr(runmgr)
 {
   // Ctor..
-
 }
 
 //______________________________________________________________________________
-void UserApplication::SetRunManager(RunManager *runmgr) {
+void UserApplication::SetRunManager(RunManager *runmgr)
+{
   fRunMgr = runmgr;
 }
 

@@ -58,23 +58,22 @@ public:
    * @brief  User FinishEvent function.
    * @details The slot released is evt%ninflight, for easier user data management.
    */
-  virtual void FinishEvent(Event */*event*/) {}
+  virtual void FinishEvent(Event * /*event*/) {}
 
   /** @brief User FinishRun function */
   virtual void FinishRun() {}
 
   /** @brief Begin new track(s). */
-  virtual void BeginTrack(Track &/*track*/, TaskData */*td*/) {}
-  virtual void BeginTrack(TrackVec_t &/*tracks*/, TaskData */*td*/);
+  virtual void BeginTrack(Track & /*track*/, TaskData * /*td*/) {}
+  virtual void BeginTrack(TrackVec_t & /*tracks*/, TaskData * /*td*/);
 
   /** @brief Finish track(s). */
-  virtual void FinishTrack(Track &/*track*/, TaskData */*td*/) {}
-  virtual void FinishTrack(TrackVec_t &/*tracks*/, TaskData */*td*/);
+  virtual void FinishTrack(Track & /*track*/, TaskData * /*td*/) {}
+  virtual void FinishTrack(TrackVec_t & /*tracks*/, TaskData * /*td*/);
 
   /** @brief User stepping actions */
-  virtual void SteppingActions(Track &/*track*/, TaskData */*td*/) {}
-  virtual void SteppingActions(TrackVec_t &/*tracks*/, TaskData */*td*/);
-
+  virtual void SteppingActions(Track & /*track*/, TaskData * /*td*/) {}
+  virtual void SteppingActions(TrackVec_t & /*tracks*/, TaskData * /*td*/);
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -1,12 +1,12 @@
 //===--- StdApplication.h - Geant-V ------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file StdApplication.h
- * @brief Implementation of simple scoring for CMS geometry 
- * @author Andrei Gheata 
+ * @brief Implementation of simple scoring for CMS geometry
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 #ifndef GEANT_StdApplication
@@ -33,23 +33,20 @@ using namespace geant;
 /** @brief StdApplication class */
 class StdApplication : public geant::UserApplication {
 public:
-enum EScoreType {
-  kNoScore = 0,
-  kScore
-};  
+  enum EScoreType { kNoScore = 0, kScore };
 
 private:
-  bool fInitialized;                            /** Initialized flag */
+  bool fInitialized; /** Initialized flag */
 #ifdef USE_ROOT
-  TH1F     *fHeta;                                /** Eta distribution */
-  TH1F     *fHpt;                                 /** Pt distribution */
-  TH1D     *fHStep;                               /** Step size distribution */
-  TProfile *fStepSize;                            /** Step size profile with eta */
-  TProfile *fStepCnt;                             /** Number of steps profile with eta */
+  TH1F *fHeta;         /** Eta distribution */
+  TH1F *fHpt;          /** Pt distribution */
+  TH1D *fHStep;        /** Step size distribution */
+  TProfile *fStepSize; /** Step size profile with eta */
+  TProfile *fStepCnt;  /** Number of steps profile with eta */
 #endif
-  std::mutex fMHist;                              /** Mutex for concurrent histogram filling */
-  EScoreType fScore;                              /** Entity for scoring */
-  
+  std::mutex fMHist; /** Mutex for concurrent histogram filling */
+  EScoreType fScore; /** Entity for scoring */
+
   /**
    * @brief Copy constructor
    */
@@ -59,8 +56,8 @@ private:
    * @brief Operator=
    */
   StdApplication &operator=(const StdApplication &);
-public:
 
+public:
   /** @brief Constructor StdApplication */
   StdApplication(RunManager *runmgr);
 
@@ -70,20 +67,19 @@ public:
   /** @brief Initialization function */
   virtual bool Initialize();
 
-  /** @brief Create and fill a uniform log scale bin limits array to pass to TH1D 
+  /** @brief Create and fill a uniform log scale bin limits array to pass to TH1D
    * @param nbins Number of bins
    * @param lmin Low axis limit (positive)
    * @param lmax High axis limit (greater than lmin)
    */
-  virtual void SteppingActions(Track &/*track*/, TaskData */*td*/);
+  virtual void SteppingActions(Track & /*track*/, TaskData * /*td*/);
 
   static double *MakeUniformLogArray(int nbins, double lmin, double lmax);
 
   /** @brief Set scoring type */
   void SetScoreType(EScoreType type) { fScore = type; }
-  
+
   /** @brief User FinishRun function */
   virtual void FinishRun();
-
 };
 #endif

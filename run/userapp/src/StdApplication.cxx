@@ -12,38 +12,39 @@
 
 //______________________________________________________________________________
 StdApplication::StdApplication(RunManager *runmgr)
-  : geant::UserApplication(runmgr), fInitialized(false),
+    : geant::UserApplication(runmgr), fInitialized(false),
 #ifdef USE_ROOT
-    fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
+      fHeta(0), fHpt(0), fHStep(0), fStepSize(0), fStepCnt(0),
 #endif
-    fMHist(), fScore(kScore) {
-  // Ctor.
+      fMHist(), fScore(kScore)
+{
+// Ctor.
 
 #ifdef USE_ROOT
   double *array = 0;
   TH1::AddDirectory(false);
-  fHeta = new TH1F("hEta", "Eta distribution per step", 50, -8., 8.);
-  fHpt = new TH1F("hPt", "Pt distribution per step", 50, 0.1, 100.);
-  array = MakeUniformLogArray(100, 1.e-7, 1.E3);
+  fHeta  = new TH1F("hEta", "Eta distribution per step", 50, -8., 8.);
+  fHpt   = new TH1F("hPt", "Pt distribution per step", 50, 0.1, 100.);
+  array  = MakeUniformLogArray(100, 1.e-7, 1.E3);
   fHStep = new TH1D("hSteps", "Distribution of small steps", 100, array);
   delete[] array;
   fStepSize = new TProfile("hStepEta", "Profile of step size with eta", 50, -8, 8);
-  fStepCnt = new TProfile("hStepCnt", "Profile of step count with eta", 50, -8, 8);
+  fStepCnt  = new TProfile("hStepCnt", "Profile of step count with eta", 50, -8, 8);
   TH1::AddDirectory(true);
 #endif
 }
 
 //______________________________________________________________________________
-double *StdApplication::MakeUniformLogArray(int nbins, double lmin, double lmax) {
+double *StdApplication::MakeUniformLogArray(int nbins, double lmin, double lmax)
+{
   // Create and fill a log scale bin limits array with nbins between lmin and lmax
   // To be passed to TH1D constructor. User responsability to delete.
   const double l10 = log(10.);
-  if ((lmin <= 0) || (lmax <= 0))
-    return 0;
-  double *array = new double[nbins + 1];
+  if ((lmin <= 0) || (lmax <= 0)) return 0;
+  double *array  = new double[nbins + 1];
   double lminlog = log10(lmin);
   double lmaxlog = log10(lmax);
-  double dstep = (lmaxlog - lminlog) / nbins;
+  double dstep   = (lmaxlog - lminlog) / nbins;
   for (auto i = 0; i <= nbins; ++i) {
     array[i] = exp(l10 * (lminlog + i * dstep));
   }
@@ -54,22 +55,22 @@ double *StdApplication::MakeUniformLogArray(int nbins, double lmin, double lmax)
 }
 
 //______________________________________________________________________________
-bool StdApplication::Initialize() {
+bool StdApplication::Initialize()
+{
   // Initialize application. Geometry must be loaded.
-  if (fInitialized)
-    return true;
+  if (fInitialized) return true;
   geant::Printf("=== StdApplication::Initialize done");
   fInitialized = true;
   return true;
 }
 
 //______________________________________________________________________________
-void StdApplication::SteppingActions(Track &track, TaskData * td) {
-  // Application stepping actions.
+void StdApplication::SteppingActions(Track &track, TaskData *td)
+{
+// Application stepping actions.
 #ifdef USE_ROOT
   Propagator *propagator = td->fPropagator;
-  if ((!fInitialized) || (fScore == kNoScore))
-    return;
+  if ((!fInitialized) || (fScore == kNoScore)) return;
   // Loop all tracks, check if they are in the right volume and collect the
   // energy deposit and step length
   double theta, eta;
@@ -77,19 +78,16 @@ void StdApplication::SteppingActions(Track &track, TaskData * td) {
     eta = 1.E30;
   else {
     theta = acos(track.Dz());
-    eta = -log(tan(0.5 * theta));
+    eta   = -log(tan(0.5 * theta));
   }
-  if (propagator->fNthreads > 1)
-    fMHist.lock();
+  if (propagator->fNthreads > 1) fMHist.lock();
   fHeta->Fill(eta);
   fHpt->Fill(track.Pt());
   fHStep->Fill(track.GetStep());
   fStepSize->Fill(eta, track.GetStep());
-  if ((track.Status() == kKilled) || (track.Status() == kExitingSetup) ||
-      (track.Path()->IsOutside()))
-      fStepCnt->Fill(eta, track.GetNsteps());
-  if (propagator->fNthreads > 1)
-    fMHist.unlock();
+  if ((track.Status() == kKilled) || (track.Status() == kExitingSetup) || (track.Path()->IsOutside()))
+    fStepCnt->Fill(eta, track.GetNsteps());
+  if (propagator->fNthreads > 1) fMHist.unlock();
 #else
   (void)track;
   (void)td;
@@ -97,10 +95,10 @@ void StdApplication::SteppingActions(Track &track, TaskData * td) {
 }
 
 //______________________________________________________________________________
-void StdApplication::FinishRun() {
+void StdApplication::FinishRun()
+{
 #ifdef USE_ROOT
-  if (fScore == kNoScore)
-    return;
+  if (fScore == kNoScore) return;
   TVirtualPad *pad;
   TCanvas *c3 = new TCanvas("Step size profile", "Standard GeantV scoring", 800, 1600);
   c3->Divide(2, 3);
