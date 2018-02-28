@@ -11,13 +11,13 @@ namespace cmsapp {
 class CMSPhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  CMSPhysicsList(const std::string &name="CMS-PhysicsList");
+  CMSPhysicsList(const std::string &name = "CMS-PhysicsList");
   // DTR
   virtual ~CMSPhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 };
 
-}           // namespace cmsapp
+} // namespace cmsapp
 
-#endif      // CMSPHYSICSLIST_H
+#endif // CMSPHYSICSLIST_H

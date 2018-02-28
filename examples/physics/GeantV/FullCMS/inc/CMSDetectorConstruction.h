@@ -10,17 +10,15 @@
 #include <string>
 
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class RunManager;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class RunManager;
 }
-
+}
 
 namespace cmsapp {
 
 class CMSDetectorConstruction : public geant::UserDetectorConstruction {
 public:
-
   CMSDetectorConstruction(geant::RunManager *runmgr);
 
   virtual ~CMSDetectorConstruction();
@@ -28,12 +26,10 @@ public:
   // interface method to define the geometry for the application
   virtual void CreateGeometry();
 
-  void SetGDMLFile(const std::string& gdml) { fGDMLFileName = gdml; }
+  void SetGDMLFile(const std::string &gdml) { fGDMLFileName = gdml; }
 
 private:
-
-  std::string  fGDMLFileName;
-
+  std::string fGDMLFileName;
 };
 
 } // namespace cmsapp

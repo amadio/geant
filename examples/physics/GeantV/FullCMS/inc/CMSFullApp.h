@@ -3,7 +3,7 @@
 #define CMSFULLAPP_H
 
 #ifndef GEANT_VAPPLICATION
-  #include "Geant/UserApplication.h"
+#include "Geant/UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
@@ -11,20 +11,18 @@
 #include "Geant/TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
-  namespace geant {
-    class RunManager;
-    class TaskDataHandle;
-    class Event;
-    class Track;
-  }
+namespace geant {
+class RunManager;
+class TaskDataHandle;
+class Event;
+class Track;
 }
-
+}
 
 #include "CMSData.h"
 
 #include <mutex>
 #include <vector>
-
 
 namespace cmsapp {
 
@@ -32,9 +30,7 @@ class CMSParticleGun;
 
 class CMSFullApp : public geant::UserApplication {
 public:
-
-
-  CMSFullApp(geant::RunManager *runmgr, CMSParticleGun* gun);
+  CMSFullApp(geant::RunManager *runmgr, CMSParticleGun *gun);
   virtual ~CMSFullApp();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
@@ -54,31 +50,29 @@ public:
     *        are completed). */
   virtual void FinishRun();
 
-
-  void         SetPerformanceMode(bool val) { fIsPerformance = val; }
+  void SetPerformanceMode(bool val) { fIsPerformance = val; }
 
 private:
   /** @brief Copy constructor TestEm5 (deleted) */
-  CMSFullApp(const CMSFullApp&) = delete;
+  CMSFullApp(const CMSFullApp &) = delete;
   /** @brief Operator= for TestEm5 (deleted) */
-  CMSFullApp &operator=(const CMSFullApp&) = delete;
-
+  CMSFullApp &operator=(const CMSFullApp &) = delete;
 
 private:
-  bool        fIsPerformance;
-  bool        fInitialized;
-  int         fNumPrimaryPerEvent;
-  int         fNumBufferedEvents;
+  bool fIsPerformance;
+  bool fInitialized;
+  int fNumPrimaryPerEvent;
+  int fNumBufferedEvents;
   // user defined thread local data structure handlers to obtain the thread local data structures (defined and
   // registered by the user) during the simulation (in the SteppingActions(i.e. at the end of each simulation step),
   // Digitization(i.e. at the end of an event) and FinishRun (i.e. at the end of the simulation):
   //
   // 1. merged from all working threads when transportation of an event (with all corresponding primary and secondary
   //    particles) are completed
-  geant::TaskDataHandle<CMSThreadDataEvents>  *fDataHandlerEvents;
+  geant::TaskDataHandle<CMSThreadDataEvents> *fDataHandlerEvents;
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle type
   // during the simulation
-  CMSData   *fData;
+  CMSData *fData;
 
   // mutex to prevent multiple threads writing into the unique, run-global, unique CMSData object (in the FinishEvent
   // after the merge of the user defined per-event data distributed among the threads)
@@ -87,6 +81,6 @@ private:
   CMSParticleGun *fGun;
 };
 
-}      // namespace cmsapp
+} // namespace cmsapp
 
 #endif // CMSFULLAPP_H

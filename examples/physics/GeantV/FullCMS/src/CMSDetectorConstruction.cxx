@@ -3,18 +3,20 @@
 
 #include "Geant/RunManager.h"
 
-
 namespace cmsapp {
 
 CMSDetectorConstruction::CMSDetectorConstruction(geant::RunManager *runmgr)
-: geant::UserDetectorConstruction(runmgr), fGDMLFileName("cms.gdml") {}
+    : geant::UserDetectorConstruction(runmgr), fGDMLFileName("cms.gdml")
+{
+}
 
+CMSDetectorConstruction::~CMSDetectorConstruction()
+{
+}
 
-CMSDetectorConstruction::~CMSDetectorConstruction() {}
-
-
-void CMSDetectorConstruction::CreateGeometry() {
-  std::cout<< "  **** LOADING GEOMETRY FROM GDML = " << fGDMLFileName << std::endl;
+void CMSDetectorConstruction::CreateGeometry()
+{
+  std::cout << "  **** LOADING GEOMETRY FROM GDML = " << fGDMLFileName << std::endl;
   LoadGeometry(fGDMLFileName.c_str());
 }
 
