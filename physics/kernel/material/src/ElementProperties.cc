@@ -8,19 +8,23 @@
 
 namespace geantphysics {
 
-ElementProperties::ElementProperties(Element *elem) : fElement(elem) {
+ElementProperties::ElementProperties(Element *elem) : fElement(elem)
+{
   InitialiseMembers();
 }
 
-ElementProperties::~ElementProperties() {}
+ElementProperties::~ElementProperties()
+{
+}
 
-void ElementProperties::InitialiseMembers() {
+void ElementProperties::InitialiseMembers()
+{
   double z = fElement->GetZ();
-  fZ13    = std::pow(z,1./3.);
-  fZ23    = std::pow(z,2./3.);
-  fLogZ   = std::log(z);
-  fLogZ13 = fLogZ/3.;
-  fLogZ23 = 2.*fLogZ/3.;
+  fZ13     = std::pow(z, 1. / 3.);
+  fZ23     = std::pow(z, 2. / 3.);
+  fLogZ    = std::log(z);
+  fLogZ13  = fLogZ / 3.;
+  fLogZ23  = 2. * fLogZ / 3.;
   ComputeCoulombCorrection(z);
 }
 
@@ -36,13 +40,14 @@ void ElementProperties::InitialiseMembers() {
  *
  * @endinternal
  */
-void ElementProperties::ComputeCoulombCorrection(double z) {
+void ElementProperties::ComputeCoulombCorrection(double z)
+{
   // Coulomb correction from Davis,Bethe,Maximom PRL 1954 Eqs.(36-38)
-  double mu  = z*geant::units::kFineStructConst;
-  double mu2 = mu*mu;
-  double mu4 = mu2*mu2;
-  double mu6 = mu2*mu4;
-  fCoulombCorrection = mu2*(1.0/(1.0+mu2) + 0.20206 - 0.0369*mu2 + 0.0083*mu4 - 0.002*mu6);
+  double mu          = z * geant::units::kFineStructConst;
+  double mu2         = mu * mu;
+  double mu4         = mu2 * mu2;
+  double mu6         = mu2 * mu4;
+  fCoulombCorrection = mu2 * (1.0 / (1.0 + mu2) + 0.20206 - 0.0369 * mu2 + 0.0083 * mu4 - 0.002 * mu6);
 }
 
 } // namespace geantphysics

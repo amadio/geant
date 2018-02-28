@@ -10,12 +10,12 @@
 
 #ifdef __CINT__
 
-#pragma link C++ class geantphysics::DensityEffectData+;
-#pragma link C++ class geantphysics::Element+;
-#pragma link C++ class geantphysics::Isotope+;
-#pragma link C++ class geantphysics::Material+;
-#pragma link C++ class geantphysics::MaterialProperties+;
-#pragma link C++ class geantphysics::NISTElementData+;
-#pragma link C++ class geantphysics::NISTMaterialData+;
+#pragma link C++ class geantphysics::DensityEffectData + ;
+#pragma link C++ class geantphysics::Element + ;
+#pragma link C++ class geantphysics::Isotope + ;
+#pragma link C++ class geantphysics::Material + ;
+#pragma link C++ class geantphysics::MaterialProperties + ;
+#pragma link C++ class geantphysics::NISTElementData + ;
+#pragma link C++ class geantphysics::NISTMaterialData + ;
 
 #endif

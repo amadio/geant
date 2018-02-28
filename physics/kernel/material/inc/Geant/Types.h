@@ -24,15 +24,15 @@
 namespace geantphysics {
 
 #ifdef USE_VECGEOM_CONTAINERS
-  template <class T>
-  using Vector_t = vecgeom::Vector<T>;
-  template <class KeyT, class ValueT>
-  using Map_t    = vecgeom::map<KeyT,ValueT>;
+template <class T>
+using Vector_t = vecgeom::Vector<T>;
+template <class KeyT, class ValueT>
+using Map_t = vecgeom::map<KeyT, ValueT>;
 #else
-  template <class T>
-  using Vector_t = std::vector<T>;
-  template <class KeyT, class ValueT>
-  using Map_t    = std::map<KeyT,ValueT>;
+template <class T>
+using Vector_t = std::vector<T>;
+template <class KeyT, class ValueT>
+using Map_t = std::map<KeyT, ValueT>;
 #endif
 
 } // namespace geantphysics
