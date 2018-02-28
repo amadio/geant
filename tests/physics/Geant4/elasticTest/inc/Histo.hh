@@ -50,23 +50,20 @@
 
 class G4RootAnalysisManager;
 
-class Histo
-{
+class Histo {
 public:
-
   Histo();
 
   ~Histo();
 
-  // Book predefined histogramms 
+  // Book predefined histogramms
   void Book();
 
   // Save histogramms to file
   void Save();
 
   // In this method 1-D histogramms are predefined
-  void Add1D(const G4String&, const G4String&, G4int nb, G4double x1, 
-                                               G4double x2, G4double u=1.);
+  void Add1D(const G4String &, const G4String &, G4int nb, G4double x1, G4double x2, G4double u = 1.);
 
   // It change bins and boundaries
   void SetHisto1D(G4int, G4int, G4double, G4double, G4double);
@@ -81,49 +78,48 @@ public:
   void ScaleH1(G4int, G4double);
 
   // In this method nTuple is booked
-  void AddTuple(const G4String&);
+  void AddTuple(const G4String &);
 
   // In this method nTuple is booked
-  void AddTupleI(const G4String&);
-  void AddTupleF(const G4String&);
-  void AddTupleD(const G4String&);
+  void AddTupleI(const G4String &);
+  void AddTupleF(const G4String &);
+  void AddTupleD(const G4String &);
 
   // Fill nTuple parameter
   void FillTupleI(G4int, G4int);
   void FillTupleF(G4int, G4float);
   void FillTupleD(G4int, G4double);
 
-  // Save tuple event 
+  // Save tuple event
   void AddRow();
 
   // Set output file
-  void SetFileName(const G4String&);
-  void SetFileType(const G4String&);
+  void SetFileName(const G4String &);
+  void SetFileType(const G4String &);
 
   inline void SetVerbose(G4int val) { fVerbose = val; };
 
   inline G4bool IsActive() const { return fHistoActive; };
 
 private:
+  G4RootAnalysisManager *fManager;
 
-  G4RootAnalysisManager* fManager;
- 
   G4String fHistName;
   G4String fHistType;
   G4String fTupleName;
   G4String fTupleTitle;
-  G4int    fNHisto;
-  G4int    fVerbose;
-  G4bool   fDefaultAct;
-  G4bool   fHistoActive;
-  G4bool   fNtupleActive;
+  G4int fNHisto;
+  G4int fVerbose;
+  G4bool fDefaultAct;
+  G4bool fHistoActive;
+  G4bool fNtupleActive;
 
-  std::vector<G4int>    fHisto;
-  std::vector<G4int>    fTupleI;
-  std::vector<G4int>    fTupleF;
-  std::vector<G4int>    fTupleD;
-  std::vector<G4int>    fBins;
-  std::vector<G4bool>   fActive;
+  std::vector<G4int> fHisto;
+  std::vector<G4int> fTupleI;
+  std::vector<G4int> fTupleF;
+  std::vector<G4int> fTupleD;
+  std::vector<G4int> fBins;
+  std::vector<G4bool> fActive;
   std::vector<G4double> fXmin;
   std::vector<G4double> fXmax;
   std::vector<G4double> fUnit;
@@ -132,7 +128,6 @@ private:
   std::vector<G4String> fNtupleI;
   std::vector<G4String> fNtupleF;
   std::vector<G4String> fNtupleD;
-
 };
 
 #endif

@@ -39,19 +39,19 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-DetectorMessenger::DetectorMessenger(DetectorConstruction * Det)
-:G4UImessenger(),fDetector(Det),fTestemDir(0),fDetDir(0),fMaterCmd(0)
-{ 
+DetectorMessenger::DetectorMessenger(DetectorConstruction *Det)
+    : G4UImessenger(), fDetector(Det), fTestemDir(0), fDetDir(0), fMaterCmd(0)
+{
   fTestemDir = new G4UIdirectory("/testem/");
   fTestemDir->SetGuidance("commands specific to this example");
-  
+
   fDetDir = new G4UIdirectory("/testem/det/");
   fDetDir->SetGuidance("detector construction commands");
-        
-  fMaterCmd = new G4UIcmdWithAString("/testem/det/setMat",this);
+
+  fMaterCmd = new G4UIcmdWithAString("/testem/det/setMat", this);
   fMaterCmd->SetGuidance("Select material of the box.");
-  fMaterCmd->SetParameterName("choice",false);
-  fMaterCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  fMaterCmd->SetParameterName("choice", false);
+  fMaterCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -65,10 +65,11 @@ DetectorMessenger::~DetectorMessenger()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void DetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
-{ 
-  if( command == fMaterCmd )
-   { fDetector->SetMaterial(newValue);}
+void DetectorMessenger::SetNewValue(G4UIcommand *command, G4String newValue)
+{
+  if (command == fMaterCmd) {
+    fDetector->SetMaterial(newValue);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

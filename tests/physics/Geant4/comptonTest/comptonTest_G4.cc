@@ -44,7 +44,6 @@
 #include <fstream>
 #include <iomanip>
 
-
 #include <getopt.h>
 #include <err.h>
 
@@ -84,169 +83,159 @@
 #include "G4UAtomicDeexcitation.hh"
 #include "G4LossTableManager.hh"
 
-
 //
 // default values of the input parameters
-static std::string   materialName("G4_Pb");               // material is lead
-static int           numHistBins       = 100;             // number of histogram bins between min/max values
-static double        numSamples        = 1.e+7;           // number of required final state samples
-static double        primaryEnergy     = 100.0;           // primary particle energy in [MeV]
+static std::string materialName("G4_Pb"); // material is lead
+static int numHistBins      = 100;        // number of histogram bins between min/max values
+static double numSamples    = 1.e+7;      // number of required final state samples
+static double primaryEnergy = 100.0;      // primary particle energy in [MeV]
 
 static struct option options[] = {
-  {"material-name     (with a G4_ prefix i.e. NIST material)      - default: G4_Pb"  , required_argument, 0, 'm'},
-  {"primary-energy    (in internal energy units i.e. [MeV])       - default: 100"    , required_argument, 0, 'E'},
-  {"number-of-samples (number of required final state samples)    - default: 1.e+7"  , required_argument, 0, 'f'},
-  {"number-of-bins    (number of bins in the histogram)           - default: 100"    , required_argument, 0, 'n'},
-  {"help"                                                                            , no_argument      , 0, 'h'},
-  {0, 0, 0, 0}
-};
+    {"material-name     (with a G4_ prefix i.e. NIST material)      - default: G4_Pb", required_argument, 0, 'm'},
+    {"primary-energy    (in internal energy units i.e. [MeV])       - default: 100", required_argument, 0, 'E'},
+    {"number-of-samples (number of required final state samples)    - default: 1.e+7", required_argument, 0, 'f'},
+    {"number-of-bins    (number of bins in the histogram)           - default: 100", required_argument, 0, 'n'},
+    {"help", no_argument, 0, 'h'},
+    {0, 0, 0, 0}};
 void help();
 
-
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
   //
   // Get input parameters
   while (true) {
     int c, optidx = 0;
     c = getopt_long(argc, argv, "hm:E:f:n:", options, &optidx);
-    if (c == -1)
-      break;
+    if (c == -1) break;
     switch (c) {
     case 0:
       c = options[optidx].val;
     /* fall through */
     case 'm':
-       materialName = optarg;
-       break;
+      materialName = optarg;
+      break;
     case 'E':
       primaryEnergy = (double)strtof(optarg, NULL);
-      if (primaryEnergy<=0)
-        errx(1, "primary particle energy must be positive");
+      if (primaryEnergy <= 0) errx(1, "primary particle energy must be positive");
       break;
     case 'f':
       numSamples = (double)strtof(optarg, NULL);
-      if (numSamples<=0)
-        errx(1, "number of final state samples must be positive");
+      if (numSamples <= 0) errx(1, "number of final state samples must be positive");
       break;
     case 'n':
       numHistBins = (int)strtof(optarg, NULL);
-      if (numHistBins<=0)
-        errx(1, "number of histogram bins must be positive");
+      if (numHistBins <= 0) errx(1, "number of histogram bins must be positive");
       break;
     case 'h':
-       help();
-       return 0;
-       break;
+      help();
+      return 0;
+      break;
     default:
       help();
       errx(1, "unknown option %c", c);
     }
   }
 
-
   G4cout << "========================================================" << G4endl;
   G4cout << "======        Compton Scattering Test Starts    ========" << G4endl;
   G4cout << "========================================================" << G4endl;
 
-  G4String mname(materialName);         // material
-  G4double   energy  = primaryEnergy;   // primary energy of the e-/e+
-  G4double   stat    = numSamples;      // number of samples
-  //G4int      verbose = 1;
-  G4Material *mat    = G4NistManager::Instance()->FindOrBuildMaterial(mname);
+  G4String mname(materialName);    // material
+  G4double energy = primaryEnergy; // primary energy of the e-/e+
+  G4double stat   = numSamples;    // number of samples
+  // G4int      verbose = 1;
+  G4Material *mat = G4NistManager::Instance()->FindOrBuildMaterial(mname);
 
-  if(!mat) { exit(1); }
+  if (!mat) {
+    exit(1);
+  }
 
   // Set random engine to MTwist: the same that we use in GeantV (we use the std c++11 inmp.)
-  //CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
+  // CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
   CLHEP::HepRandom::setTheEngine(new CLHEP::MTwistEngine);
-  //CLHEP::HepRandom::setTheEngine(new CLHEP::Ranlux64Engine);
+  // CLHEP::HepRandom::setTheEngine(new CLHEP::Ranlux64Engine);
 
-  //CLHEP::HepRandomEngine* rndmEngine = G4Random::getTheEngine();
-  //G4cout<< "  rndmEngine = " <<rndmEngine->name() <<G4endl;
-
+  // CLHEP::HepRandomEngine* rndmEngine = G4Random::getTheEngine();
+  // G4cout<< "  rndmEngine = " <<rndmEngine->name() <<G4endl;
 
   // Track
-  G4ThreeVector aPosition = G4ThreeVector(0.,0.,0.);
-  G4ThreeVector aDirection = G4ThreeVector(0.0,0.0,1.0);
+  G4ThreeVector aPosition  = G4ThreeVector(0., 0., 0.);
+  G4ThreeVector aDirection = G4ThreeVector(0.0, 0.0, 1.0);
   G4Gamma::Gamma();
   G4Electron::Electron();
-  const G4ParticleDefinition* part = G4Gamma::Gamma();
+  const G4ParticleDefinition *part = G4Gamma::Gamma();
 
-  G4DynamicParticle dParticle(part,aDirection,energy);
+  G4DynamicParticle dParticle(part, aDirection, energy);
 
-  G4cout.setf( std::ios::scientific, std::ios::floatfield );
+  G4cout.setf(std::ios::scientific, std::ios::floatfield);
 
-  G4ParticleTable* partTable = G4ParticleTable::GetParticleTable();
+  G4ParticleTable *partTable = G4ParticleTable::GetParticleTable();
   partTable->SetReadiness();
 
-
   //--------- Geometry definition
-  G4double dimX = 100.0*cm;
-  G4double dimY = 100.0*cm;
-  G4double dimZ = 100.0*cm;
+  G4double dimX = 100.0 * cm;
+  G4double dimY = 100.0 * cm;
+  G4double dimZ = 100.0 * cm;
 
-  G4Box* sFrame = new G4Box ("Box",dimX, dimY, dimZ);
-  G4LogicalVolume* lFrame = new G4LogicalVolume(sFrame,mat,"Box",0,0,0);
-  G4PVPlacement* pFrame = new G4PVPlacement(0,G4ThreeVector(),"Box",
-                                            lFrame,0,false,0);
+  G4Box *sFrame           = new G4Box("Box", dimX, dimY, dimZ);
+  G4LogicalVolume *lFrame = new G4LogicalVolume(sFrame, mat, "Box", 0, 0, 0);
+  G4PVPlacement *pFrame   = new G4PVPlacement(0, G4ThreeVector(), "Box", lFrame, 0, false, 0);
 
   G4DataVector cuts;
-  cuts.push_back(1.*mm);
-  G4ProductionCuts* pcut = new G4ProductionCuts();
+  cuts.push_back(1. * mm);
+  G4ProductionCuts *pcut = new G4ProductionCuts();
   pcut->SetProductionCut(cuts[0], 0); // set cut for gamma
   pcut->SetProductionCut(cuts[0], 1); // set cut for e-
   pcut->SetProductionCut(cuts[0], 2); // set cut for e+
   pcut->SetProductionCut(cuts[0], 3); // set cut for alpha
 
-  G4MaterialCutsCouple* couple = new G4MaterialCutsCouple(mat, pcut);
+  G4MaterialCutsCouple *couple = new G4MaterialCutsCouple(mat, pcut);
   couple->SetIndex(0);
 
-  G4Region* reg = new G4Region("DefaultRegionForTheWorld");
+  G4Region *reg = new G4Region("DefaultRegionForTheWorld");
   reg->AddRootLogicalVolume(lFrame);
   reg->UsedInMassGeometry(true);
   reg->SetProductionCuts(pcut);
   reg->RegisterMaterialCouplePair(mat, couple);
-//  G4cout << reg->FindCouple(mat) << G4endl;
+  //  G4cout << reg->FindCouple(mat) << G4endl;
 
-  G4ProductionCutsTable* theCoupleTable = G4ProductionCutsTable::GetProductionCutsTable();
+  G4ProductionCutsTable *theCoupleTable = G4ProductionCutsTable::GetProductionCutsTable();
   theCoupleTable->UpdateCoupleTable(pFrame);
-
 
   // -------------------------------------------------------------------
   // -------- Start run processing
-  G4StateManager* g4State=G4StateManager::GetStateManager();
-  if (! g4State->SetNewState(G4State_Init)) {
-    G4cout << "error changing G4state"<< G4endl;;
+  G4StateManager *g4State = G4StateManager::GetStateManager();
+  if (!g4State->SetNewState(G4State_Init)) {
+    G4cout << "error changing G4state" << G4endl;
+    ;
   }
 
-//
-//  G4VAtomDeexcitation* de = new G4UAtomicDeexcitation();
-//  G4LossTableManager::Instance()->SetAtomDeexcitation(de);
-//  de->SetFluo(false);
-//  de->InitialiseAtomicDeexcitation();
+  //
+  //  G4VAtomDeexcitation* de = new G4UAtomicDeexcitation();
+  //  G4LossTableManager::Instance()->SetAtomDeexcitation(de);
+  //  de->SetFluo(false);
+  //  de->InitialiseAtomicDeexcitation();
 
   // Instantiate models
   G4KleinNishinaCompton knc;
-//  G4KleinNishinaModel knm;
+  //  G4KleinNishinaModel knm;
 
   // Set particle change object
-  G4ParticleChangeForGamma* fParticleChange = new G4ParticleChangeForGamma();
-  knc.SetParticleChange(fParticleChange, 0);  // G4KleinNishinaCompton
-//  knm.SetParticleChange(fParticleChange, 0);  // G4KleinNishinaModel
+  G4ParticleChangeForGamma *fParticleChange = new G4ParticleChangeForGamma();
+  knc.SetParticleChange(fParticleChange, 0); // G4KleinNishinaCompton
+                                             //  knm.SetParticleChange(fParticleChange, 0);  // G4KleinNishinaModel
 
   // Initilise models
   knc.Initialise(part, cuts);
-//  knm.Initialise(part, cuts);
-
+  //  knm.Initialise(part, cuts);
 
   // -------- Track
-  G4Track* track = new G4Track(&dParticle,0.0,aPosition);
+  G4Track *track = new G4Track(&dParticle, 0.0, aPosition);
   G4TouchableHandle fpTouchable(new G4TouchableHistory());
   track->SetTouchableHandle(fpTouchable);
 
   // -------- Step
-  if(!G4StateManager::GetStateManager()->SetNewState(G4State_Idle)) {
+  if (!G4StateManager::GetStateManager()->SetNewState(G4State_Idle)) {
     G4cout << "G4StateManager PROBLEM! " << G4endl;
   }
 
@@ -254,37 +243,37 @@ int main(int argc, char** argv) {
   G4VEmModel *model = &knc;
 
   // print outs
-  G4cout<< mat;
+  G4cout << mat;
   G4ProductionCutsTable::GetProductionCutsTable()->DumpCouples();
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Particle       =  " << part->GetParticleName()                                    << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Kinetic energy =  " << energy/MeV << "  [MeV] "                                   << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Model name     =  " << model->GetName()                                              << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout << "   Particle       =  " << part->GetParticleName() << G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout << "   Kinetic energy =  " << energy / MeV << "  [MeV] " << G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout << "   Model name     =  " << model->GetName() << G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
   // compute some integrated quantities using the G4VEmModel interface methods
   // check if we compute atomic-cross section: only for single elemnt materials
   G4bool isSingleElementMaterial = false;
-  if (mat->GetNumberOfElements()==1) {
+  if (mat->GetNumberOfElements() == 1) {
     isSingleElementMaterial = true;
   }
   //
   // Note: restrictedDEDX and unrestrictedDEDX will be non-zero value only in case of EMModels that has the ComputeDEDX
   //       method implemented i.e. in case of energy loss intercations (i.e. ioni. and brem.)
-  G4double restrictedDEDX          = 0.0;
-  G4double unRestrictedDEDX        = 0.0;
+  G4double restrictedDEDX   = 0.0;
+  G4double unRestrictedDEDX = 0.0;
   // Note: atomicCrossSection is computed only in case of materials that has single element
   G4double atomicCrossSection      = 0.0;
   G4double macroscopicCrossSection = 0.0;
   //
   // use the model to compute restricted stopping power
-  restrictedDEDX   = model->ComputeDEDXPerVolume(mat, part, energy);
+  restrictedDEDX = model->ComputeDEDXPerVolume(mat, part, energy);
   // use the model to compute un-restricted stopping power
   unRestrictedDEDX = model->ComputeDEDXPerVolume(mat, part, energy, energy);
   // use the model to compute atomic cross section (only in case of single element materials)
   if (isSingleElementMaterial) {
-    atomicCrossSection  = model->ComputeCrossSectionPerAtom(part, energy, mat->GetZ(), mat->GetA());
+    atomicCrossSection = model->ComputeCrossSectionPerAtom(part, energy, mat->GetZ(), mat->GetA());
   }
   // use the model to compute macroscopic cross section
   macroscopicCrossSection = model->CrossSectionPerVolume(mat, part, energy);
@@ -292,107 +281,102 @@ int main(int argc, char** argv) {
   // print out integrated quantities:
   // -atomic cross section
   if (isSingleElementMaterial) {
-    std::cout<< "   cross section per atom      :";
-    std::cout<< std::setw(14) << std::scientific << std::right << atomicCrossSection/barn
-             << std::setw(14) << std::left << "     [barn]";
-    std::cout<<std::endl;
+    std::cout << "   cross section per atom      :";
+    std::cout << std::setw(14) << std::scientific << std::right << atomicCrossSection / barn << std::setw(14)
+              << std::left << "     [barn]";
+    std::cout << std::endl;
   }
   //
   // -macroscopic cross section
-  std::cout<< "   cross section per volume    :";
-  std::cout<< std::setw(14) << std::scientific << std::right << macroscopicCrossSection/(1./cm)
-           << std::setw(14) << std::left << "     [1/cm]";
-  std::cout<<std::endl;
+  std::cout << "   cross section per volume    :";
+  std::cout << std::setw(14) << std::scientific << std::right << macroscopicCrossSection / (1. / cm) << std::setw(14)
+            << std::left << "     [1/cm]";
+  std::cout << std::endl;
   //
   // -restricted stopping power
-  std::cout<< "   resricted dE/dx  (MeV/cm)   :";
-  std::cout<< std::setw(14) << std::scientific << std::right << restrictedDEDX/(MeV/cm)
-           << std::setw(14) << std::left << "   [MeV/cm]";
-  std::cout<<std::endl;
+  std::cout << "   resricted dE/dx  (MeV/cm)   :";
+  std::cout << std::setw(14) << std::scientific << std::right << restrictedDEDX / (MeV / cm) << std::setw(14)
+            << std::left << "   [MeV/cm]";
+  std::cout << std::endl;
   //
   // -unrestricted stopping power
-  std::cout<< "   unresricted dE/dx (MeV/cm)  :";
-  std::cout<< std::setw(14) << std::scientific << std::right << unRestrictedDEDX/(MeV/cm)
-           << std::setw(14) << std::left << "   [MeV/cm]";
-  std::cout<<std::endl;
+  std::cout << "   unresricted dE/dx (MeV/cm)  :";
+  std::cout << std::setw(14) << std::scientific << std::right << unRestrictedDEDX / (MeV / cm) << std::setw(14)
+            << std::left << "   [MeV/cm]";
+  std::cout << std::endl;
   //===========================================================================================//
 
-
-
   // ------- Histograms name
-  Histo    histo;
-  G4String nname = mname; // material name
-  G4String ss    = "G4_"; // strip the G4_ prefix
+  Histo histo;
+  G4String nname           = mname; // material name
+  G4String ss              = "G4_"; // strip the G4_ prefix
   G4String::size_type ipos = nname.find(ss);
-  if (ipos!=std::string::npos) {
-     nname.erase(ipos, ss.length());
+  if (ipos != std::string::npos) {
+    nname.erase(ipos, ss.length());
   }
   //
   // create histogram for gamma energy
-  G4String hname    = "compton_G4_gamma_energy_" + nname;
-  G4int    nbins    = numHistBins;
-  G4double xmin     = 0.0;
-  G4double xmax     = 1.0;
-  histo.Add1D("1",hname,nbins,xmin,xmax);
+  G4String hname = "compton_G4_gamma_energy_" + nname;
+  G4int nbins    = numHistBins;
+  G4double xmin  = 0.0;
+  G4double xmax  = 1.0;
+  histo.Add1D("1", hname, nbins, xmin, xmax);
   //
   // same for gamma angular distr.
-  hname    = "compton_G4_gamma_angular_" + nname;
-  //nbins    = numHistBins;
-  xmin     = -1.0;
-  xmax     =  1.0;
-  histo.Add1D("2",hname,nbins,xmin,xmax);
+  hname = "compton_G4_gamma_angular_" + nname;
+  // nbins    = numHistBins;
+  xmin = -1.0;
+  xmax = 1.0;
+  histo.Add1D("2", hname, nbins, xmin, xmax);
   //
   // Create histogram for electron energy
-  hname    = "compton_G4_electron_energy_" + nname;
-  //nbins    = numHistBins;
-  xmin     =  0.0;
-  xmax     =  1.0;
-  histo.Add1D("3",hname,nbins,xmin,xmax);
+  hname = "compton_G4_electron_energy_" + nname;
+  // nbins    = numHistBins;
+  xmin = 0.0;
+  xmax = 1.0;
+  histo.Add1D("3", hname, nbins, xmin, xmax);
   //
   // same for electron angular
-  hname    = "compton_G4_electron_angular_" + nname;
-  //nbins    = numHistBins;
-  xmin     = -1.0;
-  xmax     =  1.0;
-  histo.Add1D("4",hname,nbins,xmin,xmax);
+  hname = "compton_G4_electron_angular_" + nname;
+  // nbins    = numHistBins;
+  xmin = -1.0;
+  xmax = 1.0;
+  histo.Add1D("4", hname, nbins, xmin, xmax);
   //
   //
   hname = "compton_G4_" + nname;
   histo.SetFileName(hname);
   histo.Book();
 
-
   // start sampling
-  G4cout<< "   -------------------------------------------------------------------------------- " << G4endl;
-  G4cout<< "   Sampling is running : .........................................................  " << G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout << "   Sampling is running : .........................................................  " << G4endl;
   // Sampling
-
-
 
   //
   // sampling
-  std::vector<G4DynamicParticle*> vdp;
+  std::vector<G4DynamicParticle *> vdp;
   dParticle.SetKineticEnergy(energy);
-  dParticle.SetMomentumDirection(0.,0.,1.);
+  dParticle.SetMomentumDirection(0., 0., 1.);
   G4double cost, e1, costg, e2;
   G4Timer *timer;
 
   // G4KleinNishinaCompton begin
   timer = new G4Timer();
   timer->Start();
-  for (long int iter=0; iter<stat; ++iter) {
+  for (long int iter = 0; iter < stat; ++iter) {
     fParticleChange->InitializeForPostStep(*track);
-    model->SampleSecondaries(&vdp,couple,&dParticle,0.0,energy);
-    if (vdp.size()>0) {
-      e1 = vdp[0]->GetKineticEnergy()/energy;
-      histo.Fill(2,e1,1.0);
+    model->SampleSecondaries(&vdp, couple, &dParticle, 0.0, energy);
+    if (vdp.size() > 0) {
+      e1 = vdp[0]->GetKineticEnergy() / energy;
+      histo.Fill(2, e1, 1.0);
       cost = vdp[0]->GetMomentumDirection().z();
-      histo.Fill(3,cost,1.0);
-      e2 = fParticleChange->GetProposedKineticEnergy()/energy;
-      if (e2>0.0) {
-        histo.Fill(0,e2,1.0);
+      histo.Fill(3, cost, 1.0);
+      e2 = fParticleChange->GetProposedKineticEnergy() / energy;
+      if (e2 > 0.0) {
+        histo.Fill(0, e2, 1.0);
         costg = fParticleChange->GetProposedMomentumDirection().z();
-        histo.Fill(1,costg,1.0);
+        histo.Fill(1, costg, 1.0);
       }
       delete vdp[0];
       vdp.clear();
@@ -402,20 +386,20 @@ int main(int argc, char** argv) {
   double timeInSec = timer->GetRealElapsed();
   delete timer;
 
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   Time of sampling =  " << timeInSec << " [s]" << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout << "   Time of sampling =  " << timeInSec << " [s]" << G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
 
   // -------- Committing the transaction with the tree
-  histo.ScaleH1(0, 1./stat);
-  histo.ScaleH1(1, 1./stat);
-  histo.ScaleH1(2, 1/stat);
-  histo.ScaleH1(3, 1./stat);
+  histo.ScaleH1(0, 1. / stat);
+  histo.ScaleH1(1, 1. / stat);
+  histo.ScaleH1(2, 1 / stat);
+  histo.ScaleH1(3, 1. / stat);
   //
   histo.Save();
-  G4cout<< "   Histogram is written  into file =  " << hname << G4endl;
-  G4cout<< "   -------------------------------------------------------------------------------- "<<G4endl;
-  G4cout<< "   ================================================================================ "<< G4endl << G4endl;
+  G4cout << "   Histogram is written  into file =  " << hname << G4endl;
+  G4cout << "   -------------------------------------------------------------------------------- " << G4endl;
+  G4cout << "   ================================================================================ " << G4endl << G4endl;
 
   delete pFrame;
   delete lFrame;
@@ -425,14 +409,13 @@ int main(int argc, char** argv) {
   G4cout << "###### End of test #####" << G4endl;
 }
 
-
-void help() {
-  G4cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<G4endl;
-  G4cout<<"  Geant4 comptonTest application for testing Geant4 compton(G4KleinNishinaCompton) model."
-           << G4endl;
-  G4cout<<"\n  Usage: comptonTest_G4 [OPTIONS] \n"<<G4endl;
+void help()
+{
+  G4cout << "\n " << std::setw(120) << std::setfill('=') << "" << std::setfill(' ') << G4endl;
+  G4cout << "  Geant4 comptonTest application for testing Geant4 compton(G4KleinNishinaCompton) model." << G4endl;
+  G4cout << "\n  Usage: comptonTest_G4 [OPTIONS] \n" << G4endl;
   for (int i = 0; options[i].name != NULL; i++) {
     printf("\t-%c  --%s\n", options[i].val, options[i].name);
   }
-  G4cout<<"\n "<<std::setw(120)<<std::setfill('=')<<""<<std::setfill(' ')<<G4endl;
+  G4cout << "\n " << std::setw(120) << std::setfill('=') << "" << std::setfill(' ') << G4endl;
 }

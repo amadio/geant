@@ -45,27 +45,25 @@ class PrimaryGeneratorAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class RunAction : public G4UserRunAction
-{
-  public:
-    RunAction(DetectorConstruction*, PrimaryGeneratorAction*);
-   ~RunAction();
+class RunAction : public G4UserRunAction {
+public:
+  RunAction(DetectorConstruction *, PrimaryGeneratorAction *);
+  ~RunAction();
 
-  public:
-    virtual void BeginOfRunAction(const G4Run*);
-    virtual void   EndOfRunAction(const G4Run*);
-    
-    void GetCuts();
-    void CriticalEnergy();
-                                    
-  private:
-    DetectorConstruction*   fDetector;
-    PrimaryGeneratorAction* fPrimary;
-    G4double  fRangeCut[3];
-    G4double fEnergyCut[3];
+public:
+  virtual void BeginOfRunAction(const G4Run *);
+  virtual void EndOfRunAction(const G4Run *);
+
+  void GetCuts();
+  void CriticalEnergy();
+
+private:
+  DetectorConstruction *fDetector;
+  PrimaryGeneratorAction *fPrimary;
+  G4double fRangeCut[3];
+  G4double fEnergyCut[3];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

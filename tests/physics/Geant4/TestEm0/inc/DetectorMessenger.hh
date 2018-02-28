@@ -43,26 +43,21 @@ class G4UIcmdWithAString;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
-{
-  public:
-  
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
+class DetectorMessenger : public G4UImessenger {
+public:
+  DetectorMessenger(DetectorConstruction *);
+  ~DetectorMessenger();
 
-    virtual    
-    void SetNewValue(G4UIcommand*, G4String);
-    
-  private:
-  
-    DetectorConstruction*      fDetector;
-    
-    G4UIdirectory*             fTestemDir;
-    G4UIdirectory*             fDetDir;
-    G4UIcmdWithAString*        fMaterCmd;
+  virtual void SetNewValue(G4UIcommand *, G4String);
+
+private:
+  DetectorConstruction *fDetector;
+
+  G4UIdirectory *fTestemDir;
+  G4UIdirectory *fDetDir;
+  G4UIcmdWithAString *fMaterCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

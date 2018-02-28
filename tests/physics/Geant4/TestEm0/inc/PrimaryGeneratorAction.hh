@@ -43,25 +43,22 @@ class DetectorConstruction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
-{
-  public:
-    PrimaryGeneratorAction(DetectorConstruction*);    
-   ~PrimaryGeneratorAction();
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
+public:
+  PrimaryGeneratorAction(DetectorConstruction *);
+  ~PrimaryGeneratorAction();
 
-  public:
-    void SetDefaultKinematic();
-    virtual
-    void GeneratePrimaries(G4Event*);
-    
-    G4ParticleGun* GetParticleGun() {return fParticleGun;}
+public:
+  void SetDefaultKinematic();
+  virtual void GeneratePrimaries(G4Event *);
 
-  private:
-    G4ParticleGun*             fParticleGun;
-    DetectorConstruction*      fDetector;  
+  G4ParticleGun *GetParticleGun() { return fParticleGun; }
+
+private:
+  G4ParticleGun *fParticleGun;
+  DetectorConstruction *fDetector;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

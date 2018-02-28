@@ -28,13 +28,12 @@
 #include <TLatex.h>
 #include <TRandom.h>
 
-void plot() {
+void plot()
+{
 
-  auto c=new TCanvas();c->SetGrid();
+  auto c = new TCanvas();
+  c->SetGrid();
 
   TGraphErrors graph("test.dat", "%*lg %lg %lg", "");
   graph.DrawClone("E3AL");
- 
 }
-
-

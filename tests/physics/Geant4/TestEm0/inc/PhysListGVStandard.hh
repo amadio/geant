@@ -26,7 +26,7 @@
 /// \file electromagnetic/TestEm3/include/PhysListGVStandard.hh
 /// \brief Definition of the PhysListGVStandard class
 //
-// $Id: PhysListGVStandard.hh 
+// $Id: PhysListGVStandard.hh
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -39,20 +39,19 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysListGVStandard : public G4VPhysicsConstructor
-{
-  public:
-     PhysListGVStandard(const G4String& name = "GVStandard");
-    ~PhysListGVStandard();
+class PhysListGVStandard : public G4VPhysicsConstructor {
+public:
+  PhysListGVStandard(const G4String &name = "GVStandard");
+  ~PhysListGVStandard();
 
-  public:
-    // This method is dummy for physics: particles are constructed in PhysicsList
-    virtual void ConstructParticle() {};
+public:
+  // This method is dummy for physics: particles are constructed in PhysicsList
+  virtual void ConstructParticle(){};
 
-    // This method will be invoked in the Construct() method.
-    // each physics process will be instantiated and
-    // registered to the process manager of each particle type
-    virtual void ConstructProcess();
+  // This method will be invoked in the Construct() method.
+  // each physics process will be instantiated and
+  // registered to the process manager of each particle type
+  virtual void ConstructProcess();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

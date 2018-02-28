@@ -47,30 +47,29 @@ class G4VPhysicsConstructor;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PhysicsList: public G4VModularPhysicsList
-{
-  public:
-    PhysicsList();
-   ~PhysicsList();
+class PhysicsList : public G4VModularPhysicsList {
+public:
+  PhysicsList();
+  ~PhysicsList();
 
-    virtual void ConstructParticle();
-    virtual void ConstructProcess();
-    // only EM
-    void AddPhysicsList(const G4String& name);
+  virtual void ConstructParticle();
+  virtual void ConstructProcess();
+  // only EM
+  void AddPhysicsList(const G4String &name);
 
-//    void AddDecay();
-//    void AddRadioactiveDecay();
-//    void AddStepMax();
+  //    void AddDecay();
+  //    void AddRadioactiveDecay();
+  //    void AddStepMax();
 
-    virtual void SetCuts();
+  virtual void SetCuts();
 
-  private:
-    G4VPhysicsConstructor*  fEmPhysicsList;
-    G4String                fEmName;
+private:
+  G4VPhysicsConstructor *fEmPhysicsList;
+  G4String fEmName;
 
-    //StepMax* fStepMaxProcess;
+  // StepMax* fStepMaxProcess;
 
-    PhysicsListMessenger*   fMessenger;
+  PhysicsListMessenger *fMessenger;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

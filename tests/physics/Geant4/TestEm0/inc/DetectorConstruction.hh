@@ -29,7 +29,7 @@
 //
 // $Id: DetectorConstruction.hh 99373 2016-09-20 07:13:41Z gcosmo $
 //
-// 
+//
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -46,40 +46,32 @@ class DetectorMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorConstruction : public G4VUserDetectorConstruction
-{
-  public:
-  
-    DetectorConstruction();
-    virtual ~DetectorConstruction();
+class DetectorConstruction : public G4VUserDetectorConstruction {
+public:
+  DetectorConstruction();
+  virtual ~DetectorConstruction();
 
-  public:
+public:
+  virtual G4VPhysicalVolume *Construct();
+  void SetMaterial(const G4String &);
 
-     virtual
-     G4VPhysicalVolume* Construct();
-     void SetMaterial (const G4String&);
-     
-     const
-     G4VPhysicalVolume* GetWorld() const     {return fBox;};
-     G4double           GetSize()  const     {return fBoxSize;};
-     const G4Material*  GetMaterial() const  {return fMaterial;};
+  const G4VPhysicalVolume *GetWorld() const { return fBox; };
+  G4double GetSize() const { return fBoxSize; };
+  const G4Material *GetMaterial() const { return fMaterial; };
 
-     void               PrintParameters() const;
-                       
-  private:
-  
-     G4VPhysicalVolume*    fBox;
-     G4double              fBoxSize;
-     G4Material*           fMaterial;
-     
-     DetectorMessenger*    fDetectorMessenger;
+  void PrintParameters() const;
 
-  private:
-    
-     void               DefineMaterials();
+private:
+  G4VPhysicalVolume *fBox;
+  G4double fBoxSize;
+  G4Material *fMaterial;
+
+  DetectorMessenger *fDetectorMessenger;
+
+private:
+  void DefineMaterials();
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

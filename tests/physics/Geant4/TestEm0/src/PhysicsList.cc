@@ -66,11 +66,10 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsList::PhysicsList() : G4VModularPhysicsList(),
- fEmPhysicsList(0), /*fStepMaxProcess(0), */fMessenger(0)
+PhysicsList::PhysicsList() : G4VModularPhysicsList(), fEmPhysicsList(0), /*fStepMaxProcess(0), */ fMessenger(0)
 {
   G4LossTableManager::Instance();
-  SetDefaultCutValue(1*mm);
+  SetDefaultCutValue(1 * mm);
 
   fMessenger = new PhysicsListMessenger(this);
   SetVerboseLevel(1);
@@ -91,23 +90,23 @@ PhysicsList::~PhysicsList()
 
 void PhysicsList::ConstructParticle()
 {
-    G4BosonConstructor  pBosonConstructor;
-    pBosonConstructor.ConstructParticle();
+  G4BosonConstructor pBosonConstructor;
+  pBosonConstructor.ConstructParticle();
 
-    G4LeptonConstructor pLeptonConstructor;
-    pLeptonConstructor.ConstructParticle();
+  G4LeptonConstructor pLeptonConstructor;
+  pLeptonConstructor.ConstructParticle();
 
-    G4MesonConstructor pMesonConstructor;
-    pMesonConstructor.ConstructParticle();
+  G4MesonConstructor pMesonConstructor;
+  pMesonConstructor.ConstructParticle();
 
-    G4BaryonConstructor pBaryonConstructor;
-    pBaryonConstructor.ConstructParticle();
+  G4BaryonConstructor pBaryonConstructor;
+  pBaryonConstructor.ConstructParticle();
 
-    G4IonConstructor pIonConstructor;
-    pIonConstructor.ConstructParticle();
+  G4IonConstructor pIonConstructor;
+  pIonConstructor.ConstructParticle();
 
-    G4ShortLivedConstructor pShortLivedConstructor;
-    pShortLivedConstructor.ConstructParticle();
+  G4ShortLivedConstructor pShortLivedConstructor;
+  pShortLivedConstructor.ConstructParticle();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -123,24 +122,24 @@ void PhysicsList::ConstructProcess()
   // electromagnetic Physics List
   //
   fEmPhysicsList->ConstructProcess();
-/*
-  // add other processes if not GVStandard physics list is used
-  if (fEmPhysicsList->GetName()!="GVStandard") {
-    // decay Process
-    AddDecay();
-    // radioactive decay Process
-    AddRadioactiveDecay();
-    // stepLimitation (as a full process)
-    AddStepMax();
-  }
-*/
+  /*
+    // add other processes if not GVStandard physics list is used
+    if (fEmPhysicsList->GetName()!="GVStandard") {
+      // decay Process
+      AddDecay();
+      // radioactive decay Process
+      AddRadioactiveDecay();
+      // stepLimitation (as a full process)
+      AddStepMax();
+    }
+  */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void PhysicsList::AddPhysicsList(const G4String& name)
+void PhysicsList::AddPhysicsList(const G4String &name)
 {
-  if (verboseLevel>1) {
+  if (verboseLevel > 1) {
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">" << G4endl;
   }
 
@@ -227,8 +226,7 @@ void PhysicsList::AddPhysicsList(const G4String& name)
   } else {
 
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">"
-           << " is not defined"
-           << G4endl;
+           << " is not defined" << G4endl;
   }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -306,14 +304,14 @@ void PhysicsList::AddStepMax()
 
 void PhysicsList::SetCuts()
 {
- // fixe lower limit for cut
- G4ProductionCutsTable::GetProductionCutsTable()->SetEnergyRange(100*eV, 1*GeV);
+  // fixe lower limit for cut
+  G4ProductionCutsTable::GetProductionCutsTable()->SetEnergyRange(100 * eV, 1 * GeV);
 
- // call base class method to set cuts which default value can be
- // modified via /run/setCut/* commands
- G4VUserPhysicsList::SetCuts();
+  // call base class method to set cuts which default value can be
+  // modified via /run/setCut/* commands
+  G4VUserPhysicsList::SetCuts();
 
- DumpCutValuesTable();
+  DumpCutValuesTable();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
