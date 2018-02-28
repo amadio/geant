@@ -18,7 +18,6 @@ namespace geantphysics {
  * @date    September 2016
  */
 
-
 class ElectronIonizationProcess : public EMPhysicsProcess {
 public:
   ElectronIonizationProcess(const std::string &name = "eIoni");

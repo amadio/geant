@@ -15,12 +15,11 @@ namespace geantphysics {
  * @date    April 2017
  */
 
-
 class GammaConversionProcess : public EMPhysicsProcess {
 public:
   GammaConversionProcess(const std::string &name = "Pair");
 };
 
-}        // namespace geantphysics
+} // namespace geantphysics
 
-#endif   // GAMMACONVERSIONPROCESS_H
+#endif // GAMMACONVERSIONPROCESS_H

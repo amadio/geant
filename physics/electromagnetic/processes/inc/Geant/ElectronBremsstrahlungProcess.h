@@ -18,7 +18,6 @@ namespace geantphysics {
  * @date    September 2016
  */
 
-
 class ElectronBremsstrahlungProcess : public EMPhysicsProcess {
 public:
   // CTR

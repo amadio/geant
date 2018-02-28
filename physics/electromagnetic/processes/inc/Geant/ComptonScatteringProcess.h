@@ -15,12 +15,11 @@ namespace geantphysics {
  * @date    April 2017
  */
 
-
 class ComptonScatteringProcess : public EMPhysicsProcess {
 public:
   ComptonScatteringProcess(const std::string &name = "Compton");
 };
 
-}       // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // COMPTONSCATTERINGPROCESS_H
+#endif // COMPTONSCATTERINGPROCESS_H

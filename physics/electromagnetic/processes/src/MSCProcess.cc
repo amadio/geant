@@ -19,8 +19,9 @@
 
 namespace geantphysics {
 
-MSCProcess::MSCProcess(const std::string &name) : EMPhysicsProcess(name), fGeomMinLimit(0.05*geant::units::nm) {
-  fGeomMinLimit2 = fGeomMinLimit*fGeomMinLimit;
+MSCProcess::MSCProcess(const std::string &name) : EMPhysicsProcess(name), fGeomMinLimit(0.05 * geant::units::nm)
+{
+  fGeomMinLimit2 = fGeomMinLimit * fGeomMinLimit;
   // process type is kElectromagnetic in the base EMPhysicsProcess calss so set it to kMSC
   SetType(ProcessType::kMSC);
   // set to be a pure continuous process
@@ -35,15 +36,18 @@ void MSCProcess::Initialize()
 {
   // Call initialization via EMPhysicsProcess, then register MSCdata
   EMPhysicsProcess::Initialize();
-  const geant::TrackToken* mscdata = geant::TrackDataMgr::GetInstance()->GetToken("MSCdata");
+  const geant::TrackToken *mscdata = geant::TrackDataMgr::GetInstance()->GetToken("MSCdata");
   assert(mscdata);
   fMSCdata = *mscdata;
 }
 
-MSCProcess::~MSCProcess() {}
+MSCProcess::~MSCProcess()
+{
+}
 
 // called at the PrePropagationStage(in the Handler)
-double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskData *td) const {
+double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskData *td) const
+{
   // init all lengths to the current minimum physics step length (that is the true length)
   //
   MSCdata &mscdata = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
@@ -55,23 +59,24 @@ double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskDa
   mscdata.fTheTrueStepLenght    = minPhysicsStepLength;
   mscdata.fTheTransportDistance = minPhysicsStepLength;
   mscdata.fTheZPathLenght       = minPhysicsStepLength;
-  mscdata.SetDisplacement(0.,0.,0.);
-  mscdata.SetNewDirectionMsc(0.,0.,1.);
+  mscdata.SetDisplacement(0., 0., 0.);
+  mscdata.SetNewDirectionMsc(0., 0., 1.);
   // select msc model
   double ekin        = gtrack->T();
-  int    regIndx     = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
-  MSCModel *mscModel = static_cast<MSCModel*>(GetModelManager()->SelectModel(ekin,regIndx));
+  int regIndx        = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetRegion()->GetIndex();
+  MSCModel *mscModel = static_cast<MSCModel *>(GetModelManager()->SelectModel(ekin, regIndx));
   // check if:
   // - current true step length is > limit
   // - current kinetic energy is above the minimum
-  if (mscModel && minPhysicsStepLength>GetGeomMinLimit()) {
+  if (mscModel && minPhysicsStepLength > GetGeomMinLimit()) {
     // will check min/max usage limits, possible additional step limit, update the
-    // mscdata.fTheTrueStepLenght and will convert the true->to->geometic length (that will be in mscdata.fTheZPathLenght)
+    // mscdata.fTheTrueStepLenght and will convert the true->to->geometic length (that will be in
+    // mscdata.fTheZPathLenght)
     mscModel->StepLimit(gtrack, td);
     // check if msc limited the step: set that continuous process was the winer
-    if (mscdata.fTheTrueStepLenght<minPhysicsStepLength) {
-      gtrack->SetEindex(-1); // indicate that continuous process was the winer
-      gtrack->SetProcess(GetGlobalIndex());       // set global indx of limiting process
+    if (mscdata.fTheTrueStepLenght < minPhysicsStepLength) {
+      gtrack->SetEindex(-1);                // indicate that continuous process was the winer
+      gtrack->SetProcess(GetGlobalIndex()); // set global indx of limiting process
     }
   }
   // update gtrack->fPstep to be the geometric step length (this is what propagation needs):
@@ -88,46 +93,48 @@ double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskDa
   } else { // write back the original post-step point boundary flag and do nothing
     gtrack->SetBoundary(isOnBoundaryPostStp);
   }
-  return 0.;// not used at all because the step limit is written directly into the Track (just the interface)
+  return 0.; // not used at all because the step limit is written directly into the Track (just the interface)
 }
 
 // called at the PostPropagationStage(in the Handler)
-void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td) const {
+void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td) const
+{
   // get the step length (the geometric one)
   double geometricStepLength = gtrack->GetStep();
   double truePathLength      = geometricStepLength;
-  MSCdata &mscdata = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
+  MSCdata &mscdata           = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
   // select msc model
   double ekin        = gtrack->T();
-  int    regIndx     = const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetRegion()->GetIndex();
-  MSCModel *mscModel = static_cast<MSCModel*>(GetModelManager()->SelectModel(ekin,regIndx));
+  int regIndx        = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetRegion()->GetIndex();
+  MSCModel *mscModel = static_cast<MSCModel *>(GetModelManager()->SelectModel(ekin, regIndx));
   // check if:
   // - current true step length is > limit
   // - current kinetic energy is above the minimum usea
-  if (mscModel && mscdata.fTheTrueStepLenght>GetGeomMinLimit()) {
+  if (mscModel && mscdata.fTheTrueStepLenght > GetGeomMinLimit()) {
     truePathLength = mscdata.fTheTrueStepLenght;
     // mscdata.fTheTrueStepLenght be updated during the conversion
     mscModel->ConvertGeometricToTrueLength(gtrack, td);
     // protection againts wrong true-geometic-true gonversion
-    truePathLength = std::min(truePathLength,mscdata.fTheTrueStepLenght);
+    truePathLength = std::min(truePathLength, mscdata.fTheTrueStepLenght);
     // optimization: scattring is not sampled if the particle is reanged out in this step or short step
-    if (mscdata.fRange>truePathLength && truePathLength>GetGeomMinLimit()) {
+    if (mscdata.fRange > truePathLength && truePathLength > GetGeomMinLimit()) {
       // sample scattering: might have been done during the step limit phase
       // NOTE: in G4 the SampleScattering method won't use the possible shrinked truePathLength!!! but make it correct
       mscdata.fTheTrueStepLenght = truePathLength;
-      bool hasNewDir = mscModel->SampleScattering(gtrack, td);
+      bool hasNewDir             = mscModel->SampleScattering(gtrack, td);
       // compute displacement vector length
-      double dl =   mscdata.fTheDisplacementVectorX*mscdata.fTheDisplacementVectorX
-                  + mscdata.fTheDisplacementVectorY*mscdata.fTheDisplacementVectorY
-                  + mscdata.fTheDisplacementVectorZ*mscdata.fTheDisplacementVectorZ;
-      if (dl>fGeomMinLimit2 && !gtrack->Boundary()) {
+      double dl = mscdata.fTheDisplacementVectorX * mscdata.fTheDisplacementVectorX +
+                  mscdata.fTheDisplacementVectorY * mscdata.fTheDisplacementVectorY +
+                  mscdata.fTheDisplacementVectorZ * mscdata.fTheDisplacementVectorZ;
+      if (dl > fGeomMinLimit2 && !gtrack->Boundary()) {
         // displace the post-step point
-        dl = std::sqrt(dl);
-        double dir[3]={mscdata.fTheDisplacementVectorX/dl, mscdata.fTheDisplacementVectorY/dl, mscdata.fTheDisplacementVectorZ/dl};
-        ScalarNavInterface::DisplaceTrack(*gtrack,dir,dl,GetGeomMinLimit());
+        dl            = std::sqrt(dl);
+        double dir[3] = {mscdata.fTheDisplacementVectorX / dl, mscdata.fTheDisplacementVectorY / dl,
+                         mscdata.fTheDisplacementVectorZ / dl};
+        ScalarNavInterface::DisplaceTrack(*gtrack, dir, dl, GetGeomMinLimit());
       }
       // apply msc agular deflection
-//      if (!gtrack->Boundary() && hasNewDir) {
+      //      if (!gtrack->Boundary() && hasNewDir) {
       if (hasNewDir)
         gtrack->SetDirection(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ);
     }
@@ -136,6 +143,4 @@ void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td) const 
   gtrack->SetStep(truePathLength);
 }
 
-
-
-}  // namespace geantphysics
+} // namespace geantphysics

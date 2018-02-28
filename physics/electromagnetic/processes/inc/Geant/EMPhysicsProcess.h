@@ -26,7 +26,8 @@ class LightTrack;
  * EMModelManager member. EMModels can be added and accessed through this EMModelManager member of the EMPhysicsProcess.
  * The EMModelManager object owns all the models that have been added to the EMPhysicsProcess.
  *
- * TODO: implement method for AlongStepLimit, AlongStepDoIt, (post step limit is handled by the PhysicsManagerPerParticle)
+ * TODO: implement method for AlongStepLimit, AlongStepDoIt, (post step limit is handled by the
+ * PhysicsManagerPerParticle)
  * PostStepDoIt.
  */
 
@@ -37,12 +38,10 @@ public:
    */
   EMPhysicsProcess(const std::string &name);
 
-
   /**
    * @brief DTR.
    */
   virtual ~EMPhysicsProcess();
-
 
   /**
    * @brief  Virtual method from the PhysicsProcess base class to handle initialization of this EMPhysicsProcess.
@@ -63,7 +62,7 @@ public:
    * EMPhysicsProcess is assigned to. This information will be used later to build all energy loss related tables like
    * dEdx or range table by the ELossTable objects that are created and handled by the ELossTableManager singletone.
    */
-  virtual void   Initialize();
+  virtual void Initialize();
 
   /**
    * @brief Common method for EMPhysicsProcess to compute stopping power for a given MaterialCuts, Partcile, kinetic
@@ -89,8 +88,7 @@ public:
    *            which the given MaterialCuts beongs to. The restricted stopping power is provided in internal [energy/
    *            length] units.
    */
-  double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle *particle, bool istotal=false);
-
+  double ComputeDEDX(const MaterialCuts *matcut, double kinenergy, const Particle *particle, bool istotal = false);
 
   /**
    * @brief Common implementation of the base PhysicsProcess::ComputeMacroscopicXSection() method for each
@@ -113,10 +111,11 @@ public:
    *            which the given MaterialCuts beongs to. The macroscopic cross section is provided in internal [1/length]
    *            units.
    */
-  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle, double mass) const;
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle,
+                                            double mass) const;
 
   // used to determine the lowest energy of the lambda table when lambda table is requested to build by a given process
-  virtual double GetMinimumLambdaTableKineticEnergy(const MaterialCuts *matcut, const Particle*) const;
+  virtual double GetMinimumLambdaTableKineticEnergy(const MaterialCuts *matcut, const Particle *) const;
 
   /**
    * @brief Common implementation of the continuous step limit method of the base PhysicsProcess class for ordinary
@@ -132,7 +131,7 @@ public:
    *            sure that only one kEnergyLoss process stays in the continuous process vector because we use the
    *            cumulative energy loss related tables.
    */
-   virtual double AlongStepLimitationLength(geant::Track* /*gtrack*/, geant::TaskData* /*td*/) const;
+  virtual double AlongStepLimitationLength(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) const;
 
   /**
    * @brief Common implementation of the AlongStepDoIt method of the base PhysicsProcess class for ordinary
@@ -146,15 +145,13 @@ public:
    * @param[in/out]  sectracks List of secondary tracks created in this DoIt method.
    * @return    Number of secondary tracks created and stored in the sectracks vector.
    */
-  virtual  int AlongStepDoIt(LightTrack &track, geant::TaskData *td);
+  virtual int AlongStepDoIt(LightTrack &track, geant::TaskData *td);
 
   // for msc: no secondaries and acts directly on Track
-  virtual  void AlongStepDoIt(geant::Track* /*gtrack*/, geant::TaskData* /*td*/) const {}
-
+  virtual void AlongStepDoIt(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) const {}
 
   // Will be called only if disceret interaction was selected
-  virtual  int PostStepDoIt(LightTrack &track, geant::TaskData *td);
-
+  virtual int PostStepDoIt(LightTrack &track, geant::TaskData *td);
 
   /**
    * @brief Method to add EMModel to the EMPhysicsProcess.
@@ -167,7 +164,6 @@ public:
    */
   int AddModel(EMModel *model);
 
-
   /**
    * @brief Method to get a pointer to the EMModelManager of this EMPhysicsProcess.
    *
@@ -176,26 +172,24 @@ public:
    *
    * @return    Pointer to the EMModelManager of this EMPhysicsProcess.
    */
-  EMModelManager* GetModelManager() const { return fModelManager; }
-
+  EMModelManager *GetModelManager() const { return fModelManager; }
 
   /**
    * @brief Method to print out some info. Must be change later to a DumpProcess method. */
-  friend std::ostream& operator<<(std::ostream& flux,  EMPhysicsProcess* proc);
+  friend std::ostream &operator<<(std::ostream &flux, EMPhysicsProcess *proc);
 
-//
-// data members
-//
+  //
+  // data members
+  //
 private:
-  EMModelManager    *fModelManager; /** each EMPhysicsProcess has an EMModelManager member to handle the EMModel-s of
-                                        the process. */
+  EMModelManager *fModelManager; /** each EMPhysicsProcess has an EMModelManager member to handle the EMModel-s of
+                                     the process. */
   // continuous step limit related parameters; set only for kEnergyLoss processes at initialization
   double fFinalRange;
   double fDRoverRange;
 
   double fLowestKineticEnergy;   // this is a kind of tracking cut for charged partciles.
   double fLinearEnergyLossLimit; // fraction of initial kinetic energy allowed to be lost under linear approximation
-
 };
 
 } // namespace geantphysics

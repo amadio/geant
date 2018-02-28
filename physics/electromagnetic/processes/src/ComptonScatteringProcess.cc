@@ -5,7 +5,8 @@
 
 namespace geantphysics {
 
-ComptonScatteringProcess::ComptonScatteringProcess(const std::string &name) : EMPhysicsProcess(name) {
+ComptonScatteringProcess::ComptonScatteringProcess(const std::string &name) : EMPhysicsProcess(name)
+{
   // process type is kElectromagnetic in the base EMPhysicsProcess calss
   // set to be a discrete process
   SetIsDiscrete(true);
@@ -15,4 +16,4 @@ ComptonScatteringProcess::ComptonScatteringProcess(const std::string &name) : EM
   RequestLambdaTables();
 }
 
-}  // namespace geantphysics
+} // namespace geantphysics

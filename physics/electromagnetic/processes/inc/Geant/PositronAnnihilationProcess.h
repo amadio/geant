@@ -15,18 +15,17 @@ namespace geantphysics {
  * @date    January 2018
  */
 
-
 class PositronAnnihilationProcess : public EMPhysicsProcess {
 public:
   PositronAnnihilationProcess(const std::string &name = "Annihilation");
 
-  virtual void   Initialize();
+  virtual void Initialize();
 
   virtual double AverageLifetime(const LightTrack &track) const;
 
-  virtual int    AtRestDoIt(LightTrack &track, geant::TaskData *td);
+  virtual int AtRestDoIt(LightTrack &track, geant::TaskData *td);
 };
 
-}        // namespace geantphysics
+} // namespace geantphysics
 
-#endif   // POSITRONANNIHILATIONPROCESS_H
+#endif // POSITRONANNIHILATIONPROCESS_H

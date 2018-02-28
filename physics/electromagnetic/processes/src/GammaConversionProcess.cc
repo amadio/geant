@@ -5,7 +5,8 @@
 
 namespace geantphysics {
 
-GammaConversionProcess::GammaConversionProcess(const std::string &name) : EMPhysicsProcess(name) {
+GammaConversionProcess::GammaConversionProcess(const std::string &name) : EMPhysicsProcess(name)
+{
   // process type is kElectromagnetic in the base EMPhysicsProcess calss
   // set to be a discrete process
   SetIsDiscrete(true);
@@ -17,4 +18,4 @@ GammaConversionProcess::GammaConversionProcess(const std::string &name) : EMPhys
   SetSpecialLambdaTableBinNum(220);
 }
 
-}  // namespace geantphysics
+} // namespace geantphysics

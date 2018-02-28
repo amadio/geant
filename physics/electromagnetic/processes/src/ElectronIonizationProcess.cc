@@ -3,7 +3,8 @@
 
 namespace geantphysics {
 
-ElectronIonizationProcess::ElectronIonizationProcess(const std::string &name) : EMPhysicsProcess(name) {
+ElectronIonizationProcess::ElectronIonizationProcess(const std::string &name) : EMPhysicsProcess(name)
+{
   // set process type to be an energy loss process (note: loss tables will be built automatically)
   SetType(ProcessType::kEnergyLoss);
   // set to be a continuous-discrete process
