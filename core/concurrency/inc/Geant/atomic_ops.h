@@ -45,8 +45,8 @@
 // http://gcc.gnu.org/onlinedocs/gcc-4.1.0/gcc/Atomic-Builtins.html
 
 // Test for GCC >= 4.1.0
-#if (__GNUC__ < 4) || ((__GNUC__ == 4) && ((__GNUC_MINOR__ < 1) ||                                 \
-                                           ((__GNUC_MINOR__ == 1) && (__GNUC_PATCHLEVEL__ < 0))))
+#if (__GNUC__ < 4) || \
+    ((__GNUC__ == 4) && ((__GNUC_MINOR__ < 1) || ((__GNUC_MINOR__ == 1) && (__GNUC_PATCHLEVEL__ < 0))))
 
 #error Atomic built-in functions are only available in GCC in versions >= 4.1.0
 #endif // end of check for GCC 4.1.0

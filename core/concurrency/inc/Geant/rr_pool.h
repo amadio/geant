@@ -1,12 +1,12 @@
 //===--- rr_pool.h - Geant-V ------------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file rr_pool.h
- * @brief Implementation of generic atomic round robin pool in Geant-V prototype 
- * @author Andrei Gheata 
+ * @brief Implementation of generic atomic round robin pool in Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -33,18 +33,19 @@
  * method.
 */
 
-template <class T> class rr_pool {
+template <class T>
+class rr_pool {
 public:
   typedef std::vector<T *> rrlist_t;
-  int fNslots;   /** Number of slots */
-  int fCapacity; /** Number of object to be preallocated per slot */
-  T *fBlueprint; /** Blueprint object to be copied for allocations */
+  int fNslots;                            /** Number of slots */
+  int fCapacity;                          /** Number of object to be preallocated per slot */
+  T *fBlueprint;                          /** Blueprint object to be copied for allocations */
   std::atomic_int fRRcount;               /** Round robin counter */
   std::atomic_int fNcalls;                /** Number of calls to borrow/release */
   std::atomic_int fInew;                  /** Number of allocations done (overhead) */
   std::atomic_int fLockHit;               /** Number of lock hits (overhead) */
   std::vector<std::atomic_flag *> fLocks; /** Memory barriers per slot */
-  std::vector<rrlist_t *> fLists; /** List of lists of objects per slot */
+  std::vector<rrlist_t *> fLists;         /** List of lists of objects per slot */
 
 private:
   /** @brief Round robin pool copy constructor */
@@ -54,25 +55,24 @@ private:
   rr_pool &operator=(const rr_pool &);
 
 public:
-
   /**
    * @brief Round robin pool parametrized constructor
-   * 
+   *
    * @param nslots Number of slots
    * @param capacity Number of object to be preallocated per slot
-   * @param refobj Referenced object 
+   * @param refobj Referenced object
    */
   rr_pool(int nslots, int capacity, const T *refobj);
 
   /** @brief Round robin pool destructor */
   ~rr_pool();
-  
+
   /** @brief Function that borrows an object from the pool */
   T *borrow();
 
   /**
    * @brief Release function
-   * 
+   *
    * @param obj Object to be released
    */
   void release(T *obj);
@@ -84,14 +84,15 @@ public:
   void statistics();
 };
 
-/** 
+/**
  * @todo  Add details
  * @bug Must expliticit initialize the atomic_flag to avoid valgring errors.
  */
 template <class T>
 rr_pool<T>::rr_pool(int nslots, int capacity, const T *refobj)
-    : fNslots(nslots), fCapacity(capacity), fBlueprint(0), fRRcount(0), fNcalls(0), fInew(0),
-      fLockHit(0), fLocks(), fLists() {
+    : fNslots(nslots), fCapacity(capacity), fBlueprint(0), fRRcount(0), fNcalls(0), fInew(0), fLockHit(0), fLocks(),
+      fLists()
+{
   rrlist_t *list;
   //   fBlueprint = new T(*refobj); // uses CC
   fBlueprint = T::MakeCopy(*refobj);
@@ -110,7 +111,9 @@ rr_pool<T>::rr_pool(int nslots, int capacity, const T *refobj)
 }
 
 /** @todo  Add details  */
-template <class T> rr_pool<T>::~rr_pool() {
+template <class T>
+rr_pool<T>::~rr_pool()
+{
   rrlist_t *list;
   for (auto it = fLists.begin(); it != fLists.end(); ++it) {
     list = *it;
@@ -128,7 +131,9 @@ template <class T> rr_pool<T>::~rr_pool() {
 /**
  * @details If none available create one.
  */
-template <class T> T *rr_pool<T>::borrow() {
+template <class T>
+T *rr_pool<T>::borrow()
+{
   int islot = next_slot();
   fNcalls++;
   while (fLocks[islot]->test_and_set(std::memory_order_acquire)) {
@@ -136,7 +141,7 @@ template <class T> T *rr_pool<T>::borrow() {
     islot = next_slot();
   }
   rrlist_t *list = fLists[islot];
-  T *retobj = 0;
+  T *retobj      = 0;
   if (list->empty()) {
     fLocks[islot]->clear(std::memory_order_release);
     fInew++;
@@ -150,7 +155,9 @@ template <class T> T *rr_pool<T>::borrow() {
 }
 
 /** @details Function that returned an object to the pool.*/
-template <class T> void rr_pool<T>::release(T *obj) {
+template <class T>
+void rr_pool<T>::release(T *obj)
+{
   int islot = next_slot();
   fNcalls++;
   while (fLocks[islot]->test_and_set(std::memory_order_acquire)) {
@@ -163,18 +170,22 @@ template <class T> void rr_pool<T>::release(T *obj) {
 }
 
 /**
- * @todo  Add details 
+ * @todo  Add details
  * @return Next slot in round robin.
  */
-template <class T> int rr_pool<T>::next_slot() {
+template <class T>
+int rr_pool<T>::next_slot()
+{
   int nslots = fNslots;
-  int slot = fRRcount++;
+  int slot   = fRRcount++;
   fRRcount.compare_exchange_strong(nslots, 0);
   return (slot % fNslots);
 }
 
 /** @todo Add details */
-template <class T> void rr_pool<T>::statistics() {
+template <class T>
+void rr_pool<T>::statistics()
+{
   std::cout << "=== # RR slots        : " << fNslots << std::endl;
   std::cout << "=== # pre-allocs/slot : " << fCapacity << std::endl;
   std::cout << "=== # pool calls      : " << fNcalls.load() << std::endl;

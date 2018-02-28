@@ -9,7 +9,8 @@
 #include "TStopwatch.h"
 
 //______________________________________________________________________________
-TimeCounter::TimeCounter(bool measure_time) : nthreads(0), timer(0), stamp(0) {
+TimeCounter::TimeCounter(bool measure_time) : nthreads(0), timer(0), stamp(0)
+{
   // ctor
   if (measure_time) {
     timer = new TStopwatch();
@@ -21,13 +22,15 @@ TimeCounter::TimeCounter(bool measure_time) : nthreads(0), timer(0), stamp(0) {
 }
 
 //______________________________________________________________________________
-TimeCounter::~TimeCounter() {
+TimeCounter::~TimeCounter()
+{
   // destructor.
   delete timer;
 }
 
 //______________________________________________________________________________
-TimeCounter &TimeCounter::operator++() {
+TimeCounter &TimeCounter::operator++()
+{
   // Increment
   TThread::Lock();
   if (timer) {
@@ -44,7 +47,8 @@ TimeCounter &TimeCounter::operator++() {
 }
 
 //______________________________________________________________________________
-TimeCounter &TimeCounter::operator--() {
+TimeCounter &TimeCounter::operator--()
+{
   // Decrement
   TThread::Lock();
   if (timer) {
@@ -57,8 +61,7 @@ TimeCounter &TimeCounter::operator--() {
     }
     timer->Continue();
   } else {
-    if (nthreads > 0)
-      nthreads--;
+    if (nthreads > 0) nthreads--;
   }
   //      Printf("%d: %f", nthreads, stamp);
   TThread::UnLock();
@@ -67,17 +70,16 @@ TimeCounter &TimeCounter::operator--() {
 
 //______________________________________________________________________________
 
-void TimeCounter::Print() {
+void TimeCounter::Print()
+{
   // Draw timing statistics.
-  if (!timer)
-    return;
+  if (!timer) return;
   timer->Stop();
   int npoints = 0;
-  double sum = 0.;
+  double sum  = 0.;
   int i;
   for (i = 0; i < 100; i++) {
-    if (realtime[i] < 0.00001)
-      continue;
+    if (realtime[i] < 0.00001) continue;
     npoints++;
     sum += realtime[i];
   }
@@ -109,20 +111,22 @@ void TimeCounter::Print() {
 }
 //______________________________________________________________________________
 concurrent_queue::concurrent_queue(bool counter)
-    : the_queue(), the_mutex(), the_condition_variable(&the_mutex), the_counter(0), nobjects(0),
-      npriority(0) {
+    : the_queue(), the_mutex(), the_condition_variable(&the_mutex), the_counter(0), nobjects(0), npriority(0)
+{
   // Concurrent queue constructor.
   the_counter = new TimeCounter(counter);
 }
 
 //______________________________________________________________________________
-concurrent_queue::~concurrent_queue() {
+concurrent_queue::~concurrent_queue()
+{
   // destructor
   delete the_counter;
 }
 
 //______________________________________________________________________________
-void concurrent_queue::push(TObject *data, bool priority) {
+void concurrent_queue::push(TObject *data, bool priority)
+{
   // Push front and pop back policy for normal baskets, push back for priority
   // baskets.
   the_mutex.Lock();
@@ -138,7 +142,8 @@ void concurrent_queue::push(TObject *data, bool priority) {
 }
 
 //______________________________________________________________________________
-bool concurrent_queue::empty() const {
+bool concurrent_queue::empty() const
+{
   the_mutex.Lock();
   bool is_empty = the_queue.empty();
   the_mutex.UnLock();
@@ -146,7 +151,8 @@ bool concurrent_queue::empty() const {
 }
 
 //______________________________________________________________________________
-int concurrent_queue::size() const {
+int concurrent_queue::size() const
+{
   the_mutex.Lock();
   int the_size = the_queue.size();
   the_mutex.UnLock();
@@ -154,7 +160,8 @@ int concurrent_queue::size() const {
 }
 
 //______________________________________________________________________________
-TObject *concurrent_queue::wait_and_pop() {
+TObject *concurrent_queue::wait_and_pop()
+{
   //   --(*the_counter);
   the_mutex.Lock();
   while (the_queue.empty()) {
@@ -165,8 +172,7 @@ TObject *concurrent_queue::wait_and_pop() {
   TObject *popped_value = the_queue.back();
   the_queue.pop_back();
   nobjects--;
-  if (npriority)
-    npriority--;
+  if (npriority) npriority--;
   //   Printf("Popped basket %s", popped_value->GetName());
   //   ++(*the_counter);
   the_mutex.UnLock();
@@ -174,7 +180,8 @@ TObject *concurrent_queue::wait_and_pop() {
 }
 
 //______________________________________________________________________________
-TObject *concurrent_queue::wait_and_pop_max(unsigned int nmax, unsigned int &n, TObject **array) {
+TObject *concurrent_queue::wait_and_pop_max(unsigned int nmax, unsigned int &n, TObject **array)
+{
   // Pop many objects in one go, maximum nmax. Will return the number of requested
   // objects, or the number available. The wait time for the client is minimal (at
   // least one object in the queue).
@@ -182,23 +189,22 @@ TObject *concurrent_queue::wait_and_pop_max(unsigned int nmax, unsigned int &n, 
   while (the_queue.empty()) {
     the_condition_variable.Wait();
   }
-  n = the_queue.size();
-  if (n > nmax)
-    n = nmax;
+  n                    = the_queue.size();
+  if (n > nmax) n      = nmax;
   unsigned int npopped = 0;
   while (npopped < n) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();
     nobjects--;
-    if (npriority)
-      npriority--;
+    if (npriority) npriority--;
   }
   the_mutex.UnLock();
   return array[0];
 }
 
 //______________________________________________________________________________
-void concurrent_queue::pop_many(unsigned int n, TObject **array) {
+void concurrent_queue::pop_many(unsigned int n, TObject **array)
+{
   // Pop many objects in one go. Will keep the asking thread waiting until there
   // are enough objects in the queue.
   the_mutex.Lock();
@@ -210,15 +216,14 @@ void concurrent_queue::pop_many(unsigned int n, TObject **array) {
     array[npopped++] = the_queue.back();
     the_queue.pop_back();
     nobjects--;
-    if (npriority)
-      npriority--;
+    if (npriority) npriority--;
   }
   the_mutex.UnLock();
 }
 
 //______________________________________________________________________________
-void concurrent_queue::Print() {
-  if (the_counter)
-    the_counter->Print();
+void concurrent_queue::Print()
+{
+  if (the_counter) the_counter->Print();
 }
 #endif

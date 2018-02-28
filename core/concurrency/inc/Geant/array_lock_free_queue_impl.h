@@ -44,8 +44,7 @@
 
 template <typename ELEM_T, uint32_t Q_SIZE>
 ArrayLockFreeQueue<ELEM_T, Q_SIZE>::ArrayLockFreeQueue()
-    : m_writeIndex(0), m_readIndex(0),
-      m_maximumReadIndex(0) // only for MultipleProducerThread queues
+    : m_writeIndex(0), m_readIndex(0), m_maximumReadIndex(0) // only for MultipleProducerThread queues
 {
 #ifdef ARRAY_LOCK_FREE_Q_KEEP_REAL_SIZE
   m_count = 0;
@@ -53,21 +52,26 @@ ArrayLockFreeQueue<ELEM_T, Q_SIZE>::ArrayLockFreeQueue()
 }
 
 template <typename ELEM_T, uint32_t Q_SIZE>
-ArrayLockFreeQueue<ELEM_T, Q_SIZE>::~ArrayLockFreeQueue() {}
+ArrayLockFreeQueue<ELEM_T, Q_SIZE>::~ArrayLockFreeQueue()
+{
+}
 
 template <typename ELEM_T, uint32_t Q_SIZE>
-inline uint32_t ArrayLockFreeQueue<ELEM_T, Q_SIZE>::countToIndex(uint32_t a_count) {
+inline uint32_t ArrayLockFreeQueue<ELEM_T, Q_SIZE>::countToIndex(uint32_t a_count)
+{
   // if Q_SIZE is a power of 2 this statement could be also written as
   // return (a_count & (Q_SIZE - 1));
   return (a_count % Q_SIZE);
 }
 
-template <typename ELEM_T, uint32_t Q_SIZE> uint32_t ArrayLockFreeQueue<ELEM_T, Q_SIZE>::size() {
+template <typename ELEM_T, uint32_t Q_SIZE>
+uint32_t ArrayLockFreeQueue<ELEM_T, Q_SIZE>::size()
+{
 #ifdef ARRAY_LOCK_FREE_Q_KEEP_REAL_SIZE
   return m_count;
 #else
   uint32_t currentWriteIndex = m_writeIndex;
-  uint32_t currentReadIndex = m_readIndex;
+  uint32_t currentReadIndex  = m_readIndex;
 
   // let's think of a scenario where this function returns bogus data
   // 1. when the statement 'currentWriteIndex = m_writeIndex' is run
@@ -90,13 +94,14 @@ template <typename ELEM_T, uint32_t Q_SIZE> uint32_t ArrayLockFreeQueue<ELEM_T, 
 }
 
 template <typename ELEM_T, uint32_t Q_SIZE>
-bool ArrayLockFreeQueue<ELEM_T, Q_SIZE>::push(const ELEM_T &a_data) {
+bool ArrayLockFreeQueue<ELEM_T, Q_SIZE>::push(const ELEM_T &a_data)
+{
   uint32_t currentReadIndex;
   uint32_t currentWriteIndex;
 
   do {
     currentWriteIndex = m_writeIndex;
-    currentReadIndex = m_readIndex;
+    currentReadIndex  = m_readIndex;
     if (countToIndex(currentWriteIndex + 1) == countToIndex(currentReadIndex)) {
       // the queue is full
       return false;
@@ -128,14 +133,15 @@ bool ArrayLockFreeQueue<ELEM_T, Q_SIZE>::push(const ELEM_T &a_data) {
 }
 
 template <typename ELEM_T, uint32_t Q_SIZE>
-bool ArrayLockFreeQueue<ELEM_T, Q_SIZE>::pop(ELEM_T &a_data) {
+bool ArrayLockFreeQueue<ELEM_T, Q_SIZE>::pop(ELEM_T &a_data)
+{
   uint32_t currentMaximumReadIndex;
   uint32_t currentReadIndex;
 
   do {
     // to ensure thread-safety when there is more than 1 producer thread
     // a second index is defined (m_maximumReadIndex)
-    currentReadIndex = m_readIndex;
+    currentReadIndex        = m_readIndex;
     currentMaximumReadIndex = m_maximumReadIndex;
 
     if (countToIndex(currentReadIndex) == countToIndex(currentMaximumReadIndex)) {

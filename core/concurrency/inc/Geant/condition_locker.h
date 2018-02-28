@@ -1,12 +1,12 @@
 //===--- condition_locker.h - Geant-V ---------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file condition_locker.h
  * @brief Implementation of condition locker
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -21,8 +21,8 @@
  * @brief A simple semaphore based on condition.
  * @details The controlled threads have to call the Wait() function and the controller
  *  can wake up one waiting thread at a time calling StartOne() method, or all by calling StartAll().
- * 
- * @param m  Mutex 
+ *
+ * @param m  Mutex
  * @param cv  Condition variable
  * @param start  Starting atomic variable
  */
@@ -34,11 +34,12 @@ struct condition_locker {
   condition_locker() : m(), cv(), start(false) {}
 
   /**
-   * @brief  Wait function for controlled threads 
+   * @brief  Wait function for controlled threads
    * @details Simple function based on idea that controlled threads have
    * to call the Wait() function bofore starting waiting thread(s)
    */
-  void Wait() {
+  void Wait()
+  {
     std::unique_lock<std::mutex> lk(m);
     while (!start.load())
       cv.wait(lk);
@@ -51,7 +52,8 @@ struct condition_locker {
    * @brief Function of starting one waiting thread
    * @details Controller starts one thread after calling by controlled thread function Wait()
    */
-  void StartOne() {
+  void StartOne()
+  {
     std::unique_lock<std::mutex> lk(m);
     start.store(true);
     cv.notify_one();
@@ -61,7 +63,8 @@ struct condition_locker {
    * @brief Function of starting of all waiting threads
    * @details Controller starts all threads after calling by controlled thread function Wait()
    */
-  void StartAll() {
+  void StartAll()
+  {
     std::unique_lock<std::mutex> lk(m);
     start.store(true);
     cv.notify_all();

@@ -1,12 +1,12 @@
 //===--- sync_objects.h - Geant-V -------------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file sync_objects.h
- * @brief Definition of synchronisation of objects in Geant-V prototype 
- * @author Andrei Gheata 
+ * @brief Definition of synchronisation of objects in Geant-V prototype
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -29,10 +29,10 @@ struct TimeCounter {
   TStopwatch *timer;
   double stamp;
   double realtime[100];
-  
+
   /**
    * @brief TimeCounter parameterized constructor
-   * 
+   *
    * @param measure_time Measurement of time
    */
   TimeCounter(bool measure_time);
@@ -42,12 +42,12 @@ struct TimeCounter {
    * @todo Not implemented
    */
   TimeCounter(const TimeCounter &);
-  
+
   /** @brief TimeCounter destructor */
   ~TimeCounter();
 
   /** @brief Operator = */
-  TimeCounter &operator=(const TimeCounter &); 
+  TimeCounter &operator=(const TimeCounter &);
 
   /** @brief Operator ++ */
   TimeCounter &operator++();
@@ -68,35 +68,34 @@ private:
   TimeCounter *the_counter;
   int nobjects;
   int npriority;
-  
+
   /**
    * @brief Copy constructor for concurrent queue
    * @todo  Still not implemented
    */
-  concurrent_queue(const concurrent_queue &); 
+  concurrent_queue(const concurrent_queue &);
   /**
    * @brief Operator =
    * @todo  Still not implemented
    */
   concurrent_queue &operator=(const concurrent_queue &); // not implemented
 public:
-  
   /**
    * @brief Concurrent queue constructor
-   * 
+   *
    * @param counter Counter for queue (by default false)
    */
   concurrent_queue(bool counter = false);
-  
+
   /** @brief Concurrent queue destructor */
   ~concurrent_queue();
-  
+
   /** @brief Function that assigned workers */
   int assigned_workers() const { return the_counter->nthreads; }
 
   /**
    * @brief Push function
-   * 
+   *
    * @param data Data to be pushed
    * @param priority Priority of events (by default false)
    */
@@ -119,7 +118,7 @@ public:
 
   /**
    * @brief Function for maximization of wait and pop
-   * 
+   *
    * @param nmax Maximum number
    * @param n Number of elements
    * @param array Array function
@@ -128,7 +127,7 @@ public:
 
   /**
    * @brief Function for pop of many objects
-   * 
+   *
    * @param n Number of objects
    * @param array Array of objects
    */
@@ -146,28 +145,27 @@ public:
 #endif
 
 /** @brief Reference counted atomic pointer */
-template <class T> class ref_ptr {
+template <class T>
+class ref_ptr {
 public:
-
-  T *fObjPtr; /** Object pointer */
+  T *fObjPtr;                /** Object pointer */
   std::atomic_flag fAcqLock; /** Memory barrier to lock acquiring */
   std::atomic_flag fXcgLock; /** Memory barrier to lock exchanging */
   std::atomic_int fRef;      /** Reference counter */
 public:
-
   /** @brief Reference counted atomic pointer constructor */
   ref_ptr() : fObjPtr(0), fAcqLock(false), fXcgLock(false), fRef(0) {}
 
   /**
    * @brief Reference counted atomic pointer parametrized constructor
-   * 
+   *
    * @param objptr Object pointer
    */
   ref_ptr(T *objptr) : fObjPtr(objptr), fAcqLock(false), fXcgLock(false), fRef(0) {}
-  
+
   /**
    * @brief Set reference counted atomic pointer function
-   * 
+   *
    * @param obj Object to which reference counted atomic pointer should be set
    */
   void set(T *obj) { fObjPtr = obj; }
@@ -189,7 +187,7 @@ public:
 
   /**
    * @brief Replace and wait function
-   * 
+   *
    * @param expected Expected pointer
    * @param newptr New pointer
    */
@@ -200,7 +198,9 @@ public:
  * @brief Acquire function
  * @details Acquire the pointer while issuing a memory barrier for other possible clients
  */
-template <class T> inline T *ref_ptr<T>::acquire() {
+template <class T>
+inline T *ref_ptr<T>::acquire()
+{
   while (fAcqLock.test_and_set()) {
   };                // barrier here for other threads
                     //__mutexed code start
@@ -215,7 +215,9 @@ template <class T> inline T *ref_ptr<T>::acquire() {
  * @brief Release function
  * @details Release the copy of the pointer
  */
-template <class T> inline void ref_ptr<T>::release() {
+template <class T>
+inline void ref_ptr<T>::release()
+{
   fRef--;
   assert(fRef.load() >= 0);
 }
@@ -225,7 +227,9 @@ template <class T> inline void ref_ptr<T>::release() {
  * @details Release the copy of the pointer, but wait for everybody else to do it.
  * This acts as a spinlock.
  */
-template <class T> inline void ref_ptr<T>::release_and_wait() {
+template <class T>
+inline void ref_ptr<T>::release_and_wait()
+{
   fRef--;
   while (fRef.load() > 0) {
   };
@@ -234,15 +238,17 @@ template <class T> inline void ref_ptr<T>::release_and_wait() {
 
 /**
  * @brief Replace and wait function
- * @details Atomically replace the pointer only if the old equals expected 
- * and only when it is not used anymore. Returns true if the replacement 
+ * @details Atomically replace the pointer only if the old equals expected
+ * and only when it is not used anymore. Returns true if the replacement
  * succeeded, in which case acquiring is blocked. The lock must be released
  * by the calling thread using clear() afterwards
- * 
+ *
  * @param expected Expected pointer
  * @param newptr New pointer
  */
-template <class T> inline bool ref_ptr<T>::replace_and_wait(T *expected, T *newptr) {
+template <class T>
+inline bool ref_ptr<T>::replace_and_wait(T *expected, T *newptr)
+{
   if (fXcgLock.test_and_set()) {
     // someone already passed for the same object
     release();
@@ -274,7 +280,7 @@ template <class T> inline bool ref_ptr<T>::replace_and_wait(T *expected, T *newp
   return true;
 }
 
-/** 
+/**
  * @brief Class basepipe
  * @details It has a dequeue<T> plus a function Process(T*) provided by the user
  */
@@ -285,7 +291,6 @@ protected:
   int priority;  /** Assigned pipe priority */
 
 public:
-
   /** @brief Basepipe constructor */
   basepipe() : nobjects(0), npriority(0), priority(0) {}
 
@@ -293,7 +298,7 @@ public:
    * @brief basepipe destructor
    */
   virtual ~basepipe() {}
-  
+
   /**
    * @brief Function that empty basepipe
    */
@@ -318,13 +323,14 @@ public:
 /**
  * @brief Templated class that provides workpipes public basepipe
  */
-template <class T> class workpipe : public basepipe {
+template <class T>
+class workpipe : public basepipe {
   typedef void *(*ProcessFunc_t)(T *data);
   ProcessFunc_t the_function;        /** Fuction to process this data */
   deque<T *> the_queue;              /** Double-ended data queue */
   mutable TMutex the_mutex;          /** General mutex for the queue */
   TCondition the_condition_variable; /** Condition */
-  
+
   /**
    * @brief Function for processing user function in case of any object
    *  available in queue for workpipe
@@ -332,22 +338,22 @@ template <class T> class workpipe : public basepipe {
   bool process_if_any();
 
 public:
-
   /**
    * @brief Workpipe constructor
-   * 
+   *
    * @param func Process function
    */
   workpipe(ProcessFunc_t func)
-      : basepipe(), the_function(func), the_queue(), the_mutex(),
-        the_condition_variable(&the_mutex) {}
+      : basepipe(), the_function(func), the_queue(), the_mutex(), the_condition_variable(&the_mutex)
+  {
+  }
 
   /** @brief Workpipe destructor */
   ~workpipe() {}
 
   /**
    * @brief Push function
-   * 
+   *
    * @param data Data to be pushed
    * @param priority Priority state
    */
@@ -363,7 +369,9 @@ public:
  * @details Push an pointer of type T* in the queue. If pushed with priority, the pointer
  * is put at the bask of the queue, otherwise to the front.
  */
-template <class T> void workpipe<T>::push(T *data, bool pr) {
+template <class T>
+void workpipe<T>::push(T *data, bool pr)
+{
   the_mutex.Lock();
   nobjects++;
   if (pr) {
@@ -379,15 +387,16 @@ template <class T> void workpipe<T>::push(T *data, bool pr) {
  * @details Gets the back object from the queue. Wait if none is available. Call the
  * user process function for the first available object.
  */
-template <class T> void workpipe<T>::process() {
+template <class T>
+void workpipe<T>::process()
+{
   the_mutex.Lock();
   while (the_queue.empty())
     the_condition_variable.Wait();
   T *popped_value = the_queue.back();
   the_queue.pop_back();
   nobjects--;
-  if (npriority > 0)
-    npriority--;
+  if (npriority > 0) npriority--;
   the_mutex.UnLock();
   // Execute the user function
   the_function(popped_value);
@@ -397,7 +406,9 @@ template <class T> void workpipe<T>::process() {
  * @details If any object is available in the queue, pop it and call the
    * user process function for it. Returns true if the processing was called
  */
-template <class T> bool workpipe<T>::process_if_any() {
+template <class T>
+bool workpipe<T>::process_if_any()
+{
   the_mutex.Lock();
   if (!nobjects) {
     the_mutex.UnLock();
@@ -406,8 +417,7 @@ template <class T> bool workpipe<T>::process_if_any() {
   T *popped_value = the_queue.back();
   the_queue.pop_back();
   nobjects--;
-  if (npriority > 0)
-    npriority--;
+  if (npriority > 0) npriority--;
   the_mutex.UnLock();
   // Execute the user function
   the_function(popped_value);
