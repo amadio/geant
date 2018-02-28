@@ -4,10 +4,10 @@
 ##pragma link off all classes;
 ##pragma link off all functions;
 
-#pragma link C++ class userapplication::TestEm3DetectorConstruction+;
-#pragma link C++ class userapplication::TestEm3App+;
-#pragma link C++ class userapplication::TestEm3Data+;
-#pragma link C++ class userapplication::TestEm3PrimaryGenerator+;
-#pragma link C++ class userapplication::HepMCTruth+;
+#pragma link C++ class userapplication::TestEm3DetectorConstruction + ;
+#pragma link C++ class userapplication::TestEm3App + ;
+#pragma link C++ class userapplication::TestEm3Data + ;
+#pragma link C++ class userapplication::TestEm3PrimaryGenerator + ;
+#pragma link C++ class userapplication::HepMCTruth + ;
 
 #endif

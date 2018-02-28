@@ -8,7 +8,6 @@
 
 #include <string>
 
-
 namespace userapplication {
 
 /**
@@ -27,7 +26,7 @@ public:
   // CTR
   TestEm3PhysicsList(const std::string &name);
   // DTR
- ~TestEm3PhysicsList();
+  ~TestEm3PhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 
@@ -35,10 +34,9 @@ public:
   void SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping);
 
 private:
-  geantphysics::MSCSteppingAlgorithm  fMSCSteppingAlgorithm;
+  geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm;
 };
 
-}      //  namespace userapplication
-
+} //  namespace userapplication
 
 #endif // TESTEM3PHYSICSLIST_H

@@ -4,7 +4,6 @@
 
 #include <vector>
 
-
 namespace userapplication {
 
 /**
@@ -47,51 +46,49 @@ namespace userapplication {
  * protected (more than one threads can finish an (different)event and try to write into this global data structure).
  */
 
-
 // Data structure per-primary particle for TestEm3App
 class TestEm3DataPerPrimary {
 public:
   TestEm3DataPerPrimary(int numabs);
- ~TestEm3DataPerPrimary();
+  ~TestEm3DataPerPrimary();
 
-
-  void   AddChargedStep()        { fNumChargedSteps += 1.;  }
+  void AddChargedStep() { fNumChargedSteps += 1.; }
   double GetChargedSteps() const { return fNumChargedSteps; }
 
-  void   AddNeutralStep()        { fNumNeutralSteps += 1.;  }
+  void AddNeutralStep() { fNumNeutralSteps += 1.; }
   double GetNeutralSteps() const { return fNumNeutralSteps; }
 
-  void   AddChargedTrackL(double val, int absorber) { fChargedTrackL[absorber] += val; }
-  double GetChargedTrackL(int absorber) const       { return fChargedTrackL[absorber]; }
+  void AddChargedTrackL(double val, int absorber) { fChargedTrackL[absorber] += val; }
+  double GetChargedTrackL(int absorber) const { return fChargedTrackL[absorber]; }
 
-  void   AddNeutralTrackL(double val, int absorber) { fNeutralTrackL[absorber] += val; }
-  double GetNeutralTrackL(int absorber) const       { return fNeutralTrackL[absorber]; }
+  void AddNeutralTrackL(double val, int absorber) { fNeutralTrackL[absorber] += val; }
+  double GetNeutralTrackL(int absorber) const { return fNeutralTrackL[absorber]; }
 
-  void   AddGamma()           { fNumGammas += 1.;     }
-  double GetGammas()    const { return fNumGammas;    }
+  void AddGamma() { fNumGammas += 1.; }
+  double GetGammas() const { return fNumGammas; }
 
-  void   AddElectron()        { fNumElectrons += 1.;  }
+  void AddElectron() { fNumElectrons += 1.; }
   double GetElectrons() const { return fNumElectrons; }
 
-  void   AddPositron()        { fNumPositrons += 1.;  }
+  void AddPositron() { fNumPositrons += 1.; }
   double GetPositrons() const { return fNumPositrons; }
 
-  void   AddEdepInAbsorber(double val, int absorber)     { fEdepInAbsorber[absorber] += val; }
-  double GetEdepInAbsorber(int absorber)           const { return fEdepInAbsorber[absorber]; }
+  void AddEdepInAbsorber(double val, int absorber) { fEdepInAbsorber[absorber] += val; }
+  double GetEdepInAbsorber(int absorber) const { return fEdepInAbsorber[absorber]; }
 
-  void   Clear();
-  TestEm3DataPerPrimary& operator+=(const TestEm3DataPerPrimary& other);
+  void Clear();
+  TestEm3DataPerPrimary &operator+=(const TestEm3DataPerPrimary &other);
 
 private:
-  int     fNumAbsorbers;        // number of absorbers
-  double  fNumChargedSteps;     // mean number of charged steps per primary in calorimeter
-  double  fNumNeutralSteps;     // mean number of neutral steps per primary in calorimeter
-  double  fNumGammas;           // mean number of secondary gamma particles per primary
-  double  fNumElectrons;        // mean number of secondary electron particles per primary
-  double  fNumPositrons;        // mean number of secondary positron particles per primary
-  std::vector<double>  fEdepInAbsorber;      // mean energy deposit per primary in the absorber
-  std::vector<double>  fChargedTrackL;       // mean number of charged track length per primary in absorber
-  std::vector<double>  fNeutralTrackL;       // mean number of neutral track length per primary in absorber
+  int fNumAbsorbers;                   // number of absorbers
+  double fNumChargedSteps;             // mean number of charged steps per primary in calorimeter
+  double fNumNeutralSteps;             // mean number of neutral steps per primary in calorimeter
+  double fNumGammas;                   // mean number of secondary gamma particles per primary
+  double fNumElectrons;                // mean number of secondary electron particles per primary
+  double fNumPositrons;                // mean number of secondary positron particles per primary
+  std::vector<double> fEdepInAbsorber; // mean energy deposit per primary in the absorber
+  std::vector<double> fChargedTrackL;  // mean number of charged track length per primary in absorber
+  std::vector<double> fNeutralTrackL;  // mean number of neutral track length per primary in absorber
 };
 
 // Global data structure to accumulate per-primary data during the simulation. The only one object from this class
@@ -99,106 +96,122 @@ private:
 class TestEm3Data {
 public:
   TestEm3Data(int numabs);
- ~TestEm3Data();
+  ~TestEm3Data();
 
- void   AddChargedSteps(double val) { fNumChargedSteps += val; fNumChargedSteps2 += val*val; }
- double GetChargedSteps()  const    { return fNumChargedSteps;  }
- double GetChargedSteps2() const    { return fNumChargedSteps2; }
+  void AddChargedSteps(double val)
+  {
+    fNumChargedSteps += val;
+    fNumChargedSteps2 += val * val;
+  }
+  double GetChargedSteps() const { return fNumChargedSteps; }
+  double GetChargedSteps2() const { return fNumChargedSteps2; }
 
- void   AddNeutralSteps(double val) { fNumNeutralSteps += val; fNumNeutralSteps2 += val*val; }
- double GetNeutralSteps() const     { return fNumNeutralSteps;  }
- double GetNeutralSteps2() const    { return fNumNeutralSteps2; }
+  void AddNeutralSteps(double val)
+  {
+    fNumNeutralSteps += val;
+    fNumNeutralSteps2 += val * val;
+  }
+  double GetNeutralSteps() const { return fNumNeutralSteps; }
+  double GetNeutralSteps2() const { return fNumNeutralSteps2; }
 
- void   AddChargedTrackL(double val, int absorber) { fChargedTrackL[absorber] += val; fChargedTrackL2[absorber] += val*val; }
- double GetChargedTrackL(int absorber)  const    { return fChargedTrackL[absorber];  }
- double GetChargedTrackL2(int absorber) const    { return fChargedTrackL2[absorber]; }
+  void AddChargedTrackL(double val, int absorber)
+  {
+    fChargedTrackL[absorber] += val;
+    fChargedTrackL2[absorber] += val * val;
+  }
+  double GetChargedTrackL(int absorber) const { return fChargedTrackL[absorber]; }
+  double GetChargedTrackL2(int absorber) const { return fChargedTrackL2[absorber]; }
 
- void   AddNeutralTrackL(double val, int absorber) { fNeutralTrackL[absorber] += val; fNeutralTrackL2[absorber] += val*val; }
- double GetNeutralTrackL(int absorber)  const    { return fNeutralTrackL[absorber];  }
- double GetNeutralTrackL2(int absorber) const    { return fNeutralTrackL2[absorber]; }
+  void AddNeutralTrackL(double val, int absorber)
+  {
+    fNeutralTrackL[absorber] += val;
+    fNeutralTrackL2[absorber] += val * val;
+  }
+  double GetNeutralTrackL(int absorber) const { return fNeutralTrackL[absorber]; }
+  double GetNeutralTrackL2(int absorber) const { return fNeutralTrackL2[absorber]; }
 
- void   AddGammas(double val)    { fNumGammas += val;    }
- double GetGammas()  const       { return fNumGammas;    }
+  void AddGammas(double val) { fNumGammas += val; }
+  double GetGammas() const { return fNumGammas; }
 
- void   AddElectrons(double val) { fNumElectrons += val; }
- double GetElectrons()  const    { return fNumElectrons; }
+  void AddElectrons(double val) { fNumElectrons += val; }
+  double GetElectrons() const { return fNumElectrons; }
 
- void   AddPositrons(double val) { fNumPositrons += val; }
- double GetPositrons()  const    { return fNumPositrons; }
+  void AddPositrons(double val) { fNumPositrons += val; }
+  double GetPositrons() const { return fNumPositrons; }
 
- void   AddEdepInAbsorber(double val, int absorber)       { fEdepInAbsorber[absorber] += val; fEdepInAbsorber2[absorber] += val*val; }
- double GetEdepInAbsorber(int absorber)           const { return fEdepInAbsorber[absorber];  }
- double GetEdepInAbsorber2(int absorber)          const { return fEdepInAbsorber2[absorber]; }
+  void AddEdepInAbsorber(double val, int absorber)
+  {
+    fEdepInAbsorber[absorber] += val;
+    fEdepInAbsorber2[absorber] += val * val;
+  }
+  double GetEdepInAbsorber(int absorber) const { return fEdepInAbsorber[absorber]; }
+  double GetEdepInAbsorber2(int absorber) const { return fEdepInAbsorber2[absorber]; }
 
- void   Clear();
- // add data after one primary particle finished tracking
- void   AddDataPerPrimary(TestEm3DataPerPrimary& data);
+  void Clear();
+  // add data after one primary particle finished tracking
+  void AddDataPerPrimary(TestEm3DataPerPrimary &data);
 
 private:
-  int     fNumAbsorbers;       // number of absorbers
-  double  fNumChargedSteps;    // mean number of charged steps per primary in target
-  double  fNumChargedSteps2;   // mean number of charged steps per primary square in target
-  double  fNumNeutralSteps;    // mean number of neutral steps per primary in target
-  double  fNumNeutralSteps2;   // mean number of neutral steps per primary square in target
+  int fNumAbsorbers;        // number of absorbers
+  double fNumChargedSteps;  // mean number of charged steps per primary in target
+  double fNumChargedSteps2; // mean number of charged steps per primary square in target
+  double fNumNeutralSteps;  // mean number of neutral steps per primary in target
+  double fNumNeutralSteps2; // mean number of neutral steps per primary square in target
 
-  double  fNumGammas;          // mean number of secondary gamma particles per primary
-  double  fNumElectrons;       // mean number of secondary electron particles per primary
-  double  fNumPositrons;       // mean number of secondary positron particles per primary
+  double fNumGammas;    // mean number of secondary gamma particles per primary
+  double fNumElectrons; // mean number of secondary electron particles per primary
+  double fNumPositrons; // mean number of secondary positron particles per primary
 
-  std::vector<double>  fEdepInAbsorber;     // mean energy deposit per primary in the target
-  std::vector<double>  fEdepInAbsorber2;    // mean energy deposit per primary in the target square
-  std::vector<double>  fChargedTrackL;      // mean number of charged track length per primary in target
-  std::vector<double>  fChargedTrackL2;     // mean number of charged track length  per primary square in target
-  std::vector<double>  fNeutralTrackL;      // mean number of neutral track length  per primary in target
-  std::vector<double>  fNeutralTrackL2;     // mean number of neutral track length  per primary square in target
+  std::vector<double> fEdepInAbsorber;  // mean energy deposit per primary in the target
+  std::vector<double> fEdepInAbsorber2; // mean energy deposit per primary in the target square
+  std::vector<double> fChargedTrackL;   // mean number of charged track length per primary in target
+  std::vector<double> fChargedTrackL2;  // mean number of charged track length  per primary square in target
+  std::vector<double> fNeutralTrackL;   // mean number of neutral track length  per primary in target
+  std::vector<double> fNeutralTrackL2;  // mean number of neutral track length  per primary square in target
 };
-
-
 
 // Data structure per-event for TestEm3(contain as many per-primary data structures as number of primaries in one event)
 class TestEm3DataPerEvent {
 public:
   TestEm3DataPerEvent(int nprimperevent, int numabs);
- ~TestEm3DataPerEvent() {/*nothing to do*/}
+  ~TestEm3DataPerEvent() { /*nothing to do*/}
 
   int GetNumberOfPrimaryPerEvent() const { return fNumPrimaryPerEvent; }
   void Clear();
-  TestEm3DataPerPrimary& GetDataPerPrimary(int primindx) { return fPerPrimaryData[primindx]; }
-  TestEm3DataPerEvent& operator+=(const TestEm3DataPerEvent& other);
+  TestEm3DataPerPrimary &GetDataPerPrimary(int primindx) { return fPerPrimaryData[primindx]; }
+  TestEm3DataPerEvent &operator+=(const TestEm3DataPerEvent &other);
 
 private:
   int fNumPrimaryPerEvent;
-  std::vector<TestEm3DataPerPrimary>  fPerPrimaryData; // as many as primary particle in an event
+  std::vector<TestEm3DataPerPrimary> fPerPrimaryData; // as many as primary particle in an event
 };
-
-
 
 // Thread local data structure for TestEm3 to collecet/handle thread local multiple per-event data structures (as many
 // per-event data structures as number of events are transported on the same time). Each of the currently transported
 // events occupies one possible event-slot and per-event data can be identified by the index of this event-slot. This
 // user defined thread local data needs to implement both the Merge and Clear methods for a given event-slot index:
-// these methods are called when a data per-event,that corresponds to the completed event(with a given event-slot index),
+// these methods are called when a data per-event,that corresponds to the completed event(with a given event-slot
+// index),
 // is merged from all threads.
 class TestEm3ThreadDataEvents {
 public:
   TestEm3ThreadDataEvents(int nevtbuffered, int nprimperevent, int numabs);
- ~TestEm3ThreadDataEvents() {/*nothing to do*/}
+  ~TestEm3ThreadDataEvents() { /*nothing to do*/}
 
-  void  Clear(int evtslotindx) { fPerEventData[evtslotindx].Clear(); }
-//  void  Clear() {
-//    for (int i=0; i<fNumBufferedEvents; ++i) Clear(i);
-//  }
-  bool  Merge(int evtslotindx, const TestEm3ThreadDataEvents &other);
+  void Clear(int evtslotindx) { fPerEventData[evtslotindx].Clear(); }
+  //  void  Clear() {
+  //    for (int i=0; i<fNumBufferedEvents; ++i) Clear(i);
+  //  }
+  bool Merge(int evtslotindx, const TestEm3ThreadDataEvents &other);
 
-  TestEm3DataPerEvent& GetDataPerEvent(int evtslotindx) { return fPerEventData[evtslotindx]; }
-  const TestEm3DataPerEvent& GetDataPerEvent(int evtslotindx) const { return fPerEventData[evtslotindx]; }
+  TestEm3DataPerEvent &GetDataPerEvent(int evtslotindx) { return fPerEventData[evtslotindx]; }
+  const TestEm3DataPerEvent &GetDataPerEvent(int evtslotindx) const { return fPerEventData[evtslotindx]; }
 
 private:
-  int                                fNumBufferedEvents;
-  std::vector<TestEm3DataPerEvent>   fPerEventData;
+  int fNumBufferedEvents;
+  std::vector<TestEm3DataPerEvent> fPerEventData;
 };
 
+} // namespace userapplication
 
-}       // namespace userapplication
-
-#endif  // TESTEM3DATA_H
+#endif // TESTEM3DATA_H

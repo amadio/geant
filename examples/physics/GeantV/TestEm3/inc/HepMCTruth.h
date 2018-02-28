@@ -12,12 +12,11 @@
 #include <string>
 
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Track;
-    struct MCEvent;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Track;
+struct MCEvent;
 }
-
+}
 
 namespace userapplication {
 
@@ -32,8 +31,8 @@ public:
 
   virtual void InitMCTruthMgr();
 
-  virtual bool CheckTrack(geant::Track &gtrack, geant::MCEvent* evt);
-  
+  virtual bool CheckTrack(geant::Track &gtrack, geant::MCEvent *evt);
+
   virtual void CloseEvent(int evID);
 
   double fEMin; // minimum energy
@@ -41,8 +40,6 @@ public:
 private:
   HepMCTruth(const HepMCTruth &);            // no imp.
   HepMCTruth &operator=(const HepMCTruth &); // no imp.
-
 };
- 
 }
 #endif
