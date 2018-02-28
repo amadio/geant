@@ -1,13 +1,13 @@
 //===--- FactoryStore.h - GeantV --------------------------*- C++ -*-===//
 //
-//                     Geant-V Prototype               
+//                     Geant-V Prototype
 //
 //===----------------------------------------------------------------------===//
 /**
  * @file FactoryStore.h
- * @brief Implementation of store keeping factories one factory per user type 
+ * @brief Implementation of store keeping factories one factory per user type
  * in GeantV prototype
- * @author Andrei Gheata 
+ * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
 
@@ -22,30 +22,30 @@
 #include "Geant/Factory.h"
 #endif
 
-/** 
+/**
  * @brief Class FactoryStore
  * @details  Store of factories holding one factory per user type.
  */
 class FactoryStore {
 private:
-  int          fNclients;               /** Number of thread clients */
-  int          fNFactories;             /** Number of factories stored */
-  int          fCapacity;               /** Store capacity */
-  const void **fTypes;                  /** Factory types */
-  void       **fFactories;              /** Stored factories */
-  std::mutex   fMutex;                  /** Mutex for factory creation */
+  int fNclients;                   /** Number of thread clients */
+  int fNFactories;                 /** Number of factories stored */
+  int fCapacity;                   /** Store capacity */
+  const void **fTypes;             /** Factory types */
+  void **fFactories;               /** Stored factories */
+  std::mutex fMutex;               /** Mutex for factory creation */
   static FactoryStore *fgInstance; /** Static instance of the store */
-  
+
   /**
    * @brief Constructor for FactoryStore
-   * 
-   * @param nclients Number of thread clients 
+   *
+   * @param nclients Number of thread clients
    */
   FactoryStore(int nclients);
-  
+
   /**
    * @brief Function for removing a factory
-   * 
+   *
    * @param islot Factory slot
    */
   void RemoveFactory(int islot);
@@ -57,43 +57,46 @@ private:
   /**
    * @brief Operator= not allowed */
   FactoryStore &operator=(const FactoryStore &);
+
 public:
-  
-  /** 
+  /**
   * @brief Destructor FactoryStore */
   ~FactoryStore();
-  
+
   /**
    * @brief  Function that creates one instance of the factory store
-   * 
+   *
    * @param nclients Number of thread clients (by default 1)
    */
   static FactoryStore *Instance(int nclients = 1);
-  
+
   /**
    * @brief Templated function that return factory object
-   * 
+   *
    * @tparam Data type for the factory
    * @param blocksize Size of block
    */
-  template <class T> Factory<T> *GetFactory(int blocksize, int nthreads);
-  
-  /** @brief Function that provides deletion of factory of the provided type 
+  template <class T>
+  Factory<T> *GetFactory(int blocksize, int nthreads);
+
+  /** @brief Function that provides deletion of factory of the provided type
    *
    * @tparam Data type for the factory
   */
-  template <class T> void DeleteFactory();
+  template <class T>
+  void DeleteFactory();
 };
 
 /**
  * @details Returns existing factory for the user type or create new one.
  * @return Factory object
  */
-template <class T> Factory<T> *FactoryStore::GetFactory(int blocksize, int nthreads) {
+template <class T>
+Factory<T> *FactoryStore::GetFactory(int blocksize, int nthreads)
+{
   const std::type_info *type = &typeid(T);
   for (int i = 0; i < fNFactories; i++) {
-    if ((const std::type_info *)fTypes[i] == type)
-      return (Factory<T> *)fFactories[i];
+    if ((const std::type_info *)fTypes[i] == type) return (Factory<T> *)fFactories[i];
   }
   Factory<T> *factory = new Factory<T>(fNclients, blocksize, nthreads);
   fMutex.lock();
@@ -111,7 +114,7 @@ template <class T> Factory<T> *FactoryStore::GetFactory(int blocksize, int nthre
     fFactories = factories;
     fCapacity *= 2;
   }
-  fTypes[fNFactories] = (const void *)type;
+  fTypes[fNFactories]       = (const void *)type;
   fFactories[fNFactories++] = factory;
   fMutex.unlock();
   return factory;
@@ -121,7 +124,9 @@ template <class T> Factory<T> *FactoryStore::GetFactory(int blocksize, int nthre
  * @details Checks the typeid of the provided type and deletes the
  * corresponding factory if it finds one
  */
-template <class T> void FactoryStore::DeleteFactory() {
+template <class T>
+void FactoryStore::DeleteFactory()
+{
   const std::type_info *type = &typeid(T);
   for (int i = 0; i < fNFactories; i++) {
     if ((const std::type_info *)fTypes[i] == type) {

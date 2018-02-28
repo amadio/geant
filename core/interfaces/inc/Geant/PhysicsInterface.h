@@ -20,9 +20,9 @@
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class SimulationStage;
-  class TrackDataMgr;
+class Propagator;
+class SimulationStage;
+class TrackDataMgr;
 }
 }
 
@@ -32,8 +32,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PhysicsInterface {
 
 public:
-  using TaskData = geant::TaskData;
-  using TrackDataMgr  = geant::TrackDataMgr;
+  using TaskData     = geant::TaskData;
+  using TrackDataMgr = geant::TrackDataMgr;
 
 public:
   /**
@@ -59,25 +59,24 @@ public:
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
     */
-  virtual  geant::SimulationStage* CreateComputeIntLStage(geant::Propagator *prop) = 0;
-  virtual  geant::SimulationStage* CreatePrePropagationStage(geant::Propagator *prop) = 0;
-  virtual  geant::SimulationStage* CreatePostPropagationStage(geant::Propagator *prop) = 0;
+  virtual geant::SimulationStage *CreateComputeIntLStage(geant::Propagator *prop)     = 0;
+  virtual geant::SimulationStage *CreatePrePropagationStage(geant::Propagator *prop)  = 0;
+  virtual geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop) = 0;
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
     *
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
     */
-  virtual  geant::SimulationStage* CreateAlongStepActionStage(geant::Propagator *prop) = 0;
+  virtual geant::SimulationStage *CreateAlongStepActionStage(geant::Propagator *prop) = 0;
   /** @brief Obtain/create post step action (discrete part) computation stage.
     *
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created PostStepAction real-physics simulation stage object.
     */
-  virtual  geant::SimulationStage* CreatePostStepActionStage(geant::Propagator *prop) = 0;
+  virtual geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop) = 0;
 
-  virtual  geant::SimulationStage* CreateAtRestActionStage(geant::Propagator *prop) = 0;
-
+  virtual geant::SimulationStage *CreateAtRestActionStage(geant::Propagator *prop) = 0;
 };
 
 #endif

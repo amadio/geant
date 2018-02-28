@@ -48,18 +48,15 @@ public:
    * @param isonbdr Boundary flag set if next boundaries closer than proposed step
    */
   VECCORE_ATT_HOST_DEVICE
-  static
-  void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, 
-         const double *x, const double *y, const double *z,
-         const double *dirx, const double *diry, const double *dirz, 
-         const VolumePath_t **instate, VolumePath_t **outstate, 
-         double *step, double *safe, bool *isonbdr);
-    
+  static void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y,
+                                         const double *z, const double *dirx, const double *diry, const double *dirz,
+                                         const VolumePath_t **instate, VolumePath_t **outstate, double *step,
+                                         double *safe, bool *isonbdr);
+
   /**
   * @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
-  static
-  void NavFindNextBoundaryAndStep(Track &track);
+  static void NavFindNextBoundaryAndStep(Track &track);
 
   /**
    * @brief Function for navigation that checks if location is the same or not
@@ -67,28 +64,24 @@ public:
    * @param ntracks Number of tracks
    * @param x X positions
    * @param y Y positions
-   * @param z Z positions   
+   * @param z Z positions
    * @param dirx X directions
    * @param diry Y directions
-   * @param dirz Z directions  
+   * @param dirz Z directions
    * @param start Start volume paths
    * @param end End volume paths
    * @param same Boolean return flags specifying if the location is same
    & @param tmpstate Temporary navigation state to be used internally
    */
   VECCORE_ATT_HOST_DEVICE
-  static 
-  void NavIsSameLocation(int ntracks, 
-         const double *x, const double *y, const double *z, 
-         const double *dirx, const double *diry, const double *dirz, 
-         const VolumePath_t **start, VolumePath_t **end, bool *same, VolumePath_t *tmpstate);
-  
+  static void NavIsSameLocation(int ntracks, const double *x, const double *y, const double *z, const double *dirx,
+                                const double *diry, const double *dirz, const VolumePath_t **start, VolumePath_t **end,
+                                bool *same, VolumePath_t *tmpstate);
+
   /**
   * @brief Single track version of the function above */
   VECCORE_ATT_HOST_DEVICE
-  static
-  void NavIsSameLocation(Track &track, bool &same, VolumePath_t *tmpstate);
-  
+  static void NavIsSameLocation(Track &track, bool &same, VolumePath_t *tmpstate);
 };
 } // GEANT_IMPL_NAMESPACE
 

@@ -58,10 +58,10 @@ enum TrackStatus_t { kAlive, kKilled, kInFlight, kBoundary, kExitingSetup, kPhys
  * @enum TransportAction_t
  */
 enum TransportAction_t {
-  kDone = 0,     /** Return immediately - no tracks left */
+  kDone     = 0, /** Return immediately - no tracks left */
   kPostpone = 1, /** return imediately and postpone whatever tracks left */
-  kSingle = 2,   /** perform remaining loop in single track mode */
-  kVector = 3    /** perform remaining loop in vectorized mode */
+  kSingle   = 2, /** perform remaining loop in single track mode */
+  kVector   = 3  /** perform remaining loop in vectorized mode */
 };
 
 /**
@@ -71,45 +71,45 @@ enum Species_t { kHadron, kLepton };
 
 /** Basket simulation stages. */
 enum ESimulationStage {
-  kPreStepStage         = 0, // Actions at the beginning of the step
-  kComputeIntLStage,         // Physics interaction length computation stage
-  kGeometryStepStage,        // Compute geometry transport length
-  kPrePropagationStage,      // Special msc stage for step limit phase
-//  kGeometryStepStage,        // Compute geometry transport length
-  kPropagationStage,         // Propagation in field stage
-  kPostPropagationStage,     // Special msc stage for along-step action stage
-//  kMSCStage,               // Multiple scattering stage
-  kAlongStepActionStage,     // Along step action stage (continuous part of the inetraction)
-  kPostStepActionStage,      // Post step action stage (discrete part of the inetraction)
-  kAtRestActionStage,       // At-rest action stage (at-rest part of the inetraction)
-  kSteppingActionsStage      // User actions
+  kPreStepStage = 0,     // Actions at the beginning of the step
+  kComputeIntLStage,     // Physics interaction length computation stage
+  kGeometryStepStage,    // Compute geometry transport length
+  kPrePropagationStage,  // Special msc stage for step limit phase
+                         //  kGeometryStepStage,        // Compute geometry transport length
+  kPropagationStage,     // Propagation in field stage
+  kPostPropagationStage, // Special msc stage for along-step action stage
+                         //  kMSCStage,               // Multiple scattering stage
+  kAlongStepActionStage, // Along step action stage (continuous part of the inetraction)
+  kPostStepActionStage,  // Post step action stage (discrete part of the inetraction)
+  kAtRestActionStage,    // At-rest action stage (at-rest part of the inetraction)
+  kSteppingActionsStage  // User actions
 };
 
-constexpr size_t kNstages = size_t(kSteppingActionsStage) + 1;
+constexpr size_t kNstages           = size_t(kSteppingActionsStage) + 1;
 constexpr size_t kNumPhysicsProcess = 10;
 
 class TaskData;
 class Track;
 class TrackDataMgr;
 
-using InplaceConstructFunc_t = std::function<void(void*)>;
-using PrintUserDataFunc_t = std::function<void(void*)>;
-using Vector3 = vecgeom::Vector3D<double>;
+using InplaceConstructFunc_t = std::function<void(void *)>;
+using PrintUserDataFunc_t    = std::function<void(void *)>;
+using Vector3                = vecgeom::Vector3D<double>;
 
 struct StepPointInfo {
-  Vector3 fPos;          /** Position */
-  Vector3 fDir;          /** Direction */
-  double fE;             /** Energy */
-  double fP;             /** Momentum */
-  double fTime;          /** Time */
-  VolumePath_t *fPath;   /** Paths for the particle in the geometry */
+  Vector3 fPos;        /** Position */
+  Vector3 fDir;        /** Direction */
+  double fE;           /** Energy */
+  double fP;           /** Momentum */
+  double fTime;        /** Time */
+  VolumePath_t *fPath; /** Paths for the particle in the geometry */
 };
 
 GEANT_DECLARE_CONSTANT(double, gTolerance);
 
 #ifndef VECCORE_CUDA
 #ifdef GEANT_USE_NUMA
-typedef NumaAllocator<Track*> TrackAllocator_t;
+typedef NumaAllocator<Track *> TrackAllocator_t;
 typedef std::vector<Track *, TrackAllocator_t> TrackVec_t;
 #else
 typedef vector_t<Track *> TrackVec_t;
@@ -123,82 +123,88 @@ typedef vecgeom::Vector<Track *> TrackVec_t;
  */
 class Track {
 
-template <typename T>
-using Vector3D = vecgeom::Vector3D<T>;
+  template <typename T>
+  using Vector3D = vecgeom::Vector3D<T>;
 
 private:
-  int fEvent = -1;           /** Event number */
-  int fEvslot = -1;          /** Event slot */
-  int fParticle = -1;        /** Index of corresponding particle */
-  int fPrimaryIndx = -1;     /** Index of the primary particle in the current event */
-  int fMother = -1;           /** Index of mother particle */
-  int fPDG = 0;              /** Particle pdg code */
-  int fGVcode = 0;           /** GV particle code */
-  int fEindex = 0;           /** Element index */
-  int fBindex = 0;           /** Index in the track block */
-  int fCharge = 0;           /** Particle charge */
-  int fProcess = -1;         /** Current process */
-  int fNsteps = 0;           /** Number of steps made */
-  int fMaxDepth = 0;         /** Maximum geometry depth */
-  int fStage = 0;            /** Simulation stage */
-  int fGeneration = 0;       /** Track generation: 0=primary */
-  Species_t fSpecies = kHadron;   /** Particle species */
-  TrackStatus_t fStatus = kAlive; /** Track status */
-  double fMass = 0;          /** Particle mass */
-  double fXpos = 0;          /** X position */
-  double fYpos = 0;          /** Y position */
-  double fZpos = 0;          /** Z position */
-  double fXdir = 0;          /** X direction */
-  double fYdir = 0;          /** Y direction */
-  double fZdir = 0;          /** Z direction */
-  double fP = 0;             /** Momentum */
-  double fE = 0;             /** Energy */
-  double fTime = 0;          /** Time */
-  double fEdep = 0;          /** Energy deposition in the step */
-  double fPstep = 1.e+20;    /** Selected physical step */
-  double fStep = 0;          /** Current step */
-  double fSnext = 0;         /** Straight distance to next boundary */
-  double fSafety = 0;        /** Safe distance to any boundary */
-  double fNintLen = 0;       /** Number of interaction lenghts traveled in last step */
-  double fIntLen = 0;        /** Cumulated interaction length since last discrete process */
-  bool fBoundary = false;    /** True if starting from boundary */
-  bool fPending = false;     /** Track pending to be processed */
-  bool fOwnPath = false;     /** Marker for path ownership */
-  bool fIsOnBoundaryPreStp = false;  /** to indicate that the particle was on boundary at the pre-step pint */
-  bool fPrePropagationDone = false;  /** Indicate if pre-propagation stage was done for this particle. */
-  Volume_t const *fVolume = nullptr; /** Current volume the particle is in */
+  int fEvent               = -1;      /** Event number */
+  int fEvslot              = -1;      /** Event slot */
+  int fParticle            = -1;      /** Index of corresponding particle */
+  int fPrimaryIndx         = -1;      /** Index of the primary particle in the current event */
+  int fMother              = -1;      /** Index of mother particle */
+  int fPDG                 = 0;       /** Particle pdg code */
+  int fGVcode              = 0;       /** GV particle code */
+  int fEindex              = 0;       /** Element index */
+  int fBindex              = 0;       /** Index in the track block */
+  int fCharge              = 0;       /** Particle charge */
+  int fProcess             = -1;      /** Current process */
+  int fNsteps              = 0;       /** Number of steps made */
+  int fMaxDepth            = 0;       /** Maximum geometry depth */
+  int fStage               = 0;       /** Simulation stage */
+  int fGeneration          = 0;       /** Track generation: 0=primary */
+  Species_t fSpecies       = kHadron; /** Particle species */
+  TrackStatus_t fStatus    = kAlive;  /** Track status */
+  double fMass             = 0;       /** Particle mass */
+  double fXpos             = 0;       /** X position */
+  double fYpos             = 0;       /** Y position */
+  double fZpos             = 0;       /** Z position */
+  double fXdir             = 0;       /** X direction */
+  double fYdir             = 0;       /** Y direction */
+  double fZdir             = 0;       /** Z direction */
+  double fP                = 0;       /** Momentum */
+  double fE                = 0;       /** Energy */
+  double fTime             = 0;       /** Time */
+  double fEdep             = 0;       /** Energy deposition in the step */
+  double fPstep            = 1.e+20;  /** Selected physical step */
+  double fStep             = 0;       /** Current step */
+  double fSnext            = 0;       /** Straight distance to next boundary */
+  double fSafety           = 0;       /** Safe distance to any boundary */
+  double fNintLen          = 0;       /** Number of interaction lenghts traveled in last step */
+  double fIntLen           = 0;       /** Cumulated interaction length since last discrete process */
+  bool fBoundary           = false;   /** True if starting from boundary */
+  bool fPending            = false;   /** Track pending to be processed */
+  bool fOwnPath            = false;   /** Marker for path ownership */
+  bool fIsOnBoundaryPreStp = false;   /** to indicate that the particle was on boundary at the pre-step pint */
+  bool fPrePropagationDone = false;   /** Indicate if pre-propagation stage was done for this particle. */
+  Volume_t const *fVolume  = nullptr; /** Current volume the particle is in */
 
   // max number of physics processesper particle is assumed to be 10!
-  int  fPhysicsProcessIndex = -1;  // selected physics process
-  double  fPhysicsNumOfInteractLengthLeft[kNumPhysicsProcess];
-  double  fPhysicsInteractLength[kNumPhysicsProcess]; // mfp
+  int fPhysicsProcessIndex = -1; // selected physics process
+  double fPhysicsNumOfInteractLengthLeft[kNumPhysicsProcess];
+  double fPhysicsInteractLength[kNumPhysicsProcess]; // mfp
 
 private:
 #ifdef GEANT_NEW_DATA_FORMAT
-  StepPointInfo fPreStep;    /** Pre-step state */
-  StepPointInfo fPostStep;   /** Post-step state */
+  StepPointInfo fPreStep;  /** Pre-step state */
+  StepPointInfo fPostStep; /** Post-step state */
 #else
-  VolumePath_t *fPath = nullptr;     /** Paths for the particle in the geometry */
+  VolumePath_t *fPath     = nullptr; /** Paths for the particle in the geometry */
   VolumePath_t *fNextpath = nullptr; /** Path for next volume */
 #endif
 
 public:
-char *fExtraData;                   /** Start of user data at first aligned address. This needs to point to an aligned address. */
-  // See: implementation of SizeOfInstance. Offsets of user data blocks are with respect to the fExtraData address. We have to pinpoint this
-  // because the start address of the block of user data needs to be aligned, which make the offsets track-by-track dependent if they are
+  char *fExtraData; /** Start of user data at first aligned address. This needs to point to an aligned address. */
+  // See: implementation of SizeOfInstance. Offsets of user data blocks are with respect to the fExtraData address. We
+  // have to pinpoint this
+  // because the start address of the block of user data needs to be aligned, which make the offsets track-by-track
+  // dependent if they are
   // relative to the start address of the track (which has to be un-aligned for space considerations)
   // The track memory layout will be as follows (* mark alignment padding start, _ mark padding empty space).
   // Sizes are managed by TrackDataMgr singleton.
 
   // *__|addr______________*_________________*_________________*_________________*_________________*_________________*_________________*
-  //  __|++++track_data+++++++__padding______|++user_data_1++__|++user_data_2++_..._____________   |++fPath_pre_step+++|_______________|++fPath_post_step
-  //Addresses:
+  //  __|++++track_data+++++++__padding______|++user_data_1++__|++user_data_2++_..._____________
+  //  |++fPath_pre_step+++|_______________|++fPath_post_step
+  // Addresses:
   //    | addr (track start address)
   //                                         | fExtraData = round_up_align(addr + sizeof(Track))
   //                                                           | round_up_align(fExtraData + sizeof(user_data_1))
-  //                                                                                               | round_up_align(fExtraData + TrackDataMgr::fDataOffset))
+  //                                                                                               |
+  //                                                                                               round_up_align(fExtraData
+  //                                                                                               +
+  //                                                                                               TrackDataMgr::fDataOffset))
 
-  static constexpr double kB2C = -0.299792458e-3;
+  static constexpr double kB2C  = -0.299792458e-3;
   static constexpr double kTiny = 1.E-50;
 
   /**
@@ -285,13 +291,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetCharge_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &charge_v)
+  GEANT_FORCE_INLINE static size_t GetCharge_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                               Real_v &charge_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(charge_v, i, tracks[offset + i]->Charge());
     return nelem;
@@ -370,13 +376,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetPos_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Vector3D<Real_v> &pos_v)
+  GEANT_FORCE_INLINE static size_t GetPos_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                            Vector3D<Real_v> &pos_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i) {
       vecCore::Set(pos_v[0], i, tracks[offset + i]->X());
       vecCore::Set(pos_v[1], i, tracks[offset + i]->Y());
@@ -414,13 +420,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetDir_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Vector3D<Real_v> &dir_v)
+  GEANT_FORCE_INLINE static size_t GetDir_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                            Vector3D<Real_v> &dir_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i) {
       vecCore::Set(dir_v[0], i, tracks[offset + i]->Dx());
       vecCore::Set(dir_v[1], i, tracks[offset + i]->Dy());
@@ -458,13 +464,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetP_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Vector3D<Real_v> &mom_v)
+  GEANT_FORCE_INLINE static size_t GetP_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                          Vector3D<Real_v> &mom_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i) {
       vecCore::Set(mom_v[0], i, tracks[offset + i]->Px());
       vecCore::Set(mom_v[1], i, tracks[offset + i]->Py());
@@ -492,13 +498,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetE_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &e_v)
+  GEANT_FORCE_INLINE static size_t GetE_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                          Real_v &e_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(e_v, i, tracks[offset + i]->E());
     return nelem;
@@ -518,13 +524,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetT_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &t_v)
+  GEANT_FORCE_INLINE static size_t GetT_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                          Real_v &t_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(t_v, i, tracks[offset + i]->T());
     return nelem;
@@ -553,7 +559,7 @@ public:
   /** @brief Getter for the time traveled in the step */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double TimeStep(double step) const { return fE*step/fP; }
+  double TimeStep(double step) const { return fE * step / fP; }
 
   /** @brief Getter for the straight distance to next boundary */
   VECCORE_ATT_HOST_DEVICE
@@ -632,9 +638,7 @@ public:
 
   /** @brief Getter for the next volume (no backup) */
   VECCORE_ATT_HOST_DEVICE
-  Volume_t const *GetNextVolume() const {
-    return ( fNextpath->Top()->GetLogicalVolume() );
-  }
+  Volume_t const *GetNextVolume() const { return (fNextpath->Top()->GetLogicalVolume()); }
 
   /** @brief Getter for the material */
   VECCORE_ATT_HOST_DEVICE
@@ -654,13 +658,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetBeta_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &beta_v)
+  GEANT_FORCE_INLINE static size_t GetBeta_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                             Real_v &beta_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(beta_v, i, tracks[offset + i]->Beta());
     return nelem;
@@ -669,7 +673,8 @@ public:
   /** @brief Getter for the curvature. To be changed when handling properly field*/
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double Curvature(double Bz) const {
+  double Curvature(double Bz) const
+  {
     // Curvature
     double qB = fCharge * Bz;
     if (fabs(qB) < kTiny) return kTiny;
@@ -690,13 +695,13 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  static size_t GetGamma_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks, Real_v &gamma_v)
+  GEANT_FORCE_INLINE static size_t GetGamma_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                              Real_v &gamma_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
-    size_t nelem = kVecSize;
-    if (Tail) nelem = ntracks - offset;
-    assert(offset <= ntracks - nelem );
+    size_t nelem              = kVecSize;
+    if (Tail) nelem           = ntracks - offset;
+    assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(gamma_v, i, tracks[offset + i]->Gamma());
     return nelem;
@@ -715,10 +720,10 @@ public:
   /** @brief  Check direction normalization within tolerance */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  bool IsNormalized(double tolerance = 1.E-8) const {
+  bool IsNormalized(double tolerance = 1.E-8) const
+  {
     double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
-    if (fabs(1. - norm) > tolerance)
-      return false;
+    if (fabs(1. - norm) > tolerance) return false;
     return true;
   }
 
@@ -819,7 +824,8 @@ public:
   /** @brief Setter for position from components */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetPosition(double x, double y, double z) {
+  void SetPosition(double x, double y, double z)
+  {
     fXpos = x;
     fYpos = y;
     fZpos = z;
@@ -828,7 +834,8 @@ public:
   /** @brief Setter for position from vector */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetPosition(Vector3D<double> const &pos) {
+  void SetPosition(Vector3D<double> const &pos)
+  {
     fXpos = pos.x();
     fYpos = pos.y();
     fZpos = pos.z();
@@ -837,7 +844,8 @@ public:
   /** @brief Setter for direction from components */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetDirection(double dx, double dy, double dz) {
+  void SetDirection(double dx, double dy, double dz)
+  {
     fXdir = dx;
     fYdir = dy;
     fZdir = dz;
@@ -846,7 +854,8 @@ public:
   /** @brief Setter for direction from components */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetDirection(Vector3D<double> const &dir) {
+  void SetDirection(Vector3D<double> const &dir)
+  {
     fXdir = dir.x();
     fYdir = dir.y();
     fZdir = dir.z();
@@ -996,14 +1005,19 @@ public:
   /** @brief Function that stops the track depositing its kinetic energy */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void Stop() { fEdep = T(); fE = fMass; fP = 0; }
+  void Stop()
+  {
+    fEdep = T();
+    fE    = fMass;
+    fP    = 0;
+  }
 
   /** @brief Setter for the status killed to track */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Kill() { fStatus = kKilled; }
 
-   /** Clear function */
+  /** Clear function */
   VECCORE_ATT_HOST_DEVICE
   void Clear(const char *option = "");
 
@@ -1020,10 +1034,11 @@ public:
   /** @brief Function that swaps path and next path */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateSwapPath() {
+  void UpdateSwapPath()
+  {
     VolumePath_t *tmp = fNextpath;
-    fNextpath = fPath;
-    fPath = tmp;
+    fNextpath         = fPath;
+    fPath             = tmp;
     UpdateVolume();
   }
 
@@ -1035,14 +1050,13 @@ public:
   /** @brief Function that updates the current volume the particle is in */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateVolume() {
-    fVolume = fPath->Top()->GetLogicalVolume();
-  }
+  void UpdateVolume() { fVolume = fPath->Top()->GetLogicalVolume(); }
 
- /** @brief Function to normalize direction */
+  /** @brief Function to normalize direction */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void Normalize() {
+  void Normalize()
+  {
     double norm = 1. / Math::Sqrt(fXdir * fXdir + fYdir * fYdir + fZdir * fZdir);
     fXdir *= norm;
     fYdir *= norm;
@@ -1052,7 +1066,8 @@ public:
   /** @brief Function to make a step along the current direction */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void MakeStep(double step) {
+  void MakeStep(double step)
+  {
     fPstep -= step;
     fStep += step;
     fSafety -= step;
@@ -1083,10 +1098,10 @@ public:
    * @param buf Buffer address to align
    */
   VECCORE_ATT_HOST_DEVICE
-  static char *round_up_align(char *buf) {
+  static char *round_up_align(char *buf)
+  {
     long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
-    if (remainder == 0)
-      return buf;
+    if (remainder == 0) return buf;
     return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 
@@ -1095,29 +1110,29 @@ public:
    * @param buf Buffer address to align
    */
   VECCORE_ATT_HOST_DEVICE
-  static size_t round_up_align(size_t value) {
+  static size_t round_up_align(size_t value)
+  {
     size_t remainder = ((size_t)value) % GEANT_ALIGN_PADDING;
-    if (remainder == 0)
-      return value;
+    if (remainder == 0) return value;
     return (value + GEANT_ALIGN_PADDING - remainder);
   }
   //  ClassDefNV(Track, 1) // The track
 };
 
 // Track token for user data
-class TrackToken
-{
+class TrackToken {
 private:
-  std::string fName;      /** token name */
-  size_t fOffset;         /** offset with respect to track user data base address */
+  std::string fName; /** token name */
+  size_t fOffset;    /** offset with respect to track user data base address */
 public:
   TrackToken(const char *name = "", size_t offset = 0) : fName(name), fOffset(offset) {}
 
   std::string const GetName() const { return fName; }
 
   template <typename T>
-  T &Data(Track *track) {
-    return *(T*)(track->fExtraData + fOffset);
+  T &Data(Track *track)
+  {
+    return *(T *)(track->fExtraData + fOffset);
   }
 };
 
@@ -1128,27 +1143,26 @@ struct DataInplaceConstructor_t {
   InplaceConstructFunc_t fDataConstructor;
   PrintUserDataFunc_t fPrintUserData;
 
-  void operator()(Track &track) {
-    fDataConstructor(track.fExtraData + fDataOffset);
-  }
+  void operator()(Track &track) { fDataConstructor(track.fExtraData + fDataOffset); }
 
-  void PrintUserData(Track const &track) const {
-    fPrintUserData(track.fExtraData + fDataOffset);
-  }
+  void PrintUserData(Track const &track) const { fPrintUserData(track.fExtraData + fDataOffset); }
 
   DataInplaceConstructor_t(size_t offset, InplaceConstructFunc_t ctor, PrintUserDataFunc_t prfunc)
-    : fDataOffset(offset), fDataConstructor(ctor), fPrintUserData(prfunc) {}
+      : fDataOffset(offset), fDataConstructor(ctor), fPrintUserData(prfunc)
+  {
+  }
 };
 
 // User data manager singleton. Becomes read-only after registration phase
 class TrackDataMgr {
 private:
-  bool fLocked = false;   /** Lock flag. User not allowed to register new data type.*/
-  size_t fTrackSize = 0;  /** Total track size including alignment rounding */
-  size_t fDataOffset = 0; /** Offset for the user data start address with respect to Track::fExtraData pointer */
-  size_t fMaxDepth = 0;   /** Maximum geometry depth, to be provided at construction time */
+  bool fLocked       = false; /** Lock flag. User not allowed to register new data type.*/
+  size_t fTrackSize  = 0;     /** Total track size including alignment rounding */
+  size_t fDataOffset = 0;     /** Offset for the user data start address with respect to Track::fExtraData pointer */
+  size_t fMaxDepth   = 0;     /** Maximum geometry depth, to be provided at construction time */
 
-  vector_t<DataInplaceConstructor_t> fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
+  vector_t<DataInplaceConstructor_t>
+      fConstructors; /** Inplace user-defined constructors to be called at track initialization. */
   vector_t<TrackToken> fTokens;
   std::mutex fRegisterLock; /** Multithreading lock for the registration phase */
 
@@ -1157,8 +1171,7 @@ private:
 
 public:
   VECCORE_ATT_HOST_DEVICE
-  static
-  TrackDataMgr *GetInstance(size_t fMaxDepth = 0);
+  static TrackDataMgr *GetInstance(size_t fMaxDepth = 0);
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -1173,12 +1186,15 @@ public:
   GEANT_FORCE_INLINE
   const TrackToken *GetToken(const char *name) const
   {
-    for (size_t i=0; i<fTokens.size(); ++i) { if (fTokens[i].GetName() == name) return &fTokens[i]; }
+    for (size_t i = 0; i < fTokens.size(); ++i) {
+      if (fTokens[i].GetName() == name) return &fTokens[i];
+    }
     return nullptr;
   }
 
   /** @brief Apply in-place construction of user-defined data on the track */
-  void InitializeTrack(Track &track) {
+  void InitializeTrack(Track &track)
+  {
     fLocked = true;
     // Construct objects at base address + offset
     for (auto construct : fConstructors)
@@ -1186,7 +1202,8 @@ public:
   }
 
   /** @brief Invoke all registered print methods for user data */
-  void PrintUserData(Track const &track) const {
+  void PrintUserData(Track const &track) const
+  {
     for (auto userdata : fConstructors)
       userdata.PrintUserData(track);
   }
@@ -1200,9 +1217,11 @@ public:
 
   void Print()
   {
-    std::cout << "*** TrackDataMgr report: track size = " << fTrackSize << " bytes,  max. depth = " << fMaxDepth << std::endl;
-    std::cout << "                         extra data size = " <<  fDataOffset << " bytes in the following blocks: ";
-    for (const auto &token : fTokens) std::cout << token.GetName() << " ";
+    std::cout << "*** TrackDataMgr report: track size = " << fTrackSize << " bytes,  max. depth = " << fMaxDepth
+              << std::endl;
+    std::cout << "                         extra data size = " << fDataOffset << " bytes in the following blocks: ";
+    for (const auto &token : fTokens)
+      std::cout << token.GetName() << " ";
     std::cout << "\n";
   }
 
@@ -1217,20 +1236,18 @@ public:
     if (token) return (*token);
 
     // Register lambda for constructing in-place the user data
-    auto userinplaceconstructor = [&](void * address) {
-      new (address) T(/*params...*/);
-    };
+    auto userinplaceconstructor = [&](void *address) { new (address) T(/*params...*/); };
 
     // Register print function for debugging
-    auto printuserdata = [&](void * address) {
-      T const &userdata = *(T*)(address);
+    auto printuserdata = [&](void *address) {
+      T const &userdata = *(T *)(address);
       userdata.Print();
     };
 
     // Calculate data offset
     size_t block_size = Track::round_up_align(sizeof(T)); // multiple of the alignment padding
     fTrackSize += block_size;
-    DataInplaceConstructor_t ctor {fDataOffset, userinplaceconstructor, printuserdata};
+    DataInplaceConstructor_t ctor{fDataOffset, userinplaceconstructor, printuserdata};
     fConstructors.push_back(ctor);
 
     // Create a new token

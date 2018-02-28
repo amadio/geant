@@ -29,22 +29,21 @@ class TaskData;
 class Event {
 
 private:
-  vecgeom::Vector3D<double> fVertex;     /** Vertex position */
-  bool             fPrioritize = false;  /** Prioritize this event */
-  bool             fTransported = false; /** Event transported */
-  float            fPriorityThr = 0.01; /** Priority threshold in percent of max in flight */
-  int              fEvent = 0;      /** Event number */
-  int              fSlot = 0;       /** Fixed slot number === to be removed ===*/
-  int              fNprimaries = 0; /** Number of primaries */
-  std::atomic_int  fNtracks;        /** Number of tracks */
-  std::atomic_int  fNdone;          /** Number of done tracks */
-  std::atomic_int  fNmax;           /** Maximum number of tracks in flight */
-  std::atomic_flag fLock;           /** Lock for priority forcing */
-  std::vector<Track*> fPrimaries; /** Vector containing all primary tracks */
+  vecgeom::Vector3D<double> fVertex; /** Vertex position */
+  bool fPrioritize   = false;        /** Prioritize this event */
+  bool fTransported  = false;        /** Event transported */
+  float fPriorityThr = 0.01;         /** Priority threshold in percent of max in flight */
+  int fEvent         = 0;            /** Event number */
+  int fSlot          = 0;            /** Fixed slot number === to be removed ===*/
+  int fNprimaries    = 0;            /** Number of primaries */
+  std::atomic_int fNtracks;          /** Number of tracks */
+  std::atomic_int fNdone;            /** Number of done tracks */
+  std::atomic_int fNmax;             /** Maximum number of tracks in flight */
+  std::atomic_flag fLock;            /** Lock for priority forcing */
+  std::vector<Track *> fPrimaries;   /** Vector containing all primary tracks */
 public:
-
-  std::atomic_int  fNfilled;        /** Number of tracks copied in buffer */
-  std::atomic_int  fNdispatched;    /** Number of tracks dispatched */
+  std::atomic_int fNfilled;     /** Number of tracks copied in buffer */
+  std::atomic_int fNdispatched; /** Number of tracks dispatched */
 
   /** @brief Event default constructor */
   Event() : fNtracks(0), fNdone(0), fNmax(0), fLock(), fNfilled(0), fNdispatched(0) {}
@@ -56,16 +55,21 @@ public:
   int AddTrack();
 
   /* @brief Function for accounting adding a new track */
-  int AddPrimary(Track *track) { fPrimaries.push_back(track); return AddTrack(); }
+  int AddPrimary(Track *track)
+  {
+    fPrimaries.push_back(track);
+    return AddTrack();
+  }
 
   /* @brief Crear the event and release all primaries */
   void Clear(TaskData *td);
 
   /** @brief Dispatch track. */
   GEANT_FORCE_INLINE
-  int DispatchTrack(bool &valid) {
+  int DispatchTrack(bool &valid)
+  {
     int itr = fNdispatched.fetch_add(1);
-    valid = itr < fNprimaries;
+    valid   = itr < fNprimaries;
     return itr;
   }
 
@@ -83,7 +87,11 @@ public:
 
   /* @brief Function for retrieving a primary. No range check. */
   GEANT_FORCE_INLINE
-  void SetNprimaries(int nprim) { fNprimaries = nprim; fPrimaries.reserve(nprim);}
+  void SetNprimaries(int nprim)
+  {
+    fNprimaries = nprim;
+    fPrimaries.reserve(nprim);
+  }
 
   /** @brief Function that returns the event vertex */
   GEANT_FORCE_INLINE
@@ -167,7 +175,8 @@ public:
   bool Prioritize();
 
   /** @brief Reset the event */
-  void Reset() {
+  void Reset()
+  {
     fNtracks.store(0);
     fNdone.store(0);
     fNmax.store(0);

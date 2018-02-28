@@ -23,12 +23,12 @@
 
 namespace vecgeom {
 #ifndef VECCORE_CUDA
-  inline namespace cxx {
+inline namespace cxx {
 #else
-  namespace cxx {
+namespace cxx {
 #endif
-    class VPlacedVolume;
-  }
+class VPlacedVolume;
+}
 }
 
 namespace geant {
@@ -44,12 +44,11 @@ class Propagator;
  */
 class TaskBroker {
 protected:
-
   /** @struct TaskData */
-  struct TaskData {};
+  struct TaskData {
+  };
 
 public:
-
   /** @brief TaskBroker destructor */
   virtual ~TaskBroker(){};
 
@@ -106,7 +105,6 @@ public:
 
   /** @brief Prepare the geometry for the device and upload it to the device's memory */
   virtual bool UploadGeometry(vecgeom::VPlacedVolume const *const volume = nullptr) = 0;
-
 };
 
 } // GEANT_IMPL_NAMESPACE

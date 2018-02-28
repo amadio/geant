@@ -35,7 +35,8 @@ using namespace std;
  *
  * @tparam User-defined type
 */
-template <typename T> class GeantBlock {
+template <typename T>
+class GeantBlock {
 private:
   int fSize;        /** Fixed size */
   int fNext;        /** Index of next free block */
@@ -49,7 +50,8 @@ public:
    *
    * @param size  Size for the array of blocks
    */
-  GeantBlock() : fSize(0), fNext(0), fBlock() {
+  GeantBlock() : fSize(0), fNext(0), fBlock()
+  {
     static_assert(!std::is_polymorphic<T>::value, "Cannot use polymorphic types as GeantBlock");
     static_assert(std::is_default_constructible<T>::value, "Type used in GeantBlock must have default ctor.");
     static_assert(std::is_copy_constructible<T>::value, "Type used in GeantBlock must be copy constructible");
@@ -65,7 +67,8 @@ public:
     *
     * @param size  Size for the array of blocks
     */
-  void Initialize(int size) {
+  void Initialize(int size)
+  {
     assert(size > 0);
     fSize = size;
     fBlock.reserve(size);
@@ -83,11 +86,11 @@ public:
    * @param p Pointer to object to be copied
    * @param index Index in the block vector where to copy to
    */
-  void Add(T *p, int index = -1) {
-    if (index < 0)
-      index = fNext++;
-    T &current = fBlock[index];
-    current = *p;
+  void Add(T *p, int index = -1)
+  {
+    if (index < 0) index = fNext++;
+    T &current           = fBlock[index];
+    current              = *p;
   }
 
   /**
@@ -104,11 +107,12 @@ public:
   *
   * @tparam GeantBlock object type
   */
-  void Clear() {
+  void Clear()
+  {
     static T dummy;
-    for (int i = 0; i < fSize; i++)
+    for (int i  = 0; i < fSize; i++)
       fBlock[i] = dummy;
-    fNext = 0;
+    fNext       = 0;
   }
 
   /** @brief Function checking if the block is full */
@@ -128,7 +132,8 @@ public:
  *
  * @tparam Object type to be stored in blocks
  */
-template <typename T> class GeantBlockArray {
+template <typename T>
+class GeantBlockArray {
 private:
   int fNthreads;           /** Number of threads */
   int fBlockSize;          /** Block size */
@@ -155,7 +160,8 @@ public:
    * @param nthreads Number of threads
    * @param blocksize Block size
    */
-  GeantBlockArray(int nthreads, int blocksize) : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0) {
+  GeantBlockArray(int nthreads, int blocksize) : fNthreads(nthreads), fBlockSize(blocksize), fBlocks(0)
+  {
     fBlocks = new GeantBlock<T> *[nthreads];
     for (int i = 0; i < nthreads; i++) {
       fBlocks[i] = new GeantBlock<T>();
@@ -164,7 +170,8 @@ public:
   }
 
   /** @brief GeantBlockArray destructor */
-  ~GeantBlockArray() {
+  ~GeantBlockArray()
+  {
     for (int i = 0; i < fNthreads; i++)
       delete fBlocks[i];
     delete[] fBlocks;
@@ -203,7 +210,8 @@ public:
  * @details Templated factory of user objects, allocated in contiguous
  * blocks. It can serve a number of concurrent clients with id's from 0 to N.
  */
-template <typename T> class Factory {
+template <typename T>
+class Factory {
   friend class FactoryStore;
   typedef void (*ProcessHitFunc_t)(const vector<T> &, int);
 
@@ -217,22 +225,24 @@ private:
    * @param callback Callback (by default = 0)
    */
   Factory(int nslots, int blocksize, int nthreads, ProcessHitFunc_t callback = 0)
-    : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs(),
-      queue_per_thread(false) {
+      : fNslots(nslots), fNthreads(1), fBlockSize(blocksize), fCallback(callback), fBlockA(0), fPool(), fOutputs(),
+        queue_per_thread(false)
+  {
     // Reserve the space for the block arrays on event slots
     fBlockA = new GeantBlockArray<T> *[fNslots];
     // Check max number of threads
     fNthreads = nthreads;
 
     //
-    fPoolArray = new deque<GeantBlock<T> *> [fNthreads];
-    fOutputsArray = new deque<GeantBlock<T> *> [fNthreads];
-    
+    fPoolArray    = new deque<GeantBlock<T> *>[fNthreads];
+    fOutputsArray = new deque<GeantBlock<T> *>[fNthreads];
+
     // Add 2*nclients free blocks (2?)
     AddFreeBlocks(2 * fNthreads);
-    
+
     // Add 2(?) free blocks per thread
-    for(int i=0; i<fNthreads; i++) AddFreeBlocks(2, i);
+    for (int i = 0; i < fNthreads; i++)
+      AddFreeBlocks(2, i);
 
     for (int iev = 0; iev < fNslots; iev++) {
       // One block array per slot
@@ -254,13 +264,14 @@ public:
   GeantBlockArray<T> **fBlockA;      /** [fNslots] arrays of data blocks */
   dcqueue<GeantBlock<T> *> fPool;    /** pool of empty/recycled blocks */
   dcqueue<GeantBlock<T> *> fOutputs; /** Pool of filled blocks */
-  
+
   bool queue_per_thread;
   std::deque<GeantBlock<T> *> *fPoolArray;    /** [fNthreads] array of queues (per thread) of empty/recycled blocks */
   std::deque<GeantBlock<T> *> *fOutputsArray; /** [fNthreads] array of queues (per thread) of filled blocks */
 
   /** @brief Factory destructor */
-  ~Factory() {
+  ~Factory()
+  {
     for (int iev = 0; iev < fNslots; ++iev)
       delete[] fBlockA[iev];
     delete[] fBlockA;
@@ -279,7 +290,8 @@ public:
    *
    * @param nblocks Number of blocks to be added
    */
-  void AddFreeBlocks(int nblocks) {
+  void AddFreeBlocks(int nblocks)
+  {
     for (int i = 0; i < nblocks; i++) {
       GeantBlock<T> *block = new GeantBlock<T>();
       block->Initialize(fBlockSize);
@@ -292,68 +304,66 @@ public:
    *
    * @param nblocks Number of blocks to be added
    */
-  void AddFreeBlocks(int nblocks, int tid) {
+  void AddFreeBlocks(int nblocks, int tid)
+  {
     for (int i = 0; i < nblocks; i++) {
       GeantBlock<T> *block = new GeantBlock<T>();
       block->Initialize(fBlockSize);
       fPoolArray[tid].push_front(block);
     }
   }
-  
-  
+
   /**
    * @brief Function for getting the next free block
    *
    * @param slot Event slot id
    * @param tid Thread id
    */
-  T *NextFree(int slot, int tid) {
+  T *NextFree(int slot, int tid)
+  {
     GeantBlock<T> *block;
     if (fBlockA[slot]->At(tid)->IsFull()) {
-      // The last entry in the block was used and filled (by the same thread)     
-      if(queue_per_thread)
-	{
-	  fOutputsArray[tid].push_front(fBlockA[slot]->At(tid));
-	  block = fPoolArray[tid].back();
-	  fPoolArray[tid].pop_back();
-	  fBlockA[slot]->AddAt(tid, block);
-	  // Keep the pool full
- 	  if (fPoolArray[tid].size() < 2) // (2?)
-	    AddFreeBlocks(2, tid);
-	}
-      else
-	{
-	  fOutputs.push(fBlockA[slot]->At(tid));
-	  fPool.wait_and_pop(block);
-	  fBlockA[slot]->AddAt(tid, block);
-	  // Keep the pool full
-	  if (fPool.size_async() < size_t(fNthreads))
-	    AddFreeBlocks(fNthreads);
-	}
+      // The last entry in the block was used and filled (by the same thread)
+      if (queue_per_thread) {
+        fOutputsArray[tid].push_front(fBlockA[slot]->At(tid));
+        block = fPoolArray[tid].back();
+        fPoolArray[tid].pop_back();
+        fBlockA[slot]->AddAt(tid, block);
+        // Keep the pool full
+        if (fPoolArray[tid].size() < 2) // (2?)
+          AddFreeBlocks(2, tid);
+      } else {
+        fOutputs.push(fBlockA[slot]->At(tid));
+        fPool.wait_and_pop(block);
+        fBlockA[slot]->AddAt(tid, block);
+        // Keep the pool full
+        if (fPool.size_async() < size_t(fNthreads)) AddFreeBlocks(fNthreads);
+      }
     }
     return fBlockA[slot]->At(tid)->NextFree();
   }
-    
+
   /**
    * @brief Recycle function
    *
    * @param block Block that should be recycled
    */
-  void Recycle(GeantBlock<T> *block) {
+  void Recycle(GeantBlock<T> *block)
+  {
     block->Clear();
     fPool.push(block);
   }
-  
+
   /**
    * @brief Recycle function for thread-local pool
    *
    * @param block Block that should be recycled
    */
-  void Recycle(GeantBlock<T> *block, int tid) {
+  void Recycle(GeantBlock<T> *block, int tid)
+  {
     block->Clear();
     fPoolArray[tid].push_front(block);
   }
- 
 };
 
 #endif

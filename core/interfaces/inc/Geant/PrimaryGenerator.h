@@ -26,12 +26,12 @@ using vecgeom::kDegToRad;
 class TaskData;
 
 struct EventInfo {
-  int      ntracks;    // number of tracks
-  double   xvert;      // x position
-  double   yvert;      // y position
-  double   zvert;      // z position
-  double   tvert;      // time
-// ... to be extended
+  int ntracks;  // number of tracks
+  double xvert; // x position
+  double yvert; // y position
+  double zvert; // z position
+  double tvert; // time
+                // ... to be extended
   EventInfo() : xvert(0), yvert(0), zvert(0) {}
 };
 
@@ -51,8 +51,10 @@ protected:
   double fPMax;   // maximum momentum
 public:
   PrimaryGenerator()
-      : fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0),
-        fPMin(0), fPMax(0) {}
+      : fEtaCut(false), fPhiCut(false), fMomCut(false), fEtaMin(0), fEtaMax(0), fPhiMin(0), fPhiMax(0), fPMin(0),
+        fPMax(0)
+  {
+  }
   virtual ~PrimaryGenerator() {}
   static double EtaToTheta(double eta) { return (2. * atan(exp(-eta)) * kRadToDeg); }
   static double ThetaToEta(double theta) { return (-log(tan(0.5 * theta * kDegToRad))); }
@@ -67,7 +69,7 @@ public:
     *
     * @param td thread local data pointer
     */
-  virtual EventInfo NextEvent(geant::TaskData* td) = 0;
+  virtual EventInfo NextEvent(geant::TaskData *td) = 0;
 
   /**
    * @brief Pure virtual function that returns track
@@ -76,7 +78,7 @@ public:
    * @param gtrack track
    * @param td thread local data pointer
    */
-  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData* td) = 0;
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData *td) = 0;
 
   /** @brief Getter for eta cut flag */
   bool HasEtaCut() const { return fEtaCut; }
@@ -88,53 +90,61 @@ public:
   bool HasMomCut() const { return fMomCut; }
 
   /** @brief Setter for user eta range */
-  void SetEtaRange(double etamin, double etamax) {
+  void SetEtaRange(double etamin, double etamax)
+  {
     fEtaCut = true;
     fEtaMin = etamin;
     fEtaMax = etamax;
   }
 
   /** @brief Getter for user eta range */
-  void GetEtaRange(double &etamin, double &etamax) const {
+  void GetEtaRange(double &etamin, double &etamax) const
+  {
     etamin = fEtaMin;
     etamax = fEtaMax;
   }
 
   /** @brief Setter for user theta range */
-  void SetThetaRange(double thetamin_deg, double thetamax_deg) {
+  void SetThetaRange(double thetamin_deg, double thetamax_deg)
+  {
     fEtaCut = true;
     fEtaMin = ThetaToEta(thetamax_deg);
     fEtaMax = ThetaToEta(thetamin_deg);
   }
 
   /** @brief Getter for user theta range */
-  void GetThetaRange(double &thetamin_deg, double &thetamax_deg) const {
+  void GetThetaRange(double &thetamin_deg, double &thetamax_deg) const
+  {
     thetamin_deg = EtaToTheta(fEtaMax);
     thetamax_deg = EtaToTheta(fEtaMin);
   }
 
   /** @brief Setter for user phi range */
-  void SetPhiRange(double phimin_deg, double phimax_deg) {
+  void SetPhiRange(double phimin_deg, double phimax_deg)
+  {
     fPhiCut = true;
     fPhiMin = phimin_deg;
     fPhiMax = phimax_deg;
   }
 
   /** @brief Getter for user phi range */
-  void GetPhiRange(double &phimin, double &phimax) const {
+  void GetPhiRange(double &phimin, double &phimax) const
+  {
     phimin = fPhiMin;
     phimax = fPhiMax;
   }
 
   /** @brief Setter for user momentum range */
-  void SetMomRange(double pmin, double pmax) {
+  void SetMomRange(double pmin, double pmax)
+  {
     fMomCut = true;
-    fPMin = pmin;
-    fPMax = pmax;
+    fPMin   = pmin;
+    fPMax   = pmax;
   }
 
   /** @brief Getter for user momentum range */
-  void GetMomRange(double &pmin, double &pmax) const {
+  void GetMomRange(double &pmin, double &pmax) const
+  {
     pmin = fPMin;
     pmax = fPMax;
   }

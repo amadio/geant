@@ -8,9 +8,10 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
-EventSet::EventSet(size_t nevents) : fNdone(0) {
+EventSet::EventSet(size_t nevents) : fNdone(0)
+{
   fNevents = nevents;
-  fMarkers = new EventMarker*[nevents];
+  fMarkers = new EventMarker *[nevents];
   for (size_t i = 0; i < nevents; ++i) {
     fMarkers[i] = new EventMarker;
     fMarkers[i]->fDone.clear();
@@ -18,11 +19,12 @@ EventSet::EventSet(size_t nevents) : fNdone(0) {
 }
 
 //______________________________________________________________________________
-EventSet::EventSet(std::vector<Event*> const &events) : fNdone(0) {
+EventSet::EventSet(std::vector<Event *> const &events) : fNdone(0)
+{
   fNevents = (int)events.size();
-  fMarkers = new EventMarker*[fNevents];
+  fMarkers = new EventMarker *[fNevents];
   for (size_t i = 0; i < fNevents; ++i) {
-    fMarkers[i] = new EventMarker;
+    fMarkers[i]         = new EventMarker;
     fMarkers[i]->fEvent = events[i];
     fMarkers[i]->fDone.clear();
   }
@@ -40,12 +42,13 @@ void EventSet::AddSetToServer(EventServer *evserv) const
 }
 
 //______________________________________________________________________________
-bool EventSet::AddEvent(Event *event) {
+bool EventSet::AddEvent(Event *event)
+{
   if (fNadded == fNevents) {
     Error("EventSet::AddEvent", "The event set already complete");
     return false;
   }
-    
+
   fMarkers[fNadded++]->fEvent = event;
   return true;
 }
@@ -55,12 +58,13 @@ void EventSet::Print()
 {
   // Print the event set content
   for (size_t i = 0; i < fNevents; ++i)
-    std::cerr<<" "<< fMarkers[i]->fEventNumber;
-  std::cerr <<"\n";
+    std::cerr << " " << fMarkers[i]->fEventNumber;
+  std::cerr << "\n";
 }
 
 //______________________________________________________________________________
-bool EventSet::MarkDone(int event_number) {
+bool EventSet::MarkDone(int event_number)
+{
   size_t slot;
   if (!Contains(event_number, slot)) return false;
   // Check if event is already marked as done

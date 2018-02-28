@@ -15,7 +15,7 @@ class VBconnector : public TGeoExtension {
 class VBconnector {
 #endif
 public:
-  int index;                      /** Index of basket manager */
+  int index; /** Index of basket manager */
   VECCORE_ATT_HOST_DEVICE
   VBconnector(int i) : index(i) {}
 #if defined(USE_ROOT) && !defined(VECCORE_CUDA)
@@ -23,7 +23,6 @@ public:
   virtual void Release() const {}
 #endif
 };
-
 }
 }
 
