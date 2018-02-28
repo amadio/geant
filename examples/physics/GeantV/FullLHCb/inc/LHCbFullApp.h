@@ -3,7 +3,7 @@
 #define LHCbFULLAPP_H
 
 #ifndef GEANT_VAPPLICATION
-  #include "Geant/UserApplication.h"
+#include "Geant/UserApplication.h"
 #endif
 
 #include "Geant/Typedefs.h"
@@ -11,14 +11,13 @@
 #include "Geant/TaskData.h"
 
 namespace GEANT_IMPL_NAMESPACE {
-  namespace geant {
-    class RunManager;
-    class TaskDataHandle;
-    class Event;
-    class Track;
-  }
+namespace geant {
+class RunManager;
+class TaskDataHandle;
+class Event;
+class Track;
 }
-
+}
 
 #include "LHCbData.h"
 
@@ -42,9 +41,7 @@ class LHCbParticleGun;
 
 class LHCbFullApp : public geant::UserApplication {
 public:
-
-
-  LHCbFullApp(geant::RunManager *runmgr, LHCbParticleGun* gun);
+  LHCbFullApp(geant::RunManager *runmgr, LHCbParticleGun *gun);
   virtual ~LHCbFullApp();
 
   /** @brief Interface method to allow registration of user defined thread local data. */
@@ -67,31 +64,29 @@ public:
     *        are completed). */
   virtual void FinishRun();
 
-
-  void         SetPerformanceMode(bool val) { fIsPerformance = val; }
+  void SetPerformanceMode(bool val) { fIsPerformance = val; }
 
 private:
   /** @brief Copy constructor TestEm5 (deleted) */
-  LHCbFullApp(const LHCbFullApp&) = delete;
+  LHCbFullApp(const LHCbFullApp &) = delete;
   /** @brief Operator= for TestEm5 (deleted) */
-  LHCbFullApp &operator=(const LHCbFullApp&) = delete;
-
+  LHCbFullApp &operator=(const LHCbFullApp &) = delete;
 
 private:
-  bool        fIsPerformance;
-  bool        fInitialized;
-  int         fNumPrimaryPerEvent;
-  int         fNumBufferedEvents;
+  bool fIsPerformance;
+  bool fInitialized;
+  int fNumPrimaryPerEvent;
+  int fNumBufferedEvents;
   // user defined thread local data structure handlers to obtain the thread local data structures (defined and
   // registered by the user) during the simulation (in the SteppingActions(i.e. at the end of each simulation step),
   // Digitization(i.e. at the end of an event) and FinishRun (i.e. at the end of the simulation):
   //
   // 1. merged from all working threads when transportation of an event (with all corresponding primary and secondary
   //    particles) are completed
-  geant::TaskDataHandle<LHCbThreadDataEvents>  *fDataHandlerEvents;
+  geant::TaskDataHandle<LHCbThreadDataEvents> *fDataHandlerEvents;
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle type
   // during the simulation
-  LHCbData   *fData = nullptr;
+  LHCbData *fData = nullptr;
 
   // mutex to prevent multiple threads writing into the unique, run-global, unique LHCbData object (in the FinishEvent
   // after the merge of the user defined per-event data distributed among the threads)
@@ -99,33 +94,32 @@ private:
   //
   LHCbParticleGun *fGun;
 
-  static const int kMaxThreads = 36;
+  static const int kMaxThreads   = 36;
   static const int kNvolumes     = 4500;
   static const int kNVELOModules = 200;
   static const int kNECALModules = 36;
   static const int kNHCALModules = 112;
-  
-  bool  fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
-  float fEdepVELO[kNVELOModules][kMaxThreads];  /** Energy deposition in Velo */
-  float fEdepECAL[kNECALModules][kMaxThreads];  /** Energy deposition in ECAL */
-  float fEdepHCAL[kNHCALModules][kMaxThreads];  /** Energy deposition in HCAL */
-  
-  int fVELOid[kNVELOModules];                   /** VELO volume id's */
-  int fECALid[kNECALModules];                   /** ECAL volume id's */
-  int fHCALid[kNHCALModules];                   /** HCAL volume id's */
-  
-  std::map<int,int> fVELOMap;                     /** Map of Velo modules */
-  std::map<int,int> fECALMap;                     /** Map of ECAL modules */
-  std::map<int,int> fHCALMap;                     /** Map of HCAL modules */
+
+  bool fSensFlags[kNvolumes];                  /** Array marking sensitive volumes */
+  float fEdepVELO[kNVELOModules][kMaxThreads]; /** Energy deposition in Velo */
+  float fEdepECAL[kNECALModules][kMaxThreads]; /** Energy deposition in ECAL */
+  float fEdepHCAL[kNHCALModules][kMaxThreads]; /** Energy deposition in HCAL */
+
+  int fVELOid[kNVELOModules]; /** VELO volume id's */
+  int fECALid[kNECALModules]; /** ECAL volume id's */
+  int fHCALid[kNHCALModules]; /** HCAL volume id's */
+
+  std::map<int, int> fVELOMap; /** Map of Velo modules */
+  std::map<int, int> fECALMap; /** Map of ECAL modules */
+  std::map<int, int> fHCALMap; /** Map of HCAL modules */
 
 #ifdef USE_ROOT
-  Factory<MyHit> *fFactory = nullptr;        /** Hits factory */
-  ROOT::Experimental::TBufferMerger* fMerger = nullptr;
+  Factory<MyHit> *fFactory                   = nullptr; /** Hits factory */
+  ROOT::Experimental::TBufferMerger *fMerger = nullptr;
   int fOutputBlockWrite;
 #endif
-  
 };
- 
-}      // namespace lhcbapp
+
+} // namespace lhcbapp
 
 #endif // LHCbFULLAPP_H

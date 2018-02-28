@@ -10,17 +10,15 @@
 #include <string>
 
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class RunManager;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class RunManager;
 }
-
+}
 
 namespace lhcbapp {
 
 class LHCbDetectorConstruction : public geant::UserDetectorConstruction {
 public:
-
   LHCbDetectorConstruction(geant::RunManager *runmgr);
 
   virtual ~LHCbDetectorConstruction();
@@ -28,12 +26,10 @@ public:
   // interface method to define the geometry for the application
   virtual void CreateGeometry();
 
-  void SetGDMLFile(const std::string& gdml) { fGDMLFileName = gdml; }
+  void SetGDMLFile(const std::string &gdml) { fGDMLFileName = gdml; }
 
 private:
-
-  std::string  fGDMLFileName;
-
+  std::string fGDMLFileName;
 };
 
 } // namespace lhcbapp

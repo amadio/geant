@@ -11,13 +11,13 @@ namespace lhcbapp {
 class LHCbPhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  LHCbPhysicsList(const std::string &name="LHCb-PhysicsList");
+  LHCbPhysicsList(const std::string &name = "LHCb-PhysicsList");
   // DTR
   virtual ~LHCbPhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 };
 
-}           // namespace cmsapp
+} // namespace cmsapp
 
-#endif      // LHCbPHYSICSLIST_H
+#endif // LHCbPHYSICSLIST_H
