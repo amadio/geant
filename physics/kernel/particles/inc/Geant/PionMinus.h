@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class PionMinus : public Particle {
 public:
-  static PionMinus*  Definition();
+  static PionMinus *Definition();
 
   // copy CTR and assignment operators are deleted
-  PionMinus(const PionMinus&) = delete;
-  PionMinus& operator=(const PionMinus&) = delete;
+  PionMinus(const PionMinus &) = delete;
+  PionMinus &operator=(const PionMinus &) = delete;
 
 private:
   PionMinus(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
 } // namespace geantphysics
 
-#endif  // PIONMINUS_H
+#endif // PIONMINUS_H

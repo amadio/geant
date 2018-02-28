@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class Neutron : public Particle {
 public:
-  static Neutron* Definition();
+  static Neutron *Definition();
 
   // copy CTR and assignment operators are deleted
-  Neutron(const Neutron&) = delete;
-  Neutron& operator=(const Neutron&) = delete;
+  Neutron(const Neutron &) = delete;
+  Neutron &operator=(const Neutron &) = delete;
 
 private:
   Neutron(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // NEUTRON_H
+#endif // NEUTRON_H

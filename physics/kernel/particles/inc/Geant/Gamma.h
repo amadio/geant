@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class Gamma : public Particle {
 public:
-  static Gamma* Definition();
+  static Gamma *Definition();
 
   // copy CTR and assignment operators are deleted
-  Gamma(const Gamma&) = delete;
-  Gamma& operator=(const Gamma&) = delete;
+  Gamma(const Gamma &) = delete;
+  Gamma &operator=(const Gamma &) = delete;
 
 private:
   Gamma(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
 } // namespace geantphysics
 
-#endif  // GAMMA_H
+#endif // GAMMA_H

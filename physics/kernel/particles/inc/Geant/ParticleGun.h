@@ -7,8 +7,8 @@
 #include "Geant/Typedefs.h"
 
 using PrimaryGenerator = geant::PrimaryGenerator;
-using EventInfo   = geant::EventInfo;
-using TaskData    = geant::TaskData;
+using EventInfo        = geant::EventInfo;
+using TaskData         = geant::TaskData;
 
 namespace geantphysics {
 
@@ -18,7 +18,6 @@ namespace geantphysics {
  * @author  M Novak, A Ribon
  * @date    april 2016
  */
-
 
 class ParticleGun : public PrimaryGenerator {
 private:
@@ -34,39 +33,37 @@ private:
   double fZDir;
   // additional members
   int fGVPartIndex; // GV particle index of the primary
-//  Particle_t *fPartPDG; // fca particles
+                    //  Particle_t *fPartPDG; // fca particles
 
   double fMass;   // rest mass of the primary [GeV]
   double fCharge; // charge of the primary
   double fPTotal; // total momentum of the primary [GeV]
   double fETotal; // total energy of the primary [GeV]
 
-  //int fNumberoftracks; // Number of generated tracks
+  // int fNumberoftracks; // Number of generated tracks
 
-//#ifdef USE_ROOT
-//  TRandom *fRndgen; // Random number generator
-//#else
+  //#ifdef USE_ROOT
+  //  TRandom *fRndgen; // Random number generator
+  //#else
   vecgeom::RNG *fRndgen; // Random number generator from vecgeom
-//#endif
+  //#endif
 
 public:
   ParticleGun();
   ParticleGun(int aver, int gvcode, double partekin, double xpos, double ypos, double zpos, double xdir, double ydir,
-               double zdir);
+              double zdir);
 
   ~ParticleGun();
 
   // set one Track primary track properties
   virtual void InitPrimaryGenerator();
-  virtual EventInfo NextEvent(geant::TaskData* td);
-  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData* td);
+  virtual EventInfo NextEvent(geant::TaskData *td);
+  virtual void GetTrack(int n, geant::Track &gtrack, geant::TaskData *td);
 
 private:
   ParticleGun(const ParticleGun &);            // no imp.
   ParticleGun &operator=(const ParticleGun &); // no imp.
-
 };
-
 }
 
 #endif

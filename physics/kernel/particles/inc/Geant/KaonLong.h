@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class KaonLong : public Particle {
 public:
-  static KaonLong*  Definition();
+  static KaonLong *Definition();
 
   // copy CTR and assignment operators are deleted
-  KaonLong(const KaonLong&) = delete;
-  KaonLong& operator=(const KaonLong&) = delete;
+  KaonLong(const KaonLong &) = delete;
+  KaonLong &operator=(const KaonLong &) = delete;
 
 private:
   KaonLong(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
 } // namespace geantphysics
 
-#endif  // KAONLONG_H
+#endif // KAONLONG_H

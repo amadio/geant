@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class Proton : public Particle {
 public:
-  static Proton* Definition();
+  static Proton *Definition();
 
   // copy CTR and assignment operators are deleted
-  Proton(const Proton&) = delete;
-  Proton& operator=(const Proton&) = delete;
+  Proton(const Proton &) = delete;
+  Proton &operator=(const Proton &) = delete;
 
 private:
   Proton(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // PROTON_H
+#endif // PROTON_H

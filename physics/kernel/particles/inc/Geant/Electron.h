@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class Electron : public Particle {
 public:
-  static Electron*  Definition();
+  static Electron *Definition();
 
   // copy CTR and assignment operators are deleted
-  Electron(const Electron&) = delete;
-  Electron& operator=(const Electron&) = delete;
+  Electron(const Electron &) = delete;
+  Electron &operator=(const Electron &) = delete;
 
 private:
   Electron(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
 } // namespace geantphysics
 
-#endif  // ELECTRON_H
+#endif // ELECTRON_H

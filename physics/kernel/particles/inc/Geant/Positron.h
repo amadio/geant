@@ -12,17 +12,19 @@ namespace geantphysics {
  */
 class Positron : public Particle {
 public:
-  static Positron* Definition();
+  static Positron *Definition();
 
   // copy CTR and assignment operators are deleted
-  Positron(const Positron&) = delete;
-  Positron& operator=(const Positron&) = delete;
+  Positron(const Positron &) = delete;
+  Positron &operator=(const Positron &) = delete;
 
 private:
   Positron(const std::string &name, int pdgcode, int intcode, double mass, double charge)
-  : Particle (name, pdgcode, intcode, mass, charge) {}
+      : Particle(name, pdgcode, intcode, mass, charge)
+  {
+  }
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // POSITRON_H
+#endif // POSITRON_H
