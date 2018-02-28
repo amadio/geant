@@ -14,14 +14,14 @@ inline void steponcircle(int /*charge*/, double R, double x0, double y0, double 
                          double &y, double &dx, double &dy)
 {
   double invnorm = 1. / sqrt(dx0 * dx0 + dy0 * dy0);
-  double cosa = dx0 * invnorm;
-  double sina = dy0 * invnorm;
-  double phi = step / R;
-  double cosphi = cos(phi);
-  double sinphi = sin(phi);
+  double cosa    = dx0 * invnorm;
+  double sina    = dy0 * invnorm;
+  double phi     = step / R;
+  double cosphi  = cos(phi);
+  double sinphi  = sin(phi);
 
-  x = x0 + R * (-sina - (-cosphi * sina - sinphi * cosa));
-  y = y0 + R * (cosa - (-sina * sinphi + cosphi * cosa));
+  x  = x0 + R * (-sina - (-cosphi * sina - sinphi * cosa));
+  y  = y0 + R * (cosa - (-sina * sinphi + cosphi * cosa));
   dx = dx0 * cosphi - dy0 * sinphi;
   dy = dx0 * sinphi + dy0 * cosphi;
 }
@@ -41,11 +41,11 @@ void steponhelix(int charge, double R, double x0, double y0, double z0, double d
 {
   // TODO: calculate R and helixstep from physical params
   // helixstep is jump upon a 2pi rotation ( must be a function of B and dz0 )
-  double dt = sqrt((dx0 * dx0) + (dy0 * dy0));
+  double dt      = sqrt((dx0 * dx0) + (dy0 * dy0));
   double invnorm = 1. / dt;
 
-  double sina = -charge * dx0 * invnorm;
-  double cosa = dy0 * invnorm;
+  double sina          = -charge * dx0 * invnorm;
+  double cosa          = dy0 * invnorm;
   double helixgradient = dz0 * invnorm * R;
 
   // can maybe be simplified
@@ -55,8 +55,8 @@ void steponhelix(int charge, double R, double x0, double y0, double z0, double d
   double yc = y0 - R * sina;
   double zc = z0;
 
-  double cosphi = cos(phi);
-  double sinphi = sin(phi);
+  double cosphi  = cos(phi);
+  double sinphi  = sin(phi);
   double cosaphi = cosa * cosphi - sina * sinphi;
   double sinaphi = sina * cosphi + cosa * sinphi;
 
@@ -78,10 +78,10 @@ int main()
   //  double z0=0;
   //  double dz0=0.2;
 
-  x0 = 10;
-  y0 = 5;
-  dx0 = -0.5;
-  dy0 = -0.5;
+  x0       = 10;
+  y0       = 5;
+  dx0      = -0.5;
+  dy0      = -0.5;
   double R = 10;
 
   std::cout << "0"
@@ -89,8 +89,8 @@ int main()
   for (int i = 1; i <= 60; ++i) {
     steponcircle(1, R, x0, y0, dx0, dy0, 1, x, y, dx, dy);
     std::cout << i << "\t" << x << "\t" << y << "\t" << dx << "\t" << dy << "\n";
-    x0 = x;
-    y0 = y;
+    x0  = x;
+    y0  = y;
     dx0 = dx;
     dy0 = dy;
   }
@@ -106,8 +106,8 @@ int main()
   for (int i = 1; i <= 60; ++i) {
     steponcircle(-1, -R, x0, y0, dx0, dy0, 1, x, y, dx, dy);
     std::cout << i << "\t" << x << "\t" << y << "\t" << dx << "\t" << dy << "\n";
-    x0 = x;
-    y0 = y;
+    x0  = x;
+    y0  = y;
     dx0 = dx;
     dy0 = dy;
   }

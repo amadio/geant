@@ -32,60 +32,61 @@
 class VVectorField;
 #include "Geant/GUFieldPropagator.h"
 
-class GUFieldPropagatorPool
-{
-  public:
-    // Access methods
-    // static GUFieldPropagator* CreateOrFind(int numThreads);
-      // It can be called from many threads -- same value must be returned
-      //  numThreads must be constant between calls
+class GUFieldPropagatorPool {
+public:
+  // Access methods
+  // static GUFieldPropagator* CreateOrFind(int numThreads);
+  // It can be called from many threads -- same value must be returned
+  //  numThreads must be constant between calls
 
-    static GUFieldPropagatorPool* Instance();
+  static GUFieldPropagatorPool *Instance();
 
-    bool   RegisterPrototype( GUFieldPropagator* prototype );
-     // prototype for the propagators for each thread
-    
-    bool Initialize(unsigned int numThreads); 
-     // Create new propagators for each thread !
-    
-    bool IsInitialized() { return fInitialisedRKIntegration; }
+  bool RegisterPrototype(GUFieldPropagator *prototype);
+  // prototype for the propagators for each thread
 
-    bool CheckIndex(size_t num){
-       assert(num< fFieldPropagatorVec.size());
-       // ((void)num); // make compiler happy
-       return ( num < fFieldPropagatorVec.size() );
-    }
-    
-    GUFieldPropagator* GetPropagator(int num) {
-       CheckIndex(num);       
-       return fFieldPropagatorVec[num];
-    }
-  
-    VVectorField* GetField(unsigned int num) {
-      // CheckIndex(num);
-      // return fFieldVec[num];
-      GUFieldPropagator* pFP= fFieldPropagatorVec[num];
-      return pFP->GetField();
-    }
+  bool Initialize(unsigned int numThreads);
+  // Create new propagators for each thread !
 
-  private:
+  bool IsInitialized() { return fInitialisedRKIntegration; }
 
-    GUFieldPropagatorPool( GUFieldPropagator* prototype = 0); // , void** banks=0 );  // Ensure one per thread
-    ~GUFieldPropagatorPool();
+  bool CheckIndex(size_t num)
+  {
+    assert(num < fFieldPropagatorVec.size());
+    // ((void)num); // make compiler happy
+    return (num < fFieldPropagatorVec.size());
+  }
 
-    void Extend(size_t Num);
-     // Create additional propagators, so that total is 'Num'
-  private:
-    // Invariants -- constant during simulation
-    bool   fInitialisedRKIntegration;
-    unsigned int fNumberPropagators;
+  GUFieldPropagator *GetPropagator(int num)
+  {
+    CheckIndex(num);
+    return fFieldPropagatorVec[num];
+  }
 
-    const  GUFieldPropagator* fPrototype; //  Owned
-    VVectorField* fFieldPrototype;
+  VVectorField *GetField(unsigned int num)
+  {
+    // CheckIndex(num);
+    // return fFieldVec[num];
+    GUFieldPropagator *pFP = fFieldPropagatorVec[num];
+    return pFP->GetField();
+  }
 
-    // Copies for use by threads
-    static std::vector<GUFieldPropagator*> fFieldPropagatorVec;
-    // static std::vector<VVectorField*>          fFieldVec;
+private:
+  GUFieldPropagatorPool(GUFieldPropagator *prototype = 0); // , void** banks=0 );  // Ensure one per thread
+  ~GUFieldPropagatorPool();
+
+  void Extend(size_t Num);
+  // Create additional propagators, so that total is 'Num'
+private:
+  // Invariants -- constant during simulation
+  bool fInitialisedRKIntegration;
+  unsigned int fNumberPropagators;
+
+  const GUFieldPropagator *fPrototype; //  Owned
+  VVectorField *fFieldPrototype;
+
+  // Copies for use by threads
+  static std::vector<GUFieldPropagator *> fFieldPropagatorVec;
+  // static std::vector<VVectorField*>          fFieldVec;
 };
 
 // }

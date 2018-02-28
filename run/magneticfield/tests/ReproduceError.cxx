@@ -3,22 +3,18 @@
 
 using namespace std;
 
+int main()
+{
 
-int main(){
-
-
-  TVecUniMF* ConstBfield = new TVecUniMF();
+  TVecUniMF *ConstBfield = new TVecUniMF();
 
   // // TVectorUniformMagField* ConstBfield = new TVectorUniformMagField( FieldValueV );
   // cout<<"here 0.5"<<endl;
   delete ConstBfield;
 
-/*    TVecUniMF<int> ConstBfield(3.);
-    TVecUniMF<int> *ConstBfield2 = &ConstBfield;
-    TVecUniMF<int> *ConstBfield3;*/
+  /*    TVecUniMF<int> ConstBfield(3.);
+      TVecUniMF<int> *ConstBfield2 = &ConstBfield;
+      TVecUniMF<int> *ConstBfield3;*/
 
-
-  return 0; 
+  return 0;
 }
-
-
