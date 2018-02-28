@@ -41,40 +41,38 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-EventAction::EventAction(DetectorConstruction* det)
-:G4UserEventAction(),fDetector(det)
-{ }
+EventAction::EventAction(DetectorConstruction *det) : G4UserEventAction(), fDetector(det)
+{
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 EventAction::~EventAction()
-{ }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void EventAction::BeginOfEventAction(const G4Event*)
-{       
-  //initialize EnergyDeposit per event
-  //
-  for (G4int k=0; k<kMaxAbsor; k++) {
-    fEnergyDeposit[k] = fTrackLengthCh[k] = 0.0;   
-  }
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void EventAction::EndOfEventAction(const G4Event*)
 {
-  //get Run
-  Run* run = static_cast<Run*>(
-             G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-             
-  for (G4int k=1; k<=fDetector->GetNbOfAbsor(); k++) {
-     run->FillPerEvent(k,fEnergyDeposit[k],fTrackLengthCh[k]);
-     if (fEnergyDeposit[k] > 0.)
-             G4AnalysisManager::Instance()->FillH1(k, fEnergyDeposit[k]);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void EventAction::BeginOfEventAction(const G4Event *)
+{
+  // initialize EnergyDeposit per event
+  //
+  for (G4int k = 0; k < kMaxAbsor; k++) {
+    fEnergyDeposit[k] = fTrackLengthCh[k] = 0.0;
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+void EventAction::EndOfEventAction(const G4Event *)
+{
+  // get Run
+  Run *run = static_cast<Run *>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+
+  for (G4int k = 1; k <= fDetector->GetNbOfAbsor(); k++) {
+    run->FillPerEvent(k, fEnergyDeposit[k], fTrackLengthCh[k]);
+    if (fEnergyDeposit[k] > 0.) G4AnalysisManager::Instance()->FillH1(k, fEnergyDeposit[k]);
+  }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

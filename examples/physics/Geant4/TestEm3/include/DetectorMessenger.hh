@@ -46,27 +46,25 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger: public G4UImessenger
-{
-  public:
-    DetectorMessenger(DetectorConstruction* );
-   ~DetectorMessenger();
+class DetectorMessenger : public G4UImessenger {
+public:
+  DetectorMessenger(DetectorConstruction *);
+  ~DetectorMessenger();
 
-    virtual void SetNewValue(G4UIcommand*, G4String);
+  virtual void SetNewValue(G4UIcommand *, G4String);
 
-  private:
-    DetectorConstruction*      fDetector;
+private:
+  DetectorConstruction *fDetector;
 
-    G4UIdirectory*             fTestemDir;
-    G4UIdirectory*             fDetDir;
-    
-    G4UIcmdWithADoubleAndUnit* fSizeYZCmd;
-    G4UIcmdWithAnInteger*      fNbLayersCmd;
-    G4UIcmdWithAnInteger*      fNbAbsorCmd;
-    G4UIcommand*               fAbsorCmd;
+  G4UIdirectory *fTestemDir;
+  G4UIdirectory *fDetDir;
+
+  G4UIcmdWithADoubleAndUnit *fSizeYZCmd;
+  G4UIcmdWithAnInteger *fNbLayersCmd;
+  G4UIcmdWithAnInteger *fNbAbsorCmd;
+  G4UIcommand *fAbsorCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

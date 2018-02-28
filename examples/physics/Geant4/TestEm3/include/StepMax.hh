@@ -45,61 +45,53 @@ class StepMaxMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class StepMax : public G4VDiscreteProcess
-{
+class StepMax : public G4VDiscreteProcess {
 public:
+  StepMax(const G4String &processName = "UserStepMax");
+  ~StepMax();
 
-  StepMax(const G4String& processName = "UserStepMax");
- ~StepMax();
+  G4bool IsApplicable(const G4ParticleDefinition &);
 
-  G4bool   IsApplicable(const G4ParticleDefinition&);
+  void SetStepMax(G4int, G4double);
 
-  void     SetStepMax(G4int, G4double);
+  G4double GetStepMax(G4int k) { return fStepMax[k]; };
 
-  G4double GetStepMax(G4int k) { return fStepMax[k];};
+  G4double PostStepGetPhysicalInteractionLength(const G4Track &track, G4double previousStepSize,
+                                                G4ForceCondition *condition);
 
-  G4double PostStepGetPhysicalInteractionLength( const G4Track& track,
-                                               G4double previousStepSize,
-                                               G4ForceCondition* condition);
+  G4VParticleChange *PostStepDoIt(const G4Track &, const G4Step &);
 
-  G4VParticleChange* PostStepDoIt(const G4Track&, const G4Step&);
-
-  G4double GetMeanFreePath(const G4Track&, G4double,G4ForceCondition*)
-     {return DBL_MAX;};    
+  G4double GetMeanFreePath(const G4Track &, G4double, G4ForceCondition *) { return DBL_MAX; };
 
 private:
-
   G4double fStepMax[kMaxAbsor];
-     
-  StepMaxMessenger* fMess;
+
+  StepMaxMessenger *fMess;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline 
-G4double StepMax::PostStepGetPhysicalInteractionLength( const G4Track& aTrack,
-                                    G4double, G4ForceCondition* condition)
+inline G4double StepMax::PostStepGetPhysicalInteractionLength(const G4Track &aTrack, G4double,
+                                                              G4ForceCondition *condition)
 {
   // condition is set to "Not Forced"
   *condition = NotForced;
-  
-  G4double limit = DBL_MAX; 
-  G4int n = aTrack.GetVolume()->GetCopyNo();
+
+  G4double limit           = DBL_MAX;
+  G4int n                  = aTrack.GetVolume()->GetCopyNo();
   if (n < kMaxAbsor) limit = fStepMax[n];
   return limit;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline 
-G4VParticleChange* StepMax::PostStepDoIt(const G4Track& aTrack, const G4Step&)
+inline G4VParticleChange *StepMax::PostStepDoIt(const G4Track &aTrack, const G4Step &)
 {
-   // do nothing
-   aParticleChange.Initialize(aTrack);
-   return &aParticleChange;
+  // do nothing
+  aParticleChange.Initialize(aTrack);
+  return &aParticleChange;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-

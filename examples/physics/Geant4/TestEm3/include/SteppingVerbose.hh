@@ -28,7 +28,7 @@
 //
 //
 // $Id: SteppingVerbose.hh 98762 2016-08-09 14:08:07Z gcosmo $
-// 
+//
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -41,11 +41,10 @@
 
 class SteppingVerbose : public G4SteppingVerbose {
 
-public:   
-
+public:
   SteppingVerbose();
- ~SteppingVerbose();
- 
+  ~SteppingVerbose();
+
   virtual void TrackingStarted();
   virtual void StepInfo();
 };

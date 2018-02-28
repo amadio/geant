@@ -40,24 +40,25 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class EventAction : public G4UserEventAction
-{
-  public:
-    EventAction(DetectorConstruction*);
-   ~EventAction();
+class EventAction : public G4UserEventAction {
+public:
+  EventAction(DetectorConstruction *);
+  ~EventAction();
 
-    virtual void BeginOfEventAction(const G4Event*);
-    virtual void   EndOfEventAction(const G4Event*);
+  virtual void BeginOfEventAction(const G4Event *);
+  virtual void EndOfEventAction(const G4Event *);
 
-    void SumEnergy(G4int k, G4double de, G4double dl) {
-      fEnergyDeposit[k] += de; fTrackLengthCh[k] += dl;
-    }
+  void SumEnergy(G4int k, G4double de, G4double dl)
+  {
+    fEnergyDeposit[k] += de;
+    fTrackLengthCh[k] += dl;
+  }
 
-  private:
-    DetectorConstruction* fDetector;
+private:
+  DetectorConstruction *fDetector;
 
-    G4double              fEnergyDeposit[kMaxAbsor];
-    G4double              fTrackLengthCh[kMaxAbsor];
+  G4double fEnergyDeposit[kMaxAbsor];
+  G4double fTrackLengthCh[kMaxAbsor];
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
