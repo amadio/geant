@@ -51,7 +51,7 @@ add_custom_target(materiallib DEPENDS Material)
 # Install the files
 #----------------------------------------------------------------------------------------------
 
-install(FILES ${headers} DESTINATION inc)
+install(FILES ${headers} DESTINATION inc/Geant)
 
 if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails

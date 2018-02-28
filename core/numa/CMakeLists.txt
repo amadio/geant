@@ -38,5 +38,5 @@ set(headers
 add_library(GeantNuma SHARED ${sources})
 target_link_libraries(GeantNuma  ${NUMA_LIBRARIES} ${VECGEOM_LIBRARIES})
 
-install(FILES ${headers} DESTINATION inc)
+install(FILES ${headers} DESTINATION inc/Geant)
 install(TARGETS GeantNuma DESTINATION lib)

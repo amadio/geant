@@ -136,7 +136,7 @@ endif()
 set(GEANTV_HEADERS ${headers} )
 set(GEANTV_SOURCES ${sources} )
 
-install(FILES ${GEANTV_HEADERS} DESTINATION inc)
+install(FILES ${GEANTV_HEADERS} DESTINATION inc/Geant)
 
 #----------------------------------------------------------------------------------------------
 # CUDA section

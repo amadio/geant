@@ -88,7 +88,7 @@ add_custom_target(realphyslib DEPENDS RealPhysics)
 #----------------------------------------------------------------------------------------------
 # Install the files
 #
-install(FILES ${headers} DESTINATION inc)
+install(FILES ${headers} DESTINATION inc/Geant)
 
 #----------------------------------------------------------------------------------------------
 if(APPLE)
