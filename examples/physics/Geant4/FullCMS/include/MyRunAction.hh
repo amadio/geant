@@ -7,24 +7,22 @@
 class MyRun;
 class G4Timer;
 
-
-class MyRunAction: public G4UserRunAction {
+class MyRunAction : public G4UserRunAction {
 
 public:
-
   MyRunAction();
   virtual ~MyRunAction();
 
-  virtual G4Run* GenerateRun();
-  virtual void BeginOfRunAction(const G4Run* aRun);
-  virtual void EndOfRunAction(const G4Run* aRun);
+  virtual G4Run *GenerateRun();
+  virtual void BeginOfRunAction(const G4Run *aRun);
+  virtual void EndOfRunAction(const G4Run *aRun);
 
-  void    SetPerformanceFlag(G4bool val) { fIsPerformance=val;   }
+  void SetPerformanceFlag(G4bool val) { fIsPerformance = val; }
 
 private:
-  G4bool       fIsPerformance;
-  MyRun*       fRun;
-  G4Timer*     fTimer;
+  G4bool fIsPerformance;
+  MyRun *fRun;
+  G4Timer *fTimer;
 };
 
 #endif

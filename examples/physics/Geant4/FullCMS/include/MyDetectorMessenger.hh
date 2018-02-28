@@ -10,21 +10,19 @@ class G4UIdirectory;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithAString;
 
-class MyDetectorMessenger: public G4UImessenger {
+class MyDetectorMessenger : public G4UImessenger {
 
 public:
-
-  MyDetectorMessenger( MyDetectorConstruction* );
+  MyDetectorMessenger(MyDetectorConstruction *);
   ~MyDetectorMessenger();
 
-  void SetNewValue( G4UIcommand*, G4String );
+  void SetNewValue(G4UIcommand *, G4String);
 
 private:
-  MyDetectorConstruction*    theDetector;
-  G4UIdirectory*             theDetectorDir;
-  G4UIcmdWithADoubleAndUnit* theFieldCommand;
-  G4UIcmdWithAString*        theGDMLCommand;
-
+  MyDetectorConstruction *theDetector;
+  G4UIdirectory *theDetectorDir;
+  G4UIcmdWithADoubleAndUnit *theFieldCommand;
+  G4UIcmdWithAString *theGDMLCommand;
 };
 
 #endif

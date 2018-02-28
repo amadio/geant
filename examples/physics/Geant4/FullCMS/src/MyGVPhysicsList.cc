@@ -28,33 +28,34 @@
 #include "G4EmParameters.hh"
 #include "G4MscStepLimitType.hh"
 
-
-MyGVPhysicsList::MyGVPhysicsList() : G4VUserPhysicsList() {
+MyGVPhysicsList::MyGVPhysicsList() : G4VUserPhysicsList()
+{
   SetDefaultCutValue(1.0);
   SetVerboseLevel(0);
 }
 
-
-MyGVPhysicsList::~MyGVPhysicsList() {}
-
-
-void MyGVPhysicsList::ConstructParticle() {
-   G4Electron::ElectronDefinition();
-   G4Positron::PositronDefinition();
-   G4Gamma::GammaDefinition();
+MyGVPhysicsList::~MyGVPhysicsList()
+{
 }
 
+void MyGVPhysicsList::ConstructParticle()
+{
+  G4Electron::ElectronDefinition();
+  G4Positron::PositronDefinition();
+  G4Gamma::GammaDefinition();
+}
 
-void MyGVPhysicsList::ConstructProcess() {
+void MyGVPhysicsList::ConstructProcess()
+{
   // Transportation
   AddTransportation();
   // EM physics
   BuildEMPhysics();
 }
 
-
-void MyGVPhysicsList::BuildEMPhysics() {
-  G4EmParameters* param = G4EmParameters::Instance();
+void MyGVPhysicsList::BuildEMPhysics()
+{
+  G4EmParameters *param = G4EmParameters::Instance();
   param->SetDefaults();
   param->SetVerbose(1);
   // inactivate energy loss fluctuations
@@ -69,42 +70,42 @@ void MyGVPhysicsList::BuildEMPhysics() {
   G4LossTableManager::Instance();
   //
   // Add standard EM physics processes to e-/e+ and gamma that GeantV has
-  G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
+  G4PhysicsListHelper *ph = G4PhysicsListHelper::GetPhysicsListHelper();
   auto aParticleIterator  = GetParticleIterator();
   aParticleIterator->reset();
-  while((*aParticleIterator)()) {
-    G4ParticleDefinition* particle = aParticleIterator->value();
+  while ((*aParticleIterator)()) {
+    G4ParticleDefinition *particle = aParticleIterator->value();
     G4String particleName          = particle->GetParticleName();
-    if (particleName=="gamma") {
-//      ph->RegisterProcess(new G4PhotoElectricEffect, particle);
+    if (particleName == "gamma") {
+      //      ph->RegisterProcess(new G4PhotoElectricEffect, particle);
       ph->RegisterProcess(new G4ComptonScattering(), particle);
       ph->RegisterProcess(new G4GammaConversion(), particle);
-      G4double LivermoreLowEnergyLimit  = 1.*eV;
-      G4double LivermoreHighEnergyLimit = 1.*TeV;
-      G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
-      G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
+      G4double LivermoreLowEnergyLimit                              = 1. * eV;
+      G4double LivermoreHighEnergyLimit                             = 1. * TeV;
+      G4PhotoElectricEffect *thePhotoElectricEffect                 = new G4PhotoElectricEffect();
+      G4LivermorePhotoElectricModel *theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
       theLivermorePhotoElectricModel->SetLowEnergyLimit(LivermoreLowEnergyLimit);
       theLivermorePhotoElectricModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
       thePhotoElectricEffect->AddEmModel(0, theLivermorePhotoElectricModel);
       ph->RegisterProcess(thePhotoElectricEffect, particle);
-    } else if (particleName =="e-") {
-//      ph->RegisterProcess(new G4eMultipleScattering(), particle);
-      G4eMultipleScattering* msc         = new G4eMultipleScattering;
-      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
+    } else if (particleName == "e-") {
+      //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
+      G4eMultipleScattering *msc         = new G4eMultipleScattering;
+      G4GoudsmitSaundersonMscModel *msc1 = new G4GoudsmitSaundersonMscModel();
       msc->AddEmModel(0, msc1);
-      ph->RegisterProcess(msc,particle);
+      ph->RegisterProcess(msc, particle);
       //
-      G4eIonisation* eIoni = new G4eIonisation();
+      G4eIonisation *eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
-    } else if (particleName=="e+") {
-//      ph->RegisterProcess(new G4eMultipleScattering(), particle);
-      G4eMultipleScattering* msc         = new G4eMultipleScattering;
-      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
+    } else if (particleName == "e+") {
+      //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
+      G4eMultipleScattering *msc         = new G4eMultipleScattering;
+      G4GoudsmitSaundersonMscModel *msc1 = new G4GoudsmitSaundersonMscModel();
       msc->AddEmModel(0, msc1);
-      ph->RegisterProcess(msc,particle);
+      ph->RegisterProcess(msc, particle);
       //
-      G4eIonisation* eIoni = new G4eIonisation();
+      G4eIonisation *eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
       //

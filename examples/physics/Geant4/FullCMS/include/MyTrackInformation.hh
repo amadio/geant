@@ -8,11 +8,10 @@
 class MyTrackInformation : public G4VUserTrackInformation {
 public:
   MyTrackInformation(G4int id);
- virtual ~MyTrackInformation();
+  virtual ~MyTrackInformation();
 
-
-  G4int  GetPrimaryTrackID() const   { return fPrimaryTrackID; }
-  void   SetPrimaryTrackID(G4int id) { fPrimaryTrackID = id; }
+  G4int GetPrimaryTrackID() const { return fPrimaryTrackID; }
+  void SetPrimaryTrackID(G4int id) { fPrimaryTrackID = id; }
 
 private:
   G4int fPrimaryTrackID;
