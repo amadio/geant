@@ -32,18 +32,17 @@ inline namespace GEANT_IMPL_NAMESPACE {
 #if !defined(USE_ROOT) || defined(VECCORE_CUDA)
 class GeomQueryHandler : public Handler {
 #else
-class GeomQueryHandler : public Handler,
-                         public TGeoExtension {
+class GeomQueryHandler : public Handler, public TGeoExtension {
 #endif
 
-protected:  
-  Volume_t *fVolume = nullptr;         ///< Associated volume
-  int fIndex = -1;                     ///< Handler index in the array of geometry handlers
+protected:
+  Volume_t *fVolume = nullptr; ///< Associated volume
+  int fIndex        = -1;      ///< Handler index in the array of geometry handlers
 
 private:
   GeomQueryHandler(const GeomQueryHandler &) = delete;
   GeomQueryHandler &operator=(const GeomQueryHandler &) = delete;
-  
+
 protected:
   VECCORE_ATT_HOST_DEVICE
   void ConnectToVolume();
@@ -56,7 +55,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GeomQueryHandler() : Handler() {}
 
-  /** 
+  /**
    * @brief Volume handler default constructor
    * @param threshold Basketizing threshold
    * @param propagator Propagator working with this handler
@@ -75,11 +74,11 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Track *track, Basket& output, TaskData *td);
+  virtual void DoIt(Track *track, Basket &output, TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Basket &input, Basket& output, TaskData *td);
+  virtual void DoIt(Basket &input, Basket &output, TaskData *td);
 
   /** @brief Getter for the index in the list of geometry handlers */
   VECCORE_ATT_HOST_DEVICE
@@ -91,11 +90,11 @@ public:
   GEANT_FORCE_INLINE
   Volume_t *GetVolume() const { return fVolume; }
 
-  /**
-   * @brief Grab function for TGeoExtension interface
-   * @details Interface of TGeoExtension for getting a reference to this from Volume
-   * @return Pointer to the base class
-   */
+/**
+ * @brief Grab function for TGeoExtension interface
+ * @details Interface of TGeoExtension for getting a reference to this from Volume
+ * @return Pointer to the base class
+ */
 #if defined(USE_ROOT) && !defined(VECCORE_CUDA)
   virtual TGeoExtension *Grab() { return this; }
   /**
@@ -103,8 +102,7 @@ public:
    * @details Interface of TGeoExtension to signal releasing ownership of this from TGeoVolume
    */
   virtual void Release() const {}
-#endif  // USE_ROOT.
-
+#endif // USE_ROOT.
 };
 
 } // GEANT_IMPL_NAMESPACE

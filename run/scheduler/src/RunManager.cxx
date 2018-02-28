@@ -52,23 +52,23 @@ inline namespace GEANT_IMPL_NAMESPACE {
 using namespace vecgeom;
 
 //______________________________________________________________________________
-RunManager::RunManager(unsigned int npropagators, unsigned int nthreads,
-                                 GeantConfig *config)
-  : fInitialized(false), fNpropagators(npropagators), fNthreads(nthreads),
-    fConfig(config) {
+RunManager::RunManager(unsigned int npropagators, unsigned int nthreads, GeantConfig *config)
+    : fInitialized(false), fNpropagators(npropagators), fNthreads(nthreads), fConfig(config)
+{
   fPriorityEvents.store(0);
   fTaskId.store(0);
   fEventSetsLock.clear();
 }
 
 //______________________________________________________________________________
-bool RunManager::Initialize() {
-  const char* methodName= "RunManager::Initialize";
+bool RunManager::Initialize()
+{
+  const char *methodName = "RunManager::Initialize";
   // Initialization of run manager
   if (fInitialized) return fInitialized;
   if (!fNthreads) {
     // Autodiscovery mode using NUMA detection
-    fNthreads = 1;   // disabled detection for now
+    fNthreads = 1; // disabled detection for now
   }
 
   if (!fNpropagators) {
@@ -83,58 +83,55 @@ bool RunManager::Initialize() {
   }
 
   // Increase buffer to give a fair share to each propagator
-  int nbuffmax = fConfig->fNtotal/fNpropagators;
-  if (fConfig->fUseV3 && nbuffmax == 0)
-    nbuffmax = 1;
+  int nbuffmax                                   = fConfig->fNtotal / fNpropagators;
+  if (fConfig->fUseV3 && nbuffmax == 0) nbuffmax = 1;
   if (fConfig->fNbuff > nbuffmax) {
     Print("Initialize", "Number of buffered events reduced to %d", nbuffmax);
     fConfig->fNbuff = nbuffmax;
   }
   fNbuff = fConfig->fNbuff;
-  //fConfig->fNbuff *= fNpropagators;
+  // fConfig->fNbuff *= fNpropagators;
   fConfig->fMaxPerEvent = 5 * fConfig->fNaverage;
-  fConfig->fMaxTracks = fConfig->fMaxPerEvent * fConfig->fNbuff;
+  fConfig->fMaxTracks   = fConfig->fMaxPerEvent * fConfig->fNbuff;
 
   bool externalLoop = fConfig->fRunMode == GeantConfig::kExternalLoop;
-  
+
   if (!fPrimaryGenerator && !externalLoop) {
-    Fatal(methodName,  "The primary generator has to be defined");
+    Fatal(methodName, "The primary generator has to be defined");
     return false;
   }
 
   if (!fApplication) {
-    Fatal(methodName,  "The user application has to be defined");
+    Fatal(methodName, "The user application has to be defined");
     return false;
   }
 
   if (!fDetConstruction) {
-    Warning(methodName,  "The user detector construction should be defined");
+    Warning(methodName, "The user detector construction should be defined");
     // return false;
   } else {
-     if( !(fDetConstruction->GetFieldConstruction()) ){
-      Printf("- RunManager::Initialize - %s.\n",
-             " no User Field Construction found in Detector Construction." );
-      Printf("    Created a default field= %f %f %f\n",
-              fBfieldArr[0], fBfieldArr[1], fBfieldArr[2] );
-      auto fieldCtion= new UserFieldConstruction();
-      fieldCtion->UseConstantMagField( fBfieldArr );
+    if (!(fDetConstruction->GetFieldConstruction())) {
+      Printf("- RunManager::Initialize - %s.\n", " no User Field Construction found in Detector Construction.");
+      Printf("    Created a default field= %f %f %f\n", fBfieldArr[0], fBfieldArr[1], fBfieldArr[2]);
+      auto fieldCtion = new UserFieldConstruction();
+      fieldCtion->UseConstantMagField(fBfieldArr);
       SetUserFieldConstruction(fieldCtion);
-      Warning(methodName,  "A default field construction was defined");
+      Warning(methodName, "A default field construction was defined");
     }
   }
 
-//  fPrimaryGenerator->InitPrimaryGenerator();
+  //  fPrimaryGenerator->InitPrimaryGenerator();
 
-  for (auto i=0; i<fNpropagators; ++i) {
+  for (auto i = 0; i < fNpropagators; ++i) {
     Propagator *prop = new Propagator(fNthreads);
     fPropagators.push_back(prop);
     prop->fRunMgr = this;
     prop->SetConfig(fConfig);
-    prop->fApplication = fApplication;
-    prop->fStdApplication = fStdApplication;
+    prop->fApplication      = fApplication;
+    prop->fStdApplication   = fStdApplication;
     prop->fPhysicsInterface = fPhysicsInterface;
     prop->fPrimaryGenerator = fPrimaryGenerator;
-    prop->fTruthMgr = fTruthMgr;
+    prop->fTruthMgr         = fTruthMgr;
   }
 
   // Temporary workaround to allow migration to detector construction
@@ -146,14 +143,14 @@ bool RunManager::Initialize() {
     LoadGeometry(fConfig->fGeomFileName.c_str());
   }
   fConfig->fMaxDepth = vecgeom::GeoManager::Instance().getMaxDepth();
-  Info(methodName,  "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
+  Info(methodName, "Geometry created with maxdepth %d\n", fConfig->fMaxDepth);
 
   // Now we know the geometry depth: create the track data manager
   TrackDataMgr *dataMgr = TrackDataMgr::GetInstance(fConfig->fMaxDepth);
 
   // Initialize the process(es)
   if (!fPhysicsInterface) {
-    geant::Fatal(methodName,  "The physics process interface has to be initialized before this");
+    geant::Fatal(methodName, "The physics process interface has to be initialized before this");
     return false;
   }
   // Initialize the physics
@@ -163,23 +160,23 @@ bool RunManager::Initialize() {
   LocalityManager *mgr = LocalityManager::Instance();
   if (!mgr->IsInitialized()) {
     mgr->SetNblocks(10);     // <- must be configurable
-    mgr->SetBlockSize(1000);  // <- must be configurable
+    mgr->SetBlockSize(1000); // <- must be configurable
     mgr->Init();
-  if (fConfig->fUseVectorizedGeom) {
-    printf("*** Using vectorized geometry, default basket size is %d\n", fConfig->fMaxPerBasket);
-    if (fNthreads > 1) {
-      printf("### \e[5mWARNING!    Basketized mode + MT not suported yet\e[m\n###\n");
+    if (fConfig->fUseVectorizedGeom) {
+      printf("*** Using vectorized geometry, default basket size is %d\n", fConfig->fMaxPerBasket);
+      if (fNthreads > 1) {
+        printf("### \e[5mWARNING!    Basketized mode + MT not suported yet\e[m\n###\n");
+      }
+    } else {
+      printf("*** Using scalar geometry\n");
     }
-  } else {
-    printf("*** Using scalar geometry\n");
-  }
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
     if (fConfig->fUseNuma) {
       int nnodes = mgr->GetPolicy().GetNnumaNodes();
       mgr->SetPolicy(NumaPolicy::kCompact);
       // Loop propagatpors and assign NUMA nodes
       if (fNpropagators > 1) {
-        for (auto i=0; i<fNpropagators; ++i)
+        for (auto i = 0; i < fNpropagators; ++i)
           fPropagators[i]->SetNuma(i % nnodes);
       }
     } else {
@@ -190,16 +187,15 @@ bool RunManager::Initialize() {
 
   fDoneEvents = BitSet::MakeInstance(fConfig->fNtotal);
 
-  if( !fInitialisedRKIntegration ) {
+  if (!fInitialisedRKIntegration) {
     PrepareRkIntegration();
   }
 
-  if (fPrimaryGenerator)
-    fPrimaryGenerator->InitPrimaryGenerator();
+  if (fPrimaryGenerator) fPrimaryGenerator->InitPrimaryGenerator();
 
   // Initialize task data
   int nthreads = GetNthreadsTotal();
-  fTDManager = new TDManager(nthreads, fConfig->fMaxPerBasket);
+  fTDManager   = new TDManager(nthreads, fConfig->fMaxPerBasket);
 
   // Initialize application
   if (fConfig->fUseStdScoring) {
@@ -217,25 +213,25 @@ bool RunManager::Initialize() {
   }
 
   // Initialize all propagators
-  for (auto i=0; i<fNpropagators; ++i)
+  for (auto i = 0; i < fNpropagators; ++i)
     fPropagators[i]->Initialize();
 
   TaskData *td = fTDManager->GetTaskData(0);
-  
+
   if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
-    for (auto i=0; i<fNpropagators; ++i) {
-      for (auto j=0; j< fNthreads; ++j) {
-        td = fTDManager->GetTaskData(i*fNthreads+j);
+    for (auto i = 0; i < fNpropagators; ++i) {
+      for (auto j = 0; j < fNthreads; ++j) {
+        td = fTDManager->GetTaskData(i * fNthreads + j);
         td->AttachPropagator(fPropagators[i], 0);
       }
     }
   } else {
-    td->AttachPropagator(fPropagators[0], 0);  
+    td->AttachPropagator(fPropagators[0], 0);
   }
 
   // Initialize the event server
   fEventServer = new EventServer(fConfig->fNbuff, this);
-  
+
   dataMgr->Print();
   fInitialized = true;
   return fInitialized;
@@ -244,17 +240,19 @@ bool RunManager::Initialize() {
 //______________________________________________________________________________
 TaskData *RunManager::BookTransportTask()
 {
-// Book a transport task to be used with RunSimulationTask.
+  // Book a transport task to be used with RunSimulationTask.
   return fTDManager->GetTaskData();
 }
 
 //______________________________________________________________________________
-RunManager::~RunManager() {
-  for (auto i=0; i<fNpropagators; ++i) delete fPropagators[i];
+RunManager::~RunManager()
+{
+  for (auto i = 0; i < fNpropagators; ++i)
+    delete fPropagators[i];
   fPropagators.clear();
-  for (auto i=0; i<fNvolumes; ++i) {
-    Volume_t *vol = (Volume_t*)fVolumes[i];
-    VBconnector *connector = (VBconnector*)vol->GetBasketManagerPtr();
+  for (auto i = 0; i < fNvolumes; ++i) {
+    Volume_t *vol          = (Volume_t *)fVolumes[i];
+    VBconnector *connector = (VBconnector *)vol->GetBasketManagerPtr();
     vol->SetBasketManagerPtr(nullptr);
     delete connector;
   }
@@ -271,7 +269,8 @@ RunManager::~RunManager() {
 }
 
 //______________________________________________________________________________
-bool RunManager::LoadGeometry(const char *filename) {
+bool RunManager::LoadGeometry(const char *filename)
+{
 // Load geometry from given file.
 #ifdef USE_ROOT
   if (!gGeoManager) TGeoManager::Import(filename);
@@ -295,8 +294,8 @@ bool RunManager::LoadGeometry(const char *filename) {
     return false;
   }
 #endif
-  for (auto i=0; i<fNvolumes; ++i) {
-    Volume_t *vol = (Volume_t*)fVolumes[i];
+  for (auto i = 0; i < fNvolumes; ++i) {
+    Volume_t *vol          = (Volume_t *)fVolumes[i];
     VBconnector *connector = new VBconnector(i);
     vol->SetBasketManagerPtr(connector);
   }
@@ -309,8 +308,8 @@ void RunManager::PrepareRkIntegration()
   using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
   // using GUFieldPropagator = ::GUFieldPropagator;
   using std::cout;
-  using std::endl;  
-  
+  using std::endl;
+
   // Initialise the classes required for tracking in field
   // const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
   // const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
@@ -321,75 +320,74 @@ void RunManager::PrepareRkIntegration()
   // auto integrDriver = new ScalarIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
   // auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK);
 
-  
-  UserFieldConstruction* udc= fDetConstruction->GetFieldConstruction();
-  if( ! udc ) {
-     geant::Error("PrepareRkIntegration", "Cannot find expected User Field Construction object.");
-     exit(1);
+  UserFieldConstruction *udc = fDetConstruction->GetFieldConstruction();
+  if (!udc) {
+    geant::Error("PrepareRkIntegration", "Cannot find expected User Field Construction object.");
+    exit(1);
   } else {
-     // GUVVectorField** fieldPtr;
-     bool useRungeKutta= fConfig->fUseRungeKutta;
-     cout << "PrepareRkIntegration: creating field & solver.  Use RK= " << useRungeKutta << endl;     
-     udc->CreateFieldAndSolver( useRungeKutta ); // , fieldPtr );
+    // GUVVectorField** fieldPtr;
+    bool useRungeKutta = fConfig->fUseRungeKutta;
+    cout << "PrepareRkIntegration: creating field & solver.  Use RK= " << useRungeKutta << endl;
+    udc->CreateFieldAndSolver(useRungeKutta); // , fieldPtr );
 
-     static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
-     assert(fpPool); // Cannot be zero
-     if (fpPool) {
-        // fpPool->RegisterPrototype(fieldPropagator);
-        //     ==> Now done in UserFieldConstructor::CreateSolverForField
-        // Create clones for other threads
-        fpPool->Initialize(fNthreads);
-     } else {
-        geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
-     }
+    static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
+    assert(fpPool); // Cannot be zero
+    if (fpPool) {
+      // fpPool->RegisterPrototype(fieldPropagator);
+      //     ==> Now done in UserFieldConstructor::CreateSolverForField
+      // Create clones for other threads
+      fpPool->Initialize(fNthreads);
+    } else {
+      geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
+    }
   }
 }
 
 //______________________________________________________________________________
-void RunManager::SetUserFieldConstruction(UserFieldConstruction* udc)
+void RunManager::SetUserFieldConstruction(UserFieldConstruction *udc)
 {
-  if( fDetConstruction )
-     fDetConstruction->SetUserFieldConstruction(udc);
+  if (fDetConstruction)
+    fDetConstruction->SetUserFieldConstruction(udc);
   else
-     Error("RunManager::SetUserFieldConstruction",
-           "To define a field, the user detector construction has to be defined");
-  fInitialisedRKIntegration= false;  //  Needs to be re-done !!
+    Error("RunManager::SetUserFieldConstruction",
+          "To define a field, the user detector construction has to be defined");
+  fInitialisedRKIntegration = false; //  Needs to be re-done !!
 }
-  
+
 //______________________________________________________________________________
 void RunManager::EventTransported(Event *event, TaskData *td)
 {
-// Actions executed after an event is transported.
+  // Actions executed after an event is transported.
   // Adjust number of prioritized events
   if (event->IsPrioritized()) fPriorityEvents--;
   // event->Print();
   // Digitizer
-  Info("EventTransported", " = task %d completed event %d with %d tracks", td->fTid, event->GetEvent(), event->GetNtracks());
-//  LocalityManager *lmgr = LocalityManager::Instance();
-//  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
-//         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
+  Info("EventTransported", " = task %d completed event %d with %d tracks", td->fTid, event->GetEvent(),
+       event->GetNtracks());
+  //  LocalityManager *lmgr = LocalityManager::Instance();
+  //  Printf("   NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
+  //         lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   fApplication->FinishEvent(event);
   // Signal completion of one event to the event server
   fDoneEvents->SetBitNumber(event->GetEvent());
   assert(event->GetNtracks() > 0);
   // Notify event sets
-  if (fConfig->fRunMode == GeantConfig::kExternalLoop)
-    NotifyEventSets(event);
+  if (fConfig->fRunMode == GeantConfig::kExternalLoop) NotifyEventSets(event);
 
   int evtnb = event->GetEvent();
 
   fEventServer->CompletedEvent(event, td);
 
   // closing event in MCTruthManager
-  if(fTruthMgr) fTruthMgr->CloseEvent(evtnb);
+  if (fTruthMgr) fTruthMgr->CloseEvent(evtnb);
 }
 
 //______________________________________________________________________________
 void RunManager::AddEventSet(EventSet *workload)
 {
-// Add one event set to be processed in the system. Adds also the individual
-// events in the event server.
-  
+  // Add one event set to be processed in the system. Adds also the individual
+  // events in the event server.
+
   LockEventSets();
   fEventSets.push_back(workload);
   UnlockEventSets();
@@ -399,13 +397,12 @@ void RunManager::AddEventSet(EventSet *workload)
 //______________________________________________________________________________
 EventSet *RunManager::NotifyEventSets(Event *finished_event)
 {
-// The method loops over registered event sets calling MarkDone method.
+  // The method loops over registered event sets calling MarkDone method.
   LockEventSets();
   for (auto eventSet : fEventSets) {
     if (eventSet->MarkDone(finished_event->GetEvent())) {
       if (eventSet->IsDone()) {
-        fEventSets.erase(std::remove(fEventSets.begin(), fEventSets.end(), eventSet),
-                        fEventSets.end());
+        fEventSets.erase(std::remove(fEventSets.begin(), fEventSets.end(), eventSet), fEventSets.end());
         UnlockEventSets();
         return eventSet;
       }
@@ -418,39 +415,41 @@ EventSet *RunManager::NotifyEventSets(Event *finished_event)
 }
 
 //______________________________________________________________________________
-bool RunManager::RunSimulationTask(EventSet *workload, TaskData *td) {
-// Entry point for running simulation as asynchonous task. The user has to provide
-// an event set to be transported, and to pre-book the transport task. The method 
-// will return only when the given workload is completed.
-// 
-// The actual thread executing this task will co-operate
-// to the completion of other workloads pipelined by other similar tasks. In case
-// the worker doesn't manage to complete the workload and there is no more work
-// to be done, the thread will go to sleep and be waken at the completion of the
-// event set.
-// The method is intended to work in an external event loop scenario, steered by
-// an external task.
+bool RunManager::RunSimulationTask(EventSet *workload, TaskData *td)
+{
+  // Entry point for running simulation as asynchonous task. The user has to provide
+  // an event set to be transported, and to pre-book the transport task. The method
+  // will return only when the given workload is completed.
+  //
+  // The actual thread executing this task will co-operate
+  // to the completion of other workloads pipelined by other similar tasks. In case
+  // the worker doesn't manage to complete the workload and there is no more work
+  // to be done, the thread will go to sleep and be waken at the completion of the
+  // event set.
+  // The method is intended to work in an external event loop scenario, steered by
+  // an external task.
 
   // Register the workload in the manager and insert events in the server
   AddEventSet(workload);
 
-  //LockEventSets();
-  //std::cerr<<"Task "<< td->fTid <<" started event set:\n";
-  //workload->Print();
-  //UnlockEventSets();
+  // LockEventSets();
+  // std::cerr<<"Task "<< td->fTid <<" started event set:\n";
+  // workload->Print();
+  // UnlockEventSets();
 
   bool completed = WorkloadManager::TransportTracksTask(workload, td);
 
-  //LockEventSets();
-  //std::cerr<<"Task "<< td->fTid <<" finished event set:\n";
-  //workload->Print();
-  //UnlockEventSets();
+  // LockEventSets();
+  // std::cerr<<"Task "<< td->fTid <<" finished event set:\n";
+  // workload->Print();
+  // UnlockEventSets();
 
   return completed;
 }
 
 //______________________________________________________________________________
-void RunManager::RunSimulation() {
+void RunManager::RunSimulation()
+{
   // Start simulation for all propagators
   Initialize();
 
@@ -462,33 +461,31 @@ void RunManager::RunSimulation() {
     Printf("  Runge-Kutta integration OFF");
   Printf("==========================================================================");
 #ifdef USE_ROOT
-  if (fConfig->fUseMonitoring)
-    new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
-  if (fConfig->fUseAppMonitoring)
-    new TCanvas("capp", "Application canvas", 700, 800);
+  if (fConfig->fUseMonitoring) new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
+  if (fConfig->fUseAppMonitoring) new TCanvas("capp", "Application canvas", 700, 800);
 #endif
   vecgeom::Stopwatch timer;
   timer.Start();
-  for (auto i=0; i<fNpropagators; ++i)
+  for (auto i = 0; i < fNpropagators; ++i)
     fListThreads.emplace_back(Propagator::RunSimulation, fPropagators[i], fNthreads);
 
   for (auto &t : fListThreads) {
     t.join();
   }
   timer.Stop();
-  double rtime = timer.Elapsed();
-  double ctime = timer.CpuElapsed();
+  double rtime      = timer.Elapsed();
+  double ctime      = timer.CpuElapsed();
   long ntransported = fEventServer->GetNprimaries();
-  long nsteps = 0;
-  long nsnext = 0;
-  long nphys = 0;
-  long nmag = 0;
-  long nsmall = 0;
-  long ncross = 0;
-  long npushed = 0;
-  long nkilled = 0;
+  long nsteps       = 0;
+  long nsnext       = 0;
+  long nphys        = 0;
+  long nmag         = 0;
+  long nsmall       = 0;
+  long ncross       = 0;
+  long npushed      = 0;
+  long nkilled      = 0;
 
-  for (auto i=0; i<fNpropagators; ++i) {
+  for (auto i = 0; i < fNpropagators; ++i) {
     ntransported += fPropagators[i]->fNtransported.load();
     nsteps += fPropagators[i]->fNsteps.load();
     nsnext += fPropagators[i]->fNsnext.load();
@@ -499,7 +496,7 @@ void RunManager::RunSimulation() {
     npushed += fPropagators[i]->fNpushed.load();
     nkilled += fPropagators[i]->fNkilled.load();
   }
-  
+
   TaskData *td0 = fTDManager->GetTaskData(0);
   for (size_t stage = 0; stage < kNstages; ++stage) {
     for (size_t i = 1; i < fTDManager->GetNtaskData(); ++i) {
@@ -508,16 +505,18 @@ void RunManager::RunSimulation() {
       *td0->fCounters[stage] += *td->fCounters[stage];
     }
     float nbasketized = td0->fCounters[stage]->fNvector;
-    float ntotal = nbasketized + td0->fCounters[stage]->fNscalar;
+    float ntotal      = nbasketized + td0->fCounters[stage]->fNscalar;
     Printf("Stage %20s: basketized %d %% (nscalar = %ld  nvector = %ld)",
-           fPropagators[0]->GetStage(ESimulationStage(stage))->GetName(), int(100*nbasketized/ntotal),
-           size_t(ntotal-nbasketized), size_t(nbasketized));
+           fPropagators[0]->GetStage(ESimulationStage(stage))->GetName(), int(100 * nbasketized / ntotal),
+           size_t(ntotal - nbasketized), size_t(nbasketized));
   }
 
-Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
-         "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  RealTime=%gs CpuTime=%gs",
-         fNpropagators, fNthreads, fEventServer->GetNprimaries(), ntransported, nsteps, nsnext, nphys, nmag, nsmall, npushed, nkilled, ncross, rtime, ctime);
-  //LocalityManager *lmgr = LocalityManager::Instance();
+  Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  total steps: %ld, snext calls: %ld, "
+         "phys steps: %ld, mag. field steps: %ld, small steps: %ld, pushed: %ld, killed: %ld, bdr. crossings: %ld  "
+         "RealTime=%gs CpuTime=%gs",
+         fNpropagators, fNthreads, fEventServer->GetNprimaries(), ntransported, nsteps, nsnext, nphys, nmag, nsmall,
+         npushed, nkilled, ncross, rtime, ctime);
+  // LocalityManager *lmgr = LocalityManager::Instance();
   // Printf("NQUEUED = %d  NBLOCKS = %d NRELEASED = %d",
   //       lmgr->GetNqueued(), lmgr->GetNallocated(), lmgr->GetNreleased());
   FinishRun();
@@ -527,19 +526,20 @@ Printf("=== Summary: %d propagators x %d threads: %ld primaries/%ld tracks,  tot
 }
 
 //______________________________________________________________________________
-bool RunManager::FinishRun() {
+bool RunManager::FinishRun()
+{
   // Run termination actions.
   fApplication->FinishRun();
-  if (fStdApplication)
-    fStdApplication->FinishRun();
+  if (fStdApplication) fStdApplication->FinishRun();
   // Actions to follow
   return true;
 }
 
 //______________________________________________________________________________
-void RunManager::StopTransport() {
+void RunManager::StopTransport()
+{
   // Signal all propagators that transport has stopped
-  for (auto i=0; i<fNpropagators; ++i) {
+  for (auto i = 0; i < fNpropagators; ++i) {
     fPropagators[i]->StopTransport();
   }
 }

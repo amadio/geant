@@ -101,18 +101,20 @@ CoprocessorBroker::TaskData::~TaskData()
   GEANT_CUDA_ERROR(cudaStreamDestroy(fStream));
 }
 
-bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread, GeantPropagator *propagator, const vecgeom::DevicePtr<geant::cuda::GeantPropagator > &devPropagator)
+bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, int nthreads, int maxTrackPerThread,
+                                            GeantPropagator *propagator,
+                                            const vecgeom::DevicePtr<geant::cuda::GeantPropagator> &devPropagator)
 {
-  int maxdepth = propagator->fConfig->fMaxDepth;
+  int maxdepth                   = propagator->fConfig->fMaxDepth;
   unsigned int maxTrackPerKernel = nblocks * nthreads * maxTrackPerThread;
-  fChunkSize = maxTrackPerKernel;
-  fDevMaxTracks = 2 * fChunkSize;
+  fChunkSize                     = maxTrackPerKernel;
+  fDevMaxTracks                  = 2 * fChunkSize;
 
-  fGeantTaskData = new geant::GeantTaskData(nthreads, fDevMaxTracks);
+  fGeantTaskData              = new geant::GeantTaskData(nthreads, fDevMaxTracks);
   fGeantTaskData->fPropagator = new GeantPropagator(*propagator);
-  fGeantTaskData->fTid = streamid; // NOTE: not quite the same ...
-  fGeantTaskData->fBmgr = new GeantBasketMgr(propagator, 0, 0, true);
-  fPrioritizer = fGeantTaskData->fBmgr;
+  fGeantTaskData->fTid        = streamid; // NOTE: not quite the same ...
+  fGeantTaskData->fBmgr       = new GeantBasketMgr(propagator, 0, 0, true);
+  fPrioritizer                = fGeantTaskData->fBmgr;
   fPrioritizer->SetFeederQueue(propagator->fWMgr->FeederQueue());
 
   fStreamId = streamid;
@@ -136,8 +138,8 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
       fDevTaskWorkspace.GetPtr(), 4096 /* maxThreads */, size_needed, (size_t)maxThreads, maxdepth,
       (int)5 // maxTrackPerKernel is to much, maxTrackPerKernel/maxThreads might make more sense (i.e.
              // maxTrackPerThread) unless we need space for extras/new tracks ...
-      , devPropagator.GetPtr()
-      );
+      ,
+      devPropagator.GetPtr());
 
   // need to allocate enough for one object containing many tracks ...
   fDevTrackInput.Malloc(geant::GeantTrack_v::SizeOfInstance(fDevMaxTracks, maxdepth));
@@ -156,7 +158,7 @@ bool CoprocessorBroker::TaskData::CudaSetup(unsigned int streamid, int nblocks, 
   return true;
 }
 
-void CoprocessorBroker::TaskData::Push(dcqueue<CoprocessorBroker::TaskData*> *q)
+void CoprocessorBroker::TaskData::Push(dcqueue<CoprocessorBroker::TaskData *> *q)
 {
   // Add this helper to the queue and record it as the
   // default queue.
@@ -164,8 +166,7 @@ void CoprocessorBroker::TaskData::Push(dcqueue<CoprocessorBroker::TaskData*> *q)
   if (q) {
     fQueue = q;
     fQueue->push(this);
-  }
-  else if (fQueue) {
+  } else if (fQueue) {
     fQueue->push(this);
   }
 }
@@ -258,7 +259,7 @@ void CoprocessorBrokerInitConstant();
 }
 
 /** @brief Create the baskets for each stream */
-void CoprocessorBroker::CreateBaskets(GeantPropagator* propagator)
+void CoprocessorBroker::CreateBaskets(GeantPropagator *propagator)
 {
   // We must be called after the geometry has been loaded
   // so we can use the proper maximum depth
@@ -266,8 +267,8 @@ void CoprocessorBroker::CreateBaskets(GeantPropagator* propagator)
 
   fDevConfig.Allocate();
   if (cudaGetLastError() != cudaSuccess) {
-     printf(" ERROR ALLOC MAP\n");
-     return;
+    printf(" ERROR ALLOC MAP\n");
+    return;
   }
   fDevConfig.Construct();
   // It is save to cast here as the cuda version is 'just' missing
@@ -282,7 +283,7 @@ void CoprocessorBroker::CreateBaskets(GeantPropagator* propagator)
   }
   fDevPropagator.Construct(fNblocks * fNthreads);
 
-   // initialize the stream
+  // initialize the stream
   for (unsigned int i = 0; i < GetNstream(); ++i) {
     TaskData *data = new TaskData();
     data->CudaSetup(i, fNblocks, fNthreads, fMaxTrackPerThread, propagator, fDevPropagator);
@@ -298,7 +299,7 @@ void CoprocessorBroker::CreateBaskets(GeantPropagator* propagator)
 
 bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThread)
 {
-  int deviceCount = 0;
+  int deviceCount      = 0;
   cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
 
   if (error_id != cudaSuccess) {
@@ -310,8 +311,8 @@ bool CoprocessorBroker::CudaSetup(int nblocks, int nthreads, int maxTrackPerThre
 
   setup(this);
 
-  fNblocks = nblocks;
-  fNthreads = nthreads;
+  fNblocks           = nblocks;
+  fNthreads          = nthreads;
   fMaxTrackPerThread = maxTrackPerThread;
 
   return true;
@@ -331,7 +332,7 @@ unsigned int CoprocessorBroker::TaskData::AddTrack(CoprocessorBroker::Task *task
 
   if (!fInputBasket) {
     GeantBasketMgr *bmgr = basket.GetBasketMgr();
-    fInputBasket = bmgr->GetNextBasket(fGeantTaskData);
+    fInputBasket         = bmgr->GetNextBasket(fGeantTaskData);
   }
 
   GeantTrack_v &input = basket.GetInputTracks();
@@ -350,8 +351,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 {
   if (fThreadId == -1) {
     fThreadId = tid;
-  }
-  else if (fThreadId != tid) {
+  } else if (fThreadId != tid) {
     Fatal("TrackToDevice", "The stream %p is already assigned to thread %d when requested to do work for thread %d",
           this, fThreadId, tid);
     return 0;
@@ -359,11 +359,11 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
   if (!fInputBasket) {
     GeantBasketMgr *bmgr = basket.GetBasketMgr();
-    fInputBasket = bmgr->GetNextBasket(fGeantTaskData);
+    fInputBasket         = bmgr->GetNextBasket(fGeantTaskData);
   }
 
   // unsigned int start = fNStaged;
-  unsigned int count = 0;
+  unsigned int count  = 0;
   GeantTrack_v &input = basket.GetInputTracks();
   // input.PrintTracks("TrackToDevice");
   // GeantTrack_v &gputracks(fInputBasket->GetInputTracks());
@@ -381,8 +381,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
     ++count;
 
-    if (input.fHoles->TestBitNumber(hostIdx))
-      continue;
+    if (input.fHoles->TestBitNumber(hostIdx)) continue;
 
     if (task->Select(input, hostIdx)) {
 
@@ -414,13 +413,13 @@ unsigned int CoprocessorBroker::TaskData::TrackToDevice(CoprocessorBroker::Task 
 
 unsigned int CoprocessorBroker::TaskData::TrackToHost()
 {
-  WorkloadManager *mgr = fGeantTaskData->fPropagator->fWMgr;
-  GeantScheduler *sch = mgr->GetScheduler();
+  WorkloadManager *mgr           = fGeantTaskData->fPropagator->fWMgr;
+  GeantScheduler *sch            = mgr->GetScheduler();
   condition_locker &sched_locker = mgr->GetSchLocker();
-  GeantTrack_v &output = *fGeantTaskData->fTransported;
+  GeantTrack_v &output           = *fGeantTaskData->fTransported;
   // GeantTrack_v &output = *fOutputBasket->GetInputTracks();
   GeantPropagator *propagator = fGeantTaskData->fPropagator;
-  auto td = fGeantTaskData;
+  auto td                     = fGeantTaskData;
 
   if (output.GetNtracks() > output.Capacity())
     Fatal("CoprocessorBroker::TaskData::TrackToHost", "Request size in output track buffer is too large ( %d > %d )",
@@ -445,18 +444,17 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
   {
     // GeantTrack_v &output = *td->fTransported;
     // GeantTrack_v &output = *fOutputBasket->GetInputTracks();
-    auto ntotnext = 0;
+    auto ntotnext   = 0;
     Material_t *mat = nullptr;
 
     if (1) {
 
-      int nphys = 0;
+      int nphys          = 0;
       int nextra_at_rest = 0;
       // count phyics steps here
       auto nout = output.GetNtracks();
       for (auto itr = 0; itr < nout; ++itr) {
-        if (output.fStatusV[itr] == kPhysics)
-          nphys++;
+        if (output.fStatusV[itr] == kPhysics) nphys++;
         // Update track time for all output tracks (this should vectorize)
         output.fTimeV[itr] += output.TimeStep(itr, output.fStepV[itr]);
       }
@@ -507,8 +505,7 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
         }
       }
     }
-    if (propagator->fStdApplication)
-      propagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
+    if (propagator->fStdApplication) propagator->fStdApplication->StepManager(output.GetNtracks(), output, td);
     propagator->fApplication->StepManager(output.GetNtracks(), output, td);
 
     // Update geometry path for crossing tracks
@@ -516,13 +513,12 @@ unsigned int CoprocessorBroker::TaskData::TrackToHost()
 
     for (auto itr = 0; itr < ntotnext; ++itr) {
       output.fNstepsV[itr]++;
-      if (output.fStatusV[itr] == kBoundary)
-        *output.fPathV[itr] = *output.fNextpathV[itr];
+      if (output.fStatusV[itr] == kBoundary) *output.fPathV[itr] = *output.fNextpathV[itr];
     }
   }
 
-  int ntot = 0;
-  int nnew = 0;
+  int ntot    = 0;
+  int nnew    = 0;
   int nkilled = 0;
   // Printf("(%d - GPU) ================= Returning from Stream %d accumulated=%d outputNtracks=%d holes#=%lu "
   //        "basketHoles#=%lu ",
@@ -547,21 +543,19 @@ bool CoprocessorBroker::Task::IsReadyForLaunch(unsigned int ntasks)
   // Return true if the stream ought to be launch because it is either full or
   // filling slowly, etc.
 
-  if (fCurrent->fNStaged == fCurrent->fChunkSize)
-    return true;
+  if (fCurrent->fNStaged == fCurrent->fChunkSize) return true;
 
   // We do not have enough tracks
 
   if (fPrevNStaged == fCurrent->fNStaged) {
     ++(fIdles);
-  }
-  else {
+  } else {
     fIdles = 0;
   }
   ++(fCycles);
   fPrevNStaged = fCurrent->fNStaged;
 
-  unsigned int idle = fIdles;
+  unsigned int idle  = fIdles;
   unsigned int cycle = fCycles;
   if (fCurrent->fNStaged                                     // There is something
       && idle > (ntasks - 1)                                 // We are beyond the expected/normal number of idles cycles
@@ -623,9 +617,9 @@ CoprocessorBroker::Stream CoprocessorBroker::GetNextStream()
 CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /* = false */)
 {
 
-  Stream stream = task->fCurrent;
-  task->fIdles = 0;
-  task->fCycles = 0;
+  Stream stream  = task->fCurrent;
+  task->fIdles   = 0;
+  task->fCycles  = 0;
   task->fCurrent = 0;
 
   int outstanding = 0;
@@ -649,8 +643,7 @@ CoprocessorBroker::Stream CoprocessorBroker::launchTask(Task *task, bool wait /*
 
                              fNblocks, fNthreads, *stream);
 
-  if (!result)
-    return stream;
+  if (!result) return stream;
 
   // Bring back the number of secondaries created.
   // int stackSize;
@@ -699,9 +692,9 @@ GeantBasket *CoprocessorBroker::GetBasketForTransport(geant::GeantTaskData &main
 
 CoprocessorBroker::Stream CoprocessorBroker::launchTask(bool wait /* = false */)
 {
-  Stream stream = 0;
+  Stream stream             = 0;
   TaskColl_t::iterator task = fTasks.begin();
-  TaskColl_t::iterator end = fTasks.end();
+  TaskColl_t::iterator end  = fTasks.end();
   while (task != end) {
 
     if ((*task)->fCurrent != 0 && (*task)->fCurrent->fNStaged != 0) {
@@ -724,14 +717,13 @@ bool CoprocessorBroker::AddTrack(GeantBasket &input, unsigned int trkid)
   // unsigned int trackStart = 0;
 
   TaskColl_t::iterator task = fTasks.begin();
-  TaskColl_t::iterator end = fTasks.end();
+  TaskColl_t::iterator end  = fTasks.end();
   while (task != end) {
 
     if ((*task)->fCurrent == 0) {
       if (fNextTaskData) {
         (*task)->fCurrent = fNextTaskData;
-      }
-      else {
+      } else {
         // If we do not yet have a TaskData, wait for one.
         // Consequence: if we are very busy we hang on to this
         // track until one of the task finishes.
@@ -740,8 +732,7 @@ bool CoprocessorBroker::AddTrack(GeantBasket &input, unsigned int trkid)
         (*task)->fCurrent = GetNextStream();
       }
       fNextTaskData = 0;
-      if (!(*task)->fCurrent)
-        break;
+      if (!(*task)->fCurrent) break;
     }
 
     TaskData *stream = (*task)->fCurrent;
@@ -776,31 +767,29 @@ void CoprocessorBroker::runTask(GeantTaskData &td, GeantBasket &basket)
 
   unsigned int nTracks = basket.GetNinput();
 
-  unsigned int trackUsed = 0;
+  unsigned int trackUsed    = 0;
   TaskColl_t::iterator task = fTasks.begin();
-  TaskColl_t::iterator end = fTasks.end();
+  TaskColl_t::iterator end  = fTasks.end();
   while (task != end) {
-    unsigned int trackLeft = nTracks;
+    unsigned int trackLeft  = nTracks;
     unsigned int trackStart = 0;
     while (trackLeft) {
       if ((*task)->fCurrent == 0) {
         if (fNextTaskData) {
           (*task)->fCurrent = fNextTaskData;
-        }
-        else {
+        } else {
           // If we do not yet have a TaskData, wait for one.
           // Consequence: if we are very busy we hang on to this
           // basket until one of the task finishes.
           (*task)->fCurrent = GetNextStream();
         }
         fNextTaskData = 0;
-        if (!(*task)->fCurrent)
-          break;
+        if (!(*task)->fCurrent) break;
       }
       TaskData *stream = (*task)->fCurrent;
 
       unsigned int before = stream->fNStaged;
-      unsigned int count = stream->TrackToDevice(*task, td.fTid, basket, trackStart);
+      unsigned int count  = stream->TrackToDevice(*task, td.fTid, basket, trackStart);
       trackUsed += stream->fNStaged - before;
       // unsigned int rejected = nTracks-trackStart - (stream->fNStaged-before);
 
@@ -825,9 +814,9 @@ void CoprocessorBroker::runTask(GeantTaskData &td, GeantBasket &basket)
     // if we did not make any progress in a while, assume there is no 'interesting' track left
     // and schedule the most loaded task.
 
-    Task *heavy = 0;
+    Task *heavy               = 0;
     TaskColl_t::iterator task = fTasks.begin();
-    TaskColl_t::iterator end = fTasks.end();
+    TaskColl_t::iterator end  = fTasks.end();
     while (task != end) {
       if ((*task)->fCurrent && (*task)->fCurrent->fNStaged) {
         if (heavy == 0 || (*task)->fCurrent->fNStaged > heavy->fCurrent->fNStaged) {
@@ -844,33 +833,30 @@ void CoprocessorBroker::runTask(GeantTaskData &td, GeantBasket &basket)
   }
 
   if (trackUsed != nTracks) {
-    GeantTrack_v &input = basket.GetInputTracks();
+    GeantTrack_v &input  = basket.GetInputTracks();
     GeantTrack_v &output = *td.fTransported;
     for (unsigned int hostIdx = 0; hostIdx < nTracks; ++hostIdx) {
 
-      if (input.fHoles->TestBitNumber(hostIdx))
-        continue;
+      if (input.fHoles->TestBitNumber(hostIdx)) continue;
 
       input.PostponeTrack(hostIdx, output);
     }
   }
-  if (!basket.GetInputTracks().IsCompact())
-    basket.GetInputTracks().Compact();
+  if (!basket.GetInputTracks().IsCompact()) basket.GetInputTracks().Compact();
 
   size_t poolSize = td.GetBasketPoolSize();
   if (poolSize >= fTasks.size() + 20) { // MaybeCleanupBaskets requires at least 10 per thread.
     // Redistribute the baskets.
     // This is needed because the task's TaskData only uses (new) Baskets
     // while the TaskData td is the only always recycling them.
-    size_t share = (poolSize - 20) / fTasks.size();
+    size_t share              = (poolSize - 20) / fTasks.size();
     TaskColl_t::iterator task = fTasks.begin();
-    TaskColl_t::iterator end = fTasks.end();
+    TaskColl_t::iterator end  = fTasks.end();
     while (task != end) {
       if ((*task)->fCurrent) {
         for (size_t i = share; i != 0; --i) {
           auto b = td.GetNextBasket();
-          if (b)
-            (*task)->fCurrent->fGeantTaskData->RecycleBasket(b);
+          if (b) (*task)->fCurrent->fGeantTaskData->RecycleBasket(b);
         }
       }
       ++task;

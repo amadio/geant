@@ -11,34 +11,32 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-FieldConfig* FieldLookup::fFieldConfig= nullptr;
+FieldConfig *FieldLookup::fFieldConfig = nullptr;
 
 VECCORE_ATT_HOST_DEVICE
-void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
-                                       vecgeom::Vector3D<double>& MagFieldOut,
-                                       double                   & bmagOut
-                                 // , const geant::TaskData     * td  => Not needed !!
-   )
+void FieldLookup::GetFieldValue(const vecgeom::Vector3D<double> &Position, vecgeom::Vector3D<double> &MagFieldOut,
+                                double &bmagOut
+                                // , const geant::TaskData     * td  => Not needed !!
+                                )
 {
-//   auto tkp = td->fPropagator;
-//   auto config = tkp ? tkp->fConfig : nullptr;
-   double bmag= 0.0;
-   assert( fFieldConfig != nullptr );
+  //   auto tkp = td->fPropagator;
+  //   auto config = tkp ? tkp->fConfig : nullptr;
+  double bmag = 0.0;
+  assert(fFieldConfig != nullptr);
 
-   auto pField= fFieldConfig->GetFieldObject();
-   
-   if( fFieldConfig->IsFieldUniform() ) {
-      MagFieldOut= fFieldConfig->GetUniformFieldValue();
-      bmag=        fFieldConfig->GetUniformFieldMag();
-   }
-   else // if( pField )
-   {
-      assert( pField != nullptr );
-      
-      pField->ObtainFieldValue(Position, MagFieldOut);
-      bmag= MagFieldOut.Mag();
-   }
-   bmagOut= bmag;
+  auto pField = fFieldConfig->GetFieldObject();
+
+  if (fFieldConfig->IsFieldUniform()) {
+    MagFieldOut = fFieldConfig->GetUniformFieldValue();
+    bmag        = fFieldConfig->GetUniformFieldMag();
+  } else // if( pField )
+  {
+    assert(pField != nullptr);
+
+    pField->ObtainFieldValue(Position, MagFieldOut);
+    bmag = MagFieldOut.Mag();
+  }
+  bmagOut = bmag;
 }
 
 #if 0
@@ -60,6 +58,5 @@ void FieldLookup::GetFieldValue( const vecgeom::Vector3D<double>& Position,
 }
 #endif
 //*****
-
 }
 } // End of namespace geant

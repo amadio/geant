@@ -43,56 +43,59 @@ using namespace VECGEOM_NAMESPACE;
 
 //______________________________________________________________________________
 TrackGeo_v::TrackGeo_v()
-    : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
-      fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
+    : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0), fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0),
+      fXdirV(0), fYdirV(0), fZdirV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0)
+{
   // Dummy ctor.
 }
 
 //______________________________________________________________________________
 TrackGeo_v::TrackGeo_v(int size)
-    : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
-      fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
+    : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0), fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0),
+      fXdirV(0), fYdirV(0), fZdirV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0)
+{
   // Constructor with maximum capacity.
   Resize(size);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-TrackGeo_v *TrackGeo_v::MakeInstanceAt(void *addr, unsigned int nTracks) {
+TrackGeo_v *TrackGeo_v::MakeInstanceAt(void *addr, unsigned int nTracks)
+{
   return new (addr) TrackGeo_v(addr, nTracks);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
 TrackGeo_v::TrackGeo_v(void *addr, unsigned int nTracks)
-    : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0),
-      fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0), fXdirV(0), fYdirV(0), fZdirV(0),
-      fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0) {
+    : fNtracks(0), fMaxtracks(0), fBufSize(0), fBuf(0), fOriginalV(0), fIdV(0), fXposV(0), fYposV(0), fZposV(0),
+      fXdirV(0), fYdirV(0), fZdirV(0), fPstepV(0), fStepV(0), fSnextV(0), fSafetyV(0), fCompSafetyV(0)
+{
 
   // Constructor with maximum capacity.
-  fBuf = ((char *)addr) + RoundUpAlign(sizeof(TrackGeo_v));
+  fBuf     = ((char *)addr) + RoundUpAlign(sizeof(TrackGeo_v));
   fBufSize = BufferSize(nTracks);
   memset(fBuf, 0, fBufSize);
   AssignInBuffer(fBuf, nTracks);
 }
 
 //______________________________________________________________________________
-TrackGeo_v::~TrackGeo_v() {
+TrackGeo_v::~TrackGeo_v()
+{
   // Destructor.
   _mm_free(fBuf);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-void TrackGeo_v::AssignInBuffer(char *buff, int size) {
+void TrackGeo_v::AssignInBuffer(char *buff, int size)
+{
   // Assign all internal class arrays in the supplied buffer, padded by supplied
   // size.
 
   const int size_doublen = size * sizeof(double);
-  char *buf = buff;
-  fOriginalV = (Track **)buf;
+  char *buf              = buff;
+  fOriginalV             = (Track **)buf;
   buf += size * sizeof(Track *);
   fIdV = (size_t *)buf;
   buf += size * sizeof(size_t);
@@ -117,21 +120,22 @@ void TrackGeo_v::AssignInBuffer(char *buff, int size) {
   fSafetyV = (double *)buf;
   buf += size_doublen;
   fCompSafetyV = (bool *)buf;
-//  buf += size_booln;
+  //  buf += size_booln;
 }
 
 //______________________________________________________________________________
-void TrackGeo_v::CopyToBuffer(char *buff, int size) {
+void TrackGeo_v::CopyToBuffer(char *buff, int size)
+{
   // Copy existing track arrays into new buffer, padded by supplied size
-  const int size_double = fNtracks * sizeof(double);
+  const int size_double  = fNtracks * sizeof(double);
   const int size_doublen = size * sizeof(double);
-  char *buf = buff;
-  memcpy(buf, fOriginalV, size*sizeof(Track*));
+  char *buf              = buff;
+  memcpy(buf, fOriginalV, size * sizeof(Track *));
   fOriginalV = (Track **)buf;
-  buf += size*sizeof(Track*);
-  memcpy(buf, fIdV, size*sizeof(size_t));
+  buf += size * sizeof(Track *);
+  memcpy(buf, fIdV, size * sizeof(size_t));
   fIdV = (size_t *)buf;
-  buf += size*sizeof(size_t);
+  buf += size * sizeof(size_t);
   memcpy(buf, fXposV, size_double);
   fXposV = (double *)buf;
   buf += size_doublen;
@@ -164,21 +168,22 @@ void TrackGeo_v::CopyToBuffer(char *buff, int size) {
   buf += size_doublen;
   memcpy(buf, fCompSafetyV, fNtracks * sizeof(bool));
   fCompSafetyV = (bool *)buf;
-//  buf += size * sizeof(bool);
+  //  buf += size * sizeof(bool);
 }
 
 //______________________________________________________________________________
-bool TrackGeo_v::IsNormalized(int itr, double tolerance) const {
+bool TrackGeo_v::IsNormalized(int itr, double tolerance) const
+{
   // Check if track direction is normalized within tolerance
   double norm = fXdirV[itr] * fXdirV[itr] + fYdirV[itr] * fYdirV[itr] + fZdirV[itr] * fZdirV[itr];
-  if (fabs(1. - norm) > tolerance)
-    return false;
+  if (fabs(1. - norm) > tolerance) return false;
   return true;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-size_t TrackGeo_v::BufferSize(size_t nTracks) {
+size_t TrackGeo_v::BufferSize(size_t nTracks)
+{
   // return the contiguous memory size needed to hold a TrackGeo's data
   size_t size = RoundUpAlign(nTracks);
   return size * sizeof(TrackGeo);
@@ -186,18 +191,20 @@ size_t TrackGeo_v::BufferSize(size_t nTracks) {
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-size_t TrackGeo_v::SizeOfInstance(size_t nTracks) {
+size_t TrackGeo_v::SizeOfInstance(size_t nTracks)
+{
   // return the contiguous memory size needed to hold a TrackGeo
 
-  return RoundUpAlign(sizeof(TrackGeo_v))+BufferSize(nTracks);
+  return RoundUpAlign(sizeof(TrackGeo_v)) + BufferSize(nTracks);
 }
 
 //______________________________________________________________________________
-void TrackGeo_v::Resize(int newsize) {
+void TrackGeo_v::Resize(int newsize)
+{
   // Resize the container.
   int size = RoundUpAlign(newsize);
   if (size < GetNtracks()) {
-    geant::Error("Resize","%s","Cannot resize to less than current track content");
+    geant::Error("Resize", "%s", "Cannot resize to less than current track content");
     return;
   }
   fBufSize = BufferSize(size);
@@ -220,8 +227,9 @@ void TrackGeo_v::Resize(int newsize) {
 
 //______________________________________________________________________________
 VECCORE_ATT_DEVICE
-int TrackGeo_v::AddTracks(TrackVec_t const &array) {
-  // Add all tracks from a vector into the SOA array. 
+int TrackGeo_v::AddTracks(TrackVec_t const &array)
+{
+  // Add all tracks from a vector into the SOA array.
   // Returns the number of tracks after the operation.
 
   if ((fNtracks + (int)array.size()) >= fMaxtracks) {
@@ -233,22 +241,22 @@ int TrackGeo_v::AddTracks(TrackVec_t const &array) {
   }
 
   for (auto track : array) {
-    fOriginalV[fNtracks] = track;
-    fIdV[fNtracks] = fNtracks;
-    fXposV[fNtracks] = track->X();
-    fYposV[fNtracks] = track->Y();
-    fZposV[fNtracks] = track->Z();
-    fXdirV[fNtracks] = track->Dx();
-    fYdirV[fNtracks] = track->Dy();
-    fZdirV[fNtracks] = track->Dz();
-    fPstepV[fNtracks] = track->GetPstep();
-    fStepV[fNtracks] = track->GetStep();
-    fSnextV[fNtracks] = track->GetSnext();
-    fSafetyV[fNtracks] = track->GetSafety();
+    fOriginalV[fNtracks]   = track;
+    fIdV[fNtracks]         = fNtracks;
+    fXposV[fNtracks]       = track->X();
+    fYposV[fNtracks]       = track->Y();
+    fZposV[fNtracks]       = track->Z();
+    fXdirV[fNtracks]       = track->Dx();
+    fYdirV[fNtracks]       = track->Dy();
+    fZdirV[fNtracks]       = track->Dz();
+    fPstepV[fNtracks]      = track->GetPstep();
+    fStepV[fNtracks]       = track->GetStep();
+    fSnextV[fNtracks]      = track->GetSnext();
+    fSafetyV[fNtracks]     = track->GetSafety();
     fCompSafetyV[fNtracks] = !track->Boundary();
     fNtracks++;
   }
-  return fNtracks;  
+  return fNtracks;
 }
 
 } // GEANT_IMPL_NAMESPACE

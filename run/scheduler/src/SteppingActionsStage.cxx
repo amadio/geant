@@ -8,8 +8,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SteppingActionsStage::SteppingActionsStage(Propagator *prop)
-  : SimulationStage(kSteppingActionsStage, prop)
+SteppingActionsStage::SteppingActionsStage(Propagator *prop) : SimulationStage(kSteppingActionsStage, prop)
 {
 }
 
@@ -17,10 +16,10 @@ SteppingActionsStage::SteppingActionsStage(Propagator *prop)
 VECCORE_ATT_HOST_DEVICE
 int SteppingActionsStage::CreateHandlers()
 {
-// Create all volume handlers.
+  // Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
   AddHandler(new SteppingActionsHandler(threshold, fPropagator));
-  
+
   return 1;
 }
 
@@ -28,7 +27,7 @@ int SteppingActionsStage::CreateHandlers()
 VECCORE_ATT_HOST_DEVICE
 Handler *SteppingActionsStage::Select(Track *, TaskData *)
 {
-// Retrieve the appropriate handler depending on the track charge
+  // Retrieve the appropriate handler depending on the track charge
   return fHandlers[0];
 }
 

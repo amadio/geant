@@ -7,8 +7,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler::Handler(int threshold, Propagator *propagator)
-  : fPropagator(propagator) {
+Handler::Handler(int threshold, Propagator *propagator) : fPropagator(propagator)
+{
   // Handler constructor. The handler needs to be manually activated to actually
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
@@ -27,8 +27,10 @@ VECCORE_ATT_HOST_DEVICE
 Handler::~Handler()
 {
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA_DEVICE_COMPILATION)
-  if (GetNode() < 0) delete fBasketizer;
-  else NumaUtils::NumaAlignedFree(fBasketizer);
+  if (GetNode() < 0)
+    delete fBasketizer;
+  else
+    NumaUtils::NumaAlignedFree(fBasketizer);
 #else
   delete fBasketizer;
 #endif
@@ -40,22 +42,22 @@ Handler::~Handler()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Handler::DoIt(Basket &input, Basket& output, TaskData *td)
+void Handler::DoIt(Basket &input, Basket &output, TaskData *td)
 {
-// Vector DoIt method implemented as a loop. Overwrite to implement a natively
-// vectorized version.
-  for (auto track: input.Tracks())
+  // Vector DoIt method implemented as a loop. Overwrite to implement a natively
+  // vectorized version.
+  for (auto track : input.Tracks())
     DoIt(track, output, td);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Handler::DoItScalar(Basket &input, Basket& output, TaskData *td)
+void Handler::DoItScalar(Basket &input, Basket &output, TaskData *td)
 {
-// Basketized DoIt method implemented as a loop. Overwrite to implement a natively
-// vectorized version.
-//  DoIt(input, output, td);
-  for (auto track: input.Tracks())
+  // Basketized DoIt method implemented as a loop. Overwrite to implement a natively
+  // vectorized version.
+  //  DoIt(input, output, td);
+  for (auto track : input.Tracks())
     DoIt(track, output, td);
 }
 
@@ -74,8 +76,8 @@ void Handler::ActivateBasketizing(bool flag)
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
-      fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaUtils::NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
+      fBasketizer         = basketizer_t::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(basketizer_size, GetNode(), 64),
+                                                 buffer_size, basket_size);
     }
 #else
     fBasketizer = new basketizer_t(buffer_size, basket_size);
@@ -88,11 +90,11 @@ void Handler::ActivateBasketizing(bool flag)
 VECCORE_ATT_HOST_DEVICE
 bool Handler::AddTrack(Track *track, Basket &collector)
 {
-// Adding a track to the handler assumes that the handler is basketized.
-// The track will be pushed into the basketizer. The calling thread has to 
-// provide an empy collector basket which can possibly be filled by the track 
-// vector extracted during the operation.
-  
+  // Adding a track to the handler assumes that the handler is basketized.
+  // The track will be pushed into the basketizer. The calling thread has to
+  // provide an empy collector basket which can possibly be filled by the track
+  // vector extracted during the operation.
+
   // Make sure the collector is fit to store the number of tracks required
   collector.Tracks().reserve(fBcap);
   bool extracted = fBasketizer->AddElement(track, collector.Tracks());
@@ -112,7 +114,7 @@ bool Handler::Flush(Basket &collector)
 //       contains tracks in case it is 'hot' (e.g. adding tracks or finishing
 //       other flush). Flushing is blocking for other flushes!
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    // do not touch if other flushing operation is ongoing
+  // do not touch if other flushing operation is ongoing
   if (fLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
   bool flushed = false;

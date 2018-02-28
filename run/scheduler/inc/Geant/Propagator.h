@@ -63,54 +63,54 @@ class Propagator {
   using atomic_t = T;
 #else
   template <typename T>
-  using atomic_t = std::atomic<T>;
+  using atomic_t             = std::atomic<T>;
 #endif
 
 public:
-  GeantConfig *fConfig = nullptr;      /** Run configuration*/
-  RunManager *fRunMgr = nullptr;  /** Run manager */
-  int fNuma = -1;                      /** NUMA id */
+  GeantConfig *fConfig = nullptr; /** Run configuration*/
+  RunManager *fRunMgr  = nullptr; /** Run manager */
+  int fNuma            = -1;      /** NUMA id */
 
-  int fNthreads = 0;                   /** Number of worker threads */
-  int fNbuff = 0;                      /** Number of buffered events */
-  int fNtotal = 0;                     /** Total number of events to be transported */
-  atomic_t<long> fNtransported;        /** Number of transported tracks */
-  atomic_t<long> fNsteps;              /** Total number of steps */
-  atomic_t<long> fNsnext;              /** Total number of calls to getting distance to next boundary */
-  atomic_t<long> fNphys;               /** Total number of steps to physics processes */
-  atomic_t<long> fNmag;                /** Total number of partial steps in magnetic field */
-  atomic_t<long> fNsmall;              /** Total number of small steps taken */
-  atomic_t<long> fNcross;              /** Total number of boundaries crossed */
-  atomic_t<long> fNpushed;             /** Total number of pushes of 1E-3 */
-  atomic_t<long> fNkilled;             /** Total number of killed tracks */
-  atomic_t<int>  fNbfeed;              /** Number of baskets fed from server */
+  int fNthreads = 0;            /** Number of worker threads */
+  int fNbuff    = 0;            /** Number of buffered events */
+  int fNtotal   = 0;            /** Total number of events to be transported */
+  atomic_t<long> fNtransported; /** Number of transported tracks */
+  atomic_t<long> fNsteps;       /** Total number of steps */
+  atomic_t<long> fNsnext;       /** Total number of calls to getting distance to next boundary */
+  atomic_t<long> fNphys;        /** Total number of steps to physics processes */
+  atomic_t<long> fNmag;         /** Total number of partial steps in magnetic field */
+  atomic_t<long> fNsmall;       /** Total number of small steps taken */
+  atomic_t<long> fNcross;       /** Total number of boundaries crossed */
+  atomic_t<long> fNpushed;      /** Total number of pushes of 1E-3 */
+  atomic_t<long> fNkilled;      /** Total number of killed tracks */
+  atomic_t<int> fNbfeed;        /** Number of baskets fed from server */
 
-  bool fTransportOngoing = false;      /** Flag for ongoing transport */
-  bool fSingleTrack = false;           /** Use single track transport mode */
+  bool fTransportOngoing = false; /** Flag for ongoing transport */
+  bool fSingleTrack      = false; /** Use single track transport mode */
 
-  WorkloadManager   *fWMgr = nullptr;           /** Workload manager */
-  UserApplication *fApplication = nullptr;    /** User application */
+  WorkloadManager *fWMgr           = nullptr; /** Workload manager */
+  UserApplication *fApplication    = nullptr; /** User application */
   UserApplication *fStdApplication = nullptr; /** Standard application */
 
-  #ifdef USE_ROOT
-  TStopwatch *fTimer = nullptr;                 /** Timer */
-  #else
-  vecgeom::Stopwatch *fTimer = nullptr;         /** Timer */
-  #endif
+#ifdef USE_ROOT
+  TStopwatch *fTimer = nullptr; /** Timer */
+#else
+  vecgeom::Stopwatch *fTimer = nullptr; /** Timer */
+#endif
 
-  PhysicsInterface *fPhysicsInterface = nullptr;     /** The new, real physics interface */
+  PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
-  MCTruthMgr *fTruthMgr = nullptr;               /** MCTruth manager */
-  TrackManager *fTrackMgr = nullptr;             /** Track manager */
+  MCTruthMgr *fTruthMgr               = nullptr; /** MCTruth manager */
+  TrackManager *fTrackMgr             = nullptr; /** Track manager */
   vector_t<SimulationStage *> fStages;           /** Simulation stages */
 
   // Data per event
-  int *fNtracks = nullptr;        /** ![fNbuff] Number of tracks per slot */
-  Event **fEvents = nullptr; /** ![fNbuff]    Array of events */
-  bool fCompleted = false;     /** Completion flag */
+  int *fNtracks     = nullptr; /** ![fNbuff] Number of tracks per slot */
+  Event **fEvents   = nullptr; /** ![fNbuff]    Array of events */
+  bool fCompleted   = false;   /** Completion flag */
   bool fInitialFeed = false;   /** Flag marking that events were injected */
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  std::mutex fStopperLock;     /** Mutex for the stop operation */
+  std::mutex fStopperLock; /** Mutex for the stop operation */
 #endif
 
   /** @brief Initialization function */
@@ -162,14 +162,13 @@ public:
    * @brief Setter for the real physics interface
    * @param[in] physics Pointer to the real physics framework object.
    */
-  void SetPhysicsInterface(PhysicsInterface* physics) { fPhysicsInterface = physics; }
+  void SetPhysicsInterface(PhysicsInterface *physics) { fPhysicsInterface = physics; }
 
   /**
    * @brief   Getter for the real physics interface
    * @return  Generic physics interface pointing to the real physics framework
    */
   PhysicsInterface *GetPhysicsInterface() const { return fPhysicsInterface; }
-
 
   /** @brief Entry point to start simulation with GeantV */
   static void RunSimulation(Propagator *prop, int nthreads);
@@ -186,10 +185,10 @@ public:
   void PropagatorGeom(int nthreads);
 
   ///** @brief Function returning the number of monitored features */
-  //int GetMonFeatures() const;
+  // int GetMonFeatures() const;
 
   ///** @brief Setter for the global transport threshold */
-  //void SetNminThreshold(int thr);
+  // void SetNminThreshold(int thr);
 
   /** @brief  Getter for task broker */
   TaskBroker *GetTaskBroker();
@@ -198,7 +197,7 @@ public:
   void SetTaskBroker(TaskBroker *broker);
 
   /** @brief  Synchronize with run configuration */
-  void SetConfig(GeantConfig* config);
+  void SetConfig(GeantConfig *config);
 
   /** @brief  Register a simulation stage */
   GEANT_FORCE_INLINE
@@ -206,7 +205,7 @@ public:
   int RegisterStage(SimulationStage *stage)
   {
     fStages.push_back(stage);
-    return ( fStages.size() - 1);
+    return (fStages.size() - 1);
   }
 
   /** @brief  Inspect simulation stages */
@@ -236,7 +235,6 @@ public:
 private:
   /** @brief Assignment operator not implemented */
   Propagator &operator=(const Propagator &);
-
 };
 
 } // GEANT_IMPL_NAMESPACE

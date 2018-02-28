@@ -32,7 +32,7 @@ class Track;
 /**
  * @brief The base class for track handlers having a dedicated basketizer.
  */
- 
+
 class Handler {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
   // On cuda there is one propagator per thread.  So (for now), no need
@@ -47,29 +47,29 @@ class Handler {
 public:
   using basketizer_t = Basketizer<Track>;
 
-protected:  
-  bool fActive = false;                ///< Activity flag
+protected:
+  bool fActive       = false;          ///< Activity flag
   bool fMayBasketize = false;          ///< This handler can basketize
-  size_t fId = 0;                      ///< Handler id in the stage
-  int fBcap = 0;                       ///< Minimum capacity for the handled baskets
+  size_t fId         = 0;              ///< Handler id in the stage
+  int fBcap          = 0;              ///< Minimum capacity for the handled baskets
   atomic_t<int> fThreshold;            ///< Basketizing threshold
   atomic_t<size_t> fNflushed;          ///< Number of basket flushes
   atomic_t<size_t> fNfired;            ///< Number of times the basketizer fired
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this handler
-  Propagator *fPropagator = nullptr; ///< Associated propagator
+  Propagator *fPropagator   = nullptr; ///< Associated propagator
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  std::atomic_flag fLock;              ///< Lock for flushing
+  std::atomic_flag fLock; ///< Lock for flushing
 #endif
 private:
   Handler(const Handler &) = delete;
   Handler &operator=(const Handler &) = delete;
-  
+
 public:
   /** @brief Default handler constructor */
   VECCORE_ATT_HOST_DEVICE
   Handler() {}
 
-  /** 
+  /**
    * @brief Default constructor
    * @param threshold Basketizing threshold
    * @param propagator Propagator working with this handler
@@ -84,15 +84,15 @@ public:
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Track *track, Basket& output, TaskData *td) = 0;
+  virtual void DoIt(Track *track, Basket &output, TaskData *td) = 0;
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  virtual void DoIt(Basket &input, Basket& output, TaskData *td);
+  virtual void DoIt(Basket &input, Basket &output, TaskData *td);
 
   /** @brief Scalar emulation of vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
-  void DoItScalar(Basket &input, Basket& output, TaskData *td);
+  void DoItScalar(Basket &input, Basket &output, TaskData *td);
 
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
@@ -123,22 +123,24 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetMayBasketize(bool flag = true) { fMayBasketize = flag; }
-  
+
   /** @brief Increment fired baskets */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  size_t AddFired() {
+  size_t AddFired()
+  {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
     return ++fNfired;
 #else
     return fNfired.fetch_add(1) + 1;
 #endif
   }
-  
+
   /** @brief getter for number of fired baskets */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  size_t GetNfired() const {
+  size_t GetNfired() const
+  {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
     return fNfired;
 #else
@@ -149,14 +151,15 @@ public:
   /** @brief getter for number of flushed baskets */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  size_t GetNflushed() const {
+  size_t GetNflushed() const
+  {
 #ifdef VECCORE_CUDA_DEVICE_COMPILATION
     return fNflushed;
 #else
     return fNflushed.load();
 #endif
   }
- /** @brief NUMA node getter */
+  /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetNode() const { return fPropagator->fNuma; }
@@ -178,7 +181,8 @@ public:
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   /** @brief Check if handler is flushing */
   GEANT_FORCE_INLINE
-  bool IsFlushing() {
+  bool IsFlushing()
+  {
     if (fLock.test_and_set(std::memory_order_acquire)) return true;
     fLock.clear(std::memory_order_release);
     return false;
@@ -194,7 +198,6 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   bool Flush(Basket &collector);
-
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -31,7 +31,7 @@ __global__ void PropagateGeantTrack(geant::GeantTaskData *workSpace, size_t work
   input->ComputeTransportLength(ntracks);
   input->PropagateTracks(*output,tid);
   */
-  unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  unsigned int tid         = threadIdx.x + blockIdx.x * blockDim.x;
   geant::GeantTaskData *td = (geant::GeantTaskData *)(((char *)workSpace) + workspaceSizeOf * tid);
   td->fTransported->Clear();
 
@@ -60,8 +60,7 @@ __global__ void PropagateGeantTrack(geant::GeantTaskData *workSpace, size_t work
 
     itr += blockDim.x * gridDim.x;
   }
-  if (output->fSelected->GetNbits() != 2 * 4096)
-    printf("output bitset %ld\n", output->fSelected->GetNbits());
+  if (output->fSelected->GetNbits() != 2 * 4096) printf("output bitset %ld\n", output->fSelected->GetNbits());
 }
 
 int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTaskData> &workSpace, size_t workspaceSizeOf,
@@ -71,7 +70,7 @@ int PropagateGeantTrack_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTaskData> 
                             int nBlocks, int nThreads, cudaStream_t stream)
 {
   int threadsPerBlock = nThreads;
-  int blocksPerGrid = nBlocks;
+  int blocksPerGrid   = nBlocks;
 
   // fprintf(stderr,"DEBUG-GPU-0: About to schedule the PropagateGeantTrack kernel\n");
   PropagateGeantTrack<<<blocksPerGrid, threadsPerBlock, 0, stream>>>(workSpace, workspaceSizeOf, ntracks, input,

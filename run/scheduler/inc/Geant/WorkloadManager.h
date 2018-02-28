@@ -41,31 +41,28 @@ class RunManager;
  */
 class WorkloadManager {
 protected:
-  Propagator* fPropagator = nullptr; /** propagator,... */
-  int fNthreads = 0;                      /** Number of managed threads */
-  bool fStarted = false;                  /** Start flag */
-  bool fStopped = false;                  /** Stop flag */
+  Propagator *fPropagator          = nullptr; /** propagator,... */
+  int fNthreads                    = 0;       /** Number of managed threads */
+  bool fStarted                    = false;   /** Start flag */
+  bool fStopped                    = false;   /** Stop flag */
   priority_queue<Basket *> *fDoneQ = nullptr; /** Thread "all work done" queue */
-  std::vector<std::thread> fListThreads;  /** Vector of threads */
+  std::vector<std::thread> fListThreads;      /** Vector of threads */
 
-  TaskBroker *fBroker = nullptr;          /** Pointer to the coprocessor broker, this could be made a collection. */
+  TaskBroker *fBroker = nullptr; /** Pointer to the coprocessor broker, this could be made a collection. */
 
   /**
    * @brief WorkloadManager parameterized constructor
    *
    * @param  nthreads Number of threads foe workload manager
    */
-  WorkloadManager(int nthreads, Propagator* prop) : fPropagator(prop), fNthreads(nthreads)
+  WorkloadManager(int nthreads, Propagator *prop) : fPropagator(prop), fNthreads(nthreads)
   {
     fDoneQ = new priority_queue<Basket *>(1 << 10, nthreads);
   }
 
 public:
   /** @brief WorkloadManager destructor */
-  virtual ~WorkloadManager() 
-  {
-    delete fDoneQ;
-  }
+  virtual ~WorkloadManager() { delete fDoneQ; }
 
   enum class FeederResult : char { kNone, kError, kWork, kStop };
 
@@ -81,12 +78,12 @@ public:
    */
   priority_queue<Basket *> *DoneQueue() const { return fDoneQ; }
 
-  /**  
+  /**
    * @brief Function that create workload manager instance
    *
    * @param nthreads Number of threads (by default 0)
    */
-  static WorkloadManager *NewInstance(Propagator *prop= nullptr, int nthreads = 0);
+  static WorkloadManager *NewInstance(Propagator *prop = nullptr, int nthreads = 0);
 
   /** @brief Function that check stop flag */
   GEANT_FORCE_INLINE
@@ -99,7 +96,7 @@ public:
   /** @brief Stop all transport threads */
   GEANT_FORCE_INLINE
   void StopTransportThreads() { fStopped = true; }
-  
+
   /** @brief  Setter for task broker */
   void SetTaskBroker(TaskBroker *broker);
 
@@ -114,7 +111,7 @@ public:
   void JoinThreads();
 
 #ifdef USE_ROOT
-  /** @brief Function that starts ROOT application */  
+  /** @brief Function that starts ROOT application */
   static void *StartROOTApplication();
 #endif
 
@@ -134,15 +131,12 @@ public:
    *         by other task.
    */
   static bool TransportTracksTask(EventSet *workload, TaskData *td);
-  
-  static
-  FeederResult PreloadTracksForStep(TaskData *td);
-  
-  static
-  int SteppingLoop(TaskData *td, bool flush);
 
-  static
-  int FlushOneLane(TaskData *td);
+  static FeederResult PreloadTracksForStep(TaskData *td);
+
+  static int SteppingLoop(TaskData *td, bool flush);
+
+  static int FlushOneLane(TaskData *td);
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();

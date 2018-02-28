@@ -28,31 +28,32 @@ inline namespace GEANT_IMPL_NAMESPACE {
  * @detailed The track manager handles allocation and cleaning of track blocks.
  */
 class TrackManager {
-  using size_t = std::size_t;
+  using size_t           = std::size_t;
   using NumaTrackBlock_t = NumaBlock<Track>;
-  
+
 private:
-//  size_t fBlockSize;      // Number of tracks stored by each block
-//  int fNode;              // Numa id for the managed blocks
+  //  size_t fBlockSize;      // Number of tracks stored by each block
+  //  int fNode;              // Numa id for the managed blocks
   NumaBlockMgr<Track> fBlockMgr; // Block manager for tracks
-    
+
 public:
   /** @brief Constructor */
-  TrackManager(size_t nblocks, size_t block_size, int numa_node=0)
-              : fBlockMgr(nblocks, numa_node, block_size) {      
-//    std::cout << "Track manager for numa #" << numa_node << " created at:" << this << std::endl;
-//    std::cout << "   NumaBlockMgr: " << &fBlockMgr << std::endl;
+  TrackManager(size_t nblocks, size_t block_size, int numa_node = 0) : fBlockMgr(nblocks, numa_node, block_size)
+  {
+    //    std::cout << "Track manager for numa #" << numa_node << " created at:" << this << std::endl;
+    //    std::cout << "   NumaBlockMgr: " << &fBlockMgr << std::endl;
   }
 
   /** @brief Destructor */
   ~TrackManager() {}
-  
+
   /** @brief Returns a reference of a track from the container */
   GEANT_FORCE_INLINE
-  Track &GetTrack() { 
+  Track &GetTrack()
+  {
     size_t index;
     Track &track = fBlockMgr.GetObject(index);
-    //track.Clear();
+    // track.Clear();
     track.SetBindex(index);
     return track;
   }
@@ -68,42 +69,37 @@ public:
 
   /** @brief Service to get the NUMA block a track belongs to */
   GEANT_FORCE_INLINE
-  static
-  NumaTrackBlock_t *GetBlock(Track const &track) {
+  static NumaTrackBlock_t *GetBlock(Track const &track)
+  {
     // The magic here is that tracks are allocated contiguous in blocks and the
     // block address is stored just before the array of tracks. So we need to
     // store just the track index in the track structure to retrieve the address
     // of the block
     auto tr_size = Track::SizeOfInstance();
-    return *((NumaTrackBlock_t**)((char*)&track - tr_size*track.BIndex() - sizeof(NumaTrackBlock_t*) - sizeof(Track*)));
+    return *((NumaTrackBlock_t **)((char *)&track - tr_size * track.BIndex() - sizeof(NumaTrackBlock_t *) -
+                                   sizeof(Track *)));
   }
 
   /** @brief Get a new NUMA block */
   GEANT_FORCE_INLINE
-  NumaTrackBlock_t *GetNewBlock() {
-    return ( fBlockMgr.GetBlock() );
-  }
+  NumaTrackBlock_t *GetNewBlock() { return (fBlockMgr.GetBlock()); }
 
   /** @brief Recycle NUMA block */
   GEANT_FORCE_INLINE
-  void RecycleBlock(NumaTrackBlock_t *block) {
-    fBlockMgr.RecycleBlock(block);
-  }
- 
+  void RecycleBlock(NumaTrackBlock_t *block) { fBlockMgr.RecycleBlock(block); }
+
   /** @brief Service to get the NUMA node corresponding to a track */
   GEANT_FORCE_INLINE
-  int GetNode(Track const &track) {
-    return ( TrackManager::GetBlock(track)->GetNode() );
-  }
+  int GetNode(Track const &track) { return (TrackManager::GetBlock(track)->GetNode()); }
 
   /** @brief Release a track from its block */
   GEANT_FORCE_INLINE
-  bool ReleaseTrack(Track const &track) {
+  bool ReleaseTrack(Track const &track)
+  {
     NumaTrackBlock_t *block = GetBlock(track);
-//    std::cout << " ... releasing track " << &track << " from block " << block << std::endl;
-    return ( fBlockMgr.ReleaseObject(block) );
+    //    std::cout << " ... releasing track " << &track << " from block " << block << std::endl;
+    return (fBlockMgr.ReleaseObject(block));
   }
-  
 };
 } // GEANT_IMPL_NAMESPACE
 } // Geant

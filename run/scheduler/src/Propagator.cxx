@@ -25,7 +25,6 @@
 #include <fenv.h>
 #endif
 
-
 #include "navigation/VNavigator.h"
 #ifdef USE_ROOT
 #include "management/RootGeoManager.h"
@@ -63,48 +62,51 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 Propagator::Propagator(int nthreads)
-    : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0),
-      fNphys(0), fNmag(0), fNsmall(0), fNcross(0), fNpushed(0), fNkilled(0), fNbfeed(0) {
-  // Constructor
-  // Single instance of the propagator
+    : fNthreads(nthreads), fNtransported(0), fNsteps(0), fNsnext(0), fNphys(0), fNmag(0), fNsmall(0), fNcross(0),
+      fNpushed(0), fNkilled(0), fNbfeed(0)
+{
+// Constructor
+// Single instance of the propagator
 
-  // Initialize workload manager
+// Initialize workload manager
 #ifndef VECCORE_CUDA
   fWMgr = WorkloadManager::NewInstance(this, nthreads);
 #endif
 }
 
 //______________________________________________________________________________
-Propagator::Propagator(const Propagator &orig) : Propagator(orig.fNthreads) {
+Propagator::Propagator(const Propagator &orig) : Propagator(orig.fNthreads)
+{
 
   fRunMgr = orig.fRunMgr;
   SetConfig(orig.fConfig);
-  fApplication = orig.fApplication;
-  fStdApplication = orig.fStdApplication;
+  fApplication      = orig.fApplication;
+  fStdApplication   = orig.fStdApplication;
   fPhysicsInterface = orig.fPhysicsInterface;
   fPrimaryGenerator = orig.fPrimaryGenerator;
-  fTruthMgr = orig.fTruthMgr;
-
+  fTruthMgr         = orig.fTruthMgr;
 }
 
 //______________________________________________________________________________
-Propagator::~Propagator() {
+Propagator::~Propagator()
+{
   // Destructor
   delete fTimer;
   delete fWMgr;
 }
 
 //______________________________________________________________________________
-int Propagator::AddTrack(Track &track) {
+int Propagator::AddTrack(Track &track)
+{
 #ifdef VECCORE_CUDA
   assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
   return 0;
 #else
-    // Add a new track in the system. returns track number within the event.
+  // Add a new track in the system. returns track number within the event.
   track.SetParticle(fRunMgr->GetEvent(track.EventSlot())->AddTrack());
 
   // call MCTruth manager if it has been instantiated
-  if(fTruthMgr) fTruthMgr->AddTrack(track);
+  if (fTruthMgr) fTruthMgr->AddTrack(track);
 
   fNtransported++;
   return track.Particle();
@@ -112,18 +114,18 @@ int Propagator::AddTrack(Track &track) {
 }
 
 //______________________________________________________________________________
-void Propagator::StopTrack(Track *track, TaskData *td) {
-  // Mark track as stopped for tracking.
-  //   Printf("Stopping track %d", track->particle);
+void Propagator::StopTrack(Track *track, TaskData *td)
+{
+// Mark track as stopped for tracking.
+//   Printf("Stopping track %d", track->particle);
 
 #ifdef VECCORE_CUDA
   assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
-#else  // stoping track in MCTruthManager
+#else // stoping track in MCTruthManager
   // stoping track in MCTruthManager
-  if(fTruthMgr)
-    {
-      if(track->Status() == kKilled) fTruthMgr->EndTrack(track);
-    }
+  if (fTruthMgr) {
+    if (track->Status() == kKilled) fTruthMgr->EndTrack(track);
+  }
 
   if (fRunMgr->GetEvent(track->EventSlot())->StopTrack(fRunMgr, td)) {
     std::atomic_int &priority_events = fRunMgr->GetPriorityEvents();
@@ -133,12 +135,13 @@ void Propagator::StopTrack(Track *track, TaskData *td) {
 }
 
 //______________________________________________________________________________
-void Propagator::Initialize() {
-  // Initialize the propagator.
+void Propagator::Initialize()
+{
+// Initialize the propagator.
 #ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
-  int numa = (fNuma >= 0) ? fNuma : 0;
-  fTrackMgr = &mgr->GetTrackManager(numa);
+  int numa             = (fNuma >= 0) ? fNuma : 0;
+  fTrackMgr            = &mgr->GetTrackManager(numa);
 #endif
 
   // Create the simulation stages
@@ -151,7 +154,7 @@ void Propagator::SetNuma(int numa)
 // Set locality for the propagator
 #ifndef VECCORE_CUDA
   LocalityManager *mgr = LocalityManager::Instance();
-  fNuma  = numa;
+  fNuma                = numa;
   if (!mgr->IsInitialized()) return;
   if (numa >= 0)
     fTrackMgr = &mgr->GetTrackManager(numa);
@@ -163,17 +166,18 @@ void Propagator::SetNuma(int numa)
 //______________________________________________________________________________
 void Propagator::RunSimulation(Propagator *prop, int nthreads)
 {
-// Static thread running the simulation for one propagator
+  // Static thread running the simulation for one propagator
   Info("RunSimulation", "Starting propagator %p with %d threads", prop, nthreads);
   prop->PropagatorGeom(nthreads);
 }
 
 //______________________________________________________________________________
-void Propagator::PropagatorGeom(int nthreads) {
+void Propagator::PropagatorGeom(int nthreads)
+{
 #ifdef VECCORE_CUDA
   assert(0 && "PropagatorGeom not implemented yet for CUDA host/device code.");
 #else
-// Steering propagation method
+  // Steering propagation method
   fNthreads = nthreads;
 
   // Import the input events. This will start also populating the main queue
@@ -219,8 +223,9 @@ void Propagator::StopTransport()
 }
 
 //______________________________________________________________________________
-void Propagator::SetTaskBroker(TaskBroker *broker) {
-  // Setter for task broker
+void Propagator::SetTaskBroker(TaskBroker *broker)
+{
+// Setter for task broker
 #ifdef VECCORE_CUDA
   assert(0 && "SetTaskBroker not implemented yet for CUDA host/device code.");
 #else
@@ -229,8 +234,9 @@ void Propagator::SetTaskBroker(TaskBroker *broker) {
 }
 
 //______________________________________________________________________________
-TaskBroker *Propagator::GetTaskBroker() {
-  // Getter for task broker
+TaskBroker *Propagator::GetTaskBroker()
+{
+// Getter for task broker
 #ifdef VECCORE_CUDA
   assert(0 && "GetTaskBroker not implemented yet for CUDA host/device code.");
   return nullptr;
@@ -242,9 +248,9 @@ TaskBroker *Propagator::GetTaskBroker() {
 //______________________________________________________________________________
 void Propagator::SetConfig(GeantConfig *config)
 {
-// Set run configuration.
+  // Set run configuration.
   fConfig = config;
-  fNbuff = config->fNbuff;
+  fNbuff  = config->fNbuff;
   fNtotal = config->fNtotal;
   if (fNtotal <= 0 || fNbuff <= 0) {
     Fatal("Propagator::SetConfig", "%s", "Number of transported/buffered events should be positive");
@@ -266,8 +272,7 @@ int Propagator::CreateSimulationStages()
   (void)stage;
   // kPreStepStage
   stage = new PreStepStage(this);
-  if (stage->GetId() != int(kPreStepStage))
-    Fatal("CreateSimulationStages", "Wrong stages start index");
+  if (stage->GetId() != int(kPreStepStage)) Fatal("CreateSimulationStages", "Wrong stages start index");
   // kComputeIntLStage: physics step limit
   stage = fPhysicsInterface->CreateComputeIntLStage(this);
   assert(stage->GetId() == int(kComputeIntLStage));
@@ -278,9 +283,8 @@ int Propagator::CreateSimulationStages()
   stage = fPhysicsInterface->CreatePrePropagationStage(this);
   assert(stage->GetId() == int(kPrePropagationStage));
 
-//  stage = new GeomQueryStage(this);
-//  assert(stage->GetId() == int(kGeometryStepStage));
-
+  //  stage = new GeomQueryStage(this);
+  //  assert(stage->GetId() == int(kGeometryStepStage));
 
   // kPropagationStage
   stage = new PropagationStage(this);
@@ -297,7 +301,7 @@ int Propagator::CreateSimulationStages()
   assert(stage->GetId() == int(kPostStepActionStage));
   // kAtRestActionStage
   stage = fPhysicsInterface->CreateAtRestActionStage(this);
-  assert(stage->GetId() == int(kAtRestActionStage));  
+  assert(stage->GetId() == int(kAtRestActionStage));
   // kSteppingActionsStage
   stage = new SteppingActionsStage(this);
   assert(stage->GetId() == int(kSteppingActionsStage));
@@ -319,7 +323,7 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kComputeIntLStage)->SetFollowUpStage(kGeometryStepStage, true);
-//  GetStage(kComputeIntLStage)->SetFollowUpStage(kPrePropagationStage, true);
+  //  GetStage(kComputeIntLStage)->SetFollowUpStage(kPrePropagationStage, true);
   GetStage(kComputeIntLStage)->SetBasketizing(false);
   //        V
   //        V
@@ -332,19 +336,19 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kPrePropagationStage)->SetFollowUpStage(kPropagationStage, true);
-//  GetStage(kPrePropagationStage)->SetFollowUpStage(kGeometryStepStage, true);
+  //  GetStage(kPrePropagationStage)->SetFollowUpStage(kGeometryStepStage, true);
   GetStage(kPrePropagationStage)->SetBasketizing(false);
   //        V
 
-//  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
-//  GetStage(kGeometryStepStage)->SetBasketizing(false);
+  //  GetStage(kGeometryStepStage)->SetFollowUpStage(kPropagationStage, true);
+  //  GetStage(kGeometryStepStage)->SetBasketizing(false);
 
   //        V
   //        V
   GetStage(kPropagationStage)->SetFollowUpStage(kPostPropagationStage, false);
   // Follow-up not unique: stuck tracks are killed -> SteppingActions
-  bool useBasketsForField= false; // Whether FieldPropagation is vector (true) or scalar (false)
-  GetStage(kPropagationStage)->SetBasketizing(useBasketsForField); 
+  bool useBasketsForField = false; // Whether FieldPropagation is vector (true) or scalar (false)
+  GetStage(kPropagationStage)->SetBasketizing(useBasketsForField);
   std::cout << " Field Propagation Basket flag= " << useBasketsForField << std::endl;
   //        V
   //        V
@@ -376,29 +380,28 @@ int Propagator::CreateSimulationStages()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int Propagator::GetNextStage(Track &/*track*/, int /*current*/)
+int Propagator::GetNextStage(Track & /*track*/, int /*current*/)
 {
-// Get the next simulation stage for a track
-//  0 - Sample X-sec for discrete processes to propose the physics step
-//  1 - Compute geometry step length to boundary with a physics limitation
-//  2 - Propagate track with selected step, performing relocation if needed.
-//        - Follow-up to 1 for charged tracks if neither the geometry nor
-//          physics steps are completed
-//        - In case MSC is available, apply it for charged tracks
-//        - Detect loopers and send them to RIP stage
-//  2'- Apply multiple scattering and change track position/direction
-//        - Follow-up to 1 after
-//        - Handle boundary crossing by MSC
-//  3 - Apply along-step continuous processes
-//        - Send particles killed by energy threshold to graveyard
-//  4 - Do post step actions for particles suffering a physics process
-//        - Follow-up to stage 0 after running user actions stage
-//  5 - RIP stage - execute user actions then terminate tracks
-//  6 - Stepping actions is invoked as a stage, but the follow-up stage is backed-up
-//      beforehand in the track state.
+  // Get the next simulation stage for a track
+  //  0 - Sample X-sec for discrete processes to propose the physics step
+  //  1 - Compute geometry step length to boundary with a physics limitation
+  //  2 - Propagate track with selected step, performing relocation if needed.
+  //        - Follow-up to 1 for charged tracks if neither the geometry nor
+  //          physics steps are completed
+  //        - In case MSC is available, apply it for charged tracks
+  //        - Detect loopers and send them to RIP stage
+  //  2'- Apply multiple scattering and change track position/direction
+  //        - Follow-up to 1 after
+  //        - Handle boundary crossing by MSC
+  //  3 - Apply along-step continuous processes
+  //        - Send particles killed by energy threshold to graveyard
+  //  4 - Do post step actions for particles suffering a physics process
+  //        - Follow-up to stage 0 after running user actions stage
+  //  5 - RIP stage - execute user actions then terminate tracks
+  //  6 - Stepping actions is invoked as a stage, but the follow-up stage is backed-up
+  //      beforehand in the track state.
   return -1;
 }
-
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

@@ -13,7 +13,10 @@ template void MakeInstanceArrayAt(GeantTaskData *addr, size_t nElements, size_t 
 
 template void MakeInstanceAt(GeantTrack_v *addr, unsigned int, int);
 
-__global__ void Clear(GeantTrack_v *tracks) { tracks->Clear(); }
+__global__ void Clear(GeantTrack_v *tracks)
+{
+  tracks->Clear();
+}
 
 int Clear_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &tracks, int blocksPerGrid, int threadsPerBlock,
               cudaStream_t stream)

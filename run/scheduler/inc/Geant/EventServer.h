@@ -34,45 +34,43 @@ class StackLikeBuffer;
 //  fNDispatched[0] ...                    ->    Number of dispatched per evt.
 //------------------------------------------------------------------------------
 
-class EventServer
-{
+class EventServer {
 public:
+  enum ErrorType {
+    kNoerr   = 0x00, // normal operation
+    kCSlots  = 0x01, // contention on slots
+    kCEvents = 0x02, // contention on queued events
+    kDone    = 0x04  // all events dispatched
+  };
 
-enum ErrorType {
-  kNoerr   = 0x00,    // normal operation
-  kCSlots  = 0x01,    // contention on slots
-  kCEvents = 0x02,    // contention on queued events
-  kDone    = 0x04     // all events dispatched
-};
-
-using queue_slots = mpmc_bounded_queue<size_t>;
-using queue_events = mpmc_bounded_queue<Event*>;
+  using queue_slots  = mpmc_bounded_queue<size_t>;
+  using queue_events = mpmc_bounded_queue<Event *>;
 
 private:
-  int fNevents = 0;                    /** Number of events to be filled */
-  int fNprimaries = 0;                 /** Number of primaries served */
-  int fNactiveMax = 0;                 /** Maximum number of active events (buffer size)*/
-  int fNtracksInit = 0;                /** Initial number of tracks in the buffer. */
-  int fNbasketsInit = 0;               /** Initial number of baskets to be served */
-  std::atomic_int fNactive;            /** Number of deployed events */
-  std::atomic_int fNserved;            /** Number of baskets served */
-  std::atomic_int fLastActive;         /** Last activated event */
-  std::atomic_int fCurrentEvent;       /** Current event being served */
-  std::atomic_int fNload;              /** Last load event in the server */
-  std::atomic_int fNstored;            /** Number of stored events in the server */
-  std::atomic_int fNcompleted;         /** Number of completed events */
-  std::atomic_flag fGenLock;           /** Generator lock */
-  std::atomic<Event*> fEvent;     /** Current event being distributed */
-  RunManager *fRunMgr = nullptr;  /** Run manager */
-  bool fEventsServed = false;          /** All events served */
-  //bool fDone = false;                  /** All events transported */
-  bool fHasTracks = false;             /** Server has tracks to dispatch */
-  bool fInitialPhase = false;          /** Server in initial dispatch phase */
-  Event** fEvents = nullptr;      /** Events to be dispatched */
-  int  fBindex = 0;                    /** Basket manager index */
-  queue_slots fFreeSlots;              /** Queue of free event slots */
-  queue_events fPendingEvents;         /** Queue of pending events */
-  queue_events fDoneEvents;            /** Queue of transported events */
+  int fNevents      = 0;         /** Number of events to be filled */
+  int fNprimaries   = 0;         /** Number of primaries served */
+  int fNactiveMax   = 0;         /** Maximum number of active events (buffer size)*/
+  int fNtracksInit  = 0;         /** Initial number of tracks in the buffer. */
+  int fNbasketsInit = 0;         /** Initial number of baskets to be served */
+  std::atomic_int fNactive;      /** Number of deployed events */
+  std::atomic_int fNserved;      /** Number of baskets served */
+  std::atomic_int fLastActive;   /** Last activated event */
+  std::atomic_int fCurrentEvent; /** Current event being served */
+  std::atomic_int fNload;        /** Last load event in the server */
+  std::atomic_int fNstored;      /** Number of stored events in the server */
+  std::atomic_int fNcompleted;   /** Number of completed events */
+  std::atomic_flag fGenLock;     /** Generator lock */
+  std::atomic<Event *> fEvent;   /** Current event being distributed */
+  RunManager *fRunMgr = nullptr; /** Run manager */
+  bool fEventsServed  = false;   /** All events served */
+  // bool fDone = false;                  /** All events transported */
+  bool fHasTracks    = false;   /** Server has tracks to dispatch */
+  bool fInitialPhase = false;   /** Server in initial dispatch phase */
+  Event **fEvents    = nullptr; /** Events to be dispatched */
+  int fBindex        = 0;       /** Basket manager index */
+  queue_slots fFreeSlots;       /** Queue of free event slots */
+  queue_events fPendingEvents;  /** Queue of pending events */
+  queue_events fDoneEvents;     /** Queue of transported events */
 
 protected:
   Track *GetNextTrack(TaskData *td, unsigned int &error);
@@ -82,38 +80,44 @@ public:
   ~EventServer();
 
   GEANT_FORCE_INLINE
-  size_t  AdjustSize(size_t size) const
-  { size_t i = 1, new_size = 2; while ((size >> i++) > 0) new_size *= 2; return new_size; }
+  size_t AdjustSize(size_t size) const
+  {
+    size_t i = 1, new_size = 2;
+    while ((size >> i++) > 0)
+      new_size *= 2;
+    return new_size;
+  }
 
-// Accessors
+  // Accessors
   GEANT_FORCE_INLINE
-  int  GetNevents() const { return fNevents; }
-
-  GEANT_FORCE_INLINE
-  int  GetNprimaries() const { return fNprimaries; }
-
-  GEANT_FORCE_INLINE
-  int  GetNbasketsInit() const { return fNbasketsInit; }
-
-  GEANT_FORCE_INLINE
-  int  GetNactiveMax() const { return fNactiveMax; }
+  int GetNevents() const { return fNevents; }
 
   GEANT_FORCE_INLINE
-  int  GetNactive() const { return fNactive.load(); }
+  int GetNprimaries() const { return fNprimaries; }
 
   GEANT_FORCE_INLINE
-  int  GetCurrent() const { return fCurrentEvent.load(); }
+  int GetNbasketsInit() const { return fNbasketsInit; }
 
   GEANT_FORCE_INLINE
-  int  GetNstored() const { return fNstored.load(); }
-  
+  int GetNactiveMax() const { return fNactiveMax; }
+
+  GEANT_FORCE_INLINE
+  int GetNactive() const { return fNactive.load(); }
+
+  GEANT_FORCE_INLINE
+  int GetCurrent() const { return fCurrentEvent.load(); }
+
+  GEANT_FORCE_INLINE
+  int GetNstored() const { return fNstored.load(); }
+
   GEANT_FORCE_INLINE
   Event *GetEvent(int slot) { return fEvents[slot]; }
 
   GEANT_FORCE_INLINE
-  Event *FindEvent(int event) {
+  Event *FindEvent(int event)
+  {
     // trying to avoid concurrent map, but this could be smarter
-    for (int i=0; i<fNactiveMax; ++i) {
+    for (int i = 0; i < fNactiveMax; ++i) {
       if (fEvents[i]->GetEvent() == event) return fEvents[i];
     }
     return nullptr;
@@ -134,16 +138,16 @@ public:
   int FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned int &error);
 
   int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData *td, unsigned int &error);
-  
+
   // int AddEvent(TaskData *td);
-  
+
   /** @brief Add one event to the server */
   bool AddEvent(Event *event);
 
   Event *GenerateNewEvent(TaskData *td, unsigned int &error);
-  
-  Event *ActivateEvent(Event *expected, unsigned int &error, TaskData *td=nullptr);
-  
+
+  Event *ActivateEvent(Event *expected, unsigned int &error, TaskData *td = nullptr);
+
   void CompletedEvent(Event *event, TaskData *td);
 };
 

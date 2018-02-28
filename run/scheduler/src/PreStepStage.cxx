@@ -8,8 +8,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PreStepStage::PreStepStage(Propagator *prop)
-  : SimulationStage(kPreStepStage, prop)
+PreStepStage::PreStepStage(Propagator *prop) : SimulationStage(kPreStepStage, prop)
 {
 }
 
@@ -17,10 +16,10 @@ PreStepStage::PreStepStage(Propagator *prop)
 VECCORE_ATT_HOST_DEVICE
 int PreStepStage::CreateHandlers()
 {
-// Create all volume handlers.
+  // Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
   AddHandler(new PreStepHandler(threshold, fPropagator));
-  
+
   return 1;
 }
 
@@ -28,7 +27,7 @@ int PreStepStage::CreateHandlers()
 VECCORE_ATT_HOST_DEVICE
 Handler *PreStepStage::Select(Track *, TaskData *)
 {
-// All tracks selected
+  // All tracks selected
   return fHandlers[0];
 }
 

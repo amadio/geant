@@ -6,8 +6,8 @@ void DrawComparison(TH1F *hg4, TH1F *hgv, TVirtualPad *pad);
 
 void compareG4_GV()
 {
-   // Draw comparison plot for the particle flux end energy deposit in the CMS 
-   // ECAL, for Geant4 anf GeantV
+  // Draw comparison plot for the particle flux end energy deposit in the CMS
+  // ECAL, for Geant4 anf GeantV
   TFile *fg4 = TFile::Open("hists.root");
   if (!fg4) {
     ::Error("compareG4_GV", "File hists.root not found");
@@ -18,40 +18,40 @@ void compareG4_GV()
     ::Error("compareG4_GV", "File ScoreECAL.root not found");
     return;
   }
-  TH1F *hG4FluxElec = (TH1F*)fg4->Get("hFluxElec");
+  TH1F *hG4FluxElec = (TH1F *)fg4->Get("hFluxElec");
   hG4FluxElec->SetMarkerColor(1);
   hG4FluxElec->SetMarkerStyle(4);
-  TH1F *hG4FluxGamma = (TH1F*)fg4->Get("hFluxGamma");
+  TH1F *hG4FluxGamma = (TH1F *)fg4->Get("hFluxGamma");
   hG4FluxGamma->SetMarkerColor(1);
   hG4FluxGamma->SetMarkerStyle(4);
-  TH1F *hG4FluxP = (TH1F*)fg4->Get("hFluxP");
+  TH1F *hG4FluxP = (TH1F *)fg4->Get("hFluxP");
   hG4FluxP->SetMarkerColor(1);
   hG4FluxP->SetMarkerStyle(4);
-  TH1F *hG4FluxPi = (TH1F*)fg4->Get("hFluxPi");
+  TH1F *hG4FluxPi = (TH1F *)fg4->Get("hFluxPi");
   hG4FluxPi->SetMarkerColor(1);
   hG4FluxPi->SetMarkerStyle(4);
-  TH1F *hG4FluxK = (TH1F*)fg4->Get("hFluxK");
+  TH1F *hG4FluxK = (TH1F *)fg4->Get("hFluxK");
   hG4FluxK->SetMarkerColor(1);
   hG4FluxK->SetMarkerStyle(4);
-  TH1F *hGVFluxElec = (TH1F*)fgv->Get("hFluxElec");
+  TH1F *hGVFluxElec = (TH1F *)fgv->Get("hFluxElec");
   hGVFluxElec->SetMarkerColor(kRed);
   hGVFluxElec->SetMarkerStyle(20);
-  TH1F *hGVFluxGamma = (TH1F*)fgv->Get("hFluxGamma");
+  TH1F *hGVFluxGamma = (TH1F *)fgv->Get("hFluxGamma");
   hGVFluxGamma->SetMarkerColor(kRed);
   hGVFluxGamma->SetMarkerStyle(20);
-  TH1F *hGVFluxP = (TH1F*)fgv->Get("hFluxP");
+  TH1F *hGVFluxP = (TH1F *)fgv->Get("hFluxP");
   hGVFluxP->SetMarkerColor(kRed);
   hGVFluxP->SetMarkerStyle(20);
-  TH1F *hGVFluxPi = (TH1F*)fgv->Get("hFluxPi");
+  TH1F *hGVFluxPi = (TH1F *)fgv->Get("hFluxPi");
   hGVFluxPi->SetMarkerColor(kRed);
   hGVFluxPi->SetMarkerStyle(20);
-  TH1F *hGVFluxK = (TH1F*)fgv->Get("hFluxK");
+  TH1F *hGVFluxK = (TH1F *)fgv->Get("hFluxK");
   hGVFluxK->SetMarkerColor(kRed);
   hGVFluxK->SetMarkerStyle(20);
-  
+
   TVirtualPad *pad;
   TCanvas *c1 = new TCanvas("CMS test", "Flux scoring comparison in CMS ECAL", 1200, 800);
-  c1->Divide(2,3);
+  c1->Divide(2, 3);
   pad = c1->cd(1);
   DrawComparison(hG4FluxElec, hGVFluxElec, pad);
 
@@ -68,44 +68,44 @@ void compareG4_GV()
   DrawComparison(hG4FluxK, hGVFluxK, pad);
 
   // Edep
-  TH1F *hG4EdepElec = (TH1F*)fg4->Get("hEdepElec");
+  TH1F *hG4EdepElec = (TH1F *)fg4->Get("hEdepElec");
   hG4EdepElec->SetMarkerColor(1);
   hG4EdepElec->SetMarkerStyle(4);
-  TH1F *hG4EdepGamma = (TH1F*)fg4->Get("hEdepGamma");
+  TH1F *hG4EdepGamma = (TH1F *)fg4->Get("hEdepGamma");
   hG4EdepGamma->SetMarkerColor(1);
   hG4EdepGamma->SetMarkerStyle(4);
-  TH1F *hG4EdepP = (TH1F*)fg4->Get("hEdepP");
+  TH1F *hG4EdepP = (TH1F *)fg4->Get("hEdepP");
   hG4EdepP->SetMarkerColor(1);
   hG4EdepP->SetMarkerStyle(4);
-  TH1F *hG4EdepPi = (TH1F*)fg4->Get("hEdepPi");
+  TH1F *hG4EdepPi = (TH1F *)fg4->Get("hEdepPi");
   hG4EdepPi->SetMarkerColor(1);
   hG4EdepPi->SetMarkerStyle(4);
-  TH1F *hG4EdepK = (TH1F*)fg4->Get("hEdepK");
+  TH1F *hG4EdepK = (TH1F *)fg4->Get("hEdepK");
   hG4EdepK->SetMarkerColor(1);
   hG4EdepK->SetMarkerStyle(4);
-  TH1F *hGVEdepElec = (TH1F*)fgv->Get("hEdepElec");
+  TH1F *hGVEdepElec = (TH1F *)fgv->Get("hEdepElec");
   hGVEdepElec->SetMarkerColor(kRed);
   hGVEdepElec->SetMarkerStyle(20);
-  TH1F *hGVEdepGamma = (TH1F*)fgv->Get("hEdepGamma");
+  TH1F *hGVEdepGamma = (TH1F *)fgv->Get("hEdepGamma");
   hGVEdepGamma->SetMarkerColor(kRed);
   hGVEdepGamma->SetMarkerStyle(20);
-  TH1F *hGVEdepP = (TH1F*)fgv->Get("hEdepP");
+  TH1F *hGVEdepP = (TH1F *)fgv->Get("hEdepP");
   hGVEdepP->SetMarkerColor(kRed);
   hGVEdepP->SetMarkerStyle(20);
-  TH1F *hGVEdepPi = (TH1F*)fgv->Get("hEdepPi");
+  TH1F *hGVEdepPi = (TH1F *)fgv->Get("hEdepPi");
   hGVEdepPi->SetMarkerColor(kRed);
   hGVEdepPi->SetMarkerStyle(20);
-  TH1F *hGVEdepK = (TH1F*)fgv->Get("hEdepK");
+  TH1F *hGVEdepK = (TH1F *)fgv->Get("hEdepK");
   hGVEdepK->SetMarkerColor(kRed);
   hGVEdepK->SetMarkerStyle(20);
 
   TCanvas *c2 = new TCanvas("CMS test edep", "Edep scoring comparison in CMS ECAL", 1600, 1200);
-  c2->Divide(2,2);
+  c2->Divide(2, 2);
   pad = c2->cd(1);
   DrawComparison(hG4EdepElec, hGVEdepElec, pad);
- 
-//  pad = c2->cd(2);
-//  DrawComparison(hG4EdepGamma, hGVEdepGamma, pad);
+
+  //  pad = c2->cd(2);
+  //  DrawComparison(hG4EdepGamma, hGVEdepGamma, pad);
 
   pad = c2->cd(2);
   DrawComparison(hG4EdepP, hGVEdepP, pad);
@@ -122,15 +122,16 @@ void compareG4_GV()
 
   // Speed comparison plot
   Double_t x[5] = {5, 10, 20, 50, 100};
-//  Double_t y[5] = {1.23, 1.34, 1.34, 1.34, 1.36};
+  //  Double_t y[5] = {1.23, 1.34, 1.34, 1.34, 1.36};
   Double_t y[5] = {1.99, 1.99, 1.81, 1.89, 2.36};
-  TGraph *gr = new TGraph(5, x, y);
+  TGraph *gr    = new TGraph(5, x, y);
   gr->SetTitle("Single thread performance comparison");
   gr->GetXaxis()->SetTitle("# events");
   gr->GetYaxis()->SetTitle("Time_{Geant4}/Time_{GeantV}");
-  gr->GetYaxis()->SetRangeUser(1.5,2.5);
+  gr->GetYaxis()->SetRangeUser(1.5, 2.5);
   gr->GetYaxis()->SetNdivisions(505);
-  TCanvas *c4 = new TCanvas("Simulation time Geant4/GeantV", "Energy deposit density comparison in CMS ECAL", 1600, 1200);
+  TCanvas *c4 =
+      new TCanvas("Simulation time Geant4/GeantV", "Energy deposit density comparison in CMS ECAL", 1600, 1200);
   gr->SetMarkerColor(kBlue);
   gr->SetMarkerSize(1.4);
   gr->SetLineColor(kRed);
@@ -139,7 +140,7 @@ void compareG4_GV()
   gr->Draw("AL*");
   gr->SetMarkerStyle(20);
 
-  c1->SaveAs("fluxECAL.pdf"); 
+  c1->SaveAs("fluxECAL.pdf");
   c2->SaveAs("edepECAL.pdf");
   c3->SaveAs("edepProtonECAL.pdf");
   c4->SaveAs("perfG4_GV.pdf");
@@ -147,17 +148,17 @@ void compareG4_GV()
 
 void DrawComparison(TH1F *hg4, TH1F *hgv, TVirtualPad *pad)
 {
-  TLegend *legend = new TLegend(0.69,0.75,0.89,0.88);
+  TLegend *legend = new TLegend(0.69, 0.75, 0.89, 0.88);
   legend->SetLineColor(0);
   legend->AddEntry(hg4, "Geant4", "lpe");
   legend->AddEntry(hgv, "GeantV", "lpe");
   pad->cd();
-  TPad *padtop = new TPad("top","",0,0.3,1,1);
+  TPad *padtop = new TPad("top", "", 0, 0.3, 1, 1);
   padtop->SetBottomMargin(0);
   padtop->SetLogx();
   padtop->SetLogy();
-//  padtop->SetGridx();
-//  padtop->SetGridy();
+  //  padtop->SetGridx();
+  //  padtop->SetGridy();
   padtop->Draw();
   padtop->cd();
   hg4->SetStats(0);
@@ -165,24 +166,24 @@ void DrawComparison(TH1F *hg4, TH1F *hgv, TVirtualPad *pad)
   hg4->GetYaxis()->SetTitleOffset(1.1);
   hg4->GetYaxis()->SetLabelSize(0.04);
   hg4->GetYaxis()->SetLabelOffset(0.005);
-  hg4->GetXaxis()->SetRangeUser(50.,2500.);
-  hgv->GetXaxis()->SetRangeUser(50.,2500.);
+  hg4->GetXaxis()->SetRangeUser(50., 2500.);
+  hgv->GetXaxis()->SetRangeUser(50., 2500.);
   hg4->Draw("9");
   hgv->Draw("9SAME");
   legend->Draw();
 
   pad->cd();
-  TPad *padbottom = new TPad("bottom","",0,0.05,1,0.3);
+  TPad *padbottom = new TPad("bottom", "", 0, 0.05, 1, 0.3);
   padbottom->SetTopMargin(0);
   padbottom->SetBottomMargin(0.25);
-//  padbottom->SetGridx();
+  //  padbottom->SetGridx();
   padbottom->SetGridy();
   padbottom->SetLogx();
   padbottom->Draw();
   padbottom->cd();
   TString hname = hgv->GetName();
   hname += "Rap";
-  TH1F *hRap = (TH1F*)hgv->Clone(hname);
+  TH1F *hRap = (TH1F *)hgv->Clone(hname);
   hRap->SetTitle("");
   hRap->GetYaxis()->SetTitle("ratio ");
   hRap->GetYaxis()->SetNdivisions(505);
@@ -203,4 +204,3 @@ void DrawComparison(TH1F *hg4, TH1F *hgv, TVirtualPad *pad)
   hRap->Divide(hg4);
   hRap->Draw("ep");
 }
-    

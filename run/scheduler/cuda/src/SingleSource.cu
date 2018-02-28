@@ -38,7 +38,6 @@
 //#include "../src/WorkloadManager.cxx"
 //#include "../src/GeantRunManager.cxx"
 
-
 #include "GeantCudaUtils.cu"
 #include "GeantTrack.cu"
 #include "PropagateTracks.cu"

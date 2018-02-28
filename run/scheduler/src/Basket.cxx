@@ -7,8 +7,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Basket::Basket(int size, int threshold)
-      : fThreshold(threshold)
+Basket::Basket(int size, int threshold) : fThreshold(threshold)
 {
   assert(size > 0 && threshold <= size);
   fTracks.reserve(size);
@@ -17,9 +16,10 @@ Basket::Basket(int size, int threshold)
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 Basket::Basket(int size, int threshold, int node)
-      : fThreshold(threshold), fNode(node)
+    : fThreshold(threshold), fNode(node)
 #if defined(GEANT_USE_NUMA) && !defined(VECCORE_CUDA)
-        ,fTracks(0, nullptr, TrackAllocator_t(node))
+      ,
+      fTracks(0, nullptr, TrackAllocator_t(node))
 #endif
 {
   assert(size > 0 && threshold <= size);
@@ -28,24 +28,24 @@ Basket::Basket(int size, int threshold, int node)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Basket::Contains(int evstart, int nevents) const {
+bool Basket::Contains(int evstart, int nevents) const
+{
   // Checks if any of the tracks in the input array belongs to the given event
   // range.
   for (auto track : fTracks) {
-    if (track->Event() >= evstart && track->Event() < evstart + nevents)
-      return true;
+    if (track->Event() >= evstart && track->Event() < evstart + nevents) return true;
   }
   return false;
 }
 
 //______________________________________________________________________________
-void Basket::Print(const char *msg) const {
+void Basket::Print(const char *msg) const
+{
   // Print basket content.
-  Printf("*** %s basket %p: ntr = %d   NUMA node = %d",
-                msg, this, GetNtracks(), fNode);
+  Printf("*** %s basket %p: ntr = %d   NUMA node = %d", msg, this, GetNtracks(), fNode);
 #ifndef VECCORE_CUDA
   std::string sno;
-  for (unsigned int itr=0; itr<fTracks.size(); ++itr) {
+  for (unsigned int itr = 0; itr < fTracks.size(); ++itr) {
     sno = std::to_string(itr);
     fTracks[itr]->Print(sno.c_str());
   }
@@ -53,8 +53,9 @@ void Basket::Print(const char *msg) const {
 }
 
 //______________________________________________________________________________
-void Basket::PrintTrack(int itr) const {
-  // Print a given track.
+void Basket::PrintTrack(int itr) const
+{
+// Print a given track.
 #ifndef VECCORE_CUDA
   assert(itr < int(fTracks.size()));
   std::string sno = std::to_string(itr);
@@ -64,14 +65,16 @@ void Basket::PrintTrack(int itr) const {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Basket::Recycle(TaskData */*td*/) {
+void Basket::Recycle(TaskData * /*td*/)
+{
   // Recycle the basket to the volume scheduler.
-//  td->RecycleBasket(this);
+  //  td->RecycleBasket(this);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void Basket::SetThreshold(int threshold) {
+void Basket::SetThreshold(int threshold)
+{
   // Set transport threshold for the basket
   fThreshold = threshold;
   fTracks.reserve(threshold);

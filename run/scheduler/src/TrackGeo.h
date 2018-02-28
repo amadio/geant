@@ -25,18 +25,18 @@ inline namespace GEANT_IMPL_NAMESPACE {
  */
 struct TrackGeo {
   Track *fOriginal; /** Original track from which this was extracted */
-  size_t fId;            /** Id of original track in its container */
-  double fXpos;          /** X position */
-  double fYpos;          /** Y position */
-  double fZpos;          /** Z position */
-  double fXdir;          /** X direction */
-  double fYdir;          /** Y direction */
-  double fZdir;          /** Z direction */
-  double fPstep;         /** Selected physical step */
-  double fStep;          /** Current step */
-  double fSnext;         /** Straight distance to next boundary */
-  double fSafety;        /** Safe distance to any boundary */
-  bool   fCompSafety;    /** Safety needs to be computed (not on boundary) */
+  size_t fId;       /** Id of original track in its container */
+  double fXpos;     /** X position */
+  double fYpos;     /** Y position */
+  double fZpos;     /** Z position */
+  double fXdir;     /** X direction */
+  double fYdir;     /** Y direction */
+  double fZdir;     /** Z direction */
+  double fPstep;    /** Selected physical step */
+  double fStep;     /** Current step */
+  double fSnext;    /** Straight distance to next boundary */
+  double fSafety;   /** Safe distance to any boundary */
+  bool fCompSafety; /** Safety needs to be computed (not on boundary) */
 };
 
 /**
@@ -51,25 +51,25 @@ class TrackGeo_v {
 #endif
 
 public:
-  int fNtracks;      /** Number of tracks contained */
-  int fMaxtracks;    /** Max size for tracks */
+  int fNtracks;   /** Number of tracks contained */
+  int fMaxtracks; /** Max size for tracks */
 
   size_t fBufSize; /** Size of the internal buffer */
   char *fBuf;      /** Buffer holding tracks data */
 
   Track **fOriginalV; /** Track originals */
-  size_t *fIdV;            /** Id's in the original container */
-  double *fXposV;          /** Arrays of track positions */
+  size_t *fIdV;       /** Id's in the original container */
+  double *fXposV;     /** Arrays of track positions */
   double *fYposV;
   double *fZposV;
-  double *fXdirV;          /** Arrays of track directions */
+  double *fXdirV; /** Arrays of track directions */
   double *fYdirV;
   double *fZdirV;
-  double *fPstepV;         /** Selected physical steps */
-  double *fStepV;          /** Current steps */
-  double *fSnextV;         /** Straight distances to next boundary */
-  double *fSafetyV;        /** Safe distances to any boundary */
-  bool   *fCompSafetyV;    /** Safety needs to be computed (not on boundary) */
+  double *fPstepV;    /** Selected physical steps */
+  double *fStepV;     /** Current steps */
+  double *fSnextV;    /** Straight distances to next boundary */
+  double *fSafetyV;   /** Safe distances to any boundary */
+  bool *fCompSafetyV; /** Safety needs to be computed (not on boundary) */
 
   /**
    * @brief Function that assign in current buffer
@@ -89,7 +89,6 @@ public:
   void CopyToBuffer(char *buff, int size);
 
 private:
-
   TrackGeo_v(const TrackGeo_v &track_v) = delete;
   TrackGeo_v &operator=(const TrackGeo_v &track_v) = delete;
 
@@ -151,7 +150,8 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int AddTrack(Track &track, size_t id) {
+  int AddTrack(Track &track, size_t id)
+  {
     int itrack = fNtracks;
     if (itrack == fMaxtracks) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -160,23 +160,23 @@ public:
       printf("Error in TrackGeo::AddTrack, resizing is not supported in device code\n");
 #endif
     }
-    fOriginalV[itrack] = &track;
-    fIdV[itrack]   = id;
-    fXposV[itrack] = track.X();
-    fYposV[itrack] = track.Y();
-    fZposV[itrack] = track.Z();
-    fXdirV[itrack] = track.Dx();
-    fYdirV[itrack] = track.Dy();
-    fZdirV[itrack] = track.Dz();
-    fPstepV[itrack] = track.GetPstep();
-    fStepV[itrack] = track.GetStep();
-    fSnextV[itrack] = track.GetSnext();
-    fSafetyV[itrack] = track.GetSafety();
+    fOriginalV[itrack]   = &track;
+    fIdV[itrack]         = id;
+    fXposV[itrack]       = track.X();
+    fYposV[itrack]       = track.Y();
+    fZposV[itrack]       = track.Z();
+    fXdirV[itrack]       = track.Dx();
+    fYdirV[itrack]       = track.Dy();
+    fZdirV[itrack]       = track.Dz();
+    fPstepV[itrack]      = track.GetPstep();
+    fStepV[itrack]       = track.GetStep();
+    fSnextV[itrack]      = track.GetSnext();
+    fSafetyV[itrack]     = track.GetSafety();
     fCompSafetyV[itrack] = !track.Boundary();
     fNtracks++;
     return itrack;
   }
-  
+
   /**
    * @brief Add tracks from a AOS vector into the SOA
    *
@@ -192,7 +192,8 @@ public:
   */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateOriginalTrack(int itr) const {
+  void UpdateOriginalTrack(int itr) const
+  {
     // Update the original track itr.
     Track &track = *fOriginalV[itr];
     track.SetPosition(fXposV[itr], fYposV[itr], fZposV[itr]);
@@ -208,9 +209,10 @@ public:
    * @brief Update all original tracks from the container
   */
   VECCORE_ATT_HOST_DEVICE
-  void UpdateOriginalTracks() const {
+  void UpdateOriginalTracks() const
+  {
     // Update all the original tracks. This should ideally vectorize.
-    for (int itr=0; itr<fNtracks; ++itr) {
+    for (int itr = 0; itr < fNtracks; ++itr) {
       UpdateOriginalTrack(itr);
     }
   }
@@ -218,25 +220,27 @@ public:
   /** @brief Update tracks positions */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdatePositions() const {
-    for (int itr=0; itr<fNtracks; ++itr)
+  void UpdatePositions() const
+  {
+    for (int itr = 0; itr < fNtracks; ++itr)
       fOriginalV[itr]->SetPosition(fXposV[itr], fYposV[itr], fZposV[itr]);
   }
 
   /** @brief Update tracks directions */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateDirections() const {
-    for (int itr=0; itr<fNtracks; ++itr)
+  void UpdateDirections() const
+  {
+    for (int itr = 0; itr < fNtracks; ++itr)
       fOriginalV[itr]->SetDirection(fXdirV[itr], fYdirV[itr], fZdirV[itr]);
   }
-      
 
   /** @brief Function that return size of track */
   size_t Sizeof() const { return sizeof(TrackGeo_v) + fBufSize; }
 
   /** @brief Function to normalize direction */
-  void Normalize(int itr) __attribute__((always_inline)) {
+  void Normalize(int itr) __attribute__((always_inline))
+  {
     double norm = 1. / Math::Sqrt(fXdirV[itr] * fXdirV[itr] + fYdirV[itr] * fYdirV[itr] + fZdirV[itr] * fZdirV[itr]);
     fXdirV[itr] *= norm;
     fYdirV[itr] *= norm;
@@ -259,10 +263,10 @@ public:
    * @param num Value be aligned
    */
   VECCORE_ATT_HOST_DEVICE
-  static int RoundUpAlign(int num) {
+  static int RoundUpAlign(int num)
+  {
     int remainder = num % GEANT_ALIGN_PADDING;
-    if (remainder == 0)
-      return num;
+    if (remainder == 0) return num;
     return (num + GEANT_ALIGN_PADDING - remainder);
   }
 
@@ -271,10 +275,10 @@ public:
    * @param buf Address to be aligned
    */
   VECCORE_ATT_HOST_DEVICE
-  static char *RoundUpAlign(char *buf) {
+  static char *RoundUpAlign(char *buf)
+  {
     long remainder = ((long)buf) % GEANT_ALIGN_PADDING;
-    if (remainder == 0)
-      return buf;
+    if (remainder == 0) return buf;
     return (buf + GEANT_ALIGN_PADDING - remainder);
   }
 

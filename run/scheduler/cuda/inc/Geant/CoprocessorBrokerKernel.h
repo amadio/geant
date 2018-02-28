@@ -7,7 +7,7 @@ namespace geant {
 #ifdef VECCORE_CUDA
 inline
 #endif
-namespace cuda {
+    namespace cuda {
 
 class GeantTrack_v;
 class GeantTaskData;
@@ -66,7 +66,7 @@ namespace geant {
 #ifdef VECCORE_CUDA
 inline
 #endif
-namespace cuda {
+    namespace cuda {
 
 int Clear_gpu(vecgeom::cxx::DevicePtr<geant::cuda::GeantTrack_v> &tracks, int nBlocks, int nThreads,
               cudaStream_t stream);

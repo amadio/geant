@@ -9,7 +9,7 @@
 // #include "../../xsec/inc/xsmcLinkDef.h"
 #endif
 
-#pragma link C++ class CoprocessorBroker+;
+#pragma link C++ class CoprocessorBroker + ;
 #pragma link C++ class CoprocessorBroker::TaskData;
 
 #endif

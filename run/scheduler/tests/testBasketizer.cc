@@ -23,10 +23,14 @@ struct test_track {
 };
 
 //______________________________________________________________________________
-void help() { std::cout << "Usage: testBasketizer <Nthreads>\n"; }
+void help()
+{
+  std::cout << "Usage: testBasketizer <Nthreads>\n";
+}
 
 //______________________________________________________________________________
-double get_wall_time() {
+double get_wall_time()
+{
   struct timeval time;
   if (gettimeofday(&time, NULL)) {
     //  Handle error
@@ -36,10 +40,14 @@ double get_wall_time() {
 }
 
 //______________________________________________________________________________
-double get_cpu_time() { return (double)clock() / CLOCKS_PER_SEC; }
+double get_cpu_time()
+{
+  return (double)clock() / CLOCKS_PER_SEC;
+}
 
 //______________________________________________________________________________
-void Process(vector_t<test_track *> &basket) {
+void Process(vector_t<test_track *> &basket)
+{
   // Emulate CPU time on a basket
   const int load = 35;
   for (size_t itr = 0; itr < basket.size(); ++itr) {
@@ -47,7 +55,7 @@ void Process(vector_t<test_track *> &basket) {
     for (int j = 0; j < 100 * load; ++j) {
       x *= ((*basket[itr]).id_) % 100;
       double y = std::sqrt(x) * std::tanh(x);
-      x = std::sin(y) / std::atan(x);
+      x        = std::sin(y) / std::atan(x);
     }
     (*basket[itr]).x_ = x;
     (*basket[itr]).y_ = x;
@@ -72,43 +80,42 @@ struct Workload {
   void *allocated_;
   std::atomic_flag fLock;
 
-  void Lock() {
+  void Lock()
+  {
     while (fLock.test_and_set(std::memory_order_acquire))
       ;
   }
 
   void Unlock() { fLock.clear(std::memory_order_release); }
 
-  Workload(size_t nthreads)
-      :
-        policy_(geant::NumaPolicy::kCompact),
-        nnodes_(1), nthreads_(nthreads), fLock() {
+  Workload(size_t nthreads) : policy_(geant::NumaPolicy::kCompact), nnodes_(1), nthreads_(nthreads), fLock()
+  {
     using Basketizer = geant::Basketizer<test_track>;
     std::cout << *policy_.GetTopology() << std::endl;
-    nnodes_ = policy_.fTopo.fNodes;
+    nnodes_                  = policy_.fTopo.fNodes;
     if (nnodes_ < 1) nnodes_ = 1;
-    //numa_set_localalloc();
+    // numa_set_localalloc();
     fLock.clear();
-    promise_ = new std::promise<size_t>[nthreads];
-    future_ = new std::future<size_t>[nthreads];
+    promise_     = new std::promise<size_t>[nthreads];
+    future_      = new std::future<size_t>[nthreads];
     basketizers_ = new Basketizer *[nnodes_];
-    for (size_t n = 0; n < nnodes_; ++n)
+    for (size_t n     = 0; n < nnodes_; ++n)
       basketizers_[n] = nullptr;
-    for (size_t n = 0; n < nthreads; ++n)
-      future_[n] = promise_[n].get_future();
-    ntracks_ = 1 << 20;
+    for (size_t n         = 0; n < nthreads; ++n)
+      future_[n]          = promise_[n].get_future();
+    ntracks_              = 1 << 20;
     const size_t nfilters = 1000;
-    bsize_ = 16;
-    buf_size_ = 1 << 14;
+    bsize_                = 16;
+    buf_size_             = 1 << 14;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> rnd(0, nfilters - 1);
-// Create a pool of numbers
+    // Create a pool of numbers
     allocated_ = NumaUtils::NumaAlignedMalloc(ntracks_ * sizeof(test_track), 0 /*numa_node*/, 64);
-    tracks_ = new (allocated_) test_track[ntracks_];
-    //Lock();
+    tracks_    = new (allocated_) test_track[ntracks_];
+    // Lock();
     //    std::cout << "Allocated data " << allocated_ << " on node: " << numa_node_addr(allocated_) << std::endl;
-    //Unlock();
+    // Unlock();
     for (size_t i = 0; i < ntracks_; ++i) {
       tracks_[i].id_ = i;
       // Generate randomly the filtering type
@@ -117,29 +124,33 @@ struct Workload {
     checksum_ref_ = ntracks_ * (tracks_[0].id_ + tracks_[ntracks_ - 1].id_) / 2;
   };
 
-  ~Workload() {
+  ~Workload()
+  {
     NumaUtils::NumaAlignedFree(allocated_);
     for (size_t i = 0; i < nnodes_; ++i)
       NumaUtils::NumaAlignedFree(basketizers_[i]);
     delete[] basketizers_;
   }
 
-  void InitBasketizers(size_t node) {
+  void InitBasketizers(size_t node)
+  {
     // Create basketizers for each numa node. To be call by workers.
     using Basketizer = geant::Basketizer<test_track>;
     Lock();
     size_t basket_size = Basketizer::SizeofInstance(buf_size_);
     if (!basketizers_[node]) {
-      basketizers_[node] = Basketizer::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
-//      basketizers_[node] = new Basketizer(buf_size_, bsize_);
+      basketizers_[node] =
+          Basketizer::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(basket_size, node, 64), buf_size_, bsize_);
+      //      basketizers_[node] = new Basketizer(buf_size_, bsize_);
       std::cout << "basketizer[" << node << "] allocated on NUMA node " << NumaUtils::NumaNodeAddr(basketizers_[node])
                 << std::endl;
     }
     Unlock();
   }
-  
-  void CheckBasketizers() {
-    for (size_t i=0; i<nnodes_; ++i) {
+
+  void CheckBasketizers()
+  {
+    for (size_t i = 0; i < nnodes_; ++i) {
       std::cout << "Basketizer #" << i << ":\n";
       if (basketizers_[i]) basketizers_[i]->CheckBaskets();
     }
@@ -147,16 +158,17 @@ struct Workload {
 };
 
 //______________________________________________________________________________
-void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
+void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks)
+{
   // Code run by each thread
   // Pin thread according to the NUMA policy
   int numa_node = 0;
-  numa_node = work->policy_.AllocateNextThread();
+  numa_node     = work->policy_.AllocateNextThread();
   //  numa_node = (numa_node+1)%2;
   work->InitBasketizers(numa_node);
-//  work->Lock();
-//  std::cout << "thread " << tid << " allocated on NUMA node: " << numa_node << std::endl;
-//  work->Unlock();
+  //  work->Lock();
+  //  std::cout << "thread " << tid << " allocated on NUMA node: " << numa_node << std::endl;
+  //  work->Unlock();
   test_track *tracks = &work->tracks_[tid * nchunk];
   vector_t<test_track *> basket;
   basket.reserve(work->bsize_);
@@ -192,7 +204,8 @@ void AddTracks(int tid, Workload *work, size_t nchunk, size_t ntracks) {
 }
 
 //______________________________________________________________________________
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   using namespace geant;
 
   if (argc == 1) {
@@ -204,25 +217,26 @@ int main(int argc, char *argv[]) {
   size_t nchunk = work.ntracks_ / nthreads;
   std::vector<std::thread> v;
   double cpu0 = get_cpu_time();
-  double rt0 = get_wall_time();
+  double rt0  = get_wall_time();
   for (size_t n = 0; n < nthreads; ++n) {
-    size_t ntoprocess = nchunk;
-    if (n == nthreads - 1)
-      ntoprocess = work.ntracks_ - n * nchunk;
+    size_t ntoprocess                 = nchunk;
+    if (n == nthreads - 1) ntoprocess = work.ntracks_ - n * nchunk;
     v.emplace_back(AddTracks, n, &work, nchunk, ntoprocess);
   }
   for (auto &t : v) {
     t.join();
   }
-  double rt1 = get_wall_time();
-  double cpu1 = get_cpu_time();
+  double rt1      = get_wall_time();
+  double cpu1     = get_cpu_time();
   size_t checksum = 0;
   for (size_t n = 0; n < nthreads; ++n)
     checksum += work.future_[n].get();
 
   std::cout << "run time: " << rt1 - rt0 << "   cpu time: " << cpu1 - cpu0 << "  checksum: " << checksum
             << " ref: " << work.checksum_ref_ << std::endl;
-  if (  checksum > work.checksum_ref_) std::cout << "### Data overwritten! ###\n";
-  else if (checksum < work.checksum_ref_) std::cout << "### Not all tracks collected! ###\n";
-//  work.CheckBasketizers();
+  if (checksum > work.checksum_ref_)
+    std::cout << "### Data overwritten! ###\n";
+  else if (checksum < work.checksum_ref_)
+    std::cout << "### Not all tracks collected! ###\n";
+  //  work.CheckBasketizers();
 }

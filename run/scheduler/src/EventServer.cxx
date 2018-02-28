@@ -24,16 +24,16 @@ using namespace vecgeom;
 
 //______________________________________________________________________________
 EventServer::EventServer(int nactive_max, RunManager *runmgr)
-  :fNevents(0), fNactiveMax(nactive_max), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0),
-   fNload(0), fNstored(0), fNcompleted(0), fEvent(nullptr), fRunMgr(runmgr),
-   fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)), fPendingEvents(4096), fDoneEvents(4096)
+    : fNevents(0), fNactiveMax(nactive_max), fNactive(0), fNserved(0), fLastActive(-1), fCurrentEvent(0), fNload(0),
+      fNstored(0), fNcompleted(0), fEvent(nullptr), fRunMgr(runmgr),
+      fFreeSlots(AdjustSize(runmgr->GetConfig()->fNbuff)), fPendingEvents(4096), fDoneEvents(4096)
 {
-// Constructor
+  // Constructor
   assert(nactive_max > 0 && nactive_max < 4096);
   fLastActive.store(-1);
 
   // Create event slots
-  fEvents = new Event*[fNactiveMax];
+  fEvents = new Event *[fNactiveMax];
   for (size_t slot = 0; slot < size_t(fNactiveMax); ++slot) {
     fEvents[slot] = nullptr;
     fFreeSlots.enqueue(slot);
@@ -41,11 +41,11 @@ EventServer::EventServer(int nactive_max, RunManager *runmgr)
 
   // Create empty events
   bool generate = fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator;
-  int nthreads = runmgr->GetNthreadsTotal();
-  int ngen = vecCore::math::Max(fNactiveMax, nthreads);
+  int nthreads  = runmgr->GetNthreadsTotal();
+  int ngen      = vecCore::math::Max(fNactiveMax, nthreads);
   if (generate) {
     fNevents = fRunMgr->GetConfig()->fNtotal;
-    ngen = vecCore::math::Min(ngen, fNevents);
+    ngen     = vecCore::math::Min(ngen, fNevents);
   }
 
   unsigned int error = 0;
@@ -67,25 +67,26 @@ EventServer::EventServer(int nactive_max, RunManager *runmgr)
 //______________________________________________________________________________
 EventServer::~EventServer()
 {
-// Destructor
+  // Destructor
   for (int i = 0; i < fNactiveMax; ++i) {
     delete fEvents[i];
   }
   Event *event;
-  while (fDoneEvents.dequeue(event)) delete event;
+  while (fDoneEvents.dequeue(event))
+    delete event;
 }
 
 //______________________________________________________________________________
 Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
 {
-// Generates a new event in standalone GeantV mode by filling an empty one and
-// putting it in the pending events queue.
-//
-// The method may fail due to:
-// - the method is in use by another thread (error = 1)
-// - all events were generated already generated (error = 2)
-// - queue of empty events is empty. Should not happen. (error = 3)
-// - event could not be added to the pending queue. Should not happen (error = 4)
+  // Generates a new event in standalone GeantV mode by filling an empty one and
+  // putting it in the pending events queue.
+  //
+  // The method may fail due to:
+  // - the method is in use by another thread (error = 1)
+  // - all events were generated already generated (error = 2)
+  // - queue of empty events is empty. Should not happen. (error = 3)
+  // - event could not be added to the pending queue. Should not happen (error = 4)
 
   // The method has to be locked since thread safety not yet required for the generator.
   // Policy: if someone else working here, just return
@@ -102,19 +103,19 @@ Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
   error = 0;
   // Now just get next event from the generator
   EventInfo eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent(td);
-  int ntracks = eventinfo.ntracks;
-  int nloadtmp = nload;
+  int ntracks         = eventinfo.ntracks;
+  int nloadtmp        = nload;
   while (!ntracks) {
     Error("GenerateNewEvent", "### Problem with generator: event %d has no tracks", nloadtmp++);
     eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent(td);
-    ntracks = eventinfo.ntracks;
+    ntracks   = eventinfo.ntracks;
   }
 
   Event *event = new Event();
   event->SetNprimaries(ntracks);
   event->SetVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
   // Populate event with primary tracks from the generator
-  for (int itr=0; itr<ntracks; ++itr) {
+  for (int itr = 0; itr < ntracks; ++itr) {
     Track &track = td->GetNewTrack();
     track.SetParticle(event->AddPrimary(&track));
     fRunMgr->GetPrimaryGenerator()->GetTrack(itr, track, td);
@@ -131,20 +132,20 @@ Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
 //______________________________________________________________________________
 bool EventServer::AddEvent(Event *event)
 {
-// Adds one event into the queue of pending events.
-  bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
-  int evt = fNload.fetch_add(1);
+  // Adds one event into the queue of pending events.
+  bool external_loop     = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
+  int evt                = fNload.fetch_add(1);
   if (external_loop) evt = event->GetEvent();
   event->SetEvent(evt);
   // The vertex must be defined
   vecgeom::Vector3D<double> vertex = event->GetVertex();
-  int ntracks = event->GetNprimaries();
+  int ntracks                      = event->GetNprimaries();
 
   // start new event in MCTruthMgr
-  if(fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->OpenEvent(evt);
-  
+  if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->OpenEvent(evt);
+
   // Initialize navigation path for the vertex
-  //Volume_t *vol = 0;
+  // Volume_t *vol = 0;
   // Initialize the start path
   VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
   vecgeom::SimpleNavigator nav;
@@ -152,7 +153,7 @@ bool EventServer::AddEvent(Event *event)
   nav.LocatePoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
 
   // Check and fix tracks
-  for (int itr=0; itr<ntracks; ++itr) {
+  for (int itr = 0; itr < ntracks; ++itr) {
     Track &track = *event->GetPrimary(itr);
     track.SetPrimaryParticleIndex(itr);
     track.SetPath(startpath);
@@ -185,16 +186,17 @@ bool EventServer::AddEvent(Event *event)
   if (nstored <= fNactiveMax) fNtracksInit += event->GetNprimaries();
   if (nstored == fNactiveMax) {
     // Check consistency of parallelism settings
-    int nthreads = fRunMgr->GetNthreadsTotal();
-    int basket_size = fRunMgr->GetConfig()->fNperBasket;
-    int ntracksperevent = fNtracksInit/fNactiveMax;
-    fNbasketsInit = fNtracksInit/basket_size;
+    int nthreads        = fRunMgr->GetNthreadsTotal();
+    int basket_size     = fRunMgr->GetConfig()->fNperBasket;
+    int ntracksperevent = fNtracksInit / fNactiveMax;
+    fNbasketsInit       = fNtracksInit / basket_size;
     if (fNtracksInit % basket_size > 0) fNbasketsInit++;
     printf("=== Imported %d primaries from %d buffered events\n", fNtracksInit, fNactiveMax);
     printf("=== Buffering %d baskets of size %d feeding %d threads\n", fNbasketsInit, basket_size, nthreads);
     if (fNbasketsInit < nthreads || fNactiveMax < nthreads) {
       if (fNbasketsInit < nthreads)
-        printf("### \e[5mWARNING!    Concurrency settings are not optimal. Not enough baskets to feed all threads.\e[m\n###\n");
+        printf("### \e[5mWARNING!    Concurrency settings are not optimal. Not enough baskets to feed all "
+               "threads.\e[m\n###\n");
       if (fNactiveMax < nthreads)
         printf("### \e[5mWARNING!    Increase number of buffered events to minimum %d\e[m\n###\n", nthreads);
       printf("###                          Rule of thumb:\n");
@@ -202,32 +204,33 @@ bool EventServer::AddEvent(Event *event)
       printf("### ||  Nbuff_events * Nprimaries_per_event > Nthreads * basket_size  ||\n");
       printf("###  ==================================================================\n###\n");
       printf("### Either of the following options can solve this problem:\n");
-      printf("###    => increase number of buffered events slots to minimum %d\n", nthreads * basket_size / ntracksperevent);
-      printf("###    => decrease number of threads to maximum %d\n", vecCore::math::Max(1, fNtracksInit/basket_size));
+      printf("###    => increase number of buffered events slots to minimum %d\n",
+             nthreads * basket_size / ntracksperevent);
+      printf("###    => decrease number of threads to maximum %d\n", vecCore::math::Max(1, fNtracksInit / basket_size));
     }
   }
- 
+
   if (external_loop && !fEvent.load()) {
     unsigned int error = 0;
-    event = nullptr;
+    event              = nullptr;
     // Activate the first event
     ActivateEvent(event, error);
     assert(error == 0 && "EventServer::AddEvent ERROR in event activation");
   }
   fEventsServed = false;
-  fHasTracks = true;
+  fHasTracks    = true;
   return true;
 }
 
 //______________________________________________________________________________
 Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *td)
 {
-// Activates one event replacing the current one (if matching the expected value).
-// The method can fail due to one of the following reasons:
-// - All events already served (nactive = ntotal) in generator mode
-// - All events from buffer served (nactive = nstored) in external loop mode
-// - No slots available (should never happen since activation is driven by slot release)
-// - All buffered events were served (should not happen in generator mode)
+  // Activates one event replacing the current one (if matching the expected value).
+  // The method can fail due to one of the following reasons:
+  // - All events already served (nactive = ntotal) in generator mode
+  // - All events from buffer served (nactive = nstored) in external loop mode
+  // - No slots available (should never happen since activation is driven by slot release)
+  // - All buffered events were served (should not happen in generator mode)
 
   if (fEventsServed) {
     error = kDone;
@@ -244,7 +247,7 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *t
   // Move old event from slot to queue of empty events
   if (fEvents[slot]) {
     Event *done_event = fEvents[slot];
-    fEvents[slot] = nullptr;
+    fEvents[slot]     = nullptr;
     done_event->Clear(td);
     fDoneEvents.enqueue(done_event);
   }
@@ -259,9 +262,8 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *t
   // Pre-activate slot and event number
   fEvents[slot]->SetSlot(slot);
   int nactive = fNactive.fetch_add(1) + 1;
-  //fEvents[slot]->SetEvent(nactive - 1);
-  
-  
+  // fEvents[slot]->SetEvent(nactive - 1);
+
   // Try to replace the active event with the new one
   if (!fEvent.compare_exchange_strong(event, fEvents[slot])) {
     // Bad luck, someone else was faster.
@@ -282,14 +284,14 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *t
     if (nactive == fNstored.load()) fEventsServed = true;
   }
   fHasTracks = true;
-  error = kNoerr;
+  error      = kNoerr;
   return event;
 }
 
 //______________________________________________________________________________
 void EventServer::CompletedEvent(Event *event, TaskData *td)
 {
-// Signals that event 'evt' was fully transported.
+  // Signals that event 'evt' was fully transported.
   size_t slot = event->GetSlot();
   fNcompleted++;
 
@@ -303,16 +305,17 @@ void EventServer::CompletedEvent(Event *event, TaskData *td)
   // Generate new event
   if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator) {
     unsigned int error = 1; // Generator busy
-    while (error == 1) GenerateNewEvent(td, error);
+    while (error == 1)
+      GenerateNewEvent(td, error);
   }
 }
 
 //______________________________________________________________________________
 Track *EventServer::GetNextTrack(TaskData *td, unsigned int &error)
 {
-// Fetch next track of the current event. Increments current event if no more
-// tracks. If current event matches last activated one, resets fHasTracks flag.
-// If max event fully dispatched, sets the fDone flag.
+  // Fetch next track of the current event. Increments current event if no more
+  // tracks. If current event matches last activated one, resets fHasTracks flag.
+  // If max event fully dispatched, sets the fDone flag.
 
   Event *event = nullptr;
   int itr;
@@ -320,7 +323,7 @@ Track *EventServer::GetNextTrack(TaskData *td, unsigned int &error)
     // Book next track index
     bool valid;
     event = fEvent.load();
-    itr = event->DispatchTrack(valid);
+    itr   = event->DispatchTrack(valid);
     if (!valid) {
       assert(event->IsDispatched());
       // Current event dispatched, try to activate new event
@@ -343,18 +346,18 @@ Track *EventServer::GetNextTrack(TaskData *td, unsigned int &error)
 //______________________________________________________________________________
 int EventServer::FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned int &error)
 {
-// Fill concurrently a basket of tracks, up to the requested number of tracks.
-// The client should test first the track availability using HasTracks().
+  // Fill concurrently a basket of tracks, up to the requested number of tracks.
+  // The client should test first the track availability using HasTracks().
   if (!fHasTracks) return 0;
   int ndispatched = 0;
-  for (int i=0; i<ntracks; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     Track *track = GetNextTrack(td, error);
     if (!track) break;
     basket->AddTrack(track);
     ndispatched++;
   }
   if (fInitialPhase) {
-    int nserved = fNserved.fetch_add(1) + 1;
+    int nserved                                 = fNserved.fetch_add(1) + 1;
     if (nserved >= fNbasketsInit) fInitialPhase = false;
   }
   return ndispatched;
@@ -363,24 +366,24 @@ int EventServer::FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned 
 //______________________________________________________________________________
 int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData *td, unsigned int &error)
 {
-// Fill concurrently up to the requested number of tracks into a stack-like buffer.
-// The client should test first the track availability using HasTracks().
+  // Fill concurrently up to the requested number of tracks into a stack-like buffer.
+  // The client should test first the track availability using HasTracks().
 
-// *** I should template on the container to be filled, making sure that all
-//     containers provide AddTrack(Track *)
+  // *** I should template on the container to be filled, making sure that all
+  //     containers provide AddTrack(Track *)
   if (!fHasTracks) {
     error = kDone;
     return 0;
   }
   int ndispatched = 0;
-  for (int i=0; i<ntracks; ++i) {
+  for (int i = 0; i < ntracks; ++i) {
     Track *track = GetNextTrack(td, error);
     if (!track) break;
     buffer->AddTrack(track);
     ndispatched++;
   }
   if (fInitialPhase) {
-    int nserved = fNserved.fetch_add(1) + 1;
+    int nserved                                 = fNserved.fetch_add(1) + 1;
     if (nserved >= fNbasketsInit) fInitialPhase = false;
   }
 

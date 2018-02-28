@@ -22,30 +22,27 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class TaskData;
-   
+
 /**
  * @brief  Enable case of constant field without field access method
  *
  */
-class FieldLookup
-{
-   public:
-    FieldLookup() {} //  = delete; ??
-    ~FieldLookup() {}
+class FieldLookup {
+public:
+  FieldLookup() {} //  = delete; ??
+  ~FieldLookup() {}
 
-   /**
-    * @brief Function that return magnetic field at a coordinates 'Position'
-    * @param  Position       Location ( in global coordinates )
-    * @param  MagFieldValue  Output magnetic field vector value (global coordinates)
-    * @param  bmag           Output field magnitude
-    */
-   static
-   VECCORE_ATT_HOST_DEVICE   
-   void GetFieldValue( const vecgeom::Vector3D<double>& Position,
-                             vecgeom::Vector3D<double>& MagFieldValue, // Out
-                             double                   & bmag // ,
-                       // const TaskData            * td
-      );
+  /**
+   * @brief Function that return magnetic field at a coordinates 'Position'
+   * @param  Position       Location ( in global coordinates )
+   * @param  MagFieldValue  Output magnetic field vector value (global coordinates)
+   * @param  bmag           Output field magnitude
+   */
+  static VECCORE_ATT_HOST_DEVICE void GetFieldValue(const vecgeom::Vector3D<double> &Position,
+                                                    vecgeom::Vector3D<double> &MagFieldValue, // Out
+                                                    double &bmag                              // ,
+                                                    // const TaskData            * td
+                                                    );
 
 #if 0   
    /**
@@ -63,18 +60,17 @@ class FieldLookup
          );
 #endif
 
-   static void SetFieldConfig( FieldConfig* fldCfg ) { fFieldConfig = fldCfg; }
+  static void SetFieldConfig(FieldConfig *fldCfg) { fFieldConfig = fldCfg; }
 
-   static FieldConfig* /*const*/ GetFieldConfig() { return fFieldConfig; }
-   
+  static FieldConfig * /*const*/ GetFieldConfig() { return fFieldConfig; }
+
 private:
-   // static VVectorField               *fFieldObj;         // To get value of the field!
-   // static vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
-   // static bool                       fBfieldIsConst;      /** Flag - is the B field constant ?  */
-   static FieldConfig* fFieldConfig;
+  // static VVectorField               *fFieldObj;         // To get value of the field!
+  // static vecgeom::Vector3D<double>  fConstFieldValue;   // Value - if field is constant.
+  // static bool                       fBfieldIsConst;      /** Flag - is the B field constant ?  */
+  static FieldConfig *fFieldConfig;
 };
-
 }
-} // namespace geant 
+} // namespace geant
 
 #endif

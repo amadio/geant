@@ -14,7 +14,7 @@
 #define GEANT_BASKET_NEW
 
 #ifndef USE_ROOT
-#define MIC_BIT(n) (1ULL<<(n))
+#define MIC_BIT(n) (1ULL << (n))
 #endif
 
 #include "Geant/Typedefs.h"
@@ -31,26 +31,25 @@ class SimulationStage;
  * @brief A basket holding track pointers.
  * @details Basket of tracks in the same volume which are transported by a single thread
  */
- 
+
 class Basket {
 
 protected:
-  int fThreshold = 64;                ///< Basket threshold
-  int fNode = 0;                      ///< Numa node for basket allocation
-  SimulationStage *fStage = nullptr;  ///< Simulation stage to be executed by tracks inside
-  TrackVec_t fTracks;                 ///< Vector of track pointers
-  
-private:
+  int fThreshold          = 64;      ///< Basket threshold
+  int fNode               = 0;       ///< Numa node for basket allocation
+  SimulationStage *fStage = nullptr; ///< Simulation stage to be executed by tracks inside
+  TrackVec_t fTracks;                ///< Vector of track pointers
 
+private:
   Basket(const Basket &) = delete;
   Basket &operator=(const Basket &) = delete;
-  
+
 public:
   /** @brief Default basket constructor */
   VECCORE_ATT_HOST_DEVICE
   Basket() {}
 
-  /** 
+  /**
    * @brief Standard basket constructor
    *
    * @param size Initial basket size
@@ -59,7 +58,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   Basket(int size, int threshold);
 
-  /** 
+  /**
    * @brief NUMA aware basket constructor
    *
    * @param size Initial basket size
@@ -92,7 +91,8 @@ public:
 #ifndef VECCORE_CUDA
     std::copy(tracks.begin(), tracks.end(), std::back_inserter(Tracks()));
 #else
-    for (auto track : tracks) fTracks.push_back(track);
+    for (auto track : tracks)
+      fTracks.push_back(track);
 #endif
   }
 
@@ -146,13 +146,13 @@ public:
   /** @brief Function checking if a track is already contained */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int HasTrack(Track* const track) const
+  int HasTrack(Track *const track) const
   {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    return ( std::find(fTracks.begin(), fTracks.end(), track) != fTracks.end() );
+    return (std::find(fTracks.begin(), fTracks.end(), track) != fTracks.end());
 #else
     // #!@$f**k%#@! CUDA
-    for (size_t i=0; i<fTracks.size(); ++i)
+    for (size_t i = 0; i < fTracks.size(); ++i)
       if (fTracks[i] == track) return true;
     return false;
 #endif
@@ -161,17 +161,17 @@ public:
   /** @brief Function checking if a track is contained repeatedly */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int HasTrackMany(Track* const track) const
+  int HasTrackMany(Track *const track) const
   {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     auto it = std::find(fTracks.begin(), fTracks.end(), track);
-    return ( std::find(++it, fTracks.end(), track) != fTracks.end() );
+    return (std::find(++it, fTracks.end(), track) != fTracks.end());
 #else
     // #!@$f**k%#@! CUDA
     size_t i;
-    for (i=0; i<fTracks.size(); ++i)
+    for (i = 0; i < fTracks.size(); ++i)
       if (fTracks[i] == track) break;
-    for (size_t j=i+1; j<fTracks.size(); ++j)
+    for (size_t j = i + 1; j < fTracks.size(); ++j)
       if (fTracks[j] == track) return true;
     return false;
 #endif
@@ -224,9 +224,7 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  size_t SizeOfInstance() const {
-    return ( sizeof(this) + fTracks.capacity() * sizeof(Track*) );
-  }
+  size_t SizeOfInstance() const { return (sizeof(this) + fTracks.capacity() * sizeof(Track *)); }
 
   /**
    * @brief Function to change the transportability threshold for the basket. Not thread safe.
@@ -244,7 +242,6 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetStage(SimulationStage *stage) { fStage = stage; }
-
 };
 
 } // GEANT_IMPL_NAMESPACE

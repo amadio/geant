@@ -23,7 +23,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PropagationStage : public SimulationStage {
 
 protected:
-  bool fHasField = true;         ///< Setup has field
+  bool fHasField = true; ///< Setup has field
 private:
   PropagationStage(const PropagationStage &) = delete;
   PropagationStage &operator=(const PropagationStage &) = delete;
@@ -54,7 +54,6 @@ public:
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE
   virtual const char *GetName() { return "Propagation"; }
-
 };
 
 } // GEANT_IMPL_NAMESPACE

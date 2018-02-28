@@ -33,47 +33,49 @@ class Propagator;
 
 class StackLikeBuffer {
 
-protected:  
+protected:
   vector_t<Basket *> fLanes;       ///< Track lanes
   Basket *fPriorityLane = nullptr; ///< Priority lane
-  Basket *fStageBuffer = nullptr;  ///< First stage buffer
-  int fPriorityEvent = 0;          ///< Prioritized event
-  bool fPriorityMode = false;      ///< Priority mode
-  int fLastLane = 0;               ///< Last lane containing tracks
-  int fNlanes = 10;                ///< Number of lanes stored
-  
+  Basket *fStageBuffer  = nullptr; ///< First stage buffer
+  int fPriorityEvent    = 0;       ///< Prioritized event
+  bool fPriorityMode    = false;   ///< Priority mode
+  int fLastLane         = 0;       ///< Last lane containing tracks
+  int fNlanes           = 10;      ///< Number of lanes stored
+
 private:
   StackLikeBuffer(const StackLikeBuffer &) = delete;
   StackLikeBuffer &operator=(const StackLikeBuffer &) = delete;
 
 public:
-  StackLikeBuffer(int maxgen, TaskData *td) : fNlanes(maxgen+1) 
+  StackLikeBuffer(int maxgen, TaskData *td) : fNlanes(maxgen + 1)
   {
     if (td->fPropagator->fConfig->fUseNuma) {
-      for (int i=0; i<fNlanes; ++i) {
+      for (int i = 0; i < fNlanes; ++i) {
         fLanes.push_back(new Basket(1000, 0, td->fNode));
       }
       fPriorityLane = new Basket(1000, 0, td->fNode);
     } else {
-      for (int i=0; i<fNlanes; ++i) {
+      for (int i = 0; i < fNlanes; ++i) {
         fLanes.push_back(new Basket(1000, 0));
       }
       fPriorityLane = new Basket(1000, 0);
     }
   }
-  
+
   ~StackLikeBuffer()
   {
-     for (auto basket : fLanes) delete basket;
-     fLanes.clear();
-     delete fPriorityLane;
+    for (auto basket : fLanes)
+      delete basket;
+    fLanes.clear();
+    delete fPriorityLane;
   }
-  
+
   /** @brief Add several tracks to the buffer */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
-  void AddTracks(TrackVec_t &tracks) { 
-    for (auto track : tracks) 
+  void AddTracks(TrackVec_t &tracks)
+  {
+    for (auto track : tracks)
       AddTrack(track);
   }
 
@@ -85,17 +87,17 @@ public:
     if (fPriorityMode && track->Event() == fPriorityEvent) {
       fPriorityLane->AddTrack(track);
     } else {
-      int lane = vecCore::math::Min(track->GetGeneration(), fNlanes-1);
+      int lane = vecCore::math::Min(track->GetGeneration(), fNlanes - 1);
       fLanes[lane]->AddTrack(track);
       fLastLane = vecCore::math::Max(fLastLane, lane);
     }
   }
-  
+
   /** @brief Flush a given lane into the stage buffer */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
   int FlushLane(size_t lane)
-  { 
+  {
     int nflush = fLanes[lane]->size();
     fStageBuffer->AddTracks(fLanes[lane]->Tracks());
     fLanes[lane]->Tracks().clear();
@@ -116,7 +118,8 @@ public:
   /** @brief Flush the priority lane into the stage buffer */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
-  int FlushPriorityLane() {
+  int FlushPriorityLane()
+  {
     int nflush = fPriorityLane->size();
     if (!nflush) return 0;
     fStageBuffer->AddTracks(fPriorityLane->Tracks());
@@ -152,8 +155,8 @@ public:
   /** @brief Getter for number of stacked tracks */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
-  int GetNtracks() const 
-  { 
+  int GetNtracks() const
+  {
     int ntracks = 0;
     for (int lane = fLastLane; lane >= 0; --lane)
       ntracks += fLanes[lane]->size();

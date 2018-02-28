@@ -15,11 +15,10 @@ class TGeoMaterial;
 #include "TGeoExtension.h"
 #endif
 
-
 using namespace veccore;
 class PhysicsInterface;
 
-GEANT_DEVICE_DECLARE_CONV(Geant,class,Propagator);
+GEANT_DEVICE_DECLARE_CONV(Geant, class, Propagator);
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -35,40 +34,39 @@ class PrimaryGenerator;
 class MCTruthMgr;
 class EventSet;
 
-class RunManager
-{
+class RunManager {
 private:
-  bool fInitialized = false;
-  int fNpropagators = 0;          /** Number of propagators */
-  int fNthreads     = 0;          /** Number of threads per propagator */
-  int fNvolumes     = 0;          /** Number of active volumes in the geometry */
-  int fNbuff        = 0;          /** Number of event slots per propagator */
-  int fInitialShare = 0;          /** Initial basket share for each propagator */
+  bool fInitialized    = false;
+  int fNpropagators    = 0;       /** Number of propagators */
+  int fNthreads        = 0;       /** Number of threads per propagator */
+  int fNvolumes        = 0;       /** Number of active volumes in the geometry */
+  int fNbuff           = 0;       /** Number of event slots per propagator */
+  int fInitialShare    = 0;       /** Initial basket share for each propagator */
   GeantConfig *fConfig = nullptr; /** Run configuration */
-  TaskBroker *fBroker = nullptr;  /** Task broker */
+  TaskBroker *fBroker  = nullptr; /** Task broker */
 
-  UserApplication *fApplication = nullptr;    /** User application */
-  UserApplication *fStdApplication = nullptr; /** Standard application */
+  UserApplication *fApplication              = nullptr; /** User application */
+  UserApplication *fStdApplication           = nullptr; /** Standard application */
   UserDetectorConstruction *fDetConstruction = nullptr; /** User detector construction */
-  
+
   PhysicsInterface *fPhysicsInterface = nullptr; /** The new, real physics interface */
   PrimaryGenerator *fPrimaryGenerator = nullptr; /** Primary generator */
-  MCTruthMgr *fTruthMgr = nullptr;              /** MCTruth manager */
-  EventServer *fEventServer = nullptr;     /** The event server */
-  TDManager *fTDManager = nullptr;              /** The task data manager */
+  MCTruthMgr *fTruthMgr               = nullptr; /** MCTruth manager */
+  EventServer *fEventServer           = nullptr; /** The event server */
+  TDManager *fTDManager               = nullptr; /** The task data manager */
 
-  bool fInitialisedRKIntegration=false;  /** Flag: Is RK initialised for tracking in field  */
-  float  fBfieldArr[3] = { 0.0, 0.0, 0.0 }; /** Constant Magnetic Field value - if any */
+  bool fInitialisedRKIntegration = false;           /** Flag: Is RK initialised for tracking in field  */
+  float fBfieldArr[3]            = {0.0, 0.0, 0.0}; /** Constant Magnetic Field value - if any */
 
   vector_t<Propagator *> fPropagators;
   vector_t<Volume_t const *> fVolumes;
-  vector_t<EventSet *> fEventSets;              /** Registered event sets */
-  std::atomic_flag fEventSetsLock;              /** Spinlock for event set access locking */
+  vector_t<EventSet *> fEventSets; /** Registered event sets */
+  std::atomic_flag fEventSetsLock; /** Spinlock for event set access locking */
 
   // State data
-  std::atomic_int fPriorityEvents; /** Number of prioritized events */
-  std::atomic_int fTaskId; /** Counter providing unique task id's */
-  BitSet *fDoneEvents = nullptr;   /** Array of bits marking done events */
+  std::atomic_int fPriorityEvents;       /** Number of prioritized events */
+  std::atomic_int fTaskId;               /** Counter providing unique task id's */
+  BitSet *fDoneEvents = nullptr;         /** Array of bits marking done events */
   std::vector<std::thread> fListThreads; /** Vector of threads */
 
 public:
@@ -76,24 +74,24 @@ public:
   RunManager(unsigned int npropagators, unsigned int nthreads, GeantConfig *config);
   ~RunManager();
 
-// Accessors
-  void  AddEventSet(EventSet *workload);
+  // Accessors
+  void AddEventSet(EventSet *workload);
 
   GEANT_FORCE_INLINE
-  int  GetNthreads() { return fNthreads; }
+  int GetNthreads() { return fNthreads; }
 
   GEANT_FORCE_INLINE
-  int  GetNthreadsTotal() { return (fNthreads*fNpropagators); }
+  int GetNthreadsTotal() { return (fNthreads * fNpropagators); }
 
   GEANT_FORCE_INLINE
-  int  GetNpropagators() { return fNpropagators; }
+  int GetNpropagators() { return fNpropagators; }
 
   GEANT_FORCE_INLINE
   GeantConfig *GetConfig() { return fConfig; }
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int  GetNvolumes() { return fNvolumes; }
+  int GetNvolumes() { return fNvolumes; }
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -104,16 +102,16 @@ public:
   vector_t<Volume_t const *> &GetVolumes() { return fVolumes; }
 
   GEANT_FORCE_INLINE
-  int  GetNprimaries() const { return (fEventServer) ? fEventServer->GetNprimaries() : 0; }
+  int GetNprimaries() const { return (fEventServer) ? fEventServer->GetNprimaries() : 0; }
 
   GEANT_FORCE_INLINE
-  int  GetInitialShare() const { return fInitialShare; }
+  int GetInitialShare() const { return fInitialShare; }
 
   GEANT_FORCE_INLINE
   UserDetectorConstruction *GetDetectorConstruction() const { return fDetConstruction; }
 
   GEANT_FORCE_INLINE
-  void  SetInitialShare(int nbaskets) { fInitialShare = nbaskets; }
+  void SetInitialShare(int nbaskets) { fInitialShare = nbaskets; }
 
   GEANT_FORCE_INLINE
   std::atomic_int &GetPriorityEvents() { return fPriorityEvents; }
@@ -124,21 +122,20 @@ public:
   GEANT_FORCE_INLINE
   Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
 
-
   GEANT_FORCE_INLINE
   Event *GetEvent(int slot) { return fEventServer->GetEvent(slot); }
 
   GEANT_FORCE_INLINE
   EventServer *GetEventServer() const { return fEventServer; }
 
-//  GEANT_FORCE_INLINE
-//  TaskData *GetTaskData(int tid) { return fTaskData[tid]; }
+  //  GEANT_FORCE_INLINE
+  //  TaskData *GetTaskData(int tid) { return fTaskData[tid]; }
 
   GEANT_FORCE_INLINE
-  int  GetTaskId() { return (fTaskId.fetch_add(1)); }
+  int GetTaskId() { return (fTaskId.fetch_add(1)); }
 
-//  GEANT_FORCE_INLINE
-//  int GetNtracks(int islot) const { return fNtracks[islot]; }
+  //  GEANT_FORCE_INLINE
+  //  int GetNtracks(int islot) const { return fNtracks[islot]; }
 
   GEANT_FORCE_INLINE
   void SetCoprocessorBroker(TaskBroker *broker) { fBroker = broker; }
@@ -147,8 +144,8 @@ public:
   void SetUserApplication(UserApplication *app) { fApplication = app; }
 
   /** @brief Set object to initialize detector, field */
-  void SetUserFieldConstruction(UserFieldConstruction* udc);
-    
+  void SetUserFieldConstruction(UserFieldConstruction *udc);
+
   GEANT_FORCE_INLINE
   UserApplication *GetUserApplication() const { return fApplication; }
 
@@ -178,7 +175,7 @@ public:
 
   GEANT_FORCE_INLINE
   bool IsInitialized() { return fInitialized; }
- 
+
   TaskData *BookTransportTask();
 
   /** @brief Function checking if transport is completed */
@@ -193,9 +190,13 @@ public:
   /** @brief Initialize classes for RK Integration */
   void PrepareRkIntegration();
 
-  void LockEventSets() { while (fEventSetsLock.test_and_set(std::memory_order_acquire)) {}; }
+  void LockEventSets()
+  {
+    while (fEventSetsLock.test_and_set(std::memory_order_acquire)) {
+    };
+  }
   void UnlockEventSets() { fEventSetsLock.clear(std::memory_order_release); }
- 
+
   EventSet *NotifyEventSets(Event *finished_event);
 
   void EventTransported(Event *event, TaskData *td);
@@ -205,7 +206,6 @@ public:
   void RunSimulation();
   bool RunSimulationTask(EventSet *workload, TaskData *td);
   void StopTransport();
-
 };
 
 } // GEANT_IMPL_NAMESPACE

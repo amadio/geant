@@ -18,9 +18,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 GeomQueryHandler::GeomQueryHandler(Volume_t *vol, int threshold, Propagator *propagator, int index)
-               : Handler(threshold, propagator), fVolume(vol), fIndex(index)
+    : Handler(threshold, propagator), fVolume(vol), fIndex(index)
 {
-// Default constructor
+  // Default constructor
   assert(vol && "GeomQueryHandler: A valid volume pointer has to be provided");
   ConnectToVolume();
 }
@@ -29,23 +29,23 @@ GeomQueryHandler::GeomQueryHandler(Volume_t *vol, int threshold, Propagator *pro
 VECCORE_ATT_HOST_DEVICE
 GeomQueryHandler::~GeomQueryHandler()
 {
-// Destructor
+  // Destructor
   DisconnectVolume();
-}  
+}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void GeomQueryHandler::ConnectToVolume()
 {
   VBconnector *connector = new VBconnector(fIndex);
-  fVolume->SetBasketManagerPtr(connector);  
+  fVolume->SetBasketManagerPtr(connector);
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void GeomQueryHandler::ActivateBasketizing(bool flag)
 {
-// Special basketizing in case of logical volumes
+  // Special basketizing in case of logical volumes
   if (fActive == flag) return;
   int basket_size = fThreshold;
   // Set a 'compromise' size for the basketizer buffer for all geometry handlers
@@ -58,8 +58,8 @@ void GeomQueryHandler::ActivateBasketizing(bool flag)
       fBasketizer = new basketizer_t(buffer_size, basket_size);
     } else {
       int basketizer_size = basketizer_t::SizeofInstance(buffer_size);
-      fBasketizer = basketizer_t::MakeInstanceAt(
-        NumaUtils::NumaAlignedMalloc(basketizer_size, GetNode(), 64), buffer_size, basket_size);
+      fBasketizer         = basketizer_t::MakeInstanceAt(NumaUtils::NumaAlignedMalloc(basketizer_size, GetNode(), 64),
+                                                 buffer_size, basket_size);
     }
 #else
     fBasketizer = new basketizer_t(buffer_size, basket_size);
@@ -74,16 +74,16 @@ void GeomQueryHandler::DisconnectVolume()
 {
   if (!fVolume) return;
   VBconnector *connector = nullptr;
-  connector = static_cast<VBconnector*>(fVolume->GetBasketManagerPtr());
+  connector              = static_cast<VBconnector *>(fVolume->GetBasketManagerPtr());
   fVolume->SetBasketManagerPtr(nullptr);
   delete connector;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomQueryHandler::DoIt(Track *track, Basket& output, TaskData *td)
+void GeomQueryHandler::DoIt(Track *track, Basket &output, TaskData *td)
 {
-// Scalar geometry length computation. The track is moved into the output basket.
+  // Scalar geometry length computation. The track is moved into the output basket.
 
   // Below we should call just finding the next boundary. Relocation should
   // be handled separately
@@ -98,14 +98,14 @@ void GeomQueryHandler::DoIt(Track *track, Basket& output, TaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void GeomQueryHandler::DoIt(Basket &input, Basket& output, TaskData *td)
+void GeomQueryHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 {
-// Vector geometry length computation. The tracks are moved into the output basket.
-  
-// We should make sure that track->fSafety < track->fPstep for these tracks
-  constexpr auto kVecSize =  vecCore::VectorSize<vecgeom::VectorBackend::Real_v>();
-  TrackVec_t &tracks = input.Tracks();
-  const size_t ntr = tracks.size();
+  // Vector geometry length computation. The tracks are moved into the output basket.
+
+  // We should make sure that track->fSafety < track->fPstep for these tracks
+  constexpr auto kVecSize = vecCore::VectorSize<vecgeom::VectorBackend::Real_v>();
+  TrackVec_t &tracks      = input.Tracks();
+  const size_t ntr        = tracks.size();
 // #define DEBUG_VECTOR_DOIT
 
 //#define TEST_SCALAR_LOOP
@@ -182,19 +182,18 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, TaskData *td)
   }
   if (i >= kVecSize) {
     // Process these tracks in vector mode
-    VectorNavInterface::NavFindNextBoundary(i, track_geo.fPstepV,
-               track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
-               track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
-               (const VolumePath_t **)td->fPathV,
-               track_geo.fSnextV, track_geo.fSafetyV, track_geo.fCompSafetyV);
+    VectorNavInterface::NavFindNextBoundary(i, track_geo.fPstepV, track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
+                                            track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
+                                            (const VolumePath_t **)td->fPathV, track_geo.fSnextV, track_geo.fSafetyV,
+                                            track_geo.fCompSafetyV);
     for (size_t itr = 0; itr < i; ++itr) {
       // Find the original track
       Track *track = tracks[track_geo.fIdV[itr]];
 #ifdef DEBUG_VECTOR_DOIT
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
-      if ( vecCore::math::Abs(track->fSnext - track_geo.fSnextV[itr]) > 1.e-10) {
-        printf("  track %d (ind=%ld): scalar (snext=%16.12f)  vector (snext=%16.12f)\n",
-                track->fParticle, itr, track->fSnext, track_geo.fSnextV[itr]);
+      if (vecCore::math::Abs(track->fSnext - track_geo.fSnextV[itr]) > 1.e-10) {
+        printf("  track %d (ind=%ld): scalar (snext=%16.12f)  vector (snext=%16.12f)\n", track->fParticle, itr,
+               track->fSnext, track_geo.fSnextV[itr]);
       }
 #endif
       track->SetSnext(track_geo.fSnextV[itr]);
@@ -204,7 +203,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, TaskData *td)
     track_geo.Clear();
     i = 0;
   }
-    
+
   // Process the tracks having pstep > safety
   for (size_t itr = 0; itr < ntr; ++itr) {
     Track *track = tracks[itr];
@@ -220,21 +219,21 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, TaskData *td)
     track->SetPending(true); // probably not needed
     i++;
   }
-  if (i >= kVecSize) {  
-    VectorNavInterface::NavFindNextBoundary(i, track_geo.fPstepV,
-               track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
-               track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
-               (const VolumePath_t **)td->fPathV,
-               track_geo.fSnextV, track_geo.fSafetyV, track_geo.fCompSafetyV);  
+  if (i >= kVecSize) {
+    VectorNavInterface::NavFindNextBoundary(i, track_geo.fPstepV, track_geo.fXposV, track_geo.fYposV, track_geo.fZposV,
+                                            track_geo.fXdirV, track_geo.fYdirV, track_geo.fZdirV,
+                                            (const VolumePath_t **)td->fPathV, track_geo.fSnextV, track_geo.fSafetyV,
+                                            track_geo.fCompSafetyV);
     for (size_t itr = 0; itr < i; ++itr) {
       // Find the original track
       Track *track = tracks[track_geo.fIdV[itr]];
 #ifdef DEBUG_VECTOR_DOIT
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
-      if ( vecCore::math::Abs(track->GetSnext() - track_geo.fSnextV[itr]) > 1.e-10 ||
-           vecCore::math::Abs(track->GetSafety() - track_geo.fSafetyV[itr]) > 1.e-10 ) {
+      if (vecCore::math::Abs(track->GetSnext() - track_geo.fSnextV[itr]) > 1.e-10 ||
+          vecCore::math::Abs(track->GetSafety() - track_geo.fSafetyV[itr]) > 1.e-10) {
         printf("  track %d (ind=%ld): scalar (snext=%16.12f safety=%16.12f)  vector (snext=%16.12f safety=%16.12f)\n",
-                track->Particle(), itr, track->GetSnext(), track->GetSafety(), track_geo.fSnextV[itr], track_geo.fSafetyV[itr]);
+               track->Particle(), itr, track->GetSnext(), track->GetSafety(), track_geo.fSnextV[itr],
+               track_geo.fSafetyV[itr]);
       }
 #endif
       track->SetSnext(track_geo.fSnextV[itr]);
@@ -247,13 +246,14 @@ void GeomQueryHandler::DoIt(Basket &input, Basket& output, TaskData *td)
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
     }
   }
-    
+
   td->fNsnext += ntr;
-  // Copy tracks to output
+// Copy tracks to output
 #ifndef VECCORE_CUDA
   std::move(tracks.begin(), tracks.end(), std::back_inserter(output.Tracks()));
 #else
-  for (auto track : tracks) output.AddTrack(track);
+  for (auto track : tracks)
+    output.AddTrack(track);
 #endif
 }
 

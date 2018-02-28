@@ -26,9 +26,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 struct BasketCounters {
   size_t fNhandlers = 0; ///< number of handlers
-  size_t fNscalar = 0;   ///< number of scalar DoIt calls per stage
-  size_t fNvector = 0;   ///< number of basketized DoIt calls per stage
-  size_t *fCounters; ///< counters
+  size_t fNscalar   = 0; ///< number of scalar DoIt calls per stage
+  size_t fNvector   = 0; ///< number of basketized DoIt calls per stage
+  size_t *fCounters;     ///< counters
 
   BasketCounters(size_t nhandlers)
   {
@@ -42,7 +42,7 @@ struct BasketCounters {
   GEANT_FORCE_INLINE
   void Reset()
   {
-    for (size_t i = 0; i < fNhandlers; ++i)
+    for (size_t i  = 0; i < fNhandlers; ++i)
       fCounters[i] = 0;
   }
 

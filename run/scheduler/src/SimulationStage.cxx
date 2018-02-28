@@ -11,12 +11,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SimulationStage::SimulationStage(ESimulationStage type, Propagator *prop)
-  : fType(type), fPropagator(prop)
+SimulationStage::SimulationStage(ESimulationStage type, Propagator *prop) : fType(type), fPropagator(prop)
 {
   fCheckCountdown = 0;
   fFireFlushRatio = prop->fConfig->fFireFlushRatio;
-  fId = prop->RegisterStage(this);
+  fId             = prop->RegisterStage(this);
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fCheckLock.clear();
 #endif
@@ -26,8 +25,8 @@ SimulationStage::SimulationStage(ESimulationStage type, Propagator *prop)
 VECCORE_ATT_HOST_DEVICE
 SimulationStage::~SimulationStage()
 {
-  for (int i=0; i<GetNhandlers(); ++i)
-    delete fHandlers[i];  
+  for (int i = 0; i < GetNhandlers(); ++i)
+    delete fHandlers[i];
 }
 
 //______________________________________________________________________________
@@ -35,21 +34,21 @@ VECCORE_ATT_HOST_DEVICE
 int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
 {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    // do not touch if other checking operation is ongoing
+  // do not touch if other checking operation is ongoing
   if (fCheckLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
   fThrBasketCheck *= 2.;
   fCheckCountdown = fThrBasketCheck;
-  int nactivated = 0;
-  size_t nactive = 0;
-  Basket &output = *td->fShuttleBasket;
+  int nactivated  = 0;
+  size_t nactive  = 0;
+  Basket &output  = *td->fShuttleBasket;
   output.Clear();
   size_t nflushedtot = 0;
-  size_t nfiredtot = 0;
-  for (int i=0; i<GetNhandlers(); ++i) {
+  size_t nfiredtot   = 0;
+  for (int i = 0; i < GetNhandlers(); ++i) {
     if (!fHandlers[i]->MayBasketize()) continue;
     size_t nflushed = fHandlers[i]->GetNflushed();
-    size_t nfired = fHandlers[i]->GetNfired();
+    size_t nfired   = fHandlers[i]->GetNfired();
     nflushedtot += nflushed;
     nfiredtot += nfired;
     if (fHandlers[i]->IsActive()) {
@@ -70,17 +69,18 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
     }
   }
   float nbasketized = td->fCounters[fId]->fNvector;
-  float ntotal = nbasketized + td->fCounters[fId]->fNscalar;
-  Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld",
-        GetName(), int(100*nbasketized/ntotal),
-        size_t(ntotal-nbasketized), size_t(nbasketized), nfiredtot, nflushedtot);
-  
+  float ntotal      = nbasketized + td->fCounters[fId]->fNscalar;
+  Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld", GetName(),
+         int(100 * nbasketized / ntotal), size_t(ntotal - nbasketized), size_t(nbasketized), nfiredtot, nflushedtot);
+
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fCheckLock.clear();
 #endif
   CopyToFollowUps(output, td);
-  if (nactivated > 0)      Printf("--- activated %d basketizers for stage %s\n", nactivated, GetName());
-  else if (nactivated < 0) Printf("--- stopped %d basketizers for stage %s\n", -nactivated, GetName());
+  if (nactivated > 0)
+    Printf("--- activated %d basketizers for stage %s\n", nactivated, GetName());
+  else if (nactivated < 0)
+    Printf("--- stopped %d basketizers for stage %s\n", -nactivated, GetName());
   printf("%ld/%ld active basketizers\n", nactive, fHandlers.size());
   return nactivated;
 }
@@ -109,10 +109,10 @@ int SimulationStage::FlushHandler(int i, TaskData *td, Basket &output)
 VECCORE_ATT_HOST_DEVICE
 int SimulationStage::FlushAndProcess(TaskData *td)
 {
-// Flush all active handlers in the stage, executing their scalar DoIt methods.
-// Flushing the handlers is opportunistic, as a handler is flushed by the first
-// thread to come. Subsequent threads will just notice that the handler is busy
-// and continue to other handlers, then to the next stage.
+  // Flush all active handlers in the stage, executing their scalar DoIt methods.
+  // Flushing the handlers is opportunistic, as a handler is flushed by the first
+  // thread to come. Subsequent threads will just notice that the handler is busy
+  // and continue to other handlers, then to the next stage.
 
   Basket &input = *td->fStageBuffers[fId];
   if (fBasketized) {
@@ -132,20 +132,20 @@ int SimulationStage::FlushAndProcess(TaskData *td)
     if (handler) {
       td->fCounters[fId]->fNscalar++;
       handler->DoIt(track, output, td);
-    }
-    else output.AddTrack(track);
+    } else
+      output.AddTrack(track);
   }
   // The stage buffer needs to be cleared
   input.Clear();
-  
+
   // Loop active handlers and flush them into btodo basket
-  for (int i=0; i < GetNhandlers(); ++i) {
+  for (int i = 0; i < GetNhandlers(); ++i) {
     if (fHandlers[i]->IsActive() && fHandlers[i]->Flush(bvector)) {
       // btodo has some content, invoke DoIt
       if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
         td->fCounters[fId]->fNvector += bvector.size();
         fHandlers[i]->DoIt(bvector, output, td);
-      } else {      
+      } else {
         td->fCounters[fId]->fNscalar += bvector.size();
         for (auto track : bvector.Tracks())
           fHandlers[i]->DoIt(track, output, td);
@@ -153,7 +153,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
       bvector.Clear();
     }
   }
-    
+
   return CopyToFollowUps(output, td);
 }
 
@@ -161,18 +161,18 @@ int SimulationStage::FlushAndProcess(TaskData *td)
 VECCORE_ATT_HOST_DEVICE
 int SimulationStage::Process(TaskData *td)
 {
-// Processing is concurrent for all tasks/threads serving the same propagator.
-// The input basket is the task data-specific container for the caller thread
-// corresponding to this stage. The DoIt method is executed for the 
-// handlers present in the stage, in scalar mode for non-active ones and using the
-// vector interface for the active ones. The resulting tracks after the stage
-// execution are transported via a thread-specific shuttle basket into the inputs
-// of the follow-up stages set by the handler DoIt method. The method returns
-// the number of tracks pushed to the output.
+  // Processing is concurrent for all tasks/threads serving the same propagator.
+  // The input basket is the task data-specific container for the caller thread
+  // corresponding to this stage. The DoIt method is executed for the
+  // handlers present in the stage, in scalar mode for non-active ones and using the
+  // vector interface for the active ones. The resulting tracks after the stage
+  // execution are transported via a thread-specific shuttle basket into the inputs
+  // of the follow-up stages set by the handler DoIt method. The method returns
+  // the number of tracks pushed to the output.
 
   assert(fFollowUpStage >= 0);
   Basket &input = *td->fStageBuffers[fId];
-  int ninput = input.Tracks().size();
+  int ninput    = input.Tracks().size();
   if (fBasketized) {
     int check_countdown = fCheckCountdown.fetch_sub(ninput) - ninput;
     if (check_countdown <= 0) CheckBasketizers(td, fFireFlushRatio);
@@ -182,18 +182,18 @@ int SimulationStage::Process(TaskData *td)
   Basket &output = *td->fShuttleBasket;
   output.Clear();
 
-  #ifdef GEANT_DEBUG
-  //static long counter = 0;
-  //counter++;
-  #endif
+#ifdef GEANT_DEBUG
+// static long counter = 0;
+// counter++;
+#endif
 
   // Loop tracks in the input basket and select the appropriate handler
   for (auto track : input.Tracks()) {
-    // Default next stage is the follow-up
-    #ifdef GEANT_DEBUG
+// Default next stage is the follow-up
+#ifdef GEANT_DEBUG
 //    assert(!input.HasTrackMany(track));
 //    assert(!output.HasTrack(track));
-    #endif
+#endif
     track->SetStage(fFollowUpStage);
     Handler *handler = Select(track, td);
     // If no handler is selected the track does not perform this stage
@@ -201,7 +201,7 @@ int SimulationStage::Process(TaskData *td)
       output.AddTrack(track);
       continue;
     }
-    
+
     if (!handler->IsActive()) {
       // Scalar DoIt.
       // The track and its eventual progenies should be now copied to the output
@@ -215,13 +215,13 @@ int SimulationStage::Process(TaskData *td)
       }
       td->fCounters[fId]->fNscalar++;
       handler->DoIt(track, output, td);
-      #ifdef GEANT_DEBUG
+#ifdef GEANT_DEBUG
 //      assert(!output.HasTrackMany(track));
-      #endif
+#endif
     } else {
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector)) {
-      // Vector DoIt
+        // Vector DoIt
         td->fCounters[fId]->fNvector += bvector.size();
         handler->DoIt(bvector, output, td);
         bvector.Clear();
@@ -237,9 +237,9 @@ int SimulationStage::Process(TaskData *td)
 VECCORE_ATT_HOST_DEVICE
 int SimulationStage::CopyToFollowUps(Basket &output, TaskData *td)
 {
-// Copy tracks from output basket to follow-up stages. Output needs to be cleared.
+  // Copy tracks from output basket to follow-up stages. Output needs to be cleared.
   int ntracks = output.size();
-  
+
   if (fEndStage) {
     // The last stage copies all tracks into the stage buffer
     td->fStackBuffer->AddTracks(output.Tracks());
@@ -251,7 +251,7 @@ int SimulationStage::CopyToFollowUps(Basket &output, TaskData *td)
     std::copy(output.Tracks().begin(), output.Tracks().end(),
               std::back_inserter(td->fStageBuffers[fFollowUpStage]->Tracks()));
 #else
-    auto &insertee( td->fStageBuffers[fFollowUpStage]->Tracks() );
+    auto &insertee(td->fStageBuffers[fFollowUpStage]->Tracks());
     for (auto track : output.Tracks()) {
       // If a follow-up stage is declared, this overrides any follow-up set by handlers
       insertee.push_back(track);
@@ -259,7 +259,7 @@ int SimulationStage::CopyToFollowUps(Basket &output, TaskData *td)
 #endif
   } else {
     for (auto track : output.Tracks()) {
-      assert(track->GetStage() != fId);         // no stage feeds itself
+      assert(track->GetStage() != fId); // no stage feeds itself
       td->fStageBuffers[track->GetStage()]->AddTrack(track);
     }
   }

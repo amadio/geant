@@ -28,9 +28,7 @@ private:
   GeomQueryStage &operator=(const GeomQueryStage &) = delete;
 
 protected:
-
 public:
-
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
@@ -59,8 +57,7 @@ public:
 
   /** @brief Activating basketizing */
   VECCORE_ATT_HOST_DEVICE
-  void ActivateBasketizing(bool flag=true);
-
+  void ActivateBasketizing(bool flag = true);
 };
 
 } // GEANT_IMPL_NAMESPACE

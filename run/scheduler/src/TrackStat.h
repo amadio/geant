@@ -24,11 +24,11 @@ class TaskData;
 class TrackStat {
 
 private:
-  TaskData *fTd = nullptr;   ///< Task data
-  int fNtotal = 0;                ///< Total number of tracks injected by the thread
-  int fNstacked = 0;              ///< Number of tracks in the stack-like buffer
-  int fNstagebuff = 0;            ///< Number of tracks in stage buffers
-  int fNbasketized = 0;           ///< Number of tracks in un-flushed baskets
+  TaskData *fTd    = nullptr; ///< Task data
+  int fNtotal      = 0;       ///< Total number of tracks injected by the thread
+  int fNstacked    = 0;       ///< Number of tracks in the stack-like buffer
+  int fNstagebuff  = 0;       ///< Number of tracks in stage buffers
+  int fNbasketized = 0;       ///< Number of tracks in un-flushed baskets
 
 public:
   /** @brief Track stat constructor */
@@ -45,11 +45,16 @@ public:
 
   /** @brief Clear stats */
   VECCORE_ATT_HOST_DEVICE
-  void Clear() { fNtotal = 0; fNstacked = 0; fNstagebuff = 0; fNbasketized = 0; }
-  
+  void Clear()
+  {
+    fNtotal      = 0;
+    fNstacked    = 0;
+    fNstagebuff  = 0;
+    fNbasketized = 0;
+  }
+
   /** @brief Make the count balance for tracks */
   int CountBalance();
-  
 };
 
 } // GEANT_IMPL_NAMESPACE
