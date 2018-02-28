@@ -8,7 +8,8 @@ TPrimaryGenerator::TPrimaryGenerator()
       fPartEkin(0.03),                 // kinetic energy of the primary [GeV] : 30 MeV
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
       fYPos(0.), fZPos(0.), fXDir(0.), // direction vector of the primary particles: (0,0,1)
-      fYDir(0.), fZDir(1.), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0) {
+      fYDir(0.), fZDir(1.), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0)
+{
   // init all remaining members
   InitPrimaryGenerator();
 }
@@ -20,7 +21,8 @@ TPrimaryGenerator::TPrimaryGenerator(int partpdg, double partekin, double xpos, 
       fPartEkin(partekin),                   // kinetic energy of the primary [GeV]
       fXPos(xpos),                           // (x,y,z) position of the primary particles
       fYPos(ypos), fZPos(zpos), fXDir(xdir), // direction vector of the primary particles
-      fYDir(ydir), fZDir(zdir), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0) {
+      fYDir(ydir), fZDir(zdir), fGVPartIndex(-1), fPartPDG(0), fMass(0), fCharge(0), fPTotal(0), fETotal(0)
+{
   // ensure normality of the direction vector
   double norm = sqrt(fXDir * fXDir + fYDir * fYDir + fZDir * fZDir);
   fXDir /= norm;
@@ -31,29 +33,32 @@ TPrimaryGenerator::TPrimaryGenerator(int partpdg, double partekin, double xpos, 
 }
 
 //______________________________________________________________________________
-TPrimaryGenerator::~TPrimaryGenerator() {}
+TPrimaryGenerator::~TPrimaryGenerator()
+{
+}
 
 //______________________________________________________________________________
-void TPrimaryGenerator::SetParticleByPDGCode(int pdgcode) {
+void TPrimaryGenerator::SetParticleByPDGCode(int pdgcode)
+{
   fPDG = pdgcode;
   // update all remaining members
   InitPrimaryGenerator();
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::InitPrimaryGenerator() {
+void TPrimaryGenerator::InitPrimaryGenerator()
+{
   Particle_t::CreateParticles();
   // set GV particle index
   fGVPartIndex = TPartIndex::I()->PartIndex(fPDG);
-// set TDatabasePDG ptr
+  // set TDatabasePDG ptr
   fPartPDG = const_cast<Particle_t *>(&Particle_t::GetParticle(fPDG));
   // set rest mass [GeV]
   fMass = fPartPDG->Mass();
   // set charge
   fCharge = fPartPDG->Charge();
   if ((int)fCharge != fCharge)
-     geant::Error("TPrimaryGenerator::InitPrimaryGenerator()","Unsupported charge: %f\n",fCharge);
-
+    geant::Error("TPrimaryGenerator::InitPrimaryGenerator()", "Unsupported charge: %f\n", fCharge);
 
   // set total energy [GeV]
   fETotal = fPartEkin + fMass;
@@ -62,16 +67,18 @@ void TPrimaryGenerator::InitPrimaryGenerator() {
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::SetParticleXYZDir(double xdir, double ydir, double zdir) {
+void TPrimaryGenerator::SetParticleXYZDir(double xdir, double ydir, double zdir)
+{
   // ensure normality of the direction vector
   double norm = sqrt(xdir * xdir + ydir * ydir + zdir * zdir);
-  fXDir = xdir / norm;
-  fYDir = ydir / norm;
-  fZDir = zdir / norm;
+  fXDir       = xdir / norm;
+  fYDir       = ydir / norm;
+  fZDir       = zdir / norm;
 }
 
 //______________________________________________________________________________
-void TPrimaryGenerator::InitPrimaryTrack(geant::Track &gtrack) {
+void TPrimaryGenerator::InitPrimaryTrack(geant::Track &gtrack)
+{
   gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);

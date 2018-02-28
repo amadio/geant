@@ -33,7 +33,8 @@ public:
   double GetEkin() const { return fPartEkin; }
   void SetParticleByPDGCode(int pdgcode);
   int GetParticlePDGCode() const { return fPDG; }
-  void SetParticleXYZPosition(double x, double y, double z) {
+  void SetParticleXYZPosition(double x, double y, double z)
+  {
     fXPos = x;
     fYPos = y;
     fZPos = z;
@@ -62,7 +63,6 @@ private:
 
   TPrimaryGenerator(const TPrimaryGenerator &);            // no imp.
   TPrimaryGenerator &operator=(const TPrimaryGenerator &); // no imp.
-
 };
 
 #endif
