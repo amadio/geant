@@ -31,26 +31,24 @@ class Particle;
  * at-rest.
  */
 enum class ForcedCondition {
-             kInActivated,       /** for inactivated processes */
-             kNotForced,         /** for normal, common processes: default */
-             kForced,            /** for special processes, which should be always invoked */
-             kExclusivelyForced  /** for fast-sim processes, which not only should be always
-                                   * invoked, but should prevent other processes to be called */
-           };
-
+  kInActivated,      /** for inactivated processes */
+  kNotForced,        /** for normal, common processes: default */
+  kForced,           /** for special processes, which should be always invoked */
+  kExclusivelyForced /** for fast-sim processes, which not only should be always
+                       * invoked, but should prevent other processes to be called */
+};
 
 enum class ProcessType {
-             kNotDefined,         /** for a process that does not fit in any other type: default */
-             kDecay,              /** for a decay process */
-             kElectromagnetic,    /** for an electromagnetic process */
-             kMSC,                /** for a multiple scattering process */
-             kEnergyLoss,         /** for an energy loss process i.e. ioni and brem */
-             kOptical,            /** for a process involving optical photons */
-             kHadronic,           /** for a hadronic process */
-             kPhotoLeptonHadron,  /** for a gamma- or lepto-nuclear process */
-             kFastSim             /** for a fast-sim (e.g. parameterization) process */
-           };
-
+  kNotDefined,        /** for a process that does not fit in any other type: default */
+  kDecay,             /** for a decay process */
+  kElectromagnetic,   /** for an electromagnetic process */
+  kMSC,               /** for a multiple scattering process */
+  kEnergyLoss,        /** for an energy loss process i.e. ioni and brem */
+  kOptical,           /** for a process involving optical photons */
+  kHadronic,          /** for a hadronic process */
+  kPhotoLeptonHadron, /** for a gamma- or lepto-nuclear process */
+  kFastSim            /** for a fast-sim (e.g. parameterization) process */
+};
 
 /**
  * @brief Class PhysicsProcess
@@ -70,14 +68,13 @@ public:
   //
   virtual void Initialize();
 
-// NOTE: set to always applicable now; each process needs to have a list of particles that the process can be assigned
-//       to, this list is checked when a process is assigned to a given particle at initialisation time
+  // NOTE: set to always applicable now; each process needs to have a list of particles that the process can be assigned
+  //       to, this list is checked when a process is assigned to a given particle at initialisation time
   /** @brief Method that returns "true" if the process is applicable.
    *  @param A LightTrack containing the current particle and its kinematics.
    *
    */
-  virtual bool IsApplicable(const LightTrack &/*track*/) const { return true; }
-
+  virtual bool IsApplicable(const LightTrack & /*track*/) const { return true; }
 
   /** @brief Method that returns the macroscopic cross section in internal [1/length] unit.
    *
@@ -96,21 +93,26 @@ public:
    *                        Note, that the material of a MaterialCuts object can be obtained from the MaterialCuts
    *                        object.
    *  @param[in] kinenergy  Kinetic energy of the particle in internal [energy] unit.
-   *  @param[in] particle   Pointer to the partcile object (NOTE:we pass this for processes that can be used for more than one particle).
+   *  @param[in] particle   Pointer to the partcile object (NOTE:we pass this for processes that can be used for more
+   * than one particle).
    *  @param[in] mass       Dynamic mass of the particle in internal [energy] units.
    *  @return               Computed macroscopic cross section in internal [1/length] unit.
    */
   virtual double ComputeMacroscopicXSection(const MaterialCuts * /*matcut*/, double /*kinenergy*/,
-                                            const Particle * /*particle*/, double /*mass*/) const {return 0.;}
-
+                                            const Particle * /*particle*/, double /*mass*/) const
+  {
+    return 0.;
+  }
 
   // the minimum kinetic energy for (optional) lambda table (macroscopic cross section) table: will be used only if
   // the lambda table was requested per-material-cuts and even in that case the max of this and the
   // PhysicsParameters->GetMinLambdaTableEnergy() will be taken. Therefore, only production cut dependent processes
   // needs to be reimplement this method.
   virtual double GetMinimumLambdaTableKineticEnergy(const MaterialCuts * /*matcut*/,
-                                                    const Particle * /*particle*/) const { return 0.;}
-
+                                                    const Particle * /*particle*/) const
+  {
+    return 0.;
+  }
 
   /** @brief Method that returns the along-the-step limitation length
    *         (unit: length)
@@ -120,17 +122,15 @@ public:
    *  that does not limit the step, then the method returns an arbitrary,
    *  very large value.
    */
-   virtual double AlongStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/) const;
+  virtual double AlongStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/) const;
 
-
-   /** @brief Method that returns the post-step limitation length
-    *         (unit: length)
-    *
-    *  This applies only for the cdiscrete part of this process.
-    *  If the process does not have a discrete part this method is not called.
-    */
-   virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/, bool haseloss=false);
-
+  /** @brief Method that returns the post-step limitation length
+   *         (unit: length)
+   *
+   *  This applies only for the cdiscrete part of this process.
+   *  If the process does not have a discrete part this method is not called.
+   */
+  virtual double PostStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/, bool haseloss = false);
 
   /** @brief Method that returns the average lifetime of this process
    *         (unit: time)
@@ -143,11 +143,9 @@ public:
    */
   virtual double AverageLifetime(const LightTrack &track) const;
 
-
   // REMINDER-TO-BE-REMOVED: THE NEXT 3 METHODS HAVE LightTrack_v AS OUTPUT.
   // ----------------------  THIS COULD BE CHANGED TO:  LightTrack_v*
   //                         OR TO: std::vector< LightTrack >
-
 
   /** @brief Method that does the along-the-step, i.e. the continuous part,
              action of the in-flight process.
@@ -161,7 +159,7 @@ public:
    *  with the number of created secondary tracks that are stored in the sectracks
    *  vector.
    */
-  virtual  int AlongStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) {return 0;}
+  virtual int AlongStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
   /** @brief Method that does the post-step, i.e. the discrete part, action.
    *
@@ -170,7 +168,7 @@ public:
    *  The new particles created by the discrete part of the process are stored
    *  in the TaskData::PhysicsDada object.
    */
-  virtual int PostStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/)  {return 0;}
+  virtual int PostStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
   /** @brief Method that does the at-rest action of the process.
    *
@@ -181,23 +179,21 @@ public:
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
-  virtual int AtRestDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) {return 0;}
-
+  virtual int AtRestDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
   virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }
   // will be called only if GetMacroscopicXSectionMaximumEnergy < gAVeryLargeValue
   virtual double MacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/) { return 0.; }
 
   double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass);
-  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass, bool haseloss=false);
-
+  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass, bool haseloss = false);
 
   //--- Getters ---
   /** Method to get the index of this process in the per particle process manager */
-  size_t  GetIndex() const { return fIndex; }
+  size_t GetIndex() const { return fIndex; }
 
   /** Method to get the index of this process in the global process table */
-  size_t  GetGlobalIndex() const { return fGlobalIndex; }
+  size_t GetGlobalIndex() const { return fGlobalIndex; }
 
   /** Method that returns whether this process has a discrete part or not */
   bool GetIsDiscrete() const { return fIsDiscrete; }
@@ -217,15 +213,15 @@ public:
   /** Method that returns the name of this process */
   std::string GetName() const { return fName; }
 
-  bool  IsLambdaTablerequested() const { return fIsLambdaTableRequested; }
+  bool IsLambdaTablerequested() const { return fIsLambdaTableRequested; }
 
-  const PhysicsParameters* GetPhysicsParameters() const { return fPhysicsParameters; }
+  const PhysicsParameters *GetPhysicsParameters() const { return fPhysicsParameters; }
 
-  const Particle* GetParticle() const { return fParticle; }
+  const Particle *GetParticle() const { return fParticle; }
 
   /** Methods that are needed for the new concept of physics-per-region:
       is this physics process active in the i-th region? */
-  std::vector< bool >& GetListActiveRegions() { return fListActiveRegions; }
+  std::vector<bool> &GetListActiveRegions() { return fListActiveRegions; }
   bool IsActiveRegion(const int regionindx) const { return fListActiveRegions[regionindx]; }
 
   //--- Setters ---
@@ -254,49 +250,46 @@ public:
    * @brief Method that sets the ForcedCondition type of this process
    * @param aForcedCondition is the ForcedCondition type to set
    */
-  void SetForcedCondition(const ForcedCondition aForcedCondition) {
-    fForcedCondition = aForcedCondition;
-  }
+  void SetForcedCondition(const ForcedCondition aForcedCondition) { fForcedCondition = aForcedCondition; }
 
   /**
    * @brief Method that sets the type of this process
    * @param aProcessType is the process type to set
    */
-  void SetType(const ProcessType aType) {
-    fType = aType;
-  }
+  void SetType(const ProcessType aType) { fType = aType; }
 
   void SetPhysicsParameters(const PhysicsParameters *physpars) { fPhysicsParameters = physpars; }
 
   void SetParticle(const Particle *particle) { fParticle = particle; }
 
-  void RequestLambdaTables(bool ispermaterial=true);
+  void RequestLambdaTables(bool ispermaterial = true);
 
   void SetSpecialLambdaTableBinNum(int val);
 
   void BuildLambdaTables();
 
-  // kinetic energy of the maximum of macroscopic cross section: might be used in case of particles that has energy-loss p
-  // very large value indicates that actualy it won't play any role (and the GetMacroscopicXSectionMaximum won't be used)
+  // kinetic energy of the maximum of macroscopic cross section: might be used in case of particles that has energy-loss
+  // p
+  // very large value indicates that actualy it won't play any role (and the GetMacroscopicXSectionMaximum won't be
+  // used)
   double GetMacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/);
   double GetMacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/);
 
-  void AddToListParticlesAssignedTo(Particle* part) { fListParticlesAssignedTo.push_back(part); }
-  const std::vector<Particle*>& GetListParticlesAssignedTo() const { return fListParticlesAssignedTo; }
+  void AddToListParticlesAssignedTo(Particle *part) { fListParticlesAssignedTo.push_back(part); }
+  const std::vector<Particle *> &GetListParticlesAssignedTo() const { return fListParticlesAssignedTo; }
 
-  void AddToListParticlesAlloedToAssigned(Particle* part) { fListParticlesAlloedToAssigned.push_back(part); }
-  const std::vector<Particle*>& GetListParticlesAlloedToAssigned () const { return fListParticlesAlloedToAssigned; }
+  void AddToListParticlesAlloedToAssigned(Particle *part) { fListParticlesAlloedToAssigned.push_back(part); }
+  const std::vector<Particle *> &GetListParticlesAlloedToAssigned() const { return fListParticlesAlloedToAssigned; }
 
   // to delete all created process object; must be called only by the main manager
   static void ClearAllProcess();
 
+  static double GetAVeryLargeValue() { return gAVeryLargeValue; }
 
-  static double GetAVeryLargeValue() {return gAVeryLargeValue;}
-
-  static const PhysicsProcess*  GetProcessByGlobalIndex(size_t gprocindx) {
-    PhysicsProcess *proc = nullptr;
-    if (gprocindx<gThePhysicsProcessTable.size())
-      proc = gThePhysicsProcessTable[gprocindx];
+  static const PhysicsProcess *GetProcessByGlobalIndex(size_t gprocindx)
+  {
+    PhysicsProcess *proc                                 = nullptr;
+    if (gprocindx < gThePhysicsProcessTable.size()) proc = gThePhysicsProcessTable[gprocindx];
     return proc;
   }
 
@@ -304,48 +297,46 @@ private:
   /** @brief PhysicsProcess copy constructor is not defined */
   PhysicsProcess(const PhysicsProcess &other);
   /** @brief Operator = is not defined*/
-  PhysicsProcess& operator=(const PhysicsProcess &other);
-
-
+  PhysicsProcess &operator=(const PhysicsProcess &other);
 
 private:
-  size_t  fIndex;         /** Index of this process in the per particle process manager */
-  size_t  fGlobalIndex;   /** Index of this process in the global process table */
-  bool    fIsDiscrete;    /** "true" if the process has a discrete part; "false" otherwise */
-  bool    fIsContinuous;  /** "true" if the process has a continuous part; "false" otherwise */
-  bool    fIsAtRest;      /** "true" if the process has an at-rest part; "false" otherwise */
-  bool    fIsLambdaTableRequested; /** false to store if lambda table was requested by the process (flase by default) */
+  size_t fIndex;                /** Index of this process in the per particle process manager */
+  size_t fGlobalIndex;          /** Index of this process in the global process table */
+  bool fIsDiscrete;             /** "true" if the process has a discrete part; "false" otherwise */
+  bool fIsContinuous;           /** "true" if the process has a continuous part; "false" otherwise */
+  bool fIsAtRest;               /** "true" if the process has an at-rest part; "false" otherwise */
+  bool fIsLambdaTableRequested; /** false to store if lambda table was requested by the process (flase by default) */
 
-  ForcedCondition fForcedCondition;  /** type of ForcedCondition for this process */
-  ProcessType fType;                 /** type of this process (MAYBE USEFUL IN THE FUTURE) */
-  std::string fName;                 /** name of the process (useful for debugging) */
-  std::vector< bool > fListActiveRegions;  /** is this process active in the i-th region?;
-                                               will be set by the PhysicsListManager */
-  std::vector<Particle*> fListParticlesAssignedTo; /** list of particles this process is assigned to;
-                                                       this list is determined by the physics list; do NOT own the
-                                                       Particle objects
-                                                   */
-  std::vector<Particle*> fListParticlesAlloedToAssigned; /** list of particles that this process can be used;
-                                                             this list is determined by the developer, do NOT own the
-                                                             Particle objects */
+  ForcedCondition fForcedCondition;                       /** type of ForcedCondition for this process */
+  ProcessType fType;                                      /** type of this process (MAYBE USEFUL IN THE FUTURE) */
+  std::string fName;                                      /** name of the process (useful for debugging) */
+  std::vector<bool> fListActiveRegions;                   /** is this process active in the i-th region?;
+                                                              will be set by the PhysicsListManager */
+  std::vector<Particle *> fListParticlesAssignedTo;       /** list of particles this process is assigned to;
+                                                              this list is determined by the physics list; do NOT own the
+                                                              Particle objects
+                                                          */
+  std::vector<Particle *> fListParticlesAlloedToAssigned; /** list of particles that this process can be used;
+                                                              this list is determined by the developer, do NOT own the
+                                                              Particle objects */
 
-  static const double    gAVeryLargeValue; // for the along step limitation of those that do not limit the step
+  static const double gAVeryLargeValue; // for the along step limitation of those that do not limit the step
   // unique collection of process object pointers that has been created so far; will be used to delete all
   // processes; each process stores its index in this table in its fGlobalIndex member and processes can be obtained
   // by this index using the GetProcessByGlobalIndex(global_index) static metho
-  static std::vector<PhysicsProcess*> gThePhysicsProcessTable;
+  static std::vector<PhysicsProcess *> gThePhysicsProcessTable;
 
   // pointer to the PhysicsParameters object active in region(s) where this process is active (will be set by the
   // PhysicsManagerPerParticle )
-  const PhysicsParameters  *fPhysicsParameters;  // not owned by the process
+  const PhysicsParameters *fPhysicsParameters; // not owned by the process
 
   // particle to which the process is assinged (will be set by the PhysicsManagerPerParticle)
-  const Particle           *fParticle;
+  const Particle *fParticle;
 
   // optional lambda table: table of macroscopic cross sections per materia/material-cuts
-  LambdaTable              *fLambdaTable;   // owned by the process”
+  LambdaTable *fLambdaTable; // owned by the process”
 };
 
-}  // end of namespace geantphysics
+} // end of namespace geantphysics
 
 #endif

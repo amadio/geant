@@ -20,19 +20,19 @@
 // handler(s)
 #include "Geant/ComputeIntLHandler.h"
 
-
 namespace geantphysics {
 
-
-ComputeIntLStage::ComputeIntLStage(geant::Propagator *prop)
-: SimulationStage(geant::kComputeIntLStage, prop) {}
-
+ComputeIntLStage::ComputeIntLStage(geant::Propagator *prop) : SimulationStage(geant::kComputeIntLStage, prop)
+{
+}
 
 // base class will delete the created handlers
-ComputeIntLStage::~ComputeIntLStage() {}
+ComputeIntLStage::~ComputeIntLStage()
+{
+}
 
-
-int ComputeIntLStage::CreateHandlers() {
+int ComputeIntLStage::CreateHandlers()
+{
   int threshold = fPropagator->fConfig->fNperBasket;
   // create the only one handler
   AddHandler(new ComputeIntLHandler(threshold, fPropagator));
@@ -40,17 +40,19 @@ int ComputeIntLStage::CreateHandlers() {
   return 1;
 }
 
-
 // Selects tracks that have any physics processes and set some members to others
-geant::Handler* ComputeIntLStage::Select(geant::Track *track, geant::TaskData * /*td*/) {
+geant::Handler *ComputeIntLStage::Select(geant::Track *track, geant::TaskData * /*td*/)
+{
   // here we will get the MaterialCuts from the LogicalVolume
-  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
-  int   particleCode         = track->GVcode();
-  const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
+  int particleCode         = track->GVcode();
+  const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
-  if (!pManager || (pManager->GetListAlongStepProcesses().size()+pManager->GetListPostStepCandidateProcesses().size()==0)) {
+  if (!pManager ||
+      (pManager->GetListAlongStepProcesses().size() + pManager->GetListPostStepCandidateProcesses().size() == 0)) {
     track->SetPstep(PhysicsProcess::GetAVeryLargeValue());
     // no physics limit nothing to do => no handler action
     return nullptr;
@@ -60,5 +62,4 @@ geant::Handler* ComputeIntLStage::Select(geant::Track *track, geant::TaskData * 
   return fHandlers[0];
 }
 
-
-}  // namespace geantphysics
+} // namespace geantphysics

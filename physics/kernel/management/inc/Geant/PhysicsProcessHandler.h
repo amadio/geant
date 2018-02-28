@@ -7,8 +7,8 @@
 // geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class SimulationStage;
+class Propagator;
+class SimulationStage;
 }
 }
 
@@ -19,7 +19,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 #include "Geant/AlongStepActionStage.h"
 #include "Geant/PostStepActionStage.h"
 #include "Geant/AtRestActionStage.h"
-
 
 namespace geantphysics {
 
@@ -38,8 +37,7 @@ private:
   PhysicsProcessHandler(const PhysicsProcessHandler &other) = delete;
 
   /** @brief Operator = is not defined */
-  PhysicsProcessHandler& operator=(const PhysicsProcessHandler &other) = delete;
-
+  PhysicsProcessHandler &operator=(const PhysicsProcessHandler &other) = delete;
 
 public:
   /** @brief Default constructor */
@@ -70,7 +68,8 @@ public:
    *    # creates all particles
    *    # loops over all PhysicsList registered by the user in PhysicsListManager and calls one-by-one the
    *      Initialize() method of the registered PhysicsLists:
-   *      0  each call to a PhysicsList Initialize() method will assigne processes to the temporary PhysicsProcess vector
+   *      0  each call to a PhysicsList Initialize() method will assigne processes to the temporary PhysicsProcess
+   * vector
    *         of the static particle object
    *      1  create one PhysicsManagerPerParticle object for each partcile that the current PhysicsList has added at
    *         least one PhysicsProcess
@@ -118,56 +117,43 @@ public:
    */
   virtual void Initialize();
 
-/**
- * @name Interface methods to obtain physics realted symulation stages when V3 is used.
- *
- * These methods are called from the geant::Propagator::CreateSimulationStages
- * methods (when real-physics is used) to obtain the pointers to the physics
- * simulation stages defined in the real-physics library.
- */
-//@{
+  /**
+   * @name Interface methods to obtain physics realted symulation stages when V3 is used.
+   *
+   * These methods are called from the geant::Propagator::CreateSimulationStages
+   * methods (when real-physics is used) to obtain the pointers to the physics
+   * simulation stages defined in the real-physics library.
+   */
+  //@{
   /** @brief Obtain/create physics step limit computation stage.
    *
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
    */
-  geant::SimulationStage* CreateComputeIntLStage(geant::Propagator *prop) {
-    return new ComputeIntLStage(prop);
-  }
+  geant::SimulationStage *CreateComputeIntLStage(geant::Propagator *prop) { return new ComputeIntLStage(prop); }
 
-  geant::SimulationStage* CreatePrePropagationStage(geant::Propagator *prop) {
-      return new PrePropagationStage(prop);
-  }
+  geant::SimulationStage *CreatePrePropagationStage(geant::Propagator *prop) { return new PrePropagationStage(prop); }
 
-  geant::SimulationStage* CreatePostPropagationStage(geant::Propagator *prop) {
-      return new PostPropagationStage(prop);
-  }
+  geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop) { return new PostPropagationStage(prop); }
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
    *
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
    */
-  geant::SimulationStage* CreateAlongStepActionStage(geant::Propagator *prop) {
-    return new AlongStepActionStage(prop);
-  }
+  geant::SimulationStage *CreateAlongStepActionStage(geant::Propagator *prop) { return new AlongStepActionStage(prop); }
 
   /** @brief Obtain/create post step action (discrete part) computation stage.
    *
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created PostStepAction real-physics simulation stage object.
    */
-  geant::SimulationStage* CreatePostStepActionStage(geant::Propagator *prop) {
-      return new PostStepActionStage(prop);
-  }
+  geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop) { return new PostStepActionStage(prop); }
 
-  geant::SimulationStage* CreateAtRestActionStage(geant::Propagator *prop) {
-     return new AtRestActionStage(prop);
-  }  
-//@}
-
+  geant::SimulationStage *CreateAtRestActionStage(geant::Propagator *prop) { return new AtRestActionStage(prop); }
+  //@}
 };
 
-}  // end of namespace geantphysics
+} // end of namespace geantphysics
 
 #endif

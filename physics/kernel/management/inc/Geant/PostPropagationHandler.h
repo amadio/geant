@@ -6,11 +6,11 @@
 #include "Geant/Handler.h"
 // from geantV
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class Track;
-  class TaskData;
-  class Basket;
+inline namespace GEANT_IMPL_NAMESPACE {
+class Propagator;
+class Track;
+class TaskData;
+class Basket;
 }
 }
 
@@ -24,9 +24,8 @@ namespace geantphysics {
  *
  * Multiple scattering process AlongStepDoIt method will be called, at the post-step point (after the transportation).
  * The geometrical step length, used during the transportation, will be changed to true step length as well.
- * 
+ *
  */
-
 
 class PostPropagationHandler : public geant::Handler {
 public:
@@ -43,18 +42,16 @@ public:
   virtual ~PostPropagationHandler();
 
   /** @brief Scalar DoIt interface */
-  virtual void DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td);
+  virtual void DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
-  virtual void DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td);
+  virtual void DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td);
 
 private:
   PostPropagationHandler(const PostPropagationHandler &) = delete;
   PostPropagationHandler &operator=(const PostPropagationHandler &) = delete;
-
 };
 
-
-}      // namespace geantphysics
+} // namespace geantphysics
 
 #endif // POSTPROPAGATIONHANDLER_H

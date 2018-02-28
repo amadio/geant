@@ -5,16 +5,18 @@
 
 namespace geantphysics {
 
-std::vector<PhysicsData*> PhysicsData::gThePhysicsDataTable;
+std::vector<PhysicsData *> PhysicsData::gThePhysicsDataTable;
 
-PhysicsData::PhysicsData() : fNumUsedSecondaries(0) {
+PhysicsData::PhysicsData() : fNumUsedSecondaries(0)
+{
   const int initSizeListOfSecondaries = 2;
   fListOfSecondaries.resize(initSizeListOfSecondaries);
   gThePhysicsDataTable.push_back(this);
 }
 
-void PhysicsData::ClearAll() {
-  for (unsigned int i=0; i<gThePhysicsDataTable.size(); ++i) {
+void PhysicsData::ClearAll()
+{
+  for (unsigned int i = 0; i < gThePhysicsDataTable.size(); ++i) {
     delete gThePhysicsDataTable[i];
   }
   gThePhysicsDataTable.clear();

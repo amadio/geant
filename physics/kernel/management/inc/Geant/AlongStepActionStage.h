@@ -7,13 +7,12 @@
 // from geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class Track;
-  class TaskData;
-  class Handler;
+class Propagator;
+class Track;
+class TaskData;
+class Handler;
 }
 }
-
 
 namespace geantphysics {
 
@@ -24,10 +23,8 @@ namespace geantphysics {
  * @date    May 2017
  */
 
-
 class AlongStepActionStage : public geant::SimulationStage {
 public:
-
   /** @brief ctr */
   AlongStepActionStage() {}
 
@@ -48,12 +45,10 @@ public:
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
 private:
-
   AlongStepActionStage(const AlongStepActionStage &) = delete;
   AlongStepActionStage &operator=(const AlongStepActionStage &) = delete;
-
 };
 
-}       // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // ALONGSTEPACTIONSTAGE_H
+#endif // ALONGSTEPACTIONSTAGE_H

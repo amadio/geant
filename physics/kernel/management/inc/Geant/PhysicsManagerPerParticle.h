@@ -5,7 +5,6 @@
 // for inlice namespace GEANT_IMPL_NAMESPACE
 #include "Geant/Config.h"
 
-
 #include <string>
 #include <vector>
 
@@ -13,17 +12,16 @@
 #include "Geant/Track.h"
 
 namespace geantphysics {
-  inline namespace GEANT_IMPL_NAMESPACE {
-    class Material;
-  }
+inline namespace GEANT_IMPL_NAMESPACE {
+class Material;
 }
-
+}
 
 namespace geantphysics {
 
- // forward declarations
+// forward declarations
 class PhysicsParameters;
-//class Material;
+// class Material;
 class MaterialCuts;
 class PhysicsProcess;
 class Particle;
@@ -43,7 +41,6 @@ class LightTrack;
  */
 class PhysicsManagerPerParticle {
 public:
-
   /** @brief PhysicsManagerPerParticle constructors
    *
    *  It is expected that one single object of this class is instantiated
@@ -83,91 +80,78 @@ public:
   void AddProcess(PhysicsProcess *process);
 
   /** @brief Method that return the list of all processes */
-  const std::vector<PhysicsProcess*>& GetListProcesses() const {
-    return fProcessVec;
-  }
+  const std::vector<PhysicsProcess *> &GetListProcesses() const { return fProcessVec; }
 
   /** @brief Method that return the list of along-step processes */
-  const std::vector<PhysicsProcess*>& GetListAlongStepProcesses() const {
-    return fAlongStepProcessVec;
-  }
+  const std::vector<PhysicsProcess *> &GetListAlongStepProcesses() const { return fAlongStepProcessVec; }
 
   /** @brief Method that return the list of candidate discrete processes */
-  const std::vector<PhysicsProcess*>& GetListPostStepCandidateProcesses() const {
+  const std::vector<PhysicsProcess *> &GetListPostStepCandidateProcesses() const
+  {
     return fPostStepCandidateProcessVec;
   }
 
   /** @brief Method that return the list of forced discrete processes */
-  const std::vector<PhysicsProcess*>& GetListPostStepForcedProcesses() const {
-    return fPostStepForcedProcessVec;
-  }
+  const std::vector<PhysicsProcess *> &GetListPostStepForcedProcesses() const { return fPostStepForcedProcessVec; }
 
   /** @brief Method that return the list of candidate at-rest processes */
-  const std::vector<PhysicsProcess*>& GetListAtRestCandidateProcesses() const {
-    return fAtRestCandidateProcessVec;
-  }
+  const std::vector<PhysicsProcess *> &GetListAtRestCandidateProcesses() const { return fAtRestCandidateProcessVec; }
 
   /** @brief Method that return the list of forced at-rest processes */
-  const std::vector<PhysicsProcess*>& GetListAtRestForcedProcesses() const {
-    return fAtRestForcedProcessVec;
-  }
+  const std::vector<PhysicsProcess *> &GetListAtRestForcedProcesses() const { return fAtRestForcedProcessVec; }
 
   /** Methods that are needed for the new concept of physics-per-region:
       is this physics manager per particle active in the i-th region? */
-  std::vector< bool >& GetListActiveRegions() { return fListActiveRegions; }
-  bool IsActiveRegion( const int regionindx ) const { return fListActiveRegions[ regionindx ]; }
-
+  std::vector<bool> &GetListActiveRegions() { return fListActiveRegions; }
+  bool IsActiveRegion(const int regionindx) const { return fListActiveRegions[regionindx]; }
 
   void PrepareForRun();
 
   void ComputeIntLen(geant::Track *gtrack, geant::TaskData *td);
-  int  AlongStepAction(LightTrack &track, geant::TaskData *td);
-  int  PostStepAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
-  int  AtRestAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
+  int AlongStepAction(LightTrack &track, geant::TaskData *td);
+  int PostStepAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
+  int AtRestAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
 
-  bool  HasEnergyLossProcess() const { return fIsHasElossProcess; }
-  bool  HasMSCProcess() const { return fIsHasMSCProcess; }
-  const PhysicsProcess* GetMSCProcess() const;
+  bool HasEnergyLossProcess() const { return fIsHasElossProcess; }
+  bool HasMSCProcess() const { return fIsHasMSCProcess; }
+  const PhysicsProcess *GetMSCProcess() const;
 
-// private methods
-//
+  // private methods
+  //
 private:
   /** @brief PhysicsManagerPerParticle copy constructor is not defined */
   PhysicsManagerPerParticle(const PhysicsManagerPerParticle &other);
   /** @brief Operator = is not defined */
-  PhysicsManagerPerParticle& operator=(const PhysicsManagerPerParticle &other);
+  PhysicsManagerPerParticle &operator=(const PhysicsManagerPerParticle &other);
   // checks the processes assigned to the particle and sets some flags
   void CheckProcesses();
-
-
 
 private:
   /** Pointer to the partcile object to which this physics manager belongs to.
    *  The class doesn't own the partcile object.
    */
- const Particle            *fParticle;           // not owned;
- const PhysicsParameters   *fPhysicsParameters;  // not owned;
+  const Particle *fParticle;                   // not owned;
+  const PhysicsParameters *fPhysicsParameters; // not owned;
 
- // some flags to indicate ...
- bool        fIsHasMSCProcess;
- bool        fIsHasDecayProcess;
- bool        fIsHasElossProcess;
+  // some flags to indicate ...
+  bool fIsHasMSCProcess;
+  bool fIsHasDecayProcess;
+  bool fIsHasElossProcess;
 
- /** The same process can be inserted in none, one or more of the following lists:
-  *  The class doesn't own any PhysicsProcess objects! Each PhysicsProcess object pointer that are created stored in
-  *  global table and the corresponding objects are deleted by the main manager calling PhysicsProcess::ClearAllProcess
-  */
- std::vector<PhysicsProcess*> fProcessVec;                   /** List of processes, contains all process pointers that has been added */
- std::vector<PhysicsProcess*> fAlongStepProcessVec;          /** List of along-step processes */
- std::vector<PhysicsProcess*> fPostStepCandidateProcessVec;  /** List of post-step candidate processes */
- std::vector<PhysicsProcess*> fPostStepForcedProcessVec;     /** List of post-step forced processes */
- std::vector<PhysicsProcess*> fAtRestCandidateProcessVec;    /** List of at-rest candidate processes */
- std::vector<PhysicsProcess*> fAtRestForcedProcessVec;       /** List of at-rest forced processes */
+  /** The same process can be inserted in none, one or more of the following lists:
+   *  The class doesn't own any PhysicsProcess objects! Each PhysicsProcess object pointer that are created stored in
+   *  global table and the corresponding objects are deleted by the main manager calling PhysicsProcess::ClearAllProcess
+   */
+  std::vector<PhysicsProcess *> fProcessVec; /** List of processes, contains all process pointers that has been added */
+  std::vector<PhysicsProcess *> fAlongStepProcessVec;         /** List of along-step processes */
+  std::vector<PhysicsProcess *> fPostStepCandidateProcessVec; /** List of post-step candidate processes */
+  std::vector<PhysicsProcess *> fPostStepForcedProcessVec;    /** List of post-step forced processes */
+  std::vector<PhysicsProcess *> fAtRestCandidateProcessVec;   /** List of at-rest candidate processes */
+  std::vector<PhysicsProcess *> fAtRestForcedProcessVec;      /** List of at-rest forced processes */
 
- std::vector<bool> fListActiveRegions;  /** is this physics manager per particle active in the i-th region? */
-
+  std::vector<bool> fListActiveRegions; /** is this physics manager per particle active in the i-th region? */
 };
 
-}  // end of namespace geantphysics
+} // end of namespace geantphysics
 
 #endif

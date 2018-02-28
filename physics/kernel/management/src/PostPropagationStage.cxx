@@ -18,17 +18,20 @@
 
 #include "Geant/PostPropagationHandler.h"
 
-
 namespace geantphysics {
 
 PostPropagationStage::PostPropagationStage(geant::Propagator *prop)
-: SimulationStage(geant::kPostPropagationStage, prop) { }
+    : SimulationStage(geant::kPostPropagationStage, prop)
+{
+}
 
 // base class will delete the created handlers
-PostPropagationStage::~PostPropagationStage() {}
+PostPropagationStage::~PostPropagationStage()
+{
+}
 
-
-int PostPropagationStage::CreateHandlers() {
+int PostPropagationStage::CreateHandlers()
+{
   int threshold = fPropagator->fConfig->fNperBasket;
   // create the only one handler
   AddHandler(new PostPropagationHandler(threshold, fPropagator));
@@ -37,12 +40,14 @@ int PostPropagationStage::CreateHandlers() {
 }
 
 // Selects tracks that have msc process
-geant::Handler* PostPropagationStage::Select(geant::Track *track, geant::TaskData * /*td*/) {
+geant::Handler *PostPropagationStage::Select(geant::Track *track, geant::TaskData * /*td*/)
+{
   // here we will get the MaterialCuts from the LogicalVolume
-  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
-  int   particleCode         = track->GVcode();
-  const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
+  int particleCode         = track->GVcode();
+  const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   if (!pManager || !(pManager->HasMSCProcess())) {
@@ -55,8 +60,8 @@ geant::Handler* PostPropagationStage::Select(geant::Track *track, geant::TaskDat
     // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
     // step and we do it in the next step
     // track->fNintLen -= track->fStep/track->fIntLen;
-    for (size_t i=0; i<geant::kNumPhysicsProcess; ++i) {
-      track->DecreasePhysicsNumOfInteractLengthLeft(i, track->GetStep()/track->GetPhysicsInteractLength(i));
+    for (size_t i = 0; i < geant::kNumPhysicsProcess; ++i) {
+      track->DecreasePhysicsNumOfInteractLengthLeft(i, track->GetStep() / track->GetPhysicsInteractLength(i));
     }
     return nullptr;
   }
@@ -64,5 +69,4 @@ geant::Handler* PostPropagationStage::Select(geant::Track *track, geant::TaskDat
   return fHandlers[0];
 }
 
-
-}  // namespace geantphysics
+} // namespace geantphysics

@@ -5,9 +5,9 @@
 #include <vector>
 
 namespace geantphysics {
-  class PhysicsList;
-  class PhysicsManagerPerParticle;
-  class PhysicsParameters;
+class PhysicsList;
+class PhysicsManagerPerParticle;
+class PhysicsParameters;
 /**
  * @brief  One of the main physics manager classes(singletone).
  * @class  PhysicsListManager
@@ -71,49 +71,49 @@ namespace geantphysics {
  */
 class PhysicsListManager {
 public:
-  static PhysicsListManager& Instance();
+  static PhysicsListManager &Instance();
 
   // copy CTR and assignment operators as deleted
-  PhysicsListManager(const PhysicsListManager&) = delete;
-  PhysicsListManager& operator=(const PhysicsListManager&) = delete;
+  PhysicsListManager(const PhysicsListManager &) = delete;
+  PhysicsListManager &operator=(const PhysicsListManager &) = delete;
 
   // must be set before we start to use i.e. before we call the BuildPhysicsLists methods!!!!
-  void SetNumberOfRegions(const int numregions) { fNumOfRegions=numregions; }
-  int  GetNumberOfRegions() const { return fNumOfRegions; }
+  void SetNumberOfRegions(const int numregions) { fNumOfRegions = numregions; }
+  int GetNumberOfRegions() const { return fNumOfRegions; }
 
   void RegisterPhysicsList(PhysicsList *physlist, std::vector<bool> activeregionlist);
   void RegisterPhysicsList(PhysicsList *physlist);
 
-  int  GetNumberOfRegisteredPhysicsLists() const { return fPhysicsListVector.size(); } 
+  int GetNumberOfRegisteredPhysicsLists() const { return fPhysicsListVector.size(); }
 
   void BuildPhysicsLists();
 
   // at the end we can clear all physics processes and clear the physics process vector and process manager per particle
   // vector of the static Particle properties
-  // we also delete the physics lists added by the user and clear the local physics lists vector and active indices vector
+  // we also delete the physics lists added by the user and clear the local physics lists vector and active indices
+  // vector
   void ClearAll();
 
   // this is just for testing
   void PrintAll();
 
-
 private:
   // CTR
-  PhysicsListManager(){}
+  PhysicsListManager() {}
   // create all particles
   void CreateAllParticles();
 
 private:
-  int                                       fNumOfRegions;  // number of regions
+  int fNumOfRegions; // number of regions
 
   // stores the registered physics lists pointers; size will be at the end as many as physics lists registered by
   // the user; the object owns these PhysicsList obejcts and they are cleand in the ClearAll method
-  std::vector<PhysicsList*>                  fPhysicsListVector;
+  std::vector<PhysicsList *> fPhysicsListVector;
   // for each registered physics list it stores a mask for the active regions; size is #regions times #physics lists
-  std::vector<std::vector<bool> >            fActiveRegionMasks;
+  std::vector<std::vector<bool>> fActiveRegionMasks;
   // a unique store of pointers to all physics manager per particle objects that has been created; the object owns these
   // PhysicsManagerPerParticle objects and they are cleand in the ClearAll method
-  std::vector<PhysicsManagerPerParticle*>    fPhysicsManagerPerParticleTable;
+  std::vector<PhysicsManagerPerParticle *> fPhysicsManagerPerParticleTable;
 };
 
 } // namespace geantphysics

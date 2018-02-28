@@ -10,31 +10,32 @@
 
 namespace geantphysics {
 
-std::vector<PhysicsProcess*> PhysicsProcess::gThePhysicsProcessTable;
+std::vector<PhysicsProcess *> PhysicsProcess::gThePhysicsProcessTable;
 
 const double PhysicsProcess::gAVeryLargeValue = 1.0e20;
 
 PhysicsProcess::PhysicsProcess(const std::string &aName)
-: fIndex(-1), fGlobalIndex(-1), fIsDiscrete(false), fIsContinuous(false), fIsAtRest(false), fIsLambdaTableRequested(false),
-  fForcedCondition(ForcedCondition::kNotForced), fType(ProcessType::kNotDefined),
-  fName(aName), fPhysicsParameters(nullptr), fParticle(nullptr), fLambdaTable(nullptr) {
+    : fIndex(-1), fGlobalIndex(-1), fIsDiscrete(false), fIsContinuous(false), fIsAtRest(false),
+      fIsLambdaTableRequested(false), fForcedCondition(ForcedCondition::kNotForced), fType(ProcessType::kNotDefined),
+      fName(aName), fPhysicsParameters(nullptr), fParticle(nullptr), fLambdaTable(nullptr)
+{
   fGlobalIndex = gThePhysicsProcessTable.size();
   gThePhysicsProcessTable.push_back(this);
 }
 
-
-PhysicsProcess::PhysicsProcess(const bool aIsDiscrete, const bool aIsContinuous,
-                               const bool aIsAtRest, const ForcedCondition aForcedCondition,
-                               const ProcessType aType, const std::string &aName)
-: fIndex(-1), fGlobalIndex(-1), fIsDiscrete(aIsDiscrete), fIsContinuous(aIsContinuous), fIsAtRest(aIsAtRest), fIsLambdaTableRequested(false),
-  fForcedCondition(aForcedCondition), fType(aType), fName(aName), fPhysicsParameters(nullptr), fParticle(nullptr),
-  fLambdaTable(nullptr) {
+PhysicsProcess::PhysicsProcess(const bool aIsDiscrete, const bool aIsContinuous, const bool aIsAtRest,
+                               const ForcedCondition aForcedCondition, const ProcessType aType,
+                               const std::string &aName)
+    : fIndex(-1), fGlobalIndex(-1), fIsDiscrete(aIsDiscrete), fIsContinuous(aIsContinuous), fIsAtRest(aIsAtRest),
+      fIsLambdaTableRequested(false), fForcedCondition(aForcedCondition), fType(aType), fName(aName),
+      fPhysicsParameters(nullptr), fParticle(nullptr), fLambdaTable(nullptr)
+{
   fGlobalIndex = gThePhysicsProcessTable.size();
   gThePhysicsProcessTable.push_back(this);
 }
 
-
-PhysicsProcess::~PhysicsProcess() {
+PhysicsProcess::~PhysicsProcess()
+{
   // delete lambda tables if any
   if (fLambdaTable) {
     delete fLambdaTable;
@@ -42,14 +43,15 @@ PhysicsProcess::~PhysicsProcess() {
 }
 
 // the PhysicsParameters pointer is set by the PhysicsManagerPerParticle before calling this Initialize method
-void PhysicsProcess::Initialize() {
+void PhysicsProcess::Initialize()
+{
   // check if the process is assigned only to allowed particles
-  std::cerr<<"  ----> PhysicsProcess   Name = " << GetName() << "  is under initialization! "<< std::endl;
-  for (unsigned long i=0; i<fListParticlesAssignedTo.size(); ++i) {
-    Particle* part = fListParticlesAssignedTo[i];
-    bool isok = false;
-    for (unsigned long j=0; j<fListParticlesAlloedToAssigned.size(); ++j) {
-      if (part==fListParticlesAlloedToAssigned[j]) {
+  std::cerr << "  ----> PhysicsProcess   Name = " << GetName() << "  is under initialization! " << std::endl;
+  for (unsigned long i = 0; i < fListParticlesAssignedTo.size(); ++i) {
+    Particle *part = fListParticlesAssignedTo[i];
+    bool isok      = false;
+    for (unsigned long j = 0; j < fListParticlesAlloedToAssigned.size(); ++j) {
+      if (part == fListParticlesAlloedToAssigned[j]) {
         isok = true;
       }
     }
@@ -57,54 +59,54 @@ void PhysicsProcess::Initialize() {
       std::cerr << " *** ERROR: PhysicsProcess::Initialise()\n"
                 << "   Process with Name = " << GetName() << "\n"
                 << "   Is assigned to particle with Name = " << part->GetName() << "\n"
-                << "   that is not in the allowed particle list of the process!"
-                << std::endl;
+                << "   that is not in the allowed particle list of the process!" << std::endl;
       exit(-1);
     }
   }
 }
 
-
-double PhysicsProcess::AlongStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/) const {
+double PhysicsProcess::AlongStepLimitationLength(geant::Track * /*track*/, geant::TaskData * /*td*/) const
+{
   return gAVeryLargeValue;
 }
 
-
-double PhysicsProcess::PostStepLimitationLength(geant::Track *gtrack, geant::TaskData *td, bool haseloss) {
+double PhysicsProcess::PostStepLimitationLength(geant::Track *gtrack, geant::TaskData *td, bool haseloss)
+{
   double stepLimit = GetAVeryLargeValue();
   // get the material-cuts and kinetic energy
-  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double ekin                = gtrack->T();
-  double mass                = gtrack->Mass(); // dynamic mass of the particle
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
+  double ekin = gtrack->T();
+  double mass = gtrack->Mass(); // dynamic mass of the particle
   // get/compute the mean free path by (1)getting/(2)computing the macroscopic scross section by Accounting Possible
   // Energy Losses along the step:
   // - (1) from lambda table requested to built by the process
   // - (2) or by calling the ComputeMacroscopicXSection interface method directly if there is no lambda-table
   double macrXsec = GetMacroscopicXSectionForStepping(matCut, ekin, mass, haseloss);
-  double mfp = GetAVeryLargeValue();
-  if (macrXsec>0.) {
-    mfp = 1./macrXsec;
+  double mfp      = GetAVeryLargeValue();
+  if (macrXsec > 0.) {
+    mfp = 1. / macrXsec;
   }
   // check if we need to sample new num.-of-int.-length-left: it is updated either after propagation(particles that
   // doesn't have MSC) or after the post-propagation (particles that has MSC)
-  if (gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex())<=0.0) {
+  if (gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex()) <= 0.0) {
     double rndm = td->fRndm->uniform(); // use vecgeom RNG to get uniform random number
     gtrack->SetPhysicsNumOfInteractLengthLeft(GetIndex(), -std::log(rndm));
   }
   // save the mfp: to be used for the update num.-of-int.-length-left
   gtrack->SetPhysicsInteractLength(GetIndex(), mfp);
-  //update the step length => length = lambda * -1. * log(rndm) = lambda * number of interaction leght left;
-  stepLimit = mfp*gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex());
+  // update the step length => length = lambda * -1. * log(rndm) = lambda * number of interaction leght left;
+  stepLimit = mfp * gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex());
   return stepLimit;
 }
 
-
-double PhysicsProcess::AverageLifetime(const LightTrack & /*track*/) const {
+double PhysicsProcess::AverageLifetime(const LightTrack & /*track*/) const
+{
   return gAVeryLargeValue;
 }
 
-
-void PhysicsProcess::RequestLambdaTables(bool ispermaterial) {
+void PhysicsProcess::RequestLambdaTables(bool ispermaterial)
+{
   fIsLambdaTableRequested = true;
   if (fLambdaTable) {
     delete fLambdaTable;
@@ -113,21 +115,21 @@ void PhysicsProcess::RequestLambdaTables(bool ispermaterial) {
   // will be built by the ProcessManagerPerParticle after the process is initialized.
 }
 
-
-void PhysicsProcess::SetSpecialLambdaTableBinNum(int val) {
+void PhysicsProcess::SetSpecialLambdaTableBinNum(int val)
+{
   if (!fLambdaTable) {
     RequestLambdaTables(); // by default it will be per-material !
   }
   fLambdaTable->SetSpecialLambdaTableBinNum(val);
 }
 
-
-void PhysicsProcess::BuildLambdaTables() {
+void PhysicsProcess::BuildLambdaTables()
+{
   fLambdaTable->BuildLambdaTables();
 }
 
-
-double PhysicsProcess::GetMacroscopicXSectionMaximumEnergy(const MaterialCuts *matcut) {
+double PhysicsProcess::GetMacroscopicXSectionMaximumEnergy(const MaterialCuts *matcut)
+{
   double maxOfMacXsecE = gAVeryLargeValue;
   if (fLambdaTable) {
     maxOfMacXsecE = fLambdaTable->GetMacroscopicXSectionMaximumEnergy(matcut);
@@ -138,7 +140,8 @@ double PhysicsProcess::GetMacroscopicXSectionMaximumEnergy(const MaterialCuts *m
 }
 
 // will be called only if GetMacroscopicXSectionMaximumEnergy < gAVeryLargeValue
-double PhysicsProcess::GetMacroscopicXSectionMaximum(const MaterialCuts *matcut) {
+double PhysicsProcess::GetMacroscopicXSectionMaximum(const MaterialCuts *matcut)
+{
   double maxOfMacXsec = 0.;
   if (fLambdaTable) {
     maxOfMacXsec = fLambdaTable->GetMacroscopicXSectionMaximum(matcut);
@@ -148,8 +151,8 @@ double PhysicsProcess::GetMacroscopicXSectionMaximum(const MaterialCuts *matcut)
   return maxOfMacXsec;
 }
 
-
-double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass) {
+double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass)
+{
   double macrXsec = 0.;
   // Get the macroscopic cross section form the lambda table if it was requested to be built by the process or
   // call the ComputeMacroscopicXSection interface method to compute it on-the-fly
@@ -158,15 +161,16 @@ double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double
   } else {
     macrXsec = ComputeMacroscopicXSection(matcut, ekin, fParticle, mass);
   }
-  if (macrXsec<0.) {
-    macrXsec =0.;
+  if (macrXsec < 0.) {
+    macrXsec = 0.;
   }
   return macrXsec;
 }
 
-
 // called only at the pre-step point
-double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass, bool haseloss) {
+double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass,
+                                                         bool haseloss)
+{
   double macrXsec = 0.;
   // account possible energy loss along the step if the particle has energy loss process(es)
   if (haseloss) {
@@ -176,16 +180,16 @@ double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *mat
     // because we assume that 1/lambda is already decreasing on this side with decareasing energy so we provide an
     // overestimate of 1/lambda
     // if the current kinetic energy is on the right side of this maximum point: more work to give an overestimate:
-    if (ekin>maxOfMacXsecE) {
+    if (ekin > maxOfMacXsecE) {
       // compute reduced energy: we assume that 1/lambda is higher at lower energy so we provide an overestimate
-      double ekinReduced = 0.8*ekin;
+      double ekinReduced = 0.8 * ekin;
       // check if it is still on the right side of the maximum point i.e. if our assumption is fine
       // if not: the reduced energy got to the left side of the maximum so we jumped the maximum so set the macroscopic
       // cross section to its maximum value: note that GetMacroscopicXSectionMaximumEnergy will return (by default) with
       // a very large value (=>we never get here) or with a proper value if lambda table was requested to build
-      if (ekinReduced<maxOfMacXsecE) {
+      if (ekinReduced < maxOfMacXsecE) {
         macrXsec = GetMacroscopicXSectionMaximum(matcut);
-        if (macrXsec<0.) {
+        if (macrXsec < 0.) {
           macrXsec = 0.;
         }
         return macrXsec;
@@ -203,10 +207,10 @@ double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *mat
   return macrXsec;
 }
 
-
-void PhysicsProcess::ClearAllProcess() {
-  for (unsigned long i=0; i<gThePhysicsProcessTable.size(); ++i) {
-    std::cerr<<"  ********************* deleting proc = "<<gThePhysicsProcessTable[i]->GetName()<<std::endl;
+void PhysicsProcess::ClearAllProcess()
+{
+  for (unsigned long i = 0; i < gThePhysicsProcessTable.size(); ++i) {
+    std::cerr << "  ********************* deleting proc = " << gThePhysicsProcessTable[i]->GetName() << std::endl;
     delete gThePhysicsProcessTable[i];
   }
   gThePhysicsProcessTable.clear();

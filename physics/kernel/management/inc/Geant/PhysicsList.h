@@ -37,13 +37,13 @@ public:
    *  - construct all the physics processes for all particles and assigne the processes to partciles;
    *  - the PhysicsParameters object will be available in this method so the user can change any values of it
    */
-  virtual void Initialize( /* Not defined yet */ ) = 0;
+  virtual void Initialize(/* Not defined yet */) = 0;
 
   /** @brief Get the name of this physics list.
    *
    *  @return Name of this phyics list.
    */
-  const std::string& GetName() const {return fName;}
+  const std::string &GetName() const { return fName; }
 
   /** @brief Get the PhysicsParameters member pointer of this physics list.
     *
@@ -51,30 +51,30 @@ public:
     *
     * @return Pointer to the physics parameter object of this physics list.
     */
-  PhysicsParameters* GetPhysicsParameters() { return fPhysicsParameters; }
+  PhysicsParameters *GetPhysicsParameters() { return fPhysicsParameters; }
 
 protected:
-   /** @brief Insert a given process object pointer to the particle process list.
-    *
-    * @param[in] particle Pointer to the particle object to which the process should be assigned.
-    * @param[in] process  Pointer to a process obejct that should be assigned to the particle.
-    */
-   void AddProcessToParticle(Particle *particle, PhysicsProcess *process);
+  /** @brief Insert a given process object pointer to the particle process list.
+   *
+   * @param[in] particle Pointer to the particle object to which the process should be assigned.
+   * @param[in] process  Pointer to a process obejct that should be assigned to the particle.
+   */
+  void AddProcessToParticle(Particle *particle, PhysicsProcess *process);
 
-//
-// data members
-//
+  //
+  // data members
+  //
 private:
-  std::string         fName;               /** Name of this physics list. */
+  std::string fName; /** Name of this physics list. */
 
 protected:
-  PhysicsParameters  *fPhysicsParameters;  /** the PhysicsParameters object of this physics list;
-                                               will be created in the PhysicsList base ctr;
-                                               the class do NOT own the object because they are owned by the
-                                               PhysicsParameters itself and all PhysicsParameters can be removed by
-                                               PhysicsParameters::Clear() */
+  PhysicsParameters *fPhysicsParameters; /** the PhysicsParameters object of this physics list;
+                                             will be created in the PhysicsList base ctr;
+                                             the class do NOT own the object because they are owned by the
+                                             PhysicsParameters itself and all PhysicsParameters can be removed by
+                                             PhysicsParameters::Clear() */
 };
 
-}  // namespace geantphysics
+} // namespace geantphysics
 
-#endif  // PHYSICS_LIST
+#endif // PHYSICS_LIST

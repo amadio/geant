@@ -6,14 +6,13 @@
 #include "Geant/Handler.h"
 // from geantV
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class Track;
-  class TaskData;
-  class Basket;
+inline namespace GEANT_IMPL_NAMESPACE {
+class Propagator;
+class Track;
+class TaskData;
+class Basket;
 }
 }
-
 
 namespace geantphysics {
 
@@ -23,7 +22,6 @@ namespace geantphysics {
  * @author  M Novak
  * @date    May 2017
  */
-
 
 class ComputeIntLHandler : public geant::Handler {
 public:
@@ -40,15 +38,14 @@ public:
   virtual ~ComputeIntLHandler();
 
   /** @brief Scalar DoIt interface */
-  virtual void DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td);
+  virtual void DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
-  virtual void DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td);
+  virtual void DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td);
 
 private:
   ComputeIntLHandler(const ComputeIntLHandler &) = delete;
   ComputeIntLHandler &operator=(const ComputeIntLHandler &) = delete;
-
 };
 
 } // namespace geantphysics

@@ -6,11 +6,11 @@
 #include "Geant/Handler.h"
 // from geantV
 namespace geant {
-  inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class Track;
-  class TaskData;
-  class Basket;
+inline namespace GEANT_IMPL_NAMESPACE {
+class Propagator;
+class Track;
+class TaskData;
+class Basket;
 }
 }
 
@@ -42,18 +42,16 @@ public:
   virtual ~PrePropagationHandler();
 
   /** @brief Scalar DoIt interface */
-  virtual void DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td);
+  virtual void DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td);
 
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
-  virtual void DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td);
+  virtual void DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td);
 
 private:
   PrePropagationHandler(const PrePropagationHandler &) = delete;
   PrePropagationHandler &operator=(const PrePropagationHandler &) = delete;
-
 };
 
-
-}      // namespace geantphysics
+} // namespace geantphysics
 
 #endif // PREPROPAGATIONHANDLER_H

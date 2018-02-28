@@ -20,17 +20,20 @@
 // handler(s)
 #include "Geant/AlongStepActionHandler.h"
 
-
 namespace geantphysics {
 
 AlongStepActionStage::AlongStepActionStage(geant::Propagator *prop)
-: SimulationStage(geant::kAlongStepActionStage, prop) {}
+    : SimulationStage(geant::kAlongStepActionStage, prop)
+{
+}
 
 // base class will delete the created handlers
-AlongStepActionStage::~AlongStepActionStage() {}
+AlongStepActionStage::~AlongStepActionStage()
+{
+}
 
-
-int AlongStepActionStage::CreateHandlers() {
+int AlongStepActionStage::CreateHandlers()
+{
   int threshold = fPropagator->fConfig->fNperBasket;
   // create the only one handler
   AddHandler(new AlongStepActionHandler(threshold, fPropagator));
@@ -39,15 +42,17 @@ int AlongStepActionStage::CreateHandlers() {
 }
 
 // Selects tracks that have any along step processes i.e. continuous part
-geant::Handler* AlongStepActionStage::Select(geant::Track *track, geant::TaskData * /*td*/) {
+geant::Handler *AlongStepActionStage::Select(geant::Track *track, geant::TaskData * /*td*/)
+{
   // here we will get the MaterialCuts from the LogicalVolume
-  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
-  int   particleCode         = track->GVcode();
-  const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
+  int particleCode         = track->GVcode();
+  const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
-  if (!pManager || (pManager->GetListAlongStepProcesses().size()==0)) {
+  if (!pManager || (pManager->GetListAlongStepProcesses().size() == 0)) {
     // no any physics process for the particle or no any continuous process i.e. no alongstepaction => no handler action
     return nullptr;
   }
@@ -55,5 +60,4 @@ geant::Handler* AlongStepActionStage::Select(geant::Track *track, geant::TaskDat
   return fHandlers[0];
 }
 
-
-}  // namespace geantphysics
+} // namespace geantphysics

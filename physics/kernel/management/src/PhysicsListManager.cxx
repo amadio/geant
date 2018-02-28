@@ -1,11 +1,11 @@
 
 
-#include  "Geant/PhysicsListManager.h"
+#include "Geant/PhysicsListManager.h"
 
 // particles
-#include  "Geant/Electron.h"
-#include  "Geant/Positron.h"
-#include  "Geant/Gamma.h"
+#include "Geant/Electron.h"
+#include "Geant/Positron.h"
+#include "Geant/Gamma.h"
 #include "Geant/Proton.h"
 #include "Geant/Neutron.h"
 #include "Geant/PionPlus.h"
@@ -18,12 +18,12 @@
 #include "Geant/KaonLong.h"
 
 // the dummy temporary region
-#include  "Geant/Region.h"
+#include "Geant/Region.h"
 
-#include  "Geant/PhysicsProcess.h"
-#include  "Geant/PhysicsList.h"
-#include  "Geant/PhysicsManagerPerParticle.h"
-#include  "Geant/PhysicsParameters.h"
+#include "Geant/PhysicsProcess.h"
+#include "Geant/PhysicsList.h"
+#include "Geant/PhysicsManagerPerParticle.h"
+#include "Geant/PhysicsParameters.h"
 
 #include "Geant/ELossTableRegister.h" // to be able to clean
 #include "Geant/ELossTableManager.h"
@@ -32,49 +32,51 @@
 
 namespace geantphysics {
 
-PhysicsListManager& PhysicsListManager::Instance() {
+PhysicsListManager &PhysicsListManager::Instance()
+{
   static PhysicsListManager instance;
   return instance;
 }
 
-
-void PhysicsListManager::RegisterPhysicsList(PhysicsList *physlist, std::vector<bool> activeregionlist) {
+void PhysicsListManager::RegisterPhysicsList(PhysicsList *physlist, std::vector<bool> activeregionlist)
+{
   fPhysicsListVector.push_back(physlist);
   fActiveRegionMasks.push_back(activeregionlist);
 }
 
-void PhysicsListManager::RegisterPhysicsList(PhysicsList *physlist) {
+void PhysicsListManager::RegisterPhysicsList(PhysicsList *physlist)
+{
   fPhysicsListVector.push_back(physlist);
 }
 
+void PhysicsListManager::CreateAllParticles()
+{
+  Electron::Definition();
+  Positron::Definition();
+  Gamma::Definition();
+  Proton::Definition();
+  Neutron::Definition();
+  PionPlus::Definition();
+  PionMinus::Definition();
+  PionZero::Definition();
+  KaonPlus::Definition();
+  KaonMinus::Definition();
+  KaonZero::Definition();
+  KaonShort::Definition();
+  KaonLong::Definition();
 
-void PhysicsListManager::CreateAllParticles() {
-   Electron::Definition();
-   Positron::Definition();
-   Gamma::Definition();
-   Proton::Definition();
-   Neutron::Definition();
-   PionPlus::Definition();
-   PionMinus::Definition();
-   PionZero::Definition();
-   KaonPlus::Definition();
-   KaonMinus::Definition();
-   KaonZero::Definition();
-   KaonShort::Definition();
-   KaonLong::Definition();
-   
-   // get the particle table and loop over them: init ProcessManagerPerParticle vector elements to null
-   // for each particle
-   std::vector<Particle*> pTable = Particle::GetTheParticleTable();
-   for (unsigned long i=0; i<pTable.size(); ++i) {
-     Particle *particle = pTable[i];
-     (particle->GetPhysicsManagerPerParticleVector()).resize(fNumOfRegions,nullptr);
-   }
+  // get the particle table and loop over them: init ProcessManagerPerParticle vector elements to null
+  // for each particle
+  std::vector<Particle *> pTable = Particle::GetTheParticleTable();
+  for (unsigned long i = 0; i < pTable.size(); ++i) {
+    Particle *particle = pTable[i];
+    (particle->GetPhysicsManagerPerParticleVector()).resize(fNumOfRegions, nullptr);
+  }
 }
 
-
 // will do the work to set the
-void PhysicsListManager::BuildPhysicsLists() {
+void PhysicsListManager::BuildPhysicsLists()
+{
 
   // first create all particles and set the ProcessManagerPerParticleVector
   CreateAllParticles();
@@ -88,45 +90,42 @@ void PhysicsListManager::BuildPhysicsLists() {
 
   // check if only one physics list was given without giving the active regions mask
   // then use the same physics list in all regions
-  if (fPhysicsListVector.size()==1 && fActiveRegionMasks.size()==0) {
-    std::vector<bool> *activeregionmask = new std::vector<bool>(fNumOfRegions,true);
+  if (fPhysicsListVector.size() == 1 && fActiveRegionMasks.size() == 0) {
+    std::vector<bool> *activeregionmask = new std::vector<bool>(fNumOfRegions, true);
     fActiveRegionMasks.push_back(*activeregionmask);
   } else {
     // error: more than one physics list without specifying the non-intersecting sets of active regions for them
   }
 
-
   // now we need to loop over the physics lists and call their Initialise methods to fill up the temporary physics
   // process vector in each particle, then we need to deliver that information to the appropriate element (depending on
   // the active regions) of the ProcessManagerPerParticle vector
-  for (unsigned long i=0; i<fPhysicsListVector.size(); ++i) {
+  for (unsigned long i = 0; i < fPhysicsListVector.size(); ++i) {
     // first we need to clear the temporary process vector of the particles because each physics list pushes
     // its processes per particle there
-    std::vector<Particle*> pTable = Particle::GetTheParticleTable();
-    for (unsigned long j=0; j<pTable.size(); ++j) {
+    std::vector<Particle *> pTable = Particle::GetTheParticleTable();
+    for (unsigned long j = 0; j < pTable.size(); ++j) {
       pTable[j]->ClearPhysicsProcessVector();
     }
-
 
     // create processes and assigne to particles according to the current physics list Initialise method
     fPhysicsListVector[i]->Initialize();
 
     // set the active regions mask of the PhysicsParameters obejct
-    for (unsigned long j=0; j<fActiveRegionMasks[i].size(); ++j) {
+    for (unsigned long j = 0; j < fActiveRegionMasks[i].size(); ++j) {
       if (fActiveRegionMasks[i][j]) {
-        //PhysicsParameters::GetListPhysicsParametersPerRegions()[j] = fPhysicsListVector[i]->GetPhysicsParameters();
+        // PhysicsParameters::GetListPhysicsParametersPerRegions()[j] = fPhysicsListVector[i]->GetPhysicsParameters();
         (fPhysicsListVector[i]->GetPhysicsParameters()->GetListActiveRegions()).push_back(true);
       } else {
         (fPhysicsListVector[i]->GetPhysicsParameters()->GetListActiveRegions()).push_back(false);
       }
     }
 
-    for (unsigned long j=0; j<pTable.size(); ++j) {
-      Particle *particle = pTable[j];
-      std::vector<PhysicsProcess*> processVector = particle->GetPhysicsProcessVector();
+    for (unsigned long j = 0; j < pTable.size(); ++j) {
+      Particle *particle                          = pTable[j];
+      std::vector<PhysicsProcess *> processVector = particle->GetPhysicsProcessVector();
       // if there is no any process assigned to the current particle
-      if (processVector.size()==0)
-        continue;
+      if (processVector.size() == 0) continue;
 
       // 1 create one PhysicsManagerPerParticle object for each partcile that the current PhysicsList has added at least
       //   one PhysicsProcess
@@ -138,28 +137,29 @@ void PhysicsListManager::BuildPhysicsLists() {
       //   only once them)
       // 5 set pointers to regional PhysicsManagerPerParticle in the static Particle definition to point to this
       //   object where the current physics list is active
-      //1
-      PhysicsManagerPerParticle *pMPParticle = new PhysicsManagerPerParticle(particle,fPhysicsListVector[i]->GetPhysicsParameters());
-      //2
-      for (unsigned long pi=0; pi<processVector.size(); ++pi) {
+      // 1
+      PhysicsManagerPerParticle *pMPParticle =
+          new PhysicsManagerPerParticle(particle, fPhysicsListVector[i]->GetPhysicsParameters());
+      // 2
+      for (unsigned long pi = 0; pi < processVector.size(); ++pi) {
         PhysicsProcess *physProc = processVector[pi];
         physProc->AddToListParticlesAssignedTo(particle);
-        //3-a
+        // 3-a
         // clear this just to be sure
         (physProc->GetListActiveRegions()).clear();
-        for (unsigned long k=0; k<fActiveRegionMasks[i].size(); ++k) { // loop over the regions
+        for (unsigned long k = 0; k < fActiveRegionMasks[i].size(); ++k) { // loop over the regions
           (physProc->GetListActiveRegions()).push_back(fActiveRegionMasks[i][k]);
         }
         pMPParticle->AddProcess(physProc);
       }
-      //3-b
-      for (unsigned long k=0; k<fActiveRegionMasks[i].size(); ++k) {
+      // 3-b
+      for (unsigned long k = 0; k < fActiveRegionMasks[i].size(); ++k) {
         (pMPParticle->GetListActiveRegions()).push_back(fActiveRegionMasks[i][k]);
       }
-      //4
+      // 4
       fPhysicsManagerPerParticleTable.push_back(pMPParticle);
-      //5
-      for (unsigned long k=0; k<fActiveRegionMasks[i].size(); ++k) {
+      // 5
+      for (unsigned long k = 0; k < fActiveRegionMasks[i].size(); ++k) {
         if (fActiveRegionMasks[i][k]) {
           (particle->GetPhysicsManagerPerParticleVector())[k] = pMPParticle;
         }
@@ -168,7 +168,7 @@ void PhysicsListManager::BuildPhysicsLists() {
   }
 
   // loop over all Particle, all PhysicsManagerPerParticle and Initialize all
-  for (unsigned long ipm=0; ipm<fPhysicsManagerPerParticleTable.size(); ++ipm) {
+  for (unsigned long ipm = 0; ipm < fPhysicsManagerPerParticleTable.size(); ++ipm) {
     fPhysicsManagerPerParticleTable[ipm]->Initialize();
   }
 
@@ -178,7 +178,7 @@ void PhysicsListManager::BuildPhysicsLists() {
   // call PrepareForRun method for all ProcessManagerPerParticle:
   //  - if the particle has more than 1 kEnergyLoss process in the fAlongStepProcessVec only one will be kept
   // loop over all Particle, all PhysicsManagerPerParticle
-  for (unsigned long ipm=0; ipm<fPhysicsManagerPerParticleTable.size(); ++ipm) {
+  for (unsigned long ipm = 0; ipm < fPhysicsManagerPerParticleTable.size(); ++ipm) {
     fPhysicsManagerPerParticleTable[ipm]->PrepareForRun();
   }
 
@@ -189,36 +189,35 @@ void PhysicsListManager::BuildPhysicsLists() {
   // -And we should delete all Isotope-s, Element-s, Material-s, MaterialCuts-s and Particle-s
 }
 
-
-
 // at the end we can clear all physics processes and clear the physics process vector and physics manager per particle
 // vector of the static Particle properties
 // we also delete the physics lists added by the user and clear the local physics lists vector and active indices vector
-void PhysicsListManager::ClearAll() {
+void PhysicsListManager::ClearAll()
+{
   // delete all processes
   PhysicsProcess::ClearAllProcess();
 
   // delete all physics manager per Particle objects
-  for (unsigned long i=0; i<fPhysicsManagerPerParticleTable.size(); ++i)
+  for (unsigned long i = 0; i < fPhysicsManagerPerParticleTable.size(); ++i)
     delete fPhysicsManagerPerParticleTable[i];
   fPhysicsManagerPerParticleTable.clear();
 
   // loop over the particles and clear all vectors
-  std::vector<Particle*> pTable = Particle::GetTheParticleTable();
-  for (unsigned long i=0; i<pTable.size(); ++i) {
+  std::vector<Particle *> pTable = Particle::GetTheParticleTable();
+  for (unsigned long i = 0; i < pTable.size(); ++i) {
     Particle *particle = pTable[i];
-    particle->ClearPhysicsProcessVector();  // objects are deleted above
+    particle->ClearPhysicsProcessVector();                    // objects are deleted above
     (particle->GetPhysicsManagerPerParticleVector()).clear(); // obejcts are deleted above
   }
 
   // delete all registred physics lists and clear the local container
-  for (unsigned long i=0; i<fPhysicsListVector.size(); ++i) {
+  for (unsigned long i = 0; i < fPhysicsListVector.size(); ++i) {
     delete fPhysicsListVector[i];
   }
   fPhysicsListVector.clear();
 
   // clear all active region masks local container
-  for (unsigned long i=0; i<fActiveRegionMasks.size(); ++i) {
+  for (unsigned long i = 0; i < fActiveRegionMasks.size(); ++i) {
     fActiveRegionMasks[i].clear();
   }
   fActiveRegionMasks.clear();
@@ -230,54 +229,48 @@ void PhysicsListManager::ClearAll() {
   // -And we should delete all Isotope-s, Element-s, Material-s, MaterialCuts-s and (Particle-s are singletones)
 }
 
-
-
 // just for testing
-void PhysicsListManager::PrintAll() {
+void PhysicsListManager::PrintAll()
+{
   // loop over each particle in the table;
   // get their ProcessManagerPerParticleVector where Vector is over regions
   // print all active processes at each reagion
-  std::vector<Particle*> pTable = Particle::GetTheParticleTable();
-  std::cout<<"\n============= Process Informations Per Region Per Particle ================ \n";
-  for (int i=0; i<fNumOfRegions; ++i) {
+  std::vector<Particle *> pTable = Particle::GetTheParticleTable();
+  std::cout << "\n============= Process Informations Per Region Per Particle ================ \n";
+  for (int i = 0; i < fNumOfRegions; ++i) {
     int regionIndx = i;
-    std::cout<<"\n    ===================  Info for region with index = " << regionIndx << " ===================\n";
-    std::cout<<"\n      PhysicsParameters for the region:\n";
-    std::cout<<PhysicsParameters::GetPhysicsParametersForRegion(i);
-    for (unsigned long j=0; j<pTable.size(); ++j) {
+    std::cout << "\n    ===================  Info for region with index = " << regionIndx << " ===================\n";
+    std::cout << "\n      PhysicsParameters for the region:\n";
+    std::cout << PhysicsParameters::GetPhysicsParametersForRegion(i);
+    for (unsigned long j = 0; j < pTable.size(); ++j) {
       Particle *particle = pTable[j];
-      std::cout<< "\n      Active processes for Particle with Name = " << particle->GetName();
+      std::cout << "\n      Active processes for Particle with Name = " << particle->GetName();
       PhysicsManagerPerParticle *pMPParticle = particle->GetPhysicsManagerPerParticlePerRegion(regionIndx);
       if (!pMPParticle) {
-        std::cout<<"\n        There are no any active processes for this particle in this region."
-                 <<"\n        So it's ProcessManagerPerParticle for this region is nullptr."
-                 <<std::endl;
+        std::cout << "\n        There are no any active processes for this particle in this region."
+                  << "\n        So it's ProcessManagerPerParticle for this region is nullptr." << std::endl;
         continue; // go for the next particle
       }
-      std::cout<<"\n        This ProcessManagerPerParticle is (also) active in regions: ";
-      for(unsigned long k=0;k<pMPParticle->GetListActiveRegions().size();++k){
-        if ((pMPParticle->GetListActiveRegions())[k])
-          std::cout<<"    "<<k;
+      std::cout << "\n        This ProcessManagerPerParticle is (also) active in regions: ";
+      for (unsigned long k = 0; k < pMPParticle->GetListActiveRegions().size(); ++k) {
+        if ((pMPParticle->GetListActiveRegions())[k]) std::cout << "    " << k;
       }
-      std::cout<<std::endl;
+      std::cout << std::endl;
 
-      std::vector<PhysicsProcess*> physProcVector = pMPParticle->GetListProcesses();
-      for (unsigned long k=0; k<physProcVector.size(); ++k) {
-        std::cout<<"\n        Process Name = " << physProcVector[k]->GetName();
+      std::vector<PhysicsProcess *> physProcVector = pMPParticle->GetListProcesses();
+      for (unsigned long k = 0; k < physProcVector.size(); ++k) {
+        std::cout << "\n        Process Name = " << physProcVector[k]->GetName();
         std::vector<bool> activeInVector = physProcVector[k]->GetListActiveRegions();
-        std::cout<<"      ===> Active in regions =  ";
-        for (unsigned long l=0; l<activeInVector.size(); ++l) {
-           if (activeInVector[l])
-             std::cout<<"   "<<l;
+        std::cout << "      ===> Active in regions =  ";
+        for (unsigned long l = 0; l < activeInVector.size(); ++l) {
+          if (activeInVector[l]) std::cout << "   " << l;
         }
       }
-      std::cout<<std::endl;
+      std::cout << std::endl;
     }
-    std::cout<<std::endl;
+    std::cout << std::endl;
   }
-  std::cout<<"\n===========================================================================\n";
+  std::cout << "\n===========================================================================\n";
 }
-
-
 
 } // namespace geantphysics

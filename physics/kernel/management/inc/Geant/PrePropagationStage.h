@@ -7,10 +7,10 @@
 // from geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class Track;
-  class TaskData;
-  class Handler;
+class Propagator;
+class Track;
+class TaskData;
+class Handler;
 }
 }
 
@@ -24,7 +24,6 @@ namespace geantphysics {
  *
  * Particles that have multiple scattering process will be selected at this stage.
  */
-
 
 class PrePropagationStage : public geant::SimulationStage {
 public:
@@ -48,13 +47,10 @@ public:
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
 private:
-
   PrePropagationStage(const PrePropagationStage &) = delete;
   PrePropagationStage &operator=(const PrePropagationStage &) = delete;
-
 };
 
-
-}     // namespace geantphysics
+} // namespace geantphysics
 
 #endif // PREPROPAGATIONSTAGE_H

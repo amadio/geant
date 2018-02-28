@@ -19,35 +19,38 @@
 
 #include "Geant/NavigationInterface.h"
 
-
 namespace geantphysics {
 
 PrePropagationHandler::PrePropagationHandler(int threshold, geant::Propagator *propagator)
-: geant::Handler(threshold, propagator) {}
+    : geant::Handler(threshold, propagator)
+{
+}
 
-
-PrePropagationHandler::~PrePropagationHandler() {}
-
+PrePropagationHandler::~PrePropagationHandler()
+{
+}
 
 // The PrePropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process
-void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket& output, geant::TaskData *td) {
+void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
+{
   // ---
   // here we will get the MaterialCuts from the LogicalVolume
-  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
-  int   particleCode         = track->GVcode();
-  const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
+  int particleCode         = track->GVcode();
+  const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   // put some asserts here to make sure (1) that the partcile has any processes, (2) the particle has at least one
   // process with continuous parts.
-  assert(pManager!=nullptr); // (1)
+  assert(pManager != nullptr);       // (1)
   assert(pManager->HasMSCProcess()); // (2)
   //
   // invoke the step limit part of the msc process
-  const MSCProcess *mscProc = static_cast<const MSCProcess*>(pManager->GetMSCProcess());
-  assert(mscProc);  // make sure that it is not nullptr
+  const MSCProcess *mscProc = static_cast<const MSCProcess *>(pManager->GetMSCProcess());
+  assert(mscProc); // make sure that it is not nullptr
   // invoke the step limit method
   //  no extra geometry call anymore: geometry stage is invoked before the prepropagation stage
   //  geant::ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(*track, track->fPstep);
@@ -59,7 +62,7 @@ void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket& output, gea
 }
 
 //______________________________________________________________________________
-void PrePropagationHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td)
+void PrePropagationHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();
@@ -68,5 +71,4 @@ void PrePropagationHandler::DoIt(geant::Basket &input, geant::Basket& output, ge
   }
 }
 
-
-}  // namespace geantphysics
+} // namespace geantphysics

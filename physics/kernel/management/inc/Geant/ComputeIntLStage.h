@@ -7,13 +7,12 @@
 // from geantV
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
-  class Propagator;
-  class Track;
-  class TaskData;
-  class Handler;
+class Propagator;
+class Track;
+class TaskData;
+class Handler;
 }
 }
-
 
 namespace geantphysics {
 
@@ -23,7 +22,6 @@ namespace geantphysics {
  * @author  M Novak
  * @date    May 2017
  */
-
 
 class ComputeIntLStage : public geant::SimulationStage {
 public:
@@ -46,16 +44,14 @@ public:
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
-
 private:
-
   ComputeIntLStage(const ComputeIntLStage &) = delete;
   ComputeIntLStage &operator=(const ComputeIntLStage &) = delete;
 
-// ?
-//  Handler *GetHandler(int) { return fHandlers[0]; }
+  // ?
+  //  Handler *GetHandler(int) { return fHandlers[0]; }
 };
 
-}      // namespace geantphysics
+} // namespace geantphysics
 
 #endif // COMPUTEINTLSTAGE_H

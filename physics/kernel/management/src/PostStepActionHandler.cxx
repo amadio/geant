@@ -21,25 +21,30 @@
 namespace geantphysics {
 
 PostStepActionHandler::PostStepActionHandler(int threshold, geant::Propagator *propagator)
-: geant::Handler(threshold, propagator) {}
+    : geant::Handler(threshold, propagator)
+{
+}
 
+PostStepActionHandler::~PostStepActionHandler()
+{
+}
 
-PostStepActionHandler::~PostStepActionHandler() {}
-
-void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, geant::TaskData * td) {
+void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
+{
   // ---
   int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
-  const MaterialCuts *matCut = static_cast<const MaterialCuts*>((const_cast<vecgeom::LogicalVolume*>(track->GetVolume())->GetMaterialCutsPtr()));
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   // get the internal code of the particle
-  int   particleCode         = track->GVcode();
-  const Particle *particle   = Particle::GetParticleByInternalCode(particleCode);
+  int particleCode         = track->GVcode();
+  const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   // put some asserts here to make sure (1) that the partcile has any processes, (2) the particle has at least one
   // process with discrete
-  assert(pManager!=nullptr); // (1)
-  assert(pManager->GetListPostStepCandidateProcesses().size()!=0); // (2)
+  assert(pManager != nullptr);                                       // (1)
+  assert(pManager->GetListPostStepCandidateProcesses().size() != 0); // (2)
   //
   LightTrack primaryLT;
   // we will use members:
@@ -52,14 +57,14 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, gea
   //  fYdir         <==>  fYdir     // direction vector y comp. will be set to the new direction y comp.
   //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
-  primaryLT.SetKinE(track->E()-track->Mass());
+  primaryLT.SetKinE(track->E() - track->Mass());
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
-//  primaryLT.SetTrackIndex(i);
+  //  primaryLT.SetTrackIndex(i);
   primaryLT.SetDirX(track->Dx());
   primaryLT.SetDirY(track->Dy());
   primaryLT.SetDirZ(track->Dz());
-//  primaryLT.SetTotalMFP(track->GetIntLen());
+  //  primaryLT.SetTotalMFP(track->GetIntLen());
   //
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->SetNumUsedSecondaries(0);
@@ -68,14 +73,14 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, gea
   int nSecParticles = pManager->PostStepAction(primaryLT, track, td);
   //
   // update Track
-  double newEkin    = primaryLT.GetKinE();
+  double newEkin = primaryLT.GetKinE();
   track->SetMass(primaryLT.GetMass());
-  track->SetE(newEkin+track->Mass());
-  track->SetP(std::sqrt(newEkin*(newEkin+2.0*track->Mass())));
-  track->SetDirection(primaryLT.GetDirX(),primaryLT.GetDirY(),primaryLT.GetDirZ());
-  track->SetEdep(track->Edep()+primaryLT.GetEnergyDeposit());
-  if (newEkin<=0.) {
-    if (pManager->GetListAtRestCandidateProcesses().size()>0  && primaryLT.GetTrackStatus()!=LTrackStatus::kKill) {
+  track->SetE(newEkin + track->Mass());
+  track->SetP(std::sqrt(newEkin * (newEkin + 2.0 * track->Mass())));
+  track->SetDirection(primaryLT.GetDirX(), primaryLT.GetDirY(), primaryLT.GetDirZ());
+  track->SetEdep(track->Edep() + primaryLT.GetEnergyDeposit());
+  if (newEkin <= 0.) {
+    if (pManager->GetListAtRestCandidateProcesses().size() > 0 && primaryLT.GetTrackStatus() != LTrackStatus::kKill) {
       // send it to the AtRestAction stage
       track->SetStage(geant::kAtRestActionStage);
     } else {
@@ -89,29 +94,29 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, gea
   if (nSecParticles) {
     // get the list of secondary tracks
     std::vector<LightTrack> &secLt = td->fPhysicsData->GetListOfSecondaries();
-    for (int isec=0; isec<nSecParticles; ++isec) {
-      int   secGVcode = secLt[isec].GetGVcode(); // GV index of this secondary particle
+    for (int isec = 0; isec < nSecParticles; ++isec) {
+      int secGVcode               = secLt[isec].GetGVcode(); // GV index of this secondary particle
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
       // get a Track geantTrack;
       geant::Track &geantTrack = td->GetNewTrack();
       // set the new track properties
-//      int t = secLt[isec].GetTrackIndex();          // parent Track index in the input Track_v
-      geantTrack.SetEvent (track->Event());
+      //      int t = secLt[isec].GetTrackIndex();          // parent Track index in the input Track_v
+      geantTrack.SetEvent(track->Event());
       geantTrack.SetEvslot(track->EventSlot());
       geantTrack.SetGVcode(secGVcode);
       geantTrack.SetCharge(secParticle->GetPDGCharge());
       // set the index of the process (in the global process vector) that limited the step i.e. generated this secondary
       geantTrack.SetProcess(track->Process());
-      geantTrack.SetStatus(geant::kNew);                // secondary is a new track
+      geantTrack.SetStatus(geant::kNew);                 // secondary is a new track
       geantTrack.SetStage(geant::kSteppingActionsStage); // send this to the stepping action stage
-      geantTrack.SetGeneration( track->GetGeneration() + 1);
+      geantTrack.SetGeneration(track->GetGeneration() + 1);
       geantTrack.SetMass(secLt[isec].GetMass());
-      geantTrack.SetPosition(track->X(),track->Y(),track->Z());
-      geantTrack.SetDirection(secLt[isec].GetDirX(),secLt[isec].GetDirY(),secLt[isec].GetDirZ());
-      double secEkin       = secLt[isec].GetKinE();
-      geantTrack.SetP(std::sqrt(secEkin*(secEkin+2.0*geantTrack.Mass()))); // momentum of this secondadry particle
-      geantTrack.SetE(secEkin+geantTrack.Mass());                          // total E of this secondary particle
-      geantTrack.SetTime(track->Time() ); // global time
+      geantTrack.SetPosition(track->X(), track->Y(), track->Z());
+      geantTrack.SetDirection(secLt[isec].GetDirX(), secLt[isec].GetDirY(), secLt[isec].GetDirZ());
+      double secEkin = secLt[isec].GetKinE();
+      geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
+      geantTrack.SetE(secEkin + geantTrack.Mass());                              // total E of this secondary particle
+      geantTrack.SetTime(track->Time());                                         // global time
       geantTrack.SetSafety(track->GetSafety());
       geantTrack.SetBoundary(track->Boundary());
       geantTrack.SetPath(track->Path());
@@ -131,7 +136,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket& output, gea
 }
 
 //______________________________________________________________________________
-void PostStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, geant::TaskData *td)
+void PostStepActionHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();
@@ -140,5 +145,4 @@ void PostStepActionHandler::DoIt(geant::Basket &input, geant::Basket& output, ge
   }
 }
 
-
-}  // namespace geantphysics
+} // namespace geantphysics
