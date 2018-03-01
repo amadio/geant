@@ -9,12 +9,14 @@
 */
 
 //________________________________________________________________________________
-doxTpl::doxTpl() {
+doxTpl::doxTpl()
+{
   // Non doxygen comment that will not be stripped from the source
 }
 
 //________________________________________________________________________________
-int doxTpl::oneMethod(int todouble) {
+int doxTpl::oneMethod(int todouble)
+{
   // Another local comment
   int result = 2 * todouble;
   return result;
