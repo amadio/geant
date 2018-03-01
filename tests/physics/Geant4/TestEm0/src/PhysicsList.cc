@@ -31,7 +31,7 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "Geant/PhysicsList.hh"
+#include "PhysicsList.hh"
 #include "PhysicsListMessenger.hh"
 
 #include "PhysListEmStandard.hh"

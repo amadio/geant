@@ -36,7 +36,7 @@
 #include "G4UImanager.hh"
 
 #include "DetectorConstruction.hh"
-#include "Geant/PhysicsList.hh"
+#include "PhysicsList.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 
