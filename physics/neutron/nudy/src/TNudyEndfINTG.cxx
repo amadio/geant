@@ -1,4 +1,4 @@
-#include <TNudyEndfINTG.h>
+#include "Geant/TNudyEndfINTG.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfINTG)

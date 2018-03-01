@@ -11,7 +11,7 @@
 
 */
 
-#include <TNudyEndfSec.h>
+#include "Geant/TNudyEndfSec.h"
 #include "Geant/TNudyEndfCont.h"
 #ifdef USE_ROOT
 ClassImp(TNudyEndfSec)

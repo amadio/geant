@@ -18,8 +18,8 @@
 */
 
 #include <TError.h>
-#include <TNudyEndfCont.h>
-#include <TNudyEndfMat.h>
+#include "Geant/TNudyEndfCont.h"
+#include "Geant/TNudyEndfMat.h"
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfMat)

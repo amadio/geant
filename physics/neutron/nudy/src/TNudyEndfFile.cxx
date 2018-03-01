@@ -11,7 +11,7 @@
 
 */
 
-#include <TNudyEndfFile.h>
+#include "Geant/TNudyEndfFile.h"
 
 //_______________________________________________________________________________
 TNudyEndfFile::TNudyEndfFile() : fMAT(0), fMF(0)
