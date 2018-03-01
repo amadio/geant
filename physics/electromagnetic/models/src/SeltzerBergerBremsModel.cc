@@ -327,7 +327,7 @@ double SeltzerBergerBremsModel::GetEkinIndex(double &ekin, int &ie) {
   } else {
     double lekin  = std::log(ekin);
     eresid  = (lekin - fLogLoadDCSMinElecEnergy)*fInvLogLoadDCSDeltaEnergy;
-    ie      = std::lrint(eresid); // y1 index
+    ie      = (int)eresid; // y1 index
     eresid -= ie;  // (y2-y1)*resid + y1
   }
   return eresid;
@@ -759,7 +759,8 @@ double   SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, 
     td->fRndm->uniform_array(2, rndArray);
     egamma =  std::sqrt ( std::max( std::exp(minXi + rndArray[0]*delXi) - densityCor, 0.));
     const double kappa = egamma/eekin;
-    val    =  GetDXSECValue(izet, eekin, kappa); //GetDXSECValue(izet, ie, eresid, kappa);
+    //val    =  GetDXSECValue(izet, eekin, kappa); 
+    val    = GetDXSECValue(izet, ie, eresid, kappa);
     // positron cor.
     if (!fIsElectron) {
       val *= PositronCorrection1(eekin, kappa, gcut, zet);
