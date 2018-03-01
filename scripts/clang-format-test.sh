@@ -19,7 +19,7 @@ fi
 # with respect to master (target branch)
 tb="master"
 # we disregard the test/static_analysis directory since this contains LLVM code + headers
-filelist=`git diff ${tb}... --name-only | grep -v -i -e linkdef`
+filelist=`git diff ${tb}... --name-only | grep -v -i -e linkdef | grep -v -e nudy -e cmsToyGV`
 
 # function to check if C++ file (based on suffix)
 # can probably be done much shorter
