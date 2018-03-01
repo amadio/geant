@@ -44,7 +44,7 @@ CMSParticleGun::CMSParticleGun()  {
   fIsUserPrimaryType          = false;
   fIsUserPrimaryDir           = false;
   fIsUserPrimaryEnergy        = false;
-  fNumPrimaryPerEvt           =  1;
+  fNumPrimaryPerEvt           =  0;
   fPrimaryParticleName        = "e-";
   fPrimaryParticleEnergy      = 10.*geant::units::GeV;
   // position will be fixed to (0.,0.,0.)
