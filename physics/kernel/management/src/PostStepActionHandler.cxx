@@ -134,7 +134,6 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   // copy the updated primary track to the output basket as well
   output.AddTrack(track);
 }
-
 //______________________________________________________________________________
 void PostStepActionHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
 {

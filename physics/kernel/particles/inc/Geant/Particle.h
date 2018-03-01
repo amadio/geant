@@ -57,6 +57,8 @@ public:
 
   static const std::vector<Particle *> &GetTheParticleTable() { return gTheParticleTable; }
 
+  static const std::vector<Particle *> &GetInternalParticleTable() { return gInternalParticleCodes; }
+
 private:
   std::string fName;
   int fIndex; // in the global particle table

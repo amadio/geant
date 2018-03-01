@@ -19,6 +19,7 @@ class SimulationStage;
 #include "Geant/AlongStepActionStage.h"
 #include "Geant/PostStepActionStage.h"
 #include "Geant/AtRestActionStage.h"
+#include "Geant/PostStepActionPhysProcessStage.h"
 
 namespace geantphysics {
 
@@ -149,6 +150,11 @@ public:
    * @return     Pointer to a created PostStepAction real-physics simulation stage object.
    */
   geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop) { return new PostStepActionStage(prop); }
+
+  geant::SimulationStage *CreatePostStepActionPhysProcessStage(geant::Propagator *prop)
+  {
+    return new PostStepActionPhysProcessStage(prop);
+  }
 
   geant::SimulationStage *CreateAtRestActionStage(geant::Propagator *prop) { return new AtRestActionStage(prop); }
   //@}

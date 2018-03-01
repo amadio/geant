@@ -297,8 +297,13 @@ int Propagator::CreateSimulationStages()
   stage = fPhysicsInterface->CreateAlongStepActionStage(this);
   assert(stage->GetId() == int(kAlongStepActionStage));
   // kDiscreteProcStage
-  stage = fPhysicsInterface->CreatePostStepActionStage(this);
-  assert(stage->GetId() == int(kPostStepActionStage));
+
+  // stage = fPhysicsInterface->CreatePostStepActionStage(this);
+  // assert(stage->GetId() == int(kPostStepActionStage));
+
+  stage = fPhysicsInterface->CreatePostStepActionPhysProcessStage(this);
+  assert(stage->GetId() == int(kPostStepActionPhysProcessStage));
+
   // kAtRestActionStage
   stage = fPhysicsInterface->CreateAtRestActionStage(this);
   assert(stage->GetId() == int(kAtRestActionStage));
@@ -357,17 +362,19 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   //        V
-  GetStage(kAlongStepActionStage)->SetFollowUpStage(kPostStepActionStage, false);
+  GetStage(kAlongStepActionStage)->SetFollowUpStage(kPostStepActionPhysProcessStage, false);
   // Follow-up not unique: particle can be become at-rest/killed and new particles can be produced
   //   - (at the moment we don't have at-rest stage because we don't have at rest process)
   GetStage(kAlongStepActionStage)->SetBasketizing(false);
   //        V
   //        V
   //        V
-  GetStage(kPostStepActionStage)->SetFollowUpStage(kSteppingActionsStage, false);
+  // GetStage(kPostStepActionStage)->SetFollowUpStage(kSteppingActionsStage, false);
+  GetStage(kPostStepActionPhysProcessStage)->SetFollowUpStage(kSteppingActionsStage, false);
   // Follow-up not unique: particle can be become at-rest/killed and new particles can be produced
   //   - (at the moment we don't have at-rest stage because we don't have at rest process)
-  GetStage(kPostStepActionStage)->SetBasketizing(false);
+  // GetStage(kPostStepActionStage)->SetBasketizing(false);
+  GetStage(kPostStepActionPhysProcessStage)->SetBasketizing(true);
   //        V
   //        V
   //        V

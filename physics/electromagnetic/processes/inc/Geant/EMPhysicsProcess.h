@@ -3,6 +3,7 @@
 #define EMPHYSICSPROCESS_H
 
 #include "Geant/PhysicsProcess.h"
+#include "Geant/VectorUtils.h"
 #include <vector>
 
 namespace geantphysics {
@@ -152,6 +153,9 @@ public:
 
   // Will be called only if disceret interaction was selected
   virtual int PostStepDoIt(LightTrack &track, geant::TaskData *td);
+
+  virtual std::vector<SecondariesFillInfo> PostStepDoItVector(std::vector<LightTrack> &tracks, geant::TaskData *td,
+                                                              std::vector<bool> &deltaInterMask);
 
   /**
    * @brief Method to add EMModel to the EMPhysicsProcess.

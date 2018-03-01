@@ -76,6 +76,8 @@ public:
     */
   virtual geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop) = 0;
 
+  virtual geant::SimulationStage *CreatePostStepActionPhysProcessStage(geant::Propagator *prop) = 0;
+
   virtual geant::SimulationStage *CreateAtRestActionStage(geant::Propagator *prop) = 0;
 };
 

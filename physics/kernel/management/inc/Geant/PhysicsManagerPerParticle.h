@@ -10,6 +10,7 @@
 
 #include "Geant/TaskData.h"
 #include "Geant/Track.h"
+#include "Geant/VectorUtils.h"
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -110,6 +111,8 @@ public:
   void ComputeIntLen(geant::Track *gtrack, geant::TaskData *td);
   int AlongStepAction(LightTrack &track, geant::TaskData *td);
   int PostStepAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
+  std::vector<SecondariesFillInfo> PostStepActionVector(std::vector<LightTrack> &tracks,
+                                                        std::vector<geant::Track *> gtracks, geant::TaskData *td);
   int AtRestAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
 
   bool HasEnergyLossProcess() const { return fIsHasElossProcess; }

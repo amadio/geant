@@ -71,18 +71,19 @@ enum Species_t { kHadron, kLepton };
 
 /** Basket simulation stages. */
 enum ESimulationStage {
-  kPreStepStage = 0,     // Actions at the beginning of the step
-  kComputeIntLStage,     // Physics interaction length computation stage
-  kGeometryStepStage,    // Compute geometry transport length
-  kPrePropagationStage,  // Special msc stage for step limit phase
-                         //  kGeometryStepStage,        // Compute geometry transport length
-  kPropagationStage,     // Propagation in field stage
-  kPostPropagationStage, // Special msc stage for along-step action stage
-                         //  kMSCStage,               // Multiple scattering stage
-  kAlongStepActionStage, // Along step action stage (continuous part of the inetraction)
-  kPostStepActionStage,  // Post step action stage (discrete part of the inetraction)
-  kAtRestActionStage,    // At-rest action stage (at-rest part of the inetraction)
-  kSteppingActionsStage  // User actions
+  kPreStepStage = 0,               // Actions at the beginning of the step
+  kComputeIntLStage,               // Physics interaction length computation stage
+  kGeometryStepStage,              // Compute geometry transport length
+  kPrePropagationStage,            // Special msc stage for step limit phase
+                                   //  kGeometryStepStage,        // Compute geometry transport length
+  kPropagationStage,               // Propagation in field stage
+  kPostPropagationStage,           // Special msc stage for along-step action stage
+                                   //  kMSCStage,               // Multiple scattering stage
+  kAlongStepActionStage,           // Along step action stage (continuous part of the inetraction)
+  kPostStepActionPhysProcessStage, // Post step action stage (discrete part of the inetraction)
+  kAtRestActionStage,              // At-rest action stage (at-rest part of the inetraction)
+  kSteppingActionsStage,           // User actions
+  kPostStepActionStage,            // Should not be used
 };
 
 constexpr size_t kNstages           = size_t(kSteppingActionsStage) + 1;

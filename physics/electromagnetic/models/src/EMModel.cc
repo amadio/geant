@@ -13,6 +13,8 @@
 
 #include "Geant/PhysicsParameters.h"
 #include "Geant/EMElementSelector.h"
+#include "Geant/LightTrack.h"
+#include "Geant/VectorUtils.h"
 
 #include <cmath>
 #include <iostream>
@@ -180,6 +182,15 @@ void EMModel::ClearElementSelectros()
     }
   }
   fElementSelectors.clear();
+}
+
+void EMModel::SampleSecondariesVector(std::vector<LightTrack> &tracks,
+                                      std::vector<SecondariesFillInfo> &secondariesFillInfo, geant::TaskData *td)
+{
+  for (size_t i = 0; i < tracks.size(); ++i) {
+    LightTrack &track                      = tracks[i];
+    secondariesFillInfo[i].fNumSecondaries = SampleSecondaries(track, td);
+  }
 }
 
 } // namespace geantphysics
