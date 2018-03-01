@@ -32,7 +32,7 @@ MyDetectorConstruction::~MyDetectorConstruction() {
 
 G4VPhysicalVolume* MyDetectorConstruction::Construct() {
   //  parser.SetOverlapCheck(true);
-  fParser.Read(fGDMLFileName);
+  fParser.Read(fGDMLFileName,false); // turn off schema checker
   fFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
   fWorld    = (G4VPhysicalVolume *)fParser.GetWorldVolume();
   fWorld->GetLogicalVolume()->SetVisAttributes(G4VisAttributes::Invisible);
