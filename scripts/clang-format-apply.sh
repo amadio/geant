@@ -10,7 +10,7 @@
 # changes
 if [ ! -z "$(git status --untracked-files=no  --porcelain)" ]; then 
   echo "Script must be applied on a clean git state"
-  exit 1
+  #exit 1
 fi
 
 
@@ -73,10 +73,7 @@ if [[ -z $notcorrectlist ]]; then
   exit 0;
 else
   echo "The following files have clang-format problems (showing patches)";
-  for f in $notcorrectlist; do
-      echo $f
-      git diff $f
-  done
+  git diff $notcorrectlist
 fi
 
 exit 1
