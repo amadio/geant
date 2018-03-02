@@ -51,6 +51,11 @@ function checkCPP(){
     return 1
 }
 
+echo
+echo "Checking formatting using the following clang-format version:"
+clang-format --version
+echo 
+
 # check list of files
 for f in $filelist; do
     if checkCPP $f; then
