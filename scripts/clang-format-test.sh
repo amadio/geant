@@ -8,8 +8,7 @@
 
 # check that we are in a clean state in order to prevent accidential
 # changes
-cleanstate=`git status | grep "modified"`
-if ! [[ -z $cleanstate ]]; then
+if [ ! -z "$(git status --porcelain)" ]; then 
   echo "Script must be applied on a clean git state"
   exit 1
 fi
