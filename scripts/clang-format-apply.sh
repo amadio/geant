@@ -65,7 +65,7 @@ for f in $filelist; do
 done
 
 # check if something was modified
-notcorrectlist=`git status | grep "modified"`
+notcorrectlist=`git status --porcelain | grep '^ M' | cut -c4-`
 # if nothing changed ok
 if [[ -z $notcorrectlist ]]; then
   # send a negative message to gitlab
