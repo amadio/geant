@@ -4,17 +4,20 @@
 
 #include "G4VUserPhysicsList.hh"
 
-class MyGVPhysicsList : public G4VUserPhysicsList {
+class MyGVPhysicsList: public G4VUserPhysicsList {
 public:
+
   MyGVPhysicsList();
-  ~MyGVPhysicsList();
+ ~MyGVPhysicsList();
 
   virtual void ConstructParticle();
   virtual void ConstructProcess();
-  //  virtual void SetCuts();
+//  virtual void SetCuts();
 
 private:
+
   void BuildEMPhysics();
+
 };
 
 #endif

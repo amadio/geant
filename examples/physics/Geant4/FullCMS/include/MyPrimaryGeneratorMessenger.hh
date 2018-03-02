@@ -14,19 +14,20 @@ class G4UIcmdWith3Vector;
 
 class MyPrimaryGeneratorMessenger : public G4UImessenger {
 public:
-  MyPrimaryGeneratorMessenger(MyPrimaryGeneratorAction *gun);
-  ~MyPrimaryGeneratorMessenger();
+  MyPrimaryGeneratorMessenger(MyPrimaryGeneratorAction* gun);
+ ~MyPrimaryGeneratorMessenger();
 
-  virtual void SetNewValue(G4UIcommand *, G4String);
+  virtual void SetNewValue(G4UIcommand*, G4String);
 
 private:
-  MyPrimaryGeneratorAction *fTheGun;
+ MyPrimaryGeneratorAction*  fTheGun;
 
-  G4UIdirectory *fGunDirectory;
-  G4UIcmdWithAnInteger *fNumPrimaryPerEvtCmd;
-  G4UIcmdWithAString *fPrimaryTypeCmd;
-  G4UIcmdWithADoubleAndUnit *fPrimaryEnergyCmd;
-  G4UIcmdWith3Vector *fPrimaryDirCmd;
+ G4UIdirectory*             fGunDirectory;
+ G4UIcmdWithAnInteger*      fNumPrimaryPerEvtCmd;
+ G4UIcmdWithAString*        fPrimaryTypeCmd;
+ G4UIcmdWithADoubleAndUnit* fPrimaryEnergyCmd;
+ G4UIcmdWith3Vector*        fPrimaryDirCmd;
+
 };
 
 #endif

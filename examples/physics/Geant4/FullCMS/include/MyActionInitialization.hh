@@ -6,7 +6,7 @@
 
 class MyActionInitialization : public G4VUserActionInitialization {
 public:
-  MyActionInitialization(bool isperformance = false);
+  MyActionInitialization(bool isperformance=false);
   virtual ~MyActionInitialization();
 
   virtual void BuildForMaster() const;
@@ -16,6 +16,7 @@ public:
 
 private:
   bool fIsPerformance;
+
 };
 
 #endif
