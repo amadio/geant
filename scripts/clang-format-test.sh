@@ -11,7 +11,7 @@ res=$?
 
 if [ $res -eq 0 ] ; then 
    # cleanup changes in git
-   echo git reset HEAD --hard
+   git reset HEAD --hard
 fi
 
 exit $res
