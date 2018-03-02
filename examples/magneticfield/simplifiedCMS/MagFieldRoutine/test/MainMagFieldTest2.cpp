@@ -58,9 +58,9 @@ int main()
 {
 
   MagField m1;
-  m1.ReadVectorData("VecMagFieldRoutine/cms2015.txt");
+  m1.ReadVectorData("examples/magneticfield/simplifiedCMS/cms2015.txt");
 
-  ReadVectorData dataMap("VecMagFieldRoutine/cms2015.txt");
+  ReadVectorData dataMap("examples/magneticfield/simplifiedCMS/cms2015.txt");
 
   const double kRDiff     = 50;
   const double kZDiff     = 200;

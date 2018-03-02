@@ -15,7 +15,7 @@ int main()
 
   MagField m1;
   // cout<<"here1"<<endl;
-  m1.ReadVectorData("VecMagFieldRoutine/cms2015.txt");
+  m1.ReadVectorData("examples/magneticfield/simplifiedCMS/cms2015.txt");
 
   /*clock_t t, t2,t_;
   int n = 1e+7; //size of randomR and Z vectors

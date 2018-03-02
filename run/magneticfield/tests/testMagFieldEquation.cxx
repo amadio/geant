@@ -17,6 +17,7 @@
 
 #ifdef CMS_FIELD
 #include "Geant/CMSmagField.h"
+#include "Geant/Utils.h"
 #endif
 
 using Double_v = geant::Double_v;
@@ -41,8 +42,10 @@ constexpr unsigned int gNposmom = 6; // Position 3-vec + Momentum 3-vec
 
 const char *defaultFieldFileName = "cmsmagfield2015.txt";
 
-int main(int, char **)
+int main(int argc, char **argv)
 {
+  std::string datafile(geant::GetDataFileLocation(argc, argv, defaultFieldFileName));
+
   Vector3D<float> fieldValue(0.0, 0.0, 1.0);
 
   using EquationConstField_t = MagFieldEquation<UniformMagField>;
@@ -59,7 +62,7 @@ int main(int, char **)
   bool good = okUniformScalar && okUniformVecFloat && okUniformVecDouble;
 
 #ifdef CMS_FIELD
-  VScalarEquationOfMotion *eq2 = CreateFieldAndEquation(defaultFieldFileName); // ("cmsMagneticField2015.txt");
+  VScalarEquationOfMotion *eq2 = CreateFieldAndEquation(datafile.c_str()); // ("cmsMagneticField2015.txt");
   bool okCMSfield              = TestEquation(eq2);
 
   good = good && okCMSfield;

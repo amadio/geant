@@ -87,11 +87,11 @@ int main()
 
   MagField<float> m1;
   MagField<double> m2;
-  // input file is copied to build/VecMagFieldRoutine using CMakeLists
-  m1.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
-  m2.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
+  // input file is copied to build/examples/magneticfield/simplifiedCMS using CMakeLists
+  m1.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
+  m2.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
 
-  ReadVectorData dataMap("../VecMagFieldRoutine/cms2015.txt");
+  ReadVectorData dataMap("../examples/magneticfield/simplifiedCMS/cms2015.txt");
 
   const float kRDiff    = 50;
   const float kZDiff    = 200;

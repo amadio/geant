@@ -10,6 +10,7 @@ include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)
 
 #Copies cms2015.txt to build/examples/magneticfield/simplifiedCMS at runtime 
 configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt cmsmagfield2015.txt COPYONLY)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmsmagfield2015.txt DESTINATION bin/examples/magneticfield/simplifiedCMS)
 
 include_directories(inc)
 include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)
@@ -26,11 +27,11 @@ set( ALL_LIBRARIES Vmagfield ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} 
 
 add_executable(VecTimingTest ${CMAKE_CURRENT_SOURCE_DIR}/test/BenchmarkTiming.cpp ${sources})
 target_link_libraries(VecTimingTest ${ALL_LIBRARIES}) # ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB})
-install(TARGETS VecTimingTest DESTINATION bin)
+install(TARGETS VecTimingTest DESTINATION bin/examples/magneticfield/simplifiedCMS)
 
 add_executable(VectorAgainstScalar ${CMAKE_CURRENT_SOURCE_DIR}/test/CheckVectorAgainstScalar.cpp ${sources})
 target_link_libraries(VectorAgainstScalar  ${ALL_LIBRARIES}) # ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB})
-install(TARGETS VectorAgainstScalar DESTINATION bin)
+install(TARGETS VectorAgainstScalar DESTINATION bin/examples/magneticfield/simplifiedCMS)
 
 add_executable(VecTestFunc ${CMAKE_CURRENT_SOURCE_DIR}/test/MainMagFieldTest.cpp ${sources})
 target_link_libraries(VecTestFunc  ${ALL_LIBRARIES}) #  ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB})

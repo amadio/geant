@@ -23,8 +23,9 @@
 #include <string>
 #include <functional>
 
+#include "Geant/Utils.h"
 #include "base/Vector3D.h"
-#include <Geant/VectorTypes.h>
+#include "Geant/VectorTypes.h"
 
 // #include "VC_NO_MEMBER_GATHER"
 
@@ -212,13 +213,15 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
   return timeSum;
 }
 
-int main() // int argc, char**argv)
+int main(int argc, char **argv)
 {
-  CMSmagField m1("../VecMagFieldRoutine/cmsmagfield2015.txt");
+  std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
+
+  CMSmagField m1(datafile.c_str());
   // m1.ReadVectorData("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
   // No absolute path required now.
-  // input file copied to build/VecMagFieldRoutine
-  /// m1.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
+  // input file copied to build/examples/magneticfield/simplifiedCMS
+  /// m1.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
   // vector<ThreeVector> posVec;
   vector<ThreeVector> posVec;
   vector<ThreeVector> outputVec;

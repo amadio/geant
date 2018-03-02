@@ -16,8 +16,10 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+  std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt")); // used to be cms2015.txt
+
   MagField m1;
-  m1.ReadVectorData("VecMagFieldRoutine/cms2015.txt");
+  m1.ReadVectorData(datafile.c_str());
 
   const double kRDiff = 50;
   const double kZDiff = 200;

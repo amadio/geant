@@ -40,6 +40,7 @@ using geant::units::degree;
 #ifdef USECMSFIELD
 #include "TemplateCMSmagField.h"
 #include "Geant/ScalarCMSmagField.h"
+#include "Geant/Utils.h"
 #else
 #ifndef NEW_SCALAR_FIELD
 //  Transition measure --- compare to old Scalar field types 2017.11.16
@@ -61,7 +62,7 @@ using std::endl;
 using Double_v = geant::Double_v;
 using Bool_v   = vecCore::Mask_v<Double_v>;
 
-int main(/*int argc, char *args[]*/)
+int main(int argc, char *argv[])
 {
   constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
   // template <typename T> using Vector3D = vecgeom::Vector3D<T>;
@@ -75,7 +76,7 @@ int main(/*int argc, char *args[]*/)
   using Field_Type = UniformMagField; // TemplateScalarUniformMagField<Backend>;
 #ifdef NEW_SCALAR_FIELD
   // New types ... under development  2017.11.16
-  using Field_Type_Scalar    = UniformMagField;
+  using Field_Type_Scalar = UniformMagField;
 #else
   using Field_Type_Scalar    = ScalarUniformMagField;
 #endif
@@ -103,8 +104,12 @@ int main(/*int argc, char *args[]*/)
 
 // Field
 #ifdef USECMSFIELD
-  auto gvField = new Field_Type("../VecMagFieldRoutine/cmsmagfield2015.txt");
+  std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
+
+  auto gvField = new Field_Type(datafile.c_str());
 #else
+  (void)argc;
+  (void)argv;
   auto gvField               = new Field_Type(geant::units::tesla * ThreeVector_d(x_field, y_field, z_field));
 #endif
 
@@ -141,7 +146,7 @@ int main(/*int argc, char *args[]*/)
 
 //========= Preparing scalar Integration Driver ============
 #ifdef USECMSFIELD
-  auto gvFieldScalar         = new Field_Type_Scalar("../VecMagFieldRoutine/cmsmagfield2015.txt");
+  auto gvFieldScalar         = new Field_Type_Scalar(datafile.c_str());
   using GvEquationTypeScalar = MagFieldEquation<Field_Type_Scalar>; // New equation ...
   auto gvEquationScalar      = new GvEquationTypeScalar(gvFieldScalar);
 #else

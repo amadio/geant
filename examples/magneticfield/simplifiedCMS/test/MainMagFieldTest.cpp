@@ -62,11 +62,11 @@ int main()
 {
 
   CMSmagField m1;
-  // input file is copied to build/VecMagFieldRoutine using CMakeLists
-  std::string inputMap("../VecMagFieldRoutine/cms2015.txt");
+  // input file is copied to build/examples/magneticfield/simplifiedCMS using CMakeLists
+  std::string inputMap("../examples/magneticfield/simplifiedCMS/cms2015.txt");
 
-  m1.ReadVectorData(inputMap);      // "../VecMagFieldRoutine/cms2015.txt");
-  ReadVectorData dataMap(inputMap); // "../VecMagFieldRoutine/cms2015.txt");
+  m1.ReadVectorData(inputMap);      // "../examples/magneticfield/simplifiedCMS/cms2015.txt");
+  ReadVectorData dataMap(inputMap); // "../examples/magneticfield/simplifiedCMS/cms2015.txt");
 
   const float kRDiff    = 50.;
   const float kZDiff    = 200.;

@@ -119,8 +119,8 @@ int main()
 
   // m1.ReadVectorData("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
   // No absolute path required now.
-  // input file copied to build/VecMagFieldRoutine
-  m1.ReadVectorData("VecMagFieldRoutine/cms2015.txt");
+  // input file copied to build/examples/magneticfield/simplifiedCMS
+  m1.ReadVectorData("examples/magneticfield/simplifiedCMS/cms2015.txt");
 
   // vector<ThreeVector> posVec;
   vecgeom::Vector<ThreeVector> posVec;

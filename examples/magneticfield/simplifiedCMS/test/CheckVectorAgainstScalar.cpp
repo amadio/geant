@@ -11,6 +11,7 @@
 #include <base/Vector3D.h>
 #include <base/Global.h>
 #include "Geant/CMSmagField.h"
+#include "Geant/Utils.h"
 
 #undef NDEBUG
 //#define VERBOSE 1
@@ -62,10 +63,12 @@ void GenVecCart(vector_t<ThreeVector> &posVec, const int &n)
   }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+  std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
+
   CMSmagField m1;
-  m1.ReadVectorData("../VecMagFieldRoutine/cmsmagfield2015.txt");
+  m1.ReadVectorData(datafile.c_str());
   vector_t<ThreeVector> posVec;
 
   size_t n = 4;

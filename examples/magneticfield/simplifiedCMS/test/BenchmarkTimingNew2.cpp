@@ -201,11 +201,11 @@ int main()
   MagFieldReorder m4;
   // m1.ReadVectorData("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
   // No absolute path required now.
-  // input file copied to build/VecMagFieldRoutine
-  m1.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
-  m2.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
-  m3.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
-  m4.ReadVectorData("../VecMagFieldRoutine/cms2015.txt");
+  // input file copied to build/examples/magneticfield/simplifiedCMS
+  m1.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
+  m2.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
+  m3.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
+  m4.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
   // vector<ThreeVector> posVec;
   vecgeom::Vector<ThreeVector> posVec;
 

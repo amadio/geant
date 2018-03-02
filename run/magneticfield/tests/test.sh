@@ -1,4 +1,4 @@
-   ln -s ../../VecMagFieldRoutine/cmsmagfield2015.txt .
+   ln -s ../../examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt .
    $GVBIN/testMagFieldEquation
    $GVBIN/testConstVecFieldStepper  1 10 1.0 0.0 0.0  | egrep -v '(Bad|bad)'
 

@@ -3,6 +3,8 @@
 #include "base/Vector3D.h"
 #include "base/SOA3D.h"
 #include "base/Global.h"
+#include "Geant/Utils.h"
+
 #include <string>
 #include <vector>
 #include <ctime>
@@ -62,11 +64,12 @@ void GenVecCart(vector<Vector3D> &posVec, const int &n)
   }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+  std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
 
   MagField m1;
-  m1.ReadVectorData("examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt/cmsmagfield2015.txt");
+  m1.ReadVectorData(datafile.c_str());
   vector<Vector3D> posVec, fieldVec;
   vector<double> testVec;
   int n = 1e+6;
