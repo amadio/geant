@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.8)
-project(TestVecMagField)
+project(magneticfield_simplifiedCMS)
 
 #Added to include root. Used for graph plotting.
 find_package(ROOT)
@@ -8,9 +8,8 @@ link_directories(${ROOT_LIBRARY_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)
 
-#Copies cms2015.txt to build/VecMagFieldRoutine at runtime 
-configure_file(${CMAKE_SOURCE_DIR}/run/VecMagFieldRoutine/cmsmagfield2015.txt cmsmagfield2015.txt COPYONLY)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmsmagfield2015.txt DESTINATION VecMagFieldRoutine)
+#Copies cms2015.txt to build/examples/magneticfield/simplifiedCMS at runtime 
+configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt cmsmagfield2015.txt COPYONLY)
 
 include_directories(inc)
 include_directories(${CMAKE_SOURCE_DIR}/run/magneticfield/inc)

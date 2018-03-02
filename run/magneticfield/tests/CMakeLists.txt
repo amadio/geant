@@ -4,7 +4,7 @@
 file(GLOB sources )  # Common source  files
 file(GLOB headers )  # Common include files
 
-include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc ${CMAKE_SOURCE_DIR}/VecMagFieldRoutine/include)
+include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc ${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include)
 #----------------------------------------------------------------------------------------------
 # Redefine compilation flags since Geant4 is overriding them
 #
@@ -20,7 +20,7 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 # Add the executables
 #
 # include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc)
-# include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc ${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/include)
+# include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc ${PROJECT_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include)
 
 
 ## Need -lGeant_v in order to obtain the function/template geant::cxx::ErrorHandlerImpl

@@ -16,7 +16,6 @@
 //#define CMS_FIELD 1
 
 #ifdef CMS_FIELD
-// #include "VecMagFieldRoutine/CMSmagField.h"
 #include "Geant/CMSmagField.h"
 #endif
 

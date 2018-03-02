@@ -66,7 +66,7 @@ int main()
 {
 
   MagField m1;
-  m1.ReadVectorData("VecMagFieldRoutine/cmsmagfield2015.txt");
+  m1.ReadVectorData("examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt/cmsmagfield2015.txt");
   vector<Vector3D> posVec, fieldVec;
   vector<double> testVec;
   int n = 1e+6;

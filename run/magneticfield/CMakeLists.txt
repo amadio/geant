@@ -6,7 +6,7 @@ file(GLOB headers inc/Geant/*.h)   # (T*.h inc/GU*.h)
 
 include_directories(
   inc
-  ${CMAKE_SOURCE_DIR}/VecMagFieldRoutine/inc
+  ${CMAKE_SOURCE_DIR}/exmaples/magneticfield/simplifiedCMS/inc
   ${CMAKE_SOURCE_DIR}/base/inc
 )  
 

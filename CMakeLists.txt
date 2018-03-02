@@ -532,7 +532,7 @@ include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
 include_directories("${PROJECT_SOURCE_DIR}/run/magneticfield/inc")
 #include_directories("${PROJECT_SOURCE_DIR}/physics/kernel/material/inc")
 include_directories("${PROJECT_SOURCE_DIR}/examples/physics/inc")
-include_directories("${PROJECT_SOURCE_DIR}/VecMagFieldRoutine/include")
+include_directories("${PROJECT_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include")
 
 string(REPLACE " -DVECGEOM_ROOT" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
@@ -548,6 +548,7 @@ add_subdirectory (core)
 add_subdirectory (run)
 
 add_subdirectory (examples/physics)
+add_subdirectory (examples/magneticfield/simplifiedCMS)
 
 if (ROOT_mathmore_FOUND)
   add_subdirectory (physics/neutron/nudy)

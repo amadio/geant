@@ -18,8 +18,8 @@ endif()
  # add_definitions(-DANANYA)
 #endif (USE_ANANYA)
 
-#Copies cms2015.txt to build/VecMagFieldRoutine at runtime 
-configure_file(${CMAKE_SOURCE_DIR}/VecMagFieldRoutine/cms2015.txt cms2015.txt COPYONLY)
+#Copies cms2015.txt to build/examples/magneticfield/simplifiedCMS at runtime 
+configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cms2015.txt cms2015.txt COPYONLY)
 
 #Added to include root. Used for graph plotting.
 find_package(ROOT)
