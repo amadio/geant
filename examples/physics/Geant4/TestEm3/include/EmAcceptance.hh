@@ -38,17 +38,22 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class EmAcceptance {
+class EmAcceptance
+{
 public:
-  EmAcceptance();
-  ~EmAcceptance();
 
-  void BeginOfAcceptance(const G4String &title, G4int stat);
+  EmAcceptance();
+ ~EmAcceptance();
+
+  void BeginOfAcceptance(const G4String& title, G4int stat);
   void EndOfAcceptance();
 
-  void EmAcceptanceGauss(const G4String &title, G4int stat, G4double avr, G4double avr0, G4double rms, G4double limit);
+  void EmAcceptanceGauss(const G4String& title, G4int stat, 
+                               G4double avr, G4double avr0, 
+                               G4double rms, G4double limit);
 
 private:
+
   G4bool fIsAccepted;
 };
 

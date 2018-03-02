@@ -66,10 +66,11 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysicsList::PhysicsList() : G4VModularPhysicsList(), fEmPhysicsList(0), fStepMaxProcess(0), fMessenger(0)
+PhysicsList::PhysicsList() : G4VModularPhysicsList(),
+ fEmPhysicsList(0), fStepMaxProcess(0), fMessenger(0)
 {
   G4LossTableManager::Instance();
-  SetDefaultCutValue(1 * mm);
+  SetDefaultCutValue(1*mm);
 
   fMessenger = new PhysicsListMessenger(this);
   SetVerboseLevel(1);
@@ -90,23 +91,23 @@ PhysicsList::~PhysicsList()
 
 void PhysicsList::ConstructParticle()
 {
-  G4BosonConstructor pBosonConstructor;
-  pBosonConstructor.ConstructParticle();
+    G4BosonConstructor  pBosonConstructor;
+    pBosonConstructor.ConstructParticle();
 
-  G4LeptonConstructor pLeptonConstructor;
-  pLeptonConstructor.ConstructParticle();
+    G4LeptonConstructor pLeptonConstructor;
+    pLeptonConstructor.ConstructParticle();
 
-  G4MesonConstructor pMesonConstructor;
-  pMesonConstructor.ConstructParticle();
+    G4MesonConstructor pMesonConstructor;
+    pMesonConstructor.ConstructParticle();
 
-  G4BaryonConstructor pBaryonConstructor;
-  pBaryonConstructor.ConstructParticle();
+    G4BaryonConstructor pBaryonConstructor;
+    pBaryonConstructor.ConstructParticle();
 
-  G4IonConstructor pIonConstructor;
-  pIonConstructor.ConstructParticle();
+    G4IonConstructor pIonConstructor;
+    pIonConstructor.ConstructParticle();
 
-  G4ShortLivedConstructor pShortLivedConstructor;
-  pShortLivedConstructor.ConstructParticle();
+    G4ShortLivedConstructor pShortLivedConstructor;
+    pShortLivedConstructor.ConstructParticle();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -123,7 +124,7 @@ void PhysicsList::ConstructProcess()
   //
   fEmPhysicsList->ConstructProcess();
   // add other processes if not GVStandard physics list is used
-  if (fEmName != "GVStandard") {
+  if (fEmName!="GVStandard") {
     // decay Process
     AddDecay();
     // radioactive decay Process
@@ -135,9 +136,9 @@ void PhysicsList::ConstructProcess()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void PhysicsList::AddPhysicsList(const G4String &name)
+void PhysicsList::AddPhysicsList(const G4String& name)
 {
-  if (verboseLevel > 1) {
+  if (verboseLevel>1) {
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">" << G4endl;
   }
 
@@ -224,7 +225,8 @@ void PhysicsList::AddPhysicsList(const G4String &name)
   } else {
 
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">"
-           << " is not defined" << G4endl;
+           << " is not defined"
+           << G4endl;
   }
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -234,17 +236,18 @@ void PhysicsList::AddPhysicsList(const G4String &name)
 
 void PhysicsList::AddDecay()
 {
-  G4PhysicsListHelper *ph = G4PhysicsListHelper::GetPhysicsListHelper();
+  G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
 
   // Decay Process
   //
-  G4Decay *fDecayProcess = new G4Decay();
+  G4Decay* fDecayProcess = new G4Decay();
 
   auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
-  while ((*theParticleIterator)()) {
-    G4ParticleDefinition *particle = theParticleIterator->value();
-    if (fDecayProcess->IsApplicable(*particle)) ph->RegisterProcess(fDecayProcess, particle);
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    if (fDecayProcess->IsApplicable(*particle))
+      ph->RegisterProcess(fDecayProcess, particle);
   }
 }
 
@@ -257,16 +260,16 @@ void PhysicsList::AddDecay()
 
 void PhysicsList::AddRadioactiveDecay()
 {
-  G4RadioactiveDecay *radioactiveDecay = new G4RadioactiveDecay();
+  G4RadioactiveDecay* radioactiveDecay = new G4RadioactiveDecay();
 
-  radioactiveDecay->SetARM(true); // Atomic Rearangement
+  radioactiveDecay->SetARM(true);                //Atomic Rearangement
 
-  G4PhysicsListHelper *ph = G4PhysicsListHelper::GetPhysicsListHelper();
+  G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
   ph->RegisterProcess(radioactiveDecay, G4GenericIon::GenericIon());
 
   // mandatory for G4NuclideTable
   //
-  G4NuclideTable::GetInstance()->SetThresholdOfHalfLife(0.1 * picosecond);
+  G4NuclideTable::GetInstance()->SetThresholdOfHalfLife(0.1*picosecond);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -280,13 +283,14 @@ void PhysicsList::AddStepMax()
 
   auto theParticleIterator = GetParticleIterator();
   theParticleIterator->reset();
-  while ((*theParticleIterator)()) {
-    G4ParticleDefinition *particle = theParticleIterator->value();
-    G4ProcessManager *pmanager     = particle->GetProcessManager();
+  while ((*theParticleIterator)()){
+      G4ParticleDefinition* particle = theParticleIterator->value();
+      G4ProcessManager* pmanager = particle->GetProcessManager();
 
-    if (fStepMaxProcess->IsApplicable(*particle)) {
-      pmanager->AddDiscreteProcess(fStepMaxProcess);
-    }
+      if (fStepMaxProcess->IsApplicable(*particle))
+        {
+          pmanager ->AddDiscreteProcess(fStepMaxProcess);
+        }
   }
 }
 

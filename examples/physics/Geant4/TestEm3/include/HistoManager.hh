@@ -40,18 +40,19 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "DetectorConstruction.hh"
-const G4int kMaxHisto = 2 * kMaxAbsor + 3;
+const G4int kMaxHisto = 2*kMaxAbsor + 3;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class HistoManager {
-public:
-  HistoManager();
-  ~HistoManager();
+class HistoManager
+{
+  public:
+    HistoManager();
+   ~HistoManager();
 
-private:
-  void Book();
-  G4String fFileName;
+  private:
+    void Book();
+    G4String fFileName;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

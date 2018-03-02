@@ -44,19 +44,20 @@ class G4UIcmdWithABool;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class RunActionMessenger : public G4UImessenger {
+class RunActionMessenger: public G4UImessenger
+{
 public:
-  RunActionMessenger(RunAction *);
+  RunActionMessenger(RunAction*);
   virtual ~RunActionMessenger();
-
-  void SetNewValue(G4UIcommand *, G4String);
-
+    
+  void SetNewValue(G4UIcommand*, G4String);
+    
 private:
-  RunAction *fRunAction;
-
-  G4UIdirectory *fRunDir;
-  G4UIcommand *fAccCmd;
-  G4UIcmdWithABool *fLimCmd;
+  RunAction*          fRunAction;
+    
+  G4UIdirectory*      fRunDir;
+  G4UIcommand*        fAccCmd;
+  G4UIcmdWithABool*   fLimCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

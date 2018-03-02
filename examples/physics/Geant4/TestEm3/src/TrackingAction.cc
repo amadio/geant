@@ -43,36 +43,36 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::TrackingAction(DetectorConstruction *det) : G4UserTrackingAction(), fDetector(det)
-{
-}
-
+TrackingAction::TrackingAction(DetectorConstruction* det)
+:G4UserTrackingAction(),fDetector(det)
+{ }
+ 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TrackingAction::PreUserTrackingAction(const G4Track *track)
+void TrackingAction::PreUserTrackingAction(const G4Track* track )
 {
-  // get Run
-  Run *run = static_cast<Run *>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
-
+  //get Run
+  Run* run = static_cast<Run*>(
+             G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+             
   // Energy flow initialisation for primary particle
   //
   if (track->GetTrackID() == 1) {
     G4int Idnow = 1;
     if (track->GetVolume() != fDetector->GetphysiWorld()) {
       // unique identificator of layer+absorber
-      const G4VTouchable *touchable = track->GetTouchable();
-      G4int absorNum                = touchable->GetCopyNumber();
-      G4int layerNum                = touchable->GetReplicaNumber(1);
-      Idnow                         = (fDetector->GetNbOfAbsor()) * layerNum + absorNum;
+      const G4VTouchable* touchable = track->GetTouchable();
+      G4int absorNum = touchable->GetCopyNumber();
+      G4int layerNum = touchable->GetReplicaNumber(1);
+      Idnow = (fDetector->GetNbOfAbsor())*layerNum + absorNum;
     }
-
+    
     G4double Eflow = track->GetKineticEnergy();
-    if (track->GetDefinition() == G4Positron::Positron()) Eflow += 2 * electron_mass_c2;
-
-    // flux artefact, if primary vertex is inside the calorimeter
-    for (G4int pl = 1; pl <= Idnow; pl++) {
-      run->SumEnergyFlow(pl, Eflow);
-    }
+    if (track->GetDefinition() == G4Positron::Positron())
+      Eflow += 2*electron_mass_c2; 
+         
+    //flux artefact, if primary vertex is inside the calorimeter   
+    for (G4int pl=1; pl<=Idnow; pl++) {run->SumEnergyFlow(pl, Eflow);}
   } else {
     run->AddSecondaryTrack(track);
   }
@@ -80,8 +80,8 @@ void TrackingAction::PreUserTrackingAction(const G4Track *track)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TrackingAction::PostUserTrackingAction(const G4Track *)
-{
-}
+void TrackingAction::PostUserTrackingAction(const G4Track* )
+{ }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+

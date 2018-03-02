@@ -43,18 +43,19 @@ class G4UIcommand;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class StepMaxMessenger : public G4UImessenger {
-public:
-  StepMaxMessenger(StepMax *);
-  ~StepMaxMessenger();
-
-  void SetNewValue(G4UIcommand *, G4String);
-
-private:
-  StepMax *fStepMax;
-
-  G4UIdirectory *fStepMaxDir;
-  G4UIcommand *fStepMaxCmd;
+class StepMaxMessenger: public G4UImessenger
+{
+  public:
+    StepMaxMessenger(StepMax*);
+   ~StepMaxMessenger();
+    
+    void SetNewValue(G4UIcommand*, G4String);
+    
+  private:
+    StepMax*       fStepMax;
+    
+    G4UIdirectory* fStepMaxDir;    
+    G4UIcommand*   fStepMaxCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

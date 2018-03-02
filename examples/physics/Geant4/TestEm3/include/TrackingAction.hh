@@ -43,15 +43,15 @@ class DetectorConstruction;
 
 class TrackingAction : public G4UserTrackingAction {
 
-public:
-  TrackingAction(DetectorConstruction *);
-  ~TrackingAction(){};
-
-  virtual void PreUserTrackingAction(const G4Track *);
-  virtual void PostUserTrackingAction(const G4Track *);
-
-private:
-  DetectorConstruction *fDetector;
+  public:  
+    TrackingAction(DetectorConstruction*);
+   ~TrackingAction() {};
+   
+    virtual void  PreUserTrackingAction(const G4Track*);   
+    virtual void PostUserTrackingAction(const G4Track*);
+    
+  private:
+    DetectorConstruction* fDetector;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

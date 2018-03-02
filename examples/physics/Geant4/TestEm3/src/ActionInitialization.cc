@@ -39,22 +39,20 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-ActionInitialization::ActionInitialization(DetectorConstruction *det, bool isperformance)
-    : G4VUserActionInitialization(), fDetector(det), fIsPerformance(isperformance)
-{
-}
+ActionInitialization::ActionInitialization(DetectorConstruction* det, bool isperformance)
+ : G4VUserActionInitialization(),fDetector(det),fIsPerformance(isperformance)
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 ActionInitialization::~ActionInitialization()
-{
-}
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::BuildForMaster() const
 {
-  RunAction *masterRunAct = new RunAction(fDetector);
+  RunAction* masterRunAct = new RunAction(fDetector);
   masterRunAct->SetPerformanceFlag(fIsPerformance);
   SetUserAction(masterRunAct);
 }
@@ -64,21 +62,21 @@ void ActionInitialization::BuildForMaster() const
 void ActionInitialization::Build() const
 {
 
-  PrimaryGeneratorAction *prim = new PrimaryGeneratorAction(fDetector);
+  PrimaryGeneratorAction* prim = new PrimaryGeneratorAction(fDetector);
   SetUserAction(prim);
   if (!fIsPerformance) {
-    RunAction *run = new RunAction(fDetector, prim);
+    RunAction* run = new RunAction(fDetector,prim);
     SetUserAction(run);
-    EventAction *event = new EventAction(fDetector);
+    EventAction* event = new EventAction(fDetector);
     SetUserAction(event);
     SetUserAction(new TrackingAction(fDetector));
-    SetUserAction(new SteppingAction(fDetector, event));
+    SetUserAction(new SteppingAction(fDetector,event));
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VSteppingVerbose *ActionInitialization::InitializeSteppingVerbose() const
+G4VSteppingVerbose* ActionInitialization::InitializeSteppingVerbose() const
 {
   return new SteppingVerbose();
 }

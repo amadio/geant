@@ -44,21 +44,23 @@ class G4UIcmdWithADouble;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class PrimaryGeneratorMessenger : public G4UImessenger {
-public:
-  PrimaryGeneratorMessenger(PrimaryGeneratorAction *);
-  ~PrimaryGeneratorMessenger();
-
-  virtual void SetNewValue(G4UIcommand *, G4String);
-
-private:
-  PrimaryGeneratorAction *fAction;
-
-  G4UIdirectory *fGunDir;
-  G4UIcmdWithoutParameter *fDefaultCmd;
-  G4UIcmdWithADouble *fRndmCmd;
+class PrimaryGeneratorMessenger: public G4UImessenger
+{
+  public:
+    PrimaryGeneratorMessenger(PrimaryGeneratorAction*);
+   ~PrimaryGeneratorMessenger();
+    
+    virtual void SetNewValue(G4UIcommand*, G4String);
+    
+  private:
+    PrimaryGeneratorAction*    fAction;
+    
+    G4UIdirectory*             fGunDir;      
+    G4UIcmdWithoutParameter*   fDefaultCmd;
+    G4UIcmdWithADouble*        fRndmCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
+

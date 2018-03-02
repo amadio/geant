@@ -27,7 +27,7 @@
 /// \brief Definition of the SteppingAction class
 //
 // $Id: SteppingAction.hh 78655 2014-01-14 11:13:41Z gcosmo $
-//
+// 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -42,18 +42,19 @@ class EventAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class SteppingAction : public G4UserSteppingAction {
-public:
-  SteppingAction(DetectorConstruction *, EventAction *);
-  ~SteppingAction();
+class SteppingAction : public G4UserSteppingAction
+{
+  public:
+    SteppingAction(DetectorConstruction*, EventAction*);
+   ~SteppingAction();
 
-  virtual void UserSteppingAction(const G4Step *);
-
-  G4double BirksAttenuation(const G4Step *);
-
-private:
-  DetectorConstruction *fDetector;
-  EventAction *fEventAct;
+    virtual void UserSteppingAction(const G4Step*);
+    
+    G4double BirksAttenuation(const G4Step*);
+    
+  private:
+    DetectorConstruction* fDetector;
+    EventAction*          fEventAct;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

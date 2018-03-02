@@ -48,29 +48,31 @@ class G4Timer;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class RunAction : public G4UserRunAction {
+class RunAction : public G4UserRunAction
+{
 public:
-  RunAction(DetectorConstruction *, PrimaryGeneratorAction *prim = 0);
-  ~RunAction();
 
-  virtual G4Run *GenerateRun();
-  virtual void BeginOfRunAction(const G4Run *);
-  virtual void EndOfRunAction(const G4Run *);
+  RunAction(DetectorConstruction*, PrimaryGeneratorAction* prim=0);
+ ~RunAction();
+
+  virtual G4Run* GenerateRun();
+  virtual void   BeginOfRunAction(const G4Run*);
+  virtual void   EndOfRunAction(const G4Run*);
 
   // Acceptance parameters
   void SetEdepAndRMS(G4int, G4double, G4double, G4double);
   void SetApplyLimit(G4bool val);
 
-  void SetPerformanceFlag(G4bool val) { fIsPerformance = val; }
+  void SetPerformanceFlag(G4bool val)  { fIsPerformance = val; }
 
 private:
-  G4bool fIsPerformance;
-  DetectorConstruction *fDetector;
-  PrimaryGeneratorAction *fPrimary;
-  Run *fRun;
-  RunActionMessenger *fRunMessenger;
-  HistoManager *fHistoManager;
-  G4Timer *fTimer;
+  G4bool                  fIsPerformance;
+  DetectorConstruction*   fDetector;
+  PrimaryGeneratorAction* fPrimary;
+  Run*                    fRun;
+  RunActionMessenger*     fRunMessenger;
+  HistoManager*           fHistoManager;
+  G4Timer*                fTimer;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
