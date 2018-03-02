@@ -22,6 +22,7 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 # include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc)
 # include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc ${PROJECT_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/magneticfield)
 
 ## Need -lGeant_v in order to obtain the function/template geant::cxx::ErrorHandlerImpl
 
@@ -122,15 +123,15 @@ add_custom_target(testMagEq DEPENDS testMagFieldEquation)
 #install(TARGETS testScalarCashKarp DESTINATION bin)
 #install(TARGETS testVectorCashKarp DESTINATION bin)
 #install(TARGETS templatedTestVectorCashKarp DESTINATION bin)
-install(TARGETS testFlexibleCashKarp DESTINATION bin)
+install(TARGETS testFlexibleCashKarp DESTINATION bin/tests/magneticfield)
 # Driver  tests
 ## install(TARGETS testFlexibleIntegrationDriver DESTINATION bin)
-install(TARGETS testVectorIntegrationDriver DESTINATION bin)
+install(TARGETS testVectorIntegrationDriver DESTINATION bin/tests/magneticfield)
 # Old tests - steppers
 #install(TARGETS testStepperFixed DESTINATION bin)
-install(TARGETS testConstVecFieldStepper DESTINATION bin)
+install(TARGETS testConstVecFieldStepper DESTINATION bin/tests/magneticfield)
 # Old tests - drivers
-install(TARGETS testScalarIntegrationDriver DESTINATION bin)
+install(TARGETS testScalarIntegrationDriver DESTINATION bin/tests/magneticfield)
 #install(TARGETS testGUPropagateField DESTINATION bin)
 
 #----------------------------------------------------------------------------------------------
