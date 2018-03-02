@@ -44,20 +44,20 @@ class EventAction;
 
 class TrackingAction : public G4UserTrackingAction {
 
-public:
-  TrackingAction(DetectorConstruction *, EventAction *);
-  ~TrackingAction(){};
-
-  virtual void PreUserTrackingAction(const G4Track *);
-  virtual void PostUserTrackingAction(const G4Track *);
-
-private:
-  DetectorConstruction *fDetector;
-  EventAction *fEventAction;
-
-  G4double fXstartAbs, fXendAbs;
-  G4double fPrimaryCharge;
-  G4double fDirX;
+  public:  
+    TrackingAction(DetectorConstruction*,EventAction*);
+   ~TrackingAction() {};
+   
+    virtual void  PreUserTrackingAction(const G4Track*);   
+    virtual void PostUserTrackingAction(const G4Track*);
+    
+  private:
+    DetectorConstruction* fDetector;
+    EventAction*          fEventAction;
+    
+    G4double fXstartAbs, fXendAbs;
+    G4double fPrimaryCharge;
+    G4double fDirX;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -52,6 +52,7 @@
 #include "G4LossTableManager.hh"
 //#include "G4UAtomicDeexcitation.hh"
 
+
 #include "G4HadronElastic.hh"
 #include "G4HadronElasticProcess.hh"
 #include "G4ComponentGGHadronNucleusXsc.hh"
@@ -61,25 +62,25 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysListGVStandard::PhysListGVStandard(const G4String &name) : G4VPhysicsConstructor(name)
+PhysListGVStandard::PhysListGVStandard(const G4String& name) : G4VPhysicsConstructor(name)
 {
 
-  std::cout << "PhysListGVStandard::PhysListGVStandard........." << std::endl;
-  G4EmParameters *param = G4EmParameters::Instance();
+std::cout<<"PhysListGVStandard::PhysListGVStandard........."<<std::endl;
+  G4EmParameters* param = G4EmParameters::Instance();
   param->SetDefaults();
   param->SetVerbose(1);
   // inactivate energy loss fluctuations
   param->SetLossFluctuations(false);
-  param->SetLowestElectronEnergy(1. * CLHEP::keV);
+  param->SetLowestElectronEnergy(1.*CLHEP::keV);
   //
   param->SetMscRangeFactor(0.06);
-  param->SetMscStepLimitType(fUseSafety); // corresponds to Urban fUseSafety
+  param->SetMscStepLimitType(fUseSafety);// corresponds to Urban fUseSafety
   param->SetMscSkin(3);
   // set min/max energy for tables: 100 eV - 100 TeV by default
-  // param->SetMinEnergy(100*eV);
-  // param->SetMaxEnergy(100*TeV);
+  //param->SetMinEnergy(100*eV);
+  //param->SetMaxEnergy(100*TeV);
   // set lowest kinetic energy i.e. tracking cut for charged particles having energy loss process: 1 keV by default
-  // param->SetLowestElectronEnergy(1*keV);
+  //param->SetLowestElectronEnergy(1*keV);
   // activate/inactivate integral approach: true by default
   // param->SetIntegral(true);
   // inactivate to use cuts as final range
@@ -90,29 +91,27 @@ PhysListGVStandard::PhysListGVStandard(const G4String &name) : G4VPhysicsConstru
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PhysListGVStandard::~PhysListGVStandard()
-{
-}
+PhysListGVStandard::~PhysListGVStandard() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void PhysListGVStandard::ConstructProcess()
 {
-  G4PhysicsListHelper *ph = G4PhysicsListHelper::GetPhysicsListHelper();
+  G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
 
   // Add standard EM Processes
   //
   auto aParticleIterator = GetParticleIterator();
   aParticleIterator->reset();
-  while ((*aParticleIterator)()) {
-    G4ParticleDefinition *particle = aParticleIterator->value();
-    G4String particleName          = particle->GetParticleName();
+  while( (*aParticleIterator)() ){
+    G4ParticleDefinition* particle = aParticleIterator->value();
+    G4String particleName = particle->GetParticleName();
 
     if (particleName == "gamma") {
-      G4double LivermoreLowEnergyLimit                              = 1 * eV;
-      G4double LivermoreHighEnergyLimit                             = 100 * TeV;
-      G4PhotoElectricEffect *thePhotoElectricEffect                 = new G4PhotoElectricEffect();
-      G4LivermorePhotoElectricModel *theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
+      G4double LivermoreLowEnergyLimit = 1*eV;
+      G4double LivermoreHighEnergyLimit = 100*TeV;
+      G4PhotoElectricEffect* thePhotoElectricEffect = new G4PhotoElectricEffect();
+      G4LivermorePhotoElectricModel* theLivermorePhotoElectricModel = new G4LivermorePhotoElectricModel();
       theLivermorePhotoElectricModel->SetLowEnergyLimit(LivermoreLowEnergyLimit);
       theLivermorePhotoElectricModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
       thePhotoElectricEffect->AddEmModel(0, theLivermorePhotoElectricModel);
@@ -120,31 +119,31 @@ void PhysListGVStandard::ConstructProcess()
       ph->RegisterProcess(new G4ComptonScattering(), particle);
       ph->RegisterProcess(new G4GammaConversion, particle);
     } else if (particleName == "e-") {
-      //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
-      G4eMultipleScattering *msc         = new G4eMultipleScattering;
-      G4GoudsmitSaundersonMscModel *msc1 = new G4GoudsmitSaundersonMscModel();
+//      ph->RegisterProcess(new G4eMultipleScattering(), particle);
+      G4eMultipleScattering* msc = new G4eMultipleScattering;
+      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
       msc->AddEmModel(0, msc1);
-      ph->RegisterProcess(msc, particle);
+      ph->RegisterProcess(msc,particle);
       //
-      G4eIonisation *eIoni = new G4eIonisation();
+      G4eIonisation* eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
     } else if (particleName == "e+") {
-      //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
-      G4eMultipleScattering *msc         = new G4eMultipleScattering;
-      G4GoudsmitSaundersonMscModel *msc1 = new G4GoudsmitSaundersonMscModel();
+//      ph->RegisterProcess(new G4eMultipleScattering(), particle);
+      G4eMultipleScattering* msc = new G4eMultipleScattering;
+      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
       msc->AddEmModel(0, msc1);
-      ph->RegisterProcess(msc, particle);
+      ph->RegisterProcess(msc,particle);
       //
-      G4eIonisation *eIoni = new G4eIonisation();
+      G4eIonisation* eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
       //
       ph->RegisterProcess(new G4eplusAnnihilation(), particle);
-    } else if (particleName == "proton" || particleName == "pi-" || particleName == "pi+" || particleName == "pi0" ||
-               particleName == "kaon+" || particleName == "kaon-") {
-      G4HadronElastic *lhep       = new G4HadronElastic();
-      G4HadronElasticProcess *hel = new G4HadronElasticProcess();
+    } else if (particleName=="proton" || particleName=="pi-"   || particleName=="pi+" ||
+	             particleName=="pi0"    || particleName=="kaon+" || particleName=="kaon-") {
+      G4HadronElastic* lhep = new G4HadronElastic();
+      G4HadronElasticProcess* hel = new G4HadronElasticProcess();
       hel->AddDataSet(new G4CrossSectionElastic(new G4ComponentGGHadronNucleusXsc()));
       hel->RegisterMe(lhep);
 
@@ -154,8 +153,8 @@ void PhysListGVStandard::ConstructProcess()
 
   // Deexcitation
   //
-  //  G4VAtomDeexcitation* de = new G4UAtomicDeexcitation();
-  //  G4LossTableManager::Instance()->SetAtomDeexcitation(de);
+//  G4VAtomDeexcitation* de = new G4UAtomicDeexcitation();
+//  G4LossTableManager::Instance()->SetAtomDeexcitation(de);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

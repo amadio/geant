@@ -49,76 +49,84 @@ class G4GlobalMagFieldMessenger;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorConstruction : public G4VUserDetectorConstruction {
-public:
-  DetectorConstruction();
-  ~DetectorConstruction();
+class DetectorConstruction : public G4VUserDetectorConstruction
+{
+  public:
 
-public:
-  void SetAbsorberMaterial(G4String);
-  void SetAbsorberThickness(G4double);
-  void SetAbsorberSizeYZ(G4double);
+    DetectorConstruction();
+   ~DetectorConstruction();
 
-  void SetAbsorberXpos(G4double);
+  public:
 
-  void SetWorldMaterial(G4String);
-  void SetWorldSizeX(G4double);
-  void SetWorldSizeYZ(G4double);
+     void SetAbsorberMaterial (G4String);
+     void SetAbsorberThickness(G4double);
+     void SetAbsorberSizeYZ   (G4double);
 
-  void SetMagField(G4double);
+     void SetAbsorberXpos(G4double);
 
-  virtual G4VPhysicalVolume *Construct();
-  virtual void ConstructSDandField();
+     void SetWorldMaterial(G4String);
+     void SetWorldSizeX   (G4double);
+     void SetWorldSizeYZ  (G4double);
 
-public:
-  void PrintCalorParameters();
+     void SetMagField(G4double);
 
-  G4Material *GetAbsorberMaterial() { return fAbsorberMaterial; };
-  G4double GetAbsorberThickness() { return fAbsorberThickness; };
-  G4double GetAbsorberSizeYZ() { return fAbsorberSizeYZ; };
+     virtual G4VPhysicalVolume* Construct();
+     virtual void ConstructSDandField();
 
-  G4double GetAbsorberXpos() { return fXposAbs; };
-  G4double GetxstartAbs() { return fXstartAbs; };
-  G4double GetxendAbs() { return fXendAbs; };
+  public:
 
-  G4Material *GetWorldMaterial() { return fWorldMaterial; };
-  G4double GetWorldSizeX() { return fWorldSizeX; };
+     void PrintCalorParameters();
 
-  const G4VPhysicalVolume *GetAbsorber() { return fPhysiAbsorber; };
+     G4Material* GetAbsorberMaterial()  {return fAbsorberMaterial;};
+     G4double    GetAbsorberThickness() {return fAbsorberThickness;};
+     G4double    GetAbsorberSizeYZ()    {return fAbsorberSizeYZ;};
 
-private:
-  void ChangeGeometry();
+     G4double    GetAbsorberXpos()      {return fXposAbs;};
+     G4double    GetxstartAbs()         {return fXstartAbs;};
+     G4double    GetxendAbs()           {return fXendAbs;};
 
-  G4Material *fAbsorberMaterial;
-  G4double fAbsorberThickness;
-  G4double fAbsorberSizeYZ;
+     G4Material* GetWorldMaterial()     {return fWorldMaterial;};
+     G4double    GetWorldSizeX()        {return fWorldSizeX;};
 
-  G4double fXposAbs;
-  G4double fXstartAbs, fXendAbs;
+     const G4VPhysicalVolume* GetAbsorber() {return fPhysiAbsorber;};
 
-  G4Material *fWorldMaterial;
-  G4double fWorldSizeX;
-  G4double fWorldSizeYZ;
+  private:
 
-  G4bool fDefaultWorld;
+     void ChangeGeometry();
 
-  G4Box *fSolidWorld;
-  G4LogicalVolume *fLogicWorld;
-  G4VPhysicalVolume *fPhysiWorld;
+     G4Material*        fAbsorberMaterial;
+     G4double           fAbsorberThickness;
+     G4double           fAbsorberSizeYZ;
 
-  G4Box *fSolidAbsorber;
-  G4LogicalVolume *fLogicAbsorber;
-  G4VPhysicalVolume *fPhysiAbsorber;
+     G4double           fXposAbs;
+     G4double           fXstartAbs, fXendAbs;
 
-  DetectorMessenger *fDetectorMessenger;
-  G4Cache<G4GlobalMagFieldMessenger *> fFieldMessenger;
+     G4Material*        fWorldMaterial;
+     G4double           fWorldSizeX;
+     G4double           fWorldSizeYZ;
 
-private:
-  void DefineMaterials();
-  void ComputeCalorParameters();
-  G4VPhysicalVolume *ConstructCalorimeter();
+     G4bool             fDefaultWorld;
+
+     G4Box*             fSolidWorld;
+     G4LogicalVolume*   fLogicWorld;
+     G4VPhysicalVolume* fPhysiWorld;
+
+     G4Box*             fSolidAbsorber;
+     G4LogicalVolume*   fLogicAbsorber;
+     G4VPhysicalVolume* fPhysiAbsorber;
+     
+     DetectorMessenger* fDetectorMessenger;
+     G4Cache<G4GlobalMagFieldMessenger*> fFieldMessenger;
+    
+      
+  private:
+    
+     void DefineMaterials();
+     void ComputeCalorParameters();
+     G4VPhysicalVolume* ConstructCalorimeter();     
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
+

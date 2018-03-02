@@ -46,118 +46,111 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-TrackingAction::TrackingAction(DetectorConstruction *DET, EventAction *EA)
-    : G4UserTrackingAction(), fDetector(DET), fEventAction(EA)
+TrackingAction::TrackingAction(DetectorConstruction* DET, EventAction* EA)
+:G4UserTrackingAction(),fDetector(DET), fEventAction(EA)
 {
   fXstartAbs = fXendAbs = fPrimaryCharge = fDirX = 0.0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TrackingAction::PreUserTrackingAction(const G4Track *aTrack)
+void TrackingAction::PreUserTrackingAction(const G4Track* aTrack )
 {
   // few initialisations
   //
   if (aTrack->GetTrackID() == 1) {
-    fXstartAbs     = fDetector->GetxstartAbs();
-    fXendAbs       = fDetector->GetxendAbs();
+    fXstartAbs = fDetector->GetxstartAbs();
+    fXendAbs   = fDetector->GetxendAbs();
     fPrimaryCharge = aTrack->GetDefinition()->GetPDGCharge();
-    fDirX          = aTrack->GetMomentumDirection().x();
+    fDirX = aTrack->GetMomentumDirection().x();
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
+void TrackingAction::PostUserTrackingAction(const G4Track* aTrack)
 {
-  G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
+  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
-  Run *run = static_cast<Run *>(G4RunManager::GetRunManager()->GetNonConstCurrentRun());
+  Run* run = static_cast<Run*>(
+             G4RunManager::GetRunManager()->GetNonConstCurrentRun());
 
   G4ThreeVector position = aTrack->GetPosition();
   G4ThreeVector vertex   = aTrack->GetVertexPosition();
   G4double charge        = aTrack->GetDefinition()->GetPDGCharge();
   G4double energy        = aTrack->GetKineticEnergy();
 
-  G4bool transmit =
-      (((fDirX >= 0.0 && position.x() >= fXendAbs) || (fDirX < 0.0 && position.x() <= fXstartAbs)) && energy > 0.0);
-  G4bool reflect =
-      (((fDirX >= 0.0 && position.x() <= fXstartAbs) || (fDirX < 0.0 && position.x() <= fXendAbs)) && energy > 0.0);
+  G4bool transmit = (((fDirX >= 0.0 && position.x() >= fXendAbs) ||
+                      (fDirX < 0.0 && position.x() <= fXstartAbs))
+                      && energy > 0.0);
+  G4bool reflect  = (((fDirX >= 0.0 && position.x() <= fXstartAbs) ||
+                      (fDirX < 0.0 && position.x() <= fXendAbs))
+                      && energy > 0.0);
   G4bool notabsor = (transmit || reflect);
 
-  // transmitted + reflected particles counter
+  //transmitted + reflected particles counter
   //
-  G4int flag                          = 0;
-  if (charge == fPrimaryCharge) flag  = 1;
+  G4int flag = 0;
+  if (charge == fPrimaryCharge)  flag = 1;
   if (aTrack->GetTrackID() == 1) flag = 2;
   if (transmit) fEventAction->SetTransmitFlag(flag);
-  if (reflect) fEventAction->SetReflectFlag(flag);
+  if (reflect)  fEventAction->SetReflectFlag(flag);
 
   //
-  // histograms
+  //histograms
   //
   G4bool charged = (charge != 0.);
   G4bool neutral = !charged;
 
-  // energy spectrum at exit
-  // zero energy charged particle are not taken into account
+  //energy spectrum at exit
+  //zero energy charged particle are not taken into account
   //
   G4int id = 0;
-  if (transmit && charged)
-    id = 10;
-  else if (transmit && neutral)
-    id = 20;
-  else if (reflect && charged)
-    id = 30;
-  else if (reflect && neutral)
-    id = 40;
+       if (transmit && charged) id = 10;
+  else if (transmit && neutral) id = 20;
+  else if (reflect  && charged) id = 30;
+  else if (reflect  && neutral) id = 40;
 
-  if (id > 0) {
-    analysisManager->FillH1(id, energy);
-  }
+  if (id>0) { analysisManager->FillH1(id, energy); }
 
-  // energy leakage
+  //energy leakage
   //
   if (notabsor) {
-    G4int trackID          = aTrack->GetTrackID();
-    G4int index            = 0;
-    if (trackID > 1) index = 1; // primary=0, secondaries=1
-    G4double eleak         = aTrack->GetKineticEnergy();
-    if ((aTrack->GetDefinition() == G4Positron::Positron()) && (trackID > 1)) eleak += 2 * electron_mass_c2;
-    run->AddEnergyLeak(eleak, index);
+    G4int trackID = aTrack->GetTrackID();
+    G4int index = 0; if (trackID > 1) index = 1;    //primary=0, secondaries=1
+    G4double eleak = aTrack->GetKineticEnergy();
+    if ((aTrack->GetDefinition() == G4Positron::Positron()) && (trackID > 1))
+      eleak += 2*electron_mass_c2;
+    run->AddEnergyLeak(eleak,index);
   }
 
-  // space angle distribution at exit : dN/dOmega
+  //space angle distribution at exit : dN/dOmega
   //
   G4ThreeVector direction = aTrack->GetMomentumDirection();
-  id                      = 0;
-  if (transmit && charged)
-    id = 12;
-  else if (transmit && neutral)
-    id = 22;
-  else if (reflect && charged)
-    id = 32;
-  else if (reflect && neutral)
-    id = 42;
+  id = 0;
+       if (transmit && charged) id = 12;
+  else if (transmit && neutral) id = 22;
+  else if (reflect  && charged) id = 32;
+  else if (reflect  && neutral) id = 42;
 
-  if (id > 0) {
-    G4double theta = std::acos(direction.x());
+  if (id>0) {
+    G4double theta  = std::acos(direction.x());
     if (theta >= 0.0) {
-      theta          = theta / degree;
-      G4double dteta = analysisManager->GetH1Width(id);
-      G4double unit  = analysisManager->GetH1Unit(id);
-      // MISI: Note that the normalisation is different than the original Geant4 TestEm5 (output will be
-      //       directly comparable with hanson data)
-      //      G4double weight = (unit*unit)/(twopi*std::sin(theta)*dteta);
-      G4int nbins    = analysisManager->GetH1Nbins(id);
+      theta = theta/degree;
+      G4double dteta  = analysisManager->GetH1Width(id);
+      G4double unit   = analysisManager->GetH1Unit(id);
+    // MISI: Note that the normalisation is different than the original Geant4 TestEm5 (output will be
+    //       directly comparable with hanson data)
+//      G4double weight = (unit*unit)/(twopi*std::sin(theta)*dteta);
+      G4int  nbins   = analysisManager->GetH1Nbins(id);
       G4double thmin = analysisManager->GetH1Xmin(id);
-      G4int ibin     = (G4int)((theta - thmin) / dteta);
-      if (ibin >= 0 && ibin < nbins) {
-        G4double thlow  = thmin + ibin * dteta;
-        G4double ww     = twopi * (std::cos(thlow * degree) - std::cos((thlow + dteta) * degree));
-        G4double weight = unit * unit / ww;
-        theta *= degree;
-        analysisManager->FillH1(id, theta, weight);
+      G4int  ibin    = (G4int)((theta-thmin)/dteta);
+      if (ibin>=0 && ibin<nbins) {
+        G4double thlow  = thmin+ibin*dteta;
+        G4double ww     = twopi*(std::cos(thlow*degree) - std::cos((thlow+dteta)*degree));
+        G4double weight = unit*unit/ww;
+        theta *=degree;
+        analysisManager->FillH1(id,theta,weight);
       }
 
       /*
@@ -167,68 +160,60 @@ void TrackingAction::PostUserTrackingAction(const G4Track *aTrack)
              << unit << "  "
              << weight << G4endl;
       */
-      //      analysisManager->FillH1(id,theta,weight);
+//      analysisManager->FillH1(id,theta,weight);
     }
   }
 
-  // energy fluence at exit : dE(MeV)/dOmega
+  //energy fluence at exit : dE(MeV)/dOmega
   //
   id = 0;
-  if (transmit && charged)
-    id = 11;
-  else if (reflect && charged)
-    id = 31;
-  else if (transmit && neutral)
-    id = 21;
-  else if (reflect && neutral)
-    id = 41;
+       if (transmit && charged) id = 11;
+  else if (reflect  && charged) id = 31;
+  else if (transmit && neutral) id = 21;
+  else if (reflect  && neutral) id = 41;
 
-  if (id > 0) {
-    G4double theta = std::acos(direction.x());
+  if (id>0) {
+    G4double theta  = std::acos(direction.x());
     if (theta > 0.0) {
       G4double dteta  = analysisManager->GetH1Width(id);
       G4double unit   = analysisManager->GetH1Unit(id);
-      G4double weight = (unit * unit) / (twopi * std::sin(theta) * dteta);
-      weight *= (aTrack->GetKineticEnergy() / MeV);
-      analysisManager->FillH1(id, theta, weight);
+      G4double weight = (unit*unit)/(twopi*std::sin(theta)*dteta);
+      weight *= (aTrack->GetKineticEnergy()/MeV);
+      analysisManager->FillH1(id,theta,weight);
     }
   }
 
-  // projected angles distribution at exit
+  //projected angles distribution at exit
   //
   id = 0;
-  if (transmit && charged)
-    id = 13;
-  else if (transmit && neutral)
-    id = 23;
-  else if (reflect && charged)
-    id = 33;
-  else if (reflect && neutral)
-    id = 43;
+       if (transmit && charged) id = 13;
+  else if (transmit && neutral) id = 23;
+  else if (reflect  && charged) id = 33;
+  else if (reflect  && neutral) id = 43;
 
-  if (id > 0) {
+  if (id>0) {
     if (direction.x() != 0.0) {
-      G4double tet = std::atan(direction.y() / std::fabs(direction.x()));
-      analysisManager->FillH1(id, tet);
+      G4double tet = std::atan(direction.y()/std::fabs(direction.x()));
+      analysisManager->FillH1(id,tet);
       if (transmit && (flag == 2)) run->AddMscProjTheta(tet);
 
-      tet = std::atan(direction.z() / std::fabs(direction.x()));
-      analysisManager->FillH1(id, tet);
+      tet = std::atan(direction.z()/std::fabs(direction.x()));
+      analysisManager->FillH1(id,tet);
       if (transmit && (flag == 2)) run->AddMscProjTheta(tet);
     }
   }
 
-  // projected position and radius at exit
+  //projected position and radius at exit
   //
   if (transmit && energy > 0.0) {
     G4double y = position.y(), z = position.z();
-    G4double r = std::sqrt(y * y + z * z);
-    analysisManager->FillH1(14, y);
-    analysisManager->FillH1(14, z);
-    analysisManager->FillH1(15, r);
+    G4double r = std::sqrt(y*y + z*z);
+    analysisManager->FillH1(14,  y);
+    analysisManager->FillH1(14,  z);
+    analysisManager->FillH1(15,  r);
   }
 
-  // x-vertex of charged secondaries
+  //x-vertex of charged secondaries
   //
   if ((aTrack->GetParentID() == 1) && charged && energy > 0.0) {
     G4double xVertex = (aTrack->GetVertexPosition()).x();

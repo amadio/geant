@@ -46,30 +46,33 @@ class G4UIcmdWithoutParameter;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-class DetectorMessenger : public G4UImessenger {
-public:
-  DetectorMessenger(DetectorConstruction *);
-  ~DetectorMessenger();
+class DetectorMessenger: public G4UImessenger
+{
+  public:
+    DetectorMessenger(DetectorConstruction* );
+   ~DetectorMessenger();
+    
+    virtual void SetNewValue(G4UIcommand*, G4String);
+    
+  private:
+    DetectorConstruction*      fDetector;
+    
+    G4UIdirectory*             fTestemDir;
+    G4UIdirectory*             fDetDir;
 
-  virtual void SetNewValue(G4UIcommand *, G4String);
+    G4UIcmdWithAString*        fAbsMaterCmd;
+    G4UIcmdWithADoubleAndUnit* fAbsThickCmd;
+    G4UIcmdWithADoubleAndUnit* fAbsSizYZCmd;
 
-private:
-  DetectorConstruction *fDetector;
+    G4UIcmdWithADoubleAndUnit* fAbsXposCmd;
 
-  G4UIdirectory *fTestemDir;
-  G4UIdirectory *fDetDir;
+    G4UIcmdWithAString*        fWorldMaterCmd;
+    G4UIcmdWithADoubleAndUnit* fWorldXCmd;
+    G4UIcmdWithADoubleAndUnit* fWorldYZCmd;
 
-  G4UIcmdWithAString *fAbsMaterCmd;
-  G4UIcmdWithADoubleAndUnit *fAbsThickCmd;
-  G4UIcmdWithADoubleAndUnit *fAbsSizYZCmd;
-
-  G4UIcmdWithADoubleAndUnit *fAbsXposCmd;
-
-  G4UIcmdWithAString *fWorldMaterCmd;
-  G4UIcmdWithADoubleAndUnit *fWorldXCmd;
-  G4UIcmdWithADoubleAndUnit *fWorldYZCmd;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
+
