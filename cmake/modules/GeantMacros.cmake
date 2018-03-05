@@ -64,5 +64,14 @@
    unset(FOUNDFILE CACHE)
  endfunction(DOWNLOAD_IF_NOT_INSTALLED)
 
-
+# function to calculate the path of the current source directory related to the project source directory
+# The result is stored in ${RelativeCurrentSourceDir}
+function(GeantRelPath)
+  get_filename_component(RealSourceDir ${CMAKE_SOURCE_DIR} REALPATH)
+  get_filename_component(RealCurDir ${CMAKE_CURRENT_SOURCE_DIR} REALPATH)
+  string(REGEX REPLACE "${RealSourceDir}[/\\]" ""  RelativeCurrentSourceDir ${RealCurDir})
+  set(RelativeCurrentSourceDir ${RelativeCurrentSourceDir} PARENT_SCOPE)
+  get_filename_component(RelativeCurrentSourceParent ${RelativeCurrentSourceDir} DIRECTORY)
+  set(RelativeCurrentSourceParent  ${RelativeCurrentSourceParent} PARENT_SCOPE)
+endfunction(GeantRelPath)
 

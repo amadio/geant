@@ -1,3 +1,6 @@
+# Init ${RelativeCurrentSourceDir} and ${RelativeCurrentSourceParent}
+GeantRelPath()
+
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
@@ -22,7 +25,7 @@ set_source_files_properties(${sources} PROPERTY COMPILE_FLAGS                  "
 # include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc)
 # include_directories(${PROJECT_SOURCE_DIR}/magneticfield/inc ${PROJECT_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/magneticfield)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/${RelativeCurrentSourceParent})
 
 ## Need -lGeant_v in order to obtain the function/template geant::cxx::ErrorHandlerImpl
 
@@ -123,15 +126,15 @@ add_custom_target(testMagEq DEPENDS testMagFieldEquation)
 #install(TARGETS testScalarCashKarp DESTINATION bin)
 #install(TARGETS testVectorCashKarp DESTINATION bin)
 #install(TARGETS templatedTestVectorCashKarp DESTINATION bin)
-install(TARGETS testFlexibleCashKarp DESTINATION bin/tests/magneticfield)
+install(TARGETS testFlexibleCashKarp DESTINATION bin/tests/${RelativeCurrentSourceParent})
 # Driver  tests
 ## install(TARGETS testFlexibleIntegrationDriver DESTINATION bin)
-install(TARGETS testVectorIntegrationDriver DESTINATION bin/tests/magneticfield)
+install(TARGETS testVectorIntegrationDriver DESTINATION bin/tests/${RelativeCurrentSourceParent})
 # Old tests - steppers
 #install(TARGETS testStepperFixed DESTINATION bin)
-install(TARGETS testConstVecFieldStepper DESTINATION bin/tests/magneticfield)
+install(TARGETS testConstVecFieldStepper DESTINATION bin/tests/${RelativeCurrentSourceParent})
 # Old tests - drivers
-install(TARGETS testScalarIntegrationDriver DESTINATION bin/tests/magneticfield)
+install(TARGETS testScalarIntegrationDriver DESTINATION bin/tests/${RelativeCurrentSourceParent})
 #install(TARGETS testGUPropagateField DESTINATION bin)
 
 #----------------------------------------------------------------------------------------------
