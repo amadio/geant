@@ -49,7 +49,8 @@ private:
   PostStepActionPhysProcessStage(const PostStepActionPhysProcessStage &) = delete;
   PostStepActionPhysProcessStage &operator=(const PostStepActionPhysProcessStage &) = delete;
 
-  std::vector<std::vector<std::vector<geant::Handler *>>> fHandlersPerRegionPerParticlePerProcess;
+  std::vector<geant::Handler *> fHandlersPerModel;
+  geant::Handler *fDeltaIntHandler;
 };
 
 } // namespace geantphysics

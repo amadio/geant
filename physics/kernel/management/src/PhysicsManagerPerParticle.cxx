@@ -238,6 +238,24 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, geant::Track *g
   numSecondaries = proc->PostStepDoIt(track, td);
   return numSecondaries;
 }
+PhysicsProcess *PhysicsManagerPerParticle::PostStepSelectProcess(geant::Track *gtrack, geant::TaskData *td)
+{
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
+  size_t physicsProcessIndx = gtrack->GetPhysicsProcessIndex();
+  gtrack->SetPhysicsNumOfInteractLengthLeft(physicsProcessIndx, -1.0);
+  double ekin          = gtrack->E() - gtrack->Mass();
+  double mass          = gtrack->Mass();
+  double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx);
+  PhysicsProcess *proc = fProcessVec[physicsProcessIndx];
+  if (HasEnergyLossProcess()) {
+    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, mass);
+    if (curMacrXsec <= 0.0 || td->fRndm->uniform() > curMacrXsec * preStepLambda) {
+      proc = nullptr;
+    }
+  }
+  return proc;
+}
 
 std::vector<SecondariesFillInfo> PhysicsManagerPerParticle::PostStepActionVector(std::vector<LightTrack> &tracks,
                                                                                  std::vector<geant::Track *> gtracks,

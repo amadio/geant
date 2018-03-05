@@ -204,6 +204,11 @@ public:
   // will return with const Element*
   int SampleTargetElementIndex(const MaterialCuts *matcut, double ekin, double rndm);
 
+  int GetGlobalIndex() { return fGlobalProcessIndex; }
+
+  void SetGlobalIndex(int idx) { fGlobalProcessIndex = idx; }
+
+  static std::vector<EMModel *> &GetGlobalTable() { return gGlobalModelTable; }
 protected:
   // initilise the element selectors: must be called from the derived emmodel class explicitly at the end of its
   // Initialise() method i.e. after the model has been initialised properly.
@@ -247,6 +252,10 @@ private:
   // so this vector will be set by the process through the model manager automatically
   // then the user requested inactivations will be checked and active region list will
   // be updated
+
+  int fGlobalProcessIndex;
+
+  static std::vector<EMModel *> gGlobalModelTable;
 };
 
 } // namespace geantphysics

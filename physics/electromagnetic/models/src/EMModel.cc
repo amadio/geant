@@ -193,4 +193,6 @@ void EMModel::SampleSecondariesVector(std::vector<LightTrack> &tracks,
   }
 }
 
+std::vector<EMModel *> EMModel::gGlobalModelTable;
+
 } // namespace geantphysics
