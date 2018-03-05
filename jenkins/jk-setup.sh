@@ -31,36 +31,22 @@ if [ -a /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$PLATFORM ]; then
   source /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$PLATFORM/setup.sh
 elif [ -a /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$COMPATIBLE ]; then
   source /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$COMPATIBLE/setup.sh
+elif [[ $PLATFORM == *slc6* ]] || [[ $PLATFORM == *centos7* ]]; then
+  export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.7.0/Linux-$ARCH/bin:${PATH}
 else
-  echo "No externals for $PLATFORM in $EXTERNALDIR/$EXTERNALS"
+  echo "No externals for $PLATFORM in /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest"
 fi
 
 if [ $LABEL == slc6 ] || [ $LABEL == gvslc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ] || [ $LABEL == continuous-xeonphi ] || [ $LABEL == c7-checker ] || [  $LABEL == continuos-cc7 ]
 then
-  export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.7.0/Linux-$ARCH/bin/:${PATH}
   kinit sftnight@CERN.CH -5 -V -k -t /ec/conf/sftnight.keytab
 elif [ $LABEL == xeonphi ]
 then
-  export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.7.0/Linux-$ARCH/bin:${PATH}
   kinit sftnight@CERN.CH -5 -V -k -t /data/sftnight/ec/conf/sftnight.keytab
 fi
 
 if [[ $COMPILER == *gcc* ]]; then
-  gcc47version=4.7
-  gcc48version=4.8
-  gcc49version=4.9
-  COMPILERversion=${COMPILER}version
-  ARCH=$(uname -m)
-  if [ $LABEL == cuda7 ] || [ $LABEL == gvslc6 ] || [ $LABEL == slc6-physical ] ||  [ $LABEL == lcgapp-SLC6_64b ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ]; then
-    . /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-slc6/setup.sh
-  elif [[  $LABEL == continuos-cc7 ]]; then
-    . /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-centos7/setup.sh
-  else
-    . /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!COMPILERversion}/${ARCH}-${LABEL}/setup.sh
-  fi
-  export FC=gfortran
-  export CXX=`which g++`
-  export CC=`which gcc`
+  echo "The correct compiler should be setup by the externals ..."
 elif [[ $COMPILER == *native* && $PLATFORM == *mac* ]]; then
   export LD_LIBRARY_PATH=/usr/local/gfortran/lib
   export PATH=/usr/bin:/usr/local/bin:/opt/X11/bin
