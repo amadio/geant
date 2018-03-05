@@ -529,7 +529,7 @@ endif()
 #
 include_directories("${PROJECT_SOURCE_DIR}/run/scheduler/inc")
 include_directories("${PROJECT_SOURCE_DIR}/core/base/inc")
-include_directories("${PROJECT_SOURCE_DIR}/run/magneticfield/inc")
+include_directories("${PROJECT_SOURCE_DIR}/magneticfield/inc")
 #include_directories("${PROJECT_SOURCE_DIR}/physics/kernel/material/inc")
 include_directories("${PROJECT_SOURCE_DIR}/examples/physics/inc")
 include_directories("${PROJECT_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include")
@@ -546,6 +546,7 @@ message(STATUS "COMPILATION FLAGS ARE -${GEANTV_CXX_FLAGS} - ${GEANTV_COMPILATIO
 add_subdirectory (core)
 
 add_subdirectory (run)
+add_subdirectory (magneticfield)
 
 add_subdirectory (examples/physics)
 add_subdirectory (examples/magneticfield/simplifiedCMS)

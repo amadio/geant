@@ -7,7 +7,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/core/concurrency/inc
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc
   ${CMAKE_SOURCE_DIR}/run/userapp/inc
-  ${CMAKE_SOURCE_DIR}/run/magneticfield/inc
+  ${CMAKE_SOURCE_DIR}/magneticfield/inc
   ${CMAKE_SOURCE_DIR}/physics/generators/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
