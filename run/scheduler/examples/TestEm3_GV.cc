@@ -31,6 +31,7 @@
 void GetArguments(int argc, char *argv[]);
 void SetupPhysicsList(userapplication::TestEm3PhysicsList *physlist);
 void SetupUserDetector(userapplication::TestEm3DetectorConstruction *detector);
+void SetupUserField(geant::RunManager *runMgr);
 void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator *primarygun, int numprimsperevt);
 void SetupMCTruthHandling(geant::RunManager *runMgr);
 void SetupUserApplication(userapplication::TestEm3App *app);
@@ -69,9 +70,18 @@ int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
+
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit = ""; // i.e. default application value
+
+//
+// field configuration parameters
+int parFieldActive      = 0;            // activate magnetic field
+int parFieldUseRK       = 1;            // use Runge-Kutta instead of helix
+double parFieldEpsRK    = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
+int parFieldBasketized  = 0;            // basketize magnetic field
+float parFieldVector[3] = {0., 0., 2.}; // Constant field value
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
 //                       generator, application and starts the simulation.
@@ -95,22 +105,9 @@ int main(int argc, char *argv[])
   SetupUserDetector(det);
   runMgr->SetDetectorConstruction(det);
 
-  bool useMagField = false; // To become a user flag
-  if (useMagField) {
-    // Create magnetic field and needed classes for trajectory integration
-    auto fieldConstructor = new geant::UserFieldConstruction();
-    float fieldVec[3]     = {0.0f, 0.0f, 2.0f};
-    fieldConstructor->UseConstantMagField(fieldVec, "kilogauss");
+  // Create user field if requested
+  SetupUserField(runMgr);
 
-    auto config            = runMgr->GetConfig();
-    config->fUseRungeKutta = true;
-    config->fEpsilonRK     = 0.0003; // Revised / reduced accuracy - vs. 0.0003 default
-
-    runMgr->SetUserFieldConstruction(fieldConstructor);
-    printf("main: Created uniform field and set up field-propagation.\n");
-  } else {
-    printf("main: not magnetic field configured.\n");
-  }
   // Create TestEm3 primary generator
   userapplication::TestEm3PrimaryGenerator *gun = new userapplication::TestEm3PrimaryGenerator(det);
   SetupUserPrimaryGenerator(gun, runMgr->GetConfig()->fNaverage);
@@ -159,6 +156,12 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"mctruth-minE", required_argument, 0, 'C'},
                                   {"mctruth-file", required_argument, 0, 'D'},
 
+                                  {"field-active", required_argument, 0, 'E'},
+                                  {"field-vector", required_argument, 0, 'F'},
+                                  {"field-use-RK", required_argument, 0, 'G'},
+                                  {"field-eps-RK", required_argument, 0, 'H'},
+                                  {"field-basketized", required_argument, 0, 'I'},
+
                                   {"config-number-of-buffered-events", required_argument, 0, 'm'},
                                   {"config-total-number-of-events", required_argument, 0, 'n'},
                                   {"config-number-of-primary-per-events", required_argument, 0, 'o'},
@@ -178,6 +181,10 @@ char *const abs_token[] = {[ABS_OPTIONS::ABS_INDEX_OPT]   = (char *const) "absor
                            [ABS_OPTIONS::ABS_MATNAME_OPT] = (char *const) "material-name",
                            [ABS_OPTIONS::ABS_THICK_OPT]   = (char *const) "thickness", NULL};
 
+enum DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
+char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x", [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
+
 void help()
 {
   printf("\nUsage: TestEm3 [OPTIONS] INPUT_FILE\n\n");
@@ -193,14 +200,25 @@ void PrintRunInfo(userapplication::TestEm3PrimaryGenerator *gun, geant::RunManag
   long int nevents    = rmg->GetConfig()->fNtotal;
   long int nprimpere  = rmg->GetConfig()->fNaverage;
   long int nprimtotal = nevents * nprimpere;
+  auto isActive       = [](int flag) { return (const char *)((flag > 0) ? "ON\n" : "OFF\n"); };
   std::cout << "\n\n"
             << " ===================================================================================  \n"
             << "  primary              : " << gun->GetPrimaryParticleName() << "       \n"
             << "  primary energy       : " << gun->GetPrimaryParticleEnergy() << " [GeV] \n"
-            << "  #events              : " << nevents << "       \n"
+            << "  magnetic field       : " << isActive(parFieldActive);
+  if (parFieldActive) {
+    std::cout << "  constant field       : (" << parFieldVector[0] << ", " << parFieldVector[1] << ", "
+              << parFieldVector[2] << ") [kilogauss]\n"
+              << "  RK propagator        : " << isActive(parFieldUseRK) << "  epsilon RK           : " << parFieldEpsRK
+              << "\n"
+              << "  basketized field pr. : " << isActive(parFieldBasketized);
+  }
+  std::cout << "  #events              : " << nevents << "       \n"
             << "  #primaries per event : " << nprimpere << "       \n"
             << "  total # primaries    : " << nprimtotal << "       \n"
-            << "  performance mode?    : " << parConfigIsPerformance << "       \n"
+            << "  performance mode     : " << parConfigIsPerformance << "       \n"
+            << "  basketized geometry  : " << isActive(parConfigVectorizedGeom)
+            << "  external loop mode   : " << isActive(parConfigExternalLoop)
             << " ===================================================================================\n\n";
 }
 
@@ -307,6 +325,40 @@ void GetArguments(int argc, char *argv[])
     case 'A':
       parProcessMSCStepLimit = optarg;
       break;
+    //---- Field
+    case 'E':
+      parFieldActive = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'F': // field direction sub-optarg
+      subopts = optarg;
+      while (*subopts != '\0' && !errfnd) {
+        switch (getsubopt(&subopts, dir_token, &value)) {
+        case DIR_OPTIONS::DIR_X_OPT:
+          parFieldVector[0] = strtod(value, NULL);
+          break;
+        case DIR_OPTIONS::DIR_Y_OPT:
+          parFieldVector[1] = strtod(value, NULL);
+          break;
+        case DIR_OPTIONS::DIR_Z_OPT:
+          parFieldVector[2] = strtod(value, NULL);
+          break;
+        default:
+          fprintf(stderr, "No match found for token: [%s] among DIR_OPTIONS", value);
+          errfnd = 1;
+          exit(0);
+          break;
+        }
+      }
+      break;
+    case 'G':
+      parFieldUseRK = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'H':
+      parFieldEpsRK = strtod(optarg, NULL);
+      break;
+    case 'I':
+      parFieldBasketized = (int)strtol(optarg, NULL, 10);
+      break;
     //---- Help
     case 'h':
       help();
@@ -373,6 +425,25 @@ void SetupUserDetector(userapplication::TestEm3DetectorConstruction *det)
     }
   }
   det->DetectorInfo();
+}
+
+void SetupUserField(geant::RunManager *runMgr)
+{
+  auto config = runMgr->GetConfig();
+  if (parFieldActive) {
+    // Create magnetic field and needed classes for trajectory integration
+    auto fieldConstructor = new geant::UserFieldConstruction();
+    fieldConstructor->UseConstantMagField(parFieldVector, "kilogauss");
+
+    config->fUseRungeKutta      = parFieldUseRK;
+    config->fEpsilonRK          = parFieldEpsRK;
+    config->fUseVectorizedField = parFieldBasketized;
+
+    runMgr->SetUserFieldConstruction(fieldConstructor);
+  } else {
+    config->fUseRungeKutta      = false;
+    config->fUseVectorizedField = false;
+  }
 }
 
 void SetupUserPrimaryGenerator(userapplication::TestEm3PrimaryGenerator *primarygun, int numprimsperevt)

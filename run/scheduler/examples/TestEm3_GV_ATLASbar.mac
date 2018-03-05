@@ -1,33 +1,35 @@
-###
-### GeantV TestEm3 application script to simulate calorimeter response.
-###
-### Note, that the script shows all the possible input arguments that makes possible the configuration
-### of the TestEm3_GV GeantV application. The default settings correspond to the ATLAS bar. simplified
-### calorimeter test.
-###
-###
-./TestEm3_GV \
-"### detector configuration parameters:"\
-  --det-number-of-absorbers   2                       "# number of absorbers per layer"\
-  --det-number-of-layers     50                       "# number of layers"\
-  --det-set-absorber  absorber-index=0,material-name=NIST_MAT_Pb  "# set first absorber material"\
-  --det-set-absorber  absorber-index=0,thickness=0.23             "# set first absorber thickness [cm]"\
-  --det-set-absorber  absorber-index=1,material-name=NIST_MAT_lAr "# set second absorber material"\
-  --det-set-absorber  absorber-index=1,thickness=0.57             "# set second absorber thickness [cm]"\
-  --det-set-sizeYZ           40                       "# transverse size of the calorimeter [cm]"\
-  --det-prod-cut-length      0.07                     "# set production cut length [cm]"\
-"### primary particle generation parameters:"\
-  --gun-primary-energy       10                       "# kinetic energy of the primary particle [in GeV]"\
-  --gun-primary-type         e-                       "# primary particle name/type"\
-"### run configuration parameters:"\
-  --config-number-of-buffered-events       10         "# number of events transported at once"\
-  --config-total-number-of-events          10         "# total number of events to be simulated"\
-  --config-number-of-primary-per-events    10         "# number of primary particles per event"\
-  --config-number-of-threads                4         "# number of working threads to be used"\
-  --config-number-of-propagators            1         "# number of propagators"\
-  --config-tracks-per-basket               16         "# default number of tracks per basket"\
-"### physics process configuration parameters:"\
-  --process-MSC-step-limit             UseSafety      "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
-  --config-run-performance                  0         "# flag to activate performance mode i.e. no scoring"\
-  --config-vectorized-geom                  0         "# flag to activate vectorized geometry"\
-  --config-external-loop                    0         "# flag to run the application in external loop mode"
+## # ## #GeantV TestEm3 application script to simulate calorimeter response.## # ## #Note,
+    that the script shows all the possible input arguments that makes possible the configuration## #of the TestEm3_GV
+                GeantV application.The default settings correspond to the ATLAS
+                    bar.simplified## #calorimeter test.## # ## #./
+            TestEm3_GV "### detector configuration parameters:" --det -
+        number - of - absorbers 2 "# number of absorbers per layer" --det - number - of -
+        layers 50 "# number of layers" --det - set - absorber absorber -
+        index           = 0,
+        material - name = NIST_MAT_Pb "# set first absorber material" --det - set - absorber absorber - index = 0,
+        thickness = 0.23 "# set first absorber thickness [cm]" --det - set - absorber absorber - index = 1,
+        material - name = NIST_MAT_lAr "# set second absorber material" --det - set - absorber absorber - index = 1,
+        thickness = 0.57 "# set second absorber thickness [cm]" --det - set -
+                    sizeYZ 40 "# transverse size of the calorimeter [cm]" --det - prod - cut -
+                    length 0.07 "# set production cut length [cm]"
+                                "### primary particle generation parameters:" --gun -
+                    primary - energy 10 "# kinetic energy of the primary particle [in GeV]" --gun - primary - type e -
+                    "# primary particle name/type"
+                    "### run configuration parameters:" --config -
+                    number - of - buffered - events 10 "# number of events transported at once" --config - total -
+                    number - of - events 10 "# total number of events to be simulated" --config - number - of -
+                    primary - per - events 10 "# number of primary particles per event" --config - number - of -
+                    threads 4 "# number of working threads to be used" --config - number - of -
+                    propagators 1 "# number of propagators" --config - tracks - per -
+                    basket 16 "# default number of tracks per basket"
+                              "### field configuration parameters:" --field -
+                    active 1 "# activate field" --field - vector x = 0.,
+        y = 0., z = 2. "# constant field vector [kilogauss]" --field - use -
+                    RK 1 "# use Runge-Kutta propagator" --field - eps - RK 0.0003 "# RK tolerance error" --field -
+                    basketized 0 "# basketized geometry"
+                                 "### physics process configuration parameters:" --process -
+                    MSC - step - limit UseSafety
+                    "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)" --config -
+                    run - performance 0 "# flag to activate performance mode i.e. no scoring" --config - vectorized -
+                    geom 0 "# flag to activate vectorized geometry" --config - external -
+                    loop 0 "# flag to run the application in external loop mode"

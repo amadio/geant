@@ -66,14 +66,15 @@ public:
   double fEpsilonRK     = 3.e-4; /** Relative error in RK integration */
   float fFireFlushRatio = 2.;    /** Ratio fired/flush to trigger basketizing */
 
-  bool fUsePhysics        = true;  /** Enable/disable physics */
-  bool fUseRungeKutta     = false; /** Enable/disable Runge-Kutta integration in field */
-  bool fUseDebug          = false; /** Use debug mode */
-  bool fUseGraphics       = false; /** Graphics mode */
-  bool fUseStdScoring     = false; /** Use standard scoring */
-  bool fUseV3             = false; /** Use version 3 of the scheduler */
-  bool fUseNuma           = false; /** Use NUMA */
-  bool fUseVectorizedGeom = false; /** Use vectorized geometry */
+  bool fUsePhysics         = true;  /** Enable/disable physics */
+  bool fUseRungeKutta      = false; /** Enable/disable Runge-Kutta integration in field */
+  bool fUseDebug           = false; /** Use debug mode */
+  bool fUseGraphics        = false; /** Graphics mode */
+  bool fUseStdScoring      = false; /** Use standard scoring */
+  bool fUseV3              = false; /** Use version 3 of the scheduler */
+  bool fUseNuma            = false; /** Use NUMA */
+  bool fUseVectorizedGeom  = false; /** Use vectorized geometry */
+  bool fUseVectorizedField = false; /** Use vectorized field */
 
   int fMonQueue          = 0; /** Monitor the work queue */
   int fMonMemory         = 0; /** Monitor the memory */
