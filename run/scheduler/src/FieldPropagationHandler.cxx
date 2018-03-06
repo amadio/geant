@@ -135,10 +135,10 @@ double FieldPropagationHandler::Curvature(const Track &track) const
   ThreeVector_d Momentum(track.Dx(), track.Dy(), track.Dz());
   Momentum *= track.P();
   ThreeVector_d PtransB; //  Transverse wrt direction of B
-  double ratioOverFld = 0.0;
+  double ratioOverFld        = 0.0;
   if (bmag > 0) ratioOverFld = Momentum.Dot(MagFld) / (bmag * bmag);
-  PtransB       = Momentum - ratioOverFld * MagFld;
-  double Pt_mag = PtransB.Mag();
+  PtransB                    = Momentum - ratioOverFld * MagFld;
+  double Pt_mag              = PtransB.Mag();
 
   return fabs(Track::kB2C * track.Charge() * bmag / (Pt_mag + tiny));
 }
@@ -226,8 +226,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   // Update number of partial steps propagated in field
   td->fNmag += ntracks;
 
-  // Update time of flight and number of interaction lengths.
-  // Check also if it makes sense to call the vector interfaces
+// Update time of flight and number of interaction lengths.
+// Check also if it makes sense to call the vector interfaces
 
 #if !(defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   for (auto track : tracks) {
@@ -562,8 +562,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       if (checkPrint)
         std::cerr << pTrack // tracks[itr]
                   << " Pos = " << fldTracksIn[itr][0] << ", " << fldTracksIn[itr][1] << ", " << fldTracksIn[itr][2]
-                  << " Dir = " << fldTracksIn[itr][3] << ", " << fldTracksIn[itr][4] << ", "
-                  << fldTracksIn[itr][5]
+                  << " Dir = " << fldTracksIn[itr][3] << ", " << fldTracksIn[itr][4] << ", " << fldTracksIn[itr][5]
                   // EndPositionScalar
                   << std::endl;
     }
@@ -596,7 +595,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         const double pZ       = fldTrackEnd[5];
         const double pmag_inv = 1.0 / track.P();
 
-        // ---- Perform checks
+// ---- Perform checks
 
 #ifdef CHECK_VS_SCALAR
         if (checkVsScalar) {
@@ -764,7 +763,7 @@ void FieldPropagationHandler::CheckTrack(Track &track, const char *msg, double e
                                     " Bad position.",                 // [1]
                                     " Bad direction.",                // [2]
                                     " Bad direction and position. "}; // [3]
-    int iM                       = 0;
+    int iM = 0;
     if (badPosition) {
       iM++;
     }
