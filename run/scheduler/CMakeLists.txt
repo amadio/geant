@@ -16,7 +16,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
   )
@@ -186,7 +185,6 @@ set(TEST_EXECUTABLES
   )
 if (USE_ROOT)
   set(NOTEST_EXECUTABLES
-    examples/fullCMS.cc
     examples/fullLHCb.cc
   )
 endif()
@@ -246,19 +244,6 @@ endforeach()
 install(TARGETS TestEm5_GV DESTINATION ${TestEm5_GV_OUTPUT})
 install(FILES ${TestEm5_GV_SCRIPTS} DESTINATION ${TestEm5_GV_OUTPUT})
 if (USE_ROOT)
-### fullCMS ###
-  set(fullCMS_OUTPUT bin/examples/FullCMS/GeantV)
-  set(fullCMS_SCRIPTS examples/fullCMS.mac examples/README_fullCMS ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/Geant4/cms.gdml)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT})
-  foreach(_script ${fullCMS_SCRIPTS})
-    configure_file(
-      ${_script}
-      ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT}/${_script}
-      COPYONLY
-    )
-  endforeach()
-  install(TARGETS fullCMS DESTINATION ${fullCMS_OUTPUT})
-  install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
 ### fullLHCb ###
   set(fullLHCb_OUTPUT bin/examples/FullLHCb/GeantV)
   set(fullLHCb_SCRIPTS examples/fullLHCb.mac examples/README_fullLHCb ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/LHCb_201603.gdml)

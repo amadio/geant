@@ -144,15 +144,24 @@ if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
+
+#----------------------------------------------------------------------------------------------
+# The GeantV version of the example applications
+#
+
+if (USE_ROOT)
+  add_subdirectory(FullCMS/GeantV)
+endif()
+
 #----------------------------------------------------------------------------------------------
 # The Geant4 version of the example applications (only if build with Geant4 was requested)
 #
 if (WITH_GEANT4)
-  add_subdirectory(Geant4/TestEm3)
-  add_subdirectory(Geant4/TestEm5)
-  add_subdirectory(Geant4/FullCMS)
+  add_subdirectory(TestEm3/Geant4)
+  add_subdirectory(TestEm5/Geant4)
+  add_subdirectory(FullCMS/Geant4)
 endif()
 
 if(USE_TBB)
-  add_subdirectory(GeantV/cmsToyGV)
+  add_subdirectory(cmsToyGV)
 endif()
