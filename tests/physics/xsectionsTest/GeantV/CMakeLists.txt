@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/GeantV/xsectionsTest/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/GeantV/xsectionsTest/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/xsectionsTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/xsectionsTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/GeantV/xsectionsTest/inc/
+  ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/xsectionsTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -25,7 +25,7 @@ include_directories(
 # Executable
 #
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/physics/xsectionsTest/GeantV)
-add_executable(xsectionsTest ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/xsectionsTest/xsectionsTest.cc ${sources})
+add_executable(xsectionsTest ${CMAKE_SOURCE_DIR}/tests/physics/xsectionsTest/GeantV/xsectionsTest.cc ${sources})
 target_link_libraries(xsectionsTest -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v ${VECGEOM_LIBRARIES})
 
 #----------------------------------------------------------------------------

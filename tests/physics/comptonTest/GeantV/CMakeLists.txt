@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/comptonTest/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/comptonTest/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/comptonTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/comptonTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/comptonTest/inc/
+  ${CMAKE_SOURCE_DIR}/tests/physics/comptonTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -27,7 +27,7 @@ include_directories(
 set(OUTPUT bin/tests/physics/comptonTest/GeantV)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
-add_executable(comptonTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/comptonTest/comptonTest_GV.cc ${sources})
+add_executable(comptonTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/comptonTest/GeantV/comptonTest_GV.cc ${sources})
 target_link_libraries(comptonTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
 
 #----------------------------------------------------------------------------

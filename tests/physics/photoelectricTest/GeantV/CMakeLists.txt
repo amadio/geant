@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/photoelectricTest/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/photoelectricTest/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/photoelectricTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/photoelectricTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/photoelectricTest/inc/
+  ${CMAKE_SOURCE_DIR}/tests/physics/photoelectricTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -25,5 +25,5 @@ include_directories(
 # Executable
 #
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/physics/photoelectricTest/GeantV)
-add_executable(photoelectricTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/photoelectricTest/photoelectricTest_GV.cc ${sources})
+add_executable(photoelectricTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/photoelectricTest/GeantV/photoelectricTest_GV.cc ${sources})
 target_link_libraries(photoelectricTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)

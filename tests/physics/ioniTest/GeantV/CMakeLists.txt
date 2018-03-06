@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/ioniTest/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/ioniTest/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/ioniTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/ioniTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/ioniTest/inc/
+  ${CMAKE_SOURCE_DIR}/tests/physics/ioniTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -27,7 +27,7 @@ include_directories(
 set(OUTPUT bin/tests/physics/ioniTest/GeantV)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
-add_executable(ioniTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/ioniTest/ioniTest_GV.cc ${sources})
+add_executable(ioniTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/ioniTest/GeantV/ioniTest_GV.cc ${sources})
 target_link_libraries(ioniTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
 
 #----------------------------------------------------------------------------

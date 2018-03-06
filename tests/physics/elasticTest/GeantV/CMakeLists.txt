@@ -4,11 +4,11 @@ project(elasticTest_GV)
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/elasticTest/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/elasticTest/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/elasticTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/elasticTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/elasticTest/inc/
+  ${CMAKE_SOURCE_DIR}/tests/physics/elasticTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -31,7 +31,7 @@ include_directories(
 #
 # add the clear model-level version of the test
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/physics/elasticTest/GeantV)
-add_executable(elasticTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/elasticTest/elasticTest_GV.cc ${sources})
+add_executable(elasticTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/elasticTest/GeantV/elasticTest_GV.cc ${sources})
 target_link_libraries(elasticTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
 
 #----------------------------------------------------------------------------

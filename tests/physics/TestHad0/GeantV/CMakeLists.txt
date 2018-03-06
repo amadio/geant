@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/TestHad0/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/TestHad0/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/TestHad0/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/TestHad0/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/TestHad0/inc/
+  ${CMAKE_SOURCE_DIR}/tests/physics/TestHad0/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -28,7 +28,7 @@ include_directories(
 # Executable
 #
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/physics/TestHad0/GeantV)
-add_executable(TestHad0_GV ${CMAKE_SOURCE_DIR}/tests/physics/GeantV/TestHad0/TestHad0_GV.cc ${sources})
+add_executable(TestHad0_GV ${CMAKE_SOURCE_DIR}/tests/physics/TestHad0/GeantV/TestHad0_GV.cc ${sources})
 target_link_libraries(TestHad0_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics)
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
