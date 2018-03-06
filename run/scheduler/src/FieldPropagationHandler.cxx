@@ -134,10 +134,10 @@ double FieldPropagationHandler::Curvature(const Track &track) const
   //
   ThreeVector_d Momentum(track.Px(), track.Py(), track.Pz());
   ThreeVector_d PtransB; //  Transverse wrt direction of B
-  double ratioOverFld        = 0.0;
+  double ratioOverFld = 0.0;
   if (bmag > 0) ratioOverFld = Momentum.Dot(MagFld) / (bmag * bmag);
-  PtransB                    = Momentum - ratioOverFld * MagFld;
-  double Pt_mag              = PtransB.Mag();
+  PtransB       = Momentum - ratioOverFld * MagFld;
+  double Pt_mag = PtransB.Mag();
 
   return fabs(Track::kB2C * track.Charge() * bmag / (Pt_mag + tiny));
 }
@@ -226,7 +226,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 
   // Update time of flight and number of interaction lengths.
   // Check also if it makes sense to call the vector interfaces
-  
+
 #if !(defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   for (auto track : tracks) {
     if (track->Status() == kPhysics) {
@@ -605,7 +605,8 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       if (checkPrint)
         std::cerr << pTrack // tracks[itr]
                   << " Pos = " << fldTracksIn[itr][0] << ", " << fldTracksIn[itr][1] << ", " << fldTracksIn[itr][2]
-                  << " Dir = " << fldTracksIn[itr][3] << ", " << fldTracksIn[itr][4] << ", " << fldTracksIn[itr][5]
+                  << " Dir = " << fldTracksIn[itr][3] << ", " << fldTracksIn[itr][4] << ", "
+                  << fldTracksIn[itr][5]
                   // EndPositionScalar
                   << std::endl;
     }
