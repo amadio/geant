@@ -75,3 +75,102 @@ function(GeantRelPath)
   set(RelativeCurrentSourceParent  ${RelativeCurrentSourceParent} PARENT_SCOPE)
 endfunction(GeantRelPath)
 
+# Generic Physics Test CMakeLists.txt
+# If the source file name is not specified, assumes that it is the same name as the directory name.
+function(GeantPhysicsTest)
+
+CMAKE_PARSE_ARGUMENTS(GeantPhysicsTest "" "OPTIONAL MAIN" "SCRIPTS;INCDIRS" ${ARGN})
+
+GeantRelPath()
+
+get_filename_component(Category ${RelativeCurrentSourceDir} NAME)
+
+set(IsGeantV "${Category}" STREQUAL "GeantV")
+
+if (NOT DEFINED GeantPhysicsTest_MAIN)
+  get_filename_component(GeantPhysicsTest_MAIN ${RelativeCurrentSourceParent} NAME)
+  get_filename_component(Category ${RelativeCurrentSourceDir} NAME)
+  if( (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${GeantPhysicsTest_MAIN}.cc) AND ${IsGeantV})
+    set(GeantPhysicsTest_MAIN "${GeantPhysicsTest_MAIN}_GV")
+  endif()
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${GeantPhysicsTest_MAIN}.cc)
+     message(FATAL_ERROR "Test filename can not be guessed from the directory.
+     Either create the file ${RelativeCurrentSourceDir}/${GeantPhysicsTest_MAIN}.cc
+     or pass the name via the MAIN parameter to GeantPhysicsTest (without the extension)" )
+  endif()
+endif()
+
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/README)
+  set(GeantPhysicsTest_SCRIPTS "README;${GeantPhysicsTest_SCRIPTS}")
+endif()
+
+#----------------------------------------------------------------------------------------------
+# Add source files & include directories
+#
+file(GLOB sources src/*.cc)
+file(GLOB headers inc/*.h)
+
+include_directories( inc )
+
+if (${IsGeantV})
+  include_directories(
+    ${VECGEOM_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/core/numa/inc
+    ${CMAKE_SOURCE_DIR}/core/interfaces/inc
+    ${CMAKE_SOURCE_DIR}/core/concurrency/inc
+    ${CMAKE_SOURCE_DIR}/run/scheduler/inc
+    ${CMAKE_SOURCE_DIR}/core/base/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/cuts/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
+    ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
+    ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
+    ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
+  )
+else()
+  # Geant4
+  include_directories(${Geant4_INCLUDE_DIR})
+endif()
+
+foreach(_incdir ${GeantPhysicsTest_INCDIRS})
+  include_directories(${CMAKE_SOURCE_DIR}/${_incdir})
+endforeach()
+
+#----------------------------------------------------------------------------------------------
+# Executable
+#
+
+string(REGEX REPLACE
+       "([^/]*)/tests"
+       "bin/tests/\\1"
+       TestOutputDir
+       ${RelativeCurrentSourceDir})
+
+#set(TestOutputDir physics/tests/TestEm0/GeantV/
+
+#set(OUTPUT bin/physics/tests/TestEm0/GeantV)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestOutputDir})
+add_executable(${GeantPhysicsTest_MAIN} ${GeantPhysicsTest_MAIN}.cc ${sources})
+target_link_libraries(${GeantPhysicsTest_MAIN} ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics)
+
+#----------------------------------------------------------------------------
+# Copy all scripts to the build/install directory.
+#
+
+foreach(_script ${GeantPhysicsTest_SCRIPTS})
+  configure_file(
+    ${_script}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_script}
+    COPYONLY
+  )
+endforeach()
+
+#----------------------------------------------------------------------------
+# Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
+#
+install(TARGETS ${GeantPhysicsTest_MAIN} DESTINATION ${TestOutputDir})
+install(FILES ${GeantPhysicsTest_SCRIPTS} DESTINATION ${TestOutputDir})
+
+endfunction(GeantPhysicsTest)
