@@ -34,7 +34,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/inc/*.hh)
 set(OUTPUT bin/examples/Calorimeter/Geant4)
 
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
-add_executable(TestEm3 ${CMAKE_SOURCE_DIR}/examples/physics/Geant4/TestEm3/TestEm3.cc ${sources} ${headers})
+add_executable(TestEm3 ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/Geant4/TestEm3.cc ${sources} ${headers})
 target_link_libraries(TestEm3 ${Geant4_LIBRARIES})
 
 #----------------------------------------------------------------------------

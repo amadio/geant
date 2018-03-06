@@ -2,12 +2,12 @@
 # Add include directories, sources and headers
 #
 include_directories(
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBTestModules
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBTestModules
   ${CMAKE_SOURCE_DIR}/realphysics/dummies/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
@@ -31,72 +31,72 @@ if (USE_TBB)
 endif()
 
 set(sources
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/src/CMSDetectorConstruction.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/src/CMSFullApp.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/src/CMSData.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/src/CMSParticleGun.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/src/CMSPhysicsList.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/src/LHCbDetectorConstruction.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/src/LHCbFullApp.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/src/LHCbData.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/src/LHCbParticleGun.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/src/LHCbPhysicsList.cxx   
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/TestEm3App.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/TestEm3DetectorConstruction.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/TestEm3Data.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/TestEm3PrimaryGenerator.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/TestEm3PhysicsList.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/src/HepMCTruth.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5Data.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5DetectorConstruction.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5PrimaryGenerator.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/TestEm5PhysicsList.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/StepMaxProcess.cxx
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/src/Hist.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSDetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSFullApp.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSData.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSParticleGun.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSPhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/src/LHCbDetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/src/LHCbFullApp.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/src/LHCbData.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/src/LHCbParticleGun.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/src/LHCbPhysicsList.cxx   
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3App.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3DetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3Data.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3PrimaryGenerator.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3PhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/HepMCTruth.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5Data.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5DetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5PrimaryGenerator.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5PhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/StepMaxProcess.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/Hist.cxx
   )
 
 set(headers
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc/CMSDetectorConstruction.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc/CMSFullApp.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc/CMSData.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc/CMSParticleGun.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc/CMSPhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSDetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSFullApp.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSData.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSParticleGun.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSPhysicsList.h
 
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc/LHCbDetectorConstruction.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc/LHCbFullApp.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc/LHCbData.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc/LHCbParticleGun.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc/LHCbPhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbDetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbFullApp.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbData.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbParticleGun.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbPhysicsList.h
 
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc/TestEm3App.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc/TestEm3DetectorConstruction.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc/TestEm3Data.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc/TestEm3PrimaryGenerator.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc/TestEm3PhysicsList.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc/HepMCTruth.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3App.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3DetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3Data.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3PrimaryGenerator.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3PhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/HepMCTruth.h
 
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5Data.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5DetectorConstruction.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5PrimaryGenerator.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/TestEm5PhysicsList.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/StepMaxProcess.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/Hist.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/TestEm5.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/TestEm5Data.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/TestEm5DetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/TestEm5PrimaryGenerator.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/TestEm5PhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/StepMaxProcess.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/Hist.h
 
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Event.cpp
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Filter.cpp
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Module.cpp
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Producer.cpp
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Schedule.cpp
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Path.cpp
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/EventProcessor.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Event.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Filter.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Module.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Producer.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Schedule.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/Path.cpp
+  ${CMAKE_SOURCE_DIR}/examples/physics/cmsToyGV/TBBProcessingDemo/TBBFrameworkCore/EventProcessor.cpp
   )
 
 #if (USE_ROOT)
 #  ROOT_GENERATE_DICTIONARY(G__ExamplesRP ${headers} MODULE GeantExamplesRP
 #    LINKDEF
-#    ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc/Geant/LinkDef.h
+#    ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/Geant/LinkDef.h
 #    OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
 #    set(sources ${sources} G__ExamplesRP.cxx)
 #endif()

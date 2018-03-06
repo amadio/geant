@@ -14,10 +14,10 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
   )
 
@@ -248,7 +248,7 @@ install(FILES ${TestEm5_GV_SCRIPTS} DESTINATION ${TestEm5_GV_OUTPUT})
 if (USE_ROOT)
 ### fullCMS ###
   set(fullCMS_OUTPUT bin/examples/FullCMS/GeantV)
-  set(fullCMS_SCRIPTS examples/fullCMS.mac examples/README_fullCMS ${CMAKE_SOURCE_DIR}/examples/physics/Geant4/FullCMS/cms.gdml)
+  set(fullCMS_SCRIPTS examples/fullCMS.mac examples/README_fullCMS ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/Geant4/cms.gdml)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT})
   foreach(_script ${fullCMS_SCRIPTS})
     configure_file(
@@ -261,7 +261,7 @@ if (USE_ROOT)
   install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
 ### fullLHCb ###
   set(fullLHCb_OUTPUT bin/examples/FullLHCb/GeantV)
-  set(fullLHCb_SCRIPTS examples/fullLHCb.mac examples/README_fullLHCb ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullLHCb/LHCb_201603.gdml)
+  set(fullLHCb_SCRIPTS examples/fullLHCb.mac examples/README_fullLHCb ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/LHCb_201603.gdml)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullLHCb_OUTPUT})
   foreach(_script ${fullLHCb_SCRIPTS})
     configure_file(
