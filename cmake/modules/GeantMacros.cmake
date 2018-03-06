@@ -147,6 +147,12 @@ string(REGEX REPLACE
        TestOutputDir
        ${RelativeCurrentSourceDir})
 
+string(REGEX REPLACE
+       "^examples/([^/]*)"
+       "bin/examples/\\1"
+       TestOutputDir
+       ${RelativeCurrentSourceDir})
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestOutputDir})
 add_executable(${GeantPhysicsTest_MAIN} ${GeantPhysicsTest_MAIN}.cc ${sources})
 target_link_libraries(${GeantPhysicsTest_MAIN} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics ${VECGEOM_LIBRARIES})
