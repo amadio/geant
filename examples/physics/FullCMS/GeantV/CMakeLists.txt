@@ -18,15 +18,11 @@ include_directories(
 
 include_directories(
   inc
-  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
 )
 
 if (USE_TBB)
   include_directories(${TBB_INCLUDE_DIR})
 endif()
-
-# Bug in VC (?), cannot compile without optimisation
-set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 #----------------------------------------------------------------------------------------------
 # Build executables

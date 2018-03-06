@@ -147,10 +147,6 @@ string(REGEX REPLACE
        TestOutputDir
        ${RelativeCurrentSourceDir})
 
-#set(TestOutputDir physics/tests/TestEm0/GeantV/
-
-#set(OUTPUT bin/physics/tests/TestEm0/GeantV)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestOutputDir})
 add_executable(${GeantPhysicsTest_MAIN} ${GeantPhysicsTest_MAIN}.cc ${sources})
 target_link_libraries(${GeantPhysicsTest_MAIN} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics ${VECGEOM_LIBRARIES})
