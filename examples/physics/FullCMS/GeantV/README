@@ -1,10 +1,11 @@
 GeantV Full CMS Benchmark (November, 2017, M.Novak)
 ===============================================================================
 
-'fullCMS' is a CPU benchmark test GeantV application based on the full CMS
+'FullCMS' is a CPU benchmark test GeantV application based on the full CMS
 detector imported via a .gdml/.root file. (The corresponding Geant4 application
 is 'full-cms'.) The 'cms.gdml' file is available in the repository under
-geant/examples/physics/FullCMS/Geant4/cms.gdml
+geant/examples/physics/FullCMS/Geant4/cms.gdml and is installed at
+geantInstallDir/bin/examples/FullCMS/Geant4 and geantInstallDir/bin/examples/FullCMS/GeantV
 
 
 ----------------------------
@@ -17,7 +18,7 @@ geant/examples/physics/FullCMS/Geant4/cms.gdml
 
     --det-set-gdml <gdml-file-name.gdml>
 
-    The default value is "/.cms.gdml".
+    The default value is "./cms.gdml".
 
 
 
@@ -135,7 +136,7 @@ case. Therefore, there is no any scoring in this case.
 - EXAMPLE
 -------------------------
 
-The 'fullCMS.mac' script is provided as an example to simulate 10 events in the
+The 'FullCMS.mac' script is provided as an example to simulate 10 events in the
 CMS detector such that each event will contain 2 primary electrons with 10 GeV
 kinetic energy pointing to a fixed direction. 4 events will be taken and
 transported simultaneously by using 4 worker threads with one propagator each

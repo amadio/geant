@@ -33,7 +33,7 @@ set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 #
 
 set(NOTEST_EXECUTABLES
-   ${CMAKE_SOURCE_DIR}/run/scheduler/examples/fullCMS.cc
+   FullCMS.cc
 )
 
 macro(build_executables EXECUTABLES)
@@ -74,21 +74,21 @@ endif()
 #----------------------------------------------------------------------------
 # Copy all scripts and install the executable(s)
 #
-### fullCMS ###
-  set(fullCMS_OUTPUT bin/examples/FullCMS/GeantV)
-  set(fullCMS_SCRIPTS ${CMAKE_SOURCE_DIR}/run/scheduler/examples/fullCMS.mac ${CMAKE_SOURCE_DIR}/run/scheduler/examples/README_fullCMS ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/Geant4/cms.gdml)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT})
-  foreach(_script ${fullCMS_SCRIPTS})
+### FullCMS ###
+  set(FullCMS_OUTPUT bin/examples/FullCMS/GeantV)
+  set(FullCMS_SCRIPTS FullCMS.mac README ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/Geant4/cms.gdml)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${FullCMS_OUTPUT})
+  foreach(_script ${FullCMS_SCRIPTS})
     get_filename_component(script_name ${_script} NAME)
-    # message(WARNING "conf ${_script} to ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT}/${script_name} ")
+    # message(WARNING "conf ${_script} to ${CMAKE_BINARY_DIR}/${FullCMS_OUTPUT}/${script_name} ")
     configure_file(
       ${_script}
-      ${CMAKE_BINARY_DIR}/${fullCMS_OUTPUT}/${script_name}
+      ${CMAKE_BINARY_DIR}/${FullCMS_OUTPUT}/${script_name}
       COPYONLY
     )
   endforeach()
-  install(TARGETS fullCMS DESTINATION ${fullCMS_OUTPUT})
-  install(FILES ${fullCMS_SCRIPTS} DESTINATION ${fullCMS_OUTPUT})
+  install(TARGETS FullCMS DESTINATION ${FullCMS_OUTPUT})
+  install(FILES ${FullCMS_SCRIPTS} DESTINATION ${FullCMS_OUTPUT})
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen
