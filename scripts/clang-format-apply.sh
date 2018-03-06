@@ -10,7 +10,7 @@
 # changes
 if [ ! -z "$(git status --untracked-files=no  --porcelain)" ]; then 
   echo "Script must be applied on a clean git state"
-  #exit 1
+  exit 1
 fi
 
 
@@ -18,7 +18,7 @@ fi
 # with respect to master (target branch)
 tb="master"
 # we disregard the test/static_analysis directory since this contains LLVM code + headers
-filelist=`git diff ${tb}... --name-only | grep -v -i -e linkdef | grep -v -e nudy -e cmsToyGV -e examples/physics/Geant4`
+filelist=`git diff ${tb}... --name-only | grep -v -i -e linkdef | grep -v -e nudy -e cmsToyGV -e "examples/physics/[^/]*/Geant4"`
 
 # function to check if C++ file (based on suffix)
 # can probably be done much shorter
