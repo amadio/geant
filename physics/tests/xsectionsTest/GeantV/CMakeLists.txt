@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/xsectionsTest/GeantV/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/xsectionsTest/GeantV/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/xsectionsTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/xsectionsTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/ptests/ptests/physics/xsectionsTest/GeantV/inc/
+  ${CMAKE_SOURCE_DIR}/tests/physics/xsectionsTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
