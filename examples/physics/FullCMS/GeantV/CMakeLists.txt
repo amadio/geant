@@ -60,12 +60,6 @@ endfunction()
 
 link_directories(${PROJECT_BINARY_DIR}/lib)
 
-build_executables("${TEST_EXECUTABLES}")
-build_executables("${NOTEST_EXECUTABLES}")
-if(CTEST)
-  add_to_ctest("${TEST_EXECUTABLES}")
-endif()
-
 
 #----------------------------------------------------------------------------
 # Copy all scripts and install the executable(s)
@@ -74,6 +68,13 @@ endif()
 set(FullCMS_OUTPUT bin/examples/FullCMS/GeantV)
 set(FullCMS_SCRIPTS FullCMS.mac README ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/Geant4/cms.gdml)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${FullCMS_OUTPUT})
+
+build_executables("${TEST_EXECUTABLES}")
+build_executables("${NOTEST_EXECUTABLES}")
+if(CTEST)
+  add_to_ctest("${TEST_EXECUTABLES}")
+endif()
+
 foreach(_script ${FullCMS_SCRIPTS})
   get_filename_component(script_name ${_script} NAME)
   # message(WARNING "conf ${_script} to ${CMAKE_BINARY_DIR}/${FullCMS_OUTPUT}/${script_name} ")
