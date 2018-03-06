@@ -557,7 +557,7 @@ endif()
 
 add_subdirectory(physics)
 if (BUILD_REAL_PHYSICS_TESTS)
-  add_subdirectory(tests/physics)
+  add_subdirectory(physics/tests)
 endif()
 
 add_subdirectory(physics/kernel/material)

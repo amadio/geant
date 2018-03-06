@@ -24,7 +24,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/inc/*.hh)
 #----------------------------------------------------------------------------
 # Add the executables, and link it to the Geant4 libraries
 #
-set(OUTPUT bin/tests/physics/conversionTest/Geant4)
+set(OUTPUT bin/physics/tests/conversionTest/Geant4)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
 add_executable(conversionTest_G4 conversionTest_G4.cc ${sources} ${headers})

@@ -24,7 +24,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/inc/*.hh)
 #----------------------------------------------------------------------------
 # Add the executables, and link it to the Geant4 libraries
 #
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/physics/elasticTest/Geant4)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/physics/tests/elasticTest/Geant4)
 add_executable(elasticTest_G4 elasticTest_G4.cc ${sources} ${headers})
 target_link_libraries(elasticTest_G4 ${Geant4_LIBRARIES} )
 

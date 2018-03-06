@@ -24,6 +24,6 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/inc/*.hh)
 #----------------------------------------------------------------------------
 # Add the executables, and link it to the Geant4 libraries
 #
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/physics/photoelectricTest/Geant4)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/physics/tests/photoelectricTest/Geant4)
 add_executable(photoelectricTest_G4 photoelectricTest_G4.cc ${sources} ${headers})
 target_link_libraries(photoelectricTest_G4 ${Geant4_LIBRARIES} )

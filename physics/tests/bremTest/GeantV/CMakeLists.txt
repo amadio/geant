@@ -1,11 +1,11 @@
 #----------------------------------------------------------------------------------------------
 # Add source files & include directories
 #
-file(GLOB sources ${CMAKE_SOURCE_DIR}/tests/physics/bremTest/GeantV/src/*.cc)
-file(GLOB headers ${CMAKE_SOURCE_DIR}/tests/physics/bremTest/GeantV/inc/*.h)
+file(GLOB sources ${CMAKE_SOURCE_DIR}/physics/tests/bremTest/GeantV/src/*.cc)
+file(GLOB headers ${CMAKE_SOURCE_DIR}/physics/tests/bremTest/GeantV/inc/*.h)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/tests/physics/bremTest/GeantV/inc/
+  ${CMAKE_SOURCE_DIR}/physics/tests/bremTest/GeantV/inc/
   ${VECGEOM_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/core/numa/inc/
   ${CMAKE_SOURCE_DIR}/core/interfaces/inc/
@@ -24,10 +24,10 @@ include_directories(
 #----------------------------------------------------------------------------------------------
 # Executable
 #
-set(OUTPUT bin/tests/physics/bremTest/GeantV)
+set(OUTPUT bin/physics/tests/bremTest/GeantV)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
-add_executable(bremTest_GV ${CMAKE_SOURCE_DIR}/tests/physics/bremTest/GeantV/bremTest_GV.cc ${sources})
+add_executable(bremTest_GV ${CMAKE_SOURCE_DIR}/physics/tests/bremTest/GeantV/bremTest_GV.cc ${sources})
 target_link_libraries(bremTest_GV ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics Geant_v)
 
 #----------------------------------------------------------------------------
