@@ -65,13 +65,18 @@ geant::Handler *PostStepActionPhysProcessStage::Select(geant::Track *track, gean
 
     const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
         (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
+
+    track->SetMatCutIndex(matCut->GetIndex());
+
     int regionIndex = matCut->GetRegionIndex();
 
     int particleCode         = track->GVcode();
     const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
 
     PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
-    auto pProc                          = pManager->PostStepSelectProcess(track, td);
+    track->SetHasAtRestAction(pManager->GetListAtRestCandidateProcesses().size() > 0);
+
+    auto pProc = pManager->PostStepSelectProcess(track, td);
     if (!pProc) {
       return fDeltaIntHandler;
     }

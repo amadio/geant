@@ -92,6 +92,7 @@ Track &Track::operator=(const Track &other)
     fMaxDepth           = other.fMaxDepth;
     fStage              = other.fStage;
     fGeneration         = other.fGeneration;
+    fMatCutIndex        = other.fMatCutIndex;
     fSpecies            = other.fSpecies;
     fStatus             = other.fStatus;
     fMass               = other.fMass;
@@ -115,6 +116,7 @@ Track &Track::operator=(const Track &other)
     fPending            = other.fPending;
     fStage              = other.fStage;
     fIsOnBoundaryPreStp = other.fIsOnBoundaryPreStp;
+    fHasAtRestAction    = other.fHasAtRestAction;
     fVolume             = other.fVolume;
 
     // Copy user data

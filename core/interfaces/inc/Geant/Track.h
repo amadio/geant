@@ -128,21 +128,22 @@ class Track {
   using Vector3D = vecgeom::Vector3D<T>;
 
 private:
-  int fEvent               = -1;      /** Event number */
-  int fEvslot              = -1;      /** Event slot */
-  int fParticle            = -1;      /** Index of corresponding particle */
-  int fPrimaryIndx         = -1;      /** Index of the primary particle in the current event */
-  int fMother              = -1;      /** Index of mother particle */
-  int fPDG                 = 0;       /** Particle pdg code */
-  int fGVcode              = 0;       /** GV particle code */
-  int fEindex              = 0;       /** Element index */
-  int fBindex              = 0;       /** Index in the track block */
-  int fCharge              = 0;       /** Particle charge */
-  int fProcess             = -1;      /** Current process */
-  int fNsteps              = 0;       /** Number of steps made */
-  int fMaxDepth            = 0;       /** Maximum geometry depth */
-  int fStage               = 0;       /** Simulation stage */
-  int fGeneration          = 0;       /** Track generation: 0=primary */
+  int fEvent               = -1; /** Event number */
+  int fEvslot              = -1; /** Event slot */
+  int fParticle            = -1; /** Index of corresponding particle */
+  int fPrimaryIndx         = -1; /** Index of the primary particle in the current event */
+  int fMother              = -1; /** Index of mother particle */
+  int fPDG                 = 0;  /** Particle pdg code */
+  int fGVcode              = 0;  /** GV particle code */
+  int fEindex              = 0;  /** Element index */
+  int fBindex              = 0;  /** Index in the track block */
+  int fCharge              = 0;  /** Particle charge */
+  int fProcess             = -1; /** Current process */
+  int fNsteps              = 0;  /** Number of steps made */
+  int fMaxDepth            = 0;  /** Maximum geometry depth */
+  int fStage               = 0;  /** Simulation stage */
+  int fGeneration          = 0;  /** Track generation: 0=primary */
+  int fMatCutIndex         = 0;
   Species_t fSpecies       = kHadron; /** Particle species */
   TrackStatus_t fStatus    = kAlive;  /** Track status */
   double fMass             = 0;       /** Particle mass */
@@ -167,6 +168,7 @@ private:
   bool fOwnPath            = false;   /** Marker for path ownership */
   bool fIsOnBoundaryPreStp = false;   /** to indicate that the particle was on boundary at the pre-step pint */
   bool fPrePropagationDone = false;   /** Indicate if pre-propagation stage was done for this particle. */
+  bool fHasAtRestAction    = false;
   Volume_t const *fVolume  = nullptr; /** Current volume the particle is in */
 
   // max number of physics processesper particle is assumed to be 10!
@@ -332,6 +334,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetGeneration() const { return fGeneration; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetMatCutIndex() const { return fMatCutIndex; }
 
   /** Getter for the particle species */
   VECCORE_ATT_HOST_DEVICE
@@ -607,6 +613,10 @@ public:
   GEANT_FORCE_INLINE
   bool IsPrePropagationDone() const { return fPrePropagationDone; }
 
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool HasAtRestAction() const { return fHasAtRestAction; }
+
   /** @brief Getter for the volume */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -807,6 +817,10 @@ public:
   GEANT_FORCE_INLINE
   void SetGeneration(int generation) { fGeneration = generation; }
 
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetMatCutIndex(int matCutIndex) { fMatCutIndex = matCutIndex; }
+
   /** @brief Setter for particle species */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -966,6 +980,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetPrePropagationDone(bool flag) { fPrePropagationDone = flag; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetHasAtRestAction(bool flag) { fHasAtRestAction = flag; }
 
   /** @brief Setter for the physics process index */
   VECCORE_ATT_HOST_DEVICE

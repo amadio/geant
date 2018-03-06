@@ -31,12 +31,12 @@ PostStepActionDeltaIntHandler::~PostStepActionDeltaIntHandler()
 {
 }
 
-void PostStepActionDeltaIntHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
+void PostStepActionDeltaIntHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData * /* td */)
 {
   output.AddTrack(track);
 }
 //______________________________________________________________________________
-void PostStepActionDeltaIntHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
+void PostStepActionDeltaIntHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData * /* td */)
 {
   geant::TrackVec_t &gtracks = input.Tracks();
   for (auto track : gtracks) {
