@@ -24,19 +24,19 @@ namespace geantphysics {
  * @class   PostStepActionPhysProcessStage
  */
 
-class PostStepActionPhysProcessStage : public geant::SimulationStage {
+class PostStepActionPhysModelStage : public geant::SimulationStage {
 public:
   /** @brief ctr */
-  PostStepActionPhysProcessStage() {}
+  PostStepActionPhysModelStage() {}
 
   /** @brief ctr */
-  PostStepActionPhysProcessStage(geant::Propagator *prop);
+  PostStepActionPhysModelStage(geant::Propagator *prop);
 
   /** @brief dtr */
-  ~PostStepActionPhysProcessStage();
+  ~PostStepActionPhysModelStage();
 
   /** @brief Get simulation stage name */
-  virtual const char *GetName() { return "PostStepActionPhysProcessStage"; }
+  virtual const char *GetName() { return "PostStepActionPhysModelStage"; }
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
@@ -46,11 +46,10 @@ public:
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
 private:
-  PostStepActionPhysProcessStage(const PostStepActionPhysProcessStage &) = delete;
-  PostStepActionPhysProcessStage &operator=(const PostStepActionPhysProcessStage &) = delete;
+  PostStepActionPhysModelStage(const PostStepActionPhysModelStage &) = delete;
+  PostStepActionPhysModelStage &operator=(const PostStepActionPhysModelStage &) = delete;
 
   std::vector<geant::Handler *> fHandlersPerModel;
-  geant::Handler *fDeltaIntHandler;
 };
 
 } // namespace geantphysics

@@ -7,7 +7,6 @@
 
 #include "Geant/Track.h"
 #include "Geant/TaskData.h"
-#include "Geant/VectorUtils.h"
 
 namespace geantphysics {
 
@@ -171,12 +170,6 @@ public:
    */
   virtual int PostStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
-  virtual std::vector<SecondariesFillInfo> PostStepDoItVector(std::vector<LightTrack> &, geant::TaskData *,
-                                                              std::vector<bool> & /*deltaInterMask*/)
-  {
-    return std::vector<SecondariesFillInfo>();
-  }
-
   /** @brief Method that does the at-rest action of the process.
    *
    *  The input parameter, a LightTrack object, can be modified: typically
@@ -299,8 +292,6 @@ public:
     if (gprocindx < gThePhysicsProcessTable.size()) proc = gThePhysicsProcessTable[gprocindx];
     return proc;
   }
-
-  static size_t GetProcessTableSize() { return gThePhysicsProcessTable.size(); }
 
 private:
   /** @brief PhysicsProcess copy constructor is not defined */

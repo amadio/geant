@@ -257,53 +257,6 @@ PhysicsProcess *PhysicsManagerPerParticle::PostStepSelectProcess(geant::Track *g
   return proc;
 }
 
-std::vector<SecondariesFillInfo> PhysicsManagerPerParticle::PostStepActionVector(std::vector<LightTrack> &tracks,
-                                                                                 std::vector<geant::Track *> gtracks,
-                                                                                 geant::TaskData *td)
-{
-  std::vector<bool> deltaInteraction(tracks.size(), false);
-  // reset number of interaction length left for the dicsrete process that just happened to indicate that it will need
-  // to be resample
-  assert(gtracks.size() > 0);
-  size_t physicsProcessIndx = gtracks[0]->GetPhysicsProcessIndex();
-
-  for (auto gtrack : gtracks) {
-    assert(gtrack->GetPhysicsProcessIndex() == physicsProcessIndx);
-  }
-
-  PhysicsProcess *proc = fProcessVec[physicsProcessIndx];
-
-  // assert that physicsProcessIndx should never be < 0 at this point
-  for (size_t i = 0; i < tracks.size(); ++i) {
-    auto gtrack       = gtracks[i];
-    LightTrack &track = tracks[i];
-
-    gtrack->SetPhysicsNumOfInteractLengthLeft(physicsProcessIndx, -1.0);
-    // get material-cuts, kinetic energy and pre-step mfp of the selected process
-    const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-    double ekin                = track.GetKinE();
-    double mass                = track.GetMass();
-    double preStepLambda       = gtrack->GetPhysicsInteractLength(physicsProcessIndx); // pre-step mfp
-    if (HasEnergyLossProcess()) {
-      // get the current i.e. for the post-step kinetic energy 1/lambda and compare to the pre-step i.e. overestimated
-      // 1/lambda to see if it is just a delta interaction and return immediately with null process if yes
-      double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, mass); // current 1/lambda
-      // preStepLambda is lambda and not 1/lambda
-      if (curMacrXsec <= 0.0 || td->fRndm->uniform() > curMacrXsec * preStepLambda) { // delta interaction
-        deltaInteraction[i] = true;
-      }
-    }
-    // if proc!=nullptr the selected process (discrete part is invoked)
-    // should be done like this
-    //  if (!proc || !proc->IsApplicable(track)) {
-    //    return numSecondaries;
-    //  }
-  }
-
-  // invoke the post step action of the selected discrete process
-  return proc->PostStepDoItVector(tracks, td, deltaInteraction);
-}
-
 int PhysicsManagerPerParticle::AtRestAction(LightTrack &track, geant::Track * /*gtrack*/, geant::TaskData *td)
 {
   int numSecondaries = 0;

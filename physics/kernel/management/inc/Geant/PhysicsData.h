@@ -29,6 +29,10 @@ public:
   /** @brief: Number of used elements in array returned by GetListOfSecondaries **/
   int GetNumOfSecondaries() const { return fNumUsedSecondaries; }
 
+  std::vector<LightTrack> &GetPrimaryTracks() { return fPrimaryTracks; }
+
+  std::vector<int> &GetSecondaryFillVector() { return fSecondaryFillVector; }
+
   static void ClearAll();
   static std::vector<PhysicsData *> gThePhysicsDataTable;
 
@@ -39,6 +43,8 @@ private:
   }
   int fNumUsedSecondaries; // number of secondary tracks currently used from fListOfSecondaries
   std::vector<LightTrack> fListOfSecondaries;
+  std::vector<LightTrack> fPrimaryTracks;
+  std::vector<int> fSecondaryFillVector;
 };
 
 } // namespace geantphysics

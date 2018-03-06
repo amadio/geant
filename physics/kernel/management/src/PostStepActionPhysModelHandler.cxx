@@ -1,5 +1,5 @@
 
-#include "Geant/PostStepActionPhysProcessHandler.h"
+#include "Geant/PostStepActionPhysModelHandler.h"
 
 // from geantV
 #include "Geant/Propagator.h"
@@ -21,19 +21,19 @@
 
 namespace geantphysics {
 
-PostStepActionPhysProcessHandler::PostStepActionPhysProcessHandler(int threshold, geant::Propagator *propagator,
-                                                                   int modelIdx)
+PostStepActionPhysModelHandler::PostStepActionPhysModelHandler(int threshold, geant::Propagator *propagator,
+                                                               int modelIdx)
     : geant::Handler(threshold, propagator)
 {
   fMayBasketize = true;
   fModel        = EMModel::GetGlobalTable()[modelIdx];
 }
 
-PostStepActionPhysProcessHandler::~PostStepActionPhysProcessHandler()
+PostStepActionPhysModelHandler::~PostStepActionPhysModelHandler()
 {
 }
 
-void PostStepActionPhysProcessHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
+void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
 {
   LightTrack primaryLT;
   // we will use members:
@@ -45,7 +45,9 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Track *track, geant::Basket &
   //  fXdir         <==>  fXdir     // direction vector x comp. will be set to the new direction x comp.
   //  fYdir         <==>  fYdir     // direction vector y comp. will be set to the new direction y comp.
   //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
-  primaryLT.SetMaterialCutCoupleIndex(track->GetMatCutIndex());
+  const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+      (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
+  primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
   primaryLT.SetKinE(track->E() - track->Mass());
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
@@ -67,7 +69,11 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Track *track, geant::Basket &
   track->SetEdep(track->Edep() + primaryLT.GetEnergyDeposit());
 
   if (newEkin <= 0.) {
-    if (primaryLT.GetTrackStatus() == LTrackStatus::kKill || !track->HasAtRestAction()) {
+    const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+        (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
+    const Particle *particle            = Particle::GetParticleByInternalCode(track->GVcode());
+    PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
+    if (primaryLT.GetTrackStatus() == LTrackStatus::kKill || pManager->GetListAtRestCandidateProcesses().size() == 0) {
       track->Kill();
       track->SetStage(geant::kSteppingActionsStage);
     } else {
@@ -117,19 +123,19 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Track *track, geant::Basket &
   output.AddTrack(track);
 }
 //______________________________________________________________________________
-void PostStepActionPhysProcessHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
+void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
 {
   geant::TrackVec_t &gtracks = input.Tracks();
 
-  std::vector<SecondariesFillInfo> secondFillInfo;
-  secondFillInfo.reserve(gtracks.size());
+  std::vector<LightTrack> &primaryLTs = td->fPhysicsData->GetPrimaryTracks();
+  primaryLTs.clear();
 
-  std::vector<LightTrack> primaryLTs;
-  primaryLTs.reserve(gtracks.size());
+  std::vector<int> &secondaryFillInfo = td->fPhysicsData->GetSecondaryFillVector();
+  secondaryFillInfo.clear();
+  secondaryFillInfo.insert(secondaryFillInfo.begin(), gtracks.size(), 0);
 
   for (size_t i = 0; i < gtracks.size(); ++i) {
     geant::Track *track = gtracks[i];
-    secondFillInfo.emplace_back(i, 0);
 
     LightTrack primaryLT;
     // we will use members:
@@ -141,7 +147,9 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Basket &input, geant::Basket 
     //  fXdir         <==>  fXdir     // direction vector x comp. will be set to the new direction x comp.
     //  fYdir         <==>  fYdir     // direction vector y comp. will be set to the new direction y comp.
     //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
-    primaryLT.SetMaterialCutCoupleIndex(track->GetMatCutIndex());
+    const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+        (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
+    primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
     primaryLT.SetKinE(track->E() - track->Mass());
     primaryLT.SetMass(track->Mass());
     primaryLT.SetGVcode(track->GVcode());
@@ -155,7 +163,7 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Basket &input, geant::Basket 
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->SetNumUsedSecondaries(0);
 
-  fModel->SampleSecondariesVector(primaryLTs, secondFillInfo, td);
+  fModel->SampleSecondariesVector(primaryLTs, secondaryFillInfo, td);
 
   // update primary tracks
   for (size_t i = 0; i < gtracks.size(); ++i) {
@@ -175,7 +183,12 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Basket &input, geant::Basket 
     //    }
 
     if (newEkin <= 0.) {
-      if (primaryLT.GetTrackStatus() == LTrackStatus::kKill || !track->HasAtRestAction()) {
+      const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+          (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
+      const Particle *particle            = Particle::GetParticleByInternalCode(track->GVcode());
+      PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
+      if (primaryLT.GetTrackStatus() == LTrackStatus::kKill ||
+          pManager->GetListAtRestCandidateProcesses().size() == 0) {
         track->Kill();
         track->SetStage(geant::kSteppingActionsStage);
       } else {
@@ -188,9 +201,9 @@ void PostStepActionPhysProcessHandler::DoIt(geant::Basket &input, geant::Basket 
   int secOffset                  = 0;
   int usedSecondaries            = 0;
   std::vector<LightTrack> &secLt = td->fPhysicsData->GetListOfSecondaries();
-  for (auto &secondaryInfo : secondFillInfo) {
-    int nSecParticles = secondaryInfo.fNumSecondaries;
-    auto track        = gtracks[secondaryInfo.fTrackId];
+  for (size_t i = 0; i < secondaryFillInfo.size(); ++i) {
+    int nSecParticles = secondaryFillInfo[i];
+    auto track        = gtracks[i];
     // get the list of secondary tracks
     for (int isecLocal = 0; isecLocal < nSecParticles; ++isecLocal) {
       int isec                    = isecLocal + secOffset;

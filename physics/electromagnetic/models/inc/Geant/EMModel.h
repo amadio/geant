@@ -7,7 +7,6 @@
 
 // from geantV
 #include "Geant/Config.h"
-#include "Geant/VectorUtils.h"
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
@@ -145,8 +144,8 @@ public:
    */
   virtual int SampleSecondaries(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
-  virtual void SampleSecondariesVector(std::vector<LightTrack> &tracks,
-                                       std::vector<SecondariesFillInfo> &secondariesFillInfo, geant::TaskData *td);
+  virtual void SampleSecondariesVector(std::vector<LightTrack> &tracks, std::vector<int> &secondariesFillInfo,
+                                       geant::TaskData *td);
 
   /**
    * @brief Method to obtain minim primary particle kinetic energy at which the discrete part (if any) of the

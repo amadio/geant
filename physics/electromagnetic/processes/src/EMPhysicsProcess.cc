@@ -284,51 +284,17 @@ int EMPhysicsProcess::PostStepDoIt(LightTrack &track, geant::TaskData *td)
   return numSecondaries;
 }
 
-std::vector<SecondariesFillInfo> EMPhysicsProcess::PostStepDoItVector(std::vector<LightTrack> &tracks,
-                                                                      geant::TaskData *td,
-                                                                      std::vector<bool> &deltaInterMask)
+EMModel *EMPhysicsProcess::PostStepSelectModel(double ekin, int regionIdx)
 {
-  std::map<EMModel *, std::vector<LightTrack>> model_basket;
-  std::map<EMModel *, std::vector<SecondariesFillInfo>> model_fill_info_basket;
-
-  for (size_t i = 0; i < tracks.size(); ++i) {
-    LightTrack &track = tracks[i];
-
-    double ekin = track.GetKinE();
-    if (GetType() == ProcessType::kEnergyLoss && ekin <= fLowestKineticEnergy) {
-      continue;
-    }
-    // ask the model manager to select one model: if the current kinetic energy is below the lowest enedgy model it will
-    // return with the lowest energy model => in the SampleSecondaries method of the model we will return
-    const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
-    EMModel *model             = fModelManager->SelectModel(ekin, matCut->GetRegionIndex());
-    if (model != nullptr && !deltaInterMask[i]) {
-      model_basket[model].push_back(track);
-      model_fill_info_basket[model].emplace_back(i, 0);
-    }
+  // for kEnergyLoss processes: check if the particle energy is below the common tracking cut and do nothing if this is
+  //                            the case
+  if (GetType() == ProcessType::kEnergyLoss && ekin <= fLowestKineticEnergy) {
+    return nullptr;
   }
-
-  for (auto pair_it = model_basket.begin(); pair_it != model_basket.end(); ++pair_it) {
-    auto &modelSpecificBasket = model_basket[pair_it->first];
-    (pair_it->first)->SampleSecondariesVector(modelSpecificBasket, model_fill_info_basket[pair_it->first], td);
-    //    if(GetName() == "gPhotoElectric") {
-    //      Printf("Checking photo el: %s",pair_it->first->GetName().c_str());
-    //      for (int i = 0; i < modelSpecificBasket.size(); ++i) {
-    //        assert(modelSpecificBasket[i].GetTrackStatus() == LTrackStatus::kKill);
-    //      }
-    //    }
-  }
-
-  std::vector<SecondariesFillInfo> result;
-  for (auto pair_it = model_basket.begin(); pair_it != model_basket.end(); ++pair_it) {
-    std::vector<SecondariesFillInfo> &modelFillInfo = model_fill_info_basket[pair_it->first];
-    result.insert(result.end(), modelFillInfo.begin(), modelFillInfo.end());
-
-    for (size_t i = 0; i < modelFillInfo.size(); ++i) {
-      tracks[modelFillInfo[i].fTrackId] = model_basket[pair_it->first][i];
-    }
-  }
-  return result;
+  // ask the model manager to select one model: if the current kinetic energy is below the lowest enedgy model it will
+  // return with the lowest energy model => in the SampleSecondaries method of the model we will return
+  EMModel *model = fModelManager->SelectModel(ekin, regionIdx);
+  return model;
 }
 
 void RegisterModelInGlobalTable(EMModel *model)

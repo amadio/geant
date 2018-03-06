@@ -1,5 +1,6 @@
-#ifndef POSTSTEPACTIONDELTAINTHANDLER_H
-#define POSTSTEPACTIONDELTAINTHANDLER_H
+
+#ifndef POSTSTEPACTIONPHYSPROCESSHANDLER_H
+#define POSTSTEPACTIONPHYSPROCESSHANDLER_H
 
 // from geantV
 #include "Geant/Handler.h"
@@ -17,22 +18,22 @@ namespace geantphysics {
 class EMModel;
 /**
  * @brief   Handler for post-step actions specific for physics process (discrete interactions).
- * @class   PostStepActionDeltaIntHandler
+ * @class   PostStepActionPhysProcessHandler
  */
 
-class PostStepActionDeltaIntHandler : public geant::Handler {
+class PostStepActionPhysModelHandler : public geant::Handler {
 public:
   /** @brief Default constructor */
-  PostStepActionDeltaIntHandler() : geant::Handler() {}
+  PostStepActionPhysModelHandler() : geant::Handler() {}
 
   /**
    * @brief Default constructor
    * @param propagator Propagator working with this handler
    */
-  PostStepActionDeltaIntHandler(int threshold, geant::Propagator *propagator);
+  PostStepActionPhysModelHandler(int threshold, geant::Propagator *propagator, int modelIdx);
 
   /** @brief dtr */
-  virtual ~PostStepActionDeltaIntHandler();
+  virtual ~PostStepActionPhysModelHandler();
 
   /** @brief Scalar DoIt interface */
   virtual void DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td);
@@ -41,8 +42,10 @@ public:
   virtual void DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td);
 
 private:
-  PostStepActionDeltaIntHandler(const PostStepActionDeltaIntHandler &) = delete;
-  PostStepActionDeltaIntHandler &operator=(const PostStepActionDeltaIntHandler &) = delete;
+  PostStepActionPhysModelHandler(const PostStepActionPhysModelHandler &) = delete;
+  PostStepActionPhysModelHandler &operator=(const PostStepActionPhysModelHandler &) = delete;
+
+  EMModel *fModel;
 };
 
 } // namespace geantphysics
