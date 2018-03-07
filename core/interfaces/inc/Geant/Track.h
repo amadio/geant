@@ -15,7 +15,7 @@
 #define NEW_NAVIGATION
 
 #include "base/Vector3D.h"
-#include <VecCore/VecCore>
+#include <GV/VecCore/VecCore>
 #include "Geant/Config.h"
 #include "Geant/math_wrappers.h"
 

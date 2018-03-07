@@ -302,6 +302,27 @@ if (KNL)
 endif()
 
 #----------------------------------------------------------------------------
+# VecCore - build veccore inside
+# (!) it will not install it
+include(ExternalProject)
+ExternalProject_Add(builtin_veccore
+        GIT_REPOSITORY https://github.com/root-project/veccore.git
+        GIT_TAG vecrng
+
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/builtin_veccore/ -DVECRNG=ON -DBACKEND=VC
+
+        INSTALL_DIR ${CMAKE_BINARY_DIR}/builtin_veccore/
+        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ext_inc/GV
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ext_inc/GV/VecCore
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ext_inc/GV/VecRng
+                COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/builtin_veccore/include/VecCore ${CMAKE_BINARY_DIR}/ext_inc/GV/VecCore
+                COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/builtin_veccore/include/VecRng ${CMAKE_BINARY_DIR}/ext_inc/GV/VecRng
+)
+include_directories(${CMAKE_BINARY_DIR}/ext_inc/)
+
+
+#----------------------------------------------------------------------------
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
@@ -565,8 +586,7 @@ add_subdirectory(physics/kernel/material)
 
 add_subdirectory(physics/generators)
 
-
-
+add_dependencies(Geant_v builtin_veccore)
 #----------------------------------------------------------------------------------------------
 # Process Doxygen file
 #

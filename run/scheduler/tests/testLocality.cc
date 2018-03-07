@@ -3,7 +3,7 @@
 #include <random>
 #include <sys/time.h>
 #include <thread>
-#include <VecCore/VecMath.h>
+#include <GV/VecCore/VecMath.h>
 #include "GeantNuma.h"
 #include "Geant/NumaAllocator.h"
 
