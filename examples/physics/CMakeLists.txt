@@ -151,6 +151,7 @@ endif()
 
 if (USE_ROOT)
   add_subdirectory(FullCMS/GeantV)
+  add_subdirectory(FullLHCb/GeantV)
 endif()
 
 #----------------------------------------------------------------------------------------------
