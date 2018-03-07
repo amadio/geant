@@ -149,6 +149,8 @@ endif()
 # The GeantV version of the example applications
 #
 
+add_subdirectory(TestEm3/GeantV)
+add_subdirectory(TestEm5/GeantV)
 if (USE_ROOT)
   add_subdirectory(FullCMS/GeantV)
   add_subdirectory(FullLHCb/GeantV)
