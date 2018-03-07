@@ -333,10 +333,6 @@ if(DATA_DOWNLOAD)
   file(MAKE_DIRECTORY data)
   message(STATUS "Downloading data files")
 
-  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ExN03.root"
-    "ExN03.root" "${CMAKE_SOURCE_DIR}/data/" "b6b0cfdd5035117171bfe1b7f1f40c3f")
-  DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/ATLASbar.root"
-    "ATLASbar.root" "${CMAKE_SOURCE_DIR}/data/" "b0a579a0158b2bf704ace490744d858d")
   DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.root"
     "cms2018.root" "${CMAKE_SOURCE_DIR}/data/" "caf4c95d19317d04d42d56c8c45db911")
   DOWNLOAD_IF_NOT_INSTALLED("http://geant-server.web.cern.ch/geant-server/cms2018.gdml"
