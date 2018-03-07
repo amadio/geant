@@ -347,9 +347,7 @@ int Propagator::CreateSimulationStages()
   //        V
   GetStage(kPropagationStage)->SetFollowUpStage(kPostPropagationStage, false);
   // Follow-up not unique: stuck tracks are killed -> SteppingActions
-  bool useBasketsForField = false; // Whether FieldPropagation is vector (true) or scalar (false)
-  GetStage(kPropagationStage)->SetBasketizing(useBasketsForField);
-  std::cout << " Field Propagation Basket flag= " << useBasketsForField << std::endl;
+  GetStage(kPropagationStage)->SetBasketizing(fConfig->fUseVectorizedField);
   //        V
   //        V
   //        V

@@ -120,7 +120,7 @@ bool Handler::Flush(Basket &collector)
   bool flushed = false;
   while (!flushed && fBasketizer->GetNstored())
     flushed = fBasketizer->Flush(collector.Tracks());
-  fNflushed += size_t(flushed);
+  if (flushed) fNflushed++;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
 #endif
