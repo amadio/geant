@@ -36,7 +36,7 @@ public:
   ConstFieldHelixStepper(double Bfield[3]);
 
   VECCORE_ATT_HOST_DEVICE
-  ConstFieldHelixStepper(Vector3D<double> Bfield);
+  ConstFieldHelixStepper(Vector3D<double> const &Bfield);
 
   void SetB(double Bx, double By, double Bz)
   {
@@ -136,7 +136,7 @@ ConstFieldHelixStepper::ConstFieldHelixStepper(double B[3]) : fB(B[0], B[1], B[2
 
 GEANT_FORCE_INLINE
 VECCORE_ATT_HOST_DEVICE
-ConstFieldHelixStepper::ConstFieldHelixStepper(vecgeom::Vector3D<double> Bfield) : fB(Bfield)
+ConstFieldHelixStepper::ConstFieldHelixStepper(vecgeom::Vector3D<double> const &Bfield) : fB(Bfield)
 {
   CalculateDerived();
 }

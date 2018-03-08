@@ -132,8 +132,7 @@ double FieldPropagationHandler::Curvature(const Track &track) const
 
   //  Calculate transverse momentum 'Pt' for field 'B'
   //
-  ThreeVector_d Momentum(track.Dx(), track.Dy(), track.Dz());
-  Momentum *= track.P();
+  ThreeVector_d Momentum(track.Px(), track.Py(), track.Pz());
   ThreeVector_d PtransB; //  Transverse wrt direction of B
   double ratioOverFld        = 0.0;
   if (bmag > 0) ratioOverFld = Momentum.Dot(MagFld) / (bmag * bmag);
@@ -314,6 +313,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   // std::cout << "FieldPropagationHandler::PropagateInVolume called for 1 track" << std::endl;
 
   using ThreeVector  = vecgeom::Vector3D<double>;
+  constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
   bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
   double bmag        = -1.0;
   ThreeVector BfieldInitial;
@@ -357,9 +357,6 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 #endif
 
   // if( angle > 0.000001 ) std::cout << " ang= " << angle << std::endl;
-  bool dominantBz = std::fabs(std::fabs(BfieldInitial[2])) >
-                    1.e3 * std::max(std::fabs(BfieldInitial[0]), std::fabs(BfieldInitial[1]));
-
 #ifdef DEBUG_FIELD
   printf("--PropagateInVolume(Single): ");
   printf("Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= "
@@ -371,19 +368,41 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
   ThreeVector PositionNew(0., 0., 0.);
   ThreeVector DirectionNew(0., 0., 0.);
+  ThreeVector PositionNewCheck(0., 0., 0.);
+  ThreeVector DirectionNewCheck(0., 0., 0.);
 
   // #ifndef VECCORE_CUDA
   if (useRungeKutta) {
     fieldPropagator->DoStep(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-#ifdef STATS_METHODS
+    // cross check
+    double Bz = BfieldInitial[2] * toKiloGauss;
+    ConstBzFieldHelixStepper stepper_bz(Bz); //
+    stepper_bz.DoStep<ThreeVector, double, int>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNewCheck,
+                                               DirectionNewCheck);
+    double posShift           = (PositionNew - PositionNewCheck).Mag();
+    double dirShift           = (DirectionNew - DirectionNewCheck).Mag();
+    if (posShift > 1.e-6 || dirShift > 1.e-6) {
+      std::cout << "*** position/direction shift RK vs. HelixConstBz :" << posShift << " / " << dirShift << "\n";
+    }
+
+    ConstFieldHelixStepper stepper(BfieldInitial * toKiloGauss);
+    stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
+    posShift           = (PositionNew - PositionNewCheck).Mag();
+    dirShift           = (DirectionNew - DirectionNewCheck).Mag();
+    if (posShift > 1.e-6 || dirShift > 1.e-6) {
+      std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posShift << " / " << dirShift << "\n";
+    }
+
+ #ifdef STATS_METHODS
     numRK++;
 #endif
   } else
   // #endif
   {
-    constexpr double toKiloGauss = 1.0e+14; // Converts to kilogauss -- i.e. 1 / Unit::kilogauss
                                             // Must agree with values in magneticfield/inc/Units.h
     double Bz = BfieldInitial[2] * toKiloGauss;
+    const bool dominantBz = false; //std::fabs(std::fabs(BfieldInitial[2])) >
+                      // 1.e3 * std::max(std::fabs(BfieldInitial[0]), std::fabs(BfieldInitial[1]));
     if (dominantBz) {
       // Constant field in Z-direction
       ConstBzFieldHelixStepper stepper(Bz); //
