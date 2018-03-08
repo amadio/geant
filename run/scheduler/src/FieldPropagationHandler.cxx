@@ -481,7 +481,9 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   // The Vectorized Implementation for Magnetic Field Propagation
   // std::cout << "FieldPropagationHandler::PropagateInVolume called for Many tracks" << std::endl;
 
-  int nTracks = tracks.size();
+  using ThreeVector  = vecgeom::Vector3D<double>;
+  constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
+    int nTracks = tracks.size();
 #if 1 // VECTOR_FIELD_PROPAGATION
   using vecgeom::SOA3D;
   using vecgeom::Vector3D;
@@ -525,7 +527,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
   if (fieldConfig->IsFieldUniform()) {
     vecgeom::Vector3D<double> BfieldUniform = fieldConfig->GetUniformFieldValue();
-    ConstFieldHelixStepper stepper(BfieldUniform);
+    ConstFieldHelixStepper stepper(BfieldUniform * toKiloGauss);
     // stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), stepSize,
     //                                        PositionNew, DirectionNew);
 
@@ -538,6 +540,20 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
     // Store revised positions and location in original tracks
     for (int itr = 0; itr < nTracks; ++itr) {
       Track &track                  = *tracks[itr];
+
+      // Crosscheck against helix stepper
+      ThreeVector Position(track.X(), track.Y(), track.Z());
+      ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
+      ThreeVector PositionNew(0., 0., 0.);
+      ThreeVector DirectionNew(0., 0., 0.);
+
+      stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), stepSize[itr], PositionNew, DirectionNew);
+      double posDiff           = (PositionNew - PositionOut[itr]).Mag();
+      double dirDiff           = (DirectionNew - DirectionOut[itr]).Mag();
+      if (posDiff > 1.e-6 || dirDiff > 1.e-6) {
+        std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posDiff << " / " << dirDiff << "\n";
+      }
+
       Vector3D<double> positionMove = {track.X(),  //  - PositionOut.x(itr),
                                        track.Y(),  //  - PositionOut.y(itr),
                                        track.Z()}; //  - PositionOut.z(itr) };
