@@ -17,6 +17,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <Geant/TaskData.h>
+#include <Geant/PhysicsData.h>
 
 namespace geantphysics {
 
@@ -183,12 +185,22 @@ void EMModel::ClearElementSelectros()
   fElementSelectors.clear();
 }
 
-void EMModel::SampleSecondariesVector(std::vector<LightTrack> &tracks, std::vector<int> &secondariesFillInfo,
-                                      geant::TaskData *td)
+void EMModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
 {
-  for (size_t i = 0; i < tracks.size(); ++i) {
-    LightTrack &track      = tracks[i];
-    secondariesFillInfo[i] = SampleSecondaries(track, td);
+  // Temporary glue code to old interface
+  int secondaries = 0;
+  for (size_t i = 0; i < tracks.GetNtracks(); ++i) {
+    LightTrack track;
+    tracks.GetTrack(i, track);
+    secondaries += SampleSecondaries(track, td);
+    tracks.SetTrack(i, track);
+  }
+
+  td->fPhysicsData->SetNumUsedSecondaries(secondaries);
+  LightTrack_v &secondaryLTs = td->fPhysicsData->GetSecondarySOA();
+  secondaryLTs.SetNtracks(0);
+  for (int i = 0; i < secondaries; ++i) {
+    secondaryLTs.AddTrack(td->fPhysicsData->GetListOfSecondaries()[i]);
   }
 }
 

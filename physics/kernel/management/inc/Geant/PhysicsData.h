@@ -3,6 +3,7 @@
 #define PHYSICSDATA_H
 
 #include <vector>
+#include "LightTrack.h"
 
 namespace geantphysics {
 
@@ -33,6 +34,9 @@ public:
 
   std::vector<int> &GetSecondaryFillVector() { return fSecondaryFillVector; }
 
+  LightTrack_v &GetPrimarySOA() { return fPrimaryLTs; }
+  LightTrack_v &GetSecondarySOA() { return fSecondaryLTs; }
+
   static void ClearAll();
   static std::vector<PhysicsData *> gThePhysicsDataTable;
 
@@ -45,6 +49,8 @@ private:
   std::vector<LightTrack> fListOfSecondaries;
   std::vector<LightTrack> fPrimaryTracks;
   std::vector<int> fSecondaryFillVector;
+  LightTrack_v fPrimaryLTs;
+  LightTrack_v fSecondaryLTs;
 };
 
 } // namespace geantphysics

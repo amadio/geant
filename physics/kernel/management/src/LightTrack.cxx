@@ -1,4 +1,6 @@
 
+#include <assert.h>
+#include <TString.h>
 #include "Geant/LightTrack.h"
 
 namespace geantphysics {
@@ -67,18 +69,17 @@ LightTrack::~LightTrack()
 //--- LightTrack_v non-inline methods ---
 //---------------------------------------
 
-LightTrack_v::LightTrack_v()
-    : fNtracks(0), fTrackStatusV(nullptr), fGVcodeV(nullptr), fGTrackIndexV(nullptr), fMaterialCutCoupleIndexV(nullptr),
-      fProcessIndexV(nullptr), fTargetZV(nullptr), fTargetNV(nullptr), fXdirV(nullptr), fYdirV(nullptr),
-      fZdirV(nullptr), fKinEV(nullptr), fMassV(nullptr), fTimeV(nullptr), fWeightV(nullptr), fStepLengthV(nullptr),
-      fEdepV(nullptr), fExtraInfoV(nullptr)
+LightTrack_v::LightTrack_v() : fNtracks(0)
 {
+  for (int i = 0; i < kSOAMaxSize; ++i) {
+    fExtraInfoV[i] = nullptr;
+  }
 }
 
 void LightTrack_v::GetTrack(const int i, LightTrack &aLightTrack) const
 {
-  if (i >= fNtracks) return;
-  //  aLightTrack.SetTrackStatus( fTrackStatusV[ i ] );
+  assert(i < fNtracks);
+  aLightTrack.SetTrackStatus(fTrackStatusV[i]);
   aLightTrack.SetGVcode(fGVcodeV[i]);
   aLightTrack.SetTrackIndex(fGTrackIndexV[i]);
   aLightTrack.SetMaterialCutCoupleIndex(fMaterialCutCoupleIndexV[i]);
@@ -95,6 +96,27 @@ void LightTrack_v::GetTrack(const int i, LightTrack &aLightTrack) const
   aLightTrack.SetStepLength(fStepLengthV[i]);
   aLightTrack.SetEnergyDeposit(fEdepV[i]);
   aLightTrack.SetExtraInfo(fExtraInfoV[i]);
+}
+void LightTrack_v::SetTrack(const int i, const LightTrack &aLightTrack)
+{
+  assert(i < fNtracks);
+  fTrackStatusV[i]            = aLightTrack.GetTrackStatus();
+  fGVcodeV[i]                 = aLightTrack.GetGVcode();
+  fGTrackIndexV[i]            = aLightTrack.GetTrackIndex();
+  fMaterialCutCoupleIndexV[i] = aLightTrack.GetMaterialCutCoupleIndex();
+  fProcessIndexV[i]           = aLightTrack.GetProcessIndex();
+  fTargetZV[i]                = aLightTrack.GetTargetZ();
+  fTargetNV[i]                = aLightTrack.GetTargetN();
+  fXdirV[i]                   = aLightTrack.GetDirX();
+  fYdirV[i]                   = aLightTrack.GetDirY();
+  fZdirV[i]                   = aLightTrack.GetDirZ();
+  fKinEV[i]                   = aLightTrack.GetKinE();
+  fMassV[i]                   = aLightTrack.GetMass();
+  fTimeV[i]                   = aLightTrack.GetTime();
+  fWeightV[i]                 = aLightTrack.GetWeight();
+  fStepLengthV[i]             = aLightTrack.GetStepLength();
+  fEdepV[i]                   = aLightTrack.GetEnergyDeposit();
+  fExtraInfoV[i]              = aLightTrack.GetExtraInfo();
 }
 
 void LightTrack_v::AddTrack(LightTrack &aLightTrack)

@@ -291,36 +291,38 @@ public:
  * @brief SOA (Structure Of Arrays) for LightTrack
  *
  */
+constexpr int kSOAMaxSize = 256;
+
 class LightTrack_v {
-private:
-  std::atomic_int fNtracks; /** number of tracks contained */
+public:
+  int fNtracks; /** number of tracks contained */
 
-  LTrackStatus *fTrackStatusV;   /** Status of the tracks */
-  int *fGVcodeV;                 /** GV particle codes */
-  int *fGTrackIndexV;            /** Indices of the tracks in the Track_v vector */
-  int *fMaterialCutCoupleIndexV; /** Indices of the material-cut couples where the tracks are */
-  int *fProcessIndexV;           /** Indices of the selected processes (in the list of
+  LTrackStatus fTrackStatusV[kSOAMaxSize];   /** Status of the tracks */
+  int fGVcodeV[kSOAMaxSize];                 /** GV particle codes */
+  int fGTrackIndexV[kSOAMaxSize];            /** Indices of the tracks in the Track_v vector */
+  int fMaterialCutCoupleIndexV[kSOAMaxSize]; /** Indices of the material-cut couples where the tracks are */
+  int fProcessIndexV[kSOAMaxSize];           /** Indices of the selected processes (in the list of
                                      active discrete or at-rest processes kept by the
-                                     PhysicsManagerPerParticle; negative if the winner
+                                     PhysicsManagerPerParticle[kSOAMaxSize]; negative if the winner
                                      is a continuous process) */
-  int *fTargetZV;                /** Atomic numbers (Z) of the target atoms where the
+  int fTargetZV[kSOAMaxSize];                /** Atomic numbers (Z) of the target atoms where the
                                      particles have a physical interaction */
-  int *fTargetNV;                /** Numbers of nucleons of the target atoms where the
+  int fTargetNV[kSOAMaxSize];                /** Numbers of nucleons of the target atoms where the
                                      particles have a physical interaction */
 
-  double *fXdirV;       /** X directions (normalized, adimensional) of the particles */
-  double *fYdirV;       /** Y directions (normalized, adimensional) of the particles */
-  double *fZdirV;       /** Z directions (normalized, adimensional) of the particles */
-  double *fKinEV;       /** Kinetic energies (in GeV) of the particles */
-  double *fMassV;       /** Dynamic masses (in GeV) of the particles */
-  double *fTimeV;       /** Times (global, in sec) of the particles */
-  double *fWeightV;     /** Weights (adimensional) of the particles */
-  double *fStepLengthV; /** True, physical lengths (in cm) of the last step of the particles */
-  double *fEdepV;       /** Energy deposits (in GeV) in the last step of the particles */
-  double *fNintLenV;    /** Number of discrete interaction left */
-  double *fIntLenV;     /** Total mean free path i.e. macroscopic scross section */
+  double fXdirV[kSOAMaxSize];       /** X directions (normalized, adimensional) of the particles */
+  double fYdirV[kSOAMaxSize];       /** Y directions (normalized, adimensional) of the particles */
+  double fZdirV[kSOAMaxSize];       /** Z directions (normalized, adimensional) of the particles */
+  double fKinEV[kSOAMaxSize];       /** Kinetic energies (in GeV) of the particles */
+  double fMassV[kSOAMaxSize];       /** Dynamic masses (in GeV) of the particles */
+  double fTimeV[kSOAMaxSize];       /** Times (global, in sec) of the particles */
+  double fWeightV[kSOAMaxSize];     /** Weights (adimensional) of the particles */
+  double fStepLengthV[kSOAMaxSize]; /** True, physical lengths (in cm) of the last step of the particles */
+  double fEdepV[kSOAMaxSize];       /** Energy deposits (in GeV) in the last step of the particles */
+  double fNintLenV[kSOAMaxSize];    /** Number of discrete interaction left */
+  double fIntLenV[kSOAMaxSize];     /** Total mean free path i.e. macroscopic scross section */
 
-  ExtraInfo **fExtraInfoV; /** Pointers to arbitrary structs to keep extra information */
+  ExtraInfo *fExtraInfoV[kSOAMaxSize]; /** Pointers to arbitrary structs to keep extra information */
 
 private:
   /** @brief Copy constructor (not allowed) */
@@ -334,7 +336,12 @@ public:
   LightTrack_v();
 
   /** @brief LightTrack_v destructor */
-  ~LightTrack_v();
+  ~LightTrack_v()
+  {
+    for (int i = 0; i < kSOAMaxSize; ++i) {
+      if (fExtraInfoV[i]) delete fExtraInfoV[i];
+    }
+  };
 
   /** @brief Method that returns the number of tracks contained */
   int GetNtracks() const { return fNtracks; }
@@ -349,11 +356,213 @@ public:
    */
   void GetTrack(const int i, LightTrack &aLightTrack) const;
 
+  void SetTrack(const int i, const LightTrack &aLightTrack);
+
   /**
    * @brief Method that add a track
    * @param aLightTrack track that should be added
    */
   void AddTrack(LightTrack &aLightTrack);
+
+  //--- Getters ---
+
+  /** @brief Method that returns the track status */
+  LTrackStatus GetTrackStatus(int i) const { return fTrackStatusV[i]; }
+
+  /** @brief Method that returns the GV particle code */
+  int GetGVcode(int i) const { return fGVcodeV[i]; }
+
+  /** @brief Method that returns the track index */
+  int GetTrackIndex(int i) const { return fGTrackIndexV[i]; }
+
+  /** @brief Method that returns the material-cut couple index */
+  int GetMaterialCutCoupleIndex(int i) const { return fMaterialCutCoupleIndexV[i]; }
+
+  /** @brief Method that returns the process index */
+  int GetProcessIndex(int i) const { return fProcessIndexV[i]; }
+
+  /** @brief Method that returns the target atomic number, Z */
+  int GetTargetZ(int i) const { return fTargetZV[i]; }
+
+  /** @brief Method that returns the target number of nucleons */
+  int GetTargetN(int i) const { return fTargetNV[i]; }
+
+  /** @brief Method that returns the X direction value (normalized, adimensional) */
+  double GetDirX(int i) const { return fXdirV[i]; }
+
+  /** @brief Method that returns the Y direction value (normalized, adimensional) */
+  double GetDirY(int i) const { return fYdirV[i]; }
+
+  /** @brief Method that returns the Z direction value (normalized, adimensional) */
+  double GetDirZ(int i) const { return fZdirV[i]; }
+
+  /** @brief Method that returns the kinetic energy (unit: energy) */
+  double GetKinE(int i) const { return fKinEV[i]; }
+
+  /** @brief Method that returns the dynamic mass (unit: energy) */
+  double GetMass(int i) const { return fMassV[i]; }
+
+  /** Method that returns the global time (unit: time) */
+  double GetTime(int i) const { return fTimeV[i]; }
+
+  /** Method that returns the weight (adimensional) */
+  double GetWeight(int i) const { return fWeightV[i]; }
+
+  /** Method that returns the true, physical length of the last step (unit: length) */
+  double GetStepLength(int i) const { return fStepLengthV[i]; }
+
+  /** Method that returns the energy deposit in the last step (unit: energy) */
+  double GetEnergyDeposit(int i) const { return fEdepV[i]; }
+
+  /** Method to get the number of interaction length left. */
+  double GetNumOfInteractionLegthLeft(int i) const { return fNintLenV[i]; }
+
+  /** Method to get the total mean free path i.e. the macroscopic cross section . */
+  double GetTotalMFP(int i) const { return fIntLenV[i]; }
+
+  /** Method that returns the pointer to extra information */
+  ExtraInfo *GetExtraInfo(int i) const { return fExtraInfoV[i]; }
+
+  //--- Setters ---
+
+  /**
+   * @brief Method that sets the GV particle code
+   * @param aGVcode GV particle code
+   */
+  void SetGVcode(const int aGVcode, int i) { fGVcodeV[i] = aGVcode; }
+
+  /**
+   * @brief Method that sets the track index
+   * @param aTrackIndex track index
+   */
+  void SetTrackIndex(const int aTrackIndex, int i) { fGTrackIndexV[i] = aTrackIndex; }
+
+  /**
+   * @brief Method that sets the material-cut couple index
+   * @param aMaterialCutCoupleIndex material-cut couple index
+   */
+  void SetMaterialCutCoupleIndex(const int aMaterialCutCoupleIndex, int i)
+  {
+    fMaterialCutCoupleIndexV[i] = aMaterialCutCoupleIndex;
+  }
+
+  /**
+   * @brief Method that sets the track status
+   * @param aTrackStatus track status
+   */
+  void SetTrackStatus(const LTrackStatus aTrackStatus, int i) { fTrackStatusV[i] = aTrackStatus; }
+
+  /**
+   * @brief Method that sets the process index
+   * @param aProcessIndex process index
+   */
+  void SetProcessIndex(const int aProcessIndex, int i) { fProcessIndexV[i] = aProcessIndex; }
+
+  /**
+   * @brief Method that sets the target atomic number, Z
+   * @param aTargetZ target Z
+   */
+  void SetTargetZ(const int aTargetZ, int i) { fTargetZV[i] = aTargetZ; }
+
+  /**
+   * @brief Method that sets the target number of nucleons
+   * @param aTargetN target number of nucleons
+   */
+  void SetTargetN(const int aTargetN, int i) { fTargetNV[i] = aTargetN; }
+
+  /**
+   * @brief Method that sets direction
+   * @param aXdir, aYdir, aZdir direction components (normalized, adimensional)
+   */
+  void SetDirection(const double aXdir, const double aYdir, const double aZdir, int i)
+  {
+    fXdirV[i] = aXdir;
+    fYdirV[i] = aYdir;
+    fZdirV[i] = aZdir;
+  }
+
+  /**
+   * @brief Method that sets the X direction value
+   * @param aXdir X direction (normalized, adimensional)
+   */
+  void SetDirX(const double aXdir, int i) { fXdirV[i] = aXdir; }
+
+  /** @brief Method that sets the Y direction value
+   * @param aYdir Y direction (normalized, adimensional)
+   */
+  void SetDirY(const double aYdir, int i) { fYdirV[i] = aYdir; }
+
+  /** @brief Method that sets the Z direction value
+   * @param aZdir Z direction (normalized, adimensional)
+   */
+  void SetDirZ(const double aZdir, int i) { fZdirV[i] = aZdir; }
+
+  /**
+   * @brief Method that sets the kinetic energy
+   * @param aKinE kinetic energy (unit: energy)
+   */
+  void SetKinE(const double aKinE, int i) { fKinEV[i] = aKinE; }
+
+  /**
+   * @brief Method that sets the dynamic mass
+   * @param aMass dynamic mass (unit: energy)
+   */
+  void SetMass(const double aMass, int i) { fMassV[i] = aMass; }
+
+  /**
+   * @brief Method that sets the global time
+   * @param aTime global time (unit: time)
+   */
+  void SetTime(const double aTime, int i) { fTimeV[i] = aTime; }
+
+  /**
+   * @brief Method that sets the weight
+   * @param aWeight weight (adimensional)
+   */
+  void SetWeight(const double aWeight, int i) { fWeightV[i] = aWeight; }
+
+  /**
+   * @brief Method that sets the true, physical length of the last step
+   * @param aStepLength (unit: length)
+   */
+  void SetStepLength(const double aStepLength, int i) { fStepLengthV[i] = aStepLength; }
+
+  /**
+   * @brief Method that sets the energy deposit in the last step
+   * @param aEdep (unit: energy)
+   */
+  void SetEnergyDeposit(const double aEdep, int i) { fEdepV[i] = aEdep; }
+
+  /**
+   * @brief Method that sets the number of discrete interaction left.
+   * @param[in] val Number of discrete interactions.
+   */
+  void SetN(const double val, int i) { fIntLenV[i] = val; }
+
+  /**
+   * @brief Method that sets the number of interaction length left .
+   * @param[in] val Number of interaction length left.
+   */
+  void SetNumOfInteractionLegthLeft(const double val, int i) { fNintLenV[i] = val; }
+
+  /**
+   * @brief Method that sets the total mean free path i.e. the macroscopic cross section .
+   * @param[in] val Value of the total mean free path in internal [1/length] unit.
+   */
+  void SetTotalMFP(const double val, int i) { fIntLenV[i] = val; }
+
+  /**
+   * @brief Method that sets the pointer to extra information
+   * @param aExtraInfo pointer to extra information
+   */
+  void SetExtraInfo(ExtraInfo *aExtraInfo, int i)
+  {
+    // If the pointer is already set, and it is different from the new one,
+    // then delete the old extra information before pointing to the new one.
+    // Note: we assume that the light track has the ownership of the extra information.
+    if (fExtraInfoV[i] != nullptr && fExtraInfoV[i] != aExtraInfo) delete fExtraInfoV[i];
+    fExtraInfoV[i] = aExtraInfo;
+  }
 };
 
 } // end of namespace geantphysics

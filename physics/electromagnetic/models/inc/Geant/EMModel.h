@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <Geant/LightTrack.h>
 
 // from geantV
 #include "Geant/Config.h"
@@ -144,8 +145,7 @@ public:
    */
   virtual int SampleSecondaries(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
-  virtual void SampleSecondariesVector(std::vector<LightTrack> &tracks, std::vector<int> &secondariesFillInfo,
-                                       geant::TaskData *td);
+  virtual void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td);
 
   /**
    * @brief Method to obtain minim primary particle kinetic energy at which the discrete part (if any) of the
