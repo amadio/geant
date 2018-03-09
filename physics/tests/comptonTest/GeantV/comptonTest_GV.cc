@@ -424,13 +424,13 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     //       primaryLT.SetTotalMFP(1.0); // not important now
     //
     // clean the number of secondary tracks used (in PhysicsData)
-    td->fPhysicsData->SetNumUsedSecondaries(0);
+    td->fPhysicsData->ClearSecondaries();
     //
     // invoke the interaction
     int numSecs = emModel->SampleSecondaries(primaryLT, td);
     // get the secondary track i.e. the e-
     if (numSecs > 0) {
-      std::vector<LightTrack> &secondaryLT = td->fPhysicsData->GetListOfSecondaries();
+      LightTrack *secondaryLT = td->fPhysicsData->GetListOfSecondaries();
       // get reduced gamma energy and cost
       double gammaE = primaryLT.GetKinE() / ekin;
       if (gammaE > 0.0) {

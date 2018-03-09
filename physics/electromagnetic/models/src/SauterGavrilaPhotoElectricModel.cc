@@ -952,31 +952,14 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   }
 
   // create the secondary particle i.e. the photoelectron
-  // numSecondaries = 1;
-
-  // current capacity of secondary track container
-  int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-  // currently used secondary tracks in the container
-  int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-  if (curSizeOfSecList - curNumUsedSecs < 1) {
-    td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-  }
-  int secIndx = curNumUsedSecs;
-  curNumUsedSecs += 1;
-  td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-
-  std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
-
-  // this is known since it is a secondary track
-  //  sectracks[secIndx].SetTrackStatus(LTrackStatus::kNew); // to kew
-
-  sectracks[secIndx].SetDirX(eDirX1);
-  sectracks[secIndx].SetDirY(eDirY1);
-  sectracks[secIndx].SetDirZ(eDirZ1);
-  sectracks[secIndx].SetKinE(elecKineEnergy);
-  sectracks[secIndx].SetGVcode(fSecondaryInternalCode); // electron GV code
-  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  LightTrack &emTrack = td->fPhysicsData->InsertSecondary();
+  emTrack.SetDirX(eDirX1);
+  emTrack.SetDirY(eDirY1);
+  emTrack.SetDirZ(eDirZ1);
+  emTrack.SetKinE(elecKineEnergy);
+  emTrack.SetGVcode(fSecondaryInternalCode); // electron GV code
+  emTrack.SetMass(geant::units::kElectronMassC2);
+  emTrack.SetTrackIndex(track.GetTrackIndex()); // parent Track index
 
   /*if(fabs(gammaekin0 - elecKineEnergy - esec - edep) > geant::units::eV) {
    std::cout << "### SauterGavrilaPhotoElectricModel dE(eV)= "

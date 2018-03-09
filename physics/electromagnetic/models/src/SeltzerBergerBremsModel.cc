@@ -172,25 +172,15 @@ int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, geant::TaskDat
   // rotate gamma direction to the lab frame:
   RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   // create the secondary partcile i.e. the gamma
-  numSecondaries = 1;
-  // current capacity of secondary track container
-  int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-  // currently used secondary tracks in the container
-  int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-  if (curSizeOfSecList - curNumUsedSecs < numSecondaries) {
-    td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-  }
-  int secIndx = curNumUsedSecs;
-  curNumUsedSecs += numSecondaries;
-  td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
-  sectracks[secIndx].SetDirX(gamDirX);
-  sectracks[secIndx].SetDirY(gamDirY);
-  sectracks[secIndx].SetDirZ(gamDirZ);
-  sectracks[secIndx].SetKinE(gammaEnergy);
-  sectracks[secIndx].SetGVcode(fSecondaryInternalCode); // gamma GV code
-  sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  numSecondaries         = 1;
+  LightTrack &gammaTrack = td->fPhysicsData->InsertSecondary();
+  gammaTrack.SetDirX(gamDirX);
+  gammaTrack.SetDirY(gamDirY);
+  gammaTrack.SetDirZ(gamDirZ);
+  gammaTrack.SetKinE(gammaEnergy);
+  gammaTrack.SetGVcode(fSecondaryInternalCode); // gamma GV code
+  gammaTrack.SetMass(0.0);
+  gammaTrack.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   //
   // compute the primary e-/e+ post interaction direction: from momentum vector conservation
   const double elInitTotalMomentum = std::sqrt(ekin * (ekin + 2.0 * geant::units::kElectronMassC2));

@@ -133,25 +133,15 @@ int PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   const double gamEner = eps * tEnergy;
   //
   // create the secondary partcile i.e. the gamma
-  numSecondaries = 2;
-  // current capacity of secondary track container
-  int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-  // currently used secondary tracks in the container
-  int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-  if (curSizeOfSecList - curNumUsedSecs < numSecondaries) {
-    td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-  }
-  int secIndx = curNumUsedSecs;
-  curNumUsedSecs += numSecondaries;
-  td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
-  sectracks[secIndx].SetDirX(gamDirX);
-  sectracks[secIndx].SetDirY(gamDirY);
-  sectracks[secIndx].SetDirZ(gamDirZ);
-  sectracks[secIndx].SetKinE(gamEner);
-  sectracks[secIndx].SetGVcode(fSecondaryInternalCode); // gamma GV code
-  sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  numSecondaries          = 2;
+  LightTrack &gamma1Track = td->fPhysicsData->InsertSecondary();
+  gamma1Track.SetDirX(gamDirX);
+  gamma1Track.SetDirY(gamDirY);
+  gamma1Track.SetDirZ(gamDirZ);
+  gamma1Track.SetKinE(gamEner);
+  gamma1Track.SetGVcode(fSecondaryInternalCode); // gamma GV code
+  gamma1Track.SetMass(0.0);
+  gamma1Track.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   //
   // go for the second gamma properties
   const double posInitTotalMomentum = std::sqrt(pekin * (pekin + 2.0 * geant::units::kElectronMassC2));
@@ -162,14 +152,14 @@ int PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   // normalisation
   const double norm = 1.0 / std::sqrt(gamDirX * gamDirX + gamDirY * gamDirY + gamDirZ * gamDirZ);
   // set up the second gamma track
-  ++secIndx;
-  sectracks[secIndx].SetDirX(gamDirX * norm);
-  sectracks[secIndx].SetDirY(gamDirY * norm);
-  sectracks[secIndx].SetDirZ(gamDirZ * norm);
-  sectracks[secIndx].SetKinE(tEnergy - gamEner);
-  sectracks[secIndx].SetGVcode(fSecondaryInternalCode); // gamma GV code
-  sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  LightTrack &gamma2Track = td->fPhysicsData->InsertSecondary();
+  gamma2Track.SetDirX(gamDirX * norm);
+  gamma2Track.SetDirY(gamDirY * norm);
+  gamma2Track.SetDirZ(gamDirZ * norm);
+  gamma2Track.SetKinE(tEnergy - gamEner);
+  gamma2Track.SetGVcode(fSecondaryInternalCode); // gamma GV code
+  gamma2Track.SetMass(0.0);
+  gamma2Track.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // kill the primary e+
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);

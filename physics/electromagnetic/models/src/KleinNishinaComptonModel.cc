@@ -158,27 +158,15 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::TaskDa
     elDirY *= norm;
     elDirZ *= norm;
     // create the secondary partcile i.e. the e-
-    numSecondaries = 1;
-    // current capacity of secondary track container
-    int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-    // currently used secondary tracks in the container
-    int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-    if (curSizeOfSecList - curNumUsedSecs < numSecondaries) {
-      td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-    }
-    int secIndx = curNumUsedSecs;
-    curNumUsedSecs += numSecondaries;
-    td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-    // this is known since it is a secondary track
-    //  sectracks[secIndx].SetTrackStatus(LTrackStatus::kNew);
-    std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
-    sectracks[secIndx].SetDirX(elDirX);
-    sectracks[secIndx].SetDirY(elDirY);
-    sectracks[secIndx].SetDirZ(elDirZ);
-    sectracks[secIndx].SetKinE(elEnergy);
-    sectracks[secIndx].SetGVcode(fSecondaryInternalCode); // e- GV code
-    sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-    sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+    numSecondaries      = 1;
+    LightTrack &emTrack = td->fPhysicsData->InsertSecondary();
+    emTrack.SetDirX(elDirX);
+    emTrack.SetDirY(elDirY);
+    emTrack.SetDirZ(elDirZ);
+    emTrack.SetKinE(elEnergy);
+    emTrack.SetGVcode(fSecondaryInternalCode); // e- GV code
+    emTrack.SetMass(geant::units::kElectronMassC2);
+    emTrack.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   } else {
     eDeposit += elEnergy;
   }

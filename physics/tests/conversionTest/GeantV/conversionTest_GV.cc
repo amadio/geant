@@ -448,13 +448,13 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     //       primaryLT.SetTotalMFP(1.0); // not important now
     //
     // clean the number of secondary tracks used (in PhysicsData)
-    td->fPhysicsData->SetNumUsedSecondaries(0);
+    td->fPhysicsData->ClearSecondaries();
     //
     // invoke the interaction
     int numSecs = emModel->SampleSecondaries(primaryLT, td);
     // get the secondary tracks i.e. the e- and the e+
     if (numSecs == 2) {
-      std::vector<LightTrack> &secLTracks = td->fPhysicsData->GetListOfSecondaries();
+      LightTrack *secLTracks = td->fPhysicsData->GetListOfSecondaries();
       // get reduced e- total energy and cost
       double epsEl = (secLTracks[0].GetKinE() + geant::units::kElectronMassC2) / ekin;
       h1->Fill(epsEl, 1.0);

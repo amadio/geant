@@ -67,7 +67,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   //  primaryLT.SetTotalMFP(track->GetIntLen());
   //
   // clean the number of secondary tracks used (in PhysicsData)
-  td->fPhysicsData->SetNumUsedSecondaries(0);
+  td->fPhysicsData->ClearSecondaries();
   //
   // invoke the PostStepAction of this particle PhysicsManagerPerParticle
   int nSecParticles = pManager->PostStepAction(primaryLT, track, td);
@@ -93,7 +93,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   // create secondary tracks if there are any
   if (nSecParticles) {
     // get the list of secondary tracks
-    std::vector<LightTrack> &secLt = td->fPhysicsData->GetListOfSecondaries();
+    LightTrack *secLt = td->fPhysicsData->GetListOfSecondaries();
     for (int isec = 0; isec < nSecParticles; ++isec) {
       int secGVcode               = secLt[isec].GetGVcode(); // GV index of this secondary particle
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);

@@ -299,7 +299,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, Isotope *isot
     //       primaryLT.SetTotalMFP(1.0); // not important now
     //
     // clean the number of secondary tracks used (in PhysicsData)
-    td->fPhysicsData->SetNumUsedSecondaries(0);
+    td->fPhysicsData->ClearSecondaries();
     //
     // invoke the interaction
     elModel->SampleFinalState(primaryLT, isotope, td);

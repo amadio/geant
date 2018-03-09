@@ -135,27 +135,15 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::Tas
   // rotate back to lab frame
   RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   // create the secondary partcile i.e. the delta e-
-  numSecondaries = 1;
-  // NO it can be dropped if we make sure that these secondary vectors are at least size 2
-  //  PhysicsData *physData = td->fPhysicsData;
-  // current capacity of secondary track container
-  int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-  // currently used secondary tracks in the container
-  int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-  if (curSizeOfSecList - curNumUsedSecs < numSecondaries) {
-    td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-  }
-  int secIndx = curNumUsedSecs;
-  curNumUsedSecs += numSecondaries;
-  td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
-  sectracks[secIndx].SetDirX(deltaDirX);
-  sectracks[secIndx].SetDirY(deltaDirY);
-  sectracks[secIndx].SetDirZ(deltaDirZ);
-  sectracks[secIndx].SetKinE(deltaKinEnergy);
-  sectracks[secIndx].SetGVcode(fSecondaryInternalCode);
-  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  numSecondaries      = 1;
+  LightTrack &emTrack = td->fPhysicsData->InsertSecondary();
+  emTrack.SetDirX(deltaDirX);
+  emTrack.SetDirY(deltaDirY);
+  emTrack.SetDirZ(deltaDirZ);
+  emTrack.SetKinE(deltaKinEnergy);
+  emTrack.SetGVcode(fSecondaryInternalCode);
+  emTrack.SetMass(geant::units::kElectronMassC2);
+  emTrack.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   //
   // compute the primary e-/e+ post interaction kinetic energy and direction: from momentum vector conservation
   // final momentum of the primary e-/e+ in the lab frame

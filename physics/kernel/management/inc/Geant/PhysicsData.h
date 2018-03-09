@@ -13,17 +13,30 @@ public:
   PhysicsData();
   ~PhysicsData() {}
 
-  int GetNumUsedSecondaries() const { return fNumUsedSecondaries; }
-  void SetNumUsedSecondaries(int val) { fNumUsedSecondaries = val; }
+  /** @brief: Insert secondary and return handle to it **/
+  LightTrack &InsertSecondary()
+  {
+    ResizeIfSmall();
+    return fListOfSecondaries[fNumUsedSecondaries++];
+  }
 
-  int GetSizeListOfSecondaries() const { return fListOfSecondaries.size(); }
-  void SetSizeListOfSecondaries(int val) { fListOfSecondaries.resize(val); }
-  std::vector<LightTrack> &GetListOfSecondaries() { return fListOfSecondaries; }
+  /** @brief: Clear list of used secondaries **/
+  void ClearSecondaries() { fNumUsedSecondaries = 0; }
+
+  /** @brief: Array of secondaries, Use GetNumOfSecondaries() to get its size **/
+  LightTrack *GetListOfSecondaries() { return fListOfSecondaries.data(); }
+
+  /** @brief: Number of used elements in array returned by GetListOfSecondaries **/
+  int GetNumOfSecondaries() const { return fNumUsedSecondaries; }
 
   static void ClearAll();
   static std::vector<PhysicsData *> gThePhysicsDataTable;
 
 private:
+  void ResizeIfSmall()
+  {
+    if ((int)fListOfSecondaries.size() == fNumUsedSecondaries) fListOfSecondaries.emplace_back();
+  }
   int fNumUsedSecondaries; // number of secondary tracks currently used from fListOfSecondaries
   std::vector<LightTrack> fListOfSecondaries;
 };

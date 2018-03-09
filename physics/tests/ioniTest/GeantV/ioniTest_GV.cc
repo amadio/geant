@@ -490,13 +490,13 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     //       primaryLT.SetTotalMFP(1.0); // not important now
     //
     // clean the number of secondary tracks used (in PhysicsData)
-    td->fPhysicsData->SetNumUsedSecondaries(0);
+    td->fPhysicsData->ClearSecondaries();
     //
     // invoke the interaction
     int numSecs = emModel->SampleSecondaries(primaryLT, td);
     // get the secondary track i.e. the gamma
     if (numSecs > 0) {
-      std::vector<LightTrack> &secondaryLT = td->fPhysicsData->GetListOfSecondaries();
+      LightTrack *secondaryLT = td->fPhysicsData->GetListOfSecondaries();
       // secondary
       double eSec = secondaryLT[0].GetKinE() / ekin;
       if (eSec > 0.0) {

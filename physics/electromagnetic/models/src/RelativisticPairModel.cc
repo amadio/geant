@@ -229,34 +229,24 @@ int RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   //
   // 6. insert the secondary e-/e+ into the secondary list:
   numSecondaries = 2;
-  // current capacity of secondary track container
-  int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-  // currently used secondary tracks in the container
-  int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-  if (curSizeOfSecList - curNumUsedSecs < numSecondaries) {
-    td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-  }
-  int secIndx = curNumUsedSecs;
-  curNumUsedSecs += numSecondaries;
-  td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
   // first set the e-
-  sectracks[secIndx].SetDirX(eleDirX);
-  sectracks[secIndx].SetDirY(eleDirY);
-  sectracks[secIndx].SetDirZ(eleDirZ);
-  sectracks[secIndx].SetKinE(ekinElectron);
-  sectracks[secIndx].SetGVcode(fElectronInternalCode);
-  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  LightTrack &emTrack = td->fPhysicsData->InsertSecondary();
+  emTrack.SetDirX(eleDirX);
+  emTrack.SetDirY(eleDirY);
+  emTrack.SetDirZ(eleDirZ);
+  emTrack.SetKinE(ekinElectron);
+  emTrack.SetGVcode(fElectronInternalCode);
+  emTrack.SetMass(geant::units::kElectronMassC2);
+  emTrack.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // then set the e+
-  ++secIndx;
-  sectracks[secIndx].SetDirX(posDirX);
-  sectracks[secIndx].SetDirY(posDirY);
-  sectracks[secIndx].SetDirZ(posDirZ);
-  sectracks[secIndx].SetKinE(ekinPositron);
-  sectracks[secIndx].SetGVcode(fPositronInternalCode);
-  sectracks[secIndx].SetMass(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  LightTrack &epTrack = td->fPhysicsData->InsertSecondary();
+  epTrack.SetDirX(posDirX);
+  epTrack.SetDirY(posDirY);
+  epTrack.SetDirZ(posDirZ);
+  epTrack.SetKinE(ekinPositron);
+  epTrack.SetGVcode(fPositronInternalCode);
+  epTrack.SetMass(geant::units::kElectronMassC2);
+  epTrack.SetTrackIndex(track.GetTrackIndex()); // parent Track index
 
   return numSecondaries;
 }

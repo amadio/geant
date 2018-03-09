@@ -55,38 +55,28 @@ int PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::TaskData *
   double cost = 2. * rndArray[0] - 1.;
   double sint = std::sqrt((1. - cost) * (1.0 + cost));
   double phi  = geant::units::kTwoPi * rndArray[1];
-  // create the 2 secondary partciles i.e. the gammas
+  // create the 2 secondary particles i.e. the gammas
   numSecondaries = 2;
-  // current capacity of secondary track container
-  int curSizeOfSecList = td->fPhysicsData->GetSizeListOfSecondaries();
-  // currently used secondary tracks in the container
-  int curNumUsedSecs = td->fPhysicsData->GetNumUsedSecondaries();
-  if (curSizeOfSecList - curNumUsedSecs < numSecondaries) {
-    td->fPhysicsData->SetSizeListOfSecondaries(2 * curSizeOfSecList);
-  }
-  int secIndx = curNumUsedSecs;
-  curNumUsedSecs += numSecondaries;
-  td->fPhysicsData->SetNumUsedSecondaries(curNumUsedSecs);
-  std::vector<LightTrack> &sectracks = td->fPhysicsData->GetListOfSecondaries();
   // first gamma
-  const double xdir = sint * std::cos(phi);
-  const double ydir = sint * std::sin(phi);
-  sectracks[secIndx].SetDirX(xdir);
-  sectracks[secIndx].SetDirY(ydir);
-  sectracks[secIndx].SetDirZ(cost);
-  sectracks[secIndx].SetKinE(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetGVcode(Gamma::Definition()->GetInternalCode()); // gamma GV code
-  sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
-  // first gamma
-  ++secIndx;
-  sectracks[secIndx].SetDirX(-xdir);
-  sectracks[secIndx].SetDirY(-ydir);
-  sectracks[secIndx].SetDirZ(-cost);
-  sectracks[secIndx].SetKinE(geant::units::kElectronMassC2);
-  sectracks[secIndx].SetGVcode(Gamma::Definition()->GetInternalCode()); // gamma GV code
-  sectracks[secIndx].SetMass(0.0);
-  sectracks[secIndx].SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  const double xdir       = sint * std::cos(phi);
+  const double ydir       = sint * std::sin(phi);
+  LightTrack &gamma1Track = td->fPhysicsData->InsertSecondary();
+  gamma1Track.SetDirX(xdir);
+  gamma1Track.SetDirY(ydir);
+  gamma1Track.SetDirZ(cost);
+  gamma1Track.SetKinE(geant::units::kElectronMassC2);
+  gamma1Track.SetGVcode(Gamma::Definition()->GetInternalCode()); // gamma GV code
+  gamma1Track.SetMass(0.0);
+  gamma1Track.SetTrackIndex(track.GetTrackIndex()); // parent Track index
+  // second gamma
+  LightTrack &gamma2Track = td->fPhysicsData->InsertSecondary();
+  gamma2Track.SetDirX(-xdir);
+  gamma2Track.SetDirY(-ydir);
+  gamma2Track.SetDirZ(-cost);
+  gamma2Track.SetKinE(geant::units::kElectronMassC2);
+  gamma2Track.SetGVcode(Gamma::Definition()->GetInternalCode()); // gamma GV code
+  gamma2Track.SetMass(0.0);
+  gamma2Track.SetTrackIndex(track.GetTrackIndex()); // parent Track index
   // kill the primary e+
   track.SetKinE(0.0);
   track.SetTrackStatus(LTrackStatus::kKill);
