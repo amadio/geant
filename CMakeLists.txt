@@ -599,6 +599,8 @@ add_subdirectory(physics/kernel/material)
 
 add_subdirectory(physics/generators)
 
+add_subdirectory(examples/vecphys)
+
 #----------------------------------------------------------------------------------------------
 # Process Doxygen file
 #

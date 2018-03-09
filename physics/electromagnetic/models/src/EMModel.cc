@@ -189,7 +189,7 @@ void EMModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
 {
   // Temporary glue code to old interface
   int secondaries = 0;
-  for (size_t i = 0; i < tracks.GetNtracks(); ++i) {
+  for (int i = 0; i < tracks.GetNtracks(); ++i) {
     LightTrack track;
     tracks.GetTrack(i, track);
     secondaries += SampleSecondaries(track, td);

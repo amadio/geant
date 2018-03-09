@@ -195,10 +195,8 @@ void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &o
 
   //
   // create secondary tracks if there are any
-  int secOffset              = 0;
-  int usedSecondaries        = 0;
   LightTrack_v &secondaryLTs = td->fPhysicsData->GetSecondarySOA();
-  for (size_t i = 0; i < secondaryLTs.GetNtracks(); ++i) {
+  for (int i = 0; i < secondaryLTs.GetNtracks(); ++i) {
     auto track    = gtracks[secondaryLTs.GetTrackIndex(i)];
     int secGVcode = secondaryLTs.GetGVcode(i); // GV index of this secondary particle
 
