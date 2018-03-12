@@ -17,6 +17,8 @@
 #include "TestEm5PrimaryGenerator.h"
 #include "TestEm5PhysicsList.h"
 
+#include "Geant/UserFieldConstruction.h"
+
 // some helper methods to get the possible input arguments and configure the user defined components of the application,
 // set up the run manager and run the simulation.
 void GetInputArguments(int argc, char *argv[]);
@@ -53,6 +55,27 @@ int main(int argc, char *argv[])
   userapplication::TestEm5PrimaryGenerator *primaryGenerator = new userapplication::TestEm5PrimaryGenerator(detector);
   SetupUserPrimaryGenerator(primaryGenerator);
   runManager->SetPrimaryGenerator(primaryGenerator);
+
+  // Create TestEm3 global magnetic field
+  bool parConfigUseMagField= true;
+
+  if( parConfigUseMagField ) {
+     // Create magnetic field and needed classes for trajectory integration
+     auto fieldConstructor= new geant::UserFieldConstruction();
+     float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
+     fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
+     
+     auto config= runManager->GetConfig();
+     config->fUseRungeKutta= true;
+     config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default
+
+     runManager->SetUserFieldConstruction(fieldConstructor);
+     printf("main: Created uniform field and set up field-propagation.\n");
+  } else {
+     printf("main: no magnetic field configured.\n");     
+  }
+
+  
   //
   // create the testEm5 user application object, set its configurable parameters and register in the RunManager
   userapplication::TestEm5 *testEm5Application = new userapplication::TestEm5(runManager, detector, primaryGenerator);
@@ -90,13 +113,13 @@ double parAppHist1MinVal        = -1.; // i.e. default application value
 double parAppHist1MaxVal        = -1.; // i.e. default application value
 //
 // run configuration parameters
-int parConfigNumBufferedEvt   = 4;    // number of events taken to be transported on the same time (buffered)
-int parConfigNumRunEvt        = 4000; // total number of events to be transported during the run
-int parConfigNumPrimaryPerEvt = 1000; // number of primary particles per event
-int parConfigNumThreads       = 4;    // number of working threads
-int parConfigNumPropagators   = 1;    // number of propagators per working threads
-bool parConfigVectorizedGeom  = 0;    // activate geometry basketizing
-int parConfigNumPerBasket     = 16;   // default number of particles per basket
+int   parConfigNumBufferedEvt   = 4;     // number of events taken to be transported on the same time (buffered)
+int   parConfigNumRunEvt        = 1 ; // 4000 // total number of events to be transported during the run
+int   parConfigNumPrimaryPerEvt = 16 ; // 1000 // number of primary particles per event
+int   parConfigNumThreads       = 1;     // number of working threads
+int   parConfigNumPropagators   = 1;     // number of propagators per working threads
+bool  parConfigVectorizedGeom   = 0;     // activate geometry basketizing
+int   parConfigNumPerBasket     = 16;    // default number of particles per basket
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit = ""; // i.e. default application value

@@ -241,13 +241,25 @@ void Track::SetNextPath(VolumePath_t const *const path)
 void Track::Print(const char *msg) const
 {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
-  printf("%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d "
-         "status=%s mass=%g "
-         "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g "
-         "ile=%g bdr=%d\n",
-         msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fPDG, fGVcode, fEindex, fBindex, fCharge, fProcess,
-         fNsteps, (int)fSpecies, status[int(fStatus)], fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE, fTime,
-         fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
+  // auto pTable = geantphysics::Particle::GetTheParticleTable();
+  // auto particle = pTable[fGVcode];
+  // int pdgCode = particle->GetPDGCode();
+  // const std::string particleName= particle->GetName();
+
+  int pdgCode = fPDG; // It is correctly set for primaries ... 
+  if( fPDG == 0 ) {
+     if(      fGVcode == 22 ) { pdgCode = 11; }  // e-
+     else if( fGVcode == 42 ) { pdgCode = 22; }  // gamma 
+     else if( fGVcode == 23 ) { pdgCode = -11; } // e+
+  }
+  
+  printf(
+      "%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d status=%s mass=%g "
+      "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g ile=%g bdr=%d\n",
+      msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, pdgCode, fGVcode, fEindex, fBindex,
+      fCharge, fProcess, fNsteps, (int)fSpecies, status[int(fStatus)],
+      fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
+      fTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
 
   TrackDataMgr::GetInstance()->PrintUserData(*this);
 #ifndef VECCORE_CUDA
