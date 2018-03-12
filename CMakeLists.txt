@@ -77,7 +77,7 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 # Process various options
 #
 option(CTEST "Enable CTest when building." OFF)
-option(CTEST_LEVEL "Select the amount of test including in CTEST (1 for minimun, 99 for maximum" 1)
+set(CTEST_LEVEL 1 CACHE STRING "Select the amount of test including in CTEST (1 for minimun, 99 for maximum)")
 if (CTEST)
   set (DATA_DOWNLOAD ON)
 endif()
