@@ -43,7 +43,7 @@ using Double_v = geant::Double_v;
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-const double FieldPropagationHandler::gEpsDeflection = 1.E-2 * units::cm; // Units
+constexpr double FieldPropagationHandler::gEpsDeflection = 1.E-2 * units::cm;
 
 auto stageAfterCrossing = kPostPropagationStage;
 
@@ -149,7 +149,6 @@ void FieldPropagationHandler::DoIt(Track *track, Basket &output, TaskData *td)
   // Scalar geometry length computation. The track is moved into the output basket.
   // Step selection
   double step, lmax;
-  const double epsDeflection = 1.E-2 * units::cm; // Units!
 
   // std::cout <<" FieldPropagationHandler::DoIt(*track) called for 1 ptrTrack." << std::endl;
 
@@ -157,7 +156,7 @@ void FieldPropagationHandler::DoIt(Track *track, Basket &output, TaskData *td)
   // i.e. what is the propagated length for which the track deviation in
   // magnetic field with respect to straight propagation is less than epsilon.
   // Take the maximum between the safety and the "bending" safety
-  lmax = SafeLength(*track, /*gEps*/ epsDeflection);
+  lmax = SafeLength(*track, gEpsDeflection);
   lmax = vecCore::math::Max<double>(lmax, track->GetSafety());
   // Select step to propagate as the minimum among the "safe" step and:
   // the straight distance to boundary (if frombdr=1) or the proposed  physics
@@ -243,8 +242,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
       } else {
         track->SetStage(kGeometryStepStage);
       }
-      output.AddTrack(track);
     }
+    output.AddTrack(track);
   }
 #else
   // If vectorized treatment was requested and the remaining population is
@@ -253,7 +252,10 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   int nvect                 = 0;
   if (nvect < kMinVecSize) {
     for (auto track : tracks) {
-      if (track->Status() == kPhysics) continue;
+      if (track->Status() == kPhysics) {
+        output.AddTrack(track);
+        continue;
+      }
       if (!IsSameLocation(*track, td)) {
         td->fNcross++;
         td->fNsteps++;                       // Why not ?
