@@ -23,6 +23,7 @@ public:
   }
 
   double uniform() { return mrg32k3aScalar.Uniform<vecCore::backend::Scalar>(); }
+  double uniform(double a, double b) { return a + (b - a) * mrg32k3aScalar.Uniform<vecCore::backend::Scalar>(); }
   PhysDV uniformV() { return mrg32k3aVec.Uniform<PhysVecBackend>(); }
 
   double Gauss(double mean, double sigma) { return mrg32k3aScalar.Gauss<vecCore::backend::Scalar>(mean, sigma); }

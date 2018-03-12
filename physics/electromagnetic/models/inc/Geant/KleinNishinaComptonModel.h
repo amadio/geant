@@ -77,7 +77,7 @@ public:
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   KleinNishinaComptonModel(const KleinNishinaComptonModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -177,7 +177,7 @@ private:
   };
 
   // data members
-private:
+protected:
   /** @brief  Internal code of the secondary partcile (e-). */
   int fSecondaryInternalCode;
 
