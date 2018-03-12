@@ -11,17 +11,22 @@ public:
   WorkspaceForFieldPropagation(size_t bufferSize);
   ~WorkspaceForFieldPropagation();
 
-  size_t capacity() { return fPositionInp->capacity(); }
+  GEANT_FORCE_INLINE
+  size_t capacity() { return fCapacity; }
 
   /** @brief  Resize - likely to ignore old content */
+  GEANT_FORCE_INLINE
   void Resize(size_t size);
 
   /** @brief  Throw away old content */
+  GEANT_FORCE_INLINE
   void Clear();
 
   /** @brief  Enlarge the buffers, throwing away old content */
+  GEANT_FORCE_INLINE
   void ClearAndResize(size_t numEntries);
 
+  GEANT_FORCE_INLINE
   bool CheckSize(size_t numNeeded);
   // Invariant:
   //    All SOA3D containers must have the same size.
@@ -29,32 +34,45 @@ public:
   // Consequence:
   //  -> the size of fPositionInpForFieldProp with represent others
 public:
-  vecgeom::SOA3D<double> *fPositionInp   = nullptr;
-  vecgeom::SOA3D<double> *fDirectionInp  = nullptr;
-  vecgeom::SOA3D<double> *fPositionOutp  = nullptr;
-  vecgeom::SOA3D<double> *fDirectionOutp = nullptr;
+  size_t                  fCapacity      = 0;        // container capacity
+  double                 *fChargeInp     = nullptr;  // charge array
+  double                 *fMomentumInp   = nullptr;  // momentum array
+  double                 *fStepsInp      = nullptr;  // steps array
+  vecgeom::SOA3D<double> *fPositionInp   = nullptr;  // position array
+  vecgeom::SOA3D<double> *fDirectionInp  = nullptr;  // direction array
+  vecgeom::SOA3D<double> *fPositionOutp  = nullptr;  // new position array
+  vecgeom::SOA3D<double> *fDirectionOutp = nullptr;  // new direction array
 };
 
-inline WorkspaceForFieldPropagation::WorkspaceForFieldPropagation(size_t bufferSize)
+GEANT_FORCE_INLINE
+WorkspaceForFieldPropagation::WorkspaceForFieldPropagation(size_t bufferSize)
 {
   // using SoADd = vecgeom::SOA3D<type>;
   assert(bufferSize > 0);
 
+  fChargeInp     = vecgeom::AlignedAllocate<double>(bufferSize);
+  fMomentumInp   = vecgeom::AlignedAllocate<double>(bufferSize);
+  fStepsInp      = vecgeom::AlignedAllocate<double>(bufferSize);
   fPositionInp   = new vecgeom::SOA3D<double>(bufferSize);
   fDirectionInp  = new vecgeom::SOA3D<double>(bufferSize);
   fPositionOutp  = new vecgeom::SOA3D<double>(bufferSize);
   fDirectionOutp = new vecgeom::SOA3D<double>(bufferSize);
 }
 
-inline WorkspaceForFieldPropagation::~WorkspaceForFieldPropagation()
+GEANT_FORCE_INLINE
+WorkspaceForFieldPropagation::~WorkspaceForFieldPropagation()
 {
+  vecgeom::AlignedFree(fChargeInp);
+  vecgeom::AlignedFree(fMomentumInp);
+  vecgeom::AlignedFree(fStepsInp);
   delete fPositionInp;
   delete fDirectionInp;
   delete fPositionOutp;
   delete fDirectionOutp;
 }
 
-inline void WorkspaceForFieldPropagation::Clear()
+GEANT_FORCE_INLINE
+void WorkspaceForFieldPropagation::Clear()
 {
   fPositionInp->clear();
   fPositionOutp->clear();
@@ -62,29 +80,39 @@ inline void WorkspaceForFieldPropagation::Clear()
   fDirectionOutp->clear();
 }
 
-inline void WorkspaceForFieldPropagation::ClearAndResize(size_t numEntries)
+GEANT_FORCE_INLINE
+void WorkspaceForFieldPropagation::ClearAndResize(size_t numEntries)
 {
-  size_t currentCap = fPositionInp->capacity();
-  size_t nextCap    = std::min(currentCap + (currentCap >> 1), ((numEntries + 1) / 16 + 1) * 16);
-
   Clear();
 
-  fPositionInp->reserve(nextCap);
-  fPositionOutp->reserve(nextCap);
-  fDirectionInp->reserve(nextCap);
-  fDirectionOutp->reserve(nextCap);
+  if (numEntries > fCapacity) {
+    fCapacity = std::max(2 * fCapacity, ((numEntries + 1) / 16 + 1) * 16);
+
+    vecgeom::AlignedFree(fChargeInp);
+    vecgeom::AlignedFree(fMomentumInp);
+    vecgeom::AlignedFree(fStepsInp);
+    fChargeInp   = vecgeom::AlignedAllocate<double>(fCapacity);
+    fMomentumInp = vecgeom::AlignedAllocate<double>(fCapacity);
+    fStepsInp    = vecgeom::AlignedAllocate<double>(fCapacity);
+    fPositionInp->reserve(fCapacity);
+    fPositionOutp->reserve(fCapacity);
+    fDirectionInp->reserve(fCapacity);
+    fDirectionOutp->reserve(fCapacity);
+  }
 }
 
-inline void WorkspaceForFieldPropagation::Resize(size_t size)
+GEANT_FORCE_INLINE
+void WorkspaceForFieldPropagation::Resize(size_t size)
 {
-  assert(size < fPositionInp->capacity());
+  assert(size < fCapacity);
   fPositionInp->resize(size);
   fPositionOutp->resize(size);
   fDirectionInp->resize(size);
   fDirectionOutp->resize(size);
 }
 
-inline bool WorkspaceForFieldPropagation::CheckSize(size_t numNeeded)
+GEANT_FORCE_INLINE
+bool WorkspaceForFieldPropagation::CheckSize(size_t numNeeded)
 {
   bool goodInp = fPositionInp && (fPositionInp->capacity() >= numNeeded);
   assert(goodInp && "Bad capacity of PositionInp in Workspace for Field Propagation.");

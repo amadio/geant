@@ -492,15 +492,16 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   // double yInput[8*nTracks], yOutput[8*nTracks];
   bool succeeded[nTracks];
   // int        intCharge[nTracks];
-  double fltCharge[nTracks];
-
+  
   // Choice 1.  SOA3D
   PrepareBuffers(nTracks, td);
 
   auto wsp                   = td->fSpace4FieldProp; // WorkspaceForFieldPropagation *
+  double *fltCharge          = wsp->fChargeInp;
+  double *momentumMag        = wsp->fMomentumInp;
+  double *steps              = wsp->fStepsInp;
   SOA3D<double> &position3D  = *(wsp->fPositionInp);
   SOA3D<double> &direction3D = *(wsp->fDirectionInp);
-  double momentumMag[nTracks];
 
   SOA3D<double> &PositionOut  = *(wsp->fPositionOutp);
   SOA3D<double> &DirectionOut = *(wsp->fDirectionOutp);
@@ -514,6 +515,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
     // intCharge[itr]= pTrack->Charge();
     fltCharge[itr]   = pTrack->Charge();
     momentumMag[itr] = pTrack->P();
+    steps[itr]       = stepSize[itr];
 
     // PositMom6D.push_back( pTrack->X(), pTrack->Y(), pTrack->Z(), px, py, pz );
     position3D.push_back(pTrack->X(), pTrack->Y(), pTrack->Z());
@@ -535,7 +537,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
     //           << " z=" << PositionOut.z() << std::endl;
 
     stepper.DoStepArr<Double_v>(position3D.x(), position3D.y(), position3D.z(), direction3D.x(), direction3D.y(),
-                                direction3D.z(), fltCharge, momentumMag, stepSize, PositionOut.x(), PositionOut.y(),
+                                direction3D.z(), fltCharge, momentumMag, steps, PositionOut.x(), PositionOut.y(),
                                 PositionOut.z(), DirectionOut.x(), DirectionOut.y(), DirectionOut.z(), nTracks);
     // Store revised positions and location in original tracks
     for (int itr = 0; itr < nTracks; ++itr) {
@@ -552,6 +554,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       double dirDiff           = (DirectionNew - DirectionOut[itr]).Mag();
       if (posDiff > 1.e-6 || dirDiff > 1.e-6) {
         std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posDiff << " / " << dirDiff << "\n";
+        stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), steps[itr], PositionNew, DirectionNew);
       }
 
       Vector3D<double> positionMove = {track.X(),  //  - PositionOut.x(itr),
@@ -561,6 +564,20 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       double posShift = positionMove.Mag();
       track.SetPosition(PositionOut.x(itr), PositionOut.y(itr), PositionOut.z(itr));
       track.SetDirection(DirectionOut.x(itr), DirectionOut.y(itr), DirectionOut.z(itr));
+      // Update status, step and safety
+      track.SetStatus(kInFlight);
+      double pstep = track.GetPstep() - stepSize[itr];
+      if (pstep < 1.E-10) {
+        pstep = 0;
+        track.SetStatus(kPhysics);
+      }
+      double snext = track.GetSnext() - stepSize[itr];
+      if (snext < 1.E-10) {
+        snext = 0;
+        if (track.Boundary()) track.SetStatus(kBoundary);
+      }
+      track.SetSnext(snext);
+      track.IncreaseStep(stepSize[itr]);
 
       // Check new direction
       Vector3D<double> dirOut(DirectionOut.x(itr), DirectionOut.y(itr), DirectionOut.z(itr));
@@ -607,7 +624,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
     if (vectorDriver) {
       // Integrate using Runge Kutta method
-      vectorDriver->AccurateAdvance(fldTracksIn, stepSize, fltCharge, fEpsTol, fldTracksOut, nTracks, succeeded);
+      vectorDriver->AccurateAdvance(fldTracksIn, steps, fltCharge, fEpsTol, fldTracksOut, nTracks, succeeded);
 
 #ifdef CHECK_VS_SCALAR
       bool checkVsScalar     = true;
@@ -721,6 +738,13 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         // Update the state of this track
         track.SetPosition(fldTrackEnd[0], fldTrackEnd[1], fldTrackEnd[2]);
         track.SetDirection(pmag_inv * pX, pmag_inv * pY, pmag_inv * pZ);
+        double snext = track.GetSnext() - stepSize[itr];
+        if (snext < 1.E-10) {
+          snext = 0;
+          if (track.Boundary()) track.SetStatus(kBoundary);
+        }
+        track.SetSnext(snext);
+        track.IncreaseStep(stepSize[itr]);
 
         // Exact update of the safety - using true move (not distance along curve)
         track.DecreaseSafety(posShift); //  Was crtstep;
