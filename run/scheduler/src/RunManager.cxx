@@ -512,7 +512,8 @@ void RunManager::RunSimulation()
     float nbasketized = td0->fCounters[stage]->fNvector;
     float ntotal      = nbasketized + td0->fCounters[stage]->fNscalar;
     Printf("Stage %20s: basketizable %ld/%d handlers > basketized %d %% (nscalar = %ld  nvector = %ld)",
-           simstage->GetName(), simstage->GetNbasketized(), simstage->GetNhandlers(), int(100 * nbasketized / ntotal),
+           simstage->GetName(), simstage->GetNbasketized(), simstage->GetNhandlers(),
+           int(100 * nbasketized / std::max(ntotal,1.0f)),
            size_t(ntotal - nbasketized), size_t(nbasketized));
   }
 

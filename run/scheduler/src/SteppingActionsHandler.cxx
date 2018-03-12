@@ -22,6 +22,8 @@ SteppingActionsHandler::~SteppingActionsHandler()
   // Destructor
 }
 
+#define GV_VERBOSE_STEPPING 1
+          
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)

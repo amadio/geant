@@ -22,11 +22,13 @@
 
 using ThreeVector = vecgeom::Vector3D<double>;
 
+#define USE_FLEXIBLE_FOR_SCALAR 1
+
 FlexIntegrationDriver *GUFieldPropagator::fVectorDriver = nullptr;
 double GUFieldPropagator::fEpsilon                      = 1.0e-4;
 //------------------------------------------------------------------------------------
 GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps, FlexIntegrationDriver *flexDriver)
-    : fScalarDriver(driver), fVerboseConstruct(false)
+    : fScalarDriver(driver), fVerboseConstruct(true)
 // fEpsilon(eps)
 {
   const char *methodName = "GUFieldPropagator constructor (scalarDriver, eps, *flex - with default = null)";
@@ -59,8 +61,13 @@ GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps
   }
 
   if (fVerboseConstruct) {
-    std::cout << "GUFieldPropagator constructor> ptr= " << this << std::endl
-              << " scalar driver = " << fScalarDriver << " flex/vector driver = " << flexDriver << std::endl;
+     std::cout << "GUFieldPropagator constructor> ptr= " << this << std::endl;
+#    ifdef USE_FLEXIBLE_FOR_SCALAR
+     std::cout << "   No scalar driver (using Flexible for this case.) "
+#else        
+     std::cout << "   scalar driver = " << fScalarDriver
+#endif        
+               << "  Flex/vector driver = " << flexDriver << std::endl;
   }
 }
 
@@ -143,10 +150,7 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
   bool goodAdvance       = false;
   bool verbose           = false;
 
-  verbose                 = true;
   static bool infoPrinted = false;
-
-// #define USE_FLEXIBLE_FOR_SCALAR 1
 
 #ifdef USE_FLEXIBLE_FOR_SCALAR
   // Try using the flexible driver first - for a single value ... ( to be improved )
