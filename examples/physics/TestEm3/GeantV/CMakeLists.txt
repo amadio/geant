@@ -18,7 +18,7 @@ include_directories(
 
 set(ExampleScripts TestEm3_GV_ATLASbar.mac README)
 # Set to 2 or more to exclude from the default set
-set(ExampleCTestLevel 2)
+set(ExampleCTestLevel 1)
 
 file(GLOB ExampleSources src/*.cc)
 file(GLOB ExampleHeaders inc/*.h)
