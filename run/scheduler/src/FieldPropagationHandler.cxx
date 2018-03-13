@@ -581,15 +581,11 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         //                       endPositionNew, DirectionNew);
       }
 #endif
-      Vector3D<double> positionMove = {track.X(),  //  - PositionOut.x(itr),
-                                       track.Y(),  //  - PositionOut.y(itr),
-                                       track.Z()}; //  - PositionOut.z(itr) };
-      positionMove -= PositionOut[itr];
+      Vector3D<double> positionMove = startPosition - PositionOut[itr];
       
       // Store revised positions and location in original tracks
       track.SetPosition(PositionOut.x(itr), PositionOut.y(itr), PositionOut.z(itr));
       track.SetDirection(DirectionOut.x(itr), DirectionOut.y(itr), DirectionOut.z(itr)); // ( DirectionOut[itr] );
-      double posShift = positionMove.Mag();
 
       // Update status, step and safety
       track.SetStatus(kInFlight);
@@ -609,7 +605,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       // Check new direction
       Vector3D<double> dirOut(DirectionOut.x(itr), DirectionOut.y(itr), DirectionOut.z(itr));
       // std::cout << "["<< itr << "] new direction = " << dirOut.x() << " " << dirOut.y() << " " << dirOut.z() <<
-      // std::endl;
+      // std::endl;      
       assert(fabs(dirOut.Mag() - 1.0) < 1.0e-6 && "Out Direction is not normalised.");
       // Exact update of the safety - using true move (not distance along curve)
 
