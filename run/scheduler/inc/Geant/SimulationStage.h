@@ -50,17 +50,18 @@ class SimulationStage {
 protected:
   ESimulationStage fType  = kPreStepStage; ///< Processing stage type
   Propagator *fPropagator = nullptr;       ///< Propagator owning this stage
+  float fFireFlushRatio   = 0;             ///< Ratio fired/flushed baskets to trigger basketizing
   int fId                 = 0;             ///< Unique stage id
   int fUserActionsStage   = 0;             ///< User actions stage to be executed right after
   int fFollowUpStage      = 0;             ///< In case there is a single follow-up store its id
-  atomic_t<int> fCheckCountdown;           ///< Countdown fir checking basketizer efficiency
-  size_t fThrBasketCheck = 0;              ///< Threshold for starting checking efficiency of basketizing
-  float fFireFlushRatio  = 0;              ///< Ratio fired/flushed baskets to trigger basketizing
-  size_t fNstaged        = 0;              ///< Total number of staged tracks
-  bool fUniqueFollowUp   = false;          ///< All tracks go to single follow-up after this stage
-  bool fEndStage         = false;          ///< Marker for stage at end of stepping
-  bool fBasketized       = false;          ///< Stage is basketized
+  size_t fThrBasketCheck  = 0;             ///< Threshold for starting checking efficiency of basketizing
+  size_t fNstaged         = 0;             ///< Total number of staged tracks
+  size_t fNbasketized     = 0;             ///< Number of basketized handlers
+  bool fUniqueFollowUp    = false;         ///< All tracks go to single follow-up after this stage
+  bool fEndStage          = false;         ///< Marker for stage at end of stepping
+  bool fBasketized        = false;         ///< Stage is basketized
   Handlers_t fHandlers;                    ///< Array of handlers for the stage
+  atomic_t<int> fCheckCountdown;           ///< Countdown fir checking basketizer efficiency
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fCheckLock; ///< Lock for checking basketizers efficiency
@@ -132,6 +133,21 @@ public:
   /** @brief Activate basketizing */
   VECCORE_ATT_HOST_DEVICE
   virtual void ActivateBasketizing(bool) {}
+
+  /** @brief Count basketized handlers */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  size_t CountBasketized()
+  {
+    for (int i = 0; i < GetNhandlers(); ++i)
+      fNbasketized += size_t(fHandlers[i]->MayBasketize());
+    return fNbasketized;
+  }
+
+  /** @brief Get number of basketized handlers */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  size_t GetNbasketized() const { return fNbasketized; }
 
   /** @brief Process a basket of tracks marked for the stage
    *  @return Number of tracks processed

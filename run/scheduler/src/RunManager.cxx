@@ -499,15 +499,20 @@ void RunManager::RunSimulation()
 
   TaskData *td0 = fTDManager->GetTaskData(0);
   for (size_t stage = 0; stage < kNstages; ++stage) {
+    SimulationStage *simstage = fPropagators[0]->GetStage(ESimulationStage(stage));
+    if (!simstage->IsBasketized()) {
+      Printf("Stage %20s: not basketized", simstage->GetName());
+      continue;
+    }
+    // Merge stage counters
     for (size_t i = 1; i < fTDManager->GetNtaskData(); ++i) {
       TaskData *td = fTDManager->GetTaskData(i);
-      // Merge stage counters
       *td0->fCounters[stage] += *td->fCounters[stage];
     }
     float nbasketized = td0->fCounters[stage]->fNvector;
     float ntotal      = nbasketized + td0->fCounters[stage]->fNscalar;
-    Printf("Stage %20s: basketized %d %% (nscalar = %ld  nvector = %ld)",
-           fPropagators[0]->GetStage(ESimulationStage(stage))->GetName(), int(100 * nbasketized / ntotal),
+    Printf("Stage %20s: basketizable %ld/%d handlers > basketized %d %% (nscalar = %ld  nvector = %ld)",
+           simstage->GetName(), simstage->GetNbasketized(), simstage->GetNhandlers(), int(100 * nbasketized / ntotal),
            size_t(ntotal - nbasketized), size_t(nbasketized));
   }
 

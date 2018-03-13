@@ -35,7 +35,7 @@ public:
   ~ComputeIntLStage();
 
   /** @brief Get simulation stage name */
-  virtual const char *GetName() { return "ComputeIntLStage"; }
+  virtual const char *GetName() { return "ComputeIntL"; }
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */

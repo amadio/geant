@@ -37,7 +37,7 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
   // do not touch if other checking operation is ongoing
   if (fCheckLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
-  fThrBasketCheck *= 2.;
+  fThrBasketCheck *= 3.;
   fCheckCountdown = fThrBasketCheck;
   int nactivated  = 0;
   size_t nactive  = 0;
@@ -59,12 +59,14 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
         fHandlers[i]->ActivateBasketizing(false);
         FlushHandler(i, td, output);
         nactivated--;
+        nactive--;
       }
     } else {
       // We start basketizing if firing rate is above threshold
       if (nfired > nflushed * flush_threshold) {
         fHandlers[i]->ActivateBasketizing(true);
         nactivated++;
+        nactive++;
       }
     }
   }
@@ -78,10 +80,11 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
 #endif
   CopyToFollowUps(output, td);
   if (nactivated > 0)
-    Printf("--- activated %d basketizers for stage %s\n", nactivated, GetName());
+    Printf("--- activated %d basketizers for stage %s : now %ld/%ld active\n", nactivated, GetName(), nactive,
+           fHandlers.size());
   else if (nactivated < 0)
-    Printf("--- stopped %d basketizers for stage %s\n", -nactivated, GetName());
-  printf("%ld/%ld active basketizers\n", nactive, fHandlers.size());
+    Printf("--- stopped   %d basketizers for stage %s : now %ld/%ld active\n", -nactivated, GetName(), nactive,
+           fHandlers.size());
   return nactivated;
 }
 
@@ -130,7 +133,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
     Handler *handler = Select(track, td);
     // Execute in scalar mode the handler action
     if (handler) {
-      td->fCounters[fId]->fNscalar++;
+      td->fCounters[fId]->fNscalar += size_t(fBasketized & handler->MayBasketize());
       handler->DoIt(track, output, td);
     } else
       output.AddTrack(track);
@@ -203,8 +206,6 @@ int SimulationStage::Process(TaskData *td)
     }
 
     if (!handler->IsActive()) {
-      // Scalar DoIt.
-      // The track and its eventual progenies should be now copied to the output
       if (fBasketized) {
         size_t &counter = td->fCounters[fId]->fCounters[handler->GetId()];
         counter++;
@@ -212,17 +213,17 @@ int SimulationStage::Process(TaskData *td)
           counter = 0;
           handler->AddFired();
         }
+        // Account scalar calls to basketizable handlers
+        if (handler->MayBasketize()) td->fCounters[fId]->fNscalar++;
       }
-      td->fCounters[fId]->fNscalar++;
+      // Scalar DoIt.
       handler->DoIt(track, output, td);
-#ifdef GEANT_DEBUG
-//      assert(!output.HasTrackMany(track));
-#endif
     } else {
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector)) {
         // Vector DoIt
         td->fCounters[fId]->fNvector += bvector.size();
+        handler->AddFired();
         handler->DoIt(bvector, output, td);
         bvector.Clear();
       }
@@ -230,6 +231,7 @@ int SimulationStage::Process(TaskData *td)
   }
   // The stage buffer needs to be cleared
   input.Clear();
+  // The track and its eventual progenies should be now copied to the output
   return CopyToFollowUps(output, td);
 }
 

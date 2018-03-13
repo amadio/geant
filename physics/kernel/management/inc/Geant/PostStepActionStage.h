@@ -35,7 +35,7 @@ public:
   ~PostStepActionStage();
 
   /** @brief Get simulation stage name */
-  virtual const char *GetName() { return "PostStepActionStage"; }
+  virtual const char *GetName() { return "PostStepAction"; }
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */

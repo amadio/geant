@@ -309,6 +309,7 @@ int Propagator::CreateSimulationStages()
   // Create the handlers
   for (auto stage : fStages) {
     int nhandlers = stage->CreateHandlers();
+    stage->CountBasketized();
     (void)nhandlers;
     assert((nhandlers > 0) && "Number of handlers for a simulation stage cannot be 0");
   }

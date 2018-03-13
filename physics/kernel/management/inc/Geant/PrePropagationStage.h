@@ -37,7 +37,7 @@ public:
   ~PrePropagationStage();
 
   /** @brief Get simulation stage name */
-  virtual const char *GetName() { return "PrePropagationStage"; }
+  virtual const char *GetName() { return "PrePropagation"; }
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */

@@ -34,14 +34,14 @@ public:
   // Consequence:
   //  -> the size of fPositionInpForFieldProp with represent others
 public:
-  size_t                  fCapacity      = 0;        // container capacity
-  double                 *fChargeInp     = nullptr;  // charge array
-  double                 *fMomentumInp   = nullptr;  // momentum array
-  double                 *fStepsInp      = nullptr;  // steps array
-  vecgeom::SOA3D<double> *fPositionInp   = nullptr;  // position array
-  vecgeom::SOA3D<double> *fDirectionInp  = nullptr;  // direction array
-  vecgeom::SOA3D<double> *fPositionOutp  = nullptr;  // new position array
-  vecgeom::SOA3D<double> *fDirectionOutp = nullptr;  // new direction array
+  size_t fCapacity                       = 0;       // container capacity
+  double *fChargeInp                     = nullptr; // charge array
+  double *fMomentumInp                   = nullptr; // momentum array
+  double *fStepsInp                      = nullptr; // steps array
+  vecgeom::SOA3D<double> *fPositionInp   = nullptr; // position array
+  vecgeom::SOA3D<double> *fDirectionInp  = nullptr; // direction array
+  vecgeom::SOA3D<double> *fPositionOutp  = nullptr; // new position array
+  vecgeom::SOA3D<double> *fDirectionOutp = nullptr; // new direction array
 };
 
 GEANT_FORCE_INLINE

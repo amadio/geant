@@ -314,10 +314,10 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 
   // std::cout << "FieldPropagationHandler::PropagateInVolume called for 1 track" << std::endl;
 
-  using ThreeVector  = vecgeom::Vector3D<double>;
+  using ThreeVector            = vecgeom::Vector3D<double>;
   constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
-  bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
-  double bmag        = -1.0;
+  bool useRungeKutta           = td->fPropagator->fConfig->fUseRungeKutta;
+  double bmag                  = -1.0;
   ThreeVector BfieldInitial;
   ThreeVector Position(track.X(), track.Y(), track.Z());
   FieldLookup::GetFieldValue(Position, BfieldInitial, bmag);
@@ -358,7 +358,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   useRungeKutta = useRungeKutta && (mediumAngle);
 #endif
 
-  // if( angle > 0.000001 ) std::cout << " ang= " << angle << std::endl;
+// if( angle > 0.000001 ) std::cout << " ang= " << angle << std::endl;
 #ifdef DEBUG_FIELD
   printf("--PropagateInVolume(Single): ");
   printf("Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= "
@@ -376,35 +376,37 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   // #ifndef VECCORE_CUDA
   if (useRungeKutta) {
     fieldPropagator->DoStep(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-    // cross check
+// cross check
+#ifdef DEBUG_FIELD
     double Bz = BfieldInitial[2] * toKiloGauss;
     ConstBzFieldHelixStepper stepper_bz(Bz); //
-    stepper_bz.DoStep<ThreeVector, double, int>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNewCheck,
-                                               DirectionNewCheck);
-    double posShift           = (PositionNew - PositionNewCheck).Mag();
-    double dirShift           = (DirectionNew - DirectionNewCheck).Mag();
+    stepper_bz.DoStep<ThreeVector, double, int>(Position, Direction, track.Charge(), track.P(), crtstep,
+                                                PositionNewCheck, DirectionNewCheck);
+    double posShift = (PositionNew - PositionNewCheck).Mag();
+    double dirShift = (DirectionNew - DirectionNewCheck).Mag();
     if (posShift > 1.e-6 || dirShift > 1.e-6) {
       std::cout << "*** position/direction shift RK vs. HelixConstBz :" << posShift << " / " << dirShift << "\n";
     }
 
     ConstFieldHelixStepper stepper(BfieldInitial * toKiloGauss);
     stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-    posShift           = (PositionNew - PositionNewCheck).Mag();
-    dirShift           = (DirectionNew - DirectionNewCheck).Mag();
+    posShift = (PositionNew - PositionNewCheck).Mag();
+    dirShift = (DirectionNew - DirectionNewCheck).Mag();
     if (posShift > 1.e-6 || dirShift > 1.e-6) {
       std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posShift << " / " << dirShift << "\n";
     }
+#endif
 
- #ifdef STATS_METHODS
+#ifdef STATS_METHODS
     numRK++;
 #endif
   } else
   // #endif
   {
-                                            // Must agree with values in magneticfield/inc/Units.h
-    double Bz = BfieldInitial[2] * toKiloGauss;
-    const bool dominantBz = false; //std::fabs(std::fabs(BfieldInitial[2])) >
-                      // 1.e3 * std::max(std::fabs(BfieldInitial[0]), std::fabs(BfieldInitial[1]));
+    // Must agree with values in magneticfield/inc/Units.h
+    double Bz             = BfieldInitial[2] * toKiloGauss;
+    const bool dominantBz = false; // std::fabs(std::fabs(BfieldInitial[2])) >
+    // 1.e3 * std::max(std::fabs(BfieldInitial[0]), std::fabs(BfieldInitial[1]));
     if (dominantBz) {
       // Constant field in Z-direction
       ConstBzFieldHelixStepper stepper(Bz); //
@@ -483,9 +485,9 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   // The Vectorized Implementation for Magnetic Field Propagation
   // std::cout << "FieldPropagationHandler::PropagateInVolume called for Many tracks" << std::endl;
 
-  using ThreeVector  = vecgeom::Vector3D<double>;
+  using ThreeVector            = vecgeom::Vector3D<double>;
   constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
-    int nTracks = tracks.size();
+  int nTracks                  = tracks.size();
 #if 1 // VECTOR_FIELD_PROPAGATION
   using vecgeom::SOA3D;
   using vecgeom::Vector3D;
@@ -494,7 +496,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   // double yInput[8*nTracks], yOutput[8*nTracks];
   bool succeeded[nTracks];
   // int        intCharge[nTracks];
-  
+
   // Choice 1.  SOA3D
   PrepareBuffers(nTracks, td);
 
@@ -543,22 +545,23 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
                                 PositionOut.z(), DirectionOut.x(), DirectionOut.y(), DirectionOut.z(), nTracks);
     // Store revised positions and location in original tracks
     for (int itr = 0; itr < nTracks; ++itr) {
-      Track &track                  = *tracks[itr];
+      Track &track = *tracks[itr];
 
       // Crosscheck against helix stepper
       ThreeVector Position(track.X(), track.Y(), track.Z());
       ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
+#ifdef DEBUG_FIELD
       ThreeVector PositionNew(0., 0., 0.);
       ThreeVector DirectionNew(0., 0., 0.);
 
       stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), stepSize[itr], PositionNew, DirectionNew);
-      double posDiff           = (PositionNew - PositionOut[itr]).Mag();
-      double dirDiff           = (DirectionNew - DirectionOut[itr]).Mag();
+      double posDiff = (PositionNew - PositionOut[itr]).Mag();
+      double dirDiff = (DirectionNew - DirectionOut[itr]).Mag();
       if (posDiff > 1.e-6 || dirDiff > 1.e-6) {
         std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posDiff << " / " << dirDiff << "\n";
         stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), steps[itr], PositionNew, DirectionNew);
       }
-
+#endif
       Vector3D<double> positionMove = {track.X(),  //  - PositionOut.x(itr),
                                        track.Y(),  //  - PositionOut.y(itr),
                                        track.Z()}; //  - PositionOut.z(itr) };
