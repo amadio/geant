@@ -193,7 +193,7 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
   double valsOut[6] = {0., 0., 0., 0., 0., 0.};
   yTrackOutFT.DumpToArray(valsOut);
   endPosition             = ThreeVector(valsOut[0], valsOut[1], valsOut[2]);
-  ThreeVector endMomentum = ThreeVector(valsOut[3], valsOut[4], valsOut[3]);
+  ThreeVector endMomentum = ThreeVector(valsOut[3], valsOut[4], valsOut[5]);
   endDirection            = invMomentumMag * endMomentum;
 // Check that endDirection is a unit vector here or later ?
 #else
