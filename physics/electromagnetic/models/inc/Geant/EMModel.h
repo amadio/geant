@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <Geant/LightTrack.h>
+#include <Geant/VectorPhysicsTypes.h>
 
 // from geantV
 #include "Geant/Config.h"
@@ -195,6 +196,25 @@ public:
 
   // protected
   void RotateToLabFrame(double &u, double &v, double &w, double x, double y, double z);
+
+  void RotateToLabFrame(PhysDV &u, PhysDV &v, PhysDV &w, PhysDV u1, PhysDV u2, PhysDV u3) {
+    PhysDV up = u1 * u1 + u2 * u2;
+    PhysDM upPos = up > 0.0;
+    if (!upPos.isEmpty()){
+      up = vecCore::math::Sqrt(up);
+      PhysDV px = u;
+      PhysDV py = v;
+      PhysDV pz = w;
+      vecCore::MaskedAssign(u,upPos,(u1 * u3 * px - u2 * py) / up + u1 * pz);
+      vecCore::MaskedAssign(v,upPos,(u2 * u3 * px + u1 * py) / up + u2 * pz);
+      vecCore::MaskedAssign(w,upPos,-up * px + u3 * pz);
+    }
+    PhysDM upPosu3Neg = upPos && u3 < 0.;
+    if(!upPosu3Neg.isEmpty()){
+      vecCore::MaskedAssign(u, upPosu3Neg, -u);
+      vecCore::MaskedAssign(w, upPosu3Neg, -w);
+    }
+  }
 
   //
   // Target element selector related

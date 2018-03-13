@@ -56,7 +56,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
   primaryLT.SetDirZ(track->Dz());
 
   // clean the number of secondary tracks used (in PhysicsData)
-  td->fPhysicsData->SetNumUsedSecondaries(0);
+  td->fPhysicsData->ClearSecondaries();
 
   int nSecParticles = fModel->SampleSecondaries(primaryLT, td);
 
@@ -83,7 +83,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
 
   // create secondary tracks if there are any
   if (nSecParticles) {
-    std::vector<LightTrack> &secLt = td->fPhysicsData->GetListOfSecondaries();
+    LightTrack* secLt = td->fPhysicsData->GetListOfSecondaries();
 
     for (int isec = 0; isec < nSecParticles; ++isec) {
       int secGVcode               = secLt[isec].GetGVcode(); // GV index of this secondary particle
@@ -155,7 +155,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &o
   primaryLTs.SetNtracks(gtracks.size());
 
   // clean the number of secondary tracks used (in PhysicsData)
-  td->fPhysicsData->SetNumUsedSecondaries(0);
+  td->fPhysicsData->GetSecondarySOA().ClearTracks();
 
   fModel->SampleSecondariesVector(primaryLTs, td);
 

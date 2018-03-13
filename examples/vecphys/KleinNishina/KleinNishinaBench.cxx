@@ -9,11 +9,14 @@ static void KleinNishinaScalarAlias(benchmark::State &state)
 
   auto Td = PrepareTaskData();
   std::vector<LightTrack> primaries;
-  PreparePrimaries(primaries);
+
+  int basketSize = state.range(0);
 
   for (auto _ : state) {
-    int basketSize = state.range(0);
-    Td->fPhysicsData->SetNumUsedSecondaries(0);
+    state.PauseTiming();
+    PreparePrimaries(primaries,basketSize);
+    state.ResumeTiming();
+    Td->fPhysicsData->ClearSecondaries();
     for (int i = 0; i < basketSize; ++i) {
       kNish->SampleSecondaries(primaries[i], Td);
     }
@@ -24,17 +27,46 @@ static void KleinNishinaScalarAlias(benchmark::State &state)
 }
 BENCHMARK(KleinNishinaScalarAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
+static void KleinNishinaVectorAlias(benchmark::State &state)
+{
+  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(true);
+
+  auto Td = PrepareTaskData();
+
+  LightTrack_v primaries;
+
+  int basketSize = state.range(0);
+
+  for (auto _ : state) {
+    state.PauseTiming();
+    PreparePrimaries(primaries,basketSize);
+    primaries.SetNtracks(basketSize);
+    state.ResumeTiming();
+
+    Td->fPhysicsData->GetSecondarySOA().ClearTracks();
+    kNish->SampleSecondariesVector(primaries, Td);
+  }
+
+  delete kNish;
+  CleanTaskData(Td);
+}
+BENCHMARK(KleinNishinaVectorAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+
 static void KleinNishinaScalarRej(benchmark::State &state)
 {
   KleinNishinaComptonModel *kNish = PrepareKnishinaModel(false);
 
   auto Td = PrepareTaskData();
   std::vector<LightTrack> primaries;
-  PreparePrimaries(primaries);
+
+
+  int basketSize = state.range(0);
 
   for (auto _ : state) {
-    int basketSize = state.range(0);
-    Td->fPhysicsData->SetNumUsedSecondaries(0);
+    state.PauseTiming();
+    PreparePrimaries(primaries,basketSize);
+    state.ResumeTiming();
+    Td->fPhysicsData->ClearSecondaries();
     for (int i = 0; i < basketSize; ++i) {
       kNish->SampleSecondaries(primaries[i], Td);
     }
@@ -47,20 +79,37 @@ BENCHMARK(KleinNishinaScalarRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBask
 
 BENCHMARK_MAIN();
 
-void PreparePrimaries(std::vector<LightTrack> &output)
+void PreparePrimaries(std::vector<LightTrack> &output,int N)
+{
+    geant::VecRngWrapper rng;
+    output.clear();
+    for (int i = 0; i < N; ++i) {
+      LightTrack gamma;
+      double phi = geant::units::kTwoPi * rng.uniform(); // NOT uniform on shpere
+      double th = geant::units::kPi * rng.uniform();
+      gamma.SetDirX(sin(phi) * cos(th));
+      gamma.SetDirY(cos(phi) * cos(th));
+      gamma.SetDirZ(sin(th));
+      double eKin = minEn + (maxEn - minEn) * rng.uniform();
+      gamma.SetKinE(eKin);
+      output.push_back(gamma);
+    }
+}
+
+
+void PreparePrimaries(LightTrack_v &output,int N)
 {
   geant::VecRngWrapper rng;
-  output.clear();
-  for (int i = 0; i < kMaxBasket; ++i) {
-    LightTrack gamma;
+  output.SetNtracks(N);
+  for (int i = 0; i < N; ++i) {
     double phi = geant::units::kTwoPi * rng.uniform(); // NOT uniform on shpere
     double th  = geant::units::kPi * rng.uniform();
-    gamma.SetDirX(sin(phi) * cos(th));
-    gamma.SetDirY(cos(phi) * cos(th));
-    gamma.SetDirZ(sin(th));
+    output.SetDirX(sin(phi) * cos(th),i);
+    output.SetDirY(cos(phi) * cos(th),i);
+    output.SetDirZ(sin(th),i);
     double eKin = minEn + (maxEn - minEn) * rng.uniform();
-    gamma.SetKinE(eKin);
-    output.push_back(gamma);
+    output.SetKinE(eKin,i);
+    output.SetTrackIndex(i,i);
   }
 }
 

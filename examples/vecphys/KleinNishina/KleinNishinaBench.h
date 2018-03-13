@@ -3,7 +3,8 @@
 
 #include "KleinNishinaTestCommon.h"
 
-void PreparePrimaries(std::vector<LightTrack> &output);
+void PreparePrimaries(std::vector<LightTrack> &output, int N);
+void PreparePrimaries(LightTrack_v &outputm, int N);
 TaskData *PrepareTaskData();
 void CleanTaskData(TaskData *Td);
 

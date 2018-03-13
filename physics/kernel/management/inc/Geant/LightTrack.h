@@ -3,6 +3,7 @@
 #define LIGHT_TRACK
 
 #include <atomic>
+#include <Geant/VectorPhysicsTypes.h>
 
 namespace geantphysics {
 
@@ -343,6 +344,9 @@ public:
     }
   };
 
+  void ClearTracks() { fNtracks = 0; }
+  int InsertTrack(){ return fNtracks++; }
+
   /** @brief Method that returns the number of tracks contained */
   int GetNtracks() const { return fNtracks; }
 
@@ -390,14 +394,22 @@ public:
   /** @brief Method that returns the X direction value (normalized, adimensional) */
   double GetDirX(int i) const { return fXdirV[i]; }
 
+  double* GetDirXV() { return &fXdirV[0]; }
+
   /** @brief Method that returns the Y direction value (normalized, adimensional) */
   double GetDirY(int i) const { return fYdirV[i]; }
+
+  double* GetDirYV() { return &fYdirV[0]; }
 
   /** @brief Method that returns the Z direction value (normalized, adimensional) */
   double GetDirZ(int i) const { return fZdirV[i]; }
 
+  double* GetDirZV() { return &fZdirV[0]; }
+
   /** @brief Method that returns the kinetic energy (unit: energy) */
   double GetKinE(int i) const { return fKinEV[i]; }
+
+  double* GetKinEVec() { return &fKinEV[0]; }
 
   /** @brief Method that returns the dynamic mass (unit: energy) */
   double GetMass(int i) const { return fMassV[i]; }
@@ -413,6 +425,8 @@ public:
 
   /** Method that returns the energy deposit in the last step (unit: energy) */
   double GetEnergyDeposit(int i) const { return fEdepV[i]; }
+
+  double* GetEnergyDepositVec() { return &fEdepV[0]; }
 
   /** Method to get the number of interaction length left. */
   double GetNumOfInteractionLegthLeft(int i) const { return fNintLenV[i]; }

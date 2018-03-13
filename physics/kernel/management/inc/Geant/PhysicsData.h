@@ -9,6 +9,17 @@ namespace geantphysics {
 
 class LightTrack;
 
+
+struct KleinNishinaData{
+  static constexpr int dataSize = 2048;
+  KleinNishinaData() : fEps(dataSize), fR0(dataSize), fR1(dataSize), fR2(dataSize), fR3(dataSize){}
+  std::vector<double> fEps;
+  std::vector<double> fR0;
+  std::vector<double> fR1;
+  std::vector<double> fR2;
+  std::vector<double> fR3;
+};
+
 class PhysicsData {
 public:
   PhysicsData();
@@ -40,6 +51,7 @@ public:
   static void ClearAll();
   static std::vector<PhysicsData *> gThePhysicsDataTable;
 
+  KleinNishinaData fKleinNishinaData;
 private:
   void ResizeIfSmall()
   {
@@ -51,6 +63,7 @@ private:
   std::vector<int> fSecondaryFillVector;
   LightTrack_v fPrimaryLTs;
   LightTrack_v fSecondaryLTs;
+
 };
 
 } // namespace geantphysics
