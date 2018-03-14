@@ -1,5 +1,5 @@
-#include "KleinNishinaBench.h"
 #include <benchmark/benchmark.h>
+#include "KleinNishinaTestCommon.h"
 
 #include "Geant/VecRngWrapper.h"
 
@@ -78,50 +78,3 @@ static void KleinNishinaScalarRej(benchmark::State &state)
 BENCHMARK(KleinNishinaScalarRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
 BENCHMARK_MAIN();
-
-void PreparePrimaries(std::vector<LightTrack> &output, int N)
-{
-  geant::VecRngWrapper rng;
-  output.clear();
-  for (int i = 0; i < N; ++i) {
-    LightTrack gamma;
-    double phi = geant::units::kTwoPi * rng.uniform(); // NOT uniform on shpere
-    double th  = geant::units::kPi * rng.uniform();
-    gamma.SetDirX(sin(phi) * cos(th));
-    gamma.SetDirY(cos(phi) * cos(th));
-    gamma.SetDirZ(sin(th));
-    double eKin = minEn + (maxEn - minEn) * rng.uniform();
-    gamma.SetKinE(eKin);
-    output.push_back(gamma);
-  }
-}
-
-void PreparePrimaries(LightTrack_v &output, int N)
-{
-  geant::VecRngWrapper rng;
-  output.SetNtracks(N);
-  for (int i = 0; i < N; ++i) {
-    double phi = geant::units::kTwoPi * rng.uniform(); // NOT uniform on shpere
-    double th  = geant::units::kPi * rng.uniform();
-    output.SetDirX(sin(phi) * cos(th), i);
-    output.SetDirY(cos(phi) * cos(th), i);
-    output.SetDirZ(sin(th), i);
-    double eKin = minEn + (maxEn - minEn) * rng.uniform();
-    output.SetKinE(eKin, i);
-    output.SetTrackIndex(i, i);
-  }
-}
-
-TaskData *PrepareTaskData()
-{
-  auto PhysData    = new geantphysics::PhysicsData();
-  auto Td          = new TaskData(1, kMaxBasket);
-  Td->fPhysicsData = PhysData;
-  return Td;
-}
-
-void CleanTaskData(TaskData *Td)
-{
-  delete Td->fPhysicsData;
-  delete Td;
-}

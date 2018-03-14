@@ -25,7 +25,7 @@ include_directories(
 add_executable(PhysVecRngBench VecRng/VecRngBench.cxx)
 target_link_libraries(PhysVecRngBench Geant_v benchmark pthread)
 
-add_executable(PhysVecKleinNishBench KleinNishina/KleinNishinaBench.cxx KleinNishina/KleinNishinaBench.h KleinNishina/KleinNishinaTestCommon.h)
+add_executable(PhysVecKleinNishBench KleinNishina/KleinNishinaBench.cxx KleinNishina/KleinNishinaTestCommon.h)
 target_link_libraries(PhysVecKleinNishBench Geant_v RealPhysics benchmark pthread)
 
 add_executable(PhysVecKleinNishValid KleinNishina/KleinNishinaValidate.cxx)
