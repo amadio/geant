@@ -135,34 +135,6 @@ public:
     */
   double SampleLinear(double *xdata, double *ydata, double *xx, int *binindx, int numdata, double rndm1, double rndm2);
 
-  int SampleLinearGetIndex(double rndm1, int numdata, double *xx, int *binindx)
-  {
-    const double rest           = rndm1 * (numdata - 1);
-    int indxl                   = (int)(rest);
-    const double dum0           = rest - indxl;
-    if (xx[indxl] < dum0) indxl = binindx[indxl];
-    return indxl;
-  }
-
-  double SampleLinearCached(double xval, double xdelta, bool ydata, double ydataDiff, double rndm2, double xdeltaDivDum)
-  {
-    // get the lower index of the bin by using the alias part
-    //  const double rest           = rndm1 * (numdata - 1);
-    //  int indxl                   = (int)(rest);
-    //  const double dum0           = rest - indxl;
-    //  if (xx[indxl] < dum0) indxl = binindx[indxl];
-
-    // sample value within the selected bin by using linear approximation
-    if (ydata > 0) {
-      const double dum = ydataDiff;
-      if (std::abs(dum) > 0.1)
-        return xval - xdeltaDivDum * (1.0 - std::sqrt(1.0 + rndm2 * dum * (dum + 2.0)));
-      else // use second order Taylor around dum = 0.0
-        return xval + rndm2 * xdelta * (1.0 - 0.5 * dum * (rndm2 - 1.0) * (1.0 + dum * rndm2));
-    }
-    return xval + xdelta * std::sqrt(rndm2);
-  }
-
   double SampleLinear(const double *xdata, const double *ydata, const double *xx, const int *binindx, const int numdata,
                       const double rndm1, const double rndm2);
 

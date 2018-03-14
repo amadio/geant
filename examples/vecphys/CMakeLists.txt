@@ -13,6 +13,7 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
         ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
         ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
+        ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
         ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
         ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
 #        ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
