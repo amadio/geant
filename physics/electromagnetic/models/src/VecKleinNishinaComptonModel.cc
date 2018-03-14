@@ -31,86 +31,88 @@ void VecKleinNishinaComptonModel::Initialize()
 
 void VecKleinNishinaComptonModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
 {
-  SampleSecondariesVectorAlias(tracks,td);
+  SampleSecondariesVectorAlias(tracks, td);
 }
 
 void VecKleinNishinaComptonModel::SampleSecondariesVectorAlias(LightTrack_v &tracks, geant::TaskData *td)
 {
-  int N = tracks.GetNtracks();
+  int N                  = tracks.GetNtracks();
   KleinNishinaData &data = td->fPhysicsData->fKleinNishinaData;
 
-  for(int i = 0; i < N; i+=kPhysDVWidth){
+  for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV r = td->fRndm->uniformV();
-    vecCore::Store(r, &data.fR0.data()[i]);
+    vecCore::Store(r, &data.fR0[i]);
   }
-  for(int i = 0; i < N; i+=kPhysDVWidth){
+  for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV r = td->fRndm->uniformV();
-    vecCore::Store(r, &data.fR1.data()[i]);
+    vecCore::Store(r, &data.fR1[i]);
   }
-  for(int i = 0; i < N; i+=kPhysDVWidth){
+  for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV r = td->fRndm->uniformV();
-    vecCore::Store(r, &data.fR2.data()[i]);
+    vecCore::Store(r, &data.fR2[i]);
   }
-  for(int i = 0; i < N; i+=kPhysDVWidth){
+  for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV r = td->fRndm->uniformV();
-    vecCore::Store(r, &data.fR3.data()[i]);
+    vecCore::Store(r, &data.fR3[i]);
   }
 
-  SampleReducedPhotonEnergyVec(tracks.GetKinEVec(), data.fR0.data(), data.fR1.data(), data.fR2.data(), data.fEps.data(), N);
+  SampleReducedPhotonEnergyVec(tracks.GetKinEVec(), data.fR0, data.fR1, data.fR2, data.fEps, N);
 
-  for(int i = 0; i < N; i+=kPhysDVWidth){
-    PhysDV ekin; vecCore::Load(ekin,&tracks.GetKinEVec()[i]);
-    PhysDV eps; vecCore::Load(eps, &data.fEps[i]);
+  for (int i = 0; i < N; i += kPhysDVWidth) {
+    PhysDV ekin;
+    vecCore::Load(ekin, &tracks.GetKinEVec()[i]);
+    PhysDV eps;
+    vecCore::Load(eps, &data.fEps[i]);
 
-    const PhysDV kappa = ekin / geant::units::kElectronMassC2;
-    PhysDV oneMinusCost       = (1. / eps  - 1.) / kappa;
-    PhysDV sint2              = oneMinusCost * (2. - oneMinusCost);
+    const PhysDV kappa  = ekin / geant::units::kElectronMassC2;
+    PhysDV oneMinusCost = (1. / eps - 1.) / kappa;
+    PhysDV sint2        = oneMinusCost * (2. - oneMinusCost);
 
-    sint2             = vecCore::math::Max((PhysDV) 0., sint2);
+    sint2             = vecCore::math::Max((PhysDV)0., sint2);
     const PhysDV cost = 1.0 - oneMinusCost;
     const PhysDV sint = vecCore::math::Sqrt(sint2);
 
-    PhysDV r3; vecCore::Load(r3, &data.fR3.data()[i]);
-    const PhysDV phi  = geant::units::kTwoPi * (r3);
+    PhysDV r3;
+    vecCore::Load(r3, &data.fR3[i]);
+    const PhysDV phi = geant::units::kTwoPi * (r3);
     // direction of the scattered gamma in the scattering frame
     PhysDV dirX = sint * vecCore::math::Cos(phi);
     PhysDV dirY = sint * vecCore::math::Sin(phi);
     PhysDV dirZ = cost;
 
-
-    PhysDV gammaX,gammaY,gammaZ;
-    vecCore::Load(gammaX,&tracks.GetDirXV()[i]);
-    vecCore::Load(gammaY,&tracks.GetDirYV()[i]);
-    vecCore::Load(gammaZ,&tracks.GetDirZV()[i]);
+    PhysDV gammaX, gammaY, gammaZ;
+    vecCore::Load(gammaX, &tracks.GetDirXV()[i]);
+    vecCore::Load(gammaY, &tracks.GetDirYV()[i]);
+    vecCore::Load(gammaZ, &tracks.GetDirZV()[i]);
     RotateToLabFrame(dirX, dirY, dirZ, gammaX, gammaY, gammaZ);
 
     PhysDV enDeposit = 0.0;
 
     PhysDV postGammaE = eps * ekin;
     PhysDM gammaAlive = postGammaE > GetLowestSecondaryEnergy();
-    for(int l = 0; l < kPhysDVWidth; ++l){
-      bool alive = vecCore::Get(gammaAlive,l);
-      if(alive){
-        tracks.SetKinE(vecCore::Get(postGammaE,l),i+l);
-        tracks.SetDirX(vecCore::Get(dirX,l),i+l);
-        tracks.SetDirY(vecCore::Get(dirY,l),i+l);
-        tracks.SetDirZ(vecCore::Get(dirZ,l),i+l);
-      }else{
-         vecCore::Set(enDeposit,l,vecCore::Get(postGammaE,l));
-         vecCore::Set(enDeposit,l,vecCore::Get(postGammaE,l));
-         tracks.SetKinE(0.0,i+l);
-         tracks.SetTrackStatus(LTrackStatus::kKill,i+l);
+    for (int l = 0; l < kPhysDVWidth; ++l) {
+      bool alive = vecCore::Get(gammaAlive, l);
+      if (alive) {
+        tracks.SetKinE(vecCore::Get(postGammaE, l), i + l);
+        tracks.SetDirX(vecCore::Get(dirX, l), i + l);
+        tracks.SetDirY(vecCore::Get(dirY, l), i + l);
+        tracks.SetDirZ(vecCore::Get(dirZ, l), i + l);
+      } else {
+        vecCore::Set(enDeposit, l, vecCore::Get(postGammaE, l));
+        vecCore::Set(enDeposit, l, vecCore::Get(postGammaE, l));
+        tracks.SetKinE(0.0, i + l);
+        tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
       }
     }
 
     PhysDV elEnergy = ekin - postGammaE;
-    PhysDM elAlive = elEnergy > GetLowestSecondaryEnergy();
+    PhysDM elAlive  = elEnergy > GetLowestSecondaryEnergy();
 
     PhysDV elDirX = 1.0, elDirY = 0.0, elDirZ = 0.0;
-    if(!elAlive.isEmpty()){
-       elDirX = ekin * gammaX - postGammaE * dirX;
-       elDirY = ekin * gammaY - postGammaE * dirY;
-       elDirZ = ekin * gammaZ - postGammaE * dirZ;
+    if (!elAlive.isEmpty()) {
+      elDirX = ekin * gammaX - postGammaE * dirX;
+      elDirY = ekin * gammaY - postGammaE * dirY;
+      elDirZ = ekin * gammaZ - postGammaE * dirZ;
       // normalisation factor
       const PhysDV norm = 1.0 / vecCore::math::Sqrt(elDirX * elDirX + elDirY * elDirY + elDirZ * elDirZ);
       elDirX *= norm;
@@ -118,28 +120,26 @@ void VecKleinNishinaComptonModel::SampleSecondariesVectorAlias(LightTrack_v &tra
       elDirZ *= norm;
     }
 
-    for(int l = 0; l < kPhysDVWidth; ++l){
-      LightTrack_v& secondaries = td->fPhysicsData->GetSecondarySOA();
+    for (int l = 0; l < kPhysDVWidth; ++l) {
+      LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
 
-      bool alive = vecCore::Get(elAlive,l);
-      if(alive){
+      bool alive = vecCore::Get(elAlive, l);
+      if (alive) {
         int idx = secondaries.InsertTrack();
-        secondaries.SetKinE(vecCore::Get(elEnergy,l),idx);
-        secondaries.SetDirX(vecCore::Get(elDirX,l),idx);
-        secondaries.SetDirY(vecCore::Get(elDirY,l),idx);
-        secondaries.SetDirZ(vecCore::Get(elDirZ,l),idx);
-        secondaries.SetGVcode(fSecondaryInternalCode,idx);
-        secondaries.SetMass(geant::units::kElectronMassC2,idx);
-        secondaries.SetTrackIndex(tracks.GetTrackIndex(i+l),idx);
-      }else{
-        vecCore::Set(enDeposit,l,vecCore::Get(elEnergy,l));
+        secondaries.SetKinE(vecCore::Get(elEnergy, l), idx);
+        secondaries.SetDirX(vecCore::Get(elDirX, l), idx);
+        secondaries.SetDirY(vecCore::Get(elDirY, l), idx);
+        secondaries.SetDirZ(vecCore::Get(elDirZ, l), idx);
+        secondaries.SetGVcode(fSecondaryInternalCode, idx);
+        secondaries.SetMass(geant::units::kElectronMassC2, idx);
+        secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
+      } else {
+        vecCore::Set(enDeposit, l, vecCore::Get(elEnergy, l));
       }
     }
 
-    vecCore::Store(enDeposit,&tracks.GetEnergyDepositVec()[i]);
-
+    vecCore::Store(enDeposit, &tracks.GetEnergyDepositVec()[i]);
   }
-
 }
 
 void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyVec(const double *egamma, const double *r1, const double *r2,
@@ -192,7 +192,7 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyVec(const double *ega
     // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
     PhysDV kappa;
     vecCore::Load(kappa, &egamma[i]);
-    kappa = kappa / geant::units::kElectronMassC2;
+    kappa = kappa * (geant::units::kInvElectronMassC2);
 
     PhysDV outV = vecCore::math::Exp(vecCore::math::Log(1. + 2. * kappa) * (xiV - 1.));
     vecCore::Store(outV, &out[i]);

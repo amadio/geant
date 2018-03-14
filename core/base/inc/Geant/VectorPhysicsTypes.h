@@ -10,5 +10,6 @@ using PhysI64V             = vecCore::backend::VcVector::Int64_v;
 using PhysDM               = vecCore::Mask<PhysDV>;
 using PhysDI               = vecCore::Index<PhysDV>;
 constexpr int kPhysDVWidth = (int)vecCore::VectorSize<PhysDV>();
+constexpr int kPhysDVAlign = (int)vecCore::VectorSize<PhysDV>() * sizeof(double);
 
 #endif // GEANTV_VECTORPHYSICSTYPES_H

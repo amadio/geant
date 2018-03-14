@@ -83,7 +83,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
 
   // create secondary tracks if there are any
   if (nSecParticles) {
-    LightTrack* secLt = td->fPhysicsData->GetListOfSecondaries();
+    LightTrack *secLt = td->fPhysicsData->GetListOfSecondaries();
 
     for (int isec = 0; isec < nSecParticles; ++isec) {
       int secGVcode               = secLt[isec].GetGVcode(); // GV index of this secondary particle

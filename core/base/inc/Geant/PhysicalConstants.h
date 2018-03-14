@@ -64,11 +64,12 @@ static constexpr double kUnitChargeSquare = eplus * eplus;
 //                      AKA, unified atomic mass unit (u)
 // kAtomicMassUnit   -> atomic mass unit
 //
-static constexpr double kElectronMassC2   = 0.510998910 * MeV;
-static constexpr double kProtonMassC2     = 938.272013 * MeV;
-static constexpr double kNeutronMassC2    = 939.56536 * MeV;
-static constexpr double kAtomicMassUnitC2 = 931.494028 * MeV;
-static constexpr double kAtomicMassUnit   = kAtomicMassUnitC2 / kCLightSquare;
+static constexpr double kElectronMassC2    = 0.510998910 * MeV;
+static constexpr double kInvElectronMassC2 = 1.0 / kElectronMassC2;
+static constexpr double kProtonMassC2      = 938.272013 * MeV;
+static constexpr double kNeutronMassC2     = 939.56536 * MeV;
+static constexpr double kAtomicMassUnitC2  = 931.494028 * MeV;
+static constexpr double kAtomicMassUnit    = kAtomicMassUnitC2 / kCLightSquare;
 
 //
 // kMu0      -> permeability of free space  = 2.0133544e-36 [GeV*(s*eplus)^2/cm]

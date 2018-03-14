@@ -311,17 +311,17 @@ public:
   int fTargetNV[kSOAMaxSize];                /** Numbers of nucleons of the target atoms where the
                                      particles have a physical interaction */
 
-  double fXdirV[kSOAMaxSize];       /** X directions (normalized, adimensional) of the particles */
-  double fYdirV[kSOAMaxSize];       /** Y directions (normalized, adimensional) of the particles */
-  double fZdirV[kSOAMaxSize];       /** Z directions (normalized, adimensional) of the particles */
-  double fKinEV[kSOAMaxSize];       /** Kinetic energies (in GeV) of the particles */
-  double fMassV[kSOAMaxSize];       /** Dynamic masses (in GeV) of the particles */
-  double fTimeV[kSOAMaxSize];       /** Times (global, in sec) of the particles */
-  double fWeightV[kSOAMaxSize];     /** Weights (adimensional) of the particles */
-  double fStepLengthV[kSOAMaxSize]; /** True, physical lengths (in cm) of the last step of the particles */
-  double fEdepV[kSOAMaxSize];       /** Energy deposits (in GeV) in the last step of the particles */
-  double fNintLenV[kSOAMaxSize];    /** Number of discrete interaction left */
-  double fIntLenV[kSOAMaxSize];     /** Total mean free path i.e. macroscopic scross section */
+  alignas(64) double fXdirV[kSOAMaxSize]; /** X directions (normalized, adimensional) of the particles */
+  alignas(64) double fYdirV[kSOAMaxSize]; /** Y directions (normalized, adimensional) of the particles */
+  alignas(64) double fZdirV[kSOAMaxSize]; /** Z directions (normalized, adimensional) of the particles */
+  alignas(64) double fKinEV[kSOAMaxSize]; /** Kinetic energies (in GeV) of the particles */
+  double fMassV[kSOAMaxSize];             /** Dynamic masses (in GeV) of the particles */
+  double fTimeV[kSOAMaxSize];             /** Times (global, in sec) of the particles */
+  double fWeightV[kSOAMaxSize];           /** Weights (adimensional) of the particles */
+  double fStepLengthV[kSOAMaxSize];       /** True, physical lengths (in cm) of the last step of the particles */
+  alignas(64) double fEdepV[kSOAMaxSize]; /** Energy deposits (in GeV) in the last step of the particles */
+  double fNintLenV[kSOAMaxSize];          /** Number of discrete interaction left */
+  double fIntLenV[kSOAMaxSize];           /** Total mean free path i.e. macroscopic scross section */
 
   ExtraInfo *fExtraInfoV[kSOAMaxSize]; /** Pointers to arbitrary structs to keep extra information */
 
@@ -345,7 +345,7 @@ public:
   };
 
   void ClearTracks() { fNtracks = 0; }
-  int InsertTrack(){ return fNtracks++; }
+  int InsertTrack() { return fNtracks++; }
 
   /** @brief Method that returns the number of tracks contained */
   int GetNtracks() const { return fNtracks; }
@@ -394,22 +394,22 @@ public:
   /** @brief Method that returns the X direction value (normalized, adimensional) */
   double GetDirX(int i) const { return fXdirV[i]; }
 
-  double* GetDirXV() { return &fXdirV[0]; }
+  double *GetDirXV() { return &fXdirV[0]; }
 
   /** @brief Method that returns the Y direction value (normalized, adimensional) */
   double GetDirY(int i) const { return fYdirV[i]; }
 
-  double* GetDirYV() { return &fYdirV[0]; }
+  double *GetDirYV() { return &fYdirV[0]; }
 
   /** @brief Method that returns the Z direction value (normalized, adimensional) */
   double GetDirZ(int i) const { return fZdirV[i]; }
 
-  double* GetDirZV() { return &fZdirV[0]; }
+  double *GetDirZV() { return &fZdirV[0]; }
 
   /** @brief Method that returns the kinetic energy (unit: energy) */
   double GetKinE(int i) const { return fKinEV[i]; }
 
-  double* GetKinEVec() { return &fKinEV[0]; }
+  double *GetKinEVec() { return &fKinEV[0]; }
 
   /** @brief Method that returns the dynamic mass (unit: energy) */
   double GetMass(int i) const { return fMassV[i]; }
@@ -426,7 +426,7 @@ public:
   /** Method that returns the energy deposit in the last step (unit: energy) */
   double GetEnergyDeposit(int i) const { return fEdepV[i]; }
 
-  double* GetEnergyDepositVec() { return &fEdepV[0]; }
+  double *GetEnergyDepositVec() { return &fEdepV[0]; }
 
   /** Method to get the number of interaction length left. */
   double GetNumOfInteractionLegthLeft(int i) const { return fNintLenV[i]; }

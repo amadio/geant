@@ -9,15 +9,29 @@ namespace geantphysics {
 
 class LightTrack;
 
-
-struct KleinNishinaData{
+struct KleinNishinaData {
   static constexpr int dataSize = 2048;
-  KleinNishinaData() : fEps(dataSize), fR0(dataSize), fR1(dataSize), fR2(dataSize), fR3(dataSize){}
-  std::vector<double> fEps;
-  std::vector<double> fR0;
-  std::vector<double> fR1;
-  std::vector<double> fR2;
-  std::vector<double> fR3;
+  KleinNishinaData()
+      : fEps((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fR0((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fR1((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fR2((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fR3((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize))
+  {
+  }
+  ~KleinNishinaData()
+  {
+    vecCore::AlignedFree(fEps);
+    vecCore::AlignedFree(fR0);
+    vecCore::AlignedFree(fR1);
+    vecCore::AlignedFree(fR2);
+    vecCore::AlignedFree(fR3);
+  }
+  double *fEps;
+  double *fR0;
+  double *fR1;
+  double *fR2;
+  double *fR3;
 };
 
 class PhysicsData {
@@ -52,6 +66,7 @@ public:
   static std::vector<PhysicsData *> gThePhysicsDataTable;
 
   KleinNishinaData fKleinNishinaData;
+
 private:
   void ResizeIfSmall()
   {
@@ -63,7 +78,6 @@ private:
   std::vector<int> fSecondaryFillVector;
   LightTrack_v fPrimaryLTs;
   LightTrack_v fSecondaryLTs;
-
 };
 
 } // namespace geantphysics
