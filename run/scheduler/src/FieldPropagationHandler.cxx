@@ -27,7 +27,7 @@
 using Double_v = geant::Double_v;
 
 // #define CHECK_VS_RK   1
-#define CHECK_VS_HELIX 1
+//#define CHECK_VS_HELIX 1
 #define REPORT_AND_CHECK 1
 
 #define STATS_METHODS 1
@@ -346,10 +346,6 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   track.IncreaseStep(crtstep);
 
 #if 0
-  constexpr double inv_kilogauss = 1.0 / geant::units::kilogauss;
-  double curvaturePlus= fabs(Track::kB2C * track.Charge() * (bmag* inv_kilogauss)) / (track.P() + 1.0e-30);  // norm for step
-
-  const double angle= crtstep * curvaturePlus;
   constexpr double numRadiansMax= 10.0; // Too large an angle - many RK steps.  Potential change -> 2.0*PI;
   constexpr double numRadiansMin= 0.05; // Very small an angle - helix is adequate.  TBC: Use average B-field value?
       //  A track turning more than 10 radians will be treated approximately
@@ -360,49 +356,39 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 
 // if( angle > 0.000001 ) std::cout << " ang= " << angle << std::endl;
 #ifdef DEBUG_FIELD
+  double curvaturePlus= fabs(Track::kB2C * track.Charge() * (bmag * toKiloGauss)) / (track.P() + 1.0e-30);  // norm for step
+
+  const double angle = crtstep * curvaturePlus;
   printf("--PropagateInVolume(Single): ");
-  printf("Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= "
-         "%g\n",
-         (track.P() / geant::units::MeV), Curvature(track) * geant::units::mm, curvaturePlus * geant::units::mm,
-         crtstep / geant::units::mm, bmag * inv_kilogauss, angle);
+  printf("Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvaturePlus = %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= %g\n",
+         (track.P() / units::MeV), Curvature(track) * units::mm, curvaturePlus * units::mm,
+         crtstep / units::mm, bmag * toKiloGauss, angle);
 #endif
 
   ThreeVector Direction(track.Dx(), track.Dy(), track.Dz());
   ThreeVector PositionNew(0., 0., 0.);
   ThreeVector DirectionNew(0., 0., 0.);
-  ThreeVector PositionNewCheck(0., 0., 0.);
-  ThreeVector DirectionNewCheck(0., 0., 0.);
 
-  // #ifndef VECCORE_CUDA
   if (useRungeKutta) {
     fieldPropagator->DoStep(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
 // cross check
 #ifdef DEBUG_FIELD
-    double Bz = BfieldInitial[2] * toKiloGauss;
-    ConstBzFieldHelixStepper stepper_bz(Bz); //
-    stepper_bz.DoStep<ThreeVector, double, int>(Position, Direction, track.Charge(), track.P(), crtstep,
-                                                PositionNewCheck, DirectionNewCheck);
+    ThreeVector PositionNewCheck(0., 0., 0.);
+    ThreeVector DirectionNewCheck(0., 0., 0.);
+    ConstFieldHelixStepper stepper(BfieldInitial * toKiloGauss);
+    stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNewCheck, DirectionNewCheck);
+
     double posShift = (PositionNew - PositionNewCheck).Mag();
     double dirShift = (DirectionNew - DirectionNewCheck).Mag();
     if (posShift > 1.e-6 || dirShift > 1.e-6) {
-      std::cout << "*** position/direction shift RK vs. HelixConstBz :" << posShift << " / " << dirShift << "\n";
-    }
-
-    ConstFieldHelixStepper stepper(BfieldInitial * toKiloGauss);
-    stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-    posShift = (PositionNew - PositionNewCheck).Mag();
-    dirShift = (DirectionNew - DirectionNewCheck).Mag();
-    if (posShift > 1.e-6 || dirShift > 1.e-6) {
-      std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posShift << " / " << dirShift << "\n";
+      std::cout << "*** position/direction shift RK vs. HelixStepper :" << posShift << " / " << dirShift << "\n";
     }
 #endif
 
 #ifdef STATS_METHODS
     numRK++;
 #endif
-  } else
-  // #endif
-  {
+  } else {
     // Must agree with values in magneticfield/inc/Units.h
     double Bz             = BfieldInitial[2] * toKiloGauss;
     const bool dominantBz = false; // std::fabs(std::fabs(BfieldInitial[2])) >
@@ -531,7 +517,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   auto fieldConfig = FieldLookup::GetFieldConfig();
   assert(fieldConfig != nullptr);
 
-  if (fieldConfig->IsFieldUniform()) {
+  if (0 /*fieldConfig->IsFieldUniform()*/) {
     vecgeom::Vector3D<double> BfieldUniform = fieldConfig->GetUniformFieldValue();
     ConstFieldHelixStepper stepper(BfieldUniform * toKiloGauss);
     // stepper.DoStep<ThreeVector,double,int>(Position,    Direction,  track.Charge(), track.P(), stepSize,
@@ -558,7 +544,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       double posDiff = (PositionNew - PositionOut[itr]).Mag();
       double dirDiff = (DirectionNew - DirectionOut[itr]).Mag();
       if (posDiff > 1.e-6 || dirDiff > 1.e-6) {
-        std::cout << "*** position/direction shift RK vs. GeneralHelix :" << posDiff << " / " << dirDiff << "\n";
+        std::cout << "*** position/direction shift HelixStepper scalar vs. vector :" << posDiff << " / " << dirDiff << "\n";
         stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), steps[itr], PositionNew, DirectionNew);
       }
 #endif
@@ -653,6 +639,18 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         const double pmag_inv = 1.0 / track.P();
 
 // ---- Perform checks
+        using ThreeVector = vecgeom::Vector3D<double>;
+        ThreeVector endDirVector(pmag_inv * pX, pmag_inv * pY, pmag_inv * pZ);
+        endDirVector.Normalize();
+
+        ThreeVector endPositionScalar(0., 0., 0.), endDirScalar(0., 0., 0.);
+        fieldPropagator->DoStep(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr], endPositionScalar,
+                                  endDirScalar);
+        double posErr = (endPositionScalar - endPosition).Mag();
+        double dirErr = (endDirScalar - endDirVector).Mag();
+        if (posErr > 1.e-3 * posShift || dirErr > 1.e-6) {
+          std::cout << "*** position/direction shift scalar RK vs. vector RK :" << posErr << " / " << dirErr << "\n";
+    }
 
 #ifdef CHECK_VS_SCALAR
         if (checkVsScalar) {
@@ -743,6 +741,12 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         // Update the state of this track
         track.SetPosition(fldTrackEnd[0], fldTrackEnd[1], fldTrackEnd[2]);
         track.SetDirection(pmag_inv * pX, pmag_inv * pY, pmag_inv * pZ);
+        track.SetStatus(kInFlight);
+        double pstep = track.GetPstep() - stepSize[itr];
+        if (pstep < 1.E-10) {
+          pstep = 0;
+          track.SetStatus(kPhysics);
+        }
         double snext = track.GetSnext() - stepSize[itr];
         if (snext < 1.E-10) {
           snext = 0;
