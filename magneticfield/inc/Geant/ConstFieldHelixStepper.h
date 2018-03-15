@@ -182,20 +182,7 @@ GEANT_FORCE_INLINE
   dy = endDirection.y();
   dz = endDirection.z();
 
-  PrintStep(startPosition, startDirection, charge, momentum, step, endPosition, endDirection);
-#if 0  
-  // Debug printing of input & output
-  using vecCore::Get;  
-  printf(" HelixStppr:: ");
-  const int vectorSize = vecCore::VectorSize<Real_v>();  
-  for( int i=0; i< vectorSize; i++ ){ 
-     printf("Start> Lane= %1d Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f ", i, Get(x0,i), Get(y0,i), Get(z0,i), Get(dirX0,i), Get(dirY0,i), Get(dirZ0,i) );
-     printf(" s= %10.6f ", Get(step,i) /10.0 ); // / units::mm );
-     // printf(" ang= %7.5f ", angle );
-     printf(" End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f\n",  Get(x,i), Get(y,i), Get(z,i),
-            Get(dx,i), Get(dy,i), Get(dz,i) );
-  }
-#endif  
+  // PrintStep(startPosition, startDirection, charge, momentum, step, endPosition, endDirection);
 }
 
 template <typename Real_v>
@@ -218,8 +205,8 @@ GEANT_FORCE_INLINE void ConstFieldHelixStepper::DoStep(vecgeom::Vector3D<Real_v>
 
   // Real_v dt = Sqrt((dx0*dx0) + (dy0*dy0)) + kSmall;
 
-  std::cout << " ConstFieldHelixStepper::DoStep called.  fBmag= " << fBmag
-            << " unit dir= " << fUnit << std::endl;
+  // std::cout << " ConstFieldHelixStepper::DoStep called.  fBmag= " << fBmag
+  //          << " unit dir= " << fUnit << std::endl;
   
   // assert( std::abs( startDirection.Mag2() - 1.0 ) < 1.0e-6 );
 
@@ -430,7 +417,7 @@ GEANT_FORCE_INLINE void ConstFieldHelixStepper::PrintStep(vecgeom::Vector3D<Real
 {
   // Debug printing of input & output
   using vecCore::Get;  
-  printf(" HelixSteper::PrintStep ");
+  printf(" HelixSteper::PrintStep \n");
   const int vectorSize = vecCore::VectorSize<Real_v>();
   Real_v x0, y0, z0, dirX0, dirY0, dirZ0;
   Real_v x, y, z, dx, dy, dz;  

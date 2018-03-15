@@ -22,7 +22,7 @@ SteppingActionsHandler::~SteppingActionsHandler()
   // Destructor
 }
 
-#define GV_VERBOSE_STEPPING 1
+// #define GV_VERBOSE_STEPPING 1
           
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

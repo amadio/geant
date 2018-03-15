@@ -28,7 +28,7 @@ FlexIntegrationDriver *GUFieldPropagator::fVectorDriver = nullptr;
 double GUFieldPropagator::fEpsilon                      = 1.0e-4;
 //------------------------------------------------------------------------------------
 GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps, FlexIntegrationDriver *flexDriver)
-    : fScalarDriver(driver), fVerboseConstruct(true)
+    : fScalarDriver(driver), fVerboseConstruct(false)
 // fEpsilon(eps)
 {
   const char *methodName = "GUFieldPropagator constructor (scalarDriver, eps, *flex - with default = null)";
@@ -142,9 +142,13 @@ GUFieldPropagator *GUFieldPropagator::Clone() const
 
 // Make a step from current point along the path and compute new point, direction and angle
 // VECCORE_ATT_HOST_DEVICE
-bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector const &startDirection, int const &charge,
-                               double const &startMomentumMag, double const &step, ThreeVector &endPosition,
-                               ThreeVector &endDirection)
+bool GUFieldPropagator::DoStep(ThreeVector const &startPosition,
+                               ThreeVector const &startDirection,
+                               int         const &charge,
+                               double      const &startMomentumMag,
+                               double      const &step,
+                               ThreeVector       &endPosition,
+                               ThreeVector       &endDirection)
 {
   const char *methodName = "GUFieldPropagator::DoStep";
   bool goodAdvance       = false;

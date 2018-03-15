@@ -24,6 +24,7 @@
 void GetInputArguments(int argc, char *argv[]);
 void SetupUserPhysicsList(userapplication::TestEm5PhysicsList *physlist);
 void SetupUserDetector(userapplication::TestEm5DetectorConstruction *detector);
+void SetupUserField(geant::RunManager *runMgr);
 void SetupUserPrimaryGenerator(userapplication::TestEm5PrimaryGenerator *primarygun);
 void SetupUserApplication(userapplication::TestEm5 *app);
 geant::RunManager *RunManager();
@@ -125,6 +126,14 @@ int   parConfigNumPerBasket     = 16;    // default number of particles per bask
 std::string parProcessMSCStepLimit = ""; // i.e. default application value
 double parProcessStepMaxValue      = 0.; // i.e. default application value
 
+//
+// field configuration parameters
+int parFieldActive      = 1;            // activate magnetic field
+int parFieldUseRK       = 1;            // use Runge-Kutta instead of helix
+double parFieldEpsRK    = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
+int parFieldBasketized  = 1;            // basketize magnetic field
+float parFieldVector[3] = {0., 0., 2.}; // Constant field value
+
 static struct option options[] = {{"det-Target-Material-Name", required_argument, 0, 'a'},
                                   {"det-Target-Thickness", required_argument, 0, 'b'},
                                   {"det-Production-Cuts", required_argument, 0, 'c'},
@@ -140,9 +149,17 @@ static struct option options[] = {{"det-Target-Material-Name", required_argument
                                   {"app-Hist1-Minimum-Value", required_argument, 0, 'k'},
                                   {"app-Hist1-Maximum-Value", required_argument, 0, 'l'},
 
-                                  {"config-Number-Of-Buffered-Events", required_argument, 0, 'm'},
-                                  {"config-Total-Number-Of-Events", required_argument, 0, 'n'},
-                                  {"config-Number-Of-Primary-Per-Events", required_argument, 0, 'o'},
+                                  {"field-active", required_argument, 0, 'E'},
+                                  {"field-vector", required_argument, 0, 'F'},
+                                  {"field-use-RK", required_argument, 0, 'G'},
+                                  {"field-eps-RK", required_argument, 0, 'H'},
+                                  {"field-basketized", required_argument, 0, 'I'},
+                                  
+                                  {"config-Number-Of-Buffered-Events", required_argument, 0, 'M'},
+                                  {"config-number-of-buffered-events", required_argument, 0, 'm'},                                                            {"config-Total-Number-Of-Events", required_argument, 0, 'N'},
+                                  {"config-total-number-of-events", required_argument, 0, 'n'},
+                                  {"config-number-of-primary-per-events", required_argument, 0, 'o'},
+                                  {"config-Number-Of-Primary-Per-Events", required_argument, 0, 'O'},
                                   {"config-Number-Of-Threads", required_argument, 0, 'p'},
                                   {"config-Number-Of-Propagators", required_argument, 0, 'q'},
                                   {"config-Vectorized-Geom", required_argument, 0, 'r'},
@@ -153,6 +170,12 @@ static struct option options[] = {{"det-Target-Material-Name", required_argument
 
                                   {"help", required_argument, 0, 'x'},
                                   {0, 0, 0, 0}};
+
+enum DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
+char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x",
+                           [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z",
+                           NULL};
 
 void help()
 {
@@ -165,6 +188,10 @@ void help()
 
 void GetInputArguments(int argc, char *argv[])
 {
+  int errfnd   = 0;
+  char *subopts;
+  char *value;
+
   while (true) {
     int c, optidx = 0;
     c = getopt_long(argc, argv, "", options, &optidx);
@@ -210,12 +237,15 @@ void GetInputArguments(int argc, char *argv[])
       parAppHist1MaxVal = (double)strtof(optarg, NULL);
       break;
     case 'm':
+    case 'M':
       parConfigNumBufferedEvt = (double)strtof(optarg, NULL);
       break;
     case 'n':
+    case 'N':
       parConfigNumRunEvt = (double)strtof(optarg, NULL);
       break;
     case 'o':
+    case 'O':
       parConfigNumPrimaryPerEvt = (double)strtof(optarg, NULL);
       break;
     case 'p':
@@ -236,6 +266,41 @@ void GetInputArguments(int argc, char *argv[])
     case 'u':
       parProcessStepMaxValue = (double)strtof(optarg, NULL);
       break;
+    //---- Field
+    case 'E':
+      parFieldActive = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'F': // field direction sub-optarg
+      subopts = optarg;
+      while (*subopts != '\0' && !errfnd) {
+        switch (getsubopt(&subopts, dir_token, &value)) {
+        case DIR_OPTIONS::DIR_X_OPT:
+          parFieldVector[0] = strtod(value, NULL);
+          break;
+        case DIR_OPTIONS::DIR_Y_OPT:
+          parFieldVector[1] = strtod(value, NULL);
+          break;
+        case DIR_OPTIONS::DIR_Z_OPT:
+          parFieldVector[2] = strtod(value, NULL);
+          break;
+        default:
+          fprintf(stderr, "No match found for token: [%s] among DIR_OPTIONS", value);
+          errfnd = 1;
+          exit(0);
+          break;
+        }
+      }
+      break;
+    case 'G':
+      parFieldUseRK = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'H':
+      parFieldEpsRK = strtod(optarg, NULL);
+      break;
+    case 'I':
+      parFieldBasketized = (int)strtol(optarg, NULL, 10);
+      break;
+    // -- help
     case 'x':
       help();
       exit(0);
@@ -288,6 +353,25 @@ void SetupUserDetector(userapplication::TestEm5DetectorConstruction *detector)
     if (parDetGammaProdCut > 0.) detector->SetGammaProductionCut(parDetGammaProdCut);
     if (parDetElectronProdCut > 0.) detector->SetElectronProductionCut(parDetElectronProdCut);
     if (parDetPositronProdCut > 0.) detector->SetPositronProductionCut(parDetPositronProdCut);
+  }
+}
+
+void SetupUserField(geant::RunManager *runMgr)
+{
+  auto config = runMgr->GetConfig();
+  if (parFieldActive) {
+    // Create magnetic field and needed classes for trajectory integration
+    auto fieldConstructor = new geant::UserFieldConstruction();
+    fieldConstructor->UseConstantMagField(parFieldVector, "kilogauss");
+
+    config->fUseRungeKutta      = parFieldUseRK;
+    config->fEpsilonRK          = parFieldEpsRK;
+    config->fUseVectorizedField = parFieldBasketized;
+
+    runMgr->SetUserFieldConstruction(fieldConstructor);
+  } else {
+    config->fUseRungeKutta      = false;
+    config->fUseVectorizedField = false;
   }
 }
 
