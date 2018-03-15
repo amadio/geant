@@ -18,7 +18,6 @@ struct LinAliasCached {
     double fYdataDelta;
     double fXdivYdelta;
     double fYdata;
-    double padding[8];
   };
   std::vector<LinAliasData> fLinAliasData;
 };
