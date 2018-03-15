@@ -366,7 +366,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 #endif
 
 // if( angle > 0.000001 ) std::cout << " ang= " << angle << std::endl;
-#ifdef DEBUG_FIELD
+#ifdef PRINT_STEP_SINGLE
   Print("--PropagateInVolume(Single): ",
         "Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= %g\n",
          (track.P() / units::MeV), Curvature(track) * units::mm, curvaturePlus * units::mm,
@@ -667,7 +667,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   } else {
     // Prepare for Runge Kutta stepping
 
-    bool checkPrint = true;
+    bool checkPrint = false;
     if (checkPrint)
       std::cerr << " Filling fieldTrack Array (FieldPropagationHandler::PropagateInVolume (basket)" << std::endl;
 
@@ -720,7 +720,6 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         Vector3D<double> startPosition  = {track.X(), track.Y(), track.Z()};
         Vector3D<double> startDirection = {track.Dx(), track.Dy(), track.Dz()};
         Vector3D<double> endPosition    = {fldTrackEnd[0], fldTrackEnd[1], fldTrackEnd[2]};
-        double posShift                 = (startPosition - endPosition).Mag();
 
         const double pmag_inv = 1.0 / track.P();
         ThreeVector endDirVector= pmag_inv * ThreeVector( fldTrackEnd[3], fldTrackEnd[4], fldTrackEnd[5] );
@@ -729,10 +728,13 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
           endDirVector.Normalize();    // Only renormalize if needed - it's expensive
 
 #ifdef CHECK_VS_SCALAR
+        double posShift                 = (startPosition - endPosition).Mag();
+        
         // ---- Perform checks
         ThreeVector endPositionScalar(0., 0., 0.), endDirScalar(0., 0., 0.);
-        fieldPropagator->DoStep(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr], endPositionScalar,
-                                  endDirScalar);
+        fieldPropagator->DoStep(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr],
+                                endPositionScalar, endDirScalar);
+                                  
         double posErr = (endPositionScalar - endPosition).Mag();
         double dirErr = (endDirScalar - endDirVector).Mag();
         if (posErr > 1.e-3 * posShift || dirErr > 1.e-6) {
@@ -748,7 +750,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         }
 #endif
 
-#ifdef FIELD_DEBUG        
+#ifdef DEBUG_FIELD        
         // ---- Start verbose print (of selected events/tracks)
         // int maxPartNo = 2, maxEvSlot = 3;
         bool printTrack= false; // = (track.Particle() < maxPartNo) && (track.EventSlot() < maxEvSlot );
@@ -776,7 +778,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 #endif
         // Update the state of this track
         track.SetPosition(fldTrackEnd[0], fldTrackEnd[1], fldTrackEnd[2]);
-        track.SetDirection(pmag_inv * pX, pmag_inv * pY, pmag_inv * pZ);
+        track.SetDirection( endDirVector );
         track.SetStatus(kInFlight);
         double pstep = track.GetPstep() - stepSize[itr];
         if (pstep < 1.E-10) {

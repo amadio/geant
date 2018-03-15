@@ -57,10 +57,11 @@ int main(int argc, char *argv[])
   SetupUserPrimaryGenerator(primaryGenerator);
   runManager->SetPrimaryGenerator(primaryGenerator);
 
+#if 1  
+  SetupUserField(runManager);
+#else
   // Create TestEm3 global magnetic field
-  bool parConfigUseMagField= true;
-
-  if( parConfigUseMagField ) {
+  if (parFieldActive) {     
      // Create magnetic field and needed classes for trajectory integration
      auto fieldConstructor= new geant::UserFieldConstruction();
      float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
@@ -75,8 +76,8 @@ int main(int argc, char *argv[])
   } else {
      printf("main: no magnetic field configured.\n");     
   }
+#endif
 
-  
   //
   // create the testEm5 user application object, set its configurable parameters and register in the RunManager
   userapplication::TestEm5 *testEm5Application = new userapplication::TestEm5(runManager, detector, primaryGenerator);
@@ -369,7 +370,9 @@ void SetupUserField(geant::RunManager *runMgr)
     config->fUseVectorizedField = parFieldBasketized;
 
     runMgr->SetUserFieldConstruction(fieldConstructor);
+    printf("main: Created uniform field and set up field-propagation.\n");    
   } else {
+    printf("main: no magnetic field configured.\n");
     config->fUseRungeKutta      = false;
     config->fUseVectorizedField = false;
   }
