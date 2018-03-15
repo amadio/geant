@@ -23,8 +23,11 @@ include_directories(
 #        ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
 )
 
-add_executable(PhysVecRngBench VecRng/VecRngBench.cxx)
+add_executable(PhysVecRngBench Misc/VecRngBench.cxx)
 target_link_libraries(PhysVecRngBench Geant_v benchmark pthread)
+
+add_executable(PhysVecMathBench Misc/VecMathBench.cxx)
+target_link_libraries(PhysVecMathBench Geant_v benchmark pthread)
 
 add_executable(PhysVecKleinNishBench KleinNishina/KleinNishinaBench.cxx KleinNishina/KleinNishinaTestCommon.h)
 target_link_libraries(PhysVecKleinNishBench Geant_v RealPhysics benchmark pthread)
