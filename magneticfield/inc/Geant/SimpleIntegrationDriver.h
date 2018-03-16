@@ -443,6 +443,10 @@ inline void SimpleIntegrationDriver<T_Stepper, Nvar>::CheckParameters()
     std::cerr << "SimpleIntegrationDriver: ERROR in fPowerGrow" << std::endl;
     exit(1);
   }
+
+  if( fVerboseLevel ) 
+    std::cout << "SimpleIntegrationDriver::CheckParameters > Powers used: " << std::endl
+              << "  shrink = " << fPowerShrink   << "  grow = " << fPowerGrow << std::endl;
 }
 
 /*********
@@ -497,6 +501,9 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double hminimu
 
   fpStepper = pStepper;
 
+  std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << std::endl;
+  std::cout << "         > Powers used: " << std::endl
+            << "  shrink = " << fPowerShrink   << "  grow = " << fPowerGrow << std::endl;  
   ComputeAndSetErrcon();
   fMaxNoSteps = fMaxStepBase / fpStepper->GetIntegratorOrder();
 #ifdef GUDEBUG_FIELD

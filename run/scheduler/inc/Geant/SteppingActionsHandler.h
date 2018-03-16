@@ -53,6 +53,12 @@ public:
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(Basket &input, Basket &output, TaskData *td);
+
+  /** @brief Enable verbosity */
+  void SetVerbosity( bool val ) { fVerboseTracking= val; }
+
+private:
+  bool fVerboseTracking= false;
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -219,8 +219,15 @@ inline double ScalarIntegrationDriver::ComputeAndSetErrcon()
 inline void ScalarIntegrationDriver::ReSetParameters(double new_safety)
 {
   fSafetyFactor = new_safety;
-  fPowerShrink  = -1.0 / fpStepper->IntegratorOrder();
-  fPowerGrow    = -1.0 / (1.0 + fpStepper->IntegratorOrder());
+  int stepperOrder= fpStepper->IntegratorOrder();
+  fPowerShrink  = -1.0 / stepperOrder;
+  fPowerGrow    = -1.0 / (1.0 + stepperOrder);
+
+  if (fVerboseLevel > 0) 
+     std::cout << "ScalarIntegrationDriver::ResetParameters > Powers used: "
+               << "  shrink = " << fPowerShrink   << "  grow = " << fPowerGrow
+               << " ( Stepper order = " << stepperOrder << "  ) "
+               << std::endl;
   ComputeAndSetErrcon();
 }
 

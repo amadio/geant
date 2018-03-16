@@ -444,7 +444,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
     }
   }
 
-#ifdef DEBUG_FIELD  
+#ifdef PRINT_FIELD  
   // Print(" FPH::PiV(1): Start>", " Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f", Position.x(), Position.y(), Position.z(), Direction.x(), Direction.y(), Direction.z() );
   // Print(" FPH::PiV(1): End>  ", " Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f", PositionNew.x(), PositionNew.y(), PositionNew.z(), DirectionNew.x(), DirectionNew.y(), DirectionNew.z() );
 

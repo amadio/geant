@@ -440,9 +440,11 @@ void SetupUserField(geant::RunManager *runMgr)
     config->fUseVectorizedField = parFieldBasketized;
 
     runMgr->SetUserFieldConstruction(fieldConstructor);
+    printf("main: Created uniform field and set up field-propagation.\n");
   } else {
     config->fUseRungeKutta      = false;
     config->fUseVectorizedField = false;
+    printf("main: no magnetic field configured.\n");    
   }
 }
 
