@@ -15,17 +15,19 @@
 
 namespace userapplication {
 
-TestEm5DetectorConstruction::TestEm5DetectorConstruction(geant::RunManager *runmgr) : geant::UserDetectorConstruction(runmgr) {
-  fTargetMatName         = "NIST_MAT_Galactic"; 
-   // "NIST_MAT_Au";        // default target material is NIST Au
+TestEm5DetectorConstruction::TestEm5DetectorConstruction(geant::RunManager *runmgr)
+    : geant::UserDetectorConstruction(runmgr)
+{
+  fTargetMatName = "NIST_MAT_Galactic";
+  // "NIST_MAT_Au";        // default target material is NIST Au
   fTargetLogicalVolumeID = -1;
   fTargetRegionIndx      = -1;
   fTargetX               = 1000.0 * geant::units::millimeter;
-    // 19.296*geant::units::um; // set to thickness by default and the half will be taken in ComputeSetup
-  fTargetYZ              = 3 * fTargetX;
+  // 19.296*geant::units::um; // set to thickness by default and the half will be taken in ComputeSetup
+  fTargetYZ = 3 * fTargetX;
   // fTargetX*1000.;   // changed to fTargetYZ = 10.; for the hansonModified example - to test pe effect
-  fWorldYZ               = 1.2*fTargetYZ;
-  fWorldX                = 1.2*fTargetX;     // changed to 28944 for the hansonModified example - to test pe effect
+  fWorldYZ = 1.2 * fTargetYZ;
+  fWorldX  = 1.2 * fTargetX; // changed to 28944 for the hansonModified example - to test pe effect
 
   //
   fTargetMaterial = geantphysics::Material::NISTMaterial(fTargetMatName);

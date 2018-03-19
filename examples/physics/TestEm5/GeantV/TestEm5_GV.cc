@@ -57,24 +57,24 @@ int main(int argc, char *argv[])
   SetupUserPrimaryGenerator(primaryGenerator);
   runManager->SetPrimaryGenerator(primaryGenerator);
 
-#if 1  
+#if 1
   SetupUserField(runManager);
 #else
   // Create TestEm3 global magnetic field
-  if (parFieldActive) {     
-     // Create magnetic field and needed classes for trajectory integration
-     auto fieldConstructor= new geant::UserFieldConstruction();
-     float fieldVec[3] = { 0.0f, 0.0f, 2.0f };
-     fieldConstructor->UseConstantMagField( fieldVec, "kilogauss" );
-     
-     auto config= runManager->GetConfig();
-     config->fUseRungeKutta= true;
-     config->fEpsilonRK = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default
+  if (parFieldActive) {
+    // Create magnetic field and needed classes for trajectory integration
+    auto fieldConstructor = new geant::UserFieldConstruction();
+    float fieldVec[3]     = {0.0f, 0.0f, 2.0f};
+    fieldConstructor->UseConstantMagField(fieldVec, "kilogauss");
 
-     runManager->SetUserFieldConstruction(fieldConstructor);
-     printf("main: Created uniform field and set up field-propagation.\n");
+    auto config            = runManager->GetConfig();
+    config->fUseRungeKutta = true;
+    config->fEpsilonRK     = 0.0003; // Revised / reduced accuracy - vs. 0.0003 default
+
+    runManager->SetUserFieldConstruction(fieldConstructor);
+    printf("main: Created uniform field and set up field-propagation.\n");
   } else {
-     printf("main: no magnetic field configured.\n");     
+    printf("main: no magnetic field configured.\n");
   }
 #endif
 
@@ -115,13 +115,13 @@ double parAppHist1MinVal        = -1.; // i.e. default application value
 double parAppHist1MaxVal        = -1.; // i.e. default application value
 //
 // run configuration parameters
-int   parConfigNumBufferedEvt   = 4;     // number of events taken to be transported on the same time (buffered)
-int   parConfigNumRunEvt        = 1 ; // 4000 // total number of events to be transported during the run
-int   parConfigNumPrimaryPerEvt = 16 ; // 1000 // number of primary particles per event
-int   parConfigNumThreads       = 1;     // number of working threads
-int   parConfigNumPropagators   = 1;     // number of propagators per working threads
-bool  parConfigVectorizedGeom   = 0;     // activate geometry basketizing
-int   parConfigNumPerBasket     = 16;    // default number of particles per basket
+int parConfigNumBufferedEvt   = 4;  // number of events taken to be transported on the same time (buffered)
+int parConfigNumRunEvt        = 1;  // 4000 // total number of events to be transported during the run
+int parConfigNumPrimaryPerEvt = 16; // 1000 // number of primary particles per event
+int parConfigNumThreads       = 1;  // number of working threads
+int parConfigNumPropagators   = 1;  // number of propagators per working threads
+bool parConfigVectorizedGeom  = 0;  // activate geometry basketizing
+int parConfigNumPerBasket     = 16; // default number of particles per basket
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit = ""; // i.e. default application value
@@ -155,9 +155,10 @@ static struct option options[] = {{"det-Target-Material-Name", required_argument
                                   {"field-use-RK", required_argument, 0, 'G'},
                                   {"field-eps-RK", required_argument, 0, 'H'},
                                   {"field-basketized", required_argument, 0, 'I'},
-                                  
+
                                   {"config-Number-Of-Buffered-Events", required_argument, 0, 'M'},
-                                  {"config-number-of-buffered-events", required_argument, 0, 'm'},                                                            {"config-Total-Number-Of-Events", required_argument, 0, 'N'},
+                                  {"config-number-of-buffered-events", required_argument, 0, 'm'},
+                                  {"config-Total-Number-Of-Events", required_argument, 0, 'N'},
                                   {"config-total-number-of-events", required_argument, 0, 'n'},
                                   {"config-number-of-primary-per-events", required_argument, 0, 'o'},
                                   {"config-Number-Of-Primary-Per-Events", required_argument, 0, 'O'},
@@ -173,10 +174,8 @@ static struct option options[] = {{"det-Target-Material-Name", required_argument
                                   {0, 0, 0, 0}};
 
 enum DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
-char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x",
-                           [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
-                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z",
-                           NULL};
+char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x", [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
 
 void help()
 {
@@ -189,7 +188,7 @@ void help()
 
 void GetInputArguments(int argc, char *argv[])
 {
-  int errfnd   = 0;
+  int errfnd = 0;
   char *subopts;
   char *value;
 
@@ -370,7 +369,7 @@ void SetupUserField(geant::RunManager *runMgr)
     config->fUseVectorizedField = parFieldBasketized;
 
     runMgr->SetUserFieldConstruction(fieldConstructor);
-    printf("main: Created uniform field and set up field-propagation.\n");    
+    printf("main: Created uniform field and set up field-propagation.\n");
   } else {
     printf("main: no magnetic field configured.\n");
     config->fUseRungeKutta      = false;

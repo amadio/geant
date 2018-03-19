@@ -38,12 +38,8 @@ public:
     *   output: success(returned), new position, new direction of particle
     */
   // VECCORE_ATT_HOST_DEVICE
-  bool DoStep(vecgeom::Vector3D<double> const &position,
-              vecgeom::Vector3D<double> const &direction,
-              int    const &charge,
-              double const &momentum,
-              double const &step,
-              vecgeom::Vector3D<double> &endPosition,
+  bool DoStep(vecgeom::Vector3D<double> const &position, vecgeom::Vector3D<double> const &direction, int const &charge,
+              double const &momentum, double const &step, vecgeom::Vector3D<double> &endPosition,
               vecgeom::Vector3D<double> &endDiretion); //  Goal => make it 'const';  -- including all classes it uses
 
   ScalarIntegrationDriver *GetScalarIntegrationDriver() { return fScalarDriver; }

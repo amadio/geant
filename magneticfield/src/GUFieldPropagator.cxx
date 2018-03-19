@@ -26,9 +26,8 @@ using ThreeVector = vecgeom::Vector3D<double>;
 
 FlexIntegrationDriver *GUFieldPropagator::fVectorDriver = nullptr;
 double GUFieldPropagator::fEpsilon                      = 1.0e-4;
-bool   GUFieldPropagator::fVerboseConstruct= false;
+bool GUFieldPropagator::fVerboseConstruct               = false;
 
-   
 //------------------------------------------------------------------------------------
 GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps, FlexIntegrationDriver *flexDriver)
     : fScalarDriver(driver)
@@ -64,13 +63,13 @@ GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps
   }
 
   if (fVerboseConstruct) {
-     std::cout << "GUFieldPropagator constructor> ptr= " << this << std::endl;
-#    ifdef USE_FLEXIBLE_FOR_SCALAR
-     std::cout << "   No scalar driver (using Flexible for this case.) "
-#else        
-     std::cout << "   scalar driver = " << fScalarDriver
-#endif        
-               << "  Flex/vector driver = " << flexDriver << std::endl;
+    std::cout << "GUFieldPropagator constructor> ptr= " << this << std::endl;
+#ifdef USE_FLEXIBLE_FOR_SCALAR
+    std::cout << "   No scalar driver (using Flexible for this case.) "
+#else
+    std::cout << "   scalar driver = " << fScalarDriver
+#endif
+              << "  Flex/vector driver = " << flexDriver << std::endl;
   }
 }
 
@@ -87,13 +86,10 @@ void GUFieldPropagator::SetFlexIntegrationDriver(FlexIntegrationDriver *flexDriv
   if (!fVectorDriver && flexDriver) {
     fVectorDriver = flexDriver;
 
-    if( fVerboseConstruct )
-      std::cout << "Replacing Vector/Flexible Driver" << std::endl;
+    if (fVerboseConstruct) std::cout << "Replacing Vector/Flexible Driver" << std::endl;
 
   } else if (fVectorDriver && flexDriver) {
-    std::cout << methodName 
-              << "> Not overwriting with Vector/Flexible Driver: already set!"
-              << std::endl;
+    std::cout << methodName << "> Not overwriting with Vector/Flexible Driver: already set!" << std::endl;
   }
 }
 
@@ -149,13 +145,9 @@ GUFieldPropagator *GUFieldPropagator::Clone() const
 
 // Make a step from current point along the path and compute new point, direction and angle
 // VECCORE_ATT_HOST_DEVICE
-bool GUFieldPropagator::DoStep(ThreeVector const &startPosition,
-                               ThreeVector const &startDirection,
-                               int         const &charge,
-                               double      const &startMomentumMag,
-                               double      const &step,
-                               ThreeVector       &endPosition,
-                               ThreeVector       &endDirection)
+bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector const &startDirection, int const &charge,
+                               double const &startMomentumMag, double const &step, ThreeVector &endPosition,
+                               ThreeVector &endDirection)
 {
   const char *methodName = "GUFieldPropagator::DoStep";
   bool goodAdvance       = false;

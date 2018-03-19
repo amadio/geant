@@ -130,16 +130,14 @@ inline GUTCashKarpRKF45<T_Equation, Nvar>::GUTCashKarpRKF45(T_Equation *EqRhs,
                                                             unsigned int numStateVariables,
                                                             bool verbose)
     : VScalarIntegrationStepper(EqRhs, // dynamic_cast<VScalarEquationOfMotion*>(EqRhs),
-                                sOrderMethod,
-                                Nvar,
-                                ((numStateVariables > 0) ? numStateVariables : sNstore)),
+                                sOrderMethod, Nvar, ((numStateVariables > 0) ? numStateVariables : sNstore)),
       fEquation_Rhs(EqRhs), fOwnTheEquation(true), fAuxStepper(0), fLastStepLength(0.), fVerbose(verbose)
 {
   assert(dynamic_cast<VScalarEquationOfMotion *>(EqRhs) != 0);
   assert((numStateVariables == 0) || (numStateVariables >= Nvar));
-  assert(IntegratorOrder() == sOrderMethod );
-  assert(GetNumberOfVariables()==Nvar);
-  
+  assert(IntegratorOrder() == sOrderMethod);
+  assert(GetNumberOfVariables() == Nvar);
+
   fLastInitialVector = new double[sNstore];
   fLastFinalVector   = new double[sNstore];
   fLastDyDx          = new double[sNstore];

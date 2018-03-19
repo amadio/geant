@@ -444,7 +444,7 @@ void SetupUserField(geant::RunManager *runMgr)
   } else {
     config->fUseRungeKutta      = false;
     config->fUseVectorizedField = false;
-    printf("main: no magnetic field configured.\n");    
+    printf("main: no magnetic field configured.\n");
   }
 }
 

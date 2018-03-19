@@ -29,8 +29,7 @@
 class VScalarIntegrationStepper {
 public:
   // VScalarIntegrationStepper();   // DELET
-  VScalarIntegrationStepper(VScalarEquationOfMotion *equation,
-                            unsigned int IntegrationOrder,
+  VScalarIntegrationStepper(VScalarEquationOfMotion *equation, unsigned int IntegrationOrder,
                             unsigned int numIntegrationVariables,
                             int numStateVariables); // = -1 same? or  unsigned ?    // in G4 =12
                                                     // See explanations of each below - e.g. order => RK order

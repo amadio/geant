@@ -444,9 +444,9 @@ inline void SimpleIntegrationDriver<T_Stepper, Nvar>::CheckParameters()
     exit(1);
   }
 
-  if( fVerboseLevel ) 
+  if (fVerboseLevel)
     std::cout << "SimpleIntegrationDriver::CheckParameters > Powers used: " << std::endl
-              << "  shrink = " << fPowerShrink   << "  grow = " << fPowerGrow << std::endl;
+              << "  shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
 }
 
 /*********
@@ -501,19 +501,18 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double hminimu
 
   ComputeAndSetErrcon();
   fMaxNoSteps = fMaxStepBase / fpStepper->GetIntegratorOrder();
-  
+
   ComputeAndSetErrcon();
 
   CheckParameters();
-  
+
 #ifdef GUDEBUG_FIELD
   fVerboseLevel = 2;
 #endif
 
-  if( fVerboseLevel ) {
-     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder()
-               << " > Powers used: " << " shrink = " << fPowerShrink
-               << "  grow = " << fPowerGrow << std::endl;
+  if (fVerboseLevel) {
+    std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
+              << " shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
   }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "MagIntDriver version: Accur-Adv: "

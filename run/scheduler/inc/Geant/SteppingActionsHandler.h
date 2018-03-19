@@ -55,10 +55,10 @@ public:
   virtual void DoIt(Basket &input, Basket &output, TaskData *td);
 
   /** @brief Enable verbosity */
-  void SetVerbosity( bool val ) { fVerboseTracking= val; }
+  void SetVerbosity(bool val) { fVerboseTracking = val; }
 
 private:
-  bool fVerboseTracking= false;
+  bool fVerboseTracking = false;
 };
 
 } // GEANT_IMPL_NAMESPACE

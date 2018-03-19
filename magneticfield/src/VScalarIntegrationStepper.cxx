@@ -9,10 +9,8 @@
 // Constructor for stepper abstract base class.
 //
 
-VScalarIntegrationStepper::VScalarIntegrationStepper(VScalarEquationOfMotion *equation,
-                                                     unsigned int integrationOrder,
-                                                     unsigned int num_integration_vars,
-                                                     int num_state_vars)
+VScalarIntegrationStepper::VScalarIntegrationStepper(VScalarEquationOfMotion *equation, unsigned int integrationOrder,
+                                                     unsigned int num_integration_vars, int num_state_vars)
     : fAbstrEquation(equation), fIntegrationOrder(integrationOrder), fNoIntegrationVariables(num_integration_vars),
       fNoStateVariables(num_state_vars > 0 ? num_state_vars : num_integration_vars)
 {

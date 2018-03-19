@@ -23,7 +23,7 @@ SteppingActionsHandler::~SteppingActionsHandler()
 }
 
 #define GV_VERBOSE_STEPPING 1
-          
+
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
@@ -47,12 +47,12 @@ void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
 #endif
 
 #ifdef GV_VERBOSE_STEPPING
-  if( fVerboseTracking ) {
+  if (fVerboseTracking) {
     // Optional 'tracking verbose' output
     track->Print("Verbose track/SteppingAction");
   }
 #endif
-  
+
   // The track may die at the end of the step
   if (track->Status() == kKilled || track->Status() == kExitingSetup) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -69,7 +69,6 @@ void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
   if (track->Status() == kBoundary) track->UpdateSwapPath();
   // Reset number of boundary steps
   // track->fNsteps = 0;
-
 
   // Copy to output
   output.AddTrack(track);
@@ -97,14 +96,14 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 #endif
 
 #ifdef GV_VERBOSE_STEPPING
-  // Optional 'tracking verbose' output  
-    if( fVerboseTracking ) {
-      for (auto track : tracks) {       
-        track->Print("Verbose track/SteppingAction");
-      }
+  // Optional 'tracking verbose' output
+  if (fVerboseTracking) {
+    for (auto track : tracks) {
+      track->Print("Verbose track/SteppingAction");
     }
+  }
 #endif
-  
+
   // Copy tracks alive to output, stop the others.
   for (auto track : tracks) {
     if (track->Status() == kKilled || track->Status() == kExitingSetup) {
@@ -123,7 +122,6 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket &output, TaskData *td)
     // Reset number of boundary steps
     // track->fNsteps = 0;
 
-  
     output.AddTrack(track);
   }
 }
