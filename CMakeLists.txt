@@ -14,7 +14,7 @@ include(cmake/modules/DoxygenSetup.cmake)
 #----------------------------------------------------------------------------------------------
 # Setup the project
 #
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.7.0 FATAL_ERROR)
 project(GEANTV)
 enable_language(CXX)
 
