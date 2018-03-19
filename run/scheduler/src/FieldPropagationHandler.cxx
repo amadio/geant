@@ -669,8 +669,10 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
     }
 
     auto fieldPropagator = GetFieldPropagator(td);
+    assert( fieldPropagator );    
     auto vectorDriver    = fieldPropagator ? fieldPropagator->GetFlexibleIntegrationDriver() : nullptr;
-
+    assert( vectorDriver );
+       
     if (vectorDriver) {
       // Integrate using Runge Kutta method
       vectorDriver->AccurateAdvance(fldTracksIn, steps, fltCharge, fEpsTol, fldTracksOut, nTracks, succeeded);
@@ -772,7 +774,8 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       }
     } else {
       // geant::Error( ... );
-      std::cerr << "FieldPropagationHandler: no Flexible/Vector Integration Driver found." << std::endl;
+      std::cerr << "ERROR in FieldPropagationHandler: no Flexible/Vector Integration Driver found." << std::endl;
+      exit(1);
     }
   }
 #else
