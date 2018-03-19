@@ -45,7 +45,7 @@ macro(GeantExampleDef)
    add_dependencies(${ExampleName} Geant_v RealPhysics GeantExamplesRP GeantNuma)
 
 
-   if (CTEST AND ExampleCTestLevel LESS_EQUAL ${CTEST_LEVEL})
+   if (CTEST AND ${ExampleCTestLevel} LESS_EQUAL ${CTEST_LEVEL})
    add_test(NAME ${ExampleName}
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} 
             COMMAND $<TARGET_FILE:${ExampleName}>)
