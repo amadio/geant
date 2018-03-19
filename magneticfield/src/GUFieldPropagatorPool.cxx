@@ -39,12 +39,14 @@ GUFieldPropagatorPool::~GUFieldPropagatorPool()
 
 bool GUFieldPropagatorPool::RegisterPrototype(GUFieldPropagator *prototype)
 {
-  bool ok = ((fNumberPropagators > 0) && (fPrototype) && (prototype != fPrototype));
+  bool ok = ((fNumberPropagators == 0) && (!fPrototype) && (prototype != fPrototype));
   if (!ok) {
     std::cerr << "WARNING from GUFieldPropagatorPool:  "
-              << "Changing prototype propagator after having created " << fNumberPropagators << " instances. "
+              << "Overwriting prototype propagator after having created " << fNumberPropagators << " instances. "
               << std::endl;
     std::cerr << "     prototype =   " << prototype << " old-prototype= " << fPrototype << std::endl;
+    if( ! prototype )
+       exit(1);    
   }
   assert(prototype);
   fPrototype = prototype;
@@ -57,8 +59,8 @@ bool GUFieldPropagatorPool::RegisterPrototype(GUFieldPropagator *prototype)
 
 bool GUFieldPropagatorPool::Initialize(unsigned int numThreads)
 {
-  const char *methodName = "GUFieldPropagatorPool::Initialize";
-  std::cout << methodName << " called with " << numThreads << " threads." << std::endl;
+  // const char *methodName = "GUFieldPropagatorPool::Initialize";
+  // std::cout << methodName << " called with " << numThreads << " threads." << std::endl;
   if (!fPrototype) {
     std::cerr << "ERROR> from GUFieldPropagatorPool::Initialize:  "
               << "Must register prototype propagator before calling Initialize. " << std::endl
@@ -73,7 +75,8 @@ bool GUFieldPropagatorPool::Initialize(unsigned int numThreads)
   }
 
   size_t revSize = fFieldPropagatorVec.size();
-  std::cout << " (GU Field Propagator) Pool:  revised size= " << revSize << " requested= " << numThreads << std::endl;
+  
+  // std::cout << " (GU Field Propagator) Pool:  revised size= " << revSize << " requested= " << numThreads << std::endl;
 
   goodExpansion = (fFieldPropagatorVec.size() >= numThreads);
   assert(goodExpansion);
@@ -85,10 +88,10 @@ bool GUFieldPropagatorPool::Initialize(unsigned int numThreads)
 
 void GUFieldPropagatorPool::Extend(size_t noNeeded)
 {
-  const char *methodName = "GUFieldPropagatorPool::Extend";
+   // const char *methodName = "GUFieldPropagatorPool::Extend";
 
   size_t num         = fFieldPropagatorVec.size();
-  size_t originalNum = num;
+  // size_t originalNum = num;
   assert(fPrototype);
   assert(num < noNeeded);
 
@@ -101,7 +104,7 @@ void GUFieldPropagatorPool::Extend(size_t noNeeded)
 
     num++;
 
-    std::cout << methodName << ": Created propagator " << prop << " for slot " << num << std::endl;
+    // std::cout << methodName << ": Created propagator " << prop << " for slot " << num << std::endl;
     // printf("            Created propagator %p for slot %ld\n", prop, num );
 
     // fFieldVec.push_back( fFieldPrototype->CloneOrSafeSelf() );
@@ -112,8 +115,9 @@ void GUFieldPropagatorPool::Extend(size_t noNeeded)
   }
   // printf("%s method ended.  Created %ld propagators.  New total= %ld\n", methodName,
   //     num - originalNum, num );
-  std::cout << methodName << " method ended.  Created " << num - originalNum << " propagators.  New total = " << num
-            << std::endl;
+  // std::cout << methodName << " method ended.  Created " << num - originalNum << " propagators.  New total = "
+  //           << num << std::endl;
+            
 }
 
 #if 0

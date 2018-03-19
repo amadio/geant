@@ -5,6 +5,8 @@
 #include "Geant/UserApplication.h"
 #include "Geant/TrackManager.h"
 
+#define GV_VERBOSE_STEPPING 1
+
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -21,8 +23,6 @@ SteppingActionsHandler::~SteppingActionsHandler()
 {
   // Destructor
 }
-
-#define GV_VERBOSE_STEPPING 1
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -124,6 +124,15 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 
     output.AddTrack(track);
   }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void SteppingActionsHandler::SetVerbosity( bool val ) {
+   fVerboseTracking= val;
+#ifndef GV_VERBOSE_STEPPING
+   std::cerr << "Warning: This installation has Stepping Verbosity turned OFF." << std::endl;
+#endif
 }
 
 } // namespace GEANT_IMPL_NAMESPACE

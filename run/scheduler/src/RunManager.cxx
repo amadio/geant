@@ -97,12 +97,12 @@ bool RunManager::Initialize()
   bool externalLoop = fConfig->fRunMode == GeantConfig::kExternalLoop;
 
   if (!fPrimaryGenerator && !externalLoop) {
-    Fatal(methodName, "The primary generator has to be defined");
+    Fatal(methodName, "The primary generator MUST be defined");
     return false;
   }
 
   if (!fApplication) {
-    Fatal(methodName, "The user application has to be defined");
+    Fatal(methodName, "The user application MUST be defined");
     return false;
   }
 
@@ -306,48 +306,32 @@ bool RunManager::LoadGeometry(const char *filename)
 void RunManager::PrepareRkIntegration()
 {
   using GUFieldPropagatorPool = ::GUFieldPropagatorPool;
-  // using GUFieldPropagator = ::GUFieldPropagator;
-  using std::cout;
-  using std::endl;
 
-  // Initialise the classes required for tracking in field
-  // const unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
-  // const double hminimum = 1.0e-5; // * centimeter; =  0.0001 * millimeter;  // Minimum step = 0.1 microns
-  // int statisticsVerbosity = 0;
-  // cout << "Parameters for RK integration in magnetic field: " << endl;
-  // cout << "   Driver parameters:  eps_tol= " << fConfig->fEpsilonRK << "  h_min= " << hminimum << endl;
-
-  // auto integrDriver = new ScalarIntegrationDriver(hminimum, aStepper, Nvar, statisticsVerbosity);
-  // auto fieldPropagator = new GUFieldPropagator(integrDriver, fConfig->fEpsilonRK);
-
-  UserFieldConstruction *udc = fDetConstruction->GetFieldConstruction();
-  if (!udc) {
+  UserFieldConstruction *ufc = fDetConstruction->GetFieldConstruction();
+  if (!ufc) {
     geant::Error("PrepareRkIntegration", "Cannot find expected User Field Construction object.");
     exit(1);
   } else {
-    // GUVVectorField** fieldPtr;
-    bool useRungeKutta = fConfig->fUseRungeKutta;
-    cout << "PrepareRkIntegration: creating field & solver.  Use RK= " << useRungeKutta << endl;
-    udc->CreateFieldAndSolver(useRungeKutta); // , fieldPtr );
+    // std::cout << "PrepareRkIntegration: creating field & solver.  Use RK= " << fConfig->fUseRungeKutta << endl;
+    ufc->CreateFieldAndSolver(fConfig->fUseRungeKutta);
 
     static GUFieldPropagatorPool *fpPool = GUFieldPropagatorPool::Instance();
     assert(fpPool); // Cannot be zero
     if (fpPool) {
-      // fpPool->RegisterPrototype(fieldPropagator);
-      //     ==> Now done in UserFieldConstructor::CreateSolverForField
       // Create clones for other threads
       fpPool->Initialize(fNthreads);
     } else {
       geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
     }
   }
+  fInitialisedRKIntegration = true;  
 }
 
 //______________________________________________________________________________
-void RunManager::SetUserFieldConstruction(UserFieldConstruction *udc)
+void RunManager::SetUserFieldConstruction(UserFieldConstruction *ufc)
 {
   if (fDetConstruction)
-    fDetConstruction->SetUserFieldConstruction(udc);
+    fDetConstruction->SetUserFieldConstruction(ufc);
   else
     Error("RunManager::SetUserFieldConstruction",
           "To define a field, the user detector construction has to be defined");

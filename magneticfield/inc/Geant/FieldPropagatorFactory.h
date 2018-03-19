@@ -175,7 +175,7 @@ inline FlexIntegrationDriver *FieldPropagatorFactory::CreateFlexibleDriver(Field
   const char *methodName = "FieldPropagatorFactory::CreateFlexibleDriver";
   int statsVerbose       = 1;
 
-  std::cout << methodName << " called. " << std::endl;
+  // std::cout << methodName << " called. " << std::endl;
 
   // New flexible (scalar + vector) versions of field, equation, ...
   constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec

@@ -369,8 +369,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   ThreeVector PositionNew(0., 0., 0.);
   ThreeVector DirectionNew(0., 0., 0.);
 
-  char method = '0';
-
+  // char method= '0';
   ThreeVector PositionNewCheck(0., 0., 0.);
   ThreeVector DirectionNewCheck(0., 0., 0.);
 
@@ -404,11 +403,10 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
       }
     }
 #endif
-
-#ifdef STATS_METHODS
-    method = 'R';
-    numRK++;
-#endif
+    // method= 'R';
+    #ifdef STATS_METHODS
+      numRK++;
+    #endif
   } else {
     // Must agree with values in magneticfield/inc/Units.h
     double Bz             = BfieldInitial[2] * toKiloGauss;
@@ -419,7 +417,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
       ConstBzFieldHelixStepper stepper(Bz); //
       stepper.DoStep<ThreeVector, double, int>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew,
                                                DirectionNew);
-      method = 'z';
+      // method= 'z';
 #ifdef STATS_METHODS
       numHelixZ++;
 #endif
@@ -429,7 +427,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
                              BfieldInitial.z() * toKiloGauss};
       ConstFieldHelixStepper stepper(BfieldArr);
       stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-      method = 'v';
+      // method= 'v';
 #ifdef STATS_METHODS
       numHelixGen++;
 #endif
