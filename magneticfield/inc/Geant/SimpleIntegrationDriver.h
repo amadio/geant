@@ -468,8 +468,6 @@ void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
 // template <class T_Stepper, unsigned int Nvar>
 // const int  SimpleIntegrationDriver< /* Real_v, */ T_Stepper, Nvar>::fMaxStepBase = 250;  // Was 5000
 
-#define GUDEBUG_FIELD 1
-
 // To add much printing for debugging purposes, uncomment the following
 // and set verbose level to 1 or higher value !
 // #define  GUDEBUG_FIELD 1
@@ -501,24 +499,27 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double hminimu
 
   fpStepper = pStepper;
 
-  std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << std::endl;
-  std::cout << "         > Powers used: " << std::endl
-            << "  shrink = " << fPowerShrink   << "  grow = " << fPowerGrow << std::endl;  
   ComputeAndSetErrcon();
   fMaxNoSteps = fMaxStepBase / fpStepper->GetIntegratorOrder();
+  
+  ComputeAndSetErrcon();
+
+  CheckParameters();
+  
 #ifdef GUDEBUG_FIELD
   fVerboseLevel = 2;
 #endif
 
+  if( fVerboseLevel ) {
+     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder()
+               << " > Powers used: " << " shrink = " << fPowerShrink
+               << "  grow = " << fPowerGrow << std::endl;
+  }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "MagIntDriver version: Accur-Adv: "
               << "invE_nS, QuickAdv-2sqrt with Statistics " << fStatsStatus << std::endl;
     // ( fStatsEnabled ? "enabled" : "disabled" )
   }
-
-  ComputeAndSetErrcon();
-
-  CheckParameters();
 
 #ifdef GVFLD_STATS
 /*****

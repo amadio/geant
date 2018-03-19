@@ -26,9 +26,12 @@ using ThreeVector = vecgeom::Vector3D<double>;
 
 FlexIntegrationDriver *GUFieldPropagator::fVectorDriver = nullptr;
 double GUFieldPropagator::fEpsilon                      = 1.0e-4;
+bool   GUFieldPropagator::fVerboseConstruct= false;
+
+   
 //------------------------------------------------------------------------------------
 GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps, FlexIntegrationDriver *flexDriver)
-    : fScalarDriver(driver), fVerboseConstruct(false)
+    : fScalarDriver(driver)
 // fEpsilon(eps)
 {
   const char *methodName = "GUFieldPropagator constructor (scalarDriver, eps, *flex - with default = null)";
@@ -82,11 +85,15 @@ void GUFieldPropagator::SetFlexIntegrationDriver(FlexIntegrationDriver *flexDriv
 {
   const std::string methodName = "GUFieldPropagator::SetFlexIntegrationDriver";
   if (!fVectorDriver && flexDriver) {
-    std::cout << "Replacing Vector/Flexible Driver" << std::endl;
     fVectorDriver = flexDriver;
-  } else if (!flexDriver) {
-    std::cout << methodName // << "GUFieldPropagator::SetFlexIntegrationDriver",
-              << "> Not overwriting with Vector/Flexible Driver" << std::endl;
+
+    if( fVerboseConstruct )
+      std::cout << "Replacing Vector/Flexible Driver" << std::endl;
+
+  } else if (fVectorDriver && flexDriver) {
+    std::cout << methodName 
+              << "> Not overwriting with Vector/Flexible Driver: already set!"
+              << std::endl;
   }
 }
 

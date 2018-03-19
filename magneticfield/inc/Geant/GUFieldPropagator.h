@@ -94,7 +94,7 @@ private:
 
   ScalarIntegrationDriver *fScalarDriver = nullptr;
 
-  bool fVerboseConstruct;
+  static bool fVerboseConstruct;
 };
 
 // } // GEANT_IMPL_NAMESPACE

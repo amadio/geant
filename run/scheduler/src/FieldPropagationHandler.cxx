@@ -30,10 +30,10 @@ using Double_v = geant::Double_v;
 // #define CHECK_VS_RK   1
 //#define CHECK_VS_HELIX 1
 
-#define REPORT_AND_CHECK 1
+// #define REPORT_AND_CHECK 1
 
-#define STATS_METHODS 1
-#define DEBUG_FIELD   1
+// #define STATS_METHODS 1
+// #define DEBUG_FIELD   1
 
 #ifdef CHECK_VS_HELIX
 #define CHECK_VS_SCALAR 1
@@ -320,10 +320,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
 
   bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
-  bool epsilonRK     = td->fPropagator->fConfig->fEpsilonRK;
   double bmag        = -1.0;
-
-  bool verboseDiff = true;  // If false, print just one line.  Else more details.
 
   ThreeVector BfieldInitial;
   ThreeVector Position(track.X(), track.Y(), track.Z());
@@ -353,19 +350,12 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   track.IncreaseStep(crtstep);
 
 #if DEBUG_FIELD
+  bool verboseDiff = true;  // If false, print just one line.  Else more details.
+  bool epsilonRK     = td->fPropagator->fConfig->fEpsilonRK;
   double curvaturePlus= fabs(Track::kB2C * track.Charge() * (bmag* toKiloGauss)) / (track.P() + 1.0e-30);  // norm for step
   const double angle= crtstep * curvaturePlus;
 #endif
-#if 0
-  constexpr double numRadiansMax= 10.0; // Too large an angle - many RK steps.  Potential change -> 2.0*PI;
-  constexpr double numRadiansMin= 0.05; // Very small an angle - helix is adequate.  TBC: Use average B-field value?
-      //  A track turning more than 10 radians will be treated approximately
 
-  bool mediumAngle = ( numRadiansMin < angle ) && ( angle < numRadiansMax );
-  useRungeKutta = useRungeKutta && (mediumAngle);
-#endif
-
-// if( angle > 0.000001 ) std::cout << " ang= " << angle << std::endl;
 #ifdef PRINT_STEP_SINGLE
   Print("--PropagateInVolume(Single): ",
         "Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= %f (mm)  Bmag=%8.4g KG   angle= %g\n",
@@ -493,21 +483,6 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   CheckTrack(track, "End of Propagate-In-Volume", 1.0e-5); // Msg[propagationType] );
 #endif
 
-#if 0 // DEBUG_FIELD
-  // Check the deflection from the straight line 
-  //
-  ThreeVector SimplePosition = Position + crtstep * Direction;
-  // double diffpos2 = (PositionNew - Position).Mag2();
-  double diffpos2 = (PositionNew - SimplePosition).Mag2();
-  //   -- if (vecCore::math::Sqrt(diffpos)>0.01*crtstep) {
-  const double drift= 0.01*crtstep;
-  if ( diffpos2>drift*drift ){
-      double diffpos= vecCore::math::Sqrt(diffpos2);
-      // geant::Print("PropagateInVolume/Single","relative difference in pos = %g", diffpos/crtstep);
-      Print("PropagateInVolume/Single","Deflection> in pos = %g (abs) %g (relative) , step= %g",
-                   diffpos, diffpos/crtstep, crtstep);
-  }
-#endif
 }
 
 //______________________________________________________________________________
@@ -592,8 +567,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
        
 #ifdef DEBUG_FIELD
       // Quick Crosscheck against helix stepper
-      ThreeVector PositionNew(0., 0., 0.);
-      ThreeVector DirectionNew(0., 0., 0.);
+      ThreeVector PositionNew(0., 0., 0.), DirectionNew(0., 0., 0.);
 
       stepper.DoStep<double>(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr],
                              PositionNew, DirectionNew);
@@ -602,8 +576,6 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       double dirDiff = (DirectionNew - DirectionOut[itr]).Mag();
       if (posDiff > 1.e-6 || dirDiff > 1.e-6) {
         std::cout << "*** position/direction shift HelixStepper scalar vs. vector :" << posDiff << " / " << dirDiff << "\n";
-        // stepper.DoStep<double>(startPosition, startDirection, track.Charge(), track.P(), steps[itr],
-        //                       endPositionNew, DirectionNew);
       }
 #endif
       Vector3D<double> positionMove = startPosition - PositionOut[itr];
