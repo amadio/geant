@@ -74,7 +74,7 @@ void FieldPropagationHandler::InitializeStats()
   numHelixZ   = 0;
   numHelixGen = 0;
 #else
-  std::cout << " Field Propagation Handler: no statistics for types of steps." << std::endl;
+  // std::cout << " Field Propagation Handler: no statistics for types of steps." << std::endl;
 #endif
 }
 
