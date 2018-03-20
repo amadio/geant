@@ -18,7 +18,11 @@ int SteppingActionsStage::CreateHandlers()
 {
   // Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
-  AddHandler(new SteppingActionsHandler(threshold, fPropagator));
+  bool verbose= fPropagator->fConfig->fSteppingVerbose;
+  auto stepHndl = new SteppingActionsHandler(threshold, fPropagator);
+  stepHndl->SetVerbosity(verbose);
+  AddHandler(stepHndl);
+  // std::cout << "SteppingACtionsStage: set verbose = " << ( verbose ? " ON" : " OFF" ) << std::endl;
 
   return 1;
 }
