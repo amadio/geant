@@ -56,28 +56,9 @@ int main(int argc, char *argv[])
   userapplication::TestEm5PrimaryGenerator *primaryGenerator = new userapplication::TestEm5PrimaryGenerator(detector);
   SetupUserPrimaryGenerator(primaryGenerator);
   runManager->SetPrimaryGenerator(primaryGenerator);
-
-#if 1
+  //
+  // set up mag. field propagation
   SetupUserField(runManager);
-#else
-  // Create TestEm3 global magnetic field
-  if (parFieldActive) {
-    // Create magnetic field and needed classes for trajectory integration
-    auto fieldConstructor = new geant::UserFieldConstruction();
-    float fieldVec[3]     = {0.0f, 0.0f, 2.0f};
-    fieldConstructor->UseConstantMagField(fieldVec, "kilogauss");
-
-    auto config            = runManager->GetConfig();
-    config->fUseRungeKutta = true;
-    config->fEpsilonRK     = 0.0003; // Revised / reduced accuracy - vs. 0.0003 default
-
-    runManager->SetUserFieldConstruction(fieldConstructor);
-    printf("main: Created uniform field and set up field-propagation.\n");
-  } else {
-    printf("main: no magnetic field configured.\n");
-  }
-#endif
-
   //
   // create the testEm5 user application object, set its configurable parameters and register in the RunManager
   userapplication::TestEm5 *testEm5Application = new userapplication::TestEm5(runManager, detector, primaryGenerator);
@@ -115,13 +96,13 @@ double parAppHist1MinVal        = -1.; // i.e. default application value
 double parAppHist1MaxVal        = -1.; // i.e. default application value
 //
 // run configuration parameters
-int parConfigNumBufferedEvt   = 4;  // number of events taken to be transported on the same time (buffered)
-int parConfigNumRunEvt        = 1;  // 4000 // total number of events to be transported during the run
-int parConfigNumPrimaryPerEvt = 16; // 1000 // number of primary particles per event
-int parConfigNumThreads       = 1;  // number of working threads
-int parConfigNumPropagators   = 1;  // number of propagators per working threads
-bool parConfigVectorizedGeom  = 0;  // activate geometry basketizing
-int parConfigNumPerBasket     = 16; // default number of particles per basket
+int parConfigNumBufferedEvt   = 4;     // number of events taken to be transported on the same time (buffered)
+int parConfigNumRunEvt        = 4000;  // total number of events to be transported during the run
+int parConfigNumPrimaryPerEvt = 1000;  // number of primary particles per event
+int parConfigNumThreads       = 4;     // number of working threads
+int parConfigNumPropagators   = 1;     // number of propagators per working threads
+bool parConfigVectorizedGeom  = 0;     // activate geometry basketizing
+int parConfigNumPerBasket     = 16;    // default number of particles per basket
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit = ""; // i.e. default application value
@@ -129,11 +110,11 @@ double parProcessStepMaxValue      = 0.; // i.e. default application value
 
 //
 // field configuration parameters
-int parFieldActive      = 1;            // activate magnetic field
-int parFieldUseRK       = 1;            // use Runge-Kutta instead of helix
+int parFieldActive      = 0;            // activate magnetic field
+int parFieldUseRK       = 0;            // use Runge-Kutta instead of helix
 double parFieldEpsRK    = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
 int parFieldBasketized  = 1;            // basketize magnetic field
-float parFieldVector[3] = {0., 0., 2.}; // Constant field value
+float parFieldVector[3];                // Constant field value {0,0,2} [kilogauss]
 
 static struct option options[] = {{"det-Target-Material-Name", required_argument, 0, 'a'},
                                   {"det-Target-Thickness", required_argument, 0, 'b'},
