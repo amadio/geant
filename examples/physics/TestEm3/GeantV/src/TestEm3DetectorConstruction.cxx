@@ -253,13 +253,28 @@ void TestEm3DetectorConstruction::CreateGeometry()
   logicCalo->SetMaterialPtr(fWorldMaterial);
   xcenter = 0.;
   xstart  = -0.5 * fCaloSizeX;
+  std::vector<int> layerIDs;
+  int maxLayerID = -1;
+  // place fNumberOfLayers layers into the calorimeter and store the ID-s of the placed layers (as VPlacedVolume-s)
   for (int i = 0; i < fNumberOfLayers; ++i) {
     sprintf(name, "layer_%d", i);
     xcenter = xstart + 0.5 * fLayerThickness;
     xstart += fLayerThickness;
     vecgeom::Transformation3D *place = new vecgeom::Transformation3D(xcenter, 0, 0, 0, 0, 0);
-    logicCalo->PlaceDaughter(name, logicLayer, place);
+    const vecgeom::VPlacedVolume *placedLayer = logicCalo->PlaceDaughter(name, logicLayer, place);
+    int layerID = placedLayer->id();
+    layerIDs.push_back(layerID);
+    if (layerID>maxLayerID) {
+      maxLayerID = layerID;
+    }
   }
+  // create the layer (as VPlacedVolume) IDs to their index map
+  fLayerIDToLayerIndex.resize(maxLayerID+1,-1);
+  for (int l=0; l<fNumberOfLayers; ++l) {
+    fLayerIDToLayerIndex[layerIDs[l]] = l;
+  }
+  layerIDs.clear();
+  //
   // place the calorimeter into the world
   vecgeom::Transformation3D *place = new vecgeom::Transformation3D(0, 0, 0, 0, 0, 0);
   logicWorld->PlaceDaughter("calorimeter", logicCalo, place);

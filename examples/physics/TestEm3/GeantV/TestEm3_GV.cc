@@ -387,8 +387,8 @@ geant::RunManager *RunManager()
   // Some additional parameters that have values in this application different than their default
   //
   // this should be true by default from now on since we use only V3
-  runConfig->fUseV3         = true;
-  runConfig->fNminThreshold = 5 * parConfigNumThreads;
+  runConfig->fUseV3             = true;
+  runConfig->fNminThreshold     = 5 * parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
   runConfig->fNminReuse         = 100000;
   runConfig->fMaxPerBasket      = parConfigNumTracksPerBasket;

@@ -85,6 +85,7 @@ private:
   bool fInitialized;
   int fNumAbsorbers;
   std::vector<int> fAbsorberLogicalVolumeID;
+  std::vector<int> fLayerIDToLayerIndexMap;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)
   // these data will be obtained from the RunManager::GeantConfig object at initialization
   int fNumPrimaryPerEvent;
@@ -98,6 +99,9 @@ private:
   // 1. merged from all working threads when transportation of an event (with all corresponding primary and secondary
   //    particles) are completed
   geant::TaskDataHandle<TestEm3ThreadDataEvents> *fDataHandlerEvents;
+  // 2. merged from all working threads when transportation of all events (i.e. end of the simulation) are completed
+  geant::TaskDataHandle<TestEm3ThreadDataRun> *fDataHandlerRun;
+  //
   // a unique, run-global user defined data structure to store cumulated quantities per primary particle during the
   // simulation
   TestEm3Data *fData;

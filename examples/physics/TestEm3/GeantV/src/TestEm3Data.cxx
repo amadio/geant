@@ -135,4 +135,19 @@ bool TestEm3ThreadDataEvents::Merge(int evtslotindx, const TestEm3ThreadDataEven
   return true;
 }
 
+
+//
+// TestEm3ThreadDataRun
+bool TestEm3ThreadDataRun::Merge(int /*evtslotindx*/, const TestEm3ThreadDataRun &other)
+{
+  const std::vector<double> &chv = other.GetCHTrackLPerLayer();
+  const std::vector<double> &edv = other.GetEDepPerLayer();
+  size_t nLayers = chv.size();
+  for (size_t i=0; i<nLayers; ++i) {
+    fChargedTrackLPerLayer[i] += chv[i];
+    fEdepPerLayer[i]          += edv[i];
+  } 
+  return true;
+}
+
 } // namespace userapplication

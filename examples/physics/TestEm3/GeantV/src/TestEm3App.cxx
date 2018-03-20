@@ -57,6 +57,10 @@ void TestEm3App::AttachUserData(geant::TaskData *td)
   TestEm3ThreadDataEvents *eventData =
       new TestEm3ThreadDataEvents(fNumBufferedEvents, fNumPrimaryPerEvent, fNumAbsorbers);
   fDataHandlerEvents->AttachUserData(eventData, td);
+  // Create application specific thread local data structure to collecet/handle thread local run-global data structure.
+  TestEm3ThreadDataRun *runData = new TestEm3ThreadDataRun();
+  runData->SetLayerDataContainer(fDetector->GetNumberOfLayers());
+  fDataHandlerRun->AttachUserData(runData, td);
 }
 
 bool TestEm3App::Initialize()
@@ -77,6 +81,8 @@ bool TestEm3App::Initialize()
     int id                       = fDetector->GetAbsorberLogicalVolumeID(k);
     fAbsorberLogicalVolumeID[id] = k; // map to absorber index
   }
+  // get a copy of the layer ID layer index map vector form the Detector
+  fLayerIDToLayerIndexMap = fDetector->GetLayerIDToLayerIndexMap();
   // get all information that the primary generator (simple gun) should provide
   if (!fPrimaryGun) {
     geant::Error("TestEm3App::Initialize", "PrimaryGenerator not available!");
@@ -90,6 +96,7 @@ bool TestEm3App::Initialize()
   //
   // register thread local user data and get handler for them
   fDataHandlerEvents = fRunMgr->GetTDManager()->RegisterUserData<TestEm3ThreadDataEvents>("TestEm3ThreadDataEvents");
+  fDataHandlerRun    = fRunMgr->GetTDManager()->RegisterUserData<TestEm3ThreadDataRun>("TestEm3ThreadDataRun");
   //
   // create the unique, global data struture that will be used to store cumulated per-primary data during the simulation
   fData = new TestEm3Data(fNumAbsorbers);
@@ -103,8 +110,9 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
   if (fIsPerformance) return;
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
   Node_t const *current;
-  int idvol = -1;
-  int ilev  = -1;
+  int idvol   = -1;
+  int idlayer = -1;
+  int ilev    = -1;
   ilev      = track.Path()->GetCurrentLevel() - 1;
   if (ilev < 1) {
     return;
@@ -113,7 +121,8 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
   if (!current) {
     return;
   }
-  idvol = current->GetLogicalVolume()->id();
+  idvol   = current->GetLogicalVolume()->id();
+  idlayer = track.Path()->At(ilev-1)->id();
   // get some particle properties
   const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.GVcode());
   int pdgCode                        = part->GetPDGCode();
@@ -160,6 +169,14 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
         break;
       }
     }
+  }
+  //
+  // go for per layer data: they are stored in the run-global thread local data structure 
+  int currentLayerIndx = fLayerIDToLayerIndexMap[idlayer];
+  if (currentLayerIndx > -1) {
+    TestEm3ThreadDataRun &dataRun = (*fDataHandlerRun)(td);
+    dataRun.AddEdep(track.Edep(), currentLayerIndx);
+    if (charge != 0.0) dataRun.AddDataCHTrackLength(track.GetStep(), currentLayerIndx);
   }
 }
 
@@ -233,7 +250,7 @@ void TestEm3App::FinishRun()
             << std::endl;
   std::cout << std::setprecision(3);
   std::cout << "  The run was " << fRunMgr->GetNprimaries() << " " << fPrimaryGun->GetPrimaryParticle()->GetName()
-            << " of with E = " << fPrimaryGun->GetPrimaryParticleEnergy() << " [GeV] " << std::endl;
+            << "  with E = " << fPrimaryGun->GetPrimaryParticleEnergy() << " [GeV] " << std::endl;
   std::cout << std::endl;
   std::cout << std::setprecision(4);
   std::cout << " \n ---------------------------------------------------------------------------------------------- \n"
@@ -271,8 +288,30 @@ void TestEm3App::FinishRun()
   std::cout << " Mean number of neutral steps  " << meanNeSteps << std::endl;
 
   std::cout << std::endl;
+  std::cout << " \n ---------------------------------------------------------------------------------------------- \n"
+            << std::endl;
+  // 
+  //
+  // merge the run-global thread local data from the working threads: i.e. the thread local histograms
+  TestEm3ThreadDataRun *runData = fRunMgr->GetTDManager()->MergeUserData(-1, *fDataHandlerRun);
+  const std::vector<double> &chargedTrackLPerLayer = runData->GetCHTrackLPerLayer();
+  const std::vector<double> &energyDepositPerLayer       = runData->GetEDepPerLayer();
+  int nLayers = energyDepositPerLayer.size();
+  std::cout << " \n ---------------------------------------------------------------------------------------------- \n"
+            << " ---------------------------------   Layer by layer mean data  ------------------------------- \n"
+            << " ---------------------------------------------------------------------------------------------- \n";
+  std::cout << "  #Layers     Charged-TrakL [cm]     Energy-Dep [GeV]  " << std::endl << std::endl;
+  for (int il = 0; il < nLayers; ++il)  {
+    std::cout<< "      " 
+             << std::setw(10) << il 
+             << std::setw(20) << std::setprecision(6) <<  chargedTrackLPerLayer[il]*norm 
+             << std::setw(20) << std::setprecision(6) <<  energyDepositPerLayer[il]*norm 
+             << std::endl;
+  }
+  std::cout << std::endl;
   std::cout << " \n ============================================================================================== \n"
             << std::endl;
+            
   /*
     //
     // print the merged histogram into file

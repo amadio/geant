@@ -8,6 +8,7 @@
 #include "Geant/Fwd.h"
 
 #include <string>
+#include <vector>
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -60,7 +61,9 @@ public:
   double GetCaloSizeX() const { return fCaloSizeX; }
   //
   int GetAbsorberLogicalVolumeID(int absindx) const;
-
+  //
+  std::vector<int> GetLayerIDToLayerIndexMap() const { return fLayerIDToLayerIndex; }
+  //
   static int GetMaxNumberOfAbsorbers() { return gMaxNumAbsorbers; }
 
   void DetectorInfo();
@@ -93,6 +96,8 @@ private:
   double fWorldSizeYZ;
 
   double fProductionCut; // in length
+
+  std::vector<int> fLayerIDToLayerIndex;  // map of the layer (as VPlacedVolume) IDs to their index.
 
   geantphysics::Material *fAbsorberMaterials[gMaxNumAbsorbers];
   geantphysics::Material *fWorldMaterial;
