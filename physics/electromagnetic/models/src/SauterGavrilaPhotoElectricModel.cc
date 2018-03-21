@@ -41,7 +41,8 @@ int SauterGavrilaPhotoElectricModel::fNShellsUsed[] = {0};
 
 Material *SauterGavrilaPhotoElectricModel::fWater         = nullptr;
 double SauterGavrilaPhotoElectricModel::fWaterEnergyLimit = 0.0;
-
+    
+XSectionsVector **SauterGavrilaPhotoElectricModel::fShellVectorFull[] = {nullptr};
 XSectionsVector **SauterGavrilaPhotoElectricModel::fShellVector[] = {nullptr};
 XSectionsVector *SauterGavrilaPhotoElectricModel::fLECSVector[]   = {nullptr};
 XSectionsVector *SauterGavrilaPhotoElectricModel::fCSVector[]     = {nullptr};
@@ -51,20 +52,25 @@ bool *SauterGavrilaPhotoElectricModel::fCrossSectionLE            = nullptr;
 SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname, bool aliasActive)
     : EMModel(modelname)
 {
-
   SetUseSamplingTables(aliasActive);
   fMinPrimEnergy =
       1.e-12 * geant::units::eV; // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
   fMaxPrimEnergy = 100 * geant::units::MeV; // Maximum of the gamma kinetic energy grid (after this threshold the e- is
                                             // considered to follow the same direction as the incident gamma)
-
+  fShellMinPrimEnergy    = 0.1 * geant::units::keV;
+  fShellMaxPrimEnergy    = 1 *   geant::units::MeV;
   fPrimEnLMin            = 0.;      // will be set in InitSamplingTables if needed
   fPrimEnILDelta         = 0.;      // will be set in InitSamplingTables if needed
   fSamplingPrimEnergies  = nullptr; // will be set in InitSamplingTables if needed
   fLSamplingPrimEnergies = nullptr; // will be set in InitSamplingTables if needed
+    
+  fShellSamplingPrimEnergies  = nullptr; // will be set in InitShellSamplingTables if needed
+  fShellLSamplingPrimEnergies = nullptr; // will be set in InitShellSamplingTables if needed
 
   fAliasData    = nullptr; // will be set in InitSamplingTables if needed
   fAliasSampler = nullptr;
+  fShellAliasData    = nullptr; // will be set in InitSamplingTables if needed
+  fShellAliasSampler = nullptr;
 
   fCrossSection   = nullptr;
   fCrossSectionLE = nullptr;
@@ -97,8 +103,22 @@ SauterGavrilaPhotoElectricModel::~SauterGavrilaPhotoElectricModel()
     }
     delete[] fAliasData;
   }
+    
+  if (fShellAliasData) {
+      for (int i = 0; i < fNumSamplingPrimEnergies; ++i) {
+          if (fShellAliasData[i]) {
+              delete[] fShellAliasData[i]->fXdata;
+              delete[] fShellAliasData[i]->fYdata;
+              delete[] fShellAliasData[i]->fAliasW;
+              delete[] fShellAliasData[i]->fAliasIndx;
+              delete fShellAliasData[i];
+            }
+        }
+      delete[] fShellAliasData;
+    }
 
   if (fAliasSampler) delete fAliasSampler;
+  if (fShellAliasSampler) delete fShellAliasSampler;
 }
 
 void SauterGavrilaPhotoElectricModel::Initialize()
@@ -130,10 +150,16 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
     fCrossSection[i]   = false;
     fCrossSectionLE[i] = false;
   }
-
   fVerboseLevel = 1;
-  LoadData();
-  if (GetUseSamplingTables()) InitSamplingTables();
+    //std::cout<<"Calling Load data\n";
+    ReadData(82); //JUST FOR THE MOMENT
+  //LoadData(); JUST FOR THE MOMENT
+  //InitShellSamplingTables();
+    if (GetUseSamplingTables()) {
+        InitSamplingTables();
+        //std::cout<<"Calling InitShellSamplingTables\n";
+        InitShellSamplingTables();
+    }
 }
 
 void SauterGavrilaPhotoElectricModel::SetVerboseLevel(int lev)
@@ -143,6 +169,7 @@ void SauterGavrilaPhotoElectricModel::SetVerboseLevel(int lev)
 
 void SauterGavrilaPhotoElectricModel::LoadData()
 {
+
   int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
   // get list of active region
   std::vector<bool> isActiveInRegion = GetListActiveRegions();
@@ -156,7 +183,6 @@ void SauterGavrilaPhotoElectricModel::LoadData()
       for (int j = 0; j < numElems; ++j) {
         double zet      = theElements[j]->GetZ();
         int elementIndx = std::lrint(zet);
-        // std::cout<<"\n***Calling ReadData on: "<<elementIndx<<" ....\n";
         ReadData(elementIndx);
       }
     }
@@ -168,16 +194,23 @@ void SauterGavrilaPhotoElectricModel::ReadData(int Z)
   // bool debug= false;
   using geant::units::MeV;
   using geant::units::barn;
-
   if (fVerboseLevel > 1) {
     std::cout << "Calling ReadData() of SauterGavrilaPhotoElectricModel" << std::endl;
   }
 
   if ((fCrossSection[Z]) &&
-      ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) { // std::cout<<"Data loaded before!\n";
+      ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) {  std::cout<<"Data loaded before!\n";
     return;
   }
-  // else std::cout<<"Data not loaded before!\n";
+//  else
+//  {
+//      std::cout<<"Data not loaded before!\n";
+//      std::cout<<"fCrossSection[Z]: "<<fCrossSection[Z]<<std::endl;
+//      std::cout<<"fCrossSectionLE[Z]: "<<fCrossSectionLE[Z]<<std::endl;
+//
+//      //exit(-1);
+//
+//  }
 
   // get the path to the main physics data directory
   char *path = std::getenv("GEANT_PHYSICS_DATA");
@@ -355,19 +388,26 @@ void SauterGavrilaPhotoElectricModel::ReadData(int Z)
 
   // std::cout<<"pe-low parameterization for ["<<Z<<"], loaded\n";
 
+  //std::cout<<"READING DATA for "<<Z<<std::endl;
+    
   // there is a possibility to use only main shells
   if (gNShellLimit < n2) {
     n2 = gNShellLimit;
   }
   fNShellsUsed[Z] = n2;
-  fShellVector[Z] = new XSectionsVector *[n2];
-  for (int i           = 0; i < n2; i++)
-    fShellVector[Z][i] = new XSectionsVector;
-
+  fShellVector[Z]     = new XSectionsVector *[n2];
+  fShellVectorFull[Z] = new XSectionsVector *[n2];
+    for (int i           = 0; i < n2; i++){
+        fShellVector[Z][i]     = new XSectionsVector;
+        fShellVectorFull[Z][i] = new XSectionsVector;
+    }
   for (int i = 0; i < n2; i++) {
     fShellVector[Z][i]->fDataVector.clear();
     fShellVector[Z][i]->fBinVector.clear();
     fShellVector[Z][i]->fNumberOfNodes = 0;
+    fShellVectorFull[Z][i]->fDataVector.clear();
+    fShellVectorFull[Z][i]->fBinVector.clear();
+    fShellVectorFull[Z][i]->fNumberOfNodes = 0;
   }
 
   fNShellsUsed[Z] = n2;
@@ -414,6 +454,50 @@ void SauterGavrilaPhotoElectricModel::ReadData(int Z)
 
       fin2.close();
     }
+    // READ THE DENSER EPICS 2014 subshell cross-sections -> used to Sample the shells
+    std::ostringstream ost2_full;
+    ost2_full << path << "/livermore/phot_epics2014/pe-denser-ss-cs-" << Z << ".dat";
+    std::ifstream fin2_full(ost2_full.str().c_str());
+
+    if (!fin2_full.is_open()) {
+        std::cerr << "SauterGavrilaPhotoElectricModel data file <" << ost2_full.str().c_str() << "> is not opened!"
+        << std::endl;
+        return;
+    } else {
+        if (fVerboseLevel > 2) {
+            std::cout << "File " << ost2_full.str().c_str() << " is opened by SauterGavrilaPhotoElectricModel" << std::endl;
+        }
+          
+        int n3, n4;
+        double y;
+          
+        for (int i = 0; i < n2; ++i) {
+            fin2_full >> x >> y >> n3 >> n4;
+            //std::cout<<i<<"-th shell:  \t"<<x<<"\t"<<y<<"\t"<<n3<<"\t"<<n4<<std::endl;
+            
+            fShellVectorFull[Z][i]->fBinVector.clear();
+            fShellVectorFull[Z][i]->fDataVector.clear();
+            fShellVectorFull[Z][i]->fBinVector.reserve(n3);
+            fShellVectorFull[Z][i]->fDataVector.reserve(n3);
+            fShellVectorFull[Z][i]->fEdgeMin = x * MeV;
+            fShellVectorFull[Z][i]->fEdgeMax = y * MeV;
+            if (fVerboseLevel > 3)
+                std::cout << "fShellVectorFull[" << Z << "][" << i << "]->fEdgeMin: " << fShellVectorFull[Z][i]->fEdgeMin
+                << "\t fShellVectorFull[" << Z << "][" << i << "]->fEdgeMax: " << fShellVectorFull[Z][i]->fEdgeMax
+                << std::endl;
+              
+            for (int j = 0; j < n3; ++j) {
+                fin2_full >> x >> y;
+                //std::cout<<j<<"-th element:  \t"<<x<<"\t"<<y<<std::endl;;
+                fShellVectorFull[Z][i]->fBinVector.push_back(x * MeV);
+                fShellVectorFull[Z][i]->fDataVector.push_back(y * barn);
+                fShellVectorFull[Z][i]->fNumberOfNodes++;
+            }
+            fShellVectorFull[Z][i]->fCompID = n4;
+        }
+          
+        fin2_full.close();
+      }
   }
   // std::cout<<"pe-ss-cs- cross sections for ["<<Z<<"], loaded\n";
 
@@ -987,10 +1071,292 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   // return with number of secondaries i.e. 1 photoelectron
   return 1;
 }
+    
+    void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, size_t &Z, double &rand, size_t  &sampledShells) {
+        
+        
+        if (!((fCrossSection[Z]) &&
+            ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3)))) {
+            //std::cout<<"Data not loaded before!\n";
+            ReadData(Z);
+        }
+       
+        
+        size_t nshells = fNShells[Z];
+        //std::cout<<"nshells: "<<nshells<<"\tper : "<<Z<<std::endl;
+        size_t shellIdx=0;
+        if(nshells > 1)
+        {
+            
+            // (*) High energy parameterisation
+            if(kinE >= (*(fParamHigh[Z]))[0])
+            {
+                double x1 = (geant::units::MeV)/kinE;
+                double x2 = x1*x1;
+                double x3 = x2*x1;
+                double x4 = x3*x1;
+                double x5 = x4*x1;
+                int idx   = nshells*7 - 5;
+                // when do sampling common factors are not taken into account
+                // so cross section is not real
+                double cs0 = rand*(     (*(fParamHigh[Z]))[idx]
+                                   + x1*(*(fParamHigh[Z]))[idx+1]
+                                   + x2*(*(fParamHigh[Z]))[idx+2]
+                                   + x3*(*(fParamHigh[Z]))[idx+3]
+                                   + x4*(*(fParamHigh[Z]))[idx+4]
+                                   + x5*(*(fParamHigh[Z]))[idx+5]);
+                
+                for(shellIdx=0; shellIdx<nshells; ++shellIdx)
+                    //for(shellIdx=0; shellIdx<nn-1; ++shellIdx)//  shellIdx=n-2 --> optimization
+                {
+                    idx = shellIdx*7 + 2;
+                    if(kinE > (*(fParamHigh[Z]))[idx-1])
+                    {
+                        double cs =
+                        (*(fParamHigh[Z]))[idx]
+                        + x1*(*(fParamHigh[Z]))[idx+1]
+                        + x2*(*(fParamHigh[Z]))[idx+2]
+                        + x3*(*(fParamHigh[Z]))[idx+3]
+                        + x4*(*(fParamHigh[Z]))[idx+4]
+                        + x5*(*(fParamHigh[Z]))[idx+5];
+                        if(cs >= cs0) {break;}
+                    }
+                }
+                if(shellIdx >= nshells) { shellIdx = nshells-1; } //optimization: this can be taken out.
+                
+            }
+            // (**) Low energy parameterisation
+            else if(kinE >= (*(fParamLow[Z]))[0])
+            {
+                double x1 = (geant::units::MeV)/kinE;
+                double x2 = x1*x1;
+                double x3 = x2*x1;
+                double x4 = x3*x1;
+                double x5 = x4*x1;
+                int idx   = nshells*7 - 5;
+                double cs0 = rand*((*(fParamLow[Z]))[idx]
+                                   + x1*(*(fParamLow[Z]))[idx+1]
+                                   + x2*(*(fParamLow[Z]))[idx+2]
+                                   + x3*(*(fParamLow[Z]))[idx+3]
+                                   + x4*(*(fParamLow[Z]))[idx+4]
+                                   + x5*(*(fParamLow[Z]))[idx+5]);
+                for(shellIdx=0; shellIdx<nshells; ++shellIdx)
+                {
+                    idx = shellIdx*7 + 2;
+                    if(kinE > (*(fParamHigh[Z]))[idx-1])
+                    {
+                        double cs = (*(fParamLow[Z]))[idx] + x1*(*(fParamLow[Z]))[idx+1]
+                        + x2*(*(fParamLow[Z]))[idx+2] + x3*(*(fParamLow[Z]))[idx+3]
+                        + x4*(*(fParamLow[Z]))[idx+4]+ x5*(*(fParamLow[Z]))[idx+5];
+                        if(cs >= cs0) { break; }
+                    }
+                }
+                //this means that if I go out from the for loop without meeting the condition - I select the last shell. Then it is enough to change the condition of the for loop up to  like not needed check
+                if(shellIdx >= nshells) {shellIdx = nshells-1;}
+            }
+            else
+            {
+                double cs = rand;
+                size_t idx= 0;
+                // (***) Tabulated values above k-shell ionization energy
+                if(kinE >= (*(fParamHigh[Z]))[1]) {
+                    //this is an extra-check - if energy<fCSVector[Z]->edgeMin it should go to the next else (****)
+                    if(kinE<fCSVector[Z]->fEdgeMin)
+                        cs*=fCSVector[Z]->fDataVector[0];
+                    else
+                    {
+                        idx=fCSVector[Z]->FindCSBinLocation(kinE, idx);
+                        cs*=fCSVector[Z]->fSplineInt->GetValueAt(kinE, idx);
+                    }
+                }
+                //(****) Tabulated values below k-shell ionization energy
+                else
+                {
+                    //this check is needed to have a constant cross-section(cs) value for energies below the lowest cs point.
+                    //in this way the gamma is always absorbed - instead of giving zero cs -
+                    if(kinE<fLECSVector[Z]->fEdgeMin)
+                        cs*=fLECSVector[Z]->fDataVector[0];
+                    else
+                        cs*=fLECSVector[Z]->GetValue(kinE, idx);
+                }
+                //size_t j=0;
+                for(size_t j=0; j<nshells; ++j)
+                {
+                    shellIdx=(size_t)fShellVector[Z][j]->fCompID;
+                    if(kinE > (*(fParamLow[Z]))[7*shellIdx+1]) {
+                        size_t idx=0;
+                        cs-=fShellVector[Z][j]->GetValue(kinE, idx);
+                    }
+                    
+                    if(cs <= 0.0 || j+1 == nshells)
+                        break;
+                }
+            }
+        }
+        else
+
+        {   std::cout<<"Setting sampledShells to -1\n ERROR!";
+            sampledShells=-1;
+            exit(-1);
+        }
+        //std::cout<<"-----> Sampled: "<<shellIdx<<std::endl;
+        sampledShells=shellIdx;
+        
+    }
+    
+    void SauterGavrilaPhotoElectricModel::SampleShellAlias(Real kinE, size_t &zed, Real &r1, Real &r2, size_t  &sampledShells)
+    {
+        // sample of the table
+        double lGammaEnergy  = std::log(kinE);
+        int tableIndex  = (int) ((lGammaEnergy-fShellPrimEnLMin)*fShellPrimEnILDelta);
+        if (tableIndex>=fShellNumSamplingPrimEnergies-1)
+            tableIndex = fShellNumSamplingPrimEnergies-2;
+
+        double pLowerGammaEner = (fShellLSamplingPrimEnergies[tableIndex+1]-lGammaEnergy)*fShellPrimEnILDelta;
+        if (r1>pLowerGammaEner) {
+            ++tableIndex;
+        }
+        //this has to be tranformed to the localIndex, considering the Z
+        int indx=zed*fShellNumSamplingPrimEnergies+tableIndex;
+        int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx, fShellAliasData[indx]->fNumdata, r2);
+        sampledShells=xsampl;
+    }
+    
+    int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, std::vector<double> & x, std::vector<double> & y){
+        
+        int numShell=fNShells[Z];
+        x.resize(numShell);
+        y.resize(numShell);
+        size_t idx=0;
+        for (int i=0; i<numShell; i++){
+            x[i]=i;
+            y[i]= fShellVectorFull[Z][i]->GetValue(ekin, idx);
+        }
+        return numShell;
+    }
+    
+    void SauterGavrilaPhotoElectricModel::BuildOneDiscreteAlias(int Z, int indx, double ekin){
+        
+        std::vector<double> x;
+        std::vector<double> y;
+        int numShell= PrepareDiscreteAlias(Z, ekin, x, y);
+        
+        fShellAliasData[indx]              = new LinAlias();
+        fShellAliasData[indx]->fNumdata    = numShell;
+        fShellAliasData[indx]->fXdata      = new double[numShell];
+        fShellAliasData[indx]->fYdata      = new double[numShell];
+        fShellAliasData[indx]->fAliasW     = new double[numShell];
+        fShellAliasData[indx]->fAliasIndx  = new    int[numShell];
+        //copy data
+        for (int i = 0; i < (int) x.size(); i++)
+        {
+            fShellAliasData[indx]->fXdata[i]=x[i];
+            fShellAliasData[indx]->fYdata[i]=y[i];
+        }
+        // prepare the alias data for this PDF(x,y)
+        fShellAliasSampler->PreparDiscreteTable(fShellAliasData[indx]->fYdata,fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx,fShellAliasData[indx]->fNumdata);
+    }
+    
+    void SauterGavrilaPhotoElectricModel::InitShellSamplingTables() {
+        int Z[gMaxSizeData];
+        for (int i=0; i<gMaxSizeData; i++){
+            Z[i]=0;          //element not present in the simulation
+        }
+        //FOR THE MOMENT
+        Z[82]=82;
+        
+        int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
+        // get list of active region
+        std::vector<bool> isActiveInRegion = GetListActiveRegions();
+        for (int i=0; i<numMatCuts; ++i) {
+            const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[i];
+            // if this MaterialCuts belongs to a region where this model is active:
+            if (isActiveInRegion[matCut->GetRegionIndex()]) {
+                // get the list of elements
+                const Vector_t<Element*> &theElements =  matCut->GetMaterial()->GetElementVector();
+                int numElems = theElements.size();
+                for (int j=0; j<numElems; ++j) {
+                    double zet = theElements[j]->GetZ();
+                    int elementIndx = std::lrint(zet);
+                    //std::cout<<"element: "<<elementIndx<<std::endl;
+                    //ReadData(elementIndx);
+                    Z[elementIndx]= elementIndx;
+                }
+            }
+        }
+        int oldNumGridPoints  =  fShellNumSamplingPrimEnergies;
+        fShellNumSamplingPrimEnergies = fShellNumSamplingPrimEnergiesPerDecade*std::lrint(std::log10(fShellMaxPrimEnergy/fShellMinPrimEnergy))+1;
+        if (fShellNumSamplingPrimEnergies<2) {
+            fShellNumSamplingPrimEnergies = 2;
+        }
+        fNumAliasTables = gMaxSizeData*fShellNumSamplingPrimEnergies;
+        //numElements*fShellNumSamplingPrimEnergies;
+        // set up the initial gamma energy grid
+        if (fShellSamplingPrimEnergies) {
+            delete [] fShellSamplingPrimEnergies;
+            delete [] fShellLSamplingPrimEnergies;
+            fShellSamplingPrimEnergies  = nullptr;
+            fShellLSamplingPrimEnergies = nullptr;
+        }
+        fShellSamplingPrimEnergies  = new double[fShellNumSamplingPrimEnergies];
+        fShellLSamplingPrimEnergies = new double[fShellNumSamplingPrimEnergies];
+        fShellPrimEnLMin    = std::log(fShellMinPrimEnergy);
+        double delta   = std::log(fShellMaxPrimEnergy/fShellMinPrimEnergy)/(fShellNumSamplingPrimEnergies-1.0);
+        fShellPrimEnILDelta = 1.0/delta;
+        fShellSamplingPrimEnergies[0]  = fShellMinPrimEnergy;
+        fShellLSamplingPrimEnergies[0] = fShellPrimEnLMin;
+        fShellSamplingPrimEnergies[fShellNumSamplingPrimEnergies-1]  = fShellMaxPrimEnergy;
+        fShellLSamplingPrimEnergies[fShellNumSamplingPrimEnergies-1] = std::log(fShellMaxPrimEnergy);
+        for (int i=1; i<fShellNumSamplingPrimEnergies-1; ++i) {
+            fShellLSamplingPrimEnergies[i] = fShellPrimEnLMin+i*delta;
+            fShellSamplingPrimEnergies[i]  = std::exp(fShellPrimEnLMin+i*delta);
+        }
+
+        //
+        // build the sampling tables at each primary gamma energy grid point.
+        //
+        // prepare the array that stores pointers to sampling data structures
+        if (fShellAliasData) {
+            for (int i=0; i<oldNumGridPoints; ++i) {
+                if (fShellAliasData[i]) {
+                    delete [] fShellAliasData[i]->fXdata;
+                    delete [] fShellAliasData[i]->fYdata;
+                    delete [] fShellAliasData[i]->fAliasW;
+                    delete [] fShellAliasData[i]->fAliasIndx;
+                    delete fShellAliasData[i];
+                }
+            }
+            delete [] fShellAliasData;
+        }
+        // create new fAliasData array
+        //    fAliasData = new LinAlias*[fNumSamplingPrimEnergies];
+        fShellAliasData = new LinAlias*[fNumAliasTables];
+        for (int i=0; i<fNumAliasTables; ++i) {
+            fShellAliasData[i] = nullptr;
+        }
+        // create one sampling data structure at each primary gamma energy grid point:
+        // -first create an AliasTable object
+        if (fShellAliasSampler) {
+            delete fShellAliasSampler;
+        }
+        // -the prepare each table one-by-one
+        for (int i=3; i<gMaxSizeData; ++i) {
+            //std::cout<<i<<std::endl;
+            for(int j=0; j<fShellNumSamplingPrimEnergies; j++)
+            {
+                //std::cout<<j<<std::endl;
+                //int localIndex=i*fShellNumSamplingPrimEnergies+j;
+                if(Z[i]!=0){
+                    //std::cout<<"BuildOneDiscreteAlias #index:"<<localIndex<<" for element Z: "<<Z[i]<<" @energy: "<<fShellSamplingPrimEnergies[j]<<std::endl;
+                    BuildOneDiscreteAlias(Z[i], i*fShellNumSamplingPrimEnergies+j, fShellSamplingPrimEnergies[j]);}
+            }
+        }
+    }
 
 void SauterGavrilaPhotoElectricModel::InitSamplingTables()
 {
 
+    //std::cout<<"InitSamplingTables\n";
   // set number of primary gamma energy grid points
   // keep the prev. value of primary energy grid points.
   int oldNumGridPoints = fNumSamplingPrimEnergies;
@@ -1216,5 +1582,140 @@ void SauterGavrilaPhotoElectricModel::BuildOneLinAlias(int indx, double tau)
   fAliasSampler->PreparLinearTable(fAliasData[indx]->fXdata, fAliasData[indx]->fYdata, fAliasData[indx]->fAliasW,
                                    fAliasData[indx]->fAliasIndx, fAliasData[indx]->fNumdata);
 }
+    
+    
+//******* Following are the vectorized algorithms
+    
+    void SauterGavrilaPhotoElectricModel::SampleSecVec(LightTrack_v & tracks, geant::TaskData *td){
+        
+    }
+    
+    void SauterGavrilaPhotoElectricModel::SampleSecAliasVec(LightTrack_v & tracks, geant::TaskData *td){
+        int nTracks = tracks.GetNtracks();
+        //TBI
+        //1. SampleTargetElementIndex
+        //double  zeta  = theElements[targetElemIndx]->GetZ();
+        //int     Z = std::lrint(zeta);
+        
+        //1.5 store random values
+        for (int i = 0; i < nTracks; i += kRealSize) {
+            //Real_v r = td->fRndm->uniformV();
+            //vecCore::Store(r1, &data.fR0[i]);
+        }
+        
+        for (int i = 0; i < nTracks; i += kRealSize) {
+            //Real_v r = td->fRndm->uniformV();
+            //vecCore::Store(r1, &data.fR1[i]);
+        }
+        
+        
+        //2. Sampling of shells
+        //SampleShellAliasVec(tracks.GetKinEVec(),data.fZ , data.fR0, data.fR1,data.fSubshell);
+        
+        //SIMD VECTORS
+        Real_v kinE_v;
+        Real_v  zed_v;
+        
+        double *rndArray = td->fDblArray;
+        Real_v rand_v, rand_v2;
+        td->fRndm->uniform_array(vecCore::VectorSize<Real_v>(), rndArray);
+        Real * real_rndArray= (Real*)rndArray;
+        vecCore::Load(rand_v, real_rndArray);
+        
+        td->fRndm->uniform_array(vecCore::VectorSize<Real_v>(), rndArray);
+        Real * real_rndArray2= (Real*)rndArray;
+        vecCore::Load(rand_v2, real_rndArray2);
+        
+        RIndex sampledShells;
+        RIndex  zedIndex_v(zed_v);
+        //SampleShellAlias_v(kinE_v, zedIndex_v, rand_v, rand_v2, sampledShells);
+        
+        
+        //3.Sampling of angles and creation of secondaries
+        
+    }
+    
+    void SauterGavrilaPhotoElectricModel::SampleShellAliasVec(const double* kinE, const double * zed, const double *r1, const double *r2, int *sampledShells, int ntracks){
+        
+        std::cout<<" SauterGavrilaPhotoElectricModel::SampleShellAliasVec\n";
+        //I have to read and initialize tables
+        for (int i = 0; i < ntracks; i += kRealSize) {
+            Real_v kinE_v;
+            vecCore::Load(kinE_v, &kinE[i]);
+            Real_v zed_v;
+            vecCore::Load(zed_v, &zed[i]);
+            Real_v r1_v;
+            vecCore::Load(r1_v, &r1[i]);
+            Real_v r2_v;
+            vecCore::Load(r2_v, &r2[i]);
+            RIndex sampledShells;
+            SampleShellAlias_v(kinE_v, zed_v, r1_v, r2_v,sampledShells);
+            vecCore::Store(sampledShells, &sampledShells[i]);
+        }
+        //LEFTOVER part had to be handled
+        
+    }
+    
+    
+    void SauterGavrilaPhotoElectricModel::SampleShellAlias_v(Real_v &ekin_v, Real_v &zed, Real_v &r1, Real_v &r2, RIndex &sampledShells){
+        
+        
+        std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias_v"<<std::endl;
+        for (int i=0; i<kRealSize; i++)
+        {
+            std::cout<<ekin_v[i]<<"\t"<<zed[i]<<"\t"<<r1[i]<<"\t"<<r2[i]<<std::endl;
+        }
+        std::cout<<"======\n";
+        // sample of the table
+        Real_v lGammaEnergy_v = vecCore::math::Log(ekin_v);
+        
+        double shellNumSamplingPrimEnergies = GetShellNumSamplingPrimEnergies();
+        double shellPrimEnLMin = GetShellPrimEnLMin();
+        double shellPrimEnILDelta = GetShellPrimEnILDelta();
+        double* shellLSamplingPrimEnergies = GetShellLSamplingPrimEnergies();
+        
+        
+        Real_v tableIndex_real = vecCore::math::Floor ((lGammaEnergy_v -shellPrimEnLMin)* Real_v(shellPrimEnILDelta));
+        RIndex tableIndex_v(tableIndex_real);
+        RMask check1(tableIndex_v>=shellNumSamplingPrimEnergies-1);
+        vecCore::MaskedAssign(tableIndex_v, check1, RIndex (shellNumSamplingPrimEnergies-2) );
+        
+        Real_v lShellSamplingPrimEnergies_v;
+        for (size_t kk=0; kk<kRealSize; kk++)
+            vecCore::Set(lShellSamplingPrimEnergies_v, kk, shellLSamplingPrimEnergies[tableIndex_v[kk]+1]);
+        
+        Real_v value_v = vecCore::Gather<Real_v>(shellLSamplingPrimEnergies, tableIndex_v);
+        std::cout<<"Debug:"<<std::endl;
+        std::cout<<"value_v: "<<value_v<<std::endl;
+        std::cout<<"lShellSamplingPrimEnergies_v: "<<lShellSamplingPrimEnergies_v<<std::endl;
+        
+        Real_v pLowerGammaEner_v =(value_v-lGammaEnergy_v)*shellPrimEnILDelta;
+        
+        RMask check2 (r1>pLowerGammaEner_v);
+        vecCore::MaskedAssign (tableIndex_v, check2, tableIndex_v+1);
+        
+        RIndex indxTable_v = (RIndex)zed*shellNumSamplingPrimEnergies+tableIndex_v;
+        Real_v aliasW_v, aliasIndx_v, aliasNumdata_v;
+        //first I need the numData
+        for (size_t kk=0; kk<kRealSize; kk++)
+            vecCore::Set(aliasNumdata_v, kk, fShellAliasData[indxTable_v[kk]]->fNumdata);
+        
+        Real_v rest_v  = r2*aliasNumdata_v;
+        Real_v indxBin = vecCore::math::Floor(rest_v);
+        RIndex indxBin_v(indxBin);
+        
+        for (size_t kk=0; kk<kRealSize; kk++){
+            vecCore::Set(aliasW_v, kk, fShellAliasData[indxTable_v[kk]]->fAliasW[indxBin_v[kk]]);
+            vecCore::Set(aliasIndx_v, kk, fShellAliasData[indxTable_v[kk]]->fAliasIndx[indxBin_v[kk]]);
+        }
+        
+        RMask check3(aliasW_v<rest_v-indxBin_v);
+        
+        vecCore::MaskedAssign(indxBin,check3,aliasIndx_v);
+        std::cout<<indxBin_v;
+        RIndex temp(indxBin);
+        sampledShells=temp;
+        
+    }
 
 } // namespace geantphysics

@@ -27,6 +27,7 @@ class MaterialCuts;
 class AliasTable;
 class Particle;
 class LightTrack;
+class LightTrack_v;
 class XSectionsVector;
 
 /**
@@ -52,6 +53,13 @@ class XSectionsVector;
  */
 
 class SauterGavrilaPhotoElectricModel : public EMModel {
+    using PhysVecBackend       = vecCore::backend::VcVector;
+    using Real_v               = vecCore::backend::VcVector::Double_v;
+    using Int32_v              = vecCore::backend::VcVector::Int32_v;
+    using Int64_v              = vecCore::backend::VcVector::Int64_v;
+    using RMask                = vecCore::Mask<Real_v>;
+    using RIndex               = vecCore::Index<Real_v>;
+    static constexpr int kRealSize = (int)vecCore::VectorSize<Real_v>();
 public:
   /**
    * @name Constructor, destructor:
@@ -75,7 +83,7 @@ public:
    * @name Implemented EMModel base class methods:
    */
   //@{
-  virtual void Initialize();
+  virtual void Initialize()override;
 
   // ComputeMacroscopicXSection
   /**
@@ -91,10 +99,10 @@ public:
    * @return                Macroscopic cross section computed by the given electromagnetic model in internal [1/length]
    *units for the given Particle, MaterialCuts/Material and particle kinetic energy combination.
    */
-  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle);
+  virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *particle) override;
 
   // Documentation from the EMModel base class method
-  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *, double kinenergy, const Particle *);
+  virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *, double kinenergy, const Particle *)override;
 
   // SampleSecondaries
   /**
@@ -114,8 +122,20 @@ public:
    *                          the secondary tracks generated in the interaction.
    * @return                  Number of secondary tracks generated in the interaction.
    */
-  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td)override;
+  
+    
+  ///////// ***************** VECTORIZATION
+  //non-optimized sampling of shells
+  virtual void SampleShell(Real kinE_v, size_t &zed, Real &rand_v, size_t  &sampledShells_v) override ;
+  //sampling of shells with Alias
+  virtual void SampleShellAlias(Real kinE_v, size_t &zed, Real &r1, Real &r2, size_t  &sampledShells_v) override ;
+  virtual void SampleSecVec (LightTrack_v & tracks, geant::TaskData *td);
+  void SampleSecAliasVec (LightTrack_v & tracks, geant::TaskData *td);
+  virtual void SampleShellAliasVec(const double* ekin_v, const double * zed, const double *r1, const double *r2, int *sampledShells, int nTracks) override;
+  void SampleShellAlias_v(Real_v &ekin_v, Real_v &zed, Real_v &r1, Real_v &r2, RIndex &sampledShells);
   //@}
+    
 
   /**
    * @name Model specific public methods:
@@ -132,6 +152,11 @@ public:
   int GetNumberOfDiscretePDFSamples() const { return fNumSamplingAngles; }
   // before initialisation
   void SetNumberOfDiscretePDFSamples(int val) { fNumSamplingAngles = val; }
+    double GetShellNumSamplingPrimEnergies()  {return fShellNumSamplingPrimEnergies; }
+    double GetShellPrimEnLMin()               {return fShellPrimEnLMin; }
+    double GetShellPrimEnILDelta()            {return fShellPrimEnILDelta; }
+    double* GetShellLSamplingPrimEnergies()   {return fShellLSamplingPrimEnergies; }
+    double* GetShellSamplingPrimEnergies()    {return fShellSamplingPrimEnergies; }
 
   //@}
 
@@ -154,7 +179,7 @@ private:
    *
    */
   void InitializeModel();
-
+  int sampleShellAlias(double ekin, int zed,  double r1, double r2);
   //---------------------------------------------
   // SampleTargetElementIndex
   /**
@@ -339,6 +364,7 @@ private:
    *secondary (photoelectron) direction.
    **/
   void InitSamplingTables();
+  void InitShellSamplingTables();
 
   //---------------------------------------------
   // BuildOneLinAlias
@@ -353,6 +379,8 @@ private:
    *  @param[in]  tau    Initial photon energy \f$ E_0 \f$ expressend in \f$e_m c^2\f$ units.
    */
   void BuildOneLinAlias(int indx, double tau);
+  void BuildOneDiscreteAlias(int Z, int indx, double ekin);
+  int PrepareDiscreteAlias(int Z, double ekin, std::vector<double> & x, std::vector<double> & y);
 
   /**
    * @brief Public method to prepare sampling table for discretized continuous distribution with combination of alias
@@ -396,6 +424,7 @@ private:
 
   /** @brief Vector of pointers to XSectionsVector cross-sections. Several subshell XSectionsVector per Z. */
   static XSectionsVector **fShellVector[gMaxSizeData]; // Several subshell cross-section vector per Z
+  static XSectionsVector **fShellVectorFull[gMaxSizeData]; //it contains subshells cross-section data for the full available range
 
   /** @brief Array of pointers to Low-energy XSectionsVector (one LE cross-section vector per Z).*/
   static XSectionsVector *fLECSVector[gMaxSizeData]; // one LE cross-section vector per Z
@@ -446,35 +475,42 @@ private:
    *        SauterGavrilaPhotoElectricModel::fMaxGammaEnergy].
    */
   int fNumSamplingPrimEnergies;
+  int fShellNumSamplingPrimEnergies;
+  int fNumAliasTables;
 
   /** @brief Number of primary gamma kinetic energy grid points per decade. 75 table per energy decade assures accuracy
    * within 5% (alias sampling) */
   int fNumSamplingPrimEnergiesPerDecade = 75;
+  int fShellNumSamplingPrimEnergiesPerDecade = 20;
 
   //---------------------------------------------
   /** @brief Number of emitted photoelectron cosTheta considered in the range[-1, 1] or number of transformed emitted
    * photoelectron angle related variable in [log(e-12),log(2)]. This is dinamically set at initialization time. */
   int fNumSamplingAngles;
+  int fShellNumSamplingAngles;
 
   //---------------------------------------------
   /** @brief Minimum of the gamma kinetic energy grid (default 1.0 [eV]).*/
   double fMinPrimEnergy;
+  double fShellMinPrimEnergy; //= 0.1*geant::units::keV;
 
   //---------------------------------------------
   /** @brief Maximum of the gamma kinetic energy grid (default 1.0 [GeV]). After this threshold the photoelectron is
    * considered to go straight with the same direction as the incident photon */
   double fMaxPrimEnergy;
+  double fShellMaxPrimEnergy ; //= 1*geant::units::MeV;
 
   //---------------------------------------------
   /** @brief Logarithm of SauterGavrilaPhotoElectricModel::fMinGammaEnergy i.e. ln(fMinGammaEnergy). */
   double fPrimEnLMin; // log min gamma energy
+  double fShellPrimEnLMin;
 
   //---------------------------------------------
   /** @brief Inverse of the gamma kinetic energy grid delta i.e.
    *        ln[fMaxGammaEnergy/fMinGammaEnergy]/(fNumSamplingGammaEnergies-1)
    */
   double fPrimEnILDelta; // 1 log delta gamma energy of the gamma energy grid
-
+  double fShellPrimEnILDelta;
   //---------------------------------------------
   /** @brief The logarithmically spaced gamma kinetic energy grid.
    *
@@ -483,7 +519,7 @@ private:
    * interval.
    */
   double *fSamplingPrimEnergies; // the common gamma energy grid which we build sampling tables above
-
+  double *fShellSamplingPrimEnergies;
   //---------------------------------------------
   /** @brief The logarithm of SauterGavrilaPhotoElectricModel::fSamplingGammaEnergies grid.
    *
@@ -492,8 +528,9 @@ private:
    *  interval.
    */
   double *fLSamplingPrimEnergies; // log of sampling gamma energies
-                                  //@}
-
+  double *fShellLSamplingPrimEnergies;
+    //@}
+  
   //---------------------------------------------
   /** @brief Internal data structure to store data for sampling the emitted photoelectron direction
    *
@@ -503,7 +540,8 @@ private:
    *  SauterGavrilaPhotoElectricModel::fNumSamplingGammaEnergies
    *  and these data structure pointers are stored in the SauterGavrilaPhotoElectricModel::fAliasData linear array.
    */
-  struct LinAlias {
+public:
+    struct LinAlias {
     /** @brief Number of data points i.e. size of the arrays =
      * SauterGavrilaPhotoElectricModel::fNumSamplingGammaEnergies. */
     int fNumdata;
@@ -531,10 +569,11 @@ private:
    * SauterGavrilaPhotoElectricModel::fNumSamplingPrimEnergies.
    */
   LinAlias **fAliasData; // alias data structure
-
+  LinAlias **fShellAliasData; // alias data structure
   //---------------------------------------------
   /** @brief An alias sampler used at run-time to sample the emitted e- (photoelectron) direction. */
   AliasTable *fAliasSampler;
+  AliasTable *fShellAliasSampler;
 };
 
 } // namespace geantphysics
