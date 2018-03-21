@@ -1,6 +1,7 @@
 ###
 ### GeantV TestEm3 application script to simulate particle transport in an N-layer detector structure
-### with constant magnetic field.  
+### with constant magnetic field: this script is provided to investigate propagation in constant 
+### magnetic field.   
 ###
 ###
 ./TestEm3_GV \
@@ -23,7 +24,7 @@
   --config-tracks-per-basket               16         "# default number of tracks per basket"\
 "### field configuration parameters:"\
   --field-active                            1         "# activate field"\
-  --field-vector                 x=0.,y=0,z=2.        "# constant field vector [kilogauss]"\
+  --field-vector               x=0.,y=0,z=0.5         "# constant field vector [kilogauss]"\
   --field-use-RK                            1         "# use Runge-Kutta propagator"\
   --field-eps-RK                       0.0003         "# RK tolerance error"\
   --field-basketized                        0         "# basketized geometry"\

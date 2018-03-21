@@ -1,27 +1,17 @@
 ###
-### GeantV TeatEm5 application script to simulate passage of 15.7 MeV electrons transmitted
-### through vacuum in constant magnetic  field divided by s slab.
+### This script is for investigating propagation in constant field. 
 ###
-### Note, that the script shows all the possible input arguments that makes possible the configuration
-### of the TestEm5 GeantV application (target material, target thickness, secondary production cuts, etc.)
+### GeantV TeatEm5 application script to simulate passage of 1.0 MeV electrons transmitted through 1 cm
+### of vacuum in constant magnetic field divided by a simple slab (filled with vacuum).
 ###
 ###
 ./TestEm5_GV \
 "### detector configuration parameters:"\
   --det-Target-Material-Name             NIST_MAT_Galactic   "# material of the target"\
-  --det-Target-Thickness                 100.0         "# target thickness (in internal [length] unit)"\
-  --det-Production-Cuts                  0.            "# set production cuts in length for all particle (-1=>ignore)"\
-  --det-Gamma-Production-Cut             0.001300      "# secondary production cut for gamma particle (in internal [length] unit)"\
-  --det-Electron-Production-Cut          0.000112      "# secondary production cut for e- (in internal [length] unit)"\
-  --det-Positron-Production-Cut          0.000112      "# secondary production cut for e+ (in internal [length] unit)"\
+  --det-Target-Thickness                 1.0           "# target thickness (in internal [length] unit)"\
 "### primary particle generation parameters:"\
-  --gun-Primary-Kinetic-Energy           0.0157        "# kinetic energy of the primary particle (in internal [energy] unit)"\
+  --gun-Primary-Kinetic-Energy           0.001         "# kinetic energy of the primary particle (in internal [energy] unit)"\
   --gun-Primary-Particle-Name            e-            "# primary particle name"\
-"### hist1 (i.e. angular distribution of transmitted charged particles) parameters:"\
-  --app-Hist1-File-Name                  hanson19_GV_opt0.hist  "# name of the output hist1 histogram file"\
-  --app-Hist1-Bin-Number                 120           "# number of theta bins in hist1"\
-  --app-Hist1-Minimum-Value              0.            "# minimum theta value of the hist1 histogram"\
-  --app-Hist1-Maximum-Value              30.           "# maximun theta value of the hist1 histogram"\
 "### run configuration parameters:"\
   --config-Number-Of-Buffered-Events     4             "# number of events transported at once"\
   --config-Total-Number-Of-Events        1             "# total number of events to be simulated"\
@@ -30,9 +20,6 @@
   --config-Number-Of-Propagators         1             "# number of propagators"\
   --config-Tracks-Per-Basket             16            "# default number of particles per basket"\
   --config-Vectorized-Geom               0             "# vectorized geometry"\
-"### physics process configuration parameters:"\
-  --process-MSC-Step-Limit               UseSafety     "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
-  --process-Step-Max-Value               1.e+20        "# maximum (real) step length limit in the user defined StepMaxProcess"\
 "### magnetic field configuration parameters:"\
   --field-active                         1             "# activate magnetic field"\
   --field-vector         x=0.0,y=0.0,z=2.0             "# set the mag. field direction (perp. to the gun dir (1,0,0))"\

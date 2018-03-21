@@ -42,6 +42,7 @@ target_link_libraries(TestEm3 ${Geant4_LIBRARIES})
 #
 set(TestEm3_SCRIPTS
     ATLASbar.mac
+    magField.mac
    )
 
  foreach(_script ${TestEm3_SCRIPTS})

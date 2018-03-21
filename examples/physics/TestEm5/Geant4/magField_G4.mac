@@ -1,0 +1,26 @@
+#
+# macro file for TestEm5.cc 
+# 
+# this macro is for investigating propagation in constant magnetic field:
+# simulate passage of 1.0 MeV electrons transmitted through 1 cm of vacuum 
+# in constant magnetic field divided by a simple slab (filled with vacuum).
+#
+#
+/control/cout/ignoreThreadsExcept 0
+/control/verbose 2
+/run/verbose 2
+#
+/testem/det/setAbsMat   G4_Galactic
+/testem/det/setAbsThick 1 cm
+/testem/det/setField  0 0 2 kilogauss
+#
+/testem/phys/addPhysics   GVStandard
+#/testem/phys/addPhysics  emstandard_opt0
+#
+/run/initialize
+#
+/testem/gun/setDefault
+/gun/particle e-
+/gun/energy 1 MeV
+#
+/run/beamOn 16

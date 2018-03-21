@@ -42,6 +42,7 @@ target_link_libraries(TestEm5 ${Geant4_LIBRARIES} ${HBOOK_LIBRARIES})
 #
 set(TestEm5_SCRIPTS
     hanson19_G4.mac
+    magField_G4.mac
     README
    )
 

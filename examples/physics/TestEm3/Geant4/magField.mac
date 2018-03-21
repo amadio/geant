@@ -1,0 +1,41 @@
+#
+# Geant4 TestEm3 application script to simulate particle transport in an N-layer detector structure
+# with constant magnetic field: this script is provided to investigate propagation in constant 
+# magnetic field.   
+#
+#
+/control/verbose 0
+#/run/numberOfThreads 4
+/run/verbose 0
+/tracking/verbose 0
+#
+# Set up the N-layer detector
+/testem/det/setSizeYZ 10 cm
+/testem/det/setNbOfLayers 100
+/testem/det/setNbOfAbsor 1
+/testem/det/setAbsor 1 G4_Galactic 1 mm
+/testem/det/setField 0 0 0.5 kilogauss
+#
+# Set the physics list: GVStandard is our default
+#
+/testem/phys/addPhysics   GVStandard
+#/testem/phys/addPhysics  emstandard_opt0
+#
+# Run initialization
+#
+/run/initialize
+#
+# Set the particle gun
+#
+/gun/particle e-
+/gun/energy 1 MeV
+#
+# Reinit run and execute the simulation: with 10000 primaries
+#
+/run/initialize
+/tracking/verbose 0
+/run/beamOn 10000
+#
+# Print process list
+#
+/process/list
