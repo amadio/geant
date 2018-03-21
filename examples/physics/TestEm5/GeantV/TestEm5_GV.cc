@@ -114,7 +114,7 @@ int parFieldActive      = 0;            // activate magnetic field
 int parFieldUseRK       = 0;            // use Runge-Kutta instead of helix
 double parFieldEpsRK    = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
 int parFieldBasketized  = 1;            // basketize magnetic field
-float parFieldVector[3];                // Constant field value {0,0,2} [kilogauss]
+float parFieldVector[3] = {0,0,2};      // default constant field value {0,0,2} [kilogauss]
 
 static struct option options[] = {{"det-Target-Material-Name", required_argument, 0, 'a'},
                                   {"det-Target-Thickness", required_argument, 0, 'b'},

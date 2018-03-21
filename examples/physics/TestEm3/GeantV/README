@@ -124,6 +124,27 @@ algorithms (i.e. UseSafety, UseDistanceToBoundary, ErrorFree).
 
 
 -------------------------
+- MAGNETIC FIELD 
+-------------------------
+
+One can activate and set a constant magnetic field by first providing value 1 
+
+  --field-active  1/0    
+
+field activation input argument. Then one can set the constant field vector by using the 
+      
+  --field-vector   x=<value>,y=<value>,z=<value>  
+
+An example is provided in the TestEm3_GV_magField.mac script file. Further options related to 
+magnetic field propagation:    
+
+  --field-use-RK      1/0      ==>  do/don't use Runge-Kutta integration instead of helix
+  --field-eps-RK      <value>  ==>  required accuracy in the field integration
+  --field-basketized  1/0      ==>  do/don/t basketize for magnetic field propagation
+
+
+
+-------------------------
 - RUN CONFIGURATION
 -------------------------
 
@@ -159,6 +180,18 @@ threads). The corresponding options:
 
     --config-number-of-primary-per-events <number>
 
+# Use vectorized geometry algorithms
+
+    --config-vectorized-geom 1/0
+    
+# Default number of particles per basket 
+
+    --config-tracks-ter-basket <value>
+    
+# Run the application in external loop mode
+
+    --config-external-loop 1/0
+
 Note, config-number-of-primary-per-events times config-total-number-of-events
 primary particles will be transported during the entire simulation.
 
@@ -177,6 +210,19 @@ The simulation can be executed in "performance" mode by setting the
 
 input argument value to 1. User actions are not invoked (early returns) in this
 case. Therefore, there is no any scoring in this case.
+
+
+-------------------------
+-  MCTRUTH 
+-------------------------
+
+MCTruth can be activated above a given particle energy threshold and written into file by 
+providing the following input arguments: 
+
+   --mctruth-store  1/0      ==> do/don't store MCTruth information
+   --mctruth-minE   <value>  ==> particle energy threshold (in internal units)
+   --mctruth-file   <value>  ==> MCTruth file name
+
 
 
 -------------------------

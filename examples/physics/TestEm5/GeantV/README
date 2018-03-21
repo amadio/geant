@@ -101,6 +101,27 @@ where value is the maximum allowed real step length in [cm] unit.
 
 
 -------------------------
+- MAGNETIC FIELD 
+-------------------------
+
+One can activate and set a constant magnetic field by first providing value 1 
+
+  --field-active  1/0    
+
+field activation input argument. Then one can set the constant field vector by using the 
+      
+  --field-vector   x=<value>,y=<value>,z=<value>  
+
+An example is provided in the TestEm5_GV_magField.mac script file. Further options related to 
+magnetic field propagation:    
+
+  --field-use-RK      1/0      ==>  do/don't use Runge-Kutta integration instead of helix
+  --field-eps-RK      <value>  ==>  required accuracy in the field integration
+  --field-basketized  1/0      ==>  do/don/t basketize for magnetic field propagation
+
+
+
+-------------------------
 - RUN CONFIGURATION
 -------------------------
 
@@ -135,6 +156,14 @@ threads). The corresponding options:
     The number of primary particles per event can be set as an input argument
 
     --config-Number-Of-Primary-Per-Events <number>
+    
+# Use vectorized geometry algorithms
+
+    --config-Vectorized-Geom 1/0
+    
+# Default number of particles per basket 
+
+    --config-Tracks-Per-Basket <value>
 
 Note, config-Number-Of-Primary-Per-Events times Config-Total-Number-Of-Events
 primary particles will be transported during the entire simulation.

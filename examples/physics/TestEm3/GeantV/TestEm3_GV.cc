@@ -81,7 +81,7 @@ int parFieldActive      = 0;       // activate magnetic field
 int parFieldUseRK       = 0;       // use Runge-Kutta instead of helix
 double parFieldEpsRK    = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default
 int parFieldBasketized  = 0;       // basketize magnetic field
-float parFieldVector[3];           // Constant field value
+float parFieldVector[3] = {0,0,2}; // default constant field value
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
 //                       generator, application and starts the simulation.
