@@ -97,7 +97,7 @@ private:
 
   double fProductionCut; // in length
 
-  std::vector<int> fLayerIDToLayerIndex;  // map of the layer (as VPlacedVolume) IDs to their index.
+  std::vector<int> fLayerIDToLayerIndex; // map of the layer (as VPlacedVolume) IDs to their index.
 
   geantphysics::Material *fAbsorberMaterials[gMaxNumAbsorbers];
   geantphysics::Material *fWorldMaterial;

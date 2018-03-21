@@ -212,8 +212,6 @@ private:
   std::vector<TestEm3DataPerEvent> fPerEventData;
 };
 
-
-
 // Thread local data structure for TestEm3 to collecet/handle thread local run-global data structures. The user needs
 // to implement both the Merge and Clear methods: these methods are called when the simulation is completed and these
 // thread local run-global data are merged from the working threads.
@@ -221,22 +219,23 @@ class TestEm3ThreadDataRun {
 public:
   TestEm3ThreadDataRun() {}
   ~TestEm3ThreadDataRun() {}
-  
-  void SetLayerDataContainer(int nlayers) { 
-    fChargedTrackLPerLayer.resize(nlayers,0.0);  
-    fEdepPerLayer.resize(nlayers,0.0); 
+
+  void SetLayerDataContainer(int nlayers)
+  {
+    fChargedTrackLPerLayer.resize(nlayers, 0.0);
+    fEdepPerLayer.resize(nlayers, 0.0);
   }
   void AddDataCHTrackLength(double chtrackl, int layerindx) { fChargedTrackLPerLayer[layerindx] += chtrackl; }
-  void AddEdep(double edep, int layerindx) { fEdepPerLayer[layerindx]+= edep; }
+  void AddEdep(double edep, int layerindx) { fEdepPerLayer[layerindx] += edep; }
   //
-  const std::vector<double>& GetCHTrackLPerLayer() const { return fChargedTrackLPerLayer; }
-  const std::vector<double>& GetEDepPerLayer()     const { return fEdepPerLayer; }
+  const std::vector<double> &GetCHTrackLPerLayer() const { return fChargedTrackLPerLayer; }
+  const std::vector<double> &GetEDepPerLayer() const { return fEdepPerLayer; }
   // nothing to clear: per-thread histograms will be merged at the end of the run
   void Clear(int /*evtslotindx*/) {}
   bool Merge(int /*evtslotindx*/, const TestEm3ThreadDataRun &other);
 
 private:
-  // some containers to store (average) charged track length and energy deposit per detector layer during the simulation 
+  // some containers to store (average) charged track length and energy deposit per detector layer during the simulation
   // per working-threads (they will be merged at the end of run)
   std::vector<double> fChargedTrackLPerLayer;
   std::vector<double> fEdepPerLayer;

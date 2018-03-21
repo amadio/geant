@@ -96,13 +96,13 @@ double parAppHist1MinVal        = -1.; // i.e. default application value
 double parAppHist1MaxVal        = -1.; // i.e. default application value
 //
 // run configuration parameters
-int parConfigNumBufferedEvt   = 4;     // number of events taken to be transported on the same time (buffered)
-int parConfigNumRunEvt        = 4000;  // total number of events to be transported during the run
-int parConfigNumPrimaryPerEvt = 1000;  // number of primary particles per event
-int parConfigNumThreads       = 4;     // number of working threads
-int parConfigNumPropagators   = 1;     // number of propagators per working threads
-bool parConfigVectorizedGeom  = 0;     // activate geometry basketizing
-int parConfigNumPerBasket     = 16;    // default number of particles per basket
+int parConfigNumBufferedEvt   = 4;    // number of events taken to be transported on the same time (buffered)
+int parConfigNumRunEvt        = 4000; // total number of events to be transported during the run
+int parConfigNumPrimaryPerEvt = 1000; // number of primary particles per event
+int parConfigNumThreads       = 4;    // number of working threads
+int parConfigNumPropagators   = 1;    // number of propagators per working threads
+bool parConfigVectorizedGeom  = 0;    // activate geometry basketizing
+int parConfigNumPerBasket     = 16;   // default number of particles per basket
 //
 // physics process configuration parameters:
 std::string parProcessMSCStepLimit = ""; // i.e. default application value
@@ -110,11 +110,11 @@ double parProcessStepMaxValue      = 0.; // i.e. default application value
 
 //
 // field configuration parameters
-int parFieldActive      = 0;            // activate magnetic field
-int parFieldUseRK       = 0;            // use Runge-Kutta instead of helix
-double parFieldEpsRK    = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
-int parFieldBasketized  = 1;            // basketize magnetic field
-float parFieldVector[3] = {0,0,2};      // default constant field value {0,0,2} [kilogauss]
+int parFieldActive      = 0;         // activate magnetic field
+int parFieldUseRK       = 0;         // use Runge-Kutta instead of helix
+double parFieldEpsRK    = 0.0003;    // Revised / reduced accuracy - vs. 0.0003 default
+int parFieldBasketized  = 1;         // basketize magnetic field
+float parFieldVector[3] = {0, 0, 2}; // default constant field value {0,0,2} [kilogauss]
 
 static struct option options[] = {{"det-Target-Material-Name", required_argument, 0, 'a'},
                                   {"det-Target-Thickness", required_argument, 0, 'b'},

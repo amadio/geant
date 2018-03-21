@@ -18,13 +18,13 @@ namespace userapplication {
 TestEm5DetectorConstruction::TestEm5DetectorConstruction(geant::RunManager *runmgr)
     : geant::UserDetectorConstruction(runmgr)
 {
-  fTargetMatName = "NIST_MAT_Au"; // default target material is NIST Au
+  fTargetMatName         = "NIST_MAT_Au"; // default target material is NIST Au
   fTargetLogicalVolumeID = -1;
   fTargetRegionIndx      = -1;
-  fTargetX               =  19.296*geant::units::um; // set to thickness by default and the half will be taken in ComputeSetup
-  fTargetYZ              =  10.*fTargetX;
-  fWorldYZ               = 1.2 * fTargetYZ;
-  fWorldX                = 1.2 * fTargetX; 
+  fTargetX  = 19.296 * geant::units::um; // set to thickness by default and the half will be taken in ComputeSetup
+  fTargetYZ = 10. * fTargetX;
+  fWorldYZ  = 1.2 * fTargetYZ;
+  fWorldX   = 1.2 * fTargetX;
   //
   fTargetMaterial = geantphysics::Material::NISTMaterial(fTargetMatName);
   fWorldMaterial  = geantphysics::Material::NISTMaterial("NIST_MAT_Galactic");
@@ -77,11 +77,11 @@ void TestEm5DetectorConstruction::ComputeSetup()
 {
   fTargetMaterial = geantphysics::Material::NISTMaterial(fTargetMatName);
 
-  fTargetYZ  =  10.*fTargetX;
-  fTargetYZ *=  0.5;
-  fTargetX  *=  0.5;
-  fWorldYZ   =  1.2 * fTargetYZ;
-  fWorldX    =  1.2 * fTargetX;
+  fTargetYZ = 10. * fTargetX;
+  fTargetYZ *= 0.5;
+  fTargetX *= 0.5;
+  fWorldYZ = 1.2 * fTargetYZ;
+  fWorldX  = 1.2 * fTargetX;
 }
 
 void TestEm5DetectorConstruction::CreateGeometry()

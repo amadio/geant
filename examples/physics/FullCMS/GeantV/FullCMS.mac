@@ -5,7 +5,7 @@
 ### of the fullCMS GeantV application.
 ###
 ###
-./fullCMS \
+./FullCMS \
 "### detector parameters:"\
   --det-set-gdml                           cms.gdml     "# gdml file "\
 "### primary particle generation parameters:"\

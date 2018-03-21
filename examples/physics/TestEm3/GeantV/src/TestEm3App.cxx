@@ -40,7 +40,7 @@ TestEm3App::TestEm3App(geant::RunManager *runmgr, TestEm3DetectorConstruction *d
   fPrimaryParticleCharge = -1.;
   fDataHandlerEvents     = nullptr;
   fDataHandlerRun        = nullptr;
-  fData = nullptr;
+  fData                  = nullptr;
 }
 
 TestEm3App::~TestEm3App()
@@ -115,7 +115,7 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
   int idvol   = -1;
   int idlayer = -1;
   int ilev    = -1;
-  ilev      = track.Path()->GetCurrentLevel() - 1;
+  ilev        = track.Path()->GetCurrentLevel() - 1;
   if (ilev < 1) {
     return;
   }
@@ -124,7 +124,7 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
     return;
   }
   idvol   = current->GetLogicalVolume()->id();
-  idlayer = track.Path()->At(ilev-1)->id();
+  idlayer = track.Path()->At(ilev - 1)->id();
   // get some particle properties
   const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.GVcode());
   int pdgCode                        = part->GetPDGCode();
@@ -173,9 +173,9 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
     }
   }
   //
-  // go for per layer data: they are stored in the run-global thread local data structure 
+  // go for per layer data: they are stored in the run-global thread local data structure
   // only if the layer-ID can be any of the layers
-  if (idlayer<fMaxLayerID) {
+  if (idlayer < fMaxLayerID) {
     int currentLayerIndx = fLayerIDToLayerIndexMap[idlayer];
     if (currentLayerIndx > -1) {
       TestEm3ThreadDataRun &dataRun = (*fDataHandlerRun)(td);
@@ -295,28 +295,26 @@ void TestEm3App::FinishRun()
   std::cout << std::endl;
   std::cout << " \n ---------------------------------------------------------------------------------------------- \n"
             << std::endl;
-  // 
+  //
   //
   // merge the run-global thread local data from the working threads: i.e. the thread local histograms
-  TestEm3ThreadDataRun *runData = fRunMgr->GetTDManager()->MergeUserData(-1, *fDataHandlerRun);
+  TestEm3ThreadDataRun *runData                    = fRunMgr->GetTDManager()->MergeUserData(-1, *fDataHandlerRun);
   const std::vector<double> &chargedTrackLPerLayer = runData->GetCHTrackLPerLayer();
-  const std::vector<double> &energyDepositPerLayer       = runData->GetEDepPerLayer();
-  int nLayers = energyDepositPerLayer.size();
+  const std::vector<double> &energyDepositPerLayer = runData->GetEDepPerLayer();
+  int nLayers                                      = energyDepositPerLayer.size();
   std::cout << " \n ---------------------------------------------------------------------------------------------- \n"
             << " ---------------------------------   Layer by layer mean data  ------------------------------- \n"
             << " ---------------------------------------------------------------------------------------------- \n";
   std::cout << "  #Layers     Charged-TrakL [cm]     Energy-Dep [GeV]  " << std::endl << std::endl;
-  for (int il = 0; il < nLayers; ++il)  {
-    std::cout<< "      " 
-             << std::setw(10) << il 
-             << std::setw(20) << std::setprecision(6) <<  chargedTrackLPerLayer[il]*norm 
-             << std::setw(20) << std::setprecision(6) <<  energyDepositPerLayer[il]*norm 
-             << std::endl;
+  for (int il = 0; il < nLayers; ++il) {
+    std::cout << "      " << std::setw(10) << il << std::setw(20) << std::setprecision(6)
+              << chargedTrackLPerLayer[il] * norm << std::setw(20) << std::setprecision(6)
+              << energyDepositPerLayer[il] * norm << std::endl;
   }
   std::cout << std::endl;
   std::cout << " \n ============================================================================================== \n"
             << std::endl;
-            
+
   /*
     //
     // print the merged histogram into file

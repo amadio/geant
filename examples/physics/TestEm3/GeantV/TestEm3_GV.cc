@@ -77,11 +77,11 @@ std::string parProcessMSCStepLimit = ""; // i.e. default application value
 
 //
 // field configuration parameters
-int parFieldActive      = 0;       // activate magnetic field
-int parFieldUseRK       = 0;       // use Runge-Kutta instead of helix
-double parFieldEpsRK    = 0.0003;  // Revised / reduced accuracy - vs. 0.0003 default
-int parFieldBasketized  = 0;       // basketize magnetic field
-float parFieldVector[3] = {0,0,2}; // default constant field value
+int parFieldActive      = 0;         // activate magnetic field
+int parFieldUseRK       = 0;         // use Runge-Kutta instead of helix
+double parFieldEpsRK    = 0.0003;    // Revised / reduced accuracy - vs. 0.0003 default
+int parFieldBasketized  = 0;         // basketize magnetic field
+float parFieldVector[3] = {0, 0, 2}; // default constant field value
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
 //                       generator, application and starts the simulation.
@@ -144,34 +144,34 @@ void PreSet(int num)
 }
 
 static struct option options[] = {{"det-number-of-absorbers", required_argument, 0, 'a'},
-                                  {"det-number-of-layers"   , required_argument, 0, 'b'},
-                                  {"det-set-absorber"       , required_argument, 0, 'c'},
-                                  {"det-set-sizeYZ"         , required_argument, 0, 'd'},
-                                  {"det-prod-cut-length"    , required_argument, 0, 'e'},
+                                  {"det-number-of-layers", required_argument, 0, 'b'},
+                                  {"det-set-absorber", required_argument, 0, 'c'},
+                                  {"det-set-sizeYZ", required_argument, 0, 'd'},
+                                  {"det-prod-cut-length", required_argument, 0, 'e'},
 
-                                  {"gun-primary-energy"     , required_argument, 0, 'f'},
-                                  {"gun-primary-type"       , required_argument, 0, 'g'},
+                                  {"gun-primary-energy", required_argument, 0, 'f'},
+                                  {"gun-primary-type", required_argument, 0, 'g'},
 
-                                  {"mctruth-store"          , required_argument, 0, 'B'},
-                                  {"mctruth-minE"           , required_argument, 0, 'C'},
-                                  {"mctruth-file"           , required_argument, 0, 'D'},
+                                  {"mctruth-store", required_argument, 0, 'B'},
+                                  {"mctruth-minE", required_argument, 0, 'C'},
+                                  {"mctruth-file", required_argument, 0, 'D'},
 
-                                  {"field-active"           , required_argument, 0, 'E'},
-                                  {"field-vector"           , required_argument, 0, 'F'},
-                                  {"field-use-RK"           , required_argument, 0, 'G'},
-                                  {"field-eps-RK"           , required_argument, 0, 'H'},
-                                  {"field-basketized"       , required_argument, 0, 'I'},
+                                  {"field-active", required_argument, 0, 'E'},
+                                  {"field-vector", required_argument, 0, 'F'},
+                                  {"field-use-RK", required_argument, 0, 'G'},
+                                  {"field-eps-RK", required_argument, 0, 'H'},
+                                  {"field-basketized", required_argument, 0, 'I'},
 
-                                  {"config-number-of-buffered-events"   , required_argument, 0, 'm'},
-                                  {"config-total-number-of-events"      , required_argument, 0, 'n'},
+                                  {"config-number-of-buffered-events", required_argument, 0, 'm'},
+                                  {"config-total-number-of-events", required_argument, 0, 'n'},
                                   {"config-number-of-primary-per-events", required_argument, 0, 'o'},
-                                  {"config-number-of-threads"           , required_argument, 0, 'p'},
-                                  {"config-number-of-propagators"       , required_argument, 0, 'q'},
-                                  {"config-tracks-per-basket"           , required_argument, 0, 'r'},
-                                  {"config-run-performance"             , required_argument, 0, 's'},
-                                  {"config-vectorized-geom"             , required_argument, 0, 't'},
-                                  {"config-external-loop"               , required_argument, 0, 'u'},
-                                  {"process-MSC-step-limit"             , required_argument, 0, 'A'},
+                                  {"config-number-of-threads", required_argument, 0, 'p'},
+                                  {"config-number-of-propagators", required_argument, 0, 'q'},
+                                  {"config-tracks-per-basket", required_argument, 0, 'r'},
+                                  {"config-run-performance", required_argument, 0, 's'},
+                                  {"config-vectorized-geom", required_argument, 0, 't'},
+                                  {"config-external-loop", required_argument, 0, 'u'},
+                                  {"process-MSC-step-limit", required_argument, 0, 'A'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -387,8 +387,8 @@ geant::RunManager *RunManager()
   // Some additional parameters that have values in this application different than their default
   //
   // this should be true by default from now on since we use only V3
-  runConfig->fUseV3             = true;
-  runConfig->fNminThreshold     = 5 * parConfigNumThreads;
+  runConfig->fUseV3         = true;
+  runConfig->fNminThreshold = 5 * parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
   runConfig->fNminReuse         = 100000;
   runConfig->fMaxPerBasket      = parConfigNumTracksPerBasket;

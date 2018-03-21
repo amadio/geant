@@ -199,7 +199,7 @@ void TestEm3DetectorConstruction::CreateMaterials()
 void TestEm3DetectorConstruction::CreateGeometry()
 {
   // compute possible updated calorimeter properties
-  ComputeCalorimeter(); 
+  ComputeCalorimeter();
   // first set the materials that have been defined by their name
   fWorldMaterial = geantphysics::Material::NISTMaterial(fWorldMaterialName);
   for (int i = 0; i < fNumberOfAbsorbers; ++i) {
@@ -262,17 +262,17 @@ void TestEm3DetectorConstruction::CreateGeometry()
     sprintf(name, "layer_%d", i);
     xcenter = xstart + 0.5 * fLayerThickness;
     xstart += fLayerThickness;
-    vecgeom::Transformation3D *place = new vecgeom::Transformation3D(xcenter, 0, 0, 0, 0, 0);
+    vecgeom::Transformation3D *place          = new vecgeom::Transformation3D(xcenter, 0, 0, 0, 0, 0);
     const vecgeom::VPlacedVolume *placedLayer = logicCalo->PlaceDaughter(name, logicLayer, place);
-    int layerID = placedLayer->id();
+    int layerID                               = placedLayer->id();
     layerIDs.push_back(layerID);
-    if (layerID>maxLayerID) {
+    if (layerID > maxLayerID) {
       maxLayerID = layerID;
     }
   }
   // create the layer (as VPlacedVolume) IDs to their index map
-  fLayerIDToLayerIndex.resize(maxLayerID+1,-1);
-  for (int l=0; l<fNumberOfLayers; ++l) {
+  fLayerIDToLayerIndex.resize(maxLayerID + 1, -1);
+  for (int l = 0; l < fNumberOfLayers; ++l) {
     fLayerIDToLayerIndex[layerIDs[l]] = l;
   }
   layerIDs.clear();
