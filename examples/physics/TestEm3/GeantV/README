@@ -171,11 +171,11 @@ A set of observable is collected during the simulation:
       neutral steps per primary particle
 These information is reported at the end of the simulation.
 
-The simulation can be executed in "performance" mode by providing the
+The simulation can be executed in "performance" mode by setting the 
 
-  --config-run-performance
+  --config-run-performance 1
 
-flag as an input argument. User actions are not invoked (early returns) in this
+input argument value to 1. User actions are not invoked (early returns) in this
 case. Therefore, there is no any scoring in this case.
 
 

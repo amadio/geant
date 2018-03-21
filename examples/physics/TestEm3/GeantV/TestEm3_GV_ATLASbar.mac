@@ -26,12 +26,6 @@
   --config-number-of-threads                4         "# number of working threads to be used"\
   --config-number-of-propagators            1         "# number of propagators"\
   --config-tracks-per-basket               16         "# default number of tracks per basket"\
-"### field configuration parameters:"\
-  --field-active                            1         "# activate field"\
-  --field-vector                 x=0.,y=0,z=2.        "# constant field vector [kilogauss]"\
-  --field-use-RK                            1         "# use Runge-Kutta propagator"\
-  --field-eps-RK                       0.0003         "# RK tolerance error"\
-  --field-basketized                        0         "# basketized geometry"\
 "### physics process configuration parameters:"\
   --process-MSC-step-limit             UseSafety      "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
   --config-run-performance                  0         "# flag to activate performance mode i.e. no scoring"\
