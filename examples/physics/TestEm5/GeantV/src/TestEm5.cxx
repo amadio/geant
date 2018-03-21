@@ -99,8 +99,6 @@ bool TestEm5::Initialize()
 
 void TestEm5::SteppingActions(geant::Track &track, geant::TaskData *td)
 {
-  std::cerr<< "  " << track.X() << " " << track.Y() << " " << track.Z() << std::endl;
-
   // it is still a bit tricky but try to get the ID of the logical volume in which the current step was done
   Node_t const *current;
   int idvol = -1;
