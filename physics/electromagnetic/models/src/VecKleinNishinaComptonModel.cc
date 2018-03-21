@@ -75,8 +75,10 @@ void VecKleinNishinaComptonModel::SampleSecondariesVectorAlias(LightTrack_v &tra
     vecCore::Load(r3, &data.fR3[i]);
     const PhysDV phi = geant::units::kTwoPi * (r3);
     // direction of the scattered gamma in the scattering frame
-    PhysDV dirX = sint * vecCore::math::Cos(phi);
-    PhysDV dirY = sint * vecCore::math::Sin(phi);
+    PhysDV tempSin, tempCos;
+    vecCore::math::SinCos(phi, &tempSin, &tempCos);
+    PhysDV dirX = sint * tempCos;
+    PhysDV dirY = sint * tempSin;
     PhysDV dirZ = cost;
 
     PhysDV gammaX, gammaY, gammaZ;
