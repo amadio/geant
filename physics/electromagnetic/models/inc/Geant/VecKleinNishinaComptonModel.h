@@ -38,7 +38,7 @@ public:
   {
   }
 
-  //  virtual ~VecKleinNishinaComptonModel();
+  virtual ~VecKleinNishinaComptonModel(){};
 
   virtual void Initialize();
 

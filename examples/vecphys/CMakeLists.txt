@@ -16,6 +16,8 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
         ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
         ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
+
+        Common/
 #        ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm5/inc
 #        ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/TestEm3/inc
 #        ${CMAKE_SOURCE_DIR}/examples/physics/GeantV/FullCMS/inc
@@ -23,23 +25,25 @@ include_directories(
 #        ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
 )
 
-add_executable(PhysVecRngBench Misc/VecRngBench.cxx)
+set(COMMON_HEADERS Common/Hist.h Common/Common.h)
+
+add_executable(PhysVecRngBench Misc/VecRngBench.cxx ${COMMON_HEADERS})
 target_link_libraries(PhysVecRngBench Geant_v benchmark pthread)
 
-add_executable(PhysVecMathBench Misc/VecMathBench.cxx)
+add_executable(PhysVecMathBench Misc/VecMathBench.cxx ${COMMON_HEADERS})
 target_link_libraries(PhysVecMathBench Geant_v benchmark pthread)
 
-add_executable(PhysVecKleinNishBench KleinNishina/KleinNishinaBench.cxx KleinNishina/KleinNishinaTestCommon.h)
+add_executable(PhysVecKleinNishBench KleinNishina/KleinNishinaBench.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecKleinNishBench Geant_v RealPhysics benchmark pthread)
 
-add_executable(PhysVecKleinNishValid KleinNishina/KleinNishinaValidate.cxx)
+add_executable(PhysVecKleinNishValid KleinNishina/KleinNishinaValidate.cxx ${COMMON_HEADERS})
 target_link_libraries(PhysVecKleinNishValid Geant_v RealPhysics)
 
-add_executable(PhysVecKleinNishAliasBench KleinNishina/KleinNishinaAliasBench.cxx KleinNishina/KleinNishinaTestCommon.h)
+add_executable(PhysVecKleinNishAliasBench KleinNishina/KleinNishinaAliasBench.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecKleinNishAliasBench Geant_v RealPhysics benchmark pthread)
 
-add_executable(PhysVecKleinNishAliasValid KleinNishina/KleinNishinaAliasValid.cxx KleinNishina/KleinNishinaTestCommon.h)
+add_executable(PhysVecKleinNishAliasValid KleinNishina/KleinNishinaAliasValid.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecKleinNishAliasValid Geant_v RealPhysics)
 
-add_executable(PhysVecKleinNishRejBench KleinNishina/KleinNishinaRejBench.cxx KleinNishina/KleinNishinaTestCommon.h)
+add_executable(PhysVecKleinNishRejBench KleinNishina/KleinNishinaRejBench.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecKleinNishRejBench Geant_v RealPhysics benchmark pthread)

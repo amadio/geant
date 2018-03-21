@@ -16,7 +16,7 @@ public:
   using VecKleinNishinaComptonModel::SampleReducedPhotonEnergyVec;
 };
 
-const int kTestSize = 32;
+const int kTestSize = 1024 * 10;
 int main()
 {
   KleinNishinaAliasVec *kln = new KleinNishinaAliasVec;
@@ -53,8 +53,10 @@ int main()
   }
   kln->SampleReducedPhotonEnergyVec(energy.data(), r1.data(), r2.data(), r3.data(), out2.data(), kTestSize);
 
+  double cumError = 0.0;
   for (int i = 0; i < kTestSize; ++i) {
-    Printf("%f %f", out1[i], out2[i]);
+    cumError += std::abs(out1[i] - out2[i]);
+    Printf("TestSize: %d Cumulative error: %f", kTestSize, cumError);
   }
 
   delete kln;

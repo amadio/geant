@@ -2,16 +2,15 @@
 #define GEANTV_KLEINNISHINATESTCOMMON_H
 
 #include "Geant/LightTrack.h"
-#include "Geant/PhysicsData.h"
 #include "Geant/TaskData.h"
 #include "Geant/KleinNishinaComptonModel.h"
 #include "Geant/VecKleinNishinaComptonModel.h"
+#include "Common.h"
 
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
 using geantphysics::KleinNishinaComptonModel;
 using geantphysics::VecKleinNishinaComptonModel;
-using geant::TaskData;
 
 const int kMinBasket = 16;
 const int kMaxBasket = 256;
@@ -69,20 +68,6 @@ void PreparePrimaries(LightTrack_v &output, int N)
     output.SetKinE(eKin, i);
     output.SetTrackIndex(i, i);
   }
-}
-
-TaskData *PrepareTaskData()
-{
-  auto PhysData    = new geantphysics::PhysicsData();
-  auto Td          = new TaskData(1, kMaxBasket);
-  Td->fPhysicsData = PhysData;
-  return Td;
-}
-
-void CleanTaskData(TaskData *Td)
-{
-  delete Td->fPhysicsData;
-  delete Td;
 }
 
 #endif // GEANTV_KLEINNISHINATESTCOMMON_H
