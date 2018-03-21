@@ -55,7 +55,7 @@ public:
   virtual void DoIt(Basket &input, Basket &output, TaskData *td);
 
   /** @brief Enable verbosity */
-  void SetVerbosity( bool val );
+  void SetVerbosity(bool val);
 
 private:
   bool fVerboseTracking = false;

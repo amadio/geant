@@ -324,7 +324,7 @@ void RunManager::PrepareRkIntegration()
       geant::Error("PrepareRkIntegration", "Cannot find GUFieldPropagatorPool Instance.");
     }
   }
-  fInitialisedRKIntegration = true;  
+  fInitialisedRKIntegration = true;
 }
 
 //______________________________________________________________________________

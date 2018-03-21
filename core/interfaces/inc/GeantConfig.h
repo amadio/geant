@@ -76,7 +76,7 @@ public:
   bool fUseVectorizedGeom  = false; /** Use vectorized geometry */
   bool fUseVectorizedField = false; /** Use vectorized field */
 
-  bool fSteppingVerbose    = false; /** Enable verbose stepping at each step */
+  bool fSteppingVerbose = false; /** Enable verbose stepping at each step */
 
   int fMonQueue          = 0; /** Monitor the work queue */
   int fMonMemory         = 0; /** Monitor the memory */

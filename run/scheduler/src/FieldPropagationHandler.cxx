@@ -74,7 +74,7 @@ void FieldPropagationHandler::InitializeStats()
   numHelixZ   = 0;
   numHelixGen = 0;
 #else
-  // std::cout << " Field Propagation Handler: no statistics for types of steps." << std::endl;
+// std::cout << " Field Propagation Handler: no statistics for types of steps." << std::endl;
 #endif
 }
 
@@ -403,10 +403,10 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
       }
     }
 #endif
-    // method= 'R';
-    #ifdef STATS_METHODS
-      numRK++;
-    #endif
+// method= 'R';
+#ifdef STATS_METHODS
+    numRK++;
+#endif
   } else {
     // Must agree with values in magneticfield/inc/Units.h
     double Bz             = BfieldInitial[2] * toKiloGauss;
@@ -417,7 +417,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
       ConstBzFieldHelixStepper stepper(Bz); //
       stepper.DoStep<ThreeVector, double, int>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew,
                                                DirectionNew);
-      // method= 'z';
+// method= 'z';
 #ifdef STATS_METHODS
       numHelixZ++;
 #endif
@@ -427,7 +427,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
                              BfieldInitial.z() * toKiloGauss};
       ConstFieldHelixStepper stepper(BfieldArr);
       stepper.DoStep<double>(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-      // method= 'v';
+// method= 'v';
 #ifdef STATS_METHODS
       numHelixGen++;
 #endif

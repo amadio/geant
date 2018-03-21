@@ -128,10 +128,11 @@ void SteppingActionsHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void SteppingActionsHandler::SetVerbosity( bool val ) {
-   fVerboseTracking= val;
+void SteppingActionsHandler::SetVerbosity(bool val)
+{
+  fVerboseTracking = val;
 #ifndef GV_VERBOSE_STEPPING
-   std::cerr << "Warning: This installation has Stepping Verbosity turned OFF." << std::endl;
+  std::cerr << "Warning: This installation has Stepping Verbosity turned OFF." << std::endl;
 #endif
 }
 

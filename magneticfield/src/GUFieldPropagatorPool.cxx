@@ -45,8 +45,7 @@ bool GUFieldPropagatorPool::RegisterPrototype(GUFieldPropagator *prototype)
               << "Overwriting prototype propagator after having created " << fNumberPropagators << " instances. "
               << std::endl;
     std::cerr << "     prototype =   " << prototype << " old-prototype= " << fPrototype << std::endl;
-    if( ! prototype )
-       exit(1);    
+    if (!prototype) exit(1);
   }
   assert(prototype);
   fPrototype = prototype;
@@ -75,8 +74,9 @@ bool GUFieldPropagatorPool::Initialize(unsigned int numThreads)
   }
 
   size_t revSize = fFieldPropagatorVec.size();
-  
-  // std::cout << " (GU Field Propagator) Pool:  revised size= " << revSize << " requested= " << numThreads << std::endl;
+
+  // std::cout << " (GU Field Propagator) Pool:  revised size= " << revSize << " requested= " << numThreads <<
+  // std::endl;
 
   goodExpansion = (fFieldPropagatorVec.size() >= numThreads);
   assert(goodExpansion);
@@ -88,9 +88,9 @@ bool GUFieldPropagatorPool::Initialize(unsigned int numThreads)
 
 void GUFieldPropagatorPool::Extend(size_t noNeeded)
 {
-   // const char *methodName = "GUFieldPropagatorPool::Extend";
+  // const char *methodName = "GUFieldPropagatorPool::Extend";
 
-  size_t num         = fFieldPropagatorVec.size();
+  size_t num = fFieldPropagatorVec.size();
   // size_t originalNum = num;
   assert(fPrototype);
   assert(num < noNeeded);
@@ -117,7 +117,6 @@ void GUFieldPropagatorPool::Extend(size_t noNeeded)
   //     num - originalNum, num );
   // std::cout << methodName << " method ended.  Created " << num - originalNum << " propagators.  New total = "
   //           << num << std::endl;
-            
 }
 
 #if 0
