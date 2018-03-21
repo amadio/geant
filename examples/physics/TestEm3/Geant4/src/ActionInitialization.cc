@@ -63,6 +63,7 @@ void ActionInitialization::Build() const
 {
 
   PrimaryGeneratorAction* prim = new PrimaryGeneratorAction(fDetector);
+  fDetector->SetPrimaryGenerator(prim);
   SetUserAction(prim);
   if (!fIsPerformance) {
     RunAction* run = new RunAction(fDetector,prim);

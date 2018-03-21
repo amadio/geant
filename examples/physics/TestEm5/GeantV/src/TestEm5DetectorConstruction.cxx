@@ -79,9 +79,9 @@ void TestEm5DetectorConstruction::ComputeSetup()
 
   fTargetYZ  =  10.*fTargetX;
   fTargetYZ *=  0.5;
-  fTargetX  *= 0.5;
-  fWorldYZ   = 1.2 * fTargetYZ;
-  fWorldX    = 1.2 * fTargetX;
+  fTargetX  *=  0.5;
+  fWorldYZ   =  1.2 * fTargetYZ;
+  fWorldX    =  1.2 * fTargetX;
 }
 
 void TestEm5DetectorConstruction::CreateGeometry()

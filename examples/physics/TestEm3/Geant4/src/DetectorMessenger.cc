@@ -42,6 +42,7 @@
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithoutParameter.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -52,14 +53,15 @@ DetectorMessenger::DetectorMessenger(DetectorConstruction * Det)
  fSizeYZCmd(0),
  fNbLayersCmd(0),
  fNbAbsorCmd(0),
- fAbsorCmd(0)
+ fAbsorCmd(0),
+ fFieldCmd(0)
 { 
   fTestemDir = new G4UIdirectory("/testem/");
   fTestemDir->SetGuidance("UI commands specific to this example");
-  
+  //
   fDetDir = new G4UIdirectory("/testem/det/");
   fDetDir->SetGuidance("detector construction commands");
-  
+  //
   fSizeYZCmd = new G4UIcmdWithADoubleAndUnit("/testem/det/setSizeYZ",this);
   fSizeYZCmd->SetGuidance("Set tranverse size of the calorimeter");
   fSizeYZCmd->SetParameterName("Size",false);
@@ -67,21 +69,27 @@ DetectorMessenger::DetectorMessenger(DetectorConstruction * Det)
   fSizeYZCmd->SetUnitCategory("Length");
   fSizeYZCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
   fSizeYZCmd->SetToBeBroadcasted(false);
-    
+  //  
   fNbLayersCmd = new G4UIcmdWithAnInteger("/testem/det/setNbOfLayers",this);
   fNbLayersCmd->SetGuidance("Set number of layers.");
   fNbLayersCmd->SetParameterName("NbLayers",false);
   fNbLayersCmd->SetRange("NbLayers>0");
   fNbLayersCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
   fNbLayersCmd->SetToBeBroadcasted(false);
-    
+  // 
   fNbAbsorCmd = new G4UIcmdWithAnInteger("/testem/det/setNbOfAbsor",this);
   fNbAbsorCmd->SetGuidance("Set number of Absorbers.");
   fNbAbsorCmd->SetParameterName("NbAbsor",false);
   fNbAbsorCmd->SetRange("NbAbsor>0");
   fNbAbsorCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
   fNbAbsorCmd->SetToBeBroadcasted(false);
-     
+  //
+  fFieldCmd = new G4UIcmdWith3VectorAndUnit("/testem/det/setField",this);
+  fFieldCmd->SetGuidance("Set the constant magenetic field vector.");
+  fFieldCmd->SetUnitCategory("Magnetic flux density");
+  fFieldCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  fFieldCmd->SetToBeBroadcasted(false);
+  // 
   fAbsorCmd = new G4UIcommand("/testem/det/setAbsor",this);
   fAbsorCmd->SetGuidance("Set the absor nb, the material, the thickness.");
   fAbsorCmd->SetGuidance("  absor number : from 1 to NbOfAbsor");
@@ -120,6 +128,7 @@ DetectorMessenger::~DetectorMessenger()
   delete fNbLayersCmd;
   delete fNbAbsorCmd;
   delete fAbsorCmd;
+  delete fFieldCmd;
   delete fDetDir;  
   delete fTestemDir;
 }
@@ -136,6 +145,9 @@ void DetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
 
   if( command == fNbAbsorCmd )
    { fDetector->SetNbOfAbsor(fNbAbsorCmd->GetNewIntValue(newValue));}
+
+  if( command == fFieldCmd )
+   { fDetector->SetMagField(fFieldCmd->GetNew3VectorValue(newValue));}
    
   if (command == fAbsorCmd)
    {

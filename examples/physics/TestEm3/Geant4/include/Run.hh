@@ -62,6 +62,9 @@ class Run : public G4Run
     void AddChargedStep();
     void AddNeutralStep();
     void AddSecondaryTrack(const G4Track*);
+    
+    void AddCHStepInLayer(double stepl, int layerindx) { fCHTrackLPerLayer[layerindx] += stepl; }
+    void AddEDepInLayer(double edep, int layerindx)    { fEDepPerLayer[layerindx]     += edep;  }
 
     void SetEdepAndRMS(G4int, G4double, G4double, G4double);
     void SetApplyLimit(G4bool);
@@ -80,6 +83,9 @@ class Run : public G4Run
     std::vector<G4double> fEnergyFlow;
     std::vector<G4double> fLateralEleak;
     std::vector<G4double> fEnergyDeposit[kMaxAbsor];
+    //
+    std::vector<G4double> fCHTrackLPerLayer;
+    std::vector<G4double> fEDepPerLayer;
 
     G4double fChargedStep;
     G4double fNeutralStep;

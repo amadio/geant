@@ -39,6 +39,7 @@
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithoutParameter.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -52,7 +53,8 @@ DetectorMessenger::DetectorMessenger(DetectorConstruction * Det)
  fAbsXposCmd(0),
  fWorldMaterCmd(0),
  fWorldXCmd(0),
- fWorldYZCmd(0)
+ fWorldYZCmd(0),
+ fFieldCmd(0)
 { 
   fTestemDir = new G4UIdirectory("/testem/");
   fTestemDir->SetGuidance("UI commands specific to this example.");
@@ -111,6 +113,11 @@ DetectorMessenger::DetectorMessenger(DetectorConstruction * Det)
   fWorldYZCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
   fWorldYZCmd->SetToBeBroadcasted(false);
 
+  fFieldCmd = new G4UIcmdWith3VectorAndUnit("/testem/det/setField",this);
+  fFieldCmd->SetGuidance("Set the constant magenetic field vector.");
+  fFieldCmd->SetUnitCategory("Magnetic flux density");
+  fFieldCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  fFieldCmd->SetToBeBroadcasted(false);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -124,6 +131,7 @@ DetectorMessenger::~DetectorMessenger()
   delete fWorldMaterCmd;
   delete fWorldXCmd;
   delete fWorldYZCmd;
+  delete fFieldCmd;
   delete fDetDir;  
   delete fTestemDir;
 }
@@ -152,7 +160,9 @@ void DetectorMessenger::SetNewValue(G4UIcommand* command,G4String newValue)
    
   if ( command == fWorldYZCmd )
    {fDetector->SetWorldSizeYZ(fWorldYZCmd->GetNewDoubleValue(newValue));}
-   
+
+  if( command == fFieldCmd )
+   { fDetector->SetMagField(fFieldCmd->GetNew3VectorValue(newValue));} 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

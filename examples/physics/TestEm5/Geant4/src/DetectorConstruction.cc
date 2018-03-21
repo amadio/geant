@@ -52,8 +52,11 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
-#include "G4GlobalMagFieldMessenger.hh"
-#include "G4AutoDelete.hh"
+#include "G4TransportationManager.hh"
+#include "G4UniformMagField.hh"
+#include "G4FieldManager.hh"
+
+#include "PrimaryGeneratorAction.hh"
 
 // for gdml write
 #include "G4GDMLParser.hh"
@@ -65,6 +68,7 @@ DetectorConstruction::DetectorConstruction()
  fAbsorberMaterial(0),fWorldMaterial(0),fDefaultWorld(true),
  fSolidWorld(0),fLogicWorld(0),fPhysiWorld(0),
  fSolidAbsorber(0),fLogicAbsorber(0),fPhysiAbsorber(0),
+ fPrimaryGenerator(0),
  fDetectorMessenger(0)
 {
   // default parameter values of the calorimeter
@@ -259,19 +263,26 @@ void DetectorConstruction::DefineMaterials()
 
 void DetectorConstruction::ComputeCalorParameters()
 {
-  // Compute derived parameters of the calorimeter
+  fAbsorberSizeYZ  =  10.*fAbsorberThickness;
+  fWorldSizeYZ     =  1.2*fAbsorberSizeYZ;
+  fWorldSizeX      =  1.2*fAbsorberThickness;
+  fXposAbs   = 0.;
   fXstartAbs = fXposAbs-0.5*fAbsorberThickness;
   fXendAbs   = fXposAbs+0.5*fAbsorberThickness;
-
-  G4double xmax = std::max(std::abs(fXstartAbs), std::abs(fXendAbs));
-
+  
+  // Compute derived parameters of the calorimeter
+//  fXstartAbs = fXposAbs-0.5*fAbsorberThickness;
+//  fXendAbs   = fXposAbs+0.5*fAbsorberThickness;
+//  G4double xmax = std::max(std::abs(fXstartAbs), std::abs(fXendAbs));
   // change world size by the flag or if the absorber is large
-  if (fDefaultWorld || 2*xmax >=  fWorldSizeX ||
-      fAbsorberSizeYZ >= fWorldSizeYZ)
-    {
-      fWorldSizeX = 3*xmax;
-      fWorldSizeYZ= 1.2*fAbsorberSizeYZ;
-    }
+//  if (fDefaultWorld || 2*xmax >=  fWorldSizeX || fAbsorberSizeYZ >= fWorldSizeYZ) {
+//      fWorldSizeX = 3*xmax;
+//      fWorldSizeYZ= 1.2*fAbsorberSizeYZ;
+//  }
+  // update the primary generator 
+  if (fPrimaryGenerator) {
+    fPrimaryGenerator->SetDefaultKinematic();
+  }    
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -312,6 +323,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
                                 false,              //no boulean operat
                                 0);                 //copy number
 
+  // construct field if any was set by ti user 
+  fFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+  SetConstantField();
+  // 
   PrintCalorParameters();
 
 //  G4GDMLParser parser;
@@ -420,18 +435,27 @@ void DetectorConstruction::SetAbsorberXpos(G4double val)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-void DetectorConstruction::ConstructSDandField()
+void DetectorConstruction::SetConstantField()
 {
-  if ( fFieldMessenger.Get() == 0 ) {
-    // Create global magnetic field messenger.
-    // Uniform magnetic field is then created automatically if
-    // the field value is not zero.
-    G4ThreeVector fieldValue = G4ThreeVector();
-    G4GlobalMagFieldMessenger* msg =
-      new G4GlobalMagFieldMessenger(fieldValue);
-    //msg->SetVerboseLevel(1);
-    G4AutoDelete::Register(msg);
-    fFieldMessenger.Put( msg );
+  if (fUniformMagField) {
+    delete fUniformMagField;
+  }
+  if (fMagFieldVector.mag()>0.0) {
+    // Apply a global uniform magnetic field along the Z axis.
+    // Notice that only if the magnetic field is not zero, the Geant4
+    // transportion in field gets activated.
+    fUniformMagField = new G4UniformMagField(fMagFieldVector);
+    fFieldMgr->SetDetectorField(fUniformMagField);
+    fFieldMgr->CreateChordFinder(fUniformMagField);
+    G4cout << G4endl
+           << " *** SETTING MAGNETIC FIELD : fieldValue = " << fMagFieldVector / kilogauss
+           << " [kilogauss] *** " << G4endl
+	         << G4endl;
+
+  } else {
+    G4cout << G4endl
+           << " *** NO MAGNETIC FIELD SET  *** " << G4endl
+	         << G4endl;
   }
 }
 

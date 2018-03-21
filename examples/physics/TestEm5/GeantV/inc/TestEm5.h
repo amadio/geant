@@ -67,6 +67,9 @@ public:
     *        secondary particles) is completed .*/
   virtual void FinishEvent(geant::Event *event);
 
+virtual void BeginTrack(geant::Track &track, geant::TaskData *td) {  std::cerr<< "  " << track.X() << " " << track.Y() << " " << track.Z() << std::endl;
+}
+
   /** @brief Interface method that is called at the end of the simulation (when the transportation of all events are
     *        are completed). */
   virtual void FinishRun();

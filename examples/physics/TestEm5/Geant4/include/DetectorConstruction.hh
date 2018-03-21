@@ -43,9 +43,11 @@ class G4Box;
 class G4VPhysicalVolume;
 class G4Material;
 class G4MaterialCutsCouple;
-class G4UniformMagField;
 class DetectorMessenger;
-class G4GlobalMagFieldMessenger;
+
+class G4UniformMagField;
+class G4FieldManager;
+class PrimaryGeneratorAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -57,6 +59,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
    ~DetectorConstruction();
 
   public:
+ 
+     virtual G4VPhysicalVolume* Construct();
 
      void SetAbsorberMaterial (G4String);
      void SetAbsorberThickness(G4double);
@@ -68,10 +72,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
      void SetWorldSizeX   (G4double);
      void SetWorldSizeYZ  (G4double);
 
-     void SetMagField(G4double);
+     void SetMagField(const G4ThreeVector& fv) { fMagFieldVector = fv; }
 
-     virtual G4VPhysicalVolume* Construct();
-     virtual void ConstructSDandField();
+     void SetPrimaryGenerator(PrimaryGeneratorAction* pg) { fPrimaryGenerator = pg; }
 
   public:
 
@@ -115,14 +118,20 @@ class DetectorConstruction : public G4VUserDetectorConstruction
      G4LogicalVolume*   fLogicAbsorber;
      G4VPhysicalVolume* fPhysiAbsorber;
      
+     // field related members
+     G4ThreeVector      fMagFieldVector;
+     G4FieldManager*    fFieldMgr;
+     G4UniformMagField* fUniformMagField;
+
+     PrimaryGeneratorAction* fPrimaryGenerator;
+     
      DetectorMessenger* fDetectorMessenger;
-     G4Cache<G4GlobalMagFieldMessenger*> fFieldMessenger;
-    
-      
+
   private:
     
      void DefineMaterials();
      void ComputeCalorParameters();
+     void SetConstantField();
      G4VPhysicalVolume* ConstructCalorimeter();     
 };
 

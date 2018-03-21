@@ -35,6 +35,7 @@
 #define DetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
+#include "G4ThreeVector.hh"
 #include "globals.hh"
 #include "G4Cache.hh"
 
@@ -44,7 +45,9 @@ class G4VPhysicalVolume;
 class G4Material;
 class DetectorMessenger;
 
-class G4GlobalMagFieldMessenger;
+class G4UniformMagField;
+class G4FieldManager;
+class PrimaryGeneratorAction;
 
 const G4int kMaxAbsor = 10;                        // 0 + 9
 
@@ -59,6 +62,8 @@ public:
 
 public:
 
+  virtual G4VPhysicalVolume* Construct();
+
   void SetNbOfAbsor     (G4int);
   void SetAbsorMaterial (G4int,const G4String&);
   void SetAbsorThickness(G4int,G4double);
@@ -67,28 +72,29 @@ public:
   void SetCalorSizeYZ   (G4double);
   void SetNbOfLayers    (G4int);
 
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
+  void SetMagField(const G4ThreeVector& fv) { fMagFieldVector = fv; }
+
+  void SetPrimaryGenerator(PrimaryGeneratorAction* pg) { fPrimaryGenerator = pg; }
 
 public:
 
   void PrintCalorParameters();
 
-  G4double GetWorldSizeX()           {return fWorldSizeX;};
-  G4double GetWorldSizeYZ()          {return fWorldSizeYZ;};
+  G4double GetWorldSizeX()           {return fWorldSizeX;}
+  G4double GetWorldSizeYZ()          {return fWorldSizeYZ;}
 
-  G4double GetCalorThickness()       {return fCalorThickness;};
-  G4double GetCalorSizeYZ()          {return fCalorSizeYZ;};
+  G4double GetCalorThickness()       {return fCalorThickness;}
+  G4double GetCalorSizeYZ()          {return fCalorSizeYZ;}
 
-  G4int GetNbOfLayers()              {return fNbOfLayers;};
+  G4int GetNbOfLayers()              {return fNbOfLayers;}
 
-  G4int       GetNbOfAbsor()             {return fNbOfAbsor;};
-  G4Material* GetAbsorMaterial(G4int i)  {return fAbsorMaterial[i];};
-  G4double    GetAbsorThickness(G4int i) {return fAbsorThickness[i];};
+  G4int       GetNbOfAbsor()             {return fNbOfAbsor;}
+  G4Material* GetAbsorMaterial(G4int i)  {return fAbsorMaterial[i];}
+  G4double    GetAbsorThickness(G4int i) {return fAbsorThickness[i];}
 
-  const G4VPhysicalVolume* GetphysiWorld()        {return fPhysiWorld;};
-  const G4Material*        GetWorldMaterial()     {return fDefaultMaterial;};
-  const G4VPhysicalVolume* GetAbsorber(G4int i)   {return fPhysiAbsor[i];};
+  const G4VPhysicalVolume* GetphysiWorld()        {return fPhysiWorld;}
+  const G4Material*        GetWorldMaterial()     {return fDefaultMaterial;}
+  const G4VPhysicalVolume* GetAbsorber(G4int i)   {return fPhysiAbsor[i];}
 
 private:
 
@@ -122,13 +128,20 @@ private:
   G4LogicalVolume*   fLogicAbsor[kMaxAbsor];
   G4VPhysicalVolume* fPhysiAbsor[kMaxAbsor];
 
+  // field related members
+  G4ThreeVector      fMagFieldVector;
+  G4FieldManager*    fFieldMgr;
+  G4UniformMagField* fUniformMagField;
+
+  PrimaryGeneratorAction* fPrimaryGenerator;
+
   DetectorMessenger* fDetectorMessenger;
-  G4Cache<G4GlobalMagFieldMessenger*> fFieldMessenger;
 
 private:
 
   void DefineMaterials();
   void ComputeCalorParameters();
+  void SetConstantField();
   G4VPhysicalVolume* ConstructCalorimeter();
 };
 

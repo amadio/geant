@@ -67,7 +67,10 @@ Run::Run(DetectorConstruction* det)
     fEdeptrue[k] = fRmstrue[k] = 1.;
     fLimittrue[k] = DBL_MAX;
   }
-
+  // set size of the containers for layer by layer data
+  // 
+  fCHTrackLPerLayer.resize(fDetector->GetNbOfLayers(),0.0);
+  fEDepPerLayer.resize(fDetector->GetNbOfLayers(),0.0);
   //initialize Eflow
   //
   G4int nbPlanes = (fDetector->GetNbOfLayers())*(fDetector->GetNbOfAbsor()) + 2;
@@ -163,6 +166,11 @@ void Run::Merge(const G4Run* run)
     fLateralEleak[k] += localRun->fLateralEleak[k];
   }
 
+  G4int nbLayers = fDetector->GetNbOfLayers();
+  for (G4int il=0; il<nbLayers; ++il) {
+    fCHTrackLPerLayer[il] += localRun->fCHTrackLPerLayer[il];
+    fEDepPerLayer[il]     += localRun->fEDepPerLayer[il];
+  }
 
   fChargedStep += localRun->fChargedStep;
   fNeutralStep += localRun->fNeutralStep;
@@ -337,6 +345,25 @@ void Run::EndOfRun()
   for (G4int ih = kMaxAbsor+1; ih < kMaxHisto; ih++) {
     analysis->ScaleH1(ih,norm/MeV);
   }
+
+  // print layer by layer data
+  //
+  G4int nLayers = fCHTrackLPerLayer.size();
+  G4cout << " \n ---------------------------------------------------------------------------------------------- \n"
+         << " ---------------------------------   Layer by layer mean data  ------------------------------- \n"
+         << " ---------------------------------------------------------------------------------------------- \n";
+  G4cout << "  #Layers     Charged-TrakL [cm]     Energy-Dep [GeV]  " << G4endl << G4endl;
+  for (G4int il = 0; il < nLayers; ++il)  {
+      G4cout << "      " 
+             << std::setw(10) << il 
+             << std::setw(20) << std::setprecision(6) <<  fCHTrackLPerLayer[il]*norm/cm 
+             << std::setw(20) << std::setprecision(6) <<  fEDepPerLayer[il]*norm/GeV
+             << G4endl;
+  }
+  G4cout << G4endl;
+  G4cout << " \n ============================================================================================== \n"
+         << G4endl;  
+
 
   G4cout.setf(mode,std::ios::floatfield);
   G4cout.precision(prec);

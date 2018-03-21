@@ -51,6 +51,12 @@
 #include "G4UnitsTable.hh"
 #include "G4PhysicalConstants.hh"
 
+#include "G4TransportationManager.hh"
+#include "G4UniformMagField.hh"
+#include "G4FieldManager.hh"
+
+#include "PrimaryGeneratorAction.hh"
+
 #include <iomanip>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -60,7 +66,9 @@ DetectorConstruction::DetectorConstruction()
  fDefaultMaterial(0),fSolidWorld(0),fLogicWorld(0),fPhysiWorld(0),
  fSolidCalor(0),fLogicCalor(0),fPhysiCalor(0),
  fSolidLayer(0),fLogicLayer(0),fPhysiLayer(0),
-fDetectorMessenger(0)
+ fFieldMgr(0), fUniformMagField(0), 
+ fPrimaryGenerator(0),
+ fDetectorMessenger(0)
 {
   // default parameter values of the calorimeter
   fNbOfAbsor         = 2;
@@ -85,6 +93,9 @@ fDetectorMessenger(0)
 DetectorConstruction::~DetectorConstruction()
 {
   delete fDetectorMessenger;
+  if (fUniformMagField) {
+    delete fUniformMagField;
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -295,6 +306,10 @@ void DetectorConstruction::ComputeCalorParameters()
   fCalorThickness = fNbOfLayers*fLayerThickness;
   fWorldSizeX     = 1.2*fCalorThickness;
   fWorldSizeYZ    = 1.2*fCalorSizeYZ;
+  // update the primary generator 
+  if (fPrimaryGenerator) {
+    fPrimaryGenerator->SetDefaultKinematic();
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -397,7 +412,10 @@ G4VPhysicalVolume* DetectorConstruction::ConstructCalorimeter()
                          k);                                //copy number
 
   }
-
+  // construct field if any was set by ti user 
+  fFieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+  SetConstantField();
+  // 
   PrintCalorParameters();
 
   //always return the fPhysical World
@@ -522,22 +540,28 @@ void DetectorConstruction::SetCalorSizeYZ(G4double val)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "G4GlobalMagFieldMessenger.hh"
-#include "G4AutoDelete.hh"
-
-void DetectorConstruction::ConstructSDandField()
+void DetectorConstruction::SetConstantField()
 {
-    if ( fFieldMessenger.Get() == 0 ) {
-        // Create global magnetic field messenger.
-        // Uniform magnetic field is then created automatically if
-        // the field value is not zero.
-        G4ThreeVector fieldValue = G4ThreeVector();
-        G4GlobalMagFieldMessenger* msg =
-        new G4GlobalMagFieldMessenger(fieldValue);
-        //msg->SetVerboseLevel(1);
-        G4AutoDelete::Register(msg);
-        fFieldMessenger.Put(msg);
-    }
+  if (fUniformMagField) {
+    delete fUniformMagField;
+  }
+  if (fMagFieldVector.mag()>0.0) {
+    // Apply a global uniform magnetic field along the Z axis.
+    // Notice that only if the magnetic field is not zero, the Geant4
+    // transportion in field gets activated.
+    fUniformMagField = new G4UniformMagField(fMagFieldVector);
+    fFieldMgr->SetDetectorField(fUniformMagField);
+    fFieldMgr->CreateChordFinder(fUniformMagField);
+    G4cout << G4endl
+           << " *** SETTING MAGNETIC FIELD : fieldValue = " << fMagFieldVector / kilogauss
+           << " [kilogauss] *** " << G4endl
+	         << G4endl;
+
+  } else {
+    G4cout << G4endl
+           << " *** NO MAGNETIC FIELD SET  *** " << G4endl
+	         << G4endl;
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

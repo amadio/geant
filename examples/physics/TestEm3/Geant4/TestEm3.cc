@@ -148,7 +148,7 @@ int main(int argc,char** argv) {
 #endif
 
   // set mandatory initialization classes
-  DetectorConstruction* detector = new DetectorConstruction;
+  DetectorConstruction* detector = new DetectorConstruction();
   runManager->SetUserInitialization(detector);
   runManager->SetUserInitialization(new PhysicsList);
 
