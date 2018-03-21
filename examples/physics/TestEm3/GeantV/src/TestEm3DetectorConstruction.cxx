@@ -198,6 +198,8 @@ void TestEm3DetectorConstruction::CreateMaterials()
 
 void TestEm3DetectorConstruction::CreateGeometry()
 {
+  // compute possible updated calorimeter properties
+  ComputeCalorimeter(); 
   // first set the materials that have been defined by their name
   fWorldMaterial = geantphysics::Material::NISTMaterial(fWorldMaterialName);
   for (int i = 0; i < fNumberOfAbsorbers; ++i) {

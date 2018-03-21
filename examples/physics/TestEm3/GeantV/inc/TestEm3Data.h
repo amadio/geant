@@ -222,7 +222,10 @@ public:
   TestEm3ThreadDataRun() {}
   ~TestEm3ThreadDataRun() {}
   
-  void SetLayerDataContainer(int nlayers) { fChargedTrackLPerLayer.resize(nlayers);  fEdepPerLayer.resize(nlayers); }
+  void SetLayerDataContainer(int nlayers) { 
+    fChargedTrackLPerLayer.resize(nlayers,0.0);  
+    fEdepPerLayer.resize(nlayers,0.0); 
+  }
   void AddDataCHTrackLength(double chtrackl, int layerindx) { fChargedTrackLPerLayer[layerindx] += chtrackl; }
   void AddEdep(double edep, int layerindx) { fEdepPerLayer[layerindx]+= edep; }
   //

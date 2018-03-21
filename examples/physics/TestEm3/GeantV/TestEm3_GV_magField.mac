@@ -1,0 +1,34 @@
+###
+### GeantV TestEm3 application script to simulate particle transport in an N-layer detector structure
+### with constant magnetic field.  
+###
+###
+./TestEm3_GV \
+"### detector configuration parameters:"\
+  --det-number-of-absorbers   1                       "# number of absorbers per layer"\
+  --det-number-of-layers    100                       "# number of layers"\
+  --det-set-absorber  absorber-index=0,material-name=NIST_MAT_Galactic  "# set first absorber material"\
+  --det-set-absorber  absorber-index=0,thickness=0.1                    "# set first absorber thickness [cm]"\
+  --det-set-sizeYZ           10                       "# transverse size of the calorimeter [cm]"\
+  --det-prod-cut-length      0.1                      "# set production cut length [cm]"\
+"### primary particle generation parameters:"\
+  --gun-primary-energy       1                        "# kinetic energy of the primary particle [in GeV]"\
+  --gun-primary-type         e-                       "# primary particle name/type"\
+"### run configuration parameters:"\
+  --config-number-of-buffered-events       10         "# number of events transported at once"\
+  --config-total-number-of-events         100         "# total number of events to be simulated"\
+  --config-number-of-primary-per-events   100         "# number of primary particles per event"\
+  --config-number-of-threads                4         "# number of working threads to be used"\
+  --config-number-of-propagators            1         "# number of propagators"\
+  --config-tracks-per-basket               16         "# default number of tracks per basket"\
+"### field configuration parameters:"\
+  --field-active                            1         "# activate field"\
+  --field-vector                 x=0.,y=0,z=2.        "# constant field vector [kilogauss]"\
+  --field-use-RK                            1         "# use Runge-Kutta propagator"\
+  --field-eps-RK                       0.0003         "# RK tolerance error"\
+  --field-basketized                        0         "# basketized geometry"\
+"### physics process configuration parameters:"\
+  --process-MSC-step-limit             UseSafety      "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
+  --config-run-performance                  0         "# flag to activate performance mode i.e. no scoring"\
+  --config-vectorized-geom                  0         "# flag to activate vectorized geometry"\
+  --config-external-loop                    0         "# flag to run the application in external loop mode"

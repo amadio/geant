@@ -34,11 +34,12 @@ TestEm3App::TestEm3App(geant::RunManager *runmgr, TestEm3DetectorConstruction *d
   fIsPerformance = false;
   fInitialized   = false;
   // all these will be set properly at initialization
+  fMaxLayerID            = -1;
   fNumPrimaryPerEvent    = -1;
   fNumBufferedEvents     = -1;
   fPrimaryParticleCharge = -1.;
   fDataHandlerEvents     = nullptr;
-  //  fDataHandlerRun        = nullptr;
+  fDataHandlerRun        = nullptr;
   fData = nullptr;
 }
 
@@ -83,6 +84,7 @@ bool TestEm3App::Initialize()
   }
   // get a copy of the layer ID layer index map vector form the Detector
   fLayerIDToLayerIndexMap = fDetector->GetLayerIDToLayerIndexMap();
+  fMaxLayerID             = static_cast<int>(fLayerIDToLayerIndexMap.size());
   // get all information that the primary generator (simple gun) should provide
   if (!fPrimaryGun) {
     geant::Error("TestEm3App::Initialize", "PrimaryGenerator not available!");
@@ -172,11 +174,14 @@ void TestEm3App::SteppingActions(geant::Track &track, geant::TaskData *td)
   }
   //
   // go for per layer data: they are stored in the run-global thread local data structure 
-  int currentLayerIndx = fLayerIDToLayerIndexMap[idlayer];
-  if (currentLayerIndx > -1) {
-    TestEm3ThreadDataRun &dataRun = (*fDataHandlerRun)(td);
-    dataRun.AddEdep(track.Edep(), currentLayerIndx);
-    if (charge != 0.0) dataRun.AddDataCHTrackLength(track.GetStep(), currentLayerIndx);
+  // only if the layer-ID can be any of the layers
+  if (idlayer<fMaxLayerID) {
+    int currentLayerIndx = fLayerIDToLayerIndexMap[idlayer];
+    if (currentLayerIndx > -1) {
+      TestEm3ThreadDataRun &dataRun = (*fDataHandlerRun)(td);
+      dataRun.AddEdep(track.Edep(), currentLayerIndx);
+      if (charge != 0.0) dataRun.AddDataCHTrackLength(track.GetStep(), currentLayerIndx);
+    }
   }
 }
 

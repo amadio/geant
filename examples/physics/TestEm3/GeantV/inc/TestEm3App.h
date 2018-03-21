@@ -83,7 +83,8 @@ private:
 private:
   bool fIsPerformance;
   bool fInitialized;
-  int fNumAbsorbers;
+  int  fNumAbsorbers;
+  int  fMaxLayerID;
   std::vector<int> fAbsorberLogicalVolumeID;
   std::vector<int> fLayerIDToLayerIndexMap;
   // some data regarding the number of primaries per event and number of buffered events (i.e. number of event-slots)

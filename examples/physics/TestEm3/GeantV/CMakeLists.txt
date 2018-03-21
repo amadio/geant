@@ -16,7 +16,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
 )
 
-set(ExampleScripts TestEm3_GV_ATLASbar.mac README)
+set(ExampleScripts TestEm3_GV_ATLASbar.mac TestEm3_GV_magField.mac README)
 # Set to 2 or more to exclude from the default set
 set(ExampleCTestLevel 1)
 
