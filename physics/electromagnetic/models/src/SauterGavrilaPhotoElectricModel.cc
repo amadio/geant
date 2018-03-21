@@ -152,7 +152,8 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
   }
   fVerboseLevel = 1;
     //std::cout<<"Calling Load data\n";
-    ReadData(82); //JUST FOR THE MOMENT
+    for(int i=3; i<gMaxSizeData; i++)
+    ReadData(i); //JUST FOR THE MOMENT
   //LoadData(); JUST FOR THE MOMENT
   //InitShellSamplingTables();
     if (GetUseSamplingTables()) {
@@ -1077,7 +1078,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
         
         if (!((fCrossSection[Z]) &&
             ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3)))) {
-            //std::cout<<"Data not loaded before!\n";
+            std::cout<<"Data not loaded before!\n";
             ReadData(Z);
         }
        
@@ -1209,13 +1210,16 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
         // sample of the table
         double lGammaEnergy  = std::log(kinE);
         int tableIndex  = (int) ((lGammaEnergy-fShellPrimEnLMin)*fShellPrimEnILDelta);
-        if (tableIndex>=fShellNumSamplingPrimEnergies-1)
-            tableIndex = fShellNumSamplingPrimEnergies-2;
+        if (tableIndex>=fShellNumSamplingPrimEnergies-1){
+            std::cout<<"CRITICAL!!!\n"; exit(-1);
+            tableIndex = fShellNumSamplingPrimEnergies-2;}
 
+        //OPTIMIZATION HERE
         double pLowerGammaEner = (fShellLSamplingPrimEnergies[tableIndex+1]-lGammaEnergy)*fShellPrimEnILDelta;
         if (r1>pLowerGammaEner) {
             ++tableIndex;
         }
+    
         //this has to be tranformed to the localIndex, considering the Z
         int indx=zed*fShellNumSamplingPrimEnergies+tableIndex;
         int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx, fShellAliasData[indx]->fNumdata, r2);
@@ -1260,10 +1264,11 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
     void SauterGavrilaPhotoElectricModel::InitShellSamplingTables() {
         int Z[gMaxSizeData];
         for (int i=0; i<gMaxSizeData; i++){
-            Z[i]=0;          //element not present in the simulation
+            //Z[i]=0;          //element not present in the simulation
+            Z[i]=i;             //FOR THE MOMENT
         }
         //FOR THE MOMENT
-        Z[82]=82;
+        //Z[82]=82;
         
         int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
         // get list of active region
@@ -1637,7 +1642,7 @@ void SauterGavrilaPhotoElectricModel::BuildOneLinAlias(int indx, double tau)
     
     void SauterGavrilaPhotoElectricModel::SampleShellAliasVec(const double* kinE, const double * zed, const double *r1, const double *r2, int *sampledShells, int ntracks){
         
-        std::cout<<" SauterGavrilaPhotoElectricModel::SampleShellAliasVec\n";
+        //std::cout<<" SauterGavrilaPhotoElectricModel::SampleShellAliasVec\n";
         //I have to read and initialize tables
         for (int i = 0; i < ntracks; i += kRealSize) {
             Real_v kinE_v;
@@ -1658,64 +1663,55 @@ void SauterGavrilaPhotoElectricModel::BuildOneLinAlias(int indx, double tau)
     
     
     void SauterGavrilaPhotoElectricModel::SampleShellAlias_v(Real_v &ekin_v, Real_v &zed, Real_v &r1, Real_v &r2, RIndex &sampledShells){
-        
-        
-        std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias_v"<<std::endl;
-        for (int i=0; i<kRealSize; i++)
-        {
-            std::cout<<ekin_v[i]<<"\t"<<zed[i]<<"\t"<<r1[i]<<"\t"<<r2[i]<<std::endl;
-        }
-        std::cout<<"======\n";
-        // sample of the table
-        Real_v lGammaEnergy_v = vecCore::math::Log(ekin_v);
-        
-        double shellNumSamplingPrimEnergies = GetShellNumSamplingPrimEnergies();
-        double shellPrimEnLMin = GetShellPrimEnLMin();
-        double shellPrimEnILDelta = GetShellPrimEnILDelta();
-        double* shellLSamplingPrimEnergies = GetShellLSamplingPrimEnergies();
-        
-        
-        Real_v tableIndex_real = vecCore::math::Floor ((lGammaEnergy_v -shellPrimEnLMin)* Real_v(shellPrimEnILDelta));
+    
+//        std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias_v"<<std::endl;
+//        for (int i=0; i<kRealSize; i++)
+//        {
+//            std::cout<<ekin_v[i]<<"\t"<<zed[i]<<"\t"<<r1[i]<<"\t"<<r2[i]<<std::endl;
+//        }
+//        std::cout<<"======\n";
+    
+        Real_v lGammaEnergy_v = vecCore::math::Log(ekin_v); //this can be directly stored in the track
+        Real_v tableIndex_real = vecCore::math::Floor ((lGammaEnergy_v - fShellPrimEnLMin) * Real_v(fShellPrimEnILDelta));
         RIndex tableIndex_v(tableIndex_real);
-        RMask check1(tableIndex_v>=shellNumSamplingPrimEnergies-1);
-        vecCore::MaskedAssign(tableIndex_v, check1, RIndex (shellNumSamplingPrimEnergies-2) );
+        Real_v val        = (lGammaEnergy_v - fShellPrimEnLMin) * fShellPrimEnILDelta;
+        RIndex indxEgamma = (RIndex)val; // lower electron energy bin index
+        Real_v pIndxHigh  = val - indxEgamma;
         
-        Real_v lShellSamplingPrimEnergies_v;
-        for (size_t kk=0; kk<kRealSize; kk++)
-            vecCore::Set(lShellSamplingPrimEnergies_v, kk, shellLSamplingPrimEnergies[tableIndex_v[kk]+1]);
+        RMask check(r1<=pIndxHigh);
+        vecCore::MaskedAssign (tableIndex_v, check, tableIndex_v+1);
+        RIndex indxTable_v = (RIndex)zed*fShellNumSamplingPrimEnergies+tableIndex_v;
         
-        Real_v value_v = vecCore::Gather<Real_v>(shellLSamplingPrimEnergies, tableIndex_v);
-        std::cout<<"Debug:"<<std::endl;
-        std::cout<<"value_v: "<<value_v<<std::endl;
-        std::cout<<"lShellSamplingPrimEnergies_v: "<<lShellSamplingPrimEnergies_v<<std::endl;
+        //NB: the SCALAR and the VECTOR are almost equivalent
+//      //SCALAR
+//        for (int i=0; i<kRealSize; i++){
+//            int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indxTable_v[i]]->fAliasW, fShellAliasData[indxTable_v[i]]->fAliasIndx, fShellAliasData[indxTable_v[i]]->fNumdata, r2[i]);
+//            vecCore::Set(sampledShells, i, xsampl);
+//        }
+//      //END SCALAR
         
-        Real_v pLowerGammaEner_v =(value_v-lGammaEnergy_v)*shellPrimEnILDelta;
-        
-        RMask check2 (r1>pLowerGammaEner_v);
-        vecCore::MaskedAssign (tableIndex_v, check2, tableIndex_v+1);
-        
-        RIndex indxTable_v = (RIndex)zed*shellNumSamplingPrimEnergies+tableIndex_v;
+        //VECTORIZED
         Real_v aliasW_v, aliasIndx_v, aliasNumdata_v;
         //first I need the numData
         for (size_t kk=0; kk<kRealSize; kk++)
             vecCore::Set(aliasNumdata_v, kk, fShellAliasData[indxTable_v[kk]]->fNumdata);
-        
+
         Real_v rest_v  = r2*aliasNumdata_v;
         Real_v indxBin = vecCore::math::Floor(rest_v);
         RIndex indxBin_v(indxBin);
-        
+
         for (size_t kk=0; kk<kRealSize; kk++){
             vecCore::Set(aliasW_v, kk, fShellAliasData[indxTable_v[kk]]->fAliasW[indxBin_v[kk]]);
             vecCore::Set(aliasIndx_v, kk, fShellAliasData[indxTable_v[kk]]->fAliasIndx[indxBin_v[kk]]);
         }
-        
+
         RMask check3(aliasW_v<rest_v-indxBin_v);
-        
         vecCore::MaskedAssign(indxBin,check3,aliasIndx_v);
-        std::cout<<indxBin_v;
+        //std::cout<<indxBin_v<<std::endl;
         RIndex temp(indxBin);
         sampledShells=temp;
-        
+        //END VECTORIZED
+    
     }
 
 } // namespace geantphysics
