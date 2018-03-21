@@ -7,7 +7,7 @@
 const double kGammaEn0 = geant::units::GeV;
 const int kBasketTries = 10000;
 
-void FixedGammaTestVectorAlias(double &gammaEnMean, double &gammaEn2mean, double &emEnMean, double &emEn2Mean)
+void FixedGammaTestVector(double &gammaEnMean, double &gammaEn2mean, double &emEnMean, double &emEn2Mean, bool useAlias)
 {
   auto Td = PrepareTaskData();
   LightTrack_v primaries;
@@ -19,7 +19,7 @@ void FixedGammaTestVectorAlias(double &gammaEnMean, double &gammaEn2mean, double
   emEnMean     = 0.0;
   emEn2Mean    = 0.0;
 
-  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(true);
+  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(useAlias);
 
   for (int t = 0; t < kBasketTries; t++) {
     PreparePrimaries(primaries, kMaxBasket);
@@ -55,7 +55,7 @@ void FixedGammaTestVectorAlias(double &gammaEnMean, double &gammaEn2mean, double
   CleanTaskData(Td);
 }
 
-void FixedGammaTestScalarAlias(double &gammaEnMean, double &gammaEn2mean, double &emEnMean, double &emEn2Mean)
+void FixedGammaTestScalar(double &gammaEnMean, double &gammaEn2mean, double &emEnMean, double &emEn2Mean, bool useAlias)
 {
   auto Td = PrepareTaskData();
   std::vector<LightTrack> primaries;
@@ -67,7 +67,7 @@ void FixedGammaTestScalarAlias(double &gammaEnMean, double &gammaEn2mean, double
   emEnMean     = 0.0;
   emEn2Mean    = 0.0;
 
-  KleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(true);
+  KleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(useAlias);
 
   for (int t = 0; t < kBasketTries; t++) {
     PreparePrimaries(primaries, kMaxBasket);
@@ -107,22 +107,43 @@ void FixedGammaTestScalarAlias(double &gammaEnMean, double &gammaEn2mean, double
 
 int main()
 {
-  Printf("NTracks: %d", kMaxBasket * kBasketTries);
-  double vectorE    = 0.0;
-  double vectorE2   = 0.0;
-  double vectorEmE  = 0.0;
-  double vectorEmE2 = 0.0;
+  {
+    Printf("NTracks: %d", kMaxBasket * kBasketTries);
+    double vectorE    = 0.0;
+    double vectorE2   = 0.0;
+    double vectorEmE  = 0.0;
+    double vectorEmE2 = 0.0;
 
-  FixedGammaTestVectorAlias(vectorE, vectorE2, vectorEmE, vectorEmE2);
-  Printf("VectorKNish En after gamma <En>: %f <En^2>: %f em <En>: %f <En^2>: %f", vectorE, vectorE2, vectorEmE,
-         vectorEmE2);
+    FixedGammaTestVector(vectorE, vectorE2, vectorEmE, vectorEmE2, true);
+    Printf("VectorKNishAlias En after gamma <En>: %f <En^2>: %f em <En>: %f <En^2>: %f", vectorE, vectorE2, vectorEmE,
+           vectorEmE2);
 
-  double scalarE    = 0.0;
-  double scalarE2   = 0.0;
-  double scalarEmE  = 0.0;
-  double scalarEmE2 = 0.0;
-  FixedGammaTestScalarAlias(scalarE, scalarE2, scalarEmE, scalarEmE2);
-  Printf("ScalarKNish En after gamma <En>: %f <En^2>: %f em <En>: %f <En^2>: %f", scalarE, scalarE2, scalarEmE,
-         scalarEmE2);
+    double scalarE    = 0.0;
+    double scalarE2   = 0.0;
+    double scalarEmE  = 0.0;
+    double scalarEmE2 = 0.0;
+    FixedGammaTestScalar(scalarE, scalarE2, scalarEmE, scalarEmE2, true);
+    Printf("ScalarKNishAlias En after gamma <En>: %f <En^2>: %f em <En>: %f <En^2>: %f", scalarE, scalarE2, scalarEmE,
+           scalarEmE2);
+  }
+  {
+    Printf("NTracks: %d", kMaxBasket * kBasketTries);
+    double vectorE    = 0.0;
+    double vectorE2   = 0.0;
+    double vectorEmE  = 0.0;
+    double vectorEmE2 = 0.0;
+
+    FixedGammaTestVector(vectorE, vectorE2, vectorEmE, vectorEmE2, false);
+    Printf("VectorKNishRej En after gamma <En>: %f <En^2>: %f em <En>: %f <En^2>: %f", vectorE, vectorE2, vectorEmE,
+           vectorEmE2);
+
+    double scalarE    = 0.0;
+    double scalarE2   = 0.0;
+    double scalarEmE  = 0.0;
+    double scalarEmE2 = 0.0;
+    FixedGammaTestScalar(scalarE, scalarE2, scalarEmE, scalarEmE2, false);
+    Printf("ScalarKNishRej En after gamma <En>: %f <En^2>: %f em <En>: %f <En^2>: %f", scalarE, scalarE2, scalarEmE,
+           scalarEmE2);
+  }
   return 0;
 }

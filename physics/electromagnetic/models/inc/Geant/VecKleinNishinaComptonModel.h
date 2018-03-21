@@ -50,6 +50,10 @@ protected:
 
   void SampleReducedPhotonEnergyVec(const double *egamma, const double *r1, const double *r2, const double *r3,
                                     double *out, int N);
+
+  void SampleSecondariesVectorRej(LightTrack_v &tracks, geant::TaskData *td);
+  void SampleReducedPhotonEnergyRej(const double *egamma, double *onemcost, double *sint2, double *eps, int N,
+                                    const geant::TaskData *td);
 };
 }
 

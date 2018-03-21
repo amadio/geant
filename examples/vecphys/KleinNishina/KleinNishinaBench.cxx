@@ -92,9 +92,8 @@ static void KleinNishinaVectorAlias(benchmark::State &state)
 }
 BENCHMARK(KleinNishinaVectorAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void KleinNishinaScalarRej(benchmark::State &state)
+static void KleinNishinaScalarRejBaseline(benchmark::State &state)
 {
-
   KleinNishinaComptonModel *kNish = PrepareKnishinaModel(false);
 
   auto Td = PrepareTaskData();
@@ -103,9 +102,28 @@ static void KleinNishinaScalarRej(benchmark::State &state)
   int basketSize = state.range(0);
 
   for (auto _ : state) {
-    state.PauseTiming();
     PreparePrimaries(primaries, basketSize);
-    state.ResumeTiming();
+    Td->fPhysicsData->ClearSecondaries();
+  }
+
+  benchmark::DoNotOptimize(primaries.data());
+
+  delete kNish;
+  CleanTaskData(Td);
+}
+BENCHMARK(KleinNishinaScalarRejBaseline)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+
+static void KleinNishinaScalarRej(benchmark::State &state)
+{
+  KleinNishinaComptonModel *kNish = PrepareKnishinaModel(false);
+
+  auto Td = PrepareTaskData();
+  std::vector<LightTrack> primaries;
+
+  int basketSize = state.range(0);
+
+  for (auto _ : state) {
+    PreparePrimaries(primaries, basketSize);
     Td->fPhysicsData->ClearSecondaries();
     for (int i = 0; i < basketSize; ++i) {
       kNish->SampleSecondaries(primaries[i], Td);
@@ -116,5 +134,51 @@ static void KleinNishinaScalarRej(benchmark::State &state)
   CleanTaskData(Td);
 }
 BENCHMARK(KleinNishinaScalarRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+
+static void KleinNishinaVectorRejBaseline(benchmark::State &state)
+{
+  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(false);
+
+  auto Td = PrepareTaskData();
+
+  LightTrack_v primaries;
+
+  int basketSize = state.range(0);
+
+  for (auto _ : state) {
+    PreparePrimaries(primaries, basketSize);
+    primaries.SetNtracks(basketSize);
+
+    Td->fPhysicsData->GetSecondarySOA().ClearTracks();
+  }
+  benchmark::DoNotOptimize(&primaries);
+
+  delete kNish;
+  CleanTaskData(Td);
+}
+BENCHMARK(KleinNishinaVectorRejBaseline)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+
+static void KleinNishinaVectorRej(benchmark::State &state)
+{
+  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(false);
+
+  auto Td = PrepareTaskData();
+
+  LightTrack_v primaries;
+
+  int basketSize = state.range(0);
+
+  for (auto _ : state) {
+    PreparePrimaries(primaries, basketSize);
+    primaries.SetNtracks(basketSize);
+
+    Td->fPhysicsData->GetSecondarySOA().ClearTracks();
+    kNish->SampleSecondariesVector(primaries, Td);
+  }
+
+  delete kNish;
+  CleanTaskData(Td);
+}
+BENCHMARK(KleinNishinaVectorRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
 BENCHMARK_MAIN();

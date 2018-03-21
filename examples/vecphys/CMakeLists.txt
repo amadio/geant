@@ -40,3 +40,6 @@ target_link_libraries(PhysVecKleinNishAliasBench Geant_v RealPhysics benchmark p
 
 add_executable(PhysVecKleinNishAliasValid KleinNishina/KleinNishinaAliasValid.cxx KleinNishina/KleinNishinaTestCommon.h)
 target_link_libraries(PhysVecKleinNishAliasValid Geant_v RealPhysics)
+
+add_executable(PhysVecKleinNishRejBench KleinNishina/KleinNishinaRejBench.cxx KleinNishina/KleinNishinaTestCommon.h)
+target_link_libraries(PhysVecKleinNishRejBench Geant_v RealPhysics benchmark pthread)

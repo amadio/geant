@@ -16,7 +16,9 @@ struct KleinNishinaData {
         fR0((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fR1((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fR2((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fR3((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize))
+        fR3((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fOneMCos((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fSin2t((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize))
   {
   }
   ~KleinNishinaData()
@@ -26,12 +28,17 @@ struct KleinNishinaData {
     vecCore::AlignedFree(fR1);
     vecCore::AlignedFree(fR2);
     vecCore::AlignedFree(fR3);
+    vecCore::AlignedFree(fOneMCos);
+    vecCore::AlignedFree(fSin2t);
   }
   double *fEps;
   double *fR0;
   double *fR1;
   double *fR2;
   double *fR3;
+
+  double *fOneMCos;
+  double *fSin2t;
 };
 
 class PhysicsData {
