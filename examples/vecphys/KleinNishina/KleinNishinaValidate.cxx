@@ -102,31 +102,35 @@ void FillDataScalar(ComptonValidData &data, bool useAlias)
 int main()
 {
   Printf("Number of gamma for each test %d", kMaxBasket * kBasketTries);
-  Printf("Relative histograms of kinematics difference in percents");
-  //  {
-  //    Printf("Test for alias method");
-  //
-  //    ComptonValidData scalar;
-  //    FillDataScalar(scalar, true);
-  //    ComptonValidData vector;
-  //    FillDataVector(vector, true);
-  //
-  //    Hist gammaEDiv = vector.gammaE / scalar.gammaE;
-  //    gammaEDiv.Print();
-  //    Printf("##########################");
-  //
-  //    Hist emDiv = vector.emE / scalar.emE;
-  //    emDiv.Print();
-  //    Printf("##########################");
-  //
-  //    Hist gammaThDiv = vector.gammaTheta / scalar.gammaTheta;
-  //    gammaThDiv.Print();
-  //    Printf("##########################");
-  //
-  //    Hist emThDiv = vector.emTheta / scalar.emTheta;
-  //    emThDiv.Print();
-  //    Printf("##########################");
-  //  }
+  Printf("Relative histograms of kinematics (difference in percents)");
+  {
+    Printf("Test for alias method");
+
+    ComptonValidData scalar;
+    FillDataScalar(scalar, true);
+    ComptonValidData vector;
+    FillDataVector(vector, true);
+
+    Printf("Normilized gamma energy");
+    Hist gammaEDiv = vector.gammaE / scalar.gammaE;
+    gammaEDiv.Print();
+    Printf("##########################");
+
+    Printf("Normilized electron energy");
+    Hist emDiv = vector.emE / scalar.emE;
+    emDiv.Print();
+    Printf("##########################");
+
+    Printf("Gamma z direction");
+    Hist gammaThDiv = vector.gammaTheta / scalar.gammaTheta;
+    gammaThDiv.Print();
+    Printf("##########################");
+
+    Printf("Electron z direction");
+    Hist emThDiv = vector.emTheta / scalar.emTheta;
+    emThDiv.Print();
+    Printf("##########################");
+  }
   {
     Printf("Test for rej method");
 
@@ -135,18 +139,22 @@ int main()
     ComptonValidData vector;
     FillDataVector(vector, false);
 
+    Printf("Normilized gamma energy");
     Hist gammaEDiv = vector.gammaE / scalar.gammaE;
     gammaEDiv.Print();
     Printf("##########################");
 
+    Printf("Normilized electron energy");
     Hist emDiv = vector.emE / scalar.emE;
     emDiv.Print();
     Printf("##########################");
 
+    Printf("Gamma z direction");
     Hist gammaThDiv = vector.gammaTheta / scalar.gammaTheta;
     gammaThDiv.Print();
     Printf("##########################");
 
+    Printf("Electron z direction");
     Hist emThDiv = vector.emTheta / scalar.emTheta;
     emThDiv.Print();
     Printf("##########################");

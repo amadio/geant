@@ -169,8 +169,7 @@ void VecKleinNishinaComptonModel::SampleSecondariesVectorRej(LightTrack_v &track
     const PhysDV cost = 1.0 - oneMinusCost;
     const PhysDV sint = vecCore::math::Sqrt(sint2);
 
-    PhysDV r3;
-    vecCore::Load(r3, &data.fR3[i]);
+    PhysDV r3        = td->fRndm->uniformV();
     const PhysDV phi = geant::units::kTwoPi * (r3);
     // direction of the scattered gamma in the scattering frame
     PhysDV tempSin, tempCos;
@@ -298,24 +297,17 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
     ++currN;
   }
 
-  while (currN < N && !lanesDone.isFull()) {
+  while (currN < N || !lanesDone.isFull()) {
 
-    PhysDV kappa;
-    PhysDV eps0;
-    PhysDV eps02;
-    PhysDV al1;
-    PhysDV cond;
+    PhysDV kappa = vecCore::Gather<PhysDV>(egamma, idx) / geant::units::kElectronMassC2;
+    PhysDV eps0  = 1. / (1. + 2. * kappa);
+    PhysDV eps02 = eps0 * eps0;
+    PhysDV al1   = -vecCore::math::Log(eps0);
+    PhysDV cond  = al1 / (al1 + 0.5 * (1. - eps02));
 
-    kappa = vecCore::Gather<PhysDV>(egamma, idx) / geant::units::kElectronMassC2;
-    eps0  = 1. / (1. + 2. * kappa);
-    eps02 = eps0 * eps0;
-    al1   = -vecCore::math::Log(eps0);
-    cond  = al1 / (al1 + 0.5 * (1. - eps02));
-    //
-    PhysDV rnd1, rnd2, rnd3;
-    rnd1 = td->fRndm->uniformV();
-    rnd2 = td->fRndm->uniformV();
-    rnd3 = td->fRndm->uniformV();
+    PhysDV rnd1 = td->fRndm->uniformV();
+    PhysDV rnd2 = td->fRndm->uniformV();
+    PhysDV rnd3 = td->fRndm->uniformV();
     // This part is left for future way of rng generating
     // for (int l = 0; l < kPhysDVWidth; ++l){
     //  if(!lanesDone[l]) {
@@ -349,12 +341,16 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
       vecCore::Scatter(eps, epsOut, idx);
     }
 
-    lanesDone = accepted;
+    lanesDone = lanesDone || accepted;
     for (int l = 0; l < kPhysDVWidth; ++l) {
       auto laneDone = vecCore::Get(accepted, l);
-      if (laneDone && currN < N) {
-        vecCore::Set(idx, l, currN++);
-        vecCore::Set(lanesDone, l, false);
+      if (laneDone) {
+        if (currN < N) {
+          vecCore::Set(idx, l, currN++);
+          vecCore::Set(lanesDone, l, false);
+        } else {
+          vecCore::Set(idx, l, N + 1);
+        }
       }
     }
   }
