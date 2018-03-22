@@ -1,11 +1,17 @@
-GeantV Full LHCb Benchmark (November, 2017, M.Novak)
+GeantV Full LHCb example (January 2018, W. Pokorski)
 ===============================================================================
 
-'fullLHCb' is a CPU benchmark test GeantV application based on the full LHCb
-detector imported via a .gdml/.root file. (The corresponding Geant4 application
-is 'full-cms'.) The 'cms.gdml' file is available in the repository under
-geant/examples/physics/FullLHCb/Geant4/cms.gdml
+'fullLHCb' is a GeantV example application demonstrating how to create detector
+'hits' and save them to a ROOT file. It is based on the fullCMS GeantV example,
+providing the same functionality with the addition of the hits handling. It uses
+the LHCb detector geometry which is read from the GDML file provided in the
+example directory. The selected volumes are declared as 'sensitive' (i.e. where
+hits are created) within the LHCbFullApp::Initialize method. The actual 'hits'
+are creted in the LHCbFullApp::SteppingActions method.  The example uses the
+ROOT TBufferMerger class for writing the trees with hits concurretly to memory
+files and then merging them into one physical file.
 
+The options listed below are equivalent to the ones in fullCMS example.
 
 ----------------------------
 - DETECTOR
