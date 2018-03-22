@@ -31,30 +31,6 @@
 using namespace geant;
 using namespace cmsapp;
 
-namespace {
-
-  /* Stand in for work done by GeantV via TBB based tasks*/
-
-  class SimulateTask : public tbb::task {
-    tbb::task* m_waitingTask;
-
-  public:
-    SimulateTask(tbb::task* iWaiting) :
-      m_waitingTask(iWaiting) {}
-
-    tbb::task* execute() override {
-      printf("SimTask: iWaiting=%p\n", m_waitingTask);
-
-      //IMPORTANT: decrementing the reference count is what
-      // tells the framework the simulation is done with
-      // this event.
-      m_waitingTask->decrement_ref_count();
-      return nullptr;
-    }
-
-  };
-}
-
 namespace demo {
 
   class GeantVProducer : public ConfiguredProducer {
@@ -62,7 +38,6 @@ namespace demo {
     GeantVProducer(const boost::property_tree::ptree& iConfig);
   private:
     virtual void produce(edm::Event&) override;
-    //void runSimulation(tbb::task*);
 
     /** Functions using new GeantV interface */
     bool RunTransportTask(size_t nevents, const size_t *event_index);
@@ -77,7 +52,7 @@ namespace demo {
     inline void LockEventGenerator() { while (fEventGeneratorLock.test_and_set(std::memory_order_acquire)) {}; }
     inline void UnlockEventGenerator() { fEventGeneratorLock.clear(std::memory_order_release); }
 
-    int fNevents;
+    //int fNevents;
     std::vector<const Getter*> m_getters;
     GeantConfig* fConfig = nullptr;
     RunManager* fRunMgr = nullptr;
@@ -87,7 +62,7 @@ namespace demo {
 
   GeantVProducer::GeantVProducer(const boost::property_tree::ptree& iConfig)
     : ConfiguredProducer(iConfig,kThreadSafeBetweenInstances)
-    , fNevents(iConfig.get<int>("Nevents"))
+      //, fNevents(iConfig.get<int>("Nevents"))
   {
     fEventGeneratorLock.clear();
     registerProduct(demo::DataKey());
@@ -107,7 +82,7 @@ namespace demo {
     //e.g. cms2015.root, cms2018.gdml, ExN03.root
     std::string cms_geometry_filename = iConfig.get<std::string>("geometry");
 
-    std::string hepmc_event_filename = iConfig.get<std::string>("hepmc");
+    //std::string hepmc_event_filename = iConfig.get<std::string>("hepmc");
     // pp14TeVminbias.root sequence #stable: 608 962 569 499 476 497 429 486 465 619
     // minbias_14TeV.root sequence #stable: 81 84 93 97 87 60 106 91 92 60
     // if empty, use gun generator!
@@ -118,7 +93,7 @@ namespace demo {
     fConfig->fRunMode = GeantConfig::kExternalLoop;
 
     fConfig->fGeomFileName = cms_geometry_filename;
-    fConfig->fNtotal = fNevents;
+    fConfig->fNtotal = 999999; // fNevents; // don't know how to get this number from another json section
     fConfig->fNbuff = n_threads; // iConfig.get<int>("Nbuffered");
 
     // V3 options
@@ -160,11 +135,8 @@ namespace demo {
     std::cerr<<"*** RunManager: instantiating with "<< n_propagators <<" propagators and "<< n_threads <<" threads.\n";
     fRunMgr = new RunManager(n_propagators, n_threads, fConfig);
 
-    // Create the tabulated physics process
-    std::cerr<<"*** RunManager: setting physics process...\n";
-    //fRunMgr->SetPhysicsProcess( new TTabPhysProcess("tab_phys", xsec_filename.c_str(), fstate_filename.c_str()));
-
     // create the real physics main manager/interface object and set it in the RunManager
+    std::cerr<<"*** RunManager: setting physics process...\n";
     fRunMgr->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
 
     // Create user defined physics list for the full CMS application
@@ -221,7 +193,7 @@ namespace demo {
   GeantVProducer::produce(edm::Event& iEvent) {
 
     // not actually needed because GeantVProducer does not depend on any other cms module
-    constexpr size_t kNMax = 100;
+    constexpr size_t kNMax = 10;
     int sum=0;
     for(std::vector<const Getter*>::iterator it = m_getters.begin(), itEnd=m_getters.end();
         it != itEnd;
@@ -237,7 +209,6 @@ namespace demo {
     event_indices[0] = iEvent.index();
     RunTransportTask(1, event_indices);
 
-    std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": adding to event...\n";
     iEvent.put(this,"",static_cast<int>(iEvent.index()));
     std::cerr<<"GeantVProducer <"<< label().c_str() <<"> at "<< this <<": done!\n";
   }
@@ -259,8 +230,8 @@ namespace demo {
     bool transported = fRunMgr->RunSimulationTask(evset, td);
 
     // Now we could run some post-transport task
-    std::cerr<<" RunTransportTask: task "<< td->fTid <<" nevts="<< nevents
-	     <<": transported="<< transported <<"\n";
+    std::cerr<<" RunTransportTask: task "<< td->fTid <<" to transport "<< nevents
+	     <<" event(s): transported="<< transported <<"\n";
 
     return transported;
   }
@@ -270,7 +241,8 @@ namespace demo {
     int nbooked = 0;
     for (int i = 0; i< nrequested; ++i) {
       int ibooked = ntotal.fetch_add(1);
-      if (ibooked < fNevents) nbooked++;
+      if (ibooked < 9999) //fNevents)
+	nbooked++;
     }
     return nbooked;
   }

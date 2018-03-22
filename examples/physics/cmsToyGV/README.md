@@ -1,3 +1,4 @@
+# cmsToyGV example
 
 Note: This example was added into GeantV repository as an example, under examples/physics/cmsToyGV subdirectory,
 from original github directory (https://github.com/Dr15Jones/toy-mt-framework), after verbal authorization
@@ -10,7 +11,9 @@ Input files should be obtained from [the Geant installation page](http://geant.c
 except for cms2018.gdml, which will be downloaded automatically.
 
 To run the GeantV example (while in the build directory after compiling, described below):
-TBBProcessingDemo/TBBDemo geantv_inputFromFile.json
+
+   cp <geantv-source>/examples/physics/cmsToyVM/geantv_particleGun.json .
+   bin/cmsToyGV  geantv_particleGun.json
 
 The input file locations and number of threads are configurable in the json input file.
 
@@ -21,7 +24,8 @@ Below, you can find more information about compiling and running the toy framewo
 This project is a simple demonstration of using different threading technologies as the basis of a HEP multi-threaded framemework
 
 --------------------------------------
-COMPILING
+
+## COMPILING
 1) You'll need to have available a version of boost which is used to parse the configuration files
         http://www.boost.org
 2) To use the Intel Thread Building Block (TBB) framework, you'll need a version of tbb
@@ -41,7 +45,8 @@ TBBProcessingDemo/TBBDemo:
 Processes configuration files to run trivial modules via TBB in a way analogous to a full HEP framework. Useful for testing scalability of the system.
 
 --------------------------------------
-TESTING
+
+## TESTING
 To see that the program works at all, you can run DispatchDemo using the simple test configuration
 
 TBBProcessingDemo/TBBDemo ../TBBProcessingDemo/test_config.json
@@ -57,7 +62,8 @@ demo::BusyWaitProducer beta 0x5c66e0
 # threads:24 # simultaneous events:4 total # events:3000 cpu time:182.333 real time:26.2779 events/sec:114.164
 
 --------------------------------------
-CALIBRATING
+
+## CALIBRATING
 
 In order to simulate the effect of actually doing HEP type work, the code does a simple integration to eat up 100% of a CPU. However, how long a given loop takes needs to be calibrated for the machine being used.  This is done by running 'BusyWaitCalibrate'
 
@@ -85,7 +91,8 @@ The easy way to change the value is to just search for 'busyWaitScaleFactor' in 
 
 
 --------------------------------------
-CONFIGURATIONS
+
+## CONFIGURATIONS
 
 The configuration files are JSON format files which contain the information such as
 - What is the busy wait scale factor to use (process.options.busyWaitScaleFactor)
@@ -117,7 +124,8 @@ Each C++ class type can then have its own parameters, although most accept
 	'toGet': A list of the data to acquire from the event. The list is pair of 'label' (which is the label of the Producer) and a 'product' which is not used now.
 
 --------------------------------------
-EXPERIMENTS
+
+## EXPERIMENTS
 
 The experimental configurations are found in cms-data:
 reco_minbias_busywait.config: 
