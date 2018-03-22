@@ -1,0 +1,140 @@
+1. Configuration
+===================
+The GeantV engine behavior has to be pre-configured before the initialization phase. A set of general features have to be configured at compile time, using:
+  
+  cmake -D[feature]=ON/OFF, where the available features are:
+  	USE_ROOT     - enable ROOT support (default ON)
+  	WITH_GEANT4  - enable Geant4 examples (default ON)
+  	USE_NUMA     - enable topology detection and NUMA-aware binding (default ON), requires hwloc > 1.11
+  	USE_TBB      - enable CMSToyGV example, (default OFF), requires TBB
+
+At run time, GeantV can be configured using the GeantConfig structure, allowing to describe several parameters such as: number of events to be simulated, maximum number of buffered events transported concurrently, run mode (standalone vs. external loop driven), basket size. In addition, a GeantV-specific feature called basketization can be enabled for geometry and magnetic field, in future also for physics models. The usage of the most important parameters is demonstrated in the examples; a few other parameters for the time being are reserved for developers.
+
+GeantV prototype defines the namespace 'geant' used by most of the core classes, and exposing the headers of the interface classes to be included as:
+
+	#include <Geant/HeaderName.h>
+2. User classes and run manager
+===============================
+Similar to Geant4, the user must define a set of key classes in order to obtain a working applicaton. These must be derived from the following base classes:
+
+* geant::UserDetectorConstruction (mandatory)
+The detector construction, meant for creating or loading the geometry into a VecGeom transient representation, using GeantV material description. It allows also to define detector regions with corresponding secondary production cuts.
+
+* geant::PrimaryGenerator (mandatory)
+The user primary generator, fills events with GeantV tracks. Currently the base class requires implementing of few methods, for the initialization, generation of new events and adding primary tracks. Simple generators are provided with the examples.
+
+* geant::UserApplication (mandatory)
+The user application, implementing callback notifications and hits scoring in GeantV style. The base class provides a set of non-mandatory notification methods in case the user code needs to intercept begin/end of the run/event/tracks, and a stepping actions method, intercepting every step of particles after it has undergone a physics processes or crossed a volume boundary. The SteppingActions interface is very specific for GeantV compared to Geant4 and is described in detail in the data management section. An optional vector method (taking a TrackVec_t) allows the option of vectorized user scoring code.
+
+In addition there are a number of additional capabilities are available from further base classes:
+
+* geant::UserFieldConstruction (optional)
+The field construction can interface a user-defined field and select among different field propagation methods, based on Runge-Kutta or helix solvers.
+
+* geantphysics::PhysicsList (optional)
+The user physics list, allowing to configure and attach physics processes to particles. A default physics list will be used in case the user does not create one. 
+
+* geant::MCTruthMgr (optional)
+The MC truth handler, defining the conditions for storing kinematics information in user-defined format. The user can derive from this class and implement the conditions for a MCParticle to get persistified. An example of usage is available in examples/physics/GeantV/FullLHCb folder, demonstrating concurrent writing of a hepmc3-based tree containing MC truth information in the context of the LHCb setup.
+
+The user classes and the configuration structure have to be connected to a RunManager object, representing the entry point for starting GeantV simulation. The RunManager construction requires specifying the maximum number of simulation threads (workers), as well as the number of propagators, a concept described in the concurrency section. From the user perspective, the RunManager is the main dispatching point for starting a simulation run, but serves also as central point gathering pointers to all important system components including user classes.
+
+3. Concurrency concepts
+=======================
+GeantV uses the concept of groups of workers, each mapped to a single thread at a given time. Each group of workers is managed by a geant::Propagator class. Workers under the same propagator co-operate for basketizing tracks (see Basketization section),  but they do not interact with workers from another propagator.
+
+The work unit in GeantV is geant::Track, distributed to all active threads by a concurrent EventServer service. If configured with topology support (NUMA), the memory for tracks and CPU for workers are bound to a single  locality node per propagator. The user has to define the number of propagators and threads per propagator when creating the RunManager singleton. 
+
+A good policy is to create one or more propagators per NUMA node, matching the number of workers  with the number of hardware threads per locality node. GeantV can be run efficiently also in multiprocessing mode, spawning a process per locality node, using a single propagator and as many workers as needed to fill the node. The multi-process approach have better scalability but worse memory usage than the single process.
+
+The simulation can be started in one of the two supported modes:
+
+a. geant::RunManager::RunSimulation (standalone)
+In this mode GeantV will spawn a fixed number of worker threads, keeping them alive until the end of run. Events are generated using the user primary generator and primary tracks will be made available via the EventServer concurrent service to all workers. Tracks can be mixed from any of the buffered events, and they can be alternatively transported by workers of the same 'propagator' if basketization is activated.
+
+The user-defined configuration settings related to concurrency in this mode have to be coherent, in the sense that every worker needs to have some initial workload of tracks. Workers are started at the beginning of the job statically in this version and cannot be brought up just when needed (a future feature). The number of initial tracks, given by the sum of primary tracks for the number of buffered events, has to exceed the number of requested workers. In the contrary case, some workers will be removed due to missing workload. GeantV prints a flashing warning message when this happens. The rule of thumb is:
+   Nbuffered_events * Nprimaries_per_event > Nthreads * basket_size
+
+b. geant::RunManager::RunSimulationTask (Externally-driven event loop)
+In this mode the external calling framework interacts with the geant::EventServer service in its internal event loop, pushing events and scheduling concurrent task calls to RunManager::RunSimulationTask. The input events are generated by the user framework and assembled into geant::EventSet, passed to one worker at a time. The RunSimulationTask method is concurrently reentrant and returns upon completion of the EventSet  given as input. The method can be typically called by TBB-steered tasks. A full example of this  interaction is given in the examples/physics/GeantV/cmsToyGV folder.
+
+4. Basketization
+=================
+Basketization is one of the main ingredients of GeantV, allowing to pre-select and group together tracks that will undertake the same processing step, to improve caching and allow for multi-particle driven vectorization.
+
+* The simulation flow is organized in stages, such as: computing interaction length, geometry query,  propagation, along step processes, post step processes or stepping actions invoking the user application.
+
+* Each stage may be split into multiple categories: in geometry case the tracks located in different logical volumes are handled separately, in case of propagation stage neutral tracks are processed differently than charged ones. Each different category of processing within a stage has a corresponding handler, implementing a pair of DoIt() methods having scalar and vector signatures.
+
+* Each individual handler can be optionally basketized, attaching a concurrent service called "Basketizer" that will take as input track pointers and fill a vector of these as soon as the basket is filled to the configured size. The examples TestEM3/5 and FullCMS demonstrate the activation of basketization for geometry or magnetic field propagation.
+
+* Each stage has one input buffer per worker. Tracks taken from the event server will be filled in the buffer of the first stage. Each stage provides a Select method that will get all tracks from the buffer and dispatch them to the appropriate handler. At this point, the non-basketized handlers will simply invoke their scalar DoIt method, while the basketized ones will call the vector DoIt when a basket is available.
+
+* Basketization can be enabled on per handler basis, and can benefit code that can vectorize on the array of tracks. In the current version basketization can be done for the geometry handlers and for magnetic field propagation. This mode does not yet work efficiently in MT mode, this is being fixed.
+
+5. Data management
+===================
+Concurrent processing in multithreaded mode can generate data races and in general thread safety issues. GeantV uses the concept of TaskData as an MT friendly way to deal with such problems. TaskData is a whiteboard hooking thread-specific objects. GeantV creates at initialization time a pool of TaskData objects with a size equal to the maximum number of workers. When a thread picks a worker, it also picks a TaskData object from the pool, passing its pointer over through most interfaces, including the ones exposed to users.  Objects hooked to TaskData can only be accessed by one thread at a time. The UserApplication class allows the users to attach/detach their own data to the TaskData, using the Attach/DeleteUserData methods.
+
+Since GeantV allows transporting multiple events concurrently, the user interfaces will provide mixed tracks or vectors of mixed tracks. Since scoring has to be done by event, the user data needs to be allocated in vectors, having as many slots as GeantConfig::fNBuff. GeantV provides a data handler mechanism to simplify dealing with event slots, including patterns to merge the data produced by many threads for a given event slot. All provided examples demonstrate how this mechanism can be used. GeantV guarantees that the number of transported events at a given time will never exceed the number of requested slots.
+
+6. Physics Simulation Capability
+==============================
+GeantV provides general and special electromagnetic (EM) physics modelling framework with interfaces to  implement and plug-in easily processes happening along the step (continuous), at the post-step point (discrete) and/or at-rest. Interfaces for special physics process types like multiple Coulomb scattering or energy loss processes are also available. 
+
+GeantV provides a limited set of EM physics processes with the corresponding models to describe electromagnetic shower development. The physics modelling capability of the simulation toolkit can be gradually extended by implementing additional physics models and processes based on these interfaces. Currently, the following set of processes and models are available and combined in the default GeantV physics list:
+
+ ______________________________________________________________________________
+| PARTICLE NAME  |    PROCESS      |  MODEL(S)            PRIMARY ENERGY RANGE |
+|________________|_________________|___________________________________________|
+|                | Ionisation      | Moller                      [100eV-100TeV]|
+|                |_________________|___________________________________________|
+|                |                 | Seltzer-Berger              [1keV-1GeV]   |
+|  electron      | Bremsstrahlung  | Bethe-Heitler(Tsai) LPM     [1GeV-100TeV] |
+|                |_________________|___________________________________________|
+|                | Coulomb scat.   | Goudsmit-Saunderson MSC     [100eV-100TeV]|
+|________________|_________________|___________________________________________|
+|                | Ionisation      | Bhabha                      [100eV-100TeV]|
+|                |_________________|___________________________________________|
+|                |                 | Seltzer-Berger [1keV-1GeV]                |
+|  positron      | Bremsstrahlung  | Bethe-Heitler(Tsai) LPM      [1GeV-100TeV]|
+|                |_________________|___________________________________________|
+|                | Coulomb scat.   | Goudsmit-Saunderson MSC     [100eV-100TeV]|
+|                |_________________|___________________________________________|
+|                | Annihilation    | Heitler (2 gamma)               [0-100TeV]|
+|________________|_________________|___________________________________________|
+|                | Photoelectric   | Sauter-Gavrila + EPICS2014    [1eV-100TeV]|
+|                |_________________|___________________________________________|
+|                | Compton scat.   | Klein-Nishina + Storm(1970) [100eV-100TeV]|
+|  gamma         |_________________|___________________________________________|
+|                | Pair-Production | Bethe-Heitler + Hubbell(1980)[100eV-80GeV]|
+|                | (e+e- pair)     | Bethe-Heitler LPM           [80GeV-100TeV]|
+|________________|_________________|___________________________________________|
+
+			                
+The above set of interactions and models correspond to the default Geant4 EM standard physics constructor with the following differences:
+
+a. The Geant4 standard EM physics constructor contains models for describing (i) energy loss fluctuation and (ii) Rayleigh scattering of photons. These have not been implemented in GeantV yet.
+
+b. Multiple Coulomb scattering of e+/e- are described by the combination of Urban(E<100MeV) and WentzelVI(100MeV<E) models in the Geant4 standard EM physics constructor while the Goudsmit-Saunderson model is used in GeantV.
+
+Nevertheless, the above set of EM physics models make possible a fairly realistic electromagnetic shower development simulation especially in case of high energy physics applications. All the settings of the physics models can be matched with corresponding settings starting with Geant4.10.04.
+
+7. Examples
+============
+For each example, there is a README file in the GeantV gitlab repository:
+
+https://gitlab.cern.ch/GeantV/geant/blob/master/examples/physics/TestEm5/GeantV/README
+
+https://gitlab.cern.ch/GeantV/geant/blob/master/examples/physics/TestEm3/GeantV/README
+
+https://gitlab.cern.ch/GeantV/geant/blob/master/examples/physics/FullCMS/GeantV/README
+
+https://gitlab.cern.ch/GeantV/geant/blob/master/examples/physics/FullLHCb/GeantV/README
+
+https://gitlab.cern.ch/GeantV/geant/blob/master/examples/physics/cmsToyGV/README
+
+Each of them starts with a self-explanatory summary describing what is the application is about. 
+Some of the applications have a Geant4 equivalent application as well.
+
+
