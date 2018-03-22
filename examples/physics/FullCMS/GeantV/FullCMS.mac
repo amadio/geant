@@ -13,6 +13,12 @@
   --gun-set-primary-type                   e-           "# primary particle name/type"\
   --gun-set-primary-per-event              16           "# number of primary particles per event"\
 "###  --gun-set-primary-direction  x=0.1,y=0.9,z=0.1"   "# primary particle direction(will be normalized)"\
+"### field configuration parameters:  (not activated)"\
+"  --field-active                            1"         "# activate field"\
+"  --field-vector                x=0.,y=0,z=40"         "# constant field vector [kilogauss]"\
+"  --field-use-RK                            1"         "# use Runge-Kutta propagator"\
+"  --field-eps-RK                       0.0003"         "# RK tolerance error"\
+"  --field-basketized                        0"         "# basketized geometry"\
 "### run configuration parameters:"\
   --config-number-of-buffered-events       16           "# number of events transported at once"\
   --config-total-number-of-events         100           "# total number of events to be simulated"\

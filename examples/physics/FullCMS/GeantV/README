@@ -82,6 +82,25 @@ corresponding Geant4 physics list (MyGVPhysicsList) has been created and used
 as default in the equivalent 'full-cms' Geant4 application.
 
 
+-------------------------
+- MAGNETIC FIELD 
+-------------------------
+
+One can activate and set a constant magnetic field by first providing value 1 
+
+  --field-active  1/0    
+
+field activation input argument. Then one can set the constant field vector by using the 
+      
+  --field-vector   x=<value>,y=<value>,z=<value>  
+
+An example is provided in the TestEm3_GV_magField.mac script file. Further options related to 
+magnetic field propagation:    
+
+  --field-use-RK      1/0      ==>  do/don't use Runge-Kutta integration instead of helix
+  --field-eps-RK      <value>  ==>  required accuracy in the field integration
+  --field-basketized  1/0      ==>  do/don/t basketize for magnetic field propagation
+
 
 -------------------------
 - RUN CONFIGURATION

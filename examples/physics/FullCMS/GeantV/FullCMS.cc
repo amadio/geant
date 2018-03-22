@@ -9,6 +9,9 @@
 #include "Geant/PhysicsProcessHandler.h"
 #include "Geant/PhysicsListManager.h"
 
+// Class for constant B-field
+#include "Geant/UserFieldConstruction.h"
+
 // FULL-CMS application
 #include "CMSFullApp.h"
 #include "CMSDetectorConstruction.h"
@@ -19,6 +22,7 @@
 // set up the run manager and run the simulation.
 void GetArguments(int argc, char *argv[]);
 void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det);
+void SetupField(geant::RunManager *runMgr);
 void SetupPrimaryGenerator(cmsapp::CMSParticleGun *gun);
 void SetupApplication(cmsapp::CMSFullApp *app);
 geant::RunManager *RunManager();
@@ -46,6 +50,14 @@ int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 //
+// field configuration parameters
+int parFieldActive      = 0;         // activate magnetic field
+int parFieldUseRK       = 0;         // use Runge-Kutta instead of helix
+double parFieldEpsRK    = 0.0003;    // Revised / reduced accuracy - vs. 0.0003 default
+int parFieldBasketized  = 0;         // basketize magnetic field
+float parFieldVector[3] = {0, 0, 2}; // default constant field value
+
+//
 //
 // The main application: gets the possible input arguments, sets up the run-manager, detector, primary generator,
 //                       application and starts the simulation.
@@ -65,6 +77,9 @@ int main(int argc, char *argv[])
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
   SetupDetectorConstruction(det);
   runMgr->SetDetectorConstruction(det);
+  //
+  // Create user field if requested
+  SetupField(runMgr); 
   //
   // Create primary generator
   cmsapp::CMSParticleGun *gun = new cmsapp::CMSParticleGun();
@@ -97,6 +112,12 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
 
                                   {"det-set-gdml", required_argument, 0, 'e'},
 
+                                  {"field-active", required_argument, 0, 'E'},
+                                  {"field-vector", required_argument, 0, 'F'},
+                                  {"field-use-RK", required_argument, 0, 'G'},
+                                  {"field-eps-RK", required_argument, 0, 'H'},
+                                  {"field-basketized", required_argument, 0, 'I'},
+
                                   {"config-number-of-buffered-events", required_argument, 0, 'm'},
                                   {"config-total-number-of-events", required_argument, 0, 'n'},
                                   {"config-number-of-threads", required_argument, 0, 'p'},
@@ -113,6 +134,12 @@ enum PRIMDIR_OPTIONS { PRIMDIR_X_OPT = 0, PRIMDIR_Y_OPT, PRIMDIR_Z_OPT };
 char *const primdir_token[] = {[PRIMDIR_OPTIONS::PRIMDIR_X_OPT] = (char *const) "x",
                                [PRIMDIR_OPTIONS::PRIMDIR_Y_OPT] = (char *const) "y",
                                [PRIMDIR_OPTIONS::PRIMDIR_Z_OPT] = (char *const) "z", NULL};
+
+enum MAGFIELD_DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
+char *const magfield_dir_token[] = {[MAGFIELD_DIR_OPTIONS::DIR_X_OPT] = (char *const) "x", 
+                           [MAGFIELD_DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                           [MAGFIELD_DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
+
 
 void help()
 {
@@ -204,6 +231,40 @@ void GetArguments(int argc, char *argv[])
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
       break;
+    //---- Field
+    case 'E':
+      parFieldActive = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'F': // field direction sub-optarg
+      subopts = optarg;
+      while (*subopts != '\0' && !errfnd) {
+        switch (getsubopt(&subopts, magfield_dir_token, &value)) {
+        case MAGFIELD_DIR_OPTIONS::DIR_X_OPT:
+          parFieldVector[0] = strtod(value, NULL);
+          break;
+        case MAGFIELD_DIR_OPTIONS::DIR_Y_OPT:
+          parFieldVector[1] = strtod(value, NULL);
+          break;
+        case MAGFIELD_DIR_OPTIONS::DIR_Z_OPT:
+          parFieldVector[2] = strtod(value, NULL);
+          break;
+        default:
+          fprintf(stderr, "No match found for token: [%s] among MAGFIELD_DIR_OPTIONS", value);
+          errfnd = 1;
+          exit(0);
+          break;
+        }
+      }
+      break;
+    case 'G':
+      parFieldUseRK = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'H':
+      parFieldEpsRK = strtod(optarg, NULL);
+      break;
+    case 'I':
+      parFieldBasketized = (int)strtol(optarg, NULL, 10);
+      break;      
     //---- Help
     case 'h':
       help();
@@ -248,6 +309,27 @@ void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det)
 {
   if (parDetGDMFile != "") {
     det->SetGDMLFile(parDetGDMFile);
+  }
+}
+
+void SetupField(geant::RunManager *runMgr)
+{
+  auto config = runMgr->GetConfig();
+  if (parFieldActive) {
+    // Create magnetic field and needed classes for trajectory integration
+    auto fieldConstructor = new geant::UserFieldConstruction();
+    fieldConstructor->UseConstantMagField(parFieldVector, "kilogauss");
+
+    config->fUseRungeKutta      = parFieldUseRK;
+    config->fEpsilonRK          = parFieldEpsRK;
+    config->fUseVectorizedField = parFieldBasketized;
+
+    runMgr->SetUserFieldConstruction(fieldConstructor);
+    printf("main: Created uniform field and set up field-propagation.\n");
+  } else {
+    config->fUseRungeKutta      = false;
+    config->fUseVectorizedField = false;
+    printf("main: no magnetic field configured.\n");
   }
 }
 
