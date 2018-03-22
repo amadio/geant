@@ -32,6 +32,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/inc/*.hh)
 # Add the executable, and link it to the Geant4 libraries
 #
 set(OUTPUT bin/examples/TestEm5/Geant4)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
 
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT})
 add_executable(TestEm5 TestEm5.cc ${sources} ${headers} ${TOOLS_FORTRAN_OBJECTS})
