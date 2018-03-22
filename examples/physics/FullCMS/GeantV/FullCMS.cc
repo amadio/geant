@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
   runMgr->SetDetectorConstruction(det);
   //
   // Create user field if requested
-  SetupField(runMgr); 
+  SetupField(runMgr);
   //
   // Create primary generator
   cmsapp::CMSParticleGun *gun = new cmsapp::CMSParticleGun();
@@ -136,10 +136,9 @@ char *const primdir_token[] = {[PRIMDIR_OPTIONS::PRIMDIR_X_OPT] = (char *const) 
                                [PRIMDIR_OPTIONS::PRIMDIR_Z_OPT] = (char *const) "z", NULL};
 
 enum MAGFIELD_DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
-char *const magfield_dir_token[] = {[MAGFIELD_DIR_OPTIONS::DIR_X_OPT] = (char *const) "x", 
-                           [MAGFIELD_DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
-                           [MAGFIELD_DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
-
+char *const magfield_dir_token[] = {[MAGFIELD_DIR_OPTIONS::DIR_X_OPT] = (char *const) "x",
+                                    [MAGFIELD_DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                                    [MAGFIELD_DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
 
 void help()
 {
@@ -264,7 +263,7 @@ void GetArguments(int argc, char *argv[])
       break;
     case 'I':
       parFieldBasketized = (int)strtol(optarg, NULL, 10);
-      break;      
+      break;
     //---- Help
     case 'h':
       help();
