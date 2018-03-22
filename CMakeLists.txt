@@ -311,7 +311,7 @@ cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 include(ExternalProject)
 ExternalProject_Add(builtin_veccore
         GIT_REPOSITORY https://github.com/root-project/veccore.git
-        GIT_TAG vecrng
+        GIT_TAG 80d38edba37e7e930d62f593b56506205a5673b5
 
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${BUILTIN_VECCORE_DIR}/install -DVECRNG=ON -DBACKEND=VC
 
