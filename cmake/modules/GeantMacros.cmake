@@ -135,6 +135,7 @@ if (${IsGeantV})
 else()
   # Geant4
   include_directories(${Geant4_INCLUDE_DIR})
+  add_definitions(${Geant4_DEFINITIONS})
 endif()
 
 foreach(_incdir ${GeantPhysicsTest_INCDIRS})
