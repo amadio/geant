@@ -1,4 +1,6 @@
 #include <benchmark/benchmark.h>
+#include <Geant/G4Exp.hh>
+#include <Geant/G4Log.hh>
 
 #include "Geant/VecRngWrapper.h"
 
@@ -14,7 +16,7 @@ static void ScalarExp(benchmark::State &state)
   for (auto _ : state) {
     double sum = 0.0;
     for (int i = 0; i < state.range(0); ++i) {
-      sum += std::exp(rnd[i]);
+      sum += G4Exp(rnd[i]);
     }
     benchmark::DoNotOptimize(sum);
   }
@@ -53,7 +55,7 @@ static void ScalarLog(benchmark::State &state)
   for (auto _ : state) {
     double sum = 0.0;
     for (int i = 0; i < state.range(0); ++i) {
-      sum += std::log(rnd[i]);
+      sum += G4Log(rnd[i]);
     }
     benchmark::DoNotOptimize(sum);
   }
