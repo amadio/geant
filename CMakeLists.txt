@@ -319,7 +319,7 @@ endif(CCACHE_FOUND)
 #
 include(CTest)
 
-if (CTEST)
+if (CTEST OR USE_TBB)
   set(DATA_DOWNLOAD ON)
   message(STATUS "Testing with CTest enabled.")
   enable_testing()
@@ -328,8 +328,6 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Set data to be dowloaded
 #
-option(DATA_DOWNLOAD "Set of data files for examples" OFF)
-
 if(DATA_DOWNLOAD)
   file(MAKE_DIRECTORY data)
   message(STATUS "Downloading data files")

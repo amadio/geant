@@ -136,6 +136,31 @@ if(CPPUNIT_FOUND)
   target_link_libraries(TBBRunUnitTests TBBFrameworkCore ${TBB_LIBRARIES} ${CPPUNIT_LIBRARY} pthread)
 endif()
 
+if(APPLE)
+# for some reason the installation process alters the libraries on Mac, and the program fails
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libTBBFrameworkCore${CMAKE_SHARED_LIBRARY_SUFFIX} libTBBTestModules${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
+else()
+  install(TARGETS TBBFrameworkCore TBBTestModules DESTINATION lib)
+endif()
+
+set(ExampleScripts ../geantv_particleGun.json ../README.md ${CMAKE_SOURCE_DIR}/data/cms2018.gdml)
+set(ExampleOutputDir bin/examples/cmsToyGV)
+# Generic Part that can be used for other examples.
+# The macro is declared in ./examples/CMakeLists.txt
+
+# Copy all scripts and install the executable(s)
+foreach(_script ${ExampleScripts})
+  get_filename_component(script_name ${_script} NAME)
+  # message(WARNING "conf ${_script} to ${CMAKE_BINARY_DIR}/${FullCMS_OUTPUT}/${script_name} ")
+  configure_file(
+    ${_script}
+    ${CMAKE_BINARY_DIR}/${ExampleOutputDir}/${script_name}
+    COPYONLY
+  )
+endforeach()
+
 add_executable(cmsToyGV main.cpp)
 target_link_libraries(cmsToyGV TBBFrameworkCore TBBTestModules ${TBB_LIBRARIES} ${VECGEOM_LIBRARIES})
-install (TARGETS cmsToyGV DESTINATION bin/examples/cmsToyGV)
+install(TARGETS cmsToyGV DESTINATION ${ExampleOutputDir})
+install(FILES ${ExampleScripts} DESTINATION ${ExampleOutputDir})
+

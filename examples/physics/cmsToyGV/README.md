@@ -10,10 +10,11 @@ obtained from one of original authors (Chris Jones, Fermilab) and with adaptatio
 Input files should be obtained from [the Geant installation page](http://geant.cern.ch/content/installation#toc-special-physics-lists-files-to-download-EkG2k3g1),
 except for cms2018.gdml, which will be downloaded automatically.
 
-To run the GeantV example (while in the build directory after compiling, described below):
+The files needed to run the example are copied automatically in the installation
+folder bin/examples/cmsToyGV
+To run the GeantV example (while in the install directory after compiling, described below):
 
-   cp <geantv-source>/examples/physics/cmsToyVM/geantv_particleGun.json .
-   bin/cmsToyGV  geantv_particleGun.json
+   cmsToyGV  geantv_particleGun.json
 
 The input file locations and number of threads are configurable in the json input file.
 

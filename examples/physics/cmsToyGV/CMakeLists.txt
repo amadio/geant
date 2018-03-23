@@ -14,4 +14,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DUSE_VECGEOM_NAVIGATOR ")
 
 if(TBB_FOUND)
     add_subdirectory(TBBProcessingDemo)
+    set(ExampleScripts geantv_particleGun.json README.md ${CMAKE_SOURCE_DIR}/data/cms2018.gdml)
+    set(ExampleOutputDir bin/examples/cmsToyGV)
 endif()
