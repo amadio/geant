@@ -138,7 +138,7 @@ endif()
 
 if(APPLE)
 # for some reason the installation process alters the libraries on Mac, and the program fails
-  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libTBBFrameworkCore${CMAKE_SHARED_LIBRARY_SUFFIX} libTBBTestModules${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
+  install(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libTBBFrameworkCore${CMAKE_SHARED_LIBRARY_SUFFIX} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libTBBTestModules${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION lib)
 else()
   install(TARGETS TBBFrameworkCore TBBTestModules DESTINATION lib)
 endif()
