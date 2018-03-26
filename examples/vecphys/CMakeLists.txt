@@ -14,6 +14,7 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
         ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc
         ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
+        ${CMAKE_SOURCE_DIR}/physics/kernel/cuts/inc
         ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
         ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
 
@@ -47,3 +48,9 @@ target_link_libraries(PhysVecKleinNishAliasValid Geant_v RealPhysics)
 
 add_executable(PhysVecKleinNishRejBench KleinNishina/KleinNishinaRejBench.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecKleinNishRejBench Geant_v RealPhysics benchmark pthread)
+
+add_executable(PhysVecBetheHeilterValid BetheHeitler/BetheHeitlerValidate.cxx BetheHeitler/BetheHeitlerTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecBetheHeilterValid Geant_v RealPhysics)
+
+add_executable(PhysVecBetheHeitlerBench BetheHeitler/BetheHeitlerBench.cxx BetheHeitler/BetheHeitlerTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecBetheHeitlerBench Geant_v RealPhysics benchmark pthread)

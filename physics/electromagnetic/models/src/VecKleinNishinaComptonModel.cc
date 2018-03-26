@@ -39,8 +39,8 @@ void VecKleinNishinaComptonModel::SampleSecondariesVector(LightTrack_v &tracks, 
 
 void VecKleinNishinaComptonModel::SampleSecondariesVectorAlias(LightTrack_v &tracks, geant::TaskData *td)
 {
-  int N                  = tracks.GetNtracks();
-  KleinNishinaData &data = td->fPhysicsData->fKleinNishinaData;
+  int N                        = tracks.GetNtracks();
+  PhysicsModelScratchpad &data = td->fPhysicsData->fPhysicsScratchpad;
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV r = td->fRndm->uniformV();
@@ -149,8 +149,8 @@ void VecKleinNishinaComptonModel::SampleSecondariesVectorAlias(LightTrack_v &tra
 
 void VecKleinNishinaComptonModel::SampleSecondariesVectorRej(LightTrack_v &tracks, geant::TaskData *td)
 {
-  int N                  = tracks.GetNtracks();
-  KleinNishinaData &data = td->fPhysicsData->fKleinNishinaData;
+  int N                        = tracks.GetNtracks();
+  PhysicsModelScratchpad &data = td->fPhysicsData->fPhysicsScratchpad;
 
   SampleReducedPhotonEnergyRej(tracks.GetKinEVec(), data.fOneMCos, data.fSin2t, data.fEps, N, td);
 

@@ -9,19 +9,20 @@ namespace geantphysics {
 
 class LightTrack;
 
-struct KleinNishinaData {
+struct PhysicsModelScratchpad {
   static constexpr int dataSize = 2048;
-  KleinNishinaData()
+  PhysicsModelScratchpad()
       : fEps((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fR0((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fR1((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fR2((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fR3((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
         fOneMCos((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fSin2t((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize))
+        fSin2t((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
+        fIzet((int *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(long long int) * dataSize))
   {
   }
-  ~KleinNishinaData()
+  ~PhysicsModelScratchpad()
   {
     vecCore::AlignedFree(fEps);
     vecCore::AlignedFree(fR0);
@@ -39,6 +40,8 @@ struct KleinNishinaData {
 
   double *fOneMCos;
   double *fSin2t;
+
+  int *fIzet;
 };
 
 class PhysicsData {
@@ -72,7 +75,7 @@ public:
   static void ClearAll();
   static std::vector<PhysicsData *> gThePhysicsDataTable;
 
-  KleinNishinaData fKleinNishinaData;
+  PhysicsModelScratchpad fPhysicsScratchpad;
 
 private:
   void ResizeIfSmall()

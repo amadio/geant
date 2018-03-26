@@ -292,7 +292,7 @@ public:
  * @brief SOA (Structure Of Arrays) for LightTrack
  *
  */
-constexpr int kSOAMaxSize = 256;
+constexpr int kSOAMaxSize = 1024;
 
 class LightTrack_v {
 public:
@@ -394,22 +394,22 @@ public:
   /** @brief Method that returns the X direction value (normalized, adimensional) */
   double GetDirX(int i) const { return fXdirV[i]; }
 
-  double *GetDirXV() { return &fXdirV[0]; }
+  double *GetDirXV(int i = 0) { return &fXdirV[i]; }
 
   /** @brief Method that returns the Y direction value (normalized, adimensional) */
   double GetDirY(int i) const { return fYdirV[i]; }
 
-  double *GetDirYV() { return &fYdirV[0]; }
+  double *GetDirYV(int i = 0) { return &fYdirV[i]; }
 
   /** @brief Method that returns the Z direction value (normalized, adimensional) */
   double GetDirZ(int i) const { return fZdirV[i]; }
 
-  double *GetDirZV() { return &fZdirV[0]; }
+  double *GetDirZV(int i = 0) { return &fZdirV[i]; }
 
   /** @brief Method that returns the kinetic energy (unit: energy) */
   double GetKinE(int i) const { return fKinEV[i]; }
 
-  double *GetKinEVec() { return &fKinEV[0]; }
+  double *GetKinEVec(int i = 0) { return &fKinEV[i]; }
 
   /** @brief Method that returns the dynamic mass (unit: energy) */
   double GetMass(int i) const { return fMassV[i]; }
@@ -426,7 +426,7 @@ public:
   /** Method that returns the energy deposit in the last step (unit: energy) */
   double GetEnergyDeposit(int i) const { return fEdepV[i]; }
 
-  double *GetEnergyDepositVec() { return &fEdepV[0]; }
+  double *GetEnergyDepositVec(int i = 0) { return &fEdepV[i]; }
 
   /** Method to get the number of interaction length left. */
   double GetNumOfInteractionLegthLeft(int i) const { return fNintLenV[i]; }

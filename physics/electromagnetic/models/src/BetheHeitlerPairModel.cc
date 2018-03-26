@@ -1,4 +1,6 @@
 
+#include <Geant/G4Log.hh>
+#include <Geant/G4Exp.hh>
 #include "Geant/BetheHeitlerPairModel.h"
 
 #include "Geant/PhysicalConstants.h"

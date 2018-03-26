@@ -116,7 +116,7 @@ public:
   //
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   BetheHeitlerPairModel(const BetheHeitlerPairModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -318,7 +318,7 @@ private:
   };
 
   // data members
-private:
+protected:
   /** @brief Size of some containers that store data per elements (\f$ Z_{\text{max}} = gMaxZet-1)\f$. */
   static const long gMaxZet = 121; // max Z+1
   static std::vector<ElementData *> gElementData;

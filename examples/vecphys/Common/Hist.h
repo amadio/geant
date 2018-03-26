@@ -82,6 +82,26 @@ public:
     return res;
   }
 
+  void Compare(Hist &hist)
+  {
+    Printf("%-10s %15s %15s %15s", "X", "Y diff. (in %)", "Hist1 Y", "Hist2 Y");
+    Hist &a = *this;
+    Hist &b = hist;
+    assert(a.fMax == b.fMax);
+    assert(a.fMin == b.fMin);
+    assert(a.fNumBins = b.fNumBins);
+    Hist res(a.fMin, a.fMax, a.fNumBins);
+    for (int xi = 0; xi < fNumBins; ++xi) {
+      res.fx[xi] = a.fx[xi];
+      res.fy[xi] = a.fy[xi] / b.fy[xi];
+      if (a.fy[xi] == 0.0 && b.fy[xi] == 0.0) {
+        res.fy[xi] = 1.0;
+      }
+      res.fy[xi] = (res.fy[xi] - 1.0) * 100.0;
+      Printf("%-10.3f %15.3f %15.0f %15.0f", res.fx[xi], res.fy[xi], a.fy[xi], b.fy[xi]);
+    }
+  }
+
   void Print()
   {
     for (int xi = 0; xi < fNumBins; ++xi) {
