@@ -54,7 +54,12 @@ protected:
   PhysDV SampleTotalEnergyTransferAliasOneShot(const PhysDV egamma, const int *izet, const PhysDV r1, const PhysDV r2,
                                                const PhysDV r3);
 
-  void SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, geant::TaskData *td);
+  void SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut, int N,
+                                       geant::TaskData *td);
+
+  void ScreenFunction12(PhysDV &val1, PhysDV &val2, const PhysDV delta, const bool istsai);
+  PhysDV ScreenFunction1(const PhysDV delta, const bool istsai);
+  PhysDV ScreenFunction2(const PhysDV delta, const bool istsai);
 };
 }
 

@@ -33,6 +33,8 @@ void VecBetheHeitlerPairModel::Initialize()
       }
     }
   }
+
+  // fIsUseTsaisScreening = false;
 }
 
 void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
@@ -53,33 +55,62 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     IZet[i]          = izet;
   }
 
+  short *sortKey = tracks.GetSortKeyV();
+  for (int i = 0; i < N; ++i) {
+    double ekin = tracks.GetKinE(i);
+    sortKey[i]  = ekin < fGammaEneregyLimit ? (short)0 : (short)1;
+  }
+  int smallEtracksInd = tracks.SortTracks();
+  for (int k = 0; k < smallEtracksInd; ++k) {
+    double eps0                                  = geant::units::kElectronMassC2 / tracks.GetKinE(k);
+    td->fPhysicsData->fPhysicsScratchpad.fEps[k] = eps0 + (0.5 - eps0) * td->fRndm->uniform();
+  }
+
+  if (GetUseSamplingTables()) {
+    {
+      int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
+      PhysDV ekin;
+      vecCore::Load(ekin, tracks.GetKinEVec(i));
+      PhysDM smallE  = ekin < fGammaEneregyLimit;
+      PhysDV r1      = td->fRndm->uniformV();
+      PhysDV r2      = td->fRndm->uniformV();
+      PhysDV r3      = td->fRndm->uniformV();
+      PhysDV tmpEkin = ekin;
+      // To be sure that energy that is too small for alias table will not slip in alias sampling
+      vecCore::MaskedAssign(tmpEkin, smallE, (PhysDV)fMinimumPrimaryEnergy * (1.1));
+
+      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
+      PhysDV eps;
+      vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+      vecCore::MaskedAssign(eps, !smallE, sampledEps);
+      vecCore::Store(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+    }
+    for (int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth + kPhysDVWidth; i < N; i += kPhysDVWidth) {
+      PhysDV ekin;
+      vecCore::Load(ekin, tracks.GetKinEVec(i));
+      PhysDV r1      = td->fRndm->uniformV();
+      PhysDV r2      = td->fRndm->uniformV();
+      PhysDV r3      = td->fRndm->uniformV();
+      PhysDV tmpEkin = ekin;
+
+      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
+      vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+    }
+  } else {
+
+    int i                  = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
+    tracks.GetKinEVec()[N] = tracks.GetKinEVec()[N - 1];
+    IZet[N]                = IZet[N - 1];
+    SampleTotalEnergyTransferRejVec(tracks.GetKinEVec(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i],
+                                    N - i, td);
+  }
+
   for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV ekin;
     vecCore::Load(ekin, tracks.GetKinEVec(i));
-    PhysDV eps0 = geant::units::kElectronMassC2 / ekin;
 
     PhysDV eps;
-    PhysDM smallE = ekin < fGammaEneregyLimit;
-    if (smallE.isNotEmpty()) {
-      vecCore::MaskedAssign(eps, smallE, eps0 + (0.5 - eps0) * td->fRndm->uniformV());
-    }
-
-    if ((!smallE).isNotEmpty()) {
-      if (GetUseSamplingTables()) {
-        PhysDV r1      = td->fRndm->uniformV();
-        PhysDV r2      = td->fRndm->uniformV();
-        PhysDV r3      = td->fRndm->uniformV();
-        PhysDV tmpEkin = ekin;
-        vecCore::MaskedAssign(
-            tmpEkin, smallE,
-            (PhysDV)fMinimumPrimaryEnergy *
-                (1.1)); // To be sure that energy that is too small for alias table will not slip in alias sampling
-        PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
-        vecCore::MaskedAssign(eps, !smallE, sampledEps);
-      } else {
-        Error("BetheHeitlerVec", "RejSampling not implemented");
-      }
-    }
+    vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
 
     PhysDV electronTotE, positronTotE;
     PhysDM tmpM = td->fRndm->uniformV() > 0.5;
@@ -97,7 +128,6 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     vecCore::MaskedAssign(uvar, tmpM2, uvar * 1.6);
     vecCore::MaskedAssign(uvar, !tmpM2, uvar * 0.53333);
 
-    PhysDV r3                  = td->fRndm->uniformV();
     const PhysDV thetaElectron = uvar * geant::units::kElectronMassC2 / electronTotE;
     PhysDV sintEle, costEle;
     vecCore::math::SinCos(thetaElectron, &sintEle, &costEle);
@@ -240,8 +270,147 @@ PhysDV VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(const Phy
   return epsV;
 }
 
-void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet,
-                                                               geant::TaskData *td)
+void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut,
+                                                               int N, geant::TaskData *td)
 {
+  // assert(N>=kPhysDVWidth)
+  int currN        = 0;
+  PhysDM lanesDone = PhysDM::Zero();
+  PhysDI idx;
+  for (int l = 0; l < kPhysDVWidth; ++l) {
+    vecCore::Set(idx, l, currN);
+    ++currN;
+  }
+
+  while (currN < N || !lanesDone.isFull()) {
+    PhysDV fz;
+    PhysDV deltaMax;
+    PhysDV deltaFac;
+    ;
+    for (int l = 0; l < kPhysDVWidth; ++l) {
+      int lIdx = vecCore::Get(idx, l);
+      int lZet = izet[lIdx];
+      vecCore::Set(fz, l, gElementData[lZet]->fFzLow);
+      if (fIsUseTsaisScreening) {
+        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxLowTsai);
+        if (egamma[lIdx] > 50. * geant::units::MeV) {
+          vecCore::Set(fz, l, gElementData[lZet]->fFzHigh);
+          vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxHighTsai);
+        }
+      } else {
+        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxLow);
+        if (egamma[lIdx] > 50. * geant::units::MeV) {
+          vecCore::Set(fz, l, gElementData[lZet]->fFzHigh);
+          vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxHigh);
+        }
+      }
+      vecCore::Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
+    }
+
+    PhysDV egammaV        = vecCore::Gather<PhysDV>(egamma, idx);
+    const PhysDV eps0     = geant::units::kElectronMassC2 / egammaV;
+    const PhysDV deltaMin = 4. * eps0 * deltaFac;
+    const PhysDV eps1     = 0.5 - 0.5 * vecCore::math::Sqrt(1. - deltaMin / deltaMax);
+    const PhysDV epsMin   = vecCore::math::Max(eps0, eps1);
+    const PhysDV epsRange = 0.5 - epsMin;
+
+    PhysDV F10, F20;
+    ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
+    F10 -= fz;
+    F20 -= fz;
+
+    const PhysDV NormF1   = vecCore::math::Max(F10 * epsRange * epsRange, (PhysDV)0.);
+    const PhysDV NormF2   = vecCore::math::Max(1.5 * F20, (PhysDV)0.);
+    const PhysDV NormCond = NormF1 / (NormF1 + NormF2);
+
+    PhysDV rnd0 = td->fRndm->uniformV();
+    PhysDV rnd1 = td->fRndm->uniformV();
+    PhysDV rnd2 = td->fRndm->uniformV();
+
+    PhysDV eps     = 0.0;
+    PhysDV greject = 0.0;
+    PhysDM cond1   = NormCond > rnd0;
+    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * vecCore::math::Pow(rnd1, (PhysDV)1. / 3.));
+    vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
+    const PhysDV delta = deltaFac * eps0 / (eps * (1. - eps));
+    if (cond1.isNotEmpty()) {
+      vecCore::MaskedAssign(greject, cond1, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
+    }
+    if ((!cond1).isNotEmpty()) {
+      vecCore::MaskedAssign(greject, !cond1, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
+    }
+
+    PhysDM accepted = greject > rnd2;
+
+    if (accepted.isNotEmpty()) {
+      vecCore::Scatter(eps, epsOut, idx);
+    }
+
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kPhysDVWidth; ++l) {
+      auto laneDone = vecCore::Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          vecCore::Set(idx, l, currN++);
+          vecCore::Set(lanesDone, l, false);
+        } else {
+          vecCore::Set(idx, l, N);
+        }
+      }
+    }
+  }
+}
+
+void VecBetheHeitlerPairModel::ScreenFunction12(PhysDV &val1, PhysDV &val2, const PhysDV delta, const bool istsai)
+{
+  if (istsai) {
+    const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const PhysDV gamma2 = gamma * gamma;
+    const PhysDV dum1   = 33.726 - 4. * vecCore::math::Log(1.0 + 0.311877 * gamma2) +
+                        4.8 * vecCore::math::Exp(-0.9 * gamma) + 3.2 * vecCore::math::Exp(-1.5 * gamma);
+    const PhysDV dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
+    val1              = dum1 + dum2;
+    val2              = dum1 - 0.5 * dum2;
+  } else {
+    PhysDM tmp = delta > 1.;
+    vecCore::MaskedAssign(val1, tmp, 42.24 - 8.368 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(val2, tmp, val1);
+    vecCore::MaskedAssign(val1, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
+    vecCore::MaskedAssign(val2, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
+  }
+}
+
+// 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
+PhysDV VecBetheHeitlerPairModel::ScreenFunction1(const PhysDV delta, const bool istsai)
+{
+  PhysDV val;
+  if (istsai) {
+    const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const PhysDV gamma2 = gamma * gamma;
+    val = 33.726 - 4. * vecCore::math::Log(1.0 + 0.311877 * gamma2) + 4.8 * vecCore::math::Exp(-0.9 * gamma) +
+          3.2 * vecCore::math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
+  } else {
+    PhysDM tmp = delta > 1.;
+    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(val, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
+  }
+  return val;
+}
+
+// 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
+PhysDV VecBetheHeitlerPairModel::ScreenFunction2(const PhysDV delta, const bool istsai)
+{
+  PhysDV val;
+  if (istsai) {
+    const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const PhysDV gamma2 = gamma * gamma;
+    val = 33.726 - 4. * vecCore::math::Log(1.0 + 0.311877 * gamma2) + 4.8 * vecCore::math::Exp(-0.9 * gamma) +
+          3.2 * vecCore::math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
+  } else {
+    PhysDM tmp = delta > 1.;
+    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
+  }
+  return val;
 }
 }

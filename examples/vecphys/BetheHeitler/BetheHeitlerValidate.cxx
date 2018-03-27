@@ -3,7 +3,7 @@
 #include "BetheHeitlerTestCommon.h"
 #include "Hist.h"
 
-const int kBasketTries = 1000;
+const int kBasketTries = 100000;
 
 const int kNumBins = 100;
 struct BHValidData {

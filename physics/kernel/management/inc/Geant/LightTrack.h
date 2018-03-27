@@ -322,6 +322,7 @@ public:
   alignas(64) double fEdepV[kSOAMaxSize]; /** Energy deposits (in GeV) in the last step of the particles */
   double fNintLenV[kSOAMaxSize];          /** Number of discrete interaction left */
   double fIntLenV[kSOAMaxSize];           /** Total mean free path i.e. macroscopic scross section */
+  short fSortKey[kSOAMaxSize];
 
   ExtraInfo *fExtraInfoV[kSOAMaxSize]; /** Pointers to arbitrary structs to keep extra information */
 
@@ -576,6 +577,52 @@ public:
     // Note: we assume that the light track has the ownership of the extra information.
     if (fExtraInfoV[i] != nullptr && fExtraInfoV[i] != aExtraInfo) delete fExtraInfoV[i];
     fExtraInfoV[i] = aExtraInfo;
+  }
+
+  short *GetSortKeyV() { return &fSortKey[0]; }
+
+  int SortTracks()
+  {
+    int max = fNtracks - 1;
+    int min = 0;
+    while (min < max) {
+      if (fSortKey[min] > fSortKey[max]) {
+        SwapTracks(min, max);
+        --max;
+      }
+      ++min;
+    }
+
+    int div = 0;
+    while (div < fNtracks) {
+      if (fSortKey[div++] == 1) break;
+    }
+    return div;
+  }
+
+private:
+  void SwapTracks(int i, int j)
+  {
+    std::swap(fTrackStatusV[i], fTrackStatusV[j]);
+    std::swap(fGVcodeV[i], fGVcodeV[j]);
+    std::swap(fGTrackIndexV[i], fGTrackIndexV[j]);
+    std::swap(fMaterialCutCoupleIndexV[i], fMaterialCutCoupleIndexV[j]);
+    std::swap(fProcessIndexV[i], fProcessIndexV[j]);
+    std::swap(fTargetZV[i], fTargetZV[j]);
+    std::swap(fTargetNV[i], fTargetNV[j]);
+    std::swap(fXdirV[i], fXdirV[j]);
+    std::swap(fYdirV[i], fYdirV[j]);
+    std::swap(fZdirV[i], fZdirV[j]);
+    std::swap(fKinEV[i], fKinEV[j]);
+    std::swap(fMassV[i], fMassV[j]);
+    std::swap(fTimeV[i], fTimeV[j]);
+    std::swap(fWeightV[i], fWeightV[j]);
+    std::swap(fStepLengthV[i], fStepLengthV[j]);
+    std::swap(fEdepV[i], fEdepV[j]);
+    std::swap(fNintLenV[i], fNintLenV[j]);
+    std::swap(fIntLenV[i], fIntLenV[j]);
+    std::swap(fSortKey[i], fSortKey[j]);
+    std::swap(fExtraInfoV[i], fExtraInfoV[j]);
   }
 };
 
