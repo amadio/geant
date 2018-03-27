@@ -74,6 +74,11 @@ LightTrack_v::LightTrack_v() : fNtracks(0)
   for (int i = 0; i < kSOAMaxSize; ++i) {
     fExtraInfoV[i] = nullptr;
   }
+  fXdirV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fYdirV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fZdirV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fKinEV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fEdepV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
 }
 
 void LightTrack_v::GetTrack(const int i, LightTrack &aLightTrack) const
@@ -140,6 +145,18 @@ void LightTrack_v::AddTrack(LightTrack &aLightTrack)
   fEdepV[itrack]                   = aLightTrack.GetEnergyDeposit();
   fExtraInfoV[itrack]              = aLightTrack.GetExtraInfo();
   fNtracks++;
+}
+
+LightTrack_v::~LightTrack_v()
+{
+  for (int i = 0; i < kSOAMaxSize; ++i) {
+    if (fExtraInfoV[i]) delete fExtraInfoV[i];
+  }
+  vecCore::AlignedFree(fXdirV);
+  vecCore::AlignedFree(fYdirV);
+  vecCore::AlignedFree(fZdirV);
+  vecCore::AlignedFree(fKinEV);
+  vecCore::AlignedFree(fEdepV);
 }
 
 } // namespace geantphysics

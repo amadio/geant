@@ -9,7 +9,7 @@ namespace geantphysics {
 void VecKleinNishinaComptonModel::Initialize()
 {
   KleinNishinaComptonModel::Initialize();
-  for (int i = 0; i < fSamplingTables.size(); ++i) {
+  for (int i = 0; i < (int)fSamplingTables.size(); ++i) {
     LinAlias *alias = fSamplingTables[i];
     int size        = (int)alias->fAliasIndx.size();
 

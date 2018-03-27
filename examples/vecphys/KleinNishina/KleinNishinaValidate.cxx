@@ -5,7 +5,7 @@
 #include "KleinNishinaTestCommon.h"
 #include "Hist.h"
 
-const int kBasketTries = 1000000;
+const int kBasketTries = 100000;
 
 const int kNumBins = 100;
 struct ComptonValidData {
@@ -112,24 +112,16 @@ int main()
     FillDataVector(vector, true);
 
     Printf("Normilized gamma energy");
-    Hist gammaEDiv = vector.gammaE / scalar.gammaE;
-    gammaEDiv.Print();
-    Printf("##########################");
+    vector.gammaE.Compare(scalar.gammaE);
 
     Printf("Normilized electron energy");
-    Hist emDiv = vector.emE / scalar.emE;
-    emDiv.Print();
-    Printf("##########################");
+    vector.emE.Compare(scalar.emE);
 
     Printf("Gamma z direction");
-    Hist gammaThDiv = vector.gammaTheta / scalar.gammaTheta;
-    gammaThDiv.Print();
-    Printf("##########################");
+    vector.gammaTheta.Compare(scalar.gammaTheta);
 
     Printf("Electron z direction");
-    Hist emThDiv = vector.emTheta / scalar.emTheta;
-    emThDiv.Print();
-    Printf("##########################");
+    vector.emTheta.Compare(scalar.emTheta);
   }
   {
     Printf("Test for rej method");
@@ -140,24 +132,16 @@ int main()
     FillDataVector(vector, false);
 
     Printf("Normilized gamma energy");
-    Hist gammaEDiv = vector.gammaE / scalar.gammaE;
-    gammaEDiv.Print();
-    Printf("##########################");
+    vector.gammaE.Compare(scalar.gammaE);
 
     Printf("Normilized electron energy");
-    Hist emDiv = vector.emE / scalar.emE;
-    emDiv.Print();
-    Printf("##########################");
+    vector.emE.Compare(scalar.emE);
 
     Printf("Gamma z direction");
-    Hist gammaThDiv = vector.gammaTheta / scalar.gammaTheta;
-    gammaThDiv.Print();
-    Printf("##########################");
+    vector.gammaTheta.Compare(scalar.gammaTheta);
 
     Printf("Electron z direction");
-    Hist emThDiv = vector.emTheta / scalar.emTheta;
-    emThDiv.Print();
-    Printf("##########################");
+    vector.emTheta.Compare(scalar.emTheta);
   }
 
   return 0;

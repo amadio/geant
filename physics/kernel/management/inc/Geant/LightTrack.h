@@ -311,17 +311,17 @@ public:
   int fTargetNV[kSOAMaxSize];                /** Numbers of nucleons of the target atoms where the
                                      particles have a physical interaction */
 
-  alignas(64) double fXdirV[kSOAMaxSize]; /** X directions (normalized, adimensional) of the particles */
-  alignas(64) double fYdirV[kSOAMaxSize]; /** Y directions (normalized, adimensional) of the particles */
-  alignas(64) double fZdirV[kSOAMaxSize]; /** Z directions (normalized, adimensional) of the particles */
-  alignas(64) double fKinEV[kSOAMaxSize]; /** Kinetic energies (in GeV) of the particles */
-  double fMassV[kSOAMaxSize];             /** Dynamic masses (in GeV) of the particles */
-  double fTimeV[kSOAMaxSize];             /** Times (global, in sec) of the particles */
-  double fWeightV[kSOAMaxSize];           /** Weights (adimensional) of the particles */
-  double fStepLengthV[kSOAMaxSize];       /** True, physical lengths (in cm) of the last step of the particles */
-  alignas(64) double fEdepV[kSOAMaxSize]; /** Energy deposits (in GeV) in the last step of the particles */
-  double fNintLenV[kSOAMaxSize];          /** Number of discrete interaction left */
-  double fIntLenV[kSOAMaxSize];           /** Total mean free path i.e. macroscopic scross section */
+  double *fXdirV;                   /** X directions (normalized, adimensional) of the particles */
+  double *fYdirV;                   /** Y directions (normalized, adimensional) of the particles */
+  double *fZdirV;                   /** Z directions (normalized, adimensional) of the particles */
+  double *fKinEV;                   /** Kinetic energies (in GeV) of the particles */
+  double *fEdepV;                   /** Energy deposits (in GeV) in the last step of the particles */
+  double fMassV[kSOAMaxSize];       /** Dynamic masses (in GeV) of the particles */
+  double fTimeV[kSOAMaxSize];       /** Times (global, in sec) of the particles */
+  double fWeightV[kSOAMaxSize];     /** Weights (adimensional) of the particles */
+  double fStepLengthV[kSOAMaxSize]; /** True, physical lengths (in cm) of the last step of the particles */
+  double fNintLenV[kSOAMaxSize];    /** Number of discrete interaction left */
+  double fIntLenV[kSOAMaxSize];     /** Total mean free path i.e. macroscopic scross section */
   short fSortKey[kSOAMaxSize];
 
   ExtraInfo *fExtraInfoV[kSOAMaxSize]; /** Pointers to arbitrary structs to keep extra information */
@@ -338,12 +338,8 @@ public:
   LightTrack_v();
 
   /** @brief LightTrack_v destructor */
-  ~LightTrack_v()
-  {
-    for (int i = 0; i < kSOAMaxSize; ++i) {
-      if (fExtraInfoV[i]) delete fExtraInfoV[i];
-    }
-  };
+  ~LightTrack_v();
+  ;
 
   void ClearTracks() { fNtracks = 0; }
   int InsertTrack() { return fNtracks++; }
