@@ -583,21 +583,25 @@ public:
 
   int SortTracks()
   {
-    int max = fNtracks - 1;
-    int min = 0;
-    while (min < max) {
-      if (fSortKey[min] > fSortKey[max]) {
-        SwapTracks(min, max);
-        --max;
+    int ones  = fNtracks - 1;
+    int zeros = 0;
+    while (zeros < ones) {
+      if (fSortKey[zeros] == 0) {
+        ++zeros;
+        continue;
       }
-      ++min;
+      if (fSortKey[ones] == 1) {
+        --ones;
+        continue;
+      }
+      if (fSortKey[zeros] > fSortKey[ones]) {
+        SwapTracks(zeros, ones);
+        ++zeros;
+        --ones;
+      }
     }
 
-    int div = 0;
-    while (div < fNtracks) {
-      if (fSortKey[div++] == 1) break;
-    }
-    return div;
+    return zeros;
   }
 
 private:

@@ -19,10 +19,11 @@ using geantphysics::VecBetheHeitlerPairModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
-const int kMinBasket = 16;
-const int kMaxBasket = 256;
-const double minEn   = 2.01 * geant::units::kElectronMassC2;
-const double maxEn   = 80.0 * geant::units::GeV;
+const int kMinBasket      = 16;
+const int kMaxBasket      = 256;
+const double minEn        = 100.0 * geant::units::eV;
+const double minPrimaryEn = 2.0 * geant::units::kElectronMassC2;
+const double maxEn        = 80.0 * geant::units::GeV;
 
 BetheHeitlerPairModel *PrepareBHModel(bool useAlias)
 {
@@ -66,7 +67,7 @@ void PreparePrimaries(std::vector<LightTrack> &output, int N)
     gamma.SetDirX(sin(phi) * cos(th));
     gamma.SetDirY(cos(phi) * cos(th));
     gamma.SetDirZ(sin(th));
-    double eKin = minEn + (maxEn - minEn) * rng.uniform();
+    double eKin = minPrimaryEn + (maxEn - minPrimaryEn) * rng.uniform();
     gamma.SetKinE(eKin);
     gamma.SetTrackIndex(i);
     gamma.SetMaterialCutCoupleIndex(cuts->GetIndex());
@@ -87,7 +88,7 @@ void PreparePrimaries(LightTrack_v &output, int N)
     output.SetDirX(sin(phi) * cos(th), i);
     output.SetDirY(cos(phi) * cos(th), i);
     output.SetDirZ(sin(th), i);
-    double eKin = minEn + (maxEn - minEn) * rng.uniform();
+    double eKin = minPrimaryEn + (maxEn - minPrimaryEn) * rng.uniform();
     output.SetKinE(eKin, i);
     output.SetTrackIndex(i, i);
     output.SetMaterialCutCoupleIndex(cuts->GetIndex(), i);

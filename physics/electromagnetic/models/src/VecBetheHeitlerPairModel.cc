@@ -5,6 +5,7 @@
 #include <Geant/MaterialCuts.h>
 #include <TError.h>
 #include "Geant/VecBetheHeitlerPairModel.h"
+#include "Geant/AliasTable.h"
 
 namespace geantphysics {
 
@@ -69,40 +70,43 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
   if (GetUseSamplingTables()) {
     {
       int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
-      PhysDV ekin;
-      vecCore::Load(ekin, tracks.GetKinEVec(i));
-      PhysDM smallE  = ekin < fGammaEneregyLimit;
-      PhysDV r1      = td->fRndm->uniformV();
-      PhysDV r2      = td->fRndm->uniformV();
-      PhysDV r3      = td->fRndm->uniformV();
-      PhysDV tmpEkin = ekin;
-      // To be sure that energy that is too small for alias table will not slip in alias sampling
-      vecCore::MaskedAssign(tmpEkin, smallE, (PhysDV)fMinimumPrimaryEnergy * (1.1));
+      if (i < N) {
+        PhysDV ekin;
+        vecCore::Load(ekin, tracks.GetKinEVec(i));
+        PhysDM smallE  = ekin < fGammaEneregyLimit;
+        PhysDV r1      = td->fRndm->uniformV();
+        PhysDV r2      = td->fRndm->uniformV();
+        PhysDV r3      = td->fRndm->uniformV();
+        PhysDV tmpEkin = ekin;
+        // To be sure that energy that is too small for alias table will not slip in alias sampling
+        vecCore::MaskedAssign(tmpEkin, smallE, (PhysDV)fGammaEneregyLimit * (1.1));
 
-      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
-      PhysDV eps;
-      vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
-      vecCore::MaskedAssign(eps, !smallE, sampledEps);
-      vecCore::Store(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+        PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
+        PhysDV eps;
+        vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+        vecCore::MaskedAssign(eps, !smallE, sampledEps);
+        vecCore::Store(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+      }
     }
     for (int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth + kPhysDVWidth; i < N; i += kPhysDVWidth) {
       PhysDV ekin;
       vecCore::Load(ekin, tracks.GetKinEVec(i));
-      PhysDV r1      = td->fRndm->uniformV();
-      PhysDV r2      = td->fRndm->uniformV();
-      PhysDV r3      = td->fRndm->uniformV();
-      PhysDV tmpEkin = ekin;
+      PhysDV r1 = td->fRndm->uniformV();
+      PhysDV r2 = td->fRndm->uniformV();
+      PhysDV r3 = td->fRndm->uniformV();
 
-      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
+      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(ekin, &IZet[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
 
-    int i                  = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
-    tracks.GetKinEVec()[N] = tracks.GetKinEVec()[N - 1];
-    IZet[N]                = IZet[N - 1];
-    SampleTotalEnergyTransferRejVec(tracks.GetKinEVec(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i],
-                                    N - i, td);
+    int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
+    if (i < N) {
+      tracks.GetKinEVec()[N] = tracks.GetKinEVec()[N - 1];
+      IZet[N]                = IZet[N - 1];
+      SampleTotalEnergyTransferRejVec(tracks.GetKinEVec(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i],
+                                      N - i, td);
+    }
   }
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
@@ -246,10 +250,10 @@ PhysDV VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(const Phy
 
   PhysDV xiV;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    int idx                  = (int)vecCore::Get(indxEgamma, l);
-    RatinAliasDataTrans &als = fAliasTablesPerZ[izet[l]].fTablePerEn[idx];
     double r2l               = vecCore::Get(r2, l);
     double r3l               = vecCore::Get(r3, l);
+    int idx                  = (int)vecCore::Get(indxEgamma, l);
+    RatinAliasDataTrans &als = fAliasTablesPerZ[izet[l]].fTablePerEn[idx];
     double xi                = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l, 0);
 
     vecCore::Set(xiV, l, xi);

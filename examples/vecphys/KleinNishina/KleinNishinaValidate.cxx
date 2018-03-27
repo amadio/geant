@@ -5,7 +5,7 @@
 #include "KleinNishinaTestCommon.h"
 #include "Hist.h"
 
-const int kBasketTries = 100000;
+const int kBasketTries = 1000000;
 
 const int kNumBins = 100;
 struct ComptonValidData {
