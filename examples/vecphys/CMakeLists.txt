@@ -60,3 +60,10 @@ target_link_libraries(PhysVecRelativisticPairValid Geant_v RealPhysics)
 
 add_executable(PhysVecRelativisticPairBench RelativisticPair/RelativisticPairBench.cxx RelativisticPair/RelativisticPairTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecRelativisticPairBench Geant_v RealPhysics benchmark pthread)
+
+
+add_executable(PhysVecPositronTo2GammaBench PositronTo2Gamma/PositronTo2GammaBench.cxx PositronTo2Gamma/PositronTo2GammaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecPositronTo2GammaBench Geant_v RealPhysics benchmark pthread)
+
+add_executable(PhysVecPositronTo2GammaValid PositronTo2Gamma/PositronTo2GammaValidate.cxx ${COMMON_HEADERS})
+target_link_libraries(PhysVecPositronTo2GammaValid Geant_v RealPhysics)

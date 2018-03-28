@@ -73,7 +73,7 @@ public:
   //
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   PositronTo2GammaModel(const PositronTo2GammaModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -117,7 +117,7 @@ private:
     std::vector<int> fAliasIndx;
   };
 
-private:
+protected:
   int fSecondaryInternalCode;
 
   int fSTNumPositronEnergiesPerDecade;  // ST=>SamplingTables
