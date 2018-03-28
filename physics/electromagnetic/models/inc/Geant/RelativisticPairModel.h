@@ -105,7 +105,7 @@ public:
   //
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   RelativisticPairModel(const RelativisticPairModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -265,7 +265,7 @@ private:
   };
 
   // data members
-private:
+protected:
   /** @brief Size of some containers that store data per elements (\f$ Z_{\text{max}} = gMaxZet-1)\f$. */
   static const long gMaxZet = 121; // max Z+1
   /** @brief Elastic form factors for elements Z<8 from \cite tsai1974pair Table B2. */

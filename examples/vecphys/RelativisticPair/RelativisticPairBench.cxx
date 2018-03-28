@@ -1,15 +1,15 @@
 #include <benchmark/benchmark.h>
-#include "BetheHeitlerTestCommon.h"
+#include "RelativisticPairTestCommon.h"
 
 #include "Geant/VecRngWrapper.h"
 
-BetheHeitlerPairModel *rpModelRej;
-VecBetheHeitlerPairModel *rpModelRejVec;
-BetheHeitlerPairModel *rpModelAlias;
-VecBetheHeitlerPairModel *rpModelAliasVec;
+RelativisticPairModel *rpModelRej;
+VecRelativisticPairModel *rpModelRejVec;
+RelativisticPairModel *rpModelAlias;
+VecRelativisticPairModel *rpModelAliasVec;
 TaskData *td;
 
-static void BetheHeitlerScalarAlias(benchmark::State &state)
+static void RelativisticPairScalarAlias(benchmark::State &state)
 {
   std::vector<LightTrack> primaries;
 
@@ -28,9 +28,9 @@ static void BetheHeitlerScalarAlias(benchmark::State &state)
     }
   }
 }
-BENCHMARK(BetheHeitlerScalarAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(RelativisticPairScalarAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void BetheHeitlerVectorAlias(benchmark::State &state)
+static void RelativisticPairVectorAlias(benchmark::State &state)
 {
   LightTrack_v primaries;
 
@@ -48,9 +48,9 @@ static void BetheHeitlerVectorAlias(benchmark::State &state)
     rpModelAliasVec->SampleSecondariesVector(primaries, td);
   }
 }
-BENCHMARK(BetheHeitlerVectorAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(RelativisticPairVectorAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void BetheHeitlerScalarRej(benchmark::State &state)
+static void RelativisticPairScalarRej(benchmark::State &state)
 {
   std::vector<LightTrack> primaries;
 
@@ -69,9 +69,9 @@ static void BetheHeitlerScalarRej(benchmark::State &state)
     }
   }
 }
-BENCHMARK(BetheHeitlerScalarRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(RelativisticPairScalarRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void BetheHeitlerVectorRej(benchmark::State &state)
+static void RelativisticPairVectorRej(benchmark::State &state)
 {
   LightTrack_v primaries;
 
@@ -89,15 +89,15 @@ static void BetheHeitlerVectorRej(benchmark::State &state)
     rpModelRejVec->SampleSecondariesVector(primaries, td);
   }
 }
-BENCHMARK(BetheHeitlerVectorRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(RelativisticPairVectorRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
 int main(int argc, char **argv)
 {
   PrepareWorld();
-  rpModelAlias    = PrepareBHModel(true);
-  rpModelRej      = PrepareBHModel(false);
-  rpModelAliasVec = PrepareVecBHModel(true);
-  rpModelRejVec   = PrepareVecBHModel(false);
+  rpModelAlias    = PrepareRPModel(true);
+  rpModelRej      = PrepareRPModel(false);
+  rpModelAliasVec = PrepareVecRPModel(true);
+  rpModelRejVec   = PrepareVecRPModel(false);
   td              = PrepareTaskData();
 
   ::benchmark::Initialize(&argc, argv);

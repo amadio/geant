@@ -1,11 +1,11 @@
-#ifndef GEANTV_BETHEHEITLERTESTCOMMON_H
-#define GEANTV_BETHEHEITLERTESTCOMMON_H
+#ifndef GEANTV_RELATIVISTICPAIRTESTCOMMON_H
+#define GEANTV_RELATIVISTICPAIRTESTCOMMON_H
 
 #include "Geant/LightTrack.h"
 #include "Geant/TaskData.h"
 #include "Common.h"
-#include "Geant/BetheHeitlerPairModel.h"
-#include "Geant/VecBetheHeitlerPairModel.h"
+#include "Geant/RelativisticPairModel.h"
+#include "Geant/VecRelativisticPairModel.h"
 #include "Geant/MaterialCuts.h"
 #include "volumes/LogicalVolume.h"
 #include "volumes/Box.h"
@@ -14,43 +14,42 @@
 
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
-using geantphysics::BetheHeitlerPairModel;
-using geantphysics::VecBetheHeitlerPairModel;
+using geantphysics::RelativisticPairModel;
+using geantphysics::VecRelativisticPairModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
-const int kMinBasket      = 16;
-const int kMaxBasket      = 256;
-const double minEn        = 100.0 * geant::units::eV;
-const double minPrimaryEn = 2.0 * geant::units::kElectronMassC2;
-const double maxEn        = 80.0 * geant::units::GeV;
+const int kMinBasket = 16;
+const int kMaxBasket = 256;
+const double minEn   = 80.0 * geant::units::GeV;
+const double maxEn   = 100.0 * geant::units::TeV;
 
-BetheHeitlerPairModel *PrepareBHModel(bool useAlias)
+RelativisticPairModel *PrepareRPModel(bool useAlias)
 {
-  BetheHeitlerPairModel *BHmodel = new BetheHeitlerPairModel;
-  BHmodel->SetLowEnergyUsageLimit(minEn);
-  BHmodel->SetHighEnergyUsageLimit(maxEn);
-  BHmodel->SetUseSamplingTables(useAlias);
-  BHmodel->GetListActiveRegions().resize(1);
-  BHmodel->GetListActiveRegions()[0]        = true;
+  RelativisticPairModel *pairModel = new RelativisticPairModel;
+  pairModel->SetLowEnergyUsageLimit(minEn);
+  pairModel->SetHighEnergyUsageLimit(maxEn);
+  pairModel->SetUseSamplingTables(useAlias);
+  pairModel->GetListActiveRegions().resize(1);
+  pairModel->GetListActiveRegions()[0]      = true;
   geantphysics::PhysicsParameters *physPars = new geantphysics::PhysicsParameters();
   // - Set it to be active in region index 0
   (physPars->GetListActiveRegions()).resize(1);
   (physPars->GetListActiveRegions())[0] = true;
-  BHmodel->Initialize();
-  return BHmodel;
+  pairModel->Initialize();
+  return pairModel;
 }
 
-VecBetheHeitlerPairModel *PrepareVecBHModel(bool useAlias)
+VecRelativisticPairModel *PrepareVecRPModel(bool useAlias)
 {
-  VecBetheHeitlerPairModel *BHModel = new VecBetheHeitlerPairModel;
-  BHModel->SetLowEnergyUsageLimit(minEn);
-  BHModel->SetHighEnergyUsageLimit(maxEn);
-  BHModel->SetUseSamplingTables(useAlias);
-  BHModel->GetListActiveRegions().resize(1);
-  BHModel->GetListActiveRegions()[0] = true;
-  BHModel->Initialize();
-  return BHModel;
+  VecRelativisticPairModel *pairModel = new VecRelativisticPairModel;
+  pairModel->SetLowEnergyUsageLimit(minEn);
+  pairModel->SetHighEnergyUsageLimit(maxEn);
+  pairModel->SetUseSamplingTables(useAlias);
+  pairModel->GetListActiveRegions().resize(1);
+  pairModel->GetListActiveRegions()[0] = true;
+  pairModel->Initialize();
+  return pairModel;
 }
 
 void PreparePrimaries(std::vector<LightTrack> &output, int N)
@@ -67,7 +66,7 @@ void PreparePrimaries(std::vector<LightTrack> &output, int N)
     gamma.SetDirX(sin(phi) * cos(th));
     gamma.SetDirY(cos(phi) * cos(th));
     gamma.SetDirZ(sin(th));
-    double eKin = minPrimaryEn + (maxEn - minPrimaryEn) * rng.uniform();
+    double eKin = minEn + (maxEn - minEn) * rng.uniform();
     gamma.SetKinE(eKin);
     gamma.SetTrackIndex(i);
     gamma.SetMaterialCutCoupleIndex(cuts->GetIndex());
@@ -88,7 +87,7 @@ void PreparePrimaries(LightTrack_v &output, int N)
     output.SetDirX(sin(phi) * cos(th), i);
     output.SetDirY(cos(phi) * cos(th), i);
     output.SetDirZ(sin(th), i);
-    double eKin = minPrimaryEn + (maxEn - minPrimaryEn) * rng.uniform();
+    double eKin = minEn + (maxEn - minEn) * rng.uniform();
     output.SetKinE(eKin, i);
     output.SetTrackIndex(i, i);
     output.SetMaterialCutCoupleIndex(cuts->GetIndex(), i);

@@ -54,3 +54,9 @@ target_link_libraries(PhysVecBetheHeitlerValid Geant_v RealPhysics)
 
 add_executable(PhysVecBetheHeitlerBench BetheHeitler/BetheHeitlerBench.cxx BetheHeitler/BetheHeitlerTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecBetheHeitlerBench Geant_v RealPhysics benchmark pthread)
+
+add_executable(PhysVecRelativisticPairValid RelativisticPair/RelativisticPairValidate.cxx RelativisticPair/RelativisticPairTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecRelativisticPairValid Geant_v RealPhysics)
+
+add_executable(PhysVecRelativisticPairBench RelativisticPair/RelativisticPairBench.cxx RelativisticPair/RelativisticPairTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecRelativisticPairBench Geant_v RealPhysics benchmark pthread)

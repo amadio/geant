@@ -4,26 +4,29 @@
 #include <Geant/PhysicsData.h>
 #include <Geant/MaterialCuts.h>
 #include <TError.h>
-#include "Geant/VecBetheHeitlerPairModel.h"
+#include "Geant/VecRelativisticPairModel.h"
 #include "Geant/AliasTable.h"
+#include "Geant/MaterialProperties.h"
 
 namespace geantphysics {
 
-void VecBetheHeitlerPairModel::Initialize()
+void VecRelativisticPairModel::Initialize()
 {
-  BetheHeitlerPairModel::Initialize();
-  fAliasTablesPerZ.resize(fSamplingTables.size());
+  RelativisticPairModel::Initialize();
+
+  fAliasTablesPerMaterial.resize(fSamplingTables.size());
 
   // Steal sampling tables to new format
-  for (size_t i = 0; i < fSamplingTables.size(); ++i) { // Loop over Z
+  for (size_t i = 0; i < fSamplingTables.size(); ++i) { // Loop over material
     if (fSamplingTables[i] == nullptr) continue;
 
-    auto &defaultGammaETables    = fSamplingTables[i]->fRatinAliasData;
-    auto &transposedGammaETables = fAliasTablesPerZ[i].fTablePerEn;
-    for (size_t j = 0; j < defaultGammaETables.size(); ++j) { // Loop over incoming gamma Es in element table
+    fAliasTablesPerMaterial[i].fILowestZ = fSamplingTables[i]->fILowestZ;
+    auto &defaultGammaETables            = fSamplingTables[i]->fRatinAliasData;
+    auto &transposedGammaETables         = fAliasTablesPerMaterial[i].fTablePerEn;
+    for (size_t j = 0; j < defaultGammaETables.size(); ++j) { // Loop over incoming gamma Es in material table
       transposedGammaETables.emplace_back(fSTNumDiscreteEnergyTransferVals);
-      for (int k = 0; k < fSTNumDiscreteEnergyTransferVals;
-           ++k) { // Loop over transferred E in corresponding gamma E tbl.
+      // Loop over transferred E in corresponding gamma E tbl.
+      for (int k = 0; k < fSTNumDiscreteEnergyTransferVals; ++k) {
         auto &aliasTableData       = transposedGammaETables[j].fData[k];
         aliasTableData.fAliasIndx  = defaultGammaETables[j]->fAliasIndx[k];
         aliasTableData.fAliasW     = defaultGammaETables[j]->fAliasW[k];
@@ -38,57 +41,47 @@ void VecBetheHeitlerPairModel::Initialize()
   // fIsUseTsaisScreening = false;
 }
 
-void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
+void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
 {
-  int N     = tracks.GetNtracks();
-  int *IZet = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  int N             = tracks.GetNtracks();
+  int *IZet         = td->fPhysicsData->fPhysicsScratchpad.fIzet;   // used by rej method
+  int *MatIDX       = td->fPhysicsData->fPhysicsScratchpad.fMatIdx; // used by alias method
+  double *LPMEnergy = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
 
-  short *sortKey = tracks.GetSortKeyV();
-  for (int i = 0; i < N; ++i) {
-    double ekin = tracks.GetKinE(i);
-    sortKey[i]  = ekin < fGammaEneregyLimit ? (short)0 : (short)1;
-  }
-  int smallEtracksInd = tracks.SortTracks();
-  for (int k = 0; k < smallEtracksInd; ++k) {
-    double eps0                                  = geant::units::kElectronMassC2 / tracks.GetKinE(k);
-    td->fPhysicsData->fPhysicsScratchpad.fEps[k] = eps0 + (0.5 - eps0) * td->fRndm->uniform();
+  // Sort by LPM energies to simplify branching in rej. accept. sampling method
+  if (GetUseSamplingTables() && fIsUseLPM) {
+    short *sortKey = tracks.GetSortKeyV();
+    for (int i = 0; i < N; ++i) {
+      double ekin = tracks.GetKinE(i);
+      sortKey[i]  = ekin < fLPMEnergyLimit ? (short)0 : (short)1;
+    }
+    tracks.SortTracks();
   }
 
-  // Chose Z
+  // Populate material property arrays
   for (int i = 0; i < N; ++i) {
     MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[tracks.GetMaterialCutCoupleIndex(i)];
-    const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
-    double targetElemIndx                  = 0;
-    if (theElements.size() > 1) {
-      targetElemIndx = SampleTargetElementIndex(matCut, tracks.GetKinE(i), td->fRndm->uniform());
+    const Material *mat  = matCut->GetMaterial();
+
+    if (GetUseSamplingTables()) {
+      MatIDX[i] = mat->GetIndex();
+    } else {
+      const double lpmEnergy = mat->GetMaterialProperties()->GetRadiationLength() * gLPMFactor;
+      LPMEnergy[i]           = lpmEnergy;
+
+      const Vector_t<Element *> &theElements = mat->GetElementVector();
+      double targetElemIndx                  = 0;
+      if (theElements.size() > 1) {
+        targetElemIndx = SampleTargetElementIndex(matCut, tracks.GetKinE(i), td->fRndm->uniform());
+      }
+      const double zet = theElements[targetElemIndx]->GetZ();
+      const int izet   = std::min(std::lrint(zet), gMaxZet - 1);
+      IZet[i]          = izet;
     }
-    const double zet = theElements[targetElemIndx]->GetZ();
-    const int izet   = std::min(std::lrint(zet), gMaxZet - 1);
-    IZet[i]          = izet;
   }
 
   if (GetUseSamplingTables()) {
-    {
-      int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
-      if (i < N) {
-        PhysDV ekin;
-        vecCore::Load(ekin, tracks.GetKinEVec(i));
-        PhysDM smallE  = ekin < fGammaEneregyLimit;
-        PhysDV r1      = td->fRndm->uniformV();
-        PhysDV r2      = td->fRndm->uniformV();
-        PhysDV r3      = td->fRndm->uniformV();
-        PhysDV tmpEkin = ekin;
-        // To be sure that energy that is too small for alias table will not slip in alias sampling
-        vecCore::MaskedAssign(tmpEkin, smallE, (PhysDV)fGammaEneregyLimit * (1.1));
-
-        PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
-        PhysDV eps;
-        vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
-        vecCore::MaskedAssign(eps, !smallE, sampledEps);
-        vecCore::Store(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
-      }
-    }
-    for (int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth + kPhysDVWidth; i < N; i += kPhysDVWidth) {
+    for (int i = 0; i < N; i += kPhysDVWidth) {
       PhysDV ekin;
       vecCore::Load(ekin, tracks.GetKinEVec(i));
       PhysDV r1 = td->fRndm->uniformV();
@@ -100,13 +93,11 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     }
   } else {
 
-    int i = (smallEtracksInd / kPhysDVWidth) * kPhysDVWidth;
-    if (i < N) {
-      tracks.GetKinEVec()[N] = tracks.GetKinEVec()[N - 1];
-      IZet[N]                = IZet[N - 1];
-      SampleTotalEnergyTransferRejVec(tracks.GetKinEVec(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i],
-                                      N - i, td);
-    }
+    tracks.GetKinEVec()[N] = tracks.GetKinEVec()[N - 1];
+    LPMEnergy[N]           = LPMEnergy[N - 1];
+    IZet[N]                = IZet[N - 1];
+    SampleTotalEnergyTransferRejVec(tracks.GetKinEVec(), LPMEnergy, IZet, td->fPhysicsData->fPhysicsScratchpad.fEps, N,
+                                    td);
   }
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
@@ -189,52 +180,7 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
   }
 }
 
-void VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasVec(const double *egamma, const int *izet,
-                                                                 const double *r1, const double *r2, const double *r3,
-                                                                 int N, double *eps)
-{
-
-  for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV egammaV;
-    vecCore::Load(egammaV, &egamma[i]);
-    const PhysDV legamma = vecCore::math::Log(egammaV);
-
-    PhysDV val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
-    PhysDI indxEgamma = (PhysDI)val; // lower electron energy bin index
-    PhysDV pIndxHigh  = val - indxEgamma;
-    PhysDV R1;
-    vecCore::Load(R1, &r1[i]);
-    PhysDM mask = R1 < pIndxHigh;
-    if (!mask.isEmpty()) {
-      vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
-    }
-
-    PhysDV xiV;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
-      int idx                  = (int)vecCore::Get(indxEgamma, l);
-      RatinAliasDataTrans &als = fAliasTablesPerZ[izet[i + l]].fTablePerEn[idx];
-      double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, r2[i + l], r3[i + l], 0);
-
-      vecCore::Set(xiV, l, xi);
-    }
-    PhysDV deltaMax;
-    PhysDV deltaFactor;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
-      double deltaMaxScalar = egamma[i + l] > 50. * geant::units::MeV ? gElementData[izet[i + l]]->fDeltaMaxHighTsai
-                                                                      : gElementData[izet[i + l]]->fDeltaMaxLowTsai;
-      double deltaFactorScalar = gElementData[izet[i + l]]->fDeltaFactor;
-      vecCore::Set(deltaMax, l, deltaMaxScalar);
-      vecCore::Set(deltaFactor, l, deltaFactorScalar);
-    }
-    const PhysDV eps0   = geant::units::kElectronMassC2 / egammaV;
-    const PhysDV epsp   = 0.5 - 0.5 * vecCore::math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
-    const PhysDV epsMin = vecCore::math::Max(eps0, epsp);
-    const PhysDV epsV   = epsMin * vecCore::math::Exp(xiV * vecCore::math::Log(0.5 / epsMin));
-    vecCore::Store(epsV, eps);
-  }
-}
-
-PhysDV VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(const PhysDV egamma, const int *izet,
+PhysDV VecRelativisticPairModel::SampleTotalEnergyTransferAliasOneShot(const PhysDV egamma, const int *matIDX,
                                                                        const PhysDV r1, const PhysDV r2,
                                                                        const PhysDV r3)
 {
@@ -253,17 +199,19 @@ PhysDV VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(const Phy
     double r2l               = vecCore::Get(r2, l);
     double r3l               = vecCore::Get(r3, l);
     int idx                  = (int)vecCore::Get(indxEgamma, l);
-    RatinAliasDataTrans &als = fAliasTablesPerZ[izet[l]].fTablePerEn[idx];
+    RatinAliasDataTrans &als = fAliasTablesPerMaterial[matIDX[l]].fTablePerEn[idx];
     double xi                = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l, 0);
 
     vecCore::Set(xiV, l, xi);
   }
+
   PhysDV deltaMax;
   PhysDV deltaFactor;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    double deltaMaxScalar = egamma[l] > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
-                                                                : gElementData[izet[l]]->fDeltaMaxLowTsai;
-    double deltaFactorScalar = gElementData[izet[l]]->fDeltaFactor;
+    int izet = fAliasTablesPerMaterial[matIDX[l]].fILowestZ;
+
+    const double deltaMaxScalar = gElementData[izet]->fDeltaMaxTsai;
+    double deltaFactorScalar    = gElementData[izet]->fDeltaFactor;
     vecCore::Set(deltaMax, l, deltaMaxScalar);
     vecCore::Set(deltaFactor, l, deltaFactorScalar);
   }
@@ -274,8 +222,9 @@ PhysDV VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(const Phy
   return epsV;
 }
 
-void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut,
-                                                               int N, geant::TaskData *td)
+void VecRelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy,
+                                                               const int *izet, double *epsOut, int N,
+                                                               geant::TaskData *td)
 {
   // assert(N>=kPhysDVWidth)
   int currN        = 0;
@@ -290,32 +239,27 @@ void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *ega
     PhysDV fz;
     PhysDV deltaMax;
     PhysDV deltaFac;
-    ;
+    PhysDV varS1Cond, ilVarS1Cond;
+
     for (int l = 0; l < kPhysDVWidth; ++l) {
       int lIdx = vecCore::Get(idx, l);
       int lZet = izet[lIdx];
-      vecCore::Set(fz, l, gElementData[lZet]->fFzLow);
+      vecCore::Set(fz, l, gElementData[lZet]->fFz);
       if (fIsUseTsaisScreening) {
-        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxLowTsai);
-        if (egamma[lIdx] > 50. * geant::units::MeV) {
-          vecCore::Set(fz, l, gElementData[lZet]->fFzHigh);
-          vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxHighTsai);
-        }
+        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxTsai);
       } else {
-        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxLow);
-        if (egamma[lIdx] > 50. * geant::units::MeV) {
-          vecCore::Set(fz, l, gElementData[lZet]->fFzHigh);
-          vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxHigh);
-        }
+        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMax);
       }
       vecCore::Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
+      vecCore::Set(varS1Cond, l, gElementData[lZet]->fVarS1Cond);
+      vecCore::Set(ilVarS1Cond, l, gElementData[lZet]->fILVarS1Cond);
     }
 
     PhysDV egammaV        = vecCore::Gather<PhysDV>(egamma, idx);
     const PhysDV eps0     = geant::units::kElectronMassC2 / egammaV;
     const PhysDV deltaMin = 4. * eps0 * deltaFac;
-    const PhysDV eps1     = 0.5 - 0.5 * vecCore::math::Sqrt(1. - deltaMin / deltaMax);
-    const PhysDV epsMin   = vecCore::math::Max(eps0, eps1);
+    const PhysDV epsp     = 0.5 - 0.5 * vecCore::math::Sqrt(1. - deltaMin / deltaMax);
+    const PhysDV epsMin   = vecCore::math::Max(eps0, epsp);
     const PhysDV epsRange = 0.5 - epsMin;
 
     PhysDV F10, F20;
@@ -337,11 +281,33 @@ void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *ega
     vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * vecCore::math::Pow(rnd1, (PhysDV)1. / 3.));
     vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
     const PhysDV delta = deltaFac * eps0 / (eps * (1. - eps));
+
+    PhysDM lpmMask    = PhysDM(fIsUseLPM) && egammaV > fLPMEnergyLimit;
+    PhysDV lpmEnergyV = vecCore::Gather<PhysDV>(lpmEnergy, idx);
     if (cond1.isNotEmpty()) {
-      vecCore::MaskedAssign(greject, cond1, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
+      if (lpmMask.isNotEmpty()) {
+        PhysDV lpmPhiS, lpmGS, lpmXiS, phi1, phi2;
+        ComputeScreeningFunctions(phi1, phi2, delta, fIsUseTsaisScreening);
+        ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmEnergyV, eps, egammaV, varS1Cond, ilVarS1Cond);
+        PhysDV tmpRej = lpmXiS * ((lpmGS + 2. * lpmPhiS) * phi1 - lpmGS * phi2 - lpmPhiS * fz) / F10;
+        vecCore::MaskedAssign(greject, cond1 && lpmMask, tmpRej);
+      }
+      if ((!lpmMask).isNotEmpty()) {
+        vecCore::MaskedAssign(greject, cond1 && !lpmMask, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
+      }
     }
     if ((!cond1).isNotEmpty()) {
-      vecCore::MaskedAssign(greject, !cond1, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
+      if (lpmMask.isNotEmpty()) {
+        PhysDV lpmPhiS, lpmGS, lpmXiS, phi1, phi2;
+        ComputeScreeningFunctions(phi1, phi2, delta, fIsUseTsaisScreening);
+        ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmEnergyV, eps, egammaV, varS1Cond, ilVarS1Cond);
+        PhysDV tmpRej =
+            lpmXiS * ((0.5 * lpmGS + lpmPhiS) * phi1 + 0.5 * lpmGS * phi2 - 0.5 * (lpmGS + lpmPhiS) * fz) / F20;
+        vecCore::MaskedAssign(greject, !cond1 && lpmMask, tmpRej);
+      }
+      if ((!lpmMask).isNotEmpty()) {
+        vecCore::MaskedAssign(greject, !cond1 && !lpmMask, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
+      }
     }
 
     PhysDM accepted = greject > rnd2;
@@ -365,7 +331,7 @@ void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *ega
   }
 }
 
-void VecBetheHeitlerPairModel::ScreenFunction12(PhysDV &val1, PhysDV &val2, const PhysDV delta, const bool istsai)
+void VecRelativisticPairModel::ScreenFunction12(PhysDV &val1, PhysDV &val2, const PhysDV delta, const bool istsai)
 {
   if (istsai) {
     const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
@@ -385,7 +351,7 @@ void VecBetheHeitlerPairModel::ScreenFunction12(PhysDV &val1, PhysDV &val2, cons
 }
 
 // 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
-PhysDV VecBetheHeitlerPairModel::ScreenFunction1(const PhysDV delta, const bool istsai)
+PhysDV VecRelativisticPairModel::ScreenFunction1(const PhysDV delta, const bool istsai)
 {
   PhysDV val;
   if (istsai) {
@@ -402,7 +368,7 @@ PhysDV VecBetheHeitlerPairModel::ScreenFunction1(const PhysDV delta, const bool 
 }
 
 // 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-PhysDV VecBetheHeitlerPairModel::ScreenFunction2(const PhysDV delta, const bool istsai)
+PhysDV VecRelativisticPairModel::ScreenFunction2(const PhysDV delta, const bool istsai)
 {
   PhysDV val;
   if (istsai) {
@@ -416,5 +382,62 @@ PhysDV VecBetheHeitlerPairModel::ScreenFunction2(const PhysDV delta, const bool 
     vecCore::MaskedAssign(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
   return val;
+}
+
+void VecRelativisticPairModel::ComputeScreeningFunctions(PhysDV &phi1, PhysDV &phi2, const PhysDV delta,
+                                                         const bool istsai)
+{
+  if (istsai) {
+    const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const PhysDV gamma2 = gamma * gamma;
+    phi1 = 16.863 - 2.0 * vecCore::math::Log(1.0 + 0.311877 * gamma2) + 2.4 * vecCore::math::Exp(-0.9 * gamma) +
+           1.6 * vecCore::math::Exp(-1.5 * gamma);
+    phi2 = phi1 - 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
+  } else {
+    PhysDM tmp = delta > 1.;
+    vecCore::MaskedAssign(phi1, tmp, 21.12 - 4.184 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(phi2, tmp, phi1);
+
+    PhysDV delta2 = delta * delta;
+    vecCore::MaskedAssign(phi1, !tmp, 20.867 - 3.242 * delta + 0.625 * delta2);
+    vecCore::MaskedAssign(phi2, !tmp, 20.209 - 1.93 * delta - 0.086 * delta2);
+  }
+}
+
+void VecRelativisticPairModel::ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &funcGS, PhysDV &funcPhiS, PhysDV lpmenergy,
+                                                   PhysDV eps, PhysDV egamma, PhysDV varS1Cond, PhysDV ilVarS1Cond)
+{
+
+  //  1. y = E_+/E_{\gamma} with E_+ being the total energy transfered to one of the e-/e+ pair
+  //     s'  = \sqrt{ \frac{1}{8} \frac{1}{y(1-y)}   \frac{E^{KL}_{LPM}}{E_{\gamma}}  }
+  const PhysDV varSprime = vecCore::math::Sqrt(0.125 * lpmenergy / (eps * egamma * (1.0 - eps)));
+  funcXiS                = 2.0;
+
+  PhysDM tmpM = varSprime > 1.0;
+  vecCore::MaskedAssign(funcXiS, tmpM, (PhysDV)1.0);
+  tmpM = varSprime > varS1Cond;
+  if (tmpM.isNotEmpty()) {
+    const PhysDV funcHSprime = vecCore::math::Log(varSprime) * ilVarS1Cond;
+    PhysDV tmpFuncXiS =
+        1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ilVarS1Cond;
+    vecCore::MaskedAssign(funcXiS, tmpM, tmpFuncXiS);
+  }
+
+  const PhysDV varShat = varSprime / vecCore::math::Sqrt(funcXiS);
+
+  for (int l = 0; l < kPhysDVWidth; ++l) {
+    double lFuncGS, lFuncPhiS, lVarShat;
+    double lFuncXiS;
+    lVarShat = vecCore::Get(varShat, l);
+    lFuncXiS = vecCore::Get(funcXiS, l);
+    GetLPMFunctions(lFuncGS, lFuncPhiS, lVarShat);
+    vecCore::Set(funcGS, l, lFuncGS);
+    vecCore::Set(funcPhiS, l, lFuncPhiS);
+
+    if (lFuncXiS * lFuncPhiS > 1. || lVarShat > 0.57) {
+      vecCore::Set(funcXiS, l, 1. / lFuncPhiS);
+    }
+  }
+  // MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
 }
 }

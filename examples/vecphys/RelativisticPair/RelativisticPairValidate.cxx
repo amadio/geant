@@ -1,6 +1,6 @@
 #include <Geant/Electron.h>
 #include <Geant/Positron.h>
-#include "BetheHeitlerTestCommon.h"
+#include "RelativisticPairTestCommon.h"
 #include "Hist.h"
 
 const int kBasketTries = 100000;
@@ -18,16 +18,16 @@ struct BHValidData {
   }
 };
 
-BetheHeitlerPairModel *rpModelRej;
-VecBetheHeitlerPairModel *rpModelRejVec;
-BetheHeitlerPairModel *rpModelAlias;
-VecBetheHeitlerPairModel *rpModelAliasVec;
+RelativisticPairModel *rpModelRej;
+VecRelativisticPairModel *rpModelRejVec;
+RelativisticPairModel *rpModelAlias;
+VecRelativisticPairModel *rpModelAliasVec;
 TaskData *td;
 
 void FillDataVector(BHValidData &data, bool useAlias)
 {
   LightTrack_v primaries;
-  BetheHeitlerPairModel *model = useAlias ? rpModelAliasVec : rpModelRejVec;
+  VecRelativisticPairModel *model = useAlias ? rpModelAliasVec : rpModelRejVec;
 
   for (int bask = 0; bask < kBasketTries; ++bask) {
     PreparePrimaries(primaries, kMaxBasket);
@@ -70,7 +70,7 @@ void FillDataVector(BHValidData &data, bool useAlias)
 void FillDataScalar(BHValidData &data, bool useAlias)
 {
   std::vector<LightTrack> primaries;
-  BetheHeitlerPairModel *model = useAlias ? rpModelAlias : rpModelRej;
+  RelativisticPairModel *model = useAlias ? rpModelAlias : rpModelRej;
 
   for (int bask = 0; bask < kBasketTries; ++bask) {
     PreparePrimaries(primaries, kMaxBasket);
@@ -116,10 +116,10 @@ int main()
 {
 
   PrepareWorld();
-  rpModelAlias    = PrepareBHModel(true);
-  rpModelRej      = PrepareBHModel(false);
-  rpModelAliasVec = PrepareVecBHModel(true);
-  rpModelRejVec   = PrepareVecBHModel(false);
+  rpModelAlias    = PrepareRPModel(true);
+  rpModelRej      = PrepareRPModel(false);
+  rpModelAliasVec = PrepareVecRPModel(true);
+  rpModelRejVec   = PrepareVecRPModel(false);
   td              = PrepareTaskData();
 
   Printf("Number of gamma for each test %d", kMaxBasket * kBasketTries);

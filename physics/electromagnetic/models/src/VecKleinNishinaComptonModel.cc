@@ -152,7 +152,7 @@ void VecKleinNishinaComptonModel::SampleSecondariesVectorRej(LightTrack_v &track
   int N                        = tracks.GetNtracks();
   PhysicsModelScratchpad &data = td->fPhysicsData->fPhysicsScratchpad;
 
-  SampleReducedPhotonEnergyRej(tracks.GetKinEVec(), data.fOneMCos, data.fSin2t, data.fEps, N, td);
+  SampleReducedPhotonEnergyRej(tracks.GetKinEVec(), data.fDoubleArr, data.fDoubleArr2, data.fEps, N, td);
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
     PhysDV ekin;
@@ -162,8 +162,8 @@ void VecKleinNishinaComptonModel::SampleSecondariesVectorRej(LightTrack_v &track
 
     PhysDV oneMinusCost;
     PhysDV sint2;
-    vecCore::Load(oneMinusCost, &data.fOneMCos[i]);
-    vecCore::Load(sint2, &data.fSin2t[i]);
+    vecCore::Load(oneMinusCost, &data.fDoubleArr[i]);
+    vecCore::Load(sint2, &data.fDoubleArr2[i]);
 
     sint2             = vecCore::math::Max((PhysDV)0., sint2);
     const PhysDV cost = 1.0 - oneMinusCost;
