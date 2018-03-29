@@ -53,6 +53,7 @@ void PreparePrimaries(std::vector<LightTrack> &output, int N)
     positron.SetDirZ(sin(th));
     double eKin = minEn + (maxEn - minEn) * rng(eng);
     positron.SetKinE(eKin);
+    positron.SetMass(geant::units::kElectronMassC2);
     positron.SetTrackIndex(i);
     output.push_back(positron);
   }
@@ -71,6 +72,7 @@ void PreparePrimaries(LightTrack_v &output, int N)
     output.SetDirZ(sin(th), i);
     double eKin = minEn + (maxEn - minEn) * rng(eng);
     output.SetKinE(eKin, i);
+    output.SetMass(geant::units::kElectronMassC2, i);
     output.SetTrackIndex(i, i);
   }
 }

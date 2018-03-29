@@ -25,8 +25,9 @@ void FillDataVector(PositronAnihilValidData &data, bool useAlias)
     PreparePrimaries(primaries, kMaxBasket);
 
     std::vector<double> enBeforeInteraction;
-    enBeforeInteraction.insert(enBeforeInteraction.begin(), primaries.GetKinEVec(),
-                               primaries.GetKinEVec() + kMaxBasket);
+    for (int i = 0; i < primaries.GetNtracks(); ++i) {
+      enBeforeInteraction.push_back(primaries.GetKinE(i) + 2. * geant::units::kElectronMassC2);
+    }
 
     primaries.SetNtracks(kMaxBasket);
 
@@ -35,7 +36,7 @@ void FillDataVector(PositronAnihilValidData &data, bool useAlias)
 
     auto &secondaries = Td->fPhysicsData->GetSecondarySOA();
     for (int i = 0; i < secondaries.GetNtracks(); ++i) {
-      int primIndx    = primaries.GetTrackIndex(i);
+      int primIndx    = secondaries.GetTrackIndex(i);
       double enNormed = secondaries.GetKinE(i) / enBeforeInteraction[primIndx];
       data.gammaE.Fill(enNormed);
       double gammaCost = secondaries.GetDirZ(i);
@@ -58,7 +59,7 @@ void FillDataScalar(PositronAnihilValidData &data, bool useAlias)
 
     std::vector<double> enBeforeInteraction;
     for (auto &positron : primaries) {
-      enBeforeInteraction.push_back(positron.GetKinE());
+      enBeforeInteraction.push_back(positron.GetKinE() + 2. * geant::units::kElectronMassC2);
     }
 
     for (int i = 0; i < kMaxBasket; ++i) {
@@ -90,21 +91,20 @@ int main()
 
   Printf("Number of gamma for each test %d", kMaxBasket * kBasketTries);
   Printf("Relative histograms of kinematics (difference in percents)");
-  //  {
-  //    Printf("Test for alias method");
-  //
-  //    PositronAnihilValidData scalar;
-  //    FillDataScalar(scalar, true);
-  //    PositronAnihilValidData vector;
-  //    FillDataVector(vector, true);
-  //
-  //    Printf("Normilized gamma energy");
-  //    vector.gammaE.Compare(scalar.gammaE);
-  //
-  //
-  //    Printf("Gamma z direction");
-  //    vector.gammaTheta.Compare(scalar.gammaTheta);
-  //  }
+  {
+    Printf("Test for alias method");
+
+    PositronAnihilValidData scalar;
+    FillDataScalar(scalar, true);
+    PositronAnihilValidData vector;
+    FillDataVector(vector, true);
+
+    Printf("Normilized gamma energy");
+    vector.gammaE.Compare(scalar.gammaE);
+
+    Printf("Gamma z direction");
+    vector.gammaTheta.Compare(scalar.gammaTheta);
+  }
   {
     Printf("Test for rej method");
 
