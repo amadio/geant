@@ -155,14 +155,16 @@ void AliasTable::PreparDiscreteTable(double *ydata, double *xx, int *binindx, in
     }
     int indxl = 0;
     for (indxl = 0; indxl < numdata; ++indxl) {
-      if (xx[indxl] < 0.0 && std::fabs(xx[indxl]) < sum) break;
+      if (xx[indxl] <= 0.0 && std::fabs(xx[indxl]) < sum) break;
     }
     if (indxl > numdata - 1 || indxh > numdata - 1) {
       continue;
     }
     double dum0 = sum - std::fabs(xx[indxl]);
     xx[indxh] += dum0;
-    xx[indxl]      = -1.0 * xx[indxl] / sum;
+    if(xx[indxl]==0) xx[indxl]=1.e-99/sum;   ////MODIFICA IMPORTANTE!!! ---> weight almost zero
+    else
+     xx[indxl]      = -1.0 * xx[indxl] / sum;
     binindx[indxl] = indxh;
   }
   for (int i = 0; i < numdata; ++i) {
@@ -170,6 +172,7 @@ void AliasTable::PreparDiscreteTable(double *ydata, double *xx, int *binindx, in
       binindx[i] = i;
       xx[i]      = 1.;
     }
+    else if (xx[i]<1.e-99) xx[i]=0;
   }
 }
 
