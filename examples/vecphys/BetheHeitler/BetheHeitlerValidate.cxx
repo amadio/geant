@@ -6,14 +6,14 @@
 const int kBasketTries = 100000;
 
 const int kNumBins = 100;
-struct BHValidData {
-  Hist elEn;
-  Hist elAngle;
-  Hist posEn;
-  Hist posAngle;
-  BHValidData()
-      : elEn(0.0, 1.0, kNumBins), elAngle(-12.0, 0.0, kNumBins), posEn(0.0, 1.0, kNumBins),
-        posAngle(-12.0, 0.0, kNumBins)
+struct MBValidData {
+  Hist primEn;
+  Hist primAngle;
+  Hist secEn;
+  Hist secAngle;
+  MBValidData()
+      : primEn(0.0, 1.0, kNumBins), primAngle(-12.0, 0.0, kNumBins), secEn(0.0, 1.0, kNumBins),
+        secAngle(-12.0, 0.0, kNumBins)
   {
   }
 };
@@ -24,7 +24,7 @@ BetheHeitlerPairModel *rpModelAlias;
 VecBetheHeitlerPairModel *rpModelAliasVec;
 TaskData *td;
 
-void FillDataVector(BHValidData &data, bool useAlias)
+void FillDataVector(MBValidData &data, bool useAlias)
 {
   LightTrack_v primaries;
   BetheHeitlerPairModel *model = useAlias ? rpModelAliasVec : rpModelRejVec;
@@ -48,26 +48,26 @@ void FillDataVector(BHValidData &data, bool useAlias)
 
       if (secondaries.GetGVcode(i) == geantphysics::Electron::Definition()->GetInternalCode()) {
 
-        data.elEn.Fill(enNormed);
+        data.primEn.Fill(enNormed);
         double elZ = 0.5 * (1.0 - secondaries.GetDirZ(i));
         if (elZ > 0 && log10(elZ) > -12.0) {
-          data.elAngle.Fill(log10(elZ));
+          data.primAngle.Fill(log10(elZ));
         }
 
       } else if (secondaries.GetGVcode(i) == geantphysics::Positron::Definition()->GetInternalCode()) {
 
-        data.posEn.Fill(enNormed);
+        data.secEn.Fill(enNormed);
 
         double posZ = 0.5 * (1.0 - secondaries.GetDirZ(i));
         if (posZ > 0 && log10(posZ) > -12.0) {
-          data.posAngle.Fill(log10(posZ));
+          data.secAngle.Fill(log10(posZ));
         }
       }
     }
   }
 }
 
-void FillDataScalar(BHValidData &data, bool useAlias)
+void FillDataScalar(MBValidData &data, bool useAlias)
 {
   std::vector<LightTrack> primaries;
   BetheHeitlerPairModel *model = useAlias ? rpModelAlias : rpModelRej;
@@ -92,19 +92,19 @@ void FillDataScalar(BHValidData &data, bool useAlias)
 
         if (secondaries[sec].GetGVcode() == geantphysics::Electron::Definition()->GetInternalCode()) {
 
-          data.elEn.Fill(enNormed);
+          data.primEn.Fill(enNormed);
           double elZ = 0.5 * (1.0 - secondaries[sec].GetDirZ());
           if (elZ > 0 && log10(elZ) > -12.0) {
-            data.elAngle.Fill(log10(elZ));
+            data.primAngle.Fill(log10(elZ));
           }
 
         } else if (secondaries[sec].GetGVcode() == geantphysics::Positron::Definition()->GetInternalCode()) {
 
-          data.posEn.Fill(enNormed);
+          data.secEn.Fill(enNormed);
 
           double posZ = 0.5 * (1.0 - secondaries[sec].GetDirZ());
           if (posZ > 0 && log10(posZ) > -12.0) {
-            data.posAngle.Fill(log10(posZ));
+            data.secAngle.Fill(log10(posZ));
           }
         }
       }
@@ -127,36 +127,36 @@ int main()
   {
     Printf("Test for alias method");
 
-    BHValidData scalar;
+    MBValidData scalar;
     FillDataScalar(scalar, true);
-    BHValidData vector;
+    MBValidData vector;
     FillDataVector(vector, true);
 
     Printf("====EL EN====");
-    vector.elEn.Compare(scalar.elEn);
+    vector.primEn.Compare(scalar.primEn);
     Printf("====POS EN====");
-    vector.posEn.Compare(scalar.posEn);
+    vector.secEn.Compare(scalar.secEn);
     Printf("====EL Dir====");
-    vector.elAngle.Compare(scalar.elAngle);
+    vector.primAngle.Compare(scalar.primAngle);
     Printf("====POS Dir====");
-    vector.posAngle.Compare(scalar.posAngle);
+    vector.secAngle.Compare(scalar.secAngle);
   }
   {
     Printf("Test for rej method");
 
-    BHValidData scalar;
+    MBValidData scalar;
     FillDataScalar(scalar, false);
-    BHValidData vector;
+    MBValidData vector;
     FillDataVector(vector, false);
 
     Printf("====EL EN====");
-    vector.elEn.Compare(scalar.elEn);
+    vector.primEn.Compare(scalar.primEn);
     Printf("====POS EN====");
-    vector.posEn.Compare(scalar.posEn);
+    vector.secEn.Compare(scalar.secEn);
     Printf("====EL Dir====");
-    vector.elAngle.Compare(scalar.elAngle);
+    vector.primAngle.Compare(scalar.primAngle);
     Printf("====POS Dir====");
-    vector.posAngle.Compare(scalar.posAngle);
+    vector.secAngle.Compare(scalar.secAngle);
   }
 
   return 0;

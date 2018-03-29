@@ -67,3 +67,9 @@ target_link_libraries(PhysVecPositronTo2GammaBench Geant_v RealPhysics benchmark
 
 add_executable(PhysVecPositronTo2GammaValid PositronTo2Gamma/PositronTo2GammaValidate.cxx ${COMMON_HEADERS})
 target_link_libraries(PhysVecPositronTo2GammaValid Geant_v RealPhysics)
+
+add_executable(PhysVecMollerBhabhaValid MollerBhabha/MollerBhabhaValidate.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecMollerBhabhaValid Geant_v RealPhysics)
+
+add_executable(PhysVecMollerBhabhaBench MollerBhabha/MollerBhabhaBench.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecMollerBhabhaBench Geant_v RealPhysics benchmark pthread)

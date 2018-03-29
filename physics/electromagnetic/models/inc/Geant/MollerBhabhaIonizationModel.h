@@ -74,7 +74,7 @@ public:
   //
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   MollerBhabhaIonizationModel(const MollerBhabhaIonizationModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -226,7 +226,7 @@ private:
     std::vector<LinAlias *> fAliasData;
   };
 
-private:
+protected:
   /** @brief Flag to indicate if the model is for electron or positron interaction. */
   bool fIsElectron;
 
