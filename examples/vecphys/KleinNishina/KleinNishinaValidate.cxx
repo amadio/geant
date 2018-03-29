@@ -30,8 +30,8 @@ void FillDataVector(ComptonValidData &data, bool useAlias)
     PreparePrimaries(primaries, kMaxBasket);
 
     std::vector<double> enBeforeInteraction;
-    enBeforeInteraction.insert(enBeforeInteraction.begin(), primaries.GetKinEVec(),
-                               primaries.GetKinEVec() + kMaxBasket);
+    enBeforeInteraction.insert(enBeforeInteraction.begin(), primaries.GetKinEArr(),
+                               primaries.GetKinEArr() + kMaxBasket);
 
     primaries.SetNtracks(kMaxBasket);
 

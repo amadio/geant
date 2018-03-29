@@ -391,22 +391,44 @@ public:
   /** @brief Method that returns the X direction value (normalized, adimensional) */
   double GetDirX(int i) const { return fXdirV[i]; }
 
-  double *GetDirXV(int i = 0) { return &fXdirV[i]; }
+  PhysDV GetDirXVec(int i) const
+  {
+    PhysDV tmp;
+    vecCore::Load(tmp, &fXdirV[i]);
+    return tmp;
+  }
 
   /** @brief Method that returns the Y direction value (normalized, adimensional) */
   double GetDirY(int i) const { return fYdirV[i]; }
 
-  double *GetDirYV(int i = 0) { return &fYdirV[i]; }
+  PhysDV GetDirYVec(int i) const
+  {
+    PhysDV tmp;
+    vecCore::Load(tmp, &fYdirV[i]);
+    return tmp;
+  }
 
   /** @brief Method that returns the Z direction value (normalized, adimensional) */
   double GetDirZ(int i) const { return fZdirV[i]; }
 
-  double *GetDirZV(int i = 0) { return &fZdirV[i]; }
+  PhysDV GetDirZVec(int i) const
+  {
+    PhysDV tmp;
+    vecCore::Load(tmp, &fZdirV[i]);
+    return tmp;
+  }
 
   /** @brief Method that returns the kinetic energy (unit: energy) */
   double GetKinE(int i) const { return fKinEV[i]; }
 
-  double *GetKinEVec(int i = 0) { return &fKinEV[i]; }
+  PhysDV GetKinEVec(int i) const
+  {
+    PhysDV tmp;
+    vecCore::Load(tmp, &fKinEV[i]);
+    return tmp;
+  }
+
+  double *GetKinEArr(int i = 0) { return &fKinEV[i]; }
 
   /** @brief Method that returns the dynamic mass (unit: energy) */
   double GetMass(int i) const { return fMassV[i]; }
@@ -422,8 +444,6 @@ public:
 
   /** Method that returns the energy deposit in the last step (unit: energy) */
   double GetEnergyDeposit(int i) const { return fEdepV[i]; }
-
-  double *GetEnergyDepositVec(int i = 0) { return &fEdepV[i]; }
 
   /** Method to get the number of interaction length left. */
   double GetNumOfInteractionLegthLeft(int i) const { return fNintLenV[i]; }
@@ -543,6 +563,8 @@ public:
    * @param aEdep (unit: energy)
    */
   void SetEnergyDeposit(const double aEdep, int i) { fEdepV[i] = aEdep; }
+
+  void SetEnergyDepositVec(PhysDV aEdep, int i) { vecCore::Store(aEdep, &fEdepV[i]); }
 
   /**
    * @brief Method that sets the number of discrete interaction left.

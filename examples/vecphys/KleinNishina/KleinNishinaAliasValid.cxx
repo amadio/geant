@@ -51,13 +51,21 @@ int main()
   for (int i = 0; i < kTestSize; ++i) {
     out1[i] = klnStd->SampleReducedPhotonEnergy(energy[i], r1[i], r2[i], r3[i]);
   }
-  kln->SampleReducedPhotonEnergyVec(energy.data(), r1.data(), r2.data(), r3.data(), out2.data(), kTestSize);
+  for (int i = 0; i < kTestSize; i += kPhysDVWidth) {
+    PhysDV en, r1v, r2v, r3v;
+    vecCore::Load(en, energy.data() + i);
+    vecCore::Load(r1v, r1.data() + i);
+    vecCore::Load(r2v, r2.data() + i);
+    vecCore::Load(r3v, r3.data() + i);
+    PhysDV eps = kln->SampleReducedPhotonEnergyVec(en, r1v, r2v, r3v);
+    vecCore::Store(eps, out2.data() + i);
+  }
 
   double cumError = 0.0;
   for (int i = 0; i < kTestSize; ++i) {
     cumError += std::abs(out1[i] - out2[i]);
-    Printf("TestSize: %d Cumulative error: %f", kTestSize, cumError);
   }
+  Printf("TestSize: %d Cumulative error: %f", kTestSize, cumError);
 
   delete kln;
   delete klnStd;

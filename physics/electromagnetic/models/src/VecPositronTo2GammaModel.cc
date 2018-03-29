@@ -37,8 +37,7 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
   double *gamma                = data.fDoubleArr; // Used by rejection
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV pekin;
-    vecCore::Load(pekin, tracks.GetKinEVec(i));
+    PhysDV pekin  = tracks.GetKinEVec(i);
     PhysDV gammaV = pekin * geant::units::kInvElectronMassC2 + 1.0;
     if (GetUseSamplingTables()) {
       PhysDV rnd1 = td->fRndm->uniformV();
@@ -56,27 +55,25 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
   }
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV pekin;
-    vecCore::Load(pekin, tracks.GetKinEVec(i));
-    PhysDV tau  = pekin * geant::units::kInvElectronMassC2;
-    PhysDV tau2 = tau + 2.0;
+    PhysDV pekin = tracks.GetKinEVec(i);
+    PhysDV tau   = pekin * geant::units::kInvElectronMassC2;
+    PhysDV tau2  = tau + 2.0;
     PhysDV eps;
     vecCore::Load(eps, &epsArr[i]);
     // direction of the first gamma
-    PhysDV ct         = (eps * tau2 - 1.) / (eps * vecCore::math::Sqrt(tau * tau2));
-    const PhysDV cost = vecCore::math::Max(vecCore::math::Min(ct, (PhysDV)1.), (PhysDV)-1.);
-    const PhysDV sint = vecCore::math::Sqrt((1. + cost) * (1. - cost));
+    PhysDV ct         = (eps * tau2 - 1.) / (eps * Sqrt(tau * tau2));
+    const PhysDV cost = Max(Min(ct, (PhysDV)1.), (PhysDV)-1.);
+    const PhysDV sint = Sqrt((1. + cost) * (1. - cost));
     const PhysDV phi  = geant::units::kTwoPi * td->fRndm->uniformV();
     PhysDV sinPhi, cosPhi;
-    vecCore::math::SinCos(phi, &sinPhi, &cosPhi);
+    SinCos(phi, &sinPhi, &cosPhi);
     PhysDV gamDirX = sint * cosPhi;
     PhysDV gamDirY = sint * sinPhi;
     PhysDV gamDirZ = cost;
     // rotate gamma direction to the lab frame:
-    PhysDV posX, posY, posZ;
-    vecCore::Load(posX, tracks.GetDirXV(i));
-    vecCore::Load(posY, tracks.GetDirYV(i));
-    vecCore::Load(posZ, tracks.GetDirZV(i));
+    PhysDV posX = tracks.GetDirXVec(i);
+    PhysDV posY = tracks.GetDirYVec(i);
+    PhysDV posZ = tracks.GetDirZVec(i);
     RotateToLabFrame(gamDirX, gamDirY, gamDirZ, posX, posY, posZ);
     //
 
@@ -87,30 +84,30 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     const PhysDV gamEner = eps * tEnergy;
     for (int l = 0; l < kPhysDVWidth; ++l) {
       int idx = secondaries.InsertTrack();
-      secondaries.SetKinE(vecCore::Get(gamEner, l), idx);
-      secondaries.SetDirX(vecCore::Get(gamDirX, l), idx);
-      secondaries.SetDirY(vecCore::Get(gamDirY, l), idx);
-      secondaries.SetDirZ(vecCore::Get(gamDirZ, l), idx);
+      secondaries.SetKinE(gamEner[l], idx);
+      secondaries.SetDirX(gamDirX[l], idx);
+      secondaries.SetDirY(gamDirY[l], idx);
+      secondaries.SetDirZ(gamDirZ[l], idx);
       secondaries.SetGVcode(fSecondaryInternalCode, idx);
       secondaries.SetMass(0.0, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
     }
     //
     // go for the second gamma properties
-    const PhysDV posInitTotalMomentum = vecCore::math::Sqrt(pekin * (pekin + 2.0 * geant::units::kElectronMassC2));
+    const PhysDV posInitTotalMomentum = Sqrt(pekin * (pekin + 2.0 * geant::units::kElectronMassC2));
     // momentum of the second gamma in the lab frame (mom. cons.)
     gamDirX = posInitTotalMomentum * posX - gamEner * gamDirX;
     gamDirY = posInitTotalMomentum * posY - gamEner * gamDirY;
     gamDirZ = posInitTotalMomentum * posZ - gamEner * gamDirZ;
     // normalisation
-    const PhysDV norm = 1.0 / vecCore::math::Sqrt(gamDirX * gamDirX + gamDirY * gamDirY + gamDirZ * gamDirZ);
+    const PhysDV norm = 1.0 / Sqrt(gamDirX * gamDirX + gamDirY * gamDirY + gamDirZ * gamDirZ);
     // set up the second gamma track
     for (int l = 0; l < kPhysDVWidth; ++l) {
       int idx = secondaries.InsertTrack();
-      secondaries.SetKinE(vecCore::Get(tEnergy - gamEner, l), idx);
-      secondaries.SetDirX(vecCore::Get(gamDirX * norm, l), idx);
-      secondaries.SetDirY(vecCore::Get(gamDirY * norm, l), idx);
-      secondaries.SetDirZ(vecCore::Get(gamDirZ * norm, l), idx);
+      secondaries.SetKinE((tEnergy - gamEner)[l], idx);
+      secondaries.SetDirX((gamDirX * norm)[l], idx);
+      secondaries.SetDirY((gamDirY * norm)[l], idx);
+      secondaries.SetDirZ((gamDirZ * norm)[l], idx);
       secondaries.SetGVcode(fSecondaryInternalCode, idx);
       secondaries.SetMass(0.0, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
@@ -124,7 +121,7 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
 
 PhysDV VecPositronTo2GammaModel::SampleEnergyTransferAlias(PhysDV pekin, PhysDV r1, PhysDV r2, PhysDV r3, PhysDV gamma)
 {
-  PhysDV lpekin = vecCore::math::Log(pekin);
+  PhysDV lpekin = Log(pekin);
   //
   PhysDV val       = (lpekin - fSTLogMinPositronEnergy) * fSTILDeltaPositronEnergy;
   PhysDI indxPekin = (PhysDI)val; // lower electron energy bin index
@@ -136,23 +133,22 @@ PhysDV VecPositronTo2GammaModel::SampleEnergyTransferAlias(PhysDV pekin, PhysDV 
 
   PhysDV xiV;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    int idx    = (int)vecCore::Get(indxPekin, l);
-    double r2l = vecCore::Get(r2, l);
-    double r3l = vecCore::Get(r3, l);
+    int idx = (int)indxPekin[l];
 
     // LinAliasCached &als = fCachedAliasTable[idx];
     //    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l);
 
     // Standard version:
     const LinAlias *als = fSamplingTables[idx];
-    const double xi     = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
-                                                  &(als->fAliasIndx[0]), fSTNumDiscreteEnergyTransferVals, r2l, r3l);
-    vecCore::Set(xiV, l, xi);
+    const double xi =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumDiscreteEnergyTransferVals, r2[l], r3[l]);
+    xiV[l] = xi;
   }
 
-  const PhysDV minEps = 0.5 * (1. - vecCore::math::Sqrt((gamma - 1.) / (gamma + 1.)));
-  const PhysDV maxEps = 0.5 * (1. + vecCore::math::Sqrt((gamma - 1.) / (gamma + 1.)));
-  const PhysDV eps    = vecCore::math::Exp(xiV * vecCore::math::Log(maxEps / minEps)) * minEps;
+  const PhysDV minEps = 0.5 * (1. - Sqrt((gamma - 1.) / (gamma + 1.)));
+  const PhysDV maxEps = 0.5 * (1. + Sqrt((gamma - 1.) / (gamma + 1.)));
+  const PhysDV eps    = Exp(xiV * Log(maxEps / minEps)) * minEps;
 
   return eps;
 }
@@ -165,22 +161,21 @@ void VecPositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, d
   PhysDM lanesDone = PhysDM::Zero();
   PhysDI idx;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    vecCore::Set(idx, l, currN);
-    ++currN;
+    idx[l] = currN++;
   }
 
   while (currN < N || !lanesDone.isFull()) {
     PhysDV gamma = vecCore::Gather<PhysDV>(gammaArr, idx);
 
-    const PhysDV minEps = 0.5 * (1. - vecCore::math::Sqrt((gamma - 1.) / (gamma + 1.)));
-    const PhysDV maxEps = 0.5 * (1. + vecCore::math::Sqrt((gamma - 1.) / (gamma + 1.)));
-    const PhysDV dum1   = vecCore::math::Log(maxEps / minEps);
+    const PhysDV minEps = 0.5 * (1. - Sqrt((gamma - 1.) / (gamma + 1.)));
+    const PhysDV maxEps = 0.5 * (1. + Sqrt((gamma - 1.) / (gamma + 1.)));
+    const PhysDV dum1   = Log(maxEps / minEps);
     const PhysDV dum2   = (gamma + 1.) * (gamma + 1.);
 
     PhysDV rnd0 = td->fRndm->uniformV();
     PhysDV rnd1 = td->fRndm->uniformV();
 
-    PhysDV eps = minEps * vecCore::math::Exp(dum1 * rnd0);
+    PhysDV eps = minEps * Exp(dum1 * rnd0);
 
     PhysDV grej     = 1. - eps + (2. * gamma * eps - 1.) / (eps * dum2);
     PhysDM accepted = grej > rnd1;
@@ -191,13 +186,13 @@ void VecPositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, d
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kPhysDVWidth; ++l) {
-      auto laneDone = vecCore::Get(accepted, l);
+      auto laneDone = accepted[l];
       if (laneDone) {
         if (currN < N) {
-          vecCore::Set(idx, l, currN++);
-          vecCore::Set(lanesDone, l, false);
+          idx[l]       = currN++;
+          lanesDone[l] = false;
         } else {
-          vecCore::Set(idx, l, N + 1);
+          idx[l] = N;
         }
       }
     }

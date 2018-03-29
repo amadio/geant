@@ -38,20 +38,17 @@ public:
   {
   }
 
-  virtual ~VecKleinNishinaComptonModel(){};
+  ~VecKleinNishinaComptonModel() override{};
 
-  virtual void Initialize();
+  void Initialize() override;
 
-  virtual void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td);
+  void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
 protected:
-  std::vector<LinAliasCached> fCachedAliasTable;
-  void SampleSecondariesVectorAlias(LightTrack_v &tracks, geant::TaskData *td);
+  std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
 
-  void SampleReducedPhotonEnergyVec(const double *egamma, const double *r1, const double *r2, const double *r3,
-                                    double *out, int N);
+  PhysDV SampleReducedPhotonEnergyVec(PhysDV egamma, PhysDV r1, PhysDV r2, PhysDV r3);
 
-  void SampleSecondariesVectorRej(LightTrack_v &tracks, geant::TaskData *td);
   void SampleReducedPhotonEnergyRej(const double *egamma, double *onemcost, double *sint2, double *eps, int N,
                                     const geant::TaskData *td);
 };

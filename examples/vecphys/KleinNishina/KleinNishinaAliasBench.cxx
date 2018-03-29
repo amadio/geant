@@ -76,7 +76,15 @@ static void SampleAliasVector(benchmark::State &state)
   }
 
   for (auto _ : state) {
-    kln->SampleReducedPhotonEnergyVec(energy.data(), r1.data(), r2.data(), r3.data(), out.data(), state.range(0));
+    for (int i = 0; i < state.range(0); i += kPhysDVWidth) {
+      PhysDV en, r1v, r2v, r3v;
+      vecCore::Load(en, energy.data() + i);
+      vecCore::Load(r1v, r1.data() + i);
+      vecCore::Load(r2v, r2.data() + i);
+      vecCore::Load(r3v, r3.data() + i);
+      PhysDV eps = kln->SampleReducedPhotonEnergyVec(en, r1v, r2v, r3v);
+      vecCore::Store(eps, out.data() + i);
+    }
   }
 
   benchmark::DoNotOptimize(out.data());

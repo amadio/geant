@@ -82,27 +82,25 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
 
   if (GetUseSamplingTables()) {
     for (int i = 0; i < N; i += kPhysDVWidth) {
-      PhysDV ekin;
-      vecCore::Load(ekin, tracks.GetKinEVec(i));
-      PhysDV r1 = td->fRndm->uniformV();
-      PhysDV r2 = td->fRndm->uniformV();
-      PhysDV r3 = td->fRndm->uniformV();
+      PhysDV ekin = tracks.GetKinEVec(i);
+      PhysDV r1   = td->fRndm->uniformV();
+      PhysDV r2   = td->fRndm->uniformV();
+      PhysDV r3   = td->fRndm->uniformV();
 
       PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(ekin, &IZet[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
 
-    tracks.GetKinEVec()[N] = tracks.GetKinEVec()[N - 1];
+    tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     LPMEnergy[N]           = LPMEnergy[N - 1];
     IZet[N]                = IZet[N - 1];
-    SampleTotalEnergyTransferRejVec(tracks.GetKinEVec(), LPMEnergy, IZet, td->fPhysicsData->fPhysicsScratchpad.fEps, N,
+    SampleTotalEnergyTransferRejVec(tracks.GetKinEArr(), LPMEnergy, IZet, td->fPhysicsData->fPhysicsScratchpad.fEps, N,
                                     td);
   }
 
   for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV ekin;
-    vecCore::Load(ekin, tracks.GetKinEVec(i));
+    PhysDV ekin = tracks.GetKinEVec(i);
 
     PhysDV eps;
     vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
@@ -110,28 +108,28 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     PhysDV electronTotE, positronTotE;
     PhysDM tmpM = td->fRndm->uniformV() > 0.5;
     vecCore::MaskedAssign(electronTotE, tmpM, (1. - eps) * ekin);
+    vecCore::MaskedAssign(positronTotE, tmpM, eps * ekin);
     vecCore::MaskedAssign(positronTotE, !tmpM, (1. - eps) * ekin);
     vecCore::MaskedAssign(electronTotE, !tmpM, eps * ekin);
-    vecCore::MaskedAssign(positronTotE, tmpM, eps * ekin);
 
     PhysDV r0 = td->fRndm->uniformV();
     PhysDV r1 = td->fRndm->uniformV();
     PhysDV r2 = td->fRndm->uniformV();
 
-    PhysDV uvar  = -vecCore::math::Log(r0 * r1);
+    PhysDV uvar  = -Log(r0 * r1);
     PhysDM tmpM2 = 9. > 36. * r2;
     vecCore::MaskedAssign(uvar, tmpM2, uvar * 1.6);
     vecCore::MaskedAssign(uvar, !tmpM2, uvar * 0.53333);
 
     const PhysDV thetaElectron = uvar * geant::units::kElectronMassC2 / electronTotE;
     PhysDV sintEle, costEle;
-    vecCore::math::SinCos(thetaElectron, &sintEle, &costEle);
+    SinCos(thetaElectron, &sintEle, &costEle);
     const PhysDV thetaPositron = uvar * geant::units::kElectronMassC2 / positronTotE;
     PhysDV sintPos, costPos;
-    vecCore::math::SinCos(thetaPositron, &sintPos, &costPos);
+    SinCos(thetaPositron, &sintPos, &costPos);
     const PhysDV phi = geant::units::kTwoPi * td->fRndm->uniformV();
     PhysDV sinphi, cosphi;
-    vecCore::math::SinCos(phi, &sinphi, &cosphi);
+    SinCos(phi, &sinphi, &cosphi);
 
     PhysDV eleDirX = sintEle * cosphi;
     PhysDV eleDirY = sintEle * sinphi;
@@ -146,13 +144,12 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
       tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
     }
 
-    const PhysDV ekinElectron = vecCore::math::Max((electronTotE - geant::units::kElectronMassC2), (PhysDV)0.);
-    const PhysDV ekinPositron = vecCore::math::Max((positronTotE - geant::units::kElectronMassC2), (PhysDV)0.);
+    const PhysDV ekinElectron = Max((electronTotE - geant::units::kElectronMassC2), (PhysDV)0.);
+    const PhysDV ekinPositron = Max((positronTotE - geant::units::kElectronMassC2), (PhysDV)0.);
     // 5. rotate direction back to the lab frame: current directions are relative to the photon dir as z-dir
-    PhysDV gammaX, gammaY, gammaZ;
-    vecCore::Load(gammaX, tracks.GetDirXV(i));
-    vecCore::Load(gammaY, tracks.GetDirYV(i));
-    vecCore::Load(gammaZ, tracks.GetDirZV(i));
+    PhysDV gammaX = tracks.GetDirXVec(i);
+    PhysDV gammaY = tracks.GetDirYVec(i);
+    PhysDV gammaZ = tracks.GetDirZVec(i);
     RotateToLabFrame(eleDirX, eleDirY, eleDirZ, gammaX, gammaY, gammaZ);
     RotateToLabFrame(posDirX, posDirY, posDirZ, gammaX, gammaY, gammaZ);
 
@@ -160,19 +157,19 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
       auto &secondarySoA = td->fPhysicsData->GetSecondarySOA();
 
       int idx = secondarySoA.InsertTrack();
-      secondarySoA.SetDirX(vecCore::Get(eleDirX, l), idx);
-      secondarySoA.SetDirY(vecCore::Get(eleDirY, l), idx);
-      secondarySoA.SetDirZ(vecCore::Get(eleDirZ, l), idx);
-      secondarySoA.SetKinE(vecCore::Get(ekinElectron, l), idx);
+      secondarySoA.SetDirX(eleDirX[l], idx);
+      secondarySoA.SetDirY(eleDirY[l], idx);
+      secondarySoA.SetDirZ(eleDirZ[l], idx);
+      secondarySoA.SetKinE(ekinElectron[l], idx);
       secondarySoA.SetGVcode(fElectronInternalCode, idx);
       secondarySoA.SetMass(geant::units::kElectronMassC2, idx);
       secondarySoA.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
       // then set the e+
       idx = secondarySoA.InsertTrack();
-      secondarySoA.SetDirX(vecCore::Get(posDirX, l), idx);
-      secondarySoA.SetDirY(vecCore::Get(posDirY, l), idx);
-      secondarySoA.SetDirZ(vecCore::Get(posDirZ, l), idx);
-      secondarySoA.SetKinE(vecCore::Get(ekinPositron, l), idx);
+      secondarySoA.SetDirX(posDirX[l], idx);
+      secondarySoA.SetDirY(posDirY[l], idx);
+      secondarySoA.SetDirZ(posDirZ[l], idx);
+      secondarySoA.SetKinE(ekinPositron[l], idx);
       secondarySoA.SetGVcode(fPositronInternalCode, idx);
       secondarySoA.SetMass(geant::units::kElectronMassC2, idx);
       secondarySoA.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
@@ -184,7 +181,7 @@ PhysDV VecRelativisticPairModel::SampleTotalEnergyTransferAliasOneShot(const Phy
                                                                        const PhysDV r1, const PhysDV r2,
                                                                        const PhysDV r3)
 {
-  const PhysDV legamma = vecCore::math::Log(egamma);
+  const PhysDV legamma = Log(egamma);
 
   PhysDV val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
   PhysDI indxEgamma = (PhysDI)val; // lower electron energy bin index
@@ -196,29 +193,23 @@ PhysDV VecRelativisticPairModel::SampleTotalEnergyTransferAliasOneShot(const Phy
 
   PhysDV xiV;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    double r2l               = vecCore::Get(r2, l);
-    double r3l               = vecCore::Get(r3, l);
-    int idx                  = (int)vecCore::Get(indxEgamma, l);
+    int idx                  = (int)indxEgamma[l];
     RatinAliasDataTrans &als = fAliasTablesPerMaterial[matIDX[l]].fTablePerEn[idx];
-    double xi                = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l, 0);
-
-    vecCore::Set(xiV, l, xi);
+    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, r2[l], r3[l], 0);
+    xiV[l]    = xi;
   }
 
   PhysDV deltaMax;
   PhysDV deltaFactor;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    int izet = fAliasTablesPerMaterial[matIDX[l]].fILowestZ;
-
-    const double deltaMaxScalar = gElementData[izet]->fDeltaMaxTsai;
-    double deltaFactorScalar    = gElementData[izet]->fDeltaFactor;
-    vecCore::Set(deltaMax, l, deltaMaxScalar);
-    vecCore::Set(deltaFactor, l, deltaFactorScalar);
+    int izet       = fAliasTablesPerMaterial[matIDX[l]].fILowestZ;
+    deltaMax[l]    = gElementData[izet]->fDeltaMaxTsai;
+    deltaFactor[l] = gElementData[izet]->fDeltaFactor;
   }
   const PhysDV eps0   = geant::units::kElectronMassC2 / egamma;
-  const PhysDV epsp   = 0.5 - 0.5 * vecCore::math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
-  const PhysDV epsMin = vecCore::math::Max(eps0, epsp);
-  const PhysDV epsV   = epsMin * vecCore::math::Exp(xiV * vecCore::math::Log(0.5 / epsMin));
+  const PhysDV epsp   = 0.5 - 0.5 * Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
+  const PhysDV epsMin = Max(eps0, epsp);
+  const PhysDV epsV   = epsMin * Exp(xiV * Log(0.5 / epsMin));
   return epsV;
 }
 
@@ -231,8 +222,7 @@ void VecRelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *ega
   PhysDM lanesDone = PhysDM::Zero();
   PhysDI idx;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    vecCore::Set(idx, l, currN);
-    ++currN;
+    idx[l] = currN++;
   }
 
   while (currN < N || !lanesDone.isFull()) {
@@ -242,24 +232,19 @@ void VecRelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *ega
     PhysDV varS1Cond, ilVarS1Cond;
 
     for (int l = 0; l < kPhysDVWidth; ++l) {
-      int lIdx = vecCore::Get(idx, l);
-      int lZet = izet[lIdx];
-      vecCore::Set(fz, l, gElementData[lZet]->fFz);
-      if (fIsUseTsaisScreening) {
-        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMaxTsai);
-      } else {
-        vecCore::Set(deltaMax, l, gElementData[lZet]->fDeltaMax);
-      }
-      vecCore::Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
-      vecCore::Set(varS1Cond, l, gElementData[lZet]->fVarS1Cond);
-      vecCore::Set(ilVarS1Cond, l, gElementData[lZet]->fILVarS1Cond);
+      int lZet       = izet[idx[l]];
+      fz[l]          = gElementData[lZet]->fFz;
+      deltaMax[l]    = fIsUseTsaisScreening ? gElementData[lZet]->fDeltaMaxTsai : gElementData[lZet]->fDeltaMax;
+      deltaFac[l]    = gElementData[lZet]->fDeltaFactor;
+      varS1Cond[l]   = gElementData[lZet]->fVarS1Cond;
+      ilVarS1Cond[l] = gElementData[lZet]->fILVarS1Cond;
     }
 
     PhysDV egammaV        = vecCore::Gather<PhysDV>(egamma, idx);
     const PhysDV eps0     = geant::units::kElectronMassC2 / egammaV;
     const PhysDV deltaMin = 4. * eps0 * deltaFac;
-    const PhysDV epsp     = 0.5 - 0.5 * vecCore::math::Sqrt(1. - deltaMin / deltaMax);
-    const PhysDV epsMin   = vecCore::math::Max(eps0, epsp);
+    const PhysDV epsp     = 0.5 - 0.5 * Sqrt(1. - deltaMin / deltaMax);
+    const PhysDV epsMin   = Max(eps0, epsp);
     const PhysDV epsRange = 0.5 - epsMin;
 
     PhysDV F10, F20;
@@ -267,8 +252,8 @@ void VecRelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *ega
     F10 -= fz;
     F20 -= fz;
 
-    const PhysDV NormF1   = vecCore::math::Max(F10 * epsRange * epsRange, (PhysDV)0.);
-    const PhysDV NormF2   = vecCore::math::Max(1.5 * F20, (PhysDV)0.);
+    const PhysDV NormF1   = Max(F10 * epsRange * epsRange, (PhysDV)0.);
+    const PhysDV NormF2   = Max(1.5 * F20, (PhysDV)0.);
     const PhysDV NormCond = NormF1 / (NormF1 + NormF2);
 
     PhysDV rnd0 = td->fRndm->uniformV();
@@ -278,7 +263,7 @@ void VecRelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *ega
     PhysDV eps     = 0.0;
     PhysDV greject = 0.0;
     PhysDM cond1   = NormCond > rnd0;
-    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * vecCore::math::Pow(rnd1, (PhysDV)1. / 3.));
+    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * Pow(rnd1, (PhysDV)1. / 3.));
     vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
     const PhysDV delta = deltaFac * eps0 / (eps * (1. - eps));
 
@@ -318,13 +303,13 @@ void VecRelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *ega
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kPhysDVWidth; ++l) {
-      auto laneDone = vecCore::Get(accepted, l);
+      auto laneDone = accepted[l];
       if (laneDone) {
         if (currN < N) {
-          vecCore::Set(idx, l, currN++);
-          vecCore::Set(lanesDone, l, false);
+          idx[l]       = currN++;
+          lanesDone[l] = false;
         } else {
-          vecCore::Set(idx, l, N);
+          idx[l] = N;
         }
       }
     }
@@ -336,14 +321,13 @@ void VecRelativisticPairModel::ScreenFunction12(PhysDV &val1, PhysDV &val2, cons
   if (istsai) {
     const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const PhysDV gamma2 = gamma * gamma;
-    const PhysDV dum1   = 33.726 - 4. * vecCore::math::Log(1.0 + 0.311877 * gamma2) +
-                        4.8 * vecCore::math::Exp(-0.9 * gamma) + 3.2 * vecCore::math::Exp(-1.5 * gamma);
+    const PhysDV dum1 = 33.726 - 4. * Log(1.0 + 0.311877 * gamma2) + 4.8 * Exp(-0.9 * gamma) + 3.2 * Exp(-1.5 * gamma);
     const PhysDV dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
     val1              = dum1 + dum2;
     val2              = dum1 - 0.5 * dum2;
   } else {
     PhysDM tmp = delta > 1.;
-    vecCore::MaskedAssign(val1, tmp, 42.24 - 8.368 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(val1, tmp, 42.24 - 8.368 * Log(delta + 0.952));
     vecCore::MaskedAssign(val2, tmp, val1);
     vecCore::MaskedAssign(val1, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
     vecCore::MaskedAssign(val2, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
@@ -357,11 +341,11 @@ PhysDV VecRelativisticPairModel::ScreenFunction1(const PhysDV delta, const bool 
   if (istsai) {
     const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const PhysDV gamma2 = gamma * gamma;
-    val = 33.726 - 4. * vecCore::math::Log(1.0 + 0.311877 * gamma2) + 4.8 * vecCore::math::Exp(-0.9 * gamma) +
-          3.2 * vecCore::math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
+    val = 33.726 - 4. * Log(1.0 + 0.311877 * gamma2) + 4.8 * Exp(-0.9 * gamma) + 3.2 * Exp(-1.5 * gamma) +
+          2. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
     PhysDM tmp = delta > 1.;
-    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * Log(delta + 0.952));
     vecCore::MaskedAssign(val, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
   }
   return val;
@@ -374,11 +358,11 @@ PhysDV VecRelativisticPairModel::ScreenFunction2(const PhysDV delta, const bool 
   if (istsai) {
     const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const PhysDV gamma2 = gamma * gamma;
-    val = 33.726 - 4. * vecCore::math::Log(1.0 + 0.311877 * gamma2) + 4.8 * vecCore::math::Exp(-0.9 * gamma) +
-          3.2 * vecCore::math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
+    val = 33.726 - 4. * Log(1.0 + 0.311877 * gamma2) + 4.8 * Exp(-0.9 * gamma) + 3.2 * Exp(-1.5 * gamma) -
+          1. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
     PhysDM tmp = delta > 1.;
-    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * Log(delta + 0.952));
     vecCore::MaskedAssign(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
   return val;
@@ -390,12 +374,11 @@ void VecRelativisticPairModel::ComputeScreeningFunctions(PhysDV &phi1, PhysDV &p
   if (istsai) {
     const PhysDV gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const PhysDV gamma2 = gamma * gamma;
-    phi1 = 16.863 - 2.0 * vecCore::math::Log(1.0 + 0.311877 * gamma2) + 2.4 * vecCore::math::Exp(-0.9 * gamma) +
-           1.6 * vecCore::math::Exp(-1.5 * gamma);
+    phi1 = 16.863 - 2.0 * Log(1.0 + 0.311877 * gamma2) + 2.4 * Exp(-0.9 * gamma) + 1.6 * Exp(-1.5 * gamma);
     phi2 = phi1 - 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
   } else {
     PhysDM tmp = delta > 1.;
-    vecCore::MaskedAssign(phi1, tmp, 21.12 - 4.184 * vecCore::math::Log(delta + 0.952));
+    vecCore::MaskedAssign(phi1, tmp, 21.12 - 4.184 * Log(delta + 0.952));
     vecCore::MaskedAssign(phi2, tmp, phi1);
 
     PhysDV delta2 = delta * delta;
@@ -410,20 +393,20 @@ void VecRelativisticPairModel::ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &func
 
   //  1. y = E_+/E_{\gamma} with E_+ being the total energy transfered to one of the e-/e+ pair
   //     s'  = \sqrt{ \frac{1}{8} \frac{1}{y(1-y)}   \frac{E^{KL}_{LPM}}{E_{\gamma}}  }
-  const PhysDV varSprime = vecCore::math::Sqrt(0.125 * lpmenergy / (eps * egamma * (1.0 - eps)));
+  const PhysDV varSprime = Sqrt(0.125 * lpmenergy / (eps * egamma * (1.0 - eps)));
   funcXiS                = 2.0;
 
   PhysDM tmpM = varSprime > 1.0;
   vecCore::MaskedAssign(funcXiS, tmpM, (PhysDV)1.0);
   tmpM = varSprime > varS1Cond;
   if (tmpM.isNotEmpty()) {
-    const PhysDV funcHSprime = vecCore::math::Log(varSprime) * ilVarS1Cond;
+    const PhysDV funcHSprime = Log(varSprime) * ilVarS1Cond;
     PhysDV tmpFuncXiS =
         1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ilVarS1Cond;
     vecCore::MaskedAssign(funcXiS, tmpM, tmpFuncXiS);
   }
 
-  const PhysDV varShat = varSprime / vecCore::math::Sqrt(funcXiS);
+  const PhysDV varShat = varSprime / Sqrt(funcXiS);
 
   for (int l = 0; l < kPhysDVWidth; ++l) {
     double lFuncGS, lFuncPhiS, lVarShat;
