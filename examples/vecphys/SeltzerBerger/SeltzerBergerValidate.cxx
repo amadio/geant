@@ -1,38 +1,38 @@
 #include <Geant/Electron.h>
 #include <Geant/Positron.h>
-#include "MollerBhabhaTestCommon.h"
+#include "SeltzerBergerTestCommon.h"
 #include "Hist.h"
 
 const int kBasketTries = 100000;
 
 const int kNumBins = 100;
-struct MBValidData {
+struct SBValidData {
   Hist primEn;
   Hist primAngle;
   Hist secEn;
   Hist secAngle;
-  MBValidData()
+  SBValidData()
       : primEn(0.0, 1.0, kNumBins), primAngle(-1.0, 1.0, kNumBins), secEn(0.0, 1.0, kNumBins),
         secAngle(-1.0, 1.0, kNumBins)
   {
   }
 };
 
-MollerBhabhaIonizationModel *aliasEl;
-MollerBhabhaIonizationModel *aliasPos;
-MollerBhabhaIonizationModel *rejEl;
-MollerBhabhaIonizationModel *rejPos;
-VecMollerBhabhaIonizationModel *vecAliasEl;
-VecMollerBhabhaIonizationModel *vecAliasPos;
-VecMollerBhabhaIonizationModel *vecRejEl;
-VecMollerBhabhaIonizationModel *vecRejPos;
+SeltzerBergerBremsModel *aliasEl;
+SeltzerBergerBremsModel *aliasPos;
+SeltzerBergerBremsModel *rejEl;
+SeltzerBergerBremsModel *rejPos;
+VecSeltzerBergerBremsModel *vecAliasEl;
+VecSeltzerBergerBremsModel *vecAliasPos;
+VecSeltzerBergerBremsModel *vecRejEl;
+VecSeltzerBergerBremsModel *vecRejPos;
 
 TaskData *td;
 
-void FillDataVector(MBValidData &data, bool useAlias, bool forElectron)
+void FillDataVector(SBValidData &data, bool useAlias, bool forElectron)
 {
   LightTrack_v primaries;
-  VecMollerBhabhaIonizationModel *model;
+  VecSeltzerBergerBremsModel *model;
   if (forElectron) {
     model = useAlias ? vecAliasEl : vecRejEl;
   } else {
@@ -68,10 +68,10 @@ void FillDataVector(MBValidData &data, bool useAlias, bool forElectron)
   }
 }
 
-void FillDataScalar(MBValidData &data, bool useAlias, bool forElectron)
+void FillDataScalar(SBValidData &data, bool useAlias, bool forElectron)
 {
   std::vector<LightTrack> primaries;
-  MollerBhabhaIonizationModel *model;
+  SeltzerBergerBremsModel *model;
   if (forElectron) {
     model = useAlias ? aliasEl : rejEl;
   } else {
@@ -108,14 +108,14 @@ int main()
 {
 
   PrepareWorld();
-  rejEl       = PrepareMBModel(false, true);
-  rejPos      = PrepareMBModel(false, false);
-  aliasEl     = PrepareMBModel(true, true);
-  aliasPos    = PrepareMBModel(true, false);
-  vecRejEl    = PrepareVecMBModel(false, true);
-  vecRejPos   = PrepareVecMBModel(false, false);
-  vecAliasEl  = PrepareVecMBModel(true, true);
-  vecAliasPos = PrepareVecMBModel(true, false);
+  rejEl       = PrepareSBModel(false, true);
+  rejPos      = PrepareSBModel(false, false);
+  aliasEl     = PrepareSBModel(true, true);
+  aliasPos    = PrepareSBModel(true, false);
+  vecRejEl    = PrepareVecSBModel(false, true);
+  vecRejPos   = PrepareVecSBModel(false, false);
+  vecAliasEl  = PrepareVecSBModel(true, true);
+  vecAliasPos = PrepareVecSBModel(true, false);
   td          = PrepareTaskData();
 
   Printf("Number of leptons for each test %d", kMaxBasket * kBasketTries);
@@ -123,9 +123,9 @@ int main()
   {
     Printf("Test for alias method electron");
 
-    MBValidData scalar;
+    SBValidData scalar;
     FillDataScalar(scalar, true, true);
-    MBValidData vector;
+    SBValidData vector;
     FillDataVector(vector, true, true);
 
     Printf("====Prim EN====");
@@ -140,9 +140,9 @@ int main()
   {
     Printf("Test for alias method positron");
 
-    MBValidData scalar;
+    SBValidData scalar;
     FillDataScalar(scalar, true, false);
-    MBValidData vector;
+    SBValidData vector;
     FillDataVector(vector, true, false);
 
     Printf("====Prim EN====");
@@ -157,9 +157,9 @@ int main()
   {
     Printf("Test for rej method electron");
 
-    MBValidData scalar;
+    SBValidData scalar;
     FillDataScalar(scalar, false, true);
-    MBValidData vector;
+    SBValidData vector;
     FillDataVector(vector, false, true);
 
     Printf("====Prim EN====");
@@ -174,9 +174,9 @@ int main()
   {
     Printf("Test for rej method positron");
 
-    MBValidData scalar;
+    SBValidData scalar;
     FillDataScalar(scalar, false, false);
-    MBValidData vector;
+    SBValidData vector;
     FillDataVector(vector, false, false);
 
     Printf("====Prim EN====");

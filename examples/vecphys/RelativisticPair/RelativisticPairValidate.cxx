@@ -6,12 +6,12 @@
 const int kBasketTries = 100000;
 
 const int kNumBins = 100;
-struct MBValidData {
+struct RPValidData {
   Hist primEn;
   Hist primAngle;
   Hist secEn;
   Hist secAngle;
-  MBValidData()
+  RPValidData()
       : primEn(0.0, 1.0, kNumBins), primAngle(-12.0, 0.0, kNumBins), secEn(0.0, 1.0, kNumBins),
         secAngle(-12.0, 0.0, kNumBins)
   {
@@ -24,7 +24,7 @@ RelativisticPairModel *rpModelAlias;
 VecRelativisticPairModel *rpModelAliasVec;
 TaskData *td;
 
-void FillDataVector(MBValidData &data, bool useAlias)
+void FillDataVector(RPValidData &data, bool useAlias)
 {
   LightTrack_v primaries;
   VecRelativisticPairModel *model = useAlias ? rpModelAliasVec : rpModelRejVec;
@@ -67,7 +67,7 @@ void FillDataVector(MBValidData &data, bool useAlias)
   }
 }
 
-void FillDataScalar(MBValidData &data, bool useAlias)
+void FillDataScalar(RPValidData &data, bool useAlias)
 {
   std::vector<LightTrack> primaries;
   RelativisticPairModel *model = useAlias ? rpModelAlias : rpModelRej;
@@ -127,9 +127,9 @@ int main()
   {
     Printf("Test for alias method");
 
-    MBValidData scalar;
+    RPValidData scalar;
     FillDataScalar(scalar, true);
-    MBValidData vector;
+    RPValidData vector;
     FillDataVector(vector, true);
 
     Printf("====EL EN====");
@@ -144,9 +144,9 @@ int main()
   {
     Printf("Test for rej method");
 
-    MBValidData scalar;
+    RPValidData scalar;
     FillDataScalar(scalar, false);
-    MBValidData vector;
+    RPValidData vector;
     FillDataVector(vector, false);
 
     Printf("====EL EN====");

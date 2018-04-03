@@ -73,3 +73,9 @@ target_link_libraries(PhysVecMollerBhabhaValid Geant_v RealPhysics)
 
 add_executable(PhysVecMollerBhabhaBench MollerBhabha/MollerBhabhaBench.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecMollerBhabhaBench Geant_v RealPhysics benchmark pthread)
+
+add_executable(PhysVecSeltzerBergerValid SeltzerBerger/SeltzerBergerValidate.cxx SeltzerBerger/SeltzerBergerTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecSeltzerBergerValid Geant_v RealPhysics)
+
+add_executable(PhysVecSeltzerBergerBench SeltzerBerger/SeltzerBergerBench.cxx SeltzerBerger/SeltzerBergerTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecSeltzerBergerBench Geant_v RealPhysics benchmark pthread)

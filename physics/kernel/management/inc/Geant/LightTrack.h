@@ -339,7 +339,6 @@ public:
 
   /** @brief LightTrack_v destructor */
   ~LightTrack_v();
-  ;
 
   void ClearTracks() { fNtracks = 0; }
   int InsertTrack() { return fNtracks++; }

@@ -80,7 +80,7 @@ public:
   //
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   SeltzerBergerBremsModel(const SeltzerBergerBremsModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -114,7 +114,7 @@ private:
    */
   double PositronCorrection1(double ekinelectron, double ephoton, double gcutener, double z);
 
-private:
+protected:
   struct XsecDataZet {
     XsecDataZet(int nprime, int nphote)
     {
@@ -160,7 +160,7 @@ private:
     std::vector<LinAlias *> fAliasData;
   };
 
-private:
+protected:
   static const double gMigdalConst;
 
   static std::vector<XsecDataZet *> fXsecDataPerZet;
