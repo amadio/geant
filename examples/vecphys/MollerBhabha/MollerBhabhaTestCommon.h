@@ -21,7 +21,7 @@ using geantphysics::MaterialCuts;
 
 const int kMinBasket = 16;
 const int kMaxBasket = 256;
-const double minEn   = 1.0 * geant::units::keV;
+const double minEn   = 1.0 * geant::units::GeV; // Should be higher then matcut
 const double maxEn   = 100.0 * geant::units::TeV;
 
 MollerBhabhaIonizationModel *PrepareMBModel(bool useAlias, bool iselecton)

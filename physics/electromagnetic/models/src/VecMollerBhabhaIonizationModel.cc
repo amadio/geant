@@ -87,6 +87,8 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
         mcIndxLocal[l] = fGlobalMatECutIndxToLocal[matCut->GetIndex()];
       }
     }
+    PhysDV primEkin = tracks.GetKinEVec(i);
+    assert((primEkin >= electronCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
       PhysDV r1       = td->fRndm->uniformV();
       PhysDV r2       = td->fRndm->uniformV();

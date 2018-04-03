@@ -29,10 +29,15 @@ VecMollerBhabhaIonizationModel *vecRejPos;
 
 TaskData *td;
 
-void FillDataVector(MBValidData &data, bool useAlias)
+void FillDataVector(MBValidData &data, bool useAlias, bool forElectron)
 {
   LightTrack_v primaries;
-  VecMollerBhabhaIonizationModel *model = useAlias ? vecAliasEl : vecRejEl;
+  VecMollerBhabhaIonizationModel *model;
+  if (forElectron) {
+    model = useAlias ? vecAliasEl : vecRejEl;
+  } else {
+    model = useAlias ? vecAliasPos : vecRejPos;
+  }
 
   for (int bask = 0; bask < kBasketTries; ++bask) {
     PreparePrimaries(primaries, kMaxBasket);
@@ -63,10 +68,15 @@ void FillDataVector(MBValidData &data, bool useAlias)
   }
 }
 
-void FillDataScalar(MBValidData &data, bool useAlias)
+void FillDataScalar(MBValidData &data, bool useAlias, bool forElectron)
 {
   std::vector<LightTrack> primaries;
-  MollerBhabhaIonizationModel *model = useAlias ? aliasEl : rejEl;
+  MollerBhabhaIonizationModel *model;
+  if (forElectron) {
+    model = useAlias ? aliasEl : rejEl;
+  } else {
+    model = useAlias ? rejEl : rejPos;
+  }
 
   for (int bask = 0; bask < kBasketTries; ++bask) {
     PreparePrimaries(primaries, kMaxBasket);
@@ -111,12 +121,12 @@ int main()
   Printf("Number of leptons for each test %d", kMaxBasket * kBasketTries);
   Printf("Relative histograms of kinematics (difference in percents)");
   {
-    Printf("Test for alias method");
+    Printf("Test for alias method electron");
 
     MBValidData scalar;
-    FillDataScalar(scalar, true);
+    FillDataScalar(scalar, true, true);
     MBValidData vector;
-    FillDataVector(vector, true);
+    FillDataVector(vector, true, true);
 
     Printf("====Prim EN====");
     vector.primEn.Compare(scalar.primEn);
@@ -128,12 +138,46 @@ int main()
     vector.secAngle.Compare(scalar.secAngle);
   }
   {
-    Printf("Test for rej method");
+    Printf("Test for alias method positron");
 
     MBValidData scalar;
-    FillDataScalar(scalar, false);
+    FillDataScalar(scalar, true, false);
     MBValidData vector;
-    FillDataVector(vector, false);
+    FillDataVector(vector, true, false);
+
+    Printf("====Prim EN====");
+    vector.primEn.Compare(scalar.primEn);
+    Printf("====Sec EN====");
+    vector.secEn.Compare(scalar.secEn);
+    Printf("====Prim Dir====");
+    vector.primAngle.Compare(scalar.primAngle);
+    Printf("====Sec Dir====");
+    vector.secAngle.Compare(scalar.secAngle);
+  }
+  {
+    Printf("Test for rej method electron");
+
+    MBValidData scalar;
+    FillDataScalar(scalar, false, true);
+    MBValidData vector;
+    FillDataVector(vector, false, true);
+
+    Printf("====Prim EN====");
+    vector.primEn.Compare(scalar.primEn);
+    Printf("====Sec EN====");
+    vector.secEn.Compare(scalar.secEn);
+    Printf("====Prim Dir====");
+    vector.primAngle.Compare(scalar.primAngle);
+    Printf("====Sec Dir====");
+    vector.secAngle.Compare(scalar.secAngle);
+  }
+  {
+    Printf("Test for rej method positron");
+
+    MBValidData scalar;
+    FillDataScalar(scalar, false, false);
+    MBValidData vector;
+    FillDataVector(vector, false, false);
 
     Printf("====Prim EN====");
     vector.primEn.Compare(scalar.primEn);
