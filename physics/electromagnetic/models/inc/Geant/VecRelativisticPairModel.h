@@ -39,9 +39,9 @@ public:
 
   virtual ~VecRelativisticPairModel(){};
 
-  virtual void Initialize();
+  void Initialize() override;
 
-  virtual void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td);
+  void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
 protected:
   struct RatinAliasTablePerMaterial {

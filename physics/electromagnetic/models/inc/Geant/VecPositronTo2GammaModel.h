@@ -37,9 +37,9 @@ public:
 
   virtual ~VecPositronTo2GammaModel(){};
 
-  virtual void Initialize();
+  void Initialize() override;
 
-  virtual void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td);
+  void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
 protected:
   std::vector<LinAliasCached> fCachedAliasTable;

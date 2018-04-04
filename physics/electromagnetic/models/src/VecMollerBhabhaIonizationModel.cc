@@ -90,11 +90,10 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
     PhysDV primEkin = tracks.GetKinEVec(i);
     assert((primEkin >= electronCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
-      PhysDV r1       = td->fRndm->uniformV();
-      PhysDV r2       = td->fRndm->uniformV();
-      PhysDV r3       = td->fRndm->uniformV();
-      PhysDV primEkin = tracks.GetKinEVec(i);
-      PhysDV eps      = SampleEnergyTransfer(electronCut, mcIndxLocal, fAliasData.fLogEmin.data(),
+      PhysDV r1  = td->fRndm->uniformV();
+      PhysDV r2  = td->fRndm->uniformV();
+      PhysDV r3  = td->fRndm->uniformV();
+      PhysDV eps = SampleEnergyTransfer(electronCut, mcIndxLocal, fAliasData.fLogEmin.data(),
                                         fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
       vecCore::Store(eps, epsArr + i);
     } else {

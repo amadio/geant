@@ -94,7 +94,7 @@ public:
   void SetLPMFlag(bool islpm) { fIsUseLPM = islpm; }
   //@}
 
-private:
+protected:
   /** @brief Copy constructor  (deleted) */
   RelativisticBremsModel(const RelativisticBremsModel &) = delete;
   /** @brief Operator=  (deleted) */
@@ -258,7 +258,7 @@ private:
   };
 
   // data members
-private:
+protected:
   static const long gMaxZet = 121;
   static const double gFelLowZet[8];
   static const double gFinelLowZet[8];

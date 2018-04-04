@@ -37,9 +37,9 @@ public:
 
   virtual ~VecBetheHeitlerPairModel(){};
 
-  virtual void Initialize();
+  void Initialize() override;
 
-  virtual void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td);
+  void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
 protected:
   struct RatinAliasTablePerElem {
@@ -47,9 +47,6 @@ protected:
     RatinAliasTablePerElem() : fTablePerEn(0) {}
   };
   std::vector<RatinAliasTablePerElem> fAliasTablesPerZ;
-
-  void SampleTotalEnergyTransferAliasVec(const double *egamma, const int *izet, const double *r1, const double *r2,
-                                         const double *r3, int N, double *eps);
 
   PhysDV SampleTotalEnergyTransferAliasOneShot(const PhysDV egamma, const int *izet, const PhysDV r1, const PhysDV r2,
                                                const PhysDV r3);

@@ -38,7 +38,7 @@ public:
   {
   }
 
-  ~VecKleinNishinaComptonModel() override{};
+  virtual ~VecKleinNishinaComptonModel(){};
 
   void Initialize() override;
 

@@ -37,7 +37,7 @@ public:
 
   virtual ~VecMollerBhabhaIonizationModel(){};
 
-  virtual void Initialize();
+  void Initialize() override;
 
   void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 

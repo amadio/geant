@@ -79,3 +79,9 @@ target_link_libraries(PhysVecSeltzerBergerValid Geant_v RealPhysics)
 
 add_executable(PhysVecSeltzerBergerBench SeltzerBerger/SeltzerBergerBench.cxx SeltzerBerger/SeltzerBergerTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecSeltzerBergerBench Geant_v RealPhysics benchmark pthread)
+
+add_executable(PhysVecRelativisticBremsValid RelativisticBrems/RelativisticBremsValidate.cxx RelativisticBrems/RelativisticBremsTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecRelativisticBremsValid Geant_v RealPhysics)
+
+add_executable(PhysVecRelativisticBremsBench RelativisticBrems/RelativisticBremsBench.cxx RelativisticBrems/RelativisticBremsTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecRelativisticBremsBench Geant_v RealPhysics benchmark pthread)

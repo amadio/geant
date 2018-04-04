@@ -1,9 +1,9 @@
-#ifndef VECSELTZERBERGERBREMSMODELc1_H
-#define VECSELTZERBERGERBREMSMODELc1_H
+#ifndef VECRELATIVISTICBREMSMODELc1_H
+#define VECRELATIVISTICBREMSMODELc1_H
 
 // from geantV
 #include "Geant/Config.h"
-#include "Geant/SeltzerBergerBremsModel.h"
+#include "Geant/RelativisticBremsModel.h"
 #include "Geant/AliasTableAlternative.h"
 
 namespace geant {
@@ -30,11 +30,11 @@ class AliasTable;
 class Particle;
 class LightTrack;
 
-class VecSeltzerBergerBremsModel : public SeltzerBergerBremsModel {
+class VecRelativisticBremsModel : public RelativisticBremsModel {
 public:
-  VecSeltzerBergerBremsModel(bool iselectron, const std::string &modelname = "eSeltzerBergerBremsVec");
+  VecRelativisticBremsModel(const std::string &modelname = "eRelativisticBremsVec");
 
-  virtual ~VecSeltzerBergerBremsModel(){};
+  virtual ~VecRelativisticBremsModel(){};
 
   void Initialize() override;
 
@@ -44,8 +44,8 @@ private:
   PhysDV SampleEnergyTransfer(PhysDV gammaCut, PhysDV densityCor, PhysDI mcLocalIdx, double *tableEmin,
                               double *tableILDeta, PhysDV primekin, PhysDV r1, PhysDV r2, PhysDV r3);
 
-  void SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const int *IZet, const double *zet,
-                            double *gammaEn, const double *densityCor, int N, const geant::TaskData *td);
+  void SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zet, const double *densityCor,
+                            const double *lpmEnergy, double *gammaEn, int N, const geant::TaskData *td);
 
   struct AliasDataForMatCut {
     AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
@@ -68,6 +68,15 @@ private:
 private:
   void SamplePhotonDirection(PhysDV elenergy, PhysDV &sinTheta, PhysDV &cosTheta, PhysDV rndm);
   PhysDV PositronCorrection1(PhysDV ekinelectron, PhysDV ephoton, PhysDV gcutener, PhysDV z);
+  void GetLPMFunctions(PhysDV &lpmGs, PhysDV &lpmPhis, const PhysDV s);
+  void ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &funcGS, PhysDV &funcPhiS, const PhysDV lpmenergy,
+                           const PhysDV egamma, const PhysDV etot, const PhysDV densitycor,
+                           const std::array<int, kPhysDVWidth> izet);
+  PhysDV ComputeURelDXSecPerAtom(PhysDV egamma, PhysDV etotal, PhysDV lpmenergy, PhysDV densitycor,
+                                 std::array<int, kPhysDVWidth> izet);
+  PhysDV ComputeDXSecPerAtom(PhysDV egamma, PhysDV etotal, PhysDV zet);
+  void ComputeScreeningFunctions(PhysDV &phi1, PhysDV &phi1m2, PhysDV &xsi1, PhysDV &xsi1m2, const PhysDV gamma,
+                                 const PhysDV epsilon);
   AliasDataForAllMatCuts fAliasData;
 };
 
