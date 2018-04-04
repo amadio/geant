@@ -188,6 +188,7 @@ void EMModel::ClearElementSelectros()
 void EMModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
 {
   // Temporary glue code to old interface
+  td->fPhysicsData->ClearSecondaries();
   int secondaries = 0;
   for (int i = 0; i < tracks.GetNtracks(); ++i) {
     LightTrack track;
