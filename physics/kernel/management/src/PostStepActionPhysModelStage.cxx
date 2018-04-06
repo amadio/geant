@@ -44,6 +44,7 @@ int PostStepActionPhysModelStage::CreateHandlers()
 
   for (size_t m = 0; m < modelTable.size(); ++m) {
     auto handler = new PostStepActionPhysModelHandler(threshold, fPropagator, m);
+    handler->SetMayBasketize(modelTable[m]->IsBasketizable());
     fHandlersPerModel.push_back(handler);
     AddHandler(handler);
   }

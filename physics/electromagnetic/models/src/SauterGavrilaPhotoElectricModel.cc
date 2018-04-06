@@ -68,6 +68,7 @@ SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::stri
 
   fCrossSection   = nullptr;
   fCrossSectionLE = nullptr;
+  fIsBasketizable = false; // not ready
 }
 
 SauterGavrilaPhotoElectricModel::~SauterGavrilaPhotoElectricModel()

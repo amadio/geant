@@ -230,11 +230,15 @@ public:
 
   static std::vector<EMModel *> &GetGlobalTable() { return gGlobalModelTable; }
 
+  bool IsBasketizable() { return fIsBasketizable; }
+
   virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double /*ekin*/) { return true; }
 protected:
   // initilise the element selectors: must be called from the derived emmodel class explicitly at the end of its
   // Initialise() method i.e. after the model has been initialised properly.
   void InitialiseElementSelectors(EMModel *emmodel, const Particle *part, bool ispermaterial);
+
+  bool fIsBasketizable;
 
 private:
   // delete all EMElementSelector-s
