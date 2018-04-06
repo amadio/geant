@@ -81,6 +81,7 @@ geant::Handler *PostStepActionPhysModelStage::Select(geant::Track *track, geant:
       // Energy < min energy for process
       return nullptr;
     }
+    if (!emModel->IsModelUsable(matCut, track->E() - track->Mass())) return nullptr;
 
     int modelIndex = emModel->GetGlobalIndex();
     return fHandlersPerModel[modelIndex];

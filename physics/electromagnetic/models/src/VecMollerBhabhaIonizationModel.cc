@@ -269,4 +269,14 @@ void VecMollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCu
   }
 }
 
+bool VecMollerBhabhaIonizationModel::IsModelUsable(const MaterialCuts *matCut, double ekin)
+{
+  const double electronCut = matCut->GetProductionCutsInEnergy()[1];
+  double maxETransfer      = ekin;
+  if (fIsElectron) {
+    maxETransfer *= 0.5;
+  }
+  return ekin < GetHighEnergyUsageLimit() && ekin > GetLowEnergyUsageLimit() && maxETransfer > electronCut;
+}
+
 } // namespace geantphysics

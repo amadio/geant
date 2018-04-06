@@ -456,4 +456,10 @@ void VecRelativisticBremsModel::ComputeScreeningFunctions(PhysDV &phi1, PhysDV &
   xsi1m2 = 2.0 / (3.0 + 120.0 * epsilon + 1200.0 * epsilon2); // xsi1-xsi2
 }
 
+bool VecRelativisticBremsModel::IsModelUsable(const MaterialCuts *matCut, double ekin)
+{
+  const double gammaCut = matCut->GetProductionCutsInEnergy()[0];
+  return ekin < GetHighEnergyUsageLimit() && ekin > GetLowEnergyUsageLimit() && ekin > gammaCut;
+}
+
 } // namespace geantphysics

@@ -1,4 +1,12 @@
 
+#include <Geant/VecMollerBhabhaIonizationModel.h>
+#include <Geant/VecSeltzerBergerBremsModel.h>
+#include <Geant/VecRelativisticBremsModel.h>
+#include <Geant/VecKleinNishinaComptonModel.h>
+#include <Geant/VecBetheHeitlerPairModel.h>
+#include <Geant/VecRelativisticPairModel.h>
+#include <Geant/PositronTo2GammaModel.h>
+#include <Geant/VecPositronTo2GammaModel.h>
 #include "TestEm3PhysicsList.h"
 
 #include "Geant/PhysicalConstants.h"
@@ -36,7 +44,8 @@
 
 namespace userapplication {
 
-TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name) : geantphysics::PhysicsList(name)
+TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name, bool vectorize)
+    : geantphysics::PhysicsList(name), fVectorized(vectorize)
 {
   fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
 }
@@ -58,7 +67,8 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *eIoniProc = new geantphysics::ElectronIonizationProcess("e-Ioni");
       // create the Moller-Bhabha model for ionization i.e. for e- + e- -> e- + e- intercation
-      geantphysics::EMModel *eMBModel = new geantphysics::MollerBhabhaIonizationModel(true);
+      geantphysics::EMModel *eMBModel = fVectorized ? new geantphysics::VecMollerBhabhaIonizationModel(true)
+                                                    : new geantphysics::MollerBhabhaIonizationModel(true);
       // set min/max energies of the model
       eMBModel->SetLowEnergyUsageLimit(1.0 * geant::units::keV);
       eMBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
@@ -72,7 +82,8 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *eBremProc = new geantphysics::ElectronBremsstrahlungProcess("e-Brem");
       // create a SeltzerBergerBremsModel for e-
-      geantphysics::EMModel *eSBModel = new geantphysics::SeltzerBergerBremsModel(true);
+      geantphysics::EMModel *eSBModel = fVectorized ? new geantphysics::VecSeltzerBergerBremsModel(true)
+                                                    : new geantphysics::SeltzerBergerBremsModel(true);
       // set min/max energies of the model
       eSBModel->SetLowEnergyUsageLimit(1.0 * geant::units::keV);
       eSBModel->SetHighEnergyUsageLimit(1.0 * geant::units::GeV);
@@ -84,7 +95,8 @@ void TestEm3PhysicsList::Initialize()
       eBremProc->AddModel(eSBModel);
       //
       // create a RelativisticBremsModel for e-
-      geantphysics::EMModel *eRelBModel = new geantphysics::RelativisticBremsModel();
+      geantphysics::EMModel *eRelBModel =
+          fVectorized ? new geantphysics::VecRelativisticBremsModel() : new geantphysics::RelativisticBremsModel();
       // set min/max energies of the model
       eRelBModel->SetLowEnergyUsageLimit(1.0 * geant::units::GeV);
       eRelBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
@@ -113,7 +125,8 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *eIoniProc = new geantphysics::ElectronIonizationProcess("e+Ioni");
       // create the Moller-Bhabha model for ionization i.e. for e+ + e- -> e+ + e- intercation
-      geantphysics::EMModel *eMBModel = new geantphysics::MollerBhabhaIonizationModel(false);
+      geantphysics::EMModel *eMBModel = fVectorized ? new geantphysics::VecMollerBhabhaIonizationModel(false)
+                                                    : new geantphysics::MollerBhabhaIonizationModel(false);
       // set min/max energies of the model
       eMBModel->SetLowEnergyUsageLimit(1.0 * geant::units::keV);
       eMBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
@@ -126,7 +139,8 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *eBremProc = new geantphysics::ElectronBremsstrahlungProcess("e+Brem");
       // create a SeltzerBergerBremsModel for e-
-      geantphysics::EMModel *eSBModel = new geantphysics::SeltzerBergerBremsModel(false);
+      geantphysics::EMModel *eSBModel = fVectorized ? new geantphysics::VecSeltzerBergerBremsModel(false)
+                                                    : new geantphysics::SeltzerBergerBremsModel(false);
       // set min/max energies of the model
       eSBModel->SetLowEnergyUsageLimit(1.0 * geant::units::keV);
       eSBModel->SetHighEnergyUsageLimit(1.0 * geant::units::GeV);
@@ -138,7 +152,8 @@ void TestEm3PhysicsList::Initialize()
       eBremProc->AddModel(eSBModel);
       //
       // create a RelativisticBremsModel for e+
-      geantphysics::EMModel *eRelBModel = new geantphysics::RelativisticBremsModel();
+      geantphysics::EMModel *eRelBModel =
+          fVectorized ? new geantphysics::VecRelativisticBremsModel() : new geantphysics::RelativisticBremsModel();
       // set min/max energies of the model
       eRelBModel->SetLowEnergyUsageLimit(1.0 * geant::units::GeV);
       eRelBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
@@ -162,6 +177,11 @@ void TestEm3PhysicsList::Initialize()
       //
       // create e+ electron annihilation into 2 gamma process
       geantphysics::PositronAnnihilationProcess *pAnhProc = new geantphysics::PositronAnnihilationProcess();
+      geantphysics::PositronTo2GammaModel *pos2Gamma =
+          fVectorized ? new geantphysics::VecPositronTo2GammaModel() : new geantphysics::PositronTo2GammaModel();
+      pos2Gamma->SetLowEnergyUsageLimit(100. * geant::units::eV);
+      pos2Gamma->SetHighEnergyUsageLimit(100. * geant::units::TeV);
+      pAnhProc->AddModel(pos2Gamma);
       AddProcessToParticle(particle, pAnhProc);
     }
     if (particle == geantphysics::Gamma::Definition()) {
@@ -169,7 +189,8 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *comptProc = new geantphysics::ComptonScatteringProcess();
       // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation
-      geantphysics::EMModel *kncModel = new geantphysics::KleinNishinaComptonModel();
+      geantphysics::EMModel *kncModel =
+          fVectorized ? new geantphysics::VecKleinNishinaComptonModel() : new geantphysics::KleinNishinaComptonModel();
       // set min/max energies of the model
       kncModel->SetLowEnergyUsageLimit(100.0 * geant::units::eV);
       kncModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
@@ -183,7 +204,8 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *convProc = new geantphysics::GammaConversionProcess();
       // create the Bethe-Heitler model for pair production i.e. for g + A -> e- + e+ interaction
-      geantphysics::EMModel *bhModel = new geantphysics::BetheHeitlerPairModel();
+      geantphysics::EMModel *bhModel =
+          fVectorized ? new geantphysics::VecBetheHeitlerPairModel() : new geantphysics::BetheHeitlerPairModel();
       // set min/max energies of the model
       bhModel->SetLowEnergyUsageLimit(2.0 * geant::units::kElectronMassC2);
       bhModel->SetHighEnergyUsageLimit(80.0 * geant::units::GeV);
@@ -191,7 +213,8 @@ void TestEm3PhysicsList::Initialize()
       convProc->AddModel(bhModel);
       //
       // create the relativistic model(with LPM) for pair production i.e. for g + A -> e- + e+ interaction
-      geantphysics::EMModel *relModel = new geantphysics::RelativisticPairModel();
+      geantphysics::EMModel *relModel =
+          fVectorized ? new geantphysics::VecRelativisticPairModel() : new geantphysics::RelativisticPairModel();
       // set min/max energies of the model
       relModel->SetLowEnergyUsageLimit(80.0 * geant::units::GeV);
       relModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);

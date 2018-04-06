@@ -28,12 +28,6 @@ PositronAnnihilationProcess::PositronAnnihilationProcess(const std::string &name
 
 void PositronAnnihilationProcess::Initialize()
 {
-  // model to handle the discrete part pf the interaction (within the EM framework; at-rest part
-  // will be handled directly by the process itself in the AtRestDoIt method)
-  PositronTo2GammaModel *mod = new PositronTo2GammaModel();
-  mod->SetLowEnergyUsageLimit(100. * geant::units::eV);
-  mod->SetHighEnergyUsageLimit(100. * geant::units::TeV);
-  AddModel(mod);
   // call the EMPhysicsProcess base class init method at the end (after models has been added)
   EMPhysicsProcess::Initialize();
 }

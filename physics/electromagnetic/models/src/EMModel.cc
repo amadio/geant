@@ -198,7 +198,7 @@ void EMModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
   }
 
   LightTrack_v &secondaryLTs = td->fPhysicsData->GetSecondarySOA();
-  secondaryLTs.SetNtracks(0);
+  secondaryLTs.ClearTracks();
   for (int i = 0; i < secondaries; ++i) {
     secondaryLTs.AddTrack(td->fPhysicsData->GetListOfSecondaries()[i]);
   }

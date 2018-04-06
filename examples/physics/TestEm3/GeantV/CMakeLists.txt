@@ -14,6 +14,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/processes/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
 )
 
 set(ExampleScripts TestEm3_GV_ATLASbar.mac TestEm3_GV_magField.mac README)

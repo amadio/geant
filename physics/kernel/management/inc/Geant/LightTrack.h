@@ -340,8 +340,16 @@ public:
   /** @brief LightTrack_v destructor */
   ~LightTrack_v();
 
-  void ClearTracks() { fNtracks = 0; }
-  int InsertTrack() { return fNtracks++; }
+  void ClearTracks()
+  {
+    std::fill(fTrackStatusV, fTrackStatusV + fNtracks, LTrackStatus::kNew);
+    fNtracks = 0;
+  }
+  int InsertTrack()
+  {
+    assert(fNtracks + 1 < kSOAMaxSize);
+    return fNtracks++;
+  }
 
   /** @brief Method that returns the number of tracks contained */
   int GetNtracks() const { return fNtracks; }

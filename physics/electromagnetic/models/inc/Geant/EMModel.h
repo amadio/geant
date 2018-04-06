@@ -201,7 +201,7 @@ public:
   {
     PhysDV up    = u1 * u1 + u2 * u2;
     PhysDM upPos = up > 0.0;
-    if (!upPos.isEmpty()) {
+    if (upPos.isNotEmpty()) {
       up        = vecCore::math::Sqrt(up);
       PhysDV px = u;
       PhysDV py = v;
@@ -210,8 +210,8 @@ public:
       vecCore::MaskedAssign(v, upPos, (u2 * u3 * px + u1 * py) / up + u2 * pz);
       vecCore::MaskedAssign(w, upPos, -up * px + u3 * pz);
     }
-    PhysDM upPosu3Neg = upPos && u3 < 0.;
-    if (!upPosu3Neg.isEmpty()) {
+    PhysDM upPosu3Neg = !upPos && u3 < 0.;
+    if (upPosu3Neg.isNotEmpty()) {
       vecCore::MaskedAssign(u, upPosu3Neg, -u);
       vecCore::MaskedAssign(w, upPosu3Neg, -w);
     }
@@ -229,6 +229,8 @@ public:
   void SetGlobalIndex(int idx) { fGlobalProcessIndex = idx; }
 
   static std::vector<EMModel *> &GetGlobalTable() { return gGlobalModelTable; }
+
+  virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double /*ekin*/) { return true; }
 protected:
   // initilise the element selectors: must be called from the derived emmodel class explicitly at the end of its
   // Initialise() method i.e. after the model has been initialised properly.

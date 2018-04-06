@@ -40,6 +40,8 @@ public:
 
   void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
+  virtual bool IsModelUsable(const MaterialCuts *matCut, double ekin);
+
 private:
   PhysDV SampleEnergyTransfer(PhysDV gammaCut, PhysDV densityCor, PhysDI mcLocalIdx, double *tableEmin,
                               double *tableILDeta, PhysDV primekin, PhysDV r1, PhysDV r2, PhysDV r3);

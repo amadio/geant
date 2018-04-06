@@ -44,6 +44,8 @@ public:
 
   void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
+  virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double ekin);
+
 protected:
   std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
 

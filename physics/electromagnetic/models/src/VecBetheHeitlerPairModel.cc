@@ -40,6 +40,8 @@ void VecBetheHeitlerPairModel::Initialize()
 
 void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
 {
+  // EMModel::SampleSecondariesVector(tracks,td);
+  // return;
   int N     = tracks.GetNtracks();
   int *IZet = td->fPhysicsData->fPhysicsScratchpad.fIzet;
 
@@ -140,6 +142,7 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     const PhysDV thetaPositron = uvar * geant::units::kElectronMassC2 / positronTotE;
     PhysDV sintPos, costPos;
     SinCos(thetaPositron, &sintPos, &costPos);
+    sintPos          = -sintPos;
     const PhysDV phi = geant::units::kTwoPi * td->fRndm->uniformV();
     PhysDV sinphi, cosphi;
     SinCos(phi, &sinphi, &cosphi);
@@ -153,8 +156,8 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     PhysDV posDirZ = costPos;
 
     for (int l = 0; l < kPhysDVWidth; ++l) {
-      tracks.SetEnergyDeposit(0.0, i + l);
       tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
+      tracks.SetKinE(0.0, i + l);
     }
 
     const PhysDV ekinElectron = Max((electronTotE - geant::units::kElectronMassC2), (PhysDV)0.);
@@ -362,5 +365,11 @@ PhysDV VecBetheHeitlerPairModel::ScreenFunction2(const PhysDV delta, const bool 
     vecCore::MaskedAssign(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
   return val;
+}
+
+bool VecBetheHeitlerPairModel::IsModelUsable(const MaterialCuts *, double ekin)
+{
+  double invEps = ekin * geant::units::kInvElectronMassC2;
+  return ekin > GetLowEnergyUsageLimit() && ekin < GetHighEnergyUsageLimit() && invEps > 2.0;
 }
 }

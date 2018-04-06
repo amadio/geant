@@ -69,6 +69,7 @@ int parConfigNumPropagators     = 1;  // number of propagators per working threa
 int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
+int parConfigVectorizedPhysics  = 0;  // activate geometry basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 
 //
@@ -96,7 +97,8 @@ int main(int argc, char *argv[])
   geant::RunManager *runMgr = RunManager();
 
   // Create user defined physics list for TestEm3
-  userapplication::TestEm3PhysicsList *userPhysList = new userapplication::TestEm3PhysicsList("TestEm3PhysicsList");
+  userapplication::TestEm3PhysicsList *userPhysList =
+      new userapplication::TestEm3PhysicsList("TestEm3PhysicsList", parConfigVectorizedPhysics);
   SetupPhysicsList(userPhysList);
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(userPhysList);
 
@@ -172,6 +174,7 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"config-vectorized-geom", required_argument, 0, 't'},
                                   {"config-external-loop", required_argument, 0, 'u'},
                                   {"process-MSC-step-limit", required_argument, 0, 'A'},
+                                  {"config-vectorized-physics", required_argument, 0, 'v'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -306,6 +309,9 @@ void GetArguments(int argc, char *argv[])
       break;
     case 't':
       parConfigVectorizedGeom = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'v':
+      parConfigVectorizedPhysics = (int)strtol(optarg, NULL, 10);
       break;
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);

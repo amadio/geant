@@ -122,14 +122,14 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
   // copy the updated primary track to the output basket as well
   output.AddTrack(track);
 }
-//______________________________________________________________________________
-void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
-{
-  geant::TrackVec_t &gtracks = input.Tracks();
 
+void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, geant::Basket &output,
+                                                geant::TaskData *td)
+{
+  assert(N % kPhysDVWidth == 0);
   LightTrack_v &primaryLTs = td->fPhysicsData->GetPrimarySOA();
 
-  for (size_t i = 0; i < gtracks.size(); ++i) {
+  for (size_t i = 0; i < N; ++i) {
     geant::Track *track = gtracks[i];
 
     // we will use members:
@@ -152,7 +152,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &o
     primaryLTs.SetDirZ(track->Dz(), i);
     primaryLTs.SetTrackIndex(i, i);
   }
-  primaryLTs.SetNtracks(gtracks.size());
+  primaryLTs.SetNtracks(N);
 
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->GetSecondarySOA().ClearTracks();
@@ -160,7 +160,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &o
   fModel->SampleSecondariesVector(primaryLTs, td);
 
   // update primary tracks
-  for (size_t i = 0; i < gtracks.size(); ++i) {
+  for (size_t i = 0; i < N; ++i) {
     geant::Track *track = gtracks[i];
     double newEkin      = primaryLTs.GetKinE(i);
     track->SetMass(primaryLTs.GetMass(i));
@@ -228,7 +228,30 @@ void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &o
     geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
     // add Track
     td->fPropagator->AddTrack(geantTrack);
-    output.Tracks().push_back(&geantTrack);
+    output.AddTrack(&geantTrack);
+  }
+}
+
+void PostStepActionPhysModelHandler::DoItScalar(geant::Track **gtracks, int N, geant::Basket &output,
+                                                geant::TaskData *td)
+{
+  for (int i = 0; i < N; ++i) {
+    geant::Track *track = gtracks[i];
+    DoIt(track, output, td);
+  }
+}
+
+//______________________________________________________________________________
+void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
+{
+  int vectSize                               = (input.GetNtracks() / kPhysDVWidth) * kPhysDVWidth;
+  if (vectSize <= 2 * kPhysDVWidth) vectSize = 0;
+  if (vectSize > 0) {
+    DoItVector(input.Tracks().data(), vectSize, output, td);
+  }
+  int nonVectSize = input.GetNtracks() - vectSize;
+  if (nonVectSize > 0) {
+    DoItScalar(input.Tracks().data() + vectSize, nonVectSize, output, td);
   }
 }
 

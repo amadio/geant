@@ -339,4 +339,10 @@ PhysDV VecSeltzerBergerBremsModel::PositronCorrection1(PhysDV ekinelectron, Phys
   return poscor;
 }
 
+bool VecSeltzerBergerBremsModel::IsModelUsable(const MaterialCuts *matCut, double ekin)
+{
+  const double gammaCut = matCut->GetProductionCutsInEnergy()[0];
+  return ekin < GetHighEnergyUsageLimit() && ekin > GetLowEnergyUsageLimit() && ekin > gammaCut;
+}
+
 } // namespace geantphysics

@@ -45,6 +45,8 @@ private:
   PostStepActionPhysModelHandler(const PostStepActionPhysModelHandler &) = delete;
   PostStepActionPhysModelHandler &operator=(const PostStepActionPhysModelHandler &) = delete;
 
+  void DoItVector(geant::Track **gtracks, int N, geant::Basket &output, geant::TaskData *td);
+  void DoItScalar(geant::Track **gtracks, int N, geant::Basket &output, geant::TaskData *td);
   EMModel *fModel;
 };
 

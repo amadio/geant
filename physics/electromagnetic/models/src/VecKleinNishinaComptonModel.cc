@@ -3,6 +3,7 @@
 #include <Geant/TaskData.h>
 #include <Geant/PhysicsData.h>
 #include "Geant/VecKleinNishinaComptonModel.h"
+#include "Geant/AliasTable.h"
 
 namespace geantphysics {
 
@@ -150,15 +151,16 @@ PhysDV VecKleinNishinaComptonModel::SampleReducedPhotonEnergyVec(PhysDV egamma, 
 
   PhysDV xiV;
   for (int l = 0; l < kPhysDVWidth; ++l) {
-    int idx             = (int)indxEgamma[l];
-    LinAliasCached &als = fAliasTablePerGammaEnergy[idx];
-    double xi           = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2[l], r3[l]);
+    int idx = (int)indxEgamma[l];
+    //    LinAliasCached &als = fAliasTablePerGammaEnergy[idx];
+    //    double xi           = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2[l],
+    //    r3[l]);
 
     // Standard version:
-    // const LinAlias *als = fSamplingTables[idx];
-    //      const double xi = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
-    //                                                    &(als->fAliasIndx[0]), fSTNumDiscreteEnergyTransferVals,
-    //                                                    r2[i+l], r3[i+l]);
+    const LinAlias *als = fSamplingTables[idx];
+    const double xi =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumDiscreteEnergyTransferVals, r2[l], r3[l]);
     vecCore::Set(xiV, l, xi);
     xiV[l] = xi;
   }
@@ -238,5 +240,10 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
       }
     }
   }
+}
+
+bool VecKleinNishinaComptonModel::IsModelUsable(const MaterialCuts *, double ekin)
+{
+  return ekin < GetHighEnergyUsageLimit() && ekin > GetLowEnergyUsageLimit();
 }
 }

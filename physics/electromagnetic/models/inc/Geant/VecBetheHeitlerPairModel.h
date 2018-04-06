@@ -41,6 +41,8 @@ public:
 
   void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
+  virtual bool IsModelUsable(const MaterialCuts *, double ekin);
+
 protected:
   struct RatinAliasTablePerElem {
     std::vector<RatinAliasDataTrans> fTablePerEn;

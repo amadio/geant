@@ -18,6 +18,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/cuts/inc
+  ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc
   ${CMAKE_SOURCE_DIR}/core/base/inc
   ${CMAKE_SOURCE_DIR}/run/scheduler/inc
   ${CMAKE_SOURCE_DIR}/run/userapp/inc

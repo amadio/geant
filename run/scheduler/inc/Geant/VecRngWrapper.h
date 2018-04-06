@@ -31,12 +31,12 @@ public:
   void uniform_array(size_t n, double *array, const double min = 0., const double max = 1.)
   {
     for (size_t i = 0; i < n; ++i) {
-      array[i] = min + (max - min) * mrg32k3aScalar->Uniform<vecCore::backend::Scalar>();
+      array[i] = uniform(min, max);
     }
   }
 
   double uniform() { return mrg32k3aScalar->Uniform<vecCore::backend::Scalar>(); }
-  double uniform(double a, double b) { return a + (b - a) * mrg32k3aScalar->Uniform<vecCore::backend::Scalar>(); }
+  double uniform(double a, double b) { return a + (b - a) * uniform(); }
   PhysDV uniformV() { return mrg32k3aVec->Uniform<PhysVecBackend>(); }
 
   double Gauss(double mean, double sigma) { return mrg32k3aScalar->Gauss<vecCore::backend::Scalar>(mean, sigma); }
