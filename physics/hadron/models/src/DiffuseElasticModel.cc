@@ -9,6 +9,8 @@
 
 #include "Geant/LightTrack.h"
 
+#include "Geant/FastMath.h"
+
 #include <iostream>
 #include "Geant/math_wrappers.h"
 

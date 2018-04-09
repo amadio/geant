@@ -3,6 +3,7 @@
 
 #include "Geant/PhysicalConstants.h"
 #include "Geant/Element.h"
+#include "Geant/FastMath.h"
 
 #include <cmath>
 #include "Geant/math_wrappers.h"

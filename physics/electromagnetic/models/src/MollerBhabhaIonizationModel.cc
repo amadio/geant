@@ -16,6 +16,7 @@
 
 // from geantV
 #include "Geant/TaskData.h"
+#include "Geant/FastMath.h"
 
 #include <iostream>
 #include <cmath>

@@ -2,6 +2,7 @@
 #include "Geant/PhysicsParameters.h"
 
 #include "Geant/SystemOfUnits.h"
+#include "Geant/FastMath.h"
 
 #include <iostream>
 #include <iomanip>

@@ -6,6 +6,7 @@
 
 // from material
 #include "Geant/Types.h"
+#include "Geant/FastMath.h"
 
 #include <iostream>
 #include <fstream>

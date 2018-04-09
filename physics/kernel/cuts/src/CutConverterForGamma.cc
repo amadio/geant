@@ -7,6 +7,7 @@
 #include "Geant/Material.h"
 #include "Geant/MaterialProperties.h"
 #include "Geant/Element.h"
+#include "Geant/FastMath.h"
 
 #include <cmath>
 #include <iostream>

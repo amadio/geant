@@ -29,6 +29,7 @@
 // from geantV
 #include "Geant/Typedefs.h"
 #include "Geant/TaskData.h"
+#include "Geant/FastMath.h"
 
 using namespace std;
 namespace geantphysics {

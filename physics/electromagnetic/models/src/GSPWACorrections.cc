@@ -10,6 +10,7 @@
 #include "Geant/MaterialProperties.h"
 #include "Geant/Element.h"
 #include "Geant/MaterialCuts.h"
+#include "Geant/FastMath.h"
 
 #include <iostream>
 #include <fstream>

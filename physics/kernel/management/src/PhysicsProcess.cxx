@@ -5,6 +5,7 @@
 #include "Geant/Particle.h"
 
 #include "Geant/LambdaTable.h"
+#include "Geant/FastMath.h"
 
 #include <iostream>
 #include "Geant/math_wrappers.h"
