@@ -1,6 +1,3 @@
-
-#include <Geant/G4Log.hh>
-#include <Geant/G4Exp.hh>
 #include "Geant/RelativisticPairModel.h"
 
 #include "Geant/PhysicalConstants.h"
