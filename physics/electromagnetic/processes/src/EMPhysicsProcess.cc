@@ -129,8 +129,8 @@ double EMPhysicsProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, 
   // loop over the EMModel-s that are active in the region that the current MaterialCuts belongs to;
   // ask them to provide their xsec contribution;
   // use smoothing between models
-  const std::vector<EMModel *> models = fModelManager->GetModelListInRegion(matcut->GetRegionIndex());
-  int numModels                       = models.size();
+  const std::vector<EMModel *> &models = fModelManager->GetModelListInRegion(matcut->GetRegionIndex());
+  int numModels                        = models.size();
   //      std::cerr<<"  numModels = "<< numModels<<std::endl;
   if (numModels == 0) return xsec;
   if (numModels == 1) {

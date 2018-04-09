@@ -64,7 +64,7 @@ double HadronicProcess::ComputeMacroscopicXSection(const MaterialCuts *matcut, d
   // in unit volume.
   const Material *mat = matcut->GetMaterial();
   // we will need the element composition of this material
-  const Vector_t<Element *> theElements   = mat->GetElementVector();
+  const Vector_t<Element *> &theElements  = mat->GetElementVector();
   const double *theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
   int numElems                            = theElements.size();
 
