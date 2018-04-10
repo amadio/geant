@@ -379,7 +379,7 @@ private:
    *  @param[in]  tau    Initial photon energy \f$ E_0 \f$ expressend in \f$e_m c^2\f$ units.
    */
   void BuildOneLinAlias(int indx, double tau);
-  void BuildOneDiscreteAlias(int Z, int indx, double ekin);
+  void BuildOneDiscreteAlias(int Z, int indx, double ekin, bool flagSpecial, int idSpecialShell);
   int PrepareDiscreteAlias(int Z, double ekin, std::vector<double> & x, std::vector<double> & y);
 
   /**
@@ -417,6 +417,18 @@ private:
   static std::vector<double> *fParamHigh[gMaxSizeData]; // High-energy parameterization data
   /** @brief Vector storing low-energy parameterization data. */
   static std::vector<double> *fParamLow[gMaxSizeData]; // Low-energy parameterization data
+   
+  /** @brief Subshells binding energies vector for each element. */
+  static std::vector<double> fBindingEn[gMaxSizeData];
+  /** @brief Sorted Subshells binding energies vector for each element. */
+  static std::vector<double> fSortedBindingEn[gMaxSizeData];
+  /** @brief Sorted "Doubled" (with 1eV of difference) Subshells binding energies vector for each element. */
+  static std::vector<double> fSortedDoubledBindingEn[gMaxSizeData];
+  /** @brief Indexes of the sorted binding energies in the final vector. */
+  static std::vector<int> fIndexSortedDoubledBindingEn[gMaxSizeData];
+  /** @brief INdexes of the base energies in the final vector. */
+  static std::vector<int> fIndexBaseEn[gMaxSizeData];
+ 
 
   /** @brief Verbose level to control the printout. */
   int fVerboseLevel; // Verbose level to control the printout
@@ -447,6 +459,9 @@ private:
 
   /** @brief Number of used shells per each element Z. */
   static int fNShellsUsed[gMaxSizeData];
+    
+  /** @brief Index of the last subshell Alias Table per each element Z. */
+  static int fLastSSAliasIndex[gMaxSizeData];
 
   /** @brief Pointer to Material to handle water as a special case. */
   static Material *fWater;
@@ -481,7 +496,7 @@ private:
   /** @brief Number of primary gamma kinetic energy grid points per decade. 75 table per energy decade assures accuracy
    * within 5% (alias sampling) */
   int fNumSamplingPrimEnergiesPerDecade = 75;
-  int fShellNumSamplingPrimEnergiesPerDecade = 20;
+  int fShellNumSamplingPrimEnergiesPerDecade = 15;
 
   //---------------------------------------------
   /** @brief Number of emitted photoelectron cosTheta considered in the range[-1, 1] or number of transformed emitted
@@ -520,6 +535,9 @@ private:
    */
   double *fSamplingPrimEnergies; // the common gamma energy grid which we build sampling tables above
   double *fShellSamplingPrimEnergies;
+
+  std::vector<double>fShellLSamplingPrimEnergiesNEW[gMaxSizeData];
+  std::vector<double>fShellSamplingPrimEnergiesNEW[gMaxSizeData];
   //---------------------------------------------
   /** @brief The logarithm of SauterGavrilaPhotoElectricModel::fSamplingGammaEnergies grid.
    *
@@ -529,6 +547,8 @@ private:
    */
   double *fLSamplingPrimEnergies; // log of sampling gamma energies
   double *fShellLSamplingPrimEnergies;
+
+    
     //@}
   
   //---------------------------------------------
