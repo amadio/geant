@@ -172,7 +172,7 @@ void AliasTable::PreparDiscreteTable(double *ydata, double *xx, int *binindx, in
       binindx[i] = i;
       xx[i]      = 1.;
     }
-    else if (xx[i]<1.e-99) xx[i]=0;
+    else if (xx[i]<1.e-99) { xx[i] = 0; binindx[i] = i;}
   }
 }
 
