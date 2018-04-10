@@ -5,6 +5,8 @@
 // cstdlib is for std::abs(int)
 #include <cstdlib>
 
+#include <algorithm> //lower_bound
+
 namespace geantphysics {
 
 // spline does not own fXdata and fYdata
@@ -82,23 +84,33 @@ void Spline::SetUpSpline(double *xdata, double *ydata, int numdata, bool isacsec
 // get interpollated Y value at the given X=val point
 double Spline::GetValueAt(double val)
 {
-  int m, ml, mu, mav;
-  // check if 'val' is above/below the highes/lowest value
-  if (val >= *(fXdata + (fUpperm + fDirection))) {
-    m = fUpperm + 2 * fDirection - 1;
-  } else if (val <= *(fXdata + (fLowerm + 1 - fDirection))) {
-    m = fLowerm - 2 * fDirection + 1;
-  } else { // Perform a binary search to find the interval val is in
-    ml = fLowerm;
-    mu = fUpperm;
-    while (std::abs(mu - ml) > 1) {
-      mav = (ml + mu) / 2.;
-      if (val < *(fXdata + mav))
-        mu = mav;
-      else
-        ml = mav;
+  int m;
+  if (fDirection == 0) { // x0 < x1 < x2
+
+    auto low  = fXdata + fLowerm + 1; // fLowerm is usually -1
+    auto high = fXdata + fUpperm;
+    m         = std::lower_bound(low, high, val) - low;
+    m -= 1; // correction so result is the same as in previous version
+
+  } else { // x0 > x1 > x2, not used
+    int ml, mu, mav;
+    // check if 'val' is above/below the highes/lowest value
+    if (val >= *(fXdata + (fUpperm + fDirection))) {
+      m = fUpperm + 2 * fDirection - 1;
+    } else if (val <= *(fXdata + (fLowerm + 1 - fDirection))) {
+      m = fLowerm - 2 * fDirection + 1;
+    } else { // Perform a binary search to find the interval val is in
+      ml = fLowerm;
+      mu = fUpperm;
+      while (std::abs(mu - ml) > 1) {
+        mav = (ml + mu) / 2.;
+        if (val < *(fXdata + mav))
+          mu = mav;
+        else
+          ml = mav;
+      }
+      m = mu + fDirection - 1;
     }
-    m = mu + fDirection - 1;
   }
   // check if the 2 grid point is 0,0
   if ((*(fYdata + m)) + (*(fYdata + m + 1)) == 0.0) {
