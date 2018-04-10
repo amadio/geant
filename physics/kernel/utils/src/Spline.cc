@@ -15,10 +15,7 @@ Spline::Spline(double *xdata, double *ydata, int numdata, bool isacsecderis, boo
   fNPoints = numdata;
   fXdata   = xdata;
   fYdata   = ydata;
-  fA.resize(fNPoints);
-  fB.resize(fNPoints);
-  fC.resize(fNPoints);
-  fD.resize(fNPoints);
+  fData.resize(fNPoints);
   //  fSecondDerivatives.resize(fNPoints);
   fIsConstrained = isconstrained;
   fIsAcSecDerivs = isacsecderis;
@@ -51,10 +48,7 @@ void Spline::SetUpSpline(double *xdata, double *ydata, int numdata, bool isacsec
   fNPoints = numdata;
   fXdata   = xdata;
   fYdata   = ydata;
-  fA.resize(fNPoints);
-  fB.resize(fNPoints);
-  fC.resize(fNPoints);
-  fD.resize(fNPoints);
+  fData.resize(fNPoints);
   //  fSecondDerivatives.resize(fNPoints);
   fIsConstrained = isconstrained;
   fIsAcSecDerivs = isacsecderis;
@@ -118,7 +112,7 @@ double Spline::GetValueAt(double val)
   }
   if (!fIsConstrained) val -= (*(fXdata + m));
 
-  return fA[m] + val * (fB[m] + val * (fC[m] + val * fD[m]));
+  return fData[m].fA + val * (fData[m].fB + val * (fData[m].fC + val * fData[m].fD));
 }
 
 // we need an other GetSplie such that if:
@@ -133,7 +127,7 @@ double Spline::GetValueAt(double x, int indx)
     return 0.0;
   }
   if (!fIsConstrained) x -= (*(fXdata + indx));
-  return fA[indx] + x * (fB[indx] + x * (fC[indx] + x * fD[indx]));
+  return fData[indx].fA + x * (fData[indx].fB + x * (fData[indx].fC + x * fData[indx].fD));
 }
 
 // init the spline parameters
@@ -151,33 +145,33 @@ void Spline::SetParameters()
     m2 = fNPoints - 1;
     s  = 0.0;
     for (m = 0; m < m2; ++m) {
-      fD[m] = (*(fXdata + (m + 1))) - (*(fXdata + m));
-      r     = ((*(fYdata + (m + 1))) - (*(fYdata + m))) / fD[m];
-      fC[m] = r - s;
-      s     = r;
+      fData[m].fD = (*(fXdata + (m + 1))) - (*(fXdata + m));
+      r           = ((*(fYdata + (m + 1))) - (*(fYdata + m))) / fData[m].fD;
+      fData[m].fC = r - s;
+      s           = r;
     }
-    s                = 0.0;
-    r                = 0.0;
-    fC[0]            = 0.0;
-    fC[fNPoints - 1] = 0.0;
+    s                      = 0.0;
+    r                      = 0.0;
+    fData[0].fC            = 0.0;
+    fData[fNPoints - 1].fC = 0.0;
     for (m = m1; m < m2; ++m) {
-      fC[m] = fC[m] + r * fC[m - 1];
-      fB[m] = 2.0 * ((*(fXdata + (m - 1))) - (*(fXdata + (m + 1)))) - r * s;
-      s     = fD[m];
-      r     = s / fB[m];
+      fData[m].fC = fData[m].fC + r * fData[m - 1].fC;
+      fData[m].fB = 2.0 * ((*(fXdata + (m - 1))) - (*(fXdata + (m + 1)))) - r * s;
+      s           = fData[m].fD;
+      r           = s / fData[m].fB;
     }
     mr = m2 - 1;
     for (m = m1; m < m2; ++m) {
-      fC[mr] = (fD[mr] * fC[mr + 1] - fC[mr]) / fB[mr];
-      mr     = mr - 1;
+      fData[mr].fC = (fData[mr].fD * fData[mr + 1].fC - fData[mr].fC) / fData[mr].fB;
+      mr           = mr - 1;
     }
     for (m = 0; m < m2; ++m) {
-      s     = fD[m];
-      r     = fC[m + 1] - fC[m];
-      fD[m] = r / s;
-      fC[m] = 3.0 * fC[m];
-      fB[m] = (*(fYdata + (m + 1)) - *(fYdata + m)) / s - (fC[m] + r) * s;
-      fA[m] = *(fYdata + m);
+      s           = fData[m].fD;
+      r           = fData[m + 1].fC - fData[m].fC;
+      fData[m].fD = r / s;
+      fData[m].fC = 3.0 * fData[m].fC;
+      fData[m].fB = (*(fYdata + (m + 1)) - *(fYdata + m)) / s - (fData[m].fC + r) * s;
+      fData[m].fA = *(fYdata + m);
     }
   }
 }
@@ -205,18 +199,19 @@ void Spline::SetParametersConstrained()
     if (i == 1) { // first point
       f1pxim1 = 1.5 * ((*(fYdata + 1)) - (*(fYdata))) / ((*(fXdata + 1)) - (*(fXdata))) - 0.5 * f1pxi;
     }
-    double xdel1 = (*(fXdata + i)) - (*(fXdata + i - 1));
-    double ydel1 = (*(fYdata + i)) - (*(fYdata + i - 1));
-    f1ppxim1     = -2.0 * (f1pxi + 2.0 * f1pxim1) / xdel1 + 6.0 * ydel1 / (xdel1 * xdel1);
-    f1ppxi       = 2.0 * (2.0 * f1pxi + f1pxim1) / xdel1 - 6.0 * ydel1 / (xdel1 * xdel1);
-    double xi2   = (*(fXdata + i)) * (*(fXdata + i));
-    double xim12 = (*(fXdata + i - 1)) * (*(fXdata + i - 1));
-    fD[i - 1]    = (f1ppxi - f1ppxim1) / (6.0 * xdel1);
-    fC[i - 1]    = 0.5 * ((*(fXdata + i)) * f1ppxim1 - (*(fXdata + i - 1)) * f1ppxi) / xdel1;
-    fB[i - 1] =
-        (ydel1 - fC[i - 1] * (xi2 - xim12) - fD[i - 1] * ((*(fXdata + i)) * xi2 - (*(fXdata + i - 1)) * xim12)) / xdel1;
-    fA[i - 1] = (*(fYdata + i - 1)) - fB[i - 1] * (*(fXdata + i - 1)) - fC[i - 1] * xim12 -
-                fD[i - 1] * xim12 * (*(fXdata + i - 1));
+    double xdel1    = (*(fXdata + i)) - (*(fXdata + i - 1));
+    double ydel1    = (*(fYdata + i)) - (*(fYdata + i - 1));
+    f1ppxim1        = -2.0 * (f1pxi + 2.0 * f1pxim1) / xdel1 + 6.0 * ydel1 / (xdel1 * xdel1);
+    f1ppxi          = 2.0 * (2.0 * f1pxi + f1pxim1) / xdel1 - 6.0 * ydel1 / (xdel1 * xdel1);
+    double xi2      = (*(fXdata + i)) * (*(fXdata + i));
+    double xim12    = (*(fXdata + i - 1)) * (*(fXdata + i - 1));
+    fData[i - 1].fD = (f1ppxi - f1ppxim1) / (6.0 * xdel1);
+    fData[i - 1].fC = 0.5 * ((*(fXdata + i)) * f1ppxim1 - (*(fXdata + i - 1)) * f1ppxi) / xdel1;
+    fData[i - 1].fB = (ydel1 - fData[i - 1].fC * (xi2 - xim12) -
+                       fData[i - 1].fD * ((*(fXdata + i)) * xi2 - (*(fXdata + i - 1)) * xim12)) /
+                      xdel1;
+    fData[i - 1].fA = (*(fYdata + i - 1)) - fData[i - 1].fB * (*(fXdata + i - 1)) - fData[i - 1].fC * xim12 -
+                      fData[i - 1].fD * xim12 * (*(fXdata + i - 1));
     f1pxim1 = f1pxi;
   }
 }
@@ -275,11 +270,11 @@ void Spline::FillSecondDerivatives()
   // it would also be possible to use the secondDerivatives on the fly without these a,b,c,d parameters so we might
   // add this later as an option just to compute the secondDerivatives; see the SplineInterpolation method
   for (int i = 0; i < n; ++i) {
-    double dx = fXdata[i + 1] - fXdata[i];
-    fA[i]     = fYdata[i];
-    fB[i]     = (fYdata[i + 1] - fYdata[i]) / dx - (2.0 * secondDerivatives[i] + secondDerivatives[i + 1]) * dx / 6.0;
-    fC[i]     = 0.5 * secondDerivatives[i];
-    fD[i]     = (secondDerivatives[i + 1] - secondDerivatives[i]) / (6.0 * dx);
+    double dx   = fXdata[i + 1] - fXdata[i];
+    fData[i].fA = fYdata[i];
+    fData[i].fB = (fYdata[i + 1] - fYdata[i]) / dx - (2.0 * secondDerivatives[i] + secondDerivatives[i + 1]) * dx / 6.0;
+    fData[i].fC = 0.5 * secondDerivatives[i];
+    fData[i].fD = (secondDerivatives[i + 1] - secondDerivatives[i]) / (6.0 * dx);
   }
   secondDerivatives.clear();
 }

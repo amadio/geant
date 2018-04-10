@@ -82,6 +82,14 @@ public:
   //  double SplineInterpolation(double x);
   //  double SplineInterpolation(double x, int indx);
 
+  // should be public or building with root fails
+  struct Parameters {
+    double fA;
+    double fB;
+    double fC;
+    double fD;
+  };
+
 private:
   /** @brief Internal method to compute natural cubic spline interpolation parameters at set up. */
   void SetParameters();
@@ -115,15 +123,8 @@ private:
                     */
   double *fYdata; // starting point of Y(fNPoints will be considered from this as Y data points)
 
-  // these are the spline coefficients
-  /** @brief Parameter of the cubic spline interpolation. Computed at set up. Size of the vector is Spline::fNPoints.*/
-  std::vector<double> fA;
-  /** @brief Parameter of the cubic spline interpolation. Computed at set up. Size of the vector is Spline::fNPoints.*/
-  std::vector<double> fB;
-  /** @brief Parameter of the cubic spline interpolation. Computed at set up. Size of the vector is Spline::fNPoints.*/
-  std::vector<double> fC;
-  /** @brief Parameter of the cubic spline interpolation. Computed at set up. Size of the vector is Spline::fNPoints.*/
-  std::vector<double> fD;
+  /** @brief Parameters of the cubic spline interpolation. Computed at set up. Size of the vector is Spline::fNPoints.*/
+  std::vector<Parameters> fData;
 
   ///
   //  std::vector<double> fSecondDerivatives;
