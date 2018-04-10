@@ -49,8 +49,11 @@ using namespace geantphysics;
 //const int kMinBasket = 16;
 const int kMaxBasket = 256;
 
-const double kShellMinPrimEnergy    = 0.1 * geant::units::keV;
-const double kShellMaxPrimEnergy    = 1 *   geant::units::MeV;
+const double kShellMinPrimEnergy    = 100 * geant::units::eV;
+const double kShellMaxPrimEnergy    = 50 *   geant::units::keV;
+
+//const double kShellMinPrimEnergy    = 50 * geant::units::keV;
+//const double kShellMaxPrimEnergy    = 10 *   geant::units::MeV;
 
 geant::TaskData *PrepareTaskData()
 {
@@ -263,9 +266,39 @@ public:
     
 }; //end of class EMModelTest
 
+static void BM_Base_SampleShell_scalar(benchmark::State& state) {
+    
+    using  Real = EMModelTest::Real;
+    EMModelTest emModelTest;
+    std::random_device rd;     // only used once to initialise (seed) engine
+    std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+    std::uniform_int_distribution<int> uni(3,98); // guaranteed unbiased
+    
+    for (auto _ : state) {
+        //state.PauseTiming();
+        auto td = PrepareTaskData();
+        double *rndArray = td->fDblArray;
+        std::vector<Real> kinE, randoms, sampledShells;
+        std::vector<size_t> zed;//, nshells;
+        for (int i=0; i<state.range(0) ; i++){
+            td->fRndm->uniform_array(2, rndArray);
+            double energy = kShellMinPrimEnergy+rndArray[0]*(kShellMaxPrimEnergy-kShellMinPrimEnergy);
+            kinE.push_back(energy);
+            auto random_integer = uni(rng);
+            zed.push_back(random_integer);
+            randoms.push_back(rndArray[1]);
+        }
+        //state.ResumeTiming();
+        //emModelTest.SampleShell_scalar(kinE, zed, randoms, sampledShells);
+        
+    }
+}
+
+//BENCHMARK(BM_Base_SampleShell_scalar)->RangeMultiplier(2)->Range(16,1<<8);
 
 static void BM_SampleShell_scalar(benchmark::State& state) {
 
+    
     using  Real = EMModelTest::Real;
     EMModelTest emModelTest;
     std::random_device rd;     // only used once to initialise (seed) engine
@@ -294,10 +327,48 @@ static void BM_SampleShell_scalar(benchmark::State& state) {
 
 //BENCHMARK(BM_SampleShell_scalar)->RangeMultiplier(2)->Range(16,1<<8);
 
+
+//static void BM_Base_SampleShellAlias(benchmark::State& state) {
+//
+//    using  Real = EMModelTest::Real;
+//    //std::cout<<"BM_SampleShellAlias_scalar\n";
+//    EMModelTest emModelTest;
+//    //std::cout<<"Model Created\n";
+//
+//    std::random_device rd;     // only used once to initialise (seed) engine
+//    std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+//    std::uniform_int_distribution<int> uni(3,98); // guaranteed unbiased
+//
+//    for (auto _ : state) {
+//        //state.PauseTiming();
+//        auto td = PrepareTaskData();
+//        double *rndArray = td->fDblArray;
+//        std::vector<Real> kinE, r1, r2, sampledShells;
+//        std::vector<size_t> zed;//, nshells;
+//        for (int i=0; i<state.range(0) ; i++){
+//            //std::cout<< " ---- "<<i<<std::endl;
+//            td->fRndm->uniform_array(3, rndArray);
+//            double energy = kShellMinPrimEnergy+rndArray[0]*(kShellMaxPrimEnergy-kShellMinPrimEnergy);
+//            kinE.push_back(energy);
+//            auto random_integer = uni(rng);
+//            zed.push_back(random_integer);
+//            r1.push_back(rndArray[1]);
+//            r2.push_back(rndArray[2]);
+//        }
+//        //state.ResumeTiming();
+//        //emModelTest.SampleShellAlias_scalar(kinE, zed, r1, r2, sampledShells);
+//    }
+//}
+//
+////BENCHMARK(BM_Base_SampleShellAlias)->RangeMultiplier(2)->Range(16,1<<8);
+
 static void BM_SampleShellAlias_scalar(benchmark::State& state) {
     
+    
     using  Real = EMModelTest::Real;
+    //std::cout<<"BM_SampleShellAlias_scalar\n";
     EMModelTest emModelTest;
+    //std::cout<<"Model Created\n";
 
     std::random_device rd;     // only used once to initialise (seed) engine
     std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
@@ -325,6 +396,8 @@ static void BM_SampleShellAlias_scalar(benchmark::State& state) {
 }
 
 //BENCHMARK(BM_SampleShellAlias_scalar)->RangeMultiplier(2)->Range(16,1<<8);
+
+
 
 
 //
@@ -358,6 +431,7 @@ static void BM_SampleShellAlias_vector(benchmark::State& state) {
 }
 
 BENCHMARK(BM_SampleShellAlias_vector)->RangeMultiplier(2)->Range(16,1<<8);
+
 
 
 void TestCorrectness(int numTracks){
