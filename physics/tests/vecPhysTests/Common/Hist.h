@@ -2,6 +2,7 @@
 #define HIST_H
 
 #include <iostream>
+#include <cmath>
 
 // IT IS JUST FOR TESTING
 
@@ -82,24 +83,51 @@ public:
     return res;
   }
 
+  /*
+   * Compare this histogram with other one, assuming N[bin] ~ Poisson(N_observed[bin])
+   * Then Mean[ N[bin] ] = N_observed[bin]
+   * Variance[ N[bin] ] = Sqrt[ N_observed[bin] ]
+   *
+   * Sigma of difference N_hist1[bin] - N_hist2[bin]  approx. = Sqrt[N_hist1 + N_hist2]
+   *
+   * Reports #bins with difference less than sigma(defined above), <= 3 sigma, <= 5 sigma and >= 5 sigma
+   */
   void Compare(Hist &hist)
   {
-    Printf("%-10s %15s %15s %15s", "X", "Y diff. (in %)", "Hist1 Y", "Hist2 Y");
+    int oneSigmaDev = 0, threeSigmaDev = 0, fiveSigmaDev = 0, bigDev = 0;
     Hist &a = *this;
     Hist &b = hist;
     assert(a.fMax == b.fMax);
     assert(a.fMin == b.fMin);
     assert(a.fNumBins = b.fNumBins);
-    Hist res(a.fMin, a.fMax, a.fNumBins);
+    Hist diff(a.fMin, a.fMax, a.fNumBins);
+    Hist diffSigma(a.fMin, a.fMax, a.fNumBins);
     for (int xi = 0; xi < fNumBins; ++xi) {
-      res.fx[xi] = a.fx[xi];
-      res.fy[xi] = a.fy[xi] / b.fy[xi];
+      diff.fx[xi]      = a.fx[xi];
+      diffSigma.fx[xi] = a.fx[xi];
       if (a.fy[xi] == 0.0 && b.fy[xi] == 0.0) {
-        res.fy[xi] = 1.0;
+        diff.fy[xi]      = 0.0;
+        diffSigma.fy[xi] = 0.0;
+        continue;
       }
-      res.fy[xi] = (res.fy[xi] - 1.0) * 100.0;
-      Printf("%-10.3f %15.3f %15.0f %15.0f", res.fx[xi], res.fy[xi], a.fy[xi], b.fy[xi]);
+
+      diff.fy[xi]      = ComputeDiff(a.fy[xi], b.fy[xi]);
+      diffSigma.fy[xi] = ComputeDiffSigma(a.fy[xi], b.fy[xi]);
+
+      if (std::abs(diff.fy[xi]) <= diffSigma.fy[xi]) {
+        oneSigmaDev++;
+      } else if (std::abs(diff.fy[xi]) <= 3.0 * diffSigma.fy[xi]) {
+        threeSigmaDev++;
+      } else if (std::abs(diff.fy[xi]) <= 5.0 * diffSigma.fy[xi]) {
+        fiveSigmaDev++;
+      } else {
+        Printf("Big deviation in bin x: %f H1: %f H2: %f dev: %f dev_sigma %f", diff.fx[xi], a.fy[xi], b.fy[xi],
+               diff.fy[xi], diffSigma.fy[xi]);
+        bigDev++;
+      }
     }
+    Printf("1 sigma dev: %d | 3 sigma dev: %d | 5 sigma dev: %d | big dev: %d", oneSigmaDev, threeSigmaDev,
+           fiveSigmaDev, bigDev);
   }
 
   void Print()
@@ -110,6 +138,19 @@ public:
   }
 
 private:
+  double ComputeDiff(double a, double b)
+  {
+    assert(a >= 0.0);
+    assert(b >= 0.0);
+    return a - b;
+  }
+  double ComputeDiffSigma(double a, double b)
+  {
+    assert(a >= 0.0);
+    assert(b >= 0.0);
+    return std::sqrt(a + b);
+  }
+
   double *fx;
   double *fy;
   double fMin;
