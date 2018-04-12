@@ -19,7 +19,7 @@ using geantphysics::VecRelativisticPairModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
-const int kMinBasket = 16;
+const int kMinBasket = 256;
 const int kMaxBasket = 256;
 const double minEn   = 80.0 * geant::units::GeV;
 const double maxEn   = 100.0 * geant::units::TeV;

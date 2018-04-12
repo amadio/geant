@@ -19,7 +19,7 @@ using geantphysics::VecBetheHeitlerPairModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
-const int kMinBasket      = 16;
+const int kMinBasket      = 256;
 const int kMaxBasket      = 256;
 const double minEn        = 100.0 * geant::units::eV;
 const double minPrimaryEn = 2.0 * geant::units::kElectronMassC2;

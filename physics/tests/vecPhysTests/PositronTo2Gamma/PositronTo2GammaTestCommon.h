@@ -13,7 +13,7 @@ using geantphysics::LightTrack_v;
 using geantphysics::PositronTo2GammaModel;
 using geantphysics::VecPositronTo2GammaModel;
 
-const int kMinBasket = 16;
+const int kMinBasket = 256;
 const int kMaxBasket = 256;
 const double minEn   = 100 * geant::units::eV;
 const double maxEn   = 100.0 * geant::units::TeV;

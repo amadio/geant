@@ -19,7 +19,7 @@ using geantphysics::VecSeltzerBergerBremsModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
-const int kMinBasket = 16;
+const int kMinBasket = 256;
 const int kMaxBasket = 256;
 const double minEn   = 1.0 * geant::units::GeV; // Should be higher then matcut
 const double maxEn   = 10.0 * geant::units::GeV;
