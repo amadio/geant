@@ -343,7 +343,7 @@ G4double Run::ComputeMscHighland()
   G4double z = std::abs(fParticle->GetPDGCharge()/eplus);
 
   G4double bpc = T*(T+2*M)/(T+M);
-  G4double teta0 = 13.6*MeV*z*std::sqrt(t)*(1.+0.038*geant::Log(t))/bpc;
+  G4double teta0 = 13.6*MeV*z*std::sqrt(t)*(1.+0.038*std::log(t))/bpc;
   return teta0;
 }
 
