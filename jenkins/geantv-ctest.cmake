@@ -33,13 +33,15 @@ getuname(osname -s)
 getuname(osrel  -r)
 getuname(cpu    -m)
 
-if(DEFINED ENV{LABEL})
-  if (DEFINED ENV{BACKEND})
+if (DEFINED ENV{BACKEND})
   set(CTEST_BUILD_NAME "$ENV{OPTION}-${cpu}+$ENV{BACKEND}-$ENV{LABEL}-$ENV{COMPILER}-$ENV{CMAKE_BUILD_TYPE}")
-  endif()
 else()
   set(CTEST_BUILD_NAME "$ENV{OPTION}-${cpu}-$ENV{LABEL}-$ENV{COMPILER}-$ENV{CMAKE_BUILD_TYPE}")
 endif()
+if(DEFINED ENV{gitlabMergedByUser} AND DEFINED ENV{gitlabMergeRequestIid})
+  set(CTEST_BUILD_NAME "$ENV{gitlabMergedByUser}#$ENV{gitlabMergeRequestIid}-${CTEST_BUILD_NAME}")
+endif()
+
 message("CTEST name: ${CTEST_BUILD_NAME}")
 
 find_program(HOSTNAME_CMD NAMES hostname)
