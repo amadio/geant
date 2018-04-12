@@ -90,11 +90,11 @@ public:
    *
    * Sigma of difference N_hist1[bin] - N_hist2[bin]  approx. = Sqrt[N_hist1 + N_hist2]
    *
-   * Reports #bins with difference less than sigma(defined above), <= 3 sigma, <= 5 sigma and >= 5 sigma
+   * Reports #bins with difference less than 4 sigma(defined above), and >= 4 sigma
    */
   void Compare(Hist &hist)
   {
-    int oneSigmaDev = 0, threeSigmaDev = 0, fiveSigmaDev = 0, bigDev = 0;
+    int fourSigmaDev = 0, bigDev = 0;
     Hist &a = *this;
     Hist &b = hist;
     assert(a.fMax == b.fMax);
@@ -108,26 +108,20 @@ public:
       if (a.fy[xi] == 0.0 && b.fy[xi] == 0.0) {
         diff.fy[xi]      = 0.0;
         diffSigma.fy[xi] = 0.0;
-        continue;
+      } else {
+        diff.fy[xi]      = ComputeDiff(a.fy[xi], b.fy[xi]);
+        diffSigma.fy[xi] = ComputeDiffSigma(a.fy[xi], b.fy[xi]);
       }
 
-      diff.fy[xi]      = ComputeDiff(a.fy[xi], b.fy[xi]);
-      diffSigma.fy[xi] = ComputeDiffSigma(a.fy[xi], b.fy[xi]);
-
-      if (std::abs(diff.fy[xi]) <= diffSigma.fy[xi]) {
-        oneSigmaDev++;
-      } else if (std::abs(diff.fy[xi]) <= 3.0 * diffSigma.fy[xi]) {
-        threeSigmaDev++;
-      } else if (std::abs(diff.fy[xi]) <= 5.0 * diffSigma.fy[xi]) {
-        fiveSigmaDev++;
+      if (std::abs(diff.fy[xi]) <= 4.0 * diffSigma.fy[xi]) {
+        fourSigmaDev++;
       } else {
         Printf("Big deviation in bin x: %f H1: %f H2: %f dev: %f dev_sigma %f", diff.fx[xi], a.fy[xi], b.fy[xi],
                diff.fy[xi], diffSigma.fy[xi]);
         bigDev++;
       }
     }
-    Printf("1 sigma dev: %d | 3 sigma dev: %d | 5 sigma dev: %d | big dev: %d", oneSigmaDev, threeSigmaDev,
-           fiveSigmaDev, bigDev);
+    Printf("4 sigma dev: %d | big dev: %d", fourSigmaDev, bigDev);
   }
 
   void Print()

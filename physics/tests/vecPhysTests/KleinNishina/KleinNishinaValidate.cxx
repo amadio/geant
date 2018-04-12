@@ -102,7 +102,6 @@ void FillDataScalar(ComptonValidData &data, bool useAlias)
 int main()
 {
   Printf("Number of gamma for each test %d", kMaxBasket * kBasketTries);
-  Printf("Relative histograms of kinematics (difference in percents)");
   {
     Printf("Test for alias method");
 

@@ -101,7 +101,6 @@ int main()
   td       = PrepareTaskData();
 
   Printf("Number of leptons for each test %d", kMaxBasket * kBasketTries);
-  Printf("Relative histograms of kinematics (difference in percents)");
   {
     Printf("Test for alias method");
 
