@@ -50,7 +50,7 @@ public:
 
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE
-  virtual const char *GetName() { return "PreStep"; }
+  virtual const char *GetName() const { return "PreStep"; }
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -67,7 +67,7 @@ protected:
   static void InitializeStats();
 
   VECCORE_ATT_HOST_DEVICE
-  void PrintStats();
+  void PrintStats() const;
 
   VECCORE_ATT_HOST_DEVICE
   void CheckVsScalar(const vecgeom::Vector3D<double> &startPosition, const vecgeom::Vector3D<double> &startDirection,
@@ -98,7 +98,7 @@ private:
   /** @brief Function that returns safe length */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double SafeLength(const Track &track, double eps = 1.E-4);
+  double SafeLength(const Track &track, double eps = 1.E-4) const;
 
   /** @brief Function that return Field Propagator, i.e. the holder of (RK) Integration Driver */
   GEANT_FORCE_INLINE
@@ -124,7 +124,7 @@ private:
 
 VECCORE_ATT_HOST_DEVICE
 GEANT_FORCE_INLINE
-double FieldPropagationHandler::SafeLength(const Track &track, double eps)
+double FieldPropagationHandler::SafeLength(const Track &track, double eps) const
 {
   // Returns the propagation length in field such that the propagated point is
   // shifted less than eps with respect to the linear propagation.

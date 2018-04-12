@@ -90,7 +90,7 @@ public:
 
   /** @brief Service to get the NUMA node corresponding to a track */
   GEANT_FORCE_INLINE
-  int GetNode(Track const &track) { return (TrackManager::GetBlock(track)->GetNode()); }
+  int GetNode(Track const &track) const { return (TrackManager::GetBlock(track)->GetNode()); }
 
   /** @brief Release a track from its block */
   GEANT_FORCE_INLINE

@@ -210,24 +210,24 @@ public:
 
   /** @brief  Inspect simulation stages */
   VECCORE_ATT_HOST_DEVICE
-  void InspectStages();
+  void InspectStages() const;
 
   /** @brief  Getter for a simulation stage */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  SimulationStage *GetStage(ESimulationStage id) { return fStages[int(id)]; }
+  SimulationStage *GetStage(ESimulationStage id) const { return fStages[int(id)]; }
 
   /** @brief  Getter for the number of simulation stages */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int GetNstages() { return fStages.size(); }
+  int GetNstages() const { return fStages.size(); }
 
   /** @brief Function creating all simulation stages for a propagator */
   int CreateSimulationStages();
 
   /** @brief Function allowing to retrieve the next simulation stage for a track */
   VECCORE_ATT_HOST_DEVICE
-  int GetNextStage(Track &track, int current);
+  int GetNextStage(Track &track, int current) const;
 
   /** @brief Setter for locality */
   void SetNuma(int numa);

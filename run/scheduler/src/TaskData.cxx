@@ -179,7 +179,7 @@ void TaskData::ReleaseTrack(Track &track)
 }
 
 //______________________________________________________________________________
-void TaskData::InspectStages(int istage)
+void TaskData::InspectStages(int istage) const
 {
   Printf("** Thread %d: **", fTid);
   for (auto stage : fPropagator->fStages) {

@@ -75,7 +75,7 @@ public:
   bool MarkDone(int event_number);
 
   /** @brief Print the data set */
-  void Print();
+  void Print() const;
 
   /** @brief Check if the all events in the set are completed. */
   GEANT_FORCE_INLINE

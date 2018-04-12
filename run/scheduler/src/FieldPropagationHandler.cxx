@@ -866,7 +866,7 @@ void FieldPropagationHandler::CheckTrack(Track &track, const char *msg, double e
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::PrintStats()
+void FieldPropagationHandler::PrintStats() const
 {
 #ifdef STATS_METHODS
   unsigned long nTot = numTot++;

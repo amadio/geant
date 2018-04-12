@@ -130,7 +130,7 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool LinearPropagationHandler::IsSameLocation(Track &track, TaskData *td)
+bool LinearPropagationHandler::IsSameLocation(Track &track, TaskData *td) const
 {
   // Query geometry if the location has changed for a track
   if (track.GetSafety() > 1.E-10 && track.GetSnext() > 1.E-10) {

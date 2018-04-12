@@ -379,7 +379,7 @@ int Propagator::CreateSimulationStages()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-int Propagator::GetNextStage(Track & /*track*/, int /*current*/)
+int Propagator::GetNextStage(Track & /*track*/, int /*current*/) const
 {
   // Get the next simulation stage for a track
   //  0 - Sample X-sec for discrete processes to propose the physics step

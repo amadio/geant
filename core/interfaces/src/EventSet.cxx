@@ -54,7 +54,7 @@ bool EventSet::AddEvent(Event *event)
 }
 
 //______________________________________________________________________________
-void EventSet::Print()
+void EventSet::Print() const
 {
   // Print the event set content
   for (size_t i = 0; i < fNevents; ++i)

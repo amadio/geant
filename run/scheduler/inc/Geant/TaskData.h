@@ -187,7 +187,7 @@ public:
    *
    */
   VECCORE_ATT_HOST_DEVICE
-  VolumePath_t *GetPath() { return fPath; }
+  VolumePath_t *GetPath() const { return fPath; }
 
   /** @brief Get new track from track manager */
   VECCORE_ATT_HOST_DEVICE
@@ -214,7 +214,7 @@ public:
   bool NeedsToClean() const { return fToClean; }
 
   /** @brief  Inspect simulation stages */
-  void InspectStages(int istage);
+  void InspectStages(int istage) const;
 
   /** @brief  Set user data */
   bool SetUserData(void *data, size_t index)
@@ -230,7 +230,7 @@ public:
   }
 
   /** @brief  Get user data */
-  void *GetUserData(size_t index) { return fUserData[index]; }
+  void *GetUserData(size_t index) const { return fUserData[index]; }
 
 private:
   /**
@@ -271,10 +271,10 @@ public:
   }
 
   GEANT_FORCE_INLINE
-  T *GetUserData(TaskData *td) { return (T *)td->GetUserData(fIndex); }
+  T *GetUserData(TaskData *td) const { return (T *)td->GetUserData(fIndex); }
 
   GEANT_FORCE_INLINE
-  T &operator()(TaskData *td) { return *(T *)td->GetUserData(fIndex); }
+  T &operator()(TaskData *td) const { return *(T *)td->GetUserData(fIndex); }
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   GEANT_FORCE_INLINE
@@ -285,7 +285,7 @@ public:
 #endif
 
   GEANT_FORCE_INLINE
-  const char *GetName() { return fName; }
+  const char *GetName() const { return fName; }
 
   /** @brief User callable, allowing to attach per-thread data of the handle type
     * @details User data corresponding to all pre-defined tokens can be allocated
@@ -342,7 +342,7 @@ public:
   }
 
   GEANT_FORCE_INLINE
-  TaskData *GetTaskData(int index) { return fTaskData[index]; }
+  TaskData *GetTaskData(int index) const { return fTaskData[index]; }
 
   void ReleaseTaskData(TaskData *td)
   {

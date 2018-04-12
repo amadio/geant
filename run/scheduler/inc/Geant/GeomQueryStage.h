@@ -53,7 +53,7 @@ public:
 
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE
-  virtual const char *GetName() { return "GeometryQuery"; }
+  virtual const char *GetName() const { return "GeometryQuery"; }
 
   /** @brief Activating basketizing */
   VECCORE_ATT_HOST_DEVICE

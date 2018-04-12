@@ -78,20 +78,20 @@ public:
   void AddEventSet(EventSet *workload);
 
   GEANT_FORCE_INLINE
-  int GetNthreads() { return fNthreads; }
+  int GetNthreads() const { return fNthreads; }
 
   GEANT_FORCE_INLINE
-  int GetNthreadsTotal() { return (fNthreads * fNpropagators); }
+  int GetNthreadsTotal() const { return (fNthreads * fNpropagators); }
 
   GEANT_FORCE_INLINE
-  int GetNpropagators() { return fNpropagators; }
+  int GetNpropagators() const { return fNpropagators; }
 
   GEANT_FORCE_INLINE
-  GeantConfig *GetConfig() { return fConfig; }
+  GeantConfig *GetConfig() const { return fConfig; }
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  int GetNvolumes() { return fNvolumes; }
+  int GetNvolumes() const { return fNvolumes; }
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -120,10 +120,10 @@ public:
   int GetNpriority() const { return fPriorityEvents.load(); }
 
   GEANT_FORCE_INLINE
-  Volume_t const *GetVolume(int ivol) { return fVolumes[ivol]; }
+  Volume_t const *GetVolume(int ivol) const { return fVolumes[ivol]; }
 
   GEANT_FORCE_INLINE
-  Event *GetEvent(int slot) { return fEventServer->GetEvent(slot); }
+  Event *GetEvent(int slot) const { return fEventServer->GetEvent(slot); }
 
   GEANT_FORCE_INLINE
   EventServer *GetEventServer() const { return fEventServer; }
@@ -174,7 +174,7 @@ public:
   TDManager *GetTDManager() const { return fTDManager; }
 
   GEANT_FORCE_INLINE
-  bool IsInitialized() { return fInitialized; }
+  bool IsInitialized() const { return fInitialized; }
 
   TaskData *BookTransportTask();
 
@@ -182,7 +182,7 @@ public:
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }
 
   /** @brief Check if event is finished */
-  bool IsDoneEvent(int ievt) { return fDoneEvents->TestBitNumber(ievt); }
+  bool IsDoneEvent(int ievt) const { return fDoneEvents->TestBitNumber(ievt); }
 
   /** @brief Mark an event as finished */
   void SetDoneEvent(int ievt) { fDoneEvents->SetBitNumber(ievt); }

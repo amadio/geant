@@ -31,7 +31,7 @@ private:
   LinearPropagationHandler &operator=(const LinearPropagationHandler &) = delete;
 
   VECCORE_ATT_HOST_DEVICE
-  bool IsSameLocation(Track &track, TaskData *td);
+  bool IsSameLocation(Track &track, TaskData *td) const;
 
 public:
   /** @brief Default constructor */

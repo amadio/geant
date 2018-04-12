@@ -111,10 +111,10 @@ public:
   int GetNstored() const { return fNstored.load(); }
 
   GEANT_FORCE_INLINE
-  Event *GetEvent(int slot) { return fEvents[slot]; }
+  Event *GetEvent(int slot) const { return fEvents[slot]; }
 
   GEANT_FORCE_INLINE
-  Event *FindEvent(int event)
+  Event *FindEvent(int event) const
   {
     // trying to avoid concurrent map, but this could be smarter
     for (int i = 0; i < fNactiveMax; ++i) {
@@ -124,7 +124,7 @@ public:
   }
 
   GEANT_FORCE_INLINE
-  int GetBindex() { return fBindex; }
+  int GetBindex() const { return fBindex; }
 
   GEANT_FORCE_INLINE
   bool EventsServed() const { return fEventsServed; }

@@ -102,7 +102,7 @@ public:
 
   /** @brief  Setter for task broker */
   GEANT_FORCE_INLINE
-  TaskBroker *GetTaskBroker() { return fBroker; }
+  TaskBroker *GetTaskBroker() const { return fBroker; }
 
   /** @brief Function that initializes the threads/tasks used by the system */
   bool StartTasks();

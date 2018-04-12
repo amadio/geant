@@ -1282,7 +1282,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   // std::fill_n( badStepSize,  nTracks, false);
   if (partDebug) ReportArray(methodName, "hstep", hstep, nTracks);
 
-  Bool_v lastStepOK, succeededLane(false), isLastStepLane(false);
+  Bool_v /*lastStepOK,*/ succeededLane(false), isLastStepLane(false);
   Bool_v isDoneLane(false); // set true when there is a return statement
   int numFilled  = 0;
   int numBadSize = 0; // How many tracks have invalid step size
@@ -1364,7 +1364,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
       ReportRowsOfPositionsMomenta("yNext", yNext, Nvar, momStart);
     }
 
-    lastStepOK = (hdid == h);
+    // lastStepOK = (hdid == h);
     fNoTotalSteps++;
 
     bool reportMove = true;
