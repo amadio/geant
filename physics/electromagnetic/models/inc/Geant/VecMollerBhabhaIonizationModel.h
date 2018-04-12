@@ -41,7 +41,7 @@ public:
 
   void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td) override;
 
-  virtual bool IsModelUsable(const MaterialCuts *matCut, double ekin);
+  bool IsModelUsable(const MaterialCuts *matCut, double ekin) override;
   ;
 
 private:

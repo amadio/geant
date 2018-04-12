@@ -129,7 +129,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
   assert(N % kPhysDVWidth == 0);
   LightTrack_v &primaryLTs = td->fPhysicsData->GetPrimarySOA();
 
-  for (size_t i = 0; i < N; ++i) {
+  for (int i = 0; i < N; ++i) {
     geant::Track *track = gtracks[i];
 
     // we will use members:
@@ -160,7 +160,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
   fModel->SampleSecondariesVector(primaryLTs, td);
 
   // update primary tracks
-  for (size_t i = 0; i < N; ++i) {
+  for (int i = 0; i < N; ++i) {
     geant::Track *track = gtracks[i];
     double newEkin      = primaryLTs.GetKinE(i);
     track->SetMass(primaryLTs.GetMass(i));
