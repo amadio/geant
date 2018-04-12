@@ -4,6 +4,7 @@ import os, platform, string, re
 arch = platform.machine()
 
 system = platform.system()
+architecture = os.getenv('ARCHITECTURE')
 
 #---Determine the OS and version--------------------------------------
 if system == 'Darwin' :
@@ -15,7 +16,7 @@ elif system == 'Linux' :
    elif re.search('CentOS', dist[0]):
       osvers = 'centos' + dist[1].split('.')[0]
    elif re.search('Ubuntu', dist[0]):
-      osvers = 'ubuntu' + dist[1].split('.')[0]
+      osvers = 'ubuntu' + dist[1].split('.')[0] + dist[1].split('.')[1]
    elif re.search('Fedora', dist[0]):
       osvers = 'fedora' + dist[1].split('.')[0]
    else:
@@ -46,7 +47,10 @@ else:
      versioninfo = os.popen(ccommand + ' -dumpversion').read()
      patt = re.compile('([0-9]+)\\.([0-9]+)')
      mobj = patt.match(versioninfo)
-     compiler = 'gcc' + mobj.group(1) + mobj.group(2)
+     if int(mobj.group(1)) >= 7 :
+        compiler = 'gcc' + mobj.group(1)
+     else :  
+        compiler = 'gcc' + mobj.group(1) + mobj.group(2)
   elif ccommand.endswith('clang'):
      versioninfo = os.popen4(ccommand + ' -v')[1].read()
      patt = re.compile('.*version ([0-9]+)[.]([0-9]+)')
@@ -68,7 +72,9 @@ else:
 
 if buildtype == 'Release' : bt = 'opt'
 elif buildtype == 'Debug' : bt = 'dbg'
-elif buildtype == 'Optimized' : bt = 'fst'
 else : bt = 'unk'
 
-print '%s-%s-%s-%s' %  (arch, osvers, compiler, bt)
+if architecture:
+   print '%s+%s-%s-%s-%s' %  (arch, architecture, osvers, compiler, bt)
+else:
+   print '%s-%s-%s-%s' %  (arch, osvers, compiler, bt)

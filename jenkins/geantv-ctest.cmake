@@ -35,10 +35,10 @@ getuname(cpu    -m)
 
 if(DEFINED ENV{LABEL})
   if (DEFINED ENV{BACKEND})
-  set(CTEST_BUILD_NAME "${osname}-${cpu}-$ENV{LABEL}-$ENV{BACKEND}-$ENV{CMAKE_BUILD_TYPE}")
+  set(CTEST_BUILD_NAME "$ENV{OPTION}-${cpu}+$ENV{BACKEND}-$ENV{LABEL}-$ENV{COMPILER}-$ENV{CMAKE_BUILD_TYPE}")
   endif()
 else()
-  set(CTEST_BUILD_NAME "${osname}-${cpu}-$ENV{LABEL}-$ENV{CMAKE_BUILD_TYPE}")
+  set(CTEST_BUILD_NAME "$ENV{OPTION}-${cpu}-$ENV{LABEL}-$ENV{COMPILER}-$ENV{CMAKE_BUILD_TYPE}")
 endif()
 message("CTEST name: ${CTEST_BUILD_NAME}")
 
@@ -96,12 +96,31 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "2000")
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "2000")
 set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE "5000")
 set(CTEST_BUILD_CONFIGURATION "$ENV{CMAKE_BUILD_TYPE}")
-set(CMAKE_INSTALL_PREFIX "$ENV{CMAKE_INSTALL_PREFIX}")
+set(CTEST_INSTALL_PREFIX "$ENV{CMAKE_INSTALL_PREFIX}")
 set(CTEST_SOURCE_DIRECTORY "$ENV{CMAKE_SOURCE_DIR}")
 set(CTEST_BINARY_DIRECTORY "$ENV{CMAKE_BINARY_DIR}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 set(CTEST_BUILD_OPTIONS "$ENV{CTEST_BUILD_OPTIONS}")
-set(CTEST_CONFIGURE_COMMAND "\"${CMAKE_COMMAND}\" \"-G${CTEST_CMAKE_GENERATOR}\" -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=${CTEST_BUILD_CONFIGURATION} ${CTEST_BUILD_OPTIONS} ${CTEST_SOURCE_DIRECTORY}")
+
+set(config_options -DCMAKE_INSTALL_PREFIX=${CTEST_INSTALL_PREFIX} 
+                   -DCMAKE_BUILD_TYPE=${CTEST_BUILD_CONFIGURATION} 
+                   -DUSE_ROOT=ON 
+                   -DCTEST=ON
+                   -DBUILD_REAL_PHYSICS_TESTS=ON
+                   $ENV{ExtraCMakeOptions})
+
+if("$ENV{COMPILER}" MATCHES gcc7)
+  list(APPEND config_options -DCMAKE_CXX_STANDARD=17)
+else()
+  list(APPEND config_options -DCMAKE_CXX_STANDARD=14)
+endif()
+
+if("$ENV{OPTION}" STREQUAL "NUMA")
+  list(APPEND config_options -DUSE_NUMA=ON)
+elseif("$ENV{OPTION}" STREQUAL "TBB")
+  list(APPEND config_options -DUSE_TBB=ON)
+endif()
+ 
 ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
 
 #########################################################
@@ -134,9 +153,8 @@ include(ProcessorCount)
 ProcessorCount(N)
 if(NOT N EQUAL 0)
   if(NOT WIN32)
-#    set(CTEST_BUILD_FLAGS -j${N})
-
-  endif(NOT WIN32)
+    set(CTEST_BUILD_FLAGS -j${N})
+  endif()
   set(ctest_test_args ${ctest_test_args} PARALLEL_LEVEL ${N})
 endif()
 
@@ -170,26 +188,19 @@ include("${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
 ctest_start(${MODEL} TRACK ${MODEL})
 
 ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
-message("Updated.")
 
-ctest_configure(SOURCE "${CTEST_SOURCE_DIRECTORY}" BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
-message("Configured.")
+ctest_configure(BUILD   ${CTEST_BINARY_DIRECTORY}
+                SOURCE  ${CTEST_SOURCE_DIRECTORY}
+                OPTIONS "${config_options}"
+                APPEND)
 ctest_submit(PARTS Update Configure Notes)
 
-ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
-message("Built.")
+ctest_build(BUILD ${CTEST_BINARY_DIRECTORY} TARGET install APPEND)
 ctest_submit(PARTS Build)
 
-message(" -- Install ${MODEL} - ${CTEST_BUILD_NAME} --")
-execute_process(COMMAND make install  WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}  RESULT_VARIABLE ExitCode)
-CheckExitCode()
-
-ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
-message("Tested.")
+ctest_test(BUILD ${CTEST_BINARY_DIRECTORY} APPEND)
 ctest_submit(PARTS Test)
 
 if(${MODEL} MATCHES NightlyMemoryCheck)
   ctest_submit(PARTS MemCheck)
 endif()
-
-message("DONE:CTestScript")

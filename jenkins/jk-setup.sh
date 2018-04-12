@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -6,35 +6,34 @@ export LC_ALL=en_US.UTF-8
 THIS=$(dirname ${BASH_SOURCE[0]})
 
 # first arguments is the source directory
-if [ $# -ge 4 ]; then
+if [ $# -ge 5 ]; then
   LABEL=$1 ; shift
   COMPILER=$1 ; shift
   BUILDTYPE=$1 ; shift
   EXTERNALS=$1 ; shift
-#  WORKSPACE=$1 ; shift
-#  TYPE=$1 ; shift
-#  BACKEND=$1 ; shift
+  BACKEND=$1 ; shift
 else
   echo "$0: expecting 4 arguments [LABEL] [COMPILER] [BUILDTYPE] [EXTERNALS]"
   return
 fi
 
+export ARCHITECTURE=$BACKEND
+export BUILDTYPE
+export COMPILER
+
 PLATFORM=`$THIS/getPlatform.py`
 COMPATIBLE=`$THIS/getCompatiblePlatform.py $PLATFORM`
 ARCH=$(uname -m)
 
-export BUILDTYPE
-export COMPILER
-
 # Set up the externals against devgeantv in CVMFS
-if [ -a /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$PLATFORM ]; then
-  source /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$PLATFORM/setup.sh
-elif [ -a /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$COMPATIBLE ]; then
-  source /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest/$COMPATIBLE/setup.sh
+if [ -a /cvmfs/sft.cern.ch/lcg/views/devgeantv/$EXTERNALS/$PLATFORM ]; then
+  source /cvmfs/sft.cern.ch/lcg/views/devgeantv/$EXTERNALS/$PLATFORM/setup.sh
+elif [ -a /cvmfs/sft.cern.ch/lcg/views/devgeantv/$EXTERNALS/$COMPATIBLE ]; then
+  source /cvmfs/sft.cern.ch/lcg/views/devgeantv/$EXTERNALS/$COMPATIBLE/setup.sh
 elif [[ $PLATFORM == *slc6* ]] || [[ $PLATFORM == *centos7* ]]; then
   export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.7.0/Linux-$ARCH/bin:${PATH}
 else
-  echo "No externals for $PLATFORM in /cvmfs/sft.cern.ch/lcg/views/devgeantv/latest"
+  echo "No externals for $PLATFORM in /cvmfs/sft.cern.ch/lcg/views/devgeantv/$EXTERNALS"
 fi
 
 if [ $LABEL == slc6 ] || [ $LABEL == gvslc6 ] || [ $LABEL == cc7 ] || [ $LABEL == cuda7 ] || [ $LABEL == slc6-physical ] || [  $LABEL == continuous-sl6 ] || [  $LABEL == continuous-cuda7 ] || [ $LABEL == continuous-xeonphi ] || [ $LABEL == c7-checker ] || [  $LABEL == continuos-cc7 ]
@@ -105,4 +104,3 @@ export CMAKE_SOURCE_DIR=$WORKSPACE/geant
 export CMAKE_BINARY_DIR=$WORKSPACE/build
 export CMAKE_INSTALL_PREFIX=$WORKSPACE/geant/install
 export CMAKE_BUILD_TYPE=$BUILDTYPE
-export CTEST_BUILD_OPTIONS=" -DCMAKE_CXX_STANDARD=14 -DUSE_ROOT=ON -DCTEST=ON ${ExtraCMakeOptions}"

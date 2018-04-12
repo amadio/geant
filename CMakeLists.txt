@@ -199,6 +199,8 @@ if( VECGEOM_FOUND )
       set(VC_LIBRARIES ${Vc_LIBRARIES})
    endif()
    add_definitions( "-DUSE_VECGEOM_NAVIGATOR" )
+   #---ensure that GeantV is compiled with same architecture flags as VecGeom
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VECGEOM_CXX_FLAGS}")
    include_directories(${VECGEOM_INCLUDE_DIR})
    set ( VECGEOM_ROOT OFF )
    if ( VECGEOM_DEFINITIONS MATCHES VECGEOM_ROOT )
