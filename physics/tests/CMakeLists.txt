@@ -10,5 +10,5 @@ add_subdirectory(conversionTest)
 add_subdirectory(photoelectricTest)
 add_subdirectory(elasticTest)
 add_subdirectory(TestHad0)
-
+add_subdirectory(vecPhysTests)
 
