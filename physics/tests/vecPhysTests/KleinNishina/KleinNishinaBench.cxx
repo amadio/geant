@@ -1,105 +1,37 @@
-#include <benchmark/benchmark.h>
+#include "CommonBenchmark.h"
 #include "KleinNishinaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
-
-static void KleinNishinaScalarAlias(benchmark::State &state)
+void PrepareKNScalarPrims(std::vector<LightTrack> &out, int N)
 {
-  KleinNishinaComptonModel *kNish = PrepareKnishinaModel(true);
-
-  auto Td = PrepareTaskData();
-  std::vector<LightTrack> primaries;
-
-  int basketSize = state.range(0);
-
-  for (auto _ : state) {
-    state.PauseTiming();
-    PreparePrimaries(primaries, basketSize);
-    Td->fPhysicsData->ClearSecondaries();
-    state.ResumeTiming();
-
-    for (int i = 0; i < basketSize; ++i) {
-      kNish->SampleSecondaries(primaries[i], Td);
-    }
-  }
-
-  delete kNish;
-  CleanTaskData(Td);
+  CreateParticles(kKNminEn, kKNmaxEn, true, TestParticleType::Em, out, N);
 }
-BENCHMARK(KleinNishinaScalarAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void KleinNishinaVectorAlias(benchmark::State &state)
+void PrepareKNVectorPrims(LightTrack_v &out, int N)
 {
-  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(true);
-
-  auto Td = PrepareTaskData();
-
-  LightTrack_v primaries;
-
-  int basketSize = state.range(0);
-
-  for (auto _ : state) {
-    state.PauseTiming();
-    PreparePrimaries(primaries, basketSize);
-    primaries.SetNtracks(basketSize);
-    state.ResumeTiming();
-
-    Td->fPhysicsData->GetSecondarySOA().ClearTracks();
-    kNish->SampleSecondariesVector(primaries, Td);
-  }
-
-  delete kNish;
-  CleanTaskData(Td);
+  CreateParticles(kKNminEn, kKNmaxEn, true, TestParticleType::Em, out, N);
 }
-BENCHMARK(KleinNishinaVectorAlias)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void KleinNishinaScalarRej(benchmark::State &state)
+int main(int argc, char **argv)
 {
-  KleinNishinaComptonModel *kNish = PrepareKnishinaModel(false);
+  PrepareWorld();
 
-  auto Td = PrepareTaskData();
-  std::vector<LightTrack> primaries;
+  auto td = PrepareTaskData();
 
-  int basketSize = state.range(0);
+  std::unique_ptr<EMModel> knScalarRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
+  std::unique_ptr<EMModel> knVectorRej   = InitEMModel(new VecKleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
+  std::unique_ptr<EMModel> knScalarTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
+  std::unique_ptr<EMModel> knVectorTable = InitEMModel(new VecKleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
 
-  for (auto _ : state) {
-    state.PauseTiming();
-    PreparePrimaries(primaries, basketSize);
-    Td->fPhysicsData->ClearSecondaries();
-    state.ResumeTiming();
-    for (int i = 0; i < basketSize; ++i) {
-      kNish->SampleSecondaries(primaries[i], Td);
-    }
-  }
+  benchmark::RegisterBenchmark("KleinNishinaAliasScal", ScalarModelBenchmark, knScalarTable.get(), PrepareKNScalarPrims,
+                               td.get(), kBasketSize);
+  benchmark::RegisterBenchmark("KleinNishinaAliasVec", VectorModelBenchmark, knVectorTable.get(), PrepareKNVectorPrims,
+                               td.get(), kBasketSize);
+  benchmark::RegisterBenchmark("KleinNishinaRejScal", ScalarModelBenchmark, knScalarRej.get(), PrepareKNScalarPrims,
+                               td.get(), kBasketSize);
+  benchmark::RegisterBenchmark("KleinNishinaRejVec", VectorModelBenchmark, knVectorRej.get(), PrepareKNVectorPrims,
+                               td.get(), kBasketSize);
 
-  delete kNish;
-  CleanTaskData(Td);
+  ::benchmark::Initialize(&argc, argv);
+  if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+  ::benchmark::RunSpecifiedBenchmarks();
 }
-BENCHMARK(KleinNishinaScalarRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
-
-static void KleinNishinaVectorRej(benchmark::State &state)
-{
-  VecKleinNishinaComptonModel *kNish = PrepareVecKnishinaModel(false);
-
-  auto Td = PrepareTaskData();
-
-  LightTrack_v primaries;
-
-  int basketSize = state.range(0);
-
-  for (auto _ : state) {
-    state.PauseTiming();
-    PreparePrimaries(primaries, basketSize);
-    primaries.SetNtracks(basketSize);
-    state.ResumeTiming();
-
-    Td->fPhysicsData->GetSecondarySOA().ClearTracks();
-    kNish->SampleSecondariesVector(primaries, Td);
-  }
-
-  delete kNish;
-  CleanTaskData(Td);
-}
-BENCHMARK(KleinNishinaVectorRej)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
-
-BENCHMARK_MAIN();

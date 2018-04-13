@@ -91,6 +91,7 @@ TaskData::~TaskData()
   for (auto basket : fStageBuffers)
     delete basket;
   fStageBuffers.clear();
+  if (fPhysicsData) delete fPhysicsData;
 }
 
 //______________________________________________________________________________

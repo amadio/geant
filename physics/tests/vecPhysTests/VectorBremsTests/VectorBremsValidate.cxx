@@ -1,30 +1,31 @@
-#include "KleinNishinaTestCommon.h"
+#include "VectorBremsTestCommon.h"
 #include "Hist.h"
 
 const int kNumBins = 100;
-struct KNValidData {
+struct BremsValidData {
   Hist primEn;
   Hist primAngle;
   Hist primAzimuth;
   Hist secEn;
   Hist secAngle;
   Hist secAzimuth;
-  KNValidData()
+  BremsValidData()
       : primEn(0.0, 1.0, kNumBins), primAngle(-1.0, 1.0, kNumBins), primAzimuth(-1.0, 1.0, kNumBins),
         secEn(0.0, 1.0, kNumBins), secAngle(-1.0, 1.0, kNumBins), secAzimuth(-1.0, 1.0, kNumBins)
   {
   }
 };
 
-void TestKNModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, geant::TaskData *td)
+void TestBremsModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, TestParticleType primary,
+                    geant::TaskData *td)
 {
-  KNValidData validDataVector;
-  KNValidData validDataScalar;
+  BremsValidData validDataVector;
+  BremsValidData validDataScalar;
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     LightTrack_v primariesVec;
-    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
-                    primariesVec, kBasketSize);
+    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+                    kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec);
@@ -58,8 +59,8 @@ void TestKNModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, g
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     std::vector<LightTrack> primariesVec;
-    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
-                    primariesVec, kBasketSize);
+    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+                    kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
@@ -92,19 +93,19 @@ void TestKNModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, g
   }
 
   Printf("Comparing histograms");
-  Printf("Primary reduced energy histogram");
+  Printf("Lepton reduced energy histogram");
   validDataVector.primEn.Compare(validDataScalar.primEn);
-  Printf("Secondary reduced energy histogram");
+  Printf("Gamma reduced energy histogram");
   validDataVector.secEn.Compare(validDataScalar.secEn);
 
-  Printf("Primary transformed Theta angle histogram");
+  Printf("Lepton transformed Theta angle histogram");
   validDataVector.primAngle.Compare(validDataScalar.primAngle);
-  Printf("Secondary transformed Theta angle histogram");
+  Printf("Gamma transformed Theta angle histogram");
   validDataVector.secAngle.Compare(validDataScalar.secAngle);
 
-  Printf("Primary transformed Phi angle histogram");
+  Printf("Lepton transformed Phi angle histogram");
   validDataVector.primAzimuth.Compare(validDataScalar.primAzimuth);
-  Printf("Secondary transformed Phi angle histogram");
+  Printf("Gamma transformed Phi angle histogram");
   validDataVector.secAzimuth.Compare(validDataScalar.secAzimuth);
 }
 
@@ -114,15 +115,39 @@ int main()
   PrepareWorld();
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> knScalarRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knVectorRej   = InitEMModel(new VecKleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knScalarTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
-  std::unique_ptr<EMModel> knVectorTable = InitEMModel(new VecKleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
+  std::unique_ptr<EMModel> sbScalarRej_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbVectorRej_em =
+      InitEMModel(new VecSeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbScalarTable_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> sbVectorTable_em =
+      InitEMModel(new VecSeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
 
-  Printf("Testing KleinNishina rejection model");
-  TestKNModel(knVectorRej.get(), knScalarRej.get(), td.get());
-  Printf("Testing KleinNishina alias model");
-  TestKNModel(knVectorTable.get(), knScalarTable.get(), td.get());
+  std::unique_ptr<EMModel> sbScalarRej_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbVectorRej_ep =
+      InitEMModel(new VecSeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbScalarTable_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> sbVectorTable_ep =
+      InitEMModel(new VecSeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
+
+  std::unique_ptr<EMModel> rbScalarRej   = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> rbVectorRej   = InitEMModel(new VecRelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> rbScalarTable = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> rbVectorTable = InitEMModel(new VecRelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
+
+  Printf("Testing SeltzerBerger rejection model for electron");
+  TestBremsModel(sbVectorRej_em.get(), sbScalarRej_em.get(), TestParticleType::Em, td.get());
+  Printf("Testing SeltzerBerger alias model for electron");
+  TestBremsModel(sbVectorTable_em.get(), sbScalarTable_em.get(), TestParticleType::Em, td.get());
+
+  Printf("Testing SeltzerBerger rejection model for positron");
+  TestBremsModel(sbVectorRej_ep.get(), sbScalarRej_ep.get(), TestParticleType::Ep, td.get());
+  Printf("Testing SeltzerBerger alias model for positron");
+  TestBremsModel(sbVectorTable_ep.get(), sbScalarTable_ep.get(), TestParticleType::Ep, td.get());
+
+  Printf("Testing RelativisticBrems rejection model");
+  TestBremsModel(rbVectorRej.get(), rbScalarRej.get(), TestParticleType::Em, td.get());
+  Printf("Testing RelativisticBrems alias model");
+  TestBremsModel(rbVectorTable.get(), rbScalarTable.get(), TestParticleType::Em, td.get());
 
   return 0;
 }

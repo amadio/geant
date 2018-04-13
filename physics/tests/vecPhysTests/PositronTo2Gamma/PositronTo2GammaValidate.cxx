@@ -1,123 +1,102 @@
 #include "PositronTo2GammaTestCommon.h"
 #include "Hist.h"
 
-const int kBasketTries = 1000;
-
 const int kNumBins = 100;
 struct PositronAnihilValidData {
   Hist gammaE;
   Hist gammaTheta;
-  PositronAnihilValidData() : gammaE(0.0, 1.0, kNumBins), gammaTheta(-1.0, 1.0, kNumBins) {}
+  Hist gammaAzimuth;
+  PositronAnihilValidData()
+      : gammaE(0.0, 1.0, kNumBins), gammaTheta(-1.0, 1.0, kNumBins), gammaAzimuth(-1.0, 1.0, kNumBins)
+  {
+  }
 };
 
-PositronTo2GammaModel *baseAlias;
-PositronTo2GammaModel *baseRej;
-VecPositronTo2GammaModel *vectorAlias;
-VecPositronTo2GammaModel *vectorRej;
-
-void FillDataVector(PositronAnihilValidData &data, bool useAlias)
+void TestPos2GammaModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, geant::TaskData *td)
 {
-  auto Td = PrepareTaskData();
-  LightTrack_v primaries;
-  VecPositronTo2GammaModel *model = useAlias ? vectorAlias : vectorRej;
+  PositronAnihilValidData validDataVector;
+  PositronAnihilValidData validDataScalar;
 
-  for (int bask = 0; bask < kBasketTries; ++bask) {
-    PreparePrimaries(primaries, kMaxBasket);
+  for (int btry = 0; btry < kBasketSamples; ++btry) {
+    LightTrack_v primariesVec;
+    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, TestParticleType::Ep,
+                    primariesVec, kBasketSize);
+    std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
-    std::vector<double> enBeforeInteraction;
-    for (int i = 0; i < primaries.GetNtracks(); ++i) {
-      enBeforeInteraction.push_back(primaries.GetKinE(i) + 2. * geant::units::kElectronMassC2);
-    }
+    double E0 = GetTotalE(primariesVec);
+    auto P0   = GetTotalP(primariesVec);
 
-    primaries.SetNtracks(kMaxBasket);
+    SampleSecondariesVector(vector, primariesVec, td);
 
-    Td->fPhysicsData->GetSecondarySOA().ClearTracks();
-    model->SampleSecondariesVector(primaries, Td);
+    CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
 
-    auto &secondaries = Td->fPhysicsData->GetSecondarySOA();
-    for (int i = 0; i < secondaries.GetNtracks(); ++i) {
-      int primIndx    = secondaries.GetTrackIndex(i);
-      double enNormed = secondaries.GetKinE(i) / enBeforeInteraction[primIndx];
-      data.gammaE.Fill(enNormed);
-      double gammaCost = secondaries.GetDirZ(i);
-      data.gammaTheta.Fill(gammaCost);
+    // Fill histogram
+    auto &sec = td->fPhysicsData->GetSecondarySOA();
+    for (int i = 0; i < sec.GetNtracks(); ++i) {
+      double enNormed = sec.GetKinE(i) / energyBeforeInteraction[sec.GetTrackIndex(i)];
+      double dirZ     = sec.GetDirZ(i);
+      double azimuth  = XYDirToAzumuth(sec.GetDirX(i), sec.GetDirY(i));
+
+      validDataVector.gammaE.Fill(enNormed);
+      validDataVector.gammaTheta.Fill(dirZ);
+      if (azimuth != kWrongVal) validDataVector.gammaAzimuth.Fill(azimuth);
     }
   }
 
-  //  delete model;
-  CleanTaskData(Td);
-}
+  for (int btry = 0; btry < kBasketSamples; ++btry) {
+    std::vector<LightTrack> primariesVec;
+    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
+                    primariesVec, kBasketSize);
+    std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
-void FillDataScalar(PositronAnihilValidData &data, bool useAlias)
-{
-  auto Td = PrepareTaskData();
-  std::vector<LightTrack> primaries;
-  PositronTo2GammaModel *model = useAlias ? baseAlias : baseRej;
+    double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
+    auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
 
-  for (int bask = 0; bask < kBasketTries; ++bask) {
-    PreparePrimaries(primaries, kMaxBasket);
+    SampleSecondariesScalar(scalar, primariesVec, td);
 
-    std::vector<double> enBeforeInteraction;
-    for (auto &positron : primaries) {
-      enBeforeInteraction.push_back(positron.GetKinE() + 2. * geant::units::kElectronMassC2);
-    }
+    CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
+                                    td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
 
-    for (int i = 0; i < kMaxBasket; ++i) {
-      Td->fPhysicsData->ClearSecondaries();
-      model->SampleSecondaries(primaries[i], Td);
+    LightTrack *sec = td->fPhysicsData->GetListOfSecondaries();
+    for (int i = 0; i < td->fPhysicsData->GetNumOfSecondaries(); ++i) {
+      double enNormed = sec[i].GetKinE() / energyBeforeInteraction[sec[i].GetTrackIndex()];
+      double dirZ     = sec[i].GetDirZ();
+      double azimuth  = XYDirToAzumuth(sec[i].GetDirX(), sec[i].GetDirY());
 
-      LightTrack *secondaries = Td->fPhysicsData->GetListOfSecondaries();
-      int numSec              = Td->fPhysicsData->GetNumOfSecondaries();
-      int primIndex           = primaries[i].GetTrackIndex();
-      for (int sec = 0; sec < numSec; ++sec) {
-        double enNormed = secondaries[sec].GetKinE() / enBeforeInteraction[primIndex];
-        data.gammaE.Fill(enNormed);
-        double gammaCost = secondaries[sec].GetDirZ();
-        data.gammaTheta.Fill(gammaCost);
-      }
+      validDataScalar.gammaE.Fill(enNormed);
+      validDataScalar.gammaTheta.Fill(dirZ);
+      if (azimuth != kWrongVal) validDataScalar.gammaAzimuth.Fill(azimuth);
     }
   }
 
-  delete model;
-  CleanTaskData(Td);
+  Printf("Comparing histograms");
+  Printf("Gamma reduced energy histogram");
+  validDataVector.gammaE.Compare(validDataScalar.gammaE);
+  Printf("Gamma transformed Theta angle histogram");
+  validDataVector.gammaTheta.Compare(validDataScalar.gammaTheta);
+
+  Printf("Lepton transformed Phi angle histogram");
+  validDataVector.gammaAzimuth.Compare(validDataScalar.gammaAzimuth);
 }
 
 int main()
 {
-  baseAlias   = PrepareAnihilModel(true);
-  baseRej     = PrepareAnihilModel(false);
-  vectorAlias = PrepareVecAnihilModel(true);
-  vectorRej   = PrepareVecAnihilModel(false);
+  PrepareWorld();
+  auto td = PrepareTaskData();
 
-  Printf("Number of gamma for each test %d", kMaxBasket * kBasketTries);
-  {
-    Printf("Test for alias method");
+  std::unique_ptr<EMModel> pos2gScalarRej =
+      InitEMModel(new PositronTo2GammaModel, kPos2GammaMinEn, kPos2GammaMaxEn, false);
+  std::unique_ptr<EMModel> pos2gVectorRej =
+      InitEMModel(new VecPositronTo2GammaModel, kPos2GammaMinEn, kPos2GammaMaxEn, false);
+  std::unique_ptr<EMModel> pos2gScalarTable =
+      InitEMModel(new PositronTo2GammaModel, kPos2GammaMinEn, kPos2GammaMaxEn, true);
+  std::unique_ptr<EMModel> pos2gVectorTable =
+      InitEMModel(new VecPositronTo2GammaModel, kPos2GammaMinEn, kPos2GammaMaxEn, true);
 
-    PositronAnihilValidData scalar;
-    FillDataScalar(scalar, true);
-    PositronAnihilValidData vector;
-    FillDataVector(vector, true);
-
-    Printf("Normilized gamma energy");
-    vector.gammaE.Compare(scalar.gammaE);
-
-    Printf("Gamma z direction");
-    vector.gammaTheta.Compare(scalar.gammaTheta);
-  }
-  {
-    Printf("Test for rej method");
-
-    PositronAnihilValidData scalar;
-    FillDataScalar(scalar, false);
-    PositronAnihilValidData vector;
-    FillDataVector(vector, false);
-
-    Printf("Normilized gamma energy");
-    vector.gammaE.Compare(scalar.gammaE);
-
-    Printf("Gamma z direction");
-    vector.gammaTheta.Compare(scalar.gammaTheta);
-  }
+  Printf("Testing PositronTo2Gamma alias model");
+  TestPos2GammaModel(pos2gVectorTable.get(), pos2gScalarTable.get(), td.get());
+  Printf("Testing PositronTo2Gamma rej model");
+  TestPos2GammaModel(pos2gVectorRej.get(), pos2gScalarRej.get(), td.get());
 
   return 0;
 }

@@ -1,192 +1,146 @@
-#include <Geant/Electron.h>
-#include <Geant/Positron.h>
 #include "MollerBhabhaTestCommon.h"
 #include "Hist.h"
-
-const int kBasketTries = 100000;
 
 const int kNumBins = 100;
 struct MBValidData {
   Hist primEn;
   Hist primAngle;
+  Hist primAzimuth;
   Hist secEn;
   Hist secAngle;
+  Hist secAzimuth;
   MBValidData()
-      : primEn(0.0, 1.0, kNumBins), primAngle(-1.0, 1.0, kNumBins), secEn(0.0, 1.0, kNumBins),
-        secAngle(-1.0, 1.0, kNumBins)
+      : primEn(0.0, 1.0, kNumBins), primAngle(-1.0, 1.0, kNumBins), primAzimuth(-1.0, 1.0, kNumBins),
+        secEn(0.0, 1.0, kNumBins), secAngle(-1.0, 1.0, kNumBins), secAzimuth(-1.0, 1.0, kNumBins)
   {
   }
 };
 
-MollerBhabhaIonizationModel *aliasEl;
-MollerBhabhaIonizationModel *aliasPos;
-MollerBhabhaIonizationModel *rejEl;
-MollerBhabhaIonizationModel *rejPos;
-VecMollerBhabhaIonizationModel *vecAliasEl;
-VecMollerBhabhaIonizationModel *vecAliasPos;
-VecMollerBhabhaIonizationModel *vecRejEl;
-VecMollerBhabhaIonizationModel *vecRejPos;
-
-TaskData *td;
-
-void FillDataVector(MBValidData &data, bool useAlias, bool forElectron)
+void TestMBModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, TestParticleType primary,
+                 geant::TaskData *td)
 {
-  LightTrack_v primaries;
-  VecMollerBhabhaIonizationModel *model;
-  if (forElectron) {
-    model = useAlias ? vecAliasEl : vecRejEl;
-  } else {
-    model = useAlias ? vecAliasPos : vecRejPos;
-  }
+  MBValidData validDataVector;
+  MBValidData validDataScalar;
 
-  for (int bask = 0; bask < kBasketTries; ++bask) {
-    PreparePrimaries(primaries, kMaxBasket);
+  for (int btry = 0; btry < kBasketSamples; ++btry) {
+    LightTrack_v primariesVec;
+    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+                    kBasketSize);
+    std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
-    std::vector<double> enBeforeInteraction;
-    enBeforeInteraction.insert(enBeforeInteraction.begin(), primaries.GetKinEArr(),
-                               primaries.GetKinEArr() + kMaxBasket);
+    double E0 = GetTotalE(primariesVec);
+    auto P0   = GetTotalP(primariesVec);
 
-    primaries.SetNtracks(kMaxBasket);
+    SampleSecondariesVector(vector, primariesVec, td);
 
-    td->fPhysicsData->GetSecondarySOA().ClearTracks();
-    model->SampleSecondariesVector(primaries, td);
+    CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
 
-    for (int i = 0; i < primaries.GetNtracks(); ++i) {
-      int primIdx     = primaries.GetTrackIndex(i);
-      double enNormed = primaries.GetKinE(i) / enBeforeInteraction[primIdx];
-      data.primEn.Fill(enNormed);
-      data.primAngle.Fill(primaries.GetDirZ(i));
+    // Fill histogram
+    for (int i = 0; i < primariesVec.GetNtracks(); ++i) {
+      double enNormed = primariesVec.GetKinE(i) / energyBeforeInteraction[primariesVec.GetTrackIndex(i)];
+      double dirZ     = primariesVec.GetDirZ(i);
+      double azimuth  = XYDirToAzumuth(primariesVec.GetDirX(i), primariesVec.GetDirY(i));
+
+      validDataVector.primEn.Fill(enNormed);
+      validDataVector.primAngle.Fill(dirZ);
+      if (azimuth != kWrongVal) validDataVector.primAzimuth.Fill(azimuth);
     }
+    auto &sec = td->fPhysicsData->GetSecondarySOA();
+    for (int i = 0; i < sec.GetNtracks(); ++i) {
+      double enNormed = sec.GetKinE(i) / energyBeforeInteraction[sec.GetTrackIndex(i)];
+      double dirZ     = sec.GetDirZ(i);
+      double azimuth  = XYDirToAzumuth(sec.GetDirX(i), sec.GetDirY(i));
 
-    auto &secondaries = td->fPhysicsData->GetSecondarySOA();
-    for (int i = 0; i < secondaries.GetNtracks(); ++i) {
-      int primIdx     = secondaries.GetTrackIndex(i);
-      double enNormed = secondaries.GetKinE(i) / enBeforeInteraction[primIdx];
-      data.secEn.Fill(enNormed);
-      data.secAngle.Fill(secondaries.GetDirZ(i));
-    }
-  }
-}
-
-void FillDataScalar(MBValidData &data, bool useAlias, bool forElectron)
-{
-  std::vector<LightTrack> primaries;
-  MollerBhabhaIonizationModel *model;
-  if (forElectron) {
-    model = useAlias ? aliasEl : rejEl;
-  } else {
-    model = useAlias ? aliasPos : rejPos;
-  }
-
-  for (int bask = 0; bask < kBasketTries; ++bask) {
-    PreparePrimaries(primaries, kMaxBasket);
-
-    std::vector<double> enBeforeInteraction;
-    for (auto &lep : primaries) {
-      enBeforeInteraction.push_back(lep.GetKinE());
-    }
-
-    for (int i = 0; i < kMaxBasket; ++i) {
-      td->fPhysicsData->ClearSecondaries();
-      model->SampleSecondaries(primaries[i], td);
-      int primIdx = primaries[i].GetTrackIndex();
-      data.primEn.Fill(primaries[i].GetKinE() / enBeforeInteraction[primIdx]);
-      data.primAngle.Fill(primaries[i].GetDirZ());
-      LightTrack *secondaries = td->fPhysicsData->GetListOfSecondaries();
-      int numSec              = td->fPhysicsData->GetNumOfSecondaries();
-      for (int sec = 0; sec < numSec; ++sec) {
-        int primIdx     = secondaries[sec].GetTrackIndex();
-        double enNormed = secondaries[sec].GetKinE() / enBeforeInteraction[primIdx];
-        data.secEn.Fill(enNormed);
-        data.secAngle.Fill(secondaries[sec].GetDirZ());
-      }
+      validDataVector.secEn.Fill(enNormed);
+      validDataVector.secAngle.Fill(dirZ);
+      if (azimuth != kWrongVal) validDataVector.secAzimuth.Fill(azimuth);
     }
   }
+
+  for (int btry = 0; btry < kBasketSamples; ++btry) {
+    std::vector<LightTrack> primariesVec;
+    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+                    kBasketSize);
+    std::vector<double> energyBeforeInteraction = GetE(primariesVec);
+
+    double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
+    auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
+
+    SampleSecondariesScalar(scalar, primariesVec, td);
+
+    CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
+                                    td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
+
+    for (size_t i = 0; i < primariesVec.size(); ++i) {
+      double enNormed = primariesVec[i].GetKinE() / energyBeforeInteraction[primariesVec[i].GetTrackIndex()];
+      double dirZ     = primariesVec[i].GetDirZ();
+      double azimuth  = XYDirToAzumuth(primariesVec[i].GetDirX(), primariesVec[i].GetDirY());
+
+      validDataScalar.primEn.Fill(enNormed);
+      validDataScalar.primAngle.Fill(dirZ);
+      if (azimuth != kWrongVal) validDataScalar.primAzimuth.Fill(azimuth);
+    }
+    LightTrack *sec = td->fPhysicsData->GetListOfSecondaries();
+    for (int i = 0; i < td->fPhysicsData->GetNumOfSecondaries(); ++i) {
+      double enNormed = sec[i].GetKinE() / energyBeforeInteraction[sec[i].GetTrackIndex()];
+      double dirZ     = sec[i].GetDirZ();
+      double azimuth  = XYDirToAzumuth(sec[i].GetDirX(), sec[i].GetDirY());
+
+      validDataScalar.secEn.Fill(enNormed);
+      validDataScalar.secAngle.Fill(dirZ);
+      if (azimuth != kWrongVal) validDataScalar.secAzimuth.Fill(azimuth);
+    }
+  }
+
+  Printf("Comparing histograms");
+  Printf("Primary reduced energy histogram");
+  validDataVector.primEn.Compare(validDataScalar.primEn);
+  Printf("Secondary reduced energy histogram");
+  validDataVector.secEn.Compare(validDataScalar.secEn);
+
+  Printf("Primary transformed Theta angle histogram");
+  validDataVector.primAngle.Compare(validDataScalar.primAngle);
+  Printf("Secondary transformed Theta angle histogram");
+  validDataVector.secAngle.Compare(validDataScalar.secAngle);
+
+  Printf("Primary transformed Phi angle histogram");
+  validDataVector.primAzimuth.Compare(validDataScalar.primAzimuth);
+  Printf("Secondary transformed Phi angle histogram");
+  validDataVector.secAzimuth.Compare(validDataScalar.secAzimuth);
 }
 
 int main()
 {
 
   PrepareWorld();
-  rejEl       = PrepareMBModel(false, true);
-  rejPos      = PrepareMBModel(false, false);
-  aliasEl     = PrepareMBModel(true, true);
-  aliasPos    = PrepareMBModel(true, false);
-  vecRejEl    = PrepareVecMBModel(false, true);
-  vecRejPos   = PrepareVecMBModel(false, false);
-  vecAliasEl  = PrepareVecMBModel(true, true);
-  vecAliasPos = PrepareVecMBModel(true, false);
-  td          = PrepareTaskData();
+  auto td = PrepareTaskData();
 
-  Printf("Number of leptons for each test %d", kMaxBasket * kBasketTries);
-  {
-    Printf("Test for alias method electron");
+  std::unique_ptr<EMModel> mbScalarRej_em =
+      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
+  std::unique_ptr<EMModel> mbVectorRej_em =
+      InitEMModel(new VecMollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
+  std::unique_ptr<EMModel> mbScalarTable_em =
+      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
+  std::unique_ptr<EMModel> mbVectorTable_em =
+      InitEMModel(new VecMollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
 
-    MBValidData scalar;
-    FillDataScalar(scalar, true, true);
-    MBValidData vector;
-    FillDataVector(vector, true, true);
+  std::unique_ptr<EMModel> mbScalarRej_ep =
+      InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
+  std::unique_ptr<EMModel> mbVectorRej_ep =
+      InitEMModel(new VecMollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
+  std::unique_ptr<EMModel> mbScalarTable_ep =
+      InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
+  std::unique_ptr<EMModel> mbVectorTable_ep =
+      InitEMModel(new VecMollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
 
-    Printf("====Prim EN====");
-    vector.primEn.Compare(scalar.primEn);
-    Printf("====Sec EN====");
-    vector.secEn.Compare(scalar.secEn);
-    Printf("====Prim Dir====");
-    vector.primAngle.Compare(scalar.primAngle);
-    Printf("====Sec Dir====");
-    vector.secAngle.Compare(scalar.secAngle);
-  }
-  {
-    Printf("Test for alias method positron");
+  Printf("Testing MollerBhabha rejection model for electron");
+  TestMBModel(mbVectorRej_em.get(), mbScalarRej_em.get(), TestParticleType::Em, td.get());
+  Printf("Testing MollerBhabha alias model for electron");
+  TestMBModel(mbVectorTable_em.get(), mbScalarTable_em.get(), TestParticleType::Em, td.get());
 
-    MBValidData scalar;
-    FillDataScalar(scalar, true, false);
-    MBValidData vector;
-    FillDataVector(vector, true, false);
-
-    Printf("====Prim EN====");
-    vector.primEn.Compare(scalar.primEn);
-    Printf("====Sec EN====");
-    vector.secEn.Compare(scalar.secEn);
-    Printf("====Prim Dir====");
-    vector.primAngle.Compare(scalar.primAngle);
-    Printf("====Sec Dir====");
-    vector.secAngle.Compare(scalar.secAngle);
-  }
-  {
-    Printf("Test for rej method electron");
-
-    MBValidData scalar;
-    FillDataScalar(scalar, false, true);
-    MBValidData vector;
-    FillDataVector(vector, false, true);
-
-    Printf("====Prim EN====");
-    vector.primEn.Compare(scalar.primEn);
-    Printf("====Sec EN====");
-    vector.secEn.Compare(scalar.secEn);
-    Printf("====Prim Dir====");
-    vector.primAngle.Compare(scalar.primAngle);
-    Printf("====Sec Dir====");
-    vector.secAngle.Compare(scalar.secAngle);
-  }
-  {
-    Printf("Test for rej method positron");
-
-    MBValidData scalar;
-    FillDataScalar(scalar, false, false);
-    MBValidData vector;
-    FillDataVector(vector, false, false);
-
-    Printf("====Prim EN====");
-    vector.primEn.Compare(scalar.primEn);
-    Printf("====Sec EN====");
-    vector.secEn.Compare(scalar.secEn);
-    Printf("====Prim Dir====");
-    vector.primAngle.Compare(scalar.primAngle);
-    Printf("====Sec Dir====");
-    vector.secAngle.Compare(scalar.secAngle);
-  }
-
+  Printf("Testing MollerBhabha rejection model for positron");
+  TestMBModel(mbVectorRej_ep.get(), mbScalarRej_ep.get(), TestParticleType::Ep, td.get());
+  Printf("Testing MollerBhabha alias model for positron");
+  TestMBModel(mbVectorTable_ep.get(), mbScalarTable_ep.get(), TestParticleType::Ep, td.get());
   return 0;
 }
