@@ -247,13 +247,12 @@ TaskData *RunManager::BookTransportTask()
 //______________________________________________________________________________
 RunManager::~RunManager()
 {
-  for (auto i = 0; i < fNpropagators; ++i)
-    delete fPropagators[i];
+  for (auto propagator : fPropagators)
+    delete propagator;
   fPropagators.clear();
-  for (auto i = 0; i < fNvolumes; ++i) {
-    Volume_t *vol          = (Volume_t *)fVolumes[i];
+  for (auto vol : fVolumes) {
     VBconnector *connector = (VBconnector *)vol->GetBasketManagerPtr();
-    vol->SetBasketManagerPtr(nullptr);
+    ((Volume_t *)vol)->SetBasketManagerPtr(nullptr);
     delete connector;
   }
   BitSet::ReleaseInstance(fDoneEvents);
