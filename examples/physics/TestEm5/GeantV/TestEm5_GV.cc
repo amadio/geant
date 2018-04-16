@@ -180,6 +180,7 @@ void GetInputArguments(int argc, char *argv[])
     switch (c) {
     case 0:
       c = options[optidx].val;
+      break;
     case 'a':
       parDetTargetMaterial = optarg;
       break;
