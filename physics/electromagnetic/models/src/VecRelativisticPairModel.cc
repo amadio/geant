@@ -49,7 +49,7 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
   double *LPMEnergy = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
 
   // Sort by LPM energies to simplify branching in rej. accept. sampling method
-  if (GetUseSamplingTables() && fIsUseLPM) {
+  if (!GetUseSamplingTables() && fIsUseLPM) {
     short *sortKey = tracks.GetSortKeyV();
     for (int i = 0; i < N; ++i) {
       double ekin = tracks.GetKinE(i);
@@ -87,7 +87,7 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
       PhysDV r2   = td->fRndm->uniformV();
       PhysDV r3   = td->fRndm->uniformV();
 
-      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(ekin, &IZet[i], r1, r2, r3);
+      PhysDV sampledEps = SampleTotalEnergyTransferAliasOneShot(ekin, &MatIDX[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
@@ -140,7 +140,7 @@ void VecRelativisticPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     PhysDV posDirZ = costPos;
 
     for (int l = 0; l < kPhysDVWidth; ++l) {
-      tracks.SetEnergyDeposit(0.0, i + l);
+      tracks.SetKinE(0.0, i + l);
       tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
     }
 
