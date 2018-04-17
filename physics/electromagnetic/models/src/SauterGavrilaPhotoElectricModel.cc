@@ -1335,7 +1335,7 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
         if(flagSpecial) {
             y[idSpecialShell] = 0;
             //if (Z==82)
-                //std::cout<<"******* FlagSpecial on shell : "<<idSpecialShell<<std::endl;
+            //std::cout<<"******* FlagSpecial on shell : "<<idSpecialShell<<std::endl;
             
         }
         bool allZeros= true;
@@ -1352,7 +1352,7 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
         {
             fShellAliasData[indx]->fXdata[i]=x[i];
             fShellAliasData[indx]->fYdata[i]=y[i];
-            if( (ekin-fBindingEn[Z][i])<0 && y[i]!=0) {std::cout<< "MA DURI!  "<< (ekin - fBindingEn[Z][i])<<"\n"; exit(-1);}
+            if( (ekin-fBindingEn[Z][i])<0 && y[i]!=0) {std::cout<< "SauterGavrilaPhotoElectricModel::BuildOneDiscreteAlias error  "<< (ekin - fBindingEn[Z][i])<<"\n"; exit(-1);}
         }
         // prepare the alias data for this PDF(x,y)
         if(!allZeros){
@@ -1464,8 +1464,8 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
             fSortedDoubledBindingEn[i].clear();
             std::vector<double> bindingEDoubled; //= fBindingEn[i];
             for (size_t k=0; k<fBindingEn[i].size();k++){
-                bindingEDoubled.push_back(fBindingEn[i][k]-1.e-9);
-                fSortedDoubledBindingEn[i].push_back(fBindingEn[i][k]-1.e-9);
+                bindingEDoubled.push_back(fBindingEn[i][k]);
+                fSortedDoubledBindingEn[i].push_back(fBindingEn[i][k]);
             }
             
             
@@ -1549,16 +1549,17 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
                 int idSpecialShell = 0;
                 //if(i==82) std::cout<<"Check on element: "<<localIndex<<std::endl;
                 if(j<totTablePerElement-2)
-//                    if(fShellSamplingPrimEnergiesNEW[i][j]==fShellSamplingPrimEnergiesNEW[i][j+1])
-//                    {
-//                        std::cout<<i<<"  "<<j<<": Z : "<<Z[i]<<" -- SPECIAL!"<<fShellSamplingPrimEnergiesNEW[i][j]<<"  and "<<fShellSamplingPrimEnergiesNEW[i][j+1]<<"\n";
-//                        flagSpecial = true;
-//                        std::vector<double> sortedBindingEnergies(fBindingEn[i]);
-//                        std::sort(sortedBindingEnergies.begin(), sortedBindingEnergies.end());
-//                        idSpecialShell= binary_search_find_index(sortedBindingEnergies, fShellSamplingPrimEnergiesNEW[i][j]);
-//                        idSpecialShell = fNShells[i] - idSpecialShell-1;
-//
-//                    }
+                    if(fShellSamplingPrimEnergiesNEW[i][j]==fShellSamplingPrimEnergiesNEW[i][j+1])
+                    {
+                        //std::cout<<i<<"  "<<j<<": Z : "<<Z[i]<<" -- SPECIAL!"<<fShellSamplingPrimEnergiesNEW[i][j]<<"  and "<<fShellSamplingPrimEnergiesNEW[i][j+1]<<"\n";
+                        flagSpecial = true;
+                        std::vector<double> sortedBindingEnergies(fBindingEn[i]);
+                        std::sort(sortedBindingEnergies.begin(), sortedBindingEnergies.end());
+                        idSpecialShell= binary_search_find_index(sortedBindingEnergies, fShellSamplingPrimEnergiesNEW[i][j]);
+                        idSpecialShell = fNShells[i] - idSpecialShell-1;
+                        //std::cout<<"SPECIAL is corresponding to shell: "<<idSpecialShell<<std::endl;
+
+                    }
                 if(Z[i]!=0){
                     //std::cout<<"BuildOneDiscreteAlias #index:"<<localIndex<<" for element Z: "<<Z[i]<<" @energy: "<<fShellSamplingPrimEnergiesNEW[i][j]<<std::endl;
                     //BuildOneDiscreteAlias(Z[i], i*fShellNumSamplingPrimEnergies+j, fShellSamplingPrimEnergies[j]);
