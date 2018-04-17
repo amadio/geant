@@ -124,14 +124,14 @@ bool RunManager::Initialize()
 
   for (auto i = 0; i < fNpropagators; ++i) {
     Propagator *prop = new Propagator(fNthreads);
-    fPropagators.push_back(prop);
-    prop->fRunMgr = this;
+    prop->fRunMgr    = this;
     prop->SetConfig(fConfig);
     prop->fApplication      = fApplication;
     prop->fStdApplication   = fStdApplication;
     prop->fPhysicsInterface = fPhysicsInterface;
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr         = fTruthMgr;
+    fPropagators.push_back(prop);
   }
 
   // Temporary workaround to allow migration to detector construction
