@@ -124,16 +124,11 @@ public:
    */
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td)override;
   
-    
-  ///////// ***************** VECTORIZATION
-  //non-optimized sampling of shells
-  virtual void SampleShell(Real kinE_v, size_t &zed, Real &rand_v, size_t  &sampledShells_v) override ;
-  //sampling of shells with Alias
-  virtual void SampleShellAlias(Real kinE_v, size_t &zed, Real &r1, Real &r2, size_t  &sampledShells_v) override ;
-  virtual void SampleSecVec (LightTrack_v & tracks, geant::TaskData *td);
-  void SampleSecAliasVec (LightTrack_v & tracks, geant::TaskData *td);
-  virtual void SampleShellAliasVec(const double* ekin_v, const double * zed, const double *r1, const double *r2, int *sampledShells, int nTracks) override;
-  void SampleShellAlias_v(Real_v &ekin_v, Real_v &zed, Real_v &r1, Real_v &r2, RIndex &sampledShells);
+  
+  //Original way of sampling the shells
+  void SampleShell(Real kinE_v, size_t &zed, Real &rand_v, size_t  &sampledShells_v);
+  //Sampling of shells with Alias
+  void SampleShellAlias(Real kinE_v, size_t &zed, Real &r1, Real &r2, size_t  &sampledShells_v);
   //@}
     
 
@@ -160,7 +155,7 @@ public:
 
   //@}
 
-private:
+protected:
   /**
    * @name Model specific private methods.
    */
@@ -379,7 +374,7 @@ private:
    *  @param[in]  tau    Initial photon energy \f$ E_0 \f$ expressend in \f$e_m c^2\f$ units.
    */
   void BuildOneLinAlias(int indx, double tau);
-  void BuildOneDiscreteAlias(int Z, int indx, double ekin, bool flagSpecial, int idSpecialShell);
+  void BuildOneDiscreteAlias(int Z, int indx, double ekin, bool& flagSpecial, int & idSpecialShell);
   int PrepareDiscreteAlias(int Z, double ekin, std::vector<double> & x, std::vector<double> & y);
 
   /**
@@ -412,7 +407,7 @@ private:
   /** @brief Maximum error introduced by the use of Alias sampling at each decade energy*/
   static constexpr double gsingleTableErrorThreshold = 2.e-3; // 2 per mille error threshold
   // static const int        gpointsForIntegral           = 200;       //not used for the moment
-
+protected:
   /** @brief Vector storing high-energy parameterization data. */
   static std::vector<double> *fParamHigh[gMaxSizeData]; // High-energy parameterization data
   /** @brief Vector storing low-energy parameterization data. */
@@ -421,13 +416,13 @@ private:
   /** @brief Subshells binding energies vector for each element. */
   static std::vector<double> fBindingEn[gMaxSizeData];
   /** @brief Sorted Subshells binding energies vector for each element. */
-  static std::vector<double> fSortedBindingEn[gMaxSizeData];
+  std::vector<double> fSortedBindingEn[gMaxSizeData];
   /** @brief Sorted "Doubled" (with 1eV of difference) Subshells binding energies vector for each element. */
-  static std::vector<double> fSortedDoubledBindingEn[gMaxSizeData];
+  std::vector<double> fSortedDoubledBindingEn[gMaxSizeData];
   /** @brief Indexes of the sorted binding energies in the final vector. */
-  static std::vector<int> fIndexSortedDoubledBindingEn[gMaxSizeData];
+  std::vector<int> fIndexSortedDoubledBindingEn[gMaxSizeData];
   /** @brief INdexes of the base energies in the final vector. */
-  static std::vector<int> fIndexBaseEn[gMaxSizeData];
+  std::vector<int> fIndexBaseEn[gMaxSizeData];
  
 
   /** @brief Verbose level to control the printout. */
