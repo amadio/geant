@@ -136,5 +136,6 @@ int main()
   Printf("Testing BetheHeitler rej model");
   TestPairModel(bhVectorRej.get(), bhScalarRej.get(), td.get());
 
+  CleanTaskData(td.get());
   return 0;
 }

@@ -38,6 +38,11 @@ std::unique_ptr<TaskData> PrepareTaskData()
   return Td;
 }
 
+void CleanTaskData(TaskData *td)
+{
+  if (td->fPhysicsData) delete td->fPhysicsData;
+}
+
 const double kWrongVal = 1000.0;
 
 double XYDirToAzumuth(double Xdir, double Ydir)

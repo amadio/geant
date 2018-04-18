@@ -124,5 +124,6 @@ int main()
   Printf("Testing KleinNishina alias model");
   TestKNModel(knVectorTable.get(), knScalarTable.get(), td.get());
 
+  CleanTaskData(td.get());
   return 0;
 }

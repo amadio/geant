@@ -142,5 +142,7 @@ int main()
   TestMBModel(mbVectorRej_ep.get(), mbScalarRej_ep.get(), TestParticleType::Ep, td.get());
   Printf("Testing MollerBhabha alias model for positron");
   TestMBModel(mbVectorTable_ep.get(), mbScalarTable_ep.get(), TestParticleType::Ep, td.get());
+
+  CleanTaskData(td.get());
   return 0;
 }

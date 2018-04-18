@@ -149,5 +149,6 @@ int main()
   Printf("Testing RelativisticBrems alias model");
   TestBremsModel(rbVectorTable.get(), rbScalarTable.get(), TestParticleType::Em, td.get());
 
+  CleanTaskData(td.get());
   return 0;
 }

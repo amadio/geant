@@ -98,5 +98,6 @@ int main()
   Printf("Testing PositronTo2Gamma rej model");
   TestPos2GammaModel(pos2gVectorRej.get(), pos2gScalarRej.get(), td.get());
 
+  CleanTaskData(td.get());
   return 0;
 }
