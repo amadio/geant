@@ -104,5 +104,12 @@ target_link_libraries(PhysVecSauterGavrilaAliasShellValid Geant_v RealPhysics)
 add_executable(PhysVecSauterGavrilaAliasShellBench SauterGavrila/SauterGavrilaAliasShellBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(PhysVecSauterGavrilaAliasShellBench Geant_v RealPhysics benchmark pthread)
 
+add_executable(PhysVecSauterGavrilaRejShellBench SauterGavrila/SauterGavrilaRejShellBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaRejShellBench Geant_v RealPhysics benchmark pthread)
+
+add_executable(PhysVecSauterGavrilaRejShellValid SauterGavrila/SauterGavrilaRejShellValid.cxx ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaRejShellValid Geant_v RealPhysics)
+
+
 
 
