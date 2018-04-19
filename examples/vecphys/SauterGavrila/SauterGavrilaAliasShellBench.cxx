@@ -18,7 +18,7 @@ public:
   using VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec;
 };
 
-static void SampleAliasShellScalar(benchmark::State &state)
+static void SampleShellAliasScalar(benchmark::State &state)
 {
   SauterGavrilaAliasTester *sgt = new SauterGavrilaAliasTester;
   sgt->SetLowEnergyUsageLimit(minEn);
@@ -57,9 +57,9 @@ static void SampleAliasShellScalar(benchmark::State &state)
 
   delete sgt;
 }
-BENCHMARK(SampleAliasShellScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(SampleShellAliasScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void SampleAliasShellVector(benchmark::State &state)
+static void SampleShellAliasVector(benchmark::State &state)
 {
   SauterGavrilaAliasVec *sgt = new SauterGavrilaAliasVec;
   sgt->SetLowEnergyUsageLimit(minEn);
@@ -103,6 +103,6 @@ static void SampleAliasShellVector(benchmark::State &state)
 
   delete sgt;
 }
-BENCHMARK(SampleAliasShellVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(SampleShellAliasVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
 BENCHMARK_MAIN();
