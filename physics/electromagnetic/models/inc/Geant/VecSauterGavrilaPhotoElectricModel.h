@@ -50,6 +50,7 @@ protected:
   std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
 
   PhysDI SampleShellAliasVec(PhysDV egamma, PhysDI zed, PhysDV r1, PhysDV r2);
+  void SampleShellVec(double *egamma, int * zed, int* ss, int N, const geant::TaskData *td, double* randoms);
   PhysDV SamplePhotoElectronDirectionAliasVec(PhysDV egamma, PhysDV r1, PhysDV r2, PhysDV r3);
   void SamplePhotoElectronDirectionRejVec(const double *egamma, double *cosTheta, int N, const geant::TaskData *t);
 
