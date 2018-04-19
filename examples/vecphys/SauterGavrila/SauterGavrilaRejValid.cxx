@@ -50,9 +50,9 @@ int main()
   for (int i = 0; i < kTestSize; ++i) {
     slnStd->SamplePhotoElectronDirection_Rejection(energy[i], cosTheta1[i] , td);
   }
-  for (int i = 0; i < kTestSize; i += kPhysDVWidth) {
-    sgv->SamplePhotoElectronDirectionRejVec(energy.data(), cosTheta2.data(), kTestSize, td);
-  }
+  //for (int i = 0; i < kTestSize; i += kPhysDVWidth) {
+  sgv->SamplePhotoElectronDirectionRejVec(energy.data(), cosTheta2.data(), kTestSize, td);
+  //}
 
   double cumError = 0.0;
   for (int i = 0; i < kTestSize; ++i) {
