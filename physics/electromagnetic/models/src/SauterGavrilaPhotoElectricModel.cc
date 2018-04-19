@@ -186,10 +186,11 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
     for(int i=3; i<gMaxSizeData; i++)
     ReadData(i); //JUST FOR THE MOMENT
   //LoadData(); //JUST FOR THE MOMENT
+  //std::cout<<"Calling InitShellSamplingTables\n";
   InitShellSamplingTables();
     if (GetUseSamplingTables()) {
         InitSamplingTables();
-        //std::cout<<"Calling InitShellSamplingTables\n";
+        
         //InitShellSamplingTables();
     }
 }
@@ -891,15 +892,15 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   double gammaekin0 = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
   // check if kinetic energy is above fHighEnergyUsageLimit and do nothing if yes;
-
   if (gammaekin0 < GetLowEnergyUsageLimit() || gammaekin0 > GetHighEnergyUsageLimit()) {
     return 0; // numSecondaries is zero since the interaction is not happening
   }
+    
 
   // interaction is possible so sample target element
+    
   MaterialCuts *matCut                   = MaterialCuts::GetTheMaterialCutsTable()[track.GetMaterialCutCoupleIndex()];
   const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
-
   size_t targetElemIndx = 0;
   if (theElements.size() > 1) {
     // uncomment the following line to test SampleTargetElementIndex
@@ -908,124 +909,29 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   }
   double zeta = theElements[targetElemIndx]->GetZ();
   int Z       = std::lrint(zeta);
-
   // if element was not initialised, gamma should be absorbed
   if (!fCrossSectionLE[Z] && !fCrossSection[Z]) {
     track.SetEnergyDeposit(gammaekin0);
     // std::cout<<"Model not initialized, Exiting!\n";
     return 0;
   }
+    
+  //SAMPLING OF THE SHELL
+  double r1 = td->fRndm->uniform();
+  double r2 = td->fRndm->uniform();
+  size_t shellIdx;
+  SampleShell(gammaekin0, Z, r1, shellIdx);
+  //size_t tmp= Z;
+  //SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
+  
 
-  // SAMPLING OF THE SHELL
-  size_t shellIdx = 0;
-  size_t nn       = fNShellsUsed[Z];
-
-  if (nn > 1) {
-    // sample gamma energy
-    // double *rndArray = td->fDblArray;
-    double rand = td->fRndm->uniform();
-    // td->fRndm->uniform_array(1, rndArray);
-
-    // (*) High energy parameterisation
-    if (gammaekin0 >= (*(fParamHigh[Z]))[0]) {
-      double x1 = (MeV) / gammaekin0;
-      double x2 = x1 * x1;
-      double x3 = x2 * x1;
-      double x4 = x3 * x1;
-      double x5 = x4 * x1;
-      int idx   = nn * 7 - 5;
-      // when do sampling common factors are not taken into account
-      // so cross section is not real
-      double cs0 = rand * ((*(fParamHigh[Z]))[idx] + x1 * (*(fParamHigh[Z]))[idx + 1] +
-                           x2 * (*(fParamHigh[Z]))[idx + 2] + x3 * (*(fParamHigh[Z]))[idx + 3] +
-                           x4 * (*(fParamHigh[Z]))[idx + 4] + x5 * (*(fParamHigh[Z]))[idx + 5]);
-
-      for (shellIdx = 0; shellIdx < nn; ++shellIdx) {
-        idx = shellIdx * 7 + 2;
-        if (gammaekin0 > (*(fParamHigh[Z]))[idx - 1]) {
-          double cs = (*(fParamHigh[Z]))[idx] + x1 * (*(fParamHigh[Z]))[idx + 1] + x2 * (*(fParamHigh[Z]))[idx + 2] +
-                      x3 * (*(fParamHigh[Z]))[idx + 3] + x4 * (*(fParamHigh[Z]))[idx + 4] +
-                      x5 * (*(fParamHigh[Z]))[idx + 5];
-          if (cs >= cs0) {
-            break;
-          }
-        }
-      }
-      if (shellIdx >= nn) {
-        shellIdx = nn - 1;
-      }
-
-    }
-    // (**) Low energy parameterisation
-    else if (gammaekin0 >= (*(fParamLow[Z]))[0]) {
-      double x1 = MeV / gammaekin0;
-      double x2 = x1 * x1;
-      double x3 = x2 * x1;
-      double x4 = x3 * x1;
-      double x5 = x4 * x1;
-      int idx   = nn * 7 - 5;
-      double cs0 =
-          rand * ((*(fParamLow[Z]))[idx] + x1 * (*(fParamLow[Z]))[idx + 1] + x2 * (*(fParamLow[Z]))[idx + 2] +
-                  x3 * (*(fParamLow[Z]))[idx + 3] + x4 * (*(fParamLow[Z]))[idx + 4] + x5 * (*(fParamLow[Z]))[idx + 5]);
-      for (shellIdx = 0; shellIdx < nn; ++shellIdx) {
-        idx = shellIdx * 7 + 2;
-        if (gammaekin0 > (*(fParamHigh[Z]))[idx - 1]) {
-          double cs = (*(fParamLow[Z]))[idx] + x1 * (*(fParamLow[Z]))[idx + 1] + x2 * (*(fParamLow[Z]))[idx + 2] +
-                      x3 * (*(fParamLow[Z]))[idx + 3] + x4 * (*(fParamLow[Z]))[idx + 4] +
-                      x5 * (*(fParamLow[Z]))[idx + 5];
-          if (cs >= cs0) {
-            break;
-          }
-        }
-      }
-      if (shellIdx >= nn) {
-        shellIdx = nn - 1;
-      }
-    } else {
-      double cs  = rand;
-      size_t idx = 0;
-      // (***) Tabulated values above k-shell ionization energy
-      if (gammaekin0 >= (*(fParamHigh[Z]))[1]) {
-        // this is an extra-check - if energy<fCSVector[Z]->edgeMin it should go to the next else (****)
-        if (gammaekin0 < fCSVector[Z]->fEdgeMin)
-          cs *= fCSVector[Z]->fDataVector[0];
-        else {
-          idx = fCSVector[Z]->FindCSBinLocation(gammaekin0, idx);
-          cs *= fCSVector[Z]->fSplineInt->GetValueAt(gammaekin0, idx);
-        }
-      }
-      //(****) Tabulated values below k-shell ionization energy
-      else {
-        // this check is needed to have a constant cross-section(cs) value for energies below the lowest cs point.
-        // in this way the gamma is always absorbed - instead of giving zero cs -
-        if (gammaekin0 < fLECSVector[Z]->fEdgeMin)
-          cs *= fLECSVector[Z]->fDataVector[0];
-        else
-          // cs*=fLECSVector[Z]->GetValueAt(gammaekin0);
-          cs *= fLECSVector[Z]->GetValue(gammaekin0, idx);
-      }
-      // size_t j=0;
-      for (size_t j = 0; j < nn; ++j) {
-
-        shellIdx = (size_t)fShellVector[Z][j]->fCompID;
-        if (gammaekin0 > (*(fParamLow[Z]))[7 * shellIdx + 1]) {
-          size_t idx = 0;
-          // cs-=fShellVector[Z][j]->GetValueAt(gammaekin0);
-          cs -= fShellVector[Z][j]->GetValue(gammaekin0, idx);
-        }
-
-        if (cs <= 0.0 || j + 1 == nn) break;
-      }
-    }
-  }
-
-  // END: SAMPLING OF THE SHELL
 
   // Retrieving ionized shell bindingEnergy
   double bindingEnergy = (*(fParamHigh[Z]))[shellIdx * 7 + 1];
 
   if (gammaekin0 < bindingEnergy) {
     track.SetEnergyDeposit(gammaekin0);
+    std::cout<<"SauterGavrilaPhotoElectricModel::SampleSecondaries: must add this check in the vectorized version! \n"; exit(-1);
     return 0; // numSecondaries
   }
 
@@ -1040,7 +946,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
 
   // Create the secondary particle: the photoelectron
   double elecKineEnergy = gammaekin0 - bindingEnergy;
-  double cosTheta       = track.GetDirZ();
+  double cosTheta       = track.GetDirZ(); //no need to initialize here cosTheta !
   double sinTheta       = 0.0;
   double phi            = 0.0;
   double eDirX1;
@@ -1108,7 +1014,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   return 1;
 }
 
-void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, size_t &Z, double &rand, size_t  &sampledShells)
+void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, int &Z, double &rand, size_t  &sampledShells)
 {
     if (!((fCrossSection[Z]) &&((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3)))) {
         std::cout<<"Data not loaded before!\n";
@@ -1290,8 +1196,8 @@ void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t& zed,
     if((fShellLSamplingPrimEnergiesNEW[zed][tableIndex] == fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]) && kinE>=fShellLSamplingPrimEnergiesNEW[zed][tableIndex])
     {
         tableIndex++;
-        std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias::::Attention, this check must be added to the vectorized implementation++ "<<tableIndex<<"\n";
-        exit(-1);
+        //std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias::::Attention, this check must be added to the vectorized implementation++ "<<tableIndex<<"\n";
+        //exit(-1);
         
     }
     
@@ -1397,25 +1303,25 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
         }
         
         //commented out for the moment - testing purposes
-//        int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
-//        // get list of active region
-//        std::vector<bool> isActiveInRegion = GetListActiveRegions();
-//        for (int i=0; i<numMatCuts; ++i) {
-//            const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[i];
-//            // if this MaterialCuts belongs to a region where this model is active:
-//            if (isActiveInRegion[matCut->GetRegionIndex()]) {
-//                // get the list of elements
-//                const Vector_t<Element*> &theElements =  matCut->GetMaterial()->GetElementVector();
-//                int numElems = theElements.size();
-//                for (int j=0; j<numElems; ++j) {
-//                    double zet = theElements[j]->GetZ();
-//                    int elementIndx = std::lrint(zet);
-//                    //std::cout<<"element: "<<elementIndx<<std::endl;
-//                    //ReadData(elementIndx);
-//                    //Z[elementIndx]= elementIndx;
-//                }
-//            }
-//        }
+        int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
+        // get list of active region
+        std::vector<bool> isActiveInRegion = GetListActiveRegions();
+        for (int i=0; i<numMatCuts; ++i) {
+            const MaterialCuts *matCut = MaterialCuts::GetTheMaterialCutsTable()[i];
+            // if this MaterialCuts belongs to a region where this model is active:
+            if (isActiveInRegion[matCut->GetRegionIndex()]) {
+                // get the list of elements
+                const Vector_t<Element*> &theElements =  matCut->GetMaterial()->GetElementVector();
+                int numElems = theElements.size();
+                for (int j=0; j<numElems; ++j) {
+                    double zet = theElements[j]->GetZ();
+                    int elementIndx = std::lrint(zet);
+                    //std::cout<<"element: "<<elementIndx<<std::endl;
+                    //ReadData(elementIndx);
+                    Z[elementIndx]= elementIndx;
+                }
+            }
+        }
 
         int oldNumGridPoints  =  fNumAliasTables;//fShellNumSamplingPrimEnergies;
         fShellNumSamplingPrimEnergies = fShellNumSamplingPrimEnergiesPerDecade*std::lrint(std::log10(fShellMaxPrimEnergy/fShellMinPrimEnergy))+1;
