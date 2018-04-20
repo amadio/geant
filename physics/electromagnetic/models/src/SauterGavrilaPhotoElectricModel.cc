@@ -183,16 +183,17 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
     fCrossSectionLE[i] = false;
   }
   fVerboseLevel = 1;
-    //std::cout<<"Calling Load data\n";
-   // for(int i=3; i<gMaxSizeData; i++)
-   // ReadData(i); //JUST FOR THE MOMENT
-  LoadData(); //JUST FOR THE MOMENT
-  //std::cout<<"Calling InitShellSamplingTables\n";
-  //InitShellSamplingTables();
-    if (GetUseSamplingTables()) {
-        InitSamplingTables();
-        InitShellSamplingTables();
-    }
+  //Uncomment the following lines to run tests:
+  //(1)PhysVecSauterGavrilaAliasShellValid
+  //(2)PhysVecSauterGavrilaAliasShellBench
+  // for(int i=3; i<gMaxSizeData; i++)
+  // ReadData(i);
+  LoadData();
+  if (GetUseSamplingTables()) {
+      InitSamplingTables();
+      InitShellSamplingTables();
+      
+  }
 }
 
 void SauterGavrilaPhotoElectricModel::SetVerboseLevel(int lev)
@@ -1305,17 +1306,23 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
     }
     
     void SauterGavrilaPhotoElectricModel::InitShellSamplingTables() {
-        int Z[gMaxSizeData];
         
+        int Z[gMaxSizeData];
         int nTotShells=0;
-
         for (int i=0; i<gMaxSizeData; i++){
             Z[i]=0;          //element not present in the simulation
-            //Z[i]=i;        //Uncomment for benchmarking purposes
+            
+            //Uncomment the following lines to run tests:
+            //(1)PhysVecSauterGavrilaAliasShellValid
+            //(2)PhysVecSauterGavrilaAliasShellBench
+            //Z[i]=i;
             //nTotShells+= fNShells[i];
         }
         
-        //commented out for the moment - testing purposes
+        //Comment out the following lines to run tests:
+        //(1)PhysVecSauterGavrilaAliasShellValid
+        //(2)PhysVecSauterGavrilaAliasShellBench
+        //*** START
         int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
         // get list of active region
         std::vector<bool> isActiveInRegion = GetListActiveRegions();
@@ -1329,13 +1336,12 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
                 for (int j=0; j<numElems; ++j) {
                     double zet = theElements[j]->GetZ();
                     int elementIndx = std::lrint(zet);
-                    //std::cout<<"element: "<<elementIndx<<std::endl;
-                    //ReadData(elementIndx);
                     Z[elementIndx]= elementIndx;
                     nTotShells+= fNShells[elementIndx];
                 }
             }
         }
+        //*** END
 
         int oldNumGridPoints  =  fNumAliasTables;//fShellNumSamplingPrimEnergies;
         fShellNumSamplingPrimEnergies = fShellNumSamplingPrimEnergiesPerDecade*std::lrint(std::log10(fShellMaxPrimEnergy/fShellMinPrimEnergy))+1;
