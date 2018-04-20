@@ -130,6 +130,11 @@ endif()
 #----------------------------------------------------------------------------------------------
 # Find packages
 #
+find_package(VecCoreLib 0.1.0 REQUIRED COMPONENTS Vc)
+#Temporary solution is to use VecCoreLib_INCLUDES/LIBRARIES variables since GV does not support modern cmake targets
+include_directories(${VecCoreLib_INCLUDE_DIRS})
+add_definitions(${VecCoreLib_DEFINITIONS})
+
 find_package(HepMC REQUIRED)
 if(HepMC_FOUND)
   message(STATUS "HepMC includes: ${HEPMC_INCLUDE_DIR}")
