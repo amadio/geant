@@ -1,6 +1,7 @@
 #ifndef ROOT_TNudyTypes
 #define ROOT_TNudyTypes
 
+namespace Nudy {
 enum Reaction_t {
   kNoReaction    = 0,
   kN_TOTAL       = 1,
@@ -177,4 +178,5 @@ enum IntScheme_t { kLinear = 1, kDiscrete = 2, kUniform = 3 };
 // Set to turn on multi threaded generation of random numbers
 #define TNUDYALIAS_MULTITHREAD
 
+} // namespace
 #endif

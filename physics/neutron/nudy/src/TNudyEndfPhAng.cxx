@@ -5,50 +5,52 @@
 // 	date of creation: March 24, 2016
 
 #include "TList.h"
-#include "Geant/TNudyEndfAng.h"
 #include "Geant/TNudyEndfFile.h"
 #include "Geant/TNudyEndfCont.h"
 #include "Geant/TNudyEndfTab1.h"
 #include "Geant/TNudyEndfTab2.h"
 #include "Geant/TNudyEndfList.h"
 #include "Geant/TNudyCore.h"
+#include "Geant/TNudyEndfMat.h"
 #include "Math/SpecFuncMathMore.h"
+#include "Geant/TNudyEndfPhAng.h"
+
 
 using namespace Nudy;
 using namespace NudyPhysics;
 
 #ifdef USE_ROOT
-ClassImp(TNudyEndfAng)
+ClassImp(TNudyEndfPhAng)
 #include "TRandom3.h"
 #endif
 
-    TNudyEndfAng::TNudyEndfAng()
+    TNudyEndfPhAng::TNudyEndfPhAng()
     : TNudyEndfRecoPoint()
 {
 }
 //______________________________________________________________________________
-TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
+TNudyEndfPhAng::TNudyEndfPhAng(TNudyEndfFile *file)
 {
   TIter secIter(file->GetSections());
   TNudyEndfSec *sec;
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
-    // if (sec->GetMT() == (int)fReaction) {
     TIter recIter(sec->GetRecords());
-    TNudyEndfCont *header = (TNudyEndfCont *)recIter.Next();
+    // TNudyEndfCont *header = (TNudyEndfCont *)recIter.Next();
     int MT                = sec->GetMT();
     fMtNumbers.push_back(MT);
-    int LTT = sec->GetL2();
-    int LI  = header->GetL1();
-    int LCT = header->GetL2();
-    fMtLct.push_back(LCT);
-    //     printf("LCT = %d LTT = %d LI = %d\n",LCT, LTT, LI);
+    int LTT 		 = sec->GetL2();
+    int LI  		 = sec->GetL1();
+    /*
+     * int NK  		 = sec->GetN1();
+     * printf("NK = %d LTT = %d LI = %d \n",NK, LTT, LI);
+     */
     // Legendre polynomial coefficients
     if (LTT == 1 && LI == 0) {
       TNudyEndfTab2 *tab2 = (TNudyEndfTab2 *)recIter.Next();
       for (int i = 0; i < tab2->GetN2(); i++) {
         TNudyEndfList *tab = (TNudyEndfList *)recIter.Next();
         fEin.push_back(tab->GetC2());
-        // std::cout<<"energy "<< tab->GetC2() << std::endl;
+        //std::cout<<"energy "<< tab->GetC2() << std::endl;
         for (int j = 0; j < tab->GetNPL(); j++) {
           fLegendCoef1.push_back(tab->GetLIST(j));
         }
@@ -71,7 +73,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
             fCosFile4.push_back(x);
             fCosPdfFile4.push_back(fme);
           }
-          //            printf("%e %e\n", x, fme);
+          // printf("%e %e\n", x, fme);
           k1++;
         } while (k1 < 101);
         for (int l = 0; l < 100; l++) {
@@ -128,7 +130,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
           for (unsigned long j = 0; j < fLegendCoef[i].size(); j++) {
             double leg = ROOT::Math::legendre(j + 1, x);
             fme += 0.5 * (2. * (j + 1) + 1.) * fLegendCoef[i][j] * leg;
-            // printf("a%d = %e leg= %e\n", j, fLegendCoef[i][j],leg);
+            //printf("a%e = %e leg= %e\n", x, fLegendCoef[i][j],leg);
           }
           if (fme > 0.0) {
             fCosFile4.push_back(x);
@@ -210,7 +212,7 @@ TNudyEndfAng::TNudyEndfAng(TNudyEndfFile *file)
   */
 } // end class
 
-TNudyEndfAng::~TNudyEndfAng()
+TNudyEndfPhAng::~TNudyEndfPhAng()
 {
   fMtLct.shrink_to_fit();
   fMtNumbers.shrink_to_fit();
@@ -234,12 +236,12 @@ TNudyEndfAng::~TNudyEndfAng()
   fPdf3D.shrink_to_fit();
 }
 
-double TNudyEndfAng::RecursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2)
+double TNudyEndfPhAng::RecursionLinearLeg(int i, double x1, double x2, double pdf1, double pdf2)
 {
-  double pdf = 0.5;
+  double pdf = 1.0;
   double mid = 0.5 * (x1 + x2);
   if ((pdf1 == 0.0 && pdf2 == 0.0) || x1 == x2) return 0;
-  //     std::cout <<" beg   "<< x1 <<"  "<< x2 <<"  "<< pdf1 <<"  "<< pdf2 << std::endl;
+  //  std::cout <<" beg   "<< x1 <<"  "<< x2 <<"  "<< pdf1 <<"  "<< pdf2 << std::endl;
   for (unsigned long j = 0; j < fLegendCoef[i].size(); j++) {
     double leg = ROOT::Math::legendre(j + 1, mid);
     pdf += 0.5 * (2. * (j + 1) + 1.) * fLegendCoef[i][j] * leg;
@@ -257,7 +259,7 @@ double TNudyEndfAng::RecursionLinearLeg(int i, double x1, double x2, double pdf1
   return 0;
 }
 //--------------------------------------------------------------------------------------
-double TNudyEndfAng::RecursionLinearProb(double x1, double x2, double pdf1, double pdf2)
+double TNudyEndfPhAng::RecursionLinearProb(double x1, double x2, double pdf1, double pdf2)
 {
   double pdf = 1.0;
   double mid = 0.5 * (x1 + x2);
@@ -277,7 +279,7 @@ double TNudyEndfAng::RecursionLinearProb(double x1, double x2, double pdf1, doub
   return 0;
 }
 //-----------------------------------------------------------------------------------------
-void TNudyEndfAng::FillPdf1D()
+void TNudyEndfPhAng::FillPdf1D()
 {
   TNudyCore::Instance()->Sort(fCosFile4, fCosPdfFile4);
   TNudyCore::Instance()->cdfGenerateT(fCosFile4, fCosPdfFile4, fCosCdfFile4);
@@ -298,7 +300,7 @@ void TNudyEndfAng::FillPdf1D()
   fCdf.clear();
 }
 //--------------------------------------------------------------------------------------
-void TNudyEndfAng::FillPdf2D()
+void TNudyEndfPhAng::FillPdf2D()
 {
   fEin2D.push_back(fEin);
   fCos3D.push_back(fCos2D);
@@ -310,7 +312,7 @@ void TNudyEndfAng::FillPdf2D()
   fCdf2D.clear();
 }
 //------------------------------------------------------------------------------------------------------
-double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK)
+double TNudyEndfPhAng::GetCos4(int ielemId, int mt, double energyK)
 {
   fRnd  = new TRandom3(0);
   int i = -1;
@@ -327,7 +329,7 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK)
   if (energyK <= fEnergy4OfMts[ielemId][i][min])
     min = 0;
   else if (energyK >= fEnergy4OfMts[ielemId][i][max])
-    min = max;
+    min = max - 1;
   else {
     while (max - min > 1) {
       mid = (min + max) / 2;
@@ -338,40 +340,27 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK)
     }
   }
   // std::cout<<" min "<< min << std::endl;
-  double fraction = (energyK - fEnergy4OfMts[ielemId][i][min]) /
+  double fraction = (energyK - fEnergy4OfMts[ielemId][i][min]) / 
                     (fEnergy4OfMts[ielemId][i][min + 1] - fEnergy4OfMts[ielemId][i][min]);
   // std::cout <<" fraction "<< fraction <<"  "<< energyK <<"  "<< fEnergy4OfMts[ielemId][i][min] << std::endl;
   double rnd1              = fRnd->Uniform(1);
   double rnd2              = fRnd->Uniform(1);
   if (rnd2 < fraction) min = min + 1;
   int k                    = 0;
-  // std::cout<<" fPdf size "<< fCosPdf4OfMts[ielemId][i][min].size() << std::endl;
   int size = fCosCdf4OfMts[ielemId][i][min].size();
   for (int j = 1; j < size; j++) {
-    // std::cout<<"fCdf "<< fCosCdf4OfMts[ielemId][i][min][2 * j ] <<"  "<< fCosCdf4OfMts[ielemId][i][min][2 * j + 1] <<
-    // std::endl;
     if (rnd1 <= fCosCdf4OfMts[ielemId][i][min][j]) {
       k                    = j - 1;
       if (k >= size - 2) k = size - 2;
       break;
     }
   }
-  // for(int j = 0; j < size; j++){
-  //  std::cout <<fCos4OfMts[ielemId][i][min][j] <<"  "<<fCosPdf4OfMts[ielemId][i][min][j] << std::endl;
-  //}
-
-  // std::cout<< k <<"  "<<fCos4OfMts[ielemId][i][min][k]<<"  "<<fCosPdf4OfMts[ielemId][i][min][k] <<"
-  // "<<fCosCdf4OfMts[ielemId][i][min][ k] << std::endl;
-  // std::cout<<" fPdf "<<k<<"  "<< fCosPdf4OfMts[ielemId][i][min][2 * k + 3]<<"  "<< fCosPdf4OfMts[ielemId][i][min][2 *
-  // k
-  // + 1] << std::endl;
-  // std::cout<<" cos "<< fCosPdf4OfMts[ielemId][i][min][2 * k + 2]<<"  "<< fCosPdf4OfMts[ielemId][i][min][2 * k ] <<
-  // std::endl;
   double plk = (fCosPdf4OfMts[ielemId][i][min][k + 1] - fCosPdf4OfMts[ielemId][i][min][k]) /
                (fCos4OfMts[ielemId][i][min][k + 1] - fCos4OfMts[ielemId][i][min][k]);
-  double plk2 = fCosPdf4OfMts[ielemId][i][min][k] * fCosPdf4OfMts[ielemId][i][min][k];
-  double plsq = plk2 + 2 * plk * (rnd1 - fCosCdf4OfMts[ielemId][i][min][k]);
-  double Ang  = 0;
+  double plk2       = fCosPdf4OfMts[ielemId][i][min][k] * fCosPdf4OfMts[ielemId][i][min][k];
+  double plsq       = plk2 + 2 * plk * (rnd1 - fCosCdf4OfMts[ielemId][i][min][k]);
+  double Ang        = 0;
+  if (plk == 0) Ang = fCos4OfMts[ielemId][i][min][k];
   if (plk != 0 && plsq > 0) {
     Ang = fCos4OfMts[ielemId][i][min][k] + (sqrt(std::fabs(plsq)) - fCosPdf4OfMts[ielemId][i][min][k]) / plk;
   } else {
@@ -381,7 +370,7 @@ double TNudyEndfAng::GetCos4(int ielemId, int mt, double energyK)
   return Ang;
 }
 //________________________________________________________________________________________________________________
-int TNudyEndfAng::GetCos4Lct(int ielemId, int mt)
+int TNudyEndfPhAng::GetCos4Lct(int ielemId, int mt)
 {
   int i = 0;
   for (unsigned int l = 0; l < fMt4Values[ielemId].size(); l++) {

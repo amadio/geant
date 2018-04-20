@@ -25,6 +25,11 @@
 #include <TList.h>
 #include "Geant/TNudyEndfFile.h"
 
+namespace Nudy {
+class TNudyEndfFile;
+}
+
+namespace Nudy {
 class TNudyEndfMat : public TObject {
 public:
   TNudyEndfMat();
@@ -102,7 +107,7 @@ public:
   void SetNCn(int nc, int i) { fNCn[i] = nc; }
   void SetMODn(int mod, int i) { fMODn[i] = mod; }
 
-  void Add(TNudyEndfFile *file) { fFiles->Add(file); }
+  void Add(Nudy::TNudyEndfFile *file) { fFiles->Add(file); }
 
   const char *GetName() const { return fName; }
   int GetMAT() const { return fMAT; }
@@ -149,7 +154,7 @@ public:
 
   void Print(const char *) const;
   void DumpENDF(int flags);
-  TNudyEndfFile *GetFile(int MF);
+  Nudy::TNudyEndfFile *GetFile(int MF);
   TList *GetFiles() { return fFiles; }
 
 private:
@@ -199,4 +204,5 @@ private:
 #endif
 };
 
+} // namespace
 #endif

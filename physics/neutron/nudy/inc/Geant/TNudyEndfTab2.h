@@ -25,6 +25,12 @@
 
 #include "Geant/TNudyEndfCont.h"
 
+namespace Nudy {
+class TNudyEndfCont;
+}
+
+namespace Nudy {
+
 class TNudyEndfTab2 : public TNudyEndfCont {
 public:
   TNudyEndfTab2();
@@ -51,4 +57,5 @@ private:
 #endif
 };
 
+} // namespace
 #endif

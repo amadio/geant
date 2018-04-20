@@ -25,11 +25,16 @@
 
 #include "Geant/TNudyEndfCont.h"
 
+namespace Nudy {
+class TNudyEndfCont;
+}
+
 #ifdef USE_ROOT
 #include "Rtypes.h"
 #endif
 
-class TNudyEndfList : public TNudyEndfCont {
+namespace Nudy {
+class TNudyEndfList : public Nudy::TNudyEndfCont {
 public:
   TNudyEndfList();
   TNudyEndfList(double c1, double c2, int l1, int l2, int n1, int n2);
@@ -49,4 +54,5 @@ private:
 #endif
 };
 
+} // namespace
 #endif

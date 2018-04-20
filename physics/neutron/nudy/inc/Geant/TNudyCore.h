@@ -7,7 +7,9 @@ class THashList;
 class TParticle;
 #include "TGeoElement.h"
 #include "TDatabasePDG.h"
-#include "Geant/TNudyTypes.h"
+#include "TNudyTypes.h"
+
+namespace Nudy {
 
 class TNudyCore {
 protected:
@@ -29,10 +31,10 @@ public:
   double Interpolate(std::vector<int> nbt1, std::vector<int> int1, int nr, std::vector<double> x, std::vector<double> y,
                      int np, double xx);
   void cdfGenerateT(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3);
-  double cmToLabElasticE(double inE, double cmCos, double awr);
-  double cmToLabElasticCosT(double cmCos, double awr);
-  double cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr);
-  double cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr);
+  double CmToLabElasticE(double inE, double cmCos, double awr);
+  double CmToLabElasticCosT(double cmCos, double awr);
+  double CmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr);
+  double CmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr);
   void Sort(std::vector<double> &x1, std::vector<double> &x2);
   double LinearInterpolation(double x1, double y1, double x2, double y2, double x); // Linear Interpolation
   double BilinearInterploation(double x1, double y1, double x2, double y2, double z11, double z12, double z21,
@@ -67,4 +69,5 @@ public:
 #endif
 };
 
+} // namespace
 #endif

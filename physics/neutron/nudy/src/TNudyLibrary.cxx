@@ -9,6 +9,8 @@
 #include "TPDGCode.h"
 #include "TROOT.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudyLibrary)
 #endif

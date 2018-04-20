@@ -46,7 +46,7 @@ using Double_v = geant::Double_v;
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
-constexpr double FieldPropagationHandler::gEpsDeflection = 1.E-2 * units::cm;
+const double FieldPropagationHandler::gEpsDeflection = 1.E-2 * units::cm;
 
 auto stageAfterCrossing = kPostPropagationStage;
 

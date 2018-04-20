@@ -5,6 +5,8 @@
 #include "Geant/TNudyCore.h"
 #include "TParticle.h"
 
+using namespace Nudy;
+
 using std::max;
 using std::min;
 
@@ -14,8 +16,8 @@ TNudyCore *TNudyCore::fgInstance = 0;
 ClassImp(TNudyCore)
 #endif
 
-    //______________________________________________________________________________
-    TNudyCore::~TNudyCore()
+//______________________________________________________________________________
+TNudyCore::~TNudyCore()
 {
   delete fGeom;
   delete fPdgDB;
@@ -43,7 +45,6 @@ TNudyCore *TNudyCore::Instance()
 char *TNudyCore::ExpandReaction(Reaction_t reac)
 {
   switch (reac) {
-
   default:
     return Form("%d", (int)reac);
   }
@@ -185,7 +186,7 @@ int TNudyCore::BinarySearch(std::vector<double> array, int len, double val)
 double TNudyCore::InterpolateScale(double x[2], double y[2], int law, double xx)
 {
   double yy    = -1;
-  double small = 1e-20;
+  double small = 1e-304;
   //  Info("InterpolateScale","x1,y1 = %e,%e x2,y2 = %e,%e INT = %d xx = %e",x[0],y[0],x[1],y[1],law,xx);
   if (law == 1 || x[1] <= x[0]) {
     yy                 = y[0];
@@ -341,7 +342,7 @@ void TNudyCore::Sort(std::vector<double> &x1, std::vector<double> &x2)
 {
   std::multimap<double, double> map;
   std::multimap<double, double>::iterator i;
-  for (unsigned long p = 0; p < x1.size(); p++) {
+  for (int p = 0, x1Size = x1.size(); p != x1Size; ++p) {
     map.insert(std::make_pair(x1[p], x2[p]));
   }
   int p1 = 0;
@@ -354,36 +355,41 @@ void TNudyCore::Sort(std::vector<double> &x1, std::vector<double> &x2)
 
 void TNudyCore::cdfGenerateT(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3)
 {
-  double fsum = 0.0;
+  double mcr, mb1, mb2, ccr, df = 0;
   for (unsigned long cr = 0; cr < x1.size(); cr++) {
-    if (cr > 0) fsum += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
-  }
-  double df = 0.0;
-  for (unsigned long cr = 0; cr < x1.size(); cr++) {
-    if (fsum > 0.0) x2[cr] /= fsum;
-    // printf("%e   %e\n", x2[cr], fsum);
-    if (cr > 0) df += 0.5 * (x2[cr] + x2[cr - 1]) * (x1[cr] - x1[cr - 1]);
+    if (cr > 0) {
+      mcr = (x2[cr] - x2[cr - 1]) / (x1[cr] - x1[cr - 1]);
+      mb1 = (mcr * (x1[cr] - x1[cr - 1]) + x2[cr - 1]);
+      mb2 = mb1 * mb1;
+      if (mcr != 0) {
+        ccr = (0.5 / mcr) * (mb2 - x2[cr - 1] * x2[cr - 1]);
+      } else {
+        ccr = x2[cr] * (x1[cr] - x1[cr - 1]);
+      }
+      df += ccr;
+    }
     x3.push_back(df);
+    //      printf("cdf = %e  %e  %e  %e\n", x1[cr], x2[cr], mcr, df);
   }
 }
 //_______________________________________________________________________________
-double TNudyCore::cmToLabElasticE(double inE, double cmCos, double awr)
+double TNudyCore::CmToLabElasticE(double inE, double cmCos, double awr)
 {
   return inE * ((1 + awr * awr + 2 * awr * cmCos) / ((1 + awr) * (1 + awr)));
 }
 //_______________________________________________________________________________
-double TNudyCore::cmToLabElasticCosT(double cmCos, double awr)
+double TNudyCore::CmToLabElasticCosT(double cmCos, double awr)
 {
   return (awr * cmCos + 1) / sqrt(awr * awr + 2 * awr * cmCos + 1);
 }
 //_______________________________________________________________________________
-double TNudyCore::cmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr)
+double TNudyCore::CmToLabInelasticE(double cmEOut, double inE, double cmCos, double awr)
 {
   double mass = awr + 1;
   return cmEOut + (inE + 2 * cmCos * mass * sqrt(inE * cmEOut)) / (mass * mass);
 }
 //_______________________________________________________________________________
-double TNudyCore::cmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr)
+double TNudyCore::CmToLabInelasticCosT(double labEOut, double cmEOut, double inE, double cmCos, double awr)
 {
   double mass = awr + 1;
   return cmCos * sqrt(cmEOut / labEOut) + sqrt(inE / labEOut) / mass;
@@ -411,7 +417,9 @@ double TNudyCore::ThinningDuplicate(std::vector<double> &x1, std::vector<double>
   int size1 = x1.size();
   if (size > 2) {
     for (int i = 0; i < size1 - 1; i++) {
+      // printf("core  %e  %e  %d  \n", x1[i],  x1[i + 1], size1) ;
       if (x1[i + 1] == x1[i]) {
+        // printf("same  %e  %e  %d  \n", x1[i],  x1[i + 1], size1) ;
         x1.erase(x1.begin() + i);
         x2.erase(x2.begin() + i);
       }

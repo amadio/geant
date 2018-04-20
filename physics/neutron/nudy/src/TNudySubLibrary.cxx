@@ -7,6 +7,8 @@
 #include "TROOT.h"
 #include "TFile.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudySubLibrary)
 #endif

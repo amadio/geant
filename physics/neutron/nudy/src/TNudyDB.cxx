@@ -3,6 +3,8 @@
 #include "TFile.h"
 #include "Geant/TNudyLibrary.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudyDB)
 #endif
@@ -53,7 +55,7 @@ void TNudyDB::AddLibrary(const char *name, const char *file)
     Error("AddLibrary", "Cannot open file %s", file);
     return;
   }
-  TNudyEndfTape *newTape = new TNudyEndfTape();
+  Nudy::TNudyEndfTape *newTape = new Nudy::TNudyEndfTape();
   // Check if tape is present
   if (newTape) {
     newTape->Read(endf->GetListOfKeys()->First()->GetName());
@@ -67,7 +69,7 @@ void TNudyDB::AddLibrary(const char *name, const char *file)
     return;
   }
   // Create tempory library in memory to process and store data
-  TNudyLibrary *lib = new TNudyLibrary(name, file);
+  Nudy::TNudyLibrary *lib = new Nudy::TNudyLibrary(name, file);
 
   // Set current file to Database file
   gFile = fDB;
@@ -79,7 +81,7 @@ void TNudyDB::AddLibrary(const char *name, const char *file)
   } else {
     // If library exists open it for updating
     printf("Updating Library %s\n", name);
-    //    lib = (TNudyLibrary*)fDB->Get(name);
+    //    lib = (Nudy::TNudyLibrary*)fDB->Get(name);
     // lib->Print();
   }
 

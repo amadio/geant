@@ -10,6 +10,8 @@ class TGeoManager;
 const int kENABLED  = 1;
 const int kDISABLED = 0;
 
+namespace Nudy {
+
 class TNudyElementTable {
 
 private:
@@ -40,4 +42,6 @@ public:
   ClassDef(TNudyElementTable, 1) // Table of RadioNucleides
 #endif
 };
+
+} // namespace
 #endif

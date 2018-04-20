@@ -1,7 +1,7 @@
 #ifndef TNudySampling_H
 #define TNudySampling_H
 
-#include "Geant/Particle.h"
+#include "Geant/TNudyParticleTest.h"
 #include "TH2D.h"
 #include "TH1D.h"
 #include "TGraph.h"
@@ -9,19 +9,26 @@
 #ifdef USE_ROOT
 #include "Rtypes.h"
 class TRandom3;
+
+namespace NudyPhysics {
 class TNudyEndfRecoPoint;
+}
 #endif
 
+namespace NudyPhysics {
 class TNudySampling {
 
 public:
   TNudySampling();
-  TNudySampling(Particle *, TNudyEndfRecoPoint *recoPoint);
+  TNudySampling(TParticle *, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
   virtual ~TNudySampling();
 
 private:
-  void GetSecParameter(Particle *, TNudyEndfRecoPoint *recoPoint);
+  void GetSecParameter(TParticle *, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
   void FillHisto(double icosLab, double isecEnergyLab);
+  double kinematicNonRel(TParticle *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  double kinematicRel(TParticle *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  double kinematicGama(TParticle *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
   std::vector<double> crs;
   double kineticE;
   double cosCM = 0, cosLab = 0, secEnergyCM = 0, secEnergyLab = 0;
@@ -35,11 +42,11 @@ private:
   int LCT, MF, MT, MF4, MF5, MF6;
   int events;
   TH2D *h;
-  TH2D *hist[10];
+  TH2D *hist[21];
   TH1D *h1;
   TH1D *h2;
-  TH1D *fissZ1[10];
-  TH1D *fissA1[10];
+  TH1D *fissZ1[21];
+  TH1D *fissA1[21];
   TH1D *fissA;
   TGraph *gr1;
   TGraph *gr[5];
@@ -51,4 +58,6 @@ private:
   ClassDef(TNudySampling, 1) // class for sampling
 #endif
 };
+
+} // namespace
 #endif

@@ -7,6 +7,7 @@ class TFile;
 
 using std::string;
 
+namespace Nudy {
 class TNudyDB : public TObject {
 public:
   TNudyDB(const char *name, const char *title, const char *file); // DEBUG
@@ -24,4 +25,6 @@ private:
   ClassDef(TNudyDB, 1)
 #endif
 };
+
+} // namespace
 #endif

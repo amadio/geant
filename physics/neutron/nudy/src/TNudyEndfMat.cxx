@@ -21,6 +21,8 @@
 #include "Geant/TNudyEndfCont.h"
 #include "Geant/TNudyEndfMat.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudyEndfMat)
 #endif

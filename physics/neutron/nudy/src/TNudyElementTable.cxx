@@ -6,10 +6,17 @@
 #include <iostream>
 
 #ifdef USE_ROOT
-ClassImp(TNudyElementTable)
+ClassImp(Nudy::TNudyElementTable)
 #endif
 
-    TNudyElementTable::TNudyElementTable()
+    namespace Nudy
+{
+  class TNudyElementRN;
+}
+
+namespace Nudy {
+
+TNudyElementTable::TNudyElementTable()
     : fState(0), fOx(40), fOy(40), fTable(gGeoManager->GetElementTable()), fLOD(1), fRNTable(NULL),
       fGeom(new TGeoManager("", ""))
 {
@@ -78,9 +85,9 @@ void TNudyElementTable::MoveRight()
 }
 void TNudyElementTable::Update()
 {
-  TNudyElementRN *newEle;
+  Nudy::TNudyElementRN *newEle;
   for (int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++) {
-    newEle = (TNudyElementRN *)fEleBox.At(i);
+    newEle = (Nudy::TNudyElementRN *)fEleBox.At(i);
     //    std::cout<<newEle->GetZ()*10+fOx<<", "<<newEle->GetA()*10+fOy<<std::endl;
     newEle->SetScale(fLOD);
     newEle->Move((newEle->GetZ() - newEle->GetA()) * 10 + fOx, newEle->GetA() * 10 + fOy);
@@ -96,9 +103,10 @@ void TNudyElementTable::Draw(const char * /*option*/)
   fRNTable->Range(0, 0, 1000, 1000);
   // fRNTable->SetEditable(true);
   for (int i = 0; i < fTable->GetElementsRN()->GetEntries(); i++) {
-    TNudyElementRN *newEle;
+    Nudy::TNudyElementRN *newEle;
     TGeoElementRN *newRN = (TGeoElementRN *)(fTable->GetElementsRN()->At(i));
-    newEle = new TNudyElementRN(newRN, (newRN->MassNo() - newRN->AtomicNo()) * 10 + fOx, newRN->AtomicNo() * 10 + fOy);
+    newEle =
+        new Nudy::TNudyElementRN(newRN, (newRN->MassNo() - newRN->AtomicNo()) * 10 + fOx, newRN->AtomicNo() * 10 + fOy);
     //  std::cout<<"Drawing"<<newRN->AtomicNo()*10+fOx<<","<<newRN->MassNo()*10+fOy<<std::endl;
     //    newEle->Move(newEle->GetZ()*10+fOx,newEle->GetA()*10+fOy);
     newEle->Draw();
@@ -120,3 +128,5 @@ TNudyElementTable::~TNudyElementTable()
   fGeom  = 0;
   fTable = 0;
 }
+
+} // namespace

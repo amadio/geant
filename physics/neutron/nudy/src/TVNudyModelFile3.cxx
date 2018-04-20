@@ -4,6 +4,8 @@
 #include "Geant/TNudyEndfTab1.h"
 #include "Geant/TNudyCore.h"
 
+using namespace Nudy;
+
 //______________________________________________________________________________
 void TVNudyModel::ReadFile3(TNudyEndfFile *file)
 {

@@ -8,6 +8,8 @@
 
 #include "Geant/TNudyEndfTab2.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudyEndfTab2)
 #endif

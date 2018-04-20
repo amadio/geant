@@ -10,6 +10,9 @@
 #include "Geant/TNudyCore.h"
 #include "Geant/TNudyEndfNuPh.h"
 
+using namespace Nudy;
+using namespace NudyPhysics;
+
 #ifdef USE_ROOT
 ClassImp(TNudyEndfNuPh)
 #endif
@@ -36,46 +39,47 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
         TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
         //	      std::cout<<list->GetNPL()<<"  "<< list->GetN1() << std::endl;
         for (int j = 0; j < list->GetN1(); j++) {
-          cnc.push_back(list->GetLIST(j));
+          fCnc.push_back(list->GetLIST(j));
         }
         double ein = 1E-5;
         do {
           double nun = 0;
           for (int i = 0; i < list->GetN1(); i++) {
-            nun += cnc[i] * pow(ein, i);
+            nun += fCnc[i] * pow(ein, i);
           }
-          eintFile1.push_back(ein);
-          nutFile1.push_back(nun);
+          fEintFile1.push_back(ein);
+          fNutFile1.push_back(nun);
           ein *= 2;
         } while (ein < 21E8);
-        cnc.clear();
+        fCnc.clear();
       } else { // Total fission neutron multiplicity tabulated representation
         //	std::cout<<"ZA = "<< ZA <<" LNU "<< LNU << std::endl;
         TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
-        NR                  = tab1->GetN1();
-        NP                  = tab1->GetN2();
+        fNR                 = tab1->GetN1();
+        fNP                 = tab1->GetN2();
         //	std::cout<<"ZA = "<< ZA <<" LNU "<< LNU << std::endl;
-        for (int cr = 0; cr < NR; cr++) {
-          nbt1.push_back(tab1->GetNBT(cr));
-          int1.push_back(tab1->GetINT(cr));
+        for (int cr = 0; cr < fNR; cr++) {
+          fNbt1.push_back(tab1->GetNBT(cr));
+          fInt1.push_back(tab1->GetINT(cr));
         }
-        for (int crs = 0; crs < NP; crs++) {
-          eintFile1.push_back(tab1->GetX(crs));
-          nutFile1.push_back(tab1->GetY(crs));
+        for (int crs = 0; crs < fNP; crs++) {
+          fEintFile1.push_back(tab1->GetX(crs));
+          fNutFile1.push_back(tab1->GetY(crs));
           //    std::cout<<fE_file1[crs]<<"  "<<fnu_file1[crs]<< std::endl;
         }
-        for (int cr = 0; cr < NP - 1; cr++) {
-          recursionLinearNuPh(eintFile1[cr], eintFile1[cr + 1], nutFile1[cr], nutFile1[cr + 1], eintFile1, nutFile1);
+        for (int cr = 0; cr < fNP - 1; cr++) {
+          RecursionLinearNuPh(fEintFile1[cr], fEintFile1[cr + 1], fNutFile1[cr], fNutFile1[cr + 1], fEintFile1,
+                              fNutFile1);
         }
-        TNudyCore::Instance()->Sort(eintFile1, nutFile1);
+        TNudyCore::Instance()->Sort(fEintFile1, fNutFile1);
       }
-      eint.push_back(eintFile1);
-      nut.push_back(nutFile1);
-      eintFile1.clear();
-      nutFile1.clear();
-      // std::cout <<"eint size "<< eint.size() <<"  "<< nut.size() << std::endl;
-      nbt1.clear();
-      int1.clear();
+      fEint.push_back(fEintFile1);
+      fNut.push_back(fNutFile1);
+      fEintFile1.clear();
+      fNutFile1.clear();
+      // std::cout <<"fEint size "<< fEint.size() <<"  "<< fNut.size() << std::endl;
+      fNbt1.clear();
+      fInt1.clear();
     } else if (MT == 455) { // delayed neutron multiplicity
       int LDG = sec->GetL1();
       int LNU = sec->GetL2();
@@ -88,34 +92,35 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
         TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
         int NNF             = list->GetNPL();
         for (int i = 0; i < NNF; i++) {
-          nui.push_back(list->GetLIST(i));
-          //	 std::cout<<" lambda "<< nui[i] << std::endl;
+          fNui.push_back(list->GetLIST(i));
+          //	 std::cout<<" lambda "<< fNui[i] << std::endl;
         }
         TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
-        NR                  = tab1->GetN1();
-        NP                  = tab1->GetN2();
+        fNR                 = tab1->GetN1();
+        fNP                 = tab1->GetN2();
         //	std::cout<<"ZA = "<< ZA <<" LNU "<< LNU << std::endl;
-        for (int cr = 0; cr < NR; cr++) {
-          nbt1.push_back(tab1->GetNBT(cr));
-          int1.push_back(tab1->GetINT(cr));
+        for (int cr = 0; cr < fNR; cr++) {
+          fNbt1.push_back(tab1->GetNBT(cr));
+          fInt1.push_back(tab1->GetINT(cr));
         }
-        for (int crs = 0; crs < NP; crs++) {
-          eindFile1.push_back(tab1->GetX(crs));
-          nudFile1.push_back(tab1->GetY(crs));
+        for (int crs = 0; crs < fNP; crs++) {
+          fEindFile1.push_back(tab1->GetX(crs));
+          fNudFile1.push_back(tab1->GetY(crs));
           //    std::cout<<fE_file1[crs]<<"  "<<fnu_file1[crs]<< std::endl;
         }
-        for (int cr = 0; cr < NP - 1; cr++) {
-          recursionLinearNuPh(eindFile1[cr], eindFile1[cr + 1], nudFile1[cr], nudFile1[cr + 1], eindFile1, nudFile1);
+        for (int cr = 0; cr < fNP - 1; cr++) {
+          RecursionLinearNuPh(fEindFile1[cr], fEindFile1[cr + 1], fNudFile1[cr], fNudFile1[cr + 1], fEindFile1,
+                              fNudFile1);
         }
-        TNudyCore::Instance()->Sort(eindFile1, nudFile1);
-        eind.push_back(eindFile1);
-        nud.push_back(nudFile1);
-        lambdaD.push_back(nui);
-        eindFile1.clear();
-        nudFile1.clear();
-        nui.clear();
-        nbt1.clear();
-        int1.clear();
+        TNudyCore::Instance()->Sort(fEindFile1, fNudFile1);
+        fEind.push_back(fEindFile1);
+        fNud.push_back(fNudFile1);
+        fLambdaD.push_back(fNui);
+        fEindFile1.clear();
+        fNudFile1.clear();
+        fNui.clear();
+        fNbt1.clear();
+        fInt1.clear();
       } else if (LNU == 2 && LDG == 1) {
       }
     } else if (MT == 456) { // prompt neutron multiplicity
@@ -124,33 +129,33 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       if (LNU == 1) {
         //      std::cout<<"prompt nu = "<< ZA <<" LNU "<< LNU << std::endl;
         //	TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
-        // double nup = list->GetLIST(0);
+        // double fNup = list->GetLIST(0);
       } else {
         //	std::cout<<"ZA = "<< ZA <<" LNU "<< LNU << std::endl;
         TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
-        NR                  = tab1->GetN1();
-        NP                  = tab1->GetN2();
+        fNR                 = tab1->GetN1();
+        fNP                 = tab1->GetN2();
         //	std::cout<<"ZA = "<< ZA <<" LNU "<< LNU << std::endl;
-        for (int cr = 0; cr < NR; cr++) {
-          nbt1.push_back(tab1->GetNBT(cr));
-          int1.push_back(tab1->GetINT(cr));
+        for (int cr = 0; cr < fNR; cr++) {
+          fNbt1.push_back(tab1->GetNBT(cr));
+          fInt1.push_back(tab1->GetINT(cr));
         }
-        for (int crs = 0; crs < NP; crs++) {
-          einFile1.push_back(tab1->GetX(crs));
-          nuFile1.push_back(tab1->GetY(crs));
+        for (int crs = 0; crs < fNP; crs++) {
+          fEinFile1.push_back(tab1->GetX(crs));
+          fNuFile1.push_back(tab1->GetY(crs));
           //    std::cout<<fE_file1[crs]<<"  "<<fnu_file1[crs]<< std::endl;
         }
-        for (int cr = 0; cr < NP - 1; cr++) {
-          recursionLinearNuPh(einFile1[cr], einFile1[cr + 1], nuFile1[cr], nuFile1[cr + 1], einFile1, nuFile1);
+        for (int cr = 0; cr < fNP - 1; cr++) {
+          RecursionLinearNuPh(fEinFile1[cr], fEinFile1[cr + 1], fNuFile1[cr], fNuFile1[cr + 1], fEinFile1, fNuFile1);
         }
-        TNudyCore::Instance()->Sort(einFile1, nuFile1);
-        nbt1.clear();
-        int1.clear();
+        TNudyCore::Instance()->Sort(fEinFile1, fNuFile1);
+        fNbt1.clear();
+        fInt1.clear();
       }
-      einp.push_back(einFile1);
-      nup.push_back(nuFile1);
-      einFile1.clear();
-      nuFile1.clear();
+      fEinp.push_back(fEinFile1);
+      fNup.push_back(fNuFile1);
+      fEinFile1.clear();
+      fNuFile1.clear();
     } else if (MT == 458) {
       TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
       int NPLY            = list->GetL2();
@@ -172,33 +177,33 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
           EFis -= 0.100 * ein; // nuetrino energy dependence
           EFis -= 0.075 * ein; // delayed gamma energy dependence
           EFis -= 0.075 * ein; // delayed beta energy dependence
-          //	      for(unsigned long i = 0; i < eintFile1.size(); i++)
-          //		std::cout<< eintFile1[i] <<"  "<<nutFile1[i] << std::endl;
+          //	      for(unsigned long i = 0; i < fEintFile1.size(); i++)
+          //		std::cout<< fEintFile1[i] <<"  "<<fNutFile1[i] << std::endl;
           int n0  = 0;
-          int max = eintFile1.size() - 1;
+          int max = fEintFile1.size() - 1;
           int mid = 0;
-          if (ein <= eintFile1[n0]) {
+          if (ein <= fEintFile1[n0]) {
             n0 = 0;
-          } else if (ein >= eintFile1[max]) {
+          } else if (ein >= fEintFile1[max]) {
             n0 = max - 1;
           } else {
             while (max - n0 > 1) {
               mid = (n0 + max) / 2;
-              if (ein < eintFile1[mid])
+              if (ein < fEintFile1[mid])
                 max = mid;
               else
                 n0 = mid;
               //      std::cout<<"n0 "<< n0 <<" max "<< max << std::endl;
             }
           }
-          //  std::cout<< eintFile1[n0] <<std::endl;
-          double nue = TNudyCore::Instance()->LinearInterpolation(eintFile1[n0], nutFile1[n0], eintFile1[n0 + 1],
-                                                                  nutFile1[n0 + 1], ein);
-          double nu0 = nutFile1[0];
+          //  std::cout<< fEintFile1[n0] <<std::endl;
+          double nue = TNudyCore::Instance()->LinearInterpolation(fEintFile1[n0], fNutFile1[n0], fEintFile1[n0 + 1],
+                                                                  fNutFile1[n0 + 1], ein);
+          double nu0 = fNutFile1[0];
           //   std::cout<<"n0 "<< n0 <<" nu0 "<< nu0 << std::endl;
           EFis -= -1.307 * ein + 8.07 * 1E6 * (nue - nu0); // prompt neutron energy dependence
-          einfFile1.push_back(ein);
-          heatFile1.push_back(EFis);
+          fEinfFile1.push_back(ein);
+          fHeatFile1.push_back(EFis);
           //      std::cout<<"ein "<< ein <<"  "<< EFis <<std::endl;
           ein *= 2;
         } while (ein < 21E8);
@@ -220,15 +225,15 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
             EFis += c0[i * 2] + c1[i * 2] * ein;
             //      std::cout<<"ein "<< ein <<"  "<< EFis <<std::endl;
           }
-          einfFile1.push_back(ein);
-          heatFile1.push_back(EFis);
+          fEinfFile1.push_back(ein);
+          fHeatFile1.push_back(EFis);
           ein *= 2;
         } while (ein < 21E8);
       }
-      einFissHeat.push_back(einfFile1);
-      fissHeat.push_back(heatFile1);
-      einfFile1.clear();
-      heatFile1.clear();
+      fEinFissHeat.push_back(fEinfFile1);
+      fFissHeat.push_back(fHeatFile1);
+      fEinfFile1.clear();
+      fHeatFile1.clear();
     } else if (MT == 460) {
       int LO = sec->GetL1();
       int NG = sec->GetN1();
@@ -236,27 +241,28 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       if (LO == 1) {
         for (int ng = 0; ng < NG; ng++) {
           TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
-          NR                  = tab1->GetN1();
-          NP                  = tab1->GetN2();
-          for (int cr = 0; cr < NR; cr++) {
-            nbt1.push_back(tab1->GetNBT(cr));
-            int1.push_back(tab1->GetINT(cr));
-            //	std::cout<<"NR = "<< NR <<" NP "<< NP << " NBT1 "<< nbt1[cr]<< " INT1 "<<int1[cr] <<std::endl;
+          fNR                 = tab1->GetN1();
+          fNP                 = tab1->GetN2();
+          for (int cr = 0; cr < fNR; cr++) {
+            fNbt1.push_back(tab1->GetNBT(cr));
+            fInt1.push_back(tab1->GetINT(cr));
+            //	std::cout<<"fNR = "<< fNR <<" fNP "<< fNP << " NBT1 "<< fNbt1[cr]<< " INT1 "<<fInt1[cr] <<std::endl;
           }
-          for (int crs = 0; crs < NP; crs++) {
-            einphFile1.push_back(tab1->GetX(crs));
-            phFile1.push_back(tab1->GetY(crs));
-            //    std::cout<<crs <<"  "<< einphFile1[crs]<<"  "<<phFile1[crs]<< std::endl;
+          for (int crs = 0; crs < fNP; crs++) {
+            fEinPhFile1.push_back(tab1->GetX(crs));
+            fPhFile1.push_back(tab1->GetY(crs));
+            //    std::cout<<crs <<"  "<< fEinPhFile1[crs]<<"  "<<fPhFile1[crs]<< std::endl;
           }
           // linearzation is stopped due to discrete photons which are to be matched with file 12 later
-          // for(int cr=0; cr < NP - 1 ; cr ++){
-          //  recursionLinearNuPh(einphFile1[cr], einphFile1[cr+1], phFile1[cr], phFile1[cr+1],einphFile1, phFile1);
+          // for(int cr=0; cr < fNP - 1 ; cr ++){
+          //  RecursionLinearNuPh(fEinPhFile1[cr], fEinPhFile1[cr+1], fPhFile1[cr], fPhFile1[cr+1],fEinPhFile1,
+          //  fPhFile1);
           //}
-          // TNudyCore::Instance()->Sort(einphFile1, phFile1);
-          einphFile1.clear();
-          phFile1.clear();
-          nbt1.clear();
-          int1.clear();
+          // TNudyCore::Instance()->Sort(fEinPhFile1, fPhFile1);
+          fEinPhFile1.clear();
+          fPhFile1.clear();
+          fNbt1.clear();
+          fInt1.clear();
         }
       } else {
         TNudyEndfList *list = (TNudyEndfList *)recIter.Next();
@@ -270,151 +276,151 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
       }
     }
   }
-  // for(unsigned int crs=0; crs < eint.size() ; crs ++)
-  // for(unsigned int cr=0; cr < eint[crs].size() ; cr ++)
-  // std::cout<< eint[crs][cr] <<"  "<< nut[crs][cr] << std::endl;
+  // for(unsigned int crs=0; crs < fEint.size() ; crs ++)
+  // for(unsigned int cr=0; cr < fEint[crs].size() ; cr ++)
+  // std::cout<< fEint[crs][cr] <<"  "<< fNut[crs][cr] << std::endl;
 }
 
 TNudyEndfNuPh::~TNudyEndfNuPh()
 {
-  eintFile1.shrink_to_fit();
-  nutFile1.shrink_to_fit();
-  einFile1.shrink_to_fit();
-  nuFile1.shrink_to_fit();
-  eindFile1.shrink_to_fit();
-  nudFile1.shrink_to_fit();
-  einphFile1.shrink_to_fit();
-  phFile1.shrink_to_fit();
-  einfFile1.shrink_to_fit();
-  heatFile1.shrink_to_fit();
-  cnc.shrink_to_fit();
-  nui.shrink_to_fit();
-  nbt1.shrink_to_fit();
-  int1.shrink_to_fit();
+  fEintFile1.shrink_to_fit();
+  fNutFile1.shrink_to_fit();
+  fEinFile1.shrink_to_fit();
+  fNuFile1.shrink_to_fit();
+  fEindFile1.shrink_to_fit();
+  fNudFile1.shrink_to_fit();
+  fEinPhFile1.shrink_to_fit();
+  fPhFile1.shrink_to_fit();
+  fEinfFile1.shrink_to_fit();
+  fHeatFile1.shrink_to_fit();
+  fCnc.shrink_to_fit();
+  fNui.shrink_to_fit();
+  fNbt1.shrink_to_fit();
+  fInt1.shrink_to_fit();
 }
 //____________________________________________________________________________________________________________________
-double TNudyEndfNuPh::recursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x,
+double TNudyEndfNuPh::RecursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x,
                                           std::vector<double> sig)
 {
   double siga;
   double mid = 0.5 * (x1 + x2);
   if ((sig1 == 0.0 && sig2 == 0.0) || x1 == x2 || x1 < 1E-5 || x2 < 1E-5) return 0;
   //  std::cout <<" beg   "<< x1 <<"  "<< x2 <<"  "<< sig1 <<"  "<< sig2 << std::endl;
-  siga = TNudyCore::Instance()->Interpolate(nbt1, int1, NR, x, sig, NP, mid);
+  siga = TNudyCore::Instance()->Interpolate(fNbt1, fInt1, fNR, x, sig, fNP, mid);
   //  std::cout<< mid <<" mid  "<< siga1 <<std::endl;
   //  double sigmid1 = TNudyCore::Instance()->LinearInterpolation(x1,sig1,x2,sig2,mid);
   double sigmid1 = sig1 + (sig2 - sig1) * (mid - x1) / (x2 - x1);
   //  std::cout << mid <<" linear "<< siga <<"  "<< sigmid1 << std::endl;
 
-  if (fabs((siga - sigmid1) / sigmid1) <= sigDiff) {
+  if (fabs((siga - sigmid1) / sigmid1) <= fSigDiff) {
     return 0;
   }
   x.push_back(mid);
   sig.push_back(siga);
-  recursionLinearNuPh(x1, mid, sig1, siga, x, sig);
-  recursionLinearNuPh(mid, x2, siga, sig2, x, sig);
+  RecursionLinearNuPh(x1, mid, sig1, siga, x, sig);
+  RecursionLinearNuPh(mid, x2, siga, sig2, x, sig);
   return 0;
 }
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::GetNuTotal(int ielemid, double energyK)
 {
-  // std::cout<<"eint size "<< eint.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
+  // std::cout<<"fEint size "<< fEint.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
   int min = 0;
-  int max = eint[ielemid].size() - 1;
+  int max = fEint[ielemid].size() - 1;
   int mid = 0;
-  if (energyK <= eint[ielemid][min])
+  if (energyK <= fEint[ielemid][min])
     min = 0;
-  else if (energyK >= eint[ielemid][max])
+  else if (energyK >= fEint[ielemid][max])
     min = max - 1;
   else {
     while (max - min > 1) {
       mid = (min + max) / 2;
-      if (energyK < eint[ielemid][mid])
+      if (energyK < fEint[ielemid][mid])
         max = mid;
       else
         min = mid;
     }
   }
-  return nut[ielemid][min] +
-         (nut[ielemid][min + 1] - nut[ielemid][min]) * (energyK - eint[ielemid][min]) /
-             (eint[ielemid][min + 1] - eint[ielemid][min]);
+  return fNut[ielemid][min] +
+         (fNut[ielemid][min + 1] - fNut[ielemid][min]) * (energyK - fEint[ielemid][min]) /
+             (fEint[ielemid][min + 1] - fEint[ielemid][min]);
 }
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::GetNuDelayed(int ielemid, double energyK)
 {
-  // std::cout<<"eind size "<< eind.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
+  // std::cout<<"fEind size "<< fEind.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
   int min = 0;
-  int max = eind[ielemid].size() - 1;
+  int max = fEind[ielemid].size() - 1;
   int mid = 0;
-  if (energyK <= eind[ielemid][min])
+  if (energyK <= fEind[ielemid][min])
     min = 0;
-  else if (energyK >= eind[ielemid][max])
+  else if (energyK >= fEind[ielemid][max])
     min = max - 1;
   else {
     while (max - min > 1) {
       mid = (min + max) / 2;
-      if (energyK < eind[ielemid][mid])
+      if (energyK < fEind[ielemid][mid])
         max = mid;
       else
         min = mid;
     }
   }
-  return nud[ielemid][min] +
-         (nud[ielemid][min + 1] - nud[ielemid][min]) * (energyK - eind[ielemid][min]) /
-             (eind[ielemid][min + 1] - eind[ielemid][min]);
+  return fNud[ielemid][min] +
+         (fNud[ielemid][min + 1] - fNud[ielemid][min]) * (energyK - fEind[ielemid][min]) /
+             (fEind[ielemid][min + 1] - fEind[ielemid][min]);
 }
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::GetNuPrompt(int ielemid, double energyK)
 {
-  // std::cout<<"einp size "<< einp.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
+  // std::cout<<"fEinp size "<< fEinp.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
   int min = 0;
-  int max = einp[ielemid].size() - 1;
+  int max = fEinp[ielemid].size() - 1;
   int mid = 0;
-  if (energyK <= einp[ielemid][min])
+  if (energyK <= fEinp[ielemid][min])
     min = 0;
-  else if (energyK >= einp[ielemid][max])
+  else if (energyK >= fEinp[ielemid][max])
     min = max - 1;
   else {
     while (max - min > 1) {
       mid = (min + max) / 2;
-      if (energyK < einp[ielemid][mid])
+      if (energyK < fEinp[ielemid][mid])
         max = mid;
       else
         min = mid;
     }
   }
-  return nup[ielemid][min] +
-         (nup[ielemid][min + 1] - nup[ielemid][min]) * (energyK - einp[ielemid][min]) /
-             (einp[ielemid][min + 1] - einp[ielemid][min]);
+  return fNup[ielemid][min] +
+         (fNup[ielemid][min + 1] - fNup[ielemid][min]) * (energyK - fEinp[ielemid][min]) /
+             (fEinp[ielemid][min + 1] - fEinp[ielemid][min]);
 }
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::GetFissHeat(int ielemid, double energyK)
 {
-  // std::cout<<"fissHeat size "<< einFissHeat.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
+  // std::cout<<"fFissHeat size "<< fEinFissHeat.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
   int min = 0;
-  int max = einFissHeat[ielemid].size() - 1;
+  int max = fEinFissHeat[ielemid].size() - 1;
   int mid = 0;
-  if (energyK <= einFissHeat[ielemid][min])
+  if (energyK <= fEinFissHeat[ielemid][min])
     min = 0;
-  else if (energyK >= einFissHeat[ielemid][max])
+  else if (energyK >= fEinFissHeat[ielemid][max])
     min = max - 1;
   else {
     while (max - min > 1) {
       mid = (min + max) / 2;
-      if (energyK < einFissHeat[ielemid][mid])
+      if (energyK < fEinFissHeat[ielemid][mid])
         max = mid;
       else
         min = mid;
     }
   }
-  return fissHeat[ielemid][min] +
-         (fissHeat[ielemid][min + 1] - fissHeat[ielemid][min]) * (energyK - einFissHeat[ielemid][min]) /
-             (einFissHeat[ielemid][min + 1] - einFissHeat[ielemid][min]);
+  return fFissHeat[ielemid][min] +
+         (fFissHeat[ielemid][min + 1] - fFissHeat[ielemid][min]) * (energyK - fEinFissHeat[ielemid][min]) /
+             (fEinFissHeat[ielemid][min + 1] - fEinFissHeat[ielemid][min]);
 }
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::GetLambdaD(int ielemid, int time)
 {
-  // std::cout<<"eint size "<< eint.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
-  if (time > (int)lambdaD[ielemid].size() - 1) return -99.0;
-  return lambdaD[ielemid][time];
+  // std::cout<<"fEint size "<< fEint.size() <<"  "<< ielemid<<"  "<< energyK << std::endl;
+  if (time > (int)fLambdaD[ielemid].size() - 1) return -99.0;
+  return fLambdaD[ielemid][time];
 }

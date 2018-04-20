@@ -15,6 +15,8 @@ using VECGEOM_NAMESPACE::RNG;
 
 #include "Geant/TNudyTypes.h"
 
+namespace Nudy {
+
 /**
  * @class TNudyAlias
  * @brief Random number generation from a discrete distribution with Alias method
@@ -96,4 +98,5 @@ public:
 #endif
 };
 
+} // namespace
 #endif

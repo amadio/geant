@@ -21,6 +21,7 @@ class TBox;
 #include "TPaveText.h"
 #include "TColor.h"
 
+namespace Nudy {
 class TNudyElementRN : public TObject {
 
 private:
@@ -55,4 +56,6 @@ public:
   ClassDef(TNudyElementRN, 1) // Radio Nucleide Element
 #endif
 };
+
+} // namespace
 #endif

@@ -12,16 +12,22 @@ using VECGEOM_NAMESPACE::RNG;
 #include "Geant/TNudyTypes.h"
 #include "Geant/TNudyAlias.h"
 
+namespace Nudy {
+class TNudyAlias;
+}
+
 //--------------------------------------------------
 // This class takes a continuous piecewise linear probability
 // distribution and generates a random number according to that
 // probability distributions using the Alias method
 //--------------------------------------------------
 
+namespace Nudy {
+
 class TNudyAliasCont {
 private:
-  int fLen;               // Length of data
-  TNudyAlias *fChooseBin; // Use alias method to choose bin
+  int fLen;                     // Length of data
+  Nudy::TNudyAlias *fChooseBin; // Use alias method to choose bin
   // Probability distribution
   double *fP;         //[fLen] Probability distribution
   double *fX;         //[fLen] Energy distribution
@@ -90,4 +96,5 @@ public:
 #endif
 };
 
+} // namespace
 #endif

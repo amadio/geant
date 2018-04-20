@@ -26,16 +26,22 @@
 #include "TList.h"
 #include "Geant/TNudyEndfRecord.h"
 
+namespace Nudy {
+class TNudyEndfRecord;
+}
+
+namespace Nudy {
+
 class TNudyEndfSec : public TObject {
 public:
   TNudyEndfSec();
   TNudyEndfSec(int mat, int mf, int mt, double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfSec();
   const char *GetName() const { return fName; }
-  void Add(TNudyEndfRecord *sec) { fRecs->Add(sec); }
+  void Add(Nudy::TNudyEndfRecord *sec) { fRecs->Add(sec); }
   TList *GetRecords() { return fRecs; }
   void DumpENDF(int flags);
-  TNudyEndfRecord *GetRecord(int recNo);
+  Nudy::TNudyEndfRecord *GetRecord(int recNo);
 
   double GetC1() const { return fC1; }
   double GetC2() const { return fC2; }
@@ -65,4 +71,5 @@ private:
 #endif
 };
 
+} // namespace
 #endif

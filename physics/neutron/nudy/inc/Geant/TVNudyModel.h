@@ -5,25 +5,29 @@
 #include "TArrayD.h"
 #include "TArrayI.h"
 #include "TRandom3.h"
+
+namespace Nudy {
 class TNudyAlias;
 class TNudyAliasCont;
 class TNudyEndfFile;
 class TNudyEndfSec;
 class TNudyEndfTab1;
 class TNudyEndfTab2;
+class TNudyEndfMat;
+}
 class TGeoElementRN;
 class TParticlePDG;
-class TNudyEndfMat;
 #include "Geant/TNudyTypes.h"
 
+namespace Nudy {
 class TVNudyModel : public TNamed {
 public:
   TVNudyModel();
   TVNudyModel(TGeoElementRN *mat, Reaction_t reac, unsigned long temp, TParticlePDG *projectile,
-              TNudyEndfMat *material);
+              Nudy::TNudyEndfMat *material);
   virtual ~TVNudyModel();
 
-  void ReadFile(TNudyEndfMat *material);
+  void ReadFile(Nudy::TNudyEndfMat *material);
   void DisplayData(FileData_t file);
   void DumpData(FileData_t file);
   TGeoElementRN *GetMaterial();
@@ -58,9 +62,9 @@ private:
   // File 4
   int f4nens;
   TArrayD f4eins;
-  TNudyAliasCont *fAPAlias; //[f4nens]
-  double f4Tein;            //!
-  double f4Tel;             //!
+  Nudy::TNudyAliasCont *fAPAlias; //[f4nens]
+  double f4Tein;                  //!
+  double f4Tel;                   //!
 
   // File 5
   TRandom3 fRnd; //!
@@ -72,26 +76,26 @@ private:
   //  double EPtable[4000][400]; //!
   TArrayD *fEPtable; //[nens]
   // double EPtable[1100][200]; //!
-  TArrayD *fPerc;           //[nens]
-  double f5Tein;            //!
-  double f5Tel;             //!
-  TNudyAliasCont *fEPAlias; //[nens]
+  TArrayD *fPerc;                 //[nens]
+  double f5Tein;                  //!
+  double f5Tel;                   //!
+  Nudy::TNudyAliasCont *fEPAlias; //[nens]
 
   // Functions to read data from RENDF format
-  void ReadFile3(TNudyEndfFile *file);
-  void ReadFile4(TNudyEndfFile *file);
-  void ReadFile5(TNudyEndfFile *file);
-  void File5_Pass1(TNudyEndfSec *sec);
-  void File5_Pass2(TNudyEndfSec *sec);
+  void ReadFile3(Nudy::TNudyEndfFile *file);
+  void ReadFile4(Nudy::TNudyEndfFile *file);
+  void ReadFile5(Nudy::TNudyEndfFile *file);
+  void File5_Pass1(Nudy::TNudyEndfSec *sec);
+  void File5_Pass2(Nudy::TNudyEndfSec *sec);
   void File5_Pass3();
 
   // Function to check consistency
-  int CheckLinear(TNudyEndfTab1 *tab);
-  int CheckLinear(TNudyEndfTab2 *tab);
-  void Linearize(TNudyEndfTab1 *tab);
+  int CheckLinear(Nudy::TNudyEndfTab1 *tab);
+  int CheckLinear(Nudy::TNudyEndfTab2 *tab);
+  void Linearize(Nudy::TNudyEndfTab1 *tab);
   // void Compare(TNudyEndfTab1* oldtab, TNudyEndfTab1 *newtab);
   void PopulateGrid(int index);
-  void FillGrid(double u, int nep, TNudyEndfTab1 *tab, TNudyEndfTab1 *pe);
+  void FillGrid(double u, int nep, Nudy::TNudyEndfTab1 *tab, TNudyEndfTab1 *pe);
   int EoExists(int index, double ef);
 
 #ifdef USE_ROOT
@@ -99,4 +103,5 @@ private:
 #endif
 };
 
+} // namespace
 #endif

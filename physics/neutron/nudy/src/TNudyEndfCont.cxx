@@ -13,6 +13,8 @@
 
 #include "Geant/TNudyEndfCont.h"
 
+using namespace Nudy;
+
 //_______________________________________________________________________________
 TNudyEndfCont::TNudyEndfCont() : fC1(0), fC2(0), fL1(0), fL2(0), fN1(0), fN2(0)
 {
@@ -41,6 +43,13 @@ void TNudyEndfCont::SetCont(double c1, double c2, int l1, int l2, int n1, int n2
   fN2 = n2;
 }
 
+//_______________________________________________________________________________
+void TNudyEndfCont::SetContMF(int mat, int mt, int mf)
+{
+  fC1 = mat;
+  fC2 = mt;
+  fL1 = mf;
+}
 //
 // Dump Data to screen in ENDF format
 //______________________________________________________________________________

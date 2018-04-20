@@ -13,6 +13,9 @@
 
 #include "Geant/TNudyEndfSec.h"
 #include "Geant/TNudyEndfCont.h"
+
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudyEndfSec)
 #endif

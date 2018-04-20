@@ -26,6 +26,12 @@
 #include "Geant/TNudyEndfSec.h"
 #include <TList.h>
 
+namespace Nudy {
+class TNudyEndfSec;
+}
+
+namespace Nudy {
+
 class TNudyEndfFile : public TObject {
 public:
   TNudyEndfFile();
@@ -35,22 +41,22 @@ public:
   const char *GetName() const { return fName; }
   int GetMAT() const { return fMAT; }
   int GetMF() const { return fMF; }
-  void Add(TNudyEndfSec *sec) { fSecs->Add(sec); }
+  void Add(Nudy::TNudyEndfSec *sec) { fSecs->Add(sec); }
 
   // TList    fMF;         //! List of the files of this material
 
   void DumpENDF(int flags);
-  TNudyEndfSec *GetSec(int MT);
+  Nudy::TNudyEndfSec *GetSec(int MT);
   TList *GetSections() { return fSecs; }
 
 private:
   char fName[9]; // File Name
   int fMAT;      // MAT number
   int fMF;       // MF number
-
-  TList *fSecs; // List of the sections of this file
+  TList *fSecs;  // List of the sections of this file
 
   ClassDef(TNudyEndfFile, 1)
 };
 
+} // namespace
 #endif

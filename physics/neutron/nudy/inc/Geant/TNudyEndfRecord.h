@@ -4,6 +4,7 @@
 #include "TObject.h"
 #include "Riostream.h"
 
+namespace Nudy {
 class TNudyEndfRecord : public TObject {
 public:
   TNudyEndfRecord();
@@ -13,4 +14,6 @@ public:
 private:
   ClassDef(TNudyEndfRecord, 1)
 };
+
+} // namespace
 #endif

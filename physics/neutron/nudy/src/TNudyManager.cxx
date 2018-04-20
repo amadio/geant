@@ -6,6 +6,8 @@
 #include "TFile.h"
 #include <TROOT.h>
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TNudyManager)
 #endif
@@ -183,7 +185,7 @@ TNudyLibrary *TNudyManager::LoadLibrary(const char *memLibName, const char *disk
       }
       //      printf("Changing dir to %d",newSubLib);
       gDirectory->cd(newSubLib->GetName());
-      printf("Listof keys\n");
+      // printf("Listof keys\n");
       TList *models = gDirectory->GetListOfKeys();
       TIter iter(models);
       models->Print();

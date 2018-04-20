@@ -3,7 +3,12 @@
 
 #include "Geant/TNudyEndfCont.h"
 
-class TNudyEndfINTG : public TNudyEndfCont {
+namespace Nudy {
+class TNudyEndfCont;
+}
+
+namespace Nudy {
+class TNudyEndfINTG : public Nudy::TNudyEndfCont {
 
 public:
   TNudyEndfINTG();
@@ -31,4 +36,5 @@ private:
 #endif
 };
 
+} // namespace
 #endif

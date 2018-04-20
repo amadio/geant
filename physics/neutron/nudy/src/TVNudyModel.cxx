@@ -17,6 +17,8 @@
 #include "Geant/TNudyEndfTab2.h"
 #include "Geant/TNudyEndfList.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 ClassImp(TVNudyModel)
 #endif
@@ -234,7 +236,7 @@ void TVNudyModel::ReadFile4(TNudyEndfFile *file)
       TNudyEndfCont *header = (TNudyEndfCont *)recIter.Next();
       int LTT               = sec->GetL2();
       int LI                = header->GetL1();
-      printf("LTT = %d LI = %d\n", LTT, LI);
+      // printf("LTT = %d LI = %d\n", LTT, LI);
       if (LTT == 1 && LI == 0) {
         TNudyEndfTab2 *subheader = (TNudyEndfTab2 *)recIter.Next();
         TArrayD ein(subheader->GetN2());

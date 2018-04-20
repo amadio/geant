@@ -20,6 +20,8 @@
 #include "TFile.h"
 #include "TError.h"
 
+using namespace Nudy;
+
 #ifdef USE_ROOT
 #include "Rtypes.h"
 ClassImp(TNudyENDF)
@@ -46,18 +48,27 @@ TNudyENDF::TNudyENDF() : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NU
 
 //_______________________________________________________________________________
 TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt, unsigned char loglev)
-    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL), ENDFSUB()
+    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL), ENDFSUB(), fPrepro(0)
 {
-
   fLine[0] = '\0';
   // Open input stream
-
+  // std::cout<<"Open input stream 1 "<< nFileENDF <<"   "<< nFileRENDF <<"  "<< opt << std::endl;
   fENDF.open(nFileENDF);
   if (!fENDF.is_open()) ::Fatal("ctor", "Could not open input file %s", nFileENDF);
 
   // Open output RENDF file
   fRENDF = TFile::Open(nFileRENDF, opt);
   if (!fRENDF) ::Fatal("ctor", "Could not open output file %s", nFileRENDF);
+  // std::cout<<"Open input stream 2 "<< nFileENDF <<"   "<< nFileRENDF << std::endl;
+
+  /*
+    // this is checking the first line for the ENDF data file\
+    // so that version 6 and version 7 first line issue gets resolved
+  */
+  fENDF.getline(fLine, LINLEN);
+  char firstCharFirstLine = fLine[1];
+  isDollar                = (firstCharFirstLine == '$') ? true : false;
+  if (!isDollar) fENDF.seekg(0);
 
   // Read to Tape Identifier
   for (int i = 0; i < 6; i++) {
@@ -67,6 +78,7 @@ TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *
   fTape = new TNudyEndfTape(fLine, fLogLev);
   fENDF.seekg(0);
   fENDF.getline(fLine, LINLEN);
+  // std::cout<<"Open input stream 3 "<< nFileENDF <<"   "<< nFileRENDF << std::endl;
 }
 
 //_______________________________________________________________________________
@@ -75,14 +87,21 @@ void TNudyENDF::Process()
   //
   // Process a tape
   //
+
+  fENDF.seekg(0);
+  if (isDollar) fENDF.getline(fLine, LINLEN);
+  bool FileNotFound = false;
   if (sub == true) {
     const char *EndfSub;
     std::string subname = GetEndfSubName();
     EndfSub             = subname.c_str();
     fENDF.open(EndfSub);
-    std::cout << "EndfSub " << subname << std::endl;
-    if (!fENDF.is_open()) ::Fatal("ctor", "Could not open input file %s", EndfSub);
-    fENDF.getline(fLine, LINLEN);
+    //    std::cout << "EndfSub " << subname << std::endl;
+    if (!fENDF.is_open()) {
+      std::cout << "Could not open input file  " << EndfSub << std::endl;
+      FileNotFound = true;
+    } else
+      fENDF.getline(fLine, LINLEN);
   }
   double c[2];
   int nl[4];
@@ -90,54 +109,57 @@ void TNudyENDF::Process()
 
   int &curMAT = mtf[0];
   int oldMAT  = 0;
+  if (FileNotFound == false) {
+    while (!fENDF.eof()) {
+      fENDF.getline(fLine, LINLEN);
+      //    std::cout << fLine << std::endl;
+      if (fLogLev > 10) std::cout << fLine << std::endl;
 
-  while (!fENDF.eof()) {
-    fENDF.getline(fLine, LINLEN);
-    std::cout << fLine << std::endl;
-    if (fLogLev > 10) std::cout << fLine << std::endl;
+      // See what we have
+      GetMTF(mtf);
 
-    // See what we have
-    GetMTF(mtf);
+      if (curMAT == -1) {
+        // End of Tape, finish processing
+        CheckTEND();
+        break;
 
-    if (curMAT == -1) {
-      // End of Tape, finish processing
-      CheckTEND();
-      break;
+      } else if (curMAT != oldMAT) {
+        // Normal situation, we should have read the mat till the end
+        oldMAT = curMAT;
+        if (fLogLev > 3) std::cout << "Material(MAT) : " << curMAT << std::endl;
+        // Create new material section
+        GetCONT(c, nl, mtf);
+        fMat = new TNudyEndfMat(curMAT, round(c[0]), c[1], nl[0], (nl[1] == 1), nl[2], nl[3]);
+        Process(fMat);
 
-    } else if (curMAT != oldMAT) {
-      // Normal situation, we should have read the mat till the end
-      oldMAT = curMAT;
-      if (fLogLev > 3) std::cout << "Material(MAT) : " << curMAT << std::endl;
-      // Create new material section
-      GetCONT(c, nl, mtf);
-      fMat = new TNudyEndfMat(curMAT, round(c[0]), c[1], nl[0], (nl[1] == 1), nl[2], nl[3]);
-      Process(fMat);
-      // Add material section to the tape list
-      fTape->AddMat(fMat);
-    } else {
-      // Something went wrong, we should have processed the material to the end
-      ::Error("Process()",
-              "Did not process Material MAT %d to the end or there are mutiple evaluations of the same material\n",
-              oldMAT);
-      oldMAT = curMAT;
-      if (fLogLev > 3) std::cout << "Material(MAT) :  " << curMAT << std::endl;
-      // Create new material section
-      GetCONT(c, nl, mtf);
-      fMat = new TNudyEndfMat(curMAT, round(c[0]), c[1], nl[0], (nl[1] == 1), nl[2], nl[3]);
-      Process(fMat);
-      // Add material section to the tape list
-      fTape->AddMat(fMat);
+        SetLFI(fMat->GetLFI());
+        // Add material section to the tape list
+        fTape->AddMat(fMat);
+      } else {
+        // Something went wrong, we should have processed the material to the end
+        ::Error("Process()",
+                "Did not process Material MAT %d to the end or there are mutiple evaluations of the same material\n",
+                oldMAT);
+        oldMAT = curMAT;
+        if (fLogLev > 3) std::cout << "Material(MAT) :  " << curMAT << std::endl;
+        // Create new material section
+        GetCONT(c, nl, mtf);
+        fMat = new TNudyEndfMat(curMAT, round(c[0]), c[1], nl[0], (nl[1] == 1), nl[2], nl[3]);
+        Process(fMat);
+        // Add material section to the tape list
+        fTape->AddMat(fMat);
+      }
     }
   }
 
   // Write the tape to disk
+  // fENDF.close();
+  // std::cout<<"process input stream "<< fENDF <<"   "<< fRENDF << std::endl;
+
+  fTape->Print();
+  fTape->Write();
+  if (!fMat->GetLFI()) fRENDF->Close();
   fENDF.close();
-  if (sub == true) {
-    fTape->Print();
-    fTape->Write();
-    fENDF.close();
-    fRENDF->Close();
-  }
 }
 
 //_______________________________________________________________________________
@@ -349,7 +371,6 @@ void TNudyENDF::Process(TNudyEndfSec *sec)
 
   // We are at the beginning of a section, we get the head
   GetMTF(mtf);
-
   switch (curMF) {
   case 1: // ------------------- File 1
     ProcessF1(sec);
