@@ -1143,6 +1143,8 @@ void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, int &Z, double &r
 void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t& zed, double &r1, double &r2, size_t  &sampledShells)
 {
     double lGammaEnergy  = std::log(kinE);
+//    std::cout<<"**\nLooking for \t"<<kinE;
+//    std::cout<<"  log is\t\t"<<lGammaEnergy<<std::endl;
     int tableIndex ;
     int tableIndexBaseEn  = (int) ((lGammaEnergy-fShellPrimEnLMin)*fShellPrimEnILDelta); //this the lower bin
    
@@ -1155,28 +1157,32 @@ void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t& zed,
     if(kinE<=fBindingEn[zed][0]){
         //I can do the search directly with non-log energy values
         int tableIndexBinding = std::lower_bound(fSortedDoubledBindingEn[zed].begin(), fSortedDoubledBindingEn[zed].end(), kinE) - fSortedDoubledBindingEn[zed].begin(); //this is already the upper bin
+        if(((size_t)tableIndexBinding<fSortedDoubledBindingEn[zed].size()-1) && fSortedDoubledBindingEn[zed][tableIndexBinding]==fSortedDoubledBindingEn[zed][tableIndexBinding-1])tableIndexBinding--;
         if( fShellSamplingPrimEnergies[tableIndexBaseEn+1] <= fSortedDoubledBindingEn[zed][tableIndexBinding]){
-        //select the Base Energy corresponding index
+            //select the Base Energy corresponding index
             tableIndex = fIndexBaseEn[zed][tableIndexBaseEn+1]-1;//lower bin in the complete vector
-//                std::cout<<"** BASE ** I pick from the base table  and the original index is "<<tableIndex<<std::endl;
-//                std::cout<<"In fact  fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex]<<std::endl;
-//                std::cout<<"and fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]<<std::endl;
-//                if(lGammaEnergy>fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] || lGammaEnergy< fShellLSamplingPrimEnergiesNEW[zed][tableIndex]) {
-//                    std::cout<< "** BASE ** Error\n";
-//                    exit(-1);
-//                }
+//            std::cout<<"** BASE ** I pick from the base table  and the original index is "<<tableIndex<<std::endl;
+//            std::cout<<"In fact  fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex]<<std::endl;
+//            std::cout<<"and fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]<<std::endl;
+            if(lGammaEnergy>fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] || lGammaEnergy< fShellLSamplingPrimEnergiesNEW[zed][tableIndex]) {
+                std::cout<< "** BASE ** Error\n";
+                exit(-1);
+            }
         }
         else{
             //select the Sorted doubles binding energies corresponding index
             tableIndex = fIndexSortedDoubledBindingEn[zed][tableIndexBinding]-1;//lower bin in the complete vector
-                
-//                std::cout<<"** BINDING ** I pick from the bindingEn table  and the original index is "<<tableIndex<<std::endl;
-//                std::cout<<"In fact  fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex]<<std::endl;
-//                std::cout<<"and fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]<<std::endl;
-//                if(lGammaEnergy>fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] || lGammaEnergy< fShellLSamplingPrimEnergiesNEW[zed][tableIndex]) {
-//                    std::cout<< "** BINDING ** Error\n";
-//                    exit(-1);
-//                }
+//            std::cout<<"** BINDING ** the original index LOWER is "<<tableIndex<<std::endl;
+//            std::cout<<"\nfShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex-1<<"]: \t"<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex-1]<<std::endl;
+//            std::cout<<"\nfShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: \t"<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex]<<std::endl;
+//            std::cout<<"\nfShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: \t"<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]<<std::endl;
+//            std::cout<<"\nfShellSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: \t"<<fShellSamplingPrimEnergiesNEW[zed][tableIndex]<<std::endl;
+//            std::cout<<"\nfShellSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: \t"<<fShellSamplingPrimEnergiesNEW[zed][tableIndex+1]<<std::endl;
+
+            if(lGammaEnergy>fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] || lGammaEnergy< fShellLSamplingPrimEnergiesNEW[zed][tableIndex]) {
+                    std::cout<< "** BINDING ** Error\n";
+                    exit(-1);
+                }
             
         }
         
@@ -1187,17 +1193,21 @@ void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t& zed,
 //            std::cout<<"** HIGH EN **  I pick from the base table  and the original index is "<<tableIndex<<std::endl;
 //            std::cout<<"In fact  fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex]<<std::endl;
 //            std::cout<<"and fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]<<std::endl;
-//            if(lGammaEnergy>fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] || lGammaEnergy< fShellLSamplingPrimEnergiesNEW[zed][tableIndex]){
-//                std::cout<< "** HIGH EN **  Error\n"; exit(-1);
-//            }
+            if(lGammaEnergy>fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] || lGammaEnergy< fShellLSamplingPrimEnergiesNEW[zed][tableIndex]){
+                std::cout<< "** HIGH EN **  Error\n"; exit(-1);
+            }
 
     }
 
-    if((fShellLSamplingPrimEnergiesNEW[zed][tableIndex] == fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]) && kinE>=fShellLSamplingPrimEnergiesNEW[zed][tableIndex])
+    if((fShellLSamplingPrimEnergiesNEW[zed][tableIndex] == fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1]) && lGammaEnergy>=fShellLSamplingPrimEnergiesNEW[zed][tableIndex])
     {
         tableIndex++;
-        //std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias::::Attention, this check must be added to the vectorized implementation++ "<<tableIndex<<"\n";
-        //exit(-1);
+        std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias::::Attention, this check must be added to the vectorized implementation++ "<<tableIndex<<"\n";
+        std::cout<<lGammaEnergy<<std::endl;
+//        //for(size_t i=0; i<fShellLSamplingPrimEnergiesNEW[zed].size(); i++)
+//        std::cout<<"fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex] <<std::endl;
+//        std::cout<<"fShellLSamplingPrimEnergiesNEW["<<zed<<"]["<<tableIndex+1<<"]: "<<fShellLSamplingPrimEnergiesNEW[zed][tableIndex+1] <<std::endl;
+        exit(-1);
         
     }
     
@@ -1364,7 +1374,6 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
         E.push_back(fShellMaxPrimEnergy);
         
         
-        
         for (int i=3; i<gMaxSizeData; ++i) {
             
             fSortedDoubledBindingEn[i].clear();
@@ -1389,32 +1398,38 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
             fShellSamplingPrimEnergiesNEW[i] = merge2Sorted(E, fSortedDoubledBindingEn[i]);
             
             //
-            //std::cout<<"SIZE: "<<fShellSamplingPrimEnergiesNEW[i].size()<<std::endl;
             // add store the log of the base energies in fShellLSamplingPrimEnergiesNEW
             for(size_t ii=0; ii<fShellSamplingPrimEnergiesNEW[i].size();ii++)
             {
                 fShellLSamplingPrimEnergiesNEW[i].push_back(std::log(fShellSamplingPrimEnergiesNEW[i][ii]));
                 // Store the indexes of the two vectors in the new vector fShellSamplingPrimEnergiesNEW
-                for (size_t ll=0; ll<fSortedDoubledBindingEn[i].size(); ll++)
-                    if(fShellSamplingPrimEnergiesNEW[i][ii] == fSortedDoubledBindingEn[i][ll]) fIndexSortedDoubledBindingEn[i].push_back(ii);
+                for (size_t ll=0; ll<fSortedDoubledBindingEn[i].size(); ll++){
+                    if(fShellSamplingPrimEnergiesNEW[i][ii] == fSortedDoubledBindingEn[i][ll])
+                    {
+                        fIndexSortedDoubledBindingEn[i].push_back(ii);
+                        if (fSortedDoubledBindingEn[i][ll] == fSortedDoubledBindingEn[i][ll+1]) {
+                            ll++;
+                        }
+                    }
+                }
+            }
+//            std::cout<<"SUMMARY FOR Z: "<<i<<" dim of fIndexSortedDoubledBindingEn is: "<<fIndexSortedDoubledBindingEn[i].size()<<std::endl;
+//            std::cout<<"dim of "<<fSortedDoubledBindingEn[i].size()<<std::endl;
+//            for (size_t vaff=0; vaff<fIndexSortedDoubledBindingEn[i].size(); vaff++)
+//                std::cout<<fIndexSortedDoubledBindingEn[i][vaff]<<"  vale : "<<fShellSamplingPrimEnergiesNEW[i][fIndexSortedDoubledBindingEn[i][vaff]]<<" == "<<fSortedDoubledBindingEn[i][vaff]<<std::endl;
+            
+            for(size_t ii=0; ii<fShellSamplingPrimEnergiesNEW[i].size();ii++)
+            {
                 for (int ll=0; ll<fShellNumSamplingPrimEnergies; ll++)
                     if(fShellSamplingPrimEnergiesNEW[i][ii] == fShellSamplingPrimEnergies[ll])
                     {
                         fIndexBaseEn[i].push_back(ii);
                         //std::cout<<"fShellSamplingPrimEnergiesNEW["<<i<<"]["<<ii<<"]: "<<fShellSamplingPrimEnergiesNEW[i][ii]<<" is LIBERA to : fShellSamplingPrimEnergies["<<ll<<"]: "<<fShellSamplingPrimEnergies[ll]<<std::endl;
                     }
-
             }
             
         }
         
-        
-        
-//        for (int i=1; i<fShellNumSamplingPrimEnergies-1; ++i) {
-//            fShellLSamplingPrimEnergies[i] = fShellPrimEnLMin+i*delta;
-//            fShellSamplingPrimEnergies[i]  = std::exp(fShellPrimEnLMin+i*delta);
-//        }
-
         //
         // build the sampling tables at each primary gamma energy grid point.
         //
