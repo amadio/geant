@@ -171,66 +171,76 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
 
 PhysDI VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(PhysDV egamma, PhysDI zed, PhysDV r1, PhysDV r2)
 {
-    //this will be directly stored in the track
-    PhysDV lGammaEnergy_v = vecCore::math::Log(egamma);
-    // LOWER bin in the BASE vector
-    PhysDI tableIndexBase_v = (PhysDI) ((lGammaEnergy_v - fShellPrimEnLMin) * PhysDV(fShellPrimEnILDelta));
-    PhysDI sampledShells;
-    //These are static informations that can be passed as an argument in Real_v form - TO DO
-    PhysDV kBindingEn_v;
-    for (int k=0; k<kPhysDVWidth; k++){
-        vecCore::Set(kBindingEn_v, k, fBindingEn[(int)zed[k]][0]);
-    }
-    PhysDM lowEn (egamma<kBindingEn_v);
-    PhysDI tableIndexBinding_v;
-    PhysDV baseEn_v(999),bindEn_v(999);
-    PhysDI indexBaseEn_v, indexBindingEn_v(-1);
+    PhysDI sampledShells(0);
+    PhysDM enableSamplingShells(zed!=1 && zed!=2);
+    if(enableSamplingShells.isNotEmpty()){
+        //std::cout<<zed<<std::endl;
+        //this will be directly stored in the track
+        PhysDV lGammaEnergy_v = vecCore::math::Log(egamma);
     
-    for (int k=0; k<kPhysDVWidth; k++){
-        vecCore::Set(indexBaseEn_v, k, fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]+1]-1);
-    }
-   
-    PhysDI tableIndex_v(indexBaseEn_v);
+        // LOWER bin in the BASE vector
+        PhysDI tableIndexBase_v = (PhysDI) ((lGammaEnergy_v - fShellPrimEnLMin) * PhysDV(fShellPrimEnILDelta));
     
-    //Only the values of tableIndex_v that need to be changed
-    if(lowEn.isNotEmpty())
-    {
+        //These are static informations that can be passed as an argument in Real_v form - TO DO
+        PhysDV kBindingEn_v;
         for (int k=0; k<kPhysDVWidth; k++){
+            vecCore::Set(kBindingEn_v, k, fBindingEn[(int)zed[k]][0]);
+        }
+        PhysDM lowEn (egamma<kBindingEn_v);
+        PhysDI tableIndexBinding_v;
+        PhysDV baseEn_v(999),bindEn_v(999);
+        PhysDI indexBaseEn_v, indexBindingEn_v(-1);
+    
+        for (int k=0; k<kPhysDVWidth; k++){
+            if(enableSamplingShells[k])
+                vecCore::Set(indexBaseEn_v, k, fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]+1]-1);
             
-            if(lowEn[k]){
-                vecCore::Set(baseEn_v, k, fShellSamplingPrimEnergies[tableIndexBase_v[k]+1]); //UPPER VALUE (it could be the last meaningful value in the vector (for those that have the mask set to FALSE)
-                //LOWER bin in the BINDING vector
-                int tableIndexBinding=std::lower_bound(fSortedDoubledBindingEn[(int)zed[k]].begin(), fSortedDoubledBindingEn[(int)zed[k]].end(), egamma[k]) - fSortedDoubledBindingEn[(int)zed[k]].begin()-1;
-                vecCore::Set(bindEn_v, k, fSortedDoubledBindingEn[(int)zed[k]][tableIndexBinding+1]);//UPPER VALUE
-                vecCore::Set(indexBindingEn_v, k, fIndexSortedDoubledBindingEn[(int)zed[k]][tableIndexBinding+1]-1);
+        }
+   
+        PhysDI tableIndex_v(indexBaseEn_v);
+    
+        //Only the values of tableIndex_v that need to be changed
+        if(lowEn.isNotEmpty())
+        {
+            for (int k=0; k<kPhysDVWidth; k++){
+            
+                if(lowEn[k]&&enableSamplingShells[k]){
+                    vecCore::Set(baseEn_v, k, fShellSamplingPrimEnergies[tableIndexBase_v[k]+1]); //UPPER VALUE (it could be the last meaningful value in the vector (for those that have the mask set to FALSE)
+                    
+                    //LOWER bin in the BINDING vector
+                    int tableIndexBinding=std::lower_bound(fSortedDoubledBindingEn[(int)zed[k]].begin(), fSortedDoubledBindingEn[(int)zed[k]].end(), egamma[k]) - fSortedDoubledBindingEn[(int)zed[k]].begin()-1;
+                    vecCore::Set(bindEn_v, k, fSortedDoubledBindingEn[(int)zed[k]][tableIndexBinding+1]);//UPPER VALUE
+                    vecCore::Set(indexBindingEn_v, k, fIndexSortedDoubledBindingEn[(int)zed[k]][tableIndexBinding+1]-1);
+                    
+                }
+                
+            }
+            PhysDM checkMinVal(baseEn_v>bindEn_v); //If TRUE, take bindingEnergies, otherwise keep the base energies
+            vecCore::MaskedAssign (tableIndex_v, checkMinVal&&lowEn, indexBindingEn_v);
+        }
+        PhysDI lastSSAliasIndex_v;
+        for (int k=0; k<kPhysDVWidth; k++){
+            if(enableSamplingShells[k])
+                vecCore::Set(lastSSAliasIndex_v, k, fLastSSAliasIndex[(int)zed[k]-1]);
+        }
+    
+        PhysDV val        = (lGammaEnergy_v - fShellPrimEnLMin) * fShellPrimEnILDelta; //To correct - inverse of delta of the log of real en
+        // LOWER energy bin index
+        PhysDI indxEgamma = (PhysDI)val;
+        PhysDV pIndxHigh  = val - indxEgamma;
+        PhysDM check(r1<=pIndxHigh);
+        vecCore::MaskedAssign (tableIndex_v, check, tableIndex_v+1);
+        PhysDI indxTable_v = lastSSAliasIndex_v+tableIndex_v;
+
+        //NB: the SCALAR and the VECTORIZED are almost equivalent
+        //SCALAR
+        for (int i=0; i<kPhysDVWidth; i++){
+            if(enableSamplingShells[i]){
+                int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indxTable_v[i]]->fAliasW, fShellAliasData[indxTable_v[i]]->fAliasIndx, fShellAliasData[indxTable_v[i]]->fNumdata, r2[i]);
+                vecCore::Set(sampledShells, i, xsampl);
             }
         }
-        PhysDM checkMinVal(baseEn_v>bindEn_v); //If TRUE, take bindingEnergies, otherwise keep the base energies
-        vecCore::MaskedAssign (tableIndex_v, checkMinVal&&lowEn, indexBindingEn_v);
-    
-    }
-    PhysDI lastSSAliasIndex_v;
-    for (int k=0; k<kPhysDVWidth; k++){
-        vecCore::Set(lastSSAliasIndex_v, k, fLastSSAliasIndex[(int)zed[k]-1]);
-        
-    }
-    
-    PhysDV val        = (lGammaEnergy_v - fShellPrimEnLMin) * fShellPrimEnILDelta; //To correct - inverse of delta of the log of real en
-    // LOWER energy bin index
-    PhysDI indxEgamma = (PhysDI)val;
-    PhysDV pIndxHigh  = val - indxEgamma;
-    PhysDM check(r1<=pIndxHigh);
-    vecCore::MaskedAssign (tableIndex_v, check, tableIndex_v+1);
-    PhysDI indxTable_v = lastSSAliasIndex_v+tableIndex_v;
-
-    //NB: the SCALAR and the VECTORIZED are almost equivalent
-    //SCALAR
-    for (int i=0; i<kPhysDVWidth; i++){
-        int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indxTable_v[i]]->fAliasW, fShellAliasData[indxTable_v[i]]->fAliasIndx, fShellAliasData[indxTable_v[i]]->fNumdata, r2[i]);
-            vecCore::Set(sampledShells, i, xsampl);
-        
-    }
-    //END SCALAR
+        //END SCALAR
         
 //    //VECTORIZED
 //    Real_v aliasW_v, aliasIndx_v, aliasNumdata_v;
@@ -253,6 +263,8 @@ PhysDI VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(PhysDV egamma, Ph
 //    RIndex temp(indxBin);
 //    sampledShells=temp;
 //    //END VECTORIZED
+        
+    }
     return sampledShells;
 }
 
