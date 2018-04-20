@@ -917,15 +917,18 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   }
     
   //SAMPLING OF THE SHELL
+    
   double r1 = td->fRndm->uniform();
-  double r2 = td->fRndm->uniform();
   size_t shellIdx;
-  SampleShell(gammaekin0, Z, r1, shellIdx);
-  //size_t tmp= Z;
-  //SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
+  if (GetUseSamplingTables()){
+      double r2 = td->fRndm->uniform();
+      size_t tmp = Z;
+      SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
+      
+  }else{
+      SampleShell(gammaekin0, Z, r1, shellIdx);
+    }
   
-
-
   // Retrieving ionized shell bindingEnergy
   double bindingEnergy = (*(fParamHigh[Z]))[shellIdx * 7 + 1];
 
