@@ -84,7 +84,8 @@ SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::stri
 
   fCrossSection   = nullptr;
   fCrossSectionLE = nullptr;
-  fIsBasketizable = false; // not vectorized yet
+  fIsBasketizable = true;
+
 }
 
 SauterGavrilaPhotoElectricModel::~SauterGavrilaPhotoElectricModel()
@@ -183,15 +184,14 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
   }
   fVerboseLevel = 1;
     //std::cout<<"Calling Load data\n";
-    for(int i=3; i<gMaxSizeData; i++)
-    ReadData(i); //JUST FOR THE MOMENT
-  //LoadData(); //JUST FOR THE MOMENT
+   // for(int i=3; i<gMaxSizeData; i++)
+   // ReadData(i); //JUST FOR THE MOMENT
+  LoadData(); //JUST FOR THE MOMENT
   //std::cout<<"Calling InitShellSamplingTables\n";
-  InitShellSamplingTables();
+  //InitShellSamplingTables();
     if (GetUseSamplingTables()) {
         InitSamplingTables();
-        
-        //InitShellSamplingTables();
+        InitShellSamplingTables();
     }
 }
 
@@ -900,6 +900,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   // interaction is possible so sample target element
     
   MaterialCuts *matCut                   = MaterialCuts::GetTheMaterialCutsTable()[track.GetMaterialCutCoupleIndex()];
+    
   const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
   size_t targetElemIndx = 0;
   if (theElements.size() > 1) {
@@ -919,12 +920,12 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   //SAMPLING OF THE SHELL
     
   double r1 = td->fRndm->uniform();
-  size_t shellIdx;
+  size_t shellIdx=0;
   if (GetUseSamplingTables()){
       double r2 = td->fRndm->uniform();
       size_t tmp = Z;
-      SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
-      
+      if(fNShells[tmp]>1)
+          SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
   }else{
       SampleShell(gammaekin0, Z, r1, shellIdx);
     }
@@ -1150,7 +1151,6 @@ void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t& zed,
 //    std::cout<<"  log is\t\t"<<lGammaEnergy<<std::endl;
     int tableIndex ;
     int tableIndexBaseEn  = (int) ((lGammaEnergy-fShellPrimEnLMin)*fShellPrimEnILDelta); //this the lower bin
-   
     if (tableIndexBaseEn>=fNumAliasTables-1){
         tableIndexBaseEn = fNumAliasTables-2;
         std::cout<<"SauterGavrilaPhotoElectricModel::SampleShellAlias: CRITICAL, this case is not handled in the vectorized implementation.\n";
@@ -1310,9 +1310,9 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
         int nTotShells=0;
 
         for (int i=0; i<gMaxSizeData; i++){
-            //Z[i]=0;          //element not present in the simulation
-            Z[i]=i;             //FOR THE MOMENT only for benchmarking purposes
-            nTotShells+= fNShells[i];
+            Z[i]=0;          //element not present in the simulation
+            //Z[i]=i;        //Uncomment for benchmarking purposes
+            //nTotShells+= fNShells[i];
         }
         
         //commented out for the moment - testing purposes
@@ -1332,6 +1332,7 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
                     //std::cout<<"element: "<<elementIndx<<std::endl;
                     //ReadData(elementIndx);
                     Z[elementIndx]= elementIndx;
+                    nTotShells+= fNShells[elementIndx];
                 }
             }
         }
@@ -1492,7 +1493,6 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
                 }
             }
         }
-//        /exit(-1);
     }
 
 void SauterGavrilaPhotoElectricModel::InitSamplingTables()
