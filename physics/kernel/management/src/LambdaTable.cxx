@@ -12,6 +12,7 @@
 #include "Geant/Spline.h"
 
 #include <iostream>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -65,7 +66,7 @@ double LambdaTable::GetMacroscopicXSection(const MaterialCuts *matcut, double ek
   if (fIsLambdaTablesPerMaterial) {
     // return with zero if below or above the min/max lambda table energy
     if (ekin >= fEnergyGrid[0] && ekin <= fEnergyGrid[fNumLambdaTableBins - 1]) {
-      double logE  = std::log(ekin);
+      double logE  = Math::Log(ekin);
       int lowEIndx = (int)((logE - fLogMinLambdaTableEnergy) * fEnergyILDelta);
       if (lowEIndx >= fNumLambdaTableBins - 1) --lowEIndx;
       // we might put it under verbose build since
@@ -84,7 +85,7 @@ double LambdaTable::GetMacroscopicXSection(const MaterialCuts *matcut, double ek
     // return with zero if below or above the min/max lambda table energy
     struct LambdaTableForAMaterialCuts *data = fLambdaTablesPerMaterialCuts[matcut->GetIndex()];
     if (ekin >= data->fEnergyGrid[0] && ekin <= data->fEnergyGrid[data->fNumLambdaTableBins - 1]) {
-      double logE  = std::log(ekin);
+      double logE  = Math::Log(ekin);
       int lowEIndx = (int)((logE - data->fLogMinLambdaTableEnergy) * data->fEnergyILDelta);
       if (lowEIndx >= data->fNumLambdaTableBins - 1) --lowEIndx;
       // we might put it under verbose build since
@@ -235,7 +236,7 @@ void LambdaTable::GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTa
     if (fIsSpecialLambdaTableBinNum) {
       nbin = fNumSpecialLambdaTableBins;
     }
-    double scl = std::log(emax / emin);
+    double scl = Math::Log(emax / emin);
     //    std::cerr<< "   ++++ emin = " << emin/geant::units::MeV << "  emax = " <<emax/geant::units::MeV << " nbin = "
     //    << nbin << " scale = "<< scl << std::endl;
     fMinLambdaTableEnergy =
@@ -248,20 +249,20 @@ void LambdaTable::GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTa
                 << std::endl;
       exit(-1);
     }
-    fNumLambdaTableBins = std::lrint(nbin * std::log(fMaxLambdaTableEnergy / fMinLambdaTableEnergy) / scl) + 1;
+    fNumLambdaTableBins = std::lrint(nbin * Math::Log(fMaxLambdaTableEnergy / fMinLambdaTableEnergy) / scl) + 1;
     // fProcess->GetPhysicsParameters()->GetNumLambdaTableBinsPerDecade()
-    //*std::lrint(std::log10(fMaxLambdaTableEnergy/fMinLambdaTableEnergy))+1;
+    //*std::lrint(Math::Log10(fMaxLambdaTableEnergy/fMinLambdaTableEnergy))+1;
     if (fNumLambdaTableBins < 3) {
       fNumLambdaTableBins = 3;
     }
     fEnergyGrid.resize(fNumLambdaTableBins);
-    fLogMinLambdaTableEnergy = std::log(fMinLambdaTableEnergy);
-    double delta             = std::log(fMaxLambdaTableEnergy / fMinLambdaTableEnergy) / (fNumLambdaTableBins - 1.0);
+    fLogMinLambdaTableEnergy = Math::Log(fMinLambdaTableEnergy);
+    double delta             = Math::Log(fMaxLambdaTableEnergy / fMinLambdaTableEnergy) / (fNumLambdaTableBins - 1.0);
     fEnergyILDelta           = 1.0 / delta;
     fEnergyGrid[0]           = fMinLambdaTableEnergy;
     fEnergyGrid[fNumLambdaTableBins - 1] = fMaxLambdaTableEnergy;
     for (int i = 1; i < fNumLambdaTableBins - 1; ++i) {
-      fEnergyGrid[i] = std::exp(fLogMinLambdaTableEnergy + i * delta);
+      fEnergyGrid[i] = Math::Exp(fLogMinLambdaTableEnergy + i * delta);
     }
   } else {
     // generate the kinetic energy grid common for each material
@@ -271,7 +272,7 @@ void LambdaTable::GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTa
     if (fIsSpecialLambdaTableBinNum) {
       nbin = fNumSpecialLambdaTableBins;
     }
-    double scl = std::log(emax / emin);
+    double scl = Math::Log(emax / emin);
     //    std::cerr<< "   ++++ emin = " << emin/geant::units::MeV << "  emax = " <<emax/geant::units::MeV << " nbin = "
     //    << nbin << " scale = "<< scl << std::endl;
     data->fMinLambdaTableEnergy =
@@ -285,21 +286,21 @@ void LambdaTable::GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTa
       exit(-1);
     }
     data->fNumLambdaTableBins =
-        std::lrint(nbin * std::log(data->fMaxLambdaTableEnergy / data->fMinLambdaTableEnergy) / scl) + 1;
+        std::lrint(nbin * Math::Log(data->fMaxLambdaTableEnergy / data->fMinLambdaTableEnergy) / scl) + 1;
     //                                fProcess->GetPhysicsParameters()->GetNumLambdaTableBinsPerDecade()
-    //                                *std::lrint(std::log10(data->fMaxLambdaTableEnergy/data->fMinLambdaTableEnergy))+1;
+    //                                *std::lrint(Math::Log10(data->fMaxLambdaTableEnergy/data->fMinLambdaTableEnergy))+1;
     if (data->fNumLambdaTableBins < 3) {
       data->fNumLambdaTableBins = 3;
     }
     data->fEnergyGrid.resize(data->fNumLambdaTableBins);
-    data->fLogMinLambdaTableEnergy = std::log(data->fMinLambdaTableEnergy);
+    data->fLogMinLambdaTableEnergy = Math::Log(data->fMinLambdaTableEnergy);
     double delta =
-        std::log(data->fMaxLambdaTableEnergy / data->fMinLambdaTableEnergy) / (data->fNumLambdaTableBins - 1.0);
+        Math::Log(data->fMaxLambdaTableEnergy / data->fMinLambdaTableEnergy) / (data->fNumLambdaTableBins - 1.0);
     data->fEnergyILDelta                             = 1.0 / delta;
     data->fEnergyGrid[0]                             = data->fMinLambdaTableEnergy;
     data->fEnergyGrid[data->fNumLambdaTableBins - 1] = data->fMaxLambdaTableEnergy;
     for (int i = 1; i < data->fNumLambdaTableBins - 1; ++i) {
-      data->fEnergyGrid[i] = std::exp(data->fLogMinLambdaTableEnergy + i * delta);
+      data->fEnergyGrid[i] = Math::Exp(data->fLogMinLambdaTableEnergy + i * delta);
     }
     data->fLambdaTable.resize(data->fNumLambdaTableBins, 0.0);
   }

@@ -5,6 +5,7 @@
 
 // include VecCore's math ...
 #include "VecCore/VecCore"
+#include <VecCoreLib/Math.h>
 
 namespace Math {
 template <typename T>
@@ -124,6 +125,24 @@ constexpr VECCORE_ATT_HOST_DEVICE inline double TwoPi()
 constexpr VECCORE_ATT_HOST_DEVICE inline double Pi()
 {
   return 3.14159265358979323846;
+}
+
+template <typename R>
+R Exp(R x)
+{
+  return vecMath::FastExp(x);
+}
+
+template <typename R>
+R Log(R x)
+{
+  return vecMath::FastLog(x);
+}
+
+template <typename R>
+R Log10(R x)
+{
+  return vecMath::FastLog(x) * 0.43429448190325182;
 }
 }
 

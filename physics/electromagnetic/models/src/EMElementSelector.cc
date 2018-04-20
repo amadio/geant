@@ -12,6 +12,7 @@
 #include "Geant/Element.h"
 
 #include <cmath>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -44,7 +45,7 @@ int EMElementSelector::SampleTargetElement(double ekin, double rndm)
   // int elIndx = -1;
   unsigned long elIndx = 0;
   if (ekin >= fMinEnergy && ekin <= fMaxEnergy) {
-    double logE  = std::log(ekin);
+    double logE  = Math::Log(ekin);
     int lowEIndx = (int)((logE - fLogMinEnergy) * fEnergyILDelta);
     // we might put it under verbose build since
     // protection against very small numerical uncertainties
@@ -108,8 +109,8 @@ void EMElementSelector::Build(const MaterialCuts *matcut, const Particle *part)
 
 void EMElementSelector::InitializeEnergyGrid(int binsperdecade)
 {
-  static const double invlog106 = 1.0 / (6 * std::log(10.));
-  fNumEnergyBins                = (int)(binsperdecade * std::log(fMaxEnergy / fMinEnergy) * invlog106);
+  static const double invlog106 = 1.0 / (6 * Math::Log(10.));
+  fNumEnergyBins                = (int)(binsperdecade * Math::Log(fMaxEnergy / fMinEnergy) * invlog106);
   if (fNumEnergyBins < 3) {
     fNumEnergyBins = 3;
   }
@@ -119,13 +120,13 @@ void EMElementSelector::InitializeEnergyGrid(int binsperdecade)
     fEnergyGrid = nullptr;
   }
   fEnergyGrid                     = new double[fNumEnergyBins]();
-  fLogMinEnergy                   = std::log(fMinEnergy);
-  double delta                    = std::log(fMaxEnergy / fMinEnergy) / (fNumEnergyBins - 1.0);
+  fLogMinEnergy                   = Math::Log(fMinEnergy);
+  double delta                    = Math::Log(fMaxEnergy / fMinEnergy) / (fNumEnergyBins - 1.0);
   fEnergyILDelta                  = 1.0 / delta;
   fEnergyGrid[0]                  = fMinEnergy;
   fEnergyGrid[fNumEnergyBins - 1] = fMaxEnergy;
   for (int i = 1; i < fNumEnergyBins - 1; ++i) {
-    fEnergyGrid[i] = std::exp(fLogMinEnergy + i * delta);
+    fEnergyGrid[i] = Math::Exp(fLogMinEnergy + i * delta);
   }
 }
 

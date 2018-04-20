@@ -7,6 +7,7 @@
 #include "Geant/LambdaTable.h"
 
 #include <iostream>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -91,7 +92,7 @@ double PhysicsProcess::PostStepLimitationLength(geant::Track *gtrack, geant::Tas
   // doesn't have MSC) or after the post-propagation (particles that has MSC)
   if (gtrack->GetPhysicsNumOfInteractLengthLeft(GetIndex()) <= 0.0) {
     double rndm = td->fRndm->uniform(); // use vecgeom RNG to get uniform random number
-    gtrack->SetPhysicsNumOfInteractLengthLeft(GetIndex(), -std::log(rndm));
+    gtrack->SetPhysicsNumOfInteractLengthLeft(GetIndex(), -Math::Log(rndm));
   }
   // save the mfp: to be used for the update num.-of-int.-length-left
   gtrack->SetPhysicsInteractLength(GetIndex(), mfp);

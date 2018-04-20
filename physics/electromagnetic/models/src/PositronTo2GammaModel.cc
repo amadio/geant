@@ -24,6 +24,7 @@
 #include "Geant/TaskData.h"
 
 #include <cmath>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -94,7 +95,7 @@ double PositronTo2GammaModel::ComputeXsectionPerElectron(double pekin)
   double g2m1  = tau * (tau + 2.); // gamma^2-1
   double sqx   = std::sqrt(g2m1);  // sqrt(gamma^2-1)
   //
-  return factor * ((gamma * (gamma + 4.) + 1.) * std::log(gamma + sqx) - (gamma + 3.) * sqx) / (g2m1 * (gamma + 1.));
+  return factor * ((gamma * (gamma + 4.) + 1.) * Math::Log(gamma + sqx) - (gamma + 3.) * sqx) / (g2m1 * (gamma + 1.));
 }
 
 //
@@ -170,7 +171,7 @@ int PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::TaskData 
 double PositronTo2GammaModel::SampleEnergyTransfer(double pekin, double gamma, double r1, double r2, double r3)
 {
   // determine electron energy lower grid point
-  const double lpekin = std::log(pekin);
+  const double lpekin = Math::Log(pekin);
   //
   int indxPekin = fSTNumPositronEnergies - 1;
   if (pekin < GetHighEnergyUsageLimit()) {
@@ -188,7 +189,7 @@ double PositronTo2GammaModel::SampleEnergyTransfer(double pekin, double gamma, d
   // transform it back xi to eps = eps_min epx[xi*ln(eps_max/eps_min)]
   const double minEps = 0.5 * (1. - std::sqrt((gamma - 1.) / (gamma + 1.)));
   const double maxEps = 0.5 * (1. + std::sqrt((gamma - 1.) / (gamma + 1.)));
-  const double eps    = std::exp(xi * std::log(maxEps / minEps)) * minEps;
+  const double eps    = Math::Exp(xi * Math::Log(maxEps / minEps)) * minEps;
   return eps;
 }
 
@@ -196,13 +197,13 @@ double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, geant::TaskData
 {
   const double minEps = 0.5 * (1. - std::sqrt((gamma - 1.) / (gamma + 1.)));
   const double maxEps = 0.5 * (1. + std::sqrt((gamma - 1.) / (gamma + 1.)));
-  const double dum1   = std::log(maxEps / minEps);
+  const double dum1   = Math::Log(maxEps / minEps);
   const double dum2   = (gamma + 1.) * (gamma + 1.);
   double *rndArray    = td->fDblArray;
   double eps          = 0.;
   do {
     td->fRndm->uniform_array(2, rndArray);
-    eps = minEps * std::exp(dum1 * rndArray[0]);
+    eps = minEps * Math::Exp(dum1 * rndArray[0]);
   } while (1. - eps + (2. * gamma * eps - 1.) / (eps * dum2) < rndArray[1]);
   return eps;
 }
@@ -213,17 +214,17 @@ void PositronTo2GammaModel::InitSamplingTables()
   // set number of primary e+ energy grid points
   const double minEprim  = GetLowEnergyUsageLimit();
   const double maxEprim  = GetHighEnergyUsageLimit();
-  fSTNumPositronEnergies = fSTNumPositronEnergiesPerDecade * std::lrint(std::log10(maxEprim / minEprim)) + 1;
+  fSTNumPositronEnergies = fSTNumPositronEnergiesPerDecade * std::lrint(Math::Log10(maxEprim / minEprim)) + 1;
   fSTNumPositronEnergies = std::max(fSTNumPositronEnergies, 3);
   // set up the initial gamma energy grid
-  const double delta       = std::log(maxEprim / minEprim) / (fSTNumPositronEnergies - 1.0);
-  fSTLogMinPositronEnergy  = std::log(minEprim);
+  const double delta       = Math::Log(maxEprim / minEprim) / (fSTNumPositronEnergies - 1.0);
+  fSTLogMinPositronEnergy  = Math::Log(minEprim);
   fSTILDeltaPositronEnergy = 1. / delta;
   std::vector<double> primEVect(fSTNumPositronEnergies);
   primEVect[0]                          = minEprim;
   primEVect[fSTNumPositronEnergies - 1] = maxEprim;
   for (int i = 1; i < fSTNumPositronEnergies - 1; ++i) {
-    primEVect[i] = std::exp(fSTLogMinPositronEnergy + i * delta);
+    primEVect[i] = Math::Exp(fSTLogMinPositronEnergy + i * delta);
   }
   // 3. create an AliasTable object
   if (fAliasSampler) {
@@ -320,7 +321,7 @@ void PositronTo2GammaModel::ClearSamplingTables()
 // transformed pdf of xi(eps) = ln[eps/eps_min]/ln[eps_max/eps_min]
 double PositronTo2GammaModel::ComputeTransfDXSec(double xi, double gamma, double mineps, double maxeps)
 {
-  double eps    = std::exp(xi * std::log(maxeps / mineps)) * mineps;
+  double eps    = Math::Exp(xi * Math::Log(maxeps / mineps)) * mineps;
   double igp1sq = 1. / ((gamma + 1.) * (gamma + 1.));
   return 1. + 2 * gamma * igp1sq - igp1sq / eps - eps;
 }

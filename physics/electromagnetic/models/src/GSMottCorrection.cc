@@ -8,6 +8,7 @@
 #include "Geant/MaterialProperties.h"
 #include "Geant/Element.h"
 #include "Geant/MaterialCuts.h"
+#include "Geant/math_wrappers.h"
 
 // only for rng
 #include "Geant/TaskData.h"
@@ -30,8 +31,8 @@ GSMottCorrection::GSMottCorrection(bool iselectron) : fIsElectron(iselectron)
 {
   // init grids related data member values
   fMaxEkin       = geant::units::kElectronMassC2 * (1. / std::sqrt(1. - gMaxBeta2) - 1.);
-  fLogMinEkin    = std::log(gMinEkin);
-  fInvLogDelEkin = (gNumEkin - gNumBeta2) / std::log(gMidEkin / gMinEkin);
+  fLogMinEkin    = Math::Log(gMinEkin);
+  fInvLogDelEkin = (gNumEkin - gNumBeta2) / Math::Log(gMidEkin / gMinEkin);
   double pt2     = gMidEkin * (gMidEkin + 2.0 * geant::units::kElectronMassC2);
   fMinBeta2      = pt2 / (pt2 + geant::units::kElectronMassC2 * geant::units::kElectronMassC2);
   fInvDelBeta2   = (gNumBeta2 - 1.) / (gMaxBeta2 - fMinBeta2);
@@ -302,14 +303,14 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat)
     double ipz = nbAtomsPerVolVect[ielem] / totNbAtomsPerVol;
     double dum = ipz * zet * (zet + xi);
     zs += dum;
-    ze += dum * (-2.0 / 3.0) * std::log(zet);
-    zx += dum * std::log(1.0 + 3.34 * finstrc2 * zet * zet);
+    ze += dum * (-2.0 / 3.0) * Math::Log(zet);
+    zx += dum * Math::Log(1.0 + 3.34 * finstrc2 * zet * zet);
     sa += ipz * iwa;
   }
   double density = mat->GetDensity() * geant::units::cm3 / geant::units::g; // [g/cm3]
   //
-  moliereBc  = const1 * density * zs / sa * std::exp(ze / zs) / std::exp(zx / zs); //[1/cm]
-  moliereXc2 = const2 * density * zs / sa;                                         // [MeV2/cm]
+  moliereBc  = const1 * density * zs / sa * Math::Exp(ze / zs) / Math::Exp(zx / zs); //[1/cm]
+  moliereXc2 = const2 * density * zs / sa;                                           // [MeV2/cm]
   // change to Geant4 internal units of 1/length and energ2/length
   moliereBc *= 1.0 / geant::units::cm;
   moliereXc2 *= geant::units::MeV * geant::units::MeV / geant::units::cm;
@@ -317,7 +318,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat)
   // 2. loop over the kinetic energy grid
   for (int iek = 0; iek < gNumEkin; ++iek) {
     // 2./a. set current kinetic energy and pt2 value
-    double ekin = std::exp(fLogMinEkin + iek / fInvLogDelEkin);
+    double ekin = Math::Exp(fLogMinEkin + iek / fInvLogDelEkin);
     double pt2  = ekin * (ekin + 2.0 * geant::units::kElectronMassC2);
     if (ekin > gMidEkin) {
       double b2 = fMinBeta2 + (iek - (gNumEkin - gNumBeta2)) / fInvDelBeta2;
@@ -346,7 +347,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat)
       // n_i Z_i(Z_i+1)}
       // with C = \frac{(mc^2)^\alpha^2} {4(pc)^2 C_{TF}^2} = constFactor/(4*(pc)^2)
       // here we compute the \sum_i n_i Z_i(Z_i+1)\ln[Z_{i}^{2/3}\kappa_i(1.13+3.76(\alpha Z_i)^2)] part
-      perMatPerEkin->fMCScreening += nZZPlus1 * std::log(Z23 * mcScrCF);
+      perMatPerEkin->fMCScreening += nZZPlus1 * Math::Log(Z23 * mcScrCF);
       // compute the corrected screening parameter for the current Z_i and E_{kin}
       // src(Z_i)_{mc} = \frac{(mc^2)^\alpha^2 Z_i^{2/3}} {4(pc)^2 C_{TF}^2} \kappa_i[1.13+3.76(\alpha Z_i)^2]
       mcScrCF *= constFactor * Z23 / (4. * pt2);
@@ -362,7 +363,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat)
       // A_i x B_i is stored in file per e-/e+, E_{kin} and Z_i
       // here we compute the \sum_i n_i Z_i(Z_i+1) A_i  B_i part
       perMatPerEkin->fMCFirstMoment +=
-          nZZPlus1 * (std::log(1. + 1. / mcScrCF) - 1. / (1. + mcScrCF)) * perElemPerEkin->fMCFirstMoment;
+          nZZPlus1 * (Math::Log(1. + 1. / mcScrCF) - 1. / (1. + mcScrCF)) * perElemPerEkin->fMCFirstMoment;
       // compute the second moment correction factor
       // [G2/G1]_{mc} = \frac{ \sum_i n_i Z_i(Z_i+1) A_i } {\sum_i n_i Z_i(Z_i+1)} \frac{1}{C}
       // with A_i(Z_i) = G2(Z_i)^{PWA}/G1(Z_i)^{PWA} and C=G2(Z_i,scr_{mc})^{sr}/G1(Z_i,scr_{mc})^{sr}}
@@ -390,13 +391,13 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat)
         //
         // 1. the remaining part of the sreening correction and divide the corrected screening par. with Moliere's one:
         //    (Moliere screening parameter = moliereXc2/(4(pc)^2 moliereBc) )
-        double dumScr               = std::exp(perMatPerEkin->fMCScreening / zs);
+        double dumScr               = Math::Exp(perMatPerEkin->fMCScreening / zs);
         perMatPerEkin->fMCScreening = constFactor * dumScr * moliereBc / moliereXc2;
         //
         // 2. the remaining part of the first moment correction and divide by the one computed by using the corrected
         //    screening parameter (= (mc^2)^\alpha^2/(4(pc)^2C_{TF}^2) dumScr
         double scrCorTed              = constFactor * dumScr / (4. * pt2);
-        double dum0                   = std::log(1. + 1. / scrCorTed);
+        double dum0                   = Math::Log(1. + 1. / scrCorTed);
         perMatPerEkin->fMCFirstMoment = perMatPerEkin->fMCFirstMoment / (zs * (dum0 - 1. / (1. + scrCorTed)));
         //
         // 3. the remaining part of the second moment correction and divide by the one computed by using the corrected

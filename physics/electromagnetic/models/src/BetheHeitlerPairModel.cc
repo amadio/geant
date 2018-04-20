@@ -24,6 +24,7 @@
 
 // from geantV
 #include "Geant/TaskData.h"
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -167,7 +168,7 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   // note: we should investigate the possibility to use the leading term of the dcs and sample cos(theta(-+))
   double *rndArray = td->fDblArray;
   td->fRndm->uniform_array(4, rndArray);
-  double uvar = -std::log(rndArray[0] * rndArray[1]);
+  double uvar = -Math::Log(rndArray[0] * rndArray[1]);
   if (9. > 36. * rndArray[2]) {
     uvar *= 1.6;
   } else {
@@ -317,7 +318,7 @@ double BetheHeitlerPairModel::ComputeAtomicCrossSection(double z, double egamma)
     egamma = egammaLimit;
   }
   // log photon energy in electron rest mass units
-  const double kappa  = std::log(egamma / geant::units::kElectronMassC2);
+  const double kappa  = Math::Log(egamma / geant::units::kElectronMassC2);
   const double kappa2 = kappa * kappa;
   const double kappa3 = kappa2 * kappa;
   const double kappa4 = kappa2 * kappa2;
@@ -367,14 +368,14 @@ void BetheHeitlerPairModel::InitialiseElementData()
           ElementData *elemData   = new ElementData();
           elemData->fDeltaFactor  = 136. / elem->GetElementProperties()->GetZ13(); // 136/pow(z,1/3)
           elemData->fCoulombCor   = elem->GetElementProperties()->GetCoulombCorrection();
-          elemData->fFzLow        = 8. * elem->GetElementProperties()->GetLogZ13(); // 8.*std::log(z)/3.;
+          elemData->fFzLow        = 8. * elem->GetElementProperties()->GetLogZ13(); // 8.*Math::Log(z)/3.;
           elemData->fFzHigh       = elemData->fFzLow + 8 * elemData->fCoulombCor;
-          elemData->fDeltaMaxLow  = std::exp((42.24 - elemData->fFzLow) / 8.368) - 0.952;
-          elemData->fDeltaMaxHigh = std::exp((42.24 - elemData->fFzHigh) / 8.368) - 0.952;
+          elemData->fDeltaMaxLow  = Math::Exp((42.24 - elemData->fFzLow) / 8.368) - 0.952;
+          elemData->fDeltaMaxHigh = Math::Exp((42.24 - elemData->fFzHigh) / 8.368) - 0.952;
           elemData->fDeltaMaxLowTsai =
-              1.36 * std::sqrt(std::exp(0.5 * 16.863 - 0.25 * elemData->fFzLow) - 1.) / 0.55846;
+              1.36 * std::sqrt(Math::Exp(0.5 * 16.863 - 0.25 * elemData->fFzLow) - 1.) / 0.55846;
           elemData->fDeltaMaxHighTsai =
-              1.36 * std::sqrt(std::exp(0.5 * 16.863 - 0.25 * elemData->fFzHigh) - 1.) / 0.55846;
+              1.36 * std::sqrt(Math::Exp(0.5 * 16.863 - 0.25 * elemData->fFzHigh) - 1.) / 0.55846;
           gElementData[izet] = elemData;
         }
       }
@@ -387,7 +388,7 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
                                                         const double r2, const double r3)
 {
   // determine electron energy lower grid point
-  const double legamma = std::log(egamma);
+  const double legamma = Math::Log(egamma);
   //
   int indxEgamma = fSTNumPhotonEnergies - 1;
   if (egamma < GetHighEnergyUsageLimit()) {
@@ -413,7 +414,7 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
   const double eps0   = geant::units::kElectronMassC2 / egamma;
   const double epsp   = 0.5 - 0.5 * std::sqrt(1. - 4. * eps0 * gElementData[izet]->fDeltaFactor / deltaMax);
   const double epsMin = std::max(eps0, epsp);
-  return epsMin * std::exp(xi * std::log(0.5 / epsMin));
+  return epsMin * Math::Exp(xi * Math::Log(0.5 / epsMin));
 }
 
 /**
@@ -529,12 +530,12 @@ void BetheHeitlerPairModel::ComputeScreeningFunctions(double &phi1, double &phi2
   if (istsai) {
     const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const double gamma2 = gamma * gamma;
-    phi1 =
-        16.863 - 2.0 * std::log(1.0 + 0.311877 * gamma2) + 2.4 * std::exp(-0.9 * gamma) + 1.6 * std::exp(-1.5 * gamma);
+    phi1                = 16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) +
+           1.6 * Math::Exp(-1.5 * gamma);
     phi2 = phi1 - 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
   } else {
     if (delta > 1.) {
-      phi1 = 21.12 - 4.184 * std::log(delta + 0.952);
+      phi1 = 21.12 - 4.184 * Math::Log(delta + 0.952);
       phi2 = phi1;
     } else {
       const double delta2 = delta * delta;
@@ -551,14 +552,14 @@ void BetheHeitlerPairModel::ScreenFunction12(double &val1, double &val2, const d
   if (istsai) {
     const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const double gamma2 = gamma * gamma;
-    const double dum1 =
-        33.726 - 4. * std::log(1.0 + 0.311877 * gamma2) + 4.8 * std::exp(-0.9 * gamma) + 3.2 * std::exp(-1.5 * gamma);
+    const double dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+                        3.2 * Math::Exp(-1.5 * gamma);
     const double dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
     val1              = dum1 + dum2;
     val2              = dum1 - 0.5 * dum2;
   } else {
     if (delta > 1.) {
-      val1 = 42.24 - 8.368 * std::log(delta + 0.952);
+      val1 = 42.24 - 8.368 * Math::Log(delta + 0.952);
       val2 = val1;
     } else {
       val1 = 42.392 - delta * (7.796 - 1.961 * delta);
@@ -574,11 +575,11 @@ double BetheHeitlerPairModel::ScreenFunction1(const double delta, const bool ist
   if (istsai) {
     const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const double gamma2 = gamma * gamma;
-    val                 = 33.726 - 4. * std::log(1.0 + 0.311877 * gamma2) + 4.8 * std::exp(-0.9 * gamma) +
-          3.2 * std::exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
+    val                 = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+          3.2 * Math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
     if (delta > 1.) {
-      val = 42.24 - 8.368 * std::log(delta + 0.952);
+      val = 42.24 - 8.368 * Math::Log(delta + 0.952);
     } else {
       val = 42.392 - delta * (7.796 - 1.961 * delta);
     }
@@ -593,11 +594,11 @@ double BetheHeitlerPairModel::ScreenFunction2(const double delta, const bool ist
   if (istsai) {
     const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const double gamma2 = gamma * gamma;
-    val                 = 33.726 - 4. * std::log(1.0 + 0.311877 * gamma2) + 4.8 * std::exp(-0.9 * gamma) +
-          3.2 * std::exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
+    val                 = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+          3.2 * Math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
     if (delta > 1.) {
-      val = 42.24 - 8.368 * std::log(delta + 0.952);
+      val = 42.24 - 8.368 * Math::Log(delta + 0.952);
     } else {
       val = 41.405 - delta * (5.828 - 0.8945 * delta);
     }
@@ -636,17 +637,17 @@ void BetheHeitlerPairModel::InitSamplingTables()
   // 2. generate primary gamma energy grid
   const double minEprim = fMinimumPrimaryEnergy;
   const double maxEprim = GetHighEnergyUsageLimit();
-  fSTNumPhotonEnergies  = fSTNumPhotonEnergiesPerDecade * std::lrint(std::log10(maxEprim / minEprim)) + 1;
+  fSTNumPhotonEnergies  = fSTNumPhotonEnergiesPerDecade * std::lrint(Math::Log10(maxEprim / minEprim)) + 1;
   fSTNumPhotonEnergies  = std::max(fSTNumPhotonEnergies, 3);
   // set up the initial gamma energy grid
-  const double delta     = std::log(maxEprim / minEprim) / (fSTNumPhotonEnergies - 1.0);
-  fSTLogMinPhotonEnergy  = std::log(minEprim);
+  const double delta     = Math::Log(maxEprim / minEprim) / (fSTNumPhotonEnergies - 1.0);
+  fSTLogMinPhotonEnergy  = Math::Log(minEprim);
   fSTILDeltaPhotonEnergy = 1. / delta;
   std::vector<double> primEVect(fSTNumPhotonEnergies);
   primEVect[0]                        = minEprim;
   primEVect[fSTNumPhotonEnergies - 1] = maxEprim;
   for (int i = 1; i < fSTNumPhotonEnergies - 1; ++i) {
-    primEVect[i] = std::exp(fSTLogMinPhotonEnergy + i * delta);
+    primEVect[i] = Math::Exp(fSTLogMinPhotonEnergy + i * delta);
   }
   // 3. create an AliasTable object
   if (fAliasSampler) {
@@ -937,8 +938,8 @@ void BetheHeitlerPairModel::BuildOneRatinAlias(const double egamma, const int iz
  */
 double BetheHeitlerPairModel::ComputeDXSection(double epsmin, double eps0, double deltafactor, double fz, double xi)
 {
-  const double lHalfPerEpsMin = std::log(0.5 / epsmin);
-  const double eps            = epsmin * std::exp(xi * lHalfPerEpsMin);
+  const double lHalfPerEpsMin = Math::Log(0.5 / epsmin);
+  const double eps            = epsmin * Math::Exp(xi * lHalfPerEpsMin);
   const double meps           = 1. - eps;
   const double delta          = deltafactor * eps0 / (eps * meps);
   double phi1, phi2;

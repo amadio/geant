@@ -16,6 +16,7 @@
 #include <cmath>
 #include <iostream>
 #include <iomanip>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -56,7 +57,7 @@ double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinene
     } else if (kinenergy >= fMaxLossTableEnergy) {
       dedx = lossData->fRestrictedDEDXData[fNumLossTableBins - 1];
     } else {
-      double logE  = std::log(kinenergy);
+      double logE  = Math::Log(kinenergy);
       int lowEIndx = (int)((logE - fLogMinLossTableEnergy) * fEnergyILDelta);
       // we might put it under verbose build since
       // protection against very small numerical uncertainties
@@ -92,7 +93,7 @@ double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinen
     } else if (kinenergy >= fMaxLossTableEnergy) {
       range = lossData->fRestrictedRangeData[fNumLossTableBins - 1];
     } else {
-      double logE  = std::log(kinenergy);
+      double logE  = Math::Log(kinenergy);
       int lowEIndx = (int)((logE - fLogMinLossTableEnergy) * fEnergyILDelta);
       // we might put it under verbose build since
       // protection against very small numerical uncertainties
@@ -156,7 +157,7 @@ double ELossTable::GetRange(int matindx, int partindx, double kinenergy)
     } else if (kinenergy >= fMaxLossTableEnergy) {
       range = lossData->fRangeData[fNumLossTableBins - 1];
     } else {
-      double logE  = std::log(kinenergy);
+      double logE  = Math::Log(kinenergy);
       int lowEIndx = (int)((logE - fLogMinLossTableEnergy) * fEnergyILDelta);
       // we might put it under verbose build since
       // protection against very small numerical uncertainties
@@ -312,13 +313,13 @@ void ELossTable::InitializeEnergyGrid()
     fEnergyGrid = nullptr;
   }
   fEnergyGrid                        = new double[fNumLossTableBins]();
-  fLogMinLossTableEnergy             = std::log(fMinLossTableEnergy);
-  double delta                       = std::log(fMaxLossTableEnergy / fMinLossTableEnergy) / (fNumLossTableBins - 1.0);
+  fLogMinLossTableEnergy             = Math::Log(fMinLossTableEnergy);
+  double delta                       = Math::Log(fMaxLossTableEnergy / fMinLossTableEnergy) / (fNumLossTableBins - 1.0);
   fEnergyILDelta                     = 1.0 / delta;
   fEnergyGrid[0]                     = fMinLossTableEnergy;
   fEnergyGrid[fNumLossTableBins - 1] = fMaxLossTableEnergy;
   for (int i = 1; i < fNumLossTableBins - 1; ++i) {
-    fEnergyGrid[i] = std::exp(fLogMinLossTableEnergy + i * delta);
+    fEnergyGrid[i] = Math::Exp(fLogMinLossTableEnergy + i * delta);
   }
   if (!fGL) {
     fGL = new GLIntegral(fNGL, 0.0, 1.0);

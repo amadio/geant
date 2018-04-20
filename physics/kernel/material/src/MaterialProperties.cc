@@ -13,6 +13,7 @@
 #include <cmath>
 #include <limits>
 #include <iomanip>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -107,9 +108,9 @@ void MaterialProperties::ComputeIonizationParameters()
       // get mean excitation energy for the given element
       if (z > maxZ) z     = maxZ;
       double meanExcEnerZ = NISTMaterialData::Instance().GetMeanExcitationEnergy(z - 1);
-      fMeanExcitationEnergy += fNumOfAtomsPerVolVect[i] * zeff * std::log(meanExcEnerZ);
+      fMeanExcitationEnergy += fNumOfAtomsPerVolVect[i] * zeff * Math::Log(meanExcEnerZ);
     }
-    fMeanExcitationEnergy = std::exp(fMeanExcitationEnergy / fTotalNumOfElectronsPerVol);
+    fMeanExcitationEnergy = Math::Exp(fMeanExcitationEnergy / fTotalNumOfElectronsPerVol);
   }
 }
 
@@ -122,7 +123,7 @@ void MaterialProperties::ComputeDensityEffectParameters()
   using geant::units::kSTPPressure;
   using geant::units::kSTPTemperature;
 
-  const double twolog10 = 2.0 * std::log(10.0);
+  const double twolog10 = 2.0 * Math::Log(10.0);
   // density and/or non-tandard gas corrector factor
   double corrFactor = 0.0;
 
@@ -151,7 +152,7 @@ void MaterialProperties::ComputeDensityEffectParameters()
                     // we have the corresponding NISTMaterialData as well so get the denisty from there
       // get the density from the orgiginal NIST DB
       double orgDensity = NISTMaterialData::Instance().GetDensity(z0 - 1);
-      corrFactor        = std::log(fMaterial->GetDensity() / orgDensity);
+      corrFactor        = Math::Log(fMaterial->GetDensity() / orgDensity);
       // the found(below) density effect parameters will be accepted only if
       // the correction is less then 1.0 otherwise the parameters might be very different
       // so cancel the index and don't use the parameters
@@ -164,7 +165,7 @@ void MaterialProperties::ComputeDensityEffectParameters()
   if (indx >= 0) {
     fPlasmaEnergy = DensityEffectData::Instance().GetPlasmaEnergy(indx);
     // we always recompute the Cbar parameter
-    // fDensityEffectParameterC       = 2.0*std::log(fMeanExcitationEnergy/fPlasmaEnergy) + 1;
+    // fDensityEffectParameterC       = 2.0*Math::Log(fMeanExcitationEnergy/fPlasmaEnergy) + 1;
     fDensityEffectParameterC      = DensityEffectData::Instance().GetParameterC(indx);
     fDensityEffectParameterX0     = DensityEffectData::Instance().GetParameterX0(indx);
     fDensityEffectParameterX1     = DensityEffectData::Instance().GetParameterX1(indx);
@@ -196,7 +197,7 @@ void MaterialProperties::ComputeDensityEffectParameters()
     constexpr double dum0 = 4.0 * kPi * kClassicElectronRadius * kHBarPlanckCLightSquare;
     fPlasmaEnergy         = std::sqrt(dum0 * fTotalNumOfElectronsPerVol); // in internal [energy] units
     // paramater \f$ -C = 2\ln{I/(h\nu_p)} +1 \f$
-    fDensityEffectParameterC = 2.0 * std::log(fMeanExcitationEnergy / fPlasmaEnergy) + 1.0;
+    fDensityEffectParameterC = 2.0 * Math::Log(fMeanExcitationEnergy / fPlasmaEnergy) + 1.0;
     fDensityEffectParameterM = 3.0;
     // other parameters depends on the state of the material
     // for solids and liquids
@@ -270,7 +271,7 @@ void MaterialProperties::ComputeDensityEffectParameters()
     double curTemperature = fMaterial->GetTemperature();
     double curPressure    = fMaterial->GetPressure();
     // double stpDenisty     = curDensity*curTemperature*kSTPPressure/(curPressure*kSTPTemperature);
-    corrFactor = std::log(curPressure * kSTPTemperature / (curTemperature * kSTPPressure));
+    corrFactor = Math::Log(curPressure * kSTPTemperature / (curTemperature * kSTPPressure));
 
     fDensityEffectParameterC -= corrFactor;             // cbar_\eta = cbar - \ln(10)log10(\eta)
     fDensityEffectParameterX0 -= corrFactor / twolog10; // X_{1\eta} = X_1 - 0.5log10(\eta)
@@ -288,20 +289,21 @@ void MaterialProperties::ComputeDensityEffectParameters()
 
 double MaterialProperties::GetDensityEffectFunctionValue(const double atx)
 {
-  const double twolog10 = 2.0 * std::log(10.0);
+  const double twolog10 = 2.0 * Math::Log(10.0);
   double delta          = 0.0;
 
   if (atx <
       fDensityEffectParameterX0) { // below lower limit i.e. either zero or for conductors might be a small constant
     // conductor and delta converge to non-zero at low momentum/mass values
     if (fDensityEffectParameterDelta0 > 0.0) // delta(X) = delta(X_0) 10^{2(X-X_0)} = delta(X_0) exp[2ln(10)(X-X_0)]
-      delta = fDensityEffectParameterDelta0 * std::exp(twolog10 * (atx - fDensityEffectParameterX0));
+      delta = fDensityEffectParameterDelta0 * Math::Exp(twolog10 * (atx - fDensityEffectParameterX0));
   } else if (atx >= fDensityEffectParameterX1) {
     delta = twolog10 * atx - fDensityEffectParameterC;
   } else {
-    delta = twolog10 * atx +
-            fDensityEffectParameterA * std::exp(fDensityEffectParameterM * std::log(fDensityEffectParameterX1 - atx)) -
-            fDensityEffectParameterC;
+    delta =
+        twolog10 * atx +
+        fDensityEffectParameterA * Math::Exp(fDensityEffectParameterM * Math::Log(fDensityEffectParameterX1 - atx)) -
+        fDensityEffectParameterC;
   }
   return delta;
 }
@@ -318,8 +320,8 @@ void MaterialProperties::ComputeRadiationLength()
   constexpr double factor = 4.0 * geant::units::kFineStructConst * geant::units::kClassicElectronRadius *
                             geant::units::kClassicElectronRadius;
   // constant factors for L_el and L_inel under TFM and complete screening i.e. Tsai
-  const double factorLel   = std::log(184.1499);
-  const double factorLinel = std::log(1193.923);
+  const double factorLel   = Math::Log(184.1499);
+  const double factorLinel = Math::Log(1193.923);
 
   // the element composition data of the material
   const Vector_t<Element *> theElements = fMaterial->GetElementVector();
@@ -336,7 +338,7 @@ void MaterialProperties::ComputeRadiationLength()
     double mu6               = mu2 * mu4;
     double coulombCorrection = mu2 * (1.0 / (1.0 + mu2) + 0.20206 - 0.0369 * mu2 + 0.0083 * mu4 - 0.002 * mu6);
     // compute radlength
-    double logZper3 = std::log(zet) / 3.0;
+    double logZper3 = Math::Log(zet) / 3.0;
     double dum0     = 0.0;
     if (zet <= 3) { // it should be < 5 in order to be consistent with the relativistic brems. models
       dum0 = zet * zet * (FelLowZet[izet] - coulombCorrection) + zet * FinelLowZet[izet]; //+1/18.*zet*(zet+1.0);

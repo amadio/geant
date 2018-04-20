@@ -4,6 +4,7 @@
 #include "Geant/Material.h"
 #include "Geant/MaterialProperties.h"
 #include "Geant/Element.h"
+#include "Geant/math_wrappers.h"
 
 #include "Geant/GLIntegral.h"
 #include "Geant/Spline.h"
@@ -86,12 +87,12 @@ void CutConverter::Initialise()
   // allocate space for the length vector that will be used to compute the macroscopic length (range or absorption)
   fLengthVector = new double[fNumEBins]();
   // allocate space and generate the energy grid: logspacing between fMinCutEnergy-fMaxCutEnergy with fNumEBins bin
-  double delta = std::log(fMaxCutEnergy / fMinCutEnergy) / (fNumEBins - 1);
-  double base  = std::log(fMinCutEnergy) / delta;
+  double delta = Math::Log(fMaxCutEnergy / fMinCutEnergy) / (fNumEBins - 1);
+  double base  = Math::Log(fMinCutEnergy) / delta;
   fEnergyGrid  = new double[fNumEBins]();
   int i        = 0;
   for (; i < fNumEBins - 1; ++i)
-    fEnergyGrid[i] = std::exp((base + i) * delta);
+    fEnergyGrid[i] = Math::Exp((base + i) * delta);
   fEnergyGrid[i]   = fMaxCutEnergy;
 }
 
@@ -139,7 +140,7 @@ void CutConverter::BuildLengthVector(const Material *mat)
   // integrate 1/dE/dx to get the range like in Geant4; //NOTE: that it is not correct in Geant4 neithr here because
   // the integral between [0,E_1] is missing!!! We keep it like this to guarantee consistency with Geant4 since it is
   // only used when production cut is given in length.
-  double deltae = std::log(fMaxCutEnergy / fMinCutEnergy);
+  double deltae = Math::Log(fMaxCutEnergy / fMinCutEnergy);
   deltae /= (fNumEBins - 1);
   fLengthVector[0] = fEnergyGrid[0] / lossvect[0] * deltae;
   double sum       = 0.5 * fEnergyGrid[0] / lossvect[0];

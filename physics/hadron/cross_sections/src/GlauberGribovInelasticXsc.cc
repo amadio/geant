@@ -4,6 +4,7 @@
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
 #include "Geant/Parameterizations.h"
+#include "Geant/math_wrappers.h"
 
 #include <cmath>
 #include <iostream>
@@ -73,7 +74,7 @@ double GlauberGribovInelasticXsc::GetIsotopeCrossSection(const int particleCode,
 
     double fAxsc2piR2 = cofInelastic * ratio;
 
-    double fModelInLog = std::log(1. + fAxsc2piR2);
+    double fModelInLog = Math::Log(1. + fAxsc2piR2);
 
     NucleusInelasticXsc = nucleusSquare * fModelInLog / cofInelastic;
 

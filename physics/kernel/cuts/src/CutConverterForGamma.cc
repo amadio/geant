@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <iostream>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -71,33 +72,33 @@ double CutConverterForGamma::ComputeELossOrAbsXsecPerAtom(double zet, double eki
   if (std::abs(zet - fZ) > 0.1) {
     fZ                = zet;
     double Zsquare    = fZ * fZ;
-    double Zlog       = std::log(fZ);
+    double Zlog       = Math::Log(fZ);
     double Zlogsquare = Zlog * Zlog;
     // set some Z dependent variables
     fS200keV = (0.2651 - 0.1501 * Zlog + 0.02283 * Zlogsquare) * Zsquare;
     fTmin    = (0.552 + 218.5 / fZ + 557.17 / Zsquare) * geant::units::MeV;
-    fSmin    = (0.01239 + 0.005585 * Zlog - 0.000923 * Zlogsquare) * std::exp(1.5 * Zlog);
-    fCmin    = std::log(fS200keV / fSmin) / (std::log(fTmin / t200keV) * std::log(fTmin / t200keV));
-    fTlow    = 0.2 * std::exp(-7.355 / std::sqrt(fZ)) * geant::units::MeV;
-    fSlow    = fS200keV * std::exp(0.042 * fZ * std::log(t200keV / fTlow) * std::log(t200keV / fTlow));
+    fSmin    = (0.01239 + 0.005585 * Zlog - 0.000923 * Zlogsquare) * Math::Exp(1.5 * Zlog);
+    fCmin    = Math::Log(fS200keV / fSmin) / (Math::Log(fTmin / t200keV) * Math::Log(fTmin / t200keV));
+    fTlow    = 0.2 * Math::Exp(-7.355 / std::sqrt(fZ)) * geant::units::MeV;
+    fSlow    = fS200keV * Math::Exp(0.042 * fZ * Math::Log(t200keV / fTlow) * Math::Log(t200keV / fTlow));
     fS1keV   = 300.0 * Zsquare;
-    fClow    = std::log(fS1keV / fSlow) / std::log(fTlow / t1keV);
-    fChigh   = (7.55e-5 - 0.0542e-5 * fZ) * Zsquare * fZ / std::log(t100MeV / fTmin);
+    fClow    = Math::Log(fS1keV / fSlow) / Math::Log(fTlow / t1keV);
+    fChigh   = (7.55e-5 - 0.0542e-5 * fZ) * Zsquare * fZ / Math::Log(t100MeV / fTmin);
   }
   // calculate the absorption cross section (using an approximate empirical formula)
   double xs = 0.0;
   if (ekin < fTlow) {
     if (ekin < t1keV)
-      xs = fSlow * std::exp(fClow * std::log(fTlow / t1keV));
+      xs = fSlow * Math::Exp(fClow * Math::Log(fTlow / t1keV));
     else
-      xs = fSlow * std::exp(fClow * std::log(fTlow / ekin));
+      xs = fSlow * Math::Exp(fClow * Math::Log(fTlow / ekin));
   } else if (ekin < t200keV) {
-    xs = fS200keV * std::exp(0.042 * fZ * std::log(t200keV / ekin) * std::log(t200keV / ekin));
+    xs = fS200keV * Math::Exp(0.042 * fZ * Math::Log(t200keV / ekin) * Math::Log(t200keV / ekin));
   } else if (ekin < fTmin) {
-    double dum = std::log(fTmin / ekin);
-    xs         = fSmin * std::exp(fCmin * dum * dum);
+    double dum = Math::Log(fTmin / ekin);
+    xs         = fSmin * Math::Exp(fCmin * dum * dum);
   } else {
-    xs = fSmin + fChigh * std::log(ekin / fTmin);
+    xs = fSmin + fChigh * Math::Log(ekin / fTmin);
   }
   return xs * geant::units::barn;
 }

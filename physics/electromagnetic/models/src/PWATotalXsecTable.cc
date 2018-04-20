@@ -11,6 +11,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <cmath>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -83,11 +84,12 @@ void PWATotalXsecZ::LoadPWATotalXsecZ(int Z)
   // compute log-log linear intrp. parameters
   for (int i = 0; i < gNumTotalXsecBins - 1; ++i) {
     for (int k = 0; k < 6; ++k) {
-      int j            = k * gNumTotalXsecBins + i;
-      double val2      = fPWAXsecs[j + 1];
-      double val1      = fPWAXsecs[j];
-      fInterpParamA[j] = std::log(val2 / val1) / std::log(gPWATotalXsecEnergyGrid[i + 1] / gPWATotalXsecEnergyGrid[i]);
-      fInterpParamB[j] = std::exp(std::log(val1) - fInterpParamA[j] * std::log(gPWATotalXsecEnergyGrid[i]));
+      int j       = k * gNumTotalXsecBins + i;
+      double val2 = fPWAXsecs[j + 1];
+      double val1 = fPWAXsecs[j];
+      fInterpParamA[j] =
+          Math::Log(val2 / val1) / Math::Log(gPWATotalXsecEnergyGrid[i + 1] / gPWATotalXsecEnergyGrid[i]);
+      fInterpParamB[j] = Math::Exp(Math::Log(val1) - fInterpParamA[j] * Math::Log(gPWATotalXsecEnergyGrid[i]));
     }
   }
 }
@@ -99,7 +101,7 @@ int PWATotalXsecZ::GetPWATotalXsecEnergyBinIndex(double energy) const
   constexpr double lne0 = -1.61180956509583e+01;
   // 1./log(gPWATotalXsecEnergyGrid[i+1]/gPWATotalXsecEnergyGrid[i]);
   const double invlnde = 6.51441722854880e+00;
-  return (int)((std::log(energy) - lne0) * invlnde);
+  return (int)((Math::Log(energy) - lne0) * invlnde);
 }
 
 // j-dependent type interploated cross section in Geant4 internal length2 unit
@@ -115,7 +117,7 @@ double PWATotalXsecZ::GetInterpXsec(double energy, int elowindex, int j) const
   }
   // normal case log-log linear intrp.
   int k = j * gNumTotalXsecBins + elowindex;
-  return std::exp(std::log(energy) * fInterpParamA[k]) * fInterpParamB[k];
+  return Math::Exp(Math::Log(energy) * fInterpParamA[k]) * fInterpParamB[k];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +133,7 @@ double PWATotalXsecZ::GetInterpXsec(double energy, int j) const
   // normal case log-log linear intrp.
   int elowindex = GetPWATotalXsecEnergyBinIndex(energy);
   int k         = j * gNumTotalXsecBins + elowindex;
-  return std::exp(std::log(energy) * fInterpParamA[k]) * fInterpParamB[k];
+  return Math::Exp(Math::Log(energy) * fInterpParamA[k]) * fInterpParamB[k];
 }
 
 //

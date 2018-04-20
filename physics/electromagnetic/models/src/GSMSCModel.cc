@@ -23,6 +23,7 @@
 #include "Geant/Track.h"
 
 #include <cmath>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -200,7 +201,7 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td)
       //      == else : nothing to do
       //- in both cases, the step length was very short so geometrical and
       //  true path length are the same
-      double sslimit = -1. * lambel * std::log(td->fRndm->uniform());
+      double sslimit = -1. * lambel * Math::Log(td->fRndm->uniform());
       // compare to current minimum step length
       if (sslimit < mscdata.fTheTrueStepLenght) {
         mscdata.fTheTrueStepLenght  = sslimit;
@@ -249,7 +250,7 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td)
           // transfrom straight line distance to the boundary to real step length based on the mean values (using the
           // prestep point first-transport mean free path i.e. no energy loss correction)
           if ((1. - geomLimit / lambtr1) > 0.) {
-            geomLimit = -lambtr1 * std::log(1. - geomLimit / lambtr1);
+            geomLimit = -lambtr1 * Math::Log(1. - geomLimit / lambtr1);
           }
           // the 2-different cases that could lead us here:
           // 1.: mscdata.fIsFirstRealStep
@@ -301,7 +302,7 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td)
       //      == else : nothing to do
       //- in both cases, the step length was very short so geometrical and
       //  true path length are the same
-      double sslimit = -1. * lambel * std::log(td->fRndm->uniform());
+      double sslimit = -1. * lambel * Math::Log(td->fRndm->uniform());
       // compare to current minimum step length
       if (sslimit < mscdata.fTheTrueStepLenght) {
         mscdata.fTheTrueStepLenght  = sslimit;
@@ -379,7 +380,7 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td)
   if (mscdata.fIsEverythingWasDone) {
     if (mscdata.fIsSingleScattering) {
       // sample single scattering
-      double lekin = std::log(kineticEnergy);
+      double lekin = Math::Log(kineticEnergy);
       double pt2   = kineticEnergy * (kineticEnergy + 2.0 * geant::units::kElectronMassC2);
       double beta2 = pt2 / (pt2 + geant::units::kElectronMassC2 * geant::units::kElectronMassC2);
       double cost  = fGSTable->SingleScattering(1., scra, lekin, beta2, matCut->GetMaterial()->GetIndex(), td);
@@ -485,7 +486,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskD
       if (tau < fTauLim) {
         mscdata.fTheZPathLenght = mscdata.fTheTrueStepLenght * (1. - 0.5 * tau);
       } else {
-        mscdata.fTheZPathLenght = mscdata.fLambda1 * (1. - std::exp(-tau));
+        mscdata.fTheZPathLenght = mscdata.fLambda1 * (1. - Math::Exp(-tau));
       }
     } else if (ekin < geant::units::kElectronMassC2 || mscdata.fTheTrueStepLenght == mscdata.fRange) {
       mscdata.fPar1 = 1. / mscdata.fRange;                     // alpha =1/range_init for Ekin<mass
@@ -546,7 +547,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(geant::Track *gtrack, geant::TaskD
     double tlength = gtrack->GetStep();
     if (gtrack->GetStep() > mscdata.fLambda1 * fTauSmall) {
       if (mscdata.fPar1 < 0.) {
-        tlength = -mscdata.fLambda1 * std::log(1. - gtrack->GetStep() / mscdata.fLambda1);
+        tlength = -mscdata.fLambda1 * Math::Log(1. - gtrack->GetStep() / mscdata.fLambda1);
       } else {
         double dum = mscdata.fPar1 * mscdata.fPar3 * gtrack->GetStep();
         if (dum < 1.) {
@@ -661,7 +662,7 @@ void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
     sinTheta2 = std::sqrt((1. - cosTheta2) * (1. + cosTheta2));
   } else {
     // sample 2 scattering cost1, sint1, cost2 and sint2 for half path
-    double lekin = std::log(efEnergy);
+    double lekin = Math::Log(efEnergy);
     double pt2   = efEnergy * (efEnergy + 2.0 * geant::units::kElectronMassC2);
     double beta2 = pt2 / (pt2 + geant::units::kElectronMassC2 * geant::units::kElectronMassC2);
     // backup GS angular dtr pointer (kinetic energy and delta index in case of Mott-correction)
@@ -729,7 +730,7 @@ void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
     // Moments with energy loss correction
     // --first the uncorrected (for energy loss) values of gamma, eta, a1=a2=0.5*(1-eta), delta
     // gamma = G_2/G_1 based on G2 computed from A by using the Wentzel DCS form of G2
-    double loga  = std::log(1.0 + 1.0 / scra);
+    double loga  = Math::Log(1.0 + 1.0 / scra);
     double gamma = 6.0 * scra * (1.0 + scra) * (loga * (1.0 + 2.0 * scra) - 2.0) / g1;
     gamma *= pMCtoG2PerG1;
     // sample eta from p(eta)=2*eta i.e. P(eta) = eta_square ;-> P(eta) = rand --> eta = sqrt(rand)
@@ -799,7 +800,7 @@ void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
       if (Qn1 < 0.1) { // use 3-order Taylor approximation of (1-exp(-x))/x around x=0
         zz = 1.0 - Qn1 * (0.5 - Qn1 * (0.166666667 - 0.041666667 * Qn1)); // 1/6 =0.166..7 ; 1/24=0.041..
       } else {
-        zz = (1. - std::exp(-Qn1)) / Qn1;
+        zz = (1. - Math::Exp(-Qn1)) / Qn1;
       }
     } else {
       // we sample in the post step point so
@@ -851,10 +852,10 @@ void GSMSCModel::ComputeParameters(const MaterialCuts *matcut, double ekin, doub
   double pMCtoScrA = 1.0;
   double scpCor    = 1.0;
   if (fIsUseMottCorrection) {
-    fGSTable->GetMottCorrectionFactors(std::log(ekin), beta2, matindx, pMCtoScrA, pMCtoQ1, pMCtoG2PerG1);
+    fGSTable->GetMottCorrectionFactors(Math::Log(ekin), beta2, matindx, pMCtoScrA, pMCtoQ1, pMCtoG2PerG1);
     scpCor = fGSTable->ComputeScatteringPowerCorrection(matcut, ekin);
   } else if (fIsUsePWACorrection) {
-    fPWACorrection->GetPWACorrectionFactors(std::log(ekin), beta2, matindx, pMCtoScrA, pMCtoQ1, pMCtoG2PerG1);
+    fPWACorrection->GetPWACorrectionFactors(Math::Log(ekin), beta2, matindx, pMCtoScrA, pMCtoQ1, pMCtoG2PerG1);
     // scpCor = fGSTable->ComputeScatteringPowerCorrection(matcut, ekin);
   }
   // screening parameter:
@@ -869,7 +870,7 @@ void GSMSCModel::ComputeParameters(const MaterialCuts *matcut, double ekin, doub
   lambel = beta2 * (1. + scra) * pMCtoScrA / bc / scpCor;
   // first transport coefficient (if Mott-corretion: the corrected screening parameter is used (it will be fully
   // consistent with the one used during the pre-computation of the Mott-correted GS angular distributions))
-  g1 = 2.0 * scra * ((1.0 + scra) * std::log(1.0 / scra + 1.0) - 1.0);
+  g1 = 2.0 * scra * ((1.0 + scra) * Math::Log(1.0 / scra + 1.0) - 1.0);
   // first transport mean free path
   lambtr1 = lambel / g1;
 }
@@ -896,16 +897,16 @@ double GSMSCModel::GetTransportMeanFreePathOnly(const MaterialCuts *matcut, doub
   double mctoG2PerG1 = 1.0;
   double scpCor      = 1.0;
   if (fIsUseMottCorrection) {
-    fGSTable->GetMottCorrectionFactors(std::log(ekin), beta2, matindx, mctoScrA, mctoQ1, mctoG2PerG1);
+    fGSTable->GetMottCorrectionFactors(Math::Log(ekin), beta2, matindx, mctoScrA, mctoQ1, mctoG2PerG1);
     scpCor = fGSTable->ComputeScatteringPowerCorrection(matcut, ekin);
   } else if (fIsUsePWACorrection) {
-    fPWACorrection->GetPWACorrectionFactors(std::log(ekin), beta2, matindx, mctoScrA, mctoQ1, mctoG2PerG1);
+    fPWACorrection->GetPWACorrectionFactors(Math::Log(ekin), beta2, matindx, mctoScrA, mctoQ1, mctoG2PerG1);
     // scpCor = fGSTable->ComputeScatteringPowerCorrection(matcut, ekin);
   }
   scrA = fGSTable->GetMoliereXc2(matindx) / (4.0 * pt2 * bc) * mctoScrA;
   // total elastic mean free path in Geant4 internal lenght units
   lambda0 = beta2 * (1. + scrA) * mctoScrA / bc / scpCor;
-  g1      = 2.0 * scrA * ((1.0 + scrA) * std::log(1.0 / scrA + 1.0) - 1.0);
+  g1      = 2.0 * scrA * ((1.0 + scrA) * Math::Log(1.0 / scrA + 1.0) - 1.0);
   lambda1 = lambda0 / g1;
   return lambda1;
 }

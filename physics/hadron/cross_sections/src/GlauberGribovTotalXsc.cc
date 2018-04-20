@@ -3,6 +3,7 @@
 #include "Geant/Neutron.h"
 #include "Geant/SystemOfUnits.h"
 #include "Geant/PhysicalConstants.h"
+#include "Geant/math_wrappers.h"
 
 #include <cmath>
 #include <iostream>
@@ -68,7 +69,7 @@ double GlauberGribovTotalXsc::GetIsotopeCrossSection(const int particleCode, con
     nucleusSquare = cofTotal * geant::units::kPi * R * R; // basically 2piRR
     ratio         = sigma / nucleusSquare;
 
-    xsection = nucleusSquare * std::log(1. + ratio);
+    xsection = nucleusSquare * Math::Log(1. + ratio);
     xsection *= GetParticleBarCorTot(particlePDG, Z);
   } else // H
   {

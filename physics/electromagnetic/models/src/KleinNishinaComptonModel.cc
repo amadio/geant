@@ -17,6 +17,7 @@
 
 // from geantV
 #include "Geant/TaskData.h"
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -271,7 +272,7 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
   double kappa  = std::max(egamma, t0) / geant::units::kElectronMassC2;
   double kappa2 = kappa * kappa;
   double kappa3 = kappa2 * kappa;
-  xsec          = p1Z * std::log(1. + 2. * kappa) / kappa +
+  xsec          = p1Z * Math::Log(1. + 2. * kappa) / kappa +
          (p2Z + p3Z * kappa + p4Z * kappa2) / (1. + a * kappa + b * kappa2 + c * kappa3);
   // low energy correction:
   if (egamma < t0) {
@@ -279,15 +280,15 @@ double KleinNishinaComptonModel::ComputeAtomicCrossSection(double z, double egam
     kappa                = (t0 + dt0) / geant::units::kElectronMassC2;
     kappa2               = kappa * kappa;
     kappa3               = kappa2 * kappa;
-    const double sigma   = p1Z * std::log(1. + 2 * kappa) / kappa +
+    const double sigma   = p1Z * Math::Log(1. + 2 * kappa) / kappa +
                          (p2Z + p3Z * kappa + p4Z * kappa2) / (1. + a * kappa + b * kappa2 + c * kappa3);
     const double c1 = -t0 * (sigma - xsec) / (xsec * dt0);
     double c2       = 0.15;
     if (z > 1.5) {
-      c2 = 0.375 - 0.0556 * std::log(z);
+      c2 = 0.375 - 0.0556 * Math::Log(z);
     }
-    const double y = std::log(egamma / t0);
-    xsec *= std::exp(-y * (c1 + c2 * y));
+    const double y = Math::Log(egamma / t0);
+    xsec *= Math::Exp(-y * (c1 + c2 * y));
   }
   return xsec;
 }
@@ -313,7 +314,7 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
                                                            const double r3)
 {
   // determine electron energy lower grid point
-  const double legamma = std::log(egamma);
+  const double legamma = Math::Log(egamma);
   //
   int indxEgamma = fSTNumPhotonEnergies - 1;
   if (egamma < GetHighEnergyUsageLimit()) {
@@ -333,7 +334,7 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
   // transform it back to eps = E_1/E_0
   // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
   const double kappa = egamma / geant::units::kElectronMassC2;
-  return std::exp(std::log(1. + 2. * kappa) * (xi - 1.)); // eps = E_1/E_0
+  return Math::Exp(Math::Log(1. + 2. * kappa) * (xi - 1.)); // eps = E_1/E_0
 }
 
 double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2,
@@ -342,7 +343,7 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
   const double kappa = egamma / geant::units::kElectronMassC2;
   const double eps0  = 1. / (1. + 2. * kappa);
   const double eps02 = eps0 * eps0;
-  const double al1   = -std::log(eps0);
+  const double al1   = -Math::Log(eps0);
   const double cond  = al1 / (al1 + 0.5 * (1. - eps02));
   //
   double eps, eps2, gf;
@@ -350,7 +351,7 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
   do {
     td->fRndm->uniform_array(3, rndArray);
     if (cond > rndArray[0]) {
-      eps  = std::exp(-al1 * rndArray[1]);
+      eps  = Math::Exp(-al1 * rndArray[1]);
       eps2 = eps * eps;
     } else {
       eps2 = eps02 + (1. - eps02) * rndArray[1];
@@ -433,8 +434,8 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
 double KleinNishinaComptonModel::ComputeDXSecPerAtom(double xi, double kappa)
 {
   const double inv2Kappa  = 1. / (1. + 2. * kappa);
-  const double linv2Kappa = std::log(inv2Kappa);
-  const double eps        = std::exp(linv2Kappa * (1. - xi));
+  const double linv2Kappa = Math::Log(inv2Kappa);
+  const double eps        = Math::Exp(linv2Kappa * (1. - xi));
   const double invEps     = 1. / eps;
   const double beta       = (1. - invEps) / kappa;
 
@@ -447,17 +448,17 @@ void KleinNishinaComptonModel::InitSamplingTables()
   // set number of primary gamma energy grid points
   const double minEprim = GetLowEnergyUsageLimit();
   const double maxEprim = GetHighEnergyUsageLimit();
-  fSTNumPhotonEnergies  = fSTNumPhotonEnergiesPerDecade * std::lrint(std::log10(maxEprim / minEprim)) + 1;
+  fSTNumPhotonEnergies  = fSTNumPhotonEnergiesPerDecade * std::lrint(Math::Log10(maxEprim / minEprim)) + 1;
   fSTNumPhotonEnergies  = std::max(fSTNumPhotonEnergies, 3);
   // set up the initial gamma energy grid
-  const double delta     = std::log(maxEprim / minEprim) / (fSTNumPhotonEnergies - 1.0);
-  fSTLogMinPhotonEnergy  = std::log(minEprim);
+  const double delta     = Math::Log(maxEprim / minEprim) / (fSTNumPhotonEnergies - 1.0);
+  fSTLogMinPhotonEnergy  = Math::Log(minEprim);
   fSTILDeltaPhotonEnergy = 1. / delta;
   std::vector<double> primEVect(fSTNumPhotonEnergies);
   primEVect[0]                        = minEprim;
   primEVect[fSTNumPhotonEnergies - 1] = maxEprim;
   for (int i = 1; i < fSTNumPhotonEnergies - 1; ++i) {
-    primEVect[i] = std::exp(fSTLogMinPhotonEnergy + i * delta);
+    primEVect[i] = Math::Exp(fSTLogMinPhotonEnergy + i * delta);
   }
   // 3. create an AliasTable object
   if (fAliasSampler) {

@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <cmath>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -229,7 +230,7 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, co
 {
   constexpr double factor = geant::units::kTwoPi * geant::units::kClassicElectronRadius *
                             geant::units::kClassicElectronRadius * geant::units::kElectronMassC2;
-  const double twolog10inv = 1.0 / (2.0 * std::log(10.0));
+  const double twolog10inv = 1.0 / (2.0 * Math::Log(10.0));
   // get the material properties
   MaterialProperties *matProp = mat->GetMaterialProperties();
   // get the electron denisty of the material
@@ -269,23 +270,23 @@ double MollerBhabhaIonizationModel::ComputeDEDXPerVolume(const Material *mat, co
   double dedx = 0.0;
   // first compute G^{-/+} that is different for e- (Moller) and e+ (Bhabha)
   if (fIsElectron) {
-    dedx = std::log((tau - tauUpLim) * tauUpLim) + tau / (tau - tauUpLim) +
-           (0.5 * tauUpLim * tauUpLim + (2.0 * tau + 1.0) * std::log(1.0 - tauUpLim / tau)) / gamma2 - 1.0 - beta2;
+    dedx = Math::Log((tau - tauUpLim) * tauUpLim) + tau / (tau - tauUpLim) +
+           (0.5 * tauUpLim * tauUpLim + (2.0 * tau + 1.0) * Math::Log(1.0 - tauUpLim / tau)) / gamma2 - 1.0 - beta2;
   } else {
     const double tauUpLim2 = tauUpLim * tauUpLim * 0.5;   // \tau_up^2/2
     const double tauUpLim3 = tauUpLim2 * tauUpLim / 1.5;  // \tau_up^3/3
     const double tauUpLim4 = tauUpLim3 * tauUpLim * 0.75; // \tau_up^4/4
     const double y         = 1.0 / (1.0 + gamma);
-    dedx                   = std::log(tau * tauUpLim) -
+    dedx                   = Math::Log(tau * tauUpLim) -
            beta2 *
                (tau + 2.0 * tauUpLim -
                 y * (3.0 * tauUpLim2 + y * (tauUpLim - tauUpLim3 + y * (tauUpLim2 - tau * tauUpLim3 + tauUpLim4)))) /
                tau;
   }
   // add the common term
-  dedx += std::log(2.0 * (tau + 2.0) / meanExcEnergy);
+  dedx += Math::Log(2.0 * (tau + 2.0) / meanExcEnergy);
   // get the density effect correction term
-  double dumx = std::log(betagama2) * twolog10inv;
+  double dumx = Math::Log(betagama2) * twolog10inv;
   dedx -= matProp->GetDensityEffectFunctionValue(dumx);
   // apply the multiplicative factor to get the final dE/dx
   dedx *= factor * elDensity / beta2;
@@ -339,7 +340,7 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
   const double elProdCut = matcut->GetProductionCutsInEnergy()[1]; // e- production cut
   const int mcIndxLocal  = fGlobalMatECutIndxToLocal[matcut->GetIndex()];
   // determine electron energy lower grid point
-  const double lPrimEkin = std::log(primekin);
+  const double lPrimEkin = Math::Log(primekin);
   //
   int indxPrimEkin = fSamplingTables[mcIndxLocal]->fNData - 1;
   if (primekin < GetHighEnergyUsageLimit()) {
@@ -352,12 +353,12 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
   const LinAlias *als = fSamplingTables[mcIndxLocal]->fAliasData[indxPrimEkin];
   const double xi     = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
                                                 &(als->fAliasIndx[0]), fSTNumSamplingElecEnergies, r2, r3);
-  double dum1 = std::log(primekin / elProdCut);
+  double dum1 = Math::Log(primekin / elProdCut);
   if (fIsElectron) {
     dum1 -= 0.693147180559945; // dum1 = dum1 + log(0.5)
   }
   // return with the sampled kinetic energy transfered to the electron
-  return std::exp(xi * dum1) * elProdCut;
+  return Math::Exp(xi * dum1) * elProdCut;
 }
 
 double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
@@ -495,14 +496,14 @@ void MollerBhabhaIonizationModel::BuildSamplingTableForMaterialCut(const Materia
   }
   //
   // compute number of e-/e+ kinetic energy grid
-  int numPrimEnergies = fSTNumPrimaryEnergyPerDecade * std::lrint(std::log10(maxPrimEnergy / minPrimEnergy)) + 1;
+  int numPrimEnergies = fSTNumPrimaryEnergyPerDecade * std::lrint(Math::Log10(maxPrimEnergy / minPrimEnergy)) + 1;
   numPrimEnergies     = std::max(numPrimEnergies, 3);
-  double logEmin      = std::log(minPrimEnergy);
-  double delta        = std::log(maxPrimEnergy / minPrimEnergy) / (numPrimEnergies - 1.0);
+  double logEmin      = Math::Log(minPrimEnergy);
+  double delta        = Math::Log(maxPrimEnergy / minPrimEnergy) / (numPrimEnergies - 1.0);
   AliasDataMaterialCuts *dataMatCut = new AliasDataMaterialCuts(numPrimEnergies, logEmin, 1. / delta);
   fSamplingTables[indxlocal]        = dataMatCut;
   for (int ipe = 0; ipe < numPrimEnergies; ++ipe) {
-    double pekin = std::exp(logEmin + ipe * delta);
+    double pekin = Math::Exp(logEmin + ipe * delta);
     if (ipe == 0 && minPrimEnergy == edge) {
       pekin = minPrimEnergy + 1. * geant::units::eV; // would be zero otherwise
     }
@@ -626,7 +627,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcut
     if (fIsElectron) {                                              // Moller scattering i.e. e- + e- -> e- + e-
       const double parC = (2.0 * gamma - 1.0) / gamma2;
       xsec = (epsmax - epsmin) * (1.0 - parC + 1.0 / (epsmin * epsmax) + 1.0 / ((1.0 - epsmin) * (1.0 - epsmax))) -
-             parC * std::log((epsmax * (1.0 - epsmin)) / (epsmin * (1.0 - epsmax)));
+             parC * Math::Log((epsmax * (1.0 - epsmin)) / (epsmin * (1.0 - epsmax)));
       xsec /= beta2;
     } else { // Bhabha scattering i.e. e+ + e- -> e+ + e-
       const double y     = 1.0 / (1.0 + gamma);
@@ -640,7 +641,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcut
       const double e1e2  = epsmin * epsmax;
       const double e1pe2 = epsmin + epsmax;
       xsec = (epsmax - epsmin) * (1.0 / (beta2 * e1e2) + b2 - 0.5 * b3 * e1pe2 + b4 * (e1pe2 * e1pe2 - e1e2) / 3.0) -
-             b1 * std::log(epsmax / epsmin);
+             b1 * Math::Log(epsmax / epsmin);
     }
   }
   xsec *= xsecFactor / primekin;
@@ -709,9 +710,9 @@ double MollerBhabhaIonizationModel::ComputeMollerPDF(const double xi, const doub
   const double C2 = (2.0 * gamma - 1.0) / gamma2;
 
   const double dum0 = pcutenergy / primekin;
-  const double dum1 = std::log(0.5 / dum0);
-  const double a    = std::exp(xi * dum1) * dum0; // this is eps =  exp(xi*ln(0.5*T_0/T_cut))*T_cut/T_0
-  const double b    = 1.0 - a;                    // eps'
+  const double dum1 = Math::Log(0.5 / dum0);
+  const double a    = Math::Exp(xi * dum1) * dum0; // this is eps =  exp(xi*ln(0.5*T_0/T_cut))*T_cut/T_0
+  const double b    = 1.0 - a;                     // eps'
   return ((1.0 / a - C2) + a * C1 + a / b * (1.0 / b - C2)) * dum0; // xdum0 is just scaling; this is the shape
 }
 
@@ -781,8 +782,8 @@ double MollerBhabhaIonizationModel::ComputeBhabhaPDF(const double xi, const doub
   const double b3     = b4 + ydum2;
 
   const double dum0 = pcutenergy / primekin;
-  const double dum1 = std::log(1.0 / dum0);
-  const double a    = std::exp(xi * dum1) * dum0; // this is eps =  = exp(xi*ln(T_0/T_cut))*T_cut/T_0
+  const double dum1 = Math::Log(1.0 / dum0);
+  const double a    = Math::Exp(xi * dum1) * dum0; // this is eps =  = exp(xi*ln(T_0/T_cut))*T_cut/T_0
 
   return ((1.0 / (a * beta2) - b1) + a * (b2 + a * (a * b4 - b3))); //
 }

@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <iostream>
 #include <iomanip>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -261,8 +262,8 @@ void SeltzerBergerBremsModel::LoadDCSData()
     nmatches = fscanf(f, "%lf", &(fLoadDCSElectronEnergyGrid[i]));
     fLoadDCSElectronEnergyGrid[i] *= geant::units::MeV; // change to internal energy units
   }
-  fLogLoadDCSMinElecEnergy  = std::log(fLoadDCSElectronEnergyGrid[0]);
-  fInvLogLoadDCSDeltaEnergy = 1. / (std::log(fLoadDCSElectronEnergyGrid[1] / fLoadDCSElectronEnergyGrid[0]));
+  fLogLoadDCSMinElecEnergy  = Math::Log(fLoadDCSElectronEnergyGrid[0]);
+  fInvLogLoadDCSDeltaEnergy = 1. / (Math::Log(fLoadDCSElectronEnergyGrid[1] / fLoadDCSElectronEnergyGrid[0]));
   for (int i = 0; i < fLoadDCSNumReducedPhotonEnergies; ++i)
     nmatches = fscanf(f, "%lf", &(fLoadDCSReducedPhotonEnergyGrid[i]));
   fclose(f);
@@ -299,7 +300,7 @@ void SeltzerBergerBremsModel::LoadDCSData()
                      fLoadDCSNumReducedPhotonEnergies);
     }
     // determine ylimit i.e. value at kappa=0.97 and log(E) = 4*log(10MeV)
-    fXsecLimits[zet - 1] = GetDXSECValue(zet, std::exp(4. * std::log(10. * geant::units::MeV)), 0.97);
+    fXsecLimits[zet - 1] = GetDXSECValue(zet, Math::Exp(4. * Math::Log(10. * geant::units::MeV)), 0.97);
     fclose(f);
   }
 }
@@ -316,7 +317,7 @@ double SeltzerBergerBremsModel::GetEkinIndex(double &ekin, int &ie)
     ie     = fLoadDCSNumElectronEnergies - 2; // y1 index
     eresid = 1.0;                             // (y2-y1)*resid + y1 ==> y2
   } else {
-    double lekin = std::log(ekin);
+    double lekin = Math::Log(ekin);
     eresid       = (lekin - fLogLoadDCSMinElecEnergy) * fInvLogLoadDCSDeltaEnergy;
     ie           = (int)eresid; // y1 index
     eresid -= ie;               // (y2-y1)*resid + y1
@@ -527,7 +528,7 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
   double ibeta2        = etot2 / ptot2;
   double densityCor    = densityFactor * etot2; // electronekin*electronekin;  // this is k_p^2
   double kappacr       = gammaprodcutenergy / electronekin;
-  double logikappacr   = std::log(1. / kappacr);
+  double logikappacr   = Math::Log(1. / kappacr);
   // find electron energy grid index ie such that E_ie <= ekin <_E_ie+1
   int ie        = 0;
   double eresid = GetEkinIndex(electronekin, ie);
@@ -541,8 +542,8 @@ double SeltzerBergerBremsModel::ComputeXSectionPerVolume(const Material *mat, do
   // integrate
   double integral = 0.0;
   for (int i = 0; i < fNGL; ++i) {
-    double dumx = 1.0 - std::exp(glX[i] * logikappacr) * kappacr;
-    // double x = std::log(dumx+1.0e-12);
+    double dumx = 1.0 - Math::Exp(glX[i] * logikappacr) * kappacr;
+    // double x = Math::Log(dumx+1.0e-12);
     double egamma = (1.0 - dumx) * electronekin; // 1-dumx => kappa
     double sum    = 0.0;
     for (int ielem = 0; ielem < numElems; ++ielem) {
@@ -623,7 +624,7 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
   double ibeta2      = etot2 / ptot2;
   double densityCor  = densityFactor * etot2; // electronekin*electronekin;  // this is k_p^2
   double kappacr     = gammaprodcutenergy / electronekin;
-  double logikappacr = std::log(1. / kappacr);
+  double logikappacr = Math::Log(1. / kappacr);
   // find electron energy grid index ie such that E_ie <= ekin <_E_ie+1
   int ie        = 0;
   double eresid = GetEkinIndex(electronekin, ie);
@@ -633,8 +634,8 @@ double SeltzerBergerBremsModel::ComputeXSectionPerAtom(const Element *elem, cons
   // integrate
   double integral = 0.0;
   for (int i = 0; i < fNGL; ++i) {
-    double dumx = 1.0 - std::exp(glX[i] * logikappacr) * kappacr; // ez a felso x -nek az exp(x)-e
-    // double x = std::log(dumx+1.0e-12); // 1-dumx = kappa
+    double dumx = 1.0 - Math::Exp(glX[i] * logikappacr) * kappacr; // ez a felso x -nek az exp(x)-e
+    // double x = Math::Log(dumx+1.0e-12); // 1-dumx = kappa
     double egamma = (1.0 - dumx) * electronekin;
     double poscor = 1.0;
     if (!fIsElectron) {
@@ -661,7 +662,7 @@ double SeltzerBergerBremsModel::PositronCorrection(double ekinelectron, double i
     if (dum0 < -12.0) {
       poscor = 0.0;
     } else {
-      poscor = std::exp(dum0);
+      poscor = Math::Exp(dum0);
     }
   } else {
     poscor = 0.0;
@@ -682,7 +683,7 @@ double SeltzerBergerBremsModel::PositronCorrection1(double ekinelectron, double 
   if (ddum < -12.0) {
     poscor = 0.0;
   } else {
-    poscor = std::exp(ddum);
+    poscor = Math::Exp(ddum);
   }
   return poscor;
 }
@@ -698,7 +699,7 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, d
                             gMigdalConst * (etot * etot); // k_p^2
   const int mcIndxLocal = fGlobalMatGCutIndxToLocal[matcut->GetIndex()];
   // determine electron energy lower grid point
-  const double leekin = std::log(eekin);
+  const double leekin = Math::Log(eekin);
   //
   int indxEekin = fSamplingTables[mcIndxLocal]->fAliasData.size() - 1;
   if (eekin < GetHighEnergyUsageLimit()) {
@@ -715,7 +716,7 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, d
   const double dum1 = gcut * gcut + densityCor;
   const double dum2 = (eekin * eekin + densityCor) / dum1;
 
-  return std::sqrt(dum1 * std::exp(egamma * std::log(dum2)) - densityCor);
+  return std::sqrt(dum1 * Math::Exp(egamma * Math::Log(dum2)) - densityCor);
 }
 
 double SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat,
@@ -748,14 +749,14 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, do
   //    - kappa_min = kappa_c => xi(kappa_c) = ln[k_c^2 + k_p^2]
   //    - kappa_max = 1       => xi(1)       = ln[E_kin^2 + k_p^2]
   //    => xi \in [xi_min, xi_max] => [ ln[k_c^2 + k_p^2], ln[E_kin^2 + k_p^2]]
-  const double minXi = std::log(gcut * gcut + densityCor);
-  //  double maxXi     = std::log(eekin*eekin + densityCor);
-  const double delXi = std::log(eekin * eekin + densityCor) - minXi;
+  const double minXi = Math::Log(gcut * gcut + densityCor);
+  //  double maxXi     = Math::Log(eekin*eekin + densityCor);
+  const double delXi = Math::Log(eekin * eekin + densityCor) - minXi;
   double val         = 0.;
   double *rndArray   = td->fDblArray;
   do {
     td->fRndm->uniform_array(2, rndArray);
-    egamma             = std::sqrt(std::max(std::exp(minXi + rndArray[0] * delXi) - densityCor, 0.));
+    egamma             = std::sqrt(std::max(Math::Exp(minXi + rndArray[0] * delXi) - densityCor, 0.));
     const double kappa = egamma / eekin;
     // val    =  GetDXSECValue(izet, eekin, kappa);
     val = GetDXSECValue(izet, ie, eresid, kappa);
@@ -781,7 +782,7 @@ void SeltzerBergerBremsModel::SamplePhotonDirection(double elenergy, double &sin
   //  delta += a;
   //  delta *= 0.5;
 
-  const double cofA = -signc * std::exp(std::log(delta) / 3.0);
+  const double cofA = -signc * Math::Exp(Math::Log(delta) / 3.0);
   cosTheta          = cofA - 1. / cofA;
 
   const double tau  = elenergy / geant::units::kElectronMassC2;
@@ -886,14 +887,14 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
   const int numElems                      = theElements.size();
   //
   // compute number of e-/e+ kinetic energy grid
-  int numElecEnergies = fSTNumElectronEnergyPerDecade * std::lrint(std::log10(maxElecEnergy / minElecEnergy)) + 1;
+  int numElecEnergies = fSTNumElectronEnergyPerDecade * std::lrint(Math::Log10(maxElecEnergy / minElecEnergy)) + 1;
   numElecEnergies     = std::max(numElecEnergies, 3);
-  double logEmin      = std::log(minElecEnergy);
-  double delta        = std::log(maxElecEnergy / minElecEnergy) / (numElecEnergies - 1.0);
+  double logEmin      = Math::Log(minElecEnergy);
+  double delta        = Math::Log(maxElecEnergy / minElecEnergy) / (numElecEnergies - 1.0);
   AliasDataMaterialCuts *dataMatCut = new AliasDataMaterialCuts(numElecEnergies, logEmin, 1. / delta);
   fSamplingTables[indxlocal]        = dataMatCut;
   for (int ie = 0; ie < numElecEnergies; ++ie) {
-    double eekin = std::exp(dataMatCut->fLogEmin + ie * delta); // E_kin_i
+    double eekin = Math::Exp(dataMatCut->fLogEmin + ie * delta); // E_kin_i
     if (ie == 0 && minElecEnergy == gcut) {
       eekin = minElecEnergy + 1. * geant::units::eV; // would be zero otherwise
     }
@@ -905,8 +906,8 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
     // xi(kappa) = log(kappa^2*E^2 + k_p^2)  ==> kappa =
     const double kappac = gcut / eekin;
     const double dum0   = gcut * gcut + densityCor; // xi(kappa=kappac)
-    //    const double xiMax      = std::log(eekin*eekin+densityCor); // xi(kappa=1)
-    const double xiNorm = std::log((eekin * eekin + densityCor) / dum0);
+    //    const double xiMax      = Math::Log(eekin*eekin+densityCor); // xi(kappa=1)
+    const double xiNorm = Math::Log((eekin * eekin + densityCor) / dum0);
     // determine energy interpolation: low energy bin index and residual for the interpolation
     int ielow     = 0;
     double eresid = GetEkinIndex(eekin, ielow);
@@ -919,7 +920,7 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
       if (fLoadDCSReducedPhotonEnergyGrid[ikappa] > kappac &&
           std::abs(1. - fLoadDCSReducedPhotonEnergyGrid[ikappa] / kappac) > 1.e-8) {
         const double kappa   = fLoadDCSReducedPhotonEnergyGrid[ikappa];
-        const double r       = std::log((kappa * kappa * eekin * eekin + densityCor) / dum0) / xiNorm;
+        const double r       = Math::Log((kappa * kappa * eekin * eekin + densityCor) / dum0) / xiNorm;
         als->fXdata[numData] = r;
         ++numData;
       }
@@ -927,7 +928,7 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
     // get the corresponding scalled DCS values
     for (int id = 0; id < numData; ++id) {
       const double r     = als->fXdata[id];
-      const double kappa = std::sqrt(std::exp(r * xiNorm) * dum0 - densityCor) / eekin;
+      const double kappa = std::sqrt(Math::Exp(r * xiNorm) * dum0 - densityCor) / eekin;
       double dcs         = 0.;
       for (int ielem = 0; ielem < numElems; ++ielem) {
         const double zet = theElements[ielem]->GetZ();
@@ -951,7 +952,7 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
       for (int i = 0; i < numData - 1; ++i) {
         const double xx    = 0.5 * (als->fXdata[i] + als->fXdata[i + 1]); // mid point
         const double yy    = 0.5 * (als->fYdata[i] + als->fYdata[i + 1]); // lin func val at the mid point
-        const double kappa = std::sqrt(dum0 * std::exp(xx * xiNorm) - densityCor) / eekin;
+        const double kappa = std::sqrt(dum0 * Math::Exp(xx * xiNorm) - densityCor) / eekin;
         double spval       = 0.; // spline intp. val. at mid point
         for (int ielem = 0; ielem < numElems; ++ielem) {
           const double zet = theElements[ielem]->GetZ();
