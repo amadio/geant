@@ -183,11 +183,13 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
     fCrossSectionLE[i] = false;
   }
   fVerboseLevel = 1;
-  //Uncomment the following lines to run tests:
+  //Uncomment the following 2 lines to run tests:
   //(1)PhysVecSauterGavrilaAliasShellValid
   //(2)PhysVecSauterGavrilaAliasShellBench
-  // for(int i=3; i<gMaxSizeData; i++)
-  // ReadData(i);
+  //(3)PhysVecSauterGavrilaRejShellValid
+  //(4)PhysVecSauterGavrilaRejShellBench
+//   for(int i=3; i<gMaxSizeData; i++)
+//   ReadData(i);
   LoadData();
   if (GetUseSamplingTables()) {
       InitSamplingTables();
@@ -1315,13 +1317,17 @@ int SauterGavrilaPhotoElectricModel::PrepareDiscreteAlias(int Z, double ekin, st
             //Uncomment the following lines to run tests:
             //(1)PhysVecSauterGavrilaAliasShellValid
             //(2)PhysVecSauterGavrilaAliasShellBench
-            //Z[i]=i;
-            //nTotShells+= fNShells[i];
+            //(3)PhysVecSauterGavrilaRejShellValid
+            //(4)PhysVecSauterGavrilaRejShellBench
+//            Z[i]=i;
+//            nTotShells+= fNShells[i];
         }
         
         //Comment out the following lines to run tests:
         //(1)PhysVecSauterGavrilaAliasShellValid
         //(2)PhysVecSauterGavrilaAliasShellBench
+        //(3)PhysVecSauterGavrilaRejShellValid
+        //(4)PhysVecSauterGavrilaRejShellBench
         //*** START
         int numMatCuts = MaterialCuts::GetTheMaterialCutsTable().size();
         // get list of active region
