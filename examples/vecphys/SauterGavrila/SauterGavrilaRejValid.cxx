@@ -23,17 +23,16 @@ public:
 const int kTestSize = 1024 * 10;
 int main()
 {
-  SauterGavrilaRejTesterVec *sgv = new SauterGavrilaRejTesterVec;
-  sgv->SetLowEnergyUsageLimit(minEn);
-  sgv->SetHighEnergyUsageLimit(maxEn);
-  sgv->SetUseSamplingTables(true);
-  sgv->Initialize();
+ 
+    std::cout<<"ALERT: This sanity check doesn't make real sense until we will guarantee the reproducibility for random numbers\n";
+    std::cout<<"(the ones 'wasted' in the vectorized rejection have to be put back and used again)\n";
+    
+    SauterGavrilaRejTesterScalar *slnStd = new SauterGavrilaRejTesterScalar;
+    slnStd->SetLowEnergyUsageLimit(minEn);
+    slnStd->SetHighEnergyUsageLimit(maxEn);
+    slnStd->SetUseSamplingTables(true);
+    slnStd->Initialize();
 
-  SauterGavrilaRejTesterScalar *slnStd = new SauterGavrilaRejTesterScalar;
-  slnStd->SetLowEnergyUsageLimit(minEn);
-  slnStd->SetHighEnergyUsageLimit(maxEn);
-  slnStd->SetUseSamplingTables(true);
-  slnStd->Initialize();
   
   geant::VecRngWrapper rng;
   std::vector<double> energy;
@@ -50,9 +49,16 @@ int main()
   for (int i = 0; i < kTestSize; ++i) {
     slnStd->SamplePhotoElectronDirection_Rejection(energy[i], cosTheta1[i] , td);
   }
+  
+  SauterGavrilaRejTesterVec *sgv = new SauterGavrilaRejTesterVec;
+  sgv->SetLowEnergyUsageLimit(minEn);
+  sgv->SetHighEnergyUsageLimit(maxEn);
+  sgv->SetUseSamplingTables(true);
+  sgv->Initialize();
   //for (int i = 0; i < kTestSize; i += kPhysDVWidth) {
   sgv->SamplePhotoElectronDirectionRejVec(energy.data(), cosTheta2.data(), kTestSize, td);
   //}
+
 
   double cumError = 0.0;
   for (int i = 0; i < kTestSize; ++i) {
