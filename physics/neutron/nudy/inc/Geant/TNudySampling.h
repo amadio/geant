@@ -20,15 +20,15 @@ class TNudySampling {
 
 public:
   TNudySampling();
-  TNudySampling(TParticle *, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  TNudySampling(TParticleTest *, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
   virtual ~TNudySampling();
 
 private:
-  void GetSecParameter(TParticle *, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  void GetSecParameter(TParticleTest *, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
   void FillHisto(double icosLab, double isecEnergyLab);
-  double kinematicNonRel(TParticle *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
-  double kinematicRel(TParticle *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
-  double kinematicGama(TParticle *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  double KinematicNonRel(TParticleTest *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  double KinematicRel(TParticleTest *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
+  double KinematicGama(TParticleTest *particle, NudyPhysics::TNudyEndfRecoPoint *recoPoint);
   std::vector<double> crs;
   double kineticE;
   double cosCM = 0, cosLab = 0, secEnergyCM = 0, secEnergyLab = 0;

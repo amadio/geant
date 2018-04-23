@@ -181,8 +181,8 @@ private:
   std::string fIsoName;
   int fMTValue;
   int fProjCode;
-  int ftZ;
-  int ftA;
+  int fTZ;
+  int fTA;
   int MTChargeFlag[10];
   double fProjKE;
   double fTemperature;
@@ -209,11 +209,11 @@ inline int TNudyInterface::GetProjectileCode()
 }
 inline int TNudyInterface::GetZ()
 {
-  return ftZ;
+  return fTZ;
 }
 inline int TNudyInterface::GetA()
 {
-  return ftA;
+  return fTA;
 }
 inline double TNudyInterface::GetProjectileKE()
 {
@@ -244,11 +244,11 @@ inline void TNudyInterface::SetProjectileCode(const int projCode)
 }
 inline void TNudyInterface::SetZ(const int tZValue)
 {
-  ftZ = tZValue;
+  fTZ = tZValue;
 }
 inline void TNudyInterface::SetA(const int tAvalue)
 {
-  ftA = tAvalue;
+  fTA = tAvalue;
 }
 inline void TNudyInterface::SetProjectileKE(const double projKE)
 {

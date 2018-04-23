@@ -260,10 +260,10 @@ std::string NudyPhysics::TNudyInterface::findENDFFileName(std::string elementNam
     fName = fProjID + "-";
   }
 
-  ss << ftZ;
+  ss << fTZ;
   std::string stZ = ss.str();
   ss.str("");
-  ss << ftA;
+  ss << fTA;
   std::string stA = ss.str();
   ss.str("");
 
@@ -280,7 +280,7 @@ std::string NudyPhysics::TNudyInterface::findENDFFileName(std::string elementNam
     stZ = stZ;
   }
 
-  if (ftZ == 12) {
+  if (fTZ == 12) {
     stA = "000";
   } else {
     switch (stA.length()) {
