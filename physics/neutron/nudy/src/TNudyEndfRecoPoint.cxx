@@ -100,11 +100,13 @@ void TNudyEndfRecoPoint::ReadFile3(TNudyEndfFile *file)
 }
 void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF)
 {
+  /*
   // TFile *f = new TFile("testetau235.root", "recreate");
   // TTree *eta =new TTree("eta","a Tree with fast fission data");
   // TH1D *h1 = new TH1D("h1", "", 150, -5, 8);
   // TH1D *h2 = new TH1D("h2", "", 150, -5, 8);
   // TH1D *h3 = new TH1D("h3", "", 150, -5, 8);
+  */
   fElemId     = ielemId;
   TFile *rEND = TFile::Open(rENDF);
   //  TFile *rEND = TFile::Open(rENDF,"UPDATE");
@@ -173,6 +175,7 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF)
           }
         }
         FixupTotal(fEnergyMts);
+	/*
         //	  double sigfis, sigcap;
         //	  std::vector<double> energ, etavalue;
         //	  std::vector<double> energjunk, etajunk;
@@ -202,6 +205,7 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF)
         // 	  std::cout<<"hello eta "<<std::endl;
         // 	       eta->Fill();
         // 	       f->Write();
+        */
         fEnergyMts.clear();
         fSigmaMts.clear();
       } break;
@@ -225,6 +229,7 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF)
         recoFissY = new TNudyEndfFissionYield(file);
         // std::cout << "file 8 OK " << std::endl;
         break;
+	/*
       // //       case 12:
       // //         std::cout << "before file 12 " << std::endl;
       // // 	recoPhYield = new TNudyEndfPhYield(file);
@@ -245,6 +250,7 @@ void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF)
         // // 	recoPhEnergy = new TNudyEndfPhEnergy(file);
         // // 	std::cout<<"file 15 OK "<<std::endl;
         // // 	break;
+	*/
       }
     }
   }
