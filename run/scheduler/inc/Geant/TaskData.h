@@ -23,12 +23,11 @@
 #include "Geant/NumaBlockMgr.h"
 #include "Geant/Propagator.h"
 #include "Geant/Track.h"
+#include "Geant/RngWrapper.h"
 
 namespace geantphysics {
 class PhysicsData;
 }
-
-#include "base/RNG.h"
 
 class GUFieldPropagator;
 class VVectorField;
@@ -47,6 +46,7 @@ class StackLikeBuffer;
 class TrackStat;
 struct WorkspaceForFieldPropagation;
 struct BasketCounters;
+class RngWrapper;
 
 class TaskData {
 private:
@@ -66,7 +66,7 @@ public:
   bool fToClean           = false;         /** Flag set when the basket queue is to be cleaned */
   bool fTaskCompleted;                     /** Flag set when a task is completed */
   Volume_t *fVolume         = nullptr;     /** Current volume per thread */
-  vecgeom::RNG *fRndm       = nullptr;     /** Random generator for thread */
+  RngWrapper *fRndm         = nullptr;     /** Random generator for thread */
   bool *fBoolArray          = nullptr;     /** [fSizeBool] Thread array of bools */
   double *fDblArray         = nullptr;     /** [fSizeDbl] Thread array of doubles */
   int *fIntArray            = nullptr;     /** [fSizeInt] Thread array of ints */

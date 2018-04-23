@@ -77,6 +77,7 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/priority_queue.h
    ${CMAKE_SOURCE_DIR}/core/concurrency//inc/Geant/condition_locker.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/TaskData.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/RngWrapper.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/PhysicsInterface.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/Basket.h
    ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/Handler.h

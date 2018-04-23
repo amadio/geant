@@ -7,9 +7,10 @@
 
 namespace geant {
 
-typedef vecgeom::VectorBackend::Float_v Float_v;
-typedef vecgeom::VectorBackend::Real_v Double_v;
-typedef vecgeom::VectorBackend::Int_v Int_v;
+using VectorBackend = vecgeom::VectorBackend;
+typedef VectorBackend::Float_v Float_v;
+typedef VectorBackend::Real_v Double_v;
+typedef VectorBackend::Int_v Int_v;
 
 typedef vecCore::Mask_v<Float_v> MaskF_v;
 typedef vecCore::Mask_v<Double_v> MaskD_v;

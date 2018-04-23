@@ -36,7 +36,7 @@ TaskData::TaskData(size_t nthreads, int maxPerBasket)
   fNextpathV                      = new VolumePath_t *[4 * maxPerBasket];
   fTrack                          = Track::MakeInstance();
   fGeoTrack                       = new TrackGeo_v(4 * maxPerBasket);
-  fRndm                           = new vecgeom::RNG; // what about the seed?
+  fRndm                           = new RngWrapper;
 }
 
 //______________________________________________________________________________
@@ -69,7 +69,7 @@ TaskData::TaskData(void *addr, size_t nthreads, int maxPerBasket, Propagator *pr
 
   fTrack = Track::MakeInstance();
 
-  fRndm = &vecgeom::RNG::Instance();
+  fRndm = new RngWrapper;
 }
 
 //______________________________________________________________________________
