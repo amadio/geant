@@ -82,7 +82,7 @@ endif()
 #----------------------------------------------------------------------------------------------
 add_library(RealPhysics SHARED ${sources})
 target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v ${_extraLibs}
-                      ${VECGEOM_LIBRARIES} ${VC_LIBRARIES} ${Geant4_LIBRARIES} ${VecCoreLib_LIBRARIES})
+                      ${VECGEOM_LIBRARIES} ${Geant4_LIBRARIES} ${VecCoreLib_LIBRARIES})
 add_custom_target(realphyslib DEPENDS RealPhysics)
 
 #----------------------------------------------------------------------------------------------
