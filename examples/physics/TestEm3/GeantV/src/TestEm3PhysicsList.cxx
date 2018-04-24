@@ -1,4 +1,5 @@
-#include <Geant/PositronTo2GammaModel.h>
+#include "Geant/PositronTo2GammaModel.h"
+#include "Geant/GSMSCModelSimplified.h"
 #include "TestEm3PhysicsList.h"
 
 #include "Geant/PhysicalConstants.h"
@@ -97,7 +98,7 @@ void TestEm3PhysicsList::Initialize()
       // create MSC process
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
-      geantphysics::GSMSCModel *gsMSCModel = new geantphysics::GSMSCModel();
+      geantphysics::GSMSCModelSimplified *gsMSCModel = new geantphysics::GSMSCModelSimplified();
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(fMSCSteppingAlgorithm);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
@@ -151,7 +152,7 @@ void TestEm3PhysicsList::Initialize()
       // create MSC process
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e+msc");
       // create GS-msc model, set min/max usage limits
-      geantphysics::GSMSCModel *gsMSCModel = new geantphysics::GSMSCModel(false); // for e+
+      geantphysics::GSMSCModelSimplified *gsMSCModel = new geantphysics::GSMSCModelSimplified(false); // for e+
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(fMSCSteppingAlgorithm);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
