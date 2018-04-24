@@ -494,7 +494,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskD
       mscdata.fPar3 = 1. + mscdata.fPar2;
       if (mscdata.fTheTrueStepLenght < mscdata.fRange) {
         mscdata.fTheZPathLenght = 1. / (mscdata.fPar1 * mscdata.fPar3) *
-                                  (1. - std::pow(1. - mscdata.fPar1 * mscdata.fTheTrueStepLenght, mscdata.fPar3));
+                                  (1. - Math::Pow(1. - mscdata.fPar1 * mscdata.fTheTrueStepLenght, mscdata.fPar3));
       } else {
         mscdata.fTheZPathLenght = 1. / (mscdata.fPar1 * mscdata.fPar3);
       }
@@ -512,7 +512,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskD
       mscdata.fPar2           = 1. / (mscdata.fPar1 * mscdata.fLambda1);
       mscdata.fPar3           = 1. + mscdata.fPar2;
       mscdata.fTheZPathLenght = 1. / (mscdata.fPar1 * mscdata.fPar3) *
-                                (1. - std::pow(1. - mscdata.fPar1 * mscdata.fTheTrueStepLenght, mscdata.fPar3));
+                                (1. - Math::Pow(1. - mscdata.fPar1 * mscdata.fTheTrueStepLenght, mscdata.fPar3));
     }
   }
   mscdata.fTheZPathLenght = std::min(mscdata.fTheZPathLenght, mscdata.fLambda1); // NOTE:
@@ -551,7 +551,7 @@ void GSMSCModel::ConvertGeometricToTrueLength(geant::Track *gtrack, geant::TaskD
       } else {
         double dum = mscdata.fPar1 * mscdata.fPar3 * gtrack->GetStep();
         if (dum < 1.) {
-          tlength = (1. - std::pow(1. - dum, 1. / mscdata.fPar3)) / mscdata.fPar1;
+          tlength = (1. - Math::Pow(1. - dum, 1. / mscdata.fPar3)) / mscdata.fPar1;
         } else {
           tlength = mscdata.fRange;
         }

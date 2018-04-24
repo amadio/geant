@@ -57,7 +57,7 @@ double GlauberGribovTotalXsc::GetIsotopeCrossSection(const int particleCode, con
 
       cofTotal = 2.0;
       R        = 1.3 * geant::units::fermi;
-      R *= std::pow(double(A), 0.3333);
+      R *= Math::Pow(double(A), 0.3333);
     } else {
       sigma = Z * GetHadronNucleonTotalXscNS(particlePDG, mass, energyKin, 2212);
       sigma += N * GetHadronNucleonTotalXscNS(particlePDG, mass, energyKin, 2112);

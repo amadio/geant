@@ -4,6 +4,7 @@
 #include "Geant/PhysicalConstants.h"
 
 #include <cmath>
+#include <Geant/math_wrappers.h>
 
 namespace geantphysics {
 
@@ -29,7 +30,7 @@ void NISTElementData::BuildTable()
   // Rev.Mod.Phys. 75 (2003) 1021 (APPENDIX A. Eq. (A4))
   for (int i = 0; i < gNumberOfNISTElements; ++i) {
     double Z            = (double)(i + 1);
-    fBindingEnergies[i] = (14.4381 * std::pow(Z, 2.39) + 1.55468e-6 * std::pow(Z, 5.35)) * eV;
+    fBindingEnergies[i] = (14.4381 * Math::Pow(Z, 2.39) + 1.55468e-6 * Math::Pow(Z, 5.35)) * eV;
   }
 
   const double kBindingEnergyH = (14.4381 + 1.55468e-6) * eV;

@@ -180,13 +180,13 @@ double DiffuseElasticModel::SampleInvariantT(double mass, double plab, Isotope *
   double dd = 10.;
 
   if (A <= 62) {
-    bb = 14.5 * std::pow(A, 2.0 / 3.0);
-    aa = std::pow(A, 1.63) / bb;
-    cc = 1.4 * std::pow(A, 1.0 / 3.0) / dd;
+    bb = 14.5 * Math::Pow(A, 2.0 / 3.0);
+    aa = Math::Pow(A, 1.63) / bb;
+    cc = 1.4 * Math::Pow(A, 1.0 / 3.0) / dd;
   } else {
-    bb = 60. * std::pow(A, 1.0 / 3.0);
-    aa = std::pow(A, 1.33) / bb;
-    cc = 0.4 * std::pow(A, 0.4) / dd;
+    bb = 60. * Math::Pow(A, 1.0 / 3.0);
+    aa = Math::Pow(A, 1.33) / bb;
+    cc = 0.4 * Math::Pow(A, 0.4) / dd;
   }
   double q1 = 1.0 - Math::Exp(-bb * tmax);
   double q2 = 1.0 - Math::Exp(-dd * tmax);

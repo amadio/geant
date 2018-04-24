@@ -335,7 +335,7 @@ void GSMottCorrection::InitMCDataMaterial(const Material *mat)
       int izet = std::lrint(zet);
       // xi should be one i.e. z(z+1) since total sub-threshold scattering power correction
       double nZZPlus1 = nbAtomsPerVolVect[ielem] * zet * (zet + 1.0) / totNbAtomsPerVol;
-      double Z23      = std::pow(zet, 2. / 3.);
+      double Z23      = Math::Pow(zet, 2. / 3.);
       //
       DataPerEkin *perElemPerEkin = fMCDataPerElement[izet]->fDataPerEkin[iek];
       DataPerEkin *perMatPerEkin  = perMat->fDataPerEkin[iek];

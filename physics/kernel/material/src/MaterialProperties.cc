@@ -282,7 +282,7 @@ void MaterialProperties::ComputeDensityEffectParameters()
   // because if we take them and delta(X_0)==0 we just recompute parameterA here)
   // if \f$\delta(X=X_0)=0\f$ then parameter 'a' must staisfy the \f$ 0 = 2\ln(10)X + a(X_1-X_0)^m + C\f$ at X=X_0
   if (fDensityEffectParameterDelta0 == 0.0) {
-    double dum0 = std::pow(fDensityEffectParameterX1 - fDensityEffectParameterX0, fDensityEffectParameterM);
+    double dum0 = Math::Pow(fDensityEffectParameterX1 - fDensityEffectParameterX0, fDensityEffectParameterM);
     fDensityEffectParameterA = (fDensityEffectParameterC - twolog10 * fDensityEffectParameterX0) / dum0;
   }
 }

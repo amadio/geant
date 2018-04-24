@@ -21,8 +21,8 @@ ElementProperties::~ElementProperties()
 void ElementProperties::InitialiseMembers()
 {
   double z = fElement->GetZ();
-  fZ13     = std::pow(z, 1. / 3.);
-  fZ23     = std::pow(z, 2. / 3.);
+  fZ13     = Math::Pow(z, 1. / 3.);
+  fZ23     = Math::Pow(z, 2. / 3.);
   fLogZ    = Math::Log(z);
   fLogZ13  = fLogZ / 3.;
   fLogZ23  = 2. * fLogZ / 3.;

@@ -636,7 +636,7 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     } // Step succeeded.
 
     // Step failed; compute the size of retrial Step.
-    htemp = fSafetyFactor * h * std::pow(errmax_sq, 0.5 * fPowerShrink);
+    htemp = fSafetyFactor * h * Math::Pow(errmax_sq, 0.5 * fPowerShrink);
 
     if (htemp >= 0.1 * h) {
       h = htemp;
@@ -667,7 +667,7 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
 
   // Compute size of next Step
   if (errmax_sq > fErrcon * fErrcon) {
-    hnext = GetSafety() * h * std::pow(errmax_sq, 0.5 * GetPowerGrow());
+    hnext = GetSafety() * h * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());
   } else {
     hnext = fMaxSteppingIncrease * h; // No more than a factor of 5 increase
   }
@@ -800,10 +800,10 @@ double ScalarIntegrationDriver::ComputeNewStepSize(double errMaxNorm,   // max e
   // Compute size of next Step for a failed step
   if (errMaxNorm > 1.0) {
     // Step failed; compute the size of retrial Step.
-    hnew = GetSafety() * hstepCurrent * std::pow(errMaxNorm, GetPowerShrink());
+    hnew = GetSafety() * hstepCurrent * Math::Pow(errMaxNorm, GetPowerShrink());
   } else if (errMaxNorm > 0.0) {
     // Compute size of next Step for a successful step
-    hnew = GetSafety() * hstepCurrent * std::pow(errMaxNorm, GetPowerGrow());
+    hnew = GetSafety() * hstepCurrent * Math::Pow(errMaxNorm, GetPowerGrow());
   } else {
     // if error estimate is zero (possible) or negative (dubious)
     hnew = fMaxSteppingIncrease * hstepCurrent;
@@ -827,7 +827,7 @@ double ScalarIntegrationDriver::ComputeNewStepSize_WithinLimits(double errMaxNor
   // Compute size of next Step for a failed step
   if (errMaxNorm > 1.0) {
     // Step failed; compute the size of retrial Step.
-    hnew = GetSafety() * hstepCurrent * std::pow(errMaxNorm, GetPowerShrink());
+    hnew = GetSafety() * hstepCurrent * Math::Pow(errMaxNorm, GetPowerShrink());
 
     if (hnew < fMaxSteppingDecrease * hstepCurrent) {
       hnew = fMaxSteppingDecrease * hstepCurrent;
@@ -837,7 +837,7 @@ double ScalarIntegrationDriver::ComputeNewStepSize_WithinLimits(double errMaxNor
   } else {
     // Compute size of next Step for a successful step
     if (errMaxNorm > fErrcon) {
-      hnew = GetSafety() * hstepCurrent * std::pow(errMaxNorm, GetPowerGrow());
+      hnew = GetSafety() * hstepCurrent * Math::Pow(errMaxNorm, GetPowerGrow());
     } else // No more than a factor of 5 increase
     {
       hnew = fMaxSteppingIncrease * hstepCurrent;

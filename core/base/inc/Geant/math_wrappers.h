@@ -144,6 +144,26 @@ R Log10(R x)
 {
   return vecMath::FastLog(x) * 0.43429448190325182;
 }
+
+template <typename R>
+R Sin(R x)
+{
+  return vecMath::FastSin(x);
+}
+
+template <typename R>
+R Cos(R x)
+{
+  return vecMath::FastCos(x);
+}
+
+template <typename R>
+R Pow(R x, R n)
+{
+  return vecMath::FastPow(x, n);
+}
+
+using vecMath::IntPow;
 }
 
 #endif // GEANT_MATH

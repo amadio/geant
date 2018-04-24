@@ -255,7 +255,7 @@ void GSPWACorrections::InitDataMaterial(const Material *mat)
       //
       // xi should be one i.e. z(z+1) since total sub-threshold scattering power correction
       double nZZPlus1 = nbAtomsPerVolVect[ielem] * zet * (zet + 1.0) / totNbAtomsPerVol;
-      double Z23      = std::pow(zet, 2. / 3.);
+      double Z23      = Math::Pow(zet, 2. / 3.);
       //
       // 2./b./(i) Add the 3 PWA correction factors
       double mcScrCF = perElem->fCorScreening[iek]; // \kappa_i[1.13+3.76(\alpha Z_i)^2] with \kappa_i=scr_mc/scr_sr

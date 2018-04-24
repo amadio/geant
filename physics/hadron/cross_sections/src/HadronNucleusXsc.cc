@@ -56,7 +56,7 @@ double HadronNucleusXsc::CalculateCrossSection(int particlePDG, double mass, dou
     cofInelastic = 2.2;
     cofTotal     = 2.0;
     R            = 1.3 * geant::units::fermi;
-    R *= std::pow(double(A), 0.3333);
+    R *= Math::Pow(double(A), 0.3333);
   } else {
     sigma = Z * GetHadronNucleonXscNS(particlePDG, mass, energyKin, 2212);
 
@@ -181,7 +181,7 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
     if (pLab >= 373.) {
       xsection = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG) / geant::units::millibarn;
 
-      fNucleonElasticXsc = 6.5 + 0.308 * std::pow(Math::Log(sMand / 400.), 1.65) + 9.19 * std::pow(sMand, -0.458);
+      fNucleonElasticXsc = 6.5 + 0.308 * Math::Pow(Math::Log(sMand / 400.), 1.65) + 9.19 * Math::Pow(sMand, -0.458);
 
       fNucleonTotalXsc = xsection;
 
@@ -190,10 +190,10 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       A0 = 100. - B0 * Math::Log(3.0e7);
 
       xsection = A0 + B0 * Math::Log(pE) - 11
-                 // + 103*std::pow(2*0.93827*pE + pM*pM+0.93827*0.93827,-0.165);        //  mb
-                 + 103 * std::pow(sMand, -0.165); //  mb
+                 // + 103*Math::Pow(2*0.93827*pE + pM*pM+0.93827*0.93827,-0.165);        //  mb
+                 + 103 * Math::Pow(sMand, -0.165); //  mb
 
-      fNucleonElasticXsc = 5.53 + 0.308 * std::pow(Math::Log(sMand / 28.9), 1.1) + 9.19 * std::pow(sMand, -0.458);
+      fNucleonElasticXsc = 5.53 + 0.308 * Math::Pow(Math::Log(sMand / 28.9), 1.1) + 9.19 * Math::Pow(sMand, -0.458);
 
       fNucleonTotalXsc = xsection;
     } else if (pLab >= 10.) {
@@ -201,7 +201,7 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       A0 = 100. - B0 * Math::Log(3.0e7);
 
       xsection =
-          A0 + B0 * Math::Log(pE) - 11 + 103 * std::pow(2 * 0.93827 * pE + pM * pM + 0.93827 * 0.93827, -0.165); //  mb
+          A0 + B0 * Math::Log(pE) - 11 + 103 * Math::Pow(2 * 0.93827 * pE + pM * pM + 0.93827 * 0.93827, -0.165); //  mb
       fNucleonTotalXsc   = xsection;
       fNucleonElasticXsc = 6 + 20 / ((logP - 0.182) * (logP - 0.182) + 1.0);
     } else // pLab < 10 GeV/c
@@ -209,17 +209,17 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       if (neutron) // nn to be pp
       {
         if (pLab < 0.4) {
-          hnXsc              = 23 + 50 * (std::pow(Math::Log(0.73 / pLab), 3.5));
+          hnXsc              = 23 + 50 * (Math::Pow(Math::Log(0.73 / pLab), 3.5));
           fNucleonElasticXsc = hnXsc;
         } else if (pLab < 0.73) {
-          hnXsc              = 23 + 50 * (std::pow(Math::Log(0.73 / pLab), 3.5));
+          hnXsc              = 23 + 50 * (Math::Pow(Math::Log(0.73 / pLab), 3.5));
           fNucleonElasticXsc = hnXsc;
         } else if (pLab < 1.05) {
           hnXsc              = 23 + 40 * (Math::Log(pLab / 0.73)) * (Math::Log(pLab / 0.73));
           fNucleonElasticXsc = 23 + 20 * (Math::Log(pLab / 0.73)) * (Math::Log(pLab / 0.73));
         } else // 1.05 - 10 GeV/c
         {
-          hnXsc = 39.0 + 75 * (pLab - 1.2) / (std::pow(pLab, 3.0) + 0.15);
+          hnXsc = 39.0 + 75 * (pLab - 1.2) / (Math::Pow(pLab, 3.0) + 0.15);
 
           fNucleonElasticXsc = 6 + 20 / ((logP - 0.182) * (logP - 0.182) + 1.0);
         }
@@ -228,20 +228,20 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       if (proton) // pn to be np
       {
         if (pLab < 0.02) {
-          hpXsc              = 4100 + 30 * std::pow(Math::Log(1.3 / pLab), 3.6); // was as pLab < 0.8
+          hpXsc              = 4100 + 30 * Math::Pow(Math::Log(1.3 / pLab), 3.6); // was as pLab < 0.8
           fNucleonElasticXsc = hpXsc;
         } else if (pLab < 0.8) {
-          hpXsc              = 33 + 30 * std::pow(Math::Log(pLab / 1.3), 4.0);
+          hpXsc              = 33 + 30 * Math::IntPow(Math::Log(pLab / 1.3), 4);
           fNucleonElasticXsc = hpXsc;
         } else if (pLab < 1.05) {
-          hpXsc              = 33 + 30 * std::pow(Math::Log(pLab / 0.95), 2.0);
+          hpXsc              = 33 + 30 * Math::IntPow(Math::Log(pLab / 0.95), 2);
           fNucleonElasticXsc = 6 + 52 / (Math::Log(0.511 / pLab) * Math::Log(0.511 / pLab) + 1.6);
         } else if (pLab < 1.4) {
-          hpXsc              = 33 + 30 * std::pow(Math::Log(pLab / 0.95), 2.0);
+          hpXsc              = 33 + 30 * Math::IntPow(Math::Log(pLab / 0.95), 2);
           fNucleonElasticXsc = 6 + 52 / (Math::Log(0.511 / pLab) * Math::Log(0.511 / pLab) + 1.6);
         } else // 1.4 < pLab < 10.  )
         {
-          hpXsc = 33.3 + 20.8 * (std::pow(pLab, 2.0) - 1.35) / (std::pow(pLab, 2.50) + 0.95);
+          hpXsc = 33.3 + 20.8 * (Math::Pow(pLab, 2.0) - 1.35) / (Math::Pow(pLab, 2.50) + 0.95);
 
           fNucleonElasticXsc = 6 + 20 / ((logP - 0.182) * (logP - 0.182) + 1.0);
         }
@@ -254,23 +254,23 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
     {
       xsection = GetHadronNucleonXscPDG(particlePDG, mass, energyKin, targetPDG) / geant::units::millibarn;
 
-      fNucleonElasticXsc = 6.5 + 0.308 * std::pow(Math::Log(sMand / 400.), 1.65) + 9.19 * std::pow(sMand, -0.458);
+      fNucleonElasticXsc = 6.5 + 0.308 * Math::Pow(Math::Log(sMand / 400.), 1.65) + 9.19 * Math::Pow(sMand, -0.458);
 
       fNucleonTotalXsc = xsection;
     } else if (pLab >= 100.) {
       B0 = 7.5;
       A0 = 100. - B0 * Math::Log(3.0e7);
 
-      xsection = A0 + B0 * Math::Log(pE) - 11 + 103 * std::pow(sMand, -0.165); //  mb
+      xsection = A0 + B0 * Math::Log(pE) - 11 + 103 * Math::Pow(sMand, -0.165); //  mb
 
-      fNucleonElasticXsc = 5.53 + 0.308 * std::pow(Math::Log(sMand / 28.9), 1.1) + 9.19 * std::pow(sMand, -0.458);
+      fNucleonElasticXsc = 5.53 + 0.308 * Math::Pow(Math::Log(sMand / 28.9), 1.1) + 9.19 * Math::Pow(sMand, -0.458);
 
       fNucleonTotalXsc = xsection;
     } else if (pLab >= 10.) {
       B0 = 7.5;
       A0 = 100. - B0 * Math::Log(3.0e7);
 
-      xsection = A0 + B0 * Math::Log(pE) - 11 + 103 * std::pow(sMand, -0.165); //  mb
+      xsection = A0 + B0 * Math::Log(pE) - 11 + 103 * Math::Pow(sMand, -0.165); //  mb
 
       fNucleonElasticXsc = 6 + 20 / ((logP - 0.182) * (logP - 0.182) + 1.0);
 
@@ -280,17 +280,17 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
 
       if (proton) {
         if (pLab < 0.4) {
-          hpXsc              = 23 + 50 * (std::pow(Math::Log(0.73 / pLab), 3.5));
+          hpXsc              = 23 + 50 * (Math::Pow(Math::Log(0.73 / pLab), 3.5));
           fNucleonElasticXsc = hpXsc;
         } else if (pLab < 0.73) {
-          hpXsc              = 23 + 50 * (std::pow(Math::Log(0.73 / pLab), 3.5));
+          hpXsc              = 23 + 50 * (Math::Pow(Math::Log(0.73 / pLab), 3.5));
           fNucleonElasticXsc = hpXsc;
         } else if (pLab < 1.05) {
           hpXsc              = 23 + 40 * (Math::Log(pLab / 0.73)) * (Math::Log(pLab / 0.73));
           fNucleonElasticXsc = 23 + 20 * (Math::Log(pLab / 0.73)) * (Math::Log(pLab / 0.73));
         } else // 1.05 - 10 GeV/c
         {
-          hpXsc = 39.0 + 75 * (pLab - 1.2) / (std::pow(pLab, 3.0) + 0.15);
+          hpXsc = 39.0 + 75 * (pLab - 1.2) / (Math::Pow(pLab, 3.0) + 0.15);
 
           fNucleonElasticXsc = 6 + 20 / ((logP - 0.182) * (logP - 0.182) + 1.0);
         }
@@ -299,20 +299,20 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       if (neutron) // pn to be np
       {
         if (pLab < 0.02) {
-          hnXsc              = 4100 + 30 * std::pow(Math::Log(1.3 / pLab), 3.6); // was as pLab < 0.8
+          hnXsc              = 4100 + 30 * Math::Pow(Math::Log(1.3 / pLab), 3.6); // was as pLab < 0.8
           fNucleonElasticXsc = hnXsc;
         } else if (pLab < 0.8) {
-          hnXsc              = 33 + 30 * std::pow(Math::Log(pLab / 1.3), 4.0);
+          hnXsc              = 33 + 30 * Math::IntPow(Math::Log(pLab / 1.3), 4);
           fNucleonElasticXsc = hnXsc;
         } else if (pLab < 1.05) {
-          hnXsc              = 33 + 30 * std::pow(Math::Log(pLab / 0.95), 2.0);
+          hnXsc              = 33 + 30 * Math::IntPow(Math::Log(pLab / 0.95), 2);
           fNucleonElasticXsc = 6 + 52 / (Math::Log(0.511 / pLab) * Math::Log(0.511 / pLab) + 1.6);
         } else if (pLab < 1.4) {
-          hnXsc              = 33 + 30 * std::pow(Math::Log(pLab / 0.95), 2.0);
+          hnXsc              = 33 + 30 * Math::IntPow(Math::Log(pLab / 0.95), 2);
           fNucleonElasticXsc = 6 + 52 / (Math::Log(0.511 / pLab) * Math::Log(0.511 / pLab) + 1.6);
         } else // 1.4 < pLab < 10.  )
         {
-          hnXsc = 33.3 + 20.8 * (std::pow(pLab, 2.0) - 1.35) / (std::pow(pLab, 2.50) + 0.95);
+          hnXsc = 33.3 + 20.8 * (Math::Pow(pLab, 2.0) - 1.35) / (Math::Pow(pLab, 2.50) + 0.95);
 
           fNucleonElasticXsc = 6 + 20 / ((logP - 0.182) * (logP - 0.182) + 1.0);
         }
@@ -322,13 +322,13 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
   } else if (particlePDG == -2212 && pORn) /////////////////// p_bar ///////////////////////////
   {
     if (proton) {
-      xsection = 35.45 + B * std::pow(Math::Log(sMand / s0), 2.) + 42.53 * std::pow(sMand, -eta1) +
-                 33.34 * std::pow(sMand, -eta2);
+      xsection = 35.45 + B * Math::Pow(Math::Log(sMand / s0), 2.) + 42.53 * Math::Pow(sMand, -eta1) +
+                 33.34 * Math::Pow(sMand, -eta2);
     }
     if (neutron) // ???
     {
-      xsection = 35.80 + B * std::pow(Math::Log(sMand / s0), 2.) + 40.15 * std::pow(sMand, -eta1) +
-                 30. * std::pow(sMand, -eta2);
+      xsection = 35.80 + B * Math::Pow(Math::Log(sMand / s0), 2.) + 40.15 * Math::Pow(sMand, -eta1) +
+                 30. * Math::Pow(sMand, -eta2);
     }
     fNucleonTotalXsc = xsection;
   } else if (particlePDG == 211 && pORn) // pi+ /////////////////////////////////////////////
@@ -373,7 +373,7 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
         fNucleonElasticXsc = 3.0 + 6.20 / ((logP - 0.336) * (logP - 0.336) + 0.8);
       } else if (pLab < 200.) // my
       {
-        hpXsc              = 10.6 + 2. * Math::Log(pE) + 25 * std::pow(pE, -0.43); // ns original
+        hpXsc              = 10.6 + 2. * Math::Log(pE) + 25 * Math::Pow(pE, -0.43); // ns original
         fNucleonElasticXsc = 3.0 + 6.20 / ((logP - 0.336) * (logP - 0.336) + 0.8);
       } else //  pLab > 100 // my
       {
@@ -476,7 +476,7 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
         fNucleonElasticXsc = 3.0 + 6.20 / ((logP - 0.336) * (logP - 0.336) + 0.8);
       } else if (pLab < 200.) // my
       {
-        hnXsc              = 10.6 + 2. * Math::Log(pE) + 25 * std::pow(pE, -0.43); // ns original
+        hnXsc              = 10.6 + 2. * Math::Log(pE) + 25 * Math::Pow(pE, -0.43); // ns original
         fNucleonElasticXsc = 3.0 + 6.20 / ((logP - 0.336) * (logP - 0.336) + 0.8);
       } else //  pLab > 100 // my
       {
@@ -584,10 +584,10 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       double sqrLogPlab = LogPlab * LogPlab;
 
       fNucleonElasticXsc = // 5.2/psp + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .075/p4) + .004/md
-          5.0 + 8.1 * std::pow(pLab, -1.8) + 0.16 * sqrLogPlab - 1.3 * LogPlab + .15 / hd;
+          5.0 + 8.1 * Math::Pow(pLab, -1.8) + 0.16 * sqrLogPlab - 1.3 * LogPlab + .15 / hd;
       fNucleonTotalXsc = // 14./psp +
           //  (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
-          // WP                     25.2 +  0. *std::pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
+          // WP                     25.2 +  0. *Math::Pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
           25.2 + 0.38 * sqrLogPlab - 2.9 * LogPlab
           //       + .006/md  + 0.01/hd1+ 0.02/hd2
           + 0.30 / hd;
@@ -642,22 +642,22 @@ double HadronNucleusXsc::GetHadronNucleonXscNS(int particlePDG, double mass, dou
       fNucleonTotalXsc   = (cofLogT * ld2 + 19.5) / (1. + .46 / sp + 1.6 / p4) + 4.6 / md;
     }
   } else if (particlePDG == 3112 && pORn) {
-    xsection =
-        35.20 + B * std::pow(Math::Log(sMand / s0), 2.) - 199. * std::pow(sMand, -eta1) + 264. * std::pow(sMand, -eta2);
+    xsection = 35.20 + B * Math::IntPow(Math::Log(sMand / s0), 2) - 199. * Math::Pow(sMand, -eta1) +
+               264. * Math::Pow(sMand, -eta2);
   } else if (particlePDG == 22 && pORn) // modify later on
   {
-    xsection = 0.0 + B * std::pow(Math::Log(sMand / s0), 2.) +
-               0.032 * std::pow(sMand, -eta1); // WP - 0.0*std::pow(sMand,-eta2);
+    xsection = 0.0 + B * Math::IntPow(Math::Log(sMand / s0), 2) +
+               0.032 * Math::Pow(sMand, -eta1); // WP - 0.0*Math::Pow(sMand,-eta2);
     fNucleonTotalXsc = xsection;
   } else // other then p,n,pi+,pi-,K+,K- as proton ???
   {
     if (proton) {
-      xsection = 35.45 + B * std::pow(Math::Log(sMand / s0), 2.) + 42.53 * std::pow(sMand, -eta1) -
-                 33.34 * std::pow(sMand, -eta2);
+      xsection = 35.45 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 42.53 * Math::Pow(sMand, -eta1) -
+                 33.34 * Math::Pow(sMand, -eta2);
     }
     if (neutron) {
-      xsection += 35.80 + B * std::pow(Math::Log(sMand / s0), 2.) + 40.15 * std::pow(sMand, -eta1) -
-                  30. * std::pow(sMand, -eta2);
+      xsection += 35.80 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 40.15 * Math::Pow(sMand, -eta1) -
+                  30. * Math::Pow(sMand, -eta2);
     }
     fNucleonTotalXsc = xsection;
   }
@@ -710,73 +710,73 @@ double HadronNucleusXsc::GetHadronNucleonXscPDG(int particlePDG, double mass, do
   if (particlePDG == 2112) // proton-neutron fit
   {
     if (proton) {
-      xsection = Zt * (35.80 + B * std::pow(Math::Log(sMand / s0), 2.) + 40.15 * std::pow(sMand, -eta1) -
-                       30. * std::pow(sMand, -eta2)); // on p
+      xsection = Zt * (35.80 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 40.15 * Math::Pow(sMand, -eta1) -
+                       30. * Math::Pow(sMand, -eta2)); // on p
     }
     if (neutron) {
-      xsection = Nt * (35.45 + B * std::pow(Math::Log(sMand / s0), 2.) + 42.53 * std::pow(sMand, -eta1) -
-                       33.34 * std::pow(sMand, -eta2)); // on n pp for nn
+      xsection = Nt * (35.45 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 42.53 * Math::Pow(sMand, -eta1) -
+                       33.34 * Math::Pow(sMand, -eta2)); // on n pp for nn
     }
   } else if (particlePDG == 2212) {
     if (proton) {
-      xsection = Zt * (35.45 + B * std::pow(Math::Log(sMand / s0), 2.) + 42.53 * std::pow(sMand, -eta1) -
-                       33.34 * std::pow(sMand, -eta2));
+      xsection = Zt * (35.45 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 42.53 * Math::Pow(sMand, -eta1) -
+                       33.34 * Math::Pow(sMand, -eta2));
     }
     if (neutron) {
-      xsection = Nt * (35.80 + B * std::pow(Math::Log(sMand / s0), 2.) + 40.15 * std::pow(sMand, -eta1) -
-                       30. * std::pow(sMand, -eta2));
+      xsection = Nt * (35.80 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 40.15 * Math::Pow(sMand, -eta1) -
+                       30. * Math::Pow(sMand, -eta2));
     }
   } else if (particlePDG == -2212) // particlePDG == theAProton)
   {
     if (proton) {
-      xsection = Zt * (35.45 + B * std::pow(Math::Log(sMand / s0), 2.) + 42.53 * std::pow(sMand, -eta1) +
-                       33.34 * std::pow(sMand, -eta2));
+      xsection = Zt * (35.45 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 42.53 * Math::Pow(sMand, -eta1) +
+                       33.34 * Math::Pow(sMand, -eta2));
     }
     if (neutron) {
-      xsection = Nt * (35.80 + B * std::pow(Math::Log(sMand / s0), 2.) + 40.15 * std::pow(sMand, -eta1) +
-                       30. * std::pow(sMand, -eta2));
+      xsection = Nt * (35.80 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 40.15 * Math::Pow(sMand, -eta1) +
+                       30. * Math::Pow(sMand, -eta2));
     }
   } else if (particlePDG == 211 && pORn) {
-    xsection = At * (20.86 + B * std::pow(Math::Log(sMand / s0), 2.) + 19.24 * std::pow(sMand, -eta1) -
-                     6.03 * std::pow(sMand, -eta2));
+    xsection = At * (20.86 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 19.24 * Math::Pow(sMand, -eta1) -
+                     6.03 * Math::Pow(sMand, -eta2));
   } else if (particlePDG == -211 && pORn) {
-    xsection = At * (20.86 + B * std::pow(Math::Log(sMand / s0), 2.) + 19.24 * std::pow(sMand, -eta1) +
-                     6.03 * std::pow(sMand, -eta2));
+    xsection = At * (20.86 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 19.24 * Math::Pow(sMand, -eta1) +
+                     6.03 * Math::Pow(sMand, -eta2));
   } else if (particlePDG == 321) {
     if (proton) {
-      xsection = Zt * (17.91 + B * std::pow(Math::Log(sMand / s0), 2.) + 7.14 * std::pow(sMand, -eta1) -
-                       13.45 * std::pow(sMand, -eta2));
+      xsection = Zt * (17.91 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 7.14 * Math::Pow(sMand, -eta1) -
+                       13.45 * Math::Pow(sMand, -eta2));
     }
     if (neutron) {
-      xsection = Nt * (17.87 + B * std::pow(Math::Log(sMand / s0), 2.) + 5.17 * std::pow(sMand, -eta1) -
-                       7.23 * std::pow(sMand, -eta2));
+      xsection = Nt * (17.87 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 5.17 * Math::Pow(sMand, -eta1) -
+                       7.23 * Math::Pow(sMand, -eta2));
     }
   } else if (particlePDG == -321) {
     if (proton) {
-      xsection = Zt * (17.91 + B * std::pow(Math::Log(sMand / s0), 2.) + 7.14 * std::pow(sMand, -eta1) +
-                       13.45 * std::pow(sMand, -eta2));
+      xsection = Zt * (17.91 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 7.14 * Math::Pow(sMand, -eta1) +
+                       13.45 * Math::Pow(sMand, -eta2));
     }
     if (neutron) {
-      xsection = Nt * (17.87 + B * std::pow(Math::Log(sMand / s0), 2.) + 5.17 * std::pow(sMand, -eta1) +
-                       7.23 * std::pow(sMand, -eta2));
+      xsection = Nt * (17.87 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 5.17 * Math::Pow(sMand, -eta1) +
+                       7.23 * Math::Pow(sMand, -eta2));
     }
   } else if (particlePDG == 3112 && pORn) {
-    xsection = At * (35.20 + B * std::pow(Math::Log(sMand / s0), 2.) - 199. * std::pow(sMand, -eta1) +
-                     264. * std::pow(sMand, -eta2));
+    xsection = At * (35.20 + B * Math::IntPow(Math::Log(sMand / s0), 2) - 199. * Math::Pow(sMand, -eta1) +
+                     264. * Math::Pow(sMand, -eta2));
   } else if (particlePDG == 22 && pORn) // modify later on
   {
-    xsection = At * (0.0 + B * std::pow(Math::Log(sMand / s0), 2.) + 0.032 * std::pow(sMand, -eta1) -
-                     0.0 * std::pow(sMand, -eta2));
+    xsection = At * (0.0 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 0.032 * Math::Pow(sMand, -eta1) -
+                     0.0 * Math::Pow(sMand, -eta2));
 
   } else // as proton ???
   {
     if (proton) {
-      xsection = Zt * (35.45 + B * std::pow(Math::Log(sMand / s0), 2.) + 42.53 * std::pow(sMand, -eta1) -
-                       33.34 * std::pow(sMand, -eta2));
+      xsection = Zt * (35.45 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 42.53 * Math::Pow(sMand, -eta1) -
+                       33.34 * Math::Pow(sMand, -eta2));
     }
     if (neutron) {
-      xsection = Nt * (35.80 + B * std::pow(Math::Log(sMand / s0), 2.) + 40.15 * std::pow(sMand, -eta1) -
-                       30. * std::pow(sMand, -eta2));
+      xsection = Nt * (35.80 + B * Math::IntPow(Math::Log(sMand / s0), 2) + 40.15 * Math::Pow(sMand, -eta1) -
+                       30. * Math::Pow(sMand, -eta2));
     }
   }
   xsection *= geant::units::millibarn; // parametrised in mb
@@ -853,10 +853,10 @@ double HadronNucleusXsc::GetKaonNucleonXscGG(int particlePDG, double mass, doubl
       double hd = lh * lh + .045;
 
       fNucleonElasticXsc = // 5.2/psp + (cofLogE*ld2 + 2.23)/(1. - .7/sp + .075/p4) + .004/md
-          5.0 + 8.1 * std::pow(pLab, -1.8) + 0.16 * sqrLogPlab - 1.3 * LogPlab + .15 / hd;
+          5.0 + 8.1 * Math::Pow(pLab, -1.8) + 0.16 * sqrLogPlab - 1.3 * LogPlab + .15 / hd;
       fNucleonTotalXsc = // 14./psp +
           //  (1.1*cofLogT*ld2 + 19.5)/(1. - .21/sp + .52/p4)
-          // WP                     25.2 +  0. *std::pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
+          // WP                     25.2 +  0. *Math::Pow(pLab, 0.  ) + 0.38*sqrLogPlab - 2.9*LogPlab
           25.2 + 0.38 * sqrLogPlab - 2.9 * LogPlab
           //       + .006/md  + 0.01/hd1+ 0.02/hd2
           + 0.60 / hd;
@@ -982,7 +982,7 @@ double HadronNucleusXsc::GetCoulombBarrier(int particlePDG, double proj_mass, do
 double HadronNucleusXsc::GetNucleusRadius(int At)
 {
   double oneThird          = 1.0 / 3.0;
-  double cubicrAt          = std::pow(double(At), oneThird);
+  double cubicrAt          = Math::Pow(double(At), oneThird);
   const double RadiusConst = 1.08 * geant::units::fermi;
 
   double R;

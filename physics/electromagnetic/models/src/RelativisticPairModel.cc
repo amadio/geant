@@ -316,7 +316,7 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
   do {
     td->fRndm->uniform_array(3, rndArray);
     if (NormCond > rndArray[0]) {
-      eps                = 0.5 - epsRange * std::pow(rndArray[1], 1. / 3.);
+      eps                = 0.5 - epsRange * Math::Pow(rndArray[1], 1. / 3.);
       const double delta = deltaFac * eps0 / (eps * (1. - eps));
       if (isLPM) {
         double lpmPhiS, lpmGS, lpmXiS, phi1, phi2;

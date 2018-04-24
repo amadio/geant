@@ -249,11 +249,11 @@ void RelativisticBremsModel::InitElementData()
           }
           elemData->fZFactor1      = (Fel - fc) + Finel / zet;
           elemData->fZFactor2      = (1. + 1. / zet) / 12.;
-          elemData->fVarS1         = std::pow(zet, 2. / 3.) / (184.15 * 184.15);
+          elemData->fVarS1         = Math::Pow(zet, 2. / 3.) / (184.15 * 184.15);
           elemData->fILVarS1Cond   = 1. / (Math::Log(std::sqrt(2.0) * elemData->fVarS1));
           elemData->fILVarS1       = 1. / Math::Log(elemData->fVarS1);
-          elemData->fGammaFactor   = 100.0 * geant::units::kElectronMassC2 / std::pow(zet, 1. / 3.);
-          elemData->fEpsilonFactor = 100.0 * geant::units::kElectronMassC2 / std::pow(zet, 2. / 3.);
+          elemData->fGammaFactor   = 100.0 * geant::units::kElectronMassC2 / Math::Pow(zet, 1. / 3.);
+          elemData->fEpsilonFactor = 100.0 * geant::units::kElectronMassC2 / Math::Pow(zet, 2. / 3.);
           gElementData[izet]       = elemData;
         }
       }

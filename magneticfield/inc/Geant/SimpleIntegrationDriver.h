@@ -42,6 +42,7 @@
 #include "Geant/FormattedReporter.h"
 
 #include "Geant/VectorTypes.h" //  Defines geant::Double_v
+#include "Geant/math_wrappers.h"
 
 #ifndef NO_FIELD_STATISTICS
 #define GVFLD_STATS 1
@@ -388,7 +389,7 @@ inline Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::PowerIf(const Real_v val
     // Do expensive 'pow' only for continuing ('condition') lanes
     for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
       if (vecCore::Get(condition, i)) {
-        double redFactor = std::pow(Get(value, i), exponent);
+        double redFactor = Math::Pow(Get(value, i), exponent);
         vecCore::Set(result, i, redFactor);
       }
     }
@@ -410,7 +411,7 @@ inline void SimpleIntegrationDriver<T_Stepper, Nvar>
     // void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
     ::ComputeAndSetErrcon()
 {
-  fErrcon = std::pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / fPowerGrow);
+  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / fPowerGrow);
   // return fErrcon;
 }
 
@@ -1763,7 +1764,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
     if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = fSafetyFactor * hstepCurrent * std::pow(errMaxNorm,fPowerShrink) ;
+      hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
 
       hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
                            // reduce stepsize, but no more
@@ -1774,7 +1775,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
     {
       // Compute size of next Step for a successful step
       if (errMaxNorm > fErrcon)
-       { hnew = fSafetyFactor * hstepCurrent * std::pow(errMaxNorm,fPowerGrow); }
+       { hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
       else  // No more than a factor of 5 increase
        { hnew = fMaxSteppingIncrease * hstepCurrent; }
     }*/

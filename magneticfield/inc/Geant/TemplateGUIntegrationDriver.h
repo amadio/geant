@@ -309,7 +309,7 @@ constexpr double TemplateGUIntegrationDriver<Backend>::fMaxSteppingDecrease;
 template <class Backend>
 inline double TemplateGUIntegrationDriver<Backend>::ComputeAndSetErrcon()
 {
-  fErrcon = std::pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / fPowerGrow);
+  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / fPowerGrow);
   return fErrcon;
 }
 
@@ -582,7 +582,7 @@ void TemplateGUIntegrationDriver<vecgeom::kScalar>::OneGoodStep(double y[], // I
     } // Step succeeded.
 
     // Step failed; compute the size of retrial Step.
-    htemp = fSafetyFactor * h * std::pow(errmax_sq, 0.5 * fPowerShrink);
+    htemp = fSafetyFactor * h * Math::Pow(errmax_sq, 0.5 * fPowerShrink);
 
     if (htemp >= 0.1 * h) {
       h = htemp;
@@ -601,7 +601,7 @@ void TemplateGUIntegrationDriver<vecgeom::kScalar>::OneGoodStep(double y[], // I
   }
 
   if (errmax_sq > fErrcon * fErrcon) {
-    hnext = GetSafety() * h * std::pow(errmax_sq, 0.5 * GetPowerGrow());
+    hnext = GetSafety() * h * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());
   } else {
     hnext = fMaxSteppingIncrease * h; // No more than a factor of 5 increase
   }
@@ -1121,10 +1121,10 @@ typename Backend::precision_v TemplateGUIntegrationDriver<Backend>::ComputeNewSt
 
   /*  if(errMaxNorm > 1.0 )
     {
-      hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerShrink()) ;
+      hnew = GetSafety()*hstepCurrent*Math::Pow(errMaxNorm,GetPowerShrink()) ;
     }
     else if(errMaxNorm > 0.0 ) {
-      hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerGrow()) ;
+      hnew = GetSafety()*hstepCurrent*Math::Pow(errMaxNorm,GetPowerGrow()) ;
     }
     else {
       hnew = fMaxSteppingIncrease * hstepCurrent;
@@ -1162,7 +1162,7 @@ typename Backend::precision_v TemplateGUIntegrationDriver<Backend>::ComputeNewSt
     if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerShrink()) ;
+      hnew = GetSafety()*hstepCurrent*Math::Pow(errMaxNorm,GetPowerShrink()) ;
 
       if (hnew < fMaxSteppingDecrease*hstepCurrent)
       {
@@ -1175,7 +1175,7 @@ typename Backend::precision_v TemplateGUIntegrationDriver<Backend>::ComputeNewSt
     {
       // Compute size of next Step for a successful step
       if (errMaxNorm > fErrcon)
-       { hnew = GetSafety()*hstepCurrent*std::pow(errMaxNorm,GetPowerGrow()); }
+       { hnew = GetSafety()*hstepCurrent*Math::Pow(errMaxNorm,GetPowerGrow()); }
       else  // No more than a factor of 5 increase
        { hnew = fMaxSteppingIncrease * hstepCurrent; }
     }*/
@@ -1661,7 +1661,7 @@ void TemplateGUIntegrationDriver<vecgeom::kVc>::OneStep(typename vecgeom::kVc::p
             {
               if (finished[i] != -1)
               {
-                htemp[i] = fSafetyFactor *h[i]* std::pow(errmax_sq[i], 0.5*fPowerShrink);
+                htemp[i] = fSafetyFactor *h[i]* Math::Pow(errmax_sq[i], 0.5*fPowerShrink);
               }
             }*/
 
