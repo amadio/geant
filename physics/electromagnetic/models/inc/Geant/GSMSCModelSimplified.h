@@ -4,6 +4,8 @@
 #include <string>
 
 #include "Geant/MSCModel.h"
+#include "Geant/GSMSCTableSimplified.h"
+#include "Geant/GSPWACorrections.h"
 
 // from geantV
 #include "Geant/Config.h"
@@ -25,14 +27,11 @@ namespace geantphysics {
  * @date    November 2017
  */
 
-class GSMSCTable;
-class GSPWACorrections;
 class Particle;
 
 class GSMSCModelSimplified : public MSCModel {
 public:
   GSMSCModelSimplified(bool iselectron = true, const std::string &name = "Goudsmit-Saunderson");
-  ~GSMSCModelSimplified();
 
   // implemented base class method
   virtual void Initialize();
@@ -67,8 +66,8 @@ private:
   Particle *fParticle = nullptr; // e-/e+
   geant::TrackToken fMSCdata;    // Handle for MSCData
 
-  GSMSCTable *fGSTable             = nullptr;
-  GSPWACorrections *fPWACorrection = nullptr;
+  GSMSCTableSimplified fGSTable;
+  GSPWACorrections fPWACorrection;
 };
 
 } // namespace geantphysics
