@@ -116,7 +116,7 @@ int DiffuseElasticModel::SampleFinalState(LightTrack &track, Isotope *targetisot
     sint = std::sqrt((1.0 - cost) * (1.0 + cost));
   }
 
-  Vector3D<double> v1(sint * std::cos(phi), sint * std::sin(phi), cost);
+  Vector3D<double> v1(sint * Math::Cos(phi), sint * Math::Sin(phi), cost);
 
   v1 *= momentumCMS;
 

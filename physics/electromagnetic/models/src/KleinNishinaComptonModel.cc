@@ -119,8 +119,8 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::TaskDa
   const double sint = std::sqrt(sint2);
   const double phi  = geant::units::kTwoPi * (rndArray[3]);
   // direction of the scattered gamma in the scattering frame
-  double dirX = sint * std::cos(phi);
-  double dirY = sint * std::sin(phi);
+  double dirX = sint * Math::Cos(phi);
+  double dirY = sint * Math::Sin(phi);
   double dirZ = cost;
   // rotate back to lab frame
   RotateToLabFrame(dirX, dirY, dirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());

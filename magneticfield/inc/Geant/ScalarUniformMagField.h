@@ -11,6 +11,7 @@
 #include "base/Vector3D.h"
 
 #include "Geant/SystemOfUnits.h"
+#include "Geant/math_wrappers.h"
 // #include "Geant/PhysicalConstants.h"
 
 class ScalarUniformMagField : public VVectorField {
@@ -102,7 +103,7 @@ ScalarUniformMagField::ScalarUniformMagField(double vField, double vTheta, doubl
     std::cerr << " - Magnitude vField: Value = " << vField << "  Expected vField > 0 " << geant::units::kTwoPi
               << std::endl;
   }
-  fFieldComponents.Set(vField * std::sin(vTheta) * std::cos(vPhi), vField * std::sin(vTheta) * std::sin(vPhi),
-                       vField * std::cos(vTheta));
+  fFieldComponents.Set(vField * Math::Sin(vTheta) * Math::Cos(vPhi), vField * Math::Sin(vTheta) * Math::Sin(vPhi),
+                       vField * Math::Cos(vTheta));
 }
 #endif

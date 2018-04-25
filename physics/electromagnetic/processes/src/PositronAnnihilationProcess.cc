@@ -58,8 +58,8 @@ int PositronAnnihilationProcess::AtRestDoIt(LightTrack &track, geant::TaskData *
   // create the 2 secondary particles i.e. the gammas
   numSecondaries = 2;
   // first gamma
-  const double xdir       = sint * std::cos(phi);
-  const double ydir       = sint * std::sin(phi);
+  const double xdir       = sint * Math::Cos(phi);
+  const double ydir       = sint * Math::Sin(phi);
   LightTrack &gamma1Track = td->fPhysicsData->InsertSecondary();
   gamma1Track.SetDirX(xdir);
   gamma1Track.SetDirY(ydir);

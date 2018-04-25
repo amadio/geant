@@ -203,20 +203,20 @@ int RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::TaskData 
     uvar *= 0.53333;
   }
   const double thetaElectron = uvar * geant::units::kElectronMassC2 / electronTotE;
-  const double sintEle       = std::sin(thetaElectron);
+  const double sintEle       = Math::Sin(thetaElectron);
   const double thetaPositron = uvar * geant::units::kElectronMassC2 / positronTotE;
-  const double sintPos       = -std::sin(thetaPositron);
+  const double sintPos       = -Math::Sin(thetaPositron);
   const double phi           = geant::units::kTwoPi * rndArray[3];
-  const double sinphi        = std::sin(phi);
-  const double cosphi        = std::cos(phi);
+  const double sinphi        = Math::Sin(phi);
+  const double cosphi        = Math::Cos(phi);
   // e- direction
   double eleDirX = sintEle * cosphi;
   double eleDirY = sintEle * sinphi;
-  double eleDirZ = std::cos(thetaElectron);
+  double eleDirZ = Math::Cos(thetaElectron);
   // e+ direction
   double posDirX = sintPos * cosphi;
   double posDirY = sintPos * sinphi;
-  double posDirZ = std::cos(thetaPositron);
+  double posDirZ = Math::Cos(thetaPositron);
   //
   // 3. kill the primary photon and create the secondaries
   track.SetKinE(0.0);

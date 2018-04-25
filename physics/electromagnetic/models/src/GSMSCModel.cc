@@ -391,8 +391,8 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td)
       double dum    = 1. - cost;
       double sint   = std::sqrt(dum * (2. - dum));
       double phi    = geant::units::kTwoPi * td->fRndm->uniform();
-      double sinPhi = std::sin(phi);
-      double cosPhi = std::cos(phi);
+      double sinPhi = Math::Sin(phi);
+      double cosPhi = Math::Cos(phi);
       mscdata.SetNewDirectionMsc(sint * cosPhi, sint * sinPhi, cost);
     } else if (mscdata.fIsMultipleSacettring) {
       // sample multiple scattering
@@ -688,11 +688,11 @@ void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   // get 2 random numbers
   td->fRndm->uniform_array(2, rndArray);
   double phi1 = geant::units::kTwoPi * rndArray[0];
-  sinPhi1     = std::sin(phi1);
-  cosPhi1     = std::cos(phi1);
+  sinPhi1     = Math::Sin(phi1);
+  cosPhi1     = Math::Cos(phi1);
   double phi2 = geant::units::kTwoPi * rndArray[1];
-  sinPhi2     = std::sin(phi2);
-  cosPhi2     = std::cos(phi2);
+  sinPhi2     = Math::Sin(phi2);
+  cosPhi2     = Math::Cos(phi2);
   // compute final direction realtive to z-dir
   u2         = sinTheta2 * cosPhi2;
   v2         = sinTheta2 * sinPhi2;

@@ -4,6 +4,7 @@
 #include "Geant/PhysicalConstants.h"
 
 #include <cmath>
+#include "Geant/math_wrappers.h"
 
 namespace geantphysics {
 
@@ -26,7 +27,7 @@ void GLIntegral::SetParameters()
   xm    = 0.5 * (fXmax + fXmin);
   xl    = 0.5 * (fXmax - fXmin);
   for (int i = 1; i <= m; ++i) {
-    z = std::cos(kPi * (i - 0.25) / (fNPoints + 0.5));
+    z = Math::Cos(kPi * (i - 0.25) / (fNPoints + 0.5));
     do {
       p1 = 1.0;
       p2 = 0.0;

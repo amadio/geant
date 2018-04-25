@@ -501,7 +501,7 @@ void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection(dou
   double gtr  = 0;
 
   // 2) sampling. Eq. (2.31) of Penelope Manual
-  // tsam = 1-std::cos(theta)
+  // tsam = 1-Math::Cos(theta)
   // gtr = rejection function according to Eq. (2.28)
   double rndArray[2];
   do {
@@ -939,8 +939,8 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
     phi        = geant::units::kTwoPi * rnd;
 
     // new photoelectron direction in the scattering frame
-    eDirX1 = sinTheta * std::cos(phi);
-    eDirY1 = sinTheta * std::sin(phi);
+    eDirX1 = sinTheta * Math::Cos(phi);
+    eDirY1 = sinTheta * Math::Sin(phi);
     eDirZ1 = cosTheta;
 
     // rotate new photoelectron direction to the lab frame:

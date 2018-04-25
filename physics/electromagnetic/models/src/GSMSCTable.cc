@@ -207,7 +207,7 @@ bool GSMSCTable::Sampling(double lambdaval, double qval, double scra, double &co
       if (cursint > 1.0e-20) {
         cursint       = std::sqrt(cursint);
         double curphi = geant::units::kTwoPi * td->fRndm->uniform();
-        cost          = cost * curcost - sint * cursint * std::cos(curphi);
+        cost          = cost * curcost - sint * cursint * Math::Cos(curphi);
         sint          = std::sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
       }
       //

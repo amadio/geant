@@ -130,8 +130,8 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::Tas
   const double sinTheta = std::sqrt((1.0 - cosTheta) * (1.0 + cosTheta));
   const double phi      = geant::units::kTwoPi * td->fRndm->uniform();
   // direction of the delta e- in the scattering frame
-  double deltaDirX = sinTheta * std::cos(phi);
-  double deltaDirY = sinTheta * std::sin(phi);
+  double deltaDirX = sinTheta * Math::Cos(phi);
+  double deltaDirY = sinTheta * Math::Sin(phi);
   double deltaDirZ = cosTheta;
   // rotate back to lab frame
   RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());

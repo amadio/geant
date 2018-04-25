@@ -123,8 +123,8 @@ int PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   const double cost = std::max(std::min(ct, 1.), -1.);
   const double sint = std::sqrt((1. + cost) * (1. - cost));
   const double phi  = geant::units::kTwoPi * td->fRndm->uniform();
-  double gamDirX    = sint * std::cos(phi);
-  double gamDirY    = sint * std::sin(phi);
+  double gamDirX    = sint * Math::Cos(phi);
+  double gamDirY    = sint * Math::Sin(phi);
   double gamDirZ    = cost;
   // rotate gamma direction to the lab frame:
   RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());

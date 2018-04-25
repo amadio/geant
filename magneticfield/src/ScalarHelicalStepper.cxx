@@ -16,7 +16,7 @@ using geant::units::kTwoPi;
 // using pi;
 
 #include "Geant/VScalarHelicalStepper.h"
-
+#include "Geant/math_wrappers.h"
 // #include "Geant/GULineSection.h"
 
 // #include "ScalarFieldEquation.h"
@@ -105,8 +105,8 @@ void VScalarHelicalStepper::AdvanceHelix(const double yIn[], ThreeVector Bfld, d
     // Trigonometrix
 
     if (std::fabs(Theta) > approc_limit) {
-      SinT = std::sin(Theta);
-      CosT = std::cos(Theta);
+      SinT = Math::Sin(Theta);
+      CosT = Math::Cos(Theta);
     } else {
       double Theta2 = Theta * Theta;
       double Theta3 = Theta2 * Theta;
@@ -211,10 +211,10 @@ double VScalarHelicalStepper::DistChord(double /*charge*/) const
 
   double Ang = GetAngCurve();
   if (Ang <= kPi) {
-    return GetRadHelix() * (1 - std::cos(0.5 * Ang));
+    return GetRadHelix() * (1 - Math::Cos(0.5 * Ang));
   } else {
     if (Ang < kTwoPi) {
-      return GetRadHelix() * (1 + std::cos(0.5 * (kTwoPi - Ang)));
+      return GetRadHelix() * (1 + Math::Cos(0.5 * (kTwoPi - Ang)));
     } else // return Diameter of projected circle
     {
       return 2 * GetRadHelix();

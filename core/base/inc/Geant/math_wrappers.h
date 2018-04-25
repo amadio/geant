@@ -34,18 +34,6 @@ inline T Abs(T const &val)
 }
 template <typename T>
 VECCORE_ATT_HOST_DEVICE
-inline T Cos(T const &val)
-{
-  return vecCore::math::Cos(val);
-}
-template <typename T>
-VECCORE_ATT_HOST_DEVICE
-inline T Sin(T const &val)
-{
-  return vecCore::math::Sin(val);
-}
-template <typename T>
-VECCORE_ATT_HOST_DEVICE
 inline bool AreEqualAbs(T const &val1, T const &val2, T const &epsilon)
 {
   return (vecCore::math::Abs(val1 - val2) < epsilon);

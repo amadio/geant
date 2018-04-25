@@ -175,8 +175,8 @@ int RelativisticBremsModel::SampleSecondaries(LightTrack &track, geant::TaskData
   SamplePhotonDirection(ekin, sinTheta, cosTheta, rndArray[0]);
   const double phi = geant::units::kTwoPi * (rndArray[1]);
   // gamma direction in the scattering frame
-  double gamDirX = sinTheta * std::cos(phi);
-  double gamDirY = sinTheta * std::sin(phi);
+  double gamDirX = sinTheta * Math::Cos(phi);
+  double gamDirY = sinTheta * Math::Sin(phi);
   double gamDirZ = cosTheta;
   // rotate gamma direction to the lab frame:
   RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
