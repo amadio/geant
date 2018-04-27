@@ -43,8 +43,9 @@ public:
   bool IsModelUsable(const MaterialCuts *matCut, double ekin) override;
 
 private:
-  PhysDV SampleEnergyTransfer(PhysDV gammaCut, PhysDV densityCor, PhysDI mcLocalIdx, double *tableEmin,
-                              double *tableILDeta, PhysDV primekin, PhysDV r1, PhysDV r2, PhysDV r3);
+  geant::Double_v SampleEnergyTransfer(geant::Double_v gammaCut, geant::Double_v densityCor, geant::IndexD_v mcLocalIdx,
+                                       double *tableEmin, double *tableILDeta, geant::Double_v primekin,
+                                       geant::Double_v r1, geant::Double_v r2, geant::Double_v r3);
 
   void SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zet, const double *densityCor,
                             const double *lpmEnergy, double *gammaEn, int N, const geant::TaskData *td);
@@ -68,17 +69,19 @@ private:
   };
 
 private:
-  void SamplePhotonDirection(PhysDV elenergy, PhysDV &sinTheta, PhysDV &cosTheta, PhysDV rndm);
-  PhysDV PositronCorrection1(PhysDV ekinelectron, PhysDV ephoton, PhysDV gcutener, PhysDV z);
-  void GetLPMFunctions(PhysDV &lpmGs, PhysDV &lpmPhis, const PhysDV s);
-  void ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &funcGS, PhysDV &funcPhiS, const PhysDV lpmenergy,
-                           const PhysDV egamma, const PhysDV etot, const PhysDV densitycor,
-                           const std::array<int, kPhysDVWidth> izet);
-  PhysDV ComputeURelDXSecPerAtom(PhysDV egamma, PhysDV etotal, PhysDV lpmenergy, PhysDV densitycor,
-                                 std::array<int, kPhysDVWidth> izet);
-  PhysDV ComputeDXSecPerAtom(PhysDV egamma, PhysDV etotal, PhysDV zet);
-  void ComputeScreeningFunctions(PhysDV &phi1, PhysDV &phi1m2, PhysDV &xsi1, PhysDV &xsi1m2, const PhysDV gamma,
-                                 const PhysDV epsilon);
+  void SamplePhotonDirection(geant::Double_v elenergy, geant::Double_v &sinTheta, geant::Double_v &cosTheta,
+                             geant::Double_v rndm);
+  geant::Double_v PositronCorrection1(geant::Double_v ekinelectron, geant::Double_v ephoton, geant::Double_v gcutener,
+                                      geant::Double_v z);
+  void GetLPMFunctions(geant::Double_v &lpmGs, geant::Double_v &lpmPhis, const geant::Double_v s);
+  void ComputeLPMfunctions(geant::Double_v &funcXiS, geant::Double_v &funcGS, geant::Double_v &funcPhiS,
+                           const geant::Double_v lpmenergy, const geant::Double_v egamma, const geant::Double_v etot,
+                           const geant::Double_v densitycor, const std::array<int, geant::kVecLenD> izet);
+  geant::Double_v ComputeURelDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v lpmenergy,
+                                          geant::Double_v densitycor, std::array<int, geant::kVecLenD> izet);
+  geant::Double_v ComputeDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v zet);
+  void ComputeScreeningFunctions(geant::Double_v &phi1, geant::Double_v &phi1m2, geant::Double_v &xsi1,
+                                 geant::Double_v &xsi1m2, const geant::Double_v gamma, const geant::Double_v epsilon);
   AliasDataForAllMatCuts fAliasData;
 };
 

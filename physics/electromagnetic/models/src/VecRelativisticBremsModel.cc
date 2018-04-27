@@ -23,6 +23,11 @@
 
 namespace geantphysics {
 
+using geant::Double_v;
+using geant::IndexD_v;
+using geant::kVecLenD;
+using geant::MaskD_v;
+
 VecRelativisticBremsModel::VecRelativisticBremsModel(const std::string &modelname) : RelativisticBremsModel(modelname)
 {
 }
@@ -78,14 +83,14 @@ void VecRelativisticBremsModel::SampleSecondariesVector(LightTrack_v &tracks, ge
   double *densityCorrConstArr = td->fPhysicsData->fPhysicsScratchpad.fR0;
   double *lpmEnergyArray      = td->fPhysicsData->fPhysicsScratchpad.fR1;
 
-  for (int i = 0; i < N; i += kPhysDVWidth) {
+  for (int i = 0; i < N; i += kVecLenD) {
 
-    PhysDV primEkin = tracks.GetKinEVec(i);
-    PhysDV gammaCut;
-    PhysDI mcIndxLocal; // Used by alias method
-    PhysDV densityCorConst;
-    PhysDV lpmEnergy;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    Double_v primEkin = tracks.GetKinEVec(i);
+    Double_v gammaCut;
+    IndexD_v mcIndxLocal; // Used by alias method
+    Double_v densityCorConst;
+    Double_v lpmEnergy;
+    for (int l = 0; l < kVecLenD; ++l) {
       const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterialCutCoupleIndex(i + l));
       gammaCut[l]                = matCut->GetProductionCutsInEnergy()[0];
       densityCorConst[l] =
@@ -104,16 +109,16 @@ void VecRelativisticBremsModel::SampleSecondariesVector(LightTrack_v &tracks, ge
         //        IZet[i + l]      = (int) std::lrint(zet);//std::min((int)std::lrint(zet), fDCSMaxZet);
       }
     }
-    PhysDV totalEn    = primEkin + geant::units::kElectronMassC2;
-    PhysDV densityCor = densityCorConst * (totalEn * totalEn);
+    Double_v totalEn    = primEkin + geant::units::kElectronMassC2;
+    Double_v densityCor = densityCorConst * (totalEn * totalEn);
     assert((primEkin >= gammaCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
-      PhysDV r1          = td->fRndm->uniformV();
-      PhysDV r2          = td->fRndm->uniformV();
-      PhysDV r3          = td->fRndm->uniformV();
-      PhysDV primEkin    = tracks.GetKinEVec(i);
-      PhysDV gammaEnergy = SampleEnergyTransfer(gammaCut, densityCor, mcIndxLocal, fAliasData.fLogEmin.data(),
-                                                fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
+      Double_v r1          = td->fRndm->uniformV();
+      Double_v r2          = td->fRndm->uniformV();
+      Double_v r3          = td->fRndm->uniformV();
+      Double_v primEkin    = tracks.GetKinEVec(i);
+      Double_v gammaEnergy = SampleEnergyTransfer(gammaCut, densityCor, mcIndxLocal, fAliasData.fLogEmin.data(),
+                                                  fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
       vecCore::Store(gammaEnergy, gammaeEnergyArray + i);
     } else {
       vecCore::Store(gammaCut, gammaCutArr + i);
@@ -134,29 +139,29 @@ void VecRelativisticBremsModel::SampleSecondariesVector(LightTrack_v &tracks, ge
                          N, td);
   }
 
-  for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV ekin = tracks.GetKinEVec(i);
-    PhysDV gammaEnergy;
+  for (int i = 0; i < N; i += kVecLenD) {
+    Double_v ekin = tracks.GetKinEVec(i);
+    Double_v gammaEnergy;
     vecCore::Load(gammaEnergy, gammaeEnergyArray + i);
 
-    PhysDV cosTheta = 1.0;
-    PhysDV sinTheta = 0.0;
-    PhysDV rnd0     = td->fRndm->uniformV();
+    Double_v cosTheta = 1.0;
+    Double_v sinTheta = 0.0;
+    Double_v rnd0     = td->fRndm->uniformV();
     SamplePhotonDirection(ekin, sinTheta, cosTheta, rnd0);
 
-    PhysDV rnd1      = td->fRndm->uniformV();
-    const PhysDV phi = geant::units::kTwoPi * (rnd1);
-    PhysDV sinPhi, cosPhi;
-    SinCos(phi, &sinPhi, &cosPhi);
+    Double_v rnd1      = td->fRndm->uniformV();
+    const Double_v phi = geant::units::kTwoPi * (rnd1);
+    Double_v sinPhi, cosPhi;
+    Math::SinCos(phi, sinPhi, cosPhi);
     // gamma direction in the scattering frame
-    PhysDV gamDirX = sinTheta * cosPhi;
-    PhysDV gamDirY = sinTheta * sinPhi;
-    PhysDV gamDirZ = cosTheta;
+    Double_v gamDirX = sinTheta * cosPhi;
+    Double_v gamDirY = sinTheta * sinPhi;
+    Double_v gamDirZ = cosTheta;
     // rotate gamma direction to the lab frame:
     RotateToLabFrame(gamDirX, gamDirY, gamDirZ, tracks.GetDirXVec(i), tracks.GetDirYVec(i), tracks.GetDirZVec(i));
 
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
       secondaries.SetKinE(gammaEnergy[l], idx);
       secondaries.SetDirX(gamDirX[l], idx);
@@ -168,16 +173,16 @@ void VecRelativisticBremsModel::SampleSecondariesVector(LightTrack_v &tracks, ge
     }
 
     // compute the primary e-/e+ post interaction direction: from momentum vector conservation
-    const PhysDV elInitTotalMomentum = Sqrt(ekin * (ekin + 2.0 * geant::units::kElectronMassC2));
+    const Double_v elInitTotalMomentum = Math::Sqrt(ekin * (ekin + 2.0 * geant::units::kElectronMassC2));
     // final momentum of the e-/e+ in the lab frame
-    PhysDV elDirX = elInitTotalMomentum * tracks.GetDirXVec(i) - gammaEnergy * gamDirX;
-    PhysDV elDirY = elInitTotalMomentum * tracks.GetDirYVec(i) - gammaEnergy * gamDirY;
-    PhysDV elDirZ = elInitTotalMomentum * tracks.GetDirZVec(i) - gammaEnergy * gamDirZ;
+    Double_v elDirX = elInitTotalMomentum * tracks.GetDirXVec(i) - gammaEnergy * gamDirX;
+    Double_v elDirY = elInitTotalMomentum * tracks.GetDirYVec(i) - gammaEnergy * gamDirY;
+    Double_v elDirZ = elInitTotalMomentum * tracks.GetDirZVec(i) - gammaEnergy * gamDirZ;
 
-    PhysDV norm = 1.0 / Sqrt(elDirX * elDirX + elDirY * elDirY + elDirZ * elDirZ);
+    Double_v norm = 1.0 / Math::Sqrt(elDirX * elDirX + elDirY * elDirY + elDirZ * elDirZ);
 
     // update primary track direction
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       tracks.SetDirX((elDirX * norm)[l], i + l);
       tracks.SetDirY((elDirY * norm)[l], i + l);
       tracks.SetDirZ((elDirZ * norm)[l], i + l);
@@ -186,23 +191,23 @@ void VecRelativisticBremsModel::SampleSecondariesVector(LightTrack_v &tracks, ge
   }
 }
 
-PhysDV VecRelativisticBremsModel::SampleEnergyTransfer(PhysDV gammaCut, PhysDV densityCor, PhysDI mcLocalIdx,
-                                                       double *tableEmin, double *tableILDeta, PhysDV primekin,
-                                                       PhysDV r1, PhysDV r2, PhysDV r3)
+Double_v VecRelativisticBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double_v densityCor, IndexD_v mcLocalIdx,
+                                                         double *tableEmin, double *tableILDeta, Double_v primekin,
+                                                         Double_v r1, Double_v r2, Double_v r3)
 {
-  PhysDV lPrimEkin    = Log(primekin);
-  PhysDV logEmin      = vecCore::Gather<PhysDV>(tableEmin, mcLocalIdx);
-  PhysDV ilDelta      = vecCore::Gather<PhysDV>(tableILDeta, mcLocalIdx);
-  PhysDV val          = (lPrimEkin - logEmin) * ilDelta;
-  PhysDI indxPrimEkin = (PhysDI)val; // lower electron energy bin index
-  PhysDV pIndxHigh    = val - indxPrimEkin;
-  PhysDM mask         = r1 < pIndxHigh;
+  Double_v lPrimEkin    = Math::Log(primekin);
+  Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
+  Double_v ilDelta      = vecCore::Gather<Double_v>(tableILDeta, mcLocalIdx);
+  Double_v val          = (lPrimEkin - logEmin) * ilDelta;
+  IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh    = val - indxPrimEkin;
+  MaskD_v mask          = r1 < pIndxHigh;
   if (!mask.isEmpty()) {
     vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
   }
 
-  PhysDV egammaV;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  Double_v egammaV;
+  for (int l = 0; l < kVecLenD; ++l) {
     assert(indxPrimEkin[l] >= 0);
     assert(indxPrimEkin[l] <= fSamplingTables[mcLocalIdx[l]]->fAliasData.size() - 1);
     //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
@@ -214,10 +219,10 @@ PhysDV VecRelativisticBremsModel::SampleEnergyTransfer(PhysDV gammaCut, PhysDV d
     egammaV[l] = egamma;
   }
 
-  const PhysDV dum1 = gammaCut * gammaCut + densityCor;
-  const PhysDV dum2 = (primekin * primekin + densityCor) / dum1;
+  const Double_v dum1 = gammaCut * gammaCut + densityCor;
+  const Double_v dum2 = (primekin * primekin + densityCor) / dum1;
 
-  return Sqrt(dum1 * Exp(egammaV * Log(dum2)) - densityCor);
+  return Math::Sqrt(dum1 * Math::Exp(egammaV * Math::Log(dum2)) - densityCor);
 }
 
 void VecRelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zetArr,
@@ -225,39 +230,40 @@ void VecRelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const 
                                                      double *gammaEn, int N, const geant::TaskData *td)
 {
 
-  // assert(N>=kPhysDVWidth)
-  int currN        = 0;
-  PhysDM lanesDone = PhysDM::Zero();
-  PhysDI idx;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  // assert(N>=kVecLenD)
+  int currN         = 0;
+  MaskD_v lanesDone = MaskD_v::Zero();
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
     idx[l] = currN++;
   }
 
   while (currN < N || !lanesDone.isFull()) {
-    PhysDV eekin            = vecCore::Gather<PhysDV>(eEkin, idx);
-    PhysDV gcut             = vecCore::Gather<PhysDV>(gammaCut, idx);
-    PhysDV densityCorrConst = vecCore::Gather<PhysDV>(densityCorConstArr, idx);
-    PhysDV lpmEnergy        = vecCore::Gather<PhysDV>(lpmEnergyArr, idx);
-    PhysDV zet              = vecCore::Gather<PhysDV>(zetArr, idx);
+    Double_v eekin            = vecCore::Gather<Double_v>(eEkin, idx);
+    Double_v gcut             = vecCore::Gather<Double_v>(gammaCut, idx);
+    Double_v densityCorrConst = vecCore::Gather<Double_v>(densityCorConstArr, idx);
+    Double_v lpmEnergy        = vecCore::Gather<Double_v>(lpmEnergyArr, idx);
+    Double_v zet              = vecCore::Gather<Double_v>(zetArr, idx);
 
-    PhysDV etot        = eekin + geant::units::kElectronMassC2;
-    PhysDV densityCorr = densityCorrConst * etot * etot;
+    Double_v etot        = eekin + geant::units::kElectronMassC2;
+    Double_v densityCorr = densityCorrConst * etot * etot;
 
-    PhysDV energyThLPM = Sqrt(densityCorrConst) * lpmEnergy;
-    PhysDM isLPM       = PhysDM(fIsUseLPM) && (etot > energyThLPM);
+    Double_v energyThLPM = Math::Sqrt(densityCorrConst) * lpmEnergy;
+    MaskD_v isLPM        = MaskD_v(fIsUseLPM) && (etot > energyThLPM);
 
-    PhysDV minVal   = Log(gcut * gcut + densityCorr);
-    PhysDV valRange = Log(eekin * eekin + densityCorr) - minVal;
-    PhysDV funcMax;
-    std::array<int, kPhysDVWidth> izetV;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    Double_v minVal   = Math::Log(gcut * gcut + densityCorr);
+    Double_v valRange = Math::Log(eekin * eekin + densityCorr) - minVal;
+    Double_v funcMax;
+    std::array<int, kVecLenD> izetV;
+    for (int l = 0; l < kVecLenD; ++l) {
       const int izet = std::min(std::lrint(zet[l]), gMaxZet - 1);
       funcMax[l]     = gElementData[izet]->fZFactor1 + gElementData[izet]->fZFactor2;
       izetV[l]       = izet;
     }
 
-    PhysDV egamma = Sqrt(Max(Exp(minVal + td->fRndm->uniformV() * valRange) - densityCorr, (PhysDV)0.));
-    PhysDV funcVal;
+    Double_v egamma =
+        Math::Sqrt(Math::Max(Math::Exp(minVal + td->fRndm->uniformV() * valRange) - densityCorr, (Double_v)0.));
+    Double_v funcVal;
     if (isLPM.isNotEmpty()) {
       vecCore::MaskedAssign(funcVal, isLPM, ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCorr, izetV));
     }
@@ -265,14 +271,14 @@ void VecRelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const 
       vecCore::MaskedAssign(funcVal, !isLPM, ComputeDXSecPerAtom(egamma, etot, zet));
     }
 
-    PhysDM accepted = funcVal > td->fRndm->uniformV() * funcMax;
+    MaskD_v accepted = funcVal > td->fRndm->uniformV() * funcMax;
 
     if (accepted.isNotEmpty()) {
       vecCore::Scatter(egamma, gammaEn, idx);
     }
 
     lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       auto laneDone = accepted[l];
       if (laneDone) {
         if (currN < N) {
@@ -286,58 +292,59 @@ void VecRelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const 
   }
 }
 
-PhysDV VecRelativisticBremsModel::ComputeURelDXSecPerAtom(PhysDV egamma, PhysDV etotal, PhysDV lpmenergy,
-                                                          PhysDV densitycor, std::array<int, kPhysDVWidth> izet)
+Double_v VecRelativisticBremsModel::ComputeURelDXSecPerAtom(Double_v egamma, Double_v etotal, Double_v lpmenergy,
+                                                            Double_v densitycor, std::array<int, kVecLenD> izet)
 {
-  const PhysDV y     = egamma / etotal;
-  const PhysDV onemy = 1. - y;
-  const PhysDV dum0  = 0.25 * y * y;
-  PhysDV funcGS, funcPhiS, funcXiS;
+  const Double_v y     = egamma / etotal;
+  const Double_v onemy = 1. - y;
+  const Double_v dum0  = 0.25 * y * y;
+  Double_v funcGS, funcPhiS, funcXiS;
   ComputeLPMfunctions(funcXiS, funcGS, funcPhiS, lpmenergy, egamma, etotal, densitycor, izet);
-  PhysDV dcs;
-  PhysDV ZFactor1, ZFactor2;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  Double_v dcs;
+  Double_v ZFactor1, ZFactor2;
+  for (int l = 0; l < kVecLenD; ++l) {
     ZFactor1[l] = gElementData[izet[l]]->fZFactor1;
     ZFactor2[l] = gElementData[izet[l]]->fZFactor2;
   }
   dcs = funcXiS * (dum0 * funcGS + (onemy + 2.0 * dum0) * funcPhiS) * ZFactor1 + onemy * ZFactor2;
-  return Max(dcs, (PhysDV)0.0);
+  return Math::Max(dcs, (Double_v)0.0);
 }
 
-void VecRelativisticBremsModel::ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &funcGS, PhysDV &funcPhiS,
-                                                    const PhysDV lpmenergy, const PhysDV egamma, const PhysDV etot,
-                                                    const PhysDV densitycor, const std::array<int, kPhysDVWidth> izet)
+void VecRelativisticBremsModel::ComputeLPMfunctions(Double_v &funcXiS, Double_v &funcGS, Double_v &funcPhiS,
+                                                    const Double_v lpmenergy, const Double_v egamma,
+                                                    const Double_v etot, const Double_v densitycor,
+                                                    const std::array<int, kVecLenD> izet)
 {
-  static const PhysDV sqrt2 = Sqrt(2.);
-  const PhysDV redegamma    = egamma / etot;
-  // const PhysDV varSprime = std::sqrt(0.125*redegamma/(1.0-redegamma)*lpmenergy/etot);
-  const PhysDV varSprime = Sqrt(0.125 * redegamma * lpmenergy / ((1.0 - redegamma) * etot));
-  PhysDV varS1, ILVarS1Cond, ILVarS1;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  static const Double_v sqrt2 = Math::Sqrt(2.);
+  const Double_v redegamma    = egamma / etot;
+  // const Double_v varSprime = std::sqrt(0.125*redegamma/(1.0-redegamma)*lpmenergy/etot);
+  const Double_v varSprime = Math::Sqrt(0.125 * redegamma * lpmenergy / ((1.0 - redegamma) * etot));
+  Double_v varS1, ILVarS1Cond, ILVarS1;
+  for (int l = 0; l < kVecLenD; ++l) {
     varS1[l]       = gElementData[izet[l]]->fVarS1;
     ILVarS1Cond[l] = gElementData[izet[l]]->fILVarS1Cond;
     ILVarS1[l]     = gElementData[izet[l]]->fILVarS1;
   }
-  const PhysDV condition = sqrt2 * varS1;
-  PhysDV funcXiSprime    = 2.0;
+  const Double_v condition = sqrt2 * varS1;
+  Double_v funcXiSprime    = 2.0;
 
-  PhysDM tmp1, tmp2;
+  MaskD_v tmp1, tmp2;
   tmp1 = varSprime > 1.0;
   tmp2 = varSprime > condition;
-  vecCore::MaskedAssign(funcXiSprime, tmp1, (PhysDV)1.0);
-  const PhysDV funcHSprime = Log(varSprime) * ILVarS1Cond;
-  PhysDV tmpFuncXiSprime =
+  vecCore::MaskedAssign(funcXiSprime, tmp1, (Double_v)1.0);
+  const Double_v funcHSprime = Math::Log(varSprime) * ILVarS1Cond;
+  Double_v tmpFuncXiSprime =
       1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ILVarS1Cond;
   vecCore::MaskedAssign(funcXiSprime, !tmp1 && tmp2, tmpFuncXiSprime);
 
-  const PhysDV varS = varSprime / Sqrt(funcXiSprime);
+  const Double_v varS = varSprime / Math::Sqrt(funcXiSprime);
   // - include dielectric suppression effect into s according to Migdal
-  const PhysDV varShat = varS * (1.0 + densitycor / (egamma * egamma));
-  funcXiS              = 2.0;
-  tmp1                 = varShat > 1.0;
-  tmp2                 = varShat > varS1;
-  vecCore::MaskedAssign(funcXiS, tmp1, (PhysDV)1.0);
-  vecCore::MaskedAssign(funcXiS, !tmp1 && tmp2, 1.0 + Log(varShat) * ILVarS1);
+  const Double_v varShat = varS * (1.0 + densitycor / (egamma * egamma));
+  funcXiS                = 2.0;
+  tmp1                   = varShat > 1.0;
+  tmp2                   = varShat > varS1;
+  vecCore::MaskedAssign(funcXiS, tmp1, (Double_v)1.0);
+  vecCore::MaskedAssign(funcXiS, !tmp1 && tmp2, 1.0 + Math::Log(varShat) * ILVarS1);
   GetLPMFunctions(funcGS, funcPhiS, varShat);
   // ComputeLPMGsPhis(funcGS, funcPhiS, varShat);
   //
@@ -346,74 +353,75 @@ void VecRelativisticBremsModel::ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &fun
   vecCore::MaskedAssign(funcXiS, tmp1, 1.0 / funcPhiS);
 }
 
-void VecRelativisticBremsModel::GetLPMFunctions(PhysDV &lpmGs, PhysDV &lpmPhis, const PhysDV s)
+void VecRelativisticBremsModel::GetLPMFunctions(Double_v &lpmGs, Double_v &lpmPhis, const Double_v s)
 {
-  PhysDM tmp = s < gLPMFuncs.fSLimit;
+  MaskD_v tmp = s < gLPMFuncs.fSLimit;
 
-  PhysDV val  = s / gLPMFuncs.fSDelta;
-  PhysDI ilow = PhysDI(val);
+  Double_v val  = s / gLPMFuncs.fSDelta;
+  IndexD_v ilow = IndexD_v(val);
   val -= ilow;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  for (int l = 0; l < kVecLenD; ++l) {
     if (!tmp[l]) ilow[l] = gLPMFuncs.fLPMFuncPhi.size() - 2; // above limit
   }
-  PhysDV lpmG_lowp1   = vecCore::Gather<PhysDV>(gLPMFuncs.fLPMFuncG.data(), ilow + (PhysDI)1);
-  PhysDV lpmG_low     = vecCore::Gather<PhysDV>(gLPMFuncs.fLPMFuncG.data(), ilow);
-  PhysDV lpmPhi_lowp1 = vecCore::Gather<PhysDV>(gLPMFuncs.fLPMFuncPhi.data(), ilow + (PhysDI)1);
-  PhysDV lpmPhi_low   = vecCore::Gather<PhysDV>(gLPMFuncs.fLPMFuncPhi.data(), ilow);
-  lpmGs               = (lpmG_lowp1 - lpmG_low) * val + lpmG_low;
-  lpmPhis             = (lpmPhi_lowp1 - lpmPhi_low) * val + lpmPhi_low;
+  Double_v lpmG_lowp1   = vecCore::Gather<Double_v>(gLPMFuncs.fLPMFuncG.data(), ilow + (IndexD_v)1);
+  Double_v lpmG_low     = vecCore::Gather<Double_v>(gLPMFuncs.fLPMFuncG.data(), ilow);
+  Double_v lpmPhi_lowp1 = vecCore::Gather<Double_v>(gLPMFuncs.fLPMFuncPhi.data(), ilow + (IndexD_v)1);
+  Double_v lpmPhi_low   = vecCore::Gather<Double_v>(gLPMFuncs.fLPMFuncPhi.data(), ilow);
+  lpmGs                 = (lpmG_lowp1 - lpmG_low) * val + lpmG_low;
+  lpmPhis               = (lpmPhi_lowp1 - lpmPhi_low) * val + lpmPhi_low;
 
   if ((!tmp).isNotEmpty()) {
-    PhysDV ss = s * s;
+    Double_v ss = s * s;
     ss *= ss;
     vecCore::MaskedAssign(lpmPhis, !tmp, 1.0 - 0.01190476 / ss);
     vecCore::MaskedAssign(lpmGs, !tmp, 1.0 - 0.0230655 / ss);
   }
 }
 
-void VecRelativisticBremsModel::SamplePhotonDirection(PhysDV elenergy, PhysDV &sinTheta, PhysDV &cosTheta, PhysDV rndm)
+void VecRelativisticBremsModel::SamplePhotonDirection(Double_v elenergy, Double_v &sinTheta, Double_v &cosTheta,
+                                                      Double_v rndm)
 {
-  const PhysDV c = 4. - 8. * rndm;
-  PhysDV a       = c;
-  PhysDV signc   = 1.;
-  PhysDM tmp     = c < 0.0;
-  vecCore::MaskedAssign(signc, tmp, (PhysDV)-1.0);
+  const Double_v c = 4. - 8. * rndm;
+  Double_v a       = c;
+  Double_v signc   = 1.;
+  MaskD_v tmp      = c < 0.0;
+  vecCore::MaskedAssign(signc, tmp, (Double_v)-1.0);
   vecCore::MaskedAssign(a, tmp, -c);
 
-  const PhysDV delta = 0.5 * (Sqrt(a * a + 4.) + a);
+  const Double_v delta = 0.5 * (Math::Sqrt(a * a + 4.) + a);
   //  delta += a;
   //  delta *= 0.5;
 
-  const PhysDV cofA = -signc * Exp(Log(delta) / 3.0);
-  cosTheta          = cofA - 1. / cofA;
+  const Double_v cofA = -signc * Math::Exp(Math::Log(delta) / 3.0);
+  cosTheta            = cofA - 1. / cofA;
 
-  const PhysDV tau  = elenergy * geant::units::kInvElectronMassC2;
-  const PhysDV beta = Sqrt(tau * (tau + 2.)) / (tau + 1.);
+  const Double_v tau  = elenergy * geant::units::kInvElectronMassC2;
+  const Double_v beta = Math::Sqrt(tau * (tau + 2.)) / (tau + 1.);
 
   cosTheta = (cosTheta + beta) / (1. + cosTheta * beta);
   // check cosTheta limit
-  cosTheta = Min((PhysDV)1.0, cosTheta);
+  cosTheta = Math::Min((Double_v)1.0, cosTheta);
   // if (cosTheta>1.0) {
   //  cosTheta = 1.0;
   //}
-  sinTheta = Sqrt((1. - cosTheta) * (1. + cosTheta));
+  sinTheta = Math::Sqrt((1. - cosTheta) * (1. + cosTheta));
 }
 
-PhysDV VecRelativisticBremsModel::ComputeDXSecPerAtom(PhysDV egamma, PhysDV etotal, PhysDV zet)
+Double_v VecRelativisticBremsModel::ComputeDXSecPerAtom(Double_v egamma, Double_v etotal, Double_v zet)
 {
-  // constexpr PhysDV factor =
+  // constexpr Double_v factor =
   // 16.*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.;
-  PhysDV dcs         = 0.;
-  const PhysDV y     = egamma / etotal;
-  const PhysDV onemy = 1. - y;
-  PhysDV ZFactor1;
-  PhysDV ZFactor2;
-  PhysDV Fz;
-  PhysDV LogZ;
-  PhysDV GammaFactor;
-  PhysDV EpsilonFactor;
-  PhysDI izetV;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  Double_v dcs         = 0.;
+  const Double_v y     = egamma / etotal;
+  const Double_v onemy = 1. - y;
+  Double_v ZFactor1;
+  Double_v ZFactor2;
+  Double_v Fz;
+  Double_v LogZ;
+  Double_v GammaFactor;
+  Double_v EpsilonFactor;
+  IndexD_v izetV;
+  for (int l = 0; l < kVecLenD; ++l) {
     int izet      = std::lrint(zet[l]);
     ZFactor1      = gElementData[izet]->fZFactor1;
     ZFactor2      = gElementData[izet]->fZFactor2;
@@ -423,18 +431,18 @@ PhysDV VecRelativisticBremsModel::ComputeDXSecPerAtom(PhysDV egamma, PhysDV etot
     EpsilonFactor = gElementData[izet]->fEpsilonFactor;
     izetV[l]      = izet;
   }
-  PhysDM smallZ = izetV < 5;
+  MaskD_v smallZ = izetV < 5;
   if (smallZ.isNotEmpty()) {
     vecCore::MaskedAssign(dcs, smallZ, (onemy + 0.75 * y * y) * ZFactor1 + onemy * ZFactor2);
   }
   if ((!smallZ).isNotEmpty()) {
     // Tsai: screening from Thomas-Fermi model of atom; Tsai Eq.(3.82)
     // variables gamma and epsilon from Tsai Eq.(3.30) and Eq.(3.31)
-    const PhysDV invZ    = 1. / zet;
-    const PhysDV dum0    = y / (etotal - egamma);
-    const PhysDV gamma   = dum0 * GammaFactor;
-    const PhysDV epsilon = dum0 * EpsilonFactor;
-    PhysDV phi1, phi1m2, xsi1, xsi1m2;
+    const Double_v invZ    = 1. / zet;
+    const Double_v dum0    = y / (etotal - egamma);
+    const Double_v gamma   = dum0 * GammaFactor;
+    const Double_v epsilon = dum0 * EpsilonFactor;
+    Double_v phi1, phi1m2, xsi1, xsi1m2;
     ComputeScreeningFunctions(phi1, phi1m2, xsi1, xsi1m2, gamma, epsilon);
     vecCore::MaskedAssign(dcs, !smallZ,
                           (onemy + 0.75 * y * y) * ((0.25 * phi1 - Fz) + (0.25 * xsi1 - 2. * LogZ / 3.) * invZ) +
@@ -442,17 +450,20 @@ PhysDV VecRelativisticBremsModel::ComputeDXSecPerAtom(PhysDV egamma, PhysDV etot
     // dcs *= factor*zet*zet/egamma;
   }
 
-  return Max(dcs, (PhysDV)0.0);
+  return Math::Max(dcs, (Double_v)0.0);
 }
 
-void VecRelativisticBremsModel::ComputeScreeningFunctions(PhysDV &phi1, PhysDV &phi1m2, PhysDV &xsi1, PhysDV &xsi1m2,
-                                                          const PhysDV gamma, const PhysDV epsilon)
+void VecRelativisticBremsModel::ComputeScreeningFunctions(Double_v &phi1, Double_v &phi1m2, Double_v &xsi1,
+                                                          Double_v &xsi1m2, const Double_v gamma,
+                                                          const Double_v epsilon)
 {
-  const PhysDV gamma2 = gamma * gamma;
-  phi1                = 16.863 - 2.0 * Log(1.0 + 0.311877 * gamma2) + 2.4 * Exp(-0.9 * gamma) + 1.6 * Exp(-1.5 * gamma);
-  phi1m2              = 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
-  const PhysDV epsilon2 = epsilon * epsilon;
-  xsi1   = 24.34 - 2.0 * Log(1.0 + 13.111641 * epsilon2) + 2.8 * Exp(-8.0 * epsilon) + 1.2 * Exp(-29.2 * epsilon);
+  const Double_v gamma2 = gamma * gamma;
+  phi1 =
+      16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) + 1.6 * Math::Exp(-1.5 * gamma);
+  phi1m2                  = 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
+  const Double_v epsilon2 = epsilon * epsilon;
+  xsi1                    = 24.34 - 2.0 * Math::Log(1.0 + 13.111641 * epsilon2) + 2.8 * Math::Exp(-8.0 * epsilon) +
+         1.2 * Math::Exp(-29.2 * epsilon);
   xsi1m2 = 2.0 / (3.0 + 120.0 * epsilon + 1200.0 * epsilon2); // xsi1-xsi2
 }
 

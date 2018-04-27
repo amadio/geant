@@ -7,17 +7,21 @@
 
 namespace geant {
 
-using VectorBackend = vecgeom::VectorBackend;
+using VectorBackend = vecCore::backend::VcVector;
 typedef VectorBackend::Float_v Float_v;
-typedef VectorBackend::Real_v Double_v;
+typedef VectorBackend::Double_v Double_v;
 typedef VectorBackend::Int_v Int_v;
 
 typedef vecCore::Mask_v<Float_v> MaskF_v;
 typedef vecCore::Mask_v<Double_v> MaskD_v;
 typedef vecCore::Mask_v<Int_v> MaskI_v;
 
-const auto kVecLenF = vecCore::VectorSize<Float_v>();
-const auto kVecLenD = vecCore::VectorSize<Double_v>();
+typedef vecCore::Index<Double_v> IndexD_v;
+
+const int kVecLenF = vecCore::VectorSize<Float_v>();
+const int kVecLenD = vecCore::VectorSize<Double_v>();
+
+const int kVecAlignD = kVecLenD * sizeof(double);
 
 GEANT_FORCE_INLINE
 void CopyFltToDbl(Float_v const &flt_v, Double_v &dbl1_v, Double_v &dbl2_v)

@@ -2,7 +2,7 @@
 #define GEANTV_VECBETHEHEITLERPAIRMODEL_H
 
 #include "Geant/BetheHeitlerPairModel.h"
-#include "Geant/VectorPhysicsTypes.h"
+#include "Geant/VectorTypes.h"
 #include "Geant/AliasTableAlternative.h"
 
 #include "Geant/Config.h"
@@ -50,15 +50,16 @@ protected:
   };
   std::vector<RatinAliasTablePerElem> fAliasTablesPerZ;
 
-  PhysDV SampleTotalEnergyTransferAliasOneShot(const PhysDV egamma, const int *izet, const PhysDV r1, const PhysDV r2,
-                                               const PhysDV r3);
+  geant::Double_v SampleTotalEnergyTransferAliasOneShot(const geant::Double_v egamma, const int *izet,
+                                                        const geant::Double_v r1, const geant::Double_v r2,
+                                                        const geant::Double_v r3);
 
   void SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut, int N,
                                        geant::TaskData *td);
 
-  void ScreenFunction12(PhysDV &val1, PhysDV &val2, const PhysDV delta, const bool istsai);
-  PhysDV ScreenFunction1(const PhysDV delta, const bool istsai);
-  PhysDV ScreenFunction2(const PhysDV delta, const bool istsai);
+  void ScreenFunction12(geant::Double_v &val1, geant::Double_v &val2, const geant::Double_v delta, const bool istsai);
+  geant::Double_v ScreenFunction1(const geant::Double_v delta, const bool istsai);
+  geant::Double_v ScreenFunction2(const geant::Double_v delta, const bool istsai);
 };
 }
 

@@ -7,6 +7,11 @@
 
 namespace geantphysics {
 
+using geant::Double_v;
+using geant::IndexD_v;
+using geant::kVecLenD;
+using geant::MaskD_v;
+
 void VecPositronTo2GammaModel::Initialize()
 {
   PositronTo2GammaModel::Initialize();
@@ -36,14 +41,14 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
   double *epsArr               = data.fEps;
   double *gamma                = data.fDoubleArr; // Used by rejection
 
-  for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV pekin  = tracks.GetKinEVec(i);
-    PhysDV gammaV = pekin * geant::units::kInvElectronMassC2 + 1.0;
+  for (int i = 0; i < N; i += kVecLenD) {
+    Double_v pekin  = tracks.GetKinEVec(i);
+    Double_v gammaV = pekin * geant::units::kInvElectronMassC2 + 1.0;
     if (GetUseSamplingTables()) {
-      PhysDV rnd1 = td->fRndm->uniformV();
-      PhysDV rnd2 = td->fRndm->uniformV();
-      PhysDV rnd3 = td->fRndm->uniformV();
-      PhysDV epsV = SampleEnergyTransferAlias(pekin, rnd1, rnd2, rnd3, gammaV);
+      Double_v rnd1 = td->fRndm->uniformV();
+      Double_v rnd2 = td->fRndm->uniformV();
+      Double_v rnd3 = td->fRndm->uniformV();
+      Double_v epsV = SampleEnergyTransferAlias(pekin, rnd1, rnd2, rnd3, gammaV);
       vecCore::Store(epsV, &epsArr[i]);
     } else {
       vecCore::Store(gammaV, &gamma[i]);
@@ -54,35 +59,35 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     SampleEnergyTransferRej(gamma, epsArr, N, td);
   }
 
-  for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV pekin = tracks.GetKinEVec(i);
-    PhysDV tau   = pekin * geant::units::kInvElectronMassC2;
-    PhysDV tau2  = tau + 2.0;
-    PhysDV eps;
+  for (int i = 0; i < N; i += kVecLenD) {
+    Double_v pekin = tracks.GetKinEVec(i);
+    Double_v tau   = pekin * geant::units::kInvElectronMassC2;
+    Double_v tau2  = tau + 2.0;
+    Double_v eps;
     vecCore::Load(eps, &epsArr[i]);
     // direction of the first gamma
-    PhysDV ct         = (eps * tau2 - 1.) / (eps * Sqrt(tau * tau2));
-    const PhysDV cost = Max(Min(ct, (PhysDV)1.), (PhysDV)-1.);
-    const PhysDV sint = Sqrt((1. + cost) * (1. - cost));
-    const PhysDV phi  = geant::units::kTwoPi * td->fRndm->uniformV();
-    PhysDV sinPhi, cosPhi;
-    SinCos(phi, &sinPhi, &cosPhi);
-    PhysDV gamDirX = sint * cosPhi;
-    PhysDV gamDirY = sint * sinPhi;
-    PhysDV gamDirZ = cost;
+    Double_v ct         = (eps * tau2 - 1.) / (eps * Math::Sqrt(tau * tau2));
+    const Double_v cost = Math::Max(Math::Min(ct, (Double_v)1.), (Double_v)-1.);
+    const Double_v sint = Math::Sqrt((1. + cost) * (1. - cost));
+    const Double_v phi  = geant::units::kTwoPi * td->fRndm->uniformV();
+    Double_v sinPhi, cosPhi;
+    Math::SinCos(phi, sinPhi, cosPhi);
+    Double_v gamDirX = sint * cosPhi;
+    Double_v gamDirY = sint * sinPhi;
+    Double_v gamDirZ = cost;
     // rotate gamma direction to the lab frame:
-    PhysDV posX = tracks.GetDirXVec(i);
-    PhysDV posY = tracks.GetDirYVec(i);
-    PhysDV posZ = tracks.GetDirZVec(i);
+    Double_v posX = tracks.GetDirXVec(i);
+    Double_v posY = tracks.GetDirYVec(i);
+    Double_v posZ = tracks.GetDirZVec(i);
     RotateToLabFrame(gamDirX, gamDirY, gamDirZ, posX, posY, posZ);
     //
 
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
     // kinematics of the first gamma
 
-    const PhysDV tEnergy = pekin + 2 * geant::units::kElectronMassC2;
-    const PhysDV gamEner = eps * tEnergy;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    const Double_v tEnergy = pekin + 2 * geant::units::kElectronMassC2;
+    const Double_v gamEner = eps * tEnergy;
+    for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
       secondaries.SetKinE(gamEner[l], idx);
       secondaries.SetDirX(gamDirX[l], idx);
@@ -94,15 +99,15 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     }
     //
     // go for the second gamma properties
-    const PhysDV posInitTotalMomentum = Sqrt(pekin * (pekin + 2.0 * geant::units::kElectronMassC2));
+    const Double_v posInitTotalMomentum = Math::Sqrt(pekin * (pekin + 2.0 * geant::units::kElectronMassC2));
     // momentum of the second gamma in the lab frame (mom. cons.)
     gamDirX = posInitTotalMomentum * posX - gamEner * gamDirX;
     gamDirY = posInitTotalMomentum * posY - gamEner * gamDirY;
     gamDirZ = posInitTotalMomentum * posZ - gamEner * gamDirZ;
     // normalisation
-    const PhysDV norm = 1.0 / Sqrt(gamDirX * gamDirX + gamDirY * gamDirY + gamDirZ * gamDirZ);
+    const Double_v norm = 1.0 / Math::Sqrt(gamDirX * gamDirX + gamDirY * gamDirY + gamDirZ * gamDirZ);
     // set up the second gamma track
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
       secondaries.SetKinE((tEnergy - gamEner)[l], idx);
       secondaries.SetDirX((gamDirX * norm)[l], idx);
@@ -112,27 +117,28 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
       secondaries.SetMass(0.0, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
     }
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       tracks.SetKinE(0.0, i + l);
       tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
     }
   }
 }
 
-PhysDV VecPositronTo2GammaModel::SampleEnergyTransferAlias(PhysDV pekin, PhysDV r1, PhysDV r2, PhysDV r3, PhysDV gamma)
+Double_v VecPositronTo2GammaModel::SampleEnergyTransferAlias(Double_v pekin, Double_v r1, Double_v r2, Double_v r3,
+                                                             Double_v gamma)
 {
-  PhysDV lpekin = Log(pekin);
+  Double_v lpekin = Math::Log(pekin);
   //
-  PhysDV val       = (lpekin - fSTLogMinPositronEnergy) * fSTILDeltaPositronEnergy;
-  PhysDI indxPekin = (PhysDI)val; // lower electron energy bin index
-  PhysDV pIndxHigh = val - indxPekin;
-  PhysDM mask      = r1 < pIndxHigh;
+  Double_v val       = (lpekin - fSTLogMinPositronEnergy) * fSTILDeltaPositronEnergy;
+  IndexD_v indxPekin = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh = val - indxPekin;
+  MaskD_v mask       = r1 < pIndxHigh;
   if (!mask.isEmpty()) {
     vecCore::MaskedAssign(indxPekin, mask, indxPekin + 1);
   }
 
-  PhysDV xiV;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
     int idx = (int)indxPekin[l];
 
     // LinAliasCached &als = fCachedAliasTable[idx];
@@ -146,9 +152,9 @@ PhysDV VecPositronTo2GammaModel::SampleEnergyTransferAlias(PhysDV pekin, PhysDV 
     xiV[l] = xi;
   }
 
-  const PhysDV minEps = 0.5 * (1. - Sqrt((gamma - 1.) / (gamma + 1.)));
-  const PhysDV maxEps = 0.5 * (1. + Sqrt((gamma - 1.) / (gamma + 1.)));
-  const PhysDV eps    = Exp(xiV * Log(maxEps / minEps)) * minEps;
+  const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+  const Double_v maxEps = 0.5 * (1. + Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+  const Double_v eps    = Math::Exp(xiV * Math::Log(maxEps / minEps)) * minEps;
 
   return eps;
 }
@@ -156,36 +162,36 @@ PhysDV VecPositronTo2GammaModel::SampleEnergyTransferAlias(PhysDV pekin, PhysDV 
 void VecPositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, double *epsOut, int N,
                                                        const geant::TaskData *td)
 {
-  // assert(N>=kPhysDVWidth)
-  int currN        = 0;
-  PhysDM lanesDone = PhysDM::Zero();
-  PhysDI idx;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  // assert(N>=kVecLenD)
+  int currN         = 0;
+  MaskD_v lanesDone = MaskD_v::Zero();
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
     idx[l] = currN++;
   }
 
   while (currN < N || !lanesDone.isFull()) {
-    PhysDV gamma = vecCore::Gather<PhysDV>(gammaArr, idx);
+    Double_v gamma = vecCore::Gather<Double_v>(gammaArr, idx);
 
-    const PhysDV minEps = 0.5 * (1. - Sqrt((gamma - 1.) / (gamma + 1.)));
-    const PhysDV maxEps = 0.5 * (1. + Sqrt((gamma - 1.) / (gamma + 1.)));
-    const PhysDV dum1   = Log(maxEps / minEps);
-    const PhysDV dum2   = (gamma + 1.) * (gamma + 1.);
+    const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+    const Double_v maxEps = 0.5 * (1. + Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+    const Double_v dum1   = Math::Log(maxEps / minEps);
+    const Double_v dum2   = (gamma + 1.) * (gamma + 1.);
 
-    PhysDV rnd0 = td->fRndm->uniformV();
-    PhysDV rnd1 = td->fRndm->uniformV();
+    Double_v rnd0 = td->fRndm->uniformV();
+    Double_v rnd1 = td->fRndm->uniformV();
 
-    PhysDV eps = minEps * Exp(dum1 * rnd0);
+    Double_v eps = minEps * Math::Exp(dum1 * rnd0);
 
-    PhysDV grej     = 1. - eps + (2. * gamma * eps - 1.) / (eps * dum2);
-    PhysDM accepted = grej > rnd1;
+    Double_v grej    = 1. - eps + (2. * gamma * eps - 1.) / (eps * dum2);
+    MaskD_v accepted = grej > rnd1;
 
     if (accepted.isNotEmpty()) {
       vecCore::Scatter(eps, epsOut, idx);
     }
 
     lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       auto laneDone = accepted[l];
       if (laneDone) {
         if (currN < N) {

@@ -8,7 +8,6 @@
 #include "Geant/Types.h"
 #include "Geant/Material.h"
 #include "Geant/MaterialCuts.h"
-#include "Geant/FastMath.h"
 
 #include "Geant/Spline.h"
 

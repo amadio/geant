@@ -11,7 +11,6 @@
 
 // from material
 #include "Geant/Types.h"
-#include "Geant/FastMath.h"
 
 #include <cmath>
 #include <iostream>

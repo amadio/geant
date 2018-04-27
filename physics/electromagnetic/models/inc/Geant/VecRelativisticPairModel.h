@@ -2,7 +2,7 @@
 #define GEANTV_VECRELATIVISTICPAIRMODEL_H
 
 #include "Geant/RelativisticPairModel.h"
-#include "Geant/VectorPhysicsTypes.h"
+#include "Geant/VectorTypes.h"
 #include "Geant/AliasTableAlternative.h"
 
 #include "Geant/Config.h"
@@ -56,20 +56,23 @@ protected:
   };
   std::vector<RatinAliasTablePerMaterial> fAliasTablesPerMaterial;
 
-  PhysDV SampleTotalEnergyTransferAliasOneShot(const PhysDV egamma, const int *matIDX, const PhysDV r1, const PhysDV r2,
-                                               const PhysDV r3);
+  geant::Double_v SampleTotalEnergyTransferAliasOneShot(const geant::Double_v egamma, const int *matIDX,
+                                                        const geant::Double_v r1, const geant::Double_v r2,
+                                                        const geant::Double_v r3);
 
   void SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy, const int *izet, double *epsOut,
                                        int N, geant::TaskData *td);
 
-  void ScreenFunction12(PhysDV &val1, PhysDV &val2, const PhysDV delta, const bool istsai);
-  PhysDV ScreenFunction1(const PhysDV delta, const bool istsai);
-  PhysDV ScreenFunction2(const PhysDV delta, const bool istsai);
+  void ScreenFunction12(geant::Double_v &val1, geant::Double_v &val2, const geant::Double_v delta, const bool istsai);
+  geant::Double_v ScreenFunction1(const geant::Double_v delta, const bool istsai);
+  geant::Double_v ScreenFunction2(const geant::Double_v delta, const bool istsai);
 
-  void ComputeScreeningFunctions(PhysDV &phi1, PhysDV &phi2, const PhysDV delta, const bool istsai);
+  void ComputeScreeningFunctions(geant::Double_v &phi1, geant::Double_v &phi2, const geant::Double_v delta,
+                                 const bool istsai);
 
-  void ComputeLPMfunctions(PhysDV &funcXiS, PhysDV &funcGS, PhysDV &funcPhiS, PhysDV lpmenergy, PhysDV eps,
-                           PhysDV egamma, PhysDV varS1Cond, PhysDV ilVarS1Cond);
+  void ComputeLPMfunctions(geant::Double_v &funcXiS, geant::Double_v &funcGS, geant::Double_v &funcPhiS,
+                           geant::Double_v lpmenergy, geant::Double_v eps, geant::Double_v egamma,
+                           geant::Double_v varS1Cond, geant::Double_v ilVarS1Cond);
 };
 }
 

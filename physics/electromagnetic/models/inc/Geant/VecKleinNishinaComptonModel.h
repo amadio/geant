@@ -2,7 +2,7 @@
 #define GEANTV_VECKLEINNISHINACOMPTONMODEL_H
 
 #include "Geant/KleinNishinaComptonModel.h"
-#include "Geant/VectorPhysicsTypes.h"
+#include "Geant/VectorTypes.h"
 #include "Geant/AliasTableAlternative.h"
 
 #include "Geant/Config.h"
@@ -49,7 +49,8 @@ public:
 protected:
   std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
 
-  PhysDV SampleReducedPhotonEnergyVec(PhysDV egamma, PhysDV r1, PhysDV r2, PhysDV r3);
+  geant::Double_v SampleReducedPhotonEnergyVec(geant::Double_v egamma, geant::Double_v r1, geant::Double_v r2,
+                                               geant::Double_v r3);
 
   void SampleReducedPhotonEnergyRej(const double *egamma, double *onemcost, double *sint2, double *eps, int N,
                                     const geant::TaskData *td);

@@ -23,7 +23,6 @@ file(GLOB sources
 file(GLOB headers
   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/PhysicalConstants.h
   ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/SystemOfUnits.h
-  ${CMAKE_SOURCE_DIR}/core/base/inc/Geant/VectorPhysicsTypes.h
   ${CMAKE_SOURCE_DIR}/physics/kernel/particles/inc/Geant/*.h
   ${CMAKE_SOURCE_DIR}/physics/kernel/management/inc/Geant/*.h
   ${CMAKE_SOURCE_DIR}/physics/electromagnetic/models/inc/Geant/*.h

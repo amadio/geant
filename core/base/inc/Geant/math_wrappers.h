@@ -146,6 +146,12 @@ R Cos(R x)
 }
 
 template <typename R>
+void SinCos(R x, R &s, R &c)
+{
+  vecMath::FastSinCos(x, s, c);
+}
+
+template <typename R>
 R Pow(R x, R n)
 {
   return vecMath::FastPow(x, n);

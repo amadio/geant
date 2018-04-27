@@ -5,7 +5,6 @@
 #include "Geant/PhysicalConstants.h"
 #include "Geant/Proton.h"
 #include "Geant/Neutron.h"
-#include "Geant/FastMath.h"
 
 #include <cmath>
 #include "Geant/math_wrappers.h"

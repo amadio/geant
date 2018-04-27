@@ -12,15 +12,15 @@ class LightTrack;
 struct PhysicsModelScratchpad {
   static constexpr int dataSize = 2048;
   PhysicsModelScratchpad()
-      : fEps((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fR0((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fR1((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fR2((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fR3((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fDoubleArr((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fDoubleArr2((double *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(double) * dataSize)),
-        fIzet((int *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(int) * dataSize)),
-        fMatIdx((int *)vecCore::AlignedAlloc(kPhysDVAlign, sizeof(int) * dataSize))
+      : fEps((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fR0((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fR1((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fR2((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fR3((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr2((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fIzet((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
+        fMatIdx((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize))
   {
   }
   ~PhysicsModelScratchpad()

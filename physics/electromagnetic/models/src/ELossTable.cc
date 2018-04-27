@@ -12,7 +12,6 @@
 
 #include "Geant/Spline.h"
 #include "Geant/GLIntegral.h"
-#include "Geant/FastMath.h"
 
 #include <cmath>
 #include <iostream>

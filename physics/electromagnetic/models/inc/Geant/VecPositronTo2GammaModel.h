@@ -2,7 +2,7 @@
 #define GEANTV_VECPOSITRONTWOGAMMAMODEL_H
 
 #include "Geant/PositronTo2GammaModel.h"
-#include "Geant/VectorPhysicsTypes.h"
+#include "Geant/VectorTypes.h"
 #include "Geant/AliasTableAlternative.h"
 
 #include "Geant/Config.h"
@@ -44,7 +44,8 @@ public:
 protected:
   std::vector<LinAliasCached> fCachedAliasTable;
 
-  PhysDV SampleEnergyTransferAlias(PhysDV pekin, PhysDV r1, PhysDV r2, PhysDV r3, PhysDV gamma);
+  geant::Double_v SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v r1, geant::Double_v r2,
+                                            geant::Double_v r3, geant::Double_v gamma);
 
   void SampleEnergyTransferRej(const double *gamma, double *eps, int N, const geant::TaskData *td);
 };

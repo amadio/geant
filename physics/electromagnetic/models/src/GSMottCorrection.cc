@@ -12,7 +12,6 @@
 
 // only for rng
 #include "Geant/TaskData.h"
-#include "Geant/FastMath.h"
 
 #include <iostream>
 #include <fstream>

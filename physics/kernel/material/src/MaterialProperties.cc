@@ -9,7 +9,6 @@
 #include "Geant/Element.h"
 #include "Geant/NISTMaterialData.h"
 #include "Geant/DensityEffectData.h"
-#include "Geant/FastMath.h"
 
 #include <cmath>
 #include <limits>

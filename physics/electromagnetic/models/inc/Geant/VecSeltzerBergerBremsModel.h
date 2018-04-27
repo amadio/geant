@@ -43,8 +43,9 @@ public:
   bool IsModelUsable(const MaterialCuts *matCut, double ekin) override;
 
 private:
-  PhysDV SampleEnergyTransfer(PhysDV gammaCut, PhysDV densityCor, PhysDI mcLocalIdx, double *tableEmin,
-                              double *tableILDeta, PhysDV primekin, PhysDV r1, PhysDV r2, PhysDV r3);
+  geant::Double_v SampleEnergyTransfer(geant::Double_v gammaCut, geant::Double_v densityCor, geant::IndexD_v mcLocalIdx,
+                                       double *tableEmin, double *tableILDeta, geant::Double_v primekin,
+                                       geant::Double_v r1, geant::Double_v r2, geant::Double_v r3);
 
   void SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const int *IZet, const double *zet,
                             double *gammaEn, const double *densityCor, int N, const geant::TaskData *td);
@@ -68,8 +69,10 @@ private:
   };
 
 private:
-  void SamplePhotonDirection(PhysDV elenergy, PhysDV &sinTheta, PhysDV &cosTheta, PhysDV rndm);
-  PhysDV PositronCorrection1(PhysDV ekinelectron, PhysDV ephoton, PhysDV gcutener, PhysDV z);
+  void SamplePhotonDirection(geant::Double_v elenergy, geant::Double_v &sinTheta, geant::Double_v &cosTheta,
+                             geant::Double_v rndm);
+  geant::Double_v PositronCorrection1(geant::Double_v ekinelectron, geant::Double_v ephoton, geant::Double_v gcutener,
+                                      geant::Double_v z);
   AliasDataForAllMatCuts fAliasData;
 };
 

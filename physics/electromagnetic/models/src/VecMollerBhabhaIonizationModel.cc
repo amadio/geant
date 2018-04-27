@@ -24,6 +24,11 @@
 
 namespace geantphysics {
 
+using geant::Double_v;
+using geant::IndexD_v;
+using geant::kVecLenD;
+using geant::MaskD_v;
+
 VecMollerBhabhaIonizationModel::VecMollerBhabhaIonizationModel(bool iselectron, const std::string &modelname)
     : MollerBhabhaIonizationModel(iselectron, modelname)
 {
@@ -76,25 +81,25 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
   double *epsArr   = td->fPhysicsData->fPhysicsScratchpad.fEps;
   double *elCutArr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
 
-  for (int i = 0; i < N; i += kPhysDVWidth) {
+  for (int i = 0; i < N; i += kVecLenD) {
 
-    PhysDV electronCut;
-    PhysDI mcIndxLocal; // Used by alias method
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    Double_v electronCut;
+    IndexD_v mcIndxLocal; // Used by alias method
+    for (int l = 0; l < kVecLenD; ++l) {
       const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterialCutCoupleIndex(i + l));
       electronCut[l]             = matCut->GetProductionCutsInEnergy()[1];
       if (GetUseSamplingTables()) {
         mcIndxLocal[l] = fGlobalMatECutIndxToLocal[matCut->GetIndex()];
       }
     }
-    PhysDV primEkin = tracks.GetKinEVec(i);
+    Double_v primEkin = tracks.GetKinEVec(i);
     assert((primEkin >= electronCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
-      PhysDV r1  = td->fRndm->uniformV();
-      PhysDV r2  = td->fRndm->uniformV();
-      PhysDV r3  = td->fRndm->uniformV();
-      PhysDV eps = SampleEnergyTransfer(electronCut, mcIndxLocal, fAliasData.fLogEmin.data(),
-                                        fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
+      Double_v r1  = td->fRndm->uniformV();
+      Double_v r2  = td->fRndm->uniformV();
+      Double_v r3  = td->fRndm->uniformV();
+      Double_v eps = SampleEnergyTransfer(electronCut, mcIndxLocal, fAliasData.fLogEmin.data(),
+                                          fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
       vecCore::Store(eps, epsArr + i);
     } else {
       vecCore::Store(electronCut, elCutArr + i);
@@ -107,31 +112,31 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
     SampleEnergyTransfer(elCutArr, tracks.GetKinEArr(), epsArr, N, td);
   }
 
-  for (int i = 0; i < N; i += kPhysDVWidth) {
-    PhysDV ekin = tracks.GetKinEVec(i);
+  for (int i = 0; i < N; i += kVecLenD) {
+    Double_v ekin = tracks.GetKinEVec(i);
 
-    PhysDV elInitTotalEnergy   = ekin + geant::units::kElectronMassC2; // initial total energy of the e-/e+
-    PhysDV elInitTotalMomentum = Sqrt(ekin * (elInitTotalEnergy + geant::units::kElectronMassC2));
+    Double_v elInitTotalEnergy   = ekin + geant::units::kElectronMassC2; // initial total energy of the e-/e+
+    Double_v elInitTotalMomentum = Math::Sqrt(ekin * (elInitTotalEnergy + geant::units::kElectronMassC2));
 
-    PhysDV deltaKinEnergy;
+    Double_v deltaKinEnergy;
     vecCore::Load(deltaKinEnergy, epsArr + i);
-    PhysDV deltaTotalMomentum = Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0 * geant::units::kElectronMassC2));
-    PhysDV cost               = deltaKinEnergy * (elInitTotalEnergy + geant::units::kElectronMassC2) /
-                  (deltaTotalMomentum * elInitTotalMomentum);
-    PhysDV cosTheta = Min(cost, (PhysDV)1.0);
-    PhysDV sinTheta = Sqrt((1.0 - cosTheta) * (1.0 + cosTheta));
+    Double_v deltaTotalMomentum = Math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0 * geant::units::kElectronMassC2));
+    Double_v cost               = deltaKinEnergy * (elInitTotalEnergy + geant::units::kElectronMassC2) /
+                    (deltaTotalMomentum * elInitTotalMomentum);
+    Double_v cosTheta = Math::Min(cost, (Double_v)1.0);
+    Double_v sinTheta = Math::Sqrt((1.0 - cosTheta) * (1.0 + cosTheta));
 
-    PhysDV phi = geant::units::kTwoPi * td->fRndm->uniformV();
-    PhysDV sinPhi, cosPhi;
-    SinCos(phi, &sinPhi, &cosPhi);
+    Double_v phi = geant::units::kTwoPi * td->fRndm->uniformV();
+    Double_v sinPhi, cosPhi;
+    Math::SinCos(phi, sinPhi, cosPhi);
 
-    PhysDV deltaDirX = sinTheta * cosPhi;
-    PhysDV deltaDirY = sinTheta * sinPhi;
-    PhysDV deltaDirZ = cosTheta;
+    Double_v deltaDirX = sinTheta * cosPhi;
+    Double_v deltaDirY = sinTheta * sinPhi;
+    Double_v deltaDirZ = cosTheta;
     RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, tracks.GetDirXVec(i), tracks.GetDirYVec(i), tracks.GetDirZVec(i));
 
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
       secondaries.SetKinE(deltaKinEnergy[l], idx);
       secondaries.SetDirX(deltaDirX[l], idx);
@@ -144,14 +149,14 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
 
     // compute the primary e-/e+ post interaction kinetic energy and direction: from momentum vector conservation
     // final momentum of the primary e-/e+ in the lab frame
-    PhysDV elDirX = elInitTotalMomentum * tracks.GetDirXVec(i) - deltaTotalMomentum * deltaDirX;
-    PhysDV elDirY = elInitTotalMomentum * tracks.GetDirYVec(i) - deltaTotalMomentum * deltaDirY;
-    PhysDV elDirZ = elInitTotalMomentum * tracks.GetDirZVec(i) - deltaTotalMomentum * deltaDirZ;
+    Double_v elDirX = elInitTotalMomentum * tracks.GetDirXVec(i) - deltaTotalMomentum * deltaDirX;
+    Double_v elDirY = elInitTotalMomentum * tracks.GetDirYVec(i) - deltaTotalMomentum * deltaDirY;
+    Double_v elDirZ = elInitTotalMomentum * tracks.GetDirZVec(i) - deltaTotalMomentum * deltaDirZ;
     // normalisation
-    PhysDV norm = 1.0 / Sqrt(elDirX * elDirX + elDirY * elDirY + elDirZ * elDirZ);
+    Double_v norm = 1.0 / Math::Sqrt(elDirX * elDirX + elDirY * elDirY + elDirZ * elDirZ);
 
     // update primary track direction
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       tracks.SetDirX((elDirX * norm)[l], i + l);
       tracks.SetDirY((elDirY * norm)[l], i + l);
       tracks.SetDirZ((elDirZ * norm)[l], i + l);
@@ -160,23 +165,23 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
   }
 }
 
-PhysDV VecMollerBhabhaIonizationModel::SampleEnergyTransfer(PhysDV elProdCut, PhysDI mcLocalIdx, double *tableEmin,
-                                                            double *tableILDeta, PhysDV primekin, PhysDV r1, PhysDV r2,
-                                                            PhysDV r3)
+Double_v VecMollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, IndexD_v mcLocalIdx,
+                                                              double *tableEmin, double *tableILDeta, Double_v primekin,
+                                                              Double_v r1, Double_v r2, Double_v r3)
 {
-  PhysDV lPrimEkin    = Log(primekin);
-  PhysDV logEmin      = vecCore::Gather<PhysDV>(tableEmin, mcLocalIdx);
-  PhysDV ilDelta      = vecCore::Gather<PhysDV>(tableILDeta, mcLocalIdx);
-  PhysDV val          = (lPrimEkin - logEmin) * ilDelta;
-  PhysDI indxPrimEkin = (PhysDI)val; // lower electron energy bin index
-  PhysDV pIndxHigh    = val - indxPrimEkin;
-  PhysDM mask         = r1 < pIndxHigh;
+  Double_v lPrimEkin    = Math::Log(primekin);
+  Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
+  Double_v ilDelta      = vecCore::Gather<Double_v>(tableILDeta, mcLocalIdx);
+  Double_v val          = (lPrimEkin - logEmin) * ilDelta;
+  IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh    = val - indxPrimEkin;
+  MaskD_v mask          = r1 < pIndxHigh;
   if (!mask.isEmpty()) {
     vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
   }
 
-  PhysDV xiV;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
     //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
     //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
 
@@ -187,66 +192,66 @@ PhysDV VecMollerBhabhaIonizationModel::SampleEnergyTransfer(PhysDV elProdCut, Ph
   }
 
   // sample the transformed variable
-  PhysDV dum1 = Log(primekin / elProdCut);
+  Double_v dum1 = Math::Log(primekin / elProdCut);
   if (fIsElectron) {
     dum1 -= 0.693147180559945; // dum1 = dum1 + log(0.5)
   }
-  return Exp(xiV * dum1) * elProdCut;
+  return Math::Exp(xiV * dum1) * elProdCut;
 }
 
 void VecMollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCut, const double *primeKinArr,
                                                           double *epsOut, int N, const geant::TaskData *td)
 {
 
-  // assert(N>=kPhysDVWidth)
-  int currN        = 0;
-  PhysDM lanesDone = PhysDM::Zero();
-  PhysDI idx;
-  for (int l = 0; l < kPhysDVWidth; ++l) {
+  // assert(N>=kVecLenD)
+  int currN         = 0;
+  MaskD_v lanesDone = MaskD_v::Zero();
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
     idx[l] = currN++;
   }
 
   while (currN < N || !lanesDone.isFull()) {
-    PhysDV primekin = vecCore::Gather<PhysDV>(primeKinArr, idx);
-    PhysDV tmin     = vecCore::Gather<PhysDV>(elProdCut, idx);
-    PhysDV tmax     = (fIsElectron) ? (0.5 * primekin) : (primekin);
-    PhysDV xmin     = tmin / primekin;
-    PhysDV xmax     = tmax / primekin;
-    PhysDV gamma    = primekin / geant::units::kElectronMassC2 + 1.0;
-    PhysDV gamma2   = gamma * gamma;
-    PhysDV beta2    = 1. - 1. / gamma2;
-    PhysDV xminmax  = xmin * xmax;
+    Double_v primekin = vecCore::Gather<Double_v>(primeKinArr, idx);
+    Double_v tmin     = vecCore::Gather<Double_v>(elProdCut, idx);
+    Double_v tmax     = (fIsElectron) ? (0.5 * primekin) : (primekin);
+    Double_v xmin     = tmin / primekin;
+    Double_v xmax     = tmax / primekin;
+    Double_v gamma    = primekin / geant::units::kElectronMassC2 + 1.0;
+    Double_v gamma2   = gamma * gamma;
+    Double_v beta2    = 1. - 1. / gamma2;
+    Double_v xminmax  = xmin * xmax;
 
-    PhysDM accepted;
-    PhysDV deltaEkin;
+    MaskD_v accepted;
+    Double_v deltaEkin;
     if (fIsElectron) {
-      PhysDV gg   = (2.0 * gamma - 1.0) / gamma2;
-      PhysDV y    = 1. - xmax;
-      PhysDV gf   = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
-      PhysDV rnd0 = td->fRndm->uniformV();
-      PhysDV rnd1 = td->fRndm->uniformV();
-      deltaEkin   = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
-      PhysDV xx   = 1.0 - deltaEkin;
-      PhysDV dum  = 1.0 - gg * deltaEkin + deltaEkin * deltaEkin * (1.0 - gg + (1.0 - gg * xx) / (xx * xx));
+      Double_v gg   = (2.0 * gamma - 1.0) / gamma2;
+      Double_v y    = 1. - xmax;
+      Double_v gf   = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
+      Double_v rnd0 = td->fRndm->uniformV();
+      Double_v rnd1 = td->fRndm->uniformV();
+      deltaEkin     = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
+      Double_v xx   = 1.0 - deltaEkin;
+      Double_v dum  = 1.0 - gg * deltaEkin + deltaEkin * deltaEkin * (1.0 - gg + (1.0 - gg * xx) / (xx * xx));
 
       accepted = gf * rnd1 < dum;
     } else {
-      PhysDV y     = 1.0 / (1.0 + gamma);
-      PhysDV y2    = y * y;
-      PhysDV y12   = 1.0 - 2.0 * y;
-      PhysDV b1    = 2.0 - y2;
-      PhysDV b2    = y12 * (3.0 + y2);
-      PhysDV y122  = y12 * y12;
-      PhysDV b4    = y122 * y12;
-      PhysDV b3    = b4 + y122;
-      PhysDV xmax2 = xmax * xmax;
-      PhysDV gf    = 1.0 + (xmax2 * b4 - xmin * xmin * xmin * b3 + xmax2 * b2 - xmin * b1) * beta2;
-      PhysDV rnd0  = td->fRndm->uniformV();
-      PhysDV rnd1  = td->fRndm->uniformV();
-      deltaEkin    = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
-      PhysDV xx    = deltaEkin * deltaEkin;
-      PhysDV dum   = 1.0 + (xx * xx * b4 - deltaEkin * xx * b3 + xx * b2 - deltaEkin * b1) * beta2;
-      accepted     = gf * rnd1 < dum;
+      Double_v y     = 1.0 / (1.0 + gamma);
+      Double_v y2    = y * y;
+      Double_v y12   = 1.0 - 2.0 * y;
+      Double_v b1    = 2.0 - y2;
+      Double_v b2    = y12 * (3.0 + y2);
+      Double_v y122  = y12 * y12;
+      Double_v b4    = y122 * y12;
+      Double_v b3    = b4 + y122;
+      Double_v xmax2 = xmax * xmax;
+      Double_v gf    = 1.0 + (xmax2 * b4 - xmin * xmin * xmin * b3 + xmax2 * b2 - xmin * b1) * beta2;
+      Double_v rnd0  = td->fRndm->uniformV();
+      Double_v rnd1  = td->fRndm->uniformV();
+      deltaEkin      = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
+      Double_v xx    = deltaEkin * deltaEkin;
+      Double_v dum   = 1.0 + (xx * xx * b4 - deltaEkin * xx * b3 + xx * b2 - deltaEkin * b1) * beta2;
+      accepted       = gf * rnd1 < dum;
     }
     deltaEkin *= primekin;
 
@@ -255,7 +260,7 @@ void VecMollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCu
     }
 
     lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kPhysDVWidth; ++l) {
+    for (int l = 0; l < kVecLenD; ++l) {
       auto laneDone = accepted[l];
       if (laneDone) {
         if (currN < N) {

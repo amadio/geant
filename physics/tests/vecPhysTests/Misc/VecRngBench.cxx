@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include "Geant/RngWrapper.h"
-#include "Geant/VectorPhysicsTypes.h"
+#include "Geant/VectorTypes.h"
 
 static void ScalarRNG(benchmark::State &state)
 {
@@ -20,8 +20,8 @@ static void VectorRNG(benchmark::State &state)
 {
   geant::RngWrapper wrapper;
   for (auto _ : state) {
-    PhysDV sumV = 0.0;
-    for (int i = 0; i < state.range(0) / kPhysDVWidth; ++i) {
+    geant::Double_v sumV = 0.0;
+    for (int i = 0; i < state.range(0) / geant::kVecLenD; ++i) {
       sumV += wrapper.uniformV();
     }
     double sum = vecCore::ReduceAdd(sum);

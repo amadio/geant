@@ -126,7 +126,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
 void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, geant::Basket &output,
                                                 geant::TaskData *td)
 {
-  assert(N % kPhysDVWidth == 0);
+  assert(N % geant::kVecLenD == 0);
   LightTrack_v &primaryLTs = td->fPhysicsData->GetPrimarySOA();
 
   for (int i = 0; i < N; ++i) {
@@ -244,8 +244,8 @@ void PostStepActionPhysModelHandler::DoItScalar(geant::Track **gtracks, int N, g
 //______________________________________________________________________________
 void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
 {
-  int vectSize                               = (input.GetNtracks() / kPhysDVWidth) * kPhysDVWidth;
-  if (vectSize <= 2 * kPhysDVWidth) vectSize = 0;
+  int vectSize                                  = (input.GetNtracks() / geant::kVecLenD) * geant::kVecLenD;
+  if (vectSize <= 2 * geant::kVecLenD) vectSize = 0;
   if (vectSize > 0) {
     DoItVector(input.Tracks().data(), vectSize, output, td);
   }

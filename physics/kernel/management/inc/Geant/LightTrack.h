@@ -3,7 +3,7 @@
 #define LIGHT_TRACK
 
 #include <atomic>
-#include <Geant/VectorPhysicsTypes.h>
+#include <Geant/VectorTypes.h>
 
 namespace geantphysics {
 
@@ -398,9 +398,9 @@ public:
   /** @brief Method that returns the X direction value (normalized, adimensional) */
   double GetDirX(int i) const { return fXdirV[i]; }
 
-  PhysDV GetDirXVec(int i) const
+  geant::Double_v GetDirXVec(int i) const
   {
-    PhysDV tmp;
+    geant::Double_v tmp;
     vecCore::Load(tmp, &fXdirV[i]);
     return tmp;
   }
@@ -408,9 +408,9 @@ public:
   /** @brief Method that returns the Y direction value (normalized, adimensional) */
   double GetDirY(int i) const { return fYdirV[i]; }
 
-  PhysDV GetDirYVec(int i) const
+  geant::Double_v GetDirYVec(int i) const
   {
-    PhysDV tmp;
+    geant::Double_v tmp;
     vecCore::Load(tmp, &fYdirV[i]);
     return tmp;
   }
@@ -418,9 +418,9 @@ public:
   /** @brief Method that returns the Z direction value (normalized, adimensional) */
   double GetDirZ(int i) const { return fZdirV[i]; }
 
-  PhysDV GetDirZVec(int i) const
+  geant::Double_v GetDirZVec(int i) const
   {
-    PhysDV tmp;
+    geant::Double_v tmp;
     vecCore::Load(tmp, &fZdirV[i]);
     return tmp;
   }
@@ -428,9 +428,9 @@ public:
   /** @brief Method that returns the kinetic energy (unit: energy) */
   double GetKinE(int i) const { return fKinEV[i]; }
 
-  PhysDV GetKinEVec(int i) const
+  geant::Double_v GetKinEVec(int i) const
   {
-    PhysDV tmp;
+    geant::Double_v tmp;
     vecCore::Load(tmp, &fKinEV[i]);
     return tmp;
   }
@@ -571,7 +571,7 @@ public:
    */
   void SetEnergyDeposit(const double aEdep, int i) { fEdepV[i] = aEdep; }
 
-  void SetEnergyDepositVec(PhysDV aEdep, int i) { vecCore::Store(aEdep, &fEdepV[i]); }
+  void SetEnergyDepositVec(geant::Double_v aEdep, int i) { vecCore::Store(aEdep, &fEdepV[i]); }
 
   /**
    * @brief Method that sets the number of discrete interaction left.

@@ -45,8 +45,9 @@ public:
   ;
 
 private:
-  PhysDV SampleEnergyTransfer(PhysDV elProdCut, PhysDI mcLocalIdx, double *tableEmin, double *tableILDeta,
-                              PhysDV primekin, PhysDV r1, PhysDV r2, PhysDV r3);
+  geant::Double_v SampleEnergyTransfer(geant::Double_v elProdCut, geant::IndexD_v mcLocalIdx, double *tableEmin,
+                                       double *tableILDeta, geant::Double_v primekin, geant::Double_v r1,
+                                       geant::Double_v r2, geant::Double_v r3);
 
   void SampleEnergyTransfer(const double *elProdCut, const double *primekin, double *epsOut, int N,
                             const geant::TaskData *td);
