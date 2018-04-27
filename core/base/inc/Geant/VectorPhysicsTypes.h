@@ -1,7 +1,7 @@
 #ifndef GEANTV_VECTORPHYSICSTYPES_H
 #define GEANTV_VECTORPHYSICSTYPES_H
 
-#include <GV/VecCore/VecCore>
+#include <VecCore/VecCore>
 
 using PhysVecBackend       = vecCore::backend::VcVector;
 using PhysDV               = vecCore::backend::VcVector::Double_v;

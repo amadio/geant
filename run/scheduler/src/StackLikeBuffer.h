@@ -19,7 +19,7 @@
 #ifndef GEANT_STACK_LIKE_BUFFER
 #define GEANT_STACK_LIKE_BUFFER
 
-#include <GV/VecCore/VecCore>
+#include <VecCore/VecCore>
 #include "Geant/Typedefs.h"
 #include "Geant/Track.h"
 #include "Geant/Basket.h"

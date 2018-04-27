@@ -302,40 +302,6 @@ if (KNL)
 endif()
 
 #----------------------------------------------------------------------------
-# VecCore - build veccore inside
-# (!) it will not install it
-set(BUILTIN_VECCORE_DIR ${CMAKE_BINARY_DIR}/builtin_veccore/)
-set(BUILTIN_VECCORE_CMAKETXT "
-project(builtin_veccore)
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
-include(ExternalProject)
-ExternalProject_Add(builtin_veccore
-        GIT_REPOSITORY https://github.com/root-project/veccore.git
-        GIT_TAG 80d38edba37e7e930d62f593b56506205a5673b5
-
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${BUILTIN_VECCORE_DIR}/install -DVECRNG=ON -DBACKEND=VC
-
-        INSTALL_DIR ${BUILTIN_VECCORE_DIR}/install
-        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ext_inc/GV
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ext_inc/GV/VecCore
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ext_inc/GV/VecRng
-                COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILTIN_VECCORE_DIR}/install/include/VecCore ${CMAKE_BINARY_DIR}/ext_inc/GV/VecCore
-                COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILTIN_VECCORE_DIR}/install/include/VecRng ${CMAKE_BINARY_DIR}/ext_inc/GV/VecRng
-        )
-")
-file(MAKE_DIRECTORY ${BUILTIN_VECCORE_DIR})
-file(WRITE ${BUILTIN_VECCORE_DIR}/CMakeLists.txt "${BUILTIN_VECCORE_CMAKETXT}")
-execute_process(COMMAND ${CMAKE_COMMAND} . -G ${CMAKE_GENERATOR}
-        WORKING_DIRECTORY ${BUILTIN_VECCORE_DIR})
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-        WORKING_DIRECTORY ${BUILTIN_VECCORE_DIR})
-execute_process(COMMAND ${CMAKE_COMMAND} --build . --target install
-        WORKING_DIRECTORY ${BUILTIN_VECCORE_DIR})
-include_directories(${CMAKE_BINARY_DIR}/ext_inc/)
-
-
-#----------------------------------------------------------------------------
 # Load macros
 #
 include(cmake/modules/GeantMacros.cmake)
@@ -598,6 +564,8 @@ endif()
 add_subdirectory(physics/kernel/material)
 
 add_subdirectory(physics/generators)
+
+
 
 #----------------------------------------------------------------------------------------------
 # Process Doxygen file

@@ -1,13 +1,14 @@
 #include <benchmark/benchmark.h>
 #include "Geant/FastMath.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
+#include "Geant/VectorPhysicsTypes.h"
 
 const int kN = 256;
 
 static void ScalarExp(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -24,7 +25,7 @@ BENCHMARK(ScalarExp)->Arg(kN);
 
 static void VectorExp(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {
@@ -46,7 +47,7 @@ BENCHMARK(VectorExp)->Arg(kN);
 
 static void ScalarLog(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -63,7 +64,7 @@ BENCHMARK(ScalarLog)->Arg(kN);
 
 static void VectorLog(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {
@@ -85,7 +86,7 @@ BENCHMARK(VectorLog)->Arg(kN);
 
 static void ScalarSqrt(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -102,7 +103,7 @@ BENCHMARK(ScalarSqrt)->Arg(kN);
 
 static void VectorSqrt(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {
@@ -124,7 +125,7 @@ BENCHMARK(VectorSqrt)->Arg(kN);
 
 static void ScalarDiv(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -146,7 +147,7 @@ BENCHMARK(ScalarDiv)->Arg(kN);
 
 static void VectorDiv(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {
@@ -171,7 +172,7 @@ BENCHMARK(VectorDiv)->Arg(kN);
 
 static void ScalarSin(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -188,7 +189,7 @@ BENCHMARK(ScalarSin)->Arg(kN);
 
 static void VectorSin(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {
@@ -210,7 +211,7 @@ BENCHMARK(VectorSin)->Arg(kN);
 
 static void ScalarCos(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -227,7 +228,7 @@ BENCHMARK(ScalarCos)->Arg(kN);
 
 static void VectorCos(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {
@@ -249,7 +250,7 @@ BENCHMARK(VectorCos)->Arg(kN);
 
 static void ScalarSinCos(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
   std::vector<double> rnd;
   for (int i = 0; i < state.range(0); ++i) {
     rnd.push_back(wrapper.uniform());
@@ -267,7 +268,7 @@ BENCHMARK(ScalarSinCos)->Arg(kN);
 
 static void VectorSinCos(benchmark::State &state)
 {
-  geant::VecRngWrapper wrapper;
+  geant::RngWrapper wrapper;
 
   double *rnd = (double *)vecCore::AlignedAlloc(kPhysDVAlign, state.range(0) * sizeof(double));
   for (int i = 0; i < state.range(0); ++i) {

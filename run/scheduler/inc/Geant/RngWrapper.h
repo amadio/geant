@@ -12,10 +12,10 @@ class RngWrapper {
 public:
   RngWrapper()
   {
-    void *buff     = vecCore::AlignedAlloc(64, sizeof(vecRng::MRG32k3a<vecCore::backend::Scalar>));
+    void *buff     = vecCore::AlignedAlloc(32, sizeof(vecRng::MRG32k3a<vecCore::backend::Scalar>));
     mrg32k3aScalar = new (buff) vecRng::MRG32k3a<vecCore::backend::Scalar>;
 
-    buff        = vecCore::AlignedAlloc(64, sizeof(vecRng::MRG32k3a<VectorBackend>));
+    buff        = vecCore::AlignedAlloc(32, sizeof(vecRng::MRG32k3a<VectorBackend>));
     mrg32k3aVec = new (buff) vecRng::MRG32k3a<VectorBackend>;
 
     mrg32k3aScalar->Initialize();

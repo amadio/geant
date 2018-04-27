@@ -102,7 +102,7 @@ enum class TestParticleType {
 
 void CreateParticles(double minEn, double maxEn, bool randomDir, TestParticleType type, LightTrack_v &out, int N)
 {
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   out.SetNtracks(N);
   for (int i = 0; i < N; ++i) {
     double E = 0.0;
@@ -291,7 +291,7 @@ void CreateParticles(double minEn, double maxEn, bool randomDir, TestParticleTyp
                      int N)
 {
   out.resize(N);
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   for (int i = 0; i < N; ++i) {
     double E = 0.0;
     if (minEn == maxEn) {

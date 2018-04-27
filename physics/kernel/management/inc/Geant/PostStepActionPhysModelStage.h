@@ -36,14 +36,14 @@ public:
   ~PostStepActionPhysModelStage();
 
   /** @brief Get simulation stage name */
-  virtual const char *GetName() { return "PostStepActionPhysModelStage"; }
+  const char *GetName() const override { return "PostStepActionPhysModelStage"; }
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
-  virtual int CreateHandlers();
+  int CreateHandlers() override;
 
   /** @brief Interface to select the handler matching a track */
-  virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
+  geant::Handler *Select(geant::Track *track, geant::TaskData *td) override;
 
 private:
   PostStepActionPhysModelStage(const PostStepActionPhysModelStage &) = delete;

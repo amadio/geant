@@ -120,7 +120,6 @@ set(headers
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/ScalarNavInterfaceVG.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/ScalarNavInterfaceVGM.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/VectorNavInterface.h
-   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/VecRngWrapper.h
 )
 
 if (USE_ROOT)
