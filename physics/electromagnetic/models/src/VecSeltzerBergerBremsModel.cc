@@ -27,6 +27,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 VecSeltzerBergerBremsModel::VecSeltzerBergerBremsModel(bool iselectron, const std::string &modelname)
     : SeltzerBergerBremsModel(iselectron, modelname)
@@ -91,16 +96,16 @@ void VecSeltzerBergerBremsModel::SampleSecondariesVector(LightTrack_v &tracks, g
     Double_v densityCor;
     for (int l = 0; l < kVecLenD; ++l) {
       const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterialCutCoupleIndex(i + l));
-      gammaCut[l]                = matCut->GetProductionCutsInEnergy()[0];
-      densityCor[l]              = matCut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol();
+      Set(gammaCut, l, matCut->GetProductionCutsInEnergy()[0]);
+      Set(densityCor, l, matCut->GetMaterial()->GetMaterialProperties()->GetTotalNumOfElectronsPerVol());
       if (GetUseSamplingTables()) {
-        mcIndxLocal[l] = fGlobalMatGCutIndxToLocal[matCut->GetIndex()];
+        Set(mcIndxLocal, l, fGlobalMatGCutIndxToLocal[matCut->GetIndex()]);
       } else {
         // sample target element
         const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
         double targetElemIndx                  = 0;
         if (theElements.size() > 1) {
-          targetElemIndx = SampleTargetElementIndex(matCut, primEkin[l], td->fRndm->uniform());
+          targetElemIndx = SampleTargetElementIndex(matCut, Get(primEkin, l), td->fRndm->uniform());
         }
         const double zet = theElements[targetElemIndx]->GetZ();
         IZet[i + l]      = std::min((int)std::lrint(zet), fDCSMaxZet);
@@ -158,10 +163,10 @@ void VecSeltzerBergerBremsModel::SampleSecondariesVector(LightTrack_v &tracks, g
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
     for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
-      secondaries.SetKinE(gammaEnergy[l], idx);
-      secondaries.SetDirX(gamDirX[l], idx);
-      secondaries.SetDirY(gamDirY[l], idx);
-      secondaries.SetDirZ(gamDirZ[l], idx);
+      secondaries.SetKinE(Get(gammaEnergy, l), idx);
+      secondaries.SetDirX(Get(gamDirX, l), idx);
+      secondaries.SetDirY(Get(gamDirY, l), idx);
+      secondaries.SetDirZ(Get(gamDirZ, l), idx);
       secondaries.SetGVcode(fSecondaryInternalCode, idx);
       secondaries.SetMass(0.0, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
@@ -178,10 +183,10 @@ void VecSeltzerBergerBremsModel::SampleSecondariesVector(LightTrack_v &tracks, g
 
     // update primary track direction
     for (int l = 0; l < kVecLenD; ++l) {
-      tracks.SetDirX((elDirX * norm)[l], i + l);
-      tracks.SetDirY((elDirY * norm)[l], i + l);
-      tracks.SetDirZ((elDirZ * norm)[l], i + l);
-      tracks.SetKinE((ekin - gammaEnergy)[l], i + l);
+      tracks.SetDirX(Get(elDirX * norm, l), i + l);
+      tracks.SetDirY(Get(elDirY * norm, l), i + l);
+      tracks.SetDirZ(Get(elDirZ * norm, l), i + l);
+      tracks.SetKinE(Get(ekin - gammaEnergy, l), i + l);
     }
   }
 }
@@ -197,7 +202,7 @@ Double_v VecSeltzerBergerBremsModel::SampleEnergyTransfer(Double_v gammaCut, Dou
   IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
   Double_v pIndxHigh    = val - indxPrimEkin;
   MaskD_v mask          = r1 < pIndxHigh;
-  if (!mask.isEmpty()) {
+  if (!MaskEmpty(mask)) {
     vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
   }
 
@@ -208,10 +213,11 @@ Double_v VecSeltzerBergerBremsModel::SampleEnergyTransfer(Double_v gammaCut, Dou
     //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
     //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
 
-    const LinAlias *als = fSamplingTables[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
-    const double egamma = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
-                                                      &(als->fAliasIndx[0]), fSTNumSamplingPhotEnergies, r2[l], r3[l]);
-    egammaV[l] = egamma;
+    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    const double egamma =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumSamplingPhotEnergies, Get(r2, l), Get(r3, l));
+    Set(egammaV, l, egamma);
   }
 
   const Double_v dum1 = gammaCut * gammaCut + densityCor;
@@ -226,14 +232,16 @@ void VecSeltzerBergerBremsModel::SampleEnergyTransfer(const double *eEkin, const
 {
 
   //  // assert(N>=kVecLenD)
-  int currN         = 0;
-  MaskD_v lanesDone = MaskD_v::Zero();
+  int currN = 0;
+  MaskD_v lanesDone;
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
-    idx[l] = currN++;
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
   }
+
   //
-  while (currN < N || !lanesDone.isFull()) {
+  while (currN < N || !MaskFull(lanesDone)) {
     Double_v eekin       = vecCore::Gather<Double_v>(eEkin, idx);
     Double_v gcut        = vecCore::Gather<Double_v>(gammaCut, idx);
     Double_v densityCorr = vecCore::Gather<Double_v>(densityCorArr, idx);
@@ -249,14 +257,14 @@ void VecSeltzerBergerBremsModel::SampleEnergyTransfer(const double *eEkin, const
 
     Double_v vmax;
     for (int l = 0; l < kVecLenD; ++l) {
-      vmax[l] = 1.02 * GetDXSECValue(IZet[idx[l]], ie[l], eresid[l], kappac[l]);
+      Set(vmax, l, 1.02 * GetDXSECValue(IZet[Get(idx, l)], Get(ie, l), Get(eresid, l), Get(kappac, l)));
       //
       // majoranta corrected vmax for e-
       constexpr double epeaklimit = 300.0 * geant::units::MeV;
       constexpr double elowlimit  = 20.0 * geant::units::keV;
-      if (fIsElectron && kappac[l] < 0.97 && ((eekin[l] > epeaklimit) || (eekin[l] < elowlimit))) {
-        vmax = std::max(
-            vmax, std::min(fXsecLimits[IZet[idx[l]] - 1], 1.1 * GetDXSECValue(IZet[idx[l]], ie[l], eresid[l], 0.97)));
+      if (fIsElectron && Get(kappac, l) < 0.97 && ((Get(eekin, l) > epeaklimit) || (Get(eekin, l) < elowlimit))) {
+        vmax = std::max(vmax, std::min(fXsecLimits[IZet[Get(idx, l)] - 1],
+                                       1.1 * GetDXSECValue(IZet[Get(idx, l)], Get(ie, l), Get(eresid, l), 0.97)));
       }
     }
     MaskD_v tmp = kappac < 0.05;
@@ -271,7 +279,7 @@ void VecSeltzerBergerBremsModel::SampleEnergyTransfer(const double *eEkin, const
     const Double_v kappa = egamma / eekin;
     Double_v val         = 0.0;
     for (int l = 0; l < kVecLenD; ++l) {
-      val[l] = GetDXSECValue(IZet[idx[l]], ie[l], eresid[l], kappa[l]);
+      Set(val, l, GetDXSECValue(IZet[Get(idx, l)], Get(ie, l), Get(eresid, l), Get(kappa, l)));
     }
 
     if (!fIsElectron) {
@@ -282,19 +290,19 @@ void VecSeltzerBergerBremsModel::SampleEnergyTransfer(const double *eEkin, const
     Double_v rnd1    = td->fRndm->uniformV();
     MaskD_v accepted = val > vmax * rnd1;
 
-    if (accepted.isNotEmpty()) {
+    if (!MaskEmpty(accepted)) {
       vecCore::Scatter(egamma, gammaEn, idx);
     }
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = accepted[l];
+      auto laneDone = Get(accepted, l);
       if (laneDone) {
         if (currN < N) {
-          idx[l]       = currN++;
-          lanesDone[l] = false;
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
         } else {
-          idx[l] = N;
+          Set(idx, l, N);
         }
       }
     }

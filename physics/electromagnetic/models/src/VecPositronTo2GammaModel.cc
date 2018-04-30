@@ -11,6 +11,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 void VecPositronTo2GammaModel::Initialize()
 {
@@ -89,10 +94,10 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     const Double_v gamEner = eps * tEnergy;
     for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
-      secondaries.SetKinE(gamEner[l], idx);
-      secondaries.SetDirX(gamDirX[l], idx);
-      secondaries.SetDirY(gamDirY[l], idx);
-      secondaries.SetDirZ(gamDirZ[l], idx);
+      secondaries.SetKinE(Get(gamEner, l), idx);
+      secondaries.SetDirX(Get(gamDirX, l), idx);
+      secondaries.SetDirY(Get(gamDirY, l), idx);
+      secondaries.SetDirZ(Get(gamDirZ, l), idx);
       secondaries.SetGVcode(fSecondaryInternalCode, idx);
       secondaries.SetMass(0.0, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
@@ -109,10 +114,10 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     // set up the second gamma track
     for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
-      secondaries.SetKinE((tEnergy - gamEner)[l], idx);
-      secondaries.SetDirX((gamDirX * norm)[l], idx);
-      secondaries.SetDirY((gamDirY * norm)[l], idx);
-      secondaries.SetDirZ((gamDirZ * norm)[l], idx);
+      secondaries.SetKinE(Get(tEnergy - gamEner, l), idx);
+      secondaries.SetDirX(Get(gamDirX * norm, l), idx);
+      secondaries.SetDirY(Get(gamDirY * norm, l), idx);
+      secondaries.SetDirZ(Get(gamDirZ * norm, l), idx);
       secondaries.SetGVcode(fSecondaryInternalCode, idx);
       secondaries.SetMass(0.0, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
@@ -133,13 +138,13 @@ Double_v VecPositronTo2GammaModel::SampleEnergyTransferAlias(Double_v pekin, Dou
   IndexD_v indxPekin = (IndexD_v)val; // lower electron energy bin index
   Double_v pIndxHigh = val - indxPekin;
   MaskD_v mask       = r1 < pIndxHigh;
-  if (!mask.isEmpty()) {
+  if (!MaskEmpty(mask)) {
     vecCore::MaskedAssign(indxPekin, mask, indxPekin + 1);
   }
 
   Double_v xiV;
   for (int l = 0; l < kVecLenD; ++l) {
-    int idx = (int)indxPekin[l];
+    int idx = (int)Get(indxPekin, l);
 
     // LinAliasCached &als = fCachedAliasTable[idx];
     //    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l);
@@ -148,8 +153,8 @@ Double_v VecPositronTo2GammaModel::SampleEnergyTransferAlias(Double_v pekin, Dou
     const LinAlias *als = fSamplingTables[idx];
     const double xi =
         fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumDiscreteEnergyTransferVals, r2[l], r3[l]);
-    xiV[l] = xi;
+                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+    Set(xiV, l, xi);
   }
 
   const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
@@ -163,14 +168,15 @@ void VecPositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, d
                                                        const geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
-  int currN         = 0;
-  MaskD_v lanesDone = MaskD_v::Zero();
+  int currN = 0;
+  MaskD_v lanesDone;
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
-    idx[l] = currN++;
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
   }
 
-  while (currN < N || !lanesDone.isFull()) {
+  while (currN < N || !MaskFull(lanesDone)) {
     Double_v gamma = vecCore::Gather<Double_v>(gammaArr, idx);
 
     const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
@@ -186,19 +192,19 @@ void VecPositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, d
     Double_v grej    = 1. - eps + (2. * gamma * eps - 1.) / (eps * dum2);
     MaskD_v accepted = grej > rnd1;
 
-    if (accepted.isNotEmpty()) {
+    if (!MaskEmpty(accepted)) {
       vecCore::Scatter(eps, epsOut, idx);
     }
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = accepted[l];
+      auto laneDone = Get(accepted, l);
       if (laneDone) {
         if (currN < N) {
-          idx[l]       = currN++;
-          lanesDone[l] = false;
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
         } else {
-          idx[l] = N;
+          Set(idx, l, N);
         }
       }
     }

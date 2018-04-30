@@ -6,6 +6,7 @@
 #include <vector>
 #include <Geant/LightTrack.h>
 #include <Geant/VectorTypes.h>
+#include <Geant/math_wrappers.h>
 
 // from geantV
 #include "Geant/Config.h"
@@ -195,24 +196,23 @@ public:
   bool IsActiveRegion(const int regionindx) const { return fListActiveRegions[regionindx]; }
 
   // protected
-  void RotateToLabFrame(double &u, double &v, double &w, double x, double y, double z);
 
-  void RotateToLabFrame(geant::Double_v &u, geant::Double_v &v, geant::Double_v &w, geant::Double_v u1,
-                        geant::Double_v u2, geant::Double_v u3)
+  template <typename R>
+  void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
   {
-    geant::Double_v up   = u1 * u1 + u2 * u2;
-    geant::MaskD_v upPos = up > 0.0;
-    if (upPos.isNotEmpty()) {
-      up                 = vecCore::math::Sqrt(up);
-      geant::Double_v px = u;
-      geant::Double_v py = v;
-      geant::Double_v pz = w;
+    R up                   = u1 * u1 + u2 * u2;
+    vecCore::Mask<R> upPos = up > 0.0;
+    if (!vecCore::MaskEmpty(upPos)) {
+      up   = Math::Sqrt(up);
+      R px = u;
+      R py = v;
+      R pz = w;
       vecCore::MaskedAssign(u, upPos, (u1 * u3 * px - u2 * py) / up + u1 * pz);
       vecCore::MaskedAssign(v, upPos, (u2 * u3 * px + u1 * py) / up + u2 * pz);
       vecCore::MaskedAssign(w, upPos, -up * px + u3 * pz);
     }
-    geant::MaskD_v upPosu3Neg = !upPos && u3 < 0.;
-    if (upPosu3Neg.isNotEmpty()) {
+    vecCore::Mask<R> upPosu3Neg = !upPos && u3 < 0.;
+    if (!vecCore::MaskEmpty(upPosu3Neg)) {
       vecCore::MaskedAssign(u, upPosu3Neg, -u);
       vecCore::MaskedAssign(w, upPosu3Neg, -w);
     }

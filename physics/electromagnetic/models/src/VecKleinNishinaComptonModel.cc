@@ -11,6 +11,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 void VecKleinNishinaComptonModel::Initialize()
 {
@@ -92,14 +97,14 @@ void VecKleinNishinaComptonModel::SampleSecondariesVector(LightTrack_v &tracks, 
     Double_v postGammaE = eps * ekin;
     MaskD_v gammaAlive  = postGammaE > GetLowestSecondaryEnergy();
     for (int l = 0; l < kVecLenD; ++l) {
-      bool alive = gammaAlive[l];
+      bool alive = Get(gammaAlive, l);
       if (alive) {
-        tracks.SetKinE(postGammaE[l], i + l);
-        tracks.SetDirX(dirX[l], i + l);
-        tracks.SetDirY(dirY[l], i + l);
-        tracks.SetDirZ(dirZ[l], i + l);
+        tracks.SetKinE(Get(postGammaE, l), i + l);
+        tracks.SetDirX(Get(dirX, l), i + l);
+        tracks.SetDirY(Get(dirY, l), i + l);
+        tracks.SetDirZ(Get(dirZ, l), i + l);
       } else {
-        enDeposit[l] = postGammaE[l];
+        Set(enDeposit, l, Get(postGammaE, l));
         tracks.SetKinE(0.0, i + l);
         tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
       }
@@ -109,7 +114,7 @@ void VecKleinNishinaComptonModel::SampleSecondariesVector(LightTrack_v &tracks, 
     MaskD_v elAlive   = elEnergy > GetLowestSecondaryEnergy();
 
     Double_v elDirX = 1.0, elDirY = 0.0, elDirZ = 0.0;
-    if (!elAlive.isEmpty()) {
+    if (!MaskEmpty(elAlive)) {
       elDirX              = ekin * gammaX - postGammaE * dirX;
       elDirY              = ekin * gammaY - postGammaE * dirY;
       elDirZ              = ekin * gammaZ - postGammaE * dirZ;
@@ -122,18 +127,18 @@ void VecKleinNishinaComptonModel::SampleSecondariesVector(LightTrack_v &tracks, 
     for (int l = 0; l < kVecLenD; ++l) {
       LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
 
-      bool alive = elAlive[l];
+      bool alive = Get(elAlive, l);
       if (alive) {
         int idx = secondaries.InsertTrack();
-        secondaries.SetKinE(elEnergy[l], idx);
-        secondaries.SetDirX(elDirX[l], idx);
-        secondaries.SetDirY(elDirY[l], idx);
-        secondaries.SetDirZ(elDirZ[l], idx);
+        secondaries.SetKinE(Get(elEnergy, l), idx);
+        secondaries.SetDirX(Get(elDirX, l), idx);
+        secondaries.SetDirY(Get(elDirY, l), idx);
+        secondaries.SetDirZ(Get(elDirZ, l), idx);
         secondaries.SetGVcode(fSecondaryInternalCode, idx);
         secondaries.SetMass(geant::units::kElectronMassC2, idx);
         secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
       } else {
-        enDeposit[l] = elEnergy[l];
+        Set(enDeposit, l, Get(elEnergy, l));
       }
     }
 
@@ -151,13 +156,13 @@ Double_v VecKleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egam
   IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
   Double_v pIndxHigh  = val - indxEgamma;
   MaskD_v mask        = r1 < pIndxHigh;
-  if (!mask.isEmpty()) {
+  if (!MaskEmpty(mask)) {
     vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
   }
 
   Double_v xiV;
   for (int l = 0; l < kVecLenD; ++l) {
-    int idx = (int)indxEgamma[l];
+    int idx = (int)Get(indxEgamma, l);
     //    LinAliasCached &als = fAliasTablePerGammaEnergy[idx];
     //    double xi           = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2[l],
     //    r3[l]);
@@ -166,9 +171,8 @@ Double_v VecKleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egam
     const LinAlias *als = fSamplingTables[idx];
     const double xi =
         fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumDiscreteEnergyTransferVals, r2[l], r3[l]);
-    vecCore::Set(xiV, l, xi);
-    xiV[l] = xi;
+                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+    Set(xiV, l, xi);
   }
   // transform it back to eps = E_1/E_0
   // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
@@ -182,14 +186,15 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
                                                                const geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
-  int currN         = 0;
-  MaskD_v lanesDone = MaskD_v::Zero();
+  int currN = 0;
+  MaskD_v lanesDone;
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
-    idx[l] = currN++;
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
   }
 
-  while (currN < N || !lanesDone.isFull()) {
+  while (currN < N || !MaskFull(lanesDone)) {
 
     Double_v kappa = vecCore::Gather<Double_v>(egamma, idx) / geant::units::kElectronMassC2;
     Double_v eps0  = 1. / (1. + 2. * kappa);
@@ -212,11 +217,11 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
     Double_v eps, eps2, gf;
 
     MaskD_v cond1 = cond > rnd1;
-    if (cond1.isNotEmpty()) {
+    if (!MaskEmpty(cond1)) {
       vecCore::MaskedAssign(eps, cond1, Math::Exp(-al1 * rnd2));
       vecCore::MaskedAssign(eps2, cond1, eps * eps);
     }
-    if ((!cond1).isNotEmpty()) {
+    if (!MaskEmpty(!cond1)) {
       vecCore::MaskedAssign(eps2, !cond1, eps02 + (1.0 - eps02) * rnd2);
       vecCore::MaskedAssign(eps, !cond1, Math::Sqrt(eps2));
     }
@@ -227,7 +232,7 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
 
     MaskD_v accepted = gf > rnd3;
 
-    if (accepted.isNotEmpty()) {
+    if (!MaskEmpty(accepted)) {
       vecCore::Scatter(onemcost, onemcostOut, idx);
       vecCore::Scatter(sint2, sint2Out, idx);
       vecCore::Scatter(eps, epsOut, idx);
@@ -235,13 +240,13 @@ void VecKleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *ega
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = accepted[l];
+      auto laneDone = Get(accepted, l);
       if (laneDone) {
         if (currN < N) {
-          idx[l]       = currN++;
-          lanesDone[l] = false;
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
         } else {
-          idx[l] = N;
+          Set(idx, l, N);
         }
       }
     }

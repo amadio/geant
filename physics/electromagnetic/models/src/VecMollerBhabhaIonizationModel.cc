@@ -28,6 +28,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 VecMollerBhabhaIonizationModel::VecMollerBhabhaIonizationModel(bool iselectron, const std::string &modelname)
     : MollerBhabhaIonizationModel(iselectron, modelname)
@@ -87,13 +92,13 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
     IndexD_v mcIndxLocal; // Used by alias method
     for (int l = 0; l < kVecLenD; ++l) {
       const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(tracks.GetMaterialCutCoupleIndex(i + l));
-      electronCut[l]             = matCut->GetProductionCutsInEnergy()[1];
+      Set(electronCut, l, matCut->GetProductionCutsInEnergy()[1]);
       if (GetUseSamplingTables()) {
-        mcIndxLocal[l] = fGlobalMatECutIndxToLocal[matCut->GetIndex()];
+        Set(mcIndxLocal, l, fGlobalMatECutIndxToLocal[matCut->GetIndex()]);
       }
     }
     Double_v primEkin = tracks.GetKinEVec(i);
-    assert((primEkin >= electronCut).isFull()); // Cut filtering should be applied up the call chain.
+    // assert((primEkin >= electronCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
       Double_v r1  = td->fRndm->uniformV();
       Double_v r2  = td->fRndm->uniformV();
@@ -138,10 +143,10 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
     for (int l = 0; l < kVecLenD; ++l) {
       int idx = secondaries.InsertTrack();
-      secondaries.SetKinE(deltaKinEnergy[l], idx);
-      secondaries.SetDirX(deltaDirX[l], idx);
-      secondaries.SetDirY(deltaDirY[l], idx);
-      secondaries.SetDirZ(deltaDirZ[l], idx);
+      secondaries.SetKinE(Get(deltaKinEnergy, l), idx);
+      secondaries.SetDirX(Get(deltaDirX, l), idx);
+      secondaries.SetDirY(Get(deltaDirY, l), idx);
+      secondaries.SetDirZ(Get(deltaDirZ, l), idx);
       secondaries.SetGVcode(fSecondaryInternalCode, idx);
       secondaries.SetMass(geant::units::kElectronMassC2, idx);
       secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx);
@@ -157,10 +162,10 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
 
     // update primary track direction
     for (int l = 0; l < kVecLenD; ++l) {
-      tracks.SetDirX((elDirX * norm)[l], i + l);
-      tracks.SetDirY((elDirY * norm)[l], i + l);
-      tracks.SetDirZ((elDirZ * norm)[l], i + l);
-      tracks.SetKinE((ekin - deltaKinEnergy)[l], i + l);
+      tracks.SetDirX(Get(elDirX * norm, l), i + l);
+      tracks.SetDirY(Get(elDirY * norm, l), i + l);
+      tracks.SetDirZ(Get(elDirZ * norm, l), i + l);
+      tracks.SetKinE(Get(ekin - deltaKinEnergy, l), i + l);
     }
   }
 }
@@ -176,7 +181,7 @@ Double_v VecMollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut
   IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
   Double_v pIndxHigh    = val - indxPrimEkin;
   MaskD_v mask          = r1 < pIndxHigh;
-  if (!mask.isEmpty()) {
+  if (!MaskEmpty(mask)) {
     vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
   }
 
@@ -185,10 +190,11 @@ Double_v VecMollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut
     //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
     //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
 
-    const LinAlias *als = fSamplingTables[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
-    const double xi     = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
-                                                  &(als->fAliasIndx[0]), fSTNumSamplingElecEnergies, r2[l], r3[l]);
-    xiV[l] = xi;
+    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    const double xi =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumSamplingElecEnergies, Get(r2, l), Get(r3, l));
+    Set(xiV, l, xi);
   }
 
   // sample the transformed variable
@@ -204,14 +210,15 @@ void VecMollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCu
 {
 
   // assert(N>=kVecLenD)
-  int currN         = 0;
-  MaskD_v lanesDone = MaskD_v::Zero();
+  int currN = 0;
+  MaskD_v lanesDone;
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
-    idx[l] = currN++;
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
   }
 
-  while (currN < N || !lanesDone.isFull()) {
+  while (currN < N || !MaskFull(lanesDone)) {
     Double_v primekin = vecCore::Gather<Double_v>(primeKinArr, idx);
     Double_v tmin     = vecCore::Gather<Double_v>(elProdCut, idx);
     Double_v tmax     = (fIsElectron) ? (0.5 * primekin) : (primekin);
@@ -255,19 +262,19 @@ void VecMollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCu
     }
     deltaEkin *= primekin;
 
-    if (accepted.isNotEmpty()) {
+    if (!MaskEmpty(accepted)) {
       vecCore::Scatter(deltaEkin, epsOut, idx);
     }
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = accepted[l];
+      auto laneDone = Get(accepted, l);
       if (laneDone) {
         if (currN < N) {
-          idx[l]       = currN++;
-          lanesDone[l] = false;
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
         } else {
-          idx[l] = N;
+          Set(idx, l, N);
         }
       }
     }

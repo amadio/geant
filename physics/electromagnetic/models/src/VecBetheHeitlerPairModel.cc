@@ -13,6 +13,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 void VecBetheHeitlerPairModel::Initialize()
 {
@@ -179,20 +184,20 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
 
       // Add e-
       int idx = secondarySoA.InsertTrack();
-      secondarySoA.SetDirX(eleDirX[l], idx);
-      secondarySoA.SetDirY(eleDirY[l], idx);
-      secondarySoA.SetDirZ(eleDirZ[l], idx);
-      secondarySoA.SetKinE(ekinElectron[l], idx);
+      secondarySoA.SetDirX(Get(eleDirX, l), idx);
+      secondarySoA.SetDirY(Get(eleDirY, l), idx);
+      secondarySoA.SetDirZ(Get(eleDirZ, l), idx);
+      secondarySoA.SetKinE(Get(ekinElectron, l), idx);
       secondarySoA.SetGVcode(fElectronInternalCode, idx);
       secondarySoA.SetMass(geant::units::kElectronMassC2, idx);
       secondarySoA.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
 
       // Add e+
       idx = secondarySoA.InsertTrack();
-      secondarySoA.SetDirX(posDirX[l], idx);
-      secondarySoA.SetDirY(posDirY[l], idx);
-      secondarySoA.SetDirZ(posDirZ[l], idx);
-      secondarySoA.SetKinE(ekinPositron[l], idx);
+      secondarySoA.SetDirX(Get(posDirX, l), idx);
+      secondarySoA.SetDirY(Get(posDirY, l), idx);
+      secondarySoA.SetDirZ(Get(posDirZ, l), idx);
+      secondarySoA.SetKinE(Get(ekinPositron, l), idx);
       secondarySoA.SetGVcode(fPositronInternalCode, idx);
       secondarySoA.SetMass(geant::units::kElectronMassC2, idx);
       secondarySoA.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
@@ -209,24 +214,24 @@ Double_v VecBetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(Double_
   IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
   Double_v pIndxHigh  = val - indxEgamma;
   MaskD_v mask        = r1 < pIndxHigh;
-  if (!mask.isEmpty()) {
+  if (!MaskEmpty(mask)) {
     vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
   }
 
   Double_v xiV;
   for (int l = 0; l < kVecLenD; ++l) {
-    int idx                  = (int)indxEgamma[l];
+    int idx                  = (int)Get(indxEgamma, l);
     RatinAliasDataTrans &als = fAliasTablesPerZ[izet[l]].fTablePerEn[idx];
-    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, r2[l], r3[l], 0);
+    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l), 0);
 
-    xiV[l] = xi;
+    Set(xiV, l, xi);
   }
   Double_v deltaMax;
   Double_v deltaFactor;
   for (int l = 0; l < kVecLenD; ++l) {
-    deltaMax[l] = egamma[l] > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
-                                                      : gElementData[izet[l]]->fDeltaMaxLowTsai;
-    deltaFactor[l] = gElementData[izet[l]]->fDeltaFactor;
+    Set(deltaMax, l, Get(egamma, l) > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
+                                                              : gElementData[izet[l]]->fDeltaMaxLowTsai);
+    Set(deltaFactor, l, gElementData[izet[l]]->fDeltaFactor);
   }
   const Double_v eps0   = geant::units::kElectronMassC2 / egamma;
   const Double_v epsp   = 0.5 - 0.5 * Math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
@@ -239,31 +244,32 @@ void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *ega
                                                                int N, geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
-  int currN         = 0;
-  MaskD_v lanesDone = MaskD_v::Zero();
+  int currN = 0;
+  MaskD_v lanesDone;
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
-    idx[l] = currN++;
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
   }
 
-  while (currN < N || !lanesDone.isFull()) {
+  while (currN < N || !MaskFull(lanesDone)) {
     Double_v fz;
     Double_v deltaMax;
     Double_v deltaFac;
 
     for (int l = 0; l < kVecLenD; ++l) {
-      int lIdx        = idx[l];
+      int lIdx        = Get(idx, l);
       int lZet        = izet[lIdx];
       bool egammaHigh = egamma[lIdx] > 50. * geant::units::MeV;
 
-      fz[l] = egammaHigh ? gElementData[lZet]->fFzHigh : gElementData[lZet]->fFzLow;
+      Set(fz, l, egammaHigh ? gElementData[lZet]->fFzHigh : gElementData[lZet]->fFzLow);
       if (fIsUseTsaisScreening) {
-        deltaMax[l] = egammaHigh ? gElementData[lZet]->fDeltaMaxHighTsai : gElementData[lZet]->fDeltaMaxLowTsai;
+        Set(deltaMax, l, egammaHigh ? gElementData[lZet]->fDeltaMaxHighTsai : gElementData[lZet]->fDeltaMaxLowTsai);
       } else {
-        deltaMax[l] = egammaHigh ? gElementData[lZet]->fDeltaMaxHigh : gElementData[lZet]->fDeltaMaxLow;
+        Set(deltaMax, l, egammaHigh ? gElementData[lZet]->fDeltaMaxHigh : gElementData[lZet]->fDeltaMaxLow);
       }
 
-      deltaFac[l] = gElementData[lZet]->fDeltaFactor;
+      Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
     }
 
     Double_v egammaV        = vecCore::Gather<Double_v>(egamma, idx);
@@ -292,28 +298,28 @@ void VecBetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *ega
     vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * Math::Pow(rnd1, (Double_v)1. / 3.));
     vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
     const Double_v delta = deltaFac * eps0 / (eps * (1. - eps));
-    if (cond1.isNotEmpty()) {
+    if (!MaskEmpty(cond1)) {
       vecCore::MaskedAssign(greject, cond1, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
     }
-    if ((!cond1).isNotEmpty()) {
+    if (!MaskEmpty(!cond1)) {
       vecCore::MaskedAssign(greject, !cond1, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
     }
 
     MaskD_v accepted = greject > rnd2;
 
-    if (accepted.isNotEmpty()) {
+    if (!MaskEmpty(accepted)) {
       vecCore::Scatter(eps, epsOut, idx);
     }
 
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = accepted[l];
+      auto laneDone = Get(accepted, l);
       if (laneDone) {
         if (currN < N) {
-          idx[l]       = currN++;
-          lanesDone[l] = false;
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
         } else {
-          idx[l] = N;
+          Set(idx, l, N);
         }
       }
     }
