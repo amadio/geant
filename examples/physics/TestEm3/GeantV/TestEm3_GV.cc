@@ -69,7 +69,7 @@ int parConfigNumPropagators     = 1;  // number of propagators per working threa
 int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
-int parConfigVectorizedPhysics  = 0;  // activate geometry basketizing
+int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 
 //
