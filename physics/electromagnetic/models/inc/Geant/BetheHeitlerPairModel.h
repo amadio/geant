@@ -21,6 +21,7 @@ class Element;
 
 #include <string>
 #include <vector>
+#include <Geant/AliasTableAlternative.h>
 
 namespace geantphysics {
 /**
@@ -317,6 +318,10 @@ protected:
     std::vector<RatinAliasData *> fRatinAliasData;
   };
 
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
+
+  virtual bool IsModelUsable(const MaterialCuts *, double ekin);
+
   // data members
 protected:
   /** @brief Size of some containers that store data per elements (\f$ Z_{\text{max}} = gMaxZet-1)\f$. */
@@ -359,6 +364,23 @@ protected:
     *        samples(at run-time) from the sampling tables. (Used only if sampling tables were required).
     */
   AliasTable *fAliasSampler;
+
+  struct RatinAliasTablePerElem {
+    std::vector<RatinAliasDataTrans> fTablePerEn;
+    RatinAliasTablePerElem() : fTablePerEn(0) {}
+  };
+  std::vector<RatinAliasTablePerElem> fAliasTablesPerZ;
+
+  geant::Double_v SampleTotalEnergyTransferAliasOneShot(const geant::Double_v egamma, const int *izet,
+                                                        const geant::Double_v r1, const geant::Double_v r2,
+                                                        const geant::Double_v r3);
+
+  void SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut, int N,
+                                       geant::TaskData *td);
+
+  void ScreenFunction12(geant::Double_v &val1, geant::Double_v &val2, const geant::Double_v delta, const bool istsai);
+  geant::Double_v ScreenFunction1(const geant::Double_v delta, const bool istsai);
+  geant::Double_v ScreenFunction2(const geant::Double_v delta, const bool istsai);
 };
 
 } // namespace geantphysics

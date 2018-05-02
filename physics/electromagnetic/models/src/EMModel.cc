@@ -167,7 +167,7 @@ void EMModel::ClearElementSelectros()
   fElementSelectors.clear();
 }
 
-void EMModel::SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td)
+void EMModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
   // Temporary glue code to old interface
   td->fPhysicsData->ClearSecondaries();

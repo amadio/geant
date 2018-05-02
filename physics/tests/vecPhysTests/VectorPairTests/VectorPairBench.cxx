@@ -28,18 +28,18 @@ int main(int argc, char **argv)
   auto td = PrepareTaskData();
 
   std::unique_ptr<EMModel> bhScalarRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
-  std::unique_ptr<EMModel> bhVectorRej   = InitEMModel(new VecBetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
+  std::unique_ptr<EMModel> bhVectorRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
   std::unique_ptr<EMModel> bhScalarTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
-  std::unique_ptr<EMModel> bhVectorTable = InitEMModel(new VecBetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
+  std::unique_ptr<EMModel> bhVectorTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
 
   std::unique_ptr<EMModel> relPairScalarRej =
       InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
   std::unique_ptr<EMModel> relPairVectorRej =
-      InitEMModel(new VecRelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
+      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
   std::unique_ptr<EMModel> relPairScalarTable =
       InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
   std::unique_ptr<EMModel> relPairVectorTable =
-      InitEMModel(new VecRelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
+      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
 
   benchmark::RegisterBenchmark("BetheHeitlerAliasScal", ScalarModelBenchmark, bhScalarTable.get(), PrepareBHScalarPrims,
                                td.get(), kBasketSize);

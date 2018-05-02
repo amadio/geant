@@ -41,7 +41,7 @@ void VectorModelBenchmark(benchmark::State &state, EMModel *model,
 
     state.ResumeTiming();
 
-    model->SampleSecondariesVector(primaries, td);
+    model->SampleSecondaries(primaries, td);
   }
 
   benchmark::DoNotOptimize(&primaries);

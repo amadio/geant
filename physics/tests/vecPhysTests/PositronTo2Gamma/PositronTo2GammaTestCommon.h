@@ -3,10 +3,8 @@
 
 #include "Common.h"
 #include "Geant/PositronTo2GammaModel.h"
-#include "Geant/VecPositronTo2GammaModel.h"
 
 using geantphysics::PositronTo2GammaModel;
-using geantphysics::VecPositronTo2GammaModel;
 
 const double kPos2GammaMinEn = 100 * geant::units::eV;
 const double kPos2GammaMaxEn = 100.0 * geant::units::TeV;

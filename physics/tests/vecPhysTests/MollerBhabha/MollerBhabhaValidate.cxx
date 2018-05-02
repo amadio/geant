@@ -118,20 +118,20 @@ int main()
   std::unique_ptr<EMModel> mbScalarRej_em =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
   std::unique_ptr<EMModel> mbVectorRej_em =
-      InitEMModel(new VecMollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
+      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
   std::unique_ptr<EMModel> mbScalarTable_em =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
   std::unique_ptr<EMModel> mbVectorTable_em =
-      InitEMModel(new VecMollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
+      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
 
   std::unique_ptr<EMModel> mbScalarRej_ep =
       InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
   std::unique_ptr<EMModel> mbVectorRej_ep =
-      InitEMModel(new VecMollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
+      InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
   std::unique_ptr<EMModel> mbScalarTable_ep =
       InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
   std::unique_ptr<EMModel> mbVectorTable_ep =
-      InitEMModel(new VecMollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
+      InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
 
   Printf("Testing MollerBhabha rejection model for electron");
   TestMBModel(mbVectorRej_em.get(), mbScalarRej_em.get(), TestParticleType::Em, td.get());

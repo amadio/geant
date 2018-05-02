@@ -20,6 +20,7 @@ class Element;
 }
 
 #include <string>
+#include <Geant/AliasTableAlternative.h>
 
 namespace geantphysics {
 
@@ -73,6 +74,10 @@ public:
   virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
   //
   //@}
+
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
+
+  virtual bool IsModelUsable(const MaterialCuts *matCut, double ekin);
 
 protected:
   /** @brief Copy constructor  (deleted) */
@@ -238,6 +243,33 @@ protected:
   AliasTable *fAliasSampler;
   std::vector<int> fGlobalMatECutIndxToLocal;
   std::vector<AliasDataMaterialCuts *> fSamplingTables;
+
+  geant::Double_v SampleEnergyTransfer(geant::Double_v elProdCut, geant::IndexD_v mcLocalIdx, double *tableEmin,
+                                       double *tableILDeta, geant::Double_v primekin, geant::Double_v r1,
+                                       geant::Double_v r2, geant::Double_v r3);
+
+  void SampleEnergyTransfer(const double *elProdCut, const double *primekin, double *epsOut, int N,
+                            const geant::TaskData *td);
+
+  struct AliasDataForMatCut {
+    AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
+    {
+      fAliasData.reserve(ntables);
+    }
+    int fNData;
+    double fLogEmin;
+    double fILDelta;
+    std::vector<LinAliasCached> fAliasData;
+  };
+
+  struct AliasDataForAllMatCuts {
+    std::vector<std::unique_ptr<AliasDataForMatCut>> fTablesPerMatCut;
+    std::vector<int> fNData;
+    std::vector<double> fLogEmin;
+    std::vector<double> fILDelta;
+  };
+
+  AliasDataForAllMatCuts fAliasData;
 };
 
 } // namespace geantphysics

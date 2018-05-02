@@ -115,9 +115,9 @@ int main()
   auto td = PrepareTaskData();
 
   std::unique_ptr<EMModel> knScalarRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knVectorRej   = InitEMModel(new VecKleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
+  std::unique_ptr<EMModel> knVectorRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
   std::unique_ptr<EMModel> knScalarTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
-  std::unique_ptr<EMModel> knVectorTable = InitEMModel(new VecKleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
+  std::unique_ptr<EMModel> knVectorTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
 
   Printf("Testing KleinNishina rejection model");
   TestKNModel(knVectorRej.get(), knScalarRej.get(), td.get());

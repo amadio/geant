@@ -21,6 +21,7 @@ class Element;
 
 #include <string>
 #include <vector>
+#include <Geant/AliasTableAlternative.h>
 
 namespace geantphysics {
 
@@ -70,6 +71,8 @@ public:
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
                                         const Particle *particle);
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
   //
   //@}
 
@@ -133,6 +136,14 @@ protected:
     *        variable from a LinAlias data structure (prepared at initialisation).
     */
   AliasTable *fAliasSampler;
+
+  std::vector<LinAliasCached> fCachedAliasTable;
+
+  geant::Double_v SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v r1, geant::Double_v r2,
+                                            geant::Double_v r3, geant::Double_v gamma);
+
+  void SampleEnergyTransferRej(const double *gamma, double *eps, int N, const geant::TaskData *td);
+
 };
 
 } // namespace geantphysics

@@ -117,22 +117,22 @@ int main()
 
   std::unique_ptr<EMModel> sbScalarRej_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
   std::unique_ptr<EMModel> sbVectorRej_em =
-      InitEMModel(new VecSeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
+      InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
   std::unique_ptr<EMModel> sbScalarTable_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
   std::unique_ptr<EMModel> sbVectorTable_em =
-      InitEMModel(new VecSeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
+      InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
 
   std::unique_ptr<EMModel> sbScalarRej_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
   std::unique_ptr<EMModel> sbVectorRej_ep =
-      InitEMModel(new VecSeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
+      InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
   std::unique_ptr<EMModel> sbScalarTable_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
   std::unique_ptr<EMModel> sbVectorTable_ep =
-      InitEMModel(new VecSeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
+      InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
 
   std::unique_ptr<EMModel> rbScalarRej   = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> rbVectorRej   = InitEMModel(new VecRelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> rbVectorRej   = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
   std::unique_ptr<EMModel> rbScalarTable = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
-  std::unique_ptr<EMModel> rbVectorTable = InitEMModel(new VecRelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> rbVectorTable = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
 
   Printf("Testing SeltzerBerger rejection model for electron");
   TestBremsModel(sbVectorRej_em.get(), sbScalarRej_em.get(), TestParticleType::Em, td.get());

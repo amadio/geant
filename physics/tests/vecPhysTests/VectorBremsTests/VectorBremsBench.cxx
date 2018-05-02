@@ -28,18 +28,18 @@ int main(int argc, char **argv)
   auto td = PrepareTaskData();
 
   std::unique_ptr<EMModel> sbScalarRej   = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> sbVectorRej   = InitEMModel(new VecSeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbVectorRej   = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
   std::unique_ptr<EMModel> sbScalarTable = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
-  std::unique_ptr<EMModel> sbVectorTable = InitEMModel(new VecSeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> sbVectorTable = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
 
   std::unique_ptr<EMModel> rbScalarRej =
       InitEMModel(new RelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, false);
   std::unique_ptr<EMModel> rbVectorRej =
-      InitEMModel(new VecRelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, false);
+      InitEMModel(new RelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, false);
   std::unique_ptr<EMModel> rbScalarTable =
       InitEMModel(new RelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, true);
   std::unique_ptr<EMModel> rbVectorTable =
-      InitEMModel(new VecRelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, true);
+      InitEMModel(new RelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, true);
 
   benchmark::RegisterBenchmark("SeltzerBergerAliasScal", ScalarModelBenchmark, sbScalarTable.get(),
                                PrepareSBScalarPrims, td.get(), kBasketSize);

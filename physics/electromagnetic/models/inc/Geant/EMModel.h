@@ -147,7 +147,7 @@ public:
    */
   virtual int SampleSecondaries(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
-  virtual void SampleSecondariesVector(LightTrack_v &tracks, geant::TaskData *td);
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
 
   /**
    * @brief Method to obtain minim primary particle kinetic energy at which the discrete part (if any) of the

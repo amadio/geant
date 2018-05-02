@@ -6,6 +6,8 @@
 
 // from geantV
 #include "Geant/Config.h"
+#include "Geant/AliasTableAlternative.h"
+
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
@@ -176,6 +178,10 @@ protected:
     std::vector<int> fAliasIndx;
   };
 
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
+
+  virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double ekin);
+
   // data members
 protected:
   /** @brief  Internal code of the secondary partcile (e-). */
@@ -194,6 +200,14 @@ protected:
     *        variable from a LinAlias data structure (prepared at initialisation).
     */
   AliasTable *fAliasSampler;
+
+  std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
+
+  geant::Double_v SampleReducedPhotonEnergyVec(geant::Double_v egamma, geant::Double_v r1, geant::Double_v r2,
+                                               geant::Double_v r3);
+
+  void SampleReducedPhotonEnergyRej(const double *egamma, double *onemcost, double *sint2, double *eps, int N,
+                                    const geant::TaskData *td);
 };
 
 } // namespace geantphysics

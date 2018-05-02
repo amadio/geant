@@ -157,7 +157,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->GetSecondarySOA().ClearTracks();
 
-  fModel->SampleSecondariesVector(primaryLTs, td);
+  fModel->SampleSecondaries(primaryLTs, td);
 
   // update primary tracks
   for (int i = 0; i < N; ++i) {

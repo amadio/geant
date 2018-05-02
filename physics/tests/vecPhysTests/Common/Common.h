@@ -354,7 +354,7 @@ void SampleSecondariesScalar(geantphysics::EMModel *model, std::vector<LightTrac
 void SampleSecondariesVector(geantphysics::EMModel *model, LightTrack_v &primaries, geant::TaskData *td)
 {
   td->fPhysicsData->GetSecondarySOA().ClearTracks();
-  model->SampleSecondariesVector(primaries, td);
+  model->SampleSecondaries(primaries, td);
 }
 
 std::unique_ptr<EMModel> InitEMModel(geantphysics::EMModel *model, double minEn, double maxEn, double alias)

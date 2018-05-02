@@ -20,11 +20,11 @@ int main(int argc, char **argv)
   std::unique_ptr<EMModel> mbScalarRej =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
   std::unique_ptr<EMModel> mbVectorRej =
-      InitEMModel(new VecMollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
+      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
   std::unique_ptr<EMModel> mbScalarTable =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
   std::unique_ptr<EMModel> mbVectorTable =
-      InitEMModel(new VecMollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
+      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
 
   benchmark::RegisterBenchmark("MollerBhabhaAliasScal", ScalarModelBenchmark, mbScalarTable.get(), PrepareMBScalarPrims,
                                td.get(), kBasketSize);
