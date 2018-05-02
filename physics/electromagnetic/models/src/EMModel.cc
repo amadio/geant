@@ -57,25 +57,6 @@ double EMModel::ComputeDEDX(const MaterialCuts * /*matcut*/, double /*kinenergy*
   return 0.;
 }
 
-// [u,v,w] is the direction given in the scattering frame i.e. taking [u1,u2,u3] direction equal to z-direction of
-// this scattering frame
-// void EMModel::RotateToLabFrame(double &u, double &v, double &w, double u1, double u2, double u3)
-//{
-//  double up = u1 * u1 + u2 * u2;
-//  if (up > 0.) {
-//    up        = std::sqrt(up);
-//    double px = u;
-//    double py = v;
-//    double pz = w;
-//    u         = (u1 * u3 * px - u2 * py) / up + u1 * pz;
-//    v         = (u2 * u3 * px + u1 * py) / up + u2 * pz;
-//    w         = -up * px + u3 * pz;
-//  } else if (u3 < 0.) { // phi=0  teta=pi
-//    u = -u;
-//    w = -w;
-//  }
-//}
-
 // only if InitialiseElementSelectors had been called from the derived class other
 int EMModel::SampleTargetElementIndex(const MaterialCuts *matcut, double ekin, double rndm)
 {

@@ -127,7 +127,7 @@ int PositronTo2GammaModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   double gamDirY    = sint * Math::Sin(phi);
   double gamDirZ    = cost;
   // rotate gamma direction to the lab frame:
-  RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+  Math::RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   //
   // kinematics of the first gamma
   const double tEnergy = pekin + 2 * geant::units::kElectronMassC2;

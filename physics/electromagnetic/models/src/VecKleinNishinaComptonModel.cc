@@ -90,7 +90,7 @@ void VecKleinNishinaComptonModel::SampleSecondariesVector(LightTrack_v &tracks, 
     Double_v gammaX = tracks.GetDirXVec(i);
     Double_v gammaY = tracks.GetDirYVec(i);
     Double_v gammaZ = tracks.GetDirZVec(i);
-    RotateToLabFrame(dirX, dirY, dirZ, gammaX, gammaY, gammaZ);
+    Math::RotateToLabFrame(dirX, dirY, dirZ, gammaX, gammaY, gammaZ);
 
     Double_v enDeposit = 0.0;
 

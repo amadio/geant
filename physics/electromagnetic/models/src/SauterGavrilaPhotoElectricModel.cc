@@ -945,7 +945,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
     eDirZ1 = cosTheta;
 
     // rotate new photoelectron direction to the lab frame:
-    RotateToLabFrame(eDirX1, eDirY1, eDirZ1, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+    Math::RotateToLabFrame(eDirX1, eDirY1, eDirZ1, track.GetDirX(), track.GetDirY(), track.GetDirZ());
 
   } else {
     eDirX1 = track.GetDirX();

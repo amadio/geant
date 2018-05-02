@@ -195,30 +195,6 @@ public:
   std::vector<bool> &GetListActiveRegions() { return fListActiveRegions; }
   bool IsActiveRegion(const int regionindx) const { return fListActiveRegions[regionindx]; }
 
-  // protected
-
-  template <typename R>
-  void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
-  {
-    R up                   = u1 * u1 + u2 * u2;
-    vecCore::Mask<R> upPos = up > 0.0;
-    if (!vecCore::MaskEmpty(upPos)) {
-      up   = Math::Sqrt(up);
-      R px = u;
-      R py = v;
-      R pz = w;
-      vecCore::MaskedAssign(u, upPos, (u1 * u3 * px - u2 * py) / up + u1 * pz);
-      vecCore::MaskedAssign(v, upPos, (u2 * u3 * px + u1 * py) / up + u2 * pz);
-      vecCore::MaskedAssign(w, upPos, -up * px + u3 * pz);
-    }
-    vecCore::Mask<R> upPosu3Neg = !upPos && u3 < 0.;
-    if (!vecCore::MaskEmpty(upPosu3Neg)) {
-      vecCore::MaskedAssign(u, upPosu3Neg, -u);
-      vecCore::MaskedAssign(w, upPosu3Neg, -w);
-    }
-  }
-
-  //
   // Target element selector related
   //
   // will be protected;  selects target element; currently returns with the index of the selected Element, latter it

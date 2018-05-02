@@ -410,8 +410,8 @@ bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::TaskData *td)
   if (GetMSCSteppingAlgorithm() == MSCSteppingAlgorithm::kUseDistanceToBoundary && mscdata.fIsEverythingWasDone &&
       mscdata.fIsSingleScattering) { // ONLY single scattering is done in advance
     // single scattering was and scattering happend
-    RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
-                     gtrack->Dy(), gtrack->Dz());
+    Math::RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
+                           gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     // displacement is left to (0,0,0)
     // fParticleChange->ProposeMomentumDirection(fTheNewDirection);
     return true; // i.e. new direction
@@ -422,18 +422,18 @@ bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::TaskData *td)
     } else if (mscdata.fIsEverythingWasDone) { // evrything is done if not optimizations case !!!
       // check single scattering and see if it happened
       if (mscdata.fIsSingleScattering) {
-        RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
-                         gtrack->Dy(), gtrack->Dz());
+        Math::RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
+                               gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
         // displacement is left to (0,0,0)
         // fParticleChange->ProposeMomentumDirection(fTheNewDirection);
         return true; // i.e. new direction
       }
       // check if multiple scattering happened and do things only if scattering was really happening
       if (mscdata.fIsMultipleSacettring && !mscdata.fIsNoScatteringInMSC) {
-        RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
-                         gtrack->Dy(), gtrack->Dz());
-        RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
-                         mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
+        Math::RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
+                               gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
+        Math::RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
+                               mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
         return true; // i.e. new direction
       }
       // The only thing that could happen if we are here (kErrorFree and fIsEverythingWasDone)
@@ -448,11 +448,11 @@ bool GSMSCModel::SampleScattering(geant::Track *gtrack, geant::TaskData *td)
   // else MSC needs to be done here
   SampleMSC(gtrack, td);
   if (!mscdata.fIsNoScatteringInMSC) {
-    RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
-                     gtrack->Dy(), gtrack->Dz());
+    Math::RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
+                           gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     if (!mscdata.fIsNoDisplace) {
-      RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
-                       mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
+      Math::RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
+                             mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     }
     return true; // new direction
   }

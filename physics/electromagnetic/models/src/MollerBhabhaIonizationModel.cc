@@ -134,7 +134,7 @@ int MollerBhabhaIonizationModel::SampleSecondaries(LightTrack &track, geant::Tas
   double deltaDirY = sinTheta * Math::Sin(phi);
   double deltaDirZ = cosTheta;
   // rotate back to lab frame
-  RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+  Math::RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   // create the secondary partcile i.e. the delta e-
   numSecondaries      = 1;
   LightTrack &emTrack = td->fPhysicsData->InsertSecondary();

@@ -176,8 +176,8 @@ void VecBetheHeitlerPairModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     Double_v gammaX = tracks.GetDirXVec(i);
     Double_v gammaY = tracks.GetDirYVec(i);
     Double_v gammaZ = tracks.GetDirZVec(i);
-    RotateToLabFrame(eleDirX, eleDirY, eleDirZ, gammaX, gammaY, gammaZ);
-    RotateToLabFrame(posDirX, posDirY, posDirZ, gammaX, gammaY, gammaZ);
+    Math::RotateToLabFrame(eleDirX, eleDirY, eleDirZ, gammaX, gammaY, gammaZ);
+    Math::RotateToLabFrame(posDirX, posDirY, posDirZ, gammaX, gammaY, gammaZ);
 
     for (int l = 0; l < kVecLenD; ++l) {
       auto &secondarySoA = td->fPhysicsData->GetSecondarySOA();

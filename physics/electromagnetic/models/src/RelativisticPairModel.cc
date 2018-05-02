@@ -224,8 +224,8 @@ int RelativisticPairModel::SampleSecondaries(LightTrack &track, geant::TaskData 
   const double ekinElectron = std::max((electronTotE - geant::units::kElectronMassC2), 0.);
   const double ekinPositron = std::max((positronTotE - geant::units::kElectronMassC2), 0.);
   // 5. rotate direction back to the lab frame: current directions are relative to the photon dir as z-dir
-  RotateToLabFrame(eleDirX, eleDirY, eleDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
-  RotateToLabFrame(posDirX, posDirY, posDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+  Math::RotateToLabFrame(eleDirX, eleDirY, eleDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+  Math::RotateToLabFrame(posDirX, posDirY, posDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   //
   // 6. insert the secondary e-/e+ into the secondary list:
   numSecondaries = 2;

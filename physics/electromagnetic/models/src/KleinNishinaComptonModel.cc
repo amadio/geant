@@ -123,7 +123,7 @@ int KleinNishinaComptonModel::SampleSecondaries(LightTrack &track, geant::TaskDa
   double dirY = sint * Math::Sin(phi);
   double dirZ = cost;
   // rotate back to lab frame
-  RotateToLabFrame(dirX, dirY, dirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+  Math::RotateToLabFrame(dirX, dirY, dirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   //
   // keep org. gamma dir in lab frame: will be updated but will be needed later
   const double orgGamDirX = track.GetDirX();

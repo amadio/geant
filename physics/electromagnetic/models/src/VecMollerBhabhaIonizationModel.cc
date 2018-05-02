@@ -138,7 +138,8 @@ void VecMollerBhabhaIonizationModel::SampleSecondariesVector(LightTrack_v &track
     Double_v deltaDirX = sinTheta * cosPhi;
     Double_v deltaDirY = sinTheta * sinPhi;
     Double_v deltaDirZ = cosTheta;
-    RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, tracks.GetDirXVec(i), tracks.GetDirYVec(i), tracks.GetDirZVec(i));
+    Math::RotateToLabFrame(deltaDirX, deltaDirY, deltaDirZ, tracks.GetDirXVec(i), tracks.GetDirYVec(i),
+                           tracks.GetDirZVec(i));
 
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
     for (int l = 0; l < kVecLenD; ++l) {

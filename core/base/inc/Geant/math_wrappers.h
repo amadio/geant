@@ -158,6 +158,25 @@ R Pow(R x, R n)
 }
 
 using vecMath::IntPow;
+
+template <typename R>
+inline void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
+{
+  R up                = u1 * u1 + u2 * u2;
+  vecCore::Mask<R> m1 = up > 0.0;
+  up                  = Math::Sqrt(up);
+  R px                = u;
+  R py                = v;
+  R pz                = w;
+  vecCore::MaskedAssign(u, m1, (u3 * px * u1 - u2 * py) * (1.0 / up) + u1 * pz);
+  vecCore::MaskedAssign(v, m1, (u3 * px * u2 + u1 * py) * (1.0 / up) + u2 * pz);
+  vecCore::MaskedAssign(w, m1, -up * px + u3 * pz);
+  vecCore::Mask<R> m2 = !m1 && u3 < 0.;
+  if (!vecCore::MaskEmpty(m2)) { // Up zero AND u3 negative
+    vecCore::MaskedAssign(u, m2, -u);
+    vecCore::MaskedAssign(w, m2, -w);
+  }
+}
 }
 
 #endif // GEANT_MATH

@@ -158,7 +158,7 @@ void VecSeltzerBergerBremsModel::SampleSecondariesVector(LightTrack_v &tracks, g
     Double_v gamDirY = sinTheta * sinPhi;
     Double_v gamDirZ = cosTheta;
     // rotate gamma direction to the lab frame:
-    RotateToLabFrame(gamDirX, gamDirY, gamDirZ, tracks.GetDirXVec(i), tracks.GetDirYVec(i), tracks.GetDirZVec(i));
+    Math::RotateToLabFrame(gamDirX, gamDirY, gamDirZ, tracks.GetDirXVec(i), tracks.GetDirYVec(i), tracks.GetDirZVec(i));
 
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
     for (int l = 0; l < kVecLenD; ++l) {

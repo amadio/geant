@@ -7,7 +7,7 @@
 
 namespace geant {
 
-using VectorBackend = vecCore::backend::VcVector;
+using VectorBackend = vecgeom::VectorBackend;
 typedef VectorBackend::Float_v Float_v;
 typedef VectorBackend::Double_v Double_v;
 typedef VectorBackend::Int_v Int_v;

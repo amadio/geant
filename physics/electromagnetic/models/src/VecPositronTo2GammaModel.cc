@@ -84,7 +84,7 @@ void VecPositronTo2GammaModel::SampleSecondariesVector(LightTrack_v &tracks, gea
     Double_v posX = tracks.GetDirXVec(i);
     Double_v posY = tracks.GetDirYVec(i);
     Double_v posZ = tracks.GetDirZVec(i);
-    RotateToLabFrame(gamDirX, gamDirY, gamDirZ, posX, posY, posZ);
+    Math::RotateToLabFrame(gamDirX, gamDirY, gamDirZ, posX, posY, posZ);
     //
 
     LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();

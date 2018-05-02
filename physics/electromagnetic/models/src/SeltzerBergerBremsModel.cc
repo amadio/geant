@@ -171,7 +171,7 @@ int SeltzerBergerBremsModel::SampleSecondaries(LightTrack &track, geant::TaskDat
   double gamDirY = sinTheta * Math::Sin(phi);
   double gamDirZ = cosTheta;
   // rotate gamma direction to the lab frame:
-  RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
+  Math::RotateToLabFrame(gamDirX, gamDirY, gamDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
   // create the secondary partcile i.e. the gamma
   numSecondaries         = 1;
   LightTrack &gammaTrack = td->fPhysicsData->InsertSecondary();
