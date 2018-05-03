@@ -153,9 +153,6 @@ protected:
    *                      given configuration and the model) in internal [energy] units.
    */
   double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3);
-  void SamplePhotonDirection(geant::Double_v elenergy, geant::Double_v &sinTheta, geant::Double_v &cosTheta,
-                             geant::Double_v rndm);
-
   /**
    * @brief Internal method to sample the emitted (restricted) bremsstrahlung photon energy (with rejection).
    *
@@ -181,12 +178,13 @@ protected:
    * @param[in,out] cosTheta  Result of the emitted photon direction sampling.
    * @param[in]     rndm      A random number distributed uniformly on [0,1).
    */
-  void SamplePhotonDirection(double eekin, double &sinTheta, double &cosTheta, double rndm);
+  template <typename R>
+  void SamplePhotonDirection(R eekin, R &sinTheta, R &cosTheta, R rndm);
 
   void InitElementData();
 
-  double ComputeDXSecPerAtom(double egamma, double etotal, double zet);
-  geant::Double_v ComputeDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v zet);
+  template <typename R>
+  R ComputeDXSecPerAtom(R egamma, R etotal, R zet);
 
   double ComputeURelDXSecPerAtom(double egamma, double etotal, double lpmenergy, double densitycor, int izet);
   geant::Double_v ComputeURelDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v lpmenergy,
@@ -204,8 +202,8 @@ protected:
   void ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
   void InitLPMFunctions();
 
-  void GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
-  void GetLPMFunctions(geant::Double_v &lpmGs, geant::Double_v &lpmPhis, const geant::Double_v s);
+  template <typename R>
+  void GetLPMFunctions(R &lpmGs, R &lpmPhis, const R s);
   //
   void ClearSamplingTables();
   void InitSamplingTables();
