@@ -17,11 +17,13 @@ typedef vecCore::Mask_v<Double_v> MaskD_v;
 typedef vecCore::Mask_v<Int_v> MaskI_v;
 
 typedef vecCore::Index<Double_v> IndexD_v;
+typedef vecCore::Index<Float_v> IndexF_v;
 
 const int kVecLenF = vecCore::VectorSize<Float_v>();
 const int kVecLenD = vecCore::VectorSize<Double_v>();
 
 const int kVecAlignD = kVecLenD * sizeof(double);
+const int kVecAlignF = kVecLenF * sizeof(float);
 
 GEANT_FORCE_INLINE
 void CopyFltToDbl(Float_v const &flt_v, Double_v &dbl1_v, Double_v &dbl2_v)
