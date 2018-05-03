@@ -22,6 +22,7 @@ class Element;
 #include <string>
 #include <vector>
 #include <Geant/AliasTableAlternative.h>
+#include <Geant/PhysicalConstants.h>
 
 namespace geantphysics {
 /**
@@ -167,6 +168,21 @@ protected:
                                    const double r3);
 
   /**
+   * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using sampling tables
+   *        prepared at initialization}.
+   *
+   * @param[in] egmma    Gamma photon energy in internal [energy] units.
+   * @param[in] izet     Indexes of the target element sampling table collection in #fRatinAliasDataForAllElements (Z)
+   *                     in a form of array of size == # of lanes in Double_v.
+   * @param[in] r1       Random number distributed uniformly in [0,1].
+   * @param[in] r2       Random number distributed uniformly in [0,1].
+   * @param[in] r3       Random number distributed uniformly in [0,1].
+   * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
+   */
+  geant::Double_v SampleTotalEnergyTransfer(const geant::Double_v egamma, const int *izet, const geant::Double_v r1,
+                                            const geant::Double_v r2, const geant::Double_v r3);
+
+  /**
    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
    *
    * @param[in] egmma    Gamma photon energy in internal [energy] units.
@@ -175,6 +191,17 @@ protected:
    * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
    */
   double SampleTotalEnergyTransfer(const double epsmin, const int izet, const geant::TaskData *td);
+
+  /**
+   * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
+   *
+   * @param[in] egmma    Gamma photon energies in internal [energy] units.
+   * @param[in] izet     Indexes of the target element sampling table collection in #fRatinAliasDataForAllElements (Z).
+   * @param[out] epsOut  The sampled reduced total energy transfered to one of the e-/e+ pair.
+   * @param[in] N        Size of input arrays.
+   * @param[in] td       Pointer to the GeantV thread local data object (used to get random numbers).
+   */
+  void SampleTotalEnergyTransfer(const double *egamma, const int *izet, double *epsOut, int N, geant::TaskData *td);
 
   /**
    * @brief Internal method to compute the screening functions.
@@ -190,7 +217,8 @@ protected:
   /**
    * @brief Same as ScreenFunction1() and ScreenFunction2() at once (used in the rejection algorithm).
    */
-  void ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai);
+  template <typename R>
+  void ScreenFunction12(R &val1, R &val2, const R delta, const bool istsai);
 
   /**
    * @brief Internal method used in the rejection algorithm to compute the screening funtion related part.
@@ -199,7 +227,9 @@ protected:
    * @param[in] istsai Flag to indicate if Tsai's screening function approximation needs to be used.
    * @return    \f$ 3 \Phi_1(\delta) - \Phi_2(\delta) \f$ (see more at #ComputeDXSection()).
    */
-  double ScreenFunction1(const double delta, const bool istsai);
+  template <typename R>
+  R ScreenFunction1(const R delta, const bool istsai);
+
   /**
    * @brief Internal method used in the rejection algorithm to compute the screening funtion related part.
    *
@@ -207,7 +237,8 @@ protected:
    * @param[in] istsai  Flag to indicate if Tsai's screening function approximation needs to be used.
    * @return    \f$ 1.5 \Phi_1(\delta) +0.5 \Phi_2(\delta) \f$ (see more at #ComputeDXSection()).
    */
-  double ScreenFunction2(const double delta, const bool istsai);
+  template <typename R>
+  R ScreenFunction2(const R delta, const bool istsai);
 
   /**
     * @brief Internal method to build sampling tables for a given target element at all discrete photon energies.
@@ -320,7 +351,11 @@ protected:
 
   virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
 
-  virtual bool IsModelUsable(const MaterialCuts *, double ekin);
+  virtual bool IsModelUsable(const MaterialCuts *, double ekin)
+  {
+    double invEps = ekin * geant::units::kInvElectronMassC2;
+    return ekin > GetLowEnergyUsageLimit() && ekin < GetHighEnergyUsageLimit() && invEps > 2.0;
+  }
 
   // data members
 protected:
@@ -370,17 +405,6 @@ protected:
     RatinAliasTablePerElem() : fTablePerEn(0) {}
   };
   std::vector<RatinAliasTablePerElem> fAliasTablesPerZ;
-
-  geant::Double_v SampleTotalEnergyTransferAliasOneShot(const geant::Double_v egamma, const int *izet,
-                                                        const geant::Double_v r1, const geant::Double_v r2,
-                                                        const geant::Double_v r3);
-
-  void SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut, int N,
-                                       geant::TaskData *td);
-
-  void ScreenFunction12(geant::Double_v &val1, geant::Double_v &val2, const geant::Double_v delta, const bool istsai);
-  geant::Double_v ScreenFunction1(const geant::Double_v delta, const bool istsai);
-  geant::Double_v ScreenFunction2(const geant::Double_v delta, const bool istsai);
 };
 
 } // namespace geantphysics

@@ -112,6 +112,18 @@ protected:
   double SampleReducedPhotonEnergy(const double egamma, const double r1, const double r2, const double r3);
 
   /**
+    * @brief Internal method to sample post interaction reduced photon energy from the prepared sampling tables.
+    *
+    *  @param[in] egamma     Kinetic energy of the primary gamma particle \f$ E_0 \f$.
+    *  @param[in] r1         Random number distributed uniformly in [0,1].
+    *  @param[in] r2         Random number distributed uniformly in [0,1].
+    *  @param[in] r3         Random number distributed uniformly in [0,1].
+    *  @return    Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
+    */
+  geant::Double_v SampleReducedPhotonEnergyVec(geant::Double_v egamma, geant::Double_v r1, geant::Double_v r2,
+                                               geant::Double_v r3);
+
+  /**
     * @brief Internal method to sample post interaction reduced photon energy.
     *
     *  @param[in]     egamma     Kinetic energy of the primary gamma particle \f$ E_0 \f$.
@@ -121,6 +133,19 @@ protected:
     *  @return    Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
     */
   double SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2, const geant::TaskData *td);
+
+  /**
+    * @brief Internal method to sample post interaction reduced photon energy.
+    *
+    *  @param[in]     egamma     Kinetic energies of the primary gammas particles \f$ E_0 \f$.
+    *  @param[in,out] onemcost   One minus cos theta.
+    *  @param[in,out] sint2      Sin theta square.
+    *  @param[out]    eps        Sampled post interaction reduced photon energy \f$ \epsilon = E_1/E_0\f$.
+    *  @param[in]     N          Size of input arrays
+    *  @param[in]     td         Pointer to the GeantV thread local data object (used to get random numbers).
+    */
+  void SampleReducedPhotonEnergyRej(const double *egamma, double *onemcost, double *sint2, double *eps, int N,
+                                    const geant::TaskData *td);
 
   /**
    * @brief Internal method to compute distribution of reduced (post interaction) photon energy related transformed
@@ -202,12 +227,6 @@ protected:
   AliasTable *fAliasSampler;
 
   std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
-
-  geant::Double_v SampleReducedPhotonEnergyVec(geant::Double_v egamma, geant::Double_v r1, geant::Double_v r2,
-                                               geant::Double_v r3);
-
-  void SampleReducedPhotonEnergyRej(const double *egamma, double *onemcost, double *sint2, double *eps, int N,
-                                    const geant::TaskData *td);
 };
 
 } // namespace geantphysics

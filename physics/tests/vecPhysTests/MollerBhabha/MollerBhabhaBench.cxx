@@ -17,23 +17,19 @@ int main(int argc, char **argv)
 
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> mbScalarRej =
+  std::unique_ptr<EMModel> mbRej =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
-  std::unique_ptr<EMModel> mbVectorRej =
-      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
-  std::unique_ptr<EMModel> mbScalarTable =
-      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
-  std::unique_ptr<EMModel> mbVectorTable =
+  std::unique_ptr<EMModel> mbTable =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
 
-  benchmark::RegisterBenchmark("MollerBhabhaAliasScal", ScalarModelBenchmark, mbScalarTable.get(), PrepareMBScalarPrims,
+  benchmark::RegisterBenchmark("MollerBhabhaAliasScal", ScalarModelBenchmark, mbTable.get(), PrepareMBScalarPrims,
                                td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("MollerBhabhaAliasVec", VectorModelBenchmark, mbVectorTable.get(), PrepareMBVectorPrims,
+  benchmark::RegisterBenchmark("MollerBhabhaAliasVec", VectorModelBenchmark, mbTable.get(), PrepareMBVectorPrims,
                                td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("MollerBhabhaRejScal", ScalarModelBenchmark, mbScalarRej.get(), PrepareMBScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("MollerBhabhaRejVec", VectorModelBenchmark, mbVectorRej.get(), PrepareMBVectorPrims,
-                               td.get(), kBasketSize);
+  benchmark::RegisterBenchmark("MollerBhabhaRejScal", ScalarModelBenchmark, mbRej.get(), PrepareMBScalarPrims, td.get(),
+                               kBasketSize);
+  benchmark::RegisterBenchmark("MollerBhabhaRejVec", VectorModelBenchmark, mbRej.get(), PrepareMBVectorPrims, td.get(),
+                               kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

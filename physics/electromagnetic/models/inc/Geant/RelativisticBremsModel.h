@@ -153,6 +153,8 @@ protected:
    *                      given configuration and the model) in internal [energy] units.
    */
   double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3);
+  void SamplePhotonDirection(geant::Double_v elenergy, geant::Double_v &sinTheta, geant::Double_v &cosTheta,
+                             geant::Double_v rndm);
 
   /**
    * @brief Internal method to sample the emitted (restricted) bremsstrahlung photon energy (with rejection).
@@ -182,17 +184,28 @@ protected:
   void SamplePhotonDirection(double eekin, double &sinTheta, double &cosTheta, double rndm);
 
   void InitElementData();
-  double ComputeDXSecPerAtom(double egamma, double etotal, double zet);
-  double ComputeURelDXSecPerAtom(double egamma, double etotal, double lpmenergy, double densitycor, int izet);
 
-  void ComputeScreeningFunctions(double &phi1, double &phi1m2, double &xsi1, double &xsi1m2, const double gamma,
-                                 const double epsilon);
-  //
+  double ComputeDXSecPerAtom(double egamma, double etotal, double zet);
+  geant::Double_v ComputeDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v zet);
+
+  double ComputeURelDXSecPerAtom(double egamma, double etotal, double lpmenergy, double densitycor, int izet);
+  geant::Double_v ComputeURelDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v lpmenergy,
+                                          geant::Double_v densitycor, std::array<int, geant::kVecLenD> izet);
+
+  template <typename R>
+  void ComputeScreeningFunctions(R &phi1, R &phi1m2, R &xsi1, R &xsi1m2, const R gamma, const R epsilon);
+
   void ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS, const double lpmenergy,
                            const double egamma, const double etot, const double densitycor, const int izet);
+  void ComputeLPMfunctions(geant::Double_v &funcXiS, geant::Double_v &funcGS, geant::Double_v &funcPhiS,
+                           const geant::Double_v lpmenergy, const geant::Double_v egamma, const geant::Double_v etot,
+                           const geant::Double_v densitycor, const std::array<int, geant::kVecLenD> izet);
+
   void ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
   void InitLPMFunctions();
+
   void GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
+  void GetLPMFunctions(geant::Double_v &lpmGs, geant::Double_v &lpmPhis, const geant::Double_v s);
   //
   void ClearSamplingTables();
   void InitSamplingTables();
@@ -310,19 +323,6 @@ protected:
   };
 
 private:
-  void SamplePhotonDirection(geant::Double_v elenergy, geant::Double_v &sinTheta, geant::Double_v &cosTheta,
-                             geant::Double_v rndm);
-  geant::Double_v PositronCorrection1(geant::Double_v ekinelectron, geant::Double_v ephoton, geant::Double_v gcutener,
-                                      geant::Double_v z);
-  void GetLPMFunctions(geant::Double_v &lpmGs, geant::Double_v &lpmPhis, const geant::Double_v s);
-  void ComputeLPMfunctions(geant::Double_v &funcXiS, geant::Double_v &funcGS, geant::Double_v &funcPhiS,
-                           const geant::Double_v lpmenergy, const geant::Double_v egamma, const geant::Double_v etot,
-                           const geant::Double_v densitycor, const std::array<int, geant::kVecLenD> izet);
-  geant::Double_v ComputeURelDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v lpmenergy,
-                                          geant::Double_v densitycor, std::array<int, geant::kVecLenD> izet);
-  geant::Double_v ComputeDXSecPerAtom(geant::Double_v egamma, geant::Double_v etotal, geant::Double_v zet);
-  void ComputeScreeningFunctions(geant::Double_v &phi1, geant::Double_v &phi1m2, geant::Double_v &xsi1,
-                                 geant::Double_v &xsi1m2, const geant::Double_v gamma, const geant::Double_v epsilon);
   AliasDataForAllMatCuts fAliasData;
 };
 

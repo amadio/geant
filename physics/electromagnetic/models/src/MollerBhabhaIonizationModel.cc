@@ -833,7 +833,6 @@ double MollerBhabhaIonizationModel::ComputeBhabhaPDF(const double xi, const doub
   return ((1.0 / (a * beta2) - b1) + a * (b2 + a * (a * b4 - b3))); //
 }
 
-
 void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
   int N            = tracks.GetNtracks();
@@ -881,7 +880,7 @@ void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant:
     vecCore::Load(deltaKinEnergy, epsArr + i);
     Double_v deltaTotalMomentum = Math::Sqrt(deltaKinEnergy * (deltaKinEnergy + 2.0 * geant::units::kElectronMassC2));
     Double_v cost               = deltaKinEnergy * (elInitTotalEnergy + geant::units::kElectronMassC2) /
-                                  (deltaTotalMomentum * elInitTotalMomentum);
+                    (deltaTotalMomentum * elInitTotalMomentum);
     Double_v cosTheta = Math::Min(cost, (Double_v)1.0);
     Double_v sinTheta = Math::Sqrt((1.0 - cosTheta) * (1.0 + cosTheta));
 
@@ -925,9 +924,9 @@ void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant:
   }
 }
 
-Double_v MollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, IndexD_v mcLocalIdx,
-                                                              double *tableEmin, double *tableILDeta, Double_v primekin,
-                                                              Double_v r1, Double_v r2, Double_v r3)
+Double_v MollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, IndexD_v mcLocalIdx, double *tableEmin,
+                                                           double *tableILDeta, Double_v primekin, Double_v r1,
+                                                           Double_v r2, Double_v r3)
 {
   Double_v lPrimEkin    = Math::Log(primekin);
   Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
@@ -961,7 +960,7 @@ Double_v MollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, I
 }
 
 void MollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCut, const double *primeKinArr,
-                                                          double *epsOut, int N, const geant::TaskData *td)
+                                                       double *epsOut, int N, const geant::TaskData *td)
 {
 
   // assert(N>=kVecLenD)
@@ -1045,6 +1044,5 @@ bool MollerBhabhaIonizationModel::IsModelUsable(const MaterialCuts *matCut, doub
   }
   return ekin < GetHighEnergyUsageLimit() && ekin > GetLowEnergyUsageLimit() && maxETransfer > electronCut;
 }
-
 
 } // namespace geantphysics

@@ -209,6 +209,11 @@ public:
 
   bool IsBasketizable() { return fIsBasketizable; }
 
+  /**
+   * @brief Perform checks before calling SampleSecondaries
+   * @param ekin
+   * @return
+   */
   virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double /*ekin*/) { return true; }
 protected:
   // initilise the element selectors: must be called from the derived emmodel class explicitly at the end of its

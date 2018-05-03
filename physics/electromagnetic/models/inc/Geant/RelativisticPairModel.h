@@ -141,6 +141,9 @@ protected:
    */
   double SampleTotalEnergyTransfer(const double egamma, const int matindx, const double r1, const double r2,
                                    const double r3);
+  geant::Double_v SampleTotalEnergyTransferAlias(const geant::Double_v egamma, const int *matIDX,
+                                                 const geant::Double_v r1, const geant::Double_v r2,
+                                                 const geant::Double_v r3);
 
   /**
    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
@@ -152,6 +155,10 @@ protected:
    */
   double SampleTotalEnergyTransfer(const double egamma, const double lpmenergy, const int izet,
                                    const geant::TaskData *td);
+
+  void SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy, const int *izet, double *epsOut,
+                                       int N, geant::TaskData *td);
+
   /**
    * @brief Internal helper method to integrate the DCS in order to get the atomic cross scection.
    *
@@ -173,15 +180,26 @@ protected:
   //
   void ComputeLPMfunctions(double &funcXiS, double &funcGS, double &funcPhiS, const double lpmenergy, const double eps,
                            const double egamma, const int izet);
+  void ComputeLPMfunctions(geant::Double_v &funcXiS, geant::Double_v &funcGS, geant::Double_v &funcPhiS,
+                           geant::Double_v lpmenergy, geant::Double_v eps, geant::Double_v egamma,
+                           geant::Double_v varS1Cond, geant::Double_v ilVarS1Cond);
+
   void ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat);
   void InitLPMFunctions();
   void GetLPMFunctions(double &lpmGs, double &lpmPhis, const double s);
 
-  void ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai);
+  template <typename R>
+  void ComputeScreeningFunctions(R &phi1, R &phi2, const R delta, const bool istsai);
+
   // these 3 are used only in the rejection
-  void ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai);
-  double ScreenFunction1(const double delta, const bool istsai);
-  double ScreenFunction2(const double delta, const bool istsai);
+  template <typename R>
+  void ScreenFunction12(R &val1, R &val2, const R delta, const bool istsai);
+
+  template <typename R>
+  R ScreenFunction1(const R delta, const bool istsai);
+
+  template <typename R>
+  R ScreenFunction2(const R delta, const bool istsai);
 
   void ClearSamplingTables();
 
@@ -326,24 +344,6 @@ protected:
     RatinAliasTablePerMaterial() : fTablePerEn(0), fILowestZ(200) {}
   };
   std::vector<RatinAliasTablePerMaterial> fAliasTablesPerMaterial;
-
-  geant::Double_v SampleTotalEnergyTransferAliasOneShot(const geant::Double_v egamma, const int *matIDX,
-                                                        const geant::Double_v r1, const geant::Double_v r2,
-                                                        const geant::Double_v r3);
-
-  void SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy, const int *izet, double *epsOut,
-                                       int N, geant::TaskData *td);
-
-  void ScreenFunction12(geant::Double_v &val1, geant::Double_v &val2, const geant::Double_v delta, const bool istsai);
-  geant::Double_v ScreenFunction1(const geant::Double_v delta, const bool istsai);
-  geant::Double_v ScreenFunction2(const geant::Double_v delta, const bool istsai);
-
-  void ComputeScreeningFunctions(geant::Double_v &phi1, geant::Double_v &phi2, const geant::Double_v delta,
-                                 const bool istsai);
-
-  void ComputeLPMfunctions(geant::Double_v &funcXiS, geant::Double_v &funcGS, geant::Double_v &funcPhiS,
-                           geant::Double_v lpmenergy, geant::Double_v eps, geant::Double_v egamma,
-                           geant::Double_v varS1Cond, geant::Double_v ilVarS1Cond);
 };
 
 } // namespace geantphysics

@@ -6,7 +6,7 @@
 
 using geantphysics::KleinNishinaComptonModel;
 
-const double kKNminEn = 100 * geant::units::eV;
-const double kKNmaxEn = 100.0 * geant::units::TeV;
+constexpr double kKNminEn = 100 * geant::units::eV;
+constexpr double kKNmaxEn = 100.0 * geant::units::TeV;
 
 #endif // GEANTV_KLEINNISHINATESTCOMMON_H

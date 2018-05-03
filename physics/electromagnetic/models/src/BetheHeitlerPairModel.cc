@@ -25,6 +25,8 @@
 #include "Geant/TaskData.h"
 #include "Geant/math_wrappers.h"
 
+#include "base/Global.h"
+
 namespace geantphysics {
 
 using geant::Double_v;
@@ -577,63 +579,38 @@ void BetheHeitlerPairModel::ComputeScreeningFunctions(double &phi1, double &phi2
   }
 }
 
-// val1 =  3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
-// val2 =  1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-void BetheHeitlerPairModel::ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai)
-{
-  if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    const double dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                        3.2 * Math::Exp(-1.5 * gamma);
-    const double dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
-    val1              = dum1 + dum2;
-    val2              = dum1 - 0.5 * dum2;
-  } else {
-    if (delta > 1.) {
-      val1 = 42.24 - 8.368 * Math::Log(delta + 0.952);
-      val2 = val1;
-    } else {
-      val1 = 42.392 - delta * (7.796 - 1.961 * delta);
-      val2 = 41.405 - delta * (5.828 - 0.8945 * delta);
-    }
-  }
-}
-
 // 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
-double BetheHeitlerPairModel::ScreenFunction1(const double delta, const bool istsai)
+template <typename R>
+R BetheHeitlerPairModel::ScreenFunction1(const R delta, const bool istsai)
 {
-  double val;
+  R val;
   if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    val                 = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    val            = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
           3.2 * Math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
-    if (delta > 1.) {
-      val = 42.24 - 8.368 * Math::Log(delta + 0.952);
-    } else {
-      val = 42.392 - delta * (7.796 - 1.961 * delta);
-    }
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(val, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
   }
   return val;
 }
 
 // 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-double BetheHeitlerPairModel::ScreenFunction2(const double delta, const bool istsai)
+template <typename R>
+R BetheHeitlerPairModel::ScreenFunction2(const R delta, const bool istsai)
 {
-  double val;
+  R val;
   if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    val                 = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    val            = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
           3.2 * Math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
-    if (delta > 1.) {
-      val = 42.24 - 8.368 * Math::Log(delta + 0.952);
-    } else {
-      val = 41.405 - delta * (5.828 - 0.8945 * delta);
-    }
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
   return val;
 }
@@ -1026,7 +1003,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
         // To be sure that energy that is too small for alias table will not slip in alias sampling
         vecCore::MaskedAssign(tmpEkin, smallE, (Double_v)fGammaEneregyLimit * (1.1));
 
-        Double_v sampledEps = SampleTotalEnergyTransferAliasOneShot(tmpEkin, &IZet[i], r1, r2, r3);
+        Double_v sampledEps = SampleTotalEnergyTransfer(tmpEkin, &IZet[i], r1, r2, r3);
         Double_v eps;
         vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
         vecCore::MaskedAssign(eps, !smallE, sampledEps);
@@ -1040,7 +1017,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       Double_v r2 = td->fRndm->uniformV();
       Double_v r3 = td->fRndm->uniformV();
 
-      Double_v sampledEps = SampleTotalEnergyTransferAliasOneShot(ekin, &IZet[i], r1, r2, r3);
+      Double_v sampledEps = SampleTotalEnergyTransfer(ekin, &IZet[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
@@ -1050,8 +1027,8 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       // Always create fake particle int the end of real particle array for rejection sampling
       tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
       IZet[N]                = IZet[N - 1];
-      SampleTotalEnergyTransferRejVec(tracks.GetKinEArr(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i],
-                                      N - i, td);
+      SampleTotalEnergyTransfer(tracks.GetKinEArr(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i], N - i,
+                                td);
     }
   }
 
@@ -1137,8 +1114,8 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
   }
 }
 
-Double_v BetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(Double_v egamma, const int *izet, Double_v r1,
-                                                                         Double_v r2, Double_v r3)
+Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma, const int *izet, const Double_v r1,
+                                                          const Double_v r2, const Double_v r3)
 {
   const Double_v legamma = Math::Log(egamma);
 
@@ -1172,8 +1149,8 @@ Double_v BetheHeitlerPairModel::SampleTotalEnergyTransferAliasOneShot(Double_v e
   return epsV;
 }
 
-void BetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const int *izet, double *epsOut,
-                                                               int N, geant::TaskData *td)
+void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, const int *izet, double *epsOut, int N,
+                                                      geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
   int currN = 0;
@@ -1258,62 +1235,26 @@ void BetheHeitlerPairModel::SampleTotalEnergyTransferRejVec(const double *egamma
   }
 }
 
-void BetheHeitlerPairModel::ScreenFunction12(Double_v &val1, Double_v &val2, const Double_v delta, const bool istsai)
+// val1 =  3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
+// val2 =  1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
+template <typename R>
+void BetheHeitlerPairModel::ScreenFunction12(R &val1, R &val2, const R delta, const bool istsai)
 {
   if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    const Double_v dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                            3.2 * Math::Exp(-1.5 * gamma);
-    const Double_v dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
-    val1                = dum1 + dum2;
-    val2                = dum1 - 0.5 * dum2;
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    const R dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+                   3.2 * Math::Exp(-1.5 * gamma);
+    const R dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
+    val1         = dum1 + dum2;
+    val2         = dum1 - 0.5 * dum2;
   } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(val1, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(val2, tmp, val1);
-    vecCore::MaskedAssign(val1, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
-    vecCore::MaskedAssign(val2, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(val1, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(val2, tmp, val1);
+    vecCore__MaskedAssignFunc(val1, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
+    vecCore__MaskedAssignFunc(val2, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
 }
 
-// 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
-Double_v BetheHeitlerPairModel::ScreenFunction1(const Double_v delta, const bool istsai)
-{
-  Double_v val;
-  if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    val                   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                            3.2 * Math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
-  } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(val, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
-  }
-  return val;
-}
-
-// 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-Double_v BetheHeitlerPairModel::ScreenFunction2(const Double_v delta, const bool istsai)
-{
-  Double_v val;
-  if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    val                   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                            3.2 * Math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
-  } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
-  }
-  return val;
-}
-
-bool BetheHeitlerPairModel::IsModelUsable(const MaterialCuts *, double ekin)
-{
-  double invEps = ekin * geant::units::kInvElectronMassC2;
-  return ekin > GetLowEnergyUsageLimit() && ekin < GetHighEnergyUsageLimit() && invEps > 2.0;
-}
 } // namespace geantphysics

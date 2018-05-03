@@ -16,22 +16,21 @@ struct BremsValidData {
   }
 };
 
-void TestBremsModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, TestParticleType primary,
-                    geant::TaskData *td)
+void TestBremsModel(geantphysics::EMModel *model, TestParticleType primary, geant::TaskData *td)
 {
   BremsValidData validDataVector;
   BremsValidData validDataScalar;
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     LightTrack_v primariesVec;
-    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, primary, primariesVec,
                     kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec);
     auto P0   = GetTotalP(primariesVec);
 
-    SampleSecondariesVector(vector, primariesVec, td);
+    SampleSecondariesVector(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
 
@@ -59,14 +58,14 @@ void TestBremsModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     std::vector<LightTrack> primariesVec;
-    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, primary, primariesVec,
                     kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
     auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
 
-    SampleSecondariesScalar(scalar, primariesVec, td);
+    SampleSecondariesScalar(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
                                     td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
@@ -115,39 +114,29 @@ int main()
   PrepareWorld();
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> sbScalarRej_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> sbVectorRej_em =
-      InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> sbScalarTable_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
-  std::unique_ptr<EMModel> sbVectorTable_em =
-      InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> sbRej_em   = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbTable_em = InitEMModel(new SeltzerBergerBremsModel(true), kSBminEn, kSBmaxEn, true);
 
-  std::unique_ptr<EMModel> sbScalarRej_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> sbVectorRej_ep =
-      InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> sbScalarTable_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
-  std::unique_ptr<EMModel> sbVectorTable_ep =
-      InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> sbRej_ep   = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> sbTable_ep = InitEMModel(new SeltzerBergerBremsModel(false), kSBminEn, kSBmaxEn, true);
 
-  std::unique_ptr<EMModel> rbScalarRej   = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> rbVectorRej   = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
-  std::unique_ptr<EMModel> rbScalarTable = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
-  std::unique_ptr<EMModel> rbVectorTable = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
+  std::unique_ptr<EMModel> rbRej   = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, false);
+  std::unique_ptr<EMModel> rbTable = InitEMModel(new RelativisticBremsModel(), kSBminEn, kSBmaxEn, true);
 
   Printf("Testing SeltzerBerger rejection model for electron");
-  TestBremsModel(sbVectorRej_em.get(), sbScalarRej_em.get(), TestParticleType::Em, td.get());
+  TestBremsModel(sbRej_em.get(), TestParticleType::Em, td.get());
   Printf("Testing SeltzerBerger alias model for electron");
-  TestBremsModel(sbVectorTable_em.get(), sbScalarTable_em.get(), TestParticleType::Em, td.get());
+  TestBremsModel(sbTable_em.get(), TestParticleType::Em, td.get());
 
   Printf("Testing SeltzerBerger rejection model for positron");
-  TestBremsModel(sbVectorRej_ep.get(), sbScalarRej_ep.get(), TestParticleType::Ep, td.get());
+  TestBremsModel(sbRej_ep.get(), TestParticleType::Ep, td.get());
   Printf("Testing SeltzerBerger alias model for positron");
-  TestBremsModel(sbVectorTable_ep.get(), sbScalarTable_ep.get(), TestParticleType::Ep, td.get());
+  TestBremsModel(sbTable_ep.get(), TestParticleType::Ep, td.get());
 
   Printf("Testing RelativisticBrems rejection model");
-  TestBremsModel(rbVectorRej.get(), rbScalarRej.get(), TestParticleType::Em, td.get());
+  TestBremsModel(rbRej.get(), TestParticleType::Em, td.get());
   Printf("Testing RelativisticBrems alias model");
-  TestBremsModel(rbVectorTable.get(), rbScalarTable.get(), TestParticleType::Em, td.get());
+  TestBremsModel(rbTable.get(), TestParticleType::Em, td.get());
 
   CleanTaskData(td.get());
   return 0;

@@ -77,7 +77,10 @@ public:
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *matcut, double kinenergy,
                                         const Particle *particle);
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
   virtual double MinimumPrimaryEnergy(const MaterialCuts *matcut, const Particle *part) const;
+
+  virtual bool IsModelUsable(const MaterialCuts *matCut, double ekin);
   //
   //@}
 
@@ -91,9 +94,18 @@ protected:
   double ComputeXSectionPerVolume(const Material *mat, double gammaprodcutenergy, double electronekin);
   double ComputeXSectionPerAtom(const Element *elem, const Material *mat, double gammaprodcutenergy,
                                 double electronekin);
+
   double SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, double r1, double r2, double r3);
+  geant::Double_v SamplePhotonEnergy(geant::Double_v gammaCut, geant::Double_v densityCor, geant::IndexD_v mcLocalIdx,
+                                     double *tableEmin, double *tableILDeta, geant::Double_v primekin,
+                                     geant::Double_v r1, geant::Double_v r2, geant::Double_v r3);
+
   double SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, geant::TaskData *td);
-  void SamplePhotonDirection(double elenergy, double &sinTheta, double &cosTheta, double rndm);
+  void SamplePhotonEnergy(const double *eEkin, const double *gammaCut, const int *IZet, const double *zet,
+                          const double *densityCor, double *gammaEn, int N, const geant::TaskData *td);
+
+  template <typename R>
+  void SamplePhotonDirection(R elenergy, R &sinTheta, R &cosTheta, R rndm);
 
   void ClearLoadDCSData();
   void LoadDCSData();
@@ -113,9 +125,9 @@ protected:
   /**
    * @brief Correction for accounting some differencies between positrons and electrons.
    */
-  double PositronCorrection1(double ekinelectron, double ephoton, double gcutener, double z);
+  template <typename R>
+  R PositronCorrection1(R ekinelectron, R ephoton, R gcutener, R z);
 
-protected:
   struct XsecDataZet {
     XsecDataZet(int nprime, int nphote)
     {
@@ -161,11 +173,6 @@ protected:
     std::vector<LinAlias *> fAliasData;
   };
 
-  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
-
-  virtual bool IsModelUsable(const MaterialCuts *matCut, double ekin);
-
-protected:
   static const double gMigdalConst;
 
   static std::vector<XsecDataZet *> fXsecDataPerZet;
@@ -200,13 +207,6 @@ protected:
 
   GLIntegral *fGL;
 
-  geant::Double_v SampleEnergyTransfer(geant::Double_v gammaCut, geant::Double_v densityCor, geant::IndexD_v mcLocalIdx,
-                                       double *tableEmin, double *tableILDeta, geant::Double_v primekin,
-                                       geant::Double_v r1, geant::Double_v r2, geant::Double_v r3);
-
-  void SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const int *IZet, const double *zet,
-                            double *gammaEn, const double *densityCor, int N, const geant::TaskData *td);
-
   struct AliasDataForMatCut {
     AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
     {
@@ -225,11 +225,6 @@ protected:
     std::vector<double> fILDelta;
   };
 
-private:
-  void SamplePhotonDirection(geant::Double_v elenergy, geant::Double_v &sinTheta, geant::Double_v &cosTheta,
-                             geant::Double_v rndm);
-  geant::Double_v PositronCorrection1(geant::Double_v ekinelectron, geant::Double_v ephoton, geant::Double_v gcutener,
-                                      geant::Double_v z);
   AliasDataForAllMatCuts fAliasData;
 };
 

@@ -6,7 +6,7 @@
 
 using geantphysics::MollerBhabhaIonizationModel;
 
-const double kMollBhminEn = 1.0 * geant::units::GeV; // Should be higher then matcut
-const double kMollBhmaxEn = 100.0 * geant::units::TeV;
+constexpr double kMollBhminEn = 1.0 * geant::units::GeV; // Should be higher then matcut
+constexpr double kMollBhmaxEn = 100.0 * geant::units::TeV;
 
 #endif

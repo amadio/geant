@@ -350,7 +350,7 @@ void PositronTo2GammaModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       Double_v rnd1 = td->fRndm->uniformV();
       Double_v rnd2 = td->fRndm->uniformV();
       Double_v rnd3 = td->fRndm->uniformV();
-      Double_v epsV = SampleEnergyTransferAlias(pekin, rnd1, rnd2, rnd3, gammaV);
+      Double_v epsV = SampleEnergyTransferAlias(pekin, gammaV, rnd2, rnd3, rnd1);
       vecCore::Store(epsV, &epsArr[i]);
     } else {
       vecCore::Store(gammaV, &gamma[i]);
@@ -426,8 +426,9 @@ void PositronTo2GammaModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
   }
 }
 
-Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(Double_v pekin, Double_v r1, Double_v r2, Double_v r3,
-                                                             Double_v gamma)
+geant::Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v gamma,
+                                                                 geant::Double_v r2, geant::Double_v r3,
+                                                                 geant::Double_v r1)
 {
   Double_v lpekin = Math::Log(pekin);
   //
@@ -462,7 +463,7 @@ Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(Double_v pekin, Double
 }
 
 void PositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, double *epsOut, int N,
-                                                       const geant::TaskData *td)
+                                                    const geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
   int currN = 0;

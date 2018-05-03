@@ -717,20 +717,19 @@ double SeltzerBergerBremsModel::PositronCorrection(double ekinelectron, double i
 }
 
 // ephoton is the reduced photon energy
-double SeltzerBergerBremsModel::PositronCorrection1(double ekinelectron, double ephoton, double gcutener, double z)
+template <typename R>
+R SeltzerBergerBremsModel::PositronCorrection1(R ekinelectron, R ephoton, R gcutener, R z)
 {
-  constexpr double dum1 = geant::units::kTwoPi * geant::units::kFineStructConst;
-  double poscor         = 0.0;
-  double e1             = ekinelectron - gcutener; // here is the dif.
-  double ibeta1 = (e1 + geant::units::kElectronMassC2) / std::sqrt(e1 * (e1 + 2.0 * geant::units::kElectronMassC2));
-  double e2     = ekinelectron * (1.0 - ephoton);
-  double ibeta2 = (e2 + geant::units::kElectronMassC2) / std::sqrt(e2 * (e2 + 2.0 * geant::units::kElectronMassC2));
-  double ddum   = dum1 * z * (ibeta1 - ibeta2);
-  if (ddum < -12.0) {
-    poscor = 0.0;
-  } else {
-    poscor = Math::Exp(ddum);
-  }
+  const R dum1 = geant::units::kTwoPi * geant::units::kFineStructConst;
+  R poscor     = 0.0;
+  R e1         = ekinelectron - gcutener; // here is the dif.
+  R ibeta1     = (e1 + geant::units::kElectronMassC2) / Math::Sqrt(e1 * (e1 + 2.0 * geant::units::kElectronMassC2));
+  R e2         = ekinelectron * (1.0 - ephoton);
+  R ibeta2     = (e2 + geant::units::kElectronMassC2) / Math::Sqrt(e2 * (e2 + 2.0 * geant::units::kElectronMassC2));
+  R ddum       = dum1 * z * (ibeta1 - ibeta2);
+  vecCore::Mask<R> tmp = ddum < -12.0;
+  vecCore__MaskedAssignFunc(poscor, tmp, (R)-12.0);
+  vecCore__MaskedAssignFunc(poscor, !tmp, Math::Exp(ddum));
   return poscor;
 }
 
@@ -815,32 +814,33 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, do
 }
 
 // the simple DipBustgenerator
-void SeltzerBergerBremsModel::SamplePhotonDirection(double elenergy, double &sinTheta, double &cosTheta, double rndm)
+template <typename R>
+void SeltzerBergerBremsModel::SamplePhotonDirection(R elenergy, R &sinTheta, R &cosTheta, R rndm)
 {
-  const double c = 4. - 8. * rndm;
-  double a       = c;
-  double signc   = 1.;
-  if (c < 0.) {
-    signc = -1.;
-    a     = -c;
-  }
-  const double delta = 0.5 * (std::sqrt(a * a + 4.) + a);
+  const R c            = 4. - 8. * rndm;
+  R a                  = c;
+  R signc              = 1.;
+  vecCore::Mask<R> tmp = c < 0.0;
+  vecCore__MaskedAssignFunc(signc, tmp, (R)-1.0);
+  vecCore__MaskedAssignFunc(a, tmp, -c);
+
+  const R delta = 0.5 * (Math::Sqrt(a * a + 4.) + a);
   //  delta += a;
   //  delta *= 0.5;
 
-  const double cofA = -signc * Math::Exp(Math::Log(delta) / 3.0);
-  cosTheta          = cofA - 1. / cofA;
+  const R cofA = -signc * Math::Exp(Math::Log(delta) / 3.0);
+  cosTheta     = cofA - 1. / cofA;
 
-  const double tau  = elenergy / geant::units::kElectronMassC2;
-  const double beta = std::sqrt(tau * (tau + 2.)) / (tau + 1.);
+  const R tau  = elenergy * geant::units::kInvElectronMassC2;
+  const R beta = Math::Sqrt(tau * (tau + 2.)) / (tau + 1.);
 
   cosTheta = (cosTheta + beta) / (1. + cosTheta * beta);
   // check cosTheta limit
-  cosTheta = std::min(1.0, cosTheta);
+  cosTheta = Math::Min((R)1.0, cosTheta);
   // if (cosTheta>1.0) {
   //  cosTheta = 1.0;
   //}
-  sinTheta = std::sqrt((1. - cosTheta) * (1. + cosTheta));
+  sinTheta = Math::Sqrt((1. - cosTheta) * (1. + cosTheta));
 }
 
 // clear all sampling tables (if any)
@@ -1078,8 +1078,8 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
       Double_v r2          = td->fRndm->uniformV();
       Double_v r3          = td->fRndm->uniformV();
       Double_v primEkin    = tracks.GetKinEVec(i);
-      Double_v gammaEnergy = SampleEnergyTransfer(gammaCut, densityCor, mcIndxLocal, fAliasData.fLogEmin.data(),
-                                                  fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
+      Double_v gammaEnergy = SamplePhotonEnergy(gammaCut, densityCor, mcIndxLocal, fAliasData.fLogEmin.data(),
+                                                fAliasData.fILDelta.data(), primEkin, r1, r2, r3);
       vecCore::Store(gammaEnergy, gammaeEnergyArray + i);
     } else {
       vecCore::Store(gammaCut, gammaCutArr + i);
@@ -1094,7 +1094,7 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
     Zet[N]                 = Zet[N - 1];
     densityCorrArr[N]      = densityCorrArr[N - 1];
 
-    SampleEnergyTransfer(tracks.GetKinEArr(), gammaCutArr, IZet, Zet, gammaeEnergyArray, densityCorrArr, N, td);
+    SamplePhotonEnergy(tracks.GetKinEArr(), gammaCutArr, IZet, Zet, densityCorrArr, gammaeEnergyArray, N, td);
   }
 
   for (int i = 0; i < N; i += kVecLenD) {
@@ -1149,9 +1149,9 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
   }
 }
 
-Double_v SeltzerBergerBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double_v densityCor, IndexD_v mcLocalIdx,
-                                                          double *tableEmin, double *tableILDeta, Double_v primekin,
-                                                          Double_v r1, Double_v r2, Double_v r3)
+Double_v SeltzerBergerBremsModel::SamplePhotonEnergy(Double_v gammaCut, Double_v densityCor, IndexD_v mcLocalIdx,
+                                                     double *tableEmin, double *tableILDeta, Double_v primekin,
+                                                     Double_v r1, Double_v r2, Double_v r3)
 {
   Double_v lPrimEkin    = Math::Log(primekin);
   Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
@@ -1184,9 +1184,9 @@ Double_v SeltzerBergerBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double
   return Math::Sqrt(dum1 * Math::Exp(egammaV * Math::Log(dum2)) - densityCor);
 }
 
-void SeltzerBergerBremsModel::SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const int *IZet,
-                                                      const double *zet, double *gammaEn, const double *densityCorArr,
-                                                      int N, const geant::TaskData *td)
+void SeltzerBergerBremsModel::SamplePhotonEnergy(const double *eEkin, const double *gammaCut, const int *IZet,
+                                                 const double *zet, const double *densityCorArr, double *gammaEn, int N,
+                                                 const geant::TaskData *td)
 {
 
   //  // assert(N>=kVecLenD)
@@ -1265,51 +1265,6 @@ void SeltzerBergerBremsModel::SampleEnergyTransfer(const double *eEkin, const do
       }
     }
   }
-}
-
-void SeltzerBergerBremsModel::SamplePhotonDirection(Double_v elenergy, Double_v &sinTheta, Double_v &cosTheta,
-                                                       Double_v rndm)
-{
-  const Double_v c = 4. - 8. * rndm;
-  Double_v a       = c;
-  Double_v signc   = 1.;
-  MaskD_v tmp      = c < 0.0;
-  vecCore::MaskedAssign(signc, tmp, (Double_v)-1.0);
-  vecCore::MaskedAssign(a, tmp, -c);
-
-  const Double_v delta = 0.5 * (Math::Sqrt(a * a + 4.) + a);
-  //  delta += a;
-  //  delta *= 0.5;
-
-  const Double_v cofA = -signc * Math::Exp(Math::Log(delta) / 3.0);
-  cosTheta            = cofA - 1. / cofA;
-
-  const Double_v tau  = elenergy * geant::units::kInvElectronMassC2;
-  const Double_v beta = Math::Sqrt(tau * (tau + 2.)) / (tau + 1.);
-
-  cosTheta = (cosTheta + beta) / (1. + cosTheta * beta);
-  // check cosTheta limit
-  cosTheta = Math::Min((Double_v)1.0, cosTheta);
-  // if (cosTheta>1.0) {
-  //  cosTheta = 1.0;
-  //}
-  sinTheta = Math::Sqrt((1. - cosTheta) * (1. + cosTheta));
-}
-
-Double_v SeltzerBergerBremsModel::PositronCorrection1(Double_v ekinelectron, Double_v ephoton, Double_v gcutener,
-                                                         Double_v z)
-{
-  const Double_v dum1 = geant::units::kTwoPi * geant::units::kFineStructConst;
-  Double_v poscor     = 0.0;
-  Double_v e1         = ekinelectron - gcutener; // here is the dif.
-  Double_v ibeta1 = (e1 + geant::units::kElectronMassC2) / Math::Sqrt(e1 * (e1 + 2.0 * geant::units::kElectronMassC2));
-  Double_v e2     = ekinelectron * (1.0 - ephoton);
-  Double_v ibeta2 = (e2 + geant::units::kElectronMassC2) / Math::Sqrt(e2 * (e2 + 2.0 * geant::units::kElectronMassC2));
-  Double_v ddum   = dum1 * z * (ibeta1 - ibeta2);
-  MaskD_v tmp     = ddum < -12.0;
-  vecCore::MaskedAssign(poscor, tmp, (Double_v)-12.0);
-  vecCore::MaskedAssign(poscor, !tmp, Math::Exp(ddum));
-  return poscor;
 }
 
 bool SeltzerBergerBremsModel::IsModelUsable(const MaterialCuts *matCut, double ekin)

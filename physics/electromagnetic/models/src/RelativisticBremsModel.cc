@@ -547,15 +547,62 @@ double RelativisticBremsModel::ComputeURelDXSecPerAtom(double egamma, double eto
   return std::max(dcs, 0.0);
 }
 
-void RelativisticBremsModel::ComputeScreeningFunctions(double &phi1, double &phi1m2, double &xsi1, double &xsi1m2,
-                                                       const double gamma, const double epsilon)
+Double_v RelativisticBremsModel::ComputeDXSecPerAtom(Double_v egamma, Double_v etotal, Double_v zet)
 {
-  const double gamma2 = gamma * gamma;
+  // constexpr Double_v factor =
+  // 16.*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.;
+  Double_v dcs         = 0.;
+  const Double_v y     = egamma / etotal;
+  const Double_v onemy = 1. - y;
+  Double_v ZFactor1;
+  Double_v ZFactor2;
+  Double_v Fz;
+  Double_v LogZ;
+  Double_v GammaFactor;
+  Double_v EpsilonFactor;
+  IndexD_v izetV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    int izet      = std::lrint(Get(zet, l));
+    ZFactor1      = gElementData[izet]->fZFactor1;
+    ZFactor2      = gElementData[izet]->fZFactor2;
+    Fz            = gElementData[izet]->fFz;
+    LogZ          = gElementData[izet]->fLogZ;
+    GammaFactor   = gElementData[izet]->fGammaFactor;
+    EpsilonFactor = gElementData[izet]->fEpsilonFactor;
+    Set(izetV, l, izet);
+  }
+  MaskD_v smallZ = izetV < 5;
+  if (!MaskEmpty(smallZ)) {
+    vecCore::MaskedAssign(dcs, smallZ, (onemy + 0.75 * y * y) * ZFactor1 + onemy * ZFactor2);
+  }
+  if (!MaskEmpty(!smallZ)) {
+    // Tsai: screening from Thomas-Fermi model of atom; Tsai Eq.(3.82)
+    // variables gamma and epsilon from Tsai Eq.(3.30) and Eq.(3.31)
+    const Double_v invZ    = 1. / zet;
+    const Double_v dum0    = y / (etotal - egamma);
+    const Double_v gamma   = dum0 * GammaFactor;
+    const Double_v epsilon = dum0 * EpsilonFactor;
+    Double_v phi1, phi1m2, xsi1, xsi1m2;
+    ComputeScreeningFunctions(phi1, phi1m2, xsi1, xsi1m2, gamma, epsilon);
+    vecCore::MaskedAssign(dcs, !smallZ,
+                          (onemy + 0.75 * y * y) * ((0.25 * phi1 - Fz) + (0.25 * xsi1 - 2. * LogZ / 3.) * invZ) +
+                              0.125 * onemy * (phi1m2 + xsi1m2 * invZ));
+    // dcs *= factor*zet*zet/egamma;
+  }
+
+  return Math::Max(dcs, (Double_v)0.0);
+}
+
+template <typename R>
+void RelativisticBremsModel::ComputeScreeningFunctions(R &phi1, R &phi1m2, R &xsi1, R &xsi1m2, const R gamma,
+                                                       const R epsilon)
+{
+  const R gamma2 = gamma * gamma;
   phi1 =
       16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) + 1.6 * Math::Exp(-1.5 * gamma);
-  phi1m2                = 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
-  const double epsilon2 = epsilon * epsilon;
-  xsi1                  = 24.34 - 2.0 * Math::Log(1.0 + 13.111641 * epsilon2) + 2.8 * Math::Exp(-8.0 * epsilon) +
+  phi1m2           = 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
+  const R epsilon2 = epsilon * epsilon;
+  xsi1             = 24.34 - 2.0 * Math::Log(1.0 + 13.111641 * epsilon2) + 2.8 * Math::Exp(-8.0 * epsilon) +
          1.2 * Math::Exp(-29.2 * epsilon);
   xsi1m2 = 2.0 / (3.0 + 120.0 * epsilon + 1200.0 * epsilon2); // xsi1-xsi2
 }
@@ -594,6 +641,48 @@ void RelativisticBremsModel::ComputeLPMfunctions(double &funcXiS, double &funcGS
   if (funcXiS * funcPhiS > 1. || varShat > 0.57) {
     funcXiS = 1. / funcPhiS;
   }
+}
+
+void RelativisticBremsModel::ComputeLPMfunctions(Double_v &funcXiS, Double_v &funcGS, Double_v &funcPhiS,
+                                                 const Double_v lpmenergy, const Double_v egamma, const Double_v etot,
+                                                 const Double_v densitycor, const std::array<int, kVecLenD> izet)
+{
+  static const Double_v sqrt2 = Math::Sqrt(2.);
+  const Double_v redegamma    = egamma / etot;
+  // const Double_v varSprime = std::sqrt(0.125*redegamma/(1.0-redegamma)*lpmenergy/etot);
+  const Double_v varSprime = Math::Sqrt(0.125 * redegamma * lpmenergy / ((1.0 - redegamma) * etot));
+  Double_v varS1, ILVarS1Cond, ILVarS1;
+  for (int l = 0; l < kVecLenD; ++l) {
+    Set(varS1, l, gElementData[izet[l]]->fVarS1);
+    Set(ILVarS1Cond, l, gElementData[izet[l]]->fILVarS1Cond);
+    Set(ILVarS1, l, gElementData[izet[l]]->fILVarS1);
+  }
+  const Double_v condition = sqrt2 * varS1;
+  Double_v funcXiSprime    = 2.0;
+
+  MaskD_v tmp1, tmp2;
+  tmp1 = varSprime > 1.0;
+  tmp2 = varSprime > condition;
+  vecCore::MaskedAssign(funcXiSprime, tmp1, (Double_v)1.0);
+  const Double_v funcHSprime = Math::Log(varSprime) * ILVarS1Cond;
+  Double_v tmpFuncXiSprime =
+      1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ILVarS1Cond;
+  vecCore::MaskedAssign(funcXiSprime, !tmp1 && tmp2, tmpFuncXiSprime);
+
+  const Double_v varS = varSprime / Math::Sqrt(funcXiSprime);
+  // - include dielectric suppression effect into s according to Migdal
+  const Double_v varShat = varS * (1.0 + densitycor / (egamma * egamma));
+  funcXiS                = 2.0;
+  tmp1                   = varShat > 1.0;
+  tmp2                   = varShat > varS1;
+  vecCore::MaskedAssign(funcXiS, tmp1, (Double_v)1.0);
+  vecCore::MaskedAssign(funcXiS, !tmp1 && tmp2, 1.0 + Math::Log(varShat) * ILVarS1);
+  GetLPMFunctions(funcGS, funcPhiS, varShat);
+  // ComputeLPMGsPhis(funcGS, funcPhiS, varShat);
+  //
+  // MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
+  tmp1 = funcXiS * funcPhiS > 1.0 || varShat > 0.57;
+  vecCore::MaskedAssign(funcXiS, tmp1, 1.0 / funcPhiS);
 }
 
 void RelativisticBremsModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat)
@@ -1178,8 +1267,6 @@ double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, dou
   return lKappaPrimePerCr * xsecFactor * integral;
 }
 
-
-
 void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
   const int N               = tracks.GetNtracks();
@@ -1299,8 +1386,8 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
 }
 
 Double_v RelativisticBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double_v densityCor, IndexD_v mcLocalIdx,
-                                                         double *tableEmin, double *tableILDeta, Double_v primekin,
-                                                         Double_v r1, Double_v r2, Double_v r3)
+                                                      double *tableEmin, double *tableILDeta, Double_v primekin,
+                                                      Double_v r1, Double_v r2, Double_v r3)
 {
   Double_v lPrimEkin    = Math::Log(primekin);
   Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
@@ -1334,8 +1421,8 @@ Double_v RelativisticBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double_
 }
 
 void RelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zetArr,
-                                                     const double *densityCorConstArr, const double *lpmEnergyArr,
-                                                     double *gammaEn, int N, const geant::TaskData *td)
+                                                  const double *densityCorConstArr, const double *lpmEnergyArr,
+                                                  double *gammaEn, int N, const geant::TaskData *td)
 {
 
   // assert(N>=kVecLenD)
@@ -1402,7 +1489,7 @@ void RelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const dou
 }
 
 Double_v RelativisticBremsModel::ComputeURelDXSecPerAtom(Double_v egamma, Double_v etotal, Double_v lpmenergy,
-                                                            Double_v densitycor, std::array<int, kVecLenD> izet)
+                                                         Double_v densitycor, std::array<int, kVecLenD> izet)
 {
   const Double_v y     = egamma / etotal;
   const Double_v onemy = 1. - y;
@@ -1417,49 +1504,6 @@ Double_v RelativisticBremsModel::ComputeURelDXSecPerAtom(Double_v egamma, Double
   }
   dcs = funcXiS * (dum0 * funcGS + (onemy + 2.0 * dum0) * funcPhiS) * ZFactor1 + onemy * ZFactor2;
   return Math::Max(dcs, (Double_v)0.0);
-}
-
-void RelativisticBremsModel::ComputeLPMfunctions(Double_v &funcXiS, Double_v &funcGS, Double_v &funcPhiS,
-                                                    const Double_v lpmenergy, const Double_v egamma,
-                                                    const Double_v etot, const Double_v densitycor,
-                                                    const std::array<int, kVecLenD> izet)
-{
-  static const Double_v sqrt2 = Math::Sqrt(2.);
-  const Double_v redegamma    = egamma / etot;
-  // const Double_v varSprime = std::sqrt(0.125*redegamma/(1.0-redegamma)*lpmenergy/etot);
-  const Double_v varSprime = Math::Sqrt(0.125 * redegamma * lpmenergy / ((1.0 - redegamma) * etot));
-  Double_v varS1, ILVarS1Cond, ILVarS1;
-  for (int l = 0; l < kVecLenD; ++l) {
-    Set(varS1, l, gElementData[izet[l]]->fVarS1);
-    Set(ILVarS1Cond, l, gElementData[izet[l]]->fILVarS1Cond);
-    Set(ILVarS1, l, gElementData[izet[l]]->fILVarS1);
-  }
-  const Double_v condition = sqrt2 * varS1;
-  Double_v funcXiSprime    = 2.0;
-
-  MaskD_v tmp1, tmp2;
-  tmp1 = varSprime > 1.0;
-  tmp2 = varSprime > condition;
-  vecCore::MaskedAssign(funcXiSprime, tmp1, (Double_v)1.0);
-  const Double_v funcHSprime = Math::Log(varSprime) * ILVarS1Cond;
-  Double_v tmpFuncXiSprime =
-      1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ILVarS1Cond;
-  vecCore::MaskedAssign(funcXiSprime, !tmp1 && tmp2, tmpFuncXiSprime);
-
-  const Double_v varS = varSprime / Math::Sqrt(funcXiSprime);
-  // - include dielectric suppression effect into s according to Migdal
-  const Double_v varShat = varS * (1.0 + densitycor / (egamma * egamma));
-  funcXiS                = 2.0;
-  tmp1                   = varShat > 1.0;
-  tmp2                   = varShat > varS1;
-  vecCore::MaskedAssign(funcXiS, tmp1, (Double_v)1.0);
-  vecCore::MaskedAssign(funcXiS, !tmp1 && tmp2, 1.0 + Math::Log(varShat) * ILVarS1);
-  GetLPMFunctions(funcGS, funcPhiS, varShat);
-  // ComputeLPMGsPhis(funcGS, funcPhiS, varShat);
-  //
-  // MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
-  tmp1 = funcXiS * funcPhiS > 1.0 || varShat > 0.57;
-  vecCore::MaskedAssign(funcXiS, tmp1, 1.0 / funcPhiS);
 }
 
 void RelativisticBremsModel::GetLPMFunctions(Double_v &lpmGs, Double_v &lpmPhis, const Double_v s)
@@ -1488,7 +1532,7 @@ void RelativisticBremsModel::GetLPMFunctions(Double_v &lpmGs, Double_v &lpmPhis,
 }
 
 void RelativisticBremsModel::SamplePhotonDirection(Double_v elenergy, Double_v &sinTheta, Double_v &cosTheta,
-                                                      Double_v rndm)
+                                                   Double_v rndm)
 {
   const Double_v c = 4. - 8. * rndm;
   Double_v a       = c;
@@ -1516,71 +1560,10 @@ void RelativisticBremsModel::SamplePhotonDirection(Double_v elenergy, Double_v &
   sinTheta = Math::Sqrt((1. - cosTheta) * (1. + cosTheta));
 }
 
-Double_v RelativisticBremsModel::ComputeDXSecPerAtom(Double_v egamma, Double_v etotal, Double_v zet)
-{
-  // constexpr Double_v factor =
-  // 16.*geant::units::kFineStructConst*geant::units::kClassicElectronRadius*geant::units::kClassicElectronRadius/3.;
-  Double_v dcs         = 0.;
-  const Double_v y     = egamma / etotal;
-  const Double_v onemy = 1. - y;
-  Double_v ZFactor1;
-  Double_v ZFactor2;
-  Double_v Fz;
-  Double_v LogZ;
-  Double_v GammaFactor;
-  Double_v EpsilonFactor;
-  IndexD_v izetV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    int izet      = std::lrint(Get(zet, l));
-    ZFactor1      = gElementData[izet]->fZFactor1;
-    ZFactor2      = gElementData[izet]->fZFactor2;
-    Fz            = gElementData[izet]->fFz;
-    LogZ          = gElementData[izet]->fLogZ;
-    GammaFactor   = gElementData[izet]->fGammaFactor;
-    EpsilonFactor = gElementData[izet]->fEpsilonFactor;
-    Set(izetV, l, izet);
-  }
-  MaskD_v smallZ = izetV < 5;
-  if (!MaskEmpty(smallZ)) {
-    vecCore::MaskedAssign(dcs, smallZ, (onemy + 0.75 * y * y) * ZFactor1 + onemy * ZFactor2);
-  }
-  if (!MaskEmpty(!smallZ)) {
-    // Tsai: screening from Thomas-Fermi model of atom; Tsai Eq.(3.82)
-    // variables gamma and epsilon from Tsai Eq.(3.30) and Eq.(3.31)
-    const Double_v invZ    = 1. / zet;
-    const Double_v dum0    = y / (etotal - egamma);
-    const Double_v gamma   = dum0 * GammaFactor;
-    const Double_v epsilon = dum0 * EpsilonFactor;
-    Double_v phi1, phi1m2, xsi1, xsi1m2;
-    ComputeScreeningFunctions(phi1, phi1m2, xsi1, xsi1m2, gamma, epsilon);
-    vecCore::MaskedAssign(dcs, !smallZ,
-                          (onemy + 0.75 * y * y) * ((0.25 * phi1 - Fz) + (0.25 * xsi1 - 2. * LogZ / 3.) * invZ) +
-                          0.125 * onemy * (phi1m2 + xsi1m2 * invZ));
-    // dcs *= factor*zet*zet/egamma;
-  }
-
-  return Math::Max(dcs, (Double_v)0.0);
-}
-
-void RelativisticBremsModel::ComputeScreeningFunctions(Double_v &phi1, Double_v &phi1m2, Double_v &xsi1,
-                                                          Double_v &xsi1m2, const Double_v gamma,
-                                                          const Double_v epsilon)
-{
-  const Double_v gamma2 = gamma * gamma;
-  phi1 =
-      16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) + 1.6 * Math::Exp(-1.5 * gamma);
-  phi1m2                  = 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
-  const Double_v epsilon2 = epsilon * epsilon;
-  xsi1                    = 24.34 - 2.0 * Math::Log(1.0 + 13.111641 * epsilon2) + 2.8 * Math::Exp(-8.0 * epsilon) +
-                            1.2 * Math::Exp(-29.2 * epsilon);
-  xsi1m2 = 2.0 / (3.0 + 120.0 * epsilon + 1200.0 * epsilon2); // xsi1-xsi2
-}
-
 bool RelativisticBremsModel::IsModelUsable(const MaterialCuts *matCut, double ekin)
 {
   const double gammaCut = matCut->GetProductionCutsInEnergy()[0];
   return ekin < GetHighEnergyUsageLimit() && ekin > GetLowEnergyUsageLimit() && ekin > gammaCut;
 }
-
 
 } // namespace geantphysics

@@ -17,19 +17,17 @@ int main(int argc, char **argv)
 
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> knScalarRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knVectorRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knScalarTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
-  std::unique_ptr<EMModel> knVectorTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
+  std::unique_ptr<EMModel> knRej        = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
+  std::unique_ptr<EMModel> knAliasTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
 
-  benchmark::RegisterBenchmark("KleinNishinaAliasScal", ScalarModelBenchmark, knScalarTable.get(), PrepareKNScalarPrims,
+  benchmark::RegisterBenchmark("KleinNishinaAliasScal", ScalarModelBenchmark, knAliasTable.get(), PrepareKNScalarPrims,
                                td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("KleinNishinaAliasVec", VectorModelBenchmark, knVectorTable.get(), PrepareKNVectorPrims,
+  benchmark::RegisterBenchmark("KleinNishinaAliasVec", VectorModelBenchmark, knAliasTable.get(), PrepareKNVectorPrims,
                                td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("KleinNishinaRejScal", ScalarModelBenchmark, knScalarRej.get(), PrepareKNScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("KleinNishinaRejVec", VectorModelBenchmark, knVectorRej.get(), PrepareKNVectorPrims,
-                               td.get(), kBasketSize);
+  benchmark::RegisterBenchmark("KleinNishinaRejScal", ScalarModelBenchmark, knRej.get(), PrepareKNScalarPrims, td.get(),
+                               kBasketSize);
+  benchmark::RegisterBenchmark("KleinNishinaRejVec", VectorModelBenchmark, knRej.get(), PrepareKNVectorPrims, td.get(),
+                               kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

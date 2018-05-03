@@ -16,21 +16,21 @@ struct KNValidData {
   }
 };
 
-void TestKNModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, geant::TaskData *td)
+void TestKNModel(geantphysics::EMModel *model, geant::TaskData *td)
 {
   KNValidData validDataVector;
   KNValidData validDataScalar;
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     LightTrack_v primariesVec;
-    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
                     primariesVec, kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec);
     auto P0   = GetTotalP(primariesVec);
 
-    SampleSecondariesVector(vector, primariesVec, td);
+    SampleSecondariesVector(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
 
@@ -58,14 +58,14 @@ void TestKNModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, g
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     std::vector<LightTrack> primariesVec;
-    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
                     primariesVec, kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
     auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
 
-    SampleSecondariesScalar(scalar, primariesVec, td);
+    SampleSecondariesScalar(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
                                     td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
@@ -114,15 +114,13 @@ int main()
   PrepareWorld();
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> knScalarRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knVectorRej   = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
-  std::unique_ptr<EMModel> knScalarTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
-  std::unique_ptr<EMModel> knVectorTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
+  std::unique_ptr<EMModel> knRej        = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
+  std::unique_ptr<EMModel> knAliasTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
 
   Printf("Testing KleinNishina rejection model");
-  TestKNModel(knVectorRej.get(), knScalarRej.get(), td.get());
+  TestKNModel(knRej.get(), td.get());
   Printf("Testing KleinNishina alias model");
-  TestKNModel(knVectorTable.get(), knScalarTable.get(), td.get());
+  TestKNModel(knAliasTable.get(), td.get());
 
   CleanTaskData(td.get());
   return 0;

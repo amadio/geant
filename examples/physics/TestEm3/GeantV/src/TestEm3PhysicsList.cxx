@@ -73,7 +73,7 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *eBremProc = new geantphysics::ElectronBremsstrahlungProcess("e-Brem");
       // create a SeltzerBergerBremsModel for e-
-      geantphysics::EMModel *eSBModel =  new geantphysics::SeltzerBergerBremsModel(true);
+      geantphysics::EMModel *eSBModel = new geantphysics::SeltzerBergerBremsModel(true);
       // set min/max energies of the model
       eSBModel->SetLowEnergyUsageLimit(1.0 * geant::units::keV);
       eSBModel->SetHighEnergyUsageLimit(1.0 * geant::units::GeV);
@@ -85,7 +85,7 @@ void TestEm3PhysicsList::Initialize()
       eBremProc->AddModel(eSBModel);
       //
       // create a RelativisticBremsModel for e-
-      geantphysics::EMModel *eRelBModel =  new geantphysics::RelativisticBremsModel();
+      geantphysics::EMModel *eRelBModel = new geantphysics::RelativisticBremsModel();
       // set min/max energies of the model
       eRelBModel->SetLowEnergyUsageLimit(1.0 * geant::units::GeV);
       eRelBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
@@ -163,7 +163,7 @@ void TestEm3PhysicsList::Initialize()
       //
       // create e+ electron annihilation into 2 gamma process
       geantphysics::PositronAnnihilationProcess *pAnhProc = new geantphysics::PositronAnnihilationProcess();
-      geantphysics::PositronTo2GammaModel *pos2Gamma = new geantphysics::PositronTo2GammaModel();
+      geantphysics::PositronTo2GammaModel *pos2Gamma      = new geantphysics::PositronTo2GammaModel();
       pos2Gamma->SetLowEnergyUsageLimit(100. * geant::units::eV);
       pos2Gamma->SetHighEnergyUsageLimit(100. * geant::units::TeV);
       pAnhProc->AddModel(pos2Gamma);
@@ -174,7 +174,7 @@ void TestEm3PhysicsList::Initialize()
       //
       geantphysics::EMPhysicsProcess *comptProc = new geantphysics::ComptonScatteringProcess();
       // create the Klein-Nishina model for Compton scattering i.e. for g + e- -> g + e- intercation
-      geantphysics::EMModel *kncModel =  new geantphysics::KleinNishinaComptonModel();
+      geantphysics::EMModel *kncModel = new geantphysics::KleinNishinaComptonModel();
       // set min/max energies of the model
       kncModel->SetLowEnergyUsageLimit(100.0 * geant::units::eV);
       kncModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);

@@ -27,38 +27,30 @@ int main(int argc, char **argv)
 
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> bhScalarRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
-  std::unique_ptr<EMModel> bhVectorRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
-  std::unique_ptr<EMModel> bhScalarTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
-  std::unique_ptr<EMModel> bhVectorTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
+  std::unique_ptr<EMModel> bhRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
+  std::unique_ptr<EMModel> bhTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
 
-  std::unique_ptr<EMModel> relPairScalarRej =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
-  std::unique_ptr<EMModel> relPairVectorRej =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
-  std::unique_ptr<EMModel> relPairScalarTable =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
-  std::unique_ptr<EMModel> relPairVectorTable =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
+  std::unique_ptr<EMModel> relPairRej   = InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
+  std::unique_ptr<EMModel> relPairTable = InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
 
-  benchmark::RegisterBenchmark("BetheHeitlerAliasScal", ScalarModelBenchmark, bhScalarTable.get(), PrepareBHScalarPrims,
+  benchmark::RegisterBenchmark("BetheHeitlerAliasScal", ScalarModelBenchmark, bhTable.get(), PrepareBHScalarPrims,
                                td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("BetheHeitlerAliasVec", VectorModelBenchmark, bhVectorTable.get(), PrepareBHVectorPrims,
+  benchmark::RegisterBenchmark("BetheHeitlerAliasVec", VectorModelBenchmark, bhTable.get(), PrepareBHVectorPrims,
                                td.get(), kBasketSize);
 
-  benchmark::RegisterBenchmark("BetheHeitlerRejScal", ScalarModelBenchmark, bhScalarRej.get(), PrepareBHScalarPrims,
+  benchmark::RegisterBenchmark("BetheHeitlerRejScal", ScalarModelBenchmark, bhRej.get(), PrepareBHScalarPrims, td.get(),
+                               kBasketSize);
+  benchmark::RegisterBenchmark("BetheHeitlerRejVec", VectorModelBenchmark, bhRej.get(), PrepareBHVectorPrims, td.get(),
+                               kBasketSize);
+
+  benchmark::RegisterBenchmark("RelativisticPairRejScal", ScalarModelBenchmark, relPairRej.get(), PrepareRPScalarPrims,
                                td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("BetheHeitlerRejVec", VectorModelBenchmark, bhVectorRej.get(), PrepareBHVectorPrims,
+  benchmark::RegisterBenchmark("RelativisticPairRejVec", VectorModelBenchmark, relPairRej.get(), PrepareRPVectorPrims,
                                td.get(), kBasketSize);
 
-  benchmark::RegisterBenchmark("RelativisticPairRejScal", ScalarModelBenchmark, relPairScalarRej.get(),
+  benchmark::RegisterBenchmark("RelativisticPairAliasScal", ScalarModelBenchmark, relPairTable.get(),
                                PrepareRPScalarPrims, td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("RelativisticPairRejVec", VectorModelBenchmark, relPairVectorRej.get(),
-                               PrepareRPVectorPrims, td.get(), kBasketSize);
-
-  benchmark::RegisterBenchmark("RelativisticPairAliasScal", ScalarModelBenchmark, relPairScalarTable.get(),
-                               PrepareRPScalarPrims, td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("RelativisticPairAliasVec", VectorModelBenchmark, relPairVectorTable.get(),
+  benchmark::RegisterBenchmark("RelativisticPairAliasVec", VectorModelBenchmark, relPairTable.get(),
                                PrepareRPVectorPrims, td.get(), kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);

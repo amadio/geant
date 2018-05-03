@@ -24,6 +24,7 @@
 // from geantV
 #include "Geant/TaskData.h"
 #include "Geant/math_wrappers.h"
+#include "base/Global.h"
 
 namespace geantphysics {
 
@@ -514,83 +515,80 @@ void RelativisticPairModel::InitialiseElementData()
   }
 }
 
-void RelativisticPairModel::ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai)
+template <typename R>
+void RelativisticPairModel::ComputeScreeningFunctions(R &phi1, R &phi2, const R delta, const bool istsai)
 {
   if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    phi1                = 16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) +
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    phi1           = 16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) +
            1.6 * Math::Exp(-1.5 * gamma);
     phi2 = phi1 - 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
   } else {
-    if (delta > 1.) {
-      phi1 = 21.12 - 4.184 * Math::Log(delta + 0.952);
-      phi2 = phi1;
-    } else {
-      const double delta2 = delta * delta;
-      phi1                = 20.867 - 3.242 * delta + 0.625 * delta2;
-      phi2                = 20.209 - 1.93 * delta - 0.086 * delta2;
-    }
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(phi1, tmp, 21.12 - 4.184 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(phi2, tmp, phi1);
+
+    R delta2 = delta * delta;
+    vecCore__MaskedAssignFunc(phi1, !tmp, 20.867 - 3.242 * delta + 0.625 * delta2);
+    vecCore__MaskedAssignFunc(phi2, !tmp, 20.209 - 1.93 * delta - 0.086 * delta2);
   }
 }
 
 // val1 =  3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
 // val2 =  1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-void RelativisticPairModel::ScreenFunction12(double &val1, double &val2, const double delta, const bool istsai)
+template <typename R>
+void RelativisticPairModel::ScreenFunction12(R &val1, R &val2, const R delta, const bool istsai)
 {
   if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    const double dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                        3.2 * Math::Exp(-1.5 * gamma);
-    const double dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
-    val1              = dum1 + dum2;
-    val2              = dum1 - 0.5 * dum2;
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    const R dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+                   3.2 * Math::Exp(-1.5 * gamma);
+    const R dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
+    val1         = dum1 + dum2;
+    val2         = dum1 - 0.5 * dum2;
   } else {
-    if (delta > 1.) {
-      val1 = 42.24 - 8.368 * Math::Log(delta + 0.952);
-      val2 = val1;
-    } else {
-      val1 = 42.392 - delta * (7.796 - 1.961 * delta);
-      val2 = 41.405 - delta * (5.828 - 0.8945 * delta);
-    }
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(val1, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(val2, tmp, val1);
+    vecCore__MaskedAssignFunc(val1, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
+    vecCore__MaskedAssignFunc(val2, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
 }
 
 // 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
-double RelativisticPairModel::ScreenFunction1(const double delta, const bool istsai)
+template <typename R>
+R RelativisticPairModel::ScreenFunction1(const R delta, const bool istsai)
 {
-  double val;
+  R val;
   if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    val                 = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    val            = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
           3.2 * Math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
-    if (delta > 1.) {
-      val = 42.24 - 8.368 * Math::Log(delta + 0.952);
-    } else {
-      val = 42.392 - delta * (7.796 - 1.961 * delta);
-    }
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(val, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
   }
   return val;
 }
 
 // 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-double RelativisticPairModel::ScreenFunction2(const double delta, const bool istsai)
+template <typename R>
+R RelativisticPairModel::ScreenFunction2(const R delta, const bool istsai)
 {
-  double val;
+  R val;
   if (istsai) {
-    const double gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const double gamma2 = gamma * gamma;
-    val                 = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
+    const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
+    const R gamma2 = gamma * gamma;
+    val            = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
           3.2 * Math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
   } else {
-    if (delta > 1.) {
-      val = 42.24 - 8.368 * Math::Log(delta + 0.952);
-    } else {
-      val = 41.405 - delta * (5.828 - 0.8945 * delta);
-    }
+    vecCore::Mask<R> tmp = delta > 1.;
+    vecCore__MaskedAssignFunc(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
+    vecCore__MaskedAssignFunc(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
   }
   return val;
 }
@@ -620,6 +618,44 @@ void RelativisticPairModel::ComputeLPMfunctions(double &funcXiS, double &funcGS,
   if (funcXiS * funcPhiS > 1. || varShat > 0.57) {
     funcXiS = 1. / funcPhiS;
   }
+}
+
+void RelativisticPairModel::ComputeLPMfunctions(Double_v &funcXiS, Double_v &funcGS, Double_v &funcPhiS,
+                                                Double_v lpmenergy, Double_v eps, Double_v egamma, Double_v varS1Cond,
+                                                Double_v ilVarS1Cond)
+{
+
+  //  1. y = E_+/E_{\gamma} with E_+ being the total energy transfered to one of the e-/e+ pair
+  //     s'  = \sqrt{ \frac{1}{8} \frac{1}{y(1-y)}   \frac{E^{KL}_{LPM}}{E_{\gamma}}  }
+  const Double_v varSprime = Math::Sqrt(0.125 * lpmenergy / (eps * egamma * (1.0 - eps)));
+  funcXiS                  = 2.0;
+
+  MaskD_v tmpM = varSprime > 1.0;
+  vecCore::MaskedAssign(funcXiS, tmpM, (Double_v)1.0);
+  tmpM = varSprime > varS1Cond;
+  if (!MaskEmpty(tmpM)) {
+    const Double_v funcHSprime = Math::Log(varSprime) * ilVarS1Cond;
+    Double_v tmpFuncXiS =
+        1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ilVarS1Cond;
+    vecCore::MaskedAssign(funcXiS, tmpM, tmpFuncXiS);
+  }
+
+  const Double_v varShat = varSprime / Math::Sqrt(funcXiS);
+
+  for (int l = 0; l < kVecLenD; ++l) {
+    double lFuncGS, lFuncPhiS, lVarShat;
+    double lFuncXiS;
+    lVarShat = Get(varShat, l);
+    lFuncXiS = Get(funcXiS, l);
+    GetLPMFunctions(lFuncGS, lFuncPhiS, lVarShat);
+    Set(funcGS, l, lFuncGS);
+    Set(funcPhiS, l, lFuncPhiS);
+
+    if (lFuncXiS * lFuncPhiS > 1. || lVarShat > 0.57) {
+      Set(funcXiS, l, 1. / lFuncPhiS);
+    }
+  }
+  // MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
 }
 
 void RelativisticPairModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, const double varShat)
@@ -929,7 +965,6 @@ void RelativisticPairModel::BuildOneRatinAlias(const double egamma, const Materi
   fSamplingTables[matindx]->fRatinAliasData[egammaindx] = raData;
 }
 
-
 void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
   int N             = tracks.GetNtracks();
@@ -976,7 +1011,7 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       Double_v r2   = td->fRndm->uniformV();
       Double_v r3   = td->fRndm->uniformV();
 
-      Double_v sampledEps = SampleTotalEnergyTransferAliasOneShot(ekin, &MatIDX[i], r1, r2, r3);
+      Double_v sampledEps = SampleTotalEnergyTransferAlias(ekin, &MatIDX[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
@@ -1066,9 +1101,8 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
   }
 }
 
-Double_v RelativisticPairModel::SampleTotalEnergyTransferAliasOneShot(const Double_v egamma, const int *matIDX,
-                                                                         const Double_v r1, const Double_v r2,
-                                                                         const Double_v r3)
+Double_v RelativisticPairModel::SampleTotalEnergyTransferAlias(const Double_v egamma, const int *matIDX,
+                                                               const Double_v r1, const Double_v r2, const Double_v r3)
 {
   const Double_v legamma = Math::Log(egamma);
 
@@ -1103,8 +1137,7 @@ Double_v RelativisticPairModel::SampleTotalEnergyTransferAliasOneShot(const Doub
 }
 
 void RelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy,
-                                                               const int *izet, double *epsOut, int N,
-                                                               geant::TaskData *td)
+                                                            const int *izet, double *epsOut, int N, geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
   int currN = 0;
@@ -1205,117 +1238,5 @@ void RelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *egamma
     }
   }
 }
-
-void RelativisticPairModel::ScreenFunction12(Double_v &val1, Double_v &val2, const Double_v delta, const bool istsai)
-{
-  if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    const Double_v dum1   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                            3.2 * Math::Exp(-1.5 * gamma);
-    const Double_v dum2 = 2. / (3. + 19.5 * gamma + 18. * gamma2);
-    val1                = dum1 + dum2;
-    val2                = dum1 - 0.5 * dum2;
-  } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(val1, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(val2, tmp, val1);
-    vecCore::MaskedAssign(val1, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
-    vecCore::MaskedAssign(val2, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
-  }
-}
-
-// 3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)
-Double_v RelativisticPairModel::ScreenFunction1(const Double_v delta, const bool istsai)
-{
-  Double_v val;
-  if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    val                   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                            3.2 * Math::Exp(-1.5 * gamma) + 2. / (3. + 19.5 * gamma + 18. * gamma2);
-  } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(val, !tmp, 42.392 - delta * (7.796 - 1.961 * delta));
-  }
-  return val;
-}
-
-// 1.5*Phi_1 + 0.5*Phi_2: used in case of rejection (either istsai or not)
-Double_v RelativisticPairModel::ScreenFunction2(const Double_v delta, const bool istsai)
-{
-  Double_v val;
-  if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    val                   = 33.726 - 4. * Math::Log(1.0 + 0.311877 * gamma2) + 4.8 * Math::Exp(-0.9 * gamma) +
-                            3.2 * Math::Exp(-1.5 * gamma) - 1. / (3. + 19.5 * gamma + 18. * gamma2);
-  } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(val, tmp, 42.24 - 8.368 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(val, !tmp, 41.405 - delta * (5.828 - 0.8945 * delta));
-  }
-  return val;
-}
-
-void RelativisticPairModel::ComputeScreeningFunctions(Double_v &phi1, Double_v &phi2, const Double_v delta,
-                                                         const bool istsai)
-{
-  if (istsai) {
-    const Double_v gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
-    const Double_v gamma2 = gamma * gamma;
-    phi1                  = 16.863 - 2.0 * Math::Log(1.0 + 0.311877 * gamma2) + 2.4 * Math::Exp(-0.9 * gamma) +
-                            1.6 * Math::Exp(-1.5 * gamma);
-    phi2 = phi1 - 2.0 / (3.0 + 19.5 * gamma + 18.0 * gamma2); // phi1-phi2
-  } else {
-    MaskD_v tmp = delta > 1.;
-    vecCore::MaskedAssign(phi1, tmp, 21.12 - 4.184 * Math::Log(delta + 0.952));
-    vecCore::MaskedAssign(phi2, tmp, phi1);
-
-    Double_v delta2 = delta * delta;
-    vecCore::MaskedAssign(phi1, !tmp, 20.867 - 3.242 * delta + 0.625 * delta2);
-    vecCore::MaskedAssign(phi2, !tmp, 20.209 - 1.93 * delta - 0.086 * delta2);
-  }
-}
-
-void RelativisticPairModel::ComputeLPMfunctions(Double_v &funcXiS, Double_v &funcGS, Double_v &funcPhiS,
-                                                   Double_v lpmenergy, Double_v eps, Double_v egamma,
-                                                   Double_v varS1Cond, Double_v ilVarS1Cond)
-{
-
-  //  1. y = E_+/E_{\gamma} with E_+ being the total energy transfered to one of the e-/e+ pair
-  //     s'  = \sqrt{ \frac{1}{8} \frac{1}{y(1-y)}   \frac{E^{KL}_{LPM}}{E_{\gamma}}  }
-  const Double_v varSprime = Math::Sqrt(0.125 * lpmenergy / (eps * egamma * (1.0 - eps)));
-  funcXiS                  = 2.0;
-
-  MaskD_v tmpM = varSprime > 1.0;
-  vecCore::MaskedAssign(funcXiS, tmpM, (Double_v)1.0);
-  tmpM = varSprime > varS1Cond;
-  if (!MaskEmpty(tmpM)) {
-    const Double_v funcHSprime = Math::Log(varSprime) * ilVarS1Cond;
-    Double_v tmpFuncXiS =
-        1.0 + funcHSprime - 0.08 * (1.0 - funcHSprime) * funcHSprime * (2.0 - funcHSprime) * ilVarS1Cond;
-    vecCore::MaskedAssign(funcXiS, tmpM, tmpFuncXiS);
-  }
-
-  const Double_v varShat = varSprime / Math::Sqrt(funcXiS);
-
-  for (int l = 0; l < kVecLenD; ++l) {
-    double lFuncGS, lFuncPhiS, lVarShat;
-    double lFuncXiS;
-    lVarShat = Get(varShat, l);
-    lFuncXiS = Get(funcXiS, l);
-    GetLPMFunctions(lFuncGS, lFuncPhiS, lVarShat);
-    Set(funcGS, l, lFuncGS);
-    Set(funcPhiS, l, lFuncPhiS);
-
-    if (lFuncXiS * lFuncPhiS > 1. || lVarShat > 0.57) {
-      Set(funcXiS, l, 1. / lFuncPhiS);
-    }
-  }
-  // MAKE SURE SUPPRESSION IS SMALLER THAN 1: due to Migdal's approximation on xi
-}
-
 
 } // namespace geantphysics

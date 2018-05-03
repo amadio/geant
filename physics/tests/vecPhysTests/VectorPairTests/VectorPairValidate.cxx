@@ -18,21 +18,21 @@ struct PairValidData {
   }
 };
 
-void TestPairModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, geant::TaskData *td)
+void TestPairModel(geantphysics::EMModel *model, geant::TaskData *td)
 {
   PairValidData validDataVector;
   PairValidData validDataScalar;
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     LightTrack_v primariesVec;
-    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
                     primariesVec, kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec);
     auto P0   = GetTotalP(primariesVec);
 
-    SampleSecondariesVector(vector, primariesVec, td);
+    SampleSecondariesVector(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
 
@@ -58,14 +58,14 @@ void TestPairModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar,
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     std::vector<LightTrack> primariesVec;
-    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, TestParticleType::Gamma,
                     primariesVec, kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
     auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
 
-    SampleSecondariesScalar(scalar, primariesVec, td);
+    SampleSecondariesScalar(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
                                     td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
@@ -112,29 +112,21 @@ int main()
   PrepareWorld();
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> bhScalarRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
-  std::unique_ptr<EMModel> bhVectorRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
-  std::unique_ptr<EMModel> bhScalarTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
-  std::unique_ptr<EMModel> bhVectorTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
+  std::unique_ptr<EMModel> bhRej   = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, false);
+  std::unique_ptr<EMModel> bhTable = InitEMModel(new BetheHeitlerPairModel, kBHminEn, kBHmaxEn, true);
 
-  std::unique_ptr<EMModel> relPairScalarRej =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
-  std::unique_ptr<EMModel> relPairVectorRej =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
-  std::unique_ptr<EMModel> relPairScalarTable =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
-  std::unique_ptr<EMModel> relPairVectorTable =
-      InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
+  std::unique_ptr<EMModel> relPairRej   = InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
+  std::unique_ptr<EMModel> relPairTable = InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
 
   Printf("Testing RelativisticPair alias model");
-  TestPairModel(relPairVectorTable.get(), relPairScalarTable.get(), td.get());
+  TestPairModel(relPairTable.get(), td.get());
   Printf("Testing RelativisticPair rej model");
-  TestPairModel(relPairVectorRej.get(), relPairScalarRej.get(), td.get());
+  TestPairModel(relPairRej.get(), td.get());
 
   Printf("Testing BetheHeitler alias model");
-  TestPairModel(bhVectorTable.get(), bhScalarTable.get(), td.get());
+  TestPairModel(bhTable.get(), td.get());
   Printf("Testing BetheHeitler rej model");
-  TestPairModel(bhVectorRej.get(), bhScalarRej.get(), td.get());
+  TestPairModel(bhRej.get(), td.get());
 
   CleanTaskData(td.get());
   return 0;

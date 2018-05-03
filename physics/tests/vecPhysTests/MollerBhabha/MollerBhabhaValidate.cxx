@@ -16,22 +16,21 @@ struct MBValidData {
   }
 };
 
-void TestMBModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, TestParticleType primary,
-                 geant::TaskData *td)
+void TestMBModel(geantphysics::EMModel *model, TestParticleType primary, geant::TaskData *td)
 {
   MBValidData validDataVector;
   MBValidData validDataScalar;
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     LightTrack_v primariesVec;
-    CreateParticles(vector->GetLowEnergyUsageLimit(), vector->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, primary, primariesVec,
                     kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec);
     auto P0   = GetTotalP(primariesVec);
 
-    SampleSecondariesVector(vector, primariesVec, td);
+    SampleSecondariesVector(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
 
@@ -59,14 +58,14 @@ void TestMBModel(geantphysics::EMModel *vector, geantphysics::EMModel *scalar, T
 
   for (int btry = 0; btry < kBasketSamples; ++btry) {
     std::vector<LightTrack> primariesVec;
-    CreateParticles(scalar->GetLowEnergyUsageLimit(), scalar->GetHighEnergyUsageLimit(), true, primary, primariesVec,
+    CreateParticles(model->GetLowEnergyUsageLimit(), model->GetHighEnergyUsageLimit(), true, primary, primariesVec,
                     kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
     double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
     auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
 
-    SampleSecondariesScalar(scalar, primariesVec, td);
+    SampleSecondariesScalar(model, primariesVec, td);
 
     CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
                                     td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
@@ -115,33 +114,25 @@ int main()
   PrepareWorld();
   auto td = PrepareTaskData();
 
-  std::unique_ptr<EMModel> mbScalarRej_em =
+  std::unique_ptr<EMModel> mbRej_em =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
-  std::unique_ptr<EMModel> mbVectorRej_em =
-      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, false);
-  std::unique_ptr<EMModel> mbScalarTable_em =
-      InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
-  std::unique_ptr<EMModel> mbVectorTable_em =
+  std::unique_ptr<EMModel> mbTable_em =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
 
-  std::unique_ptr<EMModel> mbScalarRej_ep =
+  std::unique_ptr<EMModel> mbRej_ep =
       InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
-  std::unique_ptr<EMModel> mbVectorRej_ep =
-      InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, false);
-  std::unique_ptr<EMModel> mbScalarTable_ep =
-      InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
-  std::unique_ptr<EMModel> mbVectorTable_ep =
+  std::unique_ptr<EMModel> mbTable_ep =
       InitEMModel(new MollerBhabhaIonizationModel(false), kMollBhminEn, kMollBhmaxEn, true);
 
   Printf("Testing MollerBhabha rejection model for electron");
-  TestMBModel(mbVectorRej_em.get(), mbScalarRej_em.get(), TestParticleType::Em, td.get());
+  TestMBModel(mbRej_em.get(), TestParticleType::Em, td.get());
   Printf("Testing MollerBhabha alias model for electron");
-  TestMBModel(mbVectorTable_em.get(), mbScalarTable_em.get(), TestParticleType::Em, td.get());
+  TestMBModel(mbTable_em.get(), TestParticleType::Em, td.get());
 
   Printf("Testing MollerBhabha rejection model for positron");
-  TestMBModel(mbVectorRej_ep.get(), mbScalarRej_ep.get(), TestParticleType::Ep, td.get());
+  TestMBModel(mbRej_ep.get(), TestParticleType::Ep, td.get());
   Printf("Testing MollerBhabha alias model for positron");
-  TestMBModel(mbVectorTable_ep.get(), mbScalarTable_ep.get(), TestParticleType::Ep, td.get());
+  TestMBModel(mbTable_ep.get(), TestParticleType::Ep, td.get());
 
   CleanTaskData(td.get());
   return 0;

@@ -138,6 +138,10 @@ protected:
   double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const double r1, const double r2,
                               const double r3);
 
+  geant::Double_v SampleEnergyTransfer(geant::Double_v elProdCut, geant::IndexD_v mcLocalIdx, double *tableEmin,
+                                       double *tableILDeta, geant::Double_v primekin, geant::Double_v r1,
+                                       geant::Double_v r2, geant::Double_v r3);
+
   /**
     * @brief Internal method to sample (restricted) kinetic energy transfered to the electron in Moller/Bhabha
     *        scattering (with rejection).
@@ -149,6 +153,9 @@ protected:
     *             interaction.
     */
   double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const geant::TaskData *td);
+
+  void SampleEnergyTransfer(const double *elProdCut, const double *primekin, double *epsOut, int N,
+                            const geant::TaskData *td);
 
   /** @brief Internal method to build energy transfer sampling tables under <em>linear approximation of
    *         the p.d.f.</em>.
@@ -243,13 +250,6 @@ protected:
   AliasTable *fAliasSampler;
   std::vector<int> fGlobalMatECutIndxToLocal;
   std::vector<AliasDataMaterialCuts *> fSamplingTables;
-
-  geant::Double_v SampleEnergyTransfer(geant::Double_v elProdCut, geant::IndexD_v mcLocalIdx, double *tableEmin,
-                                       double *tableILDeta, geant::Double_v primekin, geant::Double_v r1,
-                                       geant::Double_v r2, geant::Double_v r3);
-
-  void SampleEnergyTransfer(const double *elProdCut, const double *primekin, double *epsOut, int N,
-                            const geant::TaskData *td);
 
   struct AliasDataForMatCut {
     AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)

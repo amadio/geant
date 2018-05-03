@@ -680,8 +680,7 @@ void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::Ta
   }
 }
 
-Double_v KleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egamma, Double_v r1, Double_v r2,
-                                                                   Double_v r3)
+Double_v KleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egamma, Double_v r1, Double_v r2, Double_v r3)
 {
   // determine electron energy lower grid point
   Double_v legamma = Math::Log(egamma);
@@ -715,9 +714,8 @@ Double_v KleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egamma,
   return Math::Exp(Math::Log(1. + 2. * kappa) * (xiV - 1.));
 }
 
-void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma, double *onemcostOut,
-                                                               double *sint2Out, double *epsOut, int N,
-                                                               const geant::TaskData *td)
+void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma, double *onemcostOut, double *sint2Out,
+                                                            double *epsOut, int N, const geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
   int currN = 0;

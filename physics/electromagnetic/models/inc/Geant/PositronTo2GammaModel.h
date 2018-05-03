@@ -84,7 +84,11 @@ protected:
 
   double ComputeXsectionPerElectron(double pekin);
   double SampleEnergyTransfer(double pekin, double gamma, double r1, double r2, double r3);
+  geant::Double_v SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v gamma, geant::Double_v r2,
+                                            geant::Double_v r3, geant::Double_v r1);
+
   double SampleEnergyTransfer(double gamma, geant::TaskData *td);
+  void SampleEnergyTransferRej(const double *gamma, double *eps, int N, const geant::TaskData *td);
 
   /** @brief Internal method to build energy transfer (to one of the gammas) related sampling tables.*/
   void InitSamplingTables();
@@ -138,12 +142,6 @@ protected:
   AliasTable *fAliasSampler;
 
   std::vector<LinAliasCached> fCachedAliasTable;
-
-  geant::Double_v SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v r1, geant::Double_v r2,
-                                            geant::Double_v r3, geant::Double_v gamma);
-
-  void SampleEnergyTransferRej(const double *gamma, double *eps, int N, const geant::TaskData *td);
-
 };
 
 } // namespace geantphysics
