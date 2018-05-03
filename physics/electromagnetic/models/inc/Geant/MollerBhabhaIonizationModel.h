@@ -256,7 +256,7 @@ protected:
     {
       fAliasData.reserve(ntables);
     }
-    int fNData;
+    int fNData = 0;
     double fLogEmin;
     double fILDelta;
     std::vector<LinAliasCached> fAliasData;
