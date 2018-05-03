@@ -159,6 +159,12 @@ R Pow(R x, R n)
 
 using vecMath::IntPow;
 
+/**
+ * @brief Rotate vector u,v,w to labframe defined by vector u1, u2, u3
+ * @tparam double or Real_v type from veccore
+ * @param[in,out] u, v, w - vector being rotated to lab frame
+ * @param[in] u1, u2, u3 - lab frame vector(direction of primary particle)
+ */
 template <typename R>
 inline void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
 {

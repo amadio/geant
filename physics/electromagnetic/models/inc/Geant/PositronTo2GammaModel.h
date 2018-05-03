@@ -35,7 +35,7 @@ class LightTrack;
 /**
  * @brief   Positron annihilation into 2 gamma model.
  * @class   PositronTo2GammaModel
- * @author  M Novak
+ * @authors  M Novak, V Drohan(vectorization)
  * @date    january 2018
  *
  * The model is based on Heitler's differential cross section of two-photon positron-electron annihilation

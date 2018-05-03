@@ -27,7 +27,7 @@ namespace geantphysics {
 /**
  * @brief   Ionization model for electron/positron.
  * @class   MollerBhabhaIonizationModel
- * @author  M Novak, A Ribon
+ * @authors  M Novak, A Ribon, V Drohan(vectorization)
  * @date    may 2016
  *
  * Model for Moller \cite moller1932theorie \cite crawford1970electron \f$[e^-+e^-\to e^-+e^-]\f$ and Bhabha

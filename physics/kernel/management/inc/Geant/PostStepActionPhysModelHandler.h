@@ -1,4 +1,14 @@
-
+//===--- PostStepActionPhysModelHandler.h - Geant-V -------------*- C++ -*-===//
+//
+//                     Geant-V Prototype
+//
+//===----------------------------------------------------------------------===//
+/**
+ * @file PostStepActionPhysModelHandler.h
+ * @brief Implementation of post step action handler for vectorized EM transport
+ * @author Vitalii Drohan
+ */
+//===----------------------------------------------------------------------===//
 #ifndef POSTSTEPACTIONPHYSPROCESSHANDLER_H
 #define POSTSTEPACTIONPHYSPROCESSHANDLER_H
 
@@ -19,6 +29,10 @@ class EMModel;
 /**
  * @brief   Handler for post-step actions specific for physics process (discrete interactions).
  * @class   PostStepActionPhysProcessHandler
+ *
+ * This handler is used only for specific EM physics model in order to use vectorization over basket of particles which
+ * are undergoing same model sampling.
+ * (based on PostStepActionHandler by M. Novak)
  */
 
 class PostStepActionPhysModelHandler : public geant::Handler {

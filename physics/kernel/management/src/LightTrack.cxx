@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <TString.h>
 #include "Geant/LightTrack.h"
+#include "Geant/VectorTypes.h"
 
 namespace geantphysics {
 

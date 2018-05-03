@@ -967,10 +967,10 @@ void RelativisticPairModel::BuildOneRatinAlias(const double egamma, const Materi
 
 void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
-  int N             = tracks.GetNtracks();
-  int *IZet         = td->fPhysicsData->fPhysicsScratchpad.fIzet;   // used by rej method
-  int *MatIDX       = td->fPhysicsData->fPhysicsScratchpad.fMatIdx; // used by alias method
-  double *LPMEnergy = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  int N                  = tracks.GetNtracks();
+  int *izetArr           = td->fPhysicsData->fPhysicsScratchpad.fIzet;   // used by rej method
+  int *matIDXArr         = td->fPhysicsData->fPhysicsScratchpad.fMatIdx; // used by alias method
+  double *lpmEnergyArray = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
 
   // Sort by LPM energies to simplify branching in rej. accept. sampling method
   if (!GetUseSamplingTables() && fIsUseLPM) {
@@ -988,10 +988,10 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     const Material *mat  = matCut->GetMaterial();
 
     if (GetUseSamplingTables()) {
-      MatIDX[i] = mat->GetIndex();
+      matIDXArr[i] = mat->GetIndex();
     } else {
       const double lpmEnergy = mat->GetMaterialProperties()->GetRadiationLength() * gLPMFactor;
-      LPMEnergy[i]           = lpmEnergy;
+      lpmEnergyArray[i]      = lpmEnergy;
 
       const Vector_t<Element *> &theElements = mat->GetElementVector();
       double targetElemIndx                  = 0;
@@ -1000,7 +1000,7 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       }
       const double zet = theElements[targetElemIndx]->GetZ();
       const int izet   = std::min(std::lrint(zet), gMaxZet - 1);
-      IZet[i]          = izet;
+      izetArr[i]       = izet;
     }
   }
 
@@ -1011,16 +1011,16 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       Double_v r2   = td->fRndm->uniformV();
       Double_v r3   = td->fRndm->uniformV();
 
-      Double_v sampledEps = SampleTotalEnergyTransferAlias(ekin, &MatIDX[i], r1, r2, r3);
+      Double_v sampledEps = SampleTotalEnergyTransferAlias(ekin, &matIDXArr[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
 
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
-    LPMEnergy[N]           = LPMEnergy[N - 1];
-    IZet[N]                = IZet[N - 1];
-    SampleTotalEnergyTransferRejVec(tracks.GetKinEArr(), LPMEnergy, IZet, td->fPhysicsData->fPhysicsScratchpad.fEps, N,
-                                    td);
+    lpmEnergyArray[N]      = lpmEnergyArray[N - 1];
+    izetArr[N]             = izetArr[N - 1];
+    SampleTotalEnergyTransferRejVec(tracks.GetKinEArr(), lpmEnergyArray, izetArr,
+                                    td->fPhysicsData->fPhysicsScratchpad.fEps, N, td);
   }
 
   for (int i = 0; i < N; i += kVecLenD) {

@@ -28,7 +28,7 @@ namespace geantphysics {
 /**
  * @brief   Model for conversion of gamma particles into e-/e+ pair including LPM suppresion effects.
  * @class   RelativisticPairModel
- * @author  F Hariri, M Novak
+ * @authors  F Hariri, M Novak, V Drohan(vectorization)
  * @date    November 2017
  *
  * The model is based on the Bethe-Heitler \cite bethe1934stopping differential cross section (DCS) corrected for
@@ -103,6 +103,8 @@ public:
     * @return                  Number of secondary tracks generated in the interaction.
     */
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
   //
   //@}
 
@@ -282,8 +284,6 @@ protected:
                      */
     std::vector<RatinAliasData *> fRatinAliasData;
   };
-
-  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
 
   virtual bool IsModelUsable(const MaterialCuts *, double ekin)
   {

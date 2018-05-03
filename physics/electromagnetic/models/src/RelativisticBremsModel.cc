@@ -1269,11 +1269,10 @@ double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, dou
 
 void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
-  const int N               = tracks.GetNtracks();
-  double *gammaeEnergyArray = td->fPhysicsData->fPhysicsScratchpad.fEps;
-  double *gammaCutArr       = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
-  //  int *IZet                 = td->fPhysicsData->fPhysicsScratchpad.fIzet;
-  double *Zet                 = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  const int N                 = tracks.GetNtracks();
+  double *gammaeEnergyArray   = td->fPhysicsData->fPhysicsScratchpad.fEps;
+  double *gammaCutArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  double *zet                 = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
   double *densityCorrConstArr = td->fPhysicsData->fPhysicsScratchpad.fR0;
   double *lpmEnergyArray      = td->fPhysicsData->fPhysicsScratchpad.fR1;
 
@@ -1299,7 +1298,7 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
         if (theElements.size() > 1) {
           targetElemIndx = SampleTargetElementIndex(matCut, Get(primEkin, l), td->fRndm->uniform());
         }
-        Zet[i + l] = theElements[targetElemIndx]->GetZ();
+        zet[i + l] = theElements[targetElemIndx]->GetZ();
         //        IZet[i + l]      = (int) std::lrint(zet);//std::min((int)std::lrint(zet), fDCSMaxZet);
       }
     }
@@ -1324,12 +1323,11 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
   if (!GetUseSamplingTables()) {
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     gammaCutArr[N]         = gammaCutArr[N - 1];
-    //    IZet[N]                = IZet[N - 1];
-    Zet[N]                 = Zet[N - 1];
+    zet[N]                 = zet[N - 1];
     densityCorrConstArr[N] = densityCorrConstArr[N - 1];
     lpmEnergyArray[N]      = lpmEnergyArray[N - 1];
 
-    SampleEnergyTransfer(tracks.GetKinEArr(), gammaCutArr, Zet, densityCorrConstArr, lpmEnergyArray, gammaeEnergyArray,
+    SampleEnergyTransfer(tracks.GetKinEArr(), gammaCutArr, zet, densityCorrConstArr, lpmEnergyArray, gammaeEnergyArray,
                          N, td);
   }
 

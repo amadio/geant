@@ -559,6 +559,92 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
   return eps;
 }
 
+void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, const int *izet, double *epsOut, int N,
+                                                      geant::TaskData *td)
+{
+  // assert(N>=kVecLenD)
+  int currN = 0;
+  MaskD_v lanesDone;
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
+  }
+
+  while (currN < N || !MaskFull(lanesDone)) {
+    Double_v fz;
+    Double_v deltaMax;
+    Double_v deltaFac;
+
+    for (int l = 0; l < kVecLenD; ++l) {
+      int lIdx        = Get(idx, l);
+      int lZet        = izet[lIdx];
+      bool egammaHigh = egamma[lIdx] > 50. * geant::units::MeV;
+
+      Set(fz, l, egammaHigh ? gElementData[lZet]->fFzHigh : gElementData[lZet]->fFzLow);
+      if (fIsUseTsaisScreening) {
+        Set(deltaMax, l, egammaHigh ? gElementData[lZet]->fDeltaMaxHighTsai : gElementData[lZet]->fDeltaMaxLowTsai);
+      } else {
+        Set(deltaMax, l, egammaHigh ? gElementData[lZet]->fDeltaMaxHigh : gElementData[lZet]->fDeltaMaxLow);
+      }
+
+      Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
+    }
+
+    Double_v egammaV        = vecCore::Gather<Double_v>(egamma, idx);
+    const Double_v eps0     = geant::units::kElectronMassC2 / egammaV;
+    const Double_v deltaMin = 4. * eps0 * deltaFac;
+    const Double_v eps1     = 0.5 - 0.5 * Math::Sqrt(1. - deltaMin / deltaMax);
+    const Double_v epsMin   = Math::Max(eps0, eps1);
+    const Double_v epsRange = 0.5 - epsMin;
+
+    Double_v F10, F20;
+    ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
+    F10 -= fz;
+    F20 -= fz;
+
+    const Double_v NormF1   = Math::Max(F10 * epsRange * epsRange, (Double_v)0.);
+    const Double_v NormF2   = Math::Max(1.5 * F20, (Double_v)0.);
+    const Double_v NormCond = NormF1 / (NormF1 + NormF2);
+
+    Double_v rnd0 = td->fRndm->uniformV();
+    Double_v rnd1 = td->fRndm->uniformV();
+    Double_v rnd2 = td->fRndm->uniformV();
+
+    Double_v eps     = 0.0;
+    Double_v greject = 0.0;
+    MaskD_v cond1    = NormCond > rnd0;
+    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * Math::Pow(rnd1, (Double_v)1. / 3.));
+    vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
+    const Double_v delta = deltaFac * eps0 / (eps * (1. - eps));
+    if (!MaskEmpty(cond1)) {
+      vecCore::MaskedAssign(greject, cond1, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
+    }
+    if (!MaskEmpty(!cond1)) {
+      vecCore::MaskedAssign(greject, !cond1, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
+    }
+
+    MaskD_v accepted = greject > rnd2;
+
+    if (!MaskEmpty(accepted)) {
+      vecCore::Scatter(eps, epsOut, idx);
+    }
+
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto laneDone = Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
+        } else {
+          Set(idx, l, N);
+        }
+      }
+    }
+  }
+}
+
 void BetheHeitlerPairModel::ComputeScreeningFunctions(double &phi1, double &phi2, const double delta, const bool istsai)
 {
   if (istsai) {
@@ -961,8 +1047,8 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
 {
   // EMModel::SampleSecondaries(tracks,td);
   // return;
-  int N     = tracks.GetNtracks();
-  int *IZet = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  int N        = tracks.GetNtracks();
+  int *izetArr = td->fPhysicsData->fPhysicsScratchpad.fIzet;
 
   short *sortKey = tracks.GetSortKeyV();
   for (int i = 0; i < N; ++i) {
@@ -985,7 +1071,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     }
     const double zet = theElements[targetElemIndx]->GetZ();
     const int izet   = std::min(std::lrint(zet), gMaxZet - 1);
-    IZet[i]          = izet;
+    izetArr[i]       = izet;
   }
 
   if (GetUseSamplingTables()) {
@@ -1003,7 +1089,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
         // To be sure that energy that is too small for alias table will not slip in alias sampling
         vecCore::MaskedAssign(tmpEkin, smallE, (Double_v)fGammaEneregyLimit * (1.1));
 
-        Double_v sampledEps = SampleTotalEnergyTransfer(tmpEkin, &IZet[i], r1, r2, r3);
+        Double_v sampledEps = SampleTotalEnergyTransfer(tmpEkin, &izetArr[i], r1, r2, r3);
         Double_v eps;
         vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
         vecCore::MaskedAssign(eps, !smallE, sampledEps);
@@ -1017,7 +1103,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       Double_v r2 = td->fRndm->uniformV();
       Double_v r3 = td->fRndm->uniformV();
 
-      Double_v sampledEps = SampleTotalEnergyTransfer(ekin, &IZet[i], r1, r2, r3);
+      Double_v sampledEps = SampleTotalEnergyTransfer(ekin, &izetArr[i], r1, r2, r3);
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
@@ -1026,8 +1112,8 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     if (i < N) {
       // Always create fake particle int the end of real particle array for rejection sampling
       tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
-      IZet[N]                = IZet[N - 1];
-      SampleTotalEnergyTransfer(tracks.GetKinEArr(i), &IZet[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i], N - i,
+      izetArr[N]             = izetArr[N - 1];
+      SampleTotalEnergyTransfer(tracks.GetKinEArr(i), &izetArr[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i], N - i,
                                 td);
     }
   }
@@ -1147,92 +1233,6 @@ Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma,
   const Double_v epsMin = Math::Max(eps0, epsp);
   const Double_v epsV   = epsMin * Math::Exp(xiV * Math::Log(0.5 / epsMin));
   return epsV;
-}
-
-void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, const int *izet, double *epsOut, int N,
-                                                      geant::TaskData *td)
-{
-  // assert(N>=kVecLenD)
-  int currN = 0;
-  MaskD_v lanesDone;
-  IndexD_v idx;
-  for (int l = 0; l < kVecLenD; ++l) {
-    AssignMaskLane(lanesDone, l, false);
-    Set(idx, l, currN++);
-  }
-
-  while (currN < N || !MaskFull(lanesDone)) {
-    Double_v fz;
-    Double_v deltaMax;
-    Double_v deltaFac;
-
-    for (int l = 0; l < kVecLenD; ++l) {
-      int lIdx        = Get(idx, l);
-      int lZet        = izet[lIdx];
-      bool egammaHigh = egamma[lIdx] > 50. * geant::units::MeV;
-
-      Set(fz, l, egammaHigh ? gElementData[lZet]->fFzHigh : gElementData[lZet]->fFzLow);
-      if (fIsUseTsaisScreening) {
-        Set(deltaMax, l, egammaHigh ? gElementData[lZet]->fDeltaMaxHighTsai : gElementData[lZet]->fDeltaMaxLowTsai);
-      } else {
-        Set(deltaMax, l, egammaHigh ? gElementData[lZet]->fDeltaMaxHigh : gElementData[lZet]->fDeltaMaxLow);
-      }
-
-      Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
-    }
-
-    Double_v egammaV        = vecCore::Gather<Double_v>(egamma, idx);
-    const Double_v eps0     = geant::units::kElectronMassC2 / egammaV;
-    const Double_v deltaMin = 4. * eps0 * deltaFac;
-    const Double_v eps1     = 0.5 - 0.5 * Math::Sqrt(1. - deltaMin / deltaMax);
-    const Double_v epsMin   = Math::Max(eps0, eps1);
-    const Double_v epsRange = 0.5 - epsMin;
-
-    Double_v F10, F20;
-    ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
-    F10 -= fz;
-    F20 -= fz;
-
-    const Double_v NormF1   = Math::Max(F10 * epsRange * epsRange, (Double_v)0.);
-    const Double_v NormF2   = Math::Max(1.5 * F20, (Double_v)0.);
-    const Double_v NormCond = NormF1 / (NormF1 + NormF2);
-
-    Double_v rnd0 = td->fRndm->uniformV();
-    Double_v rnd1 = td->fRndm->uniformV();
-    Double_v rnd2 = td->fRndm->uniformV();
-
-    Double_v eps     = 0.0;
-    Double_v greject = 0.0;
-    MaskD_v cond1    = NormCond > rnd0;
-    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * Math::Pow(rnd1, (Double_v)1. / 3.));
-    vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
-    const Double_v delta = deltaFac * eps0 / (eps * (1. - eps));
-    if (!MaskEmpty(cond1)) {
-      vecCore::MaskedAssign(greject, cond1, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
-    }
-    if (!MaskEmpty(!cond1)) {
-      vecCore::MaskedAssign(greject, !cond1, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
-    }
-
-    MaskD_v accepted = greject > rnd2;
-
-    if (!MaskEmpty(accepted)) {
-      vecCore::Scatter(eps, epsOut, idx);
-    }
-
-    lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = Get(accepted, l);
-      if (laneDone) {
-        if (currN < N) {
-          Set(idx, l, currN++);
-          AssignMaskLane(lanesDone, l, false);
-        } else {
-          Set(idx, l, N);
-        }
-      }
-    }
-  }
 }
 
 // val1 =  3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)

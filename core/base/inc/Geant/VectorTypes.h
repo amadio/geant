@@ -22,8 +22,8 @@ typedef vecCore::Index<Float_v> IndexF_v;
 const int kVecLenF = vecCore::VectorSize<Float_v>();
 const int kVecLenD = vecCore::VectorSize<Double_v>();
 
-const int kVecAlignD = kVecLenD * sizeof(double);
-const int kVecAlignF = kVecLenF * sizeof(float);
+const auto kVecAlignD = sizeof(Double_v);
+const auto kVecAlignF = sizeof(Float_v);
 
 GEANT_FORCE_INLINE
 void CopyFltToDbl(Float_v const &flt_v, Double_v &dbl1_v, Double_v &dbl2_v)

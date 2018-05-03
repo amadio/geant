@@ -137,6 +137,8 @@ public:
    * Note, that the 'sectracks' input parameter (container to store secondary tracks) is currently not used: secondary
    * tracks are inserted into the geant::TaskData::fPhysicsData object that guaranties thread safe behaviour.
    *
+   * Model should put LightTracks objects into geant::TaskData::fPhysicsData using InsertSecondary() method
+   *
    * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
    *                          some information about the current material-cut couple. It is updated by the method and
    *                          it stores the post-interaction primary track properties at output.
@@ -147,6 +149,15 @@ public:
    */
   virtual int SampleSecondaries(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
+  /**
+   * @brief Same os SampleSecondaries for one light track but is used for SOA of light tracks.
+   * Used to utilize vectorization inside models.
+   *
+   * Model should put LightTracks objects into geant::TaskData::fPhysicsData using GetSecondariesSOA() object methods
+   *
+   * @param tracks
+   * @param td
+   */
   virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
 
   /**
@@ -261,7 +272,7 @@ private:
   // then the user requested inactivations will be checked and active region list will
   // be updated
 
-  int fGlobalProcessIndex;
+  int fGlobalProcessIndex; // index of process in gGlobalModelTable, unique ID of model
 
   static std::vector<EMModel *> gGlobalModelTable;
 };

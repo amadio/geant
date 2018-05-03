@@ -36,7 +36,7 @@ class GLIntegral;
 /**
  * @brief   High energy Bremsstrahlung models for electron/positron.
  * @class   RelativisticBremsModel
- * @author  M Novak, A Ribon
+ * @authors  M Novak, A Ribon, V Drohan(vectorization)
  * @date    march 2016
  *
  * Relativistic and ultra relativistic Bremsstrahlung models for electron/positron.

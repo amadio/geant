@@ -29,7 +29,7 @@ namespace geantphysics {
 /**
  * @brief   Compton (incoherent) scattering model of photons on atomic electrons.
  * @class   KleinNishinaComptonModel
- * @author  M Novak
+ * @authors  M Novak, V Drohan(vectorization)
  * @date    april 2017
  *
  * Model for describing Compton scattering of photons on atomic electrons. The model is based on parametrized atomic

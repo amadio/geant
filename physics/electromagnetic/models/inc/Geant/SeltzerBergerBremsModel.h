@@ -37,7 +37,7 @@ class Spline;
 /**
  * @brief   Low energy Bremsstrahlung models for electron/positron.
  * @class   SeltzerBergerBremsModel
- * @author  M Novak, A Ribon
+ * @authors  M Novak, A Ribon, V Drohan(vectorization)
  * @date    march 2016
  *
  * Bremsstrahlung model for electron/positron based on Seltzer-Berger numerical differential cross sections

@@ -1,6 +1,16 @@
-
-#ifndef POSTSTEPACTIONPHYSPROCESSSTAGE_H
-#define POSTSTEPACTIONPHYSPROCESSSTAGE_H
+//===--- PostStepActionPhysModelStage.h - Geant-V ----------------*- C++ -*-===//
+//
+//                     Geant-V Prototype
+//
+//===----------------------------------------------------------------------===//
+/**
+ * @file PostStepActionPhysModelStage.h
+ * @brief Implementation of post step action stage for vectorized EM transport
+ * @author Vitalii Drohan
+ */
+//===----------------------------------------------------------------------===//
+#ifndef POSTSTEPACTIONPHYSMODELSSTAGE_H
+#define POSTSTEPACTIONPHYSMODELSSTAGE_H
 
 // from geantV
 #include "Geant/SimulationStage.h"
@@ -19,9 +29,10 @@ class Handler;
 namespace geantphysics {
 
 /**
- * @brief   Simulation stage to select particles that post-step action based on their physics process (discrete
- * interaction) need to be invoked.
- * @class   PostStepActionPhysProcessStage
+ * @brief This stage filters particles based on which EM model should be sampled.
+ * @class   PostStepActionPhysModelStage
+ * Work is dispatched to PostStepActionPhysModelHandler
+ * (based on PostStepActionStage by M. Novak)
  */
 
 class PostStepActionPhysModelStage : public geant::SimulationStage {

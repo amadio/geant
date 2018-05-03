@@ -1042,8 +1042,8 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
   const int N               = tracks.GetNtracks();
   double *gammaeEnergyArray = td->fPhysicsData->fPhysicsScratchpad.fEps;
   double *gammaCutArr       = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
-  int *IZet                 = td->fPhysicsData->fPhysicsScratchpad.fIzet;
-  double *Zet               = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  int *izetArray            = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  double *zetArr            = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
   double *densityCorrArr    = td->fPhysicsData->fPhysicsScratchpad.fR0;
 
   for (int i = 0; i < N; i += kVecLenD) {
@@ -1066,8 +1066,8 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
           targetElemIndx = SampleTargetElementIndex(matCut, Get(primEkin, l), td->fRndm->uniform());
         }
         const double zet = theElements[targetElemIndx]->GetZ();
-        IZet[i + l]      = std::min((int)std::lrint(zet), fDCSMaxZet);
-        Zet[i + l]       = zet;
+        izetArray[i + l] = std::min((int)std::lrint(zet), fDCSMaxZet);
+        zetArr[i + l]    = zet;
       }
     }
     Double_v totalEn = primEkin + geant::units::kElectronMassC2;
@@ -1090,11 +1090,11 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
   if (!GetUseSamplingTables()) {
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     gammaCutArr[N]         = gammaCutArr[N - 1];
-    IZet[N]                = IZet[N - 1];
-    Zet[N]                 = Zet[N - 1];
+    izetArray[N]           = izetArray[N - 1];
+    zetArr[N]              = zetArr[N - 1];
     densityCorrArr[N]      = densityCorrArr[N - 1];
 
-    SamplePhotonEnergy(tracks.GetKinEArr(), gammaCutArr, IZet, Zet, densityCorrArr, gammaeEnergyArray, N, td);
+    SamplePhotonEnergy(tracks.GetKinEArr(), gammaCutArr, izetArray, zetArr, densityCorrArr, gammaeEnergyArray, N, td);
   }
 
   for (int i = 0; i < N; i += kVecLenD) {

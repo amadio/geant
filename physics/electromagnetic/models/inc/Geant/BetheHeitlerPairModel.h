@@ -28,7 +28,7 @@ namespace geantphysics {
 /**
  * @brief   Model for conversion of gamma particles into e-/e+ pair in the the field of nucleus and atomic electrons.
  * @class   BetheHeitlerPairModel
- * @author  F Hariri, M Novak
+ * @author  F Hariri, M Novak, V Drohan(vectorization)
  * @date    May 2017
  *
  * The model is based on atomic cross sections computed by using the Geant4 parametrization
@@ -101,6 +101,8 @@ public:
     * @return                  Number of secondary tracks generated in the interaction.
     */
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
+
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
 
   /**
    * @brief Method to obtain the minimum primary gamma energy at which the interaction can happen.
@@ -348,8 +350,6 @@ protected:
       */
     std::vector<RatinAliasData *> fRatinAliasData;
   };
-
-  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
 
   virtual bool IsModelUsable(const MaterialCuts *, double ekin)
   {
