@@ -1045,11 +1045,12 @@ double BetheHeitlerPairModel::ComputeDXSection(double epsmin, double eps0, doubl
 
 void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
-  // EMModel::SampleSecondaries(tracks,td);
-  // return;
-  int N        = tracks.GetNtracks();
-  int *izetArr = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  // Prepare temporary arrays for SIMD processing
+  int N          = tracks.GetNtracks();
+  int *izetArr   = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  double *epsArr = td->fPhysicsData->fPhysicsScratchpad.fEps;
 
+  // Sort particles in SOA by energy, small energy gammas can be sampled with uniform distribution
   short *sortKey = tracks.GetSortKeyV();
   for (int i = 0; i < N; ++i) {
     double ekin = tracks.GetKinE(i);
@@ -1057,8 +1058,8 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
   }
   int smallEtracksInd = tracks.SortTracks();
   for (int k = 0; k < smallEtracksInd; ++k) {
-    double eps0                                  = geant::units::kElectronMassC2 / tracks.GetKinE(k);
-    td->fPhysicsData->fPhysicsScratchpad.fEps[k] = eps0 + (0.5 - eps0) * td->fRndm->uniform();
+    double eps0 = geant::units::kElectronMassC2 / tracks.GetKinE(k);
+    epsArr[k]   = eps0 + (0.5 - eps0) * td->fRndm->uniform();
   }
 
   // Chose Z
@@ -1091,11 +1092,12 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
 
         Double_v sampledEps = SampleTotalEnergyTransfer(tmpEkin, &izetArr[i], r1, r2, r3);
         Double_v eps;
-        vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+        vecCore::Load(eps, &epsArr[i]);
         vecCore::MaskedAssign(eps, !smallE, sampledEps);
-        vecCore::Store(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+        vecCore::Store(eps, &epsArr[i]);
       }
     }
+    // Process rest of gammas with complete sampling
     for (int i = (smallEtracksInd / kVecLenD) * kVecLenD + kVecLenD; i < N; i += kVecLenD) {
       Double_v ekin;
       vecCore::Load(ekin, tracks.GetKinEArr(i));
@@ -1104,17 +1106,16 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       Double_v r3 = td->fRndm->uniformV();
 
       Double_v sampledEps = SampleTotalEnergyTransfer(ekin, &izetArr[i], r1, r2, r3);
-      vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+      vecCore::Store(sampledEps, &epsArr[i]);
     }
-  } else {
+  } else { // Rejection
 
     int i = (smallEtracksInd / kVecLenD) * kVecLenD;
     if (i < N) {
-      // Always create fake particle int the end of real particle array for rejection sampling
+      // Always create fake particle at the end of the input arrays to vector rejection sampling method
       tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
       izetArr[N]             = izetArr[N - 1];
-      SampleTotalEnergyTransfer(tracks.GetKinEArr(i), &izetArr[i], &td->fPhysicsData->fPhysicsScratchpad.fEps[i], N - i,
-                                td);
+      SampleTotalEnergyTransfer(tracks.GetKinEArr(i), &izetArr[i], &epsArr[i], N - i, td);
     }
   }
 
@@ -1122,15 +1123,12 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     Double_v ekin = tracks.GetKinEVec(i);
 
     Double_v eps;
-    vecCore::Load(eps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
+    vecCore::Load(eps, &epsArr[i]);
 
     Double_v electronTotE, positronTotE;
     MaskD_v tmpM = td->fRndm->uniformV() > 0.5;
-    vecCore::MaskedAssign(electronTotE, tmpM, (1. - eps) * ekin);
-    vecCore::MaskedAssign(positronTotE, tmpM, eps * ekin);
-
-    vecCore::MaskedAssign(positronTotE, !tmpM, (1. - eps) * ekin);
-    vecCore::MaskedAssign(electronTotE, !tmpM, eps * ekin);
+    electronTotE = vecCore::Blend(tmpM, (1. - eps) * ekin, eps * ekin);
+    positronTotE = vecCore::Blend(!tmpM, (1. - eps) * ekin, eps * ekin);
 
     Double_v r0 = td->fRndm->uniformV();
     Double_v r1 = td->fRndm->uniformV();
@@ -1138,8 +1136,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
 
     Double_v uvar = -Math::Log(r0 * r1);
     MaskD_v tmpM2 = 9. > 36. * r2;
-    vecCore::MaskedAssign(uvar, tmpM2, uvar * 1.6);
-    vecCore::MaskedAssign(uvar, !tmpM2, uvar * 0.53333);
+    uvar          = vecCore::Blend(tmpM2, uvar * 1.6, uvar * 0.53333);
 
     const Double_v thetaElectron = uvar * geant::units::kElectronMassC2 / electronTotE;
     Double_v sintEle, costEle;
@@ -1205,6 +1202,7 @@ Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma,
 {
   const Double_v legamma = Math::Log(egamma);
 
+  // Compute energy index
   Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
   IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
   Double_v pIndxHigh  = val - indxEgamma;

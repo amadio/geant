@@ -1280,6 +1280,7 @@ double RelativisticBremsModel::ComputeXSectionPerVolume(const Material *mat, dou
 
 void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
+  // Prepare temporary arrays for SIMD processing
   const int N                 = tracks.GetNtracks();
   double *gammaeEnergyArray   = td->fPhysicsData->fPhysicsScratchpad.fEps;
   double *gammaCutArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
@@ -1287,6 +1288,7 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
   double *densityCorrConstArr = td->fPhysicsData->fPhysicsScratchpad.fR0;
   double *lpmEnergyArray      = td->fPhysicsData->fPhysicsScratchpad.fR1;
 
+  // Gather data for sampling into array form
   for (int i = 0; i < N; i += kVecLenD) {
 
     Double_v primEkin = tracks.GetKinEVec(i);
@@ -1310,13 +1312,13 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
           targetElemIndx = SampleTargetElementIndex(matCut, Get(primEkin, l), td->fRndm->uniform());
         }
         zet[i + l] = theElements[targetElemIndx]->GetZ();
-        //        IZet[i + l]      = (int) std::lrint(zet);//std::min((int)std::lrint(zet), fDCSMaxZet);
       }
     }
     Double_v totalEn    = primEkin + geant::units::kElectronMassC2;
     Double_v densityCor = densityCorConst * (totalEn * totalEn);
     assert((primEkin >= gammaCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
+      // Sample alias table here
       Double_v r1          = td->fRndm->uniformV();
       Double_v r2          = td->fRndm->uniformV();
       Double_v r3          = td->fRndm->uniformV();
@@ -1332,6 +1334,7 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
   }
 
   if (!GetUseSamplingTables()) {
+    // Always create fake particle at the end of the input arrays to vector rejection sampling method
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     gammaCutArr[N]         = gammaCutArr[N - 1];
     zet[N]                 = zet[N - 1];

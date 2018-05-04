@@ -69,7 +69,7 @@ void KleinNishinaComptonModel::Initialize()
       int size        = (int)alias->fAliasIndx.size();
 
       LinAliasCached aliasCached(size);
-      for (int j = 0; j < size - 1; ++j) { // TODO: What if sampled index is really numdata - 1?
+      for (int j = 0; j < size - 1; ++j) {
         aliasCached.fLinAliasData[j].fAliasIndx  = alias->fAliasIndx[j];
         aliasCached.fLinAliasData[j].fAliasW     = alias->fAliasW[j];
         aliasCached.fLinAliasData[j].fX          = alias->fXdata[j];
@@ -575,8 +575,11 @@ void KleinNishinaComptonModel::ClearSamplingTables()
 
 void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
-  int N                        = tracks.GetNtracks();
-  PhysicsModelScratchpad &data = td->fPhysicsData->fPhysicsScratchpad;
+  // Prepare temporary arrays for SIMD processing
+  int N               = tracks.GetNtracks();
+  double *epsArr      = td->fPhysicsData->fPhysicsScratchpad.fEps;
+  double *onemcostArr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;  // Used with rejection
+  double *sin2tArr    = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2; // Used with rejection
 
   if (GetUseSamplingTables()) {
     for (int i = 0; i < N; i += kVecLenD) {
@@ -585,17 +588,18 @@ void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::Ta
       Double_v r2   = td->fRndm->uniformV();
       Double_v r3   = td->fRndm->uniformV();
       Double_v eps  = SampleReducedPhotonEnergyVec(ekin, r1, r2, r3);
-      vecCore::Store(eps, data.fEps + i);
+      vecCore::Store(eps, epsArr + i);
     }
   } else {
+    // Always create fake particle at the end of the input arrays to vector rejection sampling method
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
-    SampleReducedPhotonEnergyRej(tracks.GetKinEArr(), data.fDoubleArr, data.fDoubleArr2, data.fEps, N, td);
+    SampleReducedPhotonEnergyRej(tracks.GetKinEArr(), onemcostArr, sin2tArr, epsArr, N, td);
   }
 
   for (int i = 0; i < N; i += kVecLenD) {
     Double_v ekin = tracks.GetKinEVec(i);
     Double_v eps;
-    vecCore::Load(eps, &data.fEps[i]);
+    vecCore::Load(eps, &epsArr[i]);
 
     Double_v oneMinusCost;
     Double_v sint2;
@@ -604,8 +608,8 @@ void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::Ta
       oneMinusCost         = (1. / eps - 1.) / kappa;
       sint2                = oneMinusCost * (2. - oneMinusCost);
     } else {
-      vecCore::Load(oneMinusCost, &data.fDoubleArr[i]);
-      vecCore::Load(sint2, &data.fDoubleArr2[i]);
+      vecCore::Load(oneMinusCost, &onemcostArr[i]);
+      vecCore::Load(sint2, &sin2tArr[i]);
     }
 
     sint2               = Math::Max((Double_v)0., sint2);
@@ -628,6 +632,7 @@ void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::Ta
 
     Double_v enDeposit = 0.0;
 
+    // Update primary gamma
     Double_v postGammaE = eps * ekin;
     MaskD_v gammaAlive  = postGammaE > GetLowestSecondaryEnergy();
     for (int l = 0; l < kVecLenD; ++l) {
@@ -658,6 +663,7 @@ void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::Ta
       elDirZ *= norm;
     }
 
+    // Add secondary e-
     for (int l = 0; l < kVecLenD; ++l) {
       LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
 
@@ -718,6 +724,7 @@ void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma
                                                             double *epsOut, int N, const geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
+  // Init variables for lane refiling bookkeeping
   int currN = 0;
   MaskD_v lanesDone;
   IndexD_v idx;
@@ -737,14 +744,6 @@ void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma
     Double_v rnd1 = td->fRndm->uniformV();
     Double_v rnd2 = td->fRndm->uniformV();
     Double_v rnd3 = td->fRndm->uniformV();
-    // This part is left for future way of rng generating
-    // for (int l = 0; l < kVecLenD; ++l){
-    //  if(!lanesDone[l]) {
-    //    vecCore::Set(rnd1, l, td->fRndm->uniform());
-    //    vecCore::Set(rnd2, l, td->fRndm->uniform());
-    //    vecCore::Set(rnd3, l, td->fRndm->uniform());
-    //  }
-    //}
 
     Double_v eps, eps2, gf;
 
@@ -770,6 +769,7 @@ void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma
       vecCore::Scatter(eps, epsOut, idx);
     }
 
+    // Refill lanes if work is present
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
       auto laneDone = Get(accepted, l);

@@ -1039,6 +1039,7 @@ void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCut
 
 void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
+  // Prepare temporary arrays for SIMD processing
   const int N               = tracks.GetNtracks();
   double *gammaeEnergyArray = td->fPhysicsData->fPhysicsScratchpad.fEps;
   double *gammaCutArr       = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
@@ -1046,6 +1047,7 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
   double *zetArr            = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
   double *densityCorrArr    = td->fPhysicsData->fPhysicsScratchpad.fR0;
 
+  // Gather data for samling into array form
   for (int i = 0; i < N; i += kVecLenD) {
 
     Double_v primEkin = tracks.GetKinEVec(i);
@@ -1088,6 +1090,7 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
   }
 
   if (!GetUseSamplingTables()) {
+    // Always create fake particle at the end of the input arrays to vector rejection sampling method
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     gammaCutArr[N]         = gammaCutArr[N - 1];
     izetArray[N]           = izetArray[N - 1];

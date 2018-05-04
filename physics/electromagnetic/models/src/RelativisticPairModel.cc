@@ -967,6 +967,7 @@ void RelativisticPairModel::BuildOneRatinAlias(const double egamma, const Materi
 
 void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
+  // Prepare temporary arrays for SIMD processing
   int N                  = tracks.GetNtracks();
   int *izetArr           = td->fPhysicsData->fPhysicsScratchpad.fIzet;   // used by rej method
   int *matIDXArr         = td->fPhysicsData->fPhysicsScratchpad.fMatIdx; // used by alias method
@@ -1015,7 +1016,7 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       vecCore::Store(sampledEps, &td->fPhysicsData->fPhysicsScratchpad.fEps[i]);
     }
   } else {
-
+    // Always create fake particle at the end of the input arrays to vector rejection sampling method
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     lpmEnergyArray[N]      = lpmEnergyArray[N - 1];
     izetArr[N]             = izetArr[N - 1];

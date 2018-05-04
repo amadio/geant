@@ -338,6 +338,7 @@ double PositronTo2GammaModel::ComputeTransfDXSec(double xi, double gamma, double
 
 void PositronTo2GammaModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
+  // Prepare temporary arrays for SIMD processing
   int N                        = tracks.GetNtracks();
   PhysicsModelScratchpad &data = td->fPhysicsData->fPhysicsScratchpad;
   double *epsArr               = data.fEps;
@@ -357,6 +358,7 @@ void PositronTo2GammaModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     }
   }
   if (!GetUseSamplingTables()) {
+    // Always create fake particle at the end of the input arrays to vector rejection sampling method
     gamma[N] = gamma[N - 1];
     SampleEnergyTransferRej(gamma, epsArr, N, td);
   }
@@ -430,6 +432,7 @@ geant::Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(geant::Double_v
                                                                  geant::Double_v r2, geant::Double_v r3,
                                                                  geant::Double_v r1)
 {
+  // Compute energy index
   Double_v lpekin = Math::Log(pekin);
   //
   Double_v val       = (lpekin - fSTLogMinPositronEnergy) * fSTILDeltaPositronEnergy;

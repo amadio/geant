@@ -835,10 +835,12 @@ double MollerBhabhaIonizationModel::ComputeBhabhaPDF(const double xi, const doub
 
 void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)
 {
+  // Prepare temporary arrays for SIMD processing
   int N            = tracks.GetNtracks();
   double *epsArr   = td->fPhysicsData->fPhysicsScratchpad.fEps;
   double *elCutArr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
 
+  // Gather data needed by sampling into form of array
   for (int i = 0; i < N; i += kVecLenD) {
 
     Double_v electronCut;
@@ -853,6 +855,7 @@ void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant:
     Double_v primEkin = tracks.GetKinEVec(i);
     // assert((primEkin >= electronCut).isFull()); // Cut filtering should be applied up the call chain.
     if (GetUseSamplingTables()) {
+      // Sample with alias
       Double_v r1  = td->fRndm->uniformV();
       Double_v r2  = td->fRndm->uniformV();
       Double_v r3  = td->fRndm->uniformV();
@@ -865,6 +868,7 @@ void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant:
   }
 
   if (!GetUseSamplingTables()) {
+    // Always create fake particle at the end of the input arrays to vector rejection sampling method
     elCutArr[N]            = elCutArr[N - 1];
     tracks.GetKinEArr()[N] = tracks.GetKinEArr()[N - 1];
     SampleEnergyTransfer(elCutArr, tracks.GetKinEArr(), epsArr, N, td);
