@@ -163,8 +163,9 @@ using vecMath::IntPow;
  * @brief Rotate vector u,v,w to labframe defined by vector u1, u2, u3
  * @tparam double or Real_v type from veccore
  * @param[in,out] u, v, w - vector being rotated to lab frame
- * @param[in] u1, u2, u3 - lab frame vector(direction of primary particle)
+ * @param[in] u1, u2, u3 - direction equal to z-direction of this scattering frame
  */
+
 template <typename R>
 inline void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
 {
@@ -174,9 +175,9 @@ inline void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
   R px                = u;
   R py                = v;
   R pz                = w;
-  vecCore::MaskedAssign(u, m1, (u3 * px * u1 - u2 * py) * (1.0 / up) + u1 * pz);
-  vecCore::MaskedAssign(v, m1, (u3 * px * u2 + u1 * py) * (1.0 / up) + u2 * pz);
-  vecCore::MaskedAssign(w, m1, -up * px + u3 * pz);
+  vecCore__MaskedAssignFunc(u, m1, (u3 * px * u1 - u2 * py) * (1.0 / up) + u1 * pz);
+  vecCore__MaskedAssignFunc(v, m1, (u3 * px * u2 + u1 * py) * (1.0 / up) + u2 * pz);
+  vecCore__MaskedAssignFunc(w, m1, -up * px + u3 * pz);
   vecCore::Mask<R> m2 = !m1 && u3 < 0.;
   if (!vecCore::MaskEmpty(m2)) { // Up zero AND u3 negative
     vecCore::MaskedAssign(u, m2, -u);
