@@ -22,14 +22,11 @@ int main(int argc, char **argv)
   std::unique_ptr<EMModel> mbTable =
       InitEMModel(new MollerBhabhaIonizationModel(true), kMollBhminEn, kMollBhmaxEn, true);
 
-  benchmark::RegisterBenchmark("MollerBhabhaAliasScal", ScalarModelBenchmark, mbTable.get(), PrepareMBScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("MollerBhabhaAliasVec", VectorModelBenchmark, mbTable.get(), PrepareMBVectorPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("MollerBhabhaRejScal", ScalarModelBenchmark, mbRej.get(), PrepareMBScalarPrims, td.get(),
-                               kBasketSize);
-  benchmark::RegisterBenchmark("MollerBhabhaRejVec", VectorModelBenchmark, mbRej.get(), PrepareMBVectorPrims, td.get(),
-                               kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("MollerBhabhaAliasScal", mbTable.get(), PrepareMBScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("MollerBhabhaAliasVec", mbTable.get(), PrepareMBVectorPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("MollerBhabhaRejScal", mbRej.get(), PrepareMBScalarPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("MollerBhabhaRejVec", mbRej.get(), PrepareMBVectorPrims, td.get(), kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

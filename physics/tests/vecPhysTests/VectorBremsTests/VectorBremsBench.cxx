@@ -33,25 +33,19 @@ int main(int argc, char **argv)
   std::unique_ptr<EMModel> rbRej   = InitEMModel(new RelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, false);
   std::unique_ptr<EMModel> rbTable = InitEMModel(new RelativisticBremsModel(), kRelBremsMinEn, kRelBremsMaxEn, true);
 
-  benchmark::RegisterBenchmark("SeltzerBergerAliasScal", ScalarModelBenchmark, sbTable.get(), PrepareSBScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("SeltzerBergerAliasVec", VectorModelBenchmark, sbTable.get(), PrepareSBVectorPrims,
-                               td.get(), kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("SeltzerBergerAliasScal", sbTable.get(), PrepareSBScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("SeltzerBergerAliasVec", sbTable.get(), PrepareSBVectorPrims, td.get(),
+                                    kBasketSize);
 
-  benchmark::RegisterBenchmark("SeltzerBergerRejScal", ScalarModelBenchmark, sbRej.get(), PrepareSBScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("SeltzerBergerRejVec", VectorModelBenchmark, sbRej.get(), PrepareSBVectorPrims, td.get(),
-                               kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("SeltzerBergerRejScal", sbRej.get(), PrepareSBScalarPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("SeltzerBergerRejVec", sbRej.get(), PrepareSBVectorPrims, td.get(), kBasketSize);
 
-  benchmark::RegisterBenchmark("RelBremsAliasScal", ScalarModelBenchmark, rbTable.get(), PrepareRBScalarPrims, td.get(),
-                               kBasketSize);
-  benchmark::RegisterBenchmark("RelBremsAliasVec", VectorModelBenchmark, rbTable.get(), PrepareRBVectorPrims, td.get(),
-                               kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("RelBremsAliasScal", rbTable.get(), PrepareRBScalarPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("RelBremsAliasVec", rbTable.get(), PrepareRBVectorPrims, td.get(), kBasketSize);
 
-  benchmark::RegisterBenchmark("RelBremsRejScal", ScalarModelBenchmark, rbRej.get(), PrepareRBScalarPrims, td.get(),
-                               kBasketSize);
-  benchmark::RegisterBenchmark("RelBremsRejVec", VectorModelBenchmark, rbRej.get(), PrepareRBVectorPrims, td.get(),
-                               kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("RelBremsRejScal", rbRej.get(), PrepareRBScalarPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("RelBremsRejVec", rbRej.get(), PrepareRBVectorPrims, td.get(), kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

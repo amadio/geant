@@ -33,25 +33,22 @@ int main(int argc, char **argv)
   std::unique_ptr<EMModel> relPairRej   = InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, false);
   std::unique_ptr<EMModel> relPairTable = InitEMModel(new RelativisticPairModel, kRelPairMinEn, kRelPairMaxEn, true);
 
-  benchmark::RegisterBenchmark("BetheHeitlerAliasScal", ScalarModelBenchmark, bhTable.get(), PrepareBHScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("BetheHeitlerAliasVec", VectorModelBenchmark, bhTable.get(), PrepareBHVectorPrims,
-                               td.get(), kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("BetheHeitlerAliasScal", bhTable.get(), PrepareBHScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("BetheHeitlerAliasVec", bhTable.get(), PrepareBHVectorPrims, td.get(), kBasketSize);
 
-  benchmark::RegisterBenchmark("BetheHeitlerRejScal", ScalarModelBenchmark, bhRej.get(), PrepareBHScalarPrims, td.get(),
-                               kBasketSize);
-  benchmark::RegisterBenchmark("BetheHeitlerRejVec", VectorModelBenchmark, bhRej.get(), PrepareBHVectorPrims, td.get(),
-                               kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("BetheHeitlerRejScal", bhRej.get(), PrepareBHScalarPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("BetheHeitlerRejVec", bhRej.get(), PrepareBHVectorPrims, td.get(), kBasketSize);
 
-  benchmark::RegisterBenchmark("RelativisticPairRejScal", ScalarModelBenchmark, relPairRej.get(), PrepareRPScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("RelativisticPairRejVec", VectorModelBenchmark, relPairRej.get(), PrepareRPVectorPrims,
-                               td.get(), kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("RelativisticPairRejScal", relPairRej.get(), PrepareRPScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("RelativisticPairRejVec", relPairRej.get(), PrepareRPVectorPrims, td.get(),
+                                    kBasketSize);
 
-  benchmark::RegisterBenchmark("RelativisticPairAliasScal", ScalarModelBenchmark, relPairTable.get(),
-                               PrepareRPScalarPrims, td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("RelativisticPairAliasVec", VectorModelBenchmark, relPairTable.get(),
-                               PrepareRPVectorPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("RelativisticPairAliasScal", relPairTable.get(), PrepareRPScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("RelativisticPairAliasVec", relPairTable.get(), PrepareRPVectorPrims, td.get(),
+                                    kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

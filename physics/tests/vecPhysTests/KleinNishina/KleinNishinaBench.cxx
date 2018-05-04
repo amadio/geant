@@ -20,14 +20,12 @@ int main(int argc, char **argv)
   std::unique_ptr<EMModel> knRej        = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, false);
   std::unique_ptr<EMModel> knAliasTable = InitEMModel(new KleinNishinaComptonModel, kKNminEn, kKNmaxEn, true);
 
-  benchmark::RegisterBenchmark("KleinNishinaAliasScal", ScalarModelBenchmark, knAliasTable.get(), PrepareKNScalarPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("KleinNishinaAliasVec", VectorModelBenchmark, knAliasTable.get(), PrepareKNVectorPrims,
-                               td.get(), kBasketSize);
-  benchmark::RegisterBenchmark("KleinNishinaRejScal", ScalarModelBenchmark, knRej.get(), PrepareKNScalarPrims, td.get(),
-                               kBasketSize);
-  benchmark::RegisterBenchmark("KleinNishinaRejVec", VectorModelBenchmark, knRej.get(), PrepareKNVectorPrims, td.get(),
-                               kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("KleinNishinaAliasScal", knAliasTable.get(), PrepareKNScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("KleinNishinaAliasVec", knAliasTable.get(), PrepareKNVectorPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("KleinNishinaRejScal", knRej.get(), PrepareKNScalarPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("KleinNishinaRejVec", knRej.get(), PrepareKNVectorPrims, td.get(), kBasketSize);
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

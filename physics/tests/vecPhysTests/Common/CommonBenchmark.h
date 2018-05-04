@@ -47,4 +47,14 @@ void VectorModelBenchmark(benchmark::State &state, EMModel *model,
   benchmark::DoNotOptimize(&primaries);
 }
 
+#define EMMODEL_REGISTER_SCALAR_BENCHMARK(Name, Model, PrimaryGenFunction, TaskData, BasketSize) \
+  benchmark::RegisterBenchmark((Name), [&](benchmark::State &st) {                               \
+    ScalarModelBenchmark(st, (Model), (PrimaryGenFunction), (TaskData), (BasketSize));           \
+  });
+
+#define EMMODEL_REGISTER_VECTOR_BENCHMARK(Name, Model, PrimaryGenFunction, TaskData, BasketSize) \
+  benchmark::RegisterBenchmark((Name), [&](benchmark::State &st) {                               \
+    VectorModelBenchmark(st, (Model), (PrimaryGenFunction), (TaskData), (BasketSize));           \
+  });
+
 #endif // GEANTV_COMMONBENCHMARK_H
