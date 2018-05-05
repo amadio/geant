@@ -141,4 +141,27 @@ void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td) const
   gtrack->SetStep(truePathLength);
 }
 
+MSCModel *MSCProcess::SelectModel(geant::Track *gtrack) const
+{
+  // get the step length (the geometric one)
+  double geometricStepLength = gtrack->GetStep();
+  double truePathLength      = geometricStepLength;
+  MSCdata &mscdata           = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
+  // select msc model
+  double ekin        = gtrack->T();
+  int regIndx        = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetRegion()->GetIndex();
+  MSCModel *mscModel = static_cast<MSCModel *>(GetModelManager()->SelectModel(ekin, regIndx));
+  // check if:
+  // - current true step length is > limit
+  // - current kinetic energy is above the minimum usea
+  return mscModel;
+}
+
+int MSCProcess::AddModel(EMModel *model)
+{
+  auto mscModel = static_cast<MSCModel *>(model);
+  mscModel->SetGeomMinLimit(GetGeomMinLimit());
+  return EMPhysicsProcess::AddModel(model);
+}
+
 } // namespace geantphysics

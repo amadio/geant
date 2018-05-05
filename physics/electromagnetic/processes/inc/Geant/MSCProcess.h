@@ -15,6 +15,7 @@ class TaskData;
 }
 
 namespace geantphysics {
+class MSCModel;
 
 /**
  * @brief   Base class for multiple Coulomb scattering processes.
@@ -34,6 +35,9 @@ public:
   // just to suppress warning since msc will implement only the second AlongStepDoIt
   using EMPhysicsProcess::AlongStepDoIt;
   virtual void AlongStepDoIt(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) const;
+  virtual MSCModel *SelectModel(geant::Track * /*gtrack*/) const;
+
+  virtual int AddModel(EMModel *model);
 
   double GetGeomMinLimit() const { return fGeomMinLimit; }
   void SetGeomMinLimit(double val)

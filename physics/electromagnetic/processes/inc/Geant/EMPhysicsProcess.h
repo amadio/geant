@@ -163,7 +163,7 @@ public:
    * @param[in] mod  Pointer to an EMModel object to be added to the physics process.
    * @return    The index of the EMModel pointer in the EMModelManager container.
    */
-  int AddModel(EMModel *model);
+  virtual int AddModel(EMModel *model);
 
   /**
    * @brief Method to get a pointer to the EMModelManager of this EMPhysicsProcess.

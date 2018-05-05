@@ -4,6 +4,8 @@
 #define MSCMODEL_H
 
 #include <string>
+#include <vector>
+#include <Geant/Track.h>
 
 #include "Geant/EMModel.h"
 #include "Geant/MSCdata.h"
@@ -41,6 +43,15 @@ public:
   virtual void ConvertTrueToGeometricLength(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) {}
   virtual void ConvertGeometricToTrueLength(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) {}
   virtual bool SampleScattering(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) { return false; }
+  virtual void SampleScattering(std::vector<geant::Track *> &gtracks, std::vector<bool> &hasNewDir,
+                                geant::TaskData * /*td*/)
+  {
+    hasNewDir.insert(hasNewDir.begin(), gtracks.size(), false);
+  }
+
+  virtual bool SamplingNeeded(geant::Track *gtrack, geant::TaskData *td);
+  virtual void AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td);
+  virtual void AlongStepDoIt(std::vector<geant::Track *> &gtracks, geant::TaskData *td);
 
   //
   void SetMSCSteppingAlgorithm(MSCSteppingAlgorithm steppingalg) { fMSCSteppingAlgorithm = steppingalg; }
@@ -58,6 +69,13 @@ public:
   void SetSkin(double skin) { fSkin = skin; }
   double GetSkin() const { return fSkin; }
 
+  double GetGeomMinLimit() const { return fGeomMinLimit; }
+  void SetGeomMinLimit(double val)
+  {
+    fGeomMinLimit  = val;
+    fGeomMinLimit2 = val * val;
+  }
+
 private:
   // some generaly used parameters or not ?
   double fRangeFactor;
@@ -66,6 +84,10 @@ private:
   double fSkin;
 
   MSCSteppingAlgorithm fMSCSteppingAlgorithm;
+
+  double fGeomMinLimit;       // if the true step length is below this => no msc
+  double fGeomMinLimit2;      // square of the above
+  geant::TrackToken fMSCdata; // Token for MSCData
 };
 
 } // geantphysics

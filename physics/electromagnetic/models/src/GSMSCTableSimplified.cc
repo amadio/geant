@@ -16,7 +16,7 @@
 
 // from geantV
 #include "Geant/TaskData.h"
-#include "Geant/FastMath.h"
+#include "Geant/math_wrappers.h"
 
 #include <fstream>
 //#include <cstdlib>
@@ -53,8 +53,8 @@ GSMSCTableSimplified::~GSMSCTableSimplified()
 void GSMSCTableSimplified::Initialize(double /*lownergylimit*/, double /* highenergylimit*/,
                                       const std::vector<bool> &activeregionv)
 {
-  double lLambdaMin  = geant::Log(gLAMBMIN);
-  double lLambdaMax  = geant::Log(gLAMBMAX);
+  double lLambdaMin  = Math::Log(gLAMBMIN);
+  double lLambdaMax  = Math::Log(gLAMBMAX);
   fLogLambda0        = lLambdaMin;
   fLogDeltaLambda    = (lLambdaMax - lLambdaMin) / (gLAMBNUM - 1.);
   fInvLogDeltaLambda = 1. / fLogDeltaLambda;
@@ -88,7 +88,7 @@ bool GSMSCTableSimplified::Sampling(double lambdaval, double qval, double scra, 
                                     GSMSCAngularDtr **gsDtr, double &transfPar, geant::TaskData *td, bool isfirst)
 {
   double rand0 = td->fRndm->uniform();
-  double expn  = geant::Exp(-lambdaval);
+  double expn  = Math::Exp(-lambdaval);
   //
   // no scattering case
   if (rand0 < expn) {
@@ -111,7 +111,7 @@ bool GSMSCTableSimplified::Sampling(double lambdaval, double qval, double scra, 
     //    if (cost>1.0)  cost =  1.0;
     // compute sin(theta) from the sampled cos(theta)
     double dum0 = 1. - cost;
-    sint        = std::sqrt(dum0 * (2.0 - dum0));
+    sint        = Math::Sqrt(dum0 * (2.0 - dum0));
     return false;
   }
   //
@@ -151,10 +151,10 @@ bool GSMSCTableSimplified::Sampling(double lambdaval, double qval, double scra, 
       // if we got current deflection that is not too small
       // then update cos(theta) sin(theta)
       if (cursint > 1.0e-20) {
-        cursint       = std::sqrt(cursint);
+        cursint       = Math::Sqrt(cursint);
         double curphi = geant::units::kTwoPi * td->fRndm->uniform();
         cost          = cost * curcost - sint * cursint * std::cos(curphi);
-        sint          = std::sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
+        sint          = Math::Sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
       }
       //
       // check if we have done enough scattering i.e. sampling from the Poisson
@@ -178,7 +178,7 @@ bool GSMSCTableSimplified::Sampling(double lambdaval, double qval, double scra, 
   //  if (cost> 1.0)  cost =  1.0;
   // compute cos(theta) and sin(theta) from the sampled 1-cos(theta)
   double dum0 = 1.0 - cost;
-  sint        = std::sqrt(dum0 * (2.0 - dum0));
+  sint        = Math::Sqrt(dum0 * (2.0 - dum0));
   // return true if it was msc
   return true;
 }
@@ -260,10 +260,10 @@ GSMSCTableSimplified::GSMSCAngularDtr *GSMSCTableSimplified::GetGSAngularDtr(dou
   // make sure that lambda = s/lambda_el is in [gLAMBMIN,gLAMBMAX)
   // lambda<gLAMBMIN=1 is already handeled before so lambda>= gLAMBMIN for sure
   if (lambdaval >= gLAMBMAX) {
-     lambdaval = gLAMBMAX - 1.e-8;
-     lamIndx   = gLAMBNUM - 1;
+    lambdaval = gLAMBMAX - 1.e-8;
+    lamIndx   = gLAMBNUM - 1;
   }
-  double lLambda = geant::Log(lambdaval);
+  double lLambda = Math::Log(lambdaval);
   //
   // determine lower lambda (=s/lambda_el) index: linear interp. on log(lambda) scale
   if (lamIndx < 0) {
@@ -419,15 +419,15 @@ void GSMSCTableSimplified::InitMoliereMSCParams()
       double ipz = theNbAtomsPerVolVect[ielem] / theTotNbAtomsPerVol;
       double dum = ipz * zet * (zet + xi);
       zs += dum;
-      ze += dum * (-2.0 / 3.0) * geant::Log(zet);
-      zx += dum * geant::Log(1.0 + 3.34 * finstrc2 * zet * zet);
+      ze += dum * (-2.0 / 3.0) * Math::Log(zet);
+      zx += dum * Math::Log(1.0 + 3.34 * finstrc2 * zet * zet);
       sa += ipz * iwa;
     }
     double density = theMaterial->GetDensity() * geant::units::cm3 / geant::units::g; // [g/cm3]
     //
     gMoliere[theMaterial->GetIndex()].Bc =
-        const1 * density * zs / sa * geant::Exp(ze / zs) / geant::Exp(zx / zs); //[1/cm]
-    gMoliere[theMaterial->GetIndex()].Xc2 = const2 * density * zs / sa;         // [MeV2/cm]
+        const1 * density * zs / sa * Math::Exp(ze / zs) / Math::Exp(zx / zs); //[1/cm]
+    gMoliere[theMaterial->GetIndex()].Xc2 = const2 * density * zs / sa;       // [MeV2/cm]
     // change to internal units of 1/length and energ2/length
     gMoliere[theMaterial->GetIndex()].Bc *= 1.0 / geant::units::cm;
     gMoliere[theMaterial->GetIndex()].Xc2 *= geant::units::MeV * geant::units::MeV / geant::units::cm;

@@ -39,15 +39,21 @@ int PostStepActionPhysModelStage::CreateHandlers()
   int threshold = fPropagator->fConfig->fNperBasket;
 
   auto &modelTable = geantphysics::EMModel::GetGlobalTable();
+  int modelsAdded  = 0;
 
   for (size_t m = 0; m < modelTable.size(); ++m) {
+    if (modelTable[m]->IsMSCModel()) {
+      fHandlersPerModel.push_back(nullptr);
+      continue;
+    }
     auto handler = new PostStepActionPhysModelHandler(threshold, fPropagator, m);
     handler->SetMayBasketize(modelTable[m]->IsBasketizable());
     fHandlersPerModel.push_back(handler);
     AddHandler(handler);
+    modelsAdded++;
   }
 
-  return modelTable.size();
+  return modelsAdded;
 }
 
 // Selects tracks that have any processes, any post step processes i.e. discrete part and that limited the step

@@ -21,6 +21,7 @@ class SimulationStage;
 #include "Geant/PostStepActionStage.h"
 #include "Geant/AtRestActionStage.h"
 #include "Geant/PostStepActionPhysModelStage.h"
+#include "Geant/PostPropagationVectorStage.h"
 
 namespace geantphysics {
 
@@ -138,7 +139,10 @@ public:
 
   geant::SimulationStage *CreatePrePropagationStage(geant::Propagator *prop) { return new PrePropagationStage(prop); }
 
-  geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop) { return new PostPropagationStage(prop); }
+  geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop)
+  {
+    return new PostPropagationVectorStage(prop);
+  }
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
    *

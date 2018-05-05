@@ -226,12 +226,16 @@ public:
    * @return
    */
   virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double /*ekin*/) { return true; }
+
+  bool IsMSCModel() { return fIsMSCModel; }
 protected:
   // initilise the element selectors: must be called from the derived emmodel class explicitly at the end of its
   // Initialise() method i.e. after the model has been initialised properly.
   void InitialiseElementSelectors(EMModel *emmodel, const Particle *part, bool ispermaterial);
 
   bool fIsBasketizable;
+
+  bool fIsMSCModel = false;
 
 private:
   // delete all EMElementSelector-s
