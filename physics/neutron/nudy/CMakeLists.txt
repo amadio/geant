@@ -12,7 +12,7 @@ ROOT_GENERATE_DICTIONARY(NudyDict ${headers} MODULE Nudy LINKDEF inc/Geant/LinkD
 # Add the executable
 #
 add_library(Nudy SHARED ${sources} NudyDict.cxx)
-target_link_libraries(Nudy -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${ROOT_LIBRARIES} MathMore ${VC_LIBRARIES})
+target_link_libraries(Nudy -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${ROOT_LIBRARIES} MathMore ${Vc_LIBRARIES})
 
 #----------------------------------------------------------------------------------------------
 # Install the files
