@@ -373,7 +373,7 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kPostPropagationStage)->SetFollowUpStage(kAlongStepActionStage, true);
-  GetStage(kPrePropagationStage)->SetBasketizing(false);
+  GetStage(kPostPropagationStage)->SetBasketizing(true);
   //        V
   //        V
   //        V

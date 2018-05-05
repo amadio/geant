@@ -291,6 +291,8 @@ GSMSCTableSimplified::GSMSCAngularDtr *GSMSCTableSimplified::GetGSAngularDtr(dou
   } else {
     dtr = &gGSMSCAngularDistributions2[indx];
   }
+  dtr = dtr->fNumData == 0 ? nullptr : dtr; // Temporary workaround around different data formats
+
   // dtr might be nullptr that indicates isotropic cot distribution because:
   // - if the selected lamIndx, qIndx correspond to L(=s/lambda_el) and Q(=s/lambda_el G1) such that G1(=Q/L) > 1
   //   G1 should always be < 1 and if G1 is ~1 -> the dtr is isotropic (this can only happen in case of the 2. grid)

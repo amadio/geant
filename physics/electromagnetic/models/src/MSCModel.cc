@@ -53,22 +53,16 @@ void MSCModel::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td)
 
 void MSCModel::AlongStepDoIt(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
 {
-  for (auto gtrack : gtracks) {
-    AlongStepDoIt(gtrack, td);
-  }
-  return;
   std::vector<bool> hasNewDir; // TODO allocate it in task data
   hasNewDir.clear();
   std::vector<double> truePathLengths;
   truePathLengths.clear();
 
   for (auto gtrack : gtracks) {
-    double truePathLength = gtrack->GetStep();
-    truePathLengths.push_back(truePathLength);
     MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
     // sample scattering: might have been done during the step limit phase
     // NOTE: in G4 the SampleScattering method won't use the possible shrinked truePathLength!!! but make it correct
-    mscdata.fTheTrueStepLenght = truePathLength;
+    truePathLengths.push_back(mscdata.fTheTrueStepLenght);
   }
 
   SampleScattering(gtracks, hasNewDir, td);
