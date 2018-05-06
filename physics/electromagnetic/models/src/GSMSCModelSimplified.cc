@@ -143,9 +143,9 @@ void GSMSCModelSimplified::StepLimit(geant::Track *gtrack, geant::TaskData *td)
 
 bool GSMSCModelSimplified::SampleScattering(geant::Track *gtrack, geant::TaskData *td)
 {
-  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
-
   SampleMSC(gtrack, td);
+
+  MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   if (!mscdata.fIsNoScatteringInMSC) {
     RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
                      gtrack->Dy(), gtrack->Dz());
@@ -156,6 +156,26 @@ bool GSMSCModelSimplified::SampleScattering(geant::Track *gtrack, geant::TaskDat
     return true; // new direction
   }
   return false;
+}
+void GSMSCModelSimplified::SampleScattering(std::vector<geant::Track *> &gtracks, std::vector<bool> &hasNewDir,
+                                            geant::TaskData *td)
+{
+  SampleMSC(gtracks, td);
+  for (size_t i = 0; i < gtracks.size(); ++i) {
+    auto gtrack      = gtracks[i];
+    MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
+    if (!mscdata.fIsNoScatteringInMSC) {
+      RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
+                       gtrack->Dy(), gtrack->Dz());
+      if (!mscdata.fIsNoDisplace) {
+        RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
+                         mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
+      }
+      hasNewDir[i] = true;
+    } else {
+      hasNewDir[i] = false;
+    }
+  }
 }
 
 void GSMSCModelSimplified::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskData * /*td*/)
@@ -442,6 +462,13 @@ void GSMSCModelSimplified::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   // else:: we sample in the post step point so
   //       the fTheZPathLenght was already set and was taken as transport along zet
   mscdata.SetDisplacement(x_coord, y_coord, z_coord - mscdata.fTheZPathLenght);
+}
+
+void GSMSCModelSimplified::SampleMSC(std::vector<geant::Track *> gtracks, geant::TaskData *td)
+{
+  for (auto gtrack : gtracks) {
+    SampleMSC(gtrack, td);
+  }
 }
 
 //

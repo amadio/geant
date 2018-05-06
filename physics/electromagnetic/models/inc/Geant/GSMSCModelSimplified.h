@@ -38,6 +38,8 @@ public:
   // implemented MSC base class model methods
   virtual void StepLimit(geant::Track *gtrack, geant::TaskData *td);
   virtual bool SampleScattering(geant::Track *gtrack, geant::TaskData *td);
+  virtual void SampleScattering(std::vector<geant::Track *> &gtracks, std::vector<bool> &hasNewDir,
+                                geant::TaskData *td);
   virtual void ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskData *td);
   virtual void ConvertGeometricToTrueLength(geant::Track *gtrack, geant::TaskData *td);
 
@@ -48,6 +50,7 @@ public:
 private:
   double RandomizeTrueStepLength(geant::TaskData *td, double tlimit);
   void SampleMSC(geant::Track *gtrack, geant::TaskData *td);
+  void SampleMSC(std::vector<geant::Track *> gtracks, geant::TaskData *td);
   double GetTransportMeanFreePathOnly(const MaterialCuts *matcut, double ekin);
 
   //  void   ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel, double &lambtr1,

@@ -55,6 +55,7 @@ void MSCModel::AlongStepDoIt(std::vector<geant::Track *> &gtracks, geant::TaskDa
 {
   std::vector<bool> hasNewDir; // TODO allocate it in task data
   hasNewDir.clear();
+  hasNewDir.resize(gtracks.size());
   std::vector<double> truePathLengths;
   truePathLengths.clear();
 
