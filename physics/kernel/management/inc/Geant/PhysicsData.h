@@ -19,10 +19,23 @@ struct PhysicsModelScratchpad {
         fR3((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
         fDoubleArr((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
         fDoubleArr2((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr3((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr4((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr5((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr6((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr7((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr8((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr9((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr10((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr11((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr12((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr13((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
+        fDoubleArr14((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
         fIzet((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
         fMatIdx((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
         fNshells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
         fSampledShells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize))
+        fBoolArr((bool *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(bool) * dataSize))
   {
   }
   ~PhysicsModelScratchpad()
@@ -36,6 +49,20 @@ struct PhysicsModelScratchpad {
     vecCore::AlignedFree(fDoubleArr2);
     vecCore::AlignedFree(fNshells);
     vecCore::AlignedFree(fSampledShells);
+    vecCore::AlignedFree(fDoubleArr3);
+    vecCore::AlignedFree(fDoubleArr4);
+    vecCore::AlignedFree(fDoubleArr5);
+    vecCore::AlignedFree(fDoubleArr6);
+    vecCore::AlignedFree(fDoubleArr7);
+    vecCore::AlignedFree(fDoubleArr8);
+    vecCore::AlignedFree(fDoubleArr9);
+    vecCore::AlignedFree(fDoubleArr10);
+    vecCore::AlignedFree(fDoubleArr11);
+    vecCore::AlignedFree(fDoubleArr12);
+    vecCore::AlignedFree(fDoubleArr13);
+    vecCore::AlignedFree(fDoubleArr14);
+    vecCore::AlignedFree(fIzet);
+    vecCore::AlignedFree(fMatIdx);
   }
   double *fEps;
   double *fR0;
@@ -45,11 +72,24 @@ struct PhysicsModelScratchpad {
 
   double *fDoubleArr;
   double *fDoubleArr2;
+  double *fDoubleArr3;
+  double *fDoubleArr4;
+  double *fDoubleArr5;
+  double *fDoubleArr6;
+  double *fDoubleArr7;
+  double *fDoubleArr8;
+  double *fDoubleArr9;
+  double *fDoubleArr10;
+  double *fDoubleArr11;
+  double *fDoubleArr12;
+  double *fDoubleArr13;
+  double *fDoubleArr14;
 
   int *fIzet;
   int *fMatIdx;
   int *fNshells;
   int *fSampledShells;
+  bool *fBoolArr;
 };
 
 class PhysicsData {

@@ -50,6 +50,9 @@ public:
 private:
   double RandomizeTrueStepLength(geant::TaskData *td, double tlimit);
   void SampleMSC(geant::Track *gtrack, geant::TaskData *td);
+  void SampleMSCp1(std::vector<geant::Track *> &gtracks, geant::TaskData *td);
+  void SampleMSCp2(std::vector<geant::Track *> &gtracks, geant::TaskData *td);
+  void SampleMSCp3(std::vector<geant::Track *> &gtracks, geant::TaskData *td);
   void SampleMSC(std::vector<geant::Track *> gtracks, geant::TaskData *td);
   double GetTransportMeanFreePathOnly(const MaterialCuts *matcut, double ekin);
 

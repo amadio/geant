@@ -24,8 +24,20 @@
 #include "Geant/math_wrappers.h"
 
 #include <cmath>
+#include "Geant/PhysicsData.h"
+#include "Geant/VectorTypes.h"
 
 namespace geantphysics {
+
+using geant::Double_v;
+using geant::IndexD_v;
+using geant::kVecLenD;
+using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 GSMSCModelSimplified::GSMSCModelSimplified(bool iselectron, const std::string &name)
     : MSCModel(name), fIsElectron(iselectron), fGSTable(iselectron), fPWACorrection(iselectron)
@@ -464,10 +476,405 @@ void GSMSCModelSimplified::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   mscdata.SetDisplacement(x_coord, y_coord, z_coord - mscdata.fTheZPathLenght);
 }
 
+void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
+{
+  double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
+  double *scraArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
+  double *qn1Arr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr5;
+  double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
+  double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
+  double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
+  double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
+
+  double *sinTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr10;
+  double *cosTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fR0;
+  double *cosPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR1;
+  double *sinPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR2;
+  double *sinTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr11;
+  double *cosTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr12;
+  double *cosPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr13;
+  double *sinPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr14;
+
+  bool *maskArr = td->fPhysicsData->fPhysicsScratchpad.fBoolArr;
+
+  for (size_t i = 0; i < gtracks.size(); ++i) {
+    maskArr[i] = false;
+  }
+
+  for (size_t i = 0; i < gtracks.size(); i += kVecLenD) {
+
+    Double_v kineticEnergy; // = gtrack->T();
+    Double_v range;         // = mscdata.fRange;             // set in the step limit phase
+    Double_v trueStepL;     // = mscdata.fTheTrueStepLenght; // proposed by all other physics
+    Double_v eloss;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto gtrack                  = gtracks[i + l];
+      MSCdata &mscdata             = fMSCdata.Data<MSCdata>(gtrack);
+      mscdata.fIsNoScatteringInMSC = false;
+      //
+      const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+          (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
+      Set(kineticEnergy, l, gtrack->T());
+      Set(range, l, mscdata.fRange);                 // set in the step limit phase
+      Set(trueStepL, l, mscdata.fTheTrueStepLenght); // proposed by all other physics
+      //
+      // Energy loss correction (2 versions): accurate and approximate
+      //
+      // what will be the energy loss due to along step energy losses if the particle goes to the current physics step
+      Set(eloss, l,
+          Get(kineticEnergy, l) -
+              ELossTableManager::Instance().GetEnergyForRestrictedRange(matCut, fParticle, Get(range - trueStepL, l)));
+    }
+
+    //  if (fTheTrueStepLenght > currentRange*dtrl) {
+    //    eloss = kineticEnergy-
+    //      GetEnergy(particle,range-mscdata.fTheTrueStepLenght,currentCouple);
+    //  } else {
+    //    eloss = fTheTrueStepLenght*GetDEDX(particle,kineticEnergy,currentCouple);
+    //  }
+
+    Double_v tau  = 0.; //    = kineticEnergy/electron_mass_c2; // where kinEnergy is the mean kinetic energy
+    Double_v tau2 = 0.; //   = tau*tau;
+    Double_v eps0 = 0.; //   = eloss/kineticEnergy0; // energy loss fraction to the begin step energy
+    Double_v epsm = 0.; //   = eloss/kineticEnergy;  // energy loss fraction to the mean step energy
+    //
+    // - init.
+    Double_v efEnergy = kineticEnergy;
+    Double_v efStep   = trueStepL;
+    //
+    Double_v kineticEnergy0 = kineticEnergy;
+    kineticEnergy -= 0.5 * eloss; // mean energy along the full step
+    // other parameters for energy loss corrections
+    tau  = kineticEnergy / geant::units::kElectronMassC2; // where kinEnergy is the mean kinetic energy
+    tau2 = tau * tau;
+    eps0 = eloss / kineticEnergy0; // energy loss fraction to the begin step energy
+    epsm = eloss / kineticEnergy;  // energy loss fraction to the mean step energy
+
+    efEnergy     = kineticEnergy * (1. - epsm * epsm * (6. + 10. * tau + 5. * tau2) / (24. * tau2 + 48. * tau + 72.));
+    Double_v dum = 0.166666 * (4. + tau * (6. + tau * (7. + tau * (4. + tau)))) * (epsm / ((tau + 1.) * (tau + 2.))) *
+                   (epsm / ((tau + 1.) * (tau + 2.)));
+    efStep = trueStepL * (1. - dum);
+    //
+    // Get elastic mfp, first transport mfp, screening parameter, and G1 (were computed at pre-step step limit and
+    // stored)
+    Double_v lambel;
+    Double_v lambtr1;
+    Double_v scra;
+    Double_v g1;
+    Double_v pMCtoQ1;
+    Double_v pMCtoG2PerG1;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto gtrack                = gtracks[i + l];
+      const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
+          (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
+      double lambel_tmp;
+      double lambtr1_tmp;
+      double scra_tmp;
+      double g1_tmp;
+      double pMCtoQ1_tmp;
+      double pMCtoG2PerG1_tmp;
+      ComputeParameters(matCut, Get(efEnergy, l), lambel_tmp, lambtr1_tmp, scra_tmp, g1_tmp, pMCtoQ1_tmp,
+                        pMCtoG2PerG1_tmp);
+      Set(lambel, l, lambel_tmp);
+      Set(lambtr1, l, lambtr1_tmp);
+      Set(scra, l, scra_tmp);
+      Set(g1, l, g1_tmp);
+      Set(pMCtoQ1, l, pMCtoQ1_tmp);
+      Set(pMCtoG2PerG1, l, pMCtoG2PerG1_tmp);
+    }
+    // s/lambda_el i.e. mean number of elastic scattering along the step
+    Double_v lambdan = 0.;
+    vecCore::MaskedAssign(lambdan, lambel > 0.0, efStep / lambel);
+    MaskD_v smallL = lambdan <= 1.0e-12;
+    if (!MaskEmpty(smallL)) {
+      for (int l = 0; l < kVecLenD; ++l) {
+        auto gtrack                  = gtracks[i + l];
+        MSCdata &mscdata             = fMSCdata.Data<MSCdata>(gtrack);
+        mscdata.fIsNoScatteringInMSC = true;
+        maskArr[i + l]               = true;
+      }
+    }
+    //
+    Double_v Qn1 = lambdan * g1; // 2.* lambdan *scrA*((1.+scrA)*log(1.+1./scrA)-1.);
+
+    vecCore::Store(lambdan, lambdaNArr + i);
+    vecCore::Store(pMCtoQ1, pMCtoQ1Arr + i);
+    vecCore::Store(scra, scraArr + i);
+    vecCore::Store(Qn1, qn1Arr + i);
+    vecCore::Store(g1, g1Arr + i);
+    vecCore::Store(tau, tauArr + i);
+    vecCore::Store(epsm, epsMArr + i);
+    vecCore::Store(eps0, eps0Arr + i);
+  }
+}
+
+void GSMSCModelSimplified::SampleMSCp2(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
+{
+  double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
+  double *scraArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
+  double *qn1Arr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr5;
+  double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
+  double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
+  double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
+  double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
+
+  double *sinTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr10;
+  double *cosTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fR0;
+  double *cosPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR1;
+  double *sinPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR2;
+  double *sinTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr11;
+  double *cosTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr12;
+  double *cosPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr13;
+  double *sinPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr14;
+
+  bool *maskArr = td->fPhysicsData->fPhysicsScratchpad.fBoolArr;
+
+  for (size_t i = 0; i < gtracks.size(); ++i) {
+    auto gtrack = gtracks[i];
+
+    MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
+    // Sample scattering angles
+    // new direction, relative to the orriginal one is in {uss,vss,wss}
+    double cosTheta1 = 1.0, sinTheta1 = 0.0, cosTheta2 = 1.0, sinTheta2 = 0.0;
+    // if we are above the upper grid limit with lambdaxG1=true-length/first-trans-mfp
+    // => izotropic distribution: lambG1_max =7.99 but set it to 7
+    double *rndArray = td->fDblArray;
+    if (0.5 * qn1Arr[i] > 7.0) {
+      // get 2 random numbers
+      td->fRndm->uniform_array(2, rndArray);
+      cosTheta1 = 1. - 2. * rndArray[0];
+      sinTheta1 = Math::Sqrt((1. - cosTheta1) * (1. + cosTheta1));
+      cosTheta2 = 1. - 2. * rndArray[1];
+      sinTheta2 = Math::Sqrt((1. - cosTheta2) * (1. + cosTheta2));
+    } else {
+      // sample 2 scattering cost1, sint1, cost2 and sint2 for half path
+      // backup GS angular dtr pointer (kinetic energy and delta index in case of Mott-correction)
+      // if the first was an msc sampling (the same will be used if the second is also an msc step)
+      GSMSCTableSimplified::GSMSCAngularDtr *gsDtr = nullptr;
+      double transfPar                             = 0.;
+      bool isMsc = fGSTable.Sampling(0.5 * lambdaNArr[i], 0.5 * qn1Arr[i], scraArr[i], cosTheta1, sinTheta1, &gsDtr,
+                                     transfPar, td, true);
+      fGSTable.Sampling(0.5 * lambdaNArr[i], 0.5 * qn1Arr[i], scraArr[i], cosTheta2, sinTheta2, &gsDtr, transfPar, td,
+                        !isMsc);
+      if (cosTheta1 + cosTheta2 >= 2.) { // no scattering happened
+        if (!maskArr[i]) {
+          mscdata.fIsNoScatteringInMSC = true;
+          maskArr[i]                   = true;
+        }
+      }
+    }
+
+    cosTheta1Arr[i] = cosTheta1;
+    sinTheta1Arr[i] = sinTheta1;
+    cosTheta2Arr[i] = cosTheta2;
+    sinTheta2Arr[i] = sinTheta2;
+  }
+
+  for (size_t i = 0; i < gtracks.size(); i += kVecLenD) {
+    Double_v cosPhi1 = 1.0, sinPhi1 = 0.0, cosPhi2 = 1.0, sinPhi2 = 0.0;
+    Double_v uss = 0.0, vss = 0.0, wss = 1.0;
+    Double_v u2 = 0.0, v2 = 0.0;
+    Double_v sinTheta2;
+    vecCore::Load(sinTheta2, sinTheta2Arr + i);
+    Double_v cosTheta2;
+    vecCore::Load(cosTheta2, cosTheta2Arr + i);
+    Double_v sinTheta1;
+    vecCore::Load(sinTheta1, sinTheta1Arr + i);
+    Double_v cosTheta1;
+    vecCore::Load(cosTheta1, cosTheta1Arr + i);
+    // sample 2 azimuthal angles
+    // get 2 random numbers
+    Double_v phi1 = geant::units::kTwoPi * td->fRndm->uniformV();
+    sinPhi1       = Math::Sin(phi1);
+    cosPhi1       = Math::Cos(phi1);
+    Double_v phi2 = geant::units::kTwoPi * td->fRndm->uniformV();
+    sinPhi2       = Math::Sin(phi2);
+    cosPhi2       = Math::Cos(phi2);
+    // compute final direction realtive to z-dir
+    u2           = sinTheta2 * cosPhi2;
+    v2           = sinTheta2 * sinPhi2;
+    Double_v u2p = cosTheta1 * u2 + sinTheta1 * cosTheta2;
+    uss          = u2p * cosPhi1 - v2 * sinPhi1;
+    vss          = u2p * sinPhi1 + v2 * cosPhi1;
+    wss          = cosTheta1 * cosTheta2 - sinTheta1 * u2;
+
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto gtrack = gtracks[i + l];
+
+      MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
+      //
+      // set the new direction proposed by msc: will be applied if the step doesn't end on boundary
+      if (!maskArr[i + l]) {
+        mscdata.SetNewDirectionMsc(Get(uss, l), Get(vss, l), Get(wss, l));
+      }
+      // set the fTheZPathLenght if we don't sample displacement and
+      // we should do everything at the step-limit-phase before we return
+      //
+      // in optimized-mode if the current-safety > current-range we do not use dispalcement
+      if (mscdata.fIsNoDisplace) {
+        maskArr[i + l] = true;
+      }
+    }
+
+    vecCore::Store(sinPhi1, sinPhi1Arr + i);
+    vecCore::Store(cosPhi1, cosPhi1Arr + i);
+    vecCore::Store(sinPhi2, sinPhi2Arr + i);
+    vecCore::Store(cosPhi2, cosPhi2Arr + i);
+  }
+}
+
+void GSMSCModelSimplified::SampleMSCp3(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
+{
+  double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
+  double *scraArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
+  double *qn1Arr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr5;
+  double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
+  double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
+  double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
+  double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
+
+  double *sinTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr10;
+  double *cosTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fR0;
+  double *cosPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR1;
+  double *sinPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR2;
+  double *sinTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr11;
+  double *cosTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr12;
+  double *cosPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr13;
+  double *sinPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr14;
+
+  bool *maskArr = td->fPhysicsData->fPhysicsScratchpad.fBoolArr;
+
+  for (size_t i = 0; i < gtracks.size(); i += kVecLenD) {
+    Double_v Qn1;
+    vecCore::Load(Qn1, qn1Arr + i);
+    Double_v pMCtoQ1;
+    vecCore::Load(pMCtoQ1, pMCtoQ1Arr + i);
+    Double_v pMCtoG2PerG1;
+    vecCore::Load(pMCtoG2PerG1, pMCtoG2PerG1Arr + i);
+    Double_v scra;
+    vecCore::Load(scra, scraArr + i);
+    Double_v g1;
+    vecCore::Load(g1, g1Arr + i);
+    Double_v tau;
+    vecCore::Load(tau, tauArr + i);
+    Double_v eps0;
+    vecCore::Load(eps0, eps0Arr + i);
+    Double_v epsm;
+    vecCore::Load(epsm, epsMArr + i);
+    // Compute final position
+    Qn1 *= pMCtoQ1;
+    // correction parameter
+    Double_v par = 1.;
+    vecCore::MaskedAssign(par, (Qn1 > 0.7) && (Qn1 < 7.0), -0.031376 * Qn1 + 1.01356);
+    vecCore::MaskedAssign(par, (Qn1 >= 7.0), (Double_v)0.79);
+
+    // Moments with energy loss correction
+    // --first the uncorrected (for energy loss) values of gamma, eta, a1=a2=0.5*(1-eta), delta
+    // gamma = G_2/G_1 based on G2 computed from A by using the Wentzel DCS form of G2
+    Double_v loga  = Math::Log(1.0 + 1.0 / scra);
+    Double_v gamma = 6.0 * scra * (1.0 + scra) * (loga * (1.0 + 2.0 * scra) - 2.0) / g1;
+    gamma *= pMCtoG2PerG1;
+    // sample eta from p(eta)=2*eta i.e. P(eta) = eta_square ;-> P(eta) = rand --> eta = sqrt(rand)
+    Double_v eta  = Math::Sqrt(td->fRndm->uniformV());
+    Double_v eta1 = 0.5 * (1 - eta); // used  more than once
+    // 0.5 +sqrt(6)/6 = 0.9082483;
+    // 1/(4*sqrt(6))  = 0.1020621;
+    // (4-sqrt(6)/(24*sqrt(6))) = 0.026374715
+    // delta = 0.9082483-(0.1020621-0.0263747*gamma)*Qn1 without energy loss cor.
+    Double_v delta = 0.9082483 - (0.1020621 - 0.0263747 * gamma) * Qn1;
+    //
+    // compute alpha1 and alpha2 for energy loss correction
+    Double_v temp1 = 2.0 + tau;
+    Double_v temp  = (2.0 + tau * temp1) / ((tau + 1.0) * temp1);
+    // take into account logarithmic dependence
+    temp  = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
+    temp  = temp * epsm;
+    temp1 = 1.0 - temp;
+    delta = delta +
+            0.40824829 *
+                (eps0 * (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
+                 0.25 * temp * temp);
+    Double_v b = eta * delta;
+    Double_v c = eta * (1.0 - delta);
+    //
+    // calculate transport direction cosines:
+    // ut,vt,wt is the final position divided by the true step length
+
+    Double_v cosTheta1;
+    vecCore::Load(cosTheta1, cosTheta1Arr + i);
+    Double_v sinTheta1;
+    vecCore::Load(sinTheta1, sinTheta1Arr + i);
+    Double_v cosTheta2;
+    vecCore::Load(cosTheta2, cosTheta2Arr + i);
+    Double_v sinTheta2;
+    vecCore::Load(sinTheta2, sinTheta2Arr + i);
+    Double_v cosPhi1;
+    vecCore::Load(cosPhi1, cosPhi1Arr + i);
+    Double_v sinPhi1;
+    vecCore::Load(sinPhi1, sinPhi1Arr + i);
+    Double_v cosPhi2;
+    vecCore::Load(cosPhi2, cosPhi2Arr + i);
+    Double_v sinPhi2;
+    vecCore::Load(sinPhi2, sinPhi2Arr + i);
+
+    Double_v u2  = sinTheta2 * cosPhi2;
+    Double_v v2  = sinTheta2 * sinPhi2;
+    Double_v u2p = cosTheta1 * u2 + sinTheta1 * cosTheta2;
+    Double_v uss = u2p * cosPhi1 - v2 * sinPhi1;
+    Double_v vss = u2p * sinPhi1 + v2 * cosPhi1;
+    Double_v wss = cosTheta1 * cosTheta2 - sinTheta1 * u2;
+
+    Double_v w1v2 = cosTheta1 * v2;
+    Double_v ut   = b * sinTheta1 * cosPhi1 + c * (cosPhi1 * u2 - sinPhi1 * w1v2) + eta1 * uss * temp1;
+    Double_v vt   = b * sinTheta1 * sinPhi1 + c * (sinPhi1 * u2 + cosPhi1 * w1v2) + eta1 * vss * temp1;
+    Double_v wt   = eta1 * (1 + temp) + b * cosTheta1 + c * cosTheta2 + eta1 * wss * temp1;
+    //
+    // long step correction (only if not error-free stepping algorithm is used)
+    ut *= par;
+    vt *= par;
+    wt *= par;
+
+    //
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto gtrack      = gtracks[i + l];
+      MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
+      // final position relative to the pre-step point in the scattering frame
+      // ut = x_f/s so needs to multiply by s
+      double trueStepL = mscdata.fTheTrueStepLenght; // proposed by all other physics
+      double x_coord   = Get(ut, l) * trueStepL;
+      double y_coord   = Get(vt, l) * trueStepL;
+      double z_coord   = Get(wt, l) * trueStepL;
+      // else:: we sample in the post step point so
+      //       the fTheZPathLenght was already set and was taken as transport along zet
+      if (!maskArr[i + l]) {
+        mscdata.SetDisplacement(x_coord, y_coord, z_coord - mscdata.fTheZPathLenght);
+      }
+    }
+  }
+}
+
 void GSMSCModelSimplified::SampleMSC(std::vector<geant::Track *> gtracks, geant::TaskData *td)
 {
-  for (auto gtrack : gtracks) {
-    SampleMSC(gtrack, td);
+  assert(gtracks.size() != 0);
+
+  size_t tail     = gtracks.size() - (gtracks.size() / kVecLenD) * kVecLenD;
+  size_t defficit = kVecLenD - tail;
+  if (tail != 0) {
+    gtracks.insert(gtracks.end(), defficit, *(gtracks.end() - 1));
+  }
+
+  SampleMSCp1(gtracks, td);
+  SampleMSCp2(gtracks, td);
+  SampleMSCp3(gtracks, td);
+
+  if (tail != 0) {
+    gtracks.erase(gtracks.end() - 1 - defficit);
   }
 }
 
