@@ -46,6 +46,9 @@ public:
   // make it public for testing
   void ComputeParameters(const MaterialCuts *matcut, double ekin, double &lambel, double &lambtr1, double &scra,
                          double &g1, double &mccor1, double &mccor2);
+  void ComputeParameters(std::array<int, geant::kVecLenD> matIdx, geant::Double_v ekin, geant::Double_v &lambel,
+                         geant::Double_v &lambtr1, geant::Double_v &scra, geant::Double_v &g1, geant::Double_v &mccor1,
+                         geant::Double_v &mccor2);
 
 private:
   double RandomizeTrueStepLength(geant::TaskData *td, double tlimit);

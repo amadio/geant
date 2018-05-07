@@ -34,24 +34,33 @@ public:
   // structure to store one GS transformed angular distribution (for a given s/lambda_el,s/lambda_elG1)
   struct GSMSCAngularDtr {
     int fNumData; // # of data points
+    double fDelta;
     struct Data {
       double fUValues; // array of transformed variables
       double fParamA;  // array of interpolation parameters a
       double fParamB;  // array of interpolation parameters b
     };
     std::vector<Data> fData;
-    GSMSCAngularDtr() : fNumData(0), fData(0) {}
+    GSMSCAngularDtr() : fNumData(0), fData(0), fDelta(0.0) {}
   };
 
   bool Sampling(double lambdaval, double qval, double scra, double &cost, double &sint, GSMSCAngularDtr **gsDtr,
                 double &transfPar, geant::TaskData *td, bool isfirst);
+
+  void SampleTheta12(const double *lambdaval, const double *qval, const double *scra, double *cost1, double *cost2,
+                     int N, geant::TaskData *td);
 
   double SampleCosTheta(double lambdaval, double qval, double scra, GSMSCAngularDtr **gsDtr, double &transfPar,
                         geant::TaskData *td, bool isfirst);
 
   double SampleGSSRCosTheta(const GSMSCAngularDtr *gsDrt, double transfpar, geant::TaskData *td);
 
+  void SampleGSSRCosThetaVector(GSMSCAngularDtr **gsDrt, const double *transfpar, double *cost, int N,
+                                geant::TaskData *td);
+
   GSMSCAngularDtr *GetGSAngularDtr(double scra, double lambdaval, double qval, double &transfpar, geant::TaskData *td);
+  GSMSCAngularDtr *GetGSAngularDtr(double scra, double lambdaval, double lLambda, double qval, double &transfpar,
+                                   geant::TaskData *td);
 
   // material dependent MSC parameters (computed at initialisation) regarding
   // Moliere's screening parameter

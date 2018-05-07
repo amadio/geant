@@ -3,6 +3,7 @@
 #define PHYSICSDATA_H
 
 #include <vector>
+#include "Geant/GSMSCTableSimplified.h"
 #include "LightTrack.h"
 
 namespace geantphysics {
@@ -90,6 +91,29 @@ struct PhysicsModelScratchpad {
   int *fNshells;
   int *fSampledShells;
   bool *fBoolArr;
+
+  std::vector<bool> hasNewDir;
+  std::vector<double> truePathLengths;
+  std::vector<double> rand0Th1;
+  ;
+  std::vector<double> expn;
+  ;
+  std::vector<double> loglabmda;
+  ;
+  std::vector<double> rand0Th2;
+  ;
+  std::vector<bool> masked;
+  ;
+
+  std::vector<GSMSCTableSimplified::GSMSCAngularDtr *> angDtrCache;
+  std::vector<double> transfParCache;
+
+  // Working stack
+  std::vector<GSMSCTableSimplified::GSMSCAngularDtr *> angDtr;
+  std::vector<double> transfPar;
+  std::vector<bool> firstAngle;
+  std::vector<int> idx;
+  std::vector<double> tempCosStorage;
 };
 
 class PhysicsData {

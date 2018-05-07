@@ -98,7 +98,7 @@ void TestEm3PhysicsList::Initialize()
       // create MSC process
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
-      geantphysics::GSMSCModelSimplified *gsMSCModel = new geantphysics::GSMSCModelSimplified();
+      auto gsMSCModel = new geantphysics::GSMSCModelSimplified(true);
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(fMSCSteppingAlgorithm);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
@@ -152,7 +152,7 @@ void TestEm3PhysicsList::Initialize()
       // create MSC process
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e+msc");
       // create GS-msc model, set min/max usage limits
-      geantphysics::GSMSCModelSimplified *gsMSCModel = new geantphysics::GSMSCModelSimplified(false); // for e+
+      auto gsMSCModel = new geantphysics::GSMSCModelSimplified(false); // for e+
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(fMSCSteppingAlgorithm);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);

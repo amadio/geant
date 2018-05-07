@@ -1,4 +1,5 @@
 
+#include <Geant/VectorTypes.h>
 #include "Geant/PostPropagationVectorHandler.h"
 
 // from geantV
@@ -58,6 +59,11 @@ void PostPropagationVectorHandler::DoIt(geant::Basket &input, geant::Basket &out
 {
   // For the moment just loop and call scalar DoIt
   geant::TrackVec_t &tracks = input.Tracks();
+
+  if (tracks.size() % geant::kVecLenD != 0) {
+    return Handler::DoIt(input, output, td);
+  }
+
   fModel->AlongStepDoIt(tracks, td);
   for (auto track : tracks) {
     // Particles have been propagated by the geometrical step and after the msc AlongStepDoIt this geometrical step

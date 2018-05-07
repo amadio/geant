@@ -509,6 +509,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
     Double_v range;         // = mscdata.fRange;             // set in the step limit phase
     Double_v trueStepL;     // = mscdata.fTheTrueStepLenght; // proposed by all other physics
     Double_v eloss;
+    std::array<int, kVecLenD> matIdx;
     for (int l = 0; l < kVecLenD; ++l) {
       auto gtrack                  = gtracks[i + l];
       MSCdata &mscdata             = fMSCdata.Data<MSCdata>(gtrack);
@@ -516,6 +517,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
       //
       const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
           (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
+      matIdx[l] = matCut->GetMaterial()->GetIndex();
       Set(kineticEnergy, l, gtrack->T());
       Set(range, l, mscdata.fRange);                 // set in the step limit phase
       Set(trueStepL, l, mscdata.fTheTrueStepLenght); // proposed by all other physics
@@ -565,25 +567,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
     Double_v g1;
     Double_v pMCtoQ1;
     Double_v pMCtoG2PerG1;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto gtrack                = gtracks[i + l];
-      const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
-          (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-      double lambel_tmp;
-      double lambtr1_tmp;
-      double scra_tmp;
-      double g1_tmp;
-      double pMCtoQ1_tmp;
-      double pMCtoG2PerG1_tmp;
-      ComputeParameters(matCut, Get(efEnergy, l), lambel_tmp, lambtr1_tmp, scra_tmp, g1_tmp, pMCtoQ1_tmp,
-                        pMCtoG2PerG1_tmp);
-      Set(lambel, l, lambel_tmp);
-      Set(lambtr1, l, lambtr1_tmp);
-      Set(scra, l, scra_tmp);
-      Set(g1, l, g1_tmp);
-      Set(pMCtoQ1, l, pMCtoQ1_tmp);
-      Set(pMCtoG2PerG1, l, pMCtoG2PerG1_tmp);
-    }
+    ComputeParameters(matIdx, efEnergy, lambel, lambtr1, scra, g1, pMCtoQ1, pMCtoG2PerG1);
     // s/lambda_el i.e. mean number of elastic scattering along the step
     Double_v lambdan = 0.;
     vecCore::MaskedAssign(lambdan, lambel > 0.0, efStep / lambel);
@@ -601,6 +585,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
 
     vecCore::Store(lambdan, lambdaNArr + i);
     vecCore::Store(pMCtoQ1, pMCtoQ1Arr + i);
+    vecCore::Store(pMCtoG2PerG1, pMCtoG2PerG1Arr + i);
     vecCore::Store(scra, scraArr + i);
     vecCore::Store(Qn1, qn1Arr + i);
     vecCore::Store(g1, g1Arr + i);
@@ -633,45 +618,28 @@ void GSMSCModelSimplified::SampleMSCp2(std::vector<geant::Track *> &gtracks, gea
 
   bool *maskArr = td->fPhysicsData->fPhysicsScratchpad.fBoolArr;
 
-  for (size_t i = 0; i < gtracks.size(); ++i) {
-    auto gtrack = gtracks[i];
+  fGSTable.SampleTheta12(lambdaNArr, qn1Arr, scraArr, cosTheta1Arr, cosTheta2Arr, gtracks.size(), td);
+  for (size_t i = 0; i < gtracks.size(); i += kVecLenD) {
+    Double_v cost1;
+    vecCore::Load(cost1, cosTheta1Arr + i);
+    Double_v cost2;
+    vecCore::Load(cost2, cosTheta2Arr + i);
+    Double_v sinTheta1 = Math::Sqrt((1. - cost1) * (1. + cost1));
+    Double_v sinTheta2 = Math::Sqrt((1. - cost2) * (1. + cost2));
 
-    MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
-    // Sample scattering angles
-    // new direction, relative to the orriginal one is in {uss,vss,wss}
-    double cosTheta1 = 1.0, sinTheta1 = 0.0, cosTheta2 = 1.0, sinTheta2 = 0.0;
-    // if we are above the upper grid limit with lambdaxG1=true-length/first-trans-mfp
-    // => izotropic distribution: lambG1_max =7.99 but set it to 7
-    double *rndArray = td->fDblArray;
-    if (0.5 * qn1Arr[i] > 7.0) {
-      // get 2 random numbers
-      td->fRndm->uniform_array(2, rndArray);
-      cosTheta1 = 1. - 2. * rndArray[0];
-      sinTheta1 = Math::Sqrt((1. - cosTheta1) * (1. + cosTheta1));
-      cosTheta2 = 1. - 2. * rndArray[1];
-      sinTheta2 = Math::Sqrt((1. - cosTheta2) * (1. + cosTheta2));
-    } else {
-      // sample 2 scattering cost1, sint1, cost2 and sint2 for half path
-      // backup GS angular dtr pointer (kinetic energy and delta index in case of Mott-correction)
-      // if the first was an msc sampling (the same will be used if the second is also an msc step)
-      GSMSCTableSimplified::GSMSCAngularDtr *gsDtr = nullptr;
-      double transfPar                             = 0.;
-      bool isMsc = fGSTable.Sampling(0.5 * lambdaNArr[i], 0.5 * qn1Arr[i], scraArr[i], cosTheta1, sinTheta1, &gsDtr,
-                                     transfPar, td, true);
-      fGSTable.Sampling(0.5 * lambdaNArr[i], 0.5 * qn1Arr[i], scraArr[i], cosTheta2, sinTheta2, &gsDtr, transfPar, td,
-                        !isMsc);
-      if (cosTheta1 + cosTheta2 >= 2.) { // no scattering happened
-        if (!maskArr[i]) {
+    for (int l = 0; l < kVecLenD; ++l) {
+      if (Get(cost1, l) + Get(cost2, l) >= 2.) { // no scattering happened
+        if (!maskArr[i + l]) {
+          auto gtrack                  = gtracks[i + l];
+          MSCdata &mscdata             = fMSCdata.Data<MSCdata>(gtrack);
           mscdata.fIsNoScatteringInMSC = true;
-          maskArr[i]                   = true;
+          maskArr[i + l]               = true;
         }
       }
     }
 
-    cosTheta1Arr[i] = cosTheta1;
-    sinTheta1Arr[i] = sinTheta1;
-    cosTheta2Arr[i] = cosTheta2;
-    sinTheta2Arr[i] = sinTheta2;
+    vecCore::Store(sinTheta1, sinTheta1Arr + i);
+    vecCore::Store(sinTheta2, sinTheta2Arr + i);
   }
 
   for (size_t i = 0; i < gtracks.size(); i += kVecLenD) {
@@ -689,11 +657,9 @@ void GSMSCModelSimplified::SampleMSCp2(std::vector<geant::Track *> &gtracks, gea
     // sample 2 azimuthal angles
     // get 2 random numbers
     Double_v phi1 = geant::units::kTwoPi * td->fRndm->uniformV();
-    sinPhi1       = Math::Sin(phi1);
-    cosPhi1       = Math::Cos(phi1);
+    Math::SinCos(phi1, sinPhi1, cosPhi1);
     Double_v phi2 = geant::units::kTwoPi * td->fRndm->uniformV();
-    sinPhi2       = Math::Sin(phi2);
-    cosPhi2       = Math::Cos(phi2);
+    Math::SinCos(phi2, sinPhi2, cosPhi2);
     // compute final direction realtive to z-dir
     u2           = sinTheta2 * cosPhi2;
     v2           = sinTheta2 * sinPhi2;
@@ -862,20 +828,9 @@ void GSMSCModelSimplified::SampleMSCp3(std::vector<geant::Track *> &gtracks, gea
 void GSMSCModelSimplified::SampleMSC(std::vector<geant::Track *> gtracks, geant::TaskData *td)
 {
   assert(gtracks.size() != 0);
-
-  size_t tail     = gtracks.size() - (gtracks.size() / kVecLenD) * kVecLenD;
-  size_t defficit = kVecLenD - tail;
-  if (tail != 0) {
-    gtracks.insert(gtracks.end(), defficit, *(gtracks.end() - 1));
-  }
-
   SampleMSCp1(gtracks, td);
   SampleMSCp2(gtracks, td);
   SampleMSCp3(gtracks, td);
-
-  if (tail != 0) {
-    gtracks.erase(gtracks.end() - 1 - defficit);
-  }
 }
 
 //
@@ -912,6 +867,59 @@ void GSMSCModelSimplified::ComputeParameters(const MaterialCuts *matcut, double 
   // - if PWA correction: he Screened-Rutherford DCS with this screening parameter
   //   gives back the (elsepa) PWA first transport cross section
   scra = fGSTable.GetMoliereXc2(matindx) / (4.0 * pt2 * bc) * pMCtoScrA;
+  // elastic mean free path in Geant4 internal lenght units: the neglected (1+screening parameter) term is corrected
+  // (if Mott-corretion: the corrected screening parameter is used for this (1+A) correction + Moliere b_c is also
+  // corrected with the screening parameter correction)
+  lambel = beta2 * (1. + scra) * pMCtoScrA / bc / scpCor;
+  // first transport coefficient (if Mott-corretion: the corrected screening parameter is used (it will be fully
+  // consistent with the one used during the pre-computation of the Mott-correted GS angular distributions))
+  g1 = 2.0 * scra * ((1.0 + scra) * Math::Log(1.0 / scra + 1.0) - 1.0);
+  // first transport mean free path
+  lambtr1 = lambel / g1;
+}
+
+void GSMSCModelSimplified::ComputeParameters(std::array<int, geant::kVecLenD> matIdx, geant::Double_v ekin,
+                                             geant::Double_v &lambel, geant::Double_v &lambtr1, geant::Double_v &scra,
+                                             geant::Double_v &g1, geant::Double_v &pMCtoQ1,
+                                             geant::Double_v &pMCtoG2PerG1)
+{
+  lambel       = 0.0; // elastic mean free path
+  lambtr1      = 0.0; // first transport mean free path
+  scra         = 0.0; // screening parameter
+  g1           = 0.0; // first transport coef.
+  pMCtoQ1      = 1.0;
+  pMCtoG2PerG1 = 1.0;
+  //
+  ekin = Math::Max(ekin, (Double_v)10 * geant::units::eV);
+  // total mometum square
+  Double_v pt2 = ekin * (ekin + 2.0 * geant::units::kElectronMassC2);
+  // beta square
+  Double_v beta2 = pt2 / (pt2 + geant::units::kElectronMassC2 * geant::units::kElectronMassC2);
+  // current material index
+  // Moliere's b_c
+  Double_v bc, xc2;
+  for (int l = 0; l < kVecLenD; ++l) {
+    Set(bc, l, fGSTable.GetMoliereBc(matIdx[l]));
+    Set(xc2, l, fGSTable.GetMoliereXc2(matIdx[l]));
+  }
+  // get the Mott-correcton factors if Mott-correcton was requested by the user
+  Double_v pMCtoScrA = 1.0;
+  Double_v scpCor    = 1.0;
+  Double_v lekin     = Math::Log(ekin);
+  for (int l = 0; l < kVecLenD; ++l) {
+    double pMCtoScrA_tmp, pMCtoQ1_tmp, pMCtoG2PerG1_tmp;
+    fPWACorrection.GetPWACorrectionFactors(Get(lekin, l), Get(beta2, l), matIdx[l], pMCtoScrA_tmp, pMCtoQ1_tmp,
+                                           pMCtoG2PerG1_tmp);
+    Set(pMCtoScrA, l, pMCtoScrA_tmp);
+    Set(pMCtoQ1, l, pMCtoQ1_tmp);
+    Set(pMCtoG2PerG1, l, pMCtoG2PerG1_tmp);
+  }
+  // screening parameter:
+  // - if Mott-corretioncorrection: the Screened-Rutherford times Mott-corretion DCS with this
+  //   screening parameter gives back the (elsepa) PWA first transport cross section
+  // - if PWA correction: he Screened-Rutherford DCS with this screening parameter
+  //   gives back the (elsepa) PWA first transport cross section
+  scra = xc2 / (4.0 * pt2 * bc) * pMCtoScrA;
   // elastic mean free path in Geant4 internal lenght units: the neglected (1+screening parameter) term is corrected
   // (if Mott-corretion: the corrected screening parameter is used for this (1+A) correction + Moliere b_c is also
   // corrected with the screening parameter correction)

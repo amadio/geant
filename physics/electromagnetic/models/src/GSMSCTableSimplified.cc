@@ -22,8 +22,19 @@
 //#include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <Geant/PhysicsData.h>
 
 namespace geantphysics {
+
+using geant::Double_v;
+using geant::IndexD_v;
+using geant::kVecLenD;
+using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
 
 // perecomputed GS angular distributions, based on the Screened-Rutherford DCS
 // are the same for e- and e+ so make sure we load them only onece
@@ -183,6 +194,227 @@ bool GSMSCTableSimplified::Sampling(double lambdaval, double qval, double scra, 
   return true;
 }
 
+void GSMSCTableSimplified::SampleTheta12(const double *lambdaval, const double *qval, const double *scra, double *cost1,
+                                         double *cost2, int N, geant::TaskData *td)
+{
+
+  auto &rand0Th1 = td->fPhysicsData->fPhysicsScratchpad.rand0Th1;
+  rand0Th1.resize(N);
+  auto &expn = td->fPhysicsData->fPhysicsScratchpad.expn;
+  expn.resize(N);
+  auto &loglamda = td->fPhysicsData->fPhysicsScratchpad.loglabmda;
+  loglamda.resize(N);
+  auto &rand0Th2 = td->fPhysicsData->fPhysicsScratchpad.rand0Th2;
+  rand0Th2.resize(N);
+  auto &masked = td->fPhysicsData->fPhysicsScratchpad.masked;
+  masked.resize(N, false);
+
+  auto &angDtrCache = td->fPhysicsData->fPhysicsScratchpad.angDtrCache;
+  angDtrCache.resize(N, nullptr);
+  auto &transfParCache = td->fPhysicsData->fPhysicsScratchpad.transfParCache;
+  transfParCache.resize(N);
+
+  // Working stack
+  auto &angDtr = td->fPhysicsData->fPhysicsScratchpad.angDtr;
+  angDtr.clear();
+  auto &transfPar = td->fPhysicsData->fPhysicsScratchpad.transfPar;
+  transfPar.clear();
+  auto &firstAngle = td->fPhysicsData->fPhysicsScratchpad.firstAngle;
+  firstAngle.clear();
+  auto &idx = td->fPhysicsData->fPhysicsScratchpad.idx;
+  idx.clear();
+
+  auto &tempCosStorage = td->fPhysicsData->fPhysicsScratchpad.tempCosStorage;
+  tempCosStorage.resize(N * 2);
+
+  for (int i = 0; i < N; ++i) {
+    if (0.5 * qval[i] > 7.0) {
+      cost1[i]  = 1. - 2. * td->fRndm->uniform();
+      cost2[i]  = 1. - 2. * td->fRndm->uniform();
+      masked[i] = true;
+    } else {
+      masked[i] = false;
+    }
+  }
+
+  for (int i = 0; i < N; i += kVecLenD) {
+    Double_v lambdavalVec;
+    vecCore::Load(lambdavalVec, lambdaval + i);
+    lambdavalVec *= 0.5;
+    Double_v rand0Vec = td->fRndm->uniformV();
+    Double_v expnVec  = Math::Exp(-lambdavalVec);
+    vecCore::Store(rand0Vec, rand0Th1.data() + i);
+    vecCore::Store(expnVec, expn.data() + i);
+    rand0Vec = td->fRndm->uniformV();
+    vecCore::Store(rand0Vec, rand0Th2.data() + i);
+    Double_v logLambdaVec = Math::Log(lambdavalVec);
+    vecCore::Store(logLambdaVec, loglamda.data() + i);
+  }
+
+  for (int i = 0; i < N; ++i) {
+    if (masked[i]) continue;
+    bool noScat      = rand0Th1[i] < expn[i];
+    bool oneScat     = rand0Th1[i] < (1. + 0.5 * lambdaval[i]) * expn[i];
+    bool onePlusScat = 0.5 * lambdaval[i] < 1.0;
+
+    if (!(noScat || oneScat || onePlusScat)) { // MSC
+
+      double transfPar_tmp;
+      auto gsDtr        = GetGSAngularDtr(scra[i], 0.5 * lambdaval[i], loglamda[i], 0.5 * qval[i], transfPar_tmp, td);
+      angDtrCache[i]    = gsDtr;
+      transfParCache[i] = transfPar_tmp;
+      if (gsDtr) {
+        angDtr.push_back(gsDtr);
+        transfPar.push_back(transfPar_tmp);
+        firstAngle.push_back(true);
+        idx.push_back(i);
+      } else {
+        cost1[i] = 1.0 - 2.0 * td->fRndm->uniform();
+      }
+
+    } else {
+      if (noScat) {
+        cost1[i] = 1.0;
+      } else if (oneScat) {
+        // cost is sampled in SingleScattering()
+        double rand1 = td->fRndm->uniform();
+        // sample cost from the Screened-Rutherford DCS
+        cost1[i] = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
+        // add protections
+        cost1[i] = std::max(cost1[i], -1.0);
+        cost1[i] = std::min(cost1[i], 1.0);
+      } else if (onePlusScat) {
+
+        double prob, cumprob;
+        prob = cumprob = expn[i];
+        double curcost, cursint;
+        // init cos(theta) and sin(theta) to the zero scattering values
+        double cost = 1.0;
+        double sint = 0.0;
+        for (int iel = 1; iel < 10; ++iel) {
+          // prob of having iel scattering from Poisson
+          prob *= 0.5 * lambdaval[i] / (double)iel;
+          cumprob += prob;
+          //
+          // sample cos(theta) from the singe scattering pdf:
+          // - Mott-correction will be included if it was requested by the user (i.e. if fIsMottCorrection=true)
+          double rand1 = td->fRndm->uniform();
+          // sample cost from the Screened-Rutherford DCS
+          curcost     = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
+          double dum0 = 1. - curcost;
+          cursint     = dum0 * (2.0 - dum0); // sin^2(theta)
+          //
+          // if we got current deflection that is not too small
+          // then update cos(theta) sin(theta)
+          if (cursint > 1.0e-20) {
+            cursint       = Math::Sqrt(cursint);
+            double curphi = geant::units::kTwoPi * td->fRndm->uniform();
+            cost          = cost * curcost - sint * cursint * std::cos(curphi);
+            sint          = Math::Sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
+          }
+          //
+          // check if we have done enough scattering i.e. sampling from the Poisson
+          if (rand0Th1[i] < cumprob) {
+            break;
+          }
+        }
+        cost1[i] = cost;
+      }
+    }
+  }
+
+  for (int i = 0; i < N; ++i) {
+    if (masked[i]) continue;
+    bool noScat      = rand0Th2[i] < expn[i];
+    bool oneScat     = rand0Th2[i] < (1. + 0.5 * lambdaval[i]) * expn[i];
+    bool onePlusScat = 0.5 * lambdaval[i] < 1.0;
+
+    if (!(noScat || oneScat || onePlusScat)) { // MSC
+      auto gsDtr           = angDtrCache[i];
+      double transfPar_tmp = transfParCache[i];
+      if (!gsDtr) {
+        gsDtr = GetGSAngularDtr(scra[i], 0.5 * lambdaval[i], loglamda[i], 0.5 * qval[i], transfPar_tmp, td);
+      }
+      if (gsDtr) {
+        angDtr.push_back(gsDtr);
+        transfPar.push_back(transfPar_tmp);
+        firstAngle.push_back(false);
+        idx.push_back(i);
+      } else {
+        cost2[i] = 1.0 - 2.0 * td->fRndm->uniform();
+      }
+
+    } else {
+      if (noScat) {
+        cost2[i] = 1.0;
+      } else if (oneScat) {
+        // cost is sampled in SingleScattering()
+        double rand1 = td->fRndm->uniform();
+        // sample cost from the Screened-Rutherford DCS
+        cost2[i] = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
+        // add protections
+        cost2[i] = std::max(cost2[i], -1.0);
+        cost2[i] = std::min(cost2[i], 1.0);
+      } else if (onePlusScat) {
+
+        double prob, cumprob;
+        prob = cumprob = expn[i];
+        double curcost, cursint;
+        // init cos(theta) and sin(theta) to the zero scattering values
+        double cost = 1.0;
+        double sint = 0.0;
+        for (int iel = 1; iel < 10; ++iel) {
+          // prob of having iel scattering from Poisson
+          prob *= 0.5 * lambdaval[i] / (double)iel;
+          cumprob += prob;
+          //
+          // sample cos(theta) from the singe scattering pdf:
+          // - Mott-correction will be included if it was requested by the user (i.e. if fIsMottCorrection=true)
+          double rand1 = td->fRndm->uniform();
+          // sample cost from the Screened-Rutherford DCS
+          curcost     = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
+          double dum0 = 1. - curcost;
+          cursint     = dum0 * (2.0 - dum0); // sin^2(theta)
+          //
+          // if we got current deflection that is not too small
+          // then update cos(theta) sin(theta)
+          if (cursint > 1.0e-20) {
+            cursint       = Math::Sqrt(cursint);
+            double curphi = geant::units::kTwoPi * td->fRndm->uniform();
+            cost          = cost * curcost - sint * cursint * std::cos(curphi);
+            sint          = Math::Sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
+          }
+          //
+          // check if we have done enough scattering i.e. sampling from the Poisson
+          if (rand0Th2[i] < cumprob) {
+            break;
+          }
+        }
+        cost2[i] = cost;
+      }
+    }
+  }
+
+  size_t tail     = angDtr.size() - (angDtr.size() / kVecLenD) * kVecLenD;
+  size_t defficit = tail == 0 ? 0 : kVecLenD - tail;
+  if (defficit != 0 && angDtr.size() > 0) {
+    angDtr.insert(angDtr.end(), defficit, *(angDtr.end() - 1));
+    transfPar.insert(transfPar.end(), defficit, *(transfPar.end() - 1));
+    firstAngle.insert(firstAngle.end(), defficit, true);
+    idx.insert(idx.end(), defficit, *(idx.end() - 1));
+  }
+
+  SampleGSSRCosThetaVector(angDtr.data(), transfPar.data(), tempCosStorage.data(), idx.size(), td);
+
+  for (size_t i = 0; i < idx.size() - defficit; ++i) {
+    if (firstAngle[i]) {
+      cost1[idx[i]] = tempCosStorage[i];
+    } else {
+      cost2[idx[i]] = tempCosStorage[i];
+    }
+  }
+}
+
 double GSMSCTableSimplified::SampleCosTheta(double lambdaval, double qval, double scra, GSMSCAngularDtr **gsDtr,
                                             double &transfPar, geant::TaskData *td, bool isfirst)
 {
@@ -227,6 +459,128 @@ double GSMSCTableSimplified::SampleGSSRCosTheta(const GSMSCAngularDtr *gsDtr, do
   return 1. - (2.0 * transfpar * sample) / (1.0 - sample + transfpar);
 }
 
+void GSMSCTableSimplified::SampleGSSRCosThetaVector(GSMSCTableSimplified::GSMSCAngularDtr **gsDtr,
+                                                    const double *transfpar, double *cost, int N, geant::TaskData *td)
+{
+  for (int i = 0; i < N; i += kVecLenD) {
+    Double_v rndm = td->fRndm->uniformV();
+    Double_v Ai;
+    Double_v Bi;
+    Double_v Ui;
+    Double_v Uip1;
+    Double_v delta;
+    Double_v aval;
+
+    Double_v ndatm1;
+    for (int l = 0; l < kVecLenD; ++l) {
+      Set(ndatm1, l, gsDtr[i + l]->fNumData - 1.);
+      Set(delta, l, gsDtr[i + l]->fDelta);
+    }
+
+    IndexD_v indxl = (IndexD_v)(rndm * ndatm1);
+    aval           = rndm - indxl * delta;
+
+    for (int l = 0; l < kVecLenD; ++l) {
+      // sampling form the selected distribution
+      // determine lower cumulative bin inidex
+      Set(Ai, l, gsDtr[i + l]->fData[Get(indxl, l)].fParamA);
+      Set(Bi, l, gsDtr[i + l]->fData[Get(indxl, l)].fParamB);
+      Set(Ui, l, gsDtr[i + l]->fData[Get(indxl, l)].fUValues);
+      Set(Uip1, l, gsDtr[i + l]->fData[Get(indxl, l) + 1].fUValues);
+    }
+
+    Double_v dum0   = delta * aval;
+    Double_v dum1   = (1.0 + Ai + Bi) * dum0;
+    Double_v dum2   = delta * delta + Ai * dum0 + Bi * aval * aval;
+    Double_v sample = Ui + dum1 / dum2 * (Uip1 - Ui);
+    // transform back u to cos(theta) :
+    // this is the sampled cos(theta) = (2.0*para*sample)/(1.0-sample+para)
+    Double_v transfparVec;
+    vecCore::Load(transfparVec, transfpar + i);
+
+    vecCore::Store(1. - (2.0 * transfparVec * sample) / (1.0 - sample + transfparVec), cost + i);
+  }
+}
+
+GSMSCTableSimplified::GSMSCAngularDtr *GSMSCTableSimplified::GetGSAngularDtr(double scra, double lambdaval,
+                                                                             double lLambda, double qval,
+                                                                             double &transfpar, geant::TaskData *td)
+{
+  GSMSCAngularDtr *dtr = nullptr;
+  bool first           = false;
+  // isotropic cost above gQMAX2 (i.e. dtr stays nullptr)
+  if (qval > gQMAX2) return dtr;
+
+  int lamIndx = -1; // lambda value index
+  int qIndx   = -1; // lambda value index
+  // init to second grid Q values
+  int numQVal    = gQNUM2;
+  double minQVal = gQMIN2;
+  double invDelQ = fInvDeltaQ2;
+  double pIndxH  = 0.; // probability of taking higher index
+  // check if first or second grid needs to be used
+  if (qval < gQMIN2) { // first grid
+    first = true;
+    // protect against qval<gQMIN1
+    if (qval < gQMIN1) {
+      qval  = gQMIN1;
+      qIndx = 0;
+      // pIndxH = 0.;
+    }
+    // set to first grid Q values
+    numQVal = gQNUM1;
+    minQVal = gQMIN1;
+    invDelQ = fInvDeltaQ1;
+  }
+  // make sure that lambda = s/lambda_el is in [gLAMBMIN,gLAMBMAX)
+  // lambda<gLAMBMIN=1 is already handeled before so lambda>= gLAMBMIN for sure
+  if (lambdaval >= gLAMBMAX) {
+    lambdaval = gLAMBMAX - 1.e-8;
+    lamIndx   = gLAMBNUM - 1;
+    lLambda   = Math::Log(lambdaval);
+  }
+  //
+  // determine lower lambda (=s/lambda_el) index: linear interp. on log(lambda) scale
+  if (lamIndx < 0) {
+    pIndxH  = (lLambda - fLogLambda0) * fInvLogDeltaLambda;
+    lamIndx = (int)(pIndxH);    // lower index of the lambda bin
+    pIndxH  = pIndxH - lamIndx; // probability of taking the higher index distribution
+    if (td->fRndm->uniform() < pIndxH) {
+      ++lamIndx;
+    }
+  }
+  //
+  // determine lower Q (=s/lambda_el G1) index: linear interp. on Q
+  if (qIndx < 0) {
+    pIndxH = (qval - minQVal) * invDelQ;
+    qIndx  = (int)(pIndxH); // lower index of the Q bin
+    pIndxH = pIndxH - qIndx;
+    if (td->fRndm->uniform() < pIndxH) {
+      ++qIndx;
+    }
+  }
+  // set indx
+  int indx = lamIndx * numQVal + qIndx;
+  if (first) {
+    dtr = &gGSMSCAngularDistributions1[indx];
+  } else {
+    dtr = &gGSMSCAngularDistributions2[indx];
+  }
+  dtr = dtr->fNumData == 0 ? nullptr : dtr; // Temporary workaround around different data formats
+
+  // dtr might be nullptr that indicates isotropic cot distribution because:
+  // - if the selected lamIndx, qIndx correspond to L(=s/lambda_el) and Q(=s/lambda_el G1) such that G1(=Q/L) > 1
+  //   G1 should always be < 1 and if G1 is ~1 -> the dtr is isotropic (this can only happen in case of the 2. grid)
+  //
+  // compute the transformation parameter
+  if (lambdaval > 10.0) {
+    transfpar = 0.5 * (-2.77164 + lLambda * (2.94874 - lLambda * (0.1535754 - lLambda * 0.00552888)));
+  } else {
+    transfpar = 0.5 * (1.347 + lLambda * (0.209364 - lLambda * (0.45525 - lLambda * (0.50142 - lLambda * 0.081234))));
+  }
+  transfpar *= (lambdaval + 4.0) * scra;
+  return dtr;
+}
 // determine the GS angular distribution we need to sample from: will set other things as well ...
 GSMSCTableSimplified::GSMSCAngularDtr *GSMSCTableSimplified::GetGSAngularDtr(double scra, double lambdaval, double qval,
                                                                              double &transfpar, geant::TaskData *td)
@@ -343,6 +697,7 @@ void GSMSCTableSimplified::LoadMSCData()
         infile >> gsd->fData[i].fParamA;
         infile >> gsd->fData[i].fParamB;
       }
+      if (gsd->fNumData > 0) gsd->fDelta            = 1.0 / (gsd->fNumData - 1);
       gGSMSCAngularDistributions1[il * gQNUM1 + iq] = *gsd;
     }
     infile.close();
@@ -376,6 +731,7 @@ void GSMSCTableSimplified::LoadMSCData()
           infile >> gsd->fData[i].fParamA;
           infile >> gsd->fData[i].fParamB;
         }
+        if (gsd->fNumData > 0) gsd->fDelta            = 1.0 / (gsd->fNumData - 1);
         gGSMSCAngularDistributions2[il * gQNUM2 + iq] = *gsd;
       }
     }

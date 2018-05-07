@@ -1,4 +1,5 @@
 
+#include <Geant/PhysicsData.h>
 #include "Geant/MSCModel.h"
 
 // from geantV
@@ -53,10 +54,9 @@ void MSCModel::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td)
 
 void MSCModel::AlongStepDoIt(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
 {
-  std::vector<bool> hasNewDir; // TODO allocate it in task data
-  hasNewDir.clear();
+  std::vector<bool> &hasNewDir         = td->fPhysicsData->fPhysicsScratchpad.hasNewDir;
+  std::vector<double> &truePathLengths = td->fPhysicsData->fPhysicsScratchpad.truePathLengths;
   hasNewDir.resize(gtracks.size());
-  std::vector<double> truePathLengths;
   truePathLengths.clear();
 
   for (auto gtrack : gtracks) {
