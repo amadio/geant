@@ -24,10 +24,10 @@ int main()
     // getline() returns the stream. testing the stream with while returns error such as EOF
     while (getline(pFile, line)) {
       // so here we know that the read was a success and that line has valid data
-      stringstream ss(line);
+      stringstream strsLine(line);
 
       // parsing all the parts. s0's store the string names which are of no use to us.
-      ss >> s0 >> d1 >> s1 >> d0 >> s2 >> d2 >> s3 >> d3 >> s4 >> d4 >> s5 >> d5;
+      strsLine >> s0 >> d1 >> s1 >> d0 >> s2 >> d2 >> s3 >> d3 >> s4 >> d4 >> s5 >> d5;
       radius.push_back(d1);
       phi.push_back(d0);
       z.push_back(d2);

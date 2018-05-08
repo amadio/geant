@@ -29,7 +29,7 @@
 
 // #include "VC_NO_MEMBER_GATHER"
 
-#include "Geant/CMSmagField.h"
+#include "CMSmagField.h"
 // using MagField=MagField3<float>
 
 using namespace std;
@@ -37,9 +37,9 @@ using namespace std;
 using Double_v = geant::Double_v;
 using Float_v  = geant::Float_v;
 
-typedef vecgeom::Vector3D<double> ThreeVector; // normal Vector3D
+typedef vecgeom::Vector3D<double>   ThreeVector; // normal Vector3D
 typedef vecgeom::Vector3D<Double_v> ThreeVecSimd_t;
-typedef vecgeom::Vector3D<Float_v> ThreeVecSimdF_t;
+typedef vecgeom::Vector3D<Float_v>  ThreeVecSimdF_t;
 
 // typedef MagVector3<float>         MagField;
 // using MagField=MagVector3<float>
@@ -168,7 +168,7 @@ float TimeVector(MagField &m1, const vector<ThreeVector> &posVec, vector<ThreeVe
 
       // We need the field in Double_v for further computations. We do a trick:
       // extract field values with a Float_v which we then copy to two Double_v
-      m1.GetFieldValue(inputForVec, xyzField);
+      m1.EstimateFieldValues(inputForVec, xyzField);
       // std::cout << i << ": " << inputForVec << " => " << xyzField << std::endl;
       // We benchmark also writing to the Double_v
       geant::CopyFltToDbl(xyzField, xyzField1, xyzField2);
@@ -218,10 +218,8 @@ int main(int argc, char **argv)
   std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
 
   CMSmagField m1(datafile.c_str());
-  // m1.ReadVectorData("/home/ananya/Work/MagFieldRoutine/cms2015.txt");
-  // No absolute path required now.
   // input file copied to build/examples/magneticfield/simplifiedCMS
-  /// m1.ReadVectorData("../examples/magneticfield/simplifiedCMS/cms2015.txt");
+  /// m1.ReadVectorData("../examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt");
   // vector<ThreeVector> posVec;
   vector<ThreeVector> posVec;
   vector<ThreeVector> outputVec;

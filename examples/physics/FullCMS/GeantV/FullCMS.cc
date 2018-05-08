@@ -23,7 +23,6 @@
 // set up the run manager and run the simulation.
 void GetArguments(int argc, char *argv[]);
 void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det);
-// void SetupField(geant::RunManager *runMgr);  // Older method name: 
 void SetupUserFieldConfig(geant::RunManager *runMgr);
 void SetupPrimaryGenerator(cmsapp::CMSParticleGun *gun);
 void SetupApplication(cmsapp::CMSFullApp *app);
@@ -53,16 +52,16 @@ int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
+int parVerboseTracking          = 0;  // verbosity for *every* track
 
 int parConfigMonitoring         = 0;  // activate some monitoring
 int parConfigSingleTrackMode    = 0;  // activate single track mode
 //
 // field configuration parameters
-int parFieldActive      = 1;         // activate magnetic field
-int parFieldUseRK       = 0;         // use Runge-Kutta instead of helix
-double parFieldEpsRK    = 0.0003;    // Revised / reduced accuracy - vs. 0.0003 default
-int parFieldBasketized  = 0;         // basketize magnetic field
-float parFieldVector[3] = {0, 0, 2}; // default constant field value
+int    parFieldActive     = 1;            // activate magnetic field
+double parFieldEpsRK      = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
+int    parFieldBasketized = 0;            // basketize magnetic field
+float  parFieldVector[3] = {0., 0., 2.}; // Constant field value
 
 //
 //
@@ -105,11 +104,16 @@ int main(int argc, char *argv[])
   SetupDetectorConstruction(det);
   runMgr->SetDetectorConstruction(det);
   // 
-  // Create field    construction & get field flags
+  // Create   field  construction  & Get field flags
   CMSFieldConstruction *fieldCtion= nullptr;
   if (parFieldActive)  fieldCtion = new /* cmsapp:: */ CMSFieldConstruction();
-  SetupUserFieldConfig(runMgr);
   det->SetUserFieldConstruction(fieldCtion);
+  SetupFieldConfig(runMgr);
+  
+  // Activate integration of tracks in field
+  // auto config = runMgr->GetConfig();    
+  // fieldCtion->CreateFieldAndSolver(config->fUseRungeKutta);
+
   //
   // Create user field if requested
   SetupField(runMgr);
@@ -163,9 +167,10 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-vectorized-MSC", required_argument, 0, 'V'},
                                   {"config-monitoring", required_argument, 0, 'x'},
                                   {"config-single-track", required_argument, 0, 'y'},
+                                  {"verbose-tracking", required_argument, 0, 'z'},
 
                                   {"field-active", required_argument, 0, 'E'},
-//                                {"field-use-RK", required_argument, 0, 'G'},
+//                                {"field-use-RK", required_argument, 0, 'G'},   // Mandatory for now
                                   {"field-eps-RK", required_argument, 0, 'H'},
                                   {"field-basketized", required_argument, 0, 'I'},
                                   
@@ -286,6 +291,9 @@ void GetArguments(int argc, char *argv[])
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
       break;
+    case 'z':
+      parVerboseTracking    = (int)strtol(optarg, NULL, 10);
+      break;      
     //---- Field
     case 'E':
       parFieldActive = (int)strtol(optarg, NULL, 10);
@@ -379,8 +387,7 @@ void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det)
   }
 }
 
-void SetupField(geant::RunManager *runMgr)
-// void SetupUserFieldConfig(geant::RunManager *runMgr)   
+void SetupFieldConfig(geant::RunManager *runMgr)
 {
   auto config = runMgr->GetConfig();
   

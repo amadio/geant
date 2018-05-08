@@ -10,7 +10,7 @@
 #include "Geant/VectorTypes.h"
 #include <base/Vector3D.h>
 #include <base/Global.h>
-#include "Geant/CMSmagField.h"
+#include "CMSmagField.h"
 #include "Geant/Utils.h"
 
 #undef NDEBUG

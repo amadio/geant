@@ -123,29 +123,28 @@ void runCMS(const int ncputhreads = 4, const bool performance = true, const char
   config->fEmin = 0.001; // [1 MeV] energy cut
 
   config->fEmax = 0.01; // 10 MeV
-=======
+
   //  Enable use of RK integration in field for charged particles
   // propagator->fUseRungeKutta = false;
   prop->fUseRungeKutta = useRungeKutta;
   prop->fEpsilonRK     = 0.0003; // Revised / reduced accuracy - vs. 0.0003 default
 
   if (useCMSfield) {
-    CMSDetectorConstruction *CMSdetector = new CMSDetectorConstruction();
-    CMSdetector->SetFileForField(fieldfile);
+    CMSFieldConstruction *CMSFieldCtion = new CMSFieldConstruction();
+    CMSFieldCtion->SetFileForField(fieldfile);
     printf("CMSApp: Setting CMS-detector-construction to Propagator with file %s\n", fieldfile);
-    prop->SetUserDetectorConstruction(CMSdetector);
+    prop->SetUserFieldConstruction(CMSFieldCtion);
     // printf("Calling CreateFieldAndSolver from runCMS_new.C");
     // CMSDetector->CreateFieldAndSolver(propagator->fUseRungeKutta);
   } else {
-    UserDetectorConstruction *detectorCt = new UserDetectorConstruction();
+    UserFieldConstruction *fieldCtion = new UserFieldConstruction();
     float fieldVec[3]                    = {0.0f, 0.0f, 38.0f};
-    detectorCt->UseConstantMagField(fieldVec, "kilogauss");
+    fieldCtion->UseConstantMagField(fieldVec, "kilogauss");
     printf("CMSApp: Setting generic detector-construction to Propagator - created field= %f %f %f.\n", fieldVec[0],
            fieldVec[1], fieldVec[2]);
-    prop->SetUserDetectorConstruction(detectorCt);
+    prop->SetUserFieldConstruction(fieldCtion);
   }
 
->>>>>>> Combined big commits of all changes for mag-field
   // Create the tab. phys process.
 
   // Activate standard scoring

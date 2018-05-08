@@ -66,7 +66,7 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSData.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSParticleGun.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSPhysicsList.h
-  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSmagneticField.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSmagField.h
   
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbDetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbFullApp.h

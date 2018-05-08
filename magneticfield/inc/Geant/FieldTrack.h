@@ -97,6 +97,7 @@ public:
        << " "; // Position
     os << " P= " << fieldTrack.fPosMomArr[3] << " " << fieldTrack.fPosMomArr[4] << " " << fieldTrack.fPosMomArr[5]
        << " "; // Momentum
+    os << " s = " << fieldTrack.fDistanceAlongCurve << " ";
     os << " ) ";
 
     return os;

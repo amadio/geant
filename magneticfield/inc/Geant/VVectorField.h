@@ -65,9 +65,18 @@ public: // with description
    */
   virtual void ObtainFieldValue(const Vector3D<double> &position, Vector3D<double> &fieldValue) = 0;
 
+  void GetFieldValue(const Vector3D<double> &position, Vector3D<double> &fieldValue)
+  {  ObtainFieldValue(position, fieldValue); }
+
+//  void GetFieldValue(const Vector3D<float> &position, Vector3D<float> &fieldValue)
+//  {  ObtainFieldValue(position, fieldValue); }
+  
   /** @brief Vector interface for field retrieval */
   virtual void ObtainFieldValueSIMD(const Vector3D<Double_v> &position, Vector3D<Double_v> &fieldValue) = 0;
 
+  void GetFieldValue(const Vector3D<Double_v> &positions, Vector3D<Double_v> &fieldValues)
+  {  ObtainFieldValueSIMD(positions, fieldValues); }
+  
   inline VVectorField(int numberOfComponents, bool changesEnergy)
       : fNumberOfComponents(numberOfComponents), fChangesEnergy(changesEnergy)
   {
@@ -101,7 +110,7 @@ public: // with description
     return nullptr;
     // Implements cloning, likely needed for MT
   }
-
+  
   // Expect a method of the following signature
   //  [Derived-Field-type] * CloneOrSafeSelf( bool* pSafe ) const
   // to be implemented for each derived class.

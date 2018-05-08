@@ -17,6 +17,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
   )
 

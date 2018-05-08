@@ -6,19 +6,19 @@
 #include "base/SOA3D.h"
 #include "base/Global.h"
 
-typedef vecgeom::Vector3D<double> Vector3D;
+// typedef vecgeom::Vector3D<double> Vector3D;
 // typedef vecgeom::SOA3D<double> SOA3D;
 
-class MagField {
+class ScalarRZMagFieldFromMap {
 public:
-  MagField();
+  ScalarRZMagFieldFromMap();
 
   // New stuff
   // Takes as input x,y,z; Gives output Bx,By,Bz
-  void GetFieldValueXYZ(const Vector3D &position, Vector3D &xyzField);
+  void GetFieldValueXYZ(const vecgeom::Vector3D<double> &position, vecgeom::Vector3D<double> &xyzField);
 
   // Stores rz field as well for cross checking purpose
-  void GetFieldValueTest(const Vector3D &position, Vector3D &rzField);
+  void GetFieldValueTest(const vecgeom::Vector3D<double> &position, vecgeom::Vector3D<double> &rzField);
 
   // Takes as input an SOA3D for position, gives field
   void GetFieldValues(const vecgeom::SOA3D<double> &position,
@@ -28,7 +28,7 @@ public:
   // changes
   void ReadVectorData(std::string inputMap);
 
-  ~MagField();
+  ~ScalarRZMagFieldFromMap();
 
 private:
   //  Invariants -- parameters of the field
@@ -51,30 +51,30 @@ private:
   const double kAInverse = 1 / (kRDiff * kZDiff);
 
   // For (R,Z) pairs : gives field in cylindrical coordinates in rzfield
-  void GetFieldValueRZ(const double radius, const double z, Vector3D &rzField);
+  void GetFieldValueRZ(const double radius, const double z, vecgeom::Vector3D<double> &rzField);
   void GetFieldValueRZ(std::vector<double> radius, std::vector<double> z);
 
   // Used to convert cartesian coordinates to cylindrical coordinates R-Z-phi
   //  Does not calculate phi
-  inline void CartesianToCylindrical(const Vector3D &cart, double cyl[2]);
+  inline void CartesianToCylindrical(const vecgeom::Vector3D<double> &cart, double cyl[2]);
 
   // Converts cylindrical magnetic field to field in cartesian coordinates
-  inline void CylindricalToCartesian(const Vector3D &B_cyl, const double sinTheta, const double cosTheta,
-                                     Vector3D &B_cart);
+  inline void CylindricalToCartesian(const vecgeom::Vector3D<double> &B_cyl, const double sinTheta, const double cosTheta,
+                                     vecgeom::Vector3D<double> &B_cart);
 
 private:
   std::vector<double> fRadius, fPhi, fZ, fBr, fBz, fBphi;
 };
 
-inline void MagField::CartesianToCylindrical(const Vector3D &cart, double cyl[2])
+inline void ScalarRZMagFieldFromMap::CartesianToCylindrical(const vecgeom::Vector3D<double> &cart, double cyl[2])
 {
   // cyl[3] =[r,z,phi]
   cyl[0] = sqrt(cart[0] * cart[0] + cart[1] * cart[1]); // r = sqrt(x^2 + y^2)
   cyl[1] = cart[2];                                     // z = z
 }
 
-inline void MagField::CylindricalToCartesian(const Vector3D &rzField, const double sinTheta, const double cosTheta,
-                                             Vector3D &xyzField)
+inline void ScalarRZMagFieldFromMap::CylindricalToCartesian(const vecgeom::Vector3D<double> &rzField, const double sinTheta, const double cosTheta,
+                                             vecgeom::Vector3D<double> &xyzField)
 {
   // B_cyl[] has r, phi and z
   xyzField[0] = rzField[0] * cosTheta - rzField[1] * sinTheta; // Bx= Br cos(theta) - Bphi sin(theta)

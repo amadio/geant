@@ -50,7 +50,7 @@
 
 #define FORCE_INLINE 1
 
-// #include "Geant/VVectorField.h"
+#include "Geant/VVectorField.h"
 
 template <typename T>
 struct MagVector3 {
@@ -59,7 +59,7 @@ struct MagVector3 {
   T fBz   = 0.;
 };
 
-class CMSmagField // : public VVectorField
+class CMSmagField : public VVectorField
 {
   using Double_v = geant::Double_v;
   using Float_v  = geant::Float_v;
@@ -74,21 +74,28 @@ public:
 
   /** @brief Scalar interface for field retrieval */
   // virtual
-  void GetFieldValue(const Vector3D<double> &position, Vector3D<double> &fieldValue) // override
+  void ObtainFieldValue(const Vector3D<double> &position, Vector3D<double> &fieldValue) override final
   {
-    GetFieldValue<double>(position, fieldValue);
+    EstimateFieldValues<double>(position, fieldValue);
   }
 
   /** @brief Vector interface for field retrieval */
   // virtual
-  void GetFieldValueSIMD(const Vector3D<Double_v> &position, Vector3D<Double_v> &fieldValue) // override
+  void ObtainFieldValueSIMD(const Vector3D<Double_v> &position, Vector3D<Double_v> &fieldValue) override final
   {
-    GetFieldValue<Double_v>(position, fieldValue);
+    EstimateFieldValues<Double_v>(position, fieldValue);
   }
 
+  /** @brief Scalar interface for field retrieval */
+  // virtual
+  void ObtainFieldValue(const Vector3D<float> &position, Vector3D<float> &fieldValue) 
+  {
+    EstimateFieldValues<float>(position, fieldValue);
+  }
+   
   /** @brief Templated field interface */
   template <typename Real_v>
-  void GetFieldValue(const Vector3D<Real_v> &position, Vector3D<Real_v> &fieldValue);
+  void EstimateFieldValues(const Vector3D<Real_v> &position, Vector3D<Real_v> &fieldValue);
 
   // Reads data from specific 2D magnetic field map.
   //    ( Must be modified if used to read a different 2D map. )
@@ -149,27 +156,30 @@ protected:
   GEANT_FORCE_INLINE void Gather2(const vecCore::Index<Real_v> index, Real_v B1[3], Real_v B2[3]);
 
 public:
-  // Methods for Multi-treading
-  // CMSmagField* CloneOrSafeSelf( bool* pSafe );
-  // VVectorField*    Clone() const override;
+  // Methods for Multi-threading - needed for ScalarMagFieldEquation / GUFieldPropagator
+  CMSmagField* CloneOrSafeSelf( bool* pSafe );
+  VVectorField*    Clone() const override;
 
   enum kIndexRPhiZ { kNumR = 0, kNumPhi = 1, kNumZ = 2 };
 
 private:
-  // MagVector3<float> *fMagvArray; //  = new MagVector3<float>[30000];
-  float fMagLinArray[3 * kNoZValues * kNoRValues];
-  double fMagLinArrayD[3 * kNoZValues * kNoRValues];
+  float*  fMagLinArray;   // float fMagLinArray[3 * kNoZValues * kNoRValues];
+  double* fMagLinArrayD;  // double fMagLinArrayD[3 * kNoZValues * kNoRValues];
   bool fReadData;
+  bool fOwnData;
   bool fVerbose;
   bool fPrimary; /** Read in and own the data arrays */
 };
 
 CMSmagField::CMSmagField()
-    : // VVectorField(gNumFieldComponents, gFieldChangesEnergy),
+    : VVectorField(gNumFieldComponents, gFieldChangesEnergy),
       fReadData(false),
+      fOwnData(false),
       fVerbose(true), fPrimary(false)
 {
   // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
+  fMagLinArray = new float[3 * kNoZValues * kNoRValues];
+  fMagLinArrayD = new double[3 * kNoZValues * kNoRValues];  
   if (fVerbose) {
     ReportVersion();
   }
@@ -183,6 +193,7 @@ CMSmagField::CMSmagField(std::string inputMap) : CMSmagField()
   }
   // std::cout<<" Version: Reorder2 (floats) (with VC_NO_MEMBER_GATHER enabled if required)"<<std::endl;
   fReadData = CMSmagField::ReadVectorData(inputMap);
+  fOwnData = fReadData;
   if (fVerbose) {
     std::cout << "- CMSmagField c-tor #2: data has been read." << std::endl;
   }
@@ -198,17 +209,24 @@ void CMSmagField::ReportVersion()
 }
 
 CMSmagField::CMSmagField(const CMSmagField &right)
-    : // VVectorField(gNumFieldComponents, gFieldChangesEnergy),
+    : VVectorField(gNumFieldComponents, gFieldChangesEnergy),
       fReadData(right.fReadData),
+      fOwnData(false),
       fVerbose(right.fVerbose), fPrimary(false)
 {
   // fMagvArray= right.fMagvArray;
+  fMagLinArray = right.fMagLinArray;
+  fMagLinArrayD= right.fMagLinArrayD;   
 }
 
 CMSmagField::~CMSmagField()
 {
   // if( fPrimary )
   //    delete[] fMagvArray;
+  if( fOwnData ) {
+    delete[] fMagLinArray;
+    delete[] fMagLinArrayD;
+  }
 }
 
 bool CMSmagField::ReadVectorData(std::string inputMap)
@@ -256,8 +274,10 @@ GEANT_FORCE_INLINE void CMSmagField::CartesianToCylindrical(const Vector3D<Real_
 }
 
 template <typename Real_v>
-GEANT_FORCE_INLINE void CMSmagField::CylindricalToCartesian(const Vector3D<Real_v> &rzField, const Real_v &sinTheta,
-                                                            const Real_v &cosTheta, Vector3D<Real_v> &xyzField)
+GEANT_FORCE_INLINE void CMSmagField::CylindricalToCartesian(const Vector3D<Real_v> &rzField,
+                                                            const Real_v &sinTheta,
+                                                            const Real_v &cosTheta,
+                                                            Vector3D<Real_v> &xyzField)
 {
   // rzField[] has r, phi and z
 
@@ -274,6 +294,12 @@ GEANT_FORCE_INLINE const typename vecCore::Scalar<Real_v> *CMSmagField::GetField
 
 template <>
 GEANT_FORCE_INLINE const float *CMSmagField::GetFieldArray<geant::Float_v>() const
+{
+  return fMagLinArray;
+}
+
+template <>
+GEANT_FORCE_INLINE const float *CMSmagField::GetFieldArray<float>() const
 {
   return fMagLinArray;
 }
@@ -337,30 +363,23 @@ GEANT_FORCE_INLINE void CMSmagField::GetFieldValueRZ(const Real_v &r, const Real
   using namespace geant;
   using Index_v = vecCore::Index<Real_v>;
 
-  // Take care that radius and z for out of limit values take values at end points
+  // Limit radius and z:  outside take values at limit points
   const Real_v radius = Min(r, Real_v(kRMax));
   const Real_v z      = Max(Min(Z, Real_v(kZMax)), Real_v(-kZMax));
 
   // to make sense of the indices, consider any particular instance e.g. (25,-200)
   const Real_v rFloor  = Floor(radius * kRDiffInv);
   const Real_v rIndLow = rFloor * Real_v(kNoZValues);
-  // Real_v rIndHigh = rIndLow + kNoZValues;
 
-  // if we use z-z0 in place of two loops for Z<0 and Z>0
-  // z-z0 = [0,32000]
-  // so indices 0 to 160 : total 161 indices for (z-z0)/200
-  // i.e. we are saying:
   const Real_v zInd = Floor((z - Real_v(kZ0)) * Real_v(kZDiffInv));
-  // need i1,i2,i3,i4 for 4 required indices
   const Index_v i1 = vecCore::Convert<Index_v>(rIndLow + zInd);
-  // Index_v i1 = Index_v(rIndLow + zInd);
   const Index_v i2 = i1 + 1;
 
   Real_v B1[3], B2[3], B3[3], B4[3];
 
   Gather2<Real_v>(i1, B1, B3);
 
-  const Real_v zLow  = (zInd - Real_v(kHalfZValues)) * Real_v(kZDiff); // 80 because it's the middle index in 0 to 160
+  const Real_v zLow  = (zInd - Real_v(kHalfZValues)) * Real_v(kZDiff); // z=0. corresponds to index kHalfZValues
   const Real_v zHigh = zLow + Real_v(kZDiff);
   const Real_v radiusLow  = rFloor * Real_v(kRDiff);
   const Real_v radiusHigh = radiusLow + Real_v(kRDiff);
@@ -378,7 +397,7 @@ GEANT_FORCE_INLINE void CMSmagField::GetFieldValueRZ(const Real_v &r, const Real
 }
 
 template <typename Real_v>
-GEANT_FORCE_INLINE void CMSmagField::GetFieldValue(const Vector3D<Real_v> &pos, Vector3D<Real_v> &xyzField)
+GEANT_FORCE_INLINE void CMSmagField::EstimateFieldValues(const Vector3D<Real_v> &pos, Vector3D<Real_v> &xyzField)
 {
 
   // Sidenote: For theta =0; xyzField = rzField.
@@ -398,18 +417,17 @@ GEANT_FORCE_INLINE void CMSmagField::GetFieldValue(const Vector3D<Real_v> &pos, 
   CylindricalToCartesian<Real_v>(rzField, sinTheta, cosTheta, xyzField);
 }
 
+VVectorField* CMSmagField::Clone() const
+{
+   return new CMSmagField( *this );
+}
+
 // This class is thread safe.  So other threads can use the same instance
 //
-/*
 CMSmagField* CMSmagField::CloneOrSafeSelf( bool* pSafe )
 {
    if( pSafe ) *pSafe= true;
    return this;
 }
 
-VVectorField* CMSmagField::Clone() const
-{
-   return new CMSmagField( *this );
-}
-*/
 #endif

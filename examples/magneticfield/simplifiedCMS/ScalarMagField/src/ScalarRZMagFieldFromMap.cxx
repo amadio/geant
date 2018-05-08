@@ -3,7 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <stdlib.h>
-#include "MagField.h"
+#include "ScalarRZMagFieldFromMap.h"
 #include "base/Global.h"
 #include "base/Vector3D.h"
 #include "base/SOA3D.h"
@@ -11,15 +11,15 @@ using namespace std;
 
 typedef vecgeom::Vector3D<double> Vector3D;
 
-MagField::MagField()
+ScalarRZMagFieldFromMap::ScalarRZMagFieldFromMap()
 {
 }
 
-MagField::~MagField()
+ScalarRZMagFieldFromMap::~ScalarRZMagFieldFromMap()
 {
 }
 
-void MagField::ReadVectorData(string inputMap)
+void ScalarRZMagFieldFromMap::ReadVectorData(string inputMap)
 {
   string line;
   string s1, s2, s3, s4, s5, s0;
@@ -45,7 +45,7 @@ void MagField::ReadVectorData(string inputMap)
   }
 }
 
-void MagField::GetFieldValueRZ(const double r, const double Z, Vector3D &rzField)
+void ScalarRZMagFieldFromMap::GetFieldValueRZ(const double r, const double Z, Vector3D &rzField)
 {
 
   // Take care that radius and z for out of limit values take values at end points
@@ -89,7 +89,7 @@ void MagField::GetFieldValueRZ(const double r, const double Z, Vector3D &rzField
   rzField.z() = BZ;
 }
 
-void MagField::GetFieldValueRZ(std::vector<double> radius, std::vector<double> z)
+void ScalarRZMagFieldFromMap::GetFieldValueRZ(std::vector<double> radius, std::vector<double> z)
 {
   for (int i = 0; i < radius.size(); ++i) {
     Vector3D rzField;
@@ -99,7 +99,7 @@ void MagField::GetFieldValueRZ(std::vector<double> radius, std::vector<double> z
 
 // Sidenote: For theta =0; xyzField = rzField.
 // theta =0 corresponds to y=0
-void MagField::GetFieldValueXYZ(const Vector3D &pos, Vector3D &xyzField)
+void ScalarRZMagFieldFromMap::GetFieldValueXYZ(const Vector3D &pos, Vector3D &xyzField)
 {
 
   double cyl[2];
@@ -118,14 +118,14 @@ void MagField::GetFieldValueXYZ(const Vector3D &pos, Vector3D &xyzField)
   CylindricalToCartesian(rzField, sinTheta, cosTheta, xyzField);
 }
 
-void MagField::GetFieldValueTest(const Vector3D &pos, Vector3D &rzField)
+void ScalarRZMagFieldFromMap::GetFieldValueTest(const Vector3D &pos, Vector3D &rzField)
 {
   double cyl[2];
   CartesianToCylindrical(pos, cyl);
   GetFieldValueRZ(cyl[0], cyl[1], rzField); // cyl[] =[r,z]
 }
 
-void MagField::GetFieldValues(const vecgeom::SOA3D<double> &posVec, vecgeom::SOA3D<double> &fieldVec)
+void ScalarRZMagFieldFromMap::GetFieldValues(const vecgeom::SOA3D<double> &posVec, vecgeom::SOA3D<double> &fieldVec)
 {
   for (int i = 0; i < posVec.size(); ++i) {
     // fill a vector3D with ith triplet for input to getFieldValue

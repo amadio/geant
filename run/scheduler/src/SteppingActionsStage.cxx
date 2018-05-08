@@ -40,7 +40,8 @@ int SteppingActionsStage::CreateHandlers()
   auto stepHndl = new SteppingActionsHandler(threshold, fPropagator);
   stepHndl->SetVerbosity(verbose);
   AddHandler(stepHndl);
-  // std::cout << "SteppingACtionsStage: set verbose = " << ( verbose ? " ON" : " OFF" ) << std::endl;
+  if( verbose ) 
+    std::cout << "SteppingACtionsStage: set verbose = " << ( verbose ? " ON" : " OFF" ) << std::endl;
 
   return 1;
 }

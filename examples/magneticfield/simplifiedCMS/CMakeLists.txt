@@ -19,11 +19,12 @@ string(REGEX REPLACE
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestOutputDir})
 
 #Copies cms2015.txt to build/examples/magneticfield/simplifiedCMS at runtime 
-configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmsmagfield2015.txt COPYONLY)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmsmagfield2015.txt DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+# configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmsmagfield2015.txt COPYONLY)
+# install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmsmagfield2015.txt DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 include_directories(inc)
 include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc)
+include_directories(${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc)
 
 file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
