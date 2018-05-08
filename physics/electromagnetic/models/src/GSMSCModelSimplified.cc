@@ -159,11 +159,11 @@ bool GSMSCModelSimplified::SampleScattering(geant::Track *gtrack, geant::TaskDat
 
   MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
   if (!mscdata.fIsNoScatteringInMSC) {
-    RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
-                     gtrack->Dy(), gtrack->Dz());
+    Math::RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
+                           gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     if (!mscdata.fIsNoDisplace) {
-      RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
-                       mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
+      Math::RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
+                             mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
     }
     return true; // new direction
   }
@@ -177,11 +177,11 @@ void GSMSCModelSimplified::SampleScattering(std::vector<geant::Track *> &gtracks
     auto gtrack      = gtracks[i];
     MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
     if (!mscdata.fIsNoScatteringInMSC) {
-      RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ, gtrack->Dx(),
-                       gtrack->Dy(), gtrack->Dz());
+      Math::RotateToLabFrame(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ,
+                             gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
       if (!mscdata.fIsNoDisplace) {
-        RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
-                         mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
+        Math::RotateToLabFrame(mscdata.fTheDisplacementVectorX, mscdata.fTheDisplacementVectorY,
+                               mscdata.fTheDisplacementVectorZ, gtrack->Dx(), gtrack->Dy(), gtrack->Dz());
       }
       hasNewDir[i] = true;
     } else {

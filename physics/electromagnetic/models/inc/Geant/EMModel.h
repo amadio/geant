@@ -220,6 +220,8 @@ public:
 
   bool IsBasketizable() { return fIsBasketizable; }
 
+  void SetBasketizable(bool val) { fIsBasketizable = val; }
+
   /**
    * @brief Perform checks before calling SampleSecondaries
    * @param ekin
