@@ -78,6 +78,9 @@ private:
   void InitMoliereMSCParams();
 
 private:
+  double SampleWithSingle(double scra, geant::TaskData *td);
+  double SampleMSCWithSingle(double expn, double lambdaval, double scra, double rndTheta, geant::TaskData *td);
+
   static bool gIsInitialised;                  // are the precomputed angular distributions already loaded in?
   static constexpr int gLAMBNUM    = 64;       // # L=s/lambda_el in [fLAMBMIN,fLAMBMAX]
   static constexpr int gQNUM1      = 15;       // # Q=s/lambda_el G1 in [fQMIN1,fQMAX1] in the 1-st Q grid

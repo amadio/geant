@@ -9,6 +9,16 @@
 
 namespace geantphysics {
 
+using geant::Double_v;
+using geant::IndexD_v;
+using geant::kVecLenD;
+using geant::MaskD_v;
+using vecCore::Get;
+using vecCore::Set;
+using vecCore::AssignMaskLane;
+using vecCore::MaskFull;
+using vecCore::MaskEmpty;
+
 MSCModel::MSCModel(const std::string &name)
     : EMModel(name), fRangeFactor(0.06), fSafetyFactor(0.6), fGeomFactor(2.5), fSkin(3.),
       fMSCSteppingAlgorithm(MSCSteppingAlgorithm::kUseSaftey)
@@ -68,28 +78,36 @@ void MSCModel::AlongStepDoIt(std::vector<geant::Track *> &gtracks, geant::TaskDa
 
   SampleScattering(gtracks, hasNewDir, td);
 
-  for (size_t i = 0; i < gtracks.size(); ++i) {
-    auto gtrack           = gtracks[i];
-    double truePathLength = truePathLengths[i];
+  for (size_t i = 0; i < gtracks.size(); i += kVecLenD) {
+    MaskD_v displMask = MaskD_v(false);
+    Double_v displX, displY, displZ;
 
-    MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
-    // compute displacement vector length
-    double dl = mscdata.fTheDisplacementVectorX * mscdata.fTheDisplacementVectorX +
-                mscdata.fTheDisplacementVectorY * mscdata.fTheDisplacementVectorY +
-                mscdata.fTheDisplacementVectorZ * mscdata.fTheDisplacementVectorZ;
-    if (dl > fGeomMinLimit2 && !gtrack->Boundary()) {
-      // displace the post-step point
-      dl            = std::sqrt(dl);
-      double dir[3] = {mscdata.fTheDisplacementVectorX / dl, mscdata.fTheDisplacementVectorY / dl,
-                       mscdata.fTheDisplacementVectorZ / dl};
-      ScalarNavInterface::DisplaceTrack(*gtrack, dir, dl, GetGeomMinLimit());
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto gtrack      = gtracks[i + l];
+      MSCdata &mscdata = fMSCdata.Data<MSCdata>(gtrack);
+      Set(displMask, l, !gtrack->Boundary());
+      Set(displX, l, mscdata.fTheDisplacementVectorX);
+      Set(displY, l, mscdata.fTheDisplacementVectorY);
+      Set(displZ, l, mscdata.fTheDisplacementVectorZ);
+      if (hasNewDir[i + l])
+        gtrack->SetDirection(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ);
+      gtrack->SetStep(truePathLengths[i + l]);
     }
-    // apply msc agular deflection
-    //      if (!gtrack->Boundary() && hasNewDir) {
-    if (hasNewDir[i])
-      gtrack->SetDirection(mscdata.fTheNewDirectionX, mscdata.fTheNewDirectionY, mscdata.fTheNewDirectionZ);
-    // update step length to store the true step length
-    gtrack->SetStep(truePathLength);
+
+    Double_v dl = displX * displX + displY * displY + displZ * displZ;
+    displMask   = displMask && dl > fGeomMinLimit2;
+    if (!vecCore::MaskEmpty(displMask)) {
+      Double_v dlSqrt = Math::Sqrt(dl);
+      displX /= dlSqrt;
+      displY /= dlSqrt;
+      displZ /= dlSqrt;
+
+      for (int l = 0; l < kVecLenD; ++l) {
+        auto gtrack   = gtracks[i + l];
+        double dir[3] = {Get(displX, l), Get(displY, l), Get(displZ, l)};
+        if (Get(displMask, l)) ScalarNavInterface::DisplaceTrack(*gtrack, dir, Get(dlSqrt, l), GetGeomMinLimit());
+      }
+    }
   }
 }
 

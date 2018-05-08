@@ -65,7 +65,7 @@ void PostPropagationVectorHandler::DoIt(geant::Basket &input, geant::Basket &out
   }
 
   fModel->AlongStepDoIt(tracks, td);
-  for (auto track : tracks) {
+  for (geant::Track *track : tracks) {
     // Particles have been propagated by the geometrical step and after the msc AlongStepDoIt this geometrical step
     // is converted back to true step length. Time and number of interaction left must be updated by using this true
     // path length (that have been written into fStep by msc).

@@ -194,6 +194,45 @@ bool GSMSCTableSimplified::Sampling(double lambdaval, double qval, double scra, 
   return true;
 }
 
+double GSMSCTableSimplified::SampleMSCWithSingle(double expn, double lambdaval, double scra, double rndTheta,
+                                                 geant::TaskData *td)
+{
+  double prob, cumprob;
+  prob = cumprob = expn;
+  double curcost, cursint;
+  // init cos(theta) and sin(theta) to the zero scattering values
+  double cost = 1.0;
+  double sint = 0.0;
+  for (int iel = 1; iel < 10; ++iel) {
+    // prob of having iel scattering from Poisson
+    prob *= 0.5 * lambdaval / (double)iel;
+    cumprob += prob;
+    //
+    // sample cos(theta) from the singe scattering pdf:
+    // - Mott-correction will be included if it was requested by the user (i.e. if fIsMottCorrection=true)
+    double rand1 = td->fRndm->uniform();
+    // sample cost from the Screened-Rutherford DCS
+    curcost     = 1. - 2.0 * scra * rand1 / (1.0 - rand1 + scra);
+    double dum0 = 1. - curcost;
+    cursint     = dum0 * (2.0 - dum0); // sin^2(theta)
+    //
+    // if we got current deflection that is not too small
+    // then update cos(theta) sin(theta)
+    if (cursint > 1.0e-20) {
+      cursint       = Math::Sqrt(cursint);
+      double curphi = geant::units::kTwoPi * td->fRndm->uniform();
+      cost          = cost * curcost - sint * cursint * std::cos(curphi);
+      sint          = Math::Sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
+    }
+    //
+    // check if we have done enough scattering i.e. sampling from the Poisson
+    if (rndTheta < cumprob) {
+      break;
+    }
+  }
+  return cost;
+}
+
 void GSMSCTableSimplified::SampleTheta12(const double *lambdaval, const double *qval, const double *scra, double *cost1,
                                          double *cost2, int N, geant::TaskData *td)
 {
@@ -276,49 +315,9 @@ void GSMSCTableSimplified::SampleTheta12(const double *lambdaval, const double *
       if (noScat) {
         cost1[i] = 1.0;
       } else if (oneScat) {
-        // cost is sampled in SingleScattering()
-        double rand1 = td->fRndm->uniform();
-        // sample cost from the Screened-Rutherford DCS
-        cost1[i] = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
-        // add protections
-        cost1[i] = std::max(cost1[i], -1.0);
-        cost1[i] = std::min(cost1[i], 1.0);
+        cost1[i] = SampleWithSingle(scra[i], td);
       } else if (onePlusScat) {
-
-        double prob, cumprob;
-        prob = cumprob = expn[i];
-        double curcost, cursint;
-        // init cos(theta) and sin(theta) to the zero scattering values
-        double cost = 1.0;
-        double sint = 0.0;
-        for (int iel = 1; iel < 10; ++iel) {
-          // prob of having iel scattering from Poisson
-          prob *= 0.5 * lambdaval[i] / (double)iel;
-          cumprob += prob;
-          //
-          // sample cos(theta) from the singe scattering pdf:
-          // - Mott-correction will be included if it was requested by the user (i.e. if fIsMottCorrection=true)
-          double rand1 = td->fRndm->uniform();
-          // sample cost from the Screened-Rutherford DCS
-          curcost     = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
-          double dum0 = 1. - curcost;
-          cursint     = dum0 * (2.0 - dum0); // sin^2(theta)
-          //
-          // if we got current deflection that is not too small
-          // then update cos(theta) sin(theta)
-          if (cursint > 1.0e-20) {
-            cursint       = Math::Sqrt(cursint);
-            double curphi = geant::units::kTwoPi * td->fRndm->uniform();
-            cost          = cost * curcost - sint * cursint * std::cos(curphi);
-            sint          = Math::Sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
-          }
-          //
-          // check if we have done enough scattering i.e. sampling from the Poisson
-          if (rand0Th1[i] < cumprob) {
-            break;
-          }
-        }
-        cost1[i] = cost;
+        cost1[i] = SampleMSCWithSingle(expn[i], lambdaval[i], scra[i], rand0Th1[i], td);
       }
     }
   }
@@ -348,49 +347,9 @@ void GSMSCTableSimplified::SampleTheta12(const double *lambdaval, const double *
       if (noScat) {
         cost2[i] = 1.0;
       } else if (oneScat) {
-        // cost is sampled in SingleScattering()
-        double rand1 = td->fRndm->uniform();
-        // sample cost from the Screened-Rutherford DCS
-        cost2[i] = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
-        // add protections
-        cost2[i] = std::max(cost2[i], -1.0);
-        cost2[i] = std::min(cost2[i], 1.0);
+        cost2[i] = SampleWithSingle(scra[i], td);
       } else if (onePlusScat) {
-
-        double prob, cumprob;
-        prob = cumprob = expn[i];
-        double curcost, cursint;
-        // init cos(theta) and sin(theta) to the zero scattering values
-        double cost = 1.0;
-        double sint = 0.0;
-        for (int iel = 1; iel < 10; ++iel) {
-          // prob of having iel scattering from Poisson
-          prob *= 0.5 * lambdaval[i] / (double)iel;
-          cumprob += prob;
-          //
-          // sample cos(theta) from the singe scattering pdf:
-          // - Mott-correction will be included if it was requested by the user (i.e. if fIsMottCorrection=true)
-          double rand1 = td->fRndm->uniform();
-          // sample cost from the Screened-Rutherford DCS
-          curcost     = 1. - 2.0 * scra[i] * rand1 / (1.0 - rand1 + scra[i]);
-          double dum0 = 1. - curcost;
-          cursint     = dum0 * (2.0 - dum0); // sin^2(theta)
-          //
-          // if we got current deflection that is not too small
-          // then update cos(theta) sin(theta)
-          if (cursint > 1.0e-20) {
-            cursint       = Math::Sqrt(cursint);
-            double curphi = geant::units::kTwoPi * td->fRndm->uniform();
-            cost          = cost * curcost - sint * cursint * std::cos(curphi);
-            sint          = Math::Sqrt(std::max(0.0, (1.0 - cost) * (1.0 + cost)));
-          }
-          //
-          // check if we have done enough scattering i.e. sampling from the Poisson
-          if (rand0Th2[i] < cumprob) {
-            break;
-          }
-        }
-        cost2[i] = cost;
+        cost2[i] = SampleMSCWithSingle(expn[i], lambdaval[i], scra[i], rand0Th2[i], td);
       }
     }
   }
@@ -790,6 +749,18 @@ void GSMSCTableSimplified::InitMoliereMSCParams()
     gMoliere[theMaterial->GetIndex()].Bc *= 1.0 / geant::units::cm;
     gMoliere[theMaterial->GetIndex()].Xc2 *= geant::units::MeV * geant::units::MeV / geant::units::cm;
   }
+}
+
+double GSMSCTableSimplified::SampleWithSingle(double scra, geant::TaskData *td)
+{
+  // cost is sampled in SingleScattering()
+  double rand1 = td->fRndm->uniform();
+  // sample cost from the Screened-Rutherford DCS
+  double cost = 1. - 2.0 * scra * rand1 / (1.0 - rand1 + scra);
+  // add protections
+  cost = std::max(cost, -1.0);
+  cost = std::min(cost, 1.0);
+  return cost;
 }
 
 } // namespace geantphysics
