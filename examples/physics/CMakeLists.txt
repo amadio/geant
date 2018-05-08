@@ -33,6 +33,7 @@ endif()
 
 set(sources
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSDetectorConstruction.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSFieldConstruction.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSFullApp.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSData.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/src/CMSParticleGun.cxx
@@ -60,11 +61,13 @@ set(sources
 
 set(headers
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSDetectorConstruction.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSFieldConstruction.h  
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSFullApp.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSData.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSParticleGun.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSPhysicsList.h
-
+  ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc/CMSmagneticField.h
+  
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbDetectorConstruction.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbFullApp.h
   ${CMAKE_SOURCE_DIR}/examples/physics/FullLHCb/GeantV/inc/LHCbData.h
