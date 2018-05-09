@@ -6,6 +6,7 @@
 #include <Geant/Config.h>
 
 namespace geant {
+inline namespace GEANT_IMPL_NAMESPACE {
 
 using VectorBackend = vecgeom::VectorBackend;
 typedef VectorBackend::Float_v Float_v;
@@ -70,6 +71,8 @@ void CopyDblToFlt(vecgeom::Vector3D<Double_v> const &dbl1_v, vecgeom::Vector3D<D
     }
   }
 }
-}
+
+} // GEANT_IMPL_NAMESPACE
+} // Geant
 
 #endif

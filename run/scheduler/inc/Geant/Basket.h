@@ -19,13 +19,13 @@
 
 #include "Geant/Typedefs.h"
 #include "Geant/Track.h"
+#include "Geant/Fwd.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 class TaskData;
 class SimulationStage;
-#include "Geant/Fwd.h"
 
 /**
  * @brief A basket holding track pointers.

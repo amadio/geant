@@ -21,6 +21,7 @@
 #include "Geant/Error.h"
 #include "Geant/mpmc_bounded_queue.h"
 #include "Geant/NumaBlockMgr.h"
+#include "Geant/Basket.h"
 #include "Geant/Propagator.h"
 #include "Geant/Track.h"
 #include "Geant/RngWrapper.h"
@@ -55,9 +56,11 @@ private:
 public:
   using NumaTrackBlock_t = NumaBlock<Track>;
   using UserDataVect_t   = vector_t<char *>;
+  using queue_t          = mpmc_bounded_queue<Track *>;
 
   Propagator *fPropagator = nullptr;       /** Propagator */
   int fTid                = -1;            /** Thread unique id */
+  int fTaskSlot           = -1;            /** Index of allocated slot at activation */
   int fNode               = -1;            /** Locality node */
   size_t fNthreads        = 0;             /** Number of transport threads */
   int fSizeBool           = 0;             /** Size of bool array */
@@ -81,12 +84,8 @@ public:
   TrackStat *fStat              = nullptr; /** Track statictics */
   NumaTrackBlock_t *fBlock      = nullptr; /** Current track block */
   BasketCounters *fCounters[kNstages];     /** Counters for stage handlers */
+  queue_t *fQshare = nullptr;              /** Queue of exported tracks */
 
-#ifdef VECCORE_CUDA
-  char fBPool[sizeof(std::deque<Basket *>)]; /** Pool of empty baskets */
-#else
-  std::deque<Basket *> fBPool; /** Pool of empty baskets */
-#endif
   vector_t<Track *> fTransported1; // Transported tracks in current step
   int fNkeepvol = 0;               /** Number of tracks keeping the same volume */
   int fNsteps   = 0;               /** Total number of steps per thread */
@@ -98,6 +97,8 @@ public:
   int fNcross   = 0;               /** Total number of boundary crossings */
   int fNpushed  = 0;               /** Total number of pushes with 1.E-3 */
   int fNkilled  = 0;               /** Total number of tracks killed */
+  int fNshared  = 0;               /** Overestimate of number of tracks shared in the 'shared' queue */
+  int fMaxShare = 1 << 13;         /** Maximum number of shared tracks */
 
   geantphysics::PhysicsData *fPhysicsData        = nullptr; /** Physics data per thread */
   WorkspaceForFieldPropagation *fSpace4FieldProp = nullptr; /** Thread scratch for Field Propagation Stage */
@@ -119,12 +120,6 @@ private:
     currentsize = wantedsize;
   }
 
-  /**
-   * @brief TaskData constructor based on a provided single buffer.
-   */
-  VECCORE_ATT_DEVICE
-  TaskData(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop = nullptr);
-
 public:
   /** @brief TaskData constructor */
   TaskData(size_t nthreads, int maxPerBasket);
@@ -135,16 +130,6 @@ public:
   /** @brief Attach a propagator on a numa node. */
   VECCORE_ATT_HOST_DEVICE
   void AttachPropagator(Propagator *prop, int node);
-
-  /**
-   * @brief Track MakeInstance based on a provided single buffer.
-   */
-  VECCORE_ATT_DEVICE
-  static TaskData *MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop);
-
-  /** @brief return the contiguous memory size needed to hold a Track_v */
-  VECCORE_ATT_DEVICE
-  static size_t SizeOfInstance(size_t nthreads, int maxPerBasket);
 
   /**
    * @brief Function that return double array
@@ -196,16 +181,6 @@ public:
   /** @brief Release the temporary track */
   VECCORE_ATT_HOST_DEVICE
   void ReleaseTrack(Track &track);
-
-#ifndef VECCORE_CUDA
-  /**
-   * @brief Recycles a given basket
-   *
-   * @param b Pointer to current basket for recycling
-   */
-  void RecycleBasket(Basket *b);
-
-#endif
 
   /** @brief Setter for the toclean flag */
   void SetToClean(bool flag) { fToClean = flag; }
@@ -299,33 +274,63 @@ class TDManager {
   using queue_t = mpmc_bounded_queue<TaskData *>;
 
 private:
-  int fMaxThreads   = 0; // Maximum number of threads
-  int fMaxPerBasket = 0; // Maximum number of tracks per basket
-  queue_t fQueue;        // Task data queue
-  vector_t<TaskData *> fTaskData;
+  int fMaxThreads   = 0;          // Maximum number of threads
+  int fMaxPerBasket = 0;          // Maximum number of tracks per basket
+  queue_t fQueue;                 // Task data queue
+  vector_t<TaskData *> fTaskData; // Vector containing all tasks
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-  std::atomic<size_t> fUserDataIndex; // Single registry point for user data
+  std::atomic<TaskData *> *fActiveTasks = nullptr; // Array of active tasks
+  std::atomic<size_t> fUserDataIndex;              // Single registry point for user data
 #else
-  int fUserDataIndex;          // CUDA does not need this
+  TaskData **fActiveTasks = nullptr;
+  int fUserDataIndex; // CUDA does not need this
 #endif
 public:
   TDManager(int maxthreads, int maxperbasket)
       : fMaxThreads(maxthreads), fMaxPerBasket(maxperbasket), fQueue(1024), fUserDataIndex(0)
   {
     // Create initial task data
+    fActiveTasks = new std::atomic<TaskData *>[fMaxThreads];
     for (int tid = 0; tid < maxthreads; ++tid) {
       TaskData *td = new TaskData(fMaxThreads, fMaxPerBasket);
       td->fTid     = fTaskData.size();
       fTaskData.push_back(td);
       fQueue.enqueue(td);
+      fActiveTasks[tid].store(nullptr);
     }
   }
 
   ~TDManager()
   {
     // User data deleted by user in MyApplication::DeleteTaskData()
+    delete[] fActiveTasks;
     for (auto td : fTaskData)
       delete td;
+  }
+
+  /** @brief Steal tracks round robin starting with itself */
+  size_t StealTracks(TaskData *td, Basket *tofill)
+  {
+    // Implements work steal policy:
+    // - first try the queue from the next task slot
+    size_t nsteal = 0;
+    int slot      = td->fTaskSlot;
+    bool first    = true;
+    Track *track  = nullptr;
+    assert(td == fActiveTasks[slot].load());
+    // Round robin over slots and get the share queue of the attached task
+    while (first || (slot != td->fTaskSlot)) {
+      TaskData *tdnext = fActiveTasks[slot].load();
+      while (tdnext && tdnext->fQshare->dequeue(track)) {
+        tofill->AddTrack(track);
+        nsteal++;
+      }
+      if (nsteal) return nsteal;
+      // Round-robin to next active task
+      slot  = (slot + 1) % fMaxThreads;
+      first = false;
+    }
+    return nsteal;
   }
 
   GEANT_FORCE_INLINE
@@ -333,12 +338,22 @@ public:
 
   TaskData *GetTaskData()
   {
-    TaskData *td;
-    if (fQueue.dequeue(td)) return td;
-    td       = new TaskData(fMaxThreads, fMaxPerBasket);
-    td->fTid = fTaskData.size();
-    fTaskData.push_back(td);
+    TaskData *td, *expected;
+    if (!fQueue.dequeue(td)) return nullptr;
+    // Now assign an active slot to the task
+    size_t islot = 0;
+    while (1) {
+      // Loop slots and find an empty one
+      expected = nullptr;
+      if (fActiveTasks[islot].compare_exchange_weak(expected, td)) break;
+      islot = (islot + 1) % fMaxThreads;
+    }
+    td->fTaskSlot = islot;
     return td;
+    // td       = new TaskData(fMaxThreads, fMaxPerBasket);
+    // td->fTid = fTaskData.size();
+    // fTaskData.push_back(td);
+    // return td;
   }
 
   GEANT_FORCE_INLINE
@@ -346,8 +361,10 @@ public:
 
   void ReleaseTaskData(TaskData *td)
   {
-    while (!fQueue.enqueue(td)) {
-    }
+    fActiveTasks[td->fTaskSlot].store(nullptr);
+    td->fTaskSlot = -1;
+    while (!fQueue.enqueue(td))
+      ;
   }
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION

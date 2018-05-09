@@ -254,11 +254,11 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(TaskData *td
     if (!evserv->IsInitialPhase() || td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
       ninjected = evserv->FillStackBuffer(td->fStackBuffer, evserv->GetBsize(), td, error);
   }
-  // td->fStat->AddTracks(ninjected);
+  // If no tracks in the buffer, try to find some work
+  if (ninjected == 0) ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
+
   if (ninjected) return FeederResult::kWork;
-
   if (error) return FeederResult::kError;
-
   return FeederResult::kNone;
 }
 
@@ -267,10 +267,21 @@ int WorkloadManager::FlushOneLane(TaskData *td)
 {
   // Flush a single track lane from the stack-like buffer into the first stage.
   // Check the stack buffer and flush priority events first
-  int ninjected = 0;
-  int maxspill  = td->fPropagator->fConfig->fNmaxBuffSpill;
+  constexpr size_t kShareThreshold                 = 10;  // tunable ???
+  constexpr float kShareFraction                   = 0.1; // if it has 10 tracks it will share 1
+  int ninjected                                    = 0;
+  int maxspill                                     = td->fPropagator->fConfig->fNmaxBuffSpill;
   if (td->fStackBuffer->IsPrioritized()) ninjected = td->fStackBuffer->FlushPriorityLane();
   if (ninjected) return ninjected;
+
+  // Check if the worker may share some work after each generation
+  size_t ntodo = td->fStackBuffer->GetNtracks();
+  if (ntodo >= kShareThreshold) {
+    // How many tracks shared already
+    size_t nshared  = td->fQshare->size();
+    size_t ntoshare = kShareFraction * ntodo;
+    if (nshared < ntoshare) td->fStackBuffer->ShareTracks(ntoshare - nshared, *td->fQshare);
+  }
 
   // Inject the last lane in the buffer
   int nlane = td->fStackBuffer->FlushLastLane();
@@ -279,6 +290,10 @@ int WorkloadManager::FlushOneLane(TaskData *td)
     nlane = td->fStackBuffer->FlushLastLane();
     ninjected += nlane;
   }
+
+  // If no tracks in the buffer, try to find some work
+  if (ninjected == 0) ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
+
   return (ninjected);
 }
 

@@ -37,39 +37,7 @@ TaskData::TaskData(size_t nthreads, int maxPerBasket)
   fTrack                          = Track::MakeInstance();
   fGeoTrack                       = new TrackGeo_v(4 * maxPerBasket);
   fRndm                           = new RngWrapper;
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_DEVICE
-TaskData::TaskData(void *addr, size_t nthreads, int maxPerBasket, Propagator *prop)
-    : fPropagator(prop), fNthreads(nthreads)
-{
-  // Constructor
-  char *buffer = (char *)addr;
-  buffer += Track::round_up_align(sizeof(TaskData));
-  buffer = Track::round_up_align(buffer);
-
-  fPath      = VolumePath_t::MakeInstanceAt(TrackDataMgr::GetInstance()->GetMaxDepth(), (void *)buffer);
-  fPathV     = new VolumePath_t *[4 * maxPerBasket];
-  fNextpathV = new VolumePath_t *[4 * maxPerBasket];
-  fGeoTrack  = TrackGeo_v::MakeInstanceAt(buffer, 4 * maxPerBasket);
-  buffer += TrackGeo_v::SizeOfInstance(4 * maxPerBasket);
-  buffer += VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth());
-  buffer = Track::round_up_align(buffer);
-
-  // Previous, the size was hard coded to 1024, '4' is a guess on the max number
-  // of produced particles ...
-  fSizeInt = fSizeBool = fSizeDbl = 5 * maxPerBasket;
-  fBoolArray                      = new (buffer) bool[fSizeBool];
-  buffer += fSizeBool * sizeof(bool);
-  fDblArray = new (buffer) double[fSizeDbl];
-  buffer += fSizeDbl * sizeof(double);
-  fIntArray = new (buffer) int[fSizeInt];
-  buffer += fSizeInt * sizeof(int);
-
-  fTrack = Track::MakeInstance();
-
-  fRndm = new RngWrapper;
+  fQshare                         = new queue_t(1 << 13);
 }
 
 //______________________________________________________________________________
@@ -119,37 +87,6 @@ void TaskData::AttachPropagator(Propagator *prop, int node)
 }
 
 //______________________________________________________________________________
-VECCORE_ATT_DEVICE
-TaskData *TaskData::MakeInstanceAt(void *addr, size_t nTracks, int maxPerBasket, Propagator *prop)
-{
-  // Track MakeInstance based on a provided single buffer.
-  return new (addr) TaskData(addr, nTracks, maxPerBasket, prop);
-}
-
-//______________________________________________________________________________
-VECCORE_ATT_DEVICE
-size_t TaskData::SizeOfInstance(size_t /*nthreads*/, int maxPerBasket)
-{
-  // @brief return the contiguous memory size needed to hold a TaskData
-
-  const size_t bufSize = 5; // See constructor!
-
-  size_t need = sizeof(TaskData) // vecgeom::DevicePtr<geant::cuda::TaskData>::SizeOf()
-                + Track::round_up_align(bufSize * maxPerBasket * (sizeof(bool) + sizeof(double) + sizeof(int))) +
-                Track::round_up_align(VolumePath_t::SizeOfInstance(TrackDataMgr::GetInstance()->GetMaxDepth()));
-  return Track::round_up_align(need);
-}
-
-#ifndef VECCORE_CUDA
-
-//______________________________________________________________________________
-void TaskData::RecycleBasket(Basket *b)
-{
-  // Recycle a basket.
-  fBPool.push_back(b);
-}
-
-//______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 Track &TaskData::GetNewTrack()
 {
@@ -189,8 +126,6 @@ void TaskData::InspectStages(int istage) const
       Printf("***    %15s:  %d tracks", stage->GetName(), fStageBuffers[stage->GetId()]->size());
   }
 }
-
-#endif
 
 } // GEANT_IMPL_NAMESPACE
 } // geant

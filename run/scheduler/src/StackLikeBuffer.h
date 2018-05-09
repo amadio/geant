@@ -21,6 +21,7 @@
 
 #include <VecCore/VecCore>
 #include "Geant/Typedefs.h"
+#include "Geant/mpmc_bounded_queue.h"
 #include "Geant/Track.h"
 #include "Geant/Basket.h"
 
@@ -33,6 +34,8 @@ class Propagator;
 
 class StackLikeBuffer {
 
+  using queue_t = mpmc_bounded_queue<Track *>;
+
 protected:
   vector_t<Basket *> fLanes;       ///< Track lanes
   Basket *fPriorityLane = nullptr; ///< Priority lane
@@ -41,6 +44,7 @@ protected:
   bool fPriorityMode    = false;   ///< Priority mode
   int fLastLane         = 0;       ///< Last lane containing tracks
   int fNlanes           = 10;      ///< Number of lanes stored
+  size_t fNtracks       = 0;       ///< Number of stored tracks
 
 private:
   StackLikeBuffer(const StackLikeBuffer &) = delete;
@@ -91,6 +95,7 @@ public:
       fLanes[lane]->AddTrack(track);
       fLastLane = vecCore::math::Max(fLastLane, lane);
     }
+    fNtracks++;
   }
 
   /** @brief Flush a given lane into the stage buffer */
@@ -101,6 +106,7 @@ public:
     int nflush = fLanes[lane]->size();
     fStageBuffer->AddTracks(fLanes[lane]->Tracks());
     fLanes[lane]->Tracks().clear();
+    fNtracks -= nflush;
     return nflush;
   }
 
@@ -124,7 +130,47 @@ public:
     if (!nflush) return 0;
     fStageBuffer->AddTracks(fPriorityLane->Tracks());
     fPriorityLane->Tracks().clear();
+    fNtracks -= nflush;
     return nflush;
+  }
+
+  /** @brief Share a number of tracks from lowest generation lanes */
+  GEANT_FORCE_INLINE
+  VECCORE_ATT_HOST_DEVICE
+  size_t ShareTracks(size_t ntracks, queue_t &qshare)
+  {
+    // Start sharing tracks from low lanes
+    int lane       = 0;
+    size_t nshared = 0;
+    while (nshared < ntracks && lane <= fLastLane) {
+      size_t nlane = fLanes[lane]->size();
+      if (nlane + nshared <= ntracks) {
+        // We can share the full lane
+        for (auto track : fLanes[lane]->Tracks()) {
+          bool shared = qshare.enqueue(track);
+          (void)shared;
+          assert(shared);
+        }
+        fLanes[lane]->Tracks().clear();
+        fNtracks -= nlane;
+        nshared += nlane;
+        // continue with next lane
+        lane++;
+      } else {
+        // We can share only ntracks - nshared tracks
+        while (nshared < ntracks) {
+          auto track = fLanes[lane]->Tracks().back();
+          fLanes[lane]->Tracks().pop_back();
+          bool shared = qshare.enqueue(track);
+          (void)shared;
+          assert(shared);
+          fNtracks--;
+          nshared++;
+        }
+        return nshared;
+      }
+    }
+    return nshared;
   }
 
   /** @brief Setter for the first stage buffer */
@@ -155,13 +201,7 @@ public:
   /** @brief Getter for number of stacked tracks */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE
-  int GetNtracks() const
-  {
-    int ntracks = 0;
-    for (int lane = fLastLane; lane >= 0; --lane)
-      ntracks += fLanes[lane]->size();
-    return ntracks;
-  }
+  int GetNtracks() const { return fNtracks; }
 
   /** @brief Getter for number of stacked tracks */
   GEANT_FORCE_INLINE
