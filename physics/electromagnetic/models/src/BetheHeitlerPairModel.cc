@@ -533,7 +533,7 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
   const double epsMin   = std::max(eps0, eps1);
   const double epsRange = 0.5 - epsMin;
   //
-  double F10, F20;
+  double F10 = 0.0, F20 = 0.0;
   ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
   F10 -= fz;
   F20 -= fz;

@@ -335,7 +335,7 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
   const double epsRange = 0.5 - epsMin;
   const double fz       = gElementData[izet]->fFz;
   //
-  double F10, F20;
+  double F10 = 0.0, F20 = 0.0;
   ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
   F10 -= fz;
   F20 -= fz;
@@ -422,7 +422,7 @@ double RelativisticPairModel::ComputeDXsectionPerAtom(const double epsmin, const
   const double meps           = 1. - eps;
   const double halfFz         = 0.5 * gElementData[izet]->fFz;
   const double delta = gElementData[izet]->fDeltaFactor * geant::units::kElectronMassC2 / (egamma * eps * meps);
-  double phi1, phi2;
+  double phi1 = 0.0, phi2 = 0.0;
   ComputeScreeningFunctions(phi1, phi2, delta, istsai);
   double dxsec = (eps * eps + meps * meps) * (phi1 - halfFz) + twoThird * eps * meps * (phi2 - halfFz);
   dxsec *= (eps * lHalfPerEpsMin);

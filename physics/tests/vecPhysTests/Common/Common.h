@@ -127,7 +127,7 @@ void CreateParticles(double minEn, double maxEn, bool randomDir, TestParticleTyp
       out.SetDirZ(1.0, i);
     }
 
-    geantphysics::Particle *particle;
+    geantphysics::Particle *particle = nullptr;
     switch (type) {
     case TestParticleType::Gamma:
       particle = geantphysics::Gamma::Definition();
@@ -315,7 +315,7 @@ void CreateParticles(double minEn, double maxEn, bool randomDir, TestParticleTyp
       out[i].SetDirZ(1.0);
     }
 
-    geantphysics::Particle *particle;
+    geantphysics::Particle *particle = nullptr;
     switch (type) {
     case TestParticleType::Gamma:
       particle = geantphysics::Gamma::Definition();
