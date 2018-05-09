@@ -451,6 +451,43 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
   return epsMin * Math::Exp(xi * Math::Log(0.5 / epsMin));
 }
 
+// Sample energy transfer with alias tables(vectorized)
+Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma, const int *izet, const Double_v r1,
+                                                          const Double_v r2, const Double_v r3)
+{
+  const Double_v legamma = Math::Log(egamma);
+
+  // Compute energy index
+  Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
+  IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh  = val - indxEgamma;
+  MaskD_v mask        = r1 < pIndxHigh;
+  if (!MaskEmpty(mask)) {
+    vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
+  }
+
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    int idx                  = (int)Get(indxEgamma, l);
+    RatinAliasDataTrans &als = fAliasTablesPerZ[izet[l]].fTablePerEn[idx];
+    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l), 0);
+
+    Set(xiV, l, xi);
+  }
+  Double_v deltaMax;
+  Double_v deltaFactor;
+  for (int l = 0; l < kVecLenD; ++l) {
+    Set(deltaMax, l, Get(egamma, l) > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
+                                                              : gElementData[izet[l]]->fDeltaMaxLowTsai);
+    Set(deltaFactor, l, gElementData[izet[l]]->fDeltaFactor);
+  }
+  const Double_v eps0   = geant::units::kElectronMassC2 / egamma;
+  const Double_v epsp   = 0.5 - 0.5 * Math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
+  const Double_v epsMin = Math::Max(eps0, epsp);
+  const Double_v epsV   = epsMin * Math::Exp(xiV * Math::Log(0.5 / epsMin));
+  return epsV;
+}
+
 /**
  * @internal
  * The Geant4 rejection algorithm \cite g4physref is adopted. By introducing the decreasing functions of
@@ -572,6 +609,7 @@ void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, cons
   }
 
   while (currN < N || !MaskFull(lanesDone)) {
+    // Prepare Z-dependent data for one round of rejection for all lanes
     Double_v fz;
     Double_v deltaMax;
     Double_v deltaFac;
@@ -591,6 +629,7 @@ void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, cons
       Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
     }
 
+    // Prepare values for one round of rejection for all lanes
     Double_v egammaV        = vecCore::Gather<Double_v>(egamma, idx);
     const Double_v eps0     = geant::units::kElectronMassC2 / egammaV;
     const Double_v deltaMin = 4. * eps0 * deltaFac;
@@ -624,12 +663,17 @@ void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, cons
       vecCore::MaskedAssign(greject, !cond1, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
     }
 
+    // Mask of lanes accepted on this round
     MaskD_v accepted = greject > rnd2;
 
+    // Store result of sampling to output array
     if (!MaskEmpty(accepted)) {
       vecCore::Scatter(eps, epsOut, idx);
     }
 
+    // Refill index lanes with next value if there is some particles to sample
+    // if there is no work left - fill index with sentinel value(all input arrays should contain sentinel values after
+    // end)
     lanesDone = lanesDone || accepted;
     for (int l = 0; l < kVecLenD; ++l) {
       auto laneDone = Get(accepted, l);
@@ -1056,7 +1100,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     double ekin = tracks.GetKinE(i);
     sortKey[i]  = ekin < fGammaEneregyLimit ? (short)0 : (short)1;
   }
-  int smallEtracksInd = tracks.SortTracks();
+  int smallEtracksInd = tracks.SortTracks(); // Sample small energy particles with uniform distribution
   for (int k = 0; k < smallEtracksInd; ++k) {
     double eps0 = geant::units::kElectronMassC2 / tracks.GetKinE(k);
     epsArr[k]   = eps0 + (0.5 - eps0) * td->fRndm->uniform();
@@ -1119,11 +1163,12 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     }
   }
 
+  // Eps is sampled, now compute particle kinematics from it
   for (int i = 0; i < N; i += kVecLenD) {
-    Double_v ekin = tracks.GetKinEVec(i);
-
     Double_v eps;
     vecCore::Load(eps, &epsArr[i]);
+
+    Double_v ekin = tracks.GetKinEVec(i);
 
     Double_v electronTotE, positronTotE;
     MaskD_v tmpM = td->fRndm->uniformV() > 0.5;
@@ -1141,10 +1186,12 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     const Double_v thetaElectron = uvar * geant::units::kElectronMassC2 / electronTotE;
     Double_v sintEle, costEle;
     Math::SinCos(thetaElectron, sintEle, costEle);
+
     const Double_v thetaPositron = uvar * geant::units::kElectronMassC2 / positronTotE;
     Double_v sintPos, costPos;
     Math::SinCos(thetaPositron, sintPos, costPos);
-    sintPos            = -sintPos;
+    sintPos = -sintPos;
+
     const Double_v phi = geant::units::kTwoPi * td->fRndm->uniformV();
     Double_v sinphi, cosphi;
     Math::SinCos(phi, sinphi, cosphi);
@@ -1157,6 +1204,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     Double_v posDirY = sintPos * sinphi;
     Double_v posDirZ = costPos;
 
+    // Kill primary gamma
     for (int l = 0; l < kVecLenD; ++l) {
       tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
       tracks.SetKinE(0.0, i + l);
@@ -1171,6 +1219,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     Math::RotateToLabFrame(eleDirX, eleDirY, eleDirZ, gammaX, gammaY, gammaZ);
     Math::RotateToLabFrame(posDirX, posDirY, posDirZ, gammaX, gammaY, gammaZ);
 
+    // Add secondary to TaskData SOA
     for (int l = 0; l < kVecLenD; ++l) {
       auto &secondarySoA = td->fPhysicsData->GetSecondarySOA();
 
@@ -1195,42 +1244,6 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       secondarySoA.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
     }
   }
-}
-
-Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma, const int *izet, const Double_v r1,
-                                                          const Double_v r2, const Double_v r3)
-{
-  const Double_v legamma = Math::Log(egamma);
-
-  // Compute energy index
-  Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
-  IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
-  Double_v pIndxHigh  = val - indxEgamma;
-  MaskD_v mask        = r1 < pIndxHigh;
-  if (!MaskEmpty(mask)) {
-    vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
-  }
-
-  Double_v xiV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    int idx                  = (int)Get(indxEgamma, l);
-    RatinAliasDataTrans &als = fAliasTablesPerZ[izet[l]].fTablePerEn[idx];
-    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l), 0);
-
-    Set(xiV, l, xi);
-  }
-  Double_v deltaMax;
-  Double_v deltaFactor;
-  for (int l = 0; l < kVecLenD; ++l) {
-    Set(deltaMax, l, Get(egamma, l) > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
-                                                              : gElementData[izet[l]]->fDeltaMaxLowTsai);
-    Set(deltaFactor, l, gElementData[izet[l]]->fDeltaFactor);
-  }
-  const Double_v eps0   = geant::units::kElectronMassC2 / egamma;
-  const Double_v epsp   = 0.5 - 0.5 * Math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
-  const Double_v epsMin = Math::Max(eps0, epsp);
-  const Double_v epsV   = epsMin * Math::Exp(xiV * Math::Log(0.5 / epsMin));
-  return epsV;
 }
 
 // val1 =  3xPhi_1 - Phi_2: used in case of rejection (either istsai or not)

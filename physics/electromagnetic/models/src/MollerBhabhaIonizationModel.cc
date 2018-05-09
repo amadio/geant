@@ -406,6 +406,40 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
   return Math::Exp(xi * dum1) * elProdCut;
 }
 
+Double_v MollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, IndexD_v mcLocalIdx, double *tableEmin,
+                                                           double *tableILDeta, Double_v primekin, Double_v r1,
+                                                           Double_v r2, Double_v r3)
+{
+  Double_v lPrimEkin    = Math::Log(primekin);
+  Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
+  Double_v ilDelta      = vecCore::Gather<Double_v>(tableILDeta, mcLocalIdx);
+  Double_v val          = (lPrimEkin - logEmin) * ilDelta;
+  IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh    = val - indxPrimEkin;
+  MaskD_v mask          = r1 < pIndxHigh;
+  if (!MaskEmpty(mask)) {
+    vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
+  }
+
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
+    //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
+
+    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    const double xi =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumSamplingElecEnergies, Get(r2, l), Get(r3, l));
+    Set(xiV, l, xi);
+  }
+
+  // sample the transformed variable
+  Double_v dum1 = Math::Log(primekin / elProdCut);
+  if (fIsElectron) {
+    dum1 -= 0.693147180559945; // dum1 = dum1 + log(0.5)
+  }
+  return Math::Exp(xiV * dum1) * elProdCut;
+}
 double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
                                                          const geant::TaskData *td)
 {
@@ -455,6 +489,86 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
   return deltaEkin;
 }
 
+void MollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCut, const double *primeKinArr,
+                                                       double *epsOut, int N, const geant::TaskData *td)
+{
+
+  // assert(N>=kVecLenD)
+  int currN = 0;
+  MaskD_v lanesDone;
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
+  }
+
+  while (currN < N || !MaskFull(lanesDone)) {
+    // Gather data for one round of sampling
+    Double_v primekin = vecCore::Gather<Double_v>(primeKinArr, idx);
+    Double_v tmin     = vecCore::Gather<Double_v>(elProdCut, idx);
+    Double_v tmax     = (fIsElectron) ? (0.5 * primekin) : (primekin);
+    Double_v xmin     = tmin / primekin;
+    Double_v xmax     = tmax / primekin;
+    Double_v gamma    = primekin / geant::units::kElectronMassC2 + 1.0;
+    Double_v gamma2   = gamma * gamma;
+    Double_v beta2    = 1. - 1. / gamma2;
+    Double_v xminmax  = xmin * xmax;
+
+    MaskD_v accepted;
+    Double_v deltaEkin;
+    if (fIsElectron) {
+      Double_v gg   = (2.0 * gamma - 1.0) / gamma2;
+      Double_v y    = 1. - xmax;
+      Double_v gf   = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
+      Double_v rnd0 = td->fRndm->uniformV();
+      Double_v rnd1 = td->fRndm->uniformV();
+      deltaEkin     = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
+      Double_v xx   = 1.0 - deltaEkin;
+      Double_v dum  = 1.0 - gg * deltaEkin + deltaEkin * deltaEkin * (1.0 - gg + (1.0 - gg * xx) / (xx * xx));
+
+      accepted = gf * rnd1 < dum;
+    } else {
+      Double_v y     = 1.0 / (1.0 + gamma);
+      Double_v y2    = y * y;
+      Double_v y12   = 1.0 - 2.0 * y;
+      Double_v b1    = 2.0 - y2;
+      Double_v b2    = y12 * (3.0 + y2);
+      Double_v y122  = y12 * y12;
+      Double_v b4    = y122 * y12;
+      Double_v b3    = b4 + y122;
+      Double_v xmax2 = xmax * xmax;
+      Double_v gf    = 1.0 + (xmax2 * b4 - xmin * xmin * xmin * b3 + xmax2 * b2 - xmin * b1) * beta2;
+      Double_v rnd0  = td->fRndm->uniformV();
+      Double_v rnd1  = td->fRndm->uniformV();
+      deltaEkin      = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
+      Double_v xx    = deltaEkin * deltaEkin;
+      Double_v dum   = 1.0 + (xx * xx * b4 - deltaEkin * xx * b3 + xx * b2 - deltaEkin * b1) * beta2;
+      accepted       = gf * rnd1 < dum;
+    }
+    deltaEkin *= primekin;
+
+    // Scatter sampled values
+    if (!MaskEmpty(accepted)) {
+      vecCore::Scatter(deltaEkin, epsOut, idx);
+    }
+
+    // Refill index lanes with next value if there is some particles to sample
+    // if there is no work left - fill index with sentinel value(all input arrays should contain sentinel values after
+    // end)
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto laneDone = Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
+        } else {
+          Set(idx, l, N);
+        }
+      }
+    }
+  }
+}
 void MollerBhabhaIonizationModel::ClearSamplingTables()
 {
   size_t numST = fSamplingTables.size();
@@ -924,117 +1038,6 @@ void MollerBhabhaIonizationModel::SampleSecondaries(LightTrack_v &tracks, geant:
       tracks.SetDirY(Get(elDirY * norm, l), i + l);
       tracks.SetDirZ(Get(elDirZ * norm, l), i + l);
       tracks.SetKinE(Get(ekin - deltaKinEnergy, l), i + l);
-    }
-  }
-}
-
-Double_v MollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, IndexD_v mcLocalIdx, double *tableEmin,
-                                                           double *tableILDeta, Double_v primekin, Double_v r1,
-                                                           Double_v r2, Double_v r3)
-{
-  Double_v lPrimEkin    = Math::Log(primekin);
-  Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
-  Double_v ilDelta      = vecCore::Gather<Double_v>(tableILDeta, mcLocalIdx);
-  Double_v val          = (lPrimEkin - logEmin) * ilDelta;
-  IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
-  Double_v pIndxHigh    = val - indxPrimEkin;
-  MaskD_v mask          = r1 < pIndxHigh;
-  if (!MaskEmpty(mask)) {
-    vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
-  }
-
-  Double_v xiV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
-    //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
-
-    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
-    const double xi =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumSamplingElecEnergies, Get(r2, l), Get(r3, l));
-    Set(xiV, l, xi);
-  }
-
-  // sample the transformed variable
-  Double_v dum1 = Math::Log(primekin / elProdCut);
-  if (fIsElectron) {
-    dum1 -= 0.693147180559945; // dum1 = dum1 + log(0.5)
-  }
-  return Math::Exp(xiV * dum1) * elProdCut;
-}
-
-void MollerBhabhaIonizationModel::SampleEnergyTransfer(const double *elProdCut, const double *primeKinArr,
-                                                       double *epsOut, int N, const geant::TaskData *td)
-{
-
-  // assert(N>=kVecLenD)
-  int currN = 0;
-  MaskD_v lanesDone;
-  IndexD_v idx;
-  for (int l = 0; l < kVecLenD; ++l) {
-    AssignMaskLane(lanesDone, l, false);
-    Set(idx, l, currN++);
-  }
-
-  while (currN < N || !MaskFull(lanesDone)) {
-    Double_v primekin = vecCore::Gather<Double_v>(primeKinArr, idx);
-    Double_v tmin     = vecCore::Gather<Double_v>(elProdCut, idx);
-    Double_v tmax     = (fIsElectron) ? (0.5 * primekin) : (primekin);
-    Double_v xmin     = tmin / primekin;
-    Double_v xmax     = tmax / primekin;
-    Double_v gamma    = primekin / geant::units::kElectronMassC2 + 1.0;
-    Double_v gamma2   = gamma * gamma;
-    Double_v beta2    = 1. - 1. / gamma2;
-    Double_v xminmax  = xmin * xmax;
-
-    MaskD_v accepted;
-    Double_v deltaEkin;
-    if (fIsElectron) {
-      Double_v gg   = (2.0 * gamma - 1.0) / gamma2;
-      Double_v y    = 1. - xmax;
-      Double_v gf   = 1.0 - gg * xmax + xmax * xmax * (1.0 - gg + (1.0 - gg * y) / (y * y));
-      Double_v rnd0 = td->fRndm->uniformV();
-      Double_v rnd1 = td->fRndm->uniformV();
-      deltaEkin     = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
-      Double_v xx   = 1.0 - deltaEkin;
-      Double_v dum  = 1.0 - gg * deltaEkin + deltaEkin * deltaEkin * (1.0 - gg + (1.0 - gg * xx) / (xx * xx));
-
-      accepted = gf * rnd1 < dum;
-    } else {
-      Double_v y     = 1.0 / (1.0 + gamma);
-      Double_v y2    = y * y;
-      Double_v y12   = 1.0 - 2.0 * y;
-      Double_v b1    = 2.0 - y2;
-      Double_v b2    = y12 * (3.0 + y2);
-      Double_v y122  = y12 * y12;
-      Double_v b4    = y122 * y12;
-      Double_v b3    = b4 + y122;
-      Double_v xmax2 = xmax * xmax;
-      Double_v gf    = 1.0 + (xmax2 * b4 - xmin * xmin * xmin * b3 + xmax2 * b2 - xmin * b1) * beta2;
-      Double_v rnd0  = td->fRndm->uniformV();
-      Double_v rnd1  = td->fRndm->uniformV();
-      deltaEkin      = xminmax / (xmin * (1.0 - rnd0) + xmax * rnd0);
-      Double_v xx    = deltaEkin * deltaEkin;
-      Double_v dum   = 1.0 + (xx * xx * b4 - deltaEkin * xx * b3 + xx * b2 - deltaEkin * b1) * beta2;
-      accepted       = gf * rnd1 < dum;
-    }
-    deltaEkin *= primekin;
-
-    if (!MaskEmpty(accepted)) {
-      vecCore::Scatter(deltaEkin, epsOut, idx);
-    }
-
-    lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = Get(accepted, l);
-      if (laneDone) {
-        if (currN < N) {
-          Set(idx, l, currN++);
-          AssignMaskLane(lanesDone, l, false);
-        } else {
-          Set(idx, l, N);
-        }
-      }
     }
   }
 }

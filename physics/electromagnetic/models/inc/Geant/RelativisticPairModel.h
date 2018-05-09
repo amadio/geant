@@ -338,6 +338,9 @@ protected:
   /** @brief A GL numerical integral for integrations. */
   GLIntegral *fGL;
 
+  /** @brief This struct is used for alias sampling, it is just like RatinAliasDataPerMaterial here but with different
+   *         memory layout, it is used in vectorized alias sampling
+   */
   struct RatinAliasTablePerMaterial {
     std::vector<RatinAliasDataTrans> fTablePerEn;
     int fILowestZ;

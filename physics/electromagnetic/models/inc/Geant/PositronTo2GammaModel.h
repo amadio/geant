@@ -141,6 +141,9 @@ protected:
     */
   AliasTable *fAliasSampler;
 
+  /** @brief This struct is used for vectorized alias sampling, it is alternative to LinAlias struct but has different
+   *         memory layout and caches values needed for sampling(consumes more memory)
+   */
   std::vector<LinAliasCached> fCachedAliasTable;
 };
 

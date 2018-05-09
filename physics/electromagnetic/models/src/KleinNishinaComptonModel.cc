@@ -64,6 +64,8 @@ void KleinNishinaComptonModel::Initialize()
   fSecondaryInternalCode = Electron::Definition()->GetInternalCode();
   if (GetUseSamplingTables()) {
     InitSamplingTables();
+
+    // Steal alias table to new alias table format
     for (int i = 0; i < (int)fSamplingTables.size(); ++i) {
       LinAlias *alias = fSamplingTables[i];
       int size        = (int)alias->fAliasIndx.size();
@@ -365,6 +367,39 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
   return Math::Exp(Math::Log(1. + 2. * kappa) * (xi - 1.)); // eps = E_1/E_0
 }
 
+Double_v KleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egamma, Double_v r1, Double_v r2, Double_v r3)
+{
+  // determine electron energy lower grid point
+  Double_v legamma = Math::Log(egamma);
+  //
+  Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
+  IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh  = val - indxEgamma;
+  MaskD_v mask        = r1 < pIndxHigh;
+  if (!MaskEmpty(mask)) {
+    vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
+  }
+
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    int idx             = (int)Get(indxEgamma, l);
+    LinAliasCached &als = fAliasTablePerGammaEnergy[idx];
+    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+
+    // Old version:
+    // const LinAlias *als = fSamplingTables[idx];
+    // const double xi =
+    //    fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+    //                                fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+    Set(xiV, l, xi);
+  }
+  // transform it back to eps = E_1/E_0
+  // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
+  Double_v kappa = egamma * geant::units::kInvElectronMassC2;
+
+  return Math::Exp(Math::Log(1. + 2. * kappa) * (xiV - 1.));
+}
+
 double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, double &onemcost, double &sint2,
                                                            const geant::TaskData *td)
 {
@@ -390,6 +425,75 @@ double KleinNishinaComptonModel::SampleReducedPhotonEnergy(const double egamma, 
     gf       = 1. - eps * sint2 / (1. + eps2);
   } while (gf < rndArray[2]);
   return eps;
+}
+
+void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma, double *onemcostOut, double *sint2Out,
+                                                            double *epsOut, int N, const geant::TaskData *td)
+{
+  // assert(N>=kVecLenD)
+  // Init variables for lane refiling bookkeeping
+  int currN = 0;
+  MaskD_v lanesDone;
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
+  }
+
+  while (currN < N || !MaskFull(lanesDone)) {
+
+    // Prepare data for one round of sampling
+    Double_v kappa = vecCore::Gather<Double_v>(egamma, idx) / geant::units::kElectronMassC2;
+    Double_v eps0  = 1. / (1. + 2. * kappa);
+    Double_v eps02 = eps0 * eps0;
+    Double_v al1   = -Math::Log(eps0);
+    Double_v cond  = al1 / (al1 + 0.5 * (1. - eps02));
+
+    Double_v rnd1 = td->fRndm->uniformV();
+    Double_v rnd2 = td->fRndm->uniformV();
+    Double_v rnd3 = td->fRndm->uniformV();
+
+    Double_v eps, eps2, gf;
+
+    MaskD_v cond1 = cond > rnd1;
+    if (!MaskEmpty(cond1)) {
+      vecCore::MaskedAssign(eps, cond1, Math::Exp(-al1 * rnd2));
+      vecCore::MaskedAssign(eps2, cond1, eps * eps);
+    }
+    if (!MaskEmpty(!cond1)) {
+      vecCore::MaskedAssign(eps2, !cond1, eps02 + (1.0 - eps02) * rnd2);
+      vecCore::MaskedAssign(eps, !cond1, Math::Sqrt(eps2));
+    }
+
+    Double_v onemcost = (1. - eps) / (eps * kappa);
+    Double_v sint2    = onemcost * (2. - onemcost);
+    gf                = 1. - eps * sint2 / (1. + eps2);
+
+    MaskD_v accepted = gf > rnd3;
+
+    // Scatter sampled values
+    if (!MaskEmpty(accepted)) {
+      vecCore::Scatter(onemcost, onemcostOut, idx);
+      vecCore::Scatter(sint2, sint2Out, idx);
+      vecCore::Scatter(eps, epsOut, idx);
+    }
+
+    // Refill index lanes with next value if there is some particles to sample
+    // if there is no work left - fill index with sentinel value(all input arrays should contain sentinel values after
+    // end)
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto laneDone = Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
+        } else {
+          Set(idx, l, N);
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -683,105 +787,6 @@ void KleinNishinaComptonModel::SampleSecondaries(LightTrack_v &tracks, geant::Ta
     }
 
     tracks.SetEnergyDepositVec(enDeposit, i);
-  }
-}
-
-Double_v KleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egamma, Double_v r1, Double_v r2, Double_v r3)
-{
-  // determine electron energy lower grid point
-  Double_v legamma = Math::Log(egamma);
-  //
-  Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
-  IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
-  Double_v pIndxHigh  = val - indxEgamma;
-  MaskD_v mask        = r1 < pIndxHigh;
-  if (!MaskEmpty(mask)) {
-    vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
-  }
-
-  Double_v xiV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    int idx = (int)Get(indxEgamma, l);
-    //    LinAliasCached &als = fAliasTablePerGammaEnergy[idx];
-    //    double xi           = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2[l],
-    //    r3[l]);
-
-    // Standard version:
-    const LinAlias *als = fSamplingTables[idx];
-    const double xi =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
-    Set(xiV, l, xi);
-  }
-  // transform it back to eps = E_1/E_0
-  // \epsion(\xi) = \exp[ \alpha(1-\xi) ] = \exp [\ln(1+2\kappa)(\xi-1)]
-  Double_v kappa = egamma * geant::units::kInvElectronMassC2;
-
-  return Math::Exp(Math::Log(1. + 2. * kappa) * (xiV - 1.));
-}
-
-void KleinNishinaComptonModel::SampleReducedPhotonEnergyRej(const double *egamma, double *onemcostOut, double *sint2Out,
-                                                            double *epsOut, int N, const geant::TaskData *td)
-{
-  // assert(N>=kVecLenD)
-  // Init variables for lane refiling bookkeeping
-  int currN = 0;
-  MaskD_v lanesDone;
-  IndexD_v idx;
-  for (int l = 0; l < kVecLenD; ++l) {
-    AssignMaskLane(lanesDone, l, false);
-    Set(idx, l, currN++);
-  }
-
-  while (currN < N || !MaskFull(lanesDone)) {
-
-    Double_v kappa = vecCore::Gather<Double_v>(egamma, idx) / geant::units::kElectronMassC2;
-    Double_v eps0  = 1. / (1. + 2. * kappa);
-    Double_v eps02 = eps0 * eps0;
-    Double_v al1   = -Math::Log(eps0);
-    Double_v cond  = al1 / (al1 + 0.5 * (1. - eps02));
-
-    Double_v rnd1 = td->fRndm->uniformV();
-    Double_v rnd2 = td->fRndm->uniformV();
-    Double_v rnd3 = td->fRndm->uniformV();
-
-    Double_v eps, eps2, gf;
-
-    MaskD_v cond1 = cond > rnd1;
-    if (!MaskEmpty(cond1)) {
-      vecCore::MaskedAssign(eps, cond1, Math::Exp(-al1 * rnd2));
-      vecCore::MaskedAssign(eps2, cond1, eps * eps);
-    }
-    if (!MaskEmpty(!cond1)) {
-      vecCore::MaskedAssign(eps2, !cond1, eps02 + (1.0 - eps02) * rnd2);
-      vecCore::MaskedAssign(eps, !cond1, Math::Sqrt(eps2));
-    }
-
-    Double_v onemcost = (1. - eps) / (eps * kappa);
-    Double_v sint2    = onemcost * (2. - onemcost);
-    gf                = 1. - eps * sint2 / (1. + eps2);
-
-    MaskD_v accepted = gf > rnd3;
-
-    if (!MaskEmpty(accepted)) {
-      vecCore::Scatter(onemcost, onemcostOut, idx);
-      vecCore::Scatter(sint2, sint2Out, idx);
-      vecCore::Scatter(eps, epsOut, idx);
-    }
-
-    // Refill lanes if work is present
-    lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = Get(accepted, l);
-      if (laneDone) {
-        if (currN < N) {
-          Set(idx, l, currN++);
-          AssignMaskLane(lanesDone, l, false);
-        } else {
-          Set(idx, l, N);
-        }
-      }
-    }
   }
 }
 

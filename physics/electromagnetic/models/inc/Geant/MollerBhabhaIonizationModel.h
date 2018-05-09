@@ -238,7 +238,6 @@ protected:
     std::vector<LinAlias *> fAliasData;
   };
 
-protected:
   /** @brief Flag to indicate if the model is for electron or positron interaction. */
   bool fIsElectron;
 
@@ -251,6 +250,9 @@ protected:
   std::vector<int> fGlobalMatECutIndxToLocal;
   std::vector<AliasDataMaterialCuts *> fSamplingTables;
 
+  /** @brief This struct is used for alias sampling, it is just like AliasDataMaterialCuts here but with different
+   *         memory layout, it is used in vectorized alias sampling
+   */
   struct AliasDataForMatCut {
     AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
     {
@@ -262,6 +264,10 @@ protected:
     std::vector<LinAliasCached> fAliasData;
   };
 
+  /** @brief This struct is used for alias sampling, it is somewhat like vector<AliasDataMaterialCuts> here but with
+   * different
+   *         memory layout, it is used in vectorized alias sampling
+   */
   struct AliasDataForAllMatCuts {
     std::vector<std::unique_ptr<AliasDataForMatCut>> fTablesPerMatCut;
     std::vector<int> fNData;

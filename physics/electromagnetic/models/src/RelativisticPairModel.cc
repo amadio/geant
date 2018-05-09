@@ -316,6 +316,41 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
   return epsMin * Math::Exp(xi * Math::Log(0.5 / epsMin));
 }
 
+Double_v RelativisticPairModel::SampleTotalEnergyTransferAlias(const Double_v egamma, const int *matIDX,
+                                                               const Double_v r1, const Double_v r2, const Double_v r3)
+{
+  const Double_v legamma = Math::Log(egamma);
+
+  Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
+  IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh  = val - indxEgamma;
+  MaskD_v mask        = r1 < pIndxHigh;
+  if (!MaskEmpty(mask)) {
+    vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
+  }
+
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    int idx                  = (int)Get(indxEgamma, l);
+    RatinAliasDataTrans &als = fAliasTablesPerMaterial[matIDX[l]].fTablePerEn[idx];
+    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l), 0);
+    Set(xiV, l, xi);
+  }
+
+  Double_v deltaMax;
+  Double_v deltaFactor;
+  for (int l = 0; l < kVecLenD; ++l) {
+    int izet = fAliasTablesPerMaterial[matIDX[l]].fILowestZ;
+    Set(deltaMax, l, gElementData[izet]->fDeltaMaxTsai);
+    Set(deltaFactor, l, gElementData[izet]->fDeltaFactor);
+  }
+  const Double_v eps0   = geant::units::kElectronMassC2 / egamma;
+  const Double_v epsp   = 0.5 - 0.5 * Math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
+  const Double_v epsMin = Math::Max(eps0, epsp);
+  const Double_v epsV   = epsMin * Math::Exp(xiV * Math::Log(0.5 / epsMin));
+  return epsV;
+}
+
 // Sample totel energy (fraction) transfered to one of the e-/e+ pair with REJECTION: i.e. first the target atom
 // needs to be sampled and there is an option if Tsai's screening is used or not: if Tsai's screening is used then
 // epsmin, and so on must be evaluated with Tsai's screening
@@ -373,6 +408,115 @@ double RelativisticPairModel::SampleTotalEnergyTransfer(const double egamma, con
     }
   } while (greject < rndArray[2]);
   return eps;
+}
+
+void RelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy,
+                                                            const int *izet, double *epsOut, int N, geant::TaskData *td)
+{
+  // assert(N>=kVecLenD)
+  // Init variables for lane refiling bookkeeping
+  int currN = 0;
+  MaskD_v lanesDone;
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
+  }
+
+  while (currN < N || !MaskFull(lanesDone)) {
+    // Gather data for one round of sampling
+    Double_v fz;
+    Double_v deltaMax;
+    Double_v deltaFac;
+    Double_v varS1Cond, ilVarS1Cond;
+
+    for (int l = 0; l < kVecLenD; ++l) {
+      int lZet = izet[Get(idx, l)];
+      Set(fz, l, gElementData[lZet]->fFz);
+      Set(deltaMax, l, fIsUseTsaisScreening ? gElementData[lZet]->fDeltaMaxTsai : gElementData[lZet]->fDeltaMax);
+      Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
+      Set(varS1Cond, l, gElementData[lZet]->fVarS1Cond);
+      Set(ilVarS1Cond, l, gElementData[lZet]->fILVarS1Cond);
+    }
+
+    Double_v egammaV        = vecCore::Gather<Double_v>(egamma, idx);
+    const Double_v eps0     = geant::units::kElectronMassC2 / egammaV;
+    const Double_v deltaMin = 4. * eps0 * deltaFac;
+    const Double_v epsp     = 0.5 - 0.5 * Math::Sqrt(1. - deltaMin / deltaMax);
+    const Double_v epsMin   = Math::Max(eps0, epsp);
+    const Double_v epsRange = 0.5 - epsMin;
+
+    Double_v F10, F20;
+    ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
+    F10 -= fz;
+    F20 -= fz;
+
+    const Double_v NormF1   = Math::Max(F10 * epsRange * epsRange, (Double_v)0.);
+    const Double_v NormF2   = Math::Max(1.5 * F20, (Double_v)0.);
+    const Double_v NormCond = NormF1 / (NormF1 + NormF2);
+
+    Double_v rnd0 = td->fRndm->uniformV();
+    Double_v rnd1 = td->fRndm->uniformV();
+    Double_v rnd2 = td->fRndm->uniformV();
+
+    Double_v eps     = 0.0;
+    Double_v greject = 0.0;
+    MaskD_v cond1    = NormCond > rnd0;
+    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * Math::Pow(rnd1, (Double_v)1. / 3.));
+    vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
+    const Double_v delta = deltaFac * eps0 / (eps * (1. - eps));
+
+    MaskD_v lpmMask     = MaskD_v(fIsUseLPM) && egammaV > fLPMEnergyLimit;
+    Double_v lpmEnergyV = vecCore::Gather<Double_v>(lpmEnergy, idx);
+    if (!MaskEmpty(cond1)) {
+      if (!MaskEmpty(lpmMask)) {
+        Double_v lpmPhiS, lpmGS, lpmXiS, phi1, phi2;
+        ComputeScreeningFunctions(phi1, phi2, delta, fIsUseTsaisScreening);
+        ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmEnergyV, eps, egammaV, varS1Cond, ilVarS1Cond);
+        Double_v tmpRej = lpmXiS * ((lpmGS + 2. * lpmPhiS) * phi1 - lpmGS * phi2 - lpmPhiS * fz) / F10;
+        vecCore::MaskedAssign(greject, cond1 && lpmMask, tmpRej);
+      }
+      if (!MaskEmpty(!lpmMask)) {
+        vecCore::MaskedAssign(greject, cond1 && !lpmMask, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
+      }
+    }
+    if (!MaskEmpty(!cond1)) {
+      if (!MaskEmpty(lpmMask)) {
+        Double_v lpmPhiS, lpmGS, lpmXiS, phi1, phi2;
+        ComputeScreeningFunctions(phi1, phi2, delta, fIsUseTsaisScreening);
+        ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmEnergyV, eps, egammaV, varS1Cond, ilVarS1Cond);
+        Double_v tmpRej =
+            lpmXiS * ((0.5 * lpmGS + lpmPhiS) * phi1 + 0.5 * lpmGS * phi2 - 0.5 * (lpmGS + lpmPhiS) * fz) / F20;
+        vecCore::MaskedAssign(greject, !cond1 && lpmMask, tmpRej);
+      }
+      if (!MaskEmpty(!lpmMask)) {
+        vecCore::MaskedAssign(greject, !cond1 && !lpmMask, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
+      }
+    }
+
+    MaskD_v accepted = greject > rnd2;
+
+    // Scatter data sampled in this round
+    if (!MaskEmpty(accepted)) {
+      vecCore::Scatter(eps, epsOut, idx);
+    }
+
+    // Refill index lanes with next value if there is some particles to sample
+    // if there is no work left - fill index with sentinel value(all input arrays should contain sentinel values after
+    // end)
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto laneDone = Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
+        } else {
+          Set(idx, l, N);
+        }
+      }
+    }
+  }
 }
 
 double RelativisticPairModel::ComputeAtomicCrossSection(const Element *elem, const Material *mat, const double egamma)
@@ -1098,144 +1242,6 @@ void RelativisticPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
       secondarySoA.SetGVcode(fPositronInternalCode, idx);
       secondarySoA.SetMass(geant::units::kElectronMassC2, idx);
       secondarySoA.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
-    }
-  }
-}
-
-Double_v RelativisticPairModel::SampleTotalEnergyTransferAlias(const Double_v egamma, const int *matIDX,
-                                                               const Double_v r1, const Double_v r2, const Double_v r3)
-{
-  const Double_v legamma = Math::Log(egamma);
-
-  Double_v val        = (legamma - fSTLogMinPhotonEnergy) * fSTILDeltaPhotonEnergy;
-  IndexD_v indxEgamma = (IndexD_v)val; // lower electron energy bin index
-  Double_v pIndxHigh  = val - indxEgamma;
-  MaskD_v mask        = r1 < pIndxHigh;
-  if (!MaskEmpty(mask)) {
-    vecCore::MaskedAssign(indxEgamma, mask, indxEgamma + 1);
-  }
-
-  Double_v xiV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    int idx                  = (int)Get(indxEgamma, l);
-    RatinAliasDataTrans &als = fAliasTablesPerMaterial[matIDX[l]].fTablePerEn[idx];
-    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l), 0);
-    Set(xiV, l, xi);
-  }
-
-  Double_v deltaMax;
-  Double_v deltaFactor;
-  for (int l = 0; l < kVecLenD; ++l) {
-    int izet = fAliasTablesPerMaterial[matIDX[l]].fILowestZ;
-    Set(deltaMax, l, gElementData[izet]->fDeltaMaxTsai);
-    Set(deltaFactor, l, gElementData[izet]->fDeltaFactor);
-  }
-  const Double_v eps0   = geant::units::kElectronMassC2 / egamma;
-  const Double_v epsp   = 0.5 - 0.5 * Math::Sqrt(1. - 4. * eps0 * deltaFactor / deltaMax);
-  const Double_v epsMin = Math::Max(eps0, epsp);
-  const Double_v epsV   = epsMin * Math::Exp(xiV * Math::Log(0.5 / epsMin));
-  return epsV;
-}
-
-void RelativisticPairModel::SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy,
-                                                            const int *izet, double *epsOut, int N, geant::TaskData *td)
-{
-  // assert(N>=kVecLenD)
-  int currN = 0;
-  MaskD_v lanesDone;
-  IndexD_v idx;
-  for (int l = 0; l < kVecLenD; ++l) {
-    AssignMaskLane(lanesDone, l, false);
-    Set(idx, l, currN++);
-  }
-
-  while (currN < N || !MaskFull(lanesDone)) {
-    Double_v fz;
-    Double_v deltaMax;
-    Double_v deltaFac;
-    Double_v varS1Cond, ilVarS1Cond;
-
-    for (int l = 0; l < kVecLenD; ++l) {
-      int lZet = izet[Get(idx, l)];
-      Set(fz, l, gElementData[lZet]->fFz);
-      Set(deltaMax, l, fIsUseTsaisScreening ? gElementData[lZet]->fDeltaMaxTsai : gElementData[lZet]->fDeltaMax);
-      Set(deltaFac, l, gElementData[lZet]->fDeltaFactor);
-      Set(varS1Cond, l, gElementData[lZet]->fVarS1Cond);
-      Set(ilVarS1Cond, l, gElementData[lZet]->fILVarS1Cond);
-    }
-
-    Double_v egammaV        = vecCore::Gather<Double_v>(egamma, idx);
-    const Double_v eps0     = geant::units::kElectronMassC2 / egammaV;
-    const Double_v deltaMin = 4. * eps0 * deltaFac;
-    const Double_v epsp     = 0.5 - 0.5 * Math::Sqrt(1. - deltaMin / deltaMax);
-    const Double_v epsMin   = Math::Max(eps0, epsp);
-    const Double_v epsRange = 0.5 - epsMin;
-
-    Double_v F10, F20;
-    ScreenFunction12(F10, F20, deltaMin, fIsUseTsaisScreening);
-    F10 -= fz;
-    F20 -= fz;
-
-    const Double_v NormF1   = Math::Max(F10 * epsRange * epsRange, (Double_v)0.);
-    const Double_v NormF2   = Math::Max(1.5 * F20, (Double_v)0.);
-    const Double_v NormCond = NormF1 / (NormF1 + NormF2);
-
-    Double_v rnd0 = td->fRndm->uniformV();
-    Double_v rnd1 = td->fRndm->uniformV();
-    Double_v rnd2 = td->fRndm->uniformV();
-
-    Double_v eps     = 0.0;
-    Double_v greject = 0.0;
-    MaskD_v cond1    = NormCond > rnd0;
-    vecCore::MaskedAssign(eps, cond1, 0.5 - epsRange * Math::Pow(rnd1, (Double_v)1. / 3.));
-    vecCore::MaskedAssign(eps, !cond1, epsMin + epsRange * rnd1);
-    const Double_v delta = deltaFac * eps0 / (eps * (1. - eps));
-
-    MaskD_v lpmMask     = MaskD_v(fIsUseLPM) && egammaV > fLPMEnergyLimit;
-    Double_v lpmEnergyV = vecCore::Gather<Double_v>(lpmEnergy, idx);
-    if (!MaskEmpty(cond1)) {
-      if (!MaskEmpty(lpmMask)) {
-        Double_v lpmPhiS, lpmGS, lpmXiS, phi1, phi2;
-        ComputeScreeningFunctions(phi1, phi2, delta, fIsUseTsaisScreening);
-        ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmEnergyV, eps, egammaV, varS1Cond, ilVarS1Cond);
-        Double_v tmpRej = lpmXiS * ((lpmGS + 2. * lpmPhiS) * phi1 - lpmGS * phi2 - lpmPhiS * fz) / F10;
-        vecCore::MaskedAssign(greject, cond1 && lpmMask, tmpRej);
-      }
-      if (!MaskEmpty(!lpmMask)) {
-        vecCore::MaskedAssign(greject, cond1 && !lpmMask, (ScreenFunction1(delta, fIsUseTsaisScreening) - fz) / F10);
-      }
-    }
-    if (!MaskEmpty(!cond1)) {
-      if (!MaskEmpty(lpmMask)) {
-        Double_v lpmPhiS, lpmGS, lpmXiS, phi1, phi2;
-        ComputeScreeningFunctions(phi1, phi2, delta, fIsUseTsaisScreening);
-        ComputeLPMfunctions(lpmXiS, lpmGS, lpmPhiS, lpmEnergyV, eps, egammaV, varS1Cond, ilVarS1Cond);
-        Double_v tmpRej =
-            lpmXiS * ((0.5 * lpmGS + lpmPhiS) * phi1 + 0.5 * lpmGS * phi2 - 0.5 * (lpmGS + lpmPhiS) * fz) / F20;
-        vecCore::MaskedAssign(greject, !cond1 && lpmMask, tmpRej);
-      }
-      if (!MaskEmpty(!lpmMask)) {
-        vecCore::MaskedAssign(greject, !cond1 && !lpmMask, (ScreenFunction2(delta, fIsUseTsaisScreening) - fz) / F20);
-      }
-    }
-
-    MaskD_v accepted = greject > rnd2;
-
-    if (!MaskEmpty(accepted)) {
-      vecCore::Scatter(eps, epsOut, idx);
-    }
-
-    lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = Get(accepted, l);
-      if (laneDone) {
-        if (currN < N) {
-          Set(idx, l, currN++);
-          AssignMaskLane(lanesDone, l, false);
-        } else {
-          Set(idx, l, N);
-        }
-      }
     }
   }
 }

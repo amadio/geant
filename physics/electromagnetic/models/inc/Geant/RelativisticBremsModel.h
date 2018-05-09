@@ -302,6 +302,9 @@ protected:
   void SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zet, const double *densityCor,
                             const double *lpmEnergy, double *gammaEn, int N, const geant::TaskData *td);
 
+  /** @brief This struct is used for alias sampling, it is just like AliasDataMaterialCuts here but with different
+   *         memory layout, it is used in vectorized alias sampling
+   */
   struct AliasDataForMatCut {
     AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
     {

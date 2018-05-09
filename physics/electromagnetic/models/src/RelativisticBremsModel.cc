@@ -988,6 +988,41 @@ double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, do
   return std::sqrt(dum1 * Math::Exp(gammae * Math::Log(dum2)) - densityCor);
 }
 
+Double_v RelativisticBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double_v densityCor, IndexD_v mcLocalIdx,
+                                                      double *tableEmin, double *tableILDeta, Double_v primekin,
+                                                      Double_v r1, Double_v r2, Double_v r3)
+{
+  Double_v lPrimEkin    = Math::Log(primekin);
+  Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
+  Double_v ilDelta      = vecCore::Gather<Double_v>(tableILDeta, mcLocalIdx);
+  Double_v val          = (lPrimEkin - logEmin) * ilDelta;
+  IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh    = val - indxPrimEkin;
+  MaskD_v mask          = r1 < pIndxHigh;
+  if (!MaskEmpty(mask)) {
+    vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
+  }
+
+  Double_v egammaV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    assert(indxPrimEkin[l] >= 0);
+    assert(indxPrimEkin[l] <= fSamplingTables[mcLocalIdx[l]]->fAliasData.size() - 1);
+    //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
+    //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
+
+    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    const double egamma =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumSamplingPhotEnergies, Get(r2, l), Get(r3, l));
+    Set(egammaV, l, egamma);
+  }
+
+  const Double_v dum1 = gammaCut * gammaCut + densityCor;
+  const Double_v dum2 = (primekin * primekin + densityCor) / dum1;
+
+  return Math::Sqrt(dum1 * Math::Exp(egammaV * Math::Log(dum2)) - densityCor);
+}
+
 double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, double eekin, geant::TaskData *td)
 {
   const double gcut       = (matcut->GetProductionCutsInEnergy())[0];
@@ -1023,6 +1058,80 @@ double RelativisticBremsModel::SamplePhotonEnergy(const MaterialCuts *matcut, do
   } while (funcVal < rndArray[1] * funcMax);
 
   return egamma;
+}
+
+void RelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zetArr,
+                                                  const double *densityCorConstArr, const double *lpmEnergyArr,
+                                                  double *gammaEn, int N, const geant::TaskData *td)
+{
+
+  // assert(N>=kVecLenD)
+  // Init variables for lane refiling bookkeeping
+  int currN = 0;
+  MaskD_v lanesDone;
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
+  }
+
+  while (currN < N || !MaskFull(lanesDone)) {
+    // Gather data for one round of sampling
+    Double_v eekin            = vecCore::Gather<Double_v>(eEkin, idx);
+    Double_v gcut             = vecCore::Gather<Double_v>(gammaCut, idx);
+    Double_v densityCorrConst = vecCore::Gather<Double_v>(densityCorConstArr, idx);
+    Double_v lpmEnergy        = vecCore::Gather<Double_v>(lpmEnergyArr, idx);
+    Double_v zet              = vecCore::Gather<Double_v>(zetArr, idx);
+
+    Double_v etot        = eekin + geant::units::kElectronMassC2;
+    Double_v densityCorr = densityCorrConst * etot * etot;
+
+    Double_v energyThLPM = Math::Sqrt(densityCorrConst) * lpmEnergy;
+    MaskD_v isLPM        = MaskD_v(fIsUseLPM) && (etot > energyThLPM);
+
+    Double_v minVal   = Math::Log(gcut * gcut + densityCorr);
+    Double_v valRange = Math::Log(eekin * eekin + densityCorr) - minVal;
+    Double_v funcMax;
+    std::array<int, kVecLenD> izetV;
+    for (int l = 0; l < kVecLenD; ++l) {
+      const int izet = std::min(std::lrint(Get(zet, l)), gMaxZet - 1);
+      Set(funcMax, l, gElementData[izet]->fZFactor1 + gElementData[izet]->fZFactor2);
+      izetV[l] = izet;
+    }
+
+    Double_v egamma =
+        Math::Sqrt(Math::Max(Math::Exp(minVal + td->fRndm->uniformV() * valRange) - densityCorr, (Double_v)0.));
+    Double_v funcVal;
+    if (!MaskEmpty(isLPM)) {
+      vecCore::MaskedAssign(funcVal, isLPM, ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCorr, izetV));
+    }
+    if (!MaskEmpty(!isLPM)) {
+      vecCore::MaskedAssign(funcVal, !isLPM, ComputeDXSecPerAtom(egamma, etot, zet));
+    }
+
+    MaskD_v accepted = funcVal > td->fRndm->uniformV() * funcMax;
+
+    // Scatter data sampled in this round
+    if (!MaskEmpty(accepted)) {
+      vecCore::Scatter(egamma, gammaEn, idx);
+    }
+
+    // Refill index lanes with next value if there is some particles to sample
+    // if there is no work left - fill index with sentinel value(all input arrays should contain sentinel values after
+    // end)
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto laneDone = Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
+        } else {
+          Set(idx, l, N);
+        }
+      }
+    }
+  }
 }
 
 // the simple DipBustgenerator
@@ -1393,109 +1502,6 @@ void RelativisticBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Task
       tracks.SetDirY(Get(elDirY * norm, l), i + l);
       tracks.SetDirZ(Get(elDirZ * norm, l), i + l);
       tracks.SetKinE(Get(ekin - gammaEnergy, l), i + l);
-    }
-  }
-}
-
-Double_v RelativisticBremsModel::SampleEnergyTransfer(Double_v gammaCut, Double_v densityCor, IndexD_v mcLocalIdx,
-                                                      double *tableEmin, double *tableILDeta, Double_v primekin,
-                                                      Double_v r1, Double_v r2, Double_v r3)
-{
-  Double_v lPrimEkin    = Math::Log(primekin);
-  Double_v logEmin      = vecCore::Gather<Double_v>(tableEmin, mcLocalIdx);
-  Double_v ilDelta      = vecCore::Gather<Double_v>(tableILDeta, mcLocalIdx);
-  Double_v val          = (lPrimEkin - logEmin) * ilDelta;
-  IndexD_v indxPrimEkin = (IndexD_v)val; // lower electron energy bin index
-  Double_v pIndxHigh    = val - indxPrimEkin;
-  MaskD_v mask          = r1 < pIndxHigh;
-  if (!MaskEmpty(mask)) {
-    vecCore::MaskedAssign(indxPrimEkin, mask, indxPrimEkin + 1);
-  }
-
-  Double_v egammaV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    assert(indxPrimEkin[l] >= 0);
-    assert(indxPrimEkin[l] <= fSamplingTables[mcLocalIdx[l]]->fAliasData.size() - 1);
-    //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
-    //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
-
-    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
-    const double egamma =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumSamplingPhotEnergies, Get(r2, l), Get(r3, l));
-    Set(egammaV, l, egamma);
-  }
-
-  const Double_v dum1 = gammaCut * gammaCut + densityCor;
-  const Double_v dum2 = (primekin * primekin + densityCor) / dum1;
-
-  return Math::Sqrt(dum1 * Math::Exp(egammaV * Math::Log(dum2)) - densityCor);
-}
-
-void RelativisticBremsModel::SampleEnergyTransfer(const double *eEkin, const double *gammaCut, const double *zetArr,
-                                                  const double *densityCorConstArr, const double *lpmEnergyArr,
-                                                  double *gammaEn, int N, const geant::TaskData *td)
-{
-
-  // assert(N>=kVecLenD)
-  int currN = 0;
-  MaskD_v lanesDone;
-  IndexD_v idx;
-  for (int l = 0; l < kVecLenD; ++l) {
-    AssignMaskLane(lanesDone, l, false);
-    Set(idx, l, currN++);
-  }
-
-  while (currN < N || !MaskFull(lanesDone)) {
-    Double_v eekin            = vecCore::Gather<Double_v>(eEkin, idx);
-    Double_v gcut             = vecCore::Gather<Double_v>(gammaCut, idx);
-    Double_v densityCorrConst = vecCore::Gather<Double_v>(densityCorConstArr, idx);
-    Double_v lpmEnergy        = vecCore::Gather<Double_v>(lpmEnergyArr, idx);
-    Double_v zet              = vecCore::Gather<Double_v>(zetArr, idx);
-
-    Double_v etot        = eekin + geant::units::kElectronMassC2;
-    Double_v densityCorr = densityCorrConst * etot * etot;
-
-    Double_v energyThLPM = Math::Sqrt(densityCorrConst) * lpmEnergy;
-    MaskD_v isLPM        = MaskD_v(fIsUseLPM) && (etot > energyThLPM);
-
-    Double_v minVal   = Math::Log(gcut * gcut + densityCorr);
-    Double_v valRange = Math::Log(eekin * eekin + densityCorr) - minVal;
-    Double_v funcMax;
-    std::array<int, kVecLenD> izetV;
-    for (int l = 0; l < kVecLenD; ++l) {
-      const int izet = std::min(std::lrint(Get(zet, l)), gMaxZet - 1);
-      Set(funcMax, l, gElementData[izet]->fZFactor1 + gElementData[izet]->fZFactor2);
-      izetV[l] = izet;
-    }
-
-    Double_v egamma =
-        Math::Sqrt(Math::Max(Math::Exp(minVal + td->fRndm->uniformV() * valRange) - densityCorr, (Double_v)0.));
-    Double_v funcVal;
-    if (!MaskEmpty(isLPM)) {
-      vecCore::MaskedAssign(funcVal, isLPM, ComputeURelDXSecPerAtom(egamma, etot, lpmEnergy, densityCorr, izetV));
-    }
-    if (!MaskEmpty(!isLPM)) {
-      vecCore::MaskedAssign(funcVal, !isLPM, ComputeDXSecPerAtom(egamma, etot, zet));
-    }
-
-    MaskD_v accepted = funcVal > td->fRndm->uniformV() * funcMax;
-
-    if (!MaskEmpty(accepted)) {
-      vecCore::Scatter(egamma, gammaEn, idx);
-    }
-
-    lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = Get(accepted, l);
-      if (laneDone) {
-        if (currN < N) {
-          Set(idx, l, currN++);
-          AssignMaskLane(lanesDone, l, false);
-        } else {
-          Set(idx, l, N);
-        }
-      }
     }
   }
 }

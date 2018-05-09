@@ -7,6 +7,11 @@
 
 namespace geantphysics {
 
+/** @brief This is table with data needed for linear alias sampling.
+ *  The difference is that this one:
+ *  1) Stores data in form of SOA(only one memory access is required to get all the data)
+ *  2) Stores some additional values for simplified calculations(there is memory overhead)
+ */
 struct LinAliasCached {
   LinAliasCached(int num) { fLinAliasData.resize(num); }
 
@@ -22,6 +27,10 @@ struct LinAliasCached {
   std::vector<LinAliasData> fLinAliasData;
 };
 
+/** @brief This is table with data needed for ratin alias sampling.
+ *  The difference is that this one:
+ *  1) Stores data in form of SOA(only one memory access is required to get all the data)
+ */
 struct RatinAliasDataTrans {
   RatinAliasDataTrans(size_t n) { fData.resize(n); }
   RatinAliasDataTrans(){};

@@ -400,6 +400,9 @@ protected:
     */
   AliasTable *fAliasSampler;
 
+  /** @brief This struct is used for alias sampling, it is just like RatinAliasDataPerElement here but with different
+   *         memory layout, it is used in vectorized alias sampling
+   */
   struct RatinAliasTablePerElem {
     std::vector<RatinAliasDataTrans> fTablePerEn;
     RatinAliasTablePerElem() : fTablePerEn(0) {}

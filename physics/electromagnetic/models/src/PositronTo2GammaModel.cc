@@ -203,6 +203,43 @@ double PositronTo2GammaModel::SampleEnergyTransfer(double pekin, double gamma, d
   return eps;
 }
 
+geant::Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v gamma,
+                                                                 geant::Double_v r2, geant::Double_v r3,
+                                                                 geant::Double_v r1)
+{
+  // Compute energy index
+  Double_v lpekin = Math::Log(pekin);
+  //
+  Double_v val       = (lpekin - fSTLogMinPositronEnergy) * fSTILDeltaPositronEnergy;
+  IndexD_v indxPekin = (IndexD_v)val; // lower electron energy bin index
+  Double_v pIndxHigh = val - indxPekin;
+  MaskD_v mask       = r1 < pIndxHigh;
+  if (!MaskEmpty(mask)) {
+    vecCore::MaskedAssign(indxPekin, mask, indxPekin + 1);
+  }
+
+  Double_v xiV;
+  for (int l = 0; l < kVecLenD; ++l) {
+    int idx = (int)Get(indxPekin, l);
+
+    // LinAliasCached &als = fCachedAliasTable[idx];
+    //    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l);
+
+    // Standard version:
+    const LinAlias *als = fSamplingTables[idx];
+    const double xi =
+        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+    Set(xiV, l, xi);
+  }
+
+  const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+  const Double_v maxEps = 0.5 * (1. + Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+  const Double_v eps    = Math::Exp(xiV * Math::Log(maxEps / minEps)) * minEps;
+
+  return eps;
+}
+
 double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, geant::TaskData *td)
 {
   const double minEps = 0.5 * (1. - std::sqrt((gamma - 1.) / (gamma + 1.)));
@@ -216,6 +253,59 @@ double PositronTo2GammaModel::SampleEnergyTransfer(double gamma, geant::TaskData
     eps = minEps * Math::Exp(dum1 * rndArray[0]);
   } while (1. - eps + (2. * gamma * eps - 1.) / (eps * dum2) < rndArray[1]);
   return eps;
+}
+
+void PositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, double *epsOut, int N,
+                                                    const geant::TaskData *td)
+{
+  // assert(N>=kVecLenD)
+  // Init variables for lane refiling bookkeeping
+  int currN = 0;
+  MaskD_v lanesDone;
+  IndexD_v idx;
+  for (int l = 0; l < kVecLenD; ++l) {
+    AssignMaskLane(lanesDone, l, false);
+    Set(idx, l, currN++);
+  }
+
+  while (currN < N || !MaskFull(lanesDone)) {
+    // Gather data for one round of sampling
+    Double_v gamma = vecCore::Gather<Double_v>(gammaArr, idx);
+
+    const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+    const Double_v maxEps = 0.5 * (1. + Math::Sqrt((gamma - 1.) / (gamma + 1.)));
+    const Double_v dum1   = Math::Log(maxEps / minEps);
+    const Double_v dum2   = (gamma + 1.) * (gamma + 1.);
+
+    Double_v rnd0 = td->fRndm->uniformV();
+    Double_v rnd1 = td->fRndm->uniformV();
+
+    Double_v eps = minEps * Math::Exp(dum1 * rnd0);
+
+    Double_v grej    = 1. - eps + (2. * gamma * eps - 1.) / (eps * dum2);
+    MaskD_v accepted = grej > rnd1;
+
+    // Scatter data sampled in this round
+    if (!MaskEmpty(accepted)) {
+      vecCore::Scatter(eps, epsOut, idx);
+    }
+
+    // Refill index lanes with next value if there is some particles to sample
+    // if there is no work left - fill index with sentinel value(all input arrays should contain sentinel values after
+    // end)
+    lanesDone = lanesDone || accepted;
+    for (int l = 0; l < kVecLenD; ++l) {
+      auto laneDone = Get(accepted, l);
+      if (laneDone) {
+        if (currN < N) {
+          Set(idx, l, currN++);
+          AssignMaskLane(lanesDone, l, false);
+        } else {
+          Set(idx, l, N);
+        }
+      }
+    }
+  }
 }
 
 void PositronTo2GammaModel::InitSamplingTables()
@@ -424,90 +514,6 @@ void PositronTo2GammaModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
     for (int l = 0; l < kVecLenD; ++l) {
       tracks.SetKinE(0.0, i + l);
       tracks.SetTrackStatus(LTrackStatus::kKill, i + l);
-    }
-  }
-}
-
-geant::Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(geant::Double_v pekin, geant::Double_v gamma,
-                                                                 geant::Double_v r2, geant::Double_v r3,
-                                                                 geant::Double_v r1)
-{
-  // Compute energy index
-  Double_v lpekin = Math::Log(pekin);
-  //
-  Double_v val       = (lpekin - fSTLogMinPositronEnergy) * fSTILDeltaPositronEnergy;
-  IndexD_v indxPekin = (IndexD_v)val; // lower electron energy bin index
-  Double_v pIndxHigh = val - indxPekin;
-  MaskD_v mask       = r1 < pIndxHigh;
-  if (!MaskEmpty(mask)) {
-    vecCore::MaskedAssign(indxPekin, mask, indxPekin + 1);
-  }
-
-  Double_v xiV;
-  for (int l = 0; l < kVecLenD; ++l) {
-    int idx = (int)Get(indxPekin, l);
-
-    // LinAliasCached &als = fCachedAliasTable[idx];
-    //    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l);
-
-    // Standard version:
-    const LinAlias *als = fSamplingTables[idx];
-    const double xi =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
-    Set(xiV, l, xi);
-  }
-
-  const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
-  const Double_v maxEps = 0.5 * (1. + Math::Sqrt((gamma - 1.) / (gamma + 1.)));
-  const Double_v eps    = Math::Exp(xiV * Math::Log(maxEps / minEps)) * minEps;
-
-  return eps;
-}
-
-void PositronTo2GammaModel::SampleEnergyTransferRej(const double *gammaArr, double *epsOut, int N,
-                                                    const geant::TaskData *td)
-{
-  // assert(N>=kVecLenD)
-  int currN = 0;
-  MaskD_v lanesDone;
-  IndexD_v idx;
-  for (int l = 0; l < kVecLenD; ++l) {
-    AssignMaskLane(lanesDone, l, false);
-    Set(idx, l, currN++);
-  }
-
-  while (currN < N || !MaskFull(lanesDone)) {
-    Double_v gamma = vecCore::Gather<Double_v>(gammaArr, idx);
-
-    const Double_v minEps = 0.5 * (1. - Math::Sqrt((gamma - 1.) / (gamma + 1.)));
-    const Double_v maxEps = 0.5 * (1. + Math::Sqrt((gamma - 1.) / (gamma + 1.)));
-    const Double_v dum1   = Math::Log(maxEps / minEps);
-    const Double_v dum2   = (gamma + 1.) * (gamma + 1.);
-
-    Double_v rnd0 = td->fRndm->uniformV();
-    Double_v rnd1 = td->fRndm->uniformV();
-
-    Double_v eps = minEps * Math::Exp(dum1 * rnd0);
-
-    Double_v grej    = 1. - eps + (2. * gamma * eps - 1.) / (eps * dum2);
-    MaskD_v accepted = grej > rnd1;
-
-    if (!MaskEmpty(accepted)) {
-      vecCore::Scatter(eps, epsOut, idx);
-    }
-
-    lanesDone = lanesDone || accepted;
-    for (int l = 0; l < kVecLenD; ++l) {
-      auto laneDone = Get(accepted, l);
-      if (laneDone) {
-        if (currN < N) {
-          Set(idx, l, currN++);
-          AssignMaskLane(lanesDone, l, false);
-        } else {
-          Set(idx, l, N);
-        }
-      }
     }
   }
 }

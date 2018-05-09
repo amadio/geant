@@ -207,6 +207,9 @@ protected:
 
   GLIntegral *fGL;
 
+  /** @brief This struct is used for alias sampling, it is just like AliasDataMaterialCuts here but with different
+   *         memory layout, it is used in vectorized alias sampling
+   */
   struct AliasDataForMatCut {
     AliasDataForMatCut(int ntables, double lemin, double ildel) : fNData(ntables), fLogEmin(lemin), fILDelta(ildel)
     {
