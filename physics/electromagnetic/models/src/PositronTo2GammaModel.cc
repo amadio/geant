@@ -68,6 +68,26 @@ void PositronTo2GammaModel::Initialize()
   fSecondaryInternalCode = Gamma::Definition()->GetInternalCode();
   if (GetUseSamplingTables()) { // if sampling tables were requested
     InitSamplingTables();
+
+    // Steal table to new format
+    for (int i = 0; i < (int)fSamplingTables.size(); ++i) {
+      LinAlias *alias = fSamplingTables[i];
+      int size        = (int)alias->fAliasIndx.size();
+
+      LinAliasCached aliasCached(size);
+      for (int j = 0; j < size - 1; ++j) {
+        aliasCached.fLinAliasData[j].fAliasIndx  = alias->fAliasIndx[j];
+        aliasCached.fLinAliasData[j].fAliasW     = alias->fAliasW[j];
+        aliasCached.fLinAliasData[j].fX          = alias->fXdata[j];
+        aliasCached.fLinAliasData[j].fYdata      = alias->fYdata[j];
+        aliasCached.fLinAliasData[j].fXdelta     = alias->fXdata[j + 1] - alias->fXdata[j];
+        aliasCached.fLinAliasData[j].fYdataDelta = (alias->fYdata[j + 1] - alias->fYdata[j]) / alias->fYdata[j];
+        aliasCached.fLinAliasData[j].fXdivYdelta =
+            aliasCached.fLinAliasData[j].fXdelta / aliasCached.fLinAliasData[j].fYdataDelta;
+      }
+      fCachedAliasTable.push_back(aliasCached);
+    }
+
   } // else => rejection
 }
 
@@ -222,14 +242,15 @@ geant::Double_v PositronTo2GammaModel::SampleEnergyTransferAlias(geant::Double_v
   for (int l = 0; l < kVecLenD; ++l) {
     int idx = (int)Get(indxPekin, l);
 
-    // LinAliasCached &als = fCachedAliasTable[idx];
-    //    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, r2l, r3l);
+    auto &als = fCachedAliasTable[idx];
+    double xi = als.Sample(Get(r2, l), Get(r3, l));
 
     // Standard version:
-    const LinAlias *als = fSamplingTables[idx];
-    const double xi =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+    //    const LinAlias *als = fSamplingTables[idx];
+    //    const double xi =
+    //        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
+    //        &(als->fAliasIndx[0]),
+    //                                    fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
     Set(xiV, l, xi);
   }
 

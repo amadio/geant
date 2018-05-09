@@ -96,6 +96,8 @@ void SeltzerBergerBremsModel::Initialize()
   fSecondaryInternalCode = Gamma::Definition()->GetInternalCode();
   if (GetUseSamplingTables()) { // if sampling tables were requested
     InitSamplingTables();
+
+    // Transform table to new format
     int NCutTables = (int)fSamplingTables.size();
     for (int i = 0; i < NCutTables; ++i) {
       // push empty data for equal spacing
@@ -781,15 +783,14 @@ Double_v SeltzerBergerBremsModel::SamplePhotonEnergy(Double_v gammaCut, Double_v
 
   Double_v egammaV;
   for (int l = 0; l < kVecLenD; ++l) {
-    assert(indxPrimEkin[l] >= 0);
-    assert(indxPrimEkin[l] <= fSamplingTables[mcLocalIdx[l]]->fAliasData.size() - 1);
-    //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
-    //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
+    auto &als     = fAliasData.fTablesPerMatCut[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    double egamma = als.Sample(Get(r2, l), Get(r3, l));
 
-    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
-    const double egamma =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumSamplingPhotEnergies, Get(r2, l), Get(r3, l));
+    //    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    //    const double egamma =
+    //        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
+    //        &(als->fAliasIndx[0]),
+    //                                    fSTNumSamplingPhotEnergies, Get(r2, l), Get(r3, l));
     Set(egammaV, l, egamma);
   }
 

@@ -382,9 +382,9 @@ Double_v KleinNishinaComptonModel::SampleReducedPhotonEnergyVec(Double_v egamma,
 
   Double_v xiV;
   for (int l = 0; l < kVecLenD; ++l) {
-    int idx             = (int)Get(indxEgamma, l);
-    LinAliasCached &als = fAliasTablePerGammaEnergy[idx];
-    double xi = AliasTableAlternative::SampleLinear(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l));
+    int idx   = (int)Get(indxEgamma, l);
+    auto &als = fAliasTablePerGammaEnergy[idx];
+    double xi = als.Sample(Get(r2, l), Get(r3, l));
 
     // Old version:
     // const LinAlias *als = fSamplingTables[idx];

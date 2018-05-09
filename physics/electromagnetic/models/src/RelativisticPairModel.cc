@@ -331,9 +331,9 @@ Double_v RelativisticPairModel::SampleTotalEnergyTransferAlias(const Double_v eg
 
   Double_v xiV;
   for (int l = 0; l < kVecLenD; ++l) {
-    int idx                  = (int)Get(indxEgamma, l);
-    RatinAliasDataTrans &als = fAliasTablesPerMaterial[matIDX[l]].fTablePerEn[idx];
-    double xi = AliasTableAlternative::SampleRatin(als, fSTNumDiscreteEnergyTransferVals, Get(r2, l), Get(r3, l), 0);
+    int idx   = (int)Get(indxEgamma, l);
+    auto &als = fAliasTablesPerMaterial[matIDX[l]].fTablePerEn[idx];
+    double xi = als.Sample(Get(r2, l), Get(r3, l), 0);
     Set(xiV, l, xi);
   }
 

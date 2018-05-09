@@ -13,7 +13,7 @@ namespace geantphysics {
  *  2) Stores some additional values for simplified calculations(there is memory overhead)
  */
 struct LinAliasCached {
-  LinAliasCached(int num) { fLinAliasData.resize(num); }
+  LinAliasCached(int num) : fNumData(num) { fLinAliasData.resize(num); }
 
   struct LinAliasData {
     long long int fAliasIndx;
@@ -24,33 +24,18 @@ struct LinAliasCached {
     double fXdivYdelta;
     double fYdata;
   };
+  int fNumData;
   std::vector<LinAliasData> fLinAliasData;
-};
 
-/** @brief This is table with data needed for ratin alias sampling.
- *  The difference is that this one:
- *  1) Stores data in form of SOA(only one memory access is required to get all the data)
- */
-struct RatinAliasDataTrans {
-  RatinAliasDataTrans(size_t n) { fData.resize(n); }
-  RatinAliasDataTrans(){};
-  struct Data {
-    long long int fAliasIndx;
-    double fAliasW;
-    double fParaA;
-    double fParaB;
-    double fCumulative;
-    double fXdata;
-  };
-  std::vector<Data> fData;
-};
-
-class AliasTableAlternative {
-public:
-  static double SampleLinear(LinAliasCached &linAliasCached, int numdata, double r1, double r2)
+  /**
+   * @param r1 random number [0,1)
+   * @param r2 random number [0,1)
+   * @return sampled value
+   */
+  double Sample(double r1, double r2)
   {
-    LinAliasCached::LinAliasData *data    = linAliasCached.fLinAliasData.data();
-    const double rest                     = r1 * (numdata - 1);
+    LinAliasCached::LinAliasData *data    = fLinAliasData.data();
+    const double rest                     = r1 * (fNumData - 1);
     int indxl                             = (int)(rest);
     const double dum0                     = rest - indxl;
     if (data[indxl].fAliasW < dum0) indxl = (int)data[indxl].fAliasIndx;
@@ -64,11 +49,36 @@ public:
     }
     return data[indxl].fX + data[indxl].fXdelta * std::sqrt(r2);
   }
+};
 
-  static double SampleRatin(RatinAliasDataTrans &ratinData, int numdata, double r1, double r2, int above)
+/** @brief This is table with data needed for ratin alias sampling.
+ *  The difference is that this one:
+ *  1) Stores data in form of SOA(only one memory access is required to get all the data)
+ */
+struct RatinAliasDataTrans {
+  RatinAliasDataTrans(int n) : fNumdata(n) { fData.resize(n); }
+  RatinAliasDataTrans(){};
+  struct Data {
+    long long int fAliasIndx;
+    double fAliasW;
+    double fParaA;
+    double fParaB;
+    double fCumulative;
+    double fXdata;
+  };
+  int fNumdata;
+  std::vector<Data> fData;
+
+  /**
+   * @param r1 random number [0,1)
+   * @param r2 random number [0,1)
+   * @param above sample with linear for bins > above
+   * @return
+   */
+  double Sample(double r1, double r2, int above)
   {
-    RatinAliasDataTrans::Data *data       = ratinData.fData.data();
-    const double rest                     = r1 * (numdata - 1);
+    RatinAliasDataTrans::Data *data       = fData.data();
+    const double rest                     = r1 * (fNumdata - 1);
     int indxl                             = (int)(rest);
     const double dum0                     = rest - indxl;
     if (data[indxl].fAliasW < dum0) indxl = (int)data[indxl].fAliasIndx;

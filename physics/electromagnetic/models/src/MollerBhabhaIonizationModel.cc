@@ -59,6 +59,8 @@ void MollerBhabhaIonizationModel::Initialize()
   EMModel::Initialize();
   if (GetUseSamplingTables()) {
     InitSamplingTables();
+
+    // Steal tables to alternative format
     int NCutTables = (int)fSamplingTables.size();
     for (int i = 0; i < NCutTables; ++i) {
       // push empty data for equal spacing
@@ -423,13 +425,14 @@ Double_v MollerBhabhaIonizationModel::SampleEnergyTransfer(Double_v elProdCut, I
 
   Double_v xiV;
   for (int l = 0; l < kVecLenD; ++l) {
-    //    LinAliasCached& als = fAliasData.fTablesPerMatCut[mcLocalIdx[l]]->fAliasData[indxPrimEkin[l]];
-    //    double xi = AliasTableAlternative::SampleLinear(als,fSTNumSamplingElecEnergies,r2[l],r3[l]);
+    auto &als = fAliasData.fTablesPerMatCut[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    double xi = als.Sample(Get(r2, l), Get(r3, l));
 
-    const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
-    const double xi =
-        fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
-                                    fSTNumSamplingElecEnergies, Get(r2, l), Get(r3, l));
+    // Old version
+    // const LinAlias *als = fSamplingTables[Get(mcLocalIdx, l)]->fAliasData[Get(indxPrimEkin, l)];
+    // const double xi =
+    //    fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]), &(als->fAliasIndx[0]),
+    //                                fSTNumSamplingElecEnergies, Get(r2, l), Get(r3, l));
     Set(xiV, l, xi);
   }
 
