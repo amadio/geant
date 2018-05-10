@@ -27,4 +27,5 @@
   --config-tracks-per-basket               16           "# default number of tracks per basket"\
   --config-run-performance                  1           "# flag to activate performance mode i.e. no scoring"\
   --config-vectorized-geom                  0           "# flag to activate vectorized geometry"\
+  --config-vectorized-physics               0           "# flag to activate vectorized geometry"\
   --config-external-loop                    0           "# flag to run the application in external loop mode"

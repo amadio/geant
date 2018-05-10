@@ -362,7 +362,7 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   //        V
-  GetStage(kAlongStepActionStage)->SetFollowUpStage(kPostStepActionPhysProcessStage, false);
+  GetStage(kAlongStepActionStage)->SetFollowUpStage(kPostStepActionStage, false);
   // Follow-up not unique: particle can be become at-rest/killed and new particles can be produced
   //   - (at the moment we don't have at-rest stage because we don't have at rest process)
   GetStage(kAlongStepActionStage)->SetBasketizing(false);
@@ -370,11 +370,10 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   // GetStage(kPostStepActionStage)->SetFollowUpStage(kSteppingActionsStage, false);
-  GetStage(kPostStepActionPhysProcessStage)->SetFollowUpStage(kSteppingActionsStage, false);
+  GetStage(kPostStepActionStage)->SetFollowUpStage(kSteppingActionsStage, false);
   // Follow-up not unique: particle can be become at-rest/killed and new particles can be produced
   //   - (at the moment we don't have at-rest stage because we don't have at rest process)
-  // GetStage(kPostStepActionStage)->SetBasketizing(false);
-  GetStage(kPostStepActionPhysProcessStage)->SetBasketizing(true);
+  GetStage(kPostStepActionStage)->SetBasketizing(fConfig->fUseVectorizedPhysics);
   //        V
   //        V
   //        V

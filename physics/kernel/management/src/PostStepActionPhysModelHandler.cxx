@@ -48,7 +48,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
-  primaryLT.SetKinE(track->E() - track->Mass());
+  primaryLT.SetKinE(track->T());
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
   primaryLT.SetDirX(track->Dx());
@@ -144,7 +144,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
         (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
     primaryLTs.SetMaterialCutCoupleIndex(matCut->GetIndex(), i);
-    primaryLTs.SetKinE(track->E() - track->Mass(), i);
+    primaryLTs.SetKinE(track->T(), i);
     primaryLTs.SetMass(track->Mass(), i);
     primaryLTs.SetGVcode(track->GVcode(), i);
     primaryLTs.SetDirX(track->Dx(), i);

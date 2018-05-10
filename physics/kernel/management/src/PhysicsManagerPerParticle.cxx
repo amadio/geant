@@ -244,7 +244,7 @@ PhysicsProcess *PhysicsManagerPerParticle::PostStepSelectProcess(geant::Track *g
       (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
   size_t physicsProcessIndx = gtrack->GetPhysicsProcessIndex();
   gtrack->SetPhysicsNumOfInteractLengthLeft(physicsProcessIndx, -1.0);
-  double ekin          = gtrack->E() - gtrack->Mass();
+  double ekin          = gtrack->T();
   double mass          = gtrack->Mass();
   double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx);
   PhysicsProcess *proc = fProcessVec[physicsProcessIndx];

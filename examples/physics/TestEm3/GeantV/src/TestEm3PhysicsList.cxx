@@ -36,8 +36,7 @@
 
 namespace userapplication {
 
-TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name, bool vectorize)
-    : geantphysics::PhysicsList(name), fVectorized(vectorize)
+TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name) : geantphysics::PhysicsList(name)
 {
   fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
 }

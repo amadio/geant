@@ -27,7 +27,7 @@
 namespace geantphysics {
 
 PostStepActionPhysModelStage::PostStepActionPhysModelStage(geant::Propagator *prop)
-    : SimulationStage(geant::kPostStepActionPhysProcessStage, prop)
+    : SimulationStage(geant::kPostStepActionStage, prop)
 {
 }
 
@@ -76,13 +76,13 @@ geant::Handler *PostStepActionPhysModelStage::Select(geant::Track *track, geant:
       return nullptr;
     }
 
-    auto emProc  = (geantphysics::EMPhysicsProcess *)pProc;
-    auto emModel = emProc->PostStepSelectModel(track->E() - track->Mass(), regionIndex);
+    auto emProc  = static_cast<geantphysics::EMPhysicsProcess *>(pProc);
+    auto emModel = emProc->PostStepSelectModel(track->T(), regionIndex);
     if (!emModel) {
       // Energy < min energy for process
       return nullptr;
     }
-    if (!emModel->IsModelUsable(matCut, track->E() - track->Mass())) return nullptr;
+    if (!emModel->IsModelUsable(matCut, track->T())) return nullptr;
 
     int modelIndex = emModel->GetGlobalIndex();
     return fHandlersPerModel[modelIndex];

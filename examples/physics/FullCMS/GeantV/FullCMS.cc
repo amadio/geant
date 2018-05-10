@@ -48,6 +48,7 @@ int parConfigNumPropagators     = 1;  // number of propagators per working threa
 int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
+int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 //
 // field configuration parameters
@@ -126,6 +127,7 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-run-performance", required_argument, 0, 's'},
                                   {"config-vectorized-geom", required_argument, 0, 't'},
                                   {"config-external-loop", required_argument, 0, 'u'},
+                                  {"config-vectorized-physics", required_argument, 0, 'v'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -227,6 +229,9 @@ void GetArguments(int argc, char *argv[])
     case 't':
       parConfigVectorizedGeom = (int)strtol(optarg, NULL, 10);
       break;
+    case 'v':
+      parConfigVectorizedPhysics = (int)strtol(optarg, NULL, 10);
+      break;
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
       break;
@@ -299,7 +304,8 @@ geant::RunManager *RunManager()
   runConfig->fNperBasket = parConfigNumTracksPerBasket;
   //
   // Activate vectorized geometry
-  runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
+  runConfig->fUseVectorizedGeom    = parConfigVectorizedGeom;
+  runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
 
   return runManager;
 }

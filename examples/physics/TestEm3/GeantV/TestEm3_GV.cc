@@ -97,8 +97,7 @@ int main(int argc, char *argv[])
   geant::RunManager *runMgr = RunManager();
 
   // Create user defined physics list for TestEm3
-  userapplication::TestEm3PhysicsList *userPhysList =
-      new userapplication::TestEm3PhysicsList("TestEm3PhysicsList", parConfigVectorizedPhysics);
+  userapplication::TestEm3PhysicsList *userPhysList = new userapplication::TestEm3PhysicsList("TestEm3PhysicsList");
   SetupPhysicsList(userPhysList);
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(userPhysList);
 
@@ -396,9 +395,10 @@ geant::RunManager *RunManager()
   runConfig->fUseV3         = true;
   runConfig->fNminThreshold = 5 * parConfigNumThreads;
   // Set threshold for tracks to be reused in the same volume
-  runConfig->fNminReuse         = 100000;
-  runConfig->fMaxPerBasket      = parConfigNumTracksPerBasket;
-  runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
+  runConfig->fNminReuse            = 100000;
+  runConfig->fMaxPerBasket         = parConfigNumTracksPerBasket;
+  runConfig->fUseVectorizedGeom    = parConfigVectorizedGeom;
+  runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
   //
   // Activate standard scoring
   // runConfig->fUseStdScoring = !parConfigIsPerformance;
