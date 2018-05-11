@@ -44,7 +44,7 @@ private:
 
 public:
   /** @brief Default constructor */
-  PhysicsProcessHandler();
+  PhysicsProcessHandler(bool vectorized = false) : fSimplifiedMSC(vectorized), fVectorPostStepAction(vectorized) {}
 
   /** @brief PhysicsProcessHandler destructor */
   virtual ~PhysicsProcessHandler();
@@ -141,7 +141,11 @@ public:
 
   geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop)
   {
-    return new PostPropagationVectorStage(prop);
+    if (fSimplifiedMSC) {
+      return new PostPropagationVectorStage(prop);
+    } else {
+      return new PostPropagationStage(prop);
+    }
   }
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
@@ -156,15 +160,20 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created PostStepAction real-physics simulation stage object.
    */
-  geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop) { return new PostStepActionStage(prop); }
-
-  geant::SimulationStage *CreatePostStepActionPhysProcessStage(geant::Propagator *prop)
+  geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop)
   {
-    return new PostStepActionPhysModelStage(prop);
+    if (fVectorPostStepAction) {
+      return new PostStepActionPhysModelStage(prop);
+    } else {
+      return new PostStepActionStage(prop);
+    }
   }
 
   geant::SimulationStage *CreateAtRestActionStage(geant::Propagator *prop) { return new AtRestActionStage(prop); }
   //@}
+private:
+  bool fSimplifiedMSC        = true;
+  bool fVectorPostStepAction = true;
 };
 
 } // end of namespace geantphysics

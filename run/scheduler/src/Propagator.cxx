@@ -304,7 +304,7 @@ int Propagator::CreateSimulationStages()
   // stage = fPhysicsInterface->CreatePostStepActionStage(this);
   // assert(stage->GetId() == int(kPostStepActionStage));
 
-  stage = fPhysicsInterface->CreatePostStepActionPhysProcessStage(this);
+  stage = fPhysicsInterface->CreatePostStepActionStage(this);
   assert(stage->GetId() == int(kPostStepActionStage));
 
   // kAtRestActionStage
@@ -373,7 +373,7 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kPostPropagationStage)->SetFollowUpStage(kAlongStepActionStage, true);
-  GetStage(kPostPropagationStage)->SetBasketizing(true);
+  GetStage(kPostPropagationStage)->SetBasketizing(fConfig->fUseVectorizedPhysics);
   //        V
   //        V
   //        V

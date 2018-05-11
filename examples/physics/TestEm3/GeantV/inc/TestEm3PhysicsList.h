@@ -24,7 +24,7 @@ namespace userapplication {
 class TestEm3PhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  TestEm3PhysicsList(const std::string &name);
+  TestEm3PhysicsList(const std::string &name, bool vector);
   // DTR
   ~TestEm3PhysicsList();
   // interface method to assigne physics-process to particles
@@ -35,6 +35,7 @@ public:
 
 private:
   geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm;
+  bool fVectorized;
 };
 
 } //  namespace userapplication

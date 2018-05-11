@@ -27,11 +27,6 @@
 
 namespace geantphysics {
 
-PhysicsProcessHandler::PhysicsProcessHandler()
-{
-  // nothing to do so far
-}
-
 PhysicsProcessHandler::~PhysicsProcessHandler()
 {
   PhysicsListManager::Instance().ClearAll();
