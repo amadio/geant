@@ -16,6 +16,7 @@
 #include <thread>
 #include <list>
 #include "Geant/priority_queue.h"
+#include "Geant/condition_locker.h"
 #include "Geant/dcqueue.h"
 #include "Geant/condition_locker.h"
 
@@ -47,6 +48,7 @@ protected:
   bool fStopped                    = false;   /** Stop flag */
   priority_queue<Basket *> *fDoneQ = nullptr; /** Thread "all work done" queue */
   std::vector<std::thread> fListThreads;      /** Vector of threads */
+  condition_locker fSemaphore;                /** Semaphore for starving threads */
 
   TaskBroker *fBroker = nullptr; /** Pointer to the coprocessor broker, this could be made a collection. */
 
@@ -140,6 +142,22 @@ public:
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();
+
+  /** @brief Get number of suspended workers */
+  GEANT_FORCE_INLINE
+  int GetNsuspended() const { return fSemaphore.GetNwait(); }
+
+  /** @brief Suspend one worker */
+  GEANT_FORCE_INLINE
+  void Wait() { fSemaphore.Wait(); }
+
+  /** @brief Start one suspended worker */
+  GEANT_FORCE_INLINE
+  void StartOne() { fSemaphore.StartOne(); }
+
+  /** @brief Start all suspended workers */
+  GEANT_FORCE_INLINE
+  void StartAll() { fSemaphore.StartAll(); }
 
 private:
   /**

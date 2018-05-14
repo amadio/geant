@@ -172,31 +172,31 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, TaskData *td)
 }
 
 //______________________________________________________________________________
-void WorkloadManager::TransportTracksV3(Propagator *prop)
+void WorkloadManager::TransportTracksV3(Propagator *propagator)
 {
 
   //  int nstacked = 0;
   //  int nprioritized = 0;
   //  int ninjected = 0;
-  bool useNuma = prop->fConfig->fUseNuma;
+  bool useNuma = propagator->fConfig->fUseNuma;
   // Enforce locality by pinning the thread to the next core according to the chosen policy.
   int node                 = -1;
   LocalityManager *loc_mgr = LocalityManager::Instance();
-  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
-  int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
+  if (useNuma) node        = loc_mgr->GetPolicy().AllocateNextThread(propagator->fNuma);
+  int cpu                  = useNuma ? NumaUtils::GetCpuBinding() : -1;
   //  if (node < 0) node = 0;
-  Propagator *propagator = prop;
-  RunManager *runmgr     = prop->fRunMgr;
-  geant::TaskData *td    = runmgr->GetTDManager()->GetTaskData();
-  td->AttachPropagator(prop, node);
+  RunManager *runmgr  = propagator->fRunMgr;
+  geant::TaskData *td = runmgr->GetTDManager()->GetTaskData();
+  td->AttachPropagator(propagator, node);
   int tid = td->fTid;
 
   if (useNuma) {
-    geant::Print("", "=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===", tid, prop, node, cpu);
+    geant::Print("", "=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===", tid, propagator, node,
+                 cpu);
     int membind = NumaUtils::NumaNodeAddr(td->fShuttleBasket->Tracks().data());
     if (node != membind) geant::Print("", "=== Thread #d: Wrong memory binding");
   } else {
-    geant::Print("", "=== Worker thread %d created for propagator %p ===", tid, prop);
+    geant::Print("", "=== Worker thread %d created for propagator %p ===", tid, propagator);
   }
 
   EventServer *evserv = runmgr->GetEventServer();
@@ -209,14 +209,19 @@ void WorkloadManager::TransportTracksV3(Propagator *prop)
     if (feedres == FeederResult::kStop) break;
     if (flush) {
       if ((feedres == FeederResult::kNone) | (feedres == FeederResult::kError)) {
-        if (!evserv->EventsServed()) geant::Warning("", "=== Task %d exited due to missing workload", tid);
-        break;
+        if (!evserv->EventsServed()) {
+          // geant::Warning("", "=== Task %d suspended due to missing workload", tid);
+          propagator->fWMgr->Wait();
+          // geant::Info("", "=== Task %d resuming...", tid);
+        }
+        continue;
       }
     }
     flush = (feedres == FeederResult::kNone) | (feedres == FeederResult::kError);
     SteppingLoop(td, flush);
   }
-  prop->fWMgr->DoneQueue()->push_force(nullptr);
+  propagator->fWMgr->DoneQueue()->push_force(nullptr);
+  propagator->fWMgr->StartAll();
   // Final reduction of counters
   propagator->fNsteps += td->fNsteps;
   propagator->fNsnext += td->fNsnext;
@@ -280,7 +285,10 @@ int WorkloadManager::FlushOneLane(TaskData *td)
     // How many tracks shared already
     size_t nshared  = td->fQshare->size();
     size_t ntoshare = kShareFraction * ntodo;
-    if (nshared < ntoshare) td->fStackBuffer->ShareTracks(ntoshare - nshared, *td->fQshare);
+    if (nshared < ntoshare) {
+      td->fStackBuffer->ShareTracks(ntoshare - nshared, *td->fQshare);
+      if (td->fPropagator->fWMgr->GetNsuspended()) td->fPropagator->fWMgr->StartOne();
+    }
   }
 
   // Inject the last lane in the buffer
@@ -292,7 +300,7 @@ int WorkloadManager::FlushOneLane(TaskData *td)
   }
 
   // If no tracks in the buffer, try to find some work
-  if (ninjected == 0) ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
+  // if (ninjected == 0) ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
 
   return (ninjected);
 }

@@ -22,16 +22,20 @@
  * @details The controlled threads have to call the Wait() function and the controller
  *  can wake up one waiting thread at a time calling StartOne() method, or all by calling StartAll().
  *
- * @param m  Mutex
- * @param cv  Condition variable
- * @param start  Starting atomic variable
+ * @param fMutex Mutex
+ * @param fCondition Condition variable
+ * @param fCanStart Starting atomic variable
  */
 struct condition_locker {
-  std::mutex m;
-  std::condition_variable cv;
-  std::atomic<bool> start;
+  std::atomic_int fNwait;             ///< number of threads waiting on the semaphore
+  std::mutex fMutex;                  ///< semaphore mutex
+  std::condition_variable fCondition; ///< semaphore condition
+  std::atomic<bool> fCanStart;        ///< starter atomic condition
 
-  condition_locker() : m(), cv(), start(false) {}
+  condition_locker() : fNwait(0), fMutex(), fCondition(), fCanStart(false) {}
+
+  /** @brief Getter for number of threads waiting */
+  int GetNwait() const { return fNwait.load(); }
 
   /**
    * @brief  Wait function for controlled threads
@@ -40,12 +44,14 @@ struct condition_locker {
    */
   void Wait()
   {
-    std::unique_lock<std::mutex> lk(m);
-    while (!start.load())
-      cv.wait(lk);
-    start.store(false);
+    std::unique_lock<std::mutex> lk(fMutex);
+    fNwait++;
+    while (!fCanStart.load())
+      fCondition.wait(lk);
+    fCanStart.store(false);
+    fNwait--;
     lk.unlock();
-    cv.notify_one();
+    // fCondition.notify_one();
   };
 
   /**
@@ -54,9 +60,9 @@ struct condition_locker {
    */
   void StartOne()
   {
-    std::unique_lock<std::mutex> lk(m);
-    start.store(true);
-    cv.notify_one();
+    std::unique_lock<std::mutex> lk(fMutex);
+    fCanStart.store(true);
+    fCondition.notify_one();
   };
 
   /**
@@ -65,9 +71,9 @@ struct condition_locker {
    */
   void StartAll()
   {
-    std::unique_lock<std::mutex> lk(m);
-    start.store(true);
-    cv.notify_all();
+    std::unique_lock<std::mutex> lk(fMutex);
+    fCanStart.store(true);
+    fCondition.notify_all();
   };
 };
 #endif
