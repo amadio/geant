@@ -27,7 +27,7 @@ using geantphysics::MaterialCuts;
 const int kMinBasket = 16;
 const int kMaxBasket = 256;
 const double minEn   = 100 * geant::units::eV;
-const double maxEn   = 1 * geant::units::keV;
+const double maxEn   = 50 * geant::units::keV;
 
 SauterGavrilaPhotoElectricModel *PrepareSauterGavrilaModel(bool useAlias)
 {
@@ -103,7 +103,7 @@ void SetUpSimulation()
 {
     vecgeom::GeoManager::Instance().Clear();
     static std::string   particleName("gamma");
-    static std::string   materialName("NIST_MAT_Pb"); // material is lead
+    static std::string   materialName("NIST_MAT_CONCRETE"); // material is CONCRETE
     static std::string   photoElectricModelName("SauterGavrilaPhotoElectric");
     //static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
     //static bool          isProdCutInLength = true;            // is the production cut value given in length ?
