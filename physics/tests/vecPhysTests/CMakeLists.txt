@@ -1,5 +1,5 @@
-find_package(benchmark)
 
+find_package(benchmark)
 
 include_directories(
         ${CMAKE_SOURCE_DIR}/core/numa/inc
@@ -25,6 +25,7 @@ include_directories(
 set(COMMON_HEADERS Common/Hist.h Common/Common.h)
 set(__extralibs ${PROFILE_LIBRARIES} benchmark::benchmark pthread)
 
+
 if(${benchmark_FOUND})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/benchmarks/vecphys)
 
@@ -48,6 +49,7 @@ if(${benchmark_FOUND})
 
     add_executable(MollerBhabhaBench MollerBhabha/MollerBhabhaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
     target_link_libraries(MollerBhabhaBench Geant_v RealPhysics ${__extralibs})
+
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/vecphys)
@@ -66,4 +68,20 @@ target_link_libraries(Pos2GammaValid Geant_v RealPhysics ${__extralibs})
 
 add_executable(MollerBhabhaValid MollerBhabha/MollerBhabhaValidate.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(MollerBhabhaValid Geant_v RealPhysics ${__extralibs})
+
+add_executable(PhysVecSauterGavrilaAliasValid SauterGavrila/SauterGavrilaAliasValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaAliasValid Geant_v RealPhysics)
+
+add_executable(PhysVecSauterGavrilaRejValid SauterGavrila/SauterGavrilaRejValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaRejValid Geant_v RealPhysics)
+
+add_executable(PhysVecSauterGavrilaAliasShellValid SauterGavrila/SauterGavrilaAliasShellValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaAliasShellValid Geant_v RealPhysics)
+
+add_executable(PhysVecSauterGavrilaRejShellValid SauterGavrila/SauterGavrilaRejShellValid.cxx ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaRejShellValid Geant_v RealPhysics)
+
+add_executable(PhysVecSauterGavrilaValid SauterGavrila/SauterGavrilaValidate.cxx ${COMMON_HEADERS})
+target_link_libraries(PhysVecSauterGavrilaValid Geant_v RealPhysics)
+
 
