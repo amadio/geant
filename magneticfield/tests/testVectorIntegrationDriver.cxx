@@ -36,12 +36,16 @@ using geant::units::degree;
 
 // #define  NEW_SCALAR_FIELD 1
 
-// #define USECMSFIELD
+// #define USECMSFIELD 1
+
 #ifdef USECMSFIELD
-#include "TemplateCMSmagField.h"
-#include "Geant/ScalarCMSmagField.h"
+#include "CMSmagField.h"
+#include "ScalarRZMagFieldFromMap.h"
+using ScalarCMSmagField = ScalarRZMagFieldFromMap;
 #include "Geant/Utils.h"
-#else
+// #else
+#endif
+
 #ifndef NEW_SCALAR_FIELD
 //  Transition measure --- compare to old Scalar field types 2017.11.16
 #include "Geant/ScalarUniformMagField.h"
@@ -49,7 +53,6 @@ using geant::units::degree;
 #include "Geant/StepperFactory.h"
 #include "Geant/ScalarFieldTrack.h"
 #include "Geant/ScalarIntegrationDriver.h"
-#endif
 #endif
 
 #include <stdlib.h>
@@ -68,9 +71,11 @@ int main(int argc, char *argv[])
   // template <typename T> using Vector3D = vecgeom::Vector3D<T>;
   using ThreeVector_d = vecgeom::Vector3D<double>;
 
+  bool verbose= true;
+  
 #ifdef USECMSFIELD
-  using Field_Type        = FlexibleCMSmagField; // TO-DO
-  using Field_Type_Scalar = ScalarCMSmagField;
+  using Field_Type        = CMSmagField;
+  using Field_Type_Scalar = ScalarRZMagFieldFromMap; // ScalarCMSmagField;
 // using Field_Type_Scalar = TemplateCMSmagField<vecgeom::kScalar>;
 #else
   using Field_Type = UniformMagField; // TemplateScalarUniformMagField<Backend>;
@@ -78,7 +83,7 @@ int main(int argc, char *argv[])
   // New types ... under development  2017.11.16
   using Field_Type_Scalar = UniformMagField;
 #else
-  using Field_Type_Scalar    = ScalarUniformMagField;
+  using Field_Type_Scalar = ScalarUniformMagField;
 #endif
 #endif
 
@@ -145,33 +150,48 @@ int main(int argc, char *argv[])
 // ========== Vector Driver prepared ========================
 
 //========= Preparing scalar Integration Driver ============
+
 #ifdef USECMSFIELD
-  auto gvFieldScalar         = new Field_Type_Scalar(datafile.c_str());
-  using GvEquationTypeScalar = MagFieldEquation<Field_Type_Scalar>; // New equation ...
-  auto gvEquationScalar      = new GvEquationTypeScalar(gvFieldScalar);
+  // auto gvFieldScalar         = new Field_Type_Scalar(datafile.c_str());
+  auto gvFieldScalar         = new ScalarCMSmagField(datafile.c_str());  
+  // using GvEquationTypeScalar = MagFieldEquation<Field_Type_Scalar>; // New equation ...
+  // auto gvEquationScalar      = new GvEquationTypeScalar(gvFieldScalar);
+  cout << "Using Scalar CMS Field type' . " << endl;  
 #else
 #ifdef NEW_SCALAR_FIELD
-  using GvEquationTypeScalar = MagFieldEquation<Field_Type_Scalar>; // New scalar
-#define gvFieldScalar gvField;
+// #define gvFieldScalar gvField;
   auto gvFieldScalar         = new UniformMagField(fieldValueVec);
-  auto gvEquationScalar      = new GvEquationTypeScalar(gvFieldScalar); // Same as vector, yes
-  //                           ^was MagFieldEquation
-  auto myStepperScalar = CashKarp<GvEquationTypeScalar, Nposmom>(gvEquationScalar);
+  cout << "Using new Scalar Field types and 'MagFieldEquation' . " << endl;  
 #else
-  using GvEquationTypeScalar = ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
   // If we plan to test against 'plain' scalar objects: field, equation, stepper, ...
   auto fieldValueVec = geant::units::tesla * ThreeVector_d(x_field, y_field, z_field);
   auto gvFieldScalar = new ScalarUniformMagField(fieldValueVec);
   //                      new Field_Type_Scalar( fieldValueVec );
-  auto gvEquationScalar = new GvEquationTypeScalar(gvFieldScalar);
+  cout << "Using old Scalar Field types and ScalarMagFieldEquation. " << endl;
+#endif
+#endif  
 
+#ifdef NEW_SCALAR_FIELD
+  using GvScalarEquationType = MagFieldEquation<Field_Type_Scalar>; // New scalar
+#else
+  using GvScalarEquationType = ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
+#endif
+  
+  auto gvEquationScalar = new GvScalarEquationType(gvFieldScalar); // Same as vector, yes
+  //                           ^was MagFieldEquation
+
+#ifdef NEW_SCALAR_FIELD  
+  auto myStepperScalar = CashKarp<GvEquationTypeScalar, Nposmom>(gvEquationScalar);
+  cout << "Using new Scalar Stepper types - i.e. flexible CashKarp " << endl;
+#else
   VScalarIntegrationStepper *myStepperScalar;
-  myStepperScalar = StepperFactory::CreateStepper<GvEquationTypeScalar>(gvEquationScalar, stepper_no);
+  myStepperScalar = StepperFactory::CreateStepper<GvScalarEquationType>(gvEquationScalar, stepper_no);
+  cout << "Using old Scalar Stepper types - i.e. Scalar stepper from factory. " << endl;
 #endif
-#endif
-
+  
   int statisticsVerbosity = 1;
-  auto refScalarDriver    = new ScalarIntegrationDriver(hminimum, myStepperScalar, Nposmom, statisticsVerbosity);
+
+  auto refScalarDriver = new ScalarIntegrationDriver(hminimum, myStepperScalar, Nposmom, statisticsVerbosity);
 // refScalarDriver->InitializeCharge( particleCharge );
 //==========  Scalar Driver prepared =========================
 
@@ -246,11 +266,38 @@ int main(int argc, char *argv[])
     cout << " Success of Vector: " << succeeded[0] << endl;
     cout << " Success of scalar: " << scalarResult << endl;
 
+    constexpr double threshold = 1.0e-8;
+    constexpr double kTiny=  1.0e-30;
     for (int i = 0; i < nTracks; ++i) {
+      yTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
+       
       refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], epsTol, yTrackOut);
 
-      cout << " yOutput[" << i << "] is: " << yOutput[i] << " for yInput: " << yInput[i] << endl;
-      cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << " for hstep: " << hstep[i] << endl;
+      FieldTrack       & outVec = yOutput[i];
+      double outSer[8];
+      yTrackOut.DumpToArray(outSer);
+
+      bool diffFound = false;
+      for (unsigned int j = 0; j < Nposmom; ++j) {
+         double  dif   = outVec[j] - outSer[j];
+         double midAbs = 0.5 * ( std::fabs(outVec[j]) + std::fabs(outSer[j]) ) + kTiny ;
+         if( dif > threshold * midAbs ){
+            if( ! diffFound ) { 
+               cerr << " Difference found in vector i= " << i << " ( h = " << hstep[i] << " ) " << endl;
+               diffFound = true;
+            }
+            cerr << "   [" << j << " ]:  vec = " << std::setw(12) << outVec[j]
+                 << "  ser = " << std::setw(12) << outSer[j]
+                 << " diff = " << std::setw(12) << dif
+                 << " rel dif = " << std::setw(12) << dif / midAbs
+                 << endl;
+         }
+      }
+        
+      if( verbose || diffFound ) { 
+        cout << " yOutput[" << i << "] is: " << yOutput[i] << " for yInput: " << yInput[i] << endl;
+        cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << " for hstep: " << hstep[i] <<endl;
+      }
     }
   }
 // #define CALCULATETIME
