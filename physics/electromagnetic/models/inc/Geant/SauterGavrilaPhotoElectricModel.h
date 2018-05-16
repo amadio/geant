@@ -126,9 +126,9 @@ public:
   
   
   //Original way of sampling the shells
-  void SampleShell(Real kinE_v, int &zed, Real &rand_v, size_t  &sampledShells_v);
+  void SampleShell(double kinE_v, int &zed, double &rand_v, size_t  &sampledShells_v);
   //Sampling of shells with Alias
-  void SampleShellAlias(Real kinE_v, size_t &zed, Real &r1, Real &r2, size_t  &sampledShells_v);
+  void SampleShellAlias(double kinE_v, size_t &zed, double &r1, double &r2, size_t  &sampledShells_v);
   //@}
     
 
