@@ -26,7 +26,6 @@ class Element;
 namespace geantphysics {
 
 using geant::Double_v;
-using geant::Int_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
@@ -62,7 +61,7 @@ public:
 protected:
   std::vector<LinAliasCached> fAliasTablePerGammaEnergy;
 
-  Int_v SampleShellAliasVec(Double_v egamma, Int_v zed, Double_v r1, Double_v r2);
+  IndexD_v SampleShellAliasVec(Double_v egamma, IndexD_v zed, Double_v r1, Double_v r2);
   void SampleShellVec(double *egamma, int * zed, int* ss, int N, const geant::TaskData *td, double* randoms);
   Double_v SamplePhotoElectronDirectionAliasVec(Double_v egamma, Double_v r1, Double_v r2, Double_v r3);
   void SamplePhotoElectronDirectionRejVec(const double *egamma, double *cosTheta, int N, const geant::TaskData *t);

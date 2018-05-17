@@ -57,15 +57,15 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             //MaskD_v chechEnValidity(gammaekin<GetLowEnergyUsageLimit() || gammaekin>GetHighEnergyUsageLimit());
             //if(chechEnValidity.isFull() &&vecCore::EarlyReturnAllowed()) return 0 secondaries -> do nothing
         
-            //Int_v targetElemIndx_v;
+            //IndexD_v targetElemIndx_v;
             Double_v zed_v;
-            Int_v nshells_v;
+            IndexD_v nshells_v;
             //std::cout<<"Load\n";
             vecCore::Load(gammaekin, kin+i);
             //vecCore::Load(zed_v, zed+i);
             vecCore::Load(nshells_v, nshells+i);
         
-            Int_v z;//(Int_v)zed_v;
+            IndexD_v z;//(IndexD_v)zed_v;
             vecCore::Load(z, zed+i);
 //        MaskD_v elementInitialized() --> to be seen
 //        // if element was not initialised, gamma should be absorbed
@@ -75,11 +75,11 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
 //            return 0;
 //        }
             //SAMPLING OF THE SHELL WITH ALIAS
-            Int_v shellIdx(0), sampledShells_v(0), tmp;
-            MaskD_v activateSamplingShells(nshells_v>1);
+            IndexD_v shellIdx(0), sampledShells_v(0), tmp;
+            MaskD_v activateSamplingShells(nshells_v> (Double_v) 1);
             Double_v r1  = td->fRndm->uniformV();
             Double_v r2  = td->fRndm->uniformV();
-            tmp = SampleShellAliasVec(gammaekin, z, r1, r2);
+            (IndexD_v) tmp = SampleShellAliasVec(gammaekin, z, r1, r2);
             vecCore::MaskedAssign(sampledShells_v, activateSamplingShells, tmp);
             vecCore::Store(sampledShells_v, sampledShells+i);
             //SAMPLING OF THE ANGLE WITH ALIAS
@@ -111,7 +111,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
     for (int i = 0; i < N; i += kVecLenD){
         //std::cout<<"4\n";
         Double_v gammaekin_v, cosTheta_v;
-        Int_v zed_v;
+        IndexD_v zed_v;
         vecCore::Load(gammaekin_v, kin+i);
         vecCore::Load(zed_v, zed+i);
         vecCore::Load(cosTheta_v, cosTheta+i);
@@ -169,9 +169,9 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
     
 }
 
-Int_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, Int_v zed, Double_v r1, Double_v r2)
+IndexD_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, IndexD_v zed, Double_v r1, Double_v r2)
 {
-    Int_v sampledShells(0);
+    IndexD_v sampledShells(0);
     MaskD_v enableSamplingShells(zed!=1 && zed!=2);
     if(enableSamplingShells.isNotEmpty()){
         //std::cout<<zed<<std::endl;
@@ -179,7 +179,7 @@ Int_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
         Double_v lGammaEnergy_v = vecCore::math::Log(egamma);
     
         // LOWER bin in the BASE vector
-        Int_v tableIndexBase_v = (Int_v) ((lGammaEnergy_v - fShellPrimEnLMin) * Double_v(fShellPrimEnILDelta));
+        IndexD_v tableIndexBase_v = (IndexD_v) ((lGammaEnergy_v - fShellPrimEnLMin) * Double_v(fShellPrimEnILDelta));
     
         //These are static informations that can be passed as an argument in Real_v form - TO DO
         Double_v kBindingEn_v;
@@ -187,9 +187,9 @@ Int_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
             vecCore::Set(kBindingEn_v, k, fBindingEn[(int)zed[k]][0]);
         }
         MaskD_v lowEn (egamma<kBindingEn_v);
-        Int_v tableIndexBinding_v;
+        IndexD_v tableIndexBinding_v;
         Double_v baseEn_v(999),bindEn_v(999);
-        Int_v indexBaseEn_v, indexBindingEn_v(-1);
+        IndexD_v indexBaseEn_v, indexBindingEn_v(-1);
     
         for (int k=0; k<kVecLenD; k++){
             if(enableSamplingShells[k])
@@ -197,7 +197,7 @@ Int_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
             
         }
    
-        Int_v tableIndex_v(indexBaseEn_v);
+        IndexD_v tableIndex_v(indexBaseEn_v);
     
         //Only the values of tableIndex_v that need to be changed
         if(lowEn.isNotEmpty())
@@ -218,7 +218,7 @@ Int_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
             MaskD_v checkMinVal(baseEn_v>bindEn_v); //If TRUE, take bindingEnergies, otherwise keep the base energies
             vecCore::MaskedAssign (tableIndex_v, checkMinVal&&lowEn, indexBindingEn_v);
         }
-        Int_v lastSSAliasIndex_v;
+        IndexD_v lastSSAliasIndex_v;
         for (int k=0; k<kVecLenD; k++){
             if(enableSamplingShells[k])
                 vecCore::Set(lastSSAliasIndex_v, k, fLastSSAliasIndex[(int)zed[k]-1]);
@@ -226,11 +226,11 @@ Int_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
     
         Double_v val        = (lGammaEnergy_v - fShellPrimEnLMin) * fShellPrimEnILDelta; //To correct - inverse of delta of the log of real en
         // LOWER energy bin index
-        Int_v indxEgamma = (Int_v)val;
+        IndexD_v indxEgamma = (IndexD_v)val;
         Double_v pIndxHigh  = val - indxEgamma;
         MaskD_v check(r1<=pIndxHigh);
         vecCore::MaskedAssign (tableIndex_v, check, tableIndex_v+1);
-        Int_v indxTable_v = lastSSAliasIndex_v+tableIndex_v;
+        IndexD_v indxTable_v = lastSSAliasIndex_v+tableIndex_v;
 
         //NB: the SCALAR and the VECTORIZED are almost equivalent
         //SCALAR
@@ -278,16 +278,16 @@ Double_v VecSauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionAliasVe
         Double_v legamma = vecCore::math::Log(egamma);
 //        //With this implementation is assumed that the model is never built for energies outside the range where the alias tables where built
 //        Double_v val        = (legamma - fPrimEnLMin) * fPrimEnILDelta;
-//        Int_v gammaEnergyIndx = (Int_v)val; // lower electron energy bin index
+//        IndexD_v gammaEnergyIndx = (IndexD_v)val; // lower electron energy bin index
 //        Double_v pIndxHigh  = val - gammaEnergyIndx;
 //        MaskD_v checkIndex = r1 < pIndxHigh;
 //        if (!checkIndex.isEmpty()) {
 //            vecCore::MaskedAssign(gammaEnergyIndx, checkIndex, gammaEnergyIndx + 1);
 //        }
         
-        Int_v gammaEnergyIndx = (Int_v)((legamma - fPrimEnLMin) * fPrimEnILDelta);
-        MaskD_v check1 = gammaEnergyIndx >= fNumSamplingPrimEnergies - 1;
-        vecCore::MaskedAssign(gammaEnergyIndx, check1, Int_v(fNumSamplingPrimEnergies - 2));
+        IndexD_v gammaEnergyIndx = (IndexD_v)((legamma - fPrimEnLMin) * fPrimEnILDelta);
+        MaskD_v check1 = (gammaEnergyIndx >= (fNumSamplingPrimEnergies - (Double_v)1));
+        vecCore::MaskedAssign(gammaEnergyIndx, check1, IndexD_v(fNumSamplingPrimEnergies - 2));
         Double_v fLSamplingPrimEnergies_v;
         for (int i=0; i<kVecLenD; i++)
             vecCore::Set(fLSamplingPrimEnergies_v, i,fLSamplingPrimEnergies[gammaEnergyIndx[i] + 1]);
@@ -310,8 +310,8 @@ Double_v VecSauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionAliasVe
 void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * zed, int* ss, int N, const geant::TaskData */*td*/, double* randoms)
 {
 
-    Int_v nshells_v;
-    Int_v sampledShells_v(0);
+    IndexD_v nshells_v;
+    IndexD_v sampledShells_v(0);
     
     std::vector<double> ehep;
     std::vector<double> elep;
@@ -361,16 +361,16 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
     //**** PROCESS THE LEP
     size_t currlep       = 0;
     MaskD_v lanesDonelep = MaskD_v::Zero(); //no lanes done
-    Int_v idxlep;
+    IndexD_v idxlep;
     
     for (int l = 0; l < kVecLenD; ++l) {
         idxlep[l] = currlep++; //indexes initialization
     }
-    Int_v idxForLoop(0);
+    IndexD_v idxForLoop(0);
     int sampledShellslep[elep.size()];
     
     while (elep.size()>3 && (currlep < elep.size() || !lanesDonelep.isFull())) {
-        Int_v zeds     = vecCore::Gather<Int_v>(zlep.data(), idxlep);
+        IndexD_v zeds     = vecCore::Gather<IndexD_v>(zlep.data(), idxlep);
         Double_v egamma_v = vecCore::Gather<Double_v>(elep.data(), idxlep);
         Double_v iegamma  = (geant::units::MeV)/egamma_v;
         Double_v iegamma2 = iegamma*iegamma;
@@ -378,8 +378,8 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
         Double_v iegamma4 = iegamma2*iegamma2;
         Double_v iegamma5 = iegamma2*iegamma3;
         
-        Int_v totShells =vecCore::Gather<Int_v>(nshellslep.data(), idxlep);
-        Int_v idx_v   = totShells * 7 - 5;
+        IndexD_v totShells =vecCore::Gather<IndexD_v>(nshellslep.data(), idxlep);
+        IndexD_v idx_v   = totShells * 7 - 5;
         
         Double_v pm1, p0, p1, p2, p3, p4, p5;
         
@@ -426,7 +426,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
         vecCore::MaskedAssign(idxForLoop, !checkOut, idxForLoop+1);
         //I could scatter directly to the original indexes
         vecCore::Scatter(idxForLoop, sampledShellslep, idxlep);
-        vecCore::MaskedAssign(idxForLoop, checkOut, (Int_v)0);
+        vecCore::MaskedAssign(idxForLoop, checkOut, (IndexD_v)0);
         lanesDonelep = lanesDonelep || checkOut;
         for (int l = 0; l < kVecLenD; ++l) {
             auto laneDone = checkOut[l];
@@ -453,7 +453,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
     //**** PROCESS THE HEP
     size_t currhep       = 0;
     MaskD_v lanesDonehep = MaskD_v::Zero(); //no lanes done
-    Int_v idxhep;
+    IndexD_v idxhep;
     
     for (int l = 0; l < kVecLenD; ++l) {
         idxhep[l] = currhep++; //indexes initialization
@@ -465,7 +465,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
         
         //std::cout<<"currhep: "<<currhep<<" and ehep.size(): "<<ehep.size()<<std::endl;
         //std::cout<<"Current indexes: \t"<<idxhep<<std::endl;
-        Int_v zeds     = vecCore::Gather<Int_v>(zhep.data(), idxhep);
+        IndexD_v zeds     = vecCore::Gather<IndexD_v>(zhep.data(), idxhep);
         Double_v egamma_v = vecCore::Gather<Double_v>(ehep.data(), idxhep);
         Double_v rand_v   = vecCore::Gather<Double_v>(randhep.data(), idxhep);
 
@@ -474,8 +474,8 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
         Double_v iegamma3 = iegamma2*iegamma;
         Double_v iegamma4 = iegamma2*iegamma2;
         Double_v iegamma5 = iegamma2*iegamma3;
-        Int_v totShells =vecCore::Gather<Int_v>(nshellshep.data(), idxhep);
-        Int_v idx_v   = totShells * 7 - 5;
+        IndexD_v totShells =vecCore::Gather<IndexD_v>(nshellshep.data(), idxhep);
+        IndexD_v idx_v   = totShells * 7 - 5;
 
 //        std::cout<<"zeds: "<<zeds<<"\n";
 //        std::cout<<"totShells: "<<totShells<<"\n";
@@ -523,7 +523,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
         vecCore::MaskedAssign(idxForLoop, !checkOut, idxForLoop+1);
         //I could scatter directly to the original indexes
         vecCore::Scatter(idxForLoop, sampledShellshep, idxhep);
-        vecCore::MaskedAssign(idxForLoop, checkOut, (Int_v)0);
+        vecCore::MaskedAssign(idxForLoop, checkOut, (IndexD_v)0);
         lanesDonehep = lanesDonehep || checkOut;
         for (int l = 0; l < kVecLenD; ++l) {
             auto laneDone = checkOut[l];
@@ -590,7 +590,7 @@ void VecSauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec(cons
     
     int currN        = 0;
     MaskD_v lanesDone = MaskD_v::Zero(); //no lanes done
-    Int_v idx;
+    IndexD_v idx;
     for (int l = 0; l < kVecLenD; ++l) {
         idx[l] = currN++; //indexes initialization
     }
