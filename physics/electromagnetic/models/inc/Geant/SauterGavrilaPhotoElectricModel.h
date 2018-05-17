@@ -53,13 +53,13 @@ class XSectionsVector;
  */
 
 class SauterGavrilaPhotoElectricModel : public EMModel {
-    using PhysVecBackend       = vecCore::backend::VcVector;
-    using Real_v               = vecCore::backend::VcVector::Double_v;
-    using Int32_v              = vecCore::backend::VcVector::Int32_v;
-    using Int64_v              = vecCore::backend::VcVector::Int64_v;
-    using RMask                = vecCore::Mask<Real_v>;
-    using RIndex               = vecCore::Index<Real_v>;
-    static constexpr int kRealSize = (int)vecCore::VectorSize<Real_v>();
+//    using PhysVecBackend       = vecCore::backend::VcVector;
+//    using Real_v               = vecCore::backend::VcVector::Double_v;
+//    using Int32_v              = vecCore::backend::VcVector::Int32_v;
+//    using Int64_v              = vecCore::backend::VcVector::Int64_v;
+//    using RMask                = vecCore::Mask<Real_v>;
+//    using RIndex               = vecCore::Index<Real_v>;
+//    static constexpr int kRealSize = (int)vecCore::VectorSize<Real_v>();
 public:
   /**
    * @name Constructor, destructor:
