@@ -1,0 +1,110 @@
+
+CMSmagField class: Version: Reorder2 (floats)CMSmagField::ReadVectorData called with filename= cmsmagfield2015.txt
+ toTesla = 1e+13
+Difference at  r:    895 and z:   1620 :   val1 =              1 val2=              0 Relative diff = 1
+Difference at  r:     15 and z:   1380 : Midpoint btwn r values  val1 =   -9.41402e-07 val2=     -9.414e-07 Relative diff = 1.08687e-06
+Differences seen in check of values Half-point in r  near point   r = 17.5 z= 1380
+  component 0  field-val:  -9.41402e-07 vs     check-val:    -9.414e-07    diff(val-chk): -2.04636e-12    relative diff:  -1.08687e-06
+Difference at  r:     30 and z:  -1540 : Midpoint btwn z values  val1 =    0.000913995 val2=       0.000914 Relative diff = 2.64292e-06
+Difference at  r:     40 and z:   1420 : Midpoint btwn z values  val1 =    5.58502e-05 val2=    5.58505e-05 Relative diff = 2.76836e-06
+Difference at  r:     45 and z:   1380 : Midpoint btwn z values  val1 =    4.98008e-05 val2=    4.98006e-05 Relative diff = 1.60712e-06
+Difference at  r:     50 and z:    760 : Midpoint btwn z values  val1 =   -6.19986e-05 val2=       -6.2e-05 Relative diff = 1.15595e-05
+Difference at  r:    305 and z:    140 : Midpoint btwn z values  val1 =    4.84009e-08 val2=    4.84001e-08 Relative diff = 8.22107e-06
+Difference at  r:    335 and z:    140 : Midpoint btwn z values  val1 =   -0.000128599 val2=     -0.0001286 Relative diff = 4.52628e-06
+Difference at  r:    345 and z:      0 : Midpoint btwn z values  val1 =   -1.20502e-07 val2=   -1.20501e-07 Relative diff = 3.42001e-06
+Difference at  r:    425 and z:    180 : Midpoint btwn r values  val1 =    2.76148e-07 val2=     2.7615e-07 Relative diff = 3.34495e-06
+Differences seen in check of values Half-point in r  near point   r = 427.5 z= 180
+  component 1  field-val:   2.76148e-07 vs     check-val:    2.7615e-07    diff(val-chk): -1.84741e-12    relative diff:  -3.34495e-06
+Difference at  r:    430 and z:   -800 : Midpoint btwn r values  val1 =    9.52899e-05 val2=    9.52901e-05 Relative diff = 1.29805e-06
+Differences seen in check of values Half-point in r  near point   r = 432.5 z= -800
+  component 2  field-val:   9.52899e-05 vs     check-val:   9.52901e-05    diff(val-chk): -2.47383e-10    relative diff:  -1.29805e-06
+Difference at  r:    435 and z:    180 : Midpoint btwn z values  val1 =    -7.1901e-07 val2=   -7.19003e-07 Relative diff = 5.09926e-06
+Difference at  r:    475 and z:    180 : Midpoint btwn z values  val1 =   -4.81999e-05 val2=   -4.82001e-05 Relative diff = 2.67942e-06
+Difference at  r:    520 and z:   -160 : Midpoint btwn z values  val1 =    2.29001e-07 val2=    2.28996e-07 Relative diff = 1.00532e-05
+Difference at  r:    570 and z:  -1040 : Midpoint btwn z values  val1 =    2.38999e-07 val2=    2.39001e-07 Relative diff = 2.73514e-06
+Difference at  r:    575 and z:   1020 : Midpoint btwn z values  val1 =    5.63992e-08 val2=    5.63996e-08 Relative diff = 3.05511e-06
+Difference at  r:    675 and z:    340 : Midpoint btwn r values  val1 =   -1.45149e-05 val2=    -1.4515e-05 Relative diff = 1.78579e-06
+Differences seen in check of values Half-point in r  near point   r = 677.5 z= 340
+  component 0  field-val:  -1.45149e-05 vs     check-val:   -1.4515e-05    diff(val-chk):  5.18412e-11    relative diff:  1.78579e-06
+Difference at  r:    720 and z:    980 : Midpoint btwn z values  val1 =   -5.38398e-07 val2=     -5.384e-07 Relative diff = 1.42531e-06
+Difference at  r:    755 and z:   -900 : Midpoint btwn z values  val1 =    6.39298e-05 val2=    6.39299e-05 Relative diff = 1.0243e-06
+Difference at  r:    755 and z:   -140 : Midpoint btwn z values  val1 =    0.000507148 val2=     0.00050715 Relative diff = 1.54945e-06
+Difference at  r:    755 and z:    120 : Midpoint btwn z values  val1 =   -0.000180501 val2=     -0.0001805 Relative diff = 2.70077e-06
+Difference at  r:    760 and z:   -680 : Midpoint btwn z values  val1 =    0.000537851 val2=     0.00053785 Relative diff = 1.02812e-06
+Difference at  r:    770 and z:    640 : Midpoint btwn z values  val1 =    3.78802e-08 val2=      3.788e-08 Relative diff = 2.90744e-06
+Difference at  r:    775 and z:   -640 : Midpoint btwn r values  val1 =     2.5035e-05 val2=     2.5035e-05 Relative diff = 1.01721e-06
+Differences seen in check of values Half-point in r  near point   r = 777.5 z= -640
+  component 0  field-val:    2.5035e-05 vs     check-val:    2.5035e-05    diff(val-chk):  5.09317e-11    relative diff:  1.01721e-06
+Difference at  r:    785 and z:   -820 : Midpoint btwn r values  val1 =   -1.75035e-07 val2=   -1.75035e-07 Relative diff = 1.38021e-06
+Differences seen in check of values Half-point in r  near point   r = 787.5 z= -820
+  component 1  field-val:  -1.75035e-07 vs     check-val:  -1.75035e-07    diff(val-chk):  4.83169e-13    relative diff:  1.38021e-06
+Difference at  r:    855 and z:    920 : Midpoint btwn z values  val1 =   -1.98497e-06 val2=   -1.98511e-06 Relative diff = 3.65967e-05
+Difference at  r:     75 and z:  -1200 : Midpoint btwn r values  val1 =   -0.000158075 val2=   -0.000158075 Relative diff = 1.97922e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 77.5 z= -1190
+  component 0  field-val:  -0.000158075 vs     check-val:  -0.000158075    diff(val-chk): -6.25732e-10    relative diff:  -1.97923e-06
+Difference at  r:    120 and z:   1280 : Midpoint btwn r values  val1 =   -3.90124e-06 val2=   -3.90125e-06 Relative diff = 1.57362e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 122.5 z= 1290
+  component 0  field-val:  -3.90124e-06 vs     check-val:  -3.90125e-06    diff(val-chk):  1.22782e-11    relative diff:  1.57362e-06
+Difference at  r:    180 and z:   1040 : Midpoint btwn r values  val1 =       3.91e-07 val2=    3.90999e-07 Relative diff = 1.19938e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 182.5 z= 1050
+  component 1  field-val:      3.91e-07 vs     check-val:   3.90999e-07    diff(val-chk):  9.37916e-13    relative diff:  1.19938e-06
+Difference at  r:    235 and z:  -1100 : Midpoint btwn r values  val1 =    -1.5285e-05 val2=    -1.5285e-05 Relative diff = 1.01154e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 237.5 z= -1090
+  component 0  field-val:   -1.5285e-05 vs     check-val:   -1.5285e-05    diff(val-chk):  3.09228e-11    relative diff:  1.01154e-06
+Difference at  r:    245 and z:    -80 : Midpoint btwn r values  val1 =    5.23272e-08 val2=    5.23276e-08 Relative diff = 3.46259e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 247.5 z= -70
+  component 1  field-val:   5.23272e-08 vs     check-val:   5.23276e-08    diff(val-chk): -3.62377e-13    relative diff:  -3.46259e-06
+Difference at  r:    335 and z:   -200 : Midpoint btwn r values  val1 =   -1.56374e-07 val2=   -1.56377e-07 Relative diff = 7.49731e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 337.5 z= -190
+  component 1  field-val:  -1.56374e-07 vs     check-val:  -1.56377e-07    diff(val-chk):  2.34479e-12    relative diff:  7.49731e-06
+Difference at  r:    395 and z:   -140 : Midpoint btwn r values  val1 =      0.0019329 val2=      0.0019329 Relative diff = 1.20457e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 397.5 z= -130
+  component 0  field-val:     0.0019329 vs     check-val:     0.0019329    diff(val-chk): -4.65661e-09    relative diff:  -1.20457e-06
+Difference at  r:    425 and z:   -680 : Midpoint btwn r values  val1 =    0.000199815 val2=    0.000199815 Relative diff = 1.78426e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 427.5 z= -670
+  component 2  field-val:   0.000199815 vs     check-val:   0.000199815    diff(val-chk): -7.13044e-10    relative diff:  -1.78426e-06
+Difference at  r:    495 and z:   -140 : Midpoint btwn r values  val1 =    0.000980246 val2=    0.000980243 Relative diff = 1.36576e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 497.5 z= -130
+  component 0  field-val:   0.000980246 vs     check-val:   0.000980243    diff(val-chk):  2.67755e-09    relative diff:  1.36576e-06
+Difference at  r:    495 and z:    120 : Midpoint btwn r values  val1 =    -0.00074325 val2=   -0.000743244 Relative diff = 4.30735e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 497.5 z= 130
+  component 0  field-val:   -0.00074325 vs     check-val:  -0.000743244    diff(val-chk): -6.40284e-09    relative diff:  -4.30734e-06
+Difference at  r:    515 and z:    340 : Midpoint btwn r values  val1 =   -2.31593e-07 val2=   -2.31592e-07 Relative diff = 1.34995e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 517.5 z= 350
+  component 1  field-val:  -2.31593e-07 vs     check-val:  -2.31592e-07    diff(val-chk): -6.25278e-13    relative diff:  -1.34995e-06
+Difference at  r:    565 and z:  -1040 : Midpoint btwn r values  val1 =   -9.65754e-08 val2=   -9.65747e-08 Relative diff = 3.67871e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 567.5 z= -1030
+  component 1  field-val:  -9.65754e-08 vs     check-val:  -9.65747e-08    diff(val-chk): -7.10543e-13    relative diff:  -3.67871e-06
+Difference at  r:    600 and z:   -140 : Midpoint btwn r values  val1 =    5.57475e-05 val2=    5.57452e-05 Relative diff = 2.0002e-05
+Differences seen in check of values Mid-point in r, z cell  near point   r = 602.5 z= -130
+  component 0  field-val:   5.57475e-05 vs     check-val:   5.57452e-05    diff(val-chk):  2.23008e-09    relative diff:  2.0002e-05
+Difference at  r:    600 and z:    120 : Midpoint btwn r values  val1 =    6.50098e-06 val2=    6.49691e-06 Relative diff = 0.000313232
+Differences seen in check of values Mid-point in r, z cell  near point   r = 602.5 z= 130
+  component 0  field-val:   6.50098e-06 vs     check-val:   6.49691e-06    diff(val-chk):  4.07135e-09    relative diff:  0.000313232
+Difference at  r:    630 and z:   -440 : Midpoint btwn r values  val1 =   -0.000283275 val2=   -0.000283274 Relative diff = 2.61989e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 632.5 z= -430
+  component 0  field-val:  -0.000283275 vs     check-val:  -0.000283274    diff(val-chk):  -1.4843e-09    relative diff:  -2.61989e-06
+Difference at  r:    630 and z:    420 : Midpoint btwn r values  val1 =    6.84996e-05 val2=    6.84997e-05 Relative diff = 1.1153e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 632.5 z= 430
+  component 0  field-val:   6.84996e-05 vs     check-val:   6.84997e-05    diff(val-chk): -1.52795e-10    relative diff:  -1.1153e-06
+Difference at  r:    635 and z:   -440 : Midpoint btwn r values  val1 =   -0.000211375 val2=   -0.000211374 Relative diff = 3.71759e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 637.5 z= -430
+  component 0  field-val:  -0.000211375 vs     check-val:  -0.000211374    diff(val-chk): -1.57161e-09    relative diff:  -3.71759e-06
+Difference at  r:    635 and z:    420 : Midpoint btwn r values  val1 =    1.76506e-05 val2=    1.76504e-05 Relative diff = 4.32835e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 637.5 z= 430
+  component 0  field-val:   1.76506e-05 vs     check-val:   1.76504e-05    diff(val-chk):  1.52795e-10    relative diff:  4.32835e-06
+Difference at  r:    705 and z:   1000 : Midpoint btwn r values  val1 =   -5.66828e-07 val2=   -5.66826e-07 Relative diff = 1.2034e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 707.5 z= 1010
+  component 1  field-val:  -5.66828e-07 vs     check-val:  -5.66826e-07    diff(val-chk): -1.36424e-12    relative diff:  -1.2034e-06
+Difference at  r:    760 and z:   -360 : Midpoint btwn r values  val1 =   -4.43766e-07 val2=   -4.43775e-07 Relative diff = 1.05356e-05
+Differences seen in check of values Mid-point in r, z cell  near point   r = 762.5 z= -350
+  component 0  field-val:  -4.43766e-07 vs     check-val:  -4.43775e-07    diff(val-chk):  9.35074e-12    relative diff:  1.05356e-05
+Difference at  r:    770 and z:   -140 : Midpoint btwn r values  val1 =    6.26801e-08 val2=      6.268e-08 Relative diff = 1.07692e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 772.5 z= -130
+  component 1  field-val:   6.26801e-08 vs     check-val:     6.268e-08    diff(val-chk):  1.35003e-13    relative diff:  1.07692e-06
+Difference at  r:    820 and z:     80 : Midpoint btwn r values  val1 =    7.04693e-09 val2=    7.04705e-09 Relative diff = 8.31841e-06
+Differences seen in check of values Mid-point in r, z cell  near point   r = 822.5 z= 90
+  component 1  field-val:   7.04693e-09 vs     check-val:   7.04705e-09    diff(val-chk):  -1.1724e-13    relative diff:  -8.31841e-06
+Difference at  r:    845 and z:      0 : Midpoint btwn r values  val1 =   -4.20539e-08 val2=    -4.2055e-08 Relative diff = 1.3939e-05
+Differences seen in check of values Mid-point in r, z cell  near point   r = 847.5 z= 10
+  component 0  field-val:  -4.20539e-08 vs     check-val:   -4.2055e-08    diff(val-chk):   1.1724e-12    relative diff:  1.3939e-05

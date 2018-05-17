@@ -6,12 +6,18 @@
 #include "base/SOA3D.h"
 #include "base/Global.h"
 
+#include <Geant/SystemOfUnits.h>
+
+#include "Geant/VVectorField.h"
+
 // typedef vecgeom::Vector3D<double> Vector3D;
 // typedef vecgeom::SOA3D<double> SOA3D;
 
-class ScalarRZMagFieldFromMap {
+class ScalarRZMagFieldFromMap : public VVectorField {
 public:
   ScalarRZMagFieldFromMap();
+  ScalarRZMagFieldFromMap(std::string inputMap);
+  ScalarRZMagFieldFromMap(const ScalarRZMagFieldFromMap &right);
 
   // New stuff
   // Takes as input x,y,z; Gives output Bx,By,Bz
@@ -20,16 +26,33 @@ public:
   // Stores rz field as well for cross checking purpose
   void GetFieldValueTest(const vecgeom::Vector3D<double> &position, vecgeom::Vector3D<double> &rzField);
 
-  // Takes as input an SOA3D for position, gives field
-  void GetFieldValues(const vecgeom::SOA3D<double> &position,
-                      vecgeom::SOA3D<double> &field); // not tested yet with given input
+  // @brief   evaluate field value at input position (SOA3D)
+  void ObtainFieldValue(const vecgeom::Vector3D<double> &position,
+                        vecgeom::Vector3D<double> &field) override final
+  { GetFieldValueXYZ(position, field); }
 
+  virtual void ObtainFieldValueSIMD(const Vector3D<Double_v> &position, Vector3D<Double_v> &fieldValue) override final;
+
+  // @brief   extra method for an arbitrary length SOA3D of positions
+  void GetFieldValues(const vecgeom::SOA3D<double> &posVec, vecgeom::SOA3D<double> &fieldVec);
+  
   // Reads data from given 2D magnetic field map. Can be easily modified to read a given 2D map, in case the file
   // changes
   void ReadVectorData(std::string inputMap);
 
   ~ScalarRZMagFieldFromMap();
 
+  /** @brief For old interface - when cloning was needed for each thread */
+  ScalarRZMagFieldFromMap* Copy() const { return new ScalarRZMagFieldFromMap(*this); }  
+   
+  virtual VVectorField* Clone() const override final { return Copy(); }
+
+  ScalarRZMagFieldFromMap* CloneOrSafeSelf(bool *isSafe) {
+     if( isSafe ) *isSafe = false;
+     return Copy();
+  }
+
+  
 private:
   //  Invariants -- parameters of the field
   const double millimeter = 1.0; // Currently -- to be native GeantV
@@ -48,7 +71,7 @@ private:
   const double kZ0       = -kZMax;
   const double kRDiffInv = 1.0 / kRDiff;
   const double kZDiffInv = 1.0 / kZDiff;
-  const double kAInverse = 1 / (kRDiff * kZDiff);
+  const double kAInverse = geant::units::tesla / (kRDiff * kZDiff);  // Values in file assumed in tesla
 
   // For (R,Z) pairs : gives field in cylindrical coordinates in rzfield
   void GetFieldValueRZ(const double radius, const double z, vecgeom::Vector3D<double> &rzField);

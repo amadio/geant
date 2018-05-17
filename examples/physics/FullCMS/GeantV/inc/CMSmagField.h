@@ -355,17 +355,17 @@ GEANT_FORCE_INLINE void CMSmagField::Gather2<double>(const vecCore::Index<double
 }
 
 template <typename Real_v>
-GEANT_FORCE_INLINE void CMSmagField::GetFieldValueRZ(const Real_v &r, const Real_v &Z, Vector3D<Real_v> &rzField)
+GEANT_FORCE_INLINE void CMSmagField::GetFieldValueRZ(const Real_v &rIn, const Real_v &zIn, Vector3D<Real_v> &rzField)
 {
   // Convention for return value:  x -> R,  y-> Phi, z->Z
-
+  
   using namespace vecCore::math;
   using namespace geant;
   using Index_v = vecCore::Index<Real_v>;
 
   // Limit radius and z:  outside take values at limit points
-  const Real_v radius = Min(r, Real_v(kRMax));
-  const Real_v z      = Max(Min(Z, Real_v(kZMax)), Real_v(-kZMax));
+  const Real_v radius = Min(rIn, Real_v(kRMax));
+  const Real_v z      = Max(Min(zIn, Real_v(kZMax)), Real_v(-kZMax));
 
   // to make sense of the indices, consider any particular instance e.g. (25,-200)
   const Real_v rFloor  = Floor(radius * kRDiffInv);

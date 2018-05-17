@@ -9,10 +9,18 @@
 #include "base/SOA3D.h"
 using namespace std;
 
-typedef vecgeom::Vector3D<double> Vector3D;
+// typedef vecgeom::Vector3D<double> Vector3D;
+using  Vector3D_d = vecgeom::Vector3D<double>;
 
 ScalarRZMagFieldFromMap::ScalarRZMagFieldFromMap()
+   : VVectorField( 3, true)   //  meaning: number of components,   changes Energy
 {
+}
+
+ScalarRZMagFieldFromMap::ScalarRZMagFieldFromMap(std::string inputMap)
+   : ScalarRZMagFieldFromMap()
+{
+  ReadVectorData(inputMap);   
 }
 
 ScalarRZMagFieldFromMap::~ScalarRZMagFieldFromMap()
@@ -45,7 +53,9 @@ void ScalarRZMagFieldFromMap::ReadVectorData(string inputMap)
   }
 }
 
-void ScalarRZMagFieldFromMap::GetFieldValueRZ(const double r, const double Z, Vector3D &rzField)
+void ScalarRZMagFieldFromMap::
+  GetFieldValueRZ(const double r, const double Z, Vector3D_d &rzField)
+                  // vecgeom::Vector3D<double> &rzField)
 {
 
   // Take care that radius and z for out of limit values take values at end points
@@ -91,20 +101,21 @@ void ScalarRZMagFieldFromMap::GetFieldValueRZ(const double r, const double Z, Ve
 
 void ScalarRZMagFieldFromMap::GetFieldValueRZ(std::vector<double> radius, std::vector<double> z)
 {
-  for (int i = 0; i < radius.size(); ++i) {
-    Vector3D rzField;
+  int len= std::min( radius.size(), z.size() );
+  for (int i = 0; i < len; ++i) {
+    Vector3D_d rzField;
     GetFieldValueRZ(radius[i], z[i], rzField);
   }
 }
 
 // Sidenote: For theta =0; xyzField = rzField.
 // theta =0 corresponds to y=0
-void ScalarRZMagFieldFromMap::GetFieldValueXYZ(const Vector3D &pos, Vector3D &xyzField)
+void ScalarRZMagFieldFromMap::GetFieldValueXYZ(const Vector3D_d &pos, Vector3D_d &xyzField)
 {
 
   double cyl[2];
   CartesianToCylindrical(pos, cyl);
-  Vector3D rzField;
+  Vector3D_d rzField;
   GetFieldValueRZ(cyl[0], cyl[1], rzField); // cyl[2] =[r,z]
 
   double sinTheta = 0.0, cosTheta = 1.0; // initialize as theta=0
@@ -118,23 +129,63 @@ void ScalarRZMagFieldFromMap::GetFieldValueXYZ(const Vector3D &pos, Vector3D &xy
   CylindricalToCartesian(rzField, sinTheta, cosTheta, xyzField);
 }
 
-void ScalarRZMagFieldFromMap::GetFieldValueTest(const Vector3D &pos, Vector3D &rzField)
+void ScalarRZMagFieldFromMap::GetFieldValueTest(const Vector3D_d &pos, Vector3D_d &rzField)
 {
   double cyl[2];
   CartesianToCylindrical(pos, cyl);
   GetFieldValueRZ(cyl[0], cyl[1], rzField); // cyl[] =[r,z]
 }
 
-void ScalarRZMagFieldFromMap::GetFieldValues(const vecgeom::SOA3D<double> &posVec, vecgeom::SOA3D<double> &fieldVec)
+void ScalarRZMagFieldFromMap::GetFieldValues(const vecgeom::SOA3D<double> &posVec,
+                                                   vecgeom::SOA3D<double> &fieldVec)
 {
-  for (int i = 0; i < posVec.size(); ++i) {
+  int len= posVec.size();
+  for (int i = 0; i < len; ++i) {
     // fill a vector3D with ith triplet for input to getFieldValue
-    Vector3D pos(posVec.x(i), posVec.y(i), posVec.z(i));
-    Vector3D xyzField;
+    Vector3D_d pos(posVec.x(i), posVec.y(i), posVec.z(i));
+    Vector3D_d xyzField;
     GetFieldValueXYZ(pos, xyzField); // runs for 1 triplet
     // Fill SOA3D field with single field values
     fieldVec.x(i) = xyzField.x();
     fieldVec.y(i) = xyzField.y();
     fieldVec.z(i) = xyzField.z();
   }
+}
+
+/** @brief Vector interface for field retrieval */
+void ScalarRZMagFieldFromMap::
+  ObtainFieldValueSIMD(const Vector3D<Double_v> &positionVec, Vector3D<Double_v> &fieldValueVec)
+{
+   Vector3D<double> position, fieldValue;
+   int vecsz = vecCore::VectorSize<Double_v>();  // Deprecated !?
+   // Double_v dv;
+   // int vecsz = VectorSize<decltype(dv)>();
+   Double_v fieldValueArr[3];
+   
+   for( int i= 0; i < vecsz ; ++i)           
+   {
+      position= Vector3D_d( vecCore::Get(positionVec[0], i),
+                            vecCore::Get(positionVec[1], i),
+                            vecCore::Get(positionVec[2], i) ) ;
+      
+      ObtainFieldValue( position, fieldValue);
+      for( int j= 0; j < 3; j++)
+        vecCore::Set( fieldValueArr[j], i, fieldValue[j] );
+
+      vecCore::Set( fieldValueVec[0], i, fieldValue.x() );
+      vecCore::Set( fieldValueVec[0], i, fieldValue.x() );
+      vecCore::Set( fieldValueVec[0], i, fieldValue.x() );            
+   }
+}
+
+ScalarRZMagFieldFromMap::
+  ScalarRZMagFieldFromMap(const ScalarRZMagFieldFromMap &right)
+   : ScalarRZMagFieldFromMap()
+{
+   fRadius = right.fRadius;
+   fPhi    = right.fPhi;
+   fZ      = right.fZ;
+   fBr     = right.fBr;
+   fBz     = right.fBz;
+   fBphi   = right.fBphi;
 }

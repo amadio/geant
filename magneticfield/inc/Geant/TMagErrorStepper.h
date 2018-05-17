@@ -29,9 +29,9 @@ public: // with description
       (Nvar > GUIntegrationNms::NumVarBase) ? Nvar : GUIntegrationNms::NumVarBase;
   // std::max( GUIntegrationNms::NumVarBase,  Nvar);
 
-  TMagErrorStepper(T_Equation *EqRhs,
+  TMagErrorStepper(T_Equation * EqRhs,
                    unsigned int integrationOrder,   // Make it a template Parameter ??
-                   unsigned int numStateVariables); // = -1)  // No default -- must ensure order is set
+                   unsigned int numStateVariables); // No default -- must ensure order is set
 
   TMagErrorStepper(const TMagErrorStepper &right);
 
@@ -85,9 +85,11 @@ private:
 // ------------------------------------------------------------------
 
 template <class T_Stepper, class T_Equation, unsigned int Nvar>
-TMagErrorStepper<T_Stepper, T_Equation, Nvar>::TMagErrorStepper(T_Equation *EqRhs, unsigned int integrationOrder,
+TMagErrorStepper<T_Stepper, T_Equation, Nvar>::TMagErrorStepper(T_Equation *EqRhs,
+                                                                unsigned int integrationOrder,
                                                                 unsigned int numStateVariables)
-    : VScalarIntegrationStepper(EqRhs, integrationOrder,
+    : VScalarIntegrationStepper(EqRhs,
+                                integrationOrder,
                                 Nvar,               // Must pass it to base class
                                 numStateVariables), // ((numStateVariables>0) ? numStateVariables : NumVarStore) ),
       fEquation_Rhs(EqRhs)

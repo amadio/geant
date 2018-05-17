@@ -14,13 +14,11 @@ inline namespace GEANT_IMPL_NAMESPACE {
 FieldConfig *FieldLookup::fFieldConfig = nullptr;
 
 VECCORE_ATT_HOST_DEVICE
-void FieldLookup::GetFieldValue(const vecgeom::Vector3D<double> &Position, vecgeom::Vector3D<double> &MagFieldOut,
-                                double &bmagOut
-                                // , const geant::TaskData     * td  => Not needed !!
+void FieldLookup::GetFieldValue(const vecgeom::Vector3D<double> &Position,
+                                      vecgeom::Vector3D<double> &MagFieldOut,
+                                      double                    &bmagOut
                                 )
 {
-  //   auto tkp = td->fPropagator;
-  //   auto config = tkp ? tkp->fConfig : nullptr;
   double bmag = 0.0;
   assert(fFieldConfig != nullptr);
 
@@ -29,7 +27,8 @@ void FieldLookup::GetFieldValue(const vecgeom::Vector3D<double> &Position, vecge
   if (fFieldConfig->IsFieldUniform()) {
     MagFieldOut = fFieldConfig->GetUniformFieldValue();
     bmag        = fFieldConfig->GetUniformFieldMag();
-  } else // if( pField )
+  }
+  else
   {
     assert(pField != nullptr);
 

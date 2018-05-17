@@ -36,7 +36,7 @@ using geant::units::degree;
 
 // #define  NEW_SCALAR_FIELD 1
 
-// #define USECMSFIELD 1
+#define USECMSFIELD 1
 
 #ifdef USECMSFIELD
 #include "CMSmagField.h"
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 #else
   (void)argc;
   (void)argv;
-  auto gvField               = new Field_Type(geant::units::tesla * ThreeVector_d(x_field, y_field, z_field));
+  auto gvField = new UniformMagField(geant::units::tesla * ThreeVector_d(x_field, y_field, z_field));
 #endif
 
   cout << "#  Initial  Field strength (GeantV) = " << x_field << " , " << y_field << " , " << z_field
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
       for (unsigned int j = 0; j < Nposmom; ++j) {
          double  dif   = outVec[j] - outSer[j];
          double midAbs = 0.5 * ( std::fabs(outVec[j]) + std::fabs(outSer[j]) ) + kTiny ;
-         if( dif > threshold * midAbs ){
+         if( std::fabs(dif) > threshold * midAbs ){
             if( ! diffFound ) { 
                cerr << " Difference found in vector i= " << i << " ( h = " << hstep[i] << " ) " << endl;
                diffFound = true;
@@ -295,8 +295,8 @@ int main(int argc, char *argv[])
       }
         
       if( verbose || diffFound ) { 
-        cout << " yOutput[" << i << "] is: " << yOutput[i] << " for yInput: " << yInput[i] << endl;
-        cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << " for hstep: " << hstep[i] <<endl;
+        cout << " Vector  yOutput[" << i << "] is : " << yOutput[i] << " for yInput: " << yInput[i] << endl;
+        cout << " Serial  yTrackOut  is : " << yTrackOut << " for yTrackIn: " << yTrackIn << " for hstep: " << hstep[i] <<endl;
       }
     }
   }

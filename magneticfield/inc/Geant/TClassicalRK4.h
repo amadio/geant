@@ -80,7 +80,9 @@ template <class T_Equation, unsigned int Nvar>
 template <class T_Equation, unsigned int Nvar>
 TClassicalRK4<T_Equation, Nvar>::TClassicalRK4(const TClassicalRK4 &right)
     : TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( // (T_Equation*) 0,
-          new T_Equation(*(right.fEquation_Rhs)), OrderRK4, right.GetNumberOfStateVariables())
+          new T_Equation(*(right.fEquation_Rhs)),
+          OrderRK4,
+          right.GetNumberOfStateVariables())
 // TMagErrorStepper<TClassicalRK4<T_Equation, Nvar>, T_Equation, Nvar>( right ),
 
 //  right.fEquation_Rhs->Clone())

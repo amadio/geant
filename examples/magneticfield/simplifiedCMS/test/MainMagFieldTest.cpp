@@ -107,16 +107,12 @@ int main()
 
 // #define  NEW_LOOP   1
   
-#ifdef NEW_LOOP  
   for (int jr = 0; jr <= noRValues; jr++ ) {
     float r = jr * kRDiff; // r <= kRMax; r = r + kRDiff) {
 
     for (int lz = 0; lz <= noZValues; lz++ ) {
       float z = -kZMax + lz * kZDiff ; // z <= kZMax; z = z + kZDiff) {
-#else
-  for( float r = 0; r <= kRMax; r += kRDiff) {
-    for( float z = -kZMax; z <= kZMax; z += kZDiff) {
-#endif       
+
       // Checks for (r,0,z) and (r,0,z) against (r,z)
       // cout << " r= " << r << " z =  " << z << endl;
       vecgeom::Vector3D<TypeFlt> pos1(r, zero, z);
@@ -127,12 +123,7 @@ int main()
       xyzField1 *= toTesla;
       // cout << "Field r= " << r << " z= " << z << " vec= " << xyzField1[1] << " " << xyzField1[2] << " " << xyzField1[0] << " Tesla " << endl;
 
-#ifdef NEW_LOOP      
       int i = jr * noZValues + lz;
-#else      
-      int i = std::round ( r * kRDiffInv * noZValues + halfZValues + z * kZDiffInv );
-      //   alternative                               +  ( z + kZMax ) *  kZDiffInv  ; // z -> -kZMax to +kZMax
-#endif
       
       // cout << "Expected index is: " << i << endl;
       vecgeom::Vector3D<float> rzCheckField1(dataMap.fBr[i], dataMap.fBphi[i], dataMap.fBz[i]);
@@ -148,9 +139,19 @@ int main()
 
   // Check for points on mid of cell lines i.e. (r/2,0,z) , (r,0,z/2)
 
+// #define OLD_CODE 1
+  
+#ifdef OLD_CODE  
   for (float r = 0; r < kRMax; r = r + kRDiff) {
     for (float z = -kZMax; z < kZMax; z = z + kZDiff) {
-      // cout<<"r: "<<r<<" and z: "<<z<<endl;
+#else  
+  for (int jr = 0; jr < noRValues; jr++ ) {
+    float r = jr * kRDiff; // r <= kRMax; r = r + kRDiff) {
+
+    for (int lz = 0; lz < noZValues; lz++ ) {
+      float z = -kZMax + lz * kZDiff ; // z <= kZMax; z = z + kZDiff) {
+#endif  
+      cout<<"r: "<<r<<" and z: "<<z<<endl;
 
       vecgeom::Vector3D<float> pos2(r + kRDiff * halfWeight, zero, z), pos3(r, zero, z + kZDiff * halfWeight);
       vecgeom::Vector3D<float> xyzField2, xyzField3;
@@ -162,42 +163,52 @@ int main()
       // Now need i1, i2, i3, i4
       // for pos2 and pos5, take i1 and i2. i4 = i3 + 161. Same z, different r. so skip through as many values of z as
       // for one r
-      int i1 = r * kRDiffInv * noZValues + halfZValues + z * kZDiffInv;
+#ifdef OLD_CODE      
+      int i1 = std::round( r * kRDiffInv * noZValues + halfZValues + z * kZDiffInv );
+#else      
+      int i1 = std::max( jr  , noRValues - 1)  * noZValues + lz;
+#endif
+      // if( jr < noRValues - 1 ) {  // Trial control for last line
       int i2 = i1 + noZValues;
-
-      // for pos3 and pos7, take i3 and i4. Then i4 = i3+1 because same r
+      // int i2 = std::max( jr+1, noRValues - 1)  * noZValues + lz;
+      
+      // for pos3 and pos4, take i3 and i4. Then i4 = i3+1 because same r
       // int i3 = r*kRDiffInv*noZValues + halfZValues + z*kZDiffInv;
       int i3 = i1;
       int i4 = i3 + 1;
-
-      rzCheckField2.x() = (dataMap.fBr[i1] + dataMap.fBr[i2]) * halfWeight;
-      rzCheckField2.y() = (dataMap.fBphi[i1] + dataMap.fBphi[i2]) * halfWeight;
-      rzCheckField2.z() = (dataMap.fBz[i1] + dataMap.fBz[i2]) * halfWeight;
-
+      // int i4 = std::max( jr  , noRValues - 1)  * noZValues + std::max(lz+1, noZValues );
+      
+      rzCheckField2.x() = 0.5 * (dataMap.fBr[i1]   + dataMap.fBr[i2]) ;
+      rzCheckField2.y() = 0.5 * (dataMap.fBphi[i1] + dataMap.fBphi[i2]) ;
+      rzCheckField2.z() = 0.5 * (dataMap.fBz[i1]   + dataMap.fBz[i2]) ;
+      
+      // auto diffVec = rzCheckField2 - xyzField2;
+      
       if( ( rzCheckField2 - xyzField2 ).Mag() > threshold * (rzCheckField2.Mag() + xyzField2.Mag()) ) {
-        cout << "Differences seen in check of values at half-point in r.  r = " << r + 0.5 * kRDiff
-             << " z= " << z << endl;         
-        cout << "    xyzField:      " << xyzField2     << " vs " << endl
-             << "    rzCheckField:  " << rzCheckField2 << endl
-             << "    diff(val-chk): " << xyzField2-rzCheckField2 << endl;
-        cout << "    relative diff: ( ";
-        for( int j=0; j< 3; j++ ) {
-           cout << (xyzField2[j]-rzCheckField2[j]) / ( fabs(xyzField2[j]) + fabs(rzCheckField2[j]) + kTiny );
-           if( j < 2 ) cout << ", ";
-        }
-        cout << ")" << endl;
-             
-        cout << "Checked against: " << endl;
-        cout << "B for i1 is: " << dataMap.fBr[i1] << " " << dataMap.fBphi[i1] << " " << dataMap.fBz[i1] << endl;
-        cout << "B for i3 is: " << dataMap.fBr[i2] << " " << dataMap.fBphi[i2] << " " << dataMap.fBz[i2] << endl;
-        cout << "Direct indices are: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
+         cout << "Differences seen in check of values at half-point in r.  r = " << r + 0.5 * kRDiff
+              << " z= " << z << endl;         
+         cout << "    xyzField:      " << xyzField2     << " vs " << endl
+              << "    rzCheckField:  " << rzCheckField2 << endl
+              << "    diff(val-chk): " << xyzField2-rzCheckField2 << endl;
+         cout << "    relative diff: ( ";
+         for( int j=0; j< 3; j++ ) {
+            cout << (xyzField2[j]-rzCheckField2[j]) / ( fabs(xyzField2[j]) + fabs(rzCheckField2[j]) + kTiny );
+            if( j < 2 ) cout << ", ";
+         }
+         cout << ")" << endl;
+         
+         cout << "Checked against: " << endl;
+         cout << "B for i1 is: " << dataMap.fBr[i1] << " " << dataMap.fBphi[i1] << " " << dataMap.fBz[i1] << endl;
+         cout << "B for i3 is: " << dataMap.fBr[i2] << " " << dataMap.fBphi[i2] << " " << dataMap.fBz[i2] << endl;
+         cout << "Direct indices are: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
       }
       // assert(ApproxEqual(xyzField2, rzCheckField2, r, z, 1));
       // ApproxEqual(xyzField2, rzCheckField2, r, z, 1);
       for( int k= 0; k<3 ; k++ )
          ApproxEqual(xyzField2[k], rzCheckField2[k], r, z, 1) ||
             ReportDifference( xyzField2[k], rzCheckField2[k], pos2, k, "Half-point in r");
-
+      // }  // Trial control for last line
+      
       m1.EstimateFieldValues<float>(pos3, xyzField3);
       xyzField3 *= toTesla;      
 

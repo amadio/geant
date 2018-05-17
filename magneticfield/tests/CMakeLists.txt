@@ -7,7 +7,11 @@ GeantRelPath()
 file(GLOB sources )  # Common source  files
 file(GLOB headers )  # Common include files
 
-include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc ${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/include)
+include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc 
+                    ${CMAKE_SOURCE_DIR}/magneticfield/tests/ScalarCMSMagField/include
+                    ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
+                    ${CMAKE_SOURCE_DIR}/examples/magneticfield/tests/simplifiedCMS/include
+                   )
 #----------------------------------------------------------------------------------------------
 # Redefine compilation flags since Geant4 is overriding them
 #
@@ -66,7 +70,8 @@ add_executable(testScalarIntegrationDriver testScalarIntegrationDriver.cxx)
 target_link_libraries(testScalarIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testScalarIntegrationDriver")
 
-add_executable(testVectorIntegrationDriver testVectorIntegrationDriver.cxx)
+add_executable(testVectorIntegrationDriver testVectorIntegrationDriver.cxx 
+                                           ${CMAKE_SOURCE_DIR}/magneticfield/tests/ScalarCMSMagField/src/ScalarRZMagFieldFromMap.cxx )
 target_link_libraries(testVectorIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testVectorIntegrationDriver")
 ## --------  End   of Integration Driver Tests -------------
@@ -136,6 +141,14 @@ install(TARGETS testConstVecFieldStepper DESTINATION bin/tests/${RelativeCurrent
 # Old tests - drivers
 install(TARGETS testScalarIntegrationDriver DESTINATION bin/tests/${RelativeCurrentSourceParent})
 #install(TARGETS testGUPropagateField DESTINATION bin)
+
+#----------------------------------------------------------------------------------------------
+# Copy the datafile to the bin directory
+#
+# configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt
+#                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmsmagfield2015.txt COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/cmsmagfield2015.txt 
+               ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmsmagfield2015.txt COPYONLY)
 
 #----------------------------------------------------------------------------------------------
 # Add this directory to Doxygen

@@ -47,7 +47,8 @@ private:
 
 template <class T_Equation, unsigned int Nvar>
 TSimpleRunge<T_Equation, Nvar>::TSimpleRunge(T_Equation *EqRhs, unsigned int numStateVar)
-    : TMagErrorStepper<TSimpleRunge<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs, OrderSimpleR,
+    : TMagErrorStepper<TSimpleRunge<T_Equation, Nvar>, T_Equation, Nvar>(EqRhs,
+                                                                         OrderSimpleR,
                                                                          (numStateVar > 0 ? numStateVar : Nvar)),
       fNumberOfStateVariables(numStateVar > 0 ? numStateVar : Nvar), fEquation_Rhs(EqRhs)
 {

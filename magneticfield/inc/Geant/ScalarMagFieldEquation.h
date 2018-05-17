@@ -93,7 +93,8 @@ private:
 
 template <class Field, unsigned int Size>
 ScalarMagFieldEquation<Field, Size>::ScalarMagFieldEquation(const ScalarMagFieldEquation &right)
-    : VScalarEquationOfMotion((VVectorField *)0), fPtrField(right.fPtrField->CloneOrSafeSelf((bool *)0))
+    : VScalarEquationOfMotion((VVectorField *)0),
+      fPtrField(right.fPtrField->CloneOrSafeSelf((bool *)0))
 // fPtrField( new Field(right.fPtrField) )
 {
   // G4bool threadSafe;
@@ -195,7 +196,7 @@ template <class Field, unsigned int Size>
 GEANT_FORCE_INLINE void ScalarMagFieldEquation<Field, Size>::FieldFromY(const double y[],
                                                                         vecgeom::Vector3D<double> &Bfield) const
 {
-  fPtrField->GetFieldValue(Vector3D<double>(y[0], y[1], y[2]), Bfield);
+  fPtrField->ObtainFieldValue(Vector3D<double>(y[0], y[1], y[2]), Bfield);
 }
 
 template <class Field, unsigned int Size>

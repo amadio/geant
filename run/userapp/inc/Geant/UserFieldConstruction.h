@@ -4,10 +4,17 @@
 //
 //===----------------------------------------------------------------------===//
 /**
- * @file   UserFieldConstruction.h
- * @brief  Base class for the user's mandatory initialization class
- *         for field setup.
- * @author John Apostolakis
+ * @file         UserFieldConstruction.h
+ * @brief        Base class for user's initialization of field & integrator
+ *                 of tracks for this field.
+ *
+ * @description  Provides templated method CreateSolverAndField that does
+ *                 the hard work - creating the concrete solver, using 
+ *                 knowledge of the field's type.
+ *               This version can be used create a uniform magnetic field.
+ *
+ * @author       John Apostolakis
+ * @date         June 2017 - May 2018
  */
 //===----------------------------------------------------------------------===//
 
@@ -16,6 +23,8 @@
 
 #include "base/Vector3D.h"
 // #include "Geant/Typedefs.h"
+// #include "base/Global.h"
+#include "Geant/Error.h"
 
 #include "Geant/FieldLookup.h"
 #include "Geant/FieldPropagatorFactory.h"
@@ -32,8 +41,9 @@ class UserFieldConstruction {
 public:
   // UserFieldConstruction();  // RootDL - i.e. moved below, where it is defined
   virtual ~UserFieldConstruction(){};
-  // virtual bool CreateFieldAndSolver(bool useRungeKutta= true); // RootDL
-
+  // @brief   key virtual method - must create the field for detector & the integration driver ('solver')
+  virtual bool CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField **fieldPP = nullptr); // RootDL
+     
   /** Register a constanct B-field */
   // void UseConstantMagField( float value[3], const char* Unit= 0 ); // Default unit is kilogauss // RootDL
 
@@ -72,7 +82,7 @@ public:
 
   // };   // RootComm
 
-  // --> Changed to accomodate Root needs for
+  // --> Changed to accomodate Root needs (problem in dictionary creation - Root version 6.10 )
 public: // RootAdded
   // UserFieldConstruction:: // RootComm
   UserFieldConstruction()
@@ -127,10 +137,14 @@ public: // RootAdded
     fUseUniformField = true;
     fZeroField       = (fMagFieldValue.Mag2() == 0.0);
   }
+};
 
   /** @brief Create the global magnetic field and classes to integrate it. Register field. */
   /** @description  Must call the templated CreateSolverForField method.                   */
-  virtual bool CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField **fieldPP = nullptr)
+  // virtual
+  inline bool
+  UserFieldConstruction:: // RootComm     
+  CreateFieldAndSolver(bool /*useRungeKutta*/, VVectorField **fieldPP  /* = nullptr */ )
   {
     static const char *method = "UserFieldConstruction::CreateFieldAndSolver";
     bool rtv                  = false;
@@ -168,7 +182,7 @@ public: // RootAdded
     }
     return rtv;
   }
-};
+// -- };  // RootComm
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

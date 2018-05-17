@@ -170,7 +170,10 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
 
   // Checks ...
   assert(fVectorDriver && "Vector Driver is not SET");
-  if (verbose) {
+  if (verbose || step == 0.0) {
+    if( step == 0.0) {
+       std::cout << "ZERO step requested in GUFieldPropagator::DoStep" << std::endl;
+    }
     std::cout << methodName << " Dump of arguments: " << std::endl;
     std::cout << "   Step       = " << step << std::endl;
     std::cout << "   yTrackInFT = " << yTrackInFT << std::endl;
