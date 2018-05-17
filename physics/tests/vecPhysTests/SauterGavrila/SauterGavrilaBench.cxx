@@ -4,13 +4,13 @@
 //#include "Geant/SauterGavrilaPhotoElectricModel.h"
 //#include "Geant/VecSauterGavrilaPhotoElectricModel.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 
 SauterGavrilaPhotoElectricModel *sg;
 VecSauterGavrilaPhotoElectricModel *vsg;
 SauterGavrilaPhotoElectricModel *sgrej;
 VecSauterGavrilaPhotoElectricModel *vsgrej;
-TaskData *td;
+auto td  = PrepareTaskData();
 
 static void SauterGavrilaSampleSecondariesAliasScalar(benchmark::State &state)
 {
@@ -24,7 +24,7 @@ static void SauterGavrilaSampleSecondariesAliasScalar(benchmark::State &state)
     td->fPhysicsData->ClearSecondaries();
     state.ResumeTiming();
     for (int i = 0; i < basketSize; ++i) {
-      sg->SampleSecondaries(primaries[i], td);
+      sg->SampleSecondaries(primaries[i], td.get());
     }
   }
 }
@@ -41,7 +41,7 @@ static void SauterGavrilaSampleSecondariesAliasVector(benchmark::State &state)
     primaries.SetNtracks(basketSize);
     td->fPhysicsData->GetSecondarySOA().ClearTracks();
     state.ResumeTiming();
-    vsg->SampleSecondariesVector(primaries, td);
+    vsg->SampleSecondariesVector(primaries, td.get());
   }
 }
 BENCHMARK(SauterGavrilaSampleSecondariesAliasVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
@@ -57,7 +57,7 @@ static void SauterGavrilaSampleSecondariesRejScalar(benchmark::State &state)
     td->fPhysicsData->ClearSecondaries();
     state.ResumeTiming();
     for (int i = 0; i < basketSize; ++i) {
-      sgrej->SampleSecondaries(primaries[i], td);
+      sgrej->SampleSecondaries(primaries[i], td.get());
     }
   }
 
@@ -75,7 +75,7 @@ static void SauterGavrilaSampleSecondariesRejVector(benchmark::State &state)
     primaries.SetNtracks(basketSize);
     td->fPhysicsData->GetSecondarySOA().ClearTracks();
     state.ResumeTiming();
-    vsgrej->SampleSecondariesVector(primaries, td);
+    vsgrej->SampleSecondariesVector(primaries, td.get());
   }
 
 }
@@ -88,11 +88,11 @@ int main(int argc, char **argv)
     vsg = PrepareVecSauterGavrilaModel(true);
     sgrej = PrepareSauterGavrilaModel(false);
     vsgrej= PrepareVecSauterGavrilaModel(false);
-    td  = PrepareTaskData();
+    
     
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
     ::benchmark::RunSpecifiedBenchmarks();
     
-    CleanTaskData(td);
+    CleanTaskData(td.get());
 }

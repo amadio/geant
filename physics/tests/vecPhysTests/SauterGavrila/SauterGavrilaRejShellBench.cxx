@@ -2,7 +2,7 @@
 #include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 #include <random>
 
 class SauterGavrilaRejShellTester : public SauterGavrilaPhotoElectricModel {
@@ -26,7 +26,7 @@ static void SampleRejShellScalar(benchmark::State &state)
   sgt->SetUseSamplingTables(true);
   sgt->Initialize();
 
-  geant::VecRngWrapper rngGV;
+  geant::RngWrapper rngGV;
   std::vector<double> energy;
   std::vector<int> zed;
   std::vector<size_t> out;
@@ -64,7 +64,7 @@ static void SampleRejShellVector(benchmark::State &state)
   sgt->SetUseSamplingTables(true);
   sgt->Initialize();
 
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<int> zed;
   std::vector<int> out;
@@ -80,9 +80,9 @@ static void SampleRejShellVector(benchmark::State &state)
     out.push_back(0);
     r1.push_back(rng.uniform());
   }
-  TaskData *td = PrepareTaskData();
+  auto td = PrepareTaskData();
   for (auto _ : state) {
-      sgt->SampleShellVec(energy.data(), zed.data(), out.data(), state.range(0), td, r1.data());
+      sgt->SampleShellVec(energy.data(), zed.data(), out.data(), state.range(0), td.get(), r1.data());
     }
   
   benchmark::DoNotOptimize(out.data());

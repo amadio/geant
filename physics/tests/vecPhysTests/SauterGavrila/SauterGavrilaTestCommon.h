@@ -66,7 +66,7 @@ VecSauterGavrilaPhotoElectricModel *PrepareVecSauterGavrilaModel(bool useAlias)
 
 void PreparePrimaries(std::vector<LightTrack> &output, int N)
 {
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   output.clear();
   for (int i = 0; i < N; ++i) {
     LightTrack gamma;
@@ -84,7 +84,7 @@ void PreparePrimaries(std::vector<LightTrack> &output, int N)
 
 void PreparePrimaries(LightTrack_v &output, int N)
 {
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   output.SetNtracks(N);
   for (int i = 0; i < N; ++i) {
     double phi = geant::units::kTwoPi * rng.uniform(); // NOT uniform on shpere

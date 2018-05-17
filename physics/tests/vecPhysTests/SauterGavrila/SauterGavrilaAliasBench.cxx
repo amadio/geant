@@ -2,7 +2,7 @@
 #include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 
 class SauterGavrilaAliasTester : public SauterGavrilaPhotoElectricModel {
 public:
@@ -25,7 +25,7 @@ static void SampleAngleAliasScalar(benchmark::State &state)
   sgt->SetUseSamplingTables(true);
   sgt->Initialize();
 
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<double> out;
   std::vector<double> r1;
@@ -60,7 +60,7 @@ static void SampleAngleAliasVector(benchmark::State &state)
   sgt->SetUseSamplingTables(true);
   sgt->Initialize();
 
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<double> out;
   std::vector<double> r1;
@@ -76,13 +76,13 @@ static void SampleAngleAliasVector(benchmark::State &state)
   }
 
   for (auto _ : state) {
-    for (int i = 0; i < state.range(0); i += kPhysDVWidth) {
-      PhysDV en, r1v, r2v, r3v;
+      for (int i = 0; i < state.range(0); i += geant::kVecLenD) {
+      geant::Double_v en, r1v, r2v, r3v;
       vecCore::Load(en, energy.data() + i);
       vecCore::Load(r1v, r1.data() + i);
       vecCore::Load(r2v, r2.data() + i);
       vecCore::Load(r3v, r3.data() + i);
-      PhysDV eps = sgt->SamplePhotoElectronDirectionAliasVec(en, r1v, r2v, r3v);
+      geant::Double_v eps = sgt->SamplePhotoElectronDirectionAliasVec(en, r1v, r2v, r3v);
       vecCore::Store(eps, out.data() + i);
     }
   }

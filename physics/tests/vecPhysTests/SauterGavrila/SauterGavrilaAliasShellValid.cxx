@@ -1,7 +1,7 @@
 #include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 #include <random>
 #include <cmath>
 
@@ -37,7 +37,7 @@ int main()
   sgv->SetUseSamplingTables(true);
   sgv->Initialize();
 
-  geant::VecRngWrapper rngGV;
+  geant::RngWrapper rngGV;
   std::vector<double> energy;
   std::vector<int> zed;
   std::vector<size_t> out1;
@@ -60,14 +60,14 @@ int main()
       slnStd->SampleShellAlias(energy[i], tmp, r1[i], r2[i],out1[i]);
       //std::cout<<out1[i] <<std::endl;
   }
-  for (int i = 0; i < kTestSize; i += kPhysDVWidth) {
-    PhysDV en, r1v, r2v;
-    PhysDI  z;
+    for (int i = 0; i < kTestSize; i += geant::kVecLenD) {
+    geant::Double_v en, r1v, r2v;
+    geant::IndexD_v  z;
     vecCore::Load(en, energy.data() + i);
     vecCore::Load(z,  zed.data() + i);
     vecCore::Load(r1v, r1.data() + i);
     vecCore::Load(r2v, r2.data() + i);
-    PhysDI eps = sgv->SampleShellAliasVec(en, z, r1v, r2v);
+    geant::IndexD_v eps = sgv->SampleShellAliasVec(en, z, r1v, r2v);
     //std::cout<<eps<<std::endl;
     vecCore::Store(eps, out2.data() + i);
   }

@@ -2,7 +2,7 @@
 #include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 
 class SauterGavrilaRejTesterScalar : public SauterGavrilaPhotoElectricModel {
 public:
@@ -25,11 +25,11 @@ static void SampleAngleRejScalar(benchmark::State &state)
   sgt->SetUseSamplingTables(false);
   sgt->Initialize();
 
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<double> cosTheta;
 
-  TaskData *td = PrepareTaskData();
+  auto td = PrepareTaskData();
 
   for (int i = 0; i < kMaxBasket; ++i) {
     energy.push_back(rng.uniform(minEn, maxEn));
@@ -39,14 +39,14 @@ static void SampleAngleRejScalar(benchmark::State &state)
   for (auto _ : state) {
     for (int i = 0; i < state.range(0); ++i) {
       double ct;
-      sgt->SamplePhotoElectronDirection_Rejection(energy[i], ct, td);
+      sgt->SamplePhotoElectronDirection_Rejection(energy[i], ct, td.get());
       cosTheta[i] = ct;
     }
   }
 
   //benchmark::DoNotOptimize(out.data());
 
-  CleanTaskData(td);
+    CleanTaskData(td.get());
 
   delete sgt;
 }
@@ -60,12 +60,12 @@ static void SampleAngleRejVector(benchmark::State &state)
   sgt->SetUseSamplingTables(false);
   sgt->Initialize();
 
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<double> costheta;
   //double costheta[kMaxBasket];
 
-  TaskData *td = PrepareTaskData();
+  auto td = PrepareTaskData();
 
   for (int i = 0; i < kMaxBasket; ++i) {
     energy.push_back(rng.uniform(minEn, maxEn));
@@ -73,11 +73,11 @@ static void SampleAngleRejVector(benchmark::State &state)
   }
 
   for (auto _ : state) {
-    sgt->SamplePhotoElectronDirectionRejVec(energy.data(), costheta.data(), state.range(0), td);
+    sgt->SamplePhotoElectronDirectionRejVec(energy.data(), costheta.data(), state.range(0), td.get());
   }
 
   //benchmark::DoNotOptimize(out.data());
-  CleanTaskData(td);
+  CleanTaskData(td.get());
   delete sgt;
 }
 BENCHMARK(SampleAngleRejVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);

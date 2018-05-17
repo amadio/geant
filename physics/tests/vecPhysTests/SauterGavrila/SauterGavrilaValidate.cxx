@@ -20,9 +20,9 @@ struct PhotoElectricValidData {
 
 SauterGavrilaPhotoElectricModel *sg;
 VecSauterGavrilaPhotoElectricModel *vsg;
-TaskData *td;
+//TaskData *td;
 
-void FillDataVector(PhotoElectricValidData &data)
+void FillDataVector(PhotoElectricValidData &data,  geant::TaskData *td)
 {
 
   std::cout<<"Fill data Vector\n";
@@ -52,7 +52,7 @@ void FillDataVector(PhotoElectricValidData &data)
   }
 }
 
-void FillDataScalar(PhotoElectricValidData &data)
+void FillDataScalar(PhotoElectricValidData &data,  geant::TaskData *td)
 {
 
   std::vector<LightTrack> primaries;
@@ -86,7 +86,7 @@ int main()
   SetUpSimulation();
   sg  = PrepareSauterGavrilaModel(true);
   vsg = PrepareVecSauterGavrilaModel(true);
-  td  = PrepareTaskData();
+  auto td = PrepareTaskData();
 
   Printf("Number of gamma for each test %d", kMaxBasket * kBasketTries);
   Printf("Relative histograms of kinematics (difference in percents)");
@@ -94,9 +94,9 @@ int main()
     Printf("*** Test for alias method *** ");
 
     PhotoElectricValidData scalar;
-    FillDataScalar(scalar);
+    FillDataScalar(scalar, td.get());
     PhotoElectricValidData vector;
-    FillDataVector(vector);
+    FillDataVector(vector, td.get());
 
     Printf("Normalized photoelectron energy");
     vector.peE.Compare(scalar.peE);

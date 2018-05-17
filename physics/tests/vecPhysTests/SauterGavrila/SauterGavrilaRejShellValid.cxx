@@ -1,7 +1,7 @@
 #include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 #include <random>
 #include <cmath>
 
@@ -37,7 +37,7 @@ int main()
   sgv->SetUseSamplingTables(true);
   sgv->Initialize();
 
-  geant::VecRngWrapper rngGV;
+  geant::RngWrapper rngGV;
   std::vector<double> energy;
   std::vector<int> zed;
   std::vector<size_t> out1;
@@ -61,9 +61,9 @@ int main()
       //std::cout<<out1[i] <<std::endl;
   }
   //std::cout<<"******\n";
-  TaskData *td = PrepareTaskData();
+  auto td = PrepareTaskData();
   int ss[kTestSize];
-  sgv->SampleShellVec(energy.data(), zed.data(), ss, kTestSize, td, r1.data() );
+    sgv->SampleShellVec(energy.data(), zed.data(), ss, kTestSize, td.get(), r1.data() );
   double cumError = 0.0;
   for (int i = 0; i < kTestSize; ++i) {
     //std::cout<<ss[i] <<std::endl;

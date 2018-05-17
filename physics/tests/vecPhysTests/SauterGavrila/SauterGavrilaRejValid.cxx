@@ -5,7 +5,7 @@
 #include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
-#include "Geant/VecRngWrapper.h"
+#include "Geant/RngWrapper.h"
 
 class SauterGavrilaRejTesterScalar : public SauterGavrilaPhotoElectricModel {
 public:
@@ -34,7 +34,7 @@ int main()
     slnStd->Initialize();
 
   
-  geant::VecRngWrapper rng;
+  geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<double> cosTheta1;
   std::vector<double> cosTheta2;
@@ -45,9 +45,9 @@ int main()
     cosTheta2.push_back(0.0);
   }
 
-  TaskData *td = PrepareTaskData();
+  auto td = PrepareTaskData();
   for (int i = 0; i < kTestSize; ++i) {
-    slnStd->SamplePhotoElectronDirection_Rejection(energy[i], cosTheta1[i] , td);
+    slnStd->SamplePhotoElectronDirection_Rejection(energy[i], cosTheta1[i] , td.get());
   }
   
   SauterGavrilaRejTesterVec *sgv = new SauterGavrilaRejTesterVec;
@@ -55,8 +55,8 @@ int main()
   sgv->SetHighEnergyUsageLimit(maxEn);
   sgv->SetUseSamplingTables(true);
   sgv->Initialize();
-  //for (int i = 0; i < kTestSize; i += kPhysDVWidth) {
-  sgv->SamplePhotoElectronDirectionRejVec(energy.data(), cosTheta2.data(), kTestSize, td);
+    //for (int i = 0; i < kTestSize; i += geant::kVecLenD) {
+  sgv->SamplePhotoElectronDirectionRejVec(energy.data(), cosTheta2.data(), kTestSize, td.get());
   //}
 
 
@@ -66,7 +66,7 @@ int main()
   }
   Printf("TestSize: %d Cumulative error: %f", kTestSize, cumError);
 
-  CleanTaskData(td);
+  CleanTaskData(td.get());
   delete sgv;
   delete slnStd;
 }
