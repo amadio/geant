@@ -29,6 +29,7 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
+using MaskDI_v = vecCore::Mask<IndexD_v>;
 using vecCore::Get;
 using vecCore::Set;
 using vecCore::AssignMaskLane;
