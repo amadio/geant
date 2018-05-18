@@ -136,10 +136,15 @@ G4int MyPrimaryGeneratorAction::GetPrimaryTypeIndex(const G4String& pname) {
 void  MyPrimaryGeneratorAction::Print() {
   G4String str = "";
   G4double magFValue = MyDetectorConstruction::GetFieldValue();
-  if (magFValue>0.) {
-    str += "  Magnetic field           : constant " + std::to_string(magFValue/tesla) + " [ Tesla] field \n";
+  if( MyDetectorConstruction::IsFieldUniform() ){
+     if (magFValue>0.) {
+        str += "  Magnetic field           : constant " + std::to_string(magFValue/tesla) + " [ Tesla] field \n";
+     } else {
+        str += "  Magnetic field           : without magnetic field \n";
+     }
   } else {
-    str += "  Magnetic field           : without magnetic field \n";
+     str += "  Magnetic field           :  simplified RZ field from map ; central value = " +
+        std::to_string(magFValue/tesla) + " [ Tesla] field \n";
   }
   str   += "  Primaries were generated : \n";
   if (gNumPrimaryPerEvt<0) {

@@ -9,6 +9,7 @@ class MyDetectorConstruction;
 class G4UIdirectory;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithAString;
+class G4UIcmdWithABool;
 
 class MyDetectorMessenger: public G4UImessenger {
 
@@ -23,6 +24,7 @@ private:
   MyDetectorConstruction*    theDetector;
   G4UIdirectory*             theDetectorDir;
   G4UIcmdWithADoubleAndUnit* theFieldCommand;
+  G4UIcmdWithABool*          theFieldMapCommand;
   G4UIcmdWithAString*        theGDMLCommand;
 
 };

@@ -29,9 +29,10 @@ public:                                    // with description
   ~ScalarIntegrationDriver();
 
   // Core methods
-  bool AccurateAdvance(const ScalarFieldTrack &y_current, double hstep,
-                       double eps, // same             // Requested y_err/hstep
-                       ScalarFieldTrack &yOutput,
+  bool AccurateAdvance(const ScalarFieldTrack &y_current,
+                       double                 hstep,
+                       double                 eps, //  (Common) Requested y_err/hstep
+                       ScalarFieldTrack     & yOutput,
                        double hinitial = 0.0); // take it out
   // Above drivers for integrator (Runge-Kutta) with stepsize control.
   // Integrates ODE starting values y_current

@@ -1,5 +1,5 @@
-#ifndef _MAGFIELD_H_
-#define _MAGFIELD_H_
+#ifndef  SCALARRZMAGFIELDFROMMAP_H_
+#define  SCALARRZMAGFIELDFROMMAP_H_
 
 #include <vector>
 #include "base/Vector3D.h"

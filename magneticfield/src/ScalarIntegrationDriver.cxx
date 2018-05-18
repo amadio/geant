@@ -542,7 +542,8 @@ void ScalarIntegrationDriver::WarnEndPointTooFar(double endPointDist, double h, 
 void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
                                           double charge, const double dydx[],
                                           double &x, // InOut
-                                          double htry, double eps_rel_max,
+                                          double htry,
+                                          double eps_rel_max,  // Input: toleratred relative error
                                           double &hdid,  // Out
                                           double &hnext) // Out
 
