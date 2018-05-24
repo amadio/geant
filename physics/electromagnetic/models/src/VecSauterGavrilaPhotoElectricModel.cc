@@ -101,21 +101,16 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
         //NB: generating random numbers here just for reproducibility issues
         for (int i=0; i<N; i++)
             rands[i]= td->fRndm->uniform();
-       // std::cout<<"1\n";
         SampleShellVec(kin, zed, sampledShells, N, td, rands);
-       // std::cout<<"2\n";
         SamplePhotoElectronDirectionRejVec(kin, cosTheta, N, td);
-        //std::cout<<"3\n";
     
     }
     for (int i = 0; i < N; i += kVecLenD){
-        //std::cout<<"4\n";
         Double_v gammaekin_v, cosTheta_v;
         IndexD_v zed_v;
         vecCore::Load(gammaekin_v, kin+i);
         vecCore::Load(zed_v, zed+i);
         vecCore::Load(cosTheta_v, cosTheta+i);
-       
         // Retrieving ionized shell bindingEnergy
         Double_v bindingEnergy_v;
         for (int k = 0; k < kVecLenD; ++k) {
@@ -164,7 +159,6 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
                 tracks.SetEnergyDeposit(bindingEnergy_v[l], i+l);
             }
         }
-        //std::cout<<"stranizza..\n";
     }
     
 }
@@ -575,6 +569,8 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
             }
             ss[indextab[i]]=shellIdx;
         }
+        else
+            ss[indextab[i]]=0;
         
     }
 //    std::cout<<"*******"<<std::endl;
