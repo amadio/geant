@@ -25,7 +25,6 @@ VecSauterGavrilaPhotoElectricModel *vsg;
 void FillDataVector(PhotoElectricValidData &data,  geant::TaskData *td)
 {
 
-  std::cout<<"Fill data Vector\n";
   LightTrack_v primaries;
   //VecSauterGavrilaPhotoElectricModel *sauterG = PrepareVecSauterGavrilaModel(useAlias);
 
@@ -45,9 +44,12 @@ void FillDataVector(PhotoElectricValidData &data,  geant::TaskData *td)
     auto &secondaries = td->fPhysicsData->GetSecondarySOA();
     for (int i = 0; i < secondaries.GetNtracks(); ++i) {
       double enNormed = secondaries.GetKinE(i) / enBeforeInteraction[i];
+//        std::cout<<"Vector enNormed: "<<enNormed<<std::endl;
+//        std::cout<<"secondaries.GetKinE("<<i<<"<<): "<<secondaries.GetKinE(i)<<std::endl;
       data.peE.Fill(enNormed);
       double emCost = secondaries.GetDirZ(i);
       data.peTheta.Fill(emCost);
+      //std::cout<<"Vector emCost: "<<emCost<<std::endl;
     }
   }
 }
@@ -97,7 +99,6 @@ int main()
     FillDataScalar(scalar, td.get());
     PhotoElectricValidData vector;
     FillDataVector(vector, td.get());
-
     Printf("Normalized photoelectron energy");
     vector.peE.Compare(scalar.peE);
 
