@@ -302,7 +302,7 @@ int Propagator::CreateSimulationStages()
   // assert(stage->GetId() == int(kPostStepActionStage));
 
   stage = fPhysicsInterface->CreatePostStepActionPhysProcessStage(this);
-  assert(stage->GetId() == int(kPostStepActionPhysProcessStage));
+  assert(stage->GetId() == int(kPostStepActionStage));
 
   // kAtRestActionStage
   stage = fPhysicsInterface->CreateAtRestActionStage(this);
