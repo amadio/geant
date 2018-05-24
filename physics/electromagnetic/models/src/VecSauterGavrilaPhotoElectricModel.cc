@@ -60,7 +60,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             //IndexD_v targetElemIndx_v;
             Double_v zed_v;
             IndexD_v nshells_v;
-            //std::cout<<"Load\n";
+            
             vecCore::Load(gammaekin, kin+i);
             //vecCore::Load(zed_v, zed+i);
             vecCore::Load(nshells_v, nshells+i);
@@ -79,7 +79,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             MaskDI_v activateSamplingShells = nshells_v > 1;
             Double_v r1  = td->fRndm->uniformV();
             Double_v r2  = td->fRndm->uniformV();
-            (IndexD_v) tmp = SampleShellAliasVec(gammaekin, z, r1, r2);
+            tmp = SampleShellAliasVec(gammaekin, z, r1, r2);
             vecCore::MaskedAssign(sampledShells_v, activateSamplingShells, tmp);
             vecCore::Store(sampledShells_v, sampledShells+i);
             //SAMPLING OF THE ANGLE WITH ALIAS
@@ -119,6 +119,16 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
 
         // Create the secondary particle e-
         Double_v eekin = gammaekin_v - bindingEnergy_v;
+        for (int kkk = 0; kkk < kVecLenD; kkk ++){
+            if(gammaekin_v[kkk]<bindingEnergy_v[kkk]) {
+                std::cout<<"eekin["<<kkk<<"]: "<<eekin[kkk]<<std::endl;
+                std::cout<<"bindingEnergy_v["<<kkk<<"]: "<<bindingEnergy_v[kkk]<<std::endl;
+                std::cout<<"gammaekin_v["<<kkk<<"]: "<<gammaekin_v[kkk]<<std::endl;
+                std::cout<<"sampledShells["<<kkk+i<<"]: "<<sampledShells[kkk+i]<<std::endl;
+                std::cout<<"Z: "<<zed_v[kkk]<<std::endl;
+                if (eekin[kkk]<0) exit(-1);
+            }
+        }
         MaskDI_v activateSamplingAngle(gammaekin_v <= 100 * geant::units::MeV);
         
         Double_v eDirX1;
@@ -211,6 +221,13 @@ IndexD_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma
             }
             MaskDI_v checkMinVal(baseEn_v>bindEn_v); //If TRUE, take bindingEnergies, otherwise keep the base energies
             vecCore::MaskedAssign (tableIndex_v, checkMinVal&&lowEn, indexBindingEn_v);
+//            for (int k=0; k<kVecLenD; k++){
+//                
+//            if(lGammaEnergy_v[k]>fShellLSamplingPrimEnergiesNEW[zed[k]][tableIndex_v[k]+1] || lGammaEnergy_v[k]< fShellLSamplingPrimEnergiesNEW[zed[k]][tableIndex_v[k]]+1) {
+//                std::cout<< "******* Error\n";
+//                exit(-1);
+//            }else  std::cout<< "***OK\n";
+//            }
         }
         IndexD_v lastSSAliasIndex_v;
         for (int k=0; k<kVecLenD; k++){
@@ -259,6 +276,8 @@ IndexD_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma
 //    //END VECTORIZED
         
     }
+//    for(int i=0; i<kVecLenD; i++)
+//        std::cout<<"sampledShells["<<i<<"]: \t"<<sampledShells[i]<<std::endl;
     return sampledShells;
 }
 
