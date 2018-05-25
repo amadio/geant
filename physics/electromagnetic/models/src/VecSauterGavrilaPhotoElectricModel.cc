@@ -32,19 +32,17 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
 {
     int N  = tracks.GetNtracks();
     double *kin = tracks.GetKinEArr();
-    int zed[N];
-    int nshells[N];
-    size_t targetElemIndx[N];
-    
-    int *sampledShells= new int[N];
-    double cosTheta[N];
+    int *zed = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+    int *nshells= td->fPhysicsData->fPhysicsScratchpad.fNshells;
+    int *sampledShells= td->fPhysicsData->fPhysicsScratchpad.fSampledShells;
+    double *cosTheta = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
     
     for (int i = 0; i < N; ++i) {
         const MaterialCuts *matCut   =  MaterialCuts::GetMaterialCut(tracks.GetMaterialCutCoupleIndex(i));
         const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
         if (theElements.size() > 1) {
-            targetElemIndx[i] = SampleTargetElementIndex(matCut, kin[i], td);
-            zed[i]=(int)theElements[targetElemIndx[i]]->GetZ();
+            size_t targetElemIndx = SampleTargetElementIndex(matCut, kin[i], td);
+            zed[i]=(int)theElements[targetElemIndx]->GetZ();
         }
         else{
             zed[i]=(int)theElements[0]->GetZ();
@@ -57,16 +55,12 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             //MaskD_v chechEnValidity(gammaekin<GetLowEnergyUsageLimit() || gammaekin>GetHighEnergyUsageLimit());
             //if(chechEnValidity.isFull() &&vecCore::EarlyReturnAllowed()) return 0 secondaries -> do nothing
         
-            //IndexD_v targetElemIndx_v;
             Double_v zed_v;
-            IndexD_v nshells_v;
-            
+            IndexD_v nshells_v, z;
             vecCore::Load(gammaekin, kin+i);
-            //vecCore::Load(zed_v, zed+i);
             vecCore::Load(nshells_v, nshells+i);
-        
-            IndexD_v z;//(IndexD_v)zed_v;
             vecCore::Load(z, zed+i);
+            
 //        MaskD_v elementInitialized() --> to be seen
 //        // if element was not initialised, gamma should be absorbed
 //        if (!fCrossSectionLE[Z] && !fCrossSection[Z]) {
@@ -75,12 +69,10 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
 //            return 0;
 //        }
             //SAMPLING OF THE SHELL WITH ALIAS
-            IndexD_v shellIdx(0), sampledShells_v(0), tmp;
-            MaskDI_v activateSamplingShells = nshells_v > 1;
+            IndexD_v shellIdx(0), sampledShells_v(0);
             Double_v r1  = td->fRndm->uniformV();
             Double_v r2  = td->fRndm->uniformV();
-            tmp = SampleShellAliasVec(gammaekin, z, r1, r2);
-            vecCore::MaskedAssign(sampledShells_v, activateSamplingShells, tmp);
+            sampledShells_v = SampleShellAliasVec(gammaekin, z, r1, r2);
             vecCore::Store(sampledShells_v, sampledShells+i);
             //SAMPLING OF THE ANGLE WITH ALIAS
             Double_v cosTheta_v;
@@ -97,10 +89,9 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
     }
     else{
         //std::cout<<"Sampling with rejection\n";
-        double rands[N];
+        double *rands = td->fDblArray;
         //NB: generating random numbers here just for reproducibility issues
-        for (int i=0; i<N; i++)
-            rands[i]= td->fRndm->uniform();
+        td->fRndm->uniform_array(N, rands);
         SampleShellVec(kin, zed, sampledShells, N, td, rands);
         SamplePhotoElectronDirectionRejVec(kin, cosTheta, N, td);
 
@@ -170,8 +161,6 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             }
         }
     }
-   delete[] sampledShells;
-    
 }
 
 IndexD_v VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, IndexD_v zed, Double_v r1, Double_v r2)
