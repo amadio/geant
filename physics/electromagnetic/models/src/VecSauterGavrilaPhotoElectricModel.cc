@@ -36,7 +36,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
     int nshells[N];
     size_t targetElemIndx[N];
     
-    int sampledShells[N];
+    int *sampledShells= new int[N];
     double cosTheta[N];
     
     for (int i = 0; i < N; ++i) {
@@ -103,7 +103,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             rands[i]= td->fRndm->uniform();
         SampleShellVec(kin, zed, sampledShells, N, td, rands);
         SamplePhotoElectronDirectionRejVec(kin, cosTheta, N, td);
-    
+
     }
     for (int i = 0; i < N; i += kVecLenD){
         Double_v gammaekin_v, cosTheta_v;
@@ -119,12 +119,12 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
 
         // Create the secondary particle e-
         Double_v eekin = gammaekin_v - bindingEnergy_v;
+        
         for (int kkk = 0; kkk < kVecLenD; kkk ++){
             if(gammaekin_v[kkk]<bindingEnergy_v[kkk]) {
                 std::cout<<"eekin["<<kkk<<"]: "<<eekin[kkk]<<std::endl;
                 std::cout<<"bindingEnergy_v["<<kkk<<"]: "<<bindingEnergy_v[kkk]<<std::endl;
                 std::cout<<"gammaekin_v["<<kkk<<"]: "<<gammaekin_v[kkk]<<std::endl;
-                std::cout<<"sampledShells["<<kkk+i<<"]: "<<sampledShells[kkk+i]<<std::endl;
                 std::cout<<"Z: "<<zed_v[kkk]<<std::endl;
                 if (eekin[kkk]<0) exit(-1);
             }
@@ -170,6 +170,7 @@ void VecSauterGavrilaPhotoElectricModel::SampleSecondariesVector(LightTrack_v &t
             }
         }
     }
+   delete[] sampledShells;
     
 }
 
@@ -555,7 +556,6 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
     }
     //std::cout<<"Sampled shells for hep: "<<ehep.size()<<std::endl;
     for(size_t i=0; i<ehep.size(); i++){
-        //std::cout<<i<<"\t"<<sampledShellshep[i]<<std::endl;
         ss[indexhep[i]]=sampledShellshep[i];
     }
 
@@ -590,7 +590,6 @@ void VecSauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int * ze
         }
         else
             ss[indextab[i]]=0;
-        
     }
 //    std::cout<<"*******"<<std::endl;
 //    std::cout<<"N: "<<N<<std::endl;
