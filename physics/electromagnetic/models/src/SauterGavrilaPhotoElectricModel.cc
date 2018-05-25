@@ -903,7 +903,6 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   // interaction is possible so sample target element
     
   MaterialCuts *matCut                   = MaterialCuts::GetTheMaterialCutsTable()[track.GetMaterialCutCoupleIndex()];
-    
   const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
   size_t targetElemIndx = 0;
   if (theElements.size() > 1) {
@@ -919,27 +918,24 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
     // std::cout<<"Model not initialized, Exiting!\n";
     return 0;
   }
-    
   //SAMPLING OF THE SHELL
     
   double r1 = td->fRndm->uniform();
   size_t shellIdx=0;
-  if (GetUseSamplingTables()){
+  size_t tmp = Z;
+  if (GetUseSamplingTables()&& fNShells[tmp]>1){
       double r2 = td->fRndm->uniform();
-      size_t tmp = Z;
-      if(fNShells[tmp]>1)
-          SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
+      SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
   }else{
       SampleShell(gammaekin0, Z, r1, shellIdx);
     }
   
   // Retrieving ionized shell bindingEnergy
   double bindingEnergy = (*(fParamHigh[Z]))[shellIdx * 7 + 1];
-
   if (gammaekin0 < bindingEnergy) {
-    track.SetEnergyDeposit(gammaekin0);
-    std::cout<<"SauterGavrilaPhotoElectricModel::SampleSecondaries: must add this check in the vectorized version! \n"; exit(-1);
-    return 0; // numSecondaries
+      track.SetEnergyDeposit(gammaekin0);
+      std::cout<<"SauterGavrilaPhotoElectricModel::SampleSecondaries: must add this check in the vectorized version! \n"; exit(-1);
+      return 0; // numSecondaries
   }
 
   // since edep is equal to bindingenergy I get rid of it
@@ -1137,10 +1133,13 @@ void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, int &Z, double &r
         }
     }
     else
-
-    {   std::cout<<"Setting sampledShells to -1\n ERROR!";
-        sampledShells=-1;
-        exit(-1);
+        
+    {
+        //std::cout<<"Element with nshells=1 : "<<Z<<"  \n";
+        //std::cout<<"No need to sample the shell. Setting sampledShells to 0!\n";
+        sampledShells=0;
+        return;
+        //exit(-1);
     }
     //std::cout<<"-----> Sampled: "<<shellIdx<<std::endl;
     sampledShells=shellIdx;
