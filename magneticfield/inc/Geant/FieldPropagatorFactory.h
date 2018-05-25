@@ -26,6 +26,9 @@
 // #else
 #include "Geant/MagFieldEquation.h"
 #include "Geant/CashKarp.h"
+#include "Geant/DormandPrince5RK.h"
+#include "Geant/BogackiShampine23RK.h"
+
 #include "Geant/FlexIntegrationDriver.h"
 #include "Geant/SimpleIntegrationDriver.h"
 // #endif
@@ -184,8 +187,9 @@ inline FlexIntegrationDriver *FieldPropagatorFactory::CreateFlexibleDriver(Field
   auto gvEquation  = new Equation_t(&gvField);
 
   using StepperType = CashKarp<Equation_t, Nposmom>;
+  // using StepperType = DormandPrince5RK<Equation_t, Nposmom>;
+  // using StepperType = BogackiShampine23RK<Equation_t, Nposmom>;  
   auto myStepper    = new StepperType(gvEquation);
-  // new CashKarp<GvEquationType,Nposmom>(gvEquation);
 
   using DriverType  = SimpleIntegrationDriver<StepperType, Nposmom>;
   auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom, statsVerbose);

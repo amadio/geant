@@ -1347,14 +1347,14 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
   if( numBadSize > 0 ) 
      cout << " InitializeLanes returned with " << numBadSize << " 'bad' tracks - i.e. hStep <= 0" << endl;  
-  /*****
+
   if( numBadSize > 0)
    for (int i = 0; i < idNext; ++i)
       if( badStepSize[i] )
       {
          yOutput[i] = yInput[i];
       }
-   *****/
+
   
   // const maxSize = std::max( (int) vecCore::VectorSize<Real_v>(), (int) numTracks );
   if (idNext > (int)vecCore::VectorSize<Real_v>()) // Some lanes had hstep <= 0.0
@@ -1678,7 +1678,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
      for (int i = 0; i < nTracks; ++i) {
         if( badStepSize[i] ) {
            yOutput[i] = yInput[i];
-           cout << " Fixed  yOutput = yInput  for track " << i << " with hStep= " << hstep[i] << endl;
+           // cout << " Fixed  yOutput = yInput  for track " << i << " with hStep= " << hstep[i] << endl;
         }
      }
   }

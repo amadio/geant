@@ -115,9 +115,18 @@ void  MyPrimaryGeneratorAction::SetPrimaryEnergy(G4double ekin) {
 }
 
 void  MyPrimaryGeneratorAction::SetPrimaryName(const G4String& pname) {
-  fPrimaryParticleName      = pname;
-  gPrimaryType              = fPrimaryParticleName;
-  fIsUserPrimaryType        = true;
+
+  // Check the name provided first 
+  G4ParticleDefinition* pDef = fParticleTable->FindParticle(pname);
+  if (!pDef) {   
+     G4cerr<< " *** ERROR> Proposed particle name " << pname << "  is not known.  It is IGNORED."
+           << G4endl << G4endl;
+     // exit(1);  // Good for batch mode - bad for interactive ... 
+  } else { 
+     fPrimaryParticleName      = pname;
+     gPrimaryType              = fPrimaryParticleName;
+     fIsUserPrimaryType        = true;
+  }
 }
 
 void  MyPrimaryGeneratorAction::SetPrimaryDirection(const G4ThreeVector &pdir) {

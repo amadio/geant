@@ -109,7 +109,7 @@ void CMSParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData *
   const double pPartMass = pParticle->GetPDGMass();
   const double pPartChrg = pParticle->GetPDGCharge();
   const double pPartEt   = pParticleEkin + pPartMass;
-  const double pPartPt   = std::sqrt((pPartEt - pPartMass) * (pPartEt + pPartMass));
+  const double pPartPt   = std::sqrt(pParticleEkin * (pPartEt + pPartMass));
   //
   // set the primary track
   gtrack.SetGVcode(pPartGVc);

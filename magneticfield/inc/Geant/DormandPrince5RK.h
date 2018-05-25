@@ -1,28 +1,33 @@
 //
-// Embedded explicit Runge-Kutta Stepper using Cash Karp's RK tableau
+// Embedded explicit Runge-Kutta Stepper using Dormand Prince's RK tableau
 //
-// Adaptations of template interface: J. Apostolakis, Oct/Nov 2017
-// First templated version:  Ananya, Feb/March 2016
-//     ( commit 95e1316bcc156a04c876d6ea0fc9e60a15eeac4f )
+
+// First templated version:   J. Apostolakis, May 2018
 //
-// Adapted from 'GUTCashKarpRKF45' by John Apostolakis, Nov 2015
+//  DormandPrince7 - 5(4) embedded RK method
 //
-// Adapted from 'GUTCashKarpRKF45' by Qieshen Xie, GSoC 2014
-//         (derived from G4CashKarpRKF45)
+//  Class desription: 
+//    An implementation of the 5th order embedded RK method from the paper
+//    J. R. Dormand and P. J. Prince, “A family of embedded Runge-Kutta formulae,”
+//	    Journal of computational and applied …, vol. 6, no. 1, pp. 19–26, 1980.
 //
+//  Design & Implementation by Somnath Banerjee
+//  Supervision & code review: John Apostolakis
 //
-#ifndef CASHKARPRKF45_H
-#define CASHKARPRKF45_H
+// Templated implementation adapted from 'CashKarp.h' by Ananya & J. Apostolakis
+
+#ifndef __DefinedDormandPrince5RK_H
+#define __DefinedDormandPrince5RK_H
 
 #include "Geant/GUVectorLineSection.h"
 // #include "VVectorIntegrationStepper.h"
 
 // #include "AlignedBase.h"  // ==> Ensures alignment of storage for Vector objects
 
-// #define Outside_CashKarp     1
+// #define Outside_DormandPrince5RK     1
 
 template <class T_Equation, unsigned int Nvar>
-class CashKarp
+class DormandPrince5RK
 // : public VVectorIntegrationStepper
 {
 public:
@@ -38,29 +43,29 @@ public:
                                         // (GUIntegrationNms::NumVarBase > Nvar) ? GUIntegrationNms::NumVarBase : Nvar;
   // std::max( GUIntegrationNms::NumVarBase,  Nvar);
   // static const double IntegratorCorrection = 1./((1<<4)-1);
-  inline static constexpr int GetIntegratorOrder() { return sOrderMethod; }
+  inline int GetIntegratorOrder() { return sOrderMethod; }
   inline double IntegratorCorrection() { return 1. / ((1 << sOrderMethod) - 1); }
 
 public:
-  inline CashKarp(T_Equation *EqRhs, unsigned int numStateVariables = 0);
+  inline DormandPrince5RK(T_Equation *EqRhs, unsigned int numStateVariables = 0);
 
-  CashKarp(const CashKarp &);
+  DormandPrince5RK(const DormandPrince5RK &);
 
-  virtual ~CashKarp();
+  virtual ~DormandPrince5RK();
 
   // GUVVectorIntegrationStepper* Clone() const;
 
   template <typename Real_v>
-  struct ScratchSpaceCashKarp; // defined below
+  struct ScratchSpaceDormandPrince5RK; // defined below
 
-#ifdef Outside_CashKarp
+#ifdef Outside_DormandPrince5RK
   template <typename Real_v>
   // GEANT_FORCE_INLINE -- large method => do not force inline
   void StepWithErrorEstimate(const Real_v yInput[], // Consider __restrict__
                              const Real_v dydx[], const Real_v &charge, const Real_v &hStep, Real_v yOut[],
                              Real_v yErr[]
-                             //, ScratchSpaceCashKarp<Real_v>* sp
-  );
+                             //, ScratchSpaceDormandPrince5RK<Real_v>* sp
+                             );
 #endif
 
   //  ------Start of mandatory methods ( for transitional period. ) ------------
@@ -74,7 +79,7 @@ public:
   }
 
   Double_v DistChord() const { return Double_v(0.0); };
-    //  -------- End of mandatory methods ( for transitional period. ) ------------
+//  -------- End of mandatory methods ( for transitional period. ) ------------
 
 #if ENABLE_CHORD_DIST
   template <typename Real_v>
@@ -91,12 +96,12 @@ public:
   void SetEquationOfMotion(T_Equation *equation);
 
 private:
-  CashKarp &operator=(const CashKarp &) = delete;
+  DormandPrince5RK &operator=(const DormandPrince5RK &) = delete;
   // private assignment operator.
 
 public:
   template <typename Real_v>
-  struct ScratchSpaceCashKarp {
+  struct ScratchSpaceDormandPrince5RK {
     // State -- intermediate values used during RK step
     // -----
     Real_v ak2[sNstore];
@@ -105,14 +110,16 @@ public:
     Real_v ak5[sNstore];
     Real_v ak6[sNstore];
     Real_v ak7[sNstore];
+    Real_v ak8[sNstore];     
     Real_v yTemp2[sNstore]; // Separate temporaries per step - to aid compiler
     Real_v yTemp3[sNstore]; //   tradeoff benefit to be evaluated
     Real_v yTemp4[sNstore];
     Real_v yTemp5[sNstore];
     Real_v yTemp6[sNstore];
-
+    // Real_v yTemp7[sNstore]; // Also the output as yOut = yTemp7
+     
     Real_v yIn[sNstore];
-    // scratch space
+// scratch space
 
 #if ENABLE_CHORD_DIST
     // State -- values used ONLY for subsequent call to DistChord
@@ -126,16 +133,16 @@ public:
 // for DistChord calculations
 #endif
   public:
-    ScratchSpaceCashKarp() {}
-    ~ScratchSpaceCashKarp() {}
+    ScratchSpaceDormandPrince5RK() {}
+    ~ScratchSpaceDormandPrince5RK() {}
   };
 
   template <typename Real_v>
-  ScratchSpaceCashKarp<Real_v> *ObtainScratchSpace()
+  ScratchSpaceDormandPrince5RK<Real_v> *ObtainScratchSpace()
   // Obtain object which can hold the scratch space for integration
   //   ( Should be re-used between calls - preferably long time
   {
-    return new ScratchSpaceCashKarp<Real_v>();
+    return new ScratchSpaceDormandPrince5RK<Real_v>();
   }
 
   // How to use it:
@@ -149,94 +156,112 @@ private:
 
   bool fDebug = false;
 
-#ifdef Outside_CashKarp
+#ifdef Outside_DormandPrince5RK
 };
 #endif
 
 // -------------------------------------------------------------------------------
 
-#ifdef Outside_CashKarp
+#ifdef Outside_DormandPrince5RK
 // template <class Real_v, class T_Equation, unsigned int Nvar>
 template <class Real_v>
 template <class T_Equation, unsigned int Nvar>
-void CashKarp<T_Equation, Nvar>::
-    /*template*/ StepWithErrorEstimate /*<Real_v>*/ (
-        const Real_v yInput[],
+void DormandPrince5RK<T_Equation, Nvar>::
+     StepWithErrorEstimate (   
+        //  template StepWithErrorEstimate<Real_v> (
 #else
 public:
   template <typename Real_v>
-  void StepWithErrorEstimate(const Real_v yInput[],
+  void           StepWithErrorEstimate (
 #endif
-
+        const Real_v yInput[],
         const Real_v dydx[], const Real_v &charge, const Real_v &Step, Real_v yOut[], Real_v yErr[]
-        //, CashKarp<T_Equation,Nvar>::template ScratchSpaceCashKarp<Real_v>& sp
-    )
+        //, DormandPrince5RK<T_Equation,Nvar>::template ScratchSpaceDormandPrince5RK<Real_v>& sp
+        )
 {
   // const double a2 = 0.2 , a3 = 0.3 , a4 = 0.6 , a5 = 1.0 , a6 = 0.875;
-  typename CashKarp<T_Equation, Nvar>::template ScratchSpaceCashKarp<Real_v> sp;
+  typename DormandPrince5RK<T_Equation, Nvar>::template ScratchSpaceDormandPrince5RK<Real_v> sp;
 
-  unsigned int i;
+  const double  
+    b21 = 0.2 ,
+    
+    b31 = 3.0/40.0, b32 = 9.0/40.0 ,
+    
+    b41 = 44.0/45.0, b42 = -56.0/15.0, b43 = 32.0/9.0,
+    
+    b51 = 19372.0/6561.0, b52 = -25360.0/2187.0, b53 = 64448.0/6561.0,
+    b54 = -212.0/729.0 ,
+    
+    b61 = 9017.0/3168.0 , b62 =   -355.0/33.0,
+    b63 =  46732.0/5247.0    , b64 = 49.0/176.0 ,
+    b65 = -5103.0/18656.0 ,
+    
+    b71 = 35.0/384.0, b72 = 0.,
+    b73 = 500.0/1113.0, b74 = 125.0/192.0,
+    b75 = -2187.0/6784.0, b76 = 11.0/84.0;
 
-  const double b21 = 0.2, b31 = 3.0 / 40.0, b32 = 9.0 / 40.0, b41 = 0.3, b42 = -0.9, b43 = 1.2,
-
-               b51 = -11.0 / 54.0, b52 = 2.5, b53 = -70.0 / 27.0, b54 = 35.0 / 27.0,
-
-               b61 = 1631.0 / 55296.0, b62 = 175.0 / 512.0, b63 = 575.0 / 13824.0, b64 = 44275.0 / 110592.0,
-               b65 = 253.0 / 4096.0,
-
-               c1 = 37.0 / 378.0, c3 = 250.0 / 621.0, c4 = 125.0 / 594.0, c6 = 512.0 / 1771.0, dc5 = -277.0 / 14336.0;
-
-  const double dc1 = c1 - 2825.0 / 27648.0, dc3 = c3 - 18575.0 / 48384.0, dc4 = c4 - 13525.0 / 55296.0, dc6 = c6 - 0.25;
-
+  const double
+    dc1 = -( b71 - 5179.0/57600.0),
+    dc2 = -( b72 - .0),
+    dc3 = -( b73 - 7571.0/16695.0),
+    dc4 = -( b74 - 393.0/640.0),
+    dc5 = -( b75 + 92097.0/339200.0),
+    dc6 = -( b76 - 187.0/2100.0),
+    dc7 = -( - 1.0/40.0 ); 
+  
   // Initialise time to t0, needed when it is not updated by the integration.
   //       [ Note: Only for time dependent fields (usually electric)
   //                 is it neccessary to integrate the time.]
   // yOut[7] = yTemp[7]   = yIn[7];
 
   //  Saving yInput because yInput and yOut can be aliases for same array
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     sp.yIn[i] = yInput[i];
   }
   // RightHandSideInl(yIn, charge,  dydx) ;              // 1st Step
 
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     sp.yTemp2[i] = sp.yIn[i] + b21 * Step * dydx[i];
   }
   this->RightHandSideInl(sp.yTemp2, charge, sp.ak2); // 2nd Step
 
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     sp.yTemp3[i] = sp.yIn[i] + Step * (b31 * dydx[i] + b32 * sp.ak2[i]);
   }
   this->RightHandSideInl(sp.yTemp3, charge, sp.ak3); // 3rd Step
 
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     sp.yTemp4[i] = sp.yIn[i] + Step * (b41 * dydx[i] + b42 * sp.ak2[i] + b43 * sp.ak3[i]);
   }
   this->RightHandSideInl(sp.yTemp4, charge, sp.ak4); // 4th Step
 
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     sp.yTemp5[i] = sp.yIn[i] + Step * (b51 * dydx[i] + b52 * sp.ak2[i] + b53 * sp.ak3[i] + b54 * sp.ak4[i]);
   }
   this->RightHandSideInl(sp.yTemp5, charge, sp.ak5); // 5th Step
 
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     sp.yTemp6[i] =
         sp.yIn[i] + Step * (b61 * dydx[i] + b62 * sp.ak2[i] + b63 * sp.ak3[i] + b64 * sp.ak4[i] + b65 * sp.ak5[i]);
   }
   this->RightHandSideInl(sp.yTemp6, charge, sp.ak6); // 6th Step
 
-  for (i = 0; i < Nvar; i++) {
-    // Accumulate increments with correct weights
-    yOut[i] = sp.yIn[i] + Step * (c1 * dydx[i] + c3 * sp.ak3[i] + c4 * sp.ak4[i] + c6 * sp.ak6[i]);
+  for(unsigned int i=0;i< Nvar;i++)
+  {
+     yOut[i] = yInput[i] + Step*(b71*dydx[i]   + b72*sp.ak2[i] + b73*sp.ak3[i] +
+                                 b74*sp.ak4[i] + b75*sp.ak5[i] + b76*sp.ak6[i] );
   }
-  for (i = 0; i < Nvar; i++) {
+  this->RightHandSideInl(yOut, charge, sp.ak7); //7th and Final stage
+  
+  for (unsigned int i = 0; i < Nvar; i++) {
     // Estimate error as difference between 4th and 5th order methods
     //
-    yErr[i] = Step * (dc1 * dydx[i] + dc3 * sp.ak3[i] + dc4 * sp.ak4[i] + dc5 * sp.ak5[i] + dc6 * sp.ak6[i]);
+    yErr[i] = Step * ( dc1 * dydx[i]   + dc2 * sp.ak2[i] + dc3 * sp.ak3[i] + dc4 * sp.ak4[i]
+                     + dc5 * sp.ak5[i] + dc6 * sp.ak6[i] + dc7 * sp.ak7[i] );
     // std::cout<< "----In Stepper, yerrr is: "<<yErr[i]<<std::endl;
   }
 #if ENABLE_CHORD_DIST
-  for (i = 0; i < Nvar; i++) {
+  for (unsigned int i = 0; i < Nvar; i++) {
     // Store Input and Final values, for possible use in calculating chord
     fLastInitialVector[i] = sp.yIn[i];
     fLastFinalVector[i]   = yOut[i];
@@ -248,7 +273,7 @@ public:
   return;
 }
 
-#ifndef Outside_CashKarp
+#ifndef Outside_DormandPrince5RK
 }
 ; // End of class declaration
 
@@ -258,14 +283,13 @@ public:
 // -------------------------------------------------------------------------------
 
 template <class T_Equation, unsigned int Nvar>
-inline CashKarp<T_Equation, Nvar>::CashKarp(T_Equation *EqRhs, unsigned int numStateVariables)
+inline DormandPrince5RK<T_Equation, Nvar>::DormandPrince5RK(T_Equation *EqRhs, unsigned int numStateVariables)
     : fEquation_Rhs(EqRhs),
       // fLastStepLength(0.),
       fOwnTheEquation(false)
 {
   if (fDebug) {
-    std::cout << "\n----Entered constructor of CashKarp " << std::endl;
-    std::cout << "----In CashKarp constructor, Nvar is: " << Nvar << std::endl;
+    std::cout << "DormandPrince5RK constructor: Nvar is: " << Nvar << std::endl;
   }
 // assert( dynamic_cast<TemplateVScalarEquationOfMotion<Backend>*>(EqRhs) != 0 );
 #if ENABLE_CHORD_DIST
@@ -276,13 +300,13 @@ inline CashKarp<T_Equation, Nvar>::CashKarp(T_Equation *EqRhs, unsigned int numS
 #endif
   assert((numStateVariables == 0) || (numStateVariables >= Nvar));
   assert(fEquation_Rhs != nullptr);
-  std::cout << "----end of constructor of CashKarp" << std::endl;
+  // std::cout << "----end of constructor of DormandPrince5RK" << std::endl;
 }
 
 // -------------------------------------------------------------------------------
 
 template <class T_Equation, unsigned int Nvar>
-void CashKarp<T_Equation, Nvar>::SetEquationOfMotion(T_Equation *equation)
+void DormandPrince5RK<T_Equation, Nvar>::SetEquationOfMotion(T_Equation *equation)
 {
   fEquation_Rhs = equation;
   assert(fEquation_Rhs != nullptr);
@@ -293,12 +317,12 @@ void CashKarp<T_Equation, Nvar>::SetEquationOfMotion(T_Equation *equation)
 //  Copy - Constructor
 //
 template <class T_Equation, unsigned int Nvar>
-inline CashKarp<T_Equation, Nvar>::CashKarp(const CashKarp &right)
+inline DormandPrince5RK<T_Equation, Nvar>::DormandPrince5RK(const DormandPrince5RK &right)
     : // fEquation_Rhs( (T_Equation*) nullptr ),
       fOwnTheEquation(false)
 {
   if (fDebug) {
-    std::cout << "----Entered *copy* constructor of CashKarp " << std::endl;
+    std::cout << "----Entered *copy* constructor of DormandPrince5RK " << std::endl;
   }
   SetEquationOfMotion(new T_Equation(*(right.fEquation_Rhs)));
   assert(fEquation_Rhs != nullptr);
@@ -312,30 +336,30 @@ inline CashKarp<T_Equation, Nvar>::CashKarp(const CashKarp &right)
 #endif
 
   if (fDebug)
-    std::cout << " CashKarp - copy constructor: " << std::endl
+    std::cout << " DormandPrince5RK - copy constructor: " << std::endl
               << " Nvar = " << Nvar << " Nstore= " << sNstore << " Own-the-Equation = " << fOwnTheEquation << std::endl;
 }
 
 // -------------------------------------------------------------------------------
 
 template <class T_Equation, unsigned int Nvar>
-GEANT_FORCE_INLINE CashKarp<T_Equation, Nvar>::~CashKarp()
+GEANT_FORCE_INLINE DormandPrince5RK<T_Equation, Nvar>::~DormandPrince5RK()
 {
-  std::cout << "----- (Flexible) CashKarp destructor" << std::endl;
+  std::cout << "----- Vector DormandPrince5RK destructor" << std::endl;
   if (fOwnTheEquation)
     delete fEquation_Rhs; // Expect to own the equation, except if auxiliary (then sharing the equation)
   fEquation_Rhs = nullptr;
-  std::cout << "----- (Flexible) CashKarp destructor (ended)" << std::endl;
+  std::cout << "----- VectorDormandPrince5RK destructor (ended)" << std::endl;
 }
 
 // -------------------------------------------------------------------------------
 
-#ifdef Inheriting_CashKarp
+#ifdef Inheriting_DormandPrince5RK
 template <class T_Equation, unsigned int Nvar>
-GUVVectorIntegrationStepper *CashKarp<T_Equation, Nvar>::Clone() const
+GUVVectorIntegrationStepper *DormandPrince5RK<T_Equation, Nvar>::Clone() const
 {
-  // return new CashKarp( *this );
-  return new CashKarp<T_Equation, Nvar>(*this);
+  // return new DormandPrince5RK( *this );
+  return new DormandPrince5RK<T_Equation, Nvar>(*this);
 }
 #endif
 
@@ -343,7 +367,7 @@ GUVVectorIntegrationStepper *CashKarp<T_Equation, Nvar>::Clone() const
 
 #if ENABLE_CHORD_DIST
 template <class Real_v, class T_Equation, unsigned int Nvar>
-inline geant::Real_v CashKarp<T_Equation, Nvar>::DistChord() const
+inline geant::Real_v DormandPrince5RK<T_Equation, Nvar>::DistChord() const
 {
   Real_v distLine, distChord;
   ThreeVectorSimd initialPoint, finalPoint, midPoint;
@@ -367,8 +391,8 @@ inline geant::Real_v CashKarp<T_Equation, Nvar>::DistChord() const
 
 // -------------------------------------------------------------------------------
 
-#ifdef Outside_CashKarp
-#undef Outside_CashKarp
+#ifdef Outside_DormandPrince5RK
+#undef Outside_DormandPrince5RK
 #endif
 
-#endif /*GUV Vector CashKARP_RKF45 */
+#endif /*GUV Vector DormandPrince5RK */
