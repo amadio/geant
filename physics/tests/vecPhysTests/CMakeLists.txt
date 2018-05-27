@@ -28,25 +28,25 @@ if(${benchmark_FOUND})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/benchmarks/vecphys)
 
     add_executable(RngBench Misc/VecRngBench.cxx ${COMMON_HEADERS})
-    target_link_libraries(RngBench Geant_v benchmark pthread)
+    target_link_libraries(RngBench Geant_v benchmark::benchmark pthread)
 
     add_executable(MathBench Misc/VecMathBench.cxx ${COMMON_HEADERS})
-    target_link_libraries(MathBench Geant_v benchmark pthread)
+    target_link_libraries(MathBench Geant_v benchmark::benchmark pthread)
 
     add_executable(KleinNishBench KleinNishina/KleinNishinaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(KleinNishBench Geant_v RealPhysics benchmark pthread)
+    target_link_libraries(KleinNishBench Geant_v RealPhysics benchmark::benchmark pthread)
 
     add_executable(VectorPairBench VectorPairTests/VectorPairBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(VectorPairBench Geant_v RealPhysics benchmark pthread)
+    target_link_libraries(VectorPairBench Geant_v RealPhysics benchmark::benchmark pthread)
 
     add_executable(VectorBremsBench VectorBremsTests/VectorBremsBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(VectorBremsBench Geant_v RealPhysics benchmark pthread)
+    target_link_libraries(VectorBremsBench Geant_v RealPhysics benchmark::benchmark pthread)
 
     add_executable(VectorPos2GammaBench PositronTo2Gamma/PositronTo2GammaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(VectorPos2GammaBench Geant_v RealPhysics benchmark pthread)
+    target_link_libraries(VectorPos2GammaBench Geant_v RealPhysics benchmark::benchmark pthread)
 
     add_executable(MollerBhabhaBench MollerBhabha/MollerBhabhaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(MollerBhabhaBench Geant_v RealPhysics benchmark pthread)
+    target_link_libraries(MollerBhabhaBench Geant_v RealPhysics benchmark::benchmark pthread)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/vecphys)
