@@ -88,8 +88,8 @@ double EMPhysicsProcess::ComputeDEDX(const MaterialCuts *matcut, double kinenerg
     // loop over the EMModel-s that are active in the region that the current MaterialCuts belongs to;
     // ask them to provide their dedx contribution;
     // use smoothing between models
-    const std::vector<EMModel *> models = fModelManager->GetModelListInRegion(matcut->GetRegionIndex());
-    int numModels                       = models.size();
+    const std::vector<EMModel *> & models = fModelManager->GetModelListInRegion(matcut->GetRegionIndex());
+    int numModels                         = models.size();
     //      std::cerr<<"  numModels = "<< numModels<<std::endl;
     if (numModels == 0) return dedx;
     if (numModels == 1) {
