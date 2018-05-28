@@ -34,6 +34,7 @@ geant::RunManager *RunManager();
 //
 // detector parameters
 std::string parDetGDMFile = ""; // i.e. default application values
+std::string parFieldFile = "";
 //
 // primary generator parameters (primary particle gun)
 std::string parGunPrimaryParticleName = "";           // i.e. default application value
@@ -58,7 +59,7 @@ int parConfigMonitoring         = 0;  // activate some monitoring
 int parConfigSingleTrackMode    = 0;  // activate single track mode
 //
 // field configuration parameters
-int    parFieldActive     = 1;            // activate magnetic field
+int    parFieldActive     = 0;            // activate magnetic field
 double parFieldEpsRK      = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
 int    parFieldBasketized = 0;            // basketize magnetic field
 float  parFieldVector[3] = {0., 0., 2.}; // Constant field value
@@ -106,7 +107,9 @@ int main(int argc, char *argv[])
   // 
   // Create   field  construction  & Get field flags
   CMSFieldConstruction *fieldCtion= nullptr;
-  if (parFieldActive)  fieldCtion = new /* cmsapp:: */ CMSFieldConstruction();
+  if (parFieldActive)  fieldCtion = new CMSFieldConstruction();
+  if( parFieldFile!="") fieldCtion->SetFileForField(parFieldFile);
+  
   det->SetUserFieldConstruction(fieldCtion);
   SetupFieldConfig(runMgr);
   
@@ -148,12 +151,7 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"gun-set-primary-direction", required_argument, 0, 'd'},
 
                                   {"det-set-gdml", required_argument, 0, 'e'},
-
-                                  {"field-active", required_argument, 0, 'E'},
-                                  {"field-vector", required_argument, 0, 'F'},
-                                  {"field-use-RK", required_argument, 0, 'G'},
-                                  {"field-eps-RK", required_argument, 0, 'H'},
-                                  {"field-basketized", required_argument, 0, 'I'},
+                                  {"det-set-field", required_argument, 0, 'f'},
 
                                   {"config-number-of-buffered-events", required_argument, 0, 'm'},
                                   {"config-total-number-of-events", required_argument, 0, 'n'},
@@ -171,8 +169,9 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
 
                                   {"field-active", required_argument, 0, 'E'},
 //                                {"field-use-RK", required_argument, 0, 'G'},   // Mandatory for now
-                                  {"field-eps-RK", required_argument, 0, 'H'},
-                                  {"field-basketized", required_argument, 0, 'I'},
+                                  {"field-eps-RK", required_argument, 0, 'I'},
+                                  {"field-vector", required_argument, 0, 'F'},
+                                  {"field-basketized", required_argument, 0, 'J'},                          
                                   
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -254,6 +253,10 @@ void GetArguments(int argc, char *argv[])
     case 'e':
       parDetGDMFile = optarg;
       break;
+    case 'f':
+      parFieldFile = optarg;
+      break;
+      
     //---- Run configuration
     case 'm':
       parConfigNumBufferedEvt = (int)strtol(optarg, NULL, 10);
@@ -263,6 +266,7 @@ void GetArguments(int argc, char *argv[])
       break;
     case 'p':
       parConfigNumThreads = (int)strtol(optarg, NULL, 10);
+      std::cout << "  Argument read: ConfigNumThreads = " << parConfigNumThreads << std::endl;
       break;
     case 'q':
       parConfigNumPropagators = (int)strtol(optarg, NULL, 10);
@@ -293,11 +297,13 @@ void GetArguments(int argc, char *argv[])
       break;
     case 'z':
       parVerboseTracking    = (int)strtol(optarg, NULL, 10);
+      // std::cout << "  Argument read: VerboseTracking = " << parVerboseTracking << std::endl;      
       break;      
     //---- Field
     case 'E':
       parFieldActive = (int)strtol(optarg, NULL, 10);
       break;
+<<<<<<< HEAD
     case 'F': // field direction sub-optarg
       subopts = optarg;
       while (*subopts != '\0' && !errfnd) {
@@ -326,6 +332,9 @@ void GetArguments(int argc, char *argv[])
       parFieldEpsRK = strtod(optarg, NULL);
       break;
     case 'I':
+=======
+    case 'J':
+>>>>>>> FullCMS.cc: new fieldmap file option + cleanup
       parFieldBasketized = (int)strtol(optarg, NULL, 10);
       break;
     //---- Help
@@ -344,7 +353,18 @@ geant::RunManager *RunManager()
 {
   // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig *runConfig = new geant::GeantConfig();
+<<<<<<< HEAD
   geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
+=======
+  std::cout << " Instantiation RunManager with : \n"
+            << "    # Threads     = " << parConfigNumThreads  << std::endl
+            << "    # Propagators = " << parConfigNumPropagators << std::endl;
+  geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators,
+                                                        parConfigNumThreads,
+                                                        runConfig);
+  // create the real physics main manager/interface object and set it in the RunManager
+  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
+>>>>>>> FullCMS.cc: new fieldmap file option + cleanup
   //
   // Set parameters of the GeantConfig object:
   runConfig->fNtotal = parConfigNumRunEvt;

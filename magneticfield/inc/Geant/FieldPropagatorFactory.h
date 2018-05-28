@@ -33,6 +33,8 @@
 #include "Geant/SimpleIntegrationDriver.h"
 // #endif
 
+enum StepperTypeNum { kBogackiShampineStepper=4 ,  kCashKarpStepper= 6, kDormandPrince45Stepper= 7, kUndefinedStepperType = 0 };
+
 // template<typename Field_t> // , typename Equation_t>
 class FieldPropagatorFactory {
 public:
@@ -47,7 +49,9 @@ public:
   /** brief Create a 'full' propagator with both scalar & vector/flexible drivers */
   template <typename Field_t>
   static GUFieldPropagator *CreatePropagator(Field_t &gvField, double relativeTolerance,
-                                             double minStep = fDefaultMinStep);
+                                             double minStep = fDefaultMinStep,
+                                             int    stepperTypeNo = 0 );
+
   // To be used for RK integration of the motion in the Field 'gvField'
   // Will register it with the Pool (as the prototype)
   // The Field_t object which is passed must be on the heap.
@@ -67,17 +71,27 @@ public:
 
 private:
   //  Helper methods
-
+  /** @  brief Obtain enum of stepper type - or default */
+  static StepperTypeNum GetStepperTypeId( int stepperTypeNo );
+  
   /** @ brief Auxiliary methods to create scalar driver */
   template <typename Field_t>
   static ScalarIntegrationDriver *CreateScalarDriver(Field_t &gvField, double relativeEpsTolerance,
                                                      double minStepSize = fDefaultMinStep);
   // Create a 'scalar' driver for RK integration of the motion in the Field 'gvField'.
 
-  /** @ brief Auxiliary methods to create scalar driver */
+  /** @ brief Auxiliary methods to create flexible driver */
   template <typename Field_t>
   static FlexIntegrationDriver *CreateFlexibleDriver(Field_t &gvField, double relativeEpsTolerance,
-                                                     double minStepSize = fDefaultMinStep);
+                                                     double minStepSize = fDefaultMinStep,
+                                                     StepperTypeNum stepperTypeId = kCashKarpStepper
+                                                    );
+
+  /** @ brief Auxiliary methods to create flexible driver */  
+template <typename Equation_t, typename Stepper_t>
+  static FlexIntegrationDriver*  CreateDriverForStepper(Equation_t & equation,
+                                                        double minStepSize,
+                                                        Stepper_t **stepperObj = nullptr );
 
 public:
   static bool fVerboseConstruct;
@@ -122,20 +136,39 @@ inline GUFieldPropagator *FieldPropagatorFactory::CreatePropagator( // Field_t& 
 
 //______________________________________________________________________________
 template <typename Field_t>
-inline GUFieldPropagator *FieldPropagatorFactory::CreatePropagator(Field_t &gvField, double relativeTolerance,
-                                                                   double minStep)
+inline GUFieldPropagator *FieldPropagatorFactory::CreatePropagator(Field_t &gvField,
+                                                                   double relativeTolerance,
+                                                                   double minStep,
+                                                                   int    stepperTypeNo
+   )
 {
   const char *methodName = "FieldPropagatorFactory::CreatePropagator";
   const char *methodSig  = "( templated<Field_t> field, double, double )";
+  auto stepperTypeId= GetStepperTypeId( stepperTypeNo );
 
-  if (fVerboseConstruct) std::cout << methodName << " " << methodSig << " called " << std::endl;
+  if (fVerboseConstruct)
+     std::cout << methodName << " " << methodSig << " called with stepperId="
+               << stepperTypeNo << std::endl;
 
-  auto // ScalarIntegrationDriver
-      scalarDriver = CreateScalarDriver(gvField, relativeTolerance, minStep);
-  FlexIntegrationDriver * // auto
-      flexibleDriver = CreateFlexibleDriver(gvField, relativeTolerance, minStep);
-
+  auto scalarDriver = CreateScalarDriver(gvField, relativeTolerance, minStep); 
+      
+  // FlexIntegrationDriver * 
+  auto flexibleDriver = CreateFlexibleDriver(gvField, relativeTolerance, minStep, stepperTypeId);
+                              
   return FieldPropagatorFactory::CreatePropagator(scalarDriver, relativeTolerance, flexibleDriver);
+}
+
+StepperTypeNum FieldPropagatorFactory::GetStepperTypeId( int stepperTypeNo )
+{
+  StepperTypeNum stepperTypeId= kUndefinedStepperType;
+  if( stepperTypeNo == 3 || stepperTypeNo == 4 ) stepperTypeId = kBogackiShampineStepper;
+  else if ( stepperTypeNo == 5 )  stepperTypeId =  kCashKarpStepper;  
+  else if ( stepperTypeNo == 7 )  stepperTypeId = kDormandPrince45Stepper;
+  else {
+     std::cerr << "FieldPropagationFactory: Default type of Stepper chosen - as none of the expected values requested." << std::endl;
+     stepperTypeId =  kCashKarpStepper;
+  }
+  return stepperTypeId;
 }
 
 //______________________________________________________________________________
@@ -169,30 +202,97 @@ inline ScalarIntegrationDriver *FieldPropagatorFactory::CreateScalarDriver(Field
   return scalarDriver;
 }
 
+
 //______________________________________________________________________________
-template <typename Field_t>
-inline FlexIntegrationDriver *FieldPropagatorFactory::CreateFlexibleDriver(Field_t &gvField,
-                                                                           double /*relEpsilonTolerance*/,
-                                                                           double minStepSize)
+template <typename Equation_t, typename Stepper_t>
+  inline FlexIntegrationDriver* FieldPropagatorFactory::
+   CreateDriverForStepper(Equation_t& equation,
+                          double minStepSize,
+                          Stepper_t **stepperObj )
 {
-  const char *methodName = "FieldPropagatorFactory::CreateFlexibleDriver";
+  const char *methodName = "FieldPropagatorFactory::CreateDriverForStepper";
   int statsVerbose       = 1;
 
   // std::cout << methodName << " called. " << std::endl;
 
   // New flexible (scalar + vector) versions of field, equation, ...
   constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
+  auto myStepper    = new Stepper_t(&equation);
 
+  using DriverType  = SimpleIntegrationDriver<Stepper_t, Nposmom>;
+  auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom, statsVerbose);
+
+  assert(vectorDriver);
+
+  if (fVerboseConstruct) {
+    std::cout << methodName << ": Parameters for RK integration in magnetic field: "
+              << " - Driver minimum step (h_min) = " << minStepSize << std::endl;
+    std::cout << methodName << ": created vector driver = " << vectorDriver << std::endl;
+    // geant::Print(methodName,
+    //              "Parameters for RK integration in magnetic field: "
+    //             " - Driver minimum step (h_min) = %8.3g\n", minStepSize);
+  }
+  if( stepperObj ) *stepperObj= myStepper;
+  
+  return vectorDriver;
+}
+
+//______________________________________________________________________________
+template <typename Field_t>
+inline FlexIntegrationDriver* FieldPropagatorFactory::CreateFlexibleDriver(Field_t &gvField,
+                                                                           double /*relEpsilonTolerance*/,
+                                                                           double minStepSize,
+                                                                           StepperTypeNum stepperTypeId
+   )
+{
   using Equation_t = MagFieldEquation<Field_t>; // Flexible version
+  constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
+  using StepperTypeCK456    = CashKarp<Equation_t, Nposmom>;
+  using StepperTypeDoPri457 = DormandPrince5RK<Equation_t, Nposmom>;
+  using StepperTypeBS234 = BogackiShampine23RK<Equation_t, Nposmom>;  
+
+  FlexIntegrationDriver* vectorDriver= nullptr;
+  
+  const char *methodName = "FieldPropagatorFactory::CreateFlexibleDriver";
+  int statsVerbose       = 1;
+
+  // New flexible (scalar + vector) versions of field, equation, ...
+
   auto gvEquation  = new Equation_t(&gvField);
 
-  using StepperType = CashKarp<Equation_t, Nposmom>;
-  // using StepperType = DormandPrince5RK<Equation_t, Nposmom>;
-  // using StepperType = BogackiShampine23RK<Equation_t, Nposmom>;  
-  auto myStepper    = new StepperType(gvEquation);
-
-  using DriverType  = SimpleIntegrationDriver<StepperType, Nposmom>;
-  auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom, statsVerbose);
+  StepperTypeDoPri457* myStepperDoPri5 = nullptr;
+  StepperTypeBS234*    myStepperBS234  = nullptr;
+  StepperTypeCK456*    myStepperCK5    = nullptr;
+  
+  switch ( stepperTypeId )
+  {
+     case kDormandPrince45Stepper:
+        vectorDriver = CreateDriverForStepper<Equation_t, StepperTypeDoPri457>
+           (*gvEquation,  minStepSize, &myStepperDoPri5);
+        
+           // myStepperDoPri5 = new StepperTypeDoPri457(gvEquation);
+           // vectorDriver = new SimpleIntegrationDriver<StepperTypeDoPri457, Nposmom>
+           //                       (minStepSize, myStepperDoPri5, Nposmom, statsVerbose);
+        break;
+     case kBogackiShampineStepper:
+        myStepperBS234 = new StepperTypeBS234(gvEquation);
+        vectorDriver = new SimpleIntegrationDriver<StepperTypeBS234, Nposmom>
+                                     (minStepSize, myStepperBS234, Nposmom, statsVerbose);
+        break;         
+     case kCashKarpStepper:      
+        myStepperCK5 = new StepperTypeCK456(gvEquation);
+        vectorDriver = new SimpleIntegrationDriver<StepperTypeCK456, Nposmom>
+                                     (minStepSize, myStepperCK5, Nposmom, statsVerbose);        
+        break;
+     default:
+        std::cerr << methodName << " WARNING : Stepper type not defined - using CashKarp (default.)" << std::endl;
+        myStepperCK5 = new StepperTypeCK456(gvEquation);
+        vectorDriver = new SimpleIntegrationDriver<StepperTypeCK456, Nposmom>
+                                     (minStepSize, myStepperCK5, Nposmom, statsVerbose);        
+        
+  }
+  // using DriverType  = SimpleIntegrationDriver<StepperType, Nposmom>;
+  // auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom, statsVerbose);
 
   assert(vectorDriver);
 

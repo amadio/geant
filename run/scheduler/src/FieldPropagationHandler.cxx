@@ -90,6 +90,35 @@ FieldPropagationHandler::~FieldPropagationHandler()
 }
 
 //______________________________________________________________________________
+GUFieldPropagator *FieldPropagationHandler::Initialize(TaskData *td)
+{
+  GUFieldPropagator *fieldPropagator = nullptr;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
+
+  if (useRungeKutta) {
+    // Initialize for the current thread -- move to Propagator::Initialize() or per thread Init method
+    static GUFieldPropagatorPool *fieldPropPool = GUFieldPropagatorPool::Instance();
+    assert(fieldPropPool);
+
+    fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
+    assert(fieldPropagator);
+    td->fFieldPropagator = fieldPropagator;
+  }
+#endif
+  std::cout << "FieldPropagationHandler::Initialize called. " << std::endl;
+
+  if( ! td->fSpace4FieldProp ) {
+    size_t basketSize    = td->fPropagator->fConfig->fNperBasket;
+    td->fSpace4FieldProp = new WorkspaceForFieldPropagation(basketSize);
+  }
+  
+  // For the moment return the field Propagator.
+  // Once this method is called by the framework, this can be obtained from td->fFieldPropagator
+  return fieldPropagator;
+}
+
+//______________________________________________________________________________
 void FieldPropagationHandler::Cleanup(TaskData *td)
 {
   delete td->fSpace4FieldProp;
@@ -338,7 +367,28 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   ThreeVector Position(track.X(), track.Y(), track.Z());
   FieldLookup::GetFieldValue(Position, BfieldInitial, bmag);
 
-  auto fieldPropagator = td->fFieldPropagator;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  auto fieldPropagator = GetFieldPropagator(td);
+  if (!fieldPropagator && !td->fSpace4FieldProp) {
+    fieldPropagator = Initialize(td);
+  }
+#endif
+
+  // Reset relevant variables
+  track.SetStatus(kInFlight);
+  double pstep = track.GetPstep() - crtstep;
+  if (pstep < 1.E-10) {
+    pstep = 0;
+    track.SetStatus(kPhysics);
+  }
+  track.SetPstep(pstep);
+  double snext = track.GetSnext() - crtstep;
+  if (snext < 1.E-10) {
+    snext = 0;
+    if (track.Boundary()) track.SetStatus(kBoundary);
+  }
+  track.SetSnext(snext);
+  track.IncreaseStep(crtstep);
 
 #if DEBUG_FIELD
   bool verboseDiff = true; // If false, print just one line.  Else more details.
@@ -396,7 +446,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
       }
     }
 #endif
-// method= 'R';
+// method= 'R';    
 #ifdef STATS_METHODS
     numRK++;
     numTot++;    

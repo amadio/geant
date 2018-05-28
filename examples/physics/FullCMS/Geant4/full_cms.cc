@@ -36,9 +36,6 @@ static std::string  parPhysListName  = "GV";
 void GetInputArguments(int argc, char** argv);
 void Help();
 
-
-
-
 int main(int argc, char** argv) {
   //
   // get input arguments

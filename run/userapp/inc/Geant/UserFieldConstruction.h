@@ -84,7 +84,7 @@ public:
 
   // --> Changed to accomodate Root needs (problem in dictionary creation - Root version 6.10 )
 public: // RootAdded
-  // UserFieldConstruction:: // RootComm
+  // UserFieldConstruction::
   UserFieldConstruction()
       : fEpsilonRK(fEpsilonDefault), fMinimumStepInField(fMinimumStepInFieldDef), fUseUniformField(false),
         fZeroField(true), fCreatedField(false), fCalled(false), fpField(nullptr)
@@ -93,11 +93,11 @@ public: // RootAdded
 
   template <class Field_t>
   bool
-      // UserFieldConstruction:: // RootComm
-      CreateSolverForField(Field_t *ptrField)
+      // UserFieldConstruction::
+         CreateSolverForField(Field_t *ptrField, int stepperTypeId= 0 )         
   {
     // printf(" -UserFieldConstruction::CreateSolverForField() called.\n");
-    FieldPropagatorFactory::CreatePropagator<Field_t>(*ptrField, fEpsilonRK, fMinimumStepInField);
+     FieldPropagatorFactory::CreatePropagator<Field_t>(*ptrField, fEpsilonRK, fMinimumStepInField, stepperTypeId);
     fCreatedField = true;
     return true;
   }
