@@ -142,8 +142,10 @@ int SimulationStage::FlushAndProcess(TaskData *td)
   input.Clear();
 
   // Loop active handlers and flush them into btodo basket
+  int nflush = 0;
   for (int i = 0; i < GetNhandlers(); ++i) {
-    if (fHandlers[i]->IsActive() && fHandlers[i]->Flush(bvector)) {
+    int nbasket = 0;
+    if (fHandlers[i]->IsActive() && (nbasket = fHandlers[i]->Flush(bvector))) {
       // btodo has some content, invoke DoIt
       if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
         td->fCounters[fId]->fNvector += bvector.size();
@@ -155,6 +157,8 @@ int SimulationStage::FlushAndProcess(TaskData *td)
       }
       bvector.Clear();
     }
+    nflush += nbasket;
+    //if (nflush > fPropagator->fConfig->fNvecThreshold) break;
   }
 
   return CopyToFollowUps(output, td);
@@ -173,6 +177,7 @@ int SimulationStage::Process(TaskData *td)
   // of the follow-up stages set by the handler DoIt method. The method returns
   // the number of tracks pushed to the output.
 
+  constexpr int kMinGen = 0; // minimum generation
   assert(fFollowUpStage >= 0);
   Basket &input = *td->fStageBuffers[fId];
   int ninput    = input.Tracks().size();
@@ -205,7 +210,7 @@ int SimulationStage::Process(TaskData *td)
       continue;
     }
 
-    if (!handler->IsActive()) {
+    if (!handler->IsActive() || track->GetGeneration() < kMinGen) {
       if (fBasketized) {
         size_t &counter = td->fCounters[fId]->fCounters[handler->GetId()];
         counter++;

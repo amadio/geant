@@ -218,6 +218,7 @@ void WorkloadManager::TransportTracksV3(Propagator *propagator)
       }
     }
     flush = (feedres == FeederResult::kNone) | (feedres == FeederResult::kError);
+    // if (flush) geant::Info("", "=== Task %d flushing...", tid);
     SteppingLoop(td, flush);
   }
   propagator->fWMgr->DoneQueue()->push_force(nullptr);
