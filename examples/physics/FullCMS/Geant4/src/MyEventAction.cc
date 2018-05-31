@@ -73,10 +73,10 @@ void MyEventAction::AddData(G4double edep, G4double length, G4bool ischarged, G4
   fEventDataPerPrimary[primid].fEdep += edep;
   if (ischarged) {
     fEventDataPerPrimary[primid].fTrackLCh    += length;
-    fEventDataPerPrimary[primid].fChargedStep += 1.;
+    fEventDataPerPrimary[primid].fChargedStep ++;
   } else {
     fEventDataPerPrimary[primid].fTrackLNe    += length;
-    fEventDataPerPrimary[primid].fNeutralStep += 1.;
+    fEventDataPerPrimary[primid].fNeutralStep ++;
   }
 }
 

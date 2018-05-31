@@ -20,7 +20,7 @@
 
 G4double MyDetectorConstruction::gFieldValue = 0.0;
 
-G4bool   MyDetectorConstruction::fUseUniformField= false;
+G4bool   MyDetectorConstruction::fUseUniformField= true;
  
 MyDetectorConstruction::MyDetectorConstruction()
 <<<<<<< HEAD
@@ -148,8 +148,8 @@ void MyDetectorConstruction::ConstructSDandField() {
   // G4cout << " Dbg:  fieldMgr = " << fieldMgr << G4endl;
 
   fieldMgr->SetDetectorField(magField);
-
-  // fieldMgr->CreateChordFinder(magField);
+  fieldMgr->CreateChordFinder(magField);
+  /*****
   auto equation = new G4Mag_UsualEqRhs(magField);
   auto Stepper = new G4CashKarpRKF45( equation );
   G4cout<<"  - Using G4CashKarpRKF45 stepper. " << G4endl;
@@ -159,5 +159,6 @@ void MyDetectorConstruction::ConstructSDandField() {
   auto chordFinder = new G4ChordFinder( magField, minStep, Stepper );
   fieldMgr->SetChordFinder( chordFinder );
   G4cout << " - Created and set ChordFinder. " << G4endl;
+   *****/
   G4cout << " ConstructSDandField: Dbg>  Call Number " << callNumConstructField++ << G4endl;
 }

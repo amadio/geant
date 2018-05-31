@@ -7,8 +7,8 @@ MyEventDataPerPrimary::MyEventDataPerPrimary() {
   fEdep         = 0.;
   fTrackLCh     = 0.;
   fTrackLNe     = 0.;
-  fChargedStep  = 0.;
-  fNeutralStep  = 0.;
+  fChargedStep  = 0;
+  fNeutralStep  = 0;
   fNGamma       = 0.;
   fNElec        = 0.;
   fNPosit       = 0.;
@@ -22,8 +22,8 @@ void MyEventDataPerPrimary::Clear() {
   fEdep         = 0.;
   fTrackLCh     = 0.;
   fTrackLNe     = 0.;
-  fChargedStep  = 0.;
-  fNeutralStep  = 0.;
+  fChargedStep  = 0 ;
+  fNeutralStep  = 0 ;
   fNGamma       = 0.;
   fNElec        = 0.;
   fNPosit       = 0.;

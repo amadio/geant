@@ -18,8 +18,8 @@ public:
   G4double fEdep;           // sum of energy deposit
   G4double fTrackLCh;       // sum of charged step length
   G4double fTrackLNe;       // sum of neutral step length
-  G4double fChargedStep;    // sum of number of charged steps
-  G4double fNeutralStep;    // sum of number of neutral steps
+  unsigned long fChargedStep;    // sum of number of charged steps
+  unsigned long fNeutralStep;    // sum of number of neutral steps
 
   G4double fNGamma;         // sum of number of secondary gamma
   G4double fNElec;          // sum of number of secondary e-
