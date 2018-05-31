@@ -45,7 +45,7 @@ double parGunPrimaryDir[3]            = {0., 0., 0.}; // i.e. default applicatio
 // run configuration parameters
 int parConfigNumBufferedEvt     = 4;  // number of events taken to be transported on the same time (buffered)
 int parConfigNumRunEvt          = 10; // total number of events to be transported during the run
-int parConfigNumThreads         = 4;  // number of working threads
+int parConfigNumThreads         = 1;  // number of working threads
 int parConfigNumPropagators     = 1;  // number of propagators per working threads
 int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
@@ -59,10 +59,16 @@ int parConfigMonitoring         = 0;  // activate some monitoring
 int parConfigSingleTrackMode    = 0;  // activate single track mode
 //
 // field configuration parameters
-int    parFieldActive     = 0;            // activate magnetic field
+int    parUseFieldMap     = 0;            // Activate magnetic field using field map
+int    parUseUniformField    = 0;            // Activate uniform magnetic field
 double parFieldEpsRK      = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
 int    parFieldBasketized = 0;            // basketize magnetic field
+<<<<<<< HEAD
 float  parFieldVector[3] = {0., 0., 2.}; // Constant field value
+=======
+int    parUseRungeKutta   = 0;
+// float parFieldVector[3] = {0., 0., 2.}; // Constant field value
+>>>>>>> Reintroduced uniform field in FullCMS as option.
 
 //
 //
@@ -105,17 +111,9 @@ int main(int argc, char *argv[])
   SetupDetectorConstruction(det);
   runMgr->SetDetectorConstruction(det);
   // 
-  // Create   field  construction  & Get field flags
-  CMSFieldConstruction *fieldCtion= nullptr;
-  if (parFieldActive)  fieldCtion = new CMSFieldConstruction();
-  if( parFieldFile!="") fieldCtion->SetFileForField(parFieldFile);
-  
-  det->SetUserFieldConstruction(fieldCtion);
+  // Create field  construction  & Get field flags
+  //  and activate integration of tracks in field
   SetupFieldConfig(runMgr);
-  
-  // Activate integration of tracks in field
-  // auto config = runMgr->GetConfig();    
-  // fieldCtion->CreateFieldAndSolver(config->fUseRungeKutta);
 
   //
   // Create user field if requested
@@ -167,8 +165,9 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-single-track", required_argument, 0, 'y'},
                                   {"verbose-tracking", required_argument, 0, 'z'},
 
-                                  {"field-active", required_argument, 0, 'E'},
-//                                {"field-use-RK", required_argument, 0, 'G'},   // Mandatory for now
+                                  {"field-Map", required_argument, 0, 'E'},
+                                  {"field-uniform", required_argument, 0, 'F'},                                  
+                                  {"field-use-RK", required_argument, 0, 'G'},
                                   {"field-eps-RK", required_argument, 0, 'I'},
                                   {"field-vector", required_argument, 0, 'F'},
                                   {"field-basketized", required_argument, 0, 'J'},                          
@@ -301,9 +300,12 @@ void GetArguments(int argc, char *argv[])
       break;      
     //---- Field
     case 'E':
-      parFieldActive = (int)strtol(optarg, NULL, 10);
+      parUseFieldMap = (int)strtol(optarg, NULL, 10);
       break;
-<<<<<<< HEAD
+    case 'U':
+      parUseUniformField = (int)strtol(optarg, NULL, 10);
+      std::cout << " Recognised Uniform Field argument. " << std::endl;
+      break;
     case 'F': // field direction sub-optarg
       subopts = optarg;
       while (*subopts != '\0' && !errfnd) {
@@ -331,10 +333,10 @@ void GetArguments(int argc, char *argv[])
     case 'H':
       parFieldEpsRK = strtod(optarg, NULL);
       break;
-    case 'I':
-=======
+    case 'G':
+      parUseRungeKutta = (int)strtol(optarg, NULL, 10);
+      break;            
     case 'J':
->>>>>>> FullCMS.cc: new fieldmap file option + cleanup
       parFieldBasketized = (int)strtol(optarg, NULL, 10);
       break;
     //---- Help
@@ -353,18 +355,12 @@ geant::RunManager *RunManager()
 {
   // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig *runConfig = new geant::GeantConfig();
-<<<<<<< HEAD
-  geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
-=======
   std::cout << " Instantiation RunManager with : \n"
             << "    # Threads     = " << parConfigNumThreads  << std::endl
             << "    # Propagators = " << parConfigNumPropagators << std::endl;
   geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators,
                                                         parConfigNumThreads,
                                                         runConfig);
-  // create the real physics main manager/interface object and set it in the RunManager
-  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
->>>>>>> FullCMS.cc: new fieldmap file option + cleanup
   //
   // Set parameters of the GeantConfig object:
   runConfig->fNtotal = parConfigNumRunEvt;
@@ -409,29 +405,45 @@ void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det)
 
 void SetupFieldConfig(geant::RunManager *runMgr)
 {
+  geant::cxx::UserFieldConstruction *fieldCtion= nullptr;
   auto config = runMgr->GetConfig();
+
+  bool useUniformField = (parUseUniformField != 0);
+  bool useFieldMap =     (parUseFieldMap != 0);  
+
+  bool fieldActive = useFieldMap || useUniformField;
   
-  config->fUseRungeKutta = parFieldActive;
+  config->fUseRungeKutta = parUseFieldMap || ( parUseUniformField && parUseRungeKutta );
      // Only Runge-Kutta can work with varying field (for now at least).
-  // If constant field, 'helix' is an alternative
-  // config->fUseRungeKutta      = false;
+
+  assert( ! ( useUniformField &&  useFieldMap ) );
   
-  if (parFieldActive) {
+  if ( useFieldMap )
+  {
+     std::cout << "Creating Field from sampled CMS field map ... " << std::endl;
+     auto cmsFieldCtion = new /* cmsapp:: */ CMSFieldConstruction();
+     if( parFieldFile!="") cmsFieldCtion->SetFileForField(parFieldFile);
+     fieldCtion = cmsFieldCtion;
+  } if ( useUniformField ) {
+     std::cout << "Creating Unifom Field ... " << std::endl;     
+     // fieldCtion = new CMSFieldConstruction(useUniformField);  // Default value
+     auto uniformFldCtion= new geant::UserFieldConstruction();
+     float fieldValue[] = { 0.0, 0.0, 3.8 };
+     uniformFldCtion->UseConstantMagField( fieldValue, "tesla");
+     fieldCtion = uniformFldCtion;
+  } else {
+     std::cout << "No Magnetic Field set ... " << std::endl;
+  }
+  runMgr->SetUserFieldConstruction(fieldCtion);
+
+  if (fieldActive) {
     // Create magnetic field and needed classes for trajectory integration
-    auto fieldConstructor = new /* cmsapp:: */ CMSFieldConstruction();
-    
-    // Alternative: Uniform field 
-    // auto fieldConstructor = new geant::UserFieldConstruction();
-    // fieldConstructor->UseConstantMagField(parFieldVector, "kilogauss");     
-    // config->fUseRungeKutta      = parFieldUseRK; // Optional for const B-field
-    
     config->fEpsilonRK          = parFieldEpsRK;
     config->fUseVectorizedField = parFieldBasketized;
                                        
     if (parFieldBasketized == 2) config->fUseSDField = true;
 
-    runMgr->SetUserFieldConstruction(fieldConstructor);
-    printf("main: Created uniform field and set up field-propagation.\n");
+    printf("main: Created magnetic field and set up field-propagation.\n");
   } else {
     config->fUseVectorizedField = false;
     printf("main: no magnetic field configured.\n");
