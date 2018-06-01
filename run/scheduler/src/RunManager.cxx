@@ -45,6 +45,7 @@
 
 #include "Geant/GUFieldPropagator.h"
 #include "Geant/GUFieldPropagatorPool.h"
+#include "Geant/WorkspaceForFieldPropagation.h"
 
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
@@ -209,6 +210,7 @@ bool RunManager::Initialize()
     TaskData *td = fTDManager->GetTaskData(i);
     if (fPhysicsInterface) fPhysicsInterface->AttachUserData(td);
     if (fStdApplication) fStdApplication->AttachUserData(td);
+    if (fInitialisedRKIntegration) InitializeRKdata(td);
     fApplication->AttachUserData(td);
   }
 
@@ -324,6 +326,27 @@ void RunManager::PrepareRkIntegration()
     }
   }
   fInitialisedRKIntegration = true;
+}
+
+//______________________________________________________________________________
+void RunManager::InitializeRKdata(TaskData *td) const
+{
+  auto fieldConfig = FieldLookup::GetFieldConfig();
+  assert(fieldConfig);
+
+  if (fConfig->fUseRungeKutta || !fieldConfig->IsFieldUniform()) {
+    // Initialize for the current thread -- move to Propagator::Initialize() or per thread Init method
+    static GUFieldPropagatorPool *fieldPropPool = GUFieldPropagatorPool::Instance();
+    assert(fieldPropPool);
+
+    GUFieldPropagator *fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
+    assert(fieldPropagator);
+    td->fFieldPropagator = fieldPropagator;
+  }
+
+  if (!td->fSpace4FieldProp) td->fSpace4FieldProp = new WorkspaceForFieldPropagation(fConfig->fNperBasket);
+
+  std::cout << "=== FieldPropagationHandler::Initialize called for thread " << td->fTid << std::endl;
 }
 
 //______________________________________________________________________________

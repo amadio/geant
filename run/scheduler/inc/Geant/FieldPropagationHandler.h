@@ -106,10 +106,6 @@ private:
 
   // - Book keeping methods for task data
 
-  /** @brief Connect with thread's FieldPropagator & create working buffers */
-  VECCORE_ATT_HOST_DEVICE
-  GUFieldPropagator *Initialize(TaskData *td);
-
   /** @brief Cleanup the thread working buffers */
   VECCORE_ATT_HOST_DEVICE
   void Cleanup(TaskData *td);
@@ -134,26 +130,6 @@ double FieldPropagationHandler::SafeLength(const Track &track, double eps) const
   // if (c < 1.E-10) { val= 1.E50; } else
   val = 2. * sqrt(eps / c);
   return val;
-}
-
-//______________________________________________________________________________
-// VECCORE_ATT_HOST_DEVICE -- not yet
-GUFieldPropagator *FieldPropagationHandler::GetFieldPropagator(TaskData *td)
-{
-  GUFieldPropagator *fieldPropagator = nullptr;
-  bool useRungeKutta                 = td->fPropagator->fConfig->fUseRungeKutta;
-
-  // static GUFieldPropagatorPool* fieldPropPool= GUFieldPropagatorPool::Instance();
-  // if( useRungeKutta && fieldPropPool ){
-  //    fieldPropagator = fieldPropPool->GetPropagator(td->fTid);
-  //    assert( fieldPropagator );  // To assert, it must be initialised !!
-  // }
-  if (useRungeKutta) {
-    fieldPropagator = td->fFieldPropagator;
-    // assert( fieldPropagator );  // To assert, it must be initialised !!
-  }
-  // GUFieldPropagator *fieldPropagator = useRungeKutta ? td->fFieldPropagator : nullptr;
-  return fieldPropagator;
 }
 
 //______________________________________________________________________________________

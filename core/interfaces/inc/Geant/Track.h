@@ -1062,6 +1062,19 @@ public:
     fZdir *= norm;
   }
 
+  /** @brief Function to fast normalize direction */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void NormalizeFast()
+  {
+    // Liniarized normalization function, working in the assumption that the direction is quasi-normalized
+    double norm = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
+    norm        = 1.5 - 0.5 * norm;
+    fXdir *= norm;
+    fYdir *= norm;
+    fZdir *= norm;
+  }
+
   /** @brief Function to make a step along the current direction */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE

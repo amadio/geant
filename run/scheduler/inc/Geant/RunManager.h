@@ -201,6 +201,7 @@ public:
 
   void EventTransported(Event *event, TaskData *td);
   bool Initialize();
+  void InitializeRKdata(TaskData *td) const;
   bool FinishRun();
   bool LoadGeometry(const char *filename);
   void RunSimulation();
