@@ -334,7 +334,7 @@ void TNudyEndfSigma::ReadFile2(TNudyEndfFile *file)
         case 0: {
         } break;
         case 1: { // resolved resonance region
-	  // std::cout <<"LRF "<< LRF << std::endl;
+                  // std::cout <<"LRF "<< LRF << std::endl;
           switch (LRF) {
           case 1: // single level resonance region
           case 2: // multi level resonance region
@@ -521,7 +521,7 @@ void TNudyEndfSigma::ReadFile2(TNudyEndfFile *file)
                   }
                 }
                 fMisGj[l[lseries]] = 2 * l[lseries] + 1 - gjfound;
-              } else if (LRF == 4) {                         // Adler -Adler resonance region
+              } else if (LRF == 4) {                                       // Adler -Adler resonance region
                 for (int ii = 0, eNRS = fNRS[lseries]; ii != eNRS; ++ii) { // line 6 onwards data
                   fCueMat = nrsl0 + ii;
                   fAt1.push_back(list->GetLIST(ii * 6 + 0));
@@ -608,11 +608,11 @@ void TNudyEndfSigma::ReadFile2(TNudyEndfFile *file)
                 fFactor_k           = kconst * (AWRI / (AWRI + 1.0));
                 fJMin               = list3->GetC1();
                 INT                 = list3->GetL1();
-                fAmux.push_back(list3->GetLIST(2));           // total width
-                fAmun.push_back(list3->GetLIST(3));           // neutron width
-                fAmug.push_back(list3->GetLIST(4));           // gamma width
-                fAmuf.push_back(list3->GetLIST(5));           // fission width
-                fGJ.push_back((2.0 * fJMin + 1.0) / gjdeno);  //(2J+1)/2(2I+1)
+                fAmux.push_back(list3->GetLIST(2));                       // total width
+                fAmun.push_back(list3->GetLIST(3));                       // neutron width
+                fAmug.push_back(list3->GetLIST(4));                       // gamma width
+                fAmuf.push_back(list3->GetLIST(5));                       // fission width
+                fGJ.push_back((2.0 * fJMin + 1.0) / gjdeno);              //(2J+1)/2(2I+1)
                 for (int ii = 0, eN2 = list3->GetN2(); ii != eN2; ++ii) { // line 6 onwards data
                   fEs.push_back(list3->GetLIST((ii + 1) * 6 + 0));
                   fD.push_back(list3->GetLIST((ii + 1) * 6 + 1));   // J value
@@ -933,7 +933,7 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
         eneExtra.push_back(eneLow);
         multifac += 1;
       } while (eneLow < fEneTemp[fNP - 1]);
-    
+
       for (int ie = 0, eneExtraSize = eneExtra.size(); ie != eneExtraSize; ++ie) {
         double sigExtra =
             TNudyCore::Instance()->Interpolate(fNbt1, fInt1, fNR, fELinearFile3, fXLinearFile3, fNP, eneExtra[ie]);
@@ -1014,7 +1014,7 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
         } break;
         }
       } else { // no resonance parameters are given
-           int ELinearFile3Size = fELinearFile3.size();
+        int ELinearFile3Size = fELinearFile3.size();
         switch (fMT) {
         case 2: {
           for (int cr = 0; cr != ELinearFile3Size; ++cr) {
@@ -1038,9 +1038,8 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
       }
       int fNR = 1;
       if (fMT == 2) {
-        int ELinElasticSize = fELinElastic.size(); 
-        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR,
-                        ELinElasticSize);
+        int ELinElasticSize = fELinElastic.size();
+        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR, ELinElasticSize);
         tab1->SetNBT(ELinElasticSize, 0);
         tab1->SetINT(2, 0);
         for (int crs = 0; crs != ELinElasticSize; ++crs) {
@@ -1049,8 +1048,7 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
         }
       } else if (fMT == 18) {
         int ELinFissionSize = fELinFission.size();
-        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR,
-                        ELinFissionSize);
+        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR, ELinFissionSize);
         tab1->SetNBT(ELinFissionSize, 0);
         tab1->SetINT(2, 0);
         for (int crs = 0; crs != ELinFissionSize; ++crs) {
@@ -1059,8 +1057,7 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
         }
       } else if (fMT == 102) {
         int ELinCaptureSize = fELinCapture.size();
-        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR,
-                        ELinCaptureSize);
+        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR, ELinCaptureSize);
         tab1->SetNBT(ELinCaptureSize, 0);
         tab1->SetINT(2, 0);
         for (int crs = 0; crs != ELinCaptureSize; ++crs) {
@@ -1068,9 +1065,8 @@ void TNudyEndfSigma::ReadFile3(TNudyEndfFile *file)
           tab1->SetY(fXLinCapture[crs], crs);
         }
       } else if (fMT != 2 && fMT != 18 && fMT != 102) {
-	int ELinearFile3Size = fELinearFile3.size();
-        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR,
-                        ELinearFile3Size);
+        int ELinearFile3Size = fELinearFile3.size();
+        header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR, ELinearFile3Size);
         tab1->SetNBT(ELinearFile3Size, 0);
         tab1->SetINT(2, 0);
         for (int crs = 0; crs != ELinearFile3Size; ++crs) {
@@ -1970,7 +1966,7 @@ void TNudyEndfSigma::InverseMatrix()
   double det1 = A[1][1] * A[2][2] - A[1][2] * A[2][1];
   double det2 = A[1][2] * A[2][0] - A[1][0] * A[2][2];
   double det3 = A[1][0] * A[2][1] - A[1][1] * A[2][0];
-  double det  = 1./(A[0][0] * det1 + A[0][1] * det2 + A[0][2] * det3);
+  double det  = 1. / (A[0][0] * det1 + A[0][1] * det2 + A[0][2] * det3);
   AI[0][0]    = det1 * det;
   AI[1][0]    = det2 * det;
   AI[2][0]    = det3 * det;
@@ -2003,7 +1999,7 @@ void TNudyEndfSigma::InverseMatrix()
   det1     = C[1][1] * C[2][2] - C[1][2] * C[2][1];
   det2     = C[1][2] * C[2][0] - C[1][0] * C[2][2];
   det3     = C[1][0] * C[2][1] - C[1][1] * C[2][0];
-  det      = 1./(C[0][0] * det1 + C[0][1] * det2 + C[0][2] * det3);
+  det      = 1. / (C[0][0] * det1 + C[0][1] * det2 + C[0][2] * det3);
   C3[0][0] = det1 * det;
   C3[1][0] = det2 * det;
   C3[2][0] = det3 * det;
@@ -2049,7 +2045,7 @@ void TNudyEndfSigma::GetSigmaRMP(double x, double &siga, double &sigb, double &s
   double reduced_n, reduced_g, reduced_fa, reduced_fb;
   x             = std::fabs(x);
   double pibyk2 = PI / x2(K_wnum(x));
-  double rt11   = 0.0,   st11 = 0.0;
+  double rt11 = 0.0, st11 = 0.0;
   double sigrm1 = 0.0, sigab1 = 0.0, sigf1 = 0.0, sigel = 0.0;
   double gj;
   for (int lcnt = 0; lcnt < NLS; lcnt++) {
@@ -2063,7 +2059,7 @@ void TNudyEndfSigma::GetSigmaRMP(double x, double &siga, double &sigb, double &s
     s2fil    = 2. * sfil * cfil;
     fac2     = 4.0 * fMisGj[l[lcnt]] * sfil2 * pibyk2;
     sigrm1   = 0.0;
-    sigel    = 0.0, sigab1 = 0.0, sigf1 = 0.0;
+    sigel = 0.0, sigab1 = 0.0, sigf1 = 0.0;
     jVal      = 0;
     nrstemp   = nrs;
     int nrend = nrs + nrsl;
@@ -2093,43 +2089,43 @@ void TNudyEndfSigma::GetSigmaRMP(double x, double &siga, double &sigb, double &s
         deno          = DE * DE + GR * GR;
         double de2    = DE / deno;
         double gamma2 = GR / deno;
-	// average fission widths are not given
-        if (LFW == 0) { 
-          rt11       += gamma2 * GNR;
-          st11       += de2 * GNR;
+        // average fission widths are not given
+        if (LFW == 0) {
+          rt11 += gamma2 * GNR;
+          st11 += de2 * GNR;
         } else {
-	  // average fission widths are given
-          reduced_fa  = fGamma_fasq[r]; 
-          reduced_fb  = fGamma_fbsq[r]; 
+          // average fission widths are given
+          reduced_fa  = fGamma_fasq[r];
+          reduced_fb  = fGamma_fbsq[r];
           double GR2  = sqrt(GNR);
           double GFA  = reduced_fa * reduced_fa;
           double GFB  = reduced_fb * reduced_fb;
           double GFAN = reduced_fa * GR2;
           double GFBN = reduced_fb * GR2;
           double GFAB = reduced_fa * reduced_fb;
-          fR[0][0]   += gamma2 * GNR;
-          fR[0][1]   += gamma2 * GFAN;
-          fR[0][2]   += gamma2 * GFBN;
-          fR[1][1]   += gamma2 * GFA;
-          fR[1][2]   += gamma2 * GFAB;
-          fR[2][2]   += gamma2 * GFB;
-          fS[0][0]   += de2 * GNR;
-          fS[0][1]   += de2 * GFAN;
-          fS[0][2]   += de2 * GFBN;
-          fS[1][1]   += de2 * GFA;
-          fS[1][2]   += de2 * GFAB;
-          fS[2][2]   += de2 * GFB;
-          fR[1][0]    = fR[0][1];
-          fS[1][0]    = fS[0][1];
-          fR[2][0]    = fR[0][2];
-          fS[2][0]    = fS[0][2];
-          fR[2][1]    = fR[1][2];
-          fS[2][1]    = fS[1][2];
+          fR[0][0] += gamma2 * GNR;
+          fR[0][1] += gamma2 * GFAN;
+          fR[0][2] += gamma2 * GFBN;
+          fR[1][1] += gamma2 * GFA;
+          fR[1][2] += gamma2 * GFAB;
+          fR[2][2] += gamma2 * GFB;
+          fS[0][0] += de2 * GNR;
+          fS[0][1] += de2 * GFAN;
+          fS[0][2] += de2 * GFBN;
+          fS[1][1] += de2 * GFA;
+          fS[1][2] += de2 * GFAB;
+          fS[2][2] += de2 * GFB;
+          fR[1][0] = fR[0][1];
+          fS[1][0] = fS[0][1];
+          fR[2][0] = fR[0][2];
+          fS[2][0] = fS[0][2];
+          fR[2][1] = fR[1][2];
+          fS[2][1] = fS[1][2];
         }
       }
       if (LFW == 0) {
         gj          = (2. * std::fabs(fMissingJ[l[lcnt]][jVal]) + 1.) / (4. * fSpi + 2.0);
-        double det  = 1./((rt11 + 1.0) * (rt11 + 1.0) + st11 * st11);
+        double det  = 1. / ((rt11 + 1.0) * (rt11 + 1.0) + st11 * st11);
         double SI11 = -st11 * det;
         double RI11 = -(rt11 * (rt11 + 1.0) + st11 * st11) * det;
         sigrm1 += -4. * gj * (RI11 + (RI11 * RI11 + SI11 * SI11));
@@ -2146,10 +2142,10 @@ void TNudyEndfSigma::GetSigmaRMP(double x, double &siga, double &sigb, double &s
         double SI13 = fSI[0][2];
         double RI13 = fRI[0][2];
         sigab1 += -4.0 * gj * (RI11 + (RI11 * RI11 + SI11 * SI11));
-        sigel  +=
+        sigel +=
             gj * ((2.0 * sfil2 + 2. * RI11) * (2.0 * sfil2 + 2. * RI11) + (s2fil + 2.0 * SI11) * (s2fil + 2.0 * SI11));
-        sigf1  += 4.0 * gj * (RI12 * RI12 + RI13 * RI13 + SI12 * SI12 + SI13 * SI13);
-        sigrm1  = sigab1 - sigf1;
+        sigf1 += 4.0 * gj * (RI12 * RI12 + RI13 * RI13 + SI12 * SI12 + SI13 * SI13);
+        sigrm1 = sigab1 - sigf1;
       }
       jVal += 1;
     } while (jVal < fNJValue[l[lcnt]]);
@@ -2179,7 +2175,7 @@ void TNudyEndfSigma::GetSigma(int lrfa, double x, double &siga, double &sigb, do
   double GNRS, GR, GS;
   double fachNumElasticG, fachNumElasticH, fachNumElasticM = 0.0;
   double facElasticM = 0.0, sumElasticM = 0.0;
-  x             = std::fabs(x);
+  x = std::fabs(x);
   double pibyk2;
   switch (LRU) {
   case 1:
@@ -2218,7 +2214,7 @@ void TNudyEndfSigma::GetSigma(int lrfa, double x, double &siga, double &sigb, do
             GR             = Gamma_rE(x, r, lVal, fLrx);
             ERP            = GetERP(x, r, lVal);
             double xerp    = x - ERP;
-            deno           = 1./(xerp * xerp + 0.25 * GR * GR);
+            deno           = 1. / (xerp * xerp + 0.25 * GR * GR);
             fachNumElastic = GNR * ((GNR - 2.0 * GR * sfil2 + 2.0 * xerp * s2fil) * deno);
             fachNumCapture = (GNR * fGamma_g[r] * deno);
             fachNumFission = (GNR * fGamma_f[r] * deno);
@@ -2279,7 +2275,7 @@ void TNudyEndfSigma::GetSigma(int lrfa, double x, double &siga, double &sigb, do
             GR             = Gamma_rE(x, r, lVal, fLrx);
             ERP            = (GetERP(x, r, lVal));
             double xerp    = x - ERP;
-            deno           = 1./(xerp * xerp + 0.25 * GR * GR);
+            deno           = 1. / (xerp * xerp + 0.25 * GR * GR);
             fachNumElastic = GNR * ((GNR - 2.0 * GR * sfil2 + 2.0 * xerp * s2fil) * deno);
             fachNumCapture = (GNR * fGamma_g[r] * deno);
             fachNumFission = (GNR * fGamma_f[r] * deno);
@@ -2294,15 +2290,15 @@ void TNudyEndfSigma::GetSigma(int lrfa, double x, double &siga, double &sigb, do
               GS    = Gamma_rE(x, rs, lVal, fLrx);
               ERPP1 = (GetERP(x, rs, lVal));
               if (r != rs) {
-                double grgs      = GR + GS;
-                double erep1     = ERP - ERPP1;
-                double deno1     = 1./(erep1 * erep1 + 0.25 * grgs * grgs);
-                fachNumElasticG += 0.5 * GNRS * GNR * grgs *deno1;
+                double grgs  = GR + GS;
+                double erep1 = ERP - ERPP1;
+                double deno1 = 1. / (erep1 * erep1 + 0.25 * grgs * grgs);
+                fachNumElasticG += 0.5 * GNRS * GNR * grgs * deno1;
                 fachNumElasticH += GNRS * GNR * erep1 * deno1;
               }
             }
-            fachNumElasticM      = (fachNumElasticG * GR + 2. * fachNumElasticH * xerp) * deno;
-            facElasticM         += fGJ[r] * fachNumElasticM;
+            fachNumElasticM = (fachNumElasticG * GR + 2. * fachNumElasticH * xerp) * deno;
+            facElasticM += fGJ[r] * fachNumElasticM;
           }
           sumElastic += facElastic;
           sumCapture += facCapture;
@@ -2478,14 +2474,14 @@ double TNudyEndfSigma::RecursionLinear(double x1, double x2, double sig1, double
   //   double slope10 = (siga0 - sig1) / (x10 - x1);
   //   double slope11 = (sigb0 - sig3) / (x10 - x1);
   //   double slope12 = (sigc0 - sig5) / (x10 - x1);
-  // 
+  //
   //   double x20 = x2 - 0.001 * (x2 - x1);
   //   double siga1, sigb1, sigc1;
   //   GetSigma(LRF, x20, siga1, sigb1, sigc1);
   //   double slope20 = (sig2 - siga1) / (x2 - x20);
   //   double slope21 = (sig4 - sigb1) / (x2 - x20);
   //   double slope22 = (sig6 - sigc1) / (x2 - x20);
-  */  
+  */
   double mid = 0.5 * (x1 + x2);
   if ((sig1 == 0.0 && sig2 == 0.0) || x1 == x2 || (x1 < 1E-5 || x2 < 1E-5)) return 0;
   GetSigma(LRF, mid, siga, sigb, sigc);
@@ -2498,7 +2494,7 @@ double TNudyEndfSigma::RecursionLinear(double x1, double x2, double sig1, double
   fMloop++;
   /*
   //   int slope = -1;
-  // 
+  //
   //   if (slope10 / slope20 < 0.0) {
   //     slope = 1;
   //   }
@@ -2509,12 +2505,12 @@ double TNudyEndfSigma::RecursionLinear(double x1, double x2, double sig1, double
   //     slope = 1;
   //   }
  */
-    if (elRatio <= fSigDiff && capRatio <= fSigDiff && fisRatio <= fSigDiff ) {
-      /*
-      // if (elRatio <= fSigDiff && capRatio <= fSigDiff && fisRatio <= fSigDiff && slope == -1) {
-      // if (elRatio <= fSigDiff && capRatio <= fSigDiff && fisRatio <= fSigDiff && fabs (sig2/siga -1) < 0.01
-      //     && fabs (sig4/sigb -1) < 0.01 && slope == -1) {
-      */
+  if (elRatio <= fSigDiff && capRatio <= fSigDiff && fisRatio <= fSigDiff) {
+    /*
+    // if (elRatio <= fSigDiff && capRatio <= fSigDiff && fisRatio <= fSigDiff && slope == -1) {
+    // if (elRatio <= fSigDiff && capRatio <= fSigDiff && fisRatio <= fSigDiff && fabs (sig2/siga -1) < 0.01
+    //     && fabs (sig4/sigb -1) < 0.01 && slope == -1) {
+    */
     return 0;
   } else {
     fELinElastic.push_back(mid);
@@ -2604,8 +2600,8 @@ void TNudyEndfSigma::RecoPlusBroad(int flagNer)
     int nvectorend = fELinElastic.size();
     for (int ju = intLinLru1; ju < nvectorend - 1; ju++) {
       fMloop = 0;
-      RecursionLinear(fELinElastic[ju], fELinElastic[ju + 1], fXLinElastic[ju], fXLinElastic[ju + 1], 
-                      fXLinCapture[ju], fXLinCapture[ju + 1], fXLinFission[ju], fXLinFission[ju + 1]);
+      RecursionLinear(fELinElastic[ju], fELinElastic[ju + 1], fXLinElastic[ju], fXLinElastic[ju + 1], fXLinCapture[ju],
+                      fXLinCapture[ju + 1], fXLinFission[ju], fXLinFission[ju + 1]);
     }
     intLinLru1 = fELinElastic.size();
   } else {
@@ -2675,7 +2671,7 @@ void TNudyEndfSigma::GetData(const char *rENDF, double isigDiff)
   for (int iMat = 0; iMat < nmats; iMat++) {
     tMat = (TNudyEndfMat *)mats->At(iMat);
     TIter iter(tMat->GetFiles());
-    TNudyEndfFile *file, *file2;
+    TNudyEndfFile *file, *file2 = nullptr;
     std::vector<int>().swap(MtNumAng4Photon);
     while ((file = (TNudyEndfFile *)iter.Next())) {
       /*
@@ -2741,21 +2737,22 @@ void TNudyEndfSigma::GetData(const char *rENDF, double isigDiff)
           ReadFile2(file);
           // std::cout<<"file 2 reading OK "<< std::endl;
           if (LRU != 0) {
-	  //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
+            //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() <<
+            //  std::endl;
             TNudyCore::Instance()->Sort(fELinElastic, fXLinElastic);
             TNudyCore::Instance()->Sort(fELinCapture, fXLinCapture);
             TNudyCore::Instance()->Sort(fELinFission, fXLinFission);
-	   /* 
-	  //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
-          //  TNudyCore::Instance()->ThinningDuplicate(fELinElastic, fXLinElastic);
-          //  TNudyCore::Instance()->ThinningDuplicate(fELinCapture, fXLinCapture);
-          //  TNudyCore::Instance()->ThinningDuplicate(fELinFission, fXLinFission);
-	  //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
-          //  Thinning(fELinElastic, fXLinElastic);
-          //  Thinning(fELinCapture, fXLinCapture);
-          //  Thinning(fELinFission, fXLinFission);
-	  //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
-	    */
+            /*
+           //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
+                 //  TNudyCore::Instance()->ThinningDuplicate(fELinElastic, fXLinElastic);
+                 //  TNudyCore::Instance()->ThinningDuplicate(fELinCapture, fXLinCapture);
+                 //  TNudyCore::Instance()->ThinningDuplicate(fELinFission, fXLinFission);
+           //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
+                 //  Thinning(fELinElastic, fXLinElastic);
+                 //  Thinning(fELinCapture, fXLinCapture);
+                 //  Thinning(fELinFission, fXLinFission);
+           //  std::cout << fELinElastic.size() <<"   "<< fELinCapture.size() <<"  "<< fELinFission.size() << std::endl;
+             */
           }
         }
         /*
@@ -3052,7 +3049,7 @@ void TNudyEndfSigma::FixupTotal(TNudyEndfFile *file1, std::vector<double> &x1, s
   TNudyCore::Instance()->ThinningDuplicate(x1);
   TIter secIter(file1->GetSections());
   TNudyEndfSec *sec;
-  for (int i = 0, SigmaOfMtsDopSize =  fSigmaOfMtsDop.size(); i != SigmaOfMtsDopSize; ++i) {
+  for (int i = 0, SigmaOfMtsDopSize = fSigmaOfMtsDop.size(); i != SigmaOfMtsDopSize; ++i) {
     while ((sec = (TNudyEndfSec *)secIter.Next())) {
       // std::cout << sec->GetMT() <<" fixuptotal \t"<< MtNumbers[i] << std::endl;
       int fMT = sec->GetMT();
@@ -3128,7 +3125,7 @@ void TNudyEndfSigma::FixupTotal(TNudyEndfFile *file1, std::vector<double> &x1, s
 void TNudyEndfSigma::DopplerAll()
 {
   for (int i = 0, SigmaOfMtsSize = fSigmaOfMts.size(); i != SigmaOfMtsSize; ++i) {
-    //std::cout<<"MT number \t"<< MtNumbers[i] <<"  \t"<< fSigmaOfMts.size() << std::endl;
+    // std::cout<<"MT number \t"<< MtNumbers[i] <<"  \t"<< fSigmaOfMts.size() << std::endl;
     // std::cout <<"  "<< std::endl;
     int size = fSigmaOfMts[i].size() / 2;
     for (int k = 0; k < size; k++) {
@@ -3270,7 +3267,7 @@ void TNudyEndfSigma::ReadFile4(TNudyEndfFile *file)
       // Low energy given by legendre polynomial and high energy by tabulated probability tables
     } else if (LTT == 3 && LI == 0) {
       TNudyEndfTab2 *lowE = (TNudyEndfTab2 *)recIter.Next();
-      for (int i = 0,elN2 = lowE->GetN2(); i != elN2; ++i) {
+      for (int i = 0, elN2 = lowE->GetN2(); i != elN2; ++i) {
         TNudyEndfList *tab = (TNudyEndfList *)recIter.Next();
         fEin.push_back(tab->GetC2());
         for (int j = 0, eNPL = tab->GetNPL(); j != eNPL; ++j) {
@@ -3628,8 +3625,7 @@ void TNudyEndfSigma::ReWriteFile3(TNudyEndfFile *file)
     }
     if (fMT == MtNumbers[mtcount]) {
       int SigmaUniOfMtsSize = fSigmaUniOfMts[mtcount].size();
-      header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR,
-                      SigmaUniOfMtsSize);
+      header->SetCont(header->GetC1(), header->GetC2(), header->GetL1(), header->GetL2(), fNR, SigmaUniOfMtsSize);
       tab1->SetNBT(SigmaUniOfMtsSize, 0);
       tab1->SetINT(2, 0);
       for (int crs = 0; crs != SigmaUniOfMtsSize; ++crs) {

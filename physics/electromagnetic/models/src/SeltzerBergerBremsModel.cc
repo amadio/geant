@@ -875,8 +875,8 @@ void SeltzerBergerBremsModel::SamplePhotonEnergy(const double *eEkin, const doub
 
     Double_v lekin  = Math::Log(eekin);
     Double_v eresid = (lekin - fLogLoadDCSMinElecEnergy) * fInvLogLoadDCSDeltaEnergy;
-    IndexD_v ie     = (IndexD_v)eresid; // y1 index
-    eresid -= (Double_v)ie;             // (y2-y1)*resid + y1
+    IndexD_v ie     = vecCore::Convert<IndexD_v>(eresid); // y1 index
+    eresid -= vecCore::Convert<Double_v>(ie);             // (y2-y1)*resid + y1
     assert((eekin < fLoadDCSElectronEnergyGrid[0]).isEmpty());
     assert((eekin >= fLoadDCSElectronEnergyGrid[fLoadDCSNumElectronEnergies - 1]).isEmpty());
 

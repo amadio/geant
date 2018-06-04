@@ -199,7 +199,7 @@ void RelativisticBremsModel::GetLPMFunctions(R &lpmGs, R &lpmPhis, const R s)
 
   R val                  = s / gLPMFuncs.fSDelta;
   vecCore::Index<R> ilow = vecCore::Index<R>(val);
-  val -= ilow;
+  val -= vecCore::Convert<R>(ilow);
   for (int l = 0; l < (int)vecCore::VectorSize<R>(); ++l) {
     if (!Get(tmp, l)) Set(ilow, l, gLPMFuncs.fLPMFuncPhi.size() - 2); // above limit
   }

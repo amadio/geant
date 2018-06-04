@@ -660,7 +660,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
   // vecCore::Int_v  finishedInt = 0;
 
-  Real_v hFinal = htry, errmax_sqFinal; // xFinal, hdidFinal,
+  Real_v hFinal = htry, errmax_sqFinal = Real_v(0.); // xFinal, hdidFinal,
   // Real_v yFinal[ncompSVEC];
   Bool_v goodStep(false), stepSizeUnderflow(false);
 
