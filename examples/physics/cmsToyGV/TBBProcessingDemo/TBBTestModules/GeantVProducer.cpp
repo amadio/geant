@@ -140,7 +140,8 @@ namespace demo {
     fRunMgr->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
 
     // Create user defined physics list for the full CMS application
-    geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList());
+    bool vectormode = false; // TODO: define in the executable and pass to this
+    geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(vectormode));
 
     // Detector construction
     auto detector_construction = new CMSDetectorConstruction(fRunMgr);

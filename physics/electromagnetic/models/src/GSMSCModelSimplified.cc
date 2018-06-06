@@ -64,13 +64,13 @@ void GSMSCModelSimplified::StepLimit(geant::Track *gtrack, geant::TaskData *td)
   bool isOnBoundary          = gtrack->Boundary();
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double kineticEnergy = gtrack->T();
+  double kineticEnergy = gtrack->Ekin();
 
   if (kineticEnergy < GetLowEnergyUsageLimit() || kineticEnergy > GetHighEnergyUsageLimit()) {
     return;
   }
 
-  double range     = ELossTableManager::Instance().GetRestrictedRange(matCut, fParticle, kineticEnergy);
+  double range     = ELossTableManager::Instance().GetRestrictedRange(matCut, fParticle, kineticEnergy, gtrack->LogEkin());
   double presafety = gtrack->GetSafety(); // pre-step point safety
   //
   // Compute elastic mfp, first transport mfp, screening parameter and G1
@@ -169,7 +169,7 @@ bool GSMSCModelSimplified::SampleScattering(geant::Track *gtrack, geant::TaskDat
   }
   return false;
 }
-void GSMSCModelSimplified::SampleScattering(std::vector<geant::Track *> &gtracks, std::vector<bool> &hasNewDir,
+void GSMSCModelSimplified::SampleScattering(geant::TrackVec_t &gtracks, std::vector<bool> &hasNewDir,
                                             geant::TaskData *td)
 {
   SampleMSC(gtracks, td);
@@ -208,7 +208,7 @@ void GSMSCModelSimplified::ConvertTrueToGeometricLength(geant::Track *gtrack, ge
     return;
   }
   //
-  double ekin = gtrack->T();
+  double ekin = gtrack->Ekin();
   double tau  = mscdata.fTheTrueStepLenght / mscdata.fLambda1;
   if (tau <= fTauSmall) {
     mscdata.fTheZPathLenght = std::min(mscdata.fTheTrueStepLenght, mscdata.fLambda1);
@@ -296,7 +296,7 @@ void GSMSCModelSimplified::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   //
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double kineticEnergy = gtrack->T();
+  double kineticEnergy = gtrack->Ekin();
   double range         = mscdata.fRange;             // set in the step limit phase
   double trueStepL     = mscdata.fTheTrueStepLenght; // proposed by all other physics
   //
@@ -476,7 +476,7 @@ void GSMSCModelSimplified::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   mscdata.SetDisplacement(x_coord, y_coord, z_coord - mscdata.fTheZPathLenght);
 }
 
-void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
+void GSMSCModelSimplified::SampleMSCp1(geant::TrackVec_t &gtracks, geant::TaskData *td)
 {
   double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
   double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
@@ -488,6 +488,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
   double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
   double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
 
+  /** not used (yet)
   double *sinTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr10;
   double *cosTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fR0;
   double *cosPhi1Arr   = td->fPhysicsData->fPhysicsScratchpad.fR1;
@@ -496,7 +497,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
   double *cosTheta2Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr12;
   double *cosPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr13;
   double *sinPhi2Arr   = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr14;
-
+  **/
   bool *maskArr = td->fPhysicsData->fPhysicsScratchpad.fBoolArr;
 
   for (size_t i = 0; i < gtracks.size(); ++i) {
@@ -518,7 +519,7 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
       const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
           (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
       matIdx[l] = matCut->GetMaterial()->GetIndex();
-      Set(kineticEnergy, l, gtrack->T());
+      Set(kineticEnergy, l, gtrack->Ekin());
       Set(range, l, mscdata.fRange);                 // set in the step limit phase
       Set(trueStepL, l, mscdata.fTheTrueStepLenght); // proposed by all other physics
       //
@@ -595,17 +596,17 @@ void GSMSCModelSimplified::SampleMSCp1(std::vector<geant::Track *> &gtracks, gea
   }
 }
 
-void GSMSCModelSimplified::SampleMSCp2(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
+void GSMSCModelSimplified::SampleMSCp2(geant::TrackVec_t &gtracks, geant::TaskData *td)
 {
   double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
-  double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
-  double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
+  //double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  //double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
   double *scraArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
   double *qn1Arr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr5;
-  double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
-  double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
-  double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
-  double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
+  //double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
+  //double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
+  //double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
+  //double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
 
   double *sinTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr10;
   double *cosTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fR0;
@@ -693,9 +694,9 @@ void GSMSCModelSimplified::SampleMSCp2(std::vector<geant::Track *> &gtracks, gea
   }
 }
 
-void GSMSCModelSimplified::SampleMSCp3(std::vector<geant::Track *> &gtracks, geant::TaskData *td)
+void GSMSCModelSimplified::SampleMSCp3(geant::TrackVec_t &gtracks, geant::TaskData *td)
 {
-  double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  // double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
   double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
   double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
   double *scraArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
@@ -825,7 +826,7 @@ void GSMSCModelSimplified::SampleMSCp3(std::vector<geant::Track *> &gtracks, gea
   }
 }
 
-void GSMSCModelSimplified::SampleMSC(std::vector<geant::Track *> gtracks, geant::TaskData *td)
+void GSMSCModelSimplified::SampleMSC(geant::TrackVec_t &gtracks, geant::TaskData *td)
 {
   assert(gtracks.size() != 0);
   SampleMSCp1(gtracks, td);

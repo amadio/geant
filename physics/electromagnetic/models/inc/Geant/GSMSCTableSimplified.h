@@ -41,7 +41,7 @@ public:
       double fParamB;  // array of interpolation parameters b
     };
     std::vector<Data> fData;
-    GSMSCAngularDtr() : fNumData(0), fData(0), fDelta(0.0) {}
+    GSMSCAngularDtr() : fNumData(0), fDelta(0.0), fData(0) {}
   };
 
   bool Sampling(double lambdaval, double qval, double scra, double &cost, double &sint, GSMSCAngularDtr **gsDtr,

@@ -43,16 +43,15 @@ public:
   virtual void ConvertTrueToGeometricLength(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) {}
   virtual void ConvertGeometricToTrueLength(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) {}
   virtual bool SampleScattering(geant::Track * /*gtrack*/, geant::TaskData * /*td*/) { return false; }
-  virtual void SampleScattering(std::vector<geant::Track *> &gtracks, std::vector<bool> &hasNewDir, geant::TaskData *td)
+  virtual void SampleScattering(geant::TrackVec_t &gtracks, std::vector<bool> &hasNewDir, geant::TaskData *td)
   {
-    for (size_t i = 0; i < gtracks.size(); ++i) {
-      hasNewDir[i] = SampleScattering(gtracks[i], td);
-    }
+    int i = 0;
+    for (auto track : gtracks) hasNewDir[i++] = SampleScattering(track, td);
   }
 
   virtual bool SamplingNeeded(geant::Track *gtrack, geant::TaskData *td);
   virtual void AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td);
-  virtual void AlongStepDoIt(std::vector<geant::Track *> &gtracks, geant::TaskData *td);
+  virtual void AlongStepDoIt(geant::TrackVec_t &gtracks, geant::TaskData *td);
 
   //
   void SetMSCSteppingAlgorithm(MSCSteppingAlgorithm steppingalg) { fMSCSteppingAlgorithm = steppingalg; }

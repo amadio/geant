@@ -35,7 +35,7 @@ struct PhysicsModelScratchpad {
         fIzet((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
         fMatIdx((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
         fNshells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
-        fSampledShells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize))
+        fSampledShells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
         fBoolArr((bool *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(bool) * dataSize))
   {
   }

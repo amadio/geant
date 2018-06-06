@@ -62,7 +62,7 @@ GSMSCTableSimplified::~GSMSCTableSimplified()
 }
 
 void GSMSCTableSimplified::Initialize(double /*lownergylimit*/, double /* highenergylimit*/,
-                                      const std::vector<bool> &activeregionv)
+                                      const std::vector<bool> &/*activeregionv*/)
 {
   double lLambdaMin  = Math::Log(gLAMBMIN);
   double lLambdaMax  = Math::Log(gLAMBMAX);
