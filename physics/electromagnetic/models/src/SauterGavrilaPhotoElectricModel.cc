@@ -235,7 +235,8 @@ void SauterGavrilaPhotoElectricModel::ReadData(int Z)
   }
 
   if ((fCrossSection[Z]) &&
-      ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) {  std::cout<<"Data loaded before!\n";
+      ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) {
+      //std::cout<<"Data loaded before!\n";
     return;
   }
 //  else
