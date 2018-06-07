@@ -3,19 +3,9 @@
 // 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
 // 	date of creation: June 22, 2016
 #include <iostream>
-/*
-//#include "TNudyEndfDoppler.h"
-//#include "TNudyEndfAng.h"
-//#include "TNudyEndfEnergy.h"
-//#include "TNudyEndfEnergyAng.h"
-//#include "TNudyEndfFissionYield.h"
-*/
 #include "Geant/TNudyCore.h"
 #include "Geant/TNudyEndfRecoPoint.h"
 #include "Geant/TNudySampling.h"
-#ifdef USE_ROOT
-#include "TRandom3.h"
-#endif
 #include "TCanvas.h"
 #include "TFile.h"
 
@@ -26,7 +16,7 @@ using namespace NudyPhysics;
 ClassImp(TNudySampling)
 #endif
 
-    TNudySampling::TNudySampling()
+TNudySampling::TNudySampling()
 {
 }
 //------------------------------------------------------------------------------------------------------
@@ -35,7 +25,6 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
   kineticE = particle[elemId].energy;
   std::cout << "sampling start \t" << elemId << "\t" << kineticE << std::endl;
   events = 1000000;
-  fRnd   = new TRandom3(0);
   div_t divr;
   int jkl  = 0;
   TFile *f = new TFile("test.root", "recreate");
@@ -49,8 +38,7 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
     hist[i]   = new TH2D(Form("hist[%d]", i), "", 1000, 0, 20, 10, 0, 10);
   }
   std::cout << "sampling sigmaTotal " << recoPoint->GetSigmaTotal(elemId, kineticE) << std::endl;
-  // std::cout <<"sampling sigmaPartial total "<< recoPoint->GetSigmaPartial(0,0,20) << std::endl;
-  // std::cout <<"sampling sigmaPartial elstic "<< recoPoint->GetSigmaPartial(0,1,20) << std::endl;
+  // std::cout <<"sampling sigmaPartial elstic "<< recoPoint->GetSigmaPartial(0,2,20) << std::endl;
   // determining reaction type from element;
   // double density = 1;
   // double charge = 1;
@@ -59,12 +47,13 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
   // int enemax = recoPoint->eneUni[elemId].size();
   std::cout << " target mass " << particle[elemId].mass << "  " << particle[elemId].charge << "  " << kineticE
             << std::endl;
-  // kineticE = fRnd->Uniform(1) * recoPoint->eneUni[elemId][enemax-1];
-  for (unsigned int crsp = 0; crsp < recoPoint->MtValues[elemId].size(); crsp++) {
-    std::cout << recoPoint->MtValues[elemId][crsp] << "  \t" << recoPoint->GetSigmaTotal(elemId, kineticE) << "  \t"
-              << recoPoint->GetSigmaPartial(elemId, crsp, kineticE) << std::endl;
-    crs.push_back(recoPoint->GetSigmaPartial(elemId, crsp, kineticE) / recoPoint->GetSigmaTotal(elemId, kineticE));
-    //     std::cout<<recoPoint->MtValues[elemId][crsp]<<"  "<< crs[crsp] <<"  "<<
+  // kineticE = fRng.uniform() * recoPoint->eneUni[elemId][enemax-1];
+  for (unsigned int crsp = 0; crsp < recoPoint->fMtValues[elemId].size(); crsp++) {
+    int mtValue = recoPoint->fMtValues[elemId][crsp];
+    std::cout << recoPoint->fMtValues[elemId][crsp] << "  \t" << recoPoint->GetSigmaTotal(elemId, kineticE) << "  \t"
+    << recoPoint->GetSigmaPartial(elemId, mtValue, kineticE) << std::endl;
+    crs.push_back(recoPoint->GetSigmaPartial(elemId, mtValue, kineticE) / recoPoint->GetSigmaTotal(elemId, kineticE));
+    //     std::cout<<recoPoint->fMtValues[elemId][crsp]<<"  "<< crs[crsp] <<"  "<<
     //     recoPoint->GetSigmaPartial(elemId,crsp,kineticE) <<"  "<< recoPoint->GetSigmaTotal(elemId,kineticE) <<
     //     std::endl;
   }
@@ -72,10 +61,10 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
   do {
     kineticE    = particle[elemId].energy;
     double sum1 = 0;
-    // std::cout << counter << " bef " << recoPoint->MtValues[elemId].size() << std::endl;
-    double rnd1 = fRnd->Uniform(1);
+    // std::cout << counter << " bef " << recoPoint->fMtValues[elemId].size() << std::endl;
+    double rnd1 = fRng.uniform();
     // std::cout << counter <<" aft "<<rnd1<< std::endl;
-    for (unsigned int crsp = 0; crsp < recoPoint->MtValues[elemId].size(); crsp++) {
+    for (unsigned int crsp = 0; crsp < recoPoint->fMtValues[elemId].size(); crsp++) {
       sum1 += crs[crsp];
       // std::cout << crs[crsp] <<"  "<< sum1 <<"  "<< rnd1 << std::endl;
       if (rnd1 <= sum1) {
@@ -84,7 +73,7 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
       }
     }
     // std::cout <<"isel "<< isel << std::endl;
-    MT  = recoPoint->MtValues[elemId][isel];
+    MT  = recoPoint->fMtValues[elemId][isel];
     MF4 = recoPoint->GetMt4(elemId, MT);
     MF5 = recoPoint->GetMt5(elemId, MT);
     MF6 = recoPoint->GetMt6(elemId, MT);
@@ -132,7 +121,7 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
       break;
     case 18: // fission
     {
-      // double kineticRand = kineticE * fRnd->Uniform(1);
+      // double kineticRand = kineticE * fRng.uniform();
       double zaf = recoPoint->GetFisYield(elemId, kineticE);
       // std::cout<<" sample z "<< std::endl;
       divr     = div(zaf, 10000);
@@ -147,7 +136,7 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
       // double nup = recoPoint->GetNuPrompt(elemId, kineticRand);
       // double nud = recoPoint->GetNuDelayed(elemId, kineticRand);
       int nu                              = (int)nut;
-      if (fRnd->Uniform(1) < nut - nu) nu = nu + 1;
+      if (fRng.uniform() < nut - nu) nu = nu + 1;
       // std::cout<<" sample heat "<< fissHeat/1E6 <<"  "<< nut <<"  "<< nup <<"  "<< nud <<"  "<< kineticRand <<
       // std::endl;
       // ene[ecounter] = kineticRand/1E6;
@@ -187,7 +176,7 @@ TNudySampling::TNudySampling(TParticleTest *particle, TNudyEndfRecoPoint *recoPo
       */
       for (int nui = 0; nui < nu; nui++) {
         secEnergyLab = recoPoint->GetEnergy5(elemId, MT, kineticE);
-        cosLab       = 2 * fRnd->Uniform(1) - 1;
+        cosLab       = 2 * fRng.uniform() - 1;
         // fissA1[6]->Fill(secEnergyLab / 1E6);
         // FillHisto(cosLab, secEnergyLab);
       }
@@ -1180,7 +1169,7 @@ void TNudySampling::GetSecParameter(TParticleTest *particle, TNudyEndfRecoPoint 
     // std::cout<<"law "<< law <<" Zi \t" << zi <<" Ai \t" << ai << std::endl;
     switch (law) {
     case 2: {
-      cosCM      = recoPoint->GetCos64(elemId, MT, kineticE);
+//      cosCM      = recoPoint->GetCos64(elemId, MT, kineticE);
       double fm1 = 1;
       // double fm2    = particle[elemId].mass;
       double fm3   = particle[elemId].mass - residueA;

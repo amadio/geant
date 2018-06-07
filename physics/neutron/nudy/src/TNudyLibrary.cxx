@@ -15,8 +15,8 @@ using namespace Nudy;
 ClassImp(TNudyLibrary)
 #endif
 
-    //______________________________________________________________________________
-    TNudyLibrary::TNudyLibrary()
+//______________________________________________________________________________
+TNudyLibrary::TNudyLibrary()
 {
   // Create TNudy Library class
   printf("Making %s\n", GetName());

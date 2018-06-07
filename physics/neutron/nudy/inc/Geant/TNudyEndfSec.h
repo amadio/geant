@@ -25,9 +25,11 @@
 
 #include "TList.h"
 #include "Geant/TNudyEndfRecord.h"
+#include "Geant/TNudyEndfCont.h"
 
 namespace Nudy {
 class TNudyEndfRecord;
+class TNudyEndfCont;
 }
 
 namespace Nudy {
@@ -42,7 +44,12 @@ public:
   TList *GetRecords() { return fRecs; }
   void DumpENDF(int flags);
   Nudy::TNudyEndfRecord *GetRecord(int recNo);
-
+  void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
+  void RemoveObj(Nudy::TNudyEndfRecord *sec) { fRecs->Remove(sec); }
+  void AddAfter(Nudy::TNudyEndfRecord *sec1, Nudy::TNudyEndfRecord *sec2) { fRecs->AddAfter(sec1,sec2); }
+  void AddBefore(Nudy::TNudyEndfRecord *sec1, Nudy::TNudyEndfRecord *sec2) { fRecs->AddBefore(sec1,sec2); }
+  void SetContMF(int mat, int mt, int mf);
+  
   double GetC1() const { return fC1; }
   double GetC2() const { return fC2; }
   int GetL1() const { return fL1; }

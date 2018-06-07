@@ -238,6 +238,8 @@ double TNudyCore::Interpolate(std::vector<int> nbt, std::vector<int> interp, int
   for (int jnt = 0; jnt < nr; jnt++) {
     if (index < nbt[jnt] - 1) {
       intlaw = interp[jnt];
+      if (intlaw >10 && intlaw <20) intlaw = intlaw -10;
+      if (intlaw >20 && intlaw <30) intlaw = intlaw -20;      
       // printf("law = %d, e = %e\n",intlaw,xx);
       double x1[2] = {x[index], x[index + 1]};
       double y1[2] = {y[index], y[index + 1]};
@@ -275,6 +277,8 @@ double TNudyCore::Interpolate(int *nbt, int *interp, int nr, double *x, double *
   for (int jnt = 1; jnt <= nr; jnt++) {
     if (index < nbt[jnt - 1]) {
       intlaw = interp[jnt - 1];
+      if (intlaw >10 && intlaw <20) intlaw = intlaw -10;
+      if (intlaw >20 && intlaw <30) intlaw = intlaw -20;
       yy     = InterpolateScale(x + index, y + index, intlaw, xx);
       return yy;
     }
@@ -356,7 +360,7 @@ void TNudyCore::Sort(std::vector<double> &x1, std::vector<double> &x2)
 void TNudyCore::cdfGenerateT(std::vector<double> &x1, std::vector<double> &x2, std::vector<double> &x3)
 {
   double mcr, mb1, mb2, ccr, df = 0;
-  for (unsigned long cr = 0; cr < x1.size(); cr++) {
+  for (int cr = 0, x1Size = x1.size(); cr != x1Size; ++cr) {
     if (cr > 0) {
       mcr = (x2[cr] - x2[cr - 1]) / (x1[cr] - x1[cr - 1]);
       mb1 = (mcr * (x1[cr] - x1[cr - 1]) + x2[cr - 1]);
@@ -370,6 +374,9 @@ void TNudyCore::cdfGenerateT(std::vector<double> &x1, std::vector<double> &x2, s
     }
     x3.push_back(df);
     //      printf("cdf = %e  %e  %e  %e\n", x1[cr], x2[cr], mcr, df);
+  }
+  for (int cr = 0, x3Size = x3.size(); cr != x3Size; ++cr) {
+    if (x3[x3Size - 1] > 0) x3[cr] = x3[cr] / x3[x3Size - 1];
   }
 }
 //_______________________________________________________________________________
@@ -418,7 +425,7 @@ double TNudyCore::ThinningDuplicate(std::vector<double> &x1, std::vector<double>
   if (size > 2) {
     for (int i = 0; i < size1 - 1; i++) {
       // printf("core  %e  %e  %d  \n", x1[i],  x1[i + 1], size1) ;
-      if (x1[i + 1] == x1[i]) {
+      if (x1[i + 1] == x1[i] && x2[i + 1] != 0) {
         // printf("same  %e  %e  %d  \n", x1[i],  x1[i + 1], size1) ;
         x1.erase(x1.begin() + i);
         x2.erase(x2.begin() + i);

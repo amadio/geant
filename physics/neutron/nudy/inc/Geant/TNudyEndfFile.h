@@ -42,7 +42,7 @@ public:
   int GetMAT() const { return fMAT; }
   int GetMF() const { return fMF; }
   void Add(Nudy::TNudyEndfSec *sec) { fSecs->Add(sec); }
-
+  void SetMF(int mf);
   // TList    fMF;         //! List of the files of this material
 
   void DumpENDF(int flags);

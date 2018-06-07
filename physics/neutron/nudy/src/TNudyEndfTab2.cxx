@@ -31,7 +31,11 @@ TNudyEndfTab2::TNudyEndfTab2(double c1, double c2, int l1, int l2, int n1, int n
   // Standard constructor
   //
 }
-
+//_______________________________________________________________________________
+void TNudyEndfTab2::SetContMF(int mat, int mt, int mf)
+{
+  TNudyEndfCont::SetContMF(mat, mt, mf);
+}
 //______________________________________________________________________________
 TNudyEndfTab2::~TNudyEndfTab2()
 {

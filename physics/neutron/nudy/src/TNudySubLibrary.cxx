@@ -13,8 +13,8 @@ using namespace Nudy;
 ClassImp(TNudySubLibrary)
 #endif
 
-    //______________________________________________________________________________
-    TNudySubLibrary::TNudySubLibrary()
+//______________________________________________________________________________
+TNudySubLibrary::TNudySubLibrary()
 {
   // Default Constructor to create a new SubLibrary
   printf("Making SubLibrary %s\n", GetName());

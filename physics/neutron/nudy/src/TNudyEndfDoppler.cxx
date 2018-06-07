@@ -181,7 +181,7 @@ double TNudyEndfDoppler::RecursionLinear1(std::vector<double> &x1, std::vector<d
   fOVSQPI *((1.0 + 2.0 * fY * fY) * sqrt(PI) * fHALF * (erf(X - fY) - erf(X + fY)) - \
             (X + fY) * exp(-(X - fY) * (X - fY)) + (X - fY) * exp(-(X + fY) * (X + fY)))
   if (y <= 0.0 && yd <= 0.0) return 0;
-  if (fMLoop > 500) return 0;
+  if (fMLoop > 100) return 0;
   double mid     = 0.5 * (x + xd);
   double sigmid1 = y + (yd - y) * (mid - x) / (xd - x);
   double sigmid2 = sig + (sigd - sig) * (mid - x) / (xd - x);

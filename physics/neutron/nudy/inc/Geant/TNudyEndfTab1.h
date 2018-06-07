@@ -31,14 +31,15 @@ class TNudyEndfCont;
 
 namespace Nudy {
 
-class TNudyEndfTab1 : public Nudy::TNudyEndfCont {
+class TNudyEndfTab1 : public TNudyEndfCont {
 public:
   TNudyEndfTab1();
   TNudyEndfTab1(TNudyEndfTab1 *tab, int n1, int n2);
   TNudyEndfTab1(double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfTab1();
   virtual void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
-
+  virtual void SetContMF(int mat, int mt, int mf);
+  
   int GetNR() const { return fN1; }
   int GetNP() const { return fN2; }
 

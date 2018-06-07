@@ -150,8 +150,6 @@ public:
   int GetNCn(int i) const { return fNCn ? fNCn[i] : -1; }
   int GetMODn(int i) const { return fMODn ? fMODn[i] : -1; }
 
-  // TList    fFiles;         //! List of the files of this material
-
   void Print(const char *) const;
   void DumpENDF(int flags);
   Nudy::TNudyEndfFile *GetFile(int MF);

@@ -12,7 +12,6 @@
 */
 
 #include "Geant/TNudyEndfSec.h"
-#include "Geant/TNudyEndfCont.h"
 
 using namespace Nudy;
 
@@ -66,6 +65,23 @@ TNudyEndfRecord *TNudyEndfSec::GetRecord(int RecNo)
     Error("TNudyEndfSec::GetRecord(int)", "Could not find record %d on tape", RecNo);
     return NULL;
   }
+}
+//_______________________________________________________________________________
+void TNudyEndfSec::SetCont(double c1, double c2, int l1, int l2, int n1, int n2)
+{
+  fC1 = c1;
+  fC2 = c2;
+  fL1 = l1;
+  fL2 = l2;
+  fN1 = n1;
+  fN2 = n2;
+}
+//_______________________________________________________________________________
+void TNudyEndfSec::SetContMF(int mat, int mt, int mf)
+{
+  fMAT = mat;
+  fMT = mt;
+  fMF = mf;
 }
 
 //______________________________________________________________________________

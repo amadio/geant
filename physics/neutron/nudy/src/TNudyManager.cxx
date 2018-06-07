@@ -12,7 +12,7 @@ using namespace Nudy;
 ClassImp(TNudyManager)
 #endif
 
-    TNudyManager *TNudyManager::fgInstance = 0;
+TNudyManager *TNudyManager::fgInstance = 0;
 
 //______________________________________________________________________________
 TNudyManager::~TNudyManager()

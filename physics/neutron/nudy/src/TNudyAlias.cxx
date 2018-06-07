@@ -17,7 +17,7 @@
 ClassImp(Nudy::TNudyAlias)
 #endif
 
-    namespace Nudy
+namespace Nudy
 {
 
   /**

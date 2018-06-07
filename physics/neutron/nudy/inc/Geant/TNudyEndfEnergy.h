@@ -10,14 +10,16 @@
 #ifndef TNudyEndfEnergy_H
 #define TNudyEndfEnergy_H
 
-#include "Geant/TNudyEndfRecoPoint.h"
+#include "Geant/TNudyEndfSigma.h"
 
 namespace NudyPhysics {
-class TNudyEndfRecoPoint;
+class TNudyEndfSigma;
 }
 
 namespace Nudy {
 class TNudyEndfFile;
+class TNudyEndfTab1;
+class TNudyEndfTab2;
 }
 
 #define PI acos(-1.0)
@@ -28,22 +30,27 @@ typedef std::vector<std::vector<rowd>> matrixd3;
 
 #ifdef USE_ROOT
 #include "Rtypes.h"
-class TRandom3;
 #endif
 
 namespace NudyPhysics {
 
-class TNudyEndfEnergy : public NudyPhysics::TNudyEndfRecoPoint {
+class TNudyEndfEnergy : public NudyPhysics::TNudyEndfSigma {
 
 public:
   TNudyEndfEnergy();
   /// \brief Default constructure
   TNudyEndfEnergy(Nudy::TNudyEndfFile *file);
   /// \brief constructor to be called for in Reco point
-  virtual double GetEnergy5(int elemid, int mt, double energyK);
-  /// \brief getter for the energy distribution based in the element ID, MT and energy of the neutron
-  virtual double GetDelayedFraction(int ielemId, int mt, double energyK);
-  /// \brief getter for delayed neutron fraction based in the element ID, MT and energy of the neutron
+  virtual void ProcessTab1(Nudy::TNudyEndfTab1 *tab1,int &NR,int &NP,rowint &fnbt, rowint &fint,rowd &x1, rowd &x2);
+  /// \brief process tab1 entry
+  virtual void ProcessTab2(Nudy::TNudyEndfTab2 *tab2, int &NR,int &NP,rowint &fnbt, rowint &fint); 
+  /// \brief process tab2 entry 
+  virtual void ModifyTab1(Nudy::TNudyEndfTab1 *secTab1, rowd &x1, rowd &x2, double &x);
+  /// \brief modify Tab1 record after linearization
+  virtual void CreateTab2(Nudy::TNudyEndfTab2 *secTab2, int &NE);
+  /// \brief create tab2 record in file5 (MF = 5) to make LF=1 structure
+  virtual void CreateTab1(Nudy::TNudyEndfTab1 *secTab1, rowd &x1, rowd &x2, int mtf[], int law, double &x);
+  /// \brief create tab1 record in file5 (MF = 5) to make LF=1 structure
   virtual ~TNudyEndfEnergy();
 
 private:
@@ -55,9 +62,7 @@ private:
   /// \brief linearization function if Maxwellian spectra is to be constructed
   double RecursionLinearFile5Watt(double x1, double x2, double pdf1, double pdf2, double energy);
   /// \brief linearization function if Watt spectra is to be constructed
-  void FillPdf1D();
-  /// \brief filling 1 dimentional pdf for energy distribution
-
+  
   int fNR, fNP;
   /// \brief standard ENDF parameters for range and interpolation
   rowint fMtNumbers;
@@ -74,18 +79,13 @@ private:
   /// \brief standard ENDF interpolation parameter \cite ENDF Manual
   int fNr3, fNp3;
   /// \brief standard ENDF parameters for no .of regions and points for interpolation
-  rowd fEnergyFile5, fEnergyPdfFile5, fEnergyCdfFile5;
-  /// \brief energy, pdf and cdf for energy distribution for the file 5 with integrated angular distribution
-  rowd fEin, fEneE, fCdf, fPdf;
-  /// \brief Temp. energy, cdf and pdf for energy distribution for the file 5
-  matrixd2 fEne2D, fFrac2D, fCdf2D, fPdf2D, fEin2D;
-  /// \brief Temp. energy, cdf and pdf for energy distribution for the file 5
-  matrixd3 fEne3D, fCdf3D, fPdf3D;
-/// \brief Temp. energy, cdf and pdf for energy distribution for the file 5
+  rowd fEnergyFile5, fEnergyPdfFile5;
+  /// \brief energy and pdf for energy distribution for the file 5 with integrated angular distribution
+  rowd fEin;
+  /// \brief Temp. energy for energy distribution for the file 5
 #ifdef USE_ROOT
-  TRandom3 *fRnd;
-#endif
   ClassDef(TNudyEndfEnergy, 1) // class for an ENDF energy reconstruction
+#endif
 };
 
 } // namespace

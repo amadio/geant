@@ -37,10 +37,10 @@ public:
   TNudyEndfTab2(double c1, double c2, int l1, int l2, int n1, int n2);
   virtual ~TNudyEndfTab2();
   virtual void SetCont(double c1, double c2, int l1, int l2, int n1, int n2);
-
+  virtual void SetContMF(int mat, int mt, int mf);
+  
   int GetNR() const { return fN1; }
   int GetNZ() const { return fN2; }
-
   int GetNBT(int i) const { return fNBT[i]; }
   void SetNBT(int iel, int i) { fNBT[i] = iel; }
   int GetINT(int i) const { return fINT[i]; }

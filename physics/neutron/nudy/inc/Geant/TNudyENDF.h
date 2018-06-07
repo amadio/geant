@@ -184,7 +184,8 @@ public:
     for (ii = 0; ii < 6; ii++) {
       c[ii] = 0.0;
       tmp.swap(strNum[ii]);
-      if (fPrepro == 0) {
+      std::size_t found = tmp.find("E");
+      if (fPrepro == 0 && found==std::string::npos) {
         std::size_t alien = tmp.find_last_of("+-");
         if (0 < alien && alien != std::string::npos) tmp.replace(alien, 1, std::string("E") + tmp[alien]);
       }

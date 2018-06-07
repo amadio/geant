@@ -9,13 +9,11 @@ using namespace Nudy;
 ClassImp(TNudyDB)
 #endif
 
-    //______________________________________________________________________________
-    //   TNudyDB::TNudyDB(const char *name,const char *title,const char *file){
-    TNudyDB::TNudyDB(const char *name, const char *title, const char *file)
-    : fName(name), fTitle(title)
+//______________________________________________________________________________
+TNudyDB::TNudyDB(const char *name, const char *title, const char *file)
+: fName(name), fTitle(title)
 {
   // Constructor for TNudyDB, opens database storage file
-
   // Try to open file for update
   fDB = new TFile(file, "UPDATE");
   if (fDB->IsOpen()) {
@@ -35,7 +33,7 @@ ClassImp(TNudyDB)
 TNudyDB::~TNudyDB()
 {
   // Destructor for TNudyDB, Deletes all libraries in memory
-
+  
   // Close open database file
   if (fDB->IsOpen()) {
     fDB->Close();
@@ -70,7 +68,7 @@ void TNudyDB::AddLibrary(const char *name, const char *file)
   }
   // Create tempory library in memory to process and store data
   Nudy::TNudyLibrary *lib = new Nudy::TNudyLibrary(name, file);
-
+  
   // Set current file to Database file
   gFile = fDB;
   gDirectory->cd("/");
@@ -84,18 +82,18 @@ void TNudyDB::AddLibrary(const char *name, const char *file)
     //    lib = (Nudy::TNudyLibrary*)fDB->Get(name);
     // lib->Print();
   }
-
+  
   // Go to Library folder
   fDB->cd(name);
   // gDirectory->cd(name);
   //  printf("%s",fDB->pwd());
-
+  
   // Read and Process tape
   lib->ReadTape(newTape);
-
+  
   // Close file
   endf->Close();
-
+  
   // Return to root directory of database file
   gDirectory->cd("/");
   fDB->cd("/");

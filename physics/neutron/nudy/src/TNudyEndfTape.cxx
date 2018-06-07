@@ -16,9 +16,9 @@ using namespace Nudy;
 ClassImp(TNudyEndfTape)
 #endif
 
-    //_______________________________________________________________________________
-    TNudyEndfTape::TNudyEndfTape()
-    : fLogLev(0), fMats(0)
+//_______________________________________________________________________________
+TNudyEndfTape::TNudyEndfTape()
+  : fLogLev(0), fMats(0)
 {
   //
   // Standard constructor

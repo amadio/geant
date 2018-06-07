@@ -1,7 +1,7 @@
-// 	This class is reconstructing Fission yields
-// 	Author: Dr. Harphool Kumawat
-// 	Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
-// 	date of creation: March 24, 2016
+//      This class is reconstructing photon multiplicities and transition arrays
+//      Author: Dr. Harphool Kumawat
+//      Email: harphool@barc.gov.in; harphool.kumawat@cern.ch
+//      date of creation: March 24, 2016
 
 #include "TList.h"
 #include "Geant/TNudyEndfFile.h"
@@ -15,10 +15,9 @@ using namespace NudyPhysics;
 
 #ifdef USE_ROOT
 ClassImp(TNudyEndfPhYield)
-#include "TRandom3.h"
 #endif
 
-    TNudyEndfPhYield::TNudyEndfPhYield()
+TNudyEndfPhYield::TNudyEndfPhYield() : TNudyEndfSigma()
 {
 }
 
@@ -29,108 +28,156 @@ TNudyEndfPhYield::TNudyEndfPhYield(TNudyEndfFile *file)
   TNudyEndfSec *sec;
   while ((sec = (TNudyEndfSec *)secIter.Next())) {
     TIter recIter(sec->GetRecords());
-    // double ZA   = sec->GetC1();
-    // double AWR  = sec->GetC2();
-    // div_t divr;
-    //     int MT = sec->GetMT();
-    //     int LE = sec->GetL1();
-    int LO = sec->GetL1();
-    //     std::cout << " LO = " << LO << std::endl;
+    int NK  = sec->GetN1();
+    int LO  = sec->GetL1();
+    int law = 2;
     switch (LO) {
-    case 1: // multiplicities
-    {
-      int NK = sec->GetN1();
-      //       std::cout << " LO = " << LO <<" NK "<< NK << std::endl;
-      TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
-      if (NK == 1) {
-        egk1.push_back(tab1->GetC1()); // photon energy for LP=0 or 1 or Binding Energy for LP=2. For a continuous
-                                       // photon energy distribution, EGk ≡ 0.0 should be used.
-        esk1.push_back(
-            tab1->GetC2()); // energy of the level from which the photon originates, 0 for unknown and continuum
-        lpk1.push_back(tab1->GetL1()); // photon energy if == 0,1 Egp = eg +awr/(1+awr) if ==2
-        lfk1.push_back(tab1->GetL2()); // tabulated in file 15 if ==1, discrete if == 2
-        nrk1.push_back(tab1->GetN1()); // regions
-        npk1.push_back(tab1->GetN2()); // points
-        for (int cr = 0; cr < tab1->GetN1(); cr++) {
-          nbt1.push_back(tab1->GetNBT(cr));
-          int1.push_back(tab1->GetINT(cr));
+      case 1: // multiplicities
+      {
+        switch (NK) {
+          case 1:
+          {
+            TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
+            fEG = tab1->GetC1();
+            fES = tab1->GetC2(); 
+            fLP = tab1->GetL1(); 
+            fLF = tab1->GetL2(); 
+            ProcessTab1(tab1, fNR, fNP, fNBT, fINT, fEIN, fMultiPh);
+            for (int i = 0; i != fNP -1; ++i) {
+              for (int j = 0; j < fNR; j++) {
+                if (fNBT[j] > i) {
+                  law = fINT[j];
+                  break;
+                }
+              }
+              if (law == 1) continue;
+              RecursionLinear(fEIN[i],fEIN[i + 1],fMultiPh[i],fMultiPh[i + 1]);
+            }
+            TNudyCore::Instance()->Sort(fEIN, fMultiPh);
+            ModifyTab1(tab1, fEIN, fMultiPh, fES);
+            fNP = fEIN.size();
+            tab1->SetCont(fEG, fES, fLP, fLF, 1, fNP);
+            tab1->SetNBT(fNP,0);
+            tab1->SetINT(2,0);
+            for (int crs = 0; crs < fNP; crs++) {
+              tab1->SetX(fEIN[crs],crs);
+              tab1->SetY(fMultiPh[crs],crs);
+            }
+            fEIN.clear();
+            fMultiPh.clear();
+          }break;
+          default:
+          {
+            TNudyEndfTab1 *tab1 = (TNudyEndfTab1 *)recIter.Next();
+            ProcessTab1(tab1, fNR, fNP, fNBT, fINT, fEIN, fMultiPh);
+            fES = 0;
+            for (int i = 0; i != fNP -1; ++i){
+              for (int j = 0; j < fNR; j++) {
+                if (fNBT[j] > i) {
+                  law = fINT[j];
+                  break;
+                }
+              }
+              if (law == 1) continue;
+              RecursionLinear(fEIN[i],fEIN[i + 1],fMultiPh[i],fMultiPh[i + 1]);
+            }
+            TNudyCore::Instance()->Sort(fEIN, fMultiPh);
+            ModifyTab1(tab1, fEIN, fMultiPh, fES);
+            fEIN.clear();
+            fMultiPh.clear();
+            for (int nki = 0; nki < NK; nki++) {
+              TNudyEndfTab1 *tab11 = (TNudyEndfTab1 *)recIter.Next();
+              fEG = tab11->GetC1();
+              fES = tab11->GetC2();
+              fLP = tab11->GetL1();
+              fLF = tab11->GetL2();
+              fNR = tab11->GetN1();
+              fNP = tab11->GetN2();
+              ProcessTab1(tab11, fNR, fNP, fNBT, fINT, fEIN, fMultiPh);
+              for (int i = 0; i != fNP -1; ++i){
+                for (int j = 0; j < fNR; j++) {
+                  if (fNBT[j] > i) {
+                    law = fINT[j];
+                    break;
+                  }
+                }
+                if (law == 1) continue;
+                RecursionLinear(fEIN[i],fEIN[i + 1],fMultiPh[i],fMultiPh[i + 1]);
+              }
+              TNudyCore::Instance()->Sort(fEIN, fMultiPh);
+              ModifyTab1(tab11, fEIN, fMultiPh, fES);
+              int NP = fEIN.size();
+              tab11->SetCont(fEG, fES, fLP, fLF, 1, NP);
+              tab11->SetNBT(fNP,0);
+              tab11->SetINT(2,0);
+              for (int crs = 0; crs < fNP; crs++) {
+                tab11->SetX(fEIN[crs],crs);
+                tab11->SetY(fMultiPh[crs],crs);
+              }
+              fEIN.clear();
+              fMultiPh.clear();
+            }
+          }break;
         }
-        for (int crs = 0; crs < tab1->GetN2(); crs++) {
-          eint1.push_back(tab1->GetX(crs));
-          y1.push_back(tab1->GetY(crs));
-          // 	      std::cout << " neutron energy =  "<<  tab1->GetX(crs)<<"  "<< tab1->GetY(crs) << std::endl;
+      }break;
+      case 2: // Transition Probability Arrays
+      {
+        int LG = sec->GetL2();
+        TNudyEndfList *list1 = (TNudyEndfList *)recIter.Next();
+        int NT = list1->GetN2();
+        switch (LG) { 
+          case 1: // all transitions are gamma- transitions only
+          {
+            for (int j = 0; j < NT; j++) {
+              fENS.push_back(list1->GetLIST(j * 2));
+              fTP.push_back(list1->GetLIST(j * 2 + 1));
+            } 
+            fENS.clear();
+            fTP.clear();
+          }break;
+          case 2: // complex case where internal transition also occur
+          {
+            for (int j = 0; j < NT; j++) {
+              fENS.push_back(list1->GetLIST(j * 3));
+              fTP.push_back(list1->GetLIST(j * 3 + 1));
+              fGP.push_back(list1->GetLIST(j * 3 + 2));
+            }
+            fENS.clear();
+            fTP.clear();
+            fGP.clear();
+          }break;
         }
-      } else if (NK > 1) {
-        egk1.push_back(tab1->GetC1()); // photon energy for LP=0 or 1 or Binding Energy for LP=2. For a continuous
-                                       // photon energy distribution, EGk ≡ 0.0 should be used.
-        esk1.push_back(
-            tab1->GetC2()); // energy of the level from which the photon originates, 0 for unknown and continuum
-        lpk1.push_back(tab1->GetL1()); // photon energy if == 0,1 Egp = eg +awr/(1+awr) if ==2
-        lfk1.push_back(tab1->GetL2()); // tabulated in file 15 if ==1, discrete if == 2
-        nrk1.push_back(tab1->GetN1()); // regions
-        npk1.push_back(tab1->GetN2()); // points
-        for (int cr = 0; cr < tab1->GetN1(); cr++) {
-          nbt1.push_back(tab1->GetNBT(cr));
-          int1.push_back(tab1->GetINT(cr));
-        }
-        for (int crs = 0; crs < tab1->GetN2(); crs++) {
-          eint1.push_back(tab1->GetX(crs));
-          y1.push_back(tab1->GetY(crs));
-          // 	      std::cout << " neutron energy =  "<<  tab1->GetX(crs)<<"  "<< tab1->GetY(crs) << std::endl;
-        }
-        for (int nki = 0; nki < NK; nki++) {
-          TNudyEndfTab1 *tab2 = (TNudyEndfTab1 *)recIter.Next();
-          esk1.push_back(tab2->GetC1());
-          egk1.push_back(tab2->GetC2());
-          lpk1.push_back(tab2->GetL1());
-          lfk1.push_back(tab2->GetL2());
-          nrk1.push_back(tab2->GetN1());
-          npk1.push_back(tab2->GetN2());
-          for (int cr = 0; cr < tab2->GetN1(); cr++) {
-            nbt1.push_back(tab2->GetNBT(cr));
-            int1.push_back(tab2->GetINT(cr));
-          }
-          for (int crs = 0; crs < tab2->GetN2(); crs++) {
-            eintk1.push_back(tab2->GetX(crs));
-            yk1.push_back(tab2->GetY(crs));
-            // if (lpk1[lpk1.size() - 1] == 2) egk1[ egk1.size() - 1 ] = egk1[ egk1.size() - 1 ] + AWR *
-            // tab1->GetX(crs)/ (1 + AWR );
-            // std::cout << " photon energy =  "<< tab1->GetC1() << "  " << tab1->GetX(crs)<<"  "<< tab1->GetY(crs) <<"
-            // "<< egk1[ egk1.size() - 1 ] << std::endl;
-            // 	      std::cout << " neutron energy =  "<<  tab2->GetX(crs)<<"  "<< tab2->GetY(crs) << std::endl;
-          }
-        }
-      }
-    } break;
-    case 2: // Transition Probability Arrays
-    {
-      int LG = sec->GetL2();
-      // int NS = sec->GetN1();
-      TNudyEndfList *list1 = (TNudyEndfList *)recIter.Next();
-      es.push_back(list1->GetC1());
-      lp.push_back(list1->GetL1());
-      int NT = list1->GetN2();
-      //       std::cout <<" ES \t" << list1->GetC1() <<" LP= \t"<< list1->GetL1() << std::endl;
-      //       std::cout <<" LG \t" << LG <<" NT \t"<< NT << std::endl;
-      if (LG == 1) {
-        for (int j = 0; j < NT; j++) {
-          esb.push_back(list1->GetLIST(j * 2));
-          tpb.push_back(list1->GetLIST(j * 2 + 1));
-          // 	  std::cout << list1->GetLIST(j*2)<<" loop "<< list1->GetLIST(j*2 + 1) << std::endl;
-        }
-      } else if (LG == 2) {
-        for (int j = 0; j < NT; j++) {
-          esb.push_back(list1->GetLIST(j * 3));
-          tpb.push_back(list1->GetLIST(j * 3 + 1));
-          gpb.push_back(list1->GetLIST(j * 3 + 2));
-          // 	  std::cout << list1->GetLIST(j*2)<<" loop "<< list1->GetLIST(j*2 + 1) << std::endl;
-        }
-      }
-    } break;
+      }break;
     }
   }
 }
-
-TNudyEndfPhYield::~TNudyEndfPhYield()
+//------------------------------------------------------------------------------------------------------
+TNudyEndfPhYield::~TNudyEndfPhYield() {}
+//------------------------------------------------------------------------------------------------------
+double TNudyEndfPhYield::RecursionLinear(double x1, double x2, double pdf1, double pdf2)
 {
+  double pdf = 1.0;
+  double mid = 0.5 * (x1 + x2);
+  if ((pdf1 == 0.0 && pdf2 == 0.0) || x1 == x2) return 0;
+  pdf            = TNudyCore::Instance()->Interpolate(fNBT, fINT, fNR, fEIN, fMultiPh, fNP, mid);
+  double pdfmid1 = pdf1 + (pdf2 - pdf1) * (mid - x1) / (x2 - x1);
+  if (fabs((pdf - pdfmid1) / pdfmid1) <= 5E-3) {
+    return 0;
+  }
+  fEIN.push_back(mid);
+  fMultiPh.push_back(pdf);
+  RecursionLinear(x1, mid, pdf1, pdf);
+  RecursionLinear(mid, x2, pdf, pdf2);
+  return 0;
 }
+// -------------------------------------------------------------------------------------------------------
+void TNudyEndfPhYield::ProcessTab1(Nudy::TNudyEndfTab1 *tab1,int &NR,int &NP,rowint &fnbt, 
+                                  rowint &fint,rowd &x1, rowd &x2)
+{  
+  NudyPhysics::TNudyEndfSigma::ProcessTab1(tab1, NR, NP, fnbt, fint, x1, x2);
+}
+// -------------------------------------------------------------------------------------------------------
+void TNudyEndfPhYield::ModifyTab1(TNudyEndfTab1 *secTab1, rowd &x1, rowd &x2, double &x)
+{
+  NudyPhysics::TNudyEndfSigma::ModifyTab1(secTab1, x1, x2, x);
+}  

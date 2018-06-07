@@ -204,14 +204,7 @@ double NudyPhysics::TNudyInterface::ComputeCrossSection()
 
   NudyPhysics::TNudyEndfRecoPoint *recoPoint = new TNudyEndfRecoPoint(iElementID, fRootFileName);
   // This is  under testing to check Harphool code for interfacing to GV :: Abhijit
-
-  for (unsigned int crsp = 0; crsp < recoPoint->MtValues[iElementID].size(); crsp++) {
-    int mtNow = recoPoint->MtValues[iElementID][crsp];
-    if (mtNow == fMTValue) {
-      xsvalue = recoPoint->GetSigmaPartial(iElementID, crsp, fProjKE);
-      break;
-    }
-  }
+  xsvalue = recoPoint->GetSigmaPartial(iElementID, fMTValue, fProjKE);
   return xsvalue;
 }
 

@@ -1,6 +1,7 @@
 #ifndef TNudySampling_H
 #define TNudySampling_H
 
+#include "Geant/RngWrapper.h"
 #include "Geant/TNudyParticleTest.h"
 #include "TH2D.h"
 #include "TH1D.h"
@@ -8,12 +9,11 @@
 #define PI acos(-1.0)
 #ifdef USE_ROOT
 #include "Rtypes.h"
-class TRandom3;
+#endif
 
 namespace NudyPhysics {
 class TNudyEndfRecoPoint;
 }
-#endif
 
 namespace NudyPhysics {
 class TNudySampling {
@@ -50,10 +50,8 @@ private:
   TH1D *fissA;
   TGraph *gr1;
   TGraph *gr[5];
-#ifdef USE_ROOT
-  TRandom3 *fRnd;
-#endif
-
+  geant::RngWrapper fRng;
+  
 #ifdef USE_ROOT
   ClassDef(TNudySampling, 1) // class for sampling
 #endif

@@ -1,0 +1,68 @@
+Nudy simple endf data Tests (May, 2018, H.Kumawat)
+===============================================================================
+
+"EndfToRoot" is an executable which dumps endf file to root file which uses
+TList to read files (MF in ENDF format) and sections (MT in ENDF format)
+This test only asserts if data are read from all files and section and no error
+is reported in the format.
+
+To run this executable
+./EndfToRoot filename.endf
+
+Data file are given in $source/physics/data/neutron/nudy
+executable can be written after uncommenting the install command and
+can be used in the in the same data file directory or set path in environment
+virable.
+-----------------------------------------------------------------
+"RootToSigma" is an executable which reads data data from root file
+reconstructs the resonance data from file MF=2. Insert these data in file 
+MF=3. 
+Linearize all the cross-sections
+Doppler broaden the cross-section
+Unionization of the energy grid
+Make Total cross-section
+write the cross-sections in the file MF=3
+
+Angular distributions are given in MF=4
+These data are put in linear format of the probability if angle and probability
+are given. In case of legendre polynomial, The data are constructed into 100 angular bins
+and linearize again if required by linear intpolable criteria of tolerance 0.5% (Hard coded)
+
+All MF=5 energy distributions are converted from formulas to linear energy and probability
+distributions and written back in to the file
+
+MF=6 data are energy-angle correlated data and these files having 1-7 LAWS.
+LAW 2 is kept same and all other format data are converted into LAW=7 which
+are linear probability distributions.
+
+File MF=4 and MF=5 are written in file MF=6 format of LAW =2 and no more available
+in these files. The data are written in MF=6
+
+Photon data for MF=15 (continuous energy distributions) are also written in MF=6
+
+To run this executable
+./RootToSigma filename.root.
+------------------------------------------------------------------------------------
+"EndfToPointRoot" is an executable which construct point data from endf file to root file
+which uses TList to read files (MF in ENDF format) and sections (MT in ENDF format)
+It does a task of both "EndfToRoot" and "RootToSigma".
+To run this executable
+./EndfToPointRoot filename.endf
+-----------------------------------------------------------------
+"RootToRetrive" is to retrive these data for the simulation.
+It can give Total cross-section, partial cross-sections, angle and energy of the secondary
+neutron. Energy distributions are given in the LAB system.
+
+To run this executable
+./RootToRetrive filename.root.
+
+-----------------------------------------------------------------
+"Xsec" is to retrive these data for the simulation.
+It can give Total cross-section, partial cross-sections, angle and energy of the secondary
+neutron. Energy distributions are given in the LAB system and many more.
+
+To run this executable
+./Xsec filename.root
+
+The filename.root passed to "Xsec" and "EndfToRetrive" should be processed through "EndfToPointRoot"
+

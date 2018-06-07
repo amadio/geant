@@ -83,7 +83,6 @@ using Nudy::TNudyEndfINTG;
 using NudyPhysics::TNudyEndfDoppler;
 using NudyPhysics::TNudyEndfEnergyAng;
 using NudyPhysics::TNudyEndfEnergy;
-using NudyPhysics::TNudyEndfFissionYield;
 using NudyPhysics::TNudyEndfNuPh;
 using NudyPhysics::TNudyEndfPhAng;
 using NudyPhysics::TNudyEndfPhEnergy;

@@ -34,7 +34,7 @@ ClassImp(TNudyENDF)
         "Sb", "Te", "I",  "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu",  "Gd",  "Tb",  "Dy",  "Ho",
         "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au",  "Hg",  "Tl",  "Pb",  "Bi",  "Po",
         "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm",  "Bk",  "Cf",  "Es",  "Fm",  "Md",
-        "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Uut", "Uuq", "Uup", "Uuh", "Uus", "Uuo"};
+        "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"};
 
 const char TNudyENDF::fkElIso[4][2] = {"", "m", "n", "o"};
 //_______________________________________________________________________________
@@ -152,13 +152,13 @@ void TNudyENDF::Process()
     }
   }
 
-  // Write the tape to disk
-  // fENDF.close();
-  // std::cout<<"process input stream "<< fENDF <<"   "<< fRENDF << std::endl;
-
-  fTape->Print();
-  fTape->Write();
-  if (!fMat->GetLFI()) fRENDF->Close();
+  // Write the tape to disk. It is mandatary to call  SetEndfSub(fENDFSUB) for root file to be written
+  
+  if (sub) {
+    fTape->Print();
+    fTape->Write();
+    fRENDF->Close();
+  }
   fENDF.close();
 }
 
@@ -576,12 +576,33 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec)
     break;
   case 458: // ------------------- Section 458 -- Components of Energy Release Due to Fission
   {
-    TNudyEndfList *secList = new TNudyEndfList();
-    // Read the section
-    Process(secList);
-    sec->Add(secList);
-    // Get the Section END record and check it
-    GetSEND(mtf);
+    int LFC = sec->GetL2();
+    int NFC = sec->GetN2();
+    switch (LFC) {
+      case 0:
+      {
+        TNudyEndfList *secList = new TNudyEndfList();
+        // Read the section
+        Process(secList);
+        sec->Add(secList);
+        // Get the Section END record and check it
+        GetSEND(mtf);
+      }break;
+      case 1:
+      {
+        TNudyEndfList *secList = new TNudyEndfList();
+        // Read the section
+        Process(secList);
+        sec->Add(secList);
+        for (int i = 0; i != NFC; ++i) {
+          TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
+          // Read the section
+          Process(secTab1);
+          sec->Add(secTab1);
+        }
+        GetSEND(mtf);        
+      }break;
+    }
   } break;
 
   case 460: {
@@ -657,6 +678,11 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec)
         } break;
         case 1: // Resolved resonance parameters
         {
+          if (iNRO != 0) {
+            TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
+            Process(secTab1);
+            sec->Add(secTab1);
+          }
           //	  std::cout<<"SLBW "<<iLRF<<std::endl;
           switch (iLRF) {
           case 1: // Single-level Breit-Wigner
@@ -665,11 +691,6 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec)
 
           case 3: // Reich-Moore
           {
-            if (iNRO != 0) {
-              TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
-              Process(secTab1);
-              sec->Add(secTab1);
-            }
             TNudyEndfCont *secContLval = new TNudyEndfCont(); // CONT (L-value) record
             Process(secContLval);
             sec->Add(secContLval);
@@ -685,12 +706,6 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec)
           } break;
           case 4: // Adler-Adler
           {
-            if (iNRO != 0) {
-              TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
-              Process(secTab1);
-              sec->Add(secTab1);
-            }
-
             TNudyEndfCont *secContLval = new TNudyEndfCont(); // CONT (L-value) record
             Process(secContLval);
             sec->Add(secContLval);
@@ -735,24 +750,35 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec)
               sec->Add(secListCh);
 
               // Formats for optional extensions to the RML
-              if (secContJval->GetL2() > 0) {
-                TNudyEndfList *secListRML = new TNudyEndfList();
-                Process(secListRML);
-                sec->Add(secListRML);
-                if (secListRML->GetN2() == 1) {                    // LBK = 1 option
+              TNudyEndfList *secListRML = new TNudyEndfList();
+              Process(secListRML);
+              sec->Add(secListRML);
+              if (secListCh->GetL1() > 0) {
+                TNudyEndfList *secListLBK = new TNudyEndfList();
+                Process(secListLBK);
+                sec->Add(secListLBK);
+                if (secListLBK->GetN1() == 1) {                    // LBK = 1 option
                   TNudyEndfTab1 *secTab1RBR = new TNudyEndfTab1(); // RBR(E)
                   Process(secTab1RBR);
                   sec->Add(secTab1RBR);
-
                   TNudyEndfTab1 *secTab1RBI = new TNudyEndfTab1(); // RBI(E)
                   Process(secTab1RBI);
                   sec->Add(secTab1RBI);
                 }
-              } // I'm not sure this formats is correct or not, this should be tested.
-
-              TNudyEndfList *secListR = new TNudyEndfList(); // resonance energy and widths
-              Process(secListR);
-              sec->Add(secListR);
+                if (secListCh->GetL2() > 0) {
+                  TNudyEndfList *secListKPS = new TNudyEndfList();
+                  Process(secListKPS);
+                  sec->Add(secListKPS);
+                  if (secListKPS->GetN2() == 1) {                    // LPS = 1 option
+                    TNudyEndfTab1 *secTab1RBR = new TNudyEndfTab1(); // PSR(E)
+                    Process(secTab1RBR);
+                    sec->Add(secTab1RBR);
+                    TNudyEndfTab1 *secTab1RBI = new TNudyEndfTab1(); // PSI(E)
+                    Process(secTab1RBI);
+                    sec->Add(secTab1RBI);
+                  }
+                }
+              }
             }
           } break;
           default:
@@ -762,6 +788,11 @@ void TNudyENDF::ProcessF2(TNudyEndfSec *sec)
         } break;
         case 2: // Unresolved resonance parameters
         {
+          if (iNRO != 0) {
+            TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
+            Process(secTab1);
+            sec->Add(secTab1);
+          }
           switch (iLRF) {
           case 1: {
             switch (iLFW) {
@@ -1035,6 +1066,8 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec)
     case 0: // unknown distribution
     case 3: // isotropic two-body distribution
     case 4: // recoil distribution of a two-body reaction
+    case -5: // distribution in given in file 4 and 5 for neutron
+    case -15: // distribution in given in file 14 and 15 for photon
       break;
     case 1: // continuum energy-angle distribution
     case 2: // two-body reaction angular distribution
@@ -1693,6 +1726,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
   int iNRO = -1;
   // int iNAPS = -1;
   int iLCOMP = -1;
+  int iISR = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 32) ::Fatal("ProcessF32(TNudyEndfSec*)", "File %d should not be processed here", curMF);
@@ -1730,6 +1764,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
         Process(secContLCOMP);
         sec->Add(secContLCOMP);
         iLCOMP = secContLCOMP->GetL2();
+        iISR   = secContLCOMP->GetN2();
         switch (iLCOMP) {
         case 0: { // LCOMP == 0
           // Compatible resolved resonance format
@@ -1749,6 +1784,11 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
             TNudyEndfCont *secCont = new TNudyEndfCont();
             Process(secCont);
             sec->Add(secCont);
+            if (iISR > 0) {
+              TNudyEndfCont *secContISR = new TNudyEndfCont();
+              Process(secContISR);
+              sec->Add(secContISR);
+            }
             for (int l = 0; l < secCont->GetN1(); ++l) {
               TNudyEndfList *secList = new TNudyEndfList();
               Process(secList);
@@ -1762,17 +1802,25 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
           } break;
           case 3: // Reich-Moore
           {
+            if (iISR > 0) {
+              TNudyEndfList *secListISR = new TNudyEndfList();
+              Process(secListISR);
+              sec->Add(secListISR);
+            }
             TNudyEndfCont *secContNL = new TNudyEndfCont();
             Process(secContNL);
             sec->Add(secContNL);
-            for (int l = 0; l < secContNL->GetN1(); ++l) {
-              TNudyEndfList *secList = new TNudyEndfList();
-              Process(secList);
-              sec->Add(secList);
-            }
+            TNudyEndfList *secList = new TNudyEndfList();
+            Process(secList);
+            sec->Add(secList);
           } break;
           case 7: // R-Matrix Limited Format
           {
+            if (iISR > 0) {
+              TNudyEndfList *secListISR = new TNudyEndfList();
+              Process(secListISR);
+              sec->Add(secListISR);
+            }
             TNudyEndfCont *secCont = new TNudyEndfCont();
             Process(secCont);
             sec->Add(secCont);
@@ -1801,6 +1849,11 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
           case 2: // MLBW
           case 3: // Reich-Moore
           {
+            if (iISR > 0){ 
+              TNudyEndfCont *secContISR = new TNudyEndfCont();
+              Process(secContISR);
+              sec->Add(secContISR);
+            }
             TNudyEndfList *secListNRSA = new TNudyEndfList();
             Process(secListNRSA);
             sec->Add(secListNRSA);
@@ -1816,16 +1869,24 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
             }
           } break;
           case 7: {
+            if (iISR > 0) {
+              for (int i = 0; i < secContLCOMP->GetN1(); i++ ) {
+                TNudyEndfList *secListISR = new TNudyEndfList();
+                Process(secListISR);
+                sec->Add(secListISR);
+              }
+            }
             TNudyEndfList *secListNPP = new TNudyEndfList();
             Process(secListNPP);
             sec->Add(secListNPP);
-            TNudyEndfList *secListNCH = new TNudyEndfList();
-            Process(secListNCH);
-            sec->Add(secListNCH);
-            TNudyEndfList *secListNX = new TNudyEndfList();
-            Process(secListNX);
-            sec->Add(secListNX);
-
+            for (int i = 0; i < secContLCOMP->GetN1(); i++ ) {
+              TNudyEndfList *secListNCH = new TNudyEndfList();
+              Process(secListNCH);
+              sec->Add(secListNCH);
+              TNudyEndfList *secListNX = new TNudyEndfList();
+              Process(secListNX);
+              sec->Add(secListNX);
+            }
             TNudyEndfCont *secContNNNB = new TNudyEndfCont();
             Process(secContNNNB);
             sec->Add(secContNNNB);
@@ -2235,4 +2296,5 @@ TNudyENDF::~TNudyENDF()
   //  printf("Endf destroyed");
   SafeDelete(fRENDF);
   SafeDelete(fTape);
+  SafeDelete(fMat);
 }

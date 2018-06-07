@@ -77,7 +77,11 @@ void TNudyEndfTab1::SetCont(double c1, double c2, int l1, int l2, int n1, int n2
   fX   = new double[n2];
   fY   = new double[n2];
 }
-
+//_______________________________________________________________________________
+void TNudyEndfTab1::SetContMF(int mat, int mt, int mf)
+{
+  TNudyEndfCont::SetContMF(mat, mt, mf);
+}
 //
 // Dumps Tab1 records to ENDF
 //______________________________________________________________________________

@@ -42,7 +42,11 @@ TNudyEndfFile::~TNudyEndfFile()
   fSecs->Delete();
   SafeDelete(fSecs);
 }
-
+//_______________________________________________________________________________
+void TNudyEndfFile::SetMF(int mf)
+{
+  fMF = mf;
+}
 //_______________________________________________________________________________
 TNudyEndfSec *TNudyEndfFile::GetSec(int MT)
 {

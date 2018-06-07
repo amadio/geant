@@ -34,8 +34,6 @@ class TNudyEndfDoppler;
 class TNudyEndfAng;
 class TNudyEndfEnergy;
 class TNudyEndfEnergyAng;
-class TNudyEndfNuPh;
-class TNudyEndfFissionYield;
 class TNudyEndfPhYield;
 class TNudyEndfPhProd;
 class TNudyEndfPhAng;
@@ -46,13 +44,15 @@ namespace Nudy {
 class TNudyENDF;
 class TNudyEndfFile;
 class TNudyEndfList;
+class TNudyEndfTab1;
+class TNudyEndfTab2;
 }
 
 class TList;
+class TIter;
 
 #ifdef USE_ROOT
 #include "Rtypes.h"
-class TRandom3;
 #endif
 
 #define PI acos(-1.0)
@@ -103,10 +103,64 @@ public:
   /// \brief get final temperature for the doppler broadening which was set by SetOutTempDop function
   void SetPreProcess(int x1) { fPrepro = x1; }
   /// \brief set x1 = 0 for basic endf file and x1 = 1 if file is processed by Prepro and written in ENDF format
+  virtual void ProcessTab1(Nudy::TNudyEndfTab1 *tab1,int &NR,int &NP,rowint &fnbt, rowint &fint,rowd &x1, rowd &x2);
+  /// \brief process tab1 entry
+  virtual void ProcessTab2(Nudy::TNudyEndfTab2 *tab2, int &NR,int &NP,rowint &fnbt, rowint &fint); 
+  /// \brief process tab2 entry 
+  virtual void ModifyTab1(Nudy::TNudyEndfTab1 *secTab1, rowd &x1, rowd &x2, double &x);
+  /// \brief modify Tab1 record after linearization
+  virtual void CreateTab2(Nudy::TNudyEndfTab2 *secTab2, int &NE);
+  /// \brief create tab2 record in file5 (MF = 5) to make LF=1 structure
+  virtual void CreateTab1(Nudy::TNudyEndfTab1 *secTab1, rowd &x1, rowd &x2, int mtf[], int law, double &x);
+  /// \brief create tab1 record in file5 (MF = 5) to make LF=1 structure
   std::fstream out, outtotal;
   std::string outstring, outstringTotal;
   bool GetIsFiss() { return IsFission; }
-
+  
+protected:
+  matrixd4 fCos4OfMts;
+  /// \brief 4-D vector: cosine in file 4 for each given reaction and element
+  matrixd4 fCosPdf4OfMts;
+  /// \brief cosine pdf in file 4 for each given reaction and element
+  matrixd4 fCosCdf4OfMts;
+  /// \brief cosine cdf from file 4 for each given reaction and element
+  matrixd3 fEnergy4OfMts;
+  /// \brief incident energy in file 4 for which cosine angles are given
+  matrixint fMt4Values;
+  /// \brief MT values for which angular distributions are given in file 4
+  matrixint fMt4Lct;
+  /// CM and Lab flag for angular distributions as given in file 4
+  matrixd4 fEnergyOut5OfMts;
+  /// \brief secondary energy for neutron from file 5 for each given reaction and element
+  matrixd4 fEnergyPdf5OfMts;
+  /// \brief secondary energy pdf for neutron from file 5 for each given reaction and element
+  matrixd4 fEnergyCdf5OfMts;
+  /// \brief secondary energy cdf for neutron from file 5 for each given reaction and element
+  matrixd3 fEnergy5OfMts;
+  /// \brief incident neutron energy in file 5 for given reaction and element for which energy distribution is given
+  matrixd3 fFraction5OfMts;
+  /// \brief delayed neutron fraction for incident energy for given reaction and element
+  matrixint fMt5Values;
+  /// \brief MT values for which energy distributions are given in file 5
+  double AWRI;
+  /// \brief mass per neutron, standard ENDF parameters
+  matrixd4 fCos6OfMts;
+  /// \brief incident cosine from file 6 for given reaction and element
+  matrixd4 fCosin6Pdf, fCosin6Cdf;
+  /// \brief given cosine pdf  and cdf in file 6 for given reaction and element
+  matrixd5 fEnergyOut6OfMts;
+  /// \brief energy from file 6 for each reaction and element
+  matrixd5 fEnergyPdf6OfMts;
+  /// \brief outgoing neutron's pdf from file 6 for given reaction and element
+  matrixd5 fEnergyCdf6OfMts;
+  /// \brief outgoing neutron's cdf from file 6 for given reaction and element
+  matrixint fLaw6;
+  /// \brief law 6 for angular-energy distributions are given in file 6
+  matrixint fZD6, fAD6;
+  /// \brief Z, A of law 6 distributions
+  int mtf[3];
+  /// \brief MAT, MT, MF parameters
+  
 private:
   void ReadFile1(Nudy::TNudyEndfFile *file);
   /// \brief reading of the file1 (MF = 1) from root data file that is written by TNudyENDF class
@@ -118,10 +172,6 @@ private:
   /// \brief reading of the file3 (MF = 3) from root data file (cross-sections other than resonance cross-sections)
   void ReWriteFile3(Nudy::TNudyEndfFile *file);
   /// \brief rewrite all linearized cross-section data of file 2+3 (MF = 2, 3) into root data file 3
-  void ReadFile4(Nudy::TNudyEndfFile *file);
-  /// \brief reading of the file4 (MF = 4) from root data file and make them linearly interpolable
-  void ReWriteFile4(Nudy::TNudyEndfFile *file);
-  /// \brief rewrite file4 (MF = 4) data in to root data file
   double RecursionLinearFile3(double x1, double x2, double sig1, double sig2, rowd x3, rowd x4);
   /// \brief linearization program for the cross-section data
   void RecoPlusBroad(int flagNer);
@@ -193,53 +243,41 @@ private:
   /// \brief linearization of angular distribution if it is given in terms if the legendre polynomial
   double RecursionLinearProb(double x1, double x2, double pdf1, double pdf2);
   /// \brief linearization of angular distribution if it is given in terms if the probability distribution
-  void FillPdf1d();
+  void FillPdf1D();
   /// \brief filling 1 dimentional pdf for anglular distribution
-  void FillPdf2d();
+  void FillPdf2D();
   /// \brief filling 2 dimentional pdf for anglular distribution
   void SetIsFission(bool FissKey) { IsFission = FissKey; }
   /// \brief setting if fission takes place
-
+  double RecursionLinearLeg1D(double x1, double x2, double pdf1, double pdf2);
+  /// \brief linearization of angular distribution if it is given in terms if the legendre polynomial
+  void ConvertFile4ToFile6(Nudy::TNudyEndfFile *file);
+  /// \brief function to convert file 4 (angular distribution) to file 6
+  void ConvertFile5ToFile6(Nudy::TNudyEndfFile *file);
+  /// \brief function to convert file 5 (energy distribution) to file 6
+  void ConvertFile14ToFile6(Nudy::TNudyEndfFile *file);
+  /// \brief function to convert file 14 (photon angular distribution) to file 6
+  void ConvertFile15ToFile6(Nudy::TNudyEndfFile *file);
+  /// \brief function to convert file 15 (photon energy distribution) to file 6
+  
   const char *rENDF;
   /// \brief Name of the endf to root data file
   double fDoppTemp1, fDoppTemp2;
   /// \brief initial and final temperature for the doppler broadening
   double fSigDiff;
   /// \brief precision/tolerance for cross-section reconstruction while linearization from true values
-  matrixd4 fCos4OfMts;
-  /// \brief 2-D vector: cosine in file 4 for each given reaction and element
-  matrixd4 fCosPdf4OfMts;
-  /// \brief cosine pdf in file 4 for each given reaction and element
-  matrixd4 fCosCdf4OfMts;
-  /// \brief cosine cdf from file 4 for each given reaction and element
-  matrixd3 fEnergy4OfMts;
-  /// \brief incident energy in file 4 for which cosine angles are given
-  matrixint fMt4Values;
-  /// \brief MT values for which angular distributions are given in file 4
-  matrixint fMt4Lct;
-  /// CM and Lab flag for angular distributions as given in file 4
-  matrixd4 fEnergyOut5OfMts;
-  /// \brief secondary energy for neutron from file 5 for each given reaction and element
-  matrixd4 fEnergyPdf5OfMts;
-  /// \brief secondary energy pdf for neutron from file 5 for each given reaction and element
-  matrixd4 fEnergyCdf5OfMts;
-  /// \brief secondary energy cdf for neutron from file 5 for each given reaction and element
-  matrixd4 fCos6OfMts;
-  /// \brief incident cosine from file 6 for given reaction and element
-  matrixd4 fCosin6Pdf, fCosin6Cdf;
-  /// \brief given cosine pdf  and cdf in file 6 for given reaction and element
-  matrixd5 fEnergyOut6OfMts;
-  /// \brief energy from file 6 for each reaction and element
-  matrixd5 fEnergyPdf6OfMts;
-  /// \brief outgoing neutron's pdf from file 6 for given reaction and element
-  matrixd5 fEnergyCdf6OfMts;
-  /// \brief outgoing neutron's cdf from file 6 for given reaction and element
-  matrixd3 fEnergy5OfMts;
-  /// \brief incident neutron energy in file 5 for given reaction and element for which energy distribution is given
-  matrixd3 fFraction5OfMts;
-  /// \brief delayed neutron fraction for incident energy for given reaction and element
-  matrixint fMt5Values;
-  /// \brief MT values for which energy distributions are given in file 5
+  matrixd4 fCos4OfMtsPhoton;
+  /// \brief 4-D vector: photon cosine in file 4 for each given reaction and element
+  matrixd4 fCosPdf4OfMtsPhoton;
+  /// \brief cosine photon pdf in file 4 for each given reaction and element
+  matrixd4 fCosCdf4OfMtsPhoton;
+  /// \brief cosine photon cdf from file 4 for each given reaction and element
+  matrixd3 fEnergy4OfMtsPhoton;
+  /// \brief incident neutron energy in file 4 for which cosine angles are given
+  matrixint fMt4ValuesPhoton;
+  /// \brief MT values for which angular distributions of photons are given in file 4
+  matrixint fMt4LctPhoton;
+  /// CM and Lab flag for angular distributions of photons as given in file 4
   rowd fEintFile1, fNutFile1, fEinFile1, fNuFile1;
   /// \brief energy, total fission neutron multiplicity, energy, prompt fission neutron multiplicity
   rowd fEindFile1, fNudFile1, fEinPhFile1, fPhFile1;
@@ -260,9 +298,7 @@ private:
   /// \brief incident energy for fission yield and qvalues for the reactions
   matrixd3 fZafId, fPdfYieldId, fCdfYieldId;
   /// \brief za, pdf and cdf for fssion yield
-  double AWRI;
-  /// \brief mass per neutron, standard ENDF parameters
-  int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, LSSF, NLS2, NJS, INT, NIS, intLinLru1 = 0;
+  int Z, ZA, ZAI, LFW, NER, LRU, LRF, NRO, NAPS, NLS, fLSSF, NLS2, NJS, INT, NIS, intLinLru1 = 0;
   /// \brief standard ENDF parameters
   bool IsFission;
   /// \brief Abhijit:: to simply know whether fit for fission
@@ -322,8 +358,14 @@ private:
   /// \brief linear cross-section points for elastic, capture and fission
   rowd fXBroadElastic, fXBroadCapture, fXBroadFission;
   /// \brief linear cross-section points after doppler broadening for elastic, capture and fission
+  rowd fE1, fP1, fE2, fP2;
+  /// \brief standard file 5 parameters from ENDF manual
   rowint fNbt1, fInt1;
   /// \brief standard ENDF interpolation parameter \cite ENDF Manual
+  rowint fNbt2, fInt2;
+  /// \brief standard ENDF interpolation parameter \cite ENDF Manual
+  int fNr2, fNp2;
+  /// \brief standard ENDF parameters for no .of regions and points for interpolation
   rowd fELinearFile3, fXLinearFile3;
   /// \brief linear cross-section points for file 3 data
   rowd fSigma;
@@ -340,6 +382,8 @@ private:
   /// \brief cosine, pdf and cdf for angular distribution
   rowint fMtLct;
   /// \brief LCT number flag for lab or center of momentum system
+  rowint fMtNumbers;
+  /// \brief temp. MT numbers
   rowint l; // l values
   rowint fNRS;
   /// \brief no. of resolved resonances
@@ -452,20 +496,17 @@ private:
   /// \brief number of neutron reactions, delayed neutron families
   int fMloop;
   /// \brief termination of recursive loop
-  NudyPhysics::TNudyEndfDoppler *doppler;
-  NudyPhysics::TNudyEndfAng *recoAng;
-  NudyPhysics::TNudyEndfEnergy *recoEnergy;
-  NudyPhysics::TNudyEndfEnergyAng *recoEnergyAng;
-  NudyPhysics::TNudyEndfNuPh *recoNuPh;
-  NudyPhysics::TNudyEndfFissionYield *recoFissY;
-  NudyPhysics::TNudyEndfPhYield *recoPhYield;
-  NudyPhysics::TNudyEndfPhProd *recoPhProd;
-  NudyPhysics::TNudyEndfPhAng *recoPhAng;
-  NudyPhysics::TNudyEndfPhEnergy *recoPhEnergy;
-  Nudy::TNudyENDF *pendf;
-#ifdef USE_ROOT
-  TRandom3 *fRnd;
-#endif
+  rowd fE4, fP4;
+  /// \brief energy, probability temporary variables to fill tab record
+  NudyPhysics::TNudyEndfDoppler *fDoppler;
+  NudyPhysics::TNudyEndfAng *fRecoAng;
+  NudyPhysics::TNudyEndfEnergy *fRecoEnergy;
+  NudyPhysics::TNudyEndfEnergyAng *fRecoEnergyAng;
+  NudyPhysics::TNudyEndfPhYield *fRecoPhYield;
+  NudyPhysics::TNudyEndfPhProd *fRecoPhProd;
+  NudyPhysics::TNudyEndfPhAng *fRecoPhAng;
+  NudyPhysics::TNudyEndfPhEnergy *fRecoPhEnergy;
+  Nudy::TNudyENDF *fPendf;
 
 #ifdef USE_ROOT
   ClassDef(TNudyEndfSigma, 1) // class for an ENDF reconstruction
