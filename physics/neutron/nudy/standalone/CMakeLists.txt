@@ -18,4 +18,4 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/nudy/bin)
 add_executable(NudyMain ${NUDYSRC}/standalone/NudyMain.cc ${sources})
 target_link_libraries(NudyMain -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Nudy )
 
-install(TARGETS NudyMain DESTINATION bin)
+#install(TARGETS NudyMain DESTINATION bin)

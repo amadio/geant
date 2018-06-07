@@ -32,7 +32,6 @@
 #pragma link C++ class NudyPhysics::TNudyEndfEnergy + ;
 #pragma link C++ class NudyPhysics::TNudyEndfEnergyAng + ;
 #pragma link C++ class NudyPhysics::TNudyEndfNuPh + ;
-#pragma link C++ class NudyPhysics::TNudyEndfFissionYield + ;
 #pragma link C++ class NudyPhysics::TNudyEndfPhYield + ;
 #pragma link C++ class NudyPhysics::TNudyEndfPhProd + ;
 #pragma link C++ class NudyPhysics::TNudyEndfPhAng + ;
