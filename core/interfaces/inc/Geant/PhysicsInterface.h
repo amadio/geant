@@ -59,6 +59,7 @@ public:
     * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
     * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
     */
+  virtual geant::SimulationStage *CreateFastSimStage(geant::Propagator *prop)     = 0;
   virtual geant::SimulationStage *CreateComputeIntLStage(geant::Propagator *prop)     = 0;
   virtual geant::SimulationStage *CreatePrePropagationStage(geant::Propagator *prop)  = 0;
   virtual geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop) = 0;

@@ -34,6 +34,8 @@
 #include "Geant/MSCModel.h"
 #include "Geant/GSMSCModel.h"
 
+#include "TestEm3FastSimProcess.h"
+
 namespace userapplication {
 
 TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name) : geantphysics::PhysicsList(name)
@@ -105,6 +107,7 @@ void TestEm3PhysicsList::Initialize()
       eMSCProc->AddModel(gsMSCModel);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
+      
     }
     if (particle == geantphysics::Positron::Definition()) {
       // std::cout<<"  Positron" <<std::endl;
@@ -218,6 +221,11 @@ void TestEm3PhysicsList::Initialize()
       //
       // add the process to the gamma particle
       AddProcessToParticle(particle, photoelectricProc);
+
+      // addding Fast Sim process for gamma
+      geantphysics::FastSimProcess* fastsimproc = new TestEm3FastSimProcess();
+      AddProcessToParticle(particle, fastsimproc);
+
     }
   }
 }

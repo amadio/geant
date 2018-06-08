@@ -71,6 +71,7 @@ int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
+int parFastSimActive            = 0;  // activated fast sim stage
 
 //
 // physics process configuration parameters:
@@ -116,6 +117,9 @@ int main(int argc, char *argv[])
 
   // Setup the MCTruth handling
   SetupMCTruthHandling(runMgr);
+
+  // Switch on Fast Sim
+  runMgr->SetFastSim(parFastSimActive);
 
   // Create the real physics TestEm3 application
   userapplication::TestEm3App *app = new userapplication::TestEm3App(runMgr, det, gun);
@@ -174,6 +178,7 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"config-external-loop", required_argument, 0, 'u'},
                                   {"process-MSC-step-limit", required_argument, 0, 'A'},
                                   {"config-vectorized-physics", required_argument, 0, 'v'},
+				  {"fastsim-active", required_argument, 0, 'w'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -314,6 +319,9 @@ void GetArguments(int argc, char *argv[])
       break;
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'w':
+      parFastSimActive = (int)strtol(optarg, NULL, 10);
       break;
 
     //---- MCTruth handling

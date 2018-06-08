@@ -100,6 +100,9 @@ public:
   /** @brief Method that return the list of forced at-rest processes */
   const std::vector<PhysicsProcess *> &GetListAtRestForcedProcesses() const { return fAtRestForcedProcessVec; }
 
+  /** @brief Method that return the list of fast sim processes */
+  const std::vector<PhysicsProcess *> &GetListFastSimProcesses() const { return fFastSimProcessVec; }
+
   /** Methods that are needed for the new concept of physics-per-region:
       is this physics manager per particle active in the i-th region? */
   std::vector<bool> &GetListActiveRegions() { return fListActiveRegions; }
@@ -113,6 +116,8 @@ public:
   PhysicsProcess *PostStepSelectProcess(geant::Track *gtrack, geant::TaskData *td);
 
   int AtRestAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
+
+  void FastSimAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td);
 
   bool HasEnergyLossProcess() const { return fIsHasElossProcess; }
   bool HasMSCProcess() const { return fIsHasMSCProcess; }
@@ -150,6 +155,7 @@ private:
   std::vector<PhysicsProcess *> fPostStepForcedProcessVec;    /** List of post-step forced processes */
   std::vector<PhysicsProcess *> fAtRestCandidateProcessVec;   /** List of at-rest candidate processes */
   std::vector<PhysicsProcess *> fAtRestForcedProcessVec;      /** List of at-rest forced processes */
+  std::vector<PhysicsProcess *> fFastSimProcessVec;           /** List of fast sim processes */
 
   std::vector<bool> fListActiveRegions; /** is this physics manager per particle active in the i-th region? */
 };

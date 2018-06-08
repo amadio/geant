@@ -144,6 +144,7 @@ bool RunManager::Initialize()
     prop->fPhysicsInterface = fPhysicsInterface;
     prop->fPrimaryGenerator = fPrimaryGenerator;
     prop->fTruthMgr         = fTruthMgr;
+    prop->fDoFastSim        = fDoFastSim;
     fPropagators.push_back(prop);
   }
 

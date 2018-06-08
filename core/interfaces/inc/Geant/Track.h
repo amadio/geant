@@ -71,6 +71,7 @@ enum Species_t { kHadron, kLepton };
 /** Basket simulation stages. */
 enum ESimulationStage {
   kPreStepStage = 0,     // Actions at the beginning of the step
+  kFastSimStage,         // Fast sim stage
   kComputeIntLStage,     // Physics interaction length computation stage
   kGeometryStepStage,    // Compute geometry transport length
   kPrePropagationStage,  // Special msc stage for step limit phase

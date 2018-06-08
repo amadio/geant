@@ -47,6 +47,7 @@ set(sources
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3Data.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3PrimaryGenerator.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3PhysicsList.cxx
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/TestEm3FastSimProcess.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/src/HepMCTruth.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5.cxx
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/src/TestEm5Data.cxx
@@ -75,6 +76,7 @@ set(headers
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3Data.h
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3PrimaryGenerator.h
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3PhysicsList.h
+  ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/TestEm3FastSimProcess.h
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm3/GeantV/inc/HepMCTruth.h
 
   ${CMAKE_SOURCE_DIR}/examples/physics/TestEm5/GeantV/inc/TestEm5.h

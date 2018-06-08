@@ -70,6 +70,8 @@ private:
   BitSet *fDoneEvents = nullptr;         /** Array of bits marking done events */
   std::vector<std::thread> fListThreads; /** Vector of threads */
 
+  bool fDoFastSim = false;               /** Flag to swith on/off the fast simulation stage */
+
 public:
   RunManager() {}
   RunManager(unsigned int npropagators, unsigned int nthreads, GeantConfig *config);
@@ -181,6 +183,9 @@ public:
   bool IsInitialized() const { return fInitialized; }
 
   TaskData *BookTransportTask();
+
+  GEANT_FORCE_INLINE
+    void SetFastSim( bool dofastsim ) { fDoFastSim = dofastsim; }
 
   /** @brief Function checking if transport is completed */
   bool TransportCompleted() const { return ((int)fDoneEvents->FirstNullBit() >= fConfig->fNtotal); }

@@ -13,6 +13,7 @@ class SimulationStage;
 }
 
 // realphysics stages
+#include "Geant/FastSimStage.h"
 #include "Geant/ComputeIntLStage.h"
 #include "Geant/PrePropagationStage.h"
 #include "Geant/PostPropagationStage.h"
@@ -131,6 +132,8 @@ public:
    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
    * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
    */
+  geant::SimulationStage *CreateFastSimStage(geant::Propagator *prop) { return new FastSimStage(prop); }
+
   geant::SimulationStage *CreateComputeIntLStage(geant::Propagator *prop) { return new ComputeIntLStage(prop); }
 
   geant::SimulationStage *CreatePrePropagationStage(geant::Propagator *prop) { return new PrePropagationStage(prop); }

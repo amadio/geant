@@ -76,6 +76,9 @@ void PhysicsManagerPerParticle::AddProcess(PhysicsProcess *process)
       fAtRestForcedProcessVec.push_back(process);
     }
   }
+  if (process->GetIsFastSim()) {
+    fFastSimProcessVec.push_back(process);
+  }
 }
 
 const PhysicsProcess *PhysicsManagerPerParticle::GetMSCProcess() const
@@ -274,6 +277,11 @@ int PhysicsManagerPerParticle::AtRestAction(LightTrack &track, geant::Track * /*
   // invoke the interaction
   numSecondaries = proc->AtRestDoIt(track, td);
   return numSecondaries;
+}
+
+void PhysicsManagerPerParticle::FastSimAction(LightTrack &track, geant::Track *gtrack, geant::TaskData *td)
+{
+  fFastSimProcessVec[gtrack->GetPhysicsProcessIndex()]->FastSimDoIt(track, td);
 }
 
 } // namespace geantphysics

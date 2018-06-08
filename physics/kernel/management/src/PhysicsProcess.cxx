@@ -16,7 +16,7 @@ std::vector<PhysicsProcess *> PhysicsProcess::gThePhysicsProcessTable;
 const double PhysicsProcess::gAVeryLargeValue = 1.0e20;
 
 PhysicsProcess::PhysicsProcess(const std::string &aName)
-    : fIndex(-1), fGlobalIndex(-1), fIsDiscrete(false), fIsContinuous(false), fIsAtRest(false),
+  : fIndex(-1), fGlobalIndex(-1), fIsDiscrete(false), fIsContinuous(false), fIsAtRest(false), fIsFastSim(false),
       fIsLambdaTableRequested(false), fForcedCondition(ForcedCondition::kNotForced), fType(ProcessType::kNotDefined),
       fName(aName), fPhysicsParameters(nullptr), fParticle(nullptr), fLambdaTable(nullptr)
 {
@@ -28,7 +28,7 @@ PhysicsProcess::PhysicsProcess(const bool aIsDiscrete, const bool aIsContinuous,
                                const ForcedCondition aForcedCondition, const ProcessType aType,
                                const std::string &aName)
     : fIndex(-1), fGlobalIndex(-1), fIsDiscrete(aIsDiscrete), fIsContinuous(aIsContinuous), fIsAtRest(aIsAtRest),
-      fIsLambdaTableRequested(false), fForcedCondition(aForcedCondition), fType(aType), fName(aName),
+      fIsFastSim(false), fIsLambdaTableRequested(false), fForcedCondition(aForcedCondition), fType(aType), fName(aName),
       fPhysicsParameters(nullptr), fParticle(nullptr), fLambdaTable(nullptr)
 {
   fGlobalIndex = gThePhysicsProcessTable.size();

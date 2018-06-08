@@ -87,6 +87,7 @@ public:
 
   bool fTransportOngoing = false; /** Flag for ongoing transport */
   bool fSingleTrack      = false; /** Use single track transport mode */
+  bool fDoFastSim        = false; /** Include Fast Sim stage */
 
   WorkloadManager *fWMgr           = nullptr; /** Workload manager */
   UserApplication *fApplication    = nullptr; /** User application */

@@ -74,7 +74,7 @@ public:
    *  @param A LightTrack containing the current particle and its kinematics.
    *
    */
-  virtual bool IsApplicable(const LightTrack & /*track*/) const { return true; }
+  virtual bool IsApplicable(geant::Track *track) const { return true; }
 
   /** @brief Method that returns the macroscopic cross section in internal [1/length] unit.
    *
@@ -179,6 +179,17 @@ public:
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
+
+  virtual int FastSimDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
+  /** @brief Method that does the fast sim action.
+   *
+   *  The input parameter, a LightTrack object, can be modified: typically
+   *  the track status is changed (killed) in this method.
+   *  Typically, no new particles are created by the fast sim process and if any,
+   *  they are stored in the TaskData::PhysicsDada object.
+   *
+   */
+  
   virtual int AtRestDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
   virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }
@@ -204,6 +215,9 @@ public:
 
   /** Method that returns whether this process has an at-rest part or not */
   bool GetIsAtRest() const { return fIsAtRest; }
+  
+  /** Method that returns whether this process is a fast sim process or not */
+  bool GetIsFastSim() const { return fIsFastSim; }
 
   /** Method that returns the ForcedCondition type of this process */
   ForcedCondition GetForcedCondition() const { return fForcedCondition; }
@@ -246,6 +260,12 @@ public:
    * @param aIsAtRest has the process an at-rest part?
    */
   void SetIsAtRest(const bool aIsAtRest) { fIsAtRest = aIsAtRest; }
+
+  /**
+   * @brief Method that sets whether this process is fast sim or not
+   * @param aIsFastSim is a fast sim process?
+   */
+  void SetFastSim(const bool aIsFastSim) { fIsFastSim = aIsFastSim; }
 
   /**
    * @brief Method that sets the ForcedCondition type of this process
@@ -306,6 +326,7 @@ private:
   bool fIsDiscrete;             /** "true" if the process has a discrete part; "false" otherwise */
   bool fIsContinuous;           /** "true" if the process has a continuous part; "false" otherwise */
   bool fIsAtRest;               /** "true" if the process has an at-rest part; "false" otherwise */
+  bool fIsFastSim;              /** "true" if the process is a fast sim process; "false" otherwise */
   bool fIsLambdaTableRequested; /** false to store if lambda table was requested by the process (flase by default) */
 
   ForcedCondition fForcedCondition;                       /** type of ForcedCondition for this process */

@@ -273,6 +273,9 @@ int Propagator::CreateSimulationStages()
   // kPreStepStage
   stage = new PreStepStage(this);
   if (stage->GetId() != int(kPreStepStage)) Fatal("CreateSimulationStages", "Wrong stages start index");
+  // kFastSimStage: optional fast simulation for selected volumes/particles
+  stage = fPhysicsInterface->CreateFastSimStage(this);
+  assert(stage->GetId() == int(kFastSimStage));
   // kComputeIntLStage: physics step limit
   stage = fPhysicsInterface->CreateComputeIntLStage(this);
   assert(stage->GetId() == int(kComputeIntLStage));
@@ -322,9 +325,24 @@ int Propagator::CreateSimulationStages()
   /**************************************
    *  Define connections between stages *
    **************************************/
-  GetStage(kPreStepStage)->SetFollowUpStage(kComputeIntLStage, false);
-  // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
-  GetStage(kPreStepStage)->SetBasketizing(false);
+  if(fDoFastSim)
+    {
+      GetStage(kPreStepStage)->SetFollowUpStage(kFastSimStage, false);
+      // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+      GetStage(kPreStepStage)->SetBasketizing(false);
+      //        V
+      //        V
+      //        V
+      GetStage(kFastSimStage)->SetFollowUpStage(kComputeIntLStage, false);
+      // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+      GetStage(kFastSimStage)->SetBasketizing(false);
+    }
+  else
+    {
+      GetStage(kPreStepStage)->SetFollowUpStage(kComputeIntLStage, false);
+      // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+      GetStage(kPreStepStage)->SetBasketizing(false);
+    }
   //        V
   //        V
   //        V
