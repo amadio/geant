@@ -32,11 +32,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
+using vecCore::Get;
 using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 // use these elastic and inelatic form factors for light elements instead of TFM
 // under the complete screening approximation
@@ -662,6 +662,7 @@ void RelativisticPairModel::InitialiseElementData()
 template <typename R>
 void RelativisticPairModel::ComputeScreeningFunctions(R &phi1, R &phi2, const R delta, const bool istsai)
 {
+  phi1 = phi2 = R(0);
   if (istsai) {
     const R gamma  = delta * 0.735294; // 0.735 = 1/1.36 <= gamma = delta/1.36
     const R gamma2 = gamma * gamma;
@@ -822,7 +823,7 @@ void RelativisticPairModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, c
       // G(s) = 3 \psi(s) - 2 \phi(s)
       funcGS = 3.0 * funcPsiS - 2.0 * funcPhiS;
     } else if (varShat < 1.55) {
-      funcPhiS = 1.0 - Math::Exp(-6.0 * varShat * (1.0 + varShat * (3.0 - geant::units::kPi)) +
+      funcPhiS          = 1.0 - Math::Exp(-6.0 * varShat * (1.0 + varShat * (3.0 - geant::units::kPi)) +
                                  varShat3 / (0.623 + 0.796 * varShat + 0.658 * varShat2));
       const double dum0 = -0.16072300849123999 + 3.7550300067531581 * varShat - 1.7981383069010097 * varShat2 +
                           0.67282686077812381 * varShat3 - 0.1207722909879257 * varShat4;
