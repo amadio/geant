@@ -35,7 +35,7 @@ enum class ForcedCondition {
   kNotForced,        /** for normal, common processes: default */
   kForced,           /** for special processes, which should be always invoked */
   kExclusivelyForced /** for fast-sim processes, which not only should be always
-                       * invoked, but should prevent other processes to be called */
+                      * invoked, but should prevent other processes to be called */
 };
 
 enum class ProcessType {
@@ -186,7 +186,8 @@ public:
   virtual double MacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/) { return 0.; }
 
   double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logekin, double mass);
-  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double logekin, double mass, bool haseloss = false);
+  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double logekin, double mass,
+                                           bool haseloss = false);
 
   //--- Getters ---
   /** Method to get the index of this process in the per particle process manager */
@@ -288,7 +289,7 @@ public:
 
   static const PhysicsProcess *GetProcessByGlobalIndex(size_t gprocindx)
   {
-    PhysicsProcess *proc                                 = nullptr;
+    PhysicsProcess *proc = nullptr;
     if (gprocindx < gThePhysicsProcessTable.size()) proc = gThePhysicsProcessTable[gprocindx];
     return proc;
   }

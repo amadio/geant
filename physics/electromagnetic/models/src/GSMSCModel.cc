@@ -746,13 +746,12 @@ void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
     double temp1 = 2.0 + tau;
     double temp  = (2.0 + tau * temp1) / ((tau + 1.0) * temp1);
     // take into account logarithmic dependence
-    temp  = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
-    temp  = temp * epsm;
-    temp1 = 1.0 - temp;
-    delta = delta +
-            0.40824829 *
-                (eps0 * (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
-                 0.25 * temp * temp);
+    temp     = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
+    temp     = temp * epsm;
+    temp1    = 1.0 - temp;
+    delta    = delta + 0.40824829 * (eps0 * (tau + 1.0) /
+                                      ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
+                                  0.25 * temp * temp);
     double b = eta * delta;
     double c = eta * (1.0 - delta);
     //

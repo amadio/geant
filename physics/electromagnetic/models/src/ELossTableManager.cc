@@ -100,4 +100,4 @@ double ELossTableManager::GetRange(const MaterialCuts *matcut, const Particle *p
   return range;
 }
 
-} // namespace geant
+} // namespace geantphysics

@@ -238,4 +238,4 @@ void CMSFullApp::FinishRun()
   std::cout.setf(mode, std::ios::floatfield);
   std::cout.precision(prec);
 }
-}
+} // namespace cmsapp

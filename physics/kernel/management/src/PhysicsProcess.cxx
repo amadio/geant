@@ -169,11 +169,11 @@ double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double
 }
 
 // called only at the pre-step point
-double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double logekin, double mass,
-                                                         bool haseloss)
+double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double logekin,
+                                                         double mass, bool haseloss)
 {
   constexpr double log08 = -0.22314355131420971;
-  double macrXsec = 0.;
+  double macrXsec        = 0.;
   // account possible energy loss along the step if the particle has energy loss process(es)
   if (haseloss) {
     // get the kinetic energy at which the macroscopic cross section has its maximum

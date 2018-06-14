@@ -27,9 +27,7 @@ PhysicsManagerPerParticle::PhysicsManagerPerParticle(const Particle *partcile, c
 // All process object pointers are stored in the PhysicsProcess and all process object is deleted by calling
 // PhysicsProcess::ClearAllProcess() static method.
 // So here we need to delete only local things
-PhysicsManagerPerParticle::~PhysicsManagerPerParticle()
-{
-}
+PhysicsManagerPerParticle::~PhysicsManagerPerParticle() {}
 
 void PhysicsManagerPerParticle::Initialize()
 {

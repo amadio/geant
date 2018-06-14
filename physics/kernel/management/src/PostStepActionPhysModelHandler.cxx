@@ -29,9 +29,7 @@ PostStepActionPhysModelHandler::PostStepActionPhysModelHandler(int threshold, ge
   fModel        = EMModel::GetGlobalTable()[modelIdx];
 }
 
-PostStepActionPhysModelHandler::~PostStepActionPhysModelHandler()
-{
-}
+PostStepActionPhysModelHandler::~PostStepActionPhysModelHandler() {}
 
 void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
 {
@@ -246,7 +244,7 @@ void PostStepActionPhysModelHandler::DoItScalar(geant::Track **gtracks, int N, g
 //______________________________________________________________________________
 void PostStepActionPhysModelHandler::DoIt(geant::Basket &input, geant::Basket &output, geant::TaskData *td)
 {
-  int vectSize                                  = (input.GetNtracks() / geant::kVecLenD) * geant::kVecLenD;
+  int vectSize = (input.GetNtracks() / geant::kVecLenD) * geant::kVecLenD;
   if (vectSize <= 2 * geant::kVecLenD) vectSize = 0;
   if (vectSize > 0) {
     DoItVector(input.Tracks().data(), vectSize, output, td);

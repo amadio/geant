@@ -24,9 +24,7 @@ AlongStepActionHandler::AlongStepActionHandler(int threshold, geant::Propagator 
 {
 }
 
-AlongStepActionHandler::~AlongStepActionHandler()
-{
-}
+AlongStepActionHandler::~AlongStepActionHandler() {}
 
 // The AlongStepActionStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has any continuous processes i.e. has along-step-action

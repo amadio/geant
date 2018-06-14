@@ -22,14 +22,10 @@
 
 namespace geantphysics {
 
-AtRestActionStage::AtRestActionStage(geant::Propagator *prop) : SimulationStage(geant::kAtRestActionStage, prop)
-{
-}
+AtRestActionStage::AtRestActionStage(geant::Propagator *prop) : SimulationStage(geant::kAtRestActionStage, prop) {}
 
 // base class will delete the created handlers
-AtRestActionStage::~AtRestActionStage()
-{
-}
+AtRestActionStage::~AtRestActionStage() {}
 
 int AtRestActionStage::CreateHandlers()
 {

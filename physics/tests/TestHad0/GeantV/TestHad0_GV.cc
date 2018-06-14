@@ -64,31 +64,31 @@
 #include "Geant/HadronicFinalStateModel.h"
 #include "Geant/HadronicFinalStateModelStore.h"
 
-using geantphysics::Material;
 using geantphysics::Element;
+using geantphysics::Material;
 using geantphysics::MaterialCuts; // this is just to print the table
 
-using geantphysics::PhysicsListManager;
 using geantphysics::PhysicsList;
+using geantphysics::PhysicsListManager;
 using geantphysics::PhysicsParameters;
 
 using geantphysics::PhysicsManagerPerParticle;
 using geantphysics::PhysicsProcess;
 
-using geantphysics::Particle;
 using geantphysics::Electron;
-using geantphysics::Positron;
 using geantphysics::Gamma;
-using geantphysics::Proton;
-using geantphysics::Neutron;
-using geantphysics::PionPlus;
-using geantphysics::PionMinus;
-using geantphysics::PionZero;
-using geantphysics::KaonPlus;
-using geantphysics::KaonMinus;
-using geantphysics::KaonZero;
-using geantphysics::KaonShort;
 using geantphysics::KaonLong;
+using geantphysics::KaonMinus;
+using geantphysics::KaonPlus;
+using geantphysics::KaonShort;
+using geantphysics::KaonZero;
+using geantphysics::Neutron;
+using geantphysics::Particle;
+using geantphysics::PionMinus;
+using geantphysics::PionPlus;
+using geantphysics::PionZero;
+using geantphysics::Positron;
+using geantphysics::Proton;
 
 using geantphysics::HadronicProcess;
 
@@ -301,7 +301,8 @@ int main(int argc, char *argv[])
     compMacXsecPerProcessVect.push_back(
         proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, particle->GetPDGMass()));
     compTotalMacXsec += compMacXsecPerProcessVect[i];
-    getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, logKinE, particle->GetPDGMass()));
+    getMacXsecPerProcessVect.push_back(
+        proc->GetMacroscopicXSection(matCut, kineticEnergy, logKinE, particle->GetPDGMass()));
     getTotalMacXsec += getMacXsecPerProcessVect[i];
 
     if (isSingleElementMaterial) {

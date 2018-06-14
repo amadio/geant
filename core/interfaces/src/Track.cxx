@@ -315,5 +315,5 @@ void Track::ReleaseInstance(Track *track)
   if (track->fOwnPath) delete[](char *) track;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

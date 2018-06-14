@@ -41,9 +41,7 @@ void MSCProcess::Initialize()
   fMSCdata = *mscdata;
 }
 
-MSCProcess::~MSCProcess()
-{
-}
+MSCProcess::~MSCProcess() {}
 
 // called at the PrePropagationStage(in the Handler)
 double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskData *td) const

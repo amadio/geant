@@ -32,9 +32,7 @@ PostStepActionPhysModelStage::PostStepActionPhysModelStage(geant::Propagator *pr
 }
 
 // base class will delete the created handlers
-PostStepActionPhysModelStage::~PostStepActionPhysModelStage()
-{
-}
+PostStepActionPhysModelStage::~PostStepActionPhysModelStage() {}
 
 int PostStepActionPhysModelStage::CreateHandlers()
 {

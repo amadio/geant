@@ -57,28 +57,28 @@
 #include "Geant/EMModelManager.h"
 #include "Geant/EMModel.h"
 
-using geantphysics::Material;
 using geantphysics::Element;
+using geantphysics::Material;
 using geantphysics::MaterialCuts; // this is just to print the table
 
-using geantphysics::PhysicsListManager;
 using geantphysics::PhysicsList;
+using geantphysics::PhysicsListManager;
 using geantphysics::PhysicsParameters;
 
 using geantphysics::PhysicsManagerPerParticle;
 using geantphysics::PhysicsProcess;
 
-using geantphysics::Particle;
 using geantphysics::Electron;
-using geantphysics::Positron;
 using geantphysics::Gamma;
+using geantphysics::Particle;
+using geantphysics::Positron;
 
 using geantphysics::EMPhysicsProcess;
 
 using geantphysics::ELossTableManager;
 
-using geantphysics::EMModelManager;
 using geantphysics::EMModel;
+using geantphysics::EMModelManager;
 
 //
 // default values of the input parameters

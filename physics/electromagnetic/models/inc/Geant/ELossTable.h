@@ -74,7 +74,7 @@ public:
    * @param[in] partindx    Internal index of the particle for which the restricted range is requested.
    * @param[in] kinenergy   Kinetic energy of the particle at which the restricted range is requested.
    * @param[in] logkine     Pre-computed logarithm of kinetic energy of the particle.
-      * @return    Restricted range in the specified MaterialCuts for the specified particle at the given kinetic energy
+   * @return    Restricted range in the specified MaterialCuts for the specified particle at the given kinetic energy
    *            if the corresponding range table was built in internal [length] units. A big (1.0e+20) otherwise.
    */
   double GetRestrictedRange(int matcutindx, int partindx, double kinenergy, double logkine);
@@ -122,7 +122,7 @@ public:
    * @param[in] partindx    Internal index of the particle for which the CSDA range is requested.
    * @param[in] kinenergy   Kinetic energy of the particle at which the rCSDA range is requested.
    * @param[in] logkine     Pre-computed logarithm of kinetic energy of the particle.
-      * @return    Full CSDA range in the specified Material for the specified particle at the given kinetic energy
+   * @return    Full CSDA range in the specified Material for the specified particle at the given kinetic energy
    *            if the corresponding range table was built in internal [length] units. A high value (1.0e+20) otherwise.
    */
   double GetRange(int matindx, int partindx, double kinenergy, double logkine);
@@ -244,10 +244,9 @@ public:
     Spline *fSplineRange;              // set only if total data was requested in BuildOneELossData;
                                        // spline interpolator to obtain total range values at run time for
                                        // the given partcile and Material; the struct do own the data;
-    std::vector<EMPhysicsProcess *>
-        fLossProcesses; // list of energy loss processes that are active in the set of regions
-                        // handeled by this ELossTable for the given partcile; the class do NOT
-                        // own this PhysicsProcess-es
+    std::vector<EMPhysicsProcess *> fLossProcesses; // list of energy loss processes that are active in the set of
+                                                    // regions handeled by this ELossTable for the given partcile; the
+                                                    // class do NOT own this PhysicsProcess-es
   };
 
   //

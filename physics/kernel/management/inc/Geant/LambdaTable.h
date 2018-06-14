@@ -32,10 +32,10 @@ public:
   ~LambdaTable();
 
   /** @brief Public method to provide possibility for some processes to set sepcial number of lambda table bins. Must be
-    *        called before initialisation of the corresponding process.
-    *
-    * @param[in] val Value of the requested number of lambda table bins (will be adujted)
-    */
+   *        called before initialisation of the corresponding process.
+   *
+   * @param[in] val Value of the requested number of lambda table bins (will be adujted)
+   */
   void SetSpecialLambdaTableBinNum(int val)
   {
     fIsSpecialLambdaTableBinNum = true;
@@ -43,35 +43,35 @@ public:
   }
 
   /** @brief Public method to provide (interpolated) macroscopic cross section for the given process in a given material
-    *         or material-cuts, particle kinetic energy.
-    *
-    * @param[in]  matcut  Material-cuts in which the cross section is required.
-    * @param[in]  ekin    Kinetic energy at which the cross section is required (in internal [energy] unit).
-    * @param[in ] logkine Pre-computed logarithm of kinetic energy of the particle.
-    * @return     Macroscopic cross section for the specified input of the process-particle couple which the table
-    *             belongs to (in internal [1/length] unit).
-    */
+   *         or material-cuts, particle kinetic energy.
+   *
+   * @param[in]  matcut  Material-cuts in which the cross section is required.
+   * @param[in]  ekin    Kinetic energy at which the cross section is required (in internal [energy] unit).
+   * @param[in ] logkine Pre-computed logarithm of kinetic energy of the particle.
+   * @return     Macroscopic cross section for the specified input of the process-particle couple which the table
+   *             belongs to (in internal [1/length] unit).
+   */
   double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logkine);
 
   /** @brief Public method to provide the kinetic energy at which the macroscopic cross section of the process-particle
-    *        couple reach its maximum value in the given material/material-cuts.
-    * @param [in] matcut  Pointer to the material-cuts object to specify the material or material-cuts.
-    * @return     Kinetic energy at which the cross section has its maximum in the given material/material-cuts (in
-    *             internal [energy] unit.)
-    */
+   *        couple reach its maximum value in the given material/material-cuts.
+   * @param [in] matcut  Pointer to the material-cuts object to specify the material or material-cuts.
+   * @return     Kinetic energy at which the cross section has its maximum in the given material/material-cuts (in
+   *             internal [energy] unit.)
+   */
   double GetMacroscopicXSectionMaximumEnergy(const MaterialCuts *matcut) const;
 
   /** @brief Public method to provide the maximum value of the macroscopic cross section of the process-particle couple
-    *        in the given material/material-cuts.
-    * @param [in] matcut  Pointer to the material-cuts object to specify the material or material-cuts.
-    * @return     Maximum value of the macroscopic cross section in the given material/material-cuts (in internal
-    *             [energy] unit.)
-    */
+   *        in the given material/material-cuts.
+   * @param [in] matcut  Pointer to the material-cuts object to specify the material or material-cuts.
+   * @return     Maximum value of the macroscopic cross section in the given material/material-cuts (in internal
+   *             [energy] unit.)
+   */
   double GetMacroscopicXSectionMaximum(const MaterialCuts *matcut) const;
 
   /** @brief Public method to build the macroscopic cross section tables (called automatically at the initialisation of
-    *        the process this table talongs to)
-    */
+   *        the process this table talongs to)
+   */
   void BuildLambdaTables();
 
 private:
@@ -175,6 +175,6 @@ private:
   void GenerateEnergyGrid(const MaterialCuts *matcut, struct LambdaTableForAMaterialCuts *data = nullptr);
 };
 
-} // LAMBDATABLE_H
+} // namespace geantphysics
 
 #endif // LAMBDATABLE_H

@@ -208,10 +208,10 @@ public:
   static constexpr double kTiny = 1.E-50;
 
   /**
-  * @brief Track in place constructor
-  *
-  * @param addr Start address
-  */
+   * @brief Track in place constructor
+   *
+   * @param addr Start address
+   */
   VECCORE_ATT_HOST_DEVICE
   Track(void *addr);
 
@@ -296,7 +296,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(charge_v, i, tracks[offset + i]->Charge());
@@ -381,7 +381,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i) {
       vecCore::Set(pos_v[0], i, tracks[offset + i]->X());
@@ -425,7 +425,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i) {
       vecCore::Set(dir_v[0], i, tracks[offset + i]->Dx());
@@ -469,7 +469,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i) {
       vecCore::Set(mom_v[0], i, tracks[offset + i]->Px());
@@ -508,7 +508,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(e_v, i, tracks[offset + i]->E());
@@ -534,7 +534,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(t_v, i, tracks[offset + i]->Ekin());
@@ -668,7 +668,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(beta_v, i, tracks[offset + i]->Beta());
@@ -705,7 +705,7 @@ public:
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
-    if (Tail) nelem           = ntracks - offset;
+    if (Tail) nelem = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
       vecCore::Set(gamma_v, i, tracks[offset + i]->Gamma());
@@ -1289,7 +1289,7 @@ public:
   }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif
