@@ -62,7 +62,7 @@ double MSCProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::TaskDa
   mscdata.SetDisplacement(0., 0., 0.);
   mscdata.SetNewDirectionMsc(0., 0., 1.);
   // select msc model
-  double ekin        = gtrack->T();
+  double ekin        = gtrack->Ekin();
   int regIndx        = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetRegion()->GetIndex();
   MSCModel *mscModel = static_cast<MSCModel *>(GetModelManager()->SelectModel(ekin, regIndx));
   // check if:
@@ -104,7 +104,7 @@ void MSCProcess::AlongStepDoIt(geant::Track *gtrack, geant::TaskData *td) const
   double truePathLength      = geometricStepLength;
   MSCdata &mscdata           = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
   // select msc model
-  double ekin        = gtrack->T();
+  double ekin        = gtrack->Ekin();
   int regIndx        = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetRegion()->GetIndex();
   MSCModel *mscModel = static_cast<MSCModel *>(GetModelManager()->SelectModel(ekin, regIndx));
   // check if:

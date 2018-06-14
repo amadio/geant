@@ -56,7 +56,8 @@ void AlongStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, ge
   //  fStepLength   <==>  fStep     // current step length
   //  fEdep         <==>  fEdep     // init to 0.0; will be set to the current energy deposit
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
-  primaryLT.SetKinE(track->E() - track->Mass());
+  primaryLT.SetKinE(track->Ekin());
+  primaryLT.SetLogKinE(track->LogEkin());
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
   primaryLT.SetStepLength(track->GetStep());
@@ -65,7 +66,7 @@ void AlongStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, ge
   // update Track
   double newEkin = primaryLT.GetKinE();
   track->SetMass(primaryLT.GetMass());
-  track->SetE(newEkin + track->Mass());
+  track->SetEkin(newEkin);
   track->SetP(std::sqrt(newEkin * (newEkin + 2.0 * track->Mass())));
   track->SetEdep(track->Edep() + primaryLT.GetEnergyDeposit());
   if (newEkin <= 0.) {

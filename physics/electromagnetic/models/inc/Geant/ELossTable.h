@@ -54,11 +54,12 @@ public:
    * @param[in] matcutindx  Index of MaterialCuts object in which the restricted stopping power is requested.
    * @param[in] partindx    Internal index of the particle for which the restricted stopping power is requested.
    * @param[in] kinenergy   Kinetic energy of the particle at which the restricted stopping power is requested.
+   * @param[in] logkine     Pre-computed logarithm of kinetic energy of the particle.
    * @return    Restricted total stopping power in the specified MaterialCuts for the specified particle at the given
    *            kinetic energy if the corresponding stopping power table was built in internal [energy/length] units.
    *            Zero otherwise.
    */
-  double GetRestrictedDEDX(int matcutindx, int partindx, double kinenergy);
+  double GetRestrictedDEDX(int matcutindx, int partindx, double kinenergy, double logkine);
 
   /** @brief  Run time method to obtain restricted range for the given MaterialCuts index, particle and kinetic energy.
    *
@@ -72,10 +73,11 @@ public:
    * @param[in] matcutindx  Index of MaterialCuts object in which the restricted range is requested.
    * @param[in] partindx    Internal index of the particle for which the restricted range is requested.
    * @param[in] kinenergy   Kinetic energy of the particle at which the restricted range is requested.
-   * @return    Restricted range in the specified MaterialCuts for the specified particle at the given kinetic energy
+   * @param[in] logkine     Pre-computed logarithm of kinetic energy of the particle.
+      * @return    Restricted range in the specified MaterialCuts for the specified particle at the given kinetic energy
    *            if the corresponding range table was built in internal [length] units. A big (1.0e+20) otherwise.
    */
-  double GetRestrictedRange(int matcutindx, int partindx, double kinenergy);
+  double GetRestrictedRange(int matcutindx, int partindx, double kinenergy, double logkine);
 
   /** @brief  Run time method to obtain the kinetic energy that corresponds to a given restricted range in the
    *          MaterialCuts specified by its index.
@@ -119,10 +121,11 @@ public:
    * @param[in] matindx     Index of the Material object in which the CSDA range is requested.
    * @param[in] partindx    Internal index of the particle for which the CSDA range is requested.
    * @param[in] kinenergy   Kinetic energy of the particle at which the rCSDA range is requested.
-   * @return    Full CSDA range in the specified Material for the specified particle at the given kinetic energy
+   * @param[in] logkine     Pre-computed logarithm of kinetic energy of the particle.
+      * @return    Full CSDA range in the specified Material for the specified particle at the given kinetic energy
    *            if the corresponding range table was built in internal [length] units. A high value (1.0e+20) otherwise.
    */
-  double GetRange(int matindx, int partindx, double kinenergy);
+  double GetRange(int matindx, int partindx, double kinenergy, double logkine);
 
   /*
   //

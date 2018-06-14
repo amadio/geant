@@ -91,13 +91,13 @@ void GSMSCModel::StepLimit(geant::Track *gtrack, geant::TaskData *td)
   bool isOnBoundary          = gtrack->Boundary();
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double kineticEnergy = gtrack->T();
+  double kineticEnergy = gtrack->Ekin();
 
   if (kineticEnergy < GetLowEnergyUsageLimit() || kineticEnergy > GetHighEnergyUsageLimit()) {
     return;
   }
 
-  double range     = ELossTableManager::Instance().GetRestrictedRange(matCut, fParticle, kineticEnergy);
+  double range = ELossTableManager::Instance().GetRestrictedRange(matCut, fParticle, kineticEnergy, gtrack->LogEkin());
   double skindepth = 0.;
   double presafety = gtrack->GetSafety(); // pre-step point safety
   double geomLimit = gtrack->GetSnext();  // init to distance-to-boundary
@@ -478,7 +478,7 @@ void GSMSCModel::ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskD
       return;
     }
     //
-    double ekin = gtrack->T();
+    double ekin = gtrack->Ekin();
     double tau  = mscdata.fTheTrueStepLenght / mscdata.fLambda1;
     if (tau <= fTauSmall) {
       mscdata.fTheZPathLenght = std::min(mscdata.fTheTrueStepLenght, mscdata.fLambda1);
@@ -571,7 +571,7 @@ void GSMSCModel::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   //
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double kineticEnergy = gtrack->T();
+  double kineticEnergy = gtrack->Ekin();
   double range         = mscdata.fRange;             // set in the step limit phase
   double trueStepL     = mscdata.fTheTrueStepLenght; // proposed by all other physics
   //

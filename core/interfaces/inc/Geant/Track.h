@@ -152,6 +152,7 @@ private:
   double fZdir             = 0;       /** Z direction */
   double fP                = 0;       /** Momentum */
   double fE                = 0;       /** Energy */
+  double fLogEkin          = 0;       /** Logarithm of energy */
   double fTime             = 0;       /** Time */
   double fEdep             = 0;       /** Energy deposition in the step */
   double fPstep            = 1.e+20;  /** Selected physical step */
@@ -488,6 +489,11 @@ public:
   GEANT_FORCE_INLINE
   double E() const { return fE; }
 
+  /** @brief Getter for the logarithm of the kinetic energy */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double LogEkin() const { return fLogEkin; }
+
   /** @brief Fills scalar energy components from input vector into SIMD type.
    *  @param tracks Vector of pointers to tracks
    *  @param offset Start offset.
@@ -512,7 +518,7 @@ public:
   /** @brief Getter for the kinetic energy value */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double T() const { return (fE - fMass); }
+  double Ekin() const { return (fE - fMass); }
 
   /** @brief Fills scalar kinetic energy components from input vector into SIMD type.
    *  @param tracks Vector of pointers to tracks
@@ -523,15 +529,15 @@ public:
    **/
   template <typename Real_v, bool Tail = false>
   VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE static size_t GetT_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
-                                          Real_v &t_v)
+  GEANT_FORCE_INLINE static size_t GetEkin_v(TrackVec_t const &tracks, const size_t offset, const size_t ntracks,
+                                             Real_v &t_v)
   {
     constexpr size_t kVecSize = vecCore::VectorSize<Real_v>();
     size_t nelem              = kVecSize;
     if (Tail) nelem           = ntracks - offset;
     assert(offset <= ntracks - nelem);
     for (size_t i = 0; i < nelem; ++i)
-      vecCore::Set(t_v, i, tracks[offset + i]->T());
+      vecCore::Set(t_v, i, tracks[offset + i]->Ekin());
     return nelem;
   }
 
@@ -868,7 +874,20 @@ public:
   /** @brief Setter for energy */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetE(double e) { fE = e; }
+  void SetE(double e)
+  {
+    fE       = e;
+    fLogEkin = (e - fMass > 0) ? Math::Log(e - fMass) : -1.;
+  }
+
+  /** @brief Setter for the kinetic energy */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetEkin(double ekin)
+  {
+    fE       = ekin + fMass;
+    fLogEkin = (ekin > 0) ? Math::Log(ekin) : -1.;
+  }
 
   /** @brief Setter for energy */
   VECCORE_ATT_HOST_DEVICE
@@ -1006,7 +1025,7 @@ public:
   GEANT_FORCE_INLINE
   void Stop()
   {
-    fEdep = T();
+    fEdep = Ekin();
     fE    = fMass;
     fP    = 0;
   }

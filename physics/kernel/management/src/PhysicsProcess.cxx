@@ -77,7 +77,7 @@ double PhysicsProcess::PostStepLimitationLength(geant::Track *gtrack, geant::Tas
   // get the material-cuts and kinetic energy
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr()));
-  double ekin = gtrack->T();
+  double ekin = gtrack->Ekin();
   double mass = gtrack->Mass(); // dynamic mass of the particle
   // get/compute the mean free path by (1)getting/(2)computing the macroscopic scross section by Accounting Possible
   // Energy Losses along the step:

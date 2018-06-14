@@ -143,7 +143,7 @@ void CMSFullApp::FinishEvent(geant::Event *event)
     int primGVCode              = primTrack->GVcode();
     const std::string &primName = geantphysics::Particle::GetParticleByInternalCode(primGVCode)->GetName();
     int primTypeIndx            = CMSParticleGun::GetPrimaryTypeIndex(primName);
-    double primEkin             = primTrack->T();
+    double primEkin             = primTrack->Ekin();
     double xdir                 = primTrack->Dx();
     double ydir                 = primTrack->Dy();
     double zdir                 = primTrack->Dz();

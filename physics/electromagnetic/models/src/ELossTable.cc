@@ -41,8 +41,9 @@ ELossTable::~ELossTable()
   }
 }
 
-double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinenergy)
+double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinenergy, double logE)
 {
+  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-10);
   double dedx = 0.0;
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
@@ -57,7 +58,6 @@ double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinene
     } else if (kinenergy >= fMaxLossTableEnergy) {
       dedx = lossData->fRestrictedDEDXData[fNumLossTableBins - 1];
     } else {
-      double logE  = Math::Log(kinenergy);
       int lowEIndx = (int)((logE - fLogMinLossTableEnergy) * fEnergyILDelta);
       // we might put it under verbose build since
       // protection against very small numerical uncertainties
@@ -77,8 +77,9 @@ double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinene
   return dedx;
 }
 
-double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinenergy)
+double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinenergy, double logE)
 {
+  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-10);
   double range = 1.0e+20;
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
@@ -93,7 +94,6 @@ double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinen
     } else if (kinenergy >= fMaxLossTableEnergy) {
       range = lossData->fRestrictedRangeData[fNumLossTableBins - 1];
     } else {
-      double logE  = Math::Log(kinenergy);
       int lowEIndx = (int)((logE - fLogMinLossTableEnergy) * fEnergyILDelta);
       // we might put it under verbose build since
       // protection against very small numerical uncertainties
@@ -143,8 +143,9 @@ double ELossTable::GetEnergyForRestrictedRange(int matcutindx, int partindx, dou
   return energy;
 }
 
-double ELossTable::GetRange(int matindx, int partindx, double kinenergy)
+double ELossTable::GetRange(int matindx, int partindx, double kinenergy, double logE)
 {
+  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-10);
   double range = 1.e+20;
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
@@ -157,7 +158,6 @@ double ELossTable::GetRange(int matindx, int partindx, double kinenergy)
     } else if (kinenergy >= fMaxLossTableEnergy) {
       range = lossData->fRangeData[fNumLossTableBins - 1];
     } else {
-      double logE  = Math::Log(kinenergy);
       int lowEIndx = (int)((logE - fLogMinLossTableEnergy) * fEnergyILDelta);
       // we might put it under verbose build since
       // protection against very small numerical uncertainties

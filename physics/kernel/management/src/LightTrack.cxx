@@ -8,21 +8,21 @@ namespace geantphysics {
 
 LightTrack::LightTrack()
     : fTrackStatus(LTrackStatus::kNew), fGVcode(-1), fGTrackIndex(-1), fMaterialCutCoupleIndex(-1), fProcessIndex(0),
-      fTargetZ(0), fTargetN(0), fXdir(0.0), fYdir(0.0), fZdir(0.0), fKinE(-1.0), fMass(-1.0), fTime(-1.0), fWeight(1.0),
-      fStepLength(0.0), fEdep(0.0), fNintLen(-1.0), fIntLen(0.0), fExtraInfo(nullptr)
+      fTargetZ(0), fTargetN(0), fXdir(0.0), fYdir(0.0), fZdir(0.0), fKinE(-1.0), fLogKinE(-1.0), fMass(-1.0),
+      fTime(-1.0), fWeight(1.0), fStepLength(0.0), fEdep(0.0), fNintLen(-1.0), fIntLen(0.0), fExtraInfo(nullptr)
 {
 }
 
 LightTrack::LightTrack(const LTrackStatus aTrackStatus, const int aGVcode, const int aGTrackIndex,
                        const int aMaterialCutCoupleIndex, const int aProcessIndex, const int aTargetZ,
                        const int aTargetN, const double aXdir, const double aYdir, const double aZdir,
-                       const double aKinE, const double aMass, const double aTime, const double aWeight,
-                       const double aStepLength, const double aEdep, const double aNintLen, const double aIntLen,
-                       ExtraInfo *aExtraInfo)
+                       const double aKinE, const double aLogKinE, const double aMass, const double aTime,
+                       const double aWeight, const double aStepLength, const double aEdep, const double aNintLen,
+                       const double aIntLen, ExtraInfo *aExtraInfo)
     : fTrackStatus(aTrackStatus), fGVcode(aGVcode), fGTrackIndex(aGTrackIndex),
       fMaterialCutCoupleIndex(aMaterialCutCoupleIndex), fProcessIndex(aProcessIndex), fTargetZ(aTargetZ),
-      fTargetN(aTargetN), fXdir(aXdir), fYdir(aYdir), fZdir(aZdir), fKinE(aKinE), fMass(aMass), fTime(aTime),
-      fWeight(aWeight), fStepLength(aStepLength), fEdep(aEdep), fNintLen(aNintLen), fIntLen(aIntLen),
+      fTargetN(aTargetN), fXdir(aXdir), fYdir(aYdir), fZdir(aZdir), fKinE(aKinE), fLogKinE(aLogKinE), fMass(aMass),
+      fTime(aTime), fWeight(aWeight), fStepLength(aStepLength), fEdep(aEdep), fNintLen(aNintLen), fIntLen(aIntLen),
       fExtraInfo(aExtraInfo)
 {
 }
@@ -31,7 +31,7 @@ LightTrack::LightTrack(const LightTrack &other)
     : fTrackStatus(other.fTrackStatus), fGVcode(other.fGVcode), fGTrackIndex(other.fGTrackIndex),
       fMaterialCutCoupleIndex(other.fMaterialCutCoupleIndex), fProcessIndex(other.fProcessIndex),
       fTargetZ(other.fTargetZ), fTargetN(other.fTargetN), fXdir(other.fXdir), fYdir(other.fYdir), fZdir(other.fZdir),
-      fKinE(other.fKinE), fMass(other.fMass), fTime(other.fTime), fWeight(other.fWeight),
+      fKinE(other.fKinE), fLogKinE(other.fLogKinE), fMass(other.fMass), fTime(other.fTime), fWeight(other.fWeight),
       fStepLength(other.fStepLength), fEdep(other.fEdep), fExtraInfo(other.fExtraInfo)
 {
 }
@@ -50,6 +50,7 @@ LightTrack &LightTrack::operator=(const LightTrack &other)
     fYdir                   = other.fYdir;
     fZdir                   = other.fZdir;
     fKinE                   = other.fKinE;
+    fLogKinE                = other.fLogKinE;
     fMass                   = other.fMass;
     fTime                   = other.fTime;
     fWeight                 = other.fWeight;
@@ -75,11 +76,12 @@ LightTrack_v::LightTrack_v() : fNtracks(0)
   for (int i = 0; i < kSOAMaxSize; ++i) {
     fExtraInfoV[i] = nullptr;
   }
-  fXdirV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
-  fYdirV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
-  fZdirV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
-  fKinEV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
-  fEdepV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fXdirV    = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fYdirV    = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fZdirV    = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fKinEV    = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fLogKinEV = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
+  fEdepV    = (double *)vecCore::AlignedAlloc(64, kSOAMaxSize * sizeof(double));
 }
 
 void LightTrack_v::GetTrack(const int i, LightTrack &aLightTrack) const
@@ -96,6 +98,7 @@ void LightTrack_v::GetTrack(const int i, LightTrack &aLightTrack) const
   aLightTrack.SetDirY(fYdirV[i]);
   aLightTrack.SetDirZ(fZdirV[i]);
   aLightTrack.SetKinE(fKinEV[i]);
+  aLightTrack.SetLogKinE(fLogKinEV[i]);
   aLightTrack.SetMass(fMassV[i]);
   aLightTrack.SetTime(fTimeV[i]);
   aLightTrack.SetWeight(fWeightV[i]);
@@ -117,6 +120,7 @@ void LightTrack_v::SetTrack(const int i, const LightTrack &aLightTrack)
   fYdirV[i]                   = aLightTrack.GetDirY();
   fZdirV[i]                   = aLightTrack.GetDirZ();
   fKinEV[i]                   = aLightTrack.GetKinE();
+  fLogKinEV[i]                = aLightTrack.GetLogKinE();
   fMassV[i]                   = aLightTrack.GetMass();
   fTimeV[i]                   = aLightTrack.GetTime();
   fWeightV[i]                 = aLightTrack.GetWeight();
@@ -139,6 +143,7 @@ void LightTrack_v::AddTrack(LightTrack &aLightTrack)
   fYdirV[itrack]                   = aLightTrack.GetDirY();
   fZdirV[itrack]                   = aLightTrack.GetDirZ();
   fKinEV[itrack]                   = aLightTrack.GetKinE();
+  fLogKinEV[itrack]                = aLightTrack.GetLogKinE();
   fMassV[itrack]                   = aLightTrack.GetMass();
   fTimeV[itrack]                   = aLightTrack.GetTime();
   fWeightV[itrack]                 = aLightTrack.GetWeight();
@@ -157,6 +162,7 @@ LightTrack_v::~LightTrack_v()
   vecCore::AlignedFree(fYdirV);
   vecCore::AlignedFree(fZdirV);
   vecCore::AlignedFree(fKinEV);
+  vecCore::AlignedFree(fLogKinEV);
   vecCore::AlignedFree(fEdepV);
 }
 

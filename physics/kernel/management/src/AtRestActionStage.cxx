@@ -43,7 +43,7 @@ int AtRestActionStage::CreateHandlers()
 // Selects tracks that have any at-rest processes
 geant::Handler *AtRestActionStage::Select(geant::Track *track, geant::TaskData * /*td*/)
 {
-  if (track->T() <= 0.) {
+  if (track->Ekin() <= 0.) {
     // here we will get the MaterialCuts from the LogicalVolume
     const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
         (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));

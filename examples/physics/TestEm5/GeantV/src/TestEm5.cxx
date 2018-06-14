@@ -116,7 +116,7 @@ void TestEm5::SteppingActions(geant::Track &track, geant::TaskData *td)
   const geantphysics::Particle *part = geantphysics::Particle::GetParticleByInternalCode(track.GVcode());
   int pdgCode                        = part->GetPDGCode();
   double charge                      = part->GetPDGCharge();
-  double ekin                        = track.T();
+  double ekin                        = track.Ekin();
   //
   bool isTransmit  = ((track.Dx() > 0. && track.X() > 0.0 && track.Status() == geant::kBoundary) && (ekin > 0.0));
   bool isReflected = ((track.Dx() < 0. && track.X() < 0.0 && track.Status() == geant::kBoundary) && (ekin > 0.0));

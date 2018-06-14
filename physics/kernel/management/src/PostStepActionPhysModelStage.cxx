@@ -77,12 +77,12 @@ geant::Handler *PostStepActionPhysModelStage::Select(geant::Track *track, geant:
     }
 
     auto emProc  = static_cast<geantphysics::EMPhysicsProcess *>(pProc);
-    auto emModel = emProc->PostStepSelectModel(track->T(), regionIndex);
+    auto emModel = emProc->PostStepSelectModel(track->Ekin(), regionIndex);
     if (!emModel) {
       // Energy < min energy for process
       return nullptr;
     }
-    if (!emModel->IsModelUsable(matCut, track->T())) return nullptr;
+    if (!emModel->IsModelUsable(matCut, track->Ekin())) return nullptr;
 
     int modelIndex = emModel->GetGlobalIndex();
     return fHandlersPerModel[modelIndex];

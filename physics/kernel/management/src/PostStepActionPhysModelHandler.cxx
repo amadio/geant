@@ -48,7 +48,8 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
-  primaryLT.SetKinE(track->T());
+  primaryLT.SetKinE(track->Ekin());
+  primaryLT.SetLogKinE(track->LogEkin());
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
   primaryLT.SetDirX(track->Dx());
@@ -63,7 +64,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
   // update Track
   double newEkin = primaryLT.GetKinE();
   track->SetMass(primaryLT.GetMass());
-  track->SetE(newEkin + track->Mass());
+  track->SetEkin(newEkin);
   track->SetP(std::sqrt(newEkin * (newEkin + 2.0 * track->Mass())));
   track->SetDirection(primaryLT.GetDirX(), primaryLT.GetDirY(), primaryLT.GetDirZ());
   track->SetEdep(track->Edep() + primaryLT.GetEnergyDeposit());
@@ -104,7 +105,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
       geantTrack.SetDirection(secLt[isec].GetDirX(), secLt[isec].GetDirY(), secLt[isec].GetDirZ());
       double secEkin = secLt[isec].GetKinE();
       geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
-      geantTrack.SetE(secEkin + geantTrack.Mass());                              // total E of this secondary particle
+      geantTrack.SetEkin(secEkin);                                               // kinetic E of this secondary particle
       geantTrack.SetTime(track->Time());                                         // global time
       geantTrack.SetSafety(track->GetSafety());
       geantTrack.SetBoundary(track->Boundary());
@@ -144,7 +145,8 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
         (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
     primaryLTs.SetMaterialCutCoupleIndex(matCut->GetIndex(), i);
-    primaryLTs.SetKinE(track->T(), i);
+    primaryLTs.SetKinE(track->Ekin(), i);
+    primaryLTs.SetLogKinE(track->LogEkin(), i);
     primaryLTs.SetMass(track->Mass(), i);
     primaryLTs.SetGVcode(track->GVcode(), i);
     primaryLTs.SetDirX(track->Dx(), i);
@@ -164,7 +166,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     geant::Track *track = gtracks[i];
     double newEkin      = primaryLTs.GetKinE(i);
     track->SetMass(primaryLTs.GetMass(i));
-    track->SetE(newEkin + track->Mass());
+    track->SetEkin(newEkin);
     track->SetP(std::sqrt(newEkin * (newEkin + 2.0 * track->Mass())));
     track->SetDirection(primaryLTs.GetDirX(i), primaryLTs.GetDirY(i), primaryLTs.GetDirZ(i));
     track->SetEdep(track->Edep() + primaryLTs.GetEnergyDeposit(i));
@@ -218,7 +220,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     geantTrack.SetDirection(secondaryLTs.GetDirX(i), secondaryLTs.GetDirY(i), secondaryLTs.GetDirZ(i));
     double secEkin = secondaryLTs.GetKinE(i);
     geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
-    geantTrack.SetE(secEkin + geantTrack.Mass());                              // total E of this secondary particle
+    geantTrack.SetEkin(secEkin);                                               // kinetic E of this secondary particle
     geantTrack.SetTime(track->Time());                                         // global time
     geantTrack.SetSafety(track->GetSafety());
     geantTrack.SetBoundary(track->Boundary());

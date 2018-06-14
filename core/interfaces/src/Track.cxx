@@ -103,6 +103,7 @@ Track &Track::operator=(const Track &other)
     fZdir               = other.fZdir;
     fP                  = other.fP;
     fE                  = other.fE;
+    fLogEkin            = other.fLogEkin;
     fTime               = other.fTime;
     fEdep               = other.fEdep;
     fPstep              = other.fPstep;
@@ -159,6 +160,7 @@ void Track::Clear(const char *)
   fZdir        = 0.;
   fP           = 0.;
   fE           = 0.;
+  fLogEkin     = -1;
   fTime        = 0.;
   fEdep        = 0;
   fPstep       = 1.E20;

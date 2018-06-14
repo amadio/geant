@@ -79,11 +79,12 @@ public:
    * @param[in] matcut    Pointer to the MaterialCuts object in which the restricted stopping power is requested.
    * @param[in] part      Pointer to the Particle for which the restricted stopping power is requested.
    * @param[in] kinenergy Kinetic energy of the particle at which the restricted stopping power is requested.
+   * @param[in] logkine     Pre-computed logarithm of kinetic energy of the particle.
    * @return    Restricted total stopping power in the given MaterialCuts, Particle, kinetic energy(if the corresponding
    *            stopping power table was built) in internal [energy/length] units.
    *            Zero otherwise.
    */
-  double GetRestrictedDEDX(const MaterialCuts *matcut, const Particle *part, double kinenergy);
+  double GetRestrictedDEDX(const MaterialCuts *matcut, const Particle *part, double kinenergy, double logkine);
 
   /** @brief  Run time method to obtain restricted range for the given MaterialCuts, Particle and kinetic energy.
    *
@@ -94,11 +95,12 @@ public:
    * @param[in] matcut    Pointer to the MaterialCuts object in which the restricted range is requested.
    * @param[in] part      Pointer to the Particle for which the restricted range is requested.
    * @param[in] kinenergy Kinetic energy of the particle at which the restricted range is requested.
+   * @param[in] logkine   Pre-computed logarithm of kinetic energy of the particle.
    * @return    Restricted range in the given MaterialCuts, Particle, kinetic energy(if the corresponding restricted
    *            range table was built) in internal [length] units.
    *            A high (1.0e+20) value otherwise.
    */
-  double GetRestrictedRange(const MaterialCuts *matcut, const Particle *part, double kinenergy);
+  double GetRestrictedRange(const MaterialCuts *matcut, const Particle *part, double kinenergy, double logkine);
 
   /** @brief  Run time method to obtain the kinetic energy that corresponds to a given restricted range in the given
    *          MaterialCuts and Particle.
@@ -132,11 +134,12 @@ public:
    * @param[in] matcut    Pointer to the MaterialCuts object in which the full(CSDA) range is requested.
    * @param[in] part      Pointer to the Particle for which the full(CSDA) range is requested.
    * @param[in] kinenergy Kinetic energy of the particle at which the full(CSDA) range is requested.
+   * @param[in] logkine   Pre-computed logarithm of kinetic energy of the particle.
    * @return    The full(CSDA) range in the given MaterialCuts, Particle, kinetic energy(if the corresponding restricted
    *            range table was built) in internal [length] units.
    *            A high value (1.0e+20) value otherwise.
    */
-  double GetRange(const MaterialCuts *matcut, const Particle *part, double kinenergy);
+  double GetRange(const MaterialCuts *matcut, const Particle *part, double kinenergy, double logkine);
 
   /*
     // just for testing

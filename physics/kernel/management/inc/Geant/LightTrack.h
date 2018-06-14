@@ -55,6 +55,7 @@ private:
   double fYdir;       /** Y direction (normalized, adimensional) of the particle */
   double fZdir;       /** Z direction (normalized, adimensional) of the particle */
   double fKinE;       /** Kinetic energy (in GeV) of the particle */
+  double fLogKinE;    /** Logarithm of kinetic energy (in GeV) of the particle */
   double fMass;       /** Dynamic mass (in GeV) of the particle */
   double fTime;       /** Time (global, in sec) of the particle */
   double fWeight;     /** Weight (adimensional) of the particle */
@@ -74,8 +75,8 @@ public:
   /** @brief LightTrack complete constructor */
   LightTrack(const LTrackStatus aTrackStatus, const int aGVcode, const int aGTrackIndex,
              const int aMaterialCutCoupleIndex, const int aProcessIndex, const int aTargetZ, const int aTargetN,
-             const double aXdir, const double aYdir, const double aZdir, const double aKinE, const double aMass,
-             const double aTime, const double aWeight, const double aStepLength, const double aEdep,
+             const double aXdir, const double aYdir, const double aZdir, const double aKinE, const double aLogKinE,
+             const double aMass, const double aTime, const double aWeight, const double aStepLength, const double aEdep,
              const double aNintLen, const double aIntLen, ExtraInfo *aExtraInfo = 0);
 
   /** @brief LightTrack copy constructor */
@@ -121,6 +122,9 @@ public:
 
   /** @brief Method that returns the kinetic energy (unit: energy) */
   double GetKinE() const { return fKinE; }
+
+  /** @brief Method that returns the logarithm of the kinetic energy */
+  double GetLogKinE() const { return fLogKinE; }
 
   /** @brief Method that returns the dynamic mass (unit: energy) */
   double GetMass() const { return fMass; }
@@ -227,6 +231,12 @@ public:
   void SetKinE(const double aKinE) { fKinE = aKinE; }
 
   /**
+   * @brief Method that sets the logarithm of the kinetic energy
+   * @param aLogKinE logarithm of kinetic energy
+   */
+  void SetLogKinE(const double aLogKinE) { fLogKinE = aLogKinE; }
+
+  /**
    * @brief Method that sets the dynamic mass
    * @param aMass dynamic mass (unit: energy)
    */
@@ -315,6 +325,7 @@ public:
   double *fYdirV;                   /** Y directions (normalized, adimensional) of the particles */
   double *fZdirV;                   /** Z directions (normalized, adimensional) of the particles */
   double *fKinEV;                   /** Kinetic energies (in GeV) of the particles */
+  double *fLogKinEV;                /** Logarithms of kinetic energies of the particles */
   double *fEdepV;                   /** Energy deposits (in GeV) in the last step of the particles */
   double fMassV[kSOAMaxSize];       /** Dynamic masses (in GeV) of the particles */
   double fTimeV[kSOAMaxSize];       /** Times (global, in sec) of the particles */
@@ -435,6 +446,16 @@ public:
     return tmp;
   }
 
+  /** @brief Method that returns the logarithm of the kinetic energy */
+  double GetLogKinE(int i) const { return fLogKinEV[i]; }
+
+  geant::Double_v GetLogKinEVec(int i) const
+  {
+    geant::Double_v tmp;
+    vecCore::Load(tmp, &fLogKinEV[i]);
+    return tmp;
+  }
+
   double *GetKinEArr(int i = 0) { return &fKinEV[i]; }
 
   /** @brief Method that returns the dynamic mass (unit: energy) */
@@ -542,6 +563,12 @@ public:
   void SetKinE(const double aKinE, int i) { fKinEV[i] = aKinE; }
 
   /**
+   * @brief Method that sets the logarithm of the kinetic energy
+   * @param aKinE kinetic energy (unit: energy)
+   */
+  void SetLogKinE(const double aLogKinE, int i) { fLogKinEV[i] = aLogKinE; }
+
+  /**
    * @brief Method that sets the dynamic mass
    * @param aMass dynamic mass (unit: energy)
    */
@@ -610,7 +637,7 @@ public:
   {
     int ones  = fNtracks - 1;
     int zeros = 0;
-    while (zeros < ones) {
+    while (zeros <= ones) {
       if (fSortKey[zeros] == 0) {
         ++zeros;
         continue;
@@ -643,6 +670,7 @@ private:
     std::swap(fYdirV[i], fYdirV[j]);
     std::swap(fZdirV[i], fZdirV[j]);
     std::swap(fKinEV[i], fKinEV[j]);
+    std::swap(fLogKinEV[i], fLogKinEV[j]);
     std::swap(fMassV[i], fMassV[j]);
     std::swap(fTimeV[i], fTimeV[j]);
     std::swap(fWeightV[i], fWeightV[j]);

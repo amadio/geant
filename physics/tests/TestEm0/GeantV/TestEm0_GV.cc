@@ -26,6 +26,7 @@
 #include <getopt.h>
 #include <err.h>
 
+#include "Geant/math_wrappers.h"
 #include "Geant/Material.h"
 #include "Geant/Element.h"
 #include "Geant/MaterialCuts.h"
@@ -162,6 +163,7 @@ int main(int argc, char *argv[])
   //
   // Set particle kinetic energy
   double kineticEnergy = primaryEnergy;
+  double logKinE       = Math::Log(primaryEnergy);
 
   //
   // Set production cuts if needed
@@ -422,8 +424,9 @@ int main(int argc, char *argv[])
     }
     std::cout << std::endl;
 
-    double getRestrictedDEDX = ELossTableManager::Instance().GetRestrictedDEDX(matCut, particle, kineticEnergy) /
-                               (geant::units::MeV / geant::units::cm);
+    double getRestrictedDEDX =
+        ELossTableManager::Instance().GetRestrictedDEDX(matCut, particle, kineticEnergy, logKinE) /
+        (geant::units::MeV / geant::units::cm);
     std::cout << "   restricted dE/dx (MeV/cm)   :";
     std::cout << std::setw(29) << std::setfill('.') << std::right << " ( interpolated from" << std::left
               << " the ELossTable )" << std::setw(24) << std::scientific << std::right << getRestrictedDEDX
@@ -464,7 +467,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
 
     double getRestrictedRange =
-        ELossTableManager::Instance().GetRestrictedRange(matCut, particle, kineticEnergy) / (geant::units::mm);
+        ELossTableManager::Instance().GetRestrictedRange(matCut, particle, kineticEnergy, logKinE) / (geant::units::mm);
     std::cout << "   range from restricted dE/dx :";
     std::cout << std::setw(29) << std::setfill('.') << std::right << " ( interpolated from" << std::left
               << " the ELossTable )" << std::setw(24) << std::scientific << std::right << getRestrictedRange
@@ -472,7 +475,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
 
     double getUnRestrictedRange =
-        ELossTableManager::Instance().GetRange(matCut, particle, kineticEnergy) / (geant::units::mm);
+        ELossTableManager::Instance().GetRange(matCut, particle, kineticEnergy, logKinE) / (geant::units::mm);
     std::cout << "   range from full dE/dx       :";
     std::cout << std::setw(29) << std::setfill('.') << std::right << " ( interpolated from" << std::left
               << " the ELossTable )" << std::setw(24) << std::scientific << std::right << getUnRestrictedRange

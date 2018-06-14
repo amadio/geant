@@ -88,8 +88,8 @@ double EMPhysicsProcess::ComputeDEDX(const MaterialCuts *matcut, double kinenerg
     // loop over the EMModel-s that are active in the region that the current MaterialCuts belongs to;
     // ask them to provide their dedx contribution;
     // use smoothing between models
-    const std::vector<EMModel *> & models = fModelManager->GetModelListInRegion(matcut->GetRegionIndex());
-    int numModels                         = models.size();
+    const std::vector<EMModel *> &models = fModelManager->GetModelListInRegion(matcut->GetRegionIndex());
+    int numModels                        = models.size();
     //      std::cerr<<"  numModels = "<< numModels<<std::endl;
     if (numModels == 0) return dedx;
     if (numModels == 1) {
@@ -180,10 +180,10 @@ double EMPhysicsProcess::AlongStepLimitationLength(geant::Track *gtrack, geant::
   if (GetType() == ProcessType::kEnergyLoss) {
     void *mcptr                = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetMaterialCutsPtr();
     const MaterialCuts *matCut = static_cast<const MaterialCuts *>(mcptr);
-    double ekin                = gtrack->T();
+    double ekin                = gtrack->Ekin();
     const Particle *part       = Particle::GetParticleByInternalCode(gtrack->GVcode());
-    double range               = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin);
-    stepLimit                  = range;
+    double range = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin, gtrack->LogEkin());
+    stepLimit    = range;
     if (range > fFinalRange) {
       stepLimit = range * fDRoverRange + fFinalRange * (1.0 - fDRoverRange) * (2.0 - fFinalRange / range);
     }
@@ -216,7 +216,7 @@ int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, geant::TaskData * /*td*/)
     const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
     const Particle *part       = Particle::GetParticleByInternalCode(track.GetGVcode());
     double ekin                = track.GetKinE();
-    double range               = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin);
+    double range = ELossTableManager::Instance().GetRestrictedRange(matCut, part, ekin, track.GetLogKinE());
     if (stepLength >= range || ekin <= fLowestKineticEnergy) {
       // the partcile kinetic energy goes to energy deposit
       // update primary track
@@ -228,7 +228,7 @@ int EMPhysicsProcess::AlongStepDoIt(LightTrack &track, geant::TaskData * /*td*/)
     //
     // need to compute energy loss
     // 1. try linear energy loss approximation
-    double eloss = stepLength * ELossTableManager::Instance().GetRestrictedDEDX(matCut, part, ekin);
+    double eloss = stepLength * ELossTableManager::Instance().GetRestrictedDEDX(matCut, part, ekin, track.GetLogKinE());
     // 2. check if linear approximation is fine i.e. compare to the allowed energy loss fraction and
     //    use integral value if needed
     if (eloss > ekin * fLinearEnergyLossLimit) {

@@ -42,13 +42,14 @@ void ELossTableManager::Clear()
   fElossTablePerMaterialCuts.clear();
 }
 
-double ELossTableManager::GetRestrictedDEDX(const MaterialCuts *matcut, const Particle *part, double kinenergy)
+double ELossTableManager::GetRestrictedDEDX(const MaterialCuts *matcut, const Particle *part, double kinenergy,
+                                            double logkine)
 {
   double dedx = 0.0;
   // should work properly without this check; we need to put it under verbose build
   if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
-    dedx = fElossTablePerMaterialCuts[matcut->GetIndex()]->GetRestrictedDEDX(matcut->GetIndex(),
-                                                                             part->GetInternalCode(), kinenergy);
+    dedx = fElossTablePerMaterialCuts[matcut->GetIndex()]->GetRestrictedDEDX(
+        matcut->GetIndex(), part->GetInternalCode(), kinenergy, logkine);
   } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
     std::cerr << "  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
     std::cerr << matcut << std::endl;
@@ -56,13 +57,14 @@ double ELossTableManager::GetRestrictedDEDX(const MaterialCuts *matcut, const Pa
   return dedx;
 }
 
-double ELossTableManager::GetRestrictedRange(const MaterialCuts *matcut, const Particle *part, double kinenergy)
+double ELossTableManager::GetRestrictedRange(const MaterialCuts *matcut, const Particle *part, double kinenergy,
+                                             double logkine)
 {
   double range = 1.0e+20;
   // should work properly without this check; we need to put it under verbose build
   if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
-    range = fElossTablePerMaterialCuts[matcut->GetIndex()]->GetRestrictedRange(matcut->GetIndex(),
-                                                                               part->GetInternalCode(), kinenergy);
+    range = fElossTablePerMaterialCuts[matcut->GetIndex()]->GetRestrictedRange(
+        matcut->GetIndex(), part->GetInternalCode(), kinenergy, logkine);
   } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
     std::cerr << "  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
     std::cerr << matcut << std::endl;
@@ -84,13 +86,13 @@ double ELossTableManager::GetEnergyForRestrictedRange(const MaterialCuts *matcut
   return energy;
 }
 
-double ELossTableManager::GetRange(const MaterialCuts *matcut, const Particle *part, double kinenergy)
+double ELossTableManager::GetRange(const MaterialCuts *matcut, const Particle *part, double kinenergy, double logkine)
 {
   double range = 1.0e+20;
   // should work properly without this check; we need to put it under verbose build
   if (fElossTablePerMaterialCuts[matcut->GetIndex()]) {
     range = fElossTablePerMaterialCuts[matcut->GetIndex()]->GetRange(matcut->GetMaterial()->GetIndex(),
-                                                                     part->GetInternalCode(), kinenergy);
+                                                                     part->GetInternalCode(), kinenergy, logkine);
   } else { // there is no any ELossTable active in the region where the MatrialCut belongs to; should never happen
     std::cerr << "  ====  ELossTableManager:  No ELossTable for MaterialCuts: \n";
     std::cerr << matcut << std::endl;
