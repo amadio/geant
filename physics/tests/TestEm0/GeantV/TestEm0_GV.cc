@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     processNameVect.push_back(proc->GetName());
     compMacXsecPerProcessVect.push_back(proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, dynamicMass));
     compTotalMacXsec += compMacXsecPerProcessVect[i];
-    getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, dynamicMass));
+    getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, logKinE, dynamicMass));
     getTotalMacXsec += getMacXsecPerProcessVect[i];
     EMPhysicsProcess *emProc = nullptr;
     if (proc->GetType() == geantphysics::ProcessType::kElectromagnetic ||

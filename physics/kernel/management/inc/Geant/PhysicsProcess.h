@@ -185,8 +185,8 @@ public:
   // will be called only if GetMacroscopicXSectionMaximumEnergy < gAVeryLargeValue
   virtual double MacroscopicXSectionMaximum(const MaterialCuts * /*matcut*/) { return 0.; }
 
-  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass);
-  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass, bool haseloss = false);
+  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logekin, double mass);
+  double GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double logekin, double mass, bool haseloss = false);
 
   //--- Getters ---
   /** Method to get the index of this process in the per particle process manager */

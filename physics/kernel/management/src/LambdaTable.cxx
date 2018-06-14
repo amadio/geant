@@ -60,13 +60,13 @@ void LambdaTable::ClearAllTables()
   }
 }
 
-double LambdaTable::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin)
+double LambdaTable::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logE)
 {
+  assert(std::abs(logE - Math::Log(ekin)) < 1.e-10);
   double macXsec = 0.;
   if (fIsLambdaTablesPerMaterial) {
     // return with zero if below or above the min/max lambda table energy
     if (ekin >= fEnergyGrid[0] && ekin <= fEnergyGrid[fNumLambdaTableBins - 1]) {
-      double logE  = Math::Log(ekin);
       int lowEIndx = (int)((logE - fLogMinLambdaTableEnergy) * fEnergyILDelta);
       if (lowEIndx >= fNumLambdaTableBins - 1) --lowEIndx;
       // we might put it under verbose build since
@@ -85,7 +85,6 @@ double LambdaTable::GetMacroscopicXSection(const MaterialCuts *matcut, double ek
     // return with zero if below or above the min/max lambda table energy
     struct LambdaTableForAMaterialCuts *data = fLambdaTablesPerMaterialCuts[matcut->GetIndex()];
     if (ekin >= data->fEnergyGrid[0] && ekin <= data->fEnergyGrid[data->fNumLambdaTableBins - 1]) {
-      double logE  = Math::Log(ekin);
       int lowEIndx = (int)((logE - data->fLogMinLambdaTableEnergy) * data->fEnergyILDelta);
       if (lowEIndx >= data->fNumLambdaTableBins - 1) --lowEIndx;
       // we might put it under verbose build since

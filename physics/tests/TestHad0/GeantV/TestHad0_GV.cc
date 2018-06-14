@@ -186,6 +186,7 @@ int main(int argc, char *argv[])
   //
   // Set particle kinetic energy
   double kineticEnergy = primaryEnergy;
+  double logKinE       = Math::Log(primaryEnergy);
 
   //============= Initialization i.e. building up and init the physics ========================//
   //
@@ -300,7 +301,7 @@ int main(int argc, char *argv[])
     compMacXsecPerProcessVect.push_back(
         proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, particle->GetPDGMass()));
     compTotalMacXsec += compMacXsecPerProcessVect[i];
-    getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, particle->GetPDGMass()));
+    getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, logKinE, particle->GetPDGMass()));
     getTotalMacXsec += getMacXsecPerProcessVect[i];
 
     if (isSingleElementMaterial) {

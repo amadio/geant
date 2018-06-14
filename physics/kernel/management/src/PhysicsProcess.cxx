@@ -83,7 +83,7 @@ double PhysicsProcess::PostStepLimitationLength(geant::Track *gtrack, geant::Tas
   // Energy Losses along the step:
   // - (1) from lambda table requested to built by the process
   // - (2) or by calling the ComputeMacroscopicXSection interface method directly if there is no lambda-table
-  double macrXsec = GetMacroscopicXSectionForStepping(matCut, ekin, mass, haseloss);
+  double macrXsec = GetMacroscopicXSectionForStepping(matCut, ekin, gtrack->LogEkin(), mass, haseloss);
   double mfp      = GetAVeryLargeValue();
   if (macrXsec > 0.) {
     mfp = 1. / macrXsec;
@@ -152,13 +152,13 @@ double PhysicsProcess::GetMacroscopicXSectionMaximum(const MaterialCuts *matcut)
   return maxOfMacXsec;
 }
 
-double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double mass)
+double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logE, double mass)
 {
   double macrXsec = 0.;
   // Get the macroscopic cross section form the lambda table if it was requested to be built by the process or
   // call the ComputeMacroscopicXSection interface method to compute it on-the-fly
   if (fLambdaTable) {
-    macrXsec = fLambdaTable->GetMacroscopicXSection(matcut, ekin);
+    macrXsec = fLambdaTable->GetMacroscopicXSection(matcut, ekin, logE);
   } else {
     macrXsec = ComputeMacroscopicXSection(matcut, ekin, fParticle, mass);
   }
@@ -169,9 +169,10 @@ double PhysicsProcess::GetMacroscopicXSection(const MaterialCuts *matcut, double
 }
 
 // called only at the pre-step point
-double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double mass,
+double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *matcut, double ekin, double logekin, double mass,
                                                          bool haseloss)
 {
+  constexpr double log08 = -0.22314355131420971;
   double macrXsec = 0.;
   // account possible energy loss along the step if the particle has energy loss process(es)
   if (haseloss) {
@@ -197,6 +198,7 @@ double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *mat
       } else {
         // otherwise we are still on the right side of the maximum so provide 1/lambda at this reduced energy
         ekin = ekinReduced;
+        logekin += log08;
       }
     }
     // if we did not return earlier then we need to provide 1/lambda at ekin that has been set properly above to ensure
@@ -204,7 +206,7 @@ double PhysicsProcess::GetMacroscopicXSectionForStepping(const MaterialCuts *mat
     // current, pre-step and post-step point energy:
   }
   //
-  macrXsec = GetMacroscopicXSection(matcut, ekin, mass);
+  macrXsec = GetMacroscopicXSection(matcut, ekin, logekin, mass);
   return macrXsec;
 }
 

@@ -220,7 +220,7 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, geant::Track *g
   if (HasEnergyLossProcess()) {
     // get the current i.e. for the post-step kinetic energy 1/lambda and compare to the pre-step i.e. overestimated
     // 1/lambda to see if it is just a delta interaction and return immediately with null process if yes
-    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, mass); // current 1/lambda
+    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, track.GetLogKinE(), mass); // current 1/lambda
     // preStepLambda is lambda and not 1/lambda
     if (curMacrXsec <= 0.0 || td->fRndm->uniform() > curMacrXsec * preStepLambda) { // delta interaction
       proc = nullptr;
@@ -249,7 +249,7 @@ PhysicsProcess *PhysicsManagerPerParticle::PostStepSelectProcess(geant::Track *g
   double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx);
   PhysicsProcess *proc = fProcessVec[physicsProcessIndx];
   if (HasEnergyLossProcess()) {
-    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, mass);
+    double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, gtrack->LogEkin(), mass);
     if (curMacrXsec <= 0.0 || td->fRndm->uniform() > curMacrXsec * preStepLambda) {
       proc = nullptr;
     }

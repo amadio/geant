@@ -47,10 +47,11 @@ public:
     *
     * @param[in]  matcut  Material-cuts in which the cross section is required.
     * @param[in]  ekin    Kinetic energy at which the cross section is required (in internal [energy] unit).
+    * @param[in ] logkine Pre-computed logarithm of kinetic energy of the particle.
     * @return     Macroscopic cross section for the specified input of the process-particle couple which the table
     *             belongs to (in internal [1/length] unit).
     */
-  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin);
+  double GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logkine);
 
   /** @brief Public method to provide the kinetic energy at which the macroscopic cross section of the process-particle
     *        couple reach its maximum value in the given material/material-cuts.
