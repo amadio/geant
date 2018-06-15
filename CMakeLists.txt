@@ -40,6 +40,8 @@ option(DISABLE_WEFFC "Disable Weffc++ flag" ON)
 
 message(STATUS "DISABLE_WEFFC=" ${DISABLE_WEFFC})
 
+option(GPERFTOOLS "Enable profiling using Google performance tools" OFF)
+
 option(MAGIC_DEBUG "Debug xsec serialisation with magic number" ON)
 if(MAGIC_DEBUG)
   add_definitions(-DMAGIC_DEBUG)
@@ -287,6 +289,20 @@ if (USE_NUMA)
   else()
     message(STATUS "Hardware locality (hwloc) libraries not found. Disabling NUMA.")
     set(USE_NUMA OFF)
+  endif()
+endif()
+
+#----------------------------------------------------------------------------
+# Find GPERFTOOLS
+#----------------------------------------------------------------------------
+if (GPERFTOOLS)
+  find_package(Gperftools)
+  if (GPERFTOOLS_FOUND)
+    message(STATUS "Found Gperftools in " ${GPERFTOOLS_LIBRARIES})
+    set(PROFILE_LIBRARIES ${GPERFTOOLS_LIBRARIES})
+  else()
+    message(STATUS "Gperftools libraries not found. Install libgoogle-perftools-dev. Disabling Gperftools.")
+    set(GPERFTOOLS OFF)
   endif()
 endif()
 
