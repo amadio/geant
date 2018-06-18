@@ -62,7 +62,7 @@ void LambdaTable::ClearAllTables()
 
 double LambdaTable::GetMacroscopicXSection(const MaterialCuts *matcut, double ekin, double logE)
 {
-  assert(std::abs(logE - Math::Log(ekin)) < 1.e-10);
+  assert(std::abs(logE - Math::Log(ekin)) < 1.e-7);
   double macXsec = 0.;
   if (fIsLambdaTablesPerMaterial) {
     // return with zero if below or above the min/max lambda table energy

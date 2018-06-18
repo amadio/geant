@@ -43,7 +43,7 @@ ELossTable::~ELossTable()
 
 double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinenergy, double logE)
 {
-  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-10);
+  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-7);
   double dedx = 0.0;
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
@@ -79,7 +79,7 @@ double ELossTable::GetRestrictedDEDX(int matcutindx, int partindx, double kinene
 
 double ELossTable::GetRestrictedRange(int matcutindx, int partindx, double kinenergy, double logE)
 {
-  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-10);
+  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-7);
   double range = 1.0e+20;
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;
@@ -145,7 +145,7 @@ double ELossTable::GetEnergyForRestrictedRange(int matcutindx, int partindx, dou
 
 double ELossTable::GetRange(int matindx, int partindx, double kinenergy, double logE)
 {
-  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-10);
+  assert(std::abs(logE - Math::Log(kinenergy)) < 1.e-7);
   double range = 1.e+20;
   // find the ELossData for the Particle and MaterialCuts by their provided indices
   ELossData *lossData = nullptr;

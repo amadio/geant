@@ -25,9 +25,7 @@ PostStepActionHandler::PostStepActionHandler(int threshold, geant::Propagator *p
 {
 }
 
-PostStepActionHandler::~PostStepActionHandler()
-{
-}
+PostStepActionHandler::~PostStepActionHandler() {}
 
 void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
 {
@@ -75,7 +73,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   // update Track
   double newEkin = primaryLT.GetKinE();
   track->SetMass(primaryLT.GetMass());
-  track->SetE(newEkin + track->Mass());
+  track->SetEkin(newEkin);
   track->SetP(std::sqrt(newEkin * (newEkin + 2.0 * track->Mass())));
   track->SetDirection(primaryLT.GetDirX(), primaryLT.GetDirY(), primaryLT.GetDirZ());
   track->SetEdep(track->Edep() + primaryLT.GetEnergyDeposit());
@@ -115,7 +113,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
       geantTrack.SetDirection(secLt[isec].GetDirX(), secLt[isec].GetDirY(), secLt[isec].GetDirZ());
       double secEkin = secLt[isec].GetKinE();
       geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
-      geantTrack.SetE(secEkin + geantTrack.Mass());                              // total E of this secondary particle
+      geantTrack.SetEkin(secEkin);                                               // total E of this secondary particle
       geantTrack.SetTime(track->Time());                                         // global time
       geantTrack.SetSafety(track->GetSafety());
       geantTrack.SetBoundary(track->Boundary());
