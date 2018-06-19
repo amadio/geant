@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Script running FullCMS simulation with identical configuration with GeantV and Geant4
+CONFIG_SCRIPT=$1
+if [ "$CONFIG_SCRIPT" = "" ]; then
+  echo "Usage: FullCMS.sh [configuration_script]"
+  exit 1
+fi
+. $CONFIG_SCRIPT
+INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
+### Geometry file used
+CMS_GDML="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cms.gdml"
+### Executables
+GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/GeantV/FullCMS
+GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/Geant4/full_cms
+
+# Run GeantV application
+$GEANTV_EXEC --det-set-gdml ${CMS_GDML} \
+             --gun-set-primary-energy ${GUN_PRIMARY_ENERGY} \
+             --gun-set-primary-type   ${GUN_PRIMARY_TYPE} \
+             --gun-set-primary-per-event ${CONFIG_PRIMARIES} \
+             --config-number-of-buffered-events    8 \
+             --config-total-number-of-events ${CONFIG_EVENTS} \
+             --config-number-of-threads ${CONFIG_THREADS} \
+             --config-number-of-propagators 1 \
+             --config-tracks-per-basket    16 \
+             --field-active ${FIELD_ACTIVE} \
+             --field-vector x=0.,y=0,z=40 \
+             --field-use-RK ${FIELD_USE_RK} \
+             --field-eps-RK 0.0003 \
+             --field-basketized ${CONFIG_BASKETIZED_FIELD} \
+             --config-run-performance ${CONFIG_PERFORMANCE} \
+             --config-vectorized-geom ${CONFIG_BASKETIZED_GEOM} \
+             --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS}
+
+# Generate the Geant4 macro
+
+cat >FullCMS_G4.mac <<EOL
+#
+# Geant4 macro for CMS setup
+#
+########################################################################
+##  SET NUMBER OF THREADS (will be ignored in case of sequential Geant4)
+## ---------------------------------------------------------------------
+/run/numberOfThreads ${CONFIG_THREADS}
+/control/verbose 0
+/run/verbose 0
+/tracking/verbose 0
+########################################################################
+##  DETECTOR AND MAGNETIC FIELD
+## ---------------------------------------------------------------------
+/mydet/setGdmlFile  ${CMS_GDML}
+## ---------------------------------------------------------------------
+EOL
+
+if [ "$FIELD_ACTIVE" = "1" ]; then
+cat >>FullCMS_G4.mac <<EOL
+##/mydet/setField    0.0 tesla
+##
+/mydet/setField 4.0 tesla
+## /mydet/useFieldMap
+EOL
+fi
+
+cat >>FullCMS_G4.mac <<EOL
+########################################################################
+##  INIT
+## ---------------------------------------------------------------------
+/run/initialize
+########################################################################
+##  PRIMARY GENERATOR
+## ---------------------------------------------------------------------
+/mygun/primaryPerEvt ${CONFIG_PRIMARIES}
+/mygun/particle      ${GUN_PRIMARY_TYPE}
+/mygun/energy        ${GUN_PRIMARY_ENERGY} GeV
+####/mygun/direction  0 1 0
+/run/beamOn ${CONFIG_EVENTS}
+#/process/list
+EOL
+
+# Check if the output is what we expect
+# cat FullCMS_G4.mac
+
+# Run Geant4 application
+
+if [ "$CONFIG_PERFORMANCE" = "0" ]; then
+  $GEANT4_EXEC -m FullCMS_G4.mac
+else
+  $GEANT4_EXEC -m FullCMS_G4.mac -p
+fi
+
+echo "### FullCMS was run with parameters:"
+echo "    - primary type:        $GUN_PRIMARY_TYPE"
+echo "    - primary energy:      $GUN_PRIMARY_ENERGY"
+echo "    - number of threads:   $CONFIG_THREADS"
+echo "    - number of events:    $CONFIG_EVENTS"
+echo "    - primaries per event: $CONFIG_PRIMARIES"
+echo "    - performance mode:    $CONFIG_PERFORMANCE"
+echo "    - field present:       $FIELD_ACTIVE"
+echo "    - field Runge-Kutta:   $FIELD_USE_RK"
+echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
+echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
+echo "    - basketized geometry: $CONFIG_BASKETIZED_GEOM"

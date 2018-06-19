@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# Script running TestEM3 simulation with identical configuration with GeantV and Geant4
+CONFIG_SCRIPT=$1
+if [ "$CONFIG_SCRIPT" = "" ]; then
+  echo "Usage: TestEm3.sh [configuration_script]"
+  exit 1
+fi
+. $CONFIG_SCRIPT
+INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
+### Executables
+GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/GeantV/TestEm3_GV
+GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/Geant4/TestEm3
+
+# Run GeantV application
+$GEANTV_EXEC --det-number-of-absorbers 2 \
+             --det-number-of-layers    50 \
+             --det-set-absorber  absorber-index=0,material-name=NIST_MAT_Pb \
+             --det-set-absorber  absorber-index=0,thickness=0.23 \
+             --det-set-absorber  absorber-index=1,material-name=NIST_MAT_lAr \
+             --det-set-absorber  absorber-index=1,thickness=0.57 \
+             --det-set-sizeYZ          40 \
+             --det-prod-cut-length     0.07 \
+             --gun-primary-energy ${GUN_PRIMARY_ENERGY} \
+             --gun-primary-type   ${GUN_PRIMARY_TYPE} \
+             --config-number-of-buffered-events    16 \
+             --config-total-number-of-events ${CONFIG_EVENTS} \
+             --config-number-of-primary-per-events ${CONFIG_PRIMARIES} \
+             --config-number-of-threads ${CONFIG_THREADS} \
+             --config-number-of-propagators 1 \
+             --config-tracks-per-basket    16 \
+             --field-active ${FIELD_ACTIVE} \
+             --field-vector x=0.,y=0,z=0.5 \
+             --field-use-RK ${FIELD_USE_RK} \
+             --field-eps-RK 0.0003 \
+             --field-basketized ${CONFIG_BASKETIZED_FIELD} \
+             --process-MSC-step-limit UseSafety \
+             --config-run-performance ${CONFIG_PERFORMANCE} \
+             --config-vectorized-geom ${CONFIG_BASKETIZED_GEOM} \
+             --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS}
+
+# Generate the Geant4 macro
+
+cat >TestEm3_G4.mac <<EOL
+#
+# Geant4 macro for SimplyCalo simplified calorimeter modeling
+#
+/control/verbose 0
+/run/numberOfThreads ${CONFIG_THREADS}
+/run/verbose 0
+/tracking/verbose 0
+#
+# Set up the ATLASbar simplf. calorimeter: 50 Layers of 2.3 mm Lead and 5.7 mm liquid-Argon
+/testem/det/setSizeYZ 40 cm
+/testem/det/setNbOfLayers 50
+/testem/det/setNbOfAbsor 2
+/testem/det/setAbsor 1 G4_Pb 2.3 mm
+/testem/det/setAbsor 2 G4_lAr 5.7 mm
+EOL
+if [ "$FIELD_ACTIVE" = "1" ]; then
+cat >>TestEm3_G4.mac <<EOL
+#
+# Set constant field
+#
+/testem/det/setField 0 0 0.5 kilogauss
+EOL
+fi
+
+cat >>TestEm3_G4.mac <<EOL
+#
+# Set the physics list: GVStandard is our default
+#
+/testem/phys/addPhysics   GVStandard
+#/testem/phys/addPhysics  emstandard_opt0
+#
+# Run initialization
+#
+/run/initialize
+#
+# Set the particle gun:
+#
+/gun/particle ${GUN_PRIMARY_TYPE}
+/gun/energy ${GUN_PRIMARY_ENERGY} GeV
+#
+# Set production cuts: 0.7 mm
+#
+/run/setCut 0.7 mm
+#
+# Reinit run and execute the simulation: with 10000 primaries
+#
+/run/initialize
+/tracking/verbose 0
+/run/beamOn ${CONFIG_EVENTS}
+#
+# Print process list
+#
+/process/list
+
+EOL
+
+# Check if the output is what we expect
+# cat TestEm3_G4.mac
+
+# Run Geant4 application
+
+if [ "$CONFIG_PERFORMANCE" = "0" ]; then
+  $GEANT4_EXEC -m TestEm3_G4.mac
+else
+  $GEANT4_EXEC -m TestEm3_G4.mac -p
+fi
+
+echo "### TestEM3 was run with parameters:"
+echo "    - primary type:        $GUN_PRIMARY_TYPE"
+echo "    - primary energy:      $GUN_PRIMARY_ENERGY"
+echo "    - number of threads:   $CONFIG_THREADS"
+echo "    - number of events:    $CONFIG_EVENTS"
+echo "    - primaries per event: $CONFIG_PRIMARIES"
+echo "    - performance mode:    $CONFIG_PERFORMANCE"
+echo "    - field present:       $FIELD_ACTIVE"
+echo "    - field Runge-Kutta:   $FIELD_USE_RK"
+echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
+echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
+echo "    - basketized geometry: $CONFIG_BASKETIZED_GEOM"
