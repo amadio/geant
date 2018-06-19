@@ -114,10 +114,10 @@ double FieldPropagationHandler::Curvature(const Track &track) const
   //
   ThreeVector_d Momentum(track.Px(), track.Py(), track.Pz());
   ThreeVector_d PtransB; //  Transverse wrt direction of B
-  double ratioOverFld        = 0.0;
+  double ratioOverFld = 0.0;
   if (bmag > 0) ratioOverFld = Momentum.Dot(MagFld) / (bmag * bmag);
-  PtransB                    = Momentum - ratioOverFld * MagFld;
-  double Pt_mag              = PtransB.Mag();
+  PtransB       = Momentum - ratioOverFld * MagFld;
+  double Pt_mag = PtransB.Mag();
 
   return fabs(Track::kB2C * track.Charge() * bmag / (Pt_mag + tiny));
 }
@@ -127,23 +127,19 @@ VECCORE_ATT_HOST_DEVICE
 void FieldPropagationHandler::DoIt(Track *track, Basket &output, TaskData *td)
 {
   // Scalar geometry length computation. The track is moved into the output basket.
-  using vecCore::math::Min;
   using vecCore::math::Max;
-  // Step selection
-  double step, lmax;
-
-  // std::cout <<" FieldPropagationHandler::DoIt(*track) called for 1 ptrTrack." << std::endl;
-
-  // We use the track sagitta to estimate the "bending" error,
+  using vecCore::math::Min;
+  constexpr double step_push = 1.e-4;
+  // The minimum step is step_push in case the physics step limit is not smaller
+  double step_min = Min(track->GetPstep(), step_push);
+  // The track snext value is already the minimum between geometry and physics
+  double step_geom_phys = Max(step_min, track->GetSnext());
+  // Field step limit. We use the track sagitta to estimate the "bending" error,
   // i.e. what is the propagated length for which the track deviation in
   // magnetic field with respect to straight propagation is less than epsilon.
-  // Take the maximum between the safety and the "bending" safety
-  lmax = SafeLength(*track, gEpsDeflection);
-  lmax = Max(lmax, track->GetSafety());
-  // Select step to propagate as the minimum among the "safe" step and:
-  // the straight distance to boundary (if frombdr=1) or the proposed  physics
-  // step (frombdr=0)
-  step = (track->IsOnBoundaryPreStp()) ? Min(lmax, Max(track->GetSnext(), 1.E-4)) : Min(lmax, track->GetPstep());
+  double step_field = Max(SafeLength(*track, gEpsDeflection), track->GetSafety());
+
+  double step = Min(step_geom_phys, step_field);
   // Propagate in magnetic field
   PropagateInVolume(*track, step, td);
   // Update number of partial steps propagated in field
@@ -174,27 +170,29 @@ VECCORE_ATT_HOST_DEVICE
 void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 {
   // Vector geometry length computation. The tracks are moved into the output basket.
-  using vecCore::math::Min;
   using vecCore::math::Max;
-  TrackVec_t &tracks = input.Tracks();
-  double lmax;
-  // const double gEpsDeflection = 1.E-2 * units::cm;  // Units!
-
-  int ntracks = tracks.size();
-
-  // std::cout <<" FieldPropagationHandler::DoIt(baskets) called for " << ntracks
-  //          << " tracks." << std::endl;
+  using vecCore::math::Min;
+  constexpr double step_push = 1.e-4;
+  TrackVec_t &tracks         = input.Tracks();
+  int ntracks                = tracks.size();
 
   double *steps = td->GetDblArray(ntracks);
   for (int itr = 0; itr < ntracks; itr++) {
     // Can this loop be vectorized?
     Track &track = *tracks[itr];
-    lmax         = SafeLength(track, gEpsDeflection);
-    lmax         = Max(lmax, track.GetSafety());
+    // The minimum step is step_push in case the physics step limit is not smaller
+    double step_min = Min(track.GetPstep(), step_push);
+    // The track snext value is already the minimum between geometry and physics
+    double step_geom_phys = Max(step_min, track.GetSnext());
+    // Field step limit. We use the track sagitta to estimate the "bending" error,
+    // i.e. what is the propagated length for which the track deviation in
+    // magnetic field with respect to straight propagation is less than epsilon.
+    double step_field = Max(SafeLength(track, gEpsDeflection), track.GetSafety());
+
     // Select step to propagate as the minimum among the "safe" step and:
     // the straight distance to boundary (if fboundary=1) or the proposed  physics
     // step (fboundary=0)
-    steps[itr] = (track.IsOnBoundaryPreStp()) ? Min(lmax, Max(track.GetSnext(), 1.E-4)) : Min(lmax, track.GetPstep());
+    steps[itr] = Min(step_geom_phys, step_field);
   }
   // Propagate the vector of tracks
   PropagateInVolume(input.Tracks(), steps, td);
@@ -202,8 +200,8 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   // Update number of partial steps propagated in field
   td->fNmag += ntracks;
 
-// Update time of flight and number of interaction lengths.
-// Check also if it makes sense to call the vector interfaces
+  // Update time of flight and number of interaction lengths.
+  // Check also if it makes sense to call the vector interfaces
 
 #if !(defined(VECTORIZED_GEOMERY) && defined(VECTORIZED_SAMELOC))
   for (auto track : tracks) {
@@ -314,8 +312,9 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 #endif
 
 #ifdef PRINT_STEP_SINGLE
-  Print("--PropagateInVolume(Single): ", "Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= "
-                                         "%f (mm)  Bmag=%8.4g KG   angle= %g\n",
+  Print("--PropagateInVolume(Single): ",
+        "Momentum= %9.4g (MeV) Curvature= %9.4g (1/mm)  CurvPlus= %9.4g (1/mm)  step= "
+        "%f (mm)  Bmag=%8.4g KG   angle= %g\n",
         (track.P() / units::MeV), Curvature(track) * units::mm, curvaturePlus * units::mm, crtstep / units::mm,
         bmag * toKiloGauss, angle);
 // Print("\n");
@@ -757,7 +756,7 @@ void FieldPropagationHandler::CheckTrack(Track &track, const char *msg, double e
                                     " Bad position.",                 // [1]
                                     " Bad direction.",                // [2]
                                     " Bad direction and position. "}; // [3]
-    int iM = 0;
+    int iM                       = 0;
     if (badPosition) {
       iM++;
     }
@@ -829,9 +828,11 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
     std::ostringstream strDiff;
     strDiff // std::cerr
         << "Track [" << index << "] : direction differs "
-        << " by " << diffDir << "  ( mag = " << diffDirMag << " ) "
+        << " by " << diffDir << "  ( mag = " << diffDirMag
+        << " ) "
         // << " Direction vector = " << endDirection << "  scalar = " << EndDirScalar
-        << " stepSize = " << stepSize << " curv = " << curvature << " B-field = " << BfieldInitial << " kilo-Gauss "
+        << " stepSize = " << stepSize << " curv = " << curvature << " B-field = " << BfieldInitial
+        << " kilo-Gauss "
         // << " End position= " << endPosition
         << std::endl;
     std::cout << strDiff.str();
@@ -864,7 +865,8 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
   if (diffPos.Mag() > maxDiffPos) {
     differs = true;
     // if (!bannerUsed) { std::cerr << diffBanner << std::endl; bannerUsed = true; }
-    std::cerr << "Track [" << index << "] : position diff " << diffPos << " mag= " << diffPos.Mag() << " "
+    std::cerr << "Track [" << index << "] : position diff " << diffPos << " mag= " << diffPos.Mag()
+              << " "
               // << " Pos: vec = " << endPosition << " scalar = " << EndPositionScalar
               << " move (vector) = " << endPosition - startPosition
               << " its-mag= " << (endPosition - startPosition).Mag() << " stepSize = " << stepSize

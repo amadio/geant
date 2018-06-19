@@ -182,8 +182,8 @@ void WorkloadManager::TransportTracksV3(Propagator *prop)
   // Enforce locality by pinning the thread to the next core according to the chosen policy.
   int node                 = -1;
   LocalityManager *loc_mgr = LocalityManager::Instance();
-  if (useNuma) node        = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
-  int cpu                  = useNuma ? NumaUtils::GetCpuBinding() : -1;
+  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(prop->fNuma);
+  int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
   //  if (node < 0) node = 0;
   Propagator *propagator = prop;
   RunManager *runmgr     = prop->fRunMgr;
@@ -252,7 +252,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(TaskData *td
   if (evserv->HasTracks()) {
     // In the initial phase we distribute a fair share of baskets to all propagators
     if (!evserv->IsInitialPhase() || td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
-      ninjected = evserv->FillStackBuffer(td->fStackBuffer, td->fPropagator->fConfig->fNperBasket, td, error);
+      ninjected = evserv->FillStackBuffer(td->fStackBuffer, evserv->GetBsize(), td, error);
   }
   // td->fStat->AddTracks(ninjected);
   if (ninjected) return FeederResult::kWork;
@@ -267,8 +267,8 @@ int WorkloadManager::FlushOneLane(TaskData *td)
 {
   // Flush a single track lane from the stack-like buffer into the first stage.
   // Check the stack buffer and flush priority events first
-  int ninjected                                    = 0;
-  int maxspill                                     = td->fPropagator->fConfig->fNmaxBuffSpill;
+  int ninjected = 0;
+  int maxspill  = td->fPropagator->fConfig->fNmaxBuffSpill;
   if (td->fStackBuffer->IsPrioritized()) ninjected = td->fStackBuffer->FlushPriorityLane();
   if (ninjected) return ninjected;
 
@@ -331,5 +331,5 @@ int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
   return nprocessed;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

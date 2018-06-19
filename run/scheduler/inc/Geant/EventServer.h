@@ -52,6 +52,7 @@ private:
   int fNactiveMax   = 0;         /** Maximum number of active events (buffer size)*/
   int fNtracksInit  = 0;         /** Initial number of tracks in the buffer. */
   int fNbasketsInit = 0;         /** Initial number of baskets to be served */
+  int fInitialBsize = 0;         /** Initial basket size */
   std::atomic_int fNactive;      /** Number of deployed events */
   std::atomic_int fNserved;      /** Number of baskets served */
   std::atomic_int fLastActive;   /** Last activated event */
@@ -111,6 +112,9 @@ public:
   int GetNstored() const { return fNstored.load(); }
 
   GEANT_FORCE_INLINE
+  int GetBsize() const { return fInitialBsize; }
+
+  GEANT_FORCE_INLINE
   Event *GetEvent(int slot) const { return fEvents[slot]; }
 
   GEANT_FORCE_INLINE
@@ -135,8 +139,6 @@ public:
   GEANT_FORCE_INLINE
   bool IsInitialPhase() const { return fInitialPhase; }
 
-  int FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned int &error);
-
   int FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData *td, unsigned int &error);
 
   // int AddEvent(TaskData *td);
@@ -151,7 +153,7 @@ public:
   void CompletedEvent(Event *event, TaskData *td);
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif // GEANT_EVENT_SERVER_H

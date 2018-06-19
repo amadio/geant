@@ -132,9 +132,11 @@ Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
 //______________________________________________________________________________
 bool EventServer::AddEvent(Event *event)
 {
+  using vecCore::math::Max;
+  using vecCore::math::Min;
   // Adds one event into the queue of pending events.
-  bool external_loop     = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
-  int evt                = fNload.fetch_add(1);
+  bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
+  int evt            = fNload.fetch_add(1);
   if (external_loop) evt = event->GetEvent();
   event->SetEvent(evt);
   // The vertex must be defined
@@ -185,29 +187,20 @@ bool EventServer::AddEvent(Event *event)
   int nstored = fNstored.fetch_add(1) + 1;
   if (nstored <= fNactiveMax) fNtracksInit += event->GetNprimaries();
   if (nstored == fNactiveMax) {
+    printf("=== Imported %d primaries from %d buffered events\n", fNtracksInit, fNactiveMax);
     // Check consistency of parallelism settings
     int nthreads        = fRunMgr->GetNthreadsTotal();
-    int basket_size     = fRunMgr->GetConfig()->fNperBasket;
-    int ntracksperevent = fNtracksInit / fNactiveMax;
-    fNbasketsInit       = fNtracksInit / basket_size;
-    if (fNtracksInit % basket_size > 0) fNbasketsInit++;
-    printf("=== Imported %d primaries from %d buffered events\n", fNtracksInit, fNactiveMax);
-    printf("=== Buffering %d baskets of size %d feeding %d threads\n", fNbasketsInit, basket_size, nthreads);
-    if (fNbasketsInit < nthreads || fNactiveMax < nthreads) {
-      if (fNbasketsInit < nthreads)
-        printf("### \e[5mWARNING!    Concurrency settings are not optimal. Not enough baskets to feed all "
-               "threads.\e[m\n###\n");
-      if (fNactiveMax < nthreads)
-        printf("### \e[5mWARNING!    Increase number of buffered events to minimum %d\e[m\n###\n", nthreads);
-      printf("###                          Rule of thumb:\n");
-      printf("###  ==================================================================\n");
-      printf("### ||  Nbuff_events * Nprimaries_per_event > Nthreads * basket_size  ||\n");
-      printf("###  ==================================================================\n###\n");
-      printf("### Either of the following options can solve this problem:\n");
-      printf("###    => increase number of buffered events slots to minimum %d\n",
-             nthreads * basket_size / ntracksperevent);
-      printf("###    => decrease number of threads to maximum %d\n", vecCore::math::Max(1, fNtracksInit / basket_size));
+    int nperthread_init = fNtracksInit / nthreads;
+    if (nperthread_init == 0) {
+      printf("### \e[5mWARNING!    Not enough primaries to share between %d threads "
+             "Threads will be dropped. Increase number of buffered events.\e[m\n###\n",
+             nthreads);
     }
+    int basket_size = fRunMgr->GetConfig()->fNperBasket;
+    fInitialBsize   = Min<int>(basket_size, nperthread_init);
+    fNbasketsInit   = fNtracksInit / fInitialBsize;
+    if (fNtracksInit % fInitialBsize > 0) fNbasketsInit++;
+    printf("=== Buffering %d baskets of initial size %d feeding %d threads\n", fNbasketsInit, fInitialBsize, nthreads);
   }
 
   if (external_loop && !fEvent.load()) {
@@ -344,26 +337,6 @@ Track *EventServer::GetNextTrack(TaskData *td, unsigned int &error)
 }
 
 //______________________________________________________________________________
-int EventServer::FillBasket(Basket *basket, int ntracks, TaskData *td, unsigned int &error)
-{
-  // Fill concurrently a basket of tracks, up to the requested number of tracks.
-  // The client should test first the track availability using HasTracks().
-  if (!fHasTracks) return 0;
-  int ndispatched = 0;
-  for (int i = 0; i < ntracks; ++i) {
-    Track *track = GetNextTrack(td, error);
-    if (!track) break;
-    basket->AddTrack(track);
-    ndispatched++;
-  }
-  if (fInitialPhase) {
-    int nserved                                 = fNserved.fetch_add(1) + 1;
-    if (nserved >= fNbasketsInit) fInitialPhase = false;
-  }
-  return ndispatched;
-}
-
-//______________________________________________________________________________
 int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData *td, unsigned int &error)
 {
   // Fill concurrently up to the requested number of tracks into a stack-like buffer.
@@ -383,7 +356,7 @@ int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData 
     ndispatched++;
   }
   if (fInitialPhase) {
-    int nserved                                 = fNserved.fetch_add(1) + 1;
+    int nserved = fNserved.fetch_add(1) + 1;
     if (nserved >= fNbasketsInit) fInitialPhase = false;
   }
 
@@ -391,5 +364,5 @@ int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData 
   return ndispatched;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
