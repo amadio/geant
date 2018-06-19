@@ -123,8 +123,13 @@ public:
    * @return                  Number of secondary tracks generated in the interaction.
    */
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td)override;
+  virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td)override;
   
-  
+  geant::IndexD_v SampleShellAliasVec(geant::Double_v egamma, geant::IndexD_v zed, geant::Double_v r1, geant::Double_v r2);
+  void SampleShellVec(double *egamma, int * zed, int* ss, int N, const geant::TaskData *td, double* randoms);
+  geant::Double_v SamplePhotoElectronDirectionAliasVec(geant::Double_v egamma, geant::Double_v r1, geant::Double_v r2, geant::Double_v r3);
+  void SamplePhotoElectronDirectionRejVec(const double *egamma, double *cosTheta, int N, const geant::TaskData *t);
+    
   //Original way of sampling the shells
   void SampleShell(double kinE_v, int &zed, double &rand_v, size_t  &sampledShells_v);
   //Sampling of shells with Alias
