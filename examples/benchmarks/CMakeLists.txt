@@ -9,5 +9,7 @@ configure_file(
     "${CMAKE_INSTALL_PREFIX}/bin/benchmarks/FullCMS/FullCMS.run"
     IMMEDIATE @ONLY)
 
+file(GLOB config_testem3 TestEm3/*.sh)
 file(GLOB config_fullcms FullCMS/*.sh)
+install(FILES ${config_testem3} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/benchmarks/TestEm3)
 install(FILES ${config_fullcms} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/benchmarks/FullCMS)

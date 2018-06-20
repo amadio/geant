@@ -195,6 +195,7 @@ bool EventServer::AddEvent(Event *event)
       printf("### \e[5mWARNING!    Not enough primaries to share between %d threads "
              "Threads will be dropped. Increase number of buffered events.\e[m\n###\n",
              nthreads);
+      nperthread_init = 1;
     }
     int basket_size = fRunMgr->GetConfig()->fNperBasket;
     fInitialBsize   = Min<int>(basket_size, nperthread_init);

@@ -1,4 +1,7 @@
 #!/bin/bash
+### gperftools file name
+export GEANT_PERFTOOLS_FILE="prof_mt1_scalarhelix_scalarphys.out"
+
 ### Primary generator
 GUN_PRIMARY_TYPE="e-"
 GUN_PRIMARY_ENERGY=100 #GeV

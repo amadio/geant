@@ -20,6 +20,7 @@
 #include "Geant/BasketCounters.h"
 
 #ifdef USE_ROOT
+#include "TSystem.h"
 #include "TApplication.h"
 #include "TCanvas.h"
 #include "management/RootGeoManager.h"
@@ -47,6 +48,10 @@
 #include "Geant/GUFieldPropagatorPool.h"
 #include "Geant/WorkspaceForFieldPropagation.h"
 
+#ifdef GEANT_PERFTOOLS
+#include <gperftools/profiler.h>
+#endif
+
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
@@ -59,6 +64,13 @@ RunManager::RunManager(unsigned int npropagators, unsigned int nthreads, GeantCo
   fPriorityEvents.store(0);
   fTaskId.store(0);
   fEventSetsLock.clear();
+  fProfilingFile = "gperfprof.out";
+#ifdef USE_ROOT
+  if (gSystem->Getenv("GEANT_PERFTOOLS_FILE"))
+    fProfilingFile = gSystem->Getenv("GEANT_PERFTOOLS_FILE");
+  else
+    std::cout << "perftools_file not found\n";
+#endif
 }
 
 //______________________________________________________________________________
@@ -84,7 +96,7 @@ bool RunManager::Initialize()
   }
 
   // Increase buffer to give a fair share to each propagator
-  int nbuffmax                                   = fConfig->fNtotal / fNpropagators;
+  int nbuffmax = fConfig->fNtotal / fNpropagators;
   if (fConfig->fUseV3 && nbuffmax == 0) nbuffmax = 1;
   if (fConfig->fNbuff > nbuffmax) {
     Print("Initialize", "Number of buffered events reduced to %d", nbuffmax);
@@ -470,6 +482,12 @@ void RunManager::RunSimulation()
   if (fConfig->fUseMonitoring) new TCanvas("cscheduler", "Scheduler monitor", 900, 600);
   if (fConfig->fUseAppMonitoring) new TCanvas("capp", "Application canvas", 700, 800);
 #endif
+
+#ifdef GEANT_PERFTOOLS
+  // CPU profiling using gperftools
+  ProfilerStart(fProfilingFile.c_str());
+#endif
+
   vecgeom::Stopwatch timer;
   timer.Start();
   for (auto i = 0; i < fNpropagators; ++i)
@@ -479,6 +497,11 @@ void RunManager::RunSimulation()
     t.join();
   }
   timer.Stop();
+
+#ifdef GEANT_PERFTOOLS
+  ProfilerStop();
+#endif
+
   double rtime      = timer.Elapsed();
   double ctime      = timer.CpuElapsed();
   long ntransported = fEventServer->GetNprimaries();
@@ -555,5 +578,5 @@ void RunManager::StopTransport()
   }
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

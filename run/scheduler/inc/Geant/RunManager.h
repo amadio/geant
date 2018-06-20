@@ -62,6 +62,7 @@ private:
   vector_t<Volume_t const *> fVolumes;
   vector_t<EventSet *> fEventSets; /** Registered event sets */
   std::atomic_flag fEventSetsLock; /** Spinlock for event set access locking */
+  std::string fProfilingFile;      /** gperftools profiling file name */
 
   // State data
   std::atomic_int fPriorityEvents;       /** Number of prioritized events */
@@ -174,6 +175,9 @@ public:
   TDManager *GetTDManager() const { return fTDManager; }
 
   GEANT_FORCE_INLINE
+  void SetProfilingFile(const char *fname) { fProfilingFile = fname; }
+
+  GEANT_FORCE_INLINE
   bool IsInitialized() const { return fInitialized; }
 
   TaskData *BookTransportTask();
@@ -209,7 +213,7 @@ public:
   void StopTransport();
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif // GEANT_RUN_MANAGER_H
