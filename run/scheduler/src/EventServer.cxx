@@ -191,6 +191,7 @@ bool EventServer::AddEvent(Event *event)
     // Check consistency of parallelism settings
     int nthreads        = fRunMgr->GetNthreadsTotal();
     int nperthread_init = fNtracksInit / nthreads;
+    int nperevent       = fNtracksInit / nstored;
     if (nperthread_init == 0) {
       printf("### \e[5mWARNING!    Not enough primaries to share between %d threads "
              "Threads will be dropped. Increase number of buffered events.\e[m\n###\n",
@@ -198,10 +199,10 @@ bool EventServer::AddEvent(Event *event)
       nperthread_init = 1;
     }
     int basket_size = fRunMgr->GetConfig()->fNperBasket;
-    fInitialBsize   = Min<int>(basket_size, nperthread_init);
+    fInitialBsize   = Min<int>(basket_size, nperthread_init, nperevent);
     fNbasketsInit   = fNtracksInit / fInitialBsize;
     if (fNtracksInit % fInitialBsize > 0) fNbasketsInit++;
-    printf("=== Buffering %d baskets of initial size %d feeding %d threads\n", fNbasketsInit, fInitialBsize, nthreads);
+    printf("=== Buffering %d baskets of size %d feeding %d threads\n", fNbasketsInit, fInitialBsize, nthreads);
   }
 
   if (external_loop && !fEvent.load()) {

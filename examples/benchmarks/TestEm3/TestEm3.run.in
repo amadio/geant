@@ -28,7 +28,7 @@ $GEANTV_EXEC --det-number-of-absorbers 2 \
              --config-number-of-primary-per-events ${CONFIG_PRIMARIES} \
              --config-number-of-threads ${CONFIG_THREADS} \
              --config-number-of-propagators 1 \
-             --config-tracks-per-basket    16 \
+             --config-tracks-per-basket    64 \
              --field-active ${FIELD_ACTIVE} \
              --field-vector x=0.,y=0,z=0.5 \
              --field-use-RK ${FIELD_USE_RK} \

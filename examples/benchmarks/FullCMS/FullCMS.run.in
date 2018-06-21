@@ -23,7 +23,7 @@ $GEANTV_EXEC --det-set-gdml ${CMS_GDML} \
              --config-total-number-of-events ${CONFIG_EVENTS} \
              --config-number-of-threads ${CONFIG_THREADS} \
              --config-number-of-propagators 1 \
-             --config-tracks-per-basket    16 \
+             --config-tracks-per-basket    32 \
              --field-active ${FIELD_ACTIVE} \
              --field-vector x=0.,y=0,z=40 \
              --field-use-RK ${FIELD_USE_RK} \
