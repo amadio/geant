@@ -11,6 +11,24 @@ INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
 ### Executables
 GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/GeantV/TestEm3_GV
 GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/Geant4/TestEm3
+### Benchmark config and output
+BENCH_OUTPUT="${GEANT_PERFTOOLS_FILE/prof/bench}"
+BENCH_CONFIG1="${GEANT_PERFTOOLS_FILE/prof_/}"
+BENCH_CONFIG2="${BENCH_CONFIG1/.out/}"
+
+echo "### Running TestEm3 for the configuration: ${BENCH_CONFIG2}"
+echo "    - primary type:        $GUN_PRIMARY_TYPE"
+echo "    - primary energy:      $GUN_PRIMARY_ENERGY"
+echo "    - number of threads:   $CONFIG_THREADS"
+echo "    - number of events:    $CONFIG_EVENTS"
+echo "    - primaries per event: $CONFIG_PRIMARIES"
+echo "    - performance mode:    $CONFIG_PERFORMANCE"
+echo "    - field present:       $FIELD_ACTIVE"
+echo "    - field Runge-Kutta:   $FIELD_USE_RK"
+echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
+echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
+echo "    - basketized geometry: $CONFIG_BASKETIZED_GEOM"
+echo ""
 
 # Run GeantV application
 $GEANTV_EXEC --det-number-of-absorbers 2 \
@@ -37,7 +55,10 @@ $GEANTV_EXEC --det-number-of-absorbers 2 \
              --process-MSC-step-limit UseSafety \
              --config-run-performance ${CONFIG_PERFORMANCE} \
              --config-vectorized-geom ${CONFIG_BASKETIZED_GEOM} \
-             --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS}
+             --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS} \
+             >gv.log 2>gv.log
+
+echo "GeantV: `grep -o 'RealTime.*' gv.log`" > $BENCH_OUTPUT
 
 # Generate the Geant4 macro
 
@@ -104,20 +125,11 @@ EOL
 # Run Geant4 application
 
 if [ "$CONFIG_PERFORMANCE" = "0" ]; then
-  $GEANT4_EXEC -m TestEm3_G4.mac
+  $GEANT4_EXEC -m TestEm3_G4.mac >g4.log 2>g4.log
 else
-  $GEANT4_EXEC -m TestEm3_G4.mac -p
+  $GEANT4_EXEC -m TestEm3_G4.mac -p >g4.log 2>g4.log
 fi
 
-echo "### TestEM3 was run with parameters:"
-echo "    - primary type:        $GUN_PRIMARY_TYPE"
-echo "    - primary energy:      $GUN_PRIMARY_ENERGY"
-echo "    - number of threads:   $CONFIG_THREADS"
-echo "    - number of events:    $CONFIG_EVENTS"
-echo "    - primaries per event: $CONFIG_PRIMARIES"
-echo "    - performance mode:    $CONFIG_PERFORMANCE"
-echo "    - field present:       $FIELD_ACTIVE"
-echo "    - field Runge-Kutta:   $FIELD_USE_RK"
-echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
-echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
-echo "    - basketized geometry: $CONFIG_BASKETIZED_GEOM"
+echo "Geant4: `grep -o 'User=.*' g4.log`" >> $BENCH_OUTPUT
+
+cat $BENCH_OUTPUT
