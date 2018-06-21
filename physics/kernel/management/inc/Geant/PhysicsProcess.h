@@ -170,6 +170,16 @@ public:
    */
   virtual int PostStepDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
+  /** @brief Method that does the fast sim action.
+   *
+   *  The input parameter, a LightTrack object, can be modified: typically
+   *  the track status is changed (killed) in this method.
+   *  Typically, no new particles are created by the fast sim process and if any,
+   *  they are stored in the TaskData::PhysicsDada object.
+   *
+   */
+  virtual int FastSimDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
+
   /** @brief Method that does the at-rest action of the process.
    *
    *  The input parameter, a LightTrack object, can be modified: typically
@@ -179,17 +189,6 @@ public:
    *  Note: this method also includes the sampling of the target atom (Z, N)
    *        where the at-rest process happens.
    */
-
-  virtual int FastSimDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
-  /** @brief Method that does the fast sim action.
-   *
-   *  The input parameter, a LightTrack object, can be modified: typically
-   *  the track status is changed (killed) in this method.
-   *  Typically, no new particles are created by the fast sim process and if any,
-   *  they are stored in the TaskData::PhysicsDada object.
-   *
-   */
-  
   virtual int AtRestDoIt(LightTrack & /*track*/, geant::TaskData * /*td*/) { return 0; }
 
   virtual double MacroscopicXSectionMaximumEnergy(const MaterialCuts * /*matcut*/) { return gAVeryLargeValue; }
