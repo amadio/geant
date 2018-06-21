@@ -12,36 +12,33 @@ class G4FieldManager;
 class G4UniformMagField;
 class MyDetectorMessenger;
 
-
 class MyDetectorConstruction : public G4VUserDetectorConstruction {
 
 public:
-
   MyDetectorConstruction();
   ~MyDetectorConstruction();
 
-  G4VPhysicalVolume* Construct();
+  G4VPhysicalVolume *Construct();
+  void ConstructSDandField();
 
-  void SetGDMLFileName ( const G4String& gdmlfile ) { fGDMLFileName = gdmlfile; }
-  void SetMagFieldValue(const G4double fieldValue ) { fFieldValue   = fieldValue; gFieldValue = fFieldValue; }
+  void SetGDMLFileName(const G4String &gdmlfile) { fGDMLFileName = gdmlfile; }
+  void SetMagFieldValue(const G4double fieldValue)
+  {
+    fFieldValue = fieldValue;
+    gFieldValue = fFieldValue;
+  }
 
   static G4double GetFieldValue() { return gFieldValue; }
 
 private:
-  void SetMagField();
-
-
-private:
   // this static member is for the print out
-  static G4double        gFieldValue;
+  static G4double gFieldValue;
 
-  G4String               fGDMLFileName;
-  G4double               fFieldValue;
-  G4GDMLParser           fParser;
-  G4VPhysicalVolume*     fWorld;
-  G4FieldManager*        fFieldMgr;
-  G4UniformMagField*     fUniformMagField;
-  MyDetectorMessenger*   fDetectorMessenger;
+  G4String fGDMLFileName;
+  G4double fFieldValue;
+  G4GDMLParser fParser;
+  G4VPhysicalVolume *fWorld;
+  MyDetectorMessenger *fDetectorMessenger;
 };
 
 #endif
