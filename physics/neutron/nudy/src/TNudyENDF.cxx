@@ -3,6 +3,7 @@
    in R-ENDF format
 
    fca 2-mai-2010
+   Modified H. Kumawat
 */
 
 #include <string>
@@ -61,15 +62,6 @@ TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *
   if (!fRENDF) ::Fatal("ctor", "Could not open output file %s", nFileRENDF);
   // std::cout<<"Open input stream 2 "<< nFileENDF <<"   "<< nFileRENDF << std::endl;
 
-  /*
-    // this is checking the first line for the ENDF data file\
-    // so that version 6 and version 7 first line issue gets resolved
-  */
-  fENDF.getline(fLine, LINLEN);
-  char firstCharFirstLine = fLine[1];
-  isDollar                = (firstCharFirstLine == '$') ? true : false;
-  if (!isDollar) fENDF.seekg(0);
-
   // Read to Tape Identifier
   for (int i = 0; i < 6; i++) {
     fENDF.getline(fLine, LINLEN);
@@ -84,12 +76,8 @@ TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *
 //_______________________________________________________________________________
 void TNudyENDF::Process()
 {
-  //
   // Process a tape
-  //
 
-  fENDF.seekg(0);
-  if (isDollar) fENDF.getline(fLine, LINLEN);
   bool FileNotFound = false;
   if (sub == true) {
     const char *EndfSub;

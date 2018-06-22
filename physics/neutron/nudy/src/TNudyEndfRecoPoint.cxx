@@ -637,6 +637,14 @@ void TNudyEndfRecoPoint::ReadFile15(TNudyEndfFile *file)
 void TNudyEndfRecoPoint::GetData(int ielemId, const char *rENDF)
 {
   fElemId     = ielemId;
+  if (fElementId.size() > 0) {
+    for (int i = 0, ElementIdSize = fElementId.size(); i != ElementIdSize; ++i) {
+      if (ielemId == fElementId[i]) {
+        return;
+      }
+    }
+  }
+  fElementId.push_back(ielemId);
   TFile *rEND = TFile::Open(rENDF);
   //  TFile *rEND = TFile::Open(rENDF,"UPDATE");
   if (!rEND || rEND->IsZombie()) printf("Error: TFile :: Cannot open file %s\n", rENDF);
@@ -854,8 +862,21 @@ void TNudyEndfRecoPoint::FixupTotal(std::vector<double> &x1)
   fEnergyLocationMts.clear();
 }
 //------------------------------------------------------------------------------------------------------
+int TNudyEndfRecoPoint::GetElementId(int ielemId)
+{
+for (int i = 0, ElementIdSize = fElementId.size(); i != ElementIdSize; ++i) {
+  if (ielemId == fElementId[i]) {
+    ielemId = i;
+    break;
+  }
+}
+return ielemId;
+}
+//------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetSigmaTotal(int ielemId, double energyK)
 {
+  ielemId = GetElementId(ielemId);
+  if (fMtValues[ielemId].size() <= 0) return 0;
   int min = 0;
   int max = fEneUni[ielemId].size() - 1;
   int mid = 0;
@@ -873,6 +894,8 @@ double TNudyEndfRecoPoint::GetSigmaTotal(int ielemId, double energyK)
       }
     }
   }
+  if (min == (int)fSigUniT[ielemId].size()) return fSigUniT[ielemId][min];
+  if (min > (int)fSigUniT[ielemId].size()) return 0;
   return fSigUniT[ielemId][min] +
   (fSigUniT[ielemId][min + 1] - fSigUniT[ielemId][min]) * (energyK - fEneUni[ielemId][min]) /
   (fEneUni[ielemId][min + 1] - fEneUni[ielemId][min]);
@@ -880,15 +903,16 @@ double TNudyEndfRecoPoint::GetSigmaTotal(int ielemId, double energyK)
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetSigmaPartial(int ielemId, int mt, double energyK)
 {
+  ielemId = GetElementId(ielemId);
   int i = -1;
-  if (fMtValues[ielemId].size() <= 0) return 99;
+  if (fMtValues[ielemId].size() <= 0) return 0;
   for (int l = 0, MtValuesSize = fMtValues[ielemId].size(); l != MtValuesSize; ++l) {
     if (fMtValues[ielemId][l] == mt) {
       i = l;
       break;
     }
   }
-  if (i < 0) return 99;
+  if (i < 0) return 0;
   int min = 0;
   int max = fEneUni[ielemId].size() - 1;
   int mid = 0;
@@ -915,6 +939,7 @@ double TNudyEndfRecoPoint::GetSigmaPartial(int ielemId, int mt, double energyK)
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetCos4(int ielemId, int mt, double energyK)
 {
+  ielemId = GetElementId(ielemId);
   int i = -1;
   if (fMt4Values[ielemId].size() <= 0) return GetCos6(ielemId, mt, energyK);
   for (int l = 0, Mt4Size = fMt4Values[ielemId].size(); l != Mt4Size; ++l) {
@@ -970,6 +995,7 @@ double TNudyEndfRecoPoint::GetCos4(int ielemId, int mt, double energyK)
 //------------------------------------------------------------------------------------------------------
 int TNudyEndfRecoPoint::GetCos4Lct(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   int i = 0;
   for (int l = 0, Mt4Size = fMt4Values[ielemId].size(); l != Mt4Size; ++l) {
     if (fMt4Values[ielemId][l] == mt) {
@@ -982,6 +1008,7 @@ int TNudyEndfRecoPoint::GetCos4Lct(int ielemId, int mt)
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetEnergy5(int ielemId, int mt, double energyK)
 {
+  ielemId = GetElementId(ielemId);
   int i = -1;
   if (fMt5Values[ielemId].size() <= 0) return GetEnergy6(ielemId, mt, energyK);
   for (int l = 0, Mt5Size = fMt5Values[ielemId].size(); l != Mt5Size; ++l) {
@@ -1048,6 +1075,7 @@ double TNudyEndfRecoPoint::GetEnergy5(int ielemId, int mt, double energyK)
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetDelayedFraction(int ielemId, int mt, double energyK)
 {
+  ielemId = GetElementId(ielemId);
   int i = -1;
   for (int l = 0, Mt5Size = fMt5Values[ielemId].size(); l != Mt5Size; ++l) {
     if (fMt5Values[ielemId][l] == mt) {
@@ -1055,7 +1083,7 @@ double TNudyEndfRecoPoint::GetDelayedFraction(int ielemId, int mt, double energy
       break;
     }
   }
-  if (i < 0) return 99;
+  if (i < 0) return -99;
   int min = 0;
   int max = fEnergy5OfMts[ielemId][i].size() - 1;
   int mid = 0;
@@ -1077,6 +1105,7 @@ double TNudyEndfRecoPoint::GetDelayedFraction(int ielemId, int mt, double energy
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetQValue(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   int size = fQvalue[ielemId].size() / 2;
   for (int i = 0; i < size; i++) {
     if (fQvalue[ielemId][2 * i + 1] == mt) {
@@ -1088,18 +1117,20 @@ double TNudyEndfRecoPoint::GetQValue(int ielemId, int mt)
 //-------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetMt4(int ielemId, int mt)
 {
-  if (fMt4.size() <= 0) return 99;
+  ielemId = GetElementId(ielemId);
+  if (fMt4.size() <= 0) return -99;
   int size = fMt4[ielemId].size() / 2;
   for (int i = 0; i < size; i++) {
     if (fMt4[ielemId][2 * i + 1] == mt) {
       return fMt4[ielemId][2 * i];
     }
   }
-  return 99;
+  return -99;
 }
 //-------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetMt5(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   if (fMt5.size() <= 0) return -1;
   int size = fMt5[ielemId].size() / 2;
   for (int i = 0; i < size; i++) {
@@ -1112,18 +1143,20 @@ double TNudyEndfRecoPoint::GetMt5(int ielemId, int mt)
 //-------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetMt6(int ielemId, int mt)
 {
-  if (fMt6.size() <= 0) return 99;
+  ielemId = GetElementId(ielemId);
+  if (fMt6.size() <= 0) return -99;
   int size = fMt6[ielemId].size() / 2;
   for (int i = 0; i < size; i++) {
     if (fMt6[ielemId][2 * i + 1] == mt) {
       return fMt6[ielemId][2 * i];
     }
   }
-  return 99;
+  return -99;
 }
 //------------------------------------------------------------------------------------------------------
 int TNudyEndfRecoPoint::GetMt6Neutron(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   if (fMt6Neutron.size() <= 0) return -1;
   int size = fMt6Neutron[ielemId].size();
   for (int i = 0; i < size; i++) {
@@ -1137,6 +1170,7 @@ int TNudyEndfRecoPoint::GetMt6Neutron(int ielemId, int mt)
 //------------------------------------------------------------------------------------------------------
 int TNudyEndfRecoPoint::GetAd6(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   int size = fAD6[ielemId].size();
   for (int i = 0; i < size; i++) {
     if (fMt6Values[ielemId][i] == mt) {
@@ -1148,6 +1182,7 @@ int TNudyEndfRecoPoint::GetAd6(int ielemId, int mt)
 //------------------------------------------------------------------------------------------------------
 int TNudyEndfRecoPoint::GetZd6(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   int size = fZD6[ielemId].size();
   for (int i = 0; i < size; i++) {
     if (fMt6Values[ielemId][i] == mt) {
@@ -1159,6 +1194,7 @@ int TNudyEndfRecoPoint::GetZd6(int ielemId, int mt)
 //------------------------------------------------------------------------------------------------------
 int TNudyEndfRecoPoint::GetLaw6(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   int size = fLaw6[ielemId].size();
   for (int i = 0; i < size; i++) {
     if (fMt6Values[ielemId][i] == mt) {
@@ -1171,14 +1207,14 @@ int TNudyEndfRecoPoint::GetLaw6(int ielemId, int mt)
 double TNudyEndfRecoPoint::GetCos6(int ielemId, int mt, double energyK)
 {
   int i = -1;
-  if (fMt6Values[ielemId].size() <= 0) return 99;
+  if (fMt6Values[ielemId].size() <= 0) return -99;
   for (int l = 0, Mt6Size = fMt6Values[ielemId].size(); l != Mt6Size; ++l) {
     if (fMt6Values[ielemId][l] == mt) {
       i = l;
       break;
     }
   }
-  if (i < 0) return 99;
+  if (i < 0) return -99;
   int min = 0;
   int max = fEnergy6OfMts[ielemId][i].size() - 1;
   int mid = 0;
@@ -1226,14 +1262,14 @@ double TNudyEndfRecoPoint::GetCos6(int ielemId, int mt, double energyK)
 double TNudyEndfRecoPoint::GetEnergy6(int ielemId, int mt, double energyK)
 {
   int i = -1;
-  if (fMt6Values[ielemId].size() <= 0) return 99;
+  if (fMt6Values[ielemId].size() <= 0) return -99;
   for (int l = 0, Mt6Size = fMt6Values[ielemId].size(); l != Mt6Size; ++l) {
     if (fMt6Values[ielemId][l] == mt) {
       i = l;
       break;
     }
   }
-  if (i < 0) return 99;
+  if (i < 0) return -99;
   int min = 0;
   int max = fEnergy6OfMts[ielemId][i].size() - 1;
   int mid = 0;
@@ -1279,17 +1315,19 @@ double TNudyEndfRecoPoint::GetEnergy6(int ielemId, int mt, double energyK)
   (fEnergyOut6OfMts[ielemId][i][min][k][m + 1] - fEnergyOut6OfMts[ielemId][i][min][k][m]);
   double plk2 = fEnergyPdf6OfMts[ielemId][i][min][k][m] * fEnergyPdf6OfMts[ielemId][i][min][k][m];
   // std::cout <<"plk "<< plk <<" plk2 "<< plk2  << std::endl;
-  double edes = 0;
-  if (plk != 0)
+  double edes = energyK;
+  if (plk != 0) {
     edes = fEnergyOut6OfMts[ielemId][i][min][k][m] +
     (sqrt(plk2 + 2 * plk * (rnd1 - fEnergyCdf6OfMts[ielemId][i][min][k][m])) -
     fEnergyPdf6OfMts[ielemId][i][min][k][m]) /
     plk;
+  }
   return edes;
 }
 //-------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetFisYield(int ielemId, double energyK)
 {
+  ielemId = GetElementId(ielemId);
   int min = 0;
   int max = fEinfId[ielemId].size() - 2;
   int mid = 0;
@@ -1331,33 +1369,39 @@ double TNudyEndfRecoPoint::GetFisYield(int ielemId, double energyK)
   return zaf;
 }
 //-------------------------------------------------------------------------------------------------------
-double TNudyEndfRecoPoint::GetNuTotal(int elemid, double energyK)
+double TNudyEndfRecoPoint::GetNuTotal(int ielemId, double energyK)
 {
-  return fRecoNuPh->GetNuTotal(elemid, energyK);
+  ielemId = GetElementId(ielemId);
+  return fRecoNuPh->GetNuTotal(ielemId, energyK);
 }
 //-------------------------------------------------------------------------------------------------------
-double TNudyEndfRecoPoint::GetNuPrompt(int elemid, double energyK)
+double TNudyEndfRecoPoint::GetNuPrompt(int ielemId, double energyK)
 {
-  return fRecoNuPh->GetNuPrompt(elemid, energyK);
+  ielemId = GetElementId(ielemId);
+  return fRecoNuPh->GetNuPrompt(ielemId, energyK);
 }
 //-------------------------------------------------------------------------------------------------------
-double TNudyEndfRecoPoint::GetNuDelayed(int elemid, double energyK)
+double TNudyEndfRecoPoint::GetNuDelayed(int ielemId, double energyK)
 {
-  return fRecoNuPh->GetNuDelayed(elemid, energyK);
+  ielemId = GetElementId(ielemId);
+  return fRecoNuPh->GetNuDelayed(ielemId, energyK);
 }
 //-------------------------------------------------------------------------------------------------------
-double TNudyEndfRecoPoint::GetFissHeat(int elemid, double energyK)
+double TNudyEndfRecoPoint::GetFissHeat(int ielemId, double energyK)
 {
-  return fRecoNuPh->GetFissHeat(elemid, energyK);
+  ielemId = GetElementId(ielemId);
+  return fRecoNuPh->GetFissHeat(ielemId, energyK);
 }
 //-------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetLambdaD(int ielemId, int time)
 {
+  ielemId = GetElementId(ielemId);
   return fRecoNuPh->GetLambdaD(ielemId, time);
 }
 //------------------------------------------------------------------------------------------------------
 double TNudyEndfRecoPoint::GetCos4Photon(int ielemId, int mt, double energyK)
 {
+  ielemId = GetElementId(ielemId);
   int i = -1;
   for (int l = 0, Mt4ValuesSize = fMt4ValuesPhoton[ielemId].size(); l != Mt4ValuesSize; ++l) {
     if (fMt4ValuesPhoton[ielemId][l] == mt) {
@@ -1412,6 +1456,7 @@ double TNudyEndfRecoPoint::GetCos4Photon(int ielemId, int mt, double energyK)
 //________________________________________________________________________________________________________________
 int TNudyEndfRecoPoint::GetCos4LctPhoton(int ielemId, int mt)
 {
+  ielemId = GetElementId(ielemId);
   int i = 0;
   for (int l = 0, Mt4ValuesSize = fMt4ValuesPhoton[ielemId].size(); l != Mt4ValuesSize; ++l) {
     if (fMt4ValuesPhoton[ielemId][l] == mt) {
@@ -1431,7 +1476,7 @@ double TNudyEndfRecoPoint::GetEnergy5Photon(int ielemId, int mt, double energyK)
       break;
     }
   }
-  if (i < 0) return 99;
+  if (i < 0) return -99;
   int min = 0;
   int max = fEnergy5OfMtsPhoton[ielemId][i].size() - 2;
   int mid = 0;
@@ -1592,8 +1637,4 @@ TNudyEndfRecoPoint::~TNudyEndfRecoPoint()
   fEne3D.shrink_to_fit();
   fCdf3D.shrink_to_fit();
   fPdf3D.shrink_to_fit();
-  delete fRecoNuPh;
-  delete fRecoPhYield;
-  delete fRecoPhProd;
-  
 }

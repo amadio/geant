@@ -281,23 +281,7 @@ TNudyEndfNuPh::TNudyEndfNuPh(TNudyEndfFile *file)
   // std::cout<< fEint[crs][cr] <<"  "<< fNut[crs][cr] << std::endl;
 }
 
-TNudyEndfNuPh::~TNudyEndfNuPh()
-{
-  fEintFile1.shrink_to_fit();
-  fNutFile1.shrink_to_fit();
-  fEinFile1.shrink_to_fit();
-  fNuFile1.shrink_to_fit();
-  fEindFile1.shrink_to_fit();
-  fNudFile1.shrink_to_fit();
-  fEinPhFile1.shrink_to_fit();
-  fPhFile1.shrink_to_fit();
-  fEinfFile1.shrink_to_fit();
-  fHeatFile1.shrink_to_fit();
-  fCnc.shrink_to_fit();
-  fNui.shrink_to_fit();
-  fNbt1.shrink_to_fit();
-  fInt1.shrink_to_fit();
-}
+TNudyEndfNuPh::~TNudyEndfNuPh(){}
 //____________________________________________________________________________________________________________________
 double TNudyEndfNuPh::RecursionLinearNuPh(double x1, double x2, double sig1, double sig2, std::vector<double> x,
                                           std::vector<double> sig)

@@ -39,7 +39,6 @@ namespace NudyPhysics {
 
 namespace NudyPhysics {
   
-  #define PI acos(-1.0)
   typedef std::vector<double> rowd;
   typedef std::vector<int> rowint;
   typedef std::vector<rowint> matrixint;
@@ -112,7 +111,10 @@ namespace NudyPhysics {
     /// \brief getting lambda of delayed neutron emitter family
     matrixint fMtValues;
     /// \brief MT values for which cross-section/ heating values are given
-    
+    rowint fElementId;
+    /// \brief z*1000+A of the element in the material list of the simulation
+    int GetElementId(int elemid);
+    /// \brief getting isotope index for stored vector to retrive data
   protected:
     int fElemId;
     /// \brief serial no of the element in the material list of the simulation

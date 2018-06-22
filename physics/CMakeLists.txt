@@ -18,6 +18,8 @@ file(GLOB sources
   ${CMAKE_SOURCE_DIR}/physics/hadron/processes/src/*.cc
   ${CMAKE_SOURCE_DIR}/physics/kernel/utils/src/*.cc
   ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/neutron/models/src/*.cc
+  ${CMAKE_SOURCE_DIR}/physics/neutron/xsec/src/*.cc
 )
 
 file(GLOB headers
@@ -31,6 +33,8 @@ file(GLOB headers
   ${CMAKE_SOURCE_DIR}/physics/hadron/processes/inc/Geant/*.h
   ${CMAKE_SOURCE_DIR}/physics/kernel/utils/inc/Geant/*.h
   ${CMAKE_SOURCE_DIR}/physics/hadron/cross_sections/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/neutron/models/inc/Geant/*.h
+  ${CMAKE_SOURCE_DIR}/physics/neutron/xsec/inc/Geant/*.h
 )
 
 include_directories(
@@ -48,6 +52,9 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/core/concurrency/inc
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc
    ${CMAKE_SOURCE_DIR}/core/numa/inc
+   ${CMAKE_SOURCE_DIR}/physics/neutron/nudy/inc
+   ${CMAKE_SOURCE_DIR}/physics/neutron/models/inc
+   ${CMAKE_SOURCE_DIR}/physics/neutron/xsec/inc
 )
 
 #----------------------------------------------------------------------------------------------
@@ -81,7 +88,7 @@ endif()
 # Add target library and links
 #----------------------------------------------------------------------------------------------
 add_library(RealPhysics SHARED ${sources})
-target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v ${_extraLibs}
+target_link_libraries(RealPhysics -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material Geant_v Nudy ${_extraLibs}
                       ${VECGEOM_LIBRARIES} ${Geant4_LIBRARIES} ${VecCoreLib_LIBRARIES})
 add_custom_target(realphyslib DEPENDS RealPhysics)
 

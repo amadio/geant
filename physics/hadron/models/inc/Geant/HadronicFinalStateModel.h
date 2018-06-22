@@ -42,6 +42,7 @@ enum class HadronicModelType {
   kDeexcitation,     /** de-excitation model */
   kRadioactiveDecay, /** radioactive decay model */
   kParticleHP,       /** low-energy high-precision model */
+  kNeutronNudy,      /** low-energy neutron-Nudy model */
   kLeptoNuclear,     /** lepto-nuclear model */
   kQuasiElastic,     /** quasi-elastic model */
   kElastic,          /** elastic model */

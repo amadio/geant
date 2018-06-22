@@ -229,18 +229,17 @@ public:
   void DumpENDF(int flags);
 
 private:
-  bool isDollar = false;
   static const char fkElNam[119][4];
   static const char fkElIso[4][2];
   unsigned char fLogLev;      //  Log Level Flag
-  ifstream fENDF;             //! Input fENDF tape
-  TFile *fRENDF;              //! Output fRENDF file
   char fLine[LINLEN];         //! Buffer to read the line
-  Nudy::TNudyEndfTape *fTape; //! Support link for the tape structure
-  Nudy::TNudyEndfMat *fMat;   //! Support link for the current material
   std::string ENDFSUB;
   int fPrepro;
   bool fLFI;
+  ifstream fENDF;             //! Input fENDF tape
+  TFile *fRENDF;              //! Output fRENDF file
+  Nudy::TNudyEndfTape *fTape; //! Support link for the tape structure
+  Nudy::TNudyEndfMat *fMat;   //! Support link for the current material
 #ifdef USE_ROOT
   ClassDef(TNudyENDF, 1) // class for an ENDF data file
 #endif

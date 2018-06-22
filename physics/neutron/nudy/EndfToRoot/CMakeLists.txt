@@ -16,6 +16,8 @@ include_directories(
 #---------------------------------
 #  Executable
 #
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/nudy/bin)
+
 add_executable(EndfToRoot ${NUDYSRC}/EndfToRoot/EndfToRoot.cc)
 target_link_libraries(EndfToRoot -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Nudy )
 
@@ -30,6 +32,9 @@ target_link_libraries(RootToRetrive -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Nudy )
 
 add_executable(Xsec ${NUDYSRC}/EndfToRoot/Xsec_plot.cc)
 target_link_libraries(Xsec -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Nudy )
+
+#add_executable(runjendl ${NUDYSRC}/EndfToRoot/main2.cc)
+#target_link_libraries(runjendl -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Nudy )
 
 #install(TARGETS EndfToRoot DESTINATION ${NUDYDATA})
 
