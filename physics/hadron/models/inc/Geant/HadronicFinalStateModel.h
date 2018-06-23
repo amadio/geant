@@ -25,8 +25,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class Isotope;
 class Material;
 class Element;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geantphysics
 
 namespace geantphysics {
 

@@ -39,23 +39,21 @@ NeutronNudyFissionModel::NeutronNudyFissionModel(const std::string &modelname) :
   char *path = std::getenv("GEANT_PHYSICS_DATA");
   if (!path) {
     std::cerr << "******   ERROR in NeutronNudyXsec() \n"
-    << "         GEANT_PHYSICS_DATA is not defined! Set the GEANT_PHYSICS_DATA\n"
-    << "         environmental variable to the location of Geant data directory\n"
-    << "         It should be .root file processed from ENDF data using EndfToPointRoot\n"
-    << "         executable. For more details see EndfToRoot in \n"
-    << "         physics/neutron/nudy/EndfToRoot/README\n"
-    << "         root file name format is n-Z_A.root!\n"
-    << std::endl;
+              << "         GEANT_PHYSICS_DATA is not defined! Set the GEANT_PHYSICS_DATA\n"
+              << "         environmental variable to the location of Geant data directory\n"
+              << "         It should be .root file processed from ENDF data using EndfToPointRoot\n"
+              << "         executable. For more details see EndfToRoot in \n"
+              << "         physics/neutron/nudy/EndfToRoot/README\n"
+              << "         root file name format is n-Z_A.root!\n"
+              << std::endl;
     exit(1);
   }
   std::string tmp = path;
-  filename = tmp +"/neutron/nudy/n-";
+  filename        = tmp + "/neutron/nudy/n-";
   this->SetProjectileCodeVec(projVec);
 }
 
-NeutronNudyFissionModel::~NeutronNudyFissionModel()
-{
-}
+NeutronNudyFissionModel::~NeutronNudyFissionModel() {}
 
 void NeutronNudyFissionModel::Initialize()
 {
@@ -64,9 +62,9 @@ void NeutronNudyFissionModel::Initialize()
 
 int NeutronNudyFissionModel::SampleFinalState(LightTrack &track, Isotope *targetisotope, geant::TaskData *td)
 {
-  using vecgeom::Vector3D;
-  using vecgeom::LorentzVector;
   using vecgeom::LorentzRotation;
+  using vecgeom::LorentzVector;
+  using vecgeom::Vector3D;
 
   int numSecondaries = 0;
   double Ek          = track.GetKinE();
@@ -85,45 +83,45 @@ int NeutronNudyFissionModel::SampleFinalState(LightTrack &track, Isotope *target
     << " N= " << targetisotope->GetN()
     << std::endl;
   */
-  int Z = targetisotope->GetZ();
-  int A = targetisotope->GetN();
-  std::string z = std::to_string(Z);
-  std::string a = std::to_string(A);
+  int Z           = targetisotope->GetZ();
+  int A           = targetisotope->GetN();
+  std::string z   = std::to_string(Z);
+  std::string a   = std::to_string(A);
   std::string tmp = filename + z + "_" + a + ".root";
   // int particlePDG = Particle::GetParticleByInternalCode(particleCode)->GetPDGCode();
-  fRENDF = tmp.c_str();
+  fRENDF     = tmp.c_str();
   int elemId = Z * 1000 + A;
-  recopoint.GetData(elemId,fRENDF);
+  recopoint.GetData(elemId, fRENDF);
   // projectile mass
   double mass1 = track.GetMass();
   // target mass
   // double mass2 = targetisotope->GetIsoMass();
   // momentum in lab frame
   double plab = std::sqrt(Ek * (Ek + 2 * mass1));
-  double nut = recopoint.GetNuTotal(elemId,  Ek/geant::units::eV);
-  
+  double nut  = recopoint.GetNuTotal(elemId, Ek / geant::units::eV);
+
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::poisson_distribution<int> distribution(nut);
   int number = distribution(generator);
-  while (number ==0 ) {
+  while (number == 0) {
     number = distribution(generator);
   }
   numSecondaries = number;
   for (int i = 0; i != number; ++i) {
-    double cosLab = recopoint.GetCos4(elemId, 2, Ek/geant::units::eV);
+    double cosLab = recopoint.GetCos4(elemId, 2, Ek / geant::units::eV);
     if (cosLab == -99) {
       cosLab = 2 * td->fRndm->uniform() - 1;
     }
     double sinLab = 0;
-    // problem in sampling 
+    // problem in sampling
     if (cosLab > 1.0 || cosLab < -1.0) {
-      std::cout << "GVNeutronNudyFission WARNING (1 - cost)= " << 1 - cosLab << " after Fission of " << track.GetGVcode()
-      << " p(GeV/c)= " << plab / geant::units::GeV << " on an ion Z= " << targetisotope->GetZ()
-      << " N= " << targetisotope->GetN() << std::endl;
+      std::cout << "GVNeutronNudyFission WARNING (1 - cost)= " << 1 - cosLab << " after Fission of "
+                << track.GetGVcode() << " p(GeV/c)= " << plab / geant::units::GeV
+                << " on an ion Z= " << targetisotope->GetZ() << " N= " << targetisotope->GetN() << std::endl;
       cosLab = 1.0;
       sinLab = 0.0;
-      
+
       // normal situation
     } else {
       sinLab = std::sqrt((1.0 - cosLab) * (1.0 + cosLab));
@@ -131,20 +129,20 @@ int NeutronNudyFissionModel::SampleFinalState(LightTrack &track, Isotope *target
     double phi = geant::units::kTwoPi * td->fRndm->uniform();
     double sinphi, cosphi;
     Math::SinCos(phi, sinphi, cosphi);
-    
+
     double nDirX = sinLab * cosphi;
     double nDirY = sinLab * sinphi;
     double nDirZ = cosLab;
     // rotate in the origional particle frame : This need to be checked: Harphool
     // energy of the neutron from the ENDF distributions
-    double energy = recopoint.GetEnergy5(elemId, 18, Ek/geant::units::eV) * geant::units::eV;
+    double energy = recopoint.GetEnergy5(elemId, 18, Ek / geant::units::eV) * geant::units::eV;
     // killing primary track after fission
     track.SetTrackStatus(LTrackStatus::kKill);
     track.SetKinE(0.0);
-    
+
     auto &secondarySoA = td->fPhysicsData->InsertSecondary();
     // Add neutron
-//    int idx = secondarySoA.InsertTrack();
+    //    int idx = secondarySoA.InsertTrack();
     secondarySoA.SetDirX(nDirX);
     secondarySoA.SetDirY(nDirY);
     secondarySoA.SetDirZ(nDirZ);

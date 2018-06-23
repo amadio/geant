@@ -10,7 +10,7 @@
 #include <iostream>
 
 namespace geantphysics {
-  
+
 NeutronNudyElasticXsec::NeutronNudyElasticXsec()
 {
   this->SetName("NeutronNudyElasticXsec");
@@ -29,36 +29,34 @@ NeutronNudyElasticXsec::NeutronNudyElasticXsec()
   char *path = std::getenv("GEANT_PHYSICS_DATA");
   if (!path) {
     std::cerr << "******   ERROR in NeutronNudyElasticXsec() \n"
-    << "         GEANT_PHYSICS_DATA is not defined! Set the GEANT_PHYSICS_DATA\n"
-    << "         environmental variable to the location of Geant data directory\n"
-    << "         It should be .root file processed from ENDF data using EndfToPointRoot\n"
-    << "         executable. For more details see EndfToRoot in \n"
-    << "         physics/neutron/nudy/EndfToRoot/README\n"
-    << "         root file name format is n-Z_A.root!\n"
-    << std::endl;
+              << "         GEANT_PHYSICS_DATA is not defined! Set the GEANT_PHYSICS_DATA\n"
+              << "         environmental variable to the location of Geant data directory\n"
+              << "         It should be .root file processed from ENDF data using EndfToPointRoot\n"
+              << "         executable. For more details see EndfToRoot in \n"
+              << "         physics/neutron/nudy/EndfToRoot/README\n"
+              << "         root file name format is n-Z_A.root!\n"
+              << std::endl;
     exit(1);
   }
   std::string tmp = path;
-  filename = tmp +"/neutron/nudy/n-";
+  filename        = tmp + "/neutron/nudy/n-";
   this->SetProjectileCodeVec(projVec);
 }
 
-NeutronNudyElasticXsec::~NeutronNudyElasticXsec()
-{
-}
+NeutronNudyElasticXsec::~NeutronNudyElasticXsec() {}
 
-double NeutronNudyElasticXsec::GetIsotopeCrossSection(const int /*particleCode*/, const double energyKin, 
+double NeutronNudyElasticXsec::GetIsotopeCrossSection(const int /*particleCode*/, const double energyKin,
                                                       const double /*mass*/, const int Z, const int A)
 {
   double xsection;
-  std::string z = std::to_string(Z);
-  std::string a = std::to_string(A);
+  std::string z   = std::to_string(Z);
+  std::string a   = std::to_string(A);
   std::string tmp = filename + z + "_" + a + ".root";
   // std::cout<<"file name "<< tmp << " mass "<< mass << std::endl;
-  fRENDF = tmp.c_str();
+  fRENDF     = tmp.c_str();
   int elemId = Z * 1000 + A;
-  recopoint.GetData(elemId,fRENDF);
-  xsection = recopoint.GetSigmaPartial(elemId, 2, energyKin/geant::units::eV);
+  recopoint.GetData(elemId, fRENDF);
+  xsection = recopoint.GetSigmaPartial(elemId, 2, energyKin / geant::units::eV);
   return xsection * geant::units::barn;
 }
-}
+} // namespace geantphysics

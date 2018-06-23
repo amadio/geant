@@ -91,26 +91,26 @@
 #include "Geant/TaskData.h"
 #include "Hist.h"
 
-using geantphysics::Material;
 using geantphysics::Element;
-using geantphysics::MaterialCuts; // this is just to print the table
 using geantphysics::Isotope;
-using geantphysics::PhysicsListManager;
+using geantphysics::Material;
+using geantphysics::MaterialCuts; // this is just to print the table
 using geantphysics::PhysicsList;
+using geantphysics::PhysicsListManager;
 using geantphysics::PhysicsParameters;
 
 using geantphysics::PhysicsManagerPerParticle;
 using geantphysics::PhysicsProcess;
 
-using geantphysics::Particle;
 using geantphysics::Electron;
-using geantphysics::Positron;
 using geantphysics::Gamma;
-using geantphysics::Proton;
 using geantphysics::Neutron;
+using geantphysics::Particle;
+using geantphysics::Positron;
+using geantphysics::Proton;
 
-using geantphysics::HadronicProcess;
 using geantphysics::HadronicFinalStateModel;
+using geantphysics::HadronicProcess;
 
 using geantphysics::LightTrack;
 using geantphysics::PhysicsData;
@@ -122,32 +122,31 @@ static std::string particleName("n");           // primary particle is neutron
 static std::string materialName("NIST_MAT_Pb"); // material is lead
 static int Z                  = 82;             // Charge number of the isotope
 static int N                  = 208;            // Total nucleons of the isotope
-static int numHistBins1       = 50;            // number of histogram bins between min/max values
-static int numHistBins2       = 1000;            // number of histogram bins between min/max values
-static int numHistBins3       = 20;            // number of histogram bins between min/max values
+static int numHistBins1       = 50;             // number of histogram bins between min/max values
+static int numHistBins2       = 1000;           // number of histogram bins between min/max values
+static int numHistBins3       = 20;             // number of histogram bins between min/max values
 static int numSamples         = 1.e+7;          // number of required final state samples
 static double primaryEnergy   = 1E-3;           // primary particle energy in [GeV]
 static double prodCutValue    = 1E-11;          // by default in length and internal units i.e. [cm]
 static bool isProdCutInLength = true;           // is the production cut value given in length ?
 double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Isotope *isotope,
-                          Particle *primParticle, HadronicFinalStateModel *nudyModel, 
-                          Hist *h1, Hist *h2, Hist *h3);
+                          Particle *primParticle, HadronicFinalStateModel *nudyModel, Hist *h1, Hist *h2, Hist *h3);
 
 static struct option options[] = {
-  {"particle-name    (possible particle: n) - default: n", required_argument, 0, 'p'},
-  {"material-name    (with a NIST_MAT_ prefix; see more in material doc.)          - default: NIST_MAT_Pb",
-  required_argument, 0, 'm'},
-  {"number-of-samples (number of required final state samples)                 - default: 1.e+7", required_argument,
-      0, 'f'},
-  {"primary-energy   (in internal energy units i.e. [GeV])                         - default: 1E-3", required_argument,
-        0, 'E'},
-  {"sampling target Z    (proton number: z) - default: 82", required_argument, 0, 'z'},
-  {"sampling target A    (Mass number (proton + neutron): A) - default: 208", required_argument, 0, 'a'},
-  {"help", no_argument, 0, 'h'},
-  {0, 0, 0, 0}};
-  void help();
-        
-        //===========================================================================================//
+    {"particle-name    (possible particle: n) - default: n", required_argument, 0, 'p'},
+    {"material-name    (with a NIST_MAT_ prefix; see more in material doc.)          - default: NIST_MAT_Pb",
+     required_argument, 0, 'm'},
+    {"number-of-samples (number of required final state samples)                 - default: 1.e+7", required_argument,
+     0, 'f'},
+    {"primary-energy   (in internal energy units i.e. [GeV])                         - default: 1E-3",
+     required_argument, 0, 'E'},
+    {"sampling target Z    (proton number: z) - default: 82", required_argument, 0, 'z'},
+    {"sampling target A    (Mass number (proton + neutron): A) - default: 208", required_argument, 0, 'a'},
+    {"help", no_argument, 0, 'h'},
+    {0, 0, 0, 0}};
+void help();
+
+//===========================================================================================//
 int main(int argc, char *argv[])
 {
   //
@@ -157,48 +156,48 @@ int main(int argc, char *argv[])
     c = getopt_long(argc, argv, "p:m:E:f:c:z:a:", options, &optidx);
     if (c == -1) break;
     switch (c) {
-      case 0:
-        c = options[optidx].val;
-        /* fall through */
-        case 'p':
-          particleName = optarg;
-          break;
-        case 'm':
-          materialName = optarg;
-          break;
-        case 'E':
-          primaryEnergy = (double)strtof(optarg, NULL);
-          if (primaryEnergy <= 0) errx(1, "primary particle energy must be positive");
-          break;
-        case 'f':
-          numSamples = (double)strtof(optarg, NULL);
-          if (numSamples <= 0) errx(1, "number of final state samples must be positive");
-          break;
-        case 'c':
-          prodCutValue = (double)strtof(optarg, NULL);
-          if (prodCutValue <= 0) errx(1, "production cut value must be positive");
-          break;
-        case 'e':
-          isProdCutInLength = false;
-          break;
-        case 'z':
-          Z = (double)strtof(optarg, NULL);
-          if (Z <= 0) errx(1, "Proton no. must be positive");
-          break;
-        case 'a':
-          N = (double)strtof(optarg, NULL);
-          if (N <= 0) errx(1, "Mass no. must be positive");
-          break;
-        case 'h':
-          help();
-          return 0;
-          break;
-        default:
-          help();
-          errx(1, "unknown option %c", c);
+    case 0:
+      c = options[optidx].val;
+    /* fall through */
+    case 'p':
+      particleName = optarg;
+      break;
+    case 'm':
+      materialName = optarg;
+      break;
+    case 'E':
+      primaryEnergy = (double)strtof(optarg, NULL);
+      if (primaryEnergy <= 0) errx(1, "primary particle energy must be positive");
+      break;
+    case 'f':
+      numSamples = (double)strtof(optarg, NULL);
+      if (numSamples <= 0) errx(1, "number of final state samples must be positive");
+      break;
+    case 'c':
+      prodCutValue = (double)strtof(optarg, NULL);
+      if (prodCutValue <= 0) errx(1, "production cut value must be positive");
+      break;
+    case 'e':
+      isProdCutInLength = false;
+      break;
+    case 'z':
+      Z = (double)strtof(optarg, NULL);
+      if (Z <= 0) errx(1, "Proton no. must be positive");
+      break;
+    case 'a':
+      N = (double)strtof(optarg, NULL);
+      if (N <= 0) errx(1, "Mass no. must be positive");
+      break;
+    case 'h':
+      help();
+      return 0;
+      break;
+    default:
+      help();
+      errx(1, "unknown option %c", c);
     }
   }
-  
+
   //============================= User defined input data =====================================//
   //
   // Create target material: which is supposed to be a NIST Material
@@ -217,7 +216,7 @@ int main(int argc, char *argv[])
   // Set particle kinetic energy
   double kineticEnergy = primaryEnergy;
   double logKinE       = Math::Log(primaryEnergy);
-  
+
   //============= Initialization i.e. building up and init the physics ========================//
   //
   // Create a dummy vecgeom::geometry with only one volume i.e. world; create a region and set production cuts
@@ -232,30 +231,30 @@ int main(int argc, char *argv[])
   worldl.SetMaterialPtr((void *)matDetector);
   vecgeom::GeoManager::Instance().SetWorld(worldl.Place());
   vecgeom::GeoManager::Instance().CloseGeometry();
-  
+
   // print the material table
   // std::cerr<< Material::GetTheMaterialTable();
-  
+
   //
   // Create all MaterialCuts
   //
-  
+
   MaterialCuts::CreateAll();
   // print all MaterialCuts
   // std::cout<<MaterialCuts::GetTheMaterialCutsTable()<<std::endl;
-  
+
   //
   // Set number of regions in the PhysicsListManager: during normal physics init., it is done
   // automatically in the PhysicsProcessHandler::Initialize()
   PhysicsListManager::Instance().SetNumberOfRegions(vecgeom::Region::GetNumberOfRegions());
-  
+
   //
   // Create one user physics list.
   //
   //   THIS IS VERY SIMILAR To Geant4 STYLE
   //   The same as above but if we have only one physics list and the active region vector is not provided then that one
   //   phyics list will be used in all regions
-  
+
   // this is what the user needs to do:
   // 1. create the physics list
   // create the ENDF based elastic model for elastic scattering
@@ -265,21 +264,21 @@ int main(int argc, char *argv[])
   thePhysicsList->GetPhysicsParameters()->SetIsComputeCSDARange(true);
   // 2. register the physics list:
   PhysicsListManager::Instance().RegisterPhysicsList(thePhysicsList);
-  
+
   // Build all registered physics lists: during normal physics init., it is done
   // automatically in the PhysicsProcessHandler::Initialize()
   PhysicsListManager::Instance().BuildPhysicsLists();
   //===========================================================================================//
-  
+
   //======================== Getting the required information =================================//
   //
   //  Now get the list of EM processes assigned to the particle and use them.
   //
   std::cout << std::endl << std::endl;
   std::cout << "   ================================================================================ \n"
-  << "   ================================    RESULTS    ================================= \n"
-  << "   ================================================================================ \n";
-  
+            << "   ================================    RESULTS    ================================= \n"
+            << "   ================================================================================ \n";
+
   // first get the MaterialCuts: we have only one
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(), matDetector->GetIndex());
   std::cout << "   Material       =  " << matDetector->GetName() << std::endl;
@@ -298,19 +297,19 @@ int main(int argc, char *argv[])
   size_t numPostStepCandidateProcesses = 0;
   std::vector<PhysicsProcess *> thePostStepCandProcVect;
   if (thePhysManager) {
-    thePostStepCandProcVect        = thePhysManager->GetListPostStepCandidateProcesses();
-    numPostStepCandidateProcesses  = thePostStepCandProcVect.size();
+    thePostStepCandProcVect       = thePhysManager->GetListPostStepCandidateProcesses();
+    numPostStepCandidateProcesses = thePostStepCandProcVect.size();
   }
   std::cout << "   The particle has " << numPostStepCandidateProcesses << " processes with discrete part assinged to."
-  << std::endl;
+            << std::endl;
   std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
   // terminate if there is no any post-step candidate processes assigned to the particle in the given region.
   if (!numPostStepCandidateProcesses) {
     std::cout << "   ================================================================================ " << std::endl
-    << std::endl;
+              << std::endl;
     return 0;
   }
-  
+
   double compTotalMacXsec    = 0.0; // computed total macroscopic cross section i.e. summed up per-process mac. x-secs
   double getTotalMacXsec     = 0.0; // same but interpolated from the lambda table that is built at initialization
   double compTotalAtomicXsec = 0.0; // computed total atomic cross section (only if material has 1 element)
@@ -318,79 +317,80 @@ int main(int argc, char *argv[])
   std::vector<double> compMacXsecPerProcessVect; // computed macroscopic cross sections per-process
   std::vector<double> getMacXsecPerProcessVect;  // same but interpolated from the lambda table that is built at init.
   std::vector<double> compAtomicXsectionVect;    // computed atomic cross sections (only if material has 1 element)
-  
-  //TNudyEndfRecoPoint *recopoint = new TNudyEndfRecoPoint(0,rENDF);
-  
+
+  // TNudyEndfRecoPoint *recopoint = new TNudyEndfRecoPoint(0,rENDF);
+
   bool isSingleElementMaterial = false;
   if (matCut->GetMaterial()->GetNumberOfElements() == 1) {
     isSingleElementMaterial = true;
   }
-  
+
   for (size_t i = 0; i < thePostStepCandProcVect.size(); ++i) {
     PhysicsProcess *proc = thePostStepCandProcVect[i];
     processNameVect.push_back(proc->GetName());
-    
+
     compMacXsecPerProcessVect.push_back(
-      proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, particle->GetPDGMass()));
+        proc->ComputeMacroscopicXSection(matCut, kineticEnergy, particle, particle->GetPDGMass()));
     compTotalMacXsec += compMacXsecPerProcessVect[i];
-    getMacXsecPerProcessVect.push_back(proc->GetMacroscopicXSection(matCut, kineticEnergy, logKinE, particle->GetPDGMass()));
+    getMacXsecPerProcessVect.push_back(
+        proc->GetMacroscopicXSection(matCut, kineticEnergy, logKinE, particle->GetPDGMass()));
     getTotalMacXsec += getMacXsecPerProcessVect[i];
-    
+
     if (isSingleElementMaterial) {
       compAtomicXsectionVect.push_back(static_cast<HadronicProcess *>(proc)->GetAtomicCrossSection(
-        particle->GetInternalCode(), kineticEnergy, particle->GetPDGMass(),
-                                                                                                    (matCut->GetMaterial()->GetElementVector())[0], matDetector));
-      
+          particle->GetInternalCode(), kineticEnergy, particle->GetPDGMass(),
+          (matCut->GetMaterial()->GetElementVector())[0], matDetector));
+
       compTotalAtomicXsec += compAtomicXsectionVect[i];
     }
   }
-  
+
   processNameVect.push_back("total");
   compMacXsecPerProcessVect.push_back(compTotalMacXsec);
   getMacXsecPerProcessVect.push_back(getTotalMacXsec);
   compAtomicXsectionVect.push_back(compTotalAtomicXsec);
-  
+
   std::cout << "   process name                :";
   for (size_t i = 0; i < processNameVect.size(); ++i) {
     std::cout << std::setw(16) << std::right << processNameVect[i] << std::setw(10) << " ";
   }
   std::cout << std::endl;
   std::cout << std::endl;
-  
+
   if (isSingleElementMaterial) {
     std::cout << "   cross section per atom      :";
     for (size_t i = 0; i < processNameVect.size(); ++i) {
       std::cout << std::setw(14) << std::scientific << std::right << compAtomicXsectionVect[i] / (geant::units::barn)
-      << std::setw(14) << std::left << "     [barn]";
+                << std::setw(14) << std::left << "     [barn]";
     }
     std::cout << std::endl;
     std::cout << std::endl;
   }
-  
+
   std::cout << "   compCrossSectionPerVolume   :";
   for (size_t i = 0; i < processNameVect.size(); ++i) {
     std::cout << std::setw(14) << std::scientific << std::right
-    << compMacXsecPerProcessVect[i] / (1. / geant::units::cm) << std::setw(14) << std::left << "     [1/cm]";
+              << compMacXsecPerProcessVect[i] / (1. / geant::units::cm) << std::setw(14) << std::left << "     [1/cm]";
   }
   std::cout << std::endl;
-  
+
   std::cout << "   cross section per volume    :";
   for (size_t i = 0; i < processNameVect.size(); ++i) {
     std::cout << std::setw(14) << std::scientific << std::right << getMacXsecPerProcessVect[i] / (1. / geant::units::cm)
-    << std::setw(14) << std::left << "     [1/cm]";
+              << std::setw(14) << std::left << "     [1/cm]";
   }
   std::cout << std::endl;
-  
+
   double density = matCut->GetMaterial()->GetDensity() / (geant::units::g / geant::units::cm3); // density in [g/cm3]
   std::cout << "   cross section per mass      :";
   for (size_t i = 0; i < processNameVect.size(); ++i) {
     std::cout << std::setw(14) << std::scientific << std::right
-    << getMacXsecPerProcessVect[i] / density / (1. / geant::units::cm) << std::setw(14) << std::left
-    << "    [cm2/g]";
+              << getMacXsecPerProcessVect[i] / density / (1. / geant::units::cm) << std::setw(14) << std::left
+              << "    [cm2/g]";
   }
   std::cout << std::endl;
   std::cout << std::endl;
-  
+
   std::cout << "   mean free path (length)     :";
   for (size_t i = 0; i < processNameVect.size(); ++i) {
     double lambda = PhysicsProcess::GetAVeryLargeValue();
@@ -398,10 +398,10 @@ int main(int argc, char *argv[])
       lambda = 1. / getMacXsecPerProcessVect[i] / geant::units::cm;
     }
     std::cout << std::setw(14) << std::scientific << std::right << lambda << std::setw(14) << std::left
-    << "       [cm]";
+              << "       [cm]";
   }
   std::cout << std::endl;
-  
+
   std::cout << "   mean free path (g/cm2)      :";
   for (size_t i = 0; i < processNameVect.size(); ++i) {
     double lambda = PhysicsProcess::GetAVeryLargeValue();
@@ -410,13 +410,13 @@ int main(int argc, char *argv[])
       lambda = 1. / lambda;
     }
     std::cout << std::setw(14) << std::scientific << std::right << lambda << std::setw(14) << std::left
-    << "    [g/cm2]";
+              << "    [g/cm2]";
   }
   std::cout << std::endl;
   std::cout << std::endl;
-  
+
   std::cout << "   ================================================================================ " << std::endl
-  << std::endl;
+            << std::endl;
   // this portion is for the secondary parameters (angle and energy distribution)
   double xMin  = 0.0;
   double xMax  = 180.0; //
@@ -429,18 +429,18 @@ int main(int argc, char *argv[])
   Hist *hisSec = new Hist(xMin, xMax, numHistBins3);
   // one can test models one by one (keep only one active model and comment others)
   // geantphysics::HadronicFinalStateModel *nudyModel = new geantphysics::NeutronNudyElasticModel();
-  //geantphysics::HadronicFinalStateModel *nudyModel = new geantphysics::NeutronNudyFissionModel();
+  // geantphysics::HadronicFinalStateModel *nudyModel = new geantphysics::NeutronNudyFissionModel();
   geantphysics::HadronicFinalStateModel *nudyModel = new geantphysics::NeutronNudyInelasticModel();
-  
+
   Isotope *isotope = Isotope::GetIsotope(Z, N);
   std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
   std::cout << "   Model name     =  " << nudyModel->GetName() << std::endl;
   std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
   std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
-  std::cout << "   Sampling is running for : "<< numSamples <<" neutrons" << std::endl;
+  std::cout << "   Sampling is running for : " << numSamples << " neutrons" << std::endl;
   // call sampling method
-  double timeInSec = sampleDistribution(numSamples, kineticEnergy, matCut, isotope, particle, 
-                                        nudyModel, hisAng, hisEne, hisSec);
+  double timeInSec =
+      sampleDistribution(numSamples, kineticEnergy, matCut, isotope, particle, nudyModel, hisAng, hisEne, hisSec);
   std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
   std::cout << "   Time of sampling =  " << timeInSec << " [s]" << std::endl;
   std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
@@ -453,47 +453,46 @@ int main(int argc, char *argv[])
   for (int i = 0; i < histo->GetNumBins(); ++i) {
     fprintf(f, "%d\t%.8g\t%.8g\n", i, histo->GetX()[i] + 0.5 * histo->GetDelta(), histo->GetY()[i] * norm);
   }
-delete histo;
-fclose(f);
-sprintf(fileName, "nudy_%s_ene", (isotope->GetName()).c_str());
-f     = fopen(fileName, "w");
-norm  = 1. / numSamples;
-histo = hisEne;
-for (int i = 0; i < histo->GetNumBins(); ++i) {
-  fprintf(f, "%d\t%.8g\t%.8g\n", i, histo->GetX()[i] + 0.5 * histo->GetDelta(), histo->GetY()[i] * norm);
-}
-delete histo;
-fclose(f);
-sprintf(fileName, "nudy_%s_Sec", (isotope->GetName()).c_str());
-f     = fopen(fileName, "w");
-norm  = 1. / numSamples;
-histo = hisSec;
-for (int i = 0; i < histo->GetNumBins(); ++i) {
-  fprintf(f, "%d\t%.8g\t%.8g\n", i, histo->GetX()[i] + 0.5 * histo->GetDelta(), histo->GetY()[i] * norm);
-}
-delete histo;
-fclose(f);
-//
-std::cout << "   Histogram is written  into files ................................................" << std::endl;
-std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
+  delete histo;
+  fclose(f);
+  sprintf(fileName, "nudy_%s_ene", (isotope->GetName()).c_str());
+  f     = fopen(fileName, "w");
+  norm  = 1. / numSamples;
+  histo = hisEne;
+  for (int i = 0; i < histo->GetNumBins(); ++i) {
+    fprintf(f, "%d\t%.8g\t%.8g\n", i, histo->GetX()[i] + 0.5 * histo->GetDelta(), histo->GetY()[i] * norm);
+  }
+  delete histo;
+  fclose(f);
+  sprintf(fileName, "nudy_%s_Sec", (isotope->GetName()).c_str());
+  f     = fopen(fileName, "w");
+  norm  = 1. / numSamples;
+  histo = hisSec;
+  for (int i = 0; i < histo->GetNumBins(); ++i) {
+    fprintf(f, "%d\t%.8g\t%.8g\n", i, histo->GetX()[i] + 0.5 * histo->GetDelta(), histo->GetY()[i] * norm);
+  }
+  delete histo;
+  fclose(f);
+  //
+  std::cout << "   Histogram is written  into files ................................................" << std::endl;
+  std::cout << "   -------------------------------------------------------------------------------- " << std::endl;
 
-// end
-std::cout << "   ================================================================================ " << std::endl
-<< std::endl;
-delete nudyModel;
+  // end
+  std::cout << "   ================================================================================ " << std::endl
+            << std::endl;
+  delete nudyModel;
 
   return 0;
 }
-double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Isotope *isotope, 
-                          Particle *particle, HadronicFinalStateModel *nudyModel, 
-                          Hist *h1, Hist *h2, Hist *h3)
+double sampleDistribution(double numSamples, double primaryEnergy, const MaterialCuts *matCut, Isotope *isotope,
+                          Particle *particle, HadronicFinalStateModel *nudyModel, Hist *h1, Hist *h2, Hist *h3)
 {
-  
+
   double ekin = primaryEnergy;
   double dirx = 0.0; // direction
   double diry = 0.0;
   double dirz = 1.0;
-  int gvcode = particle->GetInternalCode(); // internal code of the primary particle i.e. n
+  int gvcode  = particle->GetInternalCode(); // internal code of the primary particle i.e. n
   double mass = particle->GetPDGMass();
   // Set up a dummy geant::TaskData and its geantphysics::PhysicsData member: they are needed in the final state
   // sampling
@@ -524,12 +523,12 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
     if (numSecs > 0) {
       LightTrack *secondaryLT = td->fPhysicsData->GetListOfSecondaries();
       for (int iSec = 0; iSec != numSecs; ++iSec) {
-        h1->Fill(std::acos(secondaryLT[iSec].GetDirZ())/geant::units::deg);
-        h2->Fill(secondaryLT[iSec].GetKinE()/geant::units::MeV);
+        h1->Fill(std::acos(secondaryLT[iSec].GetDirZ()) / geant::units::deg);
+        h2->Fill(secondaryLT[iSec].GetKinE() / geant::units::MeV);
       }
     } else {
-      h1->Fill(std::acos(primaryLT.GetDirZ())/geant::units::deg);
-      h2->Fill(primaryLT.GetKinE()/geant::units::MeV);
+      h1->Fill(std::acos(primaryLT.GetDirZ()) / geant::units::deg);
+      h2->Fill(primaryLT.GetKinE() / geant::units::MeV);
     }
     h3->Fill(numSecs);
   }
@@ -539,7 +538,7 @@ double sampleDistribution(double numSamples, double primaryEnergy, const Materia
 void help()
 {
   std::cout << "\n " << std::setw(120) << std::setfill('=') << "" << std::setfill(' ') << std::endl;
-  std::cout << "  TestNudy0 GeantV application for testing integrated physics quantities" << std::endl; 
+  std::cout << "  TestNudy0 GeantV application for testing integrated physics quantities" << std::endl;
   std::cout << "  and sampling secondary angle and energy using a given user physics-list" << std::endl;
   std::cout << "\n  Usage: TestNudy0_GV [OPTIONS] \n" << std::endl;
   for (int i = 0; options[i].name != NULL; i++) {

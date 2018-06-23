@@ -37,23 +37,21 @@ NeutronNudyElasticModel::NeutronNudyElasticModel(const std::string &modelname) :
   char *path = std::getenv("GEANT_PHYSICS_DATA");
   if (!path) {
     std::cerr << "******   ERROR in NeutronNudyXsec() \n"
-    << "         GEANT_PHYSICS_DATA is not defined! Set the GEANT_PHYSICS_DATA\n"
-    << "         environmental variable to the location of Geant data directory\n"
-    << "         It should be .root file processed from ENDF data using EndfToPointRoot\n"
-    << "         executable. For more details see EndfToRoot in \n"
-    << "         physics/neutron/nudy/EndfToRoot/README\n"
-    << "         root file name format is n-Z_A.root!\n"
-    << std::endl;
+              << "         GEANT_PHYSICS_DATA is not defined! Set the GEANT_PHYSICS_DATA\n"
+              << "         environmental variable to the location of Geant data directory\n"
+              << "         It should be .root file processed from ENDF data using EndfToPointRoot\n"
+              << "         executable. For more details see EndfToRoot in \n"
+              << "         physics/neutron/nudy/EndfToRoot/README\n"
+              << "         root file name format is n-Z_A.root!\n"
+              << std::endl;
     exit(1);
   }
   std::string tmp = path;
-  filename = tmp +"/neutron/nudy/n-";
+  filename        = tmp + "/neutron/nudy/n-";
   this->SetProjectileCodeVec(projVec);
 }
 
-NeutronNudyElasticModel::~NeutronNudyElasticModel()
-{
-}
+NeutronNudyElasticModel::~NeutronNudyElasticModel() {}
 
 void NeutronNudyElasticModel::Initialize()
 {
@@ -62,9 +60,9 @@ void NeutronNudyElasticModel::Initialize()
 
 int NeutronNudyElasticModel::SampleFinalState(LightTrack &track, Isotope *targetisotope, geant::TaskData *td)
 {
-  using vecgeom::Vector3D;
-  using vecgeom::LorentzVector;
   using vecgeom::LorentzRotation;
+  using vecgeom::LorentzVector;
+  using vecgeom::Vector3D;
 
   int numSecondaries = 0;
   double Ek          = track.GetKinE();
@@ -83,15 +81,15 @@ int NeutronNudyElasticModel::SampleFinalState(LightTrack &track, Isotope *target
     << " N= " << targetisotope->GetN()
     << std::endl;
   */
-  int Z = targetisotope->GetZ();
-  int A = targetisotope->GetN();
-  std::string z = std::to_string(Z);
-  std::string a = std::to_string(A);
+  int Z           = targetisotope->GetZ();
+  int A           = targetisotope->GetN();
+  std::string z   = std::to_string(Z);
+  std::string a   = std::to_string(A);
   std::string tmp = filename + z + "_" + a + ".root";
   // int particlePDG = Particle::GetParticleByInternalCode(particleCode)->GetPDGCode();
-  fRENDF = tmp.c_str();
+  fRENDF     = tmp.c_str();
   int elemId = Z * 1000 + A;
-  recopoint.GetData(elemId,fRENDF);
+  recopoint.GetData(elemId, fRENDF);
   // projectile mass
   double mass1 = track.GetMass();
   // target mass
@@ -99,18 +97,18 @@ int NeutronNudyElasticModel::SampleFinalState(LightTrack &track, Isotope *target
   double M2m   = mass2 / mass1;
   // momentum in lab frame
   double plab = std::sqrt(Ek * (Ek + 2 * mass1));
-  
-  double cosCm = recopoint.GetCos4(elemId, 2, Ek/geant::units::eV);
+
+  double cosCm  = recopoint.GetCos4(elemId, 2, Ek / geant::units::eV);
   double cosLab = (1 + M2m * cosCm) / std::sqrt(1 + M2m * M2m + 2 * M2m * cosCm);
   double sinLab = 0;
-  // problem in sampling 
+  // problem in sampling
   if (cosLab > 1.0 || cosLab < -1.0) {
     std::cout << "GVNeutronNudyElastic WARNING cost= " << cosCm << " after scattering of " << track.GetGVcode()
-    << " p(GeV/c)= " << plab / geant::units::GeV << " on an ion Z= " << targetisotope->GetZ()
-    << " N= " << targetisotope->GetN() << std::endl;
+              << " p(GeV/c)= " << plab / geant::units::GeV << " on an ion Z= " << targetisotope->GetZ()
+              << " N= " << targetisotope->GetN() << std::endl;
     cosLab = 1.0;
     sinLab = 0.0;
-    
+
     // normal situation
   } else {
     sinLab = std::sqrt((1.0 - cosLab) * (1.0 + cosLab));
@@ -119,34 +117,34 @@ int NeutronNudyElasticModel::SampleFinalState(LightTrack &track, Isotope *target
   LorentzRotation<double> fromZ;
   fromZ.rotateZ(lv1.Phi());
   fromZ.rotateY(lv1.Theta());
-  
+
   LorentzVector<double> lv(0.0, 0.0, 0.0, mass2);
   lv += lv1;
-  
+
   Vector3D<double> bst = lv.BoostVector();
-  
+
   lv1.Boost(-bst);
-  
+
   Vector3D<double> p1 = lv1.vect();
   // momentum in CMS frame
   double momentumCMS = p1.Mag();
   double phi         = td->fRndm->uniform() * 2 * geant::units::kPi;
   double sinCm       = std::sqrt((1.0 - cosCm) * (1.0 + cosCm));
   Vector3D<double> v1(sinCm * Math::Cos(phi), sinCm * Math::Sin(phi), cosCm);
-  
+
   v1 *= momentumCMS;
-  
+
   LorentzVector<double> nlv1(v1.x(), v1.y(), v1.z(), std::sqrt(momentumCMS * momentumCMS + mass1 * mass1));
-  
+
   // rotation back from the Z axis
   nlv1 *= fromZ;
-  
+
   nlv1.Boost(bst);
   Vector3D<double> newdir = nlv1.vect().Unit();
   // double eFinal1 = nlv1.e() - mass1;
-  
+
   lv -= nlv1;
-  
+
   // recoil energy
   double erec = lv.e() - mass2;
   // std::cout<<"lorenz direction "<< newdir.x()<<"  "<< newdir.y() <<" "<< newdir.z() <<std::endl;
@@ -160,19 +158,19 @@ int NeutronNudyElasticModel::SampleFinalState(LightTrack &track, Isotope *target
   double nDirY = sinCm * sinphi;
   double nDirZ = cosCm;
   // std::cout<<"direction cm "<< nDirX <<"  "<< nDirY <<" "<< nDirZ <<std::endl;
-  
-   nDirX = sinLab * cosphi;
-   nDirY = sinLab * sinphi;
-   nDirZ = cosLab;
-  //std::cout<<"direction Lab "<< nDirX <<"  "<< nDirY <<" "<< nDirZ <<std::endl;
-  
+
+  nDirX = sinLab * cosphi;
+  nDirY = sinLab * sinphi;
+  nDirZ = cosLab;
+  // std::cout<<"direction Lab "<< nDirX <<"  "<< nDirY <<" "<< nDirZ <<std::endl;
+
   Math::RotateToLabFrame(nDirX, nDirY, nDirZ, track.GetDirX(), track.GetDirY(), track.GetDirZ());
 
   // std::cout<<"direction rotation "<< nDirX <<"  "<< nDirY <<" "<< nDirZ <<std::endl;
-  
-  int alpha = (M2m - 1) * (M2m - 1) / ((M2m + 1) * (M2m + 1));
-  double ELab = (0.5 * (Ek/geant::units::eV) * ((1 - alpha) * cosCm + 1 + alpha)) * geant::units::eV;
-  
+
+  int alpha   = (M2m - 1) * (M2m - 1) / ((M2m + 1) * (M2m + 1));
+  double ELab = (0.5 * (Ek / geant::units::eV) * ((1 - alpha) * cosCm + 1 + alpha)) * geant::units::eV;
+
   double eFinal = Ek - ELab;
 
   if (eFinal <= GetLowEnergyUsageLimit()) {
@@ -184,13 +182,13 @@ int NeutronNudyElasticModel::SampleFinalState(LightTrack &track, Isotope *target
     track.SetDirection(nDirX, nDirY, nDirZ);
     track.SetKinE(0);
   } else {
-     track.SetDirection(nDirX, nDirY, nDirZ);
-     track.SetKinE(ELab);
+    track.SetDirection(nDirX, nDirY, nDirZ);
+    track.SetKinE(ELab);
   }
   //
   if (erec > 0.0) track.SetEnergyDeposit(erec);
   // std::cout<<"energy "<< ELab <<" recoil energy "<< eFinal  <<std::endl;
-  
+
   return numSecondaries;
 }
 

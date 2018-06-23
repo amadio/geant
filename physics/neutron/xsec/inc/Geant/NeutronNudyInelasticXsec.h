@@ -11,8 +11,8 @@ public:
   NeutronNudyInelasticXsec();
   virtual ~NeutronNudyInelasticXsec();
 
-  double GetIsotopeCrossSection(const int particleCode, const double energyKin, const double mass, 
-                                const int Z, const int A);
+  double GetIsotopeCrossSection(const int particleCode, const double energyKin, const double mass, const int Z,
+                                const int A);
 
 private:
   const char *fRENDF;
@@ -20,5 +20,5 @@ private:
   NudyPhysics::TNudyEndfRecoPoint recopoint;
 };
 
-}
+} // namespace geantphysics
 #endif // NeutronNudyInelasticXsec_H

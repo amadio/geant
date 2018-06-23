@@ -13,14 +13,14 @@ namespace geantphysics {
  * @author  H Kumawat
  * @date    June 2018
  *
- * 
+ *
  */
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Isotope;
 }
-}
+} // namespace geantphysics
 
 class LightTrack;
 
