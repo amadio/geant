@@ -76,6 +76,6 @@ private:
   double fSum;
   int fNumBins;
 };
-}
+} 
 
 #endif

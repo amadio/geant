@@ -30,26 +30,20 @@
 
 void plot()
 {
-
   auto c = new TCanvas();
   c->SetGrid();
-
   TGraphErrors graph1("nudy_U235_ang", "%*lg %lg %lg", "");
   graph1.SetTitle("Angular Distribution;Angle (Deg.);");
   graph1.SetLineWidth(2);
   graph1.DrawClone("E3AL");
-  
   auto c1 = new TCanvas();
   c1->SetGrid();
-  
   TGraphErrors graph2("nudy_U235_ene", "%*lg %lg %lg", "");
   graph2.SetTitle("Energy Distribution;Energy (MeV);");
   graph2.SetLineWidth(2);
   graph2.DrawClone("E3AL");
-  
   auto c2 = new TCanvas();
   c2->SetGrid();
-  
   TGraphErrors graph3("nudy_U235_Sec", "%*lg %lg %lg", "");
   graph3.SetTitle("Fission neutrons;Neutrons;");
   graph3.SetLineWidth(2);
