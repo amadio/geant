@@ -16,6 +16,6 @@ public:
   virtual void Initialize();
 };
 
-} // userapplication
+} // namespace userapplication
 
 #endif // USERPHYSICSLIST_H

@@ -49,39 +49,35 @@
 #include "Geant/NeutronNudyCaptureXsec.h"
 
 namespace userapplication {
-  
-  UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name)
-  {
-  }
-  UserPhysicsList::~UserPhysicsList()
-  {
-  }
-  
-  void UserPhysicsList::Initialize()
-  {
-    // get the partcile table and loop over it
-    std::vector<geantphysics::Particle *> pTable = geantphysics::Particle::GetTheParticleTable();
-    for (unsigned int i = 0; i < pTable.size(); ++i) {
-      geantphysics::Particle *particle = pTable[i];
-      if (particle == geantphysics::Neutron::Definition()) {
-        // create neutron elastic process:
-        //
-        geantphysics::HadronicProcess *nelProc = new geantphysics::ElasticScatteringProcess();
-        // create the ENDF based elastic model for elastic scattering
-        geantphysics::HadronicFinalStateModel *nudyelModel = new geantphysics::NeutronNudyElasticModel();
-        // create the cross sections
-        geantphysics::HadronicCrossSection *nElasticXS = new geantphysics::NeutronNudyElasticXsec();
-        
-        // set min/max energies of the model
-        nudyelModel->SetLowEnergyUsageLimit(1E-5 * geant::units::eV);
-        nudyelModel->SetHighEnergyUsageLimit(20.0 * geant::units::MeV);
-        // add the model to the process
-        nelProc->AddModel(nudyelModel);
-        // add the cross-sections to the process
-        nelProc->AddCrossSection(nElasticXS);
-        // add the process to the gamma particle
-        AddProcessToParticle(particle, nelProc);
-      }
+
+UserPhysicsList::UserPhysicsList(const std::string &name) : geantphysics::PhysicsList(name) {}
+UserPhysicsList::~UserPhysicsList() {}
+
+void UserPhysicsList::Initialize()
+{
+  // get the partcile table and loop over it
+  std::vector<geantphysics::Particle *> pTable = geantphysics::Particle::GetTheParticleTable();
+  for (unsigned int i = 0; i < pTable.size(); ++i) {
+    geantphysics::Particle *particle = pTable[i];
+    if (particle == geantphysics::Neutron::Definition()) {
+      // create neutron elastic process:
+      //
+      geantphysics::HadronicProcess *nelProc = new geantphysics::ElasticScatteringProcess();
+      // create the ENDF based elastic model for elastic scattering
+      geantphysics::HadronicFinalStateModel *nudyelModel = new geantphysics::NeutronNudyElasticModel();
+      // create the cross sections
+      geantphysics::HadronicCrossSection *nElasticXS = new geantphysics::NeutronNudyElasticXsec();
+
+      // set min/max energies of the model
+      nudyelModel->SetLowEnergyUsageLimit(1E-5 * geant::units::eV);
+      nudyelModel->SetHighEnergyUsageLimit(20.0 * geant::units::MeV);
+      // add the model to the process
+      nelProc->AddModel(nudyelModel);
+      // add the cross-sections to the process
+      nelProc->AddCrossSection(nElasticXS);
+      // add the process to the gamma particle
+      AddProcessToParticle(particle, nelProc);
     }
   }
-} // userapplication
+}
+} // namespace userapplication
