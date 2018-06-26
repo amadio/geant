@@ -1004,6 +1004,7 @@ void SeltzerBergerBremsModel::InitSamplingTables()
   int numMaterialCuts                                    = theMaterialCutsTable.size();
   int numDifferentMatGCuts                               = 0;
   fGlobalMatGCutIndxToLocal.resize(numMaterialCuts, -2);
+  std::vector<MaterialCuts*> dumv;
   for (int i = 0; i < numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
     if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
@@ -1012,9 +1013,9 @@ void SeltzerBergerBremsModel::InitSamplingTables()
     bool isnew = true;
     int j      = 0;
     for (; j < numDifferentMatGCuts; ++j) {
-      if (theMaterialCutsTable[i]->GetMaterial()->GetIndex() == theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
-          theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0] ==
-              theMaterialCutsTable[j]->GetProductionCutsInEnergy()[0]) {
+        if (theMaterialCutsTable[i]->GetMaterial()->GetIndex() == theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
+            theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0] ==
+            dumv[j]->GetProductionCutsInEnergy()[0]) {
         isnew = false;
         break;
       }
@@ -1022,8 +1023,9 @@ void SeltzerBergerBremsModel::InitSamplingTables()
     if (isnew) {
       fGlobalMatGCutIndxToLocal[i] = numDifferentMatGCuts;
       ++numDifferentMatGCuts;
+      dumv.push_back(theMaterialCutsTable[i]);
     } else {
-      fGlobalMatGCutIndxToLocal[i] = fGlobalMatGCutIndxToLocal[j];
+        fGlobalMatGCutIndxToLocal[i] = j ; 
     }
   }
   fSamplingTables.resize(numDifferentMatGCuts, nullptr);
@@ -1039,6 +1041,7 @@ void SeltzerBergerBremsModel::InitSamplingTables()
       BuildSamplingTableForMaterialCut(matCut, indxLocal);
     }
   }
+  dumv.clear();
 }
 
 void SeltzerBergerBremsModel::BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal)

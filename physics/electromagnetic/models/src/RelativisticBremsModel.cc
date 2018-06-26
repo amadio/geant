@@ -799,7 +799,8 @@ void RelativisticBremsModel::InitSamplingTables()
   // - allocate space and fill the global to local material-cut index map
   const std::vector<MaterialCuts *> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
   int numMaterialCuts                                    = theMaterialCutsTable.size();
-  int numDifferentMatGCuts                               = 0;
+  int numDifferentMatGCuts= 0;
+  std::vector<MaterialCuts*> dumv;
   fGlobalMatGCutIndxToLocal.resize(numMaterialCuts, -2);
   for (int i = 0; i < numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
@@ -809,9 +810,9 @@ void RelativisticBremsModel::InitSamplingTables()
     bool isnew = true;
     int j      = 0;
     for (; j < numDifferentMatGCuts; ++j) {
-      if (theMaterialCutsTable[i]->GetMaterial()->GetIndex() == theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
-          theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0] ==
-              theMaterialCutsTable[j]->GetProductionCutsInEnergy()[0]) {
+        if (theMaterialCutsTable[i]->GetMaterial()->GetIndex() == theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
+            theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0] ==
+            dumv[j]->GetProductionCutsInEnergy()[0]) {
         isnew = false;
         break;
       }
@@ -819,8 +820,9 @@ void RelativisticBremsModel::InitSamplingTables()
     if (isnew) {
       fGlobalMatGCutIndxToLocal[i] = numDifferentMatGCuts;
       ++numDifferentMatGCuts;
+      dumv.push_back(theMaterialCutsTable[i]);
     } else {
-      fGlobalMatGCutIndxToLocal[i] = fGlobalMatGCutIndxToLocal[j];
+        fGlobalMatGCutIndxToLocal[i] = j ;
     }
   }
   fSamplingTables.resize(numDifferentMatGCuts, nullptr);
@@ -836,6 +838,7 @@ void RelativisticBremsModel::InitSamplingTables()
       BuildSamplingTableForMaterialCut(matCut, indxLocal);
     }
   }
+  dumv.clear();
 }
 
 void RelativisticBremsModel::BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal)

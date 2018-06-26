@@ -58,6 +58,7 @@ void MollerBhabhaIonizationModel::Initialize()
 {
   EMModel::Initialize();
   if (GetUseSamplingTables()) {
+    std::cout<<"     *** Init with sampling tables\n";
     InitSamplingTables();
 
     // Steal tables to alternative format
@@ -97,6 +98,7 @@ void MollerBhabhaIonizationModel::Initialize()
       }
     }
   }
+  else std::cout<<"     *** Init without sampling tables\n";
   fSecondaryInternalCode = Electron::Definition()->GetInternalCode();
 }
 
@@ -384,6 +386,7 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerVolume(const Material *mat
 double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
                                                          const double r1, const double r2, const double r3)
 {
+
   const double elProdCut = matcut->GetProductionCutsInEnergy()[1]; // e- production cut
   const int mcIndxLocal  = fGlobalMatECutIndxToLocal[matcut->GetIndex()];
   // determine electron energy lower grid point
@@ -607,6 +610,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
   int numMaterialCuts                                     = theMaterialCutsTable.size();
   int numDifferentMatECuts                                = 0;
   fGlobalMatECutIndxToLocal.resize(numMaterialCuts, -2);
+  std::vector<MaterialCuts*> dumv;
   for (int i = 0; i < numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
     if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
@@ -614,9 +618,8 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
     }
     bool isnew = true;
     int j      = 0;
-    for (; j < numDifferentMatECuts; ++j) {
-      if (theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1] ==
-          theMaterialCutsTable[j]->GetProductionCutsInEnergy()[1]) {
+      for (; j < numDifferentMatECuts; ++j) {
+          if (theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1] == dumv[j]->GetProductionCutsInEnergy()[1]) {
         isnew = false;
         break;
       }
@@ -624,8 +627,9 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
     if (isnew) {
       fGlobalMatECutIndxToLocal[i] = numDifferentMatECuts;
       ++numDifferentMatECuts;
+      dumv.push_back(theMaterialCutsTable[i]);
     } else {
-      fGlobalMatECutIndxToLocal[i] = fGlobalMatECutIndxToLocal[j];
+        fGlobalMatECutIndxToLocal[i] = j;
     }
   }
   fSamplingTables.resize(numDifferentMatECuts, nullptr);
@@ -642,6 +646,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
       BuildSamplingTableForMaterialCut(matCut, indxLocal);
     }
   }
+  dumv.clear();
 }
 
 void MollerBhabhaIonizationModel::BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal)
