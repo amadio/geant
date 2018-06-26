@@ -23,8 +23,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class Propagator;
 class SimulationStage;
 class TrackDataMgr;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 /**
  * @brief Class describing physics interface
@@ -55,26 +55,26 @@ public:
   // methods (when real-physics is used) to obtain the pointers to the physics
   // simulation stages defined in the real-physics library.
   /** @brief Obtain/create physics step limit computation stage.
-    *
-    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
-    * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
-    */
-  virtual geant::SimulationStage *CreateFastSimStage(geant::Propagator *prop)     = 0;
+   *
+   * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
+   * @return     Pointer to a created ComputeIntLen real-physics simulation stage object.
+   */
+  virtual geant::SimulationStage *CreateFastSimStage(geant::Propagator *prop)         = 0;
   virtual geant::SimulationStage *CreateComputeIntLStage(geant::Propagator *prop)     = 0;
   virtual geant::SimulationStage *CreatePrePropagationStage(geant::Propagator *prop)  = 0;
   virtual geant::SimulationStage *CreatePostPropagationStage(geant::Propagator *prop) = 0;
 
   /** @brief Obtain/create along step action (continuous part) computation stage.
-    *
-    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
-    * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
-    */
+   *
+   * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
+   * @return     Pointer to a created AlongStepAction real-physics simulation stage object.
+   */
   virtual geant::SimulationStage *CreateAlongStepActionStage(geant::Propagator *prop) = 0;
   /** @brief Obtain/create post step action (discrete part) computation stage.
-    *
-    * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
-    * @return     Pointer to a created PostStepAction real-physics simulation stage object.
-    */
+   *
+   * @param[in,out] prop  Pointer to the propagator object that requires the simulation stage.
+   * @return     Pointer to a created PostStepAction real-physics simulation stage object.
+   */
   virtual geant::SimulationStage *CreatePostStepActionStage(geant::Propagator *prop) = 0;
 
   virtual geant::SimulationStage *CreatePostStepActionPhysProcessStage(geant::Propagator *prop) = 0;

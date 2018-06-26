@@ -43,9 +43,7 @@ TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name) : geantphysics::
   fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
 }
 
-TestEm3PhysicsList::~TestEm3PhysicsList()
-{
-}
+TestEm3PhysicsList::~TestEm3PhysicsList() {}
 
 void TestEm3PhysicsList::Initialize()
 {
@@ -107,7 +105,6 @@ void TestEm3PhysicsList::Initialize()
       eMSCProc->AddModel(gsMSCModel);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
-      
     }
     if (particle == geantphysics::Positron::Definition()) {
       // std::cout<<"  Positron" <<std::endl;
@@ -223,9 +220,8 @@ void TestEm3PhysicsList::Initialize()
       AddProcessToParticle(particle, photoelectricProc);
 
       // addding Fast Sim process for gamma
-      geantphysics::FastSimProcess* fastsimproc = new TestEm3FastSimProcess();
+      geantphysics::FastSimProcess *fastsimproc = new TestEm3FastSimProcess();
       AddProcessToParticle(particle, fastsimproc);
-
     }
   }
 }
@@ -235,4 +231,4 @@ void TestEm3PhysicsList::SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm step
   fMSCSteppingAlgorithm = stepping;
 }
 
-} // userapplication
+} // namespace userapplication

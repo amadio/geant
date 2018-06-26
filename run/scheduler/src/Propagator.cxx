@@ -116,8 +116,8 @@ int Propagator::AddTrack(Track &track)
 //______________________________________________________________________________
 void Propagator::StopTrack(Track *track, TaskData *td)
 {
-// Mark track as stopped for tracking.
-//   Printf("Stopping track %d", track->particle);
+  // Mark track as stopped for tracking.
+  //   Printf("Stopping track %d", track->particle);
 
 #ifdef VECCORE_CUDA
   assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
@@ -325,24 +325,21 @@ int Propagator::CreateSimulationStages()
   /**************************************
    *  Define connections between stages *
    **************************************/
-  if(fDoFastSim)
-    {
-      GetStage(kPreStepStage)->SetFollowUpStage(kFastSimStage, false);
-      // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
-      GetStage(kPreStepStage)->SetBasketizing(false);
-      //        V
-      //        V
-      //        V
-      GetStage(kFastSimStage)->SetFollowUpStage(kComputeIntLStage, false);
-      // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
-      GetStage(kFastSimStage)->SetBasketizing(false);
-    }
-  else
-    {
-      GetStage(kPreStepStage)->SetFollowUpStage(kComputeIntLStage, false);
-      // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
-      GetStage(kPreStepStage)->SetBasketizing(false);
-    }
+  if (fDoFastSim) {
+    GetStage(kPreStepStage)->SetFollowUpStage(kFastSimStage, false);
+    // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+    GetStage(kPreStepStage)->SetBasketizing(false);
+    //        V
+    //        V
+    //        V
+    GetStage(kFastSimStage)->SetFollowUpStage(kComputeIntLStage, false);
+    // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+    GetStage(kFastSimStage)->SetBasketizing(false);
+  } else {
+    GetStage(kPreStepStage)->SetFollowUpStage(kComputeIntLStage, false);
+    // Follow-up not unique: new tracks may be killed by the user -> SteppingActions
+    GetStage(kPreStepStage)->SetBasketizing(false);
+  }
   //        V
   //        V
   //        V
@@ -426,5 +423,5 @@ int Propagator::GetNextStage(Track & /*track*/, int /*current*/) const
   return -1;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

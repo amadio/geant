@@ -11,8 +11,8 @@ class Propagator;
 class Track;
 class TaskData;
 class Handler;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 namespace geantphysics {
 
@@ -52,6 +52,6 @@ private:
   //  Handler *GetHandler(int) { return fHandlers[0]; }
 };
 
-}// namespace geantphysics
+} // namespace geantphysics
 
 #endif // FASTSIMSTAGE_H

@@ -19,18 +19,14 @@
 
 namespace geantphysics {
 
-FastSimHandler::FastSimHandler(int threshold, geant::Propagator *propagator)
-    : geant::Handler(threshold, propagator)
-{
-}
+FastSimHandler::FastSimHandler(int threshold, geant::Propagator *propagator) : geant::Handler(threshold, propagator) {}
 
-FastSimHandler::~FastSimHandler()
-{
-}
+FastSimHandler::~FastSimHandler() {}
 
 //
 // The select method of the FastSimStage selected only those tracks that (1) that has any Fast Sim process assigned i.e.
-// their PhysicsManagerPerParticle object is not null in the given region and (2) they have Fast Sim processes that can be used
+// their PhysicsManagerPerParticle object is not null in the given region and (2) they have Fast Sim processes that can
+// be used
 //
 void FastSimHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
 {
@@ -46,7 +42,7 @@ void FastSimHandler::DoIt(geant::Track *track, geant::Basket &output, geant::Tas
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
   // put some asserts here to make sure (1) that the partcile has any processes, (2) the particle has at least one
   // process with continuous parts.
-  assert(pManager != nullptr);                               // (1)
+  assert(pManager != nullptr);                             // (1)
   assert(pManager->GetListFastSimProcesses().size() != 0); // (2)
   //
   // invoke the along step action for this track

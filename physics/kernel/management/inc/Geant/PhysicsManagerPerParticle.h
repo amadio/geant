@@ -15,7 +15,7 @@ namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Material;
 }
-}
+} // namespace geantphysics
 
 namespace geantphysics {
 

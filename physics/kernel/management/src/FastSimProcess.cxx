@@ -12,8 +12,7 @@ using namespace geantphysics;
 // FastSimProcess non-inline methods
 //-----------------------------------
 
-FastSimProcess::FastSimProcess()
-    : PhysicsProcess("")
+FastSimProcess::FastSimProcess() : PhysicsProcess("")
 {
   SetFastSim(true);
 }
@@ -26,13 +25,11 @@ FastSimProcess::FastSimProcess(const std::string &name) : PhysicsProcess(name)
 FastSimProcess::FastSimProcess(const std::string &name, const std::vector<int> &particlecodevec)
     : PhysicsProcess(false, false, false, ForcedCondition::kNotForced, ProcessType::kFastSim, name)
 {
-  SetFastSim(true);  
+  SetFastSim(true);
   SetParticleCodeVec(particlecodevec);
 }
 
-FastSimProcess::~FastSimProcess()
-{
-}
+FastSimProcess::~FastSimProcess() {}
 
 bool FastSimProcess::IsApplicable(geant::Track *track) const
 {

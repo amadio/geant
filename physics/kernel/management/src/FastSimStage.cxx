@@ -22,14 +22,10 @@
 
 namespace geantphysics {
 
-  FastSimStage::FastSimStage(geant::Propagator *prop) : SimulationStage(geant::kFastSimStage, prop)
-{
-}
+FastSimStage::FastSimStage(geant::Propagator *prop) : SimulationStage(geant::kFastSimStage, prop) {}
 
 // base class will delete the created handlers
-FastSimStage::~FastSimStage()
-{
-}
+FastSimStage::~FastSimStage() {}
 
 int FastSimStage::CreateHandlers()
 {
@@ -51,9 +47,8 @@ geant::Handler *FastSimStage::Select(geant::Track *track, geant::TaskData * /*td
   const Particle *particle = Particle::GetParticleByInternalCode(particleCode);
   // get the PhysicsManagerPerParticle for this particle: will be nullptr if the particle has no any PhysicsProcess-es
   PhysicsManagerPerParticle *pManager = particle->GetPhysicsManagerPerParticlePerRegion(matCut->GetRegionIndex());
-  
-  if (!pManager ||
-      (pManager->GetListFastSimProcesses().size() == 0)) {
+
+  if (!pManager || (pManager->GetListFastSimProcesses().size() == 0)) {
     // no fast sim process, nothing to do => no handler action
     return nullptr;
   }
@@ -61,15 +56,13 @@ geant::Handler *FastSimStage::Select(geant::Track *track, geant::TaskData * /*td
   for (unsigned long i = 0; i < pManager->GetListFastSimProcesses().size(); ++i) {
 
     // give back the only one handler that will call the fast sim process
-    if (pManager->GetListFastSimProcesses()[i]->IsApplicable(track))
-      {
-	track->SetPhysicsProcessIndex(i);
-	return fHandlers[0];
-      }
+    if (pManager->GetListFastSimProcesses()[i]->IsApplicable(track)) {
+      track->SetPhysicsProcessIndex(i);
+      return fHandlers[0];
+    }
   }
 
   return nullptr;
-
 }
 
 } // namespace geantphysics

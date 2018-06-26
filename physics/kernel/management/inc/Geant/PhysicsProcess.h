@@ -214,7 +214,7 @@ public:
 
   /** Method that returns whether this process has an at-rest part or not */
   bool GetIsAtRest() const { return fIsAtRest; }
-  
+
   /** Method that returns whether this process is a fast sim process or not */
   bool GetIsFastSim() const { return fIsFastSim; }
 

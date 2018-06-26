@@ -22,16 +22,16 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class Isotope;
 class Material;
 class Element;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geantphysics
 
 /**
  * @brief Class TestEm3FastSimProcess
  */
 
 namespace userapplication {
-  
-  class TestEm3FastSimProcess : public geantphysics::FastSimProcess {
+
+class TestEm3FastSimProcess : public geantphysics::FastSimProcess {
 public:
   /** @brief TestEm3FastSimProcess default constructor */
   TestEm3FastSimProcess();
@@ -49,10 +49,7 @@ public:
 
   /** Main method that calls fast sim process */
   virtual int FastSimDoIt(geantphysics::LightTrack &track, geant::TaskData *td);
-
-
-
 };
-}
+} // namespace userapplication
 
 #endif

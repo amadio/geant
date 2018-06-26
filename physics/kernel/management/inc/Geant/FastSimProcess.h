@@ -23,7 +23,7 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class Isotope;
 class Material;
 class Element;
-}
+} // namespace GEANT_IMPL_NAMESPACE
 
 /**
  * @brief Class FastSimProcess
@@ -66,9 +66,9 @@ public:
   }
 
 private:
-  std::vector<int> fParticleCodeVec;         /** Vector of GV particle codes for the allowed particles */
+  std::vector<int> fParticleCodeVec; /** Vector of GV particle codes for the allowed particles */
 };
 
-} // end of namespace geant
+} // namespace geantphysics
 
 #endif

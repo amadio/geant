@@ -17,38 +17,35 @@ namespace userapplication {
 // TestEm3FastSimProcess non-inline methods
 //-----------------------------------
 
-TestEm3FastSimProcess::TestEm3FastSimProcess()
-  : geantphysics::FastSimProcess("TestEm3FastSim")
+TestEm3FastSimProcess::TestEm3FastSimProcess() : geantphysics::FastSimProcess("TestEm3FastSim")
 {
   AddToListParticlesAlloedToAssigned(geantphysics::Electron::Definition());
   AddToListParticlesAlloedToAssigned(geantphysics::Gamma::Definition());
 }
 
 TestEm3FastSimProcess::TestEm3FastSimProcess(const std::vector<int> &particlecodevec)
-  : geantphysics::FastSimProcess("TestEm3FastSim")
+    : geantphysics::FastSimProcess("TestEm3FastSim")
 {
   SetParticleCodeVec(particlecodevec);
 }
 
-TestEm3FastSimProcess::~TestEm3FastSimProcess()
-{
-}
+TestEm3FastSimProcess::~TestEm3FastSimProcess() {}
 
 bool TestEm3FastSimProcess::IsApplicable(geant::Track *track) const
 {
 
   bool isOK = false;
-  
+
   if (track->E() > 5.0) isOK = true;
-  
+
   return isOK;
 }
 
 int TestEm3FastSimProcess::FastSimDoIt(geantphysics::LightTrack &track, geant::TaskData *td)
 {
   std::cerr << "****** TestEm3FastSimDoIt called for "
-	    << geantphysics::Particle::GetParticleByInternalCode(track.GetGVcode())->GetName() << " with energy " << track.GetKinE()
-	    << " GeV" << std::endl;
+            << geantphysics::Particle::GetParticleByInternalCode(track.GetGVcode())->GetName() << " with energy "
+            << track.GetKinE() << " GeV" << std::endl;
   return 0;
 }
-}
+} // namespace userapplication

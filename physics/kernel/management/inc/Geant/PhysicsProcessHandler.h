@@ -9,8 +9,8 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Propagator;
 class SimulationStage;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 // realphysics stages
 #include "Geant/FastSimStage.h"

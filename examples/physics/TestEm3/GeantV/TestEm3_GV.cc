@@ -178,7 +178,7 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"config-external-loop", required_argument, 0, 'u'},
                                   {"process-MSC-step-limit", required_argument, 0, 'A'},
                                   {"config-vectorized-physics", required_argument, 0, 'v'},
-				  {"fastsim-active", required_argument, 0, 'w'},
+                                  {"fastsim-active", required_argument, 0, 'w'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -186,11 +186,14 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
 enum ABS_OPTIONS { ABS_INDEX_OPT = 0, ABS_MATNAME_OPT, ABS_THICK_OPT };
 char *const abs_token[] = {[ABS_OPTIONS::ABS_INDEX_OPT]   = (char *const) "absorber-index",
                            [ABS_OPTIONS::ABS_MATNAME_OPT] = (char *const) "material-name",
-                           [ABS_OPTIONS::ABS_THICK_OPT]   = (char *const) "thickness", NULL};
+                           [ABS_OPTIONS::ABS_THICK_OPT]   = (char *const) "thickness",
+                           NULL};
 
 enum DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
-char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x", [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
-                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
+char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x",
+                           [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z",
+                           NULL};
 
 void help()
 {
