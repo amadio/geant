@@ -29,12 +29,12 @@ ClassImp(TNudyENDF)
 #endif
 
     const char TNudyENDF::fkElNam[119][4] = {
-        "n",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na",  "Mg",  "Al",  "Si",  "P",   "S",
-        "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni",  "Cu",  "Zn",  "Ga",  "Ge",  "As",
-        "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh",  "Pd",  "Ag",  "Cd",  "In",  "Sn",
-        "Sb", "Te", "I",  "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",  "Eu",  "Gd",  "Tb",  "Dy",  "Ho",
-        "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au",  "Hg",  "Tl",  "Pb",  "Bi",  "Po",
-        "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm",  "Bk",  "Cf",  "Es",  "Fm",  "Md",
+        "n",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na", "Mg", "Al", "Si", "P",  "S",
+        "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As",
+        "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+        "Sb", "Te", "I",  "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho",
+        "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po",
+        "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md",
         "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"};
 
 const char TNudyENDF::fkElIso[4][2] = {"", "m", "n", "o"};
@@ -49,7 +49,7 @@ TNudyENDF::TNudyENDF() : fLogLev(0), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NU
 
 //_______________________________________________________________________________
 TNudyENDF::TNudyENDF(const char *nFileENDF, const char *nFileRENDF, const char *opt, unsigned char loglev)
-    : fLogLev(loglev), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL), ENDFSUB(), fPrepro(0)
+    : fLogLev(loglev), ENDFSUB(), fPrepro(0), fLFI(false), fENDF(), fRENDF(NULL), fTape(NULL), fMat(NULL)
 {
   fLine[0] = '\0';
   // Open input stream
@@ -141,7 +141,7 @@ void TNudyENDF::Process()
   }
 
   // Write the tape to disk. It is mandatary to call  SetEndfSub(fENDFSUB) for root file to be written
-  
+
   if (sub) {
     fTape->Print();
     fTape->Write();
@@ -567,29 +567,27 @@ void TNudyENDF::ProcessF1(TNudyEndfSec *sec)
     int LFC = sec->GetL2();
     int NFC = sec->GetN2();
     switch (LFC) {
-      case 0:
-      {
-        TNudyEndfList *secList = new TNudyEndfList();
+    case 0: {
+      TNudyEndfList *secList = new TNudyEndfList();
+      // Read the section
+      Process(secList);
+      sec->Add(secList);
+      // Get the Section END record and check it
+      GetSEND(mtf);
+    } break;
+    case 1: {
+      TNudyEndfList *secList = new TNudyEndfList();
+      // Read the section
+      Process(secList);
+      sec->Add(secList);
+      for (int i = 0; i != NFC; ++i) {
+        TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
         // Read the section
-        Process(secList);
-        sec->Add(secList);
-        // Get the Section END record and check it
-        GetSEND(mtf);
-      }break;
-      case 1:
-      {
-        TNudyEndfList *secList = new TNudyEndfList();
-        // Read the section
-        Process(secList);
-        sec->Add(secList);
-        for (int i = 0; i != NFC; ++i) {
-          TNudyEndfTab1 *secTab1 = new TNudyEndfTab1();
-          // Read the section
-          Process(secTab1);
-          sec->Add(secTab1);
-        }
-        GetSEND(mtf);        
-      }break;
+        Process(secTab1);
+        sec->Add(secTab1);
+      }
+      GetSEND(mtf);
+    } break;
     }
   } break;
 
@@ -1051,10 +1049,10 @@ void TNudyENDF::ProcessF6(TNudyEndfSec *sec)
     iLAW = secTab1->GetL2();
 
     switch (iLAW) {
-    case 0: // unknown distribution
-    case 3: // isotropic two-body distribution
-    case 4: // recoil distribution of a two-body reaction
-    case -5: // distribution in given in file 4 and 5 for neutron
+    case 0:   // unknown distribution
+    case 3:   // isotropic two-body distribution
+    case 4:   // recoil distribution of a two-body reaction
+    case -5:  // distribution in given in file 4 and 5 for neutron
     case -15: // distribution in given in file 14 and 15 for photon
       break;
     case 1: // continuum energy-angle distribution
@@ -1714,7 +1712,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
   int iNRO = -1;
   // int iNAPS = -1;
   int iLCOMP = -1;
-  int iISR = -1;
+  int iISR   = -1;
 
   GetCONT(c, nl, mtf);
   if (curMF != 32) ::Fatal("ProcessF32(TNudyEndfSec*)", "File %d should not be processed here", curMF);
@@ -1837,7 +1835,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
           case 2: // MLBW
           case 3: // Reich-Moore
           {
-            if (iISR > 0){ 
+            if (iISR > 0) {
               TNudyEndfCont *secContISR = new TNudyEndfCont();
               Process(secContISR);
               sec->Add(secContISR);
@@ -1858,7 +1856,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
           } break;
           case 7: {
             if (iISR > 0) {
-              for (int i = 0; i < secContLCOMP->GetN1(); i++ ) {
+              for (int i = 0; i < secContLCOMP->GetN1(); i++) {
                 TNudyEndfList *secListISR = new TNudyEndfList();
                 Process(secListISR);
                 sec->Add(secListISR);
@@ -1867,7 +1865,7 @@ void TNudyENDF::ProcessF32(TNudyEndfSec *sec)
             TNudyEndfList *secListNPP = new TNudyEndfList();
             Process(secListNPP);
             sec->Add(secListNPP);
-            for (int i = 0; i < secContLCOMP->GetN1(); i++ ) {
+            for (int i = 0; i < secContLCOMP->GetN1(); i++) {
               TNudyEndfList *secListNCH = new TNudyEndfList();
               Process(secListNCH);
               sec->Add(secListNCH);

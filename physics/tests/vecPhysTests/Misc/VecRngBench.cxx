@@ -24,7 +24,7 @@ static void VectorRNG(benchmark::State &state)
     for (int i = 0; i < state.range(0) / geant::kVecLenD; ++i) {
       sumV += wrapper.uniformV();
     }
-    double sum = vecCore::ReduceAdd(sum);
+    double sum = vecCore::ReduceAdd(sumV);
     benchmark::DoNotOptimize(sum);
   }
 }

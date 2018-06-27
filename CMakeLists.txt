@@ -54,6 +54,8 @@ option(GEANT_INSTALL_RPATH "Enable RPATH injection for installed binaries" ON)
 option(WITH_GEANT4 "Enable libraries and test using the Geant4 libraries" ON)
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 
+option(WITH_NUDY "Enable building Nudy neutron library" ON)
+
 #----------------------------------------------------------------------------------------------
 # Use absolute RPATH when linking to avoid needing to export LD_LIBRARY_PATH
 #
@@ -309,8 +311,13 @@ if (GPERFTOOLS)
   endif()
 endif()
 
-# KNL
+# Nudy
+if (WITH_NUDY AND NOT ROOT_mathmore_FOUND)
+  message(STATUS "Nudy disabled since ROOT_mathmore was not found")
+  set(WITH_NUDY OFF)
+endif()
 
+# KNL
 if (KNL)
  set(USE_UMESIMD ON)
  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
@@ -571,7 +578,7 @@ add_subdirectory (magneticfield)
 
 add_subdirectory (examples)
 
-if (ROOT_mathmore_FOUND)
+if (WITH_NUDY)
   add_subdirectory (physics/neutron/nudy)
 endif()
 
