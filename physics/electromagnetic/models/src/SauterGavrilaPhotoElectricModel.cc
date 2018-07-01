@@ -61,7 +61,7 @@ int SauterGavrilaPhotoElectricModel::fLastSSAliasIndex[] = {0};
 
 Material *SauterGavrilaPhotoElectricModel::fWater         = nullptr;
 double SauterGavrilaPhotoElectricModel::fWaterEnergyLimit = 0.0;
-    
+
 XSectionsVector **SauterGavrilaPhotoElectricModel::fShellVectorFull[] = {nullptr};
 XSectionsVector **SauterGavrilaPhotoElectricModel::fShellVector[] = {nullptr};
 XSectionsVector *SauterGavrilaPhotoElectricModel::fLECSVector[]   = {nullptr};
@@ -92,9 +92,7 @@ SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::stri
   fAliasSampler = nullptr;
   fShellAliasData    = nullptr; // will be set in InitSamplingTables if needed
   fShellAliasSampler = nullptr;
-
-  fCrossSection   = nullptr;
-  fCrossSectionLE = nullptr;
+    
   fIsBasketizable = true;
 
 }
@@ -162,24 +160,25 @@ void SauterGavrilaPhotoElectricModel::Initialize()
 
 void SauterGavrilaPhotoElectricModel::InitializeModel()
 {
-
-  // ALLOCATION fCrossSection
-  if (fCrossSection) {
-    delete[] fCrossSection;
-    fCrossSection = nullptr;
+  if (!fCrossSection)
+  {
+      fCrossSection = nullptr;
+      fCrossSection   = new bool[gMaxSizeData];
+      for (int i = 0; i < gMaxSizeData; ++i) {
+          fCrossSection[i]   = false;
+      }
+      
   }
-
-  // ALLOCATION fCrossSectionLE
-  if (fCrossSectionLE) {
-    delete[] fCrossSectionLE;
-    fCrossSectionLE = nullptr;
+  if (!fCrossSectionLE)
+  {
+      fCrossSectionLE = nullptr;
+      fCrossSectionLE = new bool[gMaxSizeData];
+      for (int i = 0; i < gMaxSizeData; ++i) {
+          fCrossSectionLE[i] = false;
+      }
   }
-
-  fCrossSection   = new bool[gMaxSizeData];
-  fCrossSectionLE = new bool[gMaxSizeData];
   
   for (int i = 0; i < gMaxSizeData; ++i) {
-      fBindingEn[i].clear();
       fSortedBindingEn[i].clear();
       fSortedDoubledBindingEn[i].clear();
       fIndexBaseEn[i].clear();
@@ -189,10 +188,7 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
 
     }
 
-  for (int i = 0; i < gMaxSizeData; ++i) {
-    fCrossSection[i]   = false;
-    fCrossSectionLE[i] = false;
-  }
+  
   fVerboseLevel = 1;
   //Uncomment the following 2 lines to run tests:
   //(1)PhysVecSauterGavrilaAliasShellValid
@@ -205,7 +201,6 @@ void SauterGavrilaPhotoElectricModel::InitializeModel()
   if (GetUseSamplingTables()) {
       InitSamplingTables();
       InitShellSamplingTables();
-      
   }
 }
 
@@ -245,11 +240,10 @@ void SauterGavrilaPhotoElectricModel::ReadData(int Z)
     std::cout << "Calling ReadData() of SauterGavrilaPhotoElectricModel" << std::endl;
   }
   if ((fCrossSection[Z]) && ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) {
-      //std::cout<<"Data loaded before!\n";
+      //std::cout<<"Data of "<<Z<<" loaded before!\n";
     return;
   }
-  std::cout << "ReadData() of SauterGavrilaPhotoElectricModel on Z:" <<Z<< std::endl;
-
+    
   // get the path to the main physics data directory
   char *path = std::getenv("GEANT_PHYSICS_DATA");
   if (!path) {
@@ -920,7 +914,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
     track.SetEnergyDeposit(gammaekin0);
     std::cout<<"Model not initialized. Element: "<<Z<<"! Depositing the energy\n";
     std::cout<<"GetUseSamplingTables: "<<GetUseSamplingTables()<<std::endl;
-    //exit(-1);
+    exit(-1);
     return 0;
   }
   //SAMPLING OF THE SHELL
