@@ -93,8 +93,12 @@ void PhysicsListManager::BuildPhysicsLists()
   if (fPhysicsListVector.size() == 1 && fActiveRegionMasks.size() == 0) {
     std::vector<bool> *activeregionmask = new std::vector<bool>(fNumOfRegions, true);
     fActiveRegionMasks.push_back(*activeregionmask);
-  } else {
-    // error: more than one physics list without specifying the non-intersecting sets of active regions for them
+  }
+  else if (fPhysicsListVector.size() != fActiveRegionMasks.size()){
+      // error: more than one physics list without specifying the non-intersecting sets of active regions for them
+      std::cerr<<"ERROR: more than one physics list without specifying the non-intersecting sets of active regions for them!\n";
+      exit(-1);
+      
   }
 
   // now we need to loop over the physics lists and call their Initialise methods to fill up the temporary physics
@@ -122,18 +126,19 @@ void PhysicsListManager::BuildPhysicsLists()
     }
 
     for (unsigned long j = 0; j < pTable.size(); ++j) {
+    
       Particle *particle                          = pTable[j];
       std::vector<PhysicsProcess *> processVector = particle->GetPhysicsProcessVector();
       // if there is no any process assigned to the current particle
       if (processVector.size() == 0) continue;
 
-      // 1 create one PhysicsManagerPerParticle object for each partcile that the current PhysicsList has added at least
+      // 1 create one PhysicsManagerPerParticle object for each particle that the current PhysicsList has added at least
       //   one PhysicsProcess
       // 2 add all processes from the current physics list to this PhysicsManagerPerParticle
       //   and push the particle to the particle list of the phsyics process that the physics process is assigned to
       // 3 also set the active region indices both in the PhysicsProcess-es(a) and in the PhysicsManagerPerParticle(b)
       //   objects
-      // 4 store the created PhysicsManagerPerParticle object pointer in a table (will be used to delete and initilize
+      // 4 store the created PhysicsManagerPerParticle object pointer in a table (will be used to delete and initialize
       //   only once them)
       // 5 set pointers to regional PhysicsManagerPerParticle in the static Particle definition to point to this
       //   object where the current physics list is active
@@ -167,6 +172,7 @@ void PhysicsListManager::BuildPhysicsLists()
     }
   }
 
+
   // loop over all Particle, all PhysicsManagerPerParticle and Initialize all
   for (unsigned long ipm = 0; ipm < fPhysicsManagerPerParticleTable.size(); ++ipm) {
     fPhysicsManagerPerParticleTable[ipm]->Initialize();
@@ -183,7 +189,7 @@ void PhysicsListManager::BuildPhysicsLists()
   }
 
   //
-  // will need to delete and cleear everything at the end:
+  // will need to delete and clear everything at the end:
   // -All created PhysicsProcess-s, Models-s, PhysicsManagerPerParticle-s all PhysicsList-s etc.
   //  ClearAll();
   // -And we should delete all Isotope-s, Element-s, Material-s, MaterialCuts-s and Particle-s
