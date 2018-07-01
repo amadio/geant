@@ -3,6 +3,7 @@
 #define CMSDATA_H
 
 #include <vector>
+#include "Geant/Region.h"
 
 namespace cmsapp {
 
@@ -36,20 +37,25 @@ public:
   void AddEdep(double val) { fEdep += val; }
   double GetEdep() const { return fEdep; }
 
+  void AddStepPerRegion(int i) { fNumStepPerRegion[i] += 1.; }
+  double GetStepsPerRegion(int i) const { return fNumStepPerRegion[i]; }
+  size_t GetNumOfRegions() const { return fNumStepPerRegion.size(); }
+
   void Clear();
   CMSDataPerPrimary &operator+=(const CMSDataPerPrimary &other);
 
   void Print();
 
 private:
-  double fNumChargedSteps; // mean number of charged steps per primary
-  double fNumNeutralSteps; // mean number of neutral steps per primary
-  double fChargedTrackL;   // mean number of charged track length per primary
-  double fNeutralTrackL;   // mean number of neutral track length per primary
-  double fNumGammas;       // mean number of secondary gamma particles per primary
-  double fNumElectrons;    // mean number of secondary electron particles per primary
-  double fNumPositrons;    // mean number of secondary positron particles per primary
-  double fEdep;            // mean energy deposit per primary
+  double fNumChargedSteps;              // mean number of charged steps per primary
+  double fNumNeutralSteps;              // mean number of neutral steps per primary
+  double fChargedTrackL;                // mean number of charged track length per primary
+  double fNeutralTrackL;                // mean number of neutral track length per primary
+  double fNumGammas;                    // mean number of secondary gamma particles per primary
+  double fNumElectrons;                 // mean number of secondary electron particles per primary
+  double fNumPositrons;                 // mean number of secondary positron particles per primary
+  double fEdep;                         // mean energy deposit per primary
+  std::vector<int> fNumStepPerRegion;   // number of steps per region
 };
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -124,6 +130,13 @@ public:
     fEdep += val;
     fEdep2 += val * val;
   }
+
+  int GetStepPerRegion(int i)const { return fNumStepPerRegion[i]; }
+  size_t GetNRegions() const { return fNumStepPerRegion.size(); }
+  void AddStepPerRegion(int ir, int nsteps )
+  {
+    fNumStepPerRegion[ir]+=nsteps;
+  }
   double GetEdep() const { return fEdep; }
   double GetEdep2() const { return fEdep2; }
 
@@ -149,8 +162,9 @@ private:
   double fNumPositrons;  // mean number of secondary positron particles per primary
   double fNumPositrons2; // mean number of secondary positron particles per primary square
 
-  double fEdep;  // mean energy deposit per primary in the target
-  double fEdep2; // mean energy deposit per primary in the target square
+  double fEdep;                       // mean energy deposit per primary in the target
+  double fEdep2;                      // mean energy deposit per primary in the target square
+  std::vector<int> fNumStepPerRegion; // number of steps per region
 };
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -194,7 +208,7 @@ private:
 };
 
 //--------------------------------------------------------------------------------------------------------------------//
-// Thread local data structure for CMSapp to collecet/handle thread local multiple per-event data structures (as many
+// Thread local data structure for CMSapp to collect/handle thread local multiple per-event data structures (as many
 // per-event data structures as number of events are transported on the same time). Each of the currently transported
 // events occupies one possible event-slot and per-event data can be identified by the index of this event-slot. This
 // user defined thread local data needs to implement both the Merge and Clear methods for a given event-slot index:
