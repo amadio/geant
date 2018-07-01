@@ -11,7 +11,7 @@ namespace geantphysics {
 
 class GammaPhotoElectricProcess : public EMPhysicsProcess {
 public:
-  GammaPhotoElectricProcess(const std::string &name = "gPhotoElectric");
+  GammaPhotoElectricProcess(const std::string &name = "PhotoElectric");
 };
 
 } // namespace geantphysics
