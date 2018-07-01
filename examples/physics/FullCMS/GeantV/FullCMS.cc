@@ -71,8 +71,27 @@ int main(int argc, char *argv[])
   // Create and configure run manager
   geant::RunManager *runMgr = RunManager();
   //
-  // Create user defined physics list for the full CMS application
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList());
+  // Defining two different lists of active regions
+  std::vector<bool> activeregionlist1(22, 1);
+  activeregionlist1[2] = 0;
+  activeregionlist1[3] = 0;
+  activeregionlist1[7] = 0;
+  activeregionlist1[11]= 0;
+  activeregionlist1[15]= 0;
+  activeregionlist1[21]= 0;
+    
+  std::vector<bool> activeregionlist2(22, 0);
+  activeregionlist2[2] = 1;
+  activeregionlist2[3] = 1;
+  activeregionlist2[7] = 1;
+  activeregionlist2[11]= 1;
+  activeregionlist2[15]= 1;
+  activeregionlist2[21]= 1; //it has to be controlled that they masks are mutually ex
+  //
+  // Register user defined physics lists for the full CMS application
+  // Activating them in different regions - Building alias tables only in the "most active" regions
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList("withoutAlias", false), activeregionlist1);
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList("withAlias", true), activeregionlist2);
   //
   // Create detector construction
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
