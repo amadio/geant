@@ -13,6 +13,10 @@
 #include "MyRun.hh"
 #include "MyPrimaryGeneratorAction.hh"
 
+#include "G4ProductionCutsTable.hh"
+#include "G4Region.hh"
+#include "G4RegionStore.hh"
+
 MyRunAction::MyRunAction() : G4UserRunAction(), fIsPerformance(false), fRun(nullptr), fTimer(nullptr) {}
 
 
@@ -32,6 +36,29 @@ G4Run* MyRunAction::GenerateRun() {
 
 void MyRunAction::BeginOfRunAction(const G4Run* /*aRun*/) {
   if (isMaster) {
+      std::vector<G4Region*>* regionVect =  G4RegionStore::GetInstance();
+      int numRegions = regionVect->size();
+      int sumNumMC = 0;
+      G4ProductionCutsTable* pTable = G4ProductionCutsTable::GetProductionCutsTable();
+      size_t numMC = pTable->GetTableSize();
+      std::vector<int> mcRVect(23,0);
+      for (size_t imc=0; imc<numMC; ++imc) {
+          const G4MaterialCutsCouple* mc =pTable->GetMaterialCutsCouple(imc);
+          if (!mc->IsUsed()) continue;
+          G4Material* mat = const_cast<G4Material*>(mc->GetMaterial());
+          int k=0;
+          for (; k<numRegions && (!(*regionVect)[k]->FindCouple(mat)); ++k){}
+              if (k<numRegions) {
+                ++mcRVect[k];
+              }
+      }
+      for (int ir=0; ir<numRegions; ++ir) {
+          std::cout<< " ir = " << ir << "  region Name = " << (*regionVect)[ir]->GetName() <<" #mc = " << mcRVect[ir] << std::endl;
+          sumNumMC += mcRVect[ir];
+      }
+      std::cout<< " === Total number of MC = " << sumNumMC << " vs " << numMC << " #regions = " << numRegions << std::endl;
+      
+      
 #ifdef G4MULTITHREADED
     G4int nThreads = G4MTRunManager::GetMasterRunManager()->GetNumberOfThreads();
     G4cout << "\n  =======================================================================================\n"

@@ -14,8 +14,12 @@
 // just for the printout at the end
 #include "CMSParticleGun.h"
 
+#include "Geant/MaterialCuts.h"
+
 #include <iostream>
 #include <iomanip>
+
+#include "Geant/Region.h"
 
 namespace cmsapp {
 
@@ -49,6 +53,20 @@ void CMSFullApp::AttachUserData(geant::TaskData *td)
 
 bool CMSFullApp::Initialize()
 {
+    int numRegion = (vecgeom::Region::GetTheRegionTable()).size();
+    std::vector<int>  matCutPerregion(numRegion,0);
+    std::cout<<(vecgeom::Region::GetTheRegionTable()).size();
+    int sumNumMC = 0;
+    const std::vector<geantphysics::MaterialCuts*> &mcTable = geantphysics::MaterialCuts::GetTheMaterialCutsTable();
+    for (size_t imc=0; imc<mcTable.size(); ++imc)
+        ++matCutPerregion[mcTable[imc]->GetRegionIndex()];
+
+    for (int ir=0; ir<numRegion; ++ir) {
+        std::cout<< " ir = " << ir << " region Name = "<< (vecgeom::Region::GetTheRegionTable())[ir]->GetName()<< " #mc = " << matCutPerregion[ir] <<std::endl;
+        sumNumMC += matCutPerregion[ir];
+    }
+    std::cout<< " === Total number of MC = " << sumNumMC << " vs " << mcTable.size() << std::endl;
+    
   if (fIsPerformance) {
     return true;
   }
@@ -102,6 +120,11 @@ void CMSFullApp::SteppingActions(geant::Track &track, geant::TaskData *td)
     }
     dataPerPrimary.AddEdep(track.Edep());
   }
+  //Get the MaterialCuts from the LogicalVolume
+  const geantphysics::MaterialCuts *matCut = static_cast<const geantphysics::MaterialCuts *>((const_cast<vecgeom::LogicalVolume *>(track.GetVolume())->GetMaterialCutsPtr()));
+  int regIndex = matCut->GetRegionIndex();
+  dataPerPrimary.AddStepPerRegion(regIndex);
+  
   // collect secondary particle type statistics
   if (track.Status() == geant::kNew) {
     switch (pdgCode) {
@@ -172,9 +195,19 @@ void CMSFullApp::FinishRun()
   //
   int numPrimTypes = fData->GetNumberOfPrimaryTypes();
   int numPrimaries = 0;
+  int nTotSteps = 0;
+  int nReg = fData->GetDataPerPrimaryType(0).GetNRegions();
+  std::vector<int> nTotStepsPerReg(nReg, 0);
   for (int ipt = 0; ipt < numPrimTypes; ++ipt) {
     numPrimaries += fData->GetDataPerPrimaryType(ipt).GetNumPrimaries();
+    for(size_t i=0; i<fData->GetDataPerPrimaryType(ipt).GetNRegions() ; ++i){
+        
+        nTotStepsPerReg[i]+= fData->GetDataPerPrimaryType(ipt).GetStepPerRegion(i);
+        nTotSteps += fData->GetDataPerPrimaryType(ipt).GetStepPerRegion(i);
+        //std::cout <<" FinishRun:: summing up steps per region: "<< i << ", adding: " << fData->GetDataPerPrimaryType(ipt).GetStepPerRegion(i) << std::endl;
+    }
   }
+    
   //
   std::ios::fmtflags mode = std::cout.flags();
   int prec                = std::cout.precision(2);
@@ -229,6 +262,11 @@ void CMSFullApp::FinishRun()
               << "     Gammas    =  " << meanNGam << " +- " << rmsNGam << std::endl
               << "     Electrons =  " << meanNElec << " +- " << rmsNElec << std::endl
               << "     Positrons =  " << meanNPos << " +- " << rmsNPos << std::endl;
+    std::cout << "  Total number of steps is : " << nTotSteps << std::endl;
+    std::cout << "  Steps per region: "<<std::endl;
+    int numRegion = (vecgeom::Region::GetTheRegionTable()).size();
+    for(int i=0; i<numRegion; i++)
+        std::cout <<"     "<< i << ": "<<nTotStepsPerReg[i] << "\t\t "<<100*(double)nTotStepsPerReg[i]/(double)nTotSteps<< " % of the total."<<std::endl;
     std::cout << " ......................................................................................... \n"
               << std::endl;
   }
