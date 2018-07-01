@@ -127,10 +127,10 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
 {
   assert(N % geant::kVecLenD == 0);
   LightTrack_v &primaryLTs = td->fPhysicsData->GetPrimarySOA();
-
+ 
   for (int i = 0; i < N; ++i) {
     geant::Track *track = gtracks[i];
-
+    
     // we will use members:
     //  fMaterialCutCoupleIndex <==>  // current MaterialCuts index
     //  fKinE         <==>  fE-fMass  // kinetic energy;  will be set to the new kinetic energy
@@ -140,6 +140,9 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     //  fXdir         <==>  fXdir     // direction vector x comp. will be set to the new direction x comp.
     //  fYdir         <==>  fYdir     // direction vector y comp. will be set to the new direction y comp.
     //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
+    
+    primaryLTs.SetTrackStatus(LTrackStatus::kNew, i);
+    primaryLTs.SetEnergyDeposit(0.0, i); // Important to set the energy deposit to zero
     const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
         (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));
     primaryLTs.SetMaterialCutCoupleIndex(matCut->GetIndex(), i);
@@ -156,9 +159,8 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
 
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->GetSecondarySOA().ClearTracks();
-
   fModel->SampleSecondaries(primaryLTs, td);
-
+  
   // update primary tracks
   for (int i = 0; i < N; ++i) {
     geant::Track *track = gtracks[i];
