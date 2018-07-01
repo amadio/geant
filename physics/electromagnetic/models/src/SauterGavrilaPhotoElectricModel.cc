@@ -244,21 +244,11 @@ void SauterGavrilaPhotoElectricModel::ReadData(int Z)
   if (fVerboseLevel > 1) {
     std::cout << "Calling ReadData() of SauterGavrilaPhotoElectricModel" << std::endl;
   }
-
-  if ((fCrossSection[Z]) &&
-      ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) {
+  if ((fCrossSection[Z]) && ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3))) {
       //std::cout<<"Data loaded before!\n";
     return;
   }
-//  else
-//  {
-//      std::cout<<"Data not loaded before!\n";
-//      std::cout<<"fCrossSection[Z]: "<<fCrossSection[Z]<<std::endl;
-//      std::cout<<"fCrossSectionLE[Z]: "<<fCrossSectionLE[Z]<<std::endl;
-//
-//      //exit(-1);
-//
-//  }
+  std::cout << "ReadData() of SauterGavrilaPhotoElectricModel on Z:" <<Z<< std::endl;
 
   // get the path to the main physics data directory
   char *path = std::getenv("GEANT_PHYSICS_DATA");
@@ -902,12 +892,13 @@ void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const Materia
 
 int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant::TaskData *td)
 {
-
   using geant::units::MeV;
   double gammaekin0 = track.GetKinE();
   // check if kinetic energy is below fLowEnergyUsageLimit and do nothing if yes;
   // check if kinetic energy is above fHighEnergyUsageLimit and do nothing if yes;
   if (gammaekin0 < GetLowEnergyUsageLimit() || gammaekin0 > GetHighEnergyUsageLimit()) {
+      std::cout<<"  --- MUST ADD CHECK1:  "<<gammaekin0<<" and  GetLowEnergyUsageLimit(): "<< GetLowEnergyUsageLimit()<<" - GetHighEnergyUsageLimit(): "<<GetHighEnergyUsageLimit()<<"\n";
+    exit(-1);
     return 0; // numSecondaries is zero since the interaction is not happening
   }
     
@@ -927,7 +918,9 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   // if element was not initialised, gamma should be absorbed
   if (!fCrossSectionLE[Z] && !fCrossSection[Z]) {
     track.SetEnergyDeposit(gammaekin0);
-    // std::cout<<"Model not initialized, Exiting!\n";
+    std::cout<<"Model not initialized. Element: "<<Z<<"! Depositing the energy\n";
+    std::cout<<"GetUseSamplingTables: "<<GetUseSamplingTables()<<std::endl;
+    //exit(-1);
     return 0;
   }
   //SAMPLING OF THE SHELL
@@ -946,7 +939,9 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   double bindingEnergy = (*(fParamHigh[Z]))[shellIdx * 7 + 1];
   if (gammaekin0 < bindingEnergy) {
       track.SetEnergyDeposit(gammaekin0);
-      std::cout<<"SauterGavrilaPhotoElectricModel::SampleSecondaries: must add this check in the vectorized version! \n"; exit(-1);
+      std::cout<<"Ekin "<<gammaekin0<<" lower than bindingEnergy: "<<bindingEnergy<<std::endl;
+      std::cout<<"SauterGavrilaPhotoElectricModel::SampleSecondaries: must add this check to the vectorized version! \n";
+      exit(-1);
       return 0; // numSecondaries
   }
 
@@ -1020,10 +1015,8 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   track.SetTrackStatus(LTrackStatus::kKill);
   track.SetKinE(0.0);
   // edep is = bindingEnergy
-  // if(edep > 0.0) {
   if (bindingEnergy > 0.0) {
     track.SetEnergyDeposit(bindingEnergy);
-    // track.SetEnergyDeposit(edep);
   }
   // return with number of secondaries i.e. 1 photoelectron
   return 1;
@@ -1038,36 +1031,58 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
         int *nshells= td->fPhysicsData->fPhysicsScratchpad.fNshells;
         int *sampledShells= td->fPhysicsData->fPhysicsScratchpad.fSampledShells;
         double *cosTheta = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
-        
+        double energyDepositionVec = 0.;
+
+    
+    ///////// ---> CHECK CALLING THE SCALAR VERSION FOR PE - ALWAYS
+//        td->fPhysicsData->ClearSecondaries();
+//        int secondaries = 0;
+//        for (int i = 0; i < tracks.GetNtracks(); ++i)
+//        {
+//            LightTrack track;
+//            tracks.GetTrack(i, track);
+//            if(kin[i]<=0){
+//            std::cout<<std::setw(14)<<"kin["<<i<<"]: "<<kin[i]<<std::endl;
+//                std::cout<<"ERROR:  "<<track.GetKinE()<<" and  GetLowEnergyUsageLimit(): "<< GetLowEnergyUsageLimit()<<" - GetHighEnergyUsageLimit(): "<<GetHighEnergyUsageLimit()<<"\n";
+//                exit(-1);
+//            }
+//            secondaries += SampleSecondaries(track, td);
+//            tracks.SetTrack(i, track);
+//        }
+//
+//        LightTrack_v &secondaryLTs = td->fPhysicsData->GetSecondarySOA();
+//        secondaryLTs.ClearTracks();
+//        for (int i = 0; i < secondaries; ++i) {
+//            secondaryLTs.AddTrack(td->fPhysicsData->GetListOfSecondaries()[i]);
+//        }
+//    return;
+    ///////
+    
+    //for (int i = 0; i < N; ++i)
+    //        std::cout<<"kin["<<i<<"]: "<< kin[i]<< "\n";
+    
         for (int i = 0; i < N; ++i) {
             const MaterialCuts *matCut   =  MaterialCuts::GetMaterialCut(tracks.GetMaterialCutCoupleIndex(i));
             const Vector_t<Element *> &theElements = matCut->GetMaterial()->GetElementVector();
+            size_t targetElemIndx = 0;
             if (theElements.size() > 1) {
-                size_t targetElemIndx = SampleTargetElementIndex(matCut, kin[i], td);
-                zed[i]=(int)theElements[targetElemIndx]->GetZ();
+                targetElemIndx = SampleTargetElementIndex(matCut, kin[i], td);
             }
-            else{
-                zed[i]=(int)theElements[0]->GetZ();
-            }
+            zed[i]=(int)theElements[targetElemIndx]->GetZ();
             nshells[i]=fNShellsUsed[zed[i]];
         }
         if(GetUseSamplingTables()){
             for (int i = 0; i < N; i += kVecLenD) {
                 
-                //std::cout<<"i: "<<i<<" out of N: "<<N<<std::endl;
-                //exit(-1);
-                Double_v gammaekin;// = tracks.GetKinEVec(i);
-                //MaskD_v chechEnValidity(gammaekin<GetLowEnergyUsageLimit() || gammaekin>GetHighEnergyUsageLimit());
-                //if(chechEnValidity.isFull() &&vecCore::EarlyReturnAllowed()) return 0 secondaries -> do nothing
+                Double_v gammaekin;
+//                MaskDI_v chechEnValidity(gammaekin<GetLowEnergyUsageLimit() || gammaekin>GetHighEnergyUsageLimit());
+//                if(chechEnValidity.isFull() && vecCore::EarlyReturnAllowed()) continue ;
+//                //0 secondaries -> do nothing
                 
-                Double_v zed_v;
                 IndexD_v nshells_v, z;
                 vecCore::Load(gammaekin, kin+i);
                 vecCore::Load(nshells_v, nshells+i);
                 vecCore::Load(z, zed+i);
-                //std::cout<<"gammaekin: "<<gammaekin<<std::endl;
-                //std::cout<<"nshells_v: "<<nshells_v<<std::endl;
-                //std::cout<<"z: "<<z<<std::endl;
                 
                 //        MaskD_v elementInitialized() --> to be seen
                 //        // if element was not initialised, gamma should be absorbed
@@ -1096,39 +1111,44 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             
         }
         else{
-            //std::cout<<"Sampling with rejection\n";
-            double *rands = td->fDblArray;
-            //NB: generating random numbers here just for reproducibility issues
-            td->fRndm->uniform_array(N, rands);
-            SampleShellVec(kin, zed, sampledShells, N, td, rands);
+
+            size_t shellIdx=0;
+            //calling the scalar implementation for the sampling of the shell
+            for (int i = 0; i < N ; i++){
+                double r1 = td->fRndm->uniform();
+                SampleShell(kin[i], zed[i], r1, shellIdx);
+                sampledShells[i] = shellIdx;
+            }
+//            double *rands = td->fDblArray;
+//            //NB: generating random numbers here just for reproducibility issues
+//            td->fRndm->uniform_array(N, rands);
+//            SampleShellVec(kin, zed, sampledShells, N, td, rands);
+            //Vectorized Sampling of the Angle
             SamplePhotoElectronDirectionRejVec(kin, cosTheta, N, td);
             
         }
+        int globalCounter = 0 ;
         for (int i = 0; i < N; i += kVecLenD){
-            //std::cout<<"Sampling of Angle i: "<<i<<std::endl;
+            
             Double_v gammaekin_v, cosTheta_v;
             IndexD_v zed_v;
             vecCore::Load(gammaekin_v, kin+i);
             vecCore::Load(zed_v, zed+i);
             vecCore::Load(cosTheta_v, cosTheta+i);
             // Retrieving ionized shell bindingEnergy
-            Double_v bindingEnergy_v;
+            Double_v bindingEnergy_v(0);
             for (int k = 0; k < kVecLenD; ++k) {
                 vecCore::Set(bindingEnergy_v, k, (*(fParamHigh[zed_v[k]]))[sampledShells[k+i] * 7 + 1]);
             }
-            
+
             // Create the secondary particle e-
             Double_v eekin = gammaekin_v - bindingEnergy_v;
-            
-            for (int kkk = 0; kkk < kVecLenD; kkk ++){
-                if(gammaekin_v[kkk]<bindingEnergy_v[kkk]) {
-                    //std::cout<<"eekin["<<kkk<<"]: "<<eekin[kkk]<<std::endl;
-                    //std::cout<<"bindingEnergy_v["<<kkk<<"]: "<<bindingEnergy_v[kkk]<<std::endl;
-                    //std::cout<<"gammaekin_v["<<kkk<<"]: "<<gammaekin_v[kkk]<<std::endl;
-                    //std::cout<<"Z: "<<zed_v[kkk]<<std::endl;
-                    if (eekin[kkk]<0) exit(-1);
-                }
-            }
+        
+//            for (int kkk = 0; kkk < kVecLenD; kkk ++){
+//                if(gammaekin_v[kkk]<bindingEnergy_v[kkk]) {
+//                    std::cout<<"CHECK 2: ERROR\n"; exit(-1);
+//                }
+//            }
             MaskDI_v activateSamplingAngle(gammaekin_v <= 100 * geant::units::MeV);
             
             Double_v eDirX1;
@@ -1153,31 +1173,40 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             LightTrack_v &secondaries = td->fPhysicsData->GetSecondarySOA();
             for (int l = 0; l < kVecLenD; ++l) {
                 int idx = secondaries.InsertTrack();
-                secondaries.SetKinE(eekin[l], idx);
-                secondaries.SetDirX(eDirX1[l], idx);
-                secondaries.SetDirY(eDirY1[l], idx);
-                secondaries.SetDirZ(eDirZ1[l], idx);
+                secondaries.SetKinE(Get(eekin,  l), idx);
+                secondaries.SetDirX(Get(eDirX1, l), idx);
+                secondaries.SetDirY(Get(eDirY1, l), idx);
+                secondaries.SetDirZ(Get(eDirZ1, l), idx);
                 secondaries.SetGVcode(fSecondaryInternalCode, idx); // electron GV code
                 secondaries.SetMass(geant::units::kElectronMassC2, idx);
                 secondaries.SetTrackIndex(tracks.GetTrackIndex(i + l), idx); // parent Track index
             }
+    
             // update primary track - always kill primary photon
             for (int l = 0; l < kVecLenD; ++l) {
-                tracks.SetTrackStatus(LTrackStatus::kKill, i+l);
-                tracks.SetKinE(0.0, i + l);
-                if (bindingEnergy_v[l] > 0.0) {
-                    tracks.SetEnergyDeposit(bindingEnergy_v[l], i+l);
+                bool canDeposit = kin[i+l]>GetLowEnergyUsageLimit() && kin[i+l]<GetHighEnergyUsageLimit();
+                double be = Get(bindingEnergy_v, l);
+                bool notDepositEkin = kin[i+l] > be ;
+                if (be > 0.0 && canDeposit && notDepositEkin) {
+                    globalCounter++;
+                    tracks.SetEnergyDeposit(be, i+l);
+                    energyDepositionVec+=be;
+                } else {
+                    std::cout<<"Cannot deposit: kin["<<i+l<<"]: "<<kin[i+l]<<" <  "<<GetLowEnergyUsageLimit() << " or >  "<<GetHighEnergyUsageLimit()<<std::endl; exit(-1);
+                    tracks.SetEnergyDeposit(kin[i+l], i+l);
                 }
+                tracks.SetKinE(0.0, i + l);
+                tracks.SetTrackStatus(LTrackStatus::kKill, i+l);
             }
+            
         }
 }
     IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, IndexD_v zed, Double_v r1, Double_v r2)
     {
-        //std::cout<<"SampleShellAliasVec \n";
+
         IndexD_v sampledShells(0);
         MaskDI_v enableSamplingShells = (zed != 1) && (zed != 2);
         if(enableSamplingShells.isNotEmpty()){
-            //std::cout<<zed<<std::endl;
             //this will be directly stored in the track
             Double_v lGammaEnergy_v = vecCore::math::Log(egamma);
             
@@ -1194,29 +1223,19 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             IndexD_v tableIndexBinding_v;
             Double_v baseEn_v(999),bindEn_v(999);
             IndexD_v indexBaseEn_v(-1), indexBindingEn_v(-1);
-            //std::cout<<"lowEn: "<<lowEn<<" \n";
-            //std::cout<<"indexBaseEn_v: "<<indexBaseEn_v<<" \n";
-            //std::cout<<"zed: "<<zed<<" \n";
-            //std::cout<<"tableIndexBase_v: "<<tableIndexBase_v<<" \n";
-
             
             for (int k=0; k<kVecLenD; k++){
-                //std::cout<<"SizeOF fIndexBaseEn["<<k<<"]: "<<fIndexBaseEn[(int)zed[k]].size()<<std::endl;
-                
-                //std::cout<<"Setting: "<<fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]+1]-1<<std::endl;
-                if(enableSamplingShells[k])
-                    if(fIndexBaseEn[(int)zed[k]].size()>(size_t)fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]+1])
+                if(enableSamplingShells[k]){
+                    if(fIndexBaseEn[(int)zed[k]].size()>(size_t)(tableIndexBase_v[k]+1)){
                         vecCore::Set(indexBaseEn_v, k, fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]+1]-1);
-                    else
-                        vecCore::Set(indexBaseEn_v, k, fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]]-1); //but to be checked
-                
+                    }
+                    else{
+                        vecCore::Set(indexBaseEn_v, k, fIndexBaseEn[(int)zed[k]][tableIndexBase_v[k]]-1);
+                    }
+                }
             }
-            //std::cout<<"indexBaseEn_v: "<<indexBaseEn_v<<" \n";
-            
-            
             
             IndexD_v tableIndex_v(indexBaseEn_v);
-            //std::cout<<"tableIndex_v: "<<tableIndex_v<<" \n";
             //Only the values of tableIndex_v that need to be changed
             if(lowEn.isNotEmpty())
             {
@@ -1233,32 +1252,22 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
                     }
                     
                 }
-                //std::cout<<"baseEn_v: "<<baseEn_v<<" \n";
                 MaskDI_v checkMinVal(baseEn_v>bindEn_v); //If TRUE, take bindingEnergies, otherwise keep the base energies
                 vecCore::MaskedAssign (tableIndex_v, checkMinVal&&lowEn, indexBindingEn_v);
-                //            for (int k=0; k<kVecLenD; k++){
-                //
-                //            if(lGammaEnergy_v[k]>fShellLSamplingPrimEnergiesNEW[zed[k]][tableIndex_v[k]+1] || lGammaEnergy_v[k]< fShellLSamplingPrimEnergiesNEW[zed[k]][tableIndex_v[k]]+1) {
-                //                std::cout<< "******* Error\n";
-                //                exit(-1);
-                //            }else  std::cout<< "***OK\n";
-                //            }
+                
             }
             IndexD_v lastSSAliasIndex_v;
             for (int k=0; k<kVecLenD; k++){
                 if(enableSamplingShells[k])
                     vecCore::Set(lastSSAliasIndex_v, k, fLastSSAliasIndex[(int)zed[k]-1]);
             }
-            //std::cout<<"lastSSAliasIndex_v: "<<lastSSAliasIndex_v<<" \n";
             Double_v val        = (lGammaEnergy_v - fShellPrimEnLMin) * fShellPrimEnILDelta; //To correct - inverse of delta of the log of real en
-            //std::cout<<"val: "<<val<<" \n";
             // LOWER energy bin index
             IndexD_v indxEgamma = (IndexD_v)val;
             Double_v pIndxHigh  = val - indxEgamma;
             MaskDI_v check(r1<=pIndxHigh);
             vecCore::MaskedAssign (tableIndex_v, check, tableIndex_v+1);
             IndexD_v indxTable_v = lastSSAliasIndex_v+tableIndex_v;
-            //std::cout<<"indxTable_v: "<<indxTable_v<<" \n";
             //NB: the SCALAR and the VECTORIZED are almost equivalent
             //SCALAR
             for (int i=0; i<kVecLenD; i++){
@@ -1416,7 +1425,6 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             for(int k=0; k<kVecLenD && !lanesDonelep[k]; k++)
             {
                 if(!lanesDonelep[k]){
-                    //std::cout<<"uea\n";
                     vecCore::Set(p0, k, (*(fParamLow[zeds[k]]))[idx_v[k]]);
                     vecCore::Set(p1, k, (*(fParamLow[zeds[k]]))[idx_v[k]+1]);
                     vecCore::Set(p2, k, (*(fParamLow[zeds[k]]))[idx_v[k]+2]);
@@ -1448,9 +1456,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             
             MaskDI_v checkKinE(egamma_v > pm1);
             Double_v cs = p0+iegamma*p1+iegamma2*p2+iegamma3*p3+iegamma4*p4+iegamma5*p5;
-            //std::cout<<"Calculated cs: \t"<<cs<<std::endl;
             MaskDI_v accepted(cs>=cs0);
-            //std::cout<<"accepted: \t"<<accepted<<std::endl;
             MaskDI_v lastShell(idxForLoop==totShells-1);
             MaskDI_v checkOut(accepted||lastShell);
             vecCore::MaskedAssign(idxForLoop, !checkOut, idxForLoop+1);
@@ -1493,8 +1499,6 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
         
         while (ehep.size()>3 && (currhep < ehep.size() || !lanesDonehep.isFull())) {
             
-            //std::cout<<"currhep: "<<currhep<<" and ehep.size(): "<<ehep.size()<<std::endl;
-            //std::cout<<"Current indexes: \t"<<idxhep<<std::endl;
             IndexD_v zeds     = vecCore::Gather<IndexD_v>(zhep.data(), idxhep);
             Double_v egamma_v = vecCore::Gather<Double_v>(ehep.data(), idxhep);
             Double_v rand_v   = vecCore::Gather<Double_v>(randhep.data(), idxhep);
@@ -1507,9 +1511,6 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             IndexD_v totShells =vecCore::Gather<IndexD_v>(nshellshep.data(), idxhep);
             IndexD_v idx_v   = totShells * 7 - 5;
             
-            //        std::cout<<"zeds: "<<zeds<<"\n";
-            //        std::cout<<"totShells: "<<totShells<<"\n";
-            //        std::cout<<"rand_v: "<<rand_v<<"\n";
             Double_v pm1, p0, p1, p2, p3, p4, p5;
             
             for(int k=0; k<kVecLenD; k++)
@@ -1524,10 +1525,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
                     
                 }
             }
-            //td->fRndm->uniformV();
-            
             Double_v cs0 = rand_v * (p0+iegamma*p1+iegamma2*p2+iegamma3*p3+iegamma4*p4+iegamma5*p5);
-            //std::cout<<"Calculated cs0: \t"<<cs0<<std::endl;
             
             Double_v idxShells = idxForLoop*7 + 2;
             for(int k=0; k<kVecLenD; k++)
@@ -1545,9 +1543,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             
             MaskDI_v checkKinE(egamma_v > pm1);
             Double_v cs = p0+iegamma*p1+iegamma2*p2+iegamma3*p3+iegamma4*p4+iegamma5*p5;
-            //std::cout<<"Calculated cs: \t"<<cs<<std::endl;
             MaskDI_v accepted(cs>=cs0);
-            //std::cout<<"accepted: \t"<<accepted<<std::endl;
             MaskDI_v lastShell(idxForLoop==totShells-1);
             MaskDI_v checkOut(accepted||lastShell);
             vecCore::MaskedAssign(idxForLoop, !checkOut, idxForLoop+1);
@@ -1558,11 +1554,8 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
             for (int l = 0; l < kVecLenD; ++l) {
                 auto laneDone = checkOut[l];
                 if (laneDone) {
-                    //std::cout<<"Lane "<<l<<" was accepted"<<std::endl;
-                    //std::cout<<"Sampled shell is "<<idxForLoop[l]<<std::endl;
                     if (currhep < ehep.size()) {
                         idxhep[l]       = currhep++;
-                        //std::cout<<"idxhep[l] "<<idxhep[l]<<", e si ricomincia."<<std::endl;
                         lanesDonehep[l] = false;
                     } else {
                         idxhep[l] = ehep.size();
@@ -1570,7 +1563,6 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
                 }
             }
         }
-        //std::cout<<"Sampled shells for hep: "<<ehep.size()<<std::endl;
         for(size_t i=0; i<ehep.size(); i++){
             ss[indexhep[i]]=sampledShellshep[i];
         }
@@ -1683,8 +1675,21 @@ void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, int &Z, double &r
         
     }
     size_t nshells = fNShells[Z];
-    //std::cout<<"nshells: "<<nshells<<"\tper : "<<Z<<std::endl;
     size_t shellIdx=0;
+    
+//    for (int i=0 ; i < nshells ; i++)
+//    {
+//        if(kinE > (*(fParamHigh[Z]))[7*i+1]){
+//            //std::cout<<"Target element index: "<<Z<<std::endl;
+//            //std::cout<<"kinE: "<<kinE<<" can ionize shell "<<i<<" that has binding en: "<<(*(fParamLow[Z]))[7*i+1]<<std::endl;
+//            sampledShells = i;
+//            break;
+//        }
+//        //else {std::cout<<"NOT POSSIBLE, shell"<< i<<" is  not ionazible\n";}
+//
+//    }
+//    return;
+    
     if(nshells > 1){
         // (*) High energy parameterisation
         if(kinE >= (*(fParamHigh[Z]))[0]){
@@ -1807,8 +1812,6 @@ void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, int &Z, double &r
 void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t& zed, double &r1, double &r2, size_t  &sampledShells)
 {
     double lGammaEnergy  = std::log(kinE);
-//    std::cout<<"**\nLooking for \t"<<kinE;
-//    std::cout<<"  log is\t\t"<<lGammaEnergy<<std::endl;
     int tableIndex ;
     int tableIndexBaseEn  = (int) ((lGammaEnergy-fShellPrimEnLMin)*fShellPrimEnILDelta); //this the lower bin
     if (tableIndexBaseEn>=fNumAliasTables-1){
