@@ -24,7 +24,7 @@ using geantphysics::VecSauterGavrilaPhotoElectricModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
-const int kMinBasket = 16;
+const int kMinBasket = 256;
 const int kMaxBasket = 256;
 const double minEn   = 100 * geant::units::eV;
 const double maxEn   = 50 * geant::units::keV;
