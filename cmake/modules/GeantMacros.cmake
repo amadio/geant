@@ -160,7 +160,7 @@ string(REGEX REPLACE
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TestOutputDir})
 add_executable(${GeantPhysicsTest_MAIN} ${GeantPhysicsTest_MAIN}.cc ${sources})
-target_link_libraries(${GeantPhysicsTest_MAIN} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics ${VECGEOM_LIBRARIES})
+target_link_libraries(${GeantPhysicsTest_MAIN} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Material RealPhysics ${VECGEOM_LIBRARIES} ${PROFILE_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build/install directory.

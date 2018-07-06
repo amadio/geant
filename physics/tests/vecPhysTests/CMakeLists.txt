@@ -23,46 +23,47 @@ include_directories(
 )
 
 set(COMMON_HEADERS Common/Hist.h Common/Common.h)
+set(__extralibs ${PROFILE_LIBRARIES} benchmark::benchmark pthread)
 
 if(${benchmark_FOUND})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/benchmarks/vecphys)
 
     add_executable(RngBench Misc/VecRngBench.cxx ${COMMON_HEADERS})
-    target_link_libraries(RngBench Geant_v benchmark::benchmark pthread)
+    target_link_libraries(RngBench Geant_v ${__extralibs})
 
     add_executable(MathBench Misc/VecMathBench.cxx ${COMMON_HEADERS})
-    target_link_libraries(MathBench Geant_v benchmark::benchmark pthread)
+    target_link_libraries(MathBench Geant_v ${__extralibs})
 
     add_executable(KleinNishBench KleinNishina/KleinNishinaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(KleinNishBench Geant_v RealPhysics benchmark::benchmark pthread)
+    target_link_libraries(KleinNishBench Geant_v RealPhysics ${__extralibs})
 
     add_executable(VectorPairBench VectorPairTests/VectorPairBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(VectorPairBench Geant_v RealPhysics benchmark::benchmark pthread)
+    target_link_libraries(VectorPairBench Geant_v RealPhysics ${__extralibs})
 
     add_executable(VectorBremsBench VectorBremsTests/VectorBremsBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(VectorBremsBench Geant_v RealPhysics benchmark::benchmark pthread)
+    target_link_libraries(VectorBremsBench Geant_v RealPhysics ${__extralibs})
 
     add_executable(VectorPos2GammaBench PositronTo2Gamma/PositronTo2GammaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(VectorPos2GammaBench Geant_v RealPhysics benchmark::benchmark pthread)
+    target_link_libraries(VectorPos2GammaBench Geant_v RealPhysics ${__extralibs})
 
     add_executable(MollerBhabhaBench MollerBhabha/MollerBhabhaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(MollerBhabhaBench Geant_v RealPhysics benchmark::benchmark pthread)
+    target_link_libraries(MollerBhabhaBench Geant_v RealPhysics ${__extralibs})
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/vecphys)
 
 add_executable(KleinNishValid KleinNishina/KleinNishinaValidate.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(KleinNishValid Geant_v RealPhysics)
+target_link_libraries(KleinNishValid Geant_v RealPhysics ${__extralibs})
 
 add_executable(PairValid VectorPairTests/VectorPairValidate.cxx VectorPairTests/VectorPairTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(PairValid Geant_v RealPhysics)
+target_link_libraries(PairValid Geant_v RealPhysics ${__extralibs})
 
 add_executable(BremsValid VectorBremsTests/VectorBremsValidate.cxx VectorBremsTests/VectorBremsTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(BremsValid Geant_v RealPhysics)
+target_link_libraries(BremsValid Geant_v RealPhysics ${__extralibs})
 
 add_executable(Pos2GammaValid PositronTo2Gamma/PositronTo2GammaValidate.cxx PositronTo2Gamma/PositronTo2GammaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(Pos2GammaValid Geant_v RealPhysics)
+target_link_libraries(Pos2GammaValid Geant_v RealPhysics ${__extralibs})
 
 add_executable(MollerBhabhaValid MollerBhabha/MollerBhabhaValidate.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(MollerBhabhaValid Geant_v RealPhysics)
+target_link_libraries(MollerBhabhaValid Geant_v RealPhysics ${__extralibs})
 
