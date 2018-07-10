@@ -209,7 +209,7 @@ public:
   int GetNprioritized() const { return fPriorityLane->size(); }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

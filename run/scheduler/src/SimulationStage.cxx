@@ -158,7 +158,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
       bvector.Clear();
     }
     nflush += nbasket;
-    //if (nflush > fPropagator->fConfig->fNvecThreshold) break;
+    // if (nflush > fPropagator->fConfig->fNvecThreshold) break;
   }
 
   return CopyToFollowUps(output, td);
@@ -273,5 +273,5 @@ int SimulationStage::CopyToFollowUps(Basket &output, TaskData *td)
   return ntracks;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

@@ -81,7 +81,7 @@ void TaskData::AttachPropagator(Propagator *prop, int node)
   fStackBuffer = new StackLikeBuffer(prop->fConfig->fNstackLanes, this);
   fStackBuffer->SetStageBuffer(fStageBuffers[0]);
   fBlock = fPropagator->fTrackMgr->GetNewBlock();
-  for (size_t stage  = 0; stage < kNstages; ++stage)
+  for (size_t stage = 0; stage < kNstages; ++stage)
     fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
   // std::cerr<<"AttachProp(): prop="<< prop <<", node="<< node <<", fBlock="<< fBlock <<"\n";
 }
@@ -127,5 +127,5 @@ void TaskData::InspectStages(int istage) const
   }
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

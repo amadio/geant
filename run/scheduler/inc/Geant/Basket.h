@@ -244,7 +244,7 @@ public:
   void SetStage(SimulationStage *stage) { fStage = stage; }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

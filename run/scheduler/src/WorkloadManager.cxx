@@ -182,8 +182,8 @@ void WorkloadManager::TransportTracksV3(Propagator *propagator)
   // Enforce locality by pinning the thread to the next core according to the chosen policy.
   int node                 = -1;
   LocalityManager *loc_mgr = LocalityManager::Instance();
-  if (useNuma) node        = loc_mgr->GetPolicy().AllocateNextThread(propagator->fNuma);
-  int cpu                  = useNuma ? NumaUtils::GetCpuBinding() : -1;
+  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(propagator->fNuma);
+  int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
   //  if (node < 0) node = 0;
   RunManager *runmgr  = propagator->fRunMgr;
   geant::TaskData *td = runmgr->GetTDManager()->GetTaskData();
@@ -273,10 +273,10 @@ int WorkloadManager::FlushOneLane(TaskData *td)
 {
   // Flush a single track lane from the stack-like buffer into the first stage.
   // Check the stack buffer and flush priority events first
-  constexpr size_t kShareThreshold                 = 10;  // tunable ???
-  constexpr float kShareFraction                   = 0.1; // if it has 10 tracks it will share 1
-  int ninjected                                    = 0;
-  int maxspill                                     = td->fPropagator->fConfig->fNmaxBuffSpill;
+  constexpr size_t kShareThreshold = 10;  // tunable ???
+  constexpr float kShareFraction   = 0.1; // if it has 10 tracks it will share 1
+  int ninjected                    = 0;
+  int maxspill                     = td->fPropagator->fConfig->fNmaxBuffSpill;
   if (td->fStackBuffer->IsPrioritized()) ninjected = td->fStackBuffer->FlushPriorityLane();
   if (ninjected) return ninjected;
 

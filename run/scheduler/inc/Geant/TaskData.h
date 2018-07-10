@@ -236,6 +236,7 @@ private:
 #endif
 
   TaskDataHandle(const char *name, size_t index) : fIndex(index) { strcpy(fName, name); }
+
 public:
   TaskDataHandle(const TaskDataHandle &other) : fIndex(other.fIndex) { memcpy(fName, other.fName, 50); }
 
@@ -263,8 +264,8 @@ public:
   const char *GetName() const { return fName; }
 
   /** @brief User callable, allowing to attach per-thread data of the handle type
-    * @details User data corresponding to all pre-defined tokens can be allocated
-    *          in MyApplication::AttachUserData, to avoid run-time checks */
+   * @details User data corresponding to all pre-defined tokens can be allocated
+   *          in MyApplication::AttachUserData, to avoid run-time checks */
   bool AttachUserData(T *data, TaskData *td) { return (td->SetUserData(data, fIndex)); }
 };
 
@@ -402,6 +403,6 @@ public:
   }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 #endif
