@@ -1,15 +1,12 @@
 #include <benchmark/benchmark.h>
 #include "SauterGavrilaTestCommon.h"
-//#include "Geant/LightTrack.h"
-//#include "Geant/SauterGavrilaPhotoElectricModel.h"
-//#include "Geant/VecSauterGavrilaPhotoElectricModel.h"
 
 #include "Geant/RngWrapper.h"
 
 SauterGavrilaPhotoElectricModel *sg;
-VecSauterGavrilaPhotoElectricModel *vsg;
+SauterGavrilaPhotoElectricModel *vsg;
 SauterGavrilaPhotoElectricModel *sgrej;
-VecSauterGavrilaPhotoElectricModel *vsgrej;
+SauterGavrilaPhotoElectricModel *vsgrej;
 auto td  = PrepareTaskData();
 
 static void SauterGavrilaSampleSecondariesAliasScalar(benchmark::State &state)
@@ -41,7 +38,7 @@ static void SauterGavrilaSampleSecondariesAliasVector(benchmark::State &state)
     primaries.SetNtracks(basketSize);
     td->fPhysicsData->GetSecondarySOA().ClearTracks();
     state.ResumeTiming();
-    vsg->SampleSecondariesVector(primaries, td.get());
+    vsg->SampleSecondaries(primaries, td.get());
   }
 }
 BENCHMARK(SauterGavrilaSampleSecondariesAliasVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
@@ -75,7 +72,7 @@ static void SauterGavrilaSampleSecondariesRejVector(benchmark::State &state)
     primaries.SetNtracks(basketSize);
     td->fPhysicsData->GetSecondarySOA().ClearTracks();
     state.ResumeTiming();
-    vsgrej->SampleSecondariesVector(primaries, td.get());
+    vsgrej->SampleSecondaries(primaries, td.get());
   }
 
 }

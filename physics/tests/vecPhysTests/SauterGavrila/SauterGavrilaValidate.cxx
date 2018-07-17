@@ -19,7 +19,7 @@ struct PhotoElectricValidData {
 };
 
 SauterGavrilaPhotoElectricModel *sg;
-VecSauterGavrilaPhotoElectricModel *vsg;
+SauterGavrilaPhotoElectricModel *vsg;
 //TaskData *td;
 
 void FillDataVector(PhotoElectricValidData &data,  geant::TaskData *td)
@@ -38,7 +38,7 @@ void FillDataVector(PhotoElectricValidData &data,  geant::TaskData *td)
     primaries.SetNtracks(kMaxBasket);
 
     td->fPhysicsData->GetSecondarySOA().ClearTracks();
-    vsg->SampleSecondariesVector(primaries, td);
+    vsg->SampleSecondaries(primaries, td);
     //sauterG->SampleSecondariesVector(primaries, td);
       
     auto &secondaries = td->fPhysicsData->GetSecondarySOA();

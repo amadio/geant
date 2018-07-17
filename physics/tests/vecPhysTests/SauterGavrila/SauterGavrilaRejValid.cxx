@@ -13,11 +13,11 @@ public:
   using SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection;
 };
 
-using geantphysics::VecSauterGavrilaPhotoElectricModel;
-class SauterGavrilaRejTesterVec : public VecSauterGavrilaPhotoElectricModel {
+using geantphysics::SauterGavrilaPhotoElectricModel;
+class SauterGavrilaRejTesterVec : public SauterGavrilaPhotoElectricModel {
 public:
-  SauterGavrilaRejTesterVec() : VecSauterGavrilaPhotoElectricModel(){};
-  using VecSauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec;
+  SauterGavrilaRejTesterVec() : SauterGavrilaPhotoElectricModel(){};
+  using SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec;
 };
 
 const int kTestSize = 1024 * 10;

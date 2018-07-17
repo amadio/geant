@@ -1,5 +1,5 @@
 #include <benchmark/benchmark.h>
-#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
+//#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
 #include "Geant/RngWrapper.h"
@@ -10,11 +10,11 @@ public:
   using SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirection_Rejection;
 };
 
-using geantphysics::VecSauterGavrilaPhotoElectricModel;
-class SauterGavrilaRejTesterVector : public VecSauterGavrilaPhotoElectricModel {
+using geantphysics::SauterGavrilaPhotoElectricModel;
+class SauterGavrilaRejTesterVector : public SauterGavrilaPhotoElectricModel {
 public:
-  SauterGavrilaRejTesterVector() : VecSauterGavrilaPhotoElectricModel(){};
-  using VecSauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec;
+  SauterGavrilaRejTesterVector() : SauterGavrilaPhotoElectricModel(){};
+  using SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec;
 };
 
 static void SampleAngleRejScalar(benchmark::State &state)

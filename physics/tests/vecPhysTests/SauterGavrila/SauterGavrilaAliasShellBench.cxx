@@ -1,5 +1,5 @@
 #include <benchmark/benchmark.h>
-#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
+#include <Geant/SauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
 #include "Geant/RngWrapper.h"
@@ -11,11 +11,11 @@ public:
   using SauterGavrilaPhotoElectricModel::SampleShellAlias;
 };
 
-using geantphysics::VecSauterGavrilaPhotoElectricModel;
-class SauterGavrilaAliasVec : public VecSauterGavrilaPhotoElectricModel {
+using geantphysics::SauterGavrilaPhotoElectricModel;
+class SauterGavrilaAliasVec : public SauterGavrilaPhotoElectricModel {
 public:
-  SauterGavrilaAliasVec() : VecSauterGavrilaPhotoElectricModel(){};
-  using VecSauterGavrilaPhotoElectricModel::SampleShellAliasVec;
+  SauterGavrilaAliasVec() : SauterGavrilaPhotoElectricModel(){};
+  using SauterGavrilaPhotoElectricModel::SampleShellAliasVec;
 };
 
 static void SampleShellAliasScalar(benchmark::State &state)

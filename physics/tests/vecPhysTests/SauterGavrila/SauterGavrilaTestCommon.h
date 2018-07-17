@@ -4,7 +4,6 @@
 #include "Geant/LightTrack.h"
 #include "Geant/TaskData.h"
 #include "Geant/SauterGavrilaPhotoElectricModel.h"
-#include "Geant/VecSauterGavrilaPhotoElectricModel.h"
 #include "Common.h"
 #include <random>
 #include "Geant/MaterialCuts.h"
@@ -20,7 +19,6 @@
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
 using geantphysics::SauterGavrilaPhotoElectricModel;
-using geantphysics::VecSauterGavrilaPhotoElectricModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
 
@@ -47,9 +45,9 @@ SauterGavrilaPhotoElectricModel *PrepareSauterGavrilaModel(bool useAlias)
   return sauterG;
 }
 
-VecSauterGavrilaPhotoElectricModel *PrepareVecSauterGavrilaModel(bool useAlias)
+SauterGavrilaPhotoElectricModel *PrepareVecSauterGavrilaModel(bool useAlias)
 {
-  VecSauterGavrilaPhotoElectricModel *sauterG = new VecSauterGavrilaPhotoElectricModel();
+  SauterGavrilaPhotoElectricModel *sauterG = new SauterGavrilaPhotoElectricModel();
   sauterG->SetLowEnergyUsageLimit(minEn);
   sauterG->SetHighEnergyUsageLimit(maxEn);
   sauterG->SetUseSamplingTables(useAlias);

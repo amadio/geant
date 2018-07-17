@@ -1,4 +1,4 @@
-#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
+#include <Geant/SauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
 #include "Geant/RngWrapper.h"
@@ -11,11 +11,11 @@ public:
   using SauterGavrilaPhotoElectricModel::SampleShell;
 };
 
-using geantphysics::VecSauterGavrilaPhotoElectricModel;
-class SauterGavrilaAliasVec : public VecSauterGavrilaPhotoElectricModel {
+using geantphysics::SauterGavrilaPhotoElectricModel;
+class SauterGavrilaAliasVec : public SauterGavrilaPhotoElectricModel {
 public:
-  SauterGavrilaAliasVec() : VecSauterGavrilaPhotoElectricModel(){};
-  using VecSauterGavrilaPhotoElectricModel::SampleShellVec;
+  SauterGavrilaAliasVec() : SauterGavrilaPhotoElectricModel(){};
+  using SauterGavrilaPhotoElectricModel::SampleShellVec;
 };
 
 const int kTestSize = 1024 * 10;
