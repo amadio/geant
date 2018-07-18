@@ -1,4 +1,3 @@
-#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
 #include "Geant/RngWrapper.h"

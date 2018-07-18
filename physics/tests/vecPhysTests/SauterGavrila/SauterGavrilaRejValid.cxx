@@ -2,9 +2,7 @@
  This sanity check doesn't make real sense until we will guarantee the reproducibility for random numbers
  (the ones 'wasted' in the vectorized rejection have to be put back and used again)
  */
-#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
-
 #include "Geant/RngWrapper.h"
 
 class SauterGavrilaRejTesterScalar : public SauterGavrilaPhotoElectricModel {

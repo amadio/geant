@@ -26,7 +26,6 @@ void FillDataVector(PhotoElectricValidData &data,  geant::TaskData *td)
 {
 
   LightTrack_v primaries;
-  //VecSauterGavrilaPhotoElectricModel *sauterG = PrepareVecSauterGavrilaModel(useAlias);
 
   for (int bask = 0; bask < kBasketTries; ++bask) {
     PreparePrimaries(primaries, kMaxBasket); //to add the zed

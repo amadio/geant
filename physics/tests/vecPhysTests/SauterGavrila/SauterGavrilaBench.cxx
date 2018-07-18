@@ -9,7 +9,7 @@ SauterGavrilaPhotoElectricModel *sgrej;
 SauterGavrilaPhotoElectricModel *vsgrej;
 auto td  = PrepareTaskData();
 
-static void SauterGavrilaSampleSecondariesAliasScalar(benchmark::State &state)
+static void SauterGavrilaAliasScalar(benchmark::State &state)
 {
   std::vector<LightTrack> primaries;
 
@@ -25,9 +25,9 @@ static void SauterGavrilaSampleSecondariesAliasScalar(benchmark::State &state)
     }
   }
 }
-BENCHMARK(SauterGavrilaSampleSecondariesAliasScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(SauterGavrilaAliasScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void SauterGavrilaSampleSecondariesAliasVector(benchmark::State &state)
+static void SauterGavrilaAliasVector(benchmark::State &state)
 {
   LightTrack_v primaries;
   int basketSize = state.range(0);
@@ -41,9 +41,9 @@ static void SauterGavrilaSampleSecondariesAliasVector(benchmark::State &state)
     vsg->SampleSecondaries(primaries, td.get());
   }
 }
-BENCHMARK(SauterGavrilaSampleSecondariesAliasVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(SauterGavrilaAliasVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void SauterGavrilaSampleSecondariesRejScalar(benchmark::State &state)
+static void SauterGavrilaRejScalar(benchmark::State &state)
 {
   std::vector<LightTrack> primaries;
   int basketSize = state.range(0);
@@ -59,9 +59,9 @@ static void SauterGavrilaSampleSecondariesRejScalar(benchmark::State &state)
   }
 
 }
-BENCHMARK(SauterGavrilaSampleSecondariesRejScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(SauterGavrilaRejScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
-static void SauterGavrilaSampleSecondariesRejVector(benchmark::State &state)
+static void SauterGavrilaRejVector(benchmark::State &state)
 {
   LightTrack_v primaries;
   int basketSize = state.range(0);
@@ -76,7 +76,7 @@ static void SauterGavrilaSampleSecondariesRejVector(benchmark::State &state)
   }
 
 }
-BENCHMARK(SauterGavrilaSampleSecondariesRejVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
+BENCHMARK(SauterGavrilaRejVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
 int main(int argc, char **argv)
 {

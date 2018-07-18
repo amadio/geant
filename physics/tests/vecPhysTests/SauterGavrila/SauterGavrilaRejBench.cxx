@@ -1,5 +1,4 @@
 #include <benchmark/benchmark.h>
-//#include <Geant/VecSauterGavrilaPhotoElectricModel.h>
 #include "SauterGavrilaTestCommon.h"
 
 #include "Geant/RngWrapper.h"
@@ -63,7 +62,6 @@ static void SampleAngleRejVector(benchmark::State &state)
   geant::RngWrapper rng;
   std::vector<double> energy;
   std::vector<double> costheta;
-  //double costheta[kMaxBasket];
 
   auto td = PrepareTaskData();
 
