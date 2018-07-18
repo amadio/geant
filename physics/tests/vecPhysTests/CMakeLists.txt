@@ -50,6 +50,24 @@ if(${benchmark_FOUND})
     add_executable(MollerBhabhaBench MollerBhabha/MollerBhabhaBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
     target_link_libraries(MollerBhabhaBench Geant_v RealPhysics ${__extralibs})
 
+    add_executable(SGBench SauterGavrila/SGBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
+    target_link_libraries(SGBench Geant_v RealPhysics benchmark::benchmark pthread)
+
+    add_executable(SauterGavrilaAliasBench SauterGavrila/SauterGavrilaAliasBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+    target_link_libraries(SauterGavrilaAliasBench Geant_v RealPhysics benchmark::benchmark pthread)
+ 
+    add_executable(SauterGavrilaRejBench SauterGavrila/SauterGavrilaRejBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+    target_link_libraries(SauterGavrilaRejBench Geant_v RealPhysics benchmark::benchmark pthread)
+
+    add_executable(SauterGavrilaAliasShellBench SauterGavrila/SauterGavrilaAliasShellBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+    target_link_libraries(SauterGavrilaAliasShellBench Geant_v RealPhysics benchmark::benchmark pthread)
+
+    add_executable(SauterGavrilaRejShellBench SauterGavrila/SauterGavrilaRejShellBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+    target_link_libraries(SauterGavrilaRejShellBench Geant_v RealPhysics benchmark::benchmark pthread)
+
+    add_executable(SauterGavrilaBench SauterGavrila/SauterGavrilaBench.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+    target_link_libraries(SauterGavrilaBench Geant_v RealPhysics benchmark::benchmark pthread)
+
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/vecphys)
@@ -69,19 +87,22 @@ target_link_libraries(Pos2GammaValid Geant_v RealPhysics ${__extralibs})
 add_executable(MollerBhabhaValid MollerBhabha/MollerBhabhaValidate.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
 target_link_libraries(MollerBhabhaValid Geant_v RealPhysics ${__extralibs})
 
-add_executable(PhysVecSauterGavrilaAliasValid SauterGavrila/SauterGavrilaAliasValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(PhysVecSauterGavrilaAliasValid Geant_v RealPhysics)
+add_executable(SGValid SauterGavrila/SGValidate.cxx SauterGavrila/SGTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(SGValid Geant_v RealPhysics)
 
-add_executable(PhysVecSauterGavrilaRejValid SauterGavrila/SauterGavrilaRejValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(PhysVecSauterGavrilaRejValid Geant_v RealPhysics)
+add_executable(SauterGavrilaAliasAngleValid SauterGavrila/SauterGavrilaAliasValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(SauterGavrilaAliasAngleValid Geant_v RealPhysics)
 
-add_executable(PhysVecSauterGavrilaAliasShellValid SauterGavrila/SauterGavrilaAliasShellValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(PhysVecSauterGavrilaAliasShellValid Geant_v RealPhysics)
+add_executable(SauterGavrilaRejAngleValid SauterGavrila/SauterGavrilaRejValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(SauterGavrilaRejAngleValid Geant_v RealPhysics)
 
-add_executable(PhysVecSauterGavrilaRejShellValid SauterGavrila/SauterGavrilaRejShellValid.cxx ${COMMON_HEADERS})
-target_link_libraries(PhysVecSauterGavrilaRejShellValid Geant_v RealPhysics)
+add_executable(SauterGavrilaAliasShellValid SauterGavrila/SauterGavrilaAliasShellValid.cxx SauterGavrila/SauterGavrilaTestCommon.h ${COMMON_HEADERS})
+target_link_libraries(SauterGavrilaAliasShellValid Geant_v RealPhysics)
 
-add_executable(PhysVecSauterGavrilaValid SauterGavrila/SauterGavrilaValidate.cxx ${COMMON_HEADERS})
-target_link_libraries(PhysVecSauterGavrilaValid Geant_v RealPhysics)
+add_executable(SauterGavrilaRejShellValid SauterGavrila/SauterGavrilaRejShellValid.cxx ${COMMON_HEADERS})
+target_link_libraries(SauterGavrilaRejShellValid Geant_v RealPhysics)
+
+add_executable(SauterGavrilaValid SauterGavrila/SauterGavrilaValidate.cxx ${COMMON_HEADERS})
+target_link_libraries(SauterGavrilaValid Geant_v RealPhysics)
 
 
