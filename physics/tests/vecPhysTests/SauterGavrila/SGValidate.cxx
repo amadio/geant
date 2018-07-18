@@ -27,13 +27,7 @@ void TestSGModel(geantphysics::EMModel *model, TestParticleType primary, geant::
                     kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
-    double E0 = GetTotalE(primariesVec);
-    auto P0   = GetTotalP(primariesVec);
-
     SampleSecondariesVector(model, primariesVec, td);
-
-    //CheckEnergyMomentumConservation(E0, P0, primariesVec, td->fPhysicsData->GetSecondarySOA());
-
     // Fill histogram
     for (int i = 0; i < primariesVec.GetNtracks(); ++i) {
       double enNormed = primariesVec.GetKinE(i) / energyBeforeInteraction[primariesVec.GetTrackIndex(i)];
@@ -62,15 +56,7 @@ void TestSGModel(geantphysics::EMModel *model, TestParticleType primary, geant::
                     kBasketSize);
     std::vector<double> energyBeforeInteraction = GetE(primariesVec);
 
-    double E0 = GetTotalE(primariesVec.data(), primariesVec.size());
-    auto P0   = GetTotalP(primariesVec.data(), primariesVec.size());
-
     SampleSecondariesScalar(model, primariesVec, td);
-
-    //CheckEnergyMomentumConservation(E0, P0, primariesVec.data(), primariesVec.size(),
-                                    //td->fPhysicsData->GetListOfSecondaries(), td->fPhysicsData->GetNumOfSecondaries());
-    //exit(-1);
-
     for (size_t i = 0; i < primariesVec.size(); ++i) {
       double enNormed = primariesVec[i].GetKinE() / energyBeforeInteraction[primariesVec[i].GetTrackIndex()];
       double dirZ     = primariesVec[i].GetDirZ();
