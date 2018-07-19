@@ -58,7 +58,6 @@ void MollerBhabhaIonizationModel::Initialize()
 {
   EMModel::Initialize();
   if (GetUseSamplingTables()) {
-    std::cout<<"     *** Init with sampling tables\n";
     InitSamplingTables();
 
     // Steal tables to alternative format
@@ -98,7 +97,6 @@ void MollerBhabhaIonizationModel::Initialize()
       }
     }
   }
-  else std::cout<<"     *** Init without sampling tables\n";
   fSecondaryInternalCode = Electron::Definition()->GetInternalCode();
 }
 
@@ -367,22 +365,22 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerVolume(const Material *mat
 }
 
 /**
-  *  The sampling is based on the sampling tables prepared at initialisation. Statistical interpolation is used to
-  *  select one of the primary particle kinetic energy grid points out of \f$ E_i \leq E_{kin} < E_{i+1}\f$ (linear
-  *  interpolation in log kinetic energy) at a given primary particle kinetic energy \f$E_{kin}\f$. Then the transformed
-  *  variable \f$\xi\in[0,1]\f$ is sampled from the sampling table (prepared at initialisation) that belongs to the
-  *  selected primary particle kinetic energy grid point. The kinetic energy transfered to the electron \f$T\f$ then is
-  *  obtained by applying the following transformation:
-  *  \f[
-  *     T =
-  *     \begin{cases}
-  *      T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})} & \textrm{in case of Moller scattering }[e^-+e^-\to e^-+e^-]\\
-  *      T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}    & \textrm{in case of Bhabha scattering }[e^++e^-\to e^++e^-]
-  *     \end{cases}
-  *  \f]
-  *  where \f$E_{kin}\f$ is the current primary particle (i.e. e-/e+) kinetic energy and \f$T_{cut}^{e-}\f$ is the
-  *  current electron kinetic energy production threshold.
-  */
+ *  The sampling is based on the sampling tables prepared at initialisation. Statistical interpolation is used to
+ *  select one of the primary particle kinetic energy grid points out of \f$ E_i \leq E_{kin} < E_{i+1}\f$ (linear
+ *  interpolation in log kinetic energy) at a given primary particle kinetic energy \f$E_{kin}\f$. Then the transformed
+ *  variable \f$\xi\in[0,1]\f$ is sampled from the sampling table (prepared at initialisation) that belongs to the
+ *  selected primary particle kinetic energy grid point. The kinetic energy transfered to the electron \f$T\f$ then is
+ *  obtained by applying the following transformation:
+ *  \f[
+ *     T =
+ *     \begin{cases}
+ *      T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})} & \textrm{in case of Moller scattering }[e^-+e^-\to e^-+e^-]\\
+ *      T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}    & \textrm{in case of Bhabha scattering }[e^++e^-\to e^++e^-]
+ *     \end{cases}
+ *  \f]
+ *  where \f$E_{kin}\f$ is the current primary particle (i.e. e-/e+) kinetic energy and \f$T_{cut}^{e-}\f$ is the
+ *  current electron kinetic energy production threshold.
+ */
 double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin,
                                                          const double r1, const double r2, const double r3)
 {
@@ -403,7 +401,7 @@ double MollerBhabhaIonizationModel::SampleEnergyTransfer(const MaterialCuts *mat
   const LinAlias *als = fSamplingTables[mcIndxLocal]->fAliasData[indxPrimEkin];
   const double xi     = fAliasSampler->SampleLinear(&(als->fXdata[0]), &(als->fYdata[0]), &(als->fAliasW[0]),
                                                 &(als->fAliasIndx[0]), fSTNumSamplingElecEnergies, r2, r3);
-  double dum1 = Math::Log(primekin / elProdCut);
+  double dum1         = Math::Log(primekin / elProdCut);
   if (fIsElectron) {
     dum1 -= 0.693147180559945; // dum1 = dum1 + log(0.5)
   }
@@ -610,7 +608,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
   int numMaterialCuts                                     = theMaterialCutsTable.size();
   int numDifferentMatECuts                                = 0;
   fGlobalMatECutIndxToLocal.resize(numMaterialCuts, -2);
-  std::vector<MaterialCuts*> dumv;
+  std::vector<MaterialCuts *> dumv;
   for (int i = 0; i < numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
     if (!IsActiveRegion(theMaterialCutsTable[i]->GetRegionIndex())) {
@@ -618,8 +616,8 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
     }
     bool isnew = true;
     int j      = 0;
-      for (; j < numDifferentMatECuts; ++j) {
-          if (theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1] == dumv[j]->GetProductionCutsInEnergy()[1]) {
+    for (; j < numDifferentMatECuts; ++j) {
+      if (theMaterialCutsTable[i]->GetProductionCutsInEnergy()[1] == dumv[j]->GetProductionCutsInEnergy()[1]) {
         isnew = false;
         break;
       }
@@ -629,7 +627,7 @@ void MollerBhabhaIonizationModel::InitSamplingTables()
       ++numDifferentMatECuts;
       dumv.push_back(theMaterialCutsTable[i]);
     } else {
-        fGlobalMatECutIndxToLocal[i] = j;
+      fGlobalMatECutIndxToLocal[i] = j;
     }
   }
   fSamplingTables.resize(numDifferentMatECuts, nullptr);
@@ -816,56 +814,56 @@ double MollerBhabhaIonizationModel::ComputeXSectionPerElectron(const double pcut
 }
 
 /**
-  *  The differential(in fractional energy transfer) atomic cross section for Moller scattering \cite moller1932theorie
-  *  \f[
-  *     \frac{\mathrm{d}\sigma}{\mathrm{d}\varepsilon} = \frac{2\pi r_e^2 Z}{\beta^2 (\gamma-1)}\left[
-  *      C_1 + \frac{1}{\varepsilon}\left(\frac{1}{\varepsilon}-C_2\right)
-  *          + \frac{1}{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
-  *     \right]
-  *  \f]
-  *  where
-  *  \f[
-  *  \begin{array}{lcl}
-  *  E_{kin}     &\to&  \textrm{kinetic energy of the incident e-} \\
-  *  T           &\to&  \textrm{kinetic energy of the scattered e- } \in [T_{cut}^{e-},0.5E_{kin}] \textrm{ where }
-  *                     T_{cut} \textrm{ is the electron kinetic energy production threshold}\\
-  *  \varepsilon &\to&  \textrm{fractional energy transfer i.e. } \varepsilon=T/E_{kin} \in [T_{cut}^{e-}/E_{kin},0.5]\\
-  *  \varepsilon' &\to&  \textrm{fraction of remaining kinetic energy i.e. } \varepsilon'=1-\varepsilon \\
-  *  r_e         &\to&  \textrm{classical electron radius} \\
-  *  Z           &\to&  \textrm{atomic number of the target atom} \\
-  *  \gamma      &\to&  \textrm{Lorentz factor} =E_t/(m_0c^2) \textrm{ i.e. total energy of the incident e- in rest mass
-  *                    energy unit} \\
-  *  \beta       &\to&  \textrm{ratio of the speed of the incident e- to } c;\quad = P_t/E_t \textrm{ with } P_t=pc \\
-  *  C_1         &\to&  \left(\frac{\gamma-1}{\gamma}\right)^2 \\
-  *  C_2         &\to&  \frac{2\gamma-1}{\gamma^2}
-  *  \end{array}
-  *  \f]
-  *
-  *  The following variable transformations are applied:
-  *  - first \f$\varepsilon \to u = \ln(\varepsilon)\f$ so \f$\varepsilon=e^u,\; \mathrm{d}\varepsilon/\mathrm{d}u=e^u=
-  *    \varepsilon \f$ which leads to \f$p(u) \propto \varepsilon \left[
-  *      C_1 + \frac{1}{\varepsilon}\left(\frac{1}{\varepsilon}-C_2\right)
-  *          + \frac{1}{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
-  *     \right] \f$
-  *  - then \f$ u \to \xi = [u-\ln(T_{cut}^{e-}/E_{kin})]/[\ln(0.5E_{kin}/T_{cut}^{e-})] \in [0,1]\f$ so
-  *    \f$ u = \xi\ln(0.5E_{kin}/T_{cut}^{e-})+\ln(T_{cut}^{e-}/E_{kin}),\;
-  *    \mathrm{d}u/\mathrm{d}\xi = \ln(0.5E_{kin}/T_{cut}^{e-})\f$ which leads to \f$ p(\xi) \propto \varepsilon \left[
-  *      C_1 + \frac{1}{\varepsilon}\left(\frac{1}{\varepsilon}-C_2\right)
-  *          + \frac{1}{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
-  *     \right] \ln(0.5E_{kin}/T_{cut}^{e-}) \f$ where the last factor is just a constant.
-  *
-  *  So the transformed distribution
-  *  \f[
-  *      p(\xi) \propto \left[
-  *      \varepsilon C_1 + \left(\frac{1}{\varepsilon}-C_2\right)
-  *          + \frac{\varepsilon }{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
-  *     \right]
-  *  \f]
-  *  where the transformed variable in terms of \f$T\f$ kinetic energy transfer is
-  *  \f$\xi = \ln(T/T_{cut}^{e-})/\ln(0.5E_{kin}/T_{cut}^{e-}) \f$ so after the sampling of
-  *  \f$\xi\f$ the kinetic energy transfer can be obtained as \f$T=T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})}\f$.
-  *
-  */
+ *  The differential(in fractional energy transfer) atomic cross section for Moller scattering \cite moller1932theorie
+ *  \f[
+ *     \frac{\mathrm{d}\sigma}{\mathrm{d}\varepsilon} = \frac{2\pi r_e^2 Z}{\beta^2 (\gamma-1)}\left[
+ *      C_1 + \frac{1}{\varepsilon}\left(\frac{1}{\varepsilon}-C_2\right)
+ *          + \frac{1}{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
+ *     \right]
+ *  \f]
+ *  where
+ *  \f[
+ *  \begin{array}{lcl}
+ *  E_{kin}     &\to&  \textrm{kinetic energy of the incident e-} \\
+ *  T           &\to&  \textrm{kinetic energy of the scattered e- } \in [T_{cut}^{e-},0.5E_{kin}] \textrm{ where }
+ *                     T_{cut} \textrm{ is the electron kinetic energy production threshold}\\
+ *  \varepsilon &\to&  \textrm{fractional energy transfer i.e. } \varepsilon=T/E_{kin} \in [T_{cut}^{e-}/E_{kin},0.5]\\
+ *  \varepsilon' &\to&  \textrm{fraction of remaining kinetic energy i.e. } \varepsilon'=1-\varepsilon \\
+ *  r_e         &\to&  \textrm{classical electron radius} \\
+ *  Z           &\to&  \textrm{atomic number of the target atom} \\
+ *  \gamma      &\to&  \textrm{Lorentz factor} =E_t/(m_0c^2) \textrm{ i.e. total energy of the incident e- in rest mass
+ *                    energy unit} \\
+ *  \beta       &\to&  \textrm{ratio of the speed of the incident e- to } c;\quad = P_t/E_t \textrm{ with } P_t=pc \\
+ *  C_1         &\to&  \left(\frac{\gamma-1}{\gamma}\right)^2 \\
+ *  C_2         &\to&  \frac{2\gamma-1}{\gamma^2}
+ *  \end{array}
+ *  \f]
+ *
+ *  The following variable transformations are applied:
+ *  - first \f$\varepsilon \to u = \ln(\varepsilon)\f$ so \f$\varepsilon=e^u,\; \mathrm{d}\varepsilon/\mathrm{d}u=e^u=
+ *    \varepsilon \f$ which leads to \f$p(u) \propto \varepsilon \left[
+ *      C_1 + \frac{1}{\varepsilon}\left(\frac{1}{\varepsilon}-C_2\right)
+ *          + \frac{1}{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
+ *     \right] \f$
+ *  - then \f$ u \to \xi = [u-\ln(T_{cut}^{e-}/E_{kin})]/[\ln(0.5E_{kin}/T_{cut}^{e-})] \in [0,1]\f$ so
+ *    \f$ u = \xi\ln(0.5E_{kin}/T_{cut}^{e-})+\ln(T_{cut}^{e-}/E_{kin}),\;
+ *    \mathrm{d}u/\mathrm{d}\xi = \ln(0.5E_{kin}/T_{cut}^{e-})\f$ which leads to \f$ p(\xi) \propto \varepsilon \left[
+ *      C_1 + \frac{1}{\varepsilon}\left(\frac{1}{\varepsilon}-C_2\right)
+ *          + \frac{1}{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
+ *     \right] \ln(0.5E_{kin}/T_{cut}^{e-}) \f$ where the last factor is just a constant.
+ *
+ *  So the transformed distribution
+ *  \f[
+ *      p(\xi) \propto \left[
+ *      \varepsilon C_1 + \left(\frac{1}{\varepsilon}-C_2\right)
+ *          + \frac{\varepsilon }{\varepsilon'}\left(\frac{1}{\varepsilon'}-C_2\right)
+ *     \right]
+ *  \f]
+ *  where the transformed variable in terms of \f$T\f$ kinetic energy transfer is
+ *  \f$\xi = \ln(T/T_{cut}^{e-})/\ln(0.5E_{kin}/T_{cut}^{e-}) \f$ so after the sampling of
+ *  \f$\xi\f$ the kinetic energy transfer can be obtained as \f$T=T_{cut}^{e-}e^{\xi\ln(0.5E_{kin}/T_{cut}^{e-})}\f$.
+ *
+ */
 double MollerBhabhaIonizationModel::ComputeMollerPDF(const double xi, const double pcutenergy, const double primekin)
 {
   const double tau    = primekin / geant::units::kElectronMassC2; // i.e. E_kin in (mc^2) units
@@ -884,55 +882,55 @@ double MollerBhabhaIonizationModel::ComputeMollerPDF(const double xi, const doub
 }
 
 /**
-  *  The differential(in fractional energy transfer) atomic cross section for Bhabha scattering
-  *  \cite bhabha1936scattering
-  *  \f[
-  *     \frac{\mathrm{d}\sigma}{\mathrm{d}\varepsilon} = \frac{2\pi r_e^2 Z}{(\gamma-1)}\left[
-  *      \frac{1}{\beta^2\varepsilon^2} - \frac{B_1}{\varepsilon} +  B_2 - \varepsilon B_3 + \varepsilon^2 B_4
-  *     \right]
-  *  \f]
-  *  where
-  *  \f[
-  *  \begin{array}{lcl}
-  *  E_{kin}     &\to&  \textrm{kinetic energy of the incident e+} \\
-  *  T           &\to&  \textrm{kinetic energy of the scattered e- } \in [T_{cut}^{e-},E_{kin}] \textrm{ where }
-  *                     T_{cut} \textrm{ is the electron kinetic energy production threshold}\\
-  *  \varepsilon &\to&  \textrm{fractional energy transfer i.e. } \varepsilon=T/E_{kin} \in [T_{cut}^{e-}/E_{kin},1]\\
-  *  r_e         &\to&  \textrm{classical electron radius} \\
-  *  Z           &\to&  \textrm{atomic number of the target atom} \\
-  *  \gamma      &\to&  \textrm{Lorentz factor} =E_t/(m_0c^2) \textrm{ i.e. total energy of the incident e- in rest mass
-  *                    energy unit} \\
-  *  \beta       &\to&  \textrm{ratio of the speed of the incident e- to } c;\quad = P_t/E_t \textrm{ with } P_t=pc \\
-  *  y           &\to&  1/(1+\gamma)\\
-  *  B_1         &\to&  2-y^2\\
-  *  B_2         &\to&  (1-2y)(3+y^2)\\
-  *  B_4         &\to&  (1-2y)^2\\
-  *  B_3         &\to&  B_4+(1-2y)^2
-  *  \end{array}
-  *  \f]
-  *
-  *  The following variable transformations are applied:
-  *  - first \f$\varepsilon \to u = \ln(\varepsilon)\f$ so \f$\varepsilon=e^u,\; \mathrm{d}\varepsilon/\mathrm{d}u=e^u=
-  *    \varepsilon \f$ which leads to \f$p(u) \propto \varepsilon \left[
-  *      \frac{1}{\beta^2\varepsilon^2} - \frac{B_1}{\varepsilon} +  B_2 - \varepsilon B_3 + \varepsilon^2 B_4
-  *     \right] \f$
-  *  - then \f$ u \to \xi = [u-\ln(T_{cut}^{e-}/E_{kin})]/[\ln(E_{kin}/T_{cut}^{e-})] \in [0,1]\f$ so
-  *    \f$ u = \xi\ln(E_{kin}/T_{cut}^{e-})+\ln(T_{cut}^{e-}/E_{kin}),\;
-  *    \mathrm{d}u/\mathrm{d}\xi = \ln(E_{kin}/T_{cut}^{e-})\f$ which leads to \f$ p(\xi) \propto \varepsilon \left[
-  *      \frac{1}{\beta^2\varepsilon^2} - \frac{B_1}{\varepsilon} +  B_2 - \varepsilon B_3 + \varepsilon^2 B_4
-  *     \right] \ln(E_{kin}/T_{cut}^{e-}) \f$ where the last factor is just a constant.
-  *
-  *  So the transformed distribution
-  *  \f[
-  *      p(\xi) \propto \left[
-  *      \frac{1}{\beta^2\varepsilon} - B_1 +  \varepsilon ( B_2 - \varepsilon ( B_3 + \varepsilon B_4))
-  *     \right]
-  *  \f]
-  *  where the transformed variable in terms of \f$T\f$ kinetic energy transfer is
-  *  \f$\xi = \ln(T/T_{cut}^{e-})/\ln(E_{kin}/T_{cut}^{e-}) \f$ so after the sampling of
-  *  \f$\xi\f$ the kinetic energy transfer can be obtained as \f$T=T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}\f$.
-  *
-  */
+ *  The differential(in fractional energy transfer) atomic cross section for Bhabha scattering
+ *  \cite bhabha1936scattering
+ *  \f[
+ *     \frac{\mathrm{d}\sigma}{\mathrm{d}\varepsilon} = \frac{2\pi r_e^2 Z}{(\gamma-1)}\left[
+ *      \frac{1}{\beta^2\varepsilon^2} - \frac{B_1}{\varepsilon} +  B_2 - \varepsilon B_3 + \varepsilon^2 B_4
+ *     \right]
+ *  \f]
+ *  where
+ *  \f[
+ *  \begin{array}{lcl}
+ *  E_{kin}     &\to&  \textrm{kinetic energy of the incident e+} \\
+ *  T           &\to&  \textrm{kinetic energy of the scattered e- } \in [T_{cut}^{e-},E_{kin}] \textrm{ where }
+ *                     T_{cut} \textrm{ is the electron kinetic energy production threshold}\\
+ *  \varepsilon &\to&  \textrm{fractional energy transfer i.e. } \varepsilon=T/E_{kin} \in [T_{cut}^{e-}/E_{kin},1]\\
+ *  r_e         &\to&  \textrm{classical electron radius} \\
+ *  Z           &\to&  \textrm{atomic number of the target atom} \\
+ *  \gamma      &\to&  \textrm{Lorentz factor} =E_t/(m_0c^2) \textrm{ i.e. total energy of the incident e- in rest mass
+ *                    energy unit} \\
+ *  \beta       &\to&  \textrm{ratio of the speed of the incident e- to } c;\quad = P_t/E_t \textrm{ with } P_t=pc \\
+ *  y           &\to&  1/(1+\gamma)\\
+ *  B_1         &\to&  2-y^2\\
+ *  B_2         &\to&  (1-2y)(3+y^2)\\
+ *  B_4         &\to&  (1-2y)^2\\
+ *  B_3         &\to&  B_4+(1-2y)^2
+ *  \end{array}
+ *  \f]
+ *
+ *  The following variable transformations are applied:
+ *  - first \f$\varepsilon \to u = \ln(\varepsilon)\f$ so \f$\varepsilon=e^u,\; \mathrm{d}\varepsilon/\mathrm{d}u=e^u=
+ *    \varepsilon \f$ which leads to \f$p(u) \propto \varepsilon \left[
+ *      \frac{1}{\beta^2\varepsilon^2} - \frac{B_1}{\varepsilon} +  B_2 - \varepsilon B_3 + \varepsilon^2 B_4
+ *     \right] \f$
+ *  - then \f$ u \to \xi = [u-\ln(T_{cut}^{e-}/E_{kin})]/[\ln(E_{kin}/T_{cut}^{e-})] \in [0,1]\f$ so
+ *    \f$ u = \xi\ln(E_{kin}/T_{cut}^{e-})+\ln(T_{cut}^{e-}/E_{kin}),\;
+ *    \mathrm{d}u/\mathrm{d}\xi = \ln(E_{kin}/T_{cut}^{e-})\f$ which leads to \f$ p(\xi) \propto \varepsilon \left[
+ *      \frac{1}{\beta^2\varepsilon^2} - \frac{B_1}{\varepsilon} +  B_2 - \varepsilon B_3 + \varepsilon^2 B_4
+ *     \right] \ln(E_{kin}/T_{cut}^{e-}) \f$ where the last factor is just a constant.
+ *
+ *  So the transformed distribution
+ *  \f[
+ *      p(\xi) \propto \left[
+ *      \frac{1}{\beta^2\varepsilon} - B_1 +  \varepsilon ( B_2 - \varepsilon ( B_3 + \varepsilon B_4))
+ *     \right]
+ *  \f]
+ *  where the transformed variable in terms of \f$T\f$ kinetic energy transfer is
+ *  \f$\xi = \ln(T/T_{cut}^{e-})/\ln(E_{kin}/T_{cut}^{e-}) \f$ so after the sampling of
+ *  \f$\xi\f$ the kinetic energy transfer can be obtained as \f$T=T_{cut}^{e-}e^{\xi\ln(E_{kin}/T_{cut}^{e-})}\f$.
+ *
+ */
 double MollerBhabhaIonizationModel::ComputeBhabhaPDF(const double xi, const double pcutenergy, const double primekin)
 {
   const double tau    = primekin / geant::units::kElectronMassC2; // i.e. E_kin in (mc^2) units

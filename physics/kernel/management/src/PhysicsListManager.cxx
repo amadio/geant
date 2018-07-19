@@ -93,12 +93,11 @@ void PhysicsListManager::BuildPhysicsLists()
   if (fPhysicsListVector.size() == 1 && fActiveRegionMasks.size() == 0) {
     std::vector<bool> *activeregionmask = new std::vector<bool>(fNumOfRegions, true);
     fActiveRegionMasks.push_back(*activeregionmask);
-  }
-  else if (fPhysicsListVector.size() != fActiveRegionMasks.size()){
-      // error: more than one physics list without specifying the non-intersecting sets of active regions for them
-      std::cerr<<"ERROR: more than one physics list without specifying the non-intersecting sets of active regions for them!\n";
-      exit(-1);
-      
+  } else if (fPhysicsListVector.size() != fActiveRegionMasks.size()) {
+    // error: more than one physics list without specifying the non-intersecting sets of active regions for them
+    std::cerr << "ERROR: more than one physics list without specifying the non-intersecting sets of active regions for "
+                 "them!\n";
+    exit(-1);
   }
 
   // now we need to loop over the physics lists and call their Initialise methods to fill up the temporary physics
@@ -126,7 +125,7 @@ void PhysicsListManager::BuildPhysicsLists()
     }
 
     for (unsigned long j = 0; j < pTable.size(); ++j) {
-    
+
       Particle *particle                          = pTable[j];
       std::vector<PhysicsProcess *> processVector = particle->GetPhysicsProcessVector();
       // if there is no any process assigned to the current particle
@@ -171,7 +170,6 @@ void PhysicsListManager::BuildPhysicsLists()
       }
     }
   }
-
 
   // loop over all Particle, all PhysicsManagerPerParticle and Initialize all
   for (unsigned long ipm = 0; ipm < fPhysicsManagerPerParticleTable.size(); ++ipm) {

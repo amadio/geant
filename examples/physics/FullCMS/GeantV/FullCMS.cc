@@ -73,25 +73,27 @@ int main(int argc, char *argv[])
   //
   // Defining two different lists of active regions
   std::vector<bool> activeregionlist1(22, 1);
-  activeregionlist1[2] = 0;
-  activeregionlist1[3] = 0;
-  activeregionlist1[7] = 0;
-  activeregionlist1[11]= 0;
-  activeregionlist1[15]= 0;
-  activeregionlist1[21]= 0;
-    
+  activeregionlist1[2]  = 0;
+  activeregionlist1[3]  = 0;
+  activeregionlist1[7]  = 0;
+  activeregionlist1[11] = 0;
+  activeregionlist1[15] = 0;
+  activeregionlist1[21] = 0;
+
   std::vector<bool> activeregionlist2(22, 0);
-  activeregionlist2[2] = 1;
-  activeregionlist2[3] = 1;
-  activeregionlist2[7] = 1;
-  activeregionlist2[11]= 1;
-  activeregionlist2[15]= 1;
-  activeregionlist2[21]= 1; //it has to be controlled that they masks are mutually ex
+  activeregionlist2[2]  = 1;
+  activeregionlist2[3]  = 1;
+  activeregionlist2[7]  = 1;
+  activeregionlist2[11] = 1;
+  activeregionlist2[15] = 1;
+  activeregionlist2[21] = 1; // it has to be controlled that they masks are mutually ex
   //
   // Register user defined physics lists for the full CMS application
   // Activating them in different regions - Building alias tables only in the "most active" regions
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList("withoutAlias", false), activeregionlist1);
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList("withAlias", true), activeregionlist2);
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList("withoutAlias", false),
+                                                                   activeregionlist1);
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList("withAlias", true),
+                                                                   activeregionlist2);
   //
   // Create detector construction
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
@@ -154,12 +156,14 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
 enum PRIMDIR_OPTIONS { PRIMDIR_X_OPT = 0, PRIMDIR_Y_OPT, PRIMDIR_Z_OPT };
 char *const primdir_token[] = {[PRIMDIR_OPTIONS::PRIMDIR_X_OPT] = (char *const) "x",
                                [PRIMDIR_OPTIONS::PRIMDIR_Y_OPT] = (char *const) "y",
-                               [PRIMDIR_OPTIONS::PRIMDIR_Z_OPT] = (char *const) "z", NULL};
+                               [PRIMDIR_OPTIONS::PRIMDIR_Z_OPT] = (char *const) "z",
+                               NULL};
 
 enum MAGFIELD_DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
 char *const magfield_dir_token[] = {[MAGFIELD_DIR_OPTIONS::DIR_X_OPT] = (char *const) "x",
                                     [MAGFIELD_DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
-                                    [MAGFIELD_DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
+                                    [MAGFIELD_DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z",
+                                    NULL};
 
 void help()
 {

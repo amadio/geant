@@ -76,7 +76,7 @@ static void SampleAngleAliasVector(benchmark::State &state)
   }
 
   for (auto _ : state) {
-      for (int i = 0; i < state.range(0); i += geant::kVecLenD) {
+    for (int i = 0; i < state.range(0); i += geant::kVecLenD) {
       geant::Double_v en, r1v, r2v, r3v;
       vecCore::Load(en, energy.data() + i);
       vecCore::Load(r1v, r1.data() + i);

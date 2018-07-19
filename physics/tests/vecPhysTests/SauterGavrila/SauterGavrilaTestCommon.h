@@ -93,57 +93,57 @@ void PreparePrimaries(LightTrack_v &output, int N)
     double eKin = minEn + (maxEn - minEn) * rng.uniform();
     output.SetKinE(eKin, i);
     output.SetTrackIndex(i, i);
-    output.SetMaterialCutCoupleIndex(0,i);
+    output.SetMaterialCutCoupleIndex(0, i);
   }
 }
 
 void SetUpSimulation()
 {
-    vecgeom::GeoManager::Instance().Clear();
-    static std::string   particleName("gamma");
-    static std::string   materialName("NIST_MAT_CONCRETE"); // material is CONCRETE
-    static std::string   photoElectricModelName("SauterGavrilaPhotoElectric");
-    //static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
-    //static bool          isProdCutInLength = true;            // is the production cut value given in length ?
-    
-    //============================= Set user defined input data =================================//
-    // Create target material: which is supposed to be a NIST Material
-    Material *matDetector = Material::NISTMaterial(materialName);
-    
-    // Set production cuts if needed: not needed in case of pair-production
-    bool iscutinlength  = true;
-    double prodCutValue = 1. * geant::units::mm;
-    double gcut         = prodCutValue;
-    double emcut        = prodCutValue;
-    double epcut        = prodCutValue;
-    
-    // Create primary particle
-    //Particle *
-    //particle = Gamma::Definition();
-    //std::string  pname;
-    
-    //============= Initialization i.e. building up and init the physics ========================//
-    // Create a dummy vecgeom::geometry:
-    //  - with only one volume i.e. world
-    //  - create a region and set production cuts
-    //
-    vecgeom::UnplacedBox worldParams = vecgeom::UnplacedBox(1., 1., 1.);
-    vecgeom::LogicalVolume *worldl   = new vecgeom::LogicalVolume("main_vol", &worldParams);
-    // create one region and assigne to the logical volume
-    vecgeom::Region *aRegion = new vecgeom::Region("ARegion", iscutinlength, gcut, emcut, epcut);
-    worldl->SetRegion(aRegion);
-    // set the material pointer in the world logical volume
-    worldl->SetMaterialPtr((void *)matDetector);
-    vecgeom::GeoManager::Instance().SetWorld(worldl->Place());
-    vecgeom::GeoManager::Instance().CloseGeometry();
-    // Create all(we have only one) MaterialCuts
-    geantphysics::MaterialCuts::CreateAll();
-    
-    // if primary particle energy < gamma production cut => there is no secondary gamma production
-    // So get the MaterialCuts of the target: we have only one
-    //const MaterialCuts *
-    //const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
-    //===========================================================================================//
+  vecgeom::GeoManager::Instance().Clear();
+  static std::string particleName("gamma");
+  static std::string materialName("NIST_MAT_CONCRETE"); // material is CONCRETE
+  static std::string photoElectricModelName("SauterGavrilaPhotoElectric");
+  // static double        prodCutValue      = 0.1;             // by default in length and internal units i.e. [cm]
+  // static bool          isProdCutInLength = true;            // is the production cut value given in length ?
+
+  //============================= Set user defined input data =================================//
+  // Create target material: which is supposed to be a NIST Material
+  Material *matDetector = Material::NISTMaterial(materialName);
+
+  // Set production cuts if needed: not needed in case of pair-production
+  bool iscutinlength  = true;
+  double prodCutValue = 1. * geant::units::mm;
+  double gcut         = prodCutValue;
+  double emcut        = prodCutValue;
+  double epcut        = prodCutValue;
+
+  // Create primary particle
+  // Particle *
+  // particle = Gamma::Definition();
+  // std::string  pname;
+
+  //============= Initialization i.e. building up and init the physics ========================//
+  // Create a dummy vecgeom::geometry:
+  //  - with only one volume i.e. world
+  //  - create a region and set production cuts
+  //
+  vecgeom::UnplacedBox worldParams = vecgeom::UnplacedBox(1., 1., 1.);
+  vecgeom::LogicalVolume *worldl   = new vecgeom::LogicalVolume("main_vol", &worldParams);
+  // create one region and assigne to the logical volume
+  vecgeom::Region *aRegion = new vecgeom::Region("ARegion", iscutinlength, gcut, emcut, epcut);
+  worldl->SetRegion(aRegion);
+  // set the material pointer in the world logical volume
+  worldl->SetMaterialPtr((void *)matDetector);
+  vecgeom::GeoManager::Instance().SetWorld(worldl->Place());
+  vecgeom::GeoManager::Instance().CloseGeometry();
+  // Create all(we have only one) MaterialCuts
+  geantphysics::MaterialCuts::CreateAll();
+
+  // if primary particle energy < gamma production cut => there is no secondary gamma production
+  // So get the MaterialCuts of the target: we have only one
+  // const MaterialCuts *
+  // const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(aRegion->GetIndex(),matDetector->GetIndex());
+  //===========================================================================================//
 }
 
 #endif // GEANTV_SAUTERGAVRILATESTCOMMON_H

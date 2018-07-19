@@ -48,16 +48,16 @@ int main()
 
   for (int i = 0; i < kTestSize; ++i) {
     out1[i] = slnStd->SamplePhotoElectronDirection_Alias(energy[i], r1[i], r2[i], r3[i]);
-    //std::cout<<out1[i] <<std::endl;
+    // std::cout<<out1[i] <<std::endl;
   }
-    for (int i = 0; i < kTestSize; i += geant::kVecLenD) {
+  for (int i = 0; i < kTestSize; i += geant::kVecLenD) {
     geant::Double_v en, r1v, r2v, r3v;
     vecCore::Load(en, energy.data() + i);
     vecCore::Load(r1v, r1.data() + i);
     vecCore::Load(r2v, r2.data() + i);
     vecCore::Load(r3v, r3.data() + i);
     geant::Double_v eps = sgv->SamplePhotoElectronDirectionAliasVec(en, r1v, r2v, r3v);
-    //std::cout<<eps<<std::endl;
+    // std::cout<<eps<<std::endl;
     vecCore::Store(eps, out2.data() + i);
   }
 

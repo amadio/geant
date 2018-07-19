@@ -22,8 +22,10 @@ int main(int argc, char **argv)
   std::unique_ptr<EMModel> mbTable =
       InitEMModel(new SauterGavrilaPhotoElectricModel(), kSauGavminEn, kSauGavmaxEn, true);
 
-  EMMODEL_REGISTER_SCALAR_BENCHMARK("SauterGavrilaAliasScal", mbTable.get(), PrepareMBScalarPrims, td.get(),kBasketSize);
-  EMMODEL_REGISTER_VECTOR_BENCHMARK("SauterGavrilaAliasVec", mbTable.get(), PrepareMBVectorPrims, td.get(), kBasketSize);
+  EMMODEL_REGISTER_SCALAR_BENCHMARK("SauterGavrilaAliasScal", mbTable.get(), PrepareMBScalarPrims, td.get(),
+                                    kBasketSize);
+  EMMODEL_REGISTER_VECTOR_BENCHMARK("SauterGavrilaAliasVec", mbTable.get(), PrepareMBVectorPrims, td.get(),
+                                    kBasketSize);
   EMMODEL_REGISTER_SCALAR_BENCHMARK("SauterGavrilaRejScal", mbRej.get(), PrepareMBScalarPrims, td.get(), kBasketSize);
   EMMODEL_REGISTER_VECTOR_BENCHMARK("SauterGavrilaRejVec", mbRej.get(), PrepareMBVectorPrims, td.get(), kBasketSize);
 

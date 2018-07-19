@@ -47,15 +47,15 @@ public:
   void Print();
 
 private:
-  double fNumChargedSteps;              // mean number of charged steps per primary
-  double fNumNeutralSteps;              // mean number of neutral steps per primary
-  double fChargedTrackL;                // mean number of charged track length per primary
-  double fNeutralTrackL;                // mean number of neutral track length per primary
-  double fNumGammas;                    // mean number of secondary gamma particles per primary
-  double fNumElectrons;                 // mean number of secondary electron particles per primary
-  double fNumPositrons;                 // mean number of secondary positron particles per primary
-  double fEdep;                         // mean energy deposit per primary
-  std::vector<int> fNumStepPerRegion;   // number of steps per region
+  double fNumChargedSteps;            // mean number of charged steps per primary
+  double fNumNeutralSteps;            // mean number of neutral steps per primary
+  double fChargedTrackL;              // mean number of charged track length per primary
+  double fNeutralTrackL;              // mean number of neutral track length per primary
+  double fNumGammas;                  // mean number of secondary gamma particles per primary
+  double fNumElectrons;               // mean number of secondary electron particles per primary
+  double fNumPositrons;               // mean number of secondary positron particles per primary
+  double fEdep;                       // mean energy deposit per primary
+  std::vector<int> fNumStepPerRegion; // number of steps per region
 };
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -131,12 +131,9 @@ public:
     fEdep2 += val * val;
   }
 
-  int GetStepPerRegion(int i)const { return fNumStepPerRegion[i]; }
+  int GetStepPerRegion(int i) const { return fNumStepPerRegion[i]; }
   size_t GetNRegions() const { return fNumStepPerRegion.size(); }
-  void AddStepPerRegion(int ir, int nsteps )
-  {
-    fNumStepPerRegion[ir]+=nsteps;
-  }
+  void AddStepPerRegion(int ir, int nsteps) { fNumStepPerRegion[ir] += nsteps; }
   double GetEdep() const { return fEdep; }
   double GetEdep2() const { return fEdep2; }
 
@@ -230,6 +227,6 @@ private:
   int fNumBufferedEvents;
   std::vector<CMSDataPerEvent> fPerEventData;
 };
-}
+} // namespace cmsapp
 
 #endif // CMSDATA_H

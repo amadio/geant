@@ -30,10 +30,9 @@ static void SampleRejShellScalar(benchmark::State &state)
   std::vector<int> zed;
   std::vector<size_t> out;
   std::vector<double> r1;
-  std::random_device rd;     // only used once to initialise (seed) engine
-  std::mt19937 rngMT(rd());    // random-number engine used (Mersenne-Twister in this case)
-  std::uniform_int_distribution<int> uni(3,98); // guaranteed unbiased
-
+  std::random_device rd;                         // only used once to initialise (seed) engine
+  std::mt19937 rngMT(rd());                      // random-number engine used (Mersenne-Twister in this case)
+  std::uniform_int_distribution<int> uni(3, 98); // guaranteed unbiased
 
   for (int i = 0; i < kMaxBasket; ++i) {
     energy.push_back(rngGV.uniform(minEn, maxEn));
@@ -45,7 +44,7 @@ static void SampleRejShellScalar(benchmark::State &state)
 
   for (auto _ : state) {
     for (int i = 0; i < state.range(0); ++i) {
-       sgt->SampleShell(energy[i], zed[i], r1[i], out[i]);
+      sgt->SampleShell(energy[i], zed[i], r1[i], out[i]);
     }
   }
 
@@ -68,9 +67,9 @@ static void SampleRejShellVector(benchmark::State &state)
   std::vector<int> zed;
   std::vector<int> out;
   std::vector<double> r1;
-  std::random_device rd;     // only used once to initialise (seed) engine
-  std::mt19937 rngMT(rd());    // random-number engine used (Mersenne-Twister in this case)
-  std::uniform_int_distribution<int> uni(3,98); // guaranteed unbiased
+  std::random_device rd;                         // only used once to initialise (seed) engine
+  std::mt19937 rngMT(rd());                      // random-number engine used (Mersenne-Twister in this case)
+  std::uniform_int_distribution<int> uni(3, 98); // guaranteed unbiased
 
   for (int i = 0; i < kMaxBasket; ++i) {
     energy.push_back(rng.uniform(minEn, maxEn));
@@ -81,9 +80,9 @@ static void SampleRejShellVector(benchmark::State &state)
   }
   auto td = PrepareTaskData();
   for (auto _ : state) {
-      sgt->SampleShellVec(energy.data(), zed.data(), out.data(), state.range(0), td.get(), r1.data());
-    }
-  
+    sgt->SampleShellVec(energy.data(), zed.data(), out.data(), state.range(0), td.get(), r1.data());
+  }
+
   benchmark::DoNotOptimize(out.data());
 
   delete sgt;

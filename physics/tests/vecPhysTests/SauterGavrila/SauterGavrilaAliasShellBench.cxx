@@ -32,10 +32,9 @@ static void SampleShellAliasScalar(benchmark::State &state)
   std::vector<size_t> out;
   std::vector<double> r1;
   std::vector<double> r2;
-  std::random_device rd;     // only used once to initialise (seed) engine
-  std::mt19937 rngMT(rd());    // random-number engine used (Mersenne-Twister in this case)
-  std::uniform_int_distribution<int> uni(3,98); // guaranteed unbiased
-
+  std::random_device rd;                         // only used once to initialise (seed) engine
+  std::mt19937 rngMT(rd());                      // random-number engine used (Mersenne-Twister in this case)
+  std::uniform_int_distribution<int> uni(3, 98); // guaranteed unbiased
 
   for (int i = 0; i < kMaxBasket; ++i) {
     energy.push_back(rngGV.uniform(minEn, maxEn));
@@ -48,8 +47,8 @@ static void SampleShellAliasScalar(benchmark::State &state)
 
   for (auto _ : state) {
     for (int i = 0; i < state.range(0); ++i) {
-       size_t tmp=(size_t) zed[i];
-       sgt->SampleShellAlias(energy[i], tmp, r1[i], r2[i], out[i]);
+      size_t tmp = (size_t)zed[i];
+      sgt->SampleShellAlias(energy[i], tmp, r1[i], r2[i], out[i]);
     }
   }
 
@@ -73,9 +72,9 @@ static void SampleShellAliasVector(benchmark::State &state)
   std::vector<int> out;
   std::vector<double> r1;
   std::vector<double> r2;
-  std::random_device rd;     // only used once to initialise (seed) engine
-  std::mt19937 rngMT(rd());    // random-number engine used (Mersenne-Twister in this case)
-  std::uniform_int_distribution<int> uni(3,98); // guaranteed unbiased
+  std::random_device rd;                         // only used once to initialise (seed) engine
+  std::mt19937 rngMT(rd());                      // random-number engine used (Mersenne-Twister in this case)
+  std::uniform_int_distribution<int> uni(3, 98); // guaranteed unbiased
 
   for (int i = 0; i < kMaxBasket; ++i) {
     energy.push_back(rng.uniform(minEn, maxEn));
@@ -87,7 +86,7 @@ static void SampleShellAliasVector(benchmark::State &state)
   }
 
   for (auto _ : state) {
-      for (int i = 0; i < state.range(0); i += geant::kVecLenD) {
+    for (int i = 0; i < state.range(0); i += geant::kVecLenD) {
       geant::Double_v en, r1v, r2v;
       geant::IndexD_v z;
       vecCore::Load(en, energy.data() + i);

@@ -731,7 +731,7 @@ void RelativisticBremsModel::ComputeLPMGsPhis(double &funcGS, double &funcPhiS, 
       // G(s) = 3 \psi(s) - 2 \phi(s)
       funcGS = 3.0 * funcPsiS - 2.0 * funcPhiS;
     } else if (varShat < 1.55) {
-      funcPhiS = 1.0 - Math::Exp(-6.0 * varShat * (1.0 + varShat * (3.0 - geant::units::kPi)) +
+      funcPhiS          = 1.0 - Math::Exp(-6.0 * varShat * (1.0 + varShat * (3.0 - geant::units::kPi)) +
                                  varShat3 / (0.623 + 0.796 * varShat + 0.658 * varShat2));
       const double dum0 = -0.16072300849123999 + 3.7550300067531581 * varShat - 1.7981383069010097 * varShat2 +
                           0.67282686077812381 * varShat3 - 0.1207722909879257 * varShat4;
@@ -799,8 +799,8 @@ void RelativisticBremsModel::InitSamplingTables()
   // - allocate space and fill the global to local material-cut index map
   const std::vector<MaterialCuts *> theMaterialCutsTable = MaterialCuts::GetTheMaterialCutsTable();
   int numMaterialCuts                                    = theMaterialCutsTable.size();
-  int numDifferentMatGCuts= 0;
-  std::vector<MaterialCuts*> dumv;
+  int numDifferentMatGCuts                               = 0;
+  std::vector<MaterialCuts *> dumv;
   fGlobalMatGCutIndxToLocal.resize(numMaterialCuts, -2);
   for (int i = 0; i < numMaterialCuts; ++i) {
     // if the current MaterialCuts does not belong to the current active regions
@@ -810,9 +810,8 @@ void RelativisticBremsModel::InitSamplingTables()
     bool isnew = true;
     int j      = 0;
     for (; j < numDifferentMatGCuts; ++j) {
-        if (theMaterialCutsTable[i]->GetMaterial()->GetIndex() == theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
-            theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0] ==
-            dumv[j]->GetProductionCutsInEnergy()[0]) {
+      if (theMaterialCutsTable[i]->GetMaterial()->GetIndex() == theMaterialCutsTable[j]->GetMaterial()->GetIndex() &&
+          theMaterialCutsTable[i]->GetProductionCutsInEnergy()[0] == dumv[j]->GetProductionCutsInEnergy()[0]) {
         isnew = false;
         break;
       }
@@ -822,7 +821,7 @@ void RelativisticBremsModel::InitSamplingTables()
       ++numDifferentMatGCuts;
       dumv.push_back(theMaterialCutsTable[i]);
     } else {
-        fGlobalMatGCutIndxToLocal[i] = j ;
+      fGlobalMatGCutIndxToLocal[i] = j;
     }
   }
   fSamplingTables.resize(numDifferentMatGCuts, nullptr);

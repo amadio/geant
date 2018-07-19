@@ -17,10 +17,10 @@ void CMSDataPerPrimary::Clear()
   fNumChargedSteps = fNumNeutralSteps = fChargedTrackL = fNeutralTrackL = 0.;
   fNumGammas = fNumElectrons = fNumPositrons = 0.;
   fEdep                                      = 0.;
-  unsigned long numRegions = vecgeom::Region::GetTheRegionTable().size();
+  unsigned long numRegions                   = vecgeom::Region::GetTheRegionTable().size();
   fNumStepPerRegion.resize(numRegions);
-  for(size_t i=0; i<numRegions; i++)
-      fNumStepPerRegion[i]=0;
+  for (size_t i = 0; i < numRegions; i++)
+    fNumStepPerRegion[i] = 0;
 }
 
 CMSDataPerPrimary &CMSDataPerPrimary::operator+=(const CMSDataPerPrimary &other)
@@ -33,8 +33,8 @@ CMSDataPerPrimary &CMSDataPerPrimary::operator+=(const CMSDataPerPrimary &other)
   fNumElectrons += other.fNumElectrons;
   fNumPositrons += other.fNumPositrons;
   fEdep += other.fEdep;
-  for(size_t i=0 ; i<fNumStepPerRegion.size() ; ++i)
-      fNumStepPerRegion[i]+=other.fNumStepPerRegion[i];
+  for (size_t i = 0; i < fNumStepPerRegion.size(); ++i)
+    fNumStepPerRegion[i] += other.fNumStepPerRegion[i];
   return *this;
 }
 
@@ -49,8 +49,8 @@ void CMSDataPerPrimary::Print()
             << "    Secondary Gammas        = " << fNumGammas << "       \n"
             << "    Secondary Electrons     = " << fNumElectrons << "       \n"
             << "    Secondary Positrons     = " << fNumPositrons << "       \n";
-  for(size_t i = 0 ; i < fNumStepPerRegion.size() ; ++i)
-  std::cout << "    Steps per reg. "<<i<<"       = " << fNumStepPerRegion[i] << "       \n";
+  for (size_t i = 0; i < fNumStepPerRegion.size(); ++i)
+    std::cout << "    Steps per reg. " << i << "       = " << fNumStepPerRegion[i] << "       \n";
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -67,10 +67,10 @@ void CMSDataPerPrimaryType::Clear()
   fChargedTrackL = fNeutralTrackL = fChargedTrackL2 = fNeutralTrackL2 = 0.;
   fNumGammas = fNumGammas2 = fNumElectrons = fNumElectrons2 = 0.;
   fNumPositrons = fNumPositrons2 = fEdep = fEdep2 = 0.;
-  unsigned long numRegions = vecgeom::Region::GetTheRegionTable().size();
+  unsigned long numRegions                        = vecgeom::Region::GetTheRegionTable().size();
   fNumStepPerRegion.resize(numRegions);
-  for(size_t i=0; i<numRegions; i++)
-      fNumStepPerRegion[i]=0;
+  for (size_t i = 0; i < numRegions; i++)
+    fNumStepPerRegion[i] = 0;
 }
 
 void CMSDataPerPrimaryType::AddDataPerPrimary(CMSDataPerPrimary &data)
@@ -84,9 +84,9 @@ void CMSDataPerPrimaryType::AddDataPerPrimary(CMSDataPerPrimary &data)
   AddElectrons(data.GetElectrons());
   AddPositrons(data.GetPositrons());
   AddEdep(data.GetEdep());
-    for (size_t i=0; i<fNumStepPerRegion.size(); ++i){
-        AddStepPerRegion(i, data.GetStepsPerRegion(i));
-    }
+  for (size_t i = 0; i < fNumStepPerRegion.size(); ++i) {
+    AddStepPerRegion(i, data.GetStepsPerRegion(i));
+  }
 }
 
 //--------------------------------------------------------------------------------------------------------------------//

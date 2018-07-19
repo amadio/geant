@@ -18,7 +18,7 @@ public:
   virtual void Initialize();
 
 private:
-    bool fWithAlias;
+  bool fWithAlias;
 };
 
 } // namespace cmsapp

@@ -38,12 +38,10 @@ namespace cmsapp {
 
 CMSPhysicsList::CMSPhysicsList(const std::string &name, bool withAlias) : geantphysics::PhysicsList(name)
 {
-     fWithAlias = withAlias;
+  fWithAlias = withAlias;
 }
 
-CMSPhysicsList::~CMSPhysicsList()
-{
-}
+CMSPhysicsList::~CMSPhysicsList() {}
 
 void CMSPhysicsList::Initialize()
 {
@@ -63,9 +61,9 @@ void CMSPhysicsList::Initialize()
       eMBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          eMBModel->SetUseSamplingTables(true);
+        eMBModel->SetUseSamplingTables(true);
       else
-          eMBModel->SetUseSamplingTables(false);
+        eMBModel->SetUseSamplingTables(false);
       // add the model to the process
       eIoniProc->AddModel(eMBModel);
       //
@@ -82,9 +80,9 @@ void CMSPhysicsList::Initialize()
       eSBModel->SetHighEnergyUsageLimit(1.0 * geant::units::GeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          eSBModel->SetUseSamplingTables(true);
+        eSBModel->SetUseSamplingTables(true);
       else
-          eSBModel->SetUseSamplingTables(false);
+        eSBModel->SetUseSamplingTables(false);
       // how to inactivate this model in a given region i.e. region with index 1
       // active regions for a model are set based on their process active regions + user requested inactive regions
       // eSBModel->AddToUserRequestedInActiveRegions(1);
@@ -99,9 +97,9 @@ void CMSPhysicsList::Initialize()
       eRelBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          eRelBModel->SetUseSamplingTables(true);
+        eRelBModel->SetUseSamplingTables(true);
       else
-          eRelBModel->SetUseSamplingTables(false);
+        eRelBModel->SetUseSamplingTables(false);
       // add this model to the process
       eBremProc->AddModel(eRelBModel);
       //
@@ -133,9 +131,9 @@ void CMSPhysicsList::Initialize()
       eMBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          eMBModel->SetUseSamplingTables(true);
+        eMBModel->SetUseSamplingTables(true);
       else
-          eMBModel->SetUseSamplingTables(false);
+        eMBModel->SetUseSamplingTables(false);
       // add the model to the process
       eIoniProc->AddModel(eMBModel);
       // add the process to the e+ particle
@@ -151,9 +149,9 @@ void CMSPhysicsList::Initialize()
       eSBModel->SetHighEnergyUsageLimit(1.0 * geant::units::GeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          eSBModel->SetUseSamplingTables(true);
+        eSBModel->SetUseSamplingTables(true);
       else
-          eSBModel->SetUseSamplingTables(false);
+        eSBModel->SetUseSamplingTables(false);
       // how to inactivate this model in a given region i.e. region with index 1
       // active regions for a model are set based on their process active regions + user requested inactive regions
       // eSBModel->AddToUserRequestedInActiveRegions(1);
@@ -168,9 +166,9 @@ void CMSPhysicsList::Initialize()
       eRelBModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          eRelBModel->SetUseSamplingTables(true);
+        eRelBModel->SetUseSamplingTables(true);
       else
-          eRelBModel->SetUseSamplingTables(false);
+        eRelBModel->SetUseSamplingTables(false);
       // add this model to the process
       eBremProc->AddModel(eRelBModel);
       //
@@ -204,9 +202,9 @@ void CMSPhysicsList::Initialize()
       kncModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          kncModel->SetUseSamplingTables(true);
+        kncModel->SetUseSamplingTables(true);
       else
-          kncModel->SetUseSamplingTables(false);
+        kncModel->SetUseSamplingTables(false);
       // add the model to the process
       comptProc->AddModel(kncModel);
       //
@@ -223,9 +221,9 @@ void CMSPhysicsList::Initialize()
       bhModel->SetHighEnergyUsageLimit(80.0 * geant::units::GeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          bhModel->SetUseSamplingTables(true);
+        bhModel->SetUseSamplingTables(true);
       else
-          bhModel->SetUseSamplingTables(false);
+        bhModel->SetUseSamplingTables(false);
       // add the model to the process
       convProc->AddModel(bhModel);
       //
@@ -235,7 +233,7 @@ void CMSPhysicsList::Initialize()
       relModel->SetLowEnergyUsageLimit(80.0 * geant::units::GeV);
       relModel->SetHighEnergyUsageLimit(100.0 * geant::units::TeV);
       // turn off using sampling tables
-      relModel->SetUseSamplingTables(false);//NEVER activate sampling tables for Rel Pair Production
+      relModel->SetUseSamplingTables(false); // NEVER activate sampling tables for Rel Pair Production
       // add the model to the process
       convProc->AddModel(relModel);
       //
@@ -252,9 +250,9 @@ void CMSPhysicsList::Initialize()
       sgModel->SetHighEnergyUsageLimit(1.0 * geant::units::TeV);
       // Using sampling tables or rejection
       if (fWithAlias)
-          sgModel->SetUseSamplingTables(true);
+        sgModel->SetUseSamplingTables(true);
       else
-          sgModel->SetUseSamplingTables(false);
+        sgModel->SetUseSamplingTables(false);
       // add the model to the process
       photoelectricProc->AddModel(sgModel);
       //
@@ -264,4 +262,4 @@ void CMSPhysicsList::Initialize()
   }
 }
 
-} // cmsapp
+} // namespace cmsapp

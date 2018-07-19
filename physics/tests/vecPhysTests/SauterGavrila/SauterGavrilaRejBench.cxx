@@ -43,9 +43,9 @@ static void SampleAngleRejScalar(benchmark::State &state)
     }
   }
 
-  //benchmark::DoNotOptimize(out.data());
+  // benchmark::DoNotOptimize(out.data());
 
-    CleanTaskData(td.get());
+  CleanTaskData(td.get());
 
   delete sgt;
 }
@@ -74,7 +74,7 @@ static void SampleAngleRejVector(benchmark::State &state)
     sgt->SamplePhotoElectronDirectionRejVec(energy.data(), costheta.data(), state.range(0), td.get());
   }
 
-  //benchmark::DoNotOptimize(out.data());
+  // benchmark::DoNotOptimize(out.data());
   CleanTaskData(td.get());
   delete sgt;
 }

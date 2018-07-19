@@ -40,17 +40,14 @@ int main(int argc, char **argv)
   EMMODEL_REGISTER_SCALAR_BENCHMARK("BetheHeitlerRejScal", bhRej.get(), PrepareBHScalarPrims, td.get(), kBasketSize);
   EMMODEL_REGISTER_VECTOR_BENCHMARK("BetheHeitlerRejVec", bhRej.get(), PrepareBHVectorPrims, td.get(), kBasketSize);
 
-  
   EMMODEL_REGISTER_SCALAR_BENCHMARK("RelativisticPairAliasScal", relPairTable.get(), PrepareRPScalarPrims, td.get(),
-                                      kBasketSize);
+                                    kBasketSize);
   EMMODEL_REGISTER_VECTOR_BENCHMARK("RelativisticPairAliasVec", relPairTable.get(), PrepareRPVectorPrims, td.get(),
-                                      kBasketSize);
+                                    kBasketSize);
   EMMODEL_REGISTER_SCALAR_BENCHMARK("RelativisticPairRejScal", relPairRej.get(), PrepareRPScalarPrims, td.get(),
                                     kBasketSize);
   EMMODEL_REGISTER_VECTOR_BENCHMARK("RelativisticPairRejVec", relPairRej.get(), PrepareRPVectorPrims, td.get(),
                                     kBasketSize);
-
-  
 
   ::benchmark::Initialize(&argc, argv);
   if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

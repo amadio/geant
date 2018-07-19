@@ -7,7 +7,7 @@ SauterGavrilaPhotoElectricModel *sg;
 SauterGavrilaPhotoElectricModel *vsg;
 SauterGavrilaPhotoElectricModel *sgrej;
 SauterGavrilaPhotoElectricModel *vsgrej;
-auto td  = PrepareTaskData();
+auto td = PrepareTaskData();
 
 static void SauterGavrilaAliasScalar(benchmark::State &state)
 {
@@ -57,7 +57,6 @@ static void SauterGavrilaRejScalar(benchmark::State &state)
       sgrej->SampleSecondaries(primaries[i], td.get());
     }
   }
-
 }
 BENCHMARK(SauterGavrilaRejScalar)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
@@ -65,8 +64,8 @@ static void SauterGavrilaRejVector(benchmark::State &state)
 {
   LightTrack_v primaries;
   int basketSize = state.range(0);
-  
-    for (auto _ : state) {
+
+  for (auto _ : state) {
     state.PauseTiming();
     PreparePrimaries(primaries, basketSize);
     primaries.SetNtracks(basketSize);
@@ -74,22 +73,20 @@ static void SauterGavrilaRejVector(benchmark::State &state)
     state.ResumeTiming();
     vsgrej->SampleSecondaries(primaries, td.get());
   }
-
 }
 BENCHMARK(SauterGavrilaRejVector)->RangeMultiplier(2)->Range(kMinBasket, kMaxBasket);
 
 int main(int argc, char **argv)
 {
-    SetUpSimulation();
-    sg  = PrepareSauterGavrilaModel(true);
-    vsg = PrepareVecSauterGavrilaModel(true);
-    sgrej = PrepareSauterGavrilaModel(false);
-    vsgrej= PrepareVecSauterGavrilaModel(false);
-    
-    
-    ::benchmark::Initialize(&argc, argv);
-    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
-    ::benchmark::RunSpecifiedBenchmarks();
-    
-    CleanTaskData(td.get());
+  SetUpSimulation();
+  sg     = PrepareSauterGavrilaModel(true);
+  vsg    = PrepareVecSauterGavrilaModel(true);
+  sgrej  = PrepareSauterGavrilaModel(false);
+  vsgrej = PrepareVecSauterGavrilaModel(false);
+
+  ::benchmark::Initialize(&argc, argv);
+  if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+  ::benchmark::RunSpecifiedBenchmarks();
+
+  CleanTaskData(td.get());
 }
