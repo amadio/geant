@@ -51,7 +51,7 @@ if(${benchmark_FOUND})
     target_link_libraries(MollerBhabhaBench Geant_v RealPhysics ${__extralibs})
 
     add_executable(SauterGavrilaBench SauterGavrila/SGBench.cxx Common/CommonBenchmark.h ${COMMON_HEADERS})
-    target_link_libraries(SauterGavrilaBench Geant_v RealPhysics benchmark::benchmark pthread)
+    target_link_libraries(SauterGavrilaBench Geant_v RealPhysics ${__extralibs})
 
 endif()
 
@@ -73,6 +73,6 @@ add_executable(MollerBhabhaValid MollerBhabha/MollerBhabhaValidate.cxx MollerBha
 target_link_libraries(MollerBhabhaValid Geant_v RealPhysics ${__extralibs})
 
 add_executable(SauterGavrilaValid SauterGavrila/SGValidate.cxx SauterGavrila/SGTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(SauterGavrilaValid Geant_v RealPhysics)
+target_link_libraries(SauterGavrilaValid Geant_v RealPhysics ${__extralibs})
 
 
