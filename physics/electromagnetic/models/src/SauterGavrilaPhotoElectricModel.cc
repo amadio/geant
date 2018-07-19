@@ -1030,7 +1030,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
     //            //NB: generating random numbers here just for reproducibility issues
     //            td->fRndm->uniform_array(N, rands);
     //            SampleShellVec(kin, zed, sampledShells, N, td, rands);
-    
+
     // Vectorized Sampling of the Angle
     SamplePhotoElectronDirectionRejVec(kin, cosTheta, N, td);
   }
@@ -1332,8 +1332,8 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
       }
     }
 
-    Double_v rand_v = vecCore::Gather<Double_v>(randlep.data(), idxlep);
-    Double_v cs0 = rand_v * (p0 + iegamma * p1 + iegamma2 * p2 + iegamma3 * p3 + iegamma4 * p4 + iegamma5 * p5);
+    Double_v rand_v    = vecCore::Gather<Double_v>(randlep.data(), idxlep);
+    Double_v cs0       = rand_v * (p0 + iegamma * p1 + iegamma2 * p2 + iegamma3 * p3 + iegamma4 * p4 + iegamma5 * p5);
     Double_v idxShells = idxForLoop * 7 + 2;
     for (int k = 0; k < kVecLenD; k++) {
       if (!lanesDonelep[k]) {
@@ -1361,7 +1361,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
       auto laneDone = checkOut[l];
       if (laneDone) {
         if (currlep < elep.size()) {
-          idxlep[l] = currlep++;
+          idxlep[l]       = currlep++;
           lanesDonelep[l] = false;
         } else {
           idxlep[l] = elep.size();
