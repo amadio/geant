@@ -10,6 +10,8 @@ clang-format:
   script:
     - ./scripts/clang-format-test.sh
   before_script:
+    - apt-get update -y && apt-get install -y software-properties-common
     - apt-add-repository -y "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main" && apt-get update -y && apt-get upgrade -y
     - apt-get install -y cmake git findutils clang-format-6.0
+    - ln -s `which clang-format-6.0` /usr/bin/clang-format
 
