@@ -27,11 +27,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
+using vecCore::Get;
 using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 MollerBhabhaIonizationModel::MollerBhabhaIonizationModel(bool iselectron, const std::string &modelname)
     : EMModel(modelname), fIsElectron(iselectron)

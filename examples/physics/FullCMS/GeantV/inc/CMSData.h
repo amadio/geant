@@ -11,7 +11,9 @@ namespace cmsapp {
 class CMSDataPerPrimary {
 public:
   CMSDataPerPrimary();
-  ~CMSDataPerPrimary() { /*nothing to do*/}
+  ~CMSDataPerPrimary()
+  { /*nothing to do*/
+  }
 
   void AddChargedStep() { fNumChargedSteps += 1.; }
   double GetChargedSteps() const { return fNumChargedSteps; }
@@ -64,7 +66,9 @@ private:
 class CMSDataPerPrimaryType {
 public:
   CMSDataPerPrimaryType();
-  ~CMSDataPerPrimaryType() { /*nothing to do*/}
+  ~CMSDataPerPrimaryType()
+  { /*nothing to do*/
+  }
 
   void AddOnePrimary() { fNumPrimaries += 1.; }
   double GetNumPrimaries() const { return fNumPrimaries; }
@@ -192,7 +196,9 @@ private:
 class CMSDataPerEvent {
 public:
   CMSDataPerEvent(int nprimperevent = 1);
-  ~CMSDataPerEvent() { /*nothing to do*/}
+  ~CMSDataPerEvent()
+  { /*nothing to do*/
+  }
 
   int GetNumberOfPrimaryPerEvent() const { return fNumPrimaryPerEvent; }
   void Clear();
@@ -215,7 +221,9 @@ private:
 class CMSThreadDataEvents {
 public:
   CMSThreadDataEvents(int nevtbuffered, int nprimperevent);
-  ~CMSThreadDataEvents() { /*nothing to do*/}
+  ~CMSThreadDataEvents()
+  { /*nothing to do*/
+  }
 
   void Clear(int evtslotindx) { fPerEventData[evtslotindx].Clear(); }
   bool Merge(int evtslotindx, const CMSThreadDataEvents &other);

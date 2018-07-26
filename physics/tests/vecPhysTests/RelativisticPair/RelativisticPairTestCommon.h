@@ -14,10 +14,10 @@
 
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
-using geantphysics::RelativisticPairModel;
-using geantphysics::VecRelativisticPairModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
+using geantphysics::RelativisticPairModel;
+using geantphysics::VecRelativisticPairModel;
 
 const int kMinBasket = 16;
 const int kMaxBasket = 256;

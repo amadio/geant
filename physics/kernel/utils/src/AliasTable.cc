@@ -111,7 +111,7 @@ void AliasTable::PreparLinearTable(double *xdata, double *ydata, double *xx, int
   double sum = 0.0;
   for (int i = 1; i < numdata; ++i) {
     double dum0 = 0.5 * (xdata[i] - xdata[i - 1]) * (ydata[i] + ydata[i - 1]);
-    if (dum0 < 1.e-40) dum0= 1.e-40;
+    if (dum0 < 1.e-40) dum0 = 1.e-40;
     xx[i - 1]      = -dum0;
     binindx[i - 1] = i - 1;
     sum += dum0;
@@ -186,7 +186,7 @@ double AliasTable::SampleRatin(double *xdata, double *comf, double *paradata, do
   const double rest = rndm1 * (numdata - 1);
   int indxl         = (int)(rest);
   const double dum0 = rest - indxl;
-  if (xx[indxl] < dum0) indxl= binindx[indxl];
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
 
   double res = 0.0;
   if (indxl > above) {
@@ -210,7 +210,7 @@ double AliasTable::SampleRatin(const double *xdata, const double *comf, const do
   const double rest = rndm1 * (numdata - 1);
   int indxl         = (int)(rest);
   const double dum0 = rest - indxl;
-  if (xx[indxl] < dum0) indxl= binindx[indxl];
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
 
   double res = 0.0;
   if (indxl > above) {
@@ -233,7 +233,7 @@ double AliasTable::SampleLinear(double *xdata, double *ydata, double *xx, int *b
   const double rest = rndm1 * (numdata - 1);
   int indxl         = (int)(rest);
   const double dum0 = rest - indxl;
-  if (xx[indxl] < dum0) indxl= binindx[indxl];
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
   // sample value within the selected bin by using linear approximation
   const double xval   = xdata[indxl];
   const double xdelta = xdata[indxl + 1] - xval;
@@ -254,7 +254,7 @@ double AliasTable::SampleLinear(const double *xdata, const double *ydata, const 
   const double rest = rndm1 * (numdata - 1);
   int indxl         = (int)(rest);
   const double dum0 = rest - indxl;
-  if (xx[indxl] < dum0) indxl= binindx[indxl];
+  if (xx[indxl] < dum0) indxl = binindx[indxl];
   // sample value within the selected bin by using linear approximation
   const double xval   = xdata[indxl];
   const double xdelta = xdata[indxl + 1] - xval;
@@ -273,7 +273,7 @@ int AliasTable::SampleDiscrete(double *xx, int *binindx, int numdata, double rnd
   // select the discrete random variable
   double rest = rndm1 * numdata;
   int indxl   = (int)(rest);
-  if (xx[indxl] < rest - indxl) indxl= binindx[indxl];
+  if (xx[indxl] < rest - indxl) indxl = binindx[indxl];
   return indxl;
 }
 
@@ -359,7 +359,7 @@ double AliasTable::GetRatinForPDF(double x, double *xdata, double *comf, double 
   const double tau      = (x - lx) * invDeltX;
   const double dum0     = 1.0 + la + lb - la * tau;
   double eta            = dum0 / (2.0 * lb * tau) * (1.0 - std::sqrt(1.0 - 4.0 * lb * tau * tau / (dum0 * dum0)));
-  if (x == lx) eta      = 0.0;
+  if (x == lx) eta = 0.0;
   const double dum1 = 1.0 + la * eta + lb * eta * eta;
   return dum1 * dum1 * deltCum * invDeltX / ((1.0 + la + lb) * (1.0 - lb * eta * eta));
 }
@@ -374,7 +374,7 @@ double AliasTable::GetRatinForPDF1(double x, double *xdata, double *comf, double
   const double tau      = (x - lx) * invDeltX;
   const double dum0     = 1.0 + la + lb - la * tau;
   double eta            = dum0 / (2.0 * lb * tau) * (1.0 - std::sqrt(1.0 - 4.0 * lb * tau * tau / (dum0 * dum0)));
-  if (x == lx) eta      = 0.0;
+  if (x == lx) eta = 0.0;
   const double dum1 = 1.0 + la * eta + lb * eta * eta;
   return dum1 * dum1 * deltCum * invDeltX / ((1.0 + la + lb) * (1.0 - lb * eta * eta));
 }

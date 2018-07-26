@@ -18,9 +18,9 @@
 
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
-using geantphysics::SauterGavrilaPhotoElectricModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
+using geantphysics::SauterGavrilaPhotoElectricModel;
 
 const int kMinBasket = 256;
 const int kMaxBasket = 256;

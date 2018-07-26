@@ -12,12 +12,12 @@
 #include "Geant/Region.h"
 #include "Geant/PhysicsParameters.h"
 
+using geantphysics::BetheHeitlerPairModel;
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
-using geantphysics::BetheHeitlerPairModel;
-using geantphysics::VecBetheHeitlerPairModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
+using geantphysics::VecBetheHeitlerPairModel;
 
 const int kMinBasket      = 16;
 const int kMaxBasket      = 256;

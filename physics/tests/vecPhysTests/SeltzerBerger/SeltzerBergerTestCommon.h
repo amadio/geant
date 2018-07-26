@@ -14,10 +14,10 @@
 
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
-using geantphysics::SeltzerBergerBremsModel;
-using geantphysics::VecSeltzerBergerBremsModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
+using geantphysics::SeltzerBergerBremsModel;
+using geantphysics::VecSeltzerBergerBremsModel;
 
 const int kMinBasket = 16;
 const int kMaxBasket = 256;

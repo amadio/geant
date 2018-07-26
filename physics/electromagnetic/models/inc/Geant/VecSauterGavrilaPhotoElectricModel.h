@@ -30,13 +30,13 @@ using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
 using MaskDI_v = vecCore::Mask<IndexD_v>;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
-using vecCore::MaskEmpty;
 using vecCore::Gather;
+using vecCore::Get;
 using vecCore::MaskedAssign;
+using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 class MaterialCuts;
 // class Element;
