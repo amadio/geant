@@ -58,21 +58,21 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests/vecphys)
 
 add_executable(KleinNishValid KleinNishina/KleinNishinaValidate.cxx KleinNishina/KleinNishinaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(KleinNishValid Geant_v RealPhysics ${__extralibs})
+target_link_libraries(KleinNishValid Geant_v RealPhysics)
 
 add_executable(PairValid VectorPairTests/VectorPairValidate.cxx VectorPairTests/VectorPairTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(PairValid Geant_v RealPhysics ${__extralibs})
+target_link_libraries(PairValid Geant_v RealPhysics)
 
 add_executable(BremsValid VectorBremsTests/VectorBremsValidate.cxx VectorBremsTests/VectorBremsTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(BremsValid Geant_v RealPhysics ${__extralibs})
+target_link_libraries(BremsValid Geant_v RealPhysics)
 
 add_executable(Pos2GammaValid PositronTo2Gamma/PositronTo2GammaValidate.cxx PositronTo2Gamma/PositronTo2GammaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(Pos2GammaValid Geant_v RealPhysics ${__extralibs})
+target_link_libraries(Pos2GammaValid Geant_v RealPhysics)
 
 add_executable(MollerBhabhaValid MollerBhabha/MollerBhabhaValidate.cxx MollerBhabha/MollerBhabhaTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(MollerBhabhaValid Geant_v RealPhysics ${__extralibs})
+target_link_libraries(MollerBhabhaValid Geant_v RealPhysics)
 
 add_executable(SauterGavrilaValid SauterGavrila/SGValidate.cxx SauterGavrila/SGTestCommon.h ${COMMON_HEADERS})
-target_link_libraries(SauterGavrilaValid Geant_v RealPhysics ${__extralibs})
+target_link_libraries(SauterGavrilaValid Geant_v RealPhysics)
 
 
