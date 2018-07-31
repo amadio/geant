@@ -153,7 +153,7 @@ else()
           Material ${VecCoreLib_LIBRARIES})
 
   if (VECGEOM_GEANT4)
-    include(${Geant4_USE_FILE})
+    #include(${Geant4_USE_FILE})
     include_directories(AFTER SYSTEM ${Geant4_INCLUDE_DIRS})
     target_link_libraries(Geant_v ${Geant4_LIBRARIES})
   endif()
