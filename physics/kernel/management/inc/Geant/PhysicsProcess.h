@@ -74,7 +74,7 @@ public:
    *  @param A LightTrack containing the current particle and its kinematics.
    *
    */
-  virtual bool IsApplicable(geant::Track *track) const { return true; }
+  virtual bool IsApplicable(geant::Track *) const { return true; }
 
   /** @brief Method that returns the macroscopic cross section in internal [1/length] unit.
    *
