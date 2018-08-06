@@ -56,6 +56,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
   primaryLT.SetKinE(track->E() - track->Mass());
+  primaryLT.SetLogKinE(track->LogEkin());
   primaryLT.SetMass(track->Mass());
   primaryLT.SetGVcode(track->GVcode());
   //  primaryLT.SetTrackIndex(i);
