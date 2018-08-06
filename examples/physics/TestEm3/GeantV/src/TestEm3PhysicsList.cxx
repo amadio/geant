@@ -39,11 +39,8 @@
 
 namespace userapplication {
 
-TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name, bool vector)
-    : geantphysics::PhysicsList(name), fVectorized(vector)
-{
-  fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
-}
+TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name, const geant::GeantConfig &config)
+    : geantphysics::PhysicsList(name), fVectorized(config.fUseVectorizedPhysics), fVectorizedMSC(config.fUseVectorizedMSC) {}
 
 TestEm3PhysicsList::~TestEm3PhysicsList() {}
 
@@ -103,11 +100,12 @@ void TestEm3PhysicsList::Initialize()
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
       geantphysics::MSCModel *gsMSCModel;
-      if (fVectorized) {
+      if (fVectorizedMSC) {
         gsMSCModel = new geantphysics::GSMSCModelSimplified(true);
       } else {
         gsMSCModel = new geantphysics::GSMSCModel(true);
       }
+      gsMSCModel->SetBasketizable(fVectorizedMSC);
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(fMSCSteppingAlgorithm);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
@@ -165,11 +163,12 @@ void TestEm3PhysicsList::Initialize()
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e+msc");
       // create GS-msc model, set min/max usage limits
       geantphysics::MSCModel *gsMSCModel;
-      if (fVectorized) {
+      if (fVectorizedMSC) {
         gsMSCModel = new geantphysics::GSMSCModelSimplified(false);
       } else {
         gsMSCModel = new geantphysics::GSMSCModel(false);
       }
+      gsMSCModel->SetBasketizable(fVectorizedMSC);
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(fMSCSteppingAlgorithm);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);

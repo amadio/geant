@@ -37,8 +37,8 @@
 
 namespace cmsapp {
 
-CMSPhysicsList::CMSPhysicsList(bool vector, const std::string &name, bool withAlias)
-    : geantphysics::PhysicsList(name), fWithAlias(withAlias), fVectorized(vector) {}
+CMSPhysicsList::CMSPhysicsList(const geant::GeantConfig &config, const std::string &name, bool withAlias)
+    : geantphysics::PhysicsList(name), fWithAlias(withAlias), fVectorized(config.fUseVectorizedPhysics), fVectorizedMSC(config.fUseVectorizedMSC) {}
 
 CMSPhysicsList::~CMSPhysicsList() {}
 
@@ -112,12 +112,12 @@ void CMSPhysicsList::Initialize()
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
       geantphysics::MSCModel *gsMSCModel = nullptr;
-      if (fVectorized) {
+      if (fVectorizedMSC) {
         gsMSCModel = new geantphysics::GSMSCModelSimplified();
       } else {
         gsMSCModel = new geantphysics::GSMSCModel();
       }
-      gsMSCModel->SetBasketizable(fVectorized);
+      gsMSCModel->SetBasketizable(fVectorizedMSC);
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
@@ -189,12 +189,12 @@ void CMSPhysicsList::Initialize()
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e+msc");
       // create GS-msc model, set min/max usage limits
       geantphysics::MSCModel *gsMSCModel = nullptr; // for e+
-      if (fVectorized) {
+      if (fVectorizedMSC) {
         gsMSCModel = new geantphysics::GSMSCModelSimplified(false);
       } else {
         gsMSCModel = new geantphysics::GSMSCModel(false);
       }
-      gsMSCModel->SetBasketizable(fVectorized);
+      gsMSCModel->SetBasketizable(fVectorizedMSC);
       gsMSCModel->SetRangeFactor(0.06);
       gsMSCModel->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
       gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);

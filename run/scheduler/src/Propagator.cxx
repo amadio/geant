@@ -373,7 +373,7 @@ int Propagator::CreateSimulationStages()
   //        V
   //        V
   GetStage(kPostPropagationStage)->SetFollowUpStage(kAlongStepActionStage, true);
-  GetStage(kPostPropagationStage)->SetBasketizing(fConfig->fUseVectorizedPhysics);
+  GetStage(kPostPropagationStage)->SetBasketizing(fConfig->fUseVectorizedMSC);
   //        V
   //        V
   //        V

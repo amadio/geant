@@ -49,6 +49,7 @@ int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
+int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 //
 // field configuration parameters
@@ -90,9 +91,9 @@ int main(int argc, char *argv[])
   //
   // Register user defined physics lists for the full CMS application
   // Activating them in different regions - Building alias tables only in the "most active" regions
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(parConfigVectorizedPhysics,"withoutAlias", false),
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(*runMgr->GetConfig(),"withoutAlias", false),
                                                                    activeregionlist1);
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(parConfigVectorizedPhysics, "withAlias", true),
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "withAlias", true),
                                                                    activeregionlist2);
   //
   // Create detector construction
@@ -149,6 +150,7 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-vectorized-geom", required_argument, 0, 't'},
                                   {"config-external-loop", required_argument, 0, 'u'},
                                   {"config-vectorized-physics", required_argument, 0, 'v'},
+                                  {"config-vectorized-MSC", required_argument, 0, 'V'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -255,6 +257,9 @@ void GetArguments(int argc, char *argv[])
     case 'v':
       parConfigVectorizedPhysics = (int)strtol(optarg, NULL, 10);
       break;
+    case 'V':
+      parConfigVectorizedMSC = (int)strtol(optarg, NULL, 10);
+      break;
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
       break;
@@ -309,8 +314,6 @@ geant::RunManager *RunManager()
   // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig *runConfig = new geant::GeantConfig();
   geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
-  // create the real physics main manager/interface object and set it in the RunManager
-  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(parConfigVectorizedPhysics));
   //
   // Set parameters of the GeantConfig object:
   runConfig->fNtotal = parConfigNumRunEvt;
@@ -329,6 +332,9 @@ geant::RunManager *RunManager()
   // Activate vectorized geometry
   runConfig->fUseVectorizedGeom    = parConfigVectorizedGeom;
   runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
+  runConfig->fUseVectorizedMSC = parConfigVectorizedMSC;
+  // create the real physics main manager/interface object and set it in the RunManager
+  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
 
   return runManager;
 }

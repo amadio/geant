@@ -2,6 +2,7 @@
 #ifndef TESTEM3PHYSICSLIST_H
 #define TESTEM3PHYSICSLIST_H
 
+#include "GeantConfig.h"
 #include "Geant/PhysicsList.h"
 // for the MSCSteppingAlgorithm enums
 #include "Geant/MSCModel.h"
@@ -24,7 +25,7 @@ namespace userapplication {
 class TestEm3PhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  TestEm3PhysicsList(const std::string &name, bool vector);
+  TestEm3PhysicsList(const std::string &name, const geant::GeantConfig &config);
   // DTR
   ~TestEm3PhysicsList();
   // interface method to assigne physics-process to particles
@@ -34,8 +35,9 @@ public:
   void SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping);
 
 private:
-  geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm;
-  bool fVectorized;
+  geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
+  bool fVectorized    = false;
+  bool fVectorizedMSC = false;
 };
 
 } //  namespace userapplication

@@ -137,11 +137,10 @@ namespace demo {
 
     // create the real physics main manager/interface object and set it in the RunManager
     std::cerr<<"*** RunManager: setting physics process...\n";
-    fRunMgr->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
+    fRunMgr->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*fConfig));
 
     // Create user defined physics list for the full CMS application
-    bool vectormode = false; // TODO: define in the executable and pass to this
-    geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(vectormode));
+    geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(*fConfig));
 
     // Detector construction
     auto detector_construction = new CMSDetectorConstruction(fRunMgr);

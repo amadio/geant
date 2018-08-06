@@ -70,6 +70,7 @@ int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
+int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 int parFastSimActive            = 0;  // activated fast sim stage
 
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
 
   // Create user defined physics list for TestEm3
   userapplication::TestEm3PhysicsList *userPhysList =
-      new userapplication::TestEm3PhysicsList("TestEm3PhysicsList", parConfigVectorizedPhysics);
+      new userapplication::TestEm3PhysicsList("TestEm3PhysicsList", *runMgr->GetConfig());
   SetupPhysicsList(userPhysList);
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(userPhysList);
 
@@ -179,6 +180,7 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"config-external-loop", required_argument, 0, 'u'},
                                   {"process-MSC-step-limit", required_argument, 0, 'A'},
                                   {"config-vectorized-physics", required_argument, 0, 'v'},
+                                  {"config-vectorized-MSC", required_argument, 0, 'V'},
                                   {"fastsim-active", required_argument, 0, 'w'},
 
                                   {"help", no_argument, 0, 'h'},
@@ -321,6 +323,9 @@ void GetArguments(int argc, char *argv[])
     case 'v':
       parConfigVectorizedPhysics = (int)strtol(optarg, NULL, 10);
       break;
+    case 'V':
+      parConfigVectorizedMSC = (int)strtol(optarg, NULL, 10);
+      break;
     case 'u':
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
       break;
@@ -393,8 +398,6 @@ geant::RunManager *RunManager()
   // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig *runConfig = new geant::GeantConfig();
   geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
-  // create the real physics main manager/interface object and set it in the RunManager
-  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(parConfigVectorizedPhysics));
   //
   // Set parameters of the GeantConfig object:
   runConfig->fNtotal   = parConfigNumRunEvt;
@@ -411,6 +414,9 @@ geant::RunManager *RunManager()
   runConfig->fMaxPerBasket         = parConfigNumTracksPerBasket;
   runConfig->fUseVectorizedGeom    = parConfigVectorizedGeom;
   runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
+  runConfig->fUseVectorizedMSC     = parConfigVectorizedMSC;
+  // create the real physics main manager/interface object and set it in the RunManager
+  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
   //
   // Activate standard scoring
   // runConfig->fUseStdScoring = !parConfigIsPerformance;

@@ -299,8 +299,6 @@ geant::RunManager *RunManager()
   // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig *runConfig = new geant::GeantConfig();
   geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
-  // create the real physics main manager/interface object and set it in the RunManager
-  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler());
   //
   // Set parameters of the GeantConfig object:
   runConfig->fNtotal            = parConfigNumRunEvt;
@@ -308,6 +306,8 @@ geant::RunManager *RunManager()
   runConfig->fNaverage          = parConfigNumPrimaryPerEvt;
   runConfig->fMaxPerBasket      = parConfigNumPerBasket;
   runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
+  // create the real physics main manager/interface object and set it in the RunManager
+  runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
   //
   // Some additional parameters that have values in this application different than their default
   //

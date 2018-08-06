@@ -2,6 +2,7 @@
 #ifndef CMSPHYSICSLIST_H
 #define CMSPHYSICSLIST_H
 
+#include "GeantConfig.h"
 #include "Geant/PhysicsList.h"
 
 #include <string>
@@ -11,15 +12,16 @@ namespace cmsapp {
 class CMSPhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  CMSPhysicsList(bool vector, const std::string &name = "CMS-PhysicsList", bool withAlias = false);
+  CMSPhysicsList(const geant::GeantConfig &config, const std::string &name = "CMS-PhysicsList", bool withAlias = false);
   // DTR
   virtual ~CMSPhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 
 private:
-  bool fWithAlias;
-  bool fVectorized;
+  bool fWithAlias     = false;
+  bool fVectorized    = false;
+  bool fVectorizedMSC = false;
 };
 
 } // namespace cmsapp

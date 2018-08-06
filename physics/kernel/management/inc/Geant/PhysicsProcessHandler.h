@@ -13,6 +13,7 @@ class SimulationStage;
 } // namespace geant
 
 // realphysics stages
+#include "GeantConfig.h"
 #include "Geant/FastSimStage.h"
 #include "Geant/ComputeIntLStage.h"
 #include "Geant/PrePropagationStage.h"
@@ -44,7 +45,7 @@ private:
 
 public:
   /** @brief Default constructor */
-  PhysicsProcessHandler(bool vectorized = false) : fSimplifiedMSC(vectorized), fVectorPostStepAction(vectorized) {}
+  PhysicsProcessHandler(const geant::GeantConfig &config) : fSimplifiedMSC(config.fUseVectorizedMSC), fVectorPostStepAction(config.fUseVectorizedPhysics) {}
 
   /** @brief PhysicsProcessHandler destructor */
   virtual ~PhysicsProcessHandler();

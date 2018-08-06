@@ -75,6 +75,7 @@ public:
   bool fUseNuma              = false; /** Use NUMA */
   bool fUseVectorizedGeom    = false; /** Use vectorized geometry */
   bool fUseVectorizedPhysics = false; /** Use vectorized physics */
+  bool fUseVectorizedMSC     = false; /** Use vectorized multiple scattering */
   bool fUseVectorizedField   = false; /** Use vectorized field */
 
   bool fSteppingVerbose = false; /** Enable verbose stepping at each step */
