@@ -15,7 +15,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 namespace geantphysics {
 
@@ -38,8 +38,7 @@ public:
   // implemented MSC base class model methods
   virtual void StepLimit(geant::Track *gtrack, geant::TaskData *td);
   virtual bool SampleScattering(geant::Track *gtrack, geant::TaskData *td);
-  virtual void SampleScattering(geant::TrackVec_t &gtracks, std::vector<bool> &hasNewDir,
-                                geant::TaskData *td);
+  virtual void SampleScattering(geant::TrackVec_t &gtracks, std::vector<bool> &hasNewDir, geant::TaskData *td);
   virtual void ConvertTrueToGeometricLength(geant::Track *gtrack, geant::TaskData *td);
   virtual void ConvertGeometricToTrueLength(geant::Track *gtrack, geant::TaskData *td);
 

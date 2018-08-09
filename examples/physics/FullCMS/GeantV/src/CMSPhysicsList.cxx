@@ -38,7 +38,10 @@
 namespace cmsapp {
 
 CMSPhysicsList::CMSPhysicsList(const geant::GeantConfig &config, const std::string &name, bool withAlias)
-    : geantphysics::PhysicsList(name), fWithAlias(withAlias), fVectorized(config.fUseVectorizedPhysics), fVectorizedMSC(config.fUseVectorizedMSC) {}
+    : geantphysics::PhysicsList(name), fWithAlias(withAlias), fVectorized(config.fUseVectorizedPhysics),
+      fVectorizedMSC(config.fUseVectorizedMSC)
+{
+}
 
 CMSPhysicsList::~CMSPhysicsList() {}
 

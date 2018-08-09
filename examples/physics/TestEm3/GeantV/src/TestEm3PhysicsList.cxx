@@ -40,7 +40,10 @@
 namespace userapplication {
 
 TestEm3PhysicsList::TestEm3PhysicsList(const std::string &name, const geant::GeantConfig &config)
-    : geantphysics::PhysicsList(name), fVectorized(config.fUseVectorizedPhysics), fVectorizedMSC(config.fUseVectorizedMSC) {}
+    : geantphysics::PhysicsList(name), fVectorized(config.fUseVectorizedPhysics),
+      fVectorizedMSC(config.fUseVectorizedMSC)
+{
+}
 
 TestEm3PhysicsList::~TestEm3PhysicsList() {}
 

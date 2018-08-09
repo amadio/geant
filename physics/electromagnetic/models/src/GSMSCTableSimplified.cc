@@ -30,11 +30,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
+using vecCore::Get;
 using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 // perecomputed GS angular distributions, based on the Screened-Rutherford DCS
 // are the same for e- and e+ so make sure we load them only onece
@@ -62,7 +62,7 @@ GSMSCTableSimplified::~GSMSCTableSimplified()
 }
 
 void GSMSCTableSimplified::Initialize(double /*lownergylimit*/, double /* highenergylimit*/,
-                                      const std::vector<bool> &/*activeregionv*/)
+                                      const std::vector<bool> & /*activeregionv*/)
 {
   double lLambdaMin  = Math::Log(gLAMBMIN);
   double lLambdaMax  = Math::Log(gLAMBMAX);
@@ -656,7 +656,7 @@ void GSMSCTableSimplified::LoadMSCData()
         infile >> gsd->fData[i].fParamA;
         infile >> gsd->fData[i].fParamB;
       }
-      if (gsd->fNumData > 0) gsd->fDelta            = 1.0 / (gsd->fNumData - 1);
+      if (gsd->fNumData > 0) gsd->fDelta = 1.0 / (gsd->fNumData - 1);
       gGSMSCAngularDistributions1[il * gQNUM1 + iq] = *gsd;
     }
     infile.close();
@@ -690,7 +690,7 @@ void GSMSCTableSimplified::LoadMSCData()
           infile >> gsd->fData[i].fParamA;
           infile >> gsd->fData[i].fParamB;
         }
-        if (gsd->fNumData > 0) gsd->fDelta            = 1.0 / (gsd->fNumData - 1);
+        if (gsd->fNumData > 0) gsd->fDelta = 1.0 / (gsd->fNumData - 1);
         gGSMSCAngularDistributions2[il * gQNUM2 + iq] = *gsd;
       }
     }

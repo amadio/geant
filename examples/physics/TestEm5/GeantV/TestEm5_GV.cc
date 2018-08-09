@@ -155,8 +155,10 @@ static struct option options[] = {{"det-Target-Material-Name", required_argument
                                   {0, 0, 0, 0}};
 
 enum DIR_OPTIONS { DIR_X_OPT = 0, DIR_Y_OPT, DIR_Z_OPT };
-char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x", [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
-                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z", NULL};
+char *const dir_token[] = {[DIR_OPTIONS::DIR_X_OPT] = (char *const) "x",
+                           [DIR_OPTIONS::DIR_Y_OPT] = (char *const) "y",
+                           [DIR_OPTIONS::DIR_Z_OPT] = (char *const) "z",
+                           NULL};
 
 void help()
 {

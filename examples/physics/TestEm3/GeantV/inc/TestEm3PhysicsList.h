@@ -35,7 +35,8 @@ public:
   void SetMSCStepLimit(geantphysics::MSCSteppingAlgorithm stepping);
 
 private:
-  geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm = geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
+  geantphysics::MSCSteppingAlgorithm fMSCSteppingAlgorithm =
+      geantphysics::MSCSteppingAlgorithm::kUseSaftey; // opt0 step limit type
   bool fVectorized    = false;
   bool fVectorizedMSC = false;
 };

@@ -33,11 +33,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
+using vecCore::Get;
 using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 GSMSCModelSimplified::GSMSCModelSimplified(bool iselectron, const std::string &name)
     : MSCModel(name), fIsElectron(iselectron), fGSTable(iselectron), fPWACorrection(iselectron)
@@ -70,7 +70,7 @@ void GSMSCModelSimplified::StepLimit(geant::Track *gtrack, geant::TaskData *td)
     return;
   }
 
-  double range     = ELossTableManager::Instance().GetRestrictedRange(matCut, fParticle, kineticEnergy, gtrack->LogEkin());
+  double range = ELossTableManager::Instance().GetRestrictedRange(matCut, fParticle, kineticEnergy, gtrack->LogEkin());
   double presafety = gtrack->GetSafety(); // pre-step point safety
   //
   // Compute elastic mfp, first transport mfp, screening parameter and G1
@@ -443,13 +443,12 @@ void GSMSCModelSimplified::SampleMSC(geant::Track *gtrack, geant::TaskData *td)
   double temp1 = 2.0 + tau;
   double temp  = (2.0 + tau * temp1) / ((tau + 1.0) * temp1);
   // take into account logarithmic dependence
-  temp  = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
-  temp  = temp * epsm;
-  temp1 = 1.0 - temp;
-  delta = delta +
-          0.40824829 *
-              (eps0 * (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
-               0.25 * temp * temp);
+  temp     = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
+  temp     = temp * epsm;
+  temp1    = 1.0 - temp;
+  delta    = delta + 0.40824829 * (eps0 * (tau + 1.0) /
+                                    ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
+                                0.25 * temp * temp);
   double b = eta * delta;
   double c = eta * (1.0 - delta);
   //
@@ -598,15 +597,15 @@ void GSMSCModelSimplified::SampleMSCp1(geant::TrackVec_t &gtracks, geant::TaskDa
 
 void GSMSCModelSimplified::SampleMSCp2(geant::TrackVec_t &gtracks, geant::TaskData *td)
 {
-  double *lambdaNArr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
-  //double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
-  //double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
-  double *scraArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
-  double *qn1Arr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr5;
-  //double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
-  //double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
-  //double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
-  //double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
+  double *lambdaNArr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
+  // double *pMCtoQ1Arr      = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
+  // double *pMCtoG2PerG1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr3;
+  double *scraArr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr4;
+  double *qn1Arr  = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr5;
+  // double *g1Arr           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr6;
+  // double *tauArr          = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr7;
+  // double *epsMArr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr8;
+  // double *eps0Arr         = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr9;
 
   double *sinTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr10;
   double *cosTheta1Arr = td->fPhysicsData->fPhysicsScratchpad.fR0;
@@ -760,13 +759,12 @@ void GSMSCModelSimplified::SampleMSCp3(geant::TrackVec_t &gtracks, geant::TaskDa
     Double_v temp1 = 2.0 + tau;
     Double_v temp  = (2.0 + tau * temp1) / ((tau + 1.0) * temp1);
     // take into account logarithmic dependence
-    temp  = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
-    temp  = temp * epsm;
-    temp1 = 1.0 - temp;
-    delta = delta +
-            0.40824829 *
-                (eps0 * (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
-                 0.25 * temp * temp);
+    temp       = temp - (tau + 1.0) / ((tau + 2.0) * (loga * (1.0 + scra) - 1.0));
+    temp       = temp * epsm;
+    temp1      = 1.0 - temp;
+    delta      = delta + 0.40824829 * (eps0 * (tau + 1.0) /
+                                      ((tau + 2.0) * (loga * (1.0 + scra) - 1.0) * (loga * (1.0 + 2.0 * scra) - 2.0)) -
+                                  0.25 * temp * temp);
     Double_v b = eta * delta;
     Double_v c = eta * (1.0 - delta);
     //

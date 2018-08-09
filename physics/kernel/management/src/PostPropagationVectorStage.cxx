@@ -28,9 +28,7 @@ PostPropagationVectorStage::PostPropagationVectorStage(geant::Propagator *prop)
 }
 
 // base class will delete the created handlers
-PostPropagationVectorStage::~PostPropagationVectorStage()
-{
-}
+PostPropagationVectorStage::~PostPropagationVectorStage() {}
 
 int PostPropagationVectorStage::CreateHandlers()
 {

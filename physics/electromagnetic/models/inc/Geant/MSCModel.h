@@ -16,8 +16,8 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 class Track;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 namespace geantphysics {
 
@@ -46,7 +46,8 @@ public:
   virtual void SampleScattering(geant::TrackVec_t &gtracks, std::vector<bool> &hasNewDir, geant::TaskData *td)
   {
     int i = 0;
-    for (auto track : gtracks) hasNewDir[i++] = SampleScattering(track, td);
+    for (auto track : gtracks)
+      hasNewDir[i++] = SampleScattering(track, td);
   }
 
   virtual bool SamplingNeeded(geant::Track *gtrack, geant::TaskData *td);
@@ -90,6 +91,6 @@ private:
   geant::TrackToken fMSCdata; // Token for MSCData
 };
 
-} // geantphysics
+} // namespace geantphysics
 
 #endif // MSCMODEL_H

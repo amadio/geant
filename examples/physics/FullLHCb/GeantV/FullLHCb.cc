@@ -105,7 +105,8 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
 enum PRIMDIR_OPTIONS { PRIMDIR_X_OPT = 0, PRIMDIR_Y_OPT, PRIMDIR_Z_OPT };
 char *const primdir_token[] = {[PRIMDIR_OPTIONS::PRIMDIR_X_OPT] = (char *const) "x",
                                [PRIMDIR_OPTIONS::PRIMDIR_Y_OPT] = (char *const) "y",
-                               [PRIMDIR_OPTIONS::PRIMDIR_Z_OPT] = (char *const) "z", NULL};
+                               [PRIMDIR_OPTIONS::PRIMDIR_Z_OPT] = (char *const) "z",
+                               NULL};
 
 void help()
 {

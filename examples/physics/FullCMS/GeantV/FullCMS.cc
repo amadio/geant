@@ -91,10 +91,10 @@ int main(int argc, char *argv[])
   //
   // Register user defined physics lists for the full CMS application
   // Activating them in different regions - Building alias tables only in the "most active" regions
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(*runMgr->GetConfig(),"withoutAlias", false),
-                                                                   activeregionlist1);
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "withAlias", true),
-                                                                   activeregionlist2);
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "withoutAlias", false), activeregionlist1);
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "withAlias", true), activeregionlist2);
   //
   // Create detector construction
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
@@ -332,7 +332,7 @@ geant::RunManager *RunManager()
   // Activate vectorized geometry
   runConfig->fUseVectorizedGeom    = parConfigVectorizedGeom;
   runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
-  runConfig->fUseVectorizedMSC = parConfigVectorizedMSC;
+  runConfig->fUseVectorizedMSC     = parConfigVectorizedMSC;
   // create the real physics main manager/interface object and set it in the RunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
 

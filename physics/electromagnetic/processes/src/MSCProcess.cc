@@ -146,7 +146,7 @@ MSCModel *MSCProcess::SelectModel(geant::Track *gtrack) const
   // get the step length (the geometric one)
   double geometricStepLength = gtrack->GetStep();
   // double truePathLength      = geometricStepLength;
-  //MSCdata &mscdata           = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
+  // MSCdata &mscdata           = ((geant::TrackToken)fMSCdata).Data<MSCdata>(gtrack);
   // select msc model
   double ekin        = gtrack->Ekin();
   int regIndx        = const_cast<vecgeom::LogicalVolume *>(gtrack->GetVolume())->GetRegion()->GetIndex();

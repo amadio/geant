@@ -8,7 +8,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 #include <vector>
 
@@ -106,11 +106,11 @@ private:
   static std::vector<GSMSCAngularDtr> gGSMSCAngularDistributions2;
 
   /** Precomputed \f$ b_lambda_{c} $\f and \f$ \chi_c^{2} $\f material dependent
-  *   Moliere parameters that can be used to compute the screening parameter,
-  *   the elastic scattering cross section (or \f$ \lambda_{e} $\f) under the
-  *   screened Rutherford cross section approximation. (These are used in
-  *   GSMSCModel if gIsUsePWATotalXsecData is FALSE.)
-  */
+   *   Moliere parameters that can be used to compute the screening parameter,
+   *   the elastic scattering cross section (or \f$ \lambda_{e} $\f) under the
+   *   screened Rutherford cross section approximation. (These are used in
+   *   GSMSCModel if gIsUsePWATotalXsecData is FALSE.)
+   */
   static std::vector<MoliereData> gMoliere;
 };
 

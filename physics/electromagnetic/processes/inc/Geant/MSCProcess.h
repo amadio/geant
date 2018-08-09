@@ -12,7 +12,7 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 namespace geantphysics {
 class MSCModel;

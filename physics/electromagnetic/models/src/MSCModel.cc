@@ -13,11 +13,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
+using vecCore::Get;
 using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 MSCModel::MSCModel(const std::string &name)
     : EMModel(name), fRangeFactor(0.06), fSafetyFactor(0.6), fGeomFactor(2.5), fSkin(3.),
@@ -26,9 +26,7 @@ MSCModel::MSCModel(const std::string &name)
   fIsMSCModel = true;
 }
 
-MSCModel::~MSCModel()
-{
-}
+MSCModel::~MSCModel() {}
 
 void MSCModel::Initialize()
 {

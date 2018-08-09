@@ -14,15 +14,15 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Material;
 class MaterialProperties;
 class Element;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geantphysics
 
 namespace geantphysics {
 
@@ -230,6 +230,7 @@ public:
   virtual bool IsModelUsable(const MaterialCuts * /*cut*/, double /*ekin*/) { return true; }
 
   bool IsMSCModel() { return fIsMSCModel; }
+
 protected:
   // initilise the element selectors: must be called from the derived emmodel class explicitly at the end of its
   // Initialise() method i.e. after the model has been initialised properly.
@@ -249,25 +250,23 @@ private:
 private:
   std::string fName; // name of the model
   int fIndex; // will be set by the model manager and it will be the index of the model in the model manager table
-  double fLowEnergyUsageLimit;   // set by the user to be used
-  double fHighEnergyUsageLimit;  // set by the user to be used
-  double fLowestSecondaryEnergy; // kinetic energy limit to create secondary (0 by default)
-  const PhysicsParameters
-      *fPhysicsParameters; // physics parameters object that belongs to the region(s) where this model is active
-                           // the class do not own the object
+  double fLowEnergyUsageLimit;                 // set by the user to be used
+  double fHighEnergyUsageLimit;                // set by the user to be used
+  double fLowestSecondaryEnergy;               // kinetic energy limit to create secondary (0 by default)
+  const PhysicsParameters *fPhysicsParameters; // physics parameters object that belongs to the region(s) where this
+                                               // model is active the class do not own the object
   // flag to indicate if element selectors are per material or per material-cuts
   bool fIsElementSelectorsPerMaterial;
   bool fIsUseSamplingTables; // flag to indicate if sampling tables are requested
 
-  std::vector<EMElementSelector *>
-      fElementSelectors; // EMElementSelector pointers per Material/MaterialCuts for those that are
-                         // in regions where this model is active and has more than one elements;
-                         // each ELSelectorData is owned by the object and will be cleand by
-                         // ClearELSelectros(); all of these EMElementSelector are owned by the
-                         // class and cleand up by ClearElementSelectros();
-                         // size is non-zero only if InitialiseElementSelectors() was called
-                         // explicitly from the derived EM model at the end of its Initialise()
-                         // method
+  std::vector<EMElementSelector *> fElementSelectors; // EMElementSelector pointers per Material/MaterialCuts for those
+                                                      // that are in regions where this model is active and has more
+                                                      // than one elements; each ELSelectorData is owned by the object
+                                                      // and will be cleand by ClearELSelectros(); all of these
+                                                      // EMElementSelector are owned by the class and cleand up by
+                                                      // ClearElementSelectros(); size is non-zero only if
+                                                      // InitialiseElementSelectors() was called explicitly from the
+                                                      // derived EM model at the end of its Initialise() method
 
   std::vector<int>
       fListOfUserRequestedInActiveRegions; // will be checked only if the process is not active in some of them

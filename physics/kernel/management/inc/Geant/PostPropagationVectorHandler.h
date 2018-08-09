@@ -11,8 +11,8 @@ class Propagator;
 class Track;
 class TaskData;
 class Basket;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 namespace geantphysics {
 

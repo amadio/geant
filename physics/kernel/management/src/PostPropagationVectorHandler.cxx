@@ -29,9 +29,7 @@ PostPropagationVectorHandler::PostPropagationVectorHandler(int threshold, geant:
   fMayBasketize = true;
 }
 
-PostPropagationVectorHandler::~PostPropagationVectorHandler()
-{
-}
+PostPropagationVectorHandler::~PostPropagationVectorHandler() {}
 
 // The PostPropagationVectorStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process

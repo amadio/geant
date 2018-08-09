@@ -13,13 +13,13 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class GeantConfig {
 public:
   /**
-  * @brief Run mode
-  */
+   * @brief Run mode
+   */
   enum ERunMode { kGenerator = 0, kExternalLoop, kHPC };
 
   /**
-  * @brief Monitoring type
-  */
+   * @brief Monitoring type
+   */
   enum EGeantMonitoringType {
     kMonQueue = 0,
     kMonMemory,
@@ -164,6 +164,6 @@ public:
             fMonTracks);
   }
 };
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 #endif // GEANT_RUN_CONFIG_H
