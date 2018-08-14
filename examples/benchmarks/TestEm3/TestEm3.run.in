@@ -27,6 +27,7 @@ echo "    - field present:       $FIELD_ACTIVE"
 echo "    - field Runge-Kutta:   $FIELD_USE_RK"
 echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
 echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
+echo "    - basketized MSC:      $CONFIG_BASKETIZED_MSC"
 echo "    - basketized geometry: $CONFIG_BASKETIZED_GEOM"
 echo ""
 
@@ -56,6 +57,7 @@ $GEANTV_EXEC --det-number-of-absorbers 2 \
              --config-run-performance ${CONFIG_PERFORMANCE} \
              --config-vectorized-geom ${CONFIG_BASKETIZED_GEOM} \
              --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS} \
+             --config-vectorized-MSC ${CONFIG_BASKETIZED_MSC} \
              >gv.log 2>gv.log
 
 echo "GeantV: `grep -o 'RealTime.*' gv.log`" > $BENCH_OUTPUT
