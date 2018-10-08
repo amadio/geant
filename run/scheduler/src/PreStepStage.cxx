@@ -14,6 +14,30 @@ PreStepStage::PreStepStage(Propagator *prop) : SimulationStage(kPreStepStage, pr
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+PreStepStage::PreStepStage(const PreStepStage &other)
+             :SimulationStage(other)
+{
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PreStepStage& PreStepStage::operator=(const PreStepStage &other)
+{
+  SimulationStage::operator=(other);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+SimulationStage *PreStepStage::Clone() const
+{
+  PreStepStage *stage = new PreStepStage(*this);
+  return stage;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 int PreStepStage::CreateHandlers()
 {
   // Create all volume handlers.

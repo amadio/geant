@@ -68,9 +68,6 @@ protected:
 #endif
 
 private:
-  SimulationStage(const SimulationStage &) = delete;
-  SimulationStage &operator=(const SimulationStage &) = delete;
-
   VECCORE_ATT_HOST_DEVICE
   int CopyToFollowUps(Basket &output, TaskData *td);
 
@@ -102,7 +99,17 @@ public:
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~SimulationStage();
+  virtual ~SimulationStage();
+
+  VECCORE_ATT_HOST_DEVICE
+  SimulationStage(const SimulationStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  SimulationStage &operator=(const SimulationStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual SimulationStage *Clone() const = 0;
 
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE
@@ -210,6 +217,18 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   Handler *GetHandler(int i) const { return fHandlers[i]; }
+
+  /** @brief Getter for number of handlers */
+  VECCORE_ATT_HOST_DEVICE
+  bool HasLocalHandlers() const;
+
+  /** @brief Replace local handlers with LocalHandler */
+  VECCORE_ATT_HOST_DEVICE
+  void ReplaceLocalHandlers();
+
+  /** @brief Replace local handlers with LocalHandler */
+  VECCORE_ATT_HOST_DEVICE
+  void DeleteLocalHandlers();
 
   /** @brief Set user actions stage */
   VECCORE_ATT_HOST_DEVICE

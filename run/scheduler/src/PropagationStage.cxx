@@ -17,6 +17,32 @@ PropagationStage::PropagationStage(Propagator *prop) : SimulationStage(kPropagat
   fHasField = fldConfig->FieldExists();
 }
 
+VECCORE_ATT_HOST_DEVICE
+PropagationStage::PropagationStage(const PropagationStage &other)
+             :SimulationStage(other)
+{
+  fHasField = other.fHasField;
+  fLocalFieldHandler = other.fLocalFieldHandler;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PropagationStage& PropagationStage::operator=(const PropagationStage &other)
+{
+  SimulationStage::operator=(other);
+  fHasField = other.fHasField;
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+SimulationStage *PropagationStage::Clone() const
+{
+  PropagationStage *stage = new PropagationStage(*this);
+  return stage;
+}
+
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 int PropagationStage::CreateHandlers()
@@ -25,6 +51,7 @@ int PropagationStage::CreateHandlers()
   int threshold = fPropagator->fConfig->fNperBasket;
   AddHandler(new LinearPropagationHandler(threshold, fPropagator));
   auto handler = new FieldPropagationHandler(threshold, fPropagator);
+  handler->SetLocal(fLocalFieldHandler);
   handler->SetMayBasketize(true);
   AddHandler(handler);
 

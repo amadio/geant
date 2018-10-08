@@ -290,8 +290,9 @@ int Propagator::CreateSimulationStages()
   //  assert(stage->GetId() == int(kGeometryStepStage));
 
   // kPropagationStage
-  stage = new PropagationStage(this);
-  assert(stage->GetId() == int(kPropagationStage));
+  auto prop_stage = new PropagationStage(this);
+  prop_stage->SetLocalFieldHandler(true);
+  assert(prop_stage->GetId() == int(kPropagationStage));
   // kPostPropagationStage
   stage = fPhysicsInterface->CreatePostPropagationStage(this);
   assert(stage->GetId() == int(kPostPropagationStage));

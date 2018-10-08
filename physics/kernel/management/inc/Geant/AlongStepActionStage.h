@@ -34,6 +34,16 @@ public:
   /** @brief dtr */
   ~AlongStepActionStage();
 
+  VECCORE_ATT_HOST_DEVICE
+  AlongStepActionStage(const AlongStepActionStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  AlongStepActionStage &operator=(const AlongStepActionStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual geant::SimulationStage *Clone() const;
+
   /** @brief Get simulation stage name */
   virtual const char *GetName() const { return "AlongStepAction"; }
 
@@ -44,9 +54,6 @@ public:
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
-private:
-  AlongStepActionStage(const AlongStepActionStage &) = delete;
-  AlongStepActionStage &operator=(const AlongStepActionStage &) = delete;
 };
 
 } // namespace geantphysics

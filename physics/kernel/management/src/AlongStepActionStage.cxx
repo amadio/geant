@@ -23,13 +23,37 @@
 namespace geantphysics {
 
 AlongStepActionStage::AlongStepActionStage(geant::Propagator *prop)
-    : SimulationStage(geant::kAlongStepActionStage, prop)
+    : geant::SimulationStage(geant::kAlongStepActionStage, prop)
 {
 }
 
 // base class will delete the created handlers
 AlongStepActionStage::~AlongStepActionStage()
 {
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+AlongStepActionStage::AlongStepActionStage(const AlongStepActionStage &other)
+             :geant::SimulationStage(other)
+{
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+AlongStepActionStage& AlongStepActionStage::operator=(const AlongStepActionStage &other)
+{
+  geant::SimulationStage::operator=(other);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+geant::SimulationStage *AlongStepActionStage::Clone() const
+{
+  AlongStepActionStage *stage = new AlongStepActionStage(*this);
+  return stage;
 }
 
 int AlongStepActionStage::CreateHandlers()

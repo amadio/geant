@@ -36,6 +36,16 @@ public:
   /** @brief dtr */
   ~PrePropagationStage();
 
+  VECCORE_ATT_HOST_DEVICE
+  PrePropagationStage(const PrePropagationStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  PrePropagationStage &operator=(const PrePropagationStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual geant::SimulationStage *Clone() const;
+
   /** @brief Get simulation stage name */
   virtual const char *GetName() const { return "PrePropagation"; }
 
@@ -46,9 +56,6 @@ public:
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
-private:
-  PrePropagationStage(const PrePropagationStage &) = delete;
-  PrePropagationStage &operator=(const PrePropagationStage &) = delete;
 };
 
 } // namespace geantphysics

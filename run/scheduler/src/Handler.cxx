@@ -13,8 +13,6 @@ Handler::Handler(int threshold, Propagator *propagator) : fPropagator(propagator
   // allocate the basketizer.
   fBcap = propagator->fConfig->fMaxPerBasket;
   fThreshold.store(threshold);
-  fNflushed.store(0);
-  fNfired.store(0);
   // Make sure the threshold is a power of 2
   assert((threshold & (threshold - 1)) == 0 && "Handler threshold must be power of 2");
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
@@ -38,6 +36,41 @@ Handler::~Handler()
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
 #endif
+}
+
+VECCORE_ATT_HOST_DEVICE
+Handler::Handler(const Handler &other)
+{
+  fThreadLocal = other.fThreadLocal;
+  fActive = other.fActive;
+  fMayBasketize = other.fMayBasketize;
+  fId = other.fId;
+  fBcap = other.fBcap;
+  fThreshold.store(other.fThreshold.load());
+  // Do not copy state counters, nor basketizer
+  fPropagator = other.fPropagator;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  fLock.clear();
+#endif
+}
+
+VECCORE_ATT_HOST_DEVICE
+Handler &Handler::operator=(const Handler &other)
+{
+  if (&other != this) {
+    fThreadLocal = other.fThreadLocal;
+    fActive = other.fActive;
+    fMayBasketize = other.fMayBasketize;
+    fId = other.fId;
+    fBcap = other.fBcap;
+    fThreshold.store(other.fThreshold.load());
+    // Do not copy state counters, nor basketizer
+    fPropagator = other.fPropagator;
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    fLock.clear();
+#endif
+  }
+  return *this;
 }
 
 //______________________________________________________________________________
@@ -88,7 +121,7 @@ void Handler::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Handler::AddTrack(Track *track, Basket &collector)
+bool Handler::AddTrack(Track *track, Basket &collector, TaskData *td)
 {
   // Adding a track to the handler assumes that the handler is basketized.
   // The track will be pushed into the basketizer. The calling thread has to
@@ -100,14 +133,13 @@ bool Handler::AddTrack(Track *track, Basket &collector)
   bool extracted = fBasketizer->AddElement(track, collector.Tracks());
   if (extracted) {
     collector.SetThreshold(fThreshold);
-    fNfired++;
   }
   return extracted;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Handler::Flush(Basket &collector)
+bool Handler::Flush(Basket &collector, TaskData *td)
 {
 // Flush if possible remaining tracks from the basketizer into the collector basket.
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
@@ -120,11 +152,58 @@ bool Handler::Flush(Basket &collector)
   bool flushed = false;
   while (!flushed && fBasketizer->GetNstored())
     flushed = fBasketizer->Flush(collector.Tracks());
-  if (flushed) fNflushed++;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fLock.clear();
 #endif
   return flushed;
+}
+
+LocalHandler::LocalHandler(Handler *handler) : fHandler(handler)
+{
+  fThreshold.store(fHandler->GetThreshold());
+  fLocalBasket.reserve(fThreshold);
+}
+
+VECCORE_ATT_HOST_DEVICE
+bool LocalHandler::AddTrack(Track *track, Basket &collector, TaskData *td)
+{
+  fLocalBasket.push_back(track);
+  if (fLocalBasket.size() == (size_t)fThreshold) {
+    // Copy tracks in the collector
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    std::copy(fLocalBasket.begin(), fLocalBasket.end(),
+              std::back_inserter(collector.Tracks()));
+#else
+    auto &insertee(td->fStageBuffers[fFollowUpStage]->Tracks());
+    for (auto track : fLocalBasket) {
+      // If a follow-up stage is declared, this overrides any follow-up set by handlers
+      collector.Tracks().push_back(track);
+    }
+#endif
+    fLocalBasket.clear();
+    return true;
+  }
+  return false;
+}
+
+VECCORE_ATT_HOST_DEVICE
+bool LocalHandler::Flush(Basket &collector, TaskData *td)
+{
+  bool flush = fLocalBasket.size() > 0;
+  if (flush) {
+#ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    std::copy(fLocalBasket.begin(), fLocalBasket.end(),
+              std::back_inserter(collector.Tracks()));
+#else
+    auto &insertee(td->fStageBuffers[fFollowUpStage]->Tracks());
+    for (auto track : fLocalBasket) {
+      // If a follow-up stage is declared, this overrides any follow-up set by handlers
+      collector.Tracks().push_back(track);
+    }
+#endif
+    fLocalBasket.clear();    
+  }
+  return flush;
 }
 
 } // GEANT_IMPL_NAMESPACE

@@ -579,5 +579,44 @@ void RunManager::StopTransport()
   }
 }
 
+//______________________________________________________________________________
+size_t RunManager::GetNfired(size_t istage, size_t ihandler) const
+{
+  // Get number of fired baskets for a specific handler over all workers
+  size_t nfired = 0;
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    nfired += fTDManager->GetTaskData(i)->fCounters[istage]->fFired[ihandler];
+  return nfired;
+}
+
+//______________________________________________________________________________
+size_t RunManager::GetNflushed(size_t istage, size_t ihandler) const
+{
+  // Get number of fired baskets for a specific handler over all workers
+  size_t nflushed = 0;
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    nflushed += fTDManager->GetTaskData(i)->fCounters[istage]->fFlushed[ihandler];
+  return nflushed;
+}
+
+//______________________________________________________________________________
+size_t RunManager::GetNscalar(size_t istage) const
+{
+  size_t nscalar = 0;
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    nscalar += fTDManager->GetTaskData(i)->fCounters[istage]->fNscalar;
+  return nscalar;
+}
+
+//______________________________________________________________________________
+size_t RunManager::GetNvector(size_t istage) const
+{
+  size_t nvector = 0;
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    nvector += fTDManager->GetTaskData(i)->fCounters[istage]->fNvector;
+  return nvector;
+}
+
+
 } // namespace GEANT_IMPL_NAMESPACE
 } // namespace geant

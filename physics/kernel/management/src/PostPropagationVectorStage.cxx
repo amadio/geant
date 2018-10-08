@@ -30,6 +30,34 @@ PostPropagationVectorStage::PostPropagationVectorStage(geant::Propagator *prop)
 // base class will delete the created handlers
 PostPropagationVectorStage::~PostPropagationVectorStage() {}
 
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PostPropagationVectorStage::PostPropagationVectorStage(const PostPropagationVectorStage &other)
+             :geant::SimulationStage(other)
+{
+  for (auto handler : other.fHandlersPerModel)
+    fHandlersPerModel.push_back(handler);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PostPropagationVectorStage& PostPropagationVectorStage::operator=(const PostPropagationVectorStage &other)
+{
+  geant::SimulationStage::operator=(other);
+  for (auto handler : other.fHandlersPerModel)
+    fHandlersPerModel.push_back(handler);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+geant::SimulationStage *PostPropagationVectorStage::Clone() const
+{
+  PostPropagationVectorStage *stage = new PostPropagationVectorStage(*this);
+  return stage;
+}
+
 int PostPropagationVectorStage::CreateHandlers()
 {
   int threshold = fPropagator->fConfig->fNperBasket;

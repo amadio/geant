@@ -14,6 +14,30 @@ SteppingActionsStage::SteppingActionsStage(Propagator *prop) : SimulationStage(k
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+SteppingActionsStage::SteppingActionsStage(const SteppingActionsStage &other)
+             :SimulationStage(other)
+{
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+SteppingActionsStage& SteppingActionsStage::operator=(const SteppingActionsStage &other)
+{
+  SimulationStage::operator=(other);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+SimulationStage *SteppingActionsStage::Clone() const
+{
+  SteppingActionsStage *stage = new SteppingActionsStage(*this);
+  return stage;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 int SteppingActionsStage::CreateHandlers()
 {
   // Create all volume handlers.

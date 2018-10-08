@@ -27,12 +27,40 @@
 namespace geantphysics {
 
 PostStepActionPhysModelStage::PostStepActionPhysModelStage(geant::Propagator *prop)
-    : SimulationStage(geant::kPostStepActionStage, prop)
+    : geant::SimulationStage(geant::kPostStepActionStage, prop)
 {
 }
 
 // base class will delete the created handlers
 PostStepActionPhysModelStage::~PostStepActionPhysModelStage() {}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PostStepActionPhysModelStage::PostStepActionPhysModelStage(const PostStepActionPhysModelStage &other)
+             :geant::SimulationStage(other)
+{
+  for (auto handler : other.fHandlersPerModel)
+    fHandlersPerModel.push_back(handler);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PostStepActionPhysModelStage& PostStepActionPhysModelStage::operator=(const PostStepActionPhysModelStage &other)
+{
+  geant::SimulationStage::operator=(other);
+  for (auto handler : other.fHandlersPerModel)
+    fHandlersPerModel.push_back(handler);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+geant::SimulationStage *PostStepActionPhysModelStage::Clone() const
+{
+  PostStepActionPhysModelStage *stage = new PostStepActionPhysModelStage(*this);
+  return stage;
+}
 
 int PostStepActionPhysModelStage::CreateHandlers()
 {

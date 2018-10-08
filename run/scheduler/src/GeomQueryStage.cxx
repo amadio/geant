@@ -15,6 +15,30 @@ GeomQueryStage::GeomQueryStage(Propagator *prop) : SimulationStage(kGeometryStep
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+GeomQueryStage::GeomQueryStage(const GeomQueryStage &other)
+             :SimulationStage(other)
+{
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+GeomQueryStage& GeomQueryStage::operator=(const GeomQueryStage &other)
+{
+  SimulationStage::operator=(other);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+SimulationStage *GeomQueryStage::Clone() const
+{
+  GeomQueryStage *stage = new GeomQueryStage(*this);
+  return stage;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 int GeomQueryStage::CreateHandlers()
 {
   // Create all volume handlers.

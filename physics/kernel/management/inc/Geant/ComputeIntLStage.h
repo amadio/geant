@@ -34,6 +34,16 @@ public:
   /** @brief dtr */
   ~ComputeIntLStage();
 
+  VECCORE_ATT_HOST_DEVICE
+  ComputeIntLStage(const ComputeIntLStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  ComputeIntLStage &operator=(const ComputeIntLStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual geant::SimulationStage *Clone() const;
+
   /** @brief Get simulation stage name */
   virtual const char *GetName() const { return "ComputeIntL"; }
 
@@ -44,12 +54,6 @@ public:
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
-private:
-  ComputeIntLStage(const ComputeIntLStage &) = delete;
-  ComputeIntLStage &operator=(const ComputeIntLStage &) = delete;
-
-  // ?
-  //  Handler *GetHandler(int) { return fHandlers[0]; }
 };
 
 } // namespace geantphysics

@@ -25,25 +25,37 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 struct BasketCounters {
-  size_t fNhandlers = 0; ///< number of handlers
-  size_t fNscalar   = 0; ///< number of scalar DoIt calls per stage
-  size_t fNvector   = 0; ///< number of basketized DoIt calls per stage
-  size_t *fCounters;     ///< counters
+  volatile size_t fNhandlers = 0; ///< number of handlers
+  volatile size_t fNscalar   = 0; ///< number of scalar DoIt calls per stage
+  volatile size_t fNvector   = 0; ///< number of basketized DoIt calls per stage
+  volatile size_t *fCounters;     ///< counters
+  volatile size_t *fFired;        ///< fired baskets per handler
+  volatile size_t *fFlushed;      ///< flushed baskets per handler
 
   BasketCounters(size_t nhandlers)
   {
     fNhandlers = nhandlers;
     fCounters  = new size_t[nhandlers];
+    fFired     = new size_t[nhandlers];
+    fFlushed   = new size_t[nhandlers];
     Reset();
   }
 
-  ~BasketCounters() { delete[] fCounters; }
+  ~BasketCounters()
+  {
+    delete [] fCounters;
+    delete [] fFired;
+    delete [] fFlushed;
+  }
 
   GEANT_FORCE_INLINE
   void Reset()
   {
-    for (size_t i  = 0; i < fNhandlers; ++i)
+    for (size_t i  = 0; i < fNhandlers; ++i) {
       fCounters[i] = 0;
+      fFired[i]    = 0;
+      fFlushed[i]  = 0;
+    }
   }
 
   GEANT_FORCE_INLINE
@@ -51,9 +63,20 @@ struct BasketCounters {
   {
     fNscalar += other.fNscalar;
     fNvector += other.fNvector;
-    for (size_t i = 0; i < fNhandlers; ++i)
+    for (size_t i = 0; i < fNhandlers; ++i) {
       fCounters[i] += other.fCounters[i];
+      fFired[i]    += other.fFired[i];
+      fFlushed[i]  += other.fFlushed[i];
+    }
     return *this;
+  }
+
+  GEANT_FORCE_INLINE
+  void Increment(size_t ihandler, size_t threshold)
+  {
+    fCounters[ihandler]++;
+    fFired[ihandler] += (size_t)(fCounters[ihandler] == threshold);
+    fCounters[ihandler] &= threshold - 1;
   }
 };
 

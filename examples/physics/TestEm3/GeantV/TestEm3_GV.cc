@@ -44,16 +44,16 @@ geant::RunManager *RunManager();
 // application(parApp), run configuration(parConfig) and some physics processes(parProcess):
 //
 // detector parameters
-int parDetNumberOfAbsorbers = 0;             // i.e. default application value
-int parDetNumberOfLayers    = 0;             // i.e. default application value
-double parDetProductionCuts = 0.;            // i.e. default application value
-double parDetSizeYZ         = 0.;            // i.e. default application value
+int parDetNumberOfAbsorbers = 2;             // i.e. default application value
+int parDetNumberOfLayers    = 50;            // i.e. default application value
+double parDetProductionCuts = 0.07;          // i.e. default application value
+double parDetSizeYZ         = 40.;           // i.e. default application value
 std::vector<double> parDetAbsThicknesses;    // i.e. default application values
 std::vector<std::string> parDetAbsMaterials; // i.e. default application values
 //
 // primary generator parameters (primary particle gun)
-std::string parGunPrimaryParticleName = ""; // i.e. default application value
-double parGunPrimaryKinEnergy         = 0.; // i.e. default application value
+std::string parGunPrimaryParticleName = "e-"; // i.e. default application value
+double parGunPrimaryKinEnergy         = 10.;  // i.e. default application value
 //
 // MCTruth parameters
 int mctruthOn           = 0;                // i.e. default application value
@@ -61,13 +61,13 @@ double mctruthminE      = 1.;               // i.e. default application value
 std::string mctruthFile = "testEm3.hepmc3"; // i.e. default application value
 //
 // run configuration parameters
-int parConfigNumBufferedEvt     = 5;  // number of events taken to be transported on the same time (buffered)
+int parConfigNumBufferedEvt     = 10; // number of events taken to be transported on the same time (buffered)
 int parConfigNumRunEvt          = 10; // total number of events to be transported during the run
 int parConfigNumPrimaryPerEvt   = 10; // number of primary particles per event
 int parConfigNumThreads         = 1;  // number of working threads             // Default = 4
 int parConfigNumPropagators     = 1;  // number of propagators per working threads
 int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
-int parConfigIsPerformance      = 0;  // run without any user actions
+int parConfigIsPerformance      = 1;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
@@ -76,14 +76,14 @@ int parFastSimActive            = 0;  // activated fast sim stage
 
 //
 // physics process configuration parameters:
-std::string parProcessMSCStepLimit = ""; // i.e. default application value
+std::string parProcessMSCStepLimit = "UseSafety"; // i.e. default application value
 
 //
 // field configuration parameters
-int parFieldActive      = 0;         // activate magnetic field
-int parFieldUseRK       = 0;         // use Runge-Kutta instead of helix
+int parFieldActive      = 1;         // activate magnetic field
+int parFieldUseRK       = 1;         // use Runge-Kutta instead of helix
 double parFieldEpsRK    = 0.0003;    // Revised / reduced accuracy - vs. 0.0003 default
-int parFieldBasketized  = 0;         // basketize magnetic field
+int parFieldBasketized  = 1;         // basketize magnetic field
 float parFieldVector[3] = {0, 0, 2}; // default constant field value
 
 // The main application: gets the possible input arguments, sets up the run-manager, physics-list, detector, primary
@@ -148,6 +148,11 @@ void PreSet(int num)
 {
   parDetAbsThicknesses.resize(num, 0.);
   parDetAbsMaterials.resize(num, "");
+  // Preset default values for only 2 absorbers
+  parDetAbsThicknesses[0] = 0.23;
+  parDetAbsThicknesses[1] = 0.57;
+  parDetAbsMaterials[0] = "NIST_MAT_Pb";
+  parDetAbsMaterials[1] = "NIST_MAT_lAr";
 }
 
 static struct option options[] = {{"det-number-of-absorbers", required_argument, 0, 'a'},

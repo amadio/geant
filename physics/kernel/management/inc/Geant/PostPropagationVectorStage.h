@@ -27,6 +27,16 @@ public:
   /** @brief dtr */
   ~PostPropagationVectorStage();
 
+  VECCORE_ATT_HOST_DEVICE
+  PostPropagationVectorStage(const PostPropagationVectorStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  PostPropagationVectorStage &operator=(const PostPropagationVectorStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual geant::SimulationStage *Clone() const;
+
   /** @brief Get simulation stage name */
   virtual const char *GetName() const { return "PostPropagationVector"; }
 
@@ -38,9 +48,6 @@ public:
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
 private:
-  PostPropagationVectorStage(const PostPropagationVectorStage &) = delete;
-  PostPropagationVectorStage &operator=(const PostPropagationVectorStage &) = delete;
-
   std::vector<geant::Handler *> fHandlersPerModel;
 };
 

@@ -23,10 +23,8 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PropagationStage : public SimulationStage {
 
 protected:
-  bool fHasField = true; ///< Setup has field
-private:
-  PropagationStage(const PropagationStage &) = delete;
-  PropagationStage &operator=(const PropagationStage &) = delete;
+  bool fHasField = true;           ///< Setup has field
+  bool fLocalFieldHandler = false; ///< Field handler is thread local
 
 public:
   /** @brief Interface to create all handlers for the simulation stage
@@ -49,11 +47,29 @@ public:
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~PropagationStage();
+  virtual ~PropagationStage() {}
+
+  VECCORE_ATT_HOST_DEVICE
+  PropagationStage(const PropagationStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  PropagationStage &operator=(const PropagationStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual SimulationStage *Clone() const;
 
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE
   virtual const char *GetName() const { return "Propagation"; }
+
+  /** @brief Setter for local field handler */
+  VECCORE_ATT_HOST_DEVICE
+  void SetLocalFieldHandler(bool flag = true) { fLocalFieldHandler = flag; }
+
+  /** @brief Getter for local field handler */
+  VECCORE_ATT_HOST_DEVICE
+  bool GetLocalFieldHandler() const { return fLocalFieldHandler; }
 };
 
 } // GEANT_IMPL_NAMESPACE

@@ -216,6 +216,13 @@ public:
   void RunSimulation();
   bool RunSimulationTask(EventSet *workload, TaskData *td);
   void StopTransport();
+
+  // Get stage/handler counters
+  size_t GetNfired(size_t istage, size_t ihandler) const;
+  size_t GetNflushed(size_t istage, size_t ihandler) const;
+  size_t GetNscalar(size_t istage) const;
+  size_t GetNvector(size_t istage) const;
+
 };
 
 } // namespace GEANT_IMPL_NAMESPACE

@@ -48,21 +48,17 @@ public:
   using basketizer_t = Basketizer<Track>;
 
 protected:
+  bool fThreadLocal  = false;          ///< Handler is thread local
   bool fActive       = false;          ///< Activity flag
   bool fMayBasketize = false;          ///< This handler can basketize
   size_t fId         = 0;              ///< Handler id in the stage
   int fBcap          = 0;              ///< Minimum capacity for the handled baskets
   atomic_t<int> fThreshold;            ///< Basketizing threshold
-  atomic_t<size_t> fNflushed;          ///< Number of basket flushes
-  atomic_t<size_t> fNfired;            ///< Number of times the basketizer fired
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this handler
   Propagator *fPropagator   = nullptr; ///< Associated propagator
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fLock; ///< Lock for flushing
 #endif
-private:
-  Handler(const Handler &) = delete;
-  Handler &operator=(const Handler &) = delete;
 
 public:
   /** @brief Default handler constructor */
@@ -81,6 +77,14 @@ public:
   /** @brief Basket destructor */
   VECCORE_ATT_HOST_DEVICE
   virtual ~Handler();
+
+  /** @brief Copy constructor */
+  VECCORE_ATT_HOST_DEVICE
+  Handler(const Handler &);
+
+  /** @brief Assignment operator */
+  VECCORE_ATT_HOST_DEVICE
+  Handler &operator=(const Handler &);
 
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
@@ -124,41 +128,16 @@ public:
   GEANT_FORCE_INLINE
   void SetMayBasketize(bool flag = true) { fMayBasketize = flag; }
 
-  /** @brief Increment fired baskets */
+  /** @brief Is this handler thread local */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  size_t AddFired()
-  {
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-    return ++fNfired;
-#else
-    return fNfired.fetch_add(1) + 1;
-#endif
-  }
+  bool IsLocal() const { return fThreadLocal; }
 
-  /** @brief getter for number of fired baskets */
+  /** @brief Set this handler thread local */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  size_t GetNfired() const
-  {
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-    return fNfired;
-#else
-    return fNfired.load();
-#endif
-  }
+  void SetLocal(bool flag) { fThreadLocal = flag; }
 
-  /** @brief getter for number of flushed baskets */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  size_t GetNflushed() const
-  {
-#ifdef VECCORE_CUDA_DEVICE_COMPILATION
-    return fNflushed;
-#else
-    return fNflushed.load();
-#endif
-  }
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -191,14 +170,51 @@ public:
 
   /** @brief Add a track pointer to handler. */
   VECCORE_ATT_HOST_DEVICE
-  bool AddTrack(Track *track, Basket &collector);
+  virtual bool AddTrack(Track *track, Basket &collector, TaskData *td);
 
   /** @brief Flush all tracks from the handler into a collector basket
    *  @return Number of tracks flushed
    */
   VECCORE_ATT_HOST_DEVICE
-  bool Flush(Basket &collector);
+  virtual bool Flush(Basket &collector, TaskData *td);
 };
+
+class LocalHandler : public Handler {
+
+private:
+  TrackVec_t fLocalBasket;             ///< Local basket for thread local handler
+  Handler *fHandler;                   ///< Handler to which this applies (no state)
+
+  LocalHandler(const LocalHandler &) = delete;
+  LocalHandler &operator=(const LocalHandler &) = delete;
+
+public:
+  LocalHandler(Handler *handler);
+  virtual ~LocalHandler() {}
+  /** @brief Scalar DoIt interface */
+  VECCORE_ATT_HOST_DEVICE
+  Handler *GetHandler() const { return fHandler; }
+ 
+  /** @brief Scalar DoIt interface */
+  VECCORE_ATT_HOST_DEVICE
+  virtual void DoIt(Track *track, Basket &output, TaskData *td) { fHandler->DoIt(track, output, td); }
+
+  /** @brief Vector DoIt interface. Base class implements it as a loop. */
+  VECCORE_ATT_HOST_DEVICE
+  virtual void DoIt(Basket &input, Basket &output, TaskData *td) { fHandler->DoIt(input, output, td); }
+
+  /** @brief Add a track pointer to handler. */
+  VECCORE_ATT_HOST_DEVICE
+  virtual bool AddTrack(Track *track, Basket &collector, TaskData *td);
+
+  /** @brief Flush all tracks from the handler into a collector basket
+   *  @return Number of tracks flushed
+   */
+  VECCORE_ATT_HOST_DEVICE
+  virtual bool Flush(Basket &collector, TaskData *td);
+
+};
+
 
 } // GEANT_IMPL_NAMESPACE
 } // Geant

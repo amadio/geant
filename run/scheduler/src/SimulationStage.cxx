@@ -2,6 +2,7 @@
 
 #include "Geant/TaskData.h"
 #include "Geant/Propagator.h"
+#include "Geant/RunManager.h"
 #include "StackLikeBuffer.h"
 #include "TrackStat.h"
 #include "Geant/BasketCounters.h"
@@ -29,6 +30,82 @@ SimulationStage::~SimulationStage()
     delete fHandlers[i];
 }
 
+VECCORE_ATT_HOST_DEVICE
+SimulationStage::SimulationStage(const SimulationStage &other)
+{
+  fType             = other.fType;
+  fPropagator       = other.fPropagator;
+  fFireFlushRatio   = other.fFireFlushRatio;
+  fId               = other.fId;
+  fUserActionsStage = other.fUserActionsStage;
+  fFollowUpStage    = other.fFollowUpStage;
+  fThrBasketCheck   = other.fThrBasketCheck;
+  fNstaged          = other.fNstaged;
+  fNbasketized      = other.fNbasketized;
+  fUniqueFollowUp   = other.fUniqueFollowUp;
+  fEndStage         = other.fEndStage;
+  fBasketized       = other.fBasketized;
+  for (auto handler : other.fHandlers)
+    fHandlers.push_back(handler);
+}
+
+VECCORE_ATT_HOST_DEVICE
+SimulationStage &SimulationStage::operator=(const SimulationStage &other)
+{
+  if (&other != this) {
+    fType             = other.fType;
+    fPropagator       = other.fPropagator;
+    fFireFlushRatio   = other.fFireFlushRatio;
+    fId               = other.fId;
+    fUserActionsStage = other.fUserActionsStage;
+    fFollowUpStage    = other.fFollowUpStage;
+    fThrBasketCheck   = other.fThrBasketCheck;
+    fNstaged          = other.fNstaged;
+    fNbasketized      = other.fNbasketized;
+    fUniqueFollowUp   = other.fUniqueFollowUp;
+    fEndStage         = other.fEndStage;
+    fBasketized       = other.fBasketized;
+    for (auto handler : other.fHandlers)
+      fHandlers.push_back(handler);
+  }
+  return *this;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+bool SimulationStage::HasLocalHandlers() const
+{
+  for (auto handler : fHandlers) {
+    if (handler->IsLocal())
+      return true;
+  }
+  return false;
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void SimulationStage::ReplaceLocalHandlers()
+{
+  for (size_t i = 0; i < fHandlers.size(); ++i) {
+    if (fHandlers[i]->IsLocal())
+      fHandlers[i] = new LocalHandler(fHandlers[i]);
+  }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void SimulationStage::DeleteLocalHandlers()
+{
+  for (size_t i = 0; i < fHandlers.size(); ++i) {
+    if (fHandlers[i]->IsLocal()) {
+      auto handler = ((LocalHandler*)fHandlers[i])->GetHandler();
+      delete fHandlers[i];
+      fHandlers[i] = handler;
+      fHandlers.clear();
+    }
+  }
+}
+
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
@@ -47,8 +124,8 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
   size_t nfiredtot   = 0;
   for (int i = 0; i < GetNhandlers(); ++i) {
     if (!fHandlers[i]->MayBasketize()) continue;
-    size_t nflushed = fHandlers[i]->GetNflushed();
-    size_t nfired   = fHandlers[i]->GetNfired();
+    size_t nflushed = fPropagator->fRunMgr->GetNflushed(fId, i);
+    size_t nfired   = fPropagator->fRunMgr->GetNflushed(fId, i);
     nflushedtot += nflushed;
     nfiredtot += nfired;
     if (fHandlers[i]->IsActive()) {
@@ -95,7 +172,8 @@ int SimulationStage::FlushHandler(int i, TaskData *td, Basket &output)
   if (!fHandlers[i]->HasTracks()) return 0;
   Basket &bvector = *td->fBvector;
   bvector.Clear();
-  fHandlers[i]->Flush(bvector);
+  fHandlers[i]->Flush(bvector, td);
+  td->fCounters[fId]->fFlushed[i]++;
   int nflushed = bvector.size();
   if (nflushed >= fPropagator->fConfig->fNvecThreshold) {
     td->fCounters[fId]->fNvector += bvector.size();
@@ -133,6 +211,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
     Handler *handler = Select(track, td);
     // Execute in scalar mode the handler action
     if (handler) {
+      td->fCounters[fId]->Increment(handler->GetId(), handler->GetThreshold());
       td->fCounters[fId]->fNscalar += size_t(fBasketized & handler->MayBasketize());
       handler->DoIt(track, output, td);
     } else
@@ -145,8 +224,9 @@ int SimulationStage::FlushAndProcess(TaskData *td)
   int nflush = 0;
   for (int i = 0; i < GetNhandlers(); ++i) {
     int nbasket = 0;
-    if (fHandlers[i]->IsActive() && (nbasket = fHandlers[i]->Flush(bvector))) {
+    if (fHandlers[i]->IsActive() && (nbasket = fHandlers[i]->Flush(bvector, td))) {
       // btodo has some content, invoke DoIt
+      td->fCounters[fId]->fFlushed[i]++;
       if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
         td->fCounters[fId]->fNvector += bvector.size();
         fHandlers[i]->DoIt(bvector, output, td);
@@ -212,23 +292,18 @@ int SimulationStage::Process(TaskData *td)
 
     if (!handler->IsActive() || track->GetGeneration() < kMinGen) {
       if (fBasketized) {
-        size_t &counter = td->fCounters[fId]->fCounters[handler->GetId()];
-        counter++;
-        if ((int)counter == handler->GetThreshold()) {
-          counter = 0;
-          handler->AddFired();
-        }
-        // Account scalar calls to basketizable handlers
+        td->fCounters[fId]->Increment(handler->GetId(), handler->GetThreshold());
+        // Account only scalar calls to basketizable handlers
         if (handler->MayBasketize()) td->fCounters[fId]->fNscalar++;
       }
       // Scalar DoIt.
       handler->DoIt(track, output, td);
     } else {
       // Add the track to the handler, which may extract a full vector.
-      if (handler->AddTrack(track, bvector)) {
+      if (handler->AddTrack(track, bvector, td)) {
         // Vector DoIt
         td->fCounters[fId]->fNvector += bvector.size();
-        handler->AddFired();
+        td->fCounters[fId]->fFired[handler->GetId()]++;
         handler->DoIt(bvector, output, td);
         bvector.Clear();
       }

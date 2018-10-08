@@ -23,12 +23,12 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class GeomQueryStage : public SimulationStage {
 
-private:
-  GeomQueryStage(const GeomQueryStage &) = delete;
-  GeomQueryStage &operator=(const GeomQueryStage &) = delete;
-
 protected:
 public:
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual SimulationStage *Clone() const;
+  
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
@@ -49,7 +49,13 @@ public:
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~GeomQueryStage();
+  virtual ~GeomQueryStage() {}
+
+  VECCORE_ATT_HOST_DEVICE
+  GeomQueryStage(const GeomQueryStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  GeomQueryStage &operator=(const GeomQueryStage &);
 
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE

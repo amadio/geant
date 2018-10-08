@@ -22,10 +22,34 @@
 
 namespace geantphysics {
 
-FastSimStage::FastSimStage(geant::Propagator *prop) : SimulationStage(geant::kFastSimStage, prop) {}
+FastSimStage::FastSimStage(geant::Propagator *prop) : geant::SimulationStage(geant::kFastSimStage, prop) {}
 
 // base class will delete the created handlers
 FastSimStage::~FastSimStage() {}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+FastSimStage::FastSimStage(const FastSimStage &other)
+             :geant::SimulationStage(other)
+{
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+FastSimStage& FastSimStage::operator=(const FastSimStage &other)
+{
+  geant::SimulationStage::operator=(other);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+geant::SimulationStage *FastSimStage::Clone() const
+{
+  FastSimStage *stage = new FastSimStage(*this);
+  return stage;
+}
 
 int FastSimStage::CreateHandlers()
 {

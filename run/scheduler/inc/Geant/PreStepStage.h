@@ -21,10 +21,6 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 class PreStepStage : public SimulationStage {
 
-private:
-  PreStepStage(const PreStepStage &) = delete;
-  PreStepStage &operator=(const PreStepStage &) = delete;
-
 public:
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
@@ -46,7 +42,17 @@ public:
 
   /** @brief Simulation stage destructor */
   VECCORE_ATT_HOST_DEVICE
-  ~PreStepStage();
+  virtual ~PreStepStage() {}
+
+  VECCORE_ATT_HOST_DEVICE
+  PreStepStage(const PreStepStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  PreStepStage &operator=(const PreStepStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual SimulationStage *Clone() const;
 
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE

@@ -46,20 +46,27 @@ public:
   /** @brief dtr */
   ~PostStepActionPhysModelStage();
 
+  VECCORE_ATT_HOST_DEVICE
+  PostStepActionPhysModelStage(const PostStepActionPhysModelStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  PostStepActionPhysModelStage &operator=(const PostStepActionPhysModelStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual geant::SimulationStage *Clone() const;
+
   /** @brief Get simulation stage name */
-  const char *GetName() const override { return "PostStepActionPhysModelStage"; }
+  const char *GetName() const { return "PostStepActionPhysModelStage"; }
 
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
-  int CreateHandlers() override;
+  int CreateHandlers();
 
   /** @brief Interface to select the handler matching a track */
-  geant::Handler *Select(geant::Track *track, geant::TaskData *td) override;
+  geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
 private:
-  PostStepActionPhysModelStage(const PostStepActionPhysModelStage &) = delete;
-  PostStepActionPhysModelStage &operator=(const PostStepActionPhysModelStage &) = delete;
-
   std::vector<geant::Handler *> fHandlersPerModel;
 };
 

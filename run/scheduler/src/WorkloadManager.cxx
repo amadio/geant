@@ -325,7 +325,7 @@ int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
   while (ninjected || flush) {
     while (1) {
       // How many particles at input of current stage?
-      SimulationStage *stage = td->fPropagator->fStages[istage];
+      SimulationStage *stage = td->fStages[istage];
       int nstart             = td->fStageBuffers[istage]->size();
       ninput += nstart;
       // If there is input just process normally

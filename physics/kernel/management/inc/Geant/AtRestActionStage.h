@@ -34,6 +34,16 @@ public:
   /** @brief dtr */
   ~AtRestActionStage();
 
+  VECCORE_ATT_HOST_DEVICE
+  AtRestActionStage(const AtRestActionStage &);
+
+  VECCORE_ATT_HOST_DEVICE
+  AtRestActionStage &operator=(const AtRestActionStage &);
+
+  /** @brief Clone the stage and copy the existing handlers **/
+  VECCORE_ATT_HOST_DEVICE
+  virtual geant::SimulationStage *Clone() const;
+
   /** @brief Get simulation stage name */
   virtual const char *GetName() const { return "AtRestAction"; }
 
@@ -44,9 +54,6 @@ public:
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 
-private:
-  AtRestActionStage(const AtRestActionStage &) = delete;
-  AtRestActionStage &operator=(const AtRestActionStage &) = delete;
 };
 
 } // namespace geantphysics

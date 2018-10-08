@@ -21,13 +21,37 @@
 namespace geantphysics {
 
 PostPropagationStage::PostPropagationStage(geant::Propagator *prop)
-    : SimulationStage(geant::kPostPropagationStage, prop)
+    : geant::SimulationStage(geant::kPostPropagationStage, prop)
 {
 }
 
 // base class will delete the created handlers
 PostPropagationStage::~PostPropagationStage()
 {
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PostPropagationStage::PostPropagationStage(const PostPropagationStage &other)
+             :geant::SimulationStage(other)
+{
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+PostPropagationStage& PostPropagationStage::operator=(const PostPropagationStage &other)
+{
+  geant::SimulationStage::operator=(other);
+  return *this;
+}
+
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+geant::SimulationStage *PostPropagationStage::Clone() const
+{
+  PostPropagationStage *stage = new PostPropagationStage(*this);
+  return stage;
 }
 
 int PostPropagationStage::CreateHandlers()

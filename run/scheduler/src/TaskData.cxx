@@ -59,6 +59,13 @@ TaskData::~TaskData()
   for (auto basket : fStageBuffers)
     delete basket;
   fStageBuffers.clear();
+  for (auto stage : fStages) {
+    if (stage->HasLocalHandlers()) {
+      stage->DeleteLocalHandlers();
+      delete stage;
+    }
+  }
+  fStages.clear();
 }
 
 //______________________________________________________________________________
@@ -81,9 +88,18 @@ void TaskData::AttachPropagator(Propagator *prop, int node)
   fStackBuffer = new StackLikeBuffer(prop->fConfig->fNstackLanes, this);
   fStackBuffer->SetStageBuffer(fStageBuffers[0]);
   fBlock = fPropagator->fTrackMgr->GetNewBlock();
-  for (size_t stage = 0; stage < kNstages; ++stage)
+  for (size_t stage = 0; stage < kNstages; ++stage) {
     fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
-  // std::cerr<<"AttachProp(): prop="<< prop <<", node="<< node <<", fBlock="<< fBlock <<"\n";
+    // Check if the stage has thread local handlers
+    if (!prop->fStages[stage]->HasLocalHandlers()) {
+      fStages.push_back(prop->fStages[stage]);
+    } else {
+      // Replace the stage with a thread local one
+      auto clone_stage = prop->fStages[stage]->Clone();
+      clone_stage->ReplaceLocalHandlers();
+      fStages.push_back(clone_stage);
+    }
+  }
 }
 
 //______________________________________________________________________________
