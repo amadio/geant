@@ -89,9 +89,8 @@ void TaskData::AttachPropagator(Propagator *prop, int node)
   fStackBuffer->SetStageBuffer(fStageBuffers[0]);
   fBlock = fPropagator->fTrackMgr->GetNewBlock();
   for (size_t stage = 0; stage < kNstages; ++stage) {
-    fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
     // Check if the stage has thread local handlers
-    if (!prop->fStages[stage]->HasLocalHandlers()) {
+    if (!prop->fStages[stage]->IsBasketized() || !prop->fStages[stage]->HasLocalHandlers()) {
       fStages.push_back(prop->fStages[stage]);
     } else {
       // Replace the stage with a thread local one
@@ -100,6 +99,15 @@ void TaskData::AttachPropagator(Propagator *prop, int node)
       clone_stage->ReplaceLocalHandlers();
       fStages.push_back(clone_stage);
     }
+  }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+void TaskData::CreateStageCounters(Propagator *prop)
+{
+  for (size_t stage = 0; stage < kNstages; ++stage) {
+    fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
   }
 }
 

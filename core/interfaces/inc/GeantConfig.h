@@ -77,6 +77,7 @@ public:
   bool fUseVectorizedPhysics = false; /** Use vectorized physics */
   bool fUseVectorizedMSC     = false; /** Use vectorized multiple scattering */
   bool fUseVectorizedField   = false; /** Use vectorized field */
+  bool fUseFastSim           = false; /** Use fast simulation */
 
   bool fSteppingVerbose = false; /** Enable verbose stepping at each step */
 

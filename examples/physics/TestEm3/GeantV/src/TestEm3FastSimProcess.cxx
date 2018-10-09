@@ -41,7 +41,7 @@ bool TestEm3FastSimProcess::IsApplicable(geant::Track *track) const
   return isOK;
 }
 
-int TestEm3FastSimProcess::FastSimDoIt(geantphysics::LightTrack &track, geant::TaskData *td)
+int TestEm3FastSimProcess::FastSimDoIt(geantphysics::LightTrack &track, geant::TaskData *)
 {
   std::cerr << "****** TestEm3FastSimDoIt called for "
             << geantphysics::Particle::GetParticleByInternalCode(track.GetGVcode())->GetName() << " with energy "

@@ -231,17 +231,20 @@ bool RunManager::Initialize()
   for (auto i = 0; i < fNpropagators; ++i)
     fPropagators[i]->Initialize();
 
-  TaskData *td = fTDManager->GetTaskData(0);
+  for (int i = 0; i < nthreads; i++) {
+    auto td = fTDManager->GetTaskData(i);
+    td->CreateStageCounters(fPropagators[0]);
+  }
 
   if (fConfig->fRunMode == GeantConfig::kExternalLoop) {
     for (auto i = 0; i < fNpropagators; ++i) {
       for (auto j = 0; j < fNthreads; ++j) {
-        td = fTDManager->GetTaskData(i * fNthreads + j);
+        auto td = fTDManager->GetTaskData(i * fNthreads + j);
         td->AttachPropagator(fPropagators[i], 0);
       }
     }
   } else {
-    td->AttachPropagator(fPropagators[0], 0);
+    fTDManager->GetTaskData(0)->AttachPropagator(fPropagators[0], 0);
   }
 
   // Initialize the event server

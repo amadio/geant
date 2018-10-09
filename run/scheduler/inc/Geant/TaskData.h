@@ -132,6 +132,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   void AttachPropagator(Propagator *prop, int node);
 
+  /** @brief Create the stage counters  */
+  VECCORE_ATT_HOST_DEVICE
+  void CreateStageCounters(Propagator *prop);
+
   /**
    * @brief Function that return double array
    *

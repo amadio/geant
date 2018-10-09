@@ -31,12 +31,12 @@ FastSimProcess::FastSimProcess(const std::string &name, const std::vector<int> &
 
 FastSimProcess::~FastSimProcess() {}
 
-bool FastSimProcess::IsApplicable(geant::Track *track) const
+bool FastSimProcess::IsApplicable(geant::Track *) const
 {
   return true;
 }
 
-int FastSimProcess::FastSimDoIt(LightTrack &track, geant::TaskData *td)
+int FastSimProcess::FastSimDoIt(LightTrack &, geant::TaskData *)
 {
   return 0;
 }
