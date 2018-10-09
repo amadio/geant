@@ -121,7 +121,7 @@ void Handler::ActivateBasketizing(bool flag)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Handler::AddTrack(Track *track, Basket &collector, TaskData *td)
+bool Handler::AddTrack(Track *track, Basket &collector, TaskData *)
 {
   // Adding a track to the handler assumes that the handler is basketized.
   // The track will be pushed into the basketizer. The calling thread has to
@@ -139,7 +139,7 @@ bool Handler::AddTrack(Track *track, Basket &collector, TaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool Handler::Flush(Basket &collector, TaskData *td)
+bool Handler::Flush(Basket &collector, TaskData *)
 {
 // Flush if possible remaining tracks from the basketizer into the collector basket.
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
@@ -158,17 +158,22 @@ bool Handler::Flush(Basket &collector, TaskData *td)
   return flushed;
 }
 
-LocalHandler::LocalHandler(Handler *handler) : fHandler(handler)
+//______________________________________________________________________________
+LocalHandler::LocalHandler(Handler *handler) : Handler(*handler), fHandler(handler)
 {
   fThreshold.store(fHandler->GetThreshold());
+  fThr = fHandler->GetThreshold();
   fLocalBasket.reserve(fThreshold);
+  // Activate basketizing for local handlers that may basketize
+  fActive = fMayBasketize;
 }
 
+//______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool LocalHandler::AddTrack(Track *track, Basket &collector, TaskData *td)
+bool LocalHandler::AddTrack(Track *track, Basket &collector, TaskData *)
 {
   fLocalBasket.push_back(track);
-  if (fLocalBasket.size() == (size_t)fThreshold) {
+  if (fLocalBasket.size() == fThr) {
     // Copy tracks in the collector
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
     std::copy(fLocalBasket.begin(), fLocalBasket.end(),
@@ -186,8 +191,9 @@ bool LocalHandler::AddTrack(Track *track, Basket &collector, TaskData *td)
   return false;
 }
 
+//______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-bool LocalHandler::Flush(Basket &collector, TaskData *td)
+bool LocalHandler::Flush(Basket &collector, TaskData *)
 {
   bool flush = fLocalBasket.size() > 0;
   if (flush) {

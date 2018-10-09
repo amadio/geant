@@ -1,5 +1,6 @@
 #include "Geant/SimulationStage.h"
 
+#include <typeinfo>
 #include "Geant/TaskData.h"
 #include "Geant/Propagator.h"
 #include "Geant/RunManager.h"
@@ -87,8 +88,10 @@ VECCORE_ATT_HOST_DEVICE
 void SimulationStage::ReplaceLocalHandlers()
 {
   for (size_t i = 0; i < fHandlers.size(); ++i) {
-    if (fHandlers[i]->IsLocal())
+    if (fHandlers[i]->IsLocal()) {
+      Printf("   ... creating local handler of type: %s", typeid(*fHandlers[i]).name());
       fHandlers[i] = new LocalHandler(fHandlers[i]);
+    }
   }
 }
 
@@ -112,7 +115,8 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
 {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   // do not touch if other checking operation is ongoing
-  if (fCheckLock.test_and_set(std::memory_order_acquire)) return false;
+  if (td->fCounters[fId]->GetNcalls() == 0 ||
+      fCheckLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
   fThrBasketCheck *= 3.;
   fCheckCountdown = fThrBasketCheck;
@@ -125,7 +129,7 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
   for (int i = 0; i < GetNhandlers(); ++i) {
     if (!fHandlers[i]->MayBasketize()) continue;
     size_t nflushed = fPropagator->fRunMgr->GetNflushed(fId, i);
-    size_t nfired   = fPropagator->fRunMgr->GetNflushed(fId, i);
+    size_t nfired   = fPropagator->fRunMgr->GetNfired(fId, i);
     nflushedtot += nflushed;
     nfiredtot += nfired;
     if (fHandlers[i]->IsActive()) {

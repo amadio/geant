@@ -72,6 +72,9 @@ struct BasketCounters {
   }
 
   GEANT_FORCE_INLINE
+  size_t GetNcalls() const { return (fNscalar + fNvector); }
+
+  GEANT_FORCE_INLINE
   void Increment(size_t ihandler, size_t threshold)
   {
     fCounters[ihandler]++;

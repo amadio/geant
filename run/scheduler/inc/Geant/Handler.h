@@ -183,6 +183,7 @@ class LocalHandler : public Handler {
 
 private:
   TrackVec_t fLocalBasket;             ///< Local basket for thread local handler
+  size_t fThr;                         ///< Thread-local threshold
   Handler *fHandler;                   ///< Handler to which this applies (no state)
 
   LocalHandler(const LocalHandler &) = delete;
@@ -195,6 +196,10 @@ public:
   VECCORE_ATT_HOST_DEVICE
   Handler *GetHandler() const { return fHandler; }
  
+   /** @brief Activate/de-activate the handler */
+  VECCORE_ATT_HOST_DEVICE
+  virtual void ActivateBasketizing(bool flag) { fActive = flag; }
+
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(Track *track, Basket &output, TaskData *td) { fHandler->DoIt(track, output, td); }
