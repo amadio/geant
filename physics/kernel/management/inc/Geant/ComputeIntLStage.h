@@ -11,8 +11,8 @@ class Propagator;
 class Track;
 class TaskData;
 class Handler;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 namespace geantphysics {
 
@@ -53,7 +53,6 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
-
 };
 
 } // namespace geantphysics

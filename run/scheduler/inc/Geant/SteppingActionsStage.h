@@ -60,7 +60,7 @@ public:
   virtual const char *GetName() const { return "SteppingActions"; }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

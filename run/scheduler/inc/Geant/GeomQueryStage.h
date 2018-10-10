@@ -28,7 +28,7 @@ public:
   /** @brief Clone the stage and copy the existing handlers **/
   VECCORE_ATT_HOST_DEVICE
   virtual SimulationStage *Clone() const;
-  
+
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
@@ -66,7 +66,7 @@ public:
   void ActivateBasketizing(bool flag = true);
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

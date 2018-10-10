@@ -151,8 +151,8 @@ void PreSet(int num)
   // Preset default values for only 2 absorbers
   parDetAbsThicknesses[0] = 0.23;
   parDetAbsThicknesses[1] = 0.57;
-  parDetAbsMaterials[0] = "NIST_MAT_Pb";
-  parDetAbsMaterials[1] = "NIST_MAT_lAr";
+  parDetAbsMaterials[0]   = "NIST_MAT_Pb";
+  parDetAbsMaterials[1]   = "NIST_MAT_lAr";
 }
 
 static struct option options[] = {{"det-number-of-absorbers", required_argument, 0, 'a'},

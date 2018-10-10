@@ -9,25 +9,19 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomQueryStage::GeomQueryStage(Propagator *prop) : SimulationStage(kGeometryStepStage, prop)
-{
-}
+GeomQueryStage::GeomQueryStage(Propagator *prop) : SimulationStage(kGeometryStepStage, prop) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomQueryStage::GeomQueryStage(const GeomQueryStage &other)
-             :SimulationStage(other)
-{
-}
+GeomQueryStage::GeomQueryStage(const GeomQueryStage &other) : SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-GeomQueryStage& GeomQueryStage::operator=(const GeomQueryStage &other)
+GeomQueryStage &GeomQueryStage::operator=(const GeomQueryStage &other)
 {
   SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -77,5 +71,5 @@ Handler *GeomQueryStage::Select(Track *track, TaskData *)
   return (fHandlers[link->index]);
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

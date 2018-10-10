@@ -33,7 +33,7 @@ PostPropagationVectorStage::~PostPropagationVectorStage() {}
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 PostPropagationVectorStage::PostPropagationVectorStage(const PostPropagationVectorStage &other)
-             :geant::SimulationStage(other)
+    : geant::SimulationStage(other)
 {
   for (auto handler : other.fHandlersPerModel)
     fHandlersPerModel.push_back(handler);
@@ -41,14 +41,13 @@ PostPropagationVectorStage::PostPropagationVectorStage(const PostPropagationVect
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PostPropagationVectorStage& PostPropagationVectorStage::operator=(const PostPropagationVectorStage &other)
+PostPropagationVectorStage &PostPropagationVectorStage::operator=(const PostPropagationVectorStage &other)
 {
   geant::SimulationStage::operator=(other);
   for (auto handler : other.fHandlersPerModel)
     fHandlersPerModel.push_back(handler);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -85,10 +84,9 @@ void PostPropagationVectorStage::ReplaceLocalHandlers()
 {
   geant::SimulationStage::ReplaceLocalHandlers();
   auto &modelTable = geantphysics::EMModel::GetGlobalTable();
-  size_t i = 0;
+  size_t i         = 0;
   for (size_t m = 0; m < modelTable.size(); ++m) {
-    if (!modelTable[m]->IsMSCModel())
-      continue;
+    if (!modelTable[m]->IsMSCModel()) continue;
     if (fHandlers[i]->IsLocal()) {
       fHandlersPerModel[m] = fHandlers[i];
     }

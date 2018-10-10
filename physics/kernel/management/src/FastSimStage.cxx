@@ -29,19 +29,15 @@ FastSimStage::~FastSimStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-FastSimStage::FastSimStage(const FastSimStage &other)
-             :geant::SimulationStage(other)
-{
-}
+FastSimStage::FastSimStage(const FastSimStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-FastSimStage& FastSimStage::operator=(const FastSimStage &other)
+FastSimStage &FastSimStage::operator=(const FastSimStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

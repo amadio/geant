@@ -21,13 +21,13 @@ using vector_t = std::vector<T>;
 #endif
 
 namespace geantphysics {
-  class Particle;
+class Particle;
 
-  enum EModel_t {
-    kMSC = GEANT_BIT(0)
-    // others to be added
-  };
-}
+enum EModel_t {
+  kMSC = GEANT_BIT(0)
+  // others to be added
+};
+} // namespace geantphysics
 typedef geantphysics::Particle Particle_t;
 
 #include "navigation/NavigationState.h"

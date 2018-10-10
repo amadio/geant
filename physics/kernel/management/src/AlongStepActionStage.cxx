@@ -28,25 +28,19 @@ AlongStepActionStage::AlongStepActionStage(geant::Propagator *prop)
 }
 
 // base class will delete the created handlers
-AlongStepActionStage::~AlongStepActionStage()
-{
-}
+AlongStepActionStage::~AlongStepActionStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-AlongStepActionStage::AlongStepActionStage(const AlongStepActionStage &other)
-             :geant::SimulationStage(other)
-{
-}
+AlongStepActionStage::AlongStepActionStage(const AlongStepActionStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-AlongStepActionStage& AlongStepActionStage::operator=(const AlongStepActionStage &other)
+AlongStepActionStage &AlongStepActionStage::operator=(const AlongStepActionStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

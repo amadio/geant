@@ -31,7 +31,7 @@ FastSimHandler::~FastSimHandler() {}
 void FastSimHandler::DoIt(geant::Track *track, geant::Basket &output, geant::TaskData *td)
 {
   // ---
-  //int numSecondaries = 0;
+  // int numSecondaries = 0;
   // here we will get the MaterialCuts from the LogicalVolume
   const MaterialCuts *matCut = static_cast<const MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(track->GetVolume())->GetMaterialCutsPtr()));

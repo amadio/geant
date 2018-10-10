@@ -59,7 +59,7 @@ public:
   virtual const char *GetName() const { return "PreStep"; }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

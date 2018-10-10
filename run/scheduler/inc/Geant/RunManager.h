@@ -222,7 +222,6 @@ public:
   size_t GetNflushed(size_t istage, size_t ihandler) const;
   size_t GetNscalar(size_t istage) const;
   size_t GetNvector(size_t istage) const;
-
 };
 
 } // namespace GEANT_IMPL_NAMESPACE

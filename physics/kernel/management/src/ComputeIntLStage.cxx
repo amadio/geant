@@ -22,30 +22,22 @@
 
 namespace geantphysics {
 
-ComputeIntLStage::ComputeIntLStage(geant::Propagator *prop) : geant::SimulationStage(geant::kComputeIntLStage, prop)
-{
-}
+ComputeIntLStage::ComputeIntLStage(geant::Propagator *prop) : geant::SimulationStage(geant::kComputeIntLStage, prop) {}
 
 // base class will delete the created handlers
-ComputeIntLStage::~ComputeIntLStage()
-{
-}
+ComputeIntLStage::~ComputeIntLStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-ComputeIntLStage::ComputeIntLStage(const ComputeIntLStage &other)
-             :geant::SimulationStage(other)
-{
-}
+ComputeIntLStage::ComputeIntLStage(const ComputeIntLStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-ComputeIntLStage& ComputeIntLStage::operator=(const ComputeIntLStage &other)
+ComputeIntLStage &ComputeIntLStage::operator=(const ComputeIntLStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

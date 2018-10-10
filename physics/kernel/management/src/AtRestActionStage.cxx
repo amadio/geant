@@ -22,26 +22,24 @@
 
 namespace geantphysics {
 
-AtRestActionStage::AtRestActionStage(geant::Propagator *prop) : geant::SimulationStage(geant::kAtRestActionStage, prop) {}
+AtRestActionStage::AtRestActionStage(geant::Propagator *prop) : geant::SimulationStage(geant::kAtRestActionStage, prop)
+{
+}
 
 // base class will delete the created handlers
 AtRestActionStage::~AtRestActionStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-AtRestActionStage::AtRestActionStage(const AtRestActionStage &other)
-             :geant::SimulationStage(other)
-{
-}
+AtRestActionStage::AtRestActionStage(const AtRestActionStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-AtRestActionStage& AtRestActionStage::operator=(const AtRestActionStage &other)
+AtRestActionStage &AtRestActionStage::operator=(const AtRestActionStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

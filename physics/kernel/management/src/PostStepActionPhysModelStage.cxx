@@ -37,7 +37,7 @@ PostStepActionPhysModelStage::~PostStepActionPhysModelStage() {}
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 PostStepActionPhysModelStage::PostStepActionPhysModelStage(const PostStepActionPhysModelStage &other)
-             :geant::SimulationStage(other)
+    : geant::SimulationStage(other)
 {
   for (auto handler : other.fHandlersPerModel)
     fHandlersPerModel.push_back(handler);
@@ -45,14 +45,13 @@ PostStepActionPhysModelStage::PostStepActionPhysModelStage(const PostStepActionP
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PostStepActionPhysModelStage& PostStepActionPhysModelStage::operator=(const PostStepActionPhysModelStage &other)
+PostStepActionPhysModelStage &PostStepActionPhysModelStage::operator=(const PostStepActionPhysModelStage &other)
 {
   geant::SimulationStage::operator=(other);
   for (auto handler : other.fHandlersPerModel)
     fHandlersPerModel.push_back(handler);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

@@ -18,21 +18,19 @@ PropagationStage::PropagationStage(Propagator *prop) : SimulationStage(kPropagat
 }
 
 VECCORE_ATT_HOST_DEVICE
-PropagationStage::PropagationStage(const PropagationStage &other)
-             :SimulationStage(other)
+PropagationStage::PropagationStage(const PropagationStage &other) : SimulationStage(other)
 {
   fHasField = other.fHasField;
 }
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PropagationStage& PropagationStage::operator=(const PropagationStage &other)
+PropagationStage &PropagationStage::operator=(const PropagationStage &other)
 {
   SimulationStage::operator=(other);
-  fHasField = other.fHasField;
+  fHasField                = other.fHasField;
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -47,7 +45,7 @@ VECCORE_ATT_HOST_DEVICE
 int PropagationStage::CreateHandlers()
 {
   // Create all volume handlers.
-  int threshold = fPropagator->fConfig->fNperBasket;
+  int threshold                     = fPropagator->fConfig->fNperBasket;
   LinearPropagationHandler *hlinear = new LinearPropagationHandler(threshold, fPropagator);
   FieldPropagationHandler *hfield   = new FieldPropagationHandler(threshold, fPropagator);
   hlinear->SetMayBasketize(false);

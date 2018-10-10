@@ -21,30 +21,25 @@
 
 namespace geantphysics {
 
-PostStepActionStage::PostStepActionStage(geant::Propagator *prop) : geant::SimulationStage(geant::kPostStepActionStage, prop)
+PostStepActionStage::PostStepActionStage(geant::Propagator *prop)
+    : geant::SimulationStage(geant::kPostStepActionStage, prop)
 {
 }
 
 // base class will delete the created handlers
-PostStepActionStage::~PostStepActionStage()
-{
-}
+PostStepActionStage::~PostStepActionStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PostStepActionStage::PostStepActionStage(const PostStepActionStage &other)
-             :geant::SimulationStage(other)
-{
-}
+PostStepActionStage::PostStepActionStage(const PostStepActionStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PostStepActionStage& PostStepActionStage::operator=(const PostStepActionStage &other)
+PostStepActionStage &PostStepActionStage::operator=(const PostStepActionStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

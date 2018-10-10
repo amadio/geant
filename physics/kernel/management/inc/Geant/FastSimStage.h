@@ -53,7 +53,6 @@ public:
 
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
-
 };
 
 } // namespace geantphysics

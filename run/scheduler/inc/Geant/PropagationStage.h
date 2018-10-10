@@ -23,10 +23,9 @@ inline namespace GEANT_IMPL_NAMESPACE {
 class PropagationStage : public SimulationStage {
 
 protected:
-  bool fHasField = true;           ///< Setup has field
+  bool fHasField = true; ///< Setup has field
 
 public:
-
   enum EModel_t {
     kLinearPropagator = GEANT_BIT(0),
     kFieldPropagator  = GEANT_BIT(1),
@@ -70,7 +69,7 @@ public:
   virtual const char *GetName() const { return "Propagation"; }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

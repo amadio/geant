@@ -293,7 +293,7 @@ int Propagator::CreateSimulationStages()
   stage = new PropagationStage(this);
   stage->SetLocalHandlers(PropagationStage::kFieldPropagator);
   assert(stage->GetId() == int(kPropagationStage));
-  
+
   // kPostPropagationStage
   stage = fPhysicsInterface->CreatePostPropagationStage(this);
   stage->SetLocalHandlers(geantphysics::kMSC);

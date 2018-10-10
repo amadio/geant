@@ -8,25 +8,19 @@ inline namespace GEANT_IMPL_NAMESPACE {
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SteppingActionsStage::SteppingActionsStage(Propagator *prop) : SimulationStage(kSteppingActionsStage, prop)
-{
-}
+SteppingActionsStage::SteppingActionsStage(Propagator *prop) : SimulationStage(kSteppingActionsStage, prop) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SteppingActionsStage::SteppingActionsStage(const SteppingActionsStage &other)
-             :SimulationStage(other)
-{
-}
+SteppingActionsStage::SteppingActionsStage(const SteppingActionsStage &other) : SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-SteppingActionsStage& SteppingActionsStage::operator=(const SteppingActionsStage &other)
+SteppingActionsStage &SteppingActionsStage::operator=(const SteppingActionsStage &other)
 {
   SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
@@ -59,5 +53,5 @@ Handler *SteppingActionsStage::Select(Track *, TaskData *)
   return fHandlers[0];
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

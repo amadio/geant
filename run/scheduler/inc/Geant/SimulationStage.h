@@ -73,7 +73,7 @@ private:
   int CopyToFollowUps(Basket &output, TaskData *td);
 
   /** @brief  Check efficiency of basketizers. If less than threshold, flush and de-activate.
-    * @return number of deactivated basketizers */
+   * @return number of deactivated basketizers */
   VECCORE_ATT_HOST_DEVICE
   int CheckBasketizers(TaskData *td, size_t flush_threshold);
 
@@ -255,7 +255,7 @@ public:
   void SetEndStage() { fEndStage = true; }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

@@ -43,15 +43,15 @@ struct BasketCounters {
 
   ~BasketCounters()
   {
-    delete [] fCounters;
-    delete [] fFired;
-    delete [] fFlushed;
+    delete[] fCounters;
+    delete[] fFired;
+    delete[] fFlushed;
   }
 
   GEANT_FORCE_INLINE
   void Reset()
   {
-    for (size_t i  = 0; i < fNhandlers; ++i) {
+    for (size_t i = 0; i < fNhandlers; ++i) {
       fCounters[i] = 0;
       fFired[i]    = 0;
       fFlushed[i]  = 0;
@@ -65,8 +65,8 @@ struct BasketCounters {
     fNvector += other.fNvector;
     for (size_t i = 0; i < fNhandlers; ++i) {
       fCounters[i] += other.fCounters[i];
-      fFired[i]    += other.fFired[i];
-      fFlushed[i]  += other.fFlushed[i];
+      fFired[i] += other.fFired[i];
+      fFlushed[i] += other.fFlushed[i];
     }
     return *this;
   }
@@ -83,6 +83,6 @@ struct BasketCounters {
   }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 #endif // GEANT_BASKET_COUNTERS

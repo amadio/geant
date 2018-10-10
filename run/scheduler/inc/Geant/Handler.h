@@ -9,7 +9,7 @@
  * @details A handler performs a specific operation in the stepping algorithm
  *  for a single track or for a group of tracks. A handler implementation must
  *  implement at least the scalar DoIt interface and optionally the vector DoIt.
-*
+ *
  * @author Andrei Gheata
  */
 //===----------------------------------------------------------------------===//
@@ -182,9 +182,9 @@ public:
 class LocalHandler : public Handler {
 
 private:
-  TrackVec_t fLocalBasket;             ///< Local basket for thread local handler
-  size_t fThr;                         ///< Thread-local threshold
-  Handler *fHandler;                   ///< Handler to which this applies (no state)
+  TrackVec_t fLocalBasket; ///< Local basket for thread local handler
+  size_t fThr;             ///< Thread-local threshold
+  Handler *fHandler;       ///< Handler to which this applies (no state)
 
   LocalHandler(const LocalHandler &) = delete;
   LocalHandler &operator=(const LocalHandler &) = delete;
@@ -195,8 +195,8 @@ public:
   /** @brief Scalar DoIt interface */
   VECCORE_ATT_HOST_DEVICE
   Handler *GetHandler() const { return fHandler; }
- 
-   /** @brief Activate/de-activate the handler */
+
+  /** @brief Activate/de-activate the handler */
   VECCORE_ATT_HOST_DEVICE
   virtual void ActivateBasketizing(bool flag) { fActive = flag; }
 
@@ -222,11 +222,9 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   virtual bool HasTracks() const { return fLocalBasket.size() > 0; }
-
 };
 
-
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

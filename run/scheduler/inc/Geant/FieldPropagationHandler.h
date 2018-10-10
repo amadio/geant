@@ -139,7 +139,7 @@ inline void FieldPropagationHandler::PrepareBuffers(size_t nTracks, TaskData *td
   auto wsp = td->fSpace4FieldProp;
   assert(wsp);
   if (nTracks > wsp->capacity()) {
-    //std::cout << "Calling ClearAndResizeBuffers on task/thread " << td->fTid << " with tracks = " << nTracks
+    // std::cout << "Calling ClearAndResizeBuffers on task/thread " << td->fTid << " with tracks = " << nTracks
     //          << " . Note: capacity = " << wsp->capacity() << std::endl;
     wsp->ClearAndResize(nTracks);
   } else {

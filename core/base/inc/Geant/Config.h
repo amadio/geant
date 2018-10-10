@@ -24,10 +24,10 @@
 #endif
 
 // Utility macros
-#define GEANT_BIT(n)       (1ULL << (n))
-#define GEANT_SETBIT(n,i)  ((n) |= BIT(i))
-#define GEANT_CLRBIT(n,i)  ((n) &= ~BIT(i))
-#define GEANT_TESTBIT(n,i) ((bool)(((n) & BIT(i)) != 0))
+#define GEANT_BIT(n) (1ULL << (n))
+#define GEANT_SETBIT(n, i) ((n) |= BIT(i))
+#define GEANT_CLRBIT(n, i) ((n) &= ~BIT(i))
+#define GEANT_TESTBIT(n, i) ((bool)(((n)&BIT(i)) != 0))
 
 //////////////////////////////////////////
 // Declaration for constant define in the

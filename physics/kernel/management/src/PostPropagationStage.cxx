@@ -26,25 +26,19 @@ PostPropagationStage::PostPropagationStage(geant::Propagator *prop)
 }
 
 // base class will delete the created handlers
-PostPropagationStage::~PostPropagationStage()
-{
-}
+PostPropagationStage::~PostPropagationStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PostPropagationStage::PostPropagationStage(const PostPropagationStage &other)
-             :geant::SimulationStage(other)
-{
-}
+PostPropagationStage::PostPropagationStage(const PostPropagationStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PostPropagationStage& PostPropagationStage::operator=(const PostPropagationStage &other)
+PostPropagationStage &PostPropagationStage::operator=(const PostPropagationStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

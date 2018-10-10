@@ -41,11 +41,11 @@ Handler::~Handler()
 VECCORE_ATT_HOST_DEVICE
 Handler::Handler(const Handler &other)
 {
-  fThreadLocal = other.fThreadLocal;
-  fActive = other.fActive;
+  fThreadLocal  = other.fThreadLocal;
+  fActive       = other.fActive;
   fMayBasketize = other.fMayBasketize;
-  fId = other.fId;
-  fBcap = other.fBcap;
+  fId           = other.fId;
+  fBcap         = other.fBcap;
   fThreshold.store(other.fThreshold.load());
   // Do not copy state counters, nor basketizer
   fPropagator = other.fPropagator;
@@ -58,11 +58,11 @@ VECCORE_ATT_HOST_DEVICE
 Handler &Handler::operator=(const Handler &other)
 {
   if (&other != this) {
-    fThreadLocal = other.fThreadLocal;
-    fActive = other.fActive;
+    fThreadLocal  = other.fThreadLocal;
+    fActive       = other.fActive;
     fMayBasketize = other.fMayBasketize;
-    fId = other.fId;
-    fBcap = other.fBcap;
+    fId           = other.fId;
+    fBcap         = other.fBcap;
     fThreshold.store(other.fThreshold.load());
     // Do not copy state counters, nor basketizer
     fPropagator = other.fPropagator;
@@ -176,8 +176,7 @@ bool LocalHandler::AddTrack(Track *track, Basket &collector, TaskData *)
   if (fLocalBasket.size() == fThr) {
     // Copy tracks in the collector
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    std::copy(fLocalBasket.begin(), fLocalBasket.end(),
-              std::back_inserter(collector.Tracks()));
+    std::copy(fLocalBasket.begin(), fLocalBasket.end(), std::back_inserter(collector.Tracks()));
 #else
     auto &insertee(td->fStageBuffers[fFollowUpStage]->Tracks());
     for (auto track : fLocalBasket) {
@@ -198,8 +197,7 @@ bool LocalHandler::Flush(Basket &collector, TaskData *)
   bool flush = fLocalBasket.size() > 0;
   if (flush) {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
-    std::copy(fLocalBasket.begin(), fLocalBasket.end(),
-              std::back_inserter(collector.Tracks()));
+    std::copy(fLocalBasket.begin(), fLocalBasket.end(), std::back_inserter(collector.Tracks()));
 #else
     auto &insertee(td->fStageBuffers[fFollowUpStage]->Tracks());
     for (auto track : fLocalBasket) {
@@ -207,10 +205,10 @@ bool LocalHandler::Flush(Basket &collector, TaskData *)
       collector.Tracks().push_back(track);
     }
 #endif
-    fLocalBasket.clear();    
+    fLocalBasket.clear();
   }
   return flush;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

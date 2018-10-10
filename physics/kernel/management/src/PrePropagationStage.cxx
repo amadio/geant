@@ -20,30 +20,25 @@
 
 namespace geantphysics {
 
-PrePropagationStage::PrePropagationStage(geant::Propagator *prop) : geant::SimulationStage(geant::kPrePropagationStage, prop)
+PrePropagationStage::PrePropagationStage(geant::Propagator *prop)
+    : geant::SimulationStage(geant::kPrePropagationStage, prop)
 {
 }
 
 // base class will delete the created handlers
-PrePropagationStage::~PrePropagationStage()
-{
-}
+PrePropagationStage::~PrePropagationStage() {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PrePropagationStage::PrePropagationStage(const PrePropagationStage &other)
-             :geant::SimulationStage(other)
-{
-}
+PrePropagationStage::PrePropagationStage(const PrePropagationStage &other) : geant::SimulationStage(other) {}
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-PrePropagationStage& PrePropagationStage::operator=(const PrePropagationStage &other)
+PrePropagationStage &PrePropagationStage::operator=(const PrePropagationStage &other)
 {
   geant::SimulationStage::operator=(other);
   return *this;
 }
-
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE

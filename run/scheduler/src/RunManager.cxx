@@ -362,7 +362,7 @@ void RunManager::InitializeRKdata(TaskData *td) const
 
   if (!td->fSpace4FieldProp) td->fSpace4FieldProp = new WorkspaceForFieldPropagation(fConfig->fNperBasket);
 
-  //std::cout << "=== FieldPropagationHandler::Initialize called for thread " << td->fTid << std::endl;
+  // std::cout << "=== FieldPropagationHandler::Initialize called for thread " << td->fTid << std::endl;
 }
 
 //______________________________________________________________________________
@@ -619,7 +619,6 @@ size_t RunManager::GetNvector(size_t istage) const
     nvector += fTDManager->GetTaskData(i)->fCounters[istage]->fNvector;
   return nvector;
 }
-
 
 } // namespace GEANT_IMPL_NAMESPACE
 } // namespace geant

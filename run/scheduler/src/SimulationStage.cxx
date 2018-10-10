@@ -80,8 +80,7 @@ bool SimulationStage::HasLocalHandlers() const
 {
   // This does a thorough check if any handler is really local
   for (auto handler : fHandlers) {
-    if (handler->IsLocal())
-      return true;
+    if (handler->IsLocal()) return true;
   }
   return false;
 }
@@ -104,7 +103,7 @@ void SimulationStage::DeleteLocalHandlers()
 {
   for (size_t i = 0; i < fHandlers.size(); ++i) {
     if (fHandlers[i]->IsLocal()) {
-      auto handler = ((LocalHandler*)fHandlers[i])->GetHandler();
+      auto handler = ((LocalHandler *)fHandlers[i])->GetHandler();
       delete fHandlers[i];
       fHandlers[i] = handler;
       fHandlers.clear();
@@ -118,8 +117,7 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
 {
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   // do not touch if other checking operation is ongoing
-  if (td->fCounters[fId]->GetNcalls() == 0 ||
-      fCheckLock.test_and_set(std::memory_order_acquire)) return false;
+  if (td->fCounters[fId]->GetNcalls() == 0 || fCheckLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
   fThrBasketCheck *= 5.;
   fCheckCountdown = fThrBasketCheck;
@@ -154,9 +152,9 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
       }
     }
   }
-  //float nbasketized = td->fCounters[fId]->fNvector;
-  //float ntotal      = nbasketized + td->fCounters[fId]->fNscalar;
-  //Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld", GetName(),
+  // float nbasketized = td->fCounters[fId]->fNvector;
+  // float ntotal      = nbasketized + td->fCounters[fId]->fNscalar;
+  // Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld", GetName(),
   //       int(100 * nbasketized / ntotal), size_t(ntotal - nbasketized), size_t(nbasketized), nfiredtot, nflushedtot);
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
