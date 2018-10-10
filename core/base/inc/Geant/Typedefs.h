@@ -21,7 +21,12 @@ using vector_t = std::vector<T>;
 #endif
 
 namespace geantphysics {
-class Particle;
+  class Particle;
+
+  enum EModel_t {
+    kMSC = GEANT_BIT(0)
+    // others to be added
+  };
 }
 typedef geantphysics::Particle Particle_t;
 

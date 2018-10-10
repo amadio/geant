@@ -290,11 +290,13 @@ int Propagator::CreateSimulationStages()
   //  assert(stage->GetId() == int(kGeometryStepStage));
 
   // kPropagationStage
-  auto prop_stage = new PropagationStage(this);
-  prop_stage->SetLocalFieldHandler(true);
-  assert(prop_stage->GetId() == int(kPropagationStage));
+  stage = new PropagationStage(this);
+  stage->SetLocalHandlers(PropagationStage::kFieldPropagator);
+  assert(stage->GetId() == int(kPropagationStage));
+  
   // kPostPropagationStage
   stage = fPhysicsInterface->CreatePostPropagationStage(this);
+  stage->SetLocalHandlers(geantphysics::kMSC);
   assert(stage->GetId() == int(kPostPropagationStage));
 
   // kContinuousProcStage

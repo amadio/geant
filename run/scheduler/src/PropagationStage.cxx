@@ -22,7 +22,6 @@ PropagationStage::PropagationStage(const PropagationStage &other)
              :SimulationStage(other)
 {
   fHasField = other.fHasField;
-  fLocalFieldHandler = other.fLocalFieldHandler;
 }
 
 //______________________________________________________________________________
@@ -49,12 +48,15 @@ int PropagationStage::CreateHandlers()
 {
   // Create all volume handlers.
   int threshold = fPropagator->fConfig->fNperBasket;
-  AddHandler(new LinearPropagationHandler(threshold, fPropagator));
-  auto handler = new FieldPropagationHandler(threshold, fPropagator);
-  handler->SetLocal(fLocalFieldHandler);
-  handler->SetMayBasketize(true);
-  AddHandler(handler);
+  LinearPropagationHandler *hlinear = new LinearPropagationHandler(threshold, fPropagator);
+  FieldPropagationHandler *hfield   = new FieldPropagationHandler(threshold, fPropagator);
+  hlinear->SetMayBasketize(false);
+  hlinear->SetLocal(bool(fLocalHandlers & kLinearPropagator));
+  hfield->SetMayBasketize(true);
+  hfield->SetLocal(bool(fLocalHandlers & kFieldPropagator));
 
+  AddHandler(hlinear);
+  AddHandler(hfield);
   return 2;
 }
 

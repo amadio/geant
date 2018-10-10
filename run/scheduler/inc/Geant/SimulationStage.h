@@ -57,6 +57,7 @@ protected:
   size_t fThrBasketCheck  = 0;             ///< Threshold for starting checking efficiency of basketizing
   size_t fNstaged         = 0;             ///< Total number of staged tracks
   size_t fNbasketized     = 0;             ///< Number of basketized handlers
+  size_t fLocalHandlers   = 0;             ///< Local handlers (created only if basketizing is ON)
   bool fUniqueFollowUp    = false;         ///< All tracks go to single follow-up after this stage
   bool fEndStage          = false;         ///< Marker for stage at end of stepping
   bool fBasketized        = false;         ///< Stage is basketized
@@ -222,9 +223,17 @@ public:
   VECCORE_ATT_HOST_DEVICE
   bool HasLocalHandlers() const;
 
+  /** @brief Getter for number of handlers */
+  VECCORE_ATT_HOST_DEVICE
+  size_t GetLocalHandlers() const { return fLocalHandlers; }
+
+  /** @brief Getter for number of handlers */
+  VECCORE_ATT_HOST_DEVICE
+  void SetLocalHandlers(size_t mask) { fLocalHandlers = mask; }
+
   /** @brief Replace local handlers with LocalHandler */
   VECCORE_ATT_HOST_DEVICE
-  void ReplaceLocalHandlers();
+  virtual void ReplaceLocalHandlers();
 
   /** @brief Replace local handlers with LocalHandler */
   VECCORE_ATT_HOST_DEVICE

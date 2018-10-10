@@ -44,6 +44,10 @@ public:
    *  @return Number of handlers created */
   virtual int CreateHandlers();
 
+  /** @brief Replace local handlers with LocalHandler */
+  VECCORE_ATT_HOST_DEVICE
+  virtual void ReplaceLocalHandlers();
+
   /** @brief Interface to select the handler matching a track */
   virtual geant::Handler *Select(geant::Track *track, geant::TaskData *td);
 

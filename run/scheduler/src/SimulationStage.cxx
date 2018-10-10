@@ -43,6 +43,7 @@ SimulationStage::SimulationStage(const SimulationStage &other)
   fThrBasketCheck   = other.fThrBasketCheck;
   fNstaged          = other.fNstaged;
   fNbasketized      = other.fNbasketized;
+  fLocalHandlers    = other.fLocalHandlers;
   fUniqueFollowUp   = other.fUniqueFollowUp;
   fEndStage         = other.fEndStage;
   fBasketized       = other.fBasketized;
@@ -63,6 +64,7 @@ SimulationStage &SimulationStage::operator=(const SimulationStage &other)
     fThrBasketCheck   = other.fThrBasketCheck;
     fNstaged          = other.fNstaged;
     fNbasketized      = other.fNbasketized;
+    fLocalHandlers    = other.fLocalHandlers;
     fUniqueFollowUp   = other.fUniqueFollowUp;
     fEndStage         = other.fEndStage;
     fBasketized       = other.fBasketized;
@@ -76,6 +78,7 @@ SimulationStage &SimulationStage::operator=(const SimulationStage &other)
 VECCORE_ATT_HOST_DEVICE
 bool SimulationStage::HasLocalHandlers() const
 {
+  // This does a thorough check if any handler is really local
   for (auto handler : fHandlers) {
     if (handler->IsLocal())
       return true;
@@ -89,7 +92,7 @@ void SimulationStage::ReplaceLocalHandlers()
 {
   for (size_t i = 0; i < fHandlers.size(); ++i) {
     if (fHandlers[i]->IsLocal()) {
-      Printf("   ... creating local handler of type: %s", typeid(*fHandlers[i]).name());
+      // Printf("   ... creating local handler of type: %s", typeid(*fHandlers[i]).name());
       fHandlers[i] = new LocalHandler(fHandlers[i]);
     }
   }
@@ -118,7 +121,7 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
   if (td->fCounters[fId]->GetNcalls() == 0 ||
       fCheckLock.test_and_set(std::memory_order_acquire)) return false;
 #endif
-  fThrBasketCheck *= 3.;
+  fThrBasketCheck *= 5.;
   fCheckCountdown = fThrBasketCheck;
   int nactivated  = 0;
   size_t nactive  = 0;
@@ -151,21 +154,23 @@ int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
       }
     }
   }
-  float nbasketized = td->fCounters[fId]->fNvector;
-  float ntotal      = nbasketized + td->fCounters[fId]->fNscalar;
-  Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld", GetName(),
-         int(100 * nbasketized / ntotal), size_t(ntotal - nbasketized), size_t(nbasketized), nfiredtot, nflushedtot);
+  //float nbasketized = td->fCounters[fId]->fNvector;
+  //float ntotal      = nbasketized + td->fCounters[fId]->fNscalar;
+  //Printf("Stage %20s: basketized %d %% | nscalar = %ld  nvector = %ld  nfired = %ld nflushed = %ld", GetName(),
+  //       int(100 * nbasketized / ntotal), size_t(ntotal - nbasketized), size_t(nbasketized), nfiredtot, nflushedtot);
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   fCheckLock.clear();
 #endif
   CopyToFollowUps(output, td);
+  /*
   if (nactivated > 0)
     Printf("--- activated %d basketizers for stage %s : now %ld/%ld active\n", nactivated, GetName(), nactive,
            fHandlers.size());
   else if (nactivated < 0)
     Printf("--- stopped   %d basketizers for stage %s : now %ld/%ld active\n", -nactivated, GetName(), nactive,
            fHandlers.size());
+  */
   return nactivated;
 }
 

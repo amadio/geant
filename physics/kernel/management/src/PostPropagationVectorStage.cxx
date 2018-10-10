@@ -72,12 +72,28 @@ int PostPropagationVectorStage::CreateHandlers()
     }
     auto handler = new PostPropagationVectorHandler(threshold, fPropagator, m);
     handler->SetMayBasketize(modelTable[m]->IsBasketizable());
+    handler->SetLocal(bool(fLocalHandlers & geantphysics::kMSC));
     fHandlersPerModel.push_back(handler);
     AddHandler(handler);
     modelsAdded++;
   }
 
   return modelsAdded;
+}
+
+void PostPropagationVectorStage::ReplaceLocalHandlers()
+{
+  geant::SimulationStage::ReplaceLocalHandlers();
+  auto &modelTable = geantphysics::EMModel::GetGlobalTable();
+  size_t i = 0;
+  for (size_t m = 0; m < modelTable.size(); ++m) {
+    if (!modelTable[m]->IsMSCModel())
+      continue;
+    if (fHandlers[i]->IsLocal()) {
+      fHandlersPerModel[m] = fHandlers[i];
+    }
+    i++;
+  }
 }
 
 // Selects tracks that have msc process

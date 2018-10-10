@@ -362,7 +362,7 @@ void RunManager::InitializeRKdata(TaskData *td) const
 
   if (!td->fSpace4FieldProp) td->fSpace4FieldProp = new WorkspaceForFieldPropagation(fConfig->fNperBasket);
 
-  std::cout << "=== FieldPropagationHandler::Initialize called for thread " << td->fTid << std::endl;
+  //std::cout << "=== FieldPropagationHandler::Initialize called for thread " << td->fTid << std::endl;
 }
 
 //______________________________________________________________________________
@@ -534,7 +534,7 @@ void RunManager::RunSimulation()
   for (size_t stage = 0; stage < kNstages; ++stage) {
     SimulationStage *simstage = fPropagators[0]->GetStage(ESimulationStage(stage));
     if (!simstage->IsBasketized()) {
-      Printf("Stage %20s: not basketized", simstage->GetName());
+      // Printf("Stage %20s: not basketized", simstage->GetName());
       continue;
     }
     // Merge stage counters

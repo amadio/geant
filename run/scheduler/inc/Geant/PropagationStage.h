@@ -24,9 +24,15 @@ class PropagationStage : public SimulationStage {
 
 protected:
   bool fHasField = true;           ///< Setup has field
-  bool fLocalFieldHandler = false; ///< Field handler is thread local
 
 public:
+
+  enum EModel_t {
+    kLinearPropagator = GEANT_BIT(0),
+    kFieldPropagator  = GEANT_BIT(1),
+    kAllPropagators   = kLinearPropagator | kFieldPropagator
+  };
+
   /** @brief Interface to create all handlers for the simulation stage
    *  @return Number of handlers created */
   VECCORE_ATT_HOST_DEVICE
@@ -62,14 +68,6 @@ public:
   /** @brief Simulation stage name */
   VECCORE_ATT_HOST_DEVICE
   virtual const char *GetName() const { return "Propagation"; }
-
-  /** @brief Setter for local field handler */
-  VECCORE_ATT_HOST_DEVICE
-  void SetLocalFieldHandler(bool flag = true) { fLocalFieldHandler = flag; }
-
-  /** @brief Getter for local field handler */
-  VECCORE_ATT_HOST_DEVICE
-  bool GetLocalFieldHandler() const { return fLocalFieldHandler; }
 };
 
 } // GEANT_IMPL_NAMESPACE

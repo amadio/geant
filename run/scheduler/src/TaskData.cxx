@@ -94,7 +94,7 @@ void TaskData::AttachPropagator(Propagator *prop, int node)
       fStages.push_back(prop->fStages[stage]);
     } else {
       // Replace the stage with a thread local one
-      Printf("...cloning stage %s into task data %d", prop->fStages[stage]->GetName(), fTid);
+      // Printf("...cloning stage %s into task data %d", prop->fStages[stage]->GetName(), fTid);
       auto clone_stage = prop->fStages[stage]->Clone();
       clone_stage->ReplaceLocalHandlers();
       fStages.push_back(clone_stage);
