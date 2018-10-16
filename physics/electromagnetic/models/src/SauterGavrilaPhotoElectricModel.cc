@@ -1008,7 +1008,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
       // SAMPLING OF THE ANGLE WITH ALIAS
       Double_v cosTheta_v;
       MaskDI_v activateSamplingAngle(gammaekin <= 100 * geant::units::MeV);
-      if (activateSamplingAngle.isNotEmpty()) {
+      if (!vecCore::MaskEmpty(activateSamplingAngle)) {
         Double_v r1 = td->fRndm->uniformV();
         Double_v r2 = td->fRndm->uniformV();
         Double_v r3 = td->fRndm->uniformV();
@@ -1045,7 +1045,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
     // Retrieving ionized shell bindingEnergy
     Double_v bindingEnergy_v(0);
     for (int k = 0; k < kVecLenD; ++k) {
-      vecCore::Set(bindingEnergy_v, k, (*(fParamHigh[vecCore::Get(zed_v,k)]))[sampledShells[k + i] * 7 + 1]);
+      vecCore::Set(bindingEnergy_v, k, (*(fParamHigh[vecCore::Get(zed_v, k)]))[sampledShells[k + i] * 7 + 1]);
     }
 
     // Create the secondary particle e-
@@ -1055,7 +1055,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
     Double_v eDirX1;
     Double_v eDirY1;
     Double_v eDirZ1;
-    if (activateSamplingAngle.isNotEmpty()) {
+    if (!vecCore::MaskEmpty(activateSamplingAngle)) {
 
       Double_v sinTheta = vecCore::math::Sqrt((1.0 - cosTheta_v) * (1.0 + cosTheta_v));
       Double_v phi      = geant::units::kTwoPi * td->fRndm->uniformV();
@@ -1107,7 +1107,7 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
 
   IndexD_v sampledShells(0);
   MaskDI_v enableSamplingShells = (zed != 1) && (zed != 2);
-  if (enableSamplingShells.isNotEmpty()) {
+  if (!vecCore::MaskEmpty(enableSamplingShells)) {
     // this will be directly stored in the track
     Double_v lGammaEnergy_v = vecCore::math::Log(egamma);
 
@@ -1117,7 +1117,7 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
     // These are static informations that can be passed as an argument in Real_v form - TO DO
     Double_v kBindingEn_v;
     for (int k = 0; k < kVecLenD; k++) {
-      vecCore::Set(kBindingEn_v, k, fBindingEn[vecCore::Get(zed,k)][0]);
+      vecCore::Set(kBindingEn_v, k, fBindingEn[vecCore::Get(zed, k)][0]);
     }
 
     MaskDI_v lowEn(egamma < kBindingEn_v);
@@ -1137,16 +1137,15 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
 
     IndexD_v tableIndex_v(indexBaseEn_v);
     // Only the values of tableIndex_v that need to be changed
-    if (lowEn.isNotEmpty()) {
+    if (!vecCore::MaskEmpty(lowEn)) {
       for (int k = 0; k < kVecLenD; k++) {
 
         if (vecCore::Get(lowEn, k) && vecCore::Get(enableSamplingShells, k)) {
-          vecCore::Set(
-              baseEn_v, k,
-              fShellSamplingPrimEnergies[vecCore::Get(tableIndexBase_v, k) + 1]); // UPPER VALUE (it could be
-                                                                                  // the last meaningful value in
-                                                                                  // the vector (for those that
-                                                                                  // have the mask set to FALSE)
+          vecCore::Set(baseEn_v, k,
+                       fShellSamplingPrimEnergies[vecCore::Get(tableIndexBase_v, k) + 1]); // UPPER VALUE (it could be
+                                                                                           // the last meaningful value in
+                                                                                           // the vector (for those that
+                                                                                           // have the mask set to FALSE)
 
           // LOWER bin in the BINDING vector
           int tableIndexBinding =
@@ -1182,7 +1181,7 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
         int indxI = vecCore::Get(indxTable_v, i);
         int xsampl =
             fShellAliasSampler->SampleDiscrete(fShellAliasData[indxI]->fAliasW, fShellAliasData[indxI]->fAliasIndx,
-                                               fShellAliasData[indxI]->fNumdata, vecCore::Get(r2,i));
+                                               fShellAliasData[indxI]->fNumdata, vecCore::Get(r2, i));
         vecCore::Set(sampledShells, i, xsampl);
       }
     }
@@ -1219,12 +1218,12 @@ Double_v SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionAliasVec(D
   Double_v ecosT(1.);
   MaskDI_v checkEnergy = egamma > (Double_v)100 * geant::units::MeV;
   // if some energy is below 100 MeV
-  if (!checkEnergy.isFull()) {
+  if (!vecCore::MaskFull(checkEnergy)) {
     Double_v legamma = vecCore::math::Log(egamma);
     //        //With this implementation is assumed that the model is never built for energies outside the range where
     //        the alias tables where built Double_v val        = (legamma - fPrimEnLMin) * fPrimEnILDelta; IndexD_v
     //        gammaEnergyIndx = (IndexD_v)val; // lower electron energy bin index Double_v pIndxHigh  = val -
-    //        gammaEnergyIndx; MaskD_v checkIndex = r1 < pIndxHigh; if (!checkIndex.isEmpty()) {
+    //        gammaEnergyIndx; MaskD_v checkIndex = r1 < pIndxHigh; if (!vecCore::MaskEmpty(checkIndex)) {
     //            vecCore::MaskedAssign(gammaEnergyIndx, checkIndex, gammaEnergyIndx + 1);
     //        }
 
@@ -1241,10 +1240,10 @@ Double_v SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionAliasVec(D
     // going scalar here
     for (int i = 0; i < kVecLenD; ++i) {
       if (vecCore::Get(egamma, i) < 100 * geant::units::MeV) {
-        size_t idxI = vecCore::Get(gammaEnergyIndx, i);
-        double ecosTheta =
-            fAliasSampler->SampleLinear(fAliasData[idxI]->fXdata, fAliasData[idxI]->fYdata, fAliasData[idxI]->fAliasW,
-                                        fAliasData[idxI]->fAliasIndx, fAliasData[idxI]->fNumdata, vecCore::Get(r2,i), vecCore::Get(r3,i)) ;
+        size_t idxI      = vecCore::Get(gammaEnergyIndx, i);
+        double ecosTheta = fAliasSampler->SampleLinear(
+            fAliasData[idxI]->fXdata, fAliasData[idxI]->fYdata, fAliasData[idxI]->fAliasW, fAliasData[idxI]->fAliasIndx,
+            fAliasData[idxI]->fNumdata, vecCore::Get(r2, i), vecCore::Get(r3, i));
         vecCore::Set(ecosT, i, ecosTheta);
       }
     }
@@ -1313,7 +1312,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
   IndexD_v idxForLoop(0);
   int sampledShellslep[elep.size()];
 
-  while (elep.size() > 3 && (currlep < elep.size() || !lanesDonelep.isFull())) {
+  while (elep.size() > 3 && (currlep < elep.size() || !vecCore::MaskFull(lanesDonelep))) {
     IndexD_v zeds     = vecCore::Gather<IndexD_v>(zlep.data(), idxlep);
     Double_v egamma_v = vecCore::Gather<Double_v>(elep.data(), idxlep);
     Double_v iegamma  = (geant::units::MeV) / egamma_v;
@@ -1394,7 +1393,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
   idxForLoop = 0;
   int sampledShellshep[ehep.size()];
 
-  while (ehep.size() > 3 && (currhep < ehep.size() || !lanesDonehep.isFull())) {
+  while (ehep.size() > 3 && (currhep < ehep.size() || !vecCore::MaskFull(lanesDonehep))) {
 
     IndexD_v zeds     = vecCore::Gather<IndexD_v>(zhep.data(), idxhep);
     Double_v egamma_v = vecCore::Gather<Double_v>(ehep.data(), idxhep);
@@ -1510,7 +1509,7 @@ void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec(const d
   for (int l = 0; l < kVecLenD; ++l) {
     vecCore::Set(idx, l, currN++); // indexes initialization
   }
-  while (currN < N || !lanesDone.isFull()) {
+  while (currN < N || !vecCore::MaskFull(lanesDone)) {
 
     // 1) initialize energy-dependent variables
     // Variable naming according to Eq. (2.24) of Penelope Manual
@@ -1541,7 +1540,7 @@ void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec(const d
     Double_v cosTheta_v = 1.0 - tsam;
 
     // Scatter anyway all the values, but if cond1 is false the lane will be processed again
-    if (cond1.isNotEmpty()) {
+    if (!vecCore::MaskEmpty(cond1)) {
       vecCore::Scatter(cosTheta_v, cosTheta, idx);
     }
     lanesDone = lanesDone || cond1;
