@@ -1304,7 +1304,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
 
   //**** PROCESS THE LEP
   size_t currlep        = 0;
-  MaskDI_v lanesDonelep = 0; // MaskDI_v::Zero(); // no lanes done
+  MaskDI_v lanesDonelep(0); // MaskDI_v::Zero(); // no lanes done
   IndexD_v idxlep;
 
   for (int l = 0; l < kVecLenD; ++l) {
@@ -1385,7 +1385,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
 
   //**** PROCESS THE HEP
   size_t currhep        = 0;
-  MaskDI_v lanesDonehep = 0; // MaskDI_v::Zero(); // no lanes done
+  MaskDI_v lanesDonehep(0); // MaskDI_v::Zero(); // no lanes done
   IndexD_v idxhep;
 
   for (int l = 0; l < kVecLenD; ++l) {
@@ -1505,7 +1505,7 @@ void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec(const d
 {
 
   int currN          = 0;
-  MaskDI_v lanesDone = MaskDI_v::Zero(); // no lanes done
+  MaskDI_v lanesDone(0); // MaskDI_v::Zero(); // no lanes done
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
     vecCore::Set(idx, l, currN++); // indexes initialization
