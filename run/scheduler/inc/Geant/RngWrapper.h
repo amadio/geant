@@ -49,7 +49,7 @@ private:
   vecRng::MRG32k3a<vecCore::backend::Scalar> *mrg32k3aScalar;
   vecRng::MRG32k3a<VectorBackend> *mrg32k3aVec;
 };
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif // GEANTV_VECRNGWRAPPER_H

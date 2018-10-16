@@ -184,6 +184,6 @@ inline void RotateToLabFrame(R &u, R &v, R &w, R u1, R u2, R u3)
     vecCore::MaskedAssign(w, m2, -w);
   }
 }
-}
+} // namespace Math
 
 #endif // GEANT_MATH
