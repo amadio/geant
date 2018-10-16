@@ -101,8 +101,9 @@ protected:
                                      geant::Double_v r1, geant::Double_v r2, geant::Double_v r3);
 
   double SamplePhotonEnergy(double eekin, double gcut, double zet, const Material *mat, geant::TaskData *td);
-  void SamplePhotonEnergy(const double *eEkin, const double *gammaCut, const int *IZet, const double *zet,
-                          const double *densityCor, double *gammaEn, int N, const geant::TaskData *td);
+  void SamplePhotonEnergy(const double *eEkin, const double *gammaCut, const vecCore::Scalar<geant::IndexD_v> *IZet,
+                          const double *zet, const double *densityCor, double *gammaEn, int N,
+                          const geant::TaskData *td);
 
   template <typename R>
   void SamplePhotonDirection(R elenergy, R &sinTheta, R &cosTheta, R rndm);

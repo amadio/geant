@@ -181,8 +181,9 @@ protected:
    * @param[in] r3       Random number distributed uniformly in [0,1].
    * @return             The sampled reduced total energy transfered to one of the e-/e+ pair.
    */
-  geant::Double_v SampleTotalEnergyTransfer(const geant::Double_v egamma, const int *izet, const geant::Double_v r1,
-                                            const geant::Double_v r2, const geant::Double_v r3);
+  geant::Double_v SampleTotalEnergyTransfer(const geant::Double_v egamma, const vecCore::Scalar<geant::IndexD_v> *izet,
+                                            const geant::Double_v r1, const geant::Double_v r2,
+                                            const geant::Double_v r3);
 
   /**
    * @brief Internal method to sample reduced total energy transfered to one of the e-/e+ pair using rejection.
@@ -203,7 +204,8 @@ protected:
    * @param[in] N        Size of input arrays.
    * @param[in] td       Pointer to the GeantV thread local data object (used to get random numbers).
    */
-  void SampleTotalEnergyTransfer(const double *egamma, const int *izet, double *epsOut, int N, geant::TaskData *td);
+  void SampleTotalEnergyTransfer(const double *egamma, const vecCore::Scalar<geant::IndexD_v> *izet, double *epsOut,
+                                 int N, geant::TaskData *td);
 
   /**
    * @brief Internal method to compute the screening functions.

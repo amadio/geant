@@ -974,9 +974,9 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
 
   int N                      = tracks.GetNtracks();
   double *kin                = tracks.GetKinEArr();
-  int *zed                   = td->fPhysicsData->fPhysicsScratchpad.fIzet;
-  int *nshells               = td->fPhysicsData->fPhysicsScratchpad.fNshells;
-  int *sampledShells         = td->fPhysicsData->fPhysicsScratchpad.fSampledShells;
+  auto zed                   = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  auto nshells               = td->fPhysicsData->fPhysicsScratchpad.fNshells;
+  auto sampledShells         = td->fPhysicsData->fPhysicsScratchpad.fSampledShells;
   double *cosTheta           = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
   double energyDepositionVec = 0.;
 
@@ -1045,7 +1045,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
     // Retrieving ionized shell bindingEnergy
     Double_v bindingEnergy_v(0);
     for (int k = 0; k < kVecLenD; ++k) {
-      vecCore::Set(bindingEnergy_v, k, (*(fParamHigh[zed_v[k]]))[sampledShells[k + i] * 7 + 1]);
+      vecCore::Set(bindingEnergy_v, k, (*(fParamHigh[vecCore::Get(zed_v,k)]))[sampledShells[k + i] * 7 + 1]);
     }
 
     // Create the secondary particle e-
@@ -1117,7 +1117,7 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
     // These are static informations that can be passed as an argument in Real_v form - TO DO
     Double_v kBindingEn_v;
     for (int k = 0; k < kVecLenD; k++) {
-      vecCore::Set(kBindingEn_v, k, fBindingEn[(int)zed[k]][0]);
+      vecCore::Set(kBindingEn_v, k, fBindingEn[vecCore::Get(zed,k)][0]);
     }
 
     MaskDI_v lowEn(egamma < kBindingEn_v);
@@ -1182,7 +1182,7 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
         int indxI = vecCore::Get(indxTable_v, i);
         int xsampl =
             fShellAliasSampler->SampleDiscrete(fShellAliasData[indxI]->fAliasW, fShellAliasData[indxI]->fAliasIndx,
-                                               fShellAliasData[indxI]->fNumdata, r2[i]);
+                                               fShellAliasData[indxI]->fNumdata, vecCore::Get(r2,i));
         vecCore::Set(sampledShells, i, xsampl);
       }
     }
@@ -1244,7 +1244,7 @@ Double_v SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionAliasVec(D
         size_t idxI = vecCore::Get(gammaEnergyIndx, i);
         double ecosTheta =
             fAliasSampler->SampleLinear(fAliasData[idxI]->fXdata, fAliasData[idxI]->fYdata, fAliasData[idxI]->fAliasW,
-                                        fAliasData[idxI]->fAliasIndx, fAliasData[idxI]->fNumdata, r2[i], r3[i]);
+                                        fAliasData[idxI]->fAliasIndx, fAliasData[idxI]->fNumdata, vecCore::Get(r2,i), vecCore::Get(r3,i)) ;
         vecCore::Set(ecosT, i, ecosTheta);
       }
     }
@@ -1304,7 +1304,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
 
   //**** PROCESS THE LEP
   size_t currlep        = 0;
-  MaskDI_v lanesDonelep = MaskDI_v::Zero(); // no lanes done
+  MaskDI_v lanesDonelep = 0; // MaskDI_v::Zero(); // no lanes done
   IndexD_v idxlep;
 
   for (int l = 0; l < kVecLenD; ++l) {
@@ -1385,11 +1385,11 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
 
   //**** PROCESS THE HEP
   size_t currhep        = 0;
-  MaskDI_v lanesDonehep = MaskDI_v::Zero(); // no lanes done
+  MaskDI_v lanesDonehep = 0; // MaskDI_v::Zero(); // no lanes done
   IndexD_v idxhep;
 
   for (int l = 0; l < kVecLenD; ++l) {
-    idxhep[l] = currhep++; // indexes initialization
+    vecCore::Set(idxhep, l, currhep++); // indexes initialization
   }
   idxForLoop = 0;
   int sampledShellshep[ehep.size()];
@@ -1559,7 +1559,7 @@ void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec(const d
   }
 }
 
-void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, int &Z, double &rand, size_t &sampledShells)
+void SauterGavrilaPhotoElectricModel::SampleShell(double kinE, const int Z, double &rand, size_t &sampledShells)
 {
   if (!((fCrossSection[Z]) && ((fCrossSectionLE[Z] && Z > 2) || (!fCrossSectionLE[Z] && Z < 3)))) {
     std::cout << "Data not loaded before!\n";
@@ -1736,8 +1736,8 @@ void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t &zed,
   if (r1 <= pIndxHigh) tableIndex++;
 
   // this has to be tranformed to the localIndex, considering the Z
-  int indx      = fLastSSAliasIndex[zed - 1] + tableIndex;
-  int xsampl    = fShellAliasSampler->SampleDiscrete(fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx,
+  int indx   = fLastSSAliasIndex[zed - 1] + tableIndex;
+  int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx,
                                                   fShellAliasData[indx]->fNumdata, r2);
   sampledShells = xsampl;
 }

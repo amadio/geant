@@ -158,8 +158,9 @@ protected:
   double SampleTotalEnergyTransfer(const double egamma, const double lpmenergy, const int izet,
                                    const geant::TaskData *td);
 
-  void SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy, const int *izet, double *epsOut,
-                                       int N, geant::TaskData *td);
+  void SampleTotalEnergyTransferRejVec(const double *egamma, const double *lpmEnergy,
+                                       const vecCore::Scalar<geant::IndexD_v> *izet, double *epsOut, int N,
+                                       geant::TaskData *td);
 
   /**
    * @brief Internal helper method to integrate the DCS in order to get the atomic cross scection.

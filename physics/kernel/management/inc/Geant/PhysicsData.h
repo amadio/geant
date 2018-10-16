@@ -32,10 +32,13 @@ struct PhysicsModelScratchpad {
         fDoubleArr12((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
         fDoubleArr13((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
         fDoubleArr14((double *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(double) * dataSize)),
-        fIzet((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
+        fIzet((vecCore::Scalar<geant::IndexD_v> *)vecCore::AlignedAlloc(
+            geant::kVecAlignD, sizeof(vecCore::Scalar<geant::IndexD_v>) * dataSize)),
         fMatIdx((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
-        fNshells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
-        fSampledShells((int *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(int) * dataSize)),
+        fNshells((vecCore::Scalar<geant::IndexD_v> *)vecCore::AlignedAlloc(
+            geant::kVecAlignD, sizeof(vecCore::Scalar<geant::IndexD_v>) * dataSize)),
+        fSampledShells((vecCore::Scalar<geant::IndexD_v> *)vecCore::AlignedAlloc(
+            geant::kVecAlignD, sizeof(vecCore::Scalar<geant::IndexD_v>) * dataSize)),
         fBoolArr((bool *)vecCore::AlignedAlloc(geant::kVecAlignD, sizeof(bool) * dataSize))
   {
   }
@@ -86,10 +89,10 @@ struct PhysicsModelScratchpad {
   double *fDoubleArr13;
   double *fDoubleArr14;
 
-  int *fIzet;
+  vecCore::Scalar<geant::IndexD_v> *fIzet;
   int *fMatIdx;
-  int *fNshells;
-  int *fSampledShells;
+  vecCore::Scalar<geant::IndexD_v> *fNshells;
+  vecCore::Scalar<geant::IndexD_v> *fSampledShells;
   bool *fBoolArr;
 
   std::vector<bool> hasNewDir;

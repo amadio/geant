@@ -128,7 +128,7 @@ public:
   void SamplePhotoElectronDirectionRejVec(const double *egamma, double *cosTheta, int N, const geant::TaskData *t);
 
   // Original way of sampling the shells
-  void SampleShell(double kinE_v, int &zed, double &rand_v, size_t &sampledShells_v);
+  void SampleShell(double kinE_v, const int zed, double &rand_v, size_t &sampledShells_v);
   // Sampling of shells with Alias
   void SampleShellAlias(double kinE_v, size_t &zed, double &r1, double &r2, size_t &sampledShells_v);
   //@}

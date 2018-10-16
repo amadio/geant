@@ -849,8 +849,9 @@ double SeltzerBergerBremsModel::SamplePhotonEnergy(double eekin, double gcut, do
   return egamma;
 }
 
-void SeltzerBergerBremsModel::SamplePhotonEnergy(const double *eEkin, const double *gammaCut, const int *IZet,
-                                                 const double *zet, const double *densityCorArr, double *gammaEn, int N,
+void SeltzerBergerBremsModel::SamplePhotonEnergy(const double *eEkin, const double *gammaCut,
+                                                 const vecCore::Scalar<geant::IndexD_v> *IZet, const double *zet,
+                                                 const double *densityCorArr, double *gammaEn, int N,
                                                  const geant::TaskData *td)
 {
 
@@ -1170,7 +1171,7 @@ void SeltzerBergerBremsModel::SampleSecondaries(LightTrack_v &tracks, geant::Tas
   const int N               = tracks.GetNtracks();
   double *gammaeEnergyArray = td->fPhysicsData->fPhysicsScratchpad.fEps;
   double *gammaCutArr       = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr;
-  int *izetArray            = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  auto izetArray            = td->fPhysicsData->fPhysicsScratchpad.fIzet;
   double *zetArr            = td->fPhysicsData->fPhysicsScratchpad.fDoubleArr2;
   double *densityCorrArr    = td->fPhysicsData->fPhysicsScratchpad.fR0;
 

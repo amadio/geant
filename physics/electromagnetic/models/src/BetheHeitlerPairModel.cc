@@ -452,8 +452,9 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
 }
 
 // Sample energy transfer with alias tables(vectorized)
-Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma, const int *izet, const Double_v r1,
-                                                          const Double_v r2, const Double_v r3)
+Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma,
+                                                          const vecCore::Scalar<geant::IndexD_v> *izet,
+                                                          const Double_v r1, const Double_v r2, const Double_v r3)
 {
   const Double_v legamma = Math::Log(egamma);
 
@@ -596,8 +597,9 @@ double BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double egamma, con
   return eps;
 }
 
-void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma, const int *izet, double *epsOut, int N,
-                                                      geant::TaskData *td)
+void BetheHeitlerPairModel::SampleTotalEnergyTransfer(const double *egamma,
+                                                      const vecCore::Scalar<geant::IndexD_v> *izet, double *epsOut,
+                                                      int N, geant::TaskData *td)
 {
   // assert(N>=kVecLenD)
   int currN = 0;
@@ -1091,7 +1093,7 @@ void BetheHeitlerPairModel::SampleSecondaries(LightTrack_v &tracks, geant::TaskD
 {
   // Prepare temporary arrays for SIMD processing
   int N          = tracks.GetNtracks();
-  int *izetArr   = td->fPhysicsData->fPhysicsScratchpad.fIzet;
+  auto izetArr   = td->fPhysicsData->fPhysicsScratchpad.fIzet;
   double *epsArr = td->fPhysicsData->fPhysicsScratchpad.fEps;
 
   // Sort particles in SOA by energy, small energy gammas can be sampled with uniform distribution
