@@ -301,7 +301,7 @@ void RegisterModelInGlobalTable(EMModel *model)
 {
   auto &table = EMModel::GetGlobalTable();
   model->SetGlobalIndex(table.size());
-  Printf("Registering model in global table: %20s %d", model->GetName().c_str(), model->GetGlobalIndex());
+  geant::Printf("Registering model in global table: %20s %d", model->GetName().c_str(), model->GetGlobalIndex());
   table.push_back(model);
 }
 int EMPhysicsProcess::AddModel(EMModel *model)
