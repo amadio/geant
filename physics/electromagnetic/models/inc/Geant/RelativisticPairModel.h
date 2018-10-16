@@ -10,14 +10,14 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Material;
 class Element;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geantphysics
 
 #include <string>
 #include <vector>
@@ -53,14 +53,14 @@ class GLIntegral;
 class RelativisticPairModel : public EMModel {
 public:
   /**
-  * @name Constructor, destructor:
-  */
+   * @name Constructor, destructor:
+   */
   //@{
   /**
-  * @brief Constructor.
-  *
-  * @param[in] modelname   Name of the model.
-  */
+   * @brief Constructor.
+   *
+   * @param[in] modelname   Name of the model.
+   */
 
   RelativisticPairModel(const std::string &modelname = "PairRelativisticLPM");
   /** @brief Destructor. */
@@ -68,40 +68,40 @@ public:
   //@}
 
   /**
-  * @name Implemented EMModel base class methods:
-  */
+   * @name Implemented EMModel base class methods:
+   */
   //@{
   /** @brief Interface method to initilize the model. */
   virtual void Initialize();
 
   /**
-    * @brief Interface method to obtain macroscopic cross sections.
-    *
-    * @param[in] matcut      Pointer to the MaterialCuts object in which the macroscopic cross section must be computed.
-    * @param[in] kinenergy   Kinetic energy of the gamma particle at which the macroscopic cross section must be
+   * @brief Interface method to obtain macroscopic cross sections.
+   *
+   * @param[in] matcut      Pointer to the MaterialCuts object in which the macroscopic cross section must be computed.
+   * @param[in] kinenergy   Kinetic energy of the gamma particle at which the macroscopic cross section must be
    * computed.
-    * @return    Macroscopic pair-production cross section in internal [1/length] units.
-    */
+   * @return    Macroscopic pair-production cross section in internal [1/length] units.
+   */
   virtual double ComputeMacroscopicXSection(const MaterialCuts *matcut, double kinenergy, const Particle *);
   /**
-    * @brief Interface method to obtain atomic cross sections.
-    *
-    * @param[in] elem        Pointer to the Element object for which the atomic cross section must be computed.
-    * @param[in] kinenergy   Kinetic energy of the gamma particle at which the atomic cross section must be computed.
-    * @return    Atomic pair-production cross section in internal [length^2] units.
-    */
+   * @brief Interface method to obtain atomic cross sections.
+   *
+   * @param[in] elem        Pointer to the Element object for which the atomic cross section must be computed.
+   * @param[in] kinenergy   Kinetic energy of the gamma particle at which the atomic cross section must be computed.
+   * @return    Atomic pair-production cross section in internal [length^2] units.
+   */
   virtual double ComputeXSectionPerAtom(const Element *elem, const MaterialCuts *, double kinenergy, const Particle *);
   /**
-    * @brief Interface method to generate final state of the interaction.
-    *
-    * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
-    *                          some information about the current material-cut couple. It is updated by the method and
-    *                          it stores the post-interaction primary track properties at output.
-    * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will
+   * @brief Interface method to generate final state of the interaction.
+   *
+   * @param[in,out] track     Primary track. At input, it stores the pre-interaction primary particle properties and
+   *                          some information about the current material-cut couple. It is updated by the method and
+   *                          it stores the post-interaction primary track properties at output.
+   * @param[in,out] td        Pointer to a Geant thread local data object. At output, its fPhysicsData object will
    * store
-    *                          the seconadry tracks generated in the interaction.
-    * @return                  Number of secondary tracks generated in the interaction.
-    */
+   *                          the seconadry tracks generated in the interaction.
+   * @return                  Number of secondary tracks generated in the interaction.
+   */
   virtual int SampleSecondaries(LightTrack &track, geant::TaskData *td);
 
   virtual void SampleSecondaries(LightTrack_v &tracks, geant::TaskData *td);
@@ -243,10 +243,10 @@ protected:
 
   /** @brief Internal data structure to store data that are required to sample the energy (transfered to one of the
    * e-/e+
-    *        pair) related transformed variable by using the combination of Walker's alias method and rational
-    *        interpolation based numerical inversion of the cumulative function (by using AliasTable::SampleRatin()
+   *        pair) related transformed variable by using the combination of Walker's alias method and rational
+   *        interpolation based numerical inversion of the cumulative function (by using AliasTable::SampleRatin()
    * method).
-    */
+   */
   struct RatinAliasData {
     RatinAliasData(size_t n)
     {
@@ -281,8 +281,8 @@ protected:
     }
     int fILowestZ; // lowest Z in the corresponding material (used for the variable transform)
                    /** @brief Container that stores pointers to RatinAliasData structure over the primary gamma
-                     *         energy gird for a specific material built at initialisation if sampling tables were requested.
-                     */
+                    *         energy gird for a specific material built at initialisation if sampling tables were requested.
+                    */
     std::vector<RatinAliasData *> fRatinAliasData;
   };
 
@@ -322,18 +322,18 @@ protected:
   double fSTILDeltaPhotonEnergy; // ST=>SamplingTables
 
   /** @brief Container to store pointers to RatinAliasDataPerMaterial data structures for all target materials that the
-    *        model needs to respond.
-    *  Size of the container is equal to number of materials in the detector and indexed by the material index. The
-    *  corresponding RatinAliasDataPerElement data structures are built at initialization if sampling tables were
+   *        model needs to respond.
+   *  Size of the container is equal to number of materials in the detector and indexed by the material index. The
+   *  corresponding RatinAliasDataPerElement data structures are built at initialization if sampling tables were
    * required.
-    *  Non-nullptr only at indices that corresponds to materials (with the same index) that belongs to regions in
-    *  which the model is active.
-    */
+   *  Non-nullptr only at indices that corresponds to materials (with the same index) that belongs to regions in
+   *  which the model is active.
+   */
   std::vector<RatinAliasDataPerMaterial *> fSamplingTables;
 
   /** @brief Pointer to an AliasTable uitility object that is used both to prepare(at initialization) and to provide
-    *        samples(at run-time) from the sampling tables. (Used only if sampling tables were required).
-    */
+   *        samples(at run-time) from the sampling tables. (Used only if sampling tables were required).
+   */
   AliasTable *fAliasSampler;
 
   /** @brief A GL numerical integral for integrations. */

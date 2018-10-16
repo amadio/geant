@@ -10,14 +10,14 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Material;
 class Element;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geantphysics
 
 #include <vector>
 #include <string>
@@ -50,8 +50,8 @@ class Spline;
 class SeltzerBergerBremsModel : public EMModel {
 public:
   /**
-  * @name Constructor, destructor:
-  */
+   * @name Constructor, destructor:
+   */
   //@{
   /**
    * @brief Constructor to build a model based on the numerical differential cross sections stored in files.
@@ -66,8 +66,8 @@ public:
   //@}
 
   /**
-  * @name Implemented EMModel base class methods:
-  */
+   * @name Implemented EMModel base class methods:
+   */
   //@{
   virtual void Initialize(); // from EMModel
 
@@ -152,12 +152,12 @@ protected:
     /** @brief Reduced photon energy related transformed variable values. */
     std::vector<double> fXdata;
     /** @brief The probability density function values (not necessarily normalised) over the reduced photon energy
-      *        related transformed variable values.
-      */
+     *        related transformed variable values.
+     */
     std::vector<double> fYdata;
     /** @brief The alias probabilities (not necessarily normalised) over the reduced photon energy related transformed
-      *        variable values.
-      */
+     *        variable values.
+     */
     std::vector<double> fAliasW;
     /** @brief The alias indices over the reduced photon energy related transformed variable values. */
     std::vector<int> fAliasIndx;

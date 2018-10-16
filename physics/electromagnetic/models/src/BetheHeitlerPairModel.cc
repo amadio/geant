@@ -33,11 +33,11 @@ using geant::Double_v;
 using geant::IndexD_v;
 using geant::kVecLenD;
 using geant::MaskD_v;
-using vecCore::Get;
-using vecCore::Set;
 using vecCore::AssignMaskLane;
-using vecCore::MaskFull;
+using vecCore::Get;
 using vecCore::MaskEmpty;
+using vecCore::MaskFull;
+using vecCore::Set;
 
 std::vector<BetheHeitlerPairModel::ElementData *> BetheHeitlerPairModel::gElementData(gMaxZet, nullptr);
 
@@ -478,8 +478,9 @@ Double_v BetheHeitlerPairModel::SampleTotalEnergyTransfer(const Double_v egamma,
   Double_v deltaMax;
   Double_v deltaFactor;
   for (int l = 0; l < kVecLenD; ++l) {
-    Set(deltaMax, l, Get(egamma, l) > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
-                                                              : gElementData[izet[l]]->fDeltaMaxLowTsai);
+    Set(deltaMax, l,
+        Get(egamma, l) > 50. * geant::units::MeV ? gElementData[izet[l]]->fDeltaMaxHighTsai
+                                                 : gElementData[izet[l]]->fDeltaMaxLowTsai);
     Set(deltaFactor, l, gElementData[izet[l]]->fDeltaFactor);
   }
   const Double_v eps0   = geant::units::kElectronMassC2 / egamma;

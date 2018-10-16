@@ -1141,11 +1141,12 @@ IndexD_v SauterGavrilaPhotoElectricModel::SampleShellAliasVec(Double_v egamma, I
       for (int k = 0; k < kVecLenD; k++) {
 
         if (vecCore::Get(lowEn, k) && vecCore::Get(enableSamplingShells, k)) {
-          vecCore::Set(baseEn_v, k,
-                       fShellSamplingPrimEnergies[vecCore::Get(tableIndexBase_v, k) + 1]); // UPPER VALUE (it could be
-                                                                                           // the last meaningful value in
-                                                                                           // the vector (for those that
-                                                                                           // have the mask set to FALSE)
+          vecCore::Set(
+              baseEn_v, k,
+              fShellSamplingPrimEnergies[vecCore::Get(tableIndexBase_v, k) + 1]); // UPPER VALUE (it could be
+                                                                                  // the last meaningful value in
+                                                                                  // the vector (for those that
+                                                                                  // have the mask set to FALSE)
 
           // LOWER bin in the BINDING vector
           int tableIndexBinding =
@@ -1302,7 +1303,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
   }
 
   //**** PROCESS THE LEP
-  size_t currlep        = 0;
+  size_t currlep = 0;
   MaskDI_v lanesDonelep(0); // MaskDI_v::Zero(); // no lanes done
   IndexD_v idxlep;
 
@@ -1383,7 +1384,7 @@ void SauterGavrilaPhotoElectricModel::SampleShellVec(double *egamma, int *zed, i
   }
 
   //**** PROCESS THE HEP
-  size_t currhep        = 0;
+  size_t currhep = 0;
   MaskDI_v lanesDonehep(0); // MaskDI_v::Zero(); // no lanes done
   IndexD_v idxhep;
 
@@ -1503,7 +1504,7 @@ void SauterGavrilaPhotoElectricModel::SamplePhotoElectronDirectionRejVec(const d
                                                                          const geant::TaskData *td)
 {
 
-  int currN          = 0;
+  int currN = 0;
   MaskDI_v lanesDone(0); // MaskDI_v::Zero(); // no lanes done
   IndexD_v idx;
   for (int l = 0; l < kVecLenD; ++l) {
@@ -1735,8 +1736,8 @@ void SauterGavrilaPhotoElectricModel::SampleShellAlias(double kinE, size_t &zed,
   if (r1 <= pIndxHigh) tableIndex++;
 
   // this has to be tranformed to the localIndex, considering the Z
-  int indx   = fLastSSAliasIndex[zed - 1] + tableIndex;
-  int xsampl = fShellAliasSampler->SampleDiscrete(fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx,
+  int indx      = fLastSSAliasIndex[zed - 1] + tableIndex;
+  int xsampl    = fShellAliasSampler->SampleDiscrete(fShellAliasData[indx]->fAliasW, fShellAliasData[indx]->fAliasIndx,
                                                   fShellAliasData[indx]->fNumdata, r2);
   sampledShells = xsampl;
 }
