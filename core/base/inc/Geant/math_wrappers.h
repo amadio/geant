@@ -5,7 +5,7 @@
 
 // include VecCore's math ...
 #include "VecCore/VecCore"
-#include <VecCoreLib/Math.h>
+#include <VecMath/Math.h>
 
 namespace Math {
 template <typename T>

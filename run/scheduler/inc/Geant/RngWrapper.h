@@ -1,7 +1,7 @@
 #ifndef GEANTV_RNGWRAPPER_H
 #define GEANTV_RNGWRAPPER_H
 
-#include <VecCoreLib/Rng.h>
+#include <VecMath/Rng.h>
 #include <VecCore/VecCore>
 #include "Geant/VectorTypes.h"
 
