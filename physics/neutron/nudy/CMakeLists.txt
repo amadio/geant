@@ -25,7 +25,7 @@ endif()
 #
 add_library(Nudy SHARED ${sources} NudyDict.cxx)
 target_link_libraries(Nudy -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${ROOT_LIBRARIES} MathMore 
-                      ${VECGEOM_LIBRARIES}  ${VC_LIBRARIES}
+                      ${VECGEOM_LIBRARIES}  ${Vc_LIBRARIES}
                       ${Geant4_LIBRARIES})
 #----------------------------------------------------------------------------------------------
 # Install the files
