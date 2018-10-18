@@ -126,7 +126,7 @@ if (USE_ROOT)
   if (USE_UMESIMD)
      ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LinkDef.h OPTIONS "-DVECGEOM_UMESIMD=1")
    else()
-     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+     ROOT_GENERATE_DICTIONARY(G__Geant ${headers} MODULE Geant_v LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/inc/Geant/LinkDef.h )
    endif()
 endif()
 

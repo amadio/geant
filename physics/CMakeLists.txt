@@ -75,7 +75,7 @@ endif()
 set(_extraLibs "")
 
 if(USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(realphysicsDict ${headers} MODULE RealPhysics LINKDEF rootdict/realphysicsLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  ROOT_GENERATE_DICTIONARY(realphysicsDict ${headers} MODULE RealPhysics LINKDEF rootdict/realphysicsLinkDef.h )
   set(sources ${sources} realphysicsDict.cxx)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()

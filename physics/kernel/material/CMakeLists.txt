@@ -23,7 +23,7 @@ endif()
 set(_extraLibs "")
 
 if(USE_ROOT)
-  ROOT_GENERATE_DICTIONARY(materialDict ${headers} MODULE Material LINKDEF materialLinkDef.h OPTIONS "-DVC_COMMON_SIMDIZE_H_=1")
+  ROOT_GENERATE_DICTIONARY(materialDict ${headers} MODULE Material LINKDEF materialLinkDef.h )
   set(sources ${sources} materialDict.cxx)
   set(_extraLibs "${ROOT_LIBRARIES}")
 endif()
