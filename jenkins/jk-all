@@ -8,7 +8,7 @@ echo "Dumping the full environment ---------------------------------------------
 env | sort | sed 's/:/:?     /g' | tr '?' '\n'
 echo "--------------------------------------------------------------------------------------"
 
-cd ../geant/install/bin/benchmarks/FullCMS
+cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/FullCMS
 bash ./bench_all.sh
 
 #---Run the CTest script depending on the compiler------------------------------------------
