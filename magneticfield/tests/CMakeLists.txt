@@ -56,18 +56,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/${RelativeCurrentSourcePa
 
 ## Test newest Cash Karp, that can integrate scalar or Double_v
 add_executable(testFlexibleCashKarp testFlexibleCashKarp.cxx)
-target_link_libraries(testFlexibleCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+target_link_libraries(testFlexibleCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testFlexibleCashKarp")
 ## --------  End of Stepper Tests
 
 ## ########  Start of Integration Driver Tests #############
 ## 
 add_executable(testScalarIntegrationDriver testScalarIntegrationDriver.cxx)
-target_link_libraries(testScalarIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+target_link_libraries(testScalarIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testScalarIntegrationDriver")
 
 add_executable(testVectorIntegrationDriver testVectorIntegrationDriver.cxx)
-target_link_libraries(testVectorIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+target_link_libraries(testVectorIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testVectorIntegrationDriver")
 ## --------  End   of Integration Driver Tests -------------
 
@@ -104,7 +104,7 @@ message(STATUS "Created target for testVectorIntegrationDriver")
 #message(STATUS "Created target for testGUPropagateField")
 
 add_executable(testConstVecFieldStepper testConstVecFieldStepper.cxx) ## ${sources} ${headers})
-target_link_libraries(testConstVecFieldStepper Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+target_link_libraries(testConstVecFieldStepper Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testConstVecFieldStepper")
 
 ## add_executable(testFieldPropagator TestGUFieldPropagator.cxx) ## ${sources} ${headers})
