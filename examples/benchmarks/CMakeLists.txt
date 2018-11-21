@@ -5,8 +5,18 @@ configure_file(
     IMMEDIATE @ONLY)
 
 configure_file(
+    "TestEm3/TestEm3_GV.run.in"
+    "${CMAKE_INSTALL_PREFIX}/bin/benchmarks/TestEm3/TestEm3_GV.run"
+    IMMEDIATE @ONLY)
+
+configure_file(
     "FullCMS/FullCMS.run.in"
     "${CMAKE_INSTALL_PREFIX}/bin/benchmarks/FullCMS/FullCMS.run"
+    IMMEDIATE @ONLY)
+
+configure_file(
+    "FullCMS/FullCMS_GV.run.in"
+    "${CMAKE_INSTALL_PREFIX}/bin/benchmarks/FullCMS/FullCMS_GV.run"
     IMMEDIATE @ONLY)
 
 file(GLOB config_testem3 TestEm3/*.sh)

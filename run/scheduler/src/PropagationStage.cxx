@@ -50,6 +50,8 @@ int PropagationStage::CreateHandlers()
   FieldPropagationHandler *hfield   = new FieldPropagationHandler(threshold, fPropagator);
   hlinear->SetMayBasketize(false);
   hlinear->SetLocal(bool(fLocalHandlers & kLinearPropagator));
+  if (fPropagator->fConfig->fUseSDField) Printf("=== Field propagation using scalar dispatch for baskets\n");
+  hfield->SetScalarDispatch(fPropagator->fConfig->fUseSDField);
   hfield->SetMayBasketize(true);
   hfield->SetLocal(bool(fLocalHandlers & kFieldPropagator));
 

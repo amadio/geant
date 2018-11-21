@@ -200,13 +200,14 @@ public:
   /** @brief Add next handler */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void AddHandler(Handler *handler)
+  Handler *AddHandler(Handler *handler)
   {
     size_t id = fHandlers.size();
     handler->SetId(id);
     fHandlers.push_back(handler);
     fThrBasketCheck += handler->GetThreshold();
     fCheckCountdown = fThrBasketCheck;
+    return handler;
   }
 
   /** @brief Getter for number of handlers */
@@ -253,6 +254,9 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetEndStage() { fEndStage = true; }
+
+  /** @brief Print handlers usage statistics */
+  void PrintStatistics() const;
 };
 
 } // namespace GEANT_IMPL_NAMESPACE

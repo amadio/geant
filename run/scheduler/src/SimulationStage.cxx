@@ -1,6 +1,7 @@
 #include "Geant/SimulationStage.h"
 
 #include <typeinfo>
+#include <numeric>
 #include "Geant/TaskData.h"
 #include "Geant/Propagator.h"
 #include "Geant/RunManager.h"
@@ -112,6 +113,33 @@ void SimulationStage::DeleteLocalHandlers()
 }
 
 //______________________________________________________________________________
+void SimulationStage::PrintStatistics() const
+{
+  if (!fBasketized) return;
+  Printf("Stage %s statistics:", GetName());
+  std::vector<size_t> ntracks(GetNhandlers(), 0);
+  std::vector<size_t> idx(GetNhandlers());
+  // initialize original index locations
+  std::iota(idx.begin(), idx.end(), 0);
+  for (int i = 0; i < GetNhandlers(); ++i) {
+    if (!fHandlers[i]->MayBasketize()) continue;
+    size_t nflushed = fPropagator->fRunMgr->GetNflushed(fId, i);
+    size_t nfired   = fPropagator->fRunMgr->GetNfired(fId, i);
+    ntracks[i]      = (nflushed + nfired) * fHandlers[i]->GetThreshold();
+  }
+  // sort indexes based on comparing values in v in decreasing order
+  sort(idx.begin(), idx.end(), [&ntracks](size_t i1, size_t i2) { return ntracks[i1] > ntracks[i2]; });
+  for (int i = 0; i < GetNhandlers(); ++i) {
+    if (ntracks[idx[i]] > 0) {
+      size_t nflushed = fPropagator->fRunMgr->GetNflushed(fId, idx[i]);
+      size_t nfired   = fPropagator->fRunMgr->GetNfired(fId, idx[i]);
+      std::cout << "=== " << fHandlers[idx[i]]->GetName() << ":  ntracks = " << ntracks[idx[i]]
+                << "  nfired = " << nfired << "  nflushed = " << nflushed << std::endl;
+    }
+  }
+}
+
+//______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 int SimulationStage::CheckBasketizers(TaskData *td, size_t flush_threshold)
 {
@@ -184,11 +212,13 @@ int SimulationStage::FlushHandler(int i, TaskData *td, Basket &output)
   int nflushed = bvector.size();
   if (nflushed >= fPropagator->fConfig->fNvecThreshold) {
     td->fCounters[fId]->fNvector += bvector.size();
-    fHandlers[i]->DoIt(bvector, output, td);
+    if (fHandlers[i]->IsScalarDispatch())
+      fHandlers[i]->DoItScalar(bvector, output, td);
+    else
+      fHandlers[i]->DoIt(bvector, output, td);
   } else {
     td->fCounters[fId]->fNscalar += bvector.size();
-    for (auto track : bvector.Tracks())
-      fHandlers[i]->DoIt(track, output, td);
+    fHandlers[i]->DoItScalar(bvector, output, td);
   }
   return nflushed;
 }
@@ -236,11 +266,13 @@ int SimulationStage::FlushAndProcess(TaskData *td)
       td->fCounters[fId]->fFlushed[i]++;
       if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
         td->fCounters[fId]->fNvector += bvector.size();
-        fHandlers[i]->DoIt(bvector, output, td);
+        if (fHandlers[i]->IsScalarDispatch())
+          fHandlers[i]->DoItScalar(bvector, output, td);
+        else
+          fHandlers[i]->DoIt(bvector, output, td);
       } else {
         td->fCounters[fId]->fNscalar += bvector.size();
-        for (auto track : bvector.Tracks())
-          fHandlers[i]->DoIt(track, output, td);
+        fHandlers[i]->DoItScalar(bvector, output, td);
       }
       bvector.Clear();
     }
@@ -311,7 +343,10 @@ int SimulationStage::Process(TaskData *td)
         // Vector DoIt
         td->fCounters[fId]->fNvector += bvector.size();
         td->fCounters[fId]->fFired[handler->GetId()]++;
-        handler->DoIt(bvector, output, td);
+        if (handler->IsScalarDispatch())
+          handler->DoItScalar(bvector, output, td);
+        else
+          handler->DoIt(bvector, output, td);
         bvector.Clear();
       }
     }

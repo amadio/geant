@@ -48,16 +48,18 @@ public:
   using basketizer_t = Basketizer<Track>;
 
 protected:
-  bool fThreadLocal  = false;          ///< Handler is thread local
-  bool fActive       = false;          ///< Activity flag
-  bool fMayBasketize = false;          ///< This handler can basketize
-  size_t fId         = 0;              ///< Handler id in the stage
-  int fBcap          = 0;              ///< Minimum capacity for the handled baskets
+  bool fThreadLocal    = false;        ///< Handler is thread local
+  bool fActive         = false;        ///< Activity flag
+  bool fMayBasketize   = false;        ///< This handler can basketize
+  bool fScalarDispatch = false;        ///< Dispatch baskets in scalar mode
+  size_t fId           = 0;            ///< Handler id in the stage
+  int fBcap            = 0;            ///< Minimum capacity for the handled baskets
   atomic_t<int> fThreshold;            ///< Basketizing threshold
   basketizer_t *fBasketizer = nullptr; ///< Basketizer for this handler
   Propagator *fPropagator   = nullptr; ///< Associated propagator
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   std::atomic_flag fLock; ///< Lock for flushing
+  std::string fName;      ///< Handler name
 #endif
 
 public:
@@ -118,6 +120,12 @@ public:
   GEANT_FORCE_INLINE
   int GetThreshold() const { return fThreshold; }
 
+  /** @brief Name getter */
+  const char *GetName() const { return fName.c_str(); }
+
+  /** @brief Name setter */
+  void SetName(const char *name) { fName = name; }
+
   /** @brief Does this handler basketize */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -137,6 +145,15 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetLocal(bool flag) { fThreadLocal = flag; }
+
+  /** @brief Is this handler dispatching scalar */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  bool IsScalarDispatch() const { return fScalarDispatch; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetScalarDispatch(bool flag = true) { fScalarDispatch = flag; }
 
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE

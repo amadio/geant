@@ -56,7 +56,7 @@ set(sources
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/FactoryStore.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/MyHit.cxx
    ${CMAKE_SOURCE_DIR}/run/userapp/src/StdApplication.cxx
-   ${CMAKE_CURRENT_SOURCE_DIR}/src/TransportManager.cxx
+#  ${CMAKE_CURRENT_SOURCE_DIR}/src/TransportManager.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/LocalityManager.cxx
    ${CMAKE_SOURCE_DIR}/core/interfaces/src/MCTruthMgr.cxx
    ${CMAKE_CURRENT_SOURCE_DIR}/src/RunManager.cxx

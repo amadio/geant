@@ -75,6 +75,7 @@ int PostStepActionPhysModelStage::CreateHandlers()
     }
     auto handler = new PostStepActionPhysModelHandler(threshold, fPropagator, m);
     handler->SetMayBasketize(modelTable[m]->IsBasketizable());
+    handler->SetScalarDispatch(fPropagator->fConfig->fUseSDPhysics);
     fHandlersPerModel.push_back(handler);
     AddHandler(handler);
     modelsAdded++;

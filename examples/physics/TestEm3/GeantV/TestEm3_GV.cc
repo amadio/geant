@@ -73,6 +73,7 @@ int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 int parFastSimActive            = 0;  // activated fast sim stage
+int parConfigMonitoring         = 0;  // activate some monitoring
 
 //
 // physics process configuration parameters:
@@ -187,6 +188,7 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"config-vectorized-physics", required_argument, 0, 'v'},
                                   {"config-vectorized-MSC", required_argument, 0, 'V'},
                                   {"fastsim-active", required_argument, 0, 'w'},
+                                  {"config-monitoring", required_argument, 0, 'x'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -337,6 +339,9 @@ void GetArguments(int argc, char *argv[])
     case 'w':
       parFastSimActive = (int)strtol(optarg, NULL, 10);
       break;
+    case 'x':
+      parConfigMonitoring = (int)strtol(optarg, NULL, 10);
+      break;
 
     //---- MCTruth handling
     case 'B':
@@ -414,12 +419,17 @@ geant::RunManager *RunManager()
   // this should be true by default from now on since we use only V3
   runConfig->fUseV3         = true;
   runConfig->fNminThreshold = 5 * parConfigNumThreads;
+  // Activate monitoring
+  if (parConfigMonitoring > 0) runConfig->fMonHandlers = true;
   // Set threshold for tracks to be reused in the same volume
-  runConfig->fNminReuse            = 100000;
-  runConfig->fMaxPerBasket         = parConfigNumTracksPerBasket;
-  runConfig->fUseVectorizedGeom    = parConfigVectorizedGeom;
+  runConfig->fNminReuse         = 100000;
+  runConfig->fMaxPerBasket      = parConfigNumTracksPerBasket;
+  runConfig->fUseVectorizedGeom = parConfigVectorizedGeom;
+  if (parConfigVectorizedGeom == 2) runConfig->fUseSDGeom = true;
   runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
-  runConfig->fUseVectorizedMSC     = parConfigVectorizedMSC;
+  if (parConfigVectorizedPhysics == 2) runConfig->fUseSDPhysics = true;
+  runConfig->fUseVectorizedMSC = parConfigVectorizedMSC;
+  if (parConfigVectorizedMSC == 2) runConfig->fUseSDMSC = true;
   // create the real physics main manager/interface object and set it in the RunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
   //
@@ -467,6 +477,7 @@ void SetupUserField(geant::RunManager *runMgr)
     config->fUseRungeKutta      = parFieldUseRK;
     config->fEpsilonRK          = parFieldEpsRK;
     config->fUseVectorizedField = parFieldBasketized;
+    if (parFieldBasketized == 2) config->fUseSDField = true;
 
     runMgr->SetUserFieldConstruction(fieldConstructor);
     printf("main: Created uniform field and set up field-propagation.\n");

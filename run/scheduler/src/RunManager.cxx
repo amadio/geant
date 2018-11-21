@@ -178,9 +178,6 @@ bool RunManager::Initialize()
     mgr->Init();
     if (fConfig->fUseVectorizedGeom) {
       printf("*** Using vectorized geometry, default basket size is %d\n", fConfig->fMaxPerBasket);
-      if (fNthreads > 1) {
-        printf("### \e[5mWARNING!    Basketized mode + MT not suported yet\e[m\n###\n");
-      }
     } else {
       printf("*** Using scalar geometry\n");
     }
@@ -533,10 +530,8 @@ void RunManager::RunSimulation()
   TaskData *td0 = fTDManager->GetTaskData(0);
   for (size_t stage = 0; stage < kNstages; ++stage) {
     SimulationStage *simstage = fPropagators[0]->GetStage(ESimulationStage(stage));
-    if (!simstage->IsBasketized()) {
-      // Printf("Stage %20s: not basketized", simstage->GetName());
-      continue;
-    }
+    if (!simstage->IsBasketized()) continue;
+    if (fConfig->fMonHandlers) simstage->PrintStatistics();
     // Merge stage counters
     for (size_t i = 1; i < fTDManager->GetNtaskData(); ++i) {
       TaskData *td = fTDManager->GetTaskData(i);

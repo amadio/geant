@@ -74,9 +74,13 @@ public:
   bool fUseV3                = false; /** Use version 3 of the scheduler */
   bool fUseNuma              = false; /** Use NUMA */
   bool fUseVectorizedGeom    = false; /** Use vectorized geometry */
+  bool fUseSDGeom            = false; /** Use scalar basket dispatch for geometry */
   bool fUseVectorizedPhysics = false; /** Use vectorized physics */
+  bool fUseSDPhysics         = false; /** Use scalar basket dispatch for physics */
   bool fUseVectorizedMSC     = false; /** Use vectorized multiple scattering */
+  bool fUseSDMSC             = false; /** Use scalar basket dispatch for MSC */
   bool fUseVectorizedField   = false; /** Use vectorized field */
+  bool fUseSDField           = false; /** Use scalar basket dispatch for field */
   bool fUseFastSim           = false; /** Use fast simulation */
 
   bool fSteppingVerbose = false; /** Enable verbose stepping at each step */
@@ -88,6 +92,7 @@ public:
   int fMonConcurrency    = 0; /** Monitor concurrency */
   int fMonTracksPerEvent = 0; /** Monitor tracks status per event */
   int fMonTracks         = 0; /** Monitor number of tracks */
+  int fMonHandlers       = 0; /** Monitor handlers activity */
 
   bool fFillTree              = false;  /** Enable I/O */
   bool fUseMonitoring         = false;  /** Monitoring different features */

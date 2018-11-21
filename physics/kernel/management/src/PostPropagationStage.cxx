@@ -52,7 +52,8 @@ int PostPropagationStage::CreateHandlers()
 {
   int threshold = fPropagator->fConfig->fNperBasket;
   // create the only one handler
-  AddHandler(new PostPropagationHandler(threshold, fPropagator));
+  auto h = AddHandler(new PostPropagationHandler(threshold, fPropagator));
+  h->SetScalarDispatch(fPropagator->fConfig->fUseSDMSC);
   // only one handler is created
   return 1;
 }

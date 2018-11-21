@@ -41,11 +41,12 @@ Handler::~Handler()
 VECCORE_ATT_HOST_DEVICE
 Handler::Handler(const Handler &other)
 {
-  fThreadLocal  = other.fThreadLocal;
-  fActive       = other.fActive;
-  fMayBasketize = other.fMayBasketize;
-  fId           = other.fId;
-  fBcap         = other.fBcap;
+  fThreadLocal    = other.fThreadLocal;
+  fActive         = other.fActive;
+  fMayBasketize   = other.fMayBasketize;
+  fScalarDispatch = other.fScalarDispatch;
+  fId             = other.fId;
+  fBcap           = other.fBcap;
   fThreshold.store(other.fThreshold.load());
   // Do not copy state counters, nor basketizer
   fPropagator = other.fPropagator;
