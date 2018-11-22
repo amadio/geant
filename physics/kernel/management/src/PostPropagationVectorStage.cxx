@@ -70,6 +70,7 @@ int PostPropagationVectorStage::CreateHandlers()
       continue;
     }
     auto handler = new PostPropagationVectorHandler(threshold, fPropagator, m);
+    handler->SetScalarDispatch(fPropagator->fConfig->fUseSDMSC);
     handler->SetMayBasketize(modelTable[m]->IsBasketizable());
     handler->SetLocal(bool(fLocalHandlers & geantphysics::kMSC));
     fHandlersPerModel.push_back(handler);

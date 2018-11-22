@@ -41,6 +41,7 @@ echo ""
 echo "GeantV: testing ${BENCH_CONFIG2}" > $BENCH_OUTPUT
 
 # Run GeantV application
+rm -f extracted_realtimes
 for i in $(seq 1 $TRIES);
   do
     echo -ne " testing ${i} ..." '\r';
@@ -65,7 +66,20 @@ for i in $(seq 1 $TRIES);
              --config-monitoring      0 \
              >gv.log 2>gv.log;
 
-    echo "GeantV: `grep -o 'RealTime.*' gv.log`" > $BENCH_OUTPUT;
+    grep -o 'RealTime.*' gv.log | sed -r 's/.*RealTime=//g' | sed -r 's/s.CpuTime=[0-9]*\.[0-9]*s//g' >> extracted_realtimes
 done
+
+# compute averages and standard deviations
+awk -f - extracted_realtimes <<-EOF >> ${BENCH_OUTPUT}
+{
+    for(i=1; i<=\$TRIES; i++) {
+        sum   +=  \$i;
+        sumsq += (\$i)^2
+    }
+}
+END {
+    printf "Run time for %d measurements = %.3f +/- %.3f\n", $TRIES, sum/$TRIES, sqrt((sumsq-sum^2/$TRIES)/$TRIES);
+}
+EOF
 
 cat $BENCH_OUTPUT
