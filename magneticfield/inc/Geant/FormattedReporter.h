@@ -16,10 +16,6 @@ const int sDefaultNameLength = 14;
 const int sDefaultPrecision  = 9;
 const int sDefaultVarSize    = sDefaultPrecision + 7;  // Was 12
 
-// using std::setw;
-// using std::cout;
-// using std::endl;
-
 template <typename Real_v>
 void ReportRowOfDoubles(std::string varName, const Real_v &varValue, int charName = -1, int widthVal = -1)
 {
@@ -81,7 +77,7 @@ void ReportManyRowsOfDoubles(std::string varArrName, const Real_v varArr[], int 
   std::cout << "##-------------------------------------------------------------------------------" << std::endl;
 }
 
-// ---------------------------------------------
+// -----------------------------------------------------------
 template <typename Real_v>
 Real_v GetMomentumMag(const Real_v varPositionsMomenta[6])
 {
@@ -91,6 +87,8 @@ Real_v GetMomentumMag(const Real_v varPositionsMomenta[6])
 
   return vecCore::math::Sqrt(px * px + py * py + pz * pz);
 }
+
+// -----------------------------------------------------------
 
 template <typename Real_v>
 void ReportRowsOfPositionsMomenta(std::string varName, const Real_v varPositionsMomenta[], int arrLen,
