@@ -188,6 +188,7 @@ VECCORE_ATT_HOST_DEVICE
 int PropagateSingleTrack(Track *track, Basket *output, TaskData *td, int stage);
 
 /** @brief Function that returns safe length */
+/****
 VECCORE_ATT_HOST_DEVICE
 GEANT_FORCE_INLINE
 double SafeLength(const Track &track, double Bz, double eps = 1.E-4)
@@ -196,6 +197,7 @@ double SafeLength(const Track &track, double Bz, double eps = 1.E-4)
   // shifted less than eps with respect to the linear propagation.
   return 2. * sqrt(eps / track.Curvature(Bz));
 }
+**/
 
 /** @brief Function allowing to debug a step */
 VECCORE_ATT_HOST_DEVICE
