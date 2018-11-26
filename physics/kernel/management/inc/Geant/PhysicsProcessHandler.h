@@ -46,7 +46,8 @@ private:
 public:
   /** @brief Default constructor */
   PhysicsProcessHandler(const geant::GeantConfig &config)
-      : fSimplifiedMSC(config.fUseVectorizedMSC), fVectorPostStepAction(config.fUseVectorizedPhysics)
+      : fSimplifiedMSC(config.fUseVectorizedMSC & !config.fUseSDMSC),
+        fVectorPostStepAction(config.fUseVectorizedPhysics)
   {
   }
 

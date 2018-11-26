@@ -21,11 +21,10 @@ namespace geantphysics {
 ComputeIntLHandler::ComputeIntLHandler(int threshold, geant::Propagator *propagator)
     : geant::Handler(threshold, propagator)
 {
+  SetName("ComputeIntL");
 }
 
-ComputeIntLHandler::~ComputeIntLHandler()
-{
-}
+ComputeIntLHandler::~ComputeIntLHandler() {}
 
 //
 // The select method of the ComputeIntLStage selected only those tracks that (1) that has any process assigned i.e.

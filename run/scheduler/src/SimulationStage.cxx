@@ -285,6 +285,19 @@ int SimulationStage::FlushAndProcess(TaskData *td)
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
+void SimulationStage::Info() const
+{
+  Printf("Stage %-20s: basketized=%d  nhandlers=%d", GetName(), fBasketized, GetNhandlers());
+  if (!fBasketized) return;
+  for (auto handler : fHandlers) {
+    if ((handler->MayBasketize() || handler->IsLocal() || handler->IsScalarDispatch()) && handler->GetId() < 20)
+      Printf("   handler %-30s: may_basketize=%d  local=%d scalar_dispatch=%d", handler->GetName(),
+             handler->MayBasketize(), handler->IsLocal(), handler->IsScalarDispatch());
+  }
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
 int SimulationStage::Process(TaskData *td)
 {
   // Processing is concurrent for all tasks/threads serving the same propagator.

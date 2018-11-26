@@ -23,6 +23,7 @@ GeomQueryHandler::GeomQueryHandler(Volume_t *vol, int threshold, Propagator *pro
   // Default constructor
   assert(vol && "GeomQueryHandler: A valid volume pointer has to be provided");
   ConnectToVolume();
+  if (vol) SetName(fVolume->GetName());
 }
 
 //______________________________________________________________________________
@@ -257,5 +258,5 @@ void GeomQueryHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 #endif
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

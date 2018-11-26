@@ -19,7 +19,10 @@
 
 namespace geantphysics {
 
-FastSimHandler::FastSimHandler(int threshold, geant::Propagator *propagator) : geant::Handler(threshold, propagator) {}
+FastSimHandler::FastSimHandler(int threshold, geant::Propagator *propagator) : geant::Handler(threshold, propagator)
+{
+  SetName("FastSim");
+}
 
 FastSimHandler::~FastSimHandler() {}
 

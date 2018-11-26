@@ -22,11 +22,10 @@ namespace geantphysics {
 PostPropagationHandler::PostPropagationHandler(int threshold, geant::Propagator *propagator)
     : geant::Handler(threshold, propagator)
 {
+  SetName("PostPropagation");
 }
 
-PostPropagationHandler::~PostPropagationHandler()
-{
-}
+PostPropagationHandler::~PostPropagationHandler() {}
 
 // The PostPropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process

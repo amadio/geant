@@ -12,6 +12,7 @@ VECCORE_ATT_HOST_DEVICE
 PreStepHandler::PreStepHandler(int threshold, Propagator *propagator) : Handler(threshold, propagator)
 {
   // Default constructor
+  SetName("PreStep");
 }
 
 //______________________________________________________________________________
@@ -25,7 +26,7 @@ PreStepHandler::~PreStepHandler()
 VECCORE_ATT_HOST_DEVICE
 void PreStepHandler::DoIt(Track *track, Basket &output, TaskData *td)
 {
-// Invoke scalar BeginTrack user actions.
+  // Invoke scalar BeginTrack user actions.
 
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   if (track->Status() == kNew) fPropagator->fApplication->BeginTrack(*track, td);
@@ -55,5 +56,5 @@ void PreStepHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   }
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

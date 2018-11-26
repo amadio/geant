@@ -398,6 +398,8 @@ int Propagator::CreateSimulationStages()
   GetStage(kSteppingActionsStage)->SetEndStage();
   GetStage(kSteppingActionsStage)->SetBasketizing(false);
 
+  for (auto stage : fStages)
+    stage->Info();
   return fStages.size();
 }
 

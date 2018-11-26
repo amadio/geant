@@ -27,6 +27,7 @@ PostStepActionPhysModelHandler::PostStepActionPhysModelHandler(int threshold, ge
 {
   fMayBasketize = true;
   fModel        = EMModel::GetGlobalTable()[modelIdx];
+  SetName(fModel->GetName().c_str());
 }
 
 PostStepActionPhysModelHandler::~PostStepActionPhysModelHandler() {}

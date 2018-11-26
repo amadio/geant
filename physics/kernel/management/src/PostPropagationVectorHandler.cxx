@@ -25,7 +25,8 @@ namespace geantphysics {
 PostPropagationVectorHandler::PostPropagationVectorHandler(int threshold, geant::Propagator *propagator, int modelIdx)
     : geant::Handler(threshold, propagator)
 {
-  fModel        = static_cast<MSCModel *>(EMModel::GetGlobalTable()[modelIdx]);
+  fModel = static_cast<MSCModel *>(EMModel::GetGlobalTable()[modelIdx]);
+  SetName("PostPropagationVector");
   fMayBasketize = true;
 }
 

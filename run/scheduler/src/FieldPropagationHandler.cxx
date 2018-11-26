@@ -61,6 +61,7 @@ FieldPropagationHandler::FieldPropagationHandler(int threshold, Propagator *prop
 {
   // Default constructor
   // std::cout << " FieldPropagationHandler c-tor called:  threshold= " << threshold << std::endl;
+  SetName("FieldPropagation");
   InitializeStats();
 }
 

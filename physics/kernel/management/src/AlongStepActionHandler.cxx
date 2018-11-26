@@ -22,6 +22,7 @@ namespace geantphysics {
 AlongStepActionHandler::AlongStepActionHandler(int threshold, geant::Propagator *propagator)
     : geant::Handler(threshold, propagator)
 {
+  SetName("AlongStepAction");
 }
 
 AlongStepActionHandler::~AlongStepActionHandler() {}

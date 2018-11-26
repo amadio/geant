@@ -15,6 +15,7 @@ VECCORE_ATT_HOST_DEVICE
 SteppingActionsHandler::SteppingActionsHandler(int threshold, Propagator *propagator) : Handler(threshold, propagator)
 {
   // Default constructor
+  SetName("SteppingActions");
 }
 
 //______________________________________________________________________________

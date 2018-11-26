@@ -23,6 +23,7 @@ namespace geantphysics {
 PostStepActionHandler::PostStepActionHandler(int threshold, geant::Propagator *propagator)
     : geant::Handler(threshold, propagator)
 {
+  SetName("PostStepAction");
 }
 
 PostStepActionHandler::~PostStepActionHandler() {}

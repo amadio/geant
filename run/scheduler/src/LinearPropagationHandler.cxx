@@ -13,6 +13,7 @@ LinearPropagationHandler::LinearPropagationHandler(int threshold, Propagator *pr
     : Handler(threshold, propagator)
 {
   // Default constructor
+  SetName("LinearPropagation");
 }
 
 //______________________________________________________________________________
@@ -146,5 +147,5 @@ bool LinearPropagationHandler::IsSameLocation(Track &track, TaskData *td) const
   return false;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

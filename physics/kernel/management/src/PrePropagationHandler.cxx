@@ -24,11 +24,10 @@ namespace geantphysics {
 PrePropagationHandler::PrePropagationHandler(int threshold, geant::Propagator *propagator)
     : geant::Handler(threshold, propagator)
 {
+  SetName("PrePropagation");
 }
 
-PrePropagationHandler::~PrePropagationHandler()
-{
-}
+PrePropagationHandler::~PrePropagationHandler() {}
 
 // The PrePropagationStage will select only tracks with particles that (1) has any physics processes
 // active in the given region and (2) has msc process

@@ -127,6 +127,9 @@ public:
 #endif
   }
 
+  VECCORE_ATT_HOST_DEVICE
+  void Info() const;
+
   //=== The stage processing methods === //
 
   /** @brief Set basketizing on/off */

@@ -23,6 +23,7 @@ namespace geantphysics {
 AtRestActionHandler::AtRestActionHandler(int threshold, geant::Propagator *propagator)
     : geant::Handler(threshold, propagator)
 {
+  SetName("AtRestAction");
 }
 
 AtRestActionHandler::~AtRestActionHandler() {}
