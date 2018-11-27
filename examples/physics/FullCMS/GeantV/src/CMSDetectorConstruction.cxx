@@ -10,9 +10,7 @@ CMSDetectorConstruction::CMSDetectorConstruction(geant::RunManager *runmgr)
 {
 }
 
-CMSDetectorConstruction::~CMSDetectorConstruction()
-{
-}
+CMSDetectorConstruction::~CMSDetectorConstruction() {}
 
 void CMSDetectorConstruction::CreateGeometry()
 {
