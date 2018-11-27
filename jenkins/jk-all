@@ -11,7 +11,7 @@ echo "--------------------------------------------------------------------------
 #---Run the CTest script depending on the compiler------------------------------------------
 ctest -VV -S ${THIS}/geantv-ctest.cmake
 
-cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/FullCMS
+cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/TestEm3
 bash ./bench_all.sh
 
 status=$?
