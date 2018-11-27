@@ -25,7 +25,7 @@ MyDetectorMessenger( MyDetectorConstruction* myDet )
 
   theGDMLCommand = new G4UIcmdWithAString( "/mydet/setGdmlFile", this );
   theGDMLCommand->SetGuidance( "Set the GDML file." );
-  theGDMLCommand->SetDefaultValue( "cms.gdml" );
+  theGDMLCommand->SetDefaultValue( "cms2018.gdml" );
   theGDMLCommand->AvailableForStates( G4State_PreInit, G4State_Idle );
 
 }

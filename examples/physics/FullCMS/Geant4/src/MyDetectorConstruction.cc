@@ -16,7 +16,7 @@ G4double MyDetectorConstruction::gFieldValue = 0.0;
 
 MyDetectorConstruction::MyDetectorConstruction() : fWorld(nullptr), fDetectorMessenger(nullptr)
 {
-  fGDMLFileName      = "cms.gdml";
+  fGDMLFileName      = "cms2018.gdml";
   fFieldValue        = 0.0;
   fDetectorMessenger = new MyDetectorMessenger(this);
 }

@@ -38,7 +38,7 @@ target_link_libraries(full_cms ${Geant4_LIBRARIES})
 #
 set(FULLCMS_SCRIPTS
   bench.g4
-  cms.gdml
+  ${CMAKE_SOURCE_DIR}/data/cms2018.gdml
   README
   )
 

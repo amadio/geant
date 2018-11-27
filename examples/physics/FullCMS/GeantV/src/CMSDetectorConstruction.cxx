@@ -6,7 +6,7 @@
 namespace cmsapp {
 
 CMSDetectorConstruction::CMSDetectorConstruction(geant::RunManager *runmgr)
-    : geant::UserDetectorConstruction(runmgr), fGDMLFileName("cms.gdml")
+    : geant::UserDetectorConstruction(runmgr), fGDMLFileName("cms2018.gdml")
 {
 }
 

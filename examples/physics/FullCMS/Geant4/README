@@ -19,7 +19,7 @@
 
      /mydet/setGdmlFile <gdml-file-name.gdml>
 
-     The default value is "/.cms.gdml".
+     The default value is "/.cms2018.gdml".
 
  # Magnetic filed:
      A constant magnetic field can be set through the macro command

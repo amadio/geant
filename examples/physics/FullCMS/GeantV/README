@@ -3,8 +3,8 @@ GeantV Full CMS Benchmark (November, 2017, M.Novak)
 
 'FullCMS' is a CPU benchmark test GeantV application based on the full CMS
 detector imported via a .gdml/.root file. (The corresponding Geant4 application
-is 'full-cms'.) The 'cms.gdml' file is available in the repository under
-geant/examples/physics/FullCMS/Geant4/cms.gdml and is installed at
+is 'full-cms'.) The 'cms2018.gdml' file is available in the repository under
+geant/data/cms2018.gdml and is installed at
 geantInstallDir/bin/examples/FullCMS/Geant4 and geantInstallDir/bin/examples/FullCMS/GeantV
 
 
@@ -18,7 +18,7 @@ geantInstallDir/bin/examples/FullCMS/Geant4 and geantInstallDir/bin/examples/Ful
 
     --det-set-gdml <gdml-file-name.gdml>
 
-    The default value is "./cms.gdml".
+    The default value is "./cms2018.gdml".
 
 
 

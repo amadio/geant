@@ -7,7 +7,7 @@
 ###
 ./FullCMS \
 "### detector parameters:"\
-  --det-set-gdml                           cms.gdml     "# gdml file "\
+  --det-set-gdml                           cms2018.gdml "# gdml file "\
 "### primary particle generation parameters:"\
   --gun-set-primary-energy                 10           "# kinetic energy of the primary particle [in GeV]"\
   --gun-set-primary-type                   e-           "# primary particle name/type"\

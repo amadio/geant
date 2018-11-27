@@ -16,7 +16,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/physics/kernel/material/inc
 )
 
-set(ExampleScripts FullCMS.mac README ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/Geant4/cms.gdml)
+set(ExampleScripts FullCMS.mac README ${CMAKE_SOURCE_DIR}/data/cms2018.gdml)
 # Set to 2 or more to exclude from the default set
 set(ExampleCTestLevel 2)
 
