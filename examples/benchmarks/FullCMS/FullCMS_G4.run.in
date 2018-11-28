@@ -1,23 +1,34 @@
 #!/bin/bash
 
-# Script running FullCMS simulation with identical configuration with GeantV and Geant4
-CONFIG_SCRIPT=$1
-if [ "$CONFIG_SCRIPT" = "" ]; then
-  echo "Usage: FullCMS.sh [configuration_script]"
-  exit 1
+# Script running FullCMS simulation for Geant4
+TRIES=$1
+if [ "$TRIES" = "" ]; then
+  TRIES=10
 fi
-. $CONFIG_SCRIPT
+### Primary generator
+GUN_PRIMARY_TYPE="e-"
+GUN_PRIMARY_ENERGY=100 #GeV
+
+### Field
+FIELD_ACTIVE=1
+FIELD_USE_RK=1
+
+### Configuration
+CONFIG_THREADS=1
+CONFIG_EVENTS=1
+CONFIG_PRIMARIES=10
+CONFIG_PERFORMANCE=1
+
 INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
 ### Geometry file used
-CMS_GDML="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cms.gdml"
-INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
+CMS_GDML="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cms2018.gdml"
 ### Executables
-GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/GeantV/FullCMS
 GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/Geant4/full_cms
 ### Benchmark config and output
-BENCH_OUTPUT="${GEANT_PERFTOOLS_FILE/prof/bench}"
+GEANT_PERFTOOLS_FILE="prof_G4.out"
+BENCH_OUTPUT="bench_G4.out"
 BENCH_CONFIG1="${GEANT_PERFTOOLS_FILE/prof_/}"
-BENCH_CONFIG2="${BENCH_CONFIG1/.out/}"
+BENCH_CONFIG2="G4.out"
 
 echo "### Running FullCMS for the configuration: ${BENCH_CONFIG2}"
 echo "    - primary type:        $GUN_PRIMARY_TYPE"
@@ -28,34 +39,7 @@ echo "    - primaries per event: $CONFIG_PRIMARIES"
 echo "    - performance mode:    $CONFIG_PERFORMANCE"
 echo "    - field present:       $FIELD_ACTIVE"
 echo "    - field Runge-Kutta:   $FIELD_USE_RK"
-echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
-echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
-echo "    - basketized MSC:      $CONFIG_BASKETIZED_MSC"
-echo "    - basketized geometry: $CONFIG_BASKETIZED_GEOM"
 echo ""
-
-# Run GeantV application
-$GEANTV_EXEC --det-set-gdml ${CMS_GDML} \
-             --gun-set-primary-energy ${GUN_PRIMARY_ENERGY} \
-             --gun-set-primary-type   ${GUN_PRIMARY_TYPE} \
-             --gun-set-primary-per-event ${CONFIG_PRIMARIES} \
-             --config-number-of-buffered-events    8 \
-             --config-total-number-of-events ${CONFIG_EVENTS} \
-             --config-number-of-threads ${CONFIG_THREADS} \
-             --config-number-of-propagators 1 \
-             --config-tracks-per-basket    32 \
-             --field-active ${FIELD_ACTIVE} \
-             --field-vector x=0.,y=0,z=40 \
-             --field-use-RK ${FIELD_USE_RK} \
-             --field-eps-RK 0.0003 \
-             --field-basketized ${CONFIG_BASKETIZED_FIELD} \
-             --config-run-performance ${CONFIG_PERFORMANCE} \
-             --config-vectorized-geom ${CONFIG_BASKETIZED_GEOM} \
-             --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS} \
-             --config-vectorized-MSC ${CONFIG_BASKETIZED_MSC} \
-             >gv.log 2>gv.log
-
-echo "GeantV: `grep -o 'RealTime.*' gv.log`" > $BENCH_OUTPUT
 
 # Generate the Geant4 macro
 
@@ -107,12 +91,32 @@ EOL
 
 # Run Geant4 application
 
-if [ "$CONFIG_PERFORMANCE" = "0" ]; then
-  $GEANT4_EXEC -m FullCMS_G4.mac >g4.log 2>g4.log
-else
-  $GEANT4_EXEC -m FullCMS_G4.mac -p >g4.log 2>g4.log
-fi
+rm -f extracted_realtimes
+for i in $(seq 1 $TRIES);
+  do
+    echo -ne " testing ${i} ..." '\r';
+    if [ "$CONFIG_PERFORMANCE" = "0" ]; then
+      stdbuf -o0 -e0 $GEANT4_EXEC -m FullCMS_G4.mac >g4.log 2>&1
+    else
+      stdbuf -o0 -e0 $GEANT4_EXEC -m FullCMS_G4.mac -p >g4.log 2>&1
+    fi
 
-echo "Geant4: `grep -o 'User=.*' g4.log`" >> $BENCH_OUTPUT
+    grep -o 'Real=.*' g4.log | sed -r 's/.*Real=//g' | sed -r 's/s.Sys=[0-9]*\.[0-9]*s.\[[^][]*\]//g' >> extracted_realtimes
+done
+
+# compute averages and standard deviations
+awk -f - extracted_realtimes <<-EOF > ${BENCH_OUTPUT}
+{
+    for(i=1; i<=\$TRIES; i++) {
+        sum   +=  \$i;
+        sumsq += (\$i)^2
+    }
+    average  = sum/$TRIES;
+    sigma = sqrt($TRIES*sumsq-sum*sum)/$TRIES
+}
+END {
+    printf "Run time for %d measurements = %.3f +/- %.3f\n", $TRIES, average, sigma;
+}
+EOF
 
 cat $BENCH_OUTPUT

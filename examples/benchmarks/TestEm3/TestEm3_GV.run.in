@@ -1,21 +1,38 @@
 #!/bin/bash
 
-# Script running TestEM3 simulation with identical configuration with GeantV and Geant4
-CONFIG_SCRIPT=$1
-TRIES=$2
-if [ "$CONFIG_SCRIPT" = "" ]; then
-  echo "Usage: TestEm3.sh [configuration_script]"
-  exit 1
-fi
+# Script running TestEm3 simulation for several options of GeantV
+TRIES=$1
 if [ "$TRIES" = "" ]; then
   TRIES=10
 fi
-. $CONFIG_SCRIPT
+### Primary generator
+GUN_PRIMARY_TYPE="e-"
+GUN_PRIMARY_ENERGY=100 #GeV
+
+### Field
+FIELD_ACTIVE=1
+FIELD_USE_RK=1
+
+### Configuration
+CONFIG_THREADS=1
+CONFIG_EVENTS=10
+CONFIG_PRIMARIES=1
+CONFIG_PERFORMANCE=1
+CONFIG_BASKETIZED_FIELD=$2
+CONFIG_BASKETIZED_PHYSICS=$3
+CONFIG_BASKETIZED_GEOM=$4
+CONFIG_BASKETIZED_MSC=$5
+
+GEANT_PHYSICS_DATA=@CMAKE_SOURCE_DIR@/physics/data
 INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
 ### Executables
 GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/GeantV/TestEm3_GV
-GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/Geant4/TestEm3
 ### Benchmark config and output
+GEANT_PERFTOOLS_FILE="prof_GV_\
+F${CONFIG_BASKETIZED_FIELD}_\
+P${CONFIG_BASKETIZED_PHYSICS}_\
+G${CONFIG_BASKETIZED_GEOM}_\
+M${CONFIG_BASKETIZED_MSC}.out"
 BENCH_OUTPUT="${GEANT_PERFTOOLS_FILE/prof/bench}"
 BENCH_CONFIG1="${GEANT_PERFTOOLS_FILE/prof_/}"
 BENCH_CONFIG2="${BENCH_CONFIG1/.out/}"
@@ -42,7 +59,7 @@ rm -f extracted_realtimes
 for i in $(seq 1 $TRIES);
   do
     echo -ne " testing ${i} ..." '\r';
-    stdbuf -oL $GEANTV_EXEC --det-number-of-absorbers 2 \
+    stdbuf -o0 -e0 $GEANTV_EXEC --det-number-of-absorbers 2 \
              --det-number-of-layers    50 \
              --det-set-absorber  absorber-index=0,material-name=NIST_MAT_Pb \
              --det-set-absorber  absorber-index=0,thickness=0.23 \
@@ -69,20 +86,22 @@ for i in $(seq 1 $TRIES);
              --config-vectorized-physics ${CONFIG_BASKETIZED_PHYSICS} \
              --config-vectorized-MSC ${CONFIG_BASKETIZED_MSC} \
              --config-monitoring      0 \
-             >gv.log 2>gv.log;
+             >gv.log 2>&1;
 
   grep -o 'RealTime.*' gv.log | sed -r 's/.*RealTime=//g' | sed -r 's/s.CpuTime=[0-9]*\.[0-9]*s//g' >> extracted_realtimes
 done
 # compute averages and standard deviations
-awk -f - extracted_realtimes <<-EOF >> ${BENCH_OUTPUT}
+awk -f - extracted_realtimes <<-EOF > ${BENCH_OUTPUT}
 {
     for(i=1; i<=\$TRIES; i++) {
         sum   +=  \$i;
         sumsq += (\$i)^2
     }
+    average  = sum/$TRIES;
+    sigma = sqrt($TRIES*sumsq-sum*sum)/$TRIES
 }
 END {
-    printf "Run time for %d measurements = %.3f +/- %.3f\n", $TRIES, sum/$TRIES, sqrt((sumsq-sum^2/$TRIES)/$TRIES);
+    printf "Run time for %d measurements = %.3f +/- %.3f\n", $TRIES, average, sigma;
 }
 EOF
 

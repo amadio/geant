@@ -1,5 +1,3 @@
 #!/bin/bash
-for file in mt*.sh
-do
-  bash FullCMS.run $file
-done
+bash bench_GV_all.sh "$1"
+bash FullCMS_G4.run "$1"
