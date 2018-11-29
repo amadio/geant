@@ -137,6 +137,7 @@ bool EventServer::AddEvent(Event *event)
   // Adds one event into the queue of pending events.
   bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
   int evt            = fNload.fetch_add(1);
+  assert(evt < fNevents);
   if (external_loop) evt = event->GetEvent();
   event->SetEvent(evt);
   // The vertex must be defined
@@ -256,14 +257,12 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *t
 
   // Pre-activate slot and event number
   fEvents[slot]->SetSlot(slot);
-  int nactive = fNactive.fetch_add(1) + 1;
   // fEvents[slot]->SetEvent(nactive - 1);
 
   // Try to replace the active event with the new one
   if (!fEvent.compare_exchange_strong(event, fEvents[slot])) {
     // Bad luck, someone else was faster.
     // Now we have to release the event and then the slot
-    fNactive--;
     fPendingEvents.enqueue(fEvents[slot]);
     fEvents[slot] = nullptr;
     fFreeSlots.enqueue(slot);
@@ -271,6 +270,8 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *t
     error = kNoerr;
     return event;
   }
+  event       = fEvents[slot];
+  int nactive = fNactive.fetch_add(1) + 1;
 
   // Check if all events were served
   if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator) {
