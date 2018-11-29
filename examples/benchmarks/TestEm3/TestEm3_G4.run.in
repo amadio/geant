@@ -39,8 +39,9 @@ echo "    - field present:       $FIELD_ACTIVE"
 echo "    - field Runge-Kutta:   $FIELD_USE_RK"
 echo ""
 
-# Generate the Geant4 macro
+echo "Geant4: testing ${BENCH_CONFIG2}" > $BENCH_OUTPUT
 
+# Generate the Geant4 macro
 cat >TestEm3_G4.mac <<EOL
 #
 # Geant4 macro for SimplyCalo simplified calorimeter modeling
@@ -117,17 +118,18 @@ for i in $(seq 1 $TRIES);
 done
 
 # compute averages and standard deviations
-awk -f - extracted_realtimes <<-EOF > ${BENCH_OUTPUT}
+awk -f - extracted_realtimes <<-EOF >> ${BENCH_OUTPUT}
 {
     for(i=1; i<=\$TRIES; i++) {
         sum   +=  \$i;
         sumsq += (\$i)^2
     }
     average  = sum/$TRIES;
-    sigma = sqrt($TRIES*sumsq-sum*sum)/$TRIES
+    sigma = sqrt($TRIES*sumsq-sum*sum)/$TRIES;
+    percent = 100.*sigma/average;
 }
 END {
-    printf "Run time for %d measurements = %.3f +/- %.3f\n", $TRIES, average, sigma;
+    printf "Run time for %d measurements = %.3f +/- %.3f (%.1f%)\n", $TRIES, average, sigma, percent;
 }
 EOF
 

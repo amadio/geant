@@ -91,17 +91,18 @@ for i in $(seq 1 $TRIES);
   grep -o 'RealTime.*' gv.log | sed -r 's/.*RealTime=//g' | sed -r 's/s.CpuTime=[0-9]*\.[0-9]*s//g' >> extracted_realtimes
 done
 # compute averages and standard deviations
-awk -f - extracted_realtimes <<-EOF > ${BENCH_OUTPUT}
+awk -f - extracted_realtimes <<-EOF >> ${BENCH_OUTPUT}
 {
     for(i=1; i<=\$TRIES; i++) {
         sum   +=  \$i;
         sumsq += (\$i)^2
     }
     average  = sum/$TRIES;
-    sigma = sqrt($TRIES*sumsq-sum*sum)/$TRIES
+    sigma = sqrt($TRIES*sumsq-sum*sum)/$TRIES;
+    percent = 100.*sigma/average;
 }
 END {
-    printf "Run time for %d measurements = %.3f +/- %.3f\n", $TRIES, average, sigma;
+    printf "Run time for %d measurements = %.3f +/- %.3f (%.1f%)\n", $TRIES, average, sigma, percent;
 }
 EOF
 
