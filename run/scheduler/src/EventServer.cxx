@@ -94,9 +94,11 @@ Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
     error = 1;
     return nullptr;
   }
-  int nload = fNload.load();
-  if (nload >= fNevents) {
+  // Reserve one event
+  int evt = fNload.fetch_add(1);
+  if (evt >= fNevents) {
     error = 2;
+    fNload--;
     fGenLock.clear(std::memory_order_release);
     return nullptr;
   }
@@ -104,14 +106,14 @@ Event *EventServer::GenerateNewEvent(TaskData *td, unsigned int &error)
   // Now just get next event from the generator
   EventInfo eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent(td);
   int ntracks         = eventinfo.ntracks;
-  int nloadtmp        = nload;
   while (!ntracks) {
-    Error("GenerateNewEvent", "### Problem with generator: event %d has no tracks", nloadtmp++);
+    Error("GenerateNewEvent", "### Problem with generator: event %d has no tracks", evt);
     eventinfo = fRunMgr->GetPrimaryGenerator()->NextEvent(td);
     ntracks   = eventinfo.ntracks;
   }
 
   Event *event = new Event();
+  event->SetEvent(evt);
   event->SetNprimaries(ntracks);
   event->SetVertex(eventinfo.xvert, eventinfo.yvert, eventinfo.zvert);
   // Populate event with primary tracks from the generator
@@ -136,10 +138,9 @@ bool EventServer::AddEvent(Event *event)
   using vecCore::math::Min;
   // Adds one event into the queue of pending events.
   bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
-  int evt            = fNload.fetch_add(1);
+  int evt            = fNload.load();
   assert(evt < fNevents);
   if (external_loop) evt = event->GetEvent();
-  event->SetEvent(evt);
   // The vertex must be defined
   vecgeom::Vector3D<double> vertex = event->GetVertex();
   int ntracks                      = event->GetNprimaries();
@@ -303,6 +304,7 @@ void EventServer::CompletedEvent(Event *event, TaskData *td)
     unsigned int error = 1; // Generator busy
     while (error == 1)
       GenerateNewEvent(td, error);
+    if (error == 4) std::runtime_error("CompletedEvent: could not add new event.");
   }
 }
 
