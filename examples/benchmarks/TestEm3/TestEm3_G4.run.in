@@ -20,6 +20,7 @@ CONFIG_PRIMARIES=1
 CONFIG_PERFORMANCE=1
 
 INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
+PATH="./${PATH}"
 ### Executables
 GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/Geant4/TestEm3
 ### Benchmark config and output

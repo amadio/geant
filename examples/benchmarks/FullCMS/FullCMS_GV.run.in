@@ -25,9 +25,10 @@ CONFIG_BASKETIZED_MSC=$5
 
 GEANT_PHYSICS_DATA=@CMAKE_SOURCE_DIR@/physics/data
 INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
+PATH="./${PATH}"
+
 ### Geometry file used
 CMS_GDML="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cms2018.gdml"
-INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
 ### Executables
 GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/GeantV/FullCMS
 ### Benchmark config and output
@@ -84,7 +85,7 @@ for i in $(seq 1 $TRIES);
              --config-monitoring      0 \
              >gv.log 2>&1;
 
-    grep -o 'RealTime.*' gv.log | sed -r 's/.*RealTime=//g' | sed -r 's/s.Sys=[0-9]*\.[0-9]*s//g' >> extracted_realtimes
+    grep -o 'RealTime.*' gv.log | sed -r 's/.*RealTime=//g' | sed -r 's/s.CpuTime=[0-9]*\.[0-9]*s//g' >> extracted_realtimes
 done
 
 # compute averages and standard deviations

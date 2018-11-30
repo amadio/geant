@@ -25,6 +25,8 @@ CONFIG_BASKETIZED_MSC=$5
 
 GEANT_PHYSICS_DATA=@CMAKE_SOURCE_DIR@/physics/data
 INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
+PATH="./${PATH}"
+
 ### Executables
 GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/TestEm3/GeantV/TestEm3_GV
 ### Benchmark config and output
