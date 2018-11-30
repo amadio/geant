@@ -277,6 +277,40 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
 #endif
 }
 
+void FieldPropagationHandler::VectorDispatchOverhead(TrackVec_t &tracks, TaskData *td)
+{
+  // This function just reproduces the overhead for gather/scatter in vector mode
+  using vecgeom::SOA3D;
+  using vecgeom::Vector3D;
+  const int nTracks = tracks.size();
+
+  PrepareBuffers(nTracks, td);
+
+  auto wsp                   = td->fSpace4FieldProp; // WorkspaceForFieldPropagation *
+  double *fltCharge          = wsp->fChargeInp;
+  double *momentumMag        = wsp->fMomentumInp;
+  double *steps              = wsp->fStepsInp;
+  SOA3D<double> &position3D  = *(wsp->fPositionInp);
+  SOA3D<double> &direction3D = *(wsp->fDirectionInp);
+
+  SOA3D<double> &PositionOut  = *(wsp->fPositionOutp);
+  SOA3D<double> &DirectionOut = *(wsp->fDirectionOutp);
+
+  for (int itr = 0; itr < nTracks; ++itr) {
+    Track *pTrack = tracks[itr];
+    // gather
+    fltCharge[itr]   = pTrack->Charge();
+    momentumMag[itr] = pTrack->P();
+    steps[itr]       = 0;
+
+    position3D.push_back(pTrack->X(), pTrack->Y(), pTrack->Z());
+    direction3D.push_back(pTrack->Dx(), pTrack->Dy(), pTrack->Dz());
+    // scatter
+    PositionOut.push_back(pTrack->X(), pTrack->Y(), pTrack->Z());
+    DirectionOut.push_back(pTrack->Dx(), pTrack->Dy(), pTrack->Dz());
+  }
+}
+
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
 void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, TaskData *td)

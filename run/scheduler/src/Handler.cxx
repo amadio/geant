@@ -51,6 +51,7 @@ Handler::Handler(const Handler &other)
   // Do not copy state counters, nor basketizer
   fPropagator = other.fPropagator;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+  fName = other.fName;
   fLock.clear();
 #endif
 }
@@ -68,6 +69,7 @@ Handler &Handler::operator=(const Handler &other)
     // Do not copy state counters, nor basketizer
     fPropagator = other.fPropagator;
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
+    fName = other.fName;
     fLock.clear();
 #endif
   }
@@ -89,8 +91,7 @@ VECCORE_ATT_HOST_DEVICE
 void Handler::DoItScalar(Basket &input, Basket &output, TaskData *td)
 {
   // Basketized DoIt method implemented as a loop. Overwrite to implement a natively
-  // vectorized version.
-  //  DoIt(input, output, td);
+  if (fScalarDispatch) VectorDispatchOverhead(input.Tracks(), td);
   for (auto track : input.Tracks())
     DoIt(track, output, td);
 }

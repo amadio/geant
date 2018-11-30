@@ -100,6 +100,9 @@ public:
   VECCORE_ATT_HOST_DEVICE
   void DoItScalar(Basket &input, Basket &output, TaskData *td);
 
+  /** @brief Emulate the overhead in scalar dispatch mode */
+  virtual void VectorDispatchOverhead(TrackVec_t &, TaskData *) {}
+
   /** @brief NUMA node getter */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -224,6 +227,12 @@ public:
   /** @brief Vector DoIt interface. Base class implements it as a loop. */
   VECCORE_ATT_HOST_DEVICE
   virtual void DoIt(Basket &input, Basket &output, TaskData *td) { fHandler->DoIt(input, output, td); }
+
+  /** @brief Emulate the overhead in scalar dispatch mode */
+  virtual void VectorDispatchOverhead(TrackVec_t &tracks, TaskData *td)
+  {
+    fHandler->VectorDispatchOverhead(tracks, td);
+  }
 
   /** @brief Add a track pointer to handler. */
   VECCORE_ATT_HOST_DEVICE

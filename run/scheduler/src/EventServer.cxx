@@ -138,9 +138,8 @@ bool EventServer::AddEvent(Event *event)
   using vecCore::math::Min;
   // Adds one event into the queue of pending events.
   bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
-  int evt            = fNload.load();
+  int evt            = event->GetEvent();
   assert(evt < fNevents);
-  if (external_loop) evt = event->GetEvent();
   // The vertex must be defined
   vecgeom::Vector3D<double> vertex = event->GetVertex();
   int ntracks                      = event->GetNprimaries();

@@ -53,6 +53,9 @@ public:
   VECCORE_ATT_HOST_DEVICE
   virtual ~FieldPropagationHandler();
 
+  /** @brief Emulate the overhead in scalar dispatch mode */
+  virtual void VectorDispatchOverhead(TrackVec_t &tracks, TaskData *td);
+
   /** @brief maximum acceptable deflection from curved trajectory */
   static const double gEpsDeflection; // = 1.E-2 * geant::units::cm;
 
