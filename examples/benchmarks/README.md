@@ -30,7 +30,7 @@ To run benchmarks in all configurations with NREP repetitions:
   bash bench_all.sh [NREP]
 
 The scripts FullCMS_GV.run and TestEm3_GV.run can be used to do profiling based on gperftools. To do this GeantV has to be
-compiled with USE_PERFTOOLS option ON. The above GeaqntV scripts should be run like:
+compiled with GPERFTOOLS option ON. The above GeaqntV scripts should be run like:
 
   [example]_GV.run 1
 
